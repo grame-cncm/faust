@@ -65,16 +65,10 @@ import android.util.Log;
 import java.net.SocketException;
 
 public class FaustActivity extends Activity {
-	int accelUpdateRate = 30; //in ms
 	private SensorManager mSensorManager;
 	float[] rawAccel = new float[3];
 	int numberOfParameters;
-	boolean activityJustCreated;
-	
-	//Thread displayThread, accelThread;
-	Thread accelThread;
-	boolean on = true; // process on/off
-	
+		
 	UI ui = new UI(); 
 	ParametersInfo parametersInfo = new ParametersInfo();
 	AccelUtil accelUtil = new AccelUtil();
@@ -85,16 +79,17 @@ public class FaustActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 		//getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    
+        // attempting to open a new OSC port, if default not available create a new one
+        int oscPortNumber = 5511;
+        while(!Osc.init(oscPortNumber)) oscPortNumber++;
+        //System.out.println("Osc In Port: " + oscPortNumber);
         
-        activityJustCreated = true; // used to load the saved parameters only once
-        
-        if (!dsp_faust.isRunning()) dsp_faust.init(44100,512);
-
-		// attempting to open a new OSC port, if default not available create a new one
-		int oscPortNumber = 5511;
-		while(!Osc.init(oscPortNumber)) oscPortNumber++;
-		//System.out.println("Osc In Port: " + oscPortNumber);
-        
+        if (!dsp_faust.isRunning()) {
+            dsp_faust.init(44100,512);
+            Osc.startListening();
+        }
+   
         numberOfParameters = dsp_faust.getParamsCount();
         
         parametersInfo.init(numberOfParameters);
@@ -107,15 +102,11 @@ public class FaustActivity extends Activity {
         ui.initUI(parametersInfo,settings);	
         ui.buildUI(this, mainGroup);
 
-        Osc.startListening();
-
         /*
          * ACCELEROMETERS
          */
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(
-        		Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
-       
+        
         /*
         final int displayThreadUpdateRate = 30;
         displayThread = new Thread() {
@@ -136,64 +127,51 @@ public class FaustActivity extends Activity {
         };
         displayThread.start();
         */
-		
-        // System.out.println("Voila: ");
-		accelThread = new Thread() {
-			public void run() {
-				float finalParameterValue = 0.0f;
-				// TODO: the accelerometer class should be used to clean this a little bit
-				while(on){
-					// for each UI element we control the accelerometer parameters
-					for(int i = 0; i<numberOfParameters; i++){
-						if(parametersInfo.accelState[i] >= 1 && parametersInfo.accelItemFocus[i] == 0){
-							if(parametersInfo.accelState[i] == 1){ 
-								finalParameterValue = accelUtil.transform(rawAccel[0], parametersInfo.accelMin[i], 
-										parametersInfo.accelMax[i], parametersInfo.accelCenter[i], parametersInfo.sliderCenter[i], parametersInfo.accelInverterState[i]);
-							}
-							else if(parametersInfo.accelState[i] == 2){
-								finalParameterValue = accelUtil.transform(rawAccel[1], parametersInfo.accelMin[i], 
-										parametersInfo.accelMax[i], parametersInfo.accelCenter[i], parametersInfo.sliderCenter[i], parametersInfo.accelInverterState[i]);
-							}
-							else if(parametersInfo.accelState[i] == 3){
-								finalParameterValue = accelUtil.transform(rawAccel[2], parametersInfo.accelMin[i], 
-										parametersInfo.accelMax[i], parametersInfo.accelCenter[i], parametersInfo.sliderCenter[i], parametersInfo.accelInverterState[i]);
-							}	
-							// the slider value is modified by the accelerometer 
-							final float finalParamValue = finalParameterValue;
-							final int index = i;
-							// the UI elements must be updated within the UI thread...
-							runOnUiThread(new Runnable() {
-		        	        	@Override 
-		        	        	public void run() {
-		        	        		setPriority(Thread.MAX_PRIORITY);
-		        	        		if(parametersInfo.parameterType[index] == 0) 
-		        	        			ui.hsliders[parametersInfo.localId[index]].setNormizedValue(finalParamValue);
-		        	        		else if(parametersInfo.parameterType[index] == 1) 
-		        	        			ui.vsliders[parametersInfo.localId[index]].setNormizedValue(finalParamValue);
-		        	        		else if(parametersInfo.parameterType[index] == 2) 
-		        	        			ui.knobs[parametersInfo.localId[index]].setNormizedValue(finalParamValue);
-		        	        		else if(parametersInfo.parameterType[index] == 3) 
-		        	        			ui.nentries[parametersInfo.localId[index]].setNormizedValue(finalParamValue);  	}
-							});
-						}
-					}
-					try {
-						accelThread.sleep(accelUpdateRate);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-                    //System.out.println("Here");
-				}		
-			}
-		};
-		accelThread.start();
     }
     
     private final SensorEventListener mSensorListener = new SensorEventListener() {
 		public void onSensorChanged(SensorEvent se) {
+            //Log.d("FaustJava", "onSensorChanged");
 			rawAccel[0] = se.values[0];
 			rawAccel[1] = se.values[1];
 			rawAccel[2] = se.values[2];
+    
+            float finalParameterValue = 0.0f;
+    
+            // for each UI element we control the accelerometer parameters
+            for (int i = 0; i<numberOfParameters; i++) {
+                if(parametersInfo.accelState[i] >= 1 && parametersInfo.accelItemFocus[i] == 0){
+                    if(parametersInfo.accelState[i] == 1){
+                        finalParameterValue = accelUtil.transform(rawAccel[0], parametersInfo.accelMin[i],
+                                                                  parametersInfo.accelMax[i], parametersInfo.accelCenter[i], parametersInfo.sliderCenter[i], parametersInfo.accelInverterState[i]);
+                    }
+                    else if(parametersInfo.accelState[i] == 2){
+                        finalParameterValue = accelUtil.transform(rawAccel[1], parametersInfo.accelMin[i],
+                                                                  parametersInfo.accelMax[i], parametersInfo.accelCenter[i], parametersInfo.sliderCenter[i], parametersInfo.accelInverterState[i]);
+                    }
+                    else if(parametersInfo.accelState[i] == 3){
+                        finalParameterValue = accelUtil.transform(rawAccel[2], parametersInfo.accelMin[i],
+                                                                  parametersInfo.accelMax[i], parametersInfo.accelCenter[i], parametersInfo.sliderCenter[i], parametersInfo.accelInverterState[i]);
+                    }
+                    // the slider value is modified by the accelerometer
+                    final float finalParamValue = finalParameterValue;
+                    final int index = i;
+                    // the UI elements must be updated within the UI thread...
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //setPriority(Thread.MAX_PRIORITY);
+                            if(parametersInfo.parameterType[index] == 0)
+                                ui.hsliders[parametersInfo.localId[index]].setNormizedValue(finalParamValue);
+                            else if(parametersInfo.parameterType[index] == 1)
+                                ui.vsliders[parametersInfo.localId[index]].setNormizedValue(finalParamValue);
+                            else if(parametersInfo.parameterType[index] == 2)
+                                ui.knobs[parametersInfo.localId[index]].setNormizedValue(finalParamValue);
+                            else if(parametersInfo.parameterType[index] == 3) 
+                                ui.nentries[parametersInfo.localId[index]].setNormizedValue(finalParamValue);  	}
+                    });
+                }
+            }
 		}
 	    public void onAccuracyChanged(Sensor sensor, int accuracy) {
 	    }
@@ -274,7 +252,6 @@ public class FaustActivity extends Activity {
    	protected void onPause() {
         Log.d("FaustJava", "onPause");
    		mSensorManager.unregisterListener(mSensorListener);
-   		activityJustCreated = false;
    		super.onPause();
    	}
 
@@ -282,11 +259,9 @@ public class FaustActivity extends Activity {
     protected void onResume() {
         Log.d("FaustJava", "onResume");
 		super.onResume();
-		if (!activityJustCreated) ui.updateUIstate();
         mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(
 	    		Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
-	    on = true; // TODO: why?
-    }
+   }
 
     @Override
     protected void onStart() {
@@ -295,6 +270,7 @@ public class FaustActivity extends Activity {
         if (!isChangingConfigurations()) {
             dsp_faust.start();
         }
+        ui.updateUIstate();
     }
 
     @Override
@@ -310,26 +286,18 @@ public class FaustActivity extends Activity {
         if (!isChangingConfigurations()) {
             dsp_faust.stop();
         }
-        SharedPreferences settings = getSharedPreferences("savedParameters", 0);
-        parametersInfo.saveParameters(settings);
     }
 
     @Override
     public void onDestroy(){
         Log.d("FaustJava", "onDestroy");
     	super.onDestroy();
-    	on = false;
     	// only stops audio when the user press the return button (and not when the screen is rotated)
     	if (!isChangingConfigurations()) {
+            Osc.stopListening();
     		dsp_faust.destroy();
     	}
-    	try {
-			//displayThread.join();
-			accelThread.join();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-    	//displayThread = null;
-    	accelThread = null;
+        SharedPreferences settings = getSharedPreferences("savedParameters", 0);
+        parametersInfo.saveParameters(settings);
     }
 }
