@@ -5,6 +5,7 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/PathUI.h"
 #include "faust/gui/ValueConverter.h"
+#include <sstream>
 #include <string>
 #include <vector>
 #include <map>
