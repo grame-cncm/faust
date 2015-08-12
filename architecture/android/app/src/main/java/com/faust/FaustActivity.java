@@ -56,6 +56,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
+
+import android.util.Log;
+
 //import android.view.WindowManager;
 //import android.view.WindowManager.LayoutParams;
 
@@ -78,13 +81,14 @@ public class FaustActivity extends Activity {
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.d("FaustJava", "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 		//getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         
         activityJustCreated = true; // used to load the saved parameters only once
         
-        if(!dsp_faust.isRunning()) dsp_faust.init(44100,512);
+        if (!dsp_faust.isRunning()) dsp_faust.init(44100,512);
 
 		// attempting to open a new OSC port, if default not available create a new one
 		int oscPortNumber = 5511;
@@ -111,9 +115,7 @@ public class FaustActivity extends Activity {
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(
         		Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
-        
-        if(!dsp_faust.isRunning()) dsp_faust.start();
-
+       
         /*
         final int displayThreadUpdateRate = 30;
         displayThread = new Thread() {
@@ -141,7 +143,7 @@ public class FaustActivity extends Activity {
 				float finalParameterValue = 0.0f;
 				// TODO: the accelerometer class should be used to clean this a little bit
 				while(on){
-					// for each UI element we control the acceleirometer parameters
+					// for each UI element we control the accelerometer parameters
 					for(int i = 0; i<numberOfParameters; i++){
 						if(parametersInfo.accelState[i] >= 1 && parametersInfo.accelItemFocus[i] == 0){
 							if(parametersInfo.accelState[i] == 1){ 
@@ -187,7 +189,6 @@ public class FaustActivity extends Activity {
 		accelThread.start();
     }
     
-    
     private final SensorEventListener mSensorListener = new SensorEventListener() {
 		public void onSensorChanged(SensorEvent se) {
 			rawAccel[0] = se.values[0];
@@ -200,20 +201,20 @@ public class FaustActivity extends Activity {
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        Log.d("FaustJava", "onCreateOptionsMenu");
         // Inflate the menu items for use in the action bar
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_activity_actions, menu);
         MenuItem lockItem = menu.getItem(3); // retrieving the registered ID doesn't seem to work -> hardcoded here
         MenuItem keybItem = menu.getItem(0);
-        if(!parametersInfo.locked){
+        if (!parametersInfo.locked) {
     		lockItem.setIcon(R.drawable.ic_lockiconopen);
-    	}
-    	else{
+    	} else {
     		lockItem.setIcon(R.drawable.ic_lockiconclose);
     		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
     	}
         // display the keyboard icon if the Faust code enables keyboard interfaces
-        if(!ui.hasKeyboard && !ui.hasMulti) keybItem.setVisible(false);
+        if (!ui.hasKeyboard && !ui.hasMulti) keybItem.setVisible(false);
         return super.onCreateOptionsMenu(menu);
     }
     
@@ -271,32 +272,56 @@ public class FaustActivity extends Activity {
     
     @Override
    	protected void onPause() {
+        Log.d("FaustJava", "onPause");
    		mSensorManager.unregisterListener(mSensorListener);
    		activityJustCreated = false;
    		super.onPause();
    	}
-    
+
+    @Override
     protected void onResume() {
+        Log.d("FaustJava", "onResume");
 		super.onResume();
-		if(!activityJustCreated) ui.updateUIstate();
-	    mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(
+		if (!activityJustCreated) ui.updateUIstate();
+        mSensorManager.registerListener(mSensorListener, mSensorManager.getDefaultSensor(
 	    		Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_FASTEST);
 	    on = true; // TODO: why?
     }
-    
+
+    @Override
+    protected void onStart() {
+        Log.d("FaustJava", "onStart");
+        super.onStart();
+        if (!isChangingConfigurations()) {
+            dsp_faust.start();
+        }
+    }
+
+    @Override
+    protected void onRestart() {
+        Log.d("FaustJava", "onRestart");
+        super.onRestart();
+    }
+
     @Override
     protected void onStop(){
-       super.onStop();
-       SharedPreferences settings = getSharedPreferences("savedParameters", 0);
-       parametersInfo.saveParemeters(settings);
+        Log.d("FaustJava", "onStop");
+        super.onStop();
+        if (!isChangingConfigurations()) {
+            dsp_faust.stop();
+        }
+        SharedPreferences settings = getSharedPreferences("savedParameters", 0);
+        parametersInfo.saveParemeters(settings);
     }
-    
+
+    @Override
     public void onDestroy(){
+        Log.d("FaustJava", "onDestroy");
     	super.onDestroy();
     	on = false;
     	// only stops audio when the user press the return button (and not when the screen is rotated)
-    	if(!isChangingConfigurations()){
-    		dsp_faust.stop();
+    	if (!isChangingConfigurations()) {
+    		dsp_faust.destroy();
     	}
     	try {
 			//displayThread.join();

@@ -218,18 +218,22 @@ static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionC
 extern "C" {
 #endif
 
-SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_init(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2) {
-  int arg1 ;
-  int arg2 ;
+SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_init(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2) {
+  jint jresult = 0 ;
+  int arg1;
+  int arg2;
+  int result;
   
   (void)jenv;
   (void)jcls;
   arg1 = (int)jarg1; 
   arg2 = (int)jarg2; 
-  init(arg1,arg2);
+  result = init(arg1,arg2);
+  jresult = (jint)result;
+  return jresult;
 }
 
-
+    
 SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_start(JNIEnv *jenv, jclass jcls) {
   jint jresult = 0 ;
   int result;
@@ -248,6 +252,12 @@ SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_stop(JNIEnv *jenv, jcl
   stop();
 }
 
+    
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_destroy(JNIEnv *jenv, jclass jcls) {
+    (void)jenv;
+    (void)jcls;
+    destroy();
+}
 
 SWIGEXPORT jboolean JNICALL Java_com_dsp_1faust_dsp_1faustJNI_isRunning(JNIEnv *jenv, jclass jcls) {
   jboolean jresult = 0 ;

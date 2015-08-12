@@ -17,9 +17,10 @@
  ************************************************************************
  ************************************************************************/
 
-void init(int, int);
+bool init(int, int);
 bool start(void);
 void stop(void);
+void destroy(void);
 bool isRunning(void);
 int keyOn(int, int);
 int keyOff(int);

@@ -86,8 +86,11 @@ bool on;
  * polyphonic object or not based on that. init
  * should be called before start.
  */
-void init(int samplingRate, int bufferFrames) {
-	// configuring global variables
+bool init(int samplingRate, int bufferFrames) {
+    
+    __android_log_print(ANDROID_LOG_ERROR, "Faust", "JNI init");
+    
+  	// configuring global variables
 	SR = samplingRate;
 	bufferSize = bufferFrames;
 
@@ -105,6 +108,12 @@ void init(int samplingRate, int bufferFrames) {
     } else {
         polyMax = 0;
     }
+    
+    // allocating audio
+    if (!(p = new androidaudio(SR, bufferSize))) return false;
+    if (!p->init("Dummy", (polyMax == 0) ? &mono_dsp : (dsp*)poly_dsp)) return false;
+    
+    return true;
 }
 
 /*
@@ -115,22 +124,30 @@ void init(int samplingRate, int bufferFrames) {
  * DSP tasks will be computed.
  */
 bool start() {
+    __android_log_print(ANDROID_LOG_ERROR, "Faust", "JNI start");
 	on = true;
-    p = new androidaudio(SR, bufferSize);
-    if (!p) return false;
-    if (!p->init("Dummy", (polyMax == 0) ? &mono_dsp : (dsp*)poly_dsp)) return false;
     return p->start();
 }
 
 /*
  * stop()
- * Stops the processing, closes the audio engine and terminates
- * the native thread on Android.
+ * Stops the processing.
  */
 void stop() {
+    __android_log_print(ANDROID_LOG_ERROR, "Faust", "JNI stop");
 	on = false;
+    p->stop();
+}
+        
+/*
+ * destroy()
+ * Destroy the audio engine and related ressources.
+ * the native thread on Android.
+ */
+void destroy() {
+    __android_log_print(ANDROID_LOG_ERROR, "Faust", "JNI destroy");
     delete p;
-  	delete poly_dsp;
+    delete poly_dsp;
 }
 
 /*

@@ -27,7 +27,7 @@ import com.illposed.osc.OSCMessage;
  * 	remains the same on every screen. Perhaps this should be changed?
  */
 
-public class UI{
+public class UI {
 	/*
 	 * Global Variables (accessible from outside the class).
 	 */
