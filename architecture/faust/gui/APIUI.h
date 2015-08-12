@@ -11,6 +11,8 @@
 
 using namespace std;
 
+enum { kLin = 0, kLog = 1, kExp = 2 };
+
 class APIUI : public PathUI, public Meta
 {
     protected:
