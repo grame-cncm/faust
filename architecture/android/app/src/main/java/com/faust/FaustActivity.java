@@ -229,13 +229,13 @@ public class FaustActivity extends Activity {
         		}
         		else if(ui.hasMulti && !ui.hasKeyboard){
         			SharedPreferences settings = getSharedPreferences("savedParameters", 0);
-        		    parametersInfo.saveParemeters(settings);
+        		    parametersInfo.saveParameters(settings);
         			Intent multiIntent = new Intent(this, MultiActivity.class);
         			startActivity(multiIntent);
         		}
         		else if(ui.hasMulti && ui.hasKeyboard){
         			SharedPreferences settings = getSharedPreferences("savedParameters", 0);
-        		    parametersInfo.saveParemeters(settings);
+        		    parametersInfo.saveParameters(settings);
         			Intent multiIntent = new Intent(this, MultiKeyboardActivity.class);
         			startActivity(multiIntent);
         		}
@@ -311,7 +311,7 @@ public class FaustActivity extends Activity {
             dsp_faust.stop();
         }
         SharedPreferences settings = getSharedPreferences("savedParameters", 0);
-        parametersInfo.saveParemeters(settings);
+        parametersInfo.saveParameters(settings);
     }
 
     @Override

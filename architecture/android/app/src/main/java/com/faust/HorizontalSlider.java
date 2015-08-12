@@ -114,9 +114,13 @@ class HorizontalSlider {
 	// TODO: this screwed but was fixed to work with the multi interface 
 	// but there might still be weird things going on...
 	public void setValue(float theValue){
-		if(theValue<=0 && min<0) slider.setProgress(Math.round(theValue*(1/step)+min));
+        /*
+        if(theValue<=0 && min<0) slider.setProgress(Math.round(theValue*(1/step)+min));
 		else slider.setProgress(Math.round(theValue*(1/step)-min));
-		setDisplayedValue(theValue);
+         */
+        //SL : seems wrong, corrected 08/12/2015
+        slider.setProgress(Math.round((theValue-min)/step));
+        setDisplayedValue(theValue);
 	}
 	
 	/*

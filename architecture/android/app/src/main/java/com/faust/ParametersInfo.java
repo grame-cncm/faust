@@ -67,7 +67,7 @@ class ParametersInfo{
 		}
 	}
 	
-	public void saveParemeters(SharedPreferences settings){
+	public void saveParameters(SharedPreferences settings){
 		SharedPreferences.Editor editor = settings.edit();
 		editor.putInt("wasSaved",saved);
 		editor.putInt("zoom", zoom);
@@ -91,7 +91,7 @@ class ParametersInfo{
 		editor.commit();
 	}
 	
-	public boolean getSavedParameters(SharedPreferences settings){
+	public boolean loadParameters(SharedPreferences settings){
 		if(settings.getInt("wasSaved",0) == 1){
 			zoom = settings.getInt("zoom", 0);
 			locked = settings.getBoolean("locked",true);
