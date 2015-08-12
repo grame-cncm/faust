@@ -5,8 +5,13 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/PathUI.h"
 #include "faust/gui/ValueConverter.h"
+#include <string>
 #include <vector>
 #include <map>
+
+using namespace std;
+
+enum { kLin = 0, kLog = 1, kExp = 2 };
 
 class APIUI : public PathUI, public Meta
 {
