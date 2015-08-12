@@ -161,8 +161,7 @@ class androidaudio : public audio {
                 };
             };
         }
-
-    
+          
     public:
     
         androidaudio(long srate, long bsize)

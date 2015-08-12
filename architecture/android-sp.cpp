@@ -2,7 +2,7 @@
  ************************************************************************
  FAUST Architecture File for Android
  Copyright (C) 2013 GRAME, Romain Michon, CCRMA - Stanford University
- Copyright (C) 2003-2013 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  
  This is sample code. This file is provided as an example of minimal
@@ -20,9 +20,6 @@
 /*
  * README:
  * The file only implements the native part of faust2android applications.
- * It uses a modified version of Victor Lazzarini's opensl_io (available at:
- * https://bitbucket.org/victorlazzarini/android-audiotest) adapted to Faust
- * to minimize latency.
  * The native C API is documented at the end of this file in the "Native Faust
  * API" section.
  */
@@ -232,7 +229,6 @@ void setParam(const char* address, float value) {
 	} else {
 		poly_dsp->setValue(address, value);
     }
-	//__android_log_print(ANDROID_LOG_VERBOSE, "Echo", "Foucou: %s",address);
 }
 
 /*

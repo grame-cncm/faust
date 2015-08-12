@@ -54,6 +54,8 @@
 // Android Audio (modified opensl_io)
 //**************************************************************
 
+#define FAUSTFLOAT float
+
 #include "faust/audio/opensles-android-dsp.h"
 
 //**************************************************************
@@ -64,8 +66,6 @@
 #include "dsp_faust.h"
 #include <stdio.h>
 #include <string.h>
-
-#define FAUSTFLOAT float
 
 using namespace std;
 
@@ -288,7 +288,6 @@ void setParam(const char* address, float value) {
 	} else {
 		DSPpoly->setValue(address, value);
     }
-	//__android_log_print(ANDROID_LOG_VERBOSE, "Echo", "Foucou: %s",address);
 }
 
 /*
