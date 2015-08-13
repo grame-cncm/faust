@@ -100,10 +100,16 @@ class APIUI : public PathUI, public Meta
     
         ZoneControl* getAccZoneControl(int p, int acc, int& index)
         {
+            if (p < 0 || p > fZone.size()) {
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "getAccZoneControl incorrect p = %d size = %d", p, fZone.size());
+                return NULL;
+            }
+            
             FAUSTFLOAT* zone = fZone[p];
             for (index = 0; index < fAcc[acc].size(); index++) {
                 if (zone == fAcc[acc][index]->getZone()) break;
             }
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "getAccZoneControl index = %d", index);
             return fAcc[acc][index];
         }
     
@@ -229,8 +235,14 @@ class APIUI : public PathUI, public Meta
             // Replace 'control'
             int index;
             ZoneControl* control = getAccZoneControl(p, acc, index);
-            fAcc[acc][index] = new ZoneControl(fZone[p], makeAccConverter(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]));
-            delete control;
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter control = %p", control);
+            if (control) {
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter 1");
+                fAcc[acc][index] = new ZoneControl(fZone[p], makeAccConverter(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]));
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter 2");
+                //delete control;
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter 3");
+            }
         }
   
         ValueConverter* getAccConverter(int p, int acc)

@@ -33,3 +33,4 @@ int setVoiceParam(const char*, int, float);
 int setVoiceGain(int, float);
 const char* getParamAddress(int);
 void propagateAcc(int acc, float v);
+void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax);

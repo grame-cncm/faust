@@ -16,6 +16,8 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
+import android.util.Log;
+
 /*
  * Create a horizontal slider that displays its current value on its left. 
  */
@@ -143,8 +145,8 @@ class HorizontalSlider {
 	public void linkTo(final ParametersInfo parametersInfo, final ConfigWindow parametersWindow, final HorizontalScrollView horizontalScroll){
 		localVerticalGroup.setOnLongClickListener(new OnLongClickListener(){
 			public boolean onLongClick (View v){
-				if(!parametersInfo.locked) parametersWindow.showWindow(parametersInfo, id);
-				return true;
+       			if(!parametersInfo.locked) parametersWindow.showWindow(parametersInfo, id);
+    			return true;
 			}
 		});
 		

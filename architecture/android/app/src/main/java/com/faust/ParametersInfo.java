@@ -6,7 +6,7 @@ import android.util.Log;
 
 class ParametersInfo{
     
-    final String VERSION = "0.01";
+    final String VERSION = "0.02";
 	// Saved Parameters
 	String[] address;
 	float[] values;

@@ -35,4 +35,5 @@ public class dsp_faustJNI {
   public final static native int setVoiceGain(int jarg1, float jarg2);
   public final static native String getParamAddress(int jarg1);
   public final static native void propagateAcc(int jarg1, float jarg2);
+  public final static native void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax);
 }

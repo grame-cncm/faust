@@ -440,6 +440,13 @@ SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_propagateAcc(JNIEnv *j
     propagateAcc(arg1, arg2);
 }
     
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setAccConverter(JNIEnv *jenv, jclass jcls, jint p, jint acc, jint curve, jfloat amin, jfloat amid, jfloat amax) {
+    
+    (void)jenv;
+    (void)jcls;
+    setAccConverter((int)p, (int)acc, (int)curve, (float)amin, (float)amid, (float)amax);
+}
+    
 #ifdef __cplusplus
 }
 #endif

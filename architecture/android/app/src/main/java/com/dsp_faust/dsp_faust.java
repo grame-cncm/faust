@@ -77,5 +77,9 @@ public class dsp_faust {
   public static void propagateAcc(int acc, float arg1) {
     dsp_faustJNI.propagateAcc(acc, arg1);
   }
+    
+  public static void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax) {
+     dsp_faustJNI.setAccConverter(p, acc, curve, amin, amid,  amax);
+  }
  
 }

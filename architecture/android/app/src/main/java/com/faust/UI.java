@@ -252,8 +252,8 @@ public class UI {
 						parametersInfo.accelType[parameterNumber] = (int) accelParams[0];
 						parametersInfo.accelCurve[parameterNumber] = (int) accelParams[1];
 						parametersInfo.accelMin[parameterNumber] = accelParams[2];
-						parametersInfo.accelMax[parameterNumber] = accelParams[3];
-						parametersInfo.accelCenter[parameterNumber] = accelParams[4];
+						parametersInfo.accelCenter[parameterNumber] = accelParams[3];
+						parametersInfo.accelMax[parameterNumber] = accelParams[4];
               	}
                     
                     /* SL : 18/08
