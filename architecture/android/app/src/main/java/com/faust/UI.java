@@ -230,25 +230,24 @@ public class UI {
 				String metaDataMulti = parseJSONMetaData(currentObject, "multi");
 				
 				if (!isSavedParameters) {
-                    
                     // New accelerometer MetaData
 					String metaDataAccel = parseJSONMetaData(currentObject, "acc");
 					if(!metaDataAccel.equals("")){
-						float[] accelParams = {0,0,0,0,0,0};
-						for(int j=0; j<5; j++){
+						float[] accelParams = {0,0,0,0,0};
+						for(int j=0; j<4; j++){
 							accelParams[j] = Float.valueOf(metaDataAccel.substring(0, metaDataAccel.indexOf(" ")));
 							metaDataAccel = metaDataAccel.substring(metaDataAccel.indexOf(" ")+1);
 						}
-						accelParams[5] = Float.valueOf(metaDataAccel);
+						accelParams[4] = Float.valueOf(metaDataAccel);
 						
-						parametersInfo.accelState[parameterNumber] = (int) (accelParams[0]+1);
-						parametersInfo.accelInverterState[parameterNumber] = (int) accelParams[1];
+						parametersInfo.accelType[parameterNumber] = (int) accelParams[0];
+						parametersInfo.accelCurve[parameterNumber] = (int) accelParams[1];
 						parametersInfo.accelMin[parameterNumber] = accelParams[2];
 						parametersInfo.accelMax[parameterNumber] = accelParams[3];
 						parametersInfo.accelCenter[parameterNumber] = accelParams[4];
-                        parametersInfo.sliderCenter[parameterNumber] = accelParams[5];
-					}
+              	}
                     
+                    /* SL : 18/08
                     // Old accelerometer MetaData
                     String[] metaDataAccelOld = new String[3];
                     metaDataAccelOld[0] = parseJSONMetaData(currentObject, "accx");
@@ -264,15 +263,16 @@ public class UI {
                             }
                             accelParams[3] = Float.valueOf(metaDataAccelOld[k]);
                             
-                            parametersInfo.accelState[parameterNumber] = (k+1);
-                            if(accelParams[0]<0) parametersInfo.accelInverterState[parameterNumber] = 1;
-                            else parametersInfo.accelInverterState[parameterNumber] = 0;
+                            parametersInfo.accelType[parameterNumber] = (k+1);
+                            if(accelParams[0]<0) parametersInfo.accelCurve[parameterNumber] = 1;
+                            else parametersInfo.accelCurve[parameterNumber] = 0;
                             parametersInfo.accelMin[parameterNumber] = -100.0f/Math.abs(accelParams[0]);
                             parametersInfo.accelMax[parameterNumber] = 100.0f/Math.abs(accelParams[0]);
                             parametersInfo.accelCenter[parameterNumber] = 0.0f;
                             parametersInfo.sliderCenter[parameterNumber] = 0.0f;
                         }
                     }
+                    */
                 }
 				
 				// Skipping freq, gain and gate if a keyboard interface was specified
@@ -307,11 +307,13 @@ public class UI {
 						parametersInfo.min[parameterNumber] = Float.parseFloat(currentObject.getString("min"));
 						parametersInfo.max[parameterNumber] = Float.parseFloat(currentObject.getString("max"));
 						parametersInfo.step[parameterNumber] = Float.parseFloat(currentObject.getString("step"));
-                        if(parametersInfo.accelState[parameterNumber]>0) {
+                        /*  SL : 18/08
+                        if(parametersInfo.accelType[parameterNumber]>0) {
                             float range = parametersInfo.max[parameterNumber] - parametersInfo.min[parameterNumber];
                             parametersInfo.sliderCenter[parameterNumber] = (parametersInfo.sliderCenter[parameterNumber] - parametersInfo.min[parameterNumber])/range;
                             parametersInfo.sliderCenter[parameterNumber] = parametersInfo.sliderCenter[parameterNumber]*200-100;
                         }
+                        */
 					}
 					if(metaDataStyle.equals("knob")){
 						knob(c, currentGroup, currentObject.getString("address"),
@@ -354,11 +356,13 @@ public class UI {
 						parametersInfo.min[parameterNumber] = Float.parseFloat(currentObject.getString("min"));
 						parametersInfo.max[parameterNumber] = Float.parseFloat(currentObject.getString("max"));
 						parametersInfo.step[parameterNumber] = Float.parseFloat(currentObject.getString("step"));
-                        if(parametersInfo.accelState[parameterNumber]>0) {
+                        /*  SL : 18/08
+                        if(parametersInfo.accelType[parameterNumber]>0) {
                             float range = parametersInfo.max[parameterNumber] - parametersInfo.min[parameterNumber];
                             parametersInfo.sliderCenter[parameterNumber] = (parametersInfo.sliderCenter[parameterNumber] - parametersInfo.min[parameterNumber])/range;
                             parametersInfo.sliderCenter[parameterNumber] = parametersInfo.sliderCenter[parameterNumber]*200-100;
                         }
+                        */
 					}
 					if(metaDataStyle.equals("knob")){
 						knob(c, currentGroup, currentObject.getString("address"),
@@ -401,11 +405,14 @@ public class UI {
 						parametersInfo.min[parameterNumber] = Float.parseFloat(currentObject.getString("min"));
 						parametersInfo.max[parameterNumber] = Float.parseFloat(currentObject.getString("max"));
 						parametersInfo.step[parameterNumber] = Float.parseFloat(currentObject.getString("step"));
-                        if(parametersInfo.accelState[parameterNumber]>0) {
+                        //  SL : 18/08
+                        /*
+                        if(parametersInfo.accelType[parameterNumber]>0) {
                             float range = parametersInfo.max[parameterNumber] - parametersInfo.min[parameterNumber];
                             parametersInfo.sliderCenter[parameterNumber] = (parametersInfo.sliderCenter[parameterNumber] - parametersInfo.min[parameterNumber])/range;
                             parametersInfo.sliderCenter[parameterNumber] = parametersInfo.sliderCenter[parameterNumber]*200-100;
                         }
+                        */
 					}
 					if(metaDataStyle.equals("knob")){
 						knob(c, currentGroup, currentObject.getString("address"),

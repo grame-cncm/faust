@@ -143,18 +143,18 @@ public class FaustActivity extends Activity {
     
             // for each UI element we control the accelerometer parameters
             for (int i = 0; i<numberOfParameters; i++) {
-                if(parametersInfo.accelState[i] >= 1 && parametersInfo.accelItemFocus[i] == 0){
-                    if(parametersInfo.accelState[i] == 1){
+                if(parametersInfo.accelType[i] >= 1 && parametersInfo.accelItemFocus[i] == 0){
+                    if(parametersInfo.accelType[i] == 1){
                         finalParameterValue = accelUtil.transform(rawAccel[0], parametersInfo.accelMin[i],
-                                                                  parametersInfo.accelMax[i], parametersInfo.accelCenter[i], parametersInfo.sliderCenter[i], parametersInfo.accelInverterState[i]);
+                                                                  parametersInfo.accelMax[i], parametersInfo.accelCenter[i], parametersInfo.sliderCenter[i], parametersInfo.accelCurve[i]);
                     }
-                    else if(parametersInfo.accelState[i] == 2){
+                    else if(parametersInfo.accelType[i] == 2){
                         finalParameterValue = accelUtil.transform(rawAccel[1], parametersInfo.accelMin[i],
-                                                                  parametersInfo.accelMax[i], parametersInfo.accelCenter[i], parametersInfo.sliderCenter[i], parametersInfo.accelInverterState[i]);
+                                                                  parametersInfo.accelMax[i], parametersInfo.accelCenter[i], parametersInfo.sliderCenter[i], parametersInfo.accelCurve[i]);
                     }
-                    else if(parametersInfo.accelState[i] == 3){
+                    else if(parametersInfo.accelType[i] == 3){
                         finalParameterValue = accelUtil.transform(rawAccel[2], parametersInfo.accelMin[i],
-                                                                  parametersInfo.accelMax[i], parametersInfo.accelCenter[i], parametersInfo.sliderCenter[i], parametersInfo.accelInverterState[i]);
+                                                                  parametersInfo.accelMax[i], parametersInfo.accelCenter[i], parametersInfo.sliderCenter[i], parametersInfo.accelCurve[i]);
                     }
                     // the slider value is modified by the accelerometer
                     final float finalParamValue = finalParameterValue;

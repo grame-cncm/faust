@@ -129,8 +129,8 @@ public class ConfigWindow{
 	
 	public void showWindow(final ParametersInfo parametersInfo, final int currentParameterNumber){
 		// Saved state is used
-		axisSelection.selectTextItem(parametersInfo.accelState[currentParameterNumber]);
-		axisOrientation.selectImgItem(parametersInfo.accelInverterState[currentParameterNumber]);
+		axisSelection.selectTextItem(parametersInfo.accelType[currentParameterNumber]);
+		axisOrientation.selectImgItem(parametersInfo.accelCurve[currentParameterNumber]);
 		
 		setValue(minSlider,minSliderValue,"Min: ",parametersInfo.accelMin[currentParameterNumber]);
 		setValue(maxSlider,maxSliderValue,"Max: ",parametersInfo.accelMax[currentParameterNumber]);
@@ -150,7 +150,7 @@ public class ConfigWindow{
 			axisSelection.parameterLabel[i].setOnClickListener(new OnClickListener(){
 				public void onClick(View v){
 					axisSelection.selectTextItem(index);
-					parametersInfo.accelState[currentParameterNumber] = index;
+					parametersInfo.accelType[currentParameterNumber] = index;
 				}
 			});
 		}
@@ -160,7 +160,7 @@ public class ConfigWindow{
 			axisOrientation.imgs[i].setOnClickListener(new OnClickListener(){
 				public void onClick(View v){
 					axisOrientation.selectImgItem(index);
-					parametersInfo.accelInverterState[currentParameterNumber] = index;
+					parametersInfo.accelCurve[currentParameterNumber] = index;
 				}	
 			});
 		}
