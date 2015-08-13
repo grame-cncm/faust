@@ -43,7 +43,7 @@ ZoneControl(zone, valueConverter) : a zone with an accelerometer data converter
 #include <float.h>
 #include <algorithm>    // std::max
 #include <cmath>
-
+#include <vector>
 
 //--------------------------------------------------------------------------------------
 // Range(lo,hi) clip a value between lo and hi
@@ -199,12 +199,18 @@ class ExpValueConverter : public LinearValueConverter
 	virtual double faust2ui(double x) { return LinearValueConverter::faust2ui(exp(x)); }
 };
 
+class UpdatableValueConverter : public ValueConverter {
+
+  public:
+
+    virtual void update(float amin, float amid, float amax, float min, float init, float max) = 0;
+};
 
 //--------------------------------------------------------------------------------------
 // Convert accelerometer or gyroscope values to Faust values
 // Using an Up curve (curve 0)
 //--------------------------------------------------------------------------------------
-class AccUpConverter : public ValueConverter
+class AccUpConverter : public UpdatableValueConverter
 {
     
  private:
@@ -221,6 +227,13 @@ class AccUpConverter : public ValueConverter
 
 	virtual double ui2faust(double x)	{ return fA2F(x); }
 	virtual double faust2ui(double x)	{ return fF2A(x); }
+    
+    virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
+    {
+         __android_log_print(ANDROID_LOG_ERROR, "Faust", "AccUpConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
+        fA2F = Interpolator3pt(amin,amid,amax,fmin,fmid,fmax);
+        fF2A = Interpolator3pt(fmin,fmid,fmax,amin,amid,amax);
+    }
 };
 
 
@@ -228,7 +241,7 @@ class AccUpConverter : public ValueConverter
 // Convert accelerometer or gyroscope values to Faust values
 // Using a Down curve (curve 1)
 //--------------------------------------------------------------------------------------
-class AccDownConverter : public ValueConverter
+class AccDownConverter : public UpdatableValueConverter
 {
     
  private:
@@ -245,6 +258,13 @@ class AccDownConverter : public ValueConverter
 
 	virtual double ui2faust(double x)	{ return fA2F(x); }
 	virtual double faust2ui(double x)	{ return fF2A(x); }
+    
+    virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
+    {
+         __android_log_print(ANDROID_LOG_ERROR, "Faust", "AccDownConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
+        fA2F = Interpolator3pt(amin,amid,amax,fmax,fmid,fmin);
+        fF2A = Interpolator3pt(fmin,fmid,fmax,amax,amid,amin);
+    }
 };
 
 
@@ -252,7 +272,7 @@ class AccDownConverter : public ValueConverter
 // Convert accelerometer or gyroscope values to Faust values
 // Using an Up-Down curve (curve 2)
 //--------------------------------------------------------------------------------------
-class AccUpDownConverter : public ValueConverter
+class AccUpDownConverter : public UpdatableValueConverter
 {
     
  private:
@@ -269,6 +289,13 @@ class AccUpDownConverter : public ValueConverter
 
 	virtual double ui2faust(double x)	{ return fA2F(x); }
 	virtual double faust2ui(double x)	{ return fF2A(x); }
+    
+    virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
+    {
+         __android_log_print(ANDROID_LOG_ERROR, "Faust", "AccUpDownConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
+        fA2F = Interpolator3pt(amin,amid,amax,fmin,fmax,fmin);
+        fF2A = Interpolator(fmin,fmax,amin,amax);
+    }
 };
 
 
@@ -276,7 +303,7 @@ class AccUpDownConverter : public ValueConverter
 // Convert accelerometer or gyroscope values to Faust values
 // Using a Down-Up curve (curve 3)
 //--------------------------------------------------------------------------------------
-class AccDownUpConverter : public ValueConverter
+class AccDownUpConverter : public UpdatableValueConverter
 {
     
  private:
@@ -293,6 +320,13 @@ class AccDownUpConverter : public ValueConverter
 
 	virtual double ui2faust(double x)	{ return fA2F(x); }
 	virtual double faust2ui(double x)	{ return fF2A(x); }
+    
+    virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "Faust", "AccDownUpConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
+        fA2F = Interpolator3pt(amin,amid,amax,fmax,fmin,fmax);
+        fF2A = Interpolator(fmin,fmax,amin,amax);
+    }
 };
 
 
@@ -317,5 +351,42 @@ class ZoneControl
     FAUSTFLOAT* getZone() { return fZone; }
     ValueConverter* getConverter() { return fValueConverter; }
 };
+
+class CurveZoneControl
+{
+    
+    private:
+    
+        FAUSTFLOAT* fZone;
+        std::vector<UpdatableValueConverter*> fValueConverters;
+        int fCurve;
+    
+    public:
+    
+        CurveZoneControl(FAUSTFLOAT* zone, float amin, float amid, float amax, float min, float init, float max) : fZone(zone), fCurve(0)
+        {
+            fValueConverters.push_back(new AccUpConverter(amin, amid, amax, min, init, max));
+            fValueConverters.push_back(new AccDownConverter(amin, amid, amax, min, init, max));
+            fValueConverters.push_back(new AccUpDownConverter(amin, amid, amax, min, init, max));
+            fValueConverters.push_back(new AccDownUpConverter(amin, amid, amax, min, init, max));
+        }
+        virtual ~CurveZoneControl()
+        {
+            std::vector<UpdatableValueConverter*>::iterator it;
+            for (it = fValueConverters.begin(); it != fValueConverters.end(); it++) {
+                delete(*it);
+            }
+        }
+        void update(double v) { *fZone = fValueConverters[fCurve]->ui2faust(v); }
+    
+        FAUSTFLOAT* getZone() { return fZone; }
+    
+        void update(int curve, float amin, float amid, float amax, float min, float init, float max)
+        {
+            fValueConverters[curve]->update(amin, amid, amax, min, init, max);
+            fCurve = curve;
+        }
+};
+
 
 #endif

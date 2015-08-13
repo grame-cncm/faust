@@ -28,8 +28,7 @@ class APIUI : public PathUI, public Meta
         vector<FAUSTFLOAT>		fMax;
         vector<FAUSTFLOAT>		fStep;        
         vector<string>			fUnit; 
-
-        vector<ZoneControl*>	fAcc[3];
+        vector<CurveZoneControl*>	fAcc[3];
 
         // Current values controlled by metadata
         string	fCurrentUnit;     
@@ -77,8 +76,7 @@ class APIUI : public PathUI, public Meta
                     (0 <= curve) && (curve < 4) &&
                     (amin < amax) && (amin <= amid) && (amid <= amax)) 
                 {
-                    ValueConverter* vc = makeAccConverter(curve, amin, amid, amax, min, init, max);
-                    if (vc) { fAcc[axe].push_back(new ZoneControl(zone, vc)); }
+                    fAcc[axe].push_back(new CurveZoneControl(zone, amin, amid, amax, min, init, max));
                 } else {
                     cerr << "incorrect acc metadata : " << fCurrentAcc << endl;
                 }
@@ -86,31 +84,18 @@ class APIUI : public PathUI, public Meta
             fCurrentAcc = "";
         }
     
-        ValueConverter* makeAccConverter(int curve, double amin, double amid, double amax, double min, double init, double max)
-        {
-            ValueConverter* vc = 0;
-            switch (curve) {
-                case 0 : vc = new AccUpConverter(amin, amid, amax, min, init, max); break;
-                case 1 : vc = new AccDownConverter(amin, amid, amax, min, init, max); break;
-                case 2 : vc = new AccUpDownConverter(amin, amid, amax, min, init, max); break;
-                case 3 : vc = new AccDownUpConverter(amin, amid, amax, min, init, max); break;
-            }
-            return vc;
-        }
-    
-        ZoneControl* getAccZoneControl(int p, int acc, int& index)
+        int getAccZoneIndex(int p, int acc)
         {
             if (p < 0 || p > fZone.size()) {
                 __android_log_print(ANDROID_LOG_ERROR, "Faust", "getAccZoneControl incorrect p = %d size = %d", p, fZone.size());
-                return NULL;
+                return -1;
             }
             
             FAUSTFLOAT* zone = fZone[p];
-            for (index = 0; index < fAcc[acc].size(); index++) {
-                if (zone == fAcc[acc][index]->getZone()) break;
+            for (int index = 0; index < fAcc[acc].size(); index++) {
+                if (zone == fAcc[acc][index]->getZone()) return index;
             }
-            __android_log_print(ANDROID_LOG_ERROR, "Faust", "getAccZoneControl index = %d", index);
-            return fAcc[acc][index];
+            return -1;
         }
     
      public:
@@ -123,7 +108,7 @@ class APIUI : public PathUI, public Meta
                 delete(*it1);
             }
             
-            vector<ZoneControl*>::iterator it2;
+            vector<CurveZoneControl*>::iterator it2;
             for (it2 = fAcc[0].begin(); it2 != fAcc[0].end(); it2++) {
                 delete(*it2);
             }
@@ -232,23 +217,16 @@ class APIUI : public PathUI, public Meta
 
         void setAccConverter(int p, int acc, int curve, double amin, double amid, double amax)
         {
-            // Replace 'control'
-            int index;
-            ZoneControl* control = getAccZoneControl(p, acc, index);
-            __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter control = %p", control);
-            if (control) {
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter 1");
-                fAcc[acc][index] = new ZoneControl(fZone[p], makeAccConverter(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]));
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter 2");
-                //delete control;
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter 3");
-            }
+            int index = getAccZoneIndex(p, acc);
+            if (index != -1) fAcc[acc][index]->update(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]);
         }
   
         ValueConverter* getAccConverter(int p, int acc)
         {
+            /*
             int index;
             return getAccZoneControl(p, acc, index)->getConverter();
+            */
         }
  
 };
