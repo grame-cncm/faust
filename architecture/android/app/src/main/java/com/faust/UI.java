@@ -232,13 +232,22 @@ public class UI {
 				if (!isSavedParameters) {
                     // New accelerometer MetaData
 					String metaDataAccel = parseJSONMetaData(currentObject, "acc");
+                
+                
 					if(!metaDataAccel.equals("")){
+                        
+                        Log.d("FaustJava", "metaDataAccel " + metaDataAccel);
+                        
 						float[] accelParams = {0,0,0,0,0};
 						for(int j=0; j<4; j++){
 							accelParams[j] = Float.valueOf(metaDataAccel.substring(0, metaDataAccel.indexOf(" ")));
 							metaDataAccel = metaDataAccel.substring(metaDataAccel.indexOf(" ")+1);
 						}
 						accelParams[4] = Float.valueOf(metaDataAccel);
+                        
+                        for(int l=0; l<5; l++){
+                            Log.d("FaustJava", "accelParams " + accelParams[l]);
+                        }
 						
 						parametersInfo.accelType[parameterNumber] = (int) accelParams[0];
 						parametersInfo.accelCurve[parameterNumber] = (int) accelParams[1];

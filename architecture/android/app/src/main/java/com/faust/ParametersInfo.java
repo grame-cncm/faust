@@ -2,7 +2,11 @@ package com.faust;
 
 import android.content.SharedPreferences;
 
+import android.util.Log;
+
 class ParametersInfo{
+    
+    final String VERSION = "0.01";
 	// Saved Parameters
 	String[] address;
 	float[] values;
@@ -67,7 +71,7 @@ class ParametersInfo{
 	
 	public void saveParameters(SharedPreferences settings){
 		SharedPreferences.Editor editor = settings.edit();
-		editor.putInt("wasSaved",saved);
+		editor.putInt("wasSaved" + VERSION,saved);
 		editor.putInt("zoom", zoom);
 		editor.putBoolean("locked", locked);
 		editor.putInt("nMultiParams", nMultiParams);
@@ -77,6 +81,7 @@ class ParametersInfo{
 			editor.putFloat("accelMin"+i, accelMin[i]);
 			editor.putFloat("accelMax"+i, accelMax[i]);
 			editor.putFloat("accelCenter"+i, accelCenter[i]);
+            Log.d("FaustJava", "saveParameters accelCurve "+i + " " + accelCurve[i]);
             editor.putInt("accelCurve"+i, accelCurve[i]);
 			
 			editor.putInt("order"+i, order[i]);
@@ -89,7 +94,7 @@ class ParametersInfo{
 	}
 	
 	public boolean loadParameters(SharedPreferences settings){
-		if(settings.getInt("wasSaved",0) == 1){
+		if(settings.getInt("wasSaved" + VERSION,0) == 1){
 			zoom = settings.getInt("zoom", 0);
 			locked = settings.getBoolean("locked",true);
 			nMultiParams = settings.getInt("nMultiParams", 0);
@@ -100,6 +105,7 @@ class ParametersInfo{
 				accelMax[i] = settings.getFloat("accelMax"+i, 0);
 				accelCenter[i] = settings.getFloat("accelCenter"+i, 0);
     			accelCurve[i] = settings.getInt("accelCurve"+i, 0);
+                Log.d("FaustJava", "loadParameters accelCurve "+i + " " + accelCurve[i]);
 				
 				// TODO perhaps this should be in a separate function for optimization saic...	
 				order[i] = settings.getInt("order"+i, 0);
