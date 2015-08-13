@@ -33,6 +33,8 @@ package com.faust;
  * 		outside of a key.
  * 		- The way the position of the keys on the keyboard is set
  * 		is kind of flumsy: this could be improved.
+ * SL : 08/13/15
+ * - use index instead of adresses in JNI to access parameters
  */
 
 import com.dsp_faust.dsp_faust;
@@ -175,9 +177,9 @@ public class FaustActivity extends Activity {
             }
             */
     
-            dsp_faust.propagateAccX(rawAccel[0]);
-            dsp_faust.propagateAccY(rawAccel[1]);
-            dsp_faust.propagateAccZ(rawAccel[2]);
+            dsp_faust.propagateAcc(0, rawAccel[0]);
+            dsp_faust.propagateAcc(1, rawAccel[1]);
+            dsp_faust.propagateAcc(2, rawAccel[2]);
     
             runOnUiThread(new Runnable() {
                 @Override

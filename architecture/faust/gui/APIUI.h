@@ -77,13 +77,7 @@ class APIUI : public PathUI, public Meta
                     (0 <= curve) && (curve < 4) &&
                     (amin < amax) && (amin <= amid) && (amid <= amax)) 
                 {
-                    ValueConverter* vc = 0;
-                    switch (curve) {
-                        case 0 : vc = new AccUpConverter(amin, amid, amax, min, init, max); break;
-                        case 1 : vc = new AccDownConverter(amin, amid, amax, min, init, max); break;
-                        case 2 : vc = new AccUpDownConverter(amin, amid, amax, min, init, max); break;
-                        case 3 : vc = new AccDownUpConverter(amin, amid, amax, min, init, max); break;
-                    }
+                    ValueConverter* vc = makeAccConverter(curve, amin, amid, amax, min, init, max);
                     if (vc) { fAcc[axe].push_back(new ZoneControl(zone, vc)); }
                 } else {
                     cerr << "incorrect acc metadata : " << fCurrentAcc << endl;
@@ -91,9 +85,30 @@ class APIUI : public PathUI, public Meta
             }
             fCurrentAcc = "";
         }
-     
+    
+        ValueConverter* makeAccConverter(int curve, double amin, double amid, double amax, double min, double init, double max)
+        {
+            ValueConverter* vc = 0;
+            switch (curve) {
+                case 0 : vc = new AccUpConverter(amin, amid, amax, min, init, max); break;
+                case 1 : vc = new AccDownConverter(amin, amid, amax, min, init, max); break;
+                case 2 : vc = new AccUpDownConverter(amin, amid, amax, min, init, max); break;
+                case 3 : vc = new AccDownUpConverter(amin, amid, amax, min, init, max); break;
+            }
+            return vc;
+        }
+    
+        ZoneControl* getAccZoneControl(int p, int acc, int& index)
+        {
+            FAUSTFLOAT* zone = fZone[p];
+            for (index = 0; index < fAcc[acc].size(); index++) {
+                if (zone == fAcc[acc][index]->getZone()) break;
+            }
+            return fAcc[acc][index];
+        }
+    
      public:
-     
+    
         APIUI() : fNumParameters(0) {}
         virtual ~APIUI()
         {
@@ -194,32 +209,36 @@ class APIUI : public PathUI, public Meta
 		float getParamStep(int p)			{ return fStep[p]; }
 	
 		float getParamValue(int p)			{ return *fZone[p]; }
-		void  setParamValue(int p, float v)	{ *fZone[p] = v; }
+		void setParamValue(int p, float v)	{ *fZone[p] = v; }
 	
 		float getParamRatio(int p)			{ return fConversion[p]->faust2ui(*fZone[p]); }
-		void  setParamRatio(int p, float r)	{ *fZone[p] = fConversion[p]->ui2faust(r); }
+		void setParamRatio(int p, float r)	{ *fZone[p] = fConversion[p]->ui2faust(r); }
 	
 		float value2ratio(int p, float r)	{ return fConversion[p]->faust2ui(r); }
 		float ratio2value(int p, float r)	{ return fConversion[p]->ui2faust(r); }
+    
+        void propagateAcc(int acc, double a)
+        {
+            for (int i = 0; i < fAcc[acc].size(); i++) {
+                fAcc[acc][i]->update(a);
+            }
+        }
 
-		void  propagateAccX(double a)				{ 
-			for (int i = 0; i < fAcc[0].size(); i++) {
-				fAcc[0][i]->update(a);
-			}
-		}
-
-		void  propagateAccY(double a)				{ 
-			for (int i = 0; i < fAcc[1].size(); i++) {
-				fAcc[1][i]->update(a);
-			}
-		}
-
-		void  propagateAccZ(double a)				{ 
-			for (int i = 0; i < fAcc[2].size(); i++) {
-				fAcc[2][i]->update(a);
-			}
-		}
-
+        void setAccConverter(int p, int acc, int curve, double amin, double amid, double amax)
+        {
+            // Replace 'control'
+            int index;
+            ZoneControl* control = getAccZoneControl(p, acc, index);
+            fAcc[acc][index] = new ZoneControl(fZone[p], makeAccConverter(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]));
+            delete control;
+        }
+  
+        ValueConverter* getAccConverter(int p, int acc)
+        {
+            int index;
+            return getAccZoneControl(p, acc, index)->getConverter();
+        }
+ 
 };
 
 #endif

@@ -50,10 +50,14 @@ ZoneControl(zone, valueConverter) : a zone with an accelerometer data converter
 //--------------------------------------------------------------------------------------
 class Range
 {
+    
+  private:
+    
 	double	fLo;
 	double 	fHi;
 
   public:
+    
 	Range(double x, double y) : fLo(std::min(x,y)), fHi(std::max(x,y)) {}
 	double operator()(double x) { return (x<fLo) ? fLo : (x>fHi) ? fHi : x; }
 };
@@ -70,11 +74,15 @@ class Range
 //--------------------------------------------------------------------------------------
 class Interpolator
 {
+    
+  private:
+    
 	Range	fRange;
 	double 	fCoef;
 	double 	fOffset;
 
   public:
+    
 	Interpolator(double lo, double hi, double v1, double v2) : fRange(lo,hi)
 	{ 
 		if (hi != lo) { 
@@ -101,10 +109,15 @@ class Interpolator
 //--------------------------------------------------------------------------------------
 class Interpolator3pt
 {
+
+  private:
+    
 	Interpolator 	fSegment1;
 	Interpolator	fSegment2;
 	double 			fMid;
+    
   public:
+    
 	Interpolator3pt(double lo, double mi, double hi, double v1, double vm, double v2) :
 		fSegment1(lo, mi, v1, vm),
 		fSegment2(mi, hi, vm, v2),
@@ -118,7 +131,9 @@ class Interpolator3pt
 //--------------------------------------------------------------------------------------
 class ValueConverter 
 {
+    
  public:
+    
 	virtual ~ValueConverter() {}
 	virtual double ui2faust(double x) = 0;
 	virtual double faust2ui(double x) = 0;
@@ -130,9 +145,14 @@ class ValueConverter
 //--------------------------------------------------------------------------------------
 class LinearValueConverter : public ValueConverter
 {
+    
+ private:
+    
 	Interpolator	fUI2F;
-	Interpolator	fF2UI;	
+	Interpolator	fF2UI;
+    
   public:
+    
 	LinearValueConverter(double umin, double umax, double fmin, double fmax) :
 		fUI2F(umin,umax,fmin,fmax), fF2UI(fmin,fmax,umin,umax)
 	{}
@@ -151,6 +171,7 @@ class LinearValueConverter : public ValueConverter
 //--------------------------------------------------------------------------------------
 class LogValueConverter : public LinearValueConverter
 {
+    
  public:
 
 	LogValueConverter(double umin, double umax, double fmin, double fmax) :
@@ -167,6 +188,7 @@ class LogValueConverter : public LinearValueConverter
 //--------------------------------------------------------------------------------------
 class ExpValueConverter : public LinearValueConverter
 {
+    
  public:
 
 	ExpValueConverter(double umin, double umax, double fmin, double fmax) :
@@ -184,6 +206,9 @@ class ExpValueConverter : public LinearValueConverter
 //--------------------------------------------------------------------------------------
 class AccUpConverter : public ValueConverter
 {
+    
+ private:
+    
 	Interpolator3pt	fA2F;
 	Interpolator3pt	fF2A;
 
@@ -205,6 +230,9 @@ class AccUpConverter : public ValueConverter
 //--------------------------------------------------------------------------------------
 class AccDownConverter : public ValueConverter
 {
+    
+ private:
+    
 	Interpolator3pt	fA2F;
 	Interpolator3pt	fF2A;
 
@@ -226,6 +254,9 @@ class AccDownConverter : public ValueConverter
 //--------------------------------------------------------------------------------------
 class AccUpDownConverter : public ValueConverter
 {
+    
+ private:
+    
 	Interpolator3pt	fA2F;
 	Interpolator	fF2A;
 
@@ -247,6 +278,9 @@ class AccUpDownConverter : public ValueConverter
 //--------------------------------------------------------------------------------------
 class AccDownUpConverter : public ValueConverter
 {
+    
+ private:
+    
 	Interpolator3pt	fA2F;
 	Interpolator	fF2A;
 
@@ -268,11 +302,20 @@ class AccDownUpConverter : public ValueConverter
 //--------------------------------------------------------------------------------------
 class ZoneControl
 {
+    
+  private:
+    
 	FAUSTFLOAT*			fZone;
 	ValueConverter*		fValueConverter;
+    
   public:
+    
 	ZoneControl(FAUSTFLOAT* zone, ValueConverter* valueConverter) : fZone(zone), fValueConverter(valueConverter) {}
     virtual ~ZoneControl() { delete fValueConverter; } // Assuming fValueConverter is not kept elsewhere...
 	void update(double v) { *fZone = fValueConverter->ui2faust(v); }
+    
+    FAUSTFLOAT* getZone() { return fZone; }
+    ValueConverter* getConverter() { return fValueConverter; }
 };
+
 #endif

@@ -294,29 +294,10 @@ const char* getParamAddress(int id) {
 }
 
 /*
- * propagateAccX(id)
+ * propagateAcc(id)
  * Propage accelerometer X value to the curve conversion layer.
  */
-void propagateAccX(float v)
+void propagateAcc(int acc, float v)
 {
-    apiUI.propagateAccX(v);
+    apiUI.propagateAcc(acc, v);
 }
-
-/*
- * propagateAccY(id)
- * Propage accelerometer Y value to the curve conversion layer.
- */
-void propagateAccY(float v)
-{
-    apiUI.propagateAccY(v);
-}
-
-/*
- * propagateAccZ(id)
- * Propage accelerometer Z value to the curve conversion layer.
- */
-void propagateAccZ(float v)
-{
-    apiUI.propagateAccZ(v);
-}
-

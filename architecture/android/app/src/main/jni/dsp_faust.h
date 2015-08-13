@@ -32,6 +32,4 @@ void setParam(const char*, float);
 int setVoiceParam(const char*, int, float);
 int setVoiceGain(int, float);
 const char* getParamAddress(int);
-void propagateAccX(float v);
-void propagateAccY(float v);
-void propagateAccZ(float v);
+void propagateAcc(int acc, float v);
