@@ -31,7 +31,7 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/jsonfaustui.h"
 #include "faust/gui/JSONUI.h"
-#include "faust/gui/MapUI.h"
+#include "faust/gui/APIUI.h"
 
 //**************************************************************
 // DSP class
@@ -69,7 +69,7 @@ using namespace std;
 androidaudio* p;                // the audio engine
 mydsp mono_dsp;                 // the monophonic Faust object
 mydsp_poly* poly_dsp = NULL;    // the polyphonic Faust object
-MapUI mapUI;                    // the UI description
+APIUI apiUI;                    // the UI description
 JSONUI json(mono_dsp.getNumInputs(), mono_dsp.getNumOutputs());
 string jsonString;
 
@@ -95,7 +95,7 @@ bool init(int samplingRate, int bufferFrames) {
 	bufferSize = bufferFrames;
 
 	// configuring the UI
-	mono_dsp.buildUserInterface(&mapUI);
+    mono_dsp.buildUserInterface(&apiUI);
 	mono_dsp.buildUserInterface(&json);
 
 	jsonString = json.JSON();
@@ -224,7 +224,7 @@ const char *getJSON() {
  * Returns the number of parameters of the Faust object.
  */
 int getParamsCount() {
-	return mapUI.getParamsCount();
+    return apiUI.getParamsCount();
 }
 
 /*
@@ -233,7 +233,11 @@ int getParamsCount() {
  * value.
  */
 float getParam(const char* address) {
-	 return (polyMax == 0) ? mapUI.getValue(address) : poly_dsp->getValue(address);
+    if (polyMax == 0) {
+        return apiUI.getParamValue(apiUI.getParamIndex(address));
+    } else {
+        return poly_dsp->getValue(address);
+    }
 }
 
 /*
@@ -242,7 +246,7 @@ float getParam(const char* address) {
  */
 void setParam(const char* address, float value) {
 	if (polyMax == 0) {
-		mapUI.setValue(address, value);
+        apiUI.setParamValue(apiUI.getParamIndex(address), value);
 	} else {
 		poly_dsp->setValue(address, value);
     }
@@ -286,5 +290,5 @@ int setVoiceGain(int pitch, float gain) {
  * Returns the address of a parameter in function of its "id".
  */
 const char *getParamAddress(int id) {
-	return mapUI.getParamPath(id).c_str();
+    return apiUI.getParamName(id);
 }
