@@ -95,7 +95,24 @@ class APIUI : public PathUI, public Meta
      public:
      
         APIUI() : fNumParameters(0) {}
-        virtual ~APIUI() {}
+        virtual ~APIUI()
+        {
+            vector<ValueConverter*>::iterator it1;
+            for (it1 = fConversion.begin(); it1 != fConversion.end(); it1++) {
+                delete(*it1);
+            }
+            
+            vector<ZoneControl*>::iterator it2;
+            for (it2 = fAcc[0].begin(); it2 != fAcc[0].end(); it2++) {
+                delete(*it2);
+            }
+            for (it2 = fAcc[1].begin(); it2 != fAcc[1].end(); it2++) {
+                delete(*it2);
+            }
+            for (it2 = fAcc[2].begin(); it2 != fAcc[2].end(); it2++) {
+                delete(*it2);
+            }
+        }
 
         // -- widget's layouts
     

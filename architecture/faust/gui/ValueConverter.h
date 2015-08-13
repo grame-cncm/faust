@@ -272,6 +272,7 @@ class ZoneControl
 	ValueConverter*		fValueConverter;
   public:
 	ZoneControl(FAUSTFLOAT* zone, ValueConverter* valueConverter) : fZone(zone), fValueConverter(valueConverter) {}
+    virtual ~ZoneControl() { delete fValueConverter; } // Assuming fValueConverter is not kept elsewhere...
 	void update(double v) { *fZone = fValueConverter->ui2faust(v); }
 };
 #endif
