@@ -81,9 +81,9 @@ public class FaustActivity extends Activity {
 		//getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     
         // attempting to open a new OSC port, if default not available create a new one
-        int oscPortNumber = 5511;
-        while(!Osc.init(oscPortNumber)) oscPortNumber++;
-        //System.out.println("Osc In Port: " + oscPortNumber);
+        int oscPortNumber = 5510;
+        while (!Osc.init(oscPortNumber)) oscPortNumber++;
+        Log.d("FaustJava", "onCreate : OSC In Port " + oscPortNumber);
         
         if (!dsp_faust.isRunning()) {
             dsp_faust.init(44100,512);

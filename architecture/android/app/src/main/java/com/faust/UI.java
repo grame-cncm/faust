@@ -19,6 +19,8 @@ import com.dsp_faust.dsp_faust;
 import com.illposed.osc.OSCListener;
 import com.illposed.osc.OSCMessage;
 
+import android.util.Log;
+
 /*
  * REMARKS:
  * 	- All the UI elements with a size greater than 2 pixels vary
@@ -601,6 +603,8 @@ public class UI {
 		dsp_faust.setParam(address, init);
 	    hsliders[parametersCounters[0]].linkTo(parametersInfo, parametersWindow, horizontalScroll);
 	    hsliders[parametersCounters[0]].addTo(currentGroup);
+        
+        //Log.d("FaustJava", "hslider " + address);
 
         // OSC listener
         final int parameterId = parametersCounters[0];
