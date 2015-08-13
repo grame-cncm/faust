@@ -297,13 +297,17 @@ const char* getParamAddress(int id) {
 
 /*
  * propagateAcc(id)
- * Propage accelerometer X value to the curve conversion layer.
+ * Propage accelerometer value to the curve conversion layer.
  */
 void propagateAcc(int acc, float v)
 {
     apiUI.propagateAcc(acc, v);
 }
 
+/*
+ * setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
+ * Change curve mapping.
+ */
 void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
 {
     __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d %d %d %f %f %f", p, acc, curve, amin, amid, amax);

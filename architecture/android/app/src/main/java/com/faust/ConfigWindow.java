@@ -141,7 +141,7 @@ public class ConfigWindow{
             + " " + parametersInfo.accelMax[index]);
         
         dsp_faust.setAccConverter(index,
-                                  parametersInfo.accelType[index] - 1,  // Java : from 0 to 3 (0, means no mapping), C : -1 (means no mapping)
+                                  parametersInfo.accelType[index] - 1,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
                                   parametersInfo.accelCurve[index],
                                   parametersInfo.accelMin[index],
                                   parametersInfo.accelCenter[index],

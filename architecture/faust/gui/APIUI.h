@@ -28,7 +28,10 @@ class APIUI : public PathUI, public Meta
         vector<FAUSTFLOAT>		fMax;
         vector<FAUSTFLOAT>		fStep;        
         vector<string>			fUnit; 
-        vector<CurveZoneControl*>	fAcc[3];
+        vector<ZoneControl*>	fAcc[3]; 
+        
+        //vector<ZoneControl*>	fAcc[4]; // 0 for the 'NullZoneControl', 1, 2, 3 for X, Y, Z accelerometers
+        
 
         // Current values controlled by metadata
         string	fCurrentUnit;     
@@ -64,6 +67,9 @@ class APIUI : public PathUI, public Meta
                 case kExp : fConversion.push_back(new ExpValueConverter(0,1, min, max)); break;
             }
             fCurrentScale  = kLin;
+            
+            // 0 for the 'NullZoneControl'
+            //fAcc[0].push_back(new NullZoneControl()),
 
             // handle acc metadata "...[acc : <axe> <curve> <amin> <amid> <amax>]..."
             if (fCurrentAcc.size() > 0) {
@@ -208,6 +214,7 @@ class APIUI : public PathUI, public Meta
 		float value2ratio(int p, float r)	{ return fConversion[p]->faust2ui(r); }
 		float ratio2value(int p, float r)	{ return fConversion[p]->ui2faust(r); }
     
+        // acc in [0, 1, 2]
         void propagateAcc(int acc, double a)
         {
             for (int i = 0; i < fAcc[acc].size(); i++) {
@@ -215,20 +222,13 @@ class APIUI : public PathUI, public Meta
             }
         }
 
+        // -1 for NullZone
         void setAccConverter(int p, int acc, int curve, double amin, double amid, double amax)
         {
             int index = getAccZoneIndex(p, acc);
             if (index != -1) fAcc[acc][index]->update(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]);
         }
-  
-        ValueConverter* getAccConverter(int p, int acc)
-        {
-            /*
-            int index;
-            return getAccZoneControl(p, acc, index)->getConverter();
-            */
-        }
- 
+   
 };
 
 #endif
