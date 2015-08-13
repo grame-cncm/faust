@@ -85,8 +85,8 @@ public class ConfigWindow{
 		String[] items = {"0","X","Y","Z"};
 		axisSelection.setItems(items);
 		
-		int[] iconsOn = {R.drawable.ic_accelnormon,R.drawable.ic_accelinverton,R.drawable.ic_accelcurveon};
-		int[] iconsOff = {R.drawable.ic_accelnormoff,R.drawable.ic_accelinvertoff,R.drawable.ic_accelcurveoff};
+		int[] iconsOn = {R.drawable.ic_accelnormon,R.drawable.ic_accelinverton,R.drawable.ic_accelcurveon,R.drawable.ic_accelinvertcurveon};
+		int[] iconsOff = {R.drawable.ic_accelnormoff,R.drawable.ic_accelinvertoff,R.drawable.ic_accelcurveoff,R.drawable.ic_accelinvertcurveoff};
 		axisOrientation.setItems(iconsOn,iconsOff);
 		
 		minSlider.setLayoutParams(new ViewGroup.LayoutParams(
