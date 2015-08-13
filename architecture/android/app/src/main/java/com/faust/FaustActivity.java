@@ -136,6 +136,7 @@ public class FaustActivity extends Activity {
 			rawAccel[1] = se.values[1];
 			rawAccel[2] = se.values[2];
     
+            /*
             float finalParameterValue = 0.0f;
     
             // for each UI element we control the accelerometer parameters
@@ -172,6 +173,18 @@ public class FaustActivity extends Activity {
                     });
                 }
             }
+            */
+    
+            dsp_faust.propagateAccX(rawAccel[0]);
+            dsp_faust.propagateAccY(rawAccel[1]);
+            dsp_faust.propagateAccZ(rawAccel[2]);
+    
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                     ui.updateUIstate();
+                }
+            });
 		}
 	    public void onAccuracyChanged(Sensor sensor, int accuracy) {
 	    }

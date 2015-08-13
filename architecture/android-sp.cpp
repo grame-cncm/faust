@@ -215,7 +215,7 @@ int pitchBend(int refPitch, float pitch){
  * Returns a string containing a JSON description of the
  * UI of the Faust object.
  */
-const char *getJSON() {
+const char* getJSON() {
 	return jsonString.c_str();
 }
 
@@ -289,6 +289,34 @@ int setVoiceGain(int pitch, float gain) {
  * getParamAddress(id)
  * Returns the address of a parameter in function of its "id".
  */
-const char *getParamAddress(int id) {
+const char* getParamAddress(int id) {
     return apiUI.getParamName(id);
 }
+
+/*
+ * propagateAccX(id)
+ * Propage accelerometer X value to the curve conversion layer.
+ */
+void propagateAccX(float v)
+{
+    apiUI.propagateAccX(v);
+}
+
+/*
+ * propagateAccY(id)
+ * Propage accelerometer Y value to the curve conversion layer.
+ */
+void propagateAccY(float v)
+{
+    apiUI.propagateAccY(v);
+}
+
+/*
+ * propagateAccZ(id)
+ * Propage accelerometer Z value to the curve conversion layer.
+ */
+void propagateAccZ(float v)
+{
+    apiUI.propagateAccZ(v);
+}
+

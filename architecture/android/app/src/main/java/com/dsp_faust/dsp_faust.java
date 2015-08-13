@@ -73,5 +73,17 @@ public class dsp_faust {
   public static String getParamAddress(int arg0) {
     return dsp_faustJNI.getParamAddress(arg0);
   }
+    
+  public static void propagateAccX(float arg1) {
+    dsp_faustJNI.propagateAccX(arg1);
+  }
+    
+  public static void propagateAccY(float arg1) {
+    dsp_faustJNI.propagateAccY(arg1);
+  }
+    
+  public static void propagateAccZ(float arg1) {
+    dsp_faustJNI.propagateAccZ(arg1);
+  }
 
 }

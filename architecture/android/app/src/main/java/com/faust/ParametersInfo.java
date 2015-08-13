@@ -98,7 +98,7 @@ class ParametersInfo{
 			nMultiParams = settings.getInt("nMultiParams", 0);
 			for(int i=0; i<nParams; i++){
 				values[i] = settings.getFloat("value"+i,0.0f);
-				accelState[i] = settings.getInt("accelState"+i, 0); //TODO: should be done only for parameters controlled 
+				accelState[i] = settings.getInt("accelState"+i, 0); //TODO: should be done only for controlled parameters  
 				accelMin[i] = settings.getFloat("accelMin"+i, 0);
 				accelMax[i] = settings.getFloat("accelMax"+i, 0);
 				accelCenter[i] = settings.getFloat("accelCenter"+i, 0);

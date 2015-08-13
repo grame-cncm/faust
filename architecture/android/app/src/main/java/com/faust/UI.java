@@ -469,8 +469,6 @@ public class UI {
 		}
 		for(int i=0; i<parameterNumber; i++){
 			if(parametersInfo.parameterType[i] == 0){       //0: hslider
-				//System.out.println("Voila: " + hsliders[parametersCounters[0]].address);
-				//System.out.println("Voila: " + dsp_faust.getParam(hsliders[parametersCounters[0]].address));
 				hsliders[parametersCounters[0]].setValue(dsp_faust.getParam(hsliders[parametersCounters[0]].address));
 				parametersCounters[0]++;
 			}

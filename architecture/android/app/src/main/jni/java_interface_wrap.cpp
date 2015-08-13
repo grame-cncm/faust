@@ -429,6 +429,32 @@ SWIGEXPORT jstring JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getParamAddress(JNI
   return jresult;
 }
 
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_propagateAccX(JNIEnv *jenv, jclass jcls, jfloat jarg1) {
+    float arg1 ;
+    
+    (void)jenv;
+    (void)jcls;
+    arg1 = (float)jarg1;
+    propagateAccX(arg1);
+}
+    
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_propagateAccY(JNIEnv *jenv, jclass jcls, jfloat jarg1) {
+    float arg1 ;
+    
+    (void)jenv;
+    (void)jcls;
+    arg1 = (float)jarg1;
+    propagateAccY(arg1);
+}
+
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_propagateAccZ(JNIEnv *jenv, jclass jcls, jfloat jarg1) {
+    float arg1 ;
+    
+    (void)jenv;
+    (void)jcls;
+    arg1 = (float)jarg1;
+    propagateAccZ(arg1);
+}
 
 #ifdef __cplusplus
 }
