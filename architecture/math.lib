@@ -122,11 +122,12 @@ inv(x)      = 1/x;
 cbrt 		= ffunction(float cbrtf|cbrt|cbrtl (float), <math.h>,"");
 
 
-//--------------------------------- hypot -------------------------------------
+//--------------------------------- hypot(x,y) -------------------------------------
 // Computes the euclidian distance of the two input signals
 // sqrt(x*x+y*y) without undue overflow or underflow.
 //
 // ### Usage:
+//    `hypot(x,y):_`
 //    `_,_:hypot:_`
 //-----------------------------------------------------------------------------
 hypot 		= ffunction(float hypotf|hypot|hypotl (float, float), <math.h>,"");
@@ -150,11 +151,12 @@ ldexp 		= ffunction(float ldexpf|ldexp|ldexpl (float, int), <math.h>,"");
 scalb 		= ffunction(float scalbnf|scalbn|scalbnl (float, int), <math.h>,"");
 
 
-//--------------------------------- log1p -------------------------------------
+//--------------------------------- log1p(x) ----------------------------------
 // Computes log(1 + x) without undue loss of accuracy when x is nearly zero.
 //
 // ### Usage:
-//    `_:log1p:_`
+// +  `log1p(x):_`
+// +  `_:log1p:_`
 //-----------------------------------------------------------------------------
 log1p 		= ffunction(float log1pf|log1p|log1pl (float), <math.h>,"");
 
@@ -196,8 +198,8 @@ expm1 		= ffunction(float expm1f|expm1|expm1l (float), <math.h>,"");
 acosh		= ffunction(float acoshf|acosh|acoshl (float), <math.h>, "");
 
 
-//--------------------------------- asinh -------------------------------------
-// Computes the inverse hyperbolic sine  of the input signal.
+//-------------------------------- asinh(x) -----------------------------------
+// Computes the inverse hyperbolic sine of the input signal.
 //
 // ### Usage:
 //    `_:asinh:_`
@@ -205,7 +207,7 @@ acosh		= ffunction(float acoshf|acosh|acoshl (float), <math.h>, "");
 asinh		= ffunction(float asinhf|asinh|asinhl (float), <math.h>, "");
 
 
-//--------------------------------- atanh -------------------------------------
+//-------------------------------- atanh(x) -----------------------------------
 // Computes the inverse hyperbolic tangent of the input signal.
 //
 // ### Usage:
@@ -340,6 +342,16 @@ fabs = abs;
 fmax = max;
 fmin = min;
 
+//--------------- isnan(x) ----------------
+// return non-zero if and only if x is a NaN,
+//
+// ### Usage:
+//    `_:isnan:_`
+//
+// #### Where:
+// + x = signal to analyse
+//
+//------------------------------------------
 isnan 		= ffunction(int isnan (float),<math.h>,"");
 nextafter	= ffunction(float nextafter(float, float),<math.h>,"");
 
@@ -464,7 +476,7 @@ countup(count, trig)	= \(c).(if(trig>0, 0, min(count, c+1))) ~_;
 // n parallel cables
 //
 // ### Usage:
-//    `_,_:bus(2):_,_`
+//    `bus(4) -> _,_,_,_`
 //
 // #### Where:
 // + n = is an integer known at compile time that indicates the number of parallel cables.
@@ -524,7 +536,7 @@ butterfly(n) = bus(n) <: interleave(n/2,2), interleave(n/2,2) : par(i, n/2, +), 
 //    `_,_,_,_:hadamard(4):_,_,_,_`
 //
 // #### Where:
-// + n = 2^k, size of the matrix
+// + n = 2^k, size of the matrix (int, must be known at compile time)
 //
 // #### Note:
 // Implementation contributed by Remy Muller.
@@ -541,7 +553,7 @@ hadamard(n) = butterfly(n) : (hadamard(n/2) , hadamard(n/2));
 //    `_,_,_,_,_,_:dot(3):_`
 //
 // #### Where:
-// + n = size of the vectors (int, known at compile time)
+// + n = size of the vectors (int, must be known at compile time)
 //
 //-----------------------------------------------------------------------------
 dot(n) = interleave(n,2) : par(i,n,*) :> _;
@@ -554,7 +566,7 @@ dot(n) = interleave(n,2) : par(i,n,*) :> _;
 //    `_,_,_:cross(3):_,_,_`
 //
 // #### Where:
-// + n = number of signals (int, known at compile time)
+// + n = number of signals (int, must be known at compile time)
 //
 //-----------------------------------------------------------------------------
 // cross n cables : (x1,x2,..,xn) -> (xn,..,x2,x1)
