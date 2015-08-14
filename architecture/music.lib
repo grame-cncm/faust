@@ -240,10 +240,14 @@ samplingfreq	= SR;
 
 time 		= (+(1)~_ ) - 1; 			// 0,1,2,3,...
 sinwaveform 	= float(time)*(2.0*PI)/float(tablesize) : sin;
+coswaveform 	= float(time)*(2.0*PI)/float(tablesize) : cos;
 
 decimal(x)	= x - floor(x);
 phase(freq) 	= freq/float(samplingfreq) : (+ : decimal) ~ _ : *(float(tablesize));
-osc(freq)	= rdtable(tablesize, sinwaveform, int(phase(freq)) );
+oscsin(freq)	= rdtable(tablesize, sinwaveform, int(phase(freq)) );
+osccos(freq)	= rdtable(tablesize, coswaveform, int(phase(freq)) );
+oscp(freq,p)	= oscsin(freq) * cos(p) + osccos(freq) * sin(p);
+osc		= oscsin;
 osci(freq)	= s1 + d * (s2 - s1)
 		with {
 			i = int(phase(freq));

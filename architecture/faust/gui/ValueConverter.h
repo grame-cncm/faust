@@ -43,19 +43,23 @@ ZoneControl(zone, valueConverter) : a zone with an accelerometer data converter
 #include <float.h>
 #include <algorithm>    // std::max
 #include <cmath>
-
+#include <vector>
 
 //--------------------------------------------------------------------------------------
 // Range(lo,hi) clip a value between lo and hi
 //--------------------------------------------------------------------------------------
 class Range
 {
-	double	fLo;
-	double 	fHi;
+    
+    private:
 
-  public:
-	Range(double x, double y) : fLo(std::min(x,y)), fHi(std::max(x,y)) {}
-	double operator()(double x) { return (x<fLo) ? fLo : (x>fHi) ? fHi : x; }
+        double fLo;
+        double fHi;
+
+    public:
+
+        Range(double x, double y) : fLo(std::min(x,y)), fHi(std::max(x,y)) {}
+        double operator()(double x) { return (x<fLo) ? fLo : (x>fHi) ? fHi : x; }
 };
 
 
@@ -70,28 +74,32 @@ class Range
 //--------------------------------------------------------------------------------------
 class Interpolator
 {
-	Range	fRange;
-	double 	fCoef;
-	double 	fOffset;
+    
+    private:
 
-  public:
-	Interpolator(double lo, double hi, double v1, double v2) : fRange(lo,hi)
-	{ 
-		if (hi != lo) { 
-			// regular case
-			fCoef = (v2-v1)/(hi-lo); 
-			fOffset = v1 - lo*fCoef; 
-		} else {
-			// degenerate case, avoids division by zero
-			fCoef = 0;
-			fOffset = (v1+v2)/2;
-		}
-	}
-	double operator()(double v) 
-	{
-		double x = fRange(v);
-		return  fOffset + x*fCoef;
-	}
+        Range fRange;
+        double fCoef;
+        double fOffset;
+
+    public:
+
+        Interpolator(double lo, double hi, double v1, double v2) : fRange(lo,hi)
+        { 
+            if (hi != lo) { 
+                // regular case
+                fCoef = (v2-v1)/(hi-lo); 
+                fOffset = v1 - lo*fCoef; 
+            } else {
+                // degenerate case, avoids division by zero
+                fCoef = 0;
+                fOffset = (v1+v2)/2;
+            }
+        }
+        double operator()(double v) 
+        {
+            double x = fRange(v);
+            return  fOffset + x*fCoef;
+        }
 };
 
 
@@ -101,15 +109,20 @@ class Interpolator
 //--------------------------------------------------------------------------------------
 class Interpolator3pt
 {
-	Interpolator 	fSegment1;
-	Interpolator	fSegment2;
-	double 			fMid;
-  public:
-	Interpolator3pt(double lo, double mi, double hi, double v1, double vm, double v2) :
-		fSegment1(lo, mi, v1, vm),
-		fSegment2(mi, hi, vm, v2),
-		fMid(mi) {}
-	double operator()(double x) { return  (x < fMid) ? fSegment1(x) : fSegment2(x); }
+
+    private:
+
+        Interpolator fSegment1;
+        Interpolator fSegment2;
+        double fMid;
+
+    public:
+
+        Interpolator3pt(double lo, double mi, double hi, double v1, double vm, double v2) :
+            fSegment1(lo, mi, v1, vm),
+            fSegment2(mi, hi, vm, v2),
+            fMid(mi) {}
+        double operator()(double x) { return  (x < fMid) ? fSegment1(x) : fSegment2(x); }
 };
 
 
@@ -118,10 +131,12 @@ class Interpolator3pt
 //--------------------------------------------------------------------------------------
 class ValueConverter 
 {
- public:
-	virtual ~ValueConverter() {}
-	virtual double ui2faust(double x) = 0;
-	virtual double faust2ui(double x) = 0;
+    
+    public:
+    
+        virtual ~ValueConverter() {}
+        virtual double ui2faust(double x) = 0;
+        virtual double faust2ui(double x) = 0;
 };
 
 
@@ -130,18 +145,23 @@ class ValueConverter
 //--------------------------------------------------------------------------------------
 class LinearValueConverter : public ValueConverter
 {
-	Interpolator	fUI2F;
-	Interpolator	fF2UI;	
-  public:
-	LinearValueConverter(double umin, double umax, double fmin, double fmax) :
-		fUI2F(umin,umax,fmin,fmax), fF2UI(fmin,fmax,umin,umax)
-	{}
     
-    LinearValueConverter() :
-		fUI2F(0.,0.,0.,0.), fF2UI(0.,0.,0.,0.)
-	{}
-	virtual double ui2faust(double x) {	return fUI2F(x); }
-	virtual double faust2ui(double x) {	return fF2UI(x); }
+    private:
+
+        Interpolator fUI2F;
+        Interpolator fF2UI;
+
+    public:
+
+        LinearValueConverter(double umin, double umax, double fmin, double fmax) :
+            fUI2F(umin,umax,fmin,fmax), fF2UI(fmin,fmax,umin,umax)
+        {}
+
+        LinearValueConverter() :
+            fUI2F(0.,0.,0.,0.), fF2UI(0.,0.,0.,0.)
+        {}
+        virtual double ui2faust(double x) {	return fUI2F(x); }
+        virtual double faust2ui(double x) {	return fF2UI(x); }
 
 };
 
@@ -151,51 +171,89 @@ class LinearValueConverter : public ValueConverter
 //--------------------------------------------------------------------------------------
 class LogValueConverter : public LinearValueConverter
 {
- public:
+    
+    public:
 
-	LogValueConverter(double umin, double umax, double fmin, double fmax) :
-		LinearValueConverter(umin, umax, log(std::max(DBL_MIN,fmin)), log(std::max(DBL_MIN,fmax))) 
-	{}
+        LogValueConverter(double umin, double umax, double fmin, double fmax) :
+            LinearValueConverter(umin, umax, log(std::max(DBL_MIN,fmin)), log(std::max(DBL_MIN,fmax))) 
+        {}
 
-	virtual double ui2faust(double x) 	{ return exp(LinearValueConverter::ui2faust(x)); }
-	virtual double faust2ui(double x)	{ return LinearValueConverter::faust2ui(log(std::max(x, DBL_MIN))); }
+        virtual double ui2faust(double x) 	{ return exp(LinearValueConverter::ui2faust(x)); }
+        virtual double faust2ui(double x)	{ return LinearValueConverter::faust2ui(log(std::max(x, DBL_MIN))); }
+        
 };
 
 
 //--------------------------------------------------------------------------------------
-// Exponential conversion between ui and faust values
+// Exponential conversion between ui and Faust values
 //--------------------------------------------------------------------------------------
 class ExpValueConverter : public LinearValueConverter
 {
- public:
+    
+    public:
 
-	ExpValueConverter(double umin, double umax, double fmin, double fmax) :
-		LinearValueConverter(umin, umax, exp(fmin), exp(fmax)) 
-	{}
+        ExpValueConverter(double umin, double umax, double fmin, double fmax) :
+            LinearValueConverter(umin, umax, exp(fmin), exp(fmax)) 
+        {}
 
-	virtual double ui2faust(double x) { return log(LinearValueConverter::ui2faust(x)); }
-	virtual double faust2ui(double x) { return LinearValueConverter::faust2ui(exp(x)); }
+        virtual double ui2faust(double x) { return log(LinearValueConverter::ui2faust(x)); }
+        virtual double faust2ui(double x) { return LinearValueConverter::faust2ui(exp(x)); }
+        
 };
 
+//--------------------------------------------------------------------------------------
+// A converter than can be updated
+//--------------------------------------------------------------------------------------
+
+class UpdatableValueConverter : public ValueConverter {
+    
+    protected:
+    
+        bool fActive;
+
+    public:
+    
+        UpdatableValueConverter():fActive(true)
+        {}
+        virtual ~UpdatableValueConverter()
+        {}
+
+        virtual void update(float amin, float amid, float amax, float min, float init, float max) = 0;
+    
+        void setActive(bool on_off) { fActive = on_off; }
+        bool getActive() { return fActive; }
+    
+};
 
 //--------------------------------------------------------------------------------------
 // Convert accelerometer or gyroscope values to Faust values
 // Using an Up curve (curve 0)
 //--------------------------------------------------------------------------------------
-class AccUpConverter : public ValueConverter
+class AccUpConverter : public UpdatableValueConverter
 {
-	Interpolator3pt	fA2F;
-	Interpolator3pt	fF2A;
+    
+    private:
 
- public:
+        Interpolator3pt fA2F;
+        Interpolator3pt fF2A;
 
-	AccUpConverter(double amin, double amid, double amax, double fmin, double fmid, double fmax) :
-		fA2F(amin,amid,amax,fmin,fmid,fmax),
-		fF2A(fmin,fmid,fmax,amin,amid,amax)
-	{}
+    public:
 
-	virtual double ui2faust(double x)	{ return fA2F(x); }
-	virtual double faust2ui(double x)	{ return fF2A(x); }
+        AccUpConverter(double amin, double amid, double amax, double fmin, double fmid, double fmax) :
+            fA2F(amin,amid,amax,fmin,fmid,fmax),
+            fF2A(fmin,fmid,fmax,amin,amid,amax)
+        {}
+
+        virtual double ui2faust(double x)	{ return fA2F(x); }
+        virtual double faust2ui(double x)	{ return fF2A(x); }
+
+        virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
+        {
+            //__android_log_print(ANDROID_LOG_ERROR, "Faust", "AccUpConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
+            fA2F = Interpolator3pt(amin,amid,amax,fmin,fmid,fmax);
+            fF2A = Interpolator3pt(fmin,fmid,fmax,amin,amid,amax);
+        }
+    
 };
 
 
@@ -203,20 +261,31 @@ class AccUpConverter : public ValueConverter
 // Convert accelerometer or gyroscope values to Faust values
 // Using a Down curve (curve 1)
 //--------------------------------------------------------------------------------------
-class AccDownConverter : public ValueConverter
+class AccDownConverter : public UpdatableValueConverter
 {
-	Interpolator3pt	fA2F;
-	Interpolator3pt	fF2A;
+    
+    private:
+        
+        Interpolator3pt	fA2F;
+        Interpolator3pt	fF2A;
 
- public:
+    public:
 
-	AccDownConverter(double amin, double amid, double amax, double fmin, double fmid, double fmax) :
-		fA2F(amin,amid,amax,fmax,fmid,fmin),
-		fF2A(fmin,fmid,fmax,amax,amid,amin)
-	{}
+        AccDownConverter(double amin, double amid, double amax, double fmin, double fmid, double fmax) :
+            fA2F(amin,amid,amax,fmax,fmid,fmin),
+            fF2A(fmin,fmid,fmax,amax,amid,amin)
+        {}
 
-	virtual double ui2faust(double x)	{ return fA2F(x); }
-	virtual double faust2ui(double x)	{ return fF2A(x); }
+        virtual double ui2faust(double x)	{ return fA2F(x); }
+        virtual double faust2ui(double x)	{ return fF2A(x); }
+        
+        virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
+        {
+             //__android_log_print(ANDROID_LOG_ERROR, "Faust", "AccDownConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
+            fA2F = Interpolator3pt(amin,amid,amax,fmax,fmid,fmin);
+            fF2A = Interpolator3pt(fmin,fmid,fmax,amax,amid,amin);
+        }
+        
 };
 
 
@@ -224,20 +293,31 @@ class AccDownConverter : public ValueConverter
 // Convert accelerometer or gyroscope values to Faust values
 // Using an Up-Down curve (curve 2)
 //--------------------------------------------------------------------------------------
-class AccUpDownConverter : public ValueConverter
+class AccUpDownConverter : public UpdatableValueConverter
 {
-	Interpolator3pt	fA2F;
-	Interpolator	fF2A;
+    
+    private:
+        
+        Interpolator3pt	fA2F;
+        Interpolator fF2A;
 
- public:
+    public:
 
-	AccUpDownConverter(double amin, double amid, double amax, double fmin, double fmid, double fmax) :
-		fA2F(amin,amid,amax,fmin,fmax,fmin),
-		fF2A(fmin,fmax,amin,amax)				// Special, pseudo inverse of a non monotone function 
-	{}
+        AccUpDownConverter(double amin, double amid, double amax, double fmin, double fmid, double fmax) :
+            fA2F(amin,amid,amax,fmin,fmax,fmin),
+            fF2A(fmin,fmax,amin,amax)				// Special, pseudo inverse of a non monotone function 
+        {}
 
-	virtual double ui2faust(double x)	{ return fA2F(x); }
-	virtual double faust2ui(double x)	{ return fF2A(x); }
+        virtual double ui2faust(double x)	{ return fA2F(x); }
+        virtual double faust2ui(double x)	{ return fF2A(x); }
+        
+        virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
+        {
+             //__android_log_print(ANDROID_LOG_ERROR, "Faust", "AccUpDownConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
+            fA2F = Interpolator3pt(amin,amid,amax,fmin,fmax,fmin);
+            fF2A = Interpolator(fmin,fmax,amin,amax);
+        }
+        
 };
 
 
@@ -245,20 +325,31 @@ class AccUpDownConverter : public ValueConverter
 // Convert accelerometer or gyroscope values to Faust values
 // Using a Down-Up curve (curve 3)
 //--------------------------------------------------------------------------------------
-class AccDownUpConverter : public ValueConverter
+class AccDownUpConverter : public UpdatableValueConverter
 {
-	Interpolator3pt	fA2F;
-	Interpolator	fF2A;
+    
+    private:
+        
+        Interpolator3pt	fA2F;
+        Interpolator fF2A;
 
- public:
+    public:
 
-	AccDownUpConverter(double amin, double amid, double amax, double fmin, double fmid, double fmax) :
-		fA2F(amin,amid,amax,fmax,fmin,fmax),
-		fF2A(fmin,fmax,amin,amax)				// Special, pseudo inverse of a non monotone function 
-	{}
+        AccDownUpConverter(double amin, double amid, double amax, double fmin, double fmid, double fmax) :
+            fA2F(amin,amid,amax,fmax,fmin,fmax),
+            fF2A(fmin,fmax,amin,amax)				// Special, pseudo inverse of a non monotone function 
+        {}
 
-	virtual double ui2faust(double x)	{ return fA2F(x); }
-	virtual double faust2ui(double x)	{ return fF2A(x); }
+        virtual double ui2faust(double x)	{ return fA2F(x); }
+        virtual double faust2ui(double x)	{ return fF2A(x); }
+        
+        virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
+        {
+            //__android_log_print(ANDROID_LOG_ERROR, "Faust", "AccDownUpConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
+            fA2F = Interpolator3pt(amin,amid,amax,fmax,fmin,fmax);
+            fF2A = Interpolator(fmin,fmax,amin,amax);
+        }
+        
 };
 
 
@@ -268,10 +359,88 @@ class AccDownUpConverter : public ValueConverter
 //--------------------------------------------------------------------------------------
 class ZoneControl
 {
-	FAUSTFLOAT*			fZone;
-	ValueConverter*		fValueConverter;
-  public:
-	ZoneControl(FAUSTFLOAT* zone, ValueConverter* valueConverter) : fZone(zone), fValueConverter(valueConverter) {}
-	void update(double v) { *fZone = fValueConverter->ui2faust(v); }
+    
+    protected:
+        
+        FAUSTFLOAT*	fZone;
+        
+    public:
+        
+        ZoneControl(FAUSTFLOAT* zone) : fZone(zone) {}
+        virtual ~ZoneControl() {}
+        
+        virtual void update(double v) {}
+        
+        virtual void update(int curve, float amin, float amid, float amax, float min, float init, float max) {}
+        
+        FAUSTFLOAT* getZone() { return fZone; }
+    
+        virtual void setActive(bool on_off) {}
+
 };
+
+class ConverterZoneControl : public ZoneControl
+{
+    
+    private:
+        
+        ValueConverter* fValueConverter;
+        
+    public:
+        
+        ConverterZoneControl(FAUSTFLOAT* zone, ValueConverter* valueConverter) : ZoneControl(zone), fValueConverter(valueConverter) {}
+        virtual ~ConverterZoneControl() { delete fValueConverter; } // Assuming fValueConverter is not kept elsewhere...
+
+        void update(double v) { *fZone = fValueConverter->ui2faust(v); }
+
+        ValueConverter* getConverter() { return fValueConverter; }
+    
+};
+
+//--------------------------------------------------------------------------------------
+// Association of a zone and a four value converter, each one for each possible curve. 
+// Useful to implement accelerometers metadata as a list of ZoneControl for each axes
+//--------------------------------------------------------------------------------------
+
+class CurveZoneControl : public ZoneControl
+{
+    
+    private:
+
+        std::vector<UpdatableValueConverter*> fValueConverters;
+        int fCurve;
+
+    public:
+
+        CurveZoneControl(FAUSTFLOAT* zone, float amin, float amid, float amax, float min, float init, float max) : ZoneControl(zone), fCurve(0)
+        {
+            fValueConverters.push_back(new AccUpConverter(amin, amid, amax, min, init, max));
+            fValueConverters.push_back(new AccDownConverter(amin, amid, amax, min, init, max));
+            fValueConverters.push_back(new AccUpDownConverter(amin, amid, amax, min, init, max));
+            fValueConverters.push_back(new AccDownUpConverter(amin, amid, amax, min, init, max));
+        }
+        virtual ~CurveZoneControl()
+        {
+            std::vector<UpdatableValueConverter*>::iterator it;
+            for (it = fValueConverters.begin(); it != fValueConverters.end(); it++) {
+                delete(*it);
+            }
+        }
+        void update(double v) { if (fValueConverters[fCurve]->getActive()) *fZone = fValueConverters[fCurve]->ui2faust(v); }
+
+        void update(int curve, float amin, float amid, float amax, float min, float init, float max)
+        {
+            fValueConverters[curve]->update(amin, amid, amax, min, init, max);
+            fCurve = curve;
+        }
+    
+        void setActive(bool on_off)
+        {
+            std::vector<UpdatableValueConverter*>::iterator it;
+            for (it = fValueConverters.begin(); it != fValueConverters.end(); it++) {
+                (*it)->setActive(on_off);
+            }
+        }
+};
+
 #endif
