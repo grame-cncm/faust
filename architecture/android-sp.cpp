@@ -72,8 +72,8 @@ struct AndroidEngine {
 
     androidaudio* fDriver;    // the audio engine
     mydsp fMonoDSP;           // the monophonic Faust object
-    mydsp_poly* fPolyDSP ;    // the polyphonic Faust object
-    APIUI fAPIUI;            // the UI description
+    mydsp_poly* fPolyDSP;     // the polyphonic Faust object
+    APIUI fAPIUI;             // the UI description
     JSONUI fJSON;
     string fJSONString;
     bool fRunning;
@@ -82,7 +82,6 @@ struct AndroidEngine {
     
     AndroidEngine(int sampling_rate, int buffer_size):fJSON(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs())
     {
-        __android_log_print(ANDROID_LOG_ERROR, "Faust", "AndroidEngine 0");
         fPolyDSP = NULL;
         fDriver = NULL;
         fSampleRate = sampling_rate;

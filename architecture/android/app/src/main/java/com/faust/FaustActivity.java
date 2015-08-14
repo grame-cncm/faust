@@ -240,8 +240,8 @@ public class FaustActivity extends Activity {
     	if (!isChangingConfigurations()) {
             Osc.stopListening();
     		dsp_faust.destroy();
-            SharedPreferences settings = getSharedPreferences("savedParameters", 0);
-            parametersInfo.saveParameters(settings);
-    	}
+        }
+        SharedPreferences settings = getSharedPreferences("savedParameters", 0);
+        parametersInfo.saveParameters(settings);
     }
 }

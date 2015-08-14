@@ -561,8 +561,10 @@ public class UI {
 	public void hslider(Context c, LinearLayout currentGroup, final String address, final String label, float init, 
 			final float min, final float max, final float step, int localScreenWidth, int localBackgroundColor, 
 			int localPadding, boolean visibility){
-		// the slider
+		 
+        Log.d("FaustJava", "hslider : init " + parametersInfo.values[parameterNumber] + " " + init);
         
+        // the slider
 		hsliders[parametersCounters[0]] = new HorizontalSlider(c,address,parameterNumber,
 				localScreenWidth, localBackgroundColor, localPadding, visibility);
 		hsliders[parametersCounters[0]].setParams(label, min, max, step);
@@ -572,8 +574,9 @@ public class UI {
 	    hsliders[parametersCounters[0]].linkTo(parametersInfo, parametersWindow, horizontalScroll);
 	    hsliders[parametersCounters[0]].addTo(currentGroup);
         
-        dsp_faust.setParam(address, init);
+        // Accelerometer mappings restored before so that we are sure they areallocated on C side before restoring the actual values...
         updateAcc(parametersInfo, parameterNumber);
+        dsp_faust.setParam(address, init);
       
         // OSC listener
         final int parameterId = parametersCounters[0];
@@ -625,8 +628,9 @@ public class UI {
 	    vsliders[parametersCounters[1]].linkTo(parametersInfo, parametersWindow, horizontalScroll);
 	    vsliders[parametersCounters[1]].addTo(currentGroup);
         
-        dsp_faust.setParam(address, init);
+        // Accelerometer mappings restored before so that we are sure they areallocated on C side before restoring the actual values...
         updateAcc(parametersInfo, parameterNumber);
+        dsp_faust.setParam(address, init);
 
         // OSC listener
         final int parameterId = parametersCounters[1];
@@ -678,9 +682,10 @@ public class UI {
 	    knobs[parametersCounters[2]].linkTo(parametersInfo, parametersWindow, horizontalScroll);
 	    knobs[parametersCounters[2]].addTo(currentGroup);
         
-        dsp_faust.setParam(address, init);
+        // Accelerometer mappings restored before so that we are sure they areallocated on C side before restoring the actual values...
         updateAcc(parametersInfo, parameterNumber);
-
+        dsp_faust.setParam(address, init);
+       
         // OSC listener
         final int parameterId = parametersCounters[2];
         final FaustActivity faustActivity = (FaustActivity) c;
@@ -730,9 +735,10 @@ public class UI {
         nentries[parametersCounters[3]].linkTo(parametersInfo, parametersWindow);
 	    nentries[parametersCounters[3]].addTo(currentGroup);
         
-        dsp_faust.setParam(address, init);
+        // Accelerometer mappings restored before so that we are sure they areallocated on C side before restoring the actual values...
         updateAcc(parametersInfo, parameterNumber);
-
+        dsp_faust.setParam(address, init);
+    
         // OSC listener
         final int parameterId = parametersCounters[3];
         final FaustActivity faustActivity = (FaustActivity) c;
