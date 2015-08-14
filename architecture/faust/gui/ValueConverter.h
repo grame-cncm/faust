@@ -353,7 +353,7 @@ class ZoneControl
         
     public:
         
-        ZoneControl(FAUSTFLOAT* zoner) : fZone(zone) {}
+        ZoneControl(FAUSTFLOAT* zone) : fZone(zone) {}
         virtual ~ZoneControl() {}
         
         virtual void update(double v) {}
@@ -369,7 +369,7 @@ class ConverterZoneControl : public ZoneControl
     
     private:
         
-        ValueConcverter* fValueConverter;
+        ValueConverter* fValueConverter;
         
     public:
         
@@ -387,7 +387,7 @@ class NullZoneControl : public ZoneControl
 
     public: 
      
-        NullZoneControl(FAUSTFLOAT* zoner) : ZoneControl(zone) {}
+        NullZoneControl(FAUSTFLOAT* zone) : ZoneControl(zone) {}
         virtual ~NullZoneControl() {} 
    
 };

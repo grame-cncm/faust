@@ -68,13 +68,11 @@ import java.net.SocketException;
 
 public class FaustActivity extends Activity {
 	private SensorManager mSensorManager;
-	float[] rawAccel = new float[3];
-	int numberOfParameters;
-		
-	UI ui = new UI(); 
-	ParametersInfo parametersInfo = new ParametersInfo();
-	AccelUtil accelUtil = new AccelUtil();
-	
+	private int numberOfParameters;
+	private UI ui = new UI();
+	private ParametersInfo parametersInfo = new ParametersInfo();
+    private Runnable updater = new Runnable() { @Override public void run() { ui.updateUIstate(); }};
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Log.d("FaustJava", "onCreate");
@@ -134,10 +132,7 @@ public class FaustActivity extends Activity {
     private final SensorEventListener mSensorListener = new SensorEventListener() {
 		public void onSensorChanged(SensorEvent se) {
             //Log.d("FaustJava", "onSensorChanged");
-			rawAccel[0] = se.values[0];
-			rawAccel[1] = se.values[1];
-			rawAccel[2] = se.values[2];
-    
+	
             /*
             float finalParameterValue = 0.0f;
     
@@ -177,19 +172,12 @@ public class FaustActivity extends Activity {
             }
             */
     
-            dsp_faust.propagateAcc(0, rawAccel[0]);
-            dsp_faust.propagateAcc(1, rawAccel[1]);
-            dsp_faust.propagateAcc(2, rawAccel[2]);
-    
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                     ui.updateUIstate();
-                }
-            });
+            dsp_faust.propagateAcc(0, se.values[0]);
+            dsp_faust.propagateAcc(1, se.values[1]);
+            dsp_faust.propagateAcc(2, se.values[2]);
+            runOnUiThread(updater);
 		}
-	    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-	    }
+	    public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 	};
     
     @Override

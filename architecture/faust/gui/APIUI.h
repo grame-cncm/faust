@@ -114,7 +114,7 @@ class APIUI : public PathUI, public Meta
                 delete(*it1);
             }
             
-            vector<CurveZoneControl*>::iterator it2;
+            vector<ZoneControl*>::iterator it2;
             for (it2 = fAcc[0].begin(); it2 != fAcc[0].end(); it2++) {
                 delete(*it2);
             }
