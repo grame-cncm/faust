@@ -206,10 +206,23 @@ class ExpValueConverter : public LinearValueConverter
 //--------------------------------------------------------------------------------------
 
 class UpdatableValueConverter : public ValueConverter {
+    
+    protected:
+    
+        bool fActive;
 
     public:
+    
+        UpdatableValueConverter():fActive(true)
+        {}
+        virtual ~UpdatableValueConverter()
+        {}
 
         virtual void update(float amin, float amid, float amax, float min, float init, float max) = 0;
+    
+        void setActive(bool on_off) { fActive = on_off; }
+        bool getActive() { return fActive; }
+    
 };
 
 //--------------------------------------------------------------------------------------
@@ -361,6 +374,8 @@ class ZoneControl
         virtual void update(int curve, float amin, float amid, float amax, float min, float init, float max) {}
         
         FAUSTFLOAT* getZone() { return fZone; }
+    
+        virtual void setActive(bool on_off) {}
 
 };
 
@@ -379,17 +394,7 @@ class ConverterZoneControl : public ZoneControl
         void update(double v) { *fZone = fValueConverter->ui2faust(v); }
 
         ValueConverter* getConverter() { return fValueConverter; }
-};
-
-
-class NullZoneControl : public ZoneControl
-{
-
-    public: 
-     
-        NullZoneControl(FAUSTFLOAT* zone) : ZoneControl(zone) {}
-        virtual ~NullZoneControl() {} 
-   
+    
 };
 
 //--------------------------------------------------------------------------------------
@@ -421,12 +426,20 @@ class CurveZoneControl : public ZoneControl
                 delete(*it);
             }
         }
-        void update(double v) { *fZone = fValueConverters[fCurve]->ui2faust(v); }
+        void update(double v) { if (fValueConverters[fCurve]->getActive()) *fZone = fValueConverters[fCurve]->ui2faust(v); }
 
         void update(int curve, float amin, float amid, float amax, float min, float init, float max)
         {
             fValueConverters[curve]->update(amin, amid, amax, min, init, max);
             fCurve = curve;
+        }
+    
+        void setActive(bool on_off)
+        {
+            std::vector<UpdatableValueConverter*>::iterator it;
+            for (it = fValueConverters.begin(); it != fValueConverters.end(); it++) {
+                (*it)->setActive(on_off);
+            }
         }
 };
 

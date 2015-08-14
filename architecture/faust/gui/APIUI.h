@@ -29,10 +29,7 @@ class APIUI : public PathUI, public Meta
         vector<FAUSTFLOAT>		fStep;        
         vector<string>			fUnit; 
         vector<ZoneControl*>	fAcc[3]; 
-        
-        //vector<ZoneControl*>	fAcc[4]; // 0 for the 'NullZoneControl', 1, 2, 3 for X, Y, Z accelerometers
-        
-
+    
         // Current values controlled by metadata
         string	fCurrentUnit;     
         int     fCurrentScale;
@@ -67,10 +64,7 @@ class APIUI : public PathUI, public Meta
                 case kExp : fConversion.push_back(new ExpValueConverter(0,1, min, max)); break;
             }
             fCurrentScale  = kLin;
-            
-            // 0 for the 'NullZoneControl'
-            //fAcc[0].push_back(new NullZoneControl()),
-
+        
             // handle acc metadata "...[acc : <axe> <curve> <amin> <amid> <amax>]..."
             if (fCurrentAcc.size() > 0) {
                 istringstream iss(fCurrentAcc); 
@@ -92,14 +86,9 @@ class APIUI : public PathUI, public Meta
     
         int getAccZoneIndex(int p, int acc)
         {
-            if (p < 0 || p > fZone.size()) {
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "getAccZoneControl incorrect p = %d size = %d", p, fZone.size());
-                return -1;
-            }
-            
             FAUSTFLOAT* zone = fZone[p];
-            for (int index = 0; index < fAcc[acc].size(); index++) {
-                if (zone == fAcc[acc][index]->getZone()) return index;
+            for (int i = 0; i < fAcc[acc].size(); i++) {
+                if (zone == fAcc[acc][i]->getZone()) return i;
             }
             return -1;
         }
@@ -222,12 +211,27 @@ class APIUI : public PathUI, public Meta
             }
         }
 
-        // -1 for NullZone
         void setAccConverter(int p, int acc, int curve, double amin, double amid, double amax)
         {
-            int index = getAccZoneIndex(p, acc);
-            if (index != -1) fAcc[acc][index]->update(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]);
-        }
+            if (acc == -1) { // Means: no more mapping...
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d", p);
+                int id1 = getAccZoneIndex(p, 0);
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter id1 %d", id1);
+                if (id1 != -1) fAcc[0][id1]->setActive(false);
+                int id2 = getAccZoneIndex(p, 1);
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter id2 %d", id2);
+                if (id2 != -1) fAcc[1][id2]->setActive(false);
+                int id3 = getAccZoneIndex(p, 2);
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter id3 %d", id3);
+                if (id3 != -1) fAcc[2][id3]->setActive(false);
+            } else {
+                int id1 = getAccZoneIndex(p, acc);
+                if (id1 != -1) {
+                    fAcc[acc][id1]->setActive(true);
+                    fAcc[acc][id1]->update(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]);
+                }
+            }
+         }
    
 };
 
