@@ -362,9 +362,9 @@ void  setParamRatioDsp(dsp* dsp_ext, int p, float v)   { return reinterpret_cast
 float value2ratioDsp(dsp* dsp_ext, int p, float r)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.value2ratio(p, r); }
 float ratio2valueDsp(dsp* dsp_ext, int p, float r)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.ratio2value(p, r); }
 
-void propagateAccXDsp(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccX(a); }
-void propagateAccYDsp(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccY(a); }
-void propagateAccZDsp(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAccZ(a); }
+void propagateAccXDsp(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAcc(0, a); }
+void propagateAccYDsp(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAcc(1, a); }
+void propagateAccZDsp(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAcc(2, a); }
 
 #ifdef __cplusplus
 }
