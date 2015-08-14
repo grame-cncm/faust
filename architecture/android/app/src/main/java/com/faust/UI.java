@@ -249,56 +249,19 @@ public class UI {
 				if (!isSavedParameters) {
                     // New accelerometer MetaData
 					String metaDataAccel = parseJSONMetaData(currentObject, "acc");
-                
-                
-					if(!metaDataAccel.equals("")){
-                        
-                        Log.d("FaustJava", "metaDataAccel " + metaDataAccel);
-                        
-						float[] accelParams = {0,0,0,0,0};
+                	if(!metaDataAccel.equals("")){
+          				float[] accelParams = {0,0,0,0,0};
 						for(int j=0; j<4; j++){
 							accelParams[j] = Float.valueOf(metaDataAccel.substring(0, metaDataAccel.indexOf(" ")));
 							metaDataAccel = metaDataAccel.substring(metaDataAccel.indexOf(" ")+1);
 						}
 						accelParams[4] = Float.valueOf(metaDataAccel);
-                        
-                        for(int l=0; l<5; l++){
-                            Log.d("FaustJava", "accelParams " + accelParams[l]);
-                        }
-						
-						parametersInfo.accelType[parameterNumber] = (int) accelParams[0];
+                        parametersInfo.accelType[parameterNumber] = (int) accelParams[0];
 						parametersInfo.accelCurve[parameterNumber] = (int) accelParams[1];
 						parametersInfo.accelMin[parameterNumber] = accelParams[2];
 						parametersInfo.accelCenter[parameterNumber] = accelParams[3];
 						parametersInfo.accelMax[parameterNumber] = accelParams[4];
-              	}
-                    
-                    /* SL : 18/08
-                    // Old accelerometer MetaData
-                    String[] metaDataAccelOld = new String[3];
-                    metaDataAccelOld[0] = parseJSONMetaData(currentObject, "accx");
-                    metaDataAccelOld[1] = parseJSONMetaData(currentObject, "accy");
-                    metaDataAccelOld[2] = parseJSONMetaData(currentObject, "accz");
-
-                    for(int k=0; k<3; k++){
-                        if(!metaDataAccelOld[k].equals("")){
-                            float[] accelParams = {0,0,0,0};
-                            for(int j=0; j<3; j++){
-                                accelParams[j] = Float.valueOf(metaDataAccelOld[k].substring(0, metaDataAccelOld[k].indexOf(" ")));
-                                metaDataAccelOld[k] = metaDataAccelOld[k].substring(metaDataAccelOld[k].indexOf(" ")+1);
-                            }
-                            accelParams[3] = Float.valueOf(metaDataAccelOld[k]);
-                            
-                            parametersInfo.accelType[parameterNumber] = (k+1);
-                            if(accelParams[0]<0) parametersInfo.accelCurve[parameterNumber] = 1;
-                            else parametersInfo.accelCurve[parameterNumber] = 0;
-                            parametersInfo.accelMin[parameterNumber] = -100.0f/Math.abs(accelParams[0]);
-                            parametersInfo.accelMax[parameterNumber] = 100.0f/Math.abs(accelParams[0]);
-                            parametersInfo.accelCenter[parameterNumber] = 0.0f;
-                            parametersInfo.sliderCenter[parameterNumber] = 0.0f;
-                        }
                     }
-                    */
                 }
 				
 				// Skipping freq, gain and gate if a keyboard interface was specified
@@ -333,14 +296,7 @@ public class UI {
 						parametersInfo.min[parameterNumber] = Float.parseFloat(currentObject.getString("min"));
 						parametersInfo.max[parameterNumber] = Float.parseFloat(currentObject.getString("max"));
 						parametersInfo.step[parameterNumber] = Float.parseFloat(currentObject.getString("step"));
-                        /*  SL : 18/08
-                        if(parametersInfo.accelType[parameterNumber]>0) {
-                            float range = parametersInfo.max[parameterNumber] - parametersInfo.min[parameterNumber];
-                            parametersInfo.sliderCenter[parameterNumber] = (parametersInfo.sliderCenter[parameterNumber] - parametersInfo.min[parameterNumber])/range;
-                            parametersInfo.sliderCenter[parameterNumber] = parametersInfo.sliderCenter[parameterNumber]*200-100;
-                        }
-                        */
-					}
+             		}
 					if(metaDataStyle.equals("knob")){
 						knob(c, currentGroup, currentObject.getString("address"),
 								currentObject.getString("label"), 
@@ -382,14 +338,7 @@ public class UI {
 						parametersInfo.min[parameterNumber] = Float.parseFloat(currentObject.getString("min"));
 						parametersInfo.max[parameterNumber] = Float.parseFloat(currentObject.getString("max"));
 						parametersInfo.step[parameterNumber] = Float.parseFloat(currentObject.getString("step"));
-                        /*  SL : 18/08
-                        if(parametersInfo.accelType[parameterNumber]>0) {
-                            float range = parametersInfo.max[parameterNumber] - parametersInfo.min[parameterNumber];
-                            parametersInfo.sliderCenter[parameterNumber] = (parametersInfo.sliderCenter[parameterNumber] - parametersInfo.min[parameterNumber])/range;
-                            parametersInfo.sliderCenter[parameterNumber] = parametersInfo.sliderCenter[parameterNumber]*200-100;
-                        }
-                        */
-					}
+                    }
 					if(metaDataStyle.equals("knob")){
 						knob(c, currentGroup, currentObject.getString("address"),
 								currentObject.getString("label"), 
@@ -431,15 +380,7 @@ public class UI {
 						parametersInfo.min[parameterNumber] = Float.parseFloat(currentObject.getString("min"));
 						parametersInfo.max[parameterNumber] = Float.parseFloat(currentObject.getString("max"));
 						parametersInfo.step[parameterNumber] = Float.parseFloat(currentObject.getString("step"));
-                        //  SL : 18/08
-                        /*
-                        if(parametersInfo.accelType[parameterNumber]>0) {
-                            float range = parametersInfo.max[parameterNumber] - parametersInfo.min[parameterNumber];
-                            parametersInfo.sliderCenter[parameterNumber] = (parametersInfo.sliderCenter[parameterNumber] - parametersInfo.min[parameterNumber])/range;
-                            parametersInfo.sliderCenter[parameterNumber] = parametersInfo.sliderCenter[parameterNumber]*200-100;
-                        }
-                        */
-					}
+             		}
 					if(metaDataStyle.equals("knob")){
 						knob(c, currentGroup, currentObject.getString("address"),
 								currentObject.getString("label"), 
@@ -633,9 +574,7 @@ public class UI {
         
         dsp_faust.setParam(address, init);
         updateAcc(parametersInfo, parameterNumber);
-        
-        //Log.d("FaustJava", "hslider " + address);
-
+      
         // OSC listener
         final int parameterId = parametersCounters[0];
         final FaustActivity faustActivity = (FaustActivity) c;

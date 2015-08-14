@@ -60,10 +60,6 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 
 import android.util.Log;
-
-//import android.view.WindowManager;
-//import android.view.WindowManager.LayoutParams;
-
 import java.net.SocketException;
 
 public class FaustActivity extends Activity {
@@ -71,15 +67,14 @@ public class FaustActivity extends Activity {
 	private int numberOfParameters;
 	private UI ui = new UI();
 	private ParametersInfo parametersInfo = new ParametersInfo();
-    private Runnable updater = new Runnable() { @Override public void run() { ui.updateUIstate(); }};
+    private long lastUIDate;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Log.d("FaustJava", "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-		//getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    
+	
         // attempting to open a new OSC port, if default not available create a new one
         int oscPortNumber = 5510;
         while (!Osc.init(oscPortNumber)) oscPortNumber++;
@@ -102,80 +97,25 @@ public class FaustActivity extends Activity {
         ui.initUI(parametersInfo,settings);	
         ui.buildUI(this, mainGroup);
 
-        /*
-         * ACCELEROMETERS
-         */
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        
-        /*
-        final int displayThreadUpdateRate = 30;
-        displayThread = new Thread() {
-        	public void run() {
-        		while(on){
-        			if(ui.parametersCounters[2] > 0){
-        				for(int i=0; i<ui.parametersCounters[2]; i++){
-        					//UI.bargraphs[i].setValue(UI.faust.getParam(UI.parametersInfo.address[UI.bargraphs[i].id]));
-        				}
-        			}
-        			try {
-						displayThread.sleep(1000/displayThreadUpdateRate);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-        		}
-        	}
-        };
-        displayThread.start();
-        */
     }
     
     private final SensorEventListener mSensorListener = new SensorEventListener() {
 		public void onSensorChanged(SensorEvent se) {
-            //Log.d("FaustJava", "onSensorChanged");
-	
-            /*
-            float finalParameterValue = 0.0f;
-    
-            // for each UI element we control the accelerometer parameters
-            for (int i = 0; i<numberOfParameters; i++) {
-                if(parametersInfo.accelType[i] >= 1 && parametersInfo.accelItemFocus[i] == 0){
-                    if(parametersInfo.accelType[i] == 1){
-                        finalParameterValue = accelUtil.transform(rawAccel[0], parametersInfo.accelMin[i],
-                                                                  parametersInfo.accelMax[i], parametersInfo.accelCenter[i], parametersInfo.sliderCenter[i], parametersInfo.accelCurve[i]);
-                    }
-                    else if(parametersInfo.accelType[i] == 2){
-                        finalParameterValue = accelUtil.transform(rawAccel[1], parametersInfo.accelMin[i],
-                                                                  parametersInfo.accelMax[i], parametersInfo.accelCenter[i], parametersInfo.sliderCenter[i], parametersInfo.accelCurve[i]);
-                    }
-                    else if(parametersInfo.accelType[i] == 3){
-                        finalParameterValue = accelUtil.transform(rawAccel[2], parametersInfo.accelMin[i],
-                                                                  parametersInfo.accelMax[i], parametersInfo.accelCenter[i], parametersInfo.sliderCenter[i], parametersInfo.accelCurve[i]);
-                    }
-                    // the slider value is modified by the accelerometer
-                    final float finalParamValue = finalParameterValue;
-                    final int index = i;
-                    // the UI elements must be updated within the UI thread...
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            //setPriority(Thread.MAX_PRIORITY);
-                            if(parametersInfo.parameterType[index] == 0)
-                                ui.hsliders[parametersInfo.localId[index]].setNormizedValue(finalParamValue);
-                            else if(parametersInfo.parameterType[index] == 1)
-                                ui.vsliders[parametersInfo.localId[index]].setNormizedValue(finalParamValue);
-                            else if(parametersInfo.parameterType[index] == 2)
-                                ui.knobs[parametersInfo.localId[index]].setNormizedValue(finalParamValue);
-                            else if(parametersInfo.parameterType[index] == 3) 
-                                ui.nentries[parametersInfo.localId[index]].setNormizedValue(finalParamValue);  	}
-                    });
-                }
-            }
-            */
-    
+
+            long curDate = java.lang.System.currentTimeMillis();
+            long deltaUI = curDate - lastUIDate;
+
+            // Uddate mapping at sensor rate
             dsp_faust.propagateAcc(0, se.values[0]);
             dsp_faust.propagateAcc(1, se.values[1]);
             dsp_faust.propagateAcc(2, se.values[2]);
-            runOnUiThread(updater);
+        
+            // Update UI less often
+            if (deltaUI > 100) {
+                lastUIDate = curDate;
+                ui.updateUIstate();
+            }
 		}
 	    public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 	};
