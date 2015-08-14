@@ -68,16 +68,169 @@
 
 using namespace std;
 
-androidaudio* p;                // the audio engine
-mydsp mono_dsp;                 // the monophonic Faust object
-mydsp_poly* poly_dsp = NULL;    // the polyphonic Faust object
-APIUI apiUI;                    // the UI description
-JSONUI json(mono_dsp.getNumInputs(), mono_dsp.getNumOutputs());
-string jsonString;
+struct AndroidEngine {
 
-// Global variables
-int SR, bufferSize, polyMax;
-bool on;
+    androidaudio* fDriver;    // the audio engine
+    mydsp fMonoDSP;           // the monophonic Faust object
+    mydsp_poly* fPolyDSP ;    // the polyphonic Faust object
+    APIUI fAPIUI;            // the UI description
+    JSONUI fJSON;
+    string fJSONString;
+    bool fRunning;
+
+    int fSampleRate, fBufferSize, fPolyMax;
+    
+    AndroidEngine(int sampling_rate, int buffer_size):fJSON(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs())
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "Faust", "AndroidEngine 0");
+        fPolyDSP = NULL;
+        fDriver = NULL;
+        fSampleRate = sampling_rate;
+        fBufferSize = buffer_size;
+        fRunning = false;
+        
+        // configuring the UI
+        fMonoDSP.buildUserInterface(&fAPIUI);
+        fMonoDSP.buildUserInterface(&fJSON);
+        
+        fJSONString = fJSON.JSON();
+        
+        if (fJSONString.find("keyboard") != std::string::npos ||
+            fJSONString.find("poly") != std::string::npos){
+            fPolyMax = 6;
+            fPolyDSP = new mydsp_poly(fBufferSize, fPolyMax);
+            fPolyDSP->init(fSampleRate);
+        } else {
+            fPolyMax = 0;
+        }
+        
+        // allocating audio
+        fDriver = new androidaudio(fSampleRate, fBufferSize);
+    }
+    
+    virtual ~AndroidEngine()
+    {
+        delete fDriver;
+        delete fPolyDSP;
+    }
+    
+    bool init()
+    {
+        return fDriver->init("Dummy", (fPolyMax == 0) ? &fMonoDSP : (dsp*)fPolyDSP);
+    }
+    
+    bool start()
+    {
+        if (!fRunning) {
+             __android_log_print(ANDROID_LOG_ERROR, "Faust", "REAL start");
+            fRunning = fDriver->start();
+        }
+        return fRunning;
+    }
+    
+    void stop()
+    {
+        if (fRunning) {
+            fRunning = false;
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "REAL stop");
+            fDriver->stop();
+        }
+    }
+    
+    int keyOn(int pitch, int velocity)
+    {
+        if (fPolyMax > 0) {
+            fPolyDSP->keyOn(0, pitch, velocity);
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    
+    int keyOff(int pitch)
+    {
+        if (fPolyMax > 0) {
+            fPolyDSP->keyOff(0, pitch);
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    
+    int pitchBend(int refPitch, float pitch)
+    {
+        if (fPolyMax > 0) {
+            fPolyDSP->pitchBend(0, refPitch, pitch);
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    
+    const char* getJSON()
+    {
+        return fJSONString.c_str();
+    }
+    
+    int getParamsCount()
+    {
+        return fAPIUI.getParamsCount();
+    }
+    
+    float getParam(const char* address)
+    {
+        if (fPolyMax == 0) {
+            return fAPIUI.getParamValue(fAPIUI.getParamIndex(address));
+        } else {
+            return fPolyDSP->getValue(address);
+        }
+    }
+    
+    void setParam(const char* address, float value)
+    {
+        if (fPolyMax == 0) {
+            fAPIUI.setParamValue(fAPIUI.getParamIndex(address), value);
+        } else {
+            fPolyDSP->setValue(address, value);
+        }
+    }
+    
+    int setVoiceParam(const char* address, int pitch, float value)
+    {
+        if (fPolyMax > 0) {
+            fPolyDSP->setValue(address, pitch, value);
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    
+    int setVoiceGain(int pitch, float gain) {
+        if (fPolyMax > 0) {
+            fPolyDSP->setVoiceGain(pitch, gain);
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    
+    const char* getParamAddress(int id) {
+        return fAPIUI.getParamName(id);
+    }
+    
+    void propagateAcc(int acc, float v)
+    {
+        fAPIUI.propagateAcc(acc, v);
+    }
+    
+    void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
+    {
+        //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d %d %d %f %f %f", p, acc, curve, amin, amid, amax);
+        fAPIUI.setAccConverter(p, acc, curve, amin, amid, amax);
+    }
+};
+
+static AndroidEngine* gGlobal = NULL;
 
 /*
  * init(samplingRate, bufferFrames)
@@ -88,34 +241,11 @@ bool on;
  * polyphonic object or not based on that. init
  * should be called before start.
  */
-bool init(int samplingRate, int bufferFrames) {
-    
+bool init(int sample_rate, int buffer_size)
+{
     __android_log_print(ANDROID_LOG_ERROR, "Faust", "JNI init");
-    
-  	// configuring global variables
-	SR = samplingRate;
-	bufferSize = bufferFrames;
-
-	// configuring the UI
-    mono_dsp.buildUserInterface(&apiUI);
-	mono_dsp.buildUserInterface(&json);
-
-	jsonString = json.JSON();
-
-    if (jsonString.find("keyboard") != std::string::npos ||
-        jsonString.find("poly") != std::string::npos){
-        polyMax = 6;
-        poly_dsp = new mydsp_poly(bufferSize, polyMax);
-        poly_dsp->init(SR);
-    } else {
-        polyMax = 0;
-    }
-    
-    // allocating audio
-    if (!(p = new androidaudio(SR, bufferSize))) return false;
-    if (!p->init("Dummy", (polyMax == 0) ? &mono_dsp : (dsp*)poly_dsp)) return false;
-    
-    return true;
+    gGlobal = new AndroidEngine(sample_rate, buffer_size);
+    return gGlobal->init();
 }
 
 /*
@@ -125,20 +255,20 @@ bool init(int samplingRate, int bufferFrames) {
  * On Android it also creates the native thread where the
  * DSP tasks will be computed.
  */
-bool start() {
+bool start()
+{
     __android_log_print(ANDROID_LOG_ERROR, "Faust", "JNI start");
-	on = true;
-    return p->start();
+    return gGlobal->start();
 }
 
 /*
  * stop()
  * Stops the processing.
  */
-void stop() {
+void stop()
+{
     __android_log_print(ANDROID_LOG_ERROR, "Faust", "JNI stop");
-	on = false;
-    p->stop();
+	 return gGlobal->stop();
 }
         
 /*
@@ -146,10 +276,11 @@ void stop() {
  * Destroy the audio engine and related ressources.
  * the native thread on Android.
  */
-void destroy() {
+void destroy()
+{
     __android_log_print(ANDROID_LOG_ERROR, "Faust", "JNI destroy");
-    delete p;
-    delete poly_dsp;
+    delete gGlobal;
+    gGlobal = NULL;
 }
 
 /*
@@ -157,8 +288,9 @@ void destroy() {
  * returns true if the DSP frames are being computed and
  * false if not.
  */
-bool isRunning() {
-	return on;
+bool isRunning()
+{
+	return (gGlobal != NULL);
 }
 
 /*
@@ -169,13 +301,9 @@ bool isRunning() {
  * Faust code. keyOn will return 0 if the object is not
  * polyphonic and 1 otherwise.
  */
-int keyOn(int pitch, int velocity) {
-	if (polyMax > 0) {
-		poly_dsp->keyOn(0, pitch, velocity);
-		return 1;
-	} else {
-		return 0;
-    }
+int keyOn(int pitch, int velocity)
+{
+    return gGlobal->keyOn(pitch, velocity);
 }
 
 /*
@@ -186,13 +314,9 @@ int keyOn(int pitch, int velocity) {
  * code. keyOn will return 0 if the object is not polyphonic
  * and 1 otherwise.
  */
-int keyOff(int pitch) {
-	if (polyMax > 0) {
-		poly_dsp->keyOff(0, pitch);
-		return 1;
-	} else {
-		return 0;
-    }
+int keyOff(int pitch)
+{
+	return gGlobal->keyOff(pitch);
 }
 
 /*
@@ -203,13 +327,9 @@ int keyOff(int pitch) {
  * is used in the Faust code. pitchBend will return 0
  * if the object is not polyphonic and 1 otherwise.
  */
-int pitchBend(int refPitch, float pitch){
-	if (polyMax > 0) {
-		poly_dsp->pitchBend(0, refPitch, pitch);
-		return 1;
-	} else {
-		return 0;
-    }
+int pitchBend(int refPitch, float pitch)
+{
+    return gGlobal->pitchBend(refPitch, pitch);
 }
 
 /*
@@ -217,16 +337,18 @@ int pitchBend(int refPitch, float pitch){
  * Returns a string containing a JSON description of the
  * UI of the Faust object.
  */
-const char* getJSON() {
-	return jsonString.c_str();
+const char* getJSON()
+{
+    return gGlobal->getJSON();
 }
 
 /*
  * getParamsCount()
  * Returns the number of parameters of the Faust object.
  */
-int getParamsCount() {
-    return apiUI.getParamsCount();
+int getParamsCount()
+{
+    return gGlobal->getParamsCount();
 }
 
 /*
@@ -234,24 +356,18 @@ int getParamsCount() {
  * Takes the address of a parameter and returns its current
  * value.
  */
-float getParam(const char* address) {
-    if (polyMax == 0) {
-        return apiUI.getParamValue(apiUI.getParamIndex(address));
-    } else {
-        return poly_dsp->getValue(address);
-    }
+float getParam(const char* address)
+{
+    return gGlobal->getParam(address);
 }
 
 /*
  * setParam(address,value)
  * Sets the value of the parameter associated with address.
  */
-void setParam(const char* address, float value) {
-	if (polyMax == 0) {
-        apiUI.setParamValue(apiUI.getParamIndex(address), value);
-	} else {
-		poly_dsp->setValue(address, value);
-    }
+void setParam(const char* address, float value)
+{
+    return gGlobal->setParam(address, value);
 }
 
 /*
@@ -262,13 +378,9 @@ void setParam(const char* address, float value) {
  * setVoiceParam will return 0 if the object is not polyphonic
  * and 1 otherwise.
  */
-int setVoiceParam(const char* address, int pitch, float value) {
-	if (polyMax > 0) {
-		poly_dsp->setValue(address, pitch, value);
-		return 1;
-	} else {
-        return 0;
-    }
+int setVoiceParam(const char* address, int pitch, float value)
+{
+    return gGlobal->setVoiceParam(address, pitch, value);
 }
 
 /*
@@ -278,21 +390,18 @@ int setVoiceParam(const char* address, int pitch, float value) {
  * is used in the Faust code. setVoiceGain will return 0 if the
  * object is not polyphonic and 1 otherwise.
  */
-int setVoiceGain(int pitch, float gain) {
-	if (polyMax > 0) {
-		poly_dsp->setVoiceGain(pitch, gain);
-		return 1;
-	} else {
-        return 0;
-    }
+int setVoiceGain(int pitch, float gain)
+{
+    return gGlobal->setVoiceGain(pitch, gain);
 }
 
 /*
  * getParamAddress(id)
  * Returns the address of a parameter in function of its "id".
  */
-const char* getParamAddress(int id) {
-    return apiUI.getParamName(id);
+const char* getParamAddress(int id)
+{
+    return gGlobal->getParamAddress(id);
 }
 
 /*
@@ -301,7 +410,7 @@ const char* getParamAddress(int id) {
  */
 void propagateAcc(int acc, float v)
 {
-    apiUI.propagateAcc(acc, v);
+    gGlobal->propagateAcc(acc, v);
 }
 
 /*
@@ -310,7 +419,7 @@ void propagateAcc(int acc, float v)
  */
 void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
 {
-    __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d %d %d %f %f %f", p, acc, curve, amin, amid, amax);
-    apiUI.setAccConverter(p, acc, curve, amin, amid, amax);
+    //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d %d %d %f %f %f", p, acc, curve, amin, amid, amax);
+    gGlobal->setAccConverter(p, acc, curve, amin, amid, amax);
 }
 

@@ -133,12 +133,14 @@ public class ConfigWindow{
     
     void updateAcc(final ParametersInfo parametersInfo, int index)
     {
+        /*
         Log.d("FaustJava", "updateAcc :  " + index
             + " " + parametersInfo.accelType[index]
             + " " + parametersInfo.accelCurve[index]
             + " " + parametersInfo.accelMin[index]
             + " " + parametersInfo.accelCenter[index]
             + " " + parametersInfo.accelMax[index]);
+        */
         
         dsp_faust.setAccConverter(index,
                                   parametersInfo.accelType[index] - 1,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
@@ -193,7 +195,7 @@ public class ConfigWindow{
 			public void onStopTrackingTouch(SeekBar seekBar) {}
 			public void onStartTrackingTouch(SeekBar seekBar) {}
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Log.d("FaustJava", "onProgressChanged : " + fromUser);
+                //Log.d("FaustJava", "onProgressChanged : " + fromUser);
                 if (fromUser) {
                     float scaledProgress = progress*0.2f - 100.0f;
                     if(scaledProgress >= parametersInfo.accelMax[currentParameterNumber])
@@ -201,7 +203,7 @@ public class ConfigWindow{
                     else{ 
                         parametersInfo.accelMin[currentParameterNumber] = scaledProgress;
                         minSliderValue.setText("Min: " + String.format("%.1f", scaledProgress));
-                        Log.d("FaustJava", "onProgressChanged : currentParameterNumber Min " + currentParameterNumber + " " + scaledProgress);
+                        //Log.d("FaustJava", "onProgressChanged : currentParameterNumber Min " + currentParameterNumber + " " + scaledProgress);
                         updateAcc(parametersInfo, currentParameterNumber);
                     }
                 }
@@ -212,7 +214,7 @@ public class ConfigWindow{
 			public void onStopTrackingTouch(SeekBar seekBar) {}
 			public void onStartTrackingTouch(SeekBar seekBar) {}
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Log.d("FaustJava", "onProgressChanged : " + fromUser);
+                //Log.d("FaustJava", "onProgressChanged : " + fromUser);
                 if (fromUser) {
                     float scaledProgress = progress*.2f - 100.0f;
                     if(scaledProgress <= parametersInfo.accelMin[currentParameterNumber])
@@ -220,7 +222,7 @@ public class ConfigWindow{
                     else{ 
                         parametersInfo.accelMax[currentParameterNumber] = scaledProgress;
                         maxSliderValue.setText("Max: " + String.format("%.1f", scaledProgress));
-                        Log.d("FaustJava", "onProgressChanged : currentParameterNumber Max " + currentParameterNumber + " " + scaledProgress);
+                        //Log.d("FaustJava", "onProgressChanged : currentParameterNumber Max " + currentParameterNumber + " " + scaledProgress);
                         updateAcc(parametersInfo, currentParameterNumber);
                     }
                 }
@@ -231,7 +233,7 @@ public class ConfigWindow{
 			public void onStopTrackingTouch(SeekBar seekBar) {}
 			public void onStartTrackingTouch(SeekBar seekBar) {}
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Log.d("FaustJava", "onProgressChanged : " + fromUser);
+                //Log.d("FaustJava", "onProgressChanged : " + fromUser);
                 if (fromUser) {
                     float scaledProgress = progress*0.2f - 100.0f;
                     if(scaledProgress <= parametersInfo.accelMin[currentParameterNumber])
@@ -241,7 +243,7 @@ public class ConfigWindow{
                     else{ 
                         parametersInfo.accelCenter[currentParameterNumber] = scaledProgress;	
                         centerSliderValue.setText("Center: " + String.format("%.1f", scaledProgress));
-                        Log.d("FaustJava", "onProgressChanged : currentParameterNumber Center " + currentParameterNumber + " " + scaledProgress);
+                        //Log.d("FaustJava", "onProgressChanged : currentParameterNumber Center " + currentParameterNumber + " " + scaledProgress);
                         updateAcc(parametersInfo, currentParameterNumber);
                     }
                 }

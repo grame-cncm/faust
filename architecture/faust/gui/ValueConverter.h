@@ -249,7 +249,7 @@ class AccUpConverter : public UpdatableValueConverter
 
         virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
         {
-             __android_log_print(ANDROID_LOG_ERROR, "Faust", "AccUpConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
+            //__android_log_print(ANDROID_LOG_ERROR, "Faust", "AccUpConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
             fA2F = Interpolator3pt(amin,amid,amax,fmin,fmid,fmax);
             fF2A = Interpolator3pt(fmin,fmid,fmax,amin,amid,amax);
         }
@@ -281,7 +281,7 @@ class AccDownConverter : public UpdatableValueConverter
         
         virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
         {
-             __android_log_print(ANDROID_LOG_ERROR, "Faust", "AccDownConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
+             //__android_log_print(ANDROID_LOG_ERROR, "Faust", "AccDownConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
             fA2F = Interpolator3pt(amin,amid,amax,fmax,fmid,fmin);
             fF2A = Interpolator3pt(fmin,fmid,fmax,amax,amid,amin);
         }
@@ -313,7 +313,7 @@ class AccUpDownConverter : public UpdatableValueConverter
         
         virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
         {
-             __android_log_print(ANDROID_LOG_ERROR, "Faust", "AccUpDownConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
+             //__android_log_print(ANDROID_LOG_ERROR, "Faust", "AccUpDownConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
             fA2F = Interpolator3pt(amin,amid,amax,fmin,fmax,fmin);
             fF2A = Interpolator(fmin,fmax,amin,amax);
         }
@@ -345,7 +345,7 @@ class AccDownUpConverter : public UpdatableValueConverter
         
         virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
         {
-            __android_log_print(ANDROID_LOG_ERROR, "Faust", "AccDownUpConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
+            //__android_log_print(ANDROID_LOG_ERROR, "Faust", "AccDownUpConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
             fA2F = Interpolator3pt(amin,amid,amax,fmax,fmin,fmax);
             fF2A = Interpolator(fmin,fmax,amin,amax);
         }

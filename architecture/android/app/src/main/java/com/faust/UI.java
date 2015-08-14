@@ -256,7 +256,7 @@ public class UI {
 							metaDataAccel = metaDataAccel.substring(metaDataAccel.indexOf(" ")+1);
 						}
 						accelParams[4] = Float.valueOf(metaDataAccel);
-                        parametersInfo.accelType[parameterNumber] = (int) accelParams[0];
+                        parametersInfo.accelType[parameterNumber] = (int) accelParams[0] + 1;  // Java : from 0 to 3 (0 means no mapping)
 						parametersInfo.accelCurve[parameterNumber] = (int) accelParams[1];
 						parametersInfo.accelMin[parameterNumber] = accelParams[2];
 						parametersInfo.accelCenter[parameterNumber] = accelParams[3];

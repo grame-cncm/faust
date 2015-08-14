@@ -75,17 +75,18 @@ public class FaustActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 	
-        // attempting to open a new OSC port, if default not available create a new one
-        int oscPortNumber = 5510;
-        while (!Osc.init(oscPortNumber)) oscPortNumber++;
-        Log.d("FaustJava", "onCreate : OSC In Port " + oscPortNumber);
-        
         if (!dsp_faust.isRunning()) {
+            // attempting to open a new OSC port, if default not available create a new one
+            int oscPortNumber = 5510;
+            while (!Osc.init(oscPortNumber)) oscPortNumber++;
+            Log.d("FaustJava", "onCreate : OSC In Port " + oscPortNumber);
             dsp_faust.init(44100,512);
             Osc.startListening();
         }
-   
+      
         numberOfParameters = dsp_faust.getParamsCount();
+        
+        Log.d("FaustJava", "onCreate : numberOfParameters " + numberOfParameters);
         
         parametersInfo.init(numberOfParameters);
         SharedPreferences settings = getSharedPreferences("savedParameters", 0);
@@ -239,8 +240,8 @@ public class FaustActivity extends Activity {
     	if (!isChangingConfigurations()) {
             Osc.stopListening();
     		dsp_faust.destroy();
+            SharedPreferences settings = getSharedPreferences("savedParameters", 0);
+            parametersInfo.saveParameters(settings);
     	}
-        SharedPreferences settings = getSharedPreferences("savedParameters", 0);
-        parametersInfo.saveParameters(settings);
     }
 }

@@ -214,15 +214,15 @@ class APIUI : public PathUI, public Meta
         void setAccConverter(int p, int acc, int curve, double amin, double amid, double amax)
         {
             if (acc == -1) { // Means: no more mapping...
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d", p);
+                //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d", p);
                 int id1 = getAccZoneIndex(p, 0);
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter id1 %d", id1);
+                //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter id1 %d", id1);
                 if (id1 != -1) fAcc[0][id1]->setActive(false);
                 int id2 = getAccZoneIndex(p, 1);
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter id2 %d", id2);
+                //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter id2 %d", id2);
                 if (id2 != -1) fAcc[1][id2]->setActive(false);
                 int id3 = getAccZoneIndex(p, 2);
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter id3 %d", id3);
+                //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter id3 %d", id3);
                 if (id3 != -1) fAcc[2][id3]->setActive(false);
             } else {
                 int id1 = getAccZoneIndex(p, acc);

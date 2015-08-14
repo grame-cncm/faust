@@ -6,7 +6,7 @@ import android.util.Log;
 
 class ParametersInfo{
     
-    final String VERSION = "0.02";
+    final String VERSION = "0.06";
 	// Saved Parameters
 	String[] address;
 	float[] values;
@@ -75,14 +75,18 @@ class ParametersInfo{
 		editor.putInt("zoom", zoom);
 		editor.putBoolean("locked", locked);
 		editor.putInt("nMultiParams", nMultiParams);
+        
+        Log.d("FaustJava", "saveParameters : nParams " + nParams);
+        
 		for(int i=0; i<nParams; i++){
 			editor.putFloat("value"+i, values[i]);
 			editor.putInt("accelType"+i, accelType[i]);
 			editor.putFloat("accelMin"+i, accelMin[i]);
 			editor.putFloat("accelMax"+i, accelMax[i]);
 			editor.putFloat("accelCenter"+i, accelCenter[i]);
-            Log.d("FaustJava", "saveParameters accelCurve "+i + " " + accelCurve[i]);
             editor.putInt("accelCurve"+i, accelCurve[i]);
+            //Log.d("FaustJava", "saveParameters accelCurve "+i + " " + accelCurve[i]);
+            Log.d("FaustJava", "saveParameters accelType "+i + " " + accelType[i]);
 			
 			editor.putInt("order"+i, order[i]);
 			editor.putString("label"+i, label[i]);
@@ -98,6 +102,9 @@ class ParametersInfo{
 			zoom = settings.getInt("zoom", 0);
 			locked = settings.getBoolean("locked",true);
 			nMultiParams = settings.getInt("nMultiParams", 0);
+            
+            Log.d("FaustJava", "loadParameters : nParams " + nParams);
+            
 			for(int i=0; i<nParams; i++){
 				values[i] = settings.getFloat("value"+i,0.0f);
 				accelType[i] = settings.getInt("accelType"+i, 0); //TODO: should be done only for controlled parameters
@@ -105,7 +112,8 @@ class ParametersInfo{
 				accelMax[i] = settings.getFloat("accelMax"+i, 0);
 				accelCenter[i] = settings.getFloat("accelCenter"+i, 0);
     			accelCurve[i] = settings.getInt("accelCurve"+i, 0);
-                Log.d("FaustJava", "loadParameters accelCurve "+i + " " + accelCurve[i]);
+                //Log.d("FaustJava", "loadParameters accelCurve "+i + " " + accelCurve[i]);
+                Log.d("FaustJava", "loadParameters accelType "+i + " " + accelType[i]);
 				
 				// TODO perhaps this should be in a separate function for optimization saic...	
 				order[i] = settings.getInt("order"+i, 0);
