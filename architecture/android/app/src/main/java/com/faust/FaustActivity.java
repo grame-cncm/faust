@@ -107,7 +107,7 @@ public class FaustActivity extends Activity {
             long curDate = java.lang.System.currentTimeMillis();
             long deltaUI = curDate - lastUIDate;
 
-            // Uddate mapping at sensor rate
+            // Update mapping at sensor rate
             dsp_faust.propagateAcc(0, se.values[0]);
             dsp_faust.propagateAcc(1, se.values[1]);
             dsp_faust.propagateAcc(2, se.values[2]);

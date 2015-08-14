@@ -574,7 +574,7 @@ public class UI {
 	    hsliders[parametersCounters[0]].linkTo(parametersInfo, parametersWindow, horizontalScroll);
 	    hsliders[parametersCounters[0]].addTo(currentGroup);
         
-        // Accelerometer mappings restored before so that we are sure they areallocated on C side before restoring the actual values...
+        // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
         updateAcc(parametersInfo, parameterNumber);
         dsp_faust.setParam(address, init);
       
@@ -628,7 +628,7 @@ public class UI {
 	    vsliders[parametersCounters[1]].linkTo(parametersInfo, parametersWindow, horizontalScroll);
 	    vsliders[parametersCounters[1]].addTo(currentGroup);
         
-        // Accelerometer mappings restored before so that we are sure they areallocated on C side before restoring the actual values...
+        // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
         updateAcc(parametersInfo, parameterNumber);
         dsp_faust.setParam(address, init);
 
@@ -682,7 +682,7 @@ public class UI {
 	    knobs[parametersCounters[2]].linkTo(parametersInfo, parametersWindow, horizontalScroll);
 	    knobs[parametersCounters[2]].addTo(currentGroup);
         
-        // Accelerometer mappings restored before so that we are sure they areallocated on C side before restoring the actual values...
+        // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
         updateAcc(parametersInfo, parameterNumber);
         dsp_faust.setParam(address, init);
        
@@ -735,7 +735,7 @@ public class UI {
         nentries[parametersCounters[3]].linkTo(parametersInfo, parametersWindow);
 	    nentries[parametersCounters[3]].addTo(currentGroup);
         
-        // Accelerometer mappings restored before so that we are sure they areallocated on C side before restoring the actual values...
+        // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
         updateAcc(parametersInfo, parameterNumber);
         dsp_faust.setParam(address, init);
     

@@ -234,7 +234,7 @@ class APIUI : public PathUI, public Meta
                     // Allocate a new CurveZoneControl which is activated by default
                     FAUSTFLOAT* zone = fZone[p];
                     fAcc[acc].push_back(new CurveZoneControl(zone, amin, amid, amax, fMin[p], fInit[p], fMax[p]));
-                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter new CurveZoneControl %d", acc);
+                    //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter new CurveZoneControl %d", acc);
                 }
             }
          }
