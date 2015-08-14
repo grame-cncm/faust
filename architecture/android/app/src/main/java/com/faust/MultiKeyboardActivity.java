@@ -41,7 +41,7 @@ public class MultiKeyboardActivity extends Activity {
         parametersInfo = new ParametersInfo();
         parametersInfo.init(numberOfParameters);
         SharedPreferences settings = getSharedPreferences("savedParameters", 0);
-        parametersInfo.getSavedParameters(settings);
+        parametersInfo.loadParameters(settings);
         
         final MultiParams mp = (MultiParams) this.findViewById(R.id.MultiParams);
         int nMultiParams = parametersInfo.nMultiParams;

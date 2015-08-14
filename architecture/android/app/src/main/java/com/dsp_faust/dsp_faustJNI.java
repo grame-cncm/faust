@@ -22,6 +22,7 @@ public class dsp_faustJNI {
   public final static native void init(int jarg1, int jarg2);
   public final static native int start();
   public final static native void stop();
+  public final static native void destroy();
   public final static native boolean isRunning();
   public final static native int keyOn(int jarg1, int jarg2);
   public final static native int keyOff(int jarg1);
@@ -33,4 +34,6 @@ public class dsp_faustJNI {
   public final static native int setVoiceParam(String jarg1, int jarg2, float jarg3);
   public final static native int setVoiceGain(int jarg1, float jarg2);
   public final static native String getParamAddress(int jarg1);
+  public final static native void propagateAcc(int jarg1, float jarg2);
+  public final static native void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax);
 }

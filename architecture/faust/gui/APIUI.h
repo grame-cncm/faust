@@ -28,9 +28,8 @@ class APIUI : public PathUI, public Meta
         vector<FAUSTFLOAT>		fMax;
         vector<FAUSTFLOAT>		fStep;        
         vector<string>			fUnit; 
-
-        vector<ZoneControl*>	fAcc[3];
-
+        vector<ZoneControl*>	fAcc[3]; 
+    
         // Current values controlled by metadata
         string	fCurrentUnit;     
         int     fCurrentScale;
@@ -65,7 +64,7 @@ class APIUI : public PathUI, public Meta
                 case kExp : fConversion.push_back(new ExpValueConverter(0,1, min, max)); break;
             }
             fCurrentScale  = kLin;
-
+        
             // handle acc metadata "...[acc : <axe> <curve> <amin> <amid> <amax>]..."
             if (fCurrentAcc.size() > 0) {
                 istringstream iss(fCurrentAcc); 
@@ -77,25 +76,44 @@ class APIUI : public PathUI, public Meta
                     (0 <= curve) && (curve < 4) &&
                     (amin < amax) && (amin <= amid) && (amid <= amax)) 
                 {
-                    ValueConverter* vc = 0;
-                    switch (curve) {
-                        case 0 : vc = new AccUpConverter(amin, amid, amax, min, init, max); break;
-                        case 1 : vc = new AccDownConverter(amin, amid, amax, min, init, max); break;
-                        case 2 : vc = new AccUpDownConverter(amin, amid, amax, min, init, max); break;
-                        case 3 : vc = new AccDownUpConverter(amin, amid, amax, min, init, max); break;
-                    }
-                    if (vc) { fAcc[axe].push_back(new ZoneControl(zone, vc)); }
+                    fAcc[axe].push_back(new CurveZoneControl(zone, amin, amid, amax, min, init, max));
                 } else {
                     cerr << "incorrect acc metadata : " << fCurrentAcc << endl;
                 }
             }
             fCurrentAcc = "";
         }
-     
+    
+        int getAccZoneIndex(int p, int acc)
+        {
+            FAUSTFLOAT* zone = fZone[p];
+            for (int i = 0; i < fAcc[acc].size(); i++) {
+                if (zone == fAcc[acc][i]->getZone()) return i;
+            }
+            return -1;
+        }
+    
      public:
-     
+    
         APIUI() : fNumParameters(0) {}
-        virtual ~APIUI() {}
+        virtual ~APIUI()
+        {
+            vector<ValueConverter*>::iterator it1;
+            for (it1 = fConversion.begin(); it1 != fConversion.end(); it1++) {
+                delete(*it1);
+            }
+            
+            vector<ZoneControl*>::iterator it2;
+            for (it2 = fAcc[0].begin(); it2 != fAcc[0].end(); it2++) {
+                delete(*it2);
+            }
+            for (it2 = fAcc[1].begin(); it2 != fAcc[1].end(); it2++) {
+                delete(*it2);
+            }
+            for (it2 = fAcc[2].begin(); it2 != fAcc[2].end(); it2++) {
+                delete(*it2);
+            }
+        }
 
         // -- widget's layouts
     
@@ -177,32 +195,50 @@ class APIUI : public PathUI, public Meta
 		float getParamStep(int p)			{ return fStep[p]; }
 	
 		float getParamValue(int p)			{ return *fZone[p]; }
-		void  setParamValue(int p, float v)	{ *fZone[p] = v; }
+		void setParamValue(int p, float v)	{ *fZone[p] = v; }
 	
 		float getParamRatio(int p)			{ return fConversion[p]->faust2ui(*fZone[p]); }
-		void  setParamRatio(int p, float r)	{ *fZone[p] = fConversion[p]->ui2faust(r); }
+		void setParamRatio(int p, float r)	{ *fZone[p] = fConversion[p]->ui2faust(r); }
 	
 		float value2ratio(int p, float r)	{ return fConversion[p]->faust2ui(r); }
 		float ratio2value(int p, float r)	{ return fConversion[p]->ui2faust(r); }
+    
+        // acc in [0, 1, 2]
+        void propagateAcc(int acc, double a)
+        {
+            for (int i = 0; i < fAcc[acc].size(); i++) {
+                fAcc[acc][i]->update(a);
+            }
+        }
 
-		void  propagateAccX(double a)				{ 
-			for (int i = 0; i < fAcc[0].size(); i++) {
-				fAcc[0][i]->update(a);
-			}
-		}
-
-		void  propagateAccY(double a)				{ 
-			for (int i = 0; i < fAcc[1].size(); i++) {
-				fAcc[1][i]->update(a);
-			}
-		}
-
-		void  propagateAccZ(double a)				{ 
-			for (int i = 0; i < fAcc[2].size(); i++) {
-				fAcc[2][i]->update(a);
-			}
-		}
-
+        void setAccConverter(int p, int acc, int curve, double amin, double amid, double amax)
+        {
+            int id1 = getAccZoneIndex(p, 0);
+            int id2 = getAccZoneIndex(p, 1);
+            int id3 = getAccZoneIndex(p, 2);
+            
+            // Deactivates everywhere..
+            if (id1 != -1) fAcc[0][id1]->setActive(false);
+            if (id2 != -1) fAcc[1][id2]->setActive(false);
+            if (id3 != -1) fAcc[2][id3]->setActive(false);
+            
+            if (acc == -1) { // Means: no more mapping...
+                // So stay all deactivated...
+            } else {
+                int id4 = getAccZoneIndex(p, acc);
+                if (id4 != -1) {
+                    // Reactivate the one we edit...
+                    fAcc[acc][id4]->update(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]);
+                    fAcc[acc][id4]->setActive(true);
+                } else {
+                    // Allocate a new CurveZoneControl which is activated by default
+                    FAUSTFLOAT* zone = fZone[p];
+                    fAcc[acc].push_back(new CurveZoneControl(zone, amin, amid, amax, fMin[p], fInit[p], fMax[p]));
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter new CurveZoneControl %d", acc);
+                }
+            }
+         }
+   
 };
 
 #endif

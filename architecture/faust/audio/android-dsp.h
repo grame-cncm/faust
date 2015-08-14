@@ -70,6 +70,9 @@ class androidaudio : public audio {
         SLObjectItf fOpenSLEngine, fOutputMix, fInputBufferQueue, fOutputBufferQueue;
         SLAndroidSimpleBufferQueueItf fOutputBufferQueueInterface, fInputBufferQueueInterface;
     
+        SLRecordItf fRecordInterface;
+        SLPlayItf fPlayInterface;
+    
         int fFifoFirstSample, fFifoLastSample, fLatencySamples, fFifoCapacity;
     
         virtual int processAudio(short* audioIO)
@@ -168,8 +171,11 @@ class androidaudio : public audio {
         : fDsp(0), fSampleRate(srate),
         fBufferSize(bsize), fNumInChans(0), fNumOutChans(0),
         fFifoFirstSample(0), fFifoLastSample(0),
-        fLatencySamples(0), fFifoCapacity(0)
+        fLatencySamples(0), fFifoCapacity(0),
+        fOpenSLEngine(0), fOutputMix(0), fInputBufferQueue(0), fOutputBufferQueue(0)
         {
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "Constructor");
+            
             // Allocating memory for input channels.
             fInputs = new float*[NUM_INPUTS];
             for (int i = 0; i < NUM_INPUTS; i++) {
@@ -187,7 +193,30 @@ class androidaudio : public audio {
 
         virtual ~androidaudio()
         {
-            stop();
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "Destructor");
+            
+            if (fInputBufferQueue) {
+                (*fInputBufferQueue)->Destroy(fInputBufferQueue);
+                fInputBufferQueue = NULL;
+            }
+            
+            if (fOutputBufferQueue) {
+                (*fOutputBufferQueue)->Destroy(fOutputBufferQueue);
+                fOutputBufferQueue = NULL;
+            }
+            
+            if (fOutputMix) {
+                (*fOutputMix)->Destroy(fOutputMix);
+                fOutputMix = NULL;
+            }
+             
+            if (fOpenSLEngine) {
+                (*fOpenSLEngine)->Destroy(fOpenSLEngine);
+                fOpenSLEngine = NULL;
+            }
+            
+            free(fFifobuffer);
+            free(fSilence);
             
             for (int i = 0; i < NUM_INPUTS; i++) {
                 delete [] fInputs[i];
@@ -204,6 +233,8 @@ class androidaudio : public audio {
     
         virtual bool init(const char* name, dsp* DSP)
         {
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "init");
+            
             fDsp = DSP;
             fNumInChans = fDsp->getNumInputs();
             fNumOutChans = fDsp->getNumOutputs();
@@ -211,11 +242,7 @@ class androidaudio : public audio {
             if (pthread_mutex_init(&fMutex, NULL) != 0) {
                 return false;
             }
-            return true;
-        }
-    
-        virtual bool start()
-        {
+            
             static const SLboolean requireds[2] = { SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE };
             SLresult result;
             SLuint32 sr;
@@ -292,7 +319,6 @@ class androidaudio : public audio {
             SLDataLocator_OutputMix outputMixLocator = { SL_DATALOCATOR_OUTPUTMIX, fOutputMix };
             
             if (fNumInChans > 0) {
-                
                 // Create the input buffer queue.
                 SLDataLocator_IODevice deviceInputLocator = { SL_DATALOCATOR_IODEVICE, SL_IODEVICE_AUDIOINPUT, SL_DEFAULTDEVICEID_AUDIOINPUT, NULL };
                 SLDataSource inputSource = { &deviceInputLocator, NULL };
@@ -306,10 +332,9 @@ class androidaudio : public audio {
                 
                 result = (*fInputBufferQueue)->Realize(fInputBufferQueue, SL_BOOLEAN_FALSE);
                 if (result != SL_RESULT_SUCCESS) return false;
-            };
+            }
             
             if (fNumOutChans > 0) {
-                
                 // Create the output buffer queue.
                 SLDataLocator_AndroidSimpleBufferQueue outputLocator = { SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 1 };
                 SLDataFormat_PCM outputFormat = { SL_DATAFORMAT_PCM, 2, sr, SL_PCMSAMPLEFORMAT_FIXED_16, SL_PCMSAMPLEFORMAT_FIXED_16, SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT, SL_BYTEORDER_LITTLEENDIAN };
@@ -322,27 +347,20 @@ class androidaudio : public audio {
                 
                 result = (*fOutputBufferQueue)->Realize(fOutputBufferQueue, SL_BOOLEAN_FALSE);
                 if (result != SL_RESULT_SUCCESS) return false;
-            };
+            }
             
-            if (fNumInChans > 0) { // Initialize and start the input buffer queue.
+            if (fNumInChans > 0) { // Initialize
                 result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_ANDROIDSIMPLEBUFFERQUEUE, &fInputBufferQueueInterface);
                 if (result != SL_RESULT_SUCCESS) return false;
                 
                 result = (*fInputBufferQueueInterface)->RegisterCallback(fInputBufferQueueInterface, inputCallback, this);
                 if (result != SL_RESULT_SUCCESS) return false;
                 
-                SLRecordItf recordInterface;
-                result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_RECORD, &recordInterface);
+                result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_RECORD, &fRecordInterface);
                 if (result != SL_RESULT_SUCCESS) return false;
-                
-                result = (*fInputBufferQueueInterface)->Enqueue(fInputBufferQueueInterface, fFifobuffer, fBufferSize * 4);
-                if (result != SL_RESULT_SUCCESS) return false;
-                
-                result = (*recordInterface)->SetRecordState(recordInterface, SL_RECORDSTATE_RECORDING);
-                if (result != SL_RESULT_SUCCESS) return false;
-            };
+            }
             
-            if (fNumOutChans > 0) { // Initialize and start the output buffer queue.
+            if (fNumOutChans > 0) { // Initialize
                 result = (*fOutputBufferQueue)->GetInterface(fOutputBufferQueue, SL_IID_BUFFERQUEUE, &fOutputBufferQueueInterface);
                 if (result != SL_RESULT_SUCCESS) return false;
                 
@@ -352,39 +370,51 @@ class androidaudio : public audio {
                 result = (*fOutputBufferQueueInterface)->Enqueue(fOutputBufferQueueInterface, fFifobuffer, fBufferSize * 4);
                 if (result != SL_RESULT_SUCCESS) return false;
                 
-                SLPlayItf outputPlayInterface;
-                result = (*fOutputBufferQueue)->GetInterface(fOutputBufferQueue, SL_IID_PLAY, &outputPlayInterface);
+                result = (*fOutputBufferQueue)->GetInterface(fOutputBufferQueue, SL_IID_PLAY, &fPlayInterface);
+                if (result != SL_RESULT_SUCCESS) return false;
+            }
+            
+            return true;
+        }
+    
+        virtual bool start()
+        {
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "start");
+            SLresult result;
+            
+            if (fNumInChans > 0) {
+                // start the input buffer queue.
+                result = (*fInputBufferQueueInterface)->Enqueue(fInputBufferQueueInterface, fFifobuffer, fBufferSize * 4);
                 if (result != SL_RESULT_SUCCESS) return false;
                 
-                result = (*outputPlayInterface)->SetPlayState(outputPlayInterface, SL_PLAYSTATE_PLAYING);
+                result = (*fRecordInterface)->SetRecordState(fRecordInterface, SL_RECORDSTATE_RECORDING);
                 if (result != SL_RESULT_SUCCESS) return false;
-            };
+            }
+            
+            if (fNumOutChans > 0) {
+                // start the output buffer queue.
+                result = (*fPlayInterface)->SetPlayState(fPlayInterface, SL_PLAYSTATE_PLAYING);
+                if (result != SL_RESULT_SUCCESS) return false;
+            }
             
             return true;
         }
         
         virtual void stop()
         {
-            if (fOpenSLEngine) {
-                (*fOpenSLEngine)->Destroy(fOpenSLEngine);
-                fOpenSLEngine = NULL;
-            }
-            if (fOutputMix) {
-                (*fOutputMix)->Destroy(fOutputMix);
-                fOutputMix = NULL;
-            }
-            if (fInputBufferQueue) {
-                (*fInputBufferQueue)->Destroy(fInputBufferQueue);
-                fInputBufferQueue = NULL;
-            }
-            if (fOutputBufferQueue) {
-                (*fOutputBufferQueue)->Destroy(fOutputBufferQueue);
-                fOutputBufferQueue = NULL;
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "stop");
+            SLresult result;
+            
+            if (fNumInChans > 0) {
+                result = (*fRecordInterface)->SetRecordState(fRecordInterface, SL_RECORDSTATE_PAUSED);
+                if (result != SL_RESULT_SUCCESS) __android_log_print(ANDROID_LOG_ERROR, "Faust", "stop: SetRecordState error");
             }
             
-            free(fFifobuffer);
-            free(fSilence);
-         }
+            if (fNumOutChans > 0) {
+                result = (*fPlayInterface)->SetPlayState(fPlayInterface, SL_PLAYSTATE_PAUSED);
+                if (result != SL_RESULT_SUCCESS) __android_log_print(ANDROID_LOG_ERROR, "Faust", "stop: SetPlayState error");
+            }
+        }
     
         virtual int get_buffer_size()
         {
@@ -407,5 +437,4 @@ class androidaudio : public audio {
         }
     
 };
-
 

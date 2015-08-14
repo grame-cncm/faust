@@ -11,17 +11,23 @@ import android.util.Log;
 
 public class dsp_faust {
   public static void init(int arg0, int arg1) {
+    Log.d("FaustJava", "JNI init");
     dsp_faustJNI.init(arg0, arg1);
   }
 
   public static int start() {
-    Log.d("FaustJava", "start");
+    Log.d("FaustJava", "JNI start");
     return dsp_faustJNI.start();
   }
 
   public static void stop() {
-    Log.d("FaustJava", "stop");
+    Log.d("FaustJava", "JNI stop");
     dsp_faustJNI.stop();
+  }
+    
+  public static void destroy() {
+    Log.d("FaustJava", "JNI destroy");
+    dsp_faustJNI.destroy();
   }
 
   public static boolean isRunning() {
@@ -67,5 +73,13 @@ public class dsp_faust {
   public static String getParamAddress(int arg0) {
     return dsp_faustJNI.getParamAddress(arg0);
   }
-
+    
+  public static void propagateAcc(int acc, float arg1) {
+    dsp_faustJNI.propagateAcc(acc, arg1);
+  }
+    
+  public static void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax) {
+     dsp_faustJNI.setAccConverter(p, acc, curve, amin, amid,  amax);
+  }
+ 
 }
