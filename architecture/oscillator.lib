@@ -7,15 +7,21 @@ declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 ml = library("music.lib");  // SR, db2linear, frac, PI, noise, ...
 fl = library("filter.lib"); // wgr, nlf2, tf2, smooth, tau2pole, iir, ...
 
-//===================== Virtual Analog Oscillators ========================
-
+//--------------------Oscillator library for Faust--------------------------
+//
+// Virtual analog oscillators and filter-based oscillators.
+// For wavetable-based oscillators, see osc* in ./music.lib
+//
 // Low-frequency oscillators have prefix "lf_"
-// (no aliasing suppression, signal means not zero)
+// (no aliasing suppression, signal-means not necessarily zero)
 
 //-------- LF Impulse and Pulse Trains, Square and Triangle Waves ----------
 // lf_imptrain, lf_pulsetrainpos, lf_squarewavepos, lf_squarewave, lf_trianglepos
-
-// All impulse and pulse trains jump to 1 at time 0.
+// ### USAGE:
+//     lf_wavetype : _
+// ### NOTES:
+// + Suffix 'pos' means the function is nonnegative, otherwise ~ zero mean
+// + All impulse and pulse trains jump to 1 at time 0
 
 // Unit-amplitude low-frequency impulse train:
 lf_imptrain(freq) = lf_sawpos(freq)<:-(mem)<0; // definition below
@@ -36,7 +42,7 @@ lf_squarewave(freq) = 2*lf_squarewavepos(freq) - 1;
 lf_trianglepos(freq) = 1-abs(saw1(freq)); // saw1 defined below
 
 //---------- LF Sawtooths: lf_rawsaw, lf_sawpos, saw1 -------------------
-
+//
 // Sawtooth waveform oscillators for virtual analog synthesis et al.
 // The 'simple' versions (lf_rawsaw, lf_sawpos, saw1), are mere samplings of
 // the ideal continuous-time ("analog") waveforms.  While simple, the
@@ -66,10 +72,12 @@ saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0; // zero-mean in [-1,1)
 // no lf prefix because order 1 explicit called for here
 
 //---------------- Bandlimited Sawtooth sawN, saw2, ... ------------------
-// METHOD: Differentiated Polynomial Waves (DPW) (for aliasing suppression)
-// REFERENCE: 
+//
+// ### METHOD:
+// Differentiated Polynomial Waves (DPW) (for aliasing suppression)
+// ### REFERENCE:
 // "Alias-Suppressed Oscillators based on Differentiated Polynomial Waveforms",
-// Vesa Valimaki, Juhan Nam, Julius Smith, and Jonathan Abel, 
+// Vesa Valimaki, Juhan Nam, Julius Smith, and Jonathan Abel,
 // IEEE Tr. Acoustics, Speech, and Language Processing (IEEE-ASLP),
 // Vol. 18, no. 5, May 2010.
 
@@ -109,7 +117,7 @@ saw2(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*ml.SR/freq);
 saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
 
 // --- sawtooth ---
-sawtooth = saw2; // default choice for sawtooth signal - see also sawN 
+sawtooth = saw2; // default choice for sawtooth signal - see also sawN
 
 // --- Correction-filtered versions of saw2: saw2f2, saw2f4 ----
 // The correction filter compensates "droop" near half the sampling rate.
@@ -117,21 +125,21 @@ sawtooth = saw2; // default choice for sawtooth signal - see also sawN
 
 saw2f2 = saw2 : cf2 with {
   cf2 = fl.tf2(1.155704605878911, 0.745184288225518,0.040305967265900,
-	0.823765146386639, 0.117420665547108);
+        0.823765146386639, 0.117420665547108);
 };
 
 saw2f4 = saw2 : cf4 with {
   cf4 = fl.iir((1.155727435125014, 2.285861038554662,
-	1.430915027294021, 0.290713280893317, 0.008306401748854),
-	(2.156834679164532, 1.559532244409321, 0.423036498118354,
-	0.032080681130972));
+        1.430915027294021, 0.290713280893317, 0.008306401748854),
+        (2.156834679164532, 1.559532244409321, 0.423036498118354,
+        0.032080681130972));
 };
 
 //-------------------------- sawtooth_demo ---------------------------
-// USAGE:  sawtooth_demo : _
+// ### USAGE:  sawtooth_demo : _
 
-sawtooth_demo = signal with { 
-  osc_group(x) = vgroup("[0] SAWTOOTH OSCILLATOR 
+sawtooth_demo = signal with {
+  osc_group(x) = vgroup("[0] SAWTOOTH OSCILLATOR
     [tooltip: See Faust's oscillator.lib for documentation and references]",x);
   knob_group(x)  = osc_group(hgroup("[1]", x));
   ampdb  = knob_group(vslider("[1] Amplitude [unit:dB] [style:knob]
@@ -156,11 +164,11 @@ sawtooth_demo = signal with {
       [tooltip: Portamento (frequency-glide) time-constant in seconds]",
       0.1,0.001,10,0.001));
   sfreq = freq : fl.smooth(fl.tau2pole(portamento));
-  tone = (amp/3) * 
+  tone = (amp/3) *
     (sawtooth(sfreq) + sawtooth(sfreq*detune1) + sawtooth(sfreq*detune2));
   signal = amp * select2(ei, select2(ss, tone, pink_noise), _);
   checkbox_group(x) = knob_group(vgroup("[6] Alternate Signals",x));
-  ss = checkbox_group(checkbox("[0] 
+  ss = checkbox_group(checkbox("[0]
 [tooltip: Pink Noise (or 1/f noise) is Constant-Q Noise, meaning that it has the same total power in every octave] Pink Noise Instead (uses only Amplitude control on the left)"));
   ei = checkbox_group(checkbox(
       "[1] External Input Instead (overrides Sawtooth/Noise selection above)"));
@@ -172,7 +180,7 @@ sawtooth_demo = signal with {
 // All are zero-mean and meant to oscillate in the audio frequency range.
 // Use simpler sample-rounded lf_* versions above for LFOs.
 
-pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with { 
+pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with {
  // non-interpolated-delay version: diffdel(x,del) = x - x@int(del+0.5);
  // linearly interpolated delay version (sounds good to me):
     diffdel(x,del) = x-x@int(del)*(1-ml.frac(del))-x@(int(del)+1)*ml.frac(del);
@@ -205,30 +213,30 @@ triangleN(N,freq) = squareN(N,freq) : fl.pole(p) : *(gain) with {
 triangle = triangleN(2); // default based on saw2
 
 //---------------------- virtual_analog_oscillator_demo ----------------------
-// USAGE:  virtual_analog_oscillator_demo : _
+// ### USAGE:  virtual_analog_oscillator_demo : _
 
-virtual_analog_oscillator_demo = signal with { 
+virtual_analog_oscillator_demo = signal with {
   osc_group(x) = vgroup("[0] VIRTUAL ANALOG OSCILLATORS
     [tooltip: See Faust's oscillator.lib for documentation and references]",x);
 
   // Signals
-  saw = (amp/3) * 
+  saw = (amp/3) *
     (sawtooth(sfreq) + sawtooth(sfreq*detune1) + sawtooth(sfreq*detune2));
-  sq = (amp/3) * 
+  sq = (amp/3) *
     (square(sfreq) + square(sfreq*detune1) + square(sfreq*detune2));
-  tri = (amp/3) * 
+  tri = (amp/3) *
     (triangle(sfreq) + triangle(sfreq*detune1) + triangle(sfreq*detune2));
-  pt = (amp/3) * (pulsetrain(sfreq,ptd) 
-                + pulsetrain(sfreq*detune1,ptd) 
+  pt = (amp/3) * (pulsetrain(sfreq,ptd)
+                + pulsetrain(sfreq*detune1,ptd)
                 + pulsetrain(sfreq*detune2,ptd));
-  ptN = (amp/3) * (pulsetrainN(N,sfreq,ptd) 
-                + pulsetrainN(N,sfreq*detune1,ptd) 
+  ptN = (amp/3) * (pulsetrainN(N,sfreq,ptd)
+                + pulsetrainN(N,sfreq*detune1,ptd)
                 + pulsetrainN(N,sfreq*detune2,ptd)) with {N=3;};
-  pn = amp * pink_noise;	
+  pn = amp * pink_noise;
 
-  signal = ssaw*saw + ssq*sq + stri*tri 
-  	   + spt*((ssptN*ptN)+(1-ssptN)*pt) 
-	   + spn*pn + sei*_;
+  signal = ssaw*saw + ssq*sq + stri*tri
+           + spt*((ssptN*ptN)+(1-ssptN)*pt)
+           + spn*pn + sei*_;
 
   // Signal controls:
   signal_group(x) = osc_group(hgroup("[0] Signal Levels",x));
@@ -245,7 +253,7 @@ virtual_analog_oscillator_demo = signal with {
   ssq = signal_group(vslider("[2] Square [style:vslider]",0,0,1,0.01));
   stri = signal_group(vslider("[3] Triangle [style:vslider]",0,0,1,0.01));
   spn = signal_group(vslider(
-      "[4] Pink Noise [style:vslider] 
+      "[4] Pink Noise [style:vslider]
        [tooltip: Pink Noise (or 1/f noise) is Constant-Q Noise, meaning that it has the same total power in every octave (uses only amplitude controls)]",0,0,1,0.01));
   sei = signal_group(vslider("[5] Ext Input [style:vslider]",0,0,1,0.01));
 
@@ -278,8 +286,8 @@ virtual_analog_oscillator_demo = signal with {
 
 //----------------------- Filter-Based Oscillators ------------------------
 
-// USAGE: osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.
-// REFERENCES:
+// ### USAGE: osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.
+// ### REFERENCES:
 //  http://lac.linuxaudio.org/2012/download/lac12-slides-jos.pdf
 //  https://ccrma.stanford.edu/~jos/pdf/lac12-paper-jos.pdf
 
@@ -296,7 +304,7 @@ with {
 //  = undamped "coupled-form" resonator
 //  = lossless 2nd-order normalized ladder filter
 //
-// Reference:
+// ### Reference:
 // https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html
 //
 oscrq(f) = impulse : fl.nlf2(f,1); // sine and cosine outputs
@@ -308,7 +316,7 @@ oscr = oscrs; // default = sine (starts without a pop)
 //-------------------------- oscs --------------------------------
 // Sinusoidal oscillator based on the state variable filter
 // = undamped "modified-coupled-form" resonator
-// = "magic circle" algorithm used in graphics 
+// = "magic circle" algorithm used in graphics
 //
 oscs(f) =  (*(-1) : sint(wn) : sintp(wn,impulse)) ~ _
 with {
@@ -327,7 +335,7 @@ with {
 // oscq  - unit-amplitude cosine and sine (quadrature) oscillator
 // oscw  - default = oscwc for maximum speed
 //
-// Reference:
+// ### Reference:
 // https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html
 //
 oscwc(fr) = impulse : fl.wgr(fr,1) : _,!; // cosine (cheapest at 1 mpy/sample)
@@ -337,8 +345,8 @@ oscw = oscwc;
 
 //-------------------------- oscrs_demo ---------------------------
 
-oscrs_demo = signal with { 
-  osc_group(x) = vgroup("[0] SINE WAVE OSCILLATOR oscrs 
+oscrs_demo = signal with {
+  osc_group(x) = vgroup("[0] SINE WAVE OSCILLATOR oscrs
     [tooltip: Sine oscillator based on 2D vector rotation]",x);
   ampdb  = osc_group(hslider("[1] Amplitude [unit:dB]
     [tooltip: Sawtooth waveform amplitude]",
@@ -362,9 +370,9 @@ oscr_demo = oscrs_demo; // synonym
 //--------------------------- pink_noise --------------------------
 // Pink noise (1/f noise) generator (third-order approximation)
 //
-// USAGE: pink_noise : _;
+// ### USAGE: pink_noise : _;
 //
-// Reference:
+// ### Reference:
 //  https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html
 //
 
@@ -377,7 +385,7 @@ pink_noise = ml.noise :
 // (Butterworth-filtered downsampled white noise)
 // Require: music.lib, filter.lib
 //
-// USAGE: 
+// ### USAGE:
 //   lfnoise0(rate) : _;   // new random number every int(SR/rate) samples or so
 //   lfnoiseN(N,rate) : _; // same as "lfnoise0(rate) : lowpass(N,rate)" [see filter.lib]
 //   lfnoise(rate) : _;    // same as "lfnoise0(rate) : seq(i,5,lowpass(N,rate))" (no overshoot)
