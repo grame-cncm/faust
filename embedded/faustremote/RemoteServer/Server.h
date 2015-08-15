@@ -90,6 +90,8 @@ class audio_dsp {
             deleteDSPInstance(fDSP);
         }
         
+        bool init(int sr, int bs);
+          
         virtual bool start()
         {
             return fAudio->start();
@@ -99,7 +101,6 @@ class audio_dsp {
             fAudio->stop();
         }
        
-        virtual bool init(int sr, int bs) = 0;
         virtual bool isActive() = 0;
         
         string  getKey() { return fInstanceKey; }

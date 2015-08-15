@@ -24,6 +24,7 @@
 //#define COREAUDIO 1
 //#define PORTAUDIO 1
 //#define IOSAUDIO 1
+//#define ANDROID 1
 
 #include "faust/audio/netjack-dsp.h"
 
@@ -41,6 +42,10 @@
 
 #ifdef JACK
 #include "faust/audio/jack-dsp.h"
+#endif
+
+#ifdef ANDROID
+#include "faust/audio/android-dsp.h"
 #endif
 
 // Declare is called for every metadata coded in the Faust DSP
@@ -167,135 +172,30 @@ bool netjack_dsp::init(int u1, int u2)
     }
 }
 
-// Local CoreAudio client
-
+bool audio_dsp::init(int sr, int bs)
+{
 #ifdef COREAUDIO
-class coreaudio_dsp : public audio_dsp {
-
-    public:
-     
-        coreaudio_dsp(llvm_dsp_factory* factory, const string& name, const string& key,
-                    createInstanceDSPCallback cb1, void* cb1_arg,
-                    deleteInstanceDSPCallback cb2, void* cb2_arg)
-            :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg)
-        {}
-        
-        virtual ~coreaudio_dsp() {}
-        
-        bool init(int sr, int bs);
-        
-        bool isActive() { return true; }
-        
-};
-
-bool coreaudio_dsp::init(int sr, int bs)
-{
-    fAudio = new coreaudio(sr, bs);
-    
-    if (!fAudio->init(fName.c_str(), fDSP)) {
-        printf("coreaudio_dsp : init audio failed\n");
-        return false;
-    } else {
-        return true;
-    }
-}
-#endif
-
+    fAudio = new coreaudio(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str()));
+#endif  
 #ifdef IOSAUDIO
-class iosaudio_dsp : public audio_dsp {
-
-    public:
-     
-        iosaudio_dsp(llvm_dsp_factory* factory, const string& name, const string& key,
-                    createInstanceDSPCallback cb1, void* cb1_arg,
-                    deleteInstanceDSPCallback cb2, void* cb2_arg)
-            :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg)
-        {}
-        
-        virtual ~iosaudio_dsp() {}
-        
-        bool init(int sr, int bs);
-        
-        bool isActive() { return true; }
-        
-};
-
-bool iosaudio_dsp::init(int sr, int bs)
-{
-    fAudio = new iosaudio(sr, bs);
-    
-    if (!fAudio->init(fName.c_str(), fDSP)) {
-        printf("iosaudio_dsp : init audio failed\n");
-        return false;
-    } else {
-        return true;
-    }
-}
-#endif
-
+    fAudio = new iosaudio(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str()));
+#endif 
 #ifdef PORTAUDIO
-class portaudio_dsp : public audio_dsp {
-
-    public:
-     
-        portaudio_dsp(llvm_dsp_factory* factory, const string& name, const string& key, 
-                    createInstanceDSPCallback cb1, void* cb1_arg,
-                    deleteInstanceDSPCallback cb2, void* cb2_arg)
-            :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg)
-        {}
-        
-        virtual ~portaudio_dsp() {}
-        
-        bool init(int sr, int bs);
-        
-        bool isActive() { return true; }
-        
-};
-
-bool portaudio_dsp::init(int sr, int bs)
-{
-    fAudio = new portaudio(sr, bs);
-    
-    if (!fAudio->init(fName.c_str(), fDSP)) {
-        printf("portaudio_dsp : init audio failed\n");
-        return false;
-    } else {
-        return true;
-    }
-}
-#endif
-
+    fAudio = new portaudio(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str()));
+#endif 
 #ifdef JACK
-class jack_dsp : public audio_dsp {
-
-    public:
-     
-        jack_dsp(llvm_dsp_factory* factory, const string& name, const string& key,
-                createInstanceDSPCallback cb1, void* cb1_arg,
-                deleteInstanceDSPCallback cb2, void* cb2_arg)
-            :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg)
-        {}
-        
-        virtual ~jack_dsp() {}
-        
-        bool init(int sr, int bs);
-        
-        bool isActive() { return true; }
-        
-};
-
-bool jack_dsp::init(int u1, int u2)
-{
-    fAudio = new jackaudio(0, 0);
-    
+    fAudio = new jackaudio(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str()));
+#endif 
+#ifdef ANDROID
+    fAudio = new androidaudio(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str()));
+#endif 
     if (!fAudio->init(fName.c_str(), fDSP)) {
-        printf("portaudio_dsp : init audio failed\n");
+        printf("audio_dsp : init audio failed\n");
         return false;
     } else {
         return true;
     }
 }
-#endif
 
 //------------ CONNECTION INFO -------------------------------
 
@@ -759,65 +659,21 @@ bool DSPServer::createInstance(connection_info* con_info)
                     fCreateDSPInstanceCb(dsp, fCreateDSPInstanceCb_arg);
                 }
                 
-            #ifdef COREAUDIO
-                audio = new coreaudio_dsp(factory, 
-                                        fFactories[con_info->fFactoryKey].first, 
-                                        con_info->fInstanceKey,
-                                        fCreateDSPInstanceCb, 
-                                        fCreateDSPInstanceCb_arg,
-                                        fDeleteDSPInstanceCb, 
-                                        fDeleteDSPInstanceCb_arg);
-                if (audio->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str())) && audio->start()) {
-                    fRunningDsp.push_back(audio);
-                } else {
-                    delete audio;
-                }
-            #endif
-            #ifdef IOSAUDIO
-                audio = new iosaudio_dsp(factory,
-                                        fFactories[con_info->fFactoryKey].first, 
-                                        con_info->fInstanceKey,
-                                        fCreateDSPInstanceCb, 
-                                        fCreateDSPInstanceCb_arg,
-                                        fDeleteDSPInstanceCb, 
-                                        fDeleteDSPInstanceCb_arg);
-                if (audio->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str())) && audio->start()) {
-                    fRunningDsp.push_back(audio);
-                } else {
-                    delete audio;
-                }
-            #endif
-            #ifdef PORTAUDIO
-                audio = new portaudio_dsp(factory, 
-                                        fFactories[con_info->fFactoryKey].first, 
-                                        con_info->fInstanceKey, 
-                                        fCreateDSPInstanceCb, 
-                                        fCreateDSPInstanceCb_arg,
-                                        fDeleteDSPInstanceCb, 
-                                        fDeleteDSPInstanceCb_arg);
-                if (audio->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str())) && audio->start()) {
-                    fRunningDsp.push_back(audio);
-                } else {
-                    delete audio;
-                }
-            #endif
-            } else if (con_info->fAudioType == "kJack") {
-            #ifdef JACK
-                audio = new jack_dsp(factory, 
+                /*
+                audio = new audio_dsp(factory,
                                     fFactories[con_info->fFactoryKey].first, 
                                     con_info->fInstanceKey,
                                     fCreateDSPInstanceCb, 
                                     fCreateDSPInstanceCb_arg,
                                     fDeleteDSPInstanceCb, 
                                     fDeleteDSPInstanceCb_arg);
-                if (audio->init(-1, -1) && audio->start()) {
+                if (audio->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str())) && audio->start()) {
                     fRunningDsp.push_back(audio);
                 } else {
                     delete audio;
                 }
-            #endif
+                */
             }
-            
         } catch (...) {
              goto error;
         }
