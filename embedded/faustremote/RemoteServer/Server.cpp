@@ -21,7 +21,7 @@
 #endif
 
 //#define JACK 1
-//#define COREAUDIO 1
+#define COREAUDIO 1
 //#define PORTAUDIO 1
 //#define IOSAUDIO 1
 //#define ANDROID 1
@@ -175,19 +175,19 @@ bool netjack_dsp::init(int u1, int u2)
 bool audio_dsp::init(int sr, int bs)
 {
 #ifdef COREAUDIO
-    fAudio = new coreaudio(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str()));
+    fAudio = new coreaudio(sr, bs);
 #endif  
 #ifdef IOSAUDIO
-    fAudio = new iosaudio(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str()));
+    fAudio = new iosaudio(sr, bs);
 #endif 
 #ifdef PORTAUDIO
-    fAudio = new portaudio(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str()));
+    fAudio = new portaudio(sr, bs);
 #endif 
 #ifdef JACK
-    fAudio = new jackaudio(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str()));
+    fAudio = new jackaudio(sr, bs);
 #endif 
 #ifdef ANDROID
-    fAudio = new androidaudio(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str()));
+    fAudio = new androidaudio(sr, bs);
 #endif 
     if (!fAudio->init(fName.c_str(), fDSP)) {
         printf("audio_dsp : init audio failed\n");
