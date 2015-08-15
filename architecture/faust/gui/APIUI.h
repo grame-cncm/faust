@@ -190,18 +190,18 @@ class APIUI : public PathUI, public Meta
 		int getParamIndex(const char* n) 	{ return (fMap.count(n)>0) ? fMap[n] : -1; }
 		const char* getParamName(int p)		{ return fName[p].c_str(); }
 		const char* getParamUnit(int p)		{ return fUnit[p].c_str(); }
-		float getParamMin(int p)			{ return fMin[p]; }
-		float getParamMax(int p)			{ return fMax[p]; }
-		float getParamStep(int p)			{ return fStep[p]; }
+		FAUSTFLOAT getParamMin(int p)		{ return fMin[p]; }
+		FAUSTFLOAT getParamMax(int p)		{ return fMax[p]; }
+		FAUSTFLOAT getParamStep(int p)		{ return fStep[p]; }
 	
-		float getParamValue(int p)			{ return *fZone[p]; }
-		void setParamValue(int p, float v)	{ *fZone[p] = v; }
+		FAUSTFLOAT getParamValue(int p)         { return *fZone[p]; }
+		void setParamValue(int p, FAUSTFLOAT v) { *fZone[p] = v; }
 	
-		float getParamRatio(int p)			{ return fConversion[p]->faust2ui(*fZone[p]); }
-		void setParamRatio(int p, float r)	{ *fZone[p] = fConversion[p]->ui2faust(r); }
+		double getParamRatio(int p)         { return fConversion[p]->faust2ui(*fZone[p]); }
+		void setParamRatio(int p, double r) { *fZone[p] = fConversion[p]->ui2faust(r); }
 	
-		float value2ratio(int p, float r)	{ return fConversion[p]->faust2ui(r); }
-		float ratio2value(int p, float r)	{ return fConversion[p]->ui2faust(r); }
+		double value2ratio(int p, double r)	{ return fConversion[p]->faust2ui(r); }
+		double ratio2value(int p, double r)	{ return fConversion[p]->ui2faust(r); }
     
         /**
          * Set a new value coming from an accelerometer, propagate it to all relevant float* zones.
