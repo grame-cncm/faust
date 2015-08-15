@@ -237,8 +237,8 @@ class remote_audio {
  * @param factory - the Remote DSP factory
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters 
- *                  -buffer_size 
- *                  -sample_rate 
+ *                  --LA_buffer_size 
+ *                  --LA_sample_rate 
  * @param error - the error value to be filled
  * 
  * @return the remote DSP instance on success, otherwise a null pointer.

@@ -905,8 +905,7 @@ EXPORT bool getRemoteDSPMachines(map<string, remote_dsp_machine* >* machine_list
             // If the server machine did not send a message for 3 secondes, it is considered disconnected
             if ((now.sec - iterMem.timetag.sec) < 3) {
                 
-                // Decompose HostName to have Name, Ip and Port of service, Target
-                   
+                // Cut iterMem.hostname to have Name, Ip, Port of service and Target (tripple + CPU)
                 string name_service1 = iterMem.hostname;
                 int pos1 = name_service1.find(":");
                 string name_service2 = name_service1.substr(pos1 + 1, string::npos);

@@ -146,7 +146,6 @@ class remote_dsp_factory : public smartable {
         
         void        metadataRemoteDSPFactory(Meta* m);  
         
-        // ACCESSORS
         string              getIP() { return fServerIP; }
         void                setIP(const string& ip) { fServerIP = ip; }
         
@@ -193,9 +192,6 @@ class remote_dsp_aux : public dsp {
         
         void fillBufferWithZerosOffset(int channels, int offset, int size, FAUSTFLOAT** buffer);
         void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
-        
-        // Command-line parsing fonction
-        //const char* getValueFromKey(int argc, const char* argv[], const char* key, const char* defaultValue);
         
         void sendSlice(int buffer_size);
         void recvSlice(int buffer_size);

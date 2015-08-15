@@ -76,7 +76,7 @@ int testClient(int argc, const char* argv[])
             
     string errorFactory("");
     
- /*   vector<pair<string, string> > factories_list;
+ /* vector<pair<string, string> > factories_list;
     getRemoteFactoriesAvailable(ipServer, portServer, &factories_list);
     
     printf("Factories List : \n");
@@ -122,9 +122,7 @@ int testClient(int argc, const char* argv[])
     if (factory != NULL) {
                 
         remote_dsp* DSP;
-        
         int errorInstance;
-                
         DSP = createRemoteDSPInstance(factory, argc, (const char**)(argv), NULL, NULL, errorInstance);
                     
         if (DSP != NULL) { 
@@ -203,9 +201,7 @@ static bool DSPCallback(llvm_dsp* dsp, void* arg)
 int testServer(int argc, const char* argv[])
 {
     int	port = lopt(argv, "--port", 7777);
-    
     QApplication myApp(argc, (char**)argv);
-     
     remote_dsp_server* server = createRemoteDSPServer(0, NULL);
     
     //interface = new QTGUI();

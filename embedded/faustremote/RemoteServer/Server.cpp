@@ -278,9 +278,9 @@ int connection_info::iteratePost(const char* key, const char* data, size_t size)
             fCompilationOptions.push_back(data);
         } else if (strcmp(key,"opt_level") == 0) {
             fOptLevel = data;
-        } else if (strcmp(key,"LA_sr") == 0) {
+        } else if (strcmp(key,"LA_sample_rate") == 0) {
             fSampleRate = data;
-        } else if (strcmp(key,"LA_bs") == 0) {
+        } else if (strcmp(key,"LA_buffer_size") == 0) {
             fBufferSize = data;
         }
     }
