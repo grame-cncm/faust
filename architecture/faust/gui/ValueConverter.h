@@ -48,18 +48,13 @@ ZoneControl(zone, valueConverter) : a zone with an accelerometer data converter
 //--------------------------------------------------------------------------------------
 // Range(lo,hi) clip a value between lo and hi
 //--------------------------------------------------------------------------------------
-class Range
+struct Range
 {
-    
-    private:
+    double fLo;
+    double fHi;
 
-        double fLo;
-        double fHi;
-
-    public:
-
-        Range(double x, double y) : fLo(std::min(x,y)), fHi(std::max(x,y)) {}
-        double operator()(double x) { return (x<fLo) ? fLo : (x>fHi) ? fHi : x; }
+    Range(double x, double y) : fLo(std::min(x,y)), fHi(std::max(x,y)) {}
+    double operator()(double x) { return (x<fLo) ? fLo : (x>fHi) ? fHi : x; }
 };
 
 
@@ -100,6 +95,12 @@ class Interpolator
             double x = fRange(v);
             return  fOffset + x*fCoef;
         }
+        
+        void getLowHigh(double& amin, double& amax)
+        {
+            amin = fRange.fLo;
+            amax = fRange.fHi;
+        }
 };
 
 
@@ -123,6 +124,12 @@ class Interpolator3pt
             fSegment2(mi, hi, vm, v2),
             fMid(mi) {}
         double operator()(double x) { return  (x < fMid) ? fSegment1(x) : fSegment2(x); }
+        
+        void getMappingValues(double& amin, double& amid, double& amax) 
+        {
+            fSegment1.getLowHigh(amin, amid);
+            fSegment2.getLowHigh(amid, amax);
+        }
 };
 
 
@@ -218,7 +225,8 @@ class UpdatableValueConverter : public ValueConverter {
         virtual ~UpdatableValueConverter()
         {}
 
-        virtual void update(float amin, float amid, float amax, float min, float init, float max) = 0;
+        virtual void setMappingValues(double amin, double amid, double amax, double min, double init, double max) = 0;
+        virtual void getMappingValues(double& amin, double& amid, double& amax) = 0;
     
         void setActive(bool on_off) { fActive = on_off; }
         bool getActive() { return fActive; }
@@ -247,11 +255,16 @@ class AccUpConverter : public UpdatableValueConverter
         virtual double ui2faust(double x)	{ return fA2F(x); }
         virtual double faust2ui(double x)	{ return fF2A(x); }
 
-        virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
+        virtual void setMappingValues(double amin, double amid, double amax, double fmin, double fmid, double fmax)
         {
             //__android_log_print(ANDROID_LOG_ERROR, "Faust", "AccUpConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
             fA2F = Interpolator3pt(amin,amid,amax,fmin,fmid,fmax);
             fF2A = Interpolator3pt(fmin,fmid,fmax,amin,amid,amax);
+        }
+        
+        virtual void getMappingValues(double& amin, double& amid, double& amax) 
+        {
+            fA2F.getMappingValues(amin, amid, amax);
         }
     
 };
@@ -279,13 +292,17 @@ class AccDownConverter : public UpdatableValueConverter
         virtual double ui2faust(double x)	{ return fA2F(x); }
         virtual double faust2ui(double x)	{ return fF2A(x); }
         
-        virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
+        virtual void setMappingValues(double amin, double amid, double amax, double fmin, double fmid, double fmax)
         {
              //__android_log_print(ANDROID_LOG_ERROR, "Faust", "AccDownConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
             fA2F = Interpolator3pt(amin,amid,amax,fmax,fmid,fmin);
             fF2A = Interpolator3pt(fmin,fmid,fmax,amax,amid,amin);
         }
         
+        virtual void getMappingValues(double& amin, double& amid, double& amax) 
+        {
+            fA2F.getMappingValues(amin, amid, amax);
+        }
 };
 
 
@@ -311,13 +328,17 @@ class AccUpDownConverter : public UpdatableValueConverter
         virtual double ui2faust(double x)	{ return fA2F(x); }
         virtual double faust2ui(double x)	{ return fF2A(x); }
         
-        virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
+        virtual void setMappingValues(double amin, double amid, double amax, double fmin, double fmid, double fmax)
         {
              //__android_log_print(ANDROID_LOG_ERROR, "Faust", "AccUpDownConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
             fA2F = Interpolator3pt(amin,amid,amax,fmin,fmax,fmin);
             fF2A = Interpolator(fmin,fmax,amin,amax);
         }
         
+        virtual void getMappingValues(double& amin, double& amid, double& amax) 
+        {
+            fA2F.getMappingValues(amin, amid, amax);
+        }
 };
 
 
@@ -343,19 +364,22 @@ class AccDownUpConverter : public UpdatableValueConverter
         virtual double ui2faust(double x)	{ return fA2F(x); }
         virtual double faust2ui(double x)	{ return fF2A(x); }
         
-        virtual void update(float amin, float amid, float amax, float fmin, float fmid, float fmax)
+        virtual void setMappingValues(double amin, double amid, double amax, double fmin, double fmid, double fmax)
         {
             //__android_log_print(ANDROID_LOG_ERROR, "Faust", "AccDownUpConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
             fA2F = Interpolator3pt(amin,amid,amax,fmax,fmin,fmax);
             fF2A = Interpolator(fmin,fmax,amin,amax);
         }
         
+        virtual void getMappingValues(double& amin, double& amid, double& amax) 
+        {
+            fA2F.getMappingValues(amin, amid, amax);
+        }
 };
 
 
 //--------------------------------------------------------------------------------------
-// Association of a zone and a value converter. Useful to implement accelerometers 
-// metadata as a list of ZoneControl for each axes
+// Base class for ZoneControl
 //--------------------------------------------------------------------------------------
 class ZoneControl
 {
@@ -371,14 +395,21 @@ class ZoneControl
         
         virtual void update(double v) {}
         
-        virtual void update(int curve, float amin, float amid, float amax, float min, float init, float max) {}
+        virtual void setMappingValues(int curve, double amin, double amid, double amax, double min, double init, double max) {}
+        virtual void getMappingValues(double& amin, double& amid, double& amax) {}
         
         FAUSTFLOAT* getZone() { return fZone; }
     
         virtual void setActive(bool on_off) {}
+        virtual bool getActive() { return false; }
+        
+        int getCurve() { return -1; }
 
 };
 
+//--------------------------------------------------------------------------------------
+//  Useful to implement accelerometers metadata as a list of ZoneControl for each axes
+//--------------------------------------------------------------------------------------
 class ConverterZoneControl : public ZoneControl
 {
     
@@ -401,7 +432,6 @@ class ConverterZoneControl : public ZoneControl
 // Association of a zone and a four value converter, each one for each possible curve. 
 // Useful to implement accelerometers metadata as a list of ZoneControl for each axes
 //--------------------------------------------------------------------------------------
-
 class CurveZoneControl : public ZoneControl
 {
     
@@ -412,7 +442,7 @@ class CurveZoneControl : public ZoneControl
 
     public:
 
-        CurveZoneControl(FAUSTFLOAT* zone, float amin, float amid, float amax, float min, float init, float max) : ZoneControl(zone), fCurve(0)
+        CurveZoneControl(FAUSTFLOAT* zone, double amin, double amid, double amax, double min, double init, double max) : ZoneControl(zone), fCurve(0)
         {
             fValueConverters.push_back(new AccUpConverter(amin, amid, amax, min, init, max));
             fValueConverters.push_back(new AccDownConverter(amin, amid, amax, min, init, max));
@@ -428,10 +458,15 @@ class CurveZoneControl : public ZoneControl
         }
         void update(double v) { if (fValueConverters[fCurve]->getActive()) *fZone = fValueConverters[fCurve]->ui2faust(v); }
 
-        void update(int curve, float amin, float amid, float amax, float min, float init, float max)
+        void setMappingValues(int curve, double amin, double amid, double amax, double min, double init, double max)
         {
-            fValueConverters[curve]->update(amin, amid, amax, min, init, max);
+            fValueConverters[curve]->setMappingValues(amin, amid, amax, min, init, max);
             fCurve = curve;
+        }
+        
+        void getMappingValues(double& amin, double& amid, double& amax)
+        {
+            fValueConverters[fCurve]->getMappingValues(amin, amid, amax);
         }
     
         void setActive(bool on_off)
@@ -441,6 +476,8 @@ class CurveZoneControl : public ZoneControl
                 (*it)->setActive(on_off);
             }
         }
+        
+        int getCurve() { return fCurve; }
 };
 
 #endif

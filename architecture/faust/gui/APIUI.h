@@ -203,14 +203,31 @@ class APIUI : public PathUI, public Meta
 		float value2ratio(int p, float r)	{ return fConversion[p]->faust2ui(r); }
 		float ratio2value(int p, float r)	{ return fConversion[p]->ui2faust(r); }
     
-        // acc in [0, 1, 2]
-        void propagateAcc(int acc, double a)
+        /**
+         * Set a new value coming from an accelerometer, propagate it to all relevant float* zones.
+         * 
+         * @param acc - 0 for X accelerometer, 1 for Y accelerometer, 2 for Z accelerometer
+         * @param value - the new value
+         *
+         */
+        void propagateAcc(int acc, double value)
         {
             for (int i = 0; i < fAcc[acc].size(); i++) {
-                fAcc[acc][i]->update(a);
+                fAcc[acc][i]->update(value);
             }
         }
 
+        /**
+         * Used to edit accelerometer curves and mapping. Set curve and related mapping for a given UI parameter.
+         * 
+         * @param p - the UI parameter index
+         * @param acc - 0 for X accelerometer, 1 for Y accelerometer, 2 for Z accelerometer (-1 means "no mapping")
+         * @param curve - between 0 and 3
+         * @param amin - mapping 'min' point
+         * @param amid - mapping 'middle' point
+         * @param amax - mapping 'max' point
+         *
+         */
         void setAccConverter(int p, int acc, int curve, double amin, double amid, double amax)
         {
             int id1 = getAccZoneIndex(p, 0);
@@ -228,16 +245,54 @@ class APIUI : public PathUI, public Meta
                 int id4 = getAccZoneIndex(p, acc);
                 if (id4 != -1) {
                     // Reactivate the one we edit...
-                    fAcc[acc][id4]->update(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]);
+                    fAcc[acc][id4]->setMappingValues(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]);
                     fAcc[acc][id4]->setActive(true);
                 } else {
-                    // Allocate a new CurveZoneControl which is activated by default
+                    // Allocate a new CurveZoneControl which is 'active' by default
                     FAUSTFLOAT* zone = fZone[p];
                     fAcc[acc].push_back(new CurveZoneControl(zone, amin, amid, amax, fMin[p], fInit[p], fMax[p]));
                     //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter new CurveZoneControl %d", acc);
                 }
             }
          }
+         
+         /**
+         * Used to edit accelerometer curves and mapping. Get curve and related mapping for a given UI parameter.
+         * 
+         * @param p - the UI parameter index
+         * @param acc - the acc value to be retrieved (-1 means "no mapping")
+         * @param curve - the curve value to be retrieved
+         * @param amin - the amin value to be retrieved
+         * @param amid - the amid value to be retrieved
+         * @param amax - the amax value to be retrieved
+         *
+         */
+        void getAccConverter(int p, int& acc, int& curve, double& amin, double& amid, double& amax)
+         {
+            int id1 = getAccZoneIndex(p, 0);
+            int id2 = getAccZoneIndex(p, 1);
+            int id3 = getAccZoneIndex(p, 2);
+            
+            if (id1 != 1) {
+                acc = 0;
+                curve = fAcc[acc][id1]->getCurve();
+                fAcc[acc][id1]->getMappingValues(amin, amid, amax);
+            } else if (id2 != 1) {
+                acc = 1;
+                curve = fAcc[acc][id2]->getCurve();
+                fAcc[acc][id2]->getMappingValues(amin, amid, amax);
+            } else if (id3 != 1) {
+                acc = 2;
+                curve = fAcc[acc][id3]->getCurve();
+                fAcc[acc][id3]->getMappingValues(amin, amid, amax);
+            } else {
+                acc = -1; // No mapping 
+                curve = 0;
+                amin = -100.;
+                amid = 0.;
+                amax = 100.;
+            }
+        }
    
 };
 
