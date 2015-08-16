@@ -146,6 +146,7 @@ struct connection_info {
     string fLatency;
     string fSHAKey;
     string fInstanceKey;
+    string fJSON;
     
     //------DATAS RECEIVED TO CREATE NEW local Audio INSTANCE-------
     string fSampleRate;
@@ -249,6 +250,15 @@ class DSPServer {
         
         bool start(const string& shakey);
         bool stop(const string& shakey);
+        
+        bool getAvailableFactories(MHD_Connection* connection);
+        
+        bool getJsonFromKey(MHD_Connection* connection, connection_info* info);
+        bool getJson(MHD_Connection* connection, connection_info* info);
+        bool createInstance(MHD_Connection* connection, connection_info* info);
+        
+        bool start(MHD_Connection* connection, connection_info* info);
+        bool stop(MHD_Connection* connection, connection_info* info);
         
         // Register Service as available
         static void* registration(void* arg);

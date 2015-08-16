@@ -117,17 +117,6 @@ std::string getSHAKey(llvm_dsp_factory* factory);
 extern "C" const char* getCSHAKey(llvm_dsp_factory* factory);
 
 /**
- * Get the target (triple + CPU) of the DSP factory.
- *
- * @param factory - the DSP factory.
- * 
- * @return the target as a string.
- */
-std::string getTarget(llvm_dsp_factory* factory);
-
-extern "C" const char* getCTarget(llvm_dsp_factory* factory);
-
-/**
  * Destroy all Faust DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables of so...) thus become invalid.
  * 
  */                                 

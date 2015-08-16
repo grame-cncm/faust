@@ -184,7 +184,7 @@ bool audio_dsp::init(int sr, int bs)
     fAudio = new portaudio(sr, bs);
 #endif 
 #ifdef JACK
-    fAudio = new jackaudio(sr, bs);
+    fAudio = new jackaudio(0, 0);
 #endif 
 #ifdef ANDROID
     fAudio = new androidaudio(sr, bs);
@@ -215,29 +215,32 @@ connection_info::connection_info()
     fLatency = "";
     fSHAKey = "";
     fInstanceKey = "";
+    fJSON = "";
 }
     
 string connection_info::getJson() 
 {
-    myMeta metadata;
-    metadataDSPFactory(fFactory, &metadata);
-    fNameApp = metadata.name;
+    if (fJSON == "") {
+        myMeta metadata;
+        metadataDSPFactory(fFactory, &metadata);
+        fNameApp = metadata.name;
         
-    // This instance is used only to build JSON interface, then it's deleted
-    llvm_dsp* dsp = createDSPInstance(fFactory);
-    JSONUI json(dsp->getNumInputs(), dsp->getNumOutputs());
-    dsp->buildUserInterface(&json);
-    deleteDSPInstance(dsp);  
+        // This instance is used only to build JSON interface, then it's deleted
+        llvm_dsp* dsp = createDSPInstance(fFactory);
+        JSONUI json(dsp->getNumInputs(), dsp->getNumOutputs());
+        dsp->buildUserInterface(&json);
+        deleteDSPInstance(dsp);  
+        fJSON = json.JSON();
+    }
       
-    return json.JSON();
+    return fJSON;
 }
 
 bool connection_info::getJsonFromKey(FactoryTable factories)
 {
-    fNameApp = factories[fSHAKey].first;
-    fFactory = factories[fSHAKey].second;
-    
-    if (fFactory) {
+    if (factories.find(fSHAKey) != factories.end()) {
+        fNameApp = factories[fSHAKey].first;
+        fFactory = factories[fSHAKey].second;
         fAnswer = getJson();
         return true;
     } else {
@@ -246,10 +249,55 @@ bool connection_info::getJsonFromKey(FactoryTable factories)
     }
 }
 
+// Create DSP Factory 
+bool connection_info::createFactory(FactoryTable factories, DSPServer* server) 
+{
+    string error = "Incorrect machine code";
+    
+    // Sort out compilation options
+    int argc = fCompilationOptions.size();
+    const char* argv[argc];
+    for (int i = 0; i < argc; i++) {
+        argv[i] = (fCompilationOptions[i]).c_str();
+    }
+    
+    if (isopt(argc, argv, "-m")) {
+        printf("Machine code\n");
+        // Machine code
+        //fFactory = readDSPFactoryFromMachine(fFaustCode);
+        fFactory = readCDSPFactoryFromMachine(fFaustCode.c_str());
+    } else {
+        // DSP code
+        /*
+        fFactory = createDSPFactoryFromString(fNameApp,
+                                            fFaustCode, 
+                                            argc, argv, "", 
+                                            error, atoi(fOptLevel.c_str()));
+        */
+    
+        char error1[256];
+        fFactory = createCDSPFactoryFromString(fNameApp.c_str(),
+                                            fFaustCode.c_str(),
+                                            argc, argv, "",
+                                            error1, atoi(fOptLevel.c_str()));
+    }
+    
+    if (fFactory) {
+        // Possibly call callback
+        if (server->fCreateDSPFactoryCb) {
+            return server->fCreateDSPFactoryCb(fFactory, server->fCreateDSPFactoryCb_arg);
+        }   
+        factories[fSHAKey] = make_pair(fNameApp, fFactory);
+        return true;
+    } else {
+        return false;
+    }
+}
+
 int connection_info::iteratePost(const char* key, const char* data, size_t size) 
 {
     if (size > 0) {
-        if (strcmp(key,"name") == 0) {
+        if (strcmp(key, "name") == 0) {
             fNameApp += nameWithoutSpaces(data);
             if (fNameApp == "") {
                 fNameApp = "RemoteDSPServer_DefaultName";
@@ -287,61 +335,6 @@ int connection_info::iteratePost(const char* key, const char* data, size_t size)
     
     fAnswercode = MHD_HTTP_OK;
     return MHD_YES;
-}
-
-// Create DSP Factory 
-bool connection_info::createFactory(FactoryTable factories, DSPServer* server) 
-{
-    // Factory already compiled ?
-    if (factories.find(fSHAKey) != factories.end()) {
-        fFactory = factories[fSHAKey].second;
-        fAnswer = getJson();
-        return true;
-    }
-    
-    string error = "Incorrect machine code";
-    
-    // Sort out compilation options
-    int argc = fCompilationOptions.size();
-    const char* argv[argc];
-    for (int i = 0; i < argc; i++) {
-        argv[i] = (fCompilationOptions[i]).c_str();
-    }
-    
-    if (isopt(argc, argv, "-m")) {
-        printf("Machine code\n");
-        // Machine code
-        //fFactory = readDSPFactoryFromMachine(fFaustCode);
-        fFactory = readCDSPFactoryFromMachine(fFaustCode.c_str());
-    } else {
-        // DSP code
-        /*
-        fFactory = createDSPFactoryFromString(fNameApp,
-                                            fFaustCode, 
-                                            argc, argv, "", 
-                                            error, atoi(fOptLevel.c_str()));
-        */
-    
-        char error1[256];
-        fFactory = createCDSPFactoryFromString(fNameApp.c_str(),
-                                            fFaustCode.c_str(),
-                                            argc, argv, "",
-                                            error1, atoi(fOptLevel.c_str()));
-    }
-   
-    if (fFactory) {
-        // Possibly call callback
-        if (server->fCreateDSPFactoryCb) {
-            return server->fCreateDSPFactoryCb(fFactory, server->fCreateDSPFactoryCb_arg);
-        }   
-        factories[fSHAKey] = make_pair(fNameApp, fFactory);
-        // Once the factory is compiled, the JSON is stored as answerstring
-        fAnswer = getJson();
-        return true;
-    } else {
-        fAnswer = error;
-        return false;
-    }
 }
 
 connection_info_post::connection_info_post(MHD_Connection* connection):connection_info()
@@ -533,13 +526,63 @@ int DSPServer::answerGet(MHD_Connection* connection, const char* url)
     if (strcmp(url, "/") == 0) {
         return sendPage(connection, pathToContent("remote-server.html"), MHD_HTTP_OK, "text/html");
     } else if (strcmp(url, "/GetAvailableFactories") == 0) {
-        stringstream answer;
-        for (map<string, pair<string, llvm_dsp_factory*> >::iterator it = fFactories.begin(); it != fFactories.end(); it++) {
-            answer << it->first << " " << it->second.first << " ";
-        }
-        return sendPage(connection, answer.str(), MHD_HTTP_OK, "text/plain");
+        return getAvailableFactories(connection);
     } else {
         return MHD_NO;
+    }
+}
+
+bool DSPServer::getAvailableFactories(MHD_Connection* connection)
+{
+    stringstream answer;
+    for (map<string, pair<string, llvm_dsp_factory*> >::iterator it = fFactories.begin(); it != fFactories.end(); it++) {
+        answer << it->first << " " << it->second.first << " ";
+    }
+    return sendPage(connection, answer.str(), MHD_HTTP_OK, "text/plain");
+}
+
+bool DSPServer::getJsonFromKey(MHD_Connection* connection, connection_info* info)
+{
+    if (info->getJsonFromKey(fFactories)) {
+        return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json"); 
+    } else {
+        return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
+    }
+}
+
+bool DSPServer::getJson(MHD_Connection* connection, connection_info* info)
+{
+    if (info->getJsonFromKey(fFactories) || info->createFactory(fFactories, this)) {
+        return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json");
+    } else {
+        return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
+    }
+}
+
+bool DSPServer::createInstance(MHD_Connection* connection, connection_info* info)
+{
+    if (createInstance(info)) {
+        return sendPage(connection, "", MHD_HTTP_OK, "text/html");
+    } else {
+        return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
+    }
+}
+
+bool DSPServer::start(MHD_Connection* connection, connection_info* info)
+{
+    if (start(info->fSHAKey)) {
+        return sendPage(connection, "", MHD_HTTP_OK, "text/html");
+    } else {
+        return sendPage(connection, builtError(ERROR_INSTANCE_NOTFOUND), MHD_HTTP_BAD_REQUEST, "text/html");
+    }
+}
+
+bool DSPServer::stop(MHD_Connection* connection, connection_info* info)
+{
+    if (stop(info->fSHAKey)) {
+        return sendPage(connection, "", MHD_HTTP_OK, "text/html");
+    } else {
+        return sendPage(connection, builtError(ERROR_INSTANCE_NOTFOUND), MHD_HTTP_BAD_REQUEST, "text/html");
     }
 }
 
@@ -557,35 +600,15 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
     } else {
         
         if (strcmp(url, "/GetJson") == 0) {
-            if (info->createFactory(fFactories, this)) {
-                return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json"); 
-            } else {
-                return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
-            }
+            return getJson(connection, info);
         } else if (strcmp(url, "/GetJsonFromKey") == 0) {
-            if (info->getJsonFromKey(fFactories)) {
-                return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json"); 
-            } else {
-                return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
-            }
+            return getJsonFromKey(connection, info);
         } else if (strcmp(url, "/CreateInstance") == 0) {
-            if (createInstance(info)) {
-                return sendPage(connection, "", MHD_HTTP_OK, "text/html");
-            } else {
-                return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
-            }
+            return createInstance(connection, info);
         } else if (strcmp(url, "/Start") == 0) {
-            if (start(info->fSHAKey)) {
-                return sendPage(connection, "", MHD_HTTP_OK, "text/html");
-            } else {
-                return sendPage(connection, builtError(ERROR_INSTANCE_NOTFOUND), MHD_HTTP_BAD_REQUEST, "text/html");
-            }
+            return start(connection, info);
         } else if(strcmp(url, "/Stop") == 0) {
-            if (stop(info->fSHAKey)) {
-                return sendPage(connection, "", MHD_HTTP_OK, "text/html");
-            } else {
-                return sendPage(connection, builtError(ERROR_INSTANCE_NOTFOUND), MHD_HTTP_BAD_REQUEST, "text/html");
-            }
+            return stop(connection, info);
         } 
 //        else if(strcmp(url, "/DeleteFactory") == 0) {
 //            llvm_dsp_factory* toDelete = fFactories[con_info->fSHAKey];
@@ -667,7 +690,7 @@ bool DSPServer::createInstance(connection_info* con_info)
                                     fCreateDSPInstanceCb_arg,
                                     fDeleteDSPInstanceCb, 
                                     fDeleteDSPInstanceCb_arg);
-                if (audio->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str())) && audio->start()) {
+                if (audio->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str()))) {
                     fRunningDsp.push_back(audio);
                 } else {
                     delete audio;

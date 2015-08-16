@@ -116,7 +116,7 @@ class remote_dsp_factory : public smartable {
         int         fNumInputs;
         int         fNumOutputs;        //Num of Input/Output of compiled DSP factory
         
-        string      fServerIP;          //IP of remote server 
+        string      fServerURL;          //URL of remote server 
         
         map<string,string>  fMetadatas; //Metadatas extracted from json
         vector<itemInfo*>   fUiItems;   //Items extracted from json
@@ -146,8 +146,8 @@ class remote_dsp_factory : public smartable {
         
         void        metadataRemoteDSPFactory(Meta* m);  
         
-        string              getIP() { return fServerIP; }
-        void                setIP(const string& ip) { fServerIP = ip; }
+        string              getURL() { return fServerURL; }
+        void                setURL(const string& url) { fServerURL = url; }
         
         vector<itemInfo*>   itemList() { return fUiItems; }
         

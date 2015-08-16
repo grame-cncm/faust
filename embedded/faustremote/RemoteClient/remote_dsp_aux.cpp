@@ -110,8 +110,8 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
 {
     bool res = false;
     int errorCode;
-    string response, ip;
-    stringstream finalRequest, serverIP;
+    string response, url;
+    stringstream finalRequest, serverURL;
     
     fSHAKey = sha_key;
      
@@ -159,12 +159,12 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
         }
     }
     
-    serverIP << "http://" << ip_server << ":" << port_server;
-    fServerIP = serverIP.str();
-    ip = fServerIP + "/GetJson";
+    serverURL << "http://" << ip_server << ":" << port_server;
+    fServerURL = serverURL.str();
+    url = fServerURL + "/GetJson";
 
     errorCode = -1;
-    if (sendRequest(ip, finalRequest.str(), response, errorCode)) {
+    if (sendRequest(url, finalRequest.str(), response, errorCode)) {
         decodeJson(response);
         res = true;
     } else if (errorCode != -1) {
@@ -181,7 +181,7 @@ void remote_dsp_factory::stop()
 {
     // The index of the factory to delete has to be sent
     string finalRequest = "shaKey=" + fSHAKey;
-    string url = fServerIP + "/DeleteFactory";
+    string url = fServerURL + "/DeleteFactory";
    
     string response;
     int errorCode;
@@ -561,7 +561,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     finalRequest << "&instanceKey=" << this;
     
     bool res = false;
-    string url = fFactory->getIP();
+    string url = fFactory->getURL();
     url += "/CreateInstance";
         
     string response;
@@ -609,7 +609,7 @@ bool remote_audio_aux::init(int argc, const char* argv[], int& error)
     finalRequest << "&instanceKey=" << this;
     
     bool res = false;
-    string url = fFactory->getIP();
+    string url = fFactory->getURL();
     url += "/CreateInstance";
         
     string response;
@@ -630,7 +630,7 @@ bool remote_audio_aux::start()
     int errorCode;
     
     finalRequest << "instanceKey=" << this;
-    string ip = fFactory->getIP() + "/Start";
+    string ip = fFactory->getURL() + "/Start";
    
     return sendRequest(ip, finalRequest.str(), response, errorCode);
 }
@@ -642,7 +642,7 @@ bool remote_audio_aux::stop()
     int errorCode;
     
     finalRequest << "instanceKey=" << this;
-    string ip = fFactory->getIP() + "/Stop";
+    string ip = fFactory->getURL() + "/Stop";
       
     return sendRequest(ip, finalRequest.str(), response, errorCode);
 }            
@@ -727,9 +727,9 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(int argc, const char* a
         stringstream finalRequest;
         finalRequest << "shaKey=" << sha_key;
         
-        stringstream serverIP;
-        serverIP << "http://" << ip_server << ":" << port_server;
-        string url = serverIP.str() + "/GetJsonFromKey";
+        stringstream serverURL;
+        serverURL << "http://" << ip_server << ":" << port_server;
+        string url = serverURL.str() + "/GetJsonFromKey";
          
         string response;
         int errorCode = -1;
@@ -737,7 +737,7 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(int argc, const char* a
         if (sendRequest(url, finalRequest.str(), response, errorCode)) {
             remote_dsp_factory* factory = new remote_dsp_factory();
             factory->setKey(sha_key);
-            factory->setIP(serverIP.str());
+            factory->setURL(serverURL.str());
             factory->decodeJson(response);
             remote_dsp_factory::gFactoryDSPTable[factory] = make_pair(sha_key, make_pair(list<remote_dsp_aux*>(), list<remote_audio_aux*>()));
             return factory;
@@ -933,11 +933,11 @@ EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vect
 {
     bool res = false;
         
-    stringstream serverIP;
-    serverIP << "http://" << ip_server << ":" << port_server << "/GetAvailableFactories";
+    stringstream serverURL;
+    serverURL << "http://" << ip_server << ":" << port_server << "/GetAvailableFactories";
    
     ostringstream oss;
-    curl_easy_setopt(gCurl, CURLOPT_URL, serverIP.str().c_str());
+    curl_easy_setopt(gCurl, CURLOPT_URL, serverURL.str().c_str());
     curl_easy_setopt(gCurl, CURLOPT_POST, 0L);
     curl_easy_setopt(gCurl, CURLOPT_WRITEFUNCTION, &storeResponse);
     curl_easy_setopt(gCurl, CURLOPT_FILE, &oss);
