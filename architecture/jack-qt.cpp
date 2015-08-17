@@ -95,17 +95,17 @@ std::list<GUI*> GUI::fGuiList;
 
 int main(int argc, char *argv[])
 {
- 	char appname[256];
+ 	char name[256];
 	char rcfilename[256];
 	char* home = getenv("HOME");
 
-	snprintf(appname, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, appname);
+	snprintf(name, 255, "%s", basename(argv[0]));
+	snprintf(rcfilename, 255, "%s/.%src", home, name);
     
     int poly = lopt(argv, "--poly", 4);
     
 #if MIDICTRL
-    rtmidi midi;
+    rtmidi midi(name);
 #endif
 	
 #ifdef POLY
@@ -131,25 +131,25 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(&finterface);
     
 #ifdef MIDICTRL
-    MidiUI midiinterface(&midi);
+    MidiUI midiinterface(name);
     DSP->buildUserInterface(&midiinterface);
     std::cout << "MIDI is on" << std::endl;
 #endif
 
 #ifdef HTTPCTRL
-	httpdUI httpdinterface(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+	httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
 	DSP->buildUserInterface(&httpdinterface);
     std::cout << "HTTPD is on" << std::endl;
 #endif
 
 #ifdef OSCCTRL
-    OSCUI oscinterface(appname, argc, argv);
+    OSCUI oscinterface(name, argc, argv);
     DSP->buildUserInterface(&oscinterface);
     std::cout << "OSC is on" << std::endl;
 #endif
 	
 	jackaudio audio;
-	audio.init(appname, DSP);
+	audio.init(name, DSP);
 	finterface.recallState(rcfilename);	
 	audio.start();
     
