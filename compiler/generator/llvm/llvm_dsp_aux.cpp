@@ -129,30 +129,24 @@
 #define sysfs_binary_flag raw_fd_ostream::F_Binary
 #endif
 
+#if defined(LLVM_35) || defined(LLVM_36)
+#define GET_CPU_NAME llvm::sys::getHostCPUName().str()
+#else
+#define GET_CPU_NAME llvm::sys::getHostCPUName()
+#endif
+
 #if defined(LLVM_36)
 #define STREAM_ERROR std::error_code
 #define MEMORY_BUFFER MemoryBufferRef
 #define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
 #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get()->getMemBufferRef())
 #define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
-#define GET_CPU_NAME llvm::sys::getHostCPUName().str()
-
-static void splitTarget(const string& target, string& triple, string& cpu)
-{
-    size_t pos1 = target.find_first_of(':');
-    triple = target.substr(0, pos1);
-    if (pos1 != string::npos) {
-        cpu = target.substr(pos1 + 1);
-    }
-}
-
 #else
 #define STREAM_ERROR string
 #define MEMORY_BUFFER MemoryBuffer*
 #define MEMORY_BUFFER_GET(buffer) (buffer->getBuffer())
 #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get())
 #define MEMORY_BUFFER_CREATE(stringref) (MemoryBuffer::getMemBuffer(stringref))
-#define GET_CPU_NAME llvm::sys::getHostCPUName()
 #endif
 
 #if defined(LLVM_34) || defined(LLVM_35)  || defined(LLVM_36)
@@ -169,6 +163,15 @@ FactoryTableType llvm_dsp_factory::gFactoryTable;
 
 // Global API access lock
 TLockAble* gDSPFactoriesLock = 0;
+
+static void splitTarget(const string& target, string& triple, string& cpu)
+{
+    size_t pos1 = target.find_first_of(':');
+    triple = target.substr(0, pos1);
+    if (pos1 != string::npos) {
+        cpu = target.substr(pos1 + 1);
+    }
+}
 
 static string getParam(int argc, const char* argv[], const string& param, const string& def)
 {
