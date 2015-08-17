@@ -28,12 +28,14 @@ class APIUI : public PathUI, public Meta
         vector<FAUSTFLOAT>		fMax;
         vector<FAUSTFLOAT>		fStep;        
         vector<string>			fUnit; 
-        vector<ZoneControl*>	fAcc[3]; 
+        vector<ZoneControl*>	fAcc[3];
+        vector<ZoneControl*>	fGyr[3]; 
     
         // Current values controlled by metadata
         string	fCurrentUnit;     
         int     fCurrentScale;
-        string	fCurrentAcc;     
+        string	fCurrentAcc; 
+        string	fCurrentGyr;     
 
         // Add a generic parameter
         virtual void addParameter(const char* label, 
@@ -82,6 +84,24 @@ class APIUI : public PathUI, public Meta
                 }
             }
             fCurrentAcc = "";
+            
+            // handle gyr metadata "...[gyr : <axe> <curve> <amin> <amid> <amax>]..."
+            if (fCurrentGyr.size() > 0) {
+                istringstream iss(fCurrentGyr); 
+                int axe, curve;
+                double amin, amid, amax;
+                iss >> axe >> curve >> amin >> amid >> amax;
+                
+                if ((0 <= axe) && (axe < 3) && 
+                    (0 <= curve) && (curve < 4) &&
+                    (amin < amax) && (amin <= amid) && (amid <= amax)) 
+                {
+                    fGyr[axe].push_back(new CurveZoneControl(zone, amin, amid, amax, min, init, max));
+                } else {
+                    cerr << "incorrect gyr metadata : " << fCurrentGyr << endl;
+                }
+            }
+            fCurrentGyr = "";
         }
     
         int getAccZoneIndex(int p, int acc)
@@ -104,14 +124,15 @@ class APIUI : public PathUI, public Meta
             }
             
             vector<ZoneControl*>::iterator it2;
-            for (it2 = fAcc[0].begin(); it2 != fAcc[0].end(); it2++) {
-                delete(*it2);
+            for (int i = 0; i < 3; i++) {
+                for (it2 = fAcc[i].begin(); it2 != fAcc[i].end(); it2++) {
+                    delete(*it2);
+                }
             }
-            for (it2 = fAcc[1].begin(); it2 != fAcc[1].end(); it2++) {
-                delete(*it2);
-            }
-            for (it2 = fAcc[2].begin(); it2 != fAcc[2].end(); it2++) {
-                delete(*it2);
+            for (int i = 0; i < 3; i++) {
+                for (it2 = fGyr[i].begin(); it2 != fGyr[i].end(); it2++) {
+                    delete(*it2);
+                }
             }
         }
 
@@ -177,6 +198,8 @@ class APIUI : public PathUI, public Meta
 				fCurrentUnit = val;
 			} else if (strcmp(key, "acc") == 0) {
 				fCurrentAcc = val;
+			} else if (strcmp(key, "gyr") == 0) {
+				fCurrentGyr = val;
 			}
         }
 
@@ -297,9 +320,9 @@ class APIUI : public PathUI, public Meta
         // TODO
         void propagateGyr(int gyr, double value) {}
         
-        void setGyrConverter(int p, int acc, int curve, double amin, double amid, double amax) {}
+        void setGyrConverter(int p, int gyr, int curve, double amin, double amid, double amax) {}
         
-        void getGyrConverter(int p, int& acc, int& curve, double& amin, double& amid, double& amax) {}
+        void getGyrConverter(int p, int& gyr, int& curve, double& amin, double& amid, double& amax) {}
    
 };
 
