@@ -128,8 +128,6 @@ class APIUI : public PathUI, public Meta
                 for (it2 = fAcc[i].begin(); it2 != fAcc[i].end(); it2++) {
                     delete(*it2);
                 }
-            }
-            for (int i = 0; i < 3; i++) {
                 for (it2 = fGyr[i].begin(); it2 != fGyr[i].end(); it2++) {
                     delete(*it2);
                 }
@@ -318,7 +316,12 @@ class APIUI : public PathUI, public Meta
         }
         
         // TODO
-        void propagateGyr(int gyr, double value) {}
+        void propagateGyr(int gyr, double value) 
+        {
+            for (int i = 0; i < fGyr[gyr].size(); i++) {
+                fGyr[gyr][i]->update(value);
+            }
+        }
         
         void setGyrConverter(int p, int gyr, int curve, double amin, double amid, double amax) {}
         
