@@ -254,7 +254,7 @@ class APIUI : public PathUI, public Meta
                     //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter new CurveZoneControl %d", acc);
                 }
             }
-         }
+        }
          
          /**
          * Used to edit accelerometer curves and mapping. Get curve and related mapping for a given UI parameter.
@@ -268,7 +268,7 @@ class APIUI : public PathUI, public Meta
          *
          */
         void getAccConverter(int p, int& acc, int& curve, double& amin, double& amid, double& amax)
-         {
+        {
             int id1 = getAccZoneIndex(p, 0);
             int id2 = getAccZoneIndex(p, 1);
             int id3 = getAccZoneIndex(p, 2);
@@ -293,6 +293,13 @@ class APIUI : public PathUI, public Meta
                 amax = 100.;
             }
         }
+        
+        // TODO
+        void propagateGyr(int gyr, double value) {}
+        
+        void setGyrConverter(int p, int acc, int curve, double amin, double amid, double amax) {}
+        
+        void getGyrConverter(int p, int& acc, int& curve, double& amin, double& amid, double& amax) {}
    
 };
 
