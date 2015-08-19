@@ -29,8 +29,7 @@
 #include <libgen.h>
 
 FactoryTableDSPType remote_dsp_factory::gFactoryDSPTable;
-
-static CURL* gCurl = NULL;
+CURL* remote_dsp_factory::gCurl = NULL;
 
 // Standard Callback to store a server response in stringstream
 static size_t storeResponse(void *buf, size_t size, size_t nmemb, void* userp)
@@ -60,22 +59,22 @@ static bool sendRequest(const string& url, const string& finalRequest, string& r
     printf("Request = %s and url = %s\n", finalRequest.c_str(), url.c_str());
     
     ostringstream oss;
-    curl_easy_setopt(gCurl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(gCurl, CURLOPT_POST, 1L);
-    curl_easy_setopt(gCurl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
-    curl_easy_setopt(gCurl, CURLOPT_POSTFIELDS, finalRequest.c_str());
-    curl_easy_setopt(gCurl, CURLOPT_WRITEFUNCTION, &storeResponse);
-    curl_easy_setopt(gCurl, CURLOPT_FILE, &oss);
-    curl_easy_setopt(gCurl, CURLOPT_CONNECTTIMEOUT, 15); 
-    curl_easy_setopt(gCurl, CURLOPT_TIMEOUT, 15);
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_POST, 1L);
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_POSTFIELDSIZE, (long)(finalRequest.size()));
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_POSTFIELDS, finalRequest.c_str());
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_WRITEFUNCTION, &storeResponse);
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_FILE, &oss);
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_CONNECTTIMEOUT, 15); 
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_TIMEOUT, 15);
     
-    if (curl_easy_perform(gCurl) != CURLE_OK) {
+    if (curl_easy_perform(remote_dsp_factory::gCurl) != CURLE_OK) {
         printf("curl_easy_perform error\n");
         errorCode = ERROR_CURL_CONNECTION;
     } else {
         
         long respcode; //response code of the http transaction
-        curl_easy_getinfo(gCurl, CURLINFO_RESPONSE_CODE, &respcode);
+        curl_easy_getinfo(remote_dsp_factory::gCurl, CURLINFO_RESPONSE_CODE, &respcode);
         
         if (respcode == 200) {
             response = oss.str();
@@ -134,7 +133,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
             // Transforming machine code to URL format
             string machine_code = writeDSPFactoryToMachine(factory);
             finalRequest << "&dsp_data=";
-            finalRequest << curl_easy_escape(gCurl, machine_code.c_str(), machine_code.size());
+            finalRequest << curl_easy_escape(remote_dsp_factory::gCurl, machine_code.c_str(), machine_code.size());
             deleteDSPFactory(factory);
         } else {
             printf("Compilation error : %s\n", error.c_str());
@@ -143,7 +142,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     } else {
         // Transforming DSP code to URL format
         finalRequest << "&dsp_data=";
-        finalRequest << curl_easy_escape(gCurl, dsp_content.c_str(), dsp_content.size());
+        finalRequest << curl_easy_escape(remote_dsp_factory::gCurl, dsp_content.c_str(), dsp_content.size());
         
         // Keep library path
         stringstream os(dsp_content);
@@ -287,7 +286,7 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory)
     fErrorCallback = 0;
     fErrorCallbackArg = 0;
     
-    fRunningFlag = true;
+    fRunning = true;
 }
         
 remote_dsp_aux::~remote_dsp_aux()
@@ -435,20 +434,20 @@ void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int o
 
 void remote_dsp_aux::sendSlice(int buffer_size) 
 {
-    if (fRunningFlag && jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, buffer_size) < 0) {
+    if (fRunning && jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, buffer_size) < 0) {
         fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
         if (fErrorCallback) {
-            fRunningFlag = (fErrorCallback(ERROR_NETJACK_WRITE, fErrorCallbackArg) == 0);
+            fRunning = (fErrorCallback(ERROR_NETJACK_WRITE, fErrorCallbackArg) == 0);
         }
     }
 }
 
 void remote_dsp_aux::recvSlice(int buffer_size)
 {
-    if (fRunningFlag && jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, buffer_size) < 0) {
+    if (fRunning && jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, buffer_size) < 0) {
         fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
         if (fErrorCallback) {
-            fRunningFlag = (fErrorCallback(ERROR_NETJACK_READ, fErrorCallbackArg) == 0);
+            fRunning = (fErrorCallback(ERROR_NETJACK_READ, fErrorCallbackArg) == 0);
         }
     }
 }
@@ -456,7 +455,7 @@ void remote_dsp_aux::recvSlice(int buffer_size)
 // Compute of the DSP, adding the controls to the input/output passed
 void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
-    if (fRunningFlag) {
+    if (fRunning) {
         
         // If count > fBufferSize : the cycle is divided in numberOfCycles NetJack cycles, and a lastCycle one
         int numberOfCycles = count/fBufferSize;
@@ -630,21 +629,23 @@ bool remote_audio_aux::stop()
 }            
 
 //------ DISCOVERY OF AVAILABLE MACHINES
-static remote_DNS* gDNS = NULL;
+remote_DNS* remote_dsp_factory::gDNS = NULL;
 
 __attribute__((constructor)) static void initialize_libfaustremote() 
 {
-    gDNS = new remote_DNS();
-    gCurl = curl_easy_init();
-    if (!gCurl) {
+    remote_dsp_factory::gDNS = new remote_DNS();
+    remote_dsp_factory::gCurl = curl_easy_init();
+    if (!remote_dsp_factory::gCurl) {
         cout << "curl_easy_init error..." << endl;
     }
 }
 
 __attribute__((destructor)) static void destroy_libfaustremote()
 {
-    delete gDNS;
-    curl_easy_cleanup(gCurl);
+    delete remote_dsp_factory::gDNS;
+    if (remote_dsp_factory::gCurl) {
+        curl_easy_cleanup(remote_dsp_factory::gCurl);
+    }
 }
 
 remote_DNS::remote_DNS()
@@ -682,9 +683,9 @@ int remote_DNS::pingHandler(const char* path, const char* types,
     stringstream convert;
     convert << messageSender.hostname << ":" << messageSender.pid;
   
-    if (gDNS->fLocker.Lock()) {
-        gDNS->fClients[convert.str()] = messageSender;
-        gDNS->fLocker.Unlock();
+    if (remote_dsp_factory::gDNS->fLocker.Lock()) {
+        remote_dsp_factory::gDNS->fClients[convert.str()] = messageSender;
+        remote_dsp_factory::gDNS->fLocker.Unlock();
     }
         
     return 0;
@@ -876,9 +877,9 @@ EXPORT int remote_dsp_factory::getNumOutputs() { return fNumOutputs; }
 
 EXPORT bool getRemoteDSPMachines(map<string, remote_dsp_machine* >* machine_list)
 {
-    if (gDNS && gDNS->fLocker.Lock()) {
+    if (remote_dsp_factory::gDNS && remote_dsp_factory::gDNS->fLocker.Lock()) {
         
-        for (map<string, remote_DNS::member>::iterator it = gDNS->fClients.begin(); it != gDNS->fClients.end(); it++){
+        for (map<string, remote_DNS::member>::iterator it = remote_dsp_factory::gDNS->fClients.begin(); it !=  remote_dsp_factory::gDNS->fClients.end(); it++){
             
             remote_DNS::member iterMem = it->second;
             lo_timetag now;
@@ -904,7 +905,7 @@ EXPORT bool getRemoteDSPMachines(map<string, remote_dsp_machine* >* machine_list
             }
         }
         
-        gDNS->fLocker.Unlock();
+        remote_dsp_factory::gDNS->fLocker.Unlock();
         return true;
     } else {
        return false; 
@@ -919,17 +920,17 @@ EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vect
     serverURL << "http://" << ip_server << ":" << port_server << "/GetAvailableFactories";
    
     ostringstream oss;
-    curl_easy_setopt(gCurl, CURLOPT_URL, serverURL.str().c_str());
-    curl_easy_setopt(gCurl, CURLOPT_POST, 0L);
-    curl_easy_setopt(gCurl, CURLOPT_WRITEFUNCTION, &storeResponse);
-    curl_easy_setopt(gCurl, CURLOPT_FILE, &oss);
-    curl_easy_setopt(gCurl, CURLOPT_CONNECTTIMEOUT, 15); 
-    curl_easy_setopt(gCurl, CURLOPT_TIMEOUT, 15);
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_URL, serverURL.str().c_str());
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_POST, 0L);
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_WRITEFUNCTION, &storeResponse);
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_FILE, &oss);
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_CONNECTTIMEOUT, 15); 
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_TIMEOUT, 15);
         
-    if (curl_easy_perform(gCurl) == CURLE_OK) {
+    if (curl_easy_perform(remote_dsp_factory::gCurl) == CURLE_OK) {
         
         long respcode; //response code of the http transaction
-        curl_easy_getinfo(gCurl, CURLINFO_RESPONSE_CODE, &respcode);
+        curl_easy_getinfo(remote_dsp_factory::gCurl, CURLINFO_RESPONSE_CODE, &respcode);
         
         if (respcode == 200) {
             // PARSE RESPONSE TO EXTRACT KEY/VALUE

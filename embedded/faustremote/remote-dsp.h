@@ -220,7 +220,7 @@ remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
 void deleteRemoteDSPInstance(remote_dsp* dsp);
 
 /**
- * Audio instance class
+ * Audio instance class. Use 'start/stop' to (de)activate audio on server side.
  */
 class remote_audio {
     
@@ -252,6 +252,9 @@ remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int argc, c
  */ 
 void deleteRemoteAudioInstance(remote_audio* audio);
 
+/**
+ * Remote machine instance class
+ */
 class remote_dsp_machine {
     
     public: 

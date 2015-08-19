@@ -111,15 +111,15 @@ class remote_dsp_factory : public smartable {
     
     private:
         
-        string      fSHAKey;            //Unique Index to bind a Remote_Factory to its llvm_Factory on the server side
+        string      fSHAKey;            // Unique Index to bind a Remote_Factory to its llvm_factory on the server side
         
-        int         fNumInputs;
-        int         fNumOutputs;        //Num of Input/Output of compiled DSP factory
+        int         fNumInputs;         // Compiled DSP factory inputs
+        int         fNumOutputs;        // Compiled DSP factory outputs
         
-        string      fServerURL;          //URL of remote server 
+        string      fServerURL;         // URL of remote server 
         
-        map<string,string>  fMetadatas; //Metadatas extracted from json
-        vector<itemInfo*>   fUiItems;   //Items extracted from json
+        map<string,string>  fMetadatas; // Metadatas extracted from json
+        vector<itemInfo*>   fUiItems;   // Items extracted from json
         
         vector<string> fPathnameList;
           
@@ -160,6 +160,8 @@ class remote_dsp_factory : public smartable {
         vector<string>      getLibraryList() { return fPathnameList; }
         
         static FactoryTableDSPType gFactoryDSPTable;
+        static CURL* gCurl;
+        static remote_DNS* gDNS;
 
 };
 
@@ -167,20 +169,20 @@ class remote_dsp_aux : public dsp {
     
     private:
         
-        int                     fBufferSize;        //Buffer Size of NetJack connection   
+        int                     fBufferSize;        // Buffer size of NetJack connection   
         
-        remote_dsp_factory*     fFactory;           //Factory is it created from
+        remote_dsp_factory*     fFactory;           // Factory is it created from
         
-        jack_net_master_t*      fNetJack;           //Jack Connection
+        jack_net_master_t*      fNetJack;           // NetJack Connection
         
-        float**                 fAudioInputs;       //Audio buffer
-        float**                 fAudioOutputs;      //Audio buffer
+        float**                 fAudioInputs;       // Audio buffer
+        float**                 fAudioOutputs;      // Audio buffer
         
-        float**                 fControlInputs;     //control buffer
-        float**                 fControlOutputs;    //control buffer
+        float**                 fControlInputs;     // control buffer
+        float**                 fControlOutputs;    // control buffer
         
-        FAUSTFLOAT*             fOutControl;        //Buffer containing the values of controls
-        FAUSTFLOAT*             fInControl;         //Buffer containing the values of controls
+        FAUSTFLOAT*             fOutControl;        // Buffer containing the values of controls
+        FAUSTFLOAT*             fInControl;         // Buffer containing the values of controls
         
         int                     fCounterIn;
         int                     fCounterOut;
@@ -188,7 +190,7 @@ class remote_dsp_aux : public dsp {
         remoteDSPErrorCallback  fErrorCallback;
         void*                   fErrorCallbackArg;
         
-        bool                    fRunningFlag;
+        bool                    fRunning;
         
         void fillBufferWithZerosOffset(int channels, int offset, int size, FAUSTFLOAT** buffer);
         void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
@@ -239,7 +241,7 @@ class remote_audio_aux {
         bool stop();
 };
 
-class EXPORT remote_dsp_machine_aux {
+class remote_dsp_machine_aux {
 
     private:
     
