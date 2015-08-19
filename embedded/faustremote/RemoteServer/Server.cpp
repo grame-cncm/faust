@@ -430,6 +430,7 @@ void* DSPServer::open(void* arg)
 
 void DSPServer::open(audio_dsp* dsp)
 {
+    // Serialize acces to fRunningDsp from possible several starting threads
     if (fLocker.Lock()) {
         if (dsp->init(-1, -1) && dsp->start()) {
             fRunningDsp.push_back(dsp);
@@ -552,8 +553,10 @@ bool DSPServer::getJsonFromKey(MHD_Connection* connection, connection_info* info
 
 bool DSPServer::getJson(MHD_Connection* connection, connection_info* info)
 {
-    if (info->getJsonFromKey(fFactories) || info->createFactory(fFactories, this)) {
+    if (info->getJsonFromKey(fFactories)) {
         return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json");
+    } else if (info->createFactory(fFactories, this)) {
+        return getJsonFromKey(connection, info);
     } else {
         return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
     }

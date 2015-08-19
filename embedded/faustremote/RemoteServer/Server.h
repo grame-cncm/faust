@@ -21,11 +21,9 @@
 #include <arpa/inet.h>
 
 #include "faust/dsp/llvm-dsp.h"
-
+#include "faust/audio/audio.h"
 #include "utilities.h"
 #include "TMutex.h"
-
-#include "faust/audio/audio.h"
 
 #define POSTBUFFERSIZE 512
 #define GET 0
@@ -44,6 +42,14 @@ typedef bool (*createInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
 typedef bool (*deleteFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
 typedef bool (*deleteInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
 
+/*
+TODO :
+
+- possibly return 'machine code' to client side?
+- better define where the DSP instance and the audio driver is going to run (server or client side) 
+
+*/
+
 // Structure wrapping llvm_dsp with all its needed elements (audio/interface/...)
 
 class audio_dsp {
@@ -53,8 +59,8 @@ class audio_dsp {
         string fInstanceKey;
         string fName;
         
-        llvm_dsp* fDSP; // DSP Instance 
-        audio* fAudio;
+        llvm_dsp* fDSP;     // DSP Instance 
+        audio* fAudio;      // Audio driver
         
         createInstanceDSPCallback fCreateDSPInstanceCb;
         void* fCreateDSPInstanceCb_arg;
@@ -201,19 +207,19 @@ class DSPServer {
     friend struct connection_info_post;
     friend struct connection_info;
     
-    createFactoryDSPCallback fCreateDSPFactoryCb;
-    void* fCreateDSPFactoryCb_arg;
-   
-    deleteFactoryDSPCallback fDeleteDSPFactoryCb;
-    void* fDeleteDSPFactoryCb_arg;
-    
-    createInstanceDSPCallback fCreateDSPInstanceCb;
-    void* fCreateDSPInstanceCb_arg;
-   
-    deleteInstanceDSPCallback fDeleteDSPInstanceCb;
-    void* fDeleteDSPInstanceCb_arg;
-    
     private:
+      
+        createFactoryDSPCallback fCreateDSPFactoryCb;
+        void* fCreateDSPFactoryCb_arg;
+       
+        deleteFactoryDSPCallback fDeleteDSPFactoryCb;
+        void* fDeleteDSPFactoryCb_arg;
+        
+        createInstanceDSPCallback fCreateDSPInstanceCb;
+        void* fCreateDSPInstanceCb_arg;
+       
+        deleteInstanceDSPCallback fDeleteDSPInstanceCb;
+        void* fDeleteDSPInstanceCb_arg;
 
         TMutex fLocker;
         pthread_t fThread;

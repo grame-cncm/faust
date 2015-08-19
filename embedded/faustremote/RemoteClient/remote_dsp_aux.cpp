@@ -324,16 +324,15 @@ void remote_dsp_aux::fillBufferWithZerosOffset(int channels, int offset, int siz
 // Decode internal structure, to build user interface
 void remote_dsp_aux::buildUserInterface(UI* ui) 
 {
-    vector<itemInfo*> jsonItems = fFactory->itemList();
-    
     // To be sure the floats are correctly encoded
     char* tmp_local = setlocale(LC_ALL, NULL);
     setlocale(LC_ALL, "C");
     
-    vector<itemInfo*>::iterator it;
-    
     int counterIn = 0;
     int counterOut = 0;
+    
+    vector<itemInfo*> jsonItems = fFactory->itemList();
+    vector<itemInfo*>::iterator it;
     
     for (it = jsonItems.begin(); it != jsonItems.end() ; it++) {
         
