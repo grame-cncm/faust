@@ -57,7 +57,6 @@ static bool isInteger(const string& str)
 static bool sendRequest(const string& url, const string& finalRequest, string& response, int& errorCode)
 {
     bool res = false;
-        
     printf("Request = %s and url = %s\n", finalRequest.c_str(), url.c_str());
     
     ostringstream oss;
@@ -71,7 +70,7 @@ static bool sendRequest(const string& url, const string& finalRequest, string& r
     curl_easy_setopt(gCurl, CURLOPT_TIMEOUT, 15);
     
     if (curl_easy_perform(gCurl) != CURLE_OK) {
-        printf("Easy perform error\n");
+        printf("curl_easy_perform error\n");
         errorCode = ERROR_CURL_CONNECTION;
     } else {
         
@@ -82,7 +81,7 @@ static bool sendRequest(const string& url, const string& finalRequest, string& r
             response = oss.str();
             res = true;
         } else if (respcode == 400) {
-            printf("Info Failed\n");
+            printf("curl_easy_getinfo error\n");
             if (isInteger(oss.str())) {
                 errorCode = atoi(oss.str().c_str());
             } else {
@@ -518,6 +517,8 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     
     int buffer_size = atoi(loptions(argc, argv, "--NJ_buffer_size ", "512"));
     int sample_rate = atoi(loptions(argc, argv, "--NJ_sample_rate ", "44100"));
+    bool partial_cycle = atoi(loptions(argc, argv, "--NJ_partial", "0"));
+    const char* port = loptions(argc, argv, "--NJ_port", "19000");
    
     fBufferSize = buffer_size;
     
@@ -540,12 +541,10 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     // To be sure fCounterIn and fCounterOut are set before 'compute' is called, even if no 'buildUserInterface' is called by the client
     ControlUI dummy_ui;
     buildUserInterface(&dummy_ui);
-    
-    bool partial_cycle = atoi(loptions(argc, argv, "--NJ_partial", "0"));
-    const char* port = loptions(argc, argv, "--NJ_port", "19000");
      
-    // PREPARE URL TO SEND TO SERVER
     stringstream finalRequest;
+    string response;
+    int errorCode = -1;
     
     // Audio driver type
     finalRequest << "audio_type=" << "kNetJack";
@@ -560,13 +559,9 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     finalRequest << "&instanceKey=" << this;
     
     bool res = false;
-    string url = fFactory->getURL();
-    url += "/CreateInstance";
-        
-    string response;
-    int errorCode = -1;
-
-    // OPEN NET JACK CONNECTION
+    string url = fFactory->getURL() + "/CreateInstance";
+   
+    // Open NetJack connection
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
         jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sample_rate), "net_master", 5, partial_cycle};
         jack_slave_t result;
@@ -591,59 +586,47 @@ remote_audio_aux::~remote_audio_aux()
 
 bool remote_audio_aux::init(int argc, const char* argv[], int& error)
 {
-    int buffer_size = atoi(loptions(argc, argv, "--NJ_buffer_size ", "512"));
-    int sample_rate = atoi(loptions(argc, argv, "--NJ_sample_rate ", "44100"));
-   
-    // PREPARE URL TO SEND TO SERVER
     stringstream finalRequest;
+    string response;
+    int errorCode = -1;
     
     // Audio driver type
     finalRequest << "audio_type=" << "kLocalAudio";
     //finalRequest << "audio_type=" << "kJack";
     
     // Parse NetJack Parameters
-    finalRequest << "&LA_sr=" << sample_rate;
-    finalRequest << "&LA_bs=" << buffer_size;
+    finalRequest << "&LA_sr=" << atoi(loptions(argc, argv, "--LA_sr ", "44100"));
+    finalRequest << "&LA_bs=" << atoi(loptions(argc, argv, "--LA_bs ", "512"));
     finalRequest << "&factoryKey=" << fFactory->getKey();
     finalRequest << "&instanceKey=" << this;
     
-    bool res = false;
-    string url = fFactory->getURL();
-    url += "/CreateInstance";
-        
-    string response;
-    int errorCode = -1;
+    string url = fFactory->getURL() + "/CreateInstance";
     
-    if (sendRequest(url, finalRequest.str(), response, errorCode)) {
-        return true;
-    } else {
-        error = errorCode;
-        return false;
-    }
+    return sendRequest(url, finalRequest.str(), response, errorCode);
 }  
 
 bool remote_audio_aux::start()
 {
     stringstream finalRequest;
     string response;
-    int errorCode;
+    int errorCode = -1;
     
     finalRequest << "instanceKey=" << this;
-    string ip = fFactory->getURL() + "/Start";
+    string url = fFactory->getURL() + "/Start";
    
-    return sendRequest(ip, finalRequest.str(), response, errorCode);
+    return sendRequest(url, finalRequest.str(), response, errorCode);
 }
 
 bool remote_audio_aux::stop()
 {
     stringstream finalRequest;
     string response;
-    int errorCode;
+    int errorCode = -1;
     
     finalRequest << "instanceKey=" << this;
-    string ip = fFactory->getURL() + "/Stop";
+    string url = fFactory->getURL() + "/Stop";
       
-    return sendRequest(ip, finalRequest.str(), response, errorCode);
+    return sendRequest(url, finalRequest.str(), response, errorCode);
 }            
 
 //------ DISCOVERY OF AVAILABLE MACHINES
@@ -724,14 +707,14 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(int argc, const char* a
     
         // Call server side to get remote factory, create local proxy factory, put it in the cache
         stringstream finalRequest;
+        string response;
+        int errorCode = -1;
+        
         finalRequest << "shaKey=" << sha_key;
         
         stringstream serverURL;
         serverURL << "http://" << ip_server << ":" << port_server;
         string url = serverURL.str() + "/GetJsonFromKey";
-         
-        string response;
-        int errorCode = -1;
         
         if (sendRequest(url, finalRequest.str(), response, errorCode)) {
             remote_dsp_factory* factory = new remote_dsp_factory();
