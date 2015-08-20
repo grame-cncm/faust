@@ -160,14 +160,14 @@ class remote_dsp : public dsp {
         
         void metadata(Meta* m);
         
-        virtual int getNumInputs();
-        virtual int getNumOutputs();
+        int getNumInputs();
+        int getNumOutputs();
         
-        virtual void init(int samplingFreq);
+        void init(int samplingFreq);
         
-        virtual void buildUserInterface(UI* ui);
+        void buildUserInterface(UI* ui);
         
-        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+        void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 
 };
 
@@ -226,8 +226,8 @@ class remote_audio {
     
     public: 
         
-        virtual bool start();
-        virtual bool stop();
+        bool start();
+        bool stop();
   
 };
 

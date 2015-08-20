@@ -96,7 +96,7 @@ class audio_dsp {
             deleteDSPInstance(fDSP);
         }
         
-        bool init(int sr, int bs);
+        virtual bool init(int sr, int bs);
           
         virtual bool start()
         {
@@ -107,7 +107,7 @@ class audio_dsp {
             fAudio->stop();
         }
        
-        virtual bool isActive() = 0;
+        virtual bool isActive() { return true; }
         
         string  getKey() { return fInstanceKey; }
         void    setKey(const string& key) { fInstanceKey = key; }
@@ -128,7 +128,7 @@ typedef map<string, pair<string, llvm_dsp_factory*> >& FactoryTable;
 
 class DSPServer;
 
-struct connection_info {
+struct dsp_server_connection_info {
     
     int fAnswercode;    // internally used by libmicrohttpd to see where things went wrong or right
     
@@ -139,7 +139,6 @@ struct connection_info {
     //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
     string fNameApp;
     string fFaustCode;
-    string fFactoryKey;
     vector<string> fCompilationOptions;
     string fOptLevel;
     llvm_dsp_factory* fFactory;
@@ -158,8 +157,8 @@ struct connection_info {
     string fSampleRate;
     string fBufferSize;
     
-    connection_info();
-    virtual ~connection_info() {}
+    dsp_server_connection_info();
+    virtual ~dsp_server_connection_info() {}
     
     string getJson();
     bool getJsonFromKey(FactoryTable factories);
@@ -175,13 +174,13 @@ struct connection_info {
     
 };
 
-struct connection_info_post : public connection_info {
+struct dsp_server_connection_info_post : public dsp_server_connection_info {
 
     MHD_PostProcessor* fPostprocessor;     // the POST processor used internally by libmicrohttpd
  
-    connection_info_post(MHD_Connection* connection);
+    dsp_server_connection_info_post(MHD_Connection* connection);
      
-    virtual ~connection_info_post()
+    virtual ~dsp_server_connection_info_post()
     {
         MHD_destroy_post_processor(fPostprocessor);
     }
@@ -194,9 +193,9 @@ struct connection_info_post : public connection_info {
     }
 }; 
 
-struct connection_info_get : public connection_info  {
+struct dsp_server_connection_info_get : public dsp_server_connection_info  {
 
-    connection_info_get():connection_info()
+    dsp_server_connection_info_get():dsp_server_connection_info()
     {}
 }; 
 
@@ -204,8 +203,8 @@ struct connection_info_get : public connection_info  {
 
 class DSPServer {
     
-    friend struct connection_info_post;
-    friend struct connection_info;
+    friend struct dsp_server_connection_info_post;
+    friend struct dsp_server_connection_info;
     
     private:
       
@@ -250,7 +249,7 @@ class DSPServer {
                                     void** con_cls);
             
         // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
-        bool createInstance(connection_info* con_info);
+        bool createInstance(dsp_server_connection_info* con_info);
          
         int createConnection(MHD_Connection* connection, const char* method, void** con_cls);
         
@@ -259,12 +258,12 @@ class DSPServer {
         
         bool getAvailableFactories(MHD_Connection* connection);
         
-        bool getJsonFromKey(MHD_Connection* connection, connection_info* info);
-        bool getJson(MHD_Connection* connection, connection_info* info);
-        bool createInstance(MHD_Connection* connection, connection_info* info);
+        bool getJsonFromKey(MHD_Connection* connection, dsp_server_connection_info* info);
+        bool getJson(MHD_Connection* connection, dsp_server_connection_info* info);
+        bool createInstance(MHD_Connection* connection, dsp_server_connection_info* info);
         
-        bool start(MHD_Connection* connection, connection_info* info);
-        bool stop(MHD_Connection* connection, connection_info* info);
+        bool start(MHD_Connection* connection, dsp_server_connection_info* info);
+        bool stop(MHD_Connection* connection, dsp_server_connection_info* info);
         
         // Register Service as available
         static void* registration(void* arg);

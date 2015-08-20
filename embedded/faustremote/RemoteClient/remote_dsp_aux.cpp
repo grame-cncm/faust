@@ -554,7 +554,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     finalRequest << "&NJ_compression=" << loptions(argc, argv, "--NJ_compression", "-1");
     finalRequest << "&NJ_latency=" << loptions(argc, argv, "--NJ_latency", "2");
     finalRequest << "&NJ_mtu=" << loptions(argc, argv, "--NJ_mtu", "1500");
-    finalRequest << "&factoryKey=" << fFactory->getKey();
+    finalRequest << "&shaKey=" << fFactory->getKey();
     finalRequest << "&instanceKey=" << this;
     
     bool res = false;
@@ -594,9 +594,9 @@ bool remote_audio_aux::init(int argc, const char* argv[], int& error)
     //finalRequest << "audio_type=" << "kJack";
     
     // Parse NetJack Parameters
-    finalRequest << "&LA_sr=" << atoi(loptions(argc, argv, "--LA_sr ", "44100"));
-    finalRequest << "&LA_bs=" << atoi(loptions(argc, argv, "--LA_bs ", "512"));
-    finalRequest << "&factoryKey=" << fFactory->getKey();
+    finalRequest << "&LA_sample_rate=" << atoi(loptions(argc, argv, "--LA_sample_rate ", "44100"));
+    finalRequest << "&LA_buffer_size=" << atoi(loptions(argc, argv, "--LA_buffer_size ", "512"));
+    finalRequest << "&shaKey=" << fFactory->getKey();
     finalRequest << "&instanceKey=" << this;
     
     string url = fFactory->getURL() + "/CreateInstance";
@@ -943,7 +943,7 @@ EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vect
             }
             res = true;
         } else if (respcode == 400) {
-            printf("Info Failed\n");
+            printf("curl_easy_getinfo error\n");
         }
     } else {
         printf("Easy perform error\n");
@@ -1070,10 +1070,11 @@ EXPORT void deleteRemoteAudioInstance(remote_audio* audio)
 
 EXPORT bool remote_audio::start()
 {
-    return reinterpret_cast<remote_audio*>(this)->start();
+    return reinterpret_cast<remote_audio_aux*>(this)->start();
 }
 
 EXPORT bool remote_audio::stop()
 {
-    return reinterpret_cast<remote_audio*>(this)->stop();
+    return reinterpret_cast<remote_audio_aux*>(this)->stop();
 }
+

@@ -377,16 +377,16 @@ class llvm_dsp : public dsp {
         
         void metadata(Meta* m);
         
-        virtual int getNumInputs();
-        virtual int getNumOutputs();
+        int getNumInputs();
+        int getNumOutputs();
         
-        virtual void init(int samplingFreq);
+        void init(int samplingFreq);
         
-        virtual void buildUserInterface(UI* inter);
+        void buildUserInterface(UI* inter);
         
-        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+        void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
         
-        virtual llvm_dsp* copy();
+        llvm_dsp* copy();
 };
 
 /**
