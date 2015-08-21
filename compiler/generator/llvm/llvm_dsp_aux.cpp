@@ -1482,6 +1482,7 @@ EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory)
 }
 
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path)
+{
     printf("readDSPFactoryFromMachineFile not implemented\n");
     return 0;
 }
