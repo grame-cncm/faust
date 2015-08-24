@@ -20,8 +20,15 @@
 #include <dns_sd.h>
 #endif
 
-//#define JACK 1
+// For iOS specific compilation
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 50000
+#define IOSAUDIO 1
+#else
 #define COREAUDIO 1
+#endif
+
+//#define JACK 1
+//#define COREAUDIO 1
 //#define PORTAUDIO 1
 //#define IOSAUDIO 1
 //#define ANDROID 1
