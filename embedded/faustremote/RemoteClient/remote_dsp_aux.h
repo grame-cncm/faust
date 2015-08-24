@@ -52,7 +52,7 @@
 
 using namespace std;
 
-#define FactoryTableDSP     pair<string, pair<list<remote_dsp_aux*>, list<remote_audio_aux*> > >
+#define FactoryTableDSP     pair<list<remote_dsp_aux*>, list<remote_audio_aux*> >
 #define FactoryTableDSPType map<Sremote_dsp_factory, FactoryTableDSP>
 #define FactoryTableDSPIt   FactoryTableDSPType::iterator
 
@@ -108,6 +108,8 @@ class remote_dsp_factory;
 typedef class SMARTP<remote_dsp_factory> Sremote_dsp_factory;
     
 class remote_dsp_factory : public smartable {
+
+    friend class remote_dsp_aux;
     
     private:
         
@@ -118,14 +120,17 @@ class remote_dsp_factory : public smartable {
         
         string      fServerURL;         // URL of remote server 
         
-        map<string,string>  fMetadatas; // Metadatas extracted from json
+        map<string, string>  fMetadatas; // Metadatas extracted from json
         vector<itemInfo*>   fUiItems;   // Items extracted from json
         
         vector<string> fPathnameList;
           
     public: 
+    
+        remote_dsp_factory(const string& ip_server, int port_server, const string& sha_key);
+        virtual ~remote_dsp_factory();
         
-        void        decodeJson(const string& json);
+        void decodeJson(const string& json);
         
         remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], 
                                                 remoteDSPErrorCallback error_callback, 
@@ -148,8 +153,6 @@ class remote_dsp_factory : public smartable {
         
         string              getURL() { return fServerURL; }
         void                setURL(const string& url) { fServerURL = url; }
-        
-        vector<itemInfo*>   itemList() { return fUiItems; }
         
         int                 getNumInputs();
         int                 getNumOutputs();

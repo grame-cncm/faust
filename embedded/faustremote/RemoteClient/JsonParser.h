@@ -28,7 +28,7 @@
 
 using namespace std;
 
-struct itemInfo{
+struct itemInfo {
     
     string type;
     string label;

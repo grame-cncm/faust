@@ -55,7 +55,7 @@ extern "C"
   
     /**
      * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
-     * if already allocated in the factories cache and increment it's reference counter. You will have to explicitely
+     * if already allocated in the factories cache and increment it's reference counter. You will have to explicitly
      * use deleteCDSPFactory to properly decrement reference counter when the factory is no more needed.
      *
      * @param sha_key - the SHA key for an already created factory, kept in the factory cache
@@ -103,7 +103,7 @@ extern "C"
     
     /**
      * Delete a Faust DSP factory, that is decrements it's reference counter, possible really deleting the internal pointer. 
-     * Possibly also delete DSP pointers associated with this factory, if they were not explicitely deleted with deleteCDSPInstance.
+     * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted with deleteCDSPInstance.
      * Beware : all kept factories and DSP pointers (in local variables...) thus become invalid. 
      * 
      * @param factory - the DSP factory to be deleted.
