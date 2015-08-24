@@ -246,7 +246,10 @@ class FaustObjectCache : public ObjectCache {
 
 #if defined(LLVM_36)
 
+// Workaround for iOS compiled LLVM 3.6 missing symbol
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 50000
 void ObjectCache::anchor() {}
+#endif
 
 class FaustObjectCache : public ObjectCache {
     
