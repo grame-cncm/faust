@@ -124,7 +124,7 @@ enum {
     ERROR_INSTANCE_NOTFOUND
 };
 
-typedef map<string, pair<string, llvm_dsp_factory*> >& FactoryTable;
+typedef map<string, pair<string, llvm_dsp_factory*> > FactoryTable;
 
 class DSPServer;
 
@@ -161,11 +161,11 @@ struct dsp_server_connection_info {
     virtual ~dsp_server_connection_info() {}
     
     string getJson();
-    bool getJsonFromKey(FactoryTable factories);
+    bool getJsonFromKey(FactoryTable& factories);
     
     int iteratePost(const char* key, const char* data, size_t size); 
     
-    bool createFactory(FactoryTable factories, DSPServer* server);
+    bool createFactory(FactoryTable& factories, DSPServer* server);
     
     virtual int postProcess(const char* upload_data, size_t* upload_data_size)
     {
@@ -227,7 +227,7 @@ class DSPServer {
         // Factories that can be instanciated. 
         // The remote client asking for a new DSP Instance has to send an index corresponding to an existing factory
         // SHAKey, pair<NameApp, Factory>
-        map<string, pair<string, llvm_dsp_factory*> > fFactories;
+        FactoryTable fFactories;
             
         // List of currently running DSP. Use to keep track of Audio that would have lost their connection
         list<audio_dsp*> fRunningDsp;
@@ -248,19 +248,24 @@ class DSPServer {
                                     const char* upload_data, size_t *upload_data_size, 
                                     void** con_cls);
             
-        // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & netjack slave
+        // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & NetJack slave
         bool createInstance(dsp_server_connection_info* con_info);
-         
+        
+        // Reaction to a /Delete request --> stops NetJack slave and delete object
+        bool deleteInstance(const string& instance_key);
+     
         int createConnection(MHD_Connection* connection, const char* method, void** con_cls);
         
-        bool start(const string& shakey);
-        bool stop(const string& shakey);
+        bool start(const string& instance_key);
+        bool stop(const string& instance_key);
         
         bool getAvailableFactories(MHD_Connection* connection);
         
         bool getJsonFromKey(MHD_Connection* connection, dsp_server_connection_info* info);
         bool getJson(MHD_Connection* connection, dsp_server_connection_info* info);
+        
         bool createInstance(MHD_Connection* connection, dsp_server_connection_info* info);
+        bool deleteInstance(MHD_Connection* connection, dsp_server_connection_info* info);
         
         bool start(MHD_Connection* connection, dsp_server_connection_info* info);
         bool stop(MHD_Connection* connection, dsp_server_connection_info* info);

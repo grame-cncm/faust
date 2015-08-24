@@ -47,7 +47,7 @@ class llvm_dsp_factory;
 
 typedef class SMARTP<llvm_dsp_factory> Sllvm_dsp_factory;
 
-struct FactoryTableType : public map< Sllvm_dsp_factory, list<llvm_dsp_aux*> > 
+struct FactoryTableType : public map<Sllvm_dsp_factory, list<llvm_dsp_aux*> > 
 {
     FactoryTableType() 
     {}

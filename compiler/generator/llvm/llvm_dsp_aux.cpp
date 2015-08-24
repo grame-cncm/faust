@@ -1197,7 +1197,11 @@ EXPORT void deleteDSPFactory(llvm_dsp_factory* factory)
     FactoryTableIt it;
     if ((it = llvm_dsp_factory::gFactoryTable.find(factory)) != llvm_dsp_factory::gFactoryTable.end()) {
         Sllvm_dsp_factory sfactory = (*it).first;
+        list<llvm_dsp_aux*> dsp_list = (*it).second;
         if (sfactory->refs() == 2) { // Local stack pointer + the one in gFactoryTable...
+            // Possibly delete remaining DSP
+            list<llvm_dsp_aux*>::iterator it;
+            for (it = dsp_list.begin(); it != dsp_list.end(); it++) { delete (*it); }
             // Last use, remove from the global table, pointer will be deleted
             llvm_dsp_factory::gFactoryTable.erase(factory);
         } else {

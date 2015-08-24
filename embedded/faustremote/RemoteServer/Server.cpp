@@ -242,7 +242,7 @@ string dsp_server_connection_info::getJson()
     return fJSON;
 }
 
-bool dsp_server_connection_info::getJsonFromKey(FactoryTable factories)
+bool dsp_server_connection_info::getJsonFromKey(FactoryTable& factories)
 {
     if (factories.find(fSHAKey) != factories.end()) {
         fNameApp = factories[fSHAKey].first;
@@ -256,7 +256,7 @@ bool dsp_server_connection_info::getJsonFromKey(FactoryTable factories)
 }
 
 // Create DSP Factory 
-bool dsp_server_connection_info::createFactory(FactoryTable factories, DSPServer* server) 
+bool dsp_server_connection_info::createFactory(FactoryTable& factories, DSPServer* server) 
 {
     string error = "Incorrect machine code";
     
@@ -466,9 +466,9 @@ void DSPServer::stopNotActiveDSP()
     while (it != fRunningDsp.end()) {
         if (!(*it)->isActive()) {
             audio_dsp* dsp = *it;
-            it = fRunningDsp.erase(it); 
             dsp->stop();
             delete dsp;
+            it = fRunningDsp.erase(it); 
         } else {
             it++;
         }
@@ -574,6 +574,15 @@ bool DSPServer::createInstance(MHD_Connection* connection, dsp_server_connection
     }
 }
 
+bool DSPServer::deleteInstance(MHD_Connection* connection, dsp_server_connection_info* info)
+{
+    if (deleteInstance(info->fInstanceKey)) {
+        return sendPage(connection, "", MHD_HTTP_OK, "text/html");
+    } else {
+        return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
+    }
+}
+
 bool DSPServer::start(MHD_Connection* connection, dsp_server_connection_info* info)
 {
     if (start(info->fInstanceKey)) {
@@ -594,9 +603,9 @@ bool DSPServer::stop(MHD_Connection* connection, dsp_server_connection_info* inf
 
 // Response to all POST request
 // 3 requests are correct : 
-// - /GetJson --> Receive Faust code / Compile Data / Send back jsonInterface
+// - /GetJson --> Receive Faust code / Compile Data / Send back JSON Interface
 // - /CreateInstance --> Receive factoryIndex / Create instance 
-// - /DeleteFactory --> Receive factoryIndex / Delete Factory
+// - /DeleteFactory --> Receive factoryIndex / Delete factory
 int DSPServer::answerPost(MHD_Connection* connection, const char* url, const char* upload_data, size_t* upload_data_size, void** con_cls)
 {
     dsp_server_connection_info* info = (dsp_server_connection_info*)*con_cls;
@@ -611,6 +620,8 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
             return getJsonFromKey(connection, info);
         } else if (strcmp(url, "/CreateInstance") == 0) {
             return createInstance(connection, info);
+        } else if (strcmp(url, "/DeleteInstance") == 0) {
+            return deleteInstance(connection, info);
         } else if (strcmp(url, "/Start") == 0) {
             return start(connection, info);
         } else if(strcmp(url, "/Stop") == 0) {
@@ -720,13 +731,32 @@ error:
     return false;
 }
 
-// Start/Stop Audio instance from its SHAKEY
-bool DSPServer::start(const string& shakey)
+bool DSPServer::deleteInstance(const string& instance_key)
+{
+    list<audio_dsp*>::iterator it = fRunningDsp.begin();
+    
+    while (it != fRunningDsp.end()) {
+        if (instance_key == (*it)->getKey()) {
+            audio_dsp* dsp = *it;
+            dsp->stop();
+            delete dsp;
+            it = fRunningDsp.erase(it); 
+            return true;
+        } else {
+            it++;
+        }
+    }
+    
+    return false;
+}
+
+// Start/Stop Audio instance from its instancekey
+bool DSPServer::start(const string& instance_key)
 {
     list<audio_dsp*>::iterator it;
     
     for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
-        if (shakey == (*it)->getKey()) {
+        if (instance_key == (*it)->getKey()) {
             if ((*it)->start()) {
                 return true;
             }
@@ -736,12 +766,12 @@ bool DSPServer::start(const string& shakey)
     return false;
 }
 
-bool DSPServer::stop(const string& shakey)
+bool DSPServer::stop(const string& instance_key)
 {
     list<audio_dsp*>::iterator it;
     
     for (it = fRunningDsp.begin(); it != fRunningDsp.end(); it++) {
-        if (shakey == (*it)->getKey()) {
+        if (instance_key == (*it)->getKey()) {
             (*it)->stop();
             return true;
         }

@@ -291,6 +291,16 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory)
         
 remote_dsp_aux::~remote_dsp_aux()
 {
+    // Request 'delete' on server side
+    stringstream finalRequest;
+    string response;
+    int errorCode = -1;
+    
+    finalRequest << "instanceKey=" << this;
+    string url = fFactory->getURL() + "/DeleteInstance";
+    
+    sendRequest(url, finalRequest.str(), response, errorCode);
+    
     if (fNetJack) {
     
         jack_net_master_close(fNetJack); 
@@ -581,7 +591,17 @@ remote_audio_aux::remote_audio_aux(remote_dsp_factory* factory)
     fFactory = factory;
 }
 remote_audio_aux::~remote_audio_aux()
-{}  
+{
+    // Request 'delete' on server side
+    stringstream finalRequest;
+    string response;
+    int errorCode = -1;
+    
+    finalRequest << "instanceKey=" << this;
+    string url = fFactory->getURL() + "/DeleteInstance";
+    
+    sendRequest(url, finalRequest.str(), response, errorCode);
+}  
 
 bool remote_audio_aux::init(int argc, const char* argv[], int& error)
 {

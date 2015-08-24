@@ -170,7 +170,11 @@ int main(int argc, char *argv[])
         */
         
         std::string error_msg3;
-        factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "i386-apple-darwin10.6.0-cortex-m3", error_msg3, 0);
+        //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "i386-apple-darwin10.6.0-cortex-m3", error_msg3, 0);
+       
+        factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 0);
+        
+        printf("factory3 %p\n", factory3);
         
         ///deleteDSPFactory(factory3);
         //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
@@ -194,7 +198,6 @@ int main(int argc, char *argv[])
             factory3 = readDSPFactoryFromMachineFile("/Users/letz/machinecode");
         }
         */
-        
         
         if (factory3) {
             DSP = createDSPInstance(factory3);
@@ -276,17 +279,17 @@ int main(int argc, char *argv[])
 	oscinterface->run();
 #endif
 	interface->run();
-
+    
     audio.stop();
     finterface->saveState(rcfilename);
     delete(interface);
     delete(finterface);
-    deleteDSPInstance(DSP);
+    //deleteDSPInstance(DSP);
     
-    //deleteDSPFactory(factory3);
+    deleteDSPFactory(factory3);
     //deleteDSPFactory(factory4);
      
-    deleteAllDSPFactories();
+    //deleteAllDSPFactories();
   	return 0;
 }
 
