@@ -199,7 +199,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app,
                                                     const std::string& target, 
                                                     std::string& error_msg, int opt_level = 3);
 
-EXPORT void deleteDSPFactory(llvm_dsp_factory* factory);
+EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory);
 
 EXPORT std::string getName(llvm_dsp_factory* factory);
 
@@ -288,7 +288,7 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
                                                     const char* target, 
                                                     char* error_msg, int opt_level);
     
-EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory);
+EXPORT bool deleteCDSPFactory(llvm_dsp_factory* factory);
 
 EXPORT char* getCName(llvm_dsp_factory* factory);
 

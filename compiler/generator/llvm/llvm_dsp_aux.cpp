@@ -1173,7 +1173,14 @@ EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)
     TLock lock(gDSPFactoriesLock);
     
     FactoryTableIt it;
-    return (getFactory(sha_key, it)) ? (*it).first : NULL;
+    
+    if (getFactory(sha_key, it)) {
+        Sllvm_dsp_factory sfactory = (*it).first;
+        sfactory->addReference();
+        return sfactory;
+    } else {
+        return NULL;
+    }
 }
 
 EXPORT vector<string> getAllDSPFactories()
@@ -1190,7 +1197,7 @@ EXPORT vector<string> getAllDSPFactories()
     return sha_key_list;
 }
 
-EXPORT void deleteDSPFactory(llvm_dsp_factory* factory) 
+EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory) 
 {   
     TLock lock(gDSPFactoriesLock);
     
@@ -1204,10 +1211,13 @@ EXPORT void deleteDSPFactory(llvm_dsp_factory* factory)
             for (it = dsp_list.begin(); it != dsp_list.end(); it++) { delete (*it); }
             // Last use, remove from the global table, pointer will be deleted
             llvm_dsp_factory::gFactoryTable.erase(factory);
+            return true;
         } else {
             sfactory->removeReference();
         }
     }
+    
+    return false;
 }
 
 EXPORT std::string getName(llvm_dsp_factory* factory)
@@ -1636,29 +1646,19 @@ EXPORT bool startMTCDSPFactories() { return startMTDSPFactories(); }
 
 EXPORT void stopMTCDSPFactories() { stopMTDSPFactories(); }
 
-EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory)
+EXPORT bool deleteCDSPFactory(llvm_dsp_factory* factory)
 {
-    if (factory) {
-        deleteDSPFactory(factory);
-    }
+    return deleteDSPFactory(factory);
 }
 
 EXPORT char* getCName(llvm_dsp_factory* factory)
 {
-    if (factory) {
-        return strdup(factory->getName().c_str());
-    } else {
-        return NULL;
-    }
+    return (factory) ? strdup(factory->getName().c_str()) : NULL;
 }
 
 EXPORT char* getCSHAKey(llvm_dsp_factory* factory)
 {
-    if (factory) {
-        return strdup(factory->getSHAKey().c_str()); 
-    } else {
-        return NULL;
-    }
+    return (factory) ? strdup(factory->getSHAKey().c_str()) : NULL;
 }
 
 EXPORT char* getCDSPMachineTarget()
@@ -1697,11 +1697,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const 
 
 EXPORT char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory)
 {
-    if (factory) {
-        return strdup(writeDSPFactoryToBitcode(factory).c_str());
-    } else {
-        return NULL;
-    }
+    return (factory) ? strdup(writeDSPFactoryToBitcode(factory).c_str()) : NULL;
 }
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, int opt_level)
@@ -1723,11 +1719,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* 
 
 EXPORT char* writeCDSPFactoryToIR(llvm_dsp_factory* factory)
 {
-    if (factory) {
-        return strdup(writeDSPFactoryToIR(factory).c_str());
-    } else {
-        return NULL;
-    }
+    return (factory) ? strdup(writeDSPFactoryToIR(factory).c_str()) : NULL;
 }
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, int opt_level)
@@ -1750,11 +1742,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code)
 
 EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory)
 {
-    if (factory) {
-        return strdup(writeDSPFactoryToMachine(factory).c_str());
-    } else {
-        return NULL;
-    }
+    return (factory) ? strdup(writeDSPFactoryToMachine(factory).c_str()) : NULL;
 }
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path)

@@ -1268,6 +1268,7 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
     }
     stringstream out;
     
+    // Encode all libraries paths as 'declare'
     vector<string> pathnames = gGlobal->gReader.listSrcFiles();
     for (vector<string>::iterator it = pathnames.begin(); it != pathnames.end(); it++) {
         out << "declare " << "library_path " << '"' << *it << "\";" << endl;
@@ -1344,6 +1345,7 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     if (gGlobal->gExportDSP) {
         ofstream out(subst("$0_exp.dsp", makeDrawPathNoExt()).c_str());
         
+        // Encode all libraries paths as 'declare'
         vector<string> pathnames = gGlobal->gReader.listSrcFiles();
         for (vector<string>::iterator it = pathnames.begin(); it != pathnames.end(); it++) {
             out << "declare " << "library_path " << '"' << *it << "\";" << endl;

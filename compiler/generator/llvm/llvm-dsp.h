@@ -52,7 +52,8 @@ extern "C" char* getCDSPMachineTarget();
 
 /**
  * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
- * if already allocated in the factories cache.
+ * if already allocated in the factories cache and increment it's reference counter. You will have to explicitly
+ * use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
  *
  * @param sha_key - the SHA key for an already created factory, kept in the factory cache
  *
@@ -105,11 +106,15 @@ extern "C" llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, c
                                                          char* error_msg, int opt_level);
 
 /**
- * Destroy a Faust DSP factory, that is decrements it's reference counter, possible really deleting the pointer.  
+ * Delete a Faust DSP factory, that is decrements it's reference counter, possible really deleting the internal pointer. 
+ * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted with deleteDSPInstance.
+ * Beware : all kept factories and DSP pointers (in local variables...) thus become invalid.
  * 
  * @param factory - the DSP factory to be deleted.
+ *
+ * @return true if the factory internal pointer was really deleted, and false if only 'decremented'.
  */                                 
-void deleteDSPFactory(llvm_dsp_factory* factory);
+bool deleteDSPFactory(llvm_dsp_factory* factory);
 
 /**
  * Get the name of the DSP factory : will be the name declared in the DSP source file or string, or if not available,
@@ -144,7 +149,7 @@ extern "C" const char* getCSHAKey(llvm_dsp_factory* factory);
 std::vector<std::string> getLibraryList(llvm_dsp_factory* factory);
 
 /**
- * Destroy all Faust DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables of so...) thus become invalid.
+ * Delete all Faust DSP factories kept in the library cache. Beware : all kept factory and DSP pointers (in local variables...) thus become invalid.
  * 
  */                                 
 void deleteAllDSPFactories();
@@ -159,7 +164,7 @@ std::vector<std::string> getAllDSPFactories();
 /**
  * Start multi-thread access mode (since by default the library is not 'multi-thread' safe).
  * 
- * @return true is 'multi-thread' safe access is started.
+ * @return true if 'multi-thread' safe access is started.
  */ 
 bool startMTDSPFactories();
 

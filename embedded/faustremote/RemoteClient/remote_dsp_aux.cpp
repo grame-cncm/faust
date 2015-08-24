@@ -785,7 +785,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
 {
     // Compute SHA1 key using the non-expanded version, IP and port
     stringstream sha_content;
-    sha_content << dsp_content << ":" <<ip_server << ":" << port_server;
+    sha_content << dsp_content << ":" << ip_server << ":" << port_server;
     
     string sha_key = generateSHA1(sha_content.str()); 
     FactoryTableDSPIt it;
