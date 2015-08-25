@@ -583,7 +583,8 @@ bool DSPServer::stop(MHD_Connection* connection, dsp_server_connection_info* inf
 
 bool DSPServer::deleteFactory(MHD_Connection* connection, dsp_server_connection_info* info)
 {
-    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(info->fSHAKey); // Returns the factory (with incremented reference counter)
+    // Returns the factory (with incremented reference counter)
+    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(info->fSHAKey); 
     
     if (factory) {
         // Has to be done twice since getDSPFactoryFromSHAKey has incremented once more...

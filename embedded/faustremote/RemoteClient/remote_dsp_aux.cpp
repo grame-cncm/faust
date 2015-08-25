@@ -110,7 +110,6 @@ remote_dsp_factory::~remote_dsp_factory()
     string response;
     int errorCode = -1;
     string url = fServerURL + "/DeleteFactory";
-   
     sendRequest(url, finalRequest, response, errorCode);
     
     vector<itemInfo*>::iterator it;
@@ -131,9 +130,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
                             int opt_level)
 {
     bool res = false;
-    int errorCode;
-    string response, url;
-    stringstream finalRequest, serverURL;
+    stringstream finalRequest;
      
     // Adding name
     finalRequest << "name=" << name_app;
@@ -151,9 +148,9 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     if (isopt(argc, argv, "-m")) {
         string error;
         llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, 
-                                                            argc, argv, 
-                                                            loptions(argv, "-m", ""),
-                                                            error, 3);
+                                                                argc, argv, 
+                                                                loptions(argv, "-m", ""),
+                                                                error, 3);
         if (factory) {
             // Transforming machine code to URL format
             string machine_code = writeDSPFactoryToMachine(factory);
@@ -161,36 +158,37 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
             finalRequest << curl_easy_escape(remote_dsp_factory::gCurl, machine_code.c_str(), machine_code.size());
             deleteDSPFactory(factory);
         } else {
-            printf("Compilation error : %s\n", error.c_str());
             return res;
         }
     } else {
         // Transforming DSP code to URL format
         finalRequest << "&dsp_data=";
         finalRequest << curl_easy_escape(remote_dsp_factory::gCurl, dsp_content.c_str(), dsp_content.size());
-        
-        // Keep library path
-        stringstream os(dsp_content);
-        string key, name;                 
-        while (os >> key) {               
-            os >> name;
-            // line of type 'declare IP "192.168.1.146";' has been added in the expanded version just after possible 'library_path' declaration
-            if (key == "IP") {
-                break;
-            } else if (key == "library_path") {
-                fPathnameList.push_back(name);
-            }  
-        }
     }
     
-    url = fServerURL + "/GetJson";
+    // Keep library path
+    stringstream os(dsp_content);
+    string key, name;                 
+    while (os >> key) {               
+        os >> name;
+        // line of type 'declare IP "192.168.1.146";' has been added in the expanded version just after possible 'library_path' declaration
+        if (key == "IP") {
+            break;
+        } else if (key == "library_path") {
+            fPathnameList.push_back(name);
+        }  
+    }
+    
+    int errorCode;
+    string response;
+    string url = fServerURL + "/GetJson";
 
     errorCode = -1;
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
         decodeJson(response);
         res = true;
     } else if (errorCode != -1) {
-        error = "Curl Connection Failed";
+        error = "Curl connection error";
     } else {
         error = response;
     }
@@ -307,7 +305,6 @@ remote_dsp_aux::~remote_dsp_aux()
     
     finalRequest << "instanceKey=" << this;
     string url = fFactory->getURL() + "/DeleteInstance";
-    
     sendRequest(url, finalRequest.str(), response, errorCode);
     
     if (fNetJack) {
@@ -607,7 +604,6 @@ remote_audio_aux::~remote_audio_aux()
     
     finalRequest << "instanceKey=" << this;
     string url = fFactory->getURL() + "/DeleteInstance";
-    
     sendRequest(url, finalRequest.str(), response, errorCode);
 }  
 
@@ -628,7 +624,6 @@ bool remote_audio_aux::init(int argc, const char* argv[], int& error)
     finalRequest << "&instanceKey=" << this;
     
     string url = fFactory->getURL() + "/CreateInstance";
-    
     return sendRequest(url, finalRequest.str(), response, errorCode);
 }  
 
@@ -640,7 +635,6 @@ bool remote_audio_aux::start()
     
     finalRequest << "instanceKey=" << this;
     string url = fFactory->getURL() + "/Start";
-   
     return sendRequest(url, finalRequest.str(), response, errorCode);
 }
 
@@ -652,7 +646,6 @@ bool remote_audio_aux::stop()
     
     finalRequest << "instanceKey=" << this;
     string url = fFactory->getURL() + "/Stop";
-      
     return sendRequest(url, finalRequest.str(), response, errorCode);
 }            
 
