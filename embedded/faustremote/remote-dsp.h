@@ -50,14 +50,18 @@ enum {
 class remote_dsp_factory {
     
     public: 
+    
+        std::string getName();
+        std::string getSHAKey();
         
         int getNumInputs();
         int getNumOutputs();
 };
 
 /**
- * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
- * if already allocated in the factories cache.
+ * Get the Faust remote DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
+ * if already allocated in the factories cache and increment it's reference counter. You will have to explicitly
+ * use deleteRemoteDSPFactory to properly decrement reference counter when the factory is no more needed.
  *
  * @param argc - the number of parameters in argv array
  * @param argv - the array of compilation parameters :
@@ -72,7 +76,8 @@ class remote_dsp_factory {
 remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(int argc, const char* argv[], const std::string& ip_server, int port_server, const std::string& sha_key);    
 
 /**
- * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application.
+ * Create a Faust remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application. 
+ * You will have to explicitly use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
  *
  * @param filename - DSP filename
  * @param argc - the number of parameters in argv array
@@ -95,7 +100,8 @@ remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename,
                                                     int opt_level = 3);
 
 /**
- * Create a Remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application.
+ * Create a Faust remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application.
+ * You will have to explicitly use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
  *
  * @param name_app - the name of the Faust Application to be compiled
  * @param dsp_content - the Faust program as a string
@@ -120,16 +126,18 @@ remote_dsp_factory* createRemoteDSPFactoryFromString(const std::string& name_app
                                                     int opt_level = 3);
 
 /**
- * Destroy a Faust DSP factory.
+ * Delete a Faust remote DSP factory, that is decrements it's reference counter, possible really deleting the internal pointer. 
+ * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted with deleteDSPInstance.
+ * Beware : all kept factories and DSP pointers (in local variables...) thus become invalid.
  * 
- * @param factory - the DSP factory to be deleted.
+ * @param factory - the DSP factory
  *
  * @return true if the factory internal pointer was really deleted, and false if only 'decremented'.
  */
 bool deleteRemoteDSPFactory(remote_dsp_factory* factory);
 
 /**
- * Destroy all Faust DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables or so...) thus become invalid.
+ * Delete all Faust remote DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables...) thus become invalid.
  * 
  */                                 
 void deleteAllRemoteDSPFactories();
@@ -145,9 +153,9 @@ void deleteAllRemoteDSPFactories();
 void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
 
 /**
- * Get the list of library dependancies of the Faust DSP factory.
+ * Get the list of library dependancies of the Faust remote DSP factory.
  *
- * @param factory - the DSP factory.
+ * @param factory - the DSP factory
  * 
  * @return the list as a vector of strings.
  */
@@ -174,7 +182,7 @@ class remote_dsp : public dsp {
 };
 
 /**
- * Prototype for DSP instance error callback.
+ * Prototype for remote DSP instance error callback.
  * @param error_code - an error code (see "Possible error codes")
  * @param arg - pointer to a client supplied structure given by createRemoteDSPInstance()
  *
@@ -183,14 +191,14 @@ class remote_dsp : public dsp {
 typedef int (*remoteDSPErrorCallback) (int error_code, void* arg);
 
 /**
- * Create a remote DSP instance. A NetJack connexion is initialized with a specified sampling rate and buffer size. 
+ * Create a Faust remote DSP instance. A NetJack connexion is initialized with a specified sampling rate and buffer size. 
  * - if '--NJ_partial' is set, then the remote_dsp compute method can be safely called with 
  * a number of frames below bufferSize, partial buffers will be sent and received.
  * - parameter '--NJ_compression' can be used to chose between JackOpusEncoder format 
  * (when --NJ_compression > 0), 'JackFloatEncoder or 'JackIntEncoder'. 
  * An error callabck can be set to be notified in case of network transmision errors.
  * 
- * @param factory - the Remote DSP factory
+ * @param factory - the DSP factory
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters 
  *                  --NJ_ip ==> MULTICAST_DEFAULT_IP 
@@ -215,7 +223,7 @@ remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
                                     int& error);
 
 /**
- * Destroy a remote DSP instance.
+ * Destroy a Faust remote DSP instance.
  * 
  * @param dsp - the DSP instance to be deleted.
  */ 
@@ -234,9 +242,9 @@ class remote_audio {
 };
 
 /**
- * Create a remote Audio instance.
+ * Create a Faust remote audio instance.
  * 
- * @param factory - the Remote DSP factory
+ * @param factory - the DSP factory
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters 
  *                  --LA_buffer_size 
@@ -248,7 +256,7 @@ class remote_audio {
 remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int argc, const char* argv[], int& error);
 
 /**
- * Destroy a remote Audio instance.
+ * Destroy a Faust remote Audio instance.
  * 
  * @param audio - the Audio instance to be deleted.
  */ 
@@ -323,7 +331,7 @@ class remote_dsp_server {
 };
 
  /**
- * Create a remote DSP server.
+ * Create a Faust remote DSP server.
  *
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters 
@@ -333,7 +341,7 @@ class remote_dsp_server {
 remote_dsp_server* createRemoteDSPServer(int argc, const char* argv[]);
 
 /**
- * Destroy a remote DSP server.
+ * Destroy a Faust remote DSP server.
  * 
  * @param server - the DSP server to be deleted.
  */ 

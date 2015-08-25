@@ -111,6 +111,7 @@ class remote_dsp_factory : public smartable {
     
     private:
         
+        string      fName;    
         string      fSHAKey;                // Unique Index to bind a Remote_Factory to its llvm_factory on the server side
         
         int         fNumInputs;             // Compiled DSP factory inputs
@@ -152,8 +153,8 @@ class remote_dsp_factory : public smartable {
         int                 getNumInputs();
         int                 getNumOutputs();
         
-        string              getKey() { return fSHAKey; }
-        void                setKey(const string& sha_key) { fSHAKey = sha_key; }
+        string              getName();
+        string              getSHAKey();
         
         vector<string>      getLibraryList() { return fPathnameList; }
         

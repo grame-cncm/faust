@@ -214,7 +214,7 @@ static bool parseUI(const char*& p, vector<itemInfo*>& uiItems, int& numItems)
                     if (parseChar(p, ':') && parseChar(p,'[')) {
                         
                         do { 
-                            if(!parseUI(p, uiItems, numItems))
+                            if (!parseUI(p, uiItems, numItems))
                                 return false;
                         } while (tryChar(p,','));
                         if (parseChar(p,']')) {
@@ -238,13 +238,13 @@ static bool parseUI(const char*& p, vector<itemInfo*>& uiItems, int& numItems)
 }
 
 // ---------------------------------------------------------------------
-// Parse full json record describing a json/faust interface :
+// Parse full json record describing a json/Faust interface :
 // {"metadatas": "...", "ui": [{ "type": "...", "label": "...", "items": [...], "address": "...","init": "...", "min": "...", "max": "...","step": "..."}]}
 //
 // and store the result in map Metadatas and vector containing the items of the interface. Returns true if parsing was successfull.
 // This function is used by targetsDescriptionReceived() the remote  DSP to decode the result of 
 //
-bool parseJson(const char*& p, map<string,string>& metadatas, vector<itemInfo*>& uiItems)
+bool parseJson(const char*& p, map<string,string>& metadatas, vector<itemInfo*>& uiItems, string& name)
 {
     parseChar(p, '{');
     
@@ -255,7 +255,9 @@ bool parseJson(const char*& p, map<string,string>& metadatas, vector<itemInfo*>&
         if (parseMetaData(p, key, value, metadatas)) {
             metadatas[key] = value;
         } else {
-            if(key.compare("ui") == 0){
+            if (key.compare("name") == 0) {
+                name = value;
+            } else if (key.compare("ui") == 0) {
                 int numItems = 0;
                 parseChar(p,'[') && parseUI(p, uiItems, numItems);
             }

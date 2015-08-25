@@ -121,17 +121,17 @@ extern "C" llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, c
  * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted with deleteDSPInstance.
  * Beware : all kept factories and DSP pointers (in local variables...) thus become invalid.
  * 
- * @param factory - the DSP factory to be deleted.
+ * @param factory - the DSP factory
  *
  * @return true if the factory internal pointer was really deleted, and false if only 'decremented'.
  */                                 
 bool deleteDSPFactory(llvm_dsp_factory* factory);
 
 /**
- * Get the name of the DSP factory : will be the name declared in the DSP source file or string, or if not available,
+ * Get the name of the Faust DSP factory : will be the name declared in the DSP source file or string, or if not available,
  * the DSP 'filename' given in createDSPFactoryFromFile or the DSP 'name_app' given in createDSPFactoryFromString.
  *
- * @param factory - the DSP factory.
+ * @param factory - the DSP factory
  * 
  * @return the name as a string.
  */
@@ -140,9 +140,9 @@ std::string getName(llvm_dsp_factory* factory);
 extern "C" const char* getCName(llvm_dsp_factory* factory);
 
 /**
- * Get the SHA Key of the DSP factory.
+ * Get the SHA Key of the Faust DSP factory.
  *
- * @param factory - the DSP factory.
+ * @param factory - the DSP factory
  * 
  * @return the SHA key as a string.
  */
@@ -153,7 +153,7 @@ extern "C" const char* getCSHAKey(llvm_dsp_factory* factory);
 /**
  * Get the list of library dependancies of the Faust DSP factory.
  *
- * @param factory - the DSP factory.
+ * @param factory - the DSP factory
  * 
  * @return the list as a vector of strings.
  */
@@ -195,14 +195,14 @@ void stopMTDSPFactories();
  * @param target - the LLVM machine target (using empty string will take current machine settings)
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
  *
- * @return the Faust DSP factory on success, otherwise a null pointer.
+ * @return the DSP factory on success, otherwise a null pointer.
  */
 llvm_dsp_factory* readDSPFactoryFromBitcode(const std::string& bit_code, const std::string& target, int opt_level = 3);
 
 /**
  * Write a Faust DSP factory into a base64 encoded LLVM bitcode string.
  * 
- * @param factory - Faust DSP factory
+ * @param factory - the DSP factory
  *
  * @return the LLVM bitcode as a string.
  */
@@ -223,8 +223,8 @@ llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const std::string& bit_code_path
 /**
  * Write a Faust DSP factory into a LLVM bitcode file.
  * 
- * @param factory - the Faust DSP factory
- * @param bit_code_path - the LLVM bitcode file pathname
+ * @param factory - the DSP factory
+ * @param bit_code_path - the LLVM bitcode file pathname.
  *
  */
 void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& bit_code_path);
@@ -239,14 +239,14 @@ void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& 
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
  *
- * @return the Faust DSP factory on success, otherwise a null pointer.
+ * @return the DSP factory on success, otherwise a null pointer.
  */
 llvm_dsp_factory* readDSPFactoryFromIR(const std::string& ir_code, const std::string& target, int opt_level = 3);
 
 /**
  * Write a Faust DSP factory into a LLVM IR (textual) string.
  * 
- * @param factory - the Faust DSP factory
+ * @param factory - the DSP factory
  *
  * @return the LLVM IR (textual) as a string.
  */
@@ -262,14 +262,14 @@ std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
  *
- * @return the Faust DSP factory on success, otherwise a null pointer.
+ * @return the DSP factory on success, otherwise a null pointer.
  */
 llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level = 3);
 
 /**
  * Write a Faust DSP factory into a LLVM IR (textual) file.
  * 
- * @param factory - the Faust DSP factory
+ * @param factory - the DSP factory
  * @param ir_code_path - the LLVM bitcode file pathname.
  *
  */
@@ -283,7 +283,7 @@ void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_co
  * 
  * @param machine_code - the machine code string
  *
- * @return the Faust DSP factory on success, otherwise a null pointer.
+ * @return the DSP factory on success, otherwise a null pointer.
  */
 llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code);
 
@@ -292,7 +292,7 @@ extern "C" llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code
 /**
  * Write a Faust DSP factory into a base64 encoded machine code string.
  * 
- * @param factory - the Faust DSP factory
+ * @param factory - the DSP factory
  *
  * @return the machine code as a string.
  */
@@ -306,14 +306,14 @@ std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory);
  * 
  * @param machine_code_path - the machine code file pathname
  *
- * @return the Faust DSP factory on success, otherwise a null pointer.
+ * @return the DSP factory on success, otherwise a null pointer.
  */
 llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path);
 
 /**
  * Write a Faust DSP factory into a machine code file.
  * 
- * @param factory - the Faust DSP factory
+ * @param factory - the DSP factory
  * @param machine_code_path - the machine code file pathname.
  *
  */
@@ -322,7 +322,7 @@ void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& 
 /**
  * Call global declarations with the given meta object.
  * 
- * @param factory - the Faust DSP factory
+ * @param factory - the DSP factory
  * @param meta - the meta object to be used.
  *
  */
@@ -414,7 +414,7 @@ class llvm_dsp : public dsp {
 /**
  * Create a Faust DSP instance.
  * 
- * @param factory - the Faust DSP factory
+ * @param factory - the DSP factory
  * 
  * @return the Faust DSP instance on success, otherwise a null pointer.
  */

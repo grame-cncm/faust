@@ -125,7 +125,7 @@ extern "C"
     char* getCName(llvm_dsp_factory* factory);
 
     /**
-     * Get the SHA Key of the DSP factory.
+     * Get the SHA Key of the Faust DSP factory.
      *
      * @param factory - the DSP factory.
      * 
@@ -134,7 +134,7 @@ extern "C"
     char* getCSHAKey(llvm_dsp_factory* factory);
   
     /**
-     * Get the list of library dependancies of the DSP factory as a null-terminated array.
+     * Get the list of library dependancies of the Faust DSP factory as a null-terminated array.
      *
      * @param factory - the DSP factory.
      * 
@@ -178,7 +178,7 @@ extern "C"
      * @param target - the LLVM machine target (using empty string will take current machine settings)
      * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
      *
-     * @return the Faust DSP factory on success, otherwise a null pointer.
+     * @return the DSP factory on success, otherwise a null pointer.
      */
     llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level);
     
@@ -222,14 +222,14 @@ extern "C"
      * @param target - the LLVM machine target (using empty string will takes current machine settings)
      * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
      *
-     * @return the Faust DSP factory on success, otherwise a null pointer.
+     * @return the DSP factory on success, otherwise a null pointer.
      */
     llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target, int opt_level);
     
     /**
      * Write a Faust DSP factory into a LLVM IR (textual) string.
      * 
-     * @param factory - the Faust DSP factory
+     * @param factory - the DSP factory
      *
      * @return the LLVM IR (textual) as a string (to be deleted by the caller).
      */
@@ -245,7 +245,7 @@ extern "C"
      * @param target - the LLVM machine target (using empty string will takes current machine settings)
      * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
      *
-     * @return the Faust DSP factory on success, otherwise a null pointer.
+     * @return the DSP factory on success, otherwise a null pointer.
      */
     llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, int opt_level);
     
@@ -266,7 +266,7 @@ extern "C"
      * 
      * @param machine_code - the machine code string
      *
-     * @return the Faust DSP factory on success, otherwise a null pointer.
+     * @return the DSP factory on success, otherwise a null pointer.
      */
     llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code);
 
@@ -287,7 +287,7 @@ extern "C"
      * 
      * @param machine_code_path - the machine code file pathname
      *
-     * @return the Faust DSP factory on success, otherwise a null pointer.
+     * @return the DSP factory on success, otherwise a null pointer.
      */
     llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path);
 

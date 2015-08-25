@@ -43,6 +43,6 @@ struct itemInfo {
 
 // ------------------------- external API ------------------------------
 
-bool parseJson(const char*& p, map<string,string>& metadatas, vector<itemInfo*>& uiItems);
+bool parseJson(const char*& p, map<string,string>& metadatas, vector<itemInfo*>& uiItems, string& name);
 
 #endif // SIMPLEPARSER_H

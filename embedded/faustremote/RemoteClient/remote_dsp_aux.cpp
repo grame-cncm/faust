@@ -203,7 +203,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
 void remote_dsp_factory::decodeJson(const string& json)
 {
     const char* p = json.c_str();
-    parseJson(p, fMetadatas, fUiItems);
+    parseJson(p, fMetadatas, fUiItems, fName);
     
     fNumInputs = atoi(fMetadatas["inputs"].c_str());
     fMetadatas.erase("inputs");
@@ -255,7 +255,7 @@ static bool getFactory(const string& sha_key, FactoryTableDSPIt& res)
     
     for (it = remote_dsp_factory::gFactoryDSPTable.begin(); it != remote_dsp_factory::gFactoryDSPTable.end(); it++) {
         Sremote_dsp_factory factory = (*it).first;
-        if (factory->getKey() == sha_key) {
+        if (factory->getSHAKey() == sha_key) {
             res = it;
             return true;
         }
@@ -569,7 +569,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     finalRequest << "&NJ_compression=" << loptions(argc, argv, "--NJ_compression", "-1");
     finalRequest << "&NJ_latency=" << loptions(argc, argv, "--NJ_latency", "2");
     finalRequest << "&NJ_mtu=" << loptions(argc, argv, "--NJ_mtu", "1500");
-    finalRequest << "&shaKey=" << fFactory->getKey();
+    finalRequest << "&shaKey=" << fFactory->getSHAKey();
     finalRequest << "&instanceKey=" << this;
     
     bool res = false;
@@ -620,7 +620,7 @@ bool remote_audio_aux::init(int argc, const char* argv[], int& error)
     // Parse NetJack Parameters
     finalRequest << "&LA_sample_rate=" << atoi(loptions(argc, argv, "--LA_sample_rate ", "44100"));
     finalRequest << "&LA_buffer_size=" << atoi(loptions(argc, argv, "--LA_buffer_size ", "512"));
-    finalRequest << "&shaKey=" << fFactory->getKey();
+    finalRequest << "&shaKey=" << fFactory->getSHAKey();
     finalRequest << "&instanceKey=" << this;
     
     string url = fFactory->getURL() + "/CreateInstance";
@@ -872,6 +872,10 @@ EXPORT void deleteAllRemoteDSPFactories()
     // Then clear the table thus finally deleting all ref = 1 smart pointers
     remote_dsp_factory::gFactoryDSPTable.clear();
 }
+
+EXPORT std::string remote_dsp_factory::getName() { return fName; }
+
+EXPORT std::string remote_dsp_factory::getSHAKey() { return fSHAKey; }
 
 EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m)
 {
