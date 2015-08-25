@@ -729,5 +729,5 @@ EXPORT string generateSHA1(const string& dsp_content)
 EXPORT void generateCSHA1(const char* data, char* key)
 {
     string res = generateSHA1(data);
-    strncpy(key, res.c_str(), 20);
+    strncpy(key, res.c_str(), 64);
 }

@@ -1829,7 +1829,7 @@ EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
 EXPORT void generateCSHA1(const char* data, char* key)
 {
     string res = generateSHA1(data);
-    strncpy(key, res.c_str(), 20);
+    strncpy(key, res.c_str(), 64);
 }
 
 #endif // LLVM_BUILD
