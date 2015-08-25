@@ -111,15 +111,15 @@ class remote_dsp_factory : public smartable {
     
     private:
         
-        string      fSHAKey;            // Unique Index to bind a Remote_Factory to its llvm_factory on the server side
+        string      fSHAKey;                // Unique Index to bind a Remote_Factory to its llvm_factory on the server side
         
-        int         fNumInputs;         // Compiled DSP factory inputs
-        int         fNumOutputs;        // Compiled DSP factory outputs
+        int         fNumInputs;             // Compiled DSP factory inputs
+        int         fNumOutputs;            // Compiled DSP factory outputs
         
-        string      fServerURL;         // URL of remote server 
+        string      fServerURL;             // URL of remote server 
         
-        map<string, string>  fMetadatas; // Metadatas extracted from json
-        vector<itemInfo*>   fUiItems;   // Items extracted from json
+        map<string, string>  fMetadatas;    // Metadatas extracted from json
+        vector<itemInfo*>   fUiItems;       // Items extracted from json
         
         vector<string> fPathnameList;
           
@@ -141,7 +141,6 @@ class remote_dsp_factory : public smartable {
                         int port_server, 
                         const string& name_app, 
                         const string& dsp_content, 
-                        //const string& sha_key, 
                         string& error_msg, 
                         int opt_level);
         

@@ -127,7 +127,6 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
                             int port_server, 
                             const string& name_app, 
                             const string& dsp_content, 
-                            //const string& sha_key, 
                             string& error, 
                             int opt_level)
 {
@@ -830,7 +829,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
             return sfactory;
         } else {
             remote_dsp_factory* factory = new remote_dsp_factory(ip_server, port_server, sha_key);
-            if (factory->init(argc1, argv1, ip_server, port_server, name_app, expanded_dsp, /*sha_key, */ error_msg, opt_level)) {
+            if (factory->init(argc1, argv1, ip_server, port_server, name_app, expanded_dsp, error_msg, opt_level)) {
                 remote_dsp_factory::gFactoryDSPTable[factory] = make_pair(list<remote_dsp_aux*>(), list<remote_audio_aux*>());
                 return factory;
             } else {
