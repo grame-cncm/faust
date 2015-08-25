@@ -161,10 +161,6 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app,
 
 EXPORT void deleteDSPFactory(llvm_dsp_factory* factory);
 
-EXPORT std::string getName(llvm_dsp_factory* factory);
-
-EXPORT std::string getSHAKey(llvm_dsp_factory* factory);
-
 EXPORT std::string getDSPMachineTarget();
 
 EXPORT std::vector<std::string> getLibraryList(llvm_dsp_factory* factory);

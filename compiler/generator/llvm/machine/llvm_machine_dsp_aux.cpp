@@ -258,25 +258,6 @@ void llvm_dsp_factory::metadataDSPFactory(MetaGlue* glue)
     fMetadata(glue);
 }
 
-string llvm_dsp_factory::getName()
-{
-    struct MyMeta : public Meta
-    {
-        string name;
-        
-        virtual void declare(const char* key, const char* value){
-            if (strcmp(key, "name") == 0) {
-                name = value;
-            }
-        }
-        
-    };
-    
-    MyMeta metadata;
-    metadataDSPFactory (&metadata);
-    return (fExtName != "") ? fExtName : metadata.name;
-}
-  
 // Instance 
 
 llvm_dsp_aux::llvm_dsp_aux(llvm_dsp_factory* factory, llvm_dsp_imp* dsp)
@@ -367,6 +348,27 @@ EXPORT void stopMTDSPFactories()
     delete gDSPFactoriesLock;
     gDSPFactoriesLock = 0;
 }
+
+EXPORT std::string llvm_dsp_factory::getName()
+{
+    struct MyMeta : public Meta
+    {
+        string name;
+        
+        virtual void declare(const char* key, const char* value){
+            if (strcmp(key, "name") == 0) {
+                name = value;
+            }
+        }
+        
+    };
+    
+    MyMeta metadata;
+    metadataDSPFactory (&metadata);
+    return (fExtName != "") ? fExtName : metadata.name;
+}
+
+EXPORT std::string llvm_dsp_factory::(llvm_dsp_factory* factory) { return fSHAKey; }
 
 EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)
 {
