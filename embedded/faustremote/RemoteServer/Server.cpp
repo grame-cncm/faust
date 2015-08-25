@@ -55,20 +55,6 @@
 #include "faust/audio/android-dsp.h"
 #endif
 
-// Declare is called for every metadata coded in the Faust DSP
-// That way, we get the faust name declared in the Faust DSP
-struct myMeta : public Meta
-{
-    string name;
-    
-    virtual void declare(const char* key, const char* value) 
-    {
-        if (strcmp(key, "name") == 0) {
-            name = value;
-        }
-    }
-};
-
 static string builtError(int error)
 {
     stringstream s; s << error;
@@ -213,7 +199,6 @@ dsp_server_connection_info::dsp_server_connection_info()
     fNameApp = "";
     fFaustCode = "";
     fOptLevel = "";
-    fFactory = 0;
     fIP = "";
     fPort = "";
     fCompression = "";
@@ -221,33 +206,26 @@ dsp_server_connection_info::dsp_server_connection_info()
     fLatency = "";
     fSHAKey = "";
     fInstanceKey = "";
-    fJSON = "";
-}
-    
-string dsp_server_connection_info::getJson() 
-{
-    if (fJSON == "") {
-        myMeta metadata;
-        metadataDSPFactory(fFactory, &metadata);
-        fNameApp = metadata.name;
-        
-        // This instance is used only to build JSON interface, then it's deleted
-        llvm_dsp* dsp = createDSPInstance(fFactory);
-        JSONUI json(dsp->getNumInputs(), dsp->getNumOutputs());
-        dsp->buildUserInterface(&json);
-        deleteDSPInstance(dsp);  
-        fJSON = json.JSON();
-    }
-      
-    return fJSON;
 }
 
-bool dsp_server_connection_info::getJsonFromKey(FactoryTable& factories)
+void dsp_server_connection_info::getJson(llvm_dsp_factory* factory) 
 {
-    if (factories.find(fSHAKey) != factories.end()) {
-        fNameApp = factories[fSHAKey].first;
-        fFactory = factories[fSHAKey].second;
-        fAnswer = getJson();
+    // This instance is used only to build JSON interface, then it's deleted
+    llvm_dsp* dsp = createDSPInstance(factory);
+    JSONUI json(dsp->getNumInputs(), dsp->getNumOutputs());
+    dsp->buildUserInterface(&json);
+    deleteDSPInstance(dsp);  
+    fAnswer = json.JSON();
+    fNameApp = factory->getName();
+}
+
+bool dsp_server_connection_info::getJsonFromKey(DSPServer* server)
+{
+    // Will increment factory reference counter...
+    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(fSHAKey);
+     
+    if (factory) {
+        getJson(factory);
         return true;
     } else {
         fAnswer = "Factory not found";
@@ -256,7 +234,7 @@ bool dsp_server_connection_info::getJsonFromKey(FactoryTable& factories)
 }
 
 // Create DSP Factory 
-bool dsp_server_connection_info::createFactory(FactoryTable& factories, DSPServer* server) 
+llvm_dsp_factory* dsp_server_connection_info::createFactory(DSPServer* server) 
 {
     string error = "Incorrect machine code";
     
@@ -267,10 +245,12 @@ bool dsp_server_connection_info::createFactory(FactoryTable& factories, DSPServe
         argv[i] = (fCompilationOptions[i]).c_str();
     }
     
+    llvm_dsp_factory* factory = NULL;
+     
     if (isopt(argc, argv, "-m")) {
         // Machine code
         //fFactory = readDSPFactoryFromMachine(fFaustCode);
-        fFactory = readCDSPFactoryFromMachine(fFaustCode.c_str());
+        factory = readCDSPFactoryFromMachine(fFaustCode.c_str());
     } else {
         // DSP code
         /*
@@ -281,22 +261,18 @@ bool dsp_server_connection_info::createFactory(FactoryTable& factories, DSPServe
         */
     
         char error1[256];
-        fFactory = createCDSPFactoryFromString(fNameApp.c_str(),
+        factory = createCDSPFactoryFromString(fNameApp.c_str(),
                                             fFaustCode.c_str(),
                                             argc, argv, "",
                                             error1, atoi(fOptLevel.c_str()));
     }
     
-    if (fFactory) {
+    if (factory && server->fCreateDSPFactoryCb) {
         // Possibly call callback
-        if (server->fCreateDSPFactoryCb) {
-            return server->fCreateDSPFactoryCb(fFactory, server->fCreateDSPFactoryCb_arg);
-        }   
-        factories[fSHAKey] = make_pair(fNameApp, fFactory);
-        return true;
-    } else {
-        return false;
-    }
+        server->fCreateDSPFactoryCb(factory, server->fCreateDSPFactoryCb_arg);
+     } 
+    
+    return factory;
 }
 
 int dsp_server_connection_info::iteratePost(const char* key, const char* data, size_t size) 
@@ -539,16 +515,17 @@ int DSPServer::answerGet(MHD_Connection* connection, const char* url)
 bool DSPServer::getAvailableFactories(MHD_Connection* connection)
 {
     stringstream answer;
-    for (map<string, pair<string, llvm_dsp_factory*> >::iterator it = fFactories.begin(); it != fFactories.end(); it++) {
-        answer << it->first << " " << it->second.first << " ";
+    for (FactoryTableIt it = fFactories.begin(); it != fFactories.end(); it++) {
+        llvm_dsp_factory* factory = *it;
+        answer << factory->getName() << " " << factory->getSHAKey() << " ";
     }
     return sendPage(connection, answer.str(), MHD_HTTP_OK, "text/plain");
 }
 
 bool DSPServer::getJsonFromKey(MHD_Connection* connection, dsp_server_connection_info* info)
 {
-    if (info->getJsonFromKey(fFactories)) {
-        return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json"); 
+    if (info->getJsonFromKey(this)) {
+       return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json"); 
     } else {
         return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
     }
@@ -556,10 +533,13 @@ bool DSPServer::getJsonFromKey(MHD_Connection* connection, dsp_server_connection
 
 bool DSPServer::getJson(MHD_Connection* connection, dsp_server_connection_info* info)
 {
-    if (info->getJsonFromKey(fFactories)) {
+    llvm_dsp_factory* factory;
+    
+    if (info->getJsonFromKey(this)) {
         return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json");
-    } else if (info->createFactory(fFactories, this)) {
-        return getJsonFromKey(connection, info);
+    } else if ((factory = info->createFactory(this))) {
+        info->getJson(factory);
+        return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json");
     } else {
         return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
     }
@@ -601,6 +581,20 @@ bool DSPServer::stop(MHD_Connection* connection, dsp_server_connection_info* inf
     }
 }
 
+bool DSPServer::deleteFactory(MHD_Connection* connection, dsp_server_connection_info* info)
+{
+    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(info->fSHAKey); // Returns the factory (with incremented reference counter)
+    
+    if (factory) {
+        // Has to be done twice since getDSPFactoryFromSHAKey has incremented once more...
+        deleteDSPFactory(factory); 
+        deleteDSPFactory(factory);
+        return sendPage(connection, "", MHD_HTTP_OK, "text/html");
+    } else {
+        return sendPage(connection, builtError(ERROR_FACTORY_NOTFOUND), MHD_HTTP_BAD_REQUEST, "text/html");
+    }
+}
+
 // Response to all POST request
 // 3 requests are correct : 
 // - /GetJson --> Receive Faust code / Compile Data / Send back JSON Interface
@@ -626,19 +620,9 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
             return start(connection, info);
         } else if(strcmp(url, "/Stop") == 0) {
             return stop(connection, info);
-        } 
-//        else if(strcmp(url, "/DeleteFactory") == 0) {
-//            llvm_dsp_factory* toDelete = fFactories[con_info->fSHAKey];
-//            
-//            if (toDelete) {
-//                fFactories.erase(con_info->fSHAKey);
-//                deleteSlaveDSPFactory(toDelete);
-//                return send_page(connection, "", 0, MHD_HTTP_OK, "application/html"); 
-//            } else {
-//                return send_page(connection, "", 0, MHD_HTTP_BAD_REQUEST, "text/html"); 
-//            }
-//        }
-        else {
+        } else if(strcmp(url, "/DeleteFactory") == 0) {
+            return deleteFactory(connection, info);
+        } else {
             return sendPage(connection, "", MHD_HTTP_BAD_REQUEST, "text/html"); 
         }
     }
@@ -668,7 +652,7 @@ void DSPServer::requestCompleted(void* cls, MHD_Connection* connection, void** c
 // Create DSP Instance
 bool DSPServer::createInstance(dsp_server_connection_info* con_info)
 {
-    llvm_dsp_factory* factory = fFactories[con_info->fSHAKey].second;
+    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(con_info->fSHAKey);
     audio_dsp* audio = NULL;
     llvm_dsp* dsp = NULL;
     
@@ -679,7 +663,7 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
                 audio = new netjack_dsp(factory, con_info->fCompression, 
                                         con_info->fIP, con_info->fPort, 
                                         con_info->fMTU, con_info->fLatency, 
-                                        fFactories[con_info->fSHAKey].first, 
+                                        factory->getName(),
                                         con_info->fInstanceKey,
                                         fCreateDSPInstanceCb, fCreateDSPInstanceCb_arg,
                                         fDeleteDSPInstanceCb, fDeleteDSPInstanceCb_arg);
@@ -702,7 +686,7 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
                 */
                 
                 audio = new audio_dsp(factory,
-                                    fFactories[con_info->fSHAKey].first, 
+                                    factory->getName(),
                                     con_info->fInstanceKey,
                                     fCreateDSPInstanceCb, 
                                     fCreateDSPInstanceCb_arg,
@@ -719,6 +703,8 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
              goto error;
         }
     
+        // Not more use of the locally needed factory (actually only decrement it's reference counter...)
+        deleteDSPFactory(factory);
         return true;
         
     } else {

@@ -142,7 +142,7 @@ class llvm_dsp_factory : public smartable {
     
         string getName();
         
-        string getSHAKey() { return fSHAKey; }
+        string getSHAKey();
         
         string getTarget() { return fTarget; }
     

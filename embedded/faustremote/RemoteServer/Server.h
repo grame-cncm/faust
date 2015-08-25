@@ -124,7 +124,8 @@ enum {
     ERROR_INSTANCE_NOTFOUND
 };
 
-typedef map<string, pair<string, llvm_dsp_factory*> > FactoryTable;
+typedef list<llvm_dsp_factory*> FactoryTable;
+#define FactoryTableIt FactoryTable::iterator
 
 class DSPServer;
 
@@ -141,7 +142,6 @@ struct dsp_server_connection_info {
     string fFaustCode;
     vector<string> fCompilationOptions;
     string fOptLevel;
-    llvm_dsp_factory* fFactory;
     
     //------DATAS RECEIVED TO CREATE NEW NetJack DSP INSTANCE-------
     string fIP;
@@ -151,7 +151,6 @@ struct dsp_server_connection_info {
     string fLatency;
     string fSHAKey;
     string fInstanceKey;
-    string fJSON;
     
     //------DATAS RECEIVED TO CREATE NEW local Audio INSTANCE-------
     string fSampleRate;
@@ -160,12 +159,12 @@ struct dsp_server_connection_info {
     dsp_server_connection_info();
     virtual ~dsp_server_connection_info() {}
     
-    string getJson();
-    bool getJsonFromKey(FactoryTable& factories);
+    void getJson(llvm_dsp_factory* factory) ;
+    bool getJsonFromKey(DSPServer* server);
     
     int iteratePost(const char* key, const char* data, size_t size); 
     
-    bool createFactory(FactoryTable& factories, DSPServer* server);
+    llvm_dsp_factory* createFactory(DSPServer* server);
     
     virtual int postProcess(const char* upload_data, size_t* upload_data_size)
     {
@@ -225,8 +224,7 @@ class DSPServer {
         int fPort;
         
         // Factories that can be instanciated. 
-        // The remote client asking for a new DSP Instance has to send an index corresponding to an existing factory
-        // SHAKey, pair<NameApp, Factory>
+        // The remote client asking for a new DSP Instance has to send an SHA key corresponding to an existing factory
         FactoryTable fFactories;
             
         // List of currently running DSP. Use to keep track of Audio that would have lost their connection
@@ -269,6 +267,8 @@ class DSPServer {
         
         bool start(MHD_Connection* connection, dsp_server_connection_info* info);
         bool stop(MHD_Connection* connection, dsp_server_connection_info* info);
+        
+        bool deleteFactory(MHD_Connection* connection, dsp_server_connection_info* info);
         
         // Register Service as available
         static void* registration(void* arg);

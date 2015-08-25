@@ -105,6 +105,14 @@ remote_dsp_factory::remote_dsp_factory(const string& ip_server, int port_server,
 
 remote_dsp_factory::~remote_dsp_factory()
 {
+    // The index of the factory to delete has to be sent
+    string finalRequest = "shaKey=" + fSHAKey;
+    string response;
+    int errorCode = -1;
+    string url = fServerURL + "/DeleteFactory";
+   
+    sendRequest(url, finalRequest, response, errorCode);
+    
     vector<itemInfo*>::iterator it;
     for (it = fUiItems.begin(); it != fUiItems.end() ; it++) {
         delete(*it);
@@ -119,7 +127,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
                             int port_server, 
                             const string& name_app, 
                             const string& dsp_content, 
-                            const string& sha_key, 
+                            //const string& sha_key, 
                             string& error, 
                             int opt_level)
 {
@@ -127,11 +135,12 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     int errorCode;
     string response, url;
     stringstream finalRequest, serverURL;
-    
-    fSHAKey = sha_key;
      
+    // Adding name
+    finalRequest << "name=" << name_app;
+    
     // Adding Compilation options 
-    finalRequest << "name=" << name_app << "&number_options=" << argc;
+    finalRequest << "&number_options=" << argc;
     for (int i = 0; i < argc; i++) {
         finalRequest << "&options=" << argv[i];
     }
@@ -166,7 +175,8 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
         string key, name;                 
         while (os >> key) {               
             os >> name;
-            if (key == "compilation_options") {
+            // line of type 'declare IP "192.168.1.146";' has been added in the expanded version just after possible 'library_path' declaration
+            if (key == "IP") {
                 break;
             } else if (key == "library_path") {
                 fPathnameList.push_back(name);
@@ -187,21 +197,6 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     }
     
     return res;
-}
-
-// Delete remote dsp factory sends an explicit delete request to server
-void remote_dsp_factory::stop() 
-{
-    // The index of the factory to delete has to be sent
-    string finalRequest = "shaKey=" + fSHAKey;
-    string url = fServerURL + "/DeleteFactory";
-   
-    string response;
-    int errorCode;
-   
-    if (!sendRequest(url, finalRequest, response, errorCode)) {
-        printf("sendRequest failed: %s || code %i\n", response.c_str(), errorCode);
-    }
 }
 
 // Decoding JSON from a string to
@@ -680,6 +675,10 @@ __attribute__((destructor)) static void destroy_libfaustremote()
     if (remote_dsp_factory::gCurl) {
         curl_easy_cleanup(remote_dsp_factory::gCurl);
     }
+    
+    // Library cleanup...
+    deleteAllDSPFactories();
+    deleteAllRemoteDSPFactories(); 
 }
 
 remote_DNS::remote_DNS()
@@ -741,16 +740,14 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(int argc, const char* a
     } else {
     
         // Call server side to get remote factory, create local proxy factory, put it in the cache
-        stringstream finalRequest;
+        string finalRequest = "shaKey=" + sha_key;
         string response;
         int errorCode = -1;
-        
-        finalRequest << "shaKey=" << sha_key;
         
         remote_dsp_factory* factory = new remote_dsp_factory(ip_server, port_server, sha_key);
         string url = factory->getURL() + "/GetJsonFromKey";
         
-        if (sendRequest(url, finalRequest.str(), response, errorCode)) {
+        if (sendRequest(url, finalRequest, response, errorCode)) {
             factory->decodeJson(response);
             remote_dsp_factory::gFactoryDSPTable[factory] = make_pair(list<remote_dsp_aux*>(), list<remote_audio_aux*>());
             return factory;
@@ -786,7 +783,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
 }
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, 
-                                                            const string& dsp_content, 
+                                                            const string& dsp_content_aux, 
                                                             int argc, 
                                                             const char* argv[], 
                                                             const string& ip_server, 
@@ -794,93 +791,83 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
                                                             string& error_msg, 
                                                             int opt_level)
 {
-    // Compute SHA1 key using the non-expanded version, IP and port
+    // Add IP, port (added as 'declare' lines) in the dsp_content
     stringstream sha_content;
-    sha_content << dsp_content << ":" << ip_server << ":" << port_server;
+    sha_content << "declare " << "IP " << '"' << ip_server << "\";" << endl;
+    sha_content << "declare " << "Port " << '"' << port_server << "\";" << endl;
+    sha_content << dsp_content_aux;
+    string dsp_content = sha_content.str();
     
-    string sha_key = generateSHA1(sha_content.str()); 
-    FactoryTableDSPIt it;
-    
-    vector<pair<string, string> > factories_list;
-    getRemoteDSPFactories(ip_server, port_server, &factories_list);
-     
-    bool stillExisting = false;
-    for (int i = 0; i < factories_list.size(); i++) {
-        if (sha_key == factories_list[i].second.c_str()) {
-            stillExisting = true;
-            break;
+    const char* argv1[argc];
+    int argc1 = 0;
+ 
+    // Filter arguments 
+    for (int i = 0; i < argc; i++) {
+        if (!(strcmp(argv[i],"-svg") == 0 || 
+            strcmp(argv[i],"-ps") == 0 || 
+            strcmp(argv[i],"-tg") == 0 || 
+            strcmp(argv[i],"-sg") == 0 || 
+            strcmp(argv[i],"-mdoc") == 0 || 
+            strcmp(argv[i],"-mdlang") == 0 || 
+            strcmp(argv[i],"-stripdoc") == 0 || 
+            strcmp(argv[i],"-xml") == 0))
+        {
+            argv1[argc1++] = argv[i];
         }
     }
     
-    if (getFactory(sha_key, it) && stillExisting) {
-        Sremote_dsp_factory sfactory = (*it).first;
-        sfactory->addReference();
-        return sfactory;
+    string expanded_dsp;
+    string sha_key;
+    
+     if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc1, argv1, sha_key, error_msg)) == "") {
+        return NULL; 
     } else {
     
-        // Use for it's possible 'side effects', that is generating SVG, XML... files
-        string error_msg_aux;
-        generateAuxFilesFromString(name_app, dsp_content, argc, argv, error_msg_aux);
-        
-        // OPTIONS have to be filtered for documentation not to be created on the server side (-tg, -sg, -ps, -svg, -mdoc, -xml)
-        int argc1 = 0;
-        const char* argv1[argc];
-        
-        for (int i = 0; i < argc; i++) {
-            if (strcmp(argv[i],"-tg") != 0 && 
-               strcmp(argv[i],"-sg") != 0 &&
-               strcmp(argv[i],"-svg") != 0 &&
-               strcmp(argv[i],"-ps") != 0 &&
-               strcmp(argv[i],"-mdoc") != 0 &&
-               strcmp(argv[i],"-xml") != 0)
-            {
-                argv1[argc1++] = argv[i];
-            }
-        }
-
-        string sha_key_aux;
-        string expanded_dsp = expandDSPFromString(name_app, dsp_content, argc1, argv1, sha_key_aux, error_msg_aux);
-        
-        if (expanded_dsp == "") {
-            return 0; 
-        }
-    
-        remote_dsp_factory* factory = new remote_dsp_factory(ip_server, port_server, sha_key);
-        
-        if (factory->init(argc1, argv1, ip_server, port_server, name_app, expanded_dsp, sha_key, error_msg, opt_level)) {
-            remote_dsp_factory::gFactoryDSPTable[factory] = make_pair(list<remote_dsp_aux*>(), list<remote_audio_aux*>());
-            return factory;
+        FactoryTableDSPIt it;
+        if (getFactory(sha_key, it)) {
+            Sremote_dsp_factory sfactory = (*it).first;
+            sfactory->addReference();
+            return sfactory;
         } else {
-            delete factory;
-            return 0;
+            remote_dsp_factory* factory = new remote_dsp_factory(ip_server, port_server, sha_key);
+            if (factory->init(argc1, argv1, ip_server, port_server, name_app, expanded_dsp, /*sha_key, */ error_msg, opt_level)) {
+                remote_dsp_factory::gFactoryDSPTable[factory] = make_pair(list<remote_dsp_aux*>(), list<remote_audio_aux*>());
+                return factory;
+            } else {
+                delete factory;
+                return 0;
+            }
         }
     }
 }
 
-EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory)
+EXPORT bool deleteRemoteDSPFactory(remote_dsp_factory* factory)
 {
- //    
-//    FactoryTableDSPIt it;
-//    if ((it = remote_dsp_factory::gFactoryDSPTable.find(factory)) != remote_dsp_factory::gFactoryDSPTable.end()) {
-//        Sremote_dsp_factory sfactory = (*it).first;
-//        if (sfactory->refs() == 2) { // Local stack pointer + the one in gFactoryDSPTable...
-//            // Last use, remove from the global table, pointer will be deleted
-//            remote_dsp_factory::gFactoryDSPTable.erase(factory);
-//        } else {
-//            sfactory->removeReference();
-//        }
-//    }
-
-    // TO CHECK
-    factory->stop();
+    FactoryTableDSPIt it;
+    if ((it = remote_dsp_factory::gFactoryDSPTable.find(factory)) != remote_dsp_factory::gFactoryDSPTable.end()) {
+        Sremote_dsp_factory sfactory = (*it).first;
+        FactoryTableDSP dsp_map = (*it).second;
+        list<remote_dsp_aux*> dsp_list1 = dsp_map.first;
+        list<remote_audio_aux*> dsp_list2 = dsp_map.second;
+        
+        if (sfactory->refs() == 2) { // Local stack pointer + the one in gFactoryDSPTable...
+        
+            // Possibly delete remaining DSP
+            list<remote_dsp_aux*>::iterator it1;
+            for (it1 = dsp_list1.begin(); it1 != dsp_list1.end(); it1++) { delete (*it1); }
+            
+            list<remote_audio_aux*>::iterator it2;
+            for (it2 = dsp_list2.begin(); it2 != dsp_list2.end(); it2++) { delete (*it2); }
+            
+            // Last use, remove from the global table, pointer will be deleted
+            remote_dsp_factory::gFactoryDSPTable.erase(factory);
+            return true;
+        } else {
+            sfactory->removeReference();
+        }
+    }
     
-//    
-//    string finalRequest = "shaKey="+factory->getKey();
-//    
-//    string response;
-//    int errorCode;
-//    if(sendRequest("http://192.168.1.174:7777/DeleteFactory", finalRequest, response, errorCode))
-//        printf("Factory Well Well deleted\n");
+    return false;
 }
 
 EXPORT void deleteAllRemoteDSPFactories()
@@ -978,7 +965,7 @@ EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vect
             printf("curl_easy_getinfo error\n");
         }
     } else {
-        printf("Easy perform error\n");
+        printf("curl_easy_perform error\n");
     }
    
     return res;

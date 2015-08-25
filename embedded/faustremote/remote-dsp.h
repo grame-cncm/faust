@@ -123,8 +123,10 @@ remote_dsp_factory* createRemoteDSPFactoryFromString(const std::string& name_app
  * Destroy a Faust DSP factory.
  * 
  * @param factory - the DSP factory to be deleted.
+ *
+ * @return true if the factory internal pointer was really deleted, and false if only 'decremented'.
  */
-void deleteRemoteDSPFactory(remote_dsp_factory* factory);
+bool deleteRemoteDSPFactory(remote_dsp_factory* factory);
 
 /**
  * Destroy all Faust DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables or so...) thus become invalid.

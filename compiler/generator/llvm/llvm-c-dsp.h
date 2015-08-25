@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -67,7 +67,8 @@ extern "C"
     /**
      * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all 
      * allocated factories so that the compilation of same DSP code (that is same source code and 
-     * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer.
+     * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer. You will 
+     * have to explicitly use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
      *
      * @param filename - the DSP filename
      * @param argc - the number of parameters in argv array
@@ -85,7 +86,8 @@ extern "C"
     /**
      * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all 
      * allocated factories so that the compilation of same DSP code (that is same source code and 
-     * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer.
+     * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer. You will 
+     * have to explicitly use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
      * 
      * @param name_app - the name of the Faust program
      * @param dsp_content - the Faust program as a string
@@ -167,9 +169,10 @@ extern "C"
     void stopMTCDSPFactories();
   
     /**
-     * Create a Faust DSP factory from a LLVM bitcode string. Note that the library keeps an internal cache of all 
+     * Create a Faust DSP factory from a base64 encoded LLVM bitcode string. Note that the library keeps an internal cache of all 
      * allocated factories so that the compilation of same DSP code (that is the same LLVM bitcode string) will return 
-     * the same (reference counted) factory pointer.
+     * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
+     * decrement reference counter when the factory is no more needed.
      * 
      * @param bit_code - the LLVM bitcode string
      * @param target - the LLVM machine target (using empty string will take current machine settings)
@@ -180,7 +183,7 @@ extern "C"
     llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level);
     
     /**
-     * Write a Faust DSP factory into a LLVM bitcode string.
+     * Write a Faust DSP factory into a base64 encoded LLVM bitcode string.
      * 
      * @param factory - Faust DSP factory
      *
@@ -191,7 +194,8 @@ extern "C"
     /**
      * Create a Faust DSP factory from a LLVM bitcode file. Note that the library keeps an internal cache of all 
      * allocated factories so that the compilation of same DSP code (that is the same LLVM bitcode file) will return 
-     * the same (reference counted) factory pointer.
+     * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
+     * decrement reference counter when the factory is no more needed.
      * 
      * @param bit_code_path - the LLVM bitcode file pathname
      * @param target - the LLVM machine target (using empty string will takes current machine settings)
@@ -211,7 +215,8 @@ extern "C"
     /**
      * Create a Faust DSP factory from a LLVM IR (textual) string. Note that the library keeps an internal cache of all 
      * allocated factories so that the compilation of same DSP code (that is the same LLVM IR string) will return 
-     * the same (reference counted) factory pointer.
+     * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
+     * decrement reference counter when the factory is no more needed.
      * 
      * @param ir_code - the LLVM IR (textual) string
      * @param target - the LLVM machine target (using empty string will takes current machine settings)
@@ -233,7 +238,8 @@ extern "C"
     /**
      * Create a Faust DSP factory from a LLVM IR (textual) file. Note that the library keeps an internal cache of all 
      * allocated factories so that the compilation of same DSP code (that is the same LLVM IR file) will return 
-     * the same (reference counted) factory pointer.
+     * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
+     * decrement reference counter when the factory is no more needed.
      * 
      * @param ir_code_path - the LLVM IR (textual) file pathname
      * @param target - the LLVM machine target (using empty string will takes current machine settings)
@@ -253,9 +259,10 @@ extern "C"
     void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
     
     /**
-     * Create a Faust DSP factory from a machine code string. Note that the library keeps an internal cache of all 
+     * Create a Faust DSP factory from a base64 encoded machine code string. Note that the library keeps an internal cache of all 
      * allocated factories so that the compilation of same DSP code (that is the same machine code string) will return 
-     * the same (reference counted) factory pointer.
+     * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
+     * decrement reference counter when the factory is no more needed.
      * 
      * @param machine_code - the machine code string
      *
@@ -264,7 +271,7 @@ extern "C"
     llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code);
 
     /**
-     * Write a Faust DSP factory into a machine code string.
+     * Write a Faust DSP factory into a base64 encoded machine code string.
      * 
      * @param factory - the Faust DSP factory
      *
@@ -275,7 +282,8 @@ extern "C"
     /**
      * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all 
      * allocated factories so that the compilation of same DSP code (that is the same machine code file) will return 
-     * the same (reference counted) factory pointer.
+     * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
+     * decrement reference counter when the factory is no more needed.
      * 
      * @param machine_code_path - the machine code file pathname
      *

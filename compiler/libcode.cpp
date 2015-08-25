@@ -926,7 +926,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
         cout << "---------------------------\n";
         // print the pathnames of the files used to evaluate process
         vector<string> pathnames = gGlobal->gReader.listSrcFiles();
-        for (unsigned int i=0; i< pathnames.size(); i++) cout << pathnames[i] << std::endl;
+        for (unsigned int i = 0; i< pathnames.size(); i++) cout << pathnames[i] << std::endl;
         cout << "---------------------------\n";
         cout << endl;
     }
@@ -1268,13 +1268,14 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
     }
     stringstream out;
     
+    // Encode compilation options as a 'declare' : has to be located first in the string
+    out << COMPILATION_OPTIONS << reorganize_compilation_options(argc, argv) << ';' << endl;
+    
     // Encode all libraries paths as 'declare'
     vector<string> pathnames = gGlobal->gReader.listSrcFiles();
     for (vector<string>::iterator it = pathnames.begin(); it != pathnames.end(); it++) {
         out << "declare " << "library_path " << '"' << *it << "\";" << endl;
     }
-    
-    out << COMPILATION_OPTIONS << reorganize_compilation_options(argc, argv) << ';' << endl;
     
     printDeclareHeader(out);
     out << "process = " << boxpp(gGlobal->gProcessTree) << ';' << endl;
@@ -1345,13 +1346,14 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     if (gGlobal->gExportDSP) {
         ofstream out(subst("$0_exp.dsp", makeDrawPathNoExt()).c_str());
         
+        // Encode compilation options as a 'declare' : has to be located first in the string
+        out << COMPILATION_OPTIONS << reorganize_compilation_options(argc, argv) << ';' << endl;
+   
         // Encode all libraries paths as 'declare'
         vector<string> pathnames = gGlobal->gReader.listSrcFiles();
         for (vector<string>::iterator it = pathnames.begin(); it != pathnames.end(); it++) {
             out << "declare " << "library_path " << '"' << *it << "\";" << endl;
         }
-        
-        out << COMPILATION_OPTIONS << reorganize_compilation_options(argc, argv) << ';' << endl;
         
         printDeclareHeader(out);
         out << "process = " << boxpp(process) << ';' << endl;
@@ -1473,7 +1475,7 @@ EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const c
     // If input is already expanded, return it directly
     if (start_with(input, COMPILATION_OPTIONS)) {
         string key = generateSHA1(input);
-        strncpy(sha_key, key.c_str(), key.size());
+        strncpy(sha_key, key.c_str(), 128);
         return input;
     }
         

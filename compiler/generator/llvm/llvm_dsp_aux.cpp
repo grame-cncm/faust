@@ -917,25 +917,6 @@ void llvm_dsp_factory::metadataDSPFactory(MetaGlue* glue)
     fMetadata(glue);
 }
 
-string llvm_dsp_factory::getName()
-{
-    struct MyMeta : public Meta
-    {
-        string name;
-        
-        virtual void declare(const char* key, const char* value){
-            if (strcmp(key, "name") == 0) {
-                name = value;
-            }
-        }
-        
-    };
-    
-    MyMeta metadata;
-    metadataDSPFactory (&metadata);
-    return (fExtName != "") ? fExtName : metadata.name;
-}
-  
 // Instance 
 
 llvm_dsp_aux::llvm_dsp_aux(llvm_dsp_factory* factory, llvm_dsp_imp* dsp)
@@ -1112,10 +1093,10 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
 {
     TLock lock(gDSPFactoriesLock);
     
-    const char* argv1[64];
+    const char* argv1[argc];
     int argc1 = 0;
  
-    // Filter arguments
+    // Filter arguments 
     for (int i = 0; i < argc; i++) {
         if (!(strcmp(argv[i],"-svg") == 0 || 
             strcmp(argv[i],"-ps") == 0 || 
@@ -1220,19 +1201,26 @@ EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory)
     return false;
 }
 
-EXPORT std::string getName(llvm_dsp_factory* factory)
+EXPORT std::string llvm_dsp_factory::getName()
 {
-    TLock lock(gDSPFactoriesLock);
+    struct MyMeta : public Meta
+    {
+        string name;
+        
+        virtual void declare(const char* key, const char* value){
+            if (strcmp(key, "name") == 0) {
+                name = value;
+            }
+        }
+        
+    };
     
-    return factory->getName();
+    MyMeta metadata;
+    metadataDSPFactory(&metadata);
+    return (fExtName != "") ? fExtName : metadata.name;
 }
 
-EXPORT std::string getSHAKey(llvm_dsp_factory* factory)
-{
-    TLock lock(gDSPFactoriesLock);
-    
-    return factory->getSHAKey();
-}
+EXPORT std::string llvm_dsp_factory::getSHAKey() { return fSHAKey; }
 
 EXPORT std::string getDSPMachineTarget()
 {

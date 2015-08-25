@@ -87,8 +87,6 @@ struct remote_DNS {
     map<string, member> fClients;
     TMutex fLocker;
       
-    static void cleanupMachineList(map<string, member> clients_list);
-    
     static void errorHandler(int num, const char* m, const char* path);
     
     static int pingHandler(const char* path, const char* types, lo_arg** argv,
@@ -143,11 +141,11 @@ class remote_dsp_factory : public smartable {
                         int port_server, 
                         const string& name_app, 
                         const string& dsp_content, 
-                        const string& sha_key, 
+                        //const string& sha_key, 
                         string& error_msg, 
                         int opt_level);
                         
-        void        stop();
+        bool        stop();
         
         void        metadataRemoteDSPFactory(Meta* m);  
         
@@ -255,9 +253,7 @@ class remote_dsp_machine_aux {
     public: 
     
         remote_dsp_machine_aux(const string& ip, int port, const string& target):fIP(ip), fPort(port), fTarget(target)
-        {
-            printf("remote_dsp_machine_aux %s %d %s\n", ip.c_str(), port, target.c_str());
-        }
+        {}
         
         string getIP() { return fIP; }
         int getPort() { return fPort; }
@@ -318,7 +314,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
                                                         const string& ip_server, int port_server, 
                                                         string& error, int opt_level);
 
-EXPORT void deleteRemoteDSPFactory(remote_dsp_factory* factory);
+EXPORT bool deleteRemoteDSPFactory(remote_dsp_factory* factory);
 
 EXPORT void deleteAllRemoteDSPFactories();    
 
