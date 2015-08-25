@@ -144,8 +144,6 @@ class remote_dsp_factory : public smartable {
                         //const string& sha_key, 
                         string& error_msg, 
                         int opt_level);
-                        
-        bool        stop();
         
         void        metadataRemoteDSPFactory(Meta* m);  
         
