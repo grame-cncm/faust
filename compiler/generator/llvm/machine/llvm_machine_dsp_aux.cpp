@@ -408,19 +408,28 @@ EXPORT void deleteDSPFactory(llvm_dsp_factory* factory)
     }
 }
 
-EXPORT std::string getName(llvm_dsp_factory* factory)
+EXPORT std::string llvm_dsp_factory::getName()
 {
-    TLock lock(gDSPFactoriesLock);
+    struct MyMeta : public Meta
+    {
+        string name;
+        
+        virtual void declare(const char* key, const char* value){
+            if (strcmp(key, "name") == 0) {
+                name = value;
+            }
+        }
+        
+    };
     
-    return factory->getName();
+    MyMeta metadata;
+    metadataDSPFactory(&metadata);
+    return (fExtName != "") ? fExtName : metadata.name;
 }
 
-EXPORT std::string getSHAKey(llvm_dsp_factory* factory)
-{
-    TLock lock(gDSPFactoriesLock);
-    
-    return factory->getSHAKey();
-}
+EXPORT std::string llvm_dsp_factory::getSHAKey() { return fSHAKey; }
+
+EXPORT std::string llvm_dsp_factory::getDSPCode() { return fExpandedDSP; }
 
 EXPORT std::string getDSPMachineTarget()
 {

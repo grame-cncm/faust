@@ -51,11 +51,15 @@ class remote_dsp_factory {
     
     public: 
     
+        /* Return Factory name */
         std::string getName();
-        std::string getSHAKey();
         
-        int getNumInputs();
-        int getNumOutputs();
+        /* Return Factory SHA key */
+        std::string getSHAKey();
+  
+        /* Return Factory expanded DSP code */
+        std::string getDSPCode();
+        
 };
 
 /**
@@ -65,28 +69,28 @@ class remote_dsp_factory {
  *
  * @param argc - the number of parameters in argv array
  * @param argv - the array of compilation parameters :
- *  - '-m <target>' (like '-m x86_64-apple-macosx10.6.0') to cross-compile on server side 
- * and get compiled machine code from server side 
+ *  - Faust compilation parameters (like '-vec -vs 64') may be used to launch whole compilation cycle
+ *  - '-rm <target>' (like '-rm arm-apple-ios7.0:cortex-a9') to cross-compile on server side and get machine code on client to re-create a local Factory
  * @param ip_server - IP of remote machine
- * @param port_server - port on which the Remote Server started
+ * @param port_server - port on which the remote machine started
  * @param sha_key - the SHA key for an already created factory, kept in the factory cache
  *
  * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
  */
-remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(int argc, const char* argv[], const std::string& ip_server, int port_server, const std::string& sha_key);    
+remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_key, int argc, const char* argv[], const std::string& ip_server, int port_server); 
 
 /**
- * Create a Faust remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application. 
- * You will have to explicitly use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
+ * Create a Faust remote DSP factory from a DSP source code. You will have to explicitly use 
+ * deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
  *
  * @param filename - DSP filename
  * @param argc - the number of parameters in argv array
  * @param argv - the array of compilation parameters :
- *  - Faust compile parameters (like -vec/-sch/...)
- *  - '-m <target>' (like '-m x86_64-apple-macosx10.6.0') to cross-compile on client side 
- * and send compiled machine code on server side 
+ *  - Faust compilation parameters (like '-vec/-sch/'...)
+ *  - '-lm <target>' (like '-lm x86_64-apple-macosx10.6.0:opteron') to cross-compile on client side and send machine code on server
+ *  - '-rm <target>' (like '-rm arm-apple-ios7.0:cortex-a9') to cross-compile on server side and get machine code on client to re-create a local Factory
  * @param ip_server - IP of remote machine
- * @param port_server - Port on which the Remote Server started
+ * @param port_server - port on which the remote machine started
  * @param error - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *
@@ -100,18 +104,18 @@ remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename,
                                                     int opt_level = 3);
 
 /**
- * Create a Faust remote DSP factory from a DSP source code. The code is compiled by a server, that returns a JSON application.
- * You will have to explicitly use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
+ * Create a Faust remote DSP factory from a DSP source code. You will have to explicitly use  
+ * deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
  *
  * @param name_app - the name of the Faust Application to be compiled
  * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of compilation parameters :
- *  - Faust compile parameters (like -vec/-sch/...)
- *  - 'machine <target>' (like '-machine x86_64-apple-macosx10.6.0') to cross-compile on client side 
- * and send compiled machine code on server side 
+ *  - Faust compilation parameters (like '-vec/-sch/'...)
+ *  - '-lm <target>' (like '-lm x86_64-apple-macosx10.6.0:opteron') to cross-compile on client side and send machine code on server
+ *  - '-rm <target>' (like '-rm arm-apple-ios7.0:cortex-a9') to cross-compile on server side and get machine code on client to re-create a local Factory
  * @param ip_server - IP of remote machine
- * @param port_server - Port on which the Remote Server started
+ * @param port_server - port on which the remote machine started
  * @param error - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
  *
@@ -162,7 +166,7 @@ void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
 std::vector<std::string> getLibraryList(remote_dsp_factory* factory);
 
 /**
- * DSP instance class
+ * Remote DSP instance class
  */
 class remote_dsp : public dsp {
     
@@ -223,7 +227,7 @@ remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
                                     int& error);
 
 /**
- * Destroy a Faust remote DSP instance.
+ * Delete a Faust remote DSP instance.
  * 
  * @param dsp - the DSP instance to be deleted.
  */ 
@@ -278,18 +282,18 @@ class remote_dsp_machine {
 };
 
 /**
- * Scan the network to find the available machines for Remote Processing
- * @param machine_list - map to be filled with <name_machine, remote_dsp_machine>
+ * Scan the network to find the available machines for Remote Compilation/Processing
+ * @param machine_list - map to be filled with <machine_name, remote_dsp_machine>
  *
  * @return true if no error was encountered.
  */
 bool getRemoteDSPMachines(std::map<std::string, remote_dsp_machine* >* machine_list);
 
 /**
- * For a machine on the network that does Remote Processing, get the list of all currently available DSP factories.
+ * For a machine on the network that does Remote Compilation/Processing, get the list of all currently available DSP factories.
  * @param ip_server - IP of remote machine
  * @param port_server - port on which the Remote Server started
- * @param factories_list - vector to be filled with <name_factory, shakey_factory>
+ * @param factories_list - vector to be filled with <factory_name, factory_sha_key>
  *
  * @return true if no error was encountered.
  */    

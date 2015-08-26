@@ -73,6 +73,7 @@ class llvm_dsp_factory : public smartable {
         LLVMResult* fResult;
      
         int fOptLevel;
+        string fExpandedDSP;
         string fTarget;
         string fClassName;
         string fSHAKey;
@@ -98,6 +99,8 @@ class llvm_dsp_factory : public smartable {
                                 const char* input, 
                                 char* error_msg);
         void init();
+        
+        bool crossCompile(const std::string& target);
       
     #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
         static void LLVMFatalErrorHandler(const char* reason);
@@ -107,7 +110,8 @@ class llvm_dsp_factory : public smartable {
   
         llvm_dsp_factory(const string& sha_key, int argc, const char* argv[], 
                         const string& name, 
-                        const string& input, const string& target, 
+                        const string& dsp_content, const string& expendand_dsp_content,
+                        const string& target, 
                         string& error_msg, int opt_level = 3);
               
         llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const string& target, int opt_level = 0);
@@ -130,9 +134,9 @@ class llvm_dsp_factory : public smartable {
         
         void writeDSPFactoryToIRFile(const string& ir_code_path);
         
-        string writeDSPFactoryToMachine();
+        string writeDSPFactoryToMachine(const string& target);
         
-        void writeDSPFactoryToMachineFile(const string& machine_code_path);
+        void writeDSPFactoryToMachineFile(const string& machine_code_path, const string& target);
         
         bool initJIT(std::string& error_msg);
         
@@ -144,7 +148,10 @@ class llvm_dsp_factory : public smartable {
         
         string getSHAKey();
         
+        string getDSPCode();
+        
         string getTarget() { return fTarget; }
+        void setTarget(const string target) { fTarget = target; }
     
         vector<std::string> getLibraryList() { return fResult->fPathnameList; }
     
@@ -236,12 +243,12 @@ EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string
 // machine <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code);
 
-EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory);
+EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target);
 
 // machine <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path);
 
-EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path);
+EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path, const std::string& target);
 
 EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m);
 
@@ -290,6 +297,8 @@ EXPORT char* getCName(llvm_dsp_factory* factory);
 
 EXPORT char* getCSHAKey(llvm_dsp_factory* factory);
 
+EXPORT char* getCDSPCode(llvm_dsp_factory* factory);
+
 EXPORT char* getCDSPMachineTarget();
 
 EXPORT const char** getCLibraryList(llvm_dsp_factory* factory);
@@ -320,11 +329,11 @@ EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_c
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code);
 
-EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory);
+EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target);
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path);
 
-EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path);
+EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const std::string& target);
 
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
     

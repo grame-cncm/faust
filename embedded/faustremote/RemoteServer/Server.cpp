@@ -247,7 +247,7 @@ llvm_dsp_factory* dsp_server_connection_info::createFactory(DSPServer* server)
     
     llvm_dsp_factory* factory = NULL;
      
-    if (isopt(argc, argv, "-m")) {
+    if (isopt(argc, argv, "-lm")) {
         // Machine code
         //fFactory = readDSPFactoryFromMachine(fFaustCode);
         factory = readCDSPFactoryFromMachine(fFaustCode.c_str());

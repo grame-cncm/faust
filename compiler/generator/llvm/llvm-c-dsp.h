@@ -72,7 +72,7 @@ extern "C"
      *
      * @param filename - the DSP filename
      * @param argc - the number of parameters in argv array
-     * @param argv - the array of parameters (Warning : aux file generation options will be filtrated (-svg, ...) --> use generateAuxFiles)
+     * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
      * @param target - the LLVM machine target (using empty string will take current machine settings)
      * @param error_msg - the error string to be filled, has to be 256 characters long
      * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
@@ -92,7 +92,7 @@ extern "C"
      * @param name_app - the name of the Faust program
      * @param dsp_content - the Faust program as a string
      * @param argc - the number of parameters in argv array
-     * @param argv - the array of parameters (Warning : aux file generation options will be filtrated (-svg, ...) --> use generateAuxFiles)
+     * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
      * @param target - the LLVM machine target (using empty string will take current machine settings)
      * @param error_msg - the error string to be filled, has to be 256 characters long
      * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
@@ -132,6 +132,15 @@ extern "C"
      * @return the SHA key as a string (to be deleted by the caller).
      */
     char* getCSHAKey(llvm_dsp_factory* factory);
+    
+    /**
+     * Get the expanded DSP code of the Faust DSP factory.
+     *
+     * @param factory - the DSP factory.
+     * 
+     * @return the expanded DSP code string (to be deleted by the caller).
+     */
+    char* getCDSPCode(llvm_dsp_factory* factory);
   
     /**
      * Get the list of library dependancies of the Faust DSP factory as a null-terminated array.
@@ -274,10 +283,11 @@ extern "C"
      * Write a Faust DSP factory into a base64 encoded machine code string.
      * 
      * @param factory - the Faust DSP factory
+     * @param target - the LLVM machine target (using empty string will takes current machine settings)
      *
      * @return the machine code as a string (to be deleted by the caller).
      */
-    char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory);
+    char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target);
 
     /**
      * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all 
@@ -295,10 +305,11 @@ extern "C"
      * Write a Faust DSP factory into a machine code file.
      * 
      * @param factory - the Faust DSP factory
-     * @param machine_code_path - the machine code file pathname.
+     * @param machine_code_path - the machine code file pathname
+     * @param target - the LLVM machine target (using empty string will takes current machine settings).
      *
      */
-    void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path);
+    void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const std::string& target);
     
     /**
      * Call global declarations with the given meta object.
@@ -393,12 +404,12 @@ extern "C"
      * 
      * @param factory - the Faust DSP factory
      * 
-     * @return the Faust DSP instance on success, otherwise a null pointer.
+     * @return the DSP instance on success, otherwise a null pointer.
      */
     llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
     
     /**
-     * Destroy a Faust DSP instance.
+     * Delete a Faust DSP instance.
      * 
      * @param dsp - the DSP instance to be deleted.
      */ 
@@ -414,7 +425,7 @@ extern "C"
     void generateCSHA1(const char* data, char* key);
     
     /**
-     * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey, getCLibraryList, 
+     * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey, getCDSPCode, getCLibraryList, 
      * getAllCDSPFactories, writeCDSPFactoryToBitcode, writeCDSPFactoryToIR, writeCDSPFactoryToMachine, 
      * expandCDSPFromString and expandCDSPFromFile.
      * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.

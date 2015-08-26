@@ -52,9 +52,15 @@
 
 using namespace std;
 
-#define FactoryTableDSP     pair<list<remote_dsp_aux*>, list<remote_audio_aux*> >
-#define FactoryTableDSPType map<Sremote_dsp_factory, FactoryTableDSP>
-#define FactoryTableDSPIt   FactoryTableDSPType::iterator
+class llvm_dsp_factory;
+
+#define LocalFactoryDSPTableType list<llvm_dsp_factory*>
+#define LocalFactoryDSPTableIt   LocalFactoryDSPTableType::iterator
+
+#define RemoteFactoryDSPTable     pair<list<remote_dsp_aux*>, list<remote_audio_aux*> >
+#define RemoteFactoryDSPTableType map<Sremote_dsp_factory, RemoteFactoryDSPTable>
+#define RemoteFactoryDSPTableIt   RemoteFactoryDSPTableType::iterator
+
 
 enum {
     ERROR_FACTORY_NOTFOUND,
@@ -113,6 +119,7 @@ class remote_dsp_factory : public smartable {
         
         string      fName;    
         string      fSHAKey;                // Unique Index to bind a Remote_Factory to its llvm_factory on the server side
+        string      fExpandedDSP;
         
         int         fNumInputs;             // Compiled DSP factory inputs
         int         fNumOutputs;            // Compiled DSP factory outputs
@@ -123,6 +130,9 @@ class remote_dsp_factory : public smartable {
         vector<itemInfo*>   fUiItems;       // Items extracted from json
         
         vector<string> fPathnameList;
+           
+        int getNumInputs();
+        int getNumOutputs();
           
     public: 
     
@@ -138,8 +148,6 @@ class remote_dsp_factory : public smartable {
         remote_audio_aux* createRemoteAudioInstance(int argc, const char* argv[], int& error);
         
         bool        init(int argc, const char *argv[], 
-                        const string& ip_server, 
-                        int port_server, 
                         const string& name_app, 
                         const string& dsp_content, 
                         string& error_msg, 
@@ -148,17 +156,15 @@ class remote_dsp_factory : public smartable {
         void        metadataRemoteDSPFactory(Meta* m);  
         
         string              getURL() { return fServerURL; }
-        void                setURL(const string& url) { fServerURL = url; }
-        
-        int                 getNumInputs();
-        int                 getNumOutputs();
         
         string              getName();
         string              getSHAKey();
+        string              getDSPCode();
         
         vector<string>      getLibraryList() { return fPathnameList; }
         
-        static FactoryTableDSPType gFactoryDSPTable;
+        static LocalFactoryDSPTableType gLocalFactoryDSPTable;
+        static RemoteFactoryDSPTableType gRemoteFactoryDSPTable;
         static CURL* gCurl;
         static remote_DNS* gDNS;
 
@@ -301,7 +307,7 @@ class EXPORT remote_dsp_machine {
 
 // Factories
     
-EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(int argc, const char* argv[], const string& ip_server, int port_server, const string& sha_key);  
+EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, int argc, const char* argv[], const string& ip_server, int port_server);  
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char* argv[], 
                                                         const string& ip_server, int port_server, 

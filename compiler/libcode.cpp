@@ -617,7 +617,7 @@ static bool process_cmdline(int argc, const char* argv[])
              gGlobal->gInPlace = true;
              i += 1;
              
-        } else if (isCmd(argv[i], "-m", "--machine")) {
+        } else if (isCmd(argv[i], "-lm", "--local-machine") || isCmd(argv[i], "-rm", "--remote-machine")) {
              // Ignore arg
              i += 2;
 

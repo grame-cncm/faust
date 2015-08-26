@@ -37,9 +37,21 @@
  @{
  */
 
-/* Opaque type */
+/**
+* DSP factory class.
+*/
 
-class llvm_dsp_factory {};
+class llvm_dsp_factory {
+
+     public: 
+        
+        /* Return Factory name */
+        std::string getName();
+        
+        /* Return Factory SHA key */
+        std::string getSHAKey();
+
+};
 
 /**
  * Get the target (triple + CPU) of the DSP machine.
@@ -101,8 +113,6 @@ void deleteDSPFactory(llvm_dsp_factory* factory);
  * 
  * @return the name as a string.
  */
-std::string getName(llvm_dsp_factory* factory);
-
 extern "C" const char* getCName(llvm_dsp_factory* factory);
 
 /**
@@ -112,8 +122,6 @@ extern "C" const char* getCName(llvm_dsp_factory* factory);
  * 
  * @return the SHA key as a string.
  */
-std::string getSHAKey(llvm_dsp_factory* factory);
-
 extern "C" const char* getCSHAKey(llvm_dsp_factory* factory);
 
 /**
