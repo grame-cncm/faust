@@ -71,8 +71,7 @@
 #include "libfaust.h"
 #include "Text.hh"
 
-#define FAUSTVERSION        "2.0.a35"
-#define COMPILATION_OPTIONS "declare compilation_options    "
+#define FAUSTVERSION        "2.0.a36"
 
 using namespace std;
 
@@ -154,11 +153,11 @@ static Module* link_all_modules(llvm::LLVMContext* context, Module* dst, char* e
 
 #endif
 
-//Look for 'key' in 'options' and modify the parameter 'position' if found
+//L ook for 'key' in 'options' and modify the parameter 'position' if found
 static bool parseKey(vector<string> options, const string& key, int& position)
 {
-    for (size_t i = 0; i < options.size(); i++){
-        if (key == options[i]){
+    for (size_t i = 0; i < options.size(); i++) {
+        if (key == options[i]) {
             position = i;
             return true;
         }
@@ -167,8 +166,8 @@ static bool parseKey(vector<string> options, const string& key, int& position)
     return false;
 }
 
-//Add 'key' if existing in 'options', otherwise add 'defaultKey' (if different from "")
-//#return true if 'key' was added
+// Add 'key' if existing in 'options', otherwise add 'defaultKey' (if different from "")
+// #return true if 'key' was added
 static bool addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position)
 {
     if (parseKey(options, key, position)) {        
@@ -183,7 +182,7 @@ static bool addKeyIfExisting(vector<string>& options, vector<string>& newoptions
     return false;
 }
 
-//Add 'key' & it's associated value if existing in 'options', otherwise add 'defaultValue' (if different from "")
+// Add 'key' & it's associated value if existing in 'options', otherwise add 'defaultValue' (if different from "")
 static void addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue)
 {
     int position = 0;
@@ -302,6 +301,19 @@ EXPORT string reorganize_compilation_options(int argc, const char* argv[])
     }
     
     return "\"" + res3 + "\"";
+}
+
+EXPORT std::string extract_compilation_options(const std::string& dsp_content)
+{
+    stringstream os(dsp_content);
+    string key, value;                 
+    while (os >> key) {  
+        os >> value;
+        if (key == COMPILATION_OPTIONS_KEY) {
+            return value;
+        }
+    }
+    return "";
 }
 
 EXPORT string generateSHA1(const string& dsp_content)
@@ -1237,7 +1249,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     }
 }
 
-static string expand_dsp_internal(int argc, const char* argv[], const char* name, const char* input)
+static string expand_dsp_internal(int argc, const char* argv[], const char* name, const char* dsp_content)
 {
     /****************************************************************
      1 - process command line
@@ -1247,8 +1259,8 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
     /****************************************************************
      2 - parse source files
     *****************************************************************/
-    if (input) {
-        gGlobal->gInputString = input;
+    if (dsp_content) {
+        gGlobal->gInputString = dsp_content;
         gGlobal->gInputFiles.push_back(name);
     }
     parseSourceFiles();
@@ -1282,7 +1294,7 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
     return out.str();
 }
 
-void compile_faust_internal(int argc, const char* argv[], const char* name, const char* input, bool generate)
+void compile_faust_internal(int argc, const char* argv[], const char* name, const char* dsp_content, bool generate)
 {
     gGlobal->gPrintFileListSwitch = false;
   
@@ -1320,8 +1332,8 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     /****************************************************************
      2 - parse source files
     *****************************************************************/
-    if (input) {
-        gGlobal->gInputString = input;
+    if (dsp_content) {
+        gGlobal->gInputString = dsp_content;
         gGlobal->gInputFiles.push_back(name);
     }
     parseSourceFiles();
@@ -1397,7 +1409,7 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
 
 #if LLVM_BUILD
 
-EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
+EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* dsp_content, char* error_msg)
 {
     gGlobal = NULL;
     LLVMResult* res;
@@ -1407,7 +1419,7 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
         // Compile module
         global::allocate();
         gGlobal->gLLVMOut = false;
-        compile_faust_internal(argc, argv, name, input, true);
+        compile_faust_internal(argc, argv, name, dsp_content, true);
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);  
         res = gGlobal->gLLVMResult;
             
@@ -1422,7 +1434,7 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
 
 #endif
 
-EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate)
+EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* dsp_content, char* error_msg, bool generate)
 {
     gGlobal = NULL;
     int res;
@@ -1430,7 +1442,7 @@ EXPORT int compile_faust(int argc, const char* argv[], const char* name, const c
     try {
         global::allocate();  
         gGlobal->gLLVMOut = true;   
-        compile_faust_internal(argc, argv, name, input, generate);
+        compile_faust_internal(argc, argv, name, dsp_content, generate);
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
         res = 0;
     } catch (faustexception& e) {
@@ -1442,7 +1454,7 @@ EXPORT int compile_faust(int argc, const char* argv[], const char* name, const c
     return res;
 }
 
-EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name, const char* input, char* error_msg)
+EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name, const char* dsp_content, char* error_msg)
 {
     gGlobal = NULL;
     string res;
@@ -1450,7 +1462,7 @@ EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name
     try {
         global::allocate(); 
         gGlobal->gLLVMOut = true;    
-        compile_faust_internal(argc, argv, name, input, true);
+        compile_faust_internal(argc, argv, name, dsp_content, true);
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
         res = dynamic_cast<stringstream*>(gGlobal->gStringResult)->str();
     } catch (faustexception& e) {
@@ -1462,29 +1474,14 @@ EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name
     return res;
 }
 
-static bool start_with(const char* string, const char* key)
+EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* dsp_content, char* sha_key, char* error_msg)
 {
-    for (size_t i = 0; i < strlen(key); i++) {
-        if (string[i] != key[i]) return false;
-    }
-    return true;
-}
-
-EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* sha_key, char* error_msg)
-{
-    // If input is already expanded, return it directly
-    if (start_with(input, COMPILATION_OPTIONS)) {
-        string key = generateSHA1(input);
-        strncpy(sha_key, key.c_str(), 128);
-        return input;
-    }
-        
     string res;
     gGlobal = NULL;
     
     try {
         global::allocate();       
-        res = expand_dsp_internal(argc, argv, name, input);
+        res = expand_dsp_internal(argc, argv, name, dsp_content);
         strcpy(sha_key, generateSHA1(res).c_str());
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
     } catch (faustexception& e) {

@@ -750,6 +750,8 @@ int remote_DNS::pingHandler(const char* path, const char* types,
 
 // FACTORIES
 
+// TODO : possibly recompute the DSP (if Faust compilation parameters change)
+
 EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, int argc, const char* argv[], const string& ip_server, int port_server)
 {
     RemoteFactoryDSPTableIt it;
@@ -1004,17 +1006,17 @@ EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vect
         
     if (curl_easy_perform(remote_dsp_factory::gCurl) == CURLE_OK) {
         
-        long respcode; //response code of the http transaction
+        long respcode; // response code of the http transaction
         curl_easy_getinfo(remote_dsp_factory::gCurl, CURLINFO_RESPONSE_CODE, &respcode);
         
         if (respcode == 200) {
             // PARSE RESPONSE TO EXTRACT KEY/VALUE
             string response = oss.str();
             stringstream os(response);   
-            string name, key;   
-            while (os >> key) {                
+            string name, sha_key;   
+            while (os >> sha_key) {                
                 os >> name;
-                factories_list->push_back(make_pair(name, key));
+                factories_list->push_back(make_pair(name, sha_key));
             }
             res = true;
         } else if (respcode == 400) {

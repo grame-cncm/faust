@@ -60,6 +60,14 @@ EXPORT string expandDSPFromFile(const string& filename,
     return res;
 }
 
+static bool start_with(const string& str, const string& key)
+{
+    for (size_t i = 0; i < key.size(); i++) {
+        if (str[i] != key[i]) return false;
+    }
+    return true;
+}
+
 EXPORT string expandDSPFromString(const string& name_app, 
                                   const string& dsp_content, 
                                   int argc, const char* argv[], 
@@ -68,23 +76,38 @@ EXPORT string expandDSPFromString(const string& name_app,
 {
     TLock lock(gDSPFactoriesLock);
     
-    int argc1 = argc + 1;
-    const char* argv1[32];
-    
-    argv1[0] = "faust";
-    for (int i = 0; i < argc; i++) {
-        argv1[i+1] = argv[i];
-    }
-    
-    char error_msg_aux[512];
-    char sha_key_aux[128];
-	const char* name = name_app.c_str();
-	const char* content = dsp_content.c_str();
-    string res = expand_dsp(argc1, argv1, name, content, sha_key_aux, error_msg_aux);
+    // Already expanded version ?
+    if (start_with(dsp_content, COMPILATION_OPTIONS)) {
+        if (extract_compilation_options(dsp_content) == reorganize_compilation_options(argc, argv)) {
+            // Same compilation options as the ones kept in the expanded version
+            sha_key = generateSHA1(dsp_content);
+            return dsp_content;
+        } else {
+            // Otherwise add a new compilation options line, consider it as the new expanded code : generate SHA key and return it
+            string new_dsp_content = COMPILATION_OPTIONS + reorganize_compilation_options(argc, argv) + ";\n" + dsp_content;
+            sha_key = generateSHA1(new_dsp_content);
+            return new_dsp_content;
+        }
+    } else {
+       
+        int argc1 = argc + 1;
+        const char* argv1[32];
+        
+        argv1[0] = "faust";
+        for (int i = 0; i < argc; i++) {
+            argv1[i+1] = argv[i];
+        }
+        
+        char error_msg_aux[512];
+        char sha_key_aux[128];
+        const char* name = name_app.c_str();
+        const char* content = dsp_content.c_str();
+        string res = expand_dsp(argc1, argv1, name, content, sha_key_aux, error_msg_aux);
 
-    error_msg = error_msg_aux;
-    sha_key = sha_key_aux;
-    return res;
+        error_msg = error_msg_aux;
+        sha_key = sha_key_aux;
+        return res;
+    }
 }
 
 EXPORT bool generateAuxFilesFromFile(const string& filename, int argc, const char* argv[], string& error_msg)

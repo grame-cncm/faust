@@ -433,7 +433,7 @@ void llvm_dsp_factory::writeDSPFactoryToMachineFile(const std::string& machine_c
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_code)
 {
-    init();
+    init("MachineDSP", "");
     fSHAKey = sha_key;
    
     // Restoring the cache
@@ -448,7 +448,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_
 
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const string& target, int opt_level)
 {
-    init();
+    init("BitcodeDSP", "");
     fSHAKey = sha_key;
     fOptLevel = opt_level;
     fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
@@ -493,13 +493,11 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key,
     
     if (opt_level >=0 && opt_level <= MAX_OPT_LEVEL) {
     
-        // Keep given name
-        fExtName = name_app;
         fExpandedDSP = expanded_dsp_content;
         fSHAKey = sha_key;
         fOptLevel = opt_level;
         fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;  
-        init();
+        init("SourceDSP", name_app);
     #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
         fObjectCache = NULL;
     #endif
@@ -515,7 +513,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key,
     }
 }
 
-void llvm_dsp_factory::init()
+void llvm_dsp_factory::init(const string& dsp_name, const string& type_name)
 {
     fJIT = 0;
     fNew = 0;
@@ -526,7 +524,8 @@ void llvm_dsp_factory::init()
     fInit = 0;
     fCompute = 0;
     fClassName = "mydsp";
-    fExtName = "ModuleDSP";
+    fDSPName = dsp_name;
+    fTypeName = type_name;
     fExpandedDSP = "";
 }
 
@@ -1239,18 +1238,21 @@ EXPORT std::string llvm_dsp_factory::getName()
     struct MyMeta : public Meta
     {
         string name;
-        
-        virtual void declare(const char* key, const char* value){
+        virtual void declare(const char* key, const char* value)
+        {
             if (strcmp(key, "name") == 0) {
                 name = value;
             }
         }
-        
     };
     
-    MyMeta metadata;
-    metadataDSPFactory(&metadata);
-    return (fExtName != "") ? fExtName : metadata.name;
+    if (fDSPName == "") {
+        MyMeta metadata;
+        metadataDSPFactory(&metadata);
+        return fTypeName + "_" + metadata.name;
+    } else {
+        return fTypeName + "_" + fDSPName;
+    }
 }
 
 EXPORT std::string llvm_dsp_factory::getSHAKey() { return fSHAKey; }

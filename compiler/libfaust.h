@@ -44,6 +44,8 @@ typedef struct LLVMResult {
 } LLVMResult;
 
 #define LVVM_BACKEND_NAME "Faust LLVM backend"
+#define COMPILATION_OPTIONS_KEY "compilation_options"
+#define COMPILATION_OPTIONS "declare compilation_options    "
 
 /*
     Low level dynamic compilation interface. Better use the public API defined in llvm-dsp.h or llvm-c-dsp.h
@@ -90,6 +92,8 @@ EXPORT std::string generateSHA1(const std::string& dsp_content);
 EXPORT std::string path_to_content(const std::string& path);
 
 EXPORT std::string reorganize_compilation_options(int argc, const char* argv[]);
+
+EXPORT std::string extract_compilation_options(const std::string& dsp_content);
 
 #endif
 

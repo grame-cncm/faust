@@ -517,7 +517,7 @@ bool DSPServer::getAvailableFactories(MHD_Connection* connection)
     stringstream answer;
     for (FactoryTableIt it = fFactories.begin(); it != fFactories.end(); it++) {
         llvm_dsp_factory* factory = *it;
-        answer << factory->getName() << " " << factory->getSHAKey() << " ";
+        answer << factory->getName() << ":" << factory->getTarget() << " " << factory->getSHAKey() << " ";
     }
     return sendPage(connection, answer.str(), MHD_HTTP_OK, "text/plain");
 }
