@@ -25,6 +25,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <libgen.h>
 
 #include "dsp_aux.hh"
 #include "libfaust.h"
@@ -34,38 +35,22 @@ extern TLockAble* gDSPFactoriesLock;
 
 using namespace std;
 
-EXPORT string expandDSPFromFile(const string& filename, 
-                                int argc, const char* argv[], 
-                                string& sha_key,
-                                string& error_msg)
-{
-    TLock lock(gDSPFactoriesLock);
-    
-    int argc1 = argc + 2;
-    const char* argv1[32];
-    
-    argv1[0] = "faust";
-    argv1[1] = filename.c_str();
-    for (int i = 0; i < argc; i++) {
-        argv1[i+2] = argv[i];
-    }
-        
-	char error_msg_aux[512];
-    char sha_key_aux[128];
-    
-	string res = expand_dsp(argc1, argv1, "", "", sha_key_aux, error_msg_aux);
-
-	error_msg = error_msg_aux;
-    sha_key = sha_key_aux;
-    return res;
-}
-
 static bool start_with(const string& str, const string& key)
 {
     for (size_t i = 0; i < key.size(); i++) {
         if (str[i] != key[i]) return false;
     }
     return true;
+}
+
+EXPORT string expandDSPFromFile(const string& filename, 
+                                int argc, const char* argv[], 
+                                string& sha_key,
+                                string& error_msg)
+{
+    string base = basename((char*)filename.c_str());
+    size_t pos = filename.find(".dsp");
+    return expandDSPFromString(base.substr(0, pos), path_to_content(filename), argc, argv, sha_key, error_msg);
 }
 
 EXPORT string expandDSPFromString(const string& name_app, 
@@ -112,24 +97,9 @@ EXPORT string expandDSPFromString(const string& name_app,
 
 EXPORT bool generateAuxFilesFromFile(const string& filename, int argc, const char* argv[], string& error_msg)
 {
-    TLock lock(gDSPFactoriesLock);
-    
-    int argc1 = argc + 2;
-    const char* argv1[32];
-    
-    argv1[0] = "faust";
-    argv1[1] = filename.c_str();
-    for (int i = 0; i < argc; i++) {
-        argv1[i+2] = argv[i];
-    }
-    
-    char error_msg_aux[512];
-    if (!compile_faust(argc1, argv1, "", "", error_msg_aux, false)) {
-        return true;
-    } else {
-        error_msg = error_msg_aux;
-        return false;
-    }
+    string base = basename((char*)filename.c_str());
+    size_t pos = filename.find(".dsp");
+    return generateAuxFilesFromString(base.substr(0, pos), path_to_content(filename), argc, argv, error_msg);
 }
 
 EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], string& error_msg)
@@ -158,21 +128,12 @@ EXPORT const char* expandCDSPFromFile(const char* filename,
                                     char* sha_key,
                                     char* error_msg)
 {
-    TLock lock(gDSPFactoriesLock);
-    
-    int argc1 = argc + 2;
-    const char* argv1[32];
-    
-    argv1[0] = "faust";
-    argv1[1] = filename;
-    for (int i = 0; i < argc; i++) {
-        argv1[i+2] = argv[i];
-    }
-    
-    string str = expand_dsp(argc1, argv1, "", "", sha_key, error_msg);
-    char* cstr = (char*)malloc(str.length() + 1);
-    strcpy(cstr, str.c_str());
-    return cstr;
+    string sha_key_aux;
+    string error_msg_aux;
+    string res = expandDSPFromFile(filename, argc, argv, sha_key_aux, error_msg_aux);
+    strncpy(sha_key, sha_key_aux.c_str(), 64);
+    strncpy(error_msg, error_msg_aux.c_str(), 256);
+    return strdup(res.c_str());
 }
 
 EXPORT const char* expandCDSPFromString(const char* name_app, 
@@ -181,20 +142,12 @@ EXPORT const char* expandCDSPFromString(const char* name_app,
                                         char* sha_key,
                                         char* error_msg)
 {
-    TLock lock(gDSPFactoriesLock);
-    
-    int argc1 = argc + 1;
-    const char* argv1[32];
-    
-    argv1[0] = "faust";
-    for (int i = 0; i < argc; i++) {
-        argv1[i+1] = argv[i];
-    }
-    
-    string str = expand_dsp(argc1, argv1, name_app, dsp_content, sha_key, error_msg);
-    char* cstr = (char*)malloc(str.length() + 1);
-    strcpy(cstr, str.c_str());
-    return cstr;
+    string sha_key_aux;
+    string error_msg_aux;
+    string res = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key_aux, error_msg_aux);
+    strncpy(sha_key, sha_key_aux.c_str(), 64);
+    strncpy(error_msg, error_msg_aux.c_str(), 256);
+    return strdup(res.c_str());
 }
 
 EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg)
