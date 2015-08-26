@@ -141,6 +141,15 @@ extern "C"
      * @return the expanded DSP code string (to be deleted by the caller).
      */
     char* getCDSPCode(llvm_dsp_factory* factory);
+    
+    /**
+     * Get the LLVM target of the Faust DSP factory.
+     *
+     * @param factory - the DSP factory.
+     * 
+     * @return the LLVM target as a string (to be deleted by the caller).
+     */
+    char* getCTarget(llvm_dsp_factory* factory);
   
     /**
      * Get the list of library dependancies of the Faust DSP factory as a null-terminated array.

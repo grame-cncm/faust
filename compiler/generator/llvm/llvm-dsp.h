@@ -48,6 +48,9 @@ class llvm_dsp_factory {
         /* Return Factory name */
         std::string getName();
         
+        /* Return Factory LLVM target */
+        std::string getTarget();
+        
         /* Return Factory SHA key */
         std::string getSHAKey();
   

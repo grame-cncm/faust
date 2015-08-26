@@ -1259,6 +1259,8 @@ EXPORT std::string llvm_dsp_factory::getSHAKey() { return fSHAKey; }
 
 EXPORT std::string llvm_dsp_factory::getDSPCode() { return fExpandedDSP; }
 
+EXPORT std::string llvm_dsp_factory::getTarget() { return fTarget; }
+
 EXPORT std::string getDSPMachineTarget()
 {
     return (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME);
@@ -1679,6 +1681,11 @@ EXPORT char* getCSHAKey(llvm_dsp_factory* factory)
 EXPORT char* getCDSPCode(llvm_dsp_factory* factory)
 {
     return (factory) ? strdup(factory->getDSPCode().c_str()) : NULL;
+}
+
+EXPORT char* getCTarget(llvm_dsp_factory* factory)
+{
+    return (factory) ? strdup(factory->getTarget().c_str()) : NULL;
 }
 
 EXPORT char* getCDSPMachineTarget()
