@@ -34,9 +34,9 @@ endif
 
 ####### Files
 
-SOURCES       = Server.cpp main.cpp ../utilities.cpp
+SOURCES       = remote_server.cpp main.cpp ../utilities.cpp
 				
-OBJECTS       = Server.o main.o utilities.o
+OBJECTS       = remote_server.o main.o utilities.o
 DESTDIR       = 
 TARGET        = RemoteServer
 
@@ -54,10 +54,10 @@ clean:
 
 ####### Compile
 
-Server.o: Server.cpp Server.h 
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Server.o Server.cpp
+remote_server.o: remote_server.cpp remote_server.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o remote_server.o remote_server.cpp
 
-main.o: main.cpp Server.h
+main.o: main.cpp remote_server.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 utilities.o: ../utilities.h

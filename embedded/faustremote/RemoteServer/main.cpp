@@ -32,7 +32,7 @@
 // 									MAIN
 //-------------------------------------------------------------------------
 
-#include "Server.h"
+#include "remote_server.h"
 #include "utilities.h"
 
 int main(int argc, const char* argv[])

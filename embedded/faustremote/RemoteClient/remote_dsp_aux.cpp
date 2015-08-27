@@ -251,7 +251,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     string key, name;                 
     while (os >> key) {               
         os >> name;
-        // line of type 'declare IP "192.168.1.146";' has been added in the expanded version just after possible 'library_path' declaration
+        // In the expanded version, line of type 'library_path' has been added before line of type 'declare IP "192.168.1.146";'
         if (key == "IP") {
             break;
         } else if (key == "library_path") {

@@ -6,7 +6,7 @@
 //
 //
 
-#include "Server.h"
+#include "remote_server.h"
 #include "utilities.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUI.h"
