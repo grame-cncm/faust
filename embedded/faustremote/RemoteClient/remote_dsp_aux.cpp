@@ -122,6 +122,84 @@ remote_dsp_factory::~remote_dsp_factory()
     }
 }
 
+// Compile on server side and get machine code on client to re-create a local Factory
+static remote_dsp_factory* crossCompileFromSHAKey(const string& sha_key, int argc, 
+                                                const char *argv[], 
+                                                const string& ip_server, 
+                                                int port_server)
+{
+    stringstream finalRequest;
+    stringstream serverURL;
+    serverURL << "http://" << ip_server << ":" << port_server;
+    string response;
+    int errorCode = -1;
+    
+    // Adding Compilation options 
+    finalRequest << "&number_options=" << argc;
+    for (int i = 0; i < argc; i++) {
+        finalRequest << "&options=" << argv[i];
+    }
+    
+    // LLVM optimization level and SHA key
+    finalRequest << "&opt_level=" << -1 << "&shaKey=" << sha_key;  // (opt_level = -1 means 'maximum possible value')
+    
+    // Machine target
+    finalRequest << "&target=" << getDSPMachineTarget();
+     
+    string url = serverURL.str() + "/CrossCompileFactoryFromSHAKey";
+   
+    if (sendRequest(url, finalRequest.str(), response, errorCode)) {
+        llvm_dsp_factory* factory = readCDSPFactoryFromMachine(response.c_str());
+        remote_dsp_factory::gLocalFactoryDSPTable.push_back(factory);
+        return reinterpret_cast<remote_dsp_factory*>(factory); 
+    } else {
+        return NULL;
+    }
+}
+
+// Compile on server side and get machine code on client to re-create a local Factory
+static remote_dsp_factory* crossCompile(int argc, const char *argv[], 
+                                        const string& name_app, 
+                                        const string& dsp_content,
+                                        const string& sha_key,
+                                        const string& ip_server, 
+                                        int port_server)
+{
+    stringstream finalRequest;
+    stringstream serverURL;
+    serverURL << "http://" << ip_server << ":" << port_server;
+    string response;
+    int errorCode = -1;
+    
+    // Adding name
+    finalRequest << "name=" << name_app;
+  
+    // Adding Compilation options 
+    finalRequest << "&number_options=" << argc;
+    for (int i = 0; i < argc; i++) {
+        finalRequest << "&options=" << argv[i];
+    }
+    
+    // LLVM optimization level and SHA key
+    finalRequest << "&opt_level=" << -1 << "&shaKey=" << sha_key;  // (opt_level = -1 means 'maximum possible value')
+    
+    // Transforming DSP code to URL format
+    char* data_url = curl_easy_escape(remote_dsp_factory::gCurl, dsp_content.c_str(), dsp_content.size());
+    finalRequest << "&dsp_data=";
+    finalRequest << data_url;
+    curl_free(data_url);
+    
+    string url = serverURL.str() + "/CrossCompileFactory";
+   
+    if (sendRequest(url, finalRequest.str(), response, errorCode)) {
+        llvm_dsp_factory* factory = readCDSPFactoryFromMachine(response.c_str());
+        remote_dsp_factory::gLocalFactoryDSPTable.push_back(factory);
+        return reinterpret_cast<remote_dsp_factory*>(factory); 
+    } else {
+        return NULL;
+    }
+}
+
 // Init remote dsp factory sends a POST request to a remote server
 // The URL extension used is /CreateFactory
 // The datas have a url-encoded form (key/value separated by & and special character are reencoded like spaces = %)
@@ -131,7 +209,6 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
                             string& error, 
                             int opt_level)
 {
-    bool res = false;
     stringstream finalRequest;
      
     // Adding name
@@ -153,16 +230,20 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
         if (factory) {
             // Transforming machine code to URL format
             string machine_code = writeDSPFactoryToMachine(factory, "");
+            char* data_url = curl_easy_escape(remote_dsp_factory::gCurl, machine_code.c_str(), machine_code.size());
             finalRequest << "&dsp_data=";
-            finalRequest << curl_easy_escape(remote_dsp_factory::gCurl, machine_code.c_str(), machine_code.size());
+            finalRequest << data_url;
+            curl_free(data_url);
             deleteDSPFactory(factory);
         } else {
-            return res;
+            return false;
         }
     } else {
         // Transforming DSP code to URL format
+        char* data_url = curl_easy_escape(remote_dsp_factory::gCurl, dsp_content.c_str(), dsp_content.size());
         finalRequest << "&dsp_data=";
-        finalRequest << curl_easy_escape(remote_dsp_factory::gCurl, dsp_content.c_str(), dsp_content.size());
+        finalRequest << data_url;
+        curl_free(data_url);
     }
     
     // Keep library path
@@ -178,21 +259,16 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
         }  
     }
     
-    int errorCode;
+    int errorCode = -1;
     string response;
     string url = fServerURL + "/CreateFactory";
 
-    errorCode = -1;
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
         decodeJson(response);
-        res = true;
-    } else if (errorCode != -1) {
-        error = "Curl connection error";
+        return true;
     } else {
-        error = response;
+       return false;
     }
-    
-    return res;
 }
 
 // Decoding JSON from a string to
@@ -573,11 +649,11 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     fControlInputs[0] = new float[8192];
     fControlOutputs[0] = new float[8192];
  
-    memset(fOutControl, 0, sizeof(float)*buffer_size);
-    memset(fInControl, 0, sizeof(float)*buffer_size);
+    memset(fOutControl, 0, sizeof(float) * buffer_size);
+    memset(fInControl, 0, sizeof(float) * buffer_size);
     
-    memset(fControlInputs[0], 0, sizeof(float)*8192);
-    memset(fControlOutputs[0], 0, sizeof(float)*8192);
+    memset(fControlInputs[0], 0, sizeof(float) * 8192);
+    memset(fControlOutputs[0], 0, sizeof(float) * 8192);
     
     // To be sure fCounterIn and fCounterOut are set before 'compute' is called, even if no 'buildUserInterface' is called by the client
     ControlUI dummy_ui;
@@ -754,8 +830,12 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, 
 {
     RemoteFactoryDSPTableIt it;
     
+    // Compile on server side and get machine code on client to re-create a local Factory
+    if (isopt(argc, argv, "-rm")) {
+        return crossCompileFromSHAKey(sha_key, argc, argv, ip_server, port_server);
+    
     // If available in the local LLVM cache
-    if (getLocalFactory(sha_key)) {
+    } else if (getLocalFactory(sha_key)) {
         return reinterpret_cast<remote_dsp_factory*>(getDSPFactoryFromSHAKey(sha_key));
     
     // If available in the local remote cache
@@ -765,27 +845,23 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, 
         return sfactory;
     } else {
     
-        // Compile on server side and get machine code on client to re-create a local Factory
-        if (isopt(argc, argv, "-rm")) {
-            // TODO = -rm mode : server request + put it in gLocalFactoryDSPTable
-        } else {
+        stringstream serverURL;
+        serverURL << "http://" << ip_server << ":" << port_server;
+        string response;
+        int errorCode = -1;
     
-            // Call server side to get remote factory, create local proxy factory, put it in the cache
-            string finalRequest = "shaKey=" + sha_key;
-            string response;
-            int errorCode = -1;
-            
-            remote_dsp_factory* factory = new remote_dsp_factory(ip_server, port_server, sha_key);
-            string url = factory->getURL() + "/GetFactoryFromSHAKey";
-            
-            if (sendRequest(url, finalRequest, response, errorCode)) {
-                factory->decodeJson(response);
-                remote_dsp_factory::gRemoteFactoryDSPTable[factory] = make_pair(list<remote_dsp_aux*>(), list<remote_audio_aux*>());
-                return factory;
-            } else {
-                delete factory;
-                return NULL;
-            }
+        // Call server side to get remote factory, create local proxy factory, put it in the cache
+        string finalRequest = "shaKey=" + sha_key;
+        remote_dsp_factory* factory = new remote_dsp_factory(ip_server, port_server, sha_key);
+        string url = serverURL.str() + "/GetFactoryFromSHAKey";
+        
+        if (sendRequest(url, finalRequest, response, errorCode)) {
+            factory->decodeJson(response);
+            remote_dsp_factory::gRemoteFactoryDSPTable[factory] = make_pair(list<remote_dsp_aux*>(), list<remote_audio_aux*>());
+            return factory;
+        } else {
+            delete factory;
+            return NULL;
         }
     }
 }
@@ -855,23 +931,20 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     
     if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc1, argv1, sha_key, error_msg)) == "") {
         return NULL; 
-    
+        
+    // Compile on server side and get machine code on client to re-create a local Factory
+    } else if (isopt(argc, argv, "-rm")) {
+        return crossCompile(argc, argv, name_app, expanded_dsp, sha_key, ip_server, port_server);
+        
     // If available in the local LLVM cache
     } else if (getLocalFactory(sha_key)) {
         return reinterpret_cast<remote_dsp_factory*>(getDSPFactoryFromSHAKey(sha_key));
-    
+        
     // If available in the local remote cache
     } else if (getRemoteFactory(sha_key, it)) {
         Sremote_dsp_factory sfactory = (*it).first;
         sfactory->addReference();
         return sfactory;
-    
-    // Compile on server side and get machine code on client to re-create a local Factory
-    } else if (isopt(argc, argv, "-rm")) {
-   
-        // llvm_dsp_factory : TODO
-        return NULL;
-    
     } else {
     
         remote_dsp_factory* factory = new remote_dsp_factory(ip_server, port_server, sha_key);
@@ -882,7 +955,6 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
             delete factory;
             return NULL;
         }
-        
     }
 }
 

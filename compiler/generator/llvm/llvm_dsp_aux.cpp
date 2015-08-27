@@ -448,6 +448,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_
 
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const string& target, int opt_level)
 {
+    fOptLevel = ((opt_level == -1) || (opt_level > MAX_OPT_LEVEL)) ? MAX_OPT_LEVEL : opt_level;  // Normalize opt_level
     init("BitcodeDSP", "");
     fSHAKey = sha_key;
     fOptLevel = opt_level;
@@ -491,26 +492,21 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key,
     #endif
     }
     
-    if (opt_level >=0 && opt_level <= MAX_OPT_LEVEL) {
+    fOptLevel = ((opt_level == -1) || (opt_level > MAX_OPT_LEVEL)) ? MAX_OPT_LEVEL : opt_level;  // Normalize opt_level
+    fExpandedDSP = expanded_dsp_content;
+    fSHAKey = sha_key;
+    fOptLevel = opt_level;
+    fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;  
+    init("SourceDSP", name_app);
+#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
+    fObjectCache = NULL;
+#endif
     
-        fExpandedDSP = expanded_dsp_content;
-        fSHAKey = sha_key;
-        fOptLevel = opt_level;
-        fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;  
-        init("SourceDSP", name_app);
-    #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
-        fObjectCache = NULL;
-    #endif
-        
-        char error_msg_aux[512];
-        fClassName = getParam(argc, argv, "-cn", "mydsp");
-        fIsDouble = isParam(argc, argv, "-double");
-        fResult = compileModule(argc, argv, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
-        error_msg = error_msg_aux;
-    } else {
-        fResult = NULL;
-        error_msg = "Incorrect LLVM optimization level";
-    }
+    char error_msg_aux[512];
+    fClassName = getParam(argc, argv, "-cn", "mydsp");
+    fIsDouble = isParam(argc, argv, "-double");
+    fResult = compileModule(argc, argv, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
+    error_msg = error_msg_aux;
 }
 
 void llvm_dsp_factory::init(const string& dsp_name, const string& type_name)

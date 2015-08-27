@@ -61,7 +61,6 @@ class llvm_dsp_factory;
 #define RemoteFactoryDSPTableType map<Sremote_dsp_factory, RemoteFactoryDSPTable>
 #define RemoteFactoryDSPTableIt   RemoteFactoryDSPTableType::iterator
 
-
 enum {
     ERROR_FACTORY_NOTFOUND,
     ERROR_INSTANCE_NOTCREATED,

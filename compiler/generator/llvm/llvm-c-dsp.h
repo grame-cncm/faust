@@ -75,7 +75,7 @@ extern "C"
      * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
      * @param target - the LLVM machine target (using empty string will take current machine settings)
      * @param error_msg - the error string to be filled, has to be 256 characters long
-     * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
+     * @param opt_level - LLVM IR to IR optimization level (from -1 to 4 , -1 means 'maximum possible value')
      *
      * @return a valid DSP factory on success, otherwise a null pointer.
      */ 
@@ -95,7 +95,7 @@ extern "C"
      * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
      * @param target - the LLVM machine target (using empty string will take current machine settings)
      * @param error_msg - the error string to be filled, has to be 256 characters long
-     * @param opt_level - LLVM IR to IR optimization level (from 0 to 3)
+     * @param opt_level - LLVM IR to IR optimization level (from -1 to 4 , -1 means 'maximum possible value')
      *
      * @return a valid DSP factory on success, otherwise a null pointer.
      */ 

@@ -198,6 +198,7 @@ dsp_server_connection_info::dsp_server_connection_info()
     fAnswer = "";
     fNameApp = "";
     fFaustCode = "";
+    fTarget = "";
     fOptLevel = "";
     fIP = "";
     fPort = "";
@@ -234,20 +235,42 @@ bool dsp_server_connection_info::getFactoryFromSHAKey(DSPServer* server)
 }
 
 // Create DSP Factory 
-llvm_dsp_factory* dsp_server_connection_info::createFactory(DSPServer* server) 
+llvm_dsp_factory* dsp_server_connection_info::crossCompileFactory(DSPServer* server, string& error) 
 {
-    string error = "Incorrect machine code";
-    
     // Sort out compilation options
     int argc = fCompilationOptions.size();
     const char* argv[argc];
     for (int i = 0; i < argc; i++) {
-        argv[i] = (fCompilationOptions[i]).c_str();
+        argv[i] = fCompilationOptions[i].c_str();
+    }
+
+    char error1[256];
+    llvm_dsp_factory* factory = createCDSPFactoryFromString(fNameApp.c_str(),
+                                                            fFaustCode.c_str(),
+                                                            argc, argv, fTarget.c_str(),
+                                                            error1, atoi(fOptLevel.c_str()));
+    error = error1;                                                    
+    if (factory && server->fCreateDSPFactoryCb) {
+        // Possibly call callback
+        server->fCreateDSPFactoryCb(factory, server->fCreateDSPFactoryCb_arg);
+    } 
+    
+    return factory;
+}
+
+// Create DSP Factory 
+llvm_dsp_factory* dsp_server_connection_info::createFactory(DSPServer* server, string& error) 
+{
+    // Sort out compilation options
+    int argc = fCompilationOptions.size();
+    const char* argv[argc];
+    for (int i = 0; i < argc; i++) {
+        argv[i] = fCompilationOptions[i].c_str();
     }
     
     llvm_dsp_factory* factory = NULL;
      
-    if (isopt(argc, argv, "-rm")) {
+    if (isopt(argc, argv, "-lm")) {
         // Machine code
         //fFactory = readDSPFactoryFromMachine(fFaustCode);
         factory = readCDSPFactoryFromMachine(fFaustCode.c_str());
@@ -265,13 +288,14 @@ llvm_dsp_factory* dsp_server_connection_info::createFactory(DSPServer* server)
                                             fFaustCode.c_str(),
                                             argc, argv, "",
                                             error1, atoi(fOptLevel.c_str()));
+        error = error1;
     }
     
     if (factory && server->fCreateDSPFactoryCb) {
         // Possibly call callback
         server->fCreateDSPFactoryCb(factory, server->fCreateDSPFactoryCb_arg);
-     } 
-    
+    } 
+   
     return factory;
 }
 
@@ -287,6 +311,8 @@ int dsp_server_connection_info::iteratePost(const char* key, const char* data, s
             fAudioType = data;
         } else if (strcmp(key,"dsp_data") == 0) {
             fFaustCode += data;  // Possibly several post ?
+        } else if (strcmp(key,"target") == 0) {
+            fTarget = data;  
         } else if (strcmp(key,"NJ_ip") == 0) {
             fIP = data;
         } else if (strcmp(key,"NJ_port") == 0) {
@@ -336,7 +362,12 @@ fDeleteDSPFactoryCb(NULL),fDeleteDSPFactoryCb_arg(NULL),
 fDeleteDSPInstanceCb(NULL),fDeleteDSPInstanceCb_arg(NULL)
 {}
 
-DSPServer::~DSPServer() {}
+DSPServer::~DSPServer() 
+{
+    for (FactoryTableIt it = fFactories.begin(); it != fFactories.end(); it++) {
+        deleteDSPFactory(*it);
+    }
+}
 
 // Register server as available
 void* DSPServer::registration(void* arg) 
@@ -537,12 +568,51 @@ bool DSPServer::createFactory(MHD_Connection* connection, dsp_server_connection_
     
     if (info->getFactoryFromSHAKey(this)) {
         return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json");
-    } else if ((factory = info->createFactory(this))) {
+    } else if ((factory = info->createFactory(this, info->fAnswer))) {
         info->getJson(factory);
+        fFactories.push_back(factory);
         return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json");
     } else {
         return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
     }
+}
+
+bool DSPServer::crossCompileFactory(MHD_Connection* connection, dsp_server_connection_info* info)
+{
+    llvm_dsp_factory* factory;
+    
+    if ((factory = info->crossCompileFactory(this, info->fAnswer))) {
+        info->getJson(factory);
+        fFactories.push_back(factory);
+        return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json");
+    } else {
+        return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
+    }
+}
+
+bool DSPServer::crossCompileFactoryFromSHAKey(MHD_Connection* connection, dsp_server_connection_info* info)
+{
+    // Get the factory (actually increment reference counter)
+    llvm_dsp_factory* old_factory = getDSPFactoryFromSHAKey(info->fSHAKey);
+    
+    // Cross compile for a new target
+    string machine_code = writeDSPFactoryToMachine(old_factory, info->fTarget);
+    
+    // And keep the new compiled target, so that is it "cached"
+    llvm_dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code);
+    
+    if (new_factory) {
+        fFactories.push_back(new_factory);
+        if (fCreateDSPFactoryCb) {
+            // Possibly call callback
+            fCreateDSPFactoryCb(new_factory, fCreateDSPFactoryCb_arg);
+       }
+    }
+    
+    // Then delete (actually decrement) used factory
+    deleteDSPFactory(old_factory);
+    
+    return sendPage(connection, machine_code, MHD_HTTP_OK, "text/plain");
 }
 
 bool DSPServer::createInstance(MHD_Connection* connection, dsp_server_connection_info* info)
@@ -587,6 +657,8 @@ bool DSPServer::deleteFactory(MHD_Connection* connection, dsp_server_connection_
     llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(info->fSHAKey); 
     
     if (factory) {
+        // Remove from the list
+        fFactories.remove(factory);
         // Has to be done twice since getDSPFactoryFromSHAKey has incremented once more...
         deleteDSPFactory(factory); 
         deleteDSPFactory(factory);
@@ -611,10 +683,14 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
         
         if (strcmp(url, "/CreateFactory") == 0) {
             return createFactory(connection, info);
-        } else if(strcmp(url, "/DeleteFactory") == 0) {
-            return deleteFactory(connection, info);
+        } else if (strcmp(url, "/CrossCompileFactory") == 0) {
+            return crossCompileFactory(connection, info);
+        } else if (strcmp(url, "/CrossCompileFactoryFromSHAKey") == 0) {
+            return crossCompileFactoryFromSHAKey(connection, info);
         } else if (strcmp(url, "/GetFactoryFromSHAKey") == 0) {
             return getFactoryFromSHAKey(connection, info);
+        } else if(strcmp(url, "/DeleteFactory") == 0) {
+            return deleteFactory(connection, info);
         } else if (strcmp(url, "/CreateInstance") == 0) {
             return createInstance(connection, info);
         } else if (strcmp(url, "/DeleteInstance") == 0) {

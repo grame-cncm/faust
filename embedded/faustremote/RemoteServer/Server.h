@@ -140,6 +140,7 @@ struct dsp_server_connection_info {
     //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
     string fNameApp;
     string fFaustCode;
+    string fTarget;
     vector<string> fCompilationOptions;
     string fOptLevel;
     
@@ -164,7 +165,8 @@ struct dsp_server_connection_info {
     
     int iteratePost(const char* key, const char* data, size_t size); 
     
-    llvm_dsp_factory* createFactory(DSPServer* server);
+    llvm_dsp_factory* createFactory(DSPServer* server, string& error);
+    llvm_dsp_factory* crossCompileFactory(DSPServer* server, string& error);
     
     virtual int postProcess(const char* upload_data, size_t* upload_data_size)
     {
@@ -267,6 +269,9 @@ class DSPServer {
         
         bool start(MHD_Connection* connection, dsp_server_connection_info* info);
         bool stop(MHD_Connection* connection, dsp_server_connection_info* info);
+        
+        bool crossCompileFactory(MHD_Connection* connection, dsp_server_connection_info* info);
+        bool crossCompileFactoryFromSHAKey(MHD_Connection* connection, dsp_server_connection_info* info);
         
         bool deleteFactory(MHD_Connection* connection, dsp_server_connection_info* info);
         
