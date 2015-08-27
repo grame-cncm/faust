@@ -305,14 +305,16 @@ EXPORT string reorganize_compilation_options(int argc, const char* argv[])
 
 EXPORT std::string extract_compilation_options(const std::string& dsp_content)
 {
-    stringstream os(dsp_content);
-    string key, value;                 
-    while (os >> key) {  
-        os >> value;
-        if (key == COMPILATION_OPTIONS_KEY) {
-            return value;
-        }
+    size_t pos1 = dsp_content.find(COMPILATION_OPTIONS_KEY);
+    
+    if (pos1 != string::npos) {
+        size_t pos2 = dsp_content.find_first_of('"', pos1 + 1);
+        size_t pos3 = dsp_content.find_first_of('"', pos2 + 1);
+        if (pos2 != string::npos && pos3 != string::npos) {
+            return dsp_content.substr(pos2, (pos3 - pos2) + 1);
+         }
     }
+    
     return "";
 }
 

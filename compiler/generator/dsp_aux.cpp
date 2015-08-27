@@ -74,7 +74,6 @@ EXPORT string expandDSPFromString(const string& name_app,
             return new_dsp_content;
         }
     } else {
-       
         int argc1 = argc + 1;
         const char* argv1[32];
         
