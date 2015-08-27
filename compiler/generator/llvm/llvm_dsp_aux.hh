@@ -118,7 +118,7 @@ class llvm_dsp_factory : public smartable {
         llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const string& target, int opt_level = 0);
         
     #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
-        llvm_dsp_factory(const string& sha_key, const string& machine_code);
+        llvm_dsp_factory(const string& sha_key, const string& machine_code, const string& target);
     #endif
       
         virtual ~llvm_dsp_factory();
@@ -242,12 +242,12 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
 
 // machine <==> string
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code);
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target);
 
 EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target);
 
 // machine <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path);
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target);
 
 EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path, const std::string& target);
 
@@ -330,7 +330,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, con
 
 EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code);
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target);
 
 EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target);
 

@@ -273,7 +273,7 @@ llvm_dsp_factory* dsp_server_connection_info::createFactory(DSPServer* server, s
     if (isopt(argc, argv, "-lm")) {
         // Machine code
         //fFactory = readDSPFactoryFromMachine(fFaustCode);
-        factory = readCDSPFactoryFromMachine(fFaustCode.c_str());
+        factory = readCDSPFactoryFromMachine(fFaustCode.c_str(), loptions(argv, "-lm", ""));
     } else {
         // DSP code
         /*
@@ -570,7 +570,7 @@ bool DSPServer::createFactory(MHD_Connection* connection, dsp_server_connection_
         return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json");
     } else if ((factory = info->createFactory(this, info->fAnswer))) {
         info->getJson(factory);
-        fFactories.push_back(factory);
+        fFactories.insert(factory);
         return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json");
     } else {
         return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
@@ -582,9 +582,24 @@ bool DSPServer::crossCompileFactory(MHD_Connection* connection, dsp_server_conne
     llvm_dsp_factory* factory;
     
     if ((factory = info->crossCompileFactory(this, info->fAnswer))) {
-        info->getJson(factory);
-        fFactories.push_back(factory);
-        return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json");
+        fFactories.insert(factory);
+        
+        // Return machine_code to client
+         string machine_code = writeDSPFactoryToMachine(factory, info->fTarget);
+         
+        // And keep the new compiled target, so that is it "cached"
+        llvm_dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget);
+        
+        if (new_factory) {
+            fFactories.insert(new_factory);
+            if (fCreateDSPFactoryCb) {
+                // Possibly call callback
+                fCreateDSPFactoryCb(new_factory, fCreateDSPFactoryCb_arg);
+           }
+        }
+         
+        //return sendPage(connection, writeDSPFactoryToMachine(factory, ""), MHD_HTTP_OK, "text/html");
+        return sendPage(connection, machine_code, MHD_HTTP_OK, "text/html");
     } else {
         return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
     }
@@ -599,10 +614,10 @@ bool DSPServer::crossCompileFactoryFromSHAKey(MHD_Connection* connection, dsp_se
     string machine_code = writeDSPFactoryToMachine(old_factory, info->fTarget);
     
     // And keep the new compiled target, so that is it "cached"
-    llvm_dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code);
+    llvm_dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget);
     
     if (new_factory) {
-        fFactories.push_back(new_factory);
+        fFactories.insert(new_factory);
         if (fCreateDSPFactoryCb) {
             // Possibly call callback
             fCreateDSPFactoryCb(new_factory, fCreateDSPFactoryCb_arg);
@@ -658,7 +673,7 @@ bool DSPServer::deleteFactory(MHD_Connection* connection, dsp_server_connection_
     
     if (factory) {
         // Remove from the list
-        fFactories.remove(factory);
+        fFactories.erase(factory);
         // Has to be done twice since getDSPFactoryFromSHAKey has incremented once more...
         deleteDSPFactory(factory); 
         deleteDSPFactory(factory);

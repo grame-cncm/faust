@@ -291,12 +291,13 @@ void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_co
  * decrement reference counter when the factory is no more needed.
  * 
  * @param machine_code - the machine code string
+ * @param target - the LLVM machine target (using empty string will takes current machine settings)
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code);
+llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target);
 
-extern "C" llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code);
+extern "C" llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target);
 
 /**
  * Write a Faust DSP factory into a base64 encoded machine code string.
@@ -315,10 +316,11 @@ std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std::strin
  * decrement reference counter when the factory is no more needed.
  * 
  * @param machine_code_path - the machine code file pathname
+ * @param target - the LLVM machine target (using empty string will takes current machine settings)
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path);
+llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target);
 
 /**
  * Write a Faust DSP factory into a machine code file.

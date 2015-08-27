@@ -431,10 +431,11 @@ void llvm_dsp_factory::writeDSPFactoryToMachineFile(const std::string& machine_c
 }
 
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
-llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_code)
+llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_code, const string& target)
 {
     init("MachineDSP", "");
     fSHAKey = sha_key;
+    fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
    
     // Restoring the cache
     fObjectCache = new FaustObjectCache(machine_code);
@@ -448,10 +449,9 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_
 
 llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const string& target, int opt_level)
 {
-    fOptLevel = ((opt_level == -1) || (opt_level > MAX_OPT_LEVEL)) ? MAX_OPT_LEVEL : opt_level;  // Normalize opt_level
     init("BitcodeDSP", "");
+    fOptLevel = ((opt_level == -1) || (opt_level > MAX_OPT_LEVEL)) ? MAX_OPT_LEVEL : opt_level;  // Normalize opt_level
     fSHAKey = sha_key;
-    fOptLevel = opt_level;
     fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
     fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
     fResult->fModule = module;
@@ -491,13 +491,12 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key,
         }
     #endif
     }
+    init("SourceDSP", name_app);
     
     fOptLevel = ((opt_level == -1) || (opt_level > MAX_OPT_LEVEL)) ? MAX_OPT_LEVEL : opt_level;  // Normalize opt_level
     fExpandedDSP = expanded_dsp_content;
     fSHAKey = sha_key;
-    fOptLevel = opt_level;
     fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;  
-    init("SourceDSP", name_app);
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
     fObjectCache = NULL;
 #endif
@@ -509,7 +508,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key,
     error_msg = error_msg_aux;
 }
 
-void llvm_dsp_factory::init(const string& dsp_name, const string& type_name)
+void llvm_dsp_factory::init(const string& type_name, const string& dsp_name)
 {
     fJIT = 0;
     fNew = 0;
@@ -523,6 +522,8 @@ void llvm_dsp_factory::init(const string& dsp_name, const string& type_name)
     fDSPName = dsp_name;
     fTypeName = type_name;
     fExpandedDSP = "";
+    fOptLevel = 0;
+    fTarget = "";
 }
 
 llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
@@ -1437,7 +1438,7 @@ EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_
 
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
     
-static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer)
+static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const std::string& target)
 {
     string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
     FactoryTableIt it;
@@ -1449,7 +1450,7 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer)
     } else {
         string error_msg;
         try {
-            llvm_dsp_factory* factory = checkDSPFactory(new llvm_dsp_factory(sha_key, MEMORY_BUFFER_GET(buffer).str()), error_msg);
+            llvm_dsp_factory* factory = checkDSPFactory(new llvm_dsp_factory(sha_key, MEMORY_BUFFER_GET(buffer).str(), target), error_msg);
             llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
             return factory;
         } catch (faustexception& e) {
@@ -1460,11 +1461,11 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer)
 }
 
 // machine <==> string
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code)
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target)
 {
     TLock lock(gDSPFactoriesLock);
     
-    return readDSPFactoryFromMachineAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))));
+    return readDSPFactoryFromMachineAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))), target);
 }
 
 EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target)
@@ -1475,7 +1476,7 @@ EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std
 }
 
 // machine <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path)
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path,const std::string& target)
 {
     TLock lock(gDSPFactoriesLock);
     
@@ -1485,7 +1486,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machin
         printf("readDSPFactoryFromMachineFile failed : %s\n", ec.message().c_str());
         return NULL;
     } else {
-        return readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer));
+        return readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer), target);
      }
 #else
     OwningPtr<MemoryBuffer> buffer;
@@ -1493,7 +1494,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machin
         printf("readDSPFactoryFromMachineFile failed : %s\n", ec.message().c_str());
         return NULL;
     } else {
-        return readDSPFactoryFromMachineAux(buffer.get());
+        return readDSPFactoryFromMachineAux(buffer.get(), target);
     }
 #endif
 }
@@ -1758,9 +1759,9 @@ EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_c
 }
 
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code)
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target)
 {
-    return readDSPFactoryFromMachine(machine_code);
+    return readDSPFactoryFromMachine(machine_code, target);
 }
 
 EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target)
@@ -1768,9 +1769,9 @@ EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const std::str
     return (factory) ? strdup(writeDSPFactoryToMachine(factory, target).c_str()) : NULL;
 }
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path)
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target)
 {
-    return readDSPFactoryFromMachineFile(machine_code_path);
+    return readDSPFactoryFromMachineFile(machine_code_path, target);
 }
 
 EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const std::string& target)

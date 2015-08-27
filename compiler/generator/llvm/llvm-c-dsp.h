@@ -283,10 +283,11 @@ extern "C"
      * decrement reference counter when the factory is no more needed.
      * 
      * @param machine_code - the machine code string
+     * @param target - the LLVM machine target (using empty string will takes current machine settings)
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code);
+    llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target);
 
     /**
      * Write a Faust DSP factory into a base64 encoded machine code string.
@@ -305,10 +306,11 @@ extern "C"
      * decrement reference counter when the factory is no more needed.
      * 
      * @param machine_code_path - the machine code file pathname
+     * @param target - the LLVM machine target (using empty string will takes current machine settings)
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path);
+    llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target);
 
     /**
      * Write a Faust DSP factory into a machine code file.

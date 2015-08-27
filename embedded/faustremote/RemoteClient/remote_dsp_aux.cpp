@@ -144,7 +144,7 @@ static remote_dsp_factory* crossCompileFromSHAKey(const string& sha_key, int arg
     finalRequest << "&opt_level=" << -1 << "&shaKey=" << sha_key;  // (opt_level = -1 means 'maximum possible value')
     
     // Machine target
-    finalRequest << "&target=" << getDSPMachineTarget();
+    finalRequest << "&target=" << loptions(argv, "-rm", getDSPMachineTarget().c_str());
      
     string url = serverURL.str() + "/CrossCompileFactoryFromSHAKey";
    
@@ -182,6 +182,9 @@ static remote_dsp_factory* crossCompile(int argc, const char *argv[],
     
     // LLVM optimization level and SHA key
     finalRequest << "&opt_level=" << -1 << "&shaKey=" << sha_key;  // (opt_level = -1 means 'maximum possible value')
+    
+    // Machine target
+    finalRequest << "&target=" << loptions(argv, "-rm", getDSPMachineTarget().c_str());
     
     // Transforming DSP code to URL format
     char* data_url = curl_easy_escape(remote_dsp_factory::gCurl, dsp_content.c_str(), dsp_content.size());
@@ -450,7 +453,7 @@ void remote_dsp_aux::buildUserInterface(UI* ui)
     
     vector<itemInfo*>::iterator it;
     
-    for (it =  fFactory->fUiItems.begin(); it !=  fFactory->fUiItems.end() ; it++) {
+    for (it = fFactory->fUiItems.begin(); it != fFactory->fUiItems.end(); it++) {
         
         float init = strtod((*it)->init.c_str(), NULL);
         float min = strtod((*it)->min.c_str(), NULL);
@@ -1092,8 +1095,8 @@ EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vect
             string response = oss.str();
             stringstream os(response);   
             string name, sha_key;   
-            while (os >> sha_key) {                
-                os >> name;
+            while (os >> name) {                
+                os >> sha_key;
                 factories_list->push_back(make_pair(name, sha_key));
             }
             res = true;

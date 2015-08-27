@@ -16,6 +16,7 @@
 #include <list>
 #include <map>
 #include <vector>
+#include <set>
 #include "microhttpd.h"
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -124,7 +125,7 @@ enum {
     ERROR_INSTANCE_NOTFOUND
 };
 
-typedef list<llvm_dsp_factory*> FactoryTable;
+typedef set<llvm_dsp_factory*> FactoryTable;
 #define FactoryTableIt FactoryTable::iterator
 
 class DSPServer;
