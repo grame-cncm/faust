@@ -53,6 +53,9 @@ EXPORT string expandDSPFromFile(const string& filename,
     return expandDSPFromString(base.substr(0, pos), path_to_content(filename), argc, argv, sha_key, error_msg);
 }
 
+/*
+Same DSP code and same normalized compilation options will generate the same SHA key.
+*/
 EXPORT string expandDSPFromString(const string& name_app, 
                                   const string& dsp_content, 
                                   int argc, const char* argv[], 
@@ -86,8 +89,8 @@ EXPORT string expandDSPFromString(const string& name_app,
         char sha_key_aux[128];
         const char* name = name_app.c_str();
         const char* content = dsp_content.c_str();
+        // 'expand_dsp' adds the normalized compilation options in the DSP code before computing the SHA key
         string res = expand_dsp(argc1, argv1, name, content, sha_key_aux, error_msg_aux);
-
         error_msg = error_msg_aux;
         sha_key = sha_key_aux;
         return res;

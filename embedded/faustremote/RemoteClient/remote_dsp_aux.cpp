@@ -123,7 +123,7 @@ remote_dsp_factory::~remote_dsp_factory()
 }
 
 // Init remote dsp factory sends a POST request to a remote server
-// The URL extension used is /GetJson
+// The URL extension used is /CreateFactory
 // The datas have a url-encoded form (key/value separated by & and special character are reencoded like spaces = %)
 bool remote_dsp_factory::init(int argc, const char *argv[], 
                             const string& name_app, 
@@ -146,13 +146,10 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     // LLVM optimization level and SHA key
     finalRequest << "&opt_level=" << opt_level << "&shaKey=" << fSHAKey;
     
-    // Compile locally and send machine code on server side...
+    // Compile on client side and send machine code on server side
     if (isopt(argc, argv, "-lm")) {
         string error;
-        llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, 
-                                                                argc, argv, 
-                                                                loptions(argv, "-m", ""),
-                                                                error, 3);
+        llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, loptions(argv, "-lm", ""), error, 3);
         if (factory) {
             // Transforming machine code to URL format
             string machine_code = writeDSPFactoryToMachine(factory, "");
@@ -183,7 +180,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     
     int errorCode;
     string response;
-    string url = fServerURL + "/GetJson";
+    string url = fServerURL + "/CreateFactory";
 
     errorCode = -1;
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
@@ -625,6 +622,7 @@ remote_audio_aux::remote_audio_aux(remote_dsp_factory* factory)
 {
     fFactory = factory;
 }
+
 remote_audio_aux::~remote_audio_aux()
 {
     // Request 'delete' on server side
@@ -664,7 +662,7 @@ bool remote_audio_aux::start()
     int errorCode = -1;
     
     finalRequest << "instanceKey=" << this;
-    string url = fFactory->getURL() + "/Start";
+    string url = fFactory->getURL() + "/StartInstance";
     return sendRequest(url, finalRequest.str(), response, errorCode);
 }
 
@@ -675,7 +673,7 @@ bool remote_audio_aux::stop()
     int errorCode = -1;
     
     finalRequest << "instanceKey=" << this;
-    string url = fFactory->getURL() + "/Stop";
+    string url = fFactory->getURL() + "/StopInstance";
     return sendRequest(url, finalRequest.str(), response, errorCode);
 }            
 
@@ -767,23 +765,27 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, 
         return sfactory;
     } else {
     
-        // TODO = -rm mode : server request + put it in gLocalFactoryDSPTable
-    
-        // Call server side to get remote factory, create local proxy factory, put it in the cache
-        string finalRequest = "shaKey=" + sha_key;
-        string response;
-        int errorCode = -1;
-        
-        remote_dsp_factory* factory = new remote_dsp_factory(ip_server, port_server, sha_key);
-        string url = factory->getURL() + "/GetJsonFromKey";
-        
-        if (sendRequest(url, finalRequest, response, errorCode)) {
-            factory->decodeJson(response);
-            remote_dsp_factory::gRemoteFactoryDSPTable[factory] = make_pair(list<remote_dsp_aux*>(), list<remote_audio_aux*>());
-            return factory;
+        // Compile on server side and get machine code on client to re-create a local Factory
+        if (isopt(argc, argv, "-rm")) {
+            // TODO = -rm mode : server request + put it in gLocalFactoryDSPTable
         } else {
-            delete factory;
-            return NULL;
+    
+            // Call server side to get remote factory, create local proxy factory, put it in the cache
+            string finalRequest = "shaKey=" + sha_key;
+            string response;
+            int errorCode = -1;
+            
+            remote_dsp_factory* factory = new remote_dsp_factory(ip_server, port_server, sha_key);
+            string url = factory->getURL() + "/GetFactoryFromSHAKey";
+            
+            if (sendRequest(url, finalRequest, response, errorCode)) {
+                factory->decodeJson(response);
+                remote_dsp_factory::gRemoteFactoryDSPTable[factory] = make_pair(list<remote_dsp_aux*>(), list<remote_audio_aux*>());
+                return factory;
+            } else {
+                delete factory;
+                return NULL;
+            }
         }
     }
 }
@@ -821,6 +823,8 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
                                                             string& error_msg, 
                                                             int opt_level)
 {
+     RemoteFactoryDSPTableIt it;
+     
     // Add IP, port (added as 'declare' lines) in the dsp_content
     stringstream sha_content;
     sha_content << "declare " << "IP " << '"' << ip_server << "\";" << endl;
@@ -849,34 +853,36 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
     string expanded_dsp;
     string sha_key;
     
-     if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc1, argv1, sha_key, error_msg)) == "") {
+    if ((expanded_dsp = expandDSPFromString(name_app, dsp_content, argc1, argv1, sha_key, error_msg)) == "") {
         return NULL; 
+    
+    // If available in the local LLVM cache
+    } else if (getLocalFactory(sha_key)) {
+        return reinterpret_cast<remote_dsp_factory*>(getDSPFactoryFromSHAKey(sha_key));
+    
+    // If available in the local remote cache
+    } else if (getRemoteFactory(sha_key, it)) {
+        Sremote_dsp_factory sfactory = (*it).first;
+        sfactory->addReference();
+        return sfactory;
+    
+    // Compile on server side and get machine code on client to re-create a local Factory
+    } else if (isopt(argc, argv, "-rm")) {
+   
+        // llvm_dsp_factory : TODO
+        return NULL;
+    
     } else {
     
-        if (isopt(argc, argv, "-rm")) {
-        
-            // llvm_dsp_factory : TODO
-            return 0;
-        
+        remote_dsp_factory* factory = new remote_dsp_factory(ip_server, port_server, sha_key);
+        if (factory->init(argc1, argv1, name_app, expanded_dsp, error_msg, opt_level)) {
+            remote_dsp_factory::gRemoteFactoryDSPTable[factory] = make_pair(list<remote_dsp_aux*>(), list<remote_audio_aux*>());
+            return factory;
         } else {
-        
-            // remote_dsp_factory
-            RemoteFactoryDSPTableIt it;
-            if (getRemoteFactory(sha_key, it)) {
-                Sremote_dsp_factory sfactory = (*it).first;
-                sfactory->addReference();
-                return sfactory;
-            } else {
-                remote_dsp_factory* factory = new remote_dsp_factory(ip_server, port_server, sha_key);
-                if (factory->init(argc1, argv1, name_app, expanded_dsp, error_msg, opt_level)) {
-                    remote_dsp_factory::gRemoteFactoryDSPTable[factory] = make_pair(list<remote_dsp_aux*>(), list<remote_audio_aux*>());
-                    return factory;
-                } else {
-                    delete factory;
-                    return 0;
-                }
-            }
+            delete factory;
+            return NULL;
         }
+        
     }
 }
 
@@ -1072,7 +1078,7 @@ EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
             (*it).second.first.push_back(instance);
             return reinterpret_cast<remote_dsp*>(instance);
         } else {
-            return 0;
+            return NULL;
         }
     }
 }
@@ -1133,9 +1139,8 @@ EXPORT remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int 
         (*it).second.second.push_back(instance);
         return reinterpret_cast<remote_audio*>(instance);
     } else {
-        return 0;
+        return NULL;
     }
-    return 0;
 }
 
 EXPORT void deleteRemoteAudioInstance(remote_audio* audio)

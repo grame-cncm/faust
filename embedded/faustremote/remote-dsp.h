@@ -69,7 +69,7 @@ class remote_dsp_factory {
  *
  * @param argc - the number of parameters in argv array
  * @param argv - the array of compilation parameters :
- *  - Faust compilation parameters (like '-vec -vs 64') may be used to launch whole compilation cycle
+ *  - Faust compilation parameters (like '-vec -vs 64') may be used to start new compilation cycle
  *  - '-rm <target>' (like '-rm arm-apple-ios7.0:cortex-a9') to cross-compile on server side and get machine code on client to re-create a local Factory
  * @param ip_server - IP of remote machine
  * @param port_server - port on which the remote machine started

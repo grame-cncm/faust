@@ -159,8 +159,8 @@ struct dsp_server_connection_info {
     dsp_server_connection_info();
     virtual ~dsp_server_connection_info() {}
     
-    void getJson(llvm_dsp_factory* factory) ;
-    bool getJsonFromKey(DSPServer* server);
+    void getJson(llvm_dsp_factory* factory);
+    bool getFactoryFromSHAKey(DSPServer* server);
     
     int iteratePost(const char* key, const char* data, size_t size); 
     
@@ -259,8 +259,8 @@ class DSPServer {
         
         bool getAvailableFactories(MHD_Connection* connection);
         
-        bool getJsonFromKey(MHD_Connection* connection, dsp_server_connection_info* info);
-        bool getJson(MHD_Connection* connection, dsp_server_connection_info* info);
+        bool getFactoryFromSHAKey(MHD_Connection* connection, dsp_server_connection_info* info);
+        bool createFactory(MHD_Connection* connection, dsp_server_connection_info* info);
         
         bool createInstance(MHD_Connection* connection, dsp_server_connection_info* info);
         bool deleteInstance(MHD_Connection* connection, dsp_server_connection_info* info);

@@ -219,7 +219,7 @@ void dsp_server_connection_info::getJson(llvm_dsp_factory* factory)
     fAnswer = json.JSON();
 }
 
-bool dsp_server_connection_info::getJsonFromKey(DSPServer* server)
+bool dsp_server_connection_info::getFactoryFromSHAKey(DSPServer* server)
 {
     // Will increment factory reference counter...
     llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(fSHAKey);
@@ -247,7 +247,7 @@ llvm_dsp_factory* dsp_server_connection_info::createFactory(DSPServer* server)
     
     llvm_dsp_factory* factory = NULL;
      
-    if (isopt(argc, argv, "-lm")) {
+    if (isopt(argc, argv, "-rm")) {
         // Machine code
         //fFactory = readDSPFactoryFromMachine(fFaustCode);
         factory = readCDSPFactoryFromMachine(fFaustCode.c_str());
@@ -522,20 +522,20 @@ bool DSPServer::getAvailableFactories(MHD_Connection* connection)
     return sendPage(connection, answer.str(), MHD_HTTP_OK, "text/plain");
 }
 
-bool DSPServer::getJsonFromKey(MHD_Connection* connection, dsp_server_connection_info* info)
+bool DSPServer::getFactoryFromSHAKey(MHD_Connection* connection, dsp_server_connection_info* info)
 {
-    if (info->getJsonFromKey(this)) {
+    if (info->getFactoryFromSHAKey(this)) {
        return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json"); 
     } else {
         return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
     }
 }
 
-bool DSPServer::getJson(MHD_Connection* connection, dsp_server_connection_info* info)
+bool DSPServer::createFactory(MHD_Connection* connection, dsp_server_connection_info* info)
 {
     llvm_dsp_factory* factory;
     
-    if (info->getJsonFromKey(this)) {
+    if (info->getFactoryFromSHAKey(this)) {
         return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json");
     } else if ((factory = info->createFactory(this))) {
         info->getJson(factory);
@@ -598,7 +598,7 @@ bool DSPServer::deleteFactory(MHD_Connection* connection, dsp_server_connection_
 
 // Response to all POST request
 // 3 requests are correct : 
-// - /GetJson --> Receive Faust code / Compile Data / Send back JSON Interface
+// - /CreateFactory --> Receive Faust code / Compile Data / Send back JSON Interface
 // - /CreateInstance --> Receive factoryIndex / Create instance 
 // - /DeleteFactory --> Receive factoryIndex / Delete factory
 int DSPServer::answerPost(MHD_Connection* connection, const char* url, const char* upload_data, size_t* upload_data_size, void** con_cls)
@@ -609,20 +609,20 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
         return info->postProcess(upload_data, upload_data_size);
     } else {
         
-        if (strcmp(url, "/GetJson") == 0) {
-            return getJson(connection, info);
-        } else if (strcmp(url, "/GetJsonFromKey") == 0) {
-            return getJsonFromKey(connection, info);
+        if (strcmp(url, "/CreateFactory") == 0) {
+            return createFactory(connection, info);
+        } else if(strcmp(url, "/DeleteFactory") == 0) {
+            return deleteFactory(connection, info);
+        } else if (strcmp(url, "/GetFactoryFromSHAKey") == 0) {
+            return getFactoryFromSHAKey(connection, info);
         } else if (strcmp(url, "/CreateInstance") == 0) {
             return createInstance(connection, info);
         } else if (strcmp(url, "/DeleteInstance") == 0) {
             return deleteInstance(connection, info);
-        } else if (strcmp(url, "/Start") == 0) {
+        } else if (strcmp(url, "/StartInstance") == 0) {
             return start(connection, info);
-        } else if(strcmp(url, "/Stop") == 0) {
+        } else if(strcmp(url, "/StopInstance") == 0) {
             return stop(connection, info);
-        } else if(strcmp(url, "/DeleteFactory") == 0) {
-            return deleteFactory(connection, info);
         } else {
             return sendPage(connection, "", MHD_HTTP_BAD_REQUEST, "text/html"); 
         }
