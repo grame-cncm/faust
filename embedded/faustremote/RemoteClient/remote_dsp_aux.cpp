@@ -149,7 +149,7 @@ static remote_dsp_factory* crossCompileFromSHAKey(const string& sha_key, int arg
     string url = serverURL.str() + "/CrossCompileFactoryFromSHAKey";
    
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
-        llvm_dsp_factory* factory = readCDSPFactoryFromMachine(response.c_str());
+        llvm_dsp_factory* factory = readCDSPFactoryFromMachine(response.c_str(), getDSPMachineTarget().c_str());
         remote_dsp_factory::gLocalFactoryDSPTable.push_back(factory);
         return reinterpret_cast<remote_dsp_factory*>(factory); 
     } else {
@@ -195,7 +195,7 @@ static remote_dsp_factory* crossCompile(int argc, const char *argv[],
     string url = serverURL.str() + "/CrossCompileFactory";
    
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
-        llvm_dsp_factory* factory = readCDSPFactoryFromMachine(response.c_str());
+        llvm_dsp_factory* factory = readCDSPFactoryFromMachine(response.c_str(), getDSPMachineTarget().c_str());
         remote_dsp_factory::gLocalFactoryDSPTable.push_back(factory);
         return reinterpret_cast<remote_dsp_factory*>(factory); 
     } else {
