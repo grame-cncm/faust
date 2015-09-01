@@ -43,9 +43,9 @@ enum {
 
 /**
  * DSP factory class.
- * Each received DSP source will be compiled as as 'DSP factory', then one or 
- * several 'DSP instances' will be created and connected to the client side
- * using NetJack master/slave connection.
+ * Each received DSP source will be compiled as as 'DSP factory'. Depending of the kind of created factory 
+ * (local = client side) or (remote = server side), 'DSP instances' will be create locally or remotely.
+ * Remote 'DSP instances' will be connected to the client side using NetJack master/slave connection.
  */
 class remote_dsp_factory {
     
@@ -195,7 +195,8 @@ class remote_dsp : public dsp {
 typedef int (*remoteDSPErrorCallback) (int error_code, void* arg);
 
 /**
- * Create a Faust remote DSP instance. A NetJack connexion is initialized with a specified sampling rate and buffer size. 
+ * Create a Faust local/remote DSP instance, depending of the kind of factory is it created from.
+ * When created rempotely, a NetJack connexion is initialized with a specified sampling rate and buffer size. 
  * - if '--NJ_partial' is set, then the remote_dsp compute method can be safely called with 
  * a number of frames below bufferSize, partial buffers will be sent and received.
  * - parameter '--NJ_compression' can be used to chose between JackOpusEncoder format 
@@ -302,9 +303,8 @@ bool getRemoteDSPFactories(const std::string& ip_server, int port_server, std::v
  /**
  * DSP compilation service class : after being started, the server waits for compilation 
  * request from clients (delivered using the client API part). 
- * Each received DSP source will be compiled as a 'DSP factory', then one or 
- * several 'DSP instances' will be created and connected to the client side
- * using a NetJack master/slave connection.
+ * Each received DSP source will be compiled as a 'DSP factory'. Remote (= server side) 'DSP instances' 
+ * will be created and connected to the client side using a NetJack master/slave connection.
  */
  
 /* Called each time a new DSP factory is created */

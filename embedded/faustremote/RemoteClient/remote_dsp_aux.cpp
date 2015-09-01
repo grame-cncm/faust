@@ -212,8 +212,9 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
                             string& error, 
                             int opt_level)
 {
+    fExpandedDSP = dsp_content;
     stringstream finalRequest;
-     
+   
     // Adding name
     finalRequest << "name=" << name_app;
     
@@ -327,7 +328,7 @@ remote_audio_aux* remote_dsp_factory::createRemoteAudioInstance(int argc, const 
 
 //---------FACTORY
 
-static bool getRemoteFactory(const string& sha_key, RemoteFactoryDSPTableIt& res)
+static bool isRemoteFactory(const string& sha_key, RemoteFactoryDSPTableIt& res)
 {
     RemoteFactoryDSPTableIt it;
     
@@ -342,7 +343,7 @@ static bool getRemoteFactory(const string& sha_key, RemoteFactoryDSPTableIt& res
     return false;
 }
 
-static bool getLocalFactory(const string& sha_key)
+static bool isLocalFactory(const string& sha_key)
 {
     LocalFactoryDSPTableIt it;
     
@@ -838,11 +839,11 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, 
         return crossCompileFromSHAKey(sha_key, argc, argv, ip_server, port_server);
     
     // If available in the local LLVM cache
-    } else if (getLocalFactory(sha_key)) {
+    } else if (isLocalFactory(sha_key)) {
         return reinterpret_cast<remote_dsp_factory*>(getDSPFactoryFromSHAKey(sha_key));
     
     // If available in the local remote cache
-    } else if (getRemoteFactory(sha_key, it)) {
+    } else if (isRemoteFactory(sha_key, it)) {
         Sremote_dsp_factory sfactory = (*it).first;
         sfactory->addReference();
         return sfactory;
@@ -940,11 +941,11 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
         return crossCompile(argc, argv, name_app, expanded_dsp, sha_key, ip_server, port_server);
         
     // If available in the local LLVM cache
-    } else if (getLocalFactory(sha_key)) {
+    } else if (isLocalFactory(sha_key)) {
         return reinterpret_cast<remote_dsp_factory*>(getDSPFactoryFromSHAKey(sha_key));
         
     // If available in the local remote cache
-    } else if (getRemoteFactory(sha_key, it)) {
+    } else if (isRemoteFactory(sha_key, it)) {
         Sremote_dsp_factory sfactory = (*it).first;
         sfactory->addReference();
         return sfactory;

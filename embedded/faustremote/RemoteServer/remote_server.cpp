@@ -585,7 +585,7 @@ bool DSPServer::crossCompileFactory(MHD_Connection* connection, dsp_server_conne
         fFactories.insert(factory);
         
         // Return machine_code to client
-         string machine_code = writeDSPFactoryToMachine(factory, info->fTarget);
+        string machine_code = writeDSPFactoryToMachine(factory, info->fTarget);
          
         // And keep the new compiled target, so that is it "cached"
         llvm_dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget);
