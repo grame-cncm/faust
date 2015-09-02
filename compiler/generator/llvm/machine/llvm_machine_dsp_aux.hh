@@ -70,6 +70,7 @@ class llvm_dsp_factory : public smartable {
         LLVMResult* fResult;
      
         int fOptLevel;
+        string fExpandedDSP;
         string fTarget;
         string fClassName;
         string fSHAKey;
@@ -92,7 +93,7 @@ class llvm_dsp_factory : public smartable {
                    
   public:
   
-        llvm_dsp_factory(const string& sha_key, const string& machine_code);
+        llvm_dsp_factory(const string& sha_key, const string& machine_code, const string& target);
       
         virtual ~llvm_dsp_factory();
       
@@ -106,8 +107,10 @@ class llvm_dsp_factory : public smartable {
     
         string getName();
         
-        string getSHAKey() { return fSHAKey; }
-        
+        string getSHAKey();
+    
+        string getDSPCode();
+    
         string getTarget() { return fTarget; }
     
         vector<std::string> getLibraryList() { return fResult->fPathnameList; }
@@ -174,10 +177,10 @@ EXPORT bool startMTDSPFactories();
 EXPORT void stopMTDSPFactories();
 
 // machine <==> string
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code);
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target);
 
 // machine <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path);
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target);
 
 EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m);
 
@@ -222,6 +225,10 @@ EXPORT const char* getCName(llvm_dsp_factory* factory);
 
 EXPORT const char* getCSHAKey(llvm_dsp_factory* factory);
     
+EXPORT char* getCTarget(llvm_dsp_factory* factory);
+    
+EXPORT char* getCDSPCode(llvm_dsp_factory* factory);
+    
 EXPORT char* getCDSPMachineTarget();
 
 EXPORT const char** getCLibraryList(llvm_dsp_factory* factory);
@@ -234,9 +241,9 @@ EXPORT bool startMTCDSPFactories();
 
 EXPORT void stopMTCDSPFactories();
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code);
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target);
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path);
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target);
 
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
     
