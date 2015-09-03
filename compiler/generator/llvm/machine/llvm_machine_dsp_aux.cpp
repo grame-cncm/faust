@@ -149,7 +149,7 @@ void* llvm_dsp_factory::loadOptimize(const string& function)
     }
 }
 
-llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_code)
+llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_code, const string& target)
 {
     fJIT = 0;
     fNew = 0;
@@ -160,8 +160,8 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_
     fInit = 0;
     fCompute = 0;
     fClassName = "mydsp";
-    fExtName = "ModuleDSP";
-    fTarget = llvm::sys::getDefaultTargetTriple() + ":" + llvm::sys::getHostCPUName().str();
+    fExtName = "MachineDSP";
+    fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
     fSHAKey = sha_key;
     
     fObjectCache = new FaustObjectCache(machine_code);
@@ -351,27 +351,6 @@ EXPORT void stopMTDSPFactories()
     gDSPFactoriesLock = 0;
 }
 
-EXPORT std::string llvm_dsp_factory::getName()
-{
-    struct MyMeta : public Meta
-    {
-        string name;
-        
-        virtual void declare(const char* key, const char* value){
-            if (strcmp(key, "name") == 0) {
-                name = value;
-            }
-        }
-        
-    };
-    
-    MyMeta metadata;
-    metadataDSPFactory (&metadata);
-    return (fExtName != "") ? fExtName : metadata.name;
-}
-
-EXPORT std::string llvm_dsp_factory::(llvm_dsp_factory* factory) { return fSHAKey; }
-
 EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)
 {
     TLock lock(gDSPFactoriesLock);
@@ -458,7 +437,7 @@ EXPORT void deleteAllDSPFactories()
     llvm_dsp_factory::gFactoryTable.clear();
 }
     
-static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer)
+static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const std::string& target)
 {
     string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
     FactoryTableIt it;
@@ -470,7 +449,7 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer)
     } else {
         string error_msg;
         try {
-            llvm_dsp_factory* factory = checkDSPFactory(new llvm_dsp_factory(sha_key, MEMORY_BUFFER_GET(buffer).str()), error_msg);
+            llvm_dsp_factory* factory = checkDSPFactory(new llvm_dsp_factory(sha_key, MEMORY_BUFFER_GET(buffer).str(), target), error_msg);
             llvm_dsp_factory::gFactoryTable[factory] = list<llvm_dsp_aux*>();
             return factory;
         } catch (faustexception& e) {
@@ -481,15 +460,15 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer)
 }
 
 // machine <==> string
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code)
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target)
 {
     TLock lock(gDSPFactoriesLock);
     
-    return readDSPFactoryFromMachineAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))));
+    return readDSPFactoryFromMachineAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))), target);
 }
 
 // machine <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path)
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target)
 {
     TLock lock(gDSPFactoriesLock);
     
@@ -498,7 +477,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machin
         printf("readDSPFactoryFromMachineFile failed : %s\n", ec.message().c_str());
         return NULL;
     } else {
-        return readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer));
+        return readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer), target);
      }
 }
 
@@ -646,14 +625,14 @@ EXPORT void deleteAllCDSPFactories()
     deleteAllDSPFactories();
 }
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code)
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target)
 {
-    return readDSPFactoryFromMachine(machine_code);
+    return readDSPFactoryFromMachine(machine_code, target);
 }
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path)
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target)
 {
-    return readDSPFactoryFromMachineFile(machine_code_path);
+    return readDSPFactoryFromMachineFile(machine_code_path, target);
 }
 
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* glue)
