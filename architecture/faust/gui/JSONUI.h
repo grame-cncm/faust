@@ -31,6 +31,7 @@ class JSONUI : public PathUI, public Meta
         std::stringstream fMeta;
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         std::string fName;
+        std::string fExpandedCode;
     
         char fCloseUIPar;
         char fCloseMetaPar;
@@ -61,7 +62,7 @@ class JSONUI : public PathUI, public Meta
             }
         }
         
-        void init(const std::string& name, int inputs, int outputs)
+        void init(const std::string& name, int inputs, int outputs, const std::string& dsp_code)
         {
             fTab = 1;
             
@@ -77,18 +78,24 @@ class JSONUI : public PathUI, public Meta
             fName = name;
             fInputs = inputs;
             fOutputs = outputs;
+            fExpandedCode = dsp_code;
         }
       
      public:
      
+        JSONUI(const std::string& name, int inputs, int outputs, const std::string& dsp_code)
+        {
+            init(name, inputs, outputs, dsp_code);
+        }
+
         JSONUI(const std::string& name, int inputs, int outputs)
         {
-            init(name, inputs, outputs);
+            init(name, inputs, outputs, "");
         }
 
         JSONUI(int inputs, int outputs)
         {
-            init("", inputs, outputs);
+            init("", inputs, outputs, "");
         }
  
         virtual ~JSONUI() {}
@@ -260,6 +267,7 @@ class JSONUI : public PathUI, public Meta
             fJSON << "{";
             fTab += 1;
             tab(fTab, fJSON); fJSON << "\"name\": \"" << fName << "\",";
+            tab(fTab, fJSON); fJSON << "\"code\": \"" << fExpandedCode << "\","; 
             if (fInputs > 0) { tab(fTab, fJSON); fJSON << "\"inputs\": \"" << fInputs << "\","; }
             if (fOutputs > 0) { tab(fTab, fJSON); fJSON << "\"outputs\": \"" << fOutputs << "\","; }
             tab(fTab, fMeta); fMeta << "],";
