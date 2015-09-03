@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
  FAUST compiler
- Copyright (C) 2003-2013 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -119,42 +119,6 @@ remote_dsp_factory::~remote_dsp_factory()
     vector<itemInfo*>::iterator it;
     for (it = fUiItems.begin(); it != fUiItems.end() ; it++) {
         delete(*it);
-    }
-}
-
-// Compile on server side and get machine code on client to re-create a local Factory
-static remote_dsp_factory* crossCompileFromSHAKey(const string& sha_key, int argc, 
-                                                const char *argv[], 
-                                                const string& ip_server, 
-                                                int port_server,
-                                                int opt_level)
-{
-    stringstream finalRequest;
-    stringstream serverURL;
-    serverURL << "http://" << ip_server << ":" << port_server;
-    string response;
-    int errorCode = -1;
-    
-    // Adding Compilation options 
-    finalRequest << "&number_options=" << argc;
-    for (int i = 0; i < argc; i++) {
-        finalRequest << "&options=" << argv[i];
-    }
-    
-    // LLVM optimization level and SHA key
-    finalRequest << "&opt_level=" << opt_level << "&shaKey=" << sha_key;  // (opt_level = -1 means 'maximum possible value')
-    
-    // Machine target
-    finalRequest << "&target=" << loptions(argv, "-rm", getDSPMachineTarget().c_str());
-     
-    string url = serverURL.str() + "/CrossCompileFactoryFromSHAKey";
-   
-    if (sendRequest(url, finalRequest.str(), response, errorCode)) {
-        llvm_dsp_factory* factory = readCDSPFactoryFromMachine(response.c_str(), getDSPMachineTarget().c_str());
-        remote_dsp_factory::gLocalFactoryDSPTable.push_back(factory);
-        return reinterpret_cast<remote_dsp_factory*>(factory); 
-    } else {
-        return NULL;
     }
 }
 
@@ -284,7 +248,8 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
 void remote_dsp_factory::decodeJson(const string& json)
 {
     const char* p = json.c_str();
-    parseJson(p, fMetadatas, fUiItems, fName);
+    
+    parseJson(p, fMetadatas, fUiItems, fName, fExpandedDSP);
     
     fNumInputs = atoi(fMetadatas["inputs"].c_str());
     fMetadatas.erase("inputs");
@@ -832,18 +797,12 @@ int remote_DNS::pingHandler(const char* path, const char* types,
 
 // TODO : possibly recompute the DSP (if Faust compilation parameters change)
 
-EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, int argc, const char* argv[], const string& ip_server, int port_server, int opt_level)
+EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, const std::string& ip_server, int port_server)
 {
     RemoteFactoryDSPTableIt it;
     
-    // Compile on server side and get machine code on client to re-create a local Factory
-    if (isopt(argc, argv, "-rm")) {
-        return crossCompileFromSHAKey(sha_key, argc, argv, ip_server, port_server, opt_level);
-    
-    // If available in the local LLVM cache
-    } else if (isLocalFactory(sha_key)) {
+    if (isLocalFactory(sha_key)) {
         return reinterpret_cast<remote_dsp_factory*>(getDSPFactoryFromSHAKey(sha_key));
-    
     // If available in the local remote cache
     } else if (isRemoteFactory(sha_key, it)) {
         Sremote_dsp_factory sfactory = (*it).first;

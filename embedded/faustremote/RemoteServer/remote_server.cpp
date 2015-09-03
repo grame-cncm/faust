@@ -10,6 +10,7 @@
 #include "utilities.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUI.h"
+#include "base64.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -214,7 +215,8 @@ void dsp_server_connection_info::getJson(llvm_dsp_factory* factory)
     fNameApp = factory->getName();
     // This instance is used only to build JSON interface, then it's deleted
     llvm_dsp* dsp = createDSPInstance(factory);
-    JSONUI json(fNameApp, dsp->getNumInputs(), dsp->getNumOutputs());
+    string code = factory->getDSPCode();
+    JSONUI json(fNameApp, dsp->getNumInputs(), dsp->getNumOutputs(), base64_encode((const unsigned char*)code.c_str(), code.size()));
     dsp->buildUserInterface(&json);
     deleteDSPInstance(dsp);  
     fAnswer = json.JSON();
@@ -237,26 +239,32 @@ bool dsp_server_connection_info::getFactoryFromSHAKey(DSPServer* server)
 // Create DSP Factory 
 llvm_dsp_factory* dsp_server_connection_info::crossCompileFactory(DSPServer* server, string& error) 
 {
-    // Sort out compilation options
-    int argc = fCompilationOptions.size();
-    const char* argv[argc];
-    for (int i = 0; i < argc; i++) {
-        argv[i] = fCompilationOptions[i].c_str();
+    llvm_dsp_factory* factory;
+  
+    // Already in the cache...
+    if ((factory = getDSPFactoryFromSHAKey(fSHAKey))) {
+        return factory;
+    } else {
+        // Sort out compilation options
+        int argc = fCompilationOptions.size();
+        const char* argv[argc];
+        for (int i = 0; i < argc; i++) {
+            argv[i] = fCompilationOptions[i].c_str();
+        }
+     
+        char error1[256];
+        factory = createCDSPFactoryFromString(fNameApp.c_str(),
+                                            fFaustCode.c_str(),
+                                            argc, argv, fTarget.c_str(),
+                                            error1, atoi(fOptLevel.c_str()));
+                                                                
+        error = error1;                                                    
+        if (factory && server->fCreateDSPFactoryCb) {
+            // Possibly call callback
+            server->fCreateDSPFactoryCb(factory, server->fCreateDSPFactoryCb_arg);
+        } 
+        return factory;
     }
- 
-    char error1[256];
-    llvm_dsp_factory* factory = createCDSPFactoryFromString(fNameApp.c_str(),
-                                                            fFaustCode.c_str(),
-                                                            argc, argv, fTarget.c_str(),
-                                                            error1, atoi(fOptLevel.c_str()));
-                                                            
-    error = error1;                                                    
-    if (factory && server->fCreateDSPFactoryCb) {
-        // Possibly call callback
-        server->fCreateDSPFactoryCb(factory, server->fCreateDSPFactoryCb_arg);
-    } 
-    
-    return factory;
 }
 
 // Create DSP Factory 
@@ -511,7 +519,6 @@ int DSPServer::answerToConnection(void* cls,
                                 size_t* upload_data_size, 
                                 void** con_cls)
 {
-
     DSPServer* server = (DSPServer*)cls;
     server->stopNotActiveDSP();
     
@@ -606,31 +613,6 @@ bool DSPServer::crossCompileFactory(MHD_Connection* connection, dsp_server_conne
     }
 }
 
-bool DSPServer::crossCompileFactoryFromSHAKey(MHD_Connection* connection, dsp_server_connection_info* info)
-{
-    // Get the factory (actually increment reference counter)
-    llvm_dsp_factory* old_factory = getDSPFactoryFromSHAKey(info->fSHAKey);
-    
-    // Cross compile for a new target
-    string machine_code = writeDSPFactoryToMachine(old_factory, info->fTarget);
-    
-    // And keep the new compiled target, so that is it "cached"
-    llvm_dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget);
-    
-    if (new_factory) {
-        fFactories.insert(new_factory);
-        if (fCreateDSPFactoryCb) {
-            // Possibly call callback
-            fCreateDSPFactoryCb(new_factory, fCreateDSPFactoryCb_arg);
-       }
-    }
-    
-    // Then delete (actually decrement) used factory
-    deleteDSPFactory(old_factory);
-    
-    return sendPage(connection, machine_code, MHD_HTTP_OK, "text/plain");
-}
-
 bool DSPServer::createInstance(MHD_Connection* connection, dsp_server_connection_info* info)
 {
     if (createInstance(info)) {
@@ -701,8 +683,6 @@ int DSPServer::answerPost(MHD_Connection* connection, const char* url, const cha
             return createFactory(connection, info);
         } else if (strcmp(url, "/CrossCompileFactory") == 0) {
             return crossCompileFactory(connection, info);
-        } else if (strcmp(url, "/CrossCompileFactoryFromSHAKey") == 0) {
-            return crossCompileFactoryFromSHAKey(connection, info);
         } else if (strcmp(url, "/GetFactoryFromSHAKey") == 0) {
             return getFactoryFromSHAKey(connection, info);
         } else if(strcmp(url, "/DeleteFactory") == 0) {

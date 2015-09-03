@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
  FAUST compiler
- Copyright (C) 2003-2013 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -306,7 +306,7 @@ class EXPORT remote_dsp_machine {
 
 // Factories
     
-EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, int argc, const char* argv[], const string& ip_server, int port_server, int opt_level = -1);  
+EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, const string& ip_server, int port_server);  
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char* argv[], 
                                                         const string& ip_server, int port_server, 

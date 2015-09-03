@@ -22,7 +22,9 @@
 #include <fstream>
 #include <iostream>
 #include <ctype.h>
+
 #include "JsonParser.h"
+#include "base64.h"
 
 // ---------------------------------------------------------------------
 //                          Elementary parsers
@@ -96,29 +98,27 @@ static bool parseChar(const char*& p, char x)
 //
 static bool parseMetaData(const char*& p, string& key, string& value, map<string,string>& metadatas)
 {
-    if (parseString(p,key)){
+    if (parseString(p, key)){
         if (key.compare("meta") == 0){
-            if (parseChar(p,':') && parseChar(p,'[') && parseChar(p,'{')) {
+            if (parseChar(p, ':') && parseChar(p, '[') && parseChar(p, '{')) {
                 do {
                     string key1;
                     string value1;
-                    
                     if (parseMetaData(p, key1, value1, metadatas)) {
                         metadatas[key1] = value1;
-                        printf("METADATAS = %s || %s\n", key1.c_str(), value1.c_str());
                     }
-                } while (tryChar(p,','));
+                } while (tryChar(p, ','));
                 
-                return parseChar(p,'}') && parseChar(p,']');
-            }
-            else
+                return parseChar(p, '}') && parseChar(p, ']');
+            } else {
                 return false;
+            }
+        } else {
+           return parseChar(p, ':') && parseString(p, value);
         }
-        else
-            return parseChar(p,':') && parseString(p, value);
-    }
-    else
+    } else {
         return false;
+    }
 }
 
 // ---------------------------------------------------------------------
@@ -128,7 +128,7 @@ static bool parseMetaData(const char*& p, string& key, string& value, map<string
 //
 static bool parseUI(const char*& p, vector<itemInfo*>& uiItems, int& numItems)
 {
-    if (parseChar(p,'{')) {
+    if (parseChar(p, '{')) {
         
         string label;
         string value;
@@ -150,27 +150,27 @@ static bool parseUI(const char*& p, vector<itemInfo*>& uiItems, int& numItems)
                     }
                 }
                 
-                else if(label.compare("label") == 0) {
+                else if (label.compare("label") == 0) {
                     if (parseChar(p, ':') && parseString(p, value)) {
                         itemInfo* item = uiItems[numItems];
                         item->label = value;
                     }
                 }
                 
-                else if(label.compare("address") == 0){
+                else if (label.compare("address") == 0){
                     if (parseChar(p, ':') && parseString(p, value)) {
                         itemInfo* item = uiItems[numItems];
                         item->address = value;
                     }
                 }
                 
-                else if(label.compare("meta") == 0) {
+                else if (label.compare("meta") == 0) {
                     
                     string metaKey, metaValue;
                     if (parseChar(p, ':') && parseChar(p,'[')) {
                         
                         do { 
-                            if( parseChar(p,'{') && parseString(p, metaKey) && parseChar(p, ':') && parseString(p, metaValue) && parseChar(p,'}')) {
+                            if (parseChar(p,'{') && parseString(p, metaKey) && parseChar(p, ':') && parseString(p, metaValue) && parseChar(p,'}')) {
                                 itemInfo* item = uiItems[numItems];
                                 item->meta[metaKey] = metaValue;
                             }
@@ -202,8 +202,8 @@ static bool parseUI(const char*& p, vector<itemInfo*>& uiItems, int& numItems)
                     }
                 }
                 
-                else if(label.compare("step") == 0){
-                    if(parseChar(p, ':') && parseString(p, value)){
+                else if (label.compare("step") == 0){
+                    if (parseChar(p, ':') && parseString(p, value)){
                         itemInfo* item = uiItems[numItems];
                         item->step = value;
                     }
@@ -211,13 +211,13 @@ static bool parseUI(const char*& p, vector<itemInfo*>& uiItems, int& numItems)
                 
                 else if (label.compare("items") == 0) {
                     
-                    if (parseChar(p, ':') && parseChar(p,'[')) {
+                    if (parseChar(p, ':') && parseChar(p, '[')) {
                         
                         do { 
                             if (!parseUI(p, uiItems, numItems))
                                 return false;
-                        } while (tryChar(p,','));
-                        if (parseChar(p,']')) {
+                        } while (tryChar(p, ','));
+                        if (parseChar(p, ']')) {
                             itemInfo* item = new itemInfo;
                             item->type = "close";
                             uiItems.push_back(item);
@@ -225,16 +225,16 @@ static bool parseUI(const char*& p, vector<itemInfo*>& uiItems, int& numItems)
                         }
                     }
                 }
-            }
-            else
+            } else {
                 return false;
+            }
             
-        } while (tryChar(p,','));
+        } while (tryChar(p, ','));
         
-        return parseChar(p,'}');
-    }
-    else
+        return parseChar(p, '}');
+    } else {
         return false;
+    }
 }
 
 // ---------------------------------------------------------------------
@@ -244,20 +244,27 @@ static bool parseUI(const char*& p, vector<itemInfo*>& uiItems, int& numItems)
 // and store the result in map Metadatas and vector containing the items of the interface. Returns true if parsing was successfull.
 // This function is used by targetsDescriptionReceived() the remote  DSP to decode the result of 
 //
-bool parseJson(const char*& p, map<string,string>& metadatas, vector<itemInfo*>& uiItems, string& name)
+bool parseJson(const char*& p, map<string,string>& metadatas, vector<itemInfo*>& uiItems, string& name, string& code)
 {
     parseChar(p, '{');
+    
+    name = "";
+    code = "";
     
     do {
         string key;
         string value;
         
         if (parseMetaData(p, key, value, metadatas)) {
-            metadatas[key] = value;
-        } else {
             if (key.compare("name") == 0) {
                 name = value;
-            } else if (key.compare("ui") == 0) {
+            } else if (key.compare("code") == 0) {
+                code = base64_decode(value);
+            } else {
+                metadatas[key] = value;
+            }
+        } else {
+            if (key.compare("ui") == 0) {
                 int numItems = 0;
                 parseChar(p,'[') && parseUI(p, uiItems, numItems);
             }

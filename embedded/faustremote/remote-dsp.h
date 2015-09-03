@@ -68,21 +68,12 @@ class remote_dsp_factory {
  * use deleteRemoteDSPFactory to properly decrement reference counter when the factory is no more needed.
  *
  * @param sha_key - the SHA key for an already created factory, kept in the factory cache
- * @param argc - the number of parameters in argv array
- * @param argv - the array of compilation parameters :
- *  - Faust compilation parameters (like '-vec -vs 64') may be used to start new compilation cycle
- *  - '-rm <target>' (like '-rm arm-apple-ios7.0:cortex-a9') to cross-compile on server side and get machine code on client to re-create a local Factory
  * @param ip_server - IP of remote machine
  * @param port_server - port on which the remote machine started
- * @param opt_level - LLVM IR to IR optimization level (from -1 to 4 , -1 means 'maximum possible value')
  *
  * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
  */
-remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_key, 
-                                                int argc, const char* argv[], 
-                                                const std::string& ip_server, 
-                                                int port_server, 
-                                                int opt_level = -1); 
+remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_key, const std::string& ip_server, int port_server); 
 
 /**
  * Create a Faust remote DSP factory from a DSP source code. You will have to explicitly use 
