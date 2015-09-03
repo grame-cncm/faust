@@ -67,8 +67,8 @@ static bool sendRequest(const string& url, const string& finalRequest, string& r
     curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_POSTFIELDS, finalRequest.c_str());
     curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_WRITEFUNCTION, &storeResponse);
     curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_FILE, &oss);
-    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_CONNECTTIMEOUT, 15); 
-    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_TIMEOUT, 15);
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_CONNECTTIMEOUT, 5); 
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_TIMEOUT, 30);
     
     if (curl_easy_perform(remote_dsp_factory::gCurl) != CURLE_OK) {
         printf("curl_easy_perform error\n");
@@ -126,7 +126,8 @@ remote_dsp_factory::~remote_dsp_factory()
 static remote_dsp_factory* crossCompileFromSHAKey(const string& sha_key, int argc, 
                                                 const char *argv[], 
                                                 const string& ip_server, 
-                                                int port_server)
+                                                int port_server,
+                                                int opt_level)
 {
     stringstream finalRequest;
     stringstream serverURL;
@@ -141,7 +142,7 @@ static remote_dsp_factory* crossCompileFromSHAKey(const string& sha_key, int arg
     }
     
     // LLVM optimization level and SHA key
-    finalRequest << "&opt_level=" << -1 << "&shaKey=" << sha_key;  // (opt_level = -1 means 'maximum possible value')
+    finalRequest << "&opt_level=" << opt_level << "&shaKey=" << sha_key;  // (opt_level = -1 means 'maximum possible value')
     
     // Machine target
     finalRequest << "&target=" << loptions(argv, "-rm", getDSPMachineTarget().c_str());
@@ -163,7 +164,8 @@ static remote_dsp_factory* crossCompile(int argc, const char *argv[],
                                         const string& dsp_content,
                                         const string& sha_key,
                                         const string& ip_server, 
-                                        int port_server)
+                                        int port_server,
+                                        int opt_level)
 {
     stringstream finalRequest;
     stringstream serverURL;
@@ -181,7 +183,7 @@ static remote_dsp_factory* crossCompile(int argc, const char *argv[],
     }
     
     // LLVM optimization level and SHA key
-    finalRequest << "&opt_level=" << -1 << "&shaKey=" << sha_key;  // (opt_level = -1 means 'maximum possible value')
+    finalRequest << "&opt_level=" << opt_level << "&shaKey=" << sha_key;  // (opt_level = -1 means 'maximum possible value')
     
     // Machine target
     finalRequest << "&target=" << loptions(argv, "-rm", getDSPMachineTarget().c_str());
@@ -229,8 +231,8 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     
     // Compile on client side and send machine code on server side
     if (isopt(argc, argv, "-lm")) {
-        string error;
-        llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, loptions(argv, "-lm", ""), error, 3);
+        string error1;
+        llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, loptions(argv, "-lm", ""), error1, opt_level);
         if (factory) {
             // Transforming machine code to URL format
             string machine_code = writeDSPFactoryToMachine(factory, "");
@@ -830,13 +832,13 @@ int remote_DNS::pingHandler(const char* path, const char* types,
 
 // TODO : possibly recompute the DSP (if Faust compilation parameters change)
 
-EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, int argc, const char* argv[], const string& ip_server, int port_server)
+EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, int argc, const char* argv[], const string& ip_server, int port_server, int opt_level)
 {
     RemoteFactoryDSPTableIt it;
     
     // Compile on server side and get machine code on client to re-create a local Factory
     if (isopt(argc, argv, "-rm")) {
-        return crossCompileFromSHAKey(sha_key, argc, argv, ip_server, port_server);
+        return crossCompileFromSHAKey(sha_key, argc, argv, ip_server, port_server, opt_level);
     
     // If available in the local LLVM cache
     } else if (isLocalFactory(sha_key)) {
@@ -938,7 +940,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
         
     // Compile on server side and get machine code on client to re-create a local Factory
     } else if (isopt(argc, argv, "-rm")) {
-        return crossCompile(argc, argv, name_app, expanded_dsp, sha_key, ip_server, port_server);
+        return crossCompile(argc, argv, name_app, expanded_dsp, sha_key, ip_server, port_server, opt_level);
         
     // If available in the local LLVM cache
     } else if (isLocalFactory(sha_key)) {
@@ -1083,8 +1085,8 @@ EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vect
     curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_POST, 0L);
     curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_WRITEFUNCTION, &storeResponse);
     curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_FILE, &oss);
-    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_CONNECTTIMEOUT, 15); 
-    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_TIMEOUT, 15);
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_CONNECTTIMEOUT, 5); 
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_TIMEOUT, 30);
         
     if (curl_easy_perform(remote_dsp_factory::gCurl) == CURLE_OK) {
         

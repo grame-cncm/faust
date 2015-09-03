@@ -156,7 +156,7 @@ EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
 EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content,
                                                     int argc, const char* argv[],
                                                     const std::string& target,
-                                                    std::string& error_msg, int opt_level = 3);
+                                                    std::string& error_msg, int opt_level = -1);
 
 
 EXPORT void deleteDSPFactory(llvm_dsp_factory* factory);
@@ -211,9 +211,9 @@ extern "C" {
 EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
     
 EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content,
-                                                         int argc, const char* argv[],
-                                                         const char* target,
-                                                     char* error_msg, int opt_level);
+                                                    int argc, const char* argv[],
+                                                    const char* target,
+                                                    char* error_msg, int opt_level);
 
     
 EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory);

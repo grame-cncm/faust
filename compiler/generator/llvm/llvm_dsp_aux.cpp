@@ -660,8 +660,6 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         initializeInstCombine(Registry);
         initializeInstrumentation(Registry);
         initializeTarget(Registry);
-        
-        TargetRegistry::printRegisteredTargetsForVersion();
        
     #if defined(LLVM_36)
         EngineBuilder builder(unique_ptr<Module>(fResult->fModule));
@@ -750,6 +748,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
             }
             
             if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
+                TargetRegistry::printRegisteredTargetsForVersion();
                 fResult->fModule->dump();
             }
            

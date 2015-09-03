@@ -113,7 +113,7 @@ class llvm_dsp_factory : public smartable {
                         const string& name, 
                         const string& dsp_content, const string& expendand_dsp_content,
                         const string& target, 
-                        string& error_msg, int opt_level = 3);
+                        string& error_msg, int opt_level = -1);
               
         llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const string& target, int opt_level = 0);
         
@@ -200,12 +200,12 @@ EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
 EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, 
                                                   int argc, const char* argv[], 
                                                   const std::string& target, 
-                                                  std::string& error_msg, int opt_level = 3);
+                                                  std::string& error_msg, int opt_level = -1);
 
 EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
                                                     int argc, const char* argv[], 
                                                     const std::string& target, 
-                                                    std::string& error_msg, int opt_level = 3);
+                                                    std::string& error_msg, int opt_level = -1);
 
 EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory);
 

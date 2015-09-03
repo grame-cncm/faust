@@ -306,16 +306,16 @@ class EXPORT remote_dsp_machine {
 
 // Factories
     
-EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, int argc, const char* argv[], const string& ip_server, int port_server);  
+EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, int argc, const char* argv[], const string& ip_server, int port_server, int opt_level = -1);  
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, int argc, const char* argv[], 
                                                         const string& ip_server, int port_server, 
-                                                        string& error_msg, int opt_level);
+                                                        string& error_msg, int opt_level = -1);
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, 
                                                         int argc, const char* argv[], 
                                                         const string& ip_server, int port_server, 
-                                                        string& error, int opt_level);
+                                                        string& error, int opt_level = -1);
 
 EXPORT bool deleteRemoteDSPFactory(remote_dsp_factory* factory);
 

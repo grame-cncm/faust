@@ -194,7 +194,8 @@ extern "C"
      * 
      * @param bit_code - the LLVM bitcode string
      * @param target - the LLVM machine target (using empty string will take current machine settings)
-     * @param opt_level - LLVM IR to IR optimization level (from 0 to 3). A higher value than the one used when calling createDSPFactory can possibly be used
+     * @param opt_level - LLVM IR to IR optimization level (from -1 to 4 , -1 means 'maximum possible value'), a higher value 
+     * than the one used when calling createDSPFactory can possibly be used.
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */

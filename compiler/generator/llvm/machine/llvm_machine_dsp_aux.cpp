@@ -328,8 +328,10 @@ void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content,
                                                     int argc, const char* argv[],
                                                     const std::string& target,
-                                                    std::string& error_msg, int opt_level) {return NULL;}
-
+                                                    std::string& error_msg, int opt_level) 
+{ 
+    return NULL; 
+}
 
 EXPORT bool startMTDSPFactories()
 {

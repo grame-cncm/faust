@@ -243,12 +243,13 @@ llvm_dsp_factory* dsp_server_connection_info::crossCompileFactory(DSPServer* ser
     for (int i = 0; i < argc; i++) {
         argv[i] = fCompilationOptions[i].c_str();
     }
-
+ 
     char error1[256];
     llvm_dsp_factory* factory = createCDSPFactoryFromString(fNameApp.c_str(),
                                                             fFaustCode.c_str(),
                                                             argc, argv, fTarget.c_str(),
                                                             error1, atoi(fOptLevel.c_str()));
+                                                            
     error = error1;                                                    
     if (factory && server->fCreateDSPFactoryCb) {
         // Possibly call callback
