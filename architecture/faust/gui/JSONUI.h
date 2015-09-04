@@ -32,6 +32,7 @@ class JSONUI : public PathUI, public Meta
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         std::string fName;
         std::string fExpandedCode;
+        std::string fSHAKey;
     
         char fCloseUIPar;
         char fCloseMetaPar;
@@ -62,7 +63,7 @@ class JSONUI : public PathUI, public Meta
             }
         }
         
-        void init(const std::string& name, int inputs, int outputs, const std::string& dsp_code)
+        void init(const std::string& name, int inputs, int outputs, const std::string& sha_key, const std::string& dsp_code)
         {
             fTab = 1;
             
@@ -79,23 +80,24 @@ class JSONUI : public PathUI, public Meta
             fInputs = inputs;
             fOutputs = outputs;
             fExpandedCode = dsp_code;
+            fSHAKey = sha_key;
         }
       
      public:
      
-        JSONUI(const std::string& name, int inputs, int outputs, const std::string& dsp_code)
+        JSONUI(const std::string& name, int inputs, int outputs, const std::string& sha_key, const std::string& dsp_code)
         {
-            init(name, inputs, outputs, dsp_code);
+            init(name, inputs, outputs, sha_key, dsp_code);
         }
 
         JSONUI(const std::string& name, int inputs, int outputs)
         {
-            init(name, inputs, outputs, "");
+            init(name, inputs, outputs, "", "");
         }
 
         JSONUI(int inputs, int outputs)
         {
-            init("", inputs, outputs, "");
+            init("", inputs, outputs, "", "");
         }
  
         virtual ~JSONUI() {}
@@ -264,6 +266,7 @@ class JSONUI : public PathUI, public Meta
             fJSON << "{";
             fTab += 1;
             tab(fTab, fJSON); fJSON << "\"name\": \"" << fName << "\",";
+            tab(fTab, fJSON); fJSON << "\"sha_key\": \"" << fSHAKey << "\",";
             tab(fTab, fJSON); fJSON << "\"code\": \"" << fExpandedCode << "\","; 
             if (fInputs > 0) { tab(fTab, fJSON); fJSON << "\"inputs\": \"" << fInputs << "\","; }
             if (fOutputs > 0) { tab(fTab, fJSON); fJSON << "\"outputs\": \"" << fOutputs << "\","; }
