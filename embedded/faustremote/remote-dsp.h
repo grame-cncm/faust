@@ -88,7 +88,7 @@ remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_key, co
  * @param ip_server - IP of remote machine
  * @param port_server - port on which the remote machine started
  * @param error - the error string to be filled
- * @param opt_level - LLVM IR to IR optimization level (from -1 to 4 , -1 means 'maximum possible value')
+ * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value')
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
@@ -113,7 +113,7 @@ remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename,
  * @param ip_server - IP of remote machine
  * @param port_server - port on which the remote machine started
  * @param error - the error string to be filled
- * @param opt_level - LLVM IR to IR optimization level (from -1 to 4 , -1 means 'maximum possible value')
+ * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value')
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 

@@ -90,7 +90,7 @@ llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
  * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
  * @param target - the LLVM machine target (using empty string will take current machine settings)
  * @param error_msg - the error string to be filled
- * @param opt_level - LLVM IR to IR optimization level (from -1 to 4 , -1 means 'maximum possible value')
+ * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value')
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
@@ -111,7 +111,7 @@ llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename,
  * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
  * @param target - the LLVM machine target (using empty string will take current machine settings)
  * @param error_msg - the error string to be filled
- * @param opt_level - LLVM IR to IR optimization level (from -1 to 4 , -1 means 'maximum possible value')
+ * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value')
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
@@ -269,7 +269,7 @@ std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
  * 
  * @param ir_code_path - the LLVM IR (textual) file pathname
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
- * @param opt_level - LLVM IR to IR optimization level (from -1 to 4 , -1 means 'maximum possible value'), a higher value 
+ * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'), a higher value 
  * than the one used when calling createDSPFactory can possibly be used.
  *
  * @return the DSP factory on success, otherwise a null pointer.

@@ -244,25 +244,16 @@ static bool parseUI(const char*& p, vector<itemInfo*>& uiItems, int& numItems)
 // and store the result in map Metadatas and vector containing the items of the interface. Returns true if parsing was successfull.
 // This function is used by targetsDescriptionReceived() the remote  DSP to decode the result of 
 //
-bool parseJson(const char*& p, map<string,string>& metadatas, vector<itemInfo*>& uiItems, string& name, string& code)
+bool parseJson(const char*& p, map<string,string>& metadatas, vector<itemInfo*>& uiItems)
 {
     parseChar(p, '{');
-    
-    name = "";
-    code = "";
     
     do {
         string key;
         string value;
         
         if (parseMetaData(p, key, value, metadatas)) {
-            if (key.compare("name") == 0) {
-                name = value;
-            } else if (key.compare("code") == 0) {
-                code = base64_decode(value);
-            } else {
-                metadatas[key] = value;
-            }
+            metadatas[key] = value;
         } else {
             if (key.compare("ui") == 0) {
                 int numItems = 0;

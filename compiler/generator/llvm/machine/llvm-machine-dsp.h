@@ -83,7 +83,7 @@ llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
  * @param argv - the array of parameters (Warning : aux file generation options will be filtrated (-svg, ...) --> use generateAuxFiles)
  * @param target - the LLVM machine target (using empty string will take current machine settings)
  * @param error_msg - the error string to be filled
- * @param opt_level - LLVM IR to IR optimization level (from -1 to 4 , -1 means 'maximum possible value')
+ * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value')
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */

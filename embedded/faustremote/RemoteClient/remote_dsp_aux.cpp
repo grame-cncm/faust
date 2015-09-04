@@ -249,13 +249,32 @@ void remote_dsp_factory::decodeJson(const string& json)
 {
     const char* p = json.c_str();
     
-    parseJson(p, fMetadatas, fUiItems, fName, fExpandedDSP);
+    parseJson(p, fMetadatas, fUiItems);
     
-    fNumInputs = atoi(fMetadatas["inputs"].c_str());
-    fMetadatas.erase("inputs");
+    if (fMetadatas.find("name") != fMetadatas.end()) {
+        fName = fMetadatas["name"];
+        fMetadatas.erase("name");
+    }
     
-    fNumOutputs = atoi(fMetadatas["outputs"].c_str());
-    fMetadatas.erase("outputs");
+    if (fMetadatas.find("code") != fMetadatas.end()) {
+        fExpandedDSP = fMetadatas["code"];
+        fMetadatas.erase("code");
+    }
+    
+    if (fMetadatas.find("sha_key") != fMetadatas.end()) {
+        fSHAKey = fMetadatas["sha_key"];
+        fMetadatas.erase("sha_key");
+    }
+    
+    if (fMetadatas.find("inputs") != fMetadatas.end()) {
+        fNumInputs = atoi(fMetadatas["inputs"].c_str());
+        fMetadatas.erase("inputs");
+    }
+    
+    if (fMetadatas.find("outputs") != fMetadatas.end()) {
+        fNumOutputs = atoi(fMetadatas["outputs"].c_str());
+        fMetadatas.erase("outputs");
+    }
 }
 
 // Declaring meta datas
