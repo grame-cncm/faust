@@ -106,6 +106,8 @@ class llvm_dsp_factory : public smartable {
     #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
         static void LLVMFatalErrorHandler(const char* reason);
     #endif
+    
+        string writeDSPFactoryToMachineAux(const string& target);
                    
   public:
   

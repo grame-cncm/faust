@@ -237,7 +237,10 @@ class remote_audio {
     
     public: 
         
+        /* Start remote audio instance rendering */
         bool start();
+        
+        /* Stop remote audio instance rendering */
         bool stop();
   
 };
@@ -270,8 +273,13 @@ class remote_dsp_machine {
     
     public: 
         
+        /* Return remote machine IP */
         std::string getIP();
+        
+        /* Return remote machine port */
         int getPort();
+        
+        /* Return remote machine LLVM target (something of the form : 'arm-apple-ios7.0:cortex-a9', to be used when cross-compiling) */
         std::string getTarget();
         
         static remote_dsp_machine* create(const std::string& ip, int port, const std::string& target);

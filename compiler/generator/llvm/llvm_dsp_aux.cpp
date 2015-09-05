@@ -378,7 +378,7 @@ void llvm_dsp_factory::writeDSPFactoryToIRFile(const string& ir_code_path)
 
 bool llvm_dsp_factory::crossCompile(const std::string& target)
 {
-#if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
+#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
     delete fObjectCache;
     fObjectCache = new FaustObjectCache();
     setTarget(target);
@@ -389,18 +389,17 @@ bool llvm_dsp_factory::crossCompile(const std::string& target)
 #endif
 }
 
-std::string llvm_dsp_factory::writeDSPFactoryToMachine(const std::string& target)
+std::string llvm_dsp_factory::writeDSPFactoryToMachineAux(const std::string& target)
 { 
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
     if (target == "" || target == getTarget()) {
-        string machine_code = fObjectCache->getMachineCode();
-        return base64_encode((const unsigned char*)machine_code.c_str(), machine_code.size());
+        return fObjectCache->getMachineCode();
     } else {
         string old_target = getTarget();
         if (crossCompile(target)) {     // Recompilation is required
             string machine_code = fObjectCache->getMachineCode();
             crossCompile(old_target);   // Restore old target
-            return base64_encode((const unsigned char*)machine_code.c_str(), machine_code.size());
+            return machine_code;
         } else {
             return "";
         }
@@ -410,24 +409,18 @@ std::string llvm_dsp_factory::writeDSPFactoryToMachine(const std::string& target
 #endif
 }
 
+std::string llvm_dsp_factory::writeDSPFactoryToMachine(const std::string& target)
+{ 
+    std::string machine_code = writeDSPFactoryToMachineAux(target);
+    return base64_encode((const unsigned char*)machine_code.c_str(), machine_code.size());
+}
+
 void llvm_dsp_factory::writeDSPFactoryToMachineFile(const std::string& machine_code_path, const std::string& target)
 {
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
-    string machine_code = "";
-    if (target == "" || target == getTarget()) {
-        machine_code = fObjectCache->getMachineCode();
-    } else {
-        string old_target = getTarget();
-        if (crossCompile(target)) {     // Recompilation is required
-            machine_code = fObjectCache->getMachineCode();
-            crossCompile(old_target);   // Restore old target
-        }
-    } 
     STREAM_ERROR err;
     raw_fd_ostream out(machine_code_path.c_str(), err, sysfs_binary_flag);
-    out << machine_code; 
+    out << writeDSPFactoryToMachineAux(target); 
     out.flush();
-#endif
 }
 
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)) && !defined(_MSC_VER)
