@@ -47,20 +47,22 @@ CLANG = /opt/local/libexec/llvm-3.4/bin/clang++
 CLANGLIBS=$(CLANGLIBSLIST)
 endif
 
-ifeq ($(LLVM_VERSION), 3.4.2)
-LLVM_VERSION  = LLVM_34
-CLANG = /opt/local/libexec/llvm-3.4/bin/clang++
-endif
-
 ifeq ($(LLVM_VERSION), 3.5.0)
 LLVM_VERSION  = LLVM_35
 CLANG = /opt/local/libexec/llvm-3.5/bin/clang++
 CLANGLIBS=$(CLANGLIBSLIST)
 endif
 
-ifeq ($(LLVM_VERSION), 3.6.0)
-LLVM_VERSION  = q
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.6.0 3.6.1 3.6.2))
+LLVM_VERSION  = LLVM_36
 CLANG = /opt/local/libexec/llvm-3.6/bin/clang++
+CLANGLIBS=$(CLANGLIBSLIST)
+endif
+
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.7.0))
+LLVM_VERSION  = LLVM_37
+CLANG = /opt/local/libexec/llvm-3.7/bin/clang++
+CLANGLIBS=$(CLANGLIBSLIST)
 endif
 
 ifeq ($(OSC),1)

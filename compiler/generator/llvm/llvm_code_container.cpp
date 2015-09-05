@@ -31,7 +31,7 @@
 
 using namespace std;
 
-#if defined(LLVM_36)
+#if defined(LLVM_36) || defined(LLVM_37)
     #define STREAM_ERROR std::error_code
 #else
     #define STREAM_ERROR std::string
@@ -178,7 +178,7 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
     Function* llvm_compute = Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fKlassName, fResult->fModule);
     llvm_compute->setCallingConv(CallingConv::C);
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
     llvm_compute->setDoesNotAlias(3U);
     llvm_compute->setDoesNotAlias(4U);
 #elif defined(LLVM_32) 

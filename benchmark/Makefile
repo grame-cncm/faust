@@ -36,10 +36,16 @@ CXX = /opt/local/libexec/llvm-3.5/bin/clang++
 LLC = /opt/local/libexec/llvm-3.5/bin/llc
 endif
 
-ifeq ($(LLVM_VERSION), 3.6.0)
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.6.0 3.6.1 3.6.2))
 LLVM_VERSION  = LLVM_36
 CXX = /opt/local/libexec/llvm-3.6/bin/clang++
 LLC = /opt/local/libexec/llvm-3.6/bin/llc
+endif
+
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.7.0))
+LLVM_VERSION  = LLVM_37
+CXX = /opt/local/libexec/llvm-3.7/bin/clang++
+LLC = /opt/local/libexec/llvm-3.7/bin/llc
 endif
 
 ifeq ($(system), Darwin)

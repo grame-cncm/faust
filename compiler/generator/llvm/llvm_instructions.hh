@@ -41,7 +41,7 @@ using namespace std;
 #include "exception.hh"
 #include "global.hh"
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
@@ -52,7 +52,7 @@ using namespace std;
 #endif
 
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
-#if defined(LLVM_36)
+#if defined(LLVM_36) || defined(LLVM_37)
 #include <llvm/ExecutionEngine/MCJIT.h>
 #else
 #include <llvm/ExecutionEngine/JIT.h>
@@ -65,13 +65,13 @@ using namespace std;
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/Host.h>
 
-#if defined(LLVM_35) || defined(LLVM_36)
+#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
 #include <llvm/IR/Verifier.h>
 #else
 #include <llvm/Analysis/Verifier.h>
 #endif
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
 #include <llvm/IR/IRBuilder.h>
 #elif defined(LLVM_32) 
 #include <llvm/IRBuilder.h>
@@ -1271,7 +1271,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 function = Function::Create(fun_type, (inst->fType->fAttribute & FunTyped::kLocal) ? GlobalValue::InternalLinkage : GlobalValue::ExternalLinkage, inst->fName, fModule);
                 function->setCallingConv(CallingConv::C);
                 
-            #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36)
+            #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
                 // In order for auto-vectorization to correctly work with vectorizable math functions
                 if (find(gMathLibTable.begin(), gMathLibTable.end(), inst->fName) != gMathLibTable.end()) {
                     function->setDoesNotAccessMemory();
