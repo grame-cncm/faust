@@ -57,6 +57,7 @@
 #include "java_code_container.hh"
 #include "js_code_container.hh"
 #include "asmjs_code_container.hh"
+#include "wasm_code_container.hh"
 #include "clang_code_container.hh"
 #if LLVM_BUILD
 #include "llvm_code_container.hh"
@@ -694,7 +695,7 @@ static bool process_cmdline(int argc, const char* argv[])
 
 static void printversion()
 {
-	cout << "FAUST : DSP to C, C++, JAVA, JavaScript/ASMJavaScript, LLVM IR, version " << FAUSTVERSION << "\n";
+	cout << "FAUST : DSP to C, C++, JAVA, JavaScript/ASMJavaScript, WebAssembly, LLVM IR version " << FAUSTVERSION << "\n";
 	cout << "Copyright (C) 2002-2015, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
@@ -1075,6 +1076,10 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
             container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
+        } else if (gGlobal->gOutputLang == "wasm") {
+
+            container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
+
         } else if (gGlobal->gOutputLang == "fir") {
        
             container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, true);
@@ -1157,7 +1162,10 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                     delete(thread_include);
                 }
 
-                if ((gGlobal->gOutputLang != "java") && (gGlobal->gOutputLang != "js") && (gGlobal->gOutputLang != "ajs")) {
+                if ((gGlobal->gOutputLang != "java") 
+                    && (gGlobal->gOutputLang != "js") 
+                    && (gGlobal->gOutputLang != "ajs")
+                    && (gGlobal->gOutputLang != "wasm")) {
                     printfloatdef(*dst, (gGlobal->gFloatSize == 3));
                 }
 
@@ -1193,7 +1201,10 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             if (gGlobal->gOutputLang != "js") {
                 printHeader(*dst);
             }
-            if ((gGlobal->gOutputLang != "java") && (gGlobal->gOutputLang != "js") && (gGlobal->gOutputLang != "ajs")) {
+            if ((gGlobal->gOutputLang != "java") 
+                && (gGlobal->gOutputLang != "js") 
+                && (gGlobal->gOutputLang != "ajs")
+                && (gGlobal->gOutputLang != "wasm")) {
                 printfloatdef(*dst, (gGlobal->gFloatSize == 3));
             }
             if (gGlobal->gOutputLang == "c") {

@@ -448,7 +448,7 @@ class FaustLLVMOptimizer {
             NV = 4096;     // number of vectors in BIG buffer (should exceed cache)
             ITER = 10;     // number of iterations per measure
             VSIZE = size;  // size of a vector in samples
-            IDX = 0;      // current vector number (0 <= VIdx < NV)
+            IDX = 0;       // current vector number (0 <= VIdx < NV)
             
             init();
         }

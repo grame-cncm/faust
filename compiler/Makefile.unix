@@ -1,7 +1,7 @@
 subprojects := . boxes errors evaluate  normalize parser propagate parallelize signals tlib \
                 draw draw/device draw/schema extended patternmatcher documentator utils ../libraries \
                 generator generator/asmjs generator/c generator/cpp  \
-                generator/java generator/js generator/llvm generator/fir 
+                generator/java generator/js generator/llvm generator/fir generator/wasm
                 
 
 sources = $(wildcard */*.cpp) $(wildcard draw/*/*.cpp) $(wildcard generator/*/*.cpp) $(wildcard ../libraries/loki/*cpp)
@@ -734,6 +734,16 @@ generator/llvm/base64.o: generator/llvm/base64.h
 generator/llvm/clang_code_container.o: tlib/compatibility.hh
 generator/llvm/llvm_code_container.o: tlib/compatibility.hh
 generator/llvm/llvm_dsp_aux.o: tlib/compatibility.hh
+generator/wasm/wasm_code_container.o: generator/wasm/wasm_code_container.hh generator/code_container.hh
+generator/wasm/wasm_code_container.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
+generator/wasm/wasm_code_container.o: garbageable.hh tlib/property.hh tlib/tree.hh generator/Text.hh signals/sigtype.hh
+generator/wasm/wasm_code_container.o: tlib/smartpointer.hh signals/interval.hh tlib/tlib.hh tlib/num.hh tlib/list.hh
+generator/wasm/wasm_code_container.o: tlib/shlysis.hh generator/description.hh signals/signals.hh generator/uitree.hh
+generator/wasm/wasm_code_container.o: global.hh parser/sourcereader.hh boxes/boxes.hh evaluate/loopDetector.hh
+generator/wasm/wasm_code_container.o: tlib/occurrences.hh generator/floats.hh generator/function_builder.hh
+generator/wasm/wasm_code_container.o: parallelize/code_loop.hh generator/json_instructions.hh
+generator/wasm/wasm_code_container.o: generator/wasm/wasm_instructions.hh generator/text_instructions.hh
+generator/wasm/wasm_code_container.o: generator/type_manager.hh errors/exception.hh
 ../libraries/loki/SafeFormat.o: ../libraries/loki/SafeFormat.h ../libraries/loki/LokiExport.h
 libcode.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
 libcode.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh tlib/property.hh
