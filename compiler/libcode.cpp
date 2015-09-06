@@ -72,7 +72,7 @@
 #include "libfaust.h"
 #include "Text.hh"
 
-#define FAUSTVERSION        "2.0.a36"
+#define FAUSTVERSION "2.0.a37"
 
 using namespace std;
 

@@ -875,7 +875,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
 }
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, 
-                                                            const string& dsp_content_aux, 
+                                                            const string& dsp_content, 
                                                             int argc, 
                                                             const char* argv[], 
                                                             const string& ip_server, 
@@ -883,15 +883,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
                                                             string& error_msg, 
                                                             int opt_level)
 {
-     RemoteFactoryDSPTableIt it;
-     
-    // Add IP, port (added as 'declare' lines) in the dsp_content
-    stringstream sha_content;
-    sha_content << "declare " << "IP " << '"' << ip_server << "\";" << endl;
-    sha_content << "declare " << "Port " << '"' << port_server << "\";" << endl;
-    sha_content << dsp_content_aux;
-    string dsp_content = sha_content.str();
-    
+    RemoteFactoryDSPTableIt it;
     const char* argv1[argc];
     int argc1 = 0;
  
