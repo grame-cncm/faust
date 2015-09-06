@@ -419,7 +419,7 @@ class FaustLLVMOptimizer {
             */
         }
     
-        FaustLLVMOptimizer(const char* filename, const string& library_path, const string& target, int size, int opt_level_max = 3)
+        FaustLLVMOptimizer(const char* filename, const string& library_path, const string& target, int size, int opt_level_max = -1)
         {
             fBuffer = 0;
             fFilename = filename;
@@ -436,7 +436,7 @@ class FaustLLVMOptimizer {
             init();
         }
         
-        FaustLLVMOptimizer(const string& input, const string& library_path, const string& target, int size, int opt_level_max = 3)
+        FaustLLVMOptimizer(const string& input, const string& library_path, const string& target, int size, int opt_level_max = -1)
         {
             fBuffer = 0;
             fFilename = "";
