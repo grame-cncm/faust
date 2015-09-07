@@ -551,11 +551,11 @@ int llvm_dsp_factory::getOptlevel()
 /// duplicates llvm-gcc behaviour.
 ///
 /// OptLevel - Optimization Level
-static void AddOptimizationPasses(PassManagerBase &MPM,FunctionPassManager &FPM,
+static void AddOptimizationPasses(PassManagerBase &MPM, FunctionPassManager &FPM,
                                     unsigned OptLevel, unsigned SizeLevel) 
 {
     FPM.add(createVerifierPass());                  // Verify that input is correct
-
+    
     PassManagerBuilder Builder;
     Builder.OptLevel = OptLevel;
     Builder.SizeLevel = SizeLevel;
@@ -735,7 +735,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
           
             // Add internal analysis passes from the target machine (mandatory for vectorization to work)
             tm->addAnalysisPasses(pm);
-            
+          
             if (fOptLevel > 0) {
                 AddOptimizationPasses(pm, fpm, fOptLevel, 0);
             }

@@ -1279,7 +1279,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 } else {
                     //printf("inst->fName NO %s\n", inst->fName.c_str());
                 }
-                
+                function->setDoesNotThrow();
             #endif
 
                 // Set name for function arguments
