@@ -163,8 +163,8 @@ emcc : LLVM_VERSION =
 emcc : libfaust.js libfaustworker.js
 emcc : EXPORTED="['_createAsmCDSPFactoryFromString', '_freeCDSP']"
 
-libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/base64.o
-	libtool $(LIBFLAGS) generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/base64.o -static -o libfaustmachine.a
+libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o
+	libtool $(LIBFLAGS) generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o -static -o libfaustmachine.a
 
 
 ##-s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040
