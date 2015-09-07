@@ -24,6 +24,7 @@
 #include "faust/gui/ControlUI.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "utilities.h"
+#include "base64.h"
 #include <errno.h>
 #include <string.h>
 #include <libgen.h>
@@ -257,7 +258,7 @@ void remote_dsp_factory::decodeJson(const string& json)
     }
     
     if (fMetadatas.find("code") != fMetadatas.end()) {
-        fExpandedDSP = fMetadatas["code"];
+        fExpandedDSP = base64_decode(fMetadatas["code"]);
         fMetadatas.erase("code");
     }
     

@@ -22,9 +22,7 @@
 #include <fstream>
 #include <iostream>
 #include <ctype.h>
-
 #include "JsonParser.h"
-#include "base64.h"
 
 // ---------------------------------------------------------------------
 //                          Elementary parsers
