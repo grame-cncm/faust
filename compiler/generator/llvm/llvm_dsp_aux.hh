@@ -334,11 +334,11 @@ EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_c
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target);
 
-EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target);
+EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target);
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target);
 
-EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const std::string& target);
+EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
 
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
     

@@ -1756,7 +1756,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, co
     return readDSPFactoryFromMachine(machine_code, target);
 }
 
-EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target)
+EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target)
 {
     return (factory) ? strdup(writeDSPFactoryToMachine(factory, target).c_str()) : NULL;
 }
@@ -1766,7 +1766,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code
     return readDSPFactoryFromMachineFile(machine_code_path, target);
 }
 
-EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const std::string& target)
+EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target)
 {
     if (factory) {
         writeDSPFactoryToMachineFile(factory, machine_code_path, target);
