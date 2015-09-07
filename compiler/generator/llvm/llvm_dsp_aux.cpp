@@ -38,7 +38,7 @@
 #include "dsp_aux.hh"
 #include "timing.hh"
 #include "exception.hh"
-#include "base64.h"
+#include "rn_base64.h"
 
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
 #include <llvm/IR/Module.h>

@@ -24,7 +24,7 @@
 #include "faust/gui/ControlUI.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "utilities.h"
-#include "base64.h"
+#include "rn_base64.h"
 #include <errno.h>
 #include <string.h>
 #include <libgen.h>

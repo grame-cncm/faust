@@ -33,7 +33,7 @@
 #include "faust/gui/UIGlue.h"
 #include "libfaust.h"
 #include "exception.hh"
-#include "base64.h"
+#include "rn_base64.h"
 
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>

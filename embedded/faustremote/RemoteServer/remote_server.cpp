@@ -10,7 +10,7 @@
 #include "utilities.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUI.h"
-#include "base64.h"
+#include "rn_base64.h"
 
 #include <string.h>
 #include <stdio.h>
