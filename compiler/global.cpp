@@ -82,6 +82,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gDetailsSwitch  = false;
     gDrawSignals    = false;
     gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter
+    gScaledSVG      = false;	
     gStripDocSwitch = false;	// Strip <mdoc> content from doc listings.
     gFoldThreshold 	= 25;
     gMaxNameSize 	= 40;

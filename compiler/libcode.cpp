@@ -453,6 +453,10 @@ static bool process_cmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-blur", "--shadow-blur")) {
             gGlobal->gShadowBlur = true;
             i += 1;
+            
+         } else if (isCmd(argv[i], "-sc", "--scaled-svg")) {
+            gGlobal->gScaledSVG = true;
+            i += 1;
 
 		} else if (isCmd(argv[i], "-svg", "--svg")) {
 			gGlobal->gDrawSVGSwitch = true;

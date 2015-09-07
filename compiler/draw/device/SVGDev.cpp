@@ -52,7 +52,7 @@ static char* xmlcode(const char* name, char* name2)
 	return name2;
 }
 
-SVGDev::SVGDev(const char* ficName,double largeur, double hauteur)
+SVGDev::SVGDev(const char* ficName, double largeur, double hauteur)
 {
 	double gScale = 0.5;
 	if ((fic_repr = fopen(ficName,"w+")) == NULL) {
@@ -65,7 +65,11 @@ SVGDev::SVGDev(const char* ficName,double largeur, double hauteur)
 	fprintf(fic_repr,"<?xml version=\"1.0\"?>\n");
 	// + DTD ...
 	// viewBox:
-	fprintf(fic_repr,"<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 %f %f\" width=\"%fmm\" height=\"%fmm\" version=\"1.1\">\n", largeur, hauteur, largeur*gScale, hauteur*gScale);
+    if (gGlobal->gScaledSVG) {
+        fprintf(fic_repr,"<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 %f %f\" width=\"100%%\" height=\"100%%\" version=\"1.1\">\n", largeur, hauteur);
+    } else {
+        fprintf(fic_repr,"<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" viewBox=\"0 0 %f %f\" width=\"%fmm\" height=\"%fmm\" version=\"1.1\">\n", largeur, hauteur, largeur*gScale, hauteur*gScale);
+    }
 
     if (gGlobal->gShadowBlur) {
 		 fprintf(fic_repr,
