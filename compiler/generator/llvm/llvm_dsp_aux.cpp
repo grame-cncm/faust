@@ -662,6 +662,9 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         builder.setEngineKind(EngineKind::JIT);
         builder.setCodeModel(CodeModel::JITDefault);
         
+        std::string buider_error;
+        builder.setErrorStr(&buider_error);
+        
         // MCJIT does not work correctly (incorrect float numbers ?) when used with dynamic libLLVM
     #if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
         builder.setUseMCJIT(true);
@@ -708,6 +711,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fJIT = builder.create(tm);
         if (!fJIT) {
             endTiming("initJIT");
+            error_msg = "Cannot create LLVM JIT : " + buider_error;
             return false;
         }
         

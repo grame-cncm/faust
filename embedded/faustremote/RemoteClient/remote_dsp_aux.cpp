@@ -130,12 +130,13 @@ static remote_dsp_factory* crossCompile(int argc, const char *argv[],
                                         const string& sha_key,
                                         const string& ip_server, 
                                         int port_server,
+                                        string& error_msg,
                                         int opt_level)
 {
     stringstream finalRequest;
     stringstream serverURL;
-    serverURL << "http://" << ip_server << ":" << port_server;
     string response;
+    serverURL << "http://" << ip_server << ":" << port_server;
     int errorCode = -1;
     
     // Adding name
@@ -166,6 +167,7 @@ static remote_dsp_factory* crossCompile(int argc, const char *argv[],
         remote_dsp_factory::gLocalFactoryDSPTable.push_back(factory);
         return reinterpret_cast<remote_dsp_factory*>(factory); 
     } else {
+        error_msg = response;
         return NULL;
     }
 }
@@ -176,11 +178,12 @@ static remote_dsp_factory* crossCompile(int argc, const char *argv[],
 bool remote_dsp_factory::init(int argc, const char *argv[], 
                             const string& name_app, 
                             const string& dsp_content, 
-                            string& error, 
+                            string& error_msg, 
                             int opt_level)
 {
     fExpandedDSP = dsp_content;
     stringstream finalRequest;
+    string response;
    
     // Adding name
     finalRequest << "name=" << name_app;
@@ -196,8 +199,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     
     // Compile on client side and send machine code on server side
     if (isopt(argc, argv, "-lm")) {
-        string error1;
-        llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, loptions(argv, "-lm", ""), error1, opt_level);
+        llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, loptions(argv, "-lm", ""), error_msg, opt_level);
         if (factory) {
             // Transforming machine code to URL format
             string machine_code = writeDSPFactoryToMachine(factory, "");
@@ -231,14 +233,14 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     }
     
     int errorCode = -1;
-    string response;
     string url = fServerURL + "/CreateFactory";
 
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
         decodeJson(response);
         return true;
     } else {
-       return false;
+        error_msg = response;
+        return false;
     }
 }
 
@@ -870,7 +872,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
                                                 error_msg, 
                                                 opt_level);
     } else {
-        error_msg = "File Extension is not the one expected (.dsp expected)\n";
+        error_msg = "File Extension is not the one expected (.dsp expected)";
         return NULL;
     }
 }
@@ -911,7 +913,7 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_a
         
     // Compile on server side and get machine code on client to re-create a local Factory
     } else if (isopt(argc, argv, "-rm")) {
-        return crossCompile(argc, argv, name_app, expanded_dsp, sha_key, ip_server, port_server, opt_level);
+        return crossCompile(argc, argv, name_app, expanded_dsp, sha_key, ip_server, port_server, error_msg, opt_level);
         
     // If available in the local LLVM cache
     } else if (isLocalFactory(sha_key)) {

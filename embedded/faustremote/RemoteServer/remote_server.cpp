@@ -602,7 +602,7 @@ bool DSPServer::createFactory(MHD_Connection* connection, dsp_server_connection_
         fFactories.insert(factory);
         return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json");
     } else {
-        return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
+         return sendPage(connection, info->fAnswer, MHD_HTTP_BAD_REQUEST, "text/html");
     }
 }
 
