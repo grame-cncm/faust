@@ -356,7 +356,14 @@ EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)
     TLock lock(gDSPFactoriesLock);
     
     FactoryTableIt it;
-    return (getFactory(sha_key, it)) ? (*it).first : NULL;
+    
+    if (getFactory(sha_key, it)) {
+        Sllvm_dsp_factory sfactory = (*it).first;
+        sfactory->addReference();
+        return sfactory;
+    } else {
+        return NULL;
+    }
 }
 
 EXPORT vector<string> getAllDSPFactories()
@@ -373,20 +380,27 @@ EXPORT vector<string> getAllDSPFactories()
     return sha_key_list;
 }
 
-EXPORT void deleteDSPFactory(llvm_dsp_factory* factory) 
-{   
+EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory)
+{
     TLock lock(gDSPFactoriesLock);
     
     FactoryTableIt it;
     if ((it = llvm_dsp_factory::gFactoryTable.find(factory)) != llvm_dsp_factory::gFactoryTable.end()) {
         Sllvm_dsp_factory sfactory = (*it).first;
+        list<llvm_dsp_aux*> dsp_list = (*it).second;
         if (sfactory->refs() == 2) { // Local stack pointer + the one in gFactoryTable...
+            // Possibly delete remaining DSP
+            list<llvm_dsp_aux*>::iterator it;
+            for (it = dsp_list.begin(); it != dsp_list.end(); it++) { delete (*it); }
             // Last use, remove from the global table, pointer will be deleted
             llvm_dsp_factory::gFactoryTable.erase(factory);
+            return true;
         } else {
             sfactory->removeReference();
         }
     }
+    
+    return false;
 }
 
 EXPORT std::string llvm_dsp_factory::getName()
@@ -411,6 +425,8 @@ EXPORT std::string llvm_dsp_factory::getName()
 EXPORT std::string llvm_dsp_factory::getSHAKey() { return fSHAKey; }
 
 EXPORT std::string llvm_dsp_factory::getDSPCode() { return fExpandedDSP; }
+
+EXPORT std::string llvm_dsp_factory::getTarget() { return fTarget; }
 
 EXPORT std::string getDSPMachineTarget()
 {
@@ -568,7 +584,10 @@ EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key)
 EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content,
                                                      int argc, const char* argv[],
                                                      const char* target,
-                                                     char* error_msg, int opt_level) {return NULL;}
+                                                     char* error_msg, int opt_level)
+{
+    return NULL;
+}
 
 
 EXPORT const char** getAllCDSPFactories()
@@ -590,29 +609,29 @@ EXPORT bool startMTCDSPFactories() { return startMTDSPFactories(); }
 
 EXPORT void stopMTCDSPFactories() { stopMTDSPFactories(); }
 
-EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory)
+EXPORT bool deleteCDSPFactory(llvm_dsp_factory* factory)
 {
-    if (factory) {
-        deleteDSPFactory(factory);
-    }
+    return deleteDSPFactory(factory);
 }
 
-EXPORT const char* getCName(llvm_dsp_factory* factory)
+EXPORT char* getCName(llvm_dsp_factory* factory)
 {
-    if (factory) {
-        return strdup(factory->getName().c_str());
-    } else {
-        return NULL;
-    }
+    return (factory) ? strdup(factory->getName().c_str()) : NULL;
 }
 
-EXPORT const char* getCSHAKey(llvm_dsp_factory* factory)
+EXPORT char* getCSHAKey(llvm_dsp_factory* factory)
 {
-    if (factory) {
-        return strdup(factory->getSHAKey().c_str()); 
-    } else {
-        return NULL;
-    }
+    return (factory) ? strdup(factory->getSHAKey().c_str()) : NULL;
+}
+
+EXPORT char* getCDSPCode(llvm_dsp_factory* factory)
+{
+    return (factory) ? strdup(factory->getDSPCode().c_str()) : NULL;
+}
+
+EXPORT char* getCTarget(llvm_dsp_factory* factory)
+{
+    return (factory) ? strdup(factory->getTarget().c_str()) : NULL;
 }
 
 EXPORT char* getCDSPMachineTarget()
@@ -633,6 +652,11 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, co
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target)
 {
     return readDSPFactoryFromMachineFile(machine_code_path, target);
+}
+
+EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target)
+{
+     return NULL;
 }
 
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* glue)
@@ -720,4 +744,9 @@ EXPORT void generateCSHA1(const char* data, char* sha_key)
 {
     string res = generateSHA1(data);
     strncpy(sha_key, res.c_str(), 64);
+}
+
+EXPORT void freeCDSP(void* ptr)
+{
+    free(ptr);
 }

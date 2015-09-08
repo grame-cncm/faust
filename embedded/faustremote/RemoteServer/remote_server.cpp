@@ -212,6 +212,7 @@ dsp_server_connection_info::dsp_server_connection_info()
 
 void dsp_server_connection_info::getJson(llvm_dsp_factory* factory) 
 {
+    /*
     fNameApp = factory->getName();
     // This instance is used only to build JSON interface, then it's deleted
     llvm_dsp* dsp = createDSPInstance(factory);
@@ -220,12 +221,28 @@ void dsp_server_connection_info::getJson(llvm_dsp_factory* factory)
     dsp->buildUserInterface(&json);
     deleteDSPInstance(dsp);  
     fAnswer = json.JSON();
+    */
+    
+    fNameApp = getCName(factory);
+    // This instance is used only to build JSON interface, then it's deleted
+    llvm_dsp* dsp = createDSPInstance(factory);
+    string code = getCDSPCode(factory);
+    //string base64_code = base64_encode((const unsigned char*)code.c_str(), code.size());
+    string base64_code = "";
+    string sha_key = getCSHAKey(factory);
+    printf("code %s\n", code.c_str());
+    printf("shakey %s\n", sha_key.c_str());
+    JSONUI* json = new JSONUI(fNameApp, dsp->getNumInputs(), dsp->getNumOutputs(), sha_key, base64_code);
+    dsp->buildUserInterface(json);
+    deleteDSPInstance(dsp);
+    fAnswer = json->JSON();
 }
 
 bool dsp_server_connection_info::getFactoryFromSHAKey(DSPServer* server)
 {
     // Will increment factory reference counter...
-    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(fSHAKey);
+    //llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(fSHAKey);
+    llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(fSHAKey.c_str());
      
     if (factory) {
         getJson(factory);
@@ -242,7 +259,8 @@ llvm_dsp_factory* dsp_server_connection_info::crossCompileFactory(DSPServer* ser
     llvm_dsp_factory* factory;
   
     // Already in the cache...
-    if ((factory = getDSPFactoryFromSHAKey(fSHAKey))) {
+    //if ((factory = getDSPFactoryFromSHAKey(fSHAKey))) {
+    if ((factory = getCDSPFactoryFromSHAKey(fSHAKey.c_str()))) {
         return factory;
     } else {
         // Sort out compilation options
@@ -556,7 +574,8 @@ bool DSPServer::getAvailableFactories(MHD_Connection* connection)
     stringstream answer;
     for (FactoryTableIt it = fFactories.begin(); it != fFactories.end(); it++) {
         llvm_dsp_factory* factory = *it;
-        answer << factory->getName() << ":" << factory->getTarget() << " " << factory->getSHAKey() << " ";
+        //answer << factory->getName() << ":" << factory->getTarget() << " " << factory->getSHAKey() << " ";
+        answer << getCName(factory) << ":" << getCTarget(factory) << " " << getCSHAKey(factory) << " ";
     }
     return sendPage(connection, answer.str(), MHD_HTTP_OK, "text/plain");
 }
@@ -593,10 +612,14 @@ bool DSPServer::crossCompileFactory(MHD_Connection* connection, dsp_server_conne
         fFactories.insert(factory);
         
         // Return machine_code to client
-        string machine_code = writeDSPFactoryToMachine(factory, info->fTarget);
+        //string machine_code = writeDSPFactoryToMachine(factory, info->fTarget);
+        char* machine_code = writeCDSPFactoryToMachine(factory, info->fTarget.c_str());
          
         // And keep the new compiled target, so that is it "cached"
-        llvm_dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget);
+        //llvm_dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget);
+        llvm_dsp_factory* new_factory = readCDSPFactoryFromMachine(machine_code, info->fTarget.c_str());
+        
+        //freeCDSP(machine_code);  // TODO
         
         if (new_factory) {
             fFactories.insert(new_factory);
@@ -652,7 +675,8 @@ bool DSPServer::stop(MHD_Connection* connection, dsp_server_connection_info* inf
 bool DSPServer::deleteFactory(MHD_Connection* connection, dsp_server_connection_info* info)
 {
     // Returns the factory (with incremented reference counter)
-    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(info->fSHAKey); 
+    //llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(info->fSHAKey);
+    llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(info->fSHAKey.c_str());
     
     if (factory) {
         // Remove from the list
@@ -725,7 +749,8 @@ void DSPServer::requestCompleted(void* cls, MHD_Connection* connection, void** c
 // Create DSP Instance
 bool DSPServer::createInstance(dsp_server_connection_info* con_info)
 {
-    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(con_info->fSHAKey);
+    //llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(con_info->fSHAKey);
+    llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(con_info->fSHAKey.c_str());
     audio_dsp* audio = NULL;
     llvm_dsp* dsp = NULL;
     
@@ -759,7 +784,8 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
                 */
                 
                 audio = new audio_dsp(factory,
-                                    factory->getName(),
+                                    //factory->getName(),
+                                    getCName(factory),
                                     con_info->fInstanceKey,
                                     fCreateDSPInstanceCb, 
                                     fCreateDSPInstanceCb_arg,

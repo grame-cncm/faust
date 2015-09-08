@@ -43,13 +43,19 @@
 
 class llvm_dsp_factory {
 
-     public: 
+    public:
         
         /* Return Factory name */
         std::string getName();
         
+        /* Return Factory LLVM target */
+        std::string getTarget();
+        
         /* Return Factory SHA key */
         std::string getSHAKey();
+        
+        /* Return Factory expanded DSP code */
+        std::string getDSPCode();
 
 };
 
@@ -71,6 +77,8 @@ extern "C" char* getCDSPMachineTarget();
  * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
  */
 llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
+
+extern "C" llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all
@@ -106,23 +114,41 @@ extern "C" llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, c
 void deleteDSPFactory(llvm_dsp_factory* factory);
 
 /**
- * Get the name of the DSP factory : will be the name declared in the DSP source file or string, or if not available,
+ * Get the name of the Faust DSP factory : will be the name declared in the DSP source file or string, or if not available,
  * the DSP 'filename' given in createDSPFactoryFromFile or the DSP 'name_app' given in createDSPFactoryFromString.
  *
- * @param factory - the DSP factory.
- * 
+ * @param factory - the DSP factory
+ *
  * @return the name as a string.
  */
-extern "C" const char* getCName(llvm_dsp_factory* factory);
+extern "C" char* getCName(llvm_dsp_factory* factory);
 
 /**
- * Get the SHA Key of the DSP factory.
+ * Get the LLVM target of the Faust DSP factory.
  *
- * @param factory - the DSP factory.
- * 
+ * @param factory - the DSP factory
+ *
+ * @return the LLVM target as a string.
+ */
+extern "C" char* getCTarget(llvm_dsp_factory* factory);
+
+/**
+ * Get the SHA Key of the Faust DSP factory.
+ *
+ * @param factory - the DSP factory
+ *
  * @return the SHA key as a string.
  */
-extern "C" const char* getCSHAKey(llvm_dsp_factory* factory);
+extern "C" char* getCSHAKey(llvm_dsp_factory* factory);
+
+/**
+ * Get the expanded DSP code of the Faust DSP factory.
+ *
+ * @param factory - the DSP factory
+ *
+ * @return the expanded DSP code as a string.
+ */
+extern "C" char* getCDSPCode(llvm_dsp_factory* factory);
 
 /**
  * Destroy all Faust DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables of so...) thus become invalid.
@@ -175,6 +201,8 @@ extern "C" llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code
 llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path);
 
 extern "C" llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path);
+
+extern "C" char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target);
 
 /**
  * Call global declarations with the given meta object.
@@ -230,6 +258,16 @@ void deleteDSPInstance(llvm_dsp* dsp);
  * @return the computed SHA1 key.
  */ 
 std::string generateSHA1(const std::string& data);
+
+/**
+ * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey, getCDSPCode, getCLibraryList,
+ * getAllCDSPFactories, writeCDSPFactoryToBitcode, writeCDSPFactoryToIR, writeCDSPFactoryToMachine,
+ * expandCDSPFromString and expandCDSPFromFile.
+ * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.
+ *
+ * @param ptr - the pointer to be deleted.
+ */
+extern "C" void freeCDSP(void* ptr);
 
 /*!
  @}

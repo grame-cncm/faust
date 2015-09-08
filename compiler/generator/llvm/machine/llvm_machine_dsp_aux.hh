@@ -111,7 +111,7 @@ class llvm_dsp_factory : public smartable {
     
         string getDSPCode();
     
-        string getTarget() { return fTarget; }
+        string getTarget();
     
         vector<std::string> getLibraryList() { return fResult->fPathnameList; }
     
@@ -162,7 +162,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app,
                                                     std::string& error_msg, int opt_level = -1);
 
 
-EXPORT void deleteDSPFactory(llvm_dsp_factory* factory);
+EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory);
 
 EXPORT std::string getDSPMachineTarget();
 
@@ -219,11 +219,11 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
                                                     char* error_msg, int opt_level);
 
     
-EXPORT void deleteCDSPFactory(llvm_dsp_factory* factory);
+EXPORT bool deleteCDSPFactory(llvm_dsp_factory* factory);
 
-EXPORT const char* getCName(llvm_dsp_factory* factory);
+EXPORT char* getCName(llvm_dsp_factory* factory);
 
-EXPORT const char* getCSHAKey(llvm_dsp_factory* factory);
+EXPORT char* getCSHAKey(llvm_dsp_factory* factory);
     
 EXPORT char* getCTarget(llvm_dsp_factory* factory);
     
@@ -244,6 +244,8 @@ EXPORT void stopMTCDSPFactories();
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target);
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target);
+    
+EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target);
 
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
     

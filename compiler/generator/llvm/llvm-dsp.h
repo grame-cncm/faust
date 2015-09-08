@@ -79,7 +79,7 @@ extern "C" char* getCDSPMachineTarget();
  */
 llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
 
-extern "C" llvm_dsp_factory* llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
+extern "C" llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all 
@@ -146,7 +146,7 @@ bool deleteDSPFactory(llvm_dsp_factory* factory);
  * 
  * @return the name as a string.
  */
-extern "C" const char* getCName(llvm_dsp_factory* factory);
+extern "C" char* getCName(llvm_dsp_factory* factory);
 
 /**
  * Get the LLVM target of the Faust DSP factory.
@@ -155,7 +155,7 @@ extern "C" const char* getCName(llvm_dsp_factory* factory);
  * 
  * @return the LLVM target as a string.
  */
-extern "C" const char* getCTarget(llvm_dsp_factory* factory);
+extern "C" char* getCTarget(llvm_dsp_factory* factory);
 
 /**
  * Get the SHA Key of the Faust DSP factory.
@@ -164,7 +164,7 @@ extern "C" const char* getCTarget(llvm_dsp_factory* factory);
  * 
  * @return the SHA key as a string.
  */
-extern "C" const char* getCSHAKey(llvm_dsp_factory* factory);
+extern "C" char* getCSHAKey(llvm_dsp_factory* factory);
 
 /**
  * Get the expanded DSP code of the Faust DSP factory.
@@ -173,7 +173,7 @@ extern "C" const char* getCSHAKey(llvm_dsp_factory* factory);
  * 
  * @return the expanded DSP code as a string.
  */
-extern "C" const char* getCDSPCode(llvm_dsp_factory* factory);
+extern "C" char* getCDSPCode(llvm_dsp_factory* factory);
 
 /**
  * Get the list of library dependancies of the Faust DSP factory.
@@ -326,7 +326,7 @@ extern "C" llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code
  */
 std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target);
 
-extern "C" const char* writeCDSPFactoryToMachine(lvm_dsp_factory* factory, const char* target);
+extern "C" char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target);
 
 /**
  * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all 
