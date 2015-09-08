@@ -344,7 +344,7 @@ string llvm_dsp_factory::writeDSPFactoryToBitcode()
     raw_string_ostream out(res);
     WriteBitcodeToFile(fResult->fModule, out);
     out.flush();
-    return base64_encode((const unsigned char*)res.c_str(), res.size());
+    return base64_encode(res);
 }
 
 void llvm_dsp_factory::writeDSPFactoryToBitcodeFile(const string& bit_code_path)
@@ -411,8 +411,7 @@ std::string llvm_dsp_factory::writeDSPFactoryToMachineAux(const std::string& tar
 
 std::string llvm_dsp_factory::writeDSPFactoryToMachine(const std::string& target)
 { 
-    std::string machine_code = writeDSPFactoryToMachineAux(target);
-    return base64_encode((const unsigned char*)machine_code.c_str(), machine_code.size());
+    return base64_encode(writeDSPFactoryToMachineAux(target));
 }
 
 void llvm_dsp_factory::writeDSPFactoryToMachineFile(const std::string& machine_code_path, const std::string& target)

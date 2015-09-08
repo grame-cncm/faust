@@ -38,7 +38,7 @@ static inline bool is_base64(unsigned char c)
     return (isalnum(c) || (c == '+') || (c == '/'));
 }
 
-std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_len) 
+static std::string base64_encode_aux(const char* str, unsigned int in_len) 
 {
       std::string ret = "";
       int i = 0;
@@ -49,7 +49,7 @@ std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_
       //printf("base64_encode len = %d\n", in_len);
 
       while (in_len--) {
-        char_array_3[i++] = *(bytes_to_encode++);
+        char_array_3[i++] = *(str++);
         if (i == 3) {
           char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
           char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
@@ -86,12 +86,7 @@ std::string base64_encode(unsigned char const* bytes_to_encode, unsigned int in_
       return ret;
 }
 
-std::string base64_decode(std::string const& encoded_string)
-{
-    return base64_decode(encoded_string.c_str(), encoded_string.size());
-}
-
-std::string base64_decode(const char* encoded_string, unsigned int in_len) 
+static std::string base64_decode_aux(const char* str, unsigned int in_len) 
 {
       int i = 0;
       int j = 0;
@@ -99,8 +94,8 @@ std::string base64_decode(const char* encoded_string, unsigned int in_len)
       unsigned char char_array_4[4], char_array_3[3];
       std::string ret = "";
   
-      while (in_len-- && (encoded_string[in_] != '=') && is_base64(encoded_string[in_])) {
-        char_array_4[i++] = encoded_string[in_]; in_++;
+      while (in_len-- && (str[in_] != '=') && is_base64(str[in_])) {
+        char_array_4[i++] = str[in_]; in_++;
         if (i == 4) {
           for (i = 0; i < 4; i++) {
             char_array_4[i] = base64_chars.find(char_array_4[i]);
@@ -135,3 +130,24 @@ std::string base64_decode(const char* encoded_string, unsigned int in_len)
       
       return ret;
 }
+
+char* base64_encode(const char* str, unsigned int len)
+{
+    return strdup(base64_encode_aux(str, len).c_str());
+}
+
+char* base64_decode(const char* str, unsigned int len)
+{
+    return strdup(base64_decode_aux(str, len).c_str());
+}
+
+std::string base64_encode(std::string const& str)
+{
+    return base64_encode_aux(str.c_str(), str.size());
+ }
+
+std::string base64_decode(std::string const& str)
+{
+    return base64_decode_aux(str.c_str(), str.size());
+}
+

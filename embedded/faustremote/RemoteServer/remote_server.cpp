@@ -227,8 +227,10 @@ void dsp_server_connection_info::getJson(llvm_dsp_factory* factory)
     // This instance is used only to build JSON interface, then it's deleted
     llvm_dsp* dsp = createDSPInstance(factory);
     string code = getCDSPCode(factory);
-    //string base64_code = base64_encode((const unsigned char*)code.c_str(), code.size());
-    string base64_code = "";
+    char* base64_code = base64_encode(code.c_str(), code.size());
+    //string base64_code = base64_encode(code);
+    
+    //string base64_code = "";
     string sha_key = getCSHAKey(factory);
     printf("code %s\n", code.c_str());
     printf("shakey %s\n", sha_key.c_str());
