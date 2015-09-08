@@ -46,8 +46,8 @@ class contextor
 	contextor(int n)	{ top = 0; pile[top] = n; }	// contructor to be called only once at the
                                                     // top level to initialize the stack
 
-	contextor() 		{ assert(top >= 0 && top < 1023); int n = pile[top++]; pile[top] = n;}
-	~contextor() 		{top--; }
+	contextor() 		{ assert(top >= 0 && top < 1023); int n = pile[top++]; pile[top] = n; }
+	~contextor() 		{ top--; }
 
 	void set(int n)	{ pile[top] = n; }
 	int get()	{ return pile[top]; }

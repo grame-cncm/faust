@@ -273,21 +273,17 @@ ifstream* open_arch_stream(const char* filename)
 
 const char* strip_start(const char* filename)
 {
+    const char* start;
 #ifdef _WIN32
-    const char* start = "file:///";
-    if (strstr(filename, start) != NULL) {
-        return &filename[strlen(start)];
-    }  else {
-        return filename;
-    }
+    start = "file:///";
 #else
-	const char* start = "file://";
-    if (strstr(filename, start) != NULL) {
+	start = "file://";
+#endif
+    if (strstr(filename, start)) {
         return &filename[strlen(start)];
     }  else {
         return filename;
     }
-#endif
 }
 
 /**
@@ -426,10 +422,10 @@ static FILE* fopenat(string& fullpath, const string& dir, const char* path, cons
 static bool isAbsolutePathname(const string& filename)
 {
 	//test windows absolute pathname "x:xxxxxx"
-	if (filename.size()>1 && filename[1] == ':') return true;
+	if (filename.size() > 1 && filename[1] == ':') return true;
 
 	// test unix absolute pathname "/xxxxxx"
-	if (filename.size()>0 && filename[0] == '/') return true;
+	if (filename.size() > 0 && filename[0] == '/') return true;
 
 	return false;
 }
@@ -549,10 +545,9 @@ const char* filebasename(const char* name)
 	if (isalpha(name[0]) && name[1] == ':') 
 		name += 2;
 #endif
-
 	const char* base;
 	for (base = name; *name; name++) {
-		if (IS_DIR_SEPARATOR (*name)) {
+		if (IS_DIR_SEPARATOR(*name)) {
 			base = name + 1;
 		}
     }
@@ -571,12 +566,10 @@ string filedirname(const string& name)
 
     if (size == 0) {
         dirname += '.';
-
-    } else if (size==1) {
+    } else if (size == 1) {
         dirname += name[0];
-
     } else {
-        for (unsigned int i=0; i<size-1; i++) {
+        for (unsigned int i = 0; i < size-1; i++) {
             dirname += name[i];
         }
     }
