@@ -379,12 +379,12 @@ int yyerr;
 
 static bool isCmd(const char* cmd, const char* kw1)
 {
-	return 	(strcmp(cmd, kw1) == 0);
+	return (strcmp(cmd, kw1) == 0);
 }
 
 static bool isCmd(const char* cmd, const char* kw1, const char* kw2)
 {
-	return 	(strcmp(cmd, kw1) == 0) || (strcmp(cmd, kw2) == 0);
+	return (strcmp(cmd, kw1) == 0) || (strcmp(cmd, kw2) == 0);
 }
 
 static bool process_cmdline(int argc, const char* argv[])
