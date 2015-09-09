@@ -407,23 +407,12 @@ void ASMJAVAScriptVectorCodeContainer::generateCompute(int n)
         tab(n+2, *fOut); *fOut << "outputs = outputs | 0;";
         tab(n+2, *fOut);
     gGlobal->gASMJSVisitor->Tab(n+2);
- 
-    /*
-    // Generates local variables declaration and setup
-    MoveVariablesInFront2 mover1;
-    BlockInst* block1 = mover1.getCode(fComputeBlockInstructions); 
-    block1->accept(gGlobal->gASMJSVisitor);
-    */
     
+    // Generates local variables declaration and setup
     generateComputeBlock(gGlobal->gASMJSVisitor);
     
-    /*
-    // Generates it
-    MoveVariablesInFront2 mover2;
-    BlockInst* block2 = mover2.getCode(fDAGBlock); 
-    block2->accept(gGlobal->gASMJSVisitor);
-    */
-    
+    // Generates DSP loop
     fDAGBlock->accept(gGlobal->gASMJSVisitor);
+    
     tab(n+1, *fOut); *fOut << "}";
 }

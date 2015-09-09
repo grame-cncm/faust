@@ -678,7 +678,7 @@ void LLVMVectorCodeContainer::generateCompute()
     // Generates local variables declaration and setup
     generateComputeBlock(fCodeProducer);
 
-    // Generate it
+    // Generates DSP loop
     fDAGBlock->accept(fCodeProducer);
 
     generateComputeEnd();

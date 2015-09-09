@@ -213,7 +213,7 @@ void FirVectorCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* ds
 {
     // Complexity estimation
     dumpCost(fDAGBlock, dst);
-    // Generate it
+    // Generates DSP loop
     fDAGBlock->accept(&firvisitor);
 
     // Possibly generate separated functions
