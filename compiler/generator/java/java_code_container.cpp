@@ -51,7 +51,6 @@ CodeContainer* JAVACodeContainer::createContainer(const string& name, const stri
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler not supported for Java\n");
     } else if (gGlobal->gVectorSwitch) {
-        //container = new JAVAVectorCodeContainer(name, super, numInputs, numOutputs, dst);
         throw faustexception("Vector mode not supported for Java\n");
     } else {
         container = new JAVAScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
@@ -264,37 +263,3 @@ void JAVAScalarCodeContainer::generateCompute(int n)
 
     tab(n+1, *fOut); *fOut << "}";
 }
-
-// Vector
-JAVAVectorCodeContainer::JAVAVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-    :VectorCodeContainer(numInputs, numOutputs), JAVACodeContainer(name, super, numInputs, numOutputs, out)
-{}
-
-JAVAVectorCodeContainer::~JAVAVectorCodeContainer()
-{}
-
-void JAVAVectorCodeContainer::generateCompute(int n)
-{
-    // Compute
-    tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1[][] inputs, $1[][] outputs) {", fFullCount, ifloat());
-    tab(n+2, *fOut);
-    fCodeProducer.Tab(n+2);
-
-    // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
-
-    // Generates DSP loop
-    fDAGBlock->accept(&fCodeProducer);
-
-    tab(n+1, *fOut); *fOut << "}";
-}
-
-// Works stealing scheduler
-JAVAWorkStealingCodeContainer::JAVAWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-    :JAVACodeContainer(name, super, numInputs, numOutputs, out)
-{}
-
-JAVAWorkStealingCodeContainer::~JAVAWorkStealingCodeContainer()
-{}
-

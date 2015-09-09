@@ -24,9 +24,6 @@
 
 #include "code_container.hh"
 #include "java_instructions.hh"
-#include "vec_code_container.hh"
-#include "omp_code_container.hh"
-#include "wss_code_container.hh"
 
 using namespace std;           
 
@@ -72,32 +69,6 @@ class JAVAScalarCodeContainer : public JAVACodeContainer {
         virtual ~JAVAScalarCodeContainer();
 
         void generateCompute(int tab);
-
-};
-
-class JAVAVectorCodeContainer : public VectorCodeContainer, public JAVACodeContainer {
-
-    protected:
-
-    public:
-
-        JAVAVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
-        virtual ~JAVAVectorCodeContainer();
-
-        void generateCompute(int tab);
-
-};
-
-class JAVAWorkStealingCodeContainer : public JAVACodeContainer {
-
-    protected:
-
-    public:
-
-        JAVAWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
-        virtual ~JAVAWorkStealingCodeContainer();
-
-        void generateCompute(int tab) {}
 
 };
 
