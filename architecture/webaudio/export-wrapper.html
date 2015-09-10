@@ -129,25 +129,28 @@ function updateQrCode(sha)
 
 	document.getElementById("loader").style.visibility = "hidden";
 	
-	for (var i = toEmpty.children.length-1; i >= 0;  i--){
-		if (toEmpty.children[i].id != "loader")
+	for (var i = toEmpty.children.length-1; i >= 0;  i--) {
+		if (toEmpty.children[i].id != "loader") {
 	    	toEmpty.removeChild(toEmpty.children[i]);
+        }
 	}
 	
 	var plateform = document.getElementById("Platform").options[document.getElementById("Platform").selectedIndex].value;
 	var architecture = document.getElementById("Architecture").options[document.getElementById("Architecture").selectedIndex].value;
 	var output = "binary.zip";
 	
-	if (plateform == "android")
+	if (plateform == "android") {
 		output = "binary.apk";
+    }
 	
 	var link = document.createElement('a');
 	link.href = document.getElementById("exportUrl").value + "/" + sha + "/" + plateform + "/" + architecture + "/" + output;
 
 	// 	Delete existing content if existing
 	var qrcodeSpan = document.getElementById('qrcodeDiv');
-	if (qrcodeSpan)
+	if (qrcodeSpan) {
 		qrcodeSpan.parentNode.removeChild(qrcodeSpan);
+    }
 	
 	var myWhiteDiv = getQrCode(document.getElementById("exportUrl").value, sha, plateform, architecture, output, 130);
 
@@ -162,7 +165,7 @@ function cancelLoader()
 
 function getFaustSource()
 {
-	document.getElementById("loader").style.visibility = "visible";
+    document.getElementById("loader").style.visibility = "visible";
     
     if (dsp_code == null) {
 
@@ -172,7 +175,7 @@ function getFaustSource()
         var xmlhttp = new XMLHttpRequest();
 
         xmlhttp.onreadystatechange=function(){
-            if (xmlhttp.readyState==4 && xmlhttp.status==200){
+            if (xmlhttp.readyState==4 && xmlhttp.status == 200) {
                 var dsp_code = xmlhttp.responseText;
                 getSHAKey(document.getElementById("exportUrl").value, filename, dsp_code, updateQrCode, cancelLoader);
             }
@@ -187,7 +190,7 @@ function getFaustSource()
 
 function cleanComboBox(id)
 {
-	while(document.getElementById(id).childNodes.length>0) {
+	while(document.getElementById(id).childNodes.length > 0) {
 		document.getElementById(id).removeChild(document.getElementById(id).childNodes[0]);
 	}
 }
@@ -202,7 +205,7 @@ function changeArchs()
 		
 	for (var j = 0; j < archs.length; j++) {
         var a = document.createElement('option');
-		a.text=archs[j];
+		a.text = archs[j];
 		document.getElementById("Architecture").options.add(a);
 	}
 }
@@ -213,18 +216,17 @@ function updateFWTargets()
 	cleanComboBox("Platform");
 	cleanComboBox("Architecture");
 
-	getTargets(document.getElementById("exportUrl").value, function(json){
+	getTargets(document.getElementById("exportUrl").value, function(json) {
 	
 		window.json = json;
 		var plats = getPlatforms(json);	
-	
-		for (var i = 0; i < plats.length; i++){
-			var o=document.createElement('option');
-			o.text=plats[i];
+		for (var i = 0; i < plats.length; i++) {
+			var o = document.createElement('option');
+			o.text = plats[i];
 			document.getElementById("Platform").options.add(o);
 		}
 		
-		changeArchs();
+        changeArchs();
 	}, function(){});
 }
 
