@@ -90,63 +90,67 @@ l0 -40 -150 0 -150 0 0 40 0 40 150 0 150 0 0 -40z"/>
 
 <script >
 
-function onEnterKey(e){
+function onEnterKey(e)
+{
 	if (!e) { var e = window.event; } 
 	
-	if (e.keyCode == 13){ 
+	if (e.keyCode == 13) { 
 		e.preventDefault(); 
 		updateFWTargets();
 	}
 }
 
-function openExport(){
-
+function openExport()
+{
 	document.getElementById("plusImg").style.visibility = "hidden";
 	document.getElementById("moinsImg").style.visibility = "visible";
 	document.getElementById("export").style.visibility = "visible";
 }
 
-function closeExport(event){
-
+function closeExport(event)
+{
 	if (!event) { event = window.event; } 
 
 	var target = event.target
 	while(target && target != document.getElementById("export") && target != document.getElementById("plusImg") )
 		target= target.parentNode;
 
-	if(!target){
+	if (!target) {
 		document.getElementById("plusImg").style.visibility = "visible";
 		document.getElementById("moinsImg").style.visibility = "hidden";
 		document.getElementById("export").style.visibility = "hidden";	
 	}
 }
 
-function updateQrCode(sha){
-	
-// Empty Div before adding new qrcode
+function updateQrCode(sha)
+{
+    // Empty Div before adding new qrcode
 	var toEmpty = document.getElementById("qrDiv");
 
 	document.getElementById("loader").style.visibility = "hidden";
 	
-	for(var i=toEmpty.children.length-1; i>=0;  i--){
-		if(toEmpty.children[i].id != "loader")
+	for (var i = toEmpty.children.length-1; i >= 0;  i--) {
+		if (toEmpty.children[i].id != "loader") {
 	    	toEmpty.removeChild(toEmpty.children[i]);
+        }
 	}
 	
 	var plateform = document.getElementById("Platform").options[document.getElementById("Platform").selectedIndex].value;
 	var architecture = document.getElementById("Architecture").options[document.getElementById("Architecture").selectedIndex].value;
 	var output = "binary.zip";
 	
-	if(plateform == "android")
+	if (plateform == "android") {
 		output = "binary.apk";
+    }
 	
 	var link = document.createElement('a');
-	link.href = document.getElementById("exportUrl").value + "/" + sha +"/"+ plateform + "/" + architecture + "/"+output;
+	link.href = document.getElementById("exportUrl").value + "/" + sha + "/" + plateform + "/" + architecture + "/" + output;
 
 	// 	Delete existing content if existing
 	var qrcodeSpan = document.getElementById('qrcodeDiv');
-	if(qrcodeSpan)
+	if (qrcodeSpan) {
 		qrcodeSpan.parentNode.removeChild(qrcodeSpan);
+    }
 	
 	var myWhiteDiv = getQrCode(document.getElementById("exportUrl").value, sha, plateform, architecture, output, 130);
 
@@ -154,83 +158,82 @@ function updateQrCode(sha){
 	link.appendChild(myWhiteDiv);
 }
 
-function cancelLoader(){
-
+function cancelLoader()
+{
 	document.getElementById("loader").style.visibility = "hidden";
 }
 
-function getFaustSource(){
+function getFaustSource()
+{
+    document.getElementById("loader").style.visibility = "visible";
+    
+    if (dsp_code == null) {
 
-	document.getElementById("loader").style.visibility = "visible";
+        var url = window.location.href.split('.html').shift() + ".dsp";
+        var filename = url.toString().split( '/' ).pop();
+        filename = filename.toString().split('.').shift();
+        var xmlhttp = new XMLHttpRequest();
 
-	var url = window.location.href.split('.html').shift() + ".dsp";
-	
-	var filename = url.toString().split( '/' ).pop();
-	filename = filename.toString().split('.').shift();
-		
-    var xmlhttp = new XMLHttpRequest();
-
-	xmlhttp.onreadystatechange=function(){
-		if (xmlhttp.readyState==4 && xmlhttp.status==200){
-			var dsp_code =xmlhttp.responseText;
-			
-			getSHAKey(document.getElementById("exportUrl").value, filename, dsp_code, updateQrCode, cancelLoader);
-    	}
+        xmlhttp.onreadystatechange=function(){
+            if (xmlhttp.readyState==4 && xmlhttp.status == 200) {
+                var dsp_code = xmlhttp.responseText;
+                getSHAKey(document.getElementById("exportUrl").value, filename, dsp_code, updateQrCode, cancelLoader);
+            }
+        }
+        xmlhttp.open("GET", url, false );
+        xmlhttp.send(); 
+    } else {
+        // Global 'dsp_code', so use it
+        getSHAKey(document.getElementById("exportUrl").value, "FaustDSP", dsp_code, updateQrCode, cancelLoader);
     }
-	xmlhttp.open("GET", url, false );
-    xmlhttp.send(); 
 }
 
-
-function cleanComboBox(id){
-	
-	while(document.getElementById(id).childNodes.length>0) {
+function cleanComboBox(id)
+{
+	while(document.getElementById(id).childNodes.length > 0) {
 		document.getElementById(id).removeChild(document.getElementById(id).childNodes[0]);
 	}
 }
 
-function changeArchs(){
-
-// CLEAN COMBOBOX BEFORE ADDING NEW OPTIONS
+function changeArchs()
+{
+    // CLEAN COMBOBOX BEFORE ADDING NEW OPTIONS
 	cleanComboBox("Architecture");
 
 	var plat = document.getElementById("Platform").options[document.getElementById("Platform").selectedIndex].value;
-
 	var archs = getArchitectures(window.json, plat);
 		
-	for(var j=0; j<archs.length; j++){
-
-		var a=document.createElement('option');
-		a.text=archs[j];
+	for (var j = 0; j < archs.length; j++) {
+        var a = document.createElement('option');
+		a.text = archs[j];
 		document.getElementById("Architecture").options.add(a);
 	}
 }
 
-function updateFWTargets(){
-
-// CLEAN COMBOBOX BEFORE ADDING NEW OPTIONS
+function updateFWTargets()
+{
+    // CLEAN COMBOBOX BEFORE ADDING NEW OPTIONS
 	cleanComboBox("Platform");
 	cleanComboBox("Architecture");
 
-	getTargets(document.getElementById("exportUrl").value, function(json){
+	getTargets(document.getElementById("exportUrl").value, function(json) {
 	
 		window.json = json;
-		
 		var plats = getPlatforms(json);	
 	
-		for(var i=0; i<plats.length; i++){
+		for (var i = 0; i < plats.length; i++) {
 			var o=document.createElement('option');
 			o.text=plats[i];
 			document.getElementById("Platform").options.add(o);
-			
 		}
 		
-		changeArchs();
+        changeArchs();
 	}, function(){});
 }
 
-function changeOrientation(orientation){
-	if(orientation == "topright"){
+function changeOrientation(orientation)
+{
+	if (orientation == "topright") {
 		document.getElementById("plusImg").style.top = "0px";
 		document.getElementById("plusImg").style.right = "0px";		
 		document.getElementById("moinsImg").style.top = "0px";
@@ -242,9 +245,7 @@ function changeOrientation(orientation){
 		document.getElementById("export").style.borderRadius ="0px 0px 0px 25px";
 		document.getElementById("export").style.borderBottom = "3px solid white";
 		document.getElementById("export").style.borderLeft ="3px solid white";
-		 		
-	}
-	else if(orientation == "bottomright"){
+	} else if(orientation == "bottomright") {
 	
 		document.getElementById("plusImg").style.bottom = "0px";
 		document.getElementById("plusImg").style.right = "0px";			
@@ -257,8 +258,7 @@ function changeOrientation(orientation){
 		document.getElementById("export").style.borderRadius ="25px 0px 0px 0px";
 		document.getElementById("export").style.borderTop = "3px solid white";
 		document.getElementById("export").style.borderLeft ="3px solid white";
-	}
-	else if(orientation == "bottomleft"){
+	} else if(orientation == "bottomleft") {
 		document.getElementById("plusImg").style.bottom = "0px";
 		document.getElementById("plusImg").style.left = "0px";		
 		document.getElementById("moinsImg").style.bottom = "0px";
@@ -270,8 +270,7 @@ function changeOrientation(orientation){
 		document.getElementById("export").style.borderRadius ="0px 25px 0px 0px";
 		document.getElementById("export").style.borderTop = "3px solid white";
 		document.getElementById("export").style.borderRight ="3px solid white";		
-	}
-	else if(orientation == "topleft"){
+	} else if(orientation == "topleft") {
 		document.getElementById("plusImg").style.top = "0px";
 		document.getElementById("plusImg").style.left = "0px";		
 		document.getElementById("moinsImg").style.top = "0px";

@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
     int poly = lopt(argv, "--poly", 4);
      
 #if MIDICTRL
-    rtmidi midi;
+    rtmidi midi(name);
 #endif
 
 #ifdef POLY

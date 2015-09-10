@@ -31,6 +31,8 @@ class JSONUI : public PathUI, public Meta
         std::stringstream fMeta;
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         std::string fName;
+        std::string fExpandedCode;
+        std::string fSHAKey;
     
         char fCloseUIPar;
         char fCloseMetaPar;
@@ -61,7 +63,7 @@ class JSONUI : public PathUI, public Meta
             }
         }
         
-        void init(const std::string& name, int inputs, int outputs)
+        void init(const std::string& name, int inputs, int outputs, const std::string& sha_key, const std::string& dsp_code)
         {
             fTab = 1;
             
@@ -77,18 +79,45 @@ class JSONUI : public PathUI, public Meta
             fName = name;
             fInputs = inputs;
             fOutputs = outputs;
+            fExpandedCode = dsp_code;
+            fSHAKey = sha_key;
+        }
+        
+        inline std::string flatten(const std::string& src)
+        {
+            std::stringstream dst;
+            for (size_t i = 0; i < src.size(); i++) {
+                switch (src[i]) {
+                    case '\n':
+                    case '\t':
+                        dst << ' ';
+                        break;
+                    case '"':
+                        dst << "\\" << '"';
+                        break;
+                    default:
+                        dst << src[i];
+                        break;
+                }
+            }
+            return dst.str();
         }
       
      public:
      
+        JSONUI(const std::string& name, int inputs, int outputs, const std::string& sha_key, const std::string& dsp_code)
+        {
+            init(name, inputs, outputs, sha_key, dsp_code);
+        }
+
         JSONUI(const std::string& name, int inputs, int outputs)
         {
-            init(name, inputs, outputs);
+            init(name, inputs, outputs, "", "");
         }
 
         JSONUI(int inputs, int outputs)
         {
-            init("", inputs, outputs);
+            init("", inputs, outputs, "", "");
         }
  
         virtual ~JSONUI() {}
@@ -231,32 +260,14 @@ class JSONUI : public PathUI, public Meta
             fCloseMetaPar = ',';
         }
     
-        inline std::string flatten(const std::string& src)
-        {
-            std::stringstream dst;
-            for (size_t i = 0; i < src.size(); i++) {
-                switch (src[i]) {
-                    case '\n':
-                    case '\t':
-                        dst << ' ';
-                        break;
-                    case '"':
-                        dst << "\\" << '"';
-                        break;
-                    default:
-                        dst << src[i];
-                        break;
-                }
-            }
-            return dst.str();
-        }
-    
         std::string JSON(bool flat = false)
         {
             fTab = 0;
             fJSON << "{";
             fTab += 1;
             tab(fTab, fJSON); fJSON << "\"name\": \"" << fName << "\",";
+            if (fSHAKey != "") { tab(fTab, fJSON); fJSON << "\"sha_key\": \"" << fSHAKey << "\","; }
+            if (fExpandedCode != "") { tab(fTab, fJSON); fJSON << "\"code\": \"" << fExpandedCode << "\","; }
             if (fInputs > 0) { tab(fTab, fJSON); fJSON << "\"inputs\": \"" << fInputs << "\","; }
             if (fOutputs > 0) { tab(fTab, fJSON); fJSON << "\"outputs\": \"" << fOutputs << "\","; }
             tab(fTab, fMeta); fMeta << "],";

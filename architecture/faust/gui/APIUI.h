@@ -28,12 +28,14 @@ class APIUI : public PathUI, public Meta
         vector<FAUSTFLOAT>		fMax;
         vector<FAUSTFLOAT>		fStep;        
         vector<string>			fUnit; 
-        vector<ZoneControl*>	fAcc[3]; 
+        vector<ZoneControl*>	fAcc[3];
+        vector<ZoneControl*>	fGyr[3]; 
     
         // Current values controlled by metadata
         string	fCurrentUnit;     
         int     fCurrentScale;
-        string	fCurrentAcc;     
+        string	fCurrentAcc; 
+        string	fCurrentGyr;     
 
         // Add a generic parameter
         virtual void addParameter(const char* label, 
@@ -82,6 +84,24 @@ class APIUI : public PathUI, public Meta
                 }
             }
             fCurrentAcc = "";
+            
+            // handle gyr metadata "...[gyr : <axe> <curve> <amin> <amid> <amax>]..."
+            if (fCurrentGyr.size() > 0) {
+                istringstream iss(fCurrentGyr); 
+                int axe, curve;
+                double amin, amid, amax;
+                iss >> axe >> curve >> amin >> amid >> amax;
+                
+                if ((0 <= axe) && (axe < 3) && 
+                    (0 <= curve) && (curve < 4) &&
+                    (amin < amax) && (amin <= amid) && (amid <= amax)) 
+                {
+                    fGyr[axe].push_back(new CurveZoneControl(zone, amin, amid, amax, min, init, max));
+                } else {
+                    cerr << "incorrect gyr metadata : " << fCurrentGyr << endl;
+                }
+            }
+            fCurrentGyr = "";
         }
     
         int getAccZoneIndex(int p, int acc)
@@ -104,14 +124,13 @@ class APIUI : public PathUI, public Meta
             }
             
             vector<ZoneControl*>::iterator it2;
-            for (it2 = fAcc[0].begin(); it2 != fAcc[0].end(); it2++) {
-                delete(*it2);
-            }
-            for (it2 = fAcc[1].begin(); it2 != fAcc[1].end(); it2++) {
-                delete(*it2);
-            }
-            for (it2 = fAcc[2].begin(); it2 != fAcc[2].end(); it2++) {
-                delete(*it2);
+            for (int i = 0; i < 3; i++) {
+                for (it2 = fAcc[i].begin(); it2 != fAcc[i].end(); it2++) {
+                    delete(*it2);
+                }
+                for (it2 = fGyr[i].begin(); it2 != fGyr[i].end(); it2++) {
+                    delete(*it2);
+                }
             }
         }
 
@@ -177,6 +196,8 @@ class APIUI : public PathUI, public Meta
 				fCurrentUnit = val;
 			} else if (strcmp(key, "acc") == 0) {
 				fCurrentAcc = val;
+			} else if (strcmp(key, "gyr") == 0) {
+				fCurrentGyr = val;
 			}
         }
 
@@ -190,27 +211,44 @@ class APIUI : public PathUI, public Meta
 		int getParamIndex(const char* n) 	{ return (fMap.count(n)>0) ? fMap[n] : -1; }
 		const char* getParamName(int p)		{ return fName[p].c_str(); }
 		const char* getParamUnit(int p)		{ return fUnit[p].c_str(); }
-		float getParamMin(int p)			{ return fMin[p]; }
-		float getParamMax(int p)			{ return fMax[p]; }
-		float getParamStep(int p)			{ return fStep[p]; }
+		FAUSTFLOAT getParamMin(int p)		{ return fMin[p]; }
+		FAUSTFLOAT getParamMax(int p)		{ return fMax[p]; }
+		FAUSTFLOAT getParamStep(int p)		{ return fStep[p]; }
 	
-		float getParamValue(int p)			{ return *fZone[p]; }
-		void setParamValue(int p, float v)	{ *fZone[p] = v; }
+		FAUSTFLOAT getParamValue(int p)         { return *fZone[p]; }
+		void setParamValue(int p, FAUSTFLOAT v) { *fZone[p] = v; }
 	
-		float getParamRatio(int p)			{ return fConversion[p]->faust2ui(*fZone[p]); }
-		void setParamRatio(int p, float r)	{ *fZone[p] = fConversion[p]->ui2faust(r); }
+		double getParamRatio(int p)         { return fConversion[p]->faust2ui(*fZone[p]); }
+		void setParamRatio(int p, double r) { *fZone[p] = fConversion[p]->ui2faust(r); }
 	
-		float value2ratio(int p, float r)	{ return fConversion[p]->faust2ui(r); }
-		float ratio2value(int p, float r)	{ return fConversion[p]->ui2faust(r); }
+		double value2ratio(int p, double r)	{ return fConversion[p]->faust2ui(r); }
+		double ratio2value(int p, double r)	{ return fConversion[p]->ui2faust(r); }
     
-        // acc in [0, 1, 2]
-        void propagateAcc(int acc, double a)
+        /**
+         * Set a new value coming from an accelerometer, propagate it to all relevant float* zones.
+         * 
+         * @param acc - 0 for X accelerometer, 1 for Y accelerometer, 2 for Z accelerometer
+         * @param value - the new value
+         *
+         */
+        void propagateAcc(int acc, double value)
         {
             for (int i = 0; i < fAcc[acc].size(); i++) {
-                fAcc[acc][i]->update(a);
+                fAcc[acc][i]->update(value);
             }
         }
 
+        /**
+         * Used to edit accelerometer curves and mapping. Set curve and related mapping for a given UI parameter.
+         * 
+         * @param p - the UI parameter index
+         * @param acc - 0 for X accelerometer, 1 for Y accelerometer, 2 for Z accelerometer (-1 means "no mapping")
+         * @param curve - between 0 and 3
+         * @param amin - mapping 'min' point
+         * @param amid - mapping 'middle' point
+         * @param amax - mapping 'max' point
+         *
+         */
         void setAccConverter(int p, int acc, int curve, double amin, double amid, double amax)
         {
             int id1 = getAccZoneIndex(p, 0);
@@ -228,16 +266,66 @@ class APIUI : public PathUI, public Meta
                 int id4 = getAccZoneIndex(p, acc);
                 if (id4 != -1) {
                     // Reactivate the one we edit...
-                    fAcc[acc][id4]->update(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]);
+                    fAcc[acc][id4]->setMappingValues(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]);
                     fAcc[acc][id4]->setActive(true);
                 } else {
-                    // Allocate a new CurveZoneControl which is activated by default
+                    // Allocate a new CurveZoneControl which is 'active' by default
                     FAUSTFLOAT* zone = fZone[p];
                     fAcc[acc].push_back(new CurveZoneControl(zone, amin, amid, amax, fMin[p], fInit[p], fMax[p]));
                     //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter new CurveZoneControl %d", acc);
                 }
             }
-         }
+        }
+         
+         /**
+         * Used to edit accelerometer curves and mapping. Get curve and related mapping for a given UI parameter.
+         * 
+         * @param p - the UI parameter index
+         * @param acc - the acc value to be retrieved (-1 means "no mapping")
+         * @param curve - the curve value to be retrieved
+         * @param amin - the amin value to be retrieved
+         * @param amid - the amid value to be retrieved
+         * @param amax - the amax value to be retrieved
+         *
+         */
+        void getAccConverter(int p, int& acc, int& curve, double& amin, double& amid, double& amax)
+        {
+            int id1 = getAccZoneIndex(p, 0);
+            int id2 = getAccZoneIndex(p, 1);
+            int id3 = getAccZoneIndex(p, 2);
+            
+            if (id1 != 1) {
+                acc = 0;
+                curve = fAcc[acc][id1]->getCurve();
+                fAcc[acc][id1]->getMappingValues(amin, amid, amax);
+            } else if (id2 != 1) {
+                acc = 1;
+                curve = fAcc[acc][id2]->getCurve();
+                fAcc[acc][id2]->getMappingValues(amin, amid, amax);
+            } else if (id3 != 1) {
+                acc = 2;
+                curve = fAcc[acc][id3]->getCurve();
+                fAcc[acc][id3]->getMappingValues(amin, amid, amax);
+            } else {
+                acc = -1; // No mapping 
+                curve = 0;
+                amin = -100.;
+                amid = 0.;
+                amax = 100.;
+            }
+        }
+        
+        // TODO
+        void propagateGyr(int gyr, double value) 
+        {
+            for (int i = 0; i < fGyr[gyr].size(); i++) {
+                fGyr[gyr][i]->update(value);
+            }
+        }
+        
+        void setGyrConverter(int p, int gyr, int curve, double amin, double amid, double amax) {}
+        
+        void getGyrConverter(int p, int& gyr, int& curve, double& amin, double& amid, double& amax) {}
    
 };
 

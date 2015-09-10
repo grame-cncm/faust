@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>BBEditDocumentType</key>
@@ -12,17 +12,16 @@
 	<array>
 		<string>process</string>
 		<string>declare</string>
-        <string>with</string>
-        <string>component</string>
-        <string>library</string>
-        <string>environment</string>
-        <string>case</string>
-        <string>seq</string>
-        <string>par</string>
-        <string>sum</string>
-        <string>prod</string>
-        <string>import</string>
-        
+		<string>with</string>
+		<string>component</string>
+		<string>library</string>
+		<string>environment</string>
+		<string>case</string>
+		<string>seq</string>
+		<string>par</string>
+		<string>sum</string>
+		<string>prod</string>
+		<string>import</string>
 		<string>mem</string>
 		<string>prefix</string>
 		<string>int</string>
@@ -32,9 +31,9 @@
 		<string>select2</string>
 		<string>select3</string>
 		<string>ffunction</string>
-        <string>fconstant</string>
-        <string>fvariable</string>
-        <string>button</string>
+		<string>fconstant</string>
+		<string>fvariable</string>
+		<string>button</string>
 		<string>checkbox</string>
 		<string>vslider</string>
 		<string>hslider</string>
@@ -76,6 +75,10 @@
 	<array>
 		<dict>
 			<key>BBLMLanguageSuffix</key>
+			<string>.lib</string>
+		</dict>
+		<dict>
+			<key>BBLMLanguageSuffix</key>
 			<string>.dsp</string>
 		</dict>
 	</array>
@@ -88,7 +91,7 @@
 		<key>Close Statement Blocks</key>
 		<string>}</string>
 		<key>Close Strings 1</key>
-		<string>"</string>
+		<string>&quot;</string>
 		<key>Close Strings 2</key>
 		<string></string>
 		<key>End-of-line Ends Strings 1</key>
@@ -110,7 +113,7 @@
 		<key>Open Statement Blocks</key>
 		<string>{</string>
 		<key>Open Strings 1</key>
-		<string>"</string>
+		<string>&quot;</string>
 		<key>Open Strings 2</key>
 		<string></string>
 		<key>Prefix for Functions</key>

@@ -70,6 +70,75 @@
 		4B5F800917D5F93900E0F1ED /* Icon-72@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B27569D17D5E83700BAB8B9 /* Icon-72@2x.png */; };
 		4BAD5B9F16F0FA5D000FEF86 /* jack.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BAD5B9E16F0FA5D000FEF86 /* jack.framework */; };
 		4BDAA21016AEF05D00A3499E /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BDAA20F16AEF05D00A3499E /* Accelerate.framework */; };
+		4BEF91A61B96FFC000F2D974 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E5ED9E14DB037D00136CFC /* main.m */; };
+		4BEF91A71B96FFC000F2D974 /* FIAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65E5EDA214DB037D00136CFC /* FIAppDelegate.mm */; };
+		4BEF91A81B96FFC000F2D974 /* FIMainViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65E5EDAB14DB037D00136CFC /* FIMainViewController.mm */; };
+		4BEF91A91B96FFC000F2D974 /* FIFlipsideViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65E5EDAE14DB037D00136CFC /* FIFlipsideViewController.mm */; };
+		4BEF91AA1B96FFC000F2D974 /* FIButton.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748514ED30F000172A10 /* FIButton.mm */; };
+		4BEF91AB1B96FFC000F2D974 /* FIResponder.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748714ED30F000172A10 /* FIResponder.mm */; };
+		4BEF91AC1B96FFC000F2D974 /* FISlider.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6566748914ED30F000172A10 /* FISlider.mm */; };
+		4BEF91AD1B96FFC000F2D974 /* FITextField.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65510E9414EEC1190014A01F /* FITextField.mm */; };
+		4BEF91AE1B96FFC000F2D974 /* FIKnob.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6559E84614F2685A00D3AB9A /* FIKnob.mm */; };
+		4BEF91AF1B96FFC000F2D974 /* FIBargraph.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65C1C07314F543E9006464DF /* FIBargraph.mm */; };
+		4BEF91B01B96FFC000F2D974 /* FIBox.mm in Sources */ = {isa = PBXBuildFile; fileRef = 655DAAE814F69C9B0013FAF5 /* FIBox.mm */; };
+		4BEF91B11B96FFC000F2D974 /* FITabView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6560454014FE924400AE84A9 /* FITabView.mm */; };
+		4BEF91B21B96FFC000F2D974 /* FIHint.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65961D4F1546DFD70004BC59 /* FIHint.mm */; };
+		4BEF91B31B96FFC000F2D974 /* FIScrollView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65FD744E1549993A00E7CB0B /* FIScrollView.mm */; };
+		4BEF91B41B96FFC000F2D974 /* FISensorFilter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6528EF041564212100A310B2 /* FISensorFilter.mm */; };
+		4BEF91B51B96FFC000F2D974 /* JackViewPortsViewBackgroundView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 656EE12E176B6D8300463CA8 /* JackViewPortsViewBackgroundView.mm */; };
+		4BEF91B71B96FFC000F2D974 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E85C9A157806C2009F2D7A /* QuartzCore.framework */; };
+		4BEF91B81B96FFC000F2D974 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F87430156FFB0C008AE175 /* CoreMotion.framework */; };
+		4BEF91B91B96FFC000F2D974 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65D1BD1315668A8A00ADCA32 /* CoreLocation.framework */; };
+		4BEF91BA1B96FFC000F2D974 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E5EDCD14DB055500136CFC /* AudioToolbox.framework */; };
+		4BEF91BB1B96FFC000F2D974 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E5ED9214DB037D00136CFC /* UIKit.framework */; };
+		4BEF91BC1B96FFC000F2D974 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E5ED9414DB037D00136CFC /* Foundation.framework */; };
+		4BEF91BD1B96FFC000F2D974 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E5ED9614DB037D00136CFC /* CoreGraphics.framework */; };
+		4BEF91BE1B96FFC000F2D974 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BDAA20F16AEF05D00A3499E /* Accelerate.framework */; };
+		4BEF91C01B96FFC000F2D974 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 65E5ED9B14DB037D00136CFC /* InfoPlist.strings */; };
+		4BEF91C11B96FFC000F2D974 /* close.png in Resources */ = {isa = PBXBuildFile; fileRef = 65E85C9D157806E6009F2D7A /* close.png */; };
+		4BEF91C21B96FFC000F2D974 /* close@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 65E85C9E157806E6009F2D7A /* close@2x.png */; };
+		4BEF91C31B96FFC000F2D974 /* Icon-Analyzer.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B04364916E9E9AD00C0C02A /* Icon-Analyzer.png */; };
+		4BEF91C41B96FFC000F2D974 /* Icon-Analyzer136.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B04364A16E9E9AD00C0C02A /* Icon-Analyzer136.png */; };
+		4BEF91C51B96FFC000F2D974 /* Icon-Analyzer@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B04364B16E9E9AD00C0C02A /* Icon-Analyzer@2x.png */; };
+		4BEF91C61B96FFC000F2D974 /* Icon-Fx.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B04364C16E9E9AD00C0C02A /* Icon-Fx.png */; };
+		4BEF91C71B96FFC000F2D974 /* Icon-Fx136.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B04364D16E9E9AD00C0C02A /* Icon-Fx136.png */; };
+		4BEF91C81B96FFC000F2D974 /* Icon-Fx@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B04364E16E9E9AD00C0C02A /* Icon-Fx@2x.png */; };
+		4BEF91C91B96FFC000F2D974 /* Icon-Output.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B04364F16E9E9AD00C0C02A /* Icon-Output.png */; };
+		4BEF91CA1B96FFC000F2D974 /* Icon-Output136.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B04365016E9E9AD00C0C02A /* Icon-Output136.png */; };
+		4BEF91CB1B96FFC000F2D974 /* Icon-Output@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B04365116E9E9AD00C0C02A /* Icon-Output@2x.png */; };
+		4BEF91CC1B96FFC000F2D974 /* Icon-Jack.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43C171D91260065CBC9 /* Icon-Jack.png */; };
+		4BEF91CD1B96FFC000F2D974 /* Icon-Jack@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */; };
+		4BEF91CE1B96FFC000F2D974 /* Icon_Apple.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596C3B4172926BB000AD403 /* Icon_Apple.png */; };
+		4BEF91CF1B96FFC000F2D974 /* MainStoryboard_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4B4953561A9F1D5A005377A7 /* MainStoryboard_iPhone.storyboard */; };
+		4BEF91D01B96FFC000F2D974 /* Icon_Apple@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6596C3B5172926BB000AD403 /* Icon_Apple@2x.png */; };
+		4BEF91D11B96FFC000F2D974 /* Icon-Delete.png in Resources */ = {isa = PBXBuildFile; fileRef = 65E3120E17722C10000E2AFA /* Icon-Delete.png */; };
+		4BEF91D21B96FFC000F2D974 /* Icon-Delete@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 65E3120F17722C10000E2AFA /* Icon-Delete@2x.png */; };
+		4BEF91D31B96FFC000F2D974 /* Icon-Expand.png in Resources */ = {isa = PBXBuildFile; fileRef = 65E3121017722C10000E2AFA /* Icon-Expand.png */; };
+		4BEF91D41B96FFC000F2D974 /* Icon-Expand@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 65E3121117722C10000E2AFA /* Icon-Expand@2x.png */; };
+		4BEF91D51B96FFC000F2D974 /* jackview-audio-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64117832FB400175F2F /* jackview-audio-off.png */; };
+		4BEF91D61B96FFC000F2D974 /* jackview-audio-off@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64217832FB400175F2F /* jackview-audio-off@2x.png */; };
+		4BEF91D71B96FFC000F2D974 /* jackview-audio-on.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64317832FB400175F2F /* jackview-audio-on.png */; };
+		4BEF91D81B96FFC000F2D974 /* jackview-audio-on@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64417832FB400175F2F /* jackview-audio-on@2x.png */; };
+		4BEF91D91B96FFC000F2D974 /* jackview-in.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64517832FB400175F2F /* jackview-in.png */; };
+		4BEF91DA1B96FFC000F2D974 /* jackview-in@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64617832FB400175F2F /* jackview-in@2x.png */; };
+		4BEF91DB1B96FFC000F2D974 /* jackview-midi-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64717832FB400175F2F /* jackview-midi-off.png */; };
+		4BEF91DC1B96FFC000F2D974 /* jackview-midi-off@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64817832FB400175F2F /* jackview-midi-off@2x.png */; };
+		4BEF91DD1B96FFC000F2D974 /* jackview-midi-on.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64917832FB400175F2F /* jackview-midi-on.png */; };
+		4BEF91DE1B96FFC000F2D974 /* jackview-midi-on@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64A17832FB400175F2F /* jackview-midi-on@2x.png */; };
+		4BEF91DF1B96FFC000F2D974 /* jackview-out.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64B17832FB400175F2F /* jackview-out.png */; };
+		4BEF91E01B96FFC000F2D974 /* jackview-out@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64C17832FB400175F2F /* jackview-out@2x.png */; };
+		4BEF91E11B96FFC000F2D974 /* MainStoryboard_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4B4953541A9F1D5A005377A7 /* MainStoryboard_iPad.storyboard */; };
+		4BEF91E21B96FFC000F2D974 /* Default-Landscape@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B01EDEB17D5F323005F8D54 /* Default-Landscape@2x~ipad.png */; };
+		4BEF91E31B96FFC000F2D974 /* Default-Portrait~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B01EDE517D5F31A005F8D54 /* Default-Portrait~ipad.png */; };
+		4BEF91E41B96FFC000F2D974 /* Default-Landscape~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B01EDE917D5F320005F8D54 /* Default-Landscape~ipad.png */; };
+		4BEF91E51B96FFC000F2D974 /* Default-Portrait@2x~ipad.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B01EDE717D5F31E005F8D54 /* Default-Portrait@2x~ipad.png */; };
+		4BEF91E61B96FFC000F2D974 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B01EDF217D5F79F005F8D54 /* Default.png */; };
+		4BEF91E71B96FFC000F2D974 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B01EDE117D5F30D005F8D54 /* Default@2x.png */; };
+		4BEF91E81B96FFC000F2D974 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B01EDE317D5F30F005F8D54 /* Default-568h@2x.png */; };
+		4BEF91E91B96FFC000F2D974 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B27569817D5E80D00BAB8B9 /* Icon.png */; };
+		4BEF91EA1B96FFC000F2D974 /* Icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B27569A17D5E82500BAB8B9 /* Icon@2x.png */; };
+		4BEF91EB1B96FFC000F2D974 /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B5F800717D5F93700E0F1ED /* Icon-72.png */; };
+		4BEF91EC1B96FFC000F2D974 /* Icon-72@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B27569D17D5E83700BAB8B9 /* Icon-72@2x.png */; };
 		4BFCB7F317D63C1A007DE831 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B27569817D5E80D00BAB8B9 /* Icon.png */; };
 		4BFCB7F617D63C2B007DE831 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B01EDE317D5F30F005F8D54 /* Default-568h@2x.png */; };
 		4BFCB7F717D63C37007DE831 /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B5F800717D5F93700E0F1ED /* Icon-72.png */; };
@@ -203,6 +272,7 @@
 		4B5F800717D5F93700E0F1ED /* Icon-72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-72.png"; sourceTree = "<group>"; };
 		4BAD5B9E16F0FA5D000FEF86 /* jack.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = jack.framework; sourceTree = "<group>"; };
 		4BDAA20F16AEF05D00A3499E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		4BEF91F01B96FFC000F2D974 /* Template_CoreAudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Template_CoreAudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		651BB43C171D91260065CBC9 /* Icon-Jack.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Jack.png"; sourceTree = "<group>"; };
 		651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Jack@2x.png"; sourceTree = "<group>"; };
 		6528EF031564212100A310B2 /* FISensorFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FISensorFilter.h; sourceTree = "<group>"; };
@@ -295,6 +365,21 @@
 				4B06ECA316E77D6A004D2F59 /* CoreGraphics.framework in Frameworks */,
 				4B06ECA416E77D6A004D2F59 /* Accelerate.framework in Frameworks */,
 				4BAD5B9F16F0FA5D000FEF86 /* jack.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4BEF91B61B96FFC000F2D974 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4BEF91B71B96FFC000F2D974 /* QuartzCore.framework in Frameworks */,
+				4BEF91B81B96FFC000F2D974 /* CoreMotion.framework in Frameworks */,
+				4BEF91B91B96FFC000F2D974 /* CoreLocation.framework in Frameworks */,
+				4BEF91BA1B96FFC000F2D974 /* AudioToolbox.framework in Frameworks */,
+				4BEF91BB1B96FFC000F2D974 /* UIKit.framework in Frameworks */,
+				4BEF91BC1B96FFC000F2D974 /* Foundation.framework in Frameworks */,
+				4BEF91BD1B96FFC000F2D974 /* CoreGraphics.framework in Frameworks */,
+				4BEF91BE1B96FFC000F2D974 /* Accelerate.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -428,6 +513,7 @@
 				65E5ED8E14DB037D00136CFC /* Template_CoreAudio.app */,
 				65E5EDB514DB037D00136CFC /* iOSTests.octest */,
 				4B06ECAF16E77D6A004D2F59 /* Template_Jack.app */,
+				4BEF91F01B96FFC000F2D974 /* Template_CoreAudio.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -533,6 +619,23 @@
 			productReference = 4B06ECAF16E77D6A004D2F59 /* Template_Jack.app */;
 			productType = "com.apple.product-type.application";
 		};
+		4BEF91A41B96FFC000F2D974 /* Template_CoreAudio_32bits */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4BEF91ED1B96FFC000F2D974 /* Build configuration list for PBXNativeTarget "Template_CoreAudio_32bits" */;
+			buildPhases = (
+				4BEF91A51B96FFC000F2D974 /* Sources */,
+				4BEF91B61B96FFC000F2D974 /* Frameworks */,
+				4BEF91BF1B96FFC000F2D974 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Template_CoreAudio_32bits;
+			productName = iOS;
+			productReference = 4BEF91F01B96FFC000F2D974 /* Template_CoreAudio.app */;
+			productType = "com.apple.product-type.application";
+		};
 		65E5ED8D14DB037D00136CFC /* Template_CoreAudio */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 65E5EDC714DB037D00136CFC /* Build configuration list for PBXNativeTarget "Template_CoreAudio" */;
@@ -567,7 +670,7 @@
 			name = iOSTests;
 			productName = iOSTests;
 			productReference = 65E5EDB514DB037D00136CFC /* iOSTests.octest */;
-			productType = "com.apple.product-type.bundle";
+			productType = "com.apple.product-type.bundle.ocunit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -577,6 +680,11 @@
 			attributes = {
 				LastTestingUpgradeCheck = 0510;
 				LastUpgradeCheck = 0420;
+				TargetAttributes = {
+					65E5ED8D14DB037D00136CFC = {
+						DevelopmentTeam = XN9RP996NW;
+					};
+				};
 			};
 			buildConfigurationList = 65E5ED8814DB037D00136CFC /* Build configuration list for PBXProject "iOS" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -593,6 +701,7 @@
 				65E5ED8D14DB037D00136CFC /* Template_CoreAudio */,
 				65E5EDB414DB037D00136CFC /* iOSTests */,
 				4B06EC8B16E77D6A004D2F59 /* Template_Jack */,
+				4BEF91A41B96FFC000F2D974 /* Template_CoreAudio_32bits */,
 			);
 		};
 /* End PBXProject section */
@@ -647,6 +756,58 @@
 				4BFCB7FC17D63C5A007DE831 /* Default-Landscape@2x~ipad.png in Resources */,
 				4BFCB7FD17D63C61007DE831 /* Default.png in Resources */,
 				4BFCB7FE17D63C63007DE831 /* Default@2x.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4BEF91BF1B96FFC000F2D974 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4BEF91C01B96FFC000F2D974 /* InfoPlist.strings in Resources */,
+				4BEF91C11B96FFC000F2D974 /* close.png in Resources */,
+				4BEF91C21B96FFC000F2D974 /* close@2x.png in Resources */,
+				4BEF91C31B96FFC000F2D974 /* Icon-Analyzer.png in Resources */,
+				4BEF91C41B96FFC000F2D974 /* Icon-Analyzer136.png in Resources */,
+				4BEF91C51B96FFC000F2D974 /* Icon-Analyzer@2x.png in Resources */,
+				4BEF91C61B96FFC000F2D974 /* Icon-Fx.png in Resources */,
+				4BEF91C71B96FFC000F2D974 /* Icon-Fx136.png in Resources */,
+				4BEF91C81B96FFC000F2D974 /* Icon-Fx@2x.png in Resources */,
+				4BEF91C91B96FFC000F2D974 /* Icon-Output.png in Resources */,
+				4BEF91CA1B96FFC000F2D974 /* Icon-Output136.png in Resources */,
+				4BEF91CB1B96FFC000F2D974 /* Icon-Output@2x.png in Resources */,
+				4BEF91CC1B96FFC000F2D974 /* Icon-Jack.png in Resources */,
+				4BEF91CD1B96FFC000F2D974 /* Icon-Jack@2x.png in Resources */,
+				4BEF91CE1B96FFC000F2D974 /* Icon_Apple.png in Resources */,
+				4BEF91CF1B96FFC000F2D974 /* MainStoryboard_iPhone.storyboard in Resources */,
+				4BEF91D01B96FFC000F2D974 /* Icon_Apple@2x.png in Resources */,
+				4BEF91D11B96FFC000F2D974 /* Icon-Delete.png in Resources */,
+				4BEF91D21B96FFC000F2D974 /* Icon-Delete@2x.png in Resources */,
+				4BEF91D31B96FFC000F2D974 /* Icon-Expand.png in Resources */,
+				4BEF91D41B96FFC000F2D974 /* Icon-Expand@2x.png in Resources */,
+				4BEF91D51B96FFC000F2D974 /* jackview-audio-off.png in Resources */,
+				4BEF91D61B96FFC000F2D974 /* jackview-audio-off@2x.png in Resources */,
+				4BEF91D71B96FFC000F2D974 /* jackview-audio-on.png in Resources */,
+				4BEF91D81B96FFC000F2D974 /* jackview-audio-on@2x.png in Resources */,
+				4BEF91D91B96FFC000F2D974 /* jackview-in.png in Resources */,
+				4BEF91DA1B96FFC000F2D974 /* jackview-in@2x.png in Resources */,
+				4BEF91DB1B96FFC000F2D974 /* jackview-midi-off.png in Resources */,
+				4BEF91DC1B96FFC000F2D974 /* jackview-midi-off@2x.png in Resources */,
+				4BEF91DD1B96FFC000F2D974 /* jackview-midi-on.png in Resources */,
+				4BEF91DE1B96FFC000F2D974 /* jackview-midi-on@2x.png in Resources */,
+				4BEF91DF1B96FFC000F2D974 /* jackview-out.png in Resources */,
+				4BEF91E01B96FFC000F2D974 /* jackview-out@2x.png in Resources */,
+				4BEF91E11B96FFC000F2D974 /* MainStoryboard_iPad.storyboard in Resources */,
+				4BEF91E21B96FFC000F2D974 /* Default-Landscape@2x~ipad.png in Resources */,
+				4BEF91E31B96FFC000F2D974 /* Default-Portrait~ipad.png in Resources */,
+				4BEF91E41B96FFC000F2D974 /* Default-Landscape~ipad.png in Resources */,
+				4BEF91E51B96FFC000F2D974 /* Default-Portrait@2x~ipad.png in Resources */,
+				4BEF91E61B96FFC000F2D974 /* Default.png in Resources */,
+				4BEF91E71B96FFC000F2D974 /* Default@2x.png in Resources */,
+				4BEF91E81B96FFC000F2D974 /* Default-568h@2x.png in Resources */,
+				4BEF91E91B96FFC000F2D974 /* Icon.png in Resources */,
+				4BEF91EA1B96FFC000F2D974 /* Icon@2x.png in Resources */,
+				4BEF91EB1B96FFC000F2D974 /* Icon-72.png in Resources */,
+				4BEF91EC1B96FFC000F2D974 /* Icon-72@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -763,6 +924,29 @@
 				65B9D5DB170EB9D5009DE0DC /* JackView.mm in Sources */,
 				6534E20F17301716009A4FD2 /* JackViewPortsView.mm in Sources */,
 				656EE130176B6D8300463CA8 /* JackViewPortsViewBackgroundView.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4BEF91A51B96FFC000F2D974 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4BEF91A61B96FFC000F2D974 /* main.m in Sources */,
+				4BEF91A71B96FFC000F2D974 /* FIAppDelegate.mm in Sources */,
+				4BEF91A81B96FFC000F2D974 /* FIMainViewController.mm in Sources */,
+				4BEF91A91B96FFC000F2D974 /* FIFlipsideViewController.mm in Sources */,
+				4BEF91AA1B96FFC000F2D974 /* FIButton.mm in Sources */,
+				4BEF91AB1B96FFC000F2D974 /* FIResponder.mm in Sources */,
+				4BEF91AC1B96FFC000F2D974 /* FISlider.mm in Sources */,
+				4BEF91AD1B96FFC000F2D974 /* FITextField.mm in Sources */,
+				4BEF91AE1B96FFC000F2D974 /* FIKnob.mm in Sources */,
+				4BEF91AF1B96FFC000F2D974 /* FIBargraph.mm in Sources */,
+				4BEF91B01B96FFC000F2D974 /* FIBox.mm in Sources */,
+				4BEF91B11B96FFC000F2D974 /* FITabView.mm in Sources */,
+				4BEF91B21B96FFC000F2D974 /* FIHint.mm in Sources */,
+				4BEF91B31B96FFC000F2D974 /* FIScrollView.mm in Sources */,
+				4BEF91B41B96FFC000F2D974 /* FISensorFilter.mm in Sources */,
+				4BEF91B51B96FFC000F2D974 /* JackViewPortsViewBackgroundView.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -889,11 +1073,65 @@
 			};
 			name = Release;
 		};
+		4BEF91EE1B96FFC000F2D974 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					../,
+					.,
+				);
+				INFOPLIST_FILE = "iOS/iOS-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_LDFLAGS = (
+					libOSCFaust.a,
+					liboscpack.a,
+				);
+				PRODUCT_NAME = Template_CoreAudio;
+				PROVISIONING_PROFILE = "";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		4BEF91EF1B96FFC000F2D974 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					../,
+					.,
+				);
+				INFOPLIST_FILE = "iOS/iOS-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
+				LIBRARY_SEARCH_PATHS = "";
+				OTHER_LDFLAGS = (
+					libOSCFaust.a,
+					liboscpack.a,
+				);
+				PRODUCT_NAME = Template_CoreAudio;
+				PROVISIONING_PROFILE = "";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
 		65E5EDC514DB037D00136CFC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_OBJC_ARC = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -907,7 +1145,7 @@
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
 				LIBRARY_SEARCH_PATHS = "";
 				MACH_O_TYPE = mh_execute;
 				OTHER_CFLAGS = "";
@@ -925,7 +1163,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_OBJC_ARC = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -937,7 +1175,7 @@
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
 				LIBRARY_SEARCH_PATHS = "";
 				MACH_O_TYPE = mh_execute;
 				OTHER_CFLAGS = "";
@@ -956,6 +1194,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
@@ -964,7 +1203,7 @@
 					.,
 				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = (
 					libOSCFaust.a,
@@ -981,6 +1220,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
@@ -989,7 +1229,7 @@
 					.,
 				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = (
 					libOSCFaust.a,
@@ -1045,6 +1285,15 @@
 			buildConfigurations = (
 				4B06ECAD16E77D6A004D2F59 /* Debug */,
 				4B06ECAE16E77D6A004D2F59 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4BEF91ED1B96FFC000F2D974 /* Build configuration list for PBXNativeTarget "Template_CoreAudio_32bits" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4BEF91EE1B96FFC000F2D974 /* Debug */,
+				4BEF91EF1B96FFC000F2D974 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

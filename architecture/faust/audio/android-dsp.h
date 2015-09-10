@@ -75,7 +75,7 @@ class androidaudio : public audio {
     
         int fFifoFirstSample, fFifoLastSample, fLatencySamples, fFifoCapacity;
     
-        virtual int processAudio(short* audioIO)
+        int processAudio(short* audioIO)
         {
             for (int chan = 0; chan < NUM_INPUTS; chan++) {
                 for (int i = 0; i < fBufferSize; i++) {
