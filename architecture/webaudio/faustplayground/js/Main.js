@@ -225,7 +225,7 @@ function resetGeneralDragAndDrop(div){
 }
 
 
-//-- Prevent Defaul Action of the browser from happening
+//-- Prevent Default Action of the browser from happening
 function preventDefaultAction(e) {
     e.preventDefault();
 }

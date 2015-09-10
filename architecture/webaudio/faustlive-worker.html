@@ -420,113 +420,163 @@
         UploadFile(f);
     }
 
+    function uploadOn(e, callback) {
+     
+        // CASE 1 : THE DROPPED OBJECT IS A URL TO SOME FAUST CODE   
+        if (e.dataTransfer.getData('URL') && e.dataTransfer.getData('URL').split(':').shift() != "file") {
+            var url = e.dataTransfer.getData('URL');
+            var filename = url.toString().split( '/' ).pop();
+            filename = filename.toString().split('.').shift();
+            var xmlhttp = new XMLHttpRequest();
+
+            xmlhttp.onreadystatechange=function(){
+                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                    dsp_code ="process = vgroup(\"" + filename + "\", environment{" + xmlhttp.responseText + "}.process);";
+                    callback();
+                }
+            }
+            
+            xmlhttp.open("GET", url, false);
+            // 	Avoid error "mal formé" on firefox
+            xmlhttp.overrideMimeType('text/html');
+            xmlhttp.send(); 
+        }
+        else if (e.dataTransfer.getData('URL').split(':').shift() != "file") {
+            dsp_code = e.dataTransfer.getData('text');
+        
+            // CASE 2 : THE DROPPED OBJECT IS SOME FAUST CODE
+            if (dsp_code) {
+                dsp_code ="process = vgroup(\"" + "TEXT" + "\", environment{" + dsp_code + "}.process);";
+                callback();
+            }
+            // CASE 3 : THE DROPPED OBJECT IS A FILE CONTAINING SOME FAUST CODE		
+            else { 
+                var files = e.target.files || e.dataTransfer.files;
+                var file = files[0];
+
+                if (location.host.indexOf("sitepointstatic") >= 0) return;
+
+                var request = new XMLHttpRequest();
+                if (request.upload) {
+
+                    var reader = new FileReader();
+                    var ext = file.name.toString().split('.').pop();
+                    var filename = file.name.toString().split('.').shift();
+                    var type;
+
+                    if (ext == "dsp") {
+                        type = "dsp";
+                        reader.readAsText(file);  
+                    }
+                    else if(ext == "json") {
+                        type = "json";
+                        reader.readAsText(file);
+                    }
+                    
+                    console.log("CASE 31");
+                        
+                    reader.onloadend = function(e) {
+                        dsp_code = "process = vgroup(\"" + filename + "\",environment{" + reader.result + "}.process);";
+                        console.log("CASE 32");
+                        callback();
+                    };
+                }
+            }
+        }
+        // CASE 4 : ANY OTHER STRANGE THING
+        else {
+            console.log("CASE 4");
+            window.alert("This object is not Faust code...");
+        }
+    }
+
     function UploadFile(e) {
-    
+
         var intAltKey = e.altKey;
         var intShiftKey = e.shiftKey;
 
         FileDragHover(e);
-        var files = e.target.files || e.dataTransfer.files;
-        var file = files[0];
-
-        if (location.host.indexOf("sitepointstatic") >= 0) return
-
-        var request = new XMLHttpRequest();
-        if (request.upload && file.size <= document.getElementById("MAX_FILE_SIZE").value) {
-
-            var reader = new FileReader();
-            var ext = file.name.split('.').pop();
-
-            if (ext == "dsp"){
-                reader.readAsText(file);  
-            }
-
-            reader.onloadend = function(e) {
-                dsp_code = reader.result;
-                console.log(dsp_code);
-                
-                // Remove the current div in ALT key was pressed
-                if (intAltKey) {
-                    if (DSP) {
-                         _f4u$t.hard_delete(faustsvg);
-                        DSP.stop();
-                        if (isPoly) {
-                            faust.deletePolyDSPInstance(DSP);
-                        } else {
-                            faust.deleteDSPInstance(DSP);
-                        }
-                        DSP = null;
+        
+        uploadOn(e, function(){
+                   
+            // Remove the current div in ALT key was pressed
+            if (intAltKey) {
+                if (DSP) {
+                     _f4u$t.hard_delete(faustsvg);
+                    DSP.stop();
+                    if (isPoly) {
+                        faust.deletePolyDSPInstance(DSP);
+                    } else {
+                        faust.deleteDSPInstance(DSP);
                     }
-                } 
-                
-                if (intShiftKey) {
-                
-                    isPoly = true;
-                    console.log("Poly DSP");
-                    
-                    // Create a poly DSP factory from the dsp code    
-                    faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], function(factory) {
-                    
-                        if (!factory) {
-                            alert(faust.getErrorMessage());
-                            return;
-                        }
-                        
-                        DSP = faust.createPolyDSPInstance(factory, audio_context, buffer_size, 16);
-                        if (DSP.getNumInputs() > 0) {
-                            activateAudioInput();
-                        }
-                        
-                        // Setup UI
-                        _f4u$t.main_loop = function() {}
-                        
-                        faustsvg = $('<div />');
-                        $('body').append(faustsvg);
-                        var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
-                        DSP.setHandler(handler);
-                                      
-                        console.log(DSP.getNumInputs());
-                        console.log(DSP.getNumOutputs());
-                        
-                        DSP.start();
-                    });
-                
-                } else {
-                
-                    isPoly = false;
-                    console.log("Mono DSP");
-                     
-                    // Create a mono DSP factory from the dsp code    
-                    faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], function(factory) {
-                    
-                        if (!factory) {
-                            alert(faust.getErrorMessage());
-                            return;
-                        }
-                       
-                        DSP = faust.createDSPInstance(factory, audio_context, buffer_size);
-                        if (DSP.getNumInputs() > 0) {
-                            activateAudioInput();
-                        }
-                        
-                        // Setup UI
-                        _f4u$t.main_loop = function() {}
-                        
-                        faustsvg = $('<div />');
-                        $('body').append(faustsvg);
-                        var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
-                        DSP.setHandler(handler);
-                                      
-                        console.log(DSP.getNumInputs());
-                        console.log(DSP.getNumOutputs());
-                        
-                        DSP.start();
-                    });
+                    DSP = null;
                 }
-            };
-        }  else {
-            alert("DSP file is too big!");
-        }
+            } 
+            
+            if (intShiftKey) {
+            
+                isPoly = true;
+                console.log("Poly DSP");
+                
+                // Create a poly DSP factory from the dsp code    
+                factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"]);
+                
+                if (!factory) {
+                    alert(faust.getErrorMessage());
+                    return;
+                }
+                
+                DSP = faust.createPolyDSPInstance(factory, audio_context, buffer_size, 16);
+                if (DSP.getNumInputs() > 0) {
+                    activateAudioInput();
+                }
+                
+                // Setup UI
+                _f4u$t.main_loop = function() {}
+                
+                faustsvg = $('<div />');
+                $('body').append(faustsvg);
+                var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
+                DSP.setHandler(handler);
+                              
+                console.log(DSP.getNumInputs());
+                console.log(DSP.getNumOutputs());
+                
+                DSP.start();
+            
+            } else {
+            
+                isPoly = false;
+                console.log("Mono DSP");
+                 
+                // Create a mono DSP factory from the dsp code    
+                factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"]);
+                
+                if (!factory) {
+                    alert(faust.getErrorMessage());
+                    return;
+                }
+               
+                DSP = faust.createDSPInstance(factory, audio_context, buffer_size);
+                if (DSP.getNumInputs() > 0) {
+                    activateAudioInput();
+                }
+                
+                // Setup UI
+                _f4u$t.main_loop = function() {}
+                
+                faustsvg = $('<div />');
+                $('body').append(faustsvg);
+                var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
+                DSP.setHandler(handler);
+                              
+                console.log(DSP.getNumInputs());
+                console.log(DSP.getNumOutputs());
+                
+                DSP.start();
+
+            }
+        });
     }
 
     function Init() 
