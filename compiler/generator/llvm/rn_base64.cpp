@@ -1,4 +1,4 @@
-/* 
+/*
    base64.cpp and base64.h
 
    Copyright (C) 2004-2008 René Nyffenegger
@@ -26,26 +26,27 @@
 */
 
 #include "rn_base64.h"
+#include <string.h>
 #include <iostream>
 
-static const std::string base64_chars = 
+static const std::string base64_chars =
              "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
              "abcdefghijklmnopqrstuvwxyz"
              "0123456789+/";
 
-static inline bool is_base64(unsigned char c) 
+static inline bool is_base64(unsigned char c)
 {
     return (isalnum(c) || (c == '+') || (c == '/'));
 }
 
-static std::string base64_encode_aux(const char* str, unsigned int in_len) 
+static std::string base64_encode_aux(const char* str, unsigned int in_len)
 {
       std::string ret = "";
       int i = 0;
       int j = 0;
       unsigned char char_array_3[3];
       unsigned char char_array_4[4];
-      
+
       //printf("base64_encode len = %d\n", in_len);
 
       while (in_len--) {
@@ -82,18 +83,18 @@ static std::string base64_encode_aux(const char* str, unsigned int in_len)
         }
 
       }
-      
+
       return ret;
 }
 
-static std::string base64_decode_aux(const char* str, unsigned int in_len) 
+static std::string base64_decode_aux(const char* str, unsigned int in_len)
 {
       int i = 0;
       int j = 0;
       int in_ = 0;
       unsigned char char_array_4[4], char_array_3[3];
       std::string ret = "";
-  
+
       while (in_len-- && (str[in_] != '=') && is_base64(str[in_])) {
         char_array_4[i++] = str[in_]; in_++;
         if (i == 4) {
@@ -127,7 +128,7 @@ static std::string base64_decode_aux(const char* str, unsigned int in_len)
 
         for (j = 0; (j < i - 1); j++) ret += char_array_3[j];
       }
-      
+
       return ret;
 }
 
@@ -150,4 +151,3 @@ std::string base64_decode(std::string const& str)
 {
     return base64_decode_aux(str.c_str(), str.size());
 }
-
