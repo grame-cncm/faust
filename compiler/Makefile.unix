@@ -1,7 +1,7 @@
 subprojects := . boxes errors evaluate  normalize parser propagate parallelize signals tlib \
                 draw draw/device draw/schema extended patternmatcher documentator utils ../libraries \
                 generator generator/asmjs generator/c generator/cpp  \
-                generator/java generator/js generator/llvm generator/fir generator/wasm
+                generator/java generator/js generator/llvm generator/fir generator/wasm generator/interpreter
                 
 
 sources = $(wildcard */*.cpp) $(wildcard draw/*/*.cpp) $(wildcard generator/*/*.cpp) $(wildcard ../libraries/loki/*cpp)
