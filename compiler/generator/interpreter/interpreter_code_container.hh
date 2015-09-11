@@ -24,6 +24,7 @@
 
 #include "code_container.hh"
 #include "interpreter_instructions.hh"
+#include "interpreter_dsp.h"
 
 using namespace std;           
 
@@ -33,6 +34,8 @@ class InterpreterCodeContainer : public virtual CodeContainer {
 
         InterpreterInstVisitor fCodeProducer;
         
+        interperter_dsp<float>* fInterpreter;
+        
         void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
 
     public:
@@ -41,6 +44,7 @@ class InterpreterCodeContainer : public virtual CodeContainer {
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
+            fInterpreter = new interperter_dsp<float>(0, 0, 0, 0, NULL, NULL, NULL);
         }
         virtual ~InterpreterCodeContainer()
         {}
