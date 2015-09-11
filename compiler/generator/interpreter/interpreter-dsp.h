@@ -68,7 +68,7 @@ class interpreter_dsp_factory {
  *
  * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
  */
-interpreter_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
+interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const std::string& sha_key);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all 
@@ -86,10 +86,10 @@ interpreter_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-interpreter_dsp_factory* createDSPFactoryFromFile(const std::string& filename, 
-                                                   int argc, const char* argv[], 
-                                                   const std::string& target, 
-                                                   std::string& error_msg, int opt_level = -1);
+interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const std::string& filename, 
+                                                           int argc, const char* argv[], 
+                                                           const std::string& target, 
+                                                           std::string& error_msg, int opt_level = -1);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all 
@@ -108,10 +108,10 @@ interpreter_dsp_factory* createDSPFactoryFromFile(const std::string& filename,
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-interpreter_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
-                                                     int argc, const char* argv[], 
-                                                     const std::string& target, 
-                                                     std::string& error_msg, int opt_level = -1);
+interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
+                                                             int argc, const char* argv[], 
+                                                             const std::string& target, 
+                                                             std::string& error_msg, int opt_level = -1);
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possible really deleting the internal pointer. 
  * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted with deleteDSPInstance.
@@ -121,7 +121,7 @@ interpreter_dsp_factory* createDSPFactoryFromString(const std::string& name_app,
  *
  * @return true if the factory internal pointer was really deleted, and false if only 'decremented'.
  */                                 
-bool deleteDSPFactory(interpreter_dsp_factory* factory);
+bool deleteDSPInterpreterFactory(interpreter_dsp_factory* factory);
 
 /**
  * Get the list of library dependancies of the Faust DSP factory.
@@ -130,20 +130,20 @@ bool deleteDSPFactory(interpreter_dsp_factory* factory);
  * 
  * @return the list as a vector of strings.
  */
-std::vector<std::string> getLibraryList(interpreter_dsp_factory* factory);
+std::vector<std::string> getDSPInterpreterFactoryLibraryList(interpreter_dsp_factory* factory);
 
 /**
  * Delete all Faust DSP factories kept in the library cache. Beware : all kept factory and DSP pointers (in local variables...) thus become invalid.
  * 
  */                                 
-void deleteAllDSPFactories();
+void deleteAllDSPInterpreterFactories();
 
 /**
  * Return Faust DSP factories of the library cache as a vector of their SHA keys.
  * 
  * @return the Faust DSP factories.
  */                                 
-std::vector<std::string> getAllDSPFactories();
+std::vector<std::string> getAllDSPInterpreterFactories();
 
 /**
  * Instance class with related methods.
@@ -173,14 +173,14 @@ class interpreter_dsp : public dsp {
  * 
  * @return the DSP instance on success, otherwise a null pointer.
  */
-interpreter_dsp* createDSPInstance(interpreter_dsp_factory* factory);
+interpreter_dsp* createDSPInterpreterInstance(interpreter_dsp_factory* factory);
 
 /**
  * Delete a Faust DSP instance.
  * 
  * @param dsp - the DSP instance to be deleted.
  */ 
-void deleteDSPInstance(interpreter_dsp* dsp);
+void deleteDSPInterpreterInstance(interpreter_dsp* dsp);
 
 /*!
  @}

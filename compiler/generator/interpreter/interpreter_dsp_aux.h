@@ -22,8 +22,9 @@
 #include "faust/audio/dsp.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
-
+#include "export.hh"
 #include "interpreter.h"
+#include "smartpointer.h"
 
 template <class T>
 class interpreter_dsp_aux : public FIRInterpreter<T> {
@@ -141,4 +142,54 @@ class interpreter_dsp_aux : public FIRInterpreter<T> {
        }
 	
 };
+
+// Public C++ interface
+
+class interpreter_dsp_factory : public smartable {
+
+};
+
+
+EXPORT interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const std::string& sha_key);
+
+EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const std::string& filename, 
+                                                          int argc, const char* argv[], 
+                                                          const std::string& target, 
+                                                          std::string& error_msg, int opt_level = -1);
+
+EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
+                                                            int argc, const char* argv[], 
+                                                            const std::string& target, 
+                                                            std::string& error_msg, int opt_level = -1);
+
+EXPORT bool deleteDSPInterpreterFactory(interpreter_dsp_factory* factory);
+
+EXPORT std::vector<std::string> getDSPInterpreterFactoryLibraryList(interpreter_dsp_factory* factory);
+
+EXPORT std::vector<std::string> getAllDSPInterpreterFactories();
+
+EXPORT void deleteAllDSPInterpreterFactories();
+
+class EXPORT interpreter_dsp : public dsp {
+                
+    public:
+    
+        void metadata(Meta* m);
+     
+        int getNumInputs();
+        int getNumOutputs();
+    
+        void init(int samplingFreq);
+      
+        void buildUserInterface(UI* ui_interface);
+        
+        void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+        
+        interpreter_dsp* copy();
+     
+};
+
+EXPORT interpreter_dsp* createDSPInterpreterInstance(interpreter_dsp_factory* factory);
+
+EXPORT void deleteDSPInterpreterInstance(interpreter_dsp* dsp);
 
