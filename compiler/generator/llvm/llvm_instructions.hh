@@ -1738,7 +1738,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 case Typed::kFloat:
                     if (fCurValue->getType() == getInt32Ty(fModule, size)) {
-                         fCurValue = fBuilder->CreateSIToFP(fCurValue, getFloatTy(fModule, size));
+                        fCurValue = fBuilder->CreateSIToFP(fCurValue, getFloatTy(fModule, size));
                     } else if (fCurValue->getType() == getFloatTy(fModule, size))  {
                         // Nothing to do
                     } else if (fCurValue->getType() == getDoubleTy(fModule, size))  {
@@ -1750,9 +1750,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     if (fCurValue->getType() == getInt32Ty(fModule, size)) {
                         // Nothing to do
                     } else if (fCurValue->getType() == getFloatTy(fModule,  size))  {
-                         fCurValue = fBuilder->CreateFPToSI(fCurValue, getInt32Ty(fModule, size));
+                        fCurValue = fBuilder->CreateFPToSI(fCurValue, getInt32Ty(fModule, size));
                     } else if (fCurValue->getType() == getDoubleTy(fModule,  size))  {
-                         fCurValue = fBuilder->CreateFPToSI(fCurValue, getInt32Ty(fModule, size));
+                        fCurValue = fBuilder->CreateFPToSI(fCurValue, getInt32Ty(fModule, size));
                     }
                     break;
 

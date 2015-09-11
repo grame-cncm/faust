@@ -1110,14 +1110,16 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
  CASTING
  *****************************************************************************/
 
+// Generate cast only when really necessary...
 ValueInst* InstructionsCompiler::generateIntCast(Tree sig, Tree x)
 {
-    return generateCacheCode(sig, InstBuilder::genCastNumIntInst(CS(x)));
+    return generateCacheCode(sig, (getCertifiedSigType(x)->nature() != kInt) ? InstBuilder::genCastNumIntInst(CS(x)) : CS(x)); 
 }
 
+// Generate cast only when really necessary...
 ValueInst* InstructionsCompiler::generateFloatCast(Tree sig, Tree x)
 {
-    return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(CS(x)));
+    return generateCacheCode(sig, (getCertifiedSigType(x)->nature() != kReal) ? InstBuilder::genCastNumFloatInst(CS(x)) : CS(x)); 
 }
 
 /*****************************************************************************
@@ -1133,7 +1135,7 @@ ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const st
     pushInitMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genRealNumInst(Typed::kFloatMacro, 0)));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(InstBuilder::genLoadStructVar(varname)));
+    return generateCacheCode(sig, InstBuilder::genCastNumFloatMacroInst(InstBuilder::genLoadStructVar(varname)));
 }
 
 ValueInst* InstructionsCompiler::generateButton(Tree sig, Tree path)
@@ -1155,7 +1157,7 @@ ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur
     pushInitMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genRealNumInst(Typed::kFloatMacro, tree2float(cur))));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(InstBuilder::genLoadStructVar(varname)));
+    return generateCacheCode(sig, InstBuilder::genCastNumFloatMacroInst(InstBuilder::genLoadStructVar(varname)));
 }
 
 ValueInst* InstructionsCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
@@ -1183,15 +1185,15 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree m
 	switch (t->variability()) {
 
 		case kKonst:
-            pushInitMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genCastNumFloatInst(exp)));
+            pushInitMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genCastNumFloatMacroInst(exp)));
 			break;
 
 		case kBlock:
-            pushComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genCastNumFloatInst(exp)));
+            pushComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genCastNumFloatMacroInst(exp)));
 			break;
 
 		case kSamp:
-	        pushComputeDSPMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genCastNumFloatInst(exp)));
+	        pushComputeDSPMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genCastNumFloatMacroInst(exp)));
 			break;
 	}
 
