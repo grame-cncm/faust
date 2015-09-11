@@ -19,6 +19,9 @@
  ************************************************************************
  ************************************************************************/
  
+#ifndef interpreter_dsp_aux__h
+#define interpreter_dsp_aux__h
+
 #include "faust/audio/dsp.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
@@ -145,7 +148,7 @@ class interpreter_dsp_aux : public FIRInterpreter<T> {
 
 // Public C++ interface
 
-class interpreter_dsp_factory : public smartable {
+ class EXPORT interpreter_dsp_factory : public smartable {
 
 };
 
@@ -153,14 +156,14 @@ class interpreter_dsp_factory : public smartable {
 EXPORT interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const std::string& sha_key);
 
 EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const std::string& filename, 
-                                                          int argc, const char* argv[], 
-                                                          const std::string& target, 
-                                                          std::string& error_msg, int opt_level = -1);
+                                                                  int argc, const char* argv[], 
+                                                                  const std::string& target, 
+                                                                  std::string& error_msg, int opt_level = -1);
 
 EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
-                                                            int argc, const char* argv[], 
-                                                            const std::string& target, 
-                                                            std::string& error_msg, int opt_level = -1);
+                                                                    int argc, const char* argv[], 
+                                                                    const std::string& target, 
+                                                                    std::string& error_msg, int opt_level = -1);
 
 EXPORT bool deleteDSPInterpreterFactory(interpreter_dsp_factory* factory);
 
@@ -193,3 +196,4 @@ EXPORT interpreter_dsp* createDSPInterpreterInstance(interpreter_dsp_factory* fa
 
 EXPORT void deleteDSPInterpreterInstance(interpreter_dsp* dsp);
 
+#endif

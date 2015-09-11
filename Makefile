@@ -138,6 +138,7 @@ install :
 	cp compiler/libfaust.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm/llvm-dsp.h  $(prefix)/include/faust/dsp/
 	cp compiler/generator/llvm/llvm-c-dsp.h  $(prefix)/include/faust/dsp/
+	cp compiler/generator/interpreter/interpreter-dsp.h  $(prefix)/include/faust/dsp/
 	([ -e compiler/scheduler.ll ] && chmod gou+r compiler/scheduler.ll) || echo scheduler.ll not available
 	([ -e compiler/scheduler.ll ] && cp compiler/scheduler.ll $(prefix)/lib/faust) || echo scheduler.ll not available
 

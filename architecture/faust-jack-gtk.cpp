@@ -27,6 +27,7 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
 #include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/interpreter-dsp.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/audio/jack-dsp.h"
 #include "faust/gui/jsonfaustui.h"
@@ -34,6 +35,8 @@
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
 #endif
+
+#define LLVM
 
 struct MyMeta : public Meta
 {
@@ -50,7 +53,12 @@ extern "C" void* compile_faust_llvm(int argc, const char* argv[], const char* li
 // 	FAUST generated code
 //----------------------------------------------------------------------------
 
+#ifdef LLVM
 llvm_dsp* DSP;
+#else
+interpreter_dsp* DSP;
+#endif
+
 std::list<GUI*> GUI::fGuiList;
 
 int main(int argc, char *argv[])
@@ -59,8 +67,12 @@ int main(int argc, char *argv[])
     char	filename[256];
 	char  	rcfilename[256];
 	char* 	home = getenv("HOME");
-    
+
+#ifdef LLVM
     llvm_dsp_factory* factory3 = 0;
+#else
+    interpreter_dsp_factory* factory3 = 0;
+#endif
     llvm_dsp_factory* factory4 = 0;
 
     if (argc < 2) {
@@ -171,8 +183,12 @@ int main(int argc, char *argv[])
         
         std::string error_msg3;
         //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "i386-apple-darwin10.6.0-cortex-m3", error_msg3, 0);
-       
+    
+    #ifdef LLVM
         factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 4);
+    #else
+        factory3 = createDSPInterpreterFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 4);
+    #endif
         
         printf("factory3 %p\n", factory3);
         
@@ -200,7 +216,11 @@ int main(int argc, char *argv[])
         */
         
         if (factory3) {
+        #ifdef LLVM
             DSP = createDSPInstance(factory3);
+        #else
+            DSP = createDSPInterpreterInstance(factory3);
+        #endif
             assert(DSP);
          } else {
             printf("Cannot create factory : %s\n", error_msg3.c_str());
@@ -284,9 +304,17 @@ int main(int argc, char *argv[])
     finterface->saveState(rcfilename);
     delete(interface);
     delete(finterface);
-    //deleteDSPInstance(DSP);
-    
+#ifdef LLVM
+    deleteDSPInstance(DSP);
+#else
+    deleteDSPInterpreterInstance(DSP);
+#endif
+
+#ifdef LLVM
     deleteDSPFactory(factory3);
+#else
+    deleteDSPInterpreterFactory(factory3);
+#endif
     //deleteDSPFactory(factory4);
      
     //deleteAllDSPFactories();

@@ -19,6 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
+#ifndef fir_interpreter__h
+#define fir_interpreter__h
+
 #include "faust/audio/dsp.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
@@ -476,3 +479,4 @@ class FIRInterpreter : public virtual Garbageable {
  
 };
 
+#endif

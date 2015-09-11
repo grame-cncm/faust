@@ -20,6 +20,7 @@
  ************************************************************************/
  
 #include "interpreter_dsp_aux.h"
+#include <string>
 
 EXPORT interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const std::string& sha_key)
 {}
@@ -28,19 +29,28 @@ EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const std::s
                                                                   int argc, const char* argv[], 
                                                                   const std::string& target, 
                                                                   std::string& error_msg, int opt_level)
-{}
+{
+    error_msg = "Not implemented";
+    return NULL;
+}
 
 EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
                                                                     int argc, const char* argv[], 
                                                                     const std::string& target, 
                                                                     std::string& error_msg, int opt_level)
-{}
+{
+    return NULL;
+}   
 
 EXPORT bool deleteDSPInterpreterFactory(interpreter_dsp_factory* factory)
-{}
+{
+    return false;
+}
 
 EXPORT std::vector<std::string> getDSPInterpreterFactoryLibraryList(interpreter_dsp_factory* factory)
-{}
+{
+    
+}
 
 EXPORT std::vector<std::string> getAllDSPInterpreterFactories()
 {}
@@ -49,7 +59,9 @@ EXPORT void deleteAllDSPInterpreterFactories()
 {}
 
 EXPORT interpreter_dsp* createDSPInterpreterInstance(interpreter_dsp_factory* factory)
-{}
+{
+    return NULL;
+}
 
 EXPORT void deleteDSPInterpreterInstance(interpreter_dsp* dsp)
 {}

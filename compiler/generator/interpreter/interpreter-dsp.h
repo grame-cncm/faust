@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef LLVM_DSP_H
-#define LLVM_DSP_H
+#ifndef INTERPRETER_DSP_H
+#define INTERPRETER_DSP_H
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
