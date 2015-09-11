@@ -722,10 +722,12 @@ generator/interpreter/interpreter_code_container.o: generator/function_builder.h
 generator/interpreter/interpreter_code_container.o: generator/json_instructions.hh
 generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_instructions.hh
 generator/interpreter/interpreter_code_container.o: generator/typing_instructions.hh
-generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_dsp_aux.h
-generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter.h errors/exception.hh
-generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/interpreter_dsp_aux.h
-generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/interpreter.h garbageable.hh
+generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_dsp_aux.h export.hh
+generator/interpreter/interpreter_code_container.o: generator/interpreter/fir_interpreter.h generator/smartpointer.h
+generator/interpreter/interpreter_code_container.o: errors/exception.hh
+generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/interpreter_dsp_aux.h export.hh
+generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/fir_interpreter.h garbageable.hh
+generator/interpreter/interpreter_dsp_aux.o: generator/smartpointer.h
 generator/java/java_code_container.o: generator/java/java_code_container.hh generator/code_container.hh
 generator/java/java_code_container.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/java/java_code_container.o: garbageable.hh tlib/property.hh tlib/tree.hh generator/Text.hh signals/sigtype.hh
@@ -780,7 +782,7 @@ libcode.o: generator/js/js_instructions.hh generator/asmjs/asmjs_code_container.
 libcode.o: generator/asmjs/asmjs_instructions.hh generator/wasm/wasm_code_container.hh
 libcode.o: generator/wasm/wasm_instructions.hh generator/llvm/clang_code_container.hh libfaust.h export.hh
 libcode.o: generator/interpreter/interpreter_code_container.hh generator/interpreter/interpreter_instructions.hh
-libcode.o: generator/interpreter/interpreter_dsp_aux.h generator/interpreter/interpreter.h
+libcode.o: generator/interpreter/interpreter_dsp_aux.h generator/interpreter/fir_interpreter.h generator/smartpointer.h
 libcode.o: generator/fir/fir_code_container.hh generator/fir/fir_instructions.hh draw/schema/schema.h
 libcode.o: draw/device/device.h draw/drawschema.hh errors/timing.hh signals/ppsig.hh errors/exception.hh
 global.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh

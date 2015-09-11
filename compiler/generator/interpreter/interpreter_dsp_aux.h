@@ -23,7 +23,7 @@
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
 #include "export.hh"
-#include "interpreter.h"
+#include "fir_interpreter.h"
 #include "smartpointer.h"
 
 template <class T>
