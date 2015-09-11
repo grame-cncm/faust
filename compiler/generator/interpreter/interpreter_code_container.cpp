@@ -74,9 +74,21 @@ void InterpreterCodeContainer::produceInternal()
     
 }
 
+interpreter_dsp<float>* InterpreterCodeContainer::produceModuleFloat()
+{
+    cout << "InterpreterCodeContainer::produceModuleFloat()" << endl;
+    return new interpreter_dsp<float>(fNumInputs, fNumOutputs, 0, 0, NULL, NULL, NULL);
+}
+
+interpreter_dsp<double>* InterpreterCodeContainer::produceModuleDouble()
+{
+    cout << "InterpreterCodeContainer::produceModuleDouble()" << endl;
+    return new interpreter_dsp<double>(fNumInputs, fNumOutputs, 0, 0, NULL, NULL, NULL);
+}
+
 void InterpreterCodeContainer::produceClass()
 {
-   
+    
 }
 
 void InterpreterCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)

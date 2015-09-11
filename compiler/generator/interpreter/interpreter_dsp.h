@@ -26,7 +26,7 @@
 #include "interpreter.h"
 
 template <class T>
-class interperter_dsp : public dsp, public Interpreter<T> {
+class interpreter_dsp : public FIRInterpreter<T> {
 	
     protected:
         
@@ -38,18 +38,18 @@ class interperter_dsp : public dsp, public Interpreter<T> {
         T** fInputs;
         T** fOutputs;
         
-        BlockInstruction<T>* fInitBlock;
-        BlockInstruction<T>* fComputeBlock;
-        BlockInstruction<T>* fComputeDSPBlock;
+        FIRBlockInstruction<T>* fInitBlock;
+        FIRBlockInstruction<T>* fComputeBlock;
+        FIRBlockInstruction<T>* fComputeDSPBlock;
   	
     public:
       
-        interperter_dsp(int inputs, int ouputs, 
+        interpreter_dsp(int inputs, int ouputs, 
             int real_heap_size, int int_heap_size, 
-            BlockInstruction<T>* init, 
-            BlockInstruction<T>* compute_control,
-            BlockInstruction<T>* compute_dsp) 
-            : Interpreter<T>(real_heap_size, int_heap_size)
+            FIRBlockInstruction<T>* init, 
+            FIRBlockInstruction<T>* compute_control,
+            FIRBlockInstruction<T>* compute_dsp) 
+            : FIRInterpreter<T>(real_heap_size, int_heap_size)
         {
              
             fInputs = new T*[inputs];
@@ -59,7 +59,7 @@ class interperter_dsp : public dsp, public Interpreter<T> {
             fComputeDSPBlock = compute_dsp;
         }
         
-        virtual ~interperter_dsp()
+        virtual ~interpreter_dsp()
         {
             /*
             delete [] fRealBuffer;
@@ -124,7 +124,7 @@ class interperter_dsp : public dsp, public Interpreter<T> {
         
         }
         
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
+        virtual void compute(int count, T** inputs, T** outputs) 
         {
             // Prepare in/out buffers
             for (int i = 0; i < fNumInputs; i++) {

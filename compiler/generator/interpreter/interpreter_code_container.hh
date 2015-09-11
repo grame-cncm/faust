@@ -34,8 +34,6 @@ class InterpreterCodeContainer : public virtual CodeContainer {
 
         InterpreterInstVisitor fCodeProducer;
         
-        interperter_dsp<float>* fInterpreter;
-        
         void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
 
     public:
@@ -44,7 +42,7 @@ class InterpreterCodeContainer : public virtual CodeContainer {
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
-            fInterpreter = new interperter_dsp<float>(0, 0, 0, 0, NULL, NULL, NULL);
+            
         }
         virtual ~InterpreterCodeContainer()
         {}
@@ -52,6 +50,9 @@ class InterpreterCodeContainer : public virtual CodeContainer {
         virtual void produceClass();
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
+        
+        interpreter_dsp<float>* produceModuleFloat();
+        interpreter_dsp<double>* produceModuleDouble();
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 

@@ -28,7 +28,7 @@
 
 // Interpreter
 
-struct Instruction : public virtual Garbageable {
+struct FIRInstruction : public virtual Garbageable {
 
     enum Opcode { 
         // Numbers
@@ -55,29 +55,29 @@ struct Instruction : public virtual Garbageable {
 };
 
 template <class T>
-struct BlockInstruction;
+struct FIRBlockInstruction;
 
 template <class T>
-struct BasicInstruction : public Instruction {
+struct FIRBasicInstruction : public FIRInstruction {
 
     int fOffset;
     Opcode fOpcode;
     int fIntValue;
     T fRealValue;
     
-    BlockInstruction<T>* fbranch1;
-    BlockInstruction<T>* fbranch2;
+    FIRBlockInstruction<T>* fbranch1;
+    FIRBlockInstruction<T>* fbranch2;
     
-    BasicInstruction(Opcode opcode, int offset = 0) : fOpcode(opcode), fOffset(offset) {}
+    FIRBasicInstruction(Opcode opcode, int offset = 0) : fOpcode(opcode), fOffset(offset) {}
      
 };
 
 template <class T>
-struct BlockInstruction : public Instruction {
+struct FIRBlockInstruction : public FIRInstruction {
 
-     std::vector<BasicInstruction<T>*> fInstructions;
+     std::vector<FIRBasicInstruction<T>*> fInstructions;
      
-     virtual ~BlockInstruction()
+     virtual ~FIRBlockInstruction()
      {
      
      }
@@ -93,9 +93,9 @@ struct FIRInterpreter : public virtual Garbageable {
         - Offset in arrays in HEAP can be precomputed when visiting FIR
     */
    
-    void ExecuteBlock(BlockInstruction<T>* block, int& res_int, T& res_real, bool is_int_res)
+    void ExecuteBlock(FIRBlockInstruction<T>* block, int& res_int, T& res_real, bool is_int_res)
     {
-        typename std::vector<BasicInstruction<T>*>::iterator it;
+        typename std::vector<FIRBasicInstruction<T>*>::iterator it;
          
         T val1_real;
         T val2_real;
@@ -108,315 +108,315 @@ struct FIRInterpreter : public virtual Garbageable {
             switch ((*it)->fOpcode) {
             
                 // Number operations
-                case Instruction::kRealValue1:
+                case FIRInstruction::kRealValue1:
                     val1_real = (*it)->fRealValue;
                     break;
                     
-                case Instruction::kRealValue2:
+                case FIRInstruction::kRealValue2:
                     val2_real = (*it)->fRealValue;
                     break;
                     
-                case Instruction::kIntValue1:
+                case FIRInstruction::kIntValue1:
                     val1_int = (*it)->fIntValue;
                     break;
                     
-                 case Instruction::kIntValue2:
+                 case FIRInstruction::kIntValue2:
                     val2_int = (*it)->fIntValue;
                     break;
                 
                 // Memory operations
-                case Instruction::kLoadReal1:
+                case FIRInstruction::kLoadReal1:
                     val1_real = fRealHeap[(*it)->fOffset];
                     break;
                     
-                case Instruction::kLoadReal2:
+                case FIRInstruction::kLoadReal2:
                     val2_real = fRealHeap[(*it)->fOffset];
                     break;
                     
-                case Instruction::kLoadInt1:
+                case FIRInstruction::kLoadInt1:
                     val1_int = fIntHeap[(*it)->fOffset];
                     break;
                     
-                case Instruction::kLoadInt2:
+                case FIRInstruction::kLoadInt2:
                     val2_int = fIntHeap[(*it)->fOffset];
                     break;
                     
-                case Instruction::kStoreReal1:
+                case FIRInstruction::kStoreReal1:
                     fRealHeap[(*it)->fOffset] = val1_real;
                     break;
                     
-                case Instruction::kStoreReal2:
+                case FIRInstruction::kStoreReal2:
                     fRealHeap[(*it)->fOffset] = val2_real;
                     break;
                     
-                case Instruction::kStoreInt1:
+                case FIRInstruction::kStoreInt1:
                     fIntHeap[(*it)->fOffset] = val1_int;
                     break;
                     
-                case Instruction::kStoreInt2:
+                case FIRInstruction::kStoreInt2:
                     fIntHeap[(*it)->fOffset] = val2_int;
                     break;
                   
                 // Cast operations
-                case Instruction::kCastReal1:
+                case FIRInstruction::kCastReal1:
                     val1_real = T(val1_int);
                     break;
                     
-                 case Instruction::kCastReal2:
+                 case FIRInstruction::kCastReal2:
                     val2_real = T(val1_int);
                     break;
                     
-                case Instruction::kCastInt1:
+                case FIRInstruction::kCastInt1:
                     val1_int = int(val1_real);
                     break;
                     
-                case Instruction::kCastInt2:
+                case FIRInstruction::kCastInt2:
                     val2_int = int(val1_real);
                     break;
                     
                 // Select operation
-                case Instruction::kIfInt1:
+                case FIRInstruction::kIfInt1:
                     val1_int = (val1_int ? ExecuteBlockInt((*it)->fbranch1) : ExecuteBlockInt((*it)->fbranch2));
                     break;
                     
-                case Instruction::kIfInt2:
+                case FIRInstruction::kIfInt2:
                     val2_int  = (val1_int ? ExecuteBlockInt((*it)->fbranch1) : ExecuteBlockInt((*it)->fbranch2));
                     break;
-                case Instruction::kIfReal1:
+                case FIRInstruction::kIfReal1:
                     val1_real  = (val1_int ? ExecuteBlockReal((*it)->fbranch1) : ExecuteBlockReal((*it)->fbranch2));
                     break;
                     
-                case Instruction::kIfReal2:
+                case FIRInstruction::kIfReal2:
                     val2_real  = (val1_int ? ExecuteBlockReal((*it)->fbranch1) : ExecuteBlockReal((*it)->fbranch2));
                     break;
                     
                 // Standard math operations
-                case Instruction::kAddReal1:
+                case FIRInstruction::kAddReal1:
                     val1_real = val1_real + val2_real;
                     break;
                     
-                case Instruction::kAddReal2:
+                case FIRInstruction::kAddReal2:
                     val2_real = val1_real + val2_real;
                     break;
                     
-                case Instruction::kAddInt1:
+                case FIRInstruction::kAddInt1:
                     val1_int = val1_int  + val2_int;
                     break;
                     
-                case Instruction::kAddInt2:
+                case FIRInstruction::kAddInt2:
                     val2_int = val1_int  + val2_int;
                     break;
                     
-                case Instruction::kSubReal1:
+                case FIRInstruction::kSubReal1:
                     val1_real = val1_real - val2_real;
                     break;
                     
-                case Instruction::kSubReal2:
+                case FIRInstruction::kSubReal2:
                     val2_real = val1_real - val2_real;
                     break;
                     
-                case Instruction::kSubInt1:
+                case FIRInstruction::kSubInt1:
                     val1_int = val1_int - val2_int;
                     break;
                     
-                case Instruction::kSubInt2:
+                case FIRInstruction::kSubInt2:
                     val2_int = val1_int - val2_int;
                     break;
                     
-                case Instruction::kMultReal1:
+                case FIRInstruction::kMultReal1:
                     val1_real = val1_real * val2_real;
                     break;
                     
-                case Instruction::kMultReal2:
+                case FIRInstruction::kMultReal2:
                     val2_real = val1_real * val2_real;
                     break;
                     
-                case Instruction::kMultInt1:
+                case FIRInstruction::kMultInt1:
                     val1_int = val1_int * val2_int;
                     break;
                     
-                 case Instruction::kMultInt2:
+                 case FIRInstruction::kMultInt2:
                     val2_int = val1_int * val2_int;
                     break;
                     
-                case Instruction::kDivReal1:
+                case FIRInstruction::kDivReal1:
                     val1_real = val1_real / val2_real;
                     break;
                     
-                case Instruction::kDivReal2:
+                case FIRInstruction::kDivReal2:
                     val2_real = val1_real / val2_real;
                     break;
                     
-                case Instruction::kDivInt1:
+                case FIRInstruction::kDivInt1:
                     val1_int = val1_int / val2_int;
                     break;
                     
-                 case Instruction::kDivInt2:
+                 case FIRInstruction::kDivInt2:
                     val2_int = val1_int / val2_int;
                     break;
                     
-                case Instruction::kRemInt1:
+                case FIRInstruction::kRemInt1:
                     val1_int = val1_int % val2_int;
                     break;
                     
-                case Instruction::kRemInt2:
+                case FIRInstruction::kRemInt2:
                     val2_int = val1_int % val2_int;
                     break;
                 
                 // Shift operation
-                case Instruction::kLshInt1:
+                case FIRInstruction::kLshInt1:
                     val1_int = val1_int << val2_int;
                     break;
                     
-                case Instruction::kLshInt2:
+                case FIRInstruction::kLshInt2:
                     val2_int = val1_int << val2_int;
                     break;
                     
-                case Instruction::kRshInt1:
+                case FIRInstruction::kRshInt1:
                     val1_int = val1_int >> val2_int;
                     break;
                     
-                case Instruction::kRshInt2:
+                case FIRInstruction::kRshInt2:
                     val2_int = val1_int >> val2_int;
                     break;
                  
                 // Comparaison Int
-                case Instruction::kGTInt1:
+                case FIRInstruction::kGTInt1:
                     val1_int = val1_int > val2_int;
                     break;
                     
-                case Instruction::kGTInt2:
+                case FIRInstruction::kGTInt2:
                     val2_int = val1_int > val2_int;
                     break;
                     
-                case Instruction::kLTInt1:
+                case FIRInstruction::kLTInt1:
                     val1_int = val1_int < val2_int;
                     break;
                     
-                case Instruction::kLTInt2:
+                case FIRInstruction::kLTInt2:
                     val2_int = val1_int < val2_int;
                     break;
                     
-                case Instruction::kGEInt1:
+                case FIRInstruction::kGEInt1:
                     val1_int = val1_int >= val2_int;
                     break;
                     
-                case Instruction::kGEInt2:
+                case FIRInstruction::kGEInt2:
                     val2_int = val1_int >= val2_int;
                     break;
                     
-                case Instruction::kLEInt1:
+                case FIRInstruction::kLEInt1:
                     val1_int = val1_int <= val2_int;
                     break;
                     
-                 case Instruction::kLEInt2:
+                 case FIRInstruction::kLEInt2:
                     val2_int = val1_int <= val2_int;
                     break;
                 
-                case Instruction::kEQInt1:
+                case FIRInstruction::kEQInt1:
                     val1_int = val1_int == val2_int;
                     break;
                     
-                case Instruction::kEQInt2:
+                case FIRInstruction::kEQInt2:
                     val2_int = val1_int == val2_int;
                     break;
                     
-                case Instruction::kNEInt1:
+                case FIRInstruction::kNEInt1:
                     val1_int = val1_int != val2_int;
                     break;
                     
-                 case Instruction::kNEInt2:
+                 case FIRInstruction::kNEInt2:
                     val2_int = val1_int != val2_int;
                     break;
                     
                 // Comparaison Real    
-                case Instruction::kGTReal1:
+                case FIRInstruction::kGTReal1:
                     val1_int = val1_real > val2_real;
                     break;
                     
-                case Instruction::kGTReal2:
+                case FIRInstruction::kGTReal2:
                     val2_int = val1_real > val2_real;
                     break;
                     
-                case Instruction::kLTReal1:
+                case FIRInstruction::kLTReal1:
                     val1_int = val1_real < val2_real;
                     break;
                     
-                case Instruction::kLTReal2:
+                case FIRInstruction::kLTReal2:
                     val2_int = val1_real < val2_real;
                     break;
                     
-                case Instruction::kGEReal1:
+                case FIRInstruction::kGEReal1:
                     val1_int = val1_real >= val2_real;
                     break;
                     
-                case Instruction::kGEReal2:
+                case FIRInstruction::kGEReal2:
                     val2_int = val1_real >= val2_real;
                     break;
                     
-                case Instruction::kLEReal1:
+                case FIRInstruction::kLEReal1:
                     val1_int = val1_real <= val2_real;
                     break;
                     
-                 case Instruction::kLEReal2:
+                 case FIRInstruction::kLEReal2:
                     val2_int = val1_real <= val2_real;
                     break;
                 
-                case Instruction::kEQReal1:
+                case FIRInstruction::kEQReal1:
                     val1_int = val1_real == val2_real;
                     break;
                     
-                case Instruction::kEQReal2:
+                case FIRInstruction::kEQReal2:
                     val2_int = val1_real == val2_real;
                     break;
                     
-                case Instruction::kNEReal1:
+                case FIRInstruction::kNEReal1:
                     val1_int = val1_real != val2_real;
                     break;
                     
-                case Instruction::kNEReal2:
+                case FIRInstruction::kNEReal2:
                     val2_int = val1_real != val2_real;
                     break;
                 
                 // Logical operations
-                case Instruction::kANDInt1:
+                case FIRInstruction::kANDInt1:
                     val1_int = val1_int & val2_int;
                     break;
                     
-                case Instruction::kANDInt2:
+                case FIRInstruction::kANDInt2:
                     val2_int = val1_int & val2_int;
                     break;
                  
-                case Instruction::kORInt1:
+                case FIRInstruction::kORInt1:
                     val1_int = val1_int | val2_int;
                     break;
                     
-                case Instruction::kORInt2:
+                case FIRInstruction::kORInt2:
                     val2_int = val1_int | val2_int;
                     break;
                     
-                case Instruction::kXORInt1:
+                case FIRInstruction::kXORInt1:
                     val1_int = val1_int ^  val2_int;
                     break;
                     
-                case Instruction::kXORInt2:
+                case FIRInstruction::kXORInt2:
                     val2_int = val1_int ^  val2_int;
                     break;
                    
                 // Other Math operations
-                case Instruction::kSin1:
+                case FIRInstruction::kSin1:
                     val1_real = sinf(val1_real);
                     break;
                     
-                case Instruction::kSin2:
+                case FIRInstruction::kSin2:
                     val2_real = sinf(val1_real);
                     break;
                     
-                case Instruction::kCos1:
+                case FIRInstruction::kCos1:
                     val1_real = cosf(val1_real);
                     break;
                 
-                case Instruction::kCos2:
+                case FIRInstruction::kCos2:
                     val2_real = cosf(val1_real);
                     break;
         
@@ -430,7 +430,7 @@ struct FIRInterpreter : public virtual Garbageable {
         }
     }
     
-    int ExecuteBlockInt(BlockInstruction<T>* block)
+    int ExecuteBlockInt(FIRBlockInstruction<T>* block)
     {
         int res_int;
         T res_real;
@@ -438,7 +438,7 @@ struct FIRInterpreter : public virtual Garbageable {
         return res_int;
     }
     
-    T ExecuteBlockReal(BlockInstruction<T>* block)
+    T ExecuteBlockReal(FIRBlockInstruction<T>* block)
     {
         int res_int;
         T res_real;
@@ -446,13 +446,13 @@ struct FIRInterpreter : public virtual Garbageable {
         return res_real;
     }
     
-    Interpreter(int real_heap_size, int int_heap_size)
+    FIRInterpreter(int real_heap_size, int int_heap_size)
     {
         fRealHeap = new T[real_heap_size];
         fIntHeap = new int[int_heap_size];
     }
     
-    virtual ~Interpreter()
+    virtual ~FIRInterpreter()
     {
         // Nothing (since garbageable)
     }

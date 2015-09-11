@@ -59,6 +59,7 @@
 #include "asmjs_code_container.hh"
 #include "wasm_code_container.hh"
 #include "clang_code_container.hh"
+#include "interpreter_code_container.hh"
 #if LLVM_BUILD
 #include "llvm_code_container.hh"
 #endif
@@ -71,6 +72,8 @@
 #include "exception.hh"
 #include "libfaust.h"
 #include "Text.hh"
+
+#define FAUSTVERSION "2.0.a38"
 
 using namespace std;
 
@@ -751,7 +754,7 @@ static void printhelp()
     cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-fun  \t\t--funTasks separate tasks code as separated functions (in -vec, -sch, or -omp mode)\n";
-    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, js, ajs, llvm, cllvm, fir (default cpp)\n";
+    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, js, ajs, llvm, cllvm, fir, inter (default cpp)\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the output code\n";
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
@@ -1038,9 +1041,27 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     
 #else
     if (gGlobal->gOutputLang == "llvm" || gGlobal->gOutputLang == "cllvm") {
-        throw faustexception("ERROR : -lang llvm not supported since LLVM backend is not built\n");
+        throw faustexception("ERROR : -lang llvm/cllvm not supported since LLVM backend is not built\n");
 #endif
- 
+
+    } else if (gGlobal->gOutputLang == "interp") {
+    
+        container = InterpreterCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+       
+        if (gGlobal->gVectorSwitch) {
+            comp = new DAGInstructionsCompiler(container);
+        } else {
+            comp = new InstructionsCompiler(container);
+        }
+
+        if (gGlobal->gPrintXMLSwitch) comp->setDescription(new Description());
+        if (gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
+     
+        comp->compileMultiSignal(signals);
+        InterpreterCodeContainer* interpreter_container = dynamic_cast<InterpreterCodeContainer*>(container);
+        
+        interpreter_dsp<float>* DSP = interpreter_container->produceModuleFloat();
+     
     } else {
     
         ostream* dst;
