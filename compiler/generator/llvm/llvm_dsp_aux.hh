@@ -195,7 +195,7 @@ class llvm_dsp_aux : public dsp {
        
 };
 
-// Public C++ interface using LLVM
+// Public C++ interface
 
 EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
 
@@ -274,13 +274,15 @@ class EXPORT llvm_dsp : public dsp {
      
 };
 
+EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
+
 EXPORT void deleteDSPInstance(llvm_dsp* dsp);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// Public C interface using LLVM
+// Public C interface
 
 EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
 
