@@ -184,7 +184,7 @@ extern "C" char* getCDSPCode(llvm_dsp_factory* factory);
  * 
  * @return the list as a vector of strings.
  */
-std::vector<std::string> getLibraryList(llvm_dsp_factory* factory);
+std::vector<std::string> getDSPFactoryLibraryList(llvm_dsp_factory* factory);
 
 /**
  * Delete all Faust DSP factories kept in the library cache. Beware : all kept factory and DSP pointers (in local variables...) thus become invalid.

@@ -1000,9 +1000,9 @@ EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m)
     factory->metadataRemoteDSPFactory(m);
 }
 
-EXPORT vector<string> getLibraryList(remote_dsp_factory* factory) 
+EXPORT vector<string> getRemoteDSPFactoryLibraryList(remote_dsp_factory* factory) 
 { 
-    return factory->getLibraryList(); 
+    return factory->getRemoteDSPFactoryLibraryList(); 
 }
 
 EXPORT int remote_dsp_factory::getNumInputs() { return fNumInputs; }

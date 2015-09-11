@@ -160,7 +160,7 @@ class remote_dsp_factory : public smartable {
         string              getSHAKey();
         string              getDSPCode();
         
-        vector<string>      getLibraryList() { return fPathnameList; }
+        vector<string>      getRemoteDSPFactoryLibraryList() { return fPathnameList; }
         
         static LocalFactoryDSPTableType gLocalFactoryDSPTable;
         static RemoteFactoryDSPTableType gRemoteFactoryDSPTable;
@@ -323,7 +323,7 @@ EXPORT void deleteAllRemoteDSPFactories();
 
 EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
 
-EXPORT vector<string> getLibraryList(remote_dsp_factory* factory);
+EXPORT vector<string> getRemoteDSPFactoryLibraryList(remote_dsp_factory* factory);
 
 // DSP instance
 

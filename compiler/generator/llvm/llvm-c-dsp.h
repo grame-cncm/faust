@@ -160,7 +160,7 @@ extern "C"
      * 
      * @return the library dependancies (the array and it's contain has to be deleted by the caller).
      */
-    const char** getCLibraryList(llvm_dsp_factory* factory);
+    const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory);
     
     /**
      * Delete all Faust DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables...) thus become invalid.

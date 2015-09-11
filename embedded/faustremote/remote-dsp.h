@@ -159,7 +159,7 @@ void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
  * 
  * @return the list as a vector of strings.
  */
-std::vector<std::string> getLibraryList(remote_dsp_factory* factory);
+std::vector<std::string> getRemoteDSPFactoryLibraryList(remote_dsp_factory* factory);
 
 /**
  * Remote DSP instance class

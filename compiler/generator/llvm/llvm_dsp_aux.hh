@@ -156,7 +156,7 @@ class llvm_dsp_factory : public smartable {
         string getTarget();
         void setTarget(const string target) { fTarget = target; }
     
-        vector<std::string> getLibraryList() { return fResult->fPathnameList; }
+        vector<std::string> getDSPFactoryLibraryList() { return fResult->fPathnameList; }
     
         static FactoryTableType gFactoryTable;
         static int gInstance;
@@ -213,7 +213,7 @@ EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory);
 
 EXPORT std::string getDSPMachineTarget();
 
-EXPORT std::vector<std::string> getLibraryList(llvm_dsp_factory* factory);
+EXPORT std::vector<std::string> getDSPFactoryLibraryList(llvm_dsp_factory* factory);
 
 EXPORT std::vector<std::string> getAllDSPFactories();
 
@@ -308,7 +308,7 @@ EXPORT char* getCDSPCode(llvm_dsp_factory* factory);
 
 EXPORT char* getCDSPMachineTarget();
 
-EXPORT const char** getCLibraryList(llvm_dsp_factory* factory);
+EXPORT const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory);
     
 EXPORT void deleteAllCDSPFactories();
     

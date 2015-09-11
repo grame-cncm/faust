@@ -1258,11 +1258,11 @@ EXPORT std::string getDSPMachineTarget()
     return (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME);
 }
 
-EXPORT std::vector<std::string> getLibraryList(llvm_dsp_factory* factory)
+EXPORT std::vector<std::string> getDSPFactoryLibraryList(llvm_dsp_factory* factory)
 {
     TLock lock(gDSPFactoriesLock);
     
-    return factory->getLibraryList();
+    return factory->getDSPFactoryLibraryList();
 }
 
 EXPORT void deleteAllDSPFactories()
@@ -1685,10 +1685,10 @@ EXPORT char* getCDSPMachineTarget()
     return strdup(getDSPMachineTarget().c_str()); 
 }
 
-EXPORT const char** getCLibraryList(llvm_dsp_factory* factory)
+EXPORT const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory)
 {
     if (factory) {
-        vector<string> library_list1 = factory->getLibraryList();
+        vector<string> library_list1 = factory->getDSPFactoryLibraryList();
         const char** library_list2 = (const char**)malloc(sizeof(char*) * (library_list1.size() + 1));
         
         size_t i;
