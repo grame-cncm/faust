@@ -24,7 +24,7 @@
 
 #include "code_container.hh"
 #include "interpreter_instructions.hh"
-#include "interpreter_dsp.h"
+#include "interpreter_dsp_aux.h"
 
 using namespace std;           
 
@@ -51,8 +51,9 @@ class InterpreterCodeContainer : public virtual CodeContainer {
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
         
-        interpreter_dsp<float>* produceModuleFloat();
-        interpreter_dsp<double>* produceModuleDouble();
+        interpreter_dsp_aux<float>* produceModuleFloat();
+        interpreter_dsp_aux<double>* produceModuleDouble();
+        interpreter_dsp_aux<quad>* produceModuleQuad();
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 

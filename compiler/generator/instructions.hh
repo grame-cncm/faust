@@ -105,7 +105,17 @@ struct InstVisitor : public virtual Garbageable {
     {}
     virtual ~InstVisitor()
     {}
+    
+     // User interface
+    virtual void visit(AddMetaDeclareInst* inst) {}
+    virtual void visit(OpenboxInst* inst) {}
+    virtual void visit(CloseboxInst* inst) {}
+    virtual void visit(AddButtonInst* inst) {}
+    virtual void visit(AddSliderInst* inst) {}
+    virtual void visit(AddBargraphInst* inst) {}
 
+    virtual void visit(LabelInst* inst) {}
+    
     virtual void visit(Printable* inst) {}
     virtual void visit(NullInst* inst) {}
 
@@ -152,16 +162,6 @@ struct InstVisitor : public virtual Garbageable {
 
     // Block
     virtual void visit(BlockInst* inst) {}
-
-    // User interface
-    virtual void visit(AddMetaDeclareInst* inst) {}
-    virtual void visit(OpenboxInst* inst) {}
-    virtual void visit(CloseboxInst* inst) {}
-    virtual void visit(AddButtonInst* inst) {}
-    virtual void visit(AddSliderInst* inst) {}
-    virtual void visit(AddBargraphInst* inst) {}
-
-    virtual void visit(LabelInst* inst) {}
 
 };
 

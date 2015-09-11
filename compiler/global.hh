@@ -55,6 +55,11 @@ struct LLVMResult;
 
 class ASMJAVAScriptInstVisitor;
 
+template <class T>
+class interpreter_dsp_aux;
+
+typedef long double quad;
+
 struct comp_str
 {
     bool operator()(Tree s1, Tree s2) const
@@ -129,7 +134,14 @@ struct global {
 
     string			gClassName;
 
+    // LLVM backend
     LLVMResult*     gLLVMResult;
+    
+    // Interpreter backend
+    interpreter_dsp_aux<float>* gInterpDSPFloat;
+    interpreter_dsp_aux<double>* gInterpDSPDouble;
+    interpreter_dsp_aux<quad>* gInterpDSPQuad;
+    
     const char*     gInputString;
     
     ostream*        gStringResult;

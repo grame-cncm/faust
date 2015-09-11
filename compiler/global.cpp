@@ -118,6 +118,11 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gClassName = "mydsp";
 
     gLLVMResult = 0;
+    
+    gInterpDSPFloat = 0;
+    gInterpDSPDouble = 0;
+    gInterpDSPQuad = 0;
+    
     gInputString = 0;
     
     gStringResult = 0;

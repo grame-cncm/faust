@@ -26,7 +26,7 @@
 #include "interpreter.h"
 
 template <class T>
-class interpreter_dsp : public FIRInterpreter<T> {
+class interpreter_dsp_aux : public FIRInterpreter<T> {
 	
     protected:
         
@@ -44,7 +44,7 @@ class interpreter_dsp : public FIRInterpreter<T> {
   	
     public:
       
-        interpreter_dsp(int inputs, int ouputs, 
+        interpreter_dsp_aux(int inputs, int ouputs, 
             int real_heap_size, int int_heap_size, 
             FIRBlockInstruction<T>* init, 
             FIRBlockInstruction<T>* compute_control,
@@ -59,19 +59,16 @@ class interpreter_dsp : public FIRInterpreter<T> {
             fComputeDSPBlock = compute_dsp;
         }
         
-        virtual ~interpreter_dsp()
+        virtual ~interpreter_dsp_aux()
         {
-            /*
-            delete [] fRealBuffer;
-            delete [] fIntBuffer;
-            
-            delete [] fInputs;
-            delete [] fOutputs;
-            
-            delete fInitBlock;
-            delete fComputeBlock;
-            */
             // Nothing (since garbageable)
+        }
+        
+        interpreter_dsp_aux<T>* createDSPInstance()
+        {
+            return new interpreter_dsp_aux<T>(fNumInputs, fNumOutputs, 
+                                            this->fRealHeapSize, this->fIntHeapSize,
+                                            fInitBlock, fComputeBlock, fComputeDSPBlock);
         }
         
         void static metadata(Meta* m) 

@@ -1060,7 +1060,13 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         comp->compileMultiSignal(signals);
         InterpreterCodeContainer* interpreter_container = dynamic_cast<InterpreterCodeContainer*>(container);
         
-        interpreter_dsp<float>* DSP = interpreter_container->produceModuleFloat();
+        if (gGlobal->gFloatSize == 1) {
+            gGlobal->gInterpDSPFloat = interpreter_container->produceModuleFloat();
+        } else if (gGlobal->gFloatSize == 2) {
+            gGlobal->gInterpDSPDouble = interpreter_container->produceModuleDouble();
+        } else if (gGlobal->gFloatSize == 3) {
+            gGlobal->gInterpDSPQuad = interpreter_container->produceModuleQuad();
+        }
      
     } else {
     

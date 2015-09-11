@@ -74,16 +74,22 @@ void InterpreterCodeContainer::produceInternal()
     
 }
 
-interpreter_dsp<float>* InterpreterCodeContainer::produceModuleFloat()
+interpreter_dsp_aux<float>* InterpreterCodeContainer::produceModuleFloat()
 {
     cout << "InterpreterCodeContainer::produceModuleFloat()" << endl;
-    return new interpreter_dsp<float>(fNumInputs, fNumOutputs, 0, 0, NULL, NULL, NULL);
+    return new interpreter_dsp_aux<float>(fNumInputs, fNumOutputs, 0, 0, NULL, NULL, NULL);
 }
 
-interpreter_dsp<double>* InterpreterCodeContainer::produceModuleDouble()
+interpreter_dsp_aux<double>* InterpreterCodeContainer::produceModuleDouble()
 {
     cout << "InterpreterCodeContainer::produceModuleDouble()" << endl;
-    return new interpreter_dsp<double>(fNumInputs, fNumOutputs, 0, 0, NULL, NULL, NULL);
+    return new interpreter_dsp_aux<double>(fNumInputs, fNumOutputs, 0, 0, NULL, NULL, NULL);
+}
+
+interpreter_dsp_aux<quad>* InterpreterCodeContainer::produceModuleQuad()
+{
+    cout << "InterpreterCodeContainer::produceModuleQuad()" << endl;
+    return new interpreter_dsp_aux<quad>(fNumInputs, fNumOutputs, 0, 0, NULL, NULL, NULL);
 }
 
 void InterpreterCodeContainer::produceClass()

@@ -41,4 +41,6 @@ const char* xcast();
 
 void printfloatdef(std::ostream& fout, bool quad);
 
+typedef long double quad;
+
 #endif

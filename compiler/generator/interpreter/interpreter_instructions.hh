@@ -27,7 +27,7 @@ using namespace std;
 #include "instructions.hh"
 #include "typing_instructions.hh"
 
-class InterpreterInstVisitor {
+class InterpreterInstVisitor : public InstVisitor {
 
     private:
     
@@ -83,72 +83,51 @@ class InterpreterInstVisitor {
         {
            
         }
-
-        virtual void visit(LabelInst* inst)
-        {
-            // Empty
-        }
-      
-        virtual void visit(DeclareVarInst* inst)
-        {
-            
-        }
-
-        virtual void visit(DeclareFunInst* inst)
-        {
-            
-        }
         
-        virtual void visit(LoadVarInst* inst)
-        {
-            
-        }
+        virtual void visit(LabelInst* inst) {}
 
-        virtual void visit(LoadVarAddressInst* inst)
-        {   
-            // Not implemented in Interpreter
-            assert(false);
-        }
-   
-        virtual void visit(FloatNumInst* inst)
-        {
-        
-        }
-
-        virtual void visit(IntNumInst* inst)
-        {
-            
-        }
-
-        virtual void visit(BoolNumInst* inst)
-        {
-            
-        }
-
-        virtual void visit(DoubleNumInst* inst)
-        {
-           
-        }
+        // Declarations
+        virtual void visit(DeclareVarInst* inst) {}
+        virtual void visit(DeclareFunInst* inst) {}
     
-        virtual void visit(BinopInst* inst)
-        {
-            
-        }
+        // Memory
+        virtual void visit(LoadVarInst* inst) {}
+        virtual void visit(LoadVarAddressInst* inst) {}
+        virtual void visit(StoreVarInst* inst) {}
 
-        virtual void visit(CastNumInst* inst)
-        {
-            
-        }
-    
-        virtual void visit(FunCallInst* inst)
-        {
-        }
-      
-        virtual void visit(Select2Inst* inst)
-        {
-            
-        }
-        
+        // Addresses
+        virtual void visit(NamedAddress* address) {}
+        virtual void visit(IndexedAddress* address) {}
+
+        // Primitives : numbers
+        virtual void visit(FloatNumInst* inst) {}
+        virtual void visit(FloatArrayNumInst* inst) {}
+        virtual void visit(IntNumInst* inst) {}
+        virtual void visit(IntArrayNumInst* inst) {}
+        virtual void visit(BoolNumInst* inst) {}
+        virtual void visit(DoubleNumInst* inst) {}
+        virtual void visit(DoubleArrayNumInst* inst) {}
+
+        // Numerical computation
+        virtual void visit(BinopInst* inst) {}
+        virtual void visit(CastNumInst* inst) {}
+
+        // Function call
+        virtual void visit(FunCallInst* inst) {}
+        virtual void visit(RetInst* inst) {}
+        virtual void visit(DropInst* inst) {}
+
+        // Conditionnal
+        virtual void visit(Select2Inst* inst) {}
+        virtual void visit(IfInst* inst) {}
+        virtual void visit(SwitchInst* inst) {}
+
+        // Loops
+        virtual void visit(ForLoopInst* inst) {}
+        virtual void visit(WhileLoopInst* inst) {}
+
+        // Block
+        virtual void visit(BlockInst* inst) {}
 
 };
 
