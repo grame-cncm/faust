@@ -256,7 +256,7 @@ faust.getErrorMessage = function() { return faust.error_msg; };
 faust.pow2limit = function (x) {
     var n = 2;
     while (n < x) { n = 2 * n; }
-    return (n < 4096) ? 4096 : n;
+    return (n < 65536) ? 65536 : n; // Minimum = 64 kB
 }
 
 faust.createDSPFactoryTmp = function (factory_code, factory_name, sha_key, max_polyphony) {
