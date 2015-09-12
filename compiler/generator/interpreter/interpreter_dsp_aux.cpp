@@ -44,7 +44,7 @@ EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const std::s
     if (pos != string::npos) {
         return createDSPInterpreterFactoryFromString(base.substr(0, pos), path_to_content(filename), argc, argv, error_msg);
     } else {
-        error_msg = "File Extension is not the one expected (.dsp expected)\n";
+        error_msg = "File Extension is not the one expected (.dsp expected)";
         return NULL;
     } 
 }
@@ -64,7 +64,11 @@ EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std:
         argv1[i+3] = argv[i];
     }
     
-    interpreter_dsp_factory* factory = new interpreter_dsp_factory(compile_faust_interpreter(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg_aux));
+    interpreter_dsp_factory* factory 
+        = new interpreter_dsp_factory(compile_faust_interpreter(argc1, argv1, 
+                                                                name_app.c_str(), 
+                                                                dsp_content.c_str(), 
+                                                                error_msg_aux));
     error_msg = error_msg_aux;
     return factory;
 }   

@@ -36,7 +36,7 @@
 #include "faust/gui/OSCUI.h"
 #endif
 
-//#define LLVM
+//#define LLVM 1
 
 struct MyMeta : public Meta
 {

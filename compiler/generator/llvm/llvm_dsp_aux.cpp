@@ -1157,7 +1157,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename,
     if (pos != string::npos) {
         return createDSPFactoryFromString(base.substr(0, pos), path_to_content(filename), argc, argv, target, error_msg, opt_level);
     } else {
-        error_msg = "File Extension is not the one expected (.dsp expected)\n";
+        error_msg = "File Extension is not the one expected (.dsp expected)";
         return NULL;
     } 
 }

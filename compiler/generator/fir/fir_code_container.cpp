@@ -188,6 +188,9 @@ void FirCodeContainer::dump(ostream* dst)
     FIRInstVisitor firvisitor(dst);
     *dst << "======= Container \"" << fKlassName << "\" ==========" << std::endl;
     *dst << std::endl;
+    
+    generateSR();
+    
     dumpGlobalsAndInit(firvisitor, dst);
     dumpThread(firvisitor, dst);
     dumpComputeBlock(firvisitor, dst);

@@ -397,7 +397,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 } else {
                     inst->fInst2->accept(&fTypingVisitor);
                     Typed::VarType type2 = fTypingVisitor.fCurType;
-                     if (isRealType(type2)) {
+                    if (isRealType(type2)) {
                         visitAuxFloat(inst);
                     } else if (isIntType(type1) || isIntType(type2)) {
                         visitAuxInt(inst);

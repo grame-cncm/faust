@@ -23,6 +23,7 @@
 #define _BINOP_
 
 #include "node.hh"
+#include "fir_interpreter.hh"
 
 typedef const Node	(*comp) (const Node& a, const Node& b);
 typedef bool 		(*pred) (const Node& a);
@@ -38,8 +39,11 @@ struct BinOp
     const char*	fNameLLVMInt;
     const char*	fNameLLVMFloat;
 
-    unsigned int fLlvmIntInst;
-    unsigned int fLlvmFloatInst;
+    unsigned int fLLVMIntInst;
+    unsigned int fLLVMFloatInst;
+    
+    FIRInstruction::Opcode fInterpIntInst;
+    FIRInstruction::Opcode fInterpFloatInst;
 
 	comp 		fCompute;
 	pred		fLeftNeutral;
@@ -48,12 +52,14 @@ struct BinOp
     pred        fRightAbsorbing;
 	int			fPriority;
 	//
-	BinOp (const char* name, const char* namevec,
-            const char* namescal,
-            const char* namellvmint,
-            const char* namellvmfloat,
-            unsigned int llvmint,
-            unsigned int llvmfloat,
+	BinOp (const char* name, const char* name_vec,
+            const char* name_scal,
+            const char* name_llvm_int,
+            const char* name_llvm_float,
+            unsigned int llvm_int,
+            unsigned int llvm_float,
+            FIRInstruction::Opcode interp_int,
+            FIRInstruction::Opcode interp_float,
             comp f,
             pred ln,
             pred rn,
@@ -61,9 +67,10 @@ struct BinOp
             pred la = falsePredicate,
             pred ra = falsePredicate
           )
-			: fName(name), fNameVec(namevec), fNameScal(namescal),
-            fNameLLVMInt(namellvmint), fNameLLVMFloat(namellvmfloat),
-            fLlvmIntInst(llvmint), fLlvmFloatInst(llvmfloat),
+			: fName(name), fNameVec(name_vec), fNameScal(name_scal),
+            fNameLLVMInt(name_llvm_int), fNameLLVMFloat(name_llvm_float),
+            fLLVMIntInst(llvm_int), fLLVMFloatInst(llvm_float),
+            fInterpIntInst(interp_int), fInterpFloatInst(interp_float),
             fCompute(f), fLeftNeutral(ln), fRightNeutral(rn),
             fLeftAbsorbing(la), fRightAbsorbing(ra), fPriority(priority)
     {}

@@ -34,14 +34,9 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
 	
     protected:
         
-        int fSamplingFreq;
-        
         int fNumInputs;
         int fNumOutputs;
-        
-        FAUSTFLOAT** fInputs;
-        FAUSTFLOAT** fOutputs;
-        
+         
         FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
         FIRBlockInstruction<T>* fInitBlock;
         FIRBlockInstruction<T>* fComputeBlock;
@@ -59,18 +54,20 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         {
             fNumInputs = inputs;
             fNumOutputs = ouputs;
-            fInputs = new FAUSTFLOAT*[inputs];
-            fOutputs = new FAUSTFLOAT*[ouputs];
+            this->fInputs = new FAUSTFLOAT*[inputs];
+            this->fOutputs = new FAUSTFLOAT*[ouputs];
             fUserInterfaceBlock = interface;
             fInitBlock = init;
             fComputeBlock = compute_control;
             fComputeDSPBlock = compute_dsp;
+            this->fCurInput = NULL;
+            this->fCurOutput = NULL;
         }
         
         virtual ~interpreter_dsp_aux()
         {
-            delete [] fInputs;
-            delete [] fOutputs;
+            delete [] this->fInputs;
+            delete [] this->fOutputs;
         }
         
         interpreter_dsp_aux<T>* createDSPInstance()
@@ -118,7 +115,8 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             printf("instanceInit samplingFreq = %d\n", samplingFreq);
             return;
             
-            fSamplingFreq = samplingFreq;
+            // Store samplingFreq in "fSamplingFreq" variable (at offset 0 in HEAP) 
+            this->fRealHeap[0] = samplingFreq;
             
             int int_val;
             T real_val;
@@ -146,10 +144,10 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             
             // Prepare in/out buffers
             for (int i = 0; i < fNumInputs; i++) {
-                fInputs[i] = inputs[i];
+                this->fInputs[i] = inputs[i];
             }
             for (int i = 0; i < fNumInputs; i++) {
-                fOutputs[i] = outputs[i];
+                this->fOutputs[i] = outputs[i];
             }
             
             // Executes the 'control' block
