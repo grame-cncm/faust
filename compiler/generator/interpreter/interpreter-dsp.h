@@ -48,9 +48,6 @@ class interpreter_dsp_factory {
         /* Return Factory name */
         std::string getName();
         
-        /* Return Factory LLVM target */
-        std::string getTarget();
-        
         /* Return Factory SHA key */
         std::string getSHAKey();
   
@@ -79,17 +76,14 @@ interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const std::string& s
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array 
  * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
- * @param target - the LLVM machine target (using empty string will take current machine settings)
  * @param error_msg - the error string to be filled
- * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
  * since the maximum value may change with new LLVM versions)
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
 interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const std::string& filename, 
                                                            int argc, const char* argv[], 
-                                                           const std::string& target, 
-                                                           std::string& error_msg, int opt_level = -1);
+                                                           std::string& error_msg);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all 
@@ -101,17 +95,14 @@ interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const std::string& 
  * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
- * @param target - the LLVM machine target (using empty string will take current machine settings)
  * @param error_msg - the error string to be filled
- * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
  * since the maximum value may change with new LLVM versions)
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
 interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
                                                              int argc, const char* argv[], 
-                                                             const std::string& target, 
-                                                             std::string& error_msg, int opt_level = -1);
+                                                             std::string& error_msg);
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possible really deleting the internal pointer. 
  * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted with deleteDSPInstance.

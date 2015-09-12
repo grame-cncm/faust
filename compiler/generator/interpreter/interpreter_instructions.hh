@@ -26,11 +26,11 @@ using namespace std;
 
 #include "instructions.hh"
 #include "typing_instructions.hh"
+#include "fir_interpreter.hh"
 
-class InterpreterInstVisitor : public InstVisitor {
+template <class T>
+struct InterpreterInstVisitor : public DispatchVisitor {
 
-    private:
-    
         /*
          Global functions names table as a static variable in the visitor
          so that each function prototype is generated as most once in the module.
@@ -40,10 +40,11 @@ class InterpreterInstVisitor : public InstVisitor {
     
         TypingVisitor fTypingVisitor;
    
-    public:
-     
+        FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
+   
         InterpreterInstVisitor()
         {
+            fUserInterfaceBlock = new FIRUserInterfaceBlockInstruction<T>();
         }
         
         void initMathTable()
@@ -61,27 +62,70 @@ class InterpreterInstVisitor : public InstVisitor {
 
         virtual void visit(OpenboxInst* inst)
         {
-           
+            FIRInstruction::Opcode opcode;
+            switch (inst->fOrient) {
+                case 0:
+                    opcode = FIRInstruction::kOpenVerticalBox;
+                    break;
+                case 1:
+                    opcode = FIRInstruction::kOpenHorizontalBox;
+                    break;
+                case 2:
+                    opcode = FIRInstruction::kOpenTabBox;
+                    break;
+            }
+            
+            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, 0, inst->fName));
         }
 
         virtual void visit(CloseboxInst* inst)
         {
-            
+            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(FIRInstruction::kCloseBox));
         }
         
         virtual void visit(AddButtonInst* inst)
         {
-           
+            FIRInstruction::Opcode opcode;
+            if (inst->fType == AddButtonInst::kDefaultButton) {
+                opcode = FIRInstruction::kAddButton;
+            } else {
+                opcode = FIRInstruction::kAddCheckButton;
+            }
+            
+            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, 0, inst->fLabel));
         }
 
         virtual void visit(AddSliderInst* inst)
         {
-           
+            FIRInstruction::Opcode opcode;
+            switch (inst->fType) {
+                case AddSliderInst::kHorizontal:
+                    opcode = FIRInstruction::kAddHorizontalSlider;
+                    break;
+                case AddSliderInst::kVertical:
+                    opcode = FIRInstruction::kAddVerticalSlider;
+                    break;
+                case AddSliderInst::kNumEntry:
+                    opcode = FIRInstruction::kAddNumEntry;
+                    break;
+            }
+            
+            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, 0, inst->fLabel, inst->fInit, inst->fMin, inst->fMax, inst->fStep));
         }
 
         virtual void visit(AddBargraphInst* inst)
         {
-           
+            FIRInstruction::Opcode opcode;
+            switch (inst->fType) {
+                case AddBargraphInst::kHorizontal:
+                    opcode = FIRInstruction::kAddHorizontalBargraph;
+                    break;
+                case AddBargraphInst::kVertical:
+                    opcode = FIRInstruction::kAddVerticalBargraph;
+                    break;
+            }
+            
+            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, 0, inst->fLabel, inst->fMin, inst->fMax));
         }
         
         virtual void visit(LabelInst* inst) {}
@@ -125,9 +169,6 @@ class InterpreterInstVisitor : public InstVisitor {
         // Loops
         virtual void visit(ForLoopInst* inst) {}
         virtual void visit(WhileLoopInst* inst) {}
-
-        // Block
-        virtual void visit(BlockInst* inst) {}
 
 };
 

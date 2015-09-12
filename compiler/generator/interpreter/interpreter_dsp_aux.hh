@@ -26,11 +26,11 @@
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
 #include "export.hh"
-#include "fir_interpreter.h"
+#include "fir_interpreter.hh"
 #include "smartpointer.h"
 
 template <class T>
-class interpreter_dsp_aux : public FIRInterpreter<T> {
+class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
 	
     protected:
         
@@ -39,9 +39,10 @@ class interpreter_dsp_aux : public FIRInterpreter<T> {
         int fNumInputs;
         int fNumOutputs;
         
-        T** fInputs;
-        T** fOutputs;
+        FAUSTFLOAT** fInputs;
+        FAUSTFLOAT** fOutputs;
         
+        FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
         FIRBlockInstruction<T>* fInitBlock;
         FIRBlockInstruction<T>* fComputeBlock;
         FIRBlockInstruction<T>* fComputeDSPBlock;
@@ -50,14 +51,17 @@ class interpreter_dsp_aux : public FIRInterpreter<T> {
       
         interpreter_dsp_aux(int inputs, int ouputs, 
             int real_heap_size, int int_heap_size, 
+            FIRUserInterfaceBlockInstruction<T>* interface, 
             FIRBlockInstruction<T>* init, 
             FIRBlockInstruction<T>* compute_control,
             FIRBlockInstruction<T>* compute_dsp) 
             : FIRInterpreter<T>(real_heap_size, int_heap_size)
         {
-             
-            fInputs = new T*[inputs];
-            fOutputs = new T*[ouputs];
+            fNumInputs = inputs;
+            fNumOutputs = ouputs;
+            fInputs = new FAUSTFLOAT*[inputs];
+            fOutputs = new FAUSTFLOAT*[ouputs];
+            fUserInterfaceBlock = interface;
             fInitBlock = init;
             fComputeBlock = compute_control;
             fComputeDSPBlock = compute_dsp;
@@ -65,14 +69,20 @@ class interpreter_dsp_aux : public FIRInterpreter<T> {
         
         virtual ~interpreter_dsp_aux()
         {
-            // Nothing (since garbageable)
+            delete [] fInputs;
+            delete [] fOutputs;
         }
         
         interpreter_dsp_aux<T>* createDSPInstance()
         {
-            return new interpreter_dsp_aux<T>(fNumInputs, fNumOutputs, 
-                                            this->fRealHeapSize, this->fIntHeapSize,
-                                            fInitBlock, fComputeBlock, fComputeDSPBlock);
+            return new interpreter_dsp_aux<T>(fNumInputs, 
+                                            fNumOutputs, 
+                                            this->fRealHeapSize, 
+                                            this->fIntHeapSize,
+                                            fUserInterfaceBlock, 
+                                            fInitBlock, 
+                                            fComputeBlock, 
+                                            fComputeDSPBlock);
         }
         
         void static metadata(Meta* m) 
@@ -105,6 +115,9 @@ class interpreter_dsp_aux : public FIRInterpreter<T> {
         
         virtual void instanceInit(int samplingFreq) 
         {
+            printf("instanceInit samplingFreq = %d\n", samplingFreq);
+            return;
+            
             fSamplingFreq = samplingFreq;
             
             int int_val;
@@ -122,11 +135,15 @@ class interpreter_dsp_aux : public FIRInterpreter<T> {
         
         virtual void buildUserInterface(UI* interface) 
         {
-        
+            printf("buildUserInterface\n");
+            this->ExecuteBuildUserInterface(fUserInterfaceBlock, interface);
         }
         
-        virtual void compute(int count, T** inputs, T** outputs) 
+        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
+            //printf("compute count = %d\n", count);
+            return;
+            
             // Prepare in/out buffers
             for (int i = 0; i < fNumInputs; i++) {
                 fInputs[i] = inputs[i];
@@ -146,24 +163,52 @@ class interpreter_dsp_aux : public FIRInterpreter<T> {
 	
 };
 
-// Public C++ interface
+class interpreter_dsp;
 
- class EXPORT interpreter_dsp_factory : public smartable {
+class EXPORT interpreter_dsp_factory {
 
+    private:
+    
+        interpreter_dsp_aux<float>* fFactory;
+        std::string fExpandedDSP;
+        std::string fShaKey;
+        std::string fName;
+
+    public: 
+    
+        interpreter_dsp_factory(interpreter_dsp_aux<float>* factory)
+            :fFactory(factory)
+        {}
+        
+        virtual ~interpreter_dsp_factory()
+        {
+            delete fFactory;
+        }
+        
+        /* Return Factory name */
+        std::string getName();
+        
+        /* Return Factory SHA key */
+        std::string getSHAKey();
+  
+        /* Return Factory expanded DSP code */
+        std::string getDSPCode();
+        
+        interpreter_dsp* createDSPInstance();
+     
 };
 
+// Public C++ interface
 
 EXPORT interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const std::string& sha_key);
 
 EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const std::string& filename, 
                                                                   int argc, const char* argv[], 
-                                                                  const std::string& target, 
-                                                                  std::string& error_msg, int opt_level = -1);
+                                                                  std::string& error_msg);
 
 EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
                                                                     int argc, const char* argv[], 
-                                                                    const std::string& target, 
-                                                                    std::string& error_msg, int opt_level = -1);
+                                                                    std::string& error_msg);
 
 EXPORT bool deleteDSPInterpreterFactory(interpreter_dsp_factory* factory);
 

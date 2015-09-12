@@ -27,8 +27,8 @@
 
 using namespace std;
 
-map <string, int> InterpreterInstVisitor::gFunctionSymbolTable;     
-map <string, string> InterpreterInstVisitor::gMathLibTable;
+template <class T> map <string, int> InterpreterInstVisitor<T>::gFunctionSymbolTable;     
+template <class T> map <string, string> InterpreterInstVisitor<T>::gMathLibTable;
 
 CodeContainer* InterpreterCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
@@ -76,25 +76,29 @@ void InterpreterCodeContainer::produceInternal()
 
 interpreter_dsp_aux<float>* InterpreterCodeContainer::produceModuleFloat()
 {
-    cout << "InterpreterCodeContainer::produceModuleFloat()" << endl;
-    return new interpreter_dsp_aux<float>(fNumInputs, fNumOutputs, 0, 0, NULL, NULL, NULL);
+    cout << "InterpreterCodeContainer::produceModuleFloat() " << fNumInputs << " " << fNumOutputs << endl;
+    
+    return new interpreter_dsp_aux<float>(fNumInputs, fNumOutputs, 4096, 4096, fCodeProducer.fUserInterfaceBlock, NULL, NULL, NULL);
 }
 
 interpreter_dsp_aux<double>* InterpreterCodeContainer::produceModuleDouble()
 {
     cout << "InterpreterCodeContainer::produceModuleDouble()" << endl;
-    return new interpreter_dsp_aux<double>(fNumInputs, fNumOutputs, 0, 0, NULL, NULL, NULL);
+    //return new interpreter_dsp_aux<double>(fNumInputs, fNumOutputs, 0, 0, NULL, NULL, NULL, NULL);
+    return NULL;
 }
 
 interpreter_dsp_aux<quad>* InterpreterCodeContainer::produceModuleQuad()
 {
     cout << "InterpreterCodeContainer::produceModuleQuad()" << endl;
-    return new interpreter_dsp_aux<quad>(fNumInputs, fNumOutputs, 0, 0, NULL, NULL, NULL);
+    //return new interpreter_dsp_aux<quad>(fNumInputs, fNumOutputs, 0, 0, NULL, NULL, NULL, NULL);
+    return NULL;
 }
 
 void InterpreterCodeContainer::produceClass()
 {
-    
+    printf("InterpreterCodeContainer::produceClass\n");
+    generateUserInterface(&fCodeProducer);
 }
 
 void InterpreterCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)

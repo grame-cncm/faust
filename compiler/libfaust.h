@@ -49,6 +49,9 @@ typedef struct LLVMResult {
 
 #define FAUSTVERSION "2.0.a41"
 
+template <class T>
+class interpreter_dsp_aux;
+
 /*
     Low level dynamic compilation interface. Better use the public API defined in llvm-dsp.h or llvm-c-dsp.h
 */
@@ -80,6 +83,8 @@ EXPORT int compile_faust(int argc, const char* argv[], const char* name, const c
  */
 
 EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+
+EXPORT interpreter_dsp_aux<float>* compile_faust_interpreter(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
 
 EXPORT std::string compile_faust_asmjs(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
 

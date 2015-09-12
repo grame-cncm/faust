@@ -24,7 +24,7 @@
 
 #include "code_container.hh"
 #include "interpreter_instructions.hh"
-#include "interpreter_dsp_aux.h"
+#include "interpreter_dsp_aux.hh"
 
 using namespace std;           
 
@@ -32,7 +32,8 @@ class InterpreterCodeContainer : public virtual CodeContainer {
 
     protected:
 
-        InterpreterInstVisitor fCodeProducer;
+        // TODO : use template
+        InterpreterInstVisitor<float> fCodeProducer;
         
         void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
 

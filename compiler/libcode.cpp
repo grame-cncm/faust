@@ -1058,6 +1058,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         if (gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
      
         comp->compileMultiSignal(signals);
+        container->produceClass();
+         
         InterpreterCodeContainer* interpreter_container = dynamic_cast<InterpreterCodeContainer*>(container);
         
         if (gGlobal->gFloatSize == 1) {
@@ -1473,6 +1475,29 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
 }
 
 #endif
+
+EXPORT interpreter_dsp_aux<float>* compile_faust_interpreter(int argc, const char* argv[], const char* name, const char* dsp_content, char* error_msg)
+{
+    gGlobal = NULL;
+    interpreter_dsp_aux<float>* res;
+    
+    try {
+    
+        // Compile module
+        global::allocate();
+        gGlobal->gLLVMOut = true; 
+        compile_faust_internal(argc, argv, name, dsp_content, true);
+        strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);  
+        res = gGlobal->gInterpDSPFloat;
+            
+    } catch (faustexception& e) {
+        strncpy(error_msg, e.Message().c_str(), 256);
+        res = NULL;
+    }
+    
+    global::destroy();
+    return res;
+}
 
 EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* dsp_content, char* error_msg, bool generate)
 {

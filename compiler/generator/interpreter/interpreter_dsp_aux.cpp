@@ -19,32 +19,60 @@
  ************************************************************************
  ************************************************************************/
  
-#include "interpreter_dsp_aux.h"
+#include "interpreter_dsp_aux.hh"
+#include "libfaust.h"
 #include <string>
+#include <libgen.h>
+
+using namespace std;
+
+interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
+{
+    return reinterpret_cast<interpreter_dsp*>(fFactory->createDSPInstance());
+}
 
 EXPORT interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const std::string& sha_key)
 {}
 
 EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const std::string& filename, 
                                                                   int argc, const char* argv[], 
-                                                                  const std::string& target, 
-                                                                  std::string& error_msg, int opt_level)
+                                                                  std::string& error_msg)
 {
-    error_msg = "Not implemented";
-    return NULL;
+    string base = basename((char*)filename.c_str());
+    size_t pos = filename.find(".dsp");
+    
+    if (pos != string::npos) {
+        return createDSPInterpreterFactoryFromString(base.substr(0, pos), path_to_content(filename), argc, argv, error_msg);
+    } else {
+        error_msg = "File Extension is not the one expected (.dsp expected)\n";
+        return NULL;
+    } 
 }
 
 EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
                                                                     int argc, const char* argv[], 
-                                                                    const std::string& target, 
-                                                                    std::string& error_msg, int opt_level)
+                                                                    std::string& error_msg)
 {
-    return NULL;
+    int argc1 = argc + 3;
+    const char* argv1[32];
+    char error_msg_aux[512];
+
+    argv1[0] = "faust";
+    argv1[1] = "-lang";
+    argv1[2] = "interp";
+    for (int i = 0; i < argc; i++) {
+        argv1[i+3] = argv[i];
+    }
+    
+    interpreter_dsp_factory* factory = new interpreter_dsp_factory(compile_faust_interpreter(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg_aux));
+    error_msg = error_msg_aux;
+    return factory;
 }   
 
 EXPORT bool deleteDSPInterpreterFactory(interpreter_dsp_factory* factory)
 {
-    return false;
+    delete factory;
+    return true;
 }
 
 EXPORT std::vector<std::string> getDSPInterpreterFactoryLibraryList(interpreter_dsp_factory* factory)
@@ -60,7 +88,7 @@ EXPORT void deleteAllDSPInterpreterFactories()
 
 EXPORT interpreter_dsp* createDSPInterpreterInstance(interpreter_dsp_factory* factory)
 {
-    return NULL;
+    return factory->createDSPInstance();
 }
 
 EXPORT void deleteDSPInterpreterInstance(interpreter_dsp* dsp)

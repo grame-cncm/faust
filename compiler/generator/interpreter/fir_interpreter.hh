@@ -25,36 +25,50 @@
 #include "faust/audio/dsp.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
-#include "garbageable.hh"
 
 #include <vector>
+#include <string>
+#include <math.h>
 
 // Interpreter
 
 typedef long double quad;
 
-struct FIRInstruction : public virtual Garbageable {
+struct FIRInstruction {
 
     enum Opcode { 
+    
         // Numbers
         kRealValue1, kRealValue2, kIntValue1, kIntValue2,
+        
         // Memory
         kLoadReal1, kLoadReal2, kLoadInt1, kLoadInt2, 
         kStoreReal1, kStoreReal2, kStoreInt1, kStoreInt2,
+        
         // Cast
         kCastReal1, kCastReal2, kCastInt1, kCastInt2, 
+        
         // Select/if
         kIfInt1, kIfInt2, kIfReal1, kIfReal2,
-        // Standar math
+        
+        // Standard math
         kAddReal1, kAddReal2, kAddInt1, kAddInt2, kSubReal1, kSubReal2, kSubInt1, kSubInt2, 
-        kMultReal1, kMultReal2,  kMultInt1, kMultInt2, kDivReal1, kDivReal2, kDivInt1, kDivInt2,
+        kMultReal1, kMultReal2, kMultInt1, kMultInt2, kDivReal1, kDivReal2, kDivInt1, kDivInt2,
         kRemInt1, kRemInt2, kLshInt1, kLshInt2, kRshInt1, kRshInt2, kGTInt1, kGTInt2,
         kLTInt1, kLTInt2, kGEInt1, kGEInt2, kLEInt1, kLEInt2, kEQInt1, kEQInt2, kNEInt1, kNEInt2, 
         kGTReal1, kGTReal2, kLTReal1, kLTReal2, kGEReal1, kGEReal2, 
         kLEReal1, kLEReal2, kEQReal1, kEQReal2, kNEReal1, kNEReal2,
         kANDInt1, kANDInt2, kORInt1, kORInt2, kXORInt1, kXORInt2, 
+        
         // Trigonometric
-        kSin1, kSin2, kCos1, kCos2 
+        kSin1, kSin2, kCos1, kCos2,
+        
+        // User Interface 
+        kOpenVerticalBox, kOpenHorizontalBox, kOpenTabBox, kCloseBox,
+        kAddButton, kAddCheckButton, 
+        kAddHorizontalSlider, kAddVerticalSlider, kAddNumEntry, 
+        kAddHorizontalBargraph, kAddVerticalBargraph,
+        kDeclare
     };
      
 };
@@ -74,13 +88,71 @@ struct FIRBasicInstruction : public FIRInstruction {
     FIRBlockInstruction<T>* fbranch2;
     
     FIRBasicInstruction(Opcode opcode, 
-        int val_int, T val_real, 
-        int offset, 
-        FIRBlockInstruction<T>* branch1, 
-        FIRBlockInstruction<T>* branch2) 
-        : fOpcode(opcode), fIntValue(val_int), fRealValue(val_real), fOffset(offset), fbranch1(branch1), fbranch2(branch2) 
+                        int val_int, T val_real, 
+                        int offset, 
+                        FIRBlockInstruction<T>* branch1, 
+                        FIRBlockInstruction<T>* branch2) 
+                        : fOpcode(opcode), fIntValue(val_int), fRealValue(val_real), 
+                        fOffset(offset), fbranch1(branch1), fbranch2(branch2) 
+    {}
+    
+    virtual ~FIRBasicInstruction()
+    {
+        delete fbranch1;
+        delete fbranch2;
+    }
+     
+};
+
+template <class T>
+struct FIRUserInterfaceInstruction : public FIRInstruction {
+
+    Opcode fOpcode;
+    int fOffset;
+    std::string fLabel;
+    std::string fKey;
+    std::string fValue;
+    T fInit;
+    T fMin;
+    T fMax;
+    T fStep;
+    
+    FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label, T init, T min, T max, T step)
+        :fOpcode(opcode), fOffset(offset), fLabel(label), fInit(init), fMin(min), fMax(max), fStep(step)
+    {}
+    
+    FIRUserInterfaceInstruction(Opcode opcode)
+        :fOpcode(opcode), fOffset(0), fLabel(""), fKey(""), fValue(""), fInit(0), fMin(0), fMax(0), fStep(0)
+    {}
+    
+    FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label)
+        :fOpcode(opcode), fOffset(offset), fLabel(label), fKey(""), fValue(""), fInit(0), fMin(0), fMax(0), fStep(0)
     {}
      
+    FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label, T min, T max)
+        :fOpcode(opcode), fOffset(offset), fLabel(label), fKey(""), fValue(""), fInit(0), fMin(min), fMax(max), fStep(0)
+    {}
+    
+    FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& key, const std::string& value)
+        :fOpcode(opcode), fOffset(offset), fLabel(""), fKey(key), fValue(value), fInit(0), fMin(0), fMax(0), fStep(0)
+    {}
+    
+};
+
+template <class T>
+struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
+
+     std::vector<FIRUserInterfaceInstruction<T>*> fInstructions;
+     
+     virtual ~FIRUserInterfaceBlockInstruction()
+     {
+        typename std::vector<FIRUserInterfaceInstruction<T>*>::iterator it;
+        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+           delete (*it);
+        }
+     }
+     
+     void push(FIRUserInterfaceInstruction<T>* inst) { fInstructions.push_back(inst); }
 };
 
 template <class T>
@@ -90,12 +162,17 @@ struct FIRBlockInstruction : public FIRInstruction {
      
      virtual ~FIRBlockInstruction()
      {
-     
+        typename std::vector<FIRBasicInstruction<T>*>::iterator it;
+        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+           delete (*it);
+        }
      }
+     
+     void push(FIRBasicInstruction<T>* inst) { fInstructions.push_back(inst); }
 };
 
 template <class T>
-class FIRInterpreter : public virtual Garbageable {
+class FIRInterpreter  {
 
     protected :
     
@@ -104,12 +181,74 @@ class FIRInterpreter : public virtual Garbageable {
         
         int fRealHeapSize;
         int fIntHeapSize;
+        
+        void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UI* interface)
+        {
+            typename std::vector<FIRUserInterfaceInstruction<T>*>::iterator it;
+            
+            for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
+           
+                 switch ((*it)->fOpcode) {
+                 
+                        case FIRInstruction::kOpenVerticalBox:
+                            interface->openVerticalBox((*it)->fLabel.c_str()); 
+                            break;
+                            
+                        case FIRInstruction::kOpenHorizontalBox:
+                            interface->openHorizontalBox((*it)->fLabel.c_str()); 
+                            break;
+                            
+                        case FIRInstruction::kOpenTabBox:
+                            interface->openTabBox( (*it)->fLabel.c_str()); 
+                            break;
+                 
+                         case FIRInstruction::kCloseBox:
+                            interface->closeBox(); 
+                            break;
+                            
+                        case FIRInstruction::kAddButton:
+                            interface->addButton((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset]);
+                            break;
+                            
+                        case FIRInstruction::kAddCheckButton:
+                            interface->addCheckButton((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset]);
+                            break;
+                            
+                        case FIRInstruction::kAddHorizontalSlider:
+                            interface->addHorizontalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
+                            break;
+                            
+                        case FIRInstruction::kAddVerticalSlider:
+                            interface->addVerticalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
+                            break;
+                            
+                        case FIRInstruction::kAddNumEntry:
+                            interface->addNumEntry((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
+                            break;
+                            
+                        case FIRInstruction::kAddHorizontalBargraph:
+                            interface->addHorizontalBargraph((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fMin, (*it)->fMax);
+                            break;
+                            
+                        case FIRInstruction::kAddVerticalBargraph:
+                            interface->addVerticalBargraph((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fMin, (*it)->fMax);
+                            break;
+                            
+                        case FIRInstruction::kDeclare:
+                            interface->declare(&fRealHeap[(*it)->fOffset], (*it)->fKey.c_str(), (*it)->fValue.c_str());
+                            break;
+                            
+                        default:
+                            break;
+                }
+            }
+        }
          
         /*
             - Offset in arrays in HEAP can be precomputed when visiting FIR
         */
        
-        void ExecuteBlock(FIRBlockInstruction<T>* block, int& res_int, T& res_real, bool is_int_res)
+        void ExecuteBlock(FIRBlockInstruction<T>* block, int& res_int, T& res_real, bool is_int)
         {
             typename std::vector<FIRBasicInstruction<T>*>::iterator it;
              
@@ -267,7 +406,7 @@ class FIRInterpreter : public virtual Garbageable {
                         val1_int = val1_int / val2_int;
                         break;
                         
-                     case FIRInstruction::kDivInt2:
+                    case FIRInstruction::kDivInt2:
                         val2_int = val1_int / val2_int;
                         break;
                         
@@ -435,11 +574,14 @@ class FIRInterpreter : public virtual Garbageable {
                     case FIRInstruction::kCos2:
                         val2_real = cosf(val1_real);
                         break;
+                        
+                    default:
+                        break;
             
                 }
             }
             
-            if (is_int_res) {
+            if (is_int) {
                 res_int = val1_int;
             } else {
                 res_real = val1_real;
@@ -466,6 +608,8 @@ class FIRInterpreter : public virtual Garbageable {
         
         FIRInterpreter(int real_heap_size, int int_heap_size)
         {
+            printf("FIRInterpreter %d %d\n", real_heap_size, int_heap_size);
+            
             fRealHeapSize = real_heap_size;
             fIntHeapSize = int_heap_size;
             fRealHeap = new T[real_heap_size];
@@ -474,7 +618,8 @@ class FIRInterpreter : public virtual Garbageable {
         
         virtual ~FIRInterpreter()
         {
-            // Nothing (since garbageable)
+            delete [] fRealHeap;
+            delete [] fIntHeap;
         }
  
 };
