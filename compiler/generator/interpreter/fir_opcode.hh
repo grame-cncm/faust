@@ -29,14 +29,16 @@ struct FIRInstruction {
     enum Opcode { 
     
         // Numbers
-        kRealValue1, kRealValue2, kIntValue1, kIntValue2,
+        kRealValue1, kRealValue2, kIntValue1, kIntValue2,  
         
         // Memory
+        // 4
         kLoadReal1, kLoadReal2, kLoadInt1, kLoadInt2, 
         kStoreReal1, kStoreReal2, kStoreInt1, kStoreInt2,
         kLoadIndexedReal1, kLoadIndexedReal2, kLoadIndexedInt1, kLoadIndexedInt2, 
         kStoreIndexedReal1, kStoreIndexedReal2, kStoreIndexedInt1, kStoreIndexedInt2,
-        kLoadInput1, kLoadInput2, kStoreOutput1, kStoreOutput2,
+        // 20
+        kLoadInput1, kLoadInput2, kStoreOutput1, kStoreOutput2,  
         
         // Cast
         kCastReal1, kCastReal2, kCastInt1, kCastInt2, 
@@ -61,7 +63,10 @@ struct FIRInstruction {
         kAddButton, kAddCheckButton, 
         kAddHorizontalSlider, kAddVerticalSlider, kAddNumEntry, 
         kAddHorizontalBargraph, kAddVerticalBargraph,
-        kDeclare
+        kDeclare,
+        
+        // Control
+        kLoop
     };
      
 };

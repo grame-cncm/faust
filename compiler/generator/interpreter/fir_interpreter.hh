@@ -30,14 +30,15 @@
 #include <vector>
 #include <string>
 #include <math.h>
+#include <assert.h>
 
 // Interpreter
 
 #define push_real(val) real_stack[real_stack_index++] = val
 #define push_int(val) int_stack[int_stack_index++] = val
 
-#define pop_real() (real_stack[real_stack_index--])
-#define pop_int() int_stack[int_stack_index--]
+#define pop_real() (real_stack[--real_stack_index])
+#define pop_int() int_stack[--int_stack_index]
 
 typedef long double quad;
 
@@ -62,9 +63,11 @@ struct FIRBasicInstruction : public FIRInstruction {
                         FIRBlockInstruction<T>* branch2) 
                         : fOpcode(opcode), fIntValue(val_int), fRealValue(val_real), 
                         fOffset(offset), fbranch1(branch1), fbranch2(branch2) 
-    {}
+    {
+        printf("FIRBasicInstruction %p %p\n", branch1, branch2);
+    }
     
-     FIRBasicInstruction(Opcode opcode, 
+    FIRBasicInstruction(Opcode opcode, 
                         int val_int, T val_real) 
                         : fOpcode(opcode), fIntValue(val_int), fRealValue(val_real), 
                         fOffset(0), fbranch1(NULL), fbranch2(NULL) 
@@ -84,6 +87,7 @@ struct FIRBasicInstruction : public FIRInstruction {
      
     virtual ~FIRBasicInstruction()
     {
+        printf("~FIRBasicInstruction\n");
         delete fbranch1;
         delete fbranch2;
     }
@@ -127,28 +131,42 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
         :fOpcode(opcode), fOffset(offset), fLabel(""), fKey(key), fValue(value), fInit(0), fMin(0), fMax(0), fStep(0)
     {}
     
+    virtual ~FIRUserInterfaceInstruction()
+    {
+        printf("~FIRUserInterfaceInstruction\n");
+    }
 };
 
 template <class T>
 struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
 
-     std::vector<FIRUserInterfaceInstruction<T> > fInstructions;
+     std::vector<FIRUserInterfaceInstruction<T>*> fInstructions;
      
      virtual ~FIRUserInterfaceBlockInstruction()
-     {}
+     {
+        typename std::vector<FIRUserInterfaceInstruction<T>* >::iterator it;
+        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+            delete(*it);
+        }
+     }
      
-     void push(const FIRUserInterfaceInstruction<T>& inst) { fInstructions.push_back(inst); }
+     void push(FIRUserInterfaceInstruction<T>* inst) { fInstructions.push_back(inst); }
 };
 
 template <class T>
 struct FIRBlockInstruction : public FIRInstruction {
 
-     std::vector<FIRBasicInstruction<T> > fInstructions;
+     std::vector<FIRBasicInstruction<T>*> fInstructions;
      
      virtual ~FIRBlockInstruction()
-     {}
+     {
+        typename std::vector<FIRBasicInstruction<T>* >::iterator it;
+        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+            delete(*it);
+        }
+     }
      
-     void push(const FIRBasicInstruction<T>& inst) { fInstructions.push_back(inst); }
+     void push(FIRBasicInstruction<T>* inst) { fInstructions.push_back(inst); }
 };
 
 template <class T>
@@ -168,27 +186,24 @@ class FIRInterpreter  {
         FAUSTFLOAT** fInputs;
         FAUSTFLOAT** fOutputs;
         
-        FAUSTFLOAT* fCurInput;
-        FAUSTFLOAT* fCurOutput;
-        
         void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UI* interface)
         {
-            typename std::vector<FIRUserInterfaceInstruction<T> >::iterator it;
+            typename std::vector<FIRUserInterfaceInstruction<T>* >::iterator it;
             
             for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
-           
-                 switch ((*it).fOpcode) {
+            
+                switch ((*it)->fOpcode) {
                  
                         case FIRInstruction::kOpenVerticalBox:
-                            interface->openVerticalBox((*it).fLabel.c_str()); 
+                            interface->openVerticalBox((*it)->fLabel.c_str()); 
                             break;
                             
                         case FIRInstruction::kOpenHorizontalBox:
-                            interface->openHorizontalBox((*it).fLabel.c_str()); 
+                            interface->openHorizontalBox((*it)->fLabel.c_str()); 
                             break;
                             
                         case FIRInstruction::kOpenTabBox:
-                            interface->openTabBox((*it).fLabel.c_str()); 
+                            interface->openTabBox((*it)->fLabel.c_str()); 
                             break;
                  
                          case FIRInstruction::kCloseBox:
@@ -196,41 +211,41 @@ class FIRInterpreter  {
                             break;
                             
                         case FIRInstruction::kAddButton:
-                            interface->addButton((*it).fLabel.c_str(), &fRealHeap[(*it).fOffset]);
+                            interface->addButton((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset]);
                             break;
                             
                         case FIRInstruction::kAddCheckButton:
-                            interface->addCheckButton((*it).fLabel.c_str(), &fRealHeap[(*it).fOffset]);
+                            interface->addCheckButton((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset]);
                             break;
                             
                         case FIRInstruction::kAddHorizontalSlider:
-                            interface->addHorizontalSlider((*it).fLabel.c_str(), &fRealHeap[(*it).fOffset], (*it).fInit, (*it).fMin, (*it).fMax, (*it).fStep);
+                            interface->addHorizontalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
                             break;
                             
                         case FIRInstruction::kAddVerticalSlider:
-                            interface->addVerticalSlider((*it).fLabel.c_str(), &fRealHeap[(*it).fOffset], (*it).fInit, (*it).fMin, (*it).fMax, (*it).fStep);
+                            interface->addVerticalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
                             break;
                             
                         case FIRInstruction::kAddNumEntry:
-                            interface->addNumEntry((*it).fLabel.c_str(), &fRealHeap[(*it).fOffset], (*it).fInit, (*it).fMin, (*it).fMax, (*it).fStep);
+                            interface->addNumEntry((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
                             break;
                             
                         case FIRInstruction::kAddHorizontalBargraph:
-                            interface->addHorizontalBargraph((*it).fLabel.c_str(), &fRealHeap[(*it).fOffset], (*it).fMin, (*it).fMax);
+                            interface->addHorizontalBargraph((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fMin, (*it)->fMax);
                             break;
                             
                         case FIRInstruction::kAddVerticalBargraph:
-                            interface->addVerticalBargraph((*it).fLabel.c_str(), &fRealHeap[(*it).fOffset], (*it).fMin, (*it).fMax);
+                            interface->addVerticalBargraph((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fMin, (*it)->fMax);
                             break;
                             
                         case FIRInstruction::kDeclare:
                             // Special case for "0" zone
-                            if ((*it).fOffset == -1) {
-                                printf("FIRInstruction::kDeclare : NULL %d\n", (*it).fOffset);
-                                interface->declare(NULL, (*it).fKey.c_str(), (*it).fValue.c_str());
+                            if ((*it)->fOffset == -1) {
+                                printf("FIRInstruction::kDeclare : NULL %d\n", (*it)->fOffset);
+                                interface->declare(NULL, (*it)->fKey.c_str(), (*it)->fValue.c_str());
                             } else {
-                                printf("FIRInstruction::kDeclare : %d \n", (*it).fOffset);
-                                interface->declare(&fRealHeap[(*it).fOffset], (*it).fKey.c_str(), (*it).fValue.c_str());
+                                printf("FIRInstruction::kDeclare : %d \n", (*it)->fOffset);
+                                interface->declare(&fRealHeap[(*it)->fOffset], (*it)->fKey.c_str(), (*it)->fValue.c_str());
                             }
                             break;
                             
@@ -635,44 +650,70 @@ class FIRInterpreter  {
         }
         */
         
-        void ExecuteBlock(FIRBlockInstruction<T>* block, int& res_int, T& res_real, bool is_int)
+        void PrintBlock(FIRBlockInstruction<T>* block)
         {
-            typename std::vector<FIRBasicInstruction<T> >::iterator it;
+            printf("PrintBlock size = %d\n", block->fInstructions.size()); 
+            typename std::vector<FIRBasicInstruction<T>* >::iterator it;
+            for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
+                printf("fOpcode %d\n", (*it)->fOpcode);
+            }
+        }
+        
+        inline void ExecuteBlock(FIRBlockInstruction<T>* block, int& res_int, T& res_real, bool is_int)
+        {
+            typename std::vector<FIRBasicInstruction<T>* >::iterator it;
              
             int real_stack_index = 0;
             int int_stack_index = 0;
+            
+            //printf("ExecuteBlock size = %d fRealStackSize = %d fIntStackSize = %d\n", block->fInstructions.size(), fRealStackSize, fIntStackSize); 
         
             T real_stack[fRealStackSize];
             int int_stack[fIntStackSize];
-           
-            for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
             
-                switch ((*it).fOpcode) {
+            /*
+            for (int i = 0; i < fIntStackSize; i++) {
+                 printf("fIntStackSize %d\n",i);
+                int_stack[i] = 0;
+            }
+            
+            for (int i = 0; i < fRealStackSize; i++) {
+                printf("fRealStackSize %d\n",i);
+                real_stack[i] = 0.f;
+            }
+            */
+            
+            for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
                 
+                //printf("fOpcode %d real_stack_index %d int_stack_index %d\n", (*it)->fOpcode, real_stack_index, int_stack_index);
+             
+                switch ((*it)->fOpcode) {
+                        
                     // Number operations
                     case FIRInstruction::kRealValue1:
-                        push_real((*it).fRealValue);
+                        push_real((*it)->fRealValue);
                         break;
                          
                     case FIRInstruction::kIntValue1:
-                        push_int((*it).fIntValue);
+                        push_int((*it)->fIntValue);
                         break;
                     
                     // Memory operations
                     case FIRInstruction::kLoadReal1:
-                        push_real(fRealHeap[(*it).fOffset]);
+                        push_real(fRealHeap[(*it)->fOffset]);
                         break;
                         
                     case FIRInstruction::kLoadInt1:
-                        push_int(fIntHeap[(*it).fOffset]);
+                        //printf("kLoadInt1 offset = %d %d\n", (*it)->fOffset, fIntHeap[(*it)->fOffset]);
+                        push_int(fIntHeap[(*it)->fOffset]);
                         break;
                         
                     case FIRInstruction::kStoreReal1:
-                        fRealHeap[(*it).fOffset] = pop_real();
+                        fRealHeap[(*it)->fOffset] = pop_real();
                         break;
                         
                     case FIRInstruction::kStoreInt1:
-                        fIntHeap[(*it).fOffset] = pop_int();
+                        fIntHeap[(*it)->fOffset] = pop_int();
                         break;
                          
                     case FIRInstruction::kLoadIndexedReal1:
@@ -696,12 +737,17 @@ class FIRInterpreter  {
                     }
                         
                     // Input/output access
-                    case FIRInstruction::kLoadInput1:
-                        push_real(fCurInput[pop_int()]);
+                    case FIRInstruction::kLoadInput1: {
+                        int index = pop_int();
+                        //printf("kLoadInput1 offset = %d index = %d\n", (*it)->fOffset, index);
+                        //push_real(fInputs[(*it)->fOffset][pop_int()]);
+                        //printf("sample %f\n", fInputs[(*it)->fOffset][index]);
+                        push_real(fInputs[(*it)->fOffset][index]);
                         break;
+                    }
                         
                     case FIRInstruction::kStoreOutput1:
-                        fCurOutput[pop_int()] = pop_real();
+                        fOutputs[(*it)->fOffset][pop_int()] = pop_real();
                         break;
                       
                     // Cast operations
@@ -716,12 +762,12 @@ class FIRInterpreter  {
                     // Select operation
                     case FIRInstruction::kIfInt1: {
                         int cond = pop_int();
-                        push_int(cond ? ExecuteBlockInt((*it).fbranch1) : ExecuteBlockInt((*it).fbranch2));
+                        push_int(cond ? ExecuteBlockInt((*it)->fbranch1) : ExecuteBlockInt((*it)->fbranch2));
                         break;
                     }
                 
                     case FIRInstruction::kIfReal1:
-                        push_real(pop_int() ? ExecuteBlockInt((*it).fbranch1) : ExecuteBlockInt((*it).fbranch2));
+                        push_real(pop_int() ? ExecuteBlockInt((*it)->fbranch1) : ExecuteBlockInt((*it)->fbranch2));
                         break;
                         
                     // Standard math operations
@@ -923,6 +969,7 @@ class FIRInterpreter  {
                     // Other Math operations
                     case FIRInstruction::kSin1: {
                         T v1 = pop_real();
+                        printf("kSin1 %f\n", v1);
                         push_real(sinf(v1));
                         break;
                     }
@@ -932,10 +979,14 @@ class FIRInterpreter  {
                         push_real(cosf(v1));
                         break;
                     }
-                         
+                        
+                    case FIRInstruction::kLoop: {
+                        ExecuteLoopBlock((*it)->fbranch1, (*it)->fOffset, (*it)->fIntValue);
+                        break;
+                    }
+                    
                     default:
                         break;
-            
                 }
             }
             
@@ -943,6 +994,19 @@ class FIRInterpreter  {
                 res_int = pop_int();
             } else {
                 res_real = pop_real();
+            }
+        }
+        
+        void ExecuteLoopBlock(FIRBlockInstruction<T>* block, int loop_offset, int loop_count)
+        {
+            int res_int;
+            T res_real;
+            
+            //printf("ExecuteLoopBlock loop_offset = %d loop_count = %d\n", loop_offset, loop_count);
+            
+            for (fIntHeap[loop_offset] = 0; fIntHeap[loop_offset] < loop_count; fIntHeap[loop_offset]++) { 
+                //printf("fIntHeap[loop_offset] %d\n", fIntHeap[loop_offset]);
+                ExecuteBlock(block, res_int, res_real, false);
             }
         }
         
@@ -979,8 +1043,8 @@ class FIRInterpreter  {
             memset(fIntHeap, 0, int_heap_size * sizeof(int));
             
             // Stack
-            fRealStackSize = 65536 * 256;
-            fIntStackSize = 65536 * 256;
+            fRealStackSize = 4096 * 1;
+            fIntStackSize = 4096 * 1;
         }
         
         virtual ~FIRInterpreter()

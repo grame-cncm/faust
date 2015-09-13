@@ -64,12 +64,23 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 || type == Typed::kFloatMacro 
                 || type == Typed::kDouble); 
         }
+        inline bool isRealPtrType(Typed::VarType type) 
+        { 
+            return (type == Typed::kFloat_ptr 
+                || type == Typed::kFloatMacro_ptr 
+                || type == Typed::kDouble_ptr); 
+        }
+        
+        inline bool isInternalRealType(Typed::VarType type) 
+        { 
+            return (type == Typed::kFloat || type == Typed::kDouble); 
+        }
     
         void initMathTable()
         {
             
         }
-
+        
         virtual ~InterpreterInstVisitor()
         {}
    
@@ -78,9 +89,9 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             printf("AddMetaDeclareInst : %s \n", inst->fZone.c_str());
             pair<int, Typed::VarType> tmp = fFieldTable[inst->fZone];
             if (inst->fZone == "0") {
-                fUserInterfaceBlock->push(FIRUserInterfaceInstruction<T>(FIRInstruction::kDeclare, -1, inst->fKey, inst->fValue));
+                fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(FIRInstruction::kDeclare, -1, inst->fKey, inst->fValue));
             } else {
-                fUserInterfaceBlock->push(FIRUserInterfaceInstruction<T>(FIRInstruction::kDeclare, tmp.first, inst->fKey, inst->fValue));
+                fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(FIRInstruction::kDeclare, tmp.first, inst->fKey, inst->fValue));
             }
         }
 
@@ -99,12 +110,12 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     break;
             }
             
-            fUserInterfaceBlock->push(FIRUserInterfaceInstruction<T>(opcode, inst->fName));
+            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, inst->fName));
         }
 
         virtual void visit(CloseboxInst* inst)
         {
-            fUserInterfaceBlock->push(FIRUserInterfaceInstruction<T>(FIRInstruction::kCloseBox));
+            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(FIRInstruction::kCloseBox));
         }
         
         virtual void visit(AddButtonInst* inst)
@@ -117,7 +128,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             }
             
             pair<int, Typed::VarType> tmp = fFieldTable[inst->fZone];
-            fUserInterfaceBlock->push(FIRUserInterfaceInstruction<T>(opcode, tmp.first, inst->fLabel));
+            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, tmp.first, inst->fLabel));
         }
 
         virtual void visit(AddSliderInst* inst)
@@ -136,7 +147,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             }
         
             pair<int, Typed::VarType> tmp = fFieldTable[inst->fZone];
-            fUserInterfaceBlock->push(FIRUserInterfaceInstruction<T>(opcode, tmp.first, inst->fLabel, inst->fInit, inst->fMin, inst->fMax, inst->fStep));
+            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, tmp.first, inst->fLabel, inst->fInit, inst->fMin, inst->fMax, inst->fStep));
         }
 
         virtual void visit(AddBargraphInst* inst)
@@ -152,7 +163,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             }
             
             pair<int, Typed::VarType> tmp = fFieldTable[inst->fZone];
-            fUserInterfaceBlock->push(FIRUserInterfaceInstruction<T>(opcode, tmp.first, inst->fLabel, inst->fMin, inst->fMax));
+            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, tmp.first, inst->fLabel, inst->fMin, inst->fMax));
         }
         
         virtual void visit(LabelInst* inst) {}
@@ -185,6 +196,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     fRealHeapOffset += NUM_SIZE;
                 }
             }
+            
+            if (inst->fValue) {
+                inst->fValue->accept(this);
+            }
         }
         
         virtual void visit(DeclareFunInst* inst) {}
@@ -198,9 +213,9 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             } else {
                 fTypingVisitor.visit(inst);
                 if (fTypingVisitor.fCurType == Typed::kInt) {
-                    fCurrentBlock->push(FIRBasicInstruction<T>(FIRInstruction::kLoadInt1, 0, 0));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInt1, 0, 0));
                 } else {
-                    fCurrentBlock->push(FIRBasicInstruction<T>(FIRInstruction::kLoadReal1, 0, 0));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadReal1, 0, 0));
                 }
             }
         }
@@ -208,7 +223,12 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         
         //virtual void visit(LoadVarAddressInst* inst) {}
         
-        //virtual void visit(StoreVarInst* inst) {}
+        // Reverse order...
+        virtual void visit(StoreVarInst* inst)
+        {
+            inst->fValue->accept(this);
+            inst->fAddress->accept(this);
+        }
 
         // Addresses
         virtual void visit(NamedAddress* named) 
@@ -218,10 +238,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 case Typed::kFloatMacro:
                 case Typed::kFloat:
                 case Typed::kDouble:
-                    fCurrentBlock->push(FIRBasicInstruction<T>(FIRInstruction::kLoadReal1, 0, 0, tmp.first));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadReal1, 0, 0, tmp.first));
                     break;
                 case Typed::kInt:
-                    fCurrentBlock->push(FIRBasicInstruction<T>(FIRInstruction::kLoadInt1, 0, 0, tmp.first));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInt1, 0, 0, tmp.first));
                     break;
                 case Typed::kFloatMacro_ptr: 
                 case Typed::kFloat_ptr:
@@ -236,37 +256,39 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         }
         
         virtual void visit(IndexedAddress* indexed) 
-        {
+        {   
+            string num;
+            
+            indexed->fIndex->accept(this);
+            
             // HACK : completely adhoc code for input/output...
             if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
                 // Nothing  
-            } else if (startWith(indexed->getName(), "input")) {
-                printf("indexed->getName() %s\n", indexed->getName().c_str());
-                //fCurrentBlock->push(FIRBasicInstruction<T>(FIRInstruction::kLoadInput1));
-            } else if (startWith(indexed->getName(), "output")) {
-                printf("indexed->getName() %s\n", indexed->getName().c_str());
-                //fCurrentBlock->push(FIRBasicInstruction<T>(FIRInstruction::kStoreOutput1));
+            } else if (startWithRes(indexed->getName(), "input", num)) {
+                printf("indexed->getName() %s %d\n", indexed->getName().c_str(), atoi(num.c_str()));
+                fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInput1, 0, 0, atoi(num.c_str())));
+            } else if (startWithRes(indexed->getName(), "output", num)) {
+                printf("indexed->getName() %s %d\n", indexed->getName().c_str(), atoi(num.c_str()));
+                fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput1, 0, 0, atoi(num.c_str())));
             } else {
+                
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
-                if (tmp.second == Typed::kFloatMacro_ptr || tmp.second == Typed::kFloat_ptr || tmp.second == Typed::kDouble_ptr) {
-                    //assert(false); 
-                } else {
-                    
-                }
+                fCurrentBlock->push(new FIRBasicInstruction<T>(isRealPtrType(tmp.second) 
+                        ? FIRInstruction::kStoreIndexedReal1 : FIRInstruction::kStoreIndexedInt1, 0, 0, tmp.first));
             }
         }
 
         // Primitives : numbers
         virtual void visit(FloatNumInst* inst) 
         {
-            fCurrentBlock->push(FIRBasicInstruction<T>(FIRInstruction::kRealValue1, 0, inst->fNum));
+            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kRealValue1, 0, inst->fNum));
         }
         
         virtual void visit(FloatArrayNumInst* inst) {}
         
         virtual void visit(IntNumInst* inst)  
         {
-            fCurrentBlock->push(FIRBasicInstruction<T>(FIRInstruction::kIntValue1, inst->fNum, 0));
+            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kIntValue1, inst->fNum, 0));
         }
         
         virtual void visit(IntArrayNumInst* inst) {}
@@ -287,20 +309,32 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             inst->fInst2->accept(this);
             
             if (fTypingVisitor.fCurType == Typed::kInt) {
-                fCurrentBlock->push(FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpIntInst));
+                fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpIntInst));
             } else {
-                fCurrentBlock->push(FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpFloatInst));
+                fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpFloatInst));
             }
         }
         
         virtual void visit(CastNumInst* inst) 
         {
             inst->fInst->accept(this);
+       
+            // Typing the argument
+            inst->fInst->accept(&fTypingVisitor);
+            assert(fTypingVisitor.fCurType != Typed::kNoType);
             
             if (inst->fType->getType() == Typed::kInt) {
-                fCurrentBlock->push(FIRBasicInstruction<T>(FIRInstruction::kCastInt1));
+                printf("cast kFloatMacro or internal float ==> int\n");
+                fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastInt1));
+            } else if (isInternalRealType(inst->fType->getType()) && (fTypingVisitor.fCurType == Typed::kFloatMacro)) {
+                // We assume that kFloatMacro and internal float are the same for now, so no cast...
+                printf("cast kFloatMacro ==> internal float\n");
+            } else if (isInternalRealType(fTypingVisitor.fCurType) && (inst->fType->getType() == Typed::kFloatMacro)) {
+                // We assume that kFloatMacro and internal float are the same for now, so no cast...
+                printf("cast internal float ==> kFloatMacro\n");
             } else {
-                fCurrentBlock->push(FIRBasicInstruction<T>(FIRInstruction::kCastReal1));
+                printf("cast int ==> kFloatMacro or internal float\n");
+                fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastReal1));
             }
         }
 
@@ -315,7 +349,22 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(SwitchInst* inst) {}
 
         // Loops
-        //virtual void visit(ForLoopInst* inst) {}
+        virtual void visit(ForLoopInst* inst) 
+        {
+            // Loop variable declaration
+            inst->fInit->accept(this);
+           
+            // Then generate loop block (in a new block)
+            FIRBlockInstruction<T>* previous = fCurrentBlock;
+            fCurrentBlock = new FIRBlockInstruction<T>();
+            inst->fCode->accept(this);
+           
+            // Push Loop instruction
+            pair<int, Typed::VarType> tmp = fFieldTable[inst->getVariableName()];
+            previous->push(new FIRBasicInstruction<T>(FIRInstruction::kLoop, inst->getVariableCount(), 0, tmp.first, fCurrentBlock, NULL));
+            fCurrentBlock = previous;
+        }
+        
         virtual void visit(WhileLoopInst* inst) {}
 
 };

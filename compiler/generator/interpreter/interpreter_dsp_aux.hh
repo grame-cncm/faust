@@ -54,19 +54,15 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         {
             printf("interpreter_dsp_aux %d %d\n", inputs, ouputs);
             printf("interpreter_dsp_aux %d %d\n", real_heap_size, int_heap_size);
-            FAUSTFLOAT** res = new FAUSTFLOAT*[inputs];
+            printf("interpreter_dsp_aux %p  %p  %p\n", init, compute_control, compute_dsp); 
             fNumInputs = inputs;
             fNumOutputs = ouputs;
-            
-            this->fInputs  = res;
-            //this->fInputs = new FAUSTFLOAT*[inputs];
+            this->fInputs = new FAUSTFLOAT*[inputs];
             this->fOutputs = new FAUSTFLOAT*[ouputs];
             fUserInterfaceBlock = interface;
             fInitBlock = init;
             fComputeBlock = compute_control;
             fComputeDSPBlock = compute_dsp;
-            this->fCurInput = NULL;
-            this->fCurOutput = NULL;
         }
         
         virtual ~interpreter_dsp_aux()
@@ -107,7 +103,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         virtual void instanceInit(int samplingFreq) 
         {
             printf("instanceInit samplingFreq = %d\n", samplingFreq);
-            return;
+            //return;
             
             // Store samplingFreq in "fSamplingFreq" variable (at offset 0 in HEAP) 
             this->fRealHeap[0] = samplingFreq;
@@ -115,8 +111,11 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             int int_val;
             T real_val;
             
+            printf("instanceInit %p \n", fInitBlock);
+            
             // Execute init instructions 
-            this->ExecuteBlock(fInitBlock, int_val, real_val, true);
+            if (fInitBlock)
+                this->ExecuteBlock(fInitBlock, int_val, real_val, true);
         }
         
         virtual void init(int samplingFreq) 
@@ -134,7 +133,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
             //printf("compute count = %d\n", count);
-            return;
+            //return;
             
             // Prepare in/out buffers
             for (int i = 0; i < fNumInputs; i++) {
@@ -145,12 +144,18 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             }
             
             // Executes the 'control' block
-            this->ExecuteBlockReal(fComputeBlock);
+            if (fComputeBlock)
+                this->ExecuteBlockReal(fComputeBlock);
+                
+            //this->PrintBlock(fComputeDSPBlock);
             
-            // Executes the DSP block
-            for (int i = 0; i < count; i++) {
-                this->ExecuteBlockReal(fComputeDSPBlock);
-            }
+            // Executes the DSP loop
+            FIRBasicInstruction<T>* loop = (fComputeDSPBlock->fInstructions[1]);
+            //printf("loop %d %d %d\n", loop->fOpcode, loop->fOffset, count);
+           
+            assert(loop->fOpcode == FIRInstruction::kLoop);
+            //this->PrintBlock(loop->fbranch1);
+            this->ExecuteLoopBlock(loop->fbranch1, loop->fOffset, count);
        }
 	
 };

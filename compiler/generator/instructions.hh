@@ -1277,6 +1277,21 @@ struct ForLoopInst : public StatementInst
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    string getVariableName()
+    {
+        DeclareVarInst* var_dec = dynamic_cast<DeclareVarInst*>(fInit);
+        assert(var_dec);
+        return var_dec->fAddress->getName();
+    }
+    
+    int getVariableCount()
+    {
+        BinopInst* var_end = dynamic_cast<BinopInst*>(fEnd);
+        assert(var_end);
+        IntNumInst* count = dynamic_cast<IntNumInst*>(var_end->fInst2);
+        return (count) ? count->fNum : -1;
+    }
 };
 
 struct WhileLoopInst : public StatementInst
@@ -1547,6 +1562,7 @@ struct DispatchVisitor : public InstVisitor {
             (*it)->accept(this);
         }
     }
+    
 };
 
 struct VariableScopeVisitor : public DispatchVisitor {

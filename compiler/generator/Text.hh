@@ -73,4 +73,14 @@ inline string startWithRes(const string& str, const string& prefix)
     return (str.find(prefix) == 0) ? str.substr(prefix.size()) : "";
 }
 
+inline bool startWithRes(const string& str, const string& prefix, string& res)
+{   
+    if (str.substr(0, prefix.size()) == prefix)  {
+        res = str.substr(prefix.size());
+        return true;
+    } else {
+        return false;
+    }   
+}
+
 #endif

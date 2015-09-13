@@ -77,11 +77,19 @@ void InterpreterCodeContainer::produceInternal()
 interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
 {
     cout << "InterpreterCodeContainer::produceModuleFloat() " << fNumInputs << " " << fNumOutputs << endl;
+    /*
     return new interpreter_dsp_factory(fNumInputs, fNumOutputs, 
                                         fCodeProducer.fRealHeapOffset, 
                                         fCodeProducer.fIntHeapOffset, 
                                         fCodeProducer.fUserInterfaceBlock, 
                                         fCodeProducer.fCurrentBlock, NULL, NULL);
+                                        */
+                                        
+    return new interpreter_dsp_factory(fNumInputs, fNumOutputs, 
+                                        fCodeProducer.fRealHeapOffset, 
+                                        fCodeProducer.fIntHeapOffset, 
+                                        fCodeProducer.fUserInterfaceBlock, 
+                                        NULL, NULL, fCodeProducer.fCurrentBlock);
 }
 
 /*
@@ -116,7 +124,7 @@ void InterpreterCodeContainer::produceClass()
     
     generateStaticInit(&fCodeProducer);
     
-    generateInit(&fCodeProducer);
+    //generateInit(&fCodeProducer);
     
     generateUserInterface(&fCodeProducer);
     
@@ -133,7 +141,7 @@ void InterpreterCodeContainer::produceInfoFunctions(int tabs, const string& clas
 void InterpreterScalarCodeContainer::generateCompute(int n)
 {
     // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
+    //generateComputeBlock(&fCodeProducer);
 
     // Generates one single scalar loop
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
