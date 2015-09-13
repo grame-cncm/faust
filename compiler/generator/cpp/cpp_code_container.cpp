@@ -298,7 +298,7 @@ void CPPCodeContainer::produceClass()
         tab(n+1, *fOut);
         generateComputeFunctions(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "};\n" << endl;
+    tab(n, *fOut); *fOut << "}" << endl << endl;
 
     // Generate user interface macros if needed
 	if (gGlobal->gUIMacroSwitch) {

@@ -723,6 +723,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     int rate = 1;
     fContainer->setInputRate(idx, rate);
     
+    // Cast to internal float
     ValueInst* res = InstBuilder::genCastNumFloatInst(InstBuilder::genLoadArrayStackVar(subst("input$0", T(idx)), getCurrentLoopIndex()));
 
     if (gGlobal->gInPlace) {
@@ -1135,7 +1136,8 @@ ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const st
     pushInitMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genRealNumInst(Typed::kFloatMacro, 0)));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    return generateCacheCode(sig, InstBuilder::genCastNumFloatMacroInst(InstBuilder::genLoadStructVar(varname)));
+    // Cast to internal float
+    return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(InstBuilder::genLoadStructVar(varname)));
 }
 
 ValueInst* InstructionsCompiler::generateButton(Tree sig, Tree path)
@@ -1157,7 +1159,8 @@ ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur
     pushInitMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genRealNumInst(Typed::kFloatMacro, tree2float(cur))));
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    return generateCacheCode(sig, InstBuilder::genCastNumFloatMacroInst(InstBuilder::genLoadStructVar(varname)));
+    // Cast to internal float
+    return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(InstBuilder::genLoadStructVar(varname)));
 }
 
 ValueInst* InstructionsCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
@@ -1182,19 +1185,22 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree m
 
 	::Type t = getCertifiedSigType(sig);
     
+    // Cast to external float
+    StoreVarInst* res = InstBuilder::genStoreStructVar(varname, InstBuilder::genCastNumFloatMacroInst(exp));
+    
 	switch (t->variability()) {
 
-		case kKonst:
-            pushInitMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genCastNumFloatMacroInst(exp)));
-			break;
+        case kKonst:
+            pushInitMethod(res);
+            break;
 
-		case kBlock:
-            pushComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genCastNumFloatMacroInst(exp)));
-			break;
+        case kBlock:
+            pushComputeBlockMethod(res);
+            break;
 
-		case kSamp:
-	        pushComputeDSPMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genCastNumFloatMacroInst(exp)));
-			break;
+        case kSamp:
+            pushComputeDSPMethod(res);
+            break;
 	}
 
     return generateCacheCode(sig, (t->nature() == kInt)
