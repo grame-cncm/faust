@@ -53,6 +53,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         InterpreterInstVisitor()
         {
             fUserInterfaceBlock = new FIRUserInterfaceBlockInstruction<T>();
+            fCurrentBlock =  new FIRBlockInstruction<T>();
             fRealHeapOffset = 0;
             fIntHeapOffset = 0;
         }

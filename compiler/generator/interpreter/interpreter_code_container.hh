@@ -52,9 +52,9 @@ class InterpreterCodeContainer : public virtual CodeContainer {
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
         
-        interpreter_dsp_aux<float>* produceModuleFloat();
-        interpreter_dsp_aux<double>* produceModuleDouble();
-        interpreter_dsp_aux<quad>* produceModuleQuad();
+        interpreter_dsp_factory* produceModuleFloat();
+        //interpreter_dsp_factory<double>* produceModuleDouble();
+        //interpreter_dsp_factory<quad>* produceModuleQuad();
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 

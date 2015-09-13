@@ -23,7 +23,7 @@
 #define _BINOP_
 
 #include "node.hh"
-#include "fir_interpreter.hh"
+#include "fir_opcode.hh"
 
 typedef const Node	(*comp) (const Node& a, const Node& b);
 typedef bool 		(*pred) (const Node& a);
@@ -31,28 +31,28 @@ typedef bool 		(*pred) (const Node& a);
 bool falsePredicate(Node const & a);
 
 // Use in in static table so not Garbageable
-struct BinOp
-{
-	const char*	fName;
+struct BinOp {
+
+    const char*	fName;
     const char*	fNameVec;
-  	const char*	fNameScal;
+    const char*	fNameScal;
     const char*	fNameLLVMInt;
     const char*	fNameLLVMFloat;
 
     unsigned int fLLVMIntInst;
     unsigned int fLLVMFloatInst;
-    
+
     FIRInstruction::Opcode fInterpIntInst;
     FIRInstruction::Opcode fInterpFloatInst;
 
-	comp 		fCompute;
-	pred		fLeftNeutral;
-	pred		fRightNeutral;
+    comp 		fCompute;
+    pred		fLeftNeutral;
+    pred		fRightNeutral;
     pred        fLeftAbsorbing;
     pred        fRightAbsorbing;
-	int			fPriority;
-	//
-	BinOp (const char* name, const char* name_vec,
+    int			fPriority;
+	
+    BinOp(const char* name, const char* name_vec,
             const char* name_scal,
             const char* name_llvm_int,
             const char* name_llvm_float,
@@ -65,9 +65,8 @@ struct BinOp
             pred rn,
             int priority,
             pred la = falsePredicate,
-            pred ra = falsePredicate
-          )
-			: fName(name), fNameVec(name_vec), fNameScal(name_scal),
+            pred ra = falsePredicate)
+            :fName(name), fNameVec(name_vec), fNameScal(name_scal),
             fNameLLVMInt(name_llvm_int), fNameLLVMFloat(name_llvm_float),
             fLLVMIntInst(llvm_int), fLLVMFloatInst(llvm_float),
             fInterpIntInst(interp_int), fInterpFloatInst(interp_float),
@@ -75,11 +74,11 @@ struct BinOp
             fLeftAbsorbing(la), fRightAbsorbing(ra), fPriority(priority)
     {}
 
-	Node compute(const Node& a, const Node& b) { return fCompute(a,b); 	}
+    Node compute(const Node& a, const Node& b) { return fCompute(a,b); 	}
 
     bool isRightNeutral(const Node& a)      { return fRightNeutral(a); 	    }
-	bool isLeftNeutral(const Node& a)       { return fLeftNeutral(a); 	    }
-	bool isLeftAbsorbing(const Node& a)     { return fLeftAbsorbing(a);     }
+    bool isLeftNeutral(const Node& a)       { return fLeftNeutral(a); 	    }
+    bool isLeftAbsorbing(const Node& a)     { return fLeftAbsorbing(a);     }
     bool isRightAbsorbing(const Node& a)    { return fRightAbsorbing(a);    }
 };
 

@@ -28,7 +28,14 @@ using namespace std;
 
 interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
 {
-    return reinterpret_cast<interpreter_dsp*>(fFactory->createDSPInstance());
+     return reinterpret_cast<interpreter_dsp*>(new interpreter_dsp_aux<float>(fNumInputs, 
+                                                                            fNumOutputs, 
+                                                                            fRealHeapSize, 
+                                                                            fIntHeapSize,
+                                                                            fUserInterfaceBlock, 
+                                                                            fInitBlock, 
+                                                                            fComputeBlock, 
+                                                                            fComputeDSPBlock));
 }
 
 EXPORT interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const std::string& sha_key)
@@ -64,11 +71,10 @@ EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std:
         argv1[i+3] = argv[i];
     }
     
-    interpreter_dsp_factory* factory 
-        = new interpreter_dsp_factory(compile_faust_interpreter(argc1, argv1, 
+    interpreter_dsp_factory* factory  = compile_faust_interpreter(argc1, argv1, 
                                                                 name_app.c_str(), 
                                                                 dsp_content.c_str(), 
-                                                                error_msg_aux));
+                                                                error_msg_aux);
     error_msg = error_msg_aux;
     return factory;
 }   
@@ -96,5 +102,7 @@ EXPORT interpreter_dsp* createDSPInterpreterInstance(interpreter_dsp_factory* fa
 }
 
 EXPORT void deleteDSPInterpreterInstance(interpreter_dsp* dsp)
-{}
+{
+    delete reinterpret_cast<interpreter_dsp_aux<float>*>(dsp);
+}
 

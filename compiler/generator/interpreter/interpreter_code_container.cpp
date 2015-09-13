@@ -74,17 +74,17 @@ void InterpreterCodeContainer::produceInternal()
     
 }
 
-interpreter_dsp_aux<float>* InterpreterCodeContainer::produceModuleFloat()
+interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
 {
     cout << "InterpreterCodeContainer::produceModuleFloat() " << fNumInputs << " " << fNumOutputs << endl;
-    
-    return new interpreter_dsp_aux<float>(fNumInputs, fNumOutputs, 
+    return new interpreter_dsp_factory(fNumInputs, fNumOutputs, 
                                         fCodeProducer.fRealHeapOffset, 
                                         fCodeProducer.fIntHeapOffset, 
                                         fCodeProducer.fUserInterfaceBlock, 
-                                        NULL, NULL, NULL);
+                                        fCodeProducer.fCurrentBlock, NULL, NULL);
 }
 
+/*
 interpreter_dsp_aux<double>* InterpreterCodeContainer::produceModuleDouble()
 {
     cout << "InterpreterCodeContainer::produceModuleDouble()" << endl;
@@ -98,6 +98,7 @@ interpreter_dsp_aux<quad>* InterpreterCodeContainer::produceModuleQuad()
     //return new interpreter_dsp_aux<quad>(fNumInputs, fNumOutputs, 0, 0, NULL, NULL, NULL, NULL);
     return NULL;
 }
+*/
 
 void InterpreterCodeContainer::produceClass()
 {
@@ -113,17 +114,15 @@ void InterpreterCodeContainer::produceClass()
     //generateAllocate(&fCodeProducer);
     //generateDestroy(&fCodeProducer);
     
-    //fCodeProducer.fCurrentBlock = 
+    generateStaticInit(&fCodeProducer);
     
-    //generateStaticInit(&fCodeProducer);
-    
-     //generateInit(&fCodeProducer);
+    generateInit(&fCodeProducer);
     
     generateUserInterface(&fCodeProducer);
     
-     //generateCompute(0);
+    //generateCompute(0);
     
-     //generateComputeFunctions(&fCodeProducer);
+    //generateComputeFunctions(&fCodeProducer);
 }
 
 void InterpreterCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)

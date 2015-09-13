@@ -1063,11 +1063,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         InterpreterCodeContainer* interpreter_container = dynamic_cast<InterpreterCodeContainer*>(container);
         
         if (gGlobal->gFloatSize == 1) {
-            gGlobal->gInterpDSPFloat = interpreter_container->produceModuleFloat();
+            gGlobal->gInterpDSPFactoryFloat = interpreter_container->produceModuleFloat();
         } else if (gGlobal->gFloatSize == 2) {
-            gGlobal->gInterpDSPDouble = interpreter_container->produceModuleDouble();
+            //gGlobal->gInterpDSPDouble = interpreter_container->produceModuleDouble();
         } else if (gGlobal->gFloatSize == 3) {
-            gGlobal->gInterpDSPQuad = interpreter_container->produceModuleQuad();
+            //gGlobal->gInterpDSPQuad = interpreter_container->produceModuleQuad();
         }
      
     } else {
@@ -1476,10 +1476,10 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
 
 #endif
 
-EXPORT interpreter_dsp_aux<float>* compile_faust_interpreter(int argc, const char* argv[], const char* name, const char* dsp_content, char* error_msg)
+EXPORT interpreter_dsp_factory* compile_faust_interpreter(int argc, const char* argv[], const char* name, const char* dsp_content, char* error_msg)
 {
     gGlobal = NULL;
-    interpreter_dsp_aux<float>* res;
+    interpreter_dsp_factory* res;
     
     try {
     
@@ -1488,7 +1488,7 @@ EXPORT interpreter_dsp_aux<float>* compile_faust_interpreter(int argc, const cha
         gGlobal->gLLVMOut = true; 
         compile_faust_internal(argc, argv, name, dsp_content, true);
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);  
-        res = gGlobal->gInterpDSPFloat;
+        res = gGlobal->gInterpDSPFactoryFloat;
             
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);
