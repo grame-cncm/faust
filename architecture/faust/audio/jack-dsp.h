@@ -347,12 +347,12 @@ class jackaudio : public audio {
         {
             // To avoid feedback at launch time, don't connect hardware inputs
             /*
-            for (int i = 0; i < fNumOutChans && fPhysicalInputs[i]; i++) {
+            for (int i = 0; i < fNumOutChans && i < fPhysicalOutputs.size(); i++) {
                 jack_connect(fClient, fPhysicalOutputs[i], jack_port_name(fInputPorts[i]));
             }
             */
                
-            for (int i = 0; i < fNumOutChans && fPhysicalInputs[i]; i++) {
+            for (int i = 0; i < fNumOutChans && i < fPhysicalInputs.size(); i++) {
                 jack_connect(fClient, jack_port_name(fOutputPorts[i]), fPhysicalInputs[i]);
             }
         }
