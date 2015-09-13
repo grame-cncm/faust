@@ -510,7 +510,7 @@ struct MoveVariablesInFront1 : public BasicCloneVisitor {
     {
         BasicCloneVisitor cloner;
         fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
-        return new DropInst();
+        return InstBuilder::genDropInst();
     }
     
     BlockInst* getCode(BlockInst* src)
@@ -538,10 +538,10 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
         if (inst->fValue) {
             if (dynamic_cast<NumValueInst*>(inst->fValue)) {
                 fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
-                return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
+                return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
             // "In extension" array definition
             } else if (array_typed) {
-                fVarTable.push_back(new DeclareVarInst(inst->fAddress->clone(&cloner), 
+                fVarTable.push_back(InstBuilder::genDeclareVarInst(inst->fAddress->clone(&cloner), 
                                                         inst->fType->clone(&cloner), 
                                                         InstBuilder::genTypedZero(inst->fType->getType())));
                 Typed::VarType ctype = array_typed->fType->getType();
@@ -570,20 +570,20 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                     } else {
                         assert(false);
                     }
-                    return new DropInst(); 
+                    return InstBuilder::genDropInst(); 
                 } else {
-                    return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
+                    return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
                 }
             } else {
-                fVarTable.push_back(new DeclareVarInst(inst->fAddress->clone(&cloner), 
-                                    inst->fType->clone(&cloner), 
-                                    InstBuilder::genTypedZero(inst->fType->getType())));
-                return new StoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
+                fVarTable.push_back(InstBuilder::genDeclareVarInst(inst->fAddress->clone(&cloner), 
+                                                                    inst->fType->clone(&cloner), 
+                                                                    InstBuilder::genTypedZero(inst->fType->getType())));
+                return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
             }
            
         } else {
             fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
-            return new DropInst();
+            return InstBuilder::genDropInst();
         }
     }
     
@@ -609,7 +609,7 @@ struct DspRenamer : public BasicCloneVisitor {
     virtual Address* visit(NamedAddress* named)
     {  
          if (startWith(named->getName(), "sig")) {
-             return new NamedAddress("dsp", named->fAccess);
+             return InstBuilder::genNamedAddress("dsp", named->fAccess);
          } else {
              return BasicCloneVisitor::visit(named);
          }
@@ -619,7 +619,7 @@ struct DspRenamer : public BasicCloneVisitor {
     virtual StatementInst* visit(DeclareVarInst* inst)
     {
         if (startWith(inst->fAddress->getName(), "sig")) {
-            return new DropInst();
+            return InstBuilder::genDropInst();
         } else {
             BasicCloneVisitor cloner;
             return inst->clone(&cloner);

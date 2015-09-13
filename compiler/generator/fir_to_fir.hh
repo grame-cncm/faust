@@ -112,7 +112,7 @@ struct RemoverCloneVisitor : public BasicCloneVisitor {
     StatementInst* visit(DeclareVarInst* inst)
     {
         if (inst->fAddress->getAccess() == Address::kLink) {
-            return new DropInst();
+            return InstBuilder::genDropInst();
         } else {
             return BasicCloneVisitor::visit(inst);
         }

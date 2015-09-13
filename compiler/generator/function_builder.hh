@@ -279,7 +279,7 @@ struct LoadStoreCloneVisitor : public BasicCloneVisitor {
     StatementInst* visit(DeclareVarInst* inst)
     {
         if (inst->fAddress->getAccess() == Address::kLink) {
-            return new DropInst();
+            return InstBuilder::genDropInst();
         } else {
             return BasicCloneVisitor::visit(inst);
         }
@@ -301,7 +301,7 @@ struct LoadStoreCloneVisitor : public BasicCloneVisitor {
     StatementInst* visit(StoreVarInst* inst)
     {
         if (inst->fAddress->getAccess() == Address::kLink) {
-            return new DropInst();
+            return InstBuilder::genDropInst();
         } else {
             return BasicCloneVisitor::visit(inst);
         }
@@ -590,13 +590,13 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         if (float1 && float2) {
             switch (inst->fOpcode) {
                 case kAdd:
-                    return new FloatNumInst(float1->fNum + float2->fNum);
+                    return InstBuilder::genFloatNumInst(float1->fNum + float2->fNum);
                 case kSub:
-                    return new FloatNumInst(float1->fNum - float2->fNum);
+                    return InstBuilder::genFloatNumInst(float1->fNum - float2->fNum);
                 case kMul:
-                    return new FloatNumInst(float1->fNum * float2->fNum);
+                    return InstBuilder::genFloatNumInst(float1->fNum * float2->fNum);
                 case kDiv:
-                    return new FloatNumInst(float1->fNum / float2->fNum);
+                    return InstBuilder::genFloatNumInst(float1->fNum / float2->fNum);
                 default:
                     return 0;
             }
@@ -606,7 +606,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             return 0;
             //return new IntNumInst(inst->fOpcode(int1->fNum, int2->fNum));
         } else {
-            return new BinopInst(inst->fOpcode, val1, val2);
+            return InstBuilder::genBinopInst(inst->fOpcode, val1, val2);
         }
     }
 
@@ -617,9 +617,9 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         IntNumInst* int1 = dynamic_cast<IntNumInst*>(val1);
 
         if (inst->fType->getType() == Typed::kFloat) {
-            return (float1) ? float1 : new FloatNumInst(float(int1->fNum));
+            return (float1) ? float1 : InstBuilder::genFloatNumInst(float(int1->fNum));
         } else if (inst->fType->getType() == Typed::kInt) {
-            return (int1) ? int1 : new IntNumInst(int(float1->fNum));
+            return (int1) ? int1 : InstBuilder::genIntNumInst(int(float1->fNum));
         } else {
             assert(false);
             return 0;
@@ -634,7 +634,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             cloned.push_back((*it)->clone(this));
         }
         // TODO : si toute la liste des values sont des nombres, alors effectuer le calcul
-        return new FunCallInst(inst->fName, cloned, inst->fMethod);
+        return InstBuilder::genFunCallInst(inst->fName, cloned, inst->fMethod);
     }
 
     virtual ValueInst* visit(Select2Inst* inst)
@@ -648,7 +648,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         } else if (int1) {
             return (int1->fNum > 0) ? inst->fThen->clone(this) : inst->fElse->clone(this);
         } else {
-            return new Select2Inst(val1, inst->fThen->clone(this), inst->fElse->clone(this));
+            return InstBuilder::genSelect2Inst(val1, inst->fThen->clone(this), inst->fElse->clone(this));
         }
     }
 
@@ -663,14 +663,14 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             //float1->dump();
             // Creates a "link" so that corresponding load see the real value
             fValueTable[name] = float1;
-            return new DropInst();
+            return InstBuilder::genDropInst();
         } else if (int1) {
             // Creates a "link" so that corresponding load see the real value
             fValueTable[name] = int1;
-            return new DropInst();
+            return InstBuilder::genDropInst();
         } else {
             BasicCloneVisitor cloner;
-            return new DeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner), val1);
+            return InstBuilder::genDeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner), val1);
         }
     }
 
@@ -681,7 +681,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             return fValueTable[name];
         } else {
             BasicCloneVisitor cloner;
-            return new LoadVarInst(inst->fAddress->clone(&cloner));
+            return InstBuilder::genLoadVarInst(inst->fAddress->clone(&cloner));
         }
     }
 
@@ -696,14 +696,14 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             //float1->dump();
             // Creates a "link" so that corresponding load see the real value
             fValueTable[name] = float1;
-            return new DropInst();
+            return InstBuilder::genDropInst();
         } else if (int1) {
             // Creates a "link" so that corresponding load see the real value
             fValueTable[name] = int1;
-            return new DropInst();
+            return InstBuilder::genDropInst();
         } else {
             BasicCloneVisitor cloner;
-            return new StoreVarInst(inst->fAddress->clone(&cloner), val1);
+            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), val1);
         }
     }
 
@@ -1043,7 +1043,7 @@ struct ControlSpecializer : public DispatchVisitor {
         {
             if (inst->fAddress->getAccess() == Address::kLink) {
                 assert(fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end());
-                return new DropInst();
+                return InstBuilder::genDropInst();
             } else {
                 return BasicCloneVisitor::visit(inst);
             }

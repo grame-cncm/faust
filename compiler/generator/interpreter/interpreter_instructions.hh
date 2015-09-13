@@ -53,7 +53,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         InterpreterInstVisitor()
         {
             fUserInterfaceBlock = new FIRUserInterfaceBlockInstruction<T>();
-            fCurrentBlock =  new FIRBlockInstruction<T>();
+            fCurrentBlock = new FIRBlockInstruction<T>();
             fRealHeapOffset = 0;
             fIntHeapOffset = 0;
         }
@@ -213,8 +213,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         // Addresses
         virtual void visit(NamedAddress* named) 
         {
-            return;
-            
             pair<int, Typed::VarType> tmp = fFieldTable[named->getName()];
             switch (tmp.second) {
                 case Typed::kFloatMacro:
@@ -243,13 +241,15 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
                 // Nothing  
             } else if (startWith(indexed->getName(), "input")) {
+                printf("indexed->getName() %s\n", indexed->getName().c_str());
                 //fCurrentBlock->push(FIRBasicInstruction<T>(FIRInstruction::kLoadInput1));
             } else if (startWith(indexed->getName(), "output")) {
+                printf("indexed->getName() %s\n", indexed->getName().c_str());
                 //fCurrentBlock->push(FIRBasicInstruction<T>(FIRInstruction::kStoreOutput1));
             } else {
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
                 if (tmp.second == Typed::kFloatMacro_ptr || tmp.second == Typed::kFloat_ptr || tmp.second == Typed::kDouble_ptr) {
-                    assert(false); 
+                    //assert(false); 
                 } else {
                     
                 }
@@ -295,6 +295,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         
         virtual void visit(CastNumInst* inst) 
         {
+            inst->fInst->accept(this);
+            
             if (inst->fType->getType() == Typed::kInt) {
                 fCurrentBlock->push(FIRBasicInstruction<T>(FIRInstruction::kCastInt1));
             } else {
@@ -313,7 +315,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(SwitchInst* inst) {}
 
         // Loops
-        virtual void visit(ForLoopInst* inst) {}
+        //virtual void visit(ForLoopInst* inst) {}
         virtual void visit(WhileLoopInst* inst) {}
 
 };

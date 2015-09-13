@@ -216,6 +216,7 @@ class EXPORT interpreter_dsp_factory {
         
         virtual ~interpreter_dsp_factory()
         {
+            // No more DSP instances, so delete
             delete fUserInterfaceBlock;
             delete fInitBlock;
             delete fComputeBlock;

@@ -1866,7 +1866,7 @@ struct InstBuilder
 
     // Control flow
     static RetInst* genRetInst(ValueInst* result = NULL) { return new RetInst(result); }
-    static DropInst* genDropInst(ValueInst* result) { return new DropInst(result); }
+    static DropInst* genDropInst(ValueInst* result = NULL) { return new DropInst(result); }
 
     // Conditionnal
     static Select2Inst* genSelect2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst) { return new Select2Inst(cond_inst, then_inst, else_inst); }

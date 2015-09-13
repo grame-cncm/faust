@@ -120,7 +120,7 @@ void InterpreterCodeContainer::produceClass()
     
     generateUserInterface(&fCodeProducer);
     
-    //generateCompute(0);
+    generateCompute(0);
     
     //generateComputeFunctions(&fCodeProducer);
 }
@@ -132,6 +132,11 @@ void InterpreterCodeContainer::produceInfoFunctions(int tabs, const string& clas
 
 void InterpreterScalarCodeContainer::generateCompute(int n)
 {
-   
+    // Generates local variables declaration and setup
+    generateComputeBlock(&fCodeProducer);
+
+    // Generates one single scalar loop
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+    loop->accept(&fCodeProducer);
 }
 
