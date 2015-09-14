@@ -665,10 +665,17 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
     // Logical operations work on kInt, so cast both operands here
     if (isLogicalOpcode(opcode)) {
         res = cast2real(t3, InstBuilder::genBinopInst(opcode, promote2int(t1, v1), promote2int(t2, v2)));
-     // One of a1 or a2 is kReal, operation is done on kReal
+    // Boolean operations work on kInt or kReal, result is kInt
+    } else if (isBoolOpcode(opcode)) {
+        if ((t1 == kReal) || (t2 == kReal)) {
+            res = InstBuilder::genBinopInst(opcode, promote2real(t1, v1), promote2real(t2, v2));
+        } else {
+            res = InstBuilder::genBinopInst(opcode, v1, v2);
+        }
+    // One of a1 or a2 is kReal, operation is done on kReal
     } else if ((t1 == kReal) || (t2 == kReal)) {
         res = cast2int(t3, InstBuilder::genBinopInst(opcode, promote2real(t1, v1), promote2real(t2, v2)));
-    // kInt operation
+    // Otherwise kInt operation
     } else {
         res = cast2real(t3, InstBuilder::genBinopInst(opcode, v1, v2));
     }
