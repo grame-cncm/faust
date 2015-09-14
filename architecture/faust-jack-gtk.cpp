@@ -36,7 +36,7 @@
 #include "faust/gui/OSCUI.h"
 #endif
 
-#define LLVM 1
+//#define LLVM 1
 
 struct MyMeta : public Meta
 {
@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
         //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "i386-apple-darwin10.6.0-cortex-m3", error_msg3, 0);
     
     #ifdef LLVM
-        factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 4);
+        factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, -1);
     #else
         factory3 = createDSPInterpreterFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg3);
     #endif

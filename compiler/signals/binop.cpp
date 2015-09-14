@@ -44,40 +44,40 @@ using namespace llvm;
 BinOp* gBinOpTable[] = {
 
 	new BinOp("+","add_vec","add_scal", "add nsw", "fadd", Instruction::Add, Instruction::FAdd, 
-        FIRInstruction::kAddInt1, FIRInstruction::kAddReal1, &addNode, &isZero, &isZero, 6),
+        FIRInstruction::kAddInt, FIRInstruction::kAddReal, &addNode, &isZero, &isZero, 6),
 	new BinOp("-","sub_vec","sub_scal", "sub nsw", "fsub", Instruction::Sub, Instruction::FSub, 
-        FIRInstruction::kSubInt1, FIRInstruction::kSubReal1, &subNode, &noNtrl, &isZero, 7),
+        FIRInstruction::kSubInt, FIRInstruction::kSubReal, &subNode, &noNtrl, &isZero, 7),
 	new BinOp("*","mul_vec","mul_scal", "mul nsw", "fmul", Instruction::Mul, Instruction::FMul, 
-        FIRInstruction::kMultInt1, FIRInstruction::kMultReal1, &mulNode, &isOne, &isOne, 8, isZero, isZero),
+        FIRInstruction::kMultInt, FIRInstruction::kMultReal, &mulNode, &isOne, &isOne, 8, isZero, isZero),
 	new BinOp("/","div_vec","div_scal", "sdiv", "fdiv", Instruction::SDiv, Instruction::FDiv, 
-        FIRInstruction::kDivInt1, FIRInstruction::kDivReal1, &divExtendedNode, &noNtrl, &isOne, 10),
+        FIRInstruction::kDivInt, FIRInstruction::kDivReal, &divExtendedNode, &noNtrl, &isOne, 10),
 	new BinOp("%","mod_vec","mod_scal", "srem", "frem", Instruction::SRem, Instruction::FRem, 
-        FIRInstruction::kRemInt1, FIRInstruction::kRemReal1, &remNode, &noNtrl, &noNtrl, 9),
+        FIRInstruction::kRemInt, FIRInstruction::kRemReal, &remNode, &noNtrl, &noNtrl, 9),
 
 	new BinOp("<<","shift_left_vec","shift_left_scal", "","", Instruction::Shl, Instruction::Shl, 
-        FIRInstruction::kLshInt1, FIRInstruction::kLshInt1, &lshNode, &noNtrl, &isZero, 8),
+        FIRInstruction::kLshInt, FIRInstruction::kLshInt, &lshNode, &noNtrl, &isZero, 8),
 	new BinOp(">>","shift_right_vec","shift_right_scal","","", Instruction::LShr, Instruction::LShr, 
-        FIRInstruction::kRshInt1, FIRInstruction::kRshInt1, &rshNode, &noNtrl, &isZero, 8),
+        FIRInstruction::kRshInt, FIRInstruction::kRshInt, &rshNode, &noNtrl, &isZero, 8),
 
 	new BinOp(">","gt_vec","gt_scal", "icmp sgt", "fcmp sgt", ICmpInst::ICMP_SGT, FCmpInst::FCMP_OGT, 
-        FIRInstruction::kGTInt1, FIRInstruction::kGTReal1, &gtNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kGTInt, FIRInstruction::kGTReal, &gtNode, &noNtrl, &noNtrl, 5),
 	new BinOp("<","lt_vec","lt_scal", "icmp slt", "fcmp slt", ICmpInst::ICMP_SLT, FCmpInst::FCMP_OLT, 
-        FIRInstruction::kLTInt1, FIRInstruction::kLTReal1, &ltNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kLTInt, FIRInstruction::kLTReal, &ltNode, &noNtrl, &noNtrl, 5),
 	new BinOp(">=","ge_vec","ge_scal", "icmp sge", "fcmp sge", ICmpInst::ICMP_SGE, FCmpInst::FCMP_OGE, 
-        FIRInstruction::kGEInt1, FIRInstruction::kGEReal1, &geNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kGEInt, FIRInstruction::kGEReal, &geNode, &noNtrl, &noNtrl, 5),
 	new BinOp("<=","le_vec","le_scal", "icmp sle", "fcmp sle", ICmpInst::ICMP_SLE, FCmpInst::FCMP_OLE, 
-        FIRInstruction::kLEInt1, FIRInstruction::kLEReal1, &leNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kLEInt, FIRInstruction::kLEReal, &leNode, &noNtrl, &noNtrl, 5),
 	new BinOp("==","eq_vec","eq_scal", "icmp eq", "fcmp eq", ICmpInst::ICMP_EQ, FCmpInst::FCMP_OEQ, 
-        FIRInstruction::kEQInt1, FIRInstruction::kEQReal1, &eqNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kEQInt, FIRInstruction::kEQReal, &eqNode, &noNtrl, &noNtrl, 5),
 	new BinOp("!=","neq_vec","neq_scal", "icmp ne", "fcmp ne", ICmpInst::ICMP_NE, FCmpInst::FCMP_ONE, 
-        FIRInstruction::kNEInt1, FIRInstruction::kNEReal1, &neNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kNEInt, FIRInstruction::kNEReal, &neNode, &noNtrl, &noNtrl, 5),
 
 	new BinOp("&","and_vec","and_scal", "and", "and", Instruction::And, Instruction::And, 
-        FIRInstruction::kANDInt1, FIRInstruction::kANDInt1, &andNode, &isMinusOne, &isMinusOne, 8, isZero, isZero),
+        FIRInstruction::kANDInt, FIRInstruction::kANDInt, &andNode, &isMinusOne, &isMinusOne, 8, isZero, isZero),
 	new BinOp("|","or_vec","or_scal", "or", "or", Instruction::Or, Instruction::Or, 
-        FIRInstruction::kORInt1, FIRInstruction::kORInt1, &orNode, &isZero, &isZero, 7),
+        FIRInstruction::kORInt, FIRInstruction::kORInt, &orNode, &isZero, &isZero, 7),
 	new BinOp("^","xor_vec","xor_scal", "xor", "xor", Instruction::Xor, Instruction::Xor, 
-        FIRInstruction::kXORInt1, FIRInstruction::kXORInt1, &xorNode, &noNtrl, &noNtrl, 8)
+        FIRInstruction::kXORInt, FIRInstruction::kXORInt, &xorNode, &noNtrl, &noNtrl, 8)
 };
 
 #else
@@ -85,40 +85,40 @@ BinOp* gBinOpTable[] = {
 BinOp* gBinOpTable[] = {
     
 	new BinOp("+","add_vec","add_scal", "add nsw", "fadd", 0, 0, 
-        FIRInstruction::kAddInt1, FIRInstruction::kAddReal1, &addNode, &isZero, &isZero, 6),
+        FIRInstruction::kAddInt, FIRInstruction::kAddReal, &addNode, &isZero, &isZero, 6),
 	new BinOp("-","sub_vec","sub_scal", "sub nsw", "fsub", 0, 0, 
-        FIRInstruction::kSubInt1, FIRInstruction::kSubReal1, &subNode, &noNtrl, &isZero, 7),
+        FIRInstruction::kSubInt, FIRInstruction::kSubReal, &subNode, &noNtrl, &isZero, 7),
 	new BinOp("*","mul_vec","mul_scal", "mul nsw", "fmul", 0, 0,
-        FIRInstruction::kMultInt1, FIRInstruction::kMultReal1, &mulNode, &isOne, &isOne, 8, isZero, isZero),
+        FIRInstruction::kMultInt, FIRInstruction::kMultReal, &mulNode, &isOne, &isOne, 8, isZero, isZero),
 	new BinOp("/","div_vec","div_scal", "sdiv", "fdiv", 0, 0, 
-        FIRInstruction::kDivInt1, FIRInstruction::kDivReal1, &divExtendedNode, &noNtrl, &isOne, 10),
+        FIRInstruction::kDivInt, FIRInstruction::kDivReal, &divExtendedNode, &noNtrl, &isOne, 10),
 	new BinOp("%","mod_vec","mod_scal", "srem", "frem", 0, 0, 
-        FIRInstruction::kRemInt1, FIRInstruction::kRemReal1, &remNode, &noNtrl, &noNtrl, 9),
+        FIRInstruction::kRemInt, FIRInstruction::kRemReal, &remNode, &noNtrl, &noNtrl, 9),
     
 	new BinOp("<<","shift_left_vec","shift_left_scal", "","", 0, 0, 
-        FIRInstruction::kLshInt1, FIRInstruction::kLshInt1, &lshNode, &noNtrl, &isZero, 8),
+        FIRInstruction::kLshInt, FIRInstruction::kLshInt, &lshNode, &noNtrl, &isZero, 8),
 	new BinOp(">>","shift_right_vec","shift_right_scal","","", 0, 0, 
-        FIRInstruction::kRshInt1, FIRInstruction::kRshInt1, &rshNode, &noNtrl, &isZero, 8),
+        FIRInstruction::kRshInt, FIRInstruction::kRshInt, &rshNode, &noNtrl, &isZero, 8),
     
 	new BinOp(">","gt_vec","gt_scal", "icmp sgt", "fcmp sgt", 0, 0, 
-        FIRInstruction::kGTInt1, FIRInstruction::kGTReal1, &gtNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kGTInt, FIRInstruction::kGTReal, &gtNode, &noNtrl, &noNtrl, 5),
 	new BinOp("<","lt_vec","lt_scal", "icmp slt", "fcmp slt", 0, 0, 
-        FIRInstruction::kLTInt1, FIRInstruction::kLTReal1, &ltNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kLTInt, FIRInstruction::kLTReal, &ltNode, &noNtrl, &noNtrl, 5),
 	new BinOp(">=","ge_vec","ge_scal", "icmp sge", "fcmp sge", 0, 0, 
-        FIRInstruction::kGEInt1, FIRInstruction::kGEReal1, &geNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kGEInt, FIRInstruction::kGEReal, &geNode, &noNtrl, &noNtrl, 5),
 	new BinOp("<=","le_vec","le_scal", "icmp sle", "fcmp sle", 0, 0, 
-        FIRInstruction::kLEInt1, FIRInstruction::kLEReal1, &leNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kLEInt, FIRInstruction::kLEReal, &leNode, &noNtrl, &noNtrl, 5),
 	new BinOp("==","eq_vec","eq_scal", "icmp eq", "fcmp eq", 0, 0, 
-        FIRInstruction::kEQInt1, FIRInstruction::kEQReal1, &eqNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kEQInt, FIRInstruction::kEQReal, &eqNode, &noNtrl, &noNtrl, 5),
 	new BinOp("!=","neq_vec","neq_scal", "icmp ne", "fcmp ne", 0, 0, 
-        FIRInstruction::kNEInt1, FIRInstruction::kNEReal1, &neNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kNEInt, FIRInstruction::kNEReal, &neNode, &noNtrl, &noNtrl, 5),
     
 	new BinOp("&","and_vec","and_scal", "and", "and", 0, 0, 
-        FIRInstruction::kANDInt1, FIRInstruction::kANDInt1, &andNode, &isMinusOne, &isMinusOne, 8, isZero, isZero),
+        FIRInstruction::kANDInt, FIRInstruction::kANDInt, &andNode, &isMinusOne, &isMinusOne, 8, isZero, isZero),
 	new BinOp("|","or_vec","or_scal", "or", "or", 0, 0, 
-        FIRInstruction::kORInt1, FIRInstruction::kORInt1, &orNode, &isZero, &isZero, 7),
+        FIRInstruction::kORInt, FIRInstruction::kORInt, &orNode, &isZero, &isZero, 7),
 	new BinOp("^","xor_vec","xor_scal", "xor", "xor", 0, 0, 
-        FIRInstruction::kXORInt1, FIRInstruction::kXORInt1, &xorNode, &noNtrl, &noNtrl, 8)
+        FIRInstruction::kXORInt, FIRInstruction::kXORInt, &xorNode, &noNtrl, &noNtrl, 8)
 };
 
 #endif
@@ -126,40 +126,40 @@ BinOp* gBinOpTable[] = {
 BinOp* gBinOpLateqTable[] = {
 
 	new BinOp("+","add_vec","add_scal", "add nsw", "fadd", 0, 0, 
-        FIRInstruction::kAddInt1, FIRInstruction::kAddReal1, &addNode, &isZero, &isZero, 6),
+        FIRInstruction::kAddInt, FIRInstruction::kAddReal, &addNode, &isZero, &isZero, 6),
 	new BinOp("-","sub_vec","sub_scal", "sub nsw", "fsub", 0, 0, 
-        FIRInstruction::kSubInt1, FIRInstruction::kSubReal1, &subNode, &noNtrl, &isZero, 7),
+        FIRInstruction::kSubInt, FIRInstruction::kSubReal, &subNode, &noNtrl, &isZero, 7),
 	new BinOp("*","mul_vec","mul_scal", "mul nsw", "fmul", 0, 0, 
-        FIRInstruction::kMultInt1, FIRInstruction::kMultReal1, &mulNode, &isOne, &isOne, 8, isZero, isZero), // \DeclareMathSymbol{*}{\mathbin}{symbols}{"01}
+        FIRInstruction::kMultInt, FIRInstruction::kMultReal, &mulNode, &isOne, &isOne, 8, isZero, isZero), // \DeclareMathSymbol{*}{\mathbin}{symbols}{"01}
 	new BinOp("/","div_vec","div_scal", "sdiv", "fdiv", 0, 0, 
-        FIRInstruction::kDivInt1, FIRInstruction::kDivReal1, &divExtendedNode, &noNtrl, &isOne, 10), // \frac{}{} used in generateBinOp
+        FIRInstruction::kDivInt, FIRInstruction::kDivReal, &divExtendedNode, &noNtrl, &isOne, 10), // \frac{}{} used in generateBinOp
 	new BinOp("\\bmod","mod_vec","mod_scal", "srem", "frem", 0, 0, 
-        FIRInstruction::kRemInt1, FIRInstruction::kRemReal1, &remNode, &noNtrl, &noNtrl, 9),
+        FIRInstruction::kRemInt, FIRInstruction::kRemReal, &remNode, &noNtrl, &noNtrl, 9),
 
 	new BinOp("\\hiderel{\\ll}","shift_left_vec","shift_left_scal","","", 0, 0, 
-        FIRInstruction::kLshInt1, FIRInstruction::kLshInt1, &lshNode, &noNtrl, &isZero, 8),
+        FIRInstruction::kLshInt, FIRInstruction::kLshInt, &lshNode, &noNtrl, &isZero, 8),
 	new BinOp("\\hiderel{\\gg}","shift_right_vec","shift_right_scal","","", 0, 0, 
-        FIRInstruction::kRshInt1, FIRInstruction::kRshInt1, &rshNode, &noNtrl, &isZero, 8),
+        FIRInstruction::kRshInt, FIRInstruction::kRshInt, &rshNode, &noNtrl, &isZero, 8),
 
 	new BinOp("\\hiderel{>}","gt_vec","gt_scal", "icmp sgt", "fcmp sgt", 0, 0, 
-        FIRInstruction::kGTInt1, FIRInstruction::kGTReal1, &gtNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kGTInt, FIRInstruction::kGTReal, &gtNode, &noNtrl, &noNtrl, 5),
 	new BinOp("\\hiderel{<}","lt_vec","lt_scal", "icmp slt", "fcmp slt", 0, 0, 
-        FIRInstruction::kLTInt1, FIRInstruction::kLTReal1, &ltNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kLTInt, FIRInstruction::kLTReal, &ltNode, &noNtrl, &noNtrl, 5),
 	new BinOp("\\hiderel{\\geq}","ge_vec","ge_scal", "icmp sge", "fcmp sge", 0, 0, 
-        FIRInstruction::kGEInt1, FIRInstruction::kGEReal1, &geNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kGEInt, FIRInstruction::kGEReal, &geNode, &noNtrl, &noNtrl, 5),
 	new BinOp("\\hiderel{\\leq}","le_vec","le_scal", "icmp sle", "fcmp sle", 0, 0, 
-        FIRInstruction::kLEInt1, FIRInstruction::kLEReal1, &leNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kLEInt, FIRInstruction::kLEReal, &leNode, &noNtrl, &noNtrl, 5),
 	new BinOp("\\hiderel{\\equiv}","eq_vec","eq_scal", "icmp eq", "fcmp eq", 0, 0, 
-        FIRInstruction::kEQInt1, FIRInstruction::kEQReal1, &eqNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kEQInt, FIRInstruction::kEQReal, &eqNode, &noNtrl, &noNtrl, 5),
 	new BinOp("\\hiderel{\\neq}","neq_vec","neq_scal", "icmp ne", "fcmp ne", 0, 0, 
-        FIRInstruction::kNEInt1, FIRInstruction::kNEReal1, &neNode, &noNtrl, &noNtrl, 5),
+        FIRInstruction::kNEInt, FIRInstruction::kNEReal, &neNode, &noNtrl, &noNtrl, 5),
 
 	new BinOp("\\wedge","and_vec","and_scal", "and", "and", 0, 0, 
-        FIRInstruction::kANDInt1, FIRInstruction::kANDInt1, &andNode, &isMinusOne, &isMinusOne, 8, isZero, isZero),
+        FIRInstruction::kANDInt, FIRInstruction::kANDInt, &andNode, &isMinusOne, &isMinusOne, 8, isZero, isZero),
 	new BinOp("\\vee","or_vec","or_scal","or", "or", 0, 0, 
-        FIRInstruction::kORInt1, FIRInstruction::kORInt1, &orNode, &isZero, &isZero, 7),
+        FIRInstruction::kORInt, FIRInstruction::kORInt, &orNode, &isZero, &isZero, 7),
 	new BinOp("\\veebar","xor_vec","xor_scal", "xor", "xor", 0, 0, 
-        FIRInstruction::kXORInt1, FIRInstruction::kXORInt1, &xorNode, &noNtrl, &noNtrl, 8)
+        FIRInstruction::kXORInt, FIRInstruction::kXORInt, &xorNode, &noNtrl, &noNtrl, 8)
 };
 
 bool isBoolOpcode(int o)

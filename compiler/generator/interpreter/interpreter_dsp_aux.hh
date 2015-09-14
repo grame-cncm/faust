@@ -132,14 +132,13 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
-            //printf("compute count = %d\n", count);
-            //return;
+            //printf("compute count = %d fNumInputs = %d fNumOutputs = %d\n", count, fNumInputs, fNumOutputs);
             
             // Prepare in/out buffers
             for (int i = 0; i < fNumInputs; i++) {
                 this->fInputs[i] = inputs[i];
             }
-            for (int i = 0; i < fNumInputs; i++) {
+            for (int i = 0; i < fNumOutputs; i++) {
                 this->fOutputs[i] = outputs[i];
             }
             

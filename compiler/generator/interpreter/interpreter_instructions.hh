@@ -205,32 +205,77 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(DeclareFunInst* inst) {}
     
         // Memory
-        /*
+        
         virtual void visit(LoadVarInst* inst) 
         {
-            if (startWith(inst->getName(), "inputs") || startWith(inst->getName(), "outputs")) {
-                // Nothing 
+            // Compile address
+            inst->fAddress->accept(this);
+            
+            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
+            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+            
+            pair<int, Typed::VarType> tmp = fFieldTable[inst->fAddress->getName()];
+            printf("Name %s offset %d\n", inst->fAddress->getName().c_str(), tmp.first);
+            
+            if (named) {
+                fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
+                                    ? FIRInstruction::kLoadInt : FIRInstruction::kLoadReal, 0, 0, tmp.first));
             } else {
-                fTypingVisitor.visit(inst);
-                if (fTypingVisitor.fCurType == Typed::kInt) {
-                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInt1, 0, 0));
+                // Indexed 
+                string num;
+                if (startWithRes(indexed->getName(), "input", num)) {
+                    printf("LoadVarInst %s %d\n", indexed->getName().c_str(), atoi(num.c_str()));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInput, 0, 0, atoi(num.c_str())));
                 } else {
-                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadReal1, 0, 0));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
+                                        ? FIRInstruction::kLoadIndexedInt : FIRInstruction::kLoadIndexedReal, 0, 0, tmp.first));
+                
                 }
             }
         }
-        */
         
         //virtual void visit(LoadVarAddressInst* inst) {}
         
         // Reverse order...
         virtual void visit(StoreVarInst* inst)
         {
+            // Compile value address
             inst->fValue->accept(this);
             inst->fAddress->accept(this);
+            
+            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
+            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+            
+            pair<int, Typed::VarType> tmp = fFieldTable[inst->fAddress->getName()];
+            
+            if (named) {
+                fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
+                                    ? FIRInstruction::kStoreInt : FIRInstruction::kStoreReal, 0, 0, tmp.first));
+            } else {
+                // Indexed 
+                string num;
+                if (startWithRes(indexed->getName(), "output", num)) {
+                    printf("StoreVarInst %s %d\n", indexed->getName().c_str(), atoi(num.c_str()));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, atoi(num.c_str())));
+                } else {
+                    fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
+                                        ? FIRInstruction::kStoreIndexedInt : FIRInstruction::kStoreIndexedReal, 0, 0, tmp.first));
+                }
+            }
         }
 
         // Addresses
+        virtual void visit(NamedAddress* named)
+        {
+            // Nothing
+        }
+        
+        virtual void visit(IndexedAddress* indexed) 
+        {   
+            indexed->fIndex->accept(this);
+        }
+
+        /*
         virtual void visit(NamedAddress* named) 
         {
             pair<int, Typed::VarType> tmp = fFieldTable[named->getName()];
@@ -238,10 +283,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 case Typed::kFloatMacro:
                 case Typed::kFloat:
                 case Typed::kDouble:
-                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadReal1, 0, 0, tmp.first));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, tmp.first));
                     break;
                 case Typed::kInt:
-                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInt1, 0, 0, tmp.first));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, tmp.first));
                     break;
                 case Typed::kFloatMacro_ptr: 
                 case Typed::kFloat_ptr:
@@ -254,41 +299,19 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     break;
             }
         }
-        
-        virtual void visit(IndexedAddress* indexed) 
-        {   
-            string num;
-            
-            indexed->fIndex->accept(this);
-            
-            // HACK : completely adhoc code for input/output...
-            if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
-                // Nothing  
-            } else if (startWithRes(indexed->getName(), "input", num)) {
-                printf("indexed->getName() %s %d\n", indexed->getName().c_str(), atoi(num.c_str()));
-                fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInput1, 0, 0, atoi(num.c_str())));
-            } else if (startWithRes(indexed->getName(), "output", num)) {
-                printf("indexed->getName() %s %d\n", indexed->getName().c_str(), atoi(num.c_str()));
-                fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput1, 0, 0, atoi(num.c_str())));
-            } else {
-                
-                pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
-                fCurrentBlock->push(new FIRBasicInstruction<T>(isRealPtrType(tmp.second) 
-                        ? FIRInstruction::kStoreIndexedReal1 : FIRInstruction::kStoreIndexedInt1, 0, 0, tmp.first));
-            }
-        }
-
+        */
+    
         // Primitives : numbers
         virtual void visit(FloatNumInst* inst) 
         {
-            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kRealValue1, 0, inst->fNum));
+            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst->fNum));
         }
         
         virtual void visit(FloatArrayNumInst* inst) {}
         
         virtual void visit(IntNumInst* inst)  
         {
-            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kIntValue1, inst->fNum, 0));
+            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst->fNum, 0));
         }
         
         virtual void visit(IntArrayNumInst* inst) {}
@@ -304,9 +327,9 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         {
             inst->fInst1->accept(&fTypingVisitor);
         
-            // Compile sub-expressions
-            inst->fInst1->accept(this);
+            // Compile sub-expressions in reverse order... 
             inst->fInst2->accept(this);
+            inst->fInst1->accept(this);
             
             if (fTypingVisitor.fCurType == Typed::kInt) {
                 fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpIntInst));
@@ -325,7 +348,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             
             if (inst->fType->getType() == Typed::kInt) {
                 printf("cast kFloatMacro or internal float ==> int\n");
-                fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastInt1));
+                fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastInt));
             } else if (isInternalRealType(inst->fType->getType()) && (fTypingVisitor.fCurType == Typed::kFloatMacro)) {
                 // We assume that kFloatMacro and internal float are the same for now, so no cast...
                 printf("cast kFloatMacro ==> internal float\n");
@@ -334,7 +357,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 printf("cast internal float ==> kFloatMacro\n");
             } else {
                 printf("cast int ==> kFloatMacro or internal float\n");
-                fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastReal1));
+                fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastReal));
             }
         }
 
