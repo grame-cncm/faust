@@ -77,6 +77,44 @@ void InterpreterCodeContainer::produceInternal()
 interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
 {
     cout << "InterpreterCodeContainer::produceModuleFloat() " << fNumInputs << " " << fNumOutputs << endl;
+    
+    printf("InterpreterCodeContainer::produceClass\n");
+    
+    // Add "fSamplingFreq" variable at offset 0 in HEAP
+    pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
+    
+    generateGlobalDeclarations(&fCodeProducer);
+
+    generateDeclarations(&fCodeProducer);
+    
+    //generateAllocate(&fCodeProducer);
+    //generateDestroy(&fCodeProducer);
+    
+    generateStaticInit(&fCodeProducer);
+    
+    generateInit(&fCodeProducer);
+    
+    FIRBlockInstruction<float>* init_block = fCodeProducer.fCurrentBlock;
+    fCodeProducer.fCurrentBlock = new FIRBlockInstruction<float>();
+    
+    generateUserInterface(&fCodeProducer);
+    
+    // Generates local variables declaration and setup
+    generateComputeBlock(&fCodeProducer);
+    
+    FIRBlockInstruction<float>* compute_control_block = fCodeProducer.fCurrentBlock;
+    fCodeProducer.fCurrentBlock = new FIRBlockInstruction<float>();
+
+    // Generates one single scalar loop
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+    loop->accept(&fCodeProducer);
+    
+    FIRBlockInstruction<float>* compute_dsp_block = fCodeProducer.fCurrentBlock;
+    
+    // generateCompute(0);
+    
+    //generateComputeFunctions(&fCodeProducer);
+    
     /*
     return new interpreter_dsp_factory(fNumInputs, fNumOutputs, 
                                         fCodeProducer.fRealHeapOffset, 
@@ -89,7 +127,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
                                         fCodeProducer.fRealHeapOffset, 
                                         fCodeProducer.fIntHeapOffset, 
                                         fCodeProducer.fUserInterfaceBlock, 
-                                        NULL, NULL, fCodeProducer.fCurrentBlock);
+                                        init_block, compute_control_block, compute_dsp_block);
 }
 
 /*
@@ -110,6 +148,7 @@ interpreter_dsp_aux<quad>* InterpreterCodeContainer::produceModuleQuad()
 
 void InterpreterCodeContainer::produceClass()
 {
+    /*
     printf("InterpreterCodeContainer::produceClass\n");
     
     // Add "fSamplingFreq" variable at offset 0 in HEAP
@@ -131,6 +170,7 @@ void InterpreterCodeContainer::produceClass()
     generateCompute(0);
     
     //generateComputeFunctions(&fCodeProducer);
+    */
 }
 
 void InterpreterCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)

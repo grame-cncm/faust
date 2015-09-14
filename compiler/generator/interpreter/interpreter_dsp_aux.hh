@@ -111,7 +111,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             int int_val;
             T real_val;
             
-            printf("instanceInit %p \n", fInitBlock);
+            //this->PrintBlock(fInitBlock);
             
             // Execute init instructions 
             if (fInitBlock)
@@ -133,6 +133,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
             //printf("compute count = %d fNumInputs = %d fNumOutputs = %d\n", count, fNumInputs, fNumOutputs);
+            //return;
             
             // Prepare in/out buffers
             for (int i = 0; i < fNumInputs; i++) {
@@ -143,13 +144,17 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             }
             
             // Executes the 'control' block
-            if (fComputeBlock)
+            if (fComputeBlock) {
+                //this->PrintBlock(fComputeBlock);
                 this->ExecuteBlockReal(fComputeBlock);
+            }
+                
+            //return;
                 
             //this->PrintBlock(fComputeDSPBlock);
             
             // Executes the DSP loop
-            FIRBasicInstruction<T>* loop = (fComputeDSPBlock->fInstructions[1]);
+            FIRBasicInstruction<T>* loop = (fComputeDSPBlock->fInstructions[2]);
             //printf("loop %d %d %d\n", loop->fOpcode, loop->fOffset, count);
            
             assert(loop->fOpcode == FIRInstruction::kLoop);

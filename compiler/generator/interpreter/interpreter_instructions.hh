@@ -64,6 +64,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 || type == Typed::kFloatMacro 
                 || type == Typed::kDouble); 
         }
+        
         inline bool isRealPtrType(Typed::VarType type) 
         { 
             return (type == Typed::kFloat_ptr 
@@ -197,15 +198,15 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 }
             }
             
+            // Simulate a 'Store'
             if (inst->fValue) {
-                inst->fValue->accept(this);
+                visitStore(inst->fAddress, inst->fValue);
             }
         }
         
         virtual void visit(DeclareFunInst* inst) {}
     
         // Memory
-        
         virtual void visit(LoadVarInst* inst) 
         {
             // Compile address
@@ -237,8 +238,38 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         //virtual void visit(LoadVarAddressInst* inst) {}
         
         // Reverse order...
+        
+        virtual void visitStore(Address* address, ValueInst* value)
+        {
+            // Compile value address
+            value->accept(this);
+            address->accept(this);
+            
+            NamedAddress* named = dynamic_cast<NamedAddress*>(address);
+            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
+            
+            pair<int, Typed::VarType> tmp = fFieldTable[address->getName()];
+            
+            if (named) {
+                fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
+                                    ? FIRInstruction::kStoreInt : FIRInstruction::kStoreReal, 0, 0, tmp.first));
+            } else {
+                // Indexed 
+                string num;
+                if (startWithRes(indexed->getName(), "output", num)) {
+                    printf("StoreVarInst %s %d\n", indexed->getName().c_str(), atoi(num.c_str()));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, atoi(num.c_str())));
+                } else {
+                    fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
+                                        ? FIRInstruction::kStoreIndexedInt : FIRInstruction::kStoreIndexedReal, 0, 0, tmp.first));
+                }
+            }
+        }
+
         virtual void visit(StoreVarInst* inst)
         {
+            visitStore(inst->fAddress, inst->fValue);
+            /*
             // Compile value address
             inst->fValue->accept(this);
             inst->fAddress->accept(this);
@@ -262,6 +293,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                                         ? FIRInstruction::kStoreIndexedInt : FIRInstruction::kStoreIndexedReal, 0, 0, tmp.first));
                 }
             }
+            */
         }
 
         // Addresses
@@ -318,7 +350,12 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         
         virtual void visit(BoolNumInst* inst) {}
         
-        virtual void visit(DoubleNumInst* inst) {}
+        virtual void visit(DoubleNumInst* inst) 
+        {
+            // Double considered real...
+            printf(" visit(DoubleNumInst %f\n", inst->fNum);
+            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst->fNum));
+        }
         
         virtual void visit(DoubleArrayNumInst* inst) {}
 

@@ -996,6 +996,7 @@ class FIRInterpreter  {
             //printf("real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
         }
         
+        /*
         void ExecuteLoopBlock(FIRBlockInstruction<T>* block, int loop_offset, int loop_count)
         {
             int res_int;
@@ -1008,8 +1009,9 @@ class FIRInterpreter  {
                 ExecuteBlock(block, res_int, res_real, 0);
             }
         }
+        */
         
-        /*
+        
         void ExecuteLoopBlock(FIRBlockInstruction<T>* block, int loop_offset, int loop_count)
         {
             //printf("ExecuteLoopBlock loop_offset = %d loop_count = %d\n", loop_offset, loop_count);
@@ -1327,8 +1329,6 @@ class FIRInterpreter  {
                 }
             }
         }
-        */
-        
         
         int ExecuteBlockInt(FIRBlockInstruction<T>* block)
         {
