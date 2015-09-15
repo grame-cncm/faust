@@ -609,9 +609,8 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
 		// Long delay : we use a ring buffer of size 2^x
 		int N = pow2limit(mxd + 1);
 
-        FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) - CS(delay);
-        ValueInst* value3 = value2 & InstBuilder::genIntNumInst(N - 1);
-        return InstBuilder::genLoadArrayStructVar(vname, value3);
+        FIRIndex value2 = (FIRIndex(InstBuilder::genLoadStructVar("IOTA")) - CS(delay)) & InstBuilder::genIntNumInst(N - 1);
+        return InstBuilder::genLoadArrayStructVar(vname,  value2);
     }
 }
 

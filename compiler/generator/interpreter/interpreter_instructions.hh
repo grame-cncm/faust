@@ -269,31 +269,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(StoreVarInst* inst)
         {
             visitStore(inst->fAddress, inst->fValue);
-            /*
-            // Compile value address
-            inst->fValue->accept(this);
-            inst->fAddress->accept(this);
-            
-            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            
-            pair<int, Typed::VarType> tmp = fFieldTable[inst->fAddress->getName()];
-            
-            if (named) {
-                fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
-                                    ? FIRInstruction::kStoreInt : FIRInstruction::kStoreReal, 0, 0, tmp.first));
-            } else {
-                // Indexed 
-                string num;
-                if (startWithRes(indexed->getName(), "output", num)) {
-                    printf("StoreVarInst %s %d\n", indexed->getName().c_str(), atoi(num.c_str()));
-                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, atoi(num.c_str())));
-                } else {
-                    fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
-                                        ? FIRInstruction::kStoreIndexedInt : FIRInstruction::kStoreIndexedReal, 0, 0, tmp.first));
-                }
-            }
-            */
         }
 
         // Addresses
@@ -307,32 +282,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             indexed->fIndex->accept(this);
         }
 
-        /*
-        virtual void visit(NamedAddress* named) 
-        {
-            pair<int, Typed::VarType> tmp = fFieldTable[named->getName()];
-            switch (tmp.second) {
-                case Typed::kFloatMacro:
-                case Typed::kFloat:
-                case Typed::kDouble:
-                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, tmp.first));
-                    break;
-                case Typed::kInt:
-                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, tmp.first));
-                    break;
-                case Typed::kFloatMacro_ptr: 
-                case Typed::kFloat_ptr:
-                case Typed::kDouble_ptr:
-                case Typed::kInt_ptr:
-                     assert(false);
-                    break;
-                default:
-                    assert(false);
-                    break;
-            }
-        }
-        */
-    
         // Primitives : numbers
         virtual void visit(FloatNumInst* inst) 
         {
@@ -353,7 +302,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(DoubleNumInst* inst) 
         {
             // Double considered real...
-            printf(" visit(DoubleNumInst %f\n", inst->fNum);
+            printf(" visit(DoubleNumInst %lf\n", inst->fNum);
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst->fNum));
         }
         
