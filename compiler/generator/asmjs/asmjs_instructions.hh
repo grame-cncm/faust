@@ -108,6 +108,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     fStructOffset += array_typed->fSize * NUM_SIZE;
                   } else {
                     if (!inst->fValue) {
+                        assert(false);
                         string type = (array_typed->fType->getType() == Typed::kFloat) ? "Float32Array" : "Int32Array";
                         *fOut << prefix << inst->fAddress->getName() << " = new " << type << "(" << array_typed->fSize << ")";
                     }
@@ -117,11 +118,10 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     fFieldTable[inst->fAddress->getName()] = make_pair(fStructOffset, inst->fType->getType());
                     fStructOffset += NUM_SIZE;
                 } else {
+                    *fOut << prefix << inst->fAddress->getName();
                     if (inst->fValue) {
-                        *fOut << prefix << inst->fAddress->getName() << " = "; inst->fValue->accept(this);
-                    } else {
-                        *fOut << prefix << inst->fAddress->getName();
-                    }
+                        *fOut << " = "; inst->fValue->accept(this);
+                    } 
                 }
             }
             
@@ -154,11 +154,12 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 // Explicit typing needed for function arguments
                 list<NamedTyped*>::const_iterator it;
                 for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++) {
+                    *fOut << (*it)->fName;
                     Typed* type = (*it)->fType;
                     if (type->getType() == Typed::kInt || type->getType() == Typed::kObj_ptr) {
-                        *fOut << (*it)->fName << " = " << (*it)->fName << " | 0;";
+                        *fOut << " = (" << (*it)->fName << " | 0);";
                     } else {
-                        *fOut << (*it)->fName << " = +" << (*it)->fName << ";";
+                        *fOut << " = +(" << (*it)->fName << ");";
                     }
                     tab(fTab, *fOut); 
                 }
@@ -211,7 +212,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 TextInstVisitor::visit(inst);
                 *fOut << ")";
             } else {
-                // HACK : completely adhoc code for input/output/count...
+                // HACK : completely adhoc code for input/output/count/samplingFreq...
                 if ((startWith(inst->getName(), "inputs") 
                     || startWith(inst->getName(), "outputs") 
                     || startWith(inst->getName(), "count")
@@ -255,11 +256,12 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         
         virtual void visit(IndexedAddress* indexed)
         {
-            // HACK : completely adhoc code for input/output...
+            // HACK : completely adhoc code for inputs/outputs...
             if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
                 *fOut << "HEAP32[" << indexed->getName() << " + (";  
                 indexed->fIndex->accept(this);
                 *fOut << " << 2) >> 2]"; 
+            // HACK : completely adhoc code for input/output...
             } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
                 *fOut << "HEAPF32[" << indexed->getName() << " + (";  
                 indexed->fIndex->accept(this);
@@ -285,8 +287,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
   
         virtual void visit(LoadVarAddressInst* inst)
         {
-            // Not implemented in ASMJavaScript
-            //assert(false);
+            // TODO (for vector mode...)
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
             if (indexed) {
                 if (indexed->getAccess() & Address::kStruct || indexed->getAccess() & Address::kStaticStruct) {
@@ -396,7 +397,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 } else {
                     inst->fInst2->accept(&fTypingVisitor);
                     Typed::VarType type2 = fTypingVisitor.fCurType;
-                    type2 = fTypingVisitor.fCurType;
                      if (isRealType(type2)) {
                         visitAuxFloat(inst);
                     } else if (isIntType(type1) || isIntType(type2)) {

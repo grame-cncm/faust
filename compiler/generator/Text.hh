@@ -57,4 +57,14 @@ string checkReal(double val);
 string indent(string const& str, int tabs);
 string replaceChar(string str, char ch1, char ch2);
 
+inline bool startWith(const string& str, const string& prefix)
+{
+    return (str.substr(0, prefix.size()) == prefix);
+}
+
+inline string startWithRes(const string& str, const string& prefix)
+{   
+    return (str.substr(0, prefix.size()) == prefix) ? str.substr(prefix.size()) : "";
+}
+
 #endif
