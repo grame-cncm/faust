@@ -1117,7 +1117,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
 {
     TLock lock(gDSPFactoriesLock);
     
-    const char* argv1[argc];
+    const char** argv1 = (const char**)alloca(argc*sizeof(char*));
     int argc1 = 0;
  
     // Filter arguments 
