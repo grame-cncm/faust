@@ -1662,26 +1662,42 @@ EXPORT bool deleteCDSPFactory(llvm_dsp_factory* factory)
 
 EXPORT char* getCName(llvm_dsp_factory* factory)
 {
-    string name = factory->getName();
-    return (factory) ? strdup(name.c_str()) : NULL;
+    if (factory) {
+        string name = factory->getName();
+        return strdup(name.c_str());
+    } else {
+        return NULL;
+    }
 }
 
 EXPORT char* getCSHAKey(llvm_dsp_factory* factory)
 {
-    string shakey = factory->getSHAKey();
-    return (factory) ? strdup(shakey.c_str()) : NULL;
+    if (factory) {
+        string shakey = factory->getSHAKey();
+        return strdup(shakey.c_str());
+    } else {
+        return NULL;
+    }
 }
 
 EXPORT char* getCDSPCode(llvm_dsp_factory* factory)
 {
-    string dspcode = factory->getDSPCode();
-    return (factory) ? strdup(dspcode.c_str()) : NULL;
+    if (factory) {
+        string dspcode = factory->getDSPCode();
+        return strdup(dspcode.c_str()); 
+    } else {
+        return NULL;
+    }
 }
 
 EXPORT char* getCTarget(llvm_dsp_factory* factory)
 {
-    string target = factory->getTarget();
-    return (factory) ? strdup(target.c_str()) : NULL;
+    if (factory) {
+        string target = factory->getTarget();
+        return strdup(target.c_str());
+    } else {
+        return NULL;
+    }
 }
 
 EXPORT char* getCDSPMachineTarget()
