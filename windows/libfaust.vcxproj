@@ -238,9 +238,9 @@
     <ClCompile Include="..\compiler\generator\instructions_compiler.cpp" />
     <ClCompile Include="..\compiler\generator\java\java_code_container.cpp" />
     <ClCompile Include="..\compiler\generator\js\js_code_container.cpp" />
-    <ClCompile Include="..\compiler\generator\llvm\base64.cpp" />
     <ClCompile Include="..\compiler\generator\llvm\llvm_code_container.cpp" />
     <ClCompile Include="..\compiler\generator\llvm\llvm_dsp_aux.cpp" />
+    <ClCompile Include="..\compiler\generator\llvm\rn_base64.cpp" />
     <ClCompile Include="..\compiler\generator\occurences.cpp" />
     <ClCompile Include="..\compiler\generator\omp_code_container.cpp" />
     <ClCompile Include="..\compiler\generator\Text.cpp" />
@@ -339,9 +339,9 @@
     <ClInclude Include="..\compiler\generator\instructions.hh" />
     <ClInclude Include="..\compiler\generator\instructions_compiler.hh" />
     <ClInclude Include="..\compiler\generator\instructions_complexity.hh" />
-    <ClInclude Include="..\compiler\generator\llvm\base64.h" />
     <ClInclude Include="..\compiler\generator\llvm\llvm-c-dsp.h" />
     <ClInclude Include="..\compiler\generator\llvm\llvm-dsp.h" />
+    <ClInclude Include="..\compiler\generator\llvm\rn_base64.h" />
     <ClInclude Include="..\compiler\generator\occurences.hh" />
     <ClInclude Include="..\compiler\generator\omp_code_container.hh" />
     <ClInclude Include="..\compiler\generator\opencl_instructions.hh" />

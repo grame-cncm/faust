@@ -375,7 +375,7 @@
     </ClCompile>
     <ClCompile Include="..\compiler\main.cpp" />
     <ClCompile Include="..\compiler\libcode.cpp" />
-    <ClCompile Include="..\compiler\generator\llvm\base64.cpp">
+    <ClCompile Include="..\compiler\generator\llvm\rn_base64.cpp">
       <Filter>generator\llvm</Filter>
     </ClCompile>
   </ItemGroup>
@@ -535,7 +535,7 @@
     <ClInclude Include="..\compiler\utils\TMutex.h">
       <Filter>utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\compiler\generator\llvm\base64.h">
+    <ClInclude Include="..\compiler\generator\llvm\rn_base64.h">
       <Filter>generator\llvm</Filter>
     </ClInclude>
   </ItemGroup>
