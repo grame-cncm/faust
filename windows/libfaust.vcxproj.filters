@@ -73,6 +73,9 @@
     <Filter Include="generator\js">
       <UniqueIdentifier>{4c291a9c-8c8c-498a-82f6-e4c304435915}</UniqueIdentifier>
     </Filter>
+    <Filter Include="generator\wasm">
+      <UniqueIdentifier>{b5288f5a-b4df-4e10-811f-6af11d1c4c0a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\compiler\boxes\boxcomplexity.cpp">
@@ -375,6 +378,9 @@
     <ClCompile Include="..\compiler\generator\llvm\rn_base64.cpp">
       <Filter>generator\llvm</Filter>
     </ClCompile>
+    <ClCompile Include="..\compiler\generator\wasm\wasm_code_container.cpp">
+      <Filter>generator\wasm</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\compiler\draw\device\device.h">
@@ -589,6 +595,12 @@
     </ClInclude>
     <ClInclude Include="..\compiler\generator\llvm\rn_base64.h">
       <Filter>generator\llvm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\wasm\wasm_code_container.hh">
+      <Filter>generator\wasm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\wasm\wasm_instructions.hh">
+      <Filter>generator\wasm</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

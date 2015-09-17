@@ -73,6 +73,9 @@
     <Filter Include="generator\llvm">
       <UniqueIdentifier>{8534699d-b4c4-44f7-b3ac-3648d8e0ba13}</UniqueIdentifier>
     </Filter>
+    <Filter Include="generator\wasm">
+      <UniqueIdentifier>{a05fbdea-8a4a-4ca9-831b-59a20beecfe4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\compiler\boxes\boxcomplexity.cpp">
@@ -375,6 +378,9 @@
     </ClCompile>
     <ClCompile Include="..\compiler\main.cpp" />
     <ClCompile Include="..\compiler\libcode.cpp" />
+    <ClCompile Include="..\compiler\generator\wasm\wasm_code_container.cpp">
+      <Filter>generator\wasm</Filter>
+    </ClCompile>
     <ClCompile Include="..\compiler\generator\llvm\rn_base64.cpp">
       <Filter>generator\llvm</Filter>
     </ClCompile>
@@ -534,6 +540,12 @@
     </ClInclude>
     <ClInclude Include="..\compiler\utils\TMutex.h">
       <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\wasm\wasm_code_container.hh">
+      <Filter>generator\wasm</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compiler\generator\wasm\wasm_instructions.hh">
+      <Filter>generator\wasm</Filter>
     </ClInclude>
     <ClInclude Include="..\compiler\generator\llvm\rn_base64.h">
       <Filter>generator\llvm</Filter>

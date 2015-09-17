@@ -246,6 +246,7 @@
     <ClCompile Include="..\compiler\generator\tools.cpp" />
     <ClCompile Include="..\compiler\generator\uitree.cpp" />
     <ClCompile Include="..\compiler\generator\vec_code_container.cpp" />
+    <ClCompile Include="..\compiler\generator\wasm\wasm_code_container.cpp" />
     <ClCompile Include="..\compiler\generator\wss_code_container.cpp" />
     <ClCompile Include="..\compiler\global.cpp" />
     <ClCompile Include="..\compiler\libcode.cpp" />
@@ -333,6 +334,8 @@
     <ClInclude Include="..\compiler\generator\llvm\llvm-dsp.h" />
     <ClInclude Include="..\compiler\generator\llvm\rn_base64.h" />
     <ClInclude Include="..\compiler\generator\smartpointer.h" />
+    <ClInclude Include="..\compiler\generator\wasm\wasm_code_container.hh" />
+    <ClInclude Include="..\compiler\generator\wasm\wasm_instructions.hh" />
     <ClInclude Include="..\compiler\global.hh" />
     <ClInclude Include="..\compiler\parallelize\code_loop.hh" />
     <ClInclude Include="..\compiler\parallelize\colorize.h" />
