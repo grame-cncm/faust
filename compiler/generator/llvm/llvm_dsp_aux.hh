@@ -147,13 +147,13 @@ class llvm_dsp_factory : public smartable {
         
         void metadataDSPFactory(MetaGlue* glue);
     
-        string getName();
-        
-        string getSHAKey();
-        
-        string getDSPCode();
-        
-        string getTarget();
+        EXPORT string getName();
+
+        EXPORT string getSHAKey();
+
+        EXPORT string getDSPCode();
+
+        EXPORT string getTarget();
         void setTarget(const string target) { fTarget = target; }
     
         vector<std::string> getDSPFactoryLibraryList() { return fResult->fPathnameList; }
