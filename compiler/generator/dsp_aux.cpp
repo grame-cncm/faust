@@ -25,7 +25,12 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+
+#ifdef _WIN32
+#include "compatibility.hh"
+#else
 #include <libgen.h>
+#endif
 
 #include "dsp_aux.hh"
 #include "libfaust.h"
