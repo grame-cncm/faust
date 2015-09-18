@@ -137,7 +137,7 @@
 //------------------------------------------------------------------------
 //  Method: value accessor
 //
--(float) value
+-(CGFloat) value
 {
     return m_flValue;
 }
@@ -146,7 +146,7 @@
 //------------------------------------------------------------------------
 //  Method: value setter
 //
--(void) setValue:(float)a_value
+-(void) setValue:(CGFloat)a_value
 {
     bool      fRedraw = false;
     

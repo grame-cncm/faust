@@ -69,7 +69,7 @@
                 *m_clrDanger;           // Danger segment color
 }
 
-@property (readwrite, nonatomic)  float     value;
+@property (readwrite, nonatomic)  CGFloat   value;
 @property (readwrite, nonatomic)  float     warnThreshold;
 @property (readwrite, nonatomic)  float     dangerThreshold;
 @property (readwrite, nonatomic)  float     maxLimit;

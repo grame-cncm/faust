@@ -1509,8 +1509,8 @@ private:
             list<uiCocoaItem*>::iterator i1 = fWidgetList.begin();
             box = dynamic_cast<uiBox*>(*i1);
             
-            if ((box)->fBoxType == kHorizontalLayout
-                || box->fBoxType == kVerticalLayout
+            if (((box)->fBoxType == kHorizontalLayout
+                || box->fBoxType == kVerticalLayout)
                 && box != widget)
             {
                 box->fWidgetList.push_back(widget);
@@ -1997,8 +1997,7 @@ public:
     virtual uiBox* getCurrentOpenedBox()
     {
         list<uiCocoaItem*>::reverse_iterator i;
-        uiBox* box = NULL;
-        
+       
         // Find the last box to close
         for (i = fWidgetList.rbegin(); i != fWidgetList.rend(); i++)
         {
