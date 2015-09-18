@@ -106,15 +106,15 @@ static void jack_shutdown_callback(const char* message, void* arg)
     finterface = new FUI();
     
     // Read user preferences
-    sampleRate = [[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
-    bufferSize = [[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
+    sampleRate = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
+    bufferSize = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     openWidgetPanel = [[NSUserDefaults standardUserDefaults] boolForKey:@"openWidgetPanel"];
     
     [self openAudio];
     [self displayTitle];
     
     // Build Faust interface
-    DSP.init(long(sampleRate));
+    DSP.init(int(sampleRate));
 	DSP.buildUserInterface(interface);
     DSP.buildUserInterface(finterface);
     
