@@ -26,6 +26,7 @@
 */
 
 #include "rn_base64.h"
+#include "compatibility.hh"
 #include <string.h>
 #include <iostream>
 
