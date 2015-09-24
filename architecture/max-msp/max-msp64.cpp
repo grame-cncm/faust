@@ -111,6 +111,12 @@ using namespace std;
 
 #define EXTERNAL_VERSION "0.55"
 
+static const char* getCodeSize()
+{
+    int tmp;
+    return (sizeof(&tmp) == 8) ? "64 bits" : "32 bits";
+}
+
 class mspUI;
 
 struct Max_Meta1 : Meta
@@ -744,8 +750,8 @@ extern "C" int main(void)
     addmess((method)faust_mute, (char*)"mute", A_GIMME, 0);
 	dsp_initclass();
 
-	post((char*)"Faust DSP object 64 bits v%s", EXTERNAL_VERSION);
-    post((char*)"Copyright (c) 2012-2014 Grame");
+    post((char*)"Faust DSP object v%s (sample = 64 bits code = %s)", EXTERNAL_VERSION, getCodeSize());
+    post((char*)"Copyright (c) 2012-2015 Grame");
     Max_Meta1 meta1;
     mydsp::metadata(&meta1);
     if (meta1.fCount > 0) {
