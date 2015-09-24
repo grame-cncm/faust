@@ -45,6 +45,12 @@ static string getTarget()
     return (sizeof(&tmp) == 8) ? "" : "i386-apple-darwin10.6.0";
 }
 
+static const char* getCodeSize()
+{
+    int tmp;
+    return (sizeof(&tmp) == 8) ? "64 bits" : "32 bits";
+}
+
 // Returns the serial number as a CFString. 
 // It is the caller's responsibility to release the returned CFString when done with it.
 static string GetSerialNumber()
@@ -1450,7 +1456,7 @@ int main(void)
 {
     // Creates an instance of Faustgen
     faustgen::makeMaxClass("faustgen~");
-    post("faustgen~ v%s", FAUSTGEN_VERSION);
+    post("faustgen~ v%s (sample = 64 bits code = %s)", FAUSTGEN_VERSION, getCodeSize());
     post("LLVM powered Faust embedded compiler");
     post("Copyright (c) 2012-2015 Grame");
     
