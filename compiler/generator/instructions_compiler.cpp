@@ -676,6 +676,9 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
     } else if ((t1 == kReal) || (t2 == kReal)) {
         res = cast2int(t3, InstBuilder::genBinopInst(opcode, promote2real(t1, v1), promote2real(t2, v2)));
     // Otherwise kInt operation
+    } else if (opcode == kDiv) {
+        // special handling for division, we always want a float division
+        res = cast2int(t3, InstBuilder::genBinopInst(opcode, promote2real(t1, v1), promote2real(t2, v2)));
     } else {
         res = cast2real(t3, InstBuilder::genBinopInst(opcode, v1, v2));
     }
