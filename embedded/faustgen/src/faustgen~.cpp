@@ -53,7 +53,7 @@ static const char* getCodeSize()
 
 // Returns the serial number as a CFString. 
 // It is the caller's responsibility to release the returned CFString when done with it.
-static string GetSerialNumber()
+static string getSerialNumber()
 {
     io_service_t platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOPlatformExpertDevice"));
 
@@ -65,7 +65,7 @@ static string GetSerialNumber()
         if (serialNumberAsCFString) {
             char serial_name[256];
             CFStringGetCString((CFStringRef)serialNumberAsCFString, serial_name, 256, NULL);
-            return serial_name;
+            return string(serial_name) + string(getCodeSize());
         }
         IOObjectRelease(platformExpert);
     }
@@ -76,7 +76,7 @@ static string GetSerialNumber()
 
 static string getTarget() { return ""; }
 
-static int get_computer_name(char *computer_name, DWORD *computer_name_lg)
+static int getComputerName(char *computer_name, DWORD *computer_name_lg)
 {
    HKEY hKey;
    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE,
@@ -93,12 +93,12 @@ static int get_computer_name(char *computer_name, DWORD *computer_name_lg)
    return TRUE;
 }
 
-static string GetSerialNumber() 
+static string getSerialNumber() 
 {  
-	char name[256] = "Default Windows name";
+	char serial_name[256] = "Default Windows name";
 	DWORD name_lg = 256;
-	if (get_computer_name(name, &name_lg) == TRUE) {
-		return name;
+	if (getComputerName(serial_name, &name_lg) == TRUE) {
+		return string(serial_name) + string(getCodeSize());
 	} else {
 	   return "Windows"; 
 	}
@@ -449,8 +449,8 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     // Read machine serial number 
     const char* serial_number;  
     t_max_err err = dictionary_getstring(d, gensym("serial_number"), &serial_number);
-    if (err != MAX_ERR_NONE || strcmp(serial_number, GetSerialNumber().c_str()) != 0) {
-        post("Patch compiled on another machine, so ignore bitcode, force recompilation and use default compileoptions");
+    if (err != MAX_ERR_NONE || strcmp(serial_number, getSerialNumber().c_str()) != 0) {
+        post("Patch compiled on another machine or another CPU architecture, so ignore bitcode, force recompilation and use default compileoptions");
         goto read_sourcecode;
     }
   
@@ -519,7 +519,7 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
     post("Saving object version, sourcecode and bitcode...");
     
     // Save machine serial number 
-    dictionary_appendstring(d, gensym("serial_number"), GetSerialNumber().c_str());
+    dictionary_appendstring(d, gensym("serial_number"), getSerialNumber().c_str());
     
     // Save faustgen~ version
     dictionary_appendstring(d, gensym("version"), FAUSTGEN_VERSION);
