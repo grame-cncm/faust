@@ -58,7 +58,11 @@ using namespace std;
 #include <llvm/ExecutionEngine/JIT.h>
 #endif
 
+#if defined(LLVM_37)
+#include <llvm/IR/PassManager.h>
+#else
 #include <llvm/PassManager.h>
+#endif
 #include <llvm/Transforms/Scalar.h>
 #include <llvm-c/BitWriter.h>
 #include <llvm/Bitcode/ReaderWriter.h>

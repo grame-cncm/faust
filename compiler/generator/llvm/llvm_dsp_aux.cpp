@@ -55,7 +55,15 @@
 #include <llvm/Support/system_error.h>
 #endif
 #include <llvm/ADT/Triple.h>
+
+#if defined(LLVM_37)
+#include <llvm/Analysis/TargetLibraryInfo.h>
+#include <llvm/IR/PassManager.h>
+#else
 #include <llvm/Target/TargetLibraryInfo.h>
+#include <llvm/PassManager.h>
+#endif
+
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm-c/Core.h>
 #else
@@ -82,7 +90,6 @@
 #include <llvm/ExecutionEngine/JIT.h>
 #endif
 
-#include <llvm/PassManager.h>
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
 #include <llvm/IR/Verifier.h>
 #else
@@ -280,7 +287,7 @@ public:
 };
 #endif
 
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
+#if defined(LLVM_35) || defined(LLVM_36)
 // LLVM 3.5 has parseBitcodeFile(). Must emulate ParseBitcodeFile. -ag
 static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
                                 LLVMContext& Context,
@@ -297,6 +304,24 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
 
 }
 #endif
+
+#if defined(LLVM_37)
+// LLVM 3.5 has parseBitcodeFile(). Must emulate ParseBitcodeFile. -ag
+static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
+                                LLVMContext& Context,
+                                string* ErrMsg)
+{
+    using namespace llvm;
+    ErrorOr<std::unique_ptr<Module>> ModuleOrErr = parseBitcodeFile(Buffer, Context);
+    if (std::error_code EC = ModuleOrErr.getError()) {
+        if (ErrMsg) *ErrMsg = EC.message();
+        return NULL;
+    } else {
+        return ModuleOrErr.get();
+    }
+}
+#endif
+
 
 void* llvm_dsp_factory::loadOptimize(const string& function)
 {
@@ -477,7 +502,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key,
     #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
         LLVMInstallFatalErrorHandler(llvm_dsp_factory::LLVMFatalErrorHandler);
     #endif
-    #if (!defined(LLVM_35) && !defined(LLVM_36) && !defined(LLVM_37)) // In LLVM 3.5 this is gone.
+    #if (!defined(LLVM_35) && !defined(LLVM_36)) // In LLVM 3.5 this is gone.
         if (!llvm_start_multithreaded()) {
             printf("llvm_start_multithreaded error...\n");
         }
@@ -930,7 +955,7 @@ llvm_dsp_factory::~llvm_dsp_factory()
     }
     
     if (--llvm_dsp_factory::gInstance == 0) {
-    #if  (!defined(LLVM_35)) && (!defined(LLVM_36) || defined(LLVM_37)) // In LLVM 3.5 this is gone.
+    #if  (!defined(LLVM_35)) && (!defined(LLVM_36) // In LLVM 3.5 this is gone.
         llvm_stop_multithreaded();
     #endif
     #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
