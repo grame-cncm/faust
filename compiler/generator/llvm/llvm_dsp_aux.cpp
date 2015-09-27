@@ -955,7 +955,7 @@ llvm_dsp_factory::~llvm_dsp_factory()
     }
     
     if (--llvm_dsp_factory::gInstance == 0) {
-    #if  (!defined(LLVM_35)) && (!defined(LLVM_36) // In LLVM 3.5 this is gone.
+    #if  (!defined(LLVM_35)) && (!defined(LLVM_36)) // In LLVM 3.5 this is gone.
         llvm_stop_multithreaded();
     #endif
     #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
