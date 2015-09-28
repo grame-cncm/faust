@@ -19,6 +19,8 @@ import com.dsp_faust.dsp_faust;
 import com.illposed.osc.OSCListener;
 import com.illposed.osc.OSCMessage;
 
+import android.util.Log;
+
 /*
  * REMARKS:
  * 	- All the UI elements with a size greater than 2 pixels vary
@@ -27,7 +29,7 @@ import com.illposed.osc.OSCMessage;
  * 	remains the same on every screen. Perhaps this should be changed?
  */
 
-public class UI{
+public class UI {
 	/*
 	 * Global Variables (accessible from outside the class).
 	 */
@@ -72,6 +74,24 @@ public class UI{
 	BarGraph[] bargraphs;
 	
 	ConfigWindow parametersWindow;
+    
+    private void updateAcc(final ParametersInfo parametersInfo, int index)
+    {
+        Log.d("FaustJava", "updateAcc :  " + index
+              + " " + parametersInfo.accelType[index]
+              + " " + parametersInfo.accelCurve[index]
+              + " " + parametersInfo.accelMin[index]
+              + " " + parametersInfo.accelCenter[index]
+              + " " + parametersInfo.accelMax[index]);
+        
+        dsp_faust.setAccConverter(index,
+                                  parametersInfo.accelType[index] - 1,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
+                                  parametersInfo.accelCurve[index],
+                                  parametersInfo.accelMin[index],
+                                  parametersInfo.accelCenter[index],
+                                  parametersInfo.accelMax[index]);
+        
+    }
 	
 	/*
 	 * Initialize parametersValues in function of the total
@@ -107,7 +127,7 @@ public class UI{
 		}
 		
 		// the saved parameters of each UI element are retrieved
-		isSavedParameters = parametersInfo.getSavedParameters(settings);
+		isSavedParameters = parametersInfo.loadParameters(settings);
 		
 		// UI elements are instantiated
 		if(numberOfVsliders>0) vsliders = new VerticalSlider[numberOfVsliders];
@@ -191,8 +211,7 @@ public class UI{
 				} catch (JSONException e) {
 				}
 			}
-		} catch (JSONException e) {
-		}
+		} catch (JSONException e) {}
 		// returns the content of the member or 
 		// null if it doesn't exist
 		return value;
@@ -227,49 +246,23 @@ public class UI{
                 String metaDataHidden = parseJSONMetaData(currentObject, "hidden");
 				String metaDataMulti = parseJSONMetaData(currentObject, "multi");
 				
-				if(!isSavedParameters){
+				if (!isSavedParameters) {
                     // New accelerometer MetaData
 					String metaDataAccel = parseJSONMetaData(currentObject, "acc");
-					if(!metaDataAccel.equals("")){
-						float[] accelParams = {0,0,0,0,0,0};
-						for(int j=0; j<5; j++){
+                	if(!metaDataAccel.equals("")){
+          				float[] accelParams = {0,0,0,0,0};
+						for(int j=0; j<4; j++){
 							accelParams[j] = Float.valueOf(metaDataAccel.substring(0, metaDataAccel.indexOf(" ")));
 							metaDataAccel = metaDataAccel.substring(metaDataAccel.indexOf(" ")+1);
 						}
-						accelParams[5] = Float.valueOf(metaDataAccel);
-						
-						parametersInfo.accelState[parameterNumber] = (int) (accelParams[0]+1);
-						parametersInfo.accelInverterState[parameterNumber] = (int) accelParams[1];
+						accelParams[4] = Float.valueOf(metaDataAccel);
+                        parametersInfo.accelType[parameterNumber] = (int) accelParams[0] + 1;  // Java : from 0 to 3 (0 means no mapping)
+						parametersInfo.accelCurve[parameterNumber] = (int) accelParams[1];
 						parametersInfo.accelMin[parameterNumber] = accelParams[2];
-						parametersInfo.accelMax[parameterNumber] = accelParams[3];
-						parametersInfo.accelCenter[parameterNumber] = accelParams[4];
-                        parametersInfo.sliderCenter[parameterNumber] = accelParams[5];
-					}
-                    // Old accelerometer MetaData
-                    String[] metaDataAccelOld = new String[3];
-                    metaDataAccelOld[0] = parseJSONMetaData(currentObject, "accx");
-                    metaDataAccelOld[1] = parseJSONMetaData(currentObject, "accy");
-                    metaDataAccelOld[2] = parseJSONMetaData(currentObject, "accz");
-
-                    for(int k=0; k<3; k++){
-                        if(!metaDataAccelOld[k].equals("")){
-                            float[] accelParams = {0,0,0,0};
-                            for(int j=0; j<3; j++){
-                                accelParams[j] = Float.valueOf(metaDataAccelOld[k].substring(0, metaDataAccelOld[k].indexOf(" ")));
-                                metaDataAccelOld[k] = metaDataAccelOld[k].substring(metaDataAccelOld[k].indexOf(" ")+1);
-                            }
-                            accelParams[3] = Float.valueOf(metaDataAccelOld[k]);
-                            parametersInfo.accelState[parameterNumber] = (k+1);
-                            if(accelParams[0]<0) parametersInfo.accelInverterState[parameterNumber] = 1;
-                            else parametersInfo.accelInverterState[parameterNumber] = 0;
-                            parametersInfo.accelMin[parameterNumber] = -100.0f/Math.abs(accelParams[0]);
-                            parametersInfo.accelMax[parameterNumber] = 100.0f/Math.abs(accelParams[0]);
-                            parametersInfo.accelCenter[parameterNumber] = 0.0f;
-                            parametersInfo.sliderCenter[parameterNumber] = 0.0f;
-                        }
+						parametersInfo.accelCenter[parameterNumber] = accelParams[3];
+						parametersInfo.accelMax[parameterNumber] = accelParams[4];
                     }
-
-				}
+                }
 				
 				// Skipping freq, gain and gate if a keyboard interface was specified
 				if(hasKeyboard && (currentObject.getString("label").equals("freq") || 
@@ -303,12 +296,7 @@ public class UI{
 						parametersInfo.min[parameterNumber] = Float.parseFloat(currentObject.getString("min"));
 						parametersInfo.max[parameterNumber] = Float.parseFloat(currentObject.getString("max"));
 						parametersInfo.step[parameterNumber] = Float.parseFloat(currentObject.getString("step"));
-                        if(parametersInfo.accelState[parameterNumber]>0) {
-                            float range = parametersInfo.max[parameterNumber] - parametersInfo.min[parameterNumber];
-                            parametersInfo.sliderCenter[parameterNumber] = (parametersInfo.sliderCenter[parameterNumber] - parametersInfo.min[parameterNumber])/range;
-                            parametersInfo.sliderCenter[parameterNumber] = parametersInfo.sliderCenter[parameterNumber]*200-100;
-                        }
-					}
+             		}
 					if(metaDataStyle.equals("knob")){
 						knob(c, currentGroup, currentObject.getString("address"),
 								currentObject.getString("label"), 
@@ -319,7 +307,7 @@ public class UI{
 								localScreenWidth,localBackgroundColor,localPadding,paramVisible);
 					}
 					else if(metaDataStyle.contains("menu")){
-						dropDownMenu(c,currentGroup,currentObject.getString("address"),
+						menu(c,currentGroup,currentObject.getString("address"),
 								currentObject.getString("label"),
 								localScreenWidth,localBackgroundColor,metaDataStyle,paramVisible);
 					}
@@ -350,12 +338,7 @@ public class UI{
 						parametersInfo.min[parameterNumber] = Float.parseFloat(currentObject.getString("min"));
 						parametersInfo.max[parameterNumber] = Float.parseFloat(currentObject.getString("max"));
 						parametersInfo.step[parameterNumber] = Float.parseFloat(currentObject.getString("step"));
-                        if(parametersInfo.accelState[parameterNumber]>0) {
-                            float range = parametersInfo.max[parameterNumber] - parametersInfo.min[parameterNumber];
-                            parametersInfo.sliderCenter[parameterNumber] = (parametersInfo.sliderCenter[parameterNumber] - parametersInfo.min[parameterNumber])/range;
-                            parametersInfo.sliderCenter[parameterNumber] = parametersInfo.sliderCenter[parameterNumber]*200-100;
-                        }
-					}
+                    }
 					if(metaDataStyle.equals("knob")){
 						knob(c, currentGroup, currentObject.getString("address"),
 								currentObject.getString("label"), 
@@ -366,7 +349,7 @@ public class UI{
 								localScreenWidth,localBackgroundColor,localPadding,paramVisible);
 					}
 					else if(metaDataStyle.contains("menu")){
-						dropDownMenu(c,currentGroup,currentObject.getString("address"),
+						menu(c,currentGroup,currentObject.getString("address"),
 								currentObject.getString("label"),
 								localScreenWidth,localBackgroundColor,metaDataStyle,paramVisible);
 					}
@@ -397,12 +380,7 @@ public class UI{
 						parametersInfo.min[parameterNumber] = Float.parseFloat(currentObject.getString("min"));
 						parametersInfo.max[parameterNumber] = Float.parseFloat(currentObject.getString("max"));
 						parametersInfo.step[parameterNumber] = Float.parseFloat(currentObject.getString("step"));
-                        if(parametersInfo.accelState[parameterNumber]>0) {
-                            float range = parametersInfo.max[parameterNumber] - parametersInfo.min[parameterNumber];
-                            parametersInfo.sliderCenter[parameterNumber] = (parametersInfo.sliderCenter[parameterNumber] - parametersInfo.min[parameterNumber])/range;
-                            parametersInfo.sliderCenter[parameterNumber] = parametersInfo.sliderCenter[parameterNumber]*200-100;
-                        }
-					}
+             		}
 					if(metaDataStyle.equals("knob")){
 						knob(c, currentGroup, currentObject.getString("address"),
 								currentObject.getString("label"), 
@@ -413,7 +391,7 @@ public class UI{
 								localScreenWidth,localBackgroundColor,localPadding,paramVisible);
 					}
 					else if(metaDataStyle.contains("menu")){
-						dropDownMenu(c,currentGroup,currentObject.getString("address"),
+                        menu(c,currentGroup,currentObject.getString("address"),
 								currentObject.getString("label"),
 								localScreenWidth,localBackgroundColor,metaDataStyle,paramVisible);
 					}
@@ -464,21 +442,19 @@ public class UI{
 			parametersCounters[i] = 0;
 		}
 		for(int i=0; i<parameterNumber; i++){
-			if(parametersInfo.parameterType[i] == 0){
-				//System.out.println("Voila: " + hsliders[parametersCounters[0]].address);
-				//System.out.println("Voila: " + dsp_faust.getParam(hsliders[parametersCounters[0]].address));
+			if(parametersInfo.parameterType[i] == 0){       //0: hslider
 				hsliders[parametersCounters[0]].setValue(dsp_faust.getParam(hsliders[parametersCounters[0]].address));
 				parametersCounters[0]++;
 			}
-			else if(parametersInfo.parameterType[i] == 1){
+			else if(parametersInfo.parameterType[i] == 1){  //1: vslider
 				vsliders[parametersCounters[1]].setValue(dsp_faust.getParam(vsliders[parametersCounters[1]].address));
 				parametersCounters[1]++;
 			}
-			else if(parametersInfo.parameterType[i] == 2){
+			else if(parametersInfo.parameterType[i] == 2){  //2 : knob
 				knobs[parametersCounters[2]].setValue(dsp_faust.getParam(knobs[parametersCounters[2]].address));
 				parametersCounters[2]++;
 			}
-			else if(parametersInfo.parameterType[i] == 3){
+			else if(parametersInfo.parameterType[i] == 3){  //3 : nentry
 				nentries[parametersCounters[3]].setValue(dsp_faust.getParam(nentries[parametersCounters[3]].address));
 				parametersCounters[3]++;
 			}
@@ -511,22 +487,22 @@ public class UI{
 	 *  	from the JSON description
 	 */
 	//TODO: init?
-	public void dropDownMenu(Context c, LinearLayout currentGroup, final String address, final String label,
+	public void menu(Context c, LinearLayout currentGroup, final String address, final String label,
 			int localScreenWidth, int localBackgroundColor, String parameters, boolean visibility){
+        
 		String parsedParameters = parameters.substring(parameters.indexOf("{") + 1, 
 				parameters.indexOf("}"));
 		menus[parametersCounters[4]] = new Menu(c,address,parameterNumber,
 				localScreenWidth, localBackgroundColor, parsedParameters, visibility);
 		menus[parametersCounters[4]].setLabel(label);
-		
 		int init = 0;
 		if(isSavedParameters) init = (int) parametersInfo.values[parameterNumber];
 		else parametersInfo.values[parameterNumber] = init;
-		
 		menus[parametersCounters[4]].setSelection(init);
-		//dsp_faust.setParam(address, init);
-	    menus[parametersCounters[4]].linkTo(parametersInfo);
+        menus[parametersCounters[4]].linkTo(parametersInfo);
 	    menus[parametersCounters[4]].addTo(currentGroup);
+        
+        //dsp_faust.setParam(address, init);
 	    
 	    parametersInfo.parameterType[parameterNumber] = 4;
 	    parametersInfo.localId[parameterNumber] = parametersCounters[4];
@@ -549,18 +525,18 @@ public class UI{
 	//TODO: init?
 	public void radio(Context c, LinearLayout currentGroup, final String address, final String label,
 			int localScreenWidth, int localBackgroundColor, String parameters, int orientation, boolean visibility){
+        
 		String parsedParameters = parameters.substring(parameters.indexOf("{") + 1, parameters.indexOf("}"));
-		int init = 0;
+    	int init = 0;
 		if(isSavedParameters) init = (int) parametersInfo.values[parameterNumber];
 		else parametersInfo.values[parameterNumber] = init;
-		
 		radios[parametersCounters[5]] = new Radio(c,address,parameterNumber,
 				localScreenWidth, localBackgroundColor, parsedParameters, orientation, init, visibility);
 		radios[parametersCounters[5]].setLabel(label);
-		
-		//dsp_faust.setParam(address, init);
-	    radios[parametersCounters[5]].linkTo(parametersInfo);
+        radios[parametersCounters[5]].linkTo(parametersInfo);
 	    radios[parametersCounters[5]].addTo(currentGroup);
+        
+        //dsp_faust.setParam(address, init);
 	    
 	    parametersInfo.parameterType[parameterNumber] = 5;
 	    parametersInfo.localId[parameterNumber] = parametersCounters[5];
@@ -585,19 +561,23 @@ public class UI{
 	public void hslider(Context c, LinearLayout currentGroup, final String address, final String label, float init, 
 			final float min, final float max, final float step, int localScreenWidth, int localBackgroundColor, 
 			int localPadding, boolean visibility){
-		// the slider
+		 
+        Log.d("FaustJava", "hslider : init " + parametersInfo.values[parameterNumber] + " " + init);
+        
+        // the slider
 		hsliders[parametersCounters[0]] = new HorizontalSlider(c,address,parameterNumber,
 				localScreenWidth, localBackgroundColor, localPadding, visibility);
-		
 		hsliders[parametersCounters[0]].setParams(label, min, max, step);
-		if(isSavedParameters) init = parametersInfo.values[parameterNumber];
+    	if(isSavedParameters) init = parametersInfo.values[parameterNumber];
 		else parametersInfo.values[parameterNumber] = init;
-		
 		hsliders[parametersCounters[0]].setValue(init);
-		dsp_faust.setParam(address, init);
 	    hsliders[parametersCounters[0]].linkTo(parametersInfo, parametersWindow, horizontalScroll);
 	    hsliders[parametersCounters[0]].addTo(currentGroup);
-
+        
+        // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
+        updateAcc(parametersInfo, parameterNumber);
+        dsp_faust.setParam(address, init);
+      
         // OSC listener
         final int parameterId = parametersCounters[0];
         final FaustActivity faustActivity = (FaustActivity) c;
@@ -637,18 +617,20 @@ public class UI{
 	public void vslider(Context c, LinearLayout currentGroup, final String address, final String label, float init, 
 			final float min, final float max, final float step, int localScreenWidth, int localBackgroundColor,
 			boolean visibility){
+        
 		// the slider
 		vsliders[parametersCounters[1]] = new VerticalSlider(c,address,parameterNumber,
 				localScreenWidth, localBackgroundColor, visibility);
-
-		vsliders[parametersCounters[1]].setParams(label, min, max, step);
-		if(isSavedParameters) init = parametersInfo.values[parameterNumber];
+        vsliders[parametersCounters[1]].setParams(label, min, max, step);
+    	if(isSavedParameters) init = parametersInfo.values[parameterNumber];
 		else parametersInfo.values[parameterNumber] = init;
-		
 		vsliders[parametersCounters[1]].setValue(init);
-		dsp_faust.setParam(address, init);
 	    vsliders[parametersCounters[1]].linkTo(parametersInfo, parametersWindow, horizontalScroll);
 	    vsliders[parametersCounters[1]].addTo(currentGroup);
+        
+        // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
+        updateAcc(parametersInfo, parameterNumber);
+        dsp_faust.setParam(address, init);
 
         // OSC listener
         final int parameterId = parametersCounters[1];
@@ -690,17 +672,20 @@ public class UI{
 	public void knob(Context c, LinearLayout currentGroup, final String address, final String label, float init, 
 			final float min, final float max, final float step, int localScreenWidth, int localBackgroundColor,
 			int localPadding, boolean visibility){
+        
 		knobs[parametersCounters[2]] = new Knob(c,address,parameterNumber,
 				localScreenWidth, localBackgroundColor, localPadding, visibility);
 		knobs[parametersCounters[2]].setParams(label, min, max, step);
-		if(isSavedParameters) init = parametersInfo.values[parameterNumber];
+        if(isSavedParameters) init = parametersInfo.values[parameterNumber];
 		else parametersInfo.values[parameterNumber] = init;
-		
 		knobs[parametersCounters[2]].setValue(init);
-		dsp_faust.setParam(address, init);
 	    knobs[parametersCounters[2]].linkTo(parametersInfo, parametersWindow, horizontalScroll);
 	    knobs[parametersCounters[2]].addTo(currentGroup);
-
+        
+        // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
+        updateAcc(parametersInfo, parameterNumber);
+        dsp_faust.setParam(address, init);
+       
         // OSC listener
         final int parameterId = parametersCounters[2];
         final FaustActivity faustActivity = (FaustActivity) c;
@@ -740,18 +725,20 @@ public class UI{
 	public void nentry(Context c, LinearLayout currentGroup, final String address, final String label, float init, 
 			final float min, final float max, final float step, int localScreenWidth, int localBackgroundColor,
 			boolean visibility){
+        
 		nentries[parametersCounters[3]] = new Nentry(c,address,parameterNumber,
 				localScreenWidth, localBackgroundColor, visibility);
 		nentries[parametersCounters[3]].setParams(label, min, max, step);
-		
 		if(isSavedParameters) init = parametersInfo.values[parameterNumber];
 		else parametersInfo.values[parameterNumber] = init;
-		
 		nentries[parametersCounters[3]].setValue(init);
-		dsp_faust.setParam(address, init);
-	    nentries[parametersCounters[3]].linkTo(parametersInfo, parametersWindow);
+        nentries[parametersCounters[3]].linkTo(parametersInfo, parametersWindow);
 	    nentries[parametersCounters[3]].addTo(currentGroup);
-
+        
+        // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
+        updateAcc(parametersInfo, parameterNumber);
+        dsp_faust.setParam(address, init);
+    
         // OSC listener
         final int parameterId = parametersCounters[3];
         final FaustActivity faustActivity = (FaustActivity) c;
@@ -786,12 +773,11 @@ public class UI{
 	 */
 	public void button(Context c, LinearLayout currentGroup, final String address, final String label, 
 			int localScreenWidth, int localBackgroundColor, boolean visibility){
+        
 		buttons[parametersCounters[6]] = new PushButton(c,address,parameterNumber,
 				localScreenWidth, localBackgroundColor, label);
-		
 	    buttons[parametersCounters[6]].linkTo(parametersInfo);
 	    if(visibility) buttons[parametersCounters[6]].addTo(currentGroup);
-	    
 	    parametersInfo.parameterType[parameterNumber] = 6;
 	    parametersInfo.localId[parameterNumber] = parametersCounters[6];
 	    parametersCounters[6]++;
@@ -809,18 +795,18 @@ public class UI{
 	 */
 	public void checkbox(Context c, LinearLayout currentGroup, final String address, final String label, 
 			int localScreenWidth, int localBackgroundColor, boolean visibility){
+        
         int height = Math.round(screenSizeY*0.1f);
 		checkboxes[parametersCounters[7]] = new Checkbox(c,address,parameterNumber,
 				localScreenWidth, height, localBackgroundColor, label);
-		
 		float init = 0.0f; //default value for the checkbox
 		if(isSavedParameters) init = parametersInfo.values[parameterNumber];
 		else parametersInfo.values[parameterNumber] = init;
-		
 		checkboxes[parametersCounters[7]].setStatus(init);
-		dsp_faust.setParam(address, init);
 	    checkboxes[parametersCounters[7]].linkTo(parametersInfo);
 	    if(visibility) checkboxes[parametersCounters[7]].addTo(currentGroup);
+        
+        dsp_faust.setParam(address, init);
 
         // OSC listener
         final int parameterId = parametersCounters[7];

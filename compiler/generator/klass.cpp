@@ -227,6 +227,7 @@ void Klass::printAdditionalCode(ostream& fout)
         fout << "template <int N> inline int faustpower(int x)              { return faustpower<N/2>(x) * faustpower<N-N/2>(x); } " << endl;
         fout << "template <> 	 inline int faustpower<0>(int x)            { return 1; }" << endl;
         fout << "template <> 	 inline int faustpower<1>(int x)            { return x; }" << endl;
+        fout << "template <> 	 inline int faustpower<2>(int x)            { return x*x; }" << endl;
         fout << "#endif" << endl;
     }
 

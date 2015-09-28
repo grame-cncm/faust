@@ -67,6 +67,7 @@ install:
 	install faust2asmjs $(dest)
 	install faust2api $(dest)
 	install faust2raqt $(dest)
+	install faust2md $(dest)
 	
 
 uninstall:
@@ -125,6 +126,7 @@ uninstall:
 	rm -f $(dest)/faust2asmjs
 	rm -f $(dest)/faust2api
 	rm -f $(dest)/faust2raqt
+	rm -f $(dest)/faust2md
 	
 
 

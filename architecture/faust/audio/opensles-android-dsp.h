@@ -40,8 +40,10 @@
 
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
+#include <android/log.h>
 #include <pthread.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 typedef struct threadLock_ {
 	pthread_mutex_t m;
@@ -96,8 +98,8 @@ typedef struct opensl_stream {
 
 } OPENSL_STREAM;
 
-#define CONV16BIT 32767
-#define CONVMYFLT (1./32767.)
+#define CONV16BIT 32767.f
+#define CONVMYFLT (1.f/32767.f)
 
 static void* createThreadLock(void);
 static int waitThreadLock(void *lock);
@@ -545,32 +547,41 @@ int android_AudioOut(OPENSL_STREAM *p, float **buffer, int size) {
 	int i, bufsamps = p->outBufSamples, index = p->currentOutputIndex;
 	if (p == NULL || bufsamps == 0)
 		return 0;
+    
+    __android_log_write(ANDROID_LOG_INFO, "FaustCPP", "Error");
+    
 	outBuffer = p->outputBuffer[p->currentOutputBuffer];
-
-	for (i = 0; i < size; i++) {
-		if (p->outchannels == 1)
-			outBuffer[index++] = (short) (min(1.f, max(-1.f, buffer[0][i]))
-					* CONV16BIT);
-		else {
-			outBuffer[index++] = (short) (min(1.f, max(-1.f, buffer[0][i]))
-					* CONV16BIT);
-			outBuffer[index++] = (short) (min(1.f, max(-1.f, buffer[1][i]))
-					* CONV16BIT);
-		}
-		if (index >= p->outBufSamples) {
-			waitThreadLock(p->outlock);
-			(*p->bqPlayerBufferQueue)->Enqueue(p->bqPlayerBufferQueue,
-					outBuffer, bufsamps * sizeof(short));
-			p->currentOutputBuffer = (p->currentOutputBuffer ? 0 : 1);
-			index = 0;
-			outBuffer = p->outputBuffer[p->currentOutputBuffer];
-		}
-	}
+    if (p->outchannels == 1) {
+        for (i = 0; i < size; i++) {
+            outBuffer[index++] = (short) (min(1.f, max(-1.f, buffer[0][i]))
+                                          * CONV16BIT);
+            if (index >= p->outBufSamples) {
+                waitThreadLock(p->outlock);
+                (*p->bqPlayerBufferQueue)->Enqueue(p->bqPlayerBufferQueue,
+                                                   outBuffer, bufsamps * sizeof(short));
+                p->currentOutputBuffer = (p->currentOutputBuffer ? 0 : 1);
+                index = 0;
+                outBuffer = p->outputBuffer[p->currentOutputBuffer];
+            }
+        }
+    } else {
+        for (i = 0; i < size; i++) {
+            outBuffer[index++] = (short) (min(1.f, max(-1.f, buffer[0][i]))
+                                          * CONV16BIT);
+            outBuffer[index++] = (short) (min(1.f, max(-1.f, buffer[1][i]))
+                                          * CONV16BIT);
+            if (index >= p->outBufSamples) {
+                waitThreadLock(p->outlock);
+                (*p->bqPlayerBufferQueue)->Enqueue(p->bqPlayerBufferQueue,
+                                                   outBuffer, bufsamps * sizeof(short));
+                p->currentOutputBuffer = (p->currentOutputBuffer ? 0 : 1);
+                index = 0;
+                outBuffer = p->outputBuffer[p->currentOutputBuffer];
+            }
+        }
+    }
 	p->currentOutputIndex = index;
-	if (p->outchannels == 1)
-		p->time += (double) size / (p->sr * p->outchannels);
-	else
-		p->time += (double) size * 2 / (p->sr * p->outchannels);
+	p->time += (double) size * p->outchannels/ (p->sr * p->outchannels);
 	return i;
 }
 

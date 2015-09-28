@@ -137,7 +137,7 @@
 //------------------------------------------------------------------------
 //  Method: value accessor
 //
--(float) value
+-(CGFloat) value
 {
     return m_flValue;
 }
@@ -146,7 +146,7 @@
 //------------------------------------------------------------------------
 //  Method: value setter
 //
--(void) setValue:(float)a_value
+-(void) setValue:(CGFloat)a_value
 {
     bool      fRedraw = false;
     
@@ -310,14 +310,14 @@
     if (self.led)
     {
         CGContextRef        ctx;
-        float               rMin = 0.f;
-        float               gMin = 0.f;
-        float               bMin = 0.f;
-        float               aMin = 0.f;
-        float               rMax = 0.f;
-        float               gMax = 0.f;
-        float               bMax = 0.f;
-        float               aMax = 0.f;
+        CGFloat             rMin = 0.f;
+        CGFloat             gMin = 0.f;
+        CGFloat             bMin = 0.f;
+        CGFloat             aMin = 0.f;
+        CGFloat             rMax = 0.f;
+        CGFloat             gMax = 0.f;
+        CGFloat             bMax = 0.f;
+        CGFloat             aMax = 0.f;
         UIColor*            color;
         float               normedValue = (self.value - self.minLimit) / (self.maxLimit - self.minLimit);
                 
