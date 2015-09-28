@@ -54,6 +54,8 @@
 // Android Audio (modified opensl_io)
 //**************************************************************
 
+#define FAUSTFLOAT float
+
 #include "faust/audio/opensles-android-dsp.h"
 
 //**************************************************************
@@ -64,8 +66,6 @@
 #include "dsp_faust.h"
 #include <stdio.h>
 #include <string.h>
-
-#define FAUSTFLOAT float
 
 using namespace std;
 
@@ -78,7 +78,7 @@ JSONUI json(DSP.getNumInputs(), DSP.getNumOutputs());
 string jsonString;
 
 // Global variables
-int SR, bufferSize, vecSamps, polyMax, inChanNumb, outChanNumb;
+int SR, bufferSize, polyMax, inChanNumb, outChanNumb;
 float **bufferout, **bufferin;
 bool on;
 
@@ -95,7 +95,6 @@ void init(int samplingRate, int bufferFrames) {
 	// configuring global variables
 	SR = samplingRate;
 	bufferSize = bufferFrames;
-	vecSamps = bufferSize;
 	DSP.init(SR);
 	inChanNumb = DSP.getNumInputs();
 	outChanNumb = DSP.getNumOutputs();
@@ -119,7 +118,7 @@ void init(int samplingRate, int bufferFrames) {
 	// are played. Additional output channels are ignored.
 	bufferout = new float *[outChanNumb];
 	for (int i = 0; i < outChanNumb; i++) {
-		bufferout[i] = new float[vecSamps];
+		bufferout[i] = new float[bufferSize];
 	}
 
 	// Allocating memory for input channel. We assume no more than
@@ -127,7 +126,7 @@ void init(int samplingRate, int bufferFrames) {
 	// share the content of input channel 0.
 	if (inChanNumb >= 1) {
 		bufferin = new float *[inChanNumb];
-		bufferin[0] = new float[vecSamps];
+		bufferin[0] = new float[bufferSize];
 		for (int i = 1; i < inChanNumb; i++) {
 			bufferin[i] = bufferin[0];
 		}
@@ -142,18 +141,18 @@ void *processDSP(void *threadID) {
 	while (on) {
 		// getting input signal
 		if (inChanNumb >= 1) {
-			android_AudioIn(p, bufferin[0], vecSamps);
+			android_AudioIn(p, bufferin[0], bufferSize);
         }
 
 		// computing...
 		if (polyMax == 0) {
-			DSP.compute(vecSamps, bufferin, bufferout);
+			DSP.compute(bufferSize, bufferin, bufferout);
 		} else {
-			DSPpoly->compute(vecSamps, bufferin, bufferout);
+			DSPpoly->compute(bufferSize, bufferin, bufferout);
         }
 
 		// sending output signal
-		android_AudioOut(p, bufferout, vecSamps);
+		android_AudioOut(p, bufferout, bufferSize);
 	}
 }
 
@@ -289,7 +288,6 @@ void setParam(const char* address, float value) {
 	} else {
 		DSPpoly->setValue(address, value);
     }
-	//__android_log_print(ANDROID_LOG_VERBOSE, "Echo", "Foucou: %s",address);
 }
 
 /*

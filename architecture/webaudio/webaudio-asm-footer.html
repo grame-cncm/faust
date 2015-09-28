@@ -7,6 +7,7 @@ var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContex
 var audio_input = null;
 var DSP = null;
 var faustsvg = null;
+var dsp_code = null;
 
 function changeBufferSize(buffer_size)
 {

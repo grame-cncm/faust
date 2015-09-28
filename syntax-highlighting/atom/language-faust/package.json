@@ -1,0 +1,26 @@
+{
+  "name": "language-faust",
+  "description": "faust language support in Atom",
+  "version": "0.1.0",
+  "license": "MIT",
+  "engines": {
+    "atom": "*",
+    "node": "*"
+  },
+  "homepage": "http://atom.github.io/language-faust",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atom/language-faust.git"
+  },
+  "bugs": {
+    "url": "https://github.com/atom/language-faust/issues"
+  },
+  "readme": "# faust language support in Atom\n\nAdds syntax highlighting and snippets to faust files in Atom.\n",
+  "readmeFilename": "README.md",
+  "_id": "language-faust@0.1.0",
+  "dist": {
+    "shasum": "264db63fab8c2b6cf8c1e439f5bc83d479a2397e"
+  },
+  "_resolved": "/var/folders/cs/hjtd49ys4xz5jlr8t2mqbkk00000gn/T/d-114431-26663-1ston5p/package.tgz",
+  "_from": "/var/folders/cs/hjtd49ys4xz5jlr8t2mqbkk00000gn/T/d-114431-26663-1ston5p/package.tgz"
+}

@@ -61,3 +61,9 @@ faust2eps  <file1.dsp>...       : create svg block-diagrams for each input file
 faust2firefox  <file1.dsp>...   : faust2svg with visualization using firefox
 
 faust2octave <file.dsp>         : faust2plot with visualization using octave   
+
+4) the following scripts can be used to generate documentation
+
+faust2mathdoc <file.dsp>        : generate mathematical documentation 
+
+faust2md <file.dsp> > file.md   : generate markdown documentation from the comments in the code

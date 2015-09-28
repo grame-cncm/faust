@@ -1,4 +1,4 @@
-//instrument.lib - Faust function of various types usefull for building physical model instruments 
+//instrument.lib - Faust function of various types usefull for building physical model instruments
 
 declare name "Faust-STK Tools Library";
 declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
@@ -15,20 +15,20 @@ import("effect.lib");
 //----------------------- VIBRATO ENVELOPE ----------------------------
 // 4 phases envelope to control vibrato gain
 //
-// USAGE: 
+// USAGE:
 //   _ : *(envVibrato(b,a,s,r,t)) : _
 // where
 //   b = beginning duration (silence) in seconds
 //   a = attack duration in seconds
 //   s = sustain as a percentage of the amplitude to be modified
 //   r = release duration in seconds
-//   t = trigger signal 
+//   t = trigger signal
 
 envVibrato(b,a,s,r,t) = env ~ (_,_,_) : (!,!,_) // the 3 'state' signals are fed back
 with {
     env (p2,cnt,y) =
         (t>0) & (p2|(y>=1)),
-		(cnt + 1)*(t>0), // counter for the first step "b" 
+		(cnt + 1)*(t>0), // counter for the first step "b"
         (y + p1*p3*u*(s/100) - p4*w*y)*((p4==0)|(y>=eps))	// y  = envelop signal
 		//*(y>=eps) // cut off tails to prevent denormals
     with {
@@ -48,13 +48,13 @@ with {
 //----------------------- ATTACK - SUSTAIN - RELEASE ----------------------------
 // Attack - Sustain - Release envelope
 //
-// USAGE: 
+// USAGE:
 //   _ : *(asr(a,s,r,t)) : _
 // where
 //   a = attack duration in seconds
 //   s = sustain as a percentage of the amplitude to be modified
 //   r = release duration in seconds
-//   t = trigger signal 
+//   t = trigger signal
 
 asr(a,s,r,t) = env ~ (_,_) : (!,_) // the 2 'state' signals are fed back
 with {
@@ -79,13 +79,13 @@ with {
 //----------------------- ASYMPT60 ----------------------------
 // Envelope generator which asymptotically approaches a target value.
 //
-// USAGE: 
+// USAGE:
 //   asympT60(value,trgt,T60,trig) : _
 // where
 //   value = starting value
 //   trgt = target value
 //   T60 = ramping time
-//   trig = trigger signal 
+//   trig = trigger signal
 
 asympT60(value,trgt,T60,trig) = (_*factor + constant)~_
 	with{
@@ -95,9 +95,9 @@ asympT60(value,trgt,T60,trig) = (_*factor + constant)~_
 		target = value*cndFirst + trgt*(cndFirst < 1);
 		factorAtt = exp(-7/attDur);
 		factorT60 = exp(-7/(T60*float(SR)));
-		factor = factorAtt*((cntSample < attDur) & (trig > 0)) + 
+		factor = factorAtt*((cntSample < attDur) & (trig > 0)) +
 		       ((cntSample >= attDur) | (trig < 1))*factorT60;
-		constant = (1 - factor)*target;	
+		constant = (1 - factor)*target;
 	};
 
 //========================= TABLES ===============================
@@ -105,7 +105,7 @@ asympT60(value,trgt,T60,trig) = (_*factor + constant)~_
 //----------------------- CLIPPING FUNCTION ----------------------------
 // Positive and negative clipping functions.
 //
-// USAGE: 
+// USAGE:
 //   _ : saturationPos : _
 //   _ : saturationNeg : _
 //   _ : saturationPos : saturationNeg : _
@@ -116,10 +116,10 @@ saturationNeg(x) = x <: (_<-1),(_>=-1 : *(x)) :> *(-1) + _;
 //----------------------- BOW TABLE ----------------------------
 // Simple bow table.
 //
-// USAGE: 
+// USAGE:
 //   index : bow(offset,slope) : _
 // where
-//   0 <= index <= 1 
+//   0 <= index <= 1
 
 bow(offset,slope) = pow(abs(sample) + 0.75, -4) : saturationPos
 	with{
@@ -197,9 +197,9 @@ bandPassH(resonance,radius) = TF2(b0,b1,b2,a1,a2)
 		b2 = 0;
 	};
 
-//----------------------- FLUE JET NON-LINEAR FUNCTION ----------------------------	
+//----------------------- FLUE JET NON-LINEAR FUNCTION ----------------------------
 // Jet Table: flue jet non-linear function, computed by a polynomial calculation
-	
+
 jetTable(x) = x <: _*(_*_-1) : saturationPos : saturationNeg;
 
 //----------------------- NON LINEAR MODULATOR ----------------------------
@@ -208,7 +208,7 @@ jetTable(x) = x <: _*(_*_-1) : saturationPos : saturationNeg;
 // USAGE:
 //   _ : nonLinearModulator(nonlinearity,env,freq,typeMod,freqMod,order) : _
 // where
-//   nonlinearity = nonlinearity coefficient between 0 and 1 
+//   nonlinearity = nonlinearity coefficient between 0 and 1
 //   env = input to connect any kind of envelope
 //   freq = current tone frequency
 //   typeMod = if 0: theta is modulated by the incoming signal;
@@ -218,8 +218,8 @@ jetTable(x) = x <: _*(_*_-1) : saturationPos : saturationNeg;
 //	       if 4: theta is modulated by a sine wave of frequency freq;
 //   freqMod = frequency of the sine wave modulation
 //   order = order of the filter
- 
-nonLinearModulator(nonlinearity,env,freq,typeMod,freqMod,order) = 
+
+nonLinearModulator(nonlinearity,env,freq,typeMod,freqMod,order) =
 	//theta is modulated by a sine wave
 	_ <: nonLinearFilterOsc*(typeMod >= 3),
 	//theta is modulated by the incoming signal
@@ -233,42 +233,31 @@ nonLinearModulator(nonlinearity,env,freq,typeMod,freqMod,order) =
 		tsignorm(x) = nonlinearity*PI*x*env;
 		tsigsquared(x) = nonlinearity*PI*x*x*env; //incoming signal is squared
 		tsigav(x) = nonlinearity*PI*((x + x')/2)*env; //incoming signal is averaged with its previous sample
-		
+
 		//select which version of the incoming signal of theta to use
-		tsig(x) = tsignorm(x)*(typeMod == 0) + tsigav(x)*(typeMod == 1) 
+		tsig(x) = tsignorm(x)*(typeMod == 0) + tsigav(x)*(typeMod == 1)
 			  + tsigsquared(x)*(typeMod == 2);
 
 		//theta is modulated by a sine wave generator
-		tosc = nonlinearity*PI*osc(freqOscMod)*env; 
+		tosc = nonlinearity*PI*osc(freqOscMod)*env;
 
 		//incoming signal is sent to the nonlinear passive allpass ladder filter
 		nonLinearFilterSig(x) = x <: allpassnn(order,(par(i,order,tsig(x))));
 		nonLinearFilterOsc = _ <: allpassnn(order,(par(i,order,tosc)));
 	};
-	
-//========================= WAVE TABLES ===============================
-
-//----------------------- STICK IMPACT ----------------------------
-// Stick impact table.
-//
-// USAGE:
-//   index : readMarmstk1 : _
-
-readMarmstk1 = ffunction(float readMarmstk1 (int), <instrument.h>,"");
-marmstk1TableSize = 246;
 
 //========================= TOOLS ===============================
 
 //----------------------- STEREOIZER ----------------------------
-// This function takes a mono input signal and spacialize it in stereo 
+// This function takes a mono input signal and spacialize it in stereo
 // in function of the period duration of the tone being played.
 //
 // USAGE:
 //   _ : stereo(periodDuration) : _,_
 // where
-//   periodDuration = period duration of the tone being played in number of samples 
+//   periodDuration = period duration of the tone being played in number of samples
 // ACKNOWLEDGMENT
-//   Formulation initiated by Julius O. Smith in https://ccrma.stanford.edu/realsimple/faust_strings/  	
+//   Formulation initiated by Julius O. Smith in https://ccrma.stanford.edu/realsimple/faust_strings/
 
 stereoizer(periodDuration) = _ <: _,widthdelay : stereopanner
 	   with{
@@ -284,7 +273,7 @@ stereoizer(periodDuration) = _ <: _,widthdelay : stereopanner
 // USAGE:
 //  _,_ : instrRerveb
 
-instrReverb = _,_ <: *(reverbGain),*(reverbGain),*(1 - reverbGain),*(1 - reverbGain) : 
+instrReverb = _,_ <: *(reverbGain),*(reverbGain),*(1 - reverbGain),*(1 - reverbGain) :
 zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ <: _,!,_,!,!,_,!,_ : +,+
        with{
        reverbGain = hslider("v:Reverb/reverbGain",0.137,0,1,0.01) : smooth(0.999);

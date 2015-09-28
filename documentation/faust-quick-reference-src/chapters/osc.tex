@@ -87,6 +87,7 @@ These OSC parameters can be changed from the command line using one of the follo
 \item \lstinline'-errport number' set the port number used by the application to transmit error messages.
 \item \lstinline'-desthost host' set the destination host for the messages sent by the application.
 \item \lstinline'-xmit 1|0' turn transmission ON or OFF (default OFF). When transmission is ON user's actions are transmitted as OSC messages.
+\item \lstinline'-xmitfilter path' allows to filter output messages. Note that 'path' can be a regular expression (like "/freeverb/Reverb1/*").
 \end{itemize}
 
 For example:
@@ -280,7 +281,7 @@ To reset the filter, send:
 
 \section{Using OSC aliases}
 
-Aliases are a convenient mechanism to control a FAUST application from a preexisting set of OSC messages. 
+Aliases are a convenient mechanism to control a \faust application from a preexisting set of OSC messages. 
 
 Let's say we want to control our noise example with touchOSC on Android. The first step is to configure TouchOSC host to 192.168.1.102 (the host running our noise application) and outgoing port to 5510. 
 
@@ -329,8 +330,6 @@ As we can see TouchOSC send the x, y and z accelerometers in a single message, a
 \begin{lstlisting}
  process = library("music.lib").noise * hslider("level[osc:/accxyz/0 0 9.81]",0,0,1,0.01);
 \end{lstlisting}
-
-
 
 \begin{table}[htdp]
 \begin{center}
@@ -389,7 +388,7 @@ As we can see TouchOSC send the x, y and z accelerometers in a single message, a
 \lstinline'-errport' $n$ & set the port number used by the application to transmit error messages\\
 \lstinline'-desthost' $h$ & set the destination host for the messages sent by the application\\
 \lstinline'-xmit 1|0' & turn transmission ON or OFF (default OFF) \\
-\lstinline'-xmitfilter' $s$ & filter the faust paths at emission time
+\lstinline'-xmitfilter' $s$ & filter the \faust paths at emission time
 \end{tabular}
 
 \subsection*{Discovery messages}

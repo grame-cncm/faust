@@ -26,7 +26,6 @@ public class Osc{
     }
 
     public static void startListening(){
-
         receiver.startListening();
     }
 

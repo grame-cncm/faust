@@ -1,5 +1,7 @@
 package com.faust;
 
+import com.dsp_faust.dsp_faust;
+
 import android.content.Context;
 import android.graphics.Point;
 import android.view.Display;
@@ -14,6 +16,8 @@ import android.widget.PopupWindow;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+
+import android.util.Log;
 
 /*
  * TODO:
@@ -85,8 +89,8 @@ public class ConfigWindow{
 		String[] items = {"0","X","Y","Z"};
 		axisSelection.setItems(items);
 		
-		int[] iconsOn = {R.drawable.ic_accelnormon,R.drawable.ic_accelinverton,R.drawable.ic_accelcurveon};
-		int[] iconsOff = {R.drawable.ic_accelnormoff,R.drawable.ic_accelinvertoff,R.drawable.ic_accelcurveoff};
+		int[] iconsOn = {R.drawable.ic_accelnormon,R.drawable.ic_accelinverton,R.drawable.ic_accelcurveon,R.drawable.ic_accelinvertcurveon};
+		int[] iconsOff = {R.drawable.ic_accelnormoff,R.drawable.ic_accelinvertoff,R.drawable.ic_accelcurveoff,R.drawable.ic_accelinvertcurveoff};
 		axisOrientation.setItems(iconsOn,iconsOff);
 		
 		minSlider.setLayoutParams(new ViewGroup.LayoutParams(
@@ -126,11 +130,31 @@ public class ConfigWindow{
 				
 		mainWindow.setContentView(windowLayout);
 	}
+    
+    void updateAcc(final ParametersInfo parametersInfo, int index)
+    {
+        /*
+        Log.d("FaustJava", "updateAcc :  " + index
+            + " " + parametersInfo.accelType[index]
+            + " " + parametersInfo.accelCurve[index]
+            + " " + parametersInfo.accelMin[index]
+            + " " + parametersInfo.accelCenter[index]
+            + " " + parametersInfo.accelMax[index]);
+        */
+        
+        dsp_faust.setAccConverter(index,
+                                  parametersInfo.accelType[index] - 1,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
+                                  parametersInfo.accelCurve[index],
+                                  parametersInfo.accelMin[index],
+                                  parametersInfo.accelCenter[index],
+                                  parametersInfo.accelMax[index]);
+    
+    }
 	
 	public void showWindow(final ParametersInfo parametersInfo, final int currentParameterNumber){
 		// Saved state is used
-		axisSelection.selectTextItem(parametersInfo.accelState[currentParameterNumber]);
-		axisOrientation.selectImgItem(parametersInfo.accelInverterState[currentParameterNumber]);
+		axisSelection.selectTextItem(parametersInfo.accelType[currentParameterNumber]);
+		axisOrientation.selectImgItem(parametersInfo.accelCurve[currentParameterNumber]);
 		
 		setValue(minSlider,minSliderValue,"Min: ",parametersInfo.accelMin[currentParameterNumber]);
 		setValue(maxSlider,maxSliderValue,"Max: ",parametersInfo.accelMax[currentParameterNumber]);
@@ -150,7 +174,8 @@ public class ConfigWindow{
 			axisSelection.parameterLabel[i].setOnClickListener(new OnClickListener(){
 				public void onClick(View v){
 					axisSelection.selectTextItem(index);
-					parametersInfo.accelState[currentParameterNumber] = index;
+					parametersInfo.accelType[currentParameterNumber] = index;
+                    updateAcc(parametersInfo, currentParameterNumber);
 				}
 			});
 		}
@@ -160,7 +185,8 @@ public class ConfigWindow{
 			axisOrientation.imgs[i].setOnClickListener(new OnClickListener(){
 				public void onClick(View v){
 					axisOrientation.selectImgItem(index);
-					parametersInfo.accelInverterState[currentParameterNumber] = index;
+					parametersInfo.accelCurve[currentParameterNumber] = index;
+                    updateAcc(parametersInfo, currentParameterNumber);
 				}	
 			});
 		}
@@ -169,44 +195,59 @@ public class ConfigWindow{
 			public void onStopTrackingTouch(SeekBar seekBar) {}
 			public void onStartTrackingTouch(SeekBar seekBar) {}
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				float scaledProgress = progress*0.2f - 100.0f;
-				if(scaledProgress >= parametersInfo.accelMax[currentParameterNumber])
-					setValue(minSlider,minSliderValue,"Min: ",parametersInfo.accelMax[currentParameterNumber]);
-				else{ 
-					parametersInfo.accelMin[currentParameterNumber] = scaledProgress;
-					minSliderValue.setText("Min: " + String.format("%.1f", scaledProgress));
-				}
-	          }
+                //Log.d("FaustJava", "onProgressChanged : " + fromUser);
+                if (fromUser) {
+                    float scaledProgress = progress*0.2f - 100.0f;
+                    if(scaledProgress >= parametersInfo.accelMax[currentParameterNumber])
+                        setValue(minSlider,minSliderValue,"Min: ",parametersInfo.accelMax[currentParameterNumber]);
+                    else{ 
+                        parametersInfo.accelMin[currentParameterNumber] = scaledProgress;
+                        minSliderValue.setText("Min: " + String.format("%.1f", scaledProgress));
+                        //Log.d("FaustJava", "onProgressChanged : currentParameterNumber Min " + currentParameterNumber + " " + scaledProgress);
+                        updateAcc(parametersInfo, currentParameterNumber);
+                    }
+                }
+            }
 	    });
 		
 		maxSlider.setOnSeekBarChangeListener( new OnSeekBarChangeListener() {
 			public void onStopTrackingTouch(SeekBar seekBar) {}
 			public void onStartTrackingTouch(SeekBar seekBar) {}
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				float scaledProgress = progress*.2f - 100.0f;
-				if(scaledProgress <= parametersInfo.accelMin[currentParameterNumber])
-					setValue(maxSlider,maxSliderValue,"Max: ",parametersInfo.accelMin[currentParameterNumber]);
-				else{ 
-					parametersInfo.accelMax[currentParameterNumber] = scaledProgress;
-					maxSliderValue.setText("Max: " + String.format("%.1f", scaledProgress));
-				}
-	          }
+                //Log.d("FaustJava", "onProgressChanged : " + fromUser);
+                if (fromUser) {
+                    float scaledProgress = progress*.2f - 100.0f;
+                    if(scaledProgress <= parametersInfo.accelMin[currentParameterNumber])
+                        setValue(maxSlider,maxSliderValue,"Max: ",parametersInfo.accelMin[currentParameterNumber]);
+                    else{ 
+                        parametersInfo.accelMax[currentParameterNumber] = scaledProgress;
+                        maxSliderValue.setText("Max: " + String.format("%.1f", scaledProgress));
+                        //Log.d("FaustJava", "onProgressChanged : currentParameterNumber Max " + currentParameterNumber + " " + scaledProgress);
+                        updateAcc(parametersInfo, currentParameterNumber);
+                    }
+                }
+            }
 	    });
 		
 		centerSlider.setOnSeekBarChangeListener( new OnSeekBarChangeListener() {
 			public void onStopTrackingTouch(SeekBar seekBar) {}
 			public void onStartTrackingTouch(SeekBar seekBar) {}
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-				float scaledProgress = progress*0.2f - 100.0f;
-				if(scaledProgress <= parametersInfo.accelMin[currentParameterNumber])
-					setValue(centerSlider,centerSliderValue,"Center: ",parametersInfo.accelMin[currentParameterNumber]);
-				else if(scaledProgress >= parametersInfo.accelMax[currentParameterNumber])
-					setValue(centerSlider,centerSliderValue,"Center: ",parametersInfo.accelMax[currentParameterNumber]);
-				else{ 
-					parametersInfo.accelCenter[currentParameterNumber] = scaledProgress;	
-					centerSliderValue.setText("Center: " + String.format("%.1f", scaledProgress));
-				}
-	          }
+                //Log.d("FaustJava", "onProgressChanged : " + fromUser);
+                if (fromUser) {
+                    float scaledProgress = progress*0.2f - 100.0f;
+                    if(scaledProgress <= parametersInfo.accelMin[currentParameterNumber])
+                        setValue(centerSlider,centerSliderValue,"Center: ",parametersInfo.accelMin[currentParameterNumber]);
+                    else if(scaledProgress >= parametersInfo.accelMax[currentParameterNumber])
+                        setValue(centerSlider,centerSliderValue,"Center: ",parametersInfo.accelMax[currentParameterNumber]);
+                    else{ 
+                        parametersInfo.accelCenter[currentParameterNumber] = scaledProgress;	
+                        centerSliderValue.setText("Center: " + String.format("%.1f", scaledProgress));
+                        //Log.d("FaustJava", "onProgressChanged : currentParameterNumber Center " + currentParameterNumber + " " + scaledProgress);
+                        updateAcc(parametersInfo, currentParameterNumber);
+                    }
+                }
+            }
 	    });
 	}
 	

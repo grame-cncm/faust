@@ -45,8 +45,8 @@
     [super viewDidLoad];
     
     // Read user preferences
-    _sampleRate = [[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
-    _bufferSize = [[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
+    _sampleRate = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
+    _bufferSize = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     _openWidgetPanel = [[NSUserDefaults standardUserDefaults] boolForKey:@"openWidgetPanel"];
     
     // Update UI

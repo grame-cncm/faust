@@ -118,6 +118,7 @@ bool            gDetailsSwitch  = false;
 bool            gTimingSwitch   = false;
 bool            gDrawSignals    = false;
 bool            gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter
+bool            gScaledSVG      = false;	// to draw scaled SVG files
 bool            gGraphSwitch 	= false;
 bool            gDrawPSSwitch 	= false;
 bool            gDrawSVGSwitch 	= false;
@@ -265,6 +266,10 @@ bool process_cmdline(int argc, char* argv[])
 
         } else if (isCmd(argv[i], "-blur", "--shadow-blur")) {
             gShadowBlur = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-sc", "--scaled-svg")) {
+            gScaledSVG = true;
             i += 1;
 
 		} else if (isCmd(argv[i], "-svg", "--svg")) {

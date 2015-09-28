@@ -17,17 +17,20 @@
  ************************************************************************
  ************************************************************************/
 
-void init(int, int);
+bool init(int, int);
 bool start(void);
 void stop(void);
+void destroy(void);
 bool isRunning(void);
 int keyOn(int, int);
 int keyOff(int);
 int pitchBend(int, float);
-const char *getJSON(void);
+const char* getJSON(void);
 int getParamsCount(void);
 float getParam(const char*);
 void setParam(const char*, float);
 int setVoiceParam(const char*, int, float);
 int setVoiceGain(int, float);
-const char *getParamAddress(int);
+const char* getParamAddress(int);
+void propagateAcc(int acc, float v);
+void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax);
