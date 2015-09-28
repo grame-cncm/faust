@@ -197,6 +197,8 @@ class llvm_dsp_aux : public dsp {
 
 // Public C++ interface
 
+EXPORT std::string getLibFaustVersion();
+
 EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
 
 EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, 
@@ -283,6 +285,8 @@ extern "C" {
 #endif
 
 // Public C interface
+
+EXPORT char* getCLibFaustVersion();
 
 EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
 

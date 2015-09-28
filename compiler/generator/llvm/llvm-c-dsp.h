@@ -45,6 +45,13 @@ extern "C"
     typedef struct {} llvm_dsp_factory;
     
     typedef struct {} llvm_dsp;
+    
+    /**
+     * Get the library version.
+     * 
+     * @return the library version as a static string.
+     */
+    char* getCLibFaustVersion();
       
     /**
      * Get the target (triple + CPU) of the DSP machine.

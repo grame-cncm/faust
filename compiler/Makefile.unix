@@ -161,7 +161,7 @@ emcc : CXXFLAGS = -DEMCC -I../architecture -O3 -Wall -Wuninitialized -Wno-overlo
 emcc : ARCHFLAGS =
 emcc : LLVM_VERSION =
 emcc : libfaust.js libfaustworker.js
-emcc : EXPORTED="['_createAsmCDSPFactoryFromString', '_freeCDSP']"
+emcc : EXPORTED="['_createAsmCDSPFactoryFromString', '_getCLibFaustVersion', '_freeCDSP']"
 
 libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o
 	libtool $(LIBFLAGS) generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o -static -o libfaustmachine.a
@@ -172,7 +172,8 @@ libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm
 
 libfaust.js : $(objects) libcode.o libmain.o global.o
 	$(CXX) -O3 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaust.js
-
+	cp libfaust.js ../architecture/webaudio
+	
 libfaustworker.js : $(objects) libcode.o libmain.o global.o
 	$(CXX) -O3 --memory-init-file 0 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaustworker.js
 

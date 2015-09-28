@@ -36,6 +36,13 @@
  use 'startMTDSPFactories/stopMTDSPFactories' to use it in a multi-thread context.
  @{
  */
+ 
+/**
+ * Get the library version.
+ * 
+ * @return the  library version as a string.
+ */
+std::string getLibFaustVersion();
 
 /**
 * DSP factory class.
