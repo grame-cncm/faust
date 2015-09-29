@@ -1,5 +1,6 @@
 #!/bin/bash
+
 for f in $@; do
-    faust -svg $f -o /dev/null
+    faust -t 0 -svg "$OPTIONS" $f -o /dev/null
 done
 
