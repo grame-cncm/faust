@@ -32,14 +32,17 @@ unsigned faust_alarm(unsigned seconds)
 int main(int argc, const char* argv[])
 {
     gGlobal = NULL;
-   
+
     try {
         global::allocate();
         compile_faust_internal(argc, argv, 0, 0, true);
     } catch (faustexception& e) {
-        e.PrintMessage();
+        if (e.Message().size() > 0) {
+            e.PrintMessage();
+            exit(1);
+        }
     }
-    
+
     global::destroy();
     return 0;
 }

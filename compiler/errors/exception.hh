@@ -42,7 +42,7 @@ class faustexception : public std::runtime_error {
 
         void PrintMessage()
         {
-            cout << what();
+            cerr << what();
         }
 };
 
