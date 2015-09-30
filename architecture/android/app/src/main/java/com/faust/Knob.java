@@ -22,7 +22,7 @@ import android.widget.TextView;
  * Create a knob. 
  */
 
-class Knob{
+class Knob {
 	float min = 0.0f, max = 100.0f, step = 1.0f;
 	int id = 0;
 	String decimalsDisplay = "", address = "";
@@ -40,7 +40,7 @@ class Knob{
 	 * backgroundColor: grey level of the background of the view (0-255)
 	 */
 	public Knob(Context c, String addr, int currentParameterID,
-			int width, int backgroundColor, int padding, boolean visibility){
+			int width, int backgroundColor, int padding, boolean visibility) {
 		WindowManager wm = (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
 		Display display = wm.getDefaultDisplay();
 		size = new Point();
@@ -80,7 +80,7 @@ class Knob{
 		textValue = new TextView(c);
 		textValue.setGravity(Gravity.CENTER);
 		
-		if(visibility){
+		if (visibility) {
 			knobLayout.addView(textValue);
 			knobLayout.addView(knob);
 			localVerticalGroup.addView(knobLayout);

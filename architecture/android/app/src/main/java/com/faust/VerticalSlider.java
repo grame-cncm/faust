@@ -48,7 +48,7 @@ class VerticalSlider {
 	 * backgroundColor: grey level of the background of the view (0-255)
 	 */
 	public VerticalSlider(Context c, String addr, int currentParameterID,
-			int width, int backgroundColor, boolean visibility){
+			int width, int backgroundColor, boolean visibility) {
 		WindowManager wm = (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
 		Display display = wm.getDefaultDisplay();
 		size = new Point();
@@ -85,7 +85,7 @@ class VerticalSlider {
 		
 		textValue = new TextView(c);
 		textValue.setGravity(Gravity.CENTER);
-		if(visibility){
+		if (visibility) {
 			sliderLayout.addView(textValue);
 			sliderLayout.addView(slider);
 			localVerticalGroup.addView(textLabel);
