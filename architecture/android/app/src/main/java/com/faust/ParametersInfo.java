@@ -4,7 +4,7 @@ import android.content.SharedPreferences;
 
 import android.util.Log;
 
-class ParametersInfo{
+class ParametersInfo {
     
     final String VERSION = "0.10";
 	// Saved Parameters
@@ -78,7 +78,7 @@ class ParametersInfo{
         
         Log.d("FaustJava", "saveParameters : nParams " + nParams);
         
-		for(int i=0; i<nParams; i++){
+		for (int i = 0; i < nParams; i++){
 			editor.putFloat("value"+i, values[i]);
 			editor.putInt("accelType"+i, accelType[i]);
 			editor.putFloat("accelMin"+i, accelMin[i]);
@@ -105,7 +105,7 @@ class ParametersInfo{
             
             Log.d("FaustJava", "loadParameters : nParams " + nParams);
             
-			for(int i=0; i<nParams; i++){
+			for (int i = 0; i < nParams; i++){
 				values[i] = settings.getFloat("value"+i,0.0f);
 				accelType[i] = settings.getInt("accelType"+i, 0); //TODO: should be done only for controlled parameters
 				accelMin[i] = settings.getFloat("accelMin"+i, 0);

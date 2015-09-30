@@ -167,7 +167,7 @@ public class FaustActivity extends Activity {
                 recreate();
                 return true;
             case R.id.action_zoomout:
-            	if(parametersInfo.zoom > 0){
+            	if (parametersInfo.zoom > 0) {
             		parametersInfo.zoom--;
             		recreate();
             	}
@@ -177,12 +177,12 @@ public class FaustActivity extends Activity {
                 recreate();
                 return true;
             case R.id.action_lock:
-            	if(parametersInfo.locked){
+            	if (parametersInfo.locked) {
             		item.setIcon(R.drawable.ic_lockiconopen);
             		parametersInfo.locked = false;
             		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
             	}
-            	else{
+            	else {
             		item.setIcon(R.drawable.ic_lockiconclose);
             		parametersInfo.locked = true;
             		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
