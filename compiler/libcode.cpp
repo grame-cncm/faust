@@ -72,8 +72,6 @@
 #include "libfaust.h"
 #include "Text.hh"
 
-#define FAUSTVERSION "2.0.a38"
-
 using namespace std;
 
 // Timing can be used outside of the scope of 'gGlobal'

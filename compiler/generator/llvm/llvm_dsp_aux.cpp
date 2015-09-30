@@ -1043,6 +1043,7 @@ void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 
 // Public C++ API
 
+EXPORT std::string getLibFaustVersion() { return FAUSTVERSION; }
 
 EXPORT Module* load_single_module(const string filename, LLVMContext* context)
 {

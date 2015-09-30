@@ -247,6 +247,7 @@ var faust = faust || {};
 window.AudioContext = window.AudioContext || window.webkitAudioContext || undefined;
 
 faust.createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
+faust.getCLibFaustVersion = Module.cwrap('getCLibFaustVersion', 'number', []);
 faust.freeCDSP = Module.cwrap('freeCDSP', null, ['number']);
 
 faust.error_msg = null;
@@ -263,6 +264,8 @@ faust.createDSPFactory = function (code, argv) {
         // Existing factory, do not create it...
         return factory;
     }
+    
+    console.log("libfaust.js version : %s", faust.getCLibFaustVersion());
     
     // Allocate strings on the HEAP
     var factory_name = "mydsp" + faust.factory_number++;
