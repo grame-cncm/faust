@@ -121,7 +121,7 @@ struct AndroidEngine {
     bool start()
     {
         if (!fRunning) {
-             __android_log_print(ANDROID_LOG_ERROR, "Faust", "REAL start");
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "REAL start");
             fRunning = fDriver->start();
         }
         return fRunning;
