@@ -358,6 +358,11 @@ class androidaudio : public audio {
                 
                 result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_RECORD, &fRecordInterface);
                 if (result != SL_RESULT_SUCCESS) return false;
+                
+                // init the input buffer queue.
+                result = (*fInputBufferQueueInterface)->Enqueue(fInputBufferQueueInterface, fFifobuffer, fBufferSize * 4);
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "androidaudio::init Enqueue %d", result);
+                if (result != SL_RESULT_SUCCESS) return false;
             }
             
             if (fNumOutChans > 0) { // Initialize
@@ -383,10 +388,7 @@ class androidaudio : public audio {
             SLresult result;
             
             if (fNumInChans > 0) {
-                // start the input buffer queue.
-                result = (*fInputBufferQueueInterface)->Enqueue(fInputBufferQueueInterface, fFifobuffer, fBufferSize * 4);
-                if (result != SL_RESULT_SUCCESS) return false;
-                
+                // start the inout buffer queue.
                 result = (*fRecordInterface)->SetRecordState(fRecordInterface, SL_RECORDSTATE_RECORDING);
                 if (result != SL_RESULT_SUCCESS) return false;
             }

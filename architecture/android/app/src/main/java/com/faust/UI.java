@@ -101,7 +101,7 @@ public class UI {
 	 * Initialize parametersValues in function of the total
 	 * number of parameters.
 	 */
-	public void initUI(ParametersInfo paramsInfo, SharedPreferences settings){
+	public void initUI(ParametersInfo paramsInfo, SharedPreferences settings) {
 		parametersWindow = new ConfigWindow();
 		
 		// get the JSON description from the native code
@@ -148,7 +148,7 @@ public class UI {
 	/*
 	 * Extract the UI element of the JSON description
 	 */
-	public JSONArray getJSONui(){
+	public JSONArray getJSONui() {
         JSONArray uiArray = new JSONArray();
         try {		
 			JSONObject parametersObject = new JSONObject(JSONparameters);
@@ -163,7 +163,7 @@ public class UI {
 	 * Build the UI in function of the JSON description by calling the
 	 * first iteration of parseJSON(). 
 	 */
-	public void buildUI(Context c, LinearLayout mainGroup){
+	public void buildUI(Context c, LinearLayout mainGroup) {
 		int groupLevel = 0;
 		WindowManager wm = (WindowManager) c.getSystemService(Context.WINDOW_SERVICE);
 		Display display = wm.getDefaultDisplay();
@@ -175,19 +175,19 @@ public class UI {
 		JSONArray uiArray = getJSONui();
 		
 		// TODO Dirty way to detect keyboard: could be improved
-		if(uiArray.toString().contains("\"style\":\"keyboard\"")){ 
+		if (uiArray.toString().contains("\"style\":\"keyboard\"")) {
 			hasKeyboard = true;
 			hasMulti = false;
 		}
-		else if(uiArray.toString().contains("\"style\":\"multi\"")){
+		else if (uiArray.toString().contains("\"style\":\"multi\"")) {
 			hasMulti = true;
 			hasKeyboard = false;
 		}
-		else if(uiArray.toString().contains("\"style\":\"multikeyboard\"")){
+		else if (uiArray.toString().contains("\"style\":\"multikeyboard\"")) {
 			hasMulti = true;
 			hasKeyboard = true;
 		}
-		else{ 
+		else {
 			hasMulti = false;
 			hasKeyboard = false;
 		}
@@ -199,7 +199,7 @@ public class UI {
 	 * Returns the content of a specific "member" of a JSON "object" contained
 	 * in the meta member
 	 */
-	public String parseJSONMetaData(JSONObject object, String member){	
+	public String parseJSONMetaData(JSONObject object, String member) {
 		JSONArray currentArray = new JSONArray();
 		JSONObject currentObject = new JSONObject();
 		String value = new String();
@@ -403,6 +403,9 @@ public class UI {
             else if (parametersInfo.parameterType[i] == 9) {  //9 : hbargraph
                 bargraphs[parametersCounters[9]].setValue(dsp_faust.getParam(bargraphs[parametersCounters[9]].address));
                 parametersCounters[9]++;
+                
+                //Log.d("FaustJava", "updateUIstate bargraphs");
+                
             }
 		}
 		// Other parameters are ignored because they are not continuous
