@@ -36,18 +36,18 @@ namespace llvm
 using namespace llvm;
 
 typedef struct LLVMResult {
-    
+
     llvm::Module* fModule;
     llvm::LLVMContext* fContext;
     std::vector<std::string> fPathnameList;
-    
+
 } LLVMResult;
 
 #define LVVM_BACKEND_NAME "Faust LLVM backend"
 #define COMPILATION_OPTIONS_KEY "compilation_options"
 #define COMPILATION_OPTIONS "declare compilation_options    "
 
-#define FAUSTVERSION "2.0.a39"
+#define FAUSTVERSION "2.0.a40"
 
 /*
     Low level dynamic compilation interface. Better use the public API defined in llvm-dsp.h or llvm-c-dsp.h
@@ -55,7 +55,7 @@ typedef struct LLVMResult {
 
 /**
  * Compile a Faust program.
- * 
+ *
  * @param argc - the number of parameter in argv array
  * @param argv - the array of parameters
  * @param name - the name of the Faust program
@@ -64,12 +64,12 @@ typedef struct LLVMResult {
  *
  * @return 0 on success, otherwise a non-zero error code, with an error message in error_msg.
  */
- 
+
 EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
 
 /**
  * Compile a Faust program and produces a LLVM module.
- * 
+ *
  * @param argc - the number of parameter in argv array
  * @param argv - the array of parameters
  * @param name - the name of the Faust program
@@ -98,4 +98,3 @@ EXPORT std::string reorganize_compilation_options(int argc, const char* argv[]);
 EXPORT std::string extract_compilation_options(const std::string& dsp_content);
 
 #endif
-
