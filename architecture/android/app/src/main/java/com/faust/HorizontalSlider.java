@@ -69,7 +69,7 @@ class HorizontalSlider {
 		
 		textValue = new TextView(c);
 		
-		if(visibility){
+		if (visibility) {
 			sliderLayout.addView(textValue);
 			sliderLayout.addView(slider);
 			localVerticalGroup.addView(textLabel);
@@ -143,14 +143,14 @@ class HorizontalSlider {
 	 * Set the slider's listeners
 	 */
 	public void linkTo(final ParametersInfo parametersInfo, final ConfigWindow parametersWindow, final HorizontalScrollView horizontalScroll){
-		localVerticalGroup.setOnLongClickListener(new OnLongClickListener(){
+		localVerticalGroup.setOnLongClickListener(new OnLongClickListener() {
 			public boolean onLongClick (View v){
        			if(!parametersInfo.locked) parametersWindow.showWindow(parametersInfo, id);
     			return true;
 			}
 		});
 		
-		slider.setOnSeekBarChangeListener( new OnSeekBarChangeListener() {
+		slider.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			public void onStopTrackingTouch(SeekBar seekBar) {
 				parametersInfo.accelItemFocus[id] = 0;
 			}
@@ -161,7 +161,7 @@ class HorizontalSlider {
 				parametersInfo.values[id] = (float) progress*step + min;
 				dsp_faust.setParam(address, parametersInfo.values[id]);
 				setDisplayedValue(parametersInfo.values[id]);
-	          }
+            }
 	    });
 	    
 	    slider.setOnTouchListener(new OnTouchListener()

@@ -48,8 +48,10 @@ public class UI {
 	 * parametersCounters[5]: radio
 	 * parametersCounters[7]: checkbox
 	 * parametersCounters[8]: button 
+     * parametersCounters[9]: hbargraph 
+     * parametersCounters[10]: vbargraph
 	 */
-	int[] parametersCounters = {0,0,0,0,0,0,0,0};
+	int[] parametersCounters = {0,0,0,0,0,0,0,0,0,0};
 	// global counter of the UI elements
 	int parameterNumber = 0; 
 	// screen dimensions
@@ -77,12 +79,14 @@ public class UI {
     
     private void updateAcc(final ParametersInfo parametersInfo, int index)
     {
+        /*
         Log.d("FaustJava", "updateAcc :  " + index
               + " " + parametersInfo.accelType[index]
               + " " + parametersInfo.accelCurve[index]
               + " " + parametersInfo.accelMin[index]
               + " " + parametersInfo.accelCenter[index]
               + " " + parametersInfo.accelMax[index]);
+        */
         
         dsp_faust.setAccConverter(index,
                                   parametersInfo.accelType[index] - 1,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
@@ -122,7 +126,7 @@ public class UI {
 		parametersInfo = paramsInfo;
 		
 		// the addresses of each param in the tree are retrieved from the native code
-		for(int i=0; i<numberOfParameters; i++){ 
+		for(int i = 0; i < numberOfParameters; i++){
 			parametersInfo.address[i] = dsp_faust.getParamAddress(i);
 		}
 		
@@ -228,18 +232,18 @@ public class UI {
 	 * 	currentViewWidth: the current group width
 	 */
 	public void parseJSON(Context c, JSONArray uiArray, LinearLayout currentGroup, 
-			int currentGroupLevel, int currentGroupType, int currentViewWidth){
+			int currentGroupLevel, int currentGroupType, int currentViewWidth) {
 		int nItemsTopLevel = uiArray.length(), groupDivisions;
 		JSONObject currentObject = new JSONObject();
 		JSONArray currentArray = new JSONArray();
-		if(currentGroupType == 0) groupDivisions = 1;
+		if (currentGroupType == 0) groupDivisions = 1;
 		else groupDivisions = nItemsTopLevel;
 		int localPadding = 10*screenSizeX/800;
 		int localScreenWidth = (currentViewWidth-localPadding*2)/groupDivisions;
 		int localBackgroundColor = currentGroupLevel*15;
-		
+   	
 		try {
-			for(int i=0; i<nItemsTopLevel; i++){
+			for (int i = 0; i < nItemsTopLevel; i++) {
 				boolean paramVisible = true; 
 				currentObject = uiArray.getJSONObject(i);
 				String metaDataStyle = parseJSONMetaData(currentObject, "style");
@@ -249,7 +253,7 @@ public class UI {
 				if (!isSavedParameters) {
                     // New accelerometer MetaData
 					String metaDataAccel = parseJSONMetaData(currentObject, "acc");
-                	if(!metaDataAccel.equals("")){
+                	if (!metaDataAccel.equals("")) {
           				float[] accelParams = {0,0,0,0,0};
 						for(int j=0; j<4; j++){
 							accelParams[j] = Float.valueOf(metaDataAccel.substring(0, metaDataAccel.indexOf(" ")));
@@ -265,29 +269,32 @@ public class UI {
                 }
 				
 				// Skipping freq, gain and gate if a keyboard interface was specified
-				if(hasKeyboard && (currentObject.getString("label").equals("freq") || 
-						currentObject.getString("label").equals("gain") || 
-						currentObject.getString("label").equals("gate"))){
+				if (hasKeyboard && (currentObject.getString("label").equals("freq") ||
+                    currentObject.getString("label").equals("gain") ||
+                    currentObject.getString("label").equals("gate"))) {
 					paramVisible = false;
 				}
 
-                if(metaDataHidden.equals("1")){
+                if (metaDataHidden.equals("1")) {
                     paramVisible = false;
                 }
 
-                if(currentObject.getString("type").equals("vgroup")){
+                if (currentObject.getString("type").equals("vgroup")) {
 					currentArray = currentObject.getJSONArray("items");
 					vgroup(c,currentArray,currentGroup,currentObject.getString("label"),
 							currentGroupLevel,groupDivisions,currentViewWidth);
 				}
-				else if(currentObject.getString("type").equals("hgroup")){
+				else if (currentObject.getString("type").equals("hgroup")){
 					currentArray = currentObject.getJSONArray("items");
 					hgroup(c,currentArray,currentGroup,currentObject.getString("label"),
 							currentGroupLevel,groupDivisions,currentViewWidth);
 				}
-				else if(currentObject.getString("type").equals("vslider")){
-					if(!isSavedParameters){
-						if(isNumeric(metaDataMulti)){
+				else if (currentObject.getString("type").equals("vslider")
+                         || currentObject.getString("type").equals("hslider")
+                         || currentObject.getString("type").equals("nentry")) {
+                    
+					if (!isSavedParameters) {
+						if (isNumeric(metaDataMulti)) {
 							parametersInfo.order[parameterNumber] = Integer.valueOf(metaDataMulti);
 							parametersInfo.nMultiParams++;
 						}
@@ -297,7 +304,8 @@ public class UI {
 						parametersInfo.max[parameterNumber] = Float.parseFloat(currentObject.getString("max"));
 						parametersInfo.step[parameterNumber] = Float.parseFloat(currentObject.getString("step"));
              		}
-					if(metaDataStyle.equals("knob")){
+                    
+					if (metaDataStyle.equals("knob")) {
 						knob(c, currentGroup, currentObject.getString("address"),
 								currentObject.getString("label"), 
 								Float.parseFloat(currentObject.getString("init")), 
@@ -306,129 +314,63 @@ public class UI {
 								Float.parseFloat(currentObject.getString("step")), 
 								localScreenWidth,localBackgroundColor,localPadding,paramVisible);
 					}
-					else if(metaDataStyle.contains("menu")){
+                    else if (metaDataStyle.contains("menu")) {
 						menu(c,currentGroup,currentObject.getString("address"),
 								currentObject.getString("label"),
 								localScreenWidth,localBackgroundColor,metaDataStyle,paramVisible);
 					}
-					else if(metaDataStyle.contains("radio")){
+                    else if (metaDataStyle.contains("radio")) {
 						radio(c,currentGroup,currentObject.getString("address"),
 								currentObject.getString("label"),
 								localScreenWidth,localBackgroundColor,metaDataStyle,0,paramVisible);
 					}
-					else{
+                    else if (currentObject.getString("type").equals("vslider")) {
 						vslider(c,currentGroup,currentObject.getString("address"),
 								currentObject.getString("label"), 
 								Float.parseFloat(currentObject.getString("init")), 
 								Float.parseFloat(currentObject.getString("min")), 
 								Float.parseFloat(currentObject.getString("max")), 
 								Float.parseFloat(currentObject.getString("step")), 
-								localScreenWidth,localBackgroundColor,paramVisible);	
-					}
-					parameterNumber++;
-				}
-				else if(currentObject.getString("type").equals("hslider")){
-					if(!isSavedParameters){
-						if(isNumeric(metaDataMulti)){ 
-							parametersInfo.order[parameterNumber] = Integer.valueOf(metaDataMulti);
-							parametersInfo.nMultiParams++;
-						}
-						else parametersInfo.order[parameterNumber] = -1;
-						parametersInfo.label[parameterNumber] = currentObject.getString("label"); 
-						parametersInfo.min[parameterNumber] = Float.parseFloat(currentObject.getString("min"));
-						parametersInfo.max[parameterNumber] = Float.parseFloat(currentObject.getString("max"));
-						parametersInfo.step[parameterNumber] = Float.parseFloat(currentObject.getString("step"));
+								localScreenWidth,localBackgroundColor,paramVisible);
                     }
-					if(metaDataStyle.equals("knob")){
-						knob(c, currentGroup, currentObject.getString("address"),
-								currentObject.getString("label"), 
-								Float.parseFloat(currentObject.getString("init")), 
-								Float.parseFloat(currentObject.getString("min")), 
-								Float.parseFloat(currentObject.getString("max")), 
-								Float.parseFloat(currentObject.getString("step")), 
-								localScreenWidth,localBackgroundColor,localPadding,paramVisible);
-					}
-					else if(metaDataStyle.contains("menu")){
-						menu(c,currentGroup,currentObject.getString("address"),
-								currentObject.getString("label"),
-								localScreenWidth,localBackgroundColor,metaDataStyle,paramVisible);
-					}
-					else if(metaDataStyle.contains("radio")){
-						radio(c,currentGroup,currentObject.getString("address"),
-								currentObject.getString("label"),
-								localScreenWidth,localBackgroundColor,metaDataStyle,1,paramVisible);
-					}
-					else{
-						hslider(c, currentGroup, currentObject.getString("address"),
-								currentObject.getString("label"), 
-								Float.parseFloat(currentObject.getString("init")), 
-								Float.parseFloat(currentObject.getString("min")), 
-								Float.parseFloat(currentObject.getString("max")), 
-								Float.parseFloat(currentObject.getString("step")), 
-								localScreenWidth,localBackgroundColor,localPadding,paramVisible);	
-					}
+					else if (currentObject.getString("type").equals("hslider")) {
+                        hslider(c, currentGroup, currentObject.getString("address"),
+                                currentObject.getString("label"),
+                                Float.parseFloat(currentObject.getString("init")),
+                                Float.parseFloat(currentObject.getString("min")),
+                                Float.parseFloat(currentObject.getString("max")),
+                                Float.parseFloat(currentObject.getString("step")),
+                                localScreenWidth,localBackgroundColor,localPadding,paramVisible);
+                    }
+                    else if (currentObject.getString("type").equals("nentry")) {
+                        nentry(c,currentGroup,currentObject.getString("address"),
+                               currentObject.getString("label"),
+                               Float.parseFloat(currentObject.getString("init")),
+                               Float.parseFloat(currentObject.getString("min")),
+                               Float.parseFloat(currentObject.getString("max")),
+                               Float.parseFloat(currentObject.getString("step")),
+                               localScreenWidth,localBackgroundColor,paramVisible);	
+                    }
 					parameterNumber++;
 				}
-				else if(currentObject.getString("type").equals("nentry")){
-					if(!isSavedParameters){
-						if(isNumeric(metaDataMulti)){ 
-							parametersInfo.order[parameterNumber] = Integer.valueOf(metaDataMulti);
-							parametersInfo.nMultiParams++;
-						}
-						else parametersInfo.order[parameterNumber] = -1;
-						parametersInfo.label[parameterNumber] = currentObject.getString("label"); 
-						parametersInfo.min[parameterNumber] = Float.parseFloat(currentObject.getString("min"));
-						parametersInfo.max[parameterNumber] = Float.parseFloat(currentObject.getString("max"));
-						parametersInfo.step[parameterNumber] = Float.parseFloat(currentObject.getString("step"));
-             		}
-					if(metaDataStyle.equals("knob")){
-						knob(c, currentGroup, currentObject.getString("address"),
-								currentObject.getString("label"), 
-								Float.parseFloat(currentObject.getString("init")), 
-								Float.parseFloat(currentObject.getString("min")), 
-								Float.parseFloat(currentObject.getString("max")), 
-								Float.parseFloat(currentObject.getString("step")), 
-								localScreenWidth,localBackgroundColor,localPadding,paramVisible);
-					}
-					else if(metaDataStyle.contains("menu")){
-                        menu(c,currentGroup,currentObject.getString("address"),
-								currentObject.getString("label"),
-								localScreenWidth,localBackgroundColor,metaDataStyle,paramVisible);
-					}
-					else if(metaDataStyle.contains("radio")){
-						radio(c,currentGroup,currentObject.getString("address"),
-								currentObject.getString("label"),
-								localScreenWidth,localBackgroundColor,metaDataStyle,0,paramVisible);
-					}
-					else{
-						nentry(c,currentGroup,currentObject.getString("address"),
-								currentObject.getString("label"), 
-								Float.parseFloat(currentObject.getString("init")), 
-								Float.parseFloat(currentObject.getString("min")), 
-								Float.parseFloat(currentObject.getString("max")), 
-								Float.parseFloat(currentObject.getString("step")), 
-								localScreenWidth,localBackgroundColor,paramVisible);	
-						}
-					parameterNumber++;
-				}
-				else if(currentObject.getString("type").equals("button")){
+                else if (currentObject.getString("type").equals("button")) {
 					button(c,currentGroup,currentObject.getString("address"),
 							currentObject.getString("label"), 
 							localScreenWidth,localBackgroundColor,paramVisible);	
 					parameterNumber++;
 				}
-				else if(currentObject.getString("type").equals("checkbox")){
+				else if (currentObject.getString("type").equals("checkbox")) {
 					checkbox(c,currentGroup,currentObject.getString("address"),
 							currentObject.getString("label"), 
 							localScreenWidth,localBackgroundColor,paramVisible);	
 					parameterNumber++;
 				}
-				else if(currentObject.getString("type").equals("hbargraph")){
+				else if (currentObject.getString("type").equals("hbargraph")) {
 					hbargraph(c, currentGroup, currentObject.getString("address"),
 							currentObject.getString("label"), 
 							Float.parseFloat(currentObject.getString("min")), 
 							Float.parseFloat(currentObject.getString("max")),  
-							currentGroupLevel,groupDivisions,currentViewWidth);	
+							localScreenWidth,localBackgroundColor,paramVisible);
 					parameterNumber++;
 				}
 			}
@@ -437,41 +379,46 @@ public class UI {
 		}
 	}
 	
-	public void updateUIstate(){
-		for(int i=0; i<8; i++){
+	public void updateUIstate() {
+		for (int i = 0; i < 10; i++){
 			parametersCounters[i] = 0;
 		}
-		for(int i=0; i<parameterNumber; i++){
-			if(parametersInfo.parameterType[i] == 0){       //0: hslider
+		for (int i = 0; i < parameterNumber; i++) {
+			if (parametersInfo.parameterType[i] == 0) {       //0: hslider
 				hsliders[parametersCounters[0]].setValue(dsp_faust.getParam(hsliders[parametersCounters[0]].address));
 				parametersCounters[0]++;
 			}
-			else if(parametersInfo.parameterType[i] == 1){  //1: vslider
+			else if (parametersInfo.parameterType[i] == 1) {  //1: vslider
 				vsliders[parametersCounters[1]].setValue(dsp_faust.getParam(vsliders[parametersCounters[1]].address));
 				parametersCounters[1]++;
 			}
-			else if(parametersInfo.parameterType[i] == 2){  //2 : knob
+			else if (parametersInfo.parameterType[i] == 2) {  //2 : knob
 				knobs[parametersCounters[2]].setValue(dsp_faust.getParam(knobs[parametersCounters[2]].address));
 				parametersCounters[2]++;
 			}
-			else if(parametersInfo.parameterType[i] == 3){  //3 : nentry
+			else if (parametersInfo.parameterType[i] == 3) {  //3 : nentry
 				nentries[parametersCounters[3]].setValue(dsp_faust.getParam(nentries[parametersCounters[3]].address));
 				parametersCounters[3]++;
 			}
+            else if (parametersInfo.parameterType[i] == 9) {  //9 : hbargraph
+                bargraphs[parametersCounters[9]].setValue(dsp_faust.getParam(bargraphs[parametersCounters[9]].address));
+                parametersCounters[9]++;
+            }
 		}
 		// Other parameters are ignored because they are not continuous
 	}
 	
 	public void hbargraph(Context c, LinearLayout currentGroup, final String address, final String label, 
-			final float min, final float max, int currentGroupLevel,
-			int nItemsUpperLevel, int upperViewWidth){
-		bargraphs[parametersCounters[2]] = new BarGraph(c,null,android.R.attr.progressBarStyleHorizontal);
-		bargraphs[parametersCounters[2]].id = parameterNumber;
-		bargraphs[parametersCounters[2]].min = min;
-		bargraphs[parametersCounters[2]].max = max;
-		currentGroup.addView(bargraphs[parametersCounters[2]]);
+			final float min, final float max, int localScreenWidth, int localBackgroundColor, boolean visibility) {
+		bargraphs[parametersCounters[9]] = new BarGraph(c, address,parameterNumber, null, android.R.attr.progressBarStyleHorizontal, localScreenWidth, localBackgroundColor, visibility);
+		bargraphs[parametersCounters[9]].id = parameterNumber;
+		bargraphs[parametersCounters[9]].min = min;
+		bargraphs[parametersCounters[9]].max = max;
+        bargraphs[parametersCounters[9]].addTo(currentGroup);
 		
-		parametersCounters[2]++;
+        parametersInfo.parameterType[parameterNumber] = 9;
+        parametersInfo.localId[parameterNumber] = parametersCounters[9];
+        parametersCounters[9]++;
 	}
 	
 	/*
@@ -488,7 +435,7 @@ public class UI {
 	 */
 	//TODO: init?
 	public void menu(Context c, LinearLayout currentGroup, final String address, final String label,
-			int localScreenWidth, int localBackgroundColor, String parameters, boolean visibility){
+			int localScreenWidth, int localBackgroundColor, String parameters, boolean visibility) {
         
 		String parsedParameters = parameters.substring(parameters.indexOf("{") + 1, 
 				parameters.indexOf("}"));
@@ -524,7 +471,7 @@ public class UI {
 	 */
 	//TODO: init?
 	public void radio(Context c, LinearLayout currentGroup, final String address, final String label,
-			int localScreenWidth, int localBackgroundColor, String parameters, int orientation, boolean visibility){
+			int localScreenWidth, int localBackgroundColor, String parameters, int orientation, boolean visibility) {
         
 		String parsedParameters = parameters.substring(parameters.indexOf("{") + 1, parameters.indexOf("}"));
     	int init = 0;
@@ -560,10 +507,8 @@ public class UI {
 	 */
 	public void hslider(Context c, LinearLayout currentGroup, final String address, final String label, float init, 
 			final float min, final float max, final float step, int localScreenWidth, int localBackgroundColor, 
-			int localPadding, boolean visibility){
-		 
-        Log.d("FaustJava", "hslider : init " + parametersInfo.values[parameterNumber] + " " + init);
-        
+			int localPadding, boolean visibility) {
+       
         // the slider
 		hsliders[parametersCounters[0]] = new HorizontalSlider(c,address,parameterNumber,
 				localScreenWidth, localBackgroundColor, localPadding, visibility);

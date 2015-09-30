@@ -17,4 +17,4 @@ hmeter(x)		= attach(x, envelop(x) : hbargraph("[2][unit:dB]", -70, +5));
 
 envelop         = abs : max ~ -(1.0/SR) : max(db2linear(-70)) : linear2db;
 
-process 		= vmeter;
+process 		= hmeter,hmeter;
