@@ -247,8 +247,11 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
 
     BasicBlock* block = BasicBlock::Create(getContext(), "entry_block", sr_fun);
     fBuilder->SetInsertPoint(block);
-
+#if defined(LLVM_37)
+    Value* zone_ptr = fBuilder->CreateStructGEP(nullptr, dsp, field_index);
+#else
     Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
+#endif
     Value* load_ptr = fBuilder->CreateLoad(zone_ptr);
 
     ReturnInst::Create(getContext(), load_ptr, block); 
@@ -466,17 +469,19 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
     for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         GlobalVariable* llvm_label1 = 0;
         GlobalVariable* llvm_label2 = 0;
+        llvm::Type* type_def1;
+        llvm::Type* type_def2;
         if (i->first != tree("author")) {
-            llvm_label1 = fCodeProducer->addStringConstant(tree2str(i->first));
-            llvm_label2 = fCodeProducer->addStringConstant(tree2str(*(i->second.begin())));
+            llvm_label1 = fCodeProducer->addStringConstant(tree2str(i->first), type_def1);
+            llvm_label2 = fCodeProducer->addStringConstant(tree2str(*(i->second.begin())), type_def2);
         } else {
             for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
                 if (j == i->second.begin()) {
-                    llvm_label1 = fCodeProducer->addStringConstant(tree2str(i->first));
-                    llvm_label2 = fCodeProducer->addStringConstant(tree2str(*j));
+                    llvm_label1 = fCodeProducer->addStringConstant(tree2str(i->first), type_def1);
+                    llvm_label2 = fCodeProducer->addStringConstant(tree2str(*j), type_def2);
                 } else {
-                    llvm_label1 = fCodeProducer->addStringConstant("contributor");
-                    llvm_label2 = fCodeProducer->addStringConstant(tree2str(*j));
+                    llvm_label1 = fCodeProducer->addStringConstant("contributor", type_def1);
+                    llvm_label2 = fCodeProducer->addStringConstant(tree2str(*j), type_def2);
                 }
             }
         }
@@ -485,8 +490,8 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
     
         Value* idx2[3];
         idx2[0] = load_meta_ptr;
-        idx2[1] = fBuilder->CreateConstGEP2_32(llvm_label1, 0, 0);
-        idx2[2] = fBuilder->CreateConstGEP2_32(llvm_label2, 0, 0);
+        idx2[1] = fBuilder->CreateConstGEP2_32(type_def1, llvm_label1, 0, 0);
+        idx2[2] = fBuilder->CreateConstGEP2_32(type_def2, llvm_label2, 0, 0);
         CallInst* call_inst = fBuilder->CreateCall(mth, MAKE_IXD(idx2, idx2+3));
         call_inst->setCallingConv(CallingConv::C);
     }
@@ -943,8 +948,12 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
 
     Function* llvm_computethreadInternal = fResult->fModule->getFunction("computeThread");
     assert(llvm_computethreadInternal);
-
+#if defined(LLVM_37)
+    Value* fun_args[] = { fBuilder->CreateBitCast(arg1, fStruct_DSP_ptr), arg2 };
+    CallInst* call_inst = fBuilder->CreateCall(llvm_computethreadInternal, fun_args);
+#else
     CallInst* call_inst = fBuilder->CreateCall2(llvm_computethreadInternal, fBuilder->CreateBitCast(arg1, fStruct_DSP_ptr), arg2);
+#endif
     call_inst->setCallingConv(CallingConv::C);
     fBuilder->CreateRetVoid();
 

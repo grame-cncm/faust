@@ -58,10 +58,16 @@
 
 #if defined(LLVM_37)
 #include <llvm/Analysis/TargetLibraryInfo.h>
+#include <llvm/Analysis/TargetTransformInfo.h>
 #include <llvm/IR/PassManager.h>
+#include <llvm/IR/LegacyPassManager.h>
+#define PASS_MANAGER legacy::PassManager
+#define FUNCTION_PASS_MANAGER legacy::FunctionPassManager
 #else
 #include <llvm/Target/TargetLibraryInfo.h>
 #include <llvm/PassManager.h>
+#define PASS_MANAGER PassManager
+#define FUNCTION_PASS_MANAGER FunctionPassManager
 #endif
 
 #include <llvm/Support/TargetRegistry.h>
@@ -161,6 +167,7 @@
 #else 
 #define MAX_OPT_LEVEL 4
 #endif
+
 
 using namespace llvm;
 
@@ -306,7 +313,6 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
 #endif
 
 #if defined(LLVM_37)
-// LLVM 3.5 has parseBitcodeFile(). Must emulate ParseBitcodeFile. -ag
 static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
                                 LLVMContext& Context,
                                 string* ErrMsg)
@@ -317,11 +323,10 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
         if (ErrMsg) *ErrMsg = EC.message();
         return NULL;
     } else {
-        return ModuleOrErr.get();
+        return ModuleOrErr.get().get();
     }
 }
 #endif
-
 
 void* llvm_dsp_factory::loadOptimize(const string& function)
 {
@@ -384,7 +389,7 @@ string llvm_dsp_factory::writeDSPFactoryToIR()
 {
     string res;
     raw_string_ostream out(res);
-    PassManager PM;
+    PASS_MANAGER PM;
     PM.add(llvmcreatePrintModulePass(out));
     PM.run(*fResult->fModule);
     out.flush();
@@ -395,7 +400,7 @@ void llvm_dsp_factory::writeDSPFactoryToIRFile(const string& ir_code_path)
 {
     STREAM_ERROR err;
     raw_fd_ostream out(ir_code_path.c_str(), err, sysfs_binary_flag);
-    PassManager PM;
+    PASS_MANAGER PM;
     PM.add(llvmcreatePrintModulePass(out));
     PM.run(*fResult->fModule);
     out.flush();
@@ -502,7 +507,7 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key,
     #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
         LLVMInstallFatalErrorHandler(llvm_dsp_factory::LLVMFatalErrorHandler);
     #endif
-    #if (!defined(LLVM_35) && !defined(LLVM_36)) // In LLVM 3.5 this is gone.
+    #if (!defined(LLVM_35) && !defined(LLVM_36) && !defined(LLVM_37)) // In LLVM 3.5 this is gone.
         if (!llvm_start_multithreaded()) {
             printf("llvm_start_multithreaded error...\n");
         }
@@ -575,7 +580,7 @@ int llvm_dsp_factory::getOptlevel()
 /// duplicates llvm-gcc behaviour.
 ///
 /// OptLevel - Optimization Level
-static void AddOptimizationPasses(PassManagerBase &MPM, FunctionPassManager &FPM,
+static void AddOptimizationPasses(PassManagerBase &MPM, FUNCTION_PASS_MANAGER &FPM,
                                     unsigned OptLevel, unsigned SizeLevel) 
 {
     FPM.add(createVerifierPass());                  // Verify that input is correct
@@ -647,7 +652,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         EngineBuilder builder(fResult->fModule);
     #endif
         builder.setEngineKind(EngineKind::JIT);
-    #if !defined(LLVM_36) || defined(LLVM_37)
+    #if !defined(LLVM_36) && !defined(LLVM_37)
         builder.setUseMCJIT(true);
     #endif
         TargetMachine* tm = builder.selectTarget();
@@ -743,14 +748,21 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         int optlevel = getOptlevel();
         
         if ((optlevel == -1) || (fOptLevel > optlevel)) {
-            PassManager pm;
-            FunctionPassManager fpm(fResult->fModule);
-          
+            PASS_MANAGER pm;
+            FUNCTION_PASS_MANAGER fpm(fResult->fModule);
+            
+        #if defined(LLVM_37) // Code taken from opt.cpp
+            TargetLibraryInfoImpl TLII(Triple(fResult->fModule->getTargetTriple()));
+            pm.add(new TargetLibraryInfoWrapperPass(TLII));
+        #else
             // Add an appropriate TargetLibraryInfo pass for the module's triple.
             TargetLibraryInfo* tli = new TargetLibraryInfo(Triple(fResult->fModule->getTargetTriple()));
             pm.add(tli);
+        #endif
             
-        #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
+        #if defined(LLVM_37) // Code taken from opt.cpp
+            fResult->fModule->setDataLayout(*fJIT->getDataLayout());
+        #elif defined(LLVM_35) || defined(LLVM_36)
             // LLVM 3.5 doesn't need a separate pass for the data
             // layout, but it does require that we initialize the
             // data layout of the module. -ag
@@ -762,7 +774,11 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         #endif
           
             // Add internal analysis passes from the target machine (mandatory for vectorization to work)
+        #if defined(LLVM_37) // Code taken from opt.cpp
+            pm.add(createTargetTransformInfoWrapperPass(tm->getTargetIRAnalysis()));
+        #else
             tm->addAnalysisPasses(pm);
+        #endif
           
             if (fOptLevel > 0) {
                 AddOptimizationPasses(pm, fpm, fOptLevel, 0);
@@ -782,7 +798,11 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
             pm.add(createVerifierPass());
             
             if ((debug_var != "") && (debug_var.find("FAUST_LLVM4") != string::npos)) {
+            #if defined(LLVM_37)
+                // TODO
+            #else
                 tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
+            #endif
             }
             
             // Now that we have all of the passes ready, run them.
@@ -867,8 +887,8 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
     if ((optlevel == -1) || (fOptLevel > optlevel)) {
         // Set up the optimizer pipeline. Start with registering info about how the
         // target lays out data structures.
-        PassManager pm;
-        FunctionPassManager fpm(fResult->fModule);
+        PASS_MANAGER pm;
+        FUNCTION_PASS_MANAGER fpm(fResult->fModule);
     #if defined(LLVM_32)    
         // TODO
     #else
@@ -955,7 +975,7 @@ llvm_dsp_factory::~llvm_dsp_factory()
     }
     
     if (--llvm_dsp_factory::gInstance == 0) {
-    #if  (!defined(LLVM_35)) && (!defined(LLVM_36)) // In LLVM 3.5 this is gone.
+    #if  (!defined(LLVM_35)) && (!defined(LLVM_36)) && (!defined(LLVM_37)) // In LLVM 3.5 this is gone.
         llvm_stop_multithreaded();
     #endif
     #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
