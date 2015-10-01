@@ -80,7 +80,7 @@ EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const ch
     }
 }
 
-EXPORT char* getCLibFaustVersion() { return FAUSTVERSION; }
+EXPORT char* getCLibFaustVersion() { return (char*)FAUSTVERSION; }
 
 EXPORT void freeCDSP(void* ptr)
 {

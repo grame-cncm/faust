@@ -904,7 +904,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
         
+    #if defined(LLVM_37)
         GlobalVariable* addStringConstant(string arg, llvm::Type*& type_def)
+    #else
+        GlobalVariable* addStringConstant(string arg)
+    #endif
         {
             string str = replaceChar(unquote(arg), '@', '_');
 
@@ -913,7 +917,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 GlobalVariable* gvar_array_string0 = new GlobalVariable(*fModule, array_type, true, GlobalValue::InternalLinkage, 0, str);
                 gvar_array_string0->setInitializer(ConstantDataArray::getString(fModule->getContext(), str, true));
                 fGlobalStringTable[str] = gvar_array_string0;
+            #if defined(LLVM_37)
                 type_def = array_type;
+            #endif
                 return gvar_array_string0;
             } else {
                 return fGlobalStringTable[str];
@@ -951,11 +957,18 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
             // Get LLVM constant string
+        #if defined(LLVM_37)
             llvm::Type* type_def;
             GlobalVariable* llvm_key = addStringConstant(inst->fKey, type_def);
             Value* const_string1 = fBuilder->CreateConstGEP2_32(type_def, llvm_key, 0, 0);
             GlobalVariable* llvm_value = addStringConstant(inst->fValue, type_def);
             Value* const_string2 = fBuilder->CreateConstGEP2_32(type_def, llvm_value, 0, 0);
+        #else
+            GlobalVariable* llvm_key = addStringConstant(inst->fKey);
+            Value* const_string1 = fBuilder->CreateConstGEP2_32(llvm_key, 0, 0);
+            GlobalVariable* llvm_value = addStringConstant(inst->fValue);
+            Value* const_string2 = fBuilder->CreateConstGEP2_32(llvm_value, 0, 0);
+        #endif
 
             // Generates access to zone
             Value* zone_ptr;
@@ -989,9 +1002,14 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Get LLVM constant string
             string name = replaceSpacesWithUnderscore(inst->fName);
+        #if defined(LLVM_37)
             llvm::Type* type_def;
             GlobalVariable* llvm_name = addStringConstant(inst->fName, type_def);
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_name, 0, 0);
+        #else    
+            GlobalVariable* llvm_name = addStringConstant(inst->fName);
+            Value* const_string = fBuilder->CreateConstGEP2_32(llvm_name, 0, 0);
+        #endif
 
             LlvmValue mth_index;
             switch (inst->fOrient) {
@@ -1044,9 +1062,14 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Get LLVM constant string
             string name = replaceSpacesWithUnderscore(label);
+        #if defined(LLVM_37)
             llvm::Type* type_def;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
+        #else
+            GlobalVariable* llvm_label = addStringConstant(label);
+            Value* const_string = fBuilder->CreateConstGEP2_32(llvm_label, 0, 0);
+        #endif
 
             Value* idx[2];
             idx[0] = genInt64(fModule, 0);
@@ -1091,9 +1114,14 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Get LLVM constant string
             string name = replaceSpacesWithUnderscore(label);
+        #if defined(LLVM_37)
             llvm::Type* type_def;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
+        #else
+            GlobalVariable* llvm_label = addStringConstant(label);
+            Value* const_string = fBuilder->CreateConstGEP2_32(llvm_label, 0, 0);
+        #endif
 
             Value* idx[2];
             idx[0] = genInt64(fModule, 0);
@@ -1148,9 +1176,14 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Get LLVM constant string
             string name = replaceSpacesWithUnderscore(label);
+        #if defined(LLVM_37)
             llvm::Type* type_def;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
+        #else
+            GlobalVariable* llvm_label = addStringConstant(label);
+            Value* const_string = fBuilder->CreateConstGEP2_32(llvm_label, 0, 0);
+        #endif
 
             Value* idx[2];
             idx[0] = genInt64(fModule, 0);
