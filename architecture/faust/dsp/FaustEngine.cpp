@@ -356,8 +356,8 @@ float getParamStepDsp(dsp* dsp_ext, int p)				{ return reinterpret_cast<dsp_aux*
 float getParamValueDsp(dsp* dsp_ext, int p)             { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamValue(p); }
 void  setParamValueDsp(dsp* dsp_ext, int p, float v)	{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamValue(p,v); }
 	
-float getParamRatioDsp(dsp* dsp_ext, int p)            { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamRatio(p); }
-void  setParamRatioDsp(dsp* dsp_ext, int p, float v)   { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamRatio(p,v); }
+float getParamRatioDsp(dsp* dsp_ext, int p)             { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamRatio(p); }
+void  setParamRatioDsp(dsp* dsp_ext, int p, float v)    { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamRatio(p,v); }
 	
 float value2ratioDsp(dsp* dsp_ext, int p, float r)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.value2ratio(p, r); }
 float ratio2valueDsp(dsp* dsp_ext, int p, float r)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.ratio2value(p, r); }
@@ -365,6 +365,10 @@ float ratio2valueDsp(dsp* dsp_ext, int p, float r)		{ return reinterpret_cast<ds
 void propagateAccXDsp(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAcc(0, a); }
 void propagateAccYDsp(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAcc(1, a); }
 void propagateAccZDsp(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAcc(2, a); }
+
+void propagateGyrXDsp(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateGyr(0, a); }
+void propagateGyrYDsp(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateGyr(1, a); }
+void propagateGyrZDsp(dsp* dsp_ext, float a)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateGyr(2, a); }
 
 #ifdef __cplusplus
 }

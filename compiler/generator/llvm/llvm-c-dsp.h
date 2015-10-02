@@ -315,7 +315,7 @@ extern "C"
      *
      * @return the machine code as a string (to be deleted by the caller).
      */
-    char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target);
+    char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target);
 
     /**
      * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all 
@@ -338,7 +338,7 @@ extern "C"
      * @param target - the LLVM machine target (using empty string will takes current machine settings).
      *
      */
-    void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const std::string& target);
+    void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
     
     /**
      * Call global declarations with the given meta object.

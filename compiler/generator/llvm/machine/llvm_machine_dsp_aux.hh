@@ -247,6 +247,8 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code
     
 EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target);
 
+EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
+
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
     
 EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);

@@ -123,4 +123,16 @@ public class FaustEngine implements FaustEngineConstants {
     FaustEngineJNI.propagateAccZDsp(dsp.getCPtr(dsp), dsp, a);
   }
 
+  public static void propagateGyrXDsp(dsp dsp, float a) {
+    FaustEngineJNI.propagateGyrXDsp(dsp.getCPtr(dsp), dsp, a);
+  }
+
+  public static void propagateGyrYDsp(dsp dsp, float a) {
+    FaustEngineJNI.propagateGyrYDsp(dsp.getCPtr(dsp), dsp, a);
+  }
+
+  public static void propagateGyrZDsp(dsp dsp, float a) {
+    FaustEngineJNI.propagateGyrZDsp(dsp.getCPtr(dsp), dsp, a);
+  }
+
 }

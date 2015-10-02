@@ -78,6 +78,10 @@ void propagateAccXDsp(dsp* dsp, float a);			///< propagate x accelerometer influ
 void propagateAccYDsp(dsp* dsp, float a);			///< propagate y accelerometer influence to related parameters
 void propagateAccZDsp(dsp* dsp, float a);			///< propagate z accelerometer influence to related parameters
 
+void propagateGyrXDsp(dsp* dsp, float a);			///< propagate x gyroscope influence to related parameters
+void propagateGyrYDsp(dsp* dsp, float a);			///< propagate y gyroscope influence to related parameters
+void propagateGyrZDsp(dsp* dsp, float a);			///< propagate z gyroscope influence to related parameters
+
 /************************************************************************
 ************************************************************************/
 

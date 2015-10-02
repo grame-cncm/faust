@@ -9,6 +9,10 @@
 package com.grame.faust;
 
 public class Faust {
+  public static String getCLibFaustVersion() {
+    return FaustJNI.getCLibFaustVersion();
+  }
+
   public static String getCDSPMachineTarget() {
     return FaustJNI.getCDSPMachineTarget();
   }
@@ -28,8 +32,8 @@ public class Faust {
     return (cPtr == 0) ? null : new llvm_dsp_factory(cPtr, false);
   }
 
-  public static void deleteCDSPFactory(llvm_dsp_factory factory) {
-    FaustJNI.deleteCDSPFactory(llvm_dsp_factory.getCPtr(factory), factory);
+  public static boolean deleteCDSPFactory(llvm_dsp_factory factory) {
+    return FaustJNI.deleteCDSPFactory(llvm_dsp_factory.getCPtr(factory), factory);
   }
 
   public static String getCName(llvm_dsp_factory factory) {
@@ -40,8 +44,16 @@ public class Faust {
     return FaustJNI.getCSHAKey(llvm_dsp_factory.getCPtr(factory), factory);
   }
 
-  public static SWIGTYPE_p_p_char getCLibraryList(llvm_dsp_factory factory) {
-    long cPtr = FaustJNI.getCLibraryList(llvm_dsp_factory.getCPtr(factory), factory);
+  public static String getCDSPCode(llvm_dsp_factory factory) {
+    return FaustJNI.getCDSPCode(llvm_dsp_factory.getCPtr(factory), factory);
+  }
+
+  public static String getCTarget(llvm_dsp_factory factory) {
+    return FaustJNI.getCTarget(llvm_dsp_factory.getCPtr(factory), factory);
+  }
+
+  public static SWIGTYPE_p_p_char getCDSPFactoryLibraryList(llvm_dsp_factory factory) {
+    long cPtr = FaustJNI.getCDSPFactoryLibraryList(llvm_dsp_factory.getCPtr(factory), factory);
     return (cPtr == 0) ? null : new SWIGTYPE_p_p_char(cPtr, false);
   }
 
@@ -98,22 +110,22 @@ public class Faust {
     FaustJNI.writeCDSPFactoryToIRFile(llvm_dsp_factory.getCPtr(factory), factory, ir_code_path);
   }
 
-  public static llvm_dsp_factory readCDSPFactoryFromMachine(String machine_code) {
-    long cPtr = FaustJNI.readCDSPFactoryFromMachine(machine_code);
+  public static llvm_dsp_factory readCDSPFactoryFromMachine(String machine_code, String target) {
+    long cPtr = FaustJNI.readCDSPFactoryFromMachine(machine_code, target);
     return (cPtr == 0) ? null : new llvm_dsp_factory(cPtr, false);
   }
 
-  public static String writeCDSPFactoryToMachine(llvm_dsp_factory factory) {
-    return FaustJNI.writeCDSPFactoryToMachine(llvm_dsp_factory.getCPtr(factory), factory);
+  public static String writeCDSPFactoryToMachine(llvm_dsp_factory factory, String target) {
+    return FaustJNI.writeCDSPFactoryToMachine(llvm_dsp_factory.getCPtr(factory), factory, target);
   }
 
-  public static llvm_dsp_factory readCDSPFactoryFromMachineFile(String machine_code_path) {
-    long cPtr = FaustJNI.readCDSPFactoryFromMachineFile(machine_code_path);
+  public static llvm_dsp_factory readCDSPFactoryFromMachineFile(String machine_code_path, String target) {
+    long cPtr = FaustJNI.readCDSPFactoryFromMachineFile(machine_code_path, target);
     return (cPtr == 0) ? null : new llvm_dsp_factory(cPtr, false);
   }
 
-  public static void writeCDSPFactoryToMachineFile(llvm_dsp_factory factory, String machine_code_path) {
-    FaustJNI.writeCDSPFactoryToMachineFile(llvm_dsp_factory.getCPtr(factory), factory, machine_code_path);
+  public static void writeCDSPFactoryToMachineFile(llvm_dsp_factory factory, String machine_code_path, String target) {
+    FaustJNI.writeCDSPFactoryToMachineFile(llvm_dsp_factory.getCPtr(factory), factory, machine_code_path, target);
   }
 
   public static void metadataCDSPFactory(llvm_dsp_factory factory, SWIGTYPE_p_MetaGlue meta) {

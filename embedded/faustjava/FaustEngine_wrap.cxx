@@ -771,6 +771,45 @@ SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_propagateAccZDsp(JNI
 }
 
 
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_propagateGyrXDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
+  dsp *arg1 = (dsp *) 0 ;
+  float arg2 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(dsp **)&jarg1; 
+  arg2 = (float)jarg2; 
+  propagateGyrXDsp(arg1,arg2);
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_propagateGyrYDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
+  dsp *arg1 = (dsp *) 0 ;
+  float arg2 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(dsp **)&jarg1; 
+  arg2 = (float)jarg2; 
+  propagateGyrYDsp(arg1,arg2);
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_propagateGyrZDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
+  dsp *arg1 = (dsp *) 0 ;
+  float arg2 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(dsp **)&jarg1; 
+  arg2 = (float)jarg2; 
+  propagateGyrZDsp(arg1,arg2);
+}
+
+
 #ifdef __cplusplus
 }
 #endif

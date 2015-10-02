@@ -42,4 +42,7 @@ public class FaustEngineJNI {
   public final static native void propagateAccXDsp(long jarg1, dsp jarg1_, float jarg2);
   public final static native void propagateAccYDsp(long jarg1, dsp jarg1_, float jarg2);
   public final static native void propagateAccZDsp(long jarg1, dsp jarg1_, float jarg2);
+  public final static native void propagateGyrXDsp(long jarg1, dsp jarg1_, float jarg2);
+  public final static native void propagateGyrYDsp(long jarg1, dsp jarg1_, float jarg2);
+  public final static native void propagateGyrZDsp(long jarg1, dsp jarg1_, float jarg2);
 }
