@@ -106,12 +106,21 @@ public class FaustActivity extends Activity {
 
             long curDate = java.lang.System.currentTimeMillis();
             long deltaUI = curDate - lastUIDate;
-
-            // Update mapping at sensor rate
-            dsp_faust.propagateAcc(0, se.values[0]);
-            dsp_faust.propagateAcc(1, se.values[1]);
-            dsp_faust.propagateAcc(2, se.values[2]);
-        
+    
+            if (se.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                // Update mapping at sensor rate
+                dsp_faust.propagateAcc(0, se.values[0]);
+                dsp_faust.propagateAcc(1, se.values[1]);
+                dsp_faust.propagateAcc(2, se.values[2]);
+            }
+    
+            if (se.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+                // Update mapping at sensor rate
+                dsp_faust.propagateGyr(0, se.values[0]);
+                dsp_faust.propagateGyr(1, se.values[1]);
+                dsp_faust.propagateGyr(2, se.values[2]);
+            }
+    
             // Update UI less often
             if (deltaUI > 100) {
                 lastUIDate = curDate;

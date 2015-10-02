@@ -80,13 +80,13 @@ public class ConfigWindow{
 		closeButton.setTextSize(20);
 		closeButton.setText("X");
 			
-		windowLabel.setText("Accelerometer Parameters");
-		windowLabel.setTextSize(22.f);
+		windowLabel.setText("Accelerometer/gyroscope parameters");
+		windowLabel.setTextSize(16.f);
 		
 		axisLabel.setText("Axis: ");
 		orientationLabel.setText("Orientation: ");
 		
-		String[] items = {"0","X","Y","Z"};
+		String[] items = {"0","aX","aY","aZ","gX","gY","gZ"};
 		axisSelection.setItems(items);
 		
 		int[] iconsOn = {R.drawable.ic_accelnormon,R.drawable.ic_accelinverton,R.drawable.ic_accelcurveon,R.drawable.ic_accelinvertcurveon};
@@ -131,34 +131,46 @@ public class ConfigWindow{
 		mainWindow.setContentView(windowLayout);
 	}
     
-    void updateAcc(final ParametersInfo parametersInfo, int index)
+    void updateAccGyr(final ParametersInfo parametersInfo, int index)
     {
         /*
-        Log.d("FaustJava", "updateAcc :  " + index
-            + " " + parametersInfo.accelType[index]
-            + " " + parametersInfo.accelCurve[index]
-            + " " + parametersInfo.accelMin[index]
-            + " " + parametersInfo.accelCenter[index]
-            + " " + parametersInfo.accelMax[index]);
+        Log.d("FaustJava", "updateAccGyr :  " + index
+            + " " + parametersInfo.accgyrType[index]
+            + " " + parametersInfo.accgyrCurve[index]
+            + " " + parametersInfo.accgyrMin[index]
+            + " " + parametersInfo.accgyrCenter[index]
+            + " " + parametersInfo.accgyrMax[index]);
         */
         
-        dsp_faust.setAccConverter(index,
-                                  parametersInfo.accelType[index] - 1,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
-                                  parametersInfo.accelCurve[index],
-                                  parametersInfo.accelMin[index],
-                                  parametersInfo.accelCenter[index],
-                                  parametersInfo.accelMax[index]);
-    
+        if (parametersInfo.accgyrType[index] == 0) {
+            dsp_faust.setAccConverter(index, -1, 0, 0, 0, 0); // -1 means no mapping
+            dsp_faust.setGyrConverter(index, -1, 0, 0, 0, 0); // -1 means no mapping
+        } else if (parametersInfo.accgyrType[index] <= 3) {
+            dsp_faust.setAccConverter(index,
+                                      parametersInfo.accgyrType[index] - 1,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
+                                      parametersInfo.accgyrCurve[index],
+                                      parametersInfo.accgyrMin[index],
+                                      parametersInfo.accgyrCenter[index],
+                                      parametersInfo.accgyrMax[index]);
+        
+        } else {
+            dsp_faust.setGyrConverter(index,
+                                      parametersInfo.accgyrType[index] - 4,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
+                                      parametersInfo.accgyrCurve[index],
+                                      parametersInfo.accgyrMin[index],
+                                      parametersInfo.accgyrCenter[index],
+                                      parametersInfo.accgyrMax[index]);
+        }
     }
 	
 	public void showWindow(final ParametersInfo parametersInfo, final int currentParameterNumber){
 		// Saved state is used
-		axisSelection.selectTextItem(parametersInfo.accelType[currentParameterNumber]);
-		axisOrientation.selectImgItem(parametersInfo.accelCurve[currentParameterNumber]);
+		axisSelection.selectTextItem(parametersInfo.accgyrType[currentParameterNumber]);
+		axisOrientation.selectImgItem(parametersInfo.accgyrCurve[currentParameterNumber]);
 		
-		setValue(minSlider,minSliderValue,"Min: ",parametersInfo.accelMin[currentParameterNumber]);
-		setValue(maxSlider,maxSliderValue,"Max: ",parametersInfo.accelMax[currentParameterNumber]);
-		setValue(centerSlider,centerSliderValue,"Center: ",parametersInfo.accelCenter[currentParameterNumber]);
+		setValue(minSlider,minSliderValue,"Min: ",parametersInfo.accgyrMin[currentParameterNumber]);
+		setValue(maxSlider,maxSliderValue,"Max: ",parametersInfo.accgyrMax[currentParameterNumber]);
+		setValue(centerSlider,centerSliderValue,"Center: ",parametersInfo.accgyrCenter[currentParameterNumber]);
 		
 		mainWindow.showAtLocation(mainWindowLayout, Gravity.CENTER,0,0);
 		mainWindow.update(0, 0, size.x*700/800, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -174,8 +186,9 @@ public class ConfigWindow{
 			axisSelection.parameterLabel[i].setOnClickListener(new OnClickListener(){
 				public void onClick(View v){
 					axisSelection.selectTextItem(index);
-					parametersInfo.accelType[currentParameterNumber] = index;
-                    updateAcc(parametersInfo, currentParameterNumber);
+                    Log.d("FaustJava", "OnClickListener : " + index);
+					parametersInfo.accgyrType[currentParameterNumber] = index;
+                    updateAccGyr(parametersInfo, currentParameterNumber);
 				}
 			});
 		}
@@ -185,8 +198,8 @@ public class ConfigWindow{
 			axisOrientation.imgs[i].setOnClickListener(new OnClickListener(){
 				public void onClick(View v){
 					axisOrientation.selectImgItem(index);
-					parametersInfo.accelCurve[currentParameterNumber] = index;
-                    updateAcc(parametersInfo, currentParameterNumber);
+					parametersInfo.accgyrCurve[currentParameterNumber] = index;
+                    updateAccGyr(parametersInfo, currentParameterNumber);
 				}	
 			});
 		}
@@ -198,13 +211,13 @@ public class ConfigWindow{
                 //Log.d("FaustJava", "onProgressChanged : " + fromUser);
                 if (fromUser) {
                     float scaledProgress = progress*0.2f - 100.0f;
-                    if(scaledProgress >= parametersInfo.accelMax[currentParameterNumber])
-                        setValue(minSlider,minSliderValue,"Min: ",parametersInfo.accelMax[currentParameterNumber]);
+                    if(scaledProgress >= parametersInfo.accgyrMax[currentParameterNumber])
+                        setValue(minSlider,minSliderValue,"Min: ",parametersInfo.accgyrMax[currentParameterNumber]);
                     else{ 
-                        parametersInfo.accelMin[currentParameterNumber] = scaledProgress;
+                        parametersInfo.accgyrMin[currentParameterNumber] = scaledProgress;
                         minSliderValue.setText("Min: " + String.format("%.1f", scaledProgress));
                         //Log.d("FaustJava", "onProgressChanged : currentParameterNumber Min " + currentParameterNumber + " " + scaledProgress);
-                        updateAcc(parametersInfo, currentParameterNumber);
+                        updateAccGyr(parametersInfo, currentParameterNumber);
                     }
                 }
             }
@@ -216,14 +229,14 @@ public class ConfigWindow{
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 //Log.d("FaustJava", "onProgressChanged : " + fromUser);
                 if (fromUser) {
-                    float scaledProgress = progress*.2f - 100.0f;
-                    if(scaledProgress <= parametersInfo.accelMin[currentParameterNumber])
-                        setValue(maxSlider,maxSliderValue,"Max: ",parametersInfo.accelMin[currentParameterNumber]);
+                    float scaledProgress = progress*0.2f - 100.0f;
+                    if(scaledProgress <= parametersInfo.accgyrMin[currentParameterNumber])
+                        setValue(maxSlider,maxSliderValue,"Max: ",parametersInfo.accgyrMin[currentParameterNumber]);
                     else{ 
-                        parametersInfo.accelMax[currentParameterNumber] = scaledProgress;
+                        parametersInfo.accgyrMax[currentParameterNumber] = scaledProgress;
                         maxSliderValue.setText("Max: " + String.format("%.1f", scaledProgress));
                         //Log.d("FaustJava", "onProgressChanged : currentParameterNumber Max " + currentParameterNumber + " " + scaledProgress);
-                        updateAcc(parametersInfo, currentParameterNumber);
+                        updateAccGyr(parametersInfo, currentParameterNumber);
                     }
                 }
             }
@@ -236,15 +249,15 @@ public class ConfigWindow{
                 //Log.d("FaustJava", "onProgressChanged : " + fromUser);
                 if (fromUser) {
                     float scaledProgress = progress*0.2f - 100.0f;
-                    if(scaledProgress <= parametersInfo.accelMin[currentParameterNumber])
-                        setValue(centerSlider,centerSliderValue,"Center: ",parametersInfo.accelMin[currentParameterNumber]);
-                    else if(scaledProgress >= parametersInfo.accelMax[currentParameterNumber])
-                        setValue(centerSlider,centerSliderValue,"Center: ",parametersInfo.accelMax[currentParameterNumber]);
+                    if(scaledProgress <= parametersInfo.accgyrMin[currentParameterNumber])
+                        setValue(centerSlider,centerSliderValue,"Center: ",parametersInfo.accgyrMin[currentParameterNumber]);
+                    else if(scaledProgress >= parametersInfo.accgyrMax[currentParameterNumber])
+                        setValue(centerSlider,centerSliderValue,"Center: ",parametersInfo.accgyrMax[currentParameterNumber]);
                     else{ 
-                        parametersInfo.accelCenter[currentParameterNumber] = scaledProgress;	
+                        parametersInfo.accgyrCenter[currentParameterNumber] = scaledProgress;	
                         centerSliderValue.setText("Center: " + String.format("%.1f", scaledProgress));
                         //Log.d("FaustJava", "onProgressChanged : currentParameterNumber Center " + currentParameterNumber + " " + scaledProgress);
-                        updateAcc(parametersInfo, currentParameterNumber);
+                        updateAccGyr(parametersInfo, currentParameterNumber);
                     }
                 }
             }

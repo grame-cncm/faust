@@ -151,10 +151,10 @@ class Knob {
 		
 		knob.setOnSeekArcChangeListener( new OnSeekArcChangeListener() {
 			public void onStopTrackingTouch(SeekArc seekArc) {
-				parametersInfo.accelItemFocus[id] = 0;
+				parametersInfo.accgyrItemFocus[id] = 0;
 			}
 			public void onStartTrackingTouch(SeekArc seekArc) {
-				parametersInfo.accelItemFocus[id] = 1;
+				parametersInfo.accgyrItemFocus[id] = 1;
 			}
 			public void onProgressChanged(SeekArc seekArc, int progress, boolean fromUser) {
 				parametersInfo.values[id] = (float) progress*0.01f*(max-min) + min;
