@@ -446,6 +446,24 @@ SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setAccConverter(JNIEnv
     (void)jcls;
     setAccConverter((int)p, (int)acc, (int)curve, (float)amin, (float)amid, (float)amax);
 }
+
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_propagateGyr(JNIEnv *jenv, jclass jcls,  jint jarg1, jfloat jarg2) {
+    int arg1 ;
+    float arg2 ;
+    
+    (void)jenv;
+    (void)jcls;
+    arg1 = (int)jarg1;
+    arg2 = (float)jarg2;
+    propagateGyr(arg1, arg2);
+}
+    
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setGyrConverter(JNIEnv *jenv, jclass jcls, jint p, jint gyr, jint curve, jfloat amin, jfloat amid, jfloat amax) {
+    
+    (void)jenv;
+    (void)jcls;
+    setGyrConverter((int)p, (int)gyr, (int)curve, (float)amin, (float)amid, (float)amax);
+}
     
 #ifdef __cplusplus
 }
