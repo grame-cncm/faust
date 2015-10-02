@@ -278,6 +278,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         VECTOR_OF_TYPES fDSPFields;
         int fDSPFieldsCounter;
         string fPrefix;
+        DataLayout* fDataLayout;
 
         // Meta structure creation
         llvm::PointerType* fStruct_Meta_ptr;
@@ -334,7 +335,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             fBuilder->ClearInsertionPoint();
         }
  
-        void generateMemory(llvm::PointerType* dsp_type_ptr, bool internal)
+        void generateMemory(llvm::StructType* dsp_type, llvm::PointerType* dsp_type_ptr, bool internal)
         {
             // malloc
             PointerType* malloc_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
@@ -378,16 +379,15 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             // llvm_create_dsp block
             BasicBlock* entry_func_llvm_create_dsp = BasicBlock::Create(fModule->getContext(), "entry", func_llvm_create_dsp);
 
-            // Dynamically computed object size (see http://nondot.org/sabre/LLVMNotes/SizeOf-OffsetOf-VariableSizedStructs.txt)
-        #if defined(LLVM_37)
-            ConstantPointerNull* null_ptr =  ConstantPointerNull::get(dsp_type_ptr);
-            Value* ptr_size = GetElementPtrInst::Create(null_ptr->getType(), null_ptr, genInt64(fModule, 1), "ptr_size", entry_func_llvm_create_dsp);
+        #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
+            CallInst* call_inst1 = CallInst::Create(func_malloc, genInt64(fModule, fDataLayout->getTypeSizeInBits(dsp_type)), "", entry_func_llvm_create_dsp);
         #else
+            // Dynamically computed object size (see http://nondot.org/sabre/LLVMNotes/SizeOf-OffsetOf-VariableSizedStructs.txt)
             Value* ptr_size = GetElementPtrInst::Create(ConstantPointerNull::get(dsp_type_ptr), genInt64(fModule, 1), "ptr_size", entry_func_llvm_create_dsp);
-        #endif
             CastInst* size_inst = new PtrToIntInst(ptr_size, fBuilder->getInt64Ty(), "size", entry_func_llvm_create_dsp);
             CallInst* call_inst1 = CallInst::Create(func_malloc, size_inst, "", entry_func_llvm_create_dsp);
-
+        #endif
+        
             call_inst1->setCallingConv(CallingConv::C);
             CastInst* call_inst2 = new BitCastInst(call_inst1, dsp_type_ptr, "", entry_func_llvm_create_dsp);
             // Only for global object
@@ -564,12 +564,14 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         {
             fBuilder = new IRBuilder<>(fModule->getContext());
             initTypes(module);
+            fDataLayout = new DataLayout(module->getDataLayout());
         }
 
         virtual ~LLVMTypeInstVisitor()
         {
             // External object not covered by Garbageable, so delete it here
             delete fBuilder;
+            delete fDataLayout;
         }
 
         virtual void visit(DeclareVarInst* inst)
@@ -632,7 +634,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             generateFreeDsp(dsp_type_ptr, internal);
 
             // Creates DSP free/delete functions
-            generateMemory(dsp_type_ptr, internal);
+            generateMemory(dsp_type, dsp_type_ptr, internal);
 
             // Struct Meta
             generateMetaGlue();
