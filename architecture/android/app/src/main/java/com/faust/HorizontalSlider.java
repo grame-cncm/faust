@@ -152,10 +152,10 @@ class HorizontalSlider {
 		
 		slider.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
 			public void onStopTrackingTouch(SeekBar seekBar) {
-				parametersInfo.accelItemFocus[id] = 0;
+				parametersInfo.accgyrItemFocus[id] = 0;
 			}
 			public void onStartTrackingTouch(SeekBar seekBar) {
-				parametersInfo.accelItemFocus[id] = 1;
+				parametersInfo.accgyrItemFocus[id] = 1;
 			}
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 				parametersInfo.values[id] = (float) progress*step + min;

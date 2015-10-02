@@ -77,24 +77,36 @@ public class UI {
 	
 	ConfigWindow parametersWindow;
     
-    private void updateAcc(final ParametersInfo parametersInfo, int index)
+    private void updateAccGyr(final ParametersInfo parametersInfo, int index)
     {
         /*
-        Log.d("FaustJava", "updateAcc :  " + index
-              + " " + parametersInfo.accelType[index]
-              + " " + parametersInfo.accelCurve[index]
-              + " " + parametersInfo.accelMin[index]
-              + " " + parametersInfo.accelCenter[index]
-              + " " + parametersInfo.accelMax[index]);
-        */
+         Log.d("FaustJava", "updateAccGyr :  " + index
+         + " " + parametersInfo.accgyrType[index]
+         + " " + parametersInfo.accgyrCurve[index]
+         + " " + parametersInfo.accgyrMin[index]
+         + " " + parametersInfo.accgyrCenter[index]
+         + " " + parametersInfo.accgyrMax[index]);
+         */
         
-        dsp_faust.setAccConverter(index,
-                                  parametersInfo.accelType[index] - 1,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
-                                  parametersInfo.accelCurve[index],
-                                  parametersInfo.accelMin[index],
-                                  parametersInfo.accelCenter[index],
-                                  parametersInfo.accelMax[index]);
-        
+        if (parametersInfo.accgyrType[index] == 0) {
+            dsp_faust.setAccConverter(index, -1, 0, 0, 0, 0); // -1 means no mapping
+            dsp_faust.setGyrConverter(index, -1, 0, 0, 0, 0); // -1 means no mapping
+        } else if (parametersInfo.accgyrType[index] <= 3) {
+            dsp_faust.setAccConverter(index,
+                                      parametersInfo.accgyrType[index] - 1,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
+                                      parametersInfo.accgyrCurve[index],
+                                      parametersInfo.accgyrMin[index],
+                                      parametersInfo.accgyrCenter[index],
+                                      parametersInfo.accgyrMax[index]);
+            
+        } else {
+            dsp_faust.setGyrConverter(index,
+                                      parametersInfo.accgyrType[index] - 4,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
+                                      parametersInfo.accgyrCurve[index],
+                                      parametersInfo.accgyrMin[index],
+                                      parametersInfo.accgyrCenter[index],
+                                      parametersInfo.accgyrMax[index]);
+        }
     }
 	
 	/*
@@ -251,20 +263,37 @@ public class UI {
 				String metaDataMulti = parseJSONMetaData(currentObject, "multi");
 				
 				if (!isSavedParameters) {
-                    // New accelerometer MetaData
-					String metaDataAccel = parseJSONMetaData(currentObject, "acc");
-                	if (!metaDataAccel.equals("")) {
-          				float[] accelParams = {0,0,0,0,0};
+                    
+                    // New accgyrerometer MetaData
+					String metaDataAcc = parseJSONMetaData(currentObject, "acc");
+                	if (!metaDataAcc.equals("")) {
+          				float[] accParams = {0,0,0,0,0};
 						for(int j=0; j<4; j++){
-							accelParams[j] = Float.valueOf(metaDataAccel.substring(0, metaDataAccel.indexOf(" ")));
-							metaDataAccel = metaDataAccel.substring(metaDataAccel.indexOf(" ")+1);
+							accParams[j] = Float.valueOf(metaDataAcc.substring(0, metaDataAcc.indexOf(" ")));
+							metaDataAcc = metaDataAcc.substring(metaDataAcc.indexOf(" ")+1);
 						}
-						accelParams[4] = Float.valueOf(metaDataAccel);
-                        parametersInfo.accelType[parameterNumber] = (int) accelParams[0] + 1;  // Java : from 0 to 3 (0 means no mapping)
-						parametersInfo.accelCurve[parameterNumber] = (int) accelParams[1];
-						parametersInfo.accelMin[parameterNumber] = accelParams[2];
-						parametersInfo.accelCenter[parameterNumber] = accelParams[3];
-						parametersInfo.accelMax[parameterNumber] = accelParams[4];
+						accParams[4] = Float.valueOf(metaDataAcc);
+                        parametersInfo.accgyrType[parameterNumber] = (int) accParams[0] + 1;  // Java : from 1 to 3
+						parametersInfo.accgyrCurve[parameterNumber] = (int) accParams[1];
+						parametersInfo.accgyrMin[parameterNumber] = accParams[2];
+						parametersInfo.accgyrCenter[parameterNumber] = accParams[3];
+						parametersInfo.accgyrMax[parameterNumber] = accParams[4];
+                    }
+                    
+                    // New gyroscope MetaData
+                    String metaDataGyr = parseJSONMetaData(currentObject, "gyr");
+                    if (!metaDataGyr.equals("")) {
+                        float[] gyrParams = {0,0,0,0,0};
+                        for(int j=0; j<4; j++){
+                            gyrParams[j] = Float.valueOf(metaDataGyr.substring(0, metaDataGyr.indexOf(" ")));
+                            metaDataGyr = metaDataGyr.substring(metaDataGyr.indexOf(" ")+1);
+                        }
+                        gyrParams[4] = Float.valueOf(metaDataGyr);
+                        parametersInfo.accgyrType[parameterNumber] = (int) gyrParams[0] + 4;  // Java : from 4 to 6 
+                        parametersInfo.accgyrCurve[parameterNumber] = (int) gyrParams[1];
+                        parametersInfo.accgyrMin[parameterNumber] = gyrParams[2];
+                        parametersInfo.accgyrCenter[parameterNumber] = gyrParams[3];
+                        parametersInfo.accgyrMax[parameterNumber] = gyrParams[4];
                     }
                 }
 				
@@ -523,7 +552,7 @@ public class UI {
 	    hsliders[parametersCounters[0]].addTo(currentGroup);
         
         // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
-        updateAcc(parametersInfo, parameterNumber);
+        updateAccGyr(parametersInfo, parameterNumber);
         dsp_faust.setParam(address, init);
       
         // OSC listener
@@ -577,7 +606,7 @@ public class UI {
 	    vsliders[parametersCounters[1]].addTo(currentGroup);
         
         // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
-        updateAcc(parametersInfo, parameterNumber);
+        updateAccGyr(parametersInfo, parameterNumber);
         dsp_faust.setParam(address, init);
 
         // OSC listener
@@ -631,7 +660,7 @@ public class UI {
 	    knobs[parametersCounters[2]].addTo(currentGroup);
         
         // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
-        updateAcc(parametersInfo, parameterNumber);
+        updateAccGyr(parametersInfo, parameterNumber);
         dsp_faust.setParam(address, init);
        
         // OSC listener
@@ -684,7 +713,7 @@ public class UI {
 	    nentries[parametersCounters[3]].addTo(currentGroup);
         
         // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
-        updateAcc(parametersInfo, parameterNumber);
+        updateAccGyr(parametersInfo, parameterNumber);
         dsp_faust.setParam(address, init);
     
         // OSC listener
