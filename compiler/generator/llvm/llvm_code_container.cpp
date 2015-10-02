@@ -31,12 +31,6 @@
 
 using namespace std;
 
-#if defined(LLVM_36) || defined(LLVM_37)
-    #define STREAM_ERROR std::error_code
-#else
-    #define STREAM_ERROR std::string
-#endif
-
 list <string> LLVMInstVisitor::gMathLibTable;
 
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)

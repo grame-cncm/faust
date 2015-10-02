@@ -98,11 +98,11 @@ using namespace std;
 #define VECTOR_ALIGN 0
 
 #ifdef _WIN32
-#define LLVM_MALLOC     "llvm_malloc"
-#define LLVM_FREE       "llvm_free"
+#define LLVM_MALLOC "llvm_malloc"
+#define LLVM_FREE   "llvm_free"
 #else
-#define LLVM_MALLOC     "malloc"
-#define LLVM_FREE       "free"
+#define LLVM_MALLOC "malloc"
+#define LLVM_FREE   "free"
 #endif
 
 using namespace llvm;

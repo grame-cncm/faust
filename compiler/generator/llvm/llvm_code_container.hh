@@ -37,6 +37,12 @@
 #define sysfs_binary_flag raw_fd_ostream::F_Binary
 #endif
 
+#if defined(LLVM_36) || defined(LLVM_37)
+    #define STREAM_ERROR std::error_code
+#else
+    #define STREAM_ERROR std::string
+#endif
+
 using namespace std;
 using namespace llvm;
 
