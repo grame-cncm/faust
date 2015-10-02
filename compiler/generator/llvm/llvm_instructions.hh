@@ -960,7 +960,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Get LLVM constant string
         #if defined(LLVM_37)
-            llvm::Type* type_def;
+            llvm::Type* type_def = nullptr;
             GlobalVariable* llvm_key = addStringConstant(inst->fKey, type_def);
             Value* const_string1 = fBuilder->CreateConstGEP2_32(type_def, llvm_key, 0, 0);
             GlobalVariable* llvm_value = addStringConstant(inst->fValue, type_def);
@@ -1005,7 +1005,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Get LLVM constant string
             string name = replaceSpacesWithUnderscore(inst->fName);
         #if defined(LLVM_37)
-            llvm::Type* type_def;
+            llvm::Type* type_def = nullptr;
             GlobalVariable* llvm_name = addStringConstant(inst->fName, type_def);
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_name, 0, 0);
         #else    
@@ -1065,7 +1065,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Get LLVM constant string
             string name = replaceSpacesWithUnderscore(label);
         #if defined(LLVM_37)
-            llvm::Type* type_def;
+            llvm::Type* type_def = nullptr;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
         #else
@@ -1117,7 +1117,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Get LLVM constant string
             string name = replaceSpacesWithUnderscore(label);
         #if defined(LLVM_37)
-            llvm::Type* type_def;
+            llvm::Type* type_def = nullptr;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
         #else
@@ -1179,7 +1179,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Get LLVM constant string
             string name = replaceSpacesWithUnderscore(label);
         #if defined(LLVM_37)
-            llvm::Type* type_def;
+            llvm::Type* type_def = nullptr;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
         #else
