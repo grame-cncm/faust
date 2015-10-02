@@ -415,7 +415,7 @@ const char* getParamAddress(int id)
 }
 
 /*
- * propagateAcc(id)
+ * propagateAcc(int acc, float v)
  * Propage accelerometer value to the curve conversion layer.
  */
 void propagateAcc(int acc, float v)
@@ -425,11 +425,30 @@ void propagateAcc(int acc, float v)
 
 /*
  * setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
- * Change curve mapping.
+ * Change accelerometer curve mapping.
  */
 void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
 {
     //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d %d %d %f %f %f", p, acc, curve, amin, amid, amax);
     gGlobal->setAccConverter(p, acc, curve, amin, amid, amax);
+}
+
+/*
+ * propagateGyr(int gyr, float v)
+ * Propage gyroscope value to the curve conversion layer.
+ */
+void propagateGyr(int gyr, float v)
+{
+    gGlobal->propagateGyr(gyr, v);
+}
+
+/*
+ * setGyrConverter(int p, int acc, int curve, float amin, float amid, float amax)
+ * Change gyroscope curve mapping.
+ */
+void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax)
+{
+    //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d %d %d %f %f %f", p, acc, curve, amin, amid, amax);
+    gGlobal->setGyrConverter(p, gyr, curve, amin, amid, amax);
 }
 
