@@ -81,5 +81,13 @@ public class dsp_faust {
   public static void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax) {
      dsp_faustJNI.setAccConverter(p, acc, curve, amin, amid,  amax);
   }
+  
+  public static void propagateGyr(int gyr, float arg1) {
+    dsp_faustJNI.propagateGyr(gyr, arg1);
+  }
+    
+  public static void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax) {
+     dsp_faustJNI.setGyrConverter(p, gyr, curve, amin, amid,  amax);
+  }
  
 }

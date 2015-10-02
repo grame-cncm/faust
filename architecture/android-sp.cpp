@@ -227,6 +227,17 @@ struct AndroidEngine {
         //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d %d %d %f %f %f", p, acc, curve, amin, amid, amax);
         fAPIUI.setAccConverter(p, acc, curve, amin, amid, amax);
     }
+    
+    void propagateGyr(int gyr, float v)
+    {
+        fAPIUI.propagateGyr(gyr, v);
+    }
+    
+    void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax)
+    {
+        //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setGyrConverter %d %d %d %f %f %f", p, gyr, curve, amin, amid, amax);
+        fAPIUI.setGyrConverter(p, gyr, curve, amin, amid, amax);
+    }
 };
 
 static AndroidEngine* gGlobal = NULL;

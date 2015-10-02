@@ -34,3 +34,5 @@ int setVoiceGain(int, float);
 const char* getParamAddress(int);
 void propagateAcc(int acc, float v);
 void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax);
+void propagateGyr(int acc, float v);
+void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax);
