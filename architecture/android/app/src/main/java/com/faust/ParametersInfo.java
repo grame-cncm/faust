@@ -6,17 +6,17 @@ import android.util.Log;
 
 class ParametersInfo {
     
-    final String VERSION = "0.10";
+    final String VERSION = "0.11";
 	// Saved Parameters
 	String[] address;
 	float[] values;
 	int zoom;
-	int[] accelType;
-	int[] accelCurve;
-	float[] accelMin;
-	float[] accelMax;
-	float[] accelCenter;
-    int[] accelItemFocus;
+	int[] accgyrType;
+	int[] accgyrCurve;
+	float[] accgyrMin;
+	float[] accgyrMax;
+	float[] accgyrCenter;
+    int[] accgyrItemFocus;
 	
 	// Multi interface parameters
 	int nMultiParams;
@@ -38,12 +38,12 @@ class ParametersInfo {
 		nParams = numberOfParams;
 		address = new String[nParams];
 		values = new float[nParams];
-		accelType = new int[nParams];
-		accelCurve = new int[nParams];
-		accelMin = new float[nParams];
-		accelMax = new float[nParams];
-		accelCenter = new float[nParams];
-		accelItemFocus = new int[nParams];
+		accgyrType = new int[nParams];
+		accgyrCurve = new int[nParams];
+		accgyrMin = new float[nParams];
+		accgyrMax = new float[nParams];
+		accgyrCenter = new float[nParams];
+		accgyrItemFocus = new int[nParams];
 		parameterType = new int[nParams]; //0: hslider, 1: vslider
 		localId = new int[nParams];
 		
@@ -55,12 +55,12 @@ class ParametersInfo {
 		
 		// assigning default values
 		for(int i=0; i<nParams; i++){
-            accelType[i] = 0;
-			accelMin[i] = -100.0f;
-			accelMax[i] = 100.0f;
-			accelCenter[i] = 0.0f;
-  			accelCurve[i] = 0;
-			accelItemFocus[i] = 0;
+            accgyrType[i] = 0;
+			accgyrMin[i] = -100.0f;
+			accgyrMax[i] = 100.0f;
+			accgyrCenter[i] = 0.0f;
+  			accgyrCurve[i] = 0;
+			accgyrItemFocus[i] = 0;
 			
 			order[i] = -1;
 			min[i] = 0;
@@ -80,13 +80,13 @@ class ParametersInfo {
         
 		for (int i = 0; i < nParams; i++){
 			editor.putFloat("value"+i, values[i]);
-			editor.putInt("accelType"+i, accelType[i]);
-			editor.putFloat("accelMin"+i, accelMin[i]);
-			editor.putFloat("accelMax"+i, accelMax[i]);
-			editor.putFloat("accelCenter"+i, accelCenter[i]);
-            editor.putInt("accelCurve"+i, accelCurve[i]);
-            //Log.d("FaustJava", "saveParameters accelCurve "+i + " " + accelCurve[i]);
-            Log.d("FaustJava", "saveParameters accelType "+i + " " + accelType[i]);
+			editor.putInt("accgyrType"+i, accgyrType[i]);
+			editor.putFloat("accgyrMin"+i, accgyrMin[i]);
+			editor.putFloat("accgyrMax"+i, accgyrMax[i]);
+			editor.putFloat("accgyrCenter"+i, accgyrCenter[i]);
+            editor.putInt("accgyrCurve"+i, accgyrCurve[i]);
+            //Log.d("FaustJava", "saveParameters accgyrCurve "+i + " " + accgyrCurve[i]);
+            Log.d("FaustJava", "saveParameters accgyrType "+i + " " + accgyrType[i]);
 			
 			editor.putInt("order"+i, order[i]);
 			editor.putString("label"+i, label[i]);
@@ -107,13 +107,13 @@ class ParametersInfo {
             
 			for (int i = 0; i < nParams; i++){
 				values[i] = settings.getFloat("value"+i,0.0f);
-				accelType[i] = settings.getInt("accelType"+i, 0); //TODO: should be done only for controlled parameters
-				accelMin[i] = settings.getFloat("accelMin"+i, 0);
-				accelMax[i] = settings.getFloat("accelMax"+i, 0);
-				accelCenter[i] = settings.getFloat("accelCenter"+i, 0);
-    			accelCurve[i] = settings.getInt("accelCurve"+i, 0);
-                //Log.d("FaustJava", "loadParameters accelCurve "+i + " " + accelCurve[i]);
-                Log.d("FaustJava", "loadParameters accelType "+i + " " + accelType[i]);
+				accgyrType[i] = settings.getInt("accgyrType"+i, 0); //TODO: should be done only for controlled parameters
+				accgyrMin[i] = settings.getFloat("accgyrMin"+i, 0);
+				accgyrMax[i] = settings.getFloat("accgyrMax"+i, 0);
+				accgyrCenter[i] = settings.getFloat("accgyrCenter"+i, 0);
+    			accgyrCurve[i] = settings.getInt("accgyrCurve"+i, 0);
+                //Log.d("FaustJava", "loadParameters accgyrCurve "+i + " " + accgyrCurve[i]);
+                Log.d("FaustJava", "loadParameters accgyrType "+i + " " + accgyrType[i]);
 				
 				// TODO perhaps this should be in a separate function for optimization saic...	
 				order[i] = settings.getInt("order"+i, 0);
