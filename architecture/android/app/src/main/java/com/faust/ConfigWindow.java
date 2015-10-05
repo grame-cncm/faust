@@ -83,8 +83,8 @@ public class ConfigWindow{
 		windowLabel.setText("Accelerometer/gyroscope parameters");
 		windowLabel.setTextSize(16.f);
 		
-		axisLabel.setText("Axis: ");
-		orientationLabel.setText("Orientation: ");
+		axisLabel.setText("Axis ");
+		orientationLabel.setText("Orientation ");
 		
 		String[] items = {"0","aX","aY","aZ","gX","gY","gZ"};
 		axisSelection.setItems(items);
@@ -168,9 +168,9 @@ public class ConfigWindow{
 		axisSelection.selectTextItem(parametersInfo.accgyrType[currentParameterNumber]);
 		axisOrientation.selectImgItem(parametersInfo.accgyrCurve[currentParameterNumber]);
 		
-		setValue(minSlider,minSliderValue,"Min: ",parametersInfo.accgyrMin[currentParameterNumber]);
-		setValue(maxSlider,maxSliderValue,"Max: ",parametersInfo.accgyrMax[currentParameterNumber]);
-		setValue(centerSlider,centerSliderValue,"Center: ",parametersInfo.accgyrCenter[currentParameterNumber]);
+		setValue(minSlider,minSliderValue,"Min  ",parametersInfo.accgyrMin[currentParameterNumber]);
+		setValue(maxSlider,maxSliderValue,"Max  ",parametersInfo.accgyrMax[currentParameterNumber]);
+		setValue(centerSlider,centerSliderValue,"Center  ",parametersInfo.accgyrCenter[currentParameterNumber]);
 		
 		mainWindow.showAtLocation(mainWindowLayout, Gravity.CENTER,0,0);
 		mainWindow.update(0, 0, size.x*700/800, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -212,10 +212,10 @@ public class ConfigWindow{
                 if (fromUser) {
                     float scaledProgress = progress*0.2f - 100.0f;
                     if(scaledProgress >= parametersInfo.accgyrMax[currentParameterNumber])
-                        setValue(minSlider,minSliderValue,"Min: ",parametersInfo.accgyrMax[currentParameterNumber]);
+                        setValue(minSlider,minSliderValue,"Min  ",parametersInfo.accgyrMax[currentParameterNumber]);
                     else{ 
                         parametersInfo.accgyrMin[currentParameterNumber] = scaledProgress;
-                        minSliderValue.setText("Min: " + String.format("%.1f", scaledProgress));
+                        minSliderValue.setText("Min  " + String.format("%.1f", scaledProgress));
                         //Log.d("FaustJava", "onProgressChanged : currentParameterNumber Min " + currentParameterNumber + " " + scaledProgress);
                         updateAccGyr(parametersInfo, currentParameterNumber);
                     }
@@ -231,10 +231,10 @@ public class ConfigWindow{
                 if (fromUser) {
                     float scaledProgress = progress*0.2f - 100.0f;
                     if(scaledProgress <= parametersInfo.accgyrMin[currentParameterNumber])
-                        setValue(maxSlider,maxSliderValue,"Max: ",parametersInfo.accgyrMin[currentParameterNumber]);
+                        setValue(maxSlider,maxSliderValue,"Max  ",parametersInfo.accgyrMin[currentParameterNumber]);
                     else{ 
                         parametersInfo.accgyrMax[currentParameterNumber] = scaledProgress;
-                        maxSliderValue.setText("Max: " + String.format("%.1f", scaledProgress));
+                        maxSliderValue.setText("Max  " + String.format("%.1f", scaledProgress));
                         //Log.d("FaustJava", "onProgressChanged : currentParameterNumber Max " + currentParameterNumber + " " + scaledProgress);
                         updateAccGyr(parametersInfo, currentParameterNumber);
                     }
@@ -250,12 +250,12 @@ public class ConfigWindow{
                 if (fromUser) {
                     float scaledProgress = progress*0.2f - 100.0f;
                     if(scaledProgress <= parametersInfo.accgyrMin[currentParameterNumber])
-                        setValue(centerSlider,centerSliderValue,"Center: ",parametersInfo.accgyrMin[currentParameterNumber]);
+                        setValue(centerSlider,centerSliderValue,"Center  ",parametersInfo.accgyrMin[currentParameterNumber]);
                     else if(scaledProgress >= parametersInfo.accgyrMax[currentParameterNumber])
-                        setValue(centerSlider,centerSliderValue,"Center: ",parametersInfo.accgyrMax[currentParameterNumber]);
+                        setValue(centerSlider,centerSliderValue,"Center  ",parametersInfo.accgyrMax[currentParameterNumber]);
                     else{ 
                         parametersInfo.accgyrCenter[currentParameterNumber] = scaledProgress;	
-                        centerSliderValue.setText("Center: " + String.format("%.1f", scaledProgress));
+                        centerSliderValue.setText("Center  " + String.format("%.1f", scaledProgress));
                         //Log.d("FaustJava", "onProgressChanged : currentParameterNumber Center " + currentParameterNumber + " " + scaledProgress);
                         updateAccGyr(parametersInfo, currentParameterNumber);
                     }
