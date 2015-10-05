@@ -85,6 +85,9 @@ public:
 	UdpSocket();
 	virtual ~UdpSocket();
 
+	// allow to transmit on broadcast adresses
+    void allowBroadcast();
+
 	// the socket is created in an unbound, unconnected state
 	// such a socket can only be used to send to an arbitrary
 	// address using SendTo(). To use Send() you need to first
