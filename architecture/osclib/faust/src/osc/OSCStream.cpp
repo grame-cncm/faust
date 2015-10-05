@@ -39,6 +39,7 @@ OSCStream::OSCStream ()
 	: fState(kIdle), fPort(1024), fAddress(kLocalhost), fOutStream(fBuffer, kOutBufferSize), fSocket(_socket)
 {
 	if (!fSocket) cerr << "warning: incorrect OSCStream, _socket not initialized" << endl;
+    fSocket->allowBroadcast();
 }
 
 //--------------------------------------------------------------------------
