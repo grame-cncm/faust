@@ -186,6 +186,9 @@
                                             <segment title="Curve3"/>
                                             <segment title="Curve4"/>
                                         </segments>
+                                        <connections>
+                                            <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="sue-Yp-qIC"/>
+                                        </connections>
                                     </segmentedControl>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Min" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="BGc-la-nSd">
                                         <rect key="frame" x="18" y="169" width="42" height="21"/>
@@ -229,14 +232,23 @@
                                     <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" id="HSv-oC-xcw">
                                         <rect key="frame" x="129" y="165" width="299" height="31"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <connections>
+                                            <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="O3w-1L-soE"/>
+                                        </connections>
                                     </slider>
                                     <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" id="ZHF-0d-tOq">
                                         <rect key="frame" x="129" y="198" width="299" height="31"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <connections>
+                                            <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="R2O-W4-VCg"/>
+                                        </connections>
                                     </slider>
                                     <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" id="vtH-rX-cvk">
                                         <rect key="frame" x="129" y="232" width="299" height="31"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <connections>
+                                            <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="bi1-PA-5Ti"/>
+                                        </connections>
                                     </slider>
                                 </subviews>
                                 <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.75" colorSpace="calibratedRGB"/>
@@ -247,6 +259,8 @@
                     <simulatedOrientationMetrics key="simulatedOrientationMetrics"/>
                     <connections>
                         <outlet property="_bLabel" destination="bnp-tE-l6R" id="nJQ-WG-HHo"/>
+                        <outlet property="_centerSlider" destination="vtH-rX-cvk" id="Koc-fQ-FSJ"/>
+                        <outlet property="_centerText" destination="pQb-WD-miG" id="Pr5-49-9ir"/>
                         <outlet property="_colorBLabel" destination="vRe-p1-nia" id="T75-ZS-wBV"/>
                         <outlet property="_colorBSlider" destination="U29-wJ-Vqy" id="GVS-ZH-Khf"/>
                         <outlet property="_colorGLabel" destination="92N-N8-vs5" id="HO9-wP-Sqb"/>
@@ -258,6 +272,10 @@
                         <outlet property="_dspView" destination="doz-xe-PRv" id="hey-J9-4L0"/>
                         <outlet property="_gLabel" destination="zFp-SI-iQf" id="PXU-NI-jpI"/>
                         <outlet property="_gyroAxisSegmentedControl" destination="Run-yt-9bc" id="VuE-Q7-yT1"/>
+                        <outlet property="_maxSlider" destination="ZHF-0d-tOq" id="aUx-a0-wbv"/>
+                        <outlet property="_maxText" destination="Wqa-tA-WX0" id="KSJ-Oo-NZb"/>
+                        <outlet property="_minSlider" destination="HSv-oC-xcw" id="9sY-1j-ddp"/>
+                        <outlet property="_minText" destination="WtI-jT-2jS" id="Cq2-um-nzg"/>
                         <outlet property="_rLabel" destination="tGb-KT-GwV" id="E0I-jM-SWW"/>
                         <outlet property="_titleNavigationItem" destination="14" id="cHE-VL-RhB"/>
                         <outlet property="_widgetPreferencesTitleLabel" destination="Pvr-Li-09S" id="px2-eg-iG9"/>

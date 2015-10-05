@@ -341,6 +341,20 @@ error:
 
 - (void)viewDidUnload
 {
+    [_orientationSegmentedControl release];
+    _orientationSegmentedControl = nil;
+    [_minText release];
+    _minText = nil;
+    [_maxText release];
+    _maxText = nil;
+    [_centerText release];
+    _centerText = nil;
+    [_minSlider release];
+    _minSlider = nil;
+    [_maxSlider release];
+    _maxSlider = nil;
+    [_centerSlider release];
+    _centerSlider = nil;
     [super viewDidUnload];
 }
 
@@ -394,6 +408,13 @@ error:
     [_swipeRecognizer release];
 #endif
     
+    [_orientationSegmentedControl release];
+    [_minText release];
+    [_maxText release];
+    [_centerText release];
+    [_minSlider release];
+    [_maxSlider release];
+    [_centerSlider release];
     [super dealloc];
 }
 
