@@ -199,6 +199,9 @@
                                             <segment title="Curve3"/>
                                             <segment title="Curve4"/>
                                         </segments>
+                                        <connections>
+                                            <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="Hfa-Mh-6nc"/>
+                                        </connections>
                                     </segmentedControl>
                                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Min" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="h5O-m5-s3m">
                                         <rect key="frame" x="16" y="188" width="42" height="21"/>
@@ -242,14 +245,23 @@
                                     <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" id="rK4-Ny-R1b">
                                         <rect key="frame" x="137" y="184" width="155" height="31"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <connections>
+                                            <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="O1R-wY-4az"/>
+                                        </connections>
                                     </slider>
                                     <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" id="amT-hE-txz">
                                         <rect key="frame" x="137" y="218" width="155" height="31"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <connections>
+                                            <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="31h-Im-8oi"/>
+                                        </connections>
                                     </slider>
                                     <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" id="eS8-o6-VgW">
                                         <rect key="frame" x="137" y="250" width="155" height="31"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <connections>
+                                            <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="SxG-kI-KVj"/>
+                                        </connections>
                                     </slider>
                                 </subviews>
                                 <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.75" colorSpace="calibratedRGB"/>
