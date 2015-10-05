@@ -89,19 +89,15 @@ class uiBox;
     
     // New UI
     
-    IBOutlet UISegmentedControl *       _orientationSegmentedControl;
+    IBOutlet UISegmentedControl*        _orientationSegmentedControl;
     
-    IBOutlet UITextField *_minText;
+    IBOutlet UITextField*               _minText;
+    IBOutlet UITextField*               _maxText;
+    IBOutlet UITextField*               _centerText;
     
-    IBOutlet UITextField *_maxText;
-
-    IBOutlet UITextField *_centerText;
-    
-    IBOutlet UISlider *_minSlider;
-    
-    IBOutlet UISlider *_maxSlider;
-    
-    IBOutlet UISlider *_centerSlider;
+    IBOutlet UISlider*                  _minSlider;
+    IBOutlet UISlider*                  _maxSlider;
+    IBOutlet UISlider*                  _centerSlider;
     
 #ifdef JACK_IOS
     // Test Jack

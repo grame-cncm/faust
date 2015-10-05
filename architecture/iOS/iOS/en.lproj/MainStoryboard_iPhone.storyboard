@@ -273,6 +273,9 @@
                     <simulatedOrientationMetrics key="simulatedOrientationMetrics"/>
                     <connections>
                         <outlet property="_bLabel" destination="yUT-Xd-fbB" id="DlN-HS-T4v"/>
+                        <outlet property="_minSlider" destination="rK4-Ny-R1b" id="Koc-fQ-FSJ"/>
+                        <outlet property="_maxSlider" destination="amT-hE-txz" id="Kod-fQ-FSJ"/>
+                        <outlet property="_centerSlider" destination="eS8-o6-VgW" id="Koe-fQ-FSJ"/>
                         <outlet property="_colorBLabel" destination="NLf-bE-hY3" id="JSD-5u-iz0"/>
                         <outlet property="_colorBSlider" destination="gL4-Rz-j3r" id="FtP-Yv-E0P"/>
                         <outlet property="_colorGLabel" destination="Vuz-Tj-k9N" id="pq8-t0-r9i"/>
@@ -284,6 +287,7 @@
                         <outlet property="_dspView" destination="aVQ-bg-Kex" id="cJ8-2W-mdT"/>
                         <outlet property="_gLabel" destination="4pG-uw-ehd" id="UzE-Hf-mHu"/>
                         <outlet property="_gyroAxisSegmentedControl" destination="oyc-qf-yU0" id="gRv-5r-Ug8"/>
+                        <outlet property="_orientationSegmentedControl" destination="ar9-cD-4IJ" id="VuF-Q7-yT1"/>
                         <outlet property="_rLabel" destination="XES-4z-RJX" id="kpH-b4-Vas"/>
                         <outlet property="_titleLabel" destination="d0p-QQ-rUB" id="MHx-ti-iZN"/>
                         <outlet property="_widgetPreferencesTitleLabel" destination="9SF-kE-5Rs" id="f4i-BX-JGS"/>

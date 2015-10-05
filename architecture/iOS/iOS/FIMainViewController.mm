@@ -1240,9 +1240,28 @@ T findCorrespondingUiItem(FIResponder* sender)
     NSString*                       str;
     BOOL                            found = false;
     
+    if (sender == _orientationSegmentedControl) {
+        printf("_orientationSegmentedControl\n");
+    }
+    
+    if (sender == _minSlider) {
+        printf("_minSlider\n");
+    }
+    
+    if (sender == _maxSlider) {
+        printf("_maxSlider\n");
+    }
+    
+    if (sender == _centerSlider) {
+        printf("_centerSlider\n");
+    }
+
+    
     // If user changed the sensor assignation, program resets ref point to default values
     if (sender == _gyroAxisSegmentedControl)
     {
+        printf("_gyroAxisSegmentedControl\n");
+        
         // Get title of selected tab for sensor assignation
         str = [NSString stringWithString:[_gyroAxisSegmentedControl titleForSegmentAtIndex:_gyroAxisSegmentedControl.selectedSegmentIndex]];
 
