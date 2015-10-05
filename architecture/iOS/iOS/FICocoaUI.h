@@ -37,8 +37,10 @@
 #import <UIKit/UIKit.h>
 #import "FIMainViewController.h"
 
+#include "faust/audio/dsp.h"
 #include "faust/gui/GUI.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/APIUI.h"
 #include "faust/misc.h"
 
 #include <list>
@@ -1253,6 +1255,8 @@ private:
     int                             fCurrentLayoutType;
     bool                            fNextBoxIsHideOnGUI;
     
+    APIUI                           fAPIUI;
+    
     // Layout management
     
     
@@ -1547,7 +1551,7 @@ public:
     
     // -- layout groups
     
-    CocoaUI(UIWindow* window, FIMainViewController* viewController, MY_Meta* metadata)
+    CocoaUI(UIWindow* window, FIMainViewController* viewController, MY_Meta* metadata, dsp* DSP)
     {
         fCurrentLayoutType = kVerticalLayout;
         fViewController = viewController;
@@ -1557,6 +1561,9 @@ public:
         
         fViewController.dspView.backgroundColor = [UIColor blackColor];
         fViewController.dspScrollView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
+        
+        // SL : 05/10/15
+        DSP->buildUserInterface(&fAPIUI);
         
         [window addSubview:viewController.view];
         [window makeKeyAndVisible];        

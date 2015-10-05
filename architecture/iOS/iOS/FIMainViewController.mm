@@ -102,7 +102,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
         _name = [[[NSProcessInfo processInfo] processName] UTF8String];
     }
     
-    interface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata);
+    interface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata, &DSP);
     finterface = new FUI();
     
     // Read user preferences
@@ -1113,10 +1113,13 @@ T findCorrespondingUiItem(FIResponder* sender)
         [_gyroAxisSegmentedControl insertSegmentWithTitle:@"gY" atIndex:5 animated:NO];
         [_gyroAxisSegmentedControl insertSegmentWithTitle:@"gZ" atIndex:6 animated:NO];
         
+        // SL 05/10/15
+        /*
         if ([CLLocationManager headingAvailable])
         {
             [_gyroAxisSegmentedControl insertSegmentWithTitle:@"C" atIndex:7 animated:NO];
         }
+        */
         
         _gyroInvertedSwitch.hidden = NO;
         _gyroFilteredSwitch.hidden = NO;
@@ -1184,8 +1187,9 @@ T findCorrespondingUiItem(FIResponder* sender)
         else if (_selectedWidget->getAssignationType() == kAssignationGyroX) _gyroAxisSegmentedControl.selectedSegmentIndex = 4;
         else if (_selectedWidget->getAssignationType() == kAssignationGyroY) _gyroAxisSegmentedControl.selectedSegmentIndex = 5;
         else if (_selectedWidget->getAssignationType() == kAssignationGyroZ) _gyroAxisSegmentedControl.selectedSegmentIndex = 6;
-        else if (_selectedWidget->getAssignationType() == kAssignationCompass) _gyroAxisSegmentedControl.selectedSegmentIndex = 7;
-
+        
+        // SL : 05/10/15
+        //else if (_selectedWidget->getAssignationType() == kAssignationCompass) _gyroAxisSegmentedControl.selectedSegmentIndex = 7;
         
         //_gyroAxisSegmentedControl.selectedSegmentIndex = _selectedWidget->getAssignationType();
     }
@@ -1242,24 +1246,17 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     if (sender == _orientationSegmentedControl) {
         printf("_orientationSegmentedControl\n");
-    }
-    
-    if (sender == _minSlider) {
+    } else if (sender == _minSlider) {
         printf("_minSlider\n");
-    }
-    
-    if (sender == _maxSlider) {
+    } else if (sender == _maxSlider) {
         printf("_maxSlider\n");
-    }
-    
-    if (sender == _centerSlider) {
+    } else if (sender == _centerSlider) {
         printf("_centerSlider\n");
-    }
-
+   
     
     // If user changed the sensor assignation, program resets ref point to default values
-    if (sender == _gyroAxisSegmentedControl)
-    {
+    } else if (sender == _gyroAxisSegmentedControl) {
+        
         printf("_gyroAxisSegmentedControl\n");
         
         // Get title of selected tab for sensor assignation
@@ -1290,6 +1287,9 @@ T findCorrespondingUiItem(FIResponder* sender)
             //_selectedWidget->setAssignationRefPointX(0.);
             //_selectedWidget->setAssignationRefPointY(0.5);
         }
+        
+        // SL : 05/10/15
+        /*
         else if ([str compare:@"Shk"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationShake);
@@ -1302,6 +1302,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             //_selectedWidget->setAssignationRefPointX(0.);
             //_selectedWidget->setAssignationRefPointY(0.);
         }
+        */
         else if ([str compare:@"gX"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationGyroX);
