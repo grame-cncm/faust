@@ -75,9 +75,11 @@ class OSCStream
 	static bool start();
 	static void stop();
 
-				 OSCStream();
-				 OSCStream(UdpSocket* socket) 
-					: fState(kIdle), fPort(1024), fAddress(kLocalhost), fOutStream(fBuffer, kOutBufferSize), fSocket(socket) {} 
+        OSCStream(UdpSocket* socket) 
+            : fState(kIdle), fPort(1024), fAddress(kLocalhost), fOutStream(fBuffer, kOutBufferSize), fSocket(socket) 
+        {
+            fSocket->allowBroadcast();
+        } 
 		virtual ~OSCStream() {}
 		
 		osc::OutboundPacketStream& stream()				{ return fOutStream; }

@@ -32,12 +32,9 @@
 
 #include "TThreads.h"
 
-
 //_____________________________________________________________________
 static void * baseThreadProc (void * ptr)
 {
-	printf("baseThreadProc\n");
-
 	TThreads* thread = (TThreads*)ptr;
 	thread->running (true);
 	thread->run();
