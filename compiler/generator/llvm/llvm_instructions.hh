@@ -573,9 +573,9 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         {
             fBuilder = new IRBuilder<>(fModule->getContext());
             initTypes(module);
-        #if defined(LLVM_35)
+        #if defined(LLVM_35) || defined(LLVM_36)
             fDataLayout = new DataLayout(*module->getDataLayout());
-        #elif defined(LLVM_34) || defined(LLVM_36) || defined(LLVM_37)
+        #elif defined(LLVM_34)  || defined(LLVM_37)
             fDataLayout = new DataLayout(module->getDataLayout());
         #endif
         }
