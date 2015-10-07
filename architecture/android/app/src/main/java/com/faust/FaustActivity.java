@@ -60,6 +60,8 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 
 import android.util.Log;
+import android.net.wifi.WifiManager;
+
 import java.net.SocketException;
 
 public class FaustActivity extends Activity {
@@ -68,6 +70,7 @@ public class FaustActivity extends Activity {
 	private UI ui = new UI();
 	private ParametersInfo parametersInfo = new ParametersInfo();
     private long lastUIDate;
+    private WifiManager.MulticastLock lock;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -76,6 +79,12 @@ public class FaustActivity extends Activity {
         setContentView(R.layout.main);
 	
         if (!dsp_faust.isRunning()) {
+            
+            WifiManager wifi = (WifiManager)getSystemService( Context.WIFI_SERVICE );
+            if (wifi != null) {
+                WifiManager.MulticastLock lock = wifi.createMulticastLock("Log_Tag");
+                lock.acquire();
+            }
             // attempting to open a new OSC port, if default not available create a new one
             int oscPortNumber = 5510;
             while (!Osc.init(oscPortNumber)) oscPortNumber++;
@@ -248,6 +257,7 @@ public class FaustActivity extends Activity {
     	// only stops audio when the user press the return button (and not when the screen is rotated)
     	if (!isChangingConfigurations()) {
             Osc.stopListening();
+            lock.release();
     		dsp_faust.destroy();
         }
         SharedPreferences settings = getSharedPreferences("savedParameters", 0);
