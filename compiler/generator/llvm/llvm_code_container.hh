@@ -29,12 +29,12 @@
 #include "wss_code_container.hh"
 
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
-#include <llvm/Support/FileSystem.h>
-#define sysfs_binary_flag sys::fs::F_None
+    #include <llvm/Support/FileSystem.h>
+    #define sysfs_binary_flag sys::fs::F_None
 #elif defined(LLVM_34)
-#define sysfs_binary_flag sys::fs::F_Binary
+    #define sysfs_binary_flag sys::fs::F_Binary
 #else
-#define sysfs_binary_flag raw_fd_ostream::F_Binary
+    #define sysfs_binary_flag raw_fd_ostream::F_Binary
 #endif
 
 #if defined(LLVM_36) || defined(LLVM_37)

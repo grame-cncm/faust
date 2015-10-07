@@ -42,27 +42,29 @@ using namespace std;
 #include "global.hh"
 
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
-#include <llvm/IR/DerivedTypes.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
+    #include <llvm/IR/DerivedTypes.h>
+    #include <llvm/IR/LLVMContext.h>
+    #include <llvm/IR/Module.h>
 #else
-#include <llvm/DerivedTypes.h>
-#include <llvm/LLVMContext.h>
-#include <llvm/Module.h>
+    #include <llvm/DerivedTypes.h>
+    #include <llvm/LLVMContext.h>
+    #include <llvm/Module.h>
 #endif
 
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
+
 #if defined(LLVM_36) || defined(LLVM_37)
-#include <llvm/ExecutionEngine/MCJIT.h>
+    #include <llvm/ExecutionEngine/MCJIT.h>
 #else
-#include <llvm/ExecutionEngine/JIT.h>
+    #include <llvm/ExecutionEngine/JIT.h>
 #endif
 
 #if defined(LLVM_37)
-#include <llvm/IR/PassManager.h>
+    #include <llvm/IR/PassManager.h>
 #else
-#include <llvm/PassManager.h>
+    #include <llvm/PassManager.h>
 #endif
+
 #include <llvm/Transforms/Scalar.h>
 #include <llvm-c/BitWriter.h>
 #include <llvm/Bitcode/ReaderWriter.h>
@@ -70,21 +72,26 @@ using namespace std;
 #include <llvm/Support/Host.h>
 
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
-#include <llvm/IR/Verifier.h>
+    #include <llvm/IR/Verifier.h>
 #else
-#include <llvm/Analysis/Verifier.h>
+    #include <llvm/Analysis/Verifier.h>
 #endif
 
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
-#include <llvm/IR/IRBuilder.h>
+    #include <llvm/IR/IRBuilder.h>
 #elif defined(LLVM_32) 
-#include <llvm/IRBuilder.h>
+    #include <llvm/IRBuilder.h>
 #else
-#include <llvm/Target/TargetData.h>
-#include <llvm/Support/IRBuilder.h>
+    #include <llvm/Target/TargetData.h>
+    #include <llvm/Support/IRBuilder.h>
+#endif
+
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
+    #include <llvm/IR/DataLayout.h>
 #endif
 
 #include <llvm/Support/TargetSelect.h>
+
 #define VECTOR_OF_TYPES vector<llvm::Type*>
 #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
 #define LLVM_TYPE llvm::Type*
@@ -98,11 +105,11 @@ using namespace std;
 #define VECTOR_ALIGN 0
 
 #ifdef _WIN32
-#define LLVM_MALLOC "llvm_malloc"
-#define LLVM_FREE   "llvm_free"
+    #define LLVM_MALLOC "llvm_malloc"
+    #define LLVM_FREE   "llvm_free"
 #else
-#define LLVM_MALLOC "malloc"
-#define LLVM_FREE   "free"
+    #define LLVM_MALLOC "malloc"
+    #define LLVM_FREE   "free"
 #endif
 
 using namespace llvm;
@@ -278,7 +285,9 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         VECTOR_OF_TYPES fDSPFields;
         int fDSPFieldsCounter;
         string fPrefix;
+    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
         DataLayout* fDataLayout;
+    #endif
 
         // Meta structure creation
         llvm::PointerType* fStruct_Meta_ptr;
@@ -566,7 +575,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             initTypes(module);
         #if defined(LLVM_35)
             fDataLayout = new DataLayout(*module->getDataLayout());
-        #else
+        #elif defined(LLVM_34) || defined(LLVM_36) || defined(LLVM_37)
             fDataLayout = new DataLayout(module->getDataLayout());
         #endif
         }
@@ -575,7 +584,9 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         {
             // External object not covered by Garbageable, so delete it here
             delete fBuilder;
+        #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
             delete fDataLayout;
+        #endif
         }
 
         virtual void visit(DeclareVarInst* inst)

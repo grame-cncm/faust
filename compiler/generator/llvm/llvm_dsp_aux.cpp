@@ -28,8 +28,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+
 #ifndef _WIN32
-#include <libgen.h>
+    #include <libgen.h>
 #endif
 
 #include "llvm_dsp_aux.hh"
@@ -40,134 +41,138 @@
 #include "exception.hh"
 #include "rn_base64.h"
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
-#include <llvm/IR/Module.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IRReader/IRReader.h>
-#include <llvm/IR/DataLayout.h>
-#include <llvm/Support/FormattedStream.h>
-#include <llvm/Support/SourceMgr.h>
-#include <llvm/Support/MemoryBuffer.h>
-#include <llvm/Bitcode/ReaderWriter.h>
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
-#include <system_error>
+    #include <system_error>
 #else
-#include <llvm/Support/system_error.h>
+    #include <llvm/Support/system_error.h>
 #endif
-#include <llvm/ADT/Triple.h>
+
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
+    #include <llvm/IR/Module.h>
+    #include <llvm/IR/LLVMContext.h>
+    #include <llvm/IRReader/IRReader.h>
+    #include <llvm/IR/DataLayout.h>
+    #include <llvm/Support/FormattedStream.h>
+    #include <llvm/Support/SourceMgr.h>
+    #include <llvm/Support/MemoryBuffer.h>
+    #include <llvm/Bitcode/ReaderWriter.h>
+    #include <llvm/ADT/Triple.h>
+    #include <llvm/Support/TargetRegistry.h>
+    #include <llvm-c/Core.h>
+#else
+    #include <llvm/Module.h>
+    #include <llvm/LLVMContext.h>
+    #include <llvm/Support/IRReader.h>
+#endif
 
 #if defined(LLVM_37)
-#include <llvm/Analysis/TargetLibraryInfo.h>
-#include <llvm/Analysis/TargetTransformInfo.h>
-#include <llvm/IR/PassManager.h>
-#include <llvm/IR/LegacyPassManager.h>
-#define PASS_MANAGER legacy::PassManager
-#define FUNCTION_PASS_MANAGER legacy::FunctionPassManager
+    #include <llvm/Analysis/TargetLibraryInfo.h>
+    #include <llvm/Analysis/TargetTransformInfo.h>
+    #include <llvm/IR/PassManager.h>
+    #include <llvm/IR/LegacyPassManager.h>
+    #define PASS_MANAGER legacy::PassManager
+    #define FUNCTION_PASS_MANAGER legacy::FunctionPassManager
 #else
-#include <llvm/Target/TargetLibraryInfo.h>
-#include <llvm/PassManager.h>
-#define PASS_MANAGER PassManager
-#define FUNCTION_PASS_MANAGER FunctionPassManager
+    #include <llvm/Target/TargetLibraryInfo.h>
+    #include <llvm/PassManager.h>
+    #define PASS_MANAGER PassManager
+    #define FUNCTION_PASS_MANAGER FunctionPassManager
 #endif
-
-#include <llvm/Support/TargetRegistry.h>
-#include <llvm-c/Core.h>
-#else
-#include <llvm/Module.h>
-#include <llvm/LLVMContext.h>
-#include <llvm/Support/IRReader.h>
-#endif
-
+ 
 /* The file llvm/Target/TargetData.h was renamed to llvm/DataLayout.h in LLVM
  * 3.2, which itself appears to have been moved to llvm/IR/DataLayout.h in LLVM
  * 3.3.
  */
 #if defined(LLVM_32)
-#include <llvm/DataLayout.h>
+    #include <llvm/DataLayout.h>
 #elif !defined(LLVM_33) && !defined(LLVM_34) && !defined(LLVM_35) && !defined(LLVM_36) && !defined(LLVM_37)
-#ifndef _WIN32
-#include <llvm/Target/TargetData.h>
-#endif
+    #ifndef _WIN32
+        #include <llvm/Target/TargetData.h>
+    #endif
 #endif
 
 #if defined(LLVM_36) || defined(LLVM_37)
-#include <llvm/ExecutionEngine/MCJIT.h>
+    #include <llvm/ExecutionEngine/MCJIT.h>
 #else
-#include <llvm/ExecutionEngine/JIT.h>
+    #include <llvm/ExecutionEngine/JIT.h>
 #endif
 
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
-#include <llvm/IR/Verifier.h>
+    #include <llvm/IR/Verifier.h>
 #else
-#include <llvm/Analysis/Verifier.h>
+    #include <llvm/Analysis/Verifier.h>
 #endif
+
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/Scalar.h>
+
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
-#include <llvm/IR/LegacyPassNameParser.h>
-#include <llvm/Linker/Linker.h>
+    #include <llvm/IR/LegacyPassNameParser.h>
+    #include <llvm/Linker/Linker.h>
 #else
-#include <llvm/Support/PassNameParser.h>
-#include <llvm/Linker.h>
+    #include <llvm/Support/PassNameParser.h>
+    #include <llvm/Linker.h>
 #endif
+
 #include <llvm/Support/Host.h>
 #include <llvm/Support/ManagedStatic.h>
+
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
-#include <llvm/IR/IRPrintingPasses.h>
-#define llvmcreatePrintModulePass(out) createPrintModulePass(out)
+    #include <llvm/IR/IRPrintingPasses.h>
+    #define llvmcreatePrintModulePass(out) createPrintModulePass(out)
 #else
-#include <llvm/Assembly/PrintModulePass.h>
-#define llvmcreatePrintModulePass(out) createPrintModulePass(&out)
+    #include <llvm/Assembly/PrintModulePass.h>
+    #define llvmcreatePrintModulePass(out) createPrintModulePass(&out)
 #endif
+
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Support/Threading.h>
 
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)) && !defined(_MSC_VER)
-#include "llvm/ExecutionEngine/ObjectCache.h"
+    #include "llvm/ExecutionEngine/ObjectCache.h"
 #endif
 
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
-#define OwningPtr std::unique_ptr
+    #define OwningPtr std::unique_ptr
 #endif
 
 #include <llvm/Support/TargetSelect.h>
 
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
-#include <llvm/Support/FileSystem.h>
-#define sysfs_binary_flag sys::fs::F_None
+    #include <llvm/Support/FileSystem.h>
+    #define sysfs_binary_flag sys::fs::F_None
 #elif defined(LLVM_34)
-#define sysfs_binary_flag sys::fs::F_Binary
+    #define sysfs_binary_flag sys::fs::F_Binary
 #else
-#define sysfs_binary_flag raw_fd_ostream::F_Binary
+    #define sysfs_binary_flag raw_fd_ostream::F_Binary
 #endif
 
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
-#define GET_CPU_NAME llvm::sys::getHostCPUName().str()
+    #define GET_CPU_NAME llvm::sys::getHostCPUName().str()
 #else
-#define GET_CPU_NAME llvm::sys::getHostCPUName()
+    #define GET_CPU_NAME llvm::sys::getHostCPUName()
 #endif
 
 #if defined(LLVM_36) || defined(LLVM_37)
-#define STREAM_ERROR std::error_code
-#define MEMORY_BUFFER MemoryBufferRef
-#define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
-#define MEMORY_BUFFER_GET_REF(buffer) (buffer->get()->getMemBufferRef())
-#define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
+    #define STREAM_ERROR std::error_code
+    #define MEMORY_BUFFER MemoryBufferRef
+    #define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
+    #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get()->getMemBufferRef())
+    #define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
 #else
-#define STREAM_ERROR string
-#define MEMORY_BUFFER MemoryBuffer*
-#define MEMORY_BUFFER_GET(buffer) (buffer->getBuffer())
-#define MEMORY_BUFFER_GET_REF(buffer) (buffer->get())
-#define MEMORY_BUFFER_CREATE(stringref) (MemoryBuffer::getMemBuffer(stringref))
+    #define STREAM_ERROR string
+    #define MEMORY_BUFFER MemoryBuffer*
+    #define MEMORY_BUFFER_GET(buffer) (buffer->getBuffer())
+    #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get())
+    #define MEMORY_BUFFER_CREATE(stringref) (MemoryBuffer::getMemBuffer(stringref))
 #endif
 
 #if defined(LLVM_34) || defined(LLVM_35)  || defined(LLVM_36) || defined(LLVM_37)
-#define MAX_OPT_LEVEL 5
+    #define MAX_OPT_LEVEL 5
 #else 
-#define MAX_OPT_LEVEL 4
+    #define MAX_OPT_LEVEL 4
 #endif
-
 
 using namespace llvm;
 
