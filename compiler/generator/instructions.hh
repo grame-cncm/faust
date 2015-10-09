@@ -924,7 +924,7 @@ struct ArrayNumInst : public ValueInst, public SimpleValueInst
 {
     vector<TYPE> fNumTable;
 
-    ArrayNumInst(vector<TYPE> nums) : ValueInst(), fNumTable(nums)
+    ArrayNumInst(const vector<TYPE>& nums) : ValueInst(), fNumTable(nums)
     {}
     
     ArrayNumInst(int size):ValueInst()
@@ -943,7 +943,7 @@ struct ArrayNumInst : public ValueInst, public SimpleValueInst
 struct FloatArrayNumInst : public ArrayNumInst<float>
 {
  
-    FloatArrayNumInst(vector<float> nums) : ArrayNumInst<float>(nums)
+    FloatArrayNumInst(const vector<float>& nums) : ArrayNumInst<float>(nums)
     {}
     FloatArrayNumInst(int size) : ArrayNumInst<float>(size)
     {}
@@ -969,7 +969,7 @@ struct DoubleNumInst : public ValueInst, public SimpleValueInst, public NumValue
 struct DoubleArrayNumInst : public ArrayNumInst<double>
 {
     
-    DoubleArrayNumInst(vector<double> nums) : ArrayNumInst<double>(nums)
+    DoubleArrayNumInst(const vector<double>& nums) : ArrayNumInst<double>(nums)
     {}
     DoubleArrayNumInst(int size) : ArrayNumInst<double>(size)
     {}
@@ -995,7 +995,7 @@ struct IntNumInst : public ValueInst, public SimpleValueInst, public NumValueIns
 struct IntArrayNumInst : public ArrayNumInst<int>
 {
 
-    IntArrayNumInst(vector<int> nums) : ArrayNumInst<int>(nums)
+    IntArrayNumInst(const vector<int>& nums) : ArrayNumInst<int>(nums)
     {}
     IntArrayNumInst(int size) : ArrayNumInst<int>(size)
     {}
