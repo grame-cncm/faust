@@ -55,7 +55,7 @@ static inline std::string flatten(const std::string& src)
 EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg)
 {
     int argc1 = argc + 5;
- 	const char* argv1[32];
+ 	const char* argv1[64];
     
     argv1[0] = "faust";
 	argv1[1] = "-lang";
