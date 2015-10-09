@@ -113,26 +113,18 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
 {
     TLock lock(gDSPFactoriesLock);
     
-    int argc1 = 0;
+    int argc1 = 1;
     const char* argv1[64];
     argv1[0] = "faust";
     
     // Filter arguments
     for (int i = 0; i < argc; i++) {
-        if (strcmp(argv[i],"-tg") == 0 ||
-            strcmp(argv[i],"-sg") == 0 ||
-            strcmp(argv[i],"-ps") == 0 || 
-            strcmp(argv[i],"-svg") == 0 || 
-            strcmp(argv[i],"-mdoc") == 0 || 
-            strcmp(argv[i],"-mdlang") == 0 || 
-            strcmp(argv[i],"-stripdoc") == 0 || 
-            strcmp(argv[i],"-sd") == 0 || 
-            strcmp(argv[i],"-xml") == 0 || 
-            strcmp(argv[i],"-json") == 0) {
+        if (!(strcmp(argv[i],"-vec") == 0 ||
+            strcmp(argv[i],"-sch") == 0)) {
             argv1[argc1++] = argv[i];
         }
     }
- 
+  
     char error_msg_aux[512];
     if (!compile_faust(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg_aux, false)) {
         return true;
