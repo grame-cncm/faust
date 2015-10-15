@@ -20,6 +20,9 @@ research@grame.fr
 
 */
 
+#ifndef __SoundFileReader__
+#define __SoundFileReader__
+
 #include <assert.h>
 #include <sndfile.h>
 
@@ -88,3 +91,5 @@ struct SoundFileReader {
     }
     
 };
+
+#endif
