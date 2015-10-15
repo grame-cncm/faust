@@ -52,8 +52,6 @@ class JAVACodeContainer : public virtual CodeContainer {
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
 
-        void printIncludeFile(ostream& fout);
-
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
         static CodeContainer* createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst);
