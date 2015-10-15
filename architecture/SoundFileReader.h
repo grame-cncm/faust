@@ -27,13 +27,12 @@ research@grame.fr
 
 struct SoundFileReader {
 
-    int fCurIndex;
     float** fBuffer;
     SNDFILE* fSoundFile;
     int fChannels;
     int fFramesNum;
     
-    SoundFileReader(const char* name, int channel = 0)
+    SoundFileReader(const char* name)
     {
         SF_INFO	snd_info;
         snd_info.format = 0;
@@ -55,17 +54,16 @@ struct SoundFileReader {
         }
         
         // Read file in memory
-        int nbf;
+        int nbf, cur_index = 0;
         float buffer[BUFFER_SIZE * fChannels];
-        fCurIndex = 0;
         do {
             nbf = sf_readf_float(fSoundFile, buffer, BUFFER_SIZE);
             for (int i = 0; i < fChannels; i++) {
                 for (int j = 0; j < nbf; j++) {
-                    fBuffer[i][fCurIndex + j] = buffer[i * fChannels + j];
+                    fBuffer[i][cur_index + j] = buffer[i * fChannels + j];
                 }
             }
-            fCurIndex += nbf;
+            cur_index += nbf;
         } while (nbf == BUFFER_SIZE);
     }
     
