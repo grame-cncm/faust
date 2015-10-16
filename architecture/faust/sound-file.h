@@ -28,12 +28,19 @@ research@grame.fr
 
 #define BUFFER_SIZE 1024
 
+#ifndef FAUSTFLOAT
+#define READ_SAMPLE sf_readf_float
+#define FAUSTFLOAT float
+#else
+#define READ_SAMPLE sf_readf_double
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef struct SoundFileReader {
-   float** fBuffer;
+    FAUSTFLOAT** fBuffer;
     SNDFILE* fSoundFile;
     int fChannels;
     int fFramesNum;
@@ -42,8 +49,8 @@ typedef struct SoundFileReader {
 inline static SoundFileReader* createSFR(const char* name)
 {
     SoundFileReader* reader = (SoundFileReader*)calloc(1, sizeof(SoundFileReader));
-    if (!reader) return 0;
-      
+    if (!reader) return NULL;
+
     {
         SF_INFO	snd_info;
         snd_info.format = 0;
@@ -57,19 +64,19 @@ inline static SoundFileReader* createSFR(const char* name)
         reader->fChannels = snd_info.channels;
         reader->fFramesNum = snd_info.frames;
 
-        reader->fBuffer = (float**)malloc(reader->fChannels * sizeof(float*));
+        reader->fBuffer = (FAUSTFLOAT**)malloc(reader->fChannels * sizeof(FAUSTFLOAT*));
         if (!reader) goto error;
         
         for (int i = 0; i < reader->fChannels; i++) {
-            reader->fBuffer[i] = (float*)malloc(reader->fFramesNum * sizeof(float));
+            reader->fBuffer[i] = (FAUSTFLOAT*)malloc(reader->fFramesNum * sizeof(FAUSTFLOAT));
             if (!reader->fBuffer[i]) goto error;
         }
         
         // Read file in memory
         int nbf, cur_index = 0;
-        float buffer[BUFFER_SIZE * reader->fChannels];
+        FAUSTFLOAT buffer[BUFFER_SIZE * reader->fChannels];
         do {
-            nbf = sf_readf_float(reader->fSoundFile, buffer, BUFFER_SIZE);
+            nbf = READ_SAMPLE(reader->fSoundFile, buffer, BUFFER_SIZE);
             for (int sample = 0; sample < nbf; sample++) {
                 for (int chan = 0; chan < reader->fChannels; chan++) {
                     reader->fBuffer[chan][cur_index + sample] = buffer[sample * reader->fChannels + chan];
@@ -84,31 +91,34 @@ inline static SoundFileReader* createSFR(const char* name)
 error:
     if (reader->fBuffer) free(reader->fBuffer);
     if (reader) free(reader);
+    return NULL;
 }
 
 inline static void destroySFR(SoundFileReader* reader)
 {
-    sf_close(reader->fSoundFile);
-    for (int i = 0; i < reader->fChannels; i++) {
-        free(reader->fBuffer[i]);
+    if (reader) {
+        sf_close(reader->fSoundFile);
+        for (int i = 0; i < reader->fChannels; i++) {
+            free(reader->fBuffer[i]);
+        }
+        free(reader->fBuffer);
+        free(reader);
     }
-    free(reader->fBuffer);
-    free(reader);
 }
 
 inline static int sizeSFR(SoundFileReader* reader)
 {
-    return reader->fFramesNum; 
+    return (reader) ? reader->fFramesNum : 1; 
 }
 
 inline static int channelsSFR(SoundFileReader* reader)
 {
-    return reader->fChannels; 
+    return (reader) ? reader->fChannels : 1; 
 }
 
-inline static float sampleSFR(SoundFileReader* reader, int channel, int index)
+inline static FAUSTFLOAT sampleSFR(SoundFileReader* reader, int channel, int index)
 {   
-    return reader->fBuffer[channel][index];
+    return (reader) ? reader->fBuffer[channel][index] : 0.f;
 }
 
 #ifdef __cplusplus
