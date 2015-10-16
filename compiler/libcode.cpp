@@ -109,7 +109,7 @@ static void call_fun(compile_fun fun)
 
 #endif
 
-static Module* load_module(const string& module_name, llvm::LLVMContext* context)
+EXPORT Module* load_module(const string& module_name, llvm::LLVMContext* context)
 {
     // Try as a complete path
     if (Module* module = load_single_module(module_name, context)) {

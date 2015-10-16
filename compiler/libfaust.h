@@ -87,6 +87,8 @@ EXPORT std::string expand_dsp(int argc, const char* argv[], const char* name, co
 
 EXPORT llvm::Module* load_single_module(const std::string filename, llvm::LLVMContext* context);
 
+EXPORT llvm::Module* load_module(const std::string& module_name, llvm::LLVMContext* context);
+
 EXPORT bool link_modules(llvm::Module* dst, llvm::Module* src, char* error_message);
 
 EXPORT std::string generateSHA1(const std::string& dsp_content);

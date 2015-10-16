@@ -634,6 +634,25 @@ LLVMResult* LLVMCodeContainer::produceModule(const string& filename)
     // Has to be done *after* generateInstanceInitBegin/generateInstanceInitEnd
     generateInitFun();
     
+    // Link LLVM modules defined in 'ffunction' 
+    set<string> S;
+	set<string>::iterator f;
+    char error_msg[512];
+
+    collectLibrary(S);
+    if (S.size() > 0) {
+        for (f = S.begin(); f != S.end(); f++) {
+            string module_name = unquote(*f);
+            if (endWith(module_name, ".bc") || endWith(module_name, ".ll")) {
+                Module* module = load_module(module_name, fResult->fContext);
+                if (module) {
+                    bool res = link_modules(fResult->fModule, module, error_msg);
+                    if (!res) printf("Link LLVM modules %s\n", error_msg);
+                }
+            }
+        }
+    }
+    
     if (filename != "") {
         STREAM_ERROR err;
         raw_fd_ostream out(filename.c_str(), err, sysfs_binary_flag);

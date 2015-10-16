@@ -59,12 +59,18 @@ string replaceChar(string str, char ch1, char ch2);
 
 inline bool startWith(const string& str, const string& prefix)
 {
-    return (str.substr(0, prefix.size()) == prefix);
+     return (str.find(prefix) == 0);
+}
+
+inline bool endWith(const string& str, const string& suffix)
+{
+    size_t i = str.rfind(suffix);
+    return (i != string::npos) && (i == (str.length() - suffix.length()));
 }
 
 inline string startWithRes(const string& str, const string& prefix)
 {   
-    return (str.substr(0, prefix.size()) == prefix) ? str.substr(prefix.size()) : "";
+    return (str.find(prefix) == 0) ? str.substr(prefix.size()) : "";
 }
 
 #endif
