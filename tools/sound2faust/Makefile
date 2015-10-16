@@ -23,6 +23,7 @@ static:
 install :
 
 	install sound2faust $(prefix)/bin/
+	install sound2reader $(prefix)/bin/
 
 clean :
 	rm -f sound2faust$(EXE)
