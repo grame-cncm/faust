@@ -341,8 +341,8 @@ error:
 
 - (void)viewDidUnload
 {
-    [_orientationSegmentedControl release];
-    _orientationSegmentedControl = nil;
+    [_curveSegmentedControl release];
+    _curveSegmentedControl = nil;
     [_minText release];
     _minText = nil;
     [_maxText release];
@@ -408,7 +408,7 @@ error:
     [_swipeRecognizer release];
 #endif
     
-    [_orientationSegmentedControl release];
+    [_curveSegmentedControl release];
     [_minText release];
     [_maxText release];
     [_centerText release];
@@ -1244,8 +1244,8 @@ T findCorrespondingUiItem(FIResponder* sender)
     NSString*                       str;
     BOOL                            found = false;
     
-    if (sender == _orientationSegmentedControl) {
-        printf("_orientationSegmentedControl\n");
+    if (sender == _curveSegmentedControl) {
+        printf("_curveSegmentedControl\n");
     } else if (sender == _minSlider) {
         printf("_minSlider\n");
     } else if (sender == _maxSlider) {

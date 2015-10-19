@@ -272,7 +272,7 @@
                         <outlet property="_dspView" destination="doz-xe-PRv" id="hey-J9-4L0"/>
                         <outlet property="_gLabel" destination="zFp-SI-iQf" id="PXU-NI-jpI"/>
                         <outlet property="_gyroAxisSegmentedControl" destination="Run-yt-9bc" id="VuE-Q7-yT1"/>
-                        <outlet property="_orientationSegmentedControl" destination="x71-gX-WxW" id="VuF-Q7-yT1"/>
+                        <outlet property="_curveSegmentedControl" destination="x71-gX-WxW" id="VuF-Q7-yT1"/>
                         <outlet property="_maxSlider" destination="ZHF-0d-tOq" id="aUx-a0-wbv"/>
                         <outlet property="_maxText" destination="Wqa-tA-WX0" id="KSJ-Oo-NZb"/>
                         <outlet property="_minSlider" destination="HSv-oC-xcw" id="9sY-1j-ddp"/>

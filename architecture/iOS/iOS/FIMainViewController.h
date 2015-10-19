@@ -95,7 +95,7 @@ class uiBox;
     
     // New UI
     
-    IBOutlet UISegmentedControl*        _orientationSegmentedControl;
+    IBOutlet UISegmentedControl*        _curveSegmentedControl;
     
     IBOutlet UITextField*               _minText;
     IBOutlet UITextField*               _maxText;
