@@ -25,6 +25,7 @@
  ************************************************************************/
 
 #include "faustgen~.h"
+#include "faust/sound-file.h"
 
 int faustgen_factory::gFaustCounter = 0;
 map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
@@ -76,7 +77,7 @@ static string getSerialNumber()
 
 static string getTarget() { return ""; }
 
-static int getComputerName(char *computer_name, DWORD *computer_name_lg)
+static int getComputerName(char* computer_name, DWORD* computer_name_lg)
 {
    HKEY hKey;
    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE,
@@ -1446,6 +1447,17 @@ void faustgen::mute(long inlet, long mute)
 {
     fMute = mute;
 }
+
+/*
+// To force libsndfile linking
+static SoundFileReader* __foo__reader = 0;
+
+static int __foo__create() { if (!__foo__reader) __foo__reader = createSFR("foo.wav"); }
+static int __foo__size() { return sizeSFR(__foo__reader); }
+static float __foo__sample(int channel, int index) { return sampleSFR(__foo__reader, channel, index); }
+static int __foo__channels() { return channelsSFR(__foo__reader); }
+static void __foo__destroy() { return destroySFR(__foo__reader); }
+*/
 
 #ifdef WIN32
 //extern "C" int main(void)
