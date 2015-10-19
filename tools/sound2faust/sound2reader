@@ -7,10 +7,13 @@
 
 LLVM="false"
 FAUSTFLOAT="float"
+LOCAL="false"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "sound2llvm [-llvm] <file.dsp>"
+        echo "Use '-double' to use 64 bits samples"
+        echo "Use '-a' to use an absolute path to localize the sound file"
         echo "Use '-llvm' to compile the sound reader code as a LLVM module"
   	elif [[ -e "$p" ]]; then
 	    FILES="$FILES $p"
@@ -18,6 +21,8 @@ for p in $@; do
 	    LLVM="true"
     elif [ $p = "-double" ]; then
 	    FAUSTFLOAT="double"
+    elif [ $p = "-a" ]; then
+	    LOCAL="true"
 	fi
 done
 
@@ -50,7 +55,11 @@ for f in $FILES; do
     echo -n "_reader) "  >> $name.c
     echo -n $name >> $name.c
     echo -n "_reader = createSFR(\"" >> $name.c
-    echo -n $f >> $name.c
+    if [ $LOCAL = "true" ]; then
+        echo -n $(cd $(dirname $f); pwd)/$(basename $f) >> $name.c
+    else
+        echo -n $f >> $name.c;
+    fi
     echo -n "\"); return sizeSFR(" >> $name.c
     echo -n $name >> $name.c
     echo "_reader); }"  >> $name.c
