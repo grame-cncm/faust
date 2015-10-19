@@ -204,7 +204,7 @@ dist :
 
 
 log :
-	git log --oneline --date-order --reverse --after={2011-01-07} master >log-$(version)
+	git log --oneline --date-order --reverse --after={2014-05-19} master >log-$(version)
 
 # Make Debian packages. This builds a package from the current HEAD in a
 # subdirectory named $(debdist). It also creates the source archive that goes
