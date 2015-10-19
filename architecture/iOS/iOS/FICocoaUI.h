@@ -78,11 +78,18 @@ class uiBox;
 #define kAssignationAccelX              1
 #define kAssignationAccelY              2
 #define kAssignationAccelZ              3
-#define kAssignationShake               4
-#define kAssignationCompass             5
-#define kAssignationGyroX               6
-#define kAssignationGyroY               7
-#define kAssignationGyroZ               8
+#define kAssignationGyroX               4
+#define kAssignationGyroY               5
+#define kAssignationGyroZ               6
+
+#define kAssignationShake               7
+#define kAssignationCompass             8
+
+
+#define kCurve1                         1
+#define kCurve2                         2
+#define kCurve3                         3
+#define kCurve4                         4
 
 // Current layout mode
 #define kHorizontalLayout               0
@@ -162,20 +169,37 @@ protected:
     BOOL                    fSelected;
     
     int                     fInitAssignationType;
+    int                     fInitAssignationCurve;
+    
+    // To remove
     float                   fInitAssignationRefPointX;
     float                   fInitAssignationRefPointY;
     BOOL                    fInitAssignationInverse;
     BOOL                    fInitAssignationFiltered;
     float                   fInitAssignationSensibility;
+    
     float                   fInitR;
     float                   fInitG;
     float                   fInitB;
+    
+    float                   fInitMinCurve;
+    float                   fInitMidCurve;
+    float                   fInitMaxCurve;
+    
     int                     fAssignationType;
+    int                     fAssignationCurve;
+    
+    float                   fMinCurve;
+    float                   fMidCurve;
+    float                   fMaxCurve;
+    
+    // To remove
     float                   fAssignationRefPointX;
     float                   fAssignationRefPointY;
     BOOL                    fAssignationInverse;
     BOOL                    fAssignationFiltered;
     float                   fAssignationSensibility;
+    
     float                   fR;
     float                   fG;
     float                   fB;
@@ -190,14 +214,21 @@ public:
     void resetParameters()
     {
         fAssignationType = fInitAssignationType;
+        fAssignationCurve = fInitAssignationCurve;
+        
         fAssignationRefPointX = fInitAssignationRefPointX;
         fAssignationRefPointY = fInitAssignationRefPointY;
         fAssignationInverse = fInitAssignationInverse;
         fAssignationFiltered = fInitAssignationFiltered;
         fAssignationSensibility = fInitAssignationSensibility;
+        
         fR = fInitR;
         fG = fInitG;
         fB = fInitB;
+        
+        fMinCurve = fInitMinCurve;
+        fMidCurve = fInitMidCurve;
+        fMaxCurve = fInitMaxCurve;
     }
     
     // Constructor / Destuctor
@@ -216,7 +247,6 @@ public:
         fAbstractY = 0.f;
         fAbstractW = 0.f;
         fAbstractH = 0.f;
-        resetParameters();
         fSelected = false;
         fInitAssignationType = kAssignationNone;
         fInitAssignationRefPointX = 0.f;
@@ -227,8 +257,13 @@ public:
         fInitR = 0.f;
         fInitG = 0.f;
         fInitB = 1.f;
+        fInitMinCurve = -100.f;
+        fInitMidCurve = 0.f;
+        fInitMaxCurve = 100.f;
         fHideOnGUI = false;
         fInit = 0.f;
+        
+        resetParameters();
     }
     
     ~uiCocoaItem()
@@ -272,7 +307,37 @@ public:
 
     int getAssignationType()                                            {return fAssignationType;}
     virtual void setAssignationType(int assignationType)                {fAssignationType = assignationType;}
+    
+    int getInitAssignationCurve()                                      {return fInitAssignationCurve;}
+    void setInitAssignationCurve(int assignationCurve)                    {fInitAssignationCurve = assignationCurve; setAssignationCurve(assignationCurve);}
 
+    int getAssignationCurve()                                           {return fAssignationCurve;}
+    virtual void setAssignationCurve(int assignationCurve)              {fAssignationCurve = assignationCurve;}
+    
+    float getCurveMin()                                                 {return fMinCurve;}
+    virtual void setCurveMin(float minCurve)                            {fMinCurve = minCurve;}
+    
+    float getCurveMid()                                                 {return fMidCurve;}
+    virtual void setCurveMid(float midCurve)                            {fMidCurve = midCurve;}
+   
+    float getCurveMax()                                                 {return fMaxCurve;}
+    virtual void setCurveMax(float maxCurve)                            {fMaxCurve = maxCurve;}
+    
+    float getInitCurveMin()                                             {return fInitMinCurve;}
+    float getInitCurveMid()                                             {return fInitMidCurve;}
+    float getInitCurveMax()                                             {return fInitMaxCurve;}
+    
+    
+    virtual void setCurve(float min, float mid, float max)
+    {
+        fMinCurve = min; fMidCurve = mid; fMaxCurve = max;
+    }
+    
+    virtual void setInitCurve(float min, float mid, float max)
+    {
+        fInitMinCurve = min; fInitMidCurve = mid; fInitMaxCurve = max;
+    }
+    
     float getInitAssignationRefPointX()                                 {return fInitAssignationRefPointX;}
     void setInitAssignationRefPointX(float assignationRefPointX)        {fInitAssignationRefPointX = assignationRefPointX; setAssignationRefPointX(assignationRefPointX);}
 

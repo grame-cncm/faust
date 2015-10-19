@@ -212,39 +212,39 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="-100" borderStyle="roundedRect" minimumFontSize="17" id="WtI-jT-2jS">
-                                        <rect key="frame" x="68" y="165" width="45" height="30"/>
+                                        <rect key="frame" x="68" y="165" width="60" height="30"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits"/>
                                     </textField>
                                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="100" borderStyle="roundedRect" minimumFontSize="17" id="Wqa-tA-WX0">
-                                        <rect key="frame" x="68" y="199" width="45" height="30"/>
+                                        <rect key="frame" x="68" y="199" width="60" height="30"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits"/>
                                     </textField>
                                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="0" borderStyle="roundedRect" minimumFontSize="17" id="pQb-WD-miG">
-                                        <rect key="frame" x="68" y="232" width="45" height="30"/>
+                                        <rect key="frame" x="68" y="232" width="60" height="30"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits"/>
                                     </textField>
-                                    <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" id="HSv-oC-xcw">
-                                        <rect key="frame" x="129" y="165" width="299" height="31"/>
+                                    <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="-100" maxValue="100" id="HSv-oC-xcw">
+                                        <rect key="frame" x="134" y="165" width="294" height="31"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <connections>
                                             <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="O3w-1L-soE"/>
                                         </connections>
                                     </slider>
-                                    <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" id="ZHF-0d-tOq">
-                                        <rect key="frame" x="129" y="198" width="299" height="31"/>
+                                    <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="-100" maxValue="100" id="ZHF-0d-tOq">
+                                        <rect key="frame" x="134" y="198" width="294" height="31"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <connections>
                                             <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="R2O-W4-VCg"/>
                                         </connections>
                                     </slider>
-                                    <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" id="vtH-rX-cvk">
-                                        <rect key="frame" x="129" y="232" width="299" height="31"/>
+                                    <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" minValue="-100" maxValue="100" id="vtH-rX-cvk">
+                                        <rect key="frame" x="134" y="232" width="294" height="31"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <connections>
                                             <action selector="widgetPreferencesChanged:" destination="2" eventType="valueChanged" id="bi1-PA-5Ti"/>
@@ -268,11 +268,11 @@
                         <outlet property="_colorLabel" destination="mzI-i5-3FF" id="t36-Cw-u89"/>
                         <outlet property="_colorRLabel" destination="2hb-uW-6R7" id="Hiy-eb-Q2D"/>
                         <outlet property="_colorRSlider" destination="zVh-z1-hcY" id="dMX-wB-D0t"/>
+                        <outlet property="_curveSegmentedControl" destination="x71-gX-WxW" id="VuF-Q7-yT1"/>
                         <outlet property="_dspScrollView" destination="DYz-Ul-ted" id="PsL-1u-45q"/>
                         <outlet property="_dspView" destination="doz-xe-PRv" id="hey-J9-4L0"/>
                         <outlet property="_gLabel" destination="zFp-SI-iQf" id="PXU-NI-jpI"/>
                         <outlet property="_gyroAxisSegmentedControl" destination="Run-yt-9bc" id="VuE-Q7-yT1"/>
-                        <outlet property="_curveSegmentedControl" destination="x71-gX-WxW" id="VuF-Q7-yT1"/>
                         <outlet property="_maxSlider" destination="ZHF-0d-tOq" id="aUx-a0-wbv"/>
                         <outlet property="_maxText" destination="Wqa-tA-WX0" id="KSJ-Oo-NZb"/>
                         <outlet property="_minSlider" destination="HSv-oC-xcw" id="9sY-1j-ddp"/>

@@ -745,6 +745,8 @@ T findCorrespondingUiItem(FIResponder* sender)
             [_bLabel setFrame:CGRectMake(15., 371., _bLabel.frame.size.width, _bLabel.frame.size.height)];
             [_colorBLabel setFrame:CGRectMake(259., 371., _colorBLabel.frame.size.width, _colorBLabel.frame.size.height)];
             [_colorBSlider setFrame:CGRectMake(41., 371., 223., 23.)];
+            
+            // TO min/mid/max
         }
         else if (deviceOrientation == UIDeviceOrientationLandscapeLeft
                  || deviceOrientation == UIDeviceOrientationLandscapeRight)
@@ -759,6 +761,8 @@ T findCorrespondingUiItem(FIResponder* sender)
             [_bLabel setFrame:CGRectMake(308., 190., _bLabel.frame.size.width, _bLabel.frame.size.height)];
             [_colorBLabel setFrame:CGRectMake(420., 190., _colorBLabel.frame.size.width, _colorBLabel.frame.size.height)];
             [_colorBSlider setFrame:CGRectMake(306., 219., 156., 23.)];
+            
+            // TO min/mid/max
         }
     }
 
@@ -1101,6 +1105,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     // Parameter the windows
     [_gyroAxisSegmentedControl removeAllSegments];
+    [_curveSegmentedControl removeAllSegments];
     
     if ([gesture.view isKindOfClass:[FIKnob class]]
         || [gesture.view isKindOfClass:[FISlider class]])
@@ -1112,6 +1117,11 @@ T findCorrespondingUiItem(FIResponder* sender)
         [_gyroAxisSegmentedControl insertSegmentWithTitle:@"gX" atIndex:4 animated:NO];
         [_gyroAxisSegmentedControl insertSegmentWithTitle:@"gY" atIndex:5 animated:NO];
         [_gyroAxisSegmentedControl insertSegmentWithTitle:@"gZ" atIndex:6 animated:NO];
+        
+        [_curveSegmentedControl insertSegmentWithTitle:@"Curve1" atIndex:0 animated:NO];
+        [_curveSegmentedControl insertSegmentWithTitle:@"Curve2" atIndex:1 animated:NO];
+        [_curveSegmentedControl insertSegmentWithTitle:@"Curve3" atIndex:2 animated:NO];
+        [_curveSegmentedControl insertSegmentWithTitle:@"Curve4" atIndex:3 animated:NO];
         
         // SL 05/10/15
         /*
@@ -1180,6 +1190,11 @@ T findCorrespondingUiItem(FIResponder* sender)
     if (dynamic_cast<uiKnob*>(_selectedWidget)
         || dynamic_cast<uiSlider*>(_selectedWidget))
     {
+        if (_selectedWidget->getAssignationCurve() == kCurve1) _curveSegmentedControl.selectedSegmentIndex = 0;
+        else if (_selectedWidget->getAssignationCurve() == kCurve2) _curveSegmentedControl.selectedSegmentIndex = 1;
+        else if (_selectedWidget->getAssignationCurve() == kCurve3) _curveSegmentedControl.selectedSegmentIndex = 2;
+        else if (_selectedWidget->getAssignationCurve() == kCurve4) _curveSegmentedControl.selectedSegmentIndex = 3;
+        
         if (_selectedWidget->getAssignationType() == kAssignationNone) _gyroAxisSegmentedControl.selectedSegmentIndex = 0;
         else if (_selectedWidget->getAssignationType() == kAssignationAccelX) _gyroAxisSegmentedControl.selectedSegmentIndex = 1;
         else if (_selectedWidget->getAssignationType() == kAssignationAccelY) _gyroAxisSegmentedControl.selectedSegmentIndex = 2;
@@ -1200,7 +1215,6 @@ T findCorrespondingUiItem(FIResponder* sender)
         if (_selectedWidget->getAssignationType() == kAssignationNone) _gyroAxisSegmentedControl.selectedSegmentIndex = 0;
         else if (_selectedWidget->getAssignationType() == kAssignationShake) _gyroAxisSegmentedControl.selectedSegmentIndex = 1;
         _gyroAxisSegmentedControl.selectedSegmentIndex = _selectedWidget->getAssignationType();
-        
     }
     
     // Common parameters for all types
@@ -1208,12 +1222,21 @@ T findCorrespondingUiItem(FIResponder* sender)
     _gyroFilteredSwitch.on = _selectedWidget->getAssignationFiltered();
     _gyroSensibilitySlider.value = _selectedWidget->getAssignationSensibility();
     _gyroSensibilityLabel.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->getAssignationSensibility()];
+    
     _colorRSlider.value = _selectedWidget->getR();
     _colorRLabel.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->getR()];
     _colorGSlider.value = _selectedWidget->getG();
     _colorGLabel.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->getG()];
     _colorBSlider.value = _selectedWidget->getB();
     _colorBLabel.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->getB()];
+    
+    _minSlider.value = _selectedWidget->getCurveMin();
+    _minText.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->getCurveMin()];
+    _centerSlider.value = _selectedWidget->getCurveMid();
+    _centerText.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->getCurveMid()];
+    _maxSlider.value = _selectedWidget->getCurveMax();
+    _maxText.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->getCurveMax()];
+    
 }
 
 // Hide widget preferences view
@@ -1245,6 +1268,27 @@ T findCorrespondingUiItem(FIResponder* sender)
     BOOL                            found = false;
     
     if (sender == _curveSegmentedControl) {
+        
+        // Get title of selected tab for sensor assignation
+        str = [NSString stringWithString:[_curveSegmentedControl titleForSegmentAtIndex:_curveSegmentedControl.selectedSegmentIndex]];
+        
+        if ([str compare:@"Curve1"] == NSOrderedSame)
+        {
+            _selectedWidget->setAssignationCurve(kCurve1);
+        }
+        else if ([str compare:@"Curve2"] == NSOrderedSame)
+        {
+            _selectedWidget->setAssignationCurve(kCurve2);
+        }
+        else if ([str compare:@"Curve3"] == NSOrderedSame)
+        {
+            _selectedWidget->setAssignationCurve(kCurve3);
+        }
+        else if ([str compare:@"Curve4"] == NSOrderedSame)
+        {
+            _selectedWidget->setAssignationCurve(kCurve4);
+        }
+        
         printf("_curveSegmentedControl\n");
     } else if (sender == _minSlider) {
         printf("_minSlider\n");
@@ -1252,7 +1296,6 @@ T findCorrespondingUiItem(FIResponder* sender)
         printf("_maxSlider\n");
     } else if (sender == _centerSlider) {
         printf("_centerSlider\n");
-   
     
     // If user changed the sensor assignation, program resets ref point to default values
     } else if (sender == _gyroAxisSegmentedControl) {
@@ -1340,6 +1383,11 @@ T findCorrespondingUiItem(FIResponder* sender)
     _colorGLabel.text = [NSString stringWithFormat:@"%1.1f", _colorGSlider.value];
     _colorBLabel.text = [NSString stringWithFormat:@"%1.1f", _colorBSlider.value];
     
+    _selectedWidget->setCurve(_minSlider.value, _centerSlider.value, _maxSlider.value);
+    _minText.text = [NSString stringWithFormat:@"%1.1f", _minSlider.value];
+    _centerText.text = [NSString stringWithFormat:@"%1.1f", _centerSlider.value];
+    _maxText.text = [NSString stringWithFormat:@"%1.1f", _maxSlider.value];
+    
     // If default parameters : remove widget from list
     if (_selectedWidget->getAssignationType() == kAssignationNone)
     {
@@ -1369,6 +1417,19 @@ T findCorrespondingUiItem(FIResponder* sender)
     key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationType() + 1000 forKey:key];
     
+    key = [NSString stringWithFormat:@"%@-assignation-curve", [self urlForWidget:_selectedWidget]];
+    [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationCurve() + 1000 forKey:key];
+    
+    key = [NSString stringWithFormat:@"%@-assignation-min", [self urlForWidget:_selectedWidget]];
+    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getCurveMin() + 1000. forKey:key];
+  
+    key = [NSString stringWithFormat:@"%@-assignation-mid", [self urlForWidget:_selectedWidget]];
+    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getCurveMid() + 1000. forKey:key];
+  
+    key = [NSString stringWithFormat:@"%@-assignation-max", [self urlForWidget:_selectedWidget]];
+    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getCurveMax() + 1000. forKey:key];
+    
+    /*
     key = [NSString stringWithFormat:@"%@-assignation-inverse", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationInverse() + 1000 forKey:key];
 
@@ -1383,6 +1444,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationRefPointY() + 1000. forKey:key];
+    */
         
     key = [NSString stringWithFormat:@"%@-r", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getR() + 1000. forKey:key];
@@ -1406,6 +1468,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     _selectedWidget->resetParameters();
     [self updateWidgetPreferencesView];
     [self widgetPreferencesChanged:_gyroAxisSegmentedControl];
+    [self widgetPreferencesChanged:_curveSegmentedControl];
 }
 
 - (void)resetAllWidgetsPreferences
@@ -1450,11 +1513,32 @@ T findCorrespondingUiItem(FIResponder* sender)
             if (intValue != 0) (*i)->setAssignationType(intValue - 1000);
             else (*i)->setAssignationType((*i)->getInitAssignationType());
             
+            key = [NSString stringWithFormat:@"%@-assignation-curve", [self urlForWidget:(*i)]];
+            intValue = [[NSUserDefaults standardUserDefaults] integerForKey:key];
+            if (intValue != 0) (*i)->setAssignationCurve(intValue - 1000);
+            else (*i)->setAssignationCurve((*i)->getInitAssignationCurve());
+            
+            key = [NSString stringWithFormat:@"%@-assignation-min", [self urlForWidget:(*i)]];
+            floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
+            if (floatValue != 0.f) (*i)->setCurveMin(floatValue - 1000.);
+            else (*i)->setCurveMin((*i)->getInitCurveMin());
+            
+            key = [NSString stringWithFormat:@"%@-assignation-mid", [self urlForWidget:(*i)]];
+            floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
+            if (floatValue != 0.f) (*i)->setCurveMid(floatValue - 1000.);
+            else (*i)->setCurveMid((*i)->getInitCurveMid());
+            
+            key = [NSString stringWithFormat:@"%@-assignation-max", [self urlForWidget:(*i)]];
+            floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
+            if (floatValue != 0.f) (*i)->setCurveMax(floatValue - 1000.);
+            else (*i)->setCurveMax((*i)->getInitCurveMax());
+            
+            /*
             key = [NSString stringWithFormat:@"%@-assignation-inverse", [self urlForWidget:(*i)]];
             intValue = [[NSUserDefaults standardUserDefaults] integerForKey:key];
             if (intValue != 0) (*i)->setAssignationInverse((bool)(intValue - 1000));
             else (*i)->setAssignationInverse((*i)->getInitAssignationInverse());
-            
+           
             key = [NSString stringWithFormat:@"%@-assignation-filtered", [self urlForWidget:(*i)]];
             intValue = [[NSUserDefaults standardUserDefaults] integerForKey:key];
             if (intValue != 0) (*i)->setAssignationFiltered((bool)(intValue - 1000));
@@ -1474,6 +1558,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
             if (floatValue != 0.) (*i)->setAssignationRefPointY(floatValue - 1000.);
             else (*i)->setAssignationRefPointY((*i)->getInitAssignationRefPointY());
+             */
             
             // Color
             key = [NSString stringWithFormat:@"%@-r", [self urlForWidget:(*i)]];
