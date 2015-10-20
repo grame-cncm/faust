@@ -237,7 +237,7 @@
                                         <textInputTraits key="textInputTraits"/>
                                     </textField>
                                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="0" borderStyle="roundedRect" minimumFontSize="17" id="hq5-J4-7V3">
-                                        <rect key="frame" x="66" y="251" width="60" height="30"/>
+                                        <rect key="frame" x="66" y="252" width="60" height="30"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits"/>
@@ -274,6 +274,7 @@
                     <connections>
                         <outlet property="_bLabel" destination="yUT-Xd-fbB" id="DlN-HS-T4v"/>
                         <outlet property="_centerSlider" destination="eS8-o6-VgW" id="Koe-fQ-FSJ"/>
+                        <outlet property="_centerText" destination="hq5-J4-7V3" id="0oM-AQ-78j"/>
                         <outlet property="_colorBLabel" destination="NLf-bE-hY3" id="JSD-5u-iz0"/>
                         <outlet property="_colorBSlider" destination="gL4-Rz-j3r" id="FtP-Yv-E0P"/>
                         <outlet property="_colorGLabel" destination="Vuz-Tj-k9N" id="pq8-t0-r9i"/>
@@ -287,7 +288,9 @@
                         <outlet property="_gLabel" destination="4pG-uw-ehd" id="UzE-Hf-mHu"/>
                         <outlet property="_gyroAxisSegmentedControl" destination="oyc-qf-yU0" id="gRv-5r-Ug8"/>
                         <outlet property="_maxSlider" destination="amT-hE-txz" id="Kod-fQ-FSJ"/>
+                        <outlet property="_maxText" destination="Taa-Ea-naR" id="t2L-x2-FJd"/>
                         <outlet property="_minSlider" destination="rK4-Ny-R1b" id="Koc-fQ-FSJ"/>
+                        <outlet property="_minText" destination="Pco-ck-fPx" id="tOB-0H-PNa"/>
                         <outlet property="_rLabel" destination="XES-4z-RJX" id="kpH-b4-Vas"/>
                         <outlet property="_titleLabel" destination="d0p-QQ-rUB" id="MHx-ti-iZN"/>
                         <outlet property="_widgetPreferencesTitleLabel" destination="9SF-kE-5Rs" id="f4i-BX-JGS"/>
