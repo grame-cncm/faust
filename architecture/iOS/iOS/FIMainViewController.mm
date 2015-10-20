@@ -1122,14 +1122,7 @@ T findCorrespondingUiItem(FIResponder* sender)
         [_curveSegmentedControl insertSegmentWithTitle:@"Curve2" atIndex:1 animated:NO];
         [_curveSegmentedControl insertSegmentWithTitle:@"Curve3" atIndex:2 animated:NO];
         [_curveSegmentedControl insertSegmentWithTitle:@"Curve4" atIndex:3 animated:NO];
-        
-        _gyroInvertedSwitch.hidden = NO;
-        _gyroFilteredSwitch.hidden = NO;
-        _gyroInvertedTitleLabel.hidden = NO;
-        _gyroSensibilityLabel.hidden = NO;
-        _gyroSensibilitySlider.hidden = NO;
-        _gyroSensibilityTitleLabel.hidden = NO;
-
+    
         _widgetPreferencesTitleLabel.text = _selectedWidget->getName();
     }
     
@@ -1141,13 +1134,6 @@ T findCorrespondingUiItem(FIResponder* sender)
             [_gyroAxisSegmentedControl insertSegmentWithTitle:@"0" atIndex:0 animated:NO];
             [_gyroAxisSegmentedControl insertSegmentWithTitle:@"Shk" atIndex:1 animated:NO];
             
-            _gyroInvertedSwitch.hidden = YES;
-            _gyroFilteredSwitch.hidden = YES;
-            _gyroInvertedTitleLabel.hidden = YES;
-            _gyroSensibilityLabel.hidden = YES;
-            _gyroSensibilitySlider.hidden = YES;
-            _gyroSensibilityTitleLabel.hidden = YES;
-
             _widgetPreferencesTitleLabel.text = dynamic_cast<uiButton*>(_selectedWidget)->fButton.title;
             
             if (_selectedWidget->getAssignationType() == kAssignationNone) _gyroAxisSegmentedControl.selectedSegmentIndex = 0;
@@ -1205,11 +1191,6 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
     
     // Common parameters for all types
-    _gyroInvertedSwitch.on = _selectedWidget->getAssignationInverse();
-    _gyroFilteredSwitch.on = _selectedWidget->getAssignationFiltered();
-    _gyroSensibilitySlider.value = _selectedWidget->getAssignationSensibility();
-    _gyroSensibilityLabel.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->getAssignationSensibility()];
-    
     _colorRSlider.value = _selectedWidget->getR();
     _colorRLabel.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->getR()];
     _colorGSlider.value = _selectedWidget->getG();
@@ -1347,11 +1328,6 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
     
     // Write parameters in the widget object
-    _selectedWidget->setAssignationInverse(_gyroInvertedSwitch.on);
-    _selectedWidget->setAssignationFiltered(_gyroFilteredSwitch.on);
-    _selectedWidget->setAssignationSensibility(_gyroSensibilitySlider.value);
-    _gyroSensibilityLabel.text = [NSString stringWithFormat:@"%1.1f", _gyroSensibilitySlider.value];
-    
     _selectedWidget->setColor(_colorRSlider.value, _colorGSlider.value, _colorBSlider.value);
     _colorRLabel.text = [NSString stringWithFormat:@"%1.1f", _colorRSlider.value];
     _colorGLabel.text = [NSString stringWithFormat:@"%1.1f", _colorGSlider.value];
@@ -1489,7 +1465,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
             if (floatValue != 0.f) (*i)->setCurveMax(floatValue - 1000.);
             else (*i)->setCurveMax((*i)->getInitCurveMax());
-                  
+            
             // Color
             key = [NSString stringWithFormat:@"%@-r", [self urlForWidget:(*i)]];
             key2 = [NSString stringWithFormat:@"%@-g", [self urlForWidget:(*i)]];

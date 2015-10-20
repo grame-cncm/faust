@@ -55,16 +55,6 @@ class uiBox;
     
     IBOutlet UISegmentedControl*        _gyroAxisSegmentedControl;
     
-    // SL : 05/10/15
-    // Old UI
-    IBOutlet UISwitch*                  _gyroInvertedSwitch;
-    IBOutlet UISwitch*                  _gyroFilteredSwitch;
-    IBOutlet UISlider*                  _gyroSensibilitySlider;
-    IBOutlet UILabel*                   _gyroSensibilityLabel;
-    IBOutlet UILabel*                   _gyroInvertedTitleLabel;
-    IBOutlet UILabel*                   _gyroSensibilityTitleLabel;
-    //
-    
     IBOutlet UILabel*                   _widgetPreferencesTitleLabel;
     uiCocoaItem*                        _selectedWidget;                // Contains label of the widget
     list <uiCocoaItem*>                 _assignatedWidgets;
