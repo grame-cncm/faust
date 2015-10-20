@@ -1123,14 +1123,6 @@ T findCorrespondingUiItem(FIResponder* sender)
         [_curveSegmentedControl insertSegmentWithTitle:@"Curve3" atIndex:2 animated:NO];
         [_curveSegmentedControl insertSegmentWithTitle:@"Curve4" atIndex:3 animated:NO];
         
-        // SL 05/10/15
-        /*
-        if ([CLLocationManager headingAvailable])
-        {
-            [_gyroAxisSegmentedControl insertSegmentWithTitle:@"C" atIndex:7 animated:NO];
-        }
-        */
-        
         _gyroInvertedSwitch.hidden = NO;
         _gyroFilteredSwitch.hidden = NO;
         _gyroInvertedTitleLabel.hidden = NO;
@@ -1202,11 +1194,6 @@ T findCorrespondingUiItem(FIResponder* sender)
         else if (_selectedWidget->getAssignationType() == kAssignationGyroX) _gyroAxisSegmentedControl.selectedSegmentIndex = 4;
         else if (_selectedWidget->getAssignationType() == kAssignationGyroY) _gyroAxisSegmentedControl.selectedSegmentIndex = 5;
         else if (_selectedWidget->getAssignationType() == kAssignationGyroZ) _gyroAxisSegmentedControl.selectedSegmentIndex = 6;
-        
-        // SL : 05/10/15
-        //else if (_selectedWidget->getAssignationType() == kAssignationCompass) _gyroAxisSegmentedControl.selectedSegmentIndex = 7;
-        
-        //_gyroAxisSegmentedControl.selectedSegmentIndex = _selectedWidget->getAssignationType();
     }
     
     // For buttons
@@ -1291,10 +1278,13 @@ T findCorrespondingUiItem(FIResponder* sender)
         
         printf("_curveSegmentedControl\n");
     } else if (sender == _minSlider) {
+        _selectedWidget->setCurveMin(_minSlider.value);
         printf("_minSlider\n");
     } else if (sender == _maxSlider) {
+        _selectedWidget->setCurveMax(_maxSlider.value);
         printf("_maxSlider\n");
     } else if (sender == _centerSlider) {
+        _selectedWidget->setCurveMid(_centerSlider.value);
         printf("_centerSlider\n");
     
     // If user changed the sensor assignation, program resets ref point to default values
@@ -1330,22 +1320,6 @@ T findCorrespondingUiItem(FIResponder* sender)
             //_selectedWidget->setAssignationRefPointX(0.);
             //_selectedWidget->setAssignationRefPointY(0.5);
         }
-        
-        // SL : 05/10/15
-        /*
-        else if ([str compare:@"Shk"] == NSOrderedSame)
-        {
-            _selectedWidget->setAssignationType(kAssignationShake);
-            //_selectedWidget->setAssignationRefPointX(0.);
-            //_selectedWidget->setAssignationRefPointY(0.);
-        }
-        else if ([str compare:@"C"] == NSOrderedSame)
-        {
-            _selectedWidget->setAssignationType(kAssignationCompass);
-            //_selectedWidget->setAssignationRefPointX(0.);
-            //_selectedWidget->setAssignationRefPointY(0.);
-        }
-        */
         else if ([str compare:@"gX"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationGyroX);
@@ -1429,23 +1403,6 @@ T findCorrespondingUiItem(FIResponder* sender)
     key = [NSString stringWithFormat:@"%@-assignation-max", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getCurveMax() + 1000. forKey:key];
     
-    /*
-    key = [NSString stringWithFormat:@"%@-assignation-inverse", [self urlForWidget:_selectedWidget]];
-    [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationInverse() + 1000 forKey:key];
-
-    key = [NSString stringWithFormat:@"%@-assignation-filtered", [self urlForWidget:_selectedWidget]];
-    [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationFiltered() + 1000 forKey:key];
-
-    key = [NSString stringWithFormat:@"%@-assignation-sensibility", [self urlForWidget:_selectedWidget]];
-    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationSensibility() + 1000. forKey:key];
-    
-    key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", [self urlForWidget:_selectedWidget]];
-    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationRefPointX() + 1000. forKey:key];
-    
-    key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:_selectedWidget]];
-    [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getAssignationRefPointY() + 1000. forKey:key];
-    */
-        
     key = [NSString stringWithFormat:@"%@-r", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setFloat:_selectedWidget->getR() + 1000. forKey:key];
     
@@ -1532,34 +1489,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
             if (floatValue != 0.f) (*i)->setCurveMax(floatValue - 1000.);
             else (*i)->setCurveMax((*i)->getInitCurveMax());
-            
-            /*
-            key = [NSString stringWithFormat:@"%@-assignation-inverse", [self urlForWidget:(*i)]];
-            intValue = [[NSUserDefaults standardUserDefaults] integerForKey:key];
-            if (intValue != 0) (*i)->setAssignationInverse((bool)(intValue - 1000));
-            else (*i)->setAssignationInverse((*i)->getInitAssignationInverse());
-           
-            key = [NSString stringWithFormat:@"%@-assignation-filtered", [self urlForWidget:(*i)]];
-            intValue = [[NSUserDefaults standardUserDefaults] integerForKey:key];
-            if (intValue != 0) (*i)->setAssignationFiltered((bool)(intValue - 1000));
-            else (*i)->setAssignationFiltered((*i)->getInitAssignationFiltered());
-            
-            key = [NSString stringWithFormat:@"%@-assignation-sensibility", [self urlForWidget:(*i)]];
-            floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
-            if (floatValue != 0.) (*i)->setAssignationSensibility(floatValue - 1000.);
-            else (*i)->setAssignationSensibility((*i)->getInitAssignationSensibility());
-            
-            key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", [self urlForWidget:(*i)]];
-            floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
-            if (floatValue != 0.) (*i)->setAssignationRefPointX(floatValue - 1000.);
-            else (*i)->setAssignationRefPointX((*i)->getInitAssignationRefPointX());
-                        
-            key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:(*i)]];
-            floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
-            if (floatValue != 0.) (*i)->setAssignationRefPointY(floatValue - 1000.);
-            else (*i)->setAssignationRefPointY((*i)->getInitAssignationRefPointY());
-             */
-            
+                  
             // Color
             key = [NSString stringWithFormat:@"%@-r", [self urlForWidget:(*i)]];
             key2 = [NSString stringWithFormat:@"%@-g", [self urlForWidget:(*i)]];
