@@ -37,7 +37,6 @@
     [super didReceiveMemoryWarning];
 }
 
-
 #pragma mark - View lifecycle
 
 - (void)viewDidLoad
@@ -104,7 +103,6 @@
         return YES;
     }
 }
-
 
 #pragma mark - Actions
 
@@ -188,7 +186,6 @@
         [[NSUserDefaults standardUserDefaults] synchronize];
 	}
 }
-
 
 - (int)sampleRateToSliderValue:(int)sampleRate
 {

@@ -50,6 +50,12 @@ int	bufferSize = 0;
 BOOL openWidgetPanel = YES;
 int uiCocoaItem::gItemCount = 0;
 
+#define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
+#define SYSTEM_VERSION_GREATER_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
+#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
+
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -1116,32 +1122,32 @@ T findCorrespondingUiItem(FIResponder* sender)
         
         // TODO
         
-        [_curveSegmentedControl insertSegmentWithImage:
-         [UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ic_accelnormon" ofType:@"png"]]
-                                               atIndex:0
-                                              animated:NO];
-        
-        [_curveSegmentedControl insertSegmentWithImage:
-         [UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ic_accelinverton" ofType:@"png"]]
-                                               atIndex:1
-                                              animated:NO];
-
-        [_curveSegmentedControl insertSegmentWithImage:
-         [UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ic_accelcurveon" ofType:@"png"]]
-                                               atIndex:2
-                                              animated:NO];
-        
-        [_curveSegmentedControl insertSegmentWithImage:
-         [UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ic_accelinvertcurveon" ofType:@"png"]]
-                                               atIndex:3
-                                              animated:NO];
-        
-        
-        //[_curveSegmentedControl insertSegmentWithTitle:@"Curve1" atIndex:0 animated:NO];
-        //[_curveSegmentedControl insertSegmentWithTitle:@"Curve2" atIndex:1 animated:NO];
-        //[_curveSegmentedControl insertSegmentWithTitle:@"Curve3" atIndex:2 animated:NO];
-        //[_curveSegmentedControl insertSegmentWithTitle:@"Curve4" atIndex:3 animated:NO];
-        
+        if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"6.0")) {
+            [_curveSegmentedControl insertSegmentWithImage:
+             [UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ic_accelnormon" ofType:@"png"]]
+                                                   atIndex:0
+                                                  animated:NO];
+            
+            [_curveSegmentedControl insertSegmentWithImage:
+             [UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ic_accelinverton" ofType:@"png"]]
+                                                   atIndex:1
+                                                  animated:NO];
+            
+            [_curveSegmentedControl insertSegmentWithImage:
+             [UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ic_accelcurveon" ofType:@"png"]]
+                                                   atIndex:2
+                                                  animated:NO];
+            
+            [_curveSegmentedControl insertSegmentWithImage:
+             [UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ic_accelinvertcurveon" ofType:@"png"]]
+                                                   atIndex:3
+                                                  animated:NO];
+        } else {
+            [_curveSegmentedControl insertSegmentWithTitle:@"Curve1" atIndex:0 animated:NO];
+            [_curveSegmentedControl insertSegmentWithTitle:@"Curve2" atIndex:1 animated:NO];
+            [_curveSegmentedControl insertSegmentWithTitle:@"Curve3" atIndex:2 animated:NO];
+            [_curveSegmentedControl insertSegmentWithTitle:@"Curve4" atIndex:3 animated:NO];
+        }
     
         _widgetPreferencesTitleLabel.text = _selectedWidget->getName();
     }
