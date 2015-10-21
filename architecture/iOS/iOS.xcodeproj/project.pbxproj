@@ -69,6 +69,18 @@
 		4B5F800817D5F93700E0F1ED /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B5F800717D5F93700E0F1ED /* Icon-72.png */; };
 		4B5F800917D5F93900E0F1ED /* Icon-72@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B27569D17D5E83700BAB8B9 /* Icon-72@2x.png */; };
 		4BAD5B9F16F0FA5D000FEF86 /* jack.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BAD5B9E16F0FA5D000FEF86 /* jack.framework */; };
+		4BBA87F21BD7DEA200DE5748 /* ic_accelcurveon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87EE1BD7DEA200DE5748 /* ic_accelcurveon.png */; };
+		4BBA87F31BD7DEA200DE5748 /* ic_accelcurveon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87EE1BD7DEA200DE5748 /* ic_accelcurveon.png */; };
+		4BBA87F41BD7DEA200DE5748 /* ic_accelcurveon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87EE1BD7DEA200DE5748 /* ic_accelcurveon.png */; };
+		4BBA87F51BD7DEA200DE5748 /* ic_accelinvertcurveon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87EF1BD7DEA200DE5748 /* ic_accelinvertcurveon.png */; };
+		4BBA87F61BD7DEA200DE5748 /* ic_accelinvertcurveon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87EF1BD7DEA200DE5748 /* ic_accelinvertcurveon.png */; };
+		4BBA87F71BD7DEA200DE5748 /* ic_accelinvertcurveon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87EF1BD7DEA200DE5748 /* ic_accelinvertcurveon.png */; };
+		4BBA87F81BD7DEA200DE5748 /* ic_accelinverton.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87F01BD7DEA200DE5748 /* ic_accelinverton.png */; };
+		4BBA87F91BD7DEA200DE5748 /* ic_accelinverton.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87F01BD7DEA200DE5748 /* ic_accelinverton.png */; };
+		4BBA87FA1BD7DEA200DE5748 /* ic_accelinverton.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87F01BD7DEA200DE5748 /* ic_accelinverton.png */; };
+		4BBA87FB1BD7DEA200DE5748 /* ic_accelnormon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87F11BD7DEA200DE5748 /* ic_accelnormon.png */; };
+		4BBA87FC1BD7DEA200DE5748 /* ic_accelnormon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87F11BD7DEA200DE5748 /* ic_accelnormon.png */; };
+		4BBA87FD1BD7DEA200DE5748 /* ic_accelnormon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87F11BD7DEA200DE5748 /* ic_accelnormon.png */; };
 		4BDAA21016AEF05D00A3499E /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BDAA20F16AEF05D00A3499E /* Accelerate.framework */; };
 		4BEF91A61B96FFC000F2D974 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E5ED9E14DB037D00136CFC /* main.m */; };
 		4BEF91A71B96FFC000F2D974 /* FIAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65E5EDA214DB037D00136CFC /* FIAppDelegate.mm */; };
@@ -271,6 +283,10 @@
 		4B4953571A9F1D5A005377A7 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
 		4B5F800717D5F93700E0F1ED /* Icon-72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-72.png"; sourceTree = "<group>"; };
 		4BAD5B9E16F0FA5D000FEF86 /* jack.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = jack.framework; sourceTree = "<group>"; };
+		4BBA87EE1BD7DEA200DE5748 /* ic_accelcurveon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_accelcurveon.png; sourceTree = "<group>"; };
+		4BBA87EF1BD7DEA200DE5748 /* ic_accelinvertcurveon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_accelinvertcurveon.png; sourceTree = "<group>"; };
+		4BBA87F01BD7DEA200DE5748 /* ic_accelinverton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_accelinverton.png; sourceTree = "<group>"; };
+		4BBA87F11BD7DEA200DE5748 /* ic_accelnormon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_accelnormon.png; sourceTree = "<group>"; };
 		4BDAA20F16AEF05D00A3499E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		4BEF91F01B96FFC000F2D974 /* Template_CoreAudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Template_CoreAudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		651BB43C171D91260065CBC9 /* Icon-Jack.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Jack.png"; sourceTree = "<group>"; };
@@ -414,6 +430,10 @@
 		4B04364816E9E9AD00C0C02A /* pix */ = {
 			isa = PBXGroup;
 			children = (
+				4BBA87EE1BD7DEA200DE5748 /* ic_accelcurveon.png */,
+				4BBA87EF1BD7DEA200DE5748 /* ic_accelinvertcurveon.png */,
+				4BBA87F01BD7DEA200DE5748 /* ic_accelinverton.png */,
+				4BBA87F11BD7DEA200DE5748 /* ic_accelnormon.png */,
 				4B04364916E9E9AD00C0C02A /* Icon-Analyzer.png */,
 				4B04364A16E9E9AD00C0C02A /* Icon-Analyzer136.png */,
 				4B04364B16E9E9AD00C0C02A /* Icon-Analyzer@2x.png */,
@@ -718,14 +738,18 @@
 				4B04365516E9E9AD00C0C02A /* Icon-Analyzer136.png in Resources */,
 				4B04365716E9E9AD00C0C02A /* Icon-Analyzer@2x.png in Resources */,
 				4B04365916E9E9AD00C0C02A /* Icon-Fx.png in Resources */,
+				4BBA87F31BD7DEA200DE5748 /* ic_accelcurveon.png in Resources */,
 				4B04365B16E9E9AD00C0C02A /* Icon-Fx136.png in Resources */,
 				4B04365D16E9E9AD00C0C02A /* Icon-Fx@2x.png in Resources */,
 				4B04365F16E9E9AD00C0C02A /* Icon-Output.png in Resources */,
 				4B04366116E9E9AD00C0C02A /* Icon-Output136.png in Resources */,
 				4B04366316E9E9AD00C0C02A /* Icon-Output@2x.png in Resources */,
+				4BBA87F61BD7DEA200DE5748 /* ic_accelinvertcurveon.png in Resources */,
 				651BB43F171D91260065CBC9 /* Icon-Jack.png in Resources */,
+				4BBA87F91BD7DEA200DE5748 /* ic_accelinverton.png in Resources */,
 				651BB441171D91260065CBC9 /* Icon-Jack@2x.png in Resources */,
 				6596C3B7172926BB000AD403 /* Icon_Apple.png in Resources */,
+				4BBA87FC1BD7DEA200DE5748 /* ic_accelnormon.png in Resources */,
 				4B49535B1A9F1D5A005377A7 /* MainStoryboard_iPhone.storyboard in Resources */,
 				6596C3B9172926BB000AD403 /* Icon_Apple@2x.png in Resources */,
 				65E3121317722C10000E2AFA /* Icon-Delete.png in Resources */,
@@ -770,14 +794,18 @@
 				4BEF91C41B96FFC000F2D974 /* Icon-Analyzer136.png in Resources */,
 				4BEF91C51B96FFC000F2D974 /* Icon-Analyzer@2x.png in Resources */,
 				4BEF91C61B96FFC000F2D974 /* Icon-Fx.png in Resources */,
+				4BBA87F41BD7DEA200DE5748 /* ic_accelcurveon.png in Resources */,
 				4BEF91C71B96FFC000F2D974 /* Icon-Fx136.png in Resources */,
 				4BEF91C81B96FFC000F2D974 /* Icon-Fx@2x.png in Resources */,
 				4BEF91C91B96FFC000F2D974 /* Icon-Output.png in Resources */,
 				4BEF91CA1B96FFC000F2D974 /* Icon-Output136.png in Resources */,
 				4BEF91CB1B96FFC000F2D974 /* Icon-Output@2x.png in Resources */,
+				4BBA87F71BD7DEA200DE5748 /* ic_accelinvertcurveon.png in Resources */,
 				4BEF91CC1B96FFC000F2D974 /* Icon-Jack.png in Resources */,
+				4BBA87FA1BD7DEA200DE5748 /* ic_accelinverton.png in Resources */,
 				4BEF91CD1B96FFC000F2D974 /* Icon-Jack@2x.png in Resources */,
 				4BEF91CE1B96FFC000F2D974 /* Icon_Apple.png in Resources */,
+				4BBA87FD1BD7DEA200DE5748 /* ic_accelnormon.png in Resources */,
 				4BEF91CF1B96FFC000F2D974 /* MainStoryboard_iPhone.storyboard in Resources */,
 				4BEF91D01B96FFC000F2D974 /* Icon_Apple@2x.png in Resources */,
 				4BEF91D11B96FFC000F2D974 /* Icon-Delete.png in Resources */,
@@ -822,14 +850,18 @@
 				4B04365416E9E9AD00C0C02A /* Icon-Analyzer136.png in Resources */,
 				4B04365616E9E9AD00C0C02A /* Icon-Analyzer@2x.png in Resources */,
 				4B04365816E9E9AD00C0C02A /* Icon-Fx.png in Resources */,
+				4BBA87F21BD7DEA200DE5748 /* ic_accelcurveon.png in Resources */,
 				4B04365A16E9E9AD00C0C02A /* Icon-Fx136.png in Resources */,
 				4B04365C16E9E9AD00C0C02A /* Icon-Fx@2x.png in Resources */,
 				4B04365E16E9E9AD00C0C02A /* Icon-Output.png in Resources */,
 				4B04366016E9E9AD00C0C02A /* Icon-Output136.png in Resources */,
 				4B04366216E9E9AD00C0C02A /* Icon-Output@2x.png in Resources */,
+				4BBA87F51BD7DEA200DE5748 /* ic_accelinvertcurveon.png in Resources */,
 				651BB43E171D91260065CBC9 /* Icon-Jack.png in Resources */,
+				4BBA87F81BD7DEA200DE5748 /* ic_accelinverton.png in Resources */,
 				651BB440171D91260065CBC9 /* Icon-Jack@2x.png in Resources */,
 				6596C3B6172926BB000AD403 /* Icon_Apple.png in Resources */,
+				4BBA87FB1BD7DEA200DE5748 /* ic_accelnormon.png in Resources */,
 				4B49535A1A9F1D5A005377A7 /* MainStoryboard_iPhone.storyboard in Resources */,
 				6596C3B8172926BB000AD403 /* Icon_Apple@2x.png in Resources */,
 				65E3121217722C10000E2AFA /* Icon-Delete.png in Resources */,

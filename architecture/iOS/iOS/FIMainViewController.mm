@@ -1114,10 +1114,34 @@ T findCorrespondingUiItem(FIResponder* sender)
         [_gyroAxisSegmentedControl insertSegmentWithTitle:@"gY" atIndex:5 animated:NO];
         [_gyroAxisSegmentedControl insertSegmentWithTitle:@"gZ" atIndex:6 animated:NO];
         
-        [_curveSegmentedControl insertSegmentWithTitle:@"Curve1" atIndex:0 animated:NO];
-        [_curveSegmentedControl insertSegmentWithTitle:@"Curve2" atIndex:1 animated:NO];
-        [_curveSegmentedControl insertSegmentWithTitle:@"Curve3" atIndex:2 animated:NO];
-        [_curveSegmentedControl insertSegmentWithTitle:@"Curve4" atIndex:3 animated:NO];
+        // TODO
+        
+        [_curveSegmentedControl insertSegmentWithImage:
+         [UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ic_accelnormon" ofType:@"png"]]
+                                               atIndex:0
+                                              animated:NO];
+        
+        [_curveSegmentedControl insertSegmentWithImage:
+         [UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ic_accelinverton" ofType:@"png"]]
+                                               atIndex:1
+                                              animated:NO];
+
+        [_curveSegmentedControl insertSegmentWithImage:
+         [UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ic_accelcurveon" ofType:@"png"]]
+                                               atIndex:2
+                                              animated:NO];
+        
+        [_curveSegmentedControl insertSegmentWithImage:
+         [UIImage imageWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ic_accelinvertcurveon" ofType:@"png"]]
+                                               atIndex:3
+                                              animated:NO];
+        
+        
+        //[_curveSegmentedControl insertSegmentWithTitle:@"Curve1" atIndex:0 animated:NO];
+        //[_curveSegmentedControl insertSegmentWithTitle:@"Curve2" atIndex:1 animated:NO];
+        //[_curveSegmentedControl insertSegmentWithTitle:@"Curve3" atIndex:2 animated:NO];
+        //[_curveSegmentedControl insertSegmentWithTitle:@"Curve4" atIndex:3 animated:NO];
+        
     
         _widgetPreferencesTitleLabel.text = _selectedWidget->getName();
     }
@@ -1229,6 +1253,10 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     if (sender == _curveSegmentedControl) {
         
+        //printf("selectedSegmentIndex %d \n", _curveSegmentedControl.selectedSegmentIndex);
+        _selectedWidget->setAssignationCurve(_curveSegmentedControl.selectedSegmentIndex);
+        
+        /*
         // Get title of selected tab for sensor assignation
         str = [NSString stringWithString:[_curveSegmentedControl titleForSegmentAtIndex:_curveSegmentedControl.selectedSegmentIndex]];
         
@@ -1248,6 +1276,7 @@ T findCorrespondingUiItem(FIResponder* sender)
         {
             _selectedWidget->setAssignationCurve(kCurve4);
         }
+         */
         
         printf("_curveSegmentedControl\n");
     } else if (sender == _minSlider) {
