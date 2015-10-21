@@ -50,6 +50,7 @@ char rcfilename[256];
 int sampleRate = 0;
 int	bufferSize = 0;
 BOOL openWidgetPanel = YES;
+int uiCocoaItem::gItemCount = 0;
 
 - (void)didReceiveMemoryWarning
 {
@@ -1168,10 +1169,13 @@ T findCorrespondingUiItem(FIResponder* sender)
     if (dynamic_cast<uiKnob*>(_selectedWidget)
         || dynamic_cast<uiSlider*>(_selectedWidget))
     {
+        _curveSegmentedControl.selectedSegmentIndex = _selectedWidget->getAssignationCurve();
+        /*
         if (_selectedWidget->getAssignationCurve() == kCurve1) _curveSegmentedControl.selectedSegmentIndex = 0;
         else if (_selectedWidget->getAssignationCurve() == kCurve2) _curveSegmentedControl.selectedSegmentIndex = 1;
         else if (_selectedWidget->getAssignationCurve() == kCurve3) _curveSegmentedControl.selectedSegmentIndex = 2;
         else if (_selectedWidget->getAssignationCurve() == kCurve4) _curveSegmentedControl.selectedSegmentIndex = 3;
+         */
         
         if (_selectedWidget->getAssignationType() == kAssignationNone) _gyroAxisSegmentedControl.selectedSegmentIndex = 0;
         else if (_selectedWidget->getAssignationType() == kAssignationAccelX) _gyroAxisSegmentedControl.selectedSegmentIndex = 1;
@@ -1280,50 +1284,34 @@ T findCorrespondingUiItem(FIResponder* sender)
         if ([str compare:@"0"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationNone);
-            //_selectedWidget->setAssignationRefPointX(0.);
-            //_selectedWidget->setAssignationRefPointY(0.);
         }
         else if ([str compare:@"aX"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationAccelX);
-            //_selectedWidget->setAssignationRefPointX(0.);
-            //_selectedWidget->setAssignationRefPointY(0.5);
-        }
+         }
         else if ([str compare:@"aY"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationAccelY);
-            //_selectedWidget->setAssignationRefPointX(0.);
-            //_selectedWidget->setAssignationRefPointY(0.5);
         }
         else if ([str compare:@"aZ"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationAccelZ);
-            //_selectedWidget->setAssignationRefPointX(0.);
-            //_selectedWidget->setAssignationRefPointY(0.5);
         }
         else if ([str compare:@"gX"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationGyroX);
-            //_selectedWidget->setAssignationRefPointX(0.);
-            //_selectedWidget->setAssignationRefPointY(0.);
         }
         else if ([str compare:@"gY"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationGyroY);
-            //_selectedWidget->setAssignationRefPointX(0.);
-            //_selectedWidget->setAssignationRefPointY(0.);
         }
         else if ([str compare:@"gZ"] == NSOrderedSame)
         {
             _selectedWidget->setAssignationType(kAssignationGyroZ);
-            //_selectedWidget->setAssignationRefPointX(0.);
-            //_selectedWidget->setAssignationRefPointY(0.);
         }
         else
         {
             _selectedWidget->setAssignationType(kAssignationNone);
-            //_selectedWidget->setAssignationRefPointX(0.);
-            //_selectedWidget->setAssignationRefPointY(0.);
         }
     }
     
@@ -1362,7 +1350,30 @@ T findCorrespondingUiItem(FIResponder* sender)
         }
         if (!found) _assignatedWidgets.push_back(_selectedWidget);
     }
-
+    
+    // Update mappings
+    int index = _selectedWidget->getItemCount();
+    printf("getItemCount %d\n", index);
+    if (_selectedWidget->getAssignationType() == kAssignationNone) {
+        interface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
+        interface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
+    } else if (_selectedWidget->getAssignationType() <= 3) {
+        interface->setAccConverter(index,
+                                   _selectedWidget->getAssignationType() - 1,
+                                   _selectedWidget->getAssignationCurve(),
+                                   _selectedWidget->getCurveMin(),
+                                   _selectedWidget->getCurveMid(),
+                                   _selectedWidget->getCurveMax());
+    } else {
+        interface->setGyrConverter(index,
+                                   _selectedWidget->getAssignationType() - 4,
+                                   _selectedWidget->getAssignationCurve(),
+                                   _selectedWidget->getCurveMin(),
+                                   _selectedWidget->getCurveMid(),
+                                   _selectedWidget->getCurveMax());
+        
+    }
+   
     // Save parameters in user defaults
     key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:_selectedWidget]];
     [[NSUserDefaults standardUserDefaults] setInteger:_selectedWidget->getAssignationType() + 1000 forKey:key];
@@ -1432,7 +1443,6 @@ T findCorrespondingUiItem(FIResponder* sender)
     NSString*                       key3;
     int                             intValue = 0;
     float                           floatValue = 0.;
-    
     
     for (i = interface->fWidgetList.begin(); i != interface->fWidgetList.end(); i++)
     {
@@ -1547,12 +1557,28 @@ T findCorrespondingUiItem(FIResponder* sender)
 // The function periodically called to refresh motion sensors
 - (void)updateMotion
 {
+    
+    //printf("motionManager.accelerometerData.acceleration.x %f\n", _motionManager.accelerometerData.acceleration.x);
+    
+    
+    interface->setAccValues(_motionManager.accelerometerData.acceleration.x,
+                            _motionManager.accelerometerData.acceleration.y,
+                            _motionManager.accelerometerData.acceleration.z);
+    
+    interface->setGyrValues(_motionManager.gyroData.rotationRate.x,
+                            _motionManager.gyroData.rotationRate.y,
+                            _motionManager.gyroData.rotationRate.z);
+    
+    return;
+    
+    
     list<uiCocoaItem*>::iterator    i;
     float                           coef = 0.f;
     float                           value = 0.f;
     float                           a = 0.;
     float                           b = 0.;
     float                           sign = 1.;
+    
     
     [_sensorFilter addAccelerationX:_motionManager.accelerometerData.acceleration.x
                                   y:_motionManager.accelerometerData.acceleration.y
@@ -1568,6 +1594,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             || (dynamic_cast<uiSlider*>(*i) && !dynamic_cast<uiSlider*>(*i)->fSlider.motionBlocked)
             || dynamic_cast<uiButton*>(*i))
         {
+            
             coef = 0.f;
             
             if ((*i)->getAssignationType() == kAssignationAccelX)

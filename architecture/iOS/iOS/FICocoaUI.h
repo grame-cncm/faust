@@ -86,10 +86,10 @@ class uiBox;
 #define kAssignationCompass             8
 
 
-#define kCurve1                         1
-#define kCurve2                         2
-#define kCurve3                         3
-#define kCurve4                         4
+#define kCurve1                         0
+#define kCurve2                         1
+#define kCurve3                         2
+#define kCurve4                         3
 
 // Current layout mode
 #define kHorizontalLayout               0
@@ -153,6 +153,9 @@ class uiCocoaItem : public uiItem
 {
     
 protected:
+    
+    static int              gItemCount;
+    int                     fItemCount;
     
     NSString*               fName;
     BOOL                    fHidden;
@@ -262,6 +265,11 @@ public:
         fInitMaxCurve = 100.f;
         fHideOnGUI = false;
         fInit = 0.f;
+        if (zone) {
+            fItemCount = gItemCount++;
+        } else {
+            fItemCount = -1;
+        }
         
         resetParameters();
     }
@@ -271,7 +279,12 @@ public:
         [fName release];
     }
         
-    // Getters, setters 
+    // Getters, setters
+    
+    
+    int getItemCount()                                                  {return fItemCount;}
+  
+    
     NSString* getName()                                                 {return fName;}
     
     virtual void resetInitialValue() = 0;
@@ -1285,6 +1298,7 @@ class CocoaUI : public GUI
 {
     
 public:
+    
     list <uiCocoaItem*>             fWidgetList;
     
     void setHidden(bool state)
@@ -1294,8 +1308,7 @@ public:
             (*it).second = state;
         }
     }
-
-    
+   
 private:
     
     UIWindow*                       fWindow;
@@ -1319,11 +1332,9 @@ private:
     set<float*>                     fKnobSet;
     int                             fCurrentLayoutType;
     bool                            fNextBoxIsHideOnGUI;
-    
     APIUI                           fAPIUI;
     
     // Layout management
-    
     
     uiBox* getActiveBox()
     {
@@ -1627,11 +1638,10 @@ public:
         fViewController.dspView.backgroundColor = [UIColor blackColor];
         fViewController.dspScrollView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
         
-        // SL : 05/10/15
         DSP->buildUserInterface(&fAPIUI);
         
         [window addSubview:viewController.view];
-        [window makeKeyAndVisible];        
+        [window makeKeyAndVisible];
     }
     
     ~CocoaUI()
@@ -1639,11 +1649,37 @@ public:
         [fViewController release];
         [fWindow release];
     }
+     
+    void setAccValues(float x, float y, float z)
+    {
+        fAPIUI.propagateAcc(0, x);
+        fAPIUI.propagateAcc(1, y);
+        fAPIUI.propagateAcc(2, z);
+    }
+    
+    void setGyrValues(float x, float y, float z)
+    {
+        fAPIUI.propagateGyr(0, x);
+        fAPIUI.propagateGyr(1, y);
+        fAPIUI.propagateGyr(2, z);
+    }
+    
+    void setAccConverter(int index, int type, int curve, float min, float mid, float max)
+    {
+        printf("setAccConverter %d %d %d %f %f %f\n", index, type, curve, min, mid, max);
+        fAPIUI.setAccConverter(index, type, curve, min, mid, max);
+     }
+    
+    void setGyrConverter(int index, int type, int curve, float min, float mid, float max)
+    {
+        printf("setGyrConverter %d %d %d %f %f %f\n", index, type, curve, min, mid, max);
+        fAPIUI.setGyrConverter(index, type, curve, min, mid, max);
+    }
     
     // Abstract layout : layout computed regardless screen dimensions
     void saveAbstractLayout()
     {
-        list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
+        list<uiCocoaItem*>::iterator i = fWidgetList.begin();
         
         for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
         {
@@ -1653,7 +1689,7 @@ public:
     
     void loadAbstractLayout()
     {
-        list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
+        list<uiCocoaItem*>::iterator i = fWidgetList.begin();
         
         for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
         {
@@ -1663,7 +1699,7 @@ public:
     
     void setHideOnGUI(BOOL state)
     {
-        list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
+        list<uiCocoaItem*>::iterator i = fWidgetList.begin();
         
         for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
         {
