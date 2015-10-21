@@ -22,7 +22,6 @@
 #import "FIFlipsideViewController.h"
 #import "FIAppDelegate.h"
 #import "FICocoaUI.h"
-
 #include "faust/gui/OSCUI.h"
 
 #define kMenuBarsHeight             66
@@ -33,7 +32,6 @@
 // Test Jack
 #define kJackViewHeight 130
 #define kJackViewAnimationDuration 0.2
-
 
 @implementation FIMainViewController
 
@@ -56,7 +54,6 @@ int uiCocoaItem::gItemCount = 0;
 {
     [super didReceiveMemoryWarning];
 }
-
 
 #pragma mark - View lifecycle
 
@@ -648,7 +645,6 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
 }
 
-
 #pragma mark - Misc GUI
 
 - (void)orientationChanged:(NSNotification *)notification
@@ -1046,7 +1042,6 @@ T findCorrespondingUiItem(FIResponder* sender)
     }
 }
 
-
 #pragma mark - Sensors
 
 // Display widget preferences view
@@ -1170,12 +1165,6 @@ T findCorrespondingUiItem(FIResponder* sender)
         || dynamic_cast<uiSlider*>(_selectedWidget))
     {
         _curveSegmentedControl.selectedSegmentIndex = _selectedWidget->getAssignationCurve();
-        /*
-        if (_selectedWidget->getAssignationCurve() == kCurve1) _curveSegmentedControl.selectedSegmentIndex = 0;
-        else if (_selectedWidget->getAssignationCurve() == kCurve2) _curveSegmentedControl.selectedSegmentIndex = 1;
-        else if (_selectedWidget->getAssignationCurve() == kCurve3) _curveSegmentedControl.selectedSegmentIndex = 2;
-        else if (_selectedWidget->getAssignationCurve() == kCurve4) _curveSegmentedControl.selectedSegmentIndex = 3;
-         */
         
         if (_selectedWidget->getAssignationType() == kAssignationNone) _gyroAxisSegmentedControl.selectedSegmentIndex = 0;
         else if (_selectedWidget->getAssignationType() == kAssignationAccelX) _gyroAxisSegmentedControl.selectedSegmentIndex = 1;
@@ -1208,7 +1197,6 @@ T findCorrespondingUiItem(FIResponder* sender)
     _centerText.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->getCurveMid()];
     _maxSlider.value = _selectedWidget->getCurveMax();
     _maxText.text = [NSString stringWithFormat:@"%1.1f", _selectedWidget->getCurveMax()];
-    
 }
 
 // Hide widget preferences view
@@ -1410,6 +1398,12 @@ T findCorrespondingUiItem(FIResponder* sender)
 - (IBAction)resetWidgetPreferences:(id)sender
 {
     _selectedWidget->resetParameters();
+    
+    // Reset acc/gyr mapping
+    int index =_selectedWidget->getItemCount();
+    interface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
+    interface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
+    
     [self updateWidgetPreferencesView];
     [self widgetPreferencesChanged:_gyroAxisSegmentedControl];
     [self widgetPreferencesChanged:_curveSegmentedControl];
@@ -1422,11 +1416,16 @@ T findCorrespondingUiItem(FIResponder* sender)
     for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
     {
         (*i)->resetParameters();
+        
+        // Reset acc/gyr mapping
+        int index = (*i)->getItemCount();
+        interface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
+        interface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
+        
         _assignatedWidgets.erase(i);
     }
     
     [self loadWidgetsPreferences];
-    
     
     for (i = interface->fWidgetList.begin(); i != interface->fWidgetList.end(); i++)
     {
@@ -1557,9 +1556,7 @@ T findCorrespondingUiItem(FIResponder* sender)
 // The function periodically called to refresh motion sensors
 - (void)updateMotion
 {
-    
     //printf("motionManager.accelerometerData.acceleration.x %f\n", _motionManager.accelerometerData.acceleration.x);
-    
     
     interface->setAccValues(_motionManager.accelerometerData.acceleration.x,
                             _motionManager.accelerometerData.acceleration.y,
@@ -1571,6 +1568,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     return;
     
+    // TODO : remove this code...
     
     list<uiCocoaItem*>::iterator    i;
     float                           coef = 0.f;
@@ -1578,7 +1576,6 @@ T findCorrespondingUiItem(FIResponder* sender)
     float                           a = 0.;
     float                           b = 0.;
     float                           sign = 1.;
-    
     
     [_sensorFilter addAccelerationX:_motionManager.accelerometerData.acceleration.x
                                   y:_motionManager.accelerometerData.acceleration.y
@@ -1820,7 +1817,6 @@ T findCorrespondingUiItem(FIResponder* sender)
         return [self mapping2WithA:a la:la ha:ma lv:lv hv:mv];
     }
 }
-
 
 // The function called when compass has moved
 - (void)locationManager:(CLLocationManager *)manager didUpdateHeading:(CLHeading *)heading

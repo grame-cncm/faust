@@ -280,10 +280,7 @@ public:
     }
         
     // Getters, setters
-    
-    
     int getItemCount()                                                  {return fItemCount;}
-  
     
     NSString* getName()                                                 {return fName;}
     
