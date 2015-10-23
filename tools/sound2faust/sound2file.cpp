@@ -21,7 +21,7 @@ using namespace std;
 
 #define BUFFER_SIZE 1024
 
-// g++ -O3 sound2header.cpp -lsndfile -o sound2header
+// g++ -O3 sound2file.cpp -lsndfile -o sound2file
 
 static string RemoveEnding(const string& name)
 {
