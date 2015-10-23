@@ -36,8 +36,10 @@ for f in $FILES; do
              
     # compose the soundfile reader C code
     echo "// SoundFile API" > $name.c
-    echo -n "#define FAUSTFLOAT " >> $name.c
-    echo $FAUSTFLOAT >> $name.c
+    if [ $FAUSTFLOAT = "double" ]; then
+        echo -n "#define FAUSTFLOAT " >> $name.c
+        echo $FAUSTFLOAT >> $name.c
+    fi
     echo "#include \"faust/sound-file.h\"" >> $name.c
     echo "// Generated API" >> $name.c
     echo "#ifdef __cplusplus" >> $name.c
@@ -76,7 +78,7 @@ for f in $FILES; do
     echo -n $name >> $name.c
     echo "_reader); }" >> $name.c
     echo "#ifdef __cplusplus" >> $name.c
-    echo "extern \"C\" }" >> $name.c
+    echo "}" >> $name.c
     echo "#endif" >> $name.c
     
     if [ $LLVM = "true" ]; then

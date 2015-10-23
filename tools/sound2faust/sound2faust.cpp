@@ -36,14 +36,13 @@ int main(int argc, char *argv[])
     char* base_name;
     
     const char* output = lopts(argv, "-o", "");
-    long interleaved = isopt(argv, "-i");
+    long is_interleaved = isopt(argv, "-i");
     
 #ifndef _WIN32
 	base_name = basename(argv[1]);
 #else
 	base_name = new char[_MAX_FNAME];
 	_splitpath(argv[1], NULL, NULL, base_name, NULL);
-	printf("BASENAME = %s\n", base_name);
 #endif
     if (argc < 2) {
         printf("sound2faust <sound> -i (for interleaved) -o <file>\n");
@@ -77,7 +76,7 @@ int main(int argc, char *argv[])
     
     char sep;
     
-    if (interleaved) {
+    if (is_interleaved) {
         
         // Generates one interleaved waveform
         *dst << RemoveEnding(base_name) << "_n = waveform";
