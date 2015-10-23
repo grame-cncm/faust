@@ -61,9 +61,8 @@ int main(int argc, char *argv[])
     snd_info.format = 0;
     soundfile = sf_open(argv[1], SFM_READ, &snd_info);
     
-    if (soundfile == NULL) { 
+    if (!soundfile) { 
         printf("soundfile '%s' cannot be opened\n", base_name);
-        sf_perror(soundfile); 
         exit(0); 
     }
     

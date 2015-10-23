@@ -723,10 +723,28 @@ class TCoreAudioRenderer
             return -1;
         }
 
-        OSStatus DestroyAggregateDevice()
+        void DestroyAggregateDevice()
         {   
-            // No more needed : will be done when process quits...
-            return noErr;
+            if (fAggregateDeviceID > 0) {
+                OSStatus osErr = noErr;
+                AudioObjectPropertyAddress pluginAOPA;
+                pluginAOPA.mSelector = kAudioPlugInDestroyAggregateDevice;
+                pluginAOPA.mScope = kAudioObjectPropertyScopeGlobal;
+                pluginAOPA.mElement = kAudioObjectPropertyElementMaster;
+                UInt32 outDataSize;
+                if (fAggregatePluginID > 0)   {
+                    osErr = AudioObjectGetPropertyDataSize(fAggregatePluginID, &pluginAOPA, 0, NULL, &outDataSize);
+                    if (osErr != noErr) {
+                        printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyDataSize error\n");
+                        printError(osErr);
+                    }
+                    osErr = AudioObjectGetPropertyData(fAggregatePluginID, &pluginAOPA, 0, NULL, &outDataSize, &fAggregateDeviceID);
+                    if (osErr != noErr) {
+                        printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyData error\n");
+                        printError(osErr);
+                    }
+                }
+            }
         }
 
         OSStatus GetDeviceNameFromID(AudioDeviceID id, char* name)
