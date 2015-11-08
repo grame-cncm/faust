@@ -12,6 +12,8 @@ LIBS = -lwsock32
 EXE = .exe
 endif
 
+all : sound2faust sound2file
+
 sound2faust : sound2faust.cpp
 
 	$(CXX) -O3 sound2faust.cpp -I../../architecture `pkg-config --cflags --static --libs sndfile` -o sound2faust $(LIBS)
@@ -32,7 +34,7 @@ install :
 	install sound2reader $(prefix)/bin/
 
 clean :
-	rm -f sound2faust$(EXE)
+	rm -f sound2faust$(EXE) sound2file$(EXE)
 
 
 	
