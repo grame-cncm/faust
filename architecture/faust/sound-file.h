@@ -33,6 +33,7 @@ research@grame.fr
 #define FAUSTFLOAT float
 #else
 #define READ_SAMPLE sf_readf_double
+#define FAUSTFLOAT double
 #endif
 
 #ifdef __cplusplus
