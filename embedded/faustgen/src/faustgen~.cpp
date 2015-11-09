@@ -37,6 +37,12 @@ t_jrgba faustgen::gDefaultColor = {-1., -1., -1., -1.};
 // Faust DSP Factory
 //===================
 
+static const char* getCodeSize()
+{
+    int tmp;
+    return (sizeof(&tmp) == 8) ? "64 bits" : "32 bits";
+}
+
 #ifdef __APPLE__
 
 #include <CoreFoundation/CoreFoundation.h>
@@ -46,12 +52,6 @@ static string getTarget()
 {
     int tmp;
     return (sizeof(&tmp) == 8) ? "" : "i386-apple-darwin10.6.0";
-}
-
-static const char* getCodeSize()
-{
-    int tmp;
-    return (sizeof(&tmp) == 8) ? "64 bits" : "32 bits";
 }
 
 // Returns the serial number as a CFString. 
