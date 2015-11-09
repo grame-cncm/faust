@@ -25,7 +25,9 @@
  ************************************************************************/
 
 #include "faustgen~.h"
+#ifndef WIN32
 #include "faust/sound-file.h"
+#endif
 
 int faustgen_factory::gFaustCounter = 0;
 map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
