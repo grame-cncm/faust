@@ -246,6 +246,7 @@
     <ClCompile Include="..\compiler\generator\Text.cpp" />
     <ClCompile Include="..\compiler\generator\uitree.cpp" />
     <ClCompile Include="..\compiler\generator\vec_code_container.cpp" />
+    <ClCompile Include="..\compiler\generator\wasm\wasm_code_container.cpp" />
     <ClCompile Include="..\compiler\generator\wss_code_container.cpp" />
     <ClCompile Include="..\compiler\global.cpp" />
     <ClCompile Include="..\compiler\libcode.cpp" />
@@ -398,6 +399,8 @@
     <None Include="..\compiler\generator\llvm\llvm_code_container.hh" />
     <None Include="..\compiler\generator\llvm\llvm_dsp_aux.hh" />
     <None Include="..\compiler\generator\llvm\llvm_instructions.hh" />
+    <None Include="..\compiler\generator\wasm\wasm_code_container.hh" />
+    <None Include="..\compiler\generator\wasm\wasm_instructions.hh" />
     <None Include="..\compiler\normalize\aterm.hh" />
     <None Include="..\compiler\normalize\mterm.hh" />
     <None Include="..\compiler\normalize\normalize.hh" />

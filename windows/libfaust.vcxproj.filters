@@ -596,12 +596,6 @@
     <ClInclude Include="..\compiler\generator\llvm\rn_base64.h">
       <Filter>generator\llvm</Filter>
     </ClInclude>
-    <ClInclude Include="..\compiler\generator\wasm\wasm_code_container.hh">
-      <Filter>generator\wasm</Filter>
-    </ClInclude>
-    <ClInclude Include="..\compiler\generator\wasm\wasm_instructions.hh">
-      <Filter>generator\wasm</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\compiler\boxes\boxes.hh">
@@ -804,6 +798,12 @@
     </None>
     <None Include="..\compiler\generator\llvm\llvm_instructions.hh">
       <Filter>generator\llvm</Filter>
+    </None>
+    <None Include="..\compiler\generator\wasm\wasm_code_container.hh">
+      <Filter>generator\wasm</Filter>
+    </None>
+    <None Include="..\compiler\generator\wasm\wasm_instructions.hh">
+      <Filter>generator\wasm</Filter>
     </None>
   </ItemGroup>
 </Project>
