@@ -11,7 +11,7 @@ LOCAL="false"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "sound2llvm [-llvm] <file.dsp>"
+        echo "sound2reader [-llvm] <file.dsp>"
         echo "Use '-d' to use double samples"
         echo "Use '-a' to use an absolute path to localize the sound file"
         echo "Use '-llvm' to compile the sound reader code as a LLVM module"

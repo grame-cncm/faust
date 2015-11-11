@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 	_splitpath(argv[1], NULL, NULL, base_name, NULL);
 #endif
     if (argc < 2) {
-        printf("sound2header <sound> -d (for 'double' samples) -o <file>\n");
+        printf("sound2file <sound> -d (for 'double' samples) -o <file>\n");
         exit(1);
     }
     
