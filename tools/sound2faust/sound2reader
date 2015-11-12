@@ -2,87 +2,102 @@
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
-# existing *.dsp files          -> FILES
+# existing *.wav files          -> FILES
 #
 
 LLVM="false"
 FAUSTFLOAT="float"
 LOCAL="false"
+EMBED="false"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "sound2reader [-llvm] <file.dsp>"
-        echo "Use '-d' to use double samples"
+        echo "sound2reader [-a] [-d] [-l] [-e] <file.wav>"
         echo "Use '-a' to use an absolute path to localize the sound file"
-        echo "Use '-llvm' to compile the sound reader code as a LLVM module"
+        echo "Use '-d' to use double samples"
+        echo "Use '-l' to compile the sound reader code as a LLVM module"
+        echo "Use '-e' to embed the sound in the C produced program"
   	elif [[ -e "$p" ]]; then
 	    FILES="$FILES $p"
-    elif [ $p = "-llvm" ]; then
+    elif [ $p = "-l" ]; then
 	    LLVM="true"
     elif [ $p = "-d" ]; then
 	    FAUSTFLOAT="double"
     elif [ $p = "-a" ]; then
 	    LOCAL="true"
+    elif [ $p = "-e" ]; then
+	    EMBED="true"
 	fi
 done
 
 #-------------------------------------------------------------------
-# compile the *.dsp files
+# compile the *.wav files
 #
 
 for f in $FILES; do
 
     name=${f%.wav}
-             
-    # compose the soundfile reader C code
-    echo "// SoundFile API" > $name.c
-    if [ $FAUSTFLOAT = "double" ]; then
-        echo -n "#define FAUSTFLOAT " >> $name.c
-        echo $FAUSTFLOAT >> $name.c
-    fi
-    echo "#include \"faust/sound-file.h\"" >> $name.c
-    echo "// Generated API" >> $name.c
-    echo "#ifdef __cplusplus" >> $name.c
-    echo "extern \"C\" {" >> $name.c
-    echo "#endif" >> $name.c
-    echo -n "static SoundFileReader* " >> $name.c
-    echo -n $name >> $name.c
-    echo "_reader = 0;" >> $name.c
     
-    echo -n "int " >> $name.c
-    echo -n $name >> $name.c
-    echo -n "_size()" >> $name.c
-    echo -n " { if (!" >> $name.c
-    echo -n $name >> $name.c
-    echo -n "_reader) "  >> $name.c
-    echo -n $name >> $name.c
-    echo -n "_reader = createSFR(\"" >> $name.c
-    if [ $LOCAL = "true" ]; then
-        echo -n $(cd $(dirname $f); pwd)/$(basename $f) >> $name.c
-    else
-        echo -n $f >> $name.c;
-    fi
-    echo -n "\"); return sizeSFR(" >> $name.c
-    echo -n $name >> $name.c
-    echo "_reader); }"  >> $name.c
+    if [ $EMBED = "false" ]; then
+        echo "Generates the C soundfile reader"
+        # compose the soundfile reader C code
+        echo "// SoundFile API" > $name.c
+        if [ $FAUSTFLOAT = "double" ]; then
+            echo -n "#define FAUSTFLOAT " >> $name.c
+            echo $FAUSTFLOAT >> $name.c
+        fi
+        echo "#include \"faust/sound-file.h\"" >> $name.c
+        echo "// Generated API" >> $name.c
+        echo "#ifdef __cplusplus" >> $name.c
+        echo "extern \"C\" {" >> $name.c
+        echo "#endif" >> $name.c
+        echo -n "static SoundFileReader* " >> $name.c
+        echo -n $name >> $name.c
+        echo "_reader = 0;" >> $name.c
+        
+        echo -n "int " >> $name.c
+        echo -n $name >> $name.c
+        echo -n "_size()" >> $name.c
+        echo -n " { if (!" >> $name.c
+        echo -n $name >> $name.c
+        echo -n "_reader) "  >> $name.c
+        echo -n $name >> $name.c
+        echo -n "_reader = createSFR(\"" >> $name.c
+        if [ $LOCAL = "true" ]; then
+            echo -n $(cd $(dirname $f); pwd)/$(basename $f) >> $name.c
+        else
+            echo -n $f >> $name.c;
+        fi
+        echo -n "\"); return sizeSFR(" >> $name.c
+        echo -n $name >> $name.c
+        echo "_reader); }"  >> $name.c
 
-    echo -n "FAUSTFLOAT " >> $name.c
-    echo -n $name >> $name.c
-    echo -n "_sample(int channel, int index) { return sampleSFR(" >> $name.c
-    echo -n $name >> $name.c
-    echo "_reader, channel, index); }" >> $name.c
-    
-    echo -n "int " >> $name.c
-    echo -n $name >> $name.c
-    echo -n "_channels() { return channelsSFR(" >> $name.c
-    echo -n $name >> $name.c
-    echo "_reader); }" >> $name.c
-    echo "#ifdef __cplusplus" >> $name.c
-    echo "}" >> $name.c
-    echo "#endif" >> $name.c
+        echo -n "FAUSTFLOAT " >> $name.c
+        echo -n $name >> $name.c
+        echo -n "_sample(int channel, int index) { return sampleSFR(" >> $name.c
+        echo -n $name >> $name.c
+        echo "_reader, channel, index); }" >> $name.c
+        
+        echo -n "int " >> $name.c
+        echo -n $name >> $name.c
+        echo -n "_channels() { return channelsSFR(" >> $name.c
+        echo -n $name >> $name.c
+        echo "_reader); }" >> $name.c
+        echo "#ifdef __cplusplus" >> $name.c
+        echo "}" >> $name.c
+        echo "#endif" >> $name.c
+    else 
+        echo "Generate the C embedded sound table"
+        if [ $FAUSTFLOAT = "double" ]; then
+            ./sound2file $f -d -o $name.c
+        else
+            ./sound2file $f -o $name.c
+        fi
+    fi
     
     if [ $LLVM = "true" ]; then
-        clang -emit-llvm -O3 -S $name.c 
+        echo "Generates the LLVM module from the C code"
+        clang -emit-llvm -O3 -c $name.c 
     fi
 
 done

@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
         
     } while (nbf == BUFFER_SIZE);
     *dst << "};" << std::endl;
-    *dst << "return " << name_aux << "[index * " << snd_info.channels << " + channel];" << std::endl;
+    *dst << "return " << name_aux << "[(index % " <<  snd_info.frames << ") * " << snd_info.channels << " + channel];" << std::endl;
     *dst << "};" << std::endl;
     *dst << "int " << name_aux << "_size()" << " {return " << snd_info.frames << ";}" << std::endl;
         
