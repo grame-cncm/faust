@@ -665,6 +665,18 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 }
 
 /*--------------------------------------------------------------------------*/
+void faust_dblclick(t_faust* x, long inlet)
+{
+    post((char*)"------------------");
+    for (mspUI::iterator it = x->dspUI->begin1(); it != x->dspUI->end1(); ++it) {
+        char param[256];
+        it->second->toString(param);
+        post(param);
+    }
+}
+
+/*--------------------------------------------------------------------------*/
+//11/13/2015 : faust_assist is actually called at each click in the patcher... to we now use 'faust_dblclick' to display the parameters...
 void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
 {
     if (msg == ASSIST_INLET) {
@@ -674,12 +686,14 @@ void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
             } else {
                 sprintf(dst, "(signal) : Audio Input %ld", (a+1));
 			}
+            /*
 			post((char*)"------------------");
 			for (mspUI::iterator it = x->dspUI->begin1(); it != x->dspUI->end1(); ++it) {
 				char param[256];
 				it->second->toString(param);
 				post(param);
 			}
+            */
         } else if (a < x->dsp->getNumInputs()) {
             sprintf(dst, "(signal) : Audio Input %ld", (a+1));
         }
@@ -744,11 +758,11 @@ extern "C" int main(void)
 
     // 03/11/14 : use 'anything' to handle all parameter changes
     addmess((method)faust_anything, (char*)"anything", A_GIMME, 0);
-
     addmess((method)faust_dsp64, (char*)"dsp64", A_CANT, 0);
-	addmess((method)faust_assist, (char*)"assist", A_CANT, 0);
+    addmess((method)faust_dblclick, (char*)"dblclick", A_CANT, 0);
+    addmess((method)faust_assist, (char*)"assist", A_CANT, 0);
     addmess((method)faust_mute, (char*)"mute", A_GIMME, 0);
-	dsp_initclass();
+    dsp_initclass();
 
     post((char*)"Faust DSP object v%s (sample = 64 bits code = %s)", EXTERNAL_VERSION, getCodeSize());
     post((char*)"Copyright (c) 2012-2015 Grame");
