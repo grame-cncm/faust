@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
     *dst << "return " << name_aux << "[(index % " <<  snd_info.frames << ") * " << snd_info.channels << " + channel];" << std::endl;
     *dst << "};" << std::endl;
     *dst << "int " << name_aux << "_size()" << " {return " << snd_info.frames << ";}" << std::endl;
+    *dst << "int " << name_aux << "_channels()" << " {return " << snd_info.channels << ";}" << std::endl;
         
     dst->flush();
 }
