@@ -814,7 +814,7 @@ struct DeclareVarInst : public StatementInst
     Address::AccessType getAccess() { return fAddress->getAccess(); }
 
     void setName(const string& name) { fAddress->setName(name); }
-    string getName() {return fAddress->getName(); }
+    string getName() { return fAddress->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -2498,7 +2498,7 @@ TODO : gestion des indices de boucles:
  - nouveau type d'accès kLoop pour les variables de loop
 
  - lors des transformations sur les loops, Loop2FunctionBuider, SeqLoopBuilderVisitor, "désactiver" les statements qui manipulent les indices de la boucle ??
- (pas besoin, ils n'apparaissent pas dans le corps de le boucle, par contre l'indice de la boucle est utilisée dans le corps de la boucle, il faut le faire correspondre
+ (pas besoin, ils n'apparaissent pas dans le corps de le boucle, par contre l'indice de la boucle est utilisé dans le corps de la boucle, il faut le faire correspondre
  au nouvel indice de boucle, renommage nécessaire ?)
 
  - utiliser le *même* nom d'index dans ForLoopInst est dans le code interne de la loop

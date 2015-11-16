@@ -386,6 +386,9 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, maxmethodin
         // end the transaction
         m_sigoutlets = sigoutlets;
         object_method(b, gensym("dynlet_end"));
+        
+        // Invalidate DSP chain
+        dspchain_setbroken(dspchain_fromobject((t_object *)this));
     }
  
 	// prevent recycling of inputs for outputs
