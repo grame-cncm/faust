@@ -48,6 +48,8 @@
 #define NUM_INPUTS 2
 #define NUM_OUPUTS 2
 
+#define CPU_TABLE_SIZE 16
+
 class androidaudio : public audio {
     
     protected:
@@ -59,7 +61,10 @@ class androidaudio : public audio {
         
         unsigned int fSampleRate;
         unsigned int fBufferSize;
-        
+    
+        int64_t fCPUTable[CPU_TABLE_SIZE];
+        int fCPUTableIndex;
+    
         pthread_mutex_t fMutex;
     
         short* fFifobuffer;
@@ -85,6 +90,8 @@ class androidaudio : public audio {
     
         int processAudio(short* audioIO)
         {
+            int64_t t1 = getTimeUsec();
+            
             for (int chan = 0; chan < NUM_INPUTS; chan++) {
                 for (int i = 0; i < fBufferSize; i++) {
                     fInputs[chan][i] =  float(audioIO[i * 2 + chan] * CONVMYFLT);
@@ -99,6 +106,9 @@ class androidaudio : public audio {
                     audioIO[i * 2 + chan] = short(min(1.f, max(-1.f, fOutputs[chan][i])) * CONV16BIT);
                 }
             }
+            
+            int64_t t2 = getTimeUsec();
+            fCPUTable[(fCPUTableIndex++)&(CPU_TABLE_SIZE-1)] = t2 - t1;
         }
     
         void checkRoom()
@@ -177,7 +187,7 @@ class androidaudio : public audio {
     
         androidaudio(long srate, long bsize)
         : fDsp(0), fSampleRate(srate),
-        fBufferSize(bsize), fNumInChans(0), fNumOutChans(0),
+        fBufferSize(bsize), fCPUTableIndex(0), fNumInChans(0), fNumOutChans(0),
         fFifoFirstSample(0), fFifoLastSample(0),
         fLatencySamples(0), fFifoCapacity(0),
         fOpenSLEngine(0), fOutputMix(0), fInputBufferQueue(0), fOutputBufferQueue(0)
@@ -237,6 +247,15 @@ class androidaudio : public audio {
             delete [] fOutputs;
             
             pthread_mutex_destroy(&fMutex);
+        }
+    
+        float getCPULoad()
+        {
+            float sum = 0.f;
+            for (int i = 0; i < CPU_TABLE_SIZE; i++) {
+                sum += fCPUTable[i];
+            }
+            return (sum * fSampleRate)/(float(CPU_TABLE_SIZE) * fBufferSize);
         }
     
         virtual bool init(const char* name, dsp* DSP)
