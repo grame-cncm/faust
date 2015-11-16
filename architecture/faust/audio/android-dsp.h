@@ -38,6 +38,7 @@
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 #include <pthread.h>
+#include <time.h>
 
 #include "faust/audio/audio.h"
 
@@ -46,6 +47,8 @@
 
 #define NUM_INPUTS 2
 #define NUM_OUPUTS 2
+
+#define CPU_TABLE_SIZE 16
 
 class androidaudio : public audio {
     
@@ -58,7 +61,10 @@ class androidaudio : public audio {
         
         unsigned int fSampleRate;
         unsigned int fBufferSize;
-        
+    
+        int64_t fCPUTable[CPU_TABLE_SIZE];
+        int fCPUTableIndex;
+    
         pthread_mutex_t fMutex;
     
         short* fFifobuffer;
@@ -75,8 +81,17 @@ class androidaudio : public audio {
     
         int fFifoFirstSample, fFifoLastSample, fLatencySamples, fFifoCapacity;
     
+        int64_t getTimeUsec() 
+        {
+            struct timespec now;
+            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &now);
+            return ((int64_t) now.tv_sec * 1000000000LL + now.tv_nsec)/1000;
+        }
+    
         int processAudio(short* audioIO)
         {
+            int64_t t1 = getTimeUsec();
+            
             for (int chan = 0; chan < NUM_INPUTS; chan++) {
                 for (int i = 0; i < fBufferSize; i++) {
                     fInputs[chan][i] =  float(audioIO[i * 2 + chan] * CONVMYFLT);
@@ -91,6 +106,9 @@ class androidaudio : public audio {
                     audioIO[i * 2 + chan] = short(min(1.f, max(-1.f, fOutputs[chan][i])) * CONV16BIT);
                 }
             }
+            
+            int64_t t2 = getTimeUsec();
+            fCPUTable[(fCPUTableIndex++)&(CPU_TABLE_SIZE-1)] = t2 - t1;
         }
     
         void checkRoom()
@@ -169,7 +187,7 @@ class androidaudio : public audio {
     
         androidaudio(long srate, long bsize)
         : fDsp(0), fSampleRate(srate),
-        fBufferSize(bsize), fNumInChans(0), fNumOutChans(0),
+        fBufferSize(bsize), fCPUTableIndex(0), fNumInChans(0), fNumOutChans(0),
         fFifoFirstSample(0), fFifoLastSample(0),
         fLatencySamples(0), fFifoCapacity(0),
         fOpenSLEngine(0), fOutputMix(0), fInputBufferQueue(0), fOutputBufferQueue(0)
@@ -229,6 +247,15 @@ class androidaudio : public audio {
             delete [] fOutputs;
             
             pthread_mutex_destroy(&fMutex);
+        }
+    
+        float getCPULoad()
+        {
+            float sum = 0.f;
+            for (int i = 0; i < CPU_TABLE_SIZE; i++) {
+                sum += fCPUTable[i];
+            }
+            return (sum * fSampleRate)/(float(CPU_TABLE_SIZE) * fBufferSize);
         }
     
         virtual bool init(const char* name, dsp* DSP)
@@ -325,10 +352,24 @@ class androidaudio : public audio {
                 SLDataLocator_AndroidSimpleBufferQueue inputLocator = { SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 1 };
                 SLDataFormat_PCM inputFormat = { SL_DATAFORMAT_PCM, 2, sr, SL_PCMSAMPLEFORMAT_FIXED_16, SL_PCMSAMPLEFORMAT_FIXED_16, SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT, SL_BYTEORDER_LITTLEENDIAN };
                 SLDataSink inputSink = { &inputLocator, &inputFormat };
-                const SLInterfaceID inputInterfaces[1] = { SL_IID_ANDROIDSIMPLEBUFFERQUEUE };
+                const SLInterfaceID inputInterfaces[2] = { SL_IID_ANDROIDSIMPLEBUFFERQUEUE, SL_IID_ANDROIDCONFIGURATION };
                 
-                result = (*openSLEngineInterface)->CreateAudioRecorder(openSLEngineInterface, &fInputBufferQueue, &inputSource, &inputSink, 1, inputInterfaces, requireds);
+                result = (*openSLEngineInterface)->CreateAudioRecorder(openSLEngineInterface, &fInputBufferQueue, &inputSource, &inputSink, 2, inputInterfaces, requireds);
                 if (result != SL_RESULT_SUCCESS) return false;
+                
+            #if DISABLE_AGC
+                SLAndroidConfigurationItf configObject;
+                result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_ANDROIDCONFIGURATION, &configObject);
+                if (result == SL_RESULT_SUCCESS) {
+                    SLuint32 mode = SL_ANDROID_RECORDING_PRESET_GENERIC;
+                    result = (*configObject)->SetConfiguration(configObject, SL_ANDROID_KEY_RECORDING_PRESET, &mode, sizeof(mode));
+                    if (result != SL_RESULT_SUCCESS) {
+                       __android_log_print(ANDROID_LOG_ERROR, "Faust", "SetConfiguration SL_ANDROID_KEY_RECORDING_PRESET error %d", result);
+                    }
+                } else {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "GetInterface SL_IID_ANDROIDCONFIGURATION error %d", result);
+                }
+            #endif
                 
                 result = (*fInputBufferQueue)->Realize(fInputBufferQueue, SL_BOOLEAN_FALSE);
                 if (result != SL_RESULT_SUCCESS) return false;

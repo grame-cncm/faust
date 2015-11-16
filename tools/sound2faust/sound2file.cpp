@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
 	_splitpath(argv[1], NULL, NULL, base_name, NULL);
 #endif
     if (argc < 2) {
-        printf("sound2header <sound> -d (for 'double' samples) -o <file>\n");
+        printf("sound2file <sound> -d (for 'double' samples) -o <file>\n");
         exit(1);
     }
     
@@ -89,9 +89,10 @@ int main(int argc, char *argv[])
         
     } while (nbf == BUFFER_SIZE);
     *dst << "};" << std::endl;
-    *dst << "return " << name_aux << "[index * " << snd_info.channels << " + channel];" << std::endl;
+    *dst << "return " << name_aux << "[(index % " <<  snd_info.frames << ") * " << snd_info.channels << " + channel];" << std::endl;
     *dst << "};" << std::endl;
     *dst << "int " << name_aux << "_size()" << " {return " << snd_info.frames << ";}" << std::endl;
+    *dst << "int " << name_aux << "_channels()" << " {return " << snd_info.channels << ";}" << std::endl;
         
     dst->flush();
 }
