@@ -42,6 +42,8 @@ for p in $@; do
 		KEYBOARD=1
 	elif [ $p = "-debug" ]; then
 		LOG="/dev/stdout"
+    elif [ "$p" = "-noagc" ]; then
+        NOAGC="1"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
 	elif [ $p = "-h" ]; then
@@ -94,6 +96,11 @@ if [ ! -d "$BUILDDIR" ]; then
 
 	if [ $PLATFORM = "Darwin" ]; then
 		sed -i '' 's,com.faust,com.'$APPNAME',g' $BUILDDIR/app/build.gradle
+        if [ "$NOAGC" = "1" ]; then
+            sed -i '' 's,-DDISABLE_AGC,'-DDISABLE_AGC',g' $BUILDDIR/app/build.gradle
+        else
+            sed -i '' 's,-DDISABLE_AGC,'',g' $BUILDDIR/app/build.gradle
+        fi
 		sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/faust/*
 		sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
 		sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
@@ -101,6 +108,11 @@ if [ ! -d "$BUILDDIR" ]; then
 		sed -i '' 's,1,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
 	else
 		sed -i 's,com.faust,com.'$APPNAME',g' $BUILDDIR/app/build.gradle
+        if [ "$NOAGC" = "1" ]; then
+            sed -i 's,-DDISABLE_AGC,'-DDISABLE_AGC',g' $BUILDDIR/app/build.gradle
+        else
+            sed -i 's,-DDISABLE_AGC,'',g' $BUILDDIR/app/build.gradle
+        fi
 		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/faust/*
 		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
 		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml

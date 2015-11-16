@@ -465,6 +465,18 @@ SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setGyrConverter(JNIEnv
     setGyrConverter((int)p, (int)gyr, (int)curve, (float)amin, (float)amid, (float)amax);
 }
     
+SWIGEXPORT jfloat JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getCPULoad(JNIEnv *jenv, jclass jcls) {
+    
+    jfloat jresult = 0 ;
+    float result;
+    
+    (void)jenv;
+    (void)jcls;
+    result = getCPULoad();
+    jresult = (jfloat)result;
+    return jresult;
+}
+    
 #ifdef __cplusplus
 }
 #endif

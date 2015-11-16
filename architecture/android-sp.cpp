@@ -238,6 +238,8 @@ struct AndroidEngine {
         __android_log_print(ANDROID_LOG_ERROR, "Faust", "setGyrConverter %d %d %d %f %f %f", p, gyr, curve, amin, amid, amax);
         fAPIUI.setGyrConverter(p, gyr, curve, amin, amid, amax);
     }
+    
+    float getCPULoad() { return fDriver->getCPULoad(); }
 };
 
 static AndroidEngine* gGlobal = NULL;
@@ -450,5 +452,14 @@ void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float am
 {
     //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d %d %d %f %f %f", p, acc, curve, amin, amid, amax);
     gGlobal->setGyrConverter(p, gyr, curve, amin, amid, amax);
+}
+
+/*
+ * getCPULoad()
+ * Return DSP CPU load.
+ */
+float getCPULoad()
+{
+    gGlobal->getCPULoad();
 }
 
