@@ -333,10 +333,24 @@ class androidaudio : public audio {
                 SLDataLocator_AndroidSimpleBufferQueue inputLocator = { SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, 1 };
                 SLDataFormat_PCM inputFormat = { SL_DATAFORMAT_PCM, 2, sr, SL_PCMSAMPLEFORMAT_FIXED_16, SL_PCMSAMPLEFORMAT_FIXED_16, SL_SPEAKER_FRONT_LEFT | SL_SPEAKER_FRONT_RIGHT, SL_BYTEORDER_LITTLEENDIAN };
                 SLDataSink inputSink = { &inputLocator, &inputFormat };
-                const SLInterfaceID inputInterfaces[1] = { SL_IID_ANDROIDSIMPLEBUFFERQUEUE };
+                const SLInterfaceID inputInterfaces[2] = { SL_IID_ANDROIDSIMPLEBUFFERQUEUE, SL_IID_ANDROIDCONFIGURATION };
                 
-                result = (*openSLEngineInterface)->CreateAudioRecorder(openSLEngineInterface, &fInputBufferQueue, &inputSource, &inputSink, 1, inputInterfaces, requireds);
+                result = (*openSLEngineInterface)->CreateAudioRecorder(openSLEngineInterface, &fInputBufferQueue, &inputSource, &inputSink, 2, inputInterfaces, requireds);
                 if (result != SL_RESULT_SUCCESS) return false;
+                
+            #if DISABLE_AGC
+                SLAndroidConfigurationItf configObject;
+                result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_ANDROIDCONFIGURATION, &configObject);
+                if (result == SL_RESULT_SUCCESS) {
+                    SLuint32 mode = SL_ANDROID_RECORDING_PRESET_GENERIC;
+                    result = (*configObject)->SetConfiguration(configObject, SL_ANDROID_KEY_RECORDING_PRESET, &mode, sizeof(mode));
+                    if (result != SL_RESULT_SUCCESS) {
+                       __android_log_print(ANDROID_LOG_ERROR, "Faust", "SetConfiguration SL_ANDROID_KEY_RECORDING_PRESET error %d", result);
+                    }
+                } else {
+                    __android_log_print(ANDROID_LOG_ERROR, "Faust", "GetInterface SL_IID_ANDROIDCONFIGURATION error %d", result);
+                }
+            #endif
                 
                 result = (*fInputBufferQueue)->Realize(fInputBufferQueue, SL_BOOLEAN_FALSE);
                 if (result != SL_RESULT_SUCCESS) return false;
@@ -366,16 +380,6 @@ class androidaudio : public audio {
                 
                 result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_RECORD, &fRecordInterface);
                 if (result != SL_RESULT_SUCCESS) return false;
-                       
-            #if DISABLE_AGC
-                SLAndroidConfigurationItf configObject;
-                result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_ANDROIDCONFIGURATION, &configObject));
-                if (result != SL_RESULT_SUCCESS) return false;
-                
-                SLuint32 mode = SL_ANDROID_RECORDING_PRESET_GENERIC;
-                result = (*configObject)->SetConfiguration(configObject, SL_ANDROID_KEY_RECORDING_PRESET, &mode, sizeof(mode)));
-                if (result != SL_RESULT_SUCCESS) return false;
-            #endif
                 
                 // init the input buffer queue.
                 result = (*fInputBufferQueueInterface)->Enqueue(fInputBufferQueueInterface, fFifobuffer, fBufferSize * 4);
