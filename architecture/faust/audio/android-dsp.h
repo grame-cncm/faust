@@ -38,6 +38,7 @@
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 #include <pthread.h>
+#include <time.h>
 
 #include "faust/audio/audio.h"
 
@@ -74,6 +75,13 @@ class androidaudio : public audio {
         SLPlayItf fPlayInterface;
     
         int fFifoFirstSample, fFifoLastSample, fLatencySamples, fFifoCapacity;
+    
+        int64_t getTimeUsec() 
+        {
+            struct timespec now;
+            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &now);
+            return ((int64_t) now.tv_sec * 1000000000LL + now.tv_nsec)/1000;
+        }
     
         int processAudio(short* audioIO)
         {
@@ -358,6 +366,16 @@ class androidaudio : public audio {
                 
                 result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_RECORD, &fRecordInterface);
                 if (result != SL_RESULT_SUCCESS) return false;
+                       
+            #if DISABLE_AGC
+                SLAndroidConfigurationItf configObject;
+                result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_ANDROIDCONFIGURATION, &configObject));
+                if (result != SL_RESULT_SUCCESS) return false;
+                
+                SLuint32 mode = SL_ANDROID_RECORDING_PRESET_GENERIC;
+                result = (*configObject)->SetConfiguration(configObject, SL_ANDROID_KEY_RECORDING_PRESET, &mode, sizeof(mode)));
+                if (result != SL_RESULT_SUCCESS) return false;
+            #endif
                 
                 // init the input buffer queue.
                 result = (*fInputBufferQueueInterface)->Enqueue(fInputBufferQueueInterface, fFifobuffer, fBufferSize * 4);
