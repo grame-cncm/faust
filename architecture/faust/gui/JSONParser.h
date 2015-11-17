@@ -72,7 +72,7 @@ static bool parseString(const char*& p, std::string& s)
 // Report a parsing error
 static bool parseError(const char*& p, const char* errmsg)
 {
-    cerr << "Parse error : " << errmsg << " here : " << p << endl;
+    std::cerr << "Parse error : " << errmsg << " here : " << p << std::endl;
     return true;
 }
 
