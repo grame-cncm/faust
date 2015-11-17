@@ -37,7 +37,7 @@
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
 #include "faust/audio/dsp.h"
-#include "JsonParser.h"
+#include "faust/gui/JSONParser.h"
 #include "smartpointer.h"
 #include "lo/lo.h"
 #include "TMutex.h"

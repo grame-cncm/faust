@@ -52,8 +52,7 @@ depend :
 
 # DO NOT DELETE
 
-RemoteClient/Sources/JsonParser.o: RemoteClient/Sources/JsonParser.h
-RemoteClient/Sources/remote_dsp_aux.o: RemoteClient/Sources/remote_dsp_aux.h RemoteClient/Sources/JsonParser.h
+RemoteClient/Sources/remote_dsp_aux.o: RemoteClient/Sources/remote_dsp_aux.h 
 RemoteClient/Sources/remote_dsp_aux.o: utilities.h
 utilities.o: utilities.h
 RemoteServer/remote_server.o: RemoteServer/remote_server.h utilities.h
