@@ -133,6 +133,7 @@ public class FaustActivity extends Activity {
             // Update UI less often
             if (deltaUI > 100) {
                 lastUIDate = curDate;
+                //Log.d("FaustJava", "CPULoad " + dsp_faust.getCPULoad());
                 ui.updateUIstate();
             }
 		}
