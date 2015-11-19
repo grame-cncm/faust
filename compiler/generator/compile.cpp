@@ -91,6 +91,7 @@ Compiler::Compiler(Klass* k)
 Compiler::~Compiler()
 { 
 	if (fNeedToDeleteClass) delete fClass;
+    delete fDescription;
 }
 
 /*****************************************************************************
