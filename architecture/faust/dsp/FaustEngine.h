@@ -32,8 +32,8 @@ dsp* create2Dsp(const char* name_app, const char* dsp_content, const char* argv,
 
 void destroyDsp(dsp* dsp);
 
-bool init1Dsp(dsp* dsp, const char* name);                                     ///< init Faust object with default system values
-bool init2Dsp(dsp* dsp, const char* name, int renderer, int sr, int bsize);	///< init the Faust object
+bool init1Dsp(dsp* dsp, const char* name);                                      ///< init Faust object with default system values
+bool init2Dsp(dsp* dsp, const char* name, int renderer, int sr, int bsize);     ///< init the Faust object
 
 bool startDsp(dsp* dsp);		///< open the audio drivers and starts processing audio
 void stopDsp(dsp* dsp);			///< stop processing audio and closes the audio drivers

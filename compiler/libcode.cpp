@@ -1011,8 +1011,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             comp = new InstructionsCompiler(container);
         }
 
-        if (gGlobal->gPrintXMLSwitch) comp->setDescription(new Description());
-        if (gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
+        if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
          
         if (generate) {
             comp->compileMultiSignal(signals);
@@ -1107,8 +1106,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             comp = new InstructionsCompiler(container, (gGlobal->gOutputLang != "ajs"));
         }
 
-        if (gGlobal->gPrintXMLSwitch) comp->setDescription(new Description());
-        if (gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
+        if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
 
         comp->compileMultiSignal(signals);
 
