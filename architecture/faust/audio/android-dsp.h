@@ -249,13 +249,14 @@ class androidaudio : public audio {
             pthread_mutex_destroy(&fMutex);
         }
     
+        // DSP CPU load in percentage of the buffer size duration
         float getCPULoad()
         {
             float sum = 0.f;
             for (int i = 0; i < CPU_TABLE_SIZE; i++) {
                 sum += fCPUTable[i];
             }
-            return (sum * fSampleRate)/(float(CPU_TABLE_SIZE) * fBufferSize);
+            return (sum/float(CPU_TABLE_SIZE))/(10000.f*float(fBufferSize)/float(fSampleRate));
         }
     
         virtual bool init(const char* name, dsp* DSP)

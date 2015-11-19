@@ -31,7 +31,6 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/jsonfaustui.h"
 #include "faust/gui/JSONUI.h"
-//#include "faust/gui/APIUI.h"
 
 //**************************************************************
 // DSP class
@@ -460,6 +459,6 @@ void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float am
  */
 float getCPULoad()
 {
-    gGlobal->getCPULoad();
+    return gGlobal->getCPULoad();
 }
 
