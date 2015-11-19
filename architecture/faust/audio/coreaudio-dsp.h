@@ -1061,8 +1061,7 @@ class TCoreAudioRenderer
             fDeviceID = 0; 
             fAUHAL = 0;
             fState = false;
-            OpenDefault(inChan, outChan, bufferSize, sampleRate);
-            set_dsp(DSP);
+            return OpenDefault(inChan, outChan, bufferSize, sampleRate);
         }
     
         int OpenDefault(int inChan, int outChan, int buffer_size, int& sample_rate)
