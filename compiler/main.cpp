@@ -782,9 +782,8 @@ int main (int argc, char* argv[])
 	else if (gVectorSwitch) C = new VectorCompiler(gClassName, "dsp", numInputs, numOutputs);
 	else                    C = new ScalarCompiler(gClassName, "dsp", numInputs, numOutputs);
 
-	if (gPrintXMLSwitch) C->setDescription(new Description());
-	if (gPrintDocSwitch) C->setDescription(new Description());
-
+	if (gPrintXMLSwitch || gPrintDocSwitch) C->setDescription(new Description());
+	
 	C->compileMultiSignal(lsignals);
 
 	endTiming("compilation");
