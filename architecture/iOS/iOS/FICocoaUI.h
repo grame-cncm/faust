@@ -2496,6 +2496,16 @@ public:
                         fLedG[zone] = (float)[((NSString*)[arr objectAtIndex:2]) integerValue] / 255.f;
                         fLedB[zone] = (float)[((NSString*)[arr objectAtIndex:3]) integerValue] / 255.f;
                     }
+                } else {
+                    
+                    NSString* str = (NSString*)[arr objectAtIndex:0];
+                
+                    NSRange range = [str rangeOfString:@"menu"];
+                    if (range.location == 0 && range.length > 0) {
+                        NSString* str1 = [str substringFromIndex:range.length];
+                    
+                    }
+                    
                 }
 			}
             else if (strcmp(key,"color") == 0)
