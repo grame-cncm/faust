@@ -1326,6 +1326,7 @@ private:
     map<float*, float>              fLedR;
     map<float*, float>              fLedG;
     map<float*, float>              fLedB;
+    map<float*, string>             fMenuDescription;
     set<float*>                     fKnobSet;
     int                             fCurrentLayoutType;
     bool                            fNextBoxIsHideOnGUI;
@@ -2246,14 +2247,19 @@ public:
         
         insert(label, item);
     }
+    
+    virtual void addMenu(const char* label , float* zone, float init, float min, float max, float step, const char* mdescr)
+	{
+        // TODO
+    }
+    
     virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
-        if (isKnob(zone))
-        {
+        if (isKnob(zone)) {
             addVerticalKnob(label, zone, init, min, max, step);
-        }
-        else
-        {
+        }  else if (fMenuDescription.count(zone)) {
+            addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
+        } else {
             uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, false);
             if (dynamic_cast<uiSlider*>(item)->fSlider.suffixe) [dynamic_cast<uiSlider*>(item)->fSlider.suffixe release];
             dynamic_cast<uiSlider*>(item)->fSlider.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
@@ -2281,12 +2287,11 @@ public:
     }
     virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
-        if (isKnob(zone))
-        {
+        if (isKnob(zone)){
             addHorizontalKnob(label, zone, init, min, max, step);
-        }
-        else
-        {
+        }  else if (fMenuDescription.count(zone)) {
+            addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
+        } else {
             uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, true);
             if (dynamic_cast<uiSlider*>(item)->fSlider.suffixe) [dynamic_cast<uiSlider*>(item)->fSlider.suffixe release];
             dynamic_cast<uiSlider*>(item)->fSlider.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
@@ -2499,11 +2504,10 @@ public:
                 } else {
                     
                     NSString* str = (NSString*)[arr objectAtIndex:0];
-                
                     NSRange range = [str rangeOfString:@"menu"];
                     if (range.location == 0 && range.length > 0) {
                         NSString* str1 = [str substringFromIndex:range.length];
-                    
+                        fMenuDescription[zone] = [str1 UTF8String];
                     }
                     
                 }
