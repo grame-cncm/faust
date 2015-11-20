@@ -181,4 +181,22 @@ public class FaustProcessing {
     		FaustEngine.propagateAccZDsp(myDSP, a);
     	}
   	}
+    
+    public void propagateGyrX(float a) {
+  		if (myDSP != null) {
+    		FaustEngine.propagateGyrXDsp(myDSP, a);
+    	}
+  	}
+
+  	public void propagateGyrY(float a) {
+  		if (myDSP != null) {
+    		FaustEngine.propagateGyrYDsp(myDSP, a);
+    	}
+  	}
+
+  	public void propagateGyrZ(float a) {
+  		if (myDSP != null) {
+    		FaustEngine.propagateGyrZDsp(myDSP, a);
+    	}
+  	}
 }
