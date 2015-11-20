@@ -790,7 +790,7 @@ For example we can create a customized version of \lstinline'component("freeverb
 Reference to external C \textit{functions}, \textit{variables} and \textit{constants} can be introduced using the \textit{foreign function} mechanism.
  
 \begin{rail}
-foreignexp : 'ffunction' '(' signature ',' includefile ',' comment ')' 
+foreignexp : 'ffunction' '(' signature ',' includefile ',' library')' 
           | 'fvariable' '(' type identifier ',' includefile ')' 
           | 'fconstant' '(' type identifier ',' includefile ')' ;
 \end{rail}
@@ -831,24 +831,23 @@ type : 'int'|'float';
 External variables and constants can also be declared with a similar syntax. In the same \lstinline'"math.lib"' file we can found the definition of the sampling rate constant \lstinline'SR' and the definition of the block-size variable \lstinline'BS' :
 
 \begin{lstlisting}
-SR 			= fconstant(int fSamplingFreq, <math.h>);
-BS          = fvariable(int count, <math.h>);
+SR    = fconstant(int fSamplingFreq, <math.h>);
+BS    = fvariable(int count, <math.h>);
 \end{lstlisting}
 
 Foreign constants are not supposed to vary. Therefore expressions involving only foreign constants are only computed once, during the initialization period. 
 
 Variable are considered to vary at block speed. This means that expressions depending of external variables are computed every block.
 
-
 \subsubsection{include file}
-In declaring foreign functions one as also to specify the include file. It allows the \faust compiler to add the corresponding \lstinline'#include...' in the generated code.
-
+In declaring foreign functions one has also to specify the include file. It allows the \faust compiler to add the corresponding \lstinline'#include...' in the generated code.
 
 \begin{rail}
 includefile : '<' (char+) '>' | '"' (char+) '"' ;
 \end{rail}
 
-
+\subsubsection{library file}
+In declaring foreign functions one can possibly specify the library where the actual code is located. It allows the \faust compiler to (possibly) automatically link the library. Note that this feature is only used with the LLVM backend in 'libfaust' dynamic library model.
 
 %The syntax of these foreign declarations is the following :
 %The foreign function mechanism allows to use external functions, variables and constants. External functions are limited to numerical ones. 
