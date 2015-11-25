@@ -1282,16 +1282,30 @@ T findCorrespondingUiItem(FIResponder* sender)
         {
             _selectedWidget->setAssignationCurve(kCurve4);
         }
-         */
+        */
         
         printf("_curveSegmentedControl\n");
     } else if (sender == _minSlider) {
+        // Range limitation
+        if (_minSlider.value >= _maxSlider.value) {
+            _minSlider.value = _maxSlider.value;
+        }
         _selectedWidget->setCurveMin(_minSlider.value);
         printf("_minSlider\n");
     } else if (sender == _maxSlider) {
+        // Range limitation
+        if (_maxSlider.value <= _minSlider.value) {
+            _maxSlider.value = _minSlider.value;
+        }
         _selectedWidget->setCurveMax(_maxSlider.value);
         printf("_maxSlider\n");
     } else if (sender == _centerSlider) {
+        // Range limitation
+        if (_centerSlider.value <= _minSlider.value) {
+            _centerSlider.value = _minSlider.value;
+        } else if (_centerSlider.value >= _maxSlider.value) {
+            _centerSlider.value = _maxSlider.value;
+        }
         _selectedWidget->setCurveMid(_centerSlider.value);
         printf("_centerSlider\n");
     
