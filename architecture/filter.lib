@@ -267,6 +267,7 @@ conv(kv) = fir(kv);
 tf1(b0,b1,a1) = _ <: *(b0), (mem : *(b1)) :> + ~ *(0-a1);
 tf2(b0,b1,b2,a1,a2) = iir((b0,b1,b2),(a1,a2)); // cf. TF2 in music.lib)
 // tf2 is a variant of tf22 below with duplicated mems
+tf3(b0,b1,b2,b3,a1,a2,a3) = iir((b0,b1,b2,b3),(a1,a2,a3));
 
 //=============== Direct-Form second-order biquad sections ================
 // REFERENCE: https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html
@@ -643,6 +644,27 @@ with {
   b2d = (b0 - b1 * c + b2 * csq)/d;
   a1d = 2 * (a0 - csq)/d;
   a2d = (a0 - a1*c + csq)/d;
+};
+
+//----------------------------- tf3slf -------------------------------
+// Analogous to tf2s above, but third order, and using the typical
+// low-frequency-matching bilinear-transform constant 2/T ("lf" series)
+// instead of the specific-frequency-matching value used in tf2s and tf1s.
+// Note the lack of a "w1" argument.
+//
+tf3slf(b3,b2,b1,b0,a3,a2,a1,a0) = tf3(b0d,b1d,b2d,b3d,a1d,a2d,a3d) with {
+  c   = 2.0 * SR; // bilinear-transform scale-factor ("lf" case)
+  csq = c*c;
+  cc = csq*c;
+  // Thank you maxima:
+  b3d = (b3*c^3-b2*c^2+b1*c-b0)/d;
+  b2d = (-3*b3*c^3+b2*c^2+b1*c-3*b0)/d;
+  b1d = (3*b3*c^3+b2*c^2-b1*c-3*b0)/d;
+  b0d = (-b3*c^3-b2*c^2-b1*c-b0)/d;
+  a3d = (a3*c^3-a2*c^2+a1*c-a0)/d;
+  a2d = (-3*a3*c^3+a2*c^2+a1*c-3*a0)/d;
+  a1d = (3*a3*c^3+a2*c^2-a1*c-3*a0)/d;
+  d = (-a3*c^3-a2*c^2-a1*c-a0);
 };
 
 //----------------------------- tf1s --------------------------------

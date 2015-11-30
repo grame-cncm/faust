@@ -15,7 +15,7 @@ public class dsp_faust {
     dsp_faustJNI.init(arg0, arg1);
   }
 
-  public static int start() {
+  public static boolean start() {
     Log.d("FaustJava", "JNI start");
     return dsp_faustJNI.start();
   }
@@ -24,7 +24,7 @@ public class dsp_faust {
     Log.d("FaustJava", "JNI stop");
     dsp_faustJNI.stop();
   }
-    
+
   public static void destroy() {
     Log.d("FaustJava", "JNI destroy");
     dsp_faustJNI.destroy();
@@ -73,25 +73,32 @@ public class dsp_faust {
   public static String getParamAddress(int arg0) {
     return dsp_faustJNI.getParamAddress(arg0);
   }
-    
+
   public static void propagateAcc(int acc, float arg1) {
     dsp_faustJNI.propagateAcc(acc, arg1);
   }
-    
+
   public static void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax) {
      dsp_faustJNI.setAccConverter(p, acc, curve, amin, amid,  amax);
   }
-  
+
   public static void propagateGyr(int gyr, float arg1) {
     dsp_faustJNI.propagateGyr(gyr, arg1);
   }
-    
+
   public static void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax) {
      dsp_faustJNI.setGyrConverter(p, gyr, curve, amin, amid,  amax);
   }
-    
+
+
   public static float getCPULoad() {
     return dsp_faustJNI.getCPULoad();
   }
- 
+
+
+  // return -1 when no screen color control is requested, otherwise the current color to display 0xRRGGBB.
+  public static int getScreenColor() {
+     return dsp_faustJNI.getScreenColor();
+  }
+
 }

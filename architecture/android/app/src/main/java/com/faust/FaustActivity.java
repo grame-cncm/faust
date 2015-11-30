@@ -4,7 +4,7 @@ package com.faust;
  * TODO
  * - Make all accel meta data compatible
  * - The knob class could be greatly improved
- * - Drop down menu for actions for small screens 
+ * - Drop down menu for actions for small screens
  * - Vertical sliders are fucked up with accelerometers.
  * - Bargraphs are disabled and need more work
  * - Interface elements could be normalized using android standards
@@ -23,7 +23,7 @@ package com.faust;
  * when an app uses several activities.
  * - Xruns sometimes, not sure why...
  * - Polymax should be defined by "keyboard" in the Faust code...
- * - It seems that when polyphonic, voices are always computed which is highly ineficient... 
+ * - It seems that when polyphonic, voices are always computed which is highly ineficient...
  * - Multi Params
  * 		- Cosmetic: Big dots when the parameter is being touched.
  * 		- Accelerometer should be enabled in function of what was
@@ -43,6 +43,13 @@ import com.illposed.osc.OSCMessage;
 import com.illposed.osc.OSCPort;
 import com.illposed.osc.OSCPortIn;
 
+import android.graphics.Color;
+import android.os.Build;
+import android.os.Bundle;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.WindowManager;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -56,6 +63,8 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 
@@ -63,6 +72,7 @@ import android.util.Log;
 import android.net.wifi.WifiManager;
 
 import java.net.SocketException;
+import android.media.AudioManager;
 
 public class FaustActivity extends Activity {
 	private SensorManager mSensorManager;
@@ -71,15 +81,61 @@ public class FaustActivity extends Activity {
 	private ParametersInfo parametersInfo = new ParametersInfo();
     private long lastUIDate;
     private WifiManager.MulticastLock lock;
+    private boolean fBuildUI;
+
+    private MonochromeView fMonoView;
+
+    /**
+     * Detects and toggles immersive mode (also known as "hidey bar" mode).
+     */
+    public void toggleHideyBar() {
+
+        // BEGIN_INCLUDE (get_current_ui_flags)
+        // The UI options currently enabled are represented by a bitfield.
+        // getSystemUiVisibility() gives us that bitfield.
+        int uiOptions = getWindow().getDecorView().getSystemUiVisibility();
+        int newUiOptions = uiOptions;
+        // END_INCLUDE (get_current_ui_flags)
+        // BEGIN_INCLUDE (toggle_ui_flags)
+        boolean isImmersiveModeEnabled =
+                ((uiOptions | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY) == uiOptions);
+        if (isImmersiveModeEnabled) {
+            Log.i("FaustJava", "Turning immersive mode mode off. ");
+        } else {
+            Log.i("FaustJava", "Turning immersive mode mode on.");
+        }
+
+        // Navigation bar hiding:  Backwards compatible to ICS.
+        if (Build.VERSION.SDK_INT >= 14) {
+            newUiOptions ^= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        }
+
+        // Status bar hiding: Backwards compatible to Jellybean
+        if (Build.VERSION.SDK_INT >= 16) {
+            newUiOptions ^= View.SYSTEM_UI_FLAG_FULLSCREEN;
+        }
+
+        // Immersive mode: Backward compatible to KitKat.
+        // Note that this flag doesn't do anything by itself, it only augments the behavior
+        // of HIDE_NAVIGATION and FLAG_FULLSCREEN.  For the purposes of this sample
+        // all three flags are being toggled together.
+        // Note that there are two immersive mode UI flags, one of which is referred to as "sticky".
+        // Sticky immersive mode differs in that it makes the navigation and status bars
+        // semi-transparent, and the UI flag does not get cleared when the user interacts with
+        // the screen.
+        if (Build.VERSION.SDK_INT >= 19) {
+            newUiOptions ^= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        }
+
+        getWindow().getDecorView().setSystemUiVisibility(newUiOptions);
+        //END_INCLUDE (set_ui_flags)
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Log.d("FaustJava", "onCreate");
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-	
         if (!dsp_faust.isRunning()) {
-            
+
             WifiManager wifi = (WifiManager)getSystemService( Context.WIFI_SERVICE );
             if (wifi != null) {
                 WifiManager.MulticastLock lock = wifi.createMulticastLock("Log_Tag");
@@ -89,47 +145,86 @@ public class FaustActivity extends Activity {
             int oscPortNumber = 5510;
             while (!Osc.init(oscPortNumber)) oscPortNumber++;
             Log.d("FaustJava", "onCreate : OSC In Port " + oscPortNumber);
-            dsp_faust.init(44100,512);
+
+            // Use machine buffer size and sample rate
+            AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+            String rate = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+            String size = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+            Log.d("FaustJava", "Size :" + size + "Rate: " + rate);
+
+            //dsp_faust.init(Integer.parseInt(rate), Integer.parseInt(size));
+            dsp_faust.init(44100, 512);
             Osc.startListening();
         }
-      
+
+        fBuildUI = (dsp_faust.getScreenColor()<0);
+        if (!fBuildUI) {
+            requestWindowFeature(Window.FEATURE_NO_TITLE);
+			getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+        super.onCreate(savedInstanceState);
+        if (fBuildUI) {
+            setContentView(R.layout.main);
+        } else {
+            fMonoView = new MonochromeView(getApplicationContext());
+            setContentView(fMonoView);
+        }
+
         numberOfParameters = dsp_faust.getParamsCount();
-        
+
         Log.d("FaustJava", "onCreate : numberOfParameters " + numberOfParameters);
-        
+
         parametersInfo.init(numberOfParameters);
         SharedPreferences settings = getSharedPreferences("savedParameters", 0);
 
-        LinearLayout mainGroup = (LinearLayout) findViewById(R.id.the_layout);
-        HorizontalScrollView horizontalScroll = (HorizontalScrollView) findViewById(R.id.horizontalScroll);
-        ui.horizontalScroll = horizontalScroll;
-        
-        ui.initUI(parametersInfo,settings);	
-        ui.buildUI(this, mainGroup);
+        if (fBuildUI) {
+            LinearLayout mainGroup = (LinearLayout) findViewById(R.id.the_layout);
+            HorizontalScrollView horizontalScroll = (HorizontalScrollView) findViewById(R.id.horizontalScroll);
+            ui.horizontalScroll = horizontalScroll;
+            ui.initUI(parametersInfo,settings);
+            ui.buildUI(this, mainGroup);
+        } else {
+            Log.d("FaustJava", "Don't create User Interface");
+            toggleHideyBar();
+        }
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
     }
-    
+
+    private void updatecolor(double x, double y, double z) {
+        fMonoView.setRed(x/10.0);
+        fMonoView.setGreen(y/10.0);
+        fMonoView.setBlue(z/10.0);
+    }
+
+    private void updatecolor2(int c) {
+        fMonoView.setColor(c);
+    }
+
     private final SensorEventListener mSensorListener = new SensorEventListener() {
+
 		public void onSensorChanged(SensorEvent se) {
 
             long curDate = java.lang.System.currentTimeMillis();
             long deltaUI = curDate - lastUIDate;
-    
+
             if (se.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
                 // Update mapping at sensor rate
                 dsp_faust.propagateAcc(0, se.values[0]);
                 dsp_faust.propagateAcc(1, se.values[1]);
                 dsp_faust.propagateAcc(2, se.values[2]);
+                if (!fBuildUI) {
+					fMonoView.setColor(dsp_faust.getScreenColor());
+				}
             }
-    
+
             if (se.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
                 // Update mapping at sensor rate
                 dsp_faust.propagateGyr(0, se.values[0]);
                 dsp_faust.propagateGyr(1, se.values[1]);
                 dsp_faust.propagateGyr(2, se.values[2]);
             }
-    
+
             // Update UI less often
             if (deltaUI > 100) {
                 lastUIDate = curDate;
@@ -139,26 +234,31 @@ public class FaustActivity extends Activity {
 		}
 	    public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 	};
-    
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         Log.d("FaustJava", "onCreateOptionsMenu");
-        // Inflate the menu items for use in the action bar
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_activity_actions, menu);
-        MenuItem lockItem = menu.getItem(3); // retrieving the registered ID doesn't seem to work -> hardcoded here
-        MenuItem keybItem = menu.getItem(0);
-        if (!parametersInfo.locked) {
-    		lockItem.setIcon(R.drawable.ic_lockiconopen);
-    	} else {
-    		lockItem.setIcon(R.drawable.ic_lockiconclose);
-    		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-    	}
-        // display the keyboard icon if the Faust code enables keyboard interfaces
-        if (!ui.hasKeyboard && !ui.hasMulti) keybItem.setVisible(false);
-        return super.onCreateOptionsMenu(menu);
+        if (fBuildUI) {
+            // Inflate the menu items for use in the action bar
+            MenuInflater inflater = getMenuInflater();
+            inflater.inflate(R.menu.main_activity_actions, menu);
+            MenuItem lockItem = menu.getItem(3); // retrieving the registered ID doesn't seem to work -> hardcoded here
+            MenuItem keybItem = menu.getItem(0);
+            if (!parametersInfo.locked) {
+                lockItem.setIcon(R.drawable.ic_lockiconopen);
+            } else {
+                lockItem.setIcon(R.drawable.ic_lockiconclose);
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+            }
+            // display the keyboard icon if the Faust code enables keyboard interfaces
+            if (!ui.hasKeyboard && !ui.hasMulti) keybItem.setVisible(false);
+            return super.onCreateOptionsMenu(menu);
+        } else {
+            Log.d("FaustJava", "Don't create Menu");
+            return false;
+        }
     }
-    
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle presses on the action bar items
@@ -210,7 +310,7 @@ public class FaustActivity extends Activity {
                 return super.onOptionsItemSelected(item);
         }
     }
-    
+
     @Override
    	protected void onPause() {
         Log.d("FaustJava", "onPause");
@@ -254,14 +354,15 @@ public class FaustActivity extends Activity {
     @Override
     public void onDestroy(){
         Log.d("FaustJava", "onDestroy");
-    	super.onDestroy();
+ //   	super.onDestroy();
     	// only stops audio when the user press the return button (and not when the screen is rotated)
     	if (!isChangingConfigurations()) {
             Osc.stopListening();
-            lock.release();
+            //lock.release();
     		dsp_faust.destroy();
         }
         SharedPreferences settings = getSharedPreferences("savedParameters", 0);
         parametersInfo.saveParameters(settings);
+        super.onDestroy();
     }
 }

@@ -5,7 +5,7 @@
 								ValueConverter.h
 							    (GRAME, © 2015)
 
-Set of conversion objects used to map user interface values (for example a gui slider 
+Set of conversion objects used to map user interface values (for example a gui slider
 delivering values between 0 and 1) to faust values (for example a vslider between
 20 and 20000) using a log scale.
 
@@ -35,7 +35,12 @@ AccDownUpConverter(amin, amid, amax, fmin, fmid, fmax)	-- curve 3
 
 -- lists of ZoneControl are used to implement accelerometers metadata for each axes
 
-ZoneControl(zone, valueConverter) : a zone with an accelerometer data converter 
+ZoneControl(zone, valueConverter) : a zone with an accelerometer data converter
+
+
+-- ZoneReader are used to implement screencolor metadata
+
+ZoneReader(zone, valueConverter) : a zone with a data converter
 
 ****************************************************************************************/
 
@@ -59,7 +64,7 @@ struct Range
 
 
 //--------------------------------------------------------------------------------------
-// Interpolator(lo,hi,v1,v2) 
+// Interpolator(lo,hi,v1,v2)
 // Maps a value x between lo and hi to a value y between v1 and v2
 // y = v1 + (x-lo)/(hi-lo)*(v2-v1)
 // y = v1 + (x-lo) * coef   		with coef = (v2-v1)/(hi-lo)
@@ -69,7 +74,7 @@ struct Range
 //--------------------------------------------------------------------------------------
 class Interpolator
 {
-    
+
     private:
 
         Range fRange;
@@ -79,23 +84,23 @@ class Interpolator
     public:
 
         Interpolator(double lo, double hi, double v1, double v2) : fRange(lo,hi)
-        { 
-            if (hi != lo) { 
+        {
+            if (hi != lo) {
                 // regular case
-                fCoef = (v2-v1)/(hi-lo); 
-                fOffset = v1 - lo*fCoef; 
+                fCoef = (v2-v1)/(hi-lo);
+                fOffset = v1 - lo*fCoef;
             } else {
                 // degenerate case, avoids division by zero
                 fCoef = 0;
                 fOffset = (v1+v2)/2;
             }
         }
-        double operator()(double v) 
+        double operator()(double v)
         {
             double x = fRange(v);
             return  fOffset + x*fCoef;
         }
-        
+
         void getLowHigh(double& amin, double& amax)
         {
             amin = fRange.fLo;
@@ -105,7 +110,7 @@ class Interpolator
 
 
 //--------------------------------------------------------------------------------------
-// Interpolator3pt(lo,mi,hi,v1,vm,v2) 
+// Interpolator3pt(lo,mi,hi,v1,vm,v2)
 // Map values between lo mid hi to values between v1 vm v2
 //--------------------------------------------------------------------------------------
 class Interpolator3pt
@@ -124,8 +129,8 @@ class Interpolator3pt
             fSegment2(mi, hi, vm, v2),
             fMid(mi) {}
         double operator()(double x) { return  (x < fMid) ? fSegment1(x) : fSegment2(x); }
-        
-        void getMappingValues(double& amin, double& amid, double& amax) 
+
+        void getMappingValues(double& amin, double& amid, double& amax)
         {
             fSegment1.getLowHigh(amin, amid);
             fSegment2.getLowHigh(amid, amax);
@@ -136,11 +141,11 @@ class Interpolator3pt
 //--------------------------------------------------------------------------------------
 // Abstract ValueConverter class. Converts values between UI and Faust representations
 //--------------------------------------------------------------------------------------
-class ValueConverter 
+class ValueConverter
 {
-    
+
     public:
-    
+
         virtual ~ValueConverter() {}
         virtual double ui2faust(double x) = 0;
         virtual double faust2ui(double x) = 0;
@@ -152,7 +157,7 @@ class ValueConverter
 //--------------------------------------------------------------------------------------
 class LinearValueConverter : public ValueConverter
 {
-    
+
     private:
 
         Interpolator fUI2F;
@@ -178,16 +183,16 @@ class LinearValueConverter : public ValueConverter
 //--------------------------------------------------------------------------------------
 class LogValueConverter : public LinearValueConverter
 {
-    
+
     public:
 
         LogValueConverter(double umin, double umax, double fmin, double fmax) :
-            LinearValueConverter(umin, umax, log(std::max(DBL_MIN,fmin)), log(std::max(DBL_MIN,fmax))) 
+            LinearValueConverter(umin, umax, log(std::max(DBL_MIN,fmin)), log(std::max(DBL_MIN,fmax)))
         {}
 
         virtual double ui2faust(double x) 	{ return exp(LinearValueConverter::ui2faust(x)); }
         virtual double faust2ui(double x)	{ return LinearValueConverter::faust2ui(log(std::max(x, DBL_MIN))); }
-        
+
 };
 
 
@@ -196,16 +201,16 @@ class LogValueConverter : public LinearValueConverter
 //--------------------------------------------------------------------------------------
 class ExpValueConverter : public LinearValueConverter
 {
-    
+
     public:
 
         ExpValueConverter(double umin, double umax, double fmin, double fmax) :
-            LinearValueConverter(umin, umax, exp(fmin), exp(fmax)) 
+            LinearValueConverter(umin, umax, exp(fmin), exp(fmax))
         {}
 
         virtual double ui2faust(double x) { return log(LinearValueConverter::ui2faust(x)); }
         virtual double faust2ui(double x) { return LinearValueConverter::faust2ui(exp(x)); }
-        
+
 };
 
 //--------------------------------------------------------------------------------------
@@ -213,13 +218,13 @@ class ExpValueConverter : public LinearValueConverter
 //--------------------------------------------------------------------------------------
 
 class UpdatableValueConverter : public ValueConverter {
-    
+
     protected:
-    
+
         bool fActive;
 
     public:
-    
+
         UpdatableValueConverter():fActive(true)
         {}
         virtual ~UpdatableValueConverter()
@@ -227,10 +232,10 @@ class UpdatableValueConverter : public ValueConverter {
 
         virtual void setMappingValues(double amin, double amid, double amax, double min, double init, double max) = 0;
         virtual void getMappingValues(double& amin, double& amid, double& amax) = 0;
-    
+
         void setActive(bool on_off) { fActive = on_off; }
         bool getActive() { return fActive; }
-    
+
 };
 
 //--------------------------------------------------------------------------------------
@@ -239,7 +244,7 @@ class UpdatableValueConverter : public ValueConverter {
 //--------------------------------------------------------------------------------------
 class AccUpConverter : public UpdatableValueConverter
 {
-    
+
     private:
 
         Interpolator3pt fA2F;
@@ -261,12 +266,12 @@ class AccUpConverter : public UpdatableValueConverter
             fA2F = Interpolator3pt(amin,amid,amax,fmin,fmid,fmax);
             fF2A = Interpolator3pt(fmin,fmid,fmax,amin,amid,amax);
         }
-        
-        virtual void getMappingValues(double& amin, double& amid, double& amax) 
+
+        virtual void getMappingValues(double& amin, double& amid, double& amax)
         {
             fA2F.getMappingValues(amin, amid, amax);
         }
-    
+
 };
 
 
@@ -276,9 +281,9 @@ class AccUpConverter : public UpdatableValueConverter
 //--------------------------------------------------------------------------------------
 class AccDownConverter : public UpdatableValueConverter
 {
-    
+
     private:
-        
+
         Interpolator3pt	fA2F;
         Interpolator3pt	fF2A;
 
@@ -291,15 +296,15 @@ class AccDownConverter : public UpdatableValueConverter
 
         virtual double ui2faust(double x)	{ return fA2F(x); }
         virtual double faust2ui(double x)	{ return fF2A(x); }
-        
+
         virtual void setMappingValues(double amin, double amid, double amax, double fmin, double fmid, double fmax)
         {
              //__android_log_print(ANDROID_LOG_ERROR, "Faust", "AccDownConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
             fA2F = Interpolator3pt(amin,amid,amax,fmax,fmid,fmin);
             fF2A = Interpolator3pt(fmin,fmid,fmax,amax,amid,amin);
         }
-        
-        virtual void getMappingValues(double& amin, double& amid, double& amax) 
+
+        virtual void getMappingValues(double& amin, double& amid, double& amax)
         {
             fA2F.getMappingValues(amin, amid, amax);
         }
@@ -312,9 +317,9 @@ class AccDownConverter : public UpdatableValueConverter
 //--------------------------------------------------------------------------------------
 class AccUpDownConverter : public UpdatableValueConverter
 {
-    
+
     private:
-        
+
         Interpolator3pt	fA2F;
         Interpolator fF2A;
 
@@ -322,20 +327,20 @@ class AccUpDownConverter : public UpdatableValueConverter
 
         AccUpDownConverter(double amin, double amid, double amax, double fmin, double fmid, double fmax) :
             fA2F(amin,amid,amax,fmin,fmax,fmin),
-            fF2A(fmin,fmax,amin,amax)				// Special, pseudo inverse of a non monotone function 
+            fF2A(fmin,fmax,amin,amax)				// Special, pseudo inverse of a non monotone function
         {}
 
         virtual double ui2faust(double x)	{ return fA2F(x); }
         virtual double faust2ui(double x)	{ return fF2A(x); }
-        
+
         virtual void setMappingValues(double amin, double amid, double amax, double fmin, double fmid, double fmax)
         {
              //__android_log_print(ANDROID_LOG_ERROR, "Faust", "AccUpDownConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
             fA2F = Interpolator3pt(amin,amid,amax,fmin,fmax,fmin);
             fF2A = Interpolator(fmin,fmax,amin,amax);
         }
-        
-        virtual void getMappingValues(double& amin, double& amid, double& amax) 
+
+        virtual void getMappingValues(double& amin, double& amid, double& amax)
         {
             fA2F.getMappingValues(amin, amid, amax);
         }
@@ -348,9 +353,9 @@ class AccUpDownConverter : public UpdatableValueConverter
 //--------------------------------------------------------------------------------------
 class AccDownUpConverter : public UpdatableValueConverter
 {
-    
+
     private:
-        
+
         Interpolator3pt	fA2F;
         Interpolator fF2A;
 
@@ -358,20 +363,20 @@ class AccDownUpConverter : public UpdatableValueConverter
 
         AccDownUpConverter(double amin, double amid, double amax, double fmin, double fmid, double fmax) :
             fA2F(amin,amid,amax,fmax,fmin,fmax),
-            fF2A(fmin,fmax,amin,amax)				// Special, pseudo inverse of a non monotone function 
+            fF2A(fmin,fmax,amin,amax)				// Special, pseudo inverse of a non monotone function
         {}
 
         virtual double ui2faust(double x)	{ return fA2F(x); }
         virtual double faust2ui(double x)	{ return fF2A(x); }
-        
+
         virtual void setMappingValues(double amin, double amid, double amax, double fmin, double fmid, double fmax)
         {
             //__android_log_print(ANDROID_LOG_ERROR, "Faust", "AccDownUpConverter update %f %f %f %f %f %f", amin,amid,amax,fmin,fmid,fmax);
             fA2F = Interpolator3pt(amin,amid,amax,fmax,fmin,fmax);
             fF2A = Interpolator(fmin,fmax,amin,amax);
         }
-        
-        virtual void getMappingValues(double& amin, double& amid, double& amax) 
+
+        virtual void getMappingValues(double& amin, double& amid, double& amax)
         {
             fA2F.getMappingValues(amin, amid, amax);
         }
@@ -383,26 +388,26 @@ class AccDownUpConverter : public UpdatableValueConverter
 //--------------------------------------------------------------------------------------
 class ZoneControl
 {
-    
+
     protected:
-        
+
         FAUSTFLOAT*	fZone;
-        
+
     public:
-        
+
         ZoneControl(FAUSTFLOAT* zone) : fZone(zone) {}
         virtual ~ZoneControl() {}
-        
+
         virtual void update(double v) {}
-        
+
         virtual void setMappingValues(int curve, double amin, double amid, double amax, double min, double init, double max) {}
         virtual void getMappingValues(double& amin, double& amid, double& amax) {}
-        
+
         FAUSTFLOAT* getZone() { return fZone; }
-    
+
         virtual void setActive(bool on_off) {}
         virtual bool getActive() { return false; }
-        
+
         int getCurve() { return -1; }
 
 };
@@ -412,29 +417,29 @@ class ZoneControl
 //--------------------------------------------------------------------------------------
 class ConverterZoneControl : public ZoneControl
 {
-    
+
     private:
-        
+
         ValueConverter* fValueConverter;
-        
+
     public:
-        
+
         ConverterZoneControl(FAUSTFLOAT* zone, ValueConverter* valueConverter) : ZoneControl(zone), fValueConverter(valueConverter) {}
         virtual ~ConverterZoneControl() { delete fValueConverter; } // Assuming fValueConverter is not kept elsewhere...
 
         void update(double v) { *fZone = fValueConverter->ui2faust(v); }
 
         ValueConverter* getConverter() { return fValueConverter; }
-    
+
 };
 
 //--------------------------------------------------------------------------------------
-// Association of a zone and a four value converter, each one for each possible curve. 
+// Association of a zone and a four value converter, each one for each possible curve.
 // Useful to implement accelerometers metadata as a list of ZoneControl for each axes
 //--------------------------------------------------------------------------------------
 class CurveZoneControl : public ZoneControl
 {
-    
+
     private:
 
         std::vector<UpdatableValueConverter*> fValueConverters;
@@ -463,12 +468,12 @@ class CurveZoneControl : public ZoneControl
             fValueConverters[curve]->setMappingValues(amin, amid, amax, min, init, max);
             fCurve = curve;
         }
-        
+
         void getMappingValues(double& amin, double& amid, double& amax)
         {
             fValueConverters[fCurve]->getMappingValues(amin, amid, amax);
         }
-    
+
         void setActive(bool on_off)
         {
             std::vector<UpdatableValueConverter*>::iterator it;
@@ -476,8 +481,34 @@ class CurveZoneControl : public ZoneControl
                 (*it)->setActive(on_off);
             }
         }
-        
+
         int getCurve() { return fCurve; }
 };
+
+
+class ZoneReader
+{
+
+    private:
+
+        FAUSTFLOAT*     fZone;
+        Interpolator    fInterpolator;
+
+    public:
+
+        ZoneReader(FAUSTFLOAT* zone, double lo, double hi) : fZone(zone), fInterpolator(lo, hi, 0, 255) {}
+
+        virtual ~ZoneReader() {}
+
+        int getValue() {
+            if (fZone != 0) {
+                return (int)fInterpolator(*fZone);
+            } else {
+                return 127;
+            }
+        }
+
+};
+
 
 #endif

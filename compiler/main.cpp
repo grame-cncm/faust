@@ -468,7 +468,7 @@ bool process_cmdline(int argc, char* argv[])
 void printversion()
 {
 	cout << "FAUST, DSP to C++ compiler, Version " << FAUSTVERSION << "\n";
-    cout << "Copyright (C) 2002-2014, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+    cout << "Copyright (C) 2002-2015, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 
@@ -546,7 +546,7 @@ void printheader(ostream& dst)
     selectedKeys.insert(tree("license"));
     selectedKeys.insert(tree("version"));
 
-    dst << "//-----------------------------------------------------" << endl;
+    dst << "//----------------------------------------------------------" << endl;
     for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
         if (selectedKeys.count(i->first)) {
             dst << "// " << *(i->first);
@@ -561,7 +561,7 @@ void printheader(ostream& dst)
 
     dst << "//" << endl;
     dst << "// Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
-    dst << "//-----------------------------------------------------" << endl;
+    dst << "//----------------------------------------------------------" << endl << endl;
 }
 
 

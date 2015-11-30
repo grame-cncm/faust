@@ -499,7 +499,6 @@ bus(n) = par(i, n, _);
 //-----------------------------------------------------------------------------
 selector(i,n) = par(j, n, S(i, j))    with { S(i,i) = _; S(i,j) = !; };
 
-
 //-------------------------- interleave(row,col) ------------------------------
 // interleave row*col cables from column order to row order.
 // input : x(0), x(1), x(2) ..., x(row*col-1)

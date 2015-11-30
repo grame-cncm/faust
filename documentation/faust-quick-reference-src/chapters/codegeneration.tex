@@ -215,7 +215,7 @@ process = filter(0.9), filter(0.9) : +;
   \label{fig:parfilter}
 \end{figure}
 
-The corresponding compute() method obtained using the -omp option is the following:
+The corresponding compute() method obtained using the \lstinline!-omp! option is the following:
 \begin{lstlisting}
 
 virtual void compute (int fullcount, 
@@ -303,7 +303,7 @@ Starting from a ready task, each thread follows the dependencies, possibly pushi
 
 The local LIFO Pop operation allows better cache locality and the FIFO steal Pop "larger chuck" of work to be done. The reason for this is that many work stealing workloads are divide-and-conquer in nature, stealing one of the oldest task implicitly also steals a (potentially) large subtree of computations that will unfold once that piece of work is stolen and run.
 
-Compared to the OpenMP model (-omp) the new model is worse for simple \faust  programs and usually starts to behave comparable or sometimes better for "complex enough" \faust  programs. In any case, since OpenMP does not behave so well with GCC compilers (only quite recent versions like GCC 4.4 start to show some improvements), and is unusable on OSX in real-time contexts, this new scheduler option has it's own value.  We plan to improve it adding a "pipelining" idea in the future.
+Compared to the OpenMP model (\lstinline!-omp!) the new model is worse for simple \faust  programs and usually starts to behave comparable or sometimes better for "complex enough" \faust  programs. In any case, since OpenMP does not behave so well with GCC compilers (only quite recent versions like GCC 4.4 start to show some improvements), and is unusable on OSX in real-time contexts, this new scheduler option has it's own value.  We plan to improve it adding a "pipelining" idea in the future.
 
 \subsection{Example of parallel scheduler code}
 To illustrate how \faust generates the scheduler code, here is a very simple example, two 1-pole filters in parallel connected to an adder (see figure \ref{fig:parfilter} the corresponding block-diagram):
