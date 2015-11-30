@@ -37,3 +37,4 @@ void setAccConverter(int p, int acc, int curve, float amin, float amid, float am
 void propagateGyr(int acc, float v);
 void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax);
 float getCPULoad();
+int getScreenColor();

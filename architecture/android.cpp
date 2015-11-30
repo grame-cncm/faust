@@ -4,13 +4,13 @@
  Copyright (C) 2013 GRAME, Romain Michon, CCRMA - Stanford University
  Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
- 
+
  This is sample code. This file is provided as an example of minimal
  FAUST architecture file. Redistribution and use in source and binary
  forms, with or without modification, in part or in full are permitted.
  In particular you can create a derived work of this FAUST architecture
  and distribute that work under terms of your choice.
- 
+
  This sample code is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -78,7 +78,7 @@ struct AndroidEngine {
     bool fRunning;
 
     int fSampleRate, fBufferSize, fPolyMax;
-    
+
     AndroidEngine(int sampling_rate, int buffer_size):fJSON(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs())
     {
         fPolyDSP = NULL;
@@ -86,13 +86,13 @@ struct AndroidEngine {
         fSampleRate = sampling_rate;
         fBufferSize = buffer_size;
         fRunning = false;
-        
+
         // configuring the UI
         fMonoDSP.buildUserInterface(&fAPIUI);
         fMonoDSP.buildUserInterface(&fJSON);
-        
+
         fJSONString = fJSON.JSON();
-        
+
         if (fJSONString.find("keyboard") != std::string::npos ||
             fJSONString.find("poly") != std::string::npos){
             fPolyMax = 6;
@@ -101,22 +101,22 @@ struct AndroidEngine {
         } else {
             fPolyMax = 0;
         }
-        
+
         // allocating audio
         fDriver = new androidaudio(fSampleRate, fBufferSize);
     }
-    
+
     virtual ~AndroidEngine()
     {
         delete fDriver;
         delete fPolyDSP;
     }
-    
+
     bool init()
     {
         return fDriver->init("Dummy", (fPolyMax == 0) ? &fMonoDSP : (dsp*)fPolyDSP);
     }
-    
+
     bool start()
     {
         if (!fRunning) {
@@ -125,7 +125,7 @@ struct AndroidEngine {
         }
         return fRunning;
     }
-    
+
     void stop()
     {
         if (fRunning) {
@@ -134,7 +134,7 @@ struct AndroidEngine {
             fDriver->stop();
         }
     }
-    
+
     int keyOn(int pitch, int velocity)
     {
         if (fPolyMax > 0) {
@@ -144,7 +144,7 @@ struct AndroidEngine {
             return 0;
         }
     }
-    
+
     int keyOff(int pitch)
     {
         if (fPolyMax > 0) {
@@ -154,7 +154,7 @@ struct AndroidEngine {
             return 0;
         }
     }
-    
+
     int pitchBend(int refPitch, float pitch)
     {
         if (fPolyMax > 0) {
@@ -164,17 +164,17 @@ struct AndroidEngine {
             return 0;
         }
     }
-    
+
     const char* getJSON()
     {
         return fJSONString.c_str();
     }
-    
+
     int getParamsCount()
     {
         return fAPIUI.getParamsCount();
     }
-    
+
     float getParam(const char* address)
     {
         if (fPolyMax == 0) {
@@ -183,7 +183,7 @@ struct AndroidEngine {
             return fPolyDSP->getValue(address);
         }
     }
-    
+
     void setParam(const char* address, float value)
     {
         if (fPolyMax == 0) {
@@ -192,7 +192,7 @@ struct AndroidEngine {
             fPolyDSP->setValue(address, value);
         }
     }
-    
+
     int setVoiceParam(const char* address, int pitch, float value)
     {
         if (fPolyMax > 0) {
@@ -202,7 +202,7 @@ struct AndroidEngine {
             return 0;
         }
     }
-    
+
     int setVoiceGain(int pitch, float gain) {
         if (fPolyMax > 0) {
             fPolyDSP->setVoiceGain(pitch, gain);
@@ -211,34 +211,42 @@ struct AndroidEngine {
             return 0;
         }
     }
-    
+
     const char* getParamAddress(int id) {
         return fAPIUI.getParamName(id);
     }
-    
+
     void propagateAcc(int acc, float v)
     {
         fAPIUI.propagateAcc(acc, v);
     }
-    
+
     void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
     {
         __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d %d %d %f %f %f", p, acc, curve, amin, amid, amax);
         fAPIUI.setAccConverter(p, acc, curve, amin, amid, amax);
     }
-    
+
     void propagateGyr(int gyr, float v)
     {
         fAPIUI.propagateGyr(gyr, v);
     }
-    
+
     void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax)
     {
         __android_log_print(ANDROID_LOG_ERROR, "Faust", "setGyrConverter %d %d %d %f %f %f", p, gyr, curve, amin, amid, amax);
         fAPIUI.setGyrConverter(p, gyr, curve, amin, amid, amax);
     }
-    
+
     float getCPULoad() { return fDriver->getCPULoad(); }
+
+    int getScreenColor()
+    {
+        int c = fAPIUI.getScreenColor();
+        __android_log_print(ANDROID_LOG_ERROR, "Faust", "getScreenColor() = %d", c);
+        return c;
+    }
+
 };
 
 static AndroidEngine* gGlobal = NULL;
@@ -281,7 +289,7 @@ void stop()
     __android_log_print(ANDROID_LOG_ERROR, "Faust", "JNI stop");
 	 return gGlobal->stop();
 }
-        
+
 /*
  * destroy()
  * Destroy the audio engine and related ressources.
@@ -462,3 +470,14 @@ float getCPULoad()
     return gGlobal->getCPULoad();
 }
 
+ /*
+ * getScreenColor() -> c:int
+ * Get the requested screen color c :
+ * c <  0 : no screen color requested (keep regular UI)
+ * c >= 0 : requested color (no UI but a colored screen)
+ */
+ int getScreenColor()
+ {
+     //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d %d %d %f %f %f", p, acc, curve, amin, amid, amax);
+     return gGlobal->getScreenColor();
+ }

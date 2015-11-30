@@ -17,7 +17,7 @@ enum { kLin = 0, kLog = 1, kExp = 2 };
 class APIUI : public PathUI, public Meta
 {
     protected:
-    
+
         int	fNumParameters;
         vector<string>			fName;
         map<string, int>		fMap;
@@ -26,23 +26,31 @@ class APIUI : public PathUI, public Meta
         vector<FAUSTFLOAT>		fInit;
         vector<FAUSTFLOAT>		fMin;
         vector<FAUSTFLOAT>		fMax;
-        vector<FAUSTFLOAT>		fStep;        
-        vector<string>			fUnit; 
+        vector<FAUSTFLOAT>		fStep;
+        vector<string>			fUnit;
         vector<ZoneControl*>	fAcc[3];
-        vector<ZoneControl*>	fGyr[3]; 
-    
+        vector<ZoneControl*>	fGyr[3];
+
+        // Screen color control
+        // "...[screencolor:red]..." etc.
+        bool                    fHasScreenControl;      // true if control screen color metadata
+        ZoneReader*             fRedReader;
+        ZoneReader*             fGreenReader;
+        ZoneReader*             fBlueReader;
+
         // Current values controlled by metadata
-        string	fCurrentUnit;     
+        string	fCurrentUnit;
         int     fCurrentScale;
-        string	fCurrentAcc; 
-        string	fCurrentGyr;     
+        string	fCurrentAcc;
+        string	fCurrentGyr;
+        string  fCurrentColor;
 
         // Add a generic parameter
-        virtual void addParameter(const char* label, 
-                                FAUSTFLOAT* zone, 
-                                FAUSTFLOAT init, 
-                                FAUSTFLOAT min, 
-                                FAUSTFLOAT max, 
+        virtual void addParameter(const char* label,
+                                FAUSTFLOAT* zone,
+                                FAUSTFLOAT init,
+                                FAUSTFLOAT min,
+                                FAUSTFLOAT max,
                                 FAUSTFLOAT step)
         {
             string name = buildPath(label);
@@ -56,27 +64,27 @@ class APIUI : public PathUI, public Meta
             fStep.push_back(step);
 
             //handle unit metadata
-            fUnit.push_back(fCurrentUnit); 
+            fUnit.push_back(fCurrentUnit);
             fCurrentUnit = "";
 
             //handle scale metadata
             switch (fCurrentScale) {
                 case kLin : fConversion.push_back(new LinearValueConverter(0,1, min, max)); break;
-                case kLog : fConversion.push_back(new LogValueConverter(0,1, min, max)); break;							
+                case kLog : fConversion.push_back(new LogValueConverter(0,1, min, max)); break;
                 case kExp : fConversion.push_back(new ExpValueConverter(0,1, min, max)); break;
             }
             fCurrentScale  = kLin;
-        
+
             // handle acc metadata "...[acc : <axe> <curve> <amin> <amid> <amax>]..."
             if (fCurrentAcc.size() > 0) {
-                istringstream iss(fCurrentAcc); 
+                istringstream iss(fCurrentAcc);
                 int axe, curve;
                 double amin, amid, amax;
                 iss >> axe >> curve >> amin >> amid >> amax;
-                
-                if ((0 <= axe) && (axe < 3) && 
+
+                if ((0 <= axe) && (axe < 3) &&
                     (0 <= curve) && (curve < 4) &&
-                    (amin < amax) && (amin <= amid) && (amid <= amax)) 
+                    (amin < amax) && (amin <= amid) && (amid <= amax))
                 {
                     fAcc[axe].push_back(new CurveZoneControl(zone, amin, amid, amax, min, init, max));
                 } else {
@@ -84,17 +92,17 @@ class APIUI : public PathUI, public Meta
                 }
             }
             fCurrentAcc = "";
-            
+
             // handle gyr metadata "...[gyr : <axe> <curve> <amin> <amid> <amax>]..."
             if (fCurrentGyr.size() > 0) {
-                istringstream iss(fCurrentGyr); 
+                istringstream iss(fCurrentGyr);
                 int axe, curve;
                 double amin, amid, amax;
                 iss >> axe >> curve >> amin >> amid >> amax;
-                
-                if ((0 <= axe) && (axe < 3) && 
+
+                if ((0 <= axe) && (axe < 3) &&
                     (0 <= curve) && (curve < 4) &&
-                    (amin < amax) && (amin <= amid) && (amid <= amax)) 
+                    (amin < amax) && (amin <= amid) && (amid <= amax))
                 {
                     fGyr[axe].push_back(new CurveZoneControl(zone, amin, amid, amax, min, init, max));
                 } else {
@@ -102,8 +110,30 @@ class APIUI : public PathUI, public Meta
                 }
             }
             fCurrentGyr = "";
+
+            // handle screencolor metadata "...[screencolor:red|green|blue]..."
+            if (fCurrentColor.size() > 0) {
+                if ((fCurrentColor == "red") && (fRedReader == 0)) {
+                    fRedReader = new ZoneReader(zone, min, max);
+                    fHasScreenControl = true;
+                } else if ((fCurrentColor == "green") && (fGreenReader == 0)) {
+                    fGreenReader = new ZoneReader(zone, min, max);
+                    fHasScreenControl = true;
+                } else if ((fCurrentColor == "blue") && (fBlueReader == 0)) {
+                    fBlueReader = new ZoneReader(zone, min, max);
+                    fHasScreenControl = true;
+                } else if ((fCurrentColor == "white") && (fRedReader == 0) && (fGreenReader == 0) && (fBlueReader == 0)) {
+                    fRedReader = new ZoneReader(zone, min, max);
+                    fGreenReader = new ZoneReader(zone, min, max);
+                    fBlueReader = new ZoneReader(zone, min, max);
+                    fHasScreenControl = true;
+                } else {
+                    cerr << "incorrect screencolor metadata : " << fCurrentColor << endl;
+                }
+            }
+            fCurrentColor = "";
         }
-    
+
         int getAccZoneIndex(int p, int acc)
         {
             FAUSTFLOAT* zone = fZone[p];
@@ -112,17 +142,19 @@ class APIUI : public PathUI, public Meta
             }
             return -1;
         }
-    
+
      public:
-    
-        APIUI() : fNumParameters(0) {}
+
+        APIUI() : fNumParameters(0), fHasScreenControl(false), fRedReader(0), fGreenReader(0), fBlueReader(0)
+        {}
+
         virtual ~APIUI()
         {
             vector<ValueConverter*>::iterator it1;
             for (it1 = fConversion.begin(); it1 != fConversion.end(); it1++) {
                 delete(*it1);
             }
-            
+
             vector<ZoneControl*>::iterator it2;
             for (int i = 0; i < 3; i++) {
                 for (it2 = fAcc[i].begin(); it2 != fAcc[i].end(); it2++) {
@@ -135,46 +167,46 @@ class APIUI : public PathUI, public Meta
         }
 
         // -- widget's layouts
-    
-        virtual void openTabBox(const char* label)			{ fControlsLevel.push_back(label); 	}    
-        virtual void openHorizontalBox(const char* label)	{ fControlsLevel.push_back(label); 	} 
+
+        virtual void openTabBox(const char* label)			{ fControlsLevel.push_back(label); 	}
+        virtual void openHorizontalBox(const char* label)	{ fControlsLevel.push_back(label); 	}
         virtual void openVerticalBox(const char* label)		{ fControlsLevel.push_back(label); 	}
         virtual void closeBox()								{ fControlsLevel.pop_back();		}
-    
+
         // -- active widgets
 
         virtual void addButton(const char* label, FAUSTFLOAT* zone)
         {
             addParameter(label, zone, 0, 0, 1, 1);
         }
-    
+
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
             addParameter(label, zone, 0, 0, 1, 1);
         }
-    
+
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
             addParameter(label, zone, init, min, max, step);
         }
-    
+
         virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
             addParameter(label, zone, init, min, max, step);
         }
-    
+
         virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
             addParameter(label, zone, init, min, max, step);
         }
 
         // -- passive widgets
-    
-        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
+
+        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
             addParameter(label, zone, min, min, max, (max-min)/1000.0);
         }
-    
+
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
             addParameter(label, zone, min, min, max, (max-min)/1000.0);
@@ -198,7 +230,9 @@ class APIUI : public PathUI, public Meta
 				fCurrentAcc = val;
 			} else if (strcmp(key, "gyr") == 0) {
 				fCurrentGyr = val;
-			}
+			} else if (strcmp(key, "screencolor") == 0) {
+                fCurrentColor = val; // val = "red", "green" or "blue"
+            }
         }
 
         virtual void declare(const char* key, const char* val)
@@ -214,19 +248,19 @@ class APIUI : public PathUI, public Meta
 		FAUSTFLOAT getParamMin(int p)		{ return fMin[p]; }
 		FAUSTFLOAT getParamMax(int p)		{ return fMax[p]; }
 		FAUSTFLOAT getParamStep(int p)		{ return fStep[p]; }
-	
+
 		FAUSTFLOAT getParamValue(int p)         { return *fZone[p]; }
 		void setParamValue(int p, FAUSTFLOAT v) { *fZone[p] = v; }
-	
+
 		double getParamRatio(int p)         { return fConversion[p]->faust2ui(*fZone[p]); }
 		void setParamRatio(int p, double r) { *fZone[p] = fConversion[p]->ui2faust(r); }
-	
+
 		double value2ratio(int p, double r)	{ return fConversion[p]->faust2ui(r); }
 		double ratio2value(int p, double r)	{ return fConversion[p]->ui2faust(r); }
-    
+
         /**
          * Set a new value coming from an accelerometer, propagate it to all relevant float* zones.
-         * 
+         *
          * @param acc - 0 for X accelerometer, 1 for Y accelerometer, 2 for Z accelerometer
          * @param value - the new value
          *
@@ -240,7 +274,7 @@ class APIUI : public PathUI, public Meta
 
         /**
          * Used to edit accelerometer curves and mapping. Set curve and related mapping for a given UI parameter.
-         * 
+         *
          * @param p - the UI parameter index
          * @param acc - 0 for X accelerometer, 1 for Y accelerometer, 2 for Z accelerometer (-1 means "no mapping")
          * @param curve - between 0 and 3
@@ -254,12 +288,12 @@ class APIUI : public PathUI, public Meta
             int id1 = getAccZoneIndex(p, 0);
             int id2 = getAccZoneIndex(p, 1);
             int id3 = getAccZoneIndex(p, 2);
-            
+
             // Deactivates everywhere..
             if (id1 != -1) fAcc[0][id1]->setActive(false);
             if (id2 != -1) fAcc[1][id2]->setActive(false);
             if (id3 != -1) fAcc[2][id3]->setActive(false);
-            
+
             if (acc == -1) { // Means: no more mapping...
                 // So stay all deactivated...
             } else {
@@ -276,10 +310,10 @@ class APIUI : public PathUI, public Meta
                 }
             }
         }
-         
+
          /**
          * Used to edit accelerometer curves and mapping. Get curve and related mapping for a given UI parameter.
-         * 
+         *
          * @param p - the UI parameter index
          * @param acc - the acc value to be retrieved (-1 means "no mapping")
          * @param curve - the curve value to be retrieved
@@ -293,7 +327,7 @@ class APIUI : public PathUI, public Meta
             int id1 = getAccZoneIndex(p, 0);
             int id2 = getAccZoneIndex(p, 1);
             int id3 = getAccZoneIndex(p, 2);
-            
+
             if (id1 != 1) {
                 acc = 0;
                 curve = fAcc[acc][id1]->getCurve();
@@ -307,26 +341,41 @@ class APIUI : public PathUI, public Meta
                 curve = fAcc[acc][id3]->getCurve();
                 fAcc[acc][id3]->getMappingValues(amin, amid, amax);
             } else {
-                acc = -1; // No mapping 
+                acc = -1; // No mapping
                 curve = 0;
                 amin = -100.;
                 amid = 0.;
                 amax = 100.;
             }
         }
-        
+
         // TODO
-        void propagateGyr(int gyr, double value) 
+        void propagateGyr(int gyr, double value)
         {
             for (int i = 0; i < fGyr[gyr].size(); i++) {
                 fGyr[gyr][i]->update(value);
             }
         }
-        
+
         void setGyrConverter(int p, int gyr, int curve, double amin, double amid, double amax) {}
-        
+
         void getGyrConverter(int p, int& gyr, int& curve, double& amin, double& amid, double& amax) {}
-   
+
+        // getScreenColor() : -1 means no screen color control (no screencolor metadata found)
+        // otherwise return 0x00RRGGBB a ready to use color
+        int getScreenColor()
+        {
+            if (fHasScreenControl) {
+                int r = (fRedReader) ? fRedReader->getValue() : 0;
+                int g = (fGreenReader) ? fGreenReader->getValue() : 0;
+                int b = (fBlueReader) ? fBlueReader->getValue() : 0;
+                return (r<<16) | (g<<8) | b;
+            } else {
+                return -1;
+            }
+        }
+
+
 };
 
 #endif
