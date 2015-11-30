@@ -63,6 +63,7 @@ import android.util.Log;
 import android.net.wifi.WifiManager;
 
 import java.net.SocketException;
+import android.media.AudioManager;
 
 public class FaustActivity extends Activity {
 	private SensorManager mSensorManager;
@@ -77,7 +78,7 @@ public class FaustActivity extends Activity {
         Log.d("FaustJava", "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-	
+     
         if (!dsp_faust.isRunning()) {
             
             WifiManager wifi = (WifiManager)getSystemService( Context.WIFI_SERVICE );
@@ -89,7 +90,15 @@ public class FaustActivity extends Activity {
             int oscPortNumber = 5510;
             while (!Osc.init(oscPortNumber)) oscPortNumber++;
             Log.d("FaustJava", "onCreate : OSC In Port " + oscPortNumber);
-            dsp_faust.init(44100,512);
+            
+            // Use machine buffer size and sample rate
+            AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
+            String rate = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+            String size = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+            Log.d("FaustJava", "Size :" + size + "Rate: " + rate);
+            
+            //dsp_faust.init(Integer.parseInt(rate), Integer.parseInt(size));
+            dsp_faust.init(44100, 512);
             Osc.startListening();
         }
       
