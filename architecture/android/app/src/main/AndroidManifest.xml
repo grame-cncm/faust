@@ -2,7 +2,7 @@
     package="com.faust"
     android:versionCode="6"
     android:versionName="1.5" >
-    
+
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.INTERNET" />
@@ -16,7 +16,7 @@
         android:label="@string/app_name" >
         <activity
             android:name="com.faust.FaustActivity"
-            android:label="@string/app_name" 
+            android:label="@string/app_name"
             android:windowSoftInputMode="stateHidden" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
