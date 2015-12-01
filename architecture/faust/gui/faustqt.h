@@ -1038,7 +1038,7 @@ class uiSlider : public QObject, public uiItem
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
-        fSlider->setValue(fConverter->faust2ui(v));
+        fSlider->setValue(int(0.5+fConverter->faust2ui(v)));
     }
     
     public slots :

@@ -82,7 +82,6 @@ public class FaustActivity extends Activity {
     private long lastUIDate;
     private WifiManager.MulticastLock lock;
     private boolean fBuildUI;
-
     private MonochromeView fMonoView;
 
     /**
@@ -100,7 +99,7 @@ public class FaustActivity extends Activity {
         boolean isImmersiveModeEnabled =
                 ((uiOptions | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY) == uiOptions);
         if (isImmersiveModeEnabled) {
-            Log.i("FaustJava", "Turning immersive mode mode off. ");
+            Log.i("FaustJava", "Turning immersive mode mode off.");
         } else {
             Log.i("FaustJava", "Turning immersive mode mode on.");
         }
@@ -157,7 +156,7 @@ public class FaustActivity extends Activity {
             Osc.startListening();
         }
 
-        fBuildUI = (dsp_faust.getScreenColor()<0);
+        fBuildUI = (dsp_faust.getScreenColor() < 0);
         if (!fBuildUI) {
             requestWindowFeature(Window.FEATURE_NO_TITLE);
 			getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -300,8 +299,7 @@ public class FaustActivity extends Activity {
             		item.setIcon(R.drawable.ic_lockiconopen);
             		parametersInfo.locked = false;
             		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
-            	}
-            	else {
+            	} else {
             		item.setIcon(R.drawable.ic_lockiconclose);
             		parametersInfo.locked = true;
             		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
@@ -354,11 +352,9 @@ public class FaustActivity extends Activity {
     @Override
     public void onDestroy(){
         Log.d("FaustJava", "onDestroy");
- //   	super.onDestroy();
     	// only stops audio when the user press the return button (and not when the screen is rotated)
     	if (!isChangingConfigurations()) {
             Osc.stopListening();
-            //lock.release();
     		dsp_faust.destroy();
         }
         SharedPreferences settings = getSharedPreferences("savedParameters", 0);

@@ -164,6 +164,10 @@ class APIUI : public PathUI, public Meta
                     delete(*it2);
                 }
             }
+            
+            delete fRedReader;
+            delete fGreenReader;
+            delete fBlueReader;
         }
 
         // -- widget's layouts
