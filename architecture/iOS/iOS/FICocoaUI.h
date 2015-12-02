@@ -380,12 +380,12 @@ public:
     float getInitR()                                                    {return fInitR;}
     float getInitG()                                                    {return fInitG;}
     float getInitB()                                                    {return fInitB;}
-    void setInitColor(float r, float g, float b)                {fInitR = r; fInitG = g; fInitB = b; setColor(r, g, b);}
+    virtual void setInitColor(float r, float g, float b)                {fInitR = r; fInitG = g; fInitB = b; setColor(r, g, b);}
 
     float getR()                                                        {return fR;}
     float getG()                                                        {return fG;}
     float getB()                                                        {return fB;}
-    void setColor(float r, float g, float b)                    {fR = r; fG = g; fB = b;}
+    virtual void setColor(float r, float g, float b)                    {fR = r; fG = g; fB = b;}
     
     void setHideOnGUI(BOOL hideOnGUI)                                   {fHideOnGUI = hideOnGUI; if (fLabel) fLabel.hidden = hideOnGUI;}
     BOOL getHideOnGUI()                                                 {return fHideOnGUI;}
