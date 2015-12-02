@@ -318,8 +318,8 @@ public:
     int getAssignationType()                                            {return fAssignationType;}
     virtual void setAssignationType(int assignationType)                {fAssignationType = assignationType;}
     
-    int getInitAssignationCurve()                                      {return fInitAssignationCurve;}
-    void setInitAssignationCurve(int assignationCurve)                    {fInitAssignationCurve = assignationCurve; setAssignationCurve(assignationCurve);}
+    int getInitAssignationCurve()                                       {return fInitAssignationCurve;}
+    void setInitAssignationCurve(int assignationCurve)                  {fInitAssignationCurve = assignationCurve; setAssignationCurve(assignationCurve);}
 
     int getAssignationCurve()                                           {return fAssignationCurve;}
     virtual void setAssignationCurve(int assignationCurve)              {fAssignationCurve = assignationCurve;}
@@ -336,7 +336,6 @@ public:
     float getInitCurveMin()                                             {return fInitMinCurve;}
     float getInitCurveMid()                                             {return fInitMidCurve;}
     float getInitCurveMax()                                             {return fInitMaxCurve;}
-    
     
     virtual void setCurve(float min, float mid, float max)
     {
@@ -381,12 +380,12 @@ public:
     float getInitR()                                                    {return fInitR;}
     float getInitG()                                                    {return fInitG;}
     float getInitB()                                                    {return fInitB;}
-    virtual void setInitColor(float r, float g, float b)                {fInitR = r; fInitG = g; fInitB = b; setColor(r, g, b);}
+    void setInitColor(float r, float g, float b)                {fInitR = r; fInitG = g; fInitB = b; setColor(r, g, b);}
 
     float getR()                                                        {return fR;}
     float getG()                                                        {return fG;}
     float getB()                                                        {return fB;}
-    virtual void setColor(float r, float g, float b)                    {fR = r; fG = g; fB = b;}
+    void setColor(float r, float g, float b)                    {fR = r; fG = g; fB = b;}
     
     void setHideOnGUI(BOOL hideOnGUI)                                   {fHideOnGUI = hideOnGUI; if (fLabel) fLabel.hidden = hideOnGUI;}
     BOOL getHideOnGUI()                                                 {return fHideOnGUI;}
@@ -1666,12 +1665,32 @@ public:
     {
         printf("setAccConverter %d %d %d %f %f %f\n", index, type, curve, min, mid, max);
         fAPIUI.setAccConverter(index, type, curve, min, mid, max);
-     }
+    }
+    
+    void getAccConverter(int index, int& type, int& curve, float& min, float& mid, float& max)
+    {
+        double dmin, dmid, dmax;
+        fAPIUI.getAccConverter(index, type, curve, dmin, dmid, dmax);
+        min = dmin;
+        mid = dmid;
+        max = dmax;
+        printf("getAccConverter %d %d %d %f %f %f\n", index, type, curve, min, mid, max);
+    }
     
     void setGyrConverter(int index, int type, int curve, float min, float mid, float max)
     {
         printf("setGyrConverter %d %d %d %f %f %f\n", index, type, curve, min, mid, max);
         fAPIUI.setGyrConverter(index, type, curve, min, mid, max);
+    }
+    
+    void getGyrConverter(int index, int& type, int& curve, float& min, float& mid, float& max)
+    {
+        double dmin, dmid, dmax;
+        fAPIUI.getGyrConverter(index, type, curve, dmin, dmid, dmax);
+        min = dmin;
+        mid = dmid;
+        max = dmax;
+        printf("getGyrConverter %d %d %d %f %f %f\n", index, type, curve, min, mid, max);
     }
     
     // Abstract layout : layout computed regardless screen dimensions

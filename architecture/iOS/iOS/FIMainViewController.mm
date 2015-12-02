@@ -1256,7 +1256,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     NSString*                       key;
     NSString*                       str;
     BOOL                            found = false;
-    
+   
     if (sender == _curveSegmentedControl) {
         
         //printf("selectedSegmentIndex %d \n", _curveSegmentedControl.selectedSegmentIndex);
@@ -1391,6 +1391,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     // Update mappings
     int index = _selectedWidget->getItemCount();
     printf("getItemCount %d\n", index);
+    
     if (_selectedWidget->getAssignationType() == kAssignationNone) {
         interface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
         interface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
@@ -1498,31 +1499,54 @@ T findCorrespondingUiItem(FIResponder* sender)
             || dynamic_cast<uiSlider*>(*i)
             || dynamic_cast<uiButton*>(*i))
         {
+            
+            // Get current values
+            int index = (*i)->getItemCount();
+            int type, curve;
+            float min, mid, max;
+            
+            interface->getAccConverter(index, type, curve, min, mid, max);
+            
             // Sensor assignation
             key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:(*i)]];
             intValue = [[NSUserDefaults standardUserDefaults] integerForKey:key];
-            if (intValue != 0) (*i)->setAssignationType(intValue - 1000);
-            else (*i)->setAssignationType((*i)->getInitAssignationType());
+            if (intValue != 0) {
+                (*i)->setAssignationType(intValue - 1000);
+            } else {
+                (*i)->setAssignationType(type + 1); // kAssignationAccelX starting from 1, type from 0
+            }
             
             key = [NSString stringWithFormat:@"%@-assignation-curve", [self urlForWidget:(*i)]];
             intValue = [[NSUserDefaults standardUserDefaults] integerForKey:key];
-            if (intValue != 0) (*i)->setAssignationCurve(intValue - 1000);
-            else (*i)->setAssignationCurve((*i)->getInitAssignationCurve());
+            if (intValue != 0) {
+                (*i)->setAssignationCurve(intValue - 1000);
+            } else {
+                (*i)->setAssignationCurve(curve);
+            }
             
             key = [NSString stringWithFormat:@"%@-assignation-min", [self urlForWidget:(*i)]];
             floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
-            if (floatValue != 0.f) (*i)->setCurveMin(floatValue - 1000.);
-            else (*i)->setCurveMin((*i)->getInitCurveMin());
+            if (floatValue != 0.f) {
+                (*i)->setCurveMin(floatValue - 1000.);
+            } else {
+                (*i)->setCurveMin(min);
+            }
             
             key = [NSString stringWithFormat:@"%@-assignation-mid", [self urlForWidget:(*i)]];
             floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
-            if (floatValue != 0.f) (*i)->setCurveMid(floatValue - 1000.);
-            else (*i)->setCurveMid((*i)->getInitCurveMid());
+            if (floatValue != 0.f) {
+                (*i)->setCurveMid(floatValue - 1000.);
+            } else  {
+                (*i)->setCurveMid(mid);
+            }
             
             key = [NSString stringWithFormat:@"%@-assignation-max", [self urlForWidget:(*i)]];
             floatValue = [[NSUserDefaults standardUserDefaults] floatForKey:key];
-            if (floatValue != 0.f) (*i)->setCurveMax(floatValue - 1000.);
-            else (*i)->setCurveMax((*i)->getInitCurveMax());
+            if (floatValue != 0.f) {
+                (*i)->setCurveMax(floatValue - 1000.);
+            } else {
+                (*i)->setCurveMax(max);
+            }
             
             // Color
             key = [NSString stringWithFormat:@"%@-r", [self urlForWidget:(*i)]];
