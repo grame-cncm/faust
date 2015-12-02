@@ -86,7 +86,7 @@ class APIUI : public PathUI, public Meta
                     (0 <= curve) && (curve < 4) &&
                     (amin < amax) && (amin <= amid) && (amid <= amax))
                 {
-                    fAcc[axe].push_back(new CurveZoneControl(zone, amin, amid, amax, min, init, max));
+                    fAcc[axe].push_back(new CurveZoneControl(zone, curve, amin, amid, amax, min, init, max));
                 } else {
                     cerr << "incorrect acc metadata : " << fCurrentAcc << endl;
                 }
@@ -104,7 +104,7 @@ class APIUI : public PathUI, public Meta
                     (0 <= curve) && (curve < 4) &&
                     (amin < amax) && (amin <= amid) && (amid <= amax))
                 {
-                    fGyr[axe].push_back(new CurveZoneControl(zone, amin, amid, amax, min, init, max));
+                    fGyr[axe].push_back(new CurveZoneControl(zone, curve, amin, amid, amax, min, init, max));
                 } else {
                     cerr << "incorrect gyr metadata : " << fCurrentGyr << endl;
                 }
@@ -309,7 +309,7 @@ class APIUI : public PathUI, public Meta
                 } else {
                     // Allocate a new CurveZoneControl which is 'active' by default
                     FAUSTFLOAT* zone = fZone[p];
-                    fAcc[acc].push_back(new CurveZoneControl(zone, amin, amid, amax, fMin[p], fInit[p], fMax[p]));
+                    fAcc[acc].push_back(new CurveZoneControl(zone, curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]));
                     //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter new CurveZoneControl %d", acc);
                 }
             }
@@ -331,16 +331,16 @@ class APIUI : public PathUI, public Meta
             int id1 = getAccZoneIndex(p, 0);
             int id2 = getAccZoneIndex(p, 1);
             int id3 = getAccZoneIndex(p, 2);
-
-            if (id1 != 1) {
+       
+            if (id1 != -1) {
                 acc = 0;
                 curve = fAcc[acc][id1]->getCurve();
                 fAcc[acc][id1]->getMappingValues(amin, amid, amax);
-            } else if (id2 != 1) {
+            } else if (id2 != -1) {
                 acc = 1;
                 curve = fAcc[acc][id2]->getCurve();
                 fAcc[acc][id2]->getMappingValues(amin, amid, amax);
-            } else if (id3 != 1) {
+            } else if (id3 != -1) {
                 acc = 2;
                 curve = fAcc[acc][id3]->getCurve();
                 fAcc[acc][id3]->getMappingValues(amin, amid, amax);

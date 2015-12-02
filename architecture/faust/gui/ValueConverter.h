@@ -408,7 +408,7 @@ class ZoneControl
         virtual void setActive(bool on_off) {}
         virtual bool getActive() { return false; }
 
-        int getCurve() { return -1; }
+        virtual int getCurve() { return -1; }
 
 };
 
@@ -447,12 +447,13 @@ class CurveZoneControl : public ZoneControl
 
     public:
 
-        CurveZoneControl(FAUSTFLOAT* zone, double amin, double amid, double amax, double min, double init, double max) : ZoneControl(zone), fCurve(0)
+        CurveZoneControl(FAUSTFLOAT* zone, int curve, double amin, double amid, double amax, double min, double init, double max) : ZoneControl(zone), fCurve(0)
         {
             fValueConverters.push_back(new AccUpConverter(amin, amid, amax, min, init, max));
             fValueConverters.push_back(new AccDownConverter(amin, amid, amax, min, init, max));
             fValueConverters.push_back(new AccUpDownConverter(amin, amid, amax, min, init, max));
             fValueConverters.push_back(new AccDownUpConverter(amin, amid, amax, min, init, max));
+            fCurve = curve;
         }
         virtual ~CurveZoneControl()
         {
