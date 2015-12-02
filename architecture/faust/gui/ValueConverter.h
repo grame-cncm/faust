@@ -37,13 +37,11 @@ AccDownUpConverter(amin, amid, amax, fmin, fmid, fmax)	-- curve 3
 
 ZoneControl(zone, valueConverter) : a zone with an accelerometer data converter
 
-
 -- ZoneReader are used to implement screencolor metadata
 
 ZoneReader(zone, valueConverter) : a zone with a data converter
 
 ****************************************************************************************/
-
 
 #include <float.h>
 #include <algorithm>    // std::max
@@ -61,7 +59,6 @@ struct Range
     Range(double x, double y) : fLo(std::min(x,y)), fHi(std::max(x,y)) {}
     double operator()(double x) { return (x<fLo) ? fLo : (x>fHi) ? fHi : x; }
 };
-
 
 //--------------------------------------------------------------------------------------
 // Interpolator(lo,hi,v1,v2)
@@ -108,7 +105,6 @@ class Interpolator
         }
 };
 
-
 //--------------------------------------------------------------------------------------
 // Interpolator3pt(lo,mi,hi,v1,vm,v2)
 // Map values between lo mid hi to values between v1 vm v2
@@ -137,7 +133,6 @@ class Interpolator3pt
         }
 };
 
-
 //--------------------------------------------------------------------------------------
 // Abstract ValueConverter class. Converts values between UI and Faust representations
 //--------------------------------------------------------------------------------------
@@ -150,7 +145,6 @@ class ValueConverter
         virtual double ui2faust(double x) = 0;
         virtual double faust2ui(double x) = 0;
 };
-
 
 //--------------------------------------------------------------------------------------
 // Linear conversion between ui and faust values
@@ -177,7 +171,6 @@ class LinearValueConverter : public ValueConverter
 
 };
 
-
 //--------------------------------------------------------------------------------------
 // Logarithmic conversion between ui and faust values
 //--------------------------------------------------------------------------------------
@@ -194,7 +187,6 @@ class LogValueConverter : public LinearValueConverter
         virtual double faust2ui(double x)	{ return LinearValueConverter::faust2ui(log(std::max(x, DBL_MIN))); }
 
 };
-
 
 //--------------------------------------------------------------------------------------
 // Exponential conversion between ui and Faust values
@@ -274,7 +266,6 @@ class AccUpConverter : public UpdatableValueConverter
 
 };
 
-
 //--------------------------------------------------------------------------------------
 // Convert accelerometer or gyroscope values to Faust values
 // Using a Down curve (curve 1)
@@ -309,7 +300,6 @@ class AccDownConverter : public UpdatableValueConverter
             fA2F.getMappingValues(amin, amid, amax);
         }
 };
-
 
 //--------------------------------------------------------------------------------------
 // Convert accelerometer or gyroscope values to Faust values
@@ -346,7 +336,6 @@ class AccUpDownConverter : public UpdatableValueConverter
         }
 };
 
-
 //--------------------------------------------------------------------------------------
 // Convert accelerometer or gyroscope values to Faust values
 // Using a Down-Up curve (curve 3)
@@ -381,7 +370,6 @@ class AccDownUpConverter : public UpdatableValueConverter
             fA2F.getMappingValues(amin, amid, amax);
         }
 };
-
 
 //--------------------------------------------------------------------------------------
 // Base class for ZoneControl
@@ -486,7 +474,6 @@ class CurveZoneControl : public ZoneControl
         int getCurve() { return fCurve; }
 };
 
-
 class ZoneReader
 {
 
@@ -510,6 +497,5 @@ class ZoneReader
         }
 
 };
-
 
 #endif
