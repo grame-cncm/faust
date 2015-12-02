@@ -13,7 +13,6 @@
 #include <string>
 #include <iostream>
 #include <sstream>
-
 #include <assert.h>
 
 /*******************************************************************************
