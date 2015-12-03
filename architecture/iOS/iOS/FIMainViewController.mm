@@ -39,7 +39,7 @@
 @synthesize dspView = _dspView;
 @synthesize dspScrollView = _dspScrollView;
 audio* audio_device = NULL;
-CocoaUI* interface = NULL;
+CocoaUI* uiinterface = NULL;
 FUI* finterface = NULL;
 GUI* oscinterface = NULL;
 MY_Meta metadata;
@@ -106,7 +106,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
         _name = [[[NSProcessInfo processInfo] processName] UTF8String];
     }
     
-    interface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata, &DSP);
+    uiinterface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata, &DSP);
     finterface = new FUI();
     
     // Read user preferences
@@ -119,7 +119,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     
     // Build Faust interface
     DSP.init(int(sampleRate));
-	DSP.buildUserInterface(interface);
+	DSP.buildUserInterface(uiinterface);
     DSP.buildUserInterface(finterface);
     
     char* argv[3];
@@ -144,7 +144,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
                                         name:UIDeviceOrientationDidChangeNotification object:nil];
     
     // Abstract layout is the layout computed without regarding screen dimensions. To be displayed, we adapt it to the device and orientation
-    interface->saveAbstractLayout();
+    uiinterface->saveAbstractLayout();
     
     // Used to refresh bargraphes
     _refreshTimer = [NSTimer scheduledTimerWithTimeInterval:kRefreshTimerInterval target:self selector:@selector(refreshObjects:) userInfo:nil repeats:YES];
@@ -160,7 +160,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     [_dspScrollView addGestureRecognizer:_tapGesture];
     
     // Locked box is the currently zoomed in box. At launch time, this box is the main box
-    _lockedBox = interface->getMainBox();
+    _lockedBox = uiinterface->getMainBox();
     
     // Widgets parameters
     _motionManager = nil;
@@ -362,13 +362,13 @@ error:
 
 - (void)viewWillAppear:(BOOL)animated
 {
-    if (!interface) return;
+    if (!uiinterface) return;
     [super viewWillAppear:animated];
 }
 
 - (void)viewDidAppear:(BOOL)animated
 {
-    if (!interface) return;
+    if (!uiinterface) return;
     [super viewDidAppear:animated];
     [self orientationChanged:nil];
     [self zoomToLockedBox];
@@ -398,7 +398,7 @@ error:
     
     [self closeAudio];
     
-    delete interface;
+    delete uiinterface;
     delete finterface;
     delete oscinterface;
     
@@ -432,7 +432,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     list<uiCocoaItem*>::iterator i;
     
     // Loop on uiCocoaItem elements
-    for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
+    for (i = ((CocoaUI*)(uiinterface))->fWidgetList.begin(); i != ((CocoaUI*)(uiinterface))->fWidgetList.end(); i++)
     {
         // Does current uiCocoaItem match T ?
         if (dynamic_cast<T>(*i) != nil)
@@ -538,7 +538,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     list<uiCocoaItem*>::iterator i;
         
     // Loop on uiCocoaItem elements
-    for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
+    for (i = ((CocoaUI*)(uiinterface))->fWidgetList.begin(); i != ((CocoaUI*)(uiinterface))->fWidgetList.end(); i++)
     {
         // Refresh GUI
         (*i)->reflectZone();
@@ -613,26 +613,26 @@ T findCorrespondingUiItem(FIResponder* sender)
     if (_currentOrientation == deviceOrientation) return;
     _currentOrientation = deviceOrientation;
 
-    interface->adaptLayoutToWindow(width, height);
+    uiinterface->adaptLayoutToWindow(width, height);
     
     // Compute min zoom, max zooam and current zoom
-    _dspScrollView.minimumZoomScale = width / (*interface->fWidgetList.begin())->getW();
+    _dspScrollView.minimumZoomScale = width / (*uiinterface->fWidgetList.begin())->getW();
     _dspScrollView.maximumZoomScale = 1.;
     
     // Compute frame of the content size
     [_dspView setFrame:CGRectMake(0.f,
                                   0.f,
-                                  2 * (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
-                                  2 * (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+                                  2 * (*uiinterface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                  2 * (*uiinterface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
     
-    [_dspScrollView setContentSize:CGSizeMake((*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
-                                              (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+    [_dspScrollView setContentSize:CGSizeMake((*uiinterface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                              (*uiinterface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
     
     if (!_viewLoaded)
     {
         if (_dspScrollView.minimumZoomScale != 1.)
         {
-            [_dspScrollView setZoomScale:width / (*interface->fWidgetList.begin())->getW() animated:NO];
+            [_dspScrollView setZoomScale:width / (*uiinterface->fWidgetList.begin())->getW() animated:NO];
         }
 
         _viewLoaded = YES;
@@ -694,17 +694,17 @@ T findCorrespondingUiItem(FIResponder* sender)
 // Locked box : box currently zoomed in
 - (void)zoomToLockedBox
 {
-    if (_lockedBox == interface->getMainBox())
+    if (_lockedBox == uiinterface->getMainBox())
     {
         [_dspScrollView setZoomScale:_dspScrollView.minimumZoomScale animated:YES];
         [_dspScrollView setContentOffset:CGPointZero animated:YES];
         [_dspView setFrame:CGRectMake(0.f,
                                       0.f,
-                                      (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
-                                      (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+                                      (*uiinterface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                      (*uiinterface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
         
-        [_dspScrollView setContentSize:CGSizeMake((*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
-                                                  (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+        [_dspScrollView setContentSize:CGSizeMake((*uiinterface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                                  (*uiinterface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
     }
     else
     {
@@ -770,7 +770,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     list<uiCocoaItem*>::iterator i;
 
     // Loop on uiCocoaItem elements
-    for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
+    for (i = ((CocoaUI*)(uiinterface))->fWidgetList.begin(); i != ((CocoaUI*)(uiinterface))->fWidgetList.end(); i++)
     {
         // Refresh uiBargraph objects
         if (dynamic_cast<uiBargraph*>(*i) != nil)
@@ -788,16 +788,16 @@ T findCorrespondingUiItem(FIResponder* sender)
 {
     [_dspView setFrame:CGRectMake(_dspView.frame.origin.x,
                                 _dspView.frame.origin.y,
-                                (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
-                                (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
-    [_dspScrollView setContentSize:CGSizeMake((*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
-                                            (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+                                (*uiinterface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                (*uiinterface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+    [_dspScrollView setContentSize:CGSizeMake((*uiinterface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                            (*uiinterface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
 
     // No double click : lose locked box
     if (_dspScrollView.pinchGestureRecognizer.scale != 1.
         || _dspScrollView.pinchGestureRecognizer.velocity != 0.f)
     {
-        _lockedBox = interface->getMainBox();
+        _lockedBox = uiinterface->getMainBox();
     }
 }
 
@@ -815,7 +815,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     if ([_dspScrollView.panGestureRecognizer translationInView:_dspView].x != 0.f
         && [_dspScrollView.panGestureRecognizer translationInView:_dspView].y != 0.f)
     {
-        _lockedBox = interface->getMainBox();
+        _lockedBox = uiinterface->getMainBox();
     }    
 }
 
@@ -832,26 +832,26 @@ T findCorrespondingUiItem(FIResponder* sender)
     [self closeJackView];
 #endif
     
-    uiBox* tapedBox = interface->getBoxForPoint([_tapGesture locationInView:_dspView]);
+    uiBox* tapedBox = uiinterface->getBoxForPoint([_tapGesture locationInView:_dspView]);
 
     // Avoid a strange bug
-    if (tapedBox == interface->getMainBox()
-        && _lockedBox == interface->getMainBox())
+    if (tapedBox == uiinterface->getMainBox()
+        && _lockedBox == uiinterface->getMainBox())
     {
         return;
     }
     
     // Click on already locked box : zoom out
     if (tapedBox == _lockedBox
-        && _lockedBox != interface->getMainBox())
+        && _lockedBox != uiinterface->getMainBox())
     {
-        _lockedBox = interface->getMainBox();
+        _lockedBox = uiinterface->getMainBox();
     }
     
     // Else, zoom on clicked box
     else
     {
-        _lockedBox = interface->getBoxForPoint([_tapGesture locationInView:_dspView]);   
+        _lockedBox = uiinterface->getBoxForPoint([_tapGesture locationInView:_dspView]);
     }
     
     [self zoomToLockedBox];
@@ -866,8 +866,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     {
         uiNumEntry* numEntry = findCorrespondingUiItem<uiNumEntry*>((FIResponder*)widget);
         if (numEntry)
-        {
-            rect = interface->getBoxAbsoluteFrameForWidget(numEntry);
+        {  rect = uiinterface->getBoxAbsoluteFrameForWidget(numEntry);
             [_dspScrollView zoomToRect:CGRectMake(rect.origin.x + rect.size.width / 2.f, 
                                                   rect.origin.y + rect.size.height / 2.f + _dspScrollView.window.frame.size.height / 8.f,
                                                   1.f,
@@ -967,7 +966,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     list<uiCocoaItem*>::iterator    i;
         
     // Deselect all widgets
-    for (i = ((CocoaUI*)(interface))->fWidgetList.begin(); i != ((CocoaUI*)(interface))->fWidgetList.end(); i++)
+    for (i = ((CocoaUI*)(uiinterface))->fWidgetList.begin(); i != ((CocoaUI*)(uiinterface))->fWidgetList.end(); i++)
     {
         if (dynamic_cast<uiKnob*>(*i)
             || dynamic_cast<uiSlider*>(*i)
@@ -1251,17 +1250,17 @@ T findCorrespondingUiItem(FIResponder* sender)
     int index = _selectedWidget->getItemCount();
     
     if (_selectedWidget->getAssignationType() == kAssignationNone) {
-        interface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
-        interface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
+        uiinterface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
+        uiinterface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
     } else if (_selectedWidget->getAssignationType() <= 3) {
-        interface->setAccConverter(index,
+        uiinterface->setAccConverter(index,
                                    _selectedWidget->getAssignationType() - 1,
                                    _selectedWidget->getAssignationCurve(),
                                    _selectedWidget->getCurveMin(),
                                    _selectedWidget->getCurveMid(),
                                    _selectedWidget->getCurveMax());
     } else {
-        interface->setGyrConverter(index,
+        uiinterface->setGyrConverter(index,
                                    _selectedWidget->getAssignationType() - 4,
                                    _selectedWidget->getAssignationCurve(),
                                    _selectedWidget->getCurveMin(),
@@ -1309,8 +1308,8 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     // Reset acc/gyr mapping
     int index =_selectedWidget->getItemCount();
-    interface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
-    interface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
+    uiinterface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
+    uiinterface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
     
     [self updateWidgetPreferencesView];
     [self widgetPreferencesChanged:_gyroAxisSegmentedControl];
@@ -1327,15 +1326,15 @@ T findCorrespondingUiItem(FIResponder* sender)
         
         // Reset acc/gyr mapping
         int index = (*i)->getItemCount();
-        interface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
-        interface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
+        uiinterface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
+        uiinterface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
         
         _assignatedWidgets.erase(i);
     }
     
     [self loadWidgetsPreferences];
     
-    for (i = interface->fWidgetList.begin(); i != interface->fWidgetList.end(); i++)
+    for (i = uiinterface->fWidgetList.begin(); i != uiinterface->fWidgetList.end(); i++)
     {
         (*i)->resetInitialValue();
     }
@@ -1351,7 +1350,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     int                             intValue = 0;
     float                           floatValue = 0.;
     
-    for (i = interface->fWidgetList.begin(); i != interface->fWidgetList.end(); i++)
+    for (i = uiinterface->fWidgetList.begin(); i != uiinterface->fWidgetList.end(); i++)
     {
         if (dynamic_cast<uiKnob*>(*i)
             || dynamic_cast<uiSlider*>(*i)
@@ -1363,7 +1362,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             int type, curve;
             float min, mid, max;
             
-            interface->getAccConverter(index, type, curve, min, mid, max);
+            uiinterface->getAccConverter(index, type, curve, min, mid, max);
             
             // Sensor assignation
             key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:(*i)]];
@@ -1466,11 +1465,11 @@ T findCorrespondingUiItem(FIResponder* sender)
 // The function periodically called to refresh motion sensors
 - (void)updateMotion
 {
-    interface->setAccValues(_motionManager.accelerometerData.acceleration.x,
+    uiinterface->setAccValues(_motionManager.accelerometerData.acceleration.x,
                             _motionManager.accelerometerData.acceleration.y,
                             _motionManager.accelerometerData.acceleration.z);
     
-    interface->setGyrValues(_motionManager.gyroData.rotationRate.x,
+    uiinterface->setGyrValues(_motionManager.gyroData.rotationRate.x,
                             _motionManager.gyroData.rotationRate.y,
                             _motionManager.gyroData.rotationRate.z);
     
@@ -1478,11 +1477,11 @@ T findCorrespondingUiItem(FIResponder* sender)
 
 - (NSString*)urlForWidget:(uiCocoaItem*)widget
 {
-    list<uiCocoaItem*>::iterator    i = interface->fWidgetList.end();
+    list<uiCocoaItem*>::iterator    i = uiinterface->fWidgetList.end();
     uiCocoaItem*                    currentWidget = widget;
     NSString*                       result = @"";
     
-    while (currentWidget != *interface->fWidgetList.begin())
+    while (currentWidget != *uiinterface->fWidgetList.begin())
     {
         if (currentWidget->getParent() == (*i))
         {
