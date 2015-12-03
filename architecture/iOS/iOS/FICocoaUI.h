@@ -637,15 +637,15 @@ public :
         
         uiCocoaItem::setFrame(x, y, w, h);
 
-        fKnob.frame = CGRectMake(   pt.x + (w - kStdKnobWidth) / 2.f,
-                                    pt.y + (h - kStdKnobHeight - kSpaceSize - kStdKnobLabelHeight) / 2.f,
-                                    kStdKnobWidth,
-                                    kStdKnobHeight);
+        fKnob.frame = CGRectMake(pt.x + (w - kStdKnobWidth) / 2.f,
+                                pt.y + (h - kStdKnobHeight - kSpaceSize - kStdKnobLabelHeight) / 2.f,
+                                kStdKnobWidth,
+                                kStdKnobHeight);
         
-        fLabel.frame = CGRectMake(  pt.x + (w - kStdKnobLabelWidth) / 2.f,
-                                    pt.y + (h + kStdKnobHeight - kSpaceSize - kStdKnobLabelHeight) / 2.f + kSpaceSize,
-                                    kStdKnobLabelWidth,
-                                    kStdKnobLabelHeight);
+        fLabel.frame = CGRectMake(pt.x + (w - kStdKnobLabelWidth) / 2.f,
+                                pt.y + (h + kStdKnobHeight - kSpaceSize - kStdKnobLabelHeight) / 2.f + kSpaceSize,
+                                kStdKnobLabelWidth,
+                                kStdKnobLabelHeight);
     }
     
     void setHidden(BOOL hidden)
@@ -862,7 +862,7 @@ class uiButton : public uiCocoaItem
     
 public:
     
-    FIButton*                       fButton;
+    FIButton* fButton;
     //UILongPressGestureRecognizer*   fLongPressGesture;
     
     uiButton(GUI* ui, FIMainViewController* controller, const char* name, float* zone, int type)
@@ -917,7 +917,7 @@ public:
     
     void setFrame(float x, float y, float w, float h)
     {
-        CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
+        CGPoint pt = inBoxPosition2absolutePosition(x, y, fParent);
         
         uiCocoaItem::setFrame(x, y, w, h);
         
@@ -970,7 +970,6 @@ public:
     }
 };
 
-
 // ------------------------------ Num Entry -----------------------------------
 
 class uiNumEntry : public uiCocoaItem
@@ -978,7 +977,7 @@ class uiNumEntry : public uiCocoaItem
     
 public:
     
-    FITextField*        fTextField;
+    FITextField* fTextField;
     
     uiNumEntry(GUI* ui, FIMainViewController* controller, const char* label, float* zone, float init, float min, float max, float step)
     : uiCocoaItem(ui, zone, controller, label)
@@ -1061,7 +1060,6 @@ public:
         fTextField.value = v;
     }
 };
-
 
 // ------------------------------ Bargraph -----------------------------------
 
@@ -1149,52 +1147,52 @@ public:
             
             if (fHorizontal)
             {
-                fBargraph.frame = CGRectMake(   pt.x + kStdLedWidth + kSpaceSize,
-                                                pt.y + (h - kStdLedHeight) / 2.f,
-                                                w - kStdBargraphLabelWidth - kSpaceSize,
-                                                kStdLedHeight);
+                fBargraph.frame = CGRectMake(pt.x + kStdLedWidth + kSpaceSize,
+                                            pt.y + (h - kStdLedHeight) / 2.f,
+                                            w - kStdBargraphLabelWidth - kSpaceSize,
+                                            kStdLedHeight);
                 
-                fLabel.frame = CGRectMake(      pt.x,
-                                                pt.y + (h - kStdBargraphLabelHeight) / 2.f,
-                                                kStdBargraphLabelWidth,
-                                                kStdBargraphLabelHeight);
+                fLabel.frame = CGRectMake(pt.x,
+                                        pt.y + (h - kStdBargraphLabelHeight) / 2.f,
+                                        kStdBargraphLabelWidth,
+                                        kStdBargraphLabelHeight);
             }
             else
             {
-                fBargraph.frame = CGRectMake(   pt.x + (w - kStdLedWidth) / 2.f,
-                                                pt.y,
-                                                kStdLedWidth,
-                                                h - kSpaceSize - kStdBargraphLabelHeight);
+                fBargraph.frame = CGRectMake(pt.x + (w - kStdLedWidth) / 2.f,
+                                            pt.y,
+                                            kStdLedWidth,
+                                            h - kSpaceSize - kStdBargraphLabelHeight);
                 
-                fLabel.frame = CGRectMake(      pt.x + (w - kStdBargraphLabelWidth) / 2.f,
-                                                pt.y + h - kSpaceSize - kStdBargraphLabelHeight,
-                                                kStdBargraphLabelWidth,
-                                                kStdBargraphLabelHeight);
+                fLabel.frame = CGRectMake(pt.x + (w - kStdBargraphLabelWidth) / 2.f,
+                                        pt.y + h - kSpaceSize - kStdBargraphLabelHeight,
+                                        kStdBargraphLabelWidth,
+                                        kStdBargraphLabelHeight);
             }
         }
         else if (fHorizontal)
         {
-            fBargraph.frame = CGRectMake(   pt.x + kStdBargraphLabelWidth + kSpaceSize,
-                                            pt.y + (h - kStdHorizontalBargraphHeight) / 2.f,
-                                            w - kStdBargraphLabelWidth - kSpaceSize,
-                                            kStdHorizontalBargraphHeight);
+            fBargraph.frame = CGRectMake(pt.x + kStdBargraphLabelWidth + kSpaceSize,
+                                        pt.y + (h - kStdHorizontalBargraphHeight) / 2.f,
+                                        w - kStdBargraphLabelWidth - kSpaceSize,
+                                        kStdHorizontalBargraphHeight);
             
-            fLabel.frame = CGRectMake(      pt.x,
-                                            pt.y + (h - kStdBargraphLabelHeight) / 2.f,
-                                            kStdBargraphLabelWidth,
-                                            kStdBargraphLabelHeight);
+            fLabel.frame = CGRectMake(pt.x,
+                                    pt.y + (h - kStdBargraphLabelHeight) / 2.f,
+                                    kStdBargraphLabelWidth,
+                                    kStdBargraphLabelHeight);
         }
         else
         {
-            fBargraph.frame = CGRectMake(   pt.x + (w - kStdVerticalBargraphWidth) / 2.f,
-                                            pt.y,
-                                            kStdVerticalBargraphWidth,
-                                            h - kSpaceSize - kStdBargraphLabelHeight);
+            fBargraph.frame = CGRectMake(pt.x + (w - kStdVerticalBargraphWidth) / 2.f,
+                                        pt.y,
+                                        kStdVerticalBargraphWidth,
+                                        h - kSpaceSize - kStdBargraphLabelHeight);
             
-            fLabel.frame = CGRectMake(      pt.x + (w - kStdBargraphLabelWidth) / 2.f,
-                                            pt.y + h - kSpaceSize - kStdBargraphLabelHeight,
-                                            kStdBargraphLabelWidth,
-                                            kStdBargraphLabelHeight);
+            fLabel.frame = CGRectMake(pt.x + (w - kStdBargraphLabelWidth) / 2.f,
+                                    pt.y + h - kSpaceSize - kStdBargraphLabelHeight,
+                                    kStdBargraphLabelWidth,
+                                    kStdBargraphLabelHeight);
         }
     }
     
@@ -2477,7 +2475,7 @@ public:
 
 // global static fields
 
-list<GUI*>                   GUI::fGuiList;
+list<GUI*> GUI::fGuiList;
 
 CGPoint inBoxPosition2absolutePosition(float x, float y, uiCocoaItem* box)
 {
@@ -2496,7 +2494,6 @@ CGPoint inBoxPosition2absolutePosition(float x, float y, uiCocoaItem* box)
     }
     
     absolutePosition = CGPointMake(x + parentBoxOrigin.x, y + parentBoxOrigin.y);
-    
     return absolutePosition;
 }
                       

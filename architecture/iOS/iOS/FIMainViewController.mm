@@ -691,7 +691,6 @@ T findCorrespondingUiItem(FIResponder* sender)
 #endif
 }
 
-
 // Locked box : box currently zoomed in
 - (void)zoomToLockedBox
 {
@@ -732,7 +731,7 @@ T findCorrespondingUiItem(FIResponder* sender)
 // Display the title, in the bottom (iPhone) or top (iPad) of the screen
 - (void)displayTitle
 {
-    NSString*       titleString = nil;
+    NSString* titleString = nil;
     
     if (*metadata.find("name") != *metadata.end())
     {
@@ -787,12 +786,12 @@ T findCorrespondingUiItem(FIResponder* sender)
 // Function called just after a pinch or a double click on a box
 - (void)scrollViewDidZoom:(UIScrollView *)scrollView
 {
-    [_dspView setFrame:CGRectMake(  _dspView.frame.origin.x,
-                                    _dspView.frame.origin.y,
-                                    (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
-                                    (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
-    [_dspScrollView setContentSize:CGSizeMake(  (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
-                                                (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+    [_dspView setFrame:CGRectMake(_dspView.frame.origin.x,
+                                _dspView.frame.origin.y,
+                                (*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
+    [_dspScrollView setContentSize:CGSizeMake((*interface->fWidgetList.begin())->getW() * _dspScrollView.zoomScale,
+                                            (*interface->fWidgetList.begin())->getH() * _dspScrollView.zoomScale)];
 
     // No double click : lose locked box
     if (_dspScrollView.pinchGestureRecognizer.scale != 1.
@@ -1151,21 +1150,18 @@ T findCorrespondingUiItem(FIResponder* sender)
    
     if (sender == _curveSegmentedControl) {
         _selectedWidget->setAssignationCurve(_curveSegmentedControl.selectedSegmentIndex);
-        printf("_curveSegmentedControl\n");
     } else if (sender == _minSlider) {
         // Range limitation
         if (_minSlider.value >= _maxSlider.value) {
             _minSlider.value = _maxSlider.value;
         }
         _selectedWidget->setCurveMin(_minSlider.value);
-        printf("_minSlider\n");
     } else if (sender == _maxSlider) {
         // Range limitation
         if (_maxSlider.value <= _minSlider.value) {
             _maxSlider.value = _minSlider.value;
         }
         _selectedWidget->setCurveMax(_maxSlider.value);
-        printf("_maxSlider\n");
     } else if (sender == _centerSlider) {
         // Range limitation
         if (_centerSlider.value <= _minSlider.value) {
@@ -1174,12 +1170,8 @@ T findCorrespondingUiItem(FIResponder* sender)
             _centerSlider.value = _maxSlider.value;
         }
         _selectedWidget->setCurveMid(_centerSlider.value);
-        printf("_centerSlider\n");
-    
     // If user changed the sensor assignation, program resets ref point to default values
     } else if (sender == _gyroAxisSegmentedControl) {
-        
-        printf("_gyroAxisSegmentedControl\n");
         
         // Get title of selected tab for sensor assignation
         str = [NSString stringWithString:[_gyroAxisSegmentedControl titleForSegmentAtIndex:_gyroAxisSegmentedControl.selectedSegmentIndex]];
@@ -1257,7 +1249,6 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     // Update mappings
     int index = _selectedWidget->getItemCount();
-    printf("getItemCount %d\n", index);
     
     if (_selectedWidget->getAssignationType() == kAssignationNone) {
         interface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
@@ -1475,8 +1466,6 @@ T findCorrespondingUiItem(FIResponder* sender)
 // The function periodically called to refresh motion sensors
 - (void)updateMotion
 {
-    //printf("motionManager.accelerometerData.acceleration.x %f\n", _motionManager.accelerometerData.acceleration.x);
-    
     interface->setAccValues(_motionManager.accelerometerData.acceleration.x,
                             _motionManager.accelerometerData.acceleration.y,
                             _motionManager.accelerometerData.acceleration.z);
