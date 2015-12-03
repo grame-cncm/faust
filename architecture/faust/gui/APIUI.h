@@ -379,7 +379,6 @@ class APIUI : public PathUI, public Meta
             }
         }
 
-
 };
 
 #endif
