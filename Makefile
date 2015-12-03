@@ -104,6 +104,7 @@ install :
 	# install iOS
 	rm -rf $(prefix)/lib/faust/iOS
 	cp -r architecture/iOS $(prefix)/lib/faust/
+	cp -r architecture/osclib $(prefix)/lib/faust/iOS
 	rm -rf $(prefix)/lib/faust/iOS/DerivedData/
 	# install AU
 	rm -rf $(prefix)/lib/faust/AU/
