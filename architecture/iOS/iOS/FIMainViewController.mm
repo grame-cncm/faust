@@ -143,7 +143,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged:)
                                         name:UIDeviceOrientationDidChangeNotification object:nil];
     
-    // Abstract layout is the layout computed without regarding screen dimensions. To be displayed, we adapt it to the device and orientition
+    // Abstract layout is the layout computed without regarding screen dimensions. To be displayed, we adapt it to the device and orientation
     interface->saveAbstractLayout();
     
     // Used to refresh bargraphes
@@ -163,8 +163,6 @@ static void jack_shutdown_callback(const char* message, void* arg)
     _lockedBox = interface->getMainBox();
     
     // Widgets parameters
-    _blockShake = NO;
-    _locationManager = nil;
     _motionManager = nil;
     _selectedWidget = nil;
     [self loadWidgetsPreferences];
@@ -466,7 +464,6 @@ T findCorrespondingUiItem(FIResponder* sender)
     return NULL;
 }
 
-
 // User actions notifications
 - (void)responderValueDidChange:(float)value sender:(id)sender
 {
@@ -475,49 +472,7 @@ T findCorrespondingUiItem(FIResponder* sender)
         uiSlider* slider = findCorrespondingUiItem<uiSlider*>((FIResponder*)sender);
         if (slider)
         {
-            // If widget is assigned to a sensor, touch is used to move ref point
-            if ((slider->getAssignationType() == kAssignationAccelX
-                || slider->getAssignationType() == kAssignationAccelY
-                || slider->getAssignationType() == kAssignationAccelZ
-                || slider->getAssignationType() == kAssignationCompass
-                || slider->getAssignationType() == kAssignationGyroX
-                || slider->getAssignationType() == kAssignationGyroY
-                || slider->getAssignationType() == kAssignationGyroZ)
-                && (((FIResponder*)sender).motionBlocked))
-            {
-                //slider->setAssignationRefPointY((((float)((FIResponder*)sender).value) - ((FIResponder*)sender).min) / (((FIResponder*)sender).max - ((FIResponder*)sender).min));
-                slider->setAssignationRefPointY((float)((FIResponder*)sender).value);
-                
-                float sensibility;
-                if (slider->getAssignationInverse()) sensibility = -slider->getAssignationSensibility();
-                else sensibility = slider->getAssignationSensibility();
-                
-                if (slider->getAssignationType() == kAssignationAccelX) slider->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.x * sensibility);
-                else if (slider->getAssignationType() == kAssignationAccelY) slider->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.y * sensibility);
-                else if (slider->getAssignationType() == kAssignationAccelZ) slider->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.z * sensibility);
-                else if (slider->getAssignationType() == kAssignationCompass)
-                {
-                    slider->setAssignationRefPointX(0.f);
-                    slider->setAssignationRefPointY(slider->getAssignationRefPointY() * 360.f - _locationManager.heading.trueHeading);
-                }
-                else if (slider->getAssignationType() == kAssignationGyroX) slider->setAssignationRefPointX(0.);
-                else if (slider->getAssignationType() == kAssignationGyroY) slider->setAssignationRefPointX(0.);
-                else if (slider->getAssignationType() == kAssignationGyroZ) slider->setAssignationRefPointX(0.);
-                                
-                NSString* key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", [self urlForWidget:slider]];
-                [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointX() + 1000. forKey:key];
-                
-                key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:slider]];
-                [[NSUserDefaults standardUserDefaults] setFloat:slider->getAssignationRefPointY() + 1000. forKey:key];
-                
-                [[NSUserDefaults standardUserDefaults] synchronize];                
-            }
-            
-            // Otherwise normal behaviour
-            else
-            {
-                slider->modifyZone((float)((FISlider*)sender).value);
-            }
+            slider->modifyZone((float)((FISlider*)sender).value);
         }
     }
     else if ([sender isKindOfClass:[FIButton class]])
@@ -547,49 +502,7 @@ T findCorrespondingUiItem(FIResponder* sender)
         uiKnob* knob = findCorrespondingUiItem<uiKnob*>((FIResponder*)sender);
         if (knob)
         {
-            // If widget is assigned to a sensor, touch is used to move ref point
-            if ((knob->getAssignationType() == kAssignationAccelX
-                || knob->getAssignationType() == kAssignationAccelY
-                 || knob->getAssignationType() == kAssignationAccelZ
-                 || knob->getAssignationType() == kAssignationCompass
-                 || knob->getAssignationType() == kAssignationGyroX
-                 || knob->getAssignationType() == kAssignationGyroY
-                 || knob->getAssignationType() == kAssignationGyroZ)
-                && (((FIResponder*)sender).motionBlocked))
-            {
-                //knob->setAssignationRefPointY((((float)((FIResponder*)sender).value) - ((FIResponder*)sender).min) / (((FIResponder*)sender).max - ((FIResponder*)sender).min));
-                knob->setAssignationRefPointY((float)((FIResponder*)sender).value);
-                
-                float sensibility;
-                if (knob->getAssignationInverse()) sensibility = -knob->getAssignationSensibility();
-                else sensibility = knob->getAssignationSensibility();
-                
-                if (knob->getAssignationType() == kAssignationAccelX) knob->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.x * sensibility);
-                else if (knob->getAssignationType() == kAssignationAccelY) knob->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.y * sensibility);
-                else if (knob->getAssignationType() == kAssignationAccelZ) knob->setAssignationRefPointX(_motionManager.accelerometerData.acceleration.z * sensibility);
-                else if (knob->getAssignationType() == kAssignationCompass)
-                {
-                    knob->setAssignationRefPointX(0.f);
-                    knob->setAssignationRefPointY(knob->getAssignationRefPointY() * 360.f - _locationManager.heading.trueHeading);
-                }
-                else if (knob->getAssignationType() == kAssignationGyroX) knob->setAssignationRefPointX(0.);
-                else if (knob->getAssignationType() == kAssignationGyroY) knob->setAssignationRefPointX(0.);
-                else if (knob->getAssignationType() == kAssignationGyroZ) knob->setAssignationRefPointX(0.);
-                
-                NSString* key = [NSString stringWithFormat:@"%@-assignation-refpoint-x", [self urlForWidget:knob]];
-                [[NSUserDefaults standardUserDefaults] setFloat:knob->getAssignationRefPointX() + 1000. forKey:key];
-                
-                key = [NSString stringWithFormat:@"%@-assignation-refpoint-y", [self urlForWidget:knob]];
-                [[NSUserDefaults standardUserDefaults] setFloat:knob->getAssignationRefPointY() + 1000. forKey:key];
-                
-                [[NSUserDefaults standardUserDefaults] synchronize];
-            }
-            
-            // Otherwise normal behaviour
-            else
-            {
-                knob->modifyZone((float)((FIKnob*)sender).value);
-            }
+            knob->modifyZone((float)((FIKnob*)sender).value);
         }
     }
     else if ([sender isKindOfClass:[FITabView class]])
@@ -991,7 +904,6 @@ T findCorrespondingUiItem(FIResponder* sender)
     finterface->recallState(rcfilename);
 }
 
-
 #pragma mark - Flipside View Controller
 
 - (void)flipsideViewControllerDidFinish:(FIFlipsideViewController *)controller
@@ -1154,17 +1066,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     else if ([gesture.view isKindOfClass:[FIButton class]])
     {
-        uiButton* button = findCorrespondingUiItem<uiButton*>((FIResponder*)gesture.view);
-        if (button)
-        {
-            [_gyroAxisSegmentedControl insertSegmentWithTitle:@"0" atIndex:0 animated:NO];
-            [_gyroAxisSegmentedControl insertSegmentWithTitle:@"Shk" atIndex:1 animated:NO];
-            
-            _widgetPreferencesTitleLabel.text = dynamic_cast<uiButton*>(_selectedWidget)->fButton.title;
-            
-            if (_selectedWidget->getAssignationType() == kAssignationNone) _gyroAxisSegmentedControl.selectedSegmentIndex = 0;
-            else if (_selectedWidget->getAssignationType() == kAssignationShake) _gyroAxisSegmentedControl.selectedSegmentIndex = 1;
-        }
+        // SL : 03/12/2015 : obsolete code
     }
     
     // Display right values for parameters
@@ -1191,26 +1093,16 @@ T findCorrespondingUiItem(FIResponder* sender)
 - (void)updateWidgetPreferencesView
 {
     // For knobs and sliders
-    if (dynamic_cast<uiKnob*>(_selectedWidget)
-        || dynamic_cast<uiSlider*>(_selectedWidget))
+    if (dynamic_cast<uiKnob*>(_selectedWidget) || dynamic_cast<uiSlider*>(_selectedWidget))
     {
         _curveSegmentedControl.selectedSegmentIndex = _selectedWidget->getAssignationCurve();
-        
-        if (_selectedWidget->getAssignationType() == kAssignationNone) _gyroAxisSegmentedControl.selectedSegmentIndex = 0;
-        else if (_selectedWidget->getAssignationType() == kAssignationAccelX) _gyroAxisSegmentedControl.selectedSegmentIndex = 1;
-        else if (_selectedWidget->getAssignationType() == kAssignationAccelY) _gyroAxisSegmentedControl.selectedSegmentIndex = 2;
-        else if (_selectedWidget->getAssignationType() == kAssignationAccelZ) _gyroAxisSegmentedControl.selectedSegmentIndex = 3;
-        else if (_selectedWidget->getAssignationType() == kAssignationGyroX) _gyroAxisSegmentedControl.selectedSegmentIndex = 4;
-        else if (_selectedWidget->getAssignationType() == kAssignationGyroY) _gyroAxisSegmentedControl.selectedSegmentIndex = 5;
-        else if (_selectedWidget->getAssignationType() == kAssignationGyroZ) _gyroAxisSegmentedControl.selectedSegmentIndex = 6;
+        _gyroAxisSegmentedControl.selectedSegmentIndex = _selectedWidget->getAssignationType();
     }
     
     // For buttons
     else if (dynamic_cast<uiButton*>(_selectedWidget))
     {
-        if (_selectedWidget->getAssignationType() == kAssignationNone) _gyroAxisSegmentedControl.selectedSegmentIndex = 0;
-        else if (_selectedWidget->getAssignationType() == kAssignationShake) _gyroAxisSegmentedControl.selectedSegmentIndex = 1;
-        _gyroAxisSegmentedControl.selectedSegmentIndex = _selectedWidget->getAssignationType();
+        // SL : 03/12/2015 : obsolete code
     }
     
     // Common parameters for all types
@@ -1258,32 +1150,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     BOOL                            found = false;
    
     if (sender == _curveSegmentedControl) {
-        
-        //printf("selectedSegmentIndex %d \n", _curveSegmentedControl.selectedSegmentIndex);
         _selectedWidget->setAssignationCurve(_curveSegmentedControl.selectedSegmentIndex);
-        
-        /*
-        // Get title of selected tab for sensor assignation
-        str = [NSString stringWithString:[_curveSegmentedControl titleForSegmentAtIndex:_curveSegmentedControl.selectedSegmentIndex]];
-        
-        if ([str compare:@"Curve1"] == NSOrderedSame)
-        {
-            _selectedWidget->setAssignationCurve(kCurve1);
-        }
-        else if ([str compare:@"Curve2"] == NSOrderedSame)
-        {
-            _selectedWidget->setAssignationCurve(kCurve2);
-        }
-        else if ([str compare:@"Curve3"] == NSOrderedSame)
-        {
-            _selectedWidget->setAssignationCurve(kCurve3);
-        }
-        else if ([str compare:@"Curve4"] == NSOrderedSame)
-        {
-            _selectedWidget->setAssignationCurve(kCurve4);
-        }
-        */
-        
         printf("_curveSegmentedControl\n");
     } else if (sender == _minSlider) {
         // Range limitation
@@ -1580,7 +1447,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     if (_motionManager == nil)
     {
         _motionManager = [[CMMotionManager alloc] init];
-        _sensorFilter = [[FISensorFilter alloc] initWithSampleRate:kMotionUpdateRate * 10 cutoffFrequency:100];
+        //_sensorFilter = [[FISensorFilter alloc] initWithSampleRate:kMotionUpdateRate * 10 cutoffFrequency:100];
         [_motionManager startAccelerometerUpdates];
         [_motionManager startGyroUpdates];
         _motionTimer = [NSTimer scheduledTimerWithTimeInterval:1./kMotionUpdateRate
@@ -1588,14 +1455,6 @@ T findCorrespondingUiItem(FIResponder* sender)
                                                       selector:@selector(updateMotion)
                                                       userInfo:nil 
                                                        repeats:YES];
-    }
-    
-    // Location
-    if (_locationManager == nil)
-    {
-        _locationManager = [[CLLocationManager alloc] init];
-        _locationManager.delegate = self;
-        [_locationManager startUpdatingHeading];
     }
 }
 
@@ -1611,19 +1470,6 @@ T findCorrespondingUiItem(FIResponder* sender)
         _motionManager = nil;
         [_motionTimer invalidate];
     }
-    
-    // Location
-    if (_locationManager)
-    {
-        [_locationManager stopUpdatingHeading];
-        [_locationManager release];
-        _locationManager = nil;
-    }
-}
-
-- (void)endBlockShake
-{
-    _blockShake = NO;
 }
 
 // The function periodically called to refresh motion sensors
@@ -1639,305 +1485,6 @@ T findCorrespondingUiItem(FIResponder* sender)
                             _motionManager.gyroData.rotationRate.y,
                             _motionManager.gyroData.rotationRate.z);
     
-    return;
-    
-    // TODO : remove this code...
-    
-    list<uiCocoaItem*>::iterator    i;
-    float                           coef = 0.f;
-    float                           value = 0.f;
-    float                           a = 0.;
-    float                           b = 0.;
-    float                           sign = 1.;
-    
-    [_sensorFilter addAccelerationX:_motionManager.accelerometerData.acceleration.x
-                                  y:_motionManager.accelerometerData.acceleration.y
-                                  z:_motionManager.accelerometerData.acceleration.z];
-    
-    [_sensorFilter addGyroX:_motionManager.gyroData.rotationRate.x / 10.
-                          y:_motionManager.gyroData.rotationRate.y / 10.
-                          z:_motionManager.gyroData.rotationRate.z / 10.];
-
-    for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
-    {
-        if ((dynamic_cast<uiKnob*>(*i) && !dynamic_cast<uiKnob*>(*i)->fKnob.motionBlocked)
-            || (dynamic_cast<uiSlider*>(*i) && !dynamic_cast<uiSlider*>(*i)->fSlider.motionBlocked)
-            || dynamic_cast<uiButton*>(*i))
-        {
-            
-            coef = 0.f;
-            
-            if ((*i)->getAssignationType() == kAssignationAccelX)
-            {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.xAccel;//* (*i)->getAssignationSensibility();
-                else coef = _motionManager.accelerometerData.acceleration.x;//* (*i)->getAssignationSensibility();
-            }
-            else if ((*i)->getAssignationType() == kAssignationAccelY)
-            {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.yAccel;// * (*i)->getAssignationSensibility();
-                else coef = _motionManager.accelerometerData.acceleration.y;// * (*i)->getAssignationSensibility();
-            }
-            else if ((*i)->getAssignationType() == kAssignationAccelZ)
-            {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.zAccel;// * (*i)->getAssignationSensibility();
-                else coef = _motionManager.accelerometerData.acceleration.z;// * (*i)->getAssignationSensibility();
-            }
-            else if ((*i)->getAssignationType() == kAssignationGyroX)
-            {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.xGyro;// * (*i)->getAssignationSensibility();
-                else coef = _motionManager.gyroData.rotationRate.x / 10.;// * (*i)->getAssignationSensibility();
-            }
-            else if ((*i)->getAssignationType() == kAssignationGyroY)
-            {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.yGyro;// * (*i)->getAssignationSensibility();
-                else coef = _motionManager.gyroData.rotationRate.y / 10.;// * (*i)->getAssignationSensibility();
-            }
-            else if ((*i)->getAssignationType() == kAssignationGyroZ)
-            {
-                if ((*i)->getAssignationFiltered()) coef = _sensorFilter.zGyro;// * (*i)->getAssignationSensibility();
-                else coef = _motionManager.gyroData.rotationRate.z / 10.;// * (*i)->getAssignationSensibility();
-            }
-            else if ((*i)->getAssignationType() == kAssignationShake)
-            {
-                // Shake detection
-                if (!_blockShake
-                    && (fabsf(_sensorFilter.xAccel) > 1.4
-                        || fabsf(_sensorFilter.yAccel) > 1.4
-                        || fabsf(_sensorFilter.zAccel) > 1.4))
-                {
-                    coef = 1.f;
-                    _blockShake = YES;
-                    [self performSelector:@selector(endBlockShake) withObject:nil afterDelay:0.3];
-                }
-                else
-                {
-                    coef = 0.f;
-                }
-            }
-            else
-            {
-                continue;
-            }
-            
-            if ((*i)->getAssignationInverse()) sign = -1.;
-            else sign = 1.;
-            
-            ////
-            if (dynamic_cast<uiSlider*>(*i))
-            {
-                value = [self mapping3WithA:sign * coef * (*i)->getAssignationSensibility()
-                                         la:-1.
-                                         ma:(*i)->getAssignationRefPointX()
-                                         ha:1.
-                                         lv:dynamic_cast<uiSlider*>(*i)->fSlider.min
-                                         mv:(*i)->getAssignationRefPointY()
-                                         hv:dynamic_cast<uiSlider*>(*i)->fSlider.max];
-            }
-            else if (dynamic_cast<uiKnob*>(*i))
-            {
-                value = [self mapping3WithA:sign * coef * (*i)->getAssignationSensibility()
-                                         la:-1.
-                                         ma:(*i)->getAssignationRefPointX()
-                                         ha:1.
-                                         lv:dynamic_cast<uiKnob*>(*i)->fKnob.min
-                                         mv:(*i)->getAssignationRefPointY()
-                                         hv:dynamic_cast<uiKnob*>(*i)->fKnob.max];
-            }
-            
-            //NSLog(@"val %f", value);
-            ////
-            
-            // CASE 1: two curves
-            /*float x1 = 0.;
-            float y1 = 0.;
-            float x2 = 0.;
-            float y2 = 0.;
-            float va = sign * coef;//* (*i)->getAssignationSensibility();    // Accelerometer value
-            float la = -1.;//* (*i)->getAssignationSensibility();     // Down accelerometer limit
-            float ha = 1.;//* (*i)->getAssignationSensibility();      // Top accelerometer limit
-            float x = sign * (*i)->getAssignationRefPointX(); // (*i)->getAssignationSensibility(); // ref point x
-            float y;
-            
-            NSLog(@"%f %f", (*i)->getAssignationRefPointX(), (*i)->getAssignationRefPointY());
-            
-            if (dynamic_cast<uiKnob*>(*i))
-            {
-                y = (((*i)->getAssignationRefPointY()) / (1.) * (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min);
-            }
-            else if (dynamic_cast<uiSlider*>(*i))
-            {
-                y = (((*i)->getAssignationRefPointY()) / (1.) * (dynamic_cast<uiSlider*>(*i)->fSlider.max - dynamic_cast<uiSlider*>(*i)->fSlider.min) + dynamic_cast<uiSlider*>(*i)->fSlider.min);
-            }
-            
-            float ls; // Down slider limit
-            float hs; // TOp slider limit
-            if (dynamic_cast<uiKnob*>(*i))
-            {
-                ls = dynamic_cast<uiKnob*>(*i)->fKnob.min;
-                hs = dynamic_cast<uiKnob*>(*i)->fKnob.max;
-            }
-            else if (dynamic_cast<uiSlider*>(*i))
-            {
-                ls = dynamic_cast<uiSlider*>(*i)->fSlider.min;
-                hs = dynamic_cast<uiSlider*>(*i)->fSlider.max;
-            }
-            
-            //NSLog(@"%f %f", va, x);
-
-            if (va <= x)
-            {
-                //NSLog(@"<=");
-                x1 = la / (*i)->getAssignationSensibility();
-                x2 = x;
-                y1 = ls;
-                y2 = y;
-                
-                if (x1 >= x || fabs(x1 - x) < 0.01) x1 = x - 0.01;
-            }
-            else if (va > x)
-            {
-                //NSLog(@">");
-                x1 = x;
-                x2 = ha / (*i)->getAssignationSensibility();
-                y1 = y;
-                y2 = hs;
-                
-                if (x2 <= x || fabs(x2 - x) < 0.01) x2 = x + 0.01;
-            }
-
-            if (x1 == x2) a = 0.;
-            else a = (y2 - y1) / (x2 - x1);
-            b = y1 - a * x1;
-            value = a * va + b;*/
-            
-            /*NSLog(@"va %f", va);
-            NSLog(@"la %f - ha %f - x %f - y %f - ls %f - hs %f", la, ha, x, y, ls, hs);
-            NSLog(@"%f %f %f %f", x1, x2, y1, y2);
-            NSLog(@"%f %f", a, b);
-            NSLog(@"assignation %f %f", (*i)->getAssignationRefPointX(), (*i)->getAssignationRefPointY());*/
-            
-            // CASE 2: simple offset
-            /*a = sign * (*i)->getAssignationSensibility();
-            b = (*i)->getAssignationRefPointY() - a * (*i)->getAssignationRefPointX();
-            
-            value = a * coef + b;*/
-            
-            /*if (dynamic_cast<uiKnob*>(*i))
-            {
-                value = value * (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min;
-            }
-            else if (dynamic_cast<uiSlider*>(*i))
-            {
-                value = value * (dynamic_cast<uiSlider*>(*i)->fSlider.max - dynamic_cast<uiSlider*>(*i)->fSlider.min) + dynamic_cast<uiSlider*>(*i)->fSlider.min;
-            }
-            else if (dynamic_cast<uiButton*>(*i))
-            {
-                if (coef == 0.f)
-                {
-                    continue;
-                }
-                else if (coef == 1.f && dynamic_cast<uiButton*>(*i)->fButton.type == kPushButtonType)
-                {
-                    value = 1.f;
-                }
-                else if (coef == 1.f && dynamic_cast<uiButton*>(*i)->fButton.type == kToggleButtonType)
-                {
-                    if (dynamic_cast<uiButton*>(*i)->fButton.value == 1) value = 0;
-                    else if (dynamic_cast<uiButton*>(*i)->fButton.value == 0) value = 1;
-                }
-            }*/
-   
-            //NSLog(@"va %f", va);
-            //NSLog(@"VALUE %f", value);
-            
-            (*i)->modifyZone(value);
-            (*i)->reflectZone();
-            
-            // Force button refresh (otherwise nothing happens)
-            if (dynamic_cast<uiButton*>(*i) && dynamic_cast<uiButton*>(*i)->fButton.type == kPushButtonType)
-            {
-                dynamic_cast<uiButton*>(*i)->fButton.value = value;
-                [dynamic_cast<uiButton*>(*i)->fButton setNeedsDisplay];
-            }
-        }
-    }
-}
-
-- (float)mapping2WithA:(float)a la:(float)la ha:(float)ha lv:(float)lv hv:(float)hv
-{
-    if (a < la)
-    {
-        return lv;
-    }
-    else if (a > ha)
-    {
-        return hv;
-    }
-    else
-    {
-        return (a - la) / (ha - la) * (hv - lv) + lv;
-    }
-}
-
-- (float)mapping3WithA:(float)a la:(float)la ma:(float)ma ha:(float)ha lv:(float)lv mv:(float)mv hv:(float)hv
-{
-    if (a > ma)
-    {
-        return [self mapping2WithA:a la:ma ha:ha lv:mv hv:hv];
-    }
-    else
-    {
-        return [self mapping2WithA:a la:la ha:ma lv:lv hv:mv];
-    }
-}
-
-// The function called when compass has moved
-- (void)locationManager:(CLLocationManager *)manager didUpdateHeading:(CLHeading *)heading
-{
-    list<uiCocoaItem*>::iterator    i;
-    float                           coef = 0.f;
-    float                           value = 0.f;
-    
-    [_sensorFilter addHeading:heading.magneticHeading];
-
-    for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
-    {
-        if (dynamic_cast<uiKnob*>(*i) || dynamic_cast<uiSlider*>(*i) || dynamic_cast<uiButton*>(*i))
-        {
-            coef = 0.f;
-            
-            if ((*i)->getAssignationType() == kAssignationCompass)
-            {
-                coef = (int)round(_sensorFilter.heading * (*i)->getAssignationSensibility() + (*i)->getAssignationRefPointY()) % 360;
-                value = coef / 360.f;
-                if ((*i)->getAssignationInverse()) value = 1.f - value;
-                
-                if (dynamic_cast<uiKnob*>(*i))
-                {
-                    value = value * (dynamic_cast<uiKnob*>(*i)->fKnob.max - dynamic_cast<uiKnob*>(*i)->fKnob.min) + dynamic_cast<uiKnob*>(*i)->fKnob.min;
-                }
-                else if (dynamic_cast<uiSlider*>(*i))
-                {
-                    value = value * (dynamic_cast<uiSlider*>(*i)->fSlider.max - dynamic_cast<uiSlider*>(*i)->fSlider.min) + dynamic_cast<uiSlider*>(*i)->fSlider.min;
-                }
-                
-                (*i)->modifyZone(value);
-                (*i)->reflectZone();
-            }
-        }
-    }
-}
-
-// Error updating compass value
-- (void)locationManager:(CLLocationManager *)manager didFailWithError:(NSError *)error
-{
-    if ([error code] == kCLErrorDenied)
-    {
-        [manager stopUpdatingHeading];
-    }
-    else if ([error code] == kCLErrorHeadingFailure)
-    {
-    }
 }
 
 - (NSString*)urlForWidget:(uiCocoaItem*)widget

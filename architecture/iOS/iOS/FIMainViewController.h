@@ -22,7 +22,6 @@
 #import "FIFlipsideViewController.h"
 #import "FIResponder.h"
 #import "FIScrollView.h"
-#import "FISensorFilter.h"
 
 #ifdef JACK_IOS
 #import "JackView.h"
@@ -36,8 +35,7 @@ class uiBox;
                                                         UIPopoverControllerDelegate,
                                                         FIResponderDelegate,
                                                         UIScrollViewDelegate,
-                                                        UIGestureRecognizerDelegate,
-                                                        CLLocationManagerDelegate>
+                                                        UIGestureRecognizerDelegate>
 {
     IBOutlet UIView*                    _dspView;
     IBOutlet FIScrollView*              _dspScrollView;
@@ -58,11 +56,8 @@ class uiBox;
     IBOutlet UILabel*                   _widgetPreferencesTitleLabel;
     uiCocoaItem*                        _selectedWidget;                // Contains label of the widget
     list <uiCocoaItem*>                 _assignatedWidgets;
-    FISensorFilter*                     _sensorFilter;
-    CLLocationManager*                  _locationManager;
     CMMotionManager*                    _motionManager;
     NSTimer*                            _motionTimer;
-    BOOL                                _blockShake;                    // To avoid several shakes in one movement
     
     IBOutlet UILabel*                   _colorLabel;
     IBOutlet UILabel*                   _rLabel;
@@ -147,12 +142,7 @@ class uiBox;
 - (void)startMotion;
 - (void)stopMotion;
 - (void)updateMotion;
-- (void)endBlockShake;
 - (NSString*)urlForWidget:(uiCocoaItem*)widget;
-
-- (float)mapping2WithA:(float)a la:(float)la ha:(float)ha lv:(float)lv hv:(float)hv;
-- (float)mapping3WithA:(float)a la:(float)la ma:(float)ma ha:(float)ha lv:(float)lv mv:(float)mv hv:(float)hv;
-
 
 #ifdef JACK_IOS
 // Test Jack

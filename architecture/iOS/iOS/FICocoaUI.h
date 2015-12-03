@@ -82,10 +82,6 @@ class uiBox;
 #define kAssignationGyroY               5
 #define kAssignationGyroZ               6
 
-#define kAssignationShake               7
-#define kAssignationCompass             8
-
-
 #define kCurve1                         0
 #define kCurve2                         1
 #define kCurve3                         2
@@ -174,13 +170,6 @@ protected:
     int                     fInitAssignationType;
     int                     fInitAssignationCurve;
     
-    // To remove
-    float                   fInitAssignationRefPointX;
-    float                   fInitAssignationRefPointY;
-    BOOL                    fInitAssignationInverse;
-    BOOL                    fInitAssignationFiltered;
-    float                   fInitAssignationSensibility;
-    
     float                   fInitR;
     float                   fInitG;
     float                   fInitB;
@@ -195,13 +184,6 @@ protected:
     float                   fMinCurve;
     float                   fMidCurve;
     float                   fMaxCurve;
-    
-    // To remove
-    float                   fAssignationRefPointX;
-    float                   fAssignationRefPointY;
-    BOOL                    fAssignationInverse;
-    BOOL                    fAssignationFiltered;
-    float                   fAssignationSensibility;
     
     float                   fR;
     float                   fG;
@@ -218,12 +200,6 @@ public:
     {
         fAssignationType = fInitAssignationType;
         fAssignationCurve = fInitAssignationCurve;
-        
-        fAssignationRefPointX = fInitAssignationRefPointX;
-        fAssignationRefPointY = fInitAssignationRefPointY;
-        fAssignationInverse = fInitAssignationInverse;
-        fAssignationFiltered = fInitAssignationFiltered;
-        fAssignationSensibility = fInitAssignationSensibility;
         
         fR = fInitR;
         fG = fInitG;
@@ -252,11 +228,7 @@ public:
         fAbstractH = 0.f;
         fSelected = false;
         fInitAssignationType = kAssignationNone;
-        fInitAssignationRefPointX = 0.f;
-        fInitAssignationRefPointY = 0.f;
-        fInitAssignationInverse = false;
-        fInitAssignationFiltered = false;
-        fInitAssignationSensibility = 1.;
+        
         fInitR = 0.f;
         fInitG = 0.f;
         fInitB = 1.f;
@@ -346,37 +318,7 @@ public:
     {
         fInitMinCurve = min; fInitMidCurve = mid; fInitMaxCurve = max;
     }
-    
-    float getInitAssignationRefPointX()                                 {return fInitAssignationRefPointX;}
-    void setInitAssignationRefPointX(float assignationRefPointX)        {fInitAssignationRefPointX = assignationRefPointX; setAssignationRefPointX(assignationRefPointX);}
-
-    float getAssignationRefPointX()                                     {return fAssignationRefPointX;}
-    void setAssignationRefPointX(float assignationRefPointX)            {fAssignationRefPointX = assignationRefPointX;}
-    
-    float getInitAssignationRefPointY()                                 {return fInitAssignationRefPointY;}
-    void setInitAssignationRefPointY(float assignationRefPointY)        {fInitAssignationRefPointY = assignationRefPointY; setAssignationRefPointY(assignationRefPointY);}
-
-    float getAssignationRefPointY()                                     {return fAssignationRefPointY;}
-    void setAssignationRefPointY(float assignationRefPointY)            {fAssignationRefPointY = assignationRefPointY;}
-
-    BOOL getInitAssignationInverse()                                    {return fInitAssignationInverse;}
-    void setInitAssignationInverse(BOOL assignationInverse)             {fInitAssignationInverse = assignationInverse; setAssignationInverse(assignationInverse);}
-
-    BOOL getAssignationInverse()                                        {return fAssignationInverse;}
-    void setAssignationInverse(BOOL assignationInverse)                 {fAssignationInverse = assignationInverse;}
-
-    BOOL getInitAssignationFiltered()                                   {return fInitAssignationFiltered;}
-    void setInitAssignationFiltered(BOOL assignationFiltered)           {fInitAssignationFiltered = assignationFiltered; setAssignationFiltered(assignationFiltered);}
-
-    BOOL getAssignationFiltered()                                       {return fAssignationFiltered;}
-    void setAssignationFiltered(BOOL assignationFiltered)               {fAssignationFiltered = assignationFiltered;}
-
-    float getInitAssignationSensibility()                               {return fInitAssignationSensibility;}
-    void setInitAssignationSensibility(float assignationSensibility)    {fInitAssignationSensibility = assignationSensibility; setAssignationSensibility(assignationSensibility);}
-
-    float getAssignationSensibility()                                   {return fAssignationSensibility;}
-    void setAssignationSensibility(float assignationSensibility)        {fAssignationSensibility = assignationSensibility;}
-
+  
     float getInitR()                                                    {return fInitR;}
     float getInitG()                                                    {return fInitG;}
     float getInitB()                                                    {return fInitB;}
@@ -1315,11 +1257,6 @@ private:
     map<float*, int>                fG;
     map<float*, int>                fB;
     map<float*, int>                fAssignationType;
-    map<float*, bool>               fAssignationFiltered;
-    map<float*, float>              fAssignationSensibility;
-    map<float*, bool>               fAssignationInverse;
-    map<float*, float>              fAssignationRefPointX;
-    map<float*, float>              fAssignationRefPointY;
     map<float*, bool>               fHideOnGUI;
     map<float*, bool>               fLed;
     map<float*, float>              fLedR;
@@ -2223,11 +2160,6 @@ public:
         // Default parameters
         if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
         if (fAssignationType[zone]) item->setInitAssignationType(fAssignationType[zone]);
-        if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
-        if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
-        if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
-        if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
-        if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY(fAssignationRefPointY[zone]);
         if (getCurrentOpenedBox())
         {
             if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
@@ -2249,11 +2181,6 @@ public:
         // Default parameters
         if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
         if (fAssignationType[zone]) item->setInitAssignationType(fAssignationType[zone]);
-        if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
-        if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
-        if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
-        if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
-        if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY(fAssignationRefPointY[zone]);
         if (getCurrentOpenedBox())
         {
             if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
@@ -2286,11 +2213,6 @@ public:
             // Default parameters
             if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
             if (fAssignationType[zone]) item->setInitAssignationType(fAssignationType[zone]);
-            if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
-            if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
-            if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
-            if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
-            if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY(fAssignationRefPointY[zone]);
             if (getCurrentOpenedBox())
             {
                 if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
@@ -2318,11 +2240,6 @@ public:
             // Default parameters
             if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
             if (fAssignationType[zone]) item->setInitAssignationType(fAssignationType[zone]);
-            if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
-            if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
-            if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
-            if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
-            if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY(fAssignationRefPointY[zone]);
             if (getCurrentOpenedBox())
             {
                 if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
@@ -2545,80 +2462,18 @@ public:
                      || strcmp(key,"accz") == 0
                      || strcmp(key,"gyrox") == 0
                      || strcmp(key,"gyroy") == 0
-                     || strcmp(key,"gyroz") == 0
-                     || strcmp(key,"compass") == 0)
+                     || strcmp(key,"gyroz") == 0)
             {
-                float sensibility = 1.f;
-                bool filtered = true;
-                float refPointX = 0.f;
-                float refPointY = 0.f;
-                                   
                 if (strcmp(key,"accx") == 0) fAssignationType[zone] = kAssignationAccelX;
                 else if (strcmp(key,"accy") == 0) fAssignationType[zone] = kAssignationAccelY;
                 else if (strcmp(key,"accz") == 0) fAssignationType[zone] = kAssignationAccelZ;
                 else if (strcmp(key,"gyrox") == 0) fAssignationType[zone] = kAssignationGyroX;
                 else if (strcmp(key,"gyroy") == 0) fAssignationType[zone] = kAssignationGyroY;
                 else if (strcmp(key,"gyroz") == 0) fAssignationType[zone] = kAssignationGyroZ;
-                else if (strcmp(key,"compass") == 0) fAssignationType[zone] = kAssignationCompass;
-
-                NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
-                NSArray* arr = [str componentsSeparatedByString:@" "];
-                
-                if ([arr count] == 0)
-                {
-                    sensibility = 1.f;
-                    refPointX = 0.f;
-                    refPointY = 0.f;
-                    filtered = true;
-                }
-                else if ([arr count] == 1)
-                {
-                    sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
-                    refPointX = 0.f;
-                    refPointY = 0.f;
-                    filtered = true;
-                }
-                else if ([arr count] == 2)
-                {
-                    sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
-                    refPointX = [((NSString*)[arr objectAtIndex:1]) floatValue];
-                    refPointY = 0.f;
-                    filtered = true;
-                }
-                else if ([arr count] == 3)
-                {
-                    sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
-                    refPointX = [((NSString*)[arr objectAtIndex:1]) floatValue];
-                    refPointY = [((NSString*)[arr objectAtIndex:2]) floatValue];
-                    filtered = true;
-                }
-                else
-                {
-                    sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
-                    refPointX = [((NSString*)[arr objectAtIndex:1]) floatValue];
-                    refPointY = [((NSString*)[arr objectAtIndex:2]) floatValue];
-                    filtered = [((NSString*)[arr objectAtIndex:3]) boolValue];
-                }
-                
-                if (sensibility < 0.)
-                {
-                    fAssignationSensibility[zone] = -sensibility;
-                    fAssignationInverse[zone] = true;
-                }
-                else
-                {
-                    fAssignationSensibility[zone] = sensibility;
-                    fAssignationInverse[zone] = false;
-                }
-                                
-                fAssignationRefPointX[zone] = refPointX;
-                fAssignationRefPointY[zone] = refPointY;
-                fAssignationFiltered[zone] = filtered;
             }
 		}
 	}
 };
-
 
 // global static fields
 
