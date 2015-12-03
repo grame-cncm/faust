@@ -122,6 +122,8 @@ static void jack_shutdown_callback(const char* message, void* arg)
 	DSP.buildUserInterface(uiinterface);
     DSP.buildUserInterface(finterface);
     
+    uiinterface->setHidden(true);
+    
     char* argv[3];
     
     argv[0] = (char*)_name;
@@ -1472,6 +1474,9 @@ T findCorrespondingUiItem(FIResponder* sender)
     uiinterface->setGyrValues(_motionManager.gyroData.rotationRate.x,
                             _motionManager.gyroData.rotationRate.y,
                             _motionManager.gyroData.rotationRate.z);
+    
+    
+    uiinterface->updateScreenCorlor();
     
 }
 

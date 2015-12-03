@@ -91,6 +91,7 @@ class uiBox;
 #define kHorizontalLayout               0
 #define kVerticalLayout                 1
 #define kTabLayout                      2
+#define kColorLayout                    3
 
 // Global dimensions
 #define kWidgetSlice                    50.f
@@ -378,6 +379,10 @@ public:
         
         [controller.dspView addSubview:fBox];
         
+        if (boxType == kColorLayout) {
+            fBox.backgroundColor = [UIColor whiteColor];
+        }
+        
         if (boxType != kTabLayout)
         {
             fLabel = [[[UILabel alloc] init] autorelease];
@@ -396,6 +401,7 @@ public:
     ~uiBox()
     {
         if (fLabel) [fLabel release];
+        if (fTabView) [fTabView release];
         [fBox release];
     }
     
@@ -432,6 +438,14 @@ public:
         }
         
         return cpt;
+    }
+    
+    void setColor(int color)
+    {
+        float red = float(255 & (color >> 16));
+        float green = float(255 & (color >> 8));
+        float blue = float(255 & (color >> 0));
+        fBox.backgroundColor =  [UIColor colorWithRed:red green:green blue:blue alpha:1.f];
     }
     
     void setFrame(float x, float y, float w, float h)
@@ -1265,6 +1279,8 @@ private:
     int                             fCurrentLayoutType;
     bool                            fNextBoxIsHideOnGUI;
     APIUI                           fAPIUI;
+    bool                            fBuildUI;
+    uiBox*                          fMonoView;
     
     // Layout management
     
@@ -1574,12 +1590,23 @@ public:
         
         [window addSubview:viewController.view];
         [window makeKeyAndVisible];
+        
+        fBuildUI = (fAPIUI.getScreenColor() < 0);
+        //fBuildUI = false;
+        
+        if (!fBuildUI) {
+            fMonoView = new uiBox(this, fViewController, "ColorBox", kColorLayout);
+            insert("ColorBox", fMonoView);
+        } else {
+            fMonoView = NULL;
+        }
     }
     
     ~CocoaUI()
     {
         [fViewController release];
         [fWindow release];
+        delete fMonoView;
     }
      
     void setAccValues(float x, float y, float z)
@@ -1652,6 +1679,13 @@ public:
         for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
         {
             (*i)->setHideOnGUI(state);
+        }
+    }
+    
+    void updateScreenCorlor() 
+    {
+        if (fMonoView) {
+            fMonoView->setColor(fAPIUI.getScreenColor());
         }
     }
     
@@ -2012,12 +2046,20 @@ public:
     {}
     virtual void openTabBox(const char* label = "")
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiBox(this, fViewController, label, kTabLayout);
         insert(label, item);
         fCurrentLayoutType = kTabLayout;
     }
     virtual void openHorizontalBox(const char* label = "")
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiBox(this, fViewController, label, kHorizontalLayout);
         
         if (getCurrentOpenedBox()) item->setHideOnGUI(fNextBoxIsHideOnGUI || getCurrentOpenedBox()->getHideOnGUI());
@@ -2029,6 +2071,10 @@ public:
     }
     virtual void openVerticalBox(const char* label = "")
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiBox(this, fViewController, label, kVerticalLayout);
         
         if (getCurrentOpenedBox()) item->setHideOnGUI(fNextBoxIsHideOnGUI || getCurrentOpenedBox()->getHideOnGUI());
@@ -2195,6 +2241,10 @@ public:
     
     virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         if (isKnob(zone)) {
             addVerticalKnob(label, zone, init, min, max, step);
         }  else if (fMenuDescription.count(zone)) {
@@ -2222,6 +2272,14 @@ public:
     }
     virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
+        
+        if (!fBuildUI) {
+            //fHideOnGUI[zone] = true;
+            
+            return;
+        }
+        
+        
         if (isKnob(zone)){
             addHorizontalKnob(label, zone, init, min, max, step);
         }  else if (fMenuDescription.count(zone)) {
@@ -2375,7 +2433,7 @@ public:
 		}
         else
         {
-			if (strcmp(key,"size") == 0)
+            if (strcmp(key,"size") == 0)
             {
 				//fGuiSize[zone]=atof(value);
 			}
