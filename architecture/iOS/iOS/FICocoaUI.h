@@ -442,9 +442,10 @@ public:
     
     void setColor(int color)
     {
-        float red = float(255 & (color >> 16));
-        float green = float(255 & (color >> 8));
-        float blue = float(255 & (color >> 0));
+        CGFloat red = CGFloat(255 & (color >> 16))/255.;
+        CGFloat green = CGFloat(255 & (color >> 8))/255.;
+        CGFloat blue = CGFloat(255 & (color >> 0))/255.;
+        printf("color %d red %f green %f blue %f\n", color, red, green, blue);
         fBox.backgroundColor =  [UIColor colorWithRed:red green:green blue:blue alpha:1.f];
     }
     
@@ -1592,7 +1593,6 @@ public:
         [window makeKeyAndVisible];
         
         fBuildUI = (fAPIUI.getScreenColor() < 0);
-        //fBuildUI = false;
         
         if (!fBuildUI) {
             fMonoView = new uiBox(this, fViewController, "ColorBox", kColorLayout);
@@ -1608,6 +1608,8 @@ public:
         [fWindow release];
         delete fMonoView;
     }
+    
+    bool isScreenUI() { return !fBuildUI; }
      
     void setAccValues(float x, float y, float z)
     {
@@ -2139,6 +2141,10 @@ public:
     
     virtual void addButton(const char* label, float* zone)
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiButton(this, fViewController, label, zone, kPushButtonType);
         
         // Default parameters
@@ -2157,6 +2163,10 @@ public:
     }
     virtual void addToggleButton(const char* label, float* zone)
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiButton(this, fViewController, label, zone, kToggleButtonType);
         
         // Default parameters
@@ -2175,6 +2185,10 @@ public:
     }
     virtual void addCheckButton(const char* label, float* zone)
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiButton(this, fViewController, label, zone, kToggleButtonType);
         
         // Default parameters
@@ -2272,13 +2286,9 @@ public:
     }
     virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
-        
         if (!fBuildUI) {
-            //fHideOnGUI[zone] = true;
-            
             return;
         }
-        
         
         if (isKnob(zone)){
             addHorizontalKnob(label, zone, init, min, max, step);
@@ -2307,6 +2317,10 @@ public:
     }
     virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         if (isKnob(zone))
         {
             addVerticalKnob(label, zone, init, min, max, step);
@@ -2341,6 +2355,10 @@ public:
     {}
     virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max)
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiBargraph(this, fViewController, label, zone, min, max, true);
         
         if (fR[zone] && fG[zone] && fB[zone])
@@ -2373,6 +2391,10 @@ public:
     }
     virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiBargraph(this, fViewController, label, zone, min, max, false);
         
         if (fR[zone] && fG[zone] && fB[zone])

@@ -168,7 +168,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     _motionManager = nil;
     _selectedWidget = nil;
     [self loadWidgetsPreferences];
-    if (_assignatedWidgets.size() > 0) [self startMotion];
+    if (_assignatedWidgets.size() > 0 || uiinterface->isScreenUI()) [self startMotion];
 
 #ifdef JACK_IOS
     // Test Jack
@@ -1299,7 +1299,7 @@ T findCorrespondingUiItem(FIResponder* sender)
     [[NSUserDefaults standardUserDefaults] synchronize];
     
     // If assignation type is not kAssignationNone, we start motion
-    if (_assignatedWidgets.size() > 0) [self startMotion];
+    if (_assignatedWidgets.size() > 0 || uiinterface->isScreenUI()) [self startMotion];
     else [self stopMotion];
 }
 
