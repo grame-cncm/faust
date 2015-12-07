@@ -445,7 +445,6 @@ public:
         CGFloat red = CGFloat(255 & (color >> 16))/255.;
         CGFloat green = CGFloat(255 & (color >> 8))/255.;
         CGFloat blue = CGFloat(255 & (color >> 0))/255.;
-        printf("color %d red %f green %f blue %f\n", color, red, green, blue);
         fBox.backgroundColor =  [UIColor colorWithRed:red green:green blue:blue alpha:1.f];
     }
     
@@ -1993,6 +1992,10 @@ public:
         }
         
         expandBoxesContent();
+        
+       if (!fBuildUI) {
+           fMonoView->setFrame(0, 0, width, height);
+        }
     }
     
     CGRect getBoxAbsoluteFrameForWidget(uiCocoaItem* widget)
