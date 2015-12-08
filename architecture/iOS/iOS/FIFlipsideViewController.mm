@@ -195,7 +195,9 @@
             key = ((NSString*)[keysArray objectAtIndex:i]);
             if ([key compare:@"sampleRate"] != NSOrderedSame
                 && [key compare:@"bufferSize"] != NSOrderedSame
-                && [key compare:@"openWidgetPanel"] != NSOrderedSame)
+                && [key compare:@"openWidgetPanel"] != NSOrderedSame
+                && [key compare:@"oscTransmit"] != NSOrderedSame
+                && [key compare:@"oscIPOutputText"] != NSOrderedSame)
             {
                 [[NSUserDefaults standardUserDefaults] removeObjectForKey:key];
             }
@@ -206,7 +208,6 @@
         [[NSUserDefaults standardUserDefaults] synchronize];
 	}
 }
-
 
 - (int)sampleRateToSliderValue:(int)sampleRate
 {
