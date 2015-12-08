@@ -371,21 +371,21 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Open widget panel" lineBreakMode="tailTruncation" minimumFontSize="10" id="QHj-Ev-ZRr">
-                                <rect key="frame" x="20" y="245" width="184" height="21"/>
+                                <rect key="frame" x="20" y="328" width="184" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <switch opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" id="0tq-fl-CWV">
-                                <rect key="frame" x="251" y="251" width="51" height="31"/>
+                                <rect key="frame" x="245" y="337" width="51" height="31"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                                 <connections>
                                     <action selector="openWidgetPanelSwitchMoved:" destination="6" eventType="valueChanged" id="qim-6k-Qi3"/>
                                 </connections>
                             </switch>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="on long press" lineBreakMode="tailTruncation" minimumFontSize="10" id="MCl-8J-e1e">
-                                <rect key="frame" x="20" y="264" width="184" height="21"/>
+                                <rect key="frame" x="20" y="347" width="184" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
@@ -402,6 +402,36 @@
                                     <action selector="deleteAssignationsButtonClicked:" destination="6" eventType="touchUpInside" id="fgT-bQ-u5J"/>
                                 </connections>
                             </button>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="OSC output IP" lineBreakMode="tailTruncation" minimumFontSize="10" id="Dug-q9-Rbk">
+                                <rect key="frame" x="20" y="240" width="114" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="OSC transmit" lineBreakMode="tailTruncation" minimumFontSize="10" id="byC-1c-Zn7">
+                                <rect key="frame" x="20" y="286" width="106" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="192.168.1.1" borderStyle="roundedRect" minimumFontSize="17" id="eSV-gx-j7Y">
+                                <rect key="frame" x="181" y="236" width="119" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <outlet property="delegate" destination="7" id="PMp-Z0-7sT"/>
+                                </connections>
+                            </textField>
+                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" id="AeQ-XF-vSd">
+                                <rect key="frame" x="216" y="281" width="51" height="31"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <connections>
+                                    <action selector="oscTransmitSwitchMoved:" destination="6" eventType="valueChanged" id="bZa-mq-57t"/>
+                                </connections>
+                            </switch>
                         </subviews>
                         <color key="backgroundColor" white="0.25" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -409,6 +439,8 @@
                         <outlet property="_bufferSizeLabel" destination="9wB-mL-QeI" id="8c8-pu-tF8"/>
                         <outlet property="_bufferSizeSlider" destination="gDC-YP-Hzz" id="tGk-M5-y3n"/>
                         <outlet property="_openWidgetPanelSwitch" destination="0tq-fl-CWV" id="c3B-yb-Vnl"/>
+                        <outlet property="_oscIPOutput" destination="eSV-gx-j7Y" id="lug-UP-vv3"/>
+                        <outlet property="_oscTransmitSwitch" destination="AeQ-XF-vSd" id="hNQ-PK-kT7"/>
                         <outlet property="_sampleRateLabel" destination="U5Y-mi-YMk" id="mw6-2F-q56"/>
                         <outlet property="_sampleRateSlider" destination="1Y5-CG-5xs" id="wSl-lW-BS3"/>
                         <outlet property="delegate" destination="2" id="15"/>

@@ -33,6 +33,12 @@
 #define kJackViewHeight 130
 #define kJackViewAnimationDuration 0.2
 
+#define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
+#define SYSTEM_VERSION_GREATER_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
+#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
+
 @implementation FIMainViewController
 
 @synthesize flipsidePopoverController = _flipsidePopoverController;
@@ -49,12 +55,8 @@ int sampleRate = 0;
 int	bufferSize = 0;
 BOOL openWidgetPanel = YES;
 int uiCocoaItem::gItemCount = 0;
-
-#define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
-#define SYSTEM_VERSION_GREATER_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
-#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
-#define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
-#define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
+BOOL oscTransmit = NO;
+NSString* oscIPOutputText = nil;
 
 - (void)didReceiveMemoryWarning
 {
@@ -113,6 +115,9 @@ static void jack_shutdown_callback(const char* message, void* arg)
     sampleRate = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
     bufferSize = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     openWidgetPanel = [[NSUserDefaults standardUserDefaults] boolForKey:@"openWidgetPanel"];
+    oscTransmit = [[NSUserDefaults standardUserDefaults] boolForKey:@"oscTransmit"];
+    oscIPOutputText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscIPOutputText"];
+    oscIPOutputText =  (oscIPOutputText) ? oscIPOutputText : @"192.168.1.1";
     
     [self openAudio];
     [self displayTitle];
@@ -123,17 +128,8 @@ static void jack_shutdown_callback(const char* message, void* arg)
     DSP.buildUserInterface(finterface);
     
     uiinterface->setHidden(true);
-    
-    char* argv[3];
-    
-    argv[0] = (char*)_name;
-    argv[1] = "-xmit";
-    argv[2] = "1";
-    
-    oscinterface = new OSCUI(_name, 3, argv);
-    DSP.buildUserInterface(oscinterface);
-    
-    oscinterface->run();
+     // Start OSC
+    [self setOSCParameters:oscTransmit output:oscIPOutputText];
     
     snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, _name);
     finterface->recallState(rcfilename);
@@ -898,10 +894,32 @@ T findCorrespondingUiItem(FIResponder* sender)
         
         [self openCoreAudio:bufferSize :sampleRate];
         
-        DSP.init(long(sampleRate));
+        DSP.init(int(sampleRate));
     }
    
     finterface->recallState(rcfilename);
+}
+
+#pragma mark - OSC
+
+// OSC
+- (void)setOSCParameters:(BOOL)transmit output:(NSString*)outputIPText
+{
+    delete oscinterface;
+    if (transmit)  {
+        const char* argv[5];
+        argv[0] = (char*)_name;
+        argv[1] = "-xmit";
+        argv[2] = "1";
+        argv[3] = "-desthost";
+        argv[4] = [outputIPText cStringUsingEncoding:[NSString defaultCStringEncoding]];
+        printf("output %s\n",  argv[4]);
+        oscinterface = new OSCUI(_name, 5, (char**)argv);
+    } else {
+        oscinterface = new OSCUI(_name, 0, NULL);
+    }
+    DSP.buildUserInterface(oscinterface);
+    oscinterface->run();
 }
 
 #pragma mark - Flipside View Controller
