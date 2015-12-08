@@ -18,16 +18,13 @@
 
 #import <UIKit/UIKit.h>
 
-
 @class FIFlipsideViewController;
-
 
 @protocol FIFlipsideViewControllerDelegate
 
 - (void)flipsideViewControllerDidFinish:(FIFlipsideViewController *)controller;
 
 @end
-
 
 @interface FIFlipsideViewController : UIViewController <UIAlertViewDelegate>
 {
@@ -40,19 +37,27 @@
     int                             _sampleRate;
     int                             _bufferSize;
     BOOL                            _openWidgetPanel;
+    
+    IBOutlet UITextField*   _oscIPOutput;
+    NSString*               _oscIPOutputText;
+    
+    IBOutlet UISwitch*  _oscTransmitSwitch;
+    BOOL                _oscTransmit;
 }
 
 @property (assign, nonatomic) IBOutlet id <FIFlipsideViewControllerDelegate> delegate;
 @property (nonatomic, nonatomic) int sampleRate;
 @property (nonatomic, nonatomic) int bufferSize;
 @property (nonatomic, nonatomic) BOOL openWidgetPanel;
-
+@property (nonatomic, nonatomic) BOOL oscTransmit;
 
 - (IBAction)done:(id)sender;
 - (IBAction)sampleRateSliderMoved:(id)sender;
 - (IBAction)bufferSizeSliderMoved:(id)sender;
 - (IBAction)openWidgetPanelSwitchMoved:(id)sender;
 - (IBAction)deleteAssignationsButtonClicked:(id)sender;
+
+- (IBAction)oscTransmitSwitchMoved:(id)sender;
 
 - (int)sampleRateToSliderValue:(int)sampleRate;
 - (int)sliderValueToSampleRate:(int)sliderValue;
