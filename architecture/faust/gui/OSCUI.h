@@ -12,6 +12,10 @@
 #include "faust/gui/GUI.h"
 #include <vector>
 
+#ifdef _WIN32
+#define strcasecmp _stricmp
+#endif
+
 /******************************************************************************
 *******************************************************************************
 
@@ -60,14 +64,14 @@ class OSCUI : public GUI
 	void addalias(FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, const char* label)
 	{
 		for (unsigned int i=0; i<fAlias.size(); i++) {
-			fCtrl->addAlias(fAlias[i], zone, (FAUSTFLOAT)0, (FAUSTFLOAT)1, init, min, max, label);
+			fCtrl->addAlias(fAlias[i], zone, FAUSTFLOAT(0), FAUSTFLOAT(1), init, min, max, label);
 		}
 		fAlias.clear();
 	}
 	
  public:
 
-    OSCUI(const char* /*applicationname*/, int argc, char *argv[], oscfaust::OSCIO* io=0, ErrorCallback errCallback = NULL, void* arg = NULL, bool init = true) : GUI() 
+    OSCUI(const char* /*applicationname*/, int argc, char *argv[], oscfaust::OSCIO* io = 0, ErrorCallback errCallback = NULL, void* arg = NULL, bool init = true) : GUI() 
     { 
 		fCtrl = new oscfaust::OSCControler(argc, argv, this, io, errCallback, arg, init); 
         //		fCtrl->opengroup(applicationname);
@@ -77,32 +81,38 @@ class OSCUI : public GUI
     
     // -- widget's layouts
     
-  	virtual void openTabBox(const char* label) 			{ fCtrl->opengroup( tr(label)); }
-	virtual void openHorizontalBox(const char* label) 	{ fCtrl->opengroup( tr(label)); }
-	virtual void openVerticalBox(const char* label) 	{ fCtrl->opengroup( tr(label)); }
-	virtual void closeBox() 							{ fCtrl->closegroup(); }
+  	virtual void openTabBox(const char* label)          { fCtrl->opengroup(tr(label)); }
+	virtual void openHorizontalBox(const char* label)   { fCtrl->opengroup(tr(label)); }
+	virtual void openVerticalBox(const char* label)     { fCtrl->opengroup(tr(label)); }
+	virtual void closeBox()                             { fCtrl->closegroup(); }
 
 	
 	// -- active widgets
-	virtual void addButton(const char* label, FAUSTFLOAT* zone) 		{ const char* l= tr(label); addalias(zone, 0, 0, 1, l); fCtrl->addnode( l, zone, (FAUSTFLOAT)0, (FAUSTFLOAT)0, (FAUSTFLOAT)1); }
-	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 	{ const char* l= tr(label); addalias(zone, 0, 0, 1, l); fCtrl->addnode( l, zone, (FAUSTFLOAT)0, (FAUSTFLOAT)0, (FAUSTFLOAT)1); }
+	virtual void addButton(const char* label, FAUSTFLOAT* zone) 		{ const char* l = tr(label); addalias(zone, 0, 0, 1, l); fCtrl->addnode(l, zone, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(1)); }
+	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 	{ const char* l = tr(label); addalias(zone, 0, 0, 1, l); fCtrl->addnode(l, zone, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(1)); }
 	virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/)
-																		{ const char* l= tr(label); addalias(zone, init, min, max, l); fCtrl->addnode( l, zone, init, min, max); }
+																		{ const char* l = tr(label); addalias(zone, init, min, max, l); fCtrl->addnode(l, zone, init, min, max); }
 	virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/)
-																		{ const char* l= tr(label); addalias(zone, init, min, max, l); fCtrl->addnode( l, zone, init, min, max); }
+																		{ const char* l = tr(label); addalias(zone, init, min, max, l); fCtrl->addnode(l, zone, init, min, max); }
 	virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT /*step*/)
-																		{ const char* l= tr(label); addalias(zone, init, min, max, l); fCtrl->addnode( l, zone, init, min, max); }
+																		{ const char* l = tr(label); addalias(zone, init, min, max, l); fCtrl->addnode(l, zone, init, min, max); }
 	
 	// -- passive widgets
 	
-	virtual void addHorizontalBargraph(const char* /*label*/, FAUSTFLOAT* /*zone*/, FAUSTFLOAT /*min*/, FAUSTFLOAT /*max*/) {}
-	virtual void addVerticalBargraph(const char* /*label*/, FAUSTFLOAT* /*zone*/, FAUSTFLOAT /*min*/, FAUSTFLOAT /*max*/) {}
-		
+    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
+    {
+        const char* l = tr(label); addalias(zone, 0, min, max, l); fCtrl->addnode(l, zone, FAUSTFLOAT(0), min, max);
+    }
+    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
+    {
+        const char* l = tr(label); addalias(zone, 0, min, max, l); fCtrl->addnode(l, zone, FAUSTFLOAT(0), min, max);
+    }
+  		
 	// -- metadata declarations
     
 	virtual void declare(FAUSTFLOAT* , const char* key , const char* alias) 
 	{ 
-		if (strcasecmp(key,"OSC")==0) fAlias.push_back(alias);
+		if (strcasecmp(key,"OSC") == 0) fAlias.push_back(alias);
 	}
 
 	virtual void show() {}
@@ -115,7 +125,7 @@ class OSCUI : public GUI
     int getUDPPort()                { return fCtrl->getUDPPort(); }
     int	getUDPOut()                 { return fCtrl->getUDPOut(); }
     int	getUDPErr()                 { return fCtrl->getUDPErr(); }
-    const char* getDestAddress()    {return fCtrl->getDestAddress();}
+    const char* getDestAddress()    { return fCtrl->getDestAddress(); }
 };
 
 const char* OSCUI::tr(const char* label) const
