@@ -27,7 +27,7 @@ namespace oscfaust
 {
 
 //--------------------------------------------------------------------------
-OSCRegexp::OSCRegexp (const char* oscre) : fRegexp (OSCRe2Re(oscre).c_str()) {}
+OSCRegexp::OSCRegexp(const char* oscre) : fRegexp (OSCRe2Re(oscre).c_str()) {}
 
 //--------------------------------------------------------------------------
 // translates an OSC regexp into a regexp
