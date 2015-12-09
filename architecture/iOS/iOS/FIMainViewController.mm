@@ -29,6 +29,8 @@
 
 #define kRefreshTimerInterval       0.04
 
+#define ONE_G 9.91
+
 // Test Jack
 #define kJackViewHeight 130
 #define kJackViewAnimationDuration 0.2
@@ -1507,9 +1509,9 @@ T findCorrespondingUiItem(FIResponder* sender)
 // The function periodically called to refresh motion sensors
 - (void)updateMotion
 {
-    uiinterface->setAccValues(_motionManager.accelerometerData.acceleration.x,
-                            _motionManager.accelerometerData.acceleration.y,
-                            _motionManager.accelerometerData.acceleration.z);
+    uiinterface->setAccValues(_motionManager.accelerometerData.acceleration.x * ONE_G,
+                            _motionManager.accelerometerData.acceleration.y * ONE_G,
+                            _motionManager.accelerometerData.acceleration.z * ONE_G);
     
     uiinterface->setGyrValues(_motionManager.gyroData.rotationRate.x,
                             _motionManager.gyroData.rotationRate.y,
