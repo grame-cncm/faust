@@ -21,40 +21,66 @@
 
 */
 
-
 #include "faust/osc/FaustNode.h"
-#include "OSCStream.h"
 #include "faust/OSCControler.h"
+#include "faust/osc/RootNode.h"
+#include "OSCStream.h"
 
 namespace oscfaust
 {
 
 //--------------------------------------------------------------------------
-template<> void FaustNode<float>::sendOSC () const {
-		if (OSCControler::gXmit && !OSCControler::isPathFiltered(getOSCAddress())) oscout << OSCStart(getOSCAddress().c_str()) << 	float(*fZone) << OSCEnd();
-}
-template<> void FaustNode<double>::sendOSC () const {
-		if (OSCControler::gXmit && !OSCControler::isPathFiltered(getOSCAddress())) oscout << OSCStart(getOSCAddress().c_str()) << 	float(*fZone) << OSCEnd();
+template<> void FaustNode<float>::sendOSC() const 
+{
+    if (OSCControler::gXmit && !OSCControler::isPathFiltered(getOSCAddress())) {
+        std::vector<std::string> aliases = fRoot->getAliases(getOSCAddress());
+        // If aliases are present, used them
+        if (aliases.size() > 0) { 
+            for (size_t i = 0; i < aliases.size(); i++) {
+                oscout << OSCStart(aliases[i].c_str()) << float(*fZone) << OSCEnd();
+            }
+        // Otherwise send on the address
+        } else {    
+            oscout << OSCStart(getOSCAddress().c_str()) << float(*fZone) << OSCEnd();
+        }
+    }
 }
 
 //--------------------------------------------------------------------------
-template<> void FaustNode<float>::get (unsigned long ipdest) const		///< handler for the 'get' message
+template<> void FaustNode<double>::sendOSC() const 
+{
+    if (OSCControler::gXmit && !OSCControler::isPathFiltered(getOSCAddress())) {
+        std::vector<std::string> aliases = fRoot->getAliases(getOSCAddress());
+        // If aliases are present, used them
+        if (aliases.size() > 0) {
+            for (size_t i = 0; i < aliases.size(); i++) {
+                oscout << OSCStart(aliases[i].c_str()) << float(*fZone) << OSCEnd();
+            }
+        // Otherwise send on the address
+        } else {
+            oscout << OSCStart(getOSCAddress().c_str()) << float(*fZone) << OSCEnd();
+        }
+    }
+}
+
+//--------------------------------------------------------------------------
+template<> void FaustNode<float>::get(unsigned long ipdest) const		///< handler for the 'get' message
 {
 	unsigned long savedip = oscout.getAddress();		// saves the current destination IP
 	oscout.setAddress(ipdest);							// sets the osc stream dest IP
 	// send a state message on 'get' request
-	oscout << OSCStart(getOSCAddress().c_str()) << 	float(*fZone) << float(fMapping.fMinOut) << float(fMapping.fMaxOut) << OSCEnd();
+	oscout << OSCStart(getOSCAddress().c_str()) << float(*fZone) << float(fMapping.fMinOut) << float(fMapping.fMaxOut) << OSCEnd();
 	oscout.setAddress(savedip);							// and restores the destination IP
 }
 
-template<> void FaustNode<double>::get (unsigned long ipdest) const		///< handler for the 'get' message
+//--------------------------------------------------------------------------
+template<> void FaustNode<double>::get(unsigned long ipdest) const		///< handler for the 'get' message
 {
 	unsigned long savedip = oscout.getAddress();		// saves the current destination IP
 	oscout.setAddress(ipdest);							// sets the osc stream dest IP
 	// send a state message on 'get' request
-	oscout << OSCStart(getOSCAddress().c_str()) << 	float(*fZone) << float(fMapping.fMinOut) << float(fMapping.fMaxOut) << OSCEnd();
+	oscout << OSCStart(getOSCAddress().c_str()) << float(*fZone) << float(fMapping.fMinOut) << float(fMapping.fMaxOut) << OSCEnd();
 	oscout.setAddress(savedip);							// and restores the destination IP
 }
-
 
 } // end namespoace

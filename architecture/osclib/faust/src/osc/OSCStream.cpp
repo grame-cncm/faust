@@ -31,51 +31,47 @@ OSCStream* _oscout = 0;				// OSC standard output stream
 OSCStream* _oscerr = 0;				// OSC standard error stream
 
 static UdpSocket* _socket = 0;		// a shared transmit socket
-
 int OSCStream::fRefCount = 0;
 
 //--------------------------------------------------------------------------
-bool OSCStream::start ()
+void OSCStream::start()
 {
-    if(_socket == 0)
+    if (fRefCount++ == 0) {
         _socket = new UdpSocket;
-    
-    if(_oscout == 0)
+        if (!_socket) throw std::bad_alloc();
         _oscout = new OSCStream(_socket);
-    
-    if(_oscerr == 0)
+        if (!_oscout) throw std::bad_alloc();
         _oscerr = new OSCStream(_socket);
-        
-    fRefCount++;
-	return (_socket && _oscout && _oscerr);
+        if (!_oscerr) throw std::bad_alloc();
+    }
 }
 
 //--------------------------------------------------------------------------
-void OSCStream::stop ()
+void OSCStream::stop()
 {
-    if(fRefCount == 0){
-        
+    if (--fRefCount == 0) {
         delete _socket;
         delete _oscout;
         delete _oscerr;
-        _oscout = _oscerr = 0;
+        _oscout = 0;
+        _oscerr = 0;
         _socket = 0;
     }
 }
 
 //--------------------------------------------------------------------------
-void OSCStream::setAddress (const string& address)
+void OSCStream::setAddress(const string& address)
 {
-	IpEndpointName dst (address.c_str());
-	setAddress (dst.address);
+	IpEndpointName dst(address.c_str());
+	setAddress(dst.address);
 }
 
 //--------------------------------------------------------------------------
-OSCStream& OSCStream::start(const char * address)
+OSCStream& OSCStream::start(const char* address)
 { 
 	stream().Clear();
 	if (!stream().IsReady()) cerr << "OSCStream OutboundPacketStream not ready" << endl;
-	stream() << osc::BeginMessage( address ) ; 
+	stream() << osc::BeginMessage(address); 
 	fState = kInProgress;
 	return *this;
 }
@@ -92,8 +88,9 @@ void OSCStream::send(unsigned long ipdest, int port)
 {
 	if (state() == kInProgress) {
 		stream() << osc::EndMessage;
-		if (fSocket) 
-			fSocket->SendTo (IpEndpointName (ipdest, port), stream().Data(), stream().Size() );
+		if (fSocket) {
+			fSocket->SendTo(IpEndpointName (ipdest, port), stream().Data(), stream().Size());
+        }
 		fState = kIdle;
 	}
 }

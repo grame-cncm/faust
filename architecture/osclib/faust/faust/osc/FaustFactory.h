@@ -21,7 +21,6 @@
 
 */
 
-
 #ifndef __FaustFactory__
 #define __FaustFactory__
 
@@ -38,7 +37,7 @@ namespace oscfaust
 
 class OSCIO;
 class RootNode;
-typedef class SMARTP<RootNode>		SRootNode;
+typedef class SMARTP<RootNode> SRootNode;
 class MessageDriven;
 typedef class SMARTP<MessageDriven>	SMessageDriven;
 
@@ -53,53 +52,53 @@ class FaustFactory
 {
 	std::stack<SMessageDriven>	fNodes;		///< maintains the current hierarchy level
 	SRootNode					fRoot;		///< keep track of the root node
-	OSCIO * 					fIO;		///< hack to support audio IO via OSC, actually the field is given to the root node
-	GUI *						fGUI;		///< a GUI pointer to support updateAllGuis(), required for bi-directionnal OSC
+	OSCIO*                      fIO;		///< hack to support audio IO via OSC, actually the field is given to the root node
+	GUI*						fGUI;		///< a GUI pointer to support updateAllGuis(), required for bi-directionnal OSC
 
 	private:
-		std::string addressFirst (const std::string& address) const;
-		std::string addressTail  (const std::string& address) const;
+		std::string addressFirst(const std::string& address) const;
+		std::string addressTail(const std::string& address) const;
 
 	public:
-				 FaustFactory(GUI* ui, OSCIO * io=0); // : fIO(io), fGUI(ui) {}
+				 FaustFactory(GUI* ui, OSCIO * io = 0); // : fIO(io), fGUI(ui) {}
 		virtual ~FaustFactory(); // {}
 
-		template <typename C> void addnode (const char* label, C* zone, C init, C min, C max, bool initZone);
-		template <typename C> void addAlias (const std::string& fullpath, C* zone, C imin, C imax, C init, C min, C max, const char* label);
-		void addAlias (const char* alias, const char* address, float imin, float imax, float omin, float omax);
-		void opengroup (const char* label);
-		void closegroup ();
+		template <typename C> void addnode(const char* label, C* zone, C init, C min, C max, bool initZone);
+		template <typename C> void addAlias(const std::string& fullpath, C* zone, C imin, C imax, C init, C min, C max, const char* label);
+        
+		void addAlias(const char* alias, const char* address, float imin, float imax, float omin, float omax);
+		void opengroup(const char* label);
+		void closegroup();
 
-		SRootNode		root() const; //	{ return fRoot; }
+		SRootNode root() const; 
 };
 
 /**
  * Add a node to the OSC UI tree in the current group at the top of the stack 
  */
-template <typename C> void FaustFactory::addnode (const char* label, C* zone, C init, C min, C max, bool initZone) 
+template <typename C> void FaustFactory::addnode(const char* label, C* zone, C init, C min, C max, bool initZone) 
 {
-//	SMessageDriven top = fNodes.size() ? fNodes.top() : fRoot;
 	SMessageDriven top;
 	if (fNodes.size()) top = fNodes.top();
 	if (top) {
 		std::string prefix = top->getOSCAddress();
-		top->add( FaustNode<C>::create (label, zone, init, min, max, prefix.c_str(), fGUI, initZone));
+		top->add(FaustNode<C>::create(root(), label, zone, init, min, max, prefix.c_str(), fGUI, initZone));
 	}
 }
 
 /**
  * Add an alias (actually stored and handled at root node level
  */
-template <typename C> void FaustFactory::addAlias (const std::string& fullpath, C* zone, C imin, C imax, C init, C min, C max, const char* label)
+template <typename C> void FaustFactory::addAlias(const std::string& fullpath, C* zone, C imin, C imax, C init, C min, C max, const char* label)
 {
 	std::istringstream 	ss(fullpath);
 	std::string 		realpath; 
-
+ 
 	ss >> realpath >> imin >> imax;
 	SMessageDriven top = fNodes.top();
-	if (top ) {
+	if (top) {
 		std::string target = top->getOSCAddress() + "/" + label;
-		addAlias (realpath.c_str(), target.c_str(), float(imin), float(imax), float(min), float(max));
+		addAlias(realpath.c_str(), target.c_str(), float(imin), float(imax), float(min), float(max));
 	}
 }
 

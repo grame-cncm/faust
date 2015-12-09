@@ -47,14 +47,14 @@ namespace oscfaust
 */
 class OSCListener : public osc::OscPacketListener, public smartable
 {
-	UdpListeningReceiveSocket *fSocket;	///< the udp socket listener
-	MessageProcessor * fMsgHandler;
+	UdpListeningReceiveSocket* fSocket;	///< the udp socket listener
+	MessageProcessor* fMsgHandler;
 	bool	fRunning;
 	bool	fSetDest;
 	int		fPort;
 
 	public:
-		static SMARTP<OSCListener> create(MessageProcessor * mp, int port)
+		static SMARTP<OSCListener> create(MessageProcessor* mp, int port)
 			{ return new OSCListener(mp, port); }
 
 		/*!
@@ -63,18 +63,18 @@ class OSCListener : public osc::OscPacketListener, public smartable
 			\param m the OSC message (pre-processed by the base class)
 			\param remoteEndpoint the sender IP address
 		*/
-		virtual void ProcessMessage( const osc::ReceivedMessage& m, const IpEndpointName& remoteEndpoint );
+		virtual void ProcessMessage(const osc::ReceivedMessage& m, const IpEndpointName& remoteEndpoint);
 		virtual void run();
-		virtual void stop()				{ fRunning=false; if (fSocket) fSocket->AsynchronousBreak(); }
+		virtual void stop()				{ fRunning = false; if (fSocket) fSocket->AsynchronousBreak(); }
 		virtual void setPort(int port)	{ fPort = port; }
 		virtual void restart(int port)	{ fPort = port; if (fSocket) fSocket->AsynchronousBreak(); }
 
 	protected:
-				 OSCListener(MessageProcessor * mp, int port);
+				 OSCListener(MessageProcessor* mp, int port);
 		virtual ~OSCListener();
 
 };
-typedef class SMARTP<OSCListener>	SOSCListener;
+typedef class SMARTP<OSCListener> SOSCListener;
 
 } // end namespoace
 
