@@ -26,6 +26,7 @@
 
 @end
 
+//@interface FIFlipsideViewController : UIViewController <UIAlertViewDelegate,UITextFieldDelegate>
 @interface FIFlipsideViewController : UIViewController <UIAlertViewDelegate>
 {
     IBOutlet UISlider*              _sampleRateSlider;
