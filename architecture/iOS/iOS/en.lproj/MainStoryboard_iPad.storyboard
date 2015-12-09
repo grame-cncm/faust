@@ -401,7 +401,7 @@
                                 </connections>
                             </button>
                             <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="192.168.1.1" borderStyle="roundedRect" minimumFontSize="17" id="Zh4-ku-sl2">
-                                <rect key="frame" x="181" y="251" width="119" height="30"/>
+                                <rect key="frame" x="174" y="251" width="132" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
