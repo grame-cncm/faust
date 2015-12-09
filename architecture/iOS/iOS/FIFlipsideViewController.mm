@@ -59,6 +59,7 @@
     _bufferSizeLabel.text = [NSString stringWithFormat:@"%i frames", _bufferSize];
 
     _oscIPOutput.text = _oscIPOutputText;
+    //_oscIPOutput.keyboardType = UIKeyboardTypeDecimalPad;
     
     [_openWidgetPanelSwitch setOn:_openWidgetPanel animated:NO];
     [_oscTransmitSwitch setOn:_oscTransmit animated:NO];
@@ -69,7 +70,6 @@
     {
         [self disableAudioWidgets];
     }
-    
 #endif
 }
 
@@ -113,6 +113,14 @@
         return YES;
     }
 }
+
+/*
+- (BOOL)textFieldShouldReturn:(UITextField *)textField;              // called when 'return' key pressed. return NO to ignore.
+{
+    [textField resignFirstResponder];
+    return YES;
+}
+*/
 
 #pragma mark - Actions
 
