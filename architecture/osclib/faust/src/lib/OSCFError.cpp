@@ -25,7 +25,7 @@
 namespace oscfaust
 {
 
-OSCFError	OSCFErr;			// static OSC error output stream
+OSCFError	OSCFErr;		// static OSC error output stream
 OSCFErrEnd	OSCFEndl;		// static OSC error output stream end
 
 OSCFError& operator << (OSCFError& err, const Message* arg)
@@ -41,6 +41,5 @@ OSCFError& operator << (OSCFError& err, const Message* arg)
 #endif
 	return err;
 }
-
 
 } // end namespace
