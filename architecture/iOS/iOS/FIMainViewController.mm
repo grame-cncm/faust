@@ -1382,6 +1382,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             int type, curve;
             float min, mid, max;
             
+            // Get default state
             uiinterface->getAccConverter(index, type, curve, min, mid, max);
             
             // Sensor assignation
@@ -1423,6 +1424,27 @@ T findCorrespondingUiItem(FIResponder* sender)
                 (*i)->setCurveMax(floatValue - 1000.);
             } else {
                 (*i)->setCurveMax(max);
+            }
+            
+            // Update internal state with saved on
+            if ((*i)->getAssignationType() == kAssignationNone) {
+                uiinterface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
+                uiinterface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
+            } else if ((*i)->getAssignationType() <= 3) {
+                uiinterface->setAccConverter(index,
+                                             (*i)->getAssignationType() - 1,
+                                             (*i)->getAssignationCurve(),
+                                             (*i)->getCurveMin(),
+                                             (*i)->getCurveMid(),
+                                             (*i)->getCurveMax());
+            } else {
+                uiinterface->setGyrConverter(index,
+                                             (*i)->getAssignationType() - 4,
+                                             (*i)->getAssignationCurve(),
+                                             (*i)->getCurveMin(),
+                                             (*i)->getCurveMid(),
+                                             (*i)->getCurveMax());
+                
             }
             
             // Color

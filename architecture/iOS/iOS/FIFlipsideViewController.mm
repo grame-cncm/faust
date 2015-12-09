@@ -119,7 +119,7 @@
 - (IBAction)done:(id)sender
 {
     // Read IP content
-     _oscIPOutputText = _oscIPOutput.text;
+    _oscIPOutputText = _oscIPOutput.text;
     
     // Write user preferences
     [[NSUserDefaults standardUserDefaults] setInteger:_sampleRate forKey:@"sampleRate"];

@@ -1626,6 +1626,7 @@ public:
     
     void setAccConverter(int index, int type, int curve, float min, float mid, float max)
     {
+        printf("setAccConverter %d %d %d %f %f %f\n", index, type, curve, min, mid, max);
         fAPIUI.setAccConverter(index, type, curve, min, mid, max);
     }
     
@@ -1636,6 +1637,7 @@ public:
         min = dmin;
         mid = dmid;
         max = dmax;
+        printf("getAccConverter %d %d %d %f %f %f\n", index, type, curve, min, mid, max);
     }
     
     void setGyrConverter(int index, int type, int curve, float min, float mid, float max)
