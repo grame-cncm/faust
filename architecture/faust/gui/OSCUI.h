@@ -63,7 +63,7 @@ class OSCUI : public GUI
 	// add all accumulated alias
 	void addalias(FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, const char* label)
 	{
-		for (unsigned int i=0; i<fAlias.size(); i++) {
+		for (unsigned int i = 0; i < fAlias.size(); i++) {
 			fCtrl->addAlias(fAlias[i], zone, FAUSTFLOAT(0), FAUSTFLOAT(1), init, min, max, label);
 		}
 		fAlias.clear();
@@ -85,7 +85,6 @@ class OSCUI : public GUI
 	virtual void openHorizontalBox(const char* label)   { fCtrl->opengroup(tr(label)); }
 	virtual void openVerticalBox(const char* label)     { fCtrl->opengroup(tr(label)); }
 	virtual void closeBox()                             { fCtrl->closegroup(); }
-
 	
 	// -- active widgets
 	virtual void addButton(const char* label, FAUSTFLOAT* zone) 		{ const char* l = tr(label); addalias(zone, 0, 0, 1, l); fCtrl->addnode(l, zone, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(1)); }

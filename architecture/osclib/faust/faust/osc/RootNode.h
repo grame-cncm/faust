@@ -21,7 +21,6 @@
 
 */
 
-
 #ifndef __RootNode__
 #define __RootNode__
 
@@ -36,8 +35,7 @@ namespace oscfaust
 
 class OSCIO;
 class RootNode;
-typedef class SMARTP<RootNode>	SRootNode;
-
+typedef class SMARTP<RootNode> SRootNode;
 
 /**
  * an alias target includes a map to rescale input values to output values
@@ -52,14 +50,14 @@ struct aliastarget
 	float       fMaxOut;
 	std::string fTarget;	// the real osc address
 
-	aliastarget (const char* address, float imin, float imax, float omin, float omax)
+	aliastarget(const char* address, float imin, float imax, float omin, float omax)
 		: fMinIn(imin), fMaxIn(imax), fMinOut(omin), fMaxOut(omax), fTarget(address) {}
 
-	aliastarget (const aliastarget& t)
+	aliastarget(const aliastarget& t)
 		: fMinIn(t.fMinIn), fMaxIn(t.fMaxIn), fMinOut(t.fMinOut), fMaxOut(t.fMaxOut), fTarget(t.fTarget) {}
 
-	float scale (float x) const {
-        
+	float scale(float x) const 
+    {
         if (fMinIn < fMaxIn) {
             // increasing control
             float z = (x < fMinIn) ? fMinIn : (x > fMaxIn) ? fMaxIn : x;
@@ -87,27 +85,29 @@ struct aliastarget
 class RootNode : public MessageDriven
 {
 	int *fUPDIn, *fUDPOut, *fUDPErr;	// the osc port numbers (required by the hello method)
-	OSCIO * fIO;						// an OSC IO controler
-	std::map<std::string, std::vector<aliastarget> >	fAliases;
+	OSCIO* fIO;                         // an OSC IO controler
+	std::map<std::string, std::vector<aliastarget> > fAliases;
 
-	void processAlias (const std::string& address, float val);
+	void processAlias(const std::string& address, float val);
 	
 	protected:
-				 RootNode(const char *name, OSCIO* io=0) : MessageDriven (name, ""), fUPDIn(0), fUDPOut(0), fUDPErr(0), fIO(io) {}
+				 RootNode(const char *name, OSCIO* io = 0) : MessageDriven(name, ""), fUPDIn(0), fUDPOut(0), fUDPErr(0), fIO(io) {}
 		virtual ~RootNode() {}
 
 	public:
-		static SRootNode create (const char* name, OSCIO* io=0) { return new RootNode(name, io); }
+		static SRootNode create(const char* name, OSCIO* io = 0) { return new RootNode(name, io); }
 
-		virtual void	processMessage( const Message* msg );
-		virtual bool	accept( const Message* msg );
-		virtual void	get (unsigned long ipdest) const;
-		virtual void	get (unsigned long ipdest, const std::string& what) const;
+		virtual void processMessage(const Message* msg);
+		virtual bool accept(const Message* msg);
+		virtual void get(unsigned long ipdest) const;
+		virtual void get(unsigned long ipdest, const std::string& what) const;
 
-				void	addAlias (const char* alias, const char* address, float imin, float imax, float omin, float omax);
-				bool	acceptSignal( const Message* msg );				///< handler for signal data
-				void	hello (unsigned long ipdest) const;				///< handler for the 'hello' message
-				void	setPorts (int* in, int* out, int* err);
+        void addAlias(const char* alias, const char* address, float imin, float imax, float omin, float omax);
+        bool acceptSignal(const Message* msg);				///< handler for signal data
+        void hello(unsigned long ipdest) const;				///< handler for the 'hello' message
+        void setPorts(int* in, int* out, int* err);
+        
+        std::vector<std::string> getAliases(const std::string& address);
 };
 
 } // end namespoace
