@@ -21,15 +21,12 @@
 
 */
 
-
 #ifndef __OSCSetup__
 #define __OSCSetup__
 
 #include <string>
 #include <ostream>
-
 #include "OSCStream.h"
-
 
 typedef void (*ErrorCallback)(void*);  
 
@@ -44,17 +41,20 @@ class MessageProcessor;
 */
 class OSCSetup
 {
-	OscThread*	fOSCThread;		// a thread that is listening to the osc in socket
-    ErrorCallback fErrCallback;
-    void*       fArg;
+    private:
+    
+        OscThread*fOSCThread;		// a thread that is listening to the osc in socket
+        ErrorCallback fErrCallback;
+        void* fArg;
     
 	public:
-                OSCSetup(ErrorCallback errCallback = NULL, void* arg = NULL) : fOSCThread(0), fErrCallback(errCallback), fArg(arg) {}
+    
+        OSCSetup(ErrorCallback errCallback = NULL, void* arg = NULL) : fOSCThread(0), fErrCallback(errCallback), fArg(arg) {}
 		virtual ~OSCSetup();
 
 		bool start(MessageProcessor* mp, int& inPort, int outPort, int errPort, const char* address);
-
-		void stop();
+        void stop();
+        
 		bool running() const;
 };
 

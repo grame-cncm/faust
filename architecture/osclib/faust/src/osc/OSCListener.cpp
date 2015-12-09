@@ -40,11 +40,11 @@ namespace oscfaust
 {
 
 //--------------------------------------------------------------------------
-OSCListener::OSCListener(MessageProcessor *mp, int port) 
+OSCListener::OSCListener(MessageProcessor* mp, int port) 
 		: fSocket(0), fMsgHandler(mp), 
 		  fRunning(false), fSetDest(true), fPort(port)
 {
-	fSocket = new UdpListeningReceiveSocket(IpEndpointName( IpEndpointName::ANY_ADDRESS, fPort ), this);
+	fSocket = new UdpListeningReceiveSocket(IpEndpointName(IpEndpointName::ANY_ADDRESS, fPort), this);
 	fPort = 0;
 	// check osc out destination address
 	// warning ! osc stream must be created before the listener
@@ -58,44 +58,42 @@ void OSCListener::run()
 { 
 	fRunning = true;
 	while (fRunning) {
-			if (fPort) {
-				delete fSocket;
-                fSocket = NULL;
-            	fSocket = new UdpListeningReceiveSocket(IpEndpointName( IpEndpointName::ANY_ADDRESS, fPort ), this);
-				fPort = 0;
-			}
-        
-            if(fSocket != NULL)
-                fSocket->Run();
-
-	}
+        if (fPort) {
+            delete fSocket;
+            fSocket = NULL;
+            fSocket = new UdpListeningReceiveSocket(IpEndpointName(IpEndpointName::ANY_ADDRESS, fPort), this);
+            fPort = 0;
+        }
+    
+        if (fSocket != NULL) {
+            fSocket->Run();
+        }
+    }
 }
 
 //--------------------------------------------------------------------------
-void OSCListener::ProcessMessage( const osc::ReceivedMessage& m, const IpEndpointName& src )
+void OSCListener::ProcessMessage(const osc::ReceivedMessage& m, const IpEndpointName& src)
 {
-	Message* msg = new Message(m.AddressPattern());
-	msg->setSrcIP (src.address);
-	if (fSetDest && (src.address != kLocalhost))
-	{
+ 	Message msg = Message(m.AddressPattern());
+	msg.setSrcIP(src.address);
+	if (fSetDest && (src.address != kLocalhost)) {
 		oscout.setAddress(src.address);
 		fSetDest = false;
 	}
 	ReceivedMessageArgumentIterator i = m.ArgumentsBegin();
 	while (i != m.ArgumentsEnd()) {
 		if (i->IsString()) {
-			msg->add<string>(i->AsStringUnchecked());			
+			msg.add<string>(i->AsStringUnchecked());			
 		}
 		else if (i->IsInt32()) {
-			msg->add<int>(i->AsInt32Unchecked());			
+			msg.add<int>(i->AsInt32Unchecked());			
 		}
 		else if (i->IsFloat()) {
-			msg->add<float>(i->AsFloatUnchecked());			
+			msg.add<float>(i->AsFloatUnchecked());			
 		}
 		i++;
 	}
-	fMsgHandler->processMessage (msg);
-	delete msg;
+	fMsgHandler->processMessage(&msg);
 }
 
 } // end namespoace

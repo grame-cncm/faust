@@ -21,7 +21,6 @@
 
 */
 
-
 #ifndef __MessageDriven__
 #define __MessageDriven__
 
@@ -50,8 +49,6 @@ typedef class SMARTP<MessageDriven>	SMessageDriven;
 	The principle of the dispatch is the following:
 	- first the processMessage() method should be called on the top level node
 	- next processMessage call propose 
-	
-	
 */
 class MessageDriven : public MessageProcessor, public smartable
 {
@@ -64,14 +61,14 @@ class MessageDriven : public MessageProcessor, public smartable
 		virtual ~MessageDriven() {}
 
 	public:
-		static SMessageDriven create (const char* name, const char *oscprefix)	{ return new MessageDriven(name, oscprefix); }
+		static SMessageDriven create(const char* name, const char *oscprefix)	{ return new MessageDriven(name, oscprefix); }
 
 		/*!
 			\brief OSC message processing method.
 			\param msg the osc message to be processed
 			The method should be called on the top level node.
 		*/
-		virtual void	processMessage( const Message* msg );
+		virtual void	processMessage(const Message* msg);
 
 		/*!
 			\brief propose an OSc message at a given hierarchy level.
@@ -85,7 +82,7 @@ class MessageDriven : public MessageProcessor, public smartable
 			- or it \c propose the message to its subnodes when \c addrTail is not empty. 
 			  In this case a new \c regexp is computed with the head of \c addrTail and a new \c addrTail as well.
 		*/
-		virtual void	propose( const Message* msg, const OSCRegexp* regexp, const std::string addrTail);
+		virtual void	propose(const Message* msg, const OSCRegexp* regexp, const std::string addrTail);
 
 		/*!
 			\brief accept an OSC message. 
@@ -95,7 +92,7 @@ class MessageDriven : public MessageProcessor, public smartable
 			The method is called only for the destination nodes. The real message acceptance is the node 
 			responsability and may depend on the message content.
 		*/
-		virtual bool	accept( const Message* msg );
+		virtual bool	accept(const Message* msg);
 
 		/*!
 			\brief handler for the \c 'get' message
@@ -106,7 +103,7 @@ class MessageDriven : public MessageProcessor, public smartable
 			- a terminal node send its state on \c 'get' request to the IP address given as parameter.
 			The \c get method is basically called by the accept method.
 		*/
-		virtual void	get (unsigned long ipdest) const;
+		virtual void	get(unsigned long ipdest) const;
 
 		/*!
 			\brief handler for the \c 'get' 'attribute' message
@@ -120,13 +117,13 @@ class MessageDriven : public MessageProcessor, public smartable
 		*/
 		virtual void	get (unsigned long ipdest, const std::string & what) const {}
 
-		void			add ( SMessageDriven node )	{ fSubNodes.push_back (node); }
+		void			add(SMessageDriven node)	{ fSubNodes.push_back (node); }
 		const char*		getName() const				{ return fName.c_str(); }
 		std::string		getOSCAddress() const;
-		int				size () const				{ return fSubNodes.size (); }
+		int				size() const				{ return fSubNodes.size (); }
 		
 		const std::string&	name() const			{ return fName; }
-		SMessageDriven	subnode (int i) 			{ return fSubNodes[i]; }
+		SMessageDriven	subnode(int i)              { return fSubNodes[i]; }
 };
 
 } // end namespoace
