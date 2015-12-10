@@ -37,8 +37,7 @@ extern "C"
     /* Opaque types */
 	
     /*!
-     \addtogroup llvmc C interface for compiling Faust code. Note that the API is not thread safe : 
-     use 'startMTCDSPFactories/stopMTCDSPFactories' to use it in a multi-thread context.
+     \addtogroup llvmc C interface for compiling Faust code. Note that the API is not thread safe : use 'startMTCDSPFactories/stopMTCDSPFactories' to use it in a multi-thread context.
     @{
      */
     
@@ -413,7 +412,6 @@ extern "C"
     /**
      * Instance functions.
      */
-    
     void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
     
     int getNumInputsCDSPInstance(llvm_dsp* dsp);

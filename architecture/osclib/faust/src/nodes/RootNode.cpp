@@ -223,9 +223,7 @@ bool RootNode::acceptSignal(const Message* msg)
 //--------------------------------------------------------------------------
 bool RootNode::accept(const Message* msg)
 {
-    printf("Accept fonction\n");
-    
-	string val;
+ 	string val;
 	// checks for the 'hello' message first
 	if ((msg->size() == 1) && (msg->param(0, val)) && (val == kHelloMsg)) {
 		hello (msg->src());
