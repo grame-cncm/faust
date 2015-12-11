@@ -22,8 +22,8 @@
 */
 
 #include "faust/osc/FaustNode.h"
-#include "faust/OSCControler.h"
 #include "faust/osc/RootNode.h"
+#include "faust/OSCControler.h"
 #include "OSCStream.h"
 
 namespace oscfaust
@@ -32,34 +32,34 @@ namespace oscfaust
 //--------------------------------------------------------------------------
 template<> void FaustNode<float>::sendOSC() const 
 {
-    if (OSCControler::gXmit && !OSCControler::isPathFiltered(getOSCAddress())) {
+    if (OSCControler::gXmit != kNoXmit && !OSCControler::isPathFiltered(getOSCAddress())) {
         std::vector<std::string> aliases = fRoot->getAliases(getOSCAddress());
-        // If aliases are present, used them
-        if (aliases.size() > 0) { 
+        // If aliases are present and output element (bargraph)
+        if (aliases.size() > 0 && !fInput) {  
             for (size_t i = 0; i < aliases.size(); i++) {
                 oscout << OSCStart(aliases[i].c_str()) << float(*fZone) << OSCEnd();
             }
-        // Otherwise send on the address
-        } else {    
-            oscout << OSCStart(getOSCAddress().c_str()) << float(*fZone) << OSCEnd();
         }
+        if (OSCControler::gXmit == kAll) {
+            oscout << OSCStart(getOSCAddress().c_str()) << float(*fZone) << OSCEnd();
+        } 
     }
 }
 
 //--------------------------------------------------------------------------
 template<> void FaustNode<double>::sendOSC() const 
 {
-    if (OSCControler::gXmit && !OSCControler::isPathFiltered(getOSCAddress())) {
+    if (OSCControler::gXmit != kNoXmit && !OSCControler::isPathFiltered(getOSCAddress())) {
         std::vector<std::string> aliases = fRoot->getAliases(getOSCAddress());
-        // If aliases are present, used them
-        if (aliases.size() > 0) {
+        // If aliases are present and output element (bargraph)
+        if (aliases.size() > 0 && !fInput) { 
             for (size_t i = 0; i < aliases.size(); i++) {
-                oscout << OSCStart(aliases[i].c_str()) << float(*fZone) << OSCEnd();
+                oscout << OSCStart(aliases[i].c_str()) << double(*fZone) << OSCEnd();
             }
-        // Otherwise send on the address
-        } else {
-            oscout << OSCStart(getOSCAddress().c_str()) << float(*fZone) << OSCEnd();
         }
+        if (OSCControler::gXmit == kAll) {
+            oscout << OSCStart(getOSCAddress().c_str()) << double(*fZone) << OSCEnd();
+        } 
     }
 }
 
@@ -79,8 +79,43 @@ template<> void FaustNode<double>::get(unsigned long ipdest) const		///< handler
 	unsigned long savedip = oscout.getAddress();		// saves the current destination IP
 	oscout.setAddress(ipdest);							// sets the osc stream dest IP
 	// send a state message on 'get' request
-	oscout << OSCStart(getOSCAddress().c_str()) << float(*fZone) << float(fMapping.fMinOut) << float(fMapping.fMaxOut) << OSCEnd();
+	oscout << OSCStart(getOSCAddress().c_str()) << double(*fZone) << double(fMapping.fMinOut) << double(fMapping.fMaxOut) << OSCEnd();
 	oscout.setAddress(savedip);							// and restores the destination IP
+}
+
+//--------------------------------------------------------------------------
+template<> bool FaustNode<float>::accept(const Message* msg)			///< handler for the 'accept' message
+{
+    if (msg->size() == 1) {			// checks for the message parameters count
+                                    // messages with a param count other than 1 are rejected
+        int ival; float fval;
+        if (OSCControler::gXmit == kAll || (OSCControler::gXmit == kAlias && msg->alias() != "")) {
+            if (msg->param(0, fval)) {
+                return store(float(fval));	// accepts float values
+            } else if (msg->param(0, ival)) {
+                return store(float(ival));  // but accepts also int value
+            }
+        }
+    }
+    return MessageDriven::accept(msg);
+}
+
+//--------------------------------------------------------------------------
+template<> bool FaustNode<double>::accept(const Message* msg)			///< handler for the 'accept' message
+{
+    if (msg->size() == 1) {			// checks for the message parameters count
+                                    // messages with a param count other than 1 are rejected
+        int ival; float fval;
+        std::vector<std::string> aliases = fRoot->getAliases(getOSCAddress());
+        if (OSCControler::gXmit == kAll || (OSCControler::gXmit == kAlias && msg->alias() != "")) {
+           if (msg->param(0, fval)) {
+                return store(double(fval));	// accepts float values
+            } else if (msg->param(0, ival)) {
+                return store(double(ival));  // but accepts also int value
+            }
+        }
+    }
+    return MessageDriven::accept(msg);
 }
 
 } // end namespoace

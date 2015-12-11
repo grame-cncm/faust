@@ -63,7 +63,7 @@ class FaustFactory
 				 FaustFactory(GUI* ui, OSCIO * io = 0); // : fIO(io), fGUI(ui) {}
 		virtual ~FaustFactory(); // {}
 
-		template <typename C> void addnode(const char* label, C* zone, C init, C min, C max, bool initZone);
+		template <typename C> void addnode(const char* label, C* zone, C init, C min, C max, bool initZone, bool input);
 		template <typename C> void addAlias(const std::string& fullpath, C* zone, C imin, C imax, C init, C min, C max, const char* label);
         
 		void addAlias(const char* alias, const char* address, float imin, float imax, float omin, float omax);
@@ -76,13 +76,13 @@ class FaustFactory
 /**
  * Add a node to the OSC UI tree in the current group at the top of the stack 
  */
-template <typename C> void FaustFactory::addnode(const char* label, C* zone, C init, C min, C max, bool initZone) 
+template <typename C> void FaustFactory::addnode(const char* label, C* zone, C init, C min, C max, bool initZone, bool input) 
 {
 	SMessageDriven top;
 	if (fNodes.size()) top = fNodes.top();
 	if (top) {
 		std::string prefix = top->getOSCAddress();
-		top->add(FaustNode<C>::create(root(), label, zone, init, min, max, prefix.c_str(), fGUI, initZone));
+		top->add(FaustNode<C>::create(root(), label, zone, init, min, max, prefix.c_str(), fGUI, initZone, input));
 	}
 }
 

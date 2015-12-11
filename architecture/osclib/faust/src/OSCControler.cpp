@@ -50,8 +50,8 @@ static const char* kUDPDestOpt	= "-desthost";
 static const char* kXmitOpt		= "-xmit";
 static const char* kXmitFilterOpt = "-xmitfilter";
 
-bool OSCControler::gXmit = false;		// a static variable to control the transmission of values
-										// i.e. the use of the interface as a controler
+int OSCControler::gXmit = 0;		// a static variable to control the transmission of values
+                                    // i.e. the use of the interface as a controler
 
 std::vector<OSCRegexp*> OSCControler::fFilteredPaths;
     
@@ -78,12 +78,12 @@ static const char* getDestOption(int argc, char *argv[], const std::string& opti
 	return defaultValue;
 }
 
-static bool getXmitOption(int argc, char *argv[], const std::string& option, bool defaultValue)
+static int getXmitOption(int argc, char *argv[], const std::string& option, bool defaultValue)
 {
 	for (int i=0; i < argc-1; i++) {
     	if (option == argv[i]) {
 			int val = strtol(argv[i+1], 0, 10);
-			return val ? true : false;
+			return val;
 		}
 	}
 	return defaultValue;
@@ -110,11 +110,11 @@ static void treatXmitFilterOption(int argc, char *argv[], const std::string& opt
 OSCControler::OSCControler(int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCallback errCallback, void* arg, bool init)
 	: fUDPPort(kUDPBasePort), fUDPOut(kUDPBasePort+1), fUPDErr(kUDPBasePort+2), fIO(io), fInit(init)
 {
-	fUDPPort = getPortOption (argc, argv, kUDPPortOpt, fUDPPort);
-	fUDPOut  = getPortOption (argc, argv, kUDPOutOpt, fUDPOut);
-	fUPDErr  = getPortOption (argc, argv, kUDPErrOpt, fUPDErr);
+	fUDPPort = getPortOption(argc, argv, kUDPPortOpt, fUDPPort);
+	fUDPOut  = getPortOption(argc, argv, kUDPOutOpt, fUDPOut);
+	fUPDErr  = getPortOption(argc, argv, kUDPErrOpt, fUPDErr);
 	fDestAddress = getDestOption (argc, argv, kUDPDestOpt, "localhost");
-	gXmit = getXmitOption (argc, argv, kXmitOpt, false);
+	gXmit = getXmitOption(argc, argv, kXmitOpt, kNoXmit);
     
     treatXmitFilterOption(argc, argv, kXmitFilterOpt);
  
