@@ -57,7 +57,7 @@ int sampleRate = 0;
 int	bufferSize = 0;
 BOOL openWidgetPanel = YES;
 int uiCocoaItem::gItemCount = 0;
-BOOL oscTransmit = NO;
+int oscTransmit = 0;
 NSString* oscIPOutputText = nil;
 
 - (void)didReceiveMemoryWarning
@@ -117,7 +117,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     sampleRate = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
     bufferSize = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     openWidgetPanel = [[NSUserDefaults standardUserDefaults] boolForKey:@"openWidgetPanel"];
-    oscTransmit = [[NSUserDefaults standardUserDefaults] boolForKey:@"oscTransmit"];
+    oscTransmit = [[NSUserDefaults standardUserDefaults] integerForKey:@"oscTransmit"];
     oscIPOutputText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscIPOutputText"];
     oscIPOutputText =  (oscIPOutputText) ? oscIPOutputText : @"192.168.1.1";
     
@@ -904,15 +904,28 @@ T findCorrespondingUiItem(FIResponder* sender)
 
 #pragma mark - OSC
 
+static inline const char* transmit_value(int num)
+{
+    switch(num) {
+        case 0:
+            return "0";
+        case 1:
+            return "1";
+        case 2:
+            return "2";
+    }
+    return "0";
+}
+
 // OSC
-- (void)setOSCParameters:(BOOL)transmit output:(NSString*)outputIPText
+- (void)setOSCParameters:(int)transmit output:(NSString*)outputIPText
 {
     delete oscinterface;
-    if (transmit)  {
+    if (transmit > 0)  {
         const char* argv[5];
         argv[0] = (char*)_name;
         argv[1] = "-xmit";
-        argv[2] = "1";
+        argv[2] = transmit_value(transmit);
         argv[3] = "-desthost";
         argv[4] = [outputIPText cStringUsingEncoding:[NSString defaultCStringEncoding]];
         printf("output %s\n",  argv[4]);

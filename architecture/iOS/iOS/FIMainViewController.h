@@ -132,7 +132,7 @@ class uiBox;
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;
 
 // OSC
-- (void)setOSCParameters:(BOOL)transmit output:(NSString*)outputIPText;
+- (void)setOSCParameters:(int)transmit output:(NSString*)outputIPText;
 
 // Sensors
 - (void)showWidgetPreferencesView:(UILongPressGestureRecognizer *)gesture;

@@ -47,9 +47,16 @@
     _sampleRate = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
     _bufferSize = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     _openWidgetPanel = [[NSUserDefaults standardUserDefaults] boolForKey:@"openWidgetPanel"];
-    _oscTransmit = [[NSUserDefaults standardUserDefaults] boolForKey:@"oscTransmit"];
+    _oscTransmit = [[NSUserDefaults standardUserDefaults] integerForKey:@"oscTransmit"];
     _oscIPOutputText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscIPOutputText"];
     _oscIPOutputText =  (_oscIPOutputText) ? _oscIPOutputText : @"192.168.1.1";
+    
+    [_oscTransmitState removeAllSegments];
+    [_oscTransmitState insertSegmentWithTitle:@"No" atIndex:0 animated:NO];
+    [_oscTransmitState insertSegmentWithTitle:@"All" atIndex:1 animated:NO];
+    [_oscTransmitState insertSegmentWithTitle:@"Alias" atIndex:2 animated:NO];
+    
+     _oscTransmitState.selectedSegmentIndex = _oscTransmit;
     
     // Update UI
     _sampleRateSlider.value = [self sampleRateToSliderValue:_sampleRate];
@@ -62,7 +69,6 @@
     //_oscIPOutput.keyboardType = UIKeyboardTypeDecimalPad;
     
     [_openWidgetPanelSwitch setOn:_openWidgetPanel animated:NO];
-    [_oscTransmitSwitch setOn:_oscTransmit animated:NO];
     
 #ifdef JACK_IOS
     // Test Jack
@@ -77,8 +83,8 @@
 {
     [_oscIPOutput release];
     _oscIPOutput = nil;
-    [_oscTransmitSwitch release];
-    _oscTransmitSwitch = nil;
+    [_oscTransmitState release];
+    _oscTransmitState = nil;
     [super viewDidUnload];
 }
 
@@ -128,12 +134,13 @@
 {
     // Read IP content
     _oscIPOutputText = _oscIPOutput.text;
+    _oscTransmit = _oscTransmitState.selectedSegmentIndex;
     
     // Write user preferences
     [[NSUserDefaults standardUserDefaults] setInteger:_sampleRate forKey:@"sampleRate"];
     [[NSUserDefaults standardUserDefaults] setInteger:_bufferSize forKey:@"bufferSize"];
     [[NSUserDefaults standardUserDefaults] setBool:_openWidgetPanel forKey:@"openWidgetPanel"];
-    [[NSUserDefaults standardUserDefaults] setBool:_oscTransmit forKey:@"oscTransmit"];
+    [[NSUserDefaults standardUserDefaults] setInteger:_oscTransmit forKey:@"oscTransmit"];
     [[NSUserDefaults standardUserDefaults] setObject:_oscIPOutputText forKey:@"oscIPOutputText"];
     
 	[[NSUserDefaults standardUserDefaults] synchronize];
@@ -162,11 +169,6 @@
 - (IBAction)openWidgetPanelSwitchMoved:(id)sender
 {
     _openWidgetPanel = ((UISwitch*)sender).on;
-}
-
-- (IBAction)oscTransmitSwitchMoved:(id)sender
-{
-    _oscTransmit = ((UISwitch*)sender).on;
 }
 
 - (IBAction)deleteAssignationsButtonClicked:(id)sender
@@ -374,7 +376,7 @@
 - (void)dealloc
 {
     [_oscIPOutput release];
-    [_oscTransmitSwitch release];
+    [_oscTransmitState release];
     [super dealloc];
 }
 

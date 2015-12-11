@@ -409,13 +409,15 @@
                                     <outlet property="delegate" destination="9" id="BH7-9w-5ey"/>
                                 </connections>
                             </textField>
-                            <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" id="DrA-T7-sGy">
-                                <rect key="frame" x="223" y="296" width="51" height="31"/>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" id="9Vu-np-28a">
+                                <rect key="frame" x="174" y="298" width="132" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <connections>
-                                    <action selector="oscTransmitSwitchMoved:" destination="5" eventType="valueChanged" id="wis-Rb-r0V"/>
-                                </connections>
-                            </switch>
+                                <segments>
+                                    <segment title="No"/>
+                                    <segment title="All"/>
+                                    <segment title="Alias"/>
+                                </segments>
+                            </segmentedControl>
                         </subviews>
                         <color key="backgroundColor" white="0.25" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -425,7 +427,7 @@
                         <outlet property="_bufferSizeSlider" destination="dan-b9-bmY" id="4FT-Yu-Xy6"/>
                         <outlet property="_openWidgetPanelSwitch" destination="qyE-R8-8ri" id="LEv-sS-iXx"/>
                         <outlet property="_oscIPOutput" destination="Zh4-ku-sl2" id="lug-UP-vv3"/>
-                        <outlet property="_oscTransmitSwitch" destination="DrA-T7-sGy" id="hNQ-PK-kT7"/>
+                        <outlet property="_oscTransmitState" destination="9Vu-np-28a" id="xOe-TS-1zI"/>
                         <outlet property="_sampleRateLabel" destination="Zoc-vZ-s98" id="LTR-c4-d0c"/>
                         <outlet property="_sampleRateSlider" destination="Kds-Fy-egu" id="PbM-MO-KiP"/>
                     </connections>

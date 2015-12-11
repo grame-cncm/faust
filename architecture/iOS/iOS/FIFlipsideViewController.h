@@ -42,23 +42,21 @@
     IBOutlet UITextField*   _oscIPOutput;
     NSString*               _oscIPOutputText;
     
-    IBOutlet UISwitch*  _oscTransmitSwitch;
-    BOOL                _oscTransmit;
+    int                _oscTransmit;
+    IBOutlet UISegmentedControl *_oscTransmitState;
 }
 
 @property (assign, nonatomic) IBOutlet id <FIFlipsideViewControllerDelegate> delegate;
 @property (nonatomic, nonatomic) int sampleRate;
 @property (nonatomic, nonatomic) int bufferSize;
 @property (nonatomic, nonatomic) BOOL openWidgetPanel;
-@property (nonatomic, nonatomic) BOOL oscTransmit;
+@property (nonatomic, nonatomic) int oscTransmit;
 
 - (IBAction)done:(id)sender;
 - (IBAction)sampleRateSliderMoved:(id)sender;
 - (IBAction)bufferSizeSliderMoved:(id)sender;
 - (IBAction)openWidgetPanelSwitchMoved:(id)sender;
 - (IBAction)deleteAssignationsButtonClicked:(id)sender;
-
-- (IBAction)oscTransmitSwitchMoved:(id)sender;
 
 - (int)sampleRateToSliderValue:(int)sampleRate;
 - (int)sliderValueToSampleRate:(int)sliderValue;

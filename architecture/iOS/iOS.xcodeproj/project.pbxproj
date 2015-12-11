@@ -111,15 +111,9 @@
 		4B3505231C10A57D009F7680 /* NetworkingUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B3504611C10A57C009F7680 /* NetworkingUtils.cpp */; };
 		4B3505241C10A57D009F7680 /* NetworkingUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B3504611C10A57C009F7680 /* NetworkingUtils.cpp */; };
 		4B3505251C10A57D009F7680 /* NetworkingUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B3504611C10A57C009F7680 /* NetworkingUtils.cpp */; };
-		4B3505261C10A57D009F7680 /* NetworkingUtils.o in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B3504621C10A57C009F7680 /* NetworkingUtils.o */; };
-		4B3505271C10A57D009F7680 /* NetworkingUtils.o in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B3504621C10A57C009F7680 /* NetworkingUtils.o */; };
-		4B3505281C10A57D009F7680 /* NetworkingUtils.o in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B3504621C10A57C009F7680 /* NetworkingUtils.o */; };
 		4B3505291C10A57D009F7680 /* UdpSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B3504631C10A57C009F7680 /* UdpSocket.cpp */; };
 		4B35052A1C10A57D009F7680 /* UdpSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B3504631C10A57C009F7680 /* UdpSocket.cpp */; };
 		4B35052B1C10A57D009F7680 /* UdpSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B3504631C10A57C009F7680 /* UdpSocket.cpp */; };
-		4B35052C1C10A57D009F7680 /* UdpSocket.o in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B3504641C10A57C009F7680 /* UdpSocket.o */; };
-		4B35052D1C10A57D009F7680 /* UdpSocket.o in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B3504641C10A57C009F7680 /* UdpSocket.o */; };
-		4B35052E1C10A57D009F7680 /* UdpSocket.o in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B3504641C10A57C009F7680 /* UdpSocket.o */; };
 		4B3505441C10A57D009F7680 /* OscOutboundPacketStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B3504731C10A57C009F7680 /* OscOutboundPacketStream.cpp */; };
 		4B3505451C10A57D009F7680 /* OscOutboundPacketStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B3504731C10A57C009F7680 /* OscOutboundPacketStream.cpp */; };
 		4B3505461C10A57D009F7680 /* OscOutboundPacketStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B3504731C10A57C009F7680 /* OscOutboundPacketStream.cpp */; };
@@ -369,7 +363,6 @@
 		4B3504301C10A57C009F7680 /* FaustNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FaustNode.cpp; sourceTree = "<group>"; };
 		4B3504321C10A57C009F7680 /* MessageDriven.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MessageDriven.cpp; sourceTree = "<group>"; };
 		4B3504341C10A57C009F7680 /* RootNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RootNode.cpp; sourceTree = "<group>"; };
-		4B3504351C10A57C009F7680 /* RootNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RootNode.h; sourceTree = "<group>"; };
 		4B3504381C10A57C009F7680 /* OSCAddress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OSCAddress.cpp; sourceTree = "<group>"; };
 		4B3504391C10A57C009F7680 /* OSCAddress.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OSCAddress.h; sourceTree = "<group>"; };
 		4B35043B1C10A57C009F7680 /* OSCIO.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OSCIO.cpp; sourceTree = "<group>"; };
@@ -388,9 +381,7 @@
 		4B35045E1C10A57C009F7680 /* NetworkingUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkingUtils.h; sourceTree = "<group>"; };
 		4B35045F1C10A57C009F7680 /* PacketListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PacketListener.h; sourceTree = "<group>"; };
 		4B3504611C10A57C009F7680 /* NetworkingUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetworkingUtils.cpp; sourceTree = "<group>"; };
-		4B3504621C10A57C009F7680 /* NetworkingUtils.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = NetworkingUtils.o; sourceTree = "<group>"; };
 		4B3504631C10A57C009F7680 /* UdpSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UdpSocket.cpp; sourceTree = "<group>"; };
-		4B3504641C10A57C009F7680 /* UdpSocket.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = UdpSocket.o; sourceTree = "<group>"; };
 		4B3504651C10A57C009F7680 /* TimerListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimerListener.h; sourceTree = "<group>"; };
 		4B3504661C10A57C009F7680 /* UdpSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UdpSocket.h; sourceTree = "<group>"; };
 		4B3504701C10A57C009F7680 /* MessageMappingOscPacketListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageMappingOscPacketListener.h; sourceTree = "<group>"; };
@@ -409,6 +400,7 @@
 		4B4953571A9F1D5A005377A7 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
 		4B5F800717D5F93700E0F1ED /* Icon-72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-72.png"; sourceTree = "<group>"; };
 		4BAD5B9E16F0FA5D000FEF86 /* jack.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = jack.framework; sourceTree = "<group>"; };
+		4BB46D581C1B19BE00146D9D /* RootNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RootNode.h; sourceTree = "<group>"; };
 		4BBA87EE1BD7DEA200DE5748 /* ic_accelcurveon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_accelcurveon.png; sourceTree = "<group>"; };
 		4BBA87EF1BD7DEA200DE5748 /* ic_accelinvertcurveon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_accelinvertcurveon.png; sourceTree = "<group>"; };
 		4BBA87F01BD7DEA200DE5748 /* ic_accelinverton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_accelinverton.png; sourceTree = "<group>"; };
@@ -499,14 +491,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				4B06EC9D16E77D6A004D2F59 /* QuartzCore.framework in Frameworks */,
-				4B3505271C10A57D009F7680 /* NetworkingUtils.o in Frameworks */,
 				4B06EC9E16E77D6A004D2F59 /* CoreMotion.framework in Frameworks */,
 				4B06EC9F16E77D6A004D2F59 /* CoreLocation.framework in Frameworks */,
 				4B06ECA016E77D6A004D2F59 /* AudioToolbox.framework in Frameworks */,
 				4B06ECA116E77D6A004D2F59 /* UIKit.framework in Frameworks */,
 				4B06ECA216E77D6A004D2F59 /* Foundation.framework in Frameworks */,
 				4B06ECA316E77D6A004D2F59 /* CoreGraphics.framework in Frameworks */,
-				4B35052D1C10A57D009F7680 /* UdpSocket.o in Frameworks */,
 				4B06ECA416E77D6A004D2F59 /* Accelerate.framework in Frameworks */,
 				4BAD5B9F16F0FA5D000FEF86 /* jack.framework in Frameworks */,
 			);
@@ -518,9 +508,7 @@
 			files = (
 				4BEF91B71B96FFC000F2D974 /* QuartzCore.framework in Frameworks */,
 				4BEF91B81B96FFC000F2D974 /* CoreMotion.framework in Frameworks */,
-				4B35052E1C10A57D009F7680 /* UdpSocket.o in Frameworks */,
 				4BEF91B91B96FFC000F2D974 /* CoreLocation.framework in Frameworks */,
-				4B3505281C10A57D009F7680 /* NetworkingUtils.o in Frameworks */,
 				4BEF91BA1B96FFC000F2D974 /* AudioToolbox.framework in Frameworks */,
 				4BEF91BB1B96FFC000F2D974 /* UIKit.framework in Frameworks */,
 				4BEF91BC1B96FFC000F2D974 /* Foundation.framework in Frameworks */,
@@ -535,9 +523,7 @@
 			files = (
 				65E85C9B157806C2009F2D7A /* QuartzCore.framework in Frameworks */,
 				65F87431156FFB0C008AE175 /* CoreMotion.framework in Frameworks */,
-				4B35052C1C10A57D009F7680 /* UdpSocket.o in Frameworks */,
 				65D1BD1415668A8A00ADCA32 /* CoreLocation.framework in Frameworks */,
-				4B3505261C10A57D009F7680 /* NetworkingUtils.o in Frameworks */,
 				65E5EDCE14DB055500136CFC /* AudioToolbox.framework in Frameworks */,
 				65E5ED9314DB037D00136CFC /* UIKit.framework in Frameworks */,
 				65E5ED9514DB037D00136CFC /* Foundation.framework in Frameworks */,
@@ -635,6 +621,7 @@
 				4B3504161C10A57C009F7680 /* Message.h */,
 				4B3504171C10A57C009F7680 /* MessageDriven.h */,
 				4B3504181C10A57C009F7680 /* MessageProcessor.h */,
+				4BB46D581C1B19BE00146D9D /* RootNode.h */,
 				4B3504191C10A57C009F7680 /* smartpointer.h */,
 			);
 			path = osc;
@@ -680,7 +667,6 @@
 				4B3504301C10A57C009F7680 /* FaustNode.cpp */,
 				4B3504321C10A57C009F7680 /* MessageDriven.cpp */,
 				4B3504341C10A57C009F7680 /* RootNode.cpp */,
-				4B3504351C10A57C009F7680 /* RootNode.h */,
 			);
 			path = nodes;
 			sourceTree = "<group>";
@@ -738,9 +724,7 @@
 			isa = PBXGroup;
 			children = (
 				4B3504611C10A57C009F7680 /* NetworkingUtils.cpp */,
-				4B3504621C10A57C009F7680 /* NetworkingUtils.o */,
 				4B3504631C10A57C009F7680 /* UdpSocket.cpp */,
-				4B3504641C10A57C009F7680 /* UdpSocket.o */,
 			);
 			path = posix;
 			sourceTree = "<group>";
