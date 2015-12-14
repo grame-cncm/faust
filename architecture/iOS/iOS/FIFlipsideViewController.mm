@@ -145,7 +145,7 @@
 
 - (IBAction)done:(id)sender
 {
-    // Read IP znf in/out ports
+    // Read IP and in/out ports
     _oscIPOutputText = _oscIPOutput.text;
     _oscInputPortText = _oscInputPort.text;
     _oscOutputPortText = _oscOutputPort.text;

@@ -1372,6 +1372,33 @@ static inline const char* transmit_value(int num)
         uiinterface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
         uiinterface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
         
+        // Save parameters in user defaults
+        NSString* key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:(*i)]];
+        [[NSUserDefaults standardUserDefaults] setInteger:(*i)->getAssignationType() + 1000 forKey:key];
+        
+        key = [NSString stringWithFormat:@"%@-assignation-curve", [self urlForWidget:(*i)]];
+        [[NSUserDefaults standardUserDefaults] setInteger:(*i)->getAssignationCurve() + 1000 forKey:key];
+        
+        key = [NSString stringWithFormat:@"%@-assignation-min", [self urlForWidget:(*i)]];
+        [[NSUserDefaults standardUserDefaults] setFloat:(*i)->getCurveMin() + 1000. forKey:key];
+        
+        key = [NSString stringWithFormat:@"%@-assignation-mid", [self urlForWidget:(*i)]];
+        [[NSUserDefaults standardUserDefaults] setFloat:(*i)->getCurveMid() + 1000. forKey:key];
+        
+        key = [NSString stringWithFormat:@"%@-assignation-max", [self urlForWidget:(*i)]];
+        [[NSUserDefaults standardUserDefaults] setFloat:(*i)->getCurveMax() + 1000. forKey:key];
+        
+        key = [NSString stringWithFormat:@"%@-r", [self urlForWidget:(*i)]];
+        [[NSUserDefaults standardUserDefaults] setFloat:(*i)->getR() + 1000. forKey:key];
+        
+        key = [NSString stringWithFormat:@"%@-g", [self urlForWidget:(*i)]];
+        [[NSUserDefaults standardUserDefaults] setFloat:(*i)->getG() + 1000. forKey:key];
+        
+        key = [NSString stringWithFormat:@"%@-b", [self urlForWidget:(*i)]];
+        [[NSUserDefaults standardUserDefaults] setFloat:(*i)->getB() + 1000. forKey:key];
+        
+        [[NSUserDefaults standardUserDefaults] synchronize];
+        
         _assignatedWidgets.erase(i);
     }
     
@@ -1467,7 +1494,6 @@ static inline const char* transmit_value(int num)
                                              (*i)->getCurveMin(),
                                              (*i)->getCurveMid(),
                                              (*i)->getCurveMax());
-                
             }
             
             // Color
@@ -1486,7 +1512,7 @@ static inline const char* transmit_value(int num)
                 (*i)->setColor((*i)->getInitR(), (*i)->getInitG(), (*i)->getInitB());
             }
             
-            // Add in assignation list if there is a sensor assignation and / or color is not default
+            // Add in assignation list if there is a sensor assignation and/or color is not default
             if ((*i)->getAssignationType() != 0)
             {
                 _assignatedWidgets.push_back(*i);
