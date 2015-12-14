@@ -42,8 +42,14 @@
     IBOutlet UITextField*   _oscIPOutput;
     NSString*               _oscIPOutputText;
     
-    int                _oscTransmit;
-    IBOutlet UISegmentedControl *_oscTransmitState;
+    int                          _oscTransmit;
+    IBOutlet UISegmentedControl* _oscTransmitState;
+    
+    IBOutlet UITextField*  _oscInputPort;
+    NSString*              _oscInputPortText;
+    
+    IBOutlet UITextField*  _oscOutputPort;
+    NSString*              _oscOutputPortText;
 }
 
 @property (assign, nonatomic) IBOutlet id <FIFlipsideViewControllerDelegate> delegate;

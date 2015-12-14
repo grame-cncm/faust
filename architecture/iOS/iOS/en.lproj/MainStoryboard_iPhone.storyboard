@@ -329,13 +329,13 @@
                                 </items>
                             </navigationBar>
                             <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="1" minValue="0.0" maxValue="6" id="1Y5-CG-5xs">
-                                <rect key="frame" x="18" y="84" width="284" height="29"/>
+                                <rect key="frame" x="18" y="77" width="284" height="29"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                 <connections>
                                     <action selector="sampleRateSliderMoved:" destination="6" eventType="valueChanged" id="b3e-GR-tJA"/>
                                 </connections>
                             </slider>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="right" lineBreakMode="tailTruncation" minimumFontSize="10" id="U5Y-mi-YMk">
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="44100" textAlignment="right" lineBreakMode="tailTruncation" minimumFontSize="10" id="U5Y-mi-YMk">
                                 <rect key="frame" x="169" y="59" width="131" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
@@ -343,49 +343,49 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Sample rate" lineBreakMode="tailTruncation" minimumFontSize="10" id="nck-eO-QEa">
-                                <rect key="frame" x="20" y="59" width="98" height="21"/>
+                                <rect key="frame" x="20" y="54" width="98" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="1" minValue="0.0" maxValue="7" id="gDC-YP-Hzz">
-                                <rect key="frame" x="18" y="153" width="284" height="29"/>
+                                <rect key="frame" x="18" y="140" width="284" height="29"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                 <connections>
                                     <action selector="bufferSizeSliderMoved:" destination="6" eventType="valueChanged" id="P4Q-Wd-fei"/>
                                 </connections>
                             </slider>
-                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="" textAlignment="right" lineBreakMode="tailTruncation" minimumFontSize="10" id="9wB-mL-QeI">
-                                <rect key="frame" x="169" y="140" width="131" height="21"/>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="256" textAlignment="right" lineBreakMode="tailTruncation" minimumFontSize="10" id="9wB-mL-QeI">
+                                <rect key="frame" x="169" y="113" width="131" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Buffer size" lineBreakMode="tailTruncation" minimumFontSize="10" id="3Cu-7y-dC8">
-                                <rect key="frame" x="20" y="126" width="98" height="21"/>
+                                <rect key="frame" x="20" y="110" width="98" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Open widget panel" lineBreakMode="tailTruncation" minimumFontSize="10" id="QHj-Ev-ZRr">
-                                <rect key="frame" x="20" y="291" width="184" height="21"/>
+                                <rect key="frame" x="20" y="303" width="184" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <switch opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" id="0tq-fl-CWV">
-                                <rect key="frame" x="245" y="300" width="51" height="31"/>
+                                <rect key="frame" x="245" y="312" width="51" height="31"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                                 <connections>
                                     <action selector="openWidgetPanelSwitchMoved:" destination="6" eventType="valueChanged" id="qim-6k-Qi3"/>
                                 </connections>
                             </switch>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="on long press" lineBreakMode="tailTruncation" minimumFontSize="10" id="MCl-8J-e1e">
-                                <rect key="frame" x="20" y="310" width="184" height="21"/>
+                                <rect key="frame" x="20" y="322" width="184" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
@@ -403,21 +403,21 @@
                                 </connections>
                             </button>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="OSC output IP" lineBreakMode="tailTruncation" minimumFontSize="10" id="Dug-q9-Rbk">
-                                <rect key="frame" x="20" y="203" width="114" height="21"/>
+                                <rect key="frame" x="20" y="180" width="114" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="OSC transmit" lineBreakMode="tailTruncation" minimumFontSize="10" id="byC-1c-Zn7">
-                                <rect key="frame" x="20" y="249" width="106" height="21"/>
+                                <rect key="frame" x="20" y="261" width="106" height="21"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
                                 <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="192.168.1.1" borderStyle="roundedRect" minimumFontSize="17" id="eSV-gx-j7Y">
-                                <rect key="frame" x="157" y="199" width="143" height="30"/>
+                                <rect key="frame" x="157" y="176" width="143" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
@@ -426,7 +426,7 @@
                                 </connections>
                             </textField>
                             <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="bar" selectedSegmentIndex="0" id="FrJ-Nw-5Mb">
-                                <rect key="frame" x="157" y="242" width="143" height="29"/>
+                                <rect key="frame" x="157" y="254" width="143" height="29"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <segments>
                                     <segment title="No"/>
@@ -434,6 +434,31 @@
                                     <segment title="Alias"/>
                                 </segments>
                             </segmentedControl>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="OSC in/out ports" lineBreakMode="tailTruncation" minimumFontSize="10" id="GqM-Nb-eOp">
+                                <rect key="frame" x="20" y="220" width="133" height="21"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="17"/>
+                                <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="5510" borderStyle="roundedRect" minimumFontSize="17" id="3FF-eA-2RD">
+                                <rect key="frame" x="169" y="216" width="58" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <outlet property="delegate" destination="7" id="dyI-2Z-3I5"/>
+                                </connections>
+                            </textField>
+                            <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="5511" borderStyle="roundedRect" minimumFontSize="17" id="VzS-Ib-Y1k">
+                                <rect key="frame" x="240" y="216" width="58" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <outlet property="delegate" destination="7" id="8By-iH-HKn"/>
+                                </connections>
+                            </textField>
                         </subviews>
                         <color key="backgroundColor" white="0.25" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                     </view>
@@ -442,6 +467,8 @@
                         <outlet property="_bufferSizeSlider" destination="gDC-YP-Hzz" id="tGk-M5-y3n"/>
                         <outlet property="_openWidgetPanelSwitch" destination="0tq-fl-CWV" id="c3B-yb-Vnl"/>
                         <outlet property="_oscIPOutput" destination="eSV-gx-j7Y" id="lug-UP-vv3"/>
+                        <outlet property="_oscInputPort" destination="3FF-eA-2RD" id="Yqm-ui-sXa"/>
+                        <outlet property="_oscOutputPort" destination="VzS-Ib-Y1k" id="xsx-CP-DUE"/>
                         <outlet property="_oscTransmitState" destination="FrJ-Nw-5Mb" id="xOe-TS-1zI"/>
                         <outlet property="_sampleRateLabel" destination="U5Y-mi-YMk" id="mw6-2F-q56"/>
                         <outlet property="_sampleRateSlider" destination="1Y5-CG-5xs" id="wSl-lW-BS3"/>

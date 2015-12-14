@@ -49,7 +49,11 @@
     _openWidgetPanel = [[NSUserDefaults standardUserDefaults] boolForKey:@"openWidgetPanel"];
     _oscTransmit = [[NSUserDefaults standardUserDefaults] integerForKey:@"oscTransmit"];
     _oscIPOutputText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscIPOutputText"];
-    _oscIPOutputText =  (_oscIPOutputText) ? _oscIPOutputText : @"192.168.1.1";
+    _oscIPOutputText = (_oscIPOutputText) ? _oscIPOutputText : @"192.168.1.1";
+    _oscInputPortText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscInputPortText"];
+    _oscInputPortText = (_oscInputPortText) ? _oscInputPortText : @"5510";
+    _oscOutputPortText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscOutputPortText"];
+    _oscOutputPortText = (_oscOutputPortText) ? _oscOutputPortText : @"5511";
     
     [_oscTransmitState removeAllSegments];
     [_oscTransmitState insertSegmentWithTitle:@"No" atIndex:0 animated:NO];
@@ -66,7 +70,12 @@
     _bufferSizeLabel.text = [NSString stringWithFormat:@"%i frames", _bufferSize];
 
     _oscIPOutput.text = _oscIPOutputText;
+    _oscInputPort.text = _oscInputPortText;
+    _oscOutputPort.text = _oscOutputPortText;
+    
     //_oscIPOutput.keyboardType = UIKeyboardTypeDecimalPad;
+    _oscInputPort.keyboardType = UIKeyboardTypeNumberPad;
+    _oscOutputPort.keyboardType = UIKeyboardTypeNumberPad;
     
     [_openWidgetPanelSwitch setOn:_openWidgetPanel animated:NO];
     
@@ -85,6 +94,10 @@
     _oscIPOutput = nil;
     [_oscTransmitState release];
     _oscTransmitState = nil;
+    [_oscInputPort release];
+    _oscInputPort = nil;
+    [_oscOutputPort release];
+    _oscOutputPort = nil;
     [super viewDidUnload];
 }
 
@@ -132,8 +145,10 @@
 
 - (IBAction)done:(id)sender
 {
-    // Read IP content
+    // Read IP znf in/out ports
     _oscIPOutputText = _oscIPOutput.text;
+    _oscInputPortText = _oscInputPort.text;
+    _oscOutputPortText = _oscOutputPort.text;
     _oscTransmit = _oscTransmitState.selectedSegmentIndex;
     
     // Write user preferences
@@ -142,13 +157,15 @@
     [[NSUserDefaults standardUserDefaults] setBool:_openWidgetPanel forKey:@"openWidgetPanel"];
     [[NSUserDefaults standardUserDefaults] setInteger:_oscTransmit forKey:@"oscTransmit"];
     [[NSUserDefaults standardUserDefaults] setObject:_oscIPOutputText forKey:@"oscIPOutputText"];
+    [[NSUserDefaults standardUserDefaults] setObject:_oscInputPortText forKey:@"oscInputPortText"];
+    [[NSUserDefaults standardUserDefaults] setObject:_oscOutputPortText forKey:@"oscOutputPortText"];
     
 	[[NSUserDefaults standardUserDefaults] synchronize];
         
     // Update preferences
     [((FIMainViewController*)self.delegate) restartAudioWithBufferSize:_bufferSize sampleRate:_sampleRate];
     [((FIMainViewController*)self.delegate) setOpenWidgetPanel:_openWidgetPanel];
-    [((FIMainViewController*)self.delegate) setOSCParameters:_oscTransmit output:_oscIPOutputText];
+    [((FIMainViewController*)self.delegate) setOSCParameters:_oscTransmit output:_oscIPOutputText inputport:_oscInputPortText outputport:_oscOutputPortText];
     
     // Dismiss view
     [self.delegate flipsideViewControllerDidFinish:self];
@@ -377,6 +394,8 @@
 {
     [_oscIPOutput release];
     [_oscTransmitState release];
+    [_oscInputPort release];
+    [_oscOutputPort release];
     [super dealloc];
 }
 

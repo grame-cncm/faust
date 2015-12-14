@@ -57,8 +57,6 @@ int sampleRate = 0;
 int	bufferSize = 0;
 BOOL openWidgetPanel = YES;
 int uiCocoaItem::gItemCount = 0;
-int oscTransmit = 0;
-NSString* oscIPOutputText = nil;
 
 - (void)didReceiveMemoryWarning
 {
@@ -114,12 +112,23 @@ static void jack_shutdown_callback(const char* message, void* arg)
     finterface = new FUI();
     
     // Read user preferences
+    NSString* oscIPOutputText = nil;
+    NSString* oscInputPortText = nil;
+    NSString* oscOutputPortText = nil;
+    
     sampleRate = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
     bufferSize = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     openWidgetPanel = [[NSUserDefaults standardUserDefaults] boolForKey:@"openWidgetPanel"];
-    oscTransmit = [[NSUserDefaults standardUserDefaults] integerForKey:@"oscTransmit"];
+    int oscTransmit = [[NSUserDefaults standardUserDefaults] integerForKey:@"oscTransmit"];
+    
     oscIPOutputText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscIPOutputText"];
     oscIPOutputText =  (oscIPOutputText) ? oscIPOutputText : @"192.168.1.1";
+    
+    oscInputPortText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscInputPortText"];
+    oscInputPortText =  (oscInputPortText) ? oscInputPortText : @"5510";
+    
+    oscOutputPortText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscOutputPortText"];
+    oscOutputPortText =  (oscOutputPortText) ? oscOutputPortText : @"5511";
     
     [self openAudio];
     [self displayTitle];
@@ -130,8 +139,8 @@ static void jack_shutdown_callback(const char* message, void* arg)
     DSP.buildUserInterface(finterface);
     
     uiinterface->setHidden(true);
-     // Start OSC
-    [self setOSCParameters:oscTransmit output:oscIPOutputText];
+    // Start OSC
+    [self setOSCParameters:oscTransmit output:oscIPOutputText inputport:oscInputPortText outputport:oscOutputPortText];
     
     snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, _name);
     finterface->recallState(rcfilename);
@@ -918,21 +927,20 @@ static inline const char* transmit_value(int num)
 }
 
 // OSC
-- (void)setOSCParameters:(int)transmit output:(NSString*)outputIPText
+- (void)setOSCParameters:(int)transmit output:(NSString*)outputIPText inputport:(NSString*)inputPortText outputport:(NSString*)outputPortText;
 {
-    delete oscinterface;
-    if (transmit > 0)  {
-        const char* argv[5];
-        argv[0] = (char*)_name;
-        argv[1] = "-xmit";
-        argv[2] = transmit_value(transmit);
-        argv[3] = "-desthost";
-        argv[4] = [outputIPText cStringUsingEncoding:[NSString defaultCStringEncoding]];
-        printf("output %s\n",  argv[4]);
-        oscinterface = new OSCUI(_name, 5, (char**)argv);
-    } else {
-        oscinterface = new OSCUI(_name, 0, NULL);
-    }
+    //delete oscinterface;
+    const char* argv[9];
+    argv[0] = (char*)_name;
+    argv[1] = "-xmit";
+    argv[2] = transmit_value(transmit);
+    argv[3] = "-desthost";
+    argv[4] = [outputIPText cStringUsingEncoding:[NSString defaultCStringEncoding]];
+    argv[5] = "-port";
+    argv[6] = [inputPortText cStringUsingEncoding:[NSString defaultCStringEncoding]];
+    argv[7] = "-outport";
+    argv[8] = [outputPortText cStringUsingEncoding:[NSString defaultCStringEncoding]];
+    oscinterface = new OSCUI(_name, 9, (char**)argv);
     DSP.buildUserInterface(oscinterface);
     oscinterface->run();
 }

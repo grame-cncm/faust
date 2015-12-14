@@ -66,9 +66,9 @@ class OSCControler
 		*/
 		enum { kUDPBasePort = 5510};
             
-        OSCControler (int argc, char *argv[], GUI* ui, OSCIO* io = 0, ErrorCallback errCallback = NULL, void* arg = NULL, bool init = true);
+        OSCControler(int argc, char *argv[], GUI* ui, OSCIO* io = 0, ErrorCallback errCallback = NULL, void* arg = NULL, bool init = true);
 
-        virtual ~OSCControler ();
+        virtual ~OSCControler();
 	
 		//--------------------------------------------------------------------------
 		// addnode, opengroup and closegroup are simply relayed to the factory
