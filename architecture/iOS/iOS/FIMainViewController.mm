@@ -23,6 +23,7 @@
 #import "FIAppDelegate.h"
 #import "FICocoaUI.h"
 #include "faust/gui/OSCUI.h"
+#include "faust/gui/MidiUI.h"
 
 #define kMenuBarsHeight             66
 #define kMotionUpdateRate           30
@@ -50,6 +51,8 @@ audio* audio_device = NULL;
 CocoaUI* uiinterface = NULL;
 FUI* finterface = NULL;
 GUI* oscinterface = NULL;
+MidiUI* midiinterface = NULL;
+
 MY_Meta metadata;
 char rcfilename[256];
 
@@ -110,7 +113,8 @@ static void jack_shutdown_callback(const char* message, void* arg)
     
     uiinterface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata, &DSP);
     finterface = new FUI();
-    
+    midiinterface = new MidiUI(_name);
+      
     // Read user preferences
     NSString* oscIPOutputText = nil;
     NSString* oscInputPortText = nil;
@@ -137,6 +141,9 @@ static void jack_shutdown_callback(const char* message, void* arg)
     DSP.init(int(sampleRate));
 	DSP.buildUserInterface(uiinterface);
     DSP.buildUserInterface(finterface);
+    DSP.buildUserInterface(midiinterface);
+    
+    midiinterface->run();
     
     uiinterface->setHidden(true);
     // Start OSC

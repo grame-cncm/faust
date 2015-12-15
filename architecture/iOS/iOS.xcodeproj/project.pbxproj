@@ -148,6 +148,9 @@
 		4BBA87FC1BD7DEA200DE5748 /* ic_accelnormon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87F11BD7DEA200DE5748 /* ic_accelnormon.png */; };
 		4BBA87FD1BD7DEA200DE5748 /* ic_accelnormon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87F11BD7DEA200DE5748 /* ic_accelnormon.png */; };
 		4BDAA21016AEF05D00A3499E /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BDAA20F16AEF05D00A3499E /* Accelerate.framework */; };
+		4BDEB1241C203C4400849601 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BDEB1231C203C4400849601 /* CoreMIDI.framework */; };
+		4BDEB1251C203C4400849601 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BDEB1231C203C4400849601 /* CoreMIDI.framework */; };
+		4BDEB1261C203C4400849601 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BDEB1231C203C4400849601 /* CoreMIDI.framework */; };
 		4BEF91A61B96FFC000F2D974 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 65E5ED9E14DB037D00136CFC /* main.m */; };
 		4BEF91A71B96FFC000F2D974 /* FIAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65E5EDA214DB037D00136CFC /* FIAppDelegate.mm */; };
 		4BEF91A81B96FFC000F2D974 /* FIMainViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65E5EDAB14DB037D00136CFC /* FIMainViewController.mm */; };
@@ -406,6 +409,7 @@
 		4BBA87F01BD7DEA200DE5748 /* ic_accelinverton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_accelinverton.png; sourceTree = "<group>"; };
 		4BBA87F11BD7DEA200DE5748 /* ic_accelnormon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_accelnormon.png; sourceTree = "<group>"; };
 		4BDAA20F16AEF05D00A3499E /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		4BDEB1231C203C4400849601 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
 		4BEF91F01B96FFC000F2D974 /* Template_CoreAudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Template_CoreAudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		651BB43C171D91260065CBC9 /* Icon-Jack.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Jack.png"; sourceTree = "<group>"; };
 		651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Jack@2x.png"; sourceTree = "<group>"; };
@@ -494,6 +498,7 @@
 				4B06EC9E16E77D6A004D2F59 /* CoreMotion.framework in Frameworks */,
 				4B06EC9F16E77D6A004D2F59 /* CoreLocation.framework in Frameworks */,
 				4B06ECA016E77D6A004D2F59 /* AudioToolbox.framework in Frameworks */,
+				4BDEB1251C203C4400849601 /* CoreMIDI.framework in Frameworks */,
 				4B06ECA116E77D6A004D2F59 /* UIKit.framework in Frameworks */,
 				4B06ECA216E77D6A004D2F59 /* Foundation.framework in Frameworks */,
 				4B06ECA316E77D6A004D2F59 /* CoreGraphics.framework in Frameworks */,
@@ -513,6 +518,7 @@
 				4BEF91BB1B96FFC000F2D974 /* UIKit.framework in Frameworks */,
 				4BEF91BC1B96FFC000F2D974 /* Foundation.framework in Frameworks */,
 				4BEF91BD1B96FFC000F2D974 /* CoreGraphics.framework in Frameworks */,
+				4BDEB1261C203C4400849601 /* CoreMIDI.framework in Frameworks */,
 				4BEF91BE1B96FFC000F2D974 /* Accelerate.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -528,6 +534,7 @@
 				65E5ED9314DB037D00136CFC /* UIKit.framework in Frameworks */,
 				65E5ED9514DB037D00136CFC /* Foundation.framework in Frameworks */,
 				65E5ED9714DB037D00136CFC /* CoreGraphics.framework in Frameworks */,
+				4BDEB1241C203C4400849601 /* CoreMIDI.framework in Frameworks */,
 				4BDAA21016AEF05D00A3499E /* Accelerate.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -822,6 +829,7 @@
 		65E5ED9114DB037D00136CFC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4BDEB1231C203C4400849601 /* CoreMIDI.framework */,
 				4BAD5B9E16F0FA5D000FEF86 /* jack.framework */,
 				4BDAA20F16AEF05D00A3499E /* Accelerate.framework */,
 				65E85C9A157806C2009F2D7A /* QuartzCore.framework */,
