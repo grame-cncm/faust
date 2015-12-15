@@ -48,10 +48,6 @@ all the other osc excluded characters with '-' (hyphen)
 This solution is implemented in the proposed OSC UI;
 */
 
-///using namespace std;
-
-//class oscfaust::OSCIO;
-
 class OSCUI : public GUI 
 {
      

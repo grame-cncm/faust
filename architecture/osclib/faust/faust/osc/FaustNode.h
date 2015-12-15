@@ -86,8 +86,8 @@ template <typename C> class FaustNode : public MessageDriven, public uiItem
             return node; 
         }
 
-		virtual bool accept(const Message* msg);
-		virtual void get(unsigned long ipdest) const;		///< handler for the 'get' message
+		bool accept(const Message* msg);
+		void get(unsigned long ipdest) const;		///< handler for the 'get' message
 		virtual void reflectZone() { sendOSC(); fCache = *fZone; }
 };
 
