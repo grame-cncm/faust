@@ -54,7 +54,6 @@
 #endif
 
 #if MIDICTRL
-#include "faust/midi/rt-midi.h"
 #include "faust/gui/MidiUI.h"
 #endif
 

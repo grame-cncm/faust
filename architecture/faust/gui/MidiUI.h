@@ -32,7 +32,6 @@
 #endif
 
 #include "faust/gui/GUI.h"
-#include "faust/midi/midi.h"
 #include "faust/midi/rt-midi.h"
 #include "faust/gui/ValueConverter.h"
 #include <vector>
