@@ -56,8 +56,8 @@ MidiUI* midiinterface = NULL;
 MY_Meta metadata;
 char rcfilename[256];
 
-int sampleRate = 0;
-int	bufferSize = 0;
+int sample_rate = 0;
+int buffer_size = 0;
 BOOL openWidgetPanel = YES;
 int uiCocoaItem::gItemCount = 0;
 
@@ -120,8 +120,8 @@ static void jack_shutdown_callback(const char* message, void* arg)
     NSString* oscInputPortText = nil;
     NSString* oscOutputPortText = nil;
     
-    sampleRate = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
-    bufferSize = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
+    sample_rate = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
+    buffer_size = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     openWidgetPanel = [[NSUserDefaults standardUserDefaults] boolForKey:@"openWidgetPanel"];
     int oscTransmit = [[NSUserDefaults standardUserDefaults] integerForKey:@"oscTransmit"];
     
@@ -138,11 +138,11 @@ static void jack_shutdown_callback(const char* message, void* arg)
     [self displayTitle];
     
     // Build Faust interface
-    DSP.init(int(sampleRate));
-	DSP.buildUserInterface(uiinterface);
+    DSP.init(int(sample_rate));
+    DSP.buildUserInterface(uiinterface);
     DSP.buildUserInterface(finterface);
     DSP.buildUserInterface(midiinterface);
-    
+
     midiinterface->run();
     
     uiinterface->setHidden(true);
@@ -335,7 +335,7 @@ error:
     }
     
     if (![self openJack]) {
-        [self openCoreAudio:bufferSize :sampleRate];
+        [self openCoreAudio:bufferSize :sample_rate];
     }
 }
 
@@ -343,7 +343,7 @@ error:
 
 - (void)openAudio
 {
-    [self openCoreAudio:bufferSize :sampleRate];
+    [self openCoreAudio:buffer_size :sample_rate];
 }
 
 #endif
@@ -903,19 +903,18 @@ T findCorrespondingUiItem(FIResponder* sender)
 
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate
 {
-    finterface->saveState(rcfilename);
-    
-    if (dynamic_cast<iosaudio*>(audio_device)) {
-        
-        audio_device->stop();
-        audio_device = NULL;
-        
-        [self openCoreAudio:bufferSize :sampleRate];
-        
-        DSP.init(int(sampleRate));
+    if ((bufferSize != buffer_size) || (sampleRate != sample_rate)) {
+        finterface->saveState(rcfilename);
+        if (dynamic_cast<iosaudio*>(audio_device)) {
+            audio_device->stop();
+            audio_device = NULL;
+            [self openCoreAudio:bufferSize :sampleRate];
+            DSP.init(int(sampleRate));
+        }
+        finterface->recallState(rcfilename);
+        buffer_size = bufferSize;
+        sample_rate = sampleRate;
     }
-   
-    finterface->recallState(rcfilename);
 }
 
 #pragma mark - OSC
