@@ -2484,7 +2484,7 @@ public:
 
 // global static fields
 
-list<GUI*>                   GUI::fGuiList;
+list<GUI*> GUI::fGuiList;
 
 CGPoint inBoxPosition2absolutePosition(float x, float y, uiCocoaItem* box)
 {

@@ -44,7 +44,7 @@ void MessageDriven::processMessage(const Message* msg)
 	// create a regular expression
 	OSCRegexp r(OSCAddress::addressFirst(addr).c_str());
 	// and call propose with this regexp and with the dest osc address tail
-	propose(msg, &r, OSCAddress::addressTail (addr));
+	propose(msg, &r, OSCAddress::addressTail(addr));
 }
 
 //--------------------------------------------------------------------------
@@ -94,7 +94,7 @@ void MessageDriven::propose(const Message* msg, const OSCRegexp* r, const std::s
 			OSCRegexp rtail (OSCAddress::addressFirst(addrTail).c_str());
 			for (vector<SMessageDriven>::iterator i = fSubNodes.begin(); i != fSubNodes.end(); i++) {
 				// then propagate propose() to subnodes with a new regexp and a new tail
-				(*i)->propose (msg, &rtail, OSCAddress::addressTail(addrTail));
+				(*i)->propose(msg, &rtail, OSCAddress::addressTail(addrTail));
 			}
 		}
 	}

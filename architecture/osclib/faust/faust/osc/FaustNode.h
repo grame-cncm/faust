@@ -57,13 +57,14 @@ template <typename C> class FaustNode : public MessageDriven, public uiItem
 {
 	mapping<C>	fMapping;
     SRootNode fRoot;
+    bool fInput;  // true for input nodes (slider, button...)
 	
 	bool	store(C val) { *fZone = fMapping.clip(val); return true; }
 	void	sendOSC() const;
 
 	protected:
-		FaustNode(SRootNode root, const char *name, C* zone, C init, C min, C max, const char* prefix, GUI* ui, bool initZone) 
-			: MessageDriven(name, prefix), uiItem(ui, zone), fRoot(root), fMapping(min, max)
+		FaustNode(SRootNode root, const char *name, C* zone, C init, C min, C max, const char* prefix, GUI* ui, bool initZone, bool input) 
+			: MessageDriven(name, prefix), uiItem(ui, zone), fRoot(root), fMapping(min, max), fInput(input)
 			{ 
                 if (initZone) {
                     *zone = init; 
@@ -74,9 +75,9 @@ template <typename C> class FaustNode : public MessageDriven, public uiItem
 
 	public:
 		typedef SMARTP<FaustNode<C> > SFaustNode;
-		static SFaustNode create(SRootNode root, const char* name, C* zone, C init, C min, C max, const char* prefix, GUI* ui, bool initZone)	
+		static SFaustNode create(SRootNode root, const char* name, C* zone, C init, C min, C max, const char* prefix, GUI* ui, bool initZone, bool input)	
         { 
-            SFaustNode node = new FaustNode(root, name, zone, init, min, max, prefix, ui, initZone); 
+            SFaustNode node = new FaustNode(root, name, zone, init, min, max, prefix, ui, initZone, input); 
             /*
                 Since FaustNode is a subclass of uiItem, the pointer will also be kept in the GUI class, and it's desallocation will be done there.
                 So we don't want to have smartpointer logic desallocate it and we increment the refcount.
@@ -85,18 +86,8 @@ template <typename C> class FaustNode : public MessageDriven, public uiItem
             return node; 
         }
 
-		virtual bool accept(const Message* msg)			///< handler for the 'accept' message
-		{
-			if (msg->size() == 1) {			// checks for the message parameters count
-											// messages with a param count other than 1 are rejected
-				int ival; float fval;
-				if (msg->param(0, fval)) return store(C(fval));			// accepts float values
-				else if (msg->param(0, ival)) return store(C(ival));	// but accepts also int values
-			}
-			return MessageDriven::accept(msg);
-		}
-
-		virtual void get(unsigned long ipdest) const;		///< handler for the 'get' message
+		bool accept(const Message* msg);
+		void get(unsigned long ipdest) const;		///< handler for the 'get' message
 		virtual void reflectZone() { sendOSC(); fCache = *fZone; }
 };
 
