@@ -24,6 +24,7 @@
 #if LLVM_BUILD
 
 #include <stdio.h>
+#include <string.h>
 #include <list>
 #include <iostream>
 #include <fstream>
