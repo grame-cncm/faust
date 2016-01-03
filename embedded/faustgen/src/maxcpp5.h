@@ -41,7 +41,7 @@ THE SOFTWARE.
 #include <iostream>
 
 #define MAX_CPP_VERSION	0.006
-#define MAX_CPP_MAX_DSP_SIGNALS (64) // max. no. signal ins/outs
+#define MAX_CPP_MAX_DSP_SIGNALS (512) // max. no. signal ins/outs
 
 // for A_NOTHING methods (e.g. bang):
 #define REGISTER_METHOD(CLASS, METHOD)	class_addmethod(	\
@@ -401,10 +401,10 @@ template<typename T> void MspCpp5<T>::internal_dsp_32(MspCpp5<T> * x, t_signal *
 	PerformData pdata;
 	pdata.x = (T *)x;	
 	pdata.vs = sp[i]->s_n;
-	for (i = 0; i< x->m_siginlets; i++, s++) {
+	for (i = 0; i < x->m_siginlets; i++, s++) {
 		pdata.inputs[i] = sp[s]->s_vec;
 	}
-	for (i = 0; i< x->m_sigoutlets; i++, s++) {
+	for (i = 0; i < x->m_sigoutlets; i++, s++) {
 		pdata.outputs[i] = sp[s]->s_vec;
 	}
     
