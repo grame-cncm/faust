@@ -57,7 +57,7 @@ class smartable {
                 See "Static SFaustNode create (const char* name, C* zone, C init, C min, C max, const char* prefix, GUI* ui)" comment.
                 assert (refCount == 0); 
             */
-         }
+        }
 		smartable& operator=(const smartable&) { return *this; }
 };
 
