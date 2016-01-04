@@ -32,7 +32,6 @@
 #endif
 
 #include "faust/gui/GUI.h"
-#include "faust/midi/midi.h"
 #include "faust/midi/rt-midi.h"
 #include "faust/gui/ValueConverter.h"
 #include <vector>
@@ -114,7 +113,7 @@ class MidiUI : public GUI, public midi
   
     public:
 
-        MidiUI(const string& name = "RTMidi"):fMIDI(name), fMidiOut(&fMIDI) { fMIDI.addMidiIn(this); }
+        MidiUI(const std::string& name = "RTMidi"):fMIDI(name), fMidiOut(&fMIDI) { fMIDI.addMidiIn(this); }
 
         virtual ~MidiUI() {}
         
