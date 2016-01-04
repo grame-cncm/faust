@@ -92,9 +92,9 @@ template <typename T> class MsgParam : public baseparam
 				 MsgParam(T val) : fParam(val)	{}
 		virtual ~MsgParam() {}
 		
-		T	getValue() const { return fParam; }
+		T getValue() const { return fParam; }
 		
-		virtual SMARTP<baseparam> copy() const { return new MsgParam<T>(fParam); }
+		virtual Sbaseparam copy() const { return new MsgParam<T>(fParam); }
 };
 
 //--------------------------------------------------------------------------
@@ -126,15 +126,15 @@ class Message
                 \brief a message constructor
                 \param address the message destination address
             */
-             Message(const std::string& address) : fAddress(address), fAlias("") {}
+            Message(const std::string& address) : fAddress(address), fAlias("") {}
              
-              Message(const std::string& address, const std::string& alias) : fAddress(address), fAlias(alias) {}
+            Message(const std::string& address, const std::string& alias) : fAddress(address), fAlias(alias) {}
             /*!
                 \brief a message constructor
                 \param address the message destination address
                 \param args the message parameters
             */
-             Message(const std::string& address, const argslist& args) 
+            Message(const std::string& address, const argslist& args) 
                 : fAddress(address), fArguments(args) {}
             /*!
                 \brief a message constructor
@@ -211,7 +211,6 @@ class Message
     int					size() const		{ return fArguments.size(); }
 
     bool operator == (const Message& other) const;	
-
 
     /*!
         \brief gives a message float parameter
