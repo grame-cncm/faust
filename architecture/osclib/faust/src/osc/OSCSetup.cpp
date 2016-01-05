@@ -42,18 +42,18 @@ class OscThread : public TThreads
         ErrorCallback fErrCallback;
         void*         fArg;
 	
-        OscThread(MessageProcessor* mp, int udpport) { fListener = OSCListener::create (mp, udpport); }
+        OscThread(MessageProcessor* mp, int udpport) { fListener = OSCListener::create(mp, udpport); }
 
         OscThread(MessageProcessor* mp, int udpport, ErrorCallback errCallback, void* arg)
         {
-            fListener = OSCListener::create (mp, udpport);
+            fListener = OSCListener::create(mp, udpport);
             fErrCallback = errCallback;
             fArg = arg;
         }
 		virtual ~OscThread() { stop(); }
 
 		/// \brief starts the osc listener
-        void run ()				
+        void run()				
         { 
             try {
                 fListener->run(); 

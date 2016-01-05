@@ -60,8 +60,8 @@ class FaustFactory
 		std::string addressTail(const std::string& address) const;
 
 	public:
-				 FaustFactory(GUI* ui, OSCIO * io = 0); // : fIO(io), fGUI(ui) {}
-		virtual ~FaustFactory(); // {}
+				 FaustFactory(GUI* ui, OSCIO * io = 0); 
+		virtual ~FaustFactory(); 
 
 		template <typename C> void addnode(const char* label, C* zone, C init, C min, C max, bool initZone, bool input);
 		template <typename C> void addAlias(const std::string& fullpath, C* zone, C imin, C imax, C init, C min, C max, const char* label);

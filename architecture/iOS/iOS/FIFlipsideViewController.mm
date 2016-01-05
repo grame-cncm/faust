@@ -47,9 +47,20 @@
     _sampleRate = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
     _bufferSize = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     _openWidgetPanel = [[NSUserDefaults standardUserDefaults] boolForKey:@"openWidgetPanel"];
-    _oscTransmit = [[NSUserDefaults standardUserDefaults] boolForKey:@"oscTransmit"];
+    _oscTransmit = [[NSUserDefaults standardUserDefaults] integerForKey:@"oscTransmit"];
     _oscIPOutputText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscIPOutputText"];
-    _oscIPOutputText =  (_oscIPOutputText) ? _oscIPOutputText : @"192.168.1.1";
+    _oscIPOutputText = (_oscIPOutputText) ? _oscIPOutputText : @"192.168.1.1";
+    _oscInputPortText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscInputPortText"];
+    _oscInputPortText = (_oscInputPortText) ? _oscInputPortText : @"5510";
+    _oscOutputPortText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscOutputPortText"];
+    _oscOutputPortText = (_oscOutputPortText) ? _oscOutputPortText : @"5511";
+    
+    [_oscTransmitState removeAllSegments];
+    [_oscTransmitState insertSegmentWithTitle:@"No" atIndex:0 animated:NO];
+    [_oscTransmitState insertSegmentWithTitle:@"All" atIndex:1 animated:NO];
+    [_oscTransmitState insertSegmentWithTitle:@"Alias" atIndex:2 animated:NO];
+    
+     _oscTransmitState.selectedSegmentIndex = _oscTransmit;
     
     // Update UI
     _sampleRateSlider.value = [self sampleRateToSliderValue:_sampleRate];
@@ -59,10 +70,14 @@
     _bufferSizeLabel.text = [NSString stringWithFormat:@"%i frames", _bufferSize];
 
     _oscIPOutput.text = _oscIPOutputText;
+    _oscInputPort.text = _oscInputPortText;
+    _oscOutputPort.text = _oscOutputPortText;
+    
     //_oscIPOutput.keyboardType = UIKeyboardTypeDecimalPad;
+    _oscInputPort.keyboardType = UIKeyboardTypeNumberPad;
+    _oscOutputPort.keyboardType = UIKeyboardTypeNumberPad;
     
     [_openWidgetPanelSwitch setOn:_openWidgetPanel animated:NO];
-    [_oscTransmitSwitch setOn:_oscTransmit animated:NO];
     
 #ifdef JACK_IOS
     // Test Jack
@@ -77,8 +92,12 @@
 {
     [_oscIPOutput release];
     _oscIPOutput = nil;
-    [_oscTransmitSwitch release];
-    _oscTransmitSwitch = nil;
+    [_oscTransmitState release];
+    _oscTransmitState = nil;
+    [_oscInputPort release];
+    _oscInputPort = nil;
+    [_oscOutputPort release];
+    _oscOutputPort = nil;
     [super viewDidUnload];
 }
 
@@ -126,22 +145,27 @@
 
 - (IBAction)done:(id)sender
 {
-    // Read IP content
-     _oscIPOutputText = _oscIPOutput.text;
+    // Read IP and in/out ports
+    _oscIPOutputText = _oscIPOutput.text;
+    _oscInputPortText = _oscInputPort.text;
+    _oscOutputPortText = _oscOutputPort.text;
+    _oscTransmit = _oscTransmitState.selectedSegmentIndex;
     
     // Write user preferences
     [[NSUserDefaults standardUserDefaults] setInteger:_sampleRate forKey:@"sampleRate"];
     [[NSUserDefaults standardUserDefaults] setInteger:_bufferSize forKey:@"bufferSize"];
     [[NSUserDefaults standardUserDefaults] setBool:_openWidgetPanel forKey:@"openWidgetPanel"];
-    [[NSUserDefaults standardUserDefaults] setBool:_oscTransmit forKey:@"oscTransmit"];
+    [[NSUserDefaults standardUserDefaults] setInteger:_oscTransmit forKey:@"oscTransmit"];
     [[NSUserDefaults standardUserDefaults] setObject:_oscIPOutputText forKey:@"oscIPOutputText"];
+    [[NSUserDefaults standardUserDefaults] setObject:_oscInputPortText forKey:@"oscInputPortText"];
+    [[NSUserDefaults standardUserDefaults] setObject:_oscOutputPortText forKey:@"oscOutputPortText"];
     
 	[[NSUserDefaults standardUserDefaults] synchronize];
         
     // Update preferences
     [((FIMainViewController*)self.delegate) restartAudioWithBufferSize:_bufferSize sampleRate:_sampleRate];
     [((FIMainViewController*)self.delegate) setOpenWidgetPanel:_openWidgetPanel];
-    [((FIMainViewController*)self.delegate) setOSCParameters:_oscTransmit output:_oscIPOutputText];
+    [((FIMainViewController*)self.delegate) setOSCParameters:_oscTransmit output:_oscIPOutputText inputport:_oscInputPortText outputport:_oscOutputPortText];
     
     // Dismiss view
     [self.delegate flipsideViewControllerDidFinish:self];
@@ -162,11 +186,6 @@
 - (IBAction)openWidgetPanelSwitchMoved:(id)sender
 {
     _openWidgetPanel = ((UISwitch*)sender).on;
-}
-
-- (IBAction)oscTransmitSwitchMoved:(id)sender
-{
-    _oscTransmit = ((UISwitch*)sender).on;
 }
 
 - (IBAction)deleteAssignationsButtonClicked:(id)sender
@@ -374,7 +393,9 @@
 - (void)dealloc
 {
     [_oscIPOutput release];
-    [_oscTransmitSwitch release];
+    [_oscTransmitState release];
+    [_oscInputPort release];
+    [_oscOutputPort release];
     [super dealloc];
 }
 

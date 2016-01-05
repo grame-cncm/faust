@@ -56,14 +56,14 @@ template <typename C> struct mapping
 template <typename C> class FaustNode : public MessageDriven, public uiItem
 {
 	mapping<C>	fMapping;
-    SRootNode fRoot;
+    RootNode* fRoot;
     bool fInput;  // true for input nodes (slider, button...)
 	
 	bool	store(C val) { *fZone = fMapping.clip(val); return true; }
 	void	sendOSC() const;
 
 	protected:
-		FaustNode(SRootNode root, const char *name, C* zone, C init, C min, C max, const char* prefix, GUI* ui, bool initZone, bool input) 
+		FaustNode(RootNode* root, const char *name, C* zone, C init, C min, C max, const char* prefix, GUI* ui, bool initZone, bool input) 
 			: MessageDriven(name, prefix), uiItem(ui, zone), fRoot(root), fMapping(min, max), fInput(input)
 			{ 
                 if (initZone) {
@@ -71,18 +71,18 @@ template <typename C> class FaustNode : public MessageDriven, public uiItem
                 }
             }
 			
-		virtual ~FaustNode() {}
+		virtual ~FaustNode() { printf("this %x\n",this);}
 
 	public:
 		typedef SMARTP<FaustNode<C> > SFaustNode;
-		static SFaustNode create(SRootNode root, const char* name, C* zone, C init, C min, C max, const char* prefix, GUI* ui, bool initZone, bool input)	
+		static SFaustNode create(RootNode* root, const char* name, C* zone, C init, C min, C max, const char* prefix, GUI* ui, bool initZone, bool input)	
         { 
             SFaustNode node = new FaustNode(root, name, zone, init, min, max, prefix, ui, initZone, input); 
             /*
                 Since FaustNode is a subclass of uiItem, the pointer will also be kept in the GUI class, and it's desallocation will be done there.
                 So we don't want to have smartpointer logic desallocate it and we increment the refcount.
             */
-            node->addReference(); 
+            node->addReference();
             return node; 
         }
 
