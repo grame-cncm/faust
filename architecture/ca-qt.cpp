@@ -143,14 +143,8 @@ int main(int argc, char *argv[])
  #endif
 
 #ifdef OSCCTRL
-	OSCUI* oscinterface;
-    for (int i = 0; i < 5; i++) {
-        printf("new OSCUI\n");
-        oscinterface = new OSCUI(name, argc, argv);
-        DSP->buildUserInterface(oscinterface);
-        delete oscinterface;
-    }
-    oscinterface = new OSCUI(name, argc, argv);
+	OSCUI oscinterface(name, argc, argv);
+    DSP->buildUserInterface(&oscinterface);
     std::cout << "OSC is on" << std::endl;
 #endif
 
@@ -174,7 +168,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef OSCCTRL
-	oscinterface->run();
+	oscinterface.run();
 #endif
 #ifdef MIDICTRL
 	midiinterface.run();
