@@ -935,7 +935,7 @@ static inline const char* transmit_value(int num)
 // OSC
 - (void)setOSCParameters:(int)transmit output:(NSString*)outputIPText inputport:(NSString*)inputPortText outputport:(NSString*)outputPortText;
 {
-    //delete oscinterface;
+    delete oscinterface;
     const char* argv[9];
     argv[0] = (char*)_name;
     argv[1] = "-xmit";
