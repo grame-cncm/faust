@@ -22,15 +22,10 @@
 #import "FIFlipsideViewController.h"
 #import "FIResponder.h"
 #import "FIScrollView.h"
-#import "FISensorFilter.h"
-
-
 
 #ifdef JACK_IOS
 #import "JackView.h"
 #endif
-
-
 
 using namespace std;
 class uiCocoaItem;
@@ -40,8 +35,7 @@ class uiBox;
                                                         UIPopoverControllerDelegate,
                                                         FIResponderDelegate,
                                                         UIScrollViewDelegate,
-                                                        UIGestureRecognizerDelegate,
-                                                        CLLocationManagerDelegate>
+                                                        UIGestureRecognizerDelegate>
 {
     IBOutlet UIView*                    _dspView;
     IBOutlet FIScrollView*              _dspScrollView;
@@ -56,21 +50,14 @@ class uiBox;
     BOOL                                _viewLoaded;  
     
     IBOutlet UIView*                    _widgetPreferencesView;
+    
     IBOutlet UISegmentedControl*        _gyroAxisSegmentedControl;
-    IBOutlet UISwitch*                  _gyroInvertedSwitch;
-    IBOutlet UISwitch*                  _gyroFilteredSwitch;
-    IBOutlet UISlider*                  _gyroSensibilitySlider;
-    IBOutlet UILabel*                   _gyroSensibilityLabel;
+    
     IBOutlet UILabel*                   _widgetPreferencesTitleLabel;
-    IBOutlet UILabel*                   _gyroInvertedTitleLabel;
-    IBOutlet UILabel*                   _gyroSensibilityTitleLabel;
     uiCocoaItem*                        _selectedWidget;                // Contains label of the widget
     list <uiCocoaItem*>                 _assignatedWidgets;
-    FISensorFilter*                     _sensorFilter;
-    CLLocationManager*                  _locationManager;
     CMMotionManager*                    _motionManager;
     NSTimer*                            _motionTimer;
-    BOOL                                _blockShake;                    // To avoid several shakes in one movement
     
     IBOutlet UILabel*                   _colorLabel;
     IBOutlet UILabel*                   _rLabel;
@@ -87,7 +74,18 @@ class uiBox;
     
     BOOL                                _openPanelChanged;
     
-
+    // New UI
+    
+    IBOutlet UISegmentedControl*        _curveSegmentedControl;
+    
+    IBOutlet UITextField*               _minText;
+    IBOutlet UITextField*               _maxText;
+    IBOutlet UITextField*               _centerText;
+    
+    IBOutlet UISlider*                  _minSlider;
+    IBOutlet UISlider*                  _maxSlider;
+    IBOutlet UISlider*                  _centerSlider;
+    
 #ifdef JACK_IOS
     // Test Jack
     UISwipeGestureRecognizer*           _swipeRecognizer;
@@ -134,7 +132,7 @@ class uiBox;
 - (void)restartAudioWithBufferSize:(int)bufferSize sampleRate:(int)sampleRate;
 
 // OSC
-- (void)setOSCParameters:(BOOL)transmit output:(NSString*)outputIPText;
+- (void)setOSCParameters:(int)transmit output:(NSString*)outputIPText inputport:(NSString*)inputPortText outputport:(NSString*)outputPortText;
 
 // Sensors
 - (void)showWidgetPreferencesView:(UILongPressGestureRecognizer *)gesture;
@@ -147,12 +145,7 @@ class uiBox;
 - (void)startMotion;
 - (void)stopMotion;
 - (void)updateMotion;
-- (void)endBlockShake;
 - (NSString*)urlForWidget:(uiCocoaItem*)widget;
-
-- (float)mapping2WithA:(float)a la:(float)la ha:(float)ha lv:(float)lv hv:(float)hv;
-- (float)mapping3WithA:(float)a la:(float)la ma:(float)ma ha:(float)ha lv:(float)lv mv:(float)mv hv:(float)hv;
-
 
 #ifdef JACK_IOS
 // Test Jack

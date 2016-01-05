@@ -326,6 +326,13 @@ static int SetAudioCategory(int input, int output)
             printf("Error setting kAudioSessionProperty_OverrideCategoryDefaultToSpeaker\n");
             printError(err);
         }
+        
+        UInt32 allowBluetoothInput = 1;
+        err = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryEnableBluetoothInput, sizeof(UInt32), &allowBluetoothInput);
+        if (err != noErr) {
+            printf("Error setting kAudioSessionProperty_OverrideCategoryEnableBluetoothInput\n");
+            printError(err);
+        }
     }
     
 #if DISABLE_AGC

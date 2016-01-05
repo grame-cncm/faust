@@ -17,7 +17,6 @@ public class MonochromeView extends View
     public MonochromeView(Context context){
         super(context);
         // specific stuff here
-
     }
 
     private int acc2byte(double r) {
@@ -28,7 +27,6 @@ public class MonochromeView extends View
             return c;
         }
     }
-
 
     public void setRed(double r) {
         int c = acc2byte(r);
