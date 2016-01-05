@@ -1088,7 +1088,7 @@ int process (jack_nframes_t nframes, void *arg)
 // 									MAIN
 //-------------------------------------------------------------------------
 
-int main(int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
     UI*                 interface;
     jack_client_t*      client; 

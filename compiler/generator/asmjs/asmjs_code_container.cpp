@@ -323,7 +323,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
     
     // Fields to path
     tab(n, *fOut); *fOut << "function getPathTable" << fKlassName << "() {";
-    tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << fObjPrefix << "var pathTable = [];"; 
     map <string, string>::iterator it;
     map <string, pair<int, Typed::VarType> >& fieldTable = gGlobal->gASMJSVisitor->getFieldTable();
