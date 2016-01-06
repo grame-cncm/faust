@@ -135,14 +135,15 @@ static void jack_shutdown_callback(const char* message, void* arg)
     oscOutputPortText =  (oscOutputPortText) ? oscOutputPortText : @"5511";
     
     [self openAudio];
-    [self displayTitle];
     
     // Build Faust interface
     DSP.init(int(sample_rate));
     DSP.buildUserInterface(uiinterface);
     DSP.buildUserInterface(finterface);
     DSP.buildUserInterface(midiinterface);
-
+    
+    [self displayTitle];
+ 
     midiinterface->run();
     
     uiinterface->setHidden(true);
@@ -772,11 +773,18 @@ T findCorrespondingUiItem(FIResponder* sender)
     
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
     {
-        _titleLabel.text = titleString;
+        _titleLabel.text = (!uiinterface->isScreenUI()) ? titleString : @"";
     }
     else if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
     {
-        _titleNavigationItem.title = titleString;
+        // Hide "title" and "Info" button in Screen mode
+        if (uiinterface->isScreenUI()) {
+            _titleNavigationItem.title =  @"";
+            UINavigationBar* bar = (UINavigationBar*)self.view.subviews[1];
+            bar.topItem.rightBarButtonItem.title = @"";
+        } else {
+            _titleNavigationItem.title = titleString;
+        }
     }
 }
 
