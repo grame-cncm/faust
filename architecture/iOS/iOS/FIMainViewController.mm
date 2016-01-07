@@ -769,7 +769,7 @@ T findCorrespondingUiItem(FIResponder* sender)
         }
     }
     
-    if (!titleString) titleString = [[NSString alloc] initWithString:@"Faust | Grame"];
+    if (!titleString) titleString = @"Faust | Grame";
     
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
     {
@@ -1542,7 +1542,6 @@ static inline const char* transmit_value(int num)
     if (_motionManager == nil)
     {
         _motionManager = [[CMMotionManager alloc] init];
-        //_sensorFilter = [[FISensorFilter alloc] initWithSampleRate:kMotionUpdateRate * 10 cutoffFrequency:100];
         [_motionManager startAccelerometerUpdates];
         [_motionManager startGyroUpdates];
         _motionTimer = [NSTimer scheduledTimerWithTimeInterval:1./kMotionUpdateRate
