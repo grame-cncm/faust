@@ -51,7 +51,10 @@ audio* audio_device = NULL;
 CocoaUI* uiinterface = NULL;
 FUI* finterface = NULL;
 GUI* oscinterface = NULL;
+
+#if MIDICTRL
 MidiUI* midiinterface = NULL;
+#endif
 
 MY_Meta metadata;
 char rcfilename[256];
@@ -95,9 +98,19 @@ static void jack_shutdown_callback(const char* message, void* arg)
     [super viewDidLoad];
     ((FIAppDelegate*)[UIApplication sharedApplication].delegate).mainViewController = self;
     _openPanelChanged = YES;
+
+#if POLY
+#if MIDICTRL
+    DSP = new mydsp_poly(4, true);
+#else
+    DSP = new mydsp_poly(4);
+#endif
+#else
+    DSP = new mydsp();
+#endif
     
     // Faust initialization
-    DSP.metadata(&metadata);
+    mydsp::metadata(&metadata);
     
     // Read parameters values
     const char* home = getenv("HOME");
@@ -111,9 +124,11 @@ static void jack_shutdown_callback(const char* message, void* arg)
         _name = [[[NSProcessInfo processInfo] processName] UTF8String];
     }
     
-    uiinterface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata, &DSP);
+    uiinterface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata, DSP);
     finterface = new FUI();
+#if MIDICTRL
     midiinterface = new MidiUI(_name);
+#endif
       
     // Read user preferences
     NSString* oscIPOutputText = nil;
@@ -137,14 +152,18 @@ static void jack_shutdown_callback(const char* message, void* arg)
     [self openAudio];
     
     // Build Faust interface
-    DSP.init(int(sample_rate));
-    DSP.buildUserInterface(uiinterface);
-    DSP.buildUserInterface(finterface);
-    DSP.buildUserInterface(midiinterface);
+    DSP->init(int(sample_rate));
+    DSP->buildUserInterface(uiinterface);
+    DSP->buildUserInterface(finterface);
+#if MIDICTRL
+    DSP->buildUserInterface(midiinterface);
+#endif
     
     [self displayTitle];
- 
+
+#if MIDICTRL
     midiinterface->run();
+#endif
     
     uiinterface->setHidden(true);
     // Start OSC
@@ -231,9 +250,9 @@ static void jack_shutdown_callback(const char* message, void* arg)
     if (!audio_device) {
         
         NSString* iconFile;
-        if (DSP.getNumInputs() > 0 && DSP.getNumOutputs() > 0) {
+        if (DSP->getNumInputs() > 0 && DSP->getNumOutputs() > 0) {
             iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Fx136" ofType:@"png"];
-        } else if (DSP.getNumOutputs() > 0) {
+        } else if (DSP->getNumOutputs() > 0) {
             iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Output136" ofType:@"png"];
         } else {
             iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Analyzer136" ofType:@"png"];
@@ -246,7 +265,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
         [fileHandle closeFile];
         
         audio_device = new jackaudio(icon_data, size, true);
-        if (!audio_device->init((_name) ? _name : "Faust", &DSP)) {
+        if (!audio_device->init((_name) ? _name : "Faust", DSP)) {
             printf("Cannot connect to JACK server\n");
             goto error;
         }
@@ -301,7 +320,7 @@ error:
     if (!audio_device) {
         audio_device = new iosaudio(sampleRate, bufferSize);
         
-        if (!audio_device->init((_name) ? _name : "Faust", &DSP)) {
+        if (!audio_device->init((_name) ? _name : "Faust", DSP)) {
             printf("Cannot init iOS audio device\n");
             goto error;
         }
@@ -418,6 +437,10 @@ error:
     delete uiinterface;
     delete finterface;
     delete oscinterface;
+    
+#if MIDICTRL
+    delete midiinterface;
+#endif
     
     [_refreshTimer invalidate];
     [self stopMotion];
@@ -917,7 +940,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             audio_device->stop();
             audio_device = NULL;
             [self openCoreAudio:bufferSize :sampleRate];
-            DSP.init(int(sampleRate));
+            DSP->init(int(sampleRate));
         }
         finterface->recallState(rcfilename);
         buffer_size = bufferSize;
@@ -955,7 +978,7 @@ static inline const char* transmit_value(int num)
     argv[7] = "-outport";
     argv[8] = [outputPortText cStringUsingEncoding:[NSString defaultCStringEncoding]];
     oscinterface = new OSCUI(_name, 9, (char**)argv);
-    DSP.buildUserInterface(oscinterface);
+    DSP->buildUserInterface(oscinterface);
     oscinterface->run();
 }
 

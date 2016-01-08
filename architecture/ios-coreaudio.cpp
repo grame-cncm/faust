@@ -66,7 +66,11 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp DSP;
+#ifdef POLY
+#include "faust/dsp/poly-dsp.h"
+#endif
+
+dsp* DSP;
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

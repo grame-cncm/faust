@@ -335,7 +335,7 @@ static int SetAudioCategory(int input, int output)
         }
     }
     
-#if DISABLE_AGC
+#if NOAGC
     // If input is used, disable AGC
     if (audioCategory == kAudioSessionCategory_RecordAudio || audioCategory == kAudioSessionCategory_PlayAndRecord) {
         
