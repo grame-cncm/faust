@@ -71,10 +71,9 @@
 
 #ifdef POLY
 #include "faust/dsp/poly-dsp.h"
-mydsp_poly*	DSP;
-#else
-mydsp* DSP;
-#endif 
+#endif
+
+dsp* DSP;
 
 /***************************END USER SECTION ***************************/
 
