@@ -160,14 +160,19 @@ bool isFaustInclude(const string& s, string& fname)
 /**
  * Inject file fname into dst ostream 
  */
+ 
+set<string> areadyIncluded;
 
 void inject(ostream& dst, const string fname)
 {
-    istream* src = open_arch_stream(fname.c_str());
-    if (src) {
-        streamCopy(*src, dst);
-    } else {
-        cerr << "NOT FOUND " << fname << endl;
+    if (areadyIncluded.find(fname) == areadyIncluded.end()) {
+        areadyIncluded.insert(fname);
+        istream* src = open_arch_stream(fname.c_str());
+        if (src) {
+            streamCopy(*src, dst);
+        } else {
+            cerr << "NOT FOUND " << fname << endl;
+        }
     }
 }
 
@@ -192,7 +197,7 @@ void streamCopyUntil(istream& src, ostream& dst, const string& until)
  */
 void streamCopy(istream& src, ostream& dst)
 { 
-    streamCopyUntil(src, dst, "<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
+    streamCopyUntil(src, dst, "<<<FORBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
 
 /**
@@ -200,13 +205,13 @@ void streamCopy(istream& src, ostream& dst)
  */
 void streamCopyUntilEnd(istream& src, ostream& dst)
 { 
-    streamCopyUntil(src, dst, "<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
+    streamCopyUntil(src, dst, "<<<FORBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
 
 #define TRY_OPEN(filename)                      \
     ifstream* f = new ifstream();               \
     f->open(filename, ifstream::in);            \
-    err=chdir(old);                                 \
+    err = chdir(old);                           \
     if (f->is_open()) return f; else delete f;  \
 
 /**

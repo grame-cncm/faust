@@ -52,9 +52,8 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
-#if MIDICTRL
+// Always include this file, otherwise -poly only mode does not compile....
 #include "faust/gui/MidiUI.h"
-#endif
 
 /**************************BEGIN USER SECTION **************************/
 
