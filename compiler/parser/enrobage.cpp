@@ -120,33 +120,36 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
  */
 class myparser
 {
-    string  str;
-    size_t  N;
-    size_t  p;
-public:
-    myparser(const string& s) : str(s), N(s.length()), p(0) {}
-    bool skip()                 { while ( p<N && isspace(str[p]) ) p++; return true; }
-    bool parse(const string& s)   { bool f; if ((f = (p == str.find(s, p)))) p += s.length(); return f; }
-    bool filename(string& fname) {
-        size_t saved = p;
-        if (p<N) {
-            char c = str[p++];
-            if (c== '<' | c=='"') {
-                fname = "";
-                while ( p<N && (str[p] != '>') && (str[p] != '"')) fname += str[p++];
-                p++;
-                return true;
+
+    private:
+        string  str;
+        size_t  N;
+        size_t  p;
+        
+    public:
+        myparser(const string& s) : str(s), N(s.length()), p(0) {}
+        bool skip()                 { while ( p<N && isspace(str[p]) ) p++; return true; }
+        bool parse(const string& s) { bool f; if ((f = (p == str.find(s, p)))) p += s.length(); return f; }
+        bool filename(string& fname) {
+            size_t saved = p;
+            if (p<N) {
+                char c = str[p++];
+                if (c == '<' | c == '"') {
+                    fname = "";
+                    while (p<N && (str[p] != '>') && (str[p] != '"')) fname += str[p++];
+                    p++;
+                    return true;
+                }
             }
+            p = saved;
+            return false;
         }
-        p = saved;
-        return false;
-    }
 };
 
 /**
  * True if string s match '#include <faust/fname>'
  */
-bool isFaustInclude(const string& s, string& fname)
+static bool isFaustInclude(const string& s, string& fname)
 {
     myparser P(s);
     if ( P.skip() && P.parse("#include") && P.skip() && P.filename(fname) ) {
@@ -163,7 +166,7 @@ bool isFaustInclude(const string& s, string& fname)
  
 set<string> areadyIncluded;
 
-void inject(ostream& dst, const string fname)
+static void inject(ostream& dst, const string& fname)
 {
     if (areadyIncluded.find(fname) == areadyIncluded.end()) {
         areadyIncluded.insert(fname);
