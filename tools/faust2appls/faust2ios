@@ -17,10 +17,12 @@ MIDICTRL="0"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2ios [-xcode] [-all] [-noagc] <file.dsp>"
+        echo "faust2ios [-xcode] [-all] [-noagc] [-poly] [-midi] <file.dsp>"
         echo "Use '-xcode' to keep the intermediate Xcode project"
         echo "Use '-all' to compile 64/32 bits binary"
         echo "Use '-noagc' to deactivate audio automatic gain control"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-midi' to activate MIDI control"
     fi
 
     if [ "$p" = -icc ]; then
