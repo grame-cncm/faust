@@ -120,13 +120,11 @@ class myparser : public virtual Garbageable
 {
 
     private:
-
         string  str;
         size_t  N;
         size_t  p;
         
     public:
-
         myparser(const string& s) : str(s), N(s.length()), p(0) {}
         bool skip()                 { while (p < N && isspace(str[p])) p++; return true; }
         bool parse(const string& s) { bool f; if ((f = (p == str.find(s, p)))) p += s.length(); return f; }
