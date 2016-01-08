@@ -24,6 +24,9 @@
  ************************************************************************
  ************************************************************************/
  
+#ifndef __rt_midi__
+#define __rt_midi__ 
+ 
 #include <iostream>
 #include <cstdlib>
 #include "faust/midi/RtMidi.cpp"
@@ -147,7 +150,7 @@ class rtmidi : public midi {
             stop();
         }
         
-        void addMidiIn(midi* dsp) { fMidiInputs.push_back(dsp); }
+        void addMidiIn(midi* midi_dsp) { fMidiInputs.push_back(midi_dsp); }
         
         bool start()
         {
@@ -227,3 +230,5 @@ class rtmidi : public midi {
         }
    
 };
+
+#endif // __rt_midi__

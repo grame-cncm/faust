@@ -43,7 +43,6 @@
 #include "faust/gui/faustqt.h"
 #include "faust/misc.h"
 #include "faust/audio/coreaudio-dsp.h"
-#include "faust/midi/midi.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -53,9 +52,8 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
-#if MIDICTRL
+// Always include this file, otherwise -poly only mode does not compile....
 #include "faust/gui/MidiUI.h"
-#endif
 
 /**************************BEGIN USER SECTION **************************/
 
@@ -103,15 +101,10 @@ int main(int argc, char *argv[])
     long srate = (long)lopt(argv, "--frequency", -1);
     int fpb = lopt(argv, "--buffer", 512);
     int poly = lopt(argv, "--poly", 4);
-     
-#if MIDICTRL
-    rtmidi midi(name);
-#endif
 
 #ifdef POLY
 #if MIDICTRL
     DSP = new mydsp_poly(poly, true);
-    midi.addMidiIn(DSP);
 #else
     DSP = new mydsp_poly(poly);
 #endif
@@ -155,10 +148,6 @@ int main(int argc, char *argv[])
     
     printf("ins %d\n", audio.get_num_inputs());
     printf("outs %d\n", audio.get_num_outputs());
-    
-#if MIDICTRL
-    midi.start();
-#endif
 
 #ifdef HTTPCTRL
 	httpdinterface.run();
@@ -181,10 +170,6 @@ int main(int argc, char *argv[])
     
 	audio.stop();
 	finterface.saveState(rcfilename);
-    
-#ifdef MIDICTRL
-    midi.stop();
-#endif
 
   	return 0;
 }

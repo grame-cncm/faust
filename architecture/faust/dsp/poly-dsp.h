@@ -42,10 +42,10 @@
 #include <ostream>
 #include <sstream>
 
+#include "faust/gui/MidiUI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
 #include "faust/audio/dsp.h"
-#include "faust/midi/midi.h"
 
 #define kFreeVoice        -2
 #define kReleaseVoice     -1
@@ -105,8 +105,7 @@ struct mydsp_voice_factory : public voice_factory {
 };
 
 // Polyphonic DSP
-class mydsp_poly : public dsp, public midi
-{
+class mydsp_poly : public dsp, public midi {
 
     private:
   
@@ -281,6 +280,10 @@ class mydsp_poly : public dsp, public midi
         
         void buildUserInterface(UI* ui_interface) 
         {   
+            // Add itself to the MidiUI object
+            MidiUI* midi_ui = dynamic_cast<MidiUI*>(ui_interface);
+            if (midi_ui) midi_ui->addMidiIn(this);
+            
             if (fMaxPolyphony > 1) {
                 ui_interface->openTabBox("Polyphonic instrument");
                 for (int i = 0; i < fMaxPolyphony; i++) {
@@ -463,4 +466,4 @@ extern "C" {
         
 }
 
-#endif
+#endif // __poly_dsp__
