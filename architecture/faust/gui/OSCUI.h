@@ -145,4 +145,4 @@ const char* OSCUI::tr(const char* label) const
 	return buffer;
 }
 
-#endif
+#endif // __OSCUI__
