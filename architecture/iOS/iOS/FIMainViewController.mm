@@ -16,8 +16,6 @@
  ************************************************************************
  ************************************************************************/
 
-//#define POLY 1
-
 #import <QuartzCore/QuartzCore.h>
 #import "FIMainViewController.h"
 #import "ios-faust.h"
@@ -53,8 +51,10 @@ audio* audio_device = NULL;
 CocoaUI* uiinterface = NULL;
 FUI* finterface = NULL;
 GUI* oscinterface = NULL;
-MidiUI* midiinterface = NULL;
 
+#if MIDICTRL
+MidiUI* midiinterface = NULL;
+#endif
 
 MY_Meta metadata;
 char rcfilename[256];
@@ -98,9 +98,13 @@ static void jack_shutdown_callback(const char* message, void* arg)
     [super viewDidLoad];
     ((FIAppDelegate*)[UIApplication sharedApplication].delegate).mainViewController = self;
     _openPanelChanged = YES;
-    
-#ifdef POLY
+
+#if POLY
+#if MIDICTRL
     DSP = new mydsp_poly(4, true);
+#else
+    DSP = new mydsp_poly(4);
+#endif
 #else
     DSP = new mydsp();
 #endif
@@ -122,7 +126,9 @@ static void jack_shutdown_callback(const char* message, void* arg)
     
     uiinterface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata, DSP);
     finterface = new FUI();
+#if MIDICTRL
     midiinterface = new MidiUI(_name);
+#endif
       
     // Read user preferences
     NSString* oscIPOutputText = nil;
@@ -149,11 +155,15 @@ static void jack_shutdown_callback(const char* message, void* arg)
     DSP->init(int(sample_rate));
     DSP->buildUserInterface(uiinterface);
     DSP->buildUserInterface(finterface);
+#if MIDICTRL
     DSP->buildUserInterface(midiinterface);
+#endif
     
     [self displayTitle];
- 
+
+#if MIDICTRL
     midiinterface->run();
+#endif
     
     uiinterface->setHidden(true);
     // Start OSC
@@ -427,6 +437,10 @@ error:
     delete uiinterface;
     delete finterface;
     delete oscinterface;
+    
+#if MIDICTRL
+    delete midiinterface;
+#endif
     
     [_refreshTimer invalidate];
     [self stopMotion];
