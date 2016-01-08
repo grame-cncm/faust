@@ -117,8 +117,10 @@ class MidiUI : public GUI, public midi
 
         virtual ~MidiUI() {}
         
-        virtual void run() { fMIDI.start(); }
-        virtual void stop() { fMIDI.stop(); }
+        void run() { fMIDI.start(); }
+        void stop() { fMIDI.stop(); }
+        
+        void addMidiIn(midi* midi_dsp) { fMIDI.addMidiIn(midi_dsp); }
       
         // -- widget's layouts
 
@@ -218,4 +220,4 @@ class MidiUI : public GUI, public midi
 
 };
 
-#endif
+#endif // FAUST_MIDIUI_H

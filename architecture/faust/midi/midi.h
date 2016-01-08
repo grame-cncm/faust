@@ -46,4 +46,4 @@ class midi {
        
 };
 
-#endif
+#endif // __midi__

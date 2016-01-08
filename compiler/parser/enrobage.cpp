@@ -44,7 +44,7 @@
  */
 static bool isBlank(const string& s) 
 {
-    for (size_t i=0; i<s.size(); i++) {
+    for (size_t i = 0; i < s.size(); i++) {
         if (s[i] != ' ' && s[i] != '\t') return false;
     }
     return true;
@@ -91,7 +91,7 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
     while (getline(src,s) && isBlank(s)) dst << s << endl;
 
     // first non blank should start a comment
-    if (s.find("/*")==string::npos) { dst << s << endl; return; }
+    if (s.find("/*") == string::npos) { dst << s << endl; return; }
 
     // copy the header into H
     bool remove = false;
@@ -118,33 +118,38 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
  */
 class myparser : public virtual Garbageable
 {
-    string  str;
-    size_t  N;
-    size_t  p;
-public:
-    myparser(const string& s) : str(s), N(s.length()), p(0) {}
-    bool skip()                 { while ( p<N && isspace(str[p]) ) p++; return true; }
-    bool parse(const string& s)   { bool f; if ((f = (p == str.find(s, p)))) p += s.length(); return f; }
-    bool filename(string& fname) {
-        size_t saved = p;
-        if (p<N) {
-            char c = str[p++];
-            if (c== '<' | c=='"') {
-                fname = "";
-                while ( p<N && (str[p] != '>') && (str[p] != '"')) fname += str[p++];
-                p++;
-                return true;
+
+    private:
+
+        string  str;
+        size_t  N;
+        size_t  p;
+        
+    public:
+
+        myparser(const string& s) : str(s), N(s.length()), p(0) {}
+        bool skip()                 { while (p < N && isspace(str[p])) p++; return true; }
+        bool parse(const string& s) { bool f; if ((f = (p == str.find(s, p)))) p += s.length(); return f; }
+        bool filename(string& fname) {
+            size_t saved = p;
+            if (p<N) {
+                char c = str[p++];
+                if (c == '<' | c == '"') {
+                    fname = "";
+                    while (p<N && (str[p] != '>') && (str[p] != '"')) fname += str[p++];
+                    p++;
+                    return true;
+                }
             }
+            p = saved;
+            return false;
         }
-        p = saved;
-        return false;
-    }
 };
 
 /**
  * True if string s match '#include <faust/fname>'
  */
-bool isFaustInclude(const string& s, string& fname)
+static bool isFaustInclude(const string& s, string& fname)
 {
     myparser P(s);
     if (P.skip() && P.parse("#include") && P.skip() && P.filename(fname)) {
@@ -156,10 +161,9 @@ bool isFaustInclude(const string& s, string& fname)
 }
 
 /**
- * Inject file fname into dst ostream if not already done
+ * Inject file fname into dst ostream 
  */
-
-void inject(ostream& dst, const string fname)
+static void inject(ostream& dst, const string& fname)
 {
     if (gGlobal->gAlreadyIncluded.find(fname) == gGlobal->gAlreadyIncluded.end()) {
         gGlobal->gAlreadyIncluded.insert(fname);
@@ -196,7 +200,7 @@ void streamCopyUntil(istream& src, ostream& dst, const string& until)
  */
 void streamCopy(istream& src, ostream& dst)
 { 
-    streamCopyUntil(src, dst, "<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
+    streamCopyUntil(src, dst, "<<<FORBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
 
 /**
@@ -204,13 +208,13 @@ void streamCopy(istream& src, ostream& dst)
  */
 void streamCopyUntilEnd(istream& src, ostream& dst)
 { 
-    streamCopyUntil(src, dst, "<<<FOBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
+    streamCopyUntil(src, dst, "<<<FORBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
 
 #define TRY_OPEN(filename)                      \
     ifstream* f = new ifstream();               \
     f->open(filename, ifstream::in);            \
-    err=chdir(old);                                 \
+    err = chdir(old);                           \
     if (f->is_open()) return f; else delete f;  \
 
 /**

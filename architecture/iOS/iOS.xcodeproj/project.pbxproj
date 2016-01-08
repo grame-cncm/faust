@@ -46,7 +46,6 @@
 		4B06EC9816E77D6A004D2F59 /* FITabView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6560454014FE924400AE84A9 /* FITabView.mm */; };
 		4B06EC9916E77D6A004D2F59 /* FIHint.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65961D4F1546DFD70004BC59 /* FIHint.mm */; };
 		4B06EC9A16E77D6A004D2F59 /* FIScrollView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65FD744E1549993A00E7CB0B /* FIScrollView.mm */; };
-		4B06EC9B16E77D6A004D2F59 /* FISensorFilter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6528EF041564212100A310B2 /* FISensorFilter.mm */; };
 		4B06EC9D16E77D6A004D2F59 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E85C9A157806C2009F2D7A /* QuartzCore.framework */; };
 		4B06EC9E16E77D6A004D2F59 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F87430156FFB0C008AE175 /* CoreMotion.framework */; };
 		4B06EC9F16E77D6A004D2F59 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65D1BD1315668A8A00ADCA32 /* CoreLocation.framework */; };
@@ -165,7 +164,6 @@
 		4BEF91B11B96FFC000F2D974 /* FITabView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6560454014FE924400AE84A9 /* FITabView.mm */; };
 		4BEF91B21B96FFC000F2D974 /* FIHint.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65961D4F1546DFD70004BC59 /* FIHint.mm */; };
 		4BEF91B31B96FFC000F2D974 /* FIScrollView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 65FD744E1549993A00E7CB0B /* FIScrollView.mm */; };
-		4BEF91B41B96FFC000F2D974 /* FISensorFilter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6528EF041564212100A310B2 /* FISensorFilter.mm */; };
 		4BEF91B51B96FFC000F2D974 /* JackViewPortsViewBackgroundView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 656EE12E176B6D8300463CA8 /* JackViewPortsViewBackgroundView.mm */; };
 		4BEF91B71B96FFC000F2D974 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65E85C9A157806C2009F2D7A /* QuartzCore.framework */; };
 		4BEF91B81B96FFC000F2D974 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 65F87430156FFB0C008AE175 /* CoreMotion.framework */; };
@@ -233,7 +231,6 @@
 		651BB43F171D91260065CBC9 /* Icon-Jack.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43C171D91260065CBC9 /* Icon-Jack.png */; };
 		651BB440171D91260065CBC9 /* Icon-Jack@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */; };
 		651BB441171D91260065CBC9 /* Icon-Jack@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */; };
-		6528EF051564212100A310B2 /* FISensorFilter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6528EF041564212100A310B2 /* FISensorFilter.mm */; };
 		6534E20F17301716009A4FD2 /* JackViewPortsView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6534E20E17301716009A4FD2 /* JackViewPortsView.mm */; };
 		654EE64D17832FB400175F2F /* jackview-audio-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64117832FB400175F2F /* jackview-audio-off.png */; };
 		654EE64E17832FB400175F2F /* jackview-audio-off.png in Resources */ = {isa = PBXBuildFile; fileRef = 654EE64117832FB400175F2F /* jackview-audio-off.png */; };
@@ -413,8 +410,6 @@
 		4BEF91F01B96FFC000F2D974 /* Template_CoreAudio.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Template_CoreAudio.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		651BB43C171D91260065CBC9 /* Icon-Jack.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Jack.png"; sourceTree = "<group>"; };
 		651BB43D171D91260065CBC9 /* Icon-Jack@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-Jack@2x.png"; sourceTree = "<group>"; };
-		6528EF031564212100A310B2 /* FISensorFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FISensorFilter.h; sourceTree = "<group>"; };
-		6528EF041564212100A310B2 /* FISensorFilter.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = FISensorFilter.mm; sourceTree = "<group>"; };
 		6534E20D17301716009A4FD2 /* JackViewPortsView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JackViewPortsView.h; sourceTree = "<group>"; };
 		6534E20E17301716009A4FD2 /* JackViewPortsView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = JackViewPortsView.mm; sourceTree = "<group>"; };
 		654EE64117832FB400175F2F /* jackview-audio-off.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "jackview-audio-off.png"; sourceTree = "<group>"; };
@@ -858,8 +853,6 @@
 				65FD744E1549993A00E7CB0B /* FIScrollView.mm */,
 				65E5EDAA14DB037D00136CFC /* FIMainViewController.h */,
 				65E5EDAB14DB037D00136CFC /* FIMainViewController.mm */,
-				6528EF031564212100A310B2 /* FISensorFilter.h */,
-				6528EF041564212100A310B2 /* FISensorFilter.mm */,
 				65E5EDAD14DB037D00136CFC /* FIFlipsideViewController.h */,
 				65E5EDAE14DB037D00136CFC /* FIFlipsideViewController.mm */,
 				65F8C2DF14DBD59C0042E3FA /* FICocoaUI.h */,
@@ -1256,7 +1249,6 @@
 				4B06EC9816E77D6A004D2F59 /* FITabView.mm in Sources */,
 				4B06EC9916E77D6A004D2F59 /* FIHint.mm in Sources */,
 				4B06EC9A16E77D6A004D2F59 /* FIScrollView.mm in Sources */,
-				4B06EC9B16E77D6A004D2F59 /* FISensorFilter.mm in Sources */,
 				4B3504DF1C10A57D009F7680 /* OSCListener.cpp in Sources */,
 				65B9D5DB170EB9D5009DE0DC /* JackView.mm in Sources */,
 				6534E20F17301716009A4FD2 /* JackViewPortsView.mm in Sources */,
@@ -1311,7 +1303,6 @@
 				4B3505521C10A57D009F7680 /* OscReceivedElements.cpp in Sources */,
 				4BEF91B31B96FFC000F2D974 /* FIScrollView.mm in Sources */,
 				4B3504AA1C10A57D009F7680 /* OSCFError.cpp in Sources */,
-				4BEF91B41B96FFC000F2D974 /* FISensorFilter.mm in Sources */,
 				4BEF91B51B96FFC000F2D974 /* JackViewPortsViewBackgroundView.mm in Sources */,
 				4B3504B01C10A57D009F7680 /* OSCRegexp.cpp in Sources */,
 				4B3505581C10A57D009F7680 /* OscTypes.cpp in Sources */,
@@ -1356,7 +1347,6 @@
 				4B3505501C10A57D009F7680 /* OscReceivedElements.cpp in Sources */,
 				65FD744F1549993A00E7CB0B /* FIScrollView.mm in Sources */,
 				4B3504A81C10A57D009F7680 /* OSCFError.cpp in Sources */,
-				6528EF051564212100A310B2 /* FISensorFilter.mm in Sources */,
 				656EE12F176B6D8300463CA8 /* JackViewPortsViewBackgroundView.mm in Sources */,
 				4B3504AE1C10A57D009F7680 /* OSCRegexp.cpp in Sources */,
 				4B3505561C10A57D009F7680 /* OscTypes.cpp in Sources */,
