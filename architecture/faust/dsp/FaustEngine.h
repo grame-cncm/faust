@@ -35,14 +35,14 @@ void destroyDsp(dsp* dsp);
 bool init1Dsp(dsp* dsp, const char* name);                                      ///< init Faust object with default system values
 bool init2Dsp(dsp* dsp, const char* name, int renderer, int sr, int bsize);     ///< init the Faust object
 
-bool startDsp(dsp* dsp);		///< open the audio drivers and starts processing audio
-void stopDsp(dsp* dsp);			///< stop processing audio and closes the audio drivers
+bool startDsp(dsp* dsp);    ///< open the audio drivers and starts processing audio
+void stopDsp(dsp* dsp);     ///< stop processing audio and closes the audio drivers
 
-// Connection API '
-int getNumInputsDsp(dsp* dsp);  // Using 'null' means physical input
-int getNumOutputsDsp(dsp* dsp); // Using 'null' means physical output
+// Connection API
+int getNumInputsDsp(dsp* dsp);  // Using NULL means physical input
+int getNumOutputsDsp(dsp* dsp); // Using NULL means physical output
 
-// Using 'null' for dsp1 means physical input, 'null' for dsp2 means physical output
+// Using NULL for dsp1 means physical input, NULL for dsp2 means physical output
 void connectDsp(dsp* dsp1, dsp* dsp2, int src, int dst);        
 void disconnectDsp(dsp* dsp1, dsp* dsp2, int src, int dst);
 bool isConnectedDsp(dsp* dsp1, dsp* dsp2, int src, int dst);

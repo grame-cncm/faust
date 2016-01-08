@@ -32,6 +32,7 @@
 
 ************************************************************************
 ************************************************************************/
+
 #include <math.h>
 #include <string.h>
 #include <stdlib.h> 
@@ -39,19 +40,22 @@
 
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/APIUI.h"
-#ifdef _WIN32
+#include "faust/dsp/llvm-dsp.h"
+
+#if defined(_WIN32)
 #define STRDUP _strdup
 #include "faust/audio/portaudio-dsp.h"	
-#else
+#elif defined(__APPLE__) 
 #define STRDUP strdup
 #include "faust/audio/coreaudio-dsp.h"	
 #endif
 
-#include "faust/audio/jack-dsp.h"
-#include "faust/dsp/llvm-dsp.h"
-
 #if defined(_WIN32) || defined(__APPLE__) 
 #define HAS_JACK 1
+#endif 
+
+#if HAS_JACK
+#include "faust/audio/jack-dsp.h"
 #endif 
 
 //**************************************************************
@@ -81,10 +85,10 @@ struct dsp_aux {
     string fJSON;
     
     dsp_aux(const char* name_app, 
-                const char* dsp_content, 
-                const char* argv, 
-                const char* target, 
-                int opt_level)
+            const char* dsp_content, 
+            const char* argv, 
+            const char* target, 
+            int opt_level)
         :fDSP(0),fDriver(0)
     {
         int argc1 = 0;
