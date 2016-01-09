@@ -39,6 +39,8 @@
 #include "faust/midi/RtMidi.h"
 #include <sstream>
 
+#ifdef __APPLE__
+
 Float64 CAHostTimeBase::sFrequency = 0;
 Float64 CAHostTimeBase::sInverseFrequency = 0;
 UInt32 CAHostTimeBase::sMinDelta = 0;
@@ -99,6 +101,8 @@ void CAHostTimeBase::Initialize()
         sIsInited = true;
     }
 }
+
+#endif
 
 #if defined(__MACOSX_CORE__)
     #if TARGET_OS_IPHONE
