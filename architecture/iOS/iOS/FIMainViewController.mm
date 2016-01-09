@@ -442,6 +442,8 @@ error:
     delete midiinterface;
 #endif
     
+    delete DSP;
+    
     [_refreshTimer invalidate];
     [self stopMotion];
 
