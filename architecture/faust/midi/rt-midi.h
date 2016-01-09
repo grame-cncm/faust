@@ -29,7 +29,7 @@
  
 #include <iostream>
 #include <cstdlib>
-#include "faust/midi/RtMidi.cpp"
+#include "faust/midi/RtMidi.h"
 #include "faust/midi/midi.h"
 
 class rtmidi : public midi {
