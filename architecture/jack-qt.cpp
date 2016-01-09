@@ -55,6 +55,10 @@
 // Always include this file, otherwise -poly only mode does not compile....
 #include "faust/gui/MidiUI.h"
 
+#ifdef MIDICTRL
+#include "faust/midi/RtMidi.cpp"
+#endif
+
 /**************************BEGIN USER SECTION **************************/
 
 /******************************************************************************
