@@ -47,6 +47,8 @@
 #if !defined(__CAHostTimeBase_h__)
 #define __CAHostTimeBase_h__
 
+#ifdef __APPLE__
+
 //=============================================================================
 //	Includes
 //=============================================================================
@@ -216,6 +218,8 @@ inline SInt64 CAHostTimeBase::HostDeltaToNanos(UInt64 inStartTime, UInt64 inEndT
 	
 	return theSign * ConvertToNanos(theAnswer);
 }
+
+#endif // __APPLE__
 
 #endif
 
