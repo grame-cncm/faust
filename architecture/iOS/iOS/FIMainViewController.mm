@@ -138,7 +138,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     sample_rate = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
     buffer_size = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     openWidgetPanel = [[NSUserDefaults standardUserDefaults] boolForKey:@"openWidgetPanel"];
-    int oscTransmit = [[NSUserDefaults standardUserDefaults] integerForKey:@"oscTransmit"];
+    int oscTransmit = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"oscTransmit"];
     
     oscIPOutputText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscIPOutputText"];
     oscIPOutputText =  (oscIPOutputText) ? oscIPOutputText : @"192.168.1.1";
@@ -442,6 +442,8 @@ error:
     delete midiinterface;
 #endif
     
+    delete DSP;
+    
     [_refreshTimer invalidate];
     [self stopMotion];
 
@@ -459,7 +461,6 @@ error:
     [_centerSlider release];
     [super dealloc];
 }
-
 
 #pragma mark - DSP view
 

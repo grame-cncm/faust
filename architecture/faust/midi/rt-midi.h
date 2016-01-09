@@ -49,8 +49,8 @@ class rtmidi : public midi {
 
         };
   
-        RtMidiIn* fInput;
-        RtMidiOut* fOutput;
+        std::vector<RtMidiIn*> fInput;
+        std::vector<RtMidiOut*> fOutput;
         std::vector<midi*> fMidiInputs;
         std::string fName;
         
@@ -100,49 +100,67 @@ class rtmidi : public midi {
             }
         }
         
-        bool chooseMidiInputPort(const std::string& name)
+        bool openMidiInputPorts()
         {
-         #if TARGET_OS_IPHONE
-            unsigned int i = 0, nPorts = fInput->getPortCount();
-            if (nPorts == 0) {
+            // Get number of input ports
+            RtMidiIn midi_in;
+            unsigned nInPorts = midi_in.getPortCount();
+            if (nInPorts == 0) {
                 std::cout << "No input ports available!" << std::endl;
                 return false;
             }
-            for (i = 0; i < nPorts; i++) {
-                std::string portName = fInput->getPortName(i);
+    
+            // Then open all of them
+            for (int i = 0; i < nInPorts; i++) {
+                RtMidiIn* midi_in = new RtMidiIn();
+                fInput.push_back(midi_in);
+                midi_in->openPort(i);
+                midi_in->setCallback(&midiCallback, this);
+                std::string portName = midi_in->getPortName(i);
                 std::cout << "Input port #" << i << ": " << portName << '\n';
-                fInput->openPort(i);
             }
-        #else
-            // opens a virtual port when available on API
-            fInput->openVirtualPort(name);
-        #endif   
             return true;
         }
         
-        bool chooseMidiOutPort(const std::string& name)
+        bool openMidiOutputPorts()
         {
-        #if TARGET_OS_IPHONE  
-            unsigned int i = 0, nPorts = fOutput->getPortCount();
-            if (nPorts == 0) {
+            // Get number of output ports
+            RtMidiOut midi_out;
+            unsigned nOutPorts = midi_out.getPortCount();
+            if (nOutPorts == 0) {
                 std::cout << "No output ports available!" << std::endl;
                 return false;
             }
-            for (i = 0; i < nPorts; i++) {
-                std::string portName = fOutput->getPortName(i);
+    
+            // Then open all of them
+            for (int i = 0; i < nOutPorts; i++) {
+                RtMidiOut* midi_out = new RtMidiOut();
+                fOutput.push_back(midi_out);
+                midi_out->openPort(i);
+                std::string portName = midi_out->getPortName(i);
                 std::cout << "Output port #" << i << ": " << portName << '\n';
-                fOutput->openPort(i);
             }
-        #else 
-            // opens a virtual port when available on API
-            fOutput->openVirtualPort(name);
-        #endif 
             return true;
+        }
+        
+        void chooseMidiInputPort(const std::string& name)
+        {
+            RtMidiIn* midi_in = new RtMidiIn();
+            fInput.push_back(midi_in);
+            midi_in->setCallback(&midiCallback, this);
+            midi_in->openVirtualPort(name);
+        }
+        
+        void chooseMidiOutPort(const std::string& name)
+        {
+            RtMidiOut* midi_out = new RtMidiOut();
+            fOutput.push_back(midi_out);
+            midi_out->openVirtualPort(name);
         }
     
     public:
     
-        rtmidi(const std::string& name = "RtMidi"):fInput(0), fOutput(0), fName(name)
+        rtmidi(const std::string& name = "RtMidi"):fName(name)
         {}
         
         virtual ~rtmidi()
@@ -156,13 +174,13 @@ class rtmidi : public midi {
         {
             try {
             
-                fInput = new RtMidiIn();
-                if (!chooseMidiInputPort(fName)) goto cleanup;
-                fInput->setCallback(&midiCallback, this);
-                
-                fOutput = new RtMidiOut();
-                if (!chooseMidiOutPort(fName)) goto cleanup; 
-                
+            #if TARGET_OS_IPHONE
+                if (!openMidiInputPorts()) goto cleanup;
+                if (!openMidiOutputPorts()) goto cleanup;
+            #else
+                chooseMidiInputPort(fName);
+                chooseMidiOutPort(fName);
+            #endif
                 return true;
                 
             } catch (RtMidiError &error) {
@@ -171,18 +189,20 @@ class rtmidi : public midi {
             }
             
         cleanup:
-
-            delete fInput;
-            delete fOutput;
+            stop();
             return false;
         }
         
         void stop()
         {
-            delete fInput;
-            delete fOutput;
-            fInput = 0;
-            fOutput = 0;
+            std::vector<RtMidiIn*>::iterator it1;
+            for (it1 = fInput.begin(); it1 != fInput.end(); it1++) {
+                delete (*it1);
+            }
+            std::vector<RtMidiOut*>::iterator it2;
+            for (it2 = fOutput.begin(); it2 != fOutput.end(); it2++) {
+                delete (*it2);
+            }
         }
         
         void ctrlChange(int channel, int ctrl, int val) 
@@ -191,7 +211,10 @@ class rtmidi : public midi {
             message.push_back(MIDI_CONTROL_CHANGE + channel);
             message.push_back(ctrl);
             message.push_back(val);
-            fOutput->sendMessage(&message);
+            std::vector<RtMidiOut*>::iterator it;
+            for (it = fOutput.begin(); it != fOutput.end(); it++) {
+                (*it)->sendMessage(&message);
+            }
         }
         
         void progChange(int channel, int pgm) 
@@ -199,7 +222,10 @@ class rtmidi : public midi {
             std::vector<unsigned char> message;
             message.push_back(MIDI_PROGRAM_CHANGE + channel);
             message.push_back(pgm);
-            fOutput->sendMessage(&message);
+             std::vector<RtMidiOut*>::iterator it;
+            for (it = fOutput.begin(); it != fOutput.end(); it++) {
+                (*it)->sendMessage(&message);
+            }
         }
         
         void keyOn(int channel, int note, int velocity) 
@@ -208,7 +234,10 @@ class rtmidi : public midi {
             message.push_back(MIDI_NOTE_ON + channel);
             message.push_back(note);
             message.push_back(velocity);
-            fOutput->sendMessage(&message);
+            std::vector<RtMidiOut*>::iterator it;
+            for (it = fOutput.begin(); it != fOutput.end(); it++) {
+                (*it)->sendMessage(&message);
+            }
         }
         
         void keyOff(int channel, int note, int velocity) 
@@ -217,7 +246,10 @@ class rtmidi : public midi {
             message.push_back(MIDI_NOTE_OFF + channel);
             message.push_back(note);
             message.push_back(velocity);
-            fOutput->sendMessage(&message);
+            std::vector<RtMidiOut*>::iterator it;
+            for (it = fOutput.begin(); it != fOutput.end(); it++) {
+                (*it)->sendMessage(&message);
+            }
         }
         
         void pitchWheel(int channel, int wheel) 
@@ -226,7 +258,10 @@ class rtmidi : public midi {
             message.push_back(MIDI_PITCH_BEND + channel);
             message.push_back(wheel & 0x7F);		// lsb 7bit
             message.push_back((wheel >> 7) & 0x7F);	// msb 7bit
-            fOutput->sendMessage(&message);
+            std::vector<RtMidiOut*>::iterator it;
+            for (it = fOutput.begin(); it != fOutput.end(); it++) {
+                (*it)->sendMessage(&message);
+            }
         }
    
 };

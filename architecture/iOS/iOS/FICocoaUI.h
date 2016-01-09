@@ -1508,6 +1508,7 @@ private:
                 }
             }
             
+            /* SL : 01/09/16 : seems unecessary...
             list<uiCocoaItem*>::iterator i1 = fWidgetList.begin();
             box = dynamic_cast<uiBox*>(*i1);
             
@@ -1517,6 +1518,7 @@ private:
                 [box->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
                 box->fWidgetList.push_back(widget);
             }
+            */
         }
         else
         {
