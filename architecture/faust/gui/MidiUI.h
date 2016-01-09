@@ -154,11 +154,11 @@ class MidiUI : public GUI, public midi
 
         virtual void addButton(const char* label, FAUSTFLOAT* zone)
         {
-            addGenericZone(zone, FAUSTFLOAT(1.0), FAUSTFLOAT(0.0));
+            addGenericZone(zone, FAUSTFLOAT(0.0), FAUSTFLOAT(1.0));
         }
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
-            addGenericZone(zone, FAUSTFLOAT(1.0), FAUSTFLOAT(0.0));
+            addGenericZone(zone, FAUSTFLOAT(0.0), FAUSTFLOAT(1.0));
         }
         
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
