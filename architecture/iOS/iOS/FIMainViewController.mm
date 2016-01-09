@@ -16,6 +16,9 @@
  ************************************************************************
  ************************************************************************/
 
+//#define POLY 1
+//#define MIDICTRL 1
+
 #import <QuartzCore/QuartzCore.h>
 #import "FIMainViewController.h"
 #import "ios-faust.h"
@@ -42,6 +45,11 @@
 #define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
 #define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
 
+#if MIDICTRL
+#include "faust/midi/RtMidi.cpp"
+MidiUI* midiinterface = NULL;
+#endif
+
 @implementation FIMainViewController
 
 @synthesize flipsidePopoverController = _flipsidePopoverController;
@@ -51,10 +59,6 @@ audio* audio_device = NULL;
 CocoaUI* uiinterface = NULL;
 FUI* finterface = NULL;
 GUI* oscinterface = NULL;
-
-#if MIDICTRL
-MidiUI* midiinterface = NULL;
-#endif
 
 MY_Meta metadata;
 char rcfilename[256];
