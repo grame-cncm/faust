@@ -24,7 +24,7 @@
 #import "ios-faust.h"
 #import "FIFlipsideViewController.h"
 #import "FIAppDelegate.h"
-#import "FICocoaUI.h"
+#include "faust/audio/coreaudio-ios-dsp.h"
 #include "faust/gui/OSCUI.h"
 #include "faust/gui/MidiUI.h"
 
@@ -33,7 +33,7 @@
 
 #define kRefreshTimerInterval       0.04
 
-#define ONE_G 9.91
+#define ONE_G 9.81
 
 // Test Jack
 #define kJackViewHeight 130
@@ -44,6 +44,10 @@
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 #define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
 #define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
+
+#ifdef POLY
+#include "faust/dsp/poly-dsp.h"
+#endif
 
 #if MIDICTRL
 #include "faust/midi/RtMidi.cpp"
