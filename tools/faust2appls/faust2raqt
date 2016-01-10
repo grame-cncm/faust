@@ -107,7 +107,7 @@ fi
 # Check Linux specifics
 #
 if [[ $(uname) == Linux ]]; then
-    ARCHLIB+="-lasound"
+    ARCHLIB+=" -lasound"
 fi
 
 #-------------------------------------------------------------------
