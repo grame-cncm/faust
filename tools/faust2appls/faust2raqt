@@ -86,7 +86,7 @@ for p in $@; do
 done
 
 #-------------------------------------------------------------------
-# Check darwin specifics
+# Check Darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
     ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio"
@@ -101,6 +101,13 @@ if [[ $(uname) == Darwin ]]; then
 	    CLANGOPT=""
 	fi
     EXT=".app"
+fi
+
+#-------------------------------------------------------------------
+# Check Linux specifics
+#
+if [[ $(uname) == Linux ]]; then
+    ARCHLIB+="-lasound"
 fi
 
 #-------------------------------------------------------------------
