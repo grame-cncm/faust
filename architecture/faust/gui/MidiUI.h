@@ -98,6 +98,36 @@ class uiMidiCtrl : public uiItem
  
 };
 
+class uiMidiKeyOn : public uiItem
+{
+    private:
+        
+        midi* fMidiOut;
+        int fKeyOn;
+        LinearValueConverter fConverter;
+  
+    public:
+    
+        uiMidiKeyOn(midi* midi_out, int key, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+            :uiItem(ui, zone), fMidiOut(midi_out), fKeyOn(key), fConverter(0., 127., double(min), double(max))
+        {}
+        virtual ~uiMidiKeyOn()
+        {}
+        
+        virtual void reflectZone()
+        {
+            FAUSTFLOAT v = *fZone;
+            fCache = v;
+            fMidiOut->keyOn(0, fKeyOn, fConverter.faust2ui(v));
+        }
+        
+        void modifyZone(int v) 	
+        { 
+            uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
+        }
+        
+};
+
 class MidiUI : public GUI, public midi
 {
 
@@ -105,6 +135,7 @@ class MidiUI : public GUI, public midi
     
         std::map <int, std::vector<uiMidiCtrl*> > fCtrlChangeTable;
         std::map <int, std::vector<uiMidiPgm*> > fProgChangeTable;
+        std::map <int, std::vector<uiMidiKeyOn*> > fKeyOnTable;
         
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         
@@ -143,6 +174,8 @@ class MidiUI : public GUI, public midi
                     if (fMetaAux[i].first == "midi") {
                         if (sscanf(fMetaAux[i].second.c_str(), "ctrl %u", &num) == 1) {
                             fCtrlChangeTable[num].push_back(new uiMidiCtrl(fMidiOut, num, this, zone, min, max));
+                        } else if (sscanf(fMetaAux[i].second.c_str(), "keyon %u", &num) == 1) {
+                            fKeyOnTable[num].push_back(new uiMidiKeyOn(fMidiOut, num, this, zone, min, max));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "pgm %u", &num) == 1) {
                             fProgChangeTable[num].push_back(new uiMidiPgm(fMidiOut, num, this, zone));
                         }
@@ -194,7 +227,14 @@ class MidiUI : public GUI, public midi
         
         // -- MIDI API 
         
-        void keyOn(int channel, int note, int velocity) {}
+        void keyOn(int channel, int note, int velocity) 
+        {
+            if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
+                for (int i = 0; i < fKeyOnTable[note].size(); i++) {
+                    fKeyOnTable[note][i]->modifyZone(velocity);
+                }
+            }
+        }
         
         void keyOff(int channel, int note, int velocity) {}
            
