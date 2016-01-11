@@ -53,7 +53,7 @@ for p in $@; do
 		echo "-source: creates an eclipse project of the app in the current directory."
 		echo "Any other options are considered as Faust options. To get a list of the Faust options type: faust -h."
 		echo "-swig: regenerate the C++ and the JAVA interface for the native portion of the app."
-		echo "-faust: only carries out the faust compilation and install the generated C++ file in the JNI folder."
+		echo "-faust: only carries out the Faust compilation and install the generated C++ file in the JNI folder."
 		echo "-reuse: keep build directory and reuse it to speedup compilation."
 		echo "-debug: verbose output."
 		exit 1
