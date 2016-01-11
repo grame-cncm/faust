@@ -38,7 +38,7 @@
 
 /*******************************************************************************
  * MapUI : Faust User Interface
- * This class creates a map of complete path and zones for each UI item.
+ * This class creates a map of complete hierarchical path and zones for each UI items.
  ******************************************************************************/
 
 class MapUI : public PathUI

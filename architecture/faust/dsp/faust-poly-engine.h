@@ -17,6 +17,9 @@
  ************************************************************************
  ************************************************************************/
 
+#ifndef __faust_poly_engine__
+#define __faust_poly_engine__
+
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
@@ -208,3 +211,5 @@ public:
     }
 
 };
+
+#endif // __faust_poly_engine__

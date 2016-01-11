@@ -67,7 +67,7 @@ class dsp {
 	virtual int getNumOutputs() 									= 0;
 	virtual void buildUserInterface(UI* ui_interface) 				= 0;
 	virtual void init(int samplingRate) 							= 0;
- 	virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 	= 0;
+ 	virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 	= 0;
 };
 
 // On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
