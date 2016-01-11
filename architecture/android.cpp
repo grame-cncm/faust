@@ -26,11 +26,11 @@
 
 #include <math.h>
 #include "faust/misc.h"
-#include "faust/gui/UI.h"
 #include "faust/audio/dsp.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/jsonfaustui.h"
 #include "faust/gui/JSONUI.h"
+#include "faust/gui/APIUI.h"
 
 //**************************************************************
 // DSP class
@@ -50,66 +50,57 @@
 // Android Audio
 //**************************************************************
 
-#define FAUSTFLOAT float
-
 #include "faust/audio/android-dsp.h"
-
-#include "faust/gui/APIUI.h"
 
 //**************************************************************
 // Native Faust API
 //**************************************************************
 
 #include <android/log.h>
-#include "dsp_faust.h"
 #include <stdio.h>
 #include <string.h>
+#include "dsp_faust.h"
 
 using namespace std;
 
-struct AndroidEngine {
+class FaustPolyEngine {
+    
+protected:
 
-    androidaudio* fDriver;    // the audio engine
     mydsp fMonoDSP;           // the monophonic Faust object
     mydsp_poly* fPolyDSP;     // the polyphonic Faust object
     APIUI fAPIUI;             // the UI description
     JSONUI fJSON;
     string fJSONString;
     bool fRunning;
+    int fPolyMax;
+    audio* fDriver;
+    
+public:
 
-    int fSampleRate, fBufferSize, fPolyMax;
-
-    AndroidEngine(int sampling_rate, int buffer_size):fJSON(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs())
+    FaustPolyEngine(int sampling_rate, int buffer_size)
+    :fJSON(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs()), fRunning(false)
     {
-        fPolyDSP = NULL;
-        fDriver = NULL;
-        fSampleRate = sampling_rate;
-        fBufferSize = buffer_size;
-        fRunning = false;
-
         // configuring the UI
         fMonoDSP.buildUserInterface(&fAPIUI);
         fMonoDSP.buildUserInterface(&fJSON);
-
         fJSONString = fJSON.JSON();
 
         if (fJSONString.find("keyboard") != std::string::npos ||
             fJSONString.find("poly") != std::string::npos){
             fPolyMax = 6;
-            fPolyDSP = new mydsp_poly(fBufferSize, fPolyMax);
-            fPolyDSP->init(fSampleRate);
+            fPolyDSP = new mydsp_poly(buffer_size, fPolyMax);
+            fPolyDSP->init(sampling_rate);
         } else {
             fPolyMax = 0;
-        }
-
-        // allocating audio
-        fDriver = new androidaudio(fSampleRate, fBufferSize);
+            fPolyDSP = NULL;
+       }
     }
 
-    virtual ~AndroidEngine()
+    virtual ~FaustPolyEngine()
     {
-        delete fDriver;
         delete fPolyDSP;
+        delete fDriver;
     }
 
     bool init()
@@ -177,19 +168,19 @@ struct AndroidEngine {
 
     float getParam(const char* address)
     {
-        if (fPolyMax == 0) {
-            return fAPIUI.getParamValue(fAPIUI.getParamIndex(address));
-        } else {
+        if (fPolyMax > 0) {
             return fPolyDSP->getValue(address);
+         } else {
+            return fAPIUI.getParamValue(fAPIUI.getParamIndex(address));
         }
     }
 
     void setParam(const char* address, float value)
     {
-        if (fPolyMax == 0) {
-            fAPIUI.setParamValue(fAPIUI.getParamIndex(address), value);
-        } else {
+        if (fPolyMax > 0) {
             fPolyDSP->setValue(address, value);
+        } else {
+            fAPIUI.setParamValue(fAPIUI.getParamIndex(address), value);
         }
     }
 
@@ -203,7 +194,8 @@ struct AndroidEngine {
         }
     }
 
-    int setVoiceGain(int pitch, float gain) {
+    int setVoiceGain(int pitch, float gain)
+    {
         if (fPolyMax > 0) {
             fPolyDSP->setVoiceGain(pitch, gain);
             return 1;
@@ -212,7 +204,8 @@ struct AndroidEngine {
         }
     }
 
-    const char* getParamAddress(int id) {
+    const char* getParamAddress(int id)
+    {
         return fAPIUI.getParamName(id);
     }
 
@@ -238,7 +231,7 @@ struct AndroidEngine {
         fAPIUI.setGyrConverter(p, gyr, curve, amin, amid, amax);
     }
 
-    float getCPULoad() { return fDriver->getCPULoad(); }
+    float getCPULoad() { return fDriver->get_cpu_load(); }
 
     int getScreenColor()
     {
@@ -247,6 +240,21 @@ struct AndroidEngine {
         return c;
     }
 
+};
+
+class AndroidEngine : public FaustPolyEngine {
+
+public:
+
+    AndroidEngine(int sampling_rate, int buffer_size):FaustPolyEngine(sampling_rate, buffer_size)
+    {
+        // allocating audio driver
+        fDriver = new androidaudio(sampling_rate, buffer_size);
+    }
+    
+    virtual ~AndroidEngine()
+    {}
+    
 };
 
 static AndroidEngine* gGlobal = NULL;

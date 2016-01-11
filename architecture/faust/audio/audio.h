@@ -67,6 +67,7 @@ class audio {
     virtual int get_num_inputs() { return -1; }
     virtual int get_num_outputs() { return -1; }
     
+    virtual float get_cpu_load() { return 0.f; }
 };
 					
 #endif
