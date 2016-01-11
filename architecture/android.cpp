@@ -37,7 +37,7 @@
  * API" section.
  */
 
-#include "faust/dsp/faust-poly-engine.cpp"
+#include "faust/dsp/faust-poly-engine.h"
 
 //**************************************************************
 // Android Audio
