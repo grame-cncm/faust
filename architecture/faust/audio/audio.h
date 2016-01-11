@@ -48,8 +48,6 @@ class dsp;
 
 typedef void (* shutdown_callback)(const char* message, void* arg);
 
-typedef void (* buffer_size_callback)(int frames, void* arg);
-
 class audio {
     
  public:

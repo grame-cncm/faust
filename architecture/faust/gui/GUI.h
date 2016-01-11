@@ -7,7 +7,7 @@
 
 /*******************************************************************************
  * GUI : Abstract Graphic User Interface
- * Provides additional macchanismes to synchronize widgets and zones. Widgets
+ * Provides additional mechanisms to synchronize widgets and zones. Widgets
  * should both reflect the value of a zone and allow to change this value.
  ******************************************************************************/
 

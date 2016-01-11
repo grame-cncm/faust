@@ -17,7 +17,7 @@
  * FUI : used to save and recall the state of the user interface
  * This class provides essentially two new methods saveState() and recallState()
  * used to save on file and recall from file the state of the user interface.
- * The file is human readble and editable
+ * The file is human readable and editable
  ******************************************************************************/
 
 class FUI : public UI

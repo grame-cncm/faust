@@ -34,7 +34,7 @@
 
 /*******************************************************************************
  * PathUI : Faust User Interface
- * Helper class to build complete path for items.
+ * Helper class to build complete hierarchical path for UI items.
  ******************************************************************************/
 
 class PathUI : public UI
