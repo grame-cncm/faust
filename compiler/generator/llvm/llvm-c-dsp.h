@@ -53,7 +53,7 @@ extern "C"
     char* getCLibFaustVersion();
       
     /**
-     * Get the target (triple + CPU) of the DSP machine.
+     * Get the target (triple + CPU) of the machine.
      * 
      * @return the target as a string (to be deleted by the caller).
      */
@@ -229,7 +229,7 @@ extern "C"
      * @param target - the LLVM machine target (using empty string will takes current machine settings)
      * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
      * since the maximum value may change with new LLVM versions). A higher value than the one used when 
-     * calling createDSPFactory can possibly be used
+     * calling createDSPFactory can possibly be used.
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
@@ -278,7 +278,7 @@ extern "C"
      * @param target - the LLVM machine target (using empty string will takes current machine settings)
      * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
      * since the maximum value may change with new LLVM versions). A higher value than the one used when calling 
-     * createDSPFactory can possibly be used
+     * createDSPFactory can possibly be used.
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
@@ -468,5 +468,5 @@ extern "C"
 /*!
  @}
  */
-
+ 
 #endif

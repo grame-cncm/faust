@@ -39,7 +39,7 @@
 /**
  * Get the library version.
  * 
- * @return the  library version as a string.
+ * @return the library version as a string.
  */
 std::string getLibFaustVersion();
 
@@ -66,7 +66,7 @@ class llvm_dsp_factory {
 };
 
 /**
- * Get the target (triple + CPU) of the DSP machine.
+ * Get the target (triple + CPU) of the machine.
  * 
  * @return the target as a string.
  */
@@ -181,7 +181,7 @@ void stopMTDSPFactories();
  * @param bit_code - the LLVM bitcode string
  * @param target - the LLVM machine target (using empty string will take current machine settings)
  * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
- * since the maximum value may change with new LLVM versions). A higher value than the one used when calling createDSPFactory can possibly be used
+ * since the maximum value may change with new LLVM versions). A higher value than the one used when calling createDSPFactory can possibly be used.
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
@@ -206,7 +206,7 @@ std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
  * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
  * since the maximum value may change with new LLVM versions). A higher value than the one used when calling 
- * createDSPFactory can possibly be used
+ * createDSPFactory can possibly be used.
  * 
  * @return the DSP factory on success, otherwise a null pointer.
  */
@@ -231,7 +231,7 @@ void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& 
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
  * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
  * since the maximum value may change with new LLVM versions). A higher value than the one used when calling 
- * createDSPFactory can possibly be used
+ * createDSPFactory can possibly be used.
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
