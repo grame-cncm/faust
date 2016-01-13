@@ -62,7 +62,7 @@ extern "C"
     /**
      * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
      * if already allocated in the factories cache and increment it's reference counter. You will have to explicitly
-     * use deleteCDSPFactory to properly decrement reference counter when the factory is no more needed.
+     * use deleteCDSPFactory to properly decrement the reference counter when the factory is no more needed.
      *
      * @param sha_key - the SHA key for an already created factory, kept in the factory cache
      *
@@ -385,7 +385,7 @@ extern "C"
                              char* error_msg);
     
     /**
-     * From a DSP source file, generates auxillary files : SVG, XML, ps... depending of the 'argv' parameters.
+     * From a DSP source file, generates auxiliary files : SVG, XML, ps... depending of the 'argv' parameters.
      
      * @param filename - the DSP filename
      * @param argc - the number of parameters in argv array
@@ -397,7 +397,7 @@ extern "C"
     bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
     
     /**
-     * From a DSP source file, generates auxillary files : SVG, XML, ps... depending of the 'argv' parameters.
+     * From a DSP source file, generates auxiliary files : SVG, XML, ps... depending of the 'argv' parameters.
      
      * @param name_app - the name of the Faust program
      * @param dsp_content - the Faust program as a string
