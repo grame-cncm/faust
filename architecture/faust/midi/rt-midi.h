@@ -65,6 +65,7 @@ class rtmidi : public midi {
             if (nBytes == 2) {
              
                 int data1 = (int)message->at(1);
+                
                 if (cmd == MIDI_PROGRAM_CHANGE) {
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->progChange(channel, data1);
@@ -79,9 +80,8 @@ class rtmidi : public midi {
             
                 int data1 = (int)message->at(1);
                 int data2 = (int)message->at(2);
-                if (channel == 9) {
-                    return;
-                } else if (cmd == MIDI_NOTE_OFF || ((cmd == MIDI_NOTE_ON) && (data2 == 0))) { 
+                
+                if (cmd == MIDI_NOTE_OFF || ((cmd == MIDI_NOTE_ON) && (data2 == 0))) { 
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->keyOff(channel, data1, data2);
                     }

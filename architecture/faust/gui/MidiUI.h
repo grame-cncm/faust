@@ -1,6 +1,6 @@
 /************************************************************************
     FAUST Architecture File
-    Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
@@ -39,7 +39,8 @@
 
 /*******************************************************************************
  * MidiUI : Faust User Interface
- * This class decode MIDI meta data and maps incoming MIDI messages to them.
+ * This class decodes MIDI meta data and maps incoming MIDI messages to them.
+ * Currently "ctrl, keyon, keypress, pgm, chanpress, pitchwheel/pitchbend meta data is handled.
  ******************************************************************************/
 
 class uiMidiProgChange : public uiItem
@@ -246,7 +247,8 @@ class MidiUI : public GUI, public midi
                             fProgChangeTable[num].push_back(new uiMidiProgChange(fMidiOut, num, this, zone));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num) == 1) {
                             fChanPressTable[num].push_back(new uiMidiChanPress(fMidiOut, num, this, zone));
-                        } else if (sscanf(fMetaAux[i].second.c_str(), "pitchwheel") == 1) {
+                        } else if (sscanf(fMetaAux[i].second.c_str(), "pitchwheel") == 1 
+                            || sscanf(fMetaAux[i].second.c_str(), "pitchbend") == 1) {
                             fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiOut, this, zone, min, max));
                         }
                     }
