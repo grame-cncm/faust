@@ -33,7 +33,10 @@
  
  ************************************************************************
  *************************************************************************/
- 
+
+#ifndef __android_dsp__
+#define __android_dsp__
+
 #include <android/log.h>
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
@@ -482,3 +485,4 @@ class androidaudio : public audio {
     
 };
 
+#endif 
