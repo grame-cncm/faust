@@ -11,7 +11,6 @@
 #ifndef FAUST_RosCI_H
 #define FAUST_RosCI_H
 
-
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
@@ -28,12 +27,12 @@
 class RosCI : public UI
 {
     
-    public :
+    public:
     
-	RosCI() : count_(0), use_slider_values_(false), meta_(false)
+	RosCI(): count_(0), use_slider_values_(false), meta_(false)
 	{};
 	
-	//~RosCI() {}
+	virtual ~RosCI() {}
 	
 	// String processing function
 	std::string strProcess(std::string label)
@@ -50,7 +49,7 @@ class RosCI : public UI
         do
         {
             if ((label[0]<65)  // before "A" in ASCII
-                || (label[0]<=96 && label[0]>=91) // After "Z" and before "a" in ASCII
+                || (label[0] <= 96 && label[0] >= 91) // After "Z" and before "a" in ASCII
                 || (label[0] > 122) // After "z" in ASCII
                 && (label[0] != FORWARD_SLASH) // not "/"
                 && (label[0] != TILDE) // not "~"
@@ -63,31 +62,30 @@ class RosCI : public UI
             {
                 label = "/topic";
                 count = label.size();
-                ok=true;
+                ok = true;
             }
             else
             {
-                ok=true;
+                ok = true;
             }
         }
         while (!ok);
 
-        for (int i=0 ; i<count ; i++)
+        for (int i = 0; i < count; i++)
         {
-
-            if ((label[i]<=90 && label[i]>=65) // A-Z
-                    || (label[i]<=122 && label[i]>=97) // a-z
-                    || (label[i]<=57 && label[i]>=47) // 0-9
-                    || label[i]==UNDERSCORE 
+            if ((label[i] <= 90 && label[i] >= 65)          // A-Z
+                    || (label[i] <= 122 && label[i] >= 97)  // a-z
+                    || (label[i] <= 57 && label[i] >= 47)   // 0-9
+                    || label[i] == UNDERSCORE 
                )
             {
             }
-            else if (label[i]==SPACE) 
+            else if (label[i] == SPACE) 
             {
-                if(label[i-1]==UNDERSCORE)
+                if (label[i-1] == UNDERSCORE)
                 {
                     label.erase(i,1);
-                    i=i-1;
+                    i = i-1;
                     count = label.size();
                 }
                 else
@@ -96,25 +94,25 @@ class RosCI : public UI
 
             else if(label[i]== LEFT_BRACKET) // in case of '('
             {
-                if(label[i-1]==95) 
+                if (label[i-1] == 95) 
                 {
                     label.erase(i,1);
-                    i=i-1;
+                    i = i-1;
                     count = label.size();
                 }
                 else		   
                     label[i]='_';
             }
-            else if (label[i]==RIGHT_BRACKET) // in case of ')'
+            else if (label[i] == RIGHT_BRACKET) // in case of ')'
             {
                 label.erase(i,1);
-                i=i-1;
+                i = i-1;
                 count = label.size();
             }
             else
             {
                 label.erase(i, 1);
-                i=i-1;
+                i = i-1;
                 count = label.size();
             }
 
@@ -122,37 +120,28 @@ class RosCI : public UI
         return (label);
     }
 	
-	
-	
-	
-    	// -- widget's layouts
+    // -- widget's layouts
 
 	void openTabBox(const char* label)
-	{
-	}
+	{}
 	void openHorizontalBox(const char* label)
-	{
-	}
+	{}
 	void openVerticalBox(const char* label)
-	{
-	}
+	{}
 	void closeBox()
-	{
-	}
-
+	{}
 
 	// -- active widgets
 
 	void addButton(const char* label, FAUSTFLOAT* zone)
-	{ 	
-	}
+	{}
 	void addCheckButton(const char* label, FAUSTFLOAT* zone)
-	{
-	}
+	{}
+    
 	void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
 	FAUSTFLOAT max, FAUSTFLOAT step)
 	{
-		*zone=init;
+		*zone = init;
 		if (meta_)
 		{
 			if (use_slider_values_)
@@ -163,13 +152,14 @@ class RosCI : public UI
 			}
 			callbacks_parameters_[count_-1].slider_min = min;
 			callbacks_parameters_[count_-1].slider_max = max;
-			meta_=false;
+			meta_ = false;
 		}
 	}
+    
 	void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, 
 	FAUSTFLOAT max, FAUSTFLOAT step)
 	{
-		*zone=init;
+		*zone = init;
 		if (meta_)
 		{
 			if (use_slider_values_)
@@ -180,9 +170,10 @@ class RosCI : public UI
 			}
 			callbacks_parameters_[count_-1].slider_min = min;
 			callbacks_parameters_[count_-1].slider_max = max;
-			meta_=false;
+			meta_ = false;
 		}
 	}
+    
 	void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, 
 	FAUSTFLOAT max, FAUSTFLOAT step)
 	{
@@ -197,18 +188,16 @@ class RosCI : public UI
 			}
 			callbacks_parameters_[count_-1].slider_min = min;
 			callbacks_parameters_[count_-1].slider_max = max;
-			meta_=false;
+			meta_ = false;
 		}
 	}
 	
 	// -- passive widgets
 
 	void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-	{
-	}
+	{}
 	void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-	{
-	}
+	{}
 
 	// -- metadata declarations
 
@@ -250,32 +239,31 @@ class RosCI : public UI
 		char * memblock;
 		
 		test_line = "class RosUI : public UI";  // This is the line we look for
-													// in the file so that we can
-													// write callbacks before this line
+                                                // in the file so that we can
+                                                // write callbacks before this line
 		
 		while( search_RosUI )
 		{
 			std::getline(file,line);
-			if(line==test_line)
+			if(line == test_line)
 			{
 				search_RosUI=false;
 			}
 			else 
 			{
-			// Get the searched line position
-			begin += (std::streampos)line.size() +(std::streampos)1;	
+                // Get the searched line position
+                begin += (std::streampos)line.size() +(std::streampos)1;	
 			}		
 		}
 		// Get the end of file position
 		file.seekp(0,std::ios::end);
-		end=file.tellp();
+		end = file.tellp();
 		
 		block_size = end-begin;
-		
-		memblock = new char[block_size];
+        memblock = new char[block_size];
 
 		// puts the end of the file in a memory block
-			// in order to overwrite without deleting information
+        // in order to overwrite without deleting information
 		file.seekp(begin, std::ios::beg);
 		file.read(memblock, block_size);
 		file.seekp(begin,std::ios::beg);
@@ -291,14 +279,14 @@ class RosCI : public UI
 		
 		// Include messages files if they are different
 		bool include = true;
-		for (int i = 0 ; i<num ; i++)
+		for (int i = 0; i < num ; i++)
 		{
 			RosCI::CallbackParams parameters = param_vector[i];
-			if (i!=0)
+			if (i != 0)
 			{
-				for (int j=0 ; j<i ; j++)
+				for (int j = 0; j < i; j++)
 				{
-					if(parameters.msg_type == param_vector[j].msg_type)
+					if (parameters.msg_type == param_vector[j].msg_type)
 					{
 						if (parameters.msg_name == param_vector[j].msg_name)
 						{
@@ -313,10 +301,8 @@ class RosCI : public UI
 				file << "#include \""<< parameters.msg_type<<"/"
 					 << parameters.msg_name<<".h\""<<std::endl;
 			}
-			
 		}
-
-				
+			
 		// New class
 		file << "class RosCallbacks"<< std::endl
 			 << "{" << std::endl
@@ -343,7 +329,7 @@ class RosCI : public UI
 			 << "\t}" << std::endl;
 		
 		// ROS specific callbacks
-		for (int i = 0 ; i<num ; i++)
+		for (int i = 0; i < num; i++)
 		{
 			RosCI::CallbackParams parameters = param_vector[i];
 			file << "\tvoid callback"<<i<<"(const "<< parameters.msg_type<<"::"
@@ -364,7 +350,7 @@ class RosCI : public UI
 			 << "\t{" <<std::endl;
 		
 		// Declaring subscribers and subscribing	 
-		for (int i = 0 ; i<num ; i++)
+		for (int i = 0; i < num; i++)
 		{
 			RosCI::CallbackParams parameters = param_vector[i];
 			file << "\t\tros::Subscriber* my_sub"<<i<<" = new ros::Subscriber();"<<std::endl
@@ -384,7 +370,6 @@ class RosCI : public UI
 		file << "};\n" << std::endl;
 		
 		file << memblock;
-		
 		file.close();
 	}
 	
@@ -394,17 +379,15 @@ class RosCI : public UI
 	{
 	    int SPACE = 32;
 	    
-	    for (int i = 0 ; i < string2parse.size() ; i++)
+	    for (int i = 0; i < string2parse.size(); i++)
 	    {
-	    	if (string2parse[i]==SPACE)
+	    	if (string2parse[i] == SPACE)
 	    	{
 	    	    std::string param= string2parse.substr(0,i);
 	    	    topic_params_.push_back(param);
 	    	    string2parse.erase(string2parse.begin(), string2parse.begin()+i+1);
-	    	    i=-1;
-
-	    	}
-	    	
+	    	    i = -1;
+            }
 	    }
 	    
 	    topic_params_.push_back(string2parse);
@@ -413,13 +396,13 @@ class RosCI : public UI
 	// Function declaring metadata
 	void declare(FAUSTFLOAT* zone, const char* key, const char* val) 
 	{
-		if (key=="ros") // We do not care if key is not "ros" here
+		if (key == "ros") // We do not care if key is not "ros" here
 		{
 			stringParser(val); // Parsing the string corresponding to a callback parameters
 			CallbackParams params;
 			if (topic_params_.size() == 4 
 				||
-				topic_params_.size() == 6  )
+				topic_params_.size() == 6)
 			{
 				// Storing the parameters in a structure...
 				params.topic_name=strProcess(topic_params_[0]);
@@ -444,7 +427,7 @@ class RosCI : public UI
 				callbacks_parameters_.push_back(params);
 				
 				count_++;
-				meta_=true;
+				meta_ = true;
 			}
 			else
 			{
@@ -459,7 +442,6 @@ class RosCI : public UI
 			    topic_params_.pop_back();
 			}
 			while ( !topic_params_.empty());
-			
 		}
 	}
     
@@ -476,7 +458,7 @@ class RosCI : public UI
         return callbacks_parameters_;
     }
     
-    private :
+    private:
     
 	int count_;
 	bool use_slider_values_;
@@ -484,7 +466,6 @@ class RosCI : public UI
 	
 	std::vector<std::string> topic_params_;
 	std::vector<CallbackParams> callbacks_parameters_;
-		
 };
 
 #endif

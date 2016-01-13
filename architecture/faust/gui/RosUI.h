@@ -11,7 +11,6 @@
 #ifndef FAUST_RosUI_H
 #define FAUST_RosUI_H
 
-
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
@@ -27,7 +26,7 @@
 class RosUI : public UI
 {
     
-    public :
+    public:
     
 	RosUI(ros::NodeHandle nh, std::string nspace) : nh_(nh), queue_(10), count_(0), meta_(false), box_names_(0), zones_(0) 
 	{
@@ -35,7 +34,7 @@ class RosUI : public UI
 	   box_names_.push_back(nspace);
 	};
 	
-	//~RosUI() {}
+	virtual ~RosUI() {}
 	
 	// String processing function for topics names
 	std::string strProcess(std::string label)
@@ -51,8 +50,8 @@ class RosUI : public UI
         
         do
         {
-            if ((label[0]<65)  // before "A" in ASCII
-                || (label[0]<=96 && label[0]>=91) // After "Z" and before "a" in ASCII
+            if ((label[0] < 65)  // before "A" in ASCII
+                || (label[0] <= 96 && label[0] >= 91) // After "Z" and before "a" in ASCII
                 || (label[0] > 122) // After "z" in ASCII
                 && (label[0] != FORWARD_SLASH) // not "/"
                 && (label[0] != TILDE) // not "~"
@@ -74,40 +73,39 @@ class RosUI : public UI
         }
         while (!ok);
 
-        for (int i=0 ; i<count ; i++)
+        for (int i=0; i < count; i++)
         {
-
-            if ((label[i]<=90 && label[i]>=65) // A-Z
-                    || (label[i]<=122 && label[i]>=97) // a-z
-                    || (label[i]<=57 && label[i]>=47) // 0-9
-                    || label[i]==UNDERSCORE 
+            if ((label[i] <= 90 && label[i] >= 65) // A-Z
+                    || (label[i] <= 122 && label[i] >= 97) // a-z
+                    || (label[i] <= 57 && label[i] >= 47) // 0-9
+                    || label[i] == UNDERSCORE 
                )
             {
             }
-            else if (label[i]==SPACE) 
+            else if (label[i] == SPACE) 
             {
-                if(label[i-1]==UNDERSCORE)
+                if(label[i-1] == UNDERSCORE)
                 {
                     label.erase(i,1);
                     i=i-1;
                     count = label.size();
                 }
                 else
-                    label[i]='_';
+                    label[i] = '_';
             }
 
-            else if(label[i]== LEFT_BRACKET) // in case of '('
+            else if(label[i] == LEFT_BRACKET) // in case of '('
             {
-                if(label[i-1]==95) 
+                if(label[i-1] == 95) 
                 {
                     label.erase(i,1);
                     i=i-1;
                     count = label.size();
                 }
                 else		   
-                    label[i]='_';
+                    label[i] = '_';
             }
-            else if (label[i]==RIGHT_BRACKET) // in case of ')'
+            else if (label[i] == RIGHT_BRACKET) // in case of ')'
             {
                 label.erase(i,1);
                 i=i-1;
@@ -124,7 +122,6 @@ class RosUI : public UI
         return (label);
     }
 	
-	
 	// -- default callbacks
 	
 	// Default Callbacks :
@@ -133,30 +130,22 @@ class RosUI : public UI
 	
 	void buttonCallback(const std_msgs::BoolConstPtr& msg, FAUSTFLOAT* zone)
 	{
-	    
-	    *zone=msg->data;
-
+	    *zone = msg->data;
 	}
 	
 	void cButtonCallback(const std_msgs::BoolConstPtr& msg, FAUSTFLOAT* zone)
 	{
-	    
-	    *zone=msg->data;
-	    
+	    *zone = msg->data;
 	}
 	
 	void sliderCallback(const std_msgs::Float32ConstPtr& msg, FAUSTFLOAT* zone)
 	{
-	    
-	    *zone=msg->data;
-	    
+	    *zone = msg->data;
 	}
 	
 	void numEntryCallback(const std_msgs::Float32ConstPtr& msg, FAUSTFLOAT* zone)
 	{
-	    
-	    *zone=msg->data;
-	    
+	    *zone = msg->data;
 	}	
 	
 	// -- widget's layouts
@@ -166,9 +155,9 @@ class RosUI : public UI
 	void openTabBox(const char* label)
 	{
 		std::string L = (std::string)label;
-		if(L == "0x00") // no box name
+		if (L == "0x00") // no box name
 		{
-			L="";
+			L = "";
 		}
 	    
 		box_names_.push_back(L);	    
@@ -177,9 +166,9 @@ class RosUI : public UI
 	void openHorizontalBox(const char* label)
 	{
 		std::string L = (std::string)label;
-		if(L == "0x00") // no box name
+		if (L == "0x00") // no box name
 		{
-			L="";
+			L = "";
 		}
 	    
 		box_names_.push_back(L);	    
@@ -188,9 +177,9 @@ class RosUI : public UI
 	void openVerticalBox(const char* label)
 	{
 		std::string L = (std::string)label;
-		if(L == "0x00") // no box name
+		if (L == "0x00") // no box name
 		{
-			L="";
+			L = "";
 		}
 	    
 		box_names_.push_back(L);	    
@@ -202,25 +191,23 @@ class RosUI : public UI
 	}
 
 	// -- active widgets
-		// Adding a widget is translated into subscribing to a topic
-		// For each widget, we use default messages types
-		// Buttons							: std_msgs/Bool
-		// Sliders and Numerical Entries	: std_msgs/Float32
+    // Adding a widget is translated into subscribing to a topic
+    // For each widget, we use default messages types
+    // Buttons							: std_msgs/Bool
+    // Sliders and Numerical Entries	: std_msgs/Float32
 
 	void addButton(const char* label, FAUSTFLOAT* zone)
 	{
 	    // Gets the button name and processes it to fit to ROS naming conventions
 	    std::string str = (std::string)label;
-	    
 	    std::string my_string = strProcess(str);
 	    
 	    // Builds the topic name from boxes and button names
 	    if (! box_names_.empty())
 	    {
+            std::string my_name = "";
 		
-			std::string my_name = "";
-		
-			for (int i = 0 ; i<box_names_.size() ; i++)
+			for (int i = 0; i<box_names_.size(); i++)
 			{
 			    if (box_names_[i] != "")
 			    {
@@ -233,8 +220,7 @@ class RosUI : public UI
 			}
 			
 			my_string = my_name + "/" + my_string;
-
-	    }
+        }
 	    else
 	    {
 	    	ROS_ERROR("RosUI.h - function addButton : No box name to use ! ");
@@ -262,7 +248,7 @@ class RosUI : public UI
 	    {
 			std::string my_name = "";
 		
-			for (int i = 0 ; i<box_names_.size() ; i++)
+			for (int i = 0; i<box_names_.size(); i++)
 			{
 			    if (box_names_[i] != "")
 			    {
@@ -275,8 +261,7 @@ class RosUI : public UI
 			}
 			
 			my_string = my_name + "/" + my_string;
-
-	    }
+        }
 	    else
 	    {
 	    	ROS_ERROR("RosUI.h - function addCheckButton : No box name to use ! ");
@@ -306,7 +291,7 @@ class RosUI : public UI
 	    {
 			std::string my_name = "";
 		
-			for (int i = 0 ; i<box_names_.size() ; i++)
+			for (int i = 0; i<box_names_.size(); i++)
 			{
 			    if (box_names_[i] != "")
 			    {
@@ -340,11 +325,10 @@ class RosUI : public UI
 	{
 	    // Gets the horizontal slider name and processes it to fit to ROS naming conventions
 	    std::string str = (std::string)label;
-	    
 	    std::string my_string = strProcess(str);
 	    
 	    // Builds the topic name from boxes and horizontal slider names	    
-	    if (! box_names_.empty())
+	    if (!box_names_.empty())
 	    {
 			std::string my_name = "";
 		
@@ -376,14 +360,12 @@ class RosUI : public UI
 	    (my_string, queue_, boost::bind(&RosUI::sliderCallback, this, _1, zone));
 	    
 	    count_++;
-		
 	}
 	void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, 
 	FAUSTFLOAT max, FAUSTFLOAT step)
 	{
 	    // Gets the numerical entry name and processes it to fit to ROS naming conventions
 	    std::string str = (std::string)label;
-	    
 	    std::string my_string = strProcess(str);
 	    
 	    // Builds the topic name from boxes and numerical entry names
@@ -392,7 +374,7 @@ class RosUI : public UI
 	    {
 			std::string my_name = "";
 		
-			for (int i = 0 ; i<box_names_.size() ; i++)
+			for (int i = 0; i<box_names_.size(); i++)
 			{
 			    if (box_names_[i] != "")
 		    	{
@@ -419,18 +401,15 @@ class RosUI : public UI
 	    boost::bind(&RosUI::numEntryCallback, this, _1, zone));
 	    
 		count_++;
- 	
-	}
+ 	}
 	
 	// -- passive widgets
-		// Nothing to say - not used
+    // Nothing to say - not used
 
 	void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-	{
-	}
+	{}
 	void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-	{
-	}
+	{}
 
 	// -- metadata declarations
 
@@ -470,7 +449,7 @@ class RosUI : public UI
 		return zones_;
 	}
     
-    private :
+    private:
     
 	ros::NodeHandle nh_;
 	int queue_;
@@ -479,7 +458,6 @@ class RosUI : public UI
 	
 	std::vector<std::string> box_names_;
 	std::vector<FAUSTFLOAT*> zones_;
-		
 };
 
 #endif

@@ -233,21 +233,14 @@ class mydsp_poly : public dsp, public midi {
             init(max_polyphony, &dsp_factory);
         }
     #else
-        mydsp_poly(int max_polyphony, bool control, int buffer_size = 8192)  // Second argument to remove ASAP
+        mydsp_poly(int max_polyphony, bool control = false) 
         {
             fVoiceControl = control;
             mydsp_voice_factory factory;
             init(max_polyphony, &factory);
         }
-        
-        mydsp_poly(int max_polyphony, int buffer_size = 8192)  // Second argument to remove ASAP
-        {
-            fVoiceControl = false;
-            mydsp_voice_factory factory;
-            init(max_polyphony, &factory);
-        }
     #endif
-          
+ 
         virtual ~mydsp_poly()
         {
             for (int i = 0; i < fNumOutputs; i++) {
