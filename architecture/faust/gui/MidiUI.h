@@ -247,8 +247,8 @@ class MidiUI : public GUI, public midi
                             fProgChangeTable[num].push_back(new uiMidiProgChange(fMidiOut, num, this, zone));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num) == 1) {
                             fChanPressTable[num].push_back(new uiMidiChanPress(fMidiOut, num, this, zone));
-                        } else if (sscanf(fMetaAux[i].second.c_str(), "pitchwheel") == 1 
-                            || sscanf(fMetaAux[i].second.c_str(), "pitchbend") == 1) {
+                        } else if (strcmp(fMetaAux[i].second.c_str(), "pitchwheel") == 0 
+                            || strcmp(fMetaAux[i].second.c_str(), "pitchbend") == 0) {
                             fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiOut, this, zone, min, max));
                         }
                     }
