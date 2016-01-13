@@ -65,12 +65,12 @@ public:
         if (fJSONString.find("keyboard") != std::string::npos ||
             fJSONString.find("poly") != std::string::npos){
             fPolyMax = 6;
-            fPolyDSP = new mydsp_poly(buffer_size, fPolyMax);
+            fPolyDSP = new mydsp_poly(fPolyMax, true);
             fPolyDSP->init(sampling_rate);
         } else {
             fPolyMax = 0;
             fPolyDSP = NULL;
-       }
+        }
     }
 
     virtual ~FaustPolyEngine()
