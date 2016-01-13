@@ -382,6 +382,15 @@ class mydsp_poly : public dsp, public midi {
         
         void progChange(int channel, int pgm)
         {}
+        
+        void keyPress(int channel, int pitch, int press)
+        {}
+
+        void chanPress(int channel, int press)
+        {}
+        
+        void ctrlChange14bits(int channel, int ctrl, int value)
+        {}
 
         // Additional API
         void allNotesOff()
