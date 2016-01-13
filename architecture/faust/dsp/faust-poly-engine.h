@@ -129,7 +129,7 @@ public:
             return 0;
         }
     }
-
+    
     const char* getJSON()
     {
         return fJSONString.c_str();
