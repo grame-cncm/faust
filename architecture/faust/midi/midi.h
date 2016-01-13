@@ -38,10 +38,13 @@ class midi {
         midi() {}
         virtual ~midi() {}
 
-        virtual void keyOn(int channel, int note, int velocity)         = 0;
-        virtual void keyOff(int channel, int note, int velocity)        = 0;
-        virtual void pitchWheel(int channel, int wheel)                 = 0;
+        virtual void keyOn(int channel, int pitch, int velocity)        = 0;
+        virtual void keyOff(int channel, int pitch, int velocity)       = 0;
+        virtual void keyPress(int channel, int pitch, int press)        = 0;
+        virtual void chanPress(int channel, int press)                  = 0;
         virtual void ctrlChange(int channel, int ctrl, int value)       = 0;
+        virtual void ctrlChange14bits(int channel, int ctrl, int value) = 0;
+        virtual void pitchWheel(int channel, int wheel)                 = 0;
         virtual void progChange(int channel, int pgm)                   = 0;
        
 };
