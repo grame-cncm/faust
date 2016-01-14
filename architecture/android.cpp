@@ -17,17 +17,14 @@
  ************************************************************************
  ************************************************************************/
 
-#include "faust/gui/UI.h"
+#include <math.h>
 #include "faust/audio/dsp.h"
-#include "faust/audio/audio.h"
 #include "faust/gui/meta.h"
+#include "faust/gui/UI.h"
 
 //**************************************************************
 // DSP class
 //**************************************************************
-
-#define max(a,b) ((a) < (b) ? (b) : (a))
-#define min(a,b) ((a) < (b) ? (a) : (b))
 
 <<includeIntrinsic>>
 
