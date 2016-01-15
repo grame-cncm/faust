@@ -133,6 +133,15 @@
 		4B5F800617D5F93100E0F1ED /* Icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B27569A17D5E82500BAB8B9 /* Icon@2x.png */; };
 		4B5F800817D5F93700E0F1ED /* Icon-72.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B5F800717D5F93700E0F1ED /* Icon-72.png */; };
 		4B5F800917D5F93900E0F1ED /* Icon-72@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4B27569D17D5E83700BAB8B9 /* Icon-72@2x.png */; };
+		4BA708511C499DC500C83666 /* Icon-152.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BA7084E1C499DC500C83666 /* Icon-152.png */; };
+		4BA708521C499DC500C83666 /* Icon-152.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BA7084E1C499DC500C83666 /* Icon-152.png */; };
+		4BA708531C499DC500C83666 /* Icon-152.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BA7084E1C499DC500C83666 /* Icon-152.png */; };
+		4BA708541C499DC500C83666 /* Icon-120.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BA7084F1C499DC500C83666 /* Icon-120.png */; };
+		4BA708551C499DC500C83666 /* Icon-120.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BA7084F1C499DC500C83666 /* Icon-120.png */; };
+		4BA708561C499DC500C83666 /* Icon-120.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BA7084F1C499DC500C83666 /* Icon-120.png */; };
+		4BA708571C499DC500C83666 /* Icon-76.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BA708501C499DC500C83666 /* Icon-76.png */; };
+		4BA708581C499DC500C83666 /* Icon-76.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BA708501C499DC500C83666 /* Icon-76.png */; };
+		4BA708591C499DC500C83666 /* Icon-76.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BA708501C499DC500C83666 /* Icon-76.png */; };
 		4BAD5B9F16F0FA5D000FEF86 /* jack.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BAD5B9E16F0FA5D000FEF86 /* jack.framework */; };
 		4BBA87F21BD7DEA200DE5748 /* ic_accelcurveon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87EE1BD7DEA200DE5748 /* ic_accelcurveon.png */; };
 		4BBA87F31BD7DEA200DE5748 /* ic_accelcurveon.png in Resources */ = {isa = PBXBuildFile; fileRef = 4BBA87EE1BD7DEA200DE5748 /* ic_accelcurveon.png */; };
@@ -399,6 +408,9 @@
 		4B4953551A9F1D5A005377A7 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPad.storyboard; sourceTree = "<group>"; };
 		4B4953571A9F1D5A005377A7 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/MainStoryboard_iPhone.storyboard; sourceTree = "<group>"; };
 		4B5F800717D5F93700E0F1ED /* Icon-72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-72.png"; sourceTree = "<group>"; };
+		4BA7084E1C499DC500C83666 /* Icon-152.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-152.png"; sourceTree = "<group>"; };
+		4BA7084F1C499DC500C83666 /* Icon-120.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-120.png"; sourceTree = "<group>"; };
+		4BA708501C499DC500C83666 /* Icon-76.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Icon-76.png"; sourceTree = "<group>"; };
 		4BAD5B9E16F0FA5D000FEF86 /* jack.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = jack.framework; sourceTree = "<group>"; };
 		4BB46D581C1B19BE00146D9D /* RootNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RootNode.h; sourceTree = "<group>"; };
 		4BBA87EE1BD7DEA200DE5748 /* ic_accelcurveon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_accelcurveon.png; sourceTree = "<group>"; };
@@ -791,6 +803,9 @@
 		65E5ED8314DB037D00136CFC = {
 			isa = PBXGroup;
 			children = (
+				4BA7084E1C499DC500C83666 /* Icon-152.png */,
+				4BA7084F1C499DC500C83666 /* Icon-120.png */,
+				4BA708501C499DC500C83666 /* Icon-76.png */,
 				4B5F800717D5F93700E0F1ED /* Icon-72.png */,
 				4B01EDF217D5F79F005F8D54 /* Default.png */,
 				4B01EDEB17D5F323005F8D54 /* Default-Landscape@2x~ipad.png */,
@@ -1018,6 +1033,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4B06ECA616E77D6A004D2F59 /* InfoPlist.strings in Resources */,
+				4BA708581C499DC500C83666 /* Icon-76.png in Resources */,
 				4B06ECAA16E77D6A004D2F59 /* close.png in Resources */,
 				4B06ECAB16E77D6A004D2F59 /* close@2x.png in Resources */,
 				4B04365316E9E9AD00C0C02A /* Icon-Analyzer.png in Resources */,
@@ -1050,9 +1066,11 @@
 				654EE65E17832FB400175F2F /* jackview-in@2x.png in Resources */,
 				654EE66117832FB400175F2F /* jackview-midi-off.png in Resources */,
 				654EE66417832FB400175F2F /* jackview-midi-off@2x.png in Resources */,
+				4BA708521C499DC500C83666 /* Icon-152.png in Resources */,
 				654EE66717832FB400175F2F /* jackview-midi-on.png in Resources */,
 				654EE66A17832FB400175F2F /* jackview-midi-on@2x.png in Resources */,
 				654EE66D17832FB400175F2F /* jackview-out.png in Resources */,
+				4BA708551C499DC500C83666 /* Icon-120.png in Resources */,
 				654EE67017832FB400175F2F /* jackview-out@2x.png in Resources */,
 				4B4953591A9F1D5A005377A7 /* MainStoryboard_iPad.storyboard in Resources */,
 				4B27569C17D5E82E00BAB8B9 /* Icon@2x.png in Resources */,
@@ -1074,6 +1092,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4BEF91C01B96FFC000F2D974 /* InfoPlist.strings in Resources */,
+				4BA708591C499DC500C83666 /* Icon-76.png in Resources */,
 				4BEF91C11B96FFC000F2D974 /* close.png in Resources */,
 				4BEF91C21B96FFC000F2D974 /* close@2x.png in Resources */,
 				4BEF91C31B96FFC000F2D974 /* Icon-Analyzer.png in Resources */,
@@ -1106,9 +1125,11 @@
 				4BEF91DA1B96FFC000F2D974 /* jackview-in@2x.png in Resources */,
 				4BEF91DB1B96FFC000F2D974 /* jackview-midi-off.png in Resources */,
 				4BEF91DC1B96FFC000F2D974 /* jackview-midi-off@2x.png in Resources */,
+				4BA708531C499DC500C83666 /* Icon-152.png in Resources */,
 				4BEF91DD1B96FFC000F2D974 /* jackview-midi-on.png in Resources */,
 				4BEF91DE1B96FFC000F2D974 /* jackview-midi-on@2x.png in Resources */,
 				4BEF91DF1B96FFC000F2D974 /* jackview-out.png in Resources */,
+				4BA708561C499DC500C83666 /* Icon-120.png in Resources */,
 				4BEF91E01B96FFC000F2D974 /* jackview-out@2x.png in Resources */,
 				4BEF91E11B96FFC000F2D974 /* MainStoryboard_iPad.storyboard in Resources */,
 				4BEF91E21B96FFC000F2D974 /* Default-Landscape@2x~ipad.png in Resources */,
@@ -1130,6 +1151,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				65E5ED9D14DB037D00136CFC /* InfoPlist.strings in Resources */,
+				4BA708571C499DC500C83666 /* Icon-76.png in Resources */,
 				65E85C9F157806E6009F2D7A /* close.png in Resources */,
 				65E85CA0157806E6009F2D7A /* close@2x.png in Resources */,
 				4B04365216E9E9AD00C0C02A /* Icon-Analyzer.png in Resources */,
@@ -1162,9 +1184,11 @@
 				654EE65C17832FB400175F2F /* jackview-in@2x.png in Resources */,
 				654EE65F17832FB400175F2F /* jackview-midi-off.png in Resources */,
 				654EE66217832FB400175F2F /* jackview-midi-off@2x.png in Resources */,
+				4BA708511C499DC500C83666 /* Icon-152.png in Resources */,
 				654EE66517832FB400175F2F /* jackview-midi-on.png in Resources */,
 				654EE66817832FB400175F2F /* jackview-midi-on@2x.png in Resources */,
 				654EE66B17832FB400175F2F /* jackview-out.png in Resources */,
+				4BA708541C499DC500C83666 /* Icon-120.png in Resources */,
 				654EE66E17832FB400175F2F /* jackview-out@2x.png in Resources */,
 				4B4953581A9F1D5A005377A7 /* MainStoryboard_iPad.storyboard in Resources */,
 				4B01EDED17D5F3BC005F8D54 /* Default-Landscape@2x~ipad.png in Resources */,
