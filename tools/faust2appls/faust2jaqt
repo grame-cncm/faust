@@ -47,11 +47,11 @@ OSCLIB=""
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2jaqt [-osc] [-http] [-poly] [-midi] <file.dsp>"
+        echo "Use '-http' to activate HTTP control"
+        echo "Use '-qrcode' to activate QR code generation"
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
-        echo "Use '-http' to activate HTTP control"
-        echo "Use '-qrcode' to activate QR code generation"
     fi
     
     if [ "$p" = -omp ]; then

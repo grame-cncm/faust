@@ -62,7 +62,10 @@ MidiUI* midiinterface = NULL;
 audio* audio_device = NULL;
 CocoaUI* uiinterface = NULL;
 FUI* finterface = NULL;
+
+#if OSCCTRL
 GUI* oscinterface = NULL;
+#endif
 
 MY_Meta metadata;
 char rcfilename[256];
@@ -174,8 +177,11 @@ static void jack_shutdown_callback(const char* message, void* arg)
 #endif
     
     uiinterface->setHidden(true);
+    
+#if OSCCTRL
     // Start OSC
     [self setOSCParameters:oscTransmit output:oscIPOutputText inputport:oscInputPortText outputport:oscOutputPortText];
+#endif
     
     snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, _name);
     finterface->recallState(rcfilename);
@@ -444,7 +450,10 @@ error:
     
     delete uiinterface;
     delete finterface;
+    
+#if OSCCTRL
     delete oscinterface;
+#endif
     
 #if MIDICTRL
     delete midiinterface;
@@ -975,6 +984,7 @@ static inline const char* transmit_value(int num)
 // OSC
 - (void)setOSCParameters:(int)transmit output:(NSString*)outputIPText inputport:(NSString*)inputPortText outputport:(NSString*)outputPortText;
 {
+#if OSCCTRL
     delete oscinterface;
     const char* argv[9];
     argv[0] = (char*)_name;
@@ -989,6 +999,7 @@ static inline const char* transmit_value(int num)
     oscinterface = new OSCUI(_name, 9, (char**)argv);
     DSP->buildUserInterface(oscinterface);
     oscinterface->run();
+#endif
 }
 
 #pragma mark - Flipside View Controller

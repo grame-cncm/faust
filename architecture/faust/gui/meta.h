@@ -25,6 +25,7 @@
 struct Meta
 {
     virtual void declare(const char* key, const char* value) = 0;
+    virtual ~Meta() {};
 };
 
 #endif
