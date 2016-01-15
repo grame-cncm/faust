@@ -49,11 +49,17 @@
     _openWidgetPanel = [[NSUserDefaults standardUserDefaults] boolForKey:@"openWidgetPanel"];
     _oscTransmit = [[NSUserDefaults standardUserDefaults] integerForKey:@"oscTransmit"];
     _oscIPOutputText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscIPOutputText"];
+ #if OSCCTRL
     _oscIPOutputText = (_oscIPOutputText) ? _oscIPOutputText : @"192.168.1.1";
     _oscInputPortText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscInputPortText"];
     _oscInputPortText = (_oscInputPortText) ? _oscInputPortText : @"5510";
     _oscOutputPortText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscOutputPortText"];
     _oscOutputPortText = (_oscOutputPortText) ? _oscOutputPortText : @"5511";
+#else
+    _oscIPOutputText = @"Deactivated";
+    _oscInputPortText = @"-1";
+    _oscOutputPortText = @"-1";
+#endif
     
     [_oscTransmitState removeAllSegments];
     [_oscTransmitState insertSegmentWithTitle:@"No" atIndex:0 animated:NO];
@@ -61,6 +67,18 @@
     [_oscTransmitState insertSegmentWithTitle:@"Alias" atIndex:2 animated:NO];
     
      _oscTransmitState.selectedSegmentIndex = _oscTransmit;
+ 
+#if OSCCTRL
+    _oscIPOutput.enabled = TRUE;
+    _oscInputPort.enabled = TRUE;
+    _oscOutputPort.enabled = TRUE;
+    _oscTransmitState.enabled = TRUE;
+#else
+    _oscIPOutput.enabled = FALSE;
+    _oscInputPort.enabled = FALSE;
+    _oscOutputPort.enabled = FALSE;
+    _oscTransmitState.enabled = FALSE;
+#endif
     
     // Update UI
     _sampleRateSlider.value = [self sampleRateToSliderValue:_sampleRate];
