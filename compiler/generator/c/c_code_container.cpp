@@ -100,12 +100,9 @@ void CCodeContainer::produceInternal()
     // Memory methods
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "static " << fKlassName << "* new" << fKlassName << "() {"
-                        << " return (" << fKlassName  << "*)malloc(sizeof(" << fKlassName << "))"
-                        << "; }";
+                        << " return (" << fKlassName  << "*)malloc(sizeof(" << fKlassName << ")); }";
 
-    tab(n, *fOut); *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp) {"
-                        << " free(dsp)"
-                        << "; }";
+    tab(n, *fOut); *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp) { free(dsp); }";
 
     tab(n, *fOut);
     tab(n, *fOut);
@@ -214,9 +211,7 @@ void CCodeContainer::produceClass()
     produceMetadata(n);
 
     // Get sample rate method
-    tab(n, *fOut); *fOut << "int getSampleRate" << fKlassName << "(" << fKlassName << "* dsp) { "
-                        << "return dsp->fSamplingFreq"
-                        << "; }";
+    tab(n, *fOut); *fOut << "int getSampleRate" << fKlassName << "(" << fKlassName << "* dsp) { return dsp->fSamplingFreq; }";
 
     tab(n, *fOut);
     tab(n, *fOut);
