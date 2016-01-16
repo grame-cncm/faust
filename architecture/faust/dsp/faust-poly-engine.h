@@ -110,10 +110,10 @@ public:
         }
     }
 
-    int keyOff(int pitch)
+    int keyOff(int pitch, int velocity = 127)
     {
         if (fPolyMax > 0) {
-            fPolyDSP->keyOff(0, pitch);
+            fPolyDSP->keyOff(0, pitch, velocity);
             return 1;
         } else {
             return 0;
