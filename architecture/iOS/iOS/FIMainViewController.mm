@@ -178,10 +178,8 @@ static void jack_shutdown_callback(const char* message, void* arg)
     
     uiinterface->setHidden(true);
     
-#if OSCCTRL
     // Start OSC
     [self setOSCParameters:oscTransmit output:oscIPOutputText inputport:oscInputPortText outputport:oscOutputPortText];
-#endif
     
     snprintf(rcfilename, 256, "%s/Library/Caches/%s", home, _name);
     finterface->recallState(rcfilename);

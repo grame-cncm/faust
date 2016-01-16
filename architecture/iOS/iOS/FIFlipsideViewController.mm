@@ -164,9 +164,11 @@
 - (IBAction)done:(id)sender
 {
     // Read IP and in/out ports
+#if OSCCTRL
     _oscIPOutputText = _oscIPOutput.text;
     _oscInputPortText = _oscInputPort.text;
     _oscOutputPortText = _oscOutputPort.text;
+#endif
     _oscTransmit = _oscTransmitState.selectedSegmentIndex;
     
     // Write user preferences
@@ -174,9 +176,11 @@
     [[NSUserDefaults standardUserDefaults] setInteger:_bufferSize forKey:@"bufferSize"];
     [[NSUserDefaults standardUserDefaults] setBool:_openWidgetPanel forKey:@"openWidgetPanel"];
     [[NSUserDefaults standardUserDefaults] setInteger:_oscTransmit forKey:@"oscTransmit"];
+#if OSCCTRL
     [[NSUserDefaults standardUserDefaults] setObject:_oscIPOutputText forKey:@"oscIPOutputText"];
     [[NSUserDefaults standardUserDefaults] setObject:_oscInputPortText forKey:@"oscInputPortText"];
     [[NSUserDefaults standardUserDefaults] setObject:_oscOutputPortText forKey:@"oscOutputPortText"];
+#endif
     
 	[[NSUserDefaults standardUserDefaults] synchronize];
         
