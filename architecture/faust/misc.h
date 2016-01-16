@@ -65,5 +65,6 @@ const char* lopts(char *argv[], const char *name, const char* def)
 	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return argv[i+1];
 	return def;
 }
+
 #endif
 
