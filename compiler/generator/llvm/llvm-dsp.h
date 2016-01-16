@@ -433,16 +433,6 @@ void deleteDSPInstance(llvm_dsp* dsp);
  */ 
 std::string generateSHA1(const std::string& data);
 
-/**
- * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey, getCLibraryList, 
- * getAllCDSPFactories, writeCDSPFactoryToBitcode, writeCDSPFactoryToIR, writeCDSPFactoryToMachine, 
- * expandCDSPFromString and expandCDSPFromFile.
- * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.
- * 
- * @param ptr - the pointer to be deleted.
- */
-void freeCDSP(void* ptr);
-
 /*!
  @}
  */
