@@ -46,7 +46,7 @@ struct itemInfo {
     std::string min;
     std::string max;
     std::string step;
-    std::map<std::string,std::string> meta;
+    std::map<std::string, std::string> meta;
 };
 
 bool parseMenuList(const char*& p, vector<string>& names, vector<double>& values);
