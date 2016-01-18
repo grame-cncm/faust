@@ -44,9 +44,9 @@
 
 #define STR2REAL(x) ((sizeof(FAUSTFLOAT) == 4) ? strtof((x), NULL) : strtod((x), NULL))
 
-//----------------------------------------------------------------
+//-------------------------------------------------------------------
 //  Decode a DSP JSON description and implement 'buildUserInterface'
-//----------------------------------------------------------------
+//-------------------------------------------------------------------
 
 struct JSONUIDecoder {
 
@@ -221,6 +221,7 @@ class proxy_dsp : public dsp {
         
         virtual void init(int samplingRate) {}  
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {} 
+        
 };
 
 #endif
