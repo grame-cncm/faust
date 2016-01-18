@@ -48,7 +48,7 @@ class htmlfactory;
 class HTTPDControler
 {
 	int fTCPPort;				// the tcp port number
-	FaustFactory *	fFactory;	// a factory to build the memory representation
+	FaustFactory*	fFactory;	// a factory to build the memory representation
 	jsonfactory*	fJson;
 	htmlfactory*	fHtml;
 	HTTPDSetup*		fHttpd;		// the network manager
