@@ -299,7 +299,6 @@ static bool parseMetaData(const char*& p, std::string& key, std::string& value, 
                         metadatas[key1] = value1;
                     }
                 } while (tryChar(p, ','));
-                
                 return parseChar(p, '}') && parseChar(p, ']');
             } else {
                 return false;
@@ -358,7 +357,6 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
                 else if (label == "meta") {
                     std::string metaKey, metaValue;
                     if (parseChar(p, ':') && parseChar(p,'[')) {
-                        
                         do { 
                             if (parseChar(p, '{') && parseDQString(p, metaKey) && parseChar(p, ':') && parseDQString(p, metaValue) && parseChar(p,'}')) {
                                 itemInfo* item = uiItems[numItems];
@@ -401,15 +399,12 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
                 }
                 
                 else if (label == "items") {
-                    
                     if (parseChar(p, ':') && parseChar(p, '[')) {
-                        
                         do { 
                             if (!parseUI(p, uiItems, numItems)) {
                                 return false;
                             }
                         } while (tryChar(p, ','));
-                        
                         if (parseChar(p, ']')) {
                             itemInfo* item = new itemInfo;
                             item->type = "close";
