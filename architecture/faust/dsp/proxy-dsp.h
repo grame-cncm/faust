@@ -42,6 +42,8 @@
 #include "faust/audio/dsp.h"
 #include "faust/gui/SimpleParser.h"
 
+#define STR2REAL(x) ((sizeof(FAUSTFLOAT) == 4) ? strtof((x), NULL) : strtod((x), NULL))
+
 //----------------------------------------------------------------
 //  Proxy processor definition created from the DSP JSON description
 //  This class allows a 'proxy' DSP to control a real DSP 
@@ -121,6 +123,10 @@ class proxy_dsp : public dsp {
         
         virtual void buildUserInterface(UI* ui)
         {
+            // To be sure the floats are correctly encoded
+            char* tmp_local = setlocale(LC_ALL, NULL);
+            setlocale(LC_ALL, "C");
+    
             int counterIn = 0;
             int counterOut = 0;
             vector<itemInfo*>::iterator it;
@@ -132,10 +138,10 @@ class proxy_dsp : public dsp {
                 bool isOutItem = false;
                 string type = (*it)->type;
                 
-                float init = strtod((*it)->init.c_str(), NULL);
-                float min = strtod((*it)->min.c_str(), NULL);
-                float max = strtod((*it)->max.c_str(), NULL);
-                float step = strtod((*it)->step.c_str(), NULL);
+                float init = STR2REAL((*it)->init.c_str());
+                float min = STR2REAL((*it)->min.c_str());
+                float max = STR2REAL((*it)->max.c_str());
+                float step = STR2REAL((*it)->step.c_str());
                 
                 if (type == "vslider" || type == "hslider" || type == "nentry" || type == "button") {
                     isInItem = true;
@@ -196,6 +202,8 @@ class proxy_dsp : public dsp {
                     counterOut++;
                 }
             }
+            
+            setlocale(LC_ALL, tmp_local);
         }
         
         virtual void init(int samplingRate) {}  

@@ -117,9 +117,6 @@ class JSONUI : public PathUI, public Meta
                     case '\t':
                         dst << ' ';
                         break;
-                    case '"':
-                        dst << "\\" << '"';
-                        break;
                     default:
                         dst << src[i];
                         break;

@@ -80,7 +80,7 @@ inline bool parseMenuList(const char*& p, vector<string>& names, vector<double>&
 
     const char* saved = p;
 
-    if (parseChar(p,'{')) {
+    if (parseChar(p, '{')) {
         do {
             string n;
             double v;
@@ -91,8 +91,8 @@ inline bool parseMenuList(const char*& p, vector<string>& names, vector<double>&
                 p = saved;
                 return false;
             }
-        } while (parseChar(p,';'));
-        if (parseChar(p,'}')) {
+        } while (parseChar(p, ';'));
+        if (parseChar(p, '}')) {
             // we suceeded
             names = tmpnames;
             values = tmpvalues;
@@ -113,7 +113,7 @@ inline bool parseMenuList(const char*& p, vector<string>& names, vector<double>&
 inline bool parseMenuItem(const char*& p, string& name, double& value)
 {
     const char* saved = p;
-    if (parseSQString(p,name) && parseChar(p,':') && parseDouble(p,value)) {
+    if (parseSQString(p, name) && parseChar(p, ':') && parseDouble(p, value)) {
         return true;
     } else {
         p = saved;
@@ -208,9 +208,9 @@ inline bool parseDouble(const char*& p, double& x)
 
     const char* saved = p;  // to restore position if we fail
 
-    if (parseChar(p,'+')) {
+    if (parseChar(p, '+')) {
         sign = 1.0;
-    } else if (parseChar(p,'-')) {
+    } else if (parseChar(p, '-')) {
         sign = -1.0;
     }
     while (isdigit(*p)) {
@@ -218,7 +218,7 @@ inline bool parseDouble(const char*& p, double& x)
         ipart = ipart*10 + (*p - '0');
         p++;
     }
-    if (parseChar(p,'.')) {
+    if (parseChar(p, '.')) {
         while (isdigit(*p)) {
             valid = true;
             dpart = dpart*10 + (*p - '0');
@@ -245,7 +245,7 @@ inline bool parseString(const char*& p, char quote, string& s)
 {
     string str;
     skipBlank(p);
-
+ 
     const char* saved = p;
     if (*p++ == quote) {
         while ((*p != 0) && (*p != quote)) {
@@ -290,7 +290,7 @@ inline bool parseDQString(const char*& p, string& s)
 static bool parseMetaData(const char*& p, std::string& key, std::string& value, std::map<std::string,std::string>& metadatas)
 {
     if (parseDQString(p, key)) {
-        if (key.compare("meta") == 0) {
+        if (key == "meta") {
             if (parseChar(p, ':') && parseChar(p, '[') && parseChar(p, '{')) {
                 do {
                     std::string key1;
@@ -328,7 +328,7 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
             
             if (parseDQString(p, label)) {
                 
-                if (label.compare("type") == 0) {
+                if (label == "type") {
                     
                     if (uiItems.size() != 0) {
                         numItems++;
@@ -341,67 +341,66 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
                     }
                 }
                 
-                else if (label.compare("label") == 0) {
+                else if (label == "label") {
                     if (parseChar(p, ':') && parseDQString(p, value)) {
                         itemInfo* item = uiItems[numItems];
                         item->label = value;
                     }
                 }
                 
-                else if (label.compare("address") == 0){
+                else if (label == "address") {
                     if (parseChar(p, ':') && parseDQString(p, value)) {
                         itemInfo* item = uiItems[numItems];
                         item->address = value;
                     }
                 }
                 
-                else if (label.compare("meta") == 0) {
-                    
+                else if (label == "meta") {
                     std::string metaKey, metaValue;
                     if (parseChar(p, ':') && parseChar(p,'[')) {
                         
                         do { 
-                            if (parseChar(p,'{') && parseDQString(p, metaKey) && parseChar(p, ':') && parseDQString(p, metaValue) && parseChar(p,'}')) {
+                            if (parseChar(p, '{') && parseDQString(p, metaKey) && parseChar(p, ':') && parseDQString(p, metaValue) && parseChar(p,'}')) {
                                 itemInfo* item = uiItems[numItems];
                                 item->meta[metaKey] = metaValue;
                             }
                             
-                        } while (tryChar(p,','));
-                        if (!parseChar(p,']')) {
+                        } while (tryChar(p, ','));
+                        if (!parseChar(p, ']')) {
                             return false;
                         }
                     }
                 }
                 
-                else if (label.compare("init") == 0) {
+                else if (label == "init") {
                     if (parseChar(p, ':') && parseDQString(p, value)) {
                         itemInfo* item = uiItems[numItems];
                         item->init = value;
                     }
                 }
                 
-                else if (label.compare("min") == 0){
+                else if (label == "min") {
                     if (parseChar(p, ':') && parseDQString(p, value)) {
                         itemInfo* item = uiItems[numItems];
                         item->min = value;
                     }
                 }
                 
-                else if (label.compare("max") == 0){
+                else if (label == "max") {
                     if (parseChar(p, ':') && parseDQString(p, value)) {
                         itemInfo* item = uiItems[numItems];
                         item->max = value;
                     }
                 }
                 
-                else if (label.compare("step") == 0){
-                    if (parseChar(p, ':') && parseDQString(p, value)){
+                else if (label == "step"){
+                    if (parseChar(p, ':') && parseDQString(p, value)) {
                         itemInfo* item = uiItems[numItems];
                         item->step = value;
                     }
                 }
                 
-                else if (label.compare("items") == 0) {
+                else if (label == "items") {
                     
                     if (parseChar(p, ':') && parseChar(p, '[')) {
                         
@@ -445,16 +444,13 @@ inline bool parseJson(const char*& p, std::map<std::string,std::string>& metadat
     do {
         std::string key;
         std::string value;
-        
         if (parseMetaData(p, key, value, metadatas)) {
             metadatas[key] = value;
-        } else {
-            if (key.compare("ui") == 0) {
-                int numItems = 0;
-                parseChar(p,'[') && parseUI(p, uiItems, numItems);
-            }
+        } else if (key == "ui") {
+            int numItems = 0;
+            parseChar(p, '[') && parseUI(p, uiItems, numItems);
         }
-    } while (tryChar(p,','));
+    } while (tryChar(p, ','));
     
     return parseChar(p, '}');
 }
