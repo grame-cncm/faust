@@ -71,7 +71,8 @@ for f in $FILES; do
 # could use FILES for handling multiple dap files, while other AU args like manufacturer and subtype should be handled in a way
 
 # Get the number of inputs of the Faust code:
-NINPUTS=$(faust "$f" | grep getNumInputs | awk '{ printf "%d", $6}')
+LINPUTS=$(faust -uim "$f" | grep FAUST_INPUTS)
+NINPUTS=${LINPUTS//[^0-9]/}
 # echo "Number of Faust module inputs = $NINPUTS"
 
 if [ $NINPUTS -gt 0 ]; then
