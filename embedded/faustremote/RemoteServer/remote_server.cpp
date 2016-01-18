@@ -212,25 +212,22 @@ dsp_server_connection_info::dsp_server_connection_info()
 
 void dsp_server_connection_info::getJson(llvm_dsp_factory* factory) 
 {
-    /*
+    
     fNameApp = factory->getName();
     // This instance is used only to build JSON interface, then it's deleted
     llvm_dsp* dsp = createDSPInstance(factory);
     string code = factory->getDSPCode();
-    JSONUI json(fNameApp, dsp->getNumInputs(), dsp->getNumOutputs(), factory->getSHAKey(), base64_encode((const unsigned char*)code.c_str(), code.size()));
+    JSONUI json(fNameApp, dsp->getNumInputs(), dsp->getNumOutputs(), factory->getSHAKey(), base64_encode(code.c_str(), code.size()));
     dsp->buildUserInterface(&json);
     deleteDSPInstance(dsp);  
     fAnswer = json.JSON();
-    */
     
+    /*
     fNameApp = getCName(factory);
     // This instance is used only to build JSON interface, then it's deleted
     llvm_dsp* dsp = createDSPInstance(factory);
     string code = getCDSPCode(factory);
     char* base64_code = base64_encode(code.c_str(), code.size());
-    //string base64_code = base64_encode(code);
-    
-    //string base64_code = "";
     string sha_key = getCSHAKey(factory);
     printf("code %s\n", code.c_str());
     printf("shakey %s\n", sha_key.c_str());
@@ -238,13 +235,15 @@ void dsp_server_connection_info::getJson(llvm_dsp_factory* factory)
     dsp->buildUserInterface(json);
     deleteDSPInstance(dsp);
     fAnswer = json->JSON();
+    */
 }
 
 bool dsp_server_connection_info::getFactoryFromSHAKey(DSPServer* server)
 {
     // Will increment factory reference counter...
-    //llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(fSHAKey);
-    llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(fSHAKey.c_str());
+    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(fSHAKey);
+    
+    //llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(fSHAKey.c_str());
      
     if (factory) {
         getJson(factory);
@@ -261,8 +260,8 @@ llvm_dsp_factory* dsp_server_connection_info::crossCompileFactory(DSPServer* ser
     llvm_dsp_factory* factory;
   
     // Already in the cache...
-    //if ((factory = getDSPFactoryFromSHAKey(fSHAKey))) {
-    if ((factory = getCDSPFactoryFromSHAKey(fSHAKey.c_str()))) {
+    if ((factory = getDSPFactoryFromSHAKey(fSHAKey))) {
+   // if ((factory = getCDSPFactoryFromSHAKey(fSHAKey.c_str()))) {
         return factory;
     } else {
         // Sort out compilation options
@@ -271,11 +270,18 @@ llvm_dsp_factory* dsp_server_connection_info::crossCompileFactory(DSPServer* ser
         for (int i = 0; i < argc; i++) {
             argv[i] = fCompilationOptions[i].c_str();
         }
-     
+        
+        /*
         char error1[256];
         factory = createCDSPFactoryFromString(fNameApp.c_str(),
                                             fFaustCode.c_str(),
                                             argc, argv, fTarget.c_str(),
+                                            error1, atoi(fOptLevel.c_str()));
+        */
+        string error1;
+        factory = createDSPFactoryFromString(fNameApp,
+                                            fFaustCode,
+                                            argc, argv, fTarget,
                                             error1, atoi(fOptLevel.c_str()));
                                                                 
         error = error1;                                                    
@@ -301,22 +307,24 @@ llvm_dsp_factory* dsp_server_connection_info::createFactory(DSPServer* server, s
      
     if (isopt(argc, argv, "-lm")) {
         // Machine code
-        //fFactory = readDSPFactoryFromMachine(fFaustCode);
-        factory = readCDSPFactoryFromMachine(fFaustCode.c_str(), loptions(argv, "-lm", ""));
+        factory = readDSPFactoryFromMachine(fFaustCode, loptions(argv, "-lm", ""));
+        //factory = readCDSPFactoryFromMachine(fFaustCode.c_str(), loptions(argv, "-lm", ""));
     } else {
         // DSP code
-        /*
-        fFactory = createDSPFactoryFromString(fNameApp,
+        string error1;
+        factory = createDSPFactoryFromString(fNameApp,
                                             fFaustCode, 
                                             argc, argv, "", 
                                             error, atoi(fOptLevel.c_str()));
-        */
     
+        /*
         char error1[256];
         factory = createCDSPFactoryFromString(fNameApp.c_str(),
                                             fFaustCode.c_str(),
                                             argc, argv, "",
                                             error1, atoi(fOptLevel.c_str()));
+        */
+        
         error = error1;
     }
     
@@ -405,7 +413,8 @@ void* DSPServer::registration(void* arg)
     
     char host_name[256];
     gethostname(host_name, sizeof(host_name));
-    char* target = getCDSPMachineTarget();
+    //char* target = getCDSPMachineTarget();
+    string target = getDSPMachineTarget();
     stringstream name_service;
     name_service << searchIP() << ":" << serv->fPort << ":" << host_name << ":" << target;
     lo_address adress = lo_address_new("224.0.0.1", "7770");
@@ -420,7 +429,7 @@ void* DSPServer::registration(void* arg)
         lo_send(adress, "/faustcompiler", "is", getpid(), name_service.str().c_str());
     }
     
-    freeCDSP(target);
+    //freeCDSP(target);
     pthread_exit(NULL);
 }
     
@@ -576,8 +585,8 @@ bool DSPServer::getAvailableFactories(MHD_Connection* connection)
     stringstream answer;
     for (FactoryTableIt it = fFactories.begin(); it != fFactories.end(); it++) {
         llvm_dsp_factory* factory = *it;
-        //answer << factory->getName() << ":" << factory->getTarget() << " " << factory->getSHAKey() << " ";
-        answer << getCName(factory) << ":" << getCTarget(factory) << " " << getCSHAKey(factory) << " ";
+        answer << factory->getName() << ":" << factory->getTarget() << " " << factory->getSHAKey() << " ";
+        //answer << getCName(factory) << ":" << getCTarget(factory) << " " << getCSHAKey(factory) << " ";
     }
     return sendPage(connection, answer.str(), MHD_HTTP_OK, "text/plain");
 }
@@ -614,12 +623,12 @@ bool DSPServer::crossCompileFactory(MHD_Connection* connection, dsp_server_conne
         fFactories.insert(factory);
         
         // Return machine_code to client
-        //string machine_code = writeDSPFactoryToMachine(factory, info->fTarget);
-        char* machine_code = writeCDSPFactoryToMachine(factory, info->fTarget.c_str());
+        string machine_code = writeDSPFactoryToMachine(factory, info->fTarget);
+        //char* machine_code = writeCDSPFactoryToMachine(factory, info->fTarget.c_str());
          
         // And keep the new compiled target, so that is it "cached"
-        //llvm_dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget);
-        llvm_dsp_factory* new_factory = readCDSPFactoryFromMachine(machine_code, info->fTarget.c_str());
+        llvm_dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget);
+        //llvm_dsp_factory* new_factory = readCDSPFactoryFromMachine(machine_code, info->fTarget.c_str());
         
         //freeCDSP(machine_code);  // TODO
         
@@ -677,8 +686,8 @@ bool DSPServer::stop(MHD_Connection* connection, dsp_server_connection_info* inf
 bool DSPServer::deleteFactory(MHD_Connection* connection, dsp_server_connection_info* info)
 {
     // Returns the factory (with incremented reference counter)
-    //llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(info->fSHAKey);
-    llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(info->fSHAKey.c_str());
+    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(info->fSHAKey);
+    //llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(info->fSHAKey.c_str());
     
     if (factory) {
         // Remove from the list
@@ -751,8 +760,8 @@ void DSPServer::requestCompleted(void* cls, MHD_Connection* connection, void** c
 // Create DSP Instance
 bool DSPServer::createInstance(dsp_server_connection_info* con_info)
 {
-    //llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(con_info->fSHAKey);
-    llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(con_info->fSHAKey.c_str());
+    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(con_info->fSHAKey);
+    //llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(con_info->fSHAKey.c_str());
     audio_dsp* audio = NULL;
     llvm_dsp* dsp = NULL;
     
@@ -786,8 +795,8 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
                 */
                 
                 audio = new audio_dsp(factory,
-                                    //factory->getName(),
-                                    getCName(factory),
+                                    factory->getName(),
+                                    //getCName(factory),
                                     con_info->fInstanceKey,
                                     fCreateDSPInstanceCb, 
                                     fCreateDSPInstanceCb_arg,

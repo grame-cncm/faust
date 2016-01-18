@@ -223,16 +223,6 @@ bool getArgName(Tree t, Tree& id)
 }
 
 /**
- * Eval a block diagram expression.
- *
- * Wrap the realeval function in order to propagate the name property
- * @param exp the expression to evaluate
- * @param visited list of visited definition to detect recursive definitions
- * @param localValEnv the local environment
- * @return a block diagram in normal form
- */
-
-/**
  * set the value of box in the environment env
  * @param box the block diagram we have evaluated
  * @param env the evaluation environment
@@ -255,6 +245,15 @@ bool getEvalProperty(Tree box, Tree env, Tree& value)
 	return getProperty(box, tree(gGlobal->EVALPROPERTY,env), value);
 }
 
+/**
+ * Eval a block diagram expression.
+ *
+ * Wrap the realeval function in order to propagate the name property
+ * @param exp the expression to evaluate
+ * @param visited list of visited definition to detect recursive definitions
+ * @param localValEnv the local environment
+ * @return a block diagram in normal form
+ */
 static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 {
 	Tree	id;
