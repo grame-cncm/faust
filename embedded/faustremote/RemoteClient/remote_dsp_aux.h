@@ -37,6 +37,7 @@
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
 #include "faust/audio/dsp.h"
+#include "faust/dsp/proxy-dsp.h"
 #include "faust/gui/SimpleParser.h"
 #include "smartpointer.h"
 #include "lo/lo.h"
@@ -125,8 +126,7 @@ class remote_dsp_factory : public smartable {
         
         string      fServerURL;             // URL of remote server 
         
-        map<string, string>  fMetadatas;    // Metadatas extracted from json
-        vector<itemInfo*>   fUiItems;       // Items extracted from json
+        JSONUIDecoder* fJSONDecoder;
         
         vector<string> fPathnameList;
            

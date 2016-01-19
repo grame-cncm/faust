@@ -103,9 +103,9 @@ remote_dsp_factory::remote_dsp_factory(const string& ip_server, int port_server,
     serverURL << "http://" << ip_server << ":" << port_server;
     fServerURL = serverURL.str();
     fSHAKey = sha_key;
-    fNumInputs = fNumOutputs = 0;
     fName = "";
     fExpandedDSP = "";
+    fJSONDecoder = 0;
 }
 
 remote_dsp_factory::~remote_dsp_factory()
@@ -116,11 +116,7 @@ remote_dsp_factory::~remote_dsp_factory()
     int errorCode = -1;
     string url = fServerURL + "/DeleteFactory";
     sendRequest(url, finalRequest, response, errorCode);
-    
-    vector<itemInfo*>::iterator it;
-    for (it = fUiItems.begin(); it != fUiItems.end() ; it++) {
-        delete(*it);
-    }
+    delete fJSONDecoder;
 }
 
 // Compile on server side and get machine code on client to re-create a local Factory
@@ -251,33 +247,14 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
 // Some "extra" metadatas are kept separatly
 void remote_dsp_factory::decodeJson(const string& json)
 {
-    const char* p = json.c_str();
+    fJSONDecoder = new JSONUIDecoder(json);
     
-    parseJson(p, fMetadatas, fUiItems);
-    
-    if (fMetadatas.find("name") != fMetadatas.end()) {
-        fName = fMetadatas["name"];
-        fMetadatas.erase("name");
+    if (fJSONDecoder->fMetadatas.find("code") != fJSONDecoder->fMetadatas.end()) {
+        fExpandedDSP = base64_decode(fJSONDecoder->fMetadatas["code"]);
     }
     
-    if (fMetadatas.find("code") != fMetadatas.end()) {
-        fExpandedDSP = base64_decode(fMetadatas["code"]);
-        fMetadatas.erase("code");
-    }
-    
-    if (fMetadatas.find("sha_key") != fMetadatas.end()) {
-        fSHAKey = fMetadatas["sha_key"];
-        fMetadatas.erase("sha_key");
-    }
-    
-    if (fMetadatas.find("inputs") != fMetadatas.end()) {
-        fNumInputs = atoi(fMetadatas["inputs"].c_str());
-        fMetadatas.erase("inputs");
-    }
-    
-    if (fMetadatas.find("outputs") != fMetadatas.end()) {
-        fNumOutputs = atoi(fMetadatas["outputs"].c_str());
-        fMetadatas.erase("outputs");
+    if (fJSONDecoder->fMetadatas.find("sha_key") != fJSONDecoder->fMetadatas.end()) {
+        fSHAKey = fJSONDecoder->fMetadatas["sha_key"];
     }
 }
 
@@ -285,7 +262,7 @@ void remote_dsp_factory::decodeJson(const string& json)
 void remote_dsp_factory::metadataRemoteDSPFactory(Meta* m) 
 { 
     map<string,string>::iterator it;
-    for (it = fMetadatas.begin() ; it != fMetadatas.end(); it++) {
+    for (it = fJSONDecoder->fMetadatas.begin() ; it != fJSONDecoder->fMetadatas.end(); it++) {
         m->declare(it->first.c_str(), it->second.c_str());
     }
 }   
@@ -432,105 +409,10 @@ void remote_dsp_aux::fillBufferWithZerosOffset(int channels, int offset, int siz
     }
 }
 
-// Decode internal structure, to build user interface
+// DecodeJSON to build user interface
 void remote_dsp_aux::buildUserInterface(UI* ui) 
 {
-    // To be sure the floats are correctly encoded
-    char* tmp_local = setlocale(LC_ALL, NULL);
-    setlocale(LC_ALL, "C");
-    
-    int counterIn = 0;
-    int counterOut = 0;
-    
-    vector<itemInfo*>::iterator it;
-    
-    for (it = fFactory->fUiItems.begin(); it != fFactory->fUiItems.end(); it++) {
-        
-        float init = strtod((*it)->init.c_str(), NULL);
-        float min = strtod((*it)->min.c_str(), NULL);
-        float max = strtod((*it)->max.c_str(), NULL);
-        float step = strtod((*it)->step.c_str(), NULL);
-        
-        map<string,string>::iterator it2;
-        
-        bool isInItem = false;
-        bool isOutItem = false;
-        
-        // Meta Data declaration for entry items
-        if ((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type != "close") {
-            
-            fInControl[counterIn] = init;
-            isInItem = true;
-            
-            for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {
-                ui->declare(&fInControl[counterIn], it2->first.c_str(), it2->second.c_str());
-            }
-        }
-        // Meta Data declaration for exit items
-        else if ((*it)->type.find("bargraph") != string::npos){
-            
-            fOutControl[counterOut] = init;
-            isOutItem = true;
-            
-            for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {
-                ui->declare(&fOutControl[counterOut], it2->first.c_str(), it2->second.c_str());
-            }
-        }
-        // Meta Data declaration for group opening or closing
-        else {
-            for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {
-                ui->declare(0, it2->first.c_str(), it2->second.c_str());
-            }
-        }
-        
-        // Item declaration
-        string type = (*it)->type;
-        if (type == "hgroup") {
-            ui->openHorizontalBox((*it)->label.c_str());
-        
-        } else if (type == "vgroup") { 
-             ui->openVerticalBox((*it)->label.c_str());
-     
-        } else if (type == "tgroup") {
-            ui->openTabBox((*it)->label.c_str());
-        
-        } else if (type == "vslider") {
-            ui->addVerticalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
-        
-        } else if (type == "hslider") {
-            ui->addHorizontalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);            
-        
-        } else if (type == "checkbox") {
-            ui->addCheckButton((*it)->label.c_str(), &fInControl[counterIn]);
-        
-        } else if (type == "hbargraph") {
-            ui->addHorizontalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
-        
-        } else if (type == "vbargraph") {
-            ui->addVerticalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
-        
-        } else if (type == "nentry") {
-            ui->addNumEntry((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
-        
-        } else if (type == "button") {
-            ui->addButton((*it)->label.c_str(), &fInControl[counterIn]);
-        
-        } else if (type == "close") {
-            ui->closeBox();
-        }
-            
-        if (isInItem)
-            counterIn++;
-            
-        if (isOutItem)
-            counterOut++;
-    }
-    
-    // Keep them for compute method...
-    fCounterIn = counterIn;
-    fCounterOut = counterOut;
-    
-    setlocale(LC_ALL, tmp_local);
+    fFactory->fJSONDecoder->buildUserInterface(ui);
 }
 
 void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset)
@@ -1006,9 +888,9 @@ EXPORT vector<string> getRemoteDSPFactoryLibraryList(remote_dsp_factory* factory
     return factory->getRemoteDSPFactoryLibraryList(); 
 }
 
-EXPORT int remote_dsp_factory::getNumInputs() { return fNumInputs; }
+EXPORT int remote_dsp_factory::getNumInputs() { return fJSONDecoder->fNumInputs; }
 
-EXPORT int remote_dsp_factory::getNumOutputs() { return fNumOutputs; }
+EXPORT int remote_dsp_factory::getNumOutputs() { return fJSONDecoder->fNumOutputs; }
 
 EXPORT bool getRemoteDSPMachines(map<string, remote_dsp_machine* >* machine_list)
 {

@@ -212,7 +212,6 @@ dsp_server_connection_info::dsp_server_connection_info()
 
 void dsp_server_connection_info::getJson(llvm_dsp_factory* factory) 
 {
-    
     fNameApp = factory->getName();
     // This instance is used only to build JSON interface, then it's deleted
     llvm_dsp* dsp = createDSPInstance(factory);
@@ -220,8 +219,7 @@ void dsp_server_connection_info::getJson(llvm_dsp_factory* factory)
     JSONUI json(fNameApp, dsp->getNumInputs(), dsp->getNumOutputs(), factory->getSHAKey(), base64_encode(code.c_str(), code.size()));
     dsp->buildUserInterface(&json);
     deleteDSPInstance(dsp);  
-    fAnswer = json.JSON();
-    
+    fAnswer = json.JSON();    
     /*
     fNameApp = getCName(factory);
     // This instance is used only to build JSON interface, then it's deleted
