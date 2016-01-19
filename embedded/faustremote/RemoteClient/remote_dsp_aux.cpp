@@ -103,7 +103,6 @@ remote_dsp_factory::remote_dsp_factory(const string& ip_server, int port_server,
     serverURL << "http://" << ip_server << ":" << port_server;
     fServerURL = serverURL.str();
     fSHAKey = sha_key;
-    fName = "";
     fExpandedDSP = "";
     fJSONDecoder = 0;
 }
@@ -486,7 +485,7 @@ void remote_dsp_aux::metadata(Meta* m)
 // Accessors to number of input/output of DSP
 int remote_dsp_aux::getNumInputs()
 { 
-     return fFactory->getNumInputs();
+    return fFactory->getNumInputs();
 }
 
 int remote_dsp_aux::getNumOutputs()
@@ -872,7 +871,7 @@ EXPORT void deleteAllRemoteDSPFactories()
     }
 }
 
-EXPORT std::string remote_dsp_factory::getName() { return fName; }
+EXPORT std::string remote_dsp_factory::getName() { return fJSONDecoder->fName; }
 
 EXPORT std::string remote_dsp_factory::getSHAKey() { return fSHAKey; }
 

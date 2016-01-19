@@ -117,12 +117,8 @@ class remote_dsp_factory : public smartable {
     
     private:
         
-        string      fName;    
         string      fSHAKey;                // Unique Index to bind a Remote_Factory to its llvm_factory on the server side
         string      fExpandedDSP;
-        
-        int         fNumInputs;             // Compiled DSP factory inputs
-        int         fNumOutputs;            // Compiled DSP factory outputs
         
         string      fServerURL;             // URL of remote server 
         
