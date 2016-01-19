@@ -1,20 +1,20 @@
 /************************************************************************
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
+    IMPORTANT NOTE : this file contains two clearly delimited sections :
+    the ARCHITECTURE section (in two parts) and the USER section. Each section
+    is governed by its own copyright and license. Please check individually
+    each section for license and copyright information.
 *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
 /************************************************************************
     FAUST Architecture File
-	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
-	as published by the Free Software Foundation; either version 3 of
-	the License, or (at your option) any later version.
+    as published by the Free Software Foundation; either version 3 of
+    the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,12 +22,12 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-	along with this program; If not, see <http://www.gnu.org/licenses/>.
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-	EXCEPTION : As a special exception, you may create a larger work
-	that contains this FAUST architecture section and distribute
-	that work under terms of your choice, so long as this FAUST
-	architecture section is not modified.
+    EXCEPTION : As a special exception, you may create a larger work
+    that contains this FAUST architecture section and distribute
+    that work under terms of your choice, so long as this FAUST
+    architecture section is not modified.
 
 
  ************************************************************************
@@ -45,7 +45,7 @@
 #define STR2REAL(x) ((sizeof(FAUSTFLOAT) == 4) ? strtof((x), NULL) : strtod((x), NULL))
 
 //-------------------------------------------------------------------
-//  Decode a DSP JSON description and implement 'buildUserInterface'
+//  Decode a dsp JSON description and implement 'buildUserInterface'
 //-------------------------------------------------------------------
 
 struct JSONUIDecoder {
@@ -71,17 +71,14 @@ struct JSONUIDecoder {
         
         if (fMetadatas.find("name") != fMetadatas.end()) {
             fName = fMetadatas["name"];
-            fMetadatas.erase("name");
         }
          
         if (fMetadatas.find("inputs") != fMetadatas.end()) {
             fNumInputs = atoi(fMetadatas["inputs"].c_str());
-            fMetadatas.erase("inputs");
         }
         
         if (fMetadatas.find("outputs") != fMetadatas.end()) {
             fNumOutputs = atoi(fMetadatas["outputs"].c_str());
-            fMetadatas.erase("outputs");
         }
         
         vector<itemInfo*>::iterator it;
@@ -139,14 +136,14 @@ struct JSONUIDecoder {
                 isOutItem = true;        
             }
             
-            // Meta Data declaration for entry items
+            // Meta Data declaration for input items
             if ((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type != "close") {
                 fInControl[counterIn] = init;
                 for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {
                     ui->declare(&fInControl[counterIn], it2->first.c_str(), it2->second.c_str());
                 }
             }
-            // Meta Data declaration for exit items
+            // Meta Data declaration for output items
             else if ((*it)->type.find("bargraph") != string::npos) {
                 fOutControl[counterOut] = init;
                 for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {
@@ -199,8 +196,8 @@ struct JSONUIDecoder {
 };
 
 //----------------------------------------------------------------
-//  Proxy processor definition created from the DSP JSON description
-//  This class allows a 'proxy' DSP to control a real DSP 
+//  Proxy dsp definition created from the DSP JSON description
+//  This class allows a 'proxy' dsp to control a real dsp 
 //  possibly running somewhere else.
 //----------------------------------------------------------------
 
@@ -219,6 +216,7 @@ class proxy_dsp : public dsp {
         
         virtual void buildUserInterface(UI* ui) { fDecoder.buildUserInterface(ui); }
         
+        // To possibly implement in a concrete proxy dsp 
         virtual void init(int samplingRate) {}  
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {} 
         
