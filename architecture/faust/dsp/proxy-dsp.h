@@ -71,16 +71,22 @@ struct JSONUIDecoder {
         
         if (fMetadatas.find("name") != fMetadatas.end()) {
             fName = fMetadatas["name"];
+        } else {
+            fName = "";
         }
          
         if (fMetadatas.find("inputs") != fMetadatas.end()) {
             fNumInputs = atoi(fMetadatas["inputs"].c_str());
+        } else {
+            fNumInputs = 0;
         }
         
         if (fMetadatas.find("outputs") != fMetadatas.end()) {
             fNumOutputs = atoi(fMetadatas["outputs"].c_str());
-        }
-        
+        } else {
+            fNumOutputs = 0;
+        }   
+             
         vector<itemInfo*>::iterator it;
         fInputItems = 0;
         fOutputItems = 0;
