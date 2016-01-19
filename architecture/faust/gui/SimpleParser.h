@@ -203,9 +203,7 @@ inline bool parseDouble(const char*& p, double& x)
     double dcoef = 1.0;    // division factor for the decimal part
 
     bool valid = false;   // true if the number contains at least one digit
-
     skipBlank(p);
-
     const char* saved = p;  // to restore position if we fail
 
     if (parseChar(p, '+')) {
@@ -326,13 +324,10 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
         do {
             
             if (parseDQString(p, label)) {
-                
                 if (label == "type") {
-                    
                     if (uiItems.size() != 0) {
                         numItems++;
                     }
-                    
                     if (parseChar(p, ':') && parseDQString(p, value)) {   
                         itemInfo* item = new itemInfo;
                         item->type = value;
