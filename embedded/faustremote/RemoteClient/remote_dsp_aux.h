@@ -177,10 +177,7 @@ class remote_dsp_aux : public dsp {
         
         float**                 fControlInputs;     // control buffer
         float**                 fControlOutputs;    // control buffer
-        
-        FAUSTFLOAT*             fOutControl;        // Buffer containing the values of controls
-        FAUSTFLOAT*             fInControl;         // Buffer containing the values of controls
-        
+         
         remoteDSPErrorCallback  fErrorCallback;
         void*                   fErrorCallbackArg;
         

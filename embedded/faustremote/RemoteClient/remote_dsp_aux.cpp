@@ -381,9 +381,6 @@ remote_dsp_aux::~remote_dsp_aux()
     
         jack_net_master_close(fNetJack); 
         
-        delete[] fInControl;
-        delete[] fOutControl;
-        
         delete[] fControlInputs[0];
         delete[] fControlOutputs[0];
     
@@ -454,19 +451,19 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         int i = 0;
         for (i = 0; i < numberOfCycles; i++) {
             setupBuffers(input, output, i*fBufferSize);
-            ControlUI::encode_midi_control(fControlInputs[0], fInControl, fFactory->fJSONDecoder->fInputItems);
+            ControlUI::encode_midi_control(fControlInputs[0], fFactory->fJSONDecoder->fInControl, fFactory->fJSONDecoder->fInputItems);
             sendSlice(fBufferSize);
             recvSlice(fBufferSize);
-            ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fFactory->fJSONDecoder->fOutputItems);
+            ControlUI::decode_midi_control(fControlOutputs[0], fFactory->fJSONDecoder->fOutControl, fFactory->fJSONDecoder->fOutputItems);
         }
         
         if (lastCycle > 0) {
             setupBuffers(input, output, i*fBufferSize);
-            ControlUI::encode_midi_control(fControlInputs[0], fInControl, fFactory->fJSONDecoder->fInputItems);
+            ControlUI::encode_midi_control(fControlInputs[0], fFactory->fJSONDecoder->fInControl, fFactory->fJSONDecoder->fInputItems);
             fillBufferWithZerosOffset(getNumInputs(), lastCycle, fBufferSize-lastCycle, fAudioInputs);
             sendSlice(lastCycle);
             recvSlice(lastCycle);
-            ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fFactory->fJSONDecoder->fOutputItems);
+            ControlUI::decode_midi_control(fControlOutputs[0], fFactory->fJSONDecoder->fOutControl, fFactory->fJSONDecoder->fOutputItems);
         }
         
     } else {
@@ -515,15 +512,9 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     fErrorCallbackArg = error_callback_arg;
      
     // Init Control Buffers
-    fOutControl = new float[buffer_size];
-    fInControl = new float[buffer_size];
-
     fControlInputs[0] = new float[8192];
     fControlOutputs[0] = new float[8192];
  
-    memset(fOutControl, 0, sizeof(float) * buffer_size);
-    memset(fInControl, 0, sizeof(float) * buffer_size);
-    
     memset(fControlInputs[0], 0, sizeof(float) * 8192);
     memset(fControlOutputs[0], 0, sizeof(float) * 8192);
     
