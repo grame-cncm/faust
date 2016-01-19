@@ -106,7 +106,7 @@ class httpdUI : public UI
 	void run()						{ fCtrl->run(); }
 	int getTCPPort()                { return fCtrl->getTCPPort(); }
     
-    std::string getJSONInterface(){ return fCtrl->getJSONInterface(); }
+    std::string getJSONInterface() { return fCtrl->getJSONInterface(); }
 
 };
 					

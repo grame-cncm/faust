@@ -74,7 +74,7 @@ class jsonfaustui : public UI, public Meta
 		//--------------------------------------------
 		// and eventually how to get the json as a string
 		//--------------------------------------------
-		std::string	json();
+		std::string	json(bool flatten = false);
 };
 
 } //end namespace
