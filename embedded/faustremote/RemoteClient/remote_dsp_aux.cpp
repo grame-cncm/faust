@@ -485,12 +485,12 @@ void remote_dsp_aux::metadata(Meta* m)
 // Accessors to number of input/output of DSP
 int remote_dsp_aux::getNumInputs()
 { 
-    return fFactory->getNumInputs();
+    return fFactory->fJSONDecoder->fNumInputs;
 }
 
 int remote_dsp_aux::getNumOutputs()
 { 
-    return fFactory->getNumOutputs();
+    return fFactory->fJSONDecoder->fNumOutputs;
 }
 
 // Useless fonction in our case but required for a DSP interface
@@ -886,10 +886,6 @@ EXPORT vector<string> getRemoteDSPFactoryLibraryList(remote_dsp_factory* factory
 { 
     return factory->getRemoteDSPFactoryLibraryList(); 
 }
-
-EXPORT int remote_dsp_factory::getNumInputs() { return fJSONDecoder->fNumInputs; }
-
-EXPORT int remote_dsp_factory::getNumOutputs() { return fJSONDecoder->fNumOutputs; }
 
 EXPORT bool getRemoteDSPMachines(map<string, remote_dsp_machine* >* machine_list)
 {

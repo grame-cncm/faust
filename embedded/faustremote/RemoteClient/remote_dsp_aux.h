@@ -126,9 +126,6 @@ class remote_dsp_factory : public smartable {
         
         vector<string> fPathnameList;
            
-        int getNumInputs();
-        int getNumOutputs();
-          
     public: 
     
         remote_dsp_factory(const string& ip_server, int port_server, const string& sha_key);
