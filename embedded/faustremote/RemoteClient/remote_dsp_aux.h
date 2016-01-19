@@ -131,7 +131,7 @@ class remote_dsp_factory : public smartable {
         remote_dsp_factory(const string& ip_server, int port_server, const string& sha_key);
         virtual ~remote_dsp_factory();
         
-        void decodeJson(const string& json);
+        void decodeJSON(const string& json);
         
         remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], 
                                                 remoteDSPErrorCallback error_callback, 
@@ -180,9 +180,6 @@ class remote_dsp_aux : public dsp {
         
         FAUSTFLOAT*             fOutControl;        // Buffer containing the values of controls
         FAUSTFLOAT*             fInControl;         // Buffer containing the values of controls
-        
-        int                     fCounterIn;
-        int                     fCounterOut;
         
         remoteDSPErrorCallback  fErrorCallback;
         void*                   fErrorCallbackArg;
@@ -306,9 +303,9 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
                                                         string& error_msg, int opt_level = -1);
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, 
-                                                        int argc, const char* argv[], 
-                                                        const string& ip_server, int port_server, 
-                                                        string& error, int opt_level = -1);
+                                                            int argc, const char* argv[], 
+                                                            const string& ip_server, int port_server, 
+                                                            string& error, int opt_level = -1);
 
 EXPORT bool deleteRemoteDSPFactory(remote_dsp_factory* factory);
 
@@ -331,8 +328,8 @@ EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp);
 // Audio instance
 
 EXPORT remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, 
-                                            int argc, const char* argv[],  
-                                            int& error);
+                                                int argc, const char* argv[],  
+                                                int& error);
 
 EXPORT void deleteRemoteAudioInstance(remote_audio* audio);
 

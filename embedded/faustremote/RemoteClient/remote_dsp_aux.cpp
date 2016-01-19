@@ -232,7 +232,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     string url = fServerURL + "/CreateFactory";
 
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
-        decodeJson(response);
+        decodeJSON(response);
         return true;
     } else {
         error_msg = response;
@@ -244,7 +244,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
 // fUiItems : Structure containing the graphical items
 // fMetadatas : Structure containing the metadatas
 // Some "extra" metadatas are kept separatly
-void remote_dsp_factory::decodeJson(const string& json)
+void remote_dsp_factory::decodeJSON(const string& json)
 {
     fJSONDecoder = new JSONUIDecoder(json);
     
@@ -360,9 +360,6 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory)
     fControlInputs[0] = 0;
     fControlOutputs[0] = 0;
     
-    fCounterIn = 0;
-    fCounterOut = 0;
-    
     fErrorCallback = 0;
     fErrorCallbackArg = 0;
     
@@ -457,19 +454,19 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         int i = 0;
         for (i = 0; i < numberOfCycles; i++) {
             setupBuffers(input, output, i*fBufferSize);
-            ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
+            ControlUI::encode_midi_control(fControlInputs[0], fInControl, fFactory->fJSONDecoder->fInputItems);
             sendSlice(fBufferSize);
             recvSlice(fBufferSize);
-            ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
+            ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fFactory->fJSONDecoder->fOutputItems);
         }
         
         if (lastCycle > 0) {
             setupBuffers(input, output, i*fBufferSize);
-            ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
+            ControlUI::encode_midi_control(fControlInputs[0], fInControl, fFactory->fJSONDecoder->fInputItems);
             fillBufferWithZerosOffset(getNumInputs(), lastCycle, fBufferSize-lastCycle, fAudioInputs);
             sendSlice(lastCycle);
             recvSlice(lastCycle);
-            ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
+            ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fFactory->fJSONDecoder->fOutputItems);
         }
         
     } else {
@@ -725,7 +722,7 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, 
         string url = serverURL.str() + "/GetFactoryFromSHAKey";
         
         if (sendRequest(url, finalRequest, response, errorCode)) {
-            factory->decodeJson(response);
+            factory->decodeJSON(response);
             remote_dsp_factory::gRemoteFactoryDSPTable[factory] = make_pair(list<remote_dsp_aux*>(), list<remote_audio_aux*>());
             return factory;
         } else {

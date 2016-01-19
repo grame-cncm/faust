@@ -490,7 +490,7 @@ void DSPServer::open(audio_dsp* dsp)
 //---- Creating response page with right header syntaxe
 int DSPServer::sendPage(MHD_Connection* connection, const string& page, int status_code, const string& type)
 {
-    struct MHD_Response *response = MHD_create_response_from_buffer(page.size(), (void*)page.c_str(), MHD_RESPMEM_PERSISTENT);
+    struct MHD_Response* response = MHD_create_response_from_buffer(page.size(), (void*)page.c_str(), MHD_RESPMEM_PERSISTENT);
     if (response) {
         MHD_add_response_header(response, "Content-Type", type.c_str());
         return MHD_queue_response(connection, status_code, response);
