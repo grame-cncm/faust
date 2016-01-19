@@ -45,7 +45,7 @@
 #define STR2REAL(x) ((sizeof(FAUSTFLOAT) == 4) ? strtof((x), NULL) : strtod((x), NULL))
 
 //-------------------------------------------------------------------
-//  Decode a DSP JSON description and implement 'buildUserInterface'
+//  Decode a dsp JSON description and implement 'buildUserInterface'
 //-------------------------------------------------------------------
 
 struct JSONUIDecoder {
@@ -71,17 +71,14 @@ struct JSONUIDecoder {
         
         if (fMetadatas.find("name") != fMetadatas.end()) {
             fName = fMetadatas["name"];
-            fMetadatas.erase("name");
         }
          
         if (fMetadatas.find("inputs") != fMetadatas.end()) {
             fNumInputs = atoi(fMetadatas["inputs"].c_str());
-            fMetadatas.erase("inputs");
         }
         
         if (fMetadatas.find("outputs") != fMetadatas.end()) {
             fNumOutputs = atoi(fMetadatas["outputs"].c_str());
-            fMetadatas.erase("outputs");
         }
         
         vector<itemInfo*>::iterator it;
@@ -139,14 +136,14 @@ struct JSONUIDecoder {
                 isOutItem = true;        
             }
             
-            // Meta Data declaration for entry items
+            // Meta Data declaration for input items
             if ((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type != "close") {
                 fInControl[counterIn] = init;
                 for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {
                     ui->declare(&fInControl[counterIn], it2->first.c_str(), it2->second.c_str());
                 }
             }
-            // Meta Data declaration for exit items
+            // Meta Data declaration for output items
             else if ((*it)->type.find("bargraph") != string::npos) {
                 fOutControl[counterOut] = init;
                 for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {

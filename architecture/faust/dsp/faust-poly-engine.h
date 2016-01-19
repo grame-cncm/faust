@@ -200,7 +200,7 @@ public:
 
     void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax)
     {
-         fAPIUI.setGyrConverter(p, gyr, curve, amin, amid, amax);
+        fAPIUI.setGyrConverter(p, gyr, curve, amin, amid, amax);
     }
 
     float getCPULoad() { return fDriver->get_cpu_load(); }
