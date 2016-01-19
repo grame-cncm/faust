@@ -290,8 +290,8 @@ class JSONUI : public PathUI, public Meta
             tab(fTab, fJSON); fJSON << "\"name\": \"" << fName << "\",";
             if (fSHAKey != "") { tab(fTab, fJSON); fJSON << "\"sha_key\": \"" << fSHAKey << "\","; }
             if (fExpandedCode != "") { tab(fTab, fJSON); fJSON << "\"code\": \"" << fExpandedCode << "\","; }
-            if (fInputs > 0) { tab(fTab, fJSON); fJSON << "\"inputs\": \"" << fInputs << "\","; }
-            if (fOutputs > 0) { tab(fTab, fJSON); fJSON << "\"outputs\": \"" << fOutputs << "\","; }
+            tab(fTab, fJSON); fJSON << "\"inputs\": \"" << fInputs << "\","; 
+            tab(fTab, fJSON); fJSON << "\"outputs\": \"" << fOutputs << "\",";
             tab(fTab, fMeta); fMeta << "],";
             tab(fTab, fUI); fUI << "]";
             fTab -= 1;
