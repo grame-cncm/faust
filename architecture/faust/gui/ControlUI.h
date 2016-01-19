@@ -64,7 +64,7 @@ class ControlUI : public UI {
        
         void encode_control(float* control_buffer, unsigned int frames)
         { 
-            assert(fControlOut.size() < frames);
+            assert(fControlOut.size() <= frames);
             
             for (unsigned int i = 0; i < fControlOut.size(); i++) {
                 control_buffer[i] = *fControlOut[i];
@@ -73,16 +73,16 @@ class ControlUI : public UI {
         
         void decode_control(float* control_buffer, unsigned int frames)
         {
-            assert(fControlIn.size() < frames);
+            assert(fControlIn.size() <= frames);
             
             for (unsigned int i = 0; i < fControlIn.size(); i++) {
                *fControlIn[i] = control_buffer[i];
             }
         }
         
-        void encode_midi_control(void* midi_control_buffer, unsigned int count)
+        void encode_midi_control(void* midi_control_buffer, unsigned int frames)
         { 
-            assert(fControlOut.size() < count);
+            assert(fControlOut.size() <= frames);
             jack_midi_reset_buffer(midi_control_buffer);
           
             for (unsigned int i = 0; i < fControlOut.size(); i++) {
@@ -103,9 +103,9 @@ class ControlUI : public UI {
             }
         }
         
-        void decode_midi_control(void* midi_control_buffer, unsigned int count)
+        void decode_midi_control(void* midi_control_buffer, unsigned int frames)
         {
-            assert(jack_midi_get_event_count(midi_control_buffer) <= count);
+            assert(jack_midi_get_event_count(midi_control_buffer) <= frames);
             
             for (int i = 0; i < jack_midi_get_event_count(midi_control_buffer); i++) {
                 jack_midi_event_t in_event;
