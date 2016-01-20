@@ -84,7 +84,7 @@ class jsonroot : public smartable
 		void declare(const char* key, const char* val)	{ fMeta[key] = val; }
 		void setInputs(int inputs)						{ fInputs = inputs;}
 		void setOutputs(int outputs)                    { fOutputs = outputs; }
-		std::string	json(bool flat)                     { print(fJSON); return (flat) ? flatten(fJSON.str()) : fJSON.str(); }
+		std::string	json(bool flat = false)             { print(fJSON); return (flat) ? flatten(fJSON.str()) : fJSON.str(); }
 };
 
 } // end namespoace
