@@ -24,20 +24,19 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef FAUST_PATHUI_H
-#define FAUST_PATHUI_H
+#ifndef FAUST_PATHBUILDER_H
+#define FAUST_PATHBUILDER_H
 
-#include "faust/gui/UI.h"
 #include <vector>
 #include <string>
 #include <algorithm>
 
 /*******************************************************************************
- * PathUI : Faust User Interface
+ * PathBuilder : Faust User Interface
  * Helper class to build complete hierarchical path for UI items.
  ******************************************************************************/
 
-class PathUI : public UI
+class PathBuilder
 {
 
     protected:
@@ -60,4 +59,4 @@ class PathUI : public UI
     
 };
 
-#endif  // FAUST_PATHUI_H
+#endif  // FAUST_PATHBUILDER_H

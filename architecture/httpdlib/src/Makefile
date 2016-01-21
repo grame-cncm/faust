@@ -126,8 +126,7 @@ html/htmlfactory.o: html/htmlfactory.h html/htmlpage.h
 html/htmlpage.o: lib/deelx.h html/htmlpage.h html/jsscripts.h html/stylesheet.h
 html/htmlui.o: html/htmlui.h html/htmlfactory.h html/htmlpage.h
 httpd/Address.o: httpd/Address.h
-httpd/HTTPDServer.o: httpd/HTTPDServer.h msg/Message.h lib/smartpointer.h
-httpd/HTTPDServer.o: msg/MessageProcessor.h
+httpd/HTTPDServer.o: httpd/HTTPDServer.h msg/Message.h lib/smartpointer.h msg/MessageProcessor.h
 httpd/HTTPDSetup.o: httpd/HTTPDSetup.h httpd/HTTPDServer.h msg/MessageProcessor.h
 json/jsoncontrol.o: json/jsoncontrol.h json/jsonnode.h lib/smartpointer.h
 json/jsonfactory.o: json/jsonfactory.h json/jsonroot.h lib/smartpointer.h json/jsonnode.h json/jsoncontrol.h

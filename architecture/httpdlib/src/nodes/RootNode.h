@@ -48,13 +48,13 @@ class RootNode : public MessageDriven
 		virtual ~RootNode() {}
 
 	public:
-		static SRootNode create (const char* name) { return new RootNode(name); }
+		static SRootNode create(const char* name) { return new RootNode(name); }
 
-		void			setJSON( const std::string& uidesc )	{ fJson = uidesc; }
-		void			setHtml( const std::string& html )		{ fHtml = html; }
+		void			setJSON(const std::string& json)	{ fJson = json; }
+		void			setHtml(const std::string& html)	{ fHtml = html; }
 		//--------------------------------------------------------------------------
-		bool			processMessage( const Message* msg, std::vector<Message*>& outMsg );
-		virtual bool	accept( const Message* msg, std::vector<Message*>& outMsg );
+		bool			processMessage(const Message* msg, std::vector<Message*>& outMsg);
+		virtual bool	accept(const Message* msg, std::vector<Message*>& outMsg);
 };
 
 } // end namespoace

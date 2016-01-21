@@ -95,8 +95,7 @@ int main(int argc, char *argv[])
 	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(interface);
 	DSP.buildUserInterface(finterface);
-    DSP.buildUserInterface(new PrintUI());
-
+ 
 #ifdef HTTPCTRL
 	httpdUI* httpdinterface = new httpdUI(appname, DSP.getNumInputs(), DSP.getNumOutputs(), argc, argv);
 	DSP.buildUserInterface(httpdinterface);

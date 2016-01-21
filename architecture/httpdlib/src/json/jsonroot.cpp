@@ -50,8 +50,8 @@ void jsonroot::print(std::ostream& out) const
 	out << "\"name\": \"" << fName << "\"," << eol;
 	out << "\"address\": \"" << fAddress << "\"," << eol;
 	out << "\"port\": \"" << fPort << "\"," << eol;
-	if (fInputs)	out << "\"inputs\": \"" << fInputs << "\"," << eol;
-	if (fOutputs)	out << "\"outputs\": \"" << fOutputs << "\"," << eol;
+	out << "\"inputs\": \"" << fInputs << "\"," << eol;
+	out << "\"outputs\": \"" << fOutputs << "\"," << eol;
 
 	if (fMeta.size()) {
 		out << "\"meta\": [ "; eol++;

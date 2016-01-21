@@ -101,12 +101,12 @@ class httpdUI : public UI
 	virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
 									{ fCtrl->addnode( "vbargraph", tr(label), zone, min, max); }
 	
-    virtual void declare (FAUSTFLOAT*, const char* key, const char* val) { fCtrl->declare(key, val); }
+    virtual void declare(FAUSTFLOAT*, const char* key, const char* val) { fCtrl->declare(key, val); }
 
 	void run()						{ fCtrl->run(); }
 	int getTCPPort()                { return fCtrl->getTCPPort(); }
     
-    std::string getJSONInterface(){ return fCtrl->getJSONInterface(); }
+    std::string getJSONInterface() { return fCtrl->getJSONInterface(); }
 
 };
 					

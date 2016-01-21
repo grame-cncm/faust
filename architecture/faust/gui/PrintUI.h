@@ -31,7 +31,8 @@
 #define FAUSTFLOAT float
 #endif
 
-#include "faust/gui/PathUI.h"
+#include "faust/gui/UI.h"
+#include "faust/gui/PathBuilder.h"
 #include <vector>
 #include <string>
 
@@ -40,7 +41,7 @@
  * This class print arguments given to calls to UI methods and build complete path for labels.
  ******************************************************************************/
 
-class PrintUI : public PathUI
+class PrintUI : public PathBuilder, public UI
 {
 
     public:
