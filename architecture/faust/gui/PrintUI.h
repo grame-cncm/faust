@@ -41,7 +41,7 @@
  * This class print arguments given to calls to UI methods and build complete path for labels.
  ******************************************************************************/
 
-class PrintUI : public PathBuilder
+class PrintUI : public PathBuilder, public UI
 {
 
     public:

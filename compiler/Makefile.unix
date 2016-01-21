@@ -57,7 +57,7 @@ main.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/sm
 main.o: signals/sigtyperules.hh signals/sigprint.hh normalize/simplify.hh normalize/privatise.hh
 main.o: generator/compile_scal.hh generator/compile.hh generator/klass.hh generator/uitree.hh tlib/property.hh
 main.o: parallelize/loop.hh parallelize/graphSorting.hh generator/Text.hh generator/description.hh
-main.o: ../architecture/faust/gui/JSONUI.h ../architecture/faust/gui/PathUI.h ../architecture/faust/gui/UI.h
+main.o: ../architecture/faust/gui/JSONUI.h ../architecture/faust/gui/UI.h ../architecture/faust/gui/PathBuilder.h
 main.o: ../architecture/faust/gui/meta.h generator/occurences.hh generator/compile_vect.hh generator/compile_sched.hh
 main.o: propagate/propagate.hh boxes/boxes.hh errors/errormsg.hh boxes/ppbox.hh parser/enrobage.hh evaluate/eval.hh
 main.o: parser/sourcereader.hh evaluate/environment.hh generator/floats.hh documentator/doc.hh draw/schema/schema.h
@@ -252,8 +252,8 @@ generator/compile.o: errors/timing.hh generator/compile.hh signals/signals.hh tl
 generator/compile.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/klass.hh
 generator/compile.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/uitree.hh tlib/property.hh
 generator/compile.o: parallelize/loop.hh parallelize/graphSorting.hh generator/Text.hh generator/description.hh
-generator/compile.o: ../architecture/faust/gui/JSONUI.h ../architecture/faust/gui/PathUI.h
-generator/compile.o: ../architecture/faust/gui/UI.h ../architecture/faust/gui/meta.h generator/floats.hh
+generator/compile.o: ../architecture/faust/gui/JSONUI.h ../architecture/faust/gui/UI.h
+generator/compile.o: ../architecture/faust/gui/PathBuilder.h ../architecture/faust/gui/meta.h generator/floats.hh
 generator/compile.o: signals/sigprint.hh signals/ppsig.hh signals/sigtyperules.hh normalize/simplify.hh
 generator/compile.o: normalize/privatise.hh
 generator/compile_scal.o: generator/compile_scal.hh generator/compile.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh
@@ -261,7 +261,7 @@ generator/compile_scal.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tli
 generator/compile_scal.o: generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 generator/compile_scal.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh
 generator/compile_scal.o: generator/Text.hh generator/description.hh ../architecture/faust/gui/JSONUI.h
-generator/compile_scal.o: ../architecture/faust/gui/PathUI.h ../architecture/faust/gui/UI.h
+generator/compile_scal.o: ../architecture/faust/gui/UI.h ../architecture/faust/gui/PathBuilder.h
 generator/compile_scal.o: ../architecture/faust/gui/meta.h signals/sigtyperules.hh generator/occurences.hh
 generator/compile_scal.o: errors/timing.hh generator/floats.hh signals/sigprint.hh signals/recursivness.hh
 generator/compile_scal.o: normalize/simplify.hh normalize/privatise.hh signals/prim2.hh extended/xtended.hh
@@ -272,18 +272,17 @@ generator/compile_sched.o: generator/compile.hh signals/signals.hh tlib/tlib.hh 
 generator/compile_sched.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh generator/klass.hh
 generator/compile_sched.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/uitree.hh
 generator/compile_sched.o: tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh generator/Text.hh
-generator/compile_sched.o: generator/description.hh ../architecture/faust/gui/JSONUI.h
-generator/compile_sched.o: ../architecture/faust/gui/PathUI.h ../architecture/faust/gui/UI.h
-generator/compile_sched.o: ../architecture/faust/gui/meta.h signals/sigtyperules.hh generator/occurences.hh
-generator/compile_sched.o: generator/floats.hh signals/ppsig.hh
+generator/compile_sched.o: generator/description.hh ../architecture/faust/gui/JSONUI.h ../architecture/faust/gui/UI.h
+generator/compile_sched.o: ../architecture/faust/gui/PathBuilder.h ../architecture/faust/gui/meta.h
+generator/compile_sched.o: signals/sigtyperules.hh generator/occurences.hh generator/floats.hh signals/ppsig.hh
 generator/compile_vect.o: generator/compile_vect.hh generator/compile_scal.hh generator/compile.hh signals/signals.hh
 generator/compile_vect.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/compile_vect.o: tlib/shlysis.hh signals/binop.hh generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh
 generator/compile_vect.o: signals/interval.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
 generator/compile_vect.o: parallelize/graphSorting.hh generator/Text.hh generator/description.hh
-generator/compile_vect.o: ../architecture/faust/gui/JSONUI.h ../architecture/faust/gui/PathUI.h
-generator/compile_vect.o: ../architecture/faust/gui/UI.h ../architecture/faust/gui/meta.h signals/sigtyperules.hh
-generator/compile_vect.o: generator/occurences.hh generator/floats.hh signals/ppsig.hh
+generator/compile_vect.o: ../architecture/faust/gui/JSONUI.h ../architecture/faust/gui/UI.h
+generator/compile_vect.o: ../architecture/faust/gui/PathBuilder.h ../architecture/faust/gui/meta.h
+generator/compile_vect.o: signals/sigtyperules.hh generator/occurences.hh generator/floats.hh signals/ppsig.hh
 generator/contextor.o: generator/contextor.hh
 generator/description.o: generator/description.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh
 generator/description.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh tlib/smartpointer.hh
@@ -301,8 +300,9 @@ generator/sharing.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/
 generator/sharing.o: signals/binop.hh generator/klass.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 generator/sharing.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh parallelize/graphSorting.hh
 generator/sharing.o: generator/Text.hh generator/description.hh ../architecture/faust/gui/JSONUI.h
-generator/sharing.o: ../architecture/faust/gui/PathUI.h ../architecture/faust/gui/UI.h ../architecture/faust/gui/meta.h
-generator/sharing.o: signals/sigtyperules.hh generator/occurences.hh signals/sigprint.hh
+generator/sharing.o: ../architecture/faust/gui/UI.h ../architecture/faust/gui/PathBuilder.h
+generator/sharing.o: ../architecture/faust/gui/meta.h signals/sigtyperules.hh generator/occurences.hh
+generator/sharing.o: signals/sigprint.hh
 generator/uitree.o: generator/uitree.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/uitree.o: tlib/shlysis.hh
 normalize/aterm.o: normalize/aterm.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
