@@ -31,7 +31,8 @@
 #define FAUSTFLOAT float
 #endif
 
-#include "faust/gui/PathUI.h"
+#include "faust/gui/UI.h"
+#include "faust/gui/PathBuilder.h"
 #include "faust/gui/meta.h"
 
 #include <vector>
@@ -46,7 +47,7 @@
  * This class produce a complete JSON decription of the DSP instance.
  ******************************************************************************/
 
-class JSONUI : public PathUI, public Meta
+class JSONUI : public PathBuilder, public Meta, public UI
 {
 
     protected:

@@ -63,7 +63,7 @@ struct JSONUIDecoder {
     int fNumInputs, fNumOutputs; 
     int fInputItems, fOutputItems; 
 
-    JSONUIDecoder(const string& json) 
+    JSONUIDecoder(const std::string& json) 
     {
         fJSON = json;
         const char* p = fJSON.c_str();
@@ -71,16 +71,22 @@ struct JSONUIDecoder {
         
         if (fMetadatas.find("name") != fMetadatas.end()) {
             fName = fMetadatas["name"];
+        } else {
+            fName = "";
         }
          
         if (fMetadatas.find("inputs") != fMetadatas.end()) {
             fNumInputs = atoi(fMetadatas["inputs"].c_str());
+        } else {
+            fNumInputs = 0;
         }
         
         if (fMetadatas.find("outputs") != fMetadatas.end()) {
             fNumOutputs = atoi(fMetadatas["outputs"].c_str());
-        }
-        
+        } else {
+            fNumOutputs = 0;
+        }   
+             
         vector<itemInfo*>::iterator it;
         fInputItems = 0;
         fOutputItems = 0;
@@ -125,10 +131,10 @@ struct JSONUIDecoder {
             bool isOutItem = false;
             string type = (*it)->type;
             
-            float init = STR2REAL((*it)->init.c_str());
-            float min = STR2REAL((*it)->min.c_str());
-            float max = STR2REAL((*it)->max.c_str());
-            float step = STR2REAL((*it)->step.c_str());
+            FAUSTFLOAT init = STR2REAL((*it)->init.c_str());
+            FAUSTFLOAT min = STR2REAL((*it)->min.c_str());
+            FAUSTFLOAT max = STR2REAL((*it)->max.c_str());
+            FAUSTFLOAT step = STR2REAL((*it)->step.c_str());
             
             if (type == "vslider" || type == "hslider" || type == "nentry" || type == "button") {
                 isInItem = true;

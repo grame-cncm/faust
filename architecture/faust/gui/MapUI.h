@@ -31,7 +31,8 @@
 #define FAUSTFLOAT float
 #endif
 
-#include "faust/gui/PathUI.h"
+#include "faust/gui/UI.h"
+#include "faust/gui/PathBuilder.h"
 #include <vector>
 #include <map>
 #include <string>
@@ -41,12 +42,17 @@
  * This class creates a map of complete hierarchical path and zones for each UI items.
  ******************************************************************************/
 
-class MapUI : public PathUI
+class MapUI : public UI, public PathBuilder
 {
     
     protected:
         
         std::map<std::string, FAUSTFLOAT*> fZoneMap;
+        
+        void insertMap(std::string label, FAUSTFLOAT* zone)
+        {
+            fZoneMap[label] = zone;
+        }
            
     public:
         
@@ -72,11 +78,6 @@ class MapUI : public PathUI
         }
         
         // -- active widgets
-        void insertMap(std::string label, FAUSTFLOAT* zone)
-        {
-            fZoneMap[label] = zone;
-        }
-        
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
             insertMap(buildPath(label), zone);
