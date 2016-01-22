@@ -29,7 +29,6 @@
     that work under terms of your choice, so long as this FAUST
     architecture section is not modified.
 
-
  ************************************************************************
  ************************************************************************/
  
@@ -56,18 +55,42 @@ class UI;
 
 class dsp {
 
- protected:
-	int fSamplingFreq;
-    
- public:
-	dsp() {}
-	virtual ~dsp() {}
+    protected:
 
-	virtual int getNumInputs() 										= 0;
-	virtual int getNumOutputs() 									= 0;
-	virtual void buildUserInterface(UI* ui_interface) 				= 0;
-	virtual void init(int samplingRate) 							= 0;
- 	virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 	= 0;
+        int fSamplingFreq;
+
+    public:
+
+        dsp() {}
+        virtual ~dsp() {}
+
+        virtual int getNumInputs() 										= 0;
+        virtual int getNumOutputs() 									= 0;
+        virtual void buildUserInterface(UI* ui_interface) 				= 0;
+        virtual void init(int samplingRate) 							= 0;
+        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 	= 0;
+};
+
+//----------------------------------------------------------------
+//  Generic decorator
+//----------------------------------------------------------------
+
+class decorator_dsp : public dsp {
+
+    protected:
+
+        dsp* fDSP;
+
+    public:
+
+        decorator_dsp(dsp* dsp):fDSP(dsp) {}
+        virtual ~decorator_dsp() { delete fDSP; }
+
+        virtual int getNumInputs()                          { return fDSP->getNumInputs(); }
+        virtual int getNumOutputs()                         { return fDSP->getNumOutputs(); }
+        virtual void buildUserInterface(UI* ui_interface)   { fDSP->buildUserInterface(ui_interface); }
+        virtual void init(int samplingRate)                 { fDSP->init(samplingRate); }
+        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(count, inputs, outputs); }
 };
 
 // On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
