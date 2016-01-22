@@ -38,7 +38,6 @@
 #include "faust/gui/meta.h"
 #include "faust/audio/dsp.h"
 #include "faust/dsp/proxy-dsp.h"
-#include "faust/gui/SimpleParser.h"
 #include "smartpointer.h"
 #include "lo/lo.h"
 #include "TMutex.h"
@@ -51,16 +50,16 @@
 	#define	EXPORT __attribute__ ((visibility("default")))
 #endif
 
-using namespace std;
-
-class llvm_dsp_factory;
-
 #define LocalFactoryDSPTableType list<llvm_dsp_factory*>
 #define LocalFactoryDSPTableIt   LocalFactoryDSPTableType::iterator
 
 #define RemoteFactoryDSPTable     pair<list<remote_dsp_aux*>, list<remote_audio_aux*> >
 #define RemoteFactoryDSPTableType map<Sremote_dsp_factory, RemoteFactoryDSPTable>
 #define RemoteFactoryDSPTableIt   RemoteFactoryDSPTableType::iterator
+
+using namespace std;
+
+class llvm_dsp_factory;
 
 enum {
     ERROR_FACTORY_NOTFOUND,
@@ -119,7 +118,6 @@ class remote_dsp_factory : public smartable {
         
         string      fSHAKey;                // Unique Index to bind a Remote_Factory to its llvm_factory on the server side
         string      fExpandedDSP;
-        
         string      fServerURL;             // URL of remote server 
         
         JSONUIDecoder* fJSONDecoder;

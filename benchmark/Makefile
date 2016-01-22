@@ -42,7 +42,7 @@ CXX = /opt/local/libexec/llvm-3.6/bin/clang++
 LLC = /opt/local/libexec/llvm-3.6/bin/llc
 endif
 
-ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.7.0))
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.7.0 3.7.1 3.7.2))
 LLVM_VERSION  = LLVM_37
 CXX = /opt/local/libexec/llvm-3.7/bin/clang++
 LLC = /opt/local/libexec/llvm-3.7/bin/llc
