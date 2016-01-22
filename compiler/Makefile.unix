@@ -732,7 +732,6 @@ generator/js/js_code_container.o: generator/type_manager.hh errors/exception.hh
 generator/llvm/clang_code_container.o: tlib/compatibility.hh
 generator/llvm/llvm_code_container.o: tlib/compatibility.hh
 generator/llvm/llvm_dsp_aux.o: tlib/compatibility.hh
-generator/llvm/rn_base64.o: generator/llvm/rn_base64.h tlib/compatibility.hh
 generator/wasm/wasm_code_container.o: generator/wasm/wasm_code_container.hh generator/code_container.hh
 generator/wasm/wasm_code_container.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/wasm/wasm_code_container.o: garbageable.hh tlib/property.hh tlib/tree.hh generator/Text.hh signals/sigtype.hh

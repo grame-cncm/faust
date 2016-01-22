@@ -40,8 +40,8 @@ using namespace std;
 namespace oscfaust
 {
 
-#define kVersion	 0.95f
-#define kVersionStr	"0.95"
+#define kVersion	 0.96f
+#define kVersionStr	"0.96"
 
 static const char* kUDPPortOpt	= "-port";
 static const char* kUDPOutOpt	= "-outport";

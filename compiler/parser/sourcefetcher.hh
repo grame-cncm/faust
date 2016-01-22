@@ -15,7 +15,7 @@
 
 	See LICENSE file for details
 									
- */
+*/
 
 #ifndef HTTP_FETCHER_H
 #define HTTP_FETCHER_H
@@ -48,9 +48,7 @@
 #define REQUEST_BUF_SIZE 		1024
 #define HEADER_BUF_SIZE 		1024
 #define DEFAULT_PAGE_BUF_SIZE 	1024 * 200	/* 200K should hold most things */
-#define DEFAULT_REDIRECTS       3       /* Number of HTTP redirects to follow */
-
-
+#define DEFAULT_REDIRECTS       3           /* Number of HTTP redirects to follow */
 
 /******************************************************************************/
 /**************** Function declarations and descriptions **********************/
@@ -62,13 +60,13 @@
  *	http_strerror to get a pointer to it
  */
 
-
 	/*
 	 * Download the page, registering a hit. If you pass it a NULL for fileBuf,
-	 *	'url' will be requested but will not remain in memory (useful for
-	 *	simply registering a hit).  Otherwise necessary space will be allocated
-	 *	and will be pointed to by fileBuf.  Note that a NULL byte is added to
-     *  the data, so the actual buffer will be the file size + 1.
+	 *  'url' will be requested but will not remain in memory (useful for
+	 *  simply registering a hit).  Otherwise necessary space will be allocated
+	 *  and will be pointed to by fileBuf, and has to be dealoocated after use.  
+     *  Note that a NULL byte is added to the data, so the actual buffer 
+     *  will be the file size + 1. 
 	 * Returns:
 	 *	# of bytes downloaded, or
 	 *	-1 on error
@@ -122,7 +120,7 @@ void http_setRedirects(int redirects);
 	 * Returns:
 	 *	0 on success, or
 	 *	1 when url contains no end filename (i.e., "www.foo.com/")
-	 *		and **filename should not be assumed to point to anything), or
+	 *	and **filename should not be assumed to point to anything), or
 	 *	-1 on error
 	 */
 int http_parseFilename(const char *url, char **filename);
@@ -140,8 +138,6 @@ void http_perror(const char *string);
 	 *	a copy of it.
 	 */
 const char *http_strerror();
-
-
 
 /******************************************************************************/
 /**** The following functions are used INTERNALLY by http_fetcher *************/
