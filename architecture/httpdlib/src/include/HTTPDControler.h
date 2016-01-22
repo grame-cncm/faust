@@ -84,7 +84,7 @@ class HTTPDControler
 		void quit ();				// stop the httpd server
 		
 		int	getTCPPort()			{ return fTCPPort; }
-        std::string getJSONInterface();
+        std::string getJSON();
         void        setInputs(int numInputs);
         void        setOutputs(int numOutputs);
 

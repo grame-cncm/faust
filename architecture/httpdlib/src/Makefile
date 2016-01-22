@@ -1,5 +1,5 @@
 subprojects := html httpd include json lib msg nodes
-sources = $(wildcard *.cpp) $(wildcard html/*.cpp) $(wildcard httpd/*.cpp)  $(wildcard json/*.cpp) $(wildcard msg/*.cpp) $(wildcard nodes/*.cpp)
+sources = $(wildcard *.cpp) $(wildcard html/*.cpp) $(wildcard httpd/*.cpp)  $(wildcard json/*.cpp) $(wildcard msg/*.cpp) $(wildcard nodes/*.cpp) ../../../compiler/parser/sourcefetcher.cpp
 objects = $(sources:.cpp=.o)
 objects += hexa/jsscripts.o
 objects += hexa/stylesheet.o
@@ -47,7 +47,7 @@ endif
 #INSTALL_PREFIX = @rpath/
 
 CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
-CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I../../../compiler/tlib -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
 all: ../libHTTPDFaust.a
 

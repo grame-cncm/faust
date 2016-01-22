@@ -208,7 +208,7 @@ void HTTPDControler::quit()
 }
 
 //------------------------------Accessor to json Interface
-std::string HTTPDControler::getJSONInterface() 
+std::string HTTPDControler::getJSON() 
 {   
     return fJson->root().json();
 }
