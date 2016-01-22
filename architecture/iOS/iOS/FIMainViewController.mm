@@ -25,7 +25,9 @@
 #import "FIFlipsideViewController.h"
 #import "FIAppDelegate.h"
 #include "faust/audio/coreaudio-ios-dsp.h"
+#if OSCCTRL
 #include "faust/gui/OSCUI.h"
+#endif
 #include "faust/gui/MidiUI.h"
 
 #define kMenuBarsHeight             66
