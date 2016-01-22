@@ -230,9 +230,10 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
             http_fetch(json_url.c_str(), &json_buffer);
             if (json_buffer) {
                 fJSON = json_buffer;
-                fTCPPort = atoi(json_url.substr(json_url.find(':')).c_str());
+                fTCPPort = atoi(server_url.substr(server_url.find_last_of(':') + 1).c_str());
                 // 'http_fetch' result must be deallocated
                 free(json_buffer);
+                std::cout << "Faust httpd client controling server '" << server_url << endl;
             } else {
                 fJSON = "";
                 fTCPPort = -1;
@@ -301,8 +302,10 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         
         void run()
         { 
-            fRunning = true;
-            pthread_create(&fThread, NULL, UpdateUI, this);
+            if (fTCPPort > 0) {
+                fRunning = true;
+                pthread_create(&fThread, NULL, UpdateUI, this);
+            }
         }
         
         void stop()
@@ -326,15 +329,12 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
 Creates a httpdServerUI or httpdClientUI depending of the presence of '-server URL' parameter.
 */
 
-class httpdUI : public UI
+class httpdUI : public DecoratorUI
 {
-    private:
-    
-        UI* fUI;
-
+   
     public:
     
-        httpdUI(const char* applicationname, int inputs, int outputs, int argc, char* argv[], bool init = true) 
+        httpdUI(const char* applicationname, int inputs, int outputs, int argc, char* argv[], bool init = true)
         { 
             if (isopt(argv, "-server")) {
                 fUI = new httpdClientUI(lopts(argv, "-server", "http://localhost:5510"));
@@ -343,38 +343,11 @@ class httpdUI : public UI
             }
         }
 
-        virtual ~httpdUI() { delete fUI; }
-        
-         // -- widget's layouts
-        virtual void openTabBox(const char* label) 			{ fUI->openTabBox(label); }
-        virtual void openHorizontalBox(const char* label) 	{ fUI->openHorizontalBox(label); }
-        virtual void openVerticalBox(const char* label) 	{ fUI->openVerticalBox(label); }
-        virtual void closeBox() 							{ fUI->closeBox(); }
-
-        // -- active widgets
-        virtual void addButton(const char* label, FAUSTFLOAT* zone)			{ fUI->addButton(label, zone); }
-        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)	{ fUI->addCheckButton(label, zone); }
-        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-                                        { fUI->addVerticalSlider(label, zone, init, min, max, step); }
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) 	
-                                        { fUI->addHorizontalSlider(label, zone, init, min, max, step); }
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) 			
-                                        { fUI->addNumEntry(label, zone, init, min, max, step); }
-
-        // -- passive widgets	
-        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
-                                        { fUI->addHorizontalBargraph(label, zone, min, max); }
-        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-                                        { fUI->addVerticalBargraph(label, zone, min, max); }
-
-        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val) { fUI->declare(zone, key, val); }
-
-        void run()						{ dynamic_cast<httpdUIAux*>(fUI)->run(); }
-        int getTCPPort()                { return dynamic_cast<httpdUIAux*>(fUI)->getTCPPort(); }
+        void run() { dynamic_cast<httpdUIAux*>(fUI)->run(); }
+        int getTCPPort() { return dynamic_cast<httpdUIAux*>(fUI)->getTCPPort(); }
 
         std::string getJSON() { return dynamic_cast<httpdUIAux*>(fUI)->getJSON(); }
 
 };
-
 
 #endif
