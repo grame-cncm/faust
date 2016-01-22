@@ -48,21 +48,17 @@
 #define VERSION "0"
 
 /* Globals */
-int		timeout = DEFAULT_READ_TIMEOUT;
-char    *userAgent = NULL;
-char    *referer = NULL;
-int		hideUserAgent = 0;
-int		hideReferer = 1;
-static int	followRedirects = DEFAULT_REDIRECTS;	/* # of redirects to
-							 * follow */
-extern const char *http_errlist[];	/* Array of HTTP Fetcher error
-					 * messages */
-extern char	convertedError[128];	/* Buffer to used when errors contain
-					 * %d */
-static int	errorSource = 0;
-static int	http_errno = 0;
-static int	errorInt = 0;	/* When the error message has a %d in it,
-				 * this variable is inserted */
+int timeout = DEFAULT_READ_TIMEOUT;
+char* userAgent = NULL;
+char* referer = NULL;
+int hideUserAgent = 0;
+int hideReferer = 1;
+static int followRedirects = DEFAULT_REDIRECTS;	/* # of redirects to  follow */
+extern const char* http_errlist[];	/* Array of HTTP Fetcher error messages */
+extern char convertedError[128];	/* Buffer to used when errors contain %d */
+static int errorSource = 0;
+static int http_errno = 0;
+static int errorInt = 0;	/* When the error message has a %d in it, this variable is inserted */
 
 const char     *http_errlist[] =
 {
@@ -84,7 +80,7 @@ const char     *http_errlist[] =
  * Used to copy in messages from http_errlist[] and replace %d's with the
  * value of errorInt.  Then we can pass the pointer to THIS
  */
-char		convertedError[128];
+char convertedError[128];
 
 /*
  * Actually downloads the page, registering a hit (donation) If the fileBuf
@@ -96,12 +92,11 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 {
 	fd_set	rfds;
 	struct timeval	tv;
-	char	headerBuf [HEADER_BUF_SIZE];
-	char    *tmp, *url, *pageBuf, *requestBuf = NULL, *host, *charIndex;
-	int		sock, bytesRead = 0, contentLength = -1, bufsize = REQUEST_BUF_SIZE;
-	int		i, ret = -1, tempSize, selectRet, found = 0,	/* For redirects */
-			redirectsFollowed = 0;
-
+	char headerBuf [HEADER_BUF_SIZE];
+	char *tmp, *url, *pageBuf, *requestBuf = NULL, *host, *charIndex;
+	int sock, bytesRead = 0, contentLength = -1, bufsize = REQUEST_BUF_SIZE;
+	int i, ret = -1, tempSize, selectRet, found = 0,	/* For redirects */
+        redirectsFollowed = 0;
 
 	if (url_tmp == NULL) {
 		errorSource = FETCHER_ERROR;
@@ -494,8 +489,6 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 	return bytesRead;
 }
 
-
-
 /*
  * Changes the User Agent.  Returns 0 on success, -1 on error.
  */
@@ -526,8 +519,6 @@ int http_setUserAgent(const char *newAgent)
 
 	return 0;
 }
-
-
 
 /*
  * Changes the Referer.  Returns 0 on success, -1 on error
@@ -560,8 +551,6 @@ int http_setReferer(const char *newReferer)
 	return 0;
 }
 
-
-
 /*
  * Changes the amount of time that HTTP Fetcher will wait for data before
  * timing out on reads
@@ -570,8 +559,6 @@ void http_setTimeout(int seconds)
 {
 	timeout = seconds;
 }
-
-
 
 /*
  * Changes the number of HTTP redirects HTTP Fetcher will automatically
@@ -587,8 +574,6 @@ void http_setRedirects(int redirects)
 {
 	followRedirects = redirects;
 }
-
-
 
 /*
  * Puts the filename portion of the url into 'filename'. Returns: 0 on
@@ -622,8 +607,6 @@ int http_parseFilename(const char *url, char **filename)
 
 	return 0;
 }
-
-
 
 /*
  * Depending on the source of error, calls either perror() or prints an HTTP
@@ -664,8 +647,6 @@ void http_perror(const char *string)
 		}
 	}
 }
-
-
 
 /*
  * Returns a pointer to the current error description message. The message
@@ -709,7 +690,6 @@ const char* http_strerror()
 	}
 	return http_errlist[HF_METAERROR];	/* Should NEVER happen */
 }
-
 
 /*
  * Reads the metadata of an HTTP response. Perhaps a little inefficient, as
@@ -770,8 +750,6 @@ int _http_read_header(int sock, char *headerPtr)
 	return bytesRead;
 }
 
-
-
 /*
  * Opens a TCP socket and returns the descriptor Returns: socket descriptor,
  * or -1 on error
@@ -815,8 +793,6 @@ int makeSocket(char *host)
 	}
 	return sock;
 }
-
-
 
 /*
  * Determines if the given NULL-terminated buffer is large enough to
