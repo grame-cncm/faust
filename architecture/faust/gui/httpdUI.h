@@ -176,11 +176,10 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
                 {
                     FAUSTFLOAT v = *fZone;
                     fCache = v;
-                    char* answer;
                     std::stringstream str;
                     str << fPathURL << "?value=" << v;
                     string path = str.str();
-                    http_fetch(path.c_str(), &answer);
+                    http_fetch(path.c_str(), NULL);
                 }
             
         };
@@ -208,6 +207,8 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
                     http_fetch(path.c_str(), &answer);
                     std::string answer_str = answer;
                     (*(*it).second) = STR2REAL(answer_str.substr(answer_str.find(' ')).c_str());
+                    // 'http_fetch' result must be deallocated
+                    free(answer);
                 }
                 usleep(100000);
             }
@@ -230,6 +231,8 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
             if (json_buffer) {
                 fJSON = json_buffer;
                 fTCPPort = atoi(json_url.substr(json_url.find(':')).c_str());
+                // 'http_fetch' result must be deallocated
+                free(json_buffer);
             } else {
                 fJSON = "";
                 fTCPPort = -1;
