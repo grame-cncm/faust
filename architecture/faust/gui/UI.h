@@ -83,7 +83,7 @@ class DecoratorUI : public UI
 
     public:
     
-        DecoratorUI(UI* ui = NULL):fUI(ui)
+        DecoratorUI(UI* ui = 0):fUI(ui)
         {}
 
         virtual ~DecoratorUI() { delete fUI; }

@@ -143,7 +143,7 @@ class httpdServerUI : public UI, public httpdUIAux
 
 };
 
-// API from sourcefetcher.hh
+// API from sourcefetcher.hh and compiled in libHTTPDFaust library.
 int http_fetch(const char *url, char **fileBuf);
 
 #define STR2REAL(x) ((sizeof(FAUSTFLOAT) == 4) ? strtof((x), NULL) : strtod((x), NULL))
@@ -233,7 +233,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
                 fTCPPort = atoi(server_url.substr(server_url.find_last_of(':') + 1).c_str());
                 // 'http_fetch' result must be deallocated
                 free(json_buffer);
-                std::cout << "Faust httpd client controling server '" << server_url << endl;
+                std::cout << "Faust httpd client controling server '" << server_url << "'" << endl;
             } else {
                 fJSON = "";
                 fTCPPort = -1;
