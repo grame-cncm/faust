@@ -145,3 +145,5 @@ nodes/FaustNode.o: httpd/HTTPDServer.h
 nodes/MessageDriven.o: httpd/Address.h msg/Message.h lib/smartpointer.h nodes/MessageDriven.h msg/MessageProcessor.h
 nodes/MessageDriven.o: httpd/HTTPDServer.h
 nodes/RootNode.o: nodes/RootNode.h nodes/MessageDriven.h msg/MessageProcessor.h lib/smartpointer.h msg/Message.h
+../../../compiler/parser/sourcefetcher.o: ../../../compiler/tlib/compatibility.hh
+../../../compiler/parser/sourcefetcher.o: ../../../compiler/parser/sourcefetcher.hh
