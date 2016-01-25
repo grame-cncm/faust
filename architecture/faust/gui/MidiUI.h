@@ -36,12 +36,39 @@
 #include "faust/gui/ValueConverter.h"
 #include <vector>
 #include <string>
+#include <utility>
 
 /*******************************************************************************
  * MidiUI : Faust User Interface
  * This class decodes MIDI meta data and maps incoming MIDI messages to them.
  * Currently "ctrl, keyon, keypress, pgm, chanpress, pitchwheel/pitchbend meta data is handled.
  ******************************************************************************/
+ 
+class uiTimedItem : public uiItem
+{
+    protected:
+          
+        std::vector<std::pair<double, FAUSTFLOAT> > fValues;
+    
+        uiTimedItem(GUI* ui, FAUSTFLOAT* zone):uiItem(ui, zone)
+        { 
+            ui->registerZone(zone, this); 
+        }
+
+    public:
+
+        virtual ~uiTimedItem() 
+        {}
+
+        void modifyZone(double date, FAUSTFLOAT v) 	
+        { 
+            fValues.push_back(std::make_pair(date, v));
+        }
+                
+        FAUSTFLOAT		cache()	{ return fCache; }
+        virtual void 	reflectZone() = 0;	
+};
+
 
 class uiMidiProgChange : public uiItem
 {
@@ -62,7 +89,7 @@ class uiMidiProgChange : public uiItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            if (v != 0.) {
+            if (v != FAUSTFLOAT(0)) {
                 fMidiOut->progChange(0, fPgm);
             }
         }
@@ -88,7 +115,7 @@ class uiMidiChanPress : public uiItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            if (v != 0.) {
+            if (v != FAUSTFLOAT(0)) {
                 fMidiOut->chanPress(0, fPress);
             }
         }
