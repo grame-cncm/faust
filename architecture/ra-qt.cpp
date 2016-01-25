@@ -39,6 +39,7 @@
 #include <iostream>
 #include <list>
 
+#include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/faustqt.h"
 #include "faust/misc.h"
