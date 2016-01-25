@@ -32,9 +32,7 @@
 #include "faust/misc.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
-#include "faust/audio/dsp.h"
-
-//using namespace std;
+#include "faust/dsp/dsp.h"
 
 /******************************************************************************
 *******************************************************************************

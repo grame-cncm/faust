@@ -48,7 +48,7 @@
 #include <CoreServices/CoreServices.h>
 
 #include "faust/audio/audio.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 
 #include <sys/time.h>
 

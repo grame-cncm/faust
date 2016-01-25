@@ -37,7 +37,7 @@
 #define __dsp_adapter__
 
 #include <string.h>
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 
 class dsp_adapter : public dsp {
     

@@ -49,7 +49,7 @@ using namespace std;
 
 #include "faust/gui/GUI.h"
 #include "faust/misc.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 

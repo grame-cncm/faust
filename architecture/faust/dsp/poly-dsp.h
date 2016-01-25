@@ -45,7 +45,7 @@
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 
 #define kFreeVoice        -2
 #define kReleaseVoice     -1

@@ -39,7 +39,7 @@
 #include <vector>
 #include <map>
 
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/gui/SimpleParser.h"
 
 #define STR2REAL(x) ((sizeof(FAUSTFLOAT) == 4) ? strtof((x), NULL) : strtod((x), NULL))

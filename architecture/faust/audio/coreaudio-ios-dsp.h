@@ -47,7 +47,7 @@
 #include <time.h>
 
 #include "faust/audio/audio.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 
 #include <AudioToolbox/AudioConverter.h>
 #include <AudioToolbox/AudioServices.h>
