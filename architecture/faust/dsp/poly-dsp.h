@@ -336,16 +336,7 @@ class mydsp_poly : public dsp, public midi {
         
         void ctrlChange14bits(int channel, int ctrl, int value)
         {}
-
-        // Additional API
-        void allNotesOff()
-        {
-            for (int i = 0; i < fMaxPolyphony; i++) {
-                fVoiceTable[i]->setValue(fGateLabel, 0.0f);
-                fVoiceTable[i]->fNote = kReleaseVoice;
-            }
-        }
-        
+ 
         void pitchBend(int channel, int refPitch, float pitch)
         {
             int voice = getVoice(refPitch);
@@ -356,6 +347,15 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
+        // Additional API
+        void allNotesOff()
+        {
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                fVoiceTable[i]->setValue(fGateLabel, 0.0f);
+                fVoiceTable[i]->fNote = kReleaseVoice;
+            }
+        }
+       
         void setValue(const char* path, float value)
         {
             for (int i = 0; i < fMaxPolyphony; i++) {
