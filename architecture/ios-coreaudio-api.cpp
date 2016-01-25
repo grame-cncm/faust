@@ -36,7 +36,7 @@
 
 #include "faust/misc.h"
 #include "faust/gui/UI.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/jsonfaustui.h"
 #include "faust/gui/JSONUI.h"

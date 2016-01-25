@@ -45,7 +45,7 @@
 #include <jack/custom.h>
 #endif
 #include "faust/audio/audio.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 #define snprintf _snprintf_s

@@ -42,22 +42,16 @@
 #include <string.h>
 #include <strings.h>
 
-
 #ifndef __FaustCommonInfrastructure__
 #define __FaustCommonInfrastructure__
 
-
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
-
-
 
 struct Meta
 {
     virtual void declare(const char* key, const char* value) = 0;
 };
-
-
 
 /**************************************************************************************
 
@@ -87,7 +81,6 @@ class OwlWidget
 	void update()	{ *fZone = fMin + fSpan*fPatch->getParameterValue(fParameter); }
 	
 };
-
 
 /**************************************************************************************
 
@@ -181,7 +174,6 @@ class OwlUI : public UI
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-
 
 
 /**************************************************************************************
