@@ -118,6 +118,9 @@ class JSONUI : public PathBuilder, public Meta, public UI
                     case '\t':
                         dst << ' ';
                         break;
+                    case '"':
+                        dst << "\\" << '"';
+                        break;
                     default:
                         dst << src[i];
                         break;
