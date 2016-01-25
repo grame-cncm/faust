@@ -37,7 +37,7 @@
 #import <UIKit/UIKit.h>
 #import "FIMainViewController.h"
 
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/gui/GUI.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/APIUI.h"

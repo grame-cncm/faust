@@ -27,7 +27,7 @@
 #include "faust/misc.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 
 // "mydsp" part will be replaced by the actual '-cn' parameter
 

@@ -29,7 +29,8 @@
 
 #include <stdio.h>
 #include "faust/audio/audio.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
+
 #include "OSCIO.h"
 
 /******************************************************************************

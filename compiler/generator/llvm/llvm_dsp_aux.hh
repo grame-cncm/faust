@@ -31,7 +31,7 @@
 #include <vector>
 #include <utility>
 #include "faust/gui/CUI.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "export.hh"
 #include "libfaust.h"
 #include "smartpointer.h"

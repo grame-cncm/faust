@@ -40,7 +40,7 @@
 #include <math.h>
 
 // For AVOIDDENORMALS
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 
 #ifdef __cplusplus
 extern "C" {

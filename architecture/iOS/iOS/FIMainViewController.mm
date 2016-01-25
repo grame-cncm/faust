@@ -28,7 +28,10 @@
 #if OSCCTRL
 #include "faust/gui/OSCUI.h"
 #endif
+
+#if MIDICTRL
 #include "faust/gui/MidiUI.h"
+#endif
 
 #define kMenuBarsHeight             66
 #define kMotionUpdateRate           30
