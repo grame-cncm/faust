@@ -68,11 +68,11 @@ class rtmidi : public midi {
                 
                 if (cmd == MIDI_PROGRAM_CHANGE) {
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->progChange(channel, data1);
+                        midi->fMidiInputs[i]->progChange(deltatime, channel, data1);
                     }
                 } else if (cmd == MIDI_AFTERTOUCH) {
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->chanPress(channel, data1);
+                        midi->fMidiInputs[i]->chanPress(deltatime, channel, data1);
                     }
                 }
             
@@ -83,23 +83,23 @@ class rtmidi : public midi {
                 
                 if (cmd == MIDI_NOTE_OFF || ((cmd == MIDI_NOTE_ON) && (data2 == 0))) { 
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyOff(channel, data1, data2);
+                        midi->fMidiInputs[i]->keyOff(deltatime, channel, data1, data2);
                     }
                 } else if (cmd == MIDI_NOTE_ON) {
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyOn(channel, data1, data2);
+                        midi->fMidiInputs[i]->keyOn(deltatime, channel, data1, data2);
                     }
                 } else if (cmd == MIDI_CONTROL_CHANGE) {
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->ctrlChange(channel, data1, data2);
+                        midi->fMidiInputs[i]->ctrlChange(deltatime, channel, data1, data2);
                     }
                 } else if (cmd == MIDI_PITCH_BEND) {
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->pitchWheel(channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
+                        midi->fMidiInputs[i]->pitchWheel(deltatime, channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
                     }
                 } else if (cmd == MIDI_POLY_AFTERTOUCH) {
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyPress(channel, data1, data2);
+                        midi->fMidiInputs[i]->keyPress(deltatime, channel, data1, data2);
                     }
                 }
                 

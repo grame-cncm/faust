@@ -323,61 +323,61 @@ class MidiUI : public GUI, public midi
         
         // -- MIDI API 
         
-        void keyOn(int channel, int note, int velocity) 
+        void keyOn(double date, int channel, int note, int velocity) 
         {
             if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
                 for (int i = 0; i < fKeyOnTable[note].size(); i++) {
-                    fKeyOnTable[note][i]->modifyZone(velocity);
+                    fKeyOnTable[note][i]->modifyZone(FAUSTFLOAT(velocity));
                 }
             }
         }
         
-        void keyOff(int channel, int note, int velocity) {}
+        void keyOff(double date,  int channel, int note, int velocity) {}
            
-        void ctrlChange(int channel, int ctrl, int value)
+        void ctrlChange(double date, int channel, int ctrl, int value)
         {
             if (fCtrlChangeTable.find(ctrl) != fCtrlChangeTable.end()) {
                 for (int i = 0; i < fCtrlChangeTable[ctrl].size(); i++) {
-                    fCtrlChangeTable[ctrl][i]->modifyZone(value);
+                    fCtrlChangeTable[ctrl][i]->modifyZone(FAUSTFLOAT(value));
                 }
             } 
         }
         
-        void progChange(int channel, int pgm)
+        void progChange(double date, int channel, int pgm)
         {
             if (fProgChangeTable.find(pgm) != fProgChangeTable.end()) {
                 for (int i = 0; i < fProgChangeTable[pgm].size(); i++) {
-                    fProgChangeTable[pgm][i]->modifyZone(1.f);
+                    fProgChangeTable[pgm][i]->modifyZone(FAUSTFLOAT(1));
                 }
             } 
         }
         
-        void pitchWheel(int channel, int wheel) 
+        void pitchWheel(double date, int channel, int wheel) 
         {
             for (int i = 0; i < fPitchWheelTable.size(); i++) {
-                fPitchWheelTable[i]->modifyZone(wheel);
+                fPitchWheelTable[i]->modifyZone(FAUSTFLOAT(wheel));
             }
         }
         
-        void keyPress(int channel, int pitch, int press) 
+        void keyPress(double date, int channel, int pitch, int press) 
         {
             if (fKeyPressTable.find(press) != fKeyPressTable.end()) {
                 for (int i = 0; i < fKeyPressTable[press].size(); i++) {
-                    fKeyPressTable[press][i]->modifyZone(press);
+                    fKeyPressTable[press][i]->modifyZone(FAUSTFLOAT(press));
                 }
             } 
         }
         
-        void chanPress(int channel, int press)
+        void chanPress(double date, int channel, int press)
         {
             if (fChanPressTable.find(press) != fChanPressTable.end()) {
                 for (int i = 0; i < fChanPressTable[press].size(); i++) {
-                    fChanPressTable[press][i]->modifyZone(1.f);
+                    fChanPressTable[press][i]->modifyZone(FAUSTFLOAT(1));
                 }
             } 
         }
         
-        void ctrlChange14bits(int channel, int ctrl, int value) {}
+        void ctrlChange14bits(double date, int channel, int ctrl, int value) {}
 };
 
 #endif // FAUST_MIDIUI_H
