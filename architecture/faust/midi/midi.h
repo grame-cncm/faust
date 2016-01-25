@@ -38,24 +38,30 @@ class midi {
         midi() {}
         virtual ~midi() {}
 
-        // Additional time-stamped API
-        virtual void keyOn(int date, int channel, int pitch, int velocity)          { keyOn(-1, channel, pitch, velocity); }
-        virtual void keyOff(int date, int channel, int pitch, int velocity)         { keyOff(-1, channel, pitch, velocity); }
-        virtual void keyPress(int date, int channel, int pitch, int press)          { keyPress(-1, channel, pitch, press); }
-        virtual void chanPress(int date, int channel, int press)                    { chanPress(-1, channel,press); }
-        virtual void ctrlChange(int date, int channel, int ctrl, int value)         { ctrlChange(-1, channel, ctrl, value); }
-        virtual void ctrlChange14bits(int date, int channel, int ctrl, int value)   { ctrlChange14bits(-1, channel, ctrl, value); }
-        virtual void pitchWheel(int date, int channel, int wheel)                   { pitchWheel(-1, channel, wheel); }
-        virtual void progChange(int date, int channel, int pgm)                     { progChange(-1, channel, pgm); }
+        // Additional time-stamped API for MIDI input
+        virtual void keyOn(double date, int channel, int pitch, int velocity)          {}
+        virtual void keyOff(double date, int channel, int pitch, int velocity)         {}
+        virtual void keyPress(double date, int channel, int pitch, int press)          {}
+        virtual void chanPress(double date, int channel, int press)                    {}
+        virtual void ctrlChange(double date, int channel, int ctrl, int value)         {}
+        virtual void ctrlChange14bits(double date, int channel, int ctrl, int value)   {}
+        virtual void pitchWheel(double date, int channel, int wheel)                   {}
+        virtual void progChange(double date, int channel, int pgm)                     {}
         
-        virtual void keyOn(int channel, int pitch, int velocity)        = 0;
-        virtual void keyOff(int channel, int pitch, int velocity)       = 0;
-        virtual void keyPress(int channel, int pitch, int press)        = 0;
-        virtual void chanPress(int channel, int press)                  = 0;
-        virtual void ctrlChange(int channel, int ctrl, int value)       = 0;
-        virtual void ctrlChange14bits(int channel, int ctrl, int value) = 0;
-        virtual void pitchWheel(int channel, int wheel)                 = 0;
-        virtual void progChange(int channel, int pgm)                   = 0;
+        // MIDI sync
+        virtual void start(double date)  {}
+        virtual void stop(double date)   {}
+        virtual void clock(double date)  {}
+        
+        // Standard MIDI API
+        virtual void keyOn(int channel, int pitch, int velocity)        {}
+        virtual void keyOff(int channel, int pitch, int velocity)       {}
+        virtual void keyPress(int channel, int pitch, int press)        {}
+        virtual void chanPress(int channel, int press)                  {}
+        virtual void ctrlChange(int channel, int ctrl, int value)       {}
+        virtual void ctrlChange14bits(int channel, int ctrl, int value) {}
+        virtual void pitchWheel(int channel, int wheel)                 {}
+        virtual void progChange(int channel, int pgm)                   {}
        
 };
 
