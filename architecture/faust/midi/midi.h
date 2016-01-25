@@ -38,6 +38,16 @@ class midi {
         midi() {}
         virtual ~midi() {}
 
+        // Additional time-stamped API
+        virtual void keyOn(int date, int channel, int pitch, int velocity)          { keyOn(-1, channel, pitch, velocity); }
+        virtual void keyOff(int date, int channel, int pitch, int velocity)         { keyOff(-1, channel, pitch, velocity); }
+        virtual void keyPress(int date, int channel, int pitch, int press)          { keyPress(-1, channel, pitch, press); }
+        virtual void chanPress(int date, int channel, int press)                    { chanPress(-1, channel,press); }
+        virtual void ctrlChange(int date, int channel, int ctrl, int value)         { ctrlChange(-1, channel, ctrl, value); }
+        virtual void ctrlChange14bits(int date, int channel, int ctrl, int value)   { ctrlChange14bits(-1, channel, ctrl, value); }
+        virtual void pitchWheel(int date, int channel, int wheel)                   { pitchWheel(-1, channel, wheel); }
+        virtual void progChange(int date, int channel, int pgm)                     { progChange(-1, channel, pgm); }
+        
         virtual void keyOn(int channel, int pitch, int velocity)        = 0;
         virtual void keyOff(int channel, int pitch, int velocity)       = 0;
         virtual void keyPress(int channel, int pitch, int press)        = 0;
