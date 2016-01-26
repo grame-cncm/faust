@@ -45,9 +45,8 @@
 #define __dsp__
 
 #include "faust/dsp/dsp.h" 
+#include "faust/gui/GUI.h" 
 #include <vector>
-
-class TimedUI;
 
 //----------------------------------------------------------------
 //  Timed signal processor definition
@@ -57,7 +56,7 @@ class timed_dsp : public decorator_dsp {
 
     protected:
     
-        std::vector<TimedUI*> fControlers;
+        std::vector<GUI*> fControlers;
 
     public:
 
@@ -67,25 +66,25 @@ class timed_dsp : public decorator_dsp {
         virtual void buildUserInterface(UI* ui_interface)   
         { 
             // Keep TimedUI interfaces
-            TimedUI* timed_ui = dynamic_cast<TimedUI*>(ui_interface);
-            if (timed_ui) fControlers.push_back(timed_ui);
+            GUI* gui = dynamic_cast<GUI*>(ui_interface);
+            if (gui) fControlers.push_back(gui);
             
             fDSP->buildUserInterface(ui_interface); 
         }
 
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            std::vector<TimedUI*>::iterator it;
+            std::vector<GUI*>::iterator it;
             
             for (it = fControlers.begin(); it != fControlers.end(); it++) {
-                TimedUI* controler= (*it);
-                std::vector<FAUSTFLOAT> values;
+                GUI* controler= (*it);
+                //std::vector<std::pair<double, FAUSTFLOAT> > values;
                 
-                std::vector<FAUSTFLOAT>:iterator it1;
+                std::vector<std::pair<double, FAUSTFLOAT> >::iterator it1;
                 for (it1 = values.begin(); it1 != values.end(); it1++) {
-                    TimedUI* controler = (*it);
+                   std::vector<std::pair<double, FAUSTFLOAT> > pair = (*it1):
+                   
                 }
-                  
             }
         }
         

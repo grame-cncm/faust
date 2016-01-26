@@ -44,43 +44,104 @@
  * Currently "ctrl, keyon, keypress, pgm, chanpress, pitchwheel/pitchbend meta data is handled.
  ******************************************************************************/
  
-class uiTimedItem : public uiItem
+class uiMidiItem : public uiItem {
+ 
+    protected:
+    
+         midi* fMidiOut;
+
+    public:
+    
+        uiMidiItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone)
+            :uiItem(ui, zone), fMidiOut(midi_out) {}
+        virtual ~uiMidiItem() {}
+ 
+};
+ 
+class uiMidiTimedItem : public uiMidiItem
 {
     protected:
           
         std::vector<std::pair<double, FAUSTFLOAT> > fValues;
     
-        uiTimedItem(GUI* ui, FAUSTFLOAT* zone):uiItem(ui, zone)
-        { 
-            ui->registerZone(zone, this); 
-        }
-
     public:
-
-        virtual ~uiTimedItem() 
+       
+        uiMidiTimedItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone)
+            :uiMidiItem(midi_out, ui, zone)
+        {}
+        virtual ~uiMidiTimedItem() 
         {}
 
         void modifyZone(double date, FAUSTFLOAT v) 	
         { 
             fValues.push_back(std::make_pair(date, v));
         }
-                
-        FAUSTFLOAT		cache()	{ return fCache; }
-        virtual void 	reflectZone() = 0;	
+        
+        // TODO
+        virtual void reflectZone() {}
 };
 
+// MIDI sync
 
-class uiMidiProgChange : public uiItem
+class uiMidiStart : public uiMidiTimedItem
+{
+  
+    public:
+    
+        uiMidiStart(midi* midi_out, GUI* ui, FAUSTFLOAT* zone)
+            :uiMidiTimedItem(midi_out, ui, zone)
+        {}
+        virtual ~uiMidiStart()
+        {}
+        
+};
+
+class uiMidiStop : public uiMidiTimedItem
+{
+  
+    public:
+    
+        uiMidiStop(midi* midi_out, GUI* ui, FAUSTFLOAT* zone)
+            :uiMidiTimedItem(midi_out, ui, zone)
+        {}
+        virtual ~uiMidiStop()
+        {}
+        
+};
+
+class uiMidiClock : public uiMidiTimedItem
+{
+
+    private:
+        
+        bool fState;
+  
+    public:
+    
+        uiMidiClock(midi* midi_out, GUI* ui, FAUSTFLOAT* zone)
+            :uiMidiTimedItem(midi_out, ui, zone), fState(false)
+        {}
+        virtual ~uiMidiClock()
+        {}
+        
+        void modifyZone(double date, FAUSTFLOAT v) 	
+        { 
+            fState != fState;
+            uiMidiTimedItem::modifyZone(date, fState);
+        }
+        
+};
+
+class uiMidiProgChange : public uiMidiItem
 {
     private:
         
-        midi* fMidiOut;
         int fPgm;
   
     public:
     
         uiMidiProgChange(midi* midi_out, int pgm, GUI* ui, FAUSTFLOAT* zone)
-            :uiItem(ui, zone), fMidiOut(midi_out), fPgm(pgm)
+            :uiMidiItem(midi_out, ui, zone), fPgm(pgm)
         {}
         virtual ~uiMidiProgChange()
         {}
@@ -96,17 +157,16 @@ class uiMidiProgChange : public uiItem
         
 };
 
-class uiMidiChanPress : public uiItem
+class uiMidiChanPress : public uiMidiItem
 {
     private:
         
-        midi* fMidiOut;
         int fPress;
   
     public:
     
         uiMidiChanPress(midi* midi_out, int press, GUI* ui, FAUSTFLOAT* zone)
-            :uiItem(ui, zone), fMidiOut(midi_out), fPress(press)
+            :uiMidiItem(midi_out, ui, zone), fPress(press)
         {}
         virtual ~uiMidiChanPress()
         {}
@@ -122,18 +182,17 @@ class uiMidiChanPress : public uiItem
         
 };
 
-class uiMidiCtrlChange : public uiItem
+class uiMidiCtrlChange : public uiMidiItem
 {
     private:
     
-        midi* fMidiOut;
         int fCtrl;
         LinearValueConverter fConverter;
  
     public:
     
         uiMidiCtrlChange(midi* midi_out, int ctrl, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-            :uiItem(ui, zone), fMidiOut(midi_out), fCtrl(ctrl), fConverter(0., 127., double(min), double(max))
+            :uiMidiItem(midi_out, ui, zone), fCtrl(ctrl), fConverter(0., 127., double(min), double(max))
         {}
         virtual ~uiMidiCtrlChange()
         {}
@@ -152,17 +211,17 @@ class uiMidiCtrlChange : public uiItem
  
 };
 
-class uiMidiPitchWheel : public uiItem
+class uiMidiPitchWheel : public uiMidiItem
 {
+
     private:
     
-        midi* fMidiOut;
         LinearValueConverter fConverter;
  
     public:
     
         uiMidiPitchWheel(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-            :uiItem(ui, zone), fMidiOut(midi_out), fConverter(0., 16383, double(min), double(max))
+            :uiMidiItem(midi_out, ui, zone), fConverter(0., 16383, double(min), double(max))
         {}
         virtual ~uiMidiPitchWheel()
         {}
@@ -181,18 +240,18 @@ class uiMidiPitchWheel : public uiItem
  
 };
 
-class uiMidiKeyOn : public uiItem
+class uiMidiKeyOn : public uiMidiItem
 {
+
     private:
         
-        midi* fMidiOut;
         int fKeyOn;
         LinearValueConverter fConverter;
   
     public:
     
         uiMidiKeyOn(midi* midi_out, int key, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-            :uiItem(ui, zone), fMidiOut(midi_out), fKeyOn(key), fConverter(0., 127., double(min), double(max))
+            :uiMidiItem(midi_out, ui, zone), fKeyOn(key), fConverter(0., 127., double(min), double(max))
         {}
         virtual ~uiMidiKeyOn()
         {}
@@ -211,18 +270,18 @@ class uiMidiKeyOn : public uiItem
         
 };
 
-class uiMidiKeyPress : public uiItem
+class uiMidiKeyPress : public uiMidiItem
 {
+
     private:
         
-        midi* fMidiOut;
         int fKeyOn;
         LinearValueConverter fConverter;
   
     public:
     
         uiMidiKeyPress(midi* midi_out, int key, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-            :uiItem(ui, zone), fMidiOut(midi_out), fKeyOn(key), fConverter(0., 127., double(min), double(max))
+            :uiMidiItem(midi_out, ui, zone), fKeyOn(key), fConverter(0., 127., double(min), double(max))
         {}
         virtual ~uiMidiKeyPress()
         {}
@@ -253,6 +312,10 @@ class MidiUI : public GUI, public midi
         std::map <int, std::vector<uiMidiKeyPress*> >   fKeyPressTable;
         std::vector<uiMidiPitchWheel*>                  fPitchWheelTable;
         
+        std::vector<uiMidiStart*>   fStartTable;
+        std::vector<uiMidiStop*>    fStopTable;
+        std::vector<uiMidiClock*>   fClockTable;
+        
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         
         rtmidi fMIDI;
@@ -277,6 +340,13 @@ class MidiUI : public GUI, public midi
                         } else if (strcmp(fMetaAux[i].second.c_str(), "pitchwheel") == 0 
                             || strcmp(fMetaAux[i].second.c_str(), "pitchbend") == 0) {
                             fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiOut, this, zone, min, max));
+                        // MIDI sync
+                        } else if (strcmp(fMetaAux[i].second.c_str(), "start") == 0) {
+                            fStartTable.push_back(new uiMidiStart(fMidiOut, this, zone));
+                        } else if (strcmp(fMetaAux[i].second.c_str(), "stop") == 0) {
+                            fStopTable.push_back(new uiMidiStop(fMidiOut, this, zone));
+                        } else if (strcmp(fMetaAux[i].second.c_str(), "clock") == 0) {
+                            fClockTable.push_back(new uiMidiClock(fMidiOut, this, zone));
                         }
                     }
                 }
@@ -405,6 +475,29 @@ class MidiUI : public GUI, public midi
         }
         
         void ctrlChange14bits(double date, int channel, int ctrl, int value) {}
+        
+        // MIDI sync
+        
+        void start(double date)
+        {
+            for (int i = 0; i < fStartTable.size(); i++) {
+                fStartTable[i]->modifyZone(date, FAUSTFLOAT(1));
+            }
+        }
+        
+        void stop(double date)
+        {
+            for (int i = 0; i < fStopTable.size(); i++) {
+                fStopTable[i]->modifyZone(date, FAUSTFLOAT(1));
+            }
+        }
+        
+        void clock(double date)
+        {
+            for (int i = 0; i < fClockTable.size(); i++) {
+                fClockTable[i]->modifyZone(date, FAUSTFLOAT(1));
+            }
+        }
 };
 
 #endif // FAUST_MIDIUI_H
