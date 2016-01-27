@@ -730,9 +730,12 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         TargetOptions targetOptions;
         //targetOptions.NoFramePointerElim = true;
         //targetOptions.LessPreciseFPMADOption = true;
+        /*
         targetOptions.UnsafeFPMath = true;
         targetOptions.NoInfsFPMath = true;
         targetOptions.NoNaNsFPMath = true;
+        */
+        
         targetOptions.GuaranteedTailCallOpt = true;
          
         string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";

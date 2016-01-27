@@ -572,6 +572,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
                             fPrefix(prefix)
         {
             fBuilder = new IRBuilder<>(fModule->getContext());
+            
             initTypes(module);
         #if defined(LLVM_35) || defined(LLVM_36)
             fDataLayout = new DataLayout(*module->getDataLayout());
@@ -899,9 +900,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         virtual ~LLVMInstVisitor()
         {}
     
-        void setBuilder(IRBuilder<>* builder) {fBuilder = builder; }
-        IRBuilder<>* getBuilder() { return fBuilder; }
-
          // User interface
 
         string replaceSpacesWithUnderscore(const string& str)
@@ -2317,25 +2315,22 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
 
-        LlvmValue generateBinOpFloat(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
+        LlvmValue generateBinOpReal(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
         {
             if (isBoolOpcode(opcode)) {
                 Value* comp_value = fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
                 // Inst result for comparison
                 return generateScalarSelect(opcode, comp_value, genInt32(fModule, 1, size), genInt32(fModule, 0, size), size);
             } else {
+            #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37))
+                LlvmValue value = fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
+                Instruction* inst = cast<Instruction>(value);
+                inst->setMetadata(LLVMContext::MD_fpmath, fBuilder->getDefaultFPMathTag());
+                inst->setFastMathFlags(fBuilder->getFastMathFlags());
+                return inst;
+            #else
                 return fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
-            }
-        }
-
-        LlvmValue generateBinOpDouble(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
-        {
-            if (isBoolOpcode(opcode)) {
-                Value* comp_value = fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
-                // Inst result for comparison
-                return generateScalarSelect(opcode, comp_value, genInt32(fModule, 1, size), genInt32(fModule, 0, size), size);
-            } else {
-                return fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLlvmFloatInst, arg1, arg2);
+            #endif
             }
         }
 
@@ -2366,12 +2361,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Arguments are casted if needed in InstructionsCompiler::generateBinOp
             assert(arg1->getType() == arg2->getType());
 
-            if (arg1->getType() == getFloatTy(fModule, size)) {
-                return generateBinOpFloat(opcode, arg1, arg2, size);
+            if (arg1->getType() == getFloatTy(fModule, size) || arg1->getType() == getDoubleTy(fModule, size)){
+                return generateBinOpReal(opcode, arg1, arg2, size);
             } else if (arg1->getType() == getInt32Ty(fModule, size)) {
                 return generateBinOpInt32(opcode, arg1, arg2, size);
-            } else if (arg1->getType() == getDoubleTy(fModule, size)) {
-                return generateBinOpDouble(opcode, arg1, arg2, size);
             } else {
                 // Should not happen
                 cerr << "generateBinopAux" << endl;
