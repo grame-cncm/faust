@@ -30,6 +30,7 @@
 #include "faust/gui/UI.h"
 #include <list>
 #include <map>
+#include <vector>
 
 /*******************************************************************************
  * GUI : Abstract Graphic User Interface
@@ -48,11 +49,17 @@ class clist : public std::list<uiItem*>
         
 };
 
+typedef std::map<FAUSTFLOAT*, clist*> zmap;
+    
+typedef std::pair<double, FAUSTFLOAT> ts_value;
+
+typedef std::vector<ts_value>* zvalues;
+
+typedef std::map<FAUSTFLOAT*, zvalues> ztimedmap;
+
 class GUI : public UI
 {
-    
-	typedef std::map<FAUSTFLOAT*, clist*> zmap;
-	
+		
     private:
      
         static std::list<GUI*>  fGuiList;
@@ -104,6 +111,9 @@ class GUI : public UI
         bool stopped() 	{ return fStopped; }
 
         virtual void declare(FAUSTFLOAT* , const char* , const char*) {}
+        
+        // Staic global for timed zones
+        static ztimedmap gTimedZoneMap;
 };
 
 /**
