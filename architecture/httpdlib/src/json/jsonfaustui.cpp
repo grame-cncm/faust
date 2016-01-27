@@ -29,7 +29,7 @@ namespace httpdfaust
 
 jsonfaustui::jsonfaustui(const char *name, const char* address, int port)
 {
-	fJSON = new jsonui<FAUSTFLOAT> (name, address, port);
+	fJSON = new jsonui<FAUSTFLOAT>(name, address, port);
 }
 
 jsonfaustui::~jsonfaustui()		{ delete fJSON; }
@@ -72,7 +72,7 @@ void jsonfaustui::numInput(int n)							{ fJSON->numInput(n);}
 void jsonfaustui::numOutput(int n)                          { fJSON->numOutput(n);}
 void jsonfaustui::declare(const char* key, const char* val)	{ fJSON->declare(key, val); }
 
-std::string	jsonfaustui::json ()							{ return fJSON->json(); }
+std::string	jsonfaustui::json(bool flatten)                 { return fJSON->json(flatten); }
 
 } //end namespace
 

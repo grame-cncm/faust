@@ -1,5 +1,5 @@
 subprojects := html httpd include json lib msg nodes
-sources = $(wildcard *.cpp) $(wildcard html/*.cpp) $(wildcard httpd/*.cpp)  $(wildcard json/*.cpp) $(wildcard msg/*.cpp) $(wildcard nodes/*.cpp)
+sources = $(wildcard *.cpp) $(wildcard html/*.cpp) $(wildcard httpd/*.cpp)  $(wildcard json/*.cpp) $(wildcard msg/*.cpp) $(wildcard nodes/*.cpp) ../../../compiler/parser/sourcefetcher.cpp
 objects = $(sources:.cpp=.o)
 objects += hexa/jsscripts.o
 objects += hexa/stylesheet.o
@@ -47,7 +47,7 @@ endif
 #INSTALL_PREFIX = @rpath/
 
 CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
-CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I../../../compiler/tlib -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
 all: ../libHTTPDFaust.a
 
@@ -126,8 +126,7 @@ html/htmlfactory.o: html/htmlfactory.h html/htmlpage.h
 html/htmlpage.o: lib/deelx.h html/htmlpage.h html/jsscripts.h html/stylesheet.h
 html/htmlui.o: html/htmlui.h html/htmlfactory.h html/htmlpage.h
 httpd/Address.o: httpd/Address.h
-httpd/HTTPDServer.o: httpd/HTTPDServer.h msg/Message.h lib/smartpointer.h
-httpd/HTTPDServer.o: msg/MessageProcessor.h
+httpd/HTTPDServer.o: httpd/HTTPDServer.h msg/Message.h lib/smartpointer.h msg/MessageProcessor.h
 httpd/HTTPDSetup.o: httpd/HTTPDSetup.h httpd/HTTPDServer.h msg/MessageProcessor.h
 json/jsoncontrol.o: json/jsoncontrol.h json/jsonnode.h lib/smartpointer.h
 json/jsonfactory.o: json/jsonfactory.h json/jsonroot.h lib/smartpointer.h json/jsonnode.h json/jsoncontrol.h
@@ -146,3 +145,5 @@ nodes/FaustNode.o: httpd/HTTPDServer.h
 nodes/MessageDriven.o: httpd/Address.h msg/Message.h lib/smartpointer.h nodes/MessageDriven.h msg/MessageProcessor.h
 nodes/MessageDriven.o: httpd/HTTPDServer.h
 nodes/RootNode.o: nodes/RootNode.h nodes/MessageDriven.h msg/MessageProcessor.h lib/smartpointer.h msg/Message.h
+../../../compiler/parser/sourcefetcher.o: ../../../compiler/tlib/compatibility.hh
+../../../compiler/parser/sourcefetcher.o: ../../../compiler/parser/sourcefetcher.hh

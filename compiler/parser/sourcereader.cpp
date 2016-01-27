@@ -189,7 +189,7 @@ Tree formatDefinitions(Tree rldef)
 Tree SourceReader::parse(string fname)
 {
 	string	fullpath;
-    char*   fileBuf = 0;
+    char* fileBuf = 0;
 	
 	yyerr = 0;
 	
@@ -214,6 +214,7 @@ Tree SourceReader::parse(string fname)
         
         // we have parsed a valid file
         fFilePathnames.push_back(fullpath);
+        // 'http_fetch' result must be deallocated
         free(fileBuf);
         return gResult;
 

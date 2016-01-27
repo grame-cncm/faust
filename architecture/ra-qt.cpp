@@ -39,11 +39,11 @@
 #include <iostream>
 #include <list>
 
+#include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/faustqt.h"
 #include "faust/misc.h"
 #include "faust/audio/rtaudio-dsp.h"
-#include "faust/midi/midi.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -53,9 +53,11 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
-#if MIDICTRL
-#include "faust/midi/rt-midi.h"
+// Always include this file, otherwise -poly only mode does not compile....
 #include "faust/gui/MidiUI.h"
+
+#ifdef MIDICTRL
+#include "faust/midi/RtMidi.cpp"
 #endif
 
 /**************************BEGIN USER SECTION **************************/
@@ -73,10 +75,9 @@
 
 #ifdef POLY
 #include "faust/dsp/poly-dsp.h"
-mydsp_poly*	DSP;
-#else
-mydsp* DSP;
 #endif
+
+dsp* DSP;
 
 /***************************END USER SECTION ***************************/
 
@@ -104,15 +105,10 @@ int main(int argc, char *argv[])
     long srate = (long)lopt(argv, "--frequency", 44100);
     int fpb = lopt(argv, "--buffer", 512);
     int poly = lopt(argv, "--poly", 4);
-    
-#if MIDICTRL
-    rtmidi midi;
-#endif
 
 #ifdef POLY
 #if MIDICTRL
     DSP = new mydsp_poly(poly, true);
-    midi.addMidiIn(DSP);
 #else
     DSP = new mydsp_poly(poly);
 #endif
@@ -156,11 +152,7 @@ int main(int argc, char *argv[])
     
     printf("ins %d\n", audio.get_num_inputs());
     printf("outs %d\n", audio.get_num_outputs());
-    
-#if MIDICTRL
-    midi.start();
-#endif
-
+ 
 #ifdef HTTPCTRL
 	httpdinterface.run();
 #ifdef QRCODECTRL
@@ -182,10 +174,6 @@ int main(int argc, char *argv[])
     
 	audio.stop();
 	finterface.saveState(rcfilename);
-    
-#ifdef MIDICTRL
-    midi.stop();
-#endif
 
   	return 0;
 }

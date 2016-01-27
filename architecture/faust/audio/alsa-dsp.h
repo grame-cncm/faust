@@ -45,7 +45,7 @@
 
 #include <alsa/asoundlib.h>
 #include "faust/audio/audio.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 
 /**
 DEFAULT ALSA PARAMETERS CONTROLLED BY ENVIRONMENT VARIABLES
@@ -56,10 +56,7 @@ Some default parameters of Faust's ALSA applications are controlled by the follo
     FAUST2ALSA_FREQUENCY= 44100
     FAUST2ALSA_BUFFER   = 512
     FAUST2ALSA_PERIODS  = 2
-
 */
-
-//using namespace std;
 
 // handle 32/64 bits int size issues
 
@@ -85,7 +82,6 @@ Some default parameters of Faust's ALSA applications are controlled by the follo
 #define check_error(err) if (err) { printf("%s:%d, alsa error %d : %s\n", __FILE__, __LINE__, err, snd_strerror(err)); exit(1); }
 #define check_error_msg(err,msg) if (err) { fprintf(stderr, "%s:%d, %s : %s(%d)\n", __FILE__, __LINE__, msg, snd_strerror(err), err); exit(1); }
 #define display_error_msg(err,msg) if (err) { fprintf(stderr, "%s:%d, %s : %s(%d)\n", __FILE__, __LINE__, msg, snd_strerror(err), err); }
-
 
 /**
  * Used to set the priority and scheduling of the audi#include <sys/types.h>

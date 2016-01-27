@@ -51,7 +51,7 @@
 
 #include "faust/gui/console.h"
 #include "faust/gui/FUI.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/misc.h"
 
 #ifndef FAUSTFLOAT

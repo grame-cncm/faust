@@ -47,7 +47,7 @@
 #include <time.h>
 
 #include "faust/audio/audio.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 
 #include <AudioToolbox/AudioConverter.h>
 #include <AudioToolbox/AudioServices.h>
@@ -326,9 +326,16 @@ static int SetAudioCategory(int input, int output)
             printf("Error setting kAudioSessionProperty_OverrideCategoryDefaultToSpeaker\n");
             printError(err);
         }
+        
+        UInt32 allowBluetoothInput = 1;
+        err = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryEnableBluetoothInput, sizeof(UInt32), &allowBluetoothInput);
+        if (err != noErr) {
+            printf("Error setting kAudioSessionProperty_OverrideCategoryEnableBluetoothInput\n");
+            printError(err);
+        }
     }
     
-#if DISABLE_AGC
+#if NOAGC
     // If input is used, disable AGC
     if (audioCategory == kAudioSessionCategory_RecordAudio || audioCategory == kAudioSessionCategory_PlayAndRecord) {
         

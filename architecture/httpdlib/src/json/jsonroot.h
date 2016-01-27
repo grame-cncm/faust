@@ -44,27 +44,47 @@ namespace httpdfaust
 */
 class jsonroot : public smartable
 {
-	std::string fName;
-	std::string fAddress;
-	int			fPort;
-	int			fInputs;
-	int			fOutputs;
-	std::map<std::string, std::string> fMeta;
-	std::vector<Sjsonnode> fUi;
-	std::stringstream fJSON;
+
+    private:
+    
+        std::string fName;
+        std::string fAddress;
+        int			fPort;
+        int			fInputs;
+        int			fOutputs;
+        std::map<std::string, std::string> fMeta;
+        std::vector<Sjsonnode> fUi;
+        std::stringstream fJSON;
+    
+        inline std::string flatten(const std::string& src)
+        {
+            std::stringstream dst;
+            for (size_t i = 0; i < src.size(); i++) {
+                switch (src[i]) {
+                    case '\n':
+                    case '\t':
+                        dst << ' ';
+                        break;
+                    default:
+                        dst << src[i];
+                        break;
+                }
+            }
+            return dst.str();
+        }
 	
 	public:
 				 jsonroot(const char *name, const char* address, int port)
-					: fName(name), fAddress(address), fPort(port), fInputs(0), fOutputs(0) {}
+					:fName(name), fAddress(address), fPort(port), fInputs(0), fOutputs(0) {}
 		virtual ~jsonroot() {}
 		
-		void	print(std::ostream& out) const;
-		void	add (const Sjsonnode& node)					{ fUi.push_back(node); }
-		void	setPort (int port)							{ fPort = port; }
-		void	declare (const char* key, const char* val)	{ fMeta[key] = val; }
-		void	setInputs (int inputs)						{ fInputs = inputs;}
-		void	setOutputs (int outputs)					{ fOutputs = outputs; }
-		std::string	json ()									{ print(fJSON); return fJSON.str(); }
+		void print(std::ostream& out) const;
+		void add(const Sjsonnode& node)					{ fUi.push_back(node); }
+		void setPort(int port)							{ fPort = port; }
+		void declare(const char* key, const char* val)	{ fMeta[key] = val; }
+		void setInputs(int inputs)						{ fInputs = inputs;}
+		void setOutputs(int outputs)                    { fOutputs = outputs; }
+		std::string	json(bool flat = false)             { print(fJSON); return (flat) ? flatten(fJSON.str()) : fJSON.str(); }
 };
 
 } // end namespoace

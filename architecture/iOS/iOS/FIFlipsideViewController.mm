@@ -37,7 +37,6 @@
     [super didReceiveMemoryWarning];
 }
 
-
 #pragma mark - View lifecycle
 
 - (void)viewDidLoad
@@ -48,6 +47,38 @@
     _sampleRate = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
     _bufferSize = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     _openWidgetPanel = [[NSUserDefaults standardUserDefaults] boolForKey:@"openWidgetPanel"];
+    _oscTransmit = [[NSUserDefaults standardUserDefaults] integerForKey:@"oscTransmit"];
+    _oscIPOutputText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscIPOutputText"];
+ #if OSCCTRL
+    _oscIPOutputText = (_oscIPOutputText) ? _oscIPOutputText : @"192.168.1.1";
+    _oscInputPortText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscInputPortText"];
+    _oscInputPortText = (_oscInputPortText) ? _oscInputPortText : @"5510";
+    _oscOutputPortText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscOutputPortText"];
+    _oscOutputPortText = (_oscOutputPortText) ? _oscOutputPortText : @"5511";
+#else
+    _oscIPOutputText = @"Deactivated";
+    _oscInputPortText = @"-1";
+    _oscOutputPortText = @"-1";
+#endif
+    
+    [_oscTransmitState removeAllSegments];
+    [_oscTransmitState insertSegmentWithTitle:@"No" atIndex:0 animated:NO];
+    [_oscTransmitState insertSegmentWithTitle:@"All" atIndex:1 animated:NO];
+    [_oscTransmitState insertSegmentWithTitle:@"Alias" atIndex:2 animated:NO];
+    
+     _oscTransmitState.selectedSegmentIndex = _oscTransmit;
+ 
+#if OSCCTRL
+    _oscIPOutput.enabled = TRUE;
+    _oscInputPort.enabled = TRUE;
+    _oscOutputPort.enabled = TRUE;
+    _oscTransmitState.enabled = TRUE;
+#else
+    _oscIPOutput.enabled = FALSE;
+    _oscInputPort.enabled = FALSE;
+    _oscOutputPort.enabled = FALSE;
+    _oscTransmitState.enabled = FALSE;
+#endif
     
     // Update UI
     _sampleRateSlider.value = [self sampleRateToSliderValue:_sampleRate];
@@ -55,6 +86,14 @@
     
     _bufferSizeSlider.value = [self bufferSizeToSliderValue:_bufferSize];
     _bufferSizeLabel.text = [NSString stringWithFormat:@"%i frames", _bufferSize];
+
+    _oscIPOutput.text = _oscIPOutputText;
+    _oscInputPort.text = _oscInputPortText;
+    _oscOutputPort.text = _oscOutputPortText;
+    
+    //_oscIPOutput.keyboardType = UIKeyboardTypeDecimalPad;
+    _oscInputPort.keyboardType = UIKeyboardTypeNumberPad;
+    _oscOutputPort.keyboardType = UIKeyboardTypeNumberPad;
     
     [_openWidgetPanelSwitch setOn:_openWidgetPanel animated:NO];
     
@@ -64,12 +103,19 @@
     {
         [self disableAudioWidgets];
     }
-    
 #endif
 }
 
 - (void)viewDidUnload
 {
+    [_oscIPOutput release];
+    _oscIPOutput = nil;
+    [_oscTransmitState release];
+    _oscTransmitState = nil;
+    [_oscInputPort release];
+    _oscInputPort = nil;
+    [_oscOutputPort release];
+    _oscOutputPort = nil;
     [super viewDidUnload];
 }
 
@@ -105,22 +151,43 @@
     }
 }
 
+/*
+- (BOOL)textFieldShouldReturn:(UITextField *)textField;              // called when 'return' key pressed. return NO to ignore.
+{
+    [textField resignFirstResponder];
+    return YES;
+}
+*/
 
 #pragma mark - Actions
 
 - (IBAction)done:(id)sender
 {
+    // Read IP and in/out ports
+#if OSCCTRL
+    _oscIPOutputText = _oscIPOutput.text;
+    _oscInputPortText = _oscInputPort.text;
+    _oscOutputPortText = _oscOutputPort.text;
+#endif
+    _oscTransmit = _oscTransmitState.selectedSegmentIndex;
     
     // Write user preferences
     [[NSUserDefaults standardUserDefaults] setInteger:_sampleRate forKey:@"sampleRate"];
     [[NSUserDefaults standardUserDefaults] setInteger:_bufferSize forKey:@"bufferSize"];
     [[NSUserDefaults standardUserDefaults] setBool:_openWidgetPanel forKey:@"openWidgetPanel"];
+    [[NSUserDefaults standardUserDefaults] setInteger:_oscTransmit forKey:@"oscTransmit"];
+#if OSCCTRL
+    [[NSUserDefaults standardUserDefaults] setObject:_oscIPOutputText forKey:@"oscIPOutputText"];
+    [[NSUserDefaults standardUserDefaults] setObject:_oscInputPortText forKey:@"oscInputPortText"];
+    [[NSUserDefaults standardUserDefaults] setObject:_oscOutputPortText forKey:@"oscOutputPortText"];
+#endif
     
 	[[NSUserDefaults standardUserDefaults] synchronize];
         
     // Update preferences
     [((FIMainViewController*)self.delegate) restartAudioWithBufferSize:_bufferSize sampleRate:_sampleRate];
     [((FIMainViewController*)self.delegate) setOpenWidgetPanel:_openWidgetPanel];
+    [((FIMainViewController*)self.delegate) setOSCParameters:_oscTransmit output:_oscIPOutputText inputport:_oscInputPortText outputport:_oscOutputPortText];
     
     // Dismiss view
     [self.delegate flipsideViewControllerDidFinish:self];
@@ -177,7 +244,9 @@
             key = ((NSString*)[keysArray objectAtIndex:i]);
             if ([key compare:@"sampleRate"] != NSOrderedSame
                 && [key compare:@"bufferSize"] != NSOrderedSame
-                && [key compare:@"openWidgetPanel"] != NSOrderedSame)
+                && [key compare:@"openWidgetPanel"] != NSOrderedSame
+                && [key compare:@"oscTransmit"] != NSOrderedSame
+                && [key compare:@"oscIPOutputText"] != NSOrderedSame)
             {
                 [[NSUserDefaults standardUserDefaults] removeObjectForKey:key];
             }
@@ -188,7 +257,6 @@
         [[NSUserDefaults standardUserDefaults] synchronize];
 	}
 }
-
 
 - (int)sampleRateToSliderValue:(int)sampleRate
 {
@@ -342,6 +410,15 @@
     _sampleRateLabel.enabled = YES;
     _bufferSizeSlider.enabled = YES;
     _bufferSizeLabel.enabled = YES;
+}
+
+- (void)dealloc
+{
+    [_oscIPOutput release];
+    [_oscTransmitState release];
+    [_oscInputPort release];
+    [_oscOutputPort release];
+    [super dealloc];
 }
 
 @end

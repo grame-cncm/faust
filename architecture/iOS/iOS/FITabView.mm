@@ -22,7 +22,6 @@
 
 @synthesize cornerRadius;
 
-
 #pragma mark -
 #pragma mark Init
 
@@ -88,7 +87,6 @@
     [self addSubview:button];
 }
 
-
 #pragma mark -
 #pragma mark Touch Handling
 
@@ -112,7 +110,6 @@
         }
     }
 }
-
 
 #pragma mark -
 #pragma mark Drawing

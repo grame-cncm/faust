@@ -72,7 +72,7 @@
 
 #include "faust/gui/UI.h"
 #include "faust/gui/JSONUI.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/misc.h"
 
 using namespace std;

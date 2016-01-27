@@ -46,7 +46,7 @@ OSCLIB=""
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2raqt [-osc] [-http] [-poly] <file.dsp>"
+        echo "faust2raqt [-osc] [-http] [-poly] [-midi] <file.dsp>"
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
@@ -86,7 +86,7 @@ for p in $@; do
 done
 
 #-------------------------------------------------------------------
-# Check darwin specifics
+# Check Darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
     ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio"
@@ -101,6 +101,13 @@ if [[ $(uname) == Darwin ]]; then
 	    CLANGOPT=""
 	fi
     EXT=".app"
+fi
+
+#-------------------------------------------------------------------
+# Check Linux specifics
+#
+if [[ $(uname) == Linux ]]; then
+    ARCHLIB+=" -lasound"
 fi
 
 #-------------------------------------------------------------------

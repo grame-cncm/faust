@@ -19,17 +19,12 @@
  ************************************************************************
  ************************************************************************/
  
- 
- 
 #include <sstream>
 #include "uitree.hh"
-
-
 
 static Tree makeSubFolderChain(Tree path, Tree elem);
 static Tree putFolder(Tree folder, Tree item);
 static Tree getFolder (Tree folder, Tree ilabel);
-
 
 static void error(const char * s, Tree t)
 {
@@ -37,7 +32,6 @@ static void error(const char * s, Tree t)
 }
 
 #define ERROR(s,t) error(s,t); exit(1)
-
 
 //------------------------------------------------------------------------------
 // Property list
@@ -89,7 +83,6 @@ static bool isBefore(Tree k1, Tree k2)
 	return strcmp(name(s1), name(s2)) < 0;
 }
 
-
 static bool findKey (Tree pl, Tree key, Tree& val)
 {
 	if (isNil(pl)) 					return false;
@@ -116,7 +109,6 @@ static Tree addKey (Tree pl, Tree key, Tree val)
     return cons ( hd(pl), addKey( tl(pl), key, val ));
 }
 
-
 #if 0
 static Tree removeKey (Tree pl, Tree key)
 {
@@ -140,8 +132,6 @@ bool  	isUiFolder(Tree t, Tree& label, Tree& elements)	{ return isTree(t, UIFOLD
 Sym 	UIWIDGET = symbol ("uiWidget");
 Tree 	uiWidget(Tree label, Tree varname, Tree sig) 					{ return tree(UIWIDGET, label, varname, sig); }
 bool 	isUiWidget(Tree t, Tree& label, Tree& varname, Tree& sig)		{ return isTree(t, UIWIDGET, label, varname, sig); }
-
-
 
 // place un item dans un folder. Remplace eventuellement l'élément de même nom.
 Tree putFolder(Tree folder, Tree item)
@@ -183,7 +173,6 @@ Tree makeSubFolderChain(Tree path, Tree elem)
 	}
 } 
 
-	
 Tree putSubFolder(Tree folder, Tree path, Tree item) 
 {
 	if (isNil(path)) {
@@ -199,22 +188,20 @@ Tree putSubFolder(Tree folder, Tree path, Tree item)
 	}
 }
 
-	
 /*
 Fonctionnement des dossiers. 
-Dossier à 1 niveau : Un dossier contient une liste de choses reperées par un nom  :
+Dossier a 1 niveau : Un dossier contient une liste de choses reperees par un nom  :
 	Dossier[(l1,d1)...(ln,dn)] 
-ou (lx,dx) est une chose dx repérée par un nom lx. On suppose les lx tous différents
+ou (lx,dx) est une chose dx repérée par un nom lx. On suppose les lx tous differents
 
 On peut ajouter une chose à un dossier : Ajouter(Dossier, Chose) -> Dossier
 
-Si le dossier contient deja qq chose de meme nom, cette chose est remplacée par la nouvelle.
+Si le dossier contient deja qq chose de meme nom, cette chose est remplacee par la nouvelle.
 
 AJOUTER (Dossier[(l1,d1)...(ln,dn)], (lx,dx)) -> Dossier[(l1,d1)...(lx,dx)...(ln,dn)]
 
 AJOUTER (Dossier[(l1,d1)...(lx,dx)...(ln,dn)], (lx,dx')) -> Dossier[(l1,d1)...(lx,dx')...(ln,dn)]
 */
-
 
 // Handle empty labels in a consistent way
 string ptrToHex(Tree ptr)

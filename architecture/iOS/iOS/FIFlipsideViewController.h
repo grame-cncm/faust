@@ -18,9 +18,7 @@
 
 #import <UIKit/UIKit.h>
 
-
 @class FIFlipsideViewController;
-
 
 @protocol FIFlipsideViewControllerDelegate
 
@@ -28,7 +26,7 @@
 
 @end
 
-
+//@interface FIFlipsideViewController : UIViewController <UIAlertViewDelegate,UITextFieldDelegate>
 @interface FIFlipsideViewController : UIViewController <UIAlertViewDelegate>
 {
     IBOutlet UISlider*              _sampleRateSlider;
@@ -40,13 +38,25 @@
     int                             _sampleRate;
     int                             _bufferSize;
     BOOL                            _openWidgetPanel;
+    
+    IBOutlet UITextField*   _oscIPOutput;
+    NSString*               _oscIPOutputText;
+    
+    int                          _oscTransmit;
+    IBOutlet UISegmentedControl* _oscTransmitState;
+    
+    IBOutlet UITextField*  _oscInputPort;
+    NSString*              _oscInputPortText;
+    
+    IBOutlet UITextField*  _oscOutputPort;
+    NSString*              _oscOutputPortText;
 }
 
 @property (assign, nonatomic) IBOutlet id <FIFlipsideViewControllerDelegate> delegate;
 @property (nonatomic, nonatomic) int sampleRate;
 @property (nonatomic, nonatomic) int bufferSize;
 @property (nonatomic, nonatomic) BOOL openWidgetPanel;
-
+@property (nonatomic, nonatomic) int oscTransmit;
 
 - (IBAction)done:(id)sender;
 - (IBAction)sampleRateSliderMoved:(id)sender;

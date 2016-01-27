@@ -47,7 +47,7 @@
 #include "ladspa.h"
 #include "faust/gui/GUI.h"
 #include "faust/misc.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 
 #define sym(name) xsym(name)
 #define xsym(name) #name

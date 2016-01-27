@@ -42,10 +42,10 @@
 #include <ostream>
 #include <sstream>
 
+#include "faust/gui/MidiUI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
-#include "faust/audio/dsp.h"
-#include "faust/midi/midi.h"
+#include "faust/dsp/dsp.h"
 
 #define kFreeVoice        -2
 #define kReleaseVoice     -1
@@ -105,8 +105,7 @@ struct mydsp_voice_factory : public voice_factory {
 };
 
 // Polyphonic DSP
-class mydsp_poly : public dsp, public midi
-{
+class mydsp_poly : public dsp, public midi {
 
     private:
   
@@ -180,20 +179,13 @@ class mydsp_poly : public dsp, public midi
     
     public: 
     
-        mydsp_poly(int max_polyphony, bool control, int buffer_size = 8192)  // Second argument to remove ASAP
+        mydsp_poly(int max_polyphony, bool control = false) 
         {
             fVoiceControl = control;
             mydsp_voice_factory factory;
             init(max_polyphony, &factory);
         }
-        
-        mydsp_poly(int max_polyphony, int buffer_size = 8192)  // Second argument to remove ASAP
-        {
-            fVoiceControl = false;
-            mydsp_voice_factory factory;
-            init(max_polyphony, &factory);
-        }
-          
+           
         virtual ~mydsp_poly()
         {
             for (int i = 0; i < fNumOutputs; i++) {
@@ -281,6 +273,10 @@ class mydsp_poly : public dsp, public midi
         
         void buildUserInterface(UI* ui_interface) 
         {   
+            // Add itself to the MidiUI object
+            MidiUI* midi_ui = dynamic_cast<MidiUI*>(ui_interface);
+            if (midi_ui) midi_ui->addMidiIn(this);
+            
             if (fMaxPolyphony > 1) {
                 ui_interface->openTabBox("Polyphonic instrument");
                 for (int i = 0; i < fMaxPolyphony; i++) {
@@ -330,6 +326,15 @@ class mydsp_poly : public dsp, public midi
         {}
         
         void progChange(int channel, int pgm)
+        {}
+        
+        void keyPress(int channel, int pitch, int press)
+        {}
+
+        void chanPress(int channel, int press)
+        {}
+        
+        void ctrlChange14bits(int channel, int ctrl, int value)
         {}
 
         // Additional API
@@ -463,4 +468,4 @@ extern "C" {
         
 }
 
-#endif
+#endif // __poly_dsp__

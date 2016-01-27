@@ -39,12 +39,12 @@ namespace oscfaust
 //--------------------------------------------------------------------------
 Message::Message(const Message& msg)
 {
-	setAddress (msg.address());
+	setAddress(msg.address());
 	fArguments = msg.params();
 }
 
 //--------------------------------------------------------------------------
-static string escape (const string& str) 
+static string escape(const string& str) 
 {
 	string out;
 	const char *ptr = str.c_str();
