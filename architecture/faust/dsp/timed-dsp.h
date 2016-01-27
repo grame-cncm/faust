@@ -49,55 +49,13 @@
 #include <vector>
 #include <map>
 
-struct TimedZoneUI : public UI
-{
-    std::vector<FAUSTFLOAT*> fZones;
-
-    TimedZoneUI() {}
-    virtual ~TimedZoneUI() {}
-    
-    // Only keep "timed" zones
-    void insertZone(FAUSTFLOAT* zone) 
-    {
-        if (GUI::gTimedZoneMap.find(zone) != GUI::gTimedZoneMap.end()) {
-            fZones.push_back(zone);
-        }
-    }
-    
-    virtual void openTabBox(const char* label) {}
-    virtual void openHorizontalBox(const char* label) {}
-    virtual void openVerticalBox(const char* label) {}
-    virtual void closeBox() {}
-    
-    // -- active widgets
-
-    virtual void addButton(const char* label, FAUSTFLOAT* zone) { insertZone(zone); }
-    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { insertZone(zone); }
-    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) 
-    { insertZone(zone); }
-    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-    { insertZone(zone); }
-    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-    { insertZone(zone); }
-
-    // -- passive widgets
-
-    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-    { insertZone(zone); }
-    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-    { insertZone(zone); }
-
-};
-
 //----------------------------------------------------------------
 //  Timed signal processor definition
 //----------------------------------------------------------------
 
 typedef std::vector<ts_value>::iterator value_it;
 
-typedef std::pair<value_it, value_it> value_pair_it;
-
-class timed_dsp : public decorator_dsp, public TimedZoneUI {
+class timed_dsp : public decorator_dsp {
 
     protected:
     
@@ -118,29 +76,27 @@ class timed_dsp : public decorator_dsp, public TimedZoneUI {
             
             fDSP->compute(slice, inputs_slice, outputs_slice);
         }
-
+  
     public:
 
         timed_dsp(dsp* dsp):decorator_dsp(dsp) 
-        {
-            // Only keep "timed" zones
-            fDSP->buildUserInterface(this); 
-        }
+        {}
         virtual ~timed_dsp() 
         {}
-     
+        
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             int control_change_count = 0;
-            std::vector<value_pair_it> control_vector_it;
-            
+            std::vector<value_it> control_vector_it;
+            std::map<FAUSTFLOAT*, zvalues>::iterator it1, it2;
+             
             // Time sort values associated with zones
-            for (int i = 0; i < fZones.size(); i++) {
-                zvalues values = GUI::gTimedZoneMap[fZones[i]];
+            for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
+                zvalues values = (*it1).second;
                 // Keep number of all control values changes
                 control_change_count += values->size();
-                // Keep iterator
-                control_vector_it.push_back(std::make_pair(values->begin(), values->end()));
+                // Keep begin iterator
+                control_vector_it.push_back(values->begin());
                 // Sort values for the zone
                 std::sort(values->begin(), values->end(), compareDate);
             }
@@ -154,27 +110,26 @@ class timed_dsp : public decorator_dsp, public TimedZoneUI {
             while (control_change_count-- > 0) {
                 
                 int cur_zone_date = count;
-                FAUSTFLOAT* cur_zone;
-                value_pair_it cur_zone_pair_it;
+                int i = 0;
+                int found = 0;
              
-                // Find time-stamps of next slice to compute
-                for (int i = 0; i < fZones.size(); i++) {
+                // Find date of next slice to compute
+                for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++, i++) {
                     // Keep minimal date
-                    value_pair_it zone_pair_it = control_vector_it[i];
-                    int date = (*(zone_pair_it.first)).first;
+                    int date = (*control_vector_it[i]).first;
                     if (date < cur_zone_date) {
+                        found = i;
+                        it2 = it1;
                         cur_zone_date = date;
-                        cur_zone = fZones[i];
-                        cur_zone_pair_it = zone_pair_it;
                     }
                 }
                 
                 // Update control
-                *cur_zone = (*(cur_zone_pair_it.first)).second;
+                *((*it2).first) = (*control_vector_it[found]).second;
                
                 // Move iterator of the values list to next zone, check for end
-                if (cur_zone_pair_it.first != cur_zone_pair_it.second) {
-                    (cur_zone_pair_it.first)++;
+                if (control_vector_it[found] != ((*it2).second)->end()) {
+                    (control_vector_it[found])++;
                 }
                  
                 // Compute audio slice
@@ -189,8 +144,8 @@ class timed_dsp : public decorator_dsp, public TimedZoneUI {
             computeSlice(offset, slice, inputs, outputs);
             
             // Finally clear values for all zones
-            for (int i = 0; i < fZones.size(); i++) {
-                GUI::gTimedZoneMap[fZones[i]]->clear();
+            for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
+                (*it1).second->clear();
             }
         }
         

@@ -112,7 +112,7 @@ class GUI : public UI
 
         virtual void declare(FAUSTFLOAT* , const char* , const char*) {}
         
-        // Staic global for timed zones
+        // Static global for timed zones
         static ztimedmap gTimedZoneMap;
 };
 
