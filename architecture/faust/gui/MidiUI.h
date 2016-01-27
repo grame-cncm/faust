@@ -66,13 +66,15 @@ class uiMidiTimedItem : public uiMidiItem
        
         uiMidiTimedItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone)
             :uiMidiItem(midi_out, ui, zone)
-        {}
-        virtual ~uiMidiTimedItem() 
         {
             if (GUI::gTimedZoneMap.find(fZone) == GUI::gTimedZoneMap.end()) {
                 GUI::gTimedZoneMap[fZone] = new std::vector<ts_value>();
             }
         }
+        
+        // TODO : improve memory management (when to delete GUI::gTimedZoneMap[fZone] ?)
+        virtual ~uiMidiTimedItem() 
+        {}
 
         void modifyZone(double date, FAUSTFLOAT v) 	
         { 
