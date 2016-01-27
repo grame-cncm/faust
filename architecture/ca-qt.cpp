@@ -39,6 +39,8 @@
 #include <iostream>
 #include <list>
 
+#include "faust/dsp/timed-dsp.h"
+
 #include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/faustqt.h"
@@ -78,6 +80,7 @@
 #endif
 
 dsp* DSP;
+timed_dsp* timed_dsp;
 
 /***************************END USER SECTION ***************************/
 

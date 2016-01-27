@@ -61,8 +61,6 @@ class uiMidiItem : public uiItem {
 class uiMidiTimedItem : public uiMidiItem
 {
     protected:
-          
-        std::vector<std::pair<double, FAUSTFLOAT> > fValues;
     
     public:
        
@@ -70,15 +68,20 @@ class uiMidiTimedItem : public uiMidiItem
             :uiMidiItem(midi_out, ui, zone)
         {}
         virtual ~uiMidiTimedItem() 
-        {}
+        {
+            if (GUI::gTimedZoneMap.find(fZone) == GUI::gTimedZoneMap.end()) {
+                GUI::gTimedZoneMap[fZone] = new std::vector<ts_value>();
+            }
+        }
 
         void modifyZone(double date, FAUSTFLOAT v) 	
         { 
-            fValues.push_back(std::make_pair(date, v));
+            GUI::gTimedZoneMap[fZone]->push_back(std::make_pair(date, v));
         }
         
         // TODO
         virtual void reflectZone() {}
+
 };
 
 // MIDI sync

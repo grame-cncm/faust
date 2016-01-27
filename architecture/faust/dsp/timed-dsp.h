@@ -41,50 +41,156 @@
 *******************************************************************************
 *******************************************************************************/
 
-#ifndef __dsp__
-#define __dsp__
+#ifndef __timed_dsp__
+#define __timed_dsp__
 
 #include "faust/dsp/dsp.h" 
 #include "faust/gui/GUI.h" 
 #include <vector>
+#include <map>
+
+struct TimedZoneUI : public UI
+{
+    std::vector<FAUSTFLOAT*> fZones;
+
+    TimedZoneUI() {}
+    virtual ~TimedZoneUI() {}
+    
+    // Only keep "timed" zones
+    void insertZone(FAUSTFLOAT* zone) 
+    {
+        if (GUI::gTimedZoneMap.find(zone) != GUI::gTimedZoneMap.end()) {
+            fZones.push_back(zone);
+        }
+    }
+    
+    virtual void openTabBox(const char* label) {}
+    virtual void openHorizontalBox(const char* label) {}
+    virtual void openVerticalBox(const char* label) {}
+    virtual void closeBox() {}
+    
+    // -- active widgets
+
+    virtual void addButton(const char* label, FAUSTFLOAT* zone) { insertZone(zone); }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { insertZone(zone); }
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) 
+    { insertZone(zone); }
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    { insertZone(zone); }
+    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    { insertZone(zone); }
+
+    // -- passive widgets
+
+    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    { insertZone(zone); }
+    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    { insertZone(zone); }
+
+};
 
 //----------------------------------------------------------------
 //  Timed signal processor definition
 //----------------------------------------------------------------
 
-class timed_dsp : public decorator_dsp {
+typedef std::vector<ts_value>::iterator value_it;
+
+typedef std::pair<value_it, value_it> value_pair_it;
+
+class timed_dsp : public decorator_dsp, public TimedZoneUI {
 
     protected:
     
-        std::vector<GUI*> fControlers;
+        static bool compareDate(const ts_value& a, const ts_value& b) { return a.first < b.first; }
+        
+        void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
+        {
+            // Do audio compilation "slice" by "slice"
+            FAUSTFLOAT* inputs_slice[fDSP->getNumInputs()];
+            FAUSTFLOAT* outputs_slice[fDSP->getNumOutputs()];
+            
+            for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
+                inputs_slice[chan] = &(inputs[chan])[offset];
+            }
+            for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
+                outputs_slice[chan] = &(outputs[chan])[offset];
+            }
+            
+            fDSP->compute(slice, inputs_slice, outputs_slice);
+        }
 
     public:
 
-        timed_dsp(dsp* dsp):decorator_dsp(dsp) {}
-        virtual ~timed_dsp() {}
-        
-        virtual void buildUserInterface(UI* ui_interface)   
-        { 
-            // Keep TimedUI interfaces
-            GUI* gui = dynamic_cast<GUI*>(ui_interface);
-            if (gui) fControlers.push_back(gui);
-            
-            fDSP->buildUserInterface(ui_interface); 
+        timed_dsp(dsp* dsp):decorator_dsp(dsp) 
+        {
+            // Only keep "timed" zones
+            fDSP->buildUserInterface(this); 
         }
-
+        virtual ~timed_dsp() 
+        {}
+     
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            std::vector<GUI*>::iterator it;
+            int control_change_count = 0;
+            std::vector<value_pair_it> control_vector_it;
             
-            for (it = fControlers.begin(); it != fControlers.end(); it++) {
-                GUI* controler= (*it);
-                //std::vector<std::pair<double, FAUSTFLOAT> > values;
+            // Time sort values associated with zones
+            for (int i = 0; i < fZones.size(); i++) {
+                zvalues values = GUI::gTimedZoneMap[fZones[i]];
+                // Keep number of all control values changes
+                control_change_count += values->size();
+                // Keep iterator
+                control_vector_it.push_back(std::make_pair(values->begin(), values->end()));
+                // Sort values for the zone
+                std::sort(values->begin(), values->end(), compareDate);
+            }
+            
+            printf("control_change_count = %d\n", control_change_count);
+            
+            // Do audio compilation "slice" by "slice"
+            int slice, offset = 0;
+            
+            // Compute audio slices...
+            while (control_change_count-- > 0) {
                 
-                std::vector<std::pair<double, FAUSTFLOAT> >::iterator it1;
-                for (it1 = values.begin(); it1 != values.end(); it1++) {
-                   std::vector<std::pair<double, FAUSTFLOAT> > pair = (*it1):
-                   
+                int cur_zone_date = count;
+                FAUSTFLOAT* cur_zone;
+                value_pair_it cur_zone_pair_it;
+             
+                // Find time-stamps of next slice to compute
+                for (int i = 0; i < fZones.size(); i++) {
+                    // Keep minimal date
+                    value_pair_it zone_pair_it = control_vector_it[i];
+                    int date = (*(zone_pair_it.first)).first;
+                    if (date < cur_zone_date) {
+                        cur_zone_date = date;
+                        cur_zone = fZones[i];
+                        cur_zone_pair_it = zone_pair_it;
+                    }
                 }
+                
+                // Update control
+                *cur_zone = (*(cur_zone_pair_it.first)).second;
+               
+                // Move iterator of the values list to next zone, check for end
+                if (cur_zone_pair_it.first != cur_zone_pair_it.second) {
+                    (cur_zone_pair_it.first)++;
+                }
+                 
+                // Compute audio slice
+                slice = cur_zone_date - offset;
+                printf("offset = %d slice = %d\n", offset, slice);
+                computeSlice(offset, slice, inputs, outputs);
+                offset += slice;
+            } 
+            
+            // Compute last audio slice
+            slice = count - offset;
+            computeSlice(offset, slice, inputs, outputs);
+            
+            // Finally clear values for all zones
+            for (int i = 0; i < fZones.size(); i++) {
+                GUI::gTimedZoneMap[fZones[i]]->clear();
             }
         }
         
