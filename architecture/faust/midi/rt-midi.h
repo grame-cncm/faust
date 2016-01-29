@@ -20,7 +20,6 @@
     that work under terms of your choice, so long as this FAUST
     architecture section is not modified.
 
-
  ************************************************************************
  ************************************************************************/
  
@@ -45,7 +44,10 @@ class rtmidi : public midi {
             MIDI_PROGRAM_CHANGE     = 0xC0,
             MIDI_PITCH_BEND         = 0xE0,
             MIDI_AFTERTOUCH         = 0xD0,	// aka channel pressure
-            MIDI_POLY_AFTERTOUCH    = 0xA0	// aka key pressure
+            MIDI_POLY_AFTERTOUCH    = 0xA0,	// aka key pressure
+            MIDI_CLOCK              = 0xF8,
+            MIDI_START              = 0xFA,
+            MIDI_STOP               = 0xFC
 
         };
   
@@ -54,7 +56,7 @@ class rtmidi : public midi {
         std::vector<midi*> fMidiInputs;
         std::string fName;
         
-        static void midiCallback(double deltatime, std::vector<unsigned char>* message, void* arg)
+        static void midiCallback(double time, std::vector<unsigned char>* message, void* arg)
         {
             rtmidi* midi = static_cast<rtmidi*>(arg);
             unsigned int nBytes = message->size();
@@ -62,17 +64,35 @@ class rtmidi : public midi {
             int cmd = (int)message->at(0) & 0xf0;
             int channel = (int)message->at(0) & 0x0f;
             
-            if (nBytes == 2) {
+            // MIDI sync
+            if (nBytes == 1) {
+            
+                int sync = (int)message->at(0);
+                if (sync == MIDI_CLOCK) {
+                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->clock(time);
+                    }
+                } else if (sync == MIDI_START) {
+                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->start(time);
+                    }
+                } else if (sync == MIDI_STOP) {
+                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->stop(time);
+                    }
+                }
+                
+            } else if (nBytes == 2) {
              
                 int data1 = (int)message->at(1);
                 
                 if (cmd == MIDI_PROGRAM_CHANGE) {
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->progChange(deltatime, channel, data1);
+                        midi->fMidiInputs[i]->progChange(time, channel, data1);
                     }
                 } else if (cmd == MIDI_AFTERTOUCH) {
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->chanPress(deltatime, channel, data1);
+                        midi->fMidiInputs[i]->chanPress(time, channel, data1);
                     }
                 }
             
@@ -83,29 +103,27 @@ class rtmidi : public midi {
                 
                 if (cmd == MIDI_NOTE_OFF || ((cmd == MIDI_NOTE_ON) && (data2 == 0))) { 
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyOff(deltatime, channel, data1, data2);
+                        midi->fMidiInputs[i]->keyOff(time, channel, data1, data2);
                     }
                 } else if (cmd == MIDI_NOTE_ON) {
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyOn(deltatime, channel, data1, data2);
+                        midi->fMidiInputs[i]->keyOn(time, channel, data1, data2);
                     }
                 } else if (cmd == MIDI_CONTROL_CHANGE) {
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->ctrlChange(deltatime, channel, data1, data2);
+                        midi->fMidiInputs[i]->ctrlChange(time, channel, data1, data2);
                     }
                 } else if (cmd == MIDI_PITCH_BEND) {
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->pitchWheel(deltatime, channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
+                        midi->fMidiInputs[i]->pitchWheel(time, channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
                     }
                 } else if (cmd == MIDI_POLY_AFTERTOUCH) {
                     for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyPress(deltatime, channel, data1, data2);
+                        midi->fMidiInputs[i]->keyPress(time, channel, data1, data2);
                     }
                 }
-                
-            } else {
-                 std::cout << "long message : " << nBytes << std::endl;
-            }
+            
+            } 
         }
         
         bool openMidiInputPorts()
@@ -121,6 +139,7 @@ class rtmidi : public midi {
             // Then open all of them
             for (int i = 0; i < nInPorts; i++) {
                 RtMidiIn* midi_in = new RtMidiIn();
+                midi_in->ignoreTypes(true, false, true);
                 fInput.push_back(midi_in);
                 midi_in->openPort(i);
                 midi_in->setCallback(&midiCallback, this);
@@ -154,6 +173,7 @@ class rtmidi : public midi {
         void chooseMidiInputPort(const std::string& name)
         {
             RtMidiIn* midi_in = new RtMidiIn();
+            midi_in->ignoreTypes(true, false, true);
             fInput.push_back(midi_in);
             midi_in->setCallback(&midiCallback, this);
             midi_in->openVirtualPort(name);
@@ -285,5 +305,23 @@ class rtmidi : public midi {
         void ctrlChange14bits(int channel, int ctrl, int value) {}
    
 };
+
+#if __APPLE__
+#if TARGET_OS_IPHONE
+double GetCurrentTimeInUsec() { return double(CAHostTimeBase::GetCurrentTimeInNanos()) / 1000.; }
+#else
+double GetCurrentTimeInUsec() { return double(AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())) / 1000.; }
+#endif
+#endif
+
+#if __linux__
+#include <sys/time.h>
+double GetCurrentTimeInUsec() 
+{
+    struct timeval tv;
+    (void)gettimeofday(&tv, (struct timezone *)NULL);
+    return double((tv.tv_sec * 1000000) + tv.tv_usec);
+}
+#endif
 
 #endif // __rt_midi__

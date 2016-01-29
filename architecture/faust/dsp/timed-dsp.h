@@ -1,13 +1,4 @@
 /************************************************************************
-    IMPORTANT NOTE : this file contains two clearly delimited sections :
-    the ARCHITECTURE section (in two parts) and the USER section. Each section
-    is governed by its own copyright and license. Please check individually
-    each section for license and copyright information.
-*************************************************************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
-/************************************************************************
     FAUST Architecture File
     Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
@@ -29,17 +20,8 @@
     that work under terms of your choice, so long as this FAUST
     architecture section is not modified.
 
-
  ************************************************************************
  ************************************************************************/
- 
-/******************************************************************************
-*******************************************************************************
-
-								FAUST DSP
-
-*******************************************************************************
-*******************************************************************************/
 
 #ifndef __timed_dsp__
 #define __timed_dsp__
@@ -48,6 +30,9 @@
 #include "faust/gui/GUI.h" 
 #include <vector>
 #include <map>
+#include <float.h>
+
+double GetCurrentTimeInUsec();
 
 //----------------------------------------------------------------
 //  Timed signal processor definition
@@ -76,16 +61,24 @@ class timed_dsp : public decorator_dsp {
             
             fDSP->compute(slice, inputs_slice, outputs_slice);
         }
+        
+        double fComputeDateUsec;
   
     public:
 
-        timed_dsp(dsp* dsp):decorator_dsp(dsp) 
+        timed_dsp(dsp* dsp):decorator_dsp(dsp),fComputeDateUsec(0)
         {}
         virtual ~timed_dsp() 
         {}
         
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
+            // Keep used date of compute
+            double lastComputeDateUsec = fComputeDateUsec;
+            fComputeDateUsec = GetCurrentTimeInUsec();
+            
+            //printf("compute %lld\n", fComputeDateUsec - lastComputeDateUsec);
+            
             int control_change_count = 0;
             std::vector<value_it> control_vector_it;
             std::map<FAUSTFLOAT*, zvalues>::iterator it1, it2;
@@ -97,11 +90,16 @@ class timed_dsp : public decorator_dsp {
                 control_change_count += values->size();
                 // Keep begin iterator
                 control_vector_it.push_back(values->begin());
-                // Sort values for the zone
-                std::sort(values->begin(), values->end(), compareDate);
+                // Sort values for the zone : necessary
+                //std::sort(values->begin(), values->end(), compareDate);
             }
             
-            printf("control_change_count = %d\n", control_change_count);
+            /*
+            if (control_change_count > 0) {
+                printf("control_change_count = %d\n", control_change_count);
+                printf("control_vector_it size = %d\n", control_vector_it.size());
+            }
+            */
             
             // Do audio compilation "slice" by "slice"
             int slice, offset = 0;
@@ -109,23 +107,35 @@ class timed_dsp : public decorator_dsp {
             // Compute audio slices...
             while (control_change_count-- > 0) {
                 
-                int cur_zone_date = count;
+                double cur_zone_date = DBL_MAX;
                 int i = 0;
                 int found = 0;
              
                 // Find date of next slice to compute
                 for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++, i++) {
-                    // Keep minimal date
-                    int date = (*control_vector_it[i]).first;
-                    if (date < cur_zone_date) {
-                        found = i;
-                        it2 = it1;
-                        cur_zone_date = date;
+                    // Keep the minimal one
+                    if (control_vector_it[i] != ((*it1).second)->end()) {
+                        double date = (*control_vector_it[i]).first;
+                        if (date < cur_zone_date) {
+                            found = i;
+                            it2 = it1;
+                            cur_zone_date = date;
+                        }
                     }
                 }
                 
+                /*
+                printf("cur_zone_date = %f lastComputeDateUsec = %f  delta %f\n", 
+                    cur_zone_date, lastComputeDateUsec, cur_zone_date - lastComputeDateUsec);
+                */
+                
+                // Convert cur_zone_date in sample from begining of buffer
+                cur_zone_date = ((cur_zone_date - lastComputeDateUsec) / 1000000.) * double(getSampleRate());
+                
                 // Update control
                 *((*it2).first) = (*control_vector_it[found]).second;
+                
+                //printf("sample_offset = %f value = %f\n", cur_zone_date, (*control_vector_it[found]).second);
                
                 // Move iterator of the values list to next zone, check for end
                 if (control_vector_it[found] != ((*it2).second)->end()) {
@@ -133,14 +143,17 @@ class timed_dsp : public decorator_dsp {
                 }
                  
                 // Compute audio slice
-                slice = cur_zone_date - offset;
-                printf("offset = %d slice = %d\n", offset, slice);
+                slice = int(cur_zone_date) - offset;
+                //printf("offset = %d slice = %d\n", offset, slice);
                 computeSlice(offset, slice, inputs, outputs);
                 offset += slice;
             } 
             
             // Compute last audio slice
             slice = count - offset;
+            if (slice != count) {
+                //printf("last: offset = %d slice = %d\n", offset, slice);
+            }
             computeSlice(offset, slice, inputs, outputs);
             
             // Finally clear values for all zones

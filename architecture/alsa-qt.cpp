@@ -39,6 +39,8 @@
 #include <iostream>
 #include <list>
 
+#include "faust/dsp/timed-dsp.h"
+#include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
 #include "faust/gui/faustqt.h"
@@ -52,6 +54,12 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
+// Always include this file, otherwise -poly only mode does not compile....
+#include "faust/gui/MidiUI.h"
+
+#ifdef MIDICTRL
+#include "faust/midi/RtMidi.cpp"
+#endif
 
 /**************************BEGIN USER SECTION **************************/
 /******************************************************************************
@@ -64,16 +72,16 @@
 
 <<includeIntrinsic>>
 
-
 <<includeclass>>
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp*	DSP;
+dsp* DSP;
 
-std::list<GUI*>               GUI::fGuiList;
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -85,8 +93,10 @@ int main(int argc, char *argv[] )
 	char* home = getenv("HOME");
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
 	
-	DSP = new mydsp();
-	if (DSP==0) {
+    //DSP = new mydsp();
+    DSP = new timed_dsp(new mydsp());
+    
+	if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
 		exit(1);
 	}
@@ -97,6 +107,12 @@ int main(int argc, char *argv[] )
 	FUI* finterface	= new FUI();
 	DSP->buildUserInterface(interface);
 	DSP->buildUserInterface(finterface);
+    
+#ifdef MIDICTRL
+    MidiUI midiinterface(name);
+    DSP->buildUserInterface(&midiinterface);
+    std::cout << "MIDI is on" << std::endl;
+#endif
 
 #ifdef HTTPCTRL
 	httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
@@ -121,6 +137,10 @@ int main(int argc, char *argv[] )
 #ifdef OSCCTRL
 	oscinterface->run();
 #endif
+
+#ifdef MIDICTRL
+	midiinterface.run();
+#endif
 	interface->run();
 	
     myApp.setStyleSheet(interface->styleSheet());
@@ -130,7 +150,7 @@ int main(int argc, char *argv[] )
 	audio.stop();
 	finterface->saveState(rcfilename);
     
-   // desallocation
+    // desallocation
     delete interface;
     delete finterface;
 #ifdef HTTPCTRL
@@ -142,5 +162,6 @@ int main(int argc, char *argv[] )
 
   	return 0;
 }
+
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

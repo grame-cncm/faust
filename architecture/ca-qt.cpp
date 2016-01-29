@@ -40,7 +40,6 @@
 #include <list>
 
 #include "faust/dsp/timed-dsp.h"
-
 #include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/faustqt.h"
@@ -80,13 +79,13 @@
 #endif
 
 dsp* DSP;
-timed_dsp* timed_dsp;
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 /******************************************************************************
 *******************************************************************************
@@ -109,6 +108,7 @@ int main(int argc, char *argv[])
     int fpb = lopt(argv, "--buffer", 512);
     int poly = lopt(argv, "--poly", 4);
 
+/*
 #ifdef POLY
 #if MIDICTRL
     DSP = new mydsp_poly(poly, true);
@@ -118,6 +118,9 @@ int main(int argc, char *argv[])
 #else
     DSP = new mydsp();
 #endif
+*/
+    DSP = new timed_dsp(new mydsp());
+    
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
