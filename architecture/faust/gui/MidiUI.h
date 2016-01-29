@@ -20,7 +20,6 @@
     that work under terms of your choice, so long as this FAUST
     architecture section is not modified.
 
-
  ************************************************************************
  ************************************************************************/
 
@@ -131,8 +130,8 @@ class uiMidiClock : public uiMidiTimedItem
         
         void modifyZone(double date, FAUSTFLOAT v) 	
         { 
-            fState != fState;
-            uiMidiTimedItem::modifyZone(date, fState);
+            fState = !fState;
+            uiMidiTimedItem::modifyZone(date, FAUSTFLOAT(fState));
         }
         
 };
@@ -493,7 +492,7 @@ class MidiUI : public GUI, public midi
         void stop(double date)
         {
             for (int i = 0; i < fStopTable.size(); i++) {
-                fStopTable[i]->modifyZone(date, FAUSTFLOAT(1));
+                fStopTable[i]->modifyZone(date, FAUSTFLOAT(0));
             }
         }
         
