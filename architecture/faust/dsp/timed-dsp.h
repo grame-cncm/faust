@@ -43,7 +43,11 @@ typedef std::vector<ts_value>::iterator value_it;
 class timed_dsp : public decorator_dsp {
 
     protected:
-    
+        
+        double fDateUsec;
+        double fOffsetUsec;
+        bool fFirstCallback;
+        
         static bool compareDate(const ts_value& a, const ts_value& b) { return a.first < b.first; }
         
         void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
@@ -61,23 +65,30 @@ class timed_dsp : public decorator_dsp {
             
             fDSP->compute(slice, inputs_slice, outputs_slice);
         }
-        
-        double fComputeDateUsec;
   
     public:
 
-        timed_dsp(dsp* dsp):decorator_dsp(dsp),fComputeDateUsec(0)
+        timed_dsp(dsp* dsp):decorator_dsp(dsp),fDateUsec(0),fFirstCallback(true), fOffsetUsec(0)
         {}
         virtual ~timed_dsp() 
         {}
         
+        // Default method take a timestamp at 'compute' call time
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            // Keep used date of compute
-            double lastComputeDateUsec = fComputeDateUsec;
-            fComputeDateUsec = GetCurrentTimeInUsec();
+            compute(GetCurrentTimeInUsec(), count, inputs, outputs);
+        }    
+        
+        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            // Save the timestamp offset...
+            if (fFirstCallback) {
+                fOffsetUsec = GetCurrentTimeInUsec() - date_usec;
+                fFirstCallback = false;
+                //printf("fOffsetUsec %f\n", fOffsetUsec);
+            }
             
-            //printf("compute %lld\n", fComputeDateUsec - lastComputeDateUsec);
+            //printf("compute %lld\n", fDateUsec - lastDateUsec);
             
             int control_change_count = 0;
             std::vector<value_it> control_vector_it;
@@ -113,7 +124,7 @@ class timed_dsp : public decorator_dsp {
              
                 // Find date of next slice to compute
                 for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++, i++) {
-                    // Keep the minimal one
+                    // If value list is not empty, get the date and keep the minimal one
                     if (control_vector_it[i] != ((*it1).second)->end()) {
                         double date = (*control_vector_it[i]).first;
                         if (date < cur_zone_date) {
@@ -125,12 +136,12 @@ class timed_dsp : public decorator_dsp {
                 }
                 
                 /*
-                printf("cur_zone_date = %f lastComputeDateUsec = %f  delta %f\n", 
-                    cur_zone_date, lastComputeDateUsec, cur_zone_date - lastComputeDateUsec);
+                printf("cur_zone_date = %f lastDateUsec = %f  delta %f\n", 
+                    cur_zone_date, lastDateUsec, cur_zone_date - lastDateUsec);
                 */
                 
                 // Convert cur_zone_date in sample from begining of buffer
-                cur_zone_date = ((cur_zone_date - lastComputeDateUsec) / 1000000.) * double(getSampleRate());
+                cur_zone_date = ((cur_zone_date - fDateUsec) / 1000000.) * double(getSampleRate());
                 
                 // Update control
                 *((*it2).first) = (*control_vector_it[found]).second;
@@ -160,6 +171,9 @@ class timed_dsp : public decorator_dsp {
             for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
                 (*it1).second->clear();
             }
+            
+            // Keep call date
+            fDateUsec = date_usec + fOffsetUsec;
         }
         
 };

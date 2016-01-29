@@ -69,6 +69,7 @@ class dsp {
         virtual void buildUserInterface(UI* ui_interface) 				= 0;
         virtual void init(int samplingRate) 							= 0;
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 	= 0;
+        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
         virtual int getSampleRate() { return fSamplingFreq; }
 };
 
@@ -92,11 +93,15 @@ class decorator_dsp : public dsp {
         virtual void buildUserInterface(UI* ui_interface)   { fDSP->buildUserInterface(ui_interface); }
         virtual void init(int samplingRate)                 { fDSP->init(samplingRate); }
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(count, inputs, outputs); }
+        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(date_usec, count, inputs, outputs); }
         virtual int getSampleRate() { return fDSP->getSampleRate(); }
 };
 
+//----------------------------------------------------------------
 // On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
 // flags to avoid costly denormals
+//----------------------------------------------------------------
+
 #ifdef __SSE__
     #include <xmmintrin.h>
     #ifdef __SSE2__
