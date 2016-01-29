@@ -87,6 +87,8 @@ dsp* DSP;
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
+TMutex* GUI::gMutex = new TMutex();
+
 /******************************************************************************
 *******************************************************************************
 
@@ -102,7 +104,7 @@ int main(int argc, char *argv[])
 	char* home = getenv("HOME");
 
 	snprintf(name, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
+	snprintf(rcfilename, 255, "%s/.%src", home, name);
     
     long srate = (long)lopt(argv, "--frequency", -1);
     int fpb = lopt(argv, "--buffer", 512);

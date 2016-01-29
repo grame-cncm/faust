@@ -69,15 +69,15 @@ class rtmidi : public midi {
             
                 int sync = (int)message->at(0);
                 if (sync == MIDI_CLOCK) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->clock(time);
                     }
                 } else if (sync == MIDI_START) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->start(time);
                     }
                 } else if (sync == MIDI_STOP) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->stop(time);
                     }
                 }
@@ -87,11 +87,11 @@ class rtmidi : public midi {
                 int data1 = (int)message->at(1);
                 
                 if (cmd == MIDI_PROGRAM_CHANGE) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->progChange(time, channel, data1);
                     }
                 } else if (cmd == MIDI_AFTERTOUCH) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->chanPress(time, channel, data1);
                     }
                 }
@@ -102,23 +102,23 @@ class rtmidi : public midi {
                 int data2 = (int)message->at(2);
                 
                 if (cmd == MIDI_NOTE_OFF || ((cmd == MIDI_NOTE_ON) && (data2 == 0))) { 
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->keyOff(time, channel, data1, data2);
                     }
                 } else if (cmd == MIDI_NOTE_ON) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->keyOn(time, channel, data1, data2);
                     }
                 } else if (cmd == MIDI_CONTROL_CHANGE) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->ctrlChange(time, channel, data1, data2);
                     }
                 } else if (cmd == MIDI_PITCH_BEND) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->pitchWheel(time, channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
                     }
                 } else if (cmd == MIDI_POLY_AFTERTOUCH) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->keyPress(time, channel, data1, data2);
                     }
                 }
@@ -137,7 +137,7 @@ class rtmidi : public midi {
             }
     
             // Then open all of them
-            for (int i = 0; i < nInPorts; i++) {
+            for (unsigned int i = 0; i < nInPorts; i++) {
                 RtMidiIn* midi_in = new RtMidiIn();
                 midi_in->ignoreTypes(true, false, true);
                 fInput.push_back(midi_in);
@@ -160,7 +160,7 @@ class rtmidi : public midi {
             }
     
             // Then open all of them
-            for (int i = 0; i < nOutPorts; i++) {
+            for (unsigned int i = 0; i < nOutPorts; i++) {
                 RtMidiOut* midi_out = new RtMidiOut();
                 fOutput.push_back(midi_out);
                 midi_out->openPort(i);
@@ -221,12 +221,9 @@ class rtmidi : public midi {
                 
             } catch (RtMidiError &error) {
                 error.printMessage();
+                stop();
                 return false;
             }
-            
-        cleanup:
-            stop();
-            return false;
         }
         
         void stop()

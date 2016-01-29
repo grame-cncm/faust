@@ -427,7 +427,7 @@ class MidiUI : public GUI, public midi
         void keyOn(double date, int channel, int note, int velocity) 
         {
             if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
-                for (int i = 0; i < fKeyOnTable[note].size(); i++) {
+                for (unsigned int i = 0; i < fKeyOnTable[note].size(); i++) {
                     fKeyOnTable[note][i]->modifyZone(FAUSTFLOAT(velocity));
                 }
             }
@@ -438,7 +438,7 @@ class MidiUI : public GUI, public midi
         void ctrlChange(double date, int channel, int ctrl, int value)
         {
             if (fCtrlChangeTable.find(ctrl) != fCtrlChangeTable.end()) {
-                for (int i = 0; i < fCtrlChangeTable[ctrl].size(); i++) {
+                for (unsigned int i = 0; i < fCtrlChangeTable[ctrl].size(); i++) {
                     fCtrlChangeTable[ctrl][i]->modifyZone(FAUSTFLOAT(value));
                 }
             } 
@@ -447,7 +447,7 @@ class MidiUI : public GUI, public midi
         void progChange(double date, int channel, int pgm)
         {
             if (fProgChangeTable.find(pgm) != fProgChangeTable.end()) {
-                for (int i = 0; i < fProgChangeTable[pgm].size(); i++) {
+                for (unsigned int i = 0; i < fProgChangeTable[pgm].size(); i++) {
                     fProgChangeTable[pgm][i]->modifyZone(FAUSTFLOAT(1));
                 }
             } 
@@ -455,7 +455,7 @@ class MidiUI : public GUI, public midi
         
         void pitchWheel(double date, int channel, int wheel) 
         {
-            for (int i = 0; i < fPitchWheelTable.size(); i++) {
+            for (unsigned int i = 0; i < fPitchWheelTable.size(); i++) {
                 fPitchWheelTable[i]->modifyZone(FAUSTFLOAT(wheel));
             }
         }
@@ -463,7 +463,7 @@ class MidiUI : public GUI, public midi
         void keyPress(double date, int channel, int pitch, int press) 
         {
             if (fKeyPressTable.find(press) != fKeyPressTable.end()) {
-                for (int i = 0; i < fKeyPressTable[press].size(); i++) {
+                for (unsigned int i = 0; i < fKeyPressTable[press].size(); i++) {
                     fKeyPressTable[press][i]->modifyZone(FAUSTFLOAT(press));
                 }
             } 
@@ -472,7 +472,7 @@ class MidiUI : public GUI, public midi
         void chanPress(double date, int channel, int press)
         {
             if (fChanPressTable.find(press) != fChanPressTable.end()) {
-                for (int i = 0; i < fChanPressTable[press].size(); i++) {
+                for (unsigned int i = 0; i < fChanPressTable[press].size(); i++) {
                     fChanPressTable[press][i]->modifyZone(FAUSTFLOAT(1));
                 }
             } 
@@ -484,21 +484,21 @@ class MidiUI : public GUI, public midi
         
         void start(double date)
         {
-            for (int i = 0; i < fStartTable.size(); i++) {
+            for (unsigned int i = 0; i < fStartTable.size(); i++) {
                 fStartTable[i]->modifyZone(date, FAUSTFLOAT(1));
             }
         }
         
         void stop(double date)
         {
-            for (int i = 0; i < fStopTable.size(); i++) {
+            for (unsigned int i = 0; i < fStopTable.size(); i++) {
                 fStopTable[i]->modifyZone(date, FAUSTFLOAT(0));
             }
         }
         
         void clock(double date)
         {
-            for (int i = 0; i < fClockTable.size(); i++) {
+            for (unsigned int i = 0; i < fClockTable.size(); i++) {
                 fClockTable[i]->modifyZone(date, FAUSTFLOAT(1));
             }
         }
