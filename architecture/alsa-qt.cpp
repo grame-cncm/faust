@@ -88,10 +88,10 @@ ztimedmap GUI::gTimedZoneMap;
 //-------------------------------------------------------------------------
 int main(int argc, char *argv[] )
 {
-	char* appname = basename (argv [0]);
+	char* name = basename (argv [0]);
     char  rcfilename[256];
 	char* home = getenv("HOME");
-	snprintf(rcfilename, 255, "%s/.%src", home, appname);
+	snprintf(rcfilename, 255, "%s/.%src", home, name);
 	
     //DSP = new mydsp();
     DSP = new timed_dsp(new mydsp());
@@ -115,18 +115,18 @@ int main(int argc, char *argv[] )
 #endif
 
 #ifdef HTTPCTRL
-	httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+	httpdUI* httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
 	DSP->buildUserInterface(httpdinterface);
-     std::cout << "HTTPD is on" << std::endl;
+    std::cout << "HTTPD is on" << std::endl;
 #endif
 
 #ifdef OSCCTRL
-	GUI* oscinterface = new OSCUI(appname, argc, argv);
+	GUI* oscinterface = new OSCUI(name, argc, argv);
 	DSP->buildUserInterface(oscinterface);
 #endif
 
 	alsaaudio audio (argc, argv, DSP);
-	audio.init(appname, DSP);
+	audio.init(name, DSP);
 	finterface->recallState(rcfilename);	
 	audio.start();
 	
