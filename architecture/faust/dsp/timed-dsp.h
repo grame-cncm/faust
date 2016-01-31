@@ -38,12 +38,17 @@ double GetCurrentTimeInUsec();
 //  Timed signal processor definition
 //----------------------------------------------------------------
 
+static int gCycle = 0;
+static int gLastDateSample = 0.;
+static double gLastUsec = 0.;
+
 typedef std::vector<ts_value>::iterator value_it;
 
 class timed_dsp : public decorator_dsp {
 
     protected:
         
+        double fSamplingFreq;
         double fDateUsec;
         double fOffsetUsec;
         bool fFirstCallback;
@@ -52,26 +57,33 @@ class timed_dsp : public decorator_dsp {
         
         void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
-            // Do audio compilation "slice" by "slice"
-            FAUSTFLOAT* inputs_slice[fDSP->getNumInputs()];
-            FAUSTFLOAT* outputs_slice[fDSP->getNumOutputs()];
-            
-            for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
-                inputs_slice[chan] = &(inputs[chan])[offset];
-            }
-            for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
-                outputs_slice[chan] = &(outputs[chan])[offset];
-            }
-            
-            fDSP->compute(slice, inputs_slice, outputs_slice);
+            if (slice > 0) {
+                FAUSTFLOAT* inputs_slice[fDSP->getNumInputs()];
+                FAUSTFLOAT* outputs_slice[fDSP->getNumOutputs()];
+                
+                for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
+                    inputs_slice[chan] = &(inputs[chan][offset]);
+                }
+                for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
+                    outputs_slice[chan] = &(outputs[chan][offset]);
+                }
+                
+                fDSP->compute(slice, inputs_slice, outputs_slice);
+            } 
         }
   
     public:
 
-        timed_dsp(dsp* dsp):decorator_dsp(dsp),fDateUsec(0),fFirstCallback(true), fOffsetUsec(0)
+        timed_dsp(dsp* dsp):decorator_dsp(dsp),fSamplingFreq(0), fDateUsec(0),fOffsetUsec(0), fFirstCallback(true) 
         {}
         virtual ~timed_dsp() 
         {}
+        
+        virtual void init(int samplingRate)
+        {
+            fSamplingFreq = double(samplingRate);
+            fDSP->init(samplingRate);
+        }
         
         // Default method take a timestamp at 'compute' call time
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -81,15 +93,23 @@ class timed_dsp : public decorator_dsp {
         
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
+            GUI::gMutex->Lock();
+             
+            //printf("DELTA USEC = %f \n", date_usec - gLastUsec);
+            gLastUsec = date_usec;
+             
             // Save the timestamp offset...
             if (fFirstCallback) {
                 fOffsetUsec = GetCurrentTimeInUsec() - date_usec;
+                fDateUsec = date_usec + fOffsetUsec;
                 fFirstCallback = false;
             }
             
+            gCycle++;
+                       
             int control_change_count = 0;
             std::vector<value_it> control_vector_it;
-            std::map<FAUSTFLOAT*, zvalues>::iterator it;
+            std::map<FAUSTFLOAT*, zvalues>::iterator it, it2;
              
             // Time sort values associated with zones
             for (it = GUI::gTimedZoneMap.begin(); it != GUI::gTimedZoneMap.end(); it++) {
@@ -102,15 +122,16 @@ class timed_dsp : public decorator_dsp {
                 //std::sort(values->begin(), values->end(), compareDate);
             }
              
-            // Do audio compilation "slice" by "slice"
+            // Do audio computation "slice" by "slice"
             int slice, offset = 0;
+            
+            //printf("control_change_count = %d\n", control_change_count);
             
             // Compute audio slices...
             while (control_change_count-- > 0) {
                 
                 double cur_zone_date = DBL_MAX;
-                FAUSTFLOAT* cur_zone;
-                value_it cur_found_it;
+                int found = 0;
                 int i = 0;
              
                 // Find date of next slice to compute
@@ -119,28 +140,29 @@ class timed_dsp : public decorator_dsp {
                     if (control_vector_it[i] != ((*it).second)->end()) {
                         double date = (*control_vector_it[i]).first;
                         if (date < cur_zone_date) {
-                            cur_found_it = control_vector_it[i];
-                            cur_zone = (*it).first;
+                            found = i;
+                            it2 = it;
                             cur_zone_date = date;
                         }
                     }
                 }
                 
-                // Convert cur_zone_date in sample from begining of buffer
-                cur_zone_date = ((cur_zone_date - fDateUsec) / 1000000.) * double(getSampleRate());
-                
-                // Update control
-                *cur_zone = (*cur_found_it).second;
-                
-                //printf("sample_offset = %f value = %f\n", cur_zone_date, *cur_zone);
-               
-                // Move iterator of the values list to next zone
-                cur_found_it++;
+                // Convert cur_zone_date in sample from begining of buffer, possible moving to 0 (if negative)
+                cur_zone_date = std::max(0., (fSamplingFreq * (cur_zone_date - fDateUsec)) / 1000000.);
+                   
+                //printf("DELTA %f\n", (cur_zone_date + gCycle*count) - gLastDateSample);
+                gLastDateSample = gCycle*count + cur_zone_date;
                  
                 // Compute audio slice
                 slice = int(cur_zone_date) - offset;
                 computeSlice(offset, slice, inputs, outputs);
                 offset += slice;
+                
+                // Update control
+                *((*it2).first) = (*control_vector_it[found]).second;
+                
+                // Move iterator of the values list to next zone
+                (control_vector_it[found])++;
             } 
             
             // Compute last audio slice
@@ -154,6 +176,15 @@ class timed_dsp : public decorator_dsp {
             
             // Keep call date
             fDateUsec = date_usec + fOffsetUsec;
+            
+            /*
+            FAUSTFLOAT* output0 = outputs[0];
+            for (int i = 0 ; i<count; i++) {
+                printf("output0 i = %d sample = %f\n", i, output0[i]);
+            }
+            */
+            
+            GUI::gMutex->Unlock();
         }
         
 };

@@ -27,6 +27,7 @@
 #define FAUST_GUI_H
 
 #include "faust/gui/UI.h"
+#include "faust/gui/TMutex.h"
 #include <list>
 #include <map>
 #include <vector>
@@ -113,6 +114,7 @@ class GUI : public UI
         
         // Static global for timed zones
         static ztimedmap gTimedZoneMap;
+        static TMutex* gMutex;
 };
 
 /**
