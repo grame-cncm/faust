@@ -100,6 +100,15 @@ class uiMidiStart : public uiMidiTimedItem
         virtual ~uiMidiStart()
         {}
         
+        virtual void reflectZone()
+        {
+            FAUSTFLOAT v = *fZone;
+            fCache = v;
+            if (v != FAUSTFLOAT(0)) {
+                fMidiOut->start(0);
+            }
+        }
+        
 };
 
 class uiMidiStop : public uiMidiTimedItem
@@ -113,6 +122,14 @@ class uiMidiStop : public uiMidiTimedItem
         virtual ~uiMidiStop()
         {}
         
+        virtual void reflectZone()
+        {
+            FAUSTFLOAT v = *fZone;
+            fCache = v;
+            if (v != FAUSTFLOAT(1)) {
+                fMidiOut->stop(0);
+            }
+        }
 };
 
 class uiMidiClock : public uiMidiTimedItem
@@ -136,6 +153,12 @@ class uiMidiClock : public uiMidiTimedItem
             uiMidiTimedItem::modifyZone(date, FAUSTFLOAT(fState));
         }
         
+        virtual void reflectZone()
+        {
+            FAUSTFLOAT v = *fZone;
+            fCache = v;
+            fMidiOut->clock(0);
+        }
 };
 
 class uiMidiProgChange : public uiMidiItem
