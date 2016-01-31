@@ -77,7 +77,9 @@ class uiMidiTimedItem : public uiMidiItem
 
         void modifyZone(double date, FAUSTFLOAT v) 	
         { 
+            GUI::gMutex->Lock();
             GUI::gTimedZoneMap[fZone]->push_back(std::make_pair(date, v));
+            GUI::gMutex->Unlock();
         }
         
         // TODO

@@ -70,7 +70,7 @@ class dsp {
         virtual void init(int samplingRate) 							= 0;
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 	= 0;
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
-        virtual int getSampleRate() { return fSamplingFreq; }
+       
 };
 
 //----------------------------------------------------------------
@@ -94,7 +94,7 @@ class decorator_dsp : public dsp {
         virtual void init(int samplingRate)                 { fDSP->init(samplingRate); }
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(count, inputs, outputs); }
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(date_usec, count, inputs, outputs); }
-        virtual int getSampleRate() { return fDSP->getSampleRate(); }
+       
 };
 
 //----------------------------------------------------------------
