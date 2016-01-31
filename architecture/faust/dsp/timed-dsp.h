@@ -38,10 +38,6 @@ double GetCurrentTimeInUsec();
 //  Timed signal processor definition
 //----------------------------------------------------------------
 
-static int gCycle = 0;
-static int gLastDateSample = 0.;
-static double gLastUsec = 0.;
-
 typedef std::vector<ts_value>::iterator value_it;
 
 class timed_dsp : public decorator_dsp {
@@ -95,17 +91,12 @@ class timed_dsp : public decorator_dsp {
         {
             GUI::gMutex->Lock();
              
-            //printf("DELTA USEC = %f \n", date_usec - gLastUsec);
-            gLastUsec = date_usec;
-             
             // Save the timestamp offset...
             if (fFirstCallback) {
                 fOffsetUsec = GetCurrentTimeInUsec() - date_usec;
                 fDateUsec = date_usec + fOffsetUsec;
                 fFirstCallback = false;
             }
-            
-            gCycle++;
                        
             int control_change_count = 0;
             std::vector<value_it> control_vector_it;
@@ -124,8 +115,6 @@ class timed_dsp : public decorator_dsp {
              
             // Do audio computation "slice" by "slice"
             int slice, offset = 0;
-            
-            //printf("control_change_count = %d\n", control_change_count);
             
             // Compute audio slices...
             while (control_change_count-- > 0) {
@@ -149,9 +138,6 @@ class timed_dsp : public decorator_dsp {
                 
                 // Convert cur_zone_date in sample from begining of buffer, possible moving to 0 (if negative)
                 cur_zone_date = std::max(0., (fSamplingFreq * (cur_zone_date - fDateUsec)) / 1000000.);
-                   
-                //printf("DELTA %f\n", (cur_zone_date + gCycle*count) - gLastDateSample);
-                gLastDateSample = gCycle*count + cur_zone_date;
                  
                 // Compute audio slice
                 slice = int(cur_zone_date) - offset;
@@ -176,13 +162,6 @@ class timed_dsp : public decorator_dsp {
             
             // Keep call date
             fDateUsec = date_usec + fOffsetUsec;
-            
-            /*
-            FAUSTFLOAT* output0 = outputs[0];
-            for (int i = 0 ; i<count; i++) {
-                printf("output0 i = %d sample = %f\n", i, output0[i]);
-            }
-            */
             
             GUI::gMutex->Unlock();
         }
