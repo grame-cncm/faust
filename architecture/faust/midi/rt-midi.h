@@ -300,7 +300,27 @@ class rtmidi : public midi {
         }
         
         void ctrlChange14bits(int channel, int ctrl, int value) {}
-   
+         
+        void start(double date) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_START);
+            sendMessage(message);
+        }
+       
+        void stop(double date) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_STOP);
+            sendMessage(message);
+        }
+        
+        void clock(double date) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_CLOCK);
+            sendMessage(message);
+        }
 };
 
 #if __APPLE__

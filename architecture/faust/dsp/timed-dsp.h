@@ -45,8 +45,8 @@ class timed_dsp : public decorator_dsp {
     protected:
         
         double fSamplingFreq;
-        double fDateUsec;
-        double fOffsetUsec;
+        double fDateUsec;       // Compute call date in usec
+        double fOffsetUsec;     // Compute call offset in usec
         bool fFirstCallback;
         
         static bool compareDate(const ts_value& a, const ts_value& b) { return a.first < b.first; }
@@ -100,11 +100,11 @@ class timed_dsp : public decorator_dsp {
                        
             int control_change_count = 0;
             std::vector<value_it> control_vector_it;
-            std::map<FAUSTFLOAT*, zvalues>::iterator it, it2;
+            std::map<FAUSTFLOAT*, zvalues>::iterator it1, it2;
              
             // Time sort values associated with zones
-            for (it = GUI::gTimedZoneMap.begin(); it != GUI::gTimedZoneMap.end(); it++) {
-                zvalues values = (*it).second;
+            for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
+                zvalues values = (*it1).second;
                 // Keep number of all control values changes
                 control_change_count += values->size();
                 // Keep begin iterator
@@ -123,20 +123,20 @@ class timed_dsp : public decorator_dsp {
                 int found = 0;
                 int i = 0;
              
-                // Find date of next slice to compute
-                for (it = GUI::gTimedZoneMap.begin(); it != GUI::gTimedZoneMap.end(); it++, i++) {
+                // Find date of next audio slice to compute
+                for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++, i++) {
                     // If value list is not empty, get the date and keep the minimal one
-                    if (control_vector_it[i] != ((*it).second)->end()) {
+                    if (control_vector_it[i] != ((*it1).second)->end()) {
                         double date = (*control_vector_it[i]).first;
                         if (date < cur_zone_date) {
                             found = i;
-                            it2 = it;
+                            it2 = it1;
                             cur_zone_date = date;
                         }
                     }
                 }
                 
-                // Convert cur_zone_date in sample from begining of buffer, possible moving to 0 (if negative)
+                // Convert cur_zone_date in sample from begining of the buffer, possible moving to 0 (if negative)
                 cur_zone_date = std::max(0., (fSamplingFreq * (cur_zone_date - fDateUsec)) / 1000000.);
                  
                 // Compute audio slice
@@ -156,8 +156,8 @@ class timed_dsp : public decorator_dsp {
             computeSlice(offset, slice, inputs, outputs);
             
             // Finally clear values for all zones
-            for (it = GUI::gTimedZoneMap.begin(); it != GUI::gTimedZoneMap.end(); it++) {
-                (*it).second->clear();
+            for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
+                (*it1).second->clear();
             }
             
             // Keep call date
