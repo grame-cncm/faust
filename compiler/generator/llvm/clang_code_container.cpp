@@ -113,9 +113,10 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     TheDriver.setTitle("clang interpreter");
     
     int argc = 2;
-    const char* argv[argc];
+    const char* argv[argc + 1];
     argv[0] = "clang";
     argv[1] = getTempName();
+    argv[argc] = 0;  // NULL terminated argv
     SmallVector<const char*, 16> Args(argv, argv + argc);
     Args.push_back("-fsyntax-only");
     //Args.push_back("-O3");

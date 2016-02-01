@@ -284,10 +284,12 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     }
 
 #ifdef WIN32
-	argv[fCompileOptions.size()] = "-l";
-	argv[fCompileOptions.size()+1] = "llvm_math.ll";
+    argv[fCompileOptions.size()] = "-l";
+    argv[fCompileOptions.size() + 1] = "llvm_math.ll";
+    argv[fCompileOptions.size() + 2] = 0;  // NULL terminated argv
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size() + 2, argv, getTarget(), error, LLVM_OPTIMIZATION);
 #else
+    argv[fCompileOptions.size()] = 0;  // NULL terminated argv
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error, LLVM_OPTIMIZATION);
 #endif
 
@@ -345,15 +347,16 @@ llvm_dsp* faustgen_factory::create_dsp_aux()
 
     // Otherwise creates default DSP keeping the same input/output number
 #ifdef WIN32
-	int argc = 2;
-	const char* argv[2];
-	argv[0] = "-l";
-	argv[1] = "llvm_math.ll";
+    int argc = 2;
+    const char* argv[argc + 1];
+    argv[0] = "-l";
+    argv[1] = "llvm_math.ll";
+    argc[argc] = 0;  // NULL terminated argv
     fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, argc, argv, getTarget(), error, LLVM_OPTIMIZATION);
 #else
-	fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, LLVM_OPTIMIZATION);
+    fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, LLVM_OPTIMIZATION);
 #endif
-	dsp = createDSPInstance(fDSPfactory);
+    dsp = createDSPInstance(fDSPfactory);
     post("Allocation of default DSP succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
   
  end:

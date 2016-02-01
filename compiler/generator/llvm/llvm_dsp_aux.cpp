@@ -369,6 +369,8 @@ LLVMResult* llvm_dsp_factory::compileModule(int argc, const char* argv[], const 
     for (int i = 0; i < argc; i++) {
         argv1[i+3] = argv[i];
     }
+    
+    argv1[argc1] = 0;  // NULL terminated argv
 
     return compile_faust_llvm(argc1, argv1, input_name, input, error_msg);
 }
@@ -1172,7 +1174,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
 {
     TLock lock(gDSPFactoriesLock);
     
-    const char** argv1 = (const char**)alloca(argc * sizeof(char*));
+    const char** argv1 = (const char**)alloca((argc + 1) * sizeof(char*));
     int argc1 = 0;
  
     // Filter arguments 
@@ -1191,6 +1193,8 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             argv1[argc1++] = argv[i];
         }
     }
+    
+    argv1[argc1] = 0;  // NULL terminated argv
         
     string expanded_dsp_content;
     string sha_key;
