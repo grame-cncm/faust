@@ -341,7 +341,7 @@ class httpdUI : public DecoratorUI
     
         httpdUI(const char* applicationname, int inputs, int outputs, int argc, char* argv[], bool init = true)
         { 
-            if (isopt(argv, "-server")) {
+            if (argv && isopt(argv, "-server")) {
             #ifndef _WIN32
                 fUI = new httpdClientUI(lopts(argv, "-server", "http://localhost:5510"));
             #endif
