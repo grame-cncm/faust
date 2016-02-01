@@ -46,6 +46,7 @@
 #endif
 #include "faust/audio/audio.h"
 #include "faust/dsp/dsp.h"
+#include "faust/midi/midi.h"
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 #define snprintf _snprintf_s
@@ -63,14 +64,11 @@ class jackaudio : public audio {
     
     protected:
 
-        dsp*			fDsp;               // FAUST DSP
+        dsp*			fDSP;               // FAUST DSP
         jack_client_t*	fClient;            // JACK client
     
-        int				fNumInChans;		// number of input channels
-        int				fNumOutChans;       // number of output channels
-    
-        jack_port_t**	fInputPorts;        // JACK input ports
-        jack_port_t**	fOutputPorts;       // JACK output ports
+        std::vector<jack_port_t*>	fInputPorts;        // JACK input ports
+        std::vector<jack_port_t*>	fOutputPorts;       // JACK output ports
         
         std::vector<char*> fPhysicalInputs;
         std::vector<char*> fPhysicalOutputs;
@@ -134,7 +132,7 @@ class jackaudio : public audio {
         {
             fConnections.clear();
             
-             for (int i = 0; i < fNumInChans; i++) {
+             for (int i = 0; i < fInputPorts.size(); i++) {
                 const char** connected_port = jack_port_get_all_connections(fClient, fInputPorts[i]);
                 if (connected_port != NULL) {
                     for (int port = 0; connected_port[port]; port++) {
@@ -145,7 +143,7 @@ class jackaudio : public audio {
                 }
             }
        
-            for (int i = 0; i < fNumOutChans; i++) {
+            for (int i = 0; i < fOutputPorts.size(); i++) {
                 const char** connected_port = jack_port_get_all_connections(fClient, fOutputPorts[i]);
                 if (connected_port != NULL) {
                     for (int port = 0; connected_port[port]; port++) {
@@ -185,27 +183,24 @@ class jackaudio : public audio {
             AVOIDDENORMALS;
             
             // Retrieve JACK inputs/output audio buffers
-			float** fInChannel = (float**)alloca(fNumInChans*sizeof(float*));
-            for (int i = 0; i < fNumInChans; i++) {
+            float** fInChannel = (float**)alloca(fInputPorts.size() * sizeof(float*));
+            for (int i = 0; i < fInputPorts.size(); i++) {
                 fInChannel[i] = (float*)jack_port_get_buffer(fInputPorts[i], nframes);
             }
-            
-			float** fOutChannel = (float**)alloca(fNumOutChans*sizeof(float*));
-            for (int i = 0; i < fNumOutChans; i++) {
+
+            float** fOutChannel = (float**)alloca(fOutputPorts.size() * sizeof(float*));
+            for (int i = 0; i < fOutputPorts.size(); i++) {
                 fOutChannel[i] = (float*)jack_port_get_buffer(fOutputPorts[i], nframes);
             }
-            
-            fDsp->compute(nframes, fInChannel, fOutChannel);
+
+            fDSP->compute(nframes, fInChannel, fOutChannel);
             return 0;
         }
 
     public:
     
         jackaudio(const void* icon_data = 0, size_t icon_size = 0, bool auto_connect = true) 
-            : fDsp(0), fClient(0), fNumInChans(0), fNumOutChans(0), 
-            fInputPorts(0), fOutputPorts(0), 
-            fShutdown(0), fShutdownArg(0),
-            fAutoConnect(auto_connect)
+            : fDSP(0), fClient(0), fShutdown(0), fShutdownArg(0), fAutoConnect(auto_connect)
         {
             if (icon_data) {
                 fIconData = malloc(icon_size);
@@ -222,17 +217,14 @@ class jackaudio : public audio {
             if (fClient) {
                 stop();
                 
-                for (int i = 0; i < fNumInChans; i++) {
+                for (int i = 0; i < fInputPorts.size(); i++) {
                     jack_port_unregister(fClient, fInputPorts[i]);
                 }
-                for (int i = 0; i < fNumOutChans; i++) {
+                for (int i = 0; i < fOutputPorts.size(); i++) {
                     jack_port_unregister(fClient, fOutputPorts[i]);
                 }
                 jack_client_close(fClient);
-                
-                delete[] fInputPorts;
-                delete[] fOutputPorts;
-                
+                  
                 if (fIconData) {
                     free(fIconData);
                 }
@@ -347,38 +339,32 @@ class jackaudio : public audio {
         {
             // To avoid feedback at launch time, don't connect hardware inputs
             /*
-            for (int i = 0; i < fNumOutChans && i < fPhysicalOutputs.size(); i++) {
+            for (int i = 0; i < fInputPorts.size() && i < fPhysicalOutputs.size(); i++) {
                 jack_connect(fClient, fPhysicalOutputs[i], jack_port_name(fInputPorts[i]));
             }
             */
                
-            for (int i = 0; i < fNumOutChans && i < fPhysicalInputs.size(); i++) {
+            for (int i = 0; i < fOutputPorts.size() && i < fPhysicalInputs.size(); i++) {
                 jack_connect(fClient, jack_port_name(fOutputPorts[i]), fPhysicalInputs[i]);
             }
         }
     
-        virtual bool set_dsp(dsp* DSP)
+        virtual bool set_dsp(dsp* dsp)
         {
-            fDsp = DSP;
+            fDSP = dsp;
             
-            fNumInChans  = fDsp->getNumInputs();
-            fNumOutChans = fDsp->getNumOutputs();
-            
-            fInputPorts = new jack_port_t*[fNumInChans];
-            fOutputPorts = new jack_port_t*[fNumOutChans];
-            
-            for (int i = 0; i < fNumInChans; i++) {
+            for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 char buf[256];
                 snprintf(buf, 256, "in_%d", i);
-                fInputPorts[i] = jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0);
+                fInputPorts.push_back(jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0));
             }
-            for (int i = 0; i < fNumOutChans; i++) {
+            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                 char buf[256];
                 snprintf(buf, 256, "out_%d", i);
-                fOutputPorts[i] = jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+                fOutputPorts.push_back(jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0));
             }
             
-            fDsp->init(jack_get_sample_rate(fClient));
+            fDSP->init(jack_get_sample_rate(fClient));
             return true;
         }
              
@@ -466,8 +452,8 @@ class jackaudio : public audio {
             }
         }
         
-        jack_port_t* get_input_port(int port)  { return (port >= 0 && port < fNumInChans) ? fInputPorts[port] : 0; }
-        jack_port_t* get_output_port(int port) { return (port >= 0 && port < fNumOutChans) ? fOutputPorts[port] : 0; }
+        jack_port_t* get_input_port(int port)  { return (port >= 0 && port < fInputPorts.size()) ? fInputPorts[port] : 0; }
+        jack_port_t* get_output_port(int port) { return (port >= 0 && port < fOutputPorts.size()) ? fOutputPorts[port] : 0; }
      
 };
 
