@@ -457,4 +457,43 @@ class jackaudio : public audio {
      
 };
 
+class jackaudio_midi : public jackaudio, public midi_handler {  // TO CHECK : what happens start/stop ?
+
+    protected:
+    
+        jack_port_t* fInputMidiPort;       // JACK input MIDI port
+        jack_port_t* fOutputMidiPort;       // JACK output MIDI port
+     
+        virtual int	process(jack_nframes_t nframes) 
+        {
+            // TODO : MIDI input
+            int res = jackaudio::process(nframes);
+            // TODO : MIDI output
+            return res;
+        }
+
+    public: 
+    
+        jackaudio_midi(const void* icon_data = 0, size_t icon_size = 0, bool auto_connect = true) 
+            :jackaudio(icon_data, icon_size, auto_connect), midi_handler("JACKMidi")
+        {
+            char buf[256];
+            
+            snprintf(buf, 256, "in_1");
+            fInputMidiPort = jack_port_register(fClient, buf, JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
+            
+            snprintf(buf, 256, "out_1");
+            fOutputMidiPort = jack_port_register(fClient, buf, JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);
+        }
+        
+        virtual ~jackaudio_midi()
+        {
+            jack_port_unregister(fClient, fInputMidiPort);
+            jack_port_unregister(fClient, fOutputMidiPort);
+        }
+        
+        virtual void addMidiIn(midi* midi_dsp) {}
+ 
+};
+
 #endif

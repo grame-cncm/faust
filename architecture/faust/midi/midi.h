@@ -96,7 +96,7 @@ class midi_handler : public midi {
 
     public:
 
-        midi_handler(const std::string& name = "MidiHandler"):fName(name) {}
+        midi_handler(const std::string& name = "MIDIHandler"):fName(name) {}
         virtual ~midi_handler() {}
         
         virtual void addMidiIn(midi* midi_dsp) {}

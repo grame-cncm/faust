@@ -220,6 +220,24 @@ class rt_midi : public midi_handler {
             }
         }
         
+        void keyOn(int channel, int pitch, int velocity) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_NOTE_ON + channel);
+            message.push_back(pitch);
+            message.push_back(velocity);
+            sendMessage(message);
+        }
+        
+        void keyOff(int channel, int pitch, int velocity) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_NOTE_OFF + channel);
+            message.push_back(pitch);
+            message.push_back(velocity);
+            sendMessage(message);
+        }
+        
         void ctrlChange(int channel, int ctrl, int val) 
         {
             std::vector<unsigned char> message;
@@ -244,25 +262,7 @@ class rt_midi : public midi_handler {
             message.push_back(pgm);
             sendMessage(message);
         }
-        
-        void keyOn(int channel, int pitch, int velocity) 
-        {
-            std::vector<unsigned char> message;
-            message.push_back(MIDI_NOTE_ON + channel);
-            message.push_back(pitch);
-            message.push_back(velocity);
-            sendMessage(message);
-        }
-        
-        void keyOff(int channel, int pitch, int velocity) 
-        {
-            std::vector<unsigned char> message;
-            message.push_back(MIDI_NOTE_OFF + channel);
-            message.push_back(pitch);
-            message.push_back(velocity);
-            sendMessage(message);
-        }
-        
+          
         void keyPress(int channel, int pitch, int press) 
         {
             std::vector<unsigned char> message;
@@ -303,6 +303,7 @@ class rt_midi : public midi_handler {
             message.push_back(MIDI_CLOCK);
             sendMessage(message);
         }
+        
 };
 
 #if __APPLE__
