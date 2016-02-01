@@ -309,6 +309,7 @@ class rt_midi : public midi_handler {
 #if TARGET_OS_IPHONE
 double GetCurrentTimeInUsec() { return double(CAHostTimeBase::GetCurrentTimeInNanos()) / 1000.; }
 #else
+#include <CoreAudio/HostTime.h>
 double GetCurrentTimeInUsec() { return double(AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())) / 1000.; }
 #endif
 #endif
