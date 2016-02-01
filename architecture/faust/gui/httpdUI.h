@@ -35,10 +35,9 @@
 #include <iostream>
 #include <sstream>
 
-#if !defined(_WIN32)
+#ifndef _WIN32
 #include <pthread.h>
 #else
-#warning *** httpdClientUI listener thread not yet implemented ***
 #endif
 
 /******************************************************************************
@@ -192,7 +191,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         std::string fServerURL;
         std::string fJSON;
         std::map<std::string, FAUSTFLOAT*> fZoneMap;
-    #if !defined(_WIN32)
+    #ifndef _WIN32
         pthread_t fThread;
     #endif
         int fTCPPort;
@@ -311,7 +310,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         { 
             if (fTCPPort > 0) {
                 fRunning = true;
-            #if !defined(_WIN32)
+            #ifndef _WIN32
                 pthread_create(&fThread, NULL, UpdateUI, this);
             #endif
             }
@@ -321,7 +320,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         { 
             if (fRunning) {
                 fRunning = false;
-            #if !defined(_WIN32)
+            #ifndef _WIN32
                 pthread_join(fThread, NULL);
             #endif
             
