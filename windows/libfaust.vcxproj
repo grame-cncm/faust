@@ -240,7 +240,6 @@
     <ClCompile Include="..\compiler\generator\js\js_code_container.cpp" />
     <ClCompile Include="..\compiler\generator\llvm\llvm_code_container.cpp" />
     <ClCompile Include="..\compiler\generator\llvm\llvm_dsp_aux.cpp" />
-    <ClCompile Include="..\compiler\generator\llvm\rn_base64.cpp" />
     <ClCompile Include="..\compiler\generator\occurences.cpp" />
     <ClCompile Include="..\compiler\generator\omp_code_container.cpp" />
     <ClCompile Include="..\compiler\generator\Text.cpp" />

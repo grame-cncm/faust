@@ -375,9 +375,6 @@
       <Filter>generator\llvm</Filter>
     </ClCompile>
     <ClCompile Include="..\compiler\libcode.cpp" />
-    <ClCompile Include="..\compiler\generator\llvm\rn_base64.cpp">
-      <Filter>generator\llvm</Filter>
-    </ClCompile>
     <ClCompile Include="..\compiler\generator\wasm\wasm_code_container.cpp">
       <Filter>generator\wasm</Filter>
     </ClCompile>
