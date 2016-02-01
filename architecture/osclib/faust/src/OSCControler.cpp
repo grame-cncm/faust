@@ -60,7 +60,7 @@ std::vector<OSCRegexp*> OSCControler::fFilteredPaths;
 //--------------------------------------------------------------------------
 static int getPortOption(int argc, char *argv[], const std::string& option, int defaultValue)
 {
-	for (int i=0; i < argc-1; i++) {
+	for (int i = 0; i < argc-1; i++) {
 		if (option == argv[i]) {
 			int val = strtol(argv[i+1], 0, 10);
 			if (val) return val;
@@ -71,7 +71,7 @@ static int getPortOption(int argc, char *argv[], const std::string& option, int 
 
 static const char* getDestOption(int argc, char *argv[], const std::string& option, const char* defaultValue)
 {
-	for (int i=0; i < argc-1; i++) {
+	for (int i = 0; i < argc-1; i++) {
 		if (option == argv[i])
 			return argv[i+1];
 	}
@@ -80,7 +80,7 @@ static const char* getDestOption(int argc, char *argv[], const std::string& opti
 
 static int getXmitOption(int argc, char *argv[], const std::string& option, bool defaultValue)
 {
-	for (int i=0; i < argc-1; i++) {
+	for (int i = 0; i < argc-1; i++) {
     	if (option == argv[i]) {
 			int val = strtol(argv[i+1], 0, 10);
 			return val;
