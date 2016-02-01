@@ -26,6 +26,9 @@
 #ifndef __midi__
 #define __midi__
 
+#include <vector>
+#include <string>
+
 //----------------------------------------------------------------
 //  MIDI processor definition
 //----------------------------------------------------------------
@@ -62,6 +65,45 @@ class midi {
         virtual void pitchWheel(int channel, int wheel)                 {}
         virtual void progChange(int channel, int pgm)                   {}
        
+};
+
+//----------------------------------------------------------------
+//  Base class for MIDI API handling
+//----------------------------------------------------------------
+
+class midi_handler : public midi {
+
+    protected:
+    
+        enum MidiStatus {
+	
+            // channel voice messages
+            MIDI_NOTE_OFF           = 0x80, 
+            MIDI_NOTE_ON            = 0x90, 
+            MIDI_CONTROL_CHANGE     = 0xB0,
+            MIDI_PROGRAM_CHANGE     = 0xC0,
+            MIDI_PITCH_BEND         = 0xE0,
+            MIDI_AFTERTOUCH         = 0xD0,	// aka channel pressure
+            MIDI_POLY_AFTERTOUCH    = 0xA0,	// aka key pressure
+            MIDI_CLOCK              = 0xF8,
+            MIDI_START              = 0xFA,
+            MIDI_STOP               = 0xFC
+
+        };
+ 
+        std::vector<midi*> fMidiInputs;
+        std::string fName;
+
+    public:
+
+        midi_handler(const std::string& name = "MidiHandler"):fName(name) {}
+        virtual ~midi_handler() {}
+        
+        virtual void addMidiIn(midi* midi_dsp) {}
+        
+        virtual bool start() {}
+        virtual void stop() {}
+
 };
 
 #endif // __midi__
