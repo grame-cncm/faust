@@ -380,6 +380,19 @@ pink_noise = ml.noise :
    fl.iir((0.049922035, -0.095993537, 0.050612699, -0.004408786),
                     (-2.494956002, 2.017265875, -0.522189400));
 
+// ### USAGE: pink_noise_vm(N) : _;
+// where N = number of latched white-noise processes to sum,
+//       not to exceed sizeof(int) in C++ (typically 32).
+//
+// ### Reference:
+//  http://www.dsprelated.com/showarticle/908.php
+
+pink_noise_vm(N) = ml.noise <: _,par(i,N,fl.latch(clock(i))) :> _
+with {
+  clock(i) = (counter>>i)&1; // i'th latch clock signal
+  counter = (+(1)~_) - 1;
+};
+
 //----------------------- lfnoise, lfnoise0, lfnoiseN ---------------------
 // Low-frequency noise generators
 // (Butterworth-filtered downsampled white noise)
