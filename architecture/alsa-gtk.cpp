@@ -81,7 +81,10 @@
 					
 dsp* DSP;
 
+ztimedmap GUI::gTimedZoneMap;
 std::list<GUI*> GUI::fGuiList;
+
+TMutex* GUI::gMutex = new TMutex();
 
 //-------------------------------------------------------------------------
 // 									MAIN
