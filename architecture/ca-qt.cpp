@@ -113,14 +113,15 @@ int main(int argc, char *argv[])
 /*
 #ifdef POLY
 #if MIDICTRL
-    DSP = new mydsp_poly(poly, true);
+    DSP = new timed_dsp(new mydsp_poly(poly, true));
 #else
-    DSP = new mydsp_poly(poly);
+    DSP = new timed_dsp(new mydsp_poly(poly));
 #endif
 #else
-    DSP = new mydsp();
+    DSP = new timed_dsp(new mydsp());
 #endif
 */
+
     DSP = new timed_dsp(new mydsp());
     
     if (DSP == 0) {

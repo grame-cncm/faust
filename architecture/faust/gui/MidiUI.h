@@ -347,8 +347,7 @@ class MidiUI : public GUI, public midi
         
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         
-        rtmidi fMIDI;
-        midi* fMidiOut;
+        midi_handler* fMidiHandler;
         
         void addGenericZone(FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
@@ -357,25 +356,25 @@ class MidiUI : public GUI, public midi
                     unsigned num;
                     if (fMetaAux[i].first == "midi") {
                         if (sscanf(fMetaAux[i].second.c_str(), "ctrl %u", &num) == 1) {
-                            fCtrlChangeTable[num].push_back(new uiMidiCtrlChange(fMidiOut, num, this, zone, min, max));
+                            fCtrlChangeTable[num].push_back(new uiMidiCtrlChange(fMidiHandler, num, this, zone, min, max));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "keyon %u", &num) == 1) {
-                            fKeyOnTable[num].push_back(new uiMidiKeyOn(fMidiOut, num, this, zone, min, max));
+                            fKeyOnTable[num].push_back(new uiMidiKeyOn(fMidiHandler, num, this, zone, min, max));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "keypress %u", &num) == 1) {
-                            fKeyPressTable[num].push_back(new uiMidiKeyPress(fMidiOut, num, this, zone, min, max));
+                            fKeyPressTable[num].push_back(new uiMidiKeyPress(fMidiHandler, num, this, zone, min, max));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "pgm %u", &num) == 1) {
-                            fProgChangeTable[num].push_back(new uiMidiProgChange(fMidiOut, num, this, zone));
+                            fProgChangeTable[num].push_back(new uiMidiProgChange(fMidiHandler, num, this, zone));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num) == 1) {
-                            fChanPressTable[num].push_back(new uiMidiChanPress(fMidiOut, num, this, zone));
+                            fChanPressTable[num].push_back(new uiMidiChanPress(fMidiHandler, num, this, zone));
                         } else if (strcmp(fMetaAux[i].second.c_str(), "pitchwheel") == 0 
                             || strcmp(fMetaAux[i].second.c_str(), "pitchbend") == 0) {
-                            fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiOut, this, zone, min, max));
+                            fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiHandler, this, zone, min, max));
                         // MIDI sync
                         } else if (strcmp(fMetaAux[i].second.c_str(), "start") == 0) {
-                            fStartTable.push_back(new uiMidiStart(fMidiOut, this, zone));
+                            fStartTable.push_back(new uiMidiStart(fMidiHandler, this, zone));
                         } else if (strcmp(fMetaAux[i].second.c_str(), "stop") == 0) {
-                            fStopTable.push_back(new uiMidiStop(fMidiOut, this, zone));
+                            fStopTable.push_back(new uiMidiStop(fMidiHandler, this, zone));
                         } else if (strcmp(fMetaAux[i].second.c_str(), "clock") == 0) {
-                            fClockTable.push_back(new uiMidiClock(fMidiOut, this, zone));
+                            fClockTable.push_back(new uiMidiClock(fMidiHandler, this, zone));
                         }
                     }
                 }
@@ -385,14 +384,21 @@ class MidiUI : public GUI, public midi
 
     public:
 
-        MidiUI(const std::string& name = "RTMidi"):fMIDI(name), fMidiOut(&fMIDI) { fMIDI.addMidiIn(this); }
-
-        virtual ~MidiUI() {}
+        MidiUI(const std::string& name = "MidiHandler")
+        {
+            fMidiHandler = new rt_midi(name);
+            fMidiHandler->addMidiIn(this);
+        }
+      
+        virtual ~MidiUI() 
+        { 
+            delete fMidiHandler;
+        }
         
-        void run() { fMIDI.start(); }
-        void stop() { fMIDI.stop(); }
+        void run() { fMidiHandler->start(); }
+        void stop() { fMidiHandler->stop(); }
         
-        void addMidiIn(midi* midi_dsp) { fMIDI.addMidiIn(midi_dsp); }
+        void addMidiIn(midi* midi_dsp) { fMidiHandler->addMidiIn(midi_dsp); }
       
         // -- widget's layouts
 
@@ -528,5 +534,19 @@ class MidiUI : public GUI, public midi
             }
         }
 };
+
+class ExtMidiUI : public MidiUI 
+{
+
+  public:
+
+        ExtMidiUI(midi_handler* midi_handler)
+        {
+            fMidiHandler = midi_handler;
+        }
+      
+        virtual ~ExtMidiUI() 
+        {}
+}; 
 
 #endif // FAUST_MIDIUI_H
