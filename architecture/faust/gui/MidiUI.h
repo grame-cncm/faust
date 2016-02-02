@@ -67,7 +67,8 @@ class uiMidiTimedItem : public uiMidiItem
             :uiMidiItem(midi_out, ui, zone)
         {
             if (GUI::gTimedZoneMap.find(fZone) == GUI::gTimedZoneMap.end()) {
-                GUI::gTimedZoneMap[fZone] = new std::vector<ts_value>();
+                //GUI::gTimedZoneMap[fZone] = new std::vector<ts_value>();
+                GUI::gTimedZoneMap[fZone] = ringbuffer_create(8192);
             }
         }
         
@@ -77,9 +78,15 @@ class uiMidiTimedItem : public uiMidiItem
 
         void modifyZone(double date, FAUSTFLOAT v) 	
         { 
-            GUI::gMutex->Lock();
-            GUI::gTimedZoneMap[fZone]->push_back(std::make_pair(date, v));
-            GUI::gMutex->Unlock();
+            size_t res;
+            
+            if ((res = ringbuffer_write(GUI::gTimedZoneMap[fZone], (const char*)&date, sizeof(double))) != sizeof(double)) {
+                std::cout << "ringbuffer_write error date" << std::endl;
+            }
+             
+            if ((res = ringbuffer_write(GUI::gTimedZoneMap[fZone], (const char*)&v, sizeof(FAUSTFLOAT))) != sizeof(FAUSTFLOAT)) {
+                std::cout << "ringbuffer_write error value" << std::endl;
+            }
         }
         
         // TODO

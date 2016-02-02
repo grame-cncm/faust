@@ -86,10 +86,7 @@ dsp* DSP;
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
 std::list<GUI*> GUI::fGuiList;
-
 ztimedmap GUI::gTimedZoneMap;
-
-TMutex* GUI::gMutex = new TMutex();
 
 /******************************************************************************
 *******************************************************************************

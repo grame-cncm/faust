@@ -48,6 +48,7 @@
 #include "faust/audio/audio.h"
 #include "faust/dsp/dsp.h"
 #include "faust/midi/midi.h"
+#include "faust/gui/ring-buffer.h"
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 #define snprintf _snprintf_s
@@ -345,8 +346,11 @@ class jackaudio : public audio {
                 jack_connect(fClient, fPhysicalOutputs[i], jack_port_name(fInputPorts[i]));
             }
             */
-               
+            
+            printf("default_connections --- %d \n", fOutputPorts.size());
+                
             for (int i = 0; i < fOutputPorts.size() && i < fPhysicalInputs.size(); i++) {
+                printf("default_connections %d %x \n", i, fOutputPorts[i]);
                 jack_connect(fClient, jack_port_name(fOutputPorts[i]), fPhysicalInputs[i]);
             }
         }
@@ -355,17 +359,22 @@ class jackaudio : public audio {
         {
             fDSP = dsp;
             
+                       
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 char buf[256];
                 snprintf(buf, 256, "in_%d", i);
                 fInputPorts.push_back(jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0));
+                printf("set_dsp in %x \n", fInputPorts[i]);
             }
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                 char buf[256];
                 snprintf(buf, 256, "out_%d", i);
                 fOutputPorts.push_back(jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0));
+                printf("set_dsp out %x \n", fOutputPorts[i]);
             }
             
+            printf("set_dsp %d %d \n", fInputPorts.size(), fOutputPorts.size());
+   
             fDSP->init(jack_get_sample_rate(fClient));
             return true;
         }
@@ -459,19 +468,22 @@ class jackaudio : public audio {
      
 };
 
-class jackaudio_midi : public jackaudio, public midi_handler {  // TO CHECK : what happens start/stop ?
+// Add JACK MIDI
+
+class jackaudio_midi : public jackaudio, public midi_handler {  
 
     protected:
     
         jack_port_t* fInputMidiPort;       // JACK input MIDI port
         jack_port_t* fOutputMidiPort;      // JACK output MIDI port
         
-        midi_ringbuffer_t* fOutBuffer;
+        ringbuffer_t* fOutBuffer;
      
         virtual int	process(jack_nframes_t nframes) 
         {
             // MIDI input
             void* port_buf_in = jack_port_get_buffer(fInputMidiPort, nframes);
+            assert(port_buf_in);
            
             for (int i = 0; i < jack_midi_get_event_count(port_buf_in); ++i) {
                 jack_midi_event_t event;
@@ -564,12 +576,14 @@ class jackaudio_midi : public jackaudio, public midi_handler {  // TO CHECK : wh
    
             // MIDI output 
             unsigned char* port_buf_out = (unsigned char*)jack_port_get_buffer(fOutputMidiPort, nframes);
+            assert(port_buf_out);
+            
             jack_midi_clear_buffer(port_buf_out);
-            size_t out_size = midi_ringbuffer_read_space(fOutBuffer);
+            size_t out_size = ringbuffer_read_space(fOutBuffer);
             jack_midi_data_t* data = jack_midi_event_reserve(port_buf_out, 0, out_size);
             // If enough space, write messages
             if (data) {
-                midi_ringbuffer_read(fOutBuffer, (char*)data, out_size);
+                ringbuffer_read(fOutBuffer, (char*)data, out_size);
             } else {
                 std::cout << "jack_midi_event_reserve error" << std::endl;
             }
@@ -580,7 +594,7 @@ class jackaudio_midi : public jackaudio, public midi_handler {  // TO CHECK : wh
         void writeMessage(unsigned char* buffer, size_t size)
         {
             size_t res;
-            if ((res = midi_ringbuffer_write(fOutBuffer, (const char*)buffer, size)) != size) {
+            if ((res = ringbuffer_write(fOutBuffer, (const char*)buffer, size)) != size) {
                 std::cout << "writeMessage error size = " << size << " res = " << res << std::endl;
             }
         }
@@ -590,14 +604,14 @@ class jackaudio_midi : public jackaudio, public midi_handler {  // TO CHECK : wh
         jackaudio_midi(const void* icon_data = 0, size_t icon_size = 0, bool auto_connect = true) 
             :jackaudio(icon_data, icon_size, auto_connect), midi_handler("JACKMidi")
         {
-            fOutBuffer = midi_ringbuffer_create(8192);
+            fOutBuffer = ringbuffer_create(8192);
         }
         
         virtual ~jackaudio_midi()
         {
             jack_port_unregister(fClient, fInputMidiPort);
             jack_port_unregister(fClient, fOutputMidiPort);
-            midi_ringbuffer_free(fOutBuffer);
+            ringbuffer_free(fOutBuffer);
         }
         
         virtual bool init(const char* name, dsp* dsp) 

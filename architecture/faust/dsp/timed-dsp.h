@@ -28,6 +28,8 @@
 
 #include "faust/dsp/dsp.h" 
 #include "faust/gui/GUI.h" 
+#include "faust/gui/ring-buffer.h"
+
 #include <vector>
 #include <map>
 #include <float.h>
@@ -38,8 +40,6 @@ double GetCurrentTimeInUsec();
 //  Timed signal processor definition
 //----------------------------------------------------------------
 
-typedef std::vector<ts_value>::iterator value_it;
-
 class timed_dsp : public decorator_dsp {
 
     protected:
@@ -49,11 +49,10 @@ class timed_dsp : public decorator_dsp {
         double fOffsetUsec;     // Compute call offset in usec
         bool fFirstCallback;
         
-        static bool compareDate(const ts_value& a, const ts_value& b) { return a.first < b.first; }
-        
         void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
             if (slice > 0) {
+                printf("fDSP->getNumInputs() %d fDSP->getNumOutputs() %d\n", fDSP->getNumInputs(), fDSP->getNumOutputs());
                 FAUSTFLOAT* inputs_slice[fDSP->getNumInputs()];
                 FAUSTFLOAT* outputs_slice[fDSP->getNumOutputs()];
                 
@@ -76,18 +75,12 @@ class timed_dsp : public decorator_dsp {
         virtual void computeAux(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, bool convert_ts)
         {
             int control_change_count = 0;
-            std::vector<value_it> control_vector_it;
-            std::map<FAUSTFLOAT*, zvalues>::iterator it1, it2;
+             ztimedmap::iterator it1, it2;
              
             // Time sort values associated with zones
             for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
-                zvalues values = (*it1).second;
                 // Keep number of all control values changes
-                control_change_count += values->size();
-                // Keep begin iterator
-                control_vector_it.push_back(values->begin());
-                // Sort values for the zone : necessary ?
-                //std::sort(values->begin(), values->end(), compareDate);
+                control_change_count += ringbuffer_read_space((*it1).second) / (sizeof(double) + sizeof(FAUSTFLOAT));
             }
              
             // Do audio computation "slice" by "slice"
@@ -97,16 +90,17 @@ class timed_dsp : public decorator_dsp {
             while (control_change_count-- > 0) {
                 
                 double cur_zone_date = DBL_MAX;
-                int found = 0;
-                int i = 0;
-             
+              
                 // Find date of next audio slice to compute
-                for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++, i++) {
+                for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
                     // If value list is not empty, get the date and keep the minimal one
-                    if (control_vector_it[i] != ((*it1).second)->end()) {
-                        double date = (*control_vector_it[i]).first;
-                        if (date < cur_zone_date) {
-                            found = i;
+                    ringbuffer_t* values = (*it1).second;
+                    
+                    if (ringbuffer_read_space(values) > 0) {
+                        double date;
+                        if (ringbuffer_peek(values, (char*)&date, sizeof(double)) != sizeof(double)) {
+                            std::cout << "ringbuffer_peek error date" << std::endl;
+                        } else if (date < cur_zone_date) {
                             it2 = it1;
                             cur_zone_date = date;
                         }
@@ -124,20 +118,23 @@ class timed_dsp : public decorator_dsp {
                 offset += slice;
                 
                 // Update control
-                *((*it2).first) = (*control_vector_it[found]).second;
+                ringbuffer_t* values = (*it2).second;
+                double date;
+                if (ringbuffer_read(values, (char*)&date, sizeof(double)) != sizeof(double)) {
+                    std::cout << "ringbuffer_peek error date" << std::endl;
+                }
                 
-                // Move iterator of the values list to next zone
-                (control_vector_it[found])++;
+                FAUSTFLOAT value;
+                if (ringbuffer_read(values, (char*)&value, sizeof(FAUSTFLOAT)) != sizeof(FAUSTFLOAT)) {
+                    std::cout << "ringbuffer_read error value" << std::endl;
+                }
+                
+                *((*it2).first) = value;
             } 
             
             // Compute last audio slice
             slice = count - offset;
             computeSlice(offset, slice, inputs, outputs);
-            
-            // Finally clear values for all zones
-            for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
-                (*it1).second->clear();
-            }
         }
 
     public:
@@ -162,11 +159,9 @@ class timed_dsp : public decorator_dsp {
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             if (date_usec == -1) {
-                // JACK mode : timestamp is already in frames, no need for mutex (same thread)
+                // JACK mode : timestamp is already in frames
                 computeAux(count, inputs, outputs, false);
             } else {
-                GUI::gMutex->Lock();
-                
                 // Save the timestamp offset in the first callback
                 if (fFirstCallback) {
                     fOffsetUsec = GetCurrentTimeInUsec() - date_usec;
@@ -179,8 +174,6 @@ class timed_dsp : public decorator_dsp {
                 
                 // Keep call date 
                 fDateUsec = date_usec + fOffsetUsec;
-            
-                GUI::gMutex->Unlock();
             }
         }
         

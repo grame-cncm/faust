@@ -27,7 +27,9 @@
 #define FAUST_GUI_H
 
 #include "faust/gui/UI.h"
+#include "faust/gui/ring-buffer.h"
 #include "faust/gui/TMutex.h"
+
 #include <list>
 #include <map>
 #include <vector>
@@ -50,12 +52,8 @@ class clist : public std::list<uiItem*>
 };
 
 typedef std::map<FAUSTFLOAT*, clist*> zmap;
-    
-typedef std::pair<double, FAUSTFLOAT> ts_value;
 
-typedef std::vector<ts_value>* zvalues;
-
-typedef std::map<FAUSTFLOAT*, zvalues> ztimedmap;
+typedef std::map<FAUSTFLOAT*, ringbuffer_t*> ztimedmap;
 
 class GUI : public UI
 {
@@ -114,7 +112,7 @@ class GUI : public UI
         
         // Static global for timed zones
         static ztimedmap gTimedZoneMap;
-        static TMutex* gMutex;
+
 };
 
 /**
