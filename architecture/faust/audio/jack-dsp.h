@@ -346,11 +346,7 @@ class jackaudio : public audio {
                 jack_connect(fClient, fPhysicalOutputs[i], jack_port_name(fInputPorts[i]));
             }
             */
-            
-            printf("default_connections --- %d \n", fOutputPorts.size());
-                
             for (int i = 0; i < fOutputPorts.size() && i < fPhysicalInputs.size(); i++) {
-                printf("default_connections %d %x \n", i, fOutputPorts[i]);
                 jack_connect(fClient, jack_port_name(fOutputPorts[i]), fPhysicalInputs[i]);
             }
         }
@@ -358,23 +354,18 @@ class jackaudio : public audio {
         virtual bool set_dsp(dsp* dsp)
         {
             fDSP = dsp;
-            
                        
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 char buf[256];
                 snprintf(buf, 256, "in_%d", i);
                 fInputPorts.push_back(jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput, 0));
-                printf("set_dsp in %x \n", fInputPorts[i]);
             }
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                 char buf[256];
                 snprintf(buf, 256, "out_%d", i);
                 fOutputPorts.push_back(jack_port_register(fClient, buf, JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0));
-                printf("set_dsp out %x \n", fOutputPorts[i]);
             }
             
-            printf("set_dsp %d %d \n", fInputPorts.size(), fOutputPorts.size());
-   
             fDSP->init(jack_get_sample_rate(fClient));
             return true;
         }
@@ -609,8 +600,10 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         
         virtual ~jackaudio_midi()
         {
-            jack_port_unregister(fClient, fInputMidiPort);
-            jack_port_unregister(fClient, fOutputMidiPort);
+            if (fClient) {
+                jack_port_unregister(fClient, fInputMidiPort);
+                jack_port_unregister(fClient, fOutputMidiPort);
+            }
             ringbuffer_free(fOutBuffer);
         }
         
@@ -622,14 +615,10 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         virtual bool init(const char* name)
         {
             bool res = jackaudio::init(name);
-            if (res) {
-                char buf[256];
             
-                snprintf(buf, 256, "in_1");
-                fInputMidiPort = jack_port_register(fClient, buf, JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
-                
-                snprintf(buf, 256, "out_1");
-                fOutputMidiPort = jack_port_register(fClient, buf, JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);
+            if (res) {
+                fInputMidiPort = jack_port_register(fClient, "midi_in_1", JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
+                fOutputMidiPort = jack_port_register(fClient, "midi_out_1", JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);
             }
             return res;
         }

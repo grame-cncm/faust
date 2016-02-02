@@ -52,7 +52,6 @@ class timed_dsp : public decorator_dsp {
         void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
             if (slice > 0) {
-                printf("fDSP->getNumInputs() %d fDSP->getNumOutputs() %d\n", fDSP->getNumInputs(), fDSP->getNumOutputs());
                 FAUSTFLOAT* inputs_slice[fDSP->getNumInputs()];
                 FAUSTFLOAT* outputs_slice[fDSP->getNumOutputs()];
                 

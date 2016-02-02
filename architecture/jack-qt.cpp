@@ -120,6 +120,7 @@ int main(int argc, char *argv[])
 */
 
     DSP = new timed_dsp(new mydsp());
+    //DSP = new mydsp();
     
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
@@ -132,9 +133,7 @@ int main(int argc, char *argv[])
     FUI finterface;
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
-    
-
-
+ 
 #ifdef HTTPCTRL
 	httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
 	DSP->buildUserInterface(&httpdinterface);
