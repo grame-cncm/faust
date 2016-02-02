@@ -88,7 +88,7 @@ class timed_dsp : public decorator_dsp {
             // Compute audio slices...
             while (control_change_count-- > 0) {
                 
-                double cur_zone_date = DBL_MAX;
+                DatedValue cur_zone_date(DBL_MAX, 0);
               
                 // Find date of next audio slice to compute
                 for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
@@ -96,39 +96,32 @@ class timed_dsp : public decorator_dsp {
                     ringbuffer_t* values = (*it1).second;
                     
                     if (ringbuffer_read_space(values) > 0) {
-                        double date;
-                        if (ringbuffer_peek(values, (char*)&date, sizeof(double)) != sizeof(double)) {
+                        DatedValue dated_val;
+                        if (ringbuffer_peek(values, (char*)&dated_val, sizeof(DatedValue)) != sizeof(DatedValue)) {
                             std::cout << "ringbuffer_peek error date" << std::endl;
-                        } else if (date < cur_zone_date) {
+                        } else if (dated_val.fDate < cur_zone_date.fDate) {
                             it2 = it1;
-                            cur_zone_date = date;
+                            cur_zone_date = dated_val;
                         }
                     }
                 }
                 
                 // If needed, convert cur_zone_date in samples from begining of the buffer, possible moving to 0 (if negative)
                 if (convert_ts) {
-                    cur_zone_date = convertUsecToSample(cur_zone_date);
+                    cur_zone_date.fDate = convertUsecToSample(cur_zone_date.fDate);
                 }
                  
                 // Compute audio slice
-                slice = int(cur_zone_date) - offset;
+                slice = int(cur_zone_date.fDate) - offset;
                 computeSlice(offset, slice, inputs, outputs);
                 offset += slice;
                 
                 // Update control
                 ringbuffer_t* values = (*it2).second;
-                double date;
-                if (ringbuffer_read(values, (char*)&date, sizeof(double)) != sizeof(double)) {
-                    std::cout << "ringbuffer_peek error date" << std::endl;
-                }
+                *((*it2).first) = cur_zone_date.fValue;
                 
-                FAUSTFLOAT value;
-                if (ringbuffer_read(values, (char*)&value, sizeof(FAUSTFLOAT)) != sizeof(FAUSTFLOAT)) {
-                    std::cout << "ringbuffer_read error value" << std::endl;
-                }
-                
-                *((*it2).first) = value;
+                // Move ringbuffer pointer
+                ringbuffer_read_advance(values, sizeof(DatedValue));
             } 
             
             // Compute last audio slice

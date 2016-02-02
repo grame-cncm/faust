@@ -60,14 +60,13 @@ class uiMidiItem : public uiItem {
 class uiMidiTimedItem : public uiMidiItem
 {
     protected:
-    
+   
     public:
        
         uiMidiTimedItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone)
             :uiMidiItem(midi_out, ui, zone)
         {
             if (GUI::gTimedZoneMap.find(fZone) == GUI::gTimedZoneMap.end()) {
-                //GUI::gTimedZoneMap[fZone] = new std::vector<ts_value>();
                 GUI::gTimedZoneMap[fZone] = ringbuffer_create(8192);
             }
         }
@@ -79,13 +78,10 @@ class uiMidiTimedItem : public uiMidiItem
         void modifyZone(double date, FAUSTFLOAT v) 	
         { 
             size_t res;
+            DatedValue dated_val(date, v);
             
-            if ((res = ringbuffer_write(GUI::gTimedZoneMap[fZone], (const char*)&date, sizeof(double))) != sizeof(double)) {
-                std::cout << "ringbuffer_write error date" << std::endl;
-            }
-             
-            if ((res = ringbuffer_write(GUI::gTimedZoneMap[fZone], (const char*)&v, sizeof(FAUSTFLOAT))) != sizeof(FAUSTFLOAT)) {
-                std::cout << "ringbuffer_write error value" << std::endl;
+            if ((res = ringbuffer_write(GUI::gTimedZoneMap[fZone], (const char*)&dated_val, sizeof(DatedValue))) != sizeof(DatedValue)) {
+                std::cout << "ringbuffer_write error DatedValue" << std::endl;
             }
         }
         

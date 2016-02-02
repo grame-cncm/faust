@@ -216,4 +216,14 @@ inline clist::~clist()
     }
 }
 
+// For precise timestamped control
+struct DatedValue {
+
+    double fDate;
+    FAUSTFLOAT fValue;
+    
+    DatedValue(double d = 0., FAUSTFLOAT v = 0.):fDate(d), fValue(v) {}
+
+};
+  
 #endif
