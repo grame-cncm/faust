@@ -348,6 +348,7 @@ class MidiUI : public GUI, public midi
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         
         midi_handler* fMidiHandler;
+        bool fDelete;
         
         void addGenericZone(FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
@@ -388,11 +389,21 @@ class MidiUI : public GUI, public midi
         {
             fMidiHandler = new rt_midi(name);
             fMidiHandler->addMidiIn(this);
+            fDelete = true;
         }
-      
+        
+        MidiUI(midi_handler* midi_handler)
+        {
+            fMidiHandler = midi_handler;
+            fMidiHandler->addMidiIn(this);
+            fDelete = false;
+        }
+ 
         virtual ~MidiUI() 
         { 
-            delete fMidiHandler;
+            if (fDelete) {
+                delete fMidiHandler;
+            }
         }
         
         void run() { fMidiHandler->start(); }
@@ -534,19 +545,5 @@ class MidiUI : public GUI, public midi
             }
         }
 };
-
-class ExtMidiUI : public MidiUI 
-{
-
-  public:
-
-        ExtMidiUI(midi_handler* midi_handler)
-        {
-            fMidiHandler = midi_handler;
-        }
-      
-        virtual ~ExtMidiUI() 
-        {}
-}; 
 
 #endif // FAUST_MIDIUI_H

@@ -67,37 +67,14 @@ class timed_dsp : public decorator_dsp {
                 fDSP->compute(slice, inputs_slice, outputs_slice);
             } 
         }
-  
-    public:
-
-        timed_dsp(dsp* dsp):decorator_dsp(dsp),fSamplingFreq(0), fDateUsec(0),fOffsetUsec(0), fFirstCallback(true) 
-        {}
-        virtual ~timed_dsp() 
-        {}
         
-        virtual void init(int samplingRate)
+        double convertUsecToSample(double usec)
         {
-            fSamplingFreq = double(samplingRate);
-            fDSP->init(samplingRate);
+            return std::max(0., (fSamplingFreq * (usec - fDateUsec)) / 1000000.);
         }
         
-        // Default method take a timestamp at 'compute' call time
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void computeAux(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, bool convert_ts)
         {
-            compute(GetCurrentTimeInUsec(), count, inputs, outputs);
-        }    
-        
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
-        {
-            GUI::gMutex->Lock();
-             
-            // Save the timestamp offset...
-            if (fFirstCallback) {
-                fOffsetUsec = GetCurrentTimeInUsec() - date_usec;
-                fDateUsec = date_usec + fOffsetUsec;
-                fFirstCallback = false;
-            }
-                       
             int control_change_count = 0;
             std::vector<value_it> control_vector_it;
             std::map<FAUSTFLOAT*, zvalues>::iterator it1, it2;
@@ -136,8 +113,10 @@ class timed_dsp : public decorator_dsp {
                     }
                 }
                 
-                // Convert cur_zone_date in sample from begining of the buffer, possible moving to 0 (if negative)
-                cur_zone_date = std::max(0., (fSamplingFreq * (cur_zone_date - fDateUsec)) / 1000000.);
+                // If needed, convert cur_zone_date in samples from begining of the buffer, possible moving to 0 (if negative)
+                if (convert_ts) {
+                    cur_zone_date = convertUsecToSample(cur_zone_date);
+                }
                  
                 // Compute audio slice
                 slice = int(cur_zone_date) - offset;
@@ -159,11 +138,50 @@ class timed_dsp : public decorator_dsp {
             for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
                 (*it1).second->clear();
             }
+        }
+
+    public:
+
+        timed_dsp(dsp* dsp):decorator_dsp(dsp),fSamplingFreq(0), fDateUsec(0),fOffsetUsec(0), fFirstCallback(true) 
+        {}
+        virtual ~timed_dsp() 
+        {}
+        
+        virtual void init(int samplingRate)
+        {
+            fSamplingFreq = double(samplingRate);
+            fDSP->init(samplingRate);
+        }
+        
+        // Default method take a timestamp at 'compute' call time
+        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            compute(GetCurrentTimeInUsec(), count, inputs, outputs);
+        }    
+        
+        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            if (date_usec == -1) {
+                // JACK mode : timestamp is already in frames, no need for mutex (same thread)
+                computeAux(count, inputs, outputs, false);
+            } else {
+                GUI::gMutex->Lock();
+                
+                // Save the timestamp offset in the first callback
+                if (fFirstCallback) {
+                    fOffsetUsec = GetCurrentTimeInUsec() - date_usec;
+                    fDateUsec = date_usec + fOffsetUsec;
+                    fFirstCallback = false;
+                }
+                
+                // RtMidi mode : timestamp must be converted in frames
+                computeAux(count, inputs, outputs, true);
+                
+                // Keep call date 
+                fDateUsec = date_usec + fOffsetUsec;
             
-            // Keep call date
-            fDateUsec = date_usec + fOffsetUsec;
-            
-            GUI::gMutex->Unlock();
+                GUI::gMutex->Unlock();
+            }
         }
         
 };

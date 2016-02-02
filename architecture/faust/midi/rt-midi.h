@@ -104,7 +104,6 @@ class rt_midi : public midi_handler {
                         midi->fMidiInputs[i]->keyPress(time, channel, data1, data2);
                     }
                 }
-            
             } 
         }
         
@@ -185,8 +184,6 @@ class rt_midi : public midi_handler {
         {
             stop();
         }
-        
-        void addMidiIn(midi* midi_dsp) { fMidiInputs.push_back(midi_dsp); }
         
         bool start()
         {

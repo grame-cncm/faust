@@ -39,6 +39,7 @@
 #include <iostream>
 #include <list>
 
+#include "faust/dsp/timed-dsp.h"
 #include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
@@ -108,7 +109,8 @@ int main(int argc, char *argv[])
 	snprintf(rcfilename, 255, "%s/.%src", home, name);
     
     int poly = lopt(argv, "--poly", 4);
- 	
+
+/*
 #ifdef POLY
 #if MIDICTRL
     DSP = new mydsp_poly(poly, true);
@@ -118,6 +120,10 @@ int main(int argc, char *argv[])
 #else
     DSP = new mydsp();
 #endif
+*/
+
+    DSP = new timed_dsp(new mydsp());
+    
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
@@ -130,11 +136,7 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
     
-#ifdef MIDICTRL
-    MidiUI midiinterface(name);
-    DSP->buildUserInterface(&midiinterface);
-    std::cout << "MIDI is on" << std::endl;
-#endif
+
 
 #ifdef HTTPCTRL
 	httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
@@ -148,9 +150,17 @@ int main(int argc, char *argv[])
     std::cout << "OSC is on" << std::endl;
 #endif
 	
-	jackaudio audio;
+	jackaudio_midi audio;
 	audio.init(name, DSP);
+    
+#ifdef MIDICTRL
+    MidiUI midiinterface(&audio);
+    DSP->buildUserInterface(&midiinterface);
+    std::cout << "MIDI is on" << std::endl;
+#endif
+    
 	finterface.recallState(rcfilename);	
+     
 	audio.start();
     
     printf("ins %d\n", audio.get_num_inputs());
