@@ -60,6 +60,8 @@ class uiMidiItem : public uiItem {
 class uiMidiTimedItem : public uiMidiItem
 {
     protected:
+    
+        bool fDelete;
    
     public:
        
@@ -68,12 +70,20 @@ class uiMidiTimedItem : public uiMidiItem
         {
             if (GUI::gTimedZoneMap.find(fZone) == GUI::gTimedZoneMap.end()) {
                 GUI::gTimedZoneMap[fZone] = ringbuffer_create(8192);
+                fDelete = true;
+            } else {
+                fDelete = false;
             }
         }
         
-        // TODO : improve memory management (when to delete GUI::gTimedZoneMap[fZone] ?)
         virtual ~uiMidiTimedItem() 
-        {}
+        {
+            ztimedmap::iterator it;
+            if (fDelete && ((it = GUI::gTimedZoneMap.find(fZone)) != GUI::gTimedZoneMap.end())) {
+                ringbuffer_free((*it).second);
+                GUI::gTimedZoneMap.erase(it);
+            }
+        }
 
         void modifyZone(double date, FAUSTFLOAT v) 	
         { 

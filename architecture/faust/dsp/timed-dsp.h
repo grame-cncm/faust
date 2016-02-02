@@ -74,18 +74,16 @@ class timed_dsp : public decorator_dsp {
         virtual void computeAux(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, bool convert_ts)
         {
             int control_change_count = 0;
-             ztimedmap::iterator it1, it2 = GUI::gTimedZoneMap.end();
+            ztimedmap::iterator it1, it2 = GUI::gTimedZoneMap.end();
              
-            // Time sort values associated with zones
+            // Keep number of all control values changes
             for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
-                // Keep number of all control values changes
                 control_change_count += ringbuffer_read_space((*it1).second)/sizeof(DatedValue);
             }
              
             // Do audio computation "slice" by "slice"
             int slice, offset = 0;
             
-            // Compute audio slices...
             while (control_change_count-- > 0) {
                 
                 DatedValue cur_zone_date(DBL_MAX, 0);
@@ -93,9 +91,8 @@ class timed_dsp : public decorator_dsp {
                 // Find date of next audio slice to compute
                 for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
                     // If value list is not empty, get the date and keep the minimal one
-                    ringbuffer_t* values = (*it1).second;
                     DatedValue dated_val;
-                    if (ringbuffer_peek(values, (char*)&dated_val, sizeof(DatedValue)) == sizeof(DatedValue) 
+                    if (ringbuffer_peek((*it1).second, (char*)&dated_val, sizeof(DatedValue)) == sizeof(DatedValue) 
                         && dated_val.fDate < cur_zone_date.fDate) {
                         it2 = it1;
                         cur_zone_date = dated_val;
@@ -112,15 +109,12 @@ class timed_dsp : public decorator_dsp {
                 computeSlice(offset, slice, inputs, outputs);
                 offset += slice;
                
-                if (it2 != GUI::gTimedZoneMap.end()) {
-                    // Update control
-                    ringbuffer_t* values = (*it2).second;
-                    *((*it2).first) = cur_zone_date.fValue;
-                    // Move ringbuffer pointer
-                    ringbuffer_read_advance(values, sizeof(DatedValue));
-                } else {
-                    std::cout << "Control value error" << std::endl;
-                }
+                // Update control
+                ringbuffer_t* values = (*it2).second;
+                *((*it2).first) = cur_zone_date.fValue;
+                
+                // Move ringbuffer pointer
+                ringbuffer_read_advance(values, sizeof(DatedValue));
             } 
             
             // Compute last audio slice
