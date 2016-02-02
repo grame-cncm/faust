@@ -79,7 +79,7 @@ class timed_dsp : public decorator_dsp {
             // Time sort values associated with zones
             for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
                 // Keep number of all control values changes
-                control_change_count += ringbuffer_read_space((*it1).second) / (sizeof(double) + sizeof(FAUSTFLOAT));
+                control_change_count += ringbuffer_read_space((*it1).second)/sizeof(DatedValue);
             }
              
             // Do audio computation "slice" by "slice"
