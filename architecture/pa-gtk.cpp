@@ -71,7 +71,7 @@ list<GUI*>	GUI::fGuiList;
 // 									MAIN
 //-------------------------------------------------------------------------
 #if 0
-int main(int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
 	gtk_init (&argc, &argv);
 	const char* name = basename(argv[0]);
