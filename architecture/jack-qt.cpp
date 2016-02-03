@@ -107,20 +107,15 @@ int main(int argc, char *argv[])
     
     int poly = lopt(argv, "--poly", 4);
 
-/*
 #ifdef POLY
 #if MIDICTRL
-    DSP = new mydsp_poly(poly, true);
+    DSP = new timed_dsp(new mydsp_poly(poly, true));
 #else
-    DSP = new mydsp_poly(poly);
+    DSP = new timed_dsp(new mydsp_poly(poly));
 #endif
 #else
-    DSP = new mydsp();
-#endif
-*/
-
     DSP = new timed_dsp(new mydsp());
-    //DSP = new mydsp();
+#endif
     
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
