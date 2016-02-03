@@ -216,12 +216,12 @@ inline clist::~clist()
 }
 
 // For precise timestamped control
-struct DatedValue {
+struct DatedControl {
 
     double fDate;
     FAUSTFLOAT fValue;
     
-    DatedValue(double d = 0., FAUSTFLOAT v = 0.):fDate(d), fValue(v) {}
+    DatedControl(double d = 0., FAUSTFLOAT v = FAUSTFLOAT(0)):fDate(d), fValue(v) {}
 
 };
   

@@ -71,50 +71,51 @@ class timed_dsp : public decorator_dsp {
             return std::max(0., (fSamplingFreq * (usec - fDateUsec)) / 1000000.);
         }
         
+        ztimedmap::iterator getNextControl(DatedControl& res, bool convert_ts)
+        {
+            DatedControl date1(DBL_MAX, 0);
+            ztimedmap::iterator it1, it2 = GUI::gTimedZoneMap.end();
+              
+            // Find date of next audio slice to compute
+            for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
+                // If value list is not empty, get the date and keep the minimal one
+                DatedControl date2;
+                if (ringbuffer_peek((*it1).second, (char*)&date2, sizeof(DatedControl)) == sizeof(DatedControl) 
+                    && date2.fDate < date1.fDate) {
+                    it2 = it1;
+                    date1 = date2;
+                }
+            }
+            
+            // If needed, convert date1 in samples from begining of the buffer, possible moving to 0 (if negative)
+            if (convert_ts) {
+                date1.fDate = convertUsecToSample(date1.fDate);
+            }
+                
+            res = date1;
+            return it2;
+        }
+        
         virtual void computeAux(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, bool convert_ts)
         {
-            int control_change_count = 0;
-            ztimedmap::iterator it1, it2 = GUI::gTimedZoneMap.end();
-             
-            // Keep number of all control values changes
-            for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
-                control_change_count += ringbuffer_read_space((*it1).second)/sizeof(DatedValue);
-            }
+            int slice, offset = 0;
+            ztimedmap::iterator it;
+            DatedControl next_control;
              
             // Do audio computation "slice" by "slice"
-            int slice, offset = 0;
-            
-            while (control_change_count-- > 0) {
-                
-                DatedValue cur_zone_date(DBL_MAX, 0);
-              
-                // Find date of next audio slice to compute
-                for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
-                    // If value list is not empty, get the date and keep the minimal one
-                    DatedValue dated_val;
-                    if (ringbuffer_peek((*it1).second, (char*)&dated_val, sizeof(DatedValue)) == sizeof(DatedValue) 
-                        && dated_val.fDate < cur_zone_date.fDate) {
-                        it2 = it1;
-                        cur_zone_date = dated_val;
-                    }
-                }
-                
-                // If needed, convert cur_zone_date in samples from begining of the buffer, possible moving to 0 (if negative)
-                if (convert_ts) {
-                    cur_zone_date.fDate = convertUsecToSample(cur_zone_date.fDate);
-                }
-                 
+            while ((it = getNextControl(next_control, convert_ts)) != GUI::gTimedZoneMap.end()) {
+                     
                 // Compute audio slice
-                slice = int(cur_zone_date.fDate) - offset;
+                slice = int(next_control.fDate) - offset;
                 computeSlice(offset, slice, inputs, outputs);
                 offset += slice;
                
                 // Update control
-                ringbuffer_t* values = (*it2).second;
-                *((*it2).first) = cur_zone_date.fValue;
+                ringbuffer_t* control_values = (*it).second;
+                *((*it).first) = next_control.fValue;
                 
                 // Move ringbuffer pointer
-                ringbuffer_read_advance(values, sizeof(DatedValue));
+                ringbuffer_read_advance(control_values, sizeof(DatedControl));
             } 
             
             // Compute last audio slice

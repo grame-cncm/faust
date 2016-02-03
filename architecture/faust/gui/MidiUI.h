@@ -88,9 +88,9 @@ class uiMidiTimedItem : public uiMidiItem
         void modifyZone(double date, FAUSTFLOAT v) 	
         { 
             size_t res;
-            DatedValue dated_val(date, v);
-            if ((res = ringbuffer_write(GUI::gTimedZoneMap[fZone], (const char*)&dated_val, sizeof(DatedValue))) != sizeof(DatedValue)) {
-                std::cout << "ringbuffer_write error DatedValue" << std::endl;
+            DatedControl dated_val(date, v);
+            if ((res = ringbuffer_write(GUI::gTimedZoneMap[fZone], (const char*)&dated_val, sizeof(DatedControl))) != sizeof(DatedControl)) {
+                std::cout << "ringbuffer_write error DatedControl" << std::endl;
             }
         }
         
