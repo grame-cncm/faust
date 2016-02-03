@@ -469,12 +469,11 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         jack_port_t* fOutputMidiPort;      // JACK output MIDI port
         
         ringbuffer_t* fOutBuffer;
-     
-        virtual int	process(jack_nframes_t nframes) 
+        
+        virtual int processMidiIn(jack_nframes_t nframes) 
         {
             // MIDI input
             void* port_buf_in = jack_port_get_buffer(fInputMidiPort, nframes);
-            assert(port_buf_in);
            
             for (int i = 0; i < jack_midi_get_event_count(port_buf_in); ++i) {
                 jack_midi_event_t event;
@@ -547,7 +546,10 @@ class jackaudio_midi : public jackaudio, public midi_handler {
                     } 
                 }
             }
-            
+        }
+        
+        virtual int processAudio(jack_nframes_t nframes) 
+        {
             // Audio
             AVOIDDENORMALS;
             
@@ -564,21 +566,30 @@ class jackaudio_midi : public jackaudio, public midi_handler {
             
             // By convention timestamp of -1 means 'no timestamp conversion' : events already have a timestamp espressed in frames
             fDSP->compute(-1, nframes, fInChannel, fOutChannel); 
-   
+        }
+        
+        virtual int processMidiOut(jack_nframes_t nframes) 
+        {
             // MIDI output 
             unsigned char* port_buf_out = (unsigned char*)jack_port_get_buffer(fOutputMidiPort, nframes);
-            assert(port_buf_out);
             
             jack_midi_clear_buffer(port_buf_out);
             size_t out_size = ringbuffer_read_space(fOutBuffer);
             jack_midi_data_t* data = jack_midi_event_reserve(port_buf_out, 0, out_size);
+            
             // If enough space, write messages
             if (data) {
                 ringbuffer_read(fOutBuffer, (char*)data, out_size);
             } else {
                 std::cout << "jack_midi_event_reserve error" << std::endl;
             }
-          
+        }
+     
+        virtual int process(jack_nframes_t nframes) 
+        {
+            processMidiIn(nframes);
+            processAudio(nframes);
+            processMidiOut(nframes);
             return 0;
         }
         
