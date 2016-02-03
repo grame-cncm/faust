@@ -28,7 +28,6 @@
 
 #include "faust/gui/UI.h"
 #include "faust/gui/ring-buffer.h"
-#include "faust/gui/TMutex.h"
 
 #include <list>
 #include <map>
