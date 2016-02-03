@@ -50,6 +50,7 @@ for p in $@; do
         echo "faust2alqt [-http] [-qrcode] [-midi] [-osc] <file.dsp>"
         echo "Use '-http' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
     fi
@@ -63,6 +64,8 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-poly" ]; then
+        POLYDEFS="DEFINES += POLY"
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
     elif [ $p = "-osc" ]; then
@@ -110,7 +113,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-       	$QMAKE -project "QT += widgets printsupport network" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$MIDIDEFS"  
+       	$QMAKE -project "QT += widgets printsupport network" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS"  
 	    $QMAKE $SPEC
         make
     ) > /dev/null

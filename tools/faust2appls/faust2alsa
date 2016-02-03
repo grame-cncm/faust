@@ -39,6 +39,7 @@ for p in $@; do
         echo "faust2alsa [-http] [-qrcode] [-midi] [-osc] <file.dsp>"
         echo "Use '-http' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
     fi
@@ -52,6 +53,8 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-poly" ]; then
+        POLYDEFS="DEFINES += POLY"
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
     elif [ $p = "-osc" ]; then
@@ -81,14 +84,13 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa gtk+-2.0` $PROCARCH $OSCDEFS $HTTPDEFS $MIDIDEFS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa gtk+-2.0` $PROCARCH $OSCDEFS $HTTPDEFS $POLYDEFS $MIDIDEFS -o "${f%.dsp}"
 	) > /dev/null
 	rm "$f.cpp"
 
 	# collect binary file name for FaustWorks
 	BINARIES="$BINARIES${f%.dsp};"
 done
-
 
 echo $BINARIES
 

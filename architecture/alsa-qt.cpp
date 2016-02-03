@@ -74,6 +74,10 @@
 
 <<includeclass>>
 
+#ifdef POLY
+#include "faust/dsp/poly-dsp.h"
+#endif
+
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
@@ -93,8 +97,15 @@ int main(int argc, char *argv[] )
 	char* home = getenv("HOME");
 	snprintf(rcfilename, 255, "%s/.%src", home, name);
 	
-    //DSP = new mydsp();
+#ifdef POLY
+#if MIDICTRL
+    DSP = new timed_dsp(new mydsp_poly(poly, true));
+#else
+    DSP = new timed_dsp(new mydsp_poly(poly));
+#endif
+#else
     DSP = new timed_dsp(new mydsp());
+#endif
     
 	if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
