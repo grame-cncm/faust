@@ -63,7 +63,7 @@ lf_rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
 // simple sawtooth waveform oscillator between 0 and 1
 lf_sawpos(freq) = lf_rawsaw(periodsamps) / periodsamps
 with {
-  periodsamps = float(ml.SR)/freq; // period in samples (not nec. integer)
+  periodsamps = float(ml.SR)/max(1.0e-7,abs(freq)); // period in samples (not nec. integer)
 };
 
 // --- saw1 ---
@@ -384,8 +384,9 @@ pink_noise = ml.noise :
 // where N = number of latched white-noise processes to sum,
 //       not to exceed sizeof(int) in C++ (typically 32).
 //
-// ### Reference:
+// ### References:
 //  http://www.dsprelated.com/showarticle/908.php
+//  http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney
 
 pink_noise_vm(N) = ml.noise <: _,par(i,N,fl.latch(clock(i))) :> _
 with {
