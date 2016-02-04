@@ -35,10 +35,8 @@
 #include <iostream>
 #include <sstream>
 
-#if !defined(_WIN32)
+#ifndef _WIN32
 #include <pthread.h>
-#else
-#warning *** httpdClientUI listener thread not yet implemented ***
 #endif
 
 /******************************************************************************
@@ -157,6 +155,7 @@ int http_fetch(const char *url, char **fileBuf);
 Use to control a running Faust DSP wrapped with "httpdServerUI".
 */
 
+#ifndef _WIN32
 class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
 {
 
@@ -192,9 +191,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         std::string fServerURL;
         std::string fJSON;
         std::map<std::string, FAUSTFLOAT*> fZoneMap;
-    #if !defined(_WIN32)
         pthread_t fThread;
-    #endif
         int fTCPPort;
         bool fRunning;
         
@@ -202,7 +199,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         {
             fZoneMap[label] = zone;
         }
-        
+      
         static void* UpdateUI(void* arg)
         {
             httpdClientUI* ui = static_cast<httpdClientUI*>(arg);
@@ -220,7 +217,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
                 usleep(100000);
             }
         }
-        
+     
         virtual void addGeneric(const char* label, FAUSTFLOAT* zone)			
         { 
             string url = fServerURL + buildPath(label); 
@@ -311,9 +308,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         { 
             if (fTCPPort > 0) {
                 fRunning = true;
-            #if !defined(_WIN32)
                 pthread_create(&fThread, NULL, UpdateUI, this);
-            #endif
             }
         }
         
@@ -321,11 +316,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         { 
             if (fRunning) {
                 fRunning = false;
-            #if !defined(_WIN32)
                 pthread_join(fThread, NULL);
-            #endif
-            
-            
             }
         }
         
@@ -337,6 +328,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         std::string getJSON() { return fJSON; }
 
 };
+#endif
 
 /*
 Creates a httpdServerUI or httpdClientUI depending of the presence of '-server URL' parameter.
@@ -349,8 +341,10 @@ class httpdUI : public DecoratorUI
     
         httpdUI(const char* applicationname, int inputs, int outputs, int argc, char* argv[], bool init = true)
         { 
-            if (isopt(argv, "-server")) {
+            if (argv && isopt(argv, "-server")) {
+            #ifndef _WIN32
                 fUI = new httpdClientUI(lopts(argv, "-server", "http://localhost:5510"));
+            #endif
             } else {
                 fUI = new httpdServerUI(applicationname, inputs, outputs, argc, argv, init);
             }
