@@ -145,6 +145,11 @@ class JSONUI : public PathBuilder, public Meta, public UI
         {
             init("", inputs, outputs, "", "");
         }
+        
+        JSONUI()
+        {
+            init("", -1, -1, "", "");
+        }
  
         virtual ~JSONUI() {}
 

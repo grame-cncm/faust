@@ -42,6 +42,7 @@
 #include "faust/dsp/timed-dsp.h"
 #include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/gui/faustqt.h"
 #include "faust/misc.h"
 #include "faust/audio/coreaudio-dsp.h"
@@ -95,6 +96,19 @@ ztimedmap GUI::gTimedZoneMap;
 *******************************************************************************
 *******************************************************************************/
 
+bool hasMIDISync()
+{
+    JSONUI jsonui;
+    mydsp mydsp;
+    mydsp.buildUserInterface(&jsonui);
+    std::string json = jsonui.JSON();
+    
+    return ((json.find("midi") != std::string::npos) &&
+            ((json.find("start") != std::string::npos) ||
+            (json.find("stop") != std::string::npos) ||
+            (json.find("clock") != std::string::npos)));
+}
+
 int main(int argc, char *argv[])
 {
 	char name[256];
@@ -109,13 +123,29 @@ int main(int argc, char *argv[])
     int poly = lopt(argv, "--poly", 4);
 
 #ifdef POLY
+
 #if MIDICTRL
-    DSP = new timed_dsp(new mydsp_poly(poly, true));
+    if (hasMIDISync()) {
+         DSP = new timed_dsp(new mydsp_poly(poly, true));
+    } else {
+        DSP = new mydsp_poly(poly, true);
+    }
 #else
-    DSP = new timed_dsp(new mydsp_poly(poly));
+    DSP = new mydsp_poly(poly);
 #endif
+
 #else
-    DSP = new timed_dsp(new mydsp());
+
+#if MIDICTRL
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new mydsp());
+    } else {
+        DSP = new mydsp();
+    }
+#else
+    DSP = new mydsp();
+#endif
+    
 #endif
    
     if (DSP == 0) {
