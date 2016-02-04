@@ -45,6 +45,9 @@ class PathBuilder
        
     public:
     
+        PathBuilder() {}
+        virtual ~PathBuilder() {}
+    
         std::string buildPath(const std::string& label) 
         {
             std::string res = "/";

@@ -39,8 +39,10 @@
 #include <iostream>
 #include <list>
 
+#include "faust/dsp/timed-dsp.h"
 #include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/gui/faustqt.h"
 #include "faust/misc.h"
 #include "faust/audio/coreaudio-dsp.h"
@@ -84,6 +86,7 @@ dsp* DSP;
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 /******************************************************************************
 *******************************************************************************
@@ -93,6 +96,19 @@ std::list<GUI*> GUI::fGuiList;
 *******************************************************************************
 *******************************************************************************/
 
+bool hasMIDISync()
+{
+    JSONUI jsonui;
+    mydsp tmp_dsp;
+    tmp_dsp.buildUserInterface(&jsonui);
+    std::string json = jsonui.JSON();
+    
+    return ((json.find("midi") != std::string::npos) &&
+            ((json.find("start") != std::string::npos) ||
+            (json.find("stop") != std::string::npos) ||
+            (json.find("clock") != std::string::npos)));
+}
+
 int main(int argc, char *argv[])
 {
 	char name[256];
@@ -100,21 +116,38 @@ int main(int argc, char *argv[])
 	char* home = getenv("HOME");
 
 	snprintf(name, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
+	snprintf(rcfilename, 255, "%s/.%src", home, name);
     
     long srate = (long)lopt(argv, "--frequency", -1);
     int fpb = lopt(argv, "--buffer", 512);
     int poly = lopt(argv, "--poly", 4);
 
 #ifdef POLY
+
 #if MIDICTRL
-    DSP = new mydsp_poly(poly, true);
+    if (hasMIDISync()) {
+         DSP = new timed_dsp(new mydsp_poly(poly, true));
+    } else {
+        DSP = new mydsp_poly(poly, true);
+    }
 #else
     DSP = new mydsp_poly(poly);
 #endif
+
+#else
+
+#if MIDICTRL
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new mydsp());
+    } else {
+        DSP = new mydsp();
+    }
 #else
     DSP = new mydsp();
 #endif
+    
+#endif
+   
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);

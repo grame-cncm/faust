@@ -20,7 +20,6 @@
     that work under terms of your choice, so long as this FAUST
     architecture section is not modified.
 
-
  ************************************************************************
  ************************************************************************/
  
@@ -28,8 +27,11 @@
 #define FAUST_GUI_H
 
 #include "faust/gui/UI.h"
+#include "faust/gui/ring-buffer.h"
+
 #include <list>
 #include <map>
+#include <vector>
 
 /*******************************************************************************
  * GUI : Abstract Graphic User Interface
@@ -48,11 +50,13 @@ class clist : public std::list<uiItem*>
         
 };
 
+typedef std::map<FAUSTFLOAT*, clist*> zmap;
+
+typedef std::map<FAUSTFLOAT*, ringbuffer_t*> ztimedmap;
+
 class GUI : public UI
 {
-    
-	typedef std::map<FAUSTFLOAT*, clist*> zmap;
-	
+		
     private:
      
         static std::list<GUI*>  fGuiList;
@@ -104,6 +108,10 @@ class GUI : public UI
         bool stopped() 	{ return fStopped; }
 
         virtual void declare(FAUSTFLOAT* , const char* , const char*) {}
+        
+        // Static global for timed zones
+        static ztimedmap gTimedZoneMap;
+
 };
 
 /**
@@ -207,4 +215,14 @@ inline clist::~clist()
     }
 }
 
+// For precise timestamped control
+struct DatedControl {
+
+    double fDate;
+    FAUSTFLOAT fValue;
+    
+    DatedControl(double d = 0., FAUSTFLOAT v = FAUSTFLOAT(0)):fDate(d), fValue(v) {}
+
+};
+  
 #endif

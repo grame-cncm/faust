@@ -22,6 +22,8 @@
 #import <QuartzCore/QuartzCore.h>
 #import "FIMainViewController.h"
 #import "ios-faust.h"
+#include "faust/dsp/timed-dsp.h"
+#include "faust/gui/JSONUI.h"
 #import "FIFlipsideViewController.h"
 #import "FIAppDelegate.h"
 #include "faust/audio/coreaudio-ios-dsp.h"
@@ -50,7 +52,7 @@
 #define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
 #define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
 
-#ifdef POLY
+#if POLY
 #include "faust/dsp/poly-dsp.h"
 #endif
 
@@ -104,6 +106,22 @@ static void jack_shutdown_callback(const char* message, void* arg)
 
 #endif
 
+bool hasMIDISync()
+{
+    JSONUI* jsonui = new JSONUI();
+    mydsp* tmp_dsp = new mydsp();
+    tmp_dsp->buildUserInterface(jsonui);
+    std::string json = jsonui->JSON();
+    
+    bool res = ((json.find("midi") != std::string::npos) &&
+                ((json.find("start") != std::string::npos) ||
+                 (json.find("stop") != std::string::npos) ||
+                 (json.find("clock") != std::string::npos)));
+    delete tmp_dsp;
+    delete jsonui;
+    return res;
+}
+
 - (void)viewDidLoad
 {
     // General UI initializations
@@ -116,13 +134,29 @@ static void jack_shutdown_callback(const char* message, void* arg)
     _openPanelChanged = YES;
 
 #if POLY
+    
 #if MIDICTRL
-    DSP = new mydsp_poly(4, true);
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new mydsp_poly(4, true));
+    } else {
+        DSP = new mydsp_poly(4, true);
+    }
 #else
     DSP = new mydsp_poly(4);
 #endif
+    
+#else
+    
+#if MIDICTRL
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new mydsp());
+    } else {
+        DSP = new mydsp();
+    }
 #else
     DSP = new mydsp();
+#endif
+    
 #endif
     
     // Faust initialization

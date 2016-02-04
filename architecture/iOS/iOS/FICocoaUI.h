@@ -2559,6 +2559,7 @@ public:
 // global static fields
 
 list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 CGPoint inBoxPosition2absolutePosition(float x, float y, uiCocoaItem* box)
 {

@@ -46,8 +46,8 @@ protected:
     mydsp fMonoDSP;           // the monophonic Faust object
     mydsp_poly* fPolyDSP;     // the polyphonic Faust object
     APIUI fAPIUI;             // the UI description
-    JSONUI fJSON;
-    string fJSONString;
+    JSONUI fJSONUI;
+    string fJSON;
     bool fRunning;
     int fPolyMax;
     audio* fDriver;
@@ -55,15 +55,15 @@ protected:
 public:
 
     FaustPolyEngine(int sampling_rate, int buffer_size)
-    :fJSON(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs()), fRunning(false)
+    :fJSONUI(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs()), fRunning(false)
     {
         // configuring the UI
         fMonoDSP.buildUserInterface(&fAPIUI);
-        fMonoDSP.buildUserInterface(&fJSON);
-        fJSONString = fJSON.JSON();
+        fMonoDSP.buildUserInterface(&fJSONUI);
+        fJSON = fJSONUI.JSON();
 
-        if (fJSONString.find("keyboard") != std::string::npos ||
-            fJSONString.find("poly") != std::string::npos){
+        if (fJSON.find("keyboard") != std::string::npos ||
+            fJSON.find("poly") != std::string::npos){
             fPolyMax = 6;
             fPolyDSP = new mydsp_poly(fPolyMax, true);
             fPolyDSP->init(sampling_rate);
@@ -132,7 +132,7 @@ public:
     
     const char* getJSON()
     {
-        return fJSONString.c_str();
+        return fJSON.c_str();
     }
 
     int getParamsCount()
