@@ -581,7 +581,7 @@ class jackaudio_midi : public jackaudio, public midi_handler {
             if (data) {
                 ringbuffer_read(fOutBuffer, (char*)data, out_size);
             } else {
-                std::cout << "jack_midi_event_reserve error" << std::endl;
+                fprintf(stderr, "jack_midi_event_reserve error");
             }
         }
      
@@ -597,7 +597,7 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         {
             size_t res;
             if ((res = ringbuffer_write(fOutBuffer, (const char*)buffer, size)) != size) {
-                std::cout << "writeMessage error size = " << size << " res = " << res << std::endl;
+                fprintf(stderr, "writeMessage error size = %d res = %d", size, res);
             }
         }
   
