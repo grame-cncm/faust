@@ -52,7 +52,7 @@
 #define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
 #define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
 
-#ifdef POLY
+#if POLY
 #include "faust/dsp/poly-dsp.h"
 #endif
 
@@ -133,7 +133,7 @@ bool hasMIDISync()
     ((FIAppDelegate*)[UIApplication sharedApplication].delegate).mainViewController = self;
     _openPanelChanged = YES;
 
-#ifdef POLY
+#if POLY
     
 #if MIDICTRL
     if (hasMIDISync()) {
