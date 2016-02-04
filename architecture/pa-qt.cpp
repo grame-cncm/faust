@@ -66,8 +66,10 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp		DSP;
-std::list<GUI*>	GUI::fGuiList;
+mydsp DSP;
+
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 /******************************************************************************
 *******************************************************************************
