@@ -87,8 +87,8 @@
 					
 dsp* DSP;
 
-ztimedmap GUI::gTimedZoneMap;
 std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -97,8 +97,8 @@ std::list<GUI*> GUI::fGuiList;
 bool hasMIDISync()
 {
     JSONUI jsonui;
-    mydsp mydsp;
-    mydsp.buildUserInterface(&jsonui);
+    mydsp tmp_dsp;
+    tmp_dsp.buildUserInterface(&jsonui);
     std::string json = jsonui.JSON();
     
     return ((json.find("midi") != std::string::npos) &&

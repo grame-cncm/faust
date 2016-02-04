@@ -190,8 +190,8 @@ class rt_midi : public midi_handler {
             try {
             
             #if TARGET_OS_IPHONE
-                if (!openMidiInputPorts()) goto cleanup;
-                if (!openMidiOutputPorts()) goto cleanup;
+                if (!openMidiInputPorts())  { stop(); return false; }
+                if (!openMidiOutputPorts()) { stop(); return false; }
             #else
                 chooseMidiInputPort(fName);
                 chooseMidiOutPort(fName);

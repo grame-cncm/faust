@@ -99,8 +99,8 @@ ztimedmap GUI::gTimedZoneMap;
 bool hasMIDISync()
 {
     JSONUI jsonui;
-    mydsp mydsp;
-    mydsp.buildUserInterface(&jsonui);
+    mydsp tmp_dsp;
+    tmp_dsp.buildUserInterface(&jsonui);
     std::string json = jsonui.JSON();
     
     return ((json.find("midi") != std::string::npos) &&
