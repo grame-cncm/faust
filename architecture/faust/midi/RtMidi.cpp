@@ -63,6 +63,7 @@ UInt64 CAHostTimeBase::sLastTime = 0;
 void CAHostTimeBase::Initialize()
 {
     if (!sIsInited) {
+       
         //	get the info about Absolute time
         #if TARGET_OS_MAC
             struct mach_timebase_info	theTimeBaseInfo;
@@ -493,10 +494,10 @@ static void midiInputCallback( const MIDIPacketList *list, void *procRef, void *
   unsigned char status;
   unsigned short nBytes, iByte, size;
   unsigned long long time;
-
+  
   bool& continueSysex = data->continueSysex;
   MidiInApi::MidiMessage& message = data->message;
-
+  
   const MIDIPacket *packet = &list->packet[0];
   for ( unsigned int i=0; i<list->numPackets; ++i ) {
 
@@ -514,6 +515,7 @@ static void midiInputCallback( const MIDIPacketList *list, void *procRef, void *
 
     // Calculate time stamp.
 
+    /*
     if ( data->firstMessage ) {
       message.timeStamp = 0.0;
       data->firstMessage = false;
@@ -532,8 +534,11 @@ static void midiInputCallback( const MIDIPacketList *list, void *procRef, void *
     if ( apiData->lastTime == 0 ) { // this happens when receiving asynchronous sysex messages
       apiData->lastTime = AudioGetCurrentHostTime();
     }
-    //std::cout << "TimeStamp = " << packet->timeStamp << std::endl;
-
+    */
+    
+    // Absolute usec based time stamp
+    message.timeStamp = AudioConvertHostTimeToNanos(packet->timeStamp) / 1000;
+  
     iByte = 0;
     if ( continueSysex ) {
       // We have a continuing, segmented sysex message.
@@ -1367,6 +1372,8 @@ static void *alsaMidiHandler( void *ptr )
           // Method 2: Use the ALSA sequencer event time data.
           // (thanks to Pedro Lopez-Cabanillas!).
           time = ( ev->time.time.tv_sec * 1000000 ) + ( ev->time.time.tv_nsec/1000 );
+          
+          /*
           lastTime = time;
           time -= apiData->lastTime;
           apiData->lastTime = lastTime;
@@ -1374,6 +1381,10 @@ static void *alsaMidiHandler( void *ptr )
             data->firstMessage = false;
           else
             message.timeStamp = time * 0.000001;
+          */
+          
+          // Absolute usec based time stamp
+          message.timeStamp = time;
         }
         else {
 #if defined(__RTMIDI_DEBUG__)
@@ -2042,12 +2053,18 @@ static void CALLBACK midiInputCallback( HMIDIIN /*hmin*/,
   WinMidiData *apiData = static_cast<WinMidiData *> (data->apiData);
 
   // Calculate time stamp.
+  /*
   if ( data->firstMessage == true ) {
     apiData->message.timeStamp = 0.0;
     data->firstMessage = false;
   }
   else apiData->message.timeStamp = (double) ( timestamp - apiData->lastTime ) * 0.001;
   apiData->lastTime = timestamp;
+  
+  */
+  
+  // Absolute usec based time stamp
+  apiData->message.timeStamp = double(timestamp - apiData->lastTime) * 1000;
 
   if ( inputStatus == MIM_DATA ) { // Channel or system message
 
@@ -2566,15 +2583,18 @@ static int jackProcessIn( jack_nframes_t nframes, void *arg )
     for ( unsigned int i = 0; i < event.size; i++ )
       message.bytes.push_back( event.buffer[i] );
 
+    // TODO: incorrect time stamps...
+    
     // Compute the delta time.
     time = jack_get_time();
+    
     if ( rtData->firstMessage == true )
       rtData->firstMessage = false;
     else
       message.timeStamp = ( time - jData->lastTime ) * 0.000001;
 
     jData->lastTime = time;
-
+   
     if ( !rtData->continueSysex ) {
       if ( rtData->usingCallback ) {
         RtMidiIn::RtMidiCallback callback = (RtMidiIn::RtMidiCallback) rtData->userCallback;
@@ -2622,7 +2642,7 @@ void MidiInJack :: connect()
     return;
 
   // Initialize JACK client
-  if (( data->client = jack_client_open( clientName.c_str(), JackNoStartServer, NULL )) == 0) {
+  if ((data->client = jack_client_open( clientName.c_str(), JackNoStartServer, NULL )) == 0) {
     errorString_ = "MidiInJack::initialize: JACK server not running?";
     error( RtMidiError::WARNING, errorString_ );
     return;

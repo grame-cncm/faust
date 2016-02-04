@@ -106,7 +106,7 @@ class netjackaudio : public audio
 
         bool init_aux(const char* name, dsp* DSP, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs) 
         {
-            if (init_aux(name, audio_inputs, audio_outputs, midi_inputs, midi_outputs)){
+            if (init_aux(name, audio_inputs, audio_outputs, midi_inputs, midi_outputs)) {
                 set_dsp(DSP);
                 return true;
             } else {

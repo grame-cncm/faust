@@ -20,12 +20,16 @@
     that work under terms of your choice, so long as this FAUST
     architecture section is not modified.
 
-
  ************************************************************************
  ************************************************************************/
 
 #ifndef __midi__
 #define __midi__
+
+#include <vector>
+#include <string>
+
+#include "faust/gui/ring-buffer.h"
 
 //----------------------------------------------------------------
 //  MIDI processor definition
@@ -38,15 +42,70 @@ class midi {
         midi() {}
         virtual ~midi() {}
 
-        virtual void keyOn(int channel, int pitch, int velocity)        = 0;
-        virtual void keyOff(int channel, int pitch, int velocity)       = 0;
-        virtual void keyPress(int channel, int pitch, int press)        = 0;
-        virtual void chanPress(int channel, int press)                  = 0;
-        virtual void ctrlChange(int channel, int ctrl, int value)       = 0;
-        virtual void ctrlChange14bits(int channel, int ctrl, int value) = 0;
-        virtual void pitchWheel(int channel, int wheel)                 = 0;
-        virtual void progChange(int channel, int pgm)                   = 0;
+        // Additional time-stamped API for MIDI input
+        virtual void keyOn(double date, int channel, int pitch, int velocity)          {}
+        virtual void keyOff(double date, int channel, int pitch, int velocity)         {}
+        virtual void keyPress(double date, int channel, int pitch, int press)          {}
+        virtual void chanPress(double date, int channel, int press)                    {}
+        virtual void ctrlChange(double date, int channel, int ctrl, int value)         {}
+        virtual void ctrlChange14bits(double date, int channel, int ctrl, int value)   {}
+        virtual void pitchWheel(double date, int channel, int wheel)                   {}
+        virtual void progChange(double date, int channel, int pgm)                     {}
+        
+        // MIDI sync
+        virtual void start(double date)  {}
+        virtual void stop(double date)   {}
+        virtual void clock(double date)  {}
+        
+        // Standard MIDI API
+        virtual void keyOn(int channel, int pitch, int velocity)        {}
+        virtual void keyOff(int channel, int pitch, int velocity)       {}
+        virtual void keyPress(int channel, int pitch, int press)        {}
+        virtual void chanPress(int channel, int press)                  {}
+        virtual void ctrlChange(int channel, int ctrl, int value)       {}
+        virtual void ctrlChange14bits(int channel, int ctrl, int value) {}
+        virtual void pitchWheel(int channel, int wheel)                 {}
+        virtual void progChange(int channel, int pgm)                   {}
        
+};
+
+//----------------------------------------------------------------
+//  Base class for MIDI API handling
+//----------------------------------------------------------------
+
+class midi_handler : public midi {
+
+    protected:
+    
+        enum MidiStatus {
+	
+            // channel voice messages
+            MIDI_NOTE_OFF           = 0x80, 
+            MIDI_NOTE_ON            = 0x90, 
+            MIDI_CONTROL_CHANGE     = 0xB0,
+            MIDI_PROGRAM_CHANGE     = 0xC0,
+            MIDI_PITCH_BEND         = 0xE0,
+            MIDI_AFTERTOUCH         = 0xD0,	// aka channel pressure
+            MIDI_POLY_AFTERTOUCH    = 0xA0,	// aka key pressure
+            MIDI_CLOCK              = 0xF8,
+            MIDI_START              = 0xFA,
+            MIDI_STOP               = 0xFC
+
+        };
+ 
+        std::vector<midi*> fMidiInputs;
+        std::string fName;
+
+    public:
+
+        midi_handler(const std::string& name = "MIDIHandler"):fName(name) {}
+        virtual ~midi_handler() {}
+        
+        virtual void addMidiIn(midi* midi_dsp) { fMidiInputs.push_back(midi_dsp); }
+        
+        virtual bool start() {}
+        virtual void stop() {}
+
 };
 
 #endif // __midi__
