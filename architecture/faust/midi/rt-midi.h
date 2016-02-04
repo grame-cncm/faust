@@ -20,7 +20,6 @@
     that work under terms of your choice, so long as this FAUST
     architecture section is not modified.
 
-
  ************************************************************************
  ************************************************************************/
  
@@ -32,47 +31,50 @@
 #include "faust/midi/RtMidi.h"
 #include "faust/midi/midi.h"
 
-class rtmidi : public midi {
+class rt_midi : public midi_handler {
 
     private:
     
-        enum MidiStatus {
-	
-            // channel voice messages
-            MIDI_NOTE_OFF           = 0x80, 
-            MIDI_NOTE_ON            = 0x90, 
-            MIDI_CONTROL_CHANGE     = 0xB0,
-            MIDI_PROGRAM_CHANGE     = 0xC0,
-            MIDI_PITCH_BEND         = 0xE0,
-            MIDI_AFTERTOUCH         = 0xD0,	// aka channel pressure
-            MIDI_POLY_AFTERTOUCH    = 0xA0	// aka key pressure
-
-        };
-  
         std::vector<RtMidiIn*> fInput;
         std::vector<RtMidiOut*> fOutput;
-        std::vector<midi*> fMidiInputs;
-        std::string fName;
         
-        static void midiCallback(double deltatime, std::vector<unsigned char>* message, void* arg)
+        static void midiCallback(double time, std::vector<unsigned char>* message, void* arg)
         {
-            rtmidi* midi = static_cast<rtmidi*>(arg);
+            rt_midi* midi = static_cast<rt_midi*>(arg);
             unsigned int nBytes = message->size();
             
             int cmd = (int)message->at(0) & 0xf0;
             int channel = (int)message->at(0) & 0x0f;
             
-            if (nBytes == 2) {
+            // MIDI sync
+            if (nBytes == 1) {
+            
+                int sync = (int)message->at(0);
+                if (sync == MIDI_CLOCK) {
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->clock(time);
+                    }
+                } else if (sync == MIDI_START) {
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->start(time);
+                    }
+                } else if (sync == MIDI_STOP) {
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->stop(time);
+                    }
+                }
+                
+            } else if (nBytes == 2) {
              
                 int data1 = (int)message->at(1);
                 
                 if (cmd == MIDI_PROGRAM_CHANGE) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->progChange(channel, data1);
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->progChange(time, channel, data1);
                     }
                 } else if (cmd == MIDI_AFTERTOUCH) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->chanPress(channel, data1);
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->chanPress(time, channel, data1);
                     }
                 }
             
@@ -82,30 +84,27 @@ class rtmidi : public midi {
                 int data2 = (int)message->at(2);
                 
                 if (cmd == MIDI_NOTE_OFF || ((cmd == MIDI_NOTE_ON) && (data2 == 0))) { 
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyOff(channel, data1, data2);
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->keyOff(time, channel, data1, data2);
                     }
                 } else if (cmd == MIDI_NOTE_ON) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyOn(channel, data1, data2);
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->keyOn(time, channel, data1, data2);
                     }
                 } else if (cmd == MIDI_CONTROL_CHANGE) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->ctrlChange(channel, data1, data2);
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->ctrlChange(time, channel, data1, data2);
                     }
                 } else if (cmd == MIDI_PITCH_BEND) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->pitchWheel(channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->pitchWheel(time, channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
                     }
                 } else if (cmd == MIDI_POLY_AFTERTOUCH) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyPress(channel, data1, data2);
+                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
+                        midi->fMidiInputs[i]->keyPress(time, channel, data1, data2);
                     }
                 }
-                
-            } else {
-                 std::cout << "long message : " << nBytes << std::endl;
-            }
+            } 
         }
         
         bool openMidiInputPorts()
@@ -119,8 +118,9 @@ class rtmidi : public midi {
             }
     
             // Then open all of them
-            for (int i = 0; i < nInPorts; i++) {
+            for (unsigned int i = 0; i < nInPorts; i++) {
                 RtMidiIn* midi_in = new RtMidiIn();
+                midi_in->ignoreTypes(true, false, true);
                 fInput.push_back(midi_in);
                 midi_in->openPort(i);
                 midi_in->setCallback(&midiCallback, this);
@@ -141,7 +141,7 @@ class rtmidi : public midi {
             }
     
             // Then open all of them
-            for (int i = 0; i < nOutPorts; i++) {
+            for (unsigned int i = 0; i < nOutPorts; i++) {
                 RtMidiOut* midi_out = new RtMidiOut();
                 fOutput.push_back(midi_out);
                 midi_out->openPort(i);
@@ -154,6 +154,7 @@ class rtmidi : public midi {
         void chooseMidiInputPort(const std::string& name)
         {
             RtMidiIn* midi_in = new RtMidiIn();
+            midi_in->ignoreTypes(true, false, true);
             fInput.push_back(midi_in);
             midi_in->setCallback(&midiCallback, this);
             midi_in->openVirtualPort(name);
@@ -176,23 +177,21 @@ class rtmidi : public midi {
     
     public:
     
-        rtmidi(const std::string& name = "RtMidi"):fName(name)
+        rt_midi(const std::string& name = "RtMidi"):midi_handler(name)
         {}
         
-        virtual ~rtmidi()
+        virtual ~rt_midi()
         {
             stop();
         }
-        
-        void addMidiIn(midi* midi_dsp) { fMidiInputs.push_back(midi_dsp); }
         
         bool start()
         {
             try {
             
             #if TARGET_OS_IPHONE
-                if (!openMidiInputPorts()) goto cleanup;
-                if (!openMidiOutputPorts()) goto cleanup;
+                if (!openMidiInputPorts())  { stop(); return false; }
+                if (!openMidiOutputPorts()) { stop(); return false; }
             #else
                 chooseMidiInputPort(fName);
                 chooseMidiOutPort(fName);
@@ -201,12 +200,9 @@ class rtmidi : public midi {
                 
             } catch (RtMidiError &error) {
                 error.printMessage();
+                stop();
                 return false;
             }
-            
-        cleanup:
-            stop();
-            return false;
         }
         
         void stop()
@@ -219,6 +215,24 @@ class rtmidi : public midi {
             for (it2 = fOutput.begin(); it2 != fOutput.end(); it2++) {
                 delete (*it2);
             }
+        }
+        
+        void keyOn(int channel, int pitch, int velocity) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_NOTE_ON + channel);
+            message.push_back(pitch);
+            message.push_back(velocity);
+            sendMessage(message);
+        }
+        
+        void keyOff(int channel, int pitch, int velocity) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_NOTE_OFF + channel);
+            message.push_back(pitch);
+            message.push_back(velocity);
+            sendMessage(message);
         }
         
         void ctrlChange(int channel, int ctrl, int val) 
@@ -245,25 +259,7 @@ class rtmidi : public midi {
             message.push_back(pgm);
             sendMessage(message);
         }
-        
-        void keyOn(int channel, int pitch, int velocity) 
-        {
-            std::vector<unsigned char> message;
-            message.push_back(MIDI_NOTE_ON + channel);
-            message.push_back(pitch);
-            message.push_back(velocity);
-            sendMessage(message);
-        }
-        
-        void keyOff(int channel, int pitch, int velocity) 
-        {
-            std::vector<unsigned char> message;
-            message.push_back(MIDI_NOTE_OFF + channel);
-            message.push_back(pitch);
-            message.push_back(velocity);
-            sendMessage(message);
-        }
-        
+          
         void keyPress(int channel, int pitch, int press) 
         {
             std::vector<unsigned char> message;
@@ -283,7 +279,47 @@ class rtmidi : public midi {
         }
         
         void ctrlChange14bits(int channel, int ctrl, int value) {}
-   
+         
+        void start(double date) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_START);
+            sendMessage(message);
+        }
+       
+        void stop(double date) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_STOP);
+            sendMessage(message);
+        }
+        
+        void clock(double date) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_CLOCK);
+            sendMessage(message);
+        }
+        
 };
+
+#if __APPLE__
+#if TARGET_OS_IPHONE
+double GetCurrentTimeInUsec() { return double(CAHostTimeBase::GetCurrentTimeInNanos()) / 1000.; }
+#else
+#include <CoreAudio/HostTime.h>
+double GetCurrentTimeInUsec() { return double(AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())) / 1000.; }
+#endif
+#endif
+
+#if __linux__
+#include <sys/time.h>
+double GetCurrentTimeInUsec() 
+{
+    struct timeval tv;
+    (void)gettimeofday(&tv, (struct timezone *)NULL);
+    return double((tv.tv_sec * 1000000) + tv.tv_usec);
+}
+#endif
 
 #endif // __rt_midi__

@@ -347,7 +347,7 @@ class mydsp_poly : public dsp, public midi {
         }
         
         // Pure MIDI control
-        void keyOn(int channel, int pitch, int velocity)
+        void keyOn(double date, int channel, int pitch, int velocity)
         {
             int voice = getVoice(kFreeVoice);
             if (voice == kReleaseVoice) voice = getVoice(kReleaseVoice);  // Gets a free voice
@@ -362,7 +362,7 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
-        void keyOff(int channel, int pitch, int velocity = 127)
+        void keyOff(double date, int channel, int pitch, int velocity = 127)
         {
             int voice = getVoice(pitch);
             if (voice >= 0) {
@@ -374,33 +374,24 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
-        void pitchWheel(int channel, int wheel)
+        void pitchWheel(double date, int channel, int wheel)
         {}
         
-        void ctrlChange(int channel, int ctrl, int value)
+        void ctrlChange(double date, int channel, int ctrl, int value)
         {}
         
-        void progChange(int channel, int pgm)
+        void progChange(double date, int channel, int pgm)
         {}
         
-        void keyPress(int channel, int pitch, int press)
+        void keyPress(double date, int channel, int pitch, int press)
         {}
 
-        void chanPress(int channel, int press)
+        void chanPress(double date, int channel, int press)
         {}
         
-        void ctrlChange14bits(int channel, int ctrl, int value)
+        void ctrlChange14bits(double date, int channel, int ctrl, int value)
         {}
-
-        // Additional API
-        void allNotesOff()
-        {
-            for (int i = 0; i < fMaxPolyphony; i++) {
-                fVoiceTable[i]->setValue(fGateLabel, 0.0f);
-                fVoiceTable[i]->fNote = kReleaseVoice;
-            }
-        }
-        
+ 
         void pitchBend(int channel, int refPitch, float pitch)
         {
             int voice = getVoice(refPitch);
@@ -411,6 +402,15 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
+        // Additional API
+        void allNotesOff()
+        {
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                fVoiceTable[i]->setValue(fGateLabel, 0.0f);
+                fVoiceTable[i]->fNote = kReleaseVoice;
+            }
+        }
+       
         void setValue(const char* path, float value)
         {
             for (int i = 0; i < fMaxPolyphony; i++) {
@@ -483,12 +483,12 @@ extern "C" {
 
     void mydsp_poly_keyOn(mydsp_poly* poly, int channel, int pitch, int velocity)
     {
-        poly->keyOn(channel, pitch, velocity);
+        poly->keyOn(0, channel, pitch, velocity);
     }
 
     void mydsp_poly_keyOff(mydsp_poly* poly, int channel, int pitch, int velocity)
     {
-        poly->keyOff(channel, pitch, velocity);
+        poly->keyOff(0, channel, pitch, velocity);
     }
     
     void mydsp_poly_allNotesOff(mydsp_poly* poly)
@@ -498,12 +498,12 @@ extern "C" {
     
     void mydsp_poly_ctrlChange(mydsp_poly* poly, int channel, int ctrl, int value)
     {
-        poly->ctrlChange(channel, ctrl, value);
+        poly->ctrlChange(0, channel, ctrl, value);
     }
     
     void mydsp_poly_pitchWheel(mydsp_poly* poly, int channel, int wheel)
     {
-        poly->pitchWheel(channel, wheel);
+        poly->pitchWheel(0, channel, wheel);
     }
     
     void mydsp_poly_pitchBend(mydsp_poly* poly, int channel, int refPitch, float pitch)
