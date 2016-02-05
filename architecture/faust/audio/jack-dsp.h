@@ -597,7 +597,7 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         {
             size_t res;
             if ((res = ringbuffer_write(fOutBuffer, (const char*)buffer, size)) != size) {
-                fprintf(stderr, "writeMessage error size = %d res = %d", size, res);
+                fprintf(stderr, "writeMessage error size = %ud res = %ud", size, res);
             }
         }
   
