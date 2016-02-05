@@ -88,13 +88,13 @@ struct llvm_dsp_voice : public dsp_voice {
 
     llvm_dsp* fVoice;
 
-    llvm_dsp_voice(llvm_dsp_factory* factory):dsp_voice()
+    llvm_dsp_voice(llvm_dsp* dsp):dsp_voice()
     {
-        fVoice = createDSPInstance(factory);
+        fVoice = dsp;
         fVoice->buildUserInterface(this);
     }
     
-    virtual ~llvm_dsp_voice() { deleteDSPInstance(fVoice); }
+    virtual ~llvm_dsp_voice() { delete fVoice; }
     
     virtual int getNumInputs() { return fVoice->getNumInputs(); }
     virtual int getNumOutputs() { return fVoice->getNumOutputs(); }
@@ -108,11 +108,11 @@ struct llvm_dsp_voice : public dsp_voice {
 
 struct llvm_dsp_voice_factory : public voice_factory {
 
-    llvm_dsp_factory* fFactory;
+    llvm_dsp* fDSP;
     
-    llvm_dsp_voice_factory(llvm_dsp_factory* factory):fFactory(factory) {}
+    llvm_dsp_voice_factory(llvm_dsp* dsp):fDSP(dsp) {}
 
-    virtual dsp_voice* create() { return new llvm_dsp_voice(fFactory); }
+    virtual dsp_voice* create() { return new llvm_dsp_voice(fDSP->copy()); }
 };
 
 #else
@@ -219,17 +219,10 @@ class mydsp_poly : public dsp, public midi {
     public: 
     
     #ifdef LLVM_DSP
-        mydsp_poly(int max_polyphony, bool control, llvm_dsp_factory* factory = NULL)
+        mydsp_poly(int max_polyphony, llvm_dsp* dsp = NULL, bool control = false)
         {
             fVoiceControl = control;
-            llvm_dsp_voice_factory dsp_factory(factory);
-            init(max_polyphony, &dsp_factory);
-        }
-        
-        mydsp_poly(int max_polyphony, llvm_dsp_factory* factory = NULL)
-        {
-            fVoiceControl = false;
-            llvm_dsp_voice_factory dsp_factory(factory);
+            llvm_dsp_voice_factory dsp_factory(dsp);
             init(max_polyphony, &dsp_factory);
         }
     #else
