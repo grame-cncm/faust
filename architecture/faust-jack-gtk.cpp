@@ -50,7 +50,7 @@ extern "C" void* compile_faust_llvm(int argc, const char* argv[], const char* li
 // 	FAUST generated code
 //----------------------------------------------------------------------------
 
-llvm_dsp* DSP;
+dsp* DSP;
 std::list<GUI*> GUI::fGuiList;
 
 int main(int argc, char *argv[])

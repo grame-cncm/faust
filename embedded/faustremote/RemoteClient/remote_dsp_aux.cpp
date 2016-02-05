@@ -1007,8 +1007,6 @@ EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
 
 EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp)
 {
-    // TODO : delete cannot currently be used in place of 'deleteRemoteDSPInstance'
-    
     remote_dsp_factory* factory = reinterpret_cast<remote_dsp_aux*>(dsp)->getFactory();
     
     if (isLocalFactory(factory))  {

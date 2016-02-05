@@ -166,7 +166,7 @@ class remote_dsp_aux : public dsp {
         
         int                     fBufferSize;        // Buffer size of NetJack connection   
         
-        remote_dsp_factory*     fFactory;           // Factory is it created from
+        remote_dsp_factory*     fFactory;           // Factory it is created from
         
         jack_net_master_t*      fNetJack;           // NetJack Connection
         
@@ -242,6 +242,7 @@ class remote_dsp_machine_aux {
     
         remote_dsp_machine_aux(const string& ip, int port, const string& target):fIP(ip), fPort(port), fTarget(target)
         {}
+        virtual remote_dsp_machine_aux() {}
         
         string getIP() { return fIP; }
         int getPort() { return fPort; }
