@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 
 #if MIDICTRL
     if (hasMIDISync()) {
-         DSP = new timed_dsp(new mydsp_poly(poly, true));
+        DSP = new timed_dsp(new mydsp_poly(poly, true));
     } else {
         DSP = new mydsp_poly(poly, true);
     }

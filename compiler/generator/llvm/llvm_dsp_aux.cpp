@@ -1018,6 +1018,13 @@ llvm_dsp_aux::llvm_dsp_aux(llvm_dsp_factory* factory, llvm_dsp_imp* dsp)
         
 llvm_dsp_aux::~llvm_dsp_aux()
 {   
+    TLock lock(gDSPFactoriesLock);
+ 
+    // Remove 'this' from its factory
+    FactoryTableIt it = llvm_dsp_factory::gFactoryTable.find(fDSPFactory);
+    assert(it != llvm_dsp_factory::gFactoryTable.end());
+    (*it).second.remove(this);
+    
     if (fDSP) {
         fDSPFactory->fDelete(fDSP);
     }
@@ -1618,18 +1625,8 @@ EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)
 
 EXPORT void deleteDSPInstance(llvm_dsp* dsp) 
 {
-    TLock lock(gDSPFactoriesLock);
-    
     if (dsp) {
-        FactoryTableIt it;
-        llvm_dsp_aux* dsp_aux = reinterpret_cast<llvm_dsp_aux*>(dsp);
-        llvm_dsp_factory* factory = dsp_aux->getFactory();
-        
-        it = llvm_dsp_factory::gFactoryTable.find(factory);
-        assert(it != llvm_dsp_factory::gFactoryTable.end());
-        (*it).second.remove(dsp_aux);
-         
-        delete dsp_aux; 
+        delete (reinterpret_cast<llvm_dsp_aux*>(dsp));
     }
 }
 
@@ -1935,7 +1932,7 @@ EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
 {
     if (dsp) {
-        delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
+        delete (reinterpret_cast<llvm_dsp_aux*>(dsp)); 
     }
 }
 

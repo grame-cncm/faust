@@ -284,7 +284,7 @@ int main(int argc, char *argv[])
     finterface->saveState(rcfilename);
     delete(interface);
     delete(finterface);
-    //deleteDSPInstance(DSP);
+    deleteDSPInstance(DSP);
     
     deleteDSPFactory(factory3);
     //deleteDSPFactory(factory4);
