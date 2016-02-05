@@ -1,0 +1,153 @@
+#! /bin/bash
+
+#set -x
+
+# defaults (these can be changed with the options listed below)
+FAUST_META=1
+FAUST_MIDICC=1
+FAUST_MTS=1
+NVOICES=-1
+
+# These should be detected properly at build time, but you can also set them
+# to alternative locations using the SDK and SDKSRC environment variables.
+# Set this to the location where you keep your VST SDK files.
+[ -z $SDK ] && SDK=/usr/local/include/vstsdk2.4
+# SDKSRC should point to the SDK source files (vstplugmain.cpp et al).
+# Usually these are either directly under $SDK or in the
+# public.sdk/source/vst2.x subdirectory.
+[ -z $SDKSRC ] && SDKSRC=/usr/local/include/vstsdk2.4/public.sdk/source/vst2.x
+
+PROCARCH="-fPIC"
+dllext=".so"
+CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
+
+# Darwin-specific
+ARCH="-arch i386 -arch x86_64"
+if [[ $(uname) == Darwin ]]; then
+    CXXFLAGS="-O3 $ARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -I/opt/local/include"
+    dllext=".vst"
+fi
+
+# We recognize the following special options here:
+# -nometa: ignore metadata (author information etc.) from the Faust source
+# -nomidicc: plugin doesn't process MIDI control data
+# -notuning: disable the tuning control (VSTi only)
+# -nvoices N: number of synth voices (VSTi only; arg must be an integer)
+
+for ((i=1;i<$#+1;i++)); do
+    p=${!i}
+    if [ $p = "-omp" ]; then
+    	: ignore
+    elif [ $p = "-icc" ]; then
+	CXX=icpc
+    	CXXFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
+    elif [ $p = "-osc" ]; then
+    	: ignore
+    elif [ $p = "-httpd" ]; then
+    	: ignore
+    elif [ $p = "-nometa" ]; then
+    	FAUST_META=0
+    elif [ $p = "-nomidicc" ]; then
+    	FAUST_MIDICC=0
+    elif [ $p = "-notuning" ]; then
+    	FAUST_MTS=0
+    elif [ $p = "-nvoices" ]; then
+	(( i++ ))
+    	NVOICES=${!i}
+    elif [ $p = "-arch32" ]; then
+	PROCARCH="-m32 -L/usr/lib32"
+    elif [ $p = "-arch64" ]; then
+	PROCARCH="-m64 -fPIC"
+    elif [ $p = "-osx" ]; then
+	CXXFLAGS="-O3 $ARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -I/opt/local/include"
+	dllext=".vst"
+    elif [ ${p:0:1} = "-" ]; then
+	OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+	FILES="$FILES $p"
+    else
+	OPTIONS="$OPTIONS $p"
+    fi
+done
+
+FILES=( $FILES )
+if [ ${#FILES[@]} = 0 ]; then
+    echo "$0: no filename specified" >&2
+    exit 1
+elif [ ${#FILES[@]} -gt 1 ]; then
+    echo "$0: multiple filenames specified" >&2
+    exit 1
+fi
+
+arch=faustvst.cpp
+dspname=${FILES[0]}
+SRCDIR=$(dirname "$dspname")
+
+clsname=`basename "$dspname" .dsp`
+cppname="$clsname.cpp"
+soname="$clsname$dllext"
+tmpdir=`mktemp -d /tmp/faust2faustvst.XXXXXX`
+
+CXX=g++
+CPPFLAGS="-DFAUST_META=$FAUST_META -DFAUST_MIDICC=$FAUST_MIDICC -DFAUST_MTS=$FAUST_MTS -I$SDK -I$SDKSRC -D__cdecl="
+if [ $NVOICES -ge 0 ]; then
+CPPFLAGS="$CPPFLAGS -DNVOICES=$NVOICES"
+fi
+
+# Extra SDK modules needed to build a working plugin.
+main=vstplugmain.cpp
+afx=audioeffect.cpp
+afxx=audioeffectx.cpp
+sdksrc="$SDKSRC/$main $SDKSRC/$afx $SDKSRC/$afxx"
+
+# Uncomment this to have Faust substitute the proper class name into the C++
+# code. NOTE: This requires that the basename of the dsp file is a valid C
+# identifier, which isn't guaranteed, so we disable this by default.
+#OPTIONS="$OPTIONS -cn \"$clsname\""
+
+# Create the temp directory.
+mkdir -p $tmpdir
+# Compile the Faust module.
+faust -i -a $arch $OPTIONS "$dspname" -o "$tmpdir/$cppname"
+if [[ $(uname) == Darwin ]]; then
+    mkdir -p $tmpdir/$soname/Contents/MacOS
+    printf '%s' 'BNDL????' > $tmpdir/$soname/Contents/PkgInfo
+    sed -e "s?@name@?$clsname?g;s?@version@?1.0.0?g" > $tmpdir/$soname/Contents/Info.plist <<EOF
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>@name@</string>
+	<key>CFBundleIdentifier</key>
+	<string>@name@</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>@name@</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>@version@</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>@version@</string>
+	<key>CSResourcesFileMapped</key>
+	<true/>
+</dict>
+</plist>
+EOF
+    $CXX -bundle $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname"
+else
+    $CXX -shared $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname"
+fi
+
+# copy down the plugin (bundle on OS X)
+rm -rf "$SRCDIR/$soname"
+cp -r "$tmpdir/$soname" "$SRCDIR"
+# Clean up.
+rm -rf $tmpdir
+# Print the name of the generated plugin.
+echo "$SRCDIR/$soname;"
