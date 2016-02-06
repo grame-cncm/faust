@@ -125,7 +125,7 @@ OSCControler::OSCControler(int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCall
 //--------------------------------------------------------------------------
 OSCControler::~OSCControler()
 { 
-	quit(); 
+	stop(); 
 	delete fFactory;
 	delete fOsc;
 }
@@ -201,7 +201,7 @@ void OSCControler::resetFilteredPaths()
 }  
 
 //--------------------------------------------------------------------------
-void OSCControler::quit ()
+void OSCControler::stop()
 {
 	fOsc->stop();
 }

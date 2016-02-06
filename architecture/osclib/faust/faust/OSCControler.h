@@ -88,7 +88,7 @@ class OSCControler
 	   
 		//--------------------------------------------------------------------------
 		void run();				// starts the network services
-		void quit();			// stop the network services
+		void stop();			// stop the network services
 		
 		int	getUDPPort() const			{ return fUDPPort; }
 		int	getUDPOut()	const			{ return fUDPOut; }
