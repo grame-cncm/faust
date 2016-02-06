@@ -38,9 +38,9 @@
 #define __portaudio_dsp__
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <portaudio.h>
-#include <stdlib.h>
 
 #include "faust/audio/audio.h"
 #include "faust/audio/dsp-adapter.h"
@@ -80,25 +80,27 @@ class portaudio : public audio {
         int	fDevNumInChans;
         int	fDevNumOutChans;
         
-        static int audioCallback(const void* ibuf, void* obuf, unsigned long frames, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void* drv)
+        static int audioCallback(const void* ibuf, void* obuf, unsigned long frames, const PaStreamCallbackTimeInfo* time, PaStreamCallbackFlags, void* drv)
         {
-            portaudio* pa = (portaudio*)drv;
-            return pa->processAudio((float**)ibuf, (float**)obuf, frames);
+            return static_cast<portaudio*>(drv)->processAudio(time->currentTime, 
+                                                            (float**)ibuf, 
+                                                            static_cast<float**>(obuf), 
+                                                            frames);
         }
         
-        virtual int processAudio(float** ibuf, float** obuf, unsigned long frames) 
+        virtual int processAudio(PaTime current_time, float** ibuf, float** obuf, unsigned long frames) 
         {
-            // process samples
-            fDsp->compute(frames, ibuf, obuf);
+            // Process samples
+            fDsp->compute(current_time * 1000000., frames, ibuf, obuf);
             return paContinue;
         }
         
     public:
         
         portaudio(long srate, long bsize) : 
-            fDsp(0), fAudioStream(0),
-            fSampleRate(srate), fBufferSize(bsize), 
-            fDevNumInChans(0), fDevNumOutChans(0) {}
+                fDsp(0), fAudioStream(0),
+                fSampleRate(srate), fBufferSize(bsize), 
+                fDevNumInChans(0), fDevNumOutChans(0) {}
         virtual ~portaudio() 
         {   
             stop(); 

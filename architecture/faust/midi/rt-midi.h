@@ -305,16 +305,16 @@ class rt_midi : public midi_handler {
 
 #if __APPLE__
 #if TARGET_OS_IPHONE
-double GetCurrentTimeInUsec() { return double(CAHostTimeBase::GetCurrentTimeInNanos()) / 1000.; }
+inline double GetCurrentTimeInUsec() { return double(CAHostTimeBase::GetCurrentTimeInNanos()) / 1000.; }
 #else
 #include <CoreAudio/HostTime.h>
-double GetCurrentTimeInUsec() { return double(AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())) / 1000.; }
+inline double GetCurrentTimeInUsec() { return double(AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())) / 1000.; }
 #endif
 #endif
 
 #if __linux__
 #include <sys/time.h>
-double GetCurrentTimeInUsec() 
+inline double GetCurrentTimeInUsec() 
 {
     struct timeval tv;
     (void)gettimeofday(&tv, (struct timezone *)NULL);

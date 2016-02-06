@@ -981,8 +981,6 @@ class TCoreAudioRenderer
             }
             return err;
         }
-    
-        
         
     public:
 
