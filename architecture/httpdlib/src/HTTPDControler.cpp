@@ -104,7 +104,7 @@ HTTPDControler::HTTPDControler(int argc, char *argv[], const char* applicationna
 
 HTTPDControler::~HTTPDControler()
 { 
-	quit(); 
+	stop(); 
 	delete fFactory;
 	delete fHttpd;
 	delete fJson;
@@ -202,7 +202,7 @@ void HTTPDControler::run()
 }
 
 //--------------------------------------------------------------------------
-void HTTPDControler::quit()
+void HTTPDControler::stop()
 {
 	fHttpd->stop();
 }
