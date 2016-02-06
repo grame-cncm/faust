@@ -47,7 +47,6 @@
 
 #define FORMAT RTAUDIO_FLOAT32
 
-
 /******************************************************************************
  *******************************************************************************
  
@@ -71,36 +70,37 @@ class rtaudio : public audio {
         int	fDevNumInChans;
         int	fDevNumOutChans;
         
-        virtual int processAudio(void* ibuf, void* buf, unsigned long frames) 
+        virtual int processAudio(double streamTime, void* inbuf, void* outbuf, unsigned long frames) 
         {
             float* inputs[fDsp->getNumInputs()];
             float* outputs[fDsp->getNumOutputs()];
             
             for (int i = 0; i < fDsp->getNumInputs(); i++) {
-                inputs[i] = &((float*)ibuf)[i * frames];
+                inputs[i] = &(static_cast<float*>(inbuf))[i * frames];
             }
             for (int i = 0; i < fDsp->getNumOutputs(); i++) {
-                outputs[i] = &((float*)buf)[i * frames];
+                outputs[i] = &(static_cast<float*>(outbuf))[i * frames];
             }
 
             // process samples
-            fDsp->compute(frames, inputs, outputs);
+            fDsp->compute(streamTime * 1000000., frames, inputs, outputs);
             return 0;
         }
-        
+    
         static int audioCallback(void* outputBuffer, void* inputBuffer, 
-                        unsigned int nBufferFrames,
-                        double streamTime, RtAudioStreamStatus status, 
-                        void* data)
+                                unsigned int nBufferFrames,
+                                double streamTime, RtAudioStreamStatus status, 
+                                void* drv)
         {
-            rtaudio* ra = (rtaudio*)data;
-            return ra->processAudio(inputBuffer, outputBuffer, nBufferFrames);
+            return static_cast<rtaudio*>(drv)->processAudio(streamTime, inputBuffer, outputBuffer, nBufferFrames);
         }
       
     public:
         
         rtaudio(long srate, long bsize) : fDsp(0),
-            fSampleRate(srate), fBufferSize(bsize), fDevNumInChans(0), fDevNumOutChans(0) {}
+                fSampleRate(srate), fBufferSize(bsize), 
+                fDevNumInChans(0), fDevNumOutChans(0) {}
+            
         virtual ~rtaudio() 
         {   
             stop(); 
@@ -155,6 +155,7 @@ class rtaudio : public audio {
         void set_dsp(dsp* DSP)
         {
             fDsp = DSP;
+            
             if (fDsp->getNumInputs() > fDevNumInChans || fDsp->getNumOutputs() > fDevNumOutChans) {
                 printf("DSP has %d inputs and %d outputs, physical inputs = %d physical outputs = %d \n", 
                        fDsp->getNumInputs(), fDsp->getNumOutputs(), 
