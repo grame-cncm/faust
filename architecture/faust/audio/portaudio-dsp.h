@@ -90,6 +90,11 @@ class portaudio : public audio {
         
         virtual int processAudio(PaTime current_time, float** ibuf, float** obuf, unsigned long frames) 
         {
+            // Cleanup hardware outputs that are not used by DSP
+            for (int i = fDsp->getNumOutputs(); i < fDevNumOutChans; i++) {
+                memset(obuf[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
+            }
+            
             // Process samples
             fDsp->compute(current_time * 1000000., frames, ibuf, obuf);
             return paContinue;
@@ -134,7 +139,6 @@ class portaudio : public audio {
                 fDevNumInChans = 0;
             } else {
                 fDevNumInChans = idev->maxInputChannels;
-                
                 fInputParameters.device = Pa_GetDefaultInputDevice();
                 fInputParameters.sampleFormat = paFloat32 | paNonInterleaved;
                 fInputParameters.channelCount = fDevNumInChans;
@@ -145,7 +149,6 @@ class portaudio : public audio {
                 fDevNumOutChans = 0;
             } else{
                 fDevNumOutChans = odev->maxOutputChannels;
-                
                 fOutputParameters.device = Pa_GetDefaultOutputDevice();
                 fOutputParameters.sampleFormat = paFloat32 | paNonInterleaved;;
                 fOutputParameters.channelCount = fDevNumOutChans;
@@ -154,12 +157,12 @@ class portaudio : public audio {
             
             // A DSP that has only outputs or only inputs forces the presence of an output or input device
             if (numInputs == 0 && numOutputs != 0 && fDevNumOutChans == 0) {
-                printf("Devices not adaptated to DSP\n");
+                printf("Devices not adapted to DSP\n");
                 return false;
             }
             
             if (numInputs != 0 && numOutputs == 0 && fDevNumInChans == 0) {
-                printf("Devices not adaptated to DSP\n");
+                printf("Devices not adapted to DSP\n");
                 return false;
             }
             
@@ -191,7 +194,8 @@ class portaudio : public audio {
         virtual bool start() 
         {
             if (pa_error(Pa_OpenStream(&fAudioStream, ((fDevNumInChans > 0) ? &fInputParameters : 0),
-                                       ((fDevNumOutChans > 0) ? &fOutputParameters : 0), fSampleRate, fBufferSize, paNoFlag, audioCallback, this))) {
+                                       ((fDevNumOutChans > 0) ? &fOutputParameters : 0), 
+                                       fSampleRate, fBufferSize, paNoFlag, audioCallback, this))) {
                 return false;
             }    
             
