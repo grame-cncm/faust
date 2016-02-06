@@ -211,10 +211,13 @@ class rt_midi : public midi_handler {
             for (it1 = fInput.begin(); it1 != fInput.end(); it1++) {
                 delete (*it1);
             }
+            fInput.clear();
+            
             std::vector<RtMidiOut*>::iterator it2;
             for (it2 = fOutput.begin(); it2 != fOutput.end(); it2++) {
                 delete (*it2);
             }
+            fOutput.clear();
         }
         
         void keyOn(int channel, int pitch, int velocity) 
