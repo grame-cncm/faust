@@ -30,11 +30,79 @@
 #include "faust/gui/GUI.h" 
 #include "faust/gui/ring-buffer.h"
 
-#include <vector>
-#include <map>
+#include <set>
 #include <float.h>
 
 double GetCurrentTimeInUsec();
+
+
+//----------------------------------------------------------------
+// ZoneUI : Faust User Interface
+// This class collect zones in a set
+//----------------------------------------------------------------
+
+struct ZoneUI : public UI
+{
+    
+    std::set<FAUSTFLOAT*> fZoneSet;
+    
+    ZoneUI() {};
+    virtual ~ZoneUI() {};
+    
+    void insertZone(FAUSTFLOAT* zone) 
+    { 
+        if (GUI::gTimedZoneMap.find(zone) != GUI::gTimedZoneMap.end()) {
+            fZoneSet.insert(zone);
+        } 
+    }
+    
+    // -- widget's layouts
+    void openTabBox(const char* label)
+    {}
+    void openHorizontalBox(const char* label)
+    {}
+    void openVerticalBox(const char* label)
+    {}
+    void closeBox()
+    {}
+    
+    // -- active widgets
+    void addButton(const char* label, FAUSTFLOAT* zone)
+    {
+        insertZone(zone);
+    }
+    void addCheckButton(const char* label, FAUSTFLOAT* zone)
+    {
+        insertZone(zone);
+    }
+    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
+    {
+        insertZone(zone);
+    }
+    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
+    {
+        insertZone(zone);
+    }
+    void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
+    {
+        insertZone(zone);
+    }
+    
+    // -- passive widgets
+    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
+    {
+       insertZone(zone);
+    }
+    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
+    {
+        insertZone(zone);
+    }
+    
+    // -- metadata declarations
+    void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+    {}
+
+};
 
 //----------------------------------------------------------------
 //  Timed signal processor definition
@@ -48,6 +116,7 @@ class timed_dsp : public decorator_dsp {
         double fDateUsec;       // Compute call date in usec
         double fOffsetUsec;     // Compute call offset in usec
         bool fFirstCallback;
+        ZoneUI fZoneUI;
         
         void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
@@ -75,10 +144,12 @@ class timed_dsp : public decorator_dsp {
         {
             DatedControl date1(DBL_MAX, 0);
             ztimedmap::iterator it1, it2 = GUI::gTimedZoneMap.end();
+            std::set<FAUSTFLOAT*>::iterator it3;
               
             // Find date of next audio slice to compute
-            for (it1 = GUI::gTimedZoneMap.begin(); it1 != GUI::gTimedZoneMap.end(); it1++) {
+            for (it3 = fZoneUI.fZoneSet.begin(); it3 != fZoneUI.fZoneSet.end(); it3++) {
                 // If value list is not empty, get the date and keep the minimal one
+                it1 = GUI::gTimedZoneMap.find(*it3);
                 DatedControl date2;
                 if (ringbuffer_peek((*it1).second, (char*)&date2, sizeof(DatedControl)) == sizeof(DatedControl) 
                     && date2.fDate < date1.fDate) {
@@ -134,6 +205,13 @@ class timed_dsp : public decorator_dsp {
         {
             fSamplingFreq = double(samplingRate);
             fDSP->init(samplingRate);
+        }
+        
+        virtual void buildUserInterface(UI* ui_interface)   
+        { 
+            fDSP->buildUserInterface(ui_interface); 
+            // Only keep zones that are in GUI::gTimedZoneMap
+            fDSP->buildUserInterface(&fZoneUI);
         }
         
         // Default method take a timestamp at 'compute' call time
