@@ -422,6 +422,7 @@ class MidiUI : public GUI, public midi
         void stop() { fMidiHandler->stop(); }
         
         void addMidiIn(midi* midi_dsp) { fMidiHandler->addMidiIn(midi_dsp); }
+        void removeMidiIn(midi* midi_dsp) { fMidiHandler->removeMidiIn(midi_dsp); }
       
         // -- widget's layouts
 

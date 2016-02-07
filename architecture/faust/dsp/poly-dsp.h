@@ -41,6 +41,7 @@
 #include <algorithm>
 #include <ostream>
 #include <sstream>
+#include <vector>
 
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/JSONUI.h"
