@@ -43,7 +43,7 @@
 #include <stdlib.h>
 
 #include "faust/audio/audio.h"
-#include "faust/audio/dsp-adapter.h"
+#include "faust/dsp/dsp-adapter.h"
 
 #define FORMAT RTAUDIO_FLOAT32
 
@@ -166,7 +166,6 @@ class rtaudio : public audio {
                        fDsp->getNumInputs(), fDsp->getNumOutputs(), 
                        fDevNumInChans, fDevNumOutChans);
                 fDsp = new dsp_adapter(fDsp, fDevNumInChans, fDevNumOutChans, fBufferSize);
-                printf("adapter\n");
             }
             
             fDsp->init(fSampleRate);

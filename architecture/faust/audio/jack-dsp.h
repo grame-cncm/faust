@@ -236,7 +236,7 @@ class jackaudio : public audio {
         virtual bool init(const char* name, dsp* dsp) 
         {
             if (init(name)) {
-                if (dsp) set_dsp(dsp);
+                set_dsp(dsp);
                 return true;
             } else {  
                 return false;
@@ -351,7 +351,7 @@ class jackaudio : public audio {
             }
         }
     
-        virtual bool set_dsp(dsp* dsp)
+        virtual void set_dsp(dsp* dsp)
         {
             fDSP = dsp;
                        
@@ -367,7 +367,6 @@ class jackaudio : public audio {
             }
             
             fDSP->init(jack_get_sample_rate(fClient));
-            return true;
         }
              
         void connect(jackaudio* driver, int src, int dst, bool reverse)
