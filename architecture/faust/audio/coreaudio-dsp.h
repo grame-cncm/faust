@@ -1396,6 +1396,8 @@ class TCoreAudioRenderer
             }
             AudioUnitUninitialize(fAUHAL);
             CloseComponent(fAUHAL);
+            fAUHAL = NULL;
+            
             DestroyAggregateDevice();
             
             delete[] fInChannel;

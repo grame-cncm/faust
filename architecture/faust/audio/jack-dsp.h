@@ -293,7 +293,7 @@ class jackaudio : public audio {
         virtual bool start() 
         {
             if (jack_activate(fClient)) {
-                fprintf(stderr, "Cannot activate client");
+                fprintf(stderr, "Cannot activate client\n");
                 return false;
             }
             
@@ -581,7 +581,7 @@ class jackaudio_midi : public jackaudio, public midi_handler {
             if (data) {
                 ringbuffer_read(fOutBuffer, (char*)data, out_size);
             } else {
-                fprintf(stderr, "jack_midi_event_reserve error");
+                fprintf(stderr, "jack_midi_event_reserve error\n");
             }
         }
      
@@ -597,7 +597,7 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         {
             size_t res;
             if ((res = ringbuffer_write(fOutBuffer, (const char*)buffer, size)) != size) {
-                fprintf(stderr, "writeMessage error size = %ud res = %ud", size, res);
+                fprintf(stderr, "writeMessage error size = %ud res = %ud\n", size, res);
             }
         }
   
