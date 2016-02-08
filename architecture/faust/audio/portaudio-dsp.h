@@ -43,7 +43,7 @@
 #include <portaudio.h>
 
 #include "faust/audio/audio.h"
-#include "faust/audio/dsp-adapter.h"
+#include "faust/dsp/dsp-adapter.h"
 
 static bool pa_error(int err)
 {
