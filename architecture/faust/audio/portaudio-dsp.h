@@ -196,7 +196,6 @@ class portaudio : public audio {
                        fDsp->getNumInputs(), fDsp->getNumOutputs(), 
                        fDevNumInChans, fDevNumOutChans);
                 fDsp = new dsp_adapter(fDsp, fDevNumInChans, fDevNumOutChans, fBufferSize);
-                printf("adapter\n");
             }
             
             fDsp->init(fSampleRate);

@@ -89,7 +89,7 @@ class oscdsp : public audio, public oscfaust::OSCIO {
     {
 		fDsp->compute(nframes, fInBuffers, fOutBuffers);
 		for (int i= 0; i < numOutputs(); i++) {
-			send( nframes, fOutBuffers [i], i);
+			send(nframes, fOutBuffers [i], i);
         }
 	}
 
