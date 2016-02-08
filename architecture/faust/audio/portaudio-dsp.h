@@ -106,9 +106,14 @@ class portaudio : public audio {
                 fDsp(0), fAudioStream(0),
                 fSampleRate(srate), fBufferSize(bsize), 
                 fDevNumInChans(0), fDevNumOutChans(0) {}
+                
         virtual ~portaudio() 
         {   
-            stop(); 
+            if (fAudioStream) {
+                pa_error(Pa_StopStream(fAudioStream));
+                pa_error(Pa_CloseStream(fAudioStream));
+                fAudioStream = 0;
+            }
             Pa_Terminate();
         }
         
@@ -174,6 +179,12 @@ class portaudio : public audio {
                 return false;
             }
             
+            if (pa_error(Pa_OpenStream(&fAudioStream, ((fDevNumInChans > 0) ? &fInputParameters : 0),
+                                       ((fDevNumOutChans > 0) ? &fOutputParameters : 0), 
+                                       fSampleRate, fBufferSize, paNoFlag, audioCallback, this))) {
+                return false;
+            }    
+            
             return true;
         }
         
@@ -193,24 +204,17 @@ class portaudio : public audio {
         
         virtual bool start() 
         {
-            if (pa_error(Pa_OpenStream(&fAudioStream, ((fDevNumInChans > 0) ? &fInputParameters : 0),
-                                       ((fDevNumOutChans > 0) ? &fOutputParameters : 0), 
-                                       fSampleRate, fBufferSize, paNoFlag, audioCallback, this))) {
-                return false;
-            }    
-            
             if (pa_error(Pa_StartStream(fAudioStream))) {
                 return false;
+            } else {
+                return true;
             }
-            return true;
         }
         
         virtual void stop() 
         {
             if (fAudioStream) {
-                Pa_StopStream(fAudioStream);
-                Pa_CloseStream(fAudioStream);
-                fAudioStream = 0;
+                pa_error(Pa_StopStream(fAudioStream));
             }
         }
         
