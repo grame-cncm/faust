@@ -103,7 +103,12 @@ class rtaudio : public audio {
             
         virtual ~rtaudio() 
         {   
-            stop(); 
+            try {
+                fAudioDAC.stopStream();
+                fAudioDAC.closeStream();
+            } catch (RtAudioError& e) {
+                std::cout << '\n' << e.getMessage() << '\n' << std::endl;
+            }
         }
         
         virtual bool init(const char* name, dsp* DSP)
@@ -169,7 +174,7 @@ class rtaudio : public audio {
         
         virtual bool start() 
         {
-           try {
+            try {
                 fAudioDAC.startStream();
             } catch (RtAudioError& e) {
                 std::cout << '\n' << e.getMessage() << '\n' << std::endl;
@@ -182,7 +187,6 @@ class rtaudio : public audio {
         {
             try {
                 fAudioDAC.stopStream();
-                fAudioDAC.closeStream();
             } catch (RtAudioError& e) {
                 std::cout << '\n' << e.getMessage() << '\n' << std::endl;
             }

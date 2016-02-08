@@ -402,6 +402,7 @@ class MidiUI : public GUI, public midi
             fMidiHandler = new rt_midi(name);
             fMidiHandler->addMidiIn(this);
             fDelete = true;
+           
         }
         
         MidiUI(midi_handler* midi_handler)
@@ -415,6 +416,8 @@ class MidiUI : public GUI, public midi
         { 
             if (fDelete) {
                 delete fMidiHandler;
+            } else {
+                fMidiHandler->removeMidiIn(this);
             }
         }
         
