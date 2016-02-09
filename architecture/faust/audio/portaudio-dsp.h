@@ -114,6 +114,8 @@ class portaudio : public audio {
                 pa_error(Pa_CloseStream(fAudioStream));
                 fAudioStream = 0;
             }
+            // Note that Pa_Initialize handled multiple times calls and 
+            // must be matched with a corresponding call to Pa_Terminate
             Pa_Terminate();
         }
         
@@ -128,7 +130,9 @@ class portaudio : public audio {
         }
         
         bool init(const char* /*name*/, int numInputs, int numOutputs)
-        {            
+        {         
+            // Note that Pa_Initialize handled multiple times calls and 
+            // must be matched with a corresponding call to Pa_Terminate
             if (pa_error(Pa_Initialize())) {
                 return false;
             }
