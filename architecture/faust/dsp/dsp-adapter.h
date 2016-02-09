@@ -48,7 +48,7 @@ class dsp_adapter : public decorator_dsp {
         int fHardwareInputs;
         int fHardwareOutputs;
         
-        void adaptBuffers( FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        void adaptBuffers(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             for (int i = 0; i < fHardwareInputs; i++) {
                 fAdaptedInputs[i] = inputs[i];

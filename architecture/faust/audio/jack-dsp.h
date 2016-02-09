@@ -236,7 +236,7 @@ class jackaudio : public audio {
         virtual bool init(const char* name, dsp* dsp) 
         {
             if (init(name)) {
-                set_dsp(dsp);
+                if (dsp) set_dsp(dsp);
                 return true;
             } else {  
                 return false;

@@ -140,7 +140,7 @@ class portaudio : public audio {
             
             //In case there is no audio device, the function fails
             
-            if(idev == NULL) {
+            if (idev == NULL) {
                 fDevNumInChans = 0;
             } else {
                 fDevNumInChans = idev->maxInputChannels;
