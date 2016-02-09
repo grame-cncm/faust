@@ -130,7 +130,7 @@ class jackaudio : public audio {
         }
         
         // Save client connections
-        void save_connections()
+        virtual void save_connections()
         {
             fConnections.clear();
             
@@ -469,6 +469,29 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         
         ringbuffer_t* fOutBuffer;
         
+        virtual void save_connections()
+        {
+            jackaudio::save_connections();
+            
+            const char** connected_port = jack_port_get_all_connections(fClient, fInputMidiPort);
+            if (connected_port != NULL) {
+                for (int port = 0; connected_port[port]; port++) {
+                    fConnections.push_back(std::make_pair(connected_port[port], jack_port_name(fInputMidiPort)));
+                    // printf("INPUT %s ==> %s\n", connected_port[port], jack_port_name(fInputPorts[i]));
+                }
+                jack_free(connected_port);
+            }
+        
+            connected_port = jack_port_get_all_connections(fClient, fOutputMidiPort);
+            if (connected_port != NULL) {
+                for (int port = 0; connected_port[port]; port++) {
+                    fConnections.push_back(std::make_pair(jack_port_name(fOutputMidiPort), connected_port[port]));
+                    // printf("OUTPUT %s ==> %s\n", jack_port_name(fOutputPorts[i]), connected_port[port]);
+                }
+                jack_free(connected_port);
+            }
+        }
+      
         virtual int processMidiIn(jack_nframes_t nframes) 
         {
             // MIDI input
