@@ -50,6 +50,12 @@ faust2raqt  <file.dsp>...   	      : create a RTAudio/QT application for each in
 
 faust2gen  <file.dsp>...   	      : create a wrapping Max/MSP patch that uses faustgen~ for each input file
 
+NOTE: In the latest Faust versions there's also an alternative VST
+architecture available, featuring multi-channel MIDI, MIDI CC and MIDI Tuning
+Standard (MTS) support. It is invoked as follows:
+
+faust2faustvst  <file.dsp>...  		: create a VST plugin for each input file
+
 
 2) The following scripts can be used to generate block diagrams
 

@@ -11,7 +11,24 @@ help:
 	@echo The only target is 'install'. Install directory is $(dest) by default.
 	@echo Call 'make install DESTDIR=/your/install/dir' to install to another location.
 
-install:
+# Check for some common locations of the VST SDK files. This falls back to
+# /usr/local/src/vstsdk if none of these are found. In that case, or if make
+# picks the wrong location, you can also set the SDK variable explicitly.
+sdkpaths = /usr/local/include /usr/local/src /usr/include /usr/src
+sdkpat = vst* VST*
+SDK = $(firstword $(wildcard $(foreach path,$(sdkpaths),$(addprefix $(path)/,$(sdkpat)))) /usr/src/vstsdk)
+# Steinberg's distribution zip has the SDK source files in the
+# public.sdk/source/vst2.x subdirectory, while some Linux packages (e.g.,
+# steinberg-vst in the Arch User Repositories) keep them directly under $(SDK).
+SDKSRC = $(firstword $(patsubst %/,%,$(dir $(wildcard $(addsuffix vstplugmain.cpp,$(SDK)/ $(SDK)/public.sdk/source/vst2.x/)))) $(SDK)/public.sdk/source/vst2.x)
+
+# This sets the proper SDK paths in the faust2faustvst script, detected at
+# installation time.
+faust2faustvst: faust2faustvst.in
+	sed -e 's?@SDK@?$(SDK)?g;s?@SDKSRC@?$(SDKSRC)?g' < $< > $@
+	chmod a+x $@
+
+install: faust2faustvst
 	mkdir -p $(dest)
 	install ../faust2sc-1.0.0/faust2sc $(dest)
 	install faust2alqt $(dest)
@@ -71,6 +88,7 @@ install:
 	install faust2webaudioasm $(dest)
 	install faustoptflags $(dest)
 	install faustpath $(dest)
+	rm -f faust2faustvst
 
 uninstall:
 	rm -f $(dest)/faust2sc
