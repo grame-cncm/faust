@@ -307,11 +307,11 @@ class rt_midi : public midi_handler {
 };
 
 #if __APPLE__
-#if TARGET_OS_IPHONE
-inline double GetCurrentTimeInUsec() { return double(CAHostTimeBase::GetCurrentTimeInNanos()) / 1000.; }
+    #if TARGET_OS_IPHONE
+    inline double GetCurrentTimeInUsec() { return double(CAHostTimeBase::GetCurrentTimeInNanos()) / 1000.; }
 #else
-#include <CoreAudio/HostTime.h>
-inline double GetCurrentTimeInUsec() { return double(AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())) / 1000.; }
+    #include <CoreAudio/HostTime.h>
+    inline double GetCurrentTimeInUsec() { return double(AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())) / 1000.; }
 #endif
 #endif
 
@@ -325,4 +325,14 @@ inline double GetCurrentTimeInUsec()
 }
 #endif
 
+#if _WIN32
+double jack_time_t GetCurrentTimeInUsec(void)
+{
+    LARGE_INTEGER time;
+    LARGE_INTEGER frequency
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&time);
+    return (double(time.QuadPart)) / (double(frequency.QuadPart)) * 1000000.0);
+}
+#endif
 #endif // __rt_midi__
