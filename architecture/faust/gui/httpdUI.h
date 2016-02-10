@@ -52,6 +52,7 @@ class httpdUIAux
     public: 
     
         virtual void run()              = 0;
+        virtual void stop()             = 0;
         virtual int getTCPPort()        = 0;
         virtual std::string getJSON()   = 0;
 };
@@ -140,6 +141,7 @@ class httpdServerUI : public UI, public httpdUIAux
         virtual void declare(FAUSTFLOAT*, const char* key, const char* val) { fCtrl->declare(key, val); }
 
         void run()						{ fCtrl->run(); }
+        void stop()						{ fCtrl->stop(); }
         int getTCPPort()                { return fCtrl->getTCPPort(); }
 
         std::string getJSON() { return fCtrl->getJSON(); }
@@ -351,6 +353,7 @@ class httpdUI : public DecoratorUI
         }
 
         void run() { dynamic_cast<httpdUIAux*>(fUI)->run(); }
+        void stop() { dynamic_cast<httpdUIAux*>(fUI)->stop(); }
         int getTCPPort() { return dynamic_cast<httpdUIAux*>(fUI)->getTCPPort(); }
 
         std::string getJSON() { return dynamic_cast<httpdUIAux*>(fUI)->getJSON(); }

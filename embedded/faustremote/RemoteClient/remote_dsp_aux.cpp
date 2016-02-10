@@ -392,6 +392,11 @@ remote_dsp_aux::~remote_dsp_aux()
     
     delete[] fControlInputs;
     delete[] fControlOutputs;
+     
+    // Remove 'this' from its factory
+    RemoteFactoryDSPTableIt it = remote_dsp_factory::gRemoteFactoryDSPTable.find(fFactory);
+    assert(it != remote_dsp_factory::gRemoteFactoryDSPTable.end());
+    (*it).second.first.remove(this);
 }
 
 void remote_dsp_aux::fillBufferWithZerosOffset(int channels, int offset, int size, FAUSTFLOAT** buffer)
@@ -1002,17 +1007,12 @@ EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
 
 EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp)
 {
-    RemoteFactoryDSPTableIt it;
-    remote_dsp_aux* dsp_aux = reinterpret_cast<remote_dsp_aux*>(dsp);
-    remote_dsp_factory* factory = dsp_aux->getFactory();
+    remote_dsp_factory* factory = reinterpret_cast<remote_dsp_aux*>(dsp)->getFactory();
     
     if (isLocalFactory(factory))  {
-         deleteDSPInstance(reinterpret_cast<llvm_dsp*>(dsp));
+        deleteDSPInstance(reinterpret_cast<llvm_dsp*>(dsp));
     } else {
-        it = remote_dsp_factory::gRemoteFactoryDSPTable.find(factory);
-        assert(it != remote_dsp_factory::gRemoteFactoryDSPTable.end());
-        (*it).second.first.remove(dsp_aux);
-        delete dsp_aux; 
+        delete reinterpret_cast<remote_dsp_aux*>(dsp); 
     }
 }
 

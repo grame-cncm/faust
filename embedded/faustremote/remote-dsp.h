@@ -224,7 +224,7 @@ remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
                                     int& error);
 
 /**
- * Delete a Faust remote DSP instance.
+ * Delete a Faust remote DSP instance. You can also simply use C++ 'delete'. 
  * 
  * @param dsp - the DSP instance to be deleted.
  */ 
@@ -260,7 +260,7 @@ class remote_audio {
 remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int argc, const char* argv[], int& error);
 
 /**
- * Destroy a Faust remote Audio instance.
+ * Delete a Faust remote Audio instance. You can also simply use C++ 'delete'.
  * 
  * @param audio - the Audio instance to be deleted.
  */ 
@@ -349,7 +349,7 @@ class remote_dsp_server {
 remote_dsp_server* createRemoteDSPServer(int argc, const char* argv[]);
 
 /**
- * Destroy a Faust remote DSP server.
+ * Delete a Faust remote DSP server. You can also simply use C++ 'delete'.
  * 
  * @param server - the DSP server to be deleted.
  */ 

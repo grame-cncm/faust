@@ -18,6 +18,8 @@ faust2csound <file.dsp>...     	: create a CSOUND plugin for each input file
 
 faust2dssi <file.dsp>...       	: create a DSSI plugin for each input file
 
+faust2gen  <file.dsp>...   	      : create a wrapping Max/MSP patch that uses faustgen~ for each input file
+
 faust2jack <file.dsp>...       	: create JACK/GTK application for each input file
 
 faust2jaqt <file.dsp>...       	: create JACK/QT application for each input file
@@ -36,6 +38,8 @@ faust2netjackconsole  <file.dsp>...   : create a NetJack/console application for
 	
 faust2puredata  <file.dsp>...  	: create a PureData 4 or 5 plugin for each input file
 
+faust2raqt  <file.dsp>...   	      : create a RTAudio/QT application for each input file
+
 faust2supercollider <file.dsp>... 	: create a SuperCollider plugin for each input file
 
 faust2vst  <file.dsp>...  		: create a VST plugin for each input file
@@ -46,9 +50,12 @@ faust2asmjs  <file.dsp>...            : using Emscripten compiler, create a WebA
 
 faust2webaudioasm  <file.dsp>...   	: using Emscripten compiler, create a HTML/WebAudioAPI (with asm.js code) application for each input file
 
-faust2raqt  <file.dsp>...   	      : create a RTAudio/QT application for each input file
 
-faust2gen  <file.dsp>...   	      : create a wrapping Max/MSP patch that uses faustgen~ for each input file
+NOTE: In the latest Faust versions there's also an alternative VST
+architecture available, featuring multi-channel MIDI, MIDI CC and MIDI Tuning
+Standard (MTS) support. It is invoked as follows:
+
+faust2faustvst  <file.dsp>...  	: create a VST plugin for each input file
 
 
 2) The following scripts can be used to generate block diagrams

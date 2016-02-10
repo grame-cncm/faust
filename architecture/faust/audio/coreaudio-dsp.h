@@ -974,15 +974,13 @@ class TCoreAudioRenderer
                 for (int i = 0; i < fDevNumOutChans; i++) {
                     fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
                 }
-                fDSP->compute(inNumberFrames, fInChannel, fOutChannel);
+                fDSP->compute(double(AudioConvertHostTimeToNanos(inTimeStamp->mHostTime))/1000., inNumberFrames, fInChannel, fOutChannel);
             } else {
                 printf("AudioUnitRender error... %x\n", fInputData);
                 printError(err);
             }
             return err;
         }
-    
-        
         
     public:
 
@@ -1398,6 +1396,8 @@ class TCoreAudioRenderer
             }
             AudioUnitUninitialize(fAUHAL);
             CloseComponent(fAUHAL);
+            fAUHAL = NULL;
+            
             DestroyAggregateDevice();
             
             delete[] fInChannel;

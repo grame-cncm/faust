@@ -321,7 +321,7 @@ class mspUI : public UI
 
 	public:
     
-		typedef map<string,mspUIObject*>::iterator iterator;
+		typedef map<string, mspUIObject*>::iterator iterator;
 
 		mspUI() 
         {

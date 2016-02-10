@@ -64,16 +64,16 @@
 
 <<includeIntrinsic>>
 
-
 <<includeclass>>
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp*	DSP;
+mydsp* DSP;
 
-std::list<GUI*>               GUI::fGuiList;
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 //-------------------------------------------------------------------------
 // 									MAIN

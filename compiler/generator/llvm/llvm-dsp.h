@@ -418,7 +418,7 @@ class llvm_dsp : public dsp {
 llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
 
 /**
- * Delete a Faust DSP instance.
+ * Delete a Faust DSP instance. You can also simply use C++ 'delete'. 
  * 
  * @param dsp - the DSP instance to be deleted.
  */ 

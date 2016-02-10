@@ -39,8 +39,10 @@
 #include <iostream>
 #include <list>
 
+#include "faust/dsp/timed-dsp.h"
 #include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/gui/faustqt.h"
 #include "faust/misc.h"
 #include "faust/audio/rtaudio-dsp.h"
@@ -77,13 +79,14 @@
 #include "faust/dsp/poly-dsp.h"
 #endif
 
-dsp* DSP;
-
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
+dsp* DSP;
+
 std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 /******************************************************************************
 *******************************************************************************
@@ -92,6 +95,19 @@ std::list<GUI*> GUI::fGuiList;
 
 *******************************************************************************
 *******************************************************************************/
+
+bool hasMIDISync()
+{
+    JSONUI jsonui;
+    mydsp tmp_dsp;
+    tmp_dsp.buildUserInterface(&jsonui);
+    std::string json = jsonui.JSON();
+    
+    return ((json.find("midi") != std::string::npos) &&
+            ((json.find("start") != std::string::npos) ||
+            (json.find("stop") != std::string::npos) ||
+            (json.find("clock") != std::string::npos)));
+}
 
 int main(int argc, char *argv[])
 {
@@ -107,13 +123,29 @@ int main(int argc, char *argv[])
     int poly = lopt(argv, "--poly", 4);
 
 #ifdef POLY
+
 #if MIDICTRL
-    DSP = new mydsp_poly(poly, true);
+    if (hasMIDISync()) {
+         DSP = new timed_dsp(new mydsp_poly(poly, true));
+    } else {
+        DSP = new mydsp_poly(poly, true);
+    }
 #else
     DSP = new mydsp_poly(poly);
 #endif
+
+#else
+
+#if MIDICTRL
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new mydsp());
+    } else {
+        DSP = new mydsp();
+    }
 #else
     DSP = new mydsp();
+#endif
+    
 #endif
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
@@ -174,7 +206,7 @@ int main(int argc, char *argv[])
     
 	audio.stop();
 	finterface.saveState(rcfilename);
-
+    
   	return 0;
 }
 
