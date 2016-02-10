@@ -110,7 +110,7 @@ class midi_handler : public midi {
             }
         }
         
-        virtual bool start() {}
+        virtual bool start() { return false; }
         virtual void stop() {}
 
 };
