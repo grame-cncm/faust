@@ -595,7 +595,7 @@ class jackaudio_midi : public jackaudio, public midi_handler {
             // MIDI output 
             unsigned char* port_buf_out = (unsigned char*)jack_port_get_buffer(fOutputMidiPort, nframes);
             
-            jack_midi_clear_buffer(port_buf_out);
+            jack_midi_reset_buffer(port_buf_out);
             size_t out_size = ringbuffer_read_space(fOutBuffer);
             jack_midi_data_t* data = jack_midi_event_reserve(port_buf_out, 0, out_size);
             
