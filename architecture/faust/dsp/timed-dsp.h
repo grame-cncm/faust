@@ -36,7 +36,6 @@
 
 double GetCurrentTimeInUsec();
 
-
 //----------------------------------------------------------------
 // ZoneUI : Faust User Interface
 // This class collect zones in a set
