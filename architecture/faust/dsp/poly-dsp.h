@@ -293,6 +293,12 @@ class mydsp_poly : public dsp, public midi {
         }
         
         // Pure MIDI control
+        
+        void keyOn(double date, int channel, int pitch, int velocity)
+        {
+            keyOn(channel, pitch, velocity);
+        }
+        
         void keyOn(int channel, int pitch, int velocity)
         {
             int voice = getVoice(kFreeVoice);
@@ -308,6 +314,11 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
+        void keyOff(double date, int channel, int pitch, int velocity = 127)
+        {
+            keyOff(channel, pitch, velocity);
+        }
+        
         void keyOff(int channel, int pitch, int velocity = 127)
         {
             int voice = getVoice(pitch);
@@ -320,24 +331,55 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
+        void pitchWheel(double date, int channel, int wheel)
+        {
+            pitchWheel(channel, wheel);
+        }
+        
         void pitchWheel(int channel, int wheel)
         {}
+        
+        void ctrlChange(double date, int channel, int ctrl, int value)
+        {
+            ctrlChange(channel, ctrl, value);
+        }
         
         void ctrlChange(int channel, int ctrl, int value)
         {}
         
+        void progChange(double date, int channel, int pgm)
+        {
+            progChange(channel, pgm);
+        }
+        
         void progChange(int channel, int pgm)
         {}
         
+        void keyPress(double date, int channel, int pitch, int press)
+        {
+            keyPress(channel, pitch, press);
+        }
+        
         void keyPress(int channel, int pitch, int press)
         {}
-
+        
+        void chanPress(double date, int channel, int press)
+        {
+            chanPress(channel, press);
+        }
+        
         void chanPress(int channel, int press)
         {}
+        
+        void ctrlChange14bits(double date, int channel, int ctrl, int value)
+        {
+            ctrlChange14bits(channel, ctrl, value);
+        }
         
         void ctrlChange14bits(int channel, int ctrl, int value)
         {}
  
+        // Additional API
         void pitchBend(int channel, int refPitch, float pitch)
         {
             int voice = getVoice(refPitch);
@@ -348,7 +390,6 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
-        // Additional API
         void allNotesOff()
         {
             for (int i = 0; i < fMaxPolyphony; i++) {
