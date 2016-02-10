@@ -11,11 +11,11 @@ NVOICES=-1
 # These should be detected properly at build time, but you can also set them
 # to alternative locations using the SDK and SDKSRC environment variables.
 # Set this to the location where you keep your VST SDK files.
-[ -z $SDK ] && SDK=/usr/local/include/vstsdk2.4
+[ -z $SDK ] && SDK=@SDK@
 # SDKSRC should point to the SDK source files (vstplugmain.cpp et al).
 # Usually these are either directly under $SDK or in the
 # public.sdk/source/vst2.x subdirectory.
-[ -z $SDKSRC ] && SDKSRC=/usr/local/include/vstsdk2.4/public.sdk/source/vst2.x
+[ -z $SDKSRC ] && SDKSRC=@SDKSRC@
 
 PROCARCH="-fPIC"
 dllext=".so"
