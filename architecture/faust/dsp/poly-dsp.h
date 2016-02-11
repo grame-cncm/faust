@@ -282,8 +282,9 @@ class mydsp_poly : public dsp, public midi {
             if (fMaxPolyphony > 1) {
                 ui_interface->openTabBox("Polyphonic instrument");
                 for (int i = 0; i < fMaxPolyphony; i++) {
-                    std::stringstream voice; voice << "Voice" << i;
-                    ui_interface->openHorizontalBox(voice.str().c_str());
+                    char buffer[32];
+                    snprintf(buffer, 31, "Voice%d", i);
+                    ui_interface->openHorizontalBox(buffer);
                     fVoiceTable[i]->buildUserInterface(ui_interface);
                     ui_interface->closeBox();
                 }
