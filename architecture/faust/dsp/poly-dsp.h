@@ -225,6 +225,7 @@ class mydsp_poly : public dsp, public midi {
             fVoiceControl = control;
             llvm_dsp_voice_factory dsp_factory(dsp);
             init(max_polyphony, &dsp_factory);
+            fFreqLabel = fGateLabel = fGainLabel = "";
         }
     #else
         mydsp_poly(int max_polyphony, bool control = false) 
@@ -232,6 +233,7 @@ class mydsp_poly : public dsp, public midi {
             fVoiceControl = control;
             mydsp_voice_factory factory;
             init(max_polyphony, &factory);
+            fFreqLabel = fGateLabel = fGainLabel = "";
         }
     #endif
  
@@ -324,7 +326,7 @@ class mydsp_poly : public dsp, public midi {
         {   
             // Add itself to the MidiUI object
             MidiUI* midi_ui = dynamic_cast<MidiUI*>(ui_interface);
-            if (midi_ui) midi_ui->addMidiIn(this);
+            if (midi_ui) { midi_ui->addMidiIn(this); }
             
             if (fMaxPolyphony > 1) {
                 ui_interface->openTabBox("Polyphonic instrument");
@@ -353,10 +355,14 @@ class mydsp_poly : public dsp, public midi {
             if (voice == kReleaseVoice) voice = getVoice(kReleaseVoice);  // Gets a free voice
             
             if (voice >= 0) {
-                fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
-                fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
-                fVoiceTable[voice]->setValue(fGateLabel, 1.0f);
-                fVoiceTable[voice]->fNote = pitch;
+                if (fFreqLabel != "") {
+                    fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
+                    fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
+                    fVoiceTable[voice]->setValue(fGateLabel, 1.0f);
+                    fVoiceTable[voice]->fNote = pitch;
+                } else {
+                    printf("DSP is not polyphonic...\n");
+                }
             } else {
                 printf("No more free voice...\n");
             }
@@ -371,9 +377,13 @@ class mydsp_poly : public dsp, public midi {
         {
             int voice = getVoice(pitch);
             if (voice >= 0) {
-                fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
-                fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
-                fVoiceTable[voice]->fNote = kReleaseVoice;
+                if (fFreqLabel != "") {
+                    fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
+                    fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
+                    fVoiceTable[voice]->fNote = kReleaseVoice;
+                } else {
+                    printf("DSP is not polyphonic...\n");
+                }
             } else {
                 printf("Playing voice not found...\n");
             }
