@@ -236,7 +236,7 @@ class jackaudio : public audio {
         virtual bool init(const char* name, dsp* dsp) 
         {
             if (init(name)) {
-                if (dsp) set_dsp(dsp);
+                if (dsp) { set_dsp(dsp); }
                 return true;
             } else {  
                 return false;
@@ -473,22 +473,26 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         {
             jackaudio::save_connections();
             
-            const char** connected_port = jack_port_get_all_connections(fClient, fInputMidiPort);
-            if (connected_port != NULL) {
-                for (int port = 0; connected_port[port]; port++) {
-                    fConnections.push_back(std::make_pair(connected_port[port], jack_port_name(fInputMidiPort)));
-                    // printf("INPUT %s ==> %s\n", connected_port[port], jack_port_name(fInputPorts[i]));
+            if (fInputMidiPort) {
+                const char** connected_port = jack_port_get_all_connections(fClient, fInputMidiPort);
+                if (connected_port != NULL) {
+                    for (int port = 0; connected_port[port]; port++) {
+                        fConnections.push_back(std::make_pair(connected_port[port], jack_port_name(fInputMidiPort)));
+                        // printf("INPUT %s ==> %s\n", connected_port[port], jack_port_name(fInputPorts[i]));
+                    }
+                    jack_free(connected_port);
                 }
-                jack_free(connected_port);
             }
         
-            connected_port = jack_port_get_all_connections(fClient, fOutputMidiPort);
-            if (connected_port != NULL) {
-                for (int port = 0; connected_port[port]; port++) {
-                    fConnections.push_back(std::make_pair(jack_port_name(fOutputMidiPort), connected_port[port]));
-                    // printf("OUTPUT %s ==> %s\n", jack_port_name(fOutputPorts[i]), connected_port[port]);
+            if (fOutputMidiPort) {
+                const char** connected_port = jack_port_get_all_connections(fClient, fOutputMidiPort);
+                if (connected_port != NULL) {
+                    for (int port = 0; connected_port[port]; port++) {
+                        fConnections.push_back(std::make_pair(jack_port_name(fOutputMidiPort), connected_port[port]));
+                        // printf("OUTPUT %s ==> %s\n", jack_port_name(fOutputPorts[i]), connected_port[port]);
+                    }
+                    jack_free(connected_port);
                 }
-                jack_free(connected_port);
             }
         }
       
@@ -609,9 +613,19 @@ class jackaudio_midi : public jackaudio, public midi_handler {
      
         virtual int process(jack_nframes_t nframes) 
         {
-            processMidiIn(nframes);
+            // MIDI in
+            if (fInputMidiPort) {
+                processMidiIn(nframes);
+            }
+            
+            // Audio
             processAudio(nframes);
-            processMidiOut(nframes);
+            
+            // MIDI out
+            if (fOutputMidiPort) {
+                processMidiOut(nframes);
+            }
+            
             return 0;
         }
         
@@ -626,36 +640,36 @@ class jackaudio_midi : public jackaudio, public midi_handler {
     public: 
     
         jackaudio_midi(const void* icon_data = 0, size_t icon_size = 0, bool auto_connect = true) 
-            :jackaudio(icon_data, icon_size, auto_connect), midi_handler("JACKMidi")
-        {
-            fOutBuffer = ringbuffer_create(8192);
-        }
+            :jackaudio(icon_data, icon_size, auto_connect), midi_handler("JACKMidi"), 
+            fInputMidiPort(0), fOutputMidiPort(0), fOutBuffer(0)
+        {}
         
         virtual ~jackaudio_midi()
         {
             if (fClient) {
-                jack_port_unregister(fClient, fInputMidiPort);
-                jack_port_unregister(fClient, fOutputMidiPort);
+                if (fInputMidiPort) { jack_port_unregister(fClient, fInputMidiPort); }
+                if (fOutputMidiPort) { jack_port_unregister(fClient, fOutputMidiPort); }
             }
-            ringbuffer_free(fOutBuffer);
-        }
-        
-        virtual bool init(const char* name, dsp* dsp) 
-        {
-            return jackaudio::init(name, dsp);
-        }
-        
-        virtual bool init(const char* name)
-        {
-            bool res = jackaudio::init(name);
-            
-            if (res) {
-                fInputMidiPort = jack_port_register(fClient, "midi_in_1", JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
-                fOutputMidiPort = jack_port_register(fClient, "midi_out_1", JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);
+            if (fOutBuffer) { 
+                ringbuffer_free(fOutBuffer);
             }
-            return res;
         }
         
+        virtual bool init(const char* name, dsp* dsp, bool midi = false) 
+        {
+            if (jackaudio::init(name)) {
+                if (dsp) { set_dsp(dsp); }
+                if (midi) {
+                    fOutBuffer = ringbuffer_create(8192);
+                    fInputMidiPort = jack_port_register(fClient, "midi_in_1", JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
+                    fOutputMidiPort = jack_port_register(fClient, "midi_out_1", JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);
+                }
+                return true;
+            } else {  
+                return false;
+            }
+        }
+           
         virtual bool start() 
         {
             return jackaudio::start();
