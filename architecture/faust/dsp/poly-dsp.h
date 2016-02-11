@@ -225,6 +225,7 @@ class mydsp_poly : public dsp, public midi {
             fVoiceControl = control;
             llvm_dsp_voice_factory dsp_factory(dsp);
             init(max_polyphony, &dsp_factory);
+            fFreqLabel = fGateLabel = fGainLabel = "";
         }
     #else
         mydsp_poly(int max_polyphony, bool control = false) 
