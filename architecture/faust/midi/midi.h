@@ -28,6 +28,7 @@
 
 #include <vector>
 #include <string>
+#include <algorithm>
 
 #include "faust/gui/ring-buffer.h"
 
