@@ -393,7 +393,11 @@ class mydsp_poly : public dsp, public midi {
         {
             int voice = getVoice(refPitch);
             if (voice >= 0) {
-                fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
+                if (fFreqLabel != "") {
+                    fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
+                } else {
+                    printf("DSP is not polyphonic...\n");
+                }
             } else {
                 printf("Playing voice not found...\n");
             }
