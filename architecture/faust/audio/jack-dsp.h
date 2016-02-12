@@ -496,7 +496,7 @@ class jackaudio_midi : public jackaudio, public midi_handler {
             }
         }
       
-        virtual int processMidiIn(jack_nframes_t nframes) 
+        virtual void processMidiIn(jack_nframes_t nframes) 
         {
             // MIDI input
             void* port_buf_in = jack_port_get_buffer(fInputMidiPort, nframes);
@@ -574,7 +574,7 @@ class jackaudio_midi : public jackaudio, public midi_handler {
             }
         }
         
-        virtual int processAudio(jack_nframes_t nframes) 
+        virtual void processAudio(jack_nframes_t nframes) 
         {
             // Audio
             AVOIDDENORMALS;
@@ -594,7 +594,7 @@ class jackaudio_midi : public jackaudio, public midi_handler {
             fDSP->compute(-1, nframes, fInChannel, fOutChannel); 
         }
         
-        virtual int processMidiOut(jack_nframes_t nframes) 
+        virtual void processMidiOut(jack_nframes_t nframes) 
         {
             // MIDI output 
             unsigned char* port_buf_out = (unsigned char*)jack_port_get_buffer(fOutputMidiPort, nframes);
@@ -633,7 +633,7 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         {
             size_t res;
             if ((res = ringbuffer_write(fOutBuffer, (const char*)buffer, size)) != size) {
-                fprintf(stderr, "writeMessage error size = %ud res = %ud\n", size, res);
+                fprintf(stderr, "writeMessage error size = %lu res = %lu\n", size, res);
             }
         }
   
