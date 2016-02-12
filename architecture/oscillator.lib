@@ -8,7 +8,6 @@ ml = library("music.lib");  // SR, db2linear, frac, PI, noise, ...
 fl = library("filter.lib"); // wgr, nlf2, tf2, smooth, tau2pole, iir, ...
 
 //--------------------Oscillator library for Faust--------------------------
-//
 // Virtual analog oscillators and filter-based oscillators.
 // For wavetable-based oscillators, see osc* in ./music.lib
 //
@@ -67,6 +66,7 @@ with {
 };
 
 // --- saw1 ---
+//
 // simple sawtooth waveform oscillator between -1 and 1
 saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0; // zero-mean in [-1,1)
 // no lf prefix because order 1 explicit called for here
@@ -82,13 +82,14 @@ saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0; // zero-mean in [-1,1)
 // Vol. 18, no. 5, May 2010.
 
 // --- sawN for N = 1 to 6 ---
-sawN(N,freq) = saw1 : poly(N) : D(N-1) : gate(N-1)
+sawN(N,freq) = saw1l : poly(N) : D(N-1) : gate(N-1)
 with {
-  p0n = float(ml.SR)/float(freq); // period in samples
+  clippedFreq = max(20.0,abs(freq)); // use lf_sawpos(freq) for LFOs (freq < 20 Hz)
+  p0n = float(ml.SR)/clippedFreq; // period in samples
   lfsawpos = (_,1:fmod) ~ +(1.0/p0n); // sawtooth waveform in [0,1)
   // To introduce a phase offset here (phase in [0,1]):
   // lfsawpos(phase) = (+(phase*(1-1')), 1 : fmod ) ~ +(1.0/p0n);
-  saw1 = 2*lfsawpos - 1; // zero-mean, amplitude +/- 1
+  saw1l = 2*lfsawpos - 1; // zero-mean, amplitude +/- 1
   poly(1,x) =  x;
   poly(2,x) =  x*x;
   poly(3,x) =  x*x*x - x;
@@ -97,12 +98,10 @@ with {
   poly(6,x) =  pow(x,6) - 5.0*pow(x,4) + 7.0*poly(2,x);
   diff1(x) =  (x - x')/(2.0/p0n);
   diff(N) = seq(n,N,diff1); // N diff1s in series
+  factorial(0) = 1;
+  factorial(i) = i * factorial(i-1);
   D(0) = _;
-  D(1) = diff1/2.0;
-  D(2) = diff(2)/6.0;
-  D(3) = diff(3)/24.0;
-  D(4) = diff(4)/120.0;
-  D(5) = diff(5)/720.0;
+  D(i) = diff(i)/factorial(i+1);
   gate(N) = *(1@(N)); // delayed step for blanking startup glitch
 };
 
@@ -113,7 +112,7 @@ sawNp(N,freq,phase) = sawN(N,freq) : @(max(0,min(8191,int(phase*ml.SR/freq))));
 // Special named cases:
 
 // --- sawN ---
-saw2(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*ml.SR/freq);
+saw2(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*ml.SR/freq); // freq can go lower than in sawN(2)
 saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
 
 // --- sawtooth ---
@@ -136,6 +135,7 @@ saw2f4 = saw2 : cf4 with {
 };
 
 //-------------------------- sawtooth_demo ---------------------------
+//
 // ### USAGE:  sawtooth_demo : _
 
 sawtooth_demo = signal with {
@@ -376,9 +376,10 @@ oscr_demo = oscrs_demo; // synonym
 //  https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html
 //
 
-pink_noise = ml.noise :
-   fl.iir((0.049922035, -0.095993537, 0.050612699, -0.004408786),
+pink_filter = fl.iir((0.049922035, -0.095993537, 0.050612699, -0.004408786),
                     (-2.494956002, 2.017265875, -0.522189400));
+
+pink_noise = ml.noise : pink_filter;
 
 // ### USAGE: pink_noise_vm(N) : _;
 // where N = number of latched white-noise processes to sum,
