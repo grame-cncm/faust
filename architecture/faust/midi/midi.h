@@ -28,6 +28,7 @@
 
 #include <vector>
 #include <string>
+#include <algorithm>
 
 #include "faust/gui/ring-buffer.h"
 
@@ -102,8 +103,15 @@ class midi_handler : public midi {
         virtual ~midi_handler() {}
         
         virtual void addMidiIn(midi* midi_dsp) { fMidiInputs.push_back(midi_dsp); }
+        virtual void removeMidiIn(midi* midi_dsp) 
+        { 
+            std::vector<midi*>::iterator it = std::find(fMidiInputs.begin(), fMidiInputs.end(), midi_dsp);
+            if (it != fMidiInputs.end()) {
+                fMidiInputs.erase(it); 
+            }
+        }
         
-        virtual bool start() {}
+        virtual bool start() { return false; }
         virtual void stop() {}
 
 };

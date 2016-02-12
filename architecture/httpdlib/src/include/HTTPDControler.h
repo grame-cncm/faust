@@ -80,8 +80,8 @@ class HTTPDControler
 		void closegroup();
 
 		//--------------------------------------------------------------------------
-		void run ();				// start the httpd server
-		void quit ();				// stop the httpd server
+		void run();				// start the httpd server
+		void stop();			// stop the httpd server
 		
 		int	getTCPPort()			{ return fTCPPort; }
         std::string getJSON();

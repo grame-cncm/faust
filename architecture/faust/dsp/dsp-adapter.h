@@ -48,13 +48,23 @@ class dsp_adapter : public decorator_dsp {
         int fHardwareInputs;
         int fHardwareOutputs;
         
+        void adaptBuffers(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            for (int i = 0; i < fHardwareInputs; i++) {
+                fAdaptedInputs[i] = inputs[i];
+            }
+            for (int i = 0; i < fHardwareOutputs; i++) {
+                fAdaptedOutputs[i] = outputs[i];
+            }
+        }
+        
     public:
         
         dsp_adapter(dsp* dsp, int hardware_inputs, int hardware_outputs, int buffer_size):decorator_dsp(dsp)
         {
             fHardwareInputs = hardware_inputs;
             fHardwareOutputs = hardware_outputs;
-            
+             
             fAdaptedInputs = new FAUSTFLOAT*[dsp->getNumInputs()];
             for (int i = 0; i < dsp->getNumInputs() - fHardwareInputs; i++) {
                 fAdaptedInputs[i + fHardwareInputs] = new FAUSTFLOAT[buffer_size];
@@ -81,14 +91,15 @@ class dsp_adapter : public decorator_dsp {
             delete [] fAdaptedOutputs;
         }
         
+        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            adaptBuffers(inputs, outputs);
+            fDSP->compute(date_usec, count, fAdaptedInputs, fAdaptedOutputs);
+        }
+        
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            for (int i = 0; i < fHardwareInputs; i++) {
-                fAdaptedInputs[i] = inputs[i];
-            }
-            for (int i = 0; i < fHardwareOutputs; i++) {
-                fAdaptedOutputs[i] = outputs[i];
-            }
+            adaptBuffers(inputs, outputs);
             fDSP->compute(count, fAdaptedInputs, fAdaptedOutputs);
         }
     };

@@ -43,7 +43,7 @@
 #include <stdlib.h>
 
 #include "faust/audio/audio.h"
-#include "faust/audio/dsp-adapter.h"
+#include "faust/dsp/dsp-adapter.h"
 
 #define FORMAT RTAUDIO_FLOAT32
 
@@ -103,7 +103,12 @@ class rtaudio : public audio {
             
         virtual ~rtaudio() 
         {   
-            stop(); 
+            try {
+                fAudioDAC.stopStream();
+                fAudioDAC.closeStream();
+            } catch (RtAudioError& e) {
+                std::cout << '\n' << e.getMessage() << '\n' << std::endl;
+            }
         }
         
         virtual bool init(const char* name, dsp* DSP)
@@ -161,7 +166,6 @@ class rtaudio : public audio {
                        fDsp->getNumInputs(), fDsp->getNumOutputs(), 
                        fDevNumInChans, fDevNumOutChans);
                 fDsp = new dsp_adapter(fDsp, fDevNumInChans, fDevNumOutChans, fBufferSize);
-                printf("adapter\n");
             }
             
             fDsp->init(fSampleRate);
@@ -169,7 +173,7 @@ class rtaudio : public audio {
         
         virtual bool start() 
         {
-           try {
+            try {
                 fAudioDAC.startStream();
             } catch (RtAudioError& e) {
                 std::cout << '\n' << e.getMessage() << '\n' << std::endl;
@@ -182,7 +186,6 @@ class rtaudio : public audio {
         {
             try {
                 fAudioDAC.stopStream();
-                fAudioDAC.closeStream();
             } catch (RtAudioError& e) {
                 std::cout << '\n' << e.getMessage() << '\n' << std::endl;
             }

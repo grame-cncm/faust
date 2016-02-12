@@ -32,9 +32,9 @@
 
 #include <set>
 #include <float.h>
+#include <assert.h>
 
 double GetCurrentTimeInUsec();
-
 
 //----------------------------------------------------------------
 // ZoneUI : Faust User Interface
@@ -121,12 +121,12 @@ class timed_dsp : public decorator_dsp {
         void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
             if (slice > 0) {
-                FAUSTFLOAT* inputs_slice[fDSP->getNumInputs()];
-                FAUSTFLOAT* outputs_slice[fDSP->getNumOutputs()];
-                
+                FAUSTFLOAT** inputs_slice = (float**)alloca(fDSP->getNumInputs() * sizeof(float*));
                 for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
                     inputs_slice[chan] = &(inputs[chan][offset]);
                 }
+                
+                FAUSTFLOAT** outputs_slice = (float**)alloca(fDSP->getNumOutputs() * sizeof(float*));
                 for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
                     outputs_slice[chan] = &(outputs[chan][offset]);
                 }
@@ -150,11 +150,13 @@ class timed_dsp : public decorator_dsp {
             for (it3 = fZoneUI.fZoneSet.begin(); it3 != fZoneUI.fZoneSet.end(); it3++) {
                 // If value list is not empty, get the date and keep the minimal one
                 it1 = GUI::gTimedZoneMap.find(*it3);
-                DatedControl date2;
-                if (ringbuffer_peek((*it1).second, (char*)&date2, sizeof(DatedControl)) == sizeof(DatedControl) 
-                    && date2.fDate < date1.fDate) {
-                    it2 = it1;
-                    date1 = date2;
+                if (it1 != GUI::gTimedZoneMap.end()) { // Check if zone still in global GUI::gTimedZoneMap (since MidiUI may have been desallocated)
+                    DatedControl date2;
+                    if (ringbuffer_peek((*it1).second, (char*)&date2, sizeof(DatedControl)) == sizeof(DatedControl) 
+                        && date2.fDate < date1.fDate) {
+                        it2 = it1;
+                        date1 = date2;
+                    }
                 }
             }
             

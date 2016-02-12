@@ -126,7 +126,7 @@ class uiItem
         FAUSTFLOAT*     fZone;
         FAUSTFLOAT      fCache;
 
-        uiItem(GUI* ui, FAUSTFLOAT* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
+        uiItem(GUI* ui, FAUSTFLOAT* zone) : fGUI(ui), fZone(zone), fCache(FAUSTFLOAT(-123456.654321)) 
         { 
             ui->registerZone(zone, this); 
         }

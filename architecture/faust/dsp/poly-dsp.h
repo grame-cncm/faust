@@ -41,6 +41,7 @@
 #include <algorithm>
 #include <ostream>
 #include <sstream>
+#include <vector>
 
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/JSONUI.h"
@@ -184,6 +185,7 @@ class mydsp_poly : public dsp, public midi {
             fVoiceControl = control;
             mydsp_voice_factory factory;
             init(max_polyphony, &factory);
+            fFreqLabel = fGateLabel = fGainLabel = "";
         }
            
         virtual ~mydsp_poly()
@@ -275,13 +277,14 @@ class mydsp_poly : public dsp, public midi {
         {   
             // Add itself to the MidiUI object
             MidiUI* midi_ui = dynamic_cast<MidiUI*>(ui_interface);
-            if (midi_ui) midi_ui->addMidiIn(this);
+            if (midi_ui) { midi_ui->addMidiIn(this); }
             
             if (fMaxPolyphony > 1) {
                 ui_interface->openTabBox("Polyphonic instrument");
                 for (int i = 0; i < fMaxPolyphony; i++) {
-                    std::stringstream voice; voice << "Voice" << i;
-                    ui_interface->openHorizontalBox(voice.str().c_str());
+                    char buffer[32];
+                    snprintf(buffer, 31, "Voice%d", i);
+                    ui_interface->openHorizontalBox(buffer);
                     fVoiceTable[i]->buildUserInterface(ui_interface);
                     ui_interface->closeBox();
                 }
@@ -292,62 +295,115 @@ class mydsp_poly : public dsp, public midi {
         }
         
         // Pure MIDI control
+        
+        void keyOn(double date, int channel, int pitch, int velocity)
+        {
+            keyOn(channel, pitch, velocity);
+        }
+        
         void keyOn(int channel, int pitch, int velocity)
         {
             int voice = getVoice(kFreeVoice);
             if (voice == kReleaseVoice) voice = getVoice(kReleaseVoice);  // Gets a free voice
             
             if (voice >= 0) {
-                fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
-                fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
-                fVoiceTable[voice]->setValue(fGateLabel, 1.0f);
-                fVoiceTable[voice]->fNote = pitch;
+                if (fFreqLabel != "") {
+                    fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
+                    fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
+                    fVoiceTable[voice]->setValue(fGateLabel, 1.0f);
+                    fVoiceTable[voice]->fNote = pitch;
+                } else {
+                    printf("DSP is not polyphonic...\n");
+                }
             } else {
                 printf("No more free voice...\n");
             }
+        }
+        
+        void keyOff(double date, int channel, int pitch, int velocity = 127)
+        {
+            keyOff(channel, pitch, velocity);
         }
         
         void keyOff(int channel, int pitch, int velocity = 127)
         {
             int voice = getVoice(pitch);
             if (voice >= 0) {
-                fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
-                fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
-                fVoiceTable[voice]->fNote = kReleaseVoice;
+                if (fFreqLabel != "") {
+                    fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
+                    fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
+                    fVoiceTable[voice]->fNote = kReleaseVoice;
+                } else {
+                    printf("DSP is not polyphonic...\n");
+                }
             } else {
                 printf("Playing voice not found...\n");
             }
+        }
+        
+        void pitchWheel(double date, int channel, int wheel)
+        {
+            pitchWheel(channel, wheel);
         }
         
         void pitchWheel(int channel, int wheel)
         {}
         
+        void ctrlChange(double date, int channel, int ctrl, int value)
+        {
+            ctrlChange(channel, ctrl, value);
+        }
+        
         void ctrlChange(int channel, int ctrl, int value)
         {}
+        
+        void progChange(double date, int channel, int pgm)
+        {
+            progChange(channel, pgm);
+        }
         
         void progChange(int channel, int pgm)
         {}
         
+        void keyPress(double date, int channel, int pitch, int press)
+        {
+            keyPress(channel, pitch, press);
+        }
+        
         void keyPress(int channel, int pitch, int press)
         {}
-
+        
+        void chanPress(double date, int channel, int press)
+        {
+            chanPress(channel, press);
+        }
+        
         void chanPress(int channel, int press)
         {}
+        
+        void ctrlChange14bits(double date, int channel, int ctrl, int value)
+        {
+            ctrlChange14bits(channel, ctrl, value);
+        }
         
         void ctrlChange14bits(int channel, int ctrl, int value)
         {}
  
+        // Additional API
         void pitchBend(int channel, int refPitch, float pitch)
         {
             int voice = getVoice(refPitch);
             if (voice >= 0) {
-                fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
+                if (fFreqLabel != "") {
+                    fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
+                } else {
+                    printf("DSP is not polyphonic...\n");
+                }
             } else {
                 printf("Playing voice not found...\n");
             }
         }
         
-        // Additional API
         void allNotesOff()
         {
             for (int i = 0; i < fMaxPolyphony; i++) {

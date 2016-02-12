@@ -24,6 +24,7 @@ endif
 CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 CXXFLAGS += -I../architecture
+CXXFLAGS += -fPIC
 
 all : faust
 

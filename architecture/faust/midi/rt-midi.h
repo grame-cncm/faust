@@ -211,10 +211,13 @@ class rt_midi : public midi_handler {
             for (it1 = fInput.begin(); it1 != fInput.end(); it1++) {
                 delete (*it1);
             }
+            fInput.clear();
+            
             std::vector<RtMidiOut*>::iterator it2;
             for (it2 = fOutput.begin(); it2 != fOutput.end(); it2++) {
                 delete (*it2);
             }
+            fOutput.clear();
         }
         
         void keyOn(int channel, int pitch, int velocity) 
@@ -304,11 +307,11 @@ class rt_midi : public midi_handler {
 };
 
 #if __APPLE__
-#if TARGET_OS_IPHONE
-inline double GetCurrentTimeInUsec() { return double(CAHostTimeBase::GetCurrentTimeInNanos()) / 1000.; }
+    #if TARGET_OS_IPHONE
+    inline double GetCurrentTimeInUsec() { return double(CAHostTimeBase::GetCurrentTimeInNanos()) / 1000.; }
 #else
-#include <CoreAudio/HostTime.h>
-inline double GetCurrentTimeInUsec() { return double(AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())) / 1000.; }
+    #include <CoreAudio/HostTime.h>
+    inline double GetCurrentTimeInUsec() { return double(AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())) / 1000.; }
 #endif
 #endif
 
@@ -322,4 +325,14 @@ inline double GetCurrentTimeInUsec()
 }
 #endif
 
+#if _WIN32
+inline double GetCurrentTimeInUsec(void)
+{
+    LARGE_INTEGER time;
+    LARGE_INTEGER frequency
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&time);
+    return double(time.QuadPart) / double(frequency.QuadPart) * 1000000.0;
+}
+#endif
 #endif // __rt_midi__
