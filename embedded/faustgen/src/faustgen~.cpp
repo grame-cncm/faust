@@ -25,6 +25,12 @@
  ************************************************************************/
 
 #include "faustgen~.h"
+
+/*
+#define LLVM_DSP
+#include "faust/dsp/poly-dsp.h"
+*/
+
 #ifndef WIN32
 #include "faust/sound-file.h"
 #endif
@@ -310,15 +316,22 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     }
 }
 
-llvm_dsp* faustgen_factory::create_dsp_aux()
+::dsp* faustgen_factory::create_dsp_instance()
 {
-    llvm_dsp* dsp = 0;
+    //dsp* dsp = new mydsp_poly(4, createDSPInstance(fDSPfactory), false);
+    dsp* dsp = createDSPInstance(fDSPfactory);
+    return dsp;
+}
+
+::dsp* faustgen_factory::create_dsp_aux()
+{
+    ::dsp* dsp = 0;
     Max_Meta meta;
     string error;
     
     // Factory already allocated
     if (fDSPfactory) {
-        dsp = createDSPInstance(fDSPfactory);
+        dsp = create_dsp_instance();
         post("Factory already allocated, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
         goto end;
     }
@@ -328,7 +341,7 @@ llvm_dsp* faustgen_factory::create_dsp_aux()
         fDSPfactory = create_factory_from_bitcode();
         if (fDSPfactory) {
             metadataDSPFactory(fDSPfactory, &meta);
-            dsp = createDSPInstance(fDSPfactory);
+            dsp = create_dsp_instance();
             post("Compilation from bitcode succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
             goto end; 
         }
@@ -339,7 +352,7 @@ llvm_dsp* faustgen_factory::create_dsp_aux()
         fDSPfactory = create_factory_from_sourcecode();
         if (fDSPfactory) {
             metadataDSPFactory(fDSPfactory, &meta);
-            dsp = createDSPInstance(fDSPfactory);
+            dsp = create_dsp_instance();
             post("Compilation from source code succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
             goto end; 
         } 
@@ -356,7 +369,7 @@ llvm_dsp* faustgen_factory::create_dsp_aux()
 #else
     fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, LLVM_OPTIMIZATION);
 #endif
-    dsp = createDSPInstance(fDSPfactory);
+    dsp = create_dsp_instance();
     post("Allocation of default DSP succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
   
  end:
@@ -370,7 +383,6 @@ llvm_dsp* faustgen_factory::create_dsp_aux()
     metadataDSPFactory(fDSPfactory, &builder);
     dsp->buildUserInterface(&builder);
     fJSON = builder.JSON();
-    
     return dsp;
 }
 
@@ -967,7 +979,8 @@ faustgen::~faustgen()
 
 void faustgen::free_dsp()
 {
-    deleteDSPInstance(fDSP);
+    //deleteDSPInstance(fDSP);
+    delete fDSP;
     fDSPUI.clear();
     fDSP = 0;
 }
@@ -1475,7 +1488,7 @@ int main(void)
     faustgen::makeMaxClass("faustgen~");
     post("faustgen~ v%s (sample = 64 bits code = %s)", FAUSTGEN_VERSION, getCodeSize());
     post("LLVM powered Faust embedded compiler");
-    post("Copyright (c) 2012-2015 Grame");
+    post("Copyright (c) 2012-2016 Grame");
     
     // Start 'libfaust' in multi-thread safe mode
     startMTDSPFactories();
