@@ -94,7 +94,7 @@ ztimedmap GUI::gTimedZoneMap;
 // 									MAIN
 //-------------------------------------------------------------------------
 
-bool hasMIDISync()
+static bool hasMIDISync()
 {
     JSONUI jsonui;
     mydsp tmp_dsp;
