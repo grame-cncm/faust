@@ -172,7 +172,11 @@ int main(int argc, char *argv[])
 #endif
 	
 	jackaudio_midi audio;
-	audio.init(name, DSP);
+#ifdef MIDICTRL
+	audio.init(name, DSP, true);
+#else
+    audio.init(name, DSP);
+#endif
     
 #ifdef MIDICTRL
     MidiUI midiinterface(&audio);
