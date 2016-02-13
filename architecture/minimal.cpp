@@ -15,13 +15,15 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  ************************************************************************
  ************************************************************************/
-
-#include <cmath>
+ 
+#include <algorithm>
 
 #include "faust/gui/UI.h"
-#include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
 #include "faust/audio/dummy-audio.h"
+
+using std::max;
+using std::min;
 
 /******************************************************************************
 *******************************************************************************
