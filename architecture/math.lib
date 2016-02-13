@@ -515,8 +515,8 @@ selector(i,n) = par(j, n, S(i, j))    with { S(i,i) = _; S(i,j) = !; };
 selectn(s,1) = _;
 selectn(s,2) = select2(s);
 selectn(s,n) = select2((s>>ns)&1,selectn(s&m,n>>1),selectn(s&m,n>>1)) with {
-  ns = int(log(n)/log(2))-1; // shifter
-   m = 2^ns-1; // mask
+  ns = int(floor(0.5+log(n)/log(2))-1); // shifter = based on nearest log-base-2 of n
+   m = int(2^ns-1); // mask
 };
 
 //-------------------------- interleave(row,col) ------------------------------
