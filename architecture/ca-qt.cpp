@@ -96,7 +96,7 @@ ztimedmap GUI::gTimedZoneMap;
 *******************************************************************************
 *******************************************************************************/
 
-bool hasMIDISync()
+static bool hasMIDISync()
 {
     JSONUI jsonui;
     mydsp tmp_dsp;
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
     long srate = (long)lopt(argv, "--frequency", -1);
     int fpb = lopt(argv, "--buffer", 512);
     int poly = lopt(argv, "--poly", 4);
-
+    
 #ifdef POLY
 
 #if MIDICTRL
