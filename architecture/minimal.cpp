@@ -21,6 +21,7 @@
 #include "faust/gui/UI.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
+#include "faust/audio/dummy-audio.h"
 
 /******************************************************************************
 *******************************************************************************
@@ -48,6 +49,12 @@
 
 int main(int argc, char *argv[])
 {
-	mydsp DSP;
+    mydsp DSP;
+
+    dummy_audio audio(BUFFER_TO_RENDER);
+    audio.init("Test", &DSP);
+    audio.start();
+    // Render BUFFER_TO_RENDER buffers...
+    audio.stop();
 }
 
