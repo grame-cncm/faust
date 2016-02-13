@@ -55,79 +55,79 @@
 
 class dummy_audio : public audio {
 
- private:
- 
-    dsp* fDSP;
-    
-    long fSampleRate;
-    long fBufferSize; 
-    
-    FAUSTFLOAT** fInChannel;
-    FAUSTFLOAT** fOutChannel;  
-    
-    int fCount;
-    
- public:
- 
-    dummy_audio(int count = 10):fCount(count) {}
-	virtual ~dummy_audio() 
-    {
-        for (int i = 0; i < fDSP->getNumInputs(); i++) {
-            delete[] fInChannel[i];
+    private:
+
+        dsp* fDSP;
+
+        long fSampleRate;
+        long fBufferSize; 
+
+        FAUSTFLOAT** fInChannel;
+        FAUSTFLOAT** fOutChannel;  
+
+        int fCount;
+
+    public:
+
+        dummy_audio(int count = 10):fCount(count) {}
+        virtual ~dummy_audio() 
+        {
+            for (int i = 0; i < fDSP->getNumInputs(); i++) {
+                delete[] fInChannel[i];
+            }
+            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+               delete[] fOutChannel[i];
+            }
+            
+            delete [] fInChannel;
+            delete [] fOutChannel;
         }
-        for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-           delete[] fOutChannel[i];
+
+        virtual bool init(const char* name, dsp* dsp)
+        {
+            fDSP = dsp;
+            fBufferSize = 512;
+            fSampleRate = 48000;
+            
+            fDSP->init(fSampleRate);
+            
+            fInChannel = new FAUSTFLOAT*[fDSP->getNumInputs()];
+            fOutChannel = new FAUSTFLOAT*[fDSP->getNumOutputs()];
+            
+            for (int i = 0; i < fDSP->getNumInputs(); i++) {
+                fInChannel[i] = new FAUSTFLOAT[fBufferSize];
+                memset(fInChannel[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
+            }
+            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+                fOutChannel[i] = new FAUSTFLOAT[fBufferSize];
+                memset(fOutChannel[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
+            }
+            return true;
         }
-        
-        delete [] fInChannel;
-        delete [] fOutChannel;
-    }
-	
-	virtual bool init(const char* name, dsp* dsp)
-    {
-        fDSP = dsp;
-        fBufferSize = 512;
-        fSampleRate = 48000;
-        
-        fDSP->init(fSampleRate);
-        
-        fInChannel = new FAUSTFLOAT*[fDSP->getNumInputs()];
-        fOutChannel = new FAUSTFLOAT*[fDSP->getNumOutputs()];
-        
-        for (int i = 0; i < fDSP->getNumInputs(); i++) {
-            fInChannel[i] = new FAUSTFLOAT[fBufferSize];
-            memset(fInChannel[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
+        virtual bool start()
+        {
+            while (--fCount > 0) {
+                printf("Render one buffer\n");
+                render();
+            }
+            return true;
         }
-        for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-            fOutChannel[i] = new FAUSTFLOAT[fBufferSize];
-            memset(fOutChannel[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
+        virtual void stop()
+        {}
+
+        void render()
+        {
+            fDSP->compute(fBufferSize, fInChannel, fOutChannel);
+            if (fDSP->getNumInputs() > 0) {
+                printf("First in = %f \n", fInChannel[0][0]);
+            }
+            if (fDSP->getNumOutputs() > 0) {
+                printf("First out = %f \n", fOutChannel[0][0]);
+            }
         }
-        return true;
-    }
-    virtual bool start()
-    {
-        while (--fCount > 0) {
-            printf("Render one buffer\n");
-            render();
-        }
-        return true;
-    }
-	virtual void stop()
-    {}
-    
-    void render()
-    {
-        fDSP->compute(fBufferSize, fInChannel, fOutChannel);
-        if (fDSP->getNumInputs() > 0) {
-            printf("First in = %f \n", fInChannel[0][0]);
-        }
-        if (fDSP->getNumOutputs() > 0) {
-            printf("First out = %f \n", fOutChannel[0][0]);
-        }
-    }
-    
-    virtual int get_buffer_size() { return 0; }
-    virtual int get_sample_rate() { return 0; }
+
+        virtual int get_buffer_size() { return 0; }
+        virtual int get_sample_rate() { return 0; }
     
 };
 					
