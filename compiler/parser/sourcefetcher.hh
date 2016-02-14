@@ -17,6 +17,8 @@
 									
 */
 
+#include "export.hh" 
+
 #ifndef HTTP_FETCHER_H
 #define HTTP_FETCHER_H
 
@@ -71,7 +73,7 @@
 	 *	# of bytes downloaded, or
 	 *	-1 on error
 	 */
-int http_fetch(const char *url, char **fileBuf);
+EXPORT int http_fetch(const char *url, char **fileBuf);
 
 	/*
 	 * Changes the User Agent (shown to the web server with each request)
