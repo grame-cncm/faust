@@ -52,6 +52,12 @@
 #define DEFAULT_PAGE_BUF_SIZE 	1024 * 200	/* 200K should hold most things */
 #define DEFAULT_REDIRECTS       3           /* Number of HTTP redirects to follow */
 
+#ifdef _WIN32
+	#define	EXPORT __declspec(dllexport)
+#else
+	#define	EXPORT __attribute__ ((visibility("default")))
+#endif
+
 /******************************************************************************/
 /**************** Function declarations and descriptions **********************/
 /******************************************************************************/
