@@ -50,6 +50,12 @@
 #define DEFAULT_PAGE_BUF_SIZE 	1024 * 200	/* 200K should hold most things */
 #define DEFAULT_REDIRECTS       3           /* Number of HTTP redirects to follow */
 
+#ifdef _WIN32
+	#define	EXPORT __declspec(dllexport)
+#else
+	#define	EXPORT __attribute__ ((visibility("default")))
+#endif
+
 /******************************************************************************/
 /**************** Function declarations and descriptions **********************/
 /******************************************************************************/
@@ -71,7 +77,7 @@
 	 *	# of bytes downloaded, or
 	 *	-1 on error
 	 */
-int http_fetch(const char *url, char **fileBuf);
+EXPORT int http_fetch(const char *url, char **fileBuf);
 
 	/*
 	 * Changes the User Agent (shown to the web server with each request)
