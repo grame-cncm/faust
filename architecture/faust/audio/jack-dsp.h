@@ -684,62 +684,43 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         
         void keyOn(int channel, int pitch, int velocity) 
         {
-            unsigned char buffer[3];
-            buffer[0] = MIDI_NOTE_ON + channel;
-            buffer[1] = pitch;
-            buffer[2] = velocity;
+            unsigned char buffer[3] = { MIDI_NOTE_ON + channel, pitch, velocity };
             writeMessage(buffer, 3);
         }
         
         void keyOff(int channel, int pitch, int velocity) 
         {
-            unsigned char buffer[3];
-            buffer[0] = MIDI_NOTE_OFF + channel;
-            buffer[1] = pitch;
-            buffer[2] = velocity;
+            unsigned char buffer[3] = { MIDI_NOTE_OFF + channel, pitch, velocity };
             writeMessage(buffer, 3);
         }
         
         void ctrlChange(int channel, int ctrl, int val) 
         {
-            unsigned char buffer[3];
-            buffer[0] = MIDI_CONTROL_CHANGE + channel;
-            buffer[1] = ctrl;
-            buffer[2] = val;
+            unsigned char buffer[3] = { MIDI_CONTROL_CHANGE + channel, ctrl, val };
             writeMessage(buffer, 3);
         }
         
         void chanPress(int channel, int press) 
         {
-            unsigned char buffer[2];
-            buffer[0] = MIDI_AFTERTOUCH + channel;
-            buffer[1] = press;
+            unsigned char buffer[2] = { MIDI_AFTERTOUCH + channel, press };
             writeMessage(buffer, 2);
         }
         
         void progChange(int channel, int pgm) 
         {
-            unsigned char buffer[2];
-            buffer[0] = MIDI_PROGRAM_CHANGE + channel;
-            buffer[1] = pgm;
+            unsigned char buffer[2] = { MIDI_PROGRAM_CHANGE + channel, pgm };
             writeMessage(buffer, 2);
         }
           
         void keyPress(int channel, int pitch, int press) 
         {
-            unsigned char buffer[3];
-            buffer[0] = MIDI_POLY_AFTERTOUCH + channel;
-            buffer[1] = pitch;
-            buffer[2] = press;
+            unsigned char buffer[3] = { MIDI_POLY_AFTERTOUCH + channel, pitch, press };
             writeMessage(buffer, 3);
         }
    
         void pitchWheel(int channel, int wheel) 
         {
-            unsigned char buffer[3];
-            buffer[0] = MIDI_PITCH_BEND + channel;
-            buffer[1] = wheel & 0x7F;           // lsb 7bit
-            buffer[2] = (wheel >> 7) & 0x7F;    // msb 7bit
+            unsigned char buffer[3] = { MIDI_PITCH_BEND + channel, wheel & 0x7F, (wheel >> 7) & 0x7F };
             writeMessage(buffer, 3);
         }
         
@@ -747,22 +728,19 @@ class jackaudio_midi : public jackaudio, public midi_handler {
          
         void start(double date) 
         {
-            unsigned char buffer[1];
-            buffer[0] = MIDI_START;
+            unsigned char buffer[1] = { MIDI_START };
             writeMessage(buffer, 1);
         }
        
         void stop(double date) 
         {
-            unsigned char buffer[1];
-            buffer[0] = MIDI_STOP;
+            unsigned char buffer[1] = { MIDI_STOP };
             writeMessage(buffer, 1);
         }
         
         void clock(double date) 
         {
-            unsigned char buffer[1];
-            buffer[0] = MIDI_CLOCK;
+            unsigned char buffer[1] = { MIDI_CLOCK };
             writeMessage(buffer, 1);
         }
  
