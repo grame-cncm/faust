@@ -177,6 +177,19 @@ class mydsp_poly : public dsp, public midi {
                 fMixBuffer[i] = new FAUSTFLOAT[MIX_BUFFER_SIZE];
             }
         }
+        
+        void UIBuilder(UI* ui_interface)
+        {
+            ui_interface->openTabBox("Polyphonic instrument");
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                char buffer[32];
+                snprintf(buffer, 31, "Voice%d", i);
+                ui_interface->openHorizontalBox(buffer);
+                fVoiceTable[i]->buildUserInterface(ui_interface);
+                ui_interface->closeBox();
+            }
+            ui_interface->closeBox();
+        }
     
     public: 
     
@@ -211,14 +224,7 @@ class mydsp_poly : public dsp, public midi {
             // Creates JSON
             JSONUI builder(fVoiceTable[0]->getNumInputs(), fVoiceTable[0]->getNumOutputs());
             fVoiceTable[0]->metadata(&builder);
-            builder.openTabBox("Polyphonic instrument");
-            for (int i = 0; i < fMaxPolyphony; i++) {
-                std::stringstream voice; voice << "Voice" << i;
-                builder.openHorizontalBox(voice.str().c_str());
-                fVoiceTable[i]->buildUserInterface(&builder);
-                builder.closeBox();
-            }
-            builder.closeBox();
+            UIBuilder(&builder);
             fJSON = builder.JSON();
             
             // Keep gain, freq and gate labels
@@ -280,15 +286,7 @@ class mydsp_poly : public dsp, public midi {
             if (midi_ui) { midi_ui->addMidiIn(this); }
             
             if (fMaxPolyphony > 1) {
-                ui_interface->openTabBox("Polyphonic instrument");
-                for (int i = 0; i < fMaxPolyphony; i++) {
-                    char buffer[32];
-                    snprintf(buffer, 31, "Voice%d", i);
-                    ui_interface->openHorizontalBox(buffer);
-                    fVoiceTable[i]->buildUserInterface(ui_interface);
-                    ui_interface->closeBox();
-                }
-                ui_interface->closeBox();
+                UIBuilder(ui_interface);
             } else {
                 fVoiceTable[0]->buildUserInterface(ui_interface);
             }
