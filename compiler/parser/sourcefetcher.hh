@@ -17,8 +17,6 @@
 									
 */
 
-#include "export.hh" 
-
 #ifndef HTTP_FETCHER_H
 #define HTTP_FETCHER_H
 
