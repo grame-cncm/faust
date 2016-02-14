@@ -178,7 +178,7 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
-        void UIBuilder(UI* ui_interface)
+        void uIBuilder(UI* ui_interface)
         {
             ui_interface->openTabBox("Polyphonic instrument");
             for (int i = 0; i < fMaxPolyphony; i++) {
@@ -224,7 +224,7 @@ class mydsp_poly : public dsp, public midi {
             // Creates JSON
             JSONUI builder(fVoiceTable[0]->getNumInputs(), fVoiceTable[0]->getNumOutputs());
             fVoiceTable[0]->metadata(&builder);
-            UIBuilder(&builder);
+            uIBuilder(&builder);
             fJSON = builder.JSON();
             
             // Keep gain, freq and gate labels
@@ -286,7 +286,7 @@ class mydsp_poly : public dsp, public midi {
             if (midi_ui) { midi_ui->addMidiIn(this); }
             
             if (fMaxPolyphony > 1) {
-                UIBuilder(ui_interface);
+                uIBuilder(ui_interface);
             } else {
                 fVoiceTable[0]->buildUserInterface(ui_interface);
             }
