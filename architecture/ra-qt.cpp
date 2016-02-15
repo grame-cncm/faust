@@ -121,17 +121,18 @@ int main(int argc, char *argv[])
     long srate = (long)lopt(argv, "--frequency", 44100);
     int fpb = lopt(argv, "--buffer", 512);
     int poly = lopt(argv, "--poly", 4);
+    int group = lopt(argv, "--group", 1);
 
 #ifdef POLY
 
 #if MIDICTRL
     if (hasMIDISync()) {
-         DSP = new timed_dsp(new mydsp_poly(poly, true));
+        DSP = new timed_dsp(new mydsp_poly(poly, true, group));
     } else {
-        DSP = new mydsp_poly(poly, true);
+        DSP = new mydsp_poly(poly, true, group);
     }
 #else
-    DSP = new mydsp_poly(poly);
+    DSP = new mydsp_poly(poly, false, group);
 #endif
 
 #else

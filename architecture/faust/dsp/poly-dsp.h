@@ -205,6 +205,7 @@ class mydsp_poly : public dsp, public midi {
         
         int fMaxPolyphony;
         bool fVoiceControl;
+        bool fGroupControl;
         
         GroupUI fGroups;
         
@@ -247,9 +248,10 @@ class mydsp_poly : public dsp, public midi {
             return kReleaseVoice;
         }
         
-        inline void init(int max_polyphony, voice_factory* factory, bool control)
+        inline void init(int max_polyphony, voice_factory* factory, bool control, bool group)
         {
             fVoiceControl = control;
+            fGroupControl = group;
             fMaxPolyphony = max_polyphony;
             fVoiceTable = new dsp_voice*[fMaxPolyphony];
             fFreqLabel = fGateLabel = fGainLabel = "";
@@ -279,22 +281,24 @@ class mydsp_poly : public dsp, public midi {
         {
             ui_interface->openTabBox("Polyphonic");
             
-            // Grouped voices
+            // Grouped voices UI
             ui_interface->openHorizontalBox("All Voices");
             fVoiceGroup->buildUserInterface(ui_interface);
             ui_interface->closeBox();
             
-            // Individual voices
-            for (int i = 0; i < fMaxPolyphony; i++) {
-                char buffer[32];
-                if (fMaxPolyphony < 8) {
-                    snprintf(buffer, 31, "Voice%d", i+1);
-                } else {
-                    snprintf(buffer, 31, "V%d", i+1);
+            // In not group, also add individual voices UI
+            if  (!fGroupControl) {
+                for (int i = 0; i < fMaxPolyphony; i++) {
+                    char buffer[32];
+                    if (fMaxPolyphony < 8) {
+                        snprintf(buffer, 31, "Voice%d", i+1);
+                    } else {
+                        snprintf(buffer, 31, "V%d", i+1);
+                    }
+                    ui_interface->openHorizontalBox(buffer);
+                    fVoiceTable[i]->buildUserInterface(ui_interface);
+                    ui_interface->closeBox();
                 }
-                ui_interface->openHorizontalBox(buffer);
-                fVoiceTable[i]->buildUserInterface(ui_interface);
-                ui_interface->closeBox();
             }
             
             ui_interface->closeBox();
@@ -302,10 +306,10 @@ class mydsp_poly : public dsp, public midi {
     
     public: 
     
-        mydsp_poly(int max_polyphony, bool control = false) 
+        mydsp_poly(int max_polyphony, bool control = false, bool group = true) 
         {
             mydsp_voice_factory factory;
-            init(max_polyphony, &factory, control);
+            init(max_polyphony, &factory, control, group);
         }
            
         virtual ~mydsp_poly()
