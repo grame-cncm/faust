@@ -88,12 +88,7 @@ class GroupUI : public GUI, public PathBuilder
         
         GroupUI() {};
         virtual ~GroupUI() 
-        {
-            std::map<std::string, uiGroupItem*>::iterator it;
-            for (it = fLabelZoneMap.begin(); it != fLabelZoneMap.end(); it++) {
-                delete (*it).second;
-            }
-        };
+        {};
         
         // -- widget's layouts
         void openTabBox(const char* label)
@@ -291,8 +286,9 @@ class mydsp_poly : public dsp, public midi {
             return kReleaseVoice;
         }
         
-        inline void init(int max_polyphony, voice_factory* factory)
+        inline void init(int max_polyphony, voice_factory* factory, bool control)
         {
+            fVoiceControl = control;
             fMaxPolyphony = max_polyphony;
             fVoiceTable = new dsp_voice*[fMaxPolyphony];
             fFreqLabel = fGateLabel = fGainLabel = "";
@@ -352,9 +348,8 @@ class mydsp_poly : public dsp, public midi {
     #else
         mydsp_poly(int max_polyphony, bool control = false) 
         {
-            fVoiceControl = control;
             mydsp_voice_factory factory;
-            init(max_polyphony, &factory);
+            init(max_polyphony, &factory, control);
         }
     #endif
  
