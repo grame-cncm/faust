@@ -41,6 +41,7 @@
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/SimpleParser.h"
+#include "faust/gui/JSONUI.h"
 
 #define STR2REAL(x) ((sizeof(FAUSTFLOAT) == 4) ? strtof((x), NULL) : strtod((x), NULL))
 
@@ -207,24 +208,43 @@ struct JSONUIDecoder {
 //  possibly running somewhere else.
 //----------------------------------------------------------------
 
+typedef void (*metadataFun) (Meta* m);
+
 class proxy_dsp : public dsp {
 
     private:
         
-        JSONUIDecoder fDecoder;
+        JSONUIDecoder* fDecoder;
         
     public:
     
-        proxy_dsp(const string& json):fDecoder(json) {}
+        proxy_dsp(const string& json)
+        {
+            fDecoder = new JSONUIDecoder(json);
+        }
+          
+        proxy_dsp(dsp* dsp, metadataFun fun = 0)
+        {
+            JSONUI builder(dsp->getNumInputs(), dsp->getNumOutputs());
+            if (fun) { fun(&builder); }
+            dsp->buildUserInterface(&builder);
+            fDecoder = new JSONUIDecoder(builder.JSON());
+        }
       
-        virtual int getNumInputs() 	{ return fDecoder.fNumInputs; }
-        virtual int getNumOutputs() { return fDecoder.fNumOutputs; }
+        virtual ~proxy_dsp()
+        {
+            delete fDecoder;
+        }
+       
+        virtual int getNumInputs() 	{ return fDecoder->fNumInputs; }
+        virtual int getNumOutputs() { return fDecoder->fNumOutputs; }
         
-        virtual void buildUserInterface(UI* ui) { fDecoder.buildUserInterface(ui); }
+        virtual void buildUserInterface(UI* ui) { fDecoder->buildUserInterface(ui); }
         
         // To possibly implement in a concrete proxy dsp 
         virtual void init(int samplingRate) {}  
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {} 
+        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
+        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {} 
         
 };
 

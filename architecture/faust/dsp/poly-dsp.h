@@ -46,7 +46,7 @@
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
-#include "faust/dsp/dsp.h"
+#include "faust/dsp/proxy-dsp.h"
 
 #define kFreeVoice        -2
 #define kReleaseVoice     -1
@@ -236,7 +236,7 @@ class mydsp_poly : public dsp, public midi {
         std::string fJSON;
         
         dsp_voice** fVoiceTable;  // Individual voices
-        dsp_voice* fVoiceGroup;   // Voices group to be used for GUI grouped control
+        dsp* fVoiceGroup;         // Voices group to be used for GUI grouped control
         
         std::string fGateLabel;
         std::string fGainLabel;
@@ -292,15 +292,13 @@ class mydsp_poly : public dsp, public midi {
             fVoiceControl = control;
             fGroupControl = group;
             fMaxPolyphony = max_polyphony;
-            fVoiceTable = new dsp_voice*[fMaxPolyphony];
             fFreqLabel = fGateLabel = fGainLabel = "";
             
-             // Init it with supplied sample_rate 
+            // Create voices
+            fVoiceTable = new dsp_voice*[fMaxPolyphony];
             for (int i = 0; i < fMaxPolyphony; i++) {
                 fVoiceTable[i] = factory->create();
             }
-            
-            fVoiceGroup = factory->create();
             
             // Init audio output buffers
             fNumOutputs = fVoiceTable[0]->getNumOutputs();
@@ -310,10 +308,17 @@ class mydsp_poly : public dsp, public midi {
             }
             
             // Groups all uiItem for a given path
+            fVoiceGroup = new proxy_dsp(fVoiceTable[0], mydsp::metadata);
             fVoiceGroup->buildUserInterface(&fGroups);
             for (int i = 0; i < fMaxPolyphony; i++) {
                 fVoiceTable[i]->buildUserInterface(&fGroups);
             }
+            
+            // Creates global JSON
+            JSONUI builder(fVoiceTable[0]->getNumInputs(), fVoiceTable[0]->getNumOutputs());
+            fVoiceTable[0]->metadata(&builder);
+            uIBuilder(&builder);
+            fJSON = builder.JSON();
         }
         
         void uIBuilder(UI* ui_interface)
@@ -329,11 +334,7 @@ class mydsp_poly : public dsp, public midi {
             if  (!fGroupControl) {
                 for (int i = 0; i < fMaxPolyphony; i++) {
                     char buffer[32];
-                    if (fMaxPolyphony < 8) {
-                        snprintf(buffer, 31, "Voice%d", i+1);
-                    } else {
-                        snprintf(buffer, 31, "V%d", i+1);
-                    }
+                    snprintf(buffer, 31, ((fMaxPolyphony < 8) ? "Voice%d" : "V%d"), i+1);
                     ui_interface->openHorizontalBox(buffer);
                     fVoiceTable[i]->buildUserInterface(ui_interface);
                     ui_interface->closeBox();
@@ -380,12 +381,6 @@ class mydsp_poly : public dsp, public midi {
             for (int i = 0; i < fMaxPolyphony; i++) {
                 fVoiceTable[i]->init(sample_rate);
             }
-            
-            // Creates JSON
-            JSONUI builder(fVoiceTable[0]->getNumInputs(), fVoiceTable[0]->getNumOutputs());
-            fVoiceTable[0]->metadata(&builder);
-            uIBuilder(&builder);
-            fJSON = builder.JSON();
             
             // Keep gain, freq and gate labels
             std::map<std::string, FAUSTFLOAT*>::iterator it;
