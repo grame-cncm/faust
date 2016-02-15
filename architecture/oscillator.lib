@@ -73,13 +73,16 @@ saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0; // zero-mean in [-1,1)
 
 //---------------- Bandlimited Sawtooth sawN, saw2, ... ------------------
 //
-// ### METHOD 2 (saw2):
+// ### METHOD 1 (saw2):
 // Polynomial Transition Regions (PTR) (for aliasing suppression)
 // ### REFERENCE:
 // Kleimola, J.; Valimaki, V., "Reducing Aliasing from Synthetic Audio
 // Signals Using Polynomial Transition Regions," in Signal Processing
 // Letters, IEEE , vol.19, no.2, pp.67-70, Feb. 2012
-// ### METHOD 2 (sawN, N>2):
+// https://aaltodoc.aalto.fi/bitstream/handle/123456789/7747/publication6.pdf?sequence=9
+// http://research.spa.aalto.fi/publications/papers/spl-ptr/
+//
+// ### METHOD 2 (sawN):
 // Differentiated Polynomial Waves (DPW) (for aliasing suppression)
 // ### REFERENCE:
 // "Alias-Suppressed Oscillators based on Differentiated Polynomial Waveforms",
