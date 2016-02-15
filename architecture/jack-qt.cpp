@@ -120,17 +120,18 @@ int main(int argc, char *argv[])
 	snprintf(rcfilename, 255, "%s/.%src", home, name);
     
     int poly = lopt(argv, "--poly", 4);
+    int group = lopt(argv, "--group", 1);
 
 #ifdef POLY
 
 #if MIDICTRL
     if (hasMIDISync()) {
-         DSP = new timed_dsp(new mydsp_poly(poly, true));
+        DSP = new timed_dsp(new mydsp_poly(poly, true, group));
     } else {
-        DSP = new mydsp_poly(poly, true);
+        DSP = new mydsp_poly(poly, true, group);
     }
 #else
-    DSP = new mydsp_poly(poly);
+    DSP = new mydsp_poly(poly, false, group);
 #endif
 
 #else

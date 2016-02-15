@@ -46,7 +46,7 @@
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
-#include "faust/dsp/dsp.h"
+#include "faust/dsp/proxy-dsp.h"
 
 #define kFreeVoice        -2
 #define kReleaseVoice     -1
@@ -61,6 +61,90 @@ static bool ends_with(std::string const& str, std::string const& end)
 	unsigned int l2 = end.length();
     return (l1 >= l2) && (0 == str.compare(l1 - l2, l2, end));
 }
+
+class GroupUI : public GUI, public PathBuilder
+{
+    
+    private:
+    
+        std::map<std::string, uiGroupItem*> fLabelZoneMap;
+        
+        void insertMap(std::string label, FAUSTFLOAT* zone)
+        {   
+            if (!ends_with(label, "/gate") 
+                && !ends_with(label, "/freq") 
+                && !ends_with(label, "/gain")) {
+                
+                // Groups all controller except 'freq', 'gate', and 'gain'
+                if (fLabelZoneMap.find(label) != fLabelZoneMap.end()) {
+                    fLabelZoneMap[label]->addZone(zone);
+                } else {
+                    fLabelZoneMap[label] = new uiGroupItem(this, zone);
+                }
+            }
+        }
+           
+    public:
+        
+        GroupUI() {};
+        virtual ~GroupUI() 
+        {};
+        
+        // -- widget's layouts
+        void openTabBox(const char* label)
+        {
+            fControlsLevel.push_back(label);
+        }
+        void openHorizontalBox(const char* label)
+        {
+            fControlsLevel.push_back(label);
+        }
+        void openVerticalBox(const char* label)
+        {
+            fControlsLevel.push_back(label);
+        }
+        void closeBox()
+        {
+            fControlsLevel.pop_back();
+        }
+        
+        // -- active widgets
+        void addButton(const char* label, FAUSTFLOAT* zone)
+        {
+            insertMap(buildPath(label), zone);
+        }
+        void addCheckButton(const char* label, FAUSTFLOAT* zone)
+        {
+            insertMap(buildPath(label), zone);
+        }
+        void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
+        {
+            insertMap(buildPath(label), zone);
+        }
+        void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
+        {
+            insertMap(buildPath(label), zone);
+        }
+        void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
+        {
+            insertMap(buildPath(label), zone);
+        }
+        
+        // -- passive widgets
+        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
+        {
+            insertMap(buildPath(label), zone);
+        }
+        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
+        {
+            insertMap(buildPath(label), zone);
+        }
+        
+        // -- metadata declarations
+        void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+        {}
+            
+};
 
 // One voice of polyphony
 struct dsp_voice : public MapUI, public dsp {
@@ -112,7 +196,8 @@ class mydsp_poly : public dsp, public midi {
   
         std::string fJSON;
         
-        dsp_voice** fVoiceTable;
+        dsp_voice** fVoiceTable;  // Individual voices
+        dsp* fVoiceGroup;         // Voices group to be used for GUI grouped control
         
         std::string fGateLabel;
         std::string fGainLabel;
@@ -120,6 +205,9 @@ class mydsp_poly : public dsp, public midi {
         
         int fMaxPolyphony;
         bool fVoiceControl;
+        bool fGroupControl;
+        
+        GroupUI fGroups;
         
         FAUSTFLOAT** fMixBuffer;
         int fNumOutputs;
@@ -160,12 +248,15 @@ class mydsp_poly : public dsp, public midi {
             return kReleaseVoice;
         }
         
-        inline void init(int max_polyphony, voice_factory* factory)
+        inline void init(int max_polyphony, voice_factory* factory, bool control, bool group)
         {
+            fVoiceControl = control;
+            fGroupControl = group;
             fMaxPolyphony = max_polyphony;
-            fVoiceTable = new dsp_voice*[fMaxPolyphony];
+            fFreqLabel = fGateLabel = fGainLabel = "";
             
-             // Init it with supplied sample_rate 
+            // Create voices
+            fVoiceTable = new dsp_voice*[fMaxPolyphony];
             for (int i = 0; i < fMaxPolyphony; i++) {
                 fVoiceTable[i] = factory->create();
             }
@@ -176,29 +267,50 @@ class mydsp_poly : public dsp, public midi {
             for (int i = 0; i < fNumOutputs; i++) {
                 fMixBuffer[i] = new FAUSTFLOAT[MIX_BUFFER_SIZE];
             }
+            
+            // Groups all uiItem for a given path
+            fVoiceGroup = new proxy_dsp(fVoiceTable[0], mydsp::metadata);
+            fVoiceGroup->buildUserInterface(&fGroups);
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                fVoiceTable[i]->buildUserInterface(&fGroups);
+            }
+            
+            // Creates global JSON
+            JSONUI builder(fVoiceTable[0]->getNumInputs(), fVoiceTable[0]->getNumOutputs());
+            fVoiceTable[0]->metadata(&builder);
+            uIBuilder(&builder);
+            fJSON = builder.JSON();
         }
         
-        void UIBuilder(UI* ui_interface)
+        void uIBuilder(UI* ui_interface)
         {
-            ui_interface->openTabBox("Polyphonic instrument");
-            for (int i = 0; i < fMaxPolyphony; i++) {
-                char buffer[32];
-                snprintf(buffer, 31, "Voice%d", i);
-                ui_interface->openHorizontalBox(buffer);
-                fVoiceTable[i]->buildUserInterface(ui_interface);
-                ui_interface->closeBox();
+            ui_interface->openTabBox("Polyphonic");
+            
+            // Grouped voices UI
+            ui_interface->openHorizontalBox("All Voices");
+            fVoiceGroup->buildUserInterface(ui_interface);
+            ui_interface->closeBox();
+            
+            // In not group, also add individual voices UI
+            if  (!fGroupControl) {
+                for (int i = 0; i < fMaxPolyphony; i++) {
+                    char buffer[32];
+                    snprintf(buffer, 31, ((fMaxPolyphony < 8) ? "Voice%d" : "V%d"), i+1);
+                    ui_interface->openHorizontalBox(buffer);
+                    fVoiceTable[i]->buildUserInterface(ui_interface);
+                    ui_interface->closeBox();
+                }
             }
+            
             ui_interface->closeBox();
         }
     
     public: 
     
-        mydsp_poly(int max_polyphony, bool control = false) 
+        mydsp_poly(int max_polyphony, bool control = false, bool group = true) 
         {
-            fVoiceControl = control;
             mydsp_voice_factory factory;
-            init(max_polyphony, &factory);
-            fFreqLabel = fGateLabel = fGainLabel = "";
+            init(max_polyphony, &factory, control, group);
         }
            
         virtual ~mydsp_poly()
@@ -212,6 +324,8 @@ class mydsp_poly : public dsp, public midi {
                 delete fVoiceTable[i];
             }
             delete[] fVoiceTable;
+            
+            delete fVoiceGroup;
         }
         
         void init(int sample_rate) 
@@ -221,15 +335,8 @@ class mydsp_poly : public dsp, public midi {
                 fVoiceTable[i]->init(sample_rate);
             }
             
-            // Creates JSON
-            JSONUI builder(fVoiceTable[0]->getNumInputs(), fVoiceTable[0]->getNumOutputs());
-            fVoiceTable[0]->metadata(&builder);
-            UIBuilder(&builder);
-            fJSON = builder.JSON();
-            
             // Keep gain, freq and gate labels
             std::map<std::string, FAUSTFLOAT*>::iterator it;
-            
             for (it = fVoiceTable[0]->getMap().begin(); it != fVoiceTable[0]->getMap().end(); it++) {
                 std::string label = (*it).first;
                 if (ends_with(label, "/gate")) {
@@ -286,7 +393,7 @@ class mydsp_poly : public dsp, public midi {
             if (midi_ui) { midi_ui->addMidiIn(this); }
             
             if (fMaxPolyphony > 1) {
-                UIBuilder(ui_interface);
+                uIBuilder(ui_interface);
             } else {
                 fVoiceTable[0]->buildUserInterface(ui_interface);
             }
