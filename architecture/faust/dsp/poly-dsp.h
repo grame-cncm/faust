@@ -326,7 +326,11 @@ class mydsp_poly : public dsp, public midi {
             // Individual voices
             for (int i = 0; i < fMaxPolyphony; i++) {
                 char buffer[32];
-                snprintf(buffer, 31, "Voice%d", i+1);
+                if (fMaxPolyphony < 8) {
+                    snprintf(buffer, 31, "Voice%d", i+1);
+                } else {
+                    snprintf(buffer, 31, "V%d", i+1);
+                }
                 ui_interface->openHorizontalBox(buffer);
                 fVoiceTable[i]->buildUserInterface(ui_interface);
                 ui_interface->closeBox();
