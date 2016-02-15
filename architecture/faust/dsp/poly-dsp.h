@@ -308,7 +308,11 @@ class mydsp_poly : public dsp, public midi {
             }
             
             // Groups all uiItem for a given path
+        #ifdef LLVM_DSP
+            fVoiceGroup = new proxy_dsp(fVoiceTable[0]);
+        #else
             fVoiceGroup = new proxy_dsp(fVoiceTable[0], mydsp::metadata);
+        #endif
             fVoiceGroup->buildUserInterface(&fGroups);
             for (int i = 0; i < fMaxPolyphony; i++) {
                 fVoiceTable[i]->buildUserInterface(&fGroups);
