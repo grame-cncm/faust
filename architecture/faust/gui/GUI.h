@@ -169,6 +169,39 @@ struct uiCallbackItem : public uiItem
 	}
 };
 
+/**
+ * Allows to group a set of zones.
+ */
+ 
+class uiGroupItem : public uiItem 
+{
+    protected:
+    
+        std::vector<FAUSTFLOAT*> fZoneMap;
+
+    public:
+    
+        uiGroupItem(GUI* ui, FAUSTFLOAT* zone):uiItem(ui, zone)
+        {}
+        virtual ~uiGroupItem() 
+        {}
+        
+        virtual void reflectZone() 
+        {
+            FAUSTFLOAT v = *fZone;
+            fCache = v;
+            
+            // Update all zones of the same group
+            std::vector<FAUSTFLOAT*>::iterator it;
+            for (it = fZoneMap.begin(); it != fZoneMap.end(); it++) {
+                (*(*it)) = v;
+            }
+        }
+        
+        void addZone(FAUSTFLOAT* zone) { fZoneMap.push_back(zone); }
+
+};
+
 // en cours d'installation de callback : a finir!!!!!
 
 /**
