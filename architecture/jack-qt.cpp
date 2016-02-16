@@ -121,6 +121,7 @@ int main(int argc, char *argv[])
     
     int poly = lopt(argv, "--poly", 4);
     int group = lopt(argv, "--group", 1);
+    int rtmidi = lopt(argv, "--rtmidi", 0);
 
 #ifdef POLY
 
@@ -180,8 +181,16 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef MIDICTRL
-    MidiUI midiinterface(&audio);
-    DSP->buildUserInterface(&midiinterface);
+    MidiUI* midiinterface;
+    if (rtmidi) {
+        midiinterface = new MidiUI(name);
+        printf("RtMidi is used\n");
+    } else {
+        midiinterface = new MidiUI(&audio);
+        printf("JACK MIDI is used\n");
+    }
+   
+    DSP->buildUserInterface(midiinterface);
     std::cout << "MIDI is on" << std::endl;
 #endif
 
@@ -203,7 +212,7 @@ int main(int argc, char *argv[])
     oscinterface.run();
 #endif
 #ifdef MIDICTRL
-    midiinterface.run();
+    midiinterface->run();
 #endif
     interface.run();
 

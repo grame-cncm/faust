@@ -73,7 +73,16 @@ saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0; // zero-mean in [-1,1)
 
 //---------------- Bandlimited Sawtooth sawN, saw2, ... ------------------
 //
-// ### METHOD:
+// ### METHOD 1 (saw2):
+// Polynomial Transition Regions (PTR) (for aliasing suppression)
+// ### REFERENCE:
+// Kleimola, J.; Valimaki, V., "Reducing Aliasing from Synthetic Audio
+// Signals Using Polynomial Transition Regions," in Signal Processing
+// Letters, IEEE , vol.19, no.2, pp.67-70, Feb. 2012
+// https://aaltodoc.aalto.fi/bitstream/handle/123456789/7747/publication6.pdf?sequence=9
+// http://research.spa.aalto.fi/publications/papers/spl-ptr/
+//
+// ### METHOD 2 (sawN):
 // Differentiated Polynomial Waves (DPW) (for aliasing suppression)
 // ### REFERENCE:
 // "Alias-Suppressed Oscillators based on Differentiated Polynomial Waveforms",
@@ -115,8 +124,18 @@ sawNp(N,freq,phase) = sawN(N,freq) : @(max(0,min(8191,int(phase*ml.SR/freq))));
 // Special named cases:
 
 // --- sawN ---
-saw2(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*ml.SR/freq); // freq can go lower than in sawN(2)
+saw2dpw(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*ml.SR/freq); // inferior to saw2 below
 saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
+
+
+saw2(freq) = y with { // newer PTR version (stateless - freq can vary at any speed)
+  p0 = float(ml.SR)/float(max(1.0e-7,abs(freq))); // period in samples
+  t0 = 1.0/p0; // phase increment
+  p = ((_<:(-(1)<:_,_),_) <: selector1,selector2) ~(+(t0)):!,_;
+  selector1 = select2(<(0)); // for feedback
+  selector2 = select2(<(0), (_<:_,(*(1-p0):+(1)):+), _); // for output
+  y = 2*p-1;
+};
 
 // --- sawtooth ---
 sawtooth = saw2; // default choice for sawtooth signal - see also sawN
