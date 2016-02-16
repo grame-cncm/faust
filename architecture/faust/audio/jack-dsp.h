@@ -600,14 +600,21 @@ class jackaudio_midi : public jackaudio, public midi_handler {
             unsigned char* port_buf_out = (unsigned char*)jack_port_get_buffer(fOutputMidiPort, nframes);
             
             jack_midi_clear_buffer(port_buf_out);
-            size_t out_size = ringbuffer_read_space(fOutBuffer);
-            jack_midi_data_t* data = jack_midi_event_reserve(port_buf_out, 0, out_size);
+            size_t res, message_size;
             
-            // If enough space, write messages
-            if (data) {
-                ringbuffer_read(fOutBuffer, (char*)data, out_size);
-            } else {
-                fprintf(stderr, "jack_midi_event_reserve error\n");
+            // Write each message one by one
+            while (ringbuffer_read(fOutBuffer, (char*)&message_size, sizeof(message_size)) == sizeof(message_size)) {
+            
+                // Reserve MIDI event with the correct size
+                jack_midi_data_t* data = jack_midi_event_reserve(port_buf_out, 0, message_size);
+                if (data) {
+                    // Write its content
+                    if ((res = ringbuffer_read(fOutBuffer, (char*)data, message_size)) != message_size) {
+                        fprintf(stderr, "processMidiOut incorrect message : res =  %d \n", res);
+                    }
+                } else {
+                    fprintf(stderr, "jack_midi_event_reserve error\n");
+                }
             }
         }
      
@@ -633,8 +640,13 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         {
             if (fOutBuffer) {
                 size_t res;
+                // Write size of message
+                if ((res = ringbuffer_write(fOutBuffer, (const char*)&size, sizeof(size_t))) != sizeof(size_t)) {
+                    fprintf(stderr, "writeMessage size : error size = %lu res = %lu\n", size, res);
+                }
+                // Write message content
                 if ((res = ringbuffer_write(fOutBuffer, (const char*)buffer, size)) != size) {
-                    fprintf(stderr, "writeMessage error size = %lu res = %lu\n", size, res);
+                    fprintf(stderr, "writeMessage message : error size = %lu res = %lu\n", size, res);
                 }
             }
         }
