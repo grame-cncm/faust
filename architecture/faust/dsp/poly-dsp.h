@@ -94,7 +94,7 @@ class GroupUI : public GUI, public PathBuilder
         };
         virtual ~GroupUI() 
         {
-            delete fPanic;
+            // 'fPanic' is kept and deleted in GUI, so do not delete here
         };
         
         // -- widget's layouts
