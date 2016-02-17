@@ -67,17 +67,7 @@ class midi {
         virtual void ctrlChange14bits(int channel, int ctrl, int value) {}
         virtual void pitchWheel(int channel, int wheel)                 {}
         virtual void progChange(int channel, int pgm)                   {}
-       
-};
-
-//----------------------------------------------------------------
-//  Base class for MIDI API handling
-//----------------------------------------------------------------
-
-class midi_handler : public midi {
-
-    protected:
-    
+        
         enum MidiStatus {
 	
             // channel voice messages
@@ -93,7 +83,23 @@ class midi_handler : public midi {
             MIDI_STOP               = 0xFC
 
         };
- 
+        
+        enum MidiCtrl {
+            
+            ALL_NOTES_OFF = 123,
+            ALL_SOUND_OFF = 120
+        
+        };
+};
+
+//----------------------------------------------------------------
+//  Base class for MIDI API handling
+//----------------------------------------------------------------
+
+class midi_handler : public midi {
+
+    protected:
+    
         std::vector<midi*> fMidiInputs;
         std::string fName;
 

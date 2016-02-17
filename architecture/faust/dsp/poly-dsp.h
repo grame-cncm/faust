@@ -83,12 +83,19 @@ class GroupUI : public GUI, public PathBuilder
                 }
             }
         }
+        
+        uiCallbackItem* fPanic;
+        uiCallback fPanicCb;
+        void* fPanicCbArg;
            
     public:
         
-        GroupUI() {};
-        virtual ~GroupUI() 
+        GroupUI(uiCallback cb, void* arg):fPanic(0), fPanicCb(cb), fPanicCbArg(arg) 
         {};
+        virtual ~GroupUI() 
+        {
+            delete fPanic;
+        };
         
         // -- widget's layouts
         void openTabBox(const char* label)
@@ -111,7 +118,11 @@ class GroupUI : public GUI, public PathBuilder
         // -- active widgets
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
-            insertMap(buildPath(label), zone);
+            if (!fPanic && strcmp(label, "Panic") == 0) {
+                fPanic = new uiCallbackItem(this, zone, fPanicCb, fPanicCbArg);
+            } else {
+                insertMap(buildPath(label), zone);
+            }
         }
         void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
@@ -202,6 +213,7 @@ class mydsp_poly : public dsp, public midi {
         std::string fGateLabel;
         std::string fGainLabel;
         std::string fFreqLabel;
+        FAUSTFLOAT fPanic;
         
         int fMaxPolyphony;
         bool fVoiceControl;
@@ -289,7 +301,9 @@ class mydsp_poly : public dsp, public midi {
             ui_interface->openTabBox("Polyphonic");
             
             // Grouped voices UI
-            ui_interface->openHorizontalBox("All Voices");
+            ui_interface->openVerticalBox("All Voices");
+            ui_interface->addButton("Panic", &fPanic);
+            fGroups.addButton("Panic", &fPanic);
             fVoiceGroup->buildUserInterface(ui_interface);
             ui_interface->closeBox();
             
@@ -306,10 +320,19 @@ class mydsp_poly : public dsp, public midi {
             
             ui_interface->closeBox();
         }
+        
+        static void Panic(FAUSTFLOAT val, void* arg)
+        {
+            if (val == FAUSTFLOAT(1)) {
+                static_cast<mydsp_poly*>(arg)->allNotesOff();
+            }
+        }
     
     public: 
     
-        mydsp_poly(int max_polyphony, bool control = false, bool group = true) 
+        mydsp_poly(int max_polyphony, 
+                bool control = false,   
+                bool group = true):fGroups(Panic, this)
         {
             mydsp_voice_factory factory;
             init(max_polyphony, &factory, control, group);
@@ -470,7 +493,11 @@ class mydsp_poly : public dsp, public midi {
         }
         
         void ctrlChange(int channel, int ctrl, int value)
-        {}
+        {
+            if (ctrl == ALL_NOTES_OFF || ctrl == ALL_SOUND_OFF) {
+                allNotesOff();
+            }
+        }
         
         void progChange(double date, int channel, int pgm)
         {
