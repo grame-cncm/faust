@@ -85,13 +85,13 @@ class GroupUI : public GUI, public PathBuilder
         }
         
         uiCallbackItem* fPanic;
-        uiCallback fPanicCb;
-        void* fPanicCbArg;
            
     public:
         
-        GroupUI(uiCallback cb, void* arg):fPanic(0), fPanicCb(cb), fPanicCbArg(arg) 
-        {};
+        GroupUI(FAUSTFLOAT* zone, uiCallback cb, void* arg)
+        {
+            fPanic = new uiCallbackItem(this, zone, cb, arg);
+        };
         virtual ~GroupUI() 
         {
             delete fPanic;
@@ -118,11 +118,7 @@ class GroupUI : public GUI, public PathBuilder
         // -- active widgets
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
-            if (!fPanic && strcmp(label, "Panic") == 0) {
-                fPanic = new uiCallbackItem(this, zone, fPanicCb, fPanicCbArg);
-            } else {
-                insertMap(buildPath(label), zone);
-            }
+            insertMap(buildPath(label), zone);
         }
         void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
@@ -303,7 +299,6 @@ class mydsp_poly : public dsp, public midi {
             // Grouped voices UI
             ui_interface->openVerticalBox("All Voices");
             ui_interface->addButton("Panic", &fPanic);
-            fGroups.addButton("Panic", &fPanic);
             fVoiceGroup->buildUserInterface(ui_interface);
             ui_interface->closeBox();
             
@@ -332,7 +327,7 @@ class mydsp_poly : public dsp, public midi {
     
         mydsp_poly(int max_polyphony, 
                 bool control = false,   
-                bool group = true):fGroups(Panic, this)
+                bool group = true):fGroups(&fPanic, Panic, this)
         {
             mydsp_voice_factory factory;
             init(max_polyphony, &factory, control, group);
