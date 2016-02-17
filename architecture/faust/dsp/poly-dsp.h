@@ -212,6 +212,8 @@ class mydsp_poly : public dsp, public midi {
         FAUSTFLOAT** fMixBuffer;
         int fNumOutputs;
         
+        std::vector<MidiUI*> fMidiUIList;
+        
         inline FAUSTFLOAT mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer) 
         {
             FAUSTFLOAT level = 0;
@@ -326,6 +328,11 @@ class mydsp_poly : public dsp, public midi {
             delete[] fVoiceTable;
             
             delete fVoiceGroup;
+            
+            // Remove object from all MidiUI interfaces that handle it
+            for (int i = 0; i < fMidiUIList.size(); i++) {
+                fMidiUIList[i]->removeMidiIn(this); 
+            }
         }
         
         void init(int sample_rate) 
@@ -390,7 +397,10 @@ class mydsp_poly : public dsp, public midi {
         {   
             // Add itself to the MidiUI object
             MidiUI* midi_ui = dynamic_cast<MidiUI*>(ui_interface);
-            if (midi_ui) { midi_ui->addMidiIn(this); }
+            if (midi_ui) { 
+                fMidiUIList.push_back(midi_ui);
+                midi_ui->addMidiIn(this); 
+            }
             
             if (fMaxPolyphony > 1) {
                 uIBuilder(ui_interface);
