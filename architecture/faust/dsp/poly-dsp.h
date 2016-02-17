@@ -48,8 +48,9 @@
 #include "faust/gui/MapUI.h"
 #include "faust/dsp/proxy-dsp.h"
 
-#define kFreeVoice        -2
-#define kReleaseVoice     -1
+#define kFreeVoice        -1
+#define kReleaseVoice     -2
+#define kNoVoice          -3
 
 #define VOICE_STOP_LEVEL  0.001
 #define MIX_BUFFER_SIZE   16384
@@ -254,12 +255,29 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
-        inline int getVoice(int note, bool release = false)
+        inline int getVoice(int note, bool steal = false)
         {
             for (int i = 0; i < fMaxPolyphony; i++) {
                 if (fVoiceTable[i]->fNote == note) return i;
             }
-            return (release) ? getVoice(kReleaseVoice) : kReleaseVoice;
+            
+            //return (steal) ? getVoice(kReleaseVoice) : kNoVoice;
+            
+            if (steal) {
+                FAUSTFLOAT max_level = FAUSTFLOAT(INT_MAX);
+                int voice = kNoVoice;
+                // Steal lowest level note
+                for (int i = 0; i < fMaxPolyphony; i++) {
+                    if (fVoiceTable[i]->getLevel() < max_level) {
+                        max_level = fVoiceTable[i]->getLevel();
+                        voice = i;
+                    }
+                }
+                printf("Steal voice %d \n", voice);
+                return voice;
+            } else {
+                return kNoVoice;
+            }
         }
         
         inline void init(int max_polyphony, voice_factory* factory, bool control, bool group)
@@ -472,7 +490,7 @@ class mydsp_poly : public dsp, public midi {
                 fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
                 fVoiceTable[voice]->fNote = kReleaseVoice;
             } else {
-                printf("Playing voice not found...\n");
+                printf("Playing voice %d pitch %d not found...\n", voice, pitch);
             }
         }
         
