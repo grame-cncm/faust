@@ -39,3 +39,6 @@
 
 #include "faust/dsp/poly-dsp.h"
 
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+
