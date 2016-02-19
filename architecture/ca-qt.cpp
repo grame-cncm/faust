@@ -44,9 +44,9 @@
 #include "faust/gui/FUI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/faustqt.h"
-#include "faust/gui/APIUI.h"
 #include "faust/misc.h"
 #ifdef IOS
+#include "faust/gui/APIUI.h"
 #include "faust/audio/coreaudio-ios-dsp.h"
 #else
 #include "faust/audio/coreaudio-dsp.h"
@@ -100,6 +100,7 @@ ztimedmap GUI::gTimedZoneMap;
 
 *******************************************************************************
 *******************************************************************************/
+#ifdef IOS
 #include <QAccelerometer>
 #include <QGyroscope>
 #include <QAccelerometerReading>
@@ -182,6 +183,7 @@ void Sensors::start()
 	if (fGyro.available()) 	{ fGyro.activate(true);  activate = true; }
 	if (activate) fTimerID = startTimer(10);
 }
+#endif
 
 /******************************************************************************
 *******************************************************************************
@@ -214,8 +216,10 @@ int main(int argc, char *argv[])
 	char name[256];
 	char rcfilename[256];
 	char* home = getenv("HOME");
+#ifdef IOS
     APIUI apiui;
     Sensors sensors (&apiui);
+#endif
 
 	snprintf(name, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, name);
@@ -262,7 +266,9 @@ int main(int argc, char *argv[])
     FUI finterface;
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
+#ifdef IOS
     DSP->buildUserInterface(&apiui);
+#endif
 
 #ifdef MIDICTRL
     MidiUI midiinterface(name);
@@ -286,8 +292,10 @@ int main(int argc, char *argv[])
 	audio.init(name, DSP);
 	finterface.recallState(rcfilename);
 	audio.start();
+#ifdef IOS
 	sensors.start();
-    
+#endif
+	
     printf("ins %d\n", audio.get_num_inputs());
     printf("outs %d\n", audio.get_num_outputs());
 
