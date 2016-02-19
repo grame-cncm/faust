@@ -45,7 +45,11 @@
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/faustqt.h"
 #include "faust/misc.h"
+#ifdef IOS
+#include "faust/audio/coreaudio-ios-dsp.h"
+#else
 #include "faust/audio/coreaudio-dsp.h"
+#endif
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -108,6 +112,11 @@ static bool hasMIDISync()
             (json.find("stop") != std::string::npos) ||
             (json.find("clock") != std::string::npos)));
 }
+
+#ifdef IOS
+#define lopt(a,b,val)	val
+#define coreaudio		iosaudio
+#endif
 
 int main(int argc, char *argv[])
 {
