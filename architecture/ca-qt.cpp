@@ -113,15 +113,12 @@ class Sensor
 		QSensor*		fSensor;
 		int				fType;
 		QSensorReading*	fReader;
-		bool			fSkipDuplicates;
-		std::vector<float> fLastRead;
-
 		QSensor*		create(int type) const;
 	
 	public:
 		enum  { kSensorStart=1, kAccelerometer=1, kGyroscope, kSensorMax };
 
-				 Sensor(int type) : fSensor(0), fType(type), fReader(0), fSkipDuplicates(false)
+				 Sensor(int type) : fSensor(0), fType(type), fReader(0)
 									{ fSensor = create (type); fSensor->connectToBackend(); }
 		virtual ~Sensor()			{ if (available()) activate (false); delete fSensor; }
 
@@ -130,37 +127,9 @@ class Sensor
 		bool			available() const	{ return fSensor->isConnectedToBackend(); }
 		bool			active() const		{ return fSensor->isActive(); }
 		void			activate(bool state){ fSensor->setActive(state); fReader = fSensor->reading(); }
-		int				count();
+		int				count()				{ return fReader ? fReader->valueCount() : 0; }
 		float			value(int i) const	{ return fReader->value(i).value<float>(); }
-
-		void			skipDuplicates(bool state)	{ fSkipDuplicates = state;
-													  if (!state) fLastRead.clear();
-													}
 };
-
-
-//------------------------------------------------------------------------
-// count the number of values available for the sensor
-int	Sensor::count()
-{
-	int n = fReader ? fReader->valueCount() : 0;
-	if (n && fSkipDuplicates) {
-		bool newval = false;
-		if (int(fLastRead.size()) == n) {
-			for (int i=0; (i < n) && !newval; i++) {
-				newval = fLastRead[i] != value(i);
-			}
-		}
-		else newval = true;
-		if (newval) {
-			fLastRead.clear();
-			for (int i=0; i < n; i++)
-				fLastRead.push_back (value(i));
-		}
-		else n = 0;
-	}
-	return n;
-}
 
 //------------------------------------------------------------------------
 QSensor* Sensor::create (int type) const
@@ -208,9 +177,10 @@ void Sensors::timerEvent(QTimerEvent * )
 //------------------------------------------------------------------------
 void Sensors::start() 
 {
-	if (fAccel.available()) fAccel.activate(true);
-	if (fGyro.available()) 	fGyro.activate(true);
-	if (fAccel.active() || fGyro.active()) fTimerID = startTimer(10);
+	bool activate = false;
+	if (fAccel.available()) { fAccel.activate(true); activate = true; }
+	if (fGyro.available()) 	{ fGyro.activate(true);  activate = true; }
+	if (activate) fTimerID = startTimer(10);
 }
 
 /******************************************************************************
