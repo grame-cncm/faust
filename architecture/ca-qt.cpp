@@ -45,6 +45,8 @@
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/faustqt.h"
 #include "faust/misc.h"
+#include "faust/audio/audio.h"
+
 #ifdef IOS
 #include "faust/gui/APIUI.h"
 #include "faust/audio/coreaudio-ios-dsp.h"
