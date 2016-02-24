@@ -395,7 +395,7 @@ void faustgen_factory::add_library_path(const string& library_path)
 
 void faustgen_factory::add_compile_option(const string& key, const string& value)
 {
-    if ((value != "") && find(fCompileOptions.begin(), fCompileOptions.end(), value) == fCompileOptions.end()) {
+    if ((key != "") && (value != "")) {
         fCompileOptions.push_back(key);
         fCompileOptions.push_back(value);
     }
@@ -403,7 +403,7 @@ void faustgen_factory::add_compile_option(const string& key, const string& value
 
 void faustgen_factory::add_compile_option(const string& value)
 {
-    if ((value != "") && find(fCompileOptions.begin(), fCompileOptions.end(), value) == fCompileOptions.end()) {
+    if (value != "") {
         fCompileOptions.push_back(value);
     }
 }
