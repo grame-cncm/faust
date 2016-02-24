@@ -89,9 +89,9 @@ for f in $FILES; do
     else 
         echo "Generates the C embedded sound table"
         if [ $FAUSTFLOAT = "double" ]; then
-            ./sound2file $f -d -o $name.c
+            sound2file $f -d -o $name.c
         else
-            ./sound2file $f -o $name.c
+            sound2file $f -o $name.c
         fi
     fi
     
