@@ -386,6 +386,16 @@ class mydsp_poly : public dsp, public midi {
                 static_cast<mydsp_poly*>(arg)->allNotesOff();
             }
         }
+        
+        bool checkPolyphony() 
+        {
+            if (fFreqLabel == "") {
+                printf("DSP is not polyphonic...\n");
+                return false;
+            } else {
+                return true;;
+            }
+        }
     
     public: 
     
@@ -510,19 +520,16 @@ class mydsp_poly : public dsp, public midi {
         
         void keyOn(int channel, int pitch, int velocity)
         {
-            if (fFreqLabel == "") {
-                printf("DSP is not polyphonic...\n");
-                return;
-            }
-            
-            int voice = getVoice(kFreeVoice, true);
-            if (voice >= 0) {
-                fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
-                fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
-                fVoiceTable[voice]->setValue(fGateLabel, 1.0f);
-                fVoiceTable[voice]->fNote = pitch;
-            } else {
-                printf("No more free voice...\n");
+            if (checkPolyphony()) {
+                int voice = getVoice(kFreeVoice, true);
+                if (voice >= 0) {
+                    fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
+                    fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
+                    fVoiceTable[voice]->setValue(fGateLabel, 1.0f);
+                    fVoiceTable[voice]->fNote = pitch;
+                } else {
+                    printf("No more free voice...\n");
+                }
             }
         }
         
@@ -533,18 +540,15 @@ class mydsp_poly : public dsp, public midi {
         
         void keyOff(int channel, int pitch, int velocity = 127)
         {
-            if (fFreqLabel == "") {
-                printf("DSP is not polyphonic...\n");
-                return;
-            }
-            
-            int voice = getVoice(pitch);
-            if (voice >= 0) {
-                // No use of velocity for now...
-                fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
-                fVoiceTable[voice]->fNote = kReleaseVoice;
-            } else {
-                printf("Playing voice %d pitch %d not found...\n", voice, pitch);
+            if (checkPolyphony()) {
+                int voice = getVoice(pitch);
+                if (voice >= 0) {
+                    // No use of velocity for now...
+                    fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
+                    fVoiceTable[voice]->fNote = kReleaseVoice;
+                } else {
+                    printf("Playing voice %d pitch %d not found...\n", voice, pitch);
+                }
             }
         }
         
@@ -603,24 +607,23 @@ class mydsp_poly : public dsp, public midi {
         // Additional API
         void pitchBend(int channel, int pitch, float tuned_pitch)
         {
-            if (fFreqLabel == "") {
-                printf("DSP is not polyphonic...\n");
-                return;
-            }
-            
-            int voice = getVoice(pitch);
-            if (voice >= 0) {
-                fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(tuned_pitch));
-            } else {
-                printf("Playing voice not found...\n");
+            if (checkPolyphony()) {
+                int voice = getVoice(pitch);
+                if (voice >= 0) {
+                    fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(tuned_pitch));
+                } else {
+                    printf("Playing voice not found...\n");
+                }
             }
         }
         
         void allNotesOff()
         {
-            for (int i = 0; i < fMaxPolyphony; i++) {
-                fVoiceTable[i]->setValue(fGateLabel, 0.0f);
-                fVoiceTable[i]->fNote = kReleaseVoice;
+            if (checkPolyphony()) {
+                for (int i = 0; i < fMaxPolyphony; i++) {
+                    fVoiceTable[i]->setValue(fGateLabel, 0.0f);
+                    fVoiceTable[i]->fNote = kReleaseVoice;
+                }
             }
         }
        
