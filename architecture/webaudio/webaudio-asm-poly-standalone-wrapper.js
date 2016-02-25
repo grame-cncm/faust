@@ -159,21 +159,41 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     // Start of DSP memory ('polyphony' DSP voices)
     var dsp_voices = [];
     var dsp_voices_state = [];
+    var dsp_voices_level = [];
     
-    var kFreeVoice = -2;
-    var kReleaseVoice = -1;
+    var kFreeVoice = -1;
+    var kReleaseVoice = -2;
+    var kNoVoice = -3;
 
     for (var i = 0; i < max_polyphony; i++) {
         dsp_voices[i] = dsp_start + i * getSizemydsp();
         dsp_voices_state[i] = kFreeVoice;
+        dsp_voices_level[i] = 0;
     }
     
-    function getVoice (note)
+    function getVoice (note, steal)
     {
         for (var i = 0; i < max_polyphony; i++) {
             if (dsp_voices_state[i] === note) return i;
         }
-        return kReleaseVoice;
+        
+        //return (steal) ? getVoice(kReleaseVoice) : kNoVoice;
+        
+        if (steal) {
+            var max_level = Number.MAX_VALUE;
+            var voice = kNoVoice;
+            // Steal lowest level note
+            for (var i = 0; i < max_polyphony; i++) {
+                if (dsp_voices_level[i] < max_level) {
+                    max_level = dsp_voices_level[i];
+                    voice = i;
+                }
+            }
+            console.log("Steal voice %d\n", voice);
+            return voice;
+        } else {
+            return kNoVoice;
+        }
     }
    
     var pathTable = getPathTablemydsp();
@@ -214,8 +234,8 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         for (i = 0; i < max_polyphony; i++) {
             if (dsp_voices_state[i] != kFreeVoice) {
                 factory.compute(dsp_voices[i], buffer_size, ins, mixing);
-                level = mixer.mixVoice(buffer_size, numOut, mixing, outs, max_polyphony);
-                if ((level < 0.001) && (dsp_voices_state[i] == kReleaseVoice)) {
+                dsp_voices_level[i] = mixer.mixVoice(buffer_size, numOut, mixing, outs, max_polyphony);
+                if ((dsp_voices_level[i] < 0.001) && (dsp_voices_state[i] == kReleaseVoice)) {
                     dsp_voices_state[i] = kFreeVoice;
                 }
             }
@@ -382,9 +402,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         
         keyOn : function (channel, pitch, velocity)
         {
-            var voice = getVoice(kFreeVoice);
-            if (voice == kReleaseVoice) voice = getVoice(kReleaseVoice);  // Gets a free voice
-           
+            var voice = getVoice(kFreeVoice, true);
             if (voice >= 0) {
                 //console.log("keyOn voice %d", voice);
                 factory.setValue(dsp_voices[voice], fFreqLabel, midiToFreq(pitch));
@@ -398,10 +416,9 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
 
         keyOff : function (channel, pitch, velocity)
         {
-            var voice = getVoice(pitch);
+            var voice = getVoice(pitch, false);
             if (voice >= 0) {
                 //console.log("keyOff voice %d", voice);
-                factory.setValue(dsp_voices[voice], fGainLabel, velocity/127.);
                 factory.setValue(dsp_voices[voice], fGateLabel, 0.0);
                 dsp_voices_state[voice] = kReleaseVoice;
             } else {
@@ -409,6 +426,13 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
             }
         },
 
+        ctrlChange : function (channel, ctrl, value)
+        {
+            if (ctrl === 123 || ctrl === 120) {
+                allNotesOff();
+            }
+        },
+        
         allNotesOff : function ()
         {
             for (var i = 0; i < max_polyphony; i++) {
@@ -417,14 +441,14 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
             }
         },
 
-        ctrlChange : function (channel, ctrl, value)
+        pitchWheel : function (channel, wheel)
         {},
 
-        pitchBend : function (channel, refPitch, pitch)
+        pitchBend : function (channel, pitch, tuned_pitch)
         {
-            var voice = getVoice(refPitch);
+            var voice = getVoice(pitch, false);
             if (voice >= 0) {
-                factory.setValue(dsp_voices[voice], fFreqLabel, midiToFreq(pitch));
+                factory.setValue(dsp_voices[voice], fFreqLabel, midiToFreq(tuned_pitch));
             } else {
                 console.log("Playing voice not found...\n");
             }
