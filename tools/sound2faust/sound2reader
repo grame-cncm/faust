@@ -9,14 +9,17 @@ LLVM="false"
 FAUSTFLOAT="float"
 LOCAL="false"
 EMBED="false"
+WAWEFORM="false"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "sound2reader [-a] [-d] [-l] [-e] <file.wav>"
+        echo "sound2reader [-a] [-d] [-l] [-e] [-w] <file.wav> (or <file.aif>) or sound2reader ... *.wav (or *.aif) for a set of files"
+        echo "sound2reader -w <file.wav> (or <file.aif>) or sound2reader -w *.wav (or *.aif) for a set of files"
         echo "Use '-a' to use an absolute path to localize the sound file"
         echo "Use '-d' to use double samples"
         echo "Use '-l' to compile the sound reader code as a LLVM module"
         echo "Use '-e' to embed the sound in the C produced program"
+        echo "Use '-w' to convert the 'foo' soundfile as 'foo.dsp' waveform"
   	elif [[ -e "$p" ]]; then
 	    FILES="$FILES $p"
     elif [ $p = "-l" ]; then
@@ -27,6 +30,8 @@ for p in $@; do
 	    LOCAL="true"
     elif [ $p = "-e" ]; then
 	    EMBED="true"
+    elif [ $p = "-w" ]; then
+	    WAVEFORM="true"
 	fi
 done
 
@@ -36,9 +41,16 @@ done
 
 for f in $FILES; do
 
-    name=${f%.wav}
+    if [[ $f =~ \.aif$ ]]; then 
+        name=${f%.aif}
+    else
+        name=${f%.wav}
+    fi
     
-    if [ $EMBED = "false" ]; then
+    if [ $WAVEFORM = "true" ]; then
+        echo "Generates the .dsp waveform"
+        sound2faust $f -o $name.dsp
+    elif [ $EMBED = "false" ]; then
         echo "Generates the C soundfile reader"
         # compose the soundfile reader C code
         echo "// SoundFile API" > $name.c
