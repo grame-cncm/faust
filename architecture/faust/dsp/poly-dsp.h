@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <string>
 #include <math.h>
+#include <float.h>
 #include <algorithm>
 #include <ostream>
 #include <sstream>
@@ -260,11 +261,9 @@ class mydsp_poly : public dsp, public midi {
             for (int i = 0; i < fMaxPolyphony; i++) {
                 if (fVoiceTable[i]->fNote == note) return i;
             }
-            
-            //return (steal) ? getVoice(kReleaseVoice) : kNoVoice;
-            
+             
             if (steal) {
-                FAUSTFLOAT max_level = FAUSTFLOAT(INT_MAX);
+                FAUSTFLOAT max_level = FLT_MAX;
                 int voice = kNoVoice;
                 // Steal lowest level note
                 for (int i = 0; i < fMaxPolyphony; i++) {
