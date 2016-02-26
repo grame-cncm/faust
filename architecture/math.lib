@@ -499,25 +499,29 @@ bus(n) = par(i, n, _);
 //-----------------------------------------------------------------------------
 selector(i,n) = par(j, n, S(i, j))    with { S(i,i) = _; S(i,j) = !; };
 
-//----------------------------- selectn(i,n) ---------------------------------
-// Selects the ith input among n at run time, with n a power of 2
+
+//----------------------------- selectn(N,i) ---------------------------------
+// Selects the ith input among N at run time
 //
 // ### Usage:
-// `_,_,_,_:selectn(2,4):_`  selects the 3rd input among 4
+// `_,_,_,_:selectn(4,2):_`  selects the 3rd input among 4
 //
 // #### Where:
+// + N = number of inputs (int, known at compile time, N > 0)
 // + i = input to select (int, numbered from 0)
-// + n = number of inputs (int, known at compile time, n > i)
 //
 // #### Example test program:
-// `N=64; process = par(n,N, (par(i,N,i) : selectn(n,N)));`
+// `N=64; process = par(n,N, (par(i,N,i) : selectn(N,n)));`
 //-----------------------------------------------------------------------------
-selectn(s,1) = _;
-selectn(s,2) = select2(s);
-selectn(s,n) = select2((s>>ns)&1,selectn(s&m,n>>1),selectn(s&m,n>>1)) with {
-  ns = int(floor(0.5+log(n)/log(2))-1); // shifter = based on nearest log-base-2 of n
-   m = int(2^ns-1); // mask
-};
+selectn(N,i) = S(N,0)
+    with {
+       S(1,offset) = _;
+       S(n,offset) = S(left, offset), S(right, offset+left) : select2(i >= offset+left)
+            with {
+                right = int(n/2);
+                left  = n-right;
+            };
+    };
 
 //-------------------------- interleave(row,col) ------------------------------
 // interleave row*col cables from column order to row order.
