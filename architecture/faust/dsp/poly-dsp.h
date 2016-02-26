@@ -168,8 +168,6 @@ struct dsp_voice : public MapUI, public dsp {
     }
     
     virtual void metadata(Meta* meta) = 0;
-    virtual void setLevel(FAUSTFLOAT level) { fLevel = level; }
-    virtual FAUSTFLOAT getLevel() { return fLevel; }
  
 };
 
@@ -267,8 +265,8 @@ class mydsp_poly : public dsp, public midi {
                 int voice = kNoVoice;
                 // Steal lowest level note
                 for (int i = 0; i < fMaxPolyphony; i++) {
-                    if (fVoiceTable[i]->getLevel() < max_level) {
-                        max_level = fVoiceTable[i]->getLevel();
+                    if (fVoiceTable[i]->fLevel < max_level) {
+                        max_level = fVoiceTable[i]->fLevel;
                         voice = i;
                     }
                 }
@@ -415,8 +413,8 @@ class mydsp_poly : public dsp, public midi {
                 for (int i = 0; i < fMaxPolyphony; i++) {
                     if (fVoiceTable[i]->fNote != kFreeVoice) {
                         fVoiceTable[i]->compute(count, inputs, fMixBuffer);
-                        fVoiceTable[i]->setLevel(mixVoice(count, fMixBuffer, outputs));
-                        if ((fVoiceTable[i]->getLevel() < VOICE_STOP_LEVEL) && (fVoiceTable[i]->fNote == kReleaseVoice)) {
+                        fVoiceTable[i]->fLevel = mixVoice(count, fMixBuffer, outputs);
+                        if ((fVoiceTable[i]->fLevel < VOICE_STOP_LEVEL) && (fVoiceTable[i]->fNote == kReleaseVoice)) {
                             fVoiceTable[i]->fNote = kFreeVoice;
                         }
                     }
