@@ -263,7 +263,7 @@ faust.createDSPFactoryTmp = function (factory_code, factory_name, sha_key, max_p
     
     console.log(factory_code);
 
-    // 'libfaust.js' asm.js backend generates the ASM module + UI method, then we compile the code
+    // 'libfaustworker.js' asm.js backend generates the ASM module + UI method, then we compile the code
     eval(factory_code);
     
     var getSize = eval("getSize" + factory_name);
@@ -717,21 +717,39 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, callback)
     // Start of DSP memory ('polyphony' DSP voices)
     var dsp_voices = [];
     var dsp_voices_state = [];
+    var dsp_voices_level = [];
     
-    var kFreeVoice = -2;
-    var kReleaseVoice = -1;
+    var kFreeVoice = -1;
+    var kReleaseVoice = -2;
+    var kNoVoice = -3;
     
     for (var i = 0; i < factory.max_polyphony; i++) {
         dsp_voices[i] = dsp_start + i * factory.getSize();
         dsp_voices_state[i] = kFreeVoice;
+        dsp_voices_level[i] = 0;
     }
     
-    function getVoice (note)
+    function getVoice (note, steal)
     {
-        for (var i = 0; i < factory.max_polyphony; i++) {
+        for (var i = 0; i < max_polyphony; i++) {
             if (dsp_voices_state[i] === note) return i;
         }
-        return kReleaseVoice;
+        
+        if (steal) {
+            var max_level = Number.MAX_VALUE;
+            var voice = kNoVoice;
+            // Steal lowest level note
+            for (var i = 0; i < max_polyphony; i++) {
+                if (dsp_voices_level[i] < max_level) {
+                    max_level = dsp_voices_level[i];
+                    voice = i;
+                }
+            }
+            console.log("Steal voice %d\n", voice);
+            return voice;
+        } else {
+            return kNoVoice;
+        }
     }
        
     function update_outputs () 
@@ -744,7 +762,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, callback)
         }
     }
  
-    function compute(e) 
+    function compute (e) 
     {
         var i, j;
          
@@ -767,14 +785,14 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, callback)
         
         // Compute all running voices
         var level;
-        for (i = 0; i < factory.max_polyphony; i++) {
+        for (i = 0; i < max_polyphony; i++) {
             if (dsp_voices_state[i] != kFreeVoice) {
                 factory.compute(dsp_voices[i], buffer_size, ins, mixing);
-                level = factory.mixer.mixVoice(buffer_size, numOut, mixing, outs, factory.max_polyphony);
-                if ((level < 0.001) && (dsp_voices_state[i] == kReleaseVoice)) {
+                dsp_voices_level[i] = mixer.mixVoice(buffer_size, numOut, mixing, outs, max_polyphony);
+                if ((dsp_voices_level[i] < 0.001) && (dsp_voices_state[i] == kReleaseVoice)) {
                     dsp_voices_state[i] = kFreeVoice;
                 }
-            }
+           }
         }
        
         // Update bargraph
@@ -937,9 +955,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, callback)
         
         keyOn : function (channel, pitch, velocity)
         {
-            var voice = getVoice(kFreeVoice);
-            if (voice == kReleaseVoice) voice = getVoice(kReleaseVoice);  // Gets a free voice
-           
+            var voice = getVoice(kFreeVoice, true);
             if (voice >= 0) {
                 //console.log("keyOn voice %d", voice);
                 factory.setValue(dsp_voices[voice], fFreqLabel, midiToFreq(pitch));
@@ -953,7 +969,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, callback)
         
         keyOff : function (channel, pitch, velocity)
         {
-            var voice = getVoice(pitch);
+            var voice = getVoice(pitch, false);
             if (voice >= 0) {
                 //console.log("keyOff voice %d", voice);
                 factory.setValue(dsp_voices[voice], fGainLabel, velocity/127.);
@@ -961,6 +977,13 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, callback)
                 dsp_voices_state[voice] = kReleaseVoice;
             } else {
                 console.log("Playing voice not found...\n");
+            }
+        },
+        
+        ctrlChange : function (channel, ctrl, value)
+        {
+            if (ctrl === 123 || ctrl === 120) {
+                allNotesOff();
             }
         },
         
@@ -972,14 +995,14 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, callback)
             }
         },
         
-        ctrlChange : function (channel, ctrl, value)
+        pitchWheel : function (channel, wheel)
         {},
         
-        pitchBend : function (channel, refPitch, pitch)
+        pitchBend : function (channel, pitch, tuned_pitch)
         {
-            var voice = getVoice(refPitch);
+            var voice = getVoice(pitch, false);
             if (voice >= 0) {
-                factory.setValue(dsp_voices[voice], fFreqLabel, midiToFreq(pitch))
+                factory.setValue(dsp_voices[voice], fFreqLabel, midiToFreq(tuned_pitch));
             } else {
                 console.log("Playing voice not found...\n");
             }
@@ -1022,11 +1045,13 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, callback)
             return context.sampleRate;
         },
         
-        setComputeCallback : function (callback) {
+        setComputeCallback : function (callback) 
+        {
             compute_callback = callback;
         },
         
-        getComputeCallback : function () {
+        getComputeCallback : function () 
+        {
             return compute_callback;
         },
         

@@ -177,8 +177,6 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
             if (dsp_voices_state[i] === note) return i;
         }
         
-        //return (steal) ? getVoice(kReleaseVoice) : kNoVoice;
-        
         if (steal) {
             var max_level = Number.MAX_VALUE;
             var voice = kNoVoice;
