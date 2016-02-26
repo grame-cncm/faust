@@ -176,6 +176,7 @@ libfaust.js : $(objects) libcode.o libmain.o global.o
 	
 libfaustworker.js : $(objects) libcode.o libmain.o global.o
 	$(CXX) -O3 --memory-init-file 0 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaustworker.js
+    cp libfaustworker.js ../architecture/webaudio
 
 libcode.o : libcode.cpp
 	$(CXX) $(CXXFLAGS) libcode.cpp -c -o libcode.o
