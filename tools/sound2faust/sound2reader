@@ -49,7 +49,7 @@ for f in $FILES; do
     
     if [ $WAVEFORM = "true" ]; then
         echo "Generates the .dsp waveform"
-        sound2faust $f -o $name.dsp
+        sound2faust $f -o $name"_waveform.dsp"
     elif [ $EMBED = "false" ]; then
         echo "Generates the C soundfile reader"
         # compose the soundfile reader C code
