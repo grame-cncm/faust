@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <string>
 #include <math.h>
+#include <float.h>
 #include <algorithm>
 #include <ostream>
 #include <sstream>
@@ -46,10 +47,11 @@
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
-#include "faust/dsp/dsp.h"
+#include "faust/dsp/proxy-dsp.h"
 
-#define kFreeVoice        -2
-#define kReleaseVoice     -1
+#define kFreeVoice        -1
+#define kReleaseVoice     -2
+#define kNoVoice          -3
 
 #define VOICE_STOP_LEVEL  0.001
 #define MIX_BUFFER_SIZE   16384
@@ -62,14 +64,107 @@ static bool ends_with(std::string const& str, std::string const& end)
     return (l1 >= l2) && (0 == str.compare(l1 - l2, l2, end));
 }
 
+class GroupUI : public GUI, public PathBuilder
+{
+    
+    private:
+    
+        std::map<std::string, uiGroupItem*> fLabelZoneMap;
+        
+        void insertMap(std::string label, FAUSTFLOAT* zone)
+        {   
+            if (!ends_with(label, "/gate") 
+                && !ends_with(label, "/freq") 
+                && !ends_with(label, "/gain")) {
+                
+                // Groups all controller except 'freq', 'gate', and 'gain'
+                if (fLabelZoneMap.find(label) != fLabelZoneMap.end()) {
+                    fLabelZoneMap[label]->addZone(zone);
+                } else {
+                    fLabelZoneMap[label] = new uiGroupItem(this, zone);
+                }
+            }
+        }
+        
+        uiCallbackItem* fPanic;
+
+    public:
+        
+        GroupUI(FAUSTFLOAT* zone, uiCallback cb, void* arg)
+        {
+            fPanic = new uiCallbackItem(this, zone, cb, arg);
+        };
+        virtual ~GroupUI() 
+        {
+            // 'fPanic' is kept and deleted in GUI, so do not delete here
+        };
+        
+        // -- widget's layouts
+        void openTabBox(const char* label)
+        {
+            fControlsLevel.push_back(label);
+        }
+        void openHorizontalBox(const char* label)
+        {
+            fControlsLevel.push_back(label);
+        }
+        void openVerticalBox(const char* label)
+        {
+            fControlsLevel.push_back(label);
+        }
+        void closeBox()
+        {
+            fControlsLevel.pop_back();
+        }
+        
+        // -- active widgets
+        void addButton(const char* label, FAUSTFLOAT* zone)
+        {
+            insertMap(buildPath(label), zone);
+        }
+        void addCheckButton(const char* label, FAUSTFLOAT* zone)
+        {
+            insertMap(buildPath(label), zone);
+        }
+        void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
+        {
+            insertMap(buildPath(label), zone);
+        }
+        void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
+        {
+            insertMap(buildPath(label), zone);
+        }
+        void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
+        {
+            insertMap(buildPath(label), zone);
+        }
+        
+        // -- passive widgets
+        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
+        {
+            insertMap(buildPath(label), zone);
+        }
+        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
+        {
+            insertMap(buildPath(label), zone);
+        }
+        
+        // -- metadata declarations
+        void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+        {}
+            
+};
+
 // One voice of polyphony
 struct dsp_voice : public MapUI, public dsp {
        
     int fNote;
+    FAUSTFLOAT fLevel;
 
     dsp_voice()
     {
         fNote = kFreeVoice;
+        fLevel = FAUSTFLOAT(0);
     }
     
     virtual void metadata(Meta* meta) = 0;
@@ -151,17 +246,24 @@ class mydsp_poly : public dsp, public midi {
   
         std::string fJSON;
         
-        dsp_voice** fVoiceTable;
+        std::vector<dsp_voice*> fVoiceTable; // Individual voices
+        dsp* fVoiceGroup;                    // Voices group to be used for GUI grouped control
         
         std::string fGateLabel;
         std::string fGainLabel;
         std::string fFreqLabel;
+        FAUSTFLOAT fPanic;
         
         int fMaxPolyphony;
         bool fVoiceControl;
+        bool fGroupControl;
+        
+        GroupUI fGroups;
         
         FAUSTFLOAT** fMixBuffer;
         int fNumOutputs;
+        
+        std::vector<MidiUI*> fMidiUIList;
         
         inline FAUSTFLOAT mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer) 
         {
@@ -191,22 +293,39 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
-        inline int getVoice(int note)
+        inline int getVoice(int note, bool steal = false)
         {
             for (int i = 0; i < fMaxPolyphony; i++) {
                 if (fVoiceTable[i]->fNote == note) return i;
             }
-            return kReleaseVoice;
+             
+            if (steal) {
+                FAUSTFLOAT max_level = FLT_MAX;
+                int voice = kNoVoice;
+                // Steal lowest level note
+                for (int i = 0; i < fMaxPolyphony; i++) {
+                    if (fVoiceTable[i]->fLevel < max_level) {
+                        max_level = fVoiceTable[i]->fLevel;
+                        voice = i;
+                    }
+                }
+                printf("Steal voice %d \n", voice);
+                return voice;
+            } else {
+                return kNoVoice;
+            }
         }
         
-        inline void init(int max_polyphony, voice_factory* factory)
+        inline void init(int max_polyphony, voice_factory* factory, bool control, bool group)
         {
+            fVoiceControl = control;
+            fGroupControl = group;
             fMaxPolyphony = max_polyphony;
-            fVoiceTable = new dsp_voice*[fMaxPolyphony];
+            fFreqLabel = fGateLabel = fGainLabel = "";
             
-             // Init it with supplied sample_rate 
+            // Create voices
             for (int i = 0; i < fMaxPolyphony; i++) {
-                fVoiceTable[i] = factory->create();
+                fVoiceTable.push_back(factory->create());
             }
             
             // Init audio output buffers
@@ -215,25 +334,84 @@ class mydsp_poly : public dsp, public midi {
             for (int i = 0; i < fNumOutputs; i++) {
                 fMixBuffer[i] = new FAUSTFLOAT[MIX_BUFFER_SIZE];
             }
+            
+            // Groups all uiItem for a given path
+        #ifdef LLVM_DSP
+            fVoiceGroup = new proxy_dsp(fVoiceTable[0]);
+        #else
+            fVoiceGroup = new proxy_dsp(fVoiceTable[0], mydsp::metadata);
+        #endif
+            fVoiceGroup->buildUserInterface(&fGroups);
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                fVoiceTable[i]->buildUserInterface(&fGroups);
+            }
+            
+            // Creates global JSON
+            JSONUI builder(fVoiceTable[0]->getNumInputs(), fVoiceTable[0]->getNumOutputs());
+            fVoiceTable[0]->metadata(&builder);
+            uIBuilder(&builder);
+            fJSON = builder.JSON();
+        }
+        
+        void uIBuilder(UI* ui_interface)
+        {
+            ui_interface->openTabBox("Polyphonic");
+            
+            // Grouped voices UI
+            ui_interface->openVerticalBox("All Voices");
+            ui_interface->addButton("Panic", &fPanic);
+            fVoiceGroup->buildUserInterface(ui_interface);
+            ui_interface->closeBox();
+            
+            // In not group, also add individual voices UI
+            if  (!fGroupControl) {
+                for (int i = 0; i < fMaxPolyphony; i++) {
+                    char buffer[32];
+                    snprintf(buffer, 31, ((fMaxPolyphony < 8) ? "Voice%d" : "V%d"), i+1);
+                    ui_interface->openHorizontalBox(buffer);
+                    fVoiceTable[i]->buildUserInterface(ui_interface);
+                    ui_interface->closeBox();
+                }
+            }
+            
+            ui_interface->closeBox();
+        }
+        
+        static void Panic(FAUSTFLOAT val, void* arg)
+        {
+            if (val == FAUSTFLOAT(1)) {
+                static_cast<mydsp_poly*>(arg)->allNotesOff();
+            }
+        }
+        
+        bool checkPolyphony() 
+        {
+            if (fFreqLabel == "") {
+                printf("DSP is not polyphonic...\n");
+                return false;
+            } else {
+                return true;;
+            }
         }
     
     public: 
     
     #ifdef LLVM_DSP
-        mydsp_poly(int max_polyphony, llvm_dsp* dsp = NULL, bool control = false)
+        mydsp_poly(int max_polyphony, 
+                llvm_dsp* dsp = NULL,
+                 bool control = false, 
+                 bool group = true):fGroups(&fPanic, Panic, this)
         {
-            fVoiceControl = control;
             llvm_dsp_voice_factory dsp_factory(dsp);
-            init(max_polyphony, &dsp_factory);
-            fFreqLabel = fGateLabel = fGainLabel = "";
+            init(max_polyphony, &dsp_factory, control, group);
         }
     #else
-        mydsp_poly(int max_polyphony, bool control = false) 
+        mydsp_poly(int max_polyphony, 
+                bool control = false,   
+                bool group = true):fGroups(&fPanic, Panic, this)
         {
-            fVoiceControl = control;
             mydsp_voice_factory factory;
-            init(max_polyphony, &factory);
-            fFreqLabel = fGateLabel = fGainLabel = "";
+            init(max_polyphony, &factory, control, group);
         }
     #endif
  
@@ -247,7 +425,13 @@ class mydsp_poly : public dsp, public midi {
             for (int i = 0; i < fMaxPolyphony; i++) {
                 delete fVoiceTable[i];
             }
-            delete[] fVoiceTable;
+            
+            delete fVoiceGroup;
+            
+            // Remove object from all MidiUI interfaces that handle it
+            for (int i = 0; i < fMidiUIList.size(); i++) {
+                fMidiUIList[i]->removeMidiIn(this); 
+            }
         }
         
         void init(int sample_rate) 
@@ -257,22 +441,8 @@ class mydsp_poly : public dsp, public midi {
                 fVoiceTable[i]->init(sample_rate);
             }
             
-            // Creates JSON
-            JSONUI builder(fVoiceTable[0]->getNumInputs(), fVoiceTable[0]->getNumOutputs());
-            fVoiceTable[0]->metadata(&builder);
-            builder.openTabBox("Polyphonic instrument");
-            for (int i = 0; i < fMaxPolyphony; i++) {
-                std::stringstream voice; voice << "Voice" << i;
-                builder.openHorizontalBox(voice.str().c_str());
-                fVoiceTable[i]->buildUserInterface(&builder);
-                builder.closeBox();
-            }
-            builder.closeBox();
-            fJSON = builder.JSON();
-            
             // Keep gain, freq and gate labels
             std::map<std::string, FAUSTFLOAT*>::iterator it;
-            
             for (it = fVoiceTable[0]->getMap().begin(); it != fVoiceTable[0]->getMap().end(); it++) {
                 std::string label = (*it).first;
                 if (ends_with(label, "/gate")) {
@@ -297,8 +467,8 @@ class mydsp_poly : public dsp, public midi {
                 for (int i = 0; i < fMaxPolyphony; i++) {
                     if (fVoiceTable[i]->fNote != kFreeVoice) {
                         fVoiceTable[i]->compute(count, inputs, fMixBuffer);
-                        FAUSTFLOAT level = mixVoice(count, fMixBuffer, outputs);
-                        if ((level < VOICE_STOP_LEVEL) && (fVoiceTable[i]->fNote == kReleaseVoice)) {
+                        fVoiceTable[i]->fLevel = mixVoice(count, fMixBuffer, outputs);
+                        if ((fVoiceTable[i]->fLevel < VOICE_STOP_LEVEL) && (fVoiceTable[i]->fNote == kReleaseVoice)) {
                             fVoiceTable[i]->fNote = kFreeVoice;
                         }
                     }
@@ -326,17 +496,13 @@ class mydsp_poly : public dsp, public midi {
         {   
             // Add itself to the MidiUI object
             MidiUI* midi_ui = dynamic_cast<MidiUI*>(ui_interface);
-            if (midi_ui) { midi_ui->addMidiIn(this); }
+            if (midi_ui) { 
+                fMidiUIList.push_back(midi_ui);
+                midi_ui->addMidiIn(this); 
+            }
             
             if (fMaxPolyphony > 1) {
-                ui_interface->openTabBox("Polyphonic instrument");
-                for (int i = 0; i < fMaxPolyphony; i++) {
-                    std::stringstream voice; voice << "Voice" << i;
-                    ui_interface->openHorizontalBox(voice.str().c_str());
-                    fVoiceTable[i]->buildUserInterface(ui_interface);
-                    ui_interface->closeBox();
-                }
-                ui_interface->closeBox();
+                uIBuilder(ui_interface);
             } else {
                 fVoiceTable[0]->buildUserInterface(ui_interface);
             }
@@ -351,20 +517,16 @@ class mydsp_poly : public dsp, public midi {
         
         void keyOn(int channel, int pitch, int velocity)
         {
-            int voice = getVoice(kFreeVoice);
-            if (voice == kReleaseVoice) voice = getVoice(kReleaseVoice);  // Gets a free voice
-            
-            if (voice >= 0) {
-                if (fFreqLabel != "") {
+            if (checkPolyphony()) {
+                int voice = getVoice(kFreeVoice, true);
+                if (voice >= 0) {
                     fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
                     fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
                     fVoiceTable[voice]->setValue(fGateLabel, 1.0f);
                     fVoiceTable[voice]->fNote = pitch;
                 } else {
-                    printf("DSP is not polyphonic...\n");
+                    printf("No more free voice...\n");
                 }
-            } else {
-                printf("No more free voice...\n");
             }
         }
         
@@ -375,17 +537,15 @@ class mydsp_poly : public dsp, public midi {
         
         void keyOff(int channel, int pitch, int velocity = 127)
         {
-            int voice = getVoice(pitch);
-            if (voice >= 0) {
-                if (fFreqLabel != "") {
-                    fVoiceTable[voice]->setValue(fGainLabel, float(velocity)/127.f);
+            if (checkPolyphony()) {
+                int voice = getVoice(pitch);
+                if (voice >= 0) {
+                    // No use of velocity for now...
                     fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
                     fVoiceTable[voice]->fNote = kReleaseVoice;
                 } else {
-                    printf("DSP is not polyphonic...\n");
+                    printf("Playing voice %d pitch %d not found...\n", voice, pitch);
                 }
-            } else {
-                printf("Playing voice not found...\n");
             }
         }
         
@@ -403,7 +563,11 @@ class mydsp_poly : public dsp, public midi {
         }
         
         void ctrlChange(int channel, int ctrl, int value)
-        {}
+        {
+            if (ctrl == ALL_NOTES_OFF || ctrl == ALL_SOUND_OFF) {
+                allNotesOff();
+            }
+        }
         
         void progChange(double date, int channel, int pgm)
         {
@@ -438,21 +602,25 @@ class mydsp_poly : public dsp, public midi {
         {}
  
         // Additional API
-        void pitchBend(int channel, int refPitch, float pitch)
+        void pitchBend(int channel, int pitch, float tuned_pitch)
         {
-            int voice = getVoice(refPitch);
-            if (voice >= 0) {
-                fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(pitch));
-            } else {
-                printf("Playing voice not found...\n");
+            if (checkPolyphony()) {
+                int voice = getVoice(pitch);
+                if (voice >= 0) {
+                    fVoiceTable[voice]->setValue(fFreqLabel, midiToFreq(tuned_pitch));
+                } else {
+                    printf("Playing voice not found...\n");
+                }
             }
         }
         
         void allNotesOff()
         {
-            for (int i = 0; i < fMaxPolyphony; i++) {
-                fVoiceTable[i]->setValue(fGateLabel, 0.0f);
-                fVoiceTable[i]->fNote = kReleaseVoice;
+            if (checkPolyphony()) {
+                for (int i = 0; i < fMaxPolyphony; i++) {
+                    fVoiceTable[i]->setValue(fGateLabel, 0.0f);
+                    fVoiceTable[i]->fNote = kReleaseVoice;
+                }
             }
         }
        

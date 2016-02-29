@@ -84,7 +84,7 @@ inline bool parseMenuList(const char*& p, vector<string>& names, vector<double>&
         do {
             string n;
             double v;
-            if (parseMenuItem(p,n,v)) {
+            if (parseMenuItem(p, n, v)) {
                 tmpnames.push_back(n);
                 tmpvalues.push_back(v);
             } else {
@@ -280,27 +280,31 @@ inline bool parseDQString(const char*& p, string& s)
     return parseString(p, '"', s);
 }
 
+static bool parseMetaData(const char*& p, std::map<std::string, std::string>& metadatas)
+{
+    std::string metaKey, metaValue;
+    if (parseChar(p, ':') && parseChar(p, '[')) {
+        do { 
+            if (parseChar(p, '{') && parseDQString(p, metaKey) && parseChar(p, ':') && parseDQString(p, metaValue) && parseChar(p, '}')) {
+                metadatas[metaKey] = metaValue;
+            }
+        } while (tryChar(p, ','));
+        return parseChar(p, ']');
+    } else {
+        return false;
+    }
+}
+
 // ---------------------------------------------------------------------
 // Parse metadatas of the interface:
 // "name" : "...", "inputs" : "...", "outputs" : "...", ...
 // and store the result as key/value
 //
-static bool parseMetaData(const char*& p, std::string& key, std::string& value, std::map<std::string,std::string>& metadatas)
+static bool parseGlobalMetaData(const char*& p, std::string& key, std::string& value, std::map<std::string, std::string>& metadatas)
 {
     if (parseDQString(p, key)) {
         if (key == "meta") {
-            if (parseChar(p, ':') && parseChar(p, '[') && parseChar(p, '{')) {
-                do {
-                    std::string key1;
-                    std::string value1;
-                    if (parseMetaData(p, key1, value1, metadatas)) {
-                        metadatas[key1] = value1;
-                    }
-                } while (tryChar(p, ','));
-                return parseChar(p, '}') && parseChar(p, ']');
-            } else {
-                return false;
-            }
+        return parseMetaData(p, metadatas);
         } else {
            return parseChar(p, ':') && parseDQString(p, value);
         }
@@ -322,7 +326,6 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
         std::string value;
         
         do {
-            
             if (parseDQString(p, label)) {
                 if (label == "type") {
                     if (uiItems.size() != 0) {
@@ -350,18 +353,9 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
                 }
                 
                 else if (label == "meta") {
-                    std::string metaKey, metaValue;
-                    if (parseChar(p, ':') && parseChar(p,'[')) {
-                        do { 
-                            if (parseChar(p, '{') && parseDQString(p, metaKey) && parseChar(p, ':') && parseDQString(p, metaValue) && parseChar(p,'}')) {
-                                itemInfo* item = uiItems[numItems];
-                                item->meta[metaKey] = metaValue;
-                            }
-                            
-                        } while (tryChar(p, ','));
-                        if (!parseChar(p, ']')) {
-                            return false;
-                        }
+                    itemInfo* item = uiItems[numItems];
+                    if (!parseMetaData(p, item->meta)) {
+                        return false;
                     }
                 }
                 
@@ -434,7 +428,7 @@ inline bool parseJson(const char*& p, std::map<std::string,std::string>& metadat
     do {
         std::string key;
         std::string value;
-        if (parseMetaData(p, key, value, metadatas)) {
+        if (parseGlobalMetaData(p, key, value, metadatas)) {
             metadatas[key] = value;
         } else if (key == "ui") {
             int numItems = 0;

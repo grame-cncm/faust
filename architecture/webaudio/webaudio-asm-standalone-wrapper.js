@@ -248,12 +248,12 @@ faust.mydsp = function (context, buffer_size) {
             return getNumInputsAux();
         },
         
-        getNumOutputs : function() 
+        getNumOutputs : function () 
         {
             return getNumOutputsAux();
         },
     
-        destroy : function  ()
+        destroy : function ()
         {
             // Nothing to do
         },

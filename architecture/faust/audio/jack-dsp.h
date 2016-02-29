@@ -496,7 +496,7 @@ class jackaudio_midi : public jackaudio, public midi_handler {
             }
         }
       
-        virtual int processMidiIn(jack_nframes_t nframes) 
+        virtual void processMidiIn(jack_nframes_t nframes) 
         {
             // MIDI input
             void* port_buf_in = jack_port_get_buffer(fInputMidiPort, nframes);
@@ -574,7 +574,7 @@ class jackaudio_midi : public jackaudio, public midi_handler {
             }
         }
         
-        virtual int processAudio(jack_nframes_t nframes) 
+        virtual void processAudio(jack_nframes_t nframes) 
         {
             // Audio
             AVOIDDENORMALS;
@@ -594,20 +594,25 @@ class jackaudio_midi : public jackaudio, public midi_handler {
             fDSP->compute(-1, nframes, fInChannel, fOutChannel); 
         }
         
-        virtual int processMidiOut(jack_nframes_t nframes) 
+        virtual void processMidiOut(jack_nframes_t nframes) 
         {
             // MIDI output 
             unsigned char* port_buf_out = (unsigned char*)jack_port_get_buffer(fOutputMidiPort, nframes);
-            
             jack_midi_clear_buffer(port_buf_out);
-            size_t out_size = ringbuffer_read_space(fOutBuffer);
-            jack_midi_data_t* data = jack_midi_event_reserve(port_buf_out, 0, out_size);
+            size_t res, message_size;
             
-            // If enough space, write messages
-            if (data) {
-                ringbuffer_read(fOutBuffer, (char*)data, out_size);
-            } else {
-                fprintf(stderr, "jack_midi_event_reserve error\n");
+            // Write each message one by one
+            while (ringbuffer_read(fOutBuffer, (char*)&message_size, sizeof(message_size)) == sizeof(message_size)) {
+                // Reserve MIDI event with the correct size
+                jack_midi_data_t* data = jack_midi_event_reserve(port_buf_out, 0, message_size);
+                if (data) {
+                    // Write its content
+                    if ((res = ringbuffer_read(fOutBuffer, (char*)data, message_size)) != message_size) {
+                        fprintf(stderr, "processMidiOut incorrect message : res =  %d\n", res);
+                    }
+                } else {
+                    fprintf(stderr, "jack_midi_event_reserve error\n");
+                }
             }
         }
      
@@ -631,9 +636,16 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         
         void writeMessage(unsigned char* buffer, size_t size)
         {
-            size_t res;
-            if ((res = ringbuffer_write(fOutBuffer, (const char*)buffer, size)) != size) {
-                fprintf(stderr, "writeMessage error size = %ud res = %ud\n", size, res);
+            if (fOutBuffer) {
+                size_t res;
+                // Write size of message
+                if ((res = ringbuffer_write(fOutBuffer, (const char*)&size, sizeof(size_t))) != sizeof(size_t)) {
+                    fprintf(stderr, "writeMessage size : error size = %lu res = %lu\n", size, res);
+                }
+                // Write message content
+                if ((res = ringbuffer_write(fOutBuffer, (const char*)buffer, size)) != size) {
+                    fprintf(stderr, "writeMessage message : error size = %lu res = %lu\n", size, res);
+                }
             }
         }
   
@@ -682,62 +694,43 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         
         void keyOn(int channel, int pitch, int velocity) 
         {
-            unsigned char buffer[3];
-            buffer[0] = MIDI_NOTE_ON + channel;
-            buffer[1] = pitch;
-            buffer[2] = velocity;
+            unsigned char buffer[3] = { MIDI_NOTE_ON + channel, pitch, velocity };
             writeMessage(buffer, 3);
         }
         
         void keyOff(int channel, int pitch, int velocity) 
         {
-            unsigned char buffer[3];
-            buffer[0] = MIDI_NOTE_OFF + channel;
-            buffer[1] = pitch;
-            buffer[2] = velocity;
+            unsigned char buffer[3] = { MIDI_NOTE_OFF + channel, pitch, velocity };
             writeMessage(buffer, 3);
         }
         
         void ctrlChange(int channel, int ctrl, int val) 
         {
-            unsigned char buffer[3];
-            buffer[0] = MIDI_CONTROL_CHANGE + channel;
-            buffer[1] = ctrl;
-            buffer[2] = val;
+            unsigned char buffer[3] = { MIDI_CONTROL_CHANGE + channel, ctrl, val };
             writeMessage(buffer, 3);
         }
         
         void chanPress(int channel, int press) 
         {
-            unsigned char buffer[2];
-            buffer[0] = MIDI_AFTERTOUCH + channel;
-            buffer[1] = press;
+            unsigned char buffer[2] = { MIDI_AFTERTOUCH + channel, press };
             writeMessage(buffer, 2);
         }
         
         void progChange(int channel, int pgm) 
         {
-            unsigned char buffer[2];
-            buffer[0] = MIDI_PROGRAM_CHANGE + channel;
-            buffer[1] = pgm;
+            unsigned char buffer[2] = { MIDI_PROGRAM_CHANGE + channel, pgm };
             writeMessage(buffer, 2);
         }
           
         void keyPress(int channel, int pitch, int press) 
         {
-            unsigned char buffer[3];
-            buffer[0] = MIDI_POLY_AFTERTOUCH + channel;
-            buffer[1] = pitch;
-            buffer[2] = press;
+            unsigned char buffer[3] = { MIDI_POLY_AFTERTOUCH + channel, pitch, press };
             writeMessage(buffer, 3);
         }
    
         void pitchWheel(int channel, int wheel) 
         {
-            unsigned char buffer[3];
-            buffer[0] = MIDI_PITCH_BEND + channel;
-            buffer[1] = wheel & 0x7F;           // lsb 7bit
-            buffer[2] = (wheel >> 7) & 0x7F;    // msb 7bit
+            unsigned char buffer[3] = { MIDI_PITCH_BEND + channel, wheel & 0x7F, (wheel >> 7) & 0x7F };
             writeMessage(buffer, 3);
         }
         
@@ -745,22 +738,19 @@ class jackaudio_midi : public jackaudio, public midi_handler {
          
         void start(double date) 
         {
-            unsigned char buffer[1];
-            buffer[0] = MIDI_START;
+            unsigned char buffer[1] = { MIDI_START };
             writeMessage(buffer, 1);
         }
        
         void stop(double date) 
         {
-            unsigned char buffer[1];
-            buffer[0] = MIDI_STOP;
+            unsigned char buffer[1] = { MIDI_STOP };
             writeMessage(buffer, 1);
         }
         
         void clock(double date) 
         {
-            unsigned char buffer[1];
-            buffer[0] = MIDI_CLOCK;
+            unsigned char buffer[1] = { MIDI_CLOCK };
             writeMessage(buffer, 1);
         }
  

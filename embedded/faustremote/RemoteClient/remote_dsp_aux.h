@@ -242,7 +242,7 @@ class remote_dsp_machine_aux {
     
         remote_dsp_machine_aux(const string& ip, int port, const string& target):fIP(ip), fPort(port), fTarget(target)
         {}
-        virtual remote_dsp_machine_aux() {}
+        virtual ~remote_dsp_machine_aux() {}
         
         string getIP() { return fIP; }
         int getPort() { return fPort; }

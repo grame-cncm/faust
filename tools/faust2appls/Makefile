@@ -39,6 +39,7 @@ install: faust2faustvst
 	install faust2asmjs $(dest)
 	install faust2au $(dest)
 	install faust2caqt $(dest)
+	install faust2caqtios $(dest)
 	install faust2csound $(dest)
 	install faust2dssi $(dest)
 	install faust2eps $(dest)
@@ -100,6 +101,7 @@ uninstall:
 	rm -f $(dest)/faust2asmjs
 	rm -f $(dest)/faust2au
 	rm -f $(dest)/faust2caqt
+	rm -f $(dest)/faust2caqtios
 	rm -f $(dest)/faust2csound
 	rm -f $(dest)/faust2dssi
 	rm -f $(dest)/faust2eps

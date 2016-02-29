@@ -53,7 +53,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"math.lib\"); \nimport(\"maxmsp.lib\"); \nimport(\"music.lib\"); \nimport(\"oscillator.lib\"); \nimport(\"reduce.lib\"); \nimport(\"filter.lib\"); \nimport(\"effect.lib\"); \n \nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.06"
+#define FAUSTGEN_VERSION "1.07"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 
 #ifdef __APPLE__
@@ -128,7 +128,7 @@ class faustgen_factory {
             
         llvm_dsp_factory* create_factory_from_bitcode();
         llvm_dsp_factory* create_factory_from_sourcecode();
-        llvm_dsp* create_dsp_aux();
+        ::dsp* create_dsp_aux();
      
         void free_dsp_factory();
         void free_sourcecode();
@@ -163,6 +163,7 @@ class faustgen_factory {
         void display_pdf();
         void display_libraries();
         
+        ::dsp* create_dsp_instance();
         void add_instance(faustgen* dsp) { fInstances.insert(dsp); }
         void remove_instance(faustgen* dsp)  
         { 
@@ -178,7 +179,7 @@ class faustgen_factory {
         bool try_lock() { return systhread_mutex_trylock(fDSPMutex) == MAX_ERR_NONE; }
         bool lock() { return systhread_mutex_lock(fDSPMutex) == MAX_ERR_NONE; }
         void unlock() { systhread_mutex_unlock(fDSPMutex); }
-    
+      
         static int gFaustCounter;       // global variable to count the number of faustgen objects inside the patcher
       
         static map<string, faustgen_factory*> gFactoryMap;
@@ -198,7 +199,7 @@ class faustgen : public MspCpp5<faustgen> {
         map<string, vector <t_object*> > fOutputTable;
         
         mspUI fDSPUI;               // DSP UI
-        llvm_dsp* fDSP;             // pointer to the LLVM Faust dsp
+        ::dsp* fDSP;                // pointer to the LLVM Faust dsp
         t_object* fEditor;          // text editor object
         bool fMute;                 // DSP mute state
         static t_jrgba gDefaultColor;  // Color of the object to be used when restoring default color
