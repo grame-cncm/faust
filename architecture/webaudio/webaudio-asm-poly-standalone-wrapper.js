@@ -489,11 +489,13 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
             return context.sampleRate;
         },
         
-        setComputeCallback : function (callback) {
+        setComputeCallback : function (callback) 
+        {
             compute_callback = callback;
         },
         
-        getComputeCallback : function () {
+        getComputeCallback : function () 
+        {
             return compute_callback;
         },
         
