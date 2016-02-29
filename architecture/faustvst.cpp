@@ -172,6 +172,8 @@ public:
    VST UI interface
  ***************************************************************************/
 
+#include <string.h>
+
 enum ui_elem_type_t {
   UI_BUTTON, UI_CHECK_BUTTON,
   UI_V_SLIDER, UI_H_SLIDER, UI_NUM_ENTRY,
@@ -207,6 +209,9 @@ protected:
   void add_elem(ui_elem_type_t type, const char *label, float *zone,
 		float min, float max);
 
+  bool have_freq, have_gain, have_gate;
+  bool is_voice_ctrl(const char *label);
+
 public:
   virtual void addButton(const char* label, float* zone);
   virtual void addCheckButton(const char* label, float* zone);
@@ -230,6 +235,7 @@ public:
 PFaustUI::PFaustUI(int maxvoices)
 {
   is_instr = maxvoices>0;
+  have_freq = have_gain = have_gate = false;
   nelems = nports = 0;
   elems = NULL;
 }
@@ -267,9 +273,7 @@ inline void PFaustUI::add_elem(ui_elem_type_t type, const char *label)
   nelems++;
 }
 
-static bool is_voice_ctrl(const char *label);
-
-#define portno(label) ((is_instr && is_voice_ctrl(label))?-1:nports++)
+#define portno(label) (is_voice_ctrl(label)?-1:nports++)
 
 inline void PFaustUI::add_elem(ui_elem_type_t type, const char *label, float *zone)
 {
@@ -326,6 +330,20 @@ inline void PFaustUI::add_elem(ui_elem_type_t type, const char *label, float *zo
   elems[nelems].max = max;
   elems[nelems].step = 0.0;
   nelems++;
+}
+
+inline bool PFaustUI::is_voice_ctrl(const char *label)
+{
+  if (!is_instr)
+    return false;
+  else if (!have_freq && !strcmp(label, "freq"))
+    return (have_freq = true);
+  else if (!have_gain && !strcmp(label, "gain"))
+    return (have_gain = true);
+  else if (!have_gate && !strcmp(label, "gate"))
+    return (have_gate = true);
+  else
+    return false;
 }
 
 void PFaustUI::addButton(const char* label, float* zone)
@@ -392,12 +410,11 @@ class dsp {
 //  VST interface
 //----------------------------------------------------------------------------
 
-#line 398 "faustvst.cpp"
+#line 414 "faustvst.cpp"
 
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <boost/circular_buffer.hpp>
 
@@ -463,12 +480,6 @@ VST_EXPORT AEffect * main(audioMasterCallback audioMaster)
 //#define DEBUG_MIDICC 1 // controller messages
 //#define DEBUG_RPN 1 // RPN messages (pitch bend range, master tuning)
 //#define DEBUG_MTS 1 // MTS messages (octave/scale tuning)
-
-static bool is_voice_ctrl(const char *label)
-{
-  return !strcmp(label, "freq") || !strcmp(label, "gain") ||
-    !strcmp(label, "gate");
-}
 
 // Note and voice data structures.
 
@@ -945,6 +956,7 @@ struct PFaustPlugin {
 	  inctrls[p++] = i;
 	  int p = ui[0]->elems[i].port;
 	  float val = ui[0]->elems[i].init;
+	  assert(p>=0);
 	  portvals[p] = ports[p] = val;
 	  units[p] = unit;
 	  for (int ch = 0; ch < 16; ch++)
@@ -2028,6 +2040,18 @@ void VSTWrapper::getParameterDisplay(VstInt32 index, char *text)
   }
 }
 
+static inline float clamp(float min, float max, float val)
+{
+  if (min<=max) {
+    if (val < min) val = min;
+    if (val > max) val = max;
+  } else {
+    if (val > min) val = min;
+    if (val < max) val = max;
+  }
+  return val;
+}
+
 float VSTWrapper::getParameter(VstInt32 index)
 {
   int k = plugin->ui[0]->nports;
@@ -2039,7 +2063,9 @@ float VSTWrapper::getParameter(VstInt32 index)
     if (min == max)
       return 0.0f;
     else
-      return (plugin->ports[index]-min)/(max-min);
+      // Clamp the value to the 0..1 VST range. Some VST hosts (e.g., Carla)
+      // don't like values falling outside that range.
+      return clamp(0.0, 1.0, (plugin->ports[index]-min)/(max-min));
   } else if (index == k && plugin->maxvoices > 0) {
     return (float)plugin->poly/(float)plugin->maxvoices;
 #if FAUST_MTS
