@@ -43,7 +43,16 @@
 #include "faust/gui/SimpleParser.h"
 #include "faust/gui/JSONUI.h"
 
-#define STR2REAL(x) ((sizeof(FAUSTFLOAT) == 4) ? strtof((x), NULL) : strtod((x), NULL))
+#include <sstream>
+
+#ifdef _WIN32
+#include <windows.h>
+#define snprintf _snprintf
+#endif
+
+//#define STR2REAL(x) ((sizeof(FAUSTFLOAT) == 4) ? strtof((x), NULL) : strtod((x), NULL))
+
+inline FAUSTFLOAT STR2REAL(const std::string& x)  { std::stringstream s; s << x; return atoi(s.str().c_str()); }
 
 //-------------------------------------------------------------------
 //  Decode a dsp JSON description and implement 'buildUserInterface'
@@ -132,10 +141,10 @@ struct JSONUIDecoder {
             bool isOutItem = false;
             string type = (*it)->type;
             
-            FAUSTFLOAT init = STR2REAL((*it)->init.c_str());
-            FAUSTFLOAT min = STR2REAL((*it)->min.c_str());
-            FAUSTFLOAT max = STR2REAL((*it)->max.c_str());
-            FAUSTFLOAT step = STR2REAL((*it)->step.c_str());
+            FAUSTFLOAT init = STR2REAL((*it)->init);
+            FAUSTFLOAT min = STR2REAL((*it)->min);
+            FAUSTFLOAT max = STR2REAL((*it)->max);
+            FAUSTFLOAT step = STR2REAL((*it)->step);
             
             if (type == "vslider" || type == "hslider" || type == "nentry" || type == "button") {
                 isInItem = true;

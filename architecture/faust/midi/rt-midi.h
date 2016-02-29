@@ -329,7 +329,7 @@ inline double GetCurrentTimeInUsec()
 inline double GetCurrentTimeInUsec(void)
 {
     LARGE_INTEGER time;
-    LARGE_INTEGER frequency
+    LARGE_INTEGER frequency;
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&time);
     return double(time.QuadPart) / double(frequency.QuadPart) * 1000000.0;
