@@ -364,7 +364,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     const char* argv[3];
     argv[0] = "-l";
     argv[1] = "llvm_math.ll";
-    argc[2] = 0;  // NULL terminated argv
+    argv[2] = 0;  // NULL terminated argv
     fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, argc, argv, getTarget(), error, LLVM_OPTIMIZATION);
 #else
     fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, LLVM_OPTIMIZATION);
