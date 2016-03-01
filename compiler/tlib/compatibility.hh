@@ -53,18 +53,18 @@ struct timezone
 #endif
 extern "C" {
 #if (_MSC_VER<=1700)
-double  rint(double nr);
+    double  rint(double nr);
 #endif
-int		gettimeofday(struct timeval *tv, struct timezone *tz);
-int chdir(const char *path);
-int		mkdir(const char* path, unsigned int attribute);
-char*	getcwd(char* str, int size);
-int		isatty(int file);
+int gettimeofday(struct timeval *tv, struct timezone *tz);
+int chdir(const char* path);
+int mkdir(const char* path, unsigned int attribute);
+char* getcwd(char* str, int size);
+int isatty(int file);
 }
-void	getFaustPathname(char* str, unsigned int size);
-void	getFaustPathname(char* str, unsigned int size);
-char*   realpath(const char *path, char resolved_path[PATH_MAX]);
-char*	basename(const char* fullpath);
+void getFaustPathname(char* str, unsigned int size);
+void getFaustPathname(char* str, unsigned int size);
+char* realpath(const char* path, char resolved_path[PATH_MAX]);
+char* basename(const char* fullpath);
 
 #ifdef  NDEBUG
 #undef assert

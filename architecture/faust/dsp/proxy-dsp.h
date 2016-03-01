@@ -50,9 +50,7 @@
 #define snprintf _snprintf
 #endif
 
-//#define STR2REAL(x) ((sizeof(FAUSTFLOAT) == 4) ? strtof((x), NULL) : strtod((x), NULL))
-
-inline FAUSTFLOAT STR2REAL(const std::string& x)  { std::stringstream s; s << x; return atoi(s.str().c_str()); }
+inline FAUSTFLOAT STR2REAL(const std::string& x)  { std::stringstream s; s << x; return atof(s.str().c_str()); }
 
 //-------------------------------------------------------------------
 //  Decode a dsp JSON description and implement 'buildUserInterface'
