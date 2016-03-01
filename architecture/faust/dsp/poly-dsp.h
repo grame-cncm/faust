@@ -346,6 +346,7 @@ class mydsp_poly : public dsp, public midi {
             fVoiceTable[0]->metadata(&builder);
             uIBuilder(&builder);
             fJSON = builder.JSON();
+            fDate = 0;
         }
         
         void uIBuilder(UI* ui_interface)
@@ -397,7 +398,6 @@ class mydsp_poly : public dsp, public midi {
         {
             mydsp_voice_factory factory;
             init(max_polyphony, &factory, control, group);
-            fDate = 0;
         }
            
         virtual ~mydsp_poly()
