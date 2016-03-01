@@ -8,6 +8,8 @@ FAUST_MIDICC=1
 FAUST_MTS=1
 NVOICES=-1
 
+KEEP="no"
+
 # These should be detected properly at build time, but you can also set them
 # to alternative locations using the SDK and SDKSRC environment variables.
 # Set this to the location where you keep your VST SDK files.
@@ -36,7 +38,18 @@ fi
 
 for ((i=1;i<$#+1;i++)); do
     p=${!i}
-    if [ $p = "-omp" ]; then
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+	cat <<EOF
+faust2faustvst [options ...] <file.dsp>
+Options:
+-keep: retain the build directory
+-nometa: ignore metadata (author information etc.) from the Faust source
+-nomidicc: plugin doesn't process MIDI control data
+-notuning: disable the tuning control (VSTi only)
+-nvoices N: number of synth voices (VSTi only; arg must be an integer)
+EOF
+	exit 0
+    elif [ $p = "-omp" ]; then
     	: ignore
     elif [ $p = "-icc" ]; then
 	CXX=icpc
@@ -61,6 +74,8 @@ for ((i=1;i<$#+1;i++)); do
     elif [ $p = "-osx" ]; then
 	CXXFLAGS="-O3 $ARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -I/opt/local/include"
 	dllext=".vst"
+    elif [ $p = "-keep" ]; then
+	KEEP="yes"
     elif [ ${p:0:1} = "-" ]; then
 	OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -147,7 +162,13 @@ fi
 # copy down the plugin (bundle on OS X)
 rm -rf "$SRCDIR/$soname"
 cp -r "$tmpdir/$soname" "$SRCDIR"
-# Clean up.
-rm -rf $tmpdir
+if [[ $KEEP == yes ]]; then
+    # keep the build directory
+    rm -rf "$SRCDIR/$clsname"
+    mv $tmpdir "$SRCDIR/$clsname"
+else
+    # Clean up.
+    rm -rf $tmpdir
+fi
 # Print the name of the generated plugin.
 echo "$SRCDIR/$soname;"

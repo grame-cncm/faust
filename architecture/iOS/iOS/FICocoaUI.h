@@ -454,7 +454,12 @@ public:
         list<uiCocoaItem*>::iterator    i;
         float                           labelYOffset = 0.f;
 
-        uiCocoaItem::setFrame(x, y, w, h);
+        if (fBoxType == kColorLayout) {
+            // Hack to force full screen layout even in 'portrait' only mode
+            w = h = std::max(w, h);
+        } else {
+            uiCocoaItem::setFrame(x, y, w, h);
+        }
 
         // For tab views : simply resize the tab corresponding box
         if (fTabView)

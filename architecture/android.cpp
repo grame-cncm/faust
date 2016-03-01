@@ -53,6 +53,9 @@
 #include <android/log.h>
 #include "dsp_faust.h"
 
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+
 class AndroidEngine : public FaustPolyEngine {
 
 public:
