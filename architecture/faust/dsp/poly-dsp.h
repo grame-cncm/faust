@@ -159,12 +159,14 @@ class GroupUI : public GUI, public PathBuilder
 struct dsp_voice : public MapUI, public dsp {
        
     int fNote;
+    int fDate;
     FAUSTFLOAT fLevel;
 
     dsp_voice()
     {
         fNote = kFreeVoice;
         fLevel = FAUSTFLOAT(0);
+        fDate = 0;
     }
     
     virtual void metadata(Meta* meta) = 0;
@@ -223,6 +225,7 @@ class mydsp_poly : public dsp, public midi {
         
         FAUSTFLOAT** fMixBuffer;
         int fNumOutputs;
+        int fDate;
         
         std::vector<MidiUI*> fMidiUIList;
         
@@ -254,6 +257,8 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
+        /*
+        // Steal lowest level note
         inline int getVoice(int note, bool steal = false)
         {
             for (int i = 0; i < fMaxPolyphony; i++) {
@@ -270,7 +275,40 @@ class mydsp_poly : public dsp, public midi {
                         voice = i;
                     }
                 }
-                printf("Steal voice %d \n", voice);
+                printf("Steal voice = %d \n", voice);
+                return voice;
+            } else {
+                return kNoVoice;
+            }
+        }
+        */
+        
+        inline int getVoice(int note, bool steal = false)
+        {
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                if (fVoiceTable[i]->fNote == note) {
+                    if (steal) { fVoiceTable[i]->fDate = fDate++; }
+                    return i;
+                }
+            }
+             
+            if (steal) {
+                int voice = kNoVoice;
+                int date = INT_MAX;
+                for (int i = 0; i < fMaxPolyphony; i++) {
+                    // Try to steal a voice in kReleaseVoice mode...
+                    if (fVoiceTable[i]->fNote == kReleaseVoice) {
+                        printf("Steal release voice : voice_date = %d cur_date = %d voice = %d\n", fVoiceTable[i]->fDate, fDate, i);
+                        fVoiceTable[i]->fDate = fDate++;
+                        return i;
+                    // Otherwise steal oldest voice...
+                    } else if (fVoiceTable[i]->fDate < date) {
+                        date = fVoiceTable[i]->fDate;
+                        voice = i;
+                    }
+                }
+                printf("Steal playing voice : voice_date = %d cur_date = %d voice = %d\n", fVoiceTable[voice]->fDate, fDate, voice);
+                fVoiceTable[voice]->fDate = fDate++;
                 return voice;
             } else {
                 return kNoVoice;
@@ -359,6 +397,7 @@ class mydsp_poly : public dsp, public midi {
         {
             mydsp_voice_factory factory;
             init(max_polyphony, &factory, control, group);
+            fDate = 0;
         }
            
         virtual ~mydsp_poly()
@@ -490,7 +529,7 @@ class mydsp_poly : public dsp, public midi {
                     fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
                     fVoiceTable[voice]->fNote = kReleaseVoice;
                 } else {
-                    printf("Playing voice %d pitch %d not found...\n", voice, pitch);
+                    printf("Playing pitch = %d not found\n", pitch);
                 }
             }
         }
