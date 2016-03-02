@@ -160,7 +160,7 @@ double megapersec(int frames, int chans, uint64 clk)
 /**
  * Compute the mean value of a vector of measures
  */
-static uint64 meanValue( vector<uint64>::const_iterator a, vector<uint64>::const_iterator b)
+static uint64 meanValue(vector<uint64>::const_iterator a, vector<uint64>::const_iterator b)
 {
 	uint64 r = 0;
 	unsigned int n = 0;
