@@ -43,14 +43,12 @@
 #include "faust/gui/SimpleParser.h"
 #include "faust/gui/JSONUI.h"
 
-#include <sstream>
-
 #ifdef _WIN32
 #include <windows.h>
 #define snprintf _snprintf
 #endif
 
-inline FAUSTFLOAT STR2REAL(const std::string& x)  { std::stringstream s; s << x; return atof(s.str().c_str()); }
+inline FAUSTFLOAT STR2REAL(const std::string& s)  { return atof(s.c_str()); }
 
 //-------------------------------------------------------------------
 //  Decode a dsp JSON description and implement 'buildUserInterface'

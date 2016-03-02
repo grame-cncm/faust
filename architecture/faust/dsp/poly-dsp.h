@@ -158,13 +158,17 @@ class GroupUI : public GUI, public PathBuilder
 // One voice of polyphony
 struct dsp_voice : public MapUI, public dsp {
        
-    int fNote;
-    FAUSTFLOAT fLevel;
+    int fNote;          // Playing note actual pitch
+    int fDate;          // KeyOn date
+    bool fTrigger;      // True if stolen note and need for envelop re-trigger
+    FAUSTFLOAT fLevel;  // Last audio block level
 
     dsp_voice()
     {
         fNote = kFreeVoice;
         fLevel = FAUSTFLOAT(0);
+        fDate = 0;
+        fTrigger = false;
     }
     
     virtual void metadata(Meta* meta) = 0;
@@ -223,6 +227,7 @@ class mydsp_poly : public dsp, public midi {
         
         FAUSTFLOAT** fMixBuffer;
         int fNumOutputs;
+        int fDate;
         
         std::vector<MidiUI*> fMidiUIList;
         
@@ -254,6 +259,8 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
+        /*
+        // Steal lowest level note
         inline int getVoice(int note, bool steal = false)
         {
             for (int i = 0; i < fMaxPolyphony; i++) {
@@ -270,7 +277,42 @@ class mydsp_poly : public dsp, public midi {
                         voice = i;
                     }
                 }
-                printf("Steal voice %d \n", voice);
+                printf("Steal voice = %d \n", voice);
+                return voice;
+            } else {
+                return kNoVoice;
+            }
+        }
+        */
+        
+        inline int getVoice(int note, bool steal = false)
+        {
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                if (fVoiceTable[i]->fNote == note) {
+                    if (steal) { fVoiceTable[i]->fDate = fDate++; }
+                    return i;
+                }
+            }
+             
+            if (steal) {
+                int voice = kNoVoice;
+                int date = INT_MAX;
+                for (int i = 0; i < fMaxPolyphony; i++) {
+                    // Try to steal a voice in kReleaseVoice mode...
+                    if (fVoiceTable[i]->fNote == kReleaseVoice) {
+                        printf("Steal release voice : voice_date = %d cur_date = %d voice = %d\n", fVoiceTable[i]->fDate, fDate, i);
+                        fVoiceTable[i]->fDate = fDate++;
+                        fVoiceTable[i]->fTrigger = true;
+                        return i;
+                    // Otherwise steal oldest voice...
+                    } else if (fVoiceTable[i]->fDate < date) {
+                        date = fVoiceTable[i]->fDate;
+                        voice = i;
+                    }
+                }
+                printf("Steal playing voice : voice_date = %d cur_date = %d voice = %d\n", fVoiceTable[voice]->fDate, fDate, voice);
+                fVoiceTable[voice]->fDate = fDate++;
+                fVoiceTable[voice]->fTrigger = true;
                 return voice;
             } else {
                 return kNoVoice;
@@ -308,6 +350,7 @@ class mydsp_poly : public dsp, public midi {
             fVoiceTable[0]->metadata(&builder);
             uIBuilder(&builder);
             fJSON = builder.JSON();
+            fDate = 0;
         }
         
         void uIBuilder(UI* ui_interface)
@@ -412,8 +455,18 @@ class mydsp_poly : public dsp, public midi {
                 // Mix all playing voices
                 for (int i = 0; i < fMaxPolyphony; i++) {
                     if (fVoiceTable[i]->fNote != kFreeVoice) {
+                        //If stolen note and need for envelop re-trigger
+                        if (fVoiceTable[i]->fTrigger) {
+                            fVoiceTable[i]->setValue(fGateLabel, 0.0f);
+                            fVoiceTable[i]->compute(1, inputs, fMixBuffer);
+                            fVoiceTable[i]->setValue(fGateLabel, 1.0f);
+                            fVoiceTable[i]->fTrigger = false;
+                        }
+                        // Compute voice
                         fVoiceTable[i]->compute(count, inputs, fMixBuffer);
+                        // Mix it in result
                         fVoiceTable[i]->fLevel = mixVoice(count, fMixBuffer, outputs);
+                        // Check the level to possibly set the voice in kFreeVoice again
                         if ((fVoiceTable[i]->fLevel < VOICE_STOP_LEVEL) && (fVoiceTable[i]->fNote == kReleaseVoice)) {
                             fVoiceTable[i]->fNote = kFreeVoice;
                         }
@@ -490,7 +543,7 @@ class mydsp_poly : public dsp, public midi {
                     fVoiceTable[voice]->setValue(fGateLabel, 0.0f);
                     fVoiceTable[voice]->fNote = kReleaseVoice;
                 } else {
-                    printf("Playing voice %d pitch %d not found...\n", voice, pitch);
+                    printf("Playing pitch = %d not found\n", pitch);
                 }
             }
         }
@@ -566,6 +619,7 @@ class mydsp_poly : public dsp, public midi {
                 for (int i = 0; i < fMaxPolyphony; i++) {
                     fVoiceTable[i]->setValue(fGateLabel, 0.0f);
                     fVoiceTable[i]->fNote = kReleaseVoice;
+                    fVoiceTable[i]->fTrigger = false;
                 }
             }
         }
