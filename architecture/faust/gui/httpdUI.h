@@ -218,6 +218,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
                 }
                 usleep(100000);
             }
+			return 0;
         }
      
         virtual void addGeneric(const char* label, FAUSTFLOAT* zone)			
