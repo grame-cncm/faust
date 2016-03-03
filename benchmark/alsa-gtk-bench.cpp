@@ -54,8 +54,6 @@ using namespace std;
 	assert(sizeof(int64)==8);
 
 
-
-
 // On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
 // flags to avoid costly denormals
 #ifdef __SSE__
@@ -1420,7 +1418,6 @@ void GTKUI::addHorizontalBargraph(const char* label, float* zone, float lo, floa
 	closeBox();
 }
 
-
 // ------------------------------ Num Display -----------------------------------
 
 struct uiNumDisplay : public uiItem
@@ -1448,7 +1445,6 @@ struct uiNumDisplay : public uiItem
 	}
 };
 	
-
 void GTKUI::addNumDisplay(const char* label, float* zone, int precision )
 {
 	GtkWidget* lw = gtk_label_new("");
@@ -1457,7 +1453,6 @@ void GTKUI::addNumDisplay(const char* label, float* zone, int precision )
 	addWidget(label, lw);
 	closeBox();
 }
-
 
 // ------------------------------ Text Display -----------------------------------
 
@@ -1491,7 +1486,6 @@ struct uiTextDisplay : public uiItem
 	}
 };
 	
-
 void GTKUI::addTextDisplay(const char* label, float* zone, char* names[], float lo, float hi )
 {
 	GtkWidget* lw = gtk_label_new("");
@@ -1501,15 +1495,12 @@ void GTKUI::addTextDisplay(const char* label, float* zone, char* names[], float 
 	closeBox();
 }
 
-
-
 void GTKUI::show() 
 {
 	assert(fTop == 0);
 	gtk_widget_show  (fBox[0]);
 	gtk_widget_show  (fWindow);
 }
-
 
 /**
  * Update all user items reflecting zone z
@@ -1562,13 +1553,9 @@ class dsp {
  	virtual void conclude() 										{}
 };
 		
-		
 <<includeclass>>
-
 						
-mydsp	DSP;
-
-
+mydsp DSP;
 
 
 /******************************************************************************
@@ -1580,41 +1567,44 @@ mydsp	DSP;
 *******************************************************************************/
 	
 // lopt : Scan Command Line long int Arguments
-
-long lopt (int argc, char *argv[], const char* longname, const char* shortname, long def) 
+long lopt (int argc, char* argv[], const char* longname, const char* shortname, long def) 
 {
-	for (int i=2; i<argc; i++) 
-		if ( strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0 ) 
+	for (int i = 2; i < argc; i++) {
+		if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0) {
 			return atoi(argv[i]);
+        }
+    }
 	return def;
 }
 	
 // sopt : Scan Command Line string Arguments
-
-const char* sopt (int argc, char *argv[], const char* longname, const char* shortname, const char* def) 
+const char* sopt(int argc, char* argv[], const char* longname, const char* shortname, const char* def) 
 {
-	for (int i=2; i<argc; i++) 
-		if ( strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0 ) 
+	for (int i = 2; i < argc; i++) {
+		if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0) {
 			return argv[i];
+        }
+    }
 	return def;
 }
 	
 // fopt : Scan Command Line flag option (without argument), return true if the flag
 
-bool fopt (int argc, char *argv[], const char* longname, const char* shortname) 
+bool fopt(int argc, char *argv[], const char* longname, const char* shortname) 
 {
-	for (int i=1; i<argc; i++) 
-		if ( strcmp(argv[i], shortname) == 0 || strcmp(argv[i], longname) == 0 ) 
+	for (int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], shortname) == 0 || strcmp(argv[i], longname) == 0) {
 			return true;
+        }
+    }
 	return false;
 }
 	
-
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
 
-pthread_t	guithread;
+pthread_t guithread;
 	
 void* run_ui(void* ptr)
 {
@@ -1624,22 +1614,22 @@ void* run_ui(void* ptr)
 	return 0;
 }
 
-int main(int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
 	CHECKINTSIZE;
 
-	UI* 	interface = new GTKUI(argv[0], &argc, &argv);
+	UI* interface = new GTKUI(argv[0], &argc, &argv);
 	
 	// compute rcfilename to (re)store application state
-	char	rcfilename[256];
-	char* 	home = getenv("HOME");
+	char rcfilename[256];
+	char* home = getenv("HOME");
 	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
 	
-	AudioInterface	audio (
-		AudioParam().cardName( sopt(argc, argv, "--device", "-d", "hw:0") ) 
-					.frequency( lopt(argc, argv, "--frequency", "-f", 44100) ) 
-					.buffering( lopt(argc, argv, "--buffer", "-b", 1024) )
-					.periods( lopt(argc, argv, "--periods", "-p", 2) )
+	AudioInterface	audio(
+		AudioParam().cardName(sopt(argc, argv, "--device", "-d", "hw:0")) 
+					.frequency(lopt(argc, argv, "--frequency", "-f", 44100)) 
+					.buffering(lopt(argc, argv, "--buffer", "-b", 1024))
+					.periods(lopt(argc, argv, "--periods", "-p", 2))
 					.inputs(DSP.getNumInputs())
 					.outputs(DSP.getNumOutputs())
 	);
@@ -1665,11 +1655,11 @@ int main(int argc, char *argv[] )
 	audio.write();
 	audio.write();
 	openMesure();
-	while(running) {
+	while (running) {
 		audio.read();
-    STARTMESURE
+        STARTMESURE
 		DSP.compute(audio.buffering(), audio.inputSoftChannels(), audio.outputSoftChannels());
-    STOPMESURE  
+        STOPMESURE  
 		audio.write();
 		running = mesure <= (KMESURE + KSKIP);
 	}

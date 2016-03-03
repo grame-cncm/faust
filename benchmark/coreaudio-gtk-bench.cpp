@@ -211,35 +211,70 @@ void printstats(const char* applname, int bsize, int ichans, int ochans)
 
 bool running = true;
 
-class measure_dsp : public dsp {
-
-    private:
-    
-        dsp* fDSP;
+class measure_dsp : public decorator_dsp {
 
     public:
-        measure_dsp(dsp* dsp):fDSP(dsp) {}
+
+        measure_dsp(dsp* dsp):decorator_dsp(dsp) {}
         virtual ~measure_dsp() {}
 
-        int getNumInputs() 	{ return fDSP->getNumInputs(); }
-        
-        int getNumOutputs() { return fDSP->getNumOutputs(); }
-        
-        void buildUserInterface(UI* interface) 	{ fDSP->buildUserInterface(interface); }
-        
-        void init(int samplingRate) { fDSP->init(samplingRate); }
-        
-        void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
-        {
+        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
+        { 
             STARTMESURE
-            fDSP->compute(len, inputs, outputs);
+            fDSP->compute(count, inputs, outputs);
             STOPMESURE
             running = mesure <= (KMESURE + KSKIP);
         }
+       
+};
+                    
+class measure_coreaudio : public audio {
+    
+    private:
+    
+        TCoreAudioRenderer fAudioDevice;
+        int fSampleRate, fBufferSize;
+
+     public:
+     
+        measure_coreaudio(long sample_rate, long buffer_size) : fSampleRate(sample_rate), fBufferSize(buffer_size) {}
+        virtual ~measure_coreaudio() { fAudioDevice.Close(); }
+
+        virtual bool init(const char* /*name*/, dsp* DSP) 
+        {
+            if (fAudioDevice.OpenDefault(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fBufferSize, fSampleRate) < 0) {
+                printf("Cannot open CoreAudio device\n");
+                return false;
+            }
+            fAudioDevice.set_dsp(new measure_dsp(DSP));
+            // If -1 was given, fSampleRate will be changed by OpenDefault
+            DSP->init(fSampleRate);
+            return true;
+        }
+
+        virtual bool start() 
+        {
+            if (fAudioDevice.Start() < 0) {
+                printf("Cannot start CoreAudio device\n");
+                return false;
+            }
+            return true;
+        }
+
+        virtual void stop() 
+        {
+            fAudioDevice.Stop();
+        }
+        
+        virtual int get_buffer_size() { return fAudioDevice.GetBufferSize(); }
+        virtual int get_sample_rate() { return fAudioDevice.GetSampleRate(); }
+        
+        virtual int get_num_inputs() { return fAudioDevice.GetNumInputs(); }
+        virtual int get_num_outputs() { return fAudioDevice.GetNumOutputs(); }
 
 };
 
-mydsp DSP;
+dsp* DSP;
 
 list<GUI*> GUI::fGuiList;
 
@@ -252,22 +287,22 @@ list<GUI*> GUI::fGuiList;
 *******************************************************************************/
 		
 // sopt : Scan Command Line string Arguments
-const char* sopt(int argc, char *argv[], const char* longname, const char* shortname, const char* def) 
+const char* sopt(int argc, char* argv[], const char* longname, const char* shortname, const char* def) 
 {
-	for (int i=2; i<argc; i++) {
-        if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0) {
-            return argv[i];
+	for (int i = 2; i<argc; i++) {
+		if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0) {
+			return argv[i];
         }
     }
 	return def;
 }
 	
 // fopt : Scan Command Line flag option (without argument), return true if the flag
-bool fopt(int argc, char *argv[], const char* longname, const char* shortname) 
+bool fopt(int argc, char* argv[], const char* longname, const char* shortname) 
 {
-	for (int i=1; i<argc; i++) {
-        if (strcmp(argv[i], shortname) == 0 || strcmp(argv[i], longname) == 0) {
-            return true;
+	for (int i = 1; i<argc; i++) {
+		if (strcmp(argv[i], shortname) == 0 || strcmp(argv[i], longname) == 0) {
+			return true;
         }
     }
 	return false;
@@ -279,7 +314,7 @@ bool fopt(int argc, char *argv[], const char* longname, const char* shortname)
 
 pthread_t guithread;
 	
-void* run_ui(void* ptr)
+static void* run_ui(void* ptr)
 {
 	GUI* interface = (GUI*)ptr;
 	interface->run();
@@ -302,17 +337,15 @@ int main(int argc, char *argv[])
     int	fpb = lopt(argv, "--buffer", 512);
     
     UI* interface = new GTKUI(argv[0], &argc, &argv);
+    DSP = new mydsp();
  	
-    DSP.init(srate);
-    DSP.buildUserInterface(interface);
+    DSP->buildUserInterface(interface);
     
     pthread_create(&guithread, NULL, run_ui, interface);
 	
     openMesure();
-      
-    measure_dsp measure(&DSP);
-    coreaudio audio(srate, fpb);
-    audio.init(name, &measure);
+    measure_coreaudio audio(srate, fpb);
+    audio.init(name, DSP);
     audio.start();
     
     while (running) {
@@ -321,7 +354,7 @@ int main(int argc, char *argv[])
 	closeMesure();
 
 #ifdef BENCHMARKMODE
-    printstats(argv[0], fpb, DSP.getNumInputs(), DSP.getNumOutputs());
+    printstats(argv[0], fpb, DSP->getNumInputs(), DSP->getNumOutputs());
 #endif       
 
     audio.stop();

@@ -60,7 +60,6 @@ endif
 
 MYICCFLAGS := '-O3 -xHost -ftz -fno-alias -fp-model fast=2' 
 
-
 VSIZE := 1024
 
 all : icc gcc
@@ -223,8 +222,6 @@ idalsavec :
 idalsaomp :
 	install -d idalsaompdir
 	$(MAKE) DEST='idalsaompdir/' ARCH='alsa-gtk-bench.cpp' VEC='-double -omp -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS='-openmp '$(MYICCFLAGS) -f Makefile.compile
-
-
 
 ### intel-compiler quad-precision x {scalar, vector and openMP}
 
