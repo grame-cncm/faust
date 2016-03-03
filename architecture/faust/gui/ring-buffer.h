@@ -67,16 +67,16 @@ size_t ringbuffer_write_space(const ringbuffer_t *rb);
 inline ringbuffer_t *
 ringbuffer_create (size_t sz)
 {
-	int power_of_two;
+	size_t power_of_two;
 	ringbuffer_t *rb;
 
 	if ((rb = (ringbuffer_t *) malloc (sizeof (ringbuffer_t))) == NULL) {
 		return NULL;
 	}
 
-	for (power_of_two = 1; 1 << power_of_two < sz; power_of_two++);
+	for (power_of_two = 1u; 1u << power_of_two < sz; power_of_two++);
 
-	rb->size = 1 << power_of_two;
+	rb->size = 1u << power_of_two;
 	rb->size_mask = rb->size;
 	rb->size_mask -= 1;
 	rb->write_ptr = 0;

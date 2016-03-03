@@ -228,7 +228,7 @@ ifstream* open_arch_stream(const char* filename)
     
     char *envpath = getenv("FAUST_LIB_PATH");
     if (envpath!=NULL) {
-		if (chdir(envpath)==0) {
+		if ((err = chdir(envpath))==0) {
 			TRY_OPEN(filename);
 		}
     }
