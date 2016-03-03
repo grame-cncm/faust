@@ -115,11 +115,11 @@ int main(int argc, char *argv[])
 	
 	snprintf(name, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, name);
+	
+#ifdef POLY
     
     int poly = lopt(argv, "--poly", 4);
     int group = lopt(argv, "--group", 1);
-	
-#ifdef POLY
 
 #if MIDICTRL
     if (hasMIDISync()) {
