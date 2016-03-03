@@ -151,7 +151,6 @@ class httpdServerUI : public UI, public httpdUIAux
 // API from sourcefetcher.hh and compiled in libHTTPDFaust library.
 int http_fetch(const char *url, char **fileBuf);
 
-#define STR2REAL(x) ((sizeof(FAUSTFLOAT) == 4) ? strtof((x), NULL) : strtod((x), NULL))
 
 /*
 Use to control a running Faust DSP wrapped with "httpdServerUI".
@@ -212,7 +211,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
                     std::string path = (*it).first;
                     http_fetch(path.c_str(), &answer);
                     std::string answer_str = answer;
-                    (*(*it).second) = STR2REAL(answer_str.substr(answer_str.find(' ')).c_str());
+                    (*(*it).second) = (FAUSTFLOAT)strtod(answer_str.substr(answer_str.find(' ')).c_str(), NULL);
                     // 'http_fetch' result must be deallocated
                     free(answer);
                 }
