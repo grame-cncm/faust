@@ -118,13 +118,12 @@ int main(int argc, char *argv[])
 
 	snprintf(name, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, name);
-    
-    int poly = lopt(argv, "--poly", 4);
-    int group = lopt(argv, "--group", 1);
-    int rtmidi = lopt(argv, "--rtmidi", 0);
-
+   
 #ifdef POLY
 
+    int poly = lopt(argv, "--poly", 4);
+    int group = lopt(argv, "--group", 1);
+ 
 #if MIDICTRL
     if (hasMIDISync()) {
         DSP = new timed_dsp(new mydsp_poly(poly, true, group));
@@ -181,6 +180,8 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef MIDICTRL
+    int rtmidi = lopt(argv, "--rtmidi", 0);
+
     MidiUI* midiinterface;
     if (rtmidi) {
         midiinterface = new MidiUI(name);
