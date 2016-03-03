@@ -67,7 +67,7 @@ size_t ringbuffer_write_space(const ringbuffer_t *rb);
 inline ringbuffer_t *
 ringbuffer_create (size_t sz)
 {
-	int power_of_two;
+	size_t power_of_two;
 	ringbuffer_t *rb;
 
 	if ((rb = (ringbuffer_t *) malloc (sizeof (ringbuffer_t))) == NULL) {
