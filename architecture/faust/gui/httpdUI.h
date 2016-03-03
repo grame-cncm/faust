@@ -27,6 +27,8 @@
 #ifndef __httpdUI__
 #define __httpdUI__
 
+#include <unistd.h>
+
 #include "faust/gui/HTTPDControler.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/PathBuilder.h"
