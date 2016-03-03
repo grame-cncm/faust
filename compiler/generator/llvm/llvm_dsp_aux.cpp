@@ -779,9 +779,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
             // data layout of the module. -ag
             fResult->fModule->setDataLayout(fJIT->getDataLayout());
         #else
-            const string &ModuleDataLayout = fResult->fModule->getDataLayout();
-            DataLayout* td = new DataLayout(ModuleDataLayout);
-            pm.add(td);
+            fResult->fModule->setDataLayout(fJIT->getDataLayout()->getStringRepresentation());
         #endif
           
             // Add internal analysis passes from the target machine (mandatory for vectorization to work)

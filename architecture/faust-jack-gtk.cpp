@@ -171,16 +171,14 @@ int main(int argc, char *argv[])
         
         std::string error_msg3;
         //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "i386-apple-darwin10.6.0-cortex-m3", error_msg3, 0);
-       
+        //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "i386-apple-darwin10.6.0", error_msg3, -1);
         factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, -1);
         
         printf("factory3 %p\n", factory3);
         
         ///deleteDSPFactory(factory3);
         //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
-        
         //factory4 = createDSPFactoryFromString("titi", "process = +,+,+;", argc-2, (const char**)argv[argc-1], "", error_msg3, 4);
-        
         //factory4 = createDSPFactoryFromString("toto", "process = +;", argc-2, (const char**)argv[argc-1], "", error_msg3, 4);
         
         /*

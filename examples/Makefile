@@ -47,7 +47,7 @@ CLANG = /opt/local/libexec/llvm-3.4/bin/clang++
 CLANGLIBS=$(CLANGLIBSLIST)
 endif
 
-ifeq ($(LLVM_VERSION), 3.5.0)
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.5.0 3.5.1 3.5.2))
 LLVM_VERSION  = LLVM_35
 CLANG = /opt/local/libexec/llvm-3.5/bin/clang++
 CLANGLIBS=$(CLANGLIBSLIST)
@@ -94,7 +94,6 @@ all : jackgtk
 testlin: alsagtk alsaqt jackgtk jackconsole jackqt netjackqt puredata ladspa dssi csound csounddouble w32vst
 
 testmac: caqt puredata maxmsp maxmsp64 csound csounddouble supercollider
-
 
 javaswing :
 	install -d javaswingdir
