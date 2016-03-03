@@ -184,7 +184,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
                     fCache = v;
                     std::stringstream str;
                     str << fPathURL << "?value=" << v;
-                    string path = str.str();
+                    std::string path = str.str();
                     http_fetch(path.c_str(), NULL);
                 }
             
@@ -223,7 +223,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
      
         virtual void addGeneric(const char* label, FAUSTFLOAT* zone)			
         { 
-            string url = fServerURL + buildPath(label); 
+            std::string url = fServerURL + buildPath(label); 
             insertMap(url, zone); 
             new uiUrlValue(url, this, zone); 
         }
@@ -233,14 +233,14 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         httpdClientUI(const std::string& server_url):fServerURL(server_url), fRunning(false)
         {
             char* json_buffer = 0;
-            string json_url = string(server_url) + "/JSON";
+            std::string json_url = std::string(server_url) + "/JSON";
             http_fetch(json_url.c_str(), &json_buffer);
             if (json_buffer) {
                 fJSON = json_buffer;
                 fTCPPort = atoi(server_url.substr(server_url.find_last_of(':') + 1).c_str());
                 // 'http_fetch' result must be deallocated
                 free(json_buffer);
-                std::cout << "Faust httpd client controling server '" << server_url << "'" << endl;
+                std::cout << "Faust httpd client controling server '" << server_url << "'" << std::endl;
             } else {
                 fJSON = "";
                 fTCPPort = -1;
@@ -275,7 +275,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         { 
             // addGeneric(label, zone);
             // Do not update button state with received messages (otherwise on/off messages may be lost...)
-            string url = fServerURL + buildPath(label); 
+            std::string url = fServerURL + buildPath(label); 
             new uiUrlValue(url, this, zone); 
         }
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 
