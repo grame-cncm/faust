@@ -100,7 +100,7 @@ fi
 BINARIES=""
 
 for f in $FILES; do
-    name=${f%.dsp}
+    name=`basename $f .dsp`
     
     # compile the Faust DSP to C++ or asm.js code
     if [ $EMCC = emcc ] ; then
