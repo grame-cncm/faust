@@ -611,8 +611,8 @@ static void initFaustDirectories()
 int main (int argc, char* argv[])
 {
     ostream*    dst;
-    ifstream*   injcode;
-    istream*    enrobage;
+    ifstream*   injcode=0;
+    istream*    enrobage=0;
 
 
 	/****************************************************************
