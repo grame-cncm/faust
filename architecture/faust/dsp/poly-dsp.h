@@ -384,7 +384,7 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
-        bool checkPolyphony() 
+        inline bool checkPolyphony() 
         {
             if (fFreqLabel == "") {
                 printf("DSP is not polyphonic...\n");
@@ -392,6 +392,28 @@ class mydsp_poly : public dsp, public midi {
             } else {
                 return true;;
             }
+        }
+        
+        inline void computeSlice(dsp* dsp, int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
+        {
+            if (slice > 0) {
+                FAUSTFLOAT** inputs_slice = (float**)alloca(dsp->getNumInputs() * sizeof(float*));
+                for (int chan = 0; chan < dsp->getNumInputs(); chan++) {
+                    inputs_slice[chan] = &(inputs[chan][offset]);
+                }
+                
+                FAUSTFLOAT** outputs_slice = (float**)alloca(dsp->getNumOutputs() * sizeof(float*));
+                for (int chan = 0; chan < dsp->getNumOutputs(); chan++) {
+                    outputs_slice[chan] = &(outputs[chan][offset]);
+                }
+                
+                dsp->compute(slice, inputs_slice, outputs_slice);
+            } 
+        }
+        
+        inline unsigned int isPowerOfTwo(unsigned int n)
+        {
+            return !(n & (n - 1));
         }
     
     public: 
@@ -455,15 +477,18 @@ class mydsp_poly : public dsp, public midi {
                 // Mix all playing voices
                 for (int i = 0; i < fMaxPolyphony; i++) {
                     if (fVoiceTable[i]->fNote != kFreeVoice) {
-                        //If stolen note and need for envelop re-trigger
                         if (fVoiceTable[i]->fTrigger) {
+                            //If stolen note and need for envelop re-trigger
+                            int slice = isPowerOfTwo(count) ? count/2 : 1;
                             fVoiceTable[i]->setValue(fGateLabel, 0.0f);
-                            fVoiceTable[i]->compute(1, inputs, fMixBuffer);
+                            computeSlice(fVoiceTable[i], 0, slice, inputs, fMixBuffer);
                             fVoiceTable[i]->setValue(fGateLabel, 1.0f);
+                            computeSlice(fVoiceTable[i], slice, count - slice, inputs, fMixBuffer);
                             fVoiceTable[i]->fTrigger = false;
+                        } else {
+                            // Compute regular voice
+                            fVoiceTable[i]->compute(count, inputs, fMixBuffer);
                         }
-                        // Compute voice
-                        fVoiceTable[i]->compute(count, inputs, fMixBuffer);
                         // Mix it in result
                         fVoiceTable[i]->fLevel = mixVoice(count, fMixBuffer, outputs);
                         // Check the level to possibly set the voice in kFreeVoice again
