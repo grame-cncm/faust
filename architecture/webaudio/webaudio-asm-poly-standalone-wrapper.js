@@ -88,6 +88,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     var fFreqLabel;
     var fGateLabel;
     var fGainLabel;
+    var fDate = 0;
     
     // Keep JSON parsed object
     var jon_object = JSON.parse(getJSONmydsp());
@@ -160,6 +161,8 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     var dsp_voices = [];
     var dsp_voices_state = [];
     var dsp_voices_level = [];
+    var dsp_voices_date = [];
+    var dsp_voices_trigger = [];
     
     var kFreeVoice = -1;
     var kReleaseVoice = -2;
@@ -169,25 +172,39 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         dsp_voices[i] = dsp_start + i * getSizemydsp();
         dsp_voices_state[i] = kFreeVoice;
         dsp_voices_level[i] = 0;
+        dsp_voices_date[i] = 0;
+        dsp_voices_trigger[i] = false;
     }
     
     function getVoice (note, steal)
     {
         for (var i = 0; i < max_polyphony; i++) {
-            if (dsp_voices_state[i] === note) return i;
+            if (dsp_voices_state[i] === note) {
+                if (steal) { dsp_voices_date[i] = fDate++; }
+                return i;
+            }
         }
         
         if (steal) {
-            var max_level = Number.MAX_VALUE;
             var voice = kNoVoice;
+            var date = Number.MAX_VALUE;
             // Steal lowest level note
             for (var i = 0; i < max_polyphony; i++) {
-                if (dsp_voices_level[i] < max_level) {
-                    max_level = dsp_voices_level[i];
+                // Try to steal a voice in kReleaseVoice mode...
+                if (dsp_voices_state[i] === kReleaseVoice) {
+                    console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d\n",  dsp_voices_date[i], fDate, i);
+                    dsp_voices_date[i] = fDate++;
+                    dsp_voices_trigger[i] = true;
+                    return i;
+                // Otherwise steal oldest voice...
+                } else if (dsp_voices_date[i] < date) {
+                    date = dsp_voices_date[i];
                     voice = i;
                 }
             }
-            console.log("Steal voice %d\n", voice);
+            console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d\n", dsp_voices_date[voice], fDate, voice);
+            dsp_voices_date[voice] = fDate++;
+            dsp_voices_trigger[voice] = true;
             return voice;
         } else {
             return kNoVoice;
@@ -231,8 +248,20 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         var level;
         for (i = 0; i < max_polyphony; i++) {
             if (dsp_voices_state[i] != kFreeVoice) {
-                factory.compute(dsp_voices[i], buffer_size, ins, mixing);
+                if (dsp_voices_trigger[i]) {
+                    // FIXME : properly cut the buffer in 2 slices...
+                    factory.setValue(dsp_voices[i], fGateLabel, 0.0);
+                    factory.compute(dsp_voices[i], 1, ins, mixing);
+                    factory.setValue(dsp_voices[i], fGateLabel, 1.0);
+                    factory.compute(dsp_voices[i], buffer_size, ins, mixing);
+                    dsp_voices_trigger[i] = false;
+                } else {
+                    // Compute regular voice
+                    factory.compute(dsp_voices[i], buffer_size, ins, mixing);
+                }
+                // Mix it in result
                 dsp_voices_level[i] = mixer.mixVoice(buffer_size, numOut, mixing, outs, max_polyphony);
+                // Check the level to possibly set the voice in kFreeVoice again
                 if ((dsp_voices_level[i] < 0.001) && (dsp_voices_state[i] == kReleaseVoice)) {
                     dsp_voices_state[i] = kFreeVoice;
                 }
@@ -423,14 +452,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
                 console.log("Playing voice not found...\n");
             }
         },
-
-        ctrlChange : function (channel, ctrl, value)
-        {
-            if (ctrl === 123 || ctrl === 120) {
-                allNotesOff();
-            }
-        },
-        
+   
         allNotesOff : function ()
         {
             for (var i = 0; i < max_polyphony; i++) {
@@ -439,6 +461,16 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
             }
         },
 
+        ctrlChange : function (channel, ctrl, value)
+        {
+            if (ctrl === 123 || ctrl === 120) {
+                for (var i = 0; i < max_polyphony; i++) {
+                    factory.setValue(dsp_voices[i], fGateLabel, 0.0);
+                    dsp_voices_state[i] = kReleaseVoice;
+                }
+            }
+        },
+        
         pitchWheel : function (channel, wheel)
         {},
 

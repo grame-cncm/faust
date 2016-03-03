@@ -33,6 +33,19 @@
 		4B6188BD190FA6DD005A0E4E /* MaxAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B6188BB190FA6DD005A0E4E /* MaxAPI.framework */; };
 		4B6188C4190FA6EA005A0E4E /* MaxAudioAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B6188C3190FA6EA005A0E4E /* MaxAudioAPI.framework */; };
 		4B6188C5190FA6EA005A0E4E /* MaxAudioAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B6188C3190FA6EA005A0E4E /* MaxAudioAPI.framework */; };
+		4BC4574A1C888FFE006EFFEC /* faust-quick-reference.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 4B179CE6160C7230004418BF /* faust-quick-reference.pdf */; };
+		4BC4574B1C888FFE006EFFEC /* effect.lib in Resources */ = {isa = PBXBuildFile; fileRef = 4B3E914516569775006952CC /* effect.lib */; };
+		4BC4574C1C888FFE006EFFEC /* filter.lib in Resources */ = {isa = PBXBuildFile; fileRef = 4B3E914616569775006952CC /* filter.lib */; };
+		4BC4574D1C888FFE006EFFEC /* math.lib in Resources */ = {isa = PBXBuildFile; fileRef = 4B3E914716569775006952CC /* math.lib */; };
+		4BC4574E1C888FFE006EFFEC /* maxmsp.lib in Resources */ = {isa = PBXBuildFile; fileRef = 4B3E914816569775006952CC /* maxmsp.lib */; };
+		4BC4574F1C888FFE006EFFEC /* music.lib in Resources */ = {isa = PBXBuildFile; fileRef = 4B3E914916569775006952CC /* music.lib */; };
+		4BC457501C888FFE006EFFEC /* oscillator.lib in Resources */ = {isa = PBXBuildFile; fileRef = 4B3E914A16569775006952CC /* oscillator.lib */; };
+		4BC457511C888FFE006EFFEC /* reduce.lib in Resources */ = {isa = PBXBuildFile; fileRef = 4B3E914B16569775006952CC /* reduce.lib */; };
+		4BC457531C888FFE006EFFEC /* faustgen~.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5BCA75A0156D13B200C3299A /* faustgen~.cpp */; };
+		4BC457551C888FFE006EFFEC /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B5A392915F3B05B007317F4 /* CoreFoundation.framework */; };
+		4BC457561C888FFE006EFFEC /* MaxAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B6188BB190FA6DD005A0E4E /* MaxAPI.framework */; };
+		4BC457571C888FFE006EFFEC /* MaxAudioAPI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B6188C3190FA6EA005A0E4E /* MaxAudioAPI.framework */; };
+		4BC457581C888FFE006EFFEC /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BF47AC31ADBFAE200ED318F /* IOKit.framework */; };
 		4BC4BF9217A7E98100161338 /* faust-quick-reference.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 4B179CE6160C7230004418BF /* faust-quick-reference.pdf */; };
 		4BC4BF9317A7E98100161338 /* effect.lib in Resources */ = {isa = PBXBuildFile; fileRef = 4B3E914516569775006952CC /* effect.lib */; };
 		4BC4BF9417A7E98100161338 /* filter.lib in Resources */ = {isa = PBXBuildFile; fileRef = 4B3E914616569775006952CC /* filter.lib */; };
@@ -62,6 +75,7 @@
 		4B5A3C4B15F4042D007317F4 /* mspUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mspUI.h; path = src/mspUI.h; sourceTree = "<group>"; };
 		4B6188BB190FA6DD005A0E4E /* MaxAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAPI.framework; path = "/Applications/Max6.1/MaxSDK-6.1.4/c74support/max-includes/MaxAPI.framework"; sourceTree = "<absolute>"; };
 		4B6188C3190FA6EA005A0E4E /* MaxAudioAPI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MaxAudioAPI.framework; path = "/Applications/Max6.1/MaxSDK-6.1.4/c74support/msp-includes/x64/MaxAudioAPI.framework"; sourceTree = "<absolute>"; };
+		4BC4575D1C888FFE006EFFEC /* faustgen~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "faustgen~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4BC4BFA517A7E98100161338 /* faustgen~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "faustgen~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4BF47AC31ADBFAE200ED318F /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = /Developer1/SDKs/MacOSX10.6.sdk/System/Library/Frameworks/IOKit.framework; sourceTree = "<absolute>"; };
 		5B3AA3A5158B65190050941C /* faustgen~.mxo */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "faustgen~.mxo"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -70,6 +84,17 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		4BC457541C888FFE006EFFEC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4BC457551C888FFE006EFFEC /* CoreFoundation.framework in Frameworks */,
+				4BC457561C888FFE006EFFEC /* MaxAPI.framework in Frameworks */,
+				4BC457571C888FFE006EFFEC /* MaxAudioAPI.framework in Frameworks */,
+				4BC457581C888FFE006EFFEC /* IOKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4BC4BF9D17A7E98100161338 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -140,6 +165,7 @@
 			children = (
 				5B3AA3A5158B65190050941C /* faustgen~.mxo */,
 				4BC4BFA517A7E98100161338 /* faustgen~.mxo */,
+				4BC4575D1C888FFE006EFFEC /* faustgen~.mxo */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -147,6 +173,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		4BC457481C888FFE006EFFEC /* LLVM 3.5 : faustgen~ */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4BC4575A1C888FFE006EFFEC /* Build configuration list for PBXNativeTarget "LLVM 3.5 : faustgen~" */;
+			buildPhases = (
+				4BC457491C888FFE006EFFEC /* Resources */,
+				4BC457521C888FFE006EFFEC /* Sources */,
+				4BC457541C888FFE006EFFEC /* Frameworks */,
+				4BC457591C888FFE006EFFEC /* Rez */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "LLVM 3.5 : faustgen~";
+			productName = iterator;
+			productReference = 4BC4575D1C888FFE006EFFEC /* faustgen~.mxo */;
+			productType = "com.apple.product-type.bundle";
+		};
 		4BC4BF9017A7E98100161338 /* LLVM 3.4 : faustgen~ */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 4BC4BFA217A7E98100161338 /* Build configuration list for PBXNativeTarget "LLVM 3.4 : faustgen~" */;
@@ -205,11 +249,27 @@
 				3694742E0FD5C8DC00A5E9FD /* All */,
 				5B3AA399158B65190050941C /* LLVM 3.1 : faustgen~ */,
 				4BC4BF9017A7E98100161338 /* LLVM 3.4 : faustgen~ */,
+				4BC457481C888FFE006EFFEC /* LLVM 3.5 : faustgen~ */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		4BC457491C888FFE006EFFEC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4BC4574A1C888FFE006EFFEC /* faust-quick-reference.pdf in Resources */,
+				4BC4574B1C888FFE006EFFEC /* effect.lib in Resources */,
+				4BC4574C1C888FFE006EFFEC /* filter.lib in Resources */,
+				4BC4574D1C888FFE006EFFEC /* math.lib in Resources */,
+				4BC4574E1C888FFE006EFFEC /* maxmsp.lib in Resources */,
+				4BC4574F1C888FFE006EFFEC /* music.lib in Resources */,
+				4BC457501C888FFE006EFFEC /* oscillator.lib in Resources */,
+				4BC457511C888FFE006EFFEC /* reduce.lib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4BC4BF9117A7E98100161338 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -243,6 +303,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXRezBuildPhase section */
+		4BC457591C888FFE006EFFEC /* Rez */ = {
+			isa = PBXRezBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4BC4BFA117A7E98100161338 /* Rez */ = {
 			isa = PBXRezBuildPhase;
 			buildActionMask = 2147483647;
@@ -260,6 +327,14 @@
 /* End PBXRezBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		4BC457521C888FFE006EFFEC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4BC457531C888FFE006EFFEC /* faustgen~.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		4BC4BF9A17A7E98100161338 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -316,6 +391,334 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				PRODUCT_NAME = Untitled;
 				ZERO_LINK = NO;
+			};
+			name = Deployment;
+		};
+		4BC4575B1C888FFE006EFFEC /* Development */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CONFIGURATION_BUILD_DIR = "/Applications/Max6.1/Cycling '74/msp-externals";
+				CONFIGURATION_TEMP_DIR = "/Applications/Max6.1/Cycling '74/msp-externals";
+				COPY_PHASE_STRIP = NO;
+				EXECUTABLE_EXTENSION = "";
+				EXECUTABLE_SUFFIX = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"\"$(SYSTEM_APPS_DIR)/Max6.1/MaxSDK-6.1.4/c74support/max-includes\"",
+					"\"$(SYSTEM_APPS_DIR)/Max6.1/MaxSDK-6.1.4/c74support/msp-includes\"",
+				);
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				"GCC_VERSION[arch=i386]" = com.apple.compilers.llvmgcc42;
+				"GCC_VERSION[arch=ppc]" = com.apple.compilers.llvmgcc42;
+				HEADER_SEARCH_PATHS = (
+					../../architecture,
+					/usr/local/include/,
+					/opt/local/include,
+					/Developer/Headers/FlatCarbon,
+					"\"/Applications/Max6.1/MaxSDK-6.1.4/c74support/max-includes\"",
+					"\"/Applications/Max6.1/MaxSDK-6.1.4/c74support/msp-includes\"",
+				);
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "/../../../../../../../../../Applications/Max6.1/Cycling '74/msp-externals";
+				LIBRARY_SEARCH_PATHS = (
+					/usr/local/lib/faust,
+					/opt/local/lib/,
+					"/opt/local/libexec/llvm-3.5/lib",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				OTHER_CPLUSPLUSFLAGS = (
+					"-DLLVM_35",
+					"-fexceptions",
+					"-I/opt/local/libexec/llvm-3.5/include",
+					"-D_DEBUG",
+					"-D_GNU_SOURCE",
+					"-D__STDC_CONSTANT_MACROS",
+					"-D__STDC_FORMAT_MACROS",
+					"-D__STDC_LIMIT_MACROS",
+					"$(OTHER_CFLAGS)",
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-U,_object_method_imp",
+					"-Wl,-U,_object_new_imp",
+					/opt/local/lib/libcrypto.a,
+					/opt/local/lib/libncurses.a,
+					"-lfaust",
+					"-lLLVMInstrumentation",
+					"-lLLVMIRReader",
+					"-lLLVMAsmParser",
+					"-lLLVMDebugInfo",
+					"-lLLVMOption",
+					"-lLLVMLTO",
+					"-lLLVMLinker",
+					"-lLLVMipo",
+					"-lLLVMVectorize",
+					"-lLLVMBitWriter",
+					"-lLLVMBitReader",
+					"-lLLVMTableGen",
+					"-lLLVMR600CodeGen",
+					"-lLLVMR600Desc",
+					"-lLLVMR600Info",
+					"-lLLVMR600AsmPrinter",
+					"-lLLVMSystemZDisassembler",
+					"-lLLVMSystemZCodeGen",
+					"-lLLVMSystemZAsmParser",
+					"-lLLVMSystemZDesc",
+					"-lLLVMSystemZInfo",
+					"-lLLVMSystemZAsmPrinter",
+					"-lLLVMHexagonCodeGen",
+					"-lLLVMHexagonAsmPrinter",
+					"-lLLVMHexagonDesc",
+					"-lLLVMHexagonInfo",
+					"-lLLVMNVPTXCodeGen",
+					"-lLLVMNVPTXDesc",
+					"-lLLVMNVPTXInfo",
+					"-lLLVMNVPTXAsmPrinter",
+					"-lLLVMCppBackendCodeGen",
+					"-lLLVMCppBackendInfo",
+					"-lLLVMMSP430CodeGen",
+					"-lLLVMMSP430Desc",
+					"-lLLVMMSP430Info",
+					"-lLLVMMSP430AsmPrinter",
+					"-lLLVMXCoreDisassembler",
+					"-lLLVMXCoreCodeGen",
+					"-lLLVMXCoreDesc",
+					"-lLLVMXCoreInfo",
+					"-lLLVMXCoreAsmPrinter",
+					"-lLLVMMipsDisassembler",
+					"-lLLVMMipsCodeGen",
+					"-lLLVMMipsAsmParser",
+					"-lLLVMMipsDesc",
+					"-lLLVMMipsInfo",
+					"-lLLVMMipsAsmPrinter",
+					"-lLLVMARMDisassembler",
+					"-lLLVMARMCodeGen",
+					"-lLLVMARMAsmParser",
+					"-lLLVMARMDesc",
+					"-lLLVMARMInfo",
+					"-lLLVMARMAsmPrinter",
+					"-lLLVMAArch64Disassembler",
+					"-lLLVMAArch64CodeGen",
+					"-lLLVMAArch64AsmParser",
+					"-lLLVMAArch64Desc",
+					"-lLLVMAArch64Info",
+					"-lLLVMAArch64AsmPrinter",
+					"-lLLVMAArch64Utils",
+					"-lLLVMPowerPCCodeGen",
+					"-lLLVMPowerPCAsmParser",
+					"-lLLVMPowerPCDesc",
+					"-lLLVMPowerPCInfo",
+					"-lLLVMPowerPCAsmPrinter",
+					"-lLLVMSparcCodeGen",
+					"-lLLVMSparcDesc",
+					"-lLLVMSparcInfo",
+					"-lLLVMX86Disassembler",
+					"-lLLVMX86AsmParser",
+					"-lLLVMX86CodeGen",
+					"-lLLVMSelectionDAG",
+					"-lLLVMAsmPrinter",
+					"-lLLVMX86Desc",
+					"-lLLVMX86Info",
+					"-lLLVMX86AsmPrinter",
+					"-lLLVMX86Utils",
+					"-lLLVMMCDisassembler",
+					"-lLLVMMCParser",
+					"-lLLVMInterpreter",
+					"-lLLVMMCJIT",
+					"-lLLVMJIT",
+					"-lLLVMCodeGen",
+					"-lLLVMObjCARCOpts",
+					"-lLLVMScalarOpts",
+					"-lLLVMInstCombine",
+					"-lLLVMTransformUtils",
+					"-lLLVMipa",
+					"-lLLVMAnalysis",
+					"-lLLVMRuntimeDyld",
+					"-lLLVMExecutionEngine",
+					"-lLLVMTarget",
+					"-lLLVMMC",
+					"-lLLVMObject",
+					"-lLLVMCore",
+					"-lLLVMSupport",
+				);
+				PRODUCT_NAME = "faustgen~";
+				PRODUCT_VERSION = 1.07;
+				"SDKROOT[arch=i386]" = macosx;
+				"SDKROOT[arch=ppc]" = macosx;
+				WRAPPER_EXTENSION = mxo;
+			};
+			name = Development;
+		};
+		4BC4575C1C888FFE006EFFEC /* Deployment */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				CONFIGURATION_BUILD_DIR = "/Applications/Max6.1/Cycling '74/msp-externals";
+				CONFIGURATION_TEMP_DIR = "/Applications/Max6.1/Cycling '74/msp-externals";
+				COPY_PHASE_STRIP = YES;
+				DEAD_CODE_STRIPPING = YES;
+				EXECUTABLE_EXTENSION = "";
+				EXECUTABLE_SUFFIX = "";
+				FRAMEWORK_SEARCH_PATHS = (
+					"\"$(SYSTEM_APPS_DIR)/Max6.1/MaxSDK-6.1.4/c74support/max-includes\"",
+					"\"$(SYSTEM_APPS_DIR)/Max6.1/MaxSDK-6.1.4/c74support/msp-includes\"",
+				);
+				GCC_ENABLE_CPP_EXCEPTIONS = NO;
+				GCC_ENABLE_CPP_RTTI = YES;
+				GCC_ENABLE_SSE3_EXTENSIONS = YES;
+				GCC_ENABLE_SSE41_EXTENSIONS = YES;
+				GCC_ENABLE_SSE42_EXTENSIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				"GCC_VERSION[arch=i386]" = com.apple.compilers.llvmgcc42;
+				"GCC_VERSION[arch=ppc]" = com.apple.compilers.llvmgcc42;
+				HEADER_SEARCH_PATHS = (
+					../../architecture,
+					/usr/local/include/,
+					/opt/local/include,
+					/Developer/Headers/FlatCarbon,
+					"\"/Applications/Max6.1/MaxSDK-6.1.4/c74support/max-includes\"",
+					"\"/Applications/Max6.1/MaxSDK-6.1.4/c74support/msp-includes\"",
+				);
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_OTHER_PREPROCESSOR_FLAGS = "";
+				INSTALL_PATH = "/../../../../../../../../../Applications/Max6.1/Cycling '74/msp-externals";
+				LIBRARY_SEARCH_PATHS = (
+					/usr/local/lib/faust,
+					/opt/local/lib/,
+					"/opt/local/libexec/llvm-3.5/lib",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				OTHER_CPLUSPLUSFLAGS = (
+					"-DLLVM_35",
+					"-fexceptions",
+					"-I/opt/local/libexec/llvm-3.5/include",
+					"-D_DEBUG",
+					"-D_GNU_SOURCE",
+					"-D__STDC_CONSTANT_MACROS",
+					"-D__STDC_FORMAT_MACROS",
+					"-D__STDC_LIMIT_MACROS",
+					"$(OTHER_CFLAGS)",
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-U,_object_new_imp",
+					"-Wl,-U,_object_method_imp",
+					/opt/local/lib/libcrypto.a,
+					/opt/local/lib/libncurses.a,
+					"-lfaust",
+					"-lLLVMLTO",
+					"-lLLVMObjCARCOpts",
+					"-lLLVMLinker",
+					"-lLLVMipo",
+					"-lLLVMVectorize",
+					"-lLLVMBitWriter",
+					"-lLLVMIRReader",
+					"-lLLVMAsmParser",
+					"-lLLVMR600CodeGen",
+					"-lLLVMR600Desc",
+					"-lLLVMR600Info",
+					"-lLLVMR600AsmPrinter",
+					"-lLLVMSystemZDisassembler",
+					"-lLLVMSystemZCodeGen",
+					"-lLLVMSystemZAsmParser",
+					"-lLLVMSystemZDesc",
+					"-lLLVMSystemZInfo",
+					"-lLLVMSystemZAsmPrinter",
+					"-lLLVMHexagonCodeGen",
+					"-lLLVMHexagonAsmPrinter",
+					"-lLLVMHexagonDesc",
+					"-lLLVMHexagonInfo",
+					"-lLLVMNVPTXCodeGen",
+					"-lLLVMNVPTXDesc",
+					"-lLLVMNVPTXInfo",
+					"-lLLVMNVPTXAsmPrinter",
+					"-lLLVMCppBackendCodeGen",
+					"-lLLVMCppBackendInfo",
+					"-lLLVMMSP430CodeGen",
+					"-lLLVMMSP430Desc",
+					"-lLLVMMSP430Info",
+					"-lLLVMMSP430AsmPrinter",
+					"-lLLVMXCoreDisassembler",
+					"-lLLVMXCoreCodeGen",
+					"-lLLVMXCoreDesc",
+					"-lLLVMXCoreInfo",
+					"-lLLVMXCoreAsmPrinter",
+					"-lLLVMMipsDisassembler",
+					"-lLLVMMipsCodeGen",
+					"-lLLVMMipsAsmParser",
+					"-lLLVMMipsDesc",
+					"-lLLVMMipsInfo",
+					"-lLLVMMipsAsmPrinter",
+					"-lLLVMAArch64Disassembler",
+					"-lLLVMAArch64CodeGen",
+					"-lLLVMAArch64AsmParser",
+					"-lLLVMAArch64Desc",
+					"-lLLVMAArch64Info",
+					"-lLLVMAArch64AsmPrinter",
+					"-lLLVMAArch64Utils",
+					"-lLLVMARMDisassembler",
+					"-lLLVMARMCodeGen",
+					"-lLLVMARMAsmParser",
+					"-lLLVMARMDesc",
+					"-lLLVMARMInfo",
+					"-lLLVMARMAsmPrinter",
+					"-lLLVMPowerPCDisassembler",
+					"-lLLVMPowerPCCodeGen",
+					"-lLLVMPowerPCAsmParser",
+					"-lLLVMPowerPCDesc",
+					"-lLLVMPowerPCInfo",
+					"-lLLVMPowerPCAsmPrinter",
+					"-lLLVMSparcDisassembler",
+					"-lLLVMSparcCodeGen",
+					"-lLLVMSparcAsmParser",
+					"-lLLVMSparcDesc",
+					"-lLLVMSparcInfo",
+					"-lLLVMSparcAsmPrinter",
+					"-lLLVMTableGen",
+					"-lLLVMDebugInfo",
+					"-lLLVMOption",
+					"-lLLVMX86Disassembler",
+					"-lLLVMX86AsmParser",
+					"-lLLVMX86CodeGen",
+					"-lLLVMSelectionDAG",
+					"-lLLVMAsmPrinter",
+					"-lLLVMX86Desc",
+					"-lLLVMX86Info",
+					"-lLLVMX86AsmPrinter",
+					"-lLLVMX86Utils",
+					"-lLLVMJIT",
+					"-lLLVMLineEditor",
+					"-lLLVMMCAnalysis",
+					"-lLLVMMCDisassembler",
+					"-lLLVMInstrumentation",
+					"-lLLVMInterpreter",
+					"-lLLVMCodeGen",
+					"-lLLVMScalarOpts",
+					"-lLLVMInstCombine",
+					"-lLLVMTransformUtils",
+					"-lLLVMipa",
+					"-lLLVMAnalysis",
+					"-lLLVMProfileData",
+					"-lLLVMMCJIT",
+					"-lLLVMTarget",
+					"-lLLVMRuntimeDyld",
+					"-lLLVMObject",
+					"-lLLVMMCParser",
+					"-lLLVMBitReader",
+					"-lLLVMExecutionEngine",
+					"-lLLVMMC",
+					"-lLLVMCore",
+					"-lLLVMSupport",
+				);
+				PRODUCT_NAME = "faustgen~";
+				PRODUCT_VERSION = 1.07;
+				"SDKROOT[arch=i386]" = macosx;
+				"SDKROOT[arch=ppc]" = macosx;
+				WRAPPER_EXTENSION = mxo;
 			};
 			name = Deployment;
 		};
@@ -950,6 +1353,15 @@
 			buildConfigurations = (
 				3694742F0FD5C8DD00A5E9FD /* Development */,
 				369474300FD5C8DD00A5E9FD /* Deployment */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Development;
+		};
+		4BC4575A1C888FFE006EFFEC /* Build configuration list for PBXNativeTarget "LLVM 3.5 : faustgen~" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4BC4575B1C888FFE006EFFEC /* Development */,
+				4BC4575C1C888FFE006EFFEC /* Deployment */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Development;
