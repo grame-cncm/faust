@@ -24,6 +24,8 @@ faust2jaqt <file.dsp>...       	: create JACK/QT application for each input file
 
 faust2ladspa  <file.dsp>...    	: create a LADSPA plugin for each input file
 
+faust2lv2  <file.dsp>...  		: create an LV2 plugin for each input file
+
 faust2max6  <file.dsp>...		: create a Max/MSP 6 plugin (64 bits samples) for each input file
 
 faust2msp  <file.dsp>...      		: create a Max/MSP 4 or 5 plugin (32 bits samples) for each input file

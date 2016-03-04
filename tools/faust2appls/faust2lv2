@@ -3,22 +3,42 @@
 #set -x
 
 # defaults (these can be changed with the options listed below)
-URI_PREFIX=http://faust-lv2.googlecode.com
+URI_PREFIX=http://faustlv2.bitbucket.org
 FAUST_META=1
 FAUST_MIDICC=1
+FAUST_MTS=1
+NVOICES=-1
+
+KEEP="no"
 
 PROCARCH="-fPIC"
+dllext=".so"
 CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
 
 # We recognize the following special options here:
 # -nometa: ignore metadata (author information etc.) from the Faust source
 # -nomidicc: plugin doesn't process MIDI control data
+# -notuning: disable the tuning control (instruments only)
+# -nvoices N: number of synth voices (instruments only; arg must be an integer)
 # -dyn-manifest: use dynamic manifests (requires LV2 host support)
 # -uri-prefix URI: URI prefix of plugin (arg must be a valid URI)
 
 for ((i=1;i<$#+1;i++)); do
     p=${!i}
-    if [ $p = "-omp" ]; then
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+	cat <<EOF
+faust2lv2 [options ...] <file.dsp>
+Options:
+-dyn-manifest: use dynamic manifests (requires LV2 host support)
+-keep: retain the build directory
+-nometa: ignore metadata (author information etc.) from the Faust source
+-nomidicc: plugin doesn't process MIDI control data
+-notuning: disable the tuning control (instruments only)
+-nvoices N: number of synth voices (instruments only; arg must be an integer)
+-uri-prefix URI: URI prefix of plugin (arg must be a valid URI)
+EOF
+	exit 0
+    elif [ $p = "-omp" ]; then
     	: ignore
     elif [ $p = "-icc" ]; then
 	CXX=icpc
@@ -31,15 +51,25 @@ for ((i=1;i<$#+1;i++)); do
     	FAUST_META=0
     elif [ $p = "-nomidicc" ]; then
     	FAUST_MIDICC=0
+    elif [ $p = "-notuning" ]; then
+    	FAUST_MTS=0
     elif [ $p = "-dyn-manifest" ]; then
     	dyn_manifest=yes
     elif [ $p = "-uri-prefix" ]; then
 	(( i++ ))
     	URI_PREFIX=${!i}
+    elif [ $p = "-nvoices" ]; then
+	(( i++ ))
+    	NVOICES=${!i}
     elif [ $p = "-arch32" ]; then
 	PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
 	PROCARCH="-m64 -fPIC"
+    elif [ $p = "-osx" ]; then
+	CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -I/opt/local/include"
+	dllext=".dylib"
+    elif [ $p = "-keep" ]; then
+	KEEP="yes"
     elif [ ${p:0:1} = "-" ]; then
 	OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -64,22 +94,25 @@ SRCDIR=$(dirname "$dspname")
 
 clsname=`basename "$dspname" .dsp`
 cppname="$clsname.cpp"
-soname="$clsname.so"
+soname="$clsname$dllext"
 lv2name="$clsname.lv2"
-tmpdir=`mktemp -d`
+tmpdir=`mktemp -d /tmp/faust2lv2.XXXXXX`
 
 CXX=g++
-CPPFLAGS="-DPLUGIN_URI=\"$URI_PREFIX/$clsname\" -DFAUST_META=$FAUST_META -DFAUST_MIDICC=$FAUST_MIDICC"
+CPPFLAGS="-DPLUGIN_URI=\"$URI_PREFIX/$clsname\" -DFAUST_META=$FAUST_META -DFAUST_MIDICC=$FAUST_MIDICC -DFAUST_MTS=$FAUST_MTS"
+if [ $NVOICES -ge 0 ]; then
+CPPFLAGS="$CPPFLAGS -DNVOICES=$NVOICES"
+fi
 
 # Create the temp directory and the bundle directory inside it.
 mkdir -p $tmpdir/$lv2name
 # Compile the Faust module.
 faust -i -a $arch -cn "$clsname" $OPTIONS "$dspname" -o "$tmpdir/$cppname"
-$CXX -shared $CXXFLAGS $PROCARCH $CPPFLAGS  $FAUSTTOOLSFLAGS "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname"
+$CXX -shared $CXXFLAGS -DDLLEXT="\"$dllext\"" $FAUSTTOOLSFLAGS $PROCARCH $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname"
 # Generate the manifest.
 if [ -n "$dyn_manifest" ]; then
 # Use a dynamic manifest.
-sed -e"s?@name@?$clsname?g" -e"s?@uri@?$URI_PREFIX/$clsname?g" -e"s?@dllext@?.so?g" > "$tmpdir/$lv2name/manifest.ttl" <<EOF
+sed -e"s?@name@?$clsname?g" -e"s?@uri@?$URI_PREFIX/$clsname?g" -e"s?@dllext@?$dllext?g" > "$tmpdir/$lv2name/manifest.ttl" <<EOF
 
 ########## @uri@ ##########
 
@@ -92,8 +125,8 @@ sed -e"s?@name@?$clsname?g" -e"s?@uri@?$URI_PREFIX/$clsname?g" -e"s?@dllext@?.so
     lv2:binary <@name@@dllext@> ;
     a dman:DynManifest .
 
-# Here's how you can declare the category of the plugin. (For lv2synth.cpp
-# instances, the lv2:InstrumentPlugin type will be added automatically.) See
+# Here's how you can declare the category of the plugin. (For instruments,
+# the lv2:InstrumentPlugin type will be added automatically.) See
 # http://lv2plug.in/ns/lv2core/ for a list of known plugin classes.
 
 # <@uri@> a lv2:FilterPlugin .
@@ -114,7 +147,7 @@ sed -e"s?@name@?$clsname?g" -e"s?@uri@?$URI_PREFIX/$clsname?g" -e"s?@dllext@?.so
 EOF
 else
 # Use a static manifest.
-sed -e"s?@name@?$clsname?g" -e"s?@uri@?$URI_PREFIX/$clsname?g" -e"s?@dllext@?.so?g" > "$tmpdir/$lv2name/manifest.ttl" <<EOF
+sed -e"s?@name@?$clsname?g" -e"s?@uri@?$URI_PREFIX/$clsname?g" -e"s?@dllext@?$dllext?g" > "$tmpdir/$lv2name/manifest.ttl" <<EOF
 
 ########## @uri@ ##########
 
@@ -128,8 +161,8 @@ sed -e"s?@name@?$clsname?g" -e"s?@uri@?$URI_PREFIX/$clsname?g" -e"s?@dllext@?.so
     lv2:binary <@name@@dllext@> ;
     rdfs:seeAlso <@name@.ttl> .
 
-# Here's how you can declare the category of the plugin. (For lv2synth.cpp
-# instances, the lv2:InstrumentPlugin type will be added automatically.) See
+# Here's how you can declare the category of the plugin. (For instruments,
+# the lv2:InstrumentPlugin type will be added automatically.) See
 # http://lv2plug.in/ns/lv2core/ for a list of known plugin classes.
 
 # <@uri@> a lv2:FilterPlugin .
@@ -150,14 +183,22 @@ sed -e"s?@name@?$clsname?g" -e"s?@uri@?$URI_PREFIX/$clsname?g" -e"s?@dllext@?.so
 EOF
 # This compiles the plugin to an executable which is run to generate the
 # plugin-specific part of the manifest.
-$CXX $CXXFLAGS $CPPFLAGS  $FAUSTTOOLSFLAGS "$tmpdir/$cppname" -o "$tmpdir/$clsname"
+$CXX $CXXFLAGS -DDLLEXT="\"$dllext\"" $FAUSTTOOLSFLAGS $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$clsname"
 "$tmpdir/$clsname" > "$tmpdir/$lv2name/$clsname.ttl"
 rm -f "$tmpdir/$clsname"
 fi
+
+
 # copy down the bundle
 rm -rf "$SRCDIR/$lv2name"
 cp -r "$tmpdir/$lv2name" "$SRCDIR"
-# Clean up.
-rm -rf $tmpdir
+if [[ $KEEP == yes ]]; then
+    # keep the build directory
+    rm -rf "$SRCDIR/$clsname"
+    mv $tmpdir "$SRCDIR/$clsname"
+else
+    # Clean up.
+    rm -rf $tmpdir
+fi
 # Print the name of the generated bundle zip file.
 echo "$SRCDIR/$lv2name;"
