@@ -7,6 +7,6 @@ for d in $@; do
         inkscape -E ${f%.svg}.eps $f
         rm $f
     done
-    mv $d-svg $d-eps
+    mv ${d%.dsp}-svg ${d%.dsp}-eps
 done
 
