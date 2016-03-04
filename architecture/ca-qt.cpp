@@ -228,10 +228,11 @@ int main(int argc, char *argv[])
     
     long srate = (long)lopt(argv, "--frequency", -1);
     int fpb = lopt(argv, "--buffer", 512);
-    int poly = lopt(argv, "--poly", 4);
-    int group = lopt(argv, "--group", 1);
     
 #ifdef POLY
+
+    int poly = lopt(argv, "--poly", 4);
+    int group = lopt(argv, "--group", 1);
 
 #if MIDICTRL
     if (hasMIDISync()) {

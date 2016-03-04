@@ -608,7 +608,7 @@ class jackaudio_midi : public jackaudio, public midi_handler {
                 if (data) {
                     // Write its content
                     if ((res = ringbuffer_read(fOutBuffer, (char*)data, message_size)) != message_size) {
-                        fprintf(stderr, "processMidiOut incorrect message : res =  %d\n", res);
+                        fprintf(stderr, "processMidiOut incorrect message : res =  %lu\n", res);
                     }
                 } else {
                     fprintf(stderr, "jack_midi_event_reserve error\n");
