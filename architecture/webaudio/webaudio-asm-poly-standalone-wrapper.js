@@ -77,7 +77,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
 
     var handler = null;
     var ins, outs;
-    var numIn, numOut, mixing;
+    var mixing;
     var compute_callback = callback;
     
     var scriptProcessor;
@@ -102,7 +102,10 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     {
         return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
     }
-
+      
+    var numIn = getNumInputsAux();
+    var numOut = getNumOutputsAux();
+ 
     // Memory allocator
     var ptr_size = 4; 
     var sample_size = 4;
@@ -324,10 +327,6 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     function init ()
     {
         var i;
-        
-        // Get input / output counts
-        numIn = getNumInputsAux();
-        numOut = getNumOutputsAux();
         
         // Setup web audio context
         console.log("buffer_size = %d", buffer_size);
