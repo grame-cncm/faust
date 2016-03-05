@@ -86,7 +86,7 @@ These OSC parameters can be changed from the command line using one of the follo
 \item \lstinline'-outport number' set the port number used by the application to transmit messages.
 \item \lstinline'-errport number' set the port number used by the application to transmit error messages.
 \item \lstinline'-desthost host' set the destination host for the messages sent by the application.
-\item \lstinline'-xmit 0|1|2' turn transmission OFF, ALL, or ALIAS (default OFF). When transmission is ALL user's actions are transmitted as OSC messages as well as aliases of output elements (like bargraph). When transmission is ALIAS, aliases of output elements only are transmitted, and input elements can only be controlled using their aliases.
+\item \lstinline'-xmit 0|1|2' turn transmission OFF, ALL, or ALIAS (default OFF). When transmission is OFF, input elements can be controlled using their addresses or aliases (if present). When transmission is ALL, input elements can be controlled using their addresses or aliases (if present), user's actions and output elements (bargraph) are transmitted as OSC messages as well as aliases (if present). When transmission is ALIAS,  input elements can only be controlled using their aliases, user's actions and output elements (bargraph) are transmitted as aliases only.
 \item \lstinline'-xmitfilter path' allows to filter output messages. Note that 'path' can be a regular expression (like "/freeverb/Reverb1/*").
 \end{itemize}
 
