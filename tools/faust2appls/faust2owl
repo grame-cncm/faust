@@ -7,7 +7,7 @@ PATCHFILE=$PATCHNAME".hpp"
 
 #echo $FILENAME $CLASSNAME $PATCHNAME $PATCHFILE
 
-faust -i -inpl -a owl.cpp -cn $CLASSNAME $FILENAME | sed -e "s/FaustPatch/$PATCHNAME/g" > $PATCHFILE
+(faust -i -inpl -a owl.cpp -cn $CLASSNAME $FILENAME | sed -e "s/FaustPatch/$PATCHNAME/g" > $PATCHFILE) || exit
 echo ""         
 echo "           Instructions to add $PATCHFILE to your owl pedal"
 echo ""         

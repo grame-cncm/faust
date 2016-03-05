@@ -20,7 +20,7 @@ done
 
 
 for f in $FILES; do
-    faust -sg $f -o /dev/null
+    faust -sg $f -o /dev/null || exit
 	dot -T$FORMAT $f-sig.dot -o $f.sig.$FORMAT
 	rm $f-sig.dot
 done

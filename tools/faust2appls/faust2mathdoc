@@ -119,7 +119,7 @@ for FILEPATH in $@ ; do
 	    then
 	    	recode2utf8 $FILENAME
 	    fi
-		faust $MDLANGOPT -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH &&
+		faust $MDLANGOPT -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH  || exit
 		cd ${FILEPATH%.dsp}-mdoc/ && 
 		cd svg && convert_svgdirs2pdf svg-* && cd .. &&
 		cd tex && pdflatex ${FILENAME%.dsp}.tex && pdflatex ${FILENAME%.dsp}.tex && cd .. &&

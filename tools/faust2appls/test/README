@@ -1,0 +1,10 @@
+We test here that all ../faust2* work correctly:
+
+- testfailure: tests that all faust2xxx scripts correctly fails and report error when there 
+  is and error either in the faust code or in the generated c++ code. For that purpose we
+  use 'badfaust.dsp' and 'badcpp.dsp' (correct faust code but bad generate c++ code).
+
+- testsuccess: tests that all faust2xxx scripts correctly compile 'good.dsp'
+
+
+

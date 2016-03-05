@@ -52,12 +52,12 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-    faust -i -a matlabplot.cpp $OPTIONS "$f" -o "$f.cpp"
+    faust -i -a matlabplot.cpp $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(
 		${CXX=g++} ${CXXFLAGS=-O3} $OMP "$f.cpp" -o "${f%.dsp}"
-	) > /dev/null
+	) > /dev/null || exit
 
 	# run binary to generate data file
 	./"${f%.dsp}" -n 60000 > "${f%.dsp}.m"

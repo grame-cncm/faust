@@ -5,7 +5,7 @@ else
 	APPL=xdg-open
 fi
 
-faust2svg $@
+faust2svg $@ || exit
 $APPL ${1%.dsp}-svg/process.svg&
 shift
 for f in $@; do

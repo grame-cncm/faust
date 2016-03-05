@@ -22,7 +22,7 @@ for FILEPATH in $@ ; do
 	FILENAME=`basename $FILEPATH` &&
 	case $FILENAME in
 	    *.dsp )  
-		faust -o /dev/null -vec --task-graph $FILEPATH &&
+		faust -o /dev/null -vec --task-graph $FILEPATH || exit &&
 		dot -Tpdf $FILEPATH.dot -o ${FILEPATH%.dsp}-graph.pdf &&
 		rm $FILEPATH.dot &&
 		${OPEN} ${FILEPATH%.dsp}-graph.pdf 

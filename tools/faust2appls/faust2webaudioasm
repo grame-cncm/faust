@@ -73,7 +73,7 @@ for f in $FILES; do
     name=${f%.dsp}
     
     # compile the Faust DSP to C++ code
-    faust $SVG -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
+    faust $SVG -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     
     if [ $HTML_FOOTER = webaudio-asm-footer.html ]; then
         EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
@@ -83,7 +83,7 @@ for f in $FILES; do
      
     # compile the C++ code to asm.js
     emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_MEMORY=100663296 --pre-js $FAUSTLIB/js/jsscripts.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
-        -s EXPORTED_FUNCTIONS=$EXPORTED
+        -s EXPORTED_FUNCTIONS=$EXPORTED || exit
           
     # compose the self-contained HTML page
     echo "<html>" > $name-temp2.html

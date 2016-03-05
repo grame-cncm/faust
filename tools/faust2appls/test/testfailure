@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo
+echo "Check Faust errors are correctly detected/reported"
+echo
+for S in ../faust2*; do
+	($S badfaust.dsp &> LOG)&&(echo "ERROR $S shouldnt have succeeded !")||(echo "OK $S correctly failed")
+done
+
+echo
+echo "Check C++ errors are correctly detected/reported"
+echo
+for S in ../faust2*; do
+	($S badcpp.dsp &> LOG)&&(echo "ERROR $S shouldnt have succeeded !")||(echo "OK $S correctly failed")
+done
+
+

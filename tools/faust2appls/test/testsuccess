@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo
+echo "Test all Faust2xxx to work"
+echo
+for S in ../faust2*; do
+	($S good.dsp &> LOG)&&(echo "OK: $S succeeded !")||(echo "ERROR: $S failed")
+done
+
