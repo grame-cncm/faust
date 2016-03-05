@@ -170,12 +170,14 @@ libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm
 ##-s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040
 ##$(CXX) -O2 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o global.o -o libfaust.js
 
+#536870912
+
 libfaust.js : $(objects) libcode.o libmain.o global.o
-	$(CXX) -O3 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaust.js
+	$(CXX) -O3 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaust.js
 	cp libfaust.js ../architecture/webaudio
 	
 libfaustworker.js : $(objects) libcode.o libmain.o global.o
-	$(CXX) -O3 --memory-init-file 0 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=536870912 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaustworker.js
+	$(CXX) -O3 --memory-init-file 0 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaustworker.js
 	cp libfaustworker.js ../architecture/webaudio
 
 libcode.o : libcode.cpp
