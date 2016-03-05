@@ -54,13 +54,15 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-poly" ]; then
-        POLYDEFS="DEFINES += POLY"
+        POLYDEFS="-DPOLY"
     elif [ $p = "-midi" ]; then
-        MIDIDEFS="DEFINES += MIDICTRL"
+        MIDIDEFS="-DMIDICTRL"
     elif [ $p = "-osc" ]; then
 	 OSCDEFS="-DOSCCTRL -lOSCFaust"
+	 YPATH="-L/usr/local/lib"
     elif [ $p = "-httpd" ]; then
 	 HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+	 YPATH="-L/usr/local/lib"
     elif [ $p = "-arch32" ]; then
 	PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
@@ -84,8 +86,8 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa gtk+-2.0` $PROCARCH $OSCDEFS $HTTPDEFS $POLYDEFS $MIDIDEFS -o "${f%.dsp}"
-	) > /dev/null
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa gtk+-2.0` $PROCARCH $YPATH $OSCDEFS $HTTPDEFS $POLYDEFS $MIDIDEFS -o "${f%.dsp}"
+	)> /dev/null
 	rm "$f.cpp"
 
 	# collect binary file name for FaustWorks

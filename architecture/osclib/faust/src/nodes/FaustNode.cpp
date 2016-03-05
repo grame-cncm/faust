@@ -34,12 +34,13 @@ template<> void FaustNode<float>::sendOSC() const
 {
     if (OSCControler::gXmit != kNoXmit && !OSCControler::isPathFiltered(getOSCAddress())) {
         std::vector<std::string> aliases = fRoot->getAliases(getOSCAddress());
-        // If aliases are present and output element (bargraph)
-        if (aliases.size() > 0 && !fInput) {  
+        // If aliases are present
+        if (aliases.size() > 0) {  
             for (size_t i = 0; i < aliases.size(); i++) {
                 oscout << OSCStart(aliases[i].c_str()) << float(*fZone) << OSCEnd();
             }
         }
+        // Also emit regular address
         if (OSCControler::gXmit == kAll) {
             oscout << OSCStart(getOSCAddress().c_str()) << float(*fZone) << OSCEnd();
         } 
@@ -51,12 +52,13 @@ template<> void FaustNode<double>::sendOSC() const
 {
     if (OSCControler::gXmit != kNoXmit && !OSCControler::isPathFiltered(getOSCAddress())) {
         std::vector<std::string> aliases = fRoot->getAliases(getOSCAddress());
-        // If aliases are present and output element (bargraph)
-        if (aliases.size() > 0 && !fInput) { 
+        // If aliases are present
+        if (aliases.size() > 0) { 
             for (size_t i = 0; i < aliases.size(); i++) {
                 oscout << OSCStart(aliases[i].c_str()) << double(*fZone) << OSCEnd();
             }
         }
+        // Also emit regular address
         if (OSCControler::gXmit == kAll) {
             oscout << OSCStart(getOSCAddress().c_str()) << double(*fZone) << OSCEnd();
         } 

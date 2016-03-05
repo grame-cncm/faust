@@ -297,33 +297,7 @@ class mydsp_poly : public dsp, public midi {
                 memset(mixBuffer[i], 0, count * sizeof(FAUSTFLOAT));
             }
         }
-        
-        /*
-        // Steal lowest level note
-        inline int getVoice(int note, bool steal = false)
-        {
-            for (int i = 0; i < fMaxPolyphony; i++) {
-                if (fVoiceTable[i]->fNote == note) return i;
-            }
-             
-            if (steal) {
-                FAUSTFLOAT max_level = FLT_MAX;
-                int voice = kNoVoice;
-                // Steal lowest level note
-                for (int i = 0; i < fMaxPolyphony; i++) {
-                    if (fVoiceTable[i]->fLevel < max_level) {
-                        max_level = fVoiceTable[i]->fLevel;
-                        voice = i;
-                    }
-                }
-                printf("Steal voice = %d \n", voice);
-                return voice;
-            } else {
-                return kNoVoice;
-            }
-        }
-        */
-        
+          
         inline int getVoice(int note, bool steal = false)
         {
             for (int i = 0; i < fMaxPolyphony; i++) {
