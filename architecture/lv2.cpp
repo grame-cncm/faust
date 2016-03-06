@@ -1,11 +1,11 @@
 /************************************************************************
  ************************************************************************
     FAUST Architecture File
-    Copyright (C) 2009-2014 Albert Graef <aggraef@gmail.com>
+    Copyright (C) 2009-2016 Albert Graef <aggraef@gmail.com>
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation; either version 2.1 of the
+    published by the Free Software Foundation; either version 3 of the
     License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
@@ -1254,7 +1254,9 @@ struct LV2Plugin {
     // Handle changes in the polyphony and tuning controls.
     bool is_instr = maxvoices > 0;
     if (is_instr) {
-      if (nvoices != *poly && *poly > 0 && *poly <= maxvoices) {
+      if (!poly)
+	; // this shouldn't happen but...
+      else if (nvoices != *poly && *poly > 0 && *poly <= maxvoices) {
 	for (int i = 0; i < nvoices; i++)
 	  voice_off(i);
 	nvoices = *poly;
@@ -1269,7 +1271,7 @@ struct LV2Plugin {
       } else
 	*poly = nvoices;
 #if FAUST_MTS
-      if (tuning_no != *tuning) change_tuning(*tuning);
+      if (tuning && tuning_no != *tuning) change_tuning(*tuning);
 #endif
     }
     // Only update the controls (of all voices simultaneously) if a port value
