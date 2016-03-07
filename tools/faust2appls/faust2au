@@ -138,7 +138,7 @@ perl -pi -e 's/FaustAU_CustomViewFactory/'FaustAU_"$FILE_NAME"CustomViewFactory'
 perl -pi -e 's/FaustAU_CustomViewFactory/'FaustAU_"$FILE_NAME"CustomViewFactory'/g' FaustAUCustomView.plist
 
 
-faust $OPTIONS -a au-arch-temp.cpp $f -o Source/au-output.cpp
+faust $OPTIONS -a au-arch-temp.cpp $f -o Source/au-output.cpp || exit 1
 
 rm au-arch-temp.cpp
 
@@ -150,7 +150,7 @@ then
 echo FAUST could not generate cpp file
 cd ..
 rm -r $TEMP_DIR
-exit
+exit 1
 fi
 
 if [ $# -lt 2 ]
@@ -239,7 +239,7 @@ mv Source/CocoaUI/FaustAU_Slider.h Source/CocoaUI/FaustAU_"$FILE_NAME"Slider.h
 mv Source/CocoaUI/FaustAU_Slider.m Source/CocoaUI/FaustAU_"$FILE_NAME"Slider.m
 
 
-xcodebuild ARCHS="i386 x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > $PRINTDEV > ./build_errors.log
+xcodebuild ARCHS="i386 x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > $PRINTDEV > ./build_errors.log || exit 1
 
 if [ ! -d $AU_DIR/FaustAU.component/ ]
 then
@@ -248,7 +248,7 @@ echo Unable to generate Audio Unit
 	if [ $DEBUG -eq 0 ]; then
 	  rm -r $TEMP_DIR
 	fi
-	exit
+	exit 1
 fi
 
 if [ -d $AU_DIR/"$FILE_NAME".component/ ]

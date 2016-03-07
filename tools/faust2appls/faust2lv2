@@ -107,8 +107,8 @@ fi
 # Create the temp directory and the bundle directory inside it.
 mkdir -p $tmpdir/$lv2name
 # Compile the Faust module.
-faust -i -a $arch -cn "$clsname" $OPTIONS "$dspname" -o "$tmpdir/$cppname"
-$CXX -shared $CXXFLAGS -DDLLEXT="\"$dllext\"" $FAUSTTOOLSFLAGS $PROCARCH $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname"
+faust -i -a $arch -cn "$clsname" $OPTIONS "$dspname" -o "$tmpdir/$cppname" || exit
+$CXX -shared $CXXFLAGS -DDLLEXT="\"$dllext\"" $FAUSTTOOLSFLAGS $PROCARCH $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname" || exit
 # Generate the manifest.
 if [ -n "$dyn_manifest" ]; then
 # Use a dynamic manifest.

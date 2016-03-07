@@ -42,5 +42,5 @@ done
 # compile the *.dsp files
 #
 for f in $FILES; do
-    faust -lang js -cn ${f%.dsp} -a webaudio/webaudio.html $OPTIONS $f -o ${f%.dsp}.html
+    faust -lang js -cn ${f%.dsp} -a webaudio/webaudio.html $OPTIONS $f -o ${f%.dsp}.html || exit
  done

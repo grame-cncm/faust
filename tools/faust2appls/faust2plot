@@ -71,12 +71,12 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-    faust -i -a matlabplot.cpp $OPTIONS "$f" -o "$f.cpp"
+    faust -i -a matlabplot.cpp $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(
 		${CXX=g++} ${CXXFLAGS=-O3} $PROCARCH $OMP "$f.cpp" -o "${f%.dsp}"
-	) > /dev/null
+	) > /dev/null || exit
 	rm "$f.cpp"
 
 	# collect binary file name for FaustWorks

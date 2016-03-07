@@ -78,7 +78,7 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -a vst.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	faust -i -a vst.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary
     (
@@ -96,7 +96,7 @@ for p in $FILES; do
 
 		$DLLWRAP --driver-name $CXX --def ${f%.dsp}.def *.o  $LIBS -static-libstdc++ -static-libgcc -o "${f%.dsp}$EXT"
 		$STRIP "${f%.dsp}$EXT"
-    ) #> /dev/null
+    ) > /dev/null || exit
 
 	cp "$TMP/${f%.dsp}$EXT" "$SRCDIR"
 

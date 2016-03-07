@@ -100,13 +100,13 @@ fi
 BINARIES=""
 
 for f in $FILES; do
-    name=`basename $f .dsp`
+    name=$(basename "$f" .dsp)
     
     # compile the Faust DSP to C++ or asm.js code
     if [ $EMCC = emcc ] ; then
-        faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
+        faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
-        faust -lang ajs $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -cn $name $OPTIONS $f -o $name-temp1.js
+        faust -lang ajs $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -cn $name $OPTIONS $f -o $name-temp1.js || exit
     fi
      
     if [ $EMCC = emcc ] ; then
@@ -120,7 +120,7 @@ for f in $FILES; do
         fi
         # compile the C++ code to asm.js
         emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_MEMORY=100663296 --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
-            -s EXPORTED_FUNCTIONS=$EXPORTED
+            -s EXPORTED_FUNCTIONS=$EXPORTED || exit
  
         # remove intermediate C++  file
         rm $name.cpp

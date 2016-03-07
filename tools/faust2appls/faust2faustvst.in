@@ -123,7 +123,7 @@ sdksrc="$SDKSRC/$main $SDKSRC/$afx $SDKSRC/$afxx"
 # Create the temp directory.
 mkdir -p $tmpdir
 # Compile the Faust module.
-faust -i -a $arch $OPTIONS "$dspname" -o "$tmpdir/$cppname"
+faust -i -a $arch $OPTIONS "$dspname" -o "$tmpdir/$cppname" || exit
 if [[ $(uname) == Darwin ]]; then
     mkdir -p $tmpdir/$soname/Contents/MacOS
     printf '%s' 'BNDL????' > $tmpdir/$soname/Contents/PkgInfo
@@ -154,9 +154,9 @@ if [[ $(uname) == Darwin ]]; then
 </dict>
 </plist>
 EOF
-    $CXX -bundle $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname"
+    $CXX -bundle $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname" || exit
 else
-    $CXX -shared $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname"
+    $CXX -shared $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit
 fi
 
 # copy down the plugin (bundle on OS X)

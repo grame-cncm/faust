@@ -82,12 +82,12 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-	faust -i -a alsa-gtk.cpp $OPTIONS "$f" -o "$f.cpp"
+	faust -i -a alsa-gtk.cpp $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(
 		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa gtk+-2.0` $PROCARCH $YPATH $OSCDEFS $HTTPDEFS $POLYDEFS $MIDIDEFS -o "${f%.dsp}"
-	)> /dev/null
+	)> /dev/null  || exit
 	rm "$f.cpp"
 
 	# collect binary file name for FaustWorks

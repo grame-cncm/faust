@@ -78,12 +78,12 @@ for f in $FILES; do
 	dst="${f%.dsp}.so"
 	
 	# compile faust to c++
-	faust -i -a dssi.cpp $OPTIONS "$f" -o "$f.cpp"
+	faust -i -a dssi.cpp $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(
 		${CXX=g++} $FAUSTTOOLSFLAGS  -I. -Wall -O2 -fPIC -DPIC $PROCARCH $SPEC $CXXFLAGS "$f.cpp" -o $dst
-	) > /dev/null
+	) > /dev/null || exit
 	rm "$f.cpp"
 
 	# collect binary file name for FaustGIDE
