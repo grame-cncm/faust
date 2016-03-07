@@ -265,7 +265,7 @@ faust.createDSPFactory = function (code, argv) {
         return factory;
     }
     
-    console.log("libfaust.js version : %s", faust.getCLibFaustVersion());
+    console.log("libfaust.js version : %s", Pointer_stringify(faust.getCLibFaustVersion()));
     
     // Allocate strings on the HEAP
     var factory_name = "mydsp" + faust.factory_number++;
