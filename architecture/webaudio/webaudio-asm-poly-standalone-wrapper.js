@@ -334,6 +334,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         scriptProcessor.onaudioprocess = compute;
         
         if (numIn > 0) {
+            // allocate memory for input arrays
             ins = audio_heap_ptr_inputs; 
             for (i = 0; i < numIn; i++) { 
                 HEAP32[(ins >> 2) + i] = audio_heap_inputs + ((buffer_size * sample_size) * i);
@@ -346,6 +347,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         }
         
         if (numOut > 0) {
+            // allocate memory for output and mixing arrays
             outs = audio_heap_ptr_outputs; 
             mixing = audio_heap_ptr_mixing; 
             for (i = 0; i < numOut; i++) { 
