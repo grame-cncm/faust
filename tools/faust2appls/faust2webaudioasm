@@ -70,7 +70,7 @@ done
 BINARIES=""
 
 for f in $FILES; do
-    name=${f%.dsp}
+    name=$(basename "$f" .dsp)
     
     # compile the Faust DSP to C++ code
     faust $SVG -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
