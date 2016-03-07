@@ -35,7 +35,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#include "faust/dsp/llvm-dsp.h"
+#include "llvm-dsp.h"
 #include "faust/audio/audio.h"
 #include "utilities.h"
 #include "TMutex.h"
