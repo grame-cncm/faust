@@ -1103,7 +1103,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         if (gGlobal->gVectorSwitch) {
             comp = new DAGInstructionsCompiler(container);
         } else {
-            comp = new InstructionsCompiler(container, (gGlobal->gOutputLang != "ajs"));
+            comp = new InstructionsCompiler(container, (gGlobal->gOutputLang != "ajs" && gGlobal->gOutputLang != "js"));
         }
 
         if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
