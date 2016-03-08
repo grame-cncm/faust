@@ -187,12 +187,21 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     // Adding Compilation options 
     finalRequest << "&number_options=" << argc;
     for (int i = 0; i < argc; i++) {
-        finalRequest << "&options=" << argv[i];
+        if (strcmp(argv[i], "-poly") == 0 || strcmp(argv[i], "-voices")) {
+            // Move to next token...
+            i++;
+        } else {
+            finalRequest << "&options=" << argv[i];
+        }
     }
     
     // LLVM optimization level and SHA key
     finalRequest << "&opt_level=" << opt_level << "&shaKey=" << fSHAKey;
     
+    // Polyphonic support
+    finalRequest << "&poly=" << loptions(argc, argv, "-poly", "0");
+    finalRequest << "&voices=" << loptions(argc, argv, "-voices", "4");
+   
     // Compile on client side and send machine code on server side
     if (isopt(argc, argv, "-lm")) {
         llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, loptions(argv, "-lm", ""), error_msg, opt_level);

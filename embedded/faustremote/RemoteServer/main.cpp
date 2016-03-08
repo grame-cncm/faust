@@ -33,7 +33,11 @@
 //-------------------------------------------------------------------------
 
 #include "remote_server.h"
+#include "faust/gui/GUI.h"
 #include "utilities.h"
+
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 int main(int argc, const char* argv[])
 {

@@ -315,13 +315,13 @@ bool getRemoteDSPFactories(const std::string& ip_server, int port_server, std::v
 typedef bool (*createFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
 
 /* Called each time a DSP factory is deleted */
-typedef bool (*createInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
+typedef bool (*createInstanceDSPCallback) (dsp* dsp, void* arg);
 
 /* Called each time a new DSP instance is created */
 typedef bool (*deleteFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
 
 /* Called each time a DSP instance is deleted */
-typedef bool (*deleteInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
+typedef bool (*deleteInstanceDSPCallback) (dsp* dsp, void* arg);
 
 class remote_dsp_server {
     

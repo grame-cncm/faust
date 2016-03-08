@@ -53,9 +53,9 @@
 using namespace std;
 
 typedef bool (*createFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
-typedef bool (*createInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
+typedef bool (*createInstanceDSPCallback) (dsp* dsp, void* arg);
 typedef bool (*deleteFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
-typedef bool (*deleteInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
+typedef bool (*deleteInstanceDSPCallback) (dsp* dsp, void* arg);
 
 /*
 TODO :
@@ -74,7 +74,7 @@ class audio_dsp {
         string fInstanceKey;
         string fName;
         
-        llvm_dsp* fDSP;     // DSP Instance 
+        dsp* fDSP;          // DSP Instance 
         audio* fAudio;      // Audio driver
         
         createInstanceDSPCallback fCreateDSPInstanceCb;
@@ -85,32 +85,11 @@ class audio_dsp {
   
     public:
     
-        audio_dsp(llvm_dsp_factory* factory, const string& name, const string& key, 
-            createInstanceDSPCallback cb1, void* cb1_arg,
-            deleteInstanceDSPCallback cb2, void* cb2_arg)
-            :fName(name), fInstanceKey(key), fAudio(NULL), 
-            fCreateDSPInstanceCb(cb1), fCreateDSPInstanceCb_arg(cb1_arg),
-            fDeleteDSPInstanceCb(cb2), fDeleteDSPInstanceCb_arg(cb2_arg)
-        {
-            if (!(fDSP = createDSPInstance(factory))) {
-                throw -1;
-            }
-            
-            if (fCreateDSPInstanceCb) {
-                fCreateDSPInstanceCb(fDSP, fCreateDSPInstanceCb_arg);
-            }
-        }
-         
-        virtual ~audio_dsp()
-        {   
-            if (fDeleteDSPInstanceCb) {
-                fDeleteDSPInstanceCb(fDSP, fDeleteDSPInstanceCb_arg);
-            }
-            
-            delete fAudio;
-            deleteDSPInstance(fDSP);
-        }
-        
+        audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, const string& name, const string& key, 
+                createInstanceDSPCallback cb1, void* cb1_arg,
+                deleteInstanceDSPCallback cb2, void* cb2_arg);
+        virtual ~audio_dsp();
+          
         virtual bool init(int sr, int bs);
           
         virtual bool start()
@@ -167,6 +146,10 @@ struct dsp_server_connection_info {
     string fLatency;
     string fSHAKey;
     string fInstanceKey;
+    
+    //------DATAS RECEIVED TO CREATE POLYPOHONIC -------
+    string fPoly;
+    string fVoices;
     
     //------DATAS RECEIVED TO CREATE NEW local Audio INSTANCE-------
     string fSampleRate;

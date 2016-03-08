@@ -14,7 +14,7 @@ llvm_paths = /usr/bin /opt/local/bin /usr/local/bin
 LLVM_CONFIG = $(lastword $(wildcard /usr/bin/llvm-config* /opt/local/bin/llvm-config* /usr/local/bin/llvm-config*) $(shell which llvm-config 2> /dev/null))
 
 CC            = gcc -O3
-CXX           = g++ -O3
+CXX           = g++ -O3 -fvisibility=hidden
 DEFINE	      = D_REENTRANT	 
 INCPATH       = -I. -I../ -I../../../architecture -I../../../compiler/generator/llvm  -I../../../compiler/utils -I/usr/include -I/opt/local/include 
 LINK          = g++
@@ -24,13 +24,11 @@ system	?= $(shell uname -s)
 sources =  $(wildcard *.cpp)
 objects = $(sources:.cpp=.o)
 
-
 ifeq ($(system), Darwin)
 	LIBS = ../../../compiler/libfaust.a -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreFoundation -lportaudio -ljacknet -ljack -L/opt/local/lib -lmicrohttpd -lpthread -lcrypto `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lz -lncurses -ldl -llo
 else 
 	LIBS = ../../../compiler/libfaust.a -ljacknet -ljack -lmicrohttpd -lpthread -lcrypto `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lz -lncurses -ldl -llo
 endif
-
 
 ####### Files
 

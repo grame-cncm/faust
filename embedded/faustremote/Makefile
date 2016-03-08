@@ -9,16 +9,16 @@ os 	:= $(shell uname)
 system	?= $(shell uname -s)
 
 PREFIX ?= /usr/local
-INCPATH = -I.   -I../../compiler -I../../compiler/utils -I../../compiler/generator/ -I../../compiler/generator/llvm -I/usr/include -I/opt/local/include -F/Library/
+INCPATH = -I. -I../../compiler -I../../compiler/utils -I../../compiler/generator/ -I../../compiler/generator/llvm -I/usr/include -I/opt/local/include -F/Library/
 
 ifeq ($(system), Darwin)
 	CXX 		= g++
-	CXXFLAGS	= -O3 $(INCPATH) -arch x86_64
+	CXXFLAGS	= -O3 $(INCPATH) -arch x86_64 -fvisibility=hidden 
 	LIB_EXT     	= dylib
 else 
 	ARCHFLAGS	:= 
-	CXXFLAGS	= -O3 $(INCPATH)
-	LIBFLAGS	:= --mode=link --tag=CXX
+	CXXFLAGS	= -O3 $(INCPATH) -fvisibility=hidden 
+	LIBFLAGS	:= --mode=link --tag=CXX -fvisibility=hidden
 	LIB_EXT     	= so
 endif
 

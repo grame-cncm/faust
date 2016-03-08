@@ -12,6 +12,9 @@
 #include "faust/gui/JSONUI.h"
 #include "rn_base64.h"
 
+#define LLVM_DSP 1
+#include "faust/dsp/poly-dsp.h"
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -131,6 +134,7 @@ class netjack_dsp : public audio_dsp {
                     const string& ip, const string& port, 
                     const string& mtu, const string& latency,
                     const string& name, const string& key,
+                    const string& poly, const string& voices,
                     createInstanceDSPCallback cb1, void* cb1_arg,
                     deleteInstanceDSPCallback cb2, void* cb2_arg);
         
@@ -148,9 +152,11 @@ netjack_dsp::netjack_dsp(llvm_dsp_factory* factory,
                         const string& latency,
                         const string& name,
                         const string& key,
+                        const string& poly, 
+                        const string& voices,
                         createInstanceDSPCallback cb1, void* cb1_arg,
                         deleteInstanceDSPCallback cb2, void* cb2_arg)
-                        :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg), fIP(ip), 
+                        :audio_dsp(factory, atoi(poly.c_str()), atoi(voices.c_str()), name, key, cb1, cb1_arg, cb2, cb2_arg), fIP(ip), 
                         fPort(port), fCompression(compression), 
                         fMTU(mtu), fLatency(latency)
 {}
@@ -196,6 +202,41 @@ bool audio_dsp::init(int sr, int bs)
     }
 }
 
+audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, const string& name, const string& key, 
+                    createInstanceDSPCallback cb1, void* cb1_arg,
+                    deleteInstanceDSPCallback cb2, void* cb2_arg)
+                    :fName(name), fInstanceKey(key), fAudio(NULL), 
+                    fCreateDSPInstanceCb(cb1), fCreateDSPInstanceCb_arg(cb1_arg),
+                    fDeleteDSPInstanceCb(cb2), fDeleteDSPInstanceCb_arg(cb2_arg)
+{
+    printf("audio_dsp %d %d\n", poly, voices);
+    llvm_dsp* dsp = createDSPInstance(factory);
+    if (!dsp) {
+        throw -1;
+    }
+    
+    if (poly) {
+        fDSP = new mydsp_poly(voices, dsp, true, true);
+    } else{
+        fDSP = dsp;
+    }
+    
+    if (fCreateDSPInstanceCb) {
+        fCreateDSPInstanceCb(fDSP, fCreateDSPInstanceCb_arg);
+    }
+}
+ 
+audio_dsp::~audio_dsp()
+{   
+    if (fDeleteDSPInstanceCb) {
+        fDeleteDSPInstanceCb(fDSP, fDeleteDSPInstanceCb_arg);
+    }
+    
+    delete fAudio;
+    delete fDSP;
+    //deleteDSPInstance(fDSP);
+}
+
 //------------ CONNECTION INFO -------------------------------
 
 dsp_server_connection_info::dsp_server_connection_info() 
@@ -213,18 +254,34 @@ dsp_server_connection_info::dsp_server_connection_info()
     fLatency = "";
     fSHAKey = "";
     fInstanceKey = "";
+    fPoly = "";
+    fVoices = "";
 }
 
 void dsp_server_connection_info::getJson(llvm_dsp_factory* factory) 
 {
     fNameApp = factory->getName();
     // This instance is used only to build JSON interface, then it's deleted
-    llvm_dsp* dsp = createDSPInstance(factory);
+    llvm_dsp* llvm_dsp = createDSPInstance(factory);
+    dsp* dsp;
+    
+    printf("dsp_server_connection_info::getJson  %s %s \n", fPoly.c_str(), fVoices.c_str());
+    
+    if (atoi(fPoly.c_str())) {
+        printf("mydsp_poly\n");
+        dsp = new mydsp_poly(atoi(fVoices.c_str()), llvm_dsp, true, true);
+    } else{
+        dsp = llvm_dsp;
+    }
+   
     string code = factory->getDSPCode();
     JSONUI json(fNameApp, dsp->getNumInputs(), dsp->getNumOutputs(), factory->getSHAKey(), base64_encode(code.c_str(), code.size()));
     dsp->buildUserInterface(&json);
-    deleteDSPInstance(dsp);  
+    //deleteDSPInstance(dsp);  
+    delete dsp;
     fAnswer = json.JSON();    
+    
+    printf("fAnswer %s\n", fAnswer.c_str());
     /*
     fNameApp = getCName(factory);
     // This instance is used only to build JSON interface, then it's deleted
@@ -245,7 +302,6 @@ bool dsp_server_connection_info::getFactoryFromSHAKey(DSPServer* server)
 {
     // Will increment factory reference counter...
     llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(fSHAKey);
-    
     //llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(fSHAKey.c_str());
      
     if (factory) {
@@ -375,6 +431,10 @@ int dsp_server_connection_info::iteratePost(const char* key, const char* data, s
             fSampleRate = data;
         } else if (strcmp(key,"LA_buffer_size") == 0) {
             fBufferSize = data;
+        } else if (strcmp(key,"poly") == 0) {
+            fPoly = data;
+        } else if (strcmp(key,"voices") == 0) {
+            fVoices = data;
         }
     }
     
@@ -772,11 +832,15 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
     
         try {
             if (con_info->fAudioType == "kNetJack") {
-                audio = new netjack_dsp(factory, con_info->fCompression, 
+                std::cout << con_info->fPoly << " " << con_info->fVoices << std::endl;
+                audio = new netjack_dsp(factory, 
+                                        con_info->fCompression, 
                                         con_info->fIP, con_info->fPort, 
                                         con_info->fMTU, con_info->fLatency, 
                                         factory->getName(),
                                         con_info->fInstanceKey,
+                                        con_info->fPoly, 
+                                        con_info->fVoices, 
                                         fCreateDSPInstanceCb, fCreateDSPInstanceCb_arg,
                                         fDeleteDSPInstanceCb, fDeleteDSPInstanceCb_arg);
                 pthread_t thread;
@@ -798,6 +862,8 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
                 */
                 
                 audio = new audio_dsp(factory,
+                                    atoi(con_info->fPoly.c_str()),
+                                    atoi(con_info->fVoices.c_str()),
                                     factory->getName(),
                                     //getCName(factory),
                                     con_info->fInstanceKey,
