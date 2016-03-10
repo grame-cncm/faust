@@ -283,6 +283,10 @@ class netjackaudio_control : public netjackaudio, public ControlUI {
     
 };
 
+/*
+A special NetJack client that uses MIDI input/output to transmit control values.
+*/
+
 class netjackaudio_midicontrol : public netjackaudio, public ControlUI {  
         
     protected:
