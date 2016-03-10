@@ -187,7 +187,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     // Adding Compilation options 
     finalRequest << "&number_options=" << argc;
     for (int i = 0; i < argc; i++) {
-        if (strcmp(argv[i], "-poly") == 0 || strcmp(argv[i], "-voices")) {
+        if ((strcmp(argv[i], "-poly") == 0) || (strcmp(argv[i], "-voices") == 0)) {
             // Move to next token...
             i++;
         } else {
