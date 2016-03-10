@@ -129,7 +129,7 @@ class netjackaudio : public audio
             };
       
             if ((fNet = jack_net_slave_open(fMasterIP.c_str(), fMasterPort, name, &request, &fResult)) == 0) {
-                printf("jack remote server not running ?\n");
+                printf("JACK remote server not running ?\n");
                 return false;
             }
 
@@ -282,6 +282,10 @@ class netjackaudio_control : public netjackaudio, public ControlUI {
         }
     
 };
+
+/*
+A special NetJack client that uses MIDI input/output to transmit control values.
+*/
 
 class netjackaudio_midicontrol : public netjackaudio, public ControlUI {  
         
