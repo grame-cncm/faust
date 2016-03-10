@@ -43,14 +43,15 @@ if [ $ANDROID -eq 1 ]; then
 	mkdir "$APIFOLDER"
 	cp -r /usr/local/lib/faust/android/app/src/main/java/com/grame/dsp_faust $APIFOLDER
 	cp -r /usr/local/lib/faust/android/app/src/main/jni $APIFOLDER
-	faust -i -a android.cpp "$FILE" -o "$APIFOLDER/jni/dsp_faust.cpp"
+	faust -i -a android.cpp "$FILE" -o "$APIFOLDER/jni/dsp_faust.cpp" || exit
 	echo "Your faust-dsp API package for Android was created"
 elif [ $IOS -eq 1 ]; then
-	faust -i -a ios-coreaudio-api.cpp "$FILE" -o dsp-faust.h
+	faust -i -a ios-coreaudio-api.cpp "$FILE" -o dsp-faust.h || exit
 	echo "Your dsp-faust.h C++ API for IOS was created"
 else
 	echo "Please specify an architecture or a platform:"
 	echo "-android"
 	echo "-ios"
 	echo "For more informations, visit http://ccrma.stanford.edu/~rmichon/mobileFaust"
+	exit 1
 fi

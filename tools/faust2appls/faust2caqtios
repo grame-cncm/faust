@@ -128,7 +128,7 @@ for p in $FILES; do
     # compile faust to c++
 	FAUST='faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"'
 	if $DEBUG; then echo $FAUST; fi
-	eval $FAUST
+	eval $FAUST || exit
 
 	IOSDIR=/usr/local/lib/faust/iOS
 	RSRC=$IOSDIR/*.png
@@ -151,7 +151,7 @@ for p in $FILES; do
 	    cd "$TMP"
     	eval $PRJ
     	eval $BUILD
-    ) > /dev/null
+    ) > /dev/null || exit
     fi
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"

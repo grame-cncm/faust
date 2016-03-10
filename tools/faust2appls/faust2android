@@ -134,7 +134,7 @@ fi
 
 
 # Compile the Faust code for the NDK
-faust -i -a android.cpp $OPTIONS "$FILE" -o "$JNIFOLDER/dsp_faust.cpp"
+faust -i -a android.cpp $OPTIONS "$FILE" -o "$JNIFOLDER/dsp_faust.cpp" || exit
 
 
 # Run Gradle

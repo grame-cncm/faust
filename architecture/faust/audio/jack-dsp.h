@@ -694,43 +694,43 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         
         void keyOn(int channel, int pitch, int velocity) 
         {
-            unsigned char buffer[3] = { MIDI_NOTE_ON + channel, pitch, velocity };
+            unsigned char buffer[3] = { static_cast<unsigned char>(MIDI_NOTE_ON + channel), static_cast<unsigned char>(pitch), static_cast<unsigned char>(velocity) };
             writeMessage(buffer, 3);
         }
         
         void keyOff(int channel, int pitch, int velocity) 
         {
-            unsigned char buffer[3] = { MIDI_NOTE_OFF + channel, pitch, velocity };
+            unsigned char buffer[3] = { static_cast<unsigned char>(MIDI_NOTE_OFF + channel), static_cast<unsigned char>(pitch), static_cast<unsigned char>(velocity) };
             writeMessage(buffer, 3);
         }
         
         void ctrlChange(int channel, int ctrl, int val) 
         {
-            unsigned char buffer[3] = { MIDI_CONTROL_CHANGE + channel, ctrl, val };
+            unsigned char buffer[3] = { static_cast<unsigned char>(MIDI_CONTROL_CHANGE + channel), static_cast<unsigned char>(ctrl), static_cast<unsigned char>(val) };
             writeMessage(buffer, 3);
         }
         
         void chanPress(int channel, int press) 
         {
-            unsigned char buffer[2] = { MIDI_AFTERTOUCH + channel, press };
+            unsigned char buffer[2] = { static_cast<unsigned char>(MIDI_AFTERTOUCH + channel), static_cast<unsigned char>(press) };
             writeMessage(buffer, 2);
         }
         
         void progChange(int channel, int pgm) 
         {
-            unsigned char buffer[2] = { MIDI_PROGRAM_CHANGE + channel, pgm };
+            unsigned char buffer[2] = { static_cast<unsigned char>(MIDI_PROGRAM_CHANGE + channel), static_cast<unsigned char>(pgm) };
             writeMessage(buffer, 2);
         }
           
         void keyPress(int channel, int pitch, int press) 
         {
-            unsigned char buffer[3] = { MIDI_POLY_AFTERTOUCH + channel, pitch, press };
+            unsigned char buffer[3] = { static_cast<unsigned char>(MIDI_POLY_AFTERTOUCH + channel), static_cast<unsigned char>(pitch), static_cast<unsigned char>(press) };
             writeMessage(buffer, 3);
         }
    
         void pitchWheel(int channel, int wheel) 
         {
-            unsigned char buffer[3] = { MIDI_PITCH_BEND + channel, wheel & 0x7F, (wheel >> 7) & 0x7F };
+            unsigned char buffer[3] = { static_cast<unsigned char>(MIDI_PITCH_BEND + channel), static_cast<unsigned char>(wheel & 0x7F), static_cast<unsigned char>((wheel >> 7) & 0x7F) };
             writeMessage(buffer, 3);
         }
         

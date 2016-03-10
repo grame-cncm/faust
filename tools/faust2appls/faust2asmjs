@@ -62,10 +62,10 @@ BINARIES=""
 if [ $COMB = "false" ]; then
 
 for f in $FILES; do
-    name=${f%.dsp}
+    name=$(basename "$f" .dsp)
     
     # compile the C++ code
-    faust -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
+    faust -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     
     if [ $CPP_WRAPPER = webaudio-asm.cpp ]; then
         EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
@@ -74,8 +74,7 @@ for f in $FILES; do
 	fi
     
     # compile the C++ code to asm.js
-    emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_MEMORY=100663296 --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js \
-        -s EXPORTED_FUNCTIONS=$EXPORTED
+    emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_MEMORY=100663296 --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js -s EXPORTED_FUNCTIONS=$EXPORTED || exit
    
     # compose the asm.js code
     sed -e "s/DSP/"$name"/g" $name-temp.js > $name.js
@@ -94,7 +93,7 @@ for f in $FILES; do
     name=${f%.dsp}
     
     # compile the C++ code
-    faust -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
+    faust -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     
     if [ $CPP_WRAPPER = webaudio-asm.cpp ]; then
         EXPORTED="'_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON'"
@@ -121,7 +120,7 @@ done
 
 # compile final file
 emcc -O2 --memory-init-file 0 $COMB_SRC -s TOTAL_STACK=20971520 -s TOTAL_MEMORY=41943040 $COMB_WRAPPED -o comb.js \
-    -s EXPORTED_FUNCTIONS="["$COMB_EXPORTED"]"
+    -s EXPORTED_FUNCTIONS="["$COMB_EXPORTED"]" || exit
 
 # collect binary file name for FaustWorks
 BINARIES="comb.js;"

@@ -4,10 +4,15 @@ FILENAME=$1
 CLASSNAME=`basename $FILENAME .dsp`
 PATCHNAME=$CLASSNAME"Patch"
 PATCHFILE=$PATCHNAME".hpp"
+TEMPFILE=`mktemp temp.owl.XXXX`
 
 #echo $FILENAME $CLASSNAME $PATCHNAME $PATCHFILE
 
-faust -i -inpl -a owl.cpp -cn $CLASSNAME $FILENAME | sed -e "s/FaustPatch/$PATCHNAME/g" > $PATCHFILE
+faust -i -inpl -a owl.cpp -cn $CLASSNAME $FILENAME -o $TEMPFILE || rm $TEMPFILE && exit 1
+cat $TEMPFILE | sed -e "s/FaustPatch/$PATCHNAME/g" > $PATCHFILE
+rm $TEMPFILE
+
+#(faust -i -inpl -a owl.cpp -cn $CLASSNAME $FILENAME | sed -e "s/FaustPatch/$PATCHNAME/g" > $PATCHFILE) || exit
 echo ""         
 echo "           Instructions to add $PATCHFILE to your owl pedal"
 echo ""         

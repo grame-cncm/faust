@@ -154,16 +154,16 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile the .dsp file to c++ and xml
-    faust -xml "$SRCDIR/$f" -o /dev/null;
+    faust -xml "$SRCDIR/$f" -o /dev/null  || exit
     mv "$SRCDIR/$f.xml" $TMP/
-    faust -i -a supercollider.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+    faust -i -a supercollider.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary; --prefix should be same as in ../../examples/Makefile.sccompile
     (
         cd "$TMP"
         faust2sc --prefix=Faust $SYNTHDEF $f.xml > "${f%.dsp}.sc" 2>$OUTDEV
         ${CXX=g++}  -O3 $FAUSTTOOLSFLAGS $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
-    )> $OUTDEV
+    )> $OUTDEV || exit
 
     ## move the produced files from tmp to source dir
     cp "$TMP/${f%.dsp}.$EXT" "$SRCDIR/${f%.dsp}.$EXT"

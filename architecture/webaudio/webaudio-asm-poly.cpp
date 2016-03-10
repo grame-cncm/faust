@@ -11,7 +11,7 @@
  Choose the license that best suits your project. The text of the MIT and GPL
  licenses are at the root directory.
  
- Additional code : GRAME 2014
+ Additional code : GRAME 2014-2016
 
 */
 
@@ -38,6 +38,83 @@
 <<includeclass>>
 
 #include "faust/dsp/poly-dsp.h"
+
+extern "C" {
+    
+    // C like API
+    mydsp_poly* mydsp_poly_constructor(int sample_rate, int max_polyphony) 
+    {
+        mydsp_poly* poly = new mydsp_poly(max_polyphony);
+        if (poly) poly->init(sample_rate);
+        return poly;
+    }
+
+    void mydsp_poly_destructor(mydsp_poly* poly) 
+    {
+        delete poly;
+    }
+
+    const char* mydsp_poly_getJSON(mydsp_poly* poly)
+    {
+        return poly->getJSON();
+    }
+  
+    void mydsp_poly_compute(mydsp_poly* poly, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
+    {
+        poly->compute(count, inputs, outputs);
+    }
+
+    int mydsp_poly_getNumInputs(mydsp_poly* poly)
+    {
+        return poly->getNumInputs();
+    }
+
+    int mydsp_poly_getNumOutputs(mydsp_poly* poly)
+    {
+        return poly->getNumOutputs();
+    }
+
+    void mydsp_poly_keyOn(mydsp_poly* poly, int channel, int pitch, int velocity)
+    {
+        poly->keyOn(channel, pitch, velocity);
+    }
+
+    void mydsp_poly_keyOff(mydsp_poly* poly, int channel, int pitch, int velocity)
+    {
+        poly->keyOff(channel, pitch, velocity);
+    }
+    
+    void mydsp_poly_allNotesOff(mydsp_poly* poly)
+    {
+        poly->allNotesOff();
+    }
+    
+    void mydsp_poly_ctrlChange(mydsp_poly* poly, int channel, int ctrl, int value)
+    {
+        poly->ctrlChange(channel, ctrl, value);
+    }
+    
+    void mydsp_poly_pitchWheel(mydsp_poly* poly, int channel, int wheel)
+    {
+        poly->pitchWheel(channel, wheel);
+    }
+    
+    void mydsp_poly_pitchBend(mydsp_poly* poly, int channel, int refPitch, float pitch)
+    {
+        poly->pitchBend(channel, refPitch, pitch);
+    }
+    
+    void mydsp_poly_setValue(mydsp_poly* poly, const char* path, float value)
+    {
+        poly->setValue(path, value);
+    }
+
+    float mydsp_poly_getValue(mydsp_poly* poly, const char* path)
+    {
+        return poly->getValue(path);
+    }
+        
+};
 
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;

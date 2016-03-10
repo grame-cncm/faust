@@ -1,0 +1,24 @@
+#!/bin/bash
+
+## exclusion list for faust errors
+XLIST1="faust2md"
+
+## test exclusion : notinlist "toto" "a b c d e"
+notinlist() {
+  for word in $2; do
+    if [ $word = $1 ]; then
+        return 1
+    fi
+  done
+  return 0
+}
+
+echo
+echo "Test all Faust2xxx to work"
+echo
+for S in ../faust2*; do
+    scriptname=`basename $S .in`
+    if notinlist  $S "$XLIST1"; then
+	    ($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
+	fi
+done

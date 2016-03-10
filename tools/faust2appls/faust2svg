@@ -1,6 +1,6 @@
 #!/bin/bash
 
 for f in $@; do
-    faust -t 0 -svg $f -o /dev/null
+    faust -t 0 -svg $f -o /dev/null || exit
 done
 

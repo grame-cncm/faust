@@ -22,7 +22,7 @@ for FILEPATH in $@ ; do
 	FILENAME=`basename $FILEPATH` &&
 	case $FILENAME in
 	    *.dsp )  
-		faust -o /dev/null -sg $FILEPATH &&
+		faust -o /dev/null -sg $FILEPATH  || exit
 		dot -Tpdf $FILEPATH-sig.dot -o ${FILEPATH%.dsp}-sig.pdf &&
 		rm $FILEPATH-sig.dot &&
 		${OPEN} ${FILEPATH%.dsp}-sig.pdf 
