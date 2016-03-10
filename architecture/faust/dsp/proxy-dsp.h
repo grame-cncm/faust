@@ -151,20 +151,20 @@ struct JSONUIDecoder {
             if ((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type != "close") {
                 fInControl[counterIn] = init;
                 for (int i = 0; i < (*it)->meta.size(); i++) {
-                    ui->declare(&fInControl[counterIn], (*it)->meta[i]->first.c_str(), (*it)->meta[i]->second.c_str());
+                    ui->declare(&fInControl[counterIn], (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
                 }
             }
             // Meta data declaration for output items
             else if ((*it)->type.find("bargraph") != string::npos) {
                 fOutControl[counterOut] = init;
                 for (int i = 0; i < (*it)->meta.size(); i++) {
-                    ui->declare(&fOutControl[counterOut], (*it)->meta[i]->first.c_str(), (*it)->meta[i]->second.c_str());
+                    ui->declare(&fOutControl[counterOut], (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
                 }
             }
             // Meta data declaration for group opening or closing
             else {
                 for (int i = 0; i < (*it)->meta.size(); i++) {
-                    ui->declare(0, (*it)->meta[i]->first.c_str(), (*it)->meta[i]->second.c_str());
+                    ui->declare(0, (*it)->meta[i].first.c_str(), (*it).meta[i]->second.c_str());
                 }
             }
             
