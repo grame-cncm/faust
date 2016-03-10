@@ -85,7 +85,7 @@ class audio_dsp {
   
     public:
     
-        audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, const string& name, const string& key, 
+        audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool group, const string& name, const string& key, 
                 createInstanceDSPCallback cb1, void* cb1_arg,
                 deleteInstanceDSPCallback cb2, void* cb2_arg);
         virtual ~audio_dsp();
@@ -129,7 +129,7 @@ struct dsp_server_connection_info {
     
     string fAnswer;     // the answer sent to the user after upload
     
-    string fAudioType;   // type of audio driver
+    string fAudioType;  // audio driver type
     
     //-----DATAS RECEIVED TO CREATE NEW DSP FACTORY---------
     string fNameApp;
@@ -150,6 +150,7 @@ struct dsp_server_connection_info {
     //------DATAS RECEIVED TO CREATE POLYPOHONIC -------
     string fPoly;
     string fVoices;
+    string fGroup;
     
     //------DATAS RECEIVED TO CREATE NEW local Audio INSTANCE-------
     string fSampleRate;

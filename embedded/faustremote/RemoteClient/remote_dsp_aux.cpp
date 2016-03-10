@@ -187,7 +187,9 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     // Adding Compilation options 
     finalRequest << "&number_options=" << argc;
     for (int i = 0; i < argc; i++) {
-        if ((strcmp(argv[i], "-poly") == 0) || (strcmp(argv[i], "-voices") == 0)) {
+        if ((strcmp(argv[i], "-poly") == 0) 
+            || (strcmp(argv[i], "-voices") == 0)
+            || (strcmp(argv[i], "-group") == 0)) {
             // Move to next token...
             i++;
         } else {
@@ -199,8 +201,12 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     finalRequest << "&opt_level=" << opt_level << "&shaKey=" << fSHAKey;
     
     // Polyphonic support
-    finalRequest << "&poly=" << loptions(argc, argv, "-poly", "0");
-    finalRequest << "&voices=" << loptions(argc, argv, "-voices", "4");
+    fPoly = loptions(argc, argv, "-poly", "0");
+    fVoices = loptions(argc, argv, "-voices", "4");
+    fGroup = loptions(argc, argv, "-group", "0");
+    finalRequest << "&poly=" << fPoly;
+    finalRequest << "&voices=" << fVoices;
+    finalRequest << "&group=" << fGroup;
    
     // Compile on client side and send machine code on server side
     if (isopt(argc, argv, "-lm")) {
@@ -551,6 +557,9 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     finalRequest << "&NJ_mtu=" << loptions(argc, argv, "--NJ_mtu", "1500");
     finalRequest << "&shaKey=" << fFactory->getSHAKey();
     finalRequest << "&instanceKey=" << this;
+    finalRequest << "&poly=" << fFactory->getPoly();
+    finalRequest << "&voices=" << fFactory->getVoices();
+    finalRequest << "&group=" << fFactory->getGroup();
     
     bool res = false;
     string url = fFactory->getURL() + "/CreateInstance";
@@ -878,6 +887,12 @@ EXPORT std::string remote_dsp_factory::getName() { return fJSONDecoder->fName; }
 EXPORT std::string remote_dsp_factory::getSHAKey() { return fSHAKey; }
 
 EXPORT std::string remote_dsp_factory::getDSPCode() { return fExpandedDSP; }
+
+EXPORT std::string remote_dsp_factory::getPoly() { return fPoly; }
+
+EXPORT std::string remote_dsp_factory::getVoices() { return fVoices; }
+
+EXPORT std::string remote_dsp_factory::getGroup() { return fGroup; }
 
 EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m)
 {

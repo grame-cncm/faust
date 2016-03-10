@@ -134,7 +134,7 @@ class netjack_dsp : public audio_dsp {
                     const string& ip, const string& port, 
                     const string& mtu, const string& latency,
                     const string& name, const string& key,
-                    const string& poly, const string& voices,
+                    const string& poly, const string& voices, const string& group,
                     createInstanceDSPCallback cb1, void* cb1_arg,
                     deleteInstanceDSPCallback cb2, void* cb2_arg);
         
@@ -154,9 +154,10 @@ netjack_dsp::netjack_dsp(llvm_dsp_factory* factory,
                         const string& key,
                         const string& poly, 
                         const string& voices,
+                        const string& group,
                         createInstanceDSPCallback cb1, void* cb1_arg,
                         deleteInstanceDSPCallback cb2, void* cb2_arg)
-                        :audio_dsp(factory, atoi(poly.c_str()), atoi(voices.c_str()), name, key, cb1, cb1_arg, cb2, cb2_arg), fIP(ip), 
+                        :audio_dsp(factory, atoi(poly.c_str()), atoi(voices.c_str()), atoi(group.c_str()), name, key, cb1, cb1_arg, cb2, cb2_arg), fIP(ip), 
                         fPort(port), fCompression(compression), 
                         fMTU(mtu), fLatency(latency)
 {}
@@ -202,7 +203,7 @@ bool audio_dsp::init(int sr, int bs)
     }
 }
 
-audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, const string& name, const string& key, 
+audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool group, const string& name, const string& key, 
                     createInstanceDSPCallback cb1, void* cb1_arg,
                     deleteInstanceDSPCallback cb2, void* cb2_arg)
                     :fName(name), fInstanceKey(key), fAudio(NULL), 
@@ -216,7 +217,7 @@ audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, const str
     }
     
     if (poly) {
-        fDSP = new mydsp_poly(voices, dsp, true, true);
+        fDSP = new mydsp_poly(voices, dsp, true, group);
     } else{
         fDSP = dsp;
     }
@@ -256,6 +257,7 @@ dsp_server_connection_info::dsp_server_connection_info()
     fInstanceKey = "";
     fPoly = "";
     fVoices = "";
+    fGroup = "";
 }
 
 void dsp_server_connection_info::getJson(llvm_dsp_factory* factory) 
@@ -265,11 +267,11 @@ void dsp_server_connection_info::getJson(llvm_dsp_factory* factory)
     llvm_dsp* llvm_dsp = createDSPInstance(factory);
     dsp* dsp;
     
-    printf("dsp_server_connection_info::getJson  %s %s \n", fPoly.c_str(), fVoices.c_str());
+    printf("dsp_server_connection_info::getJson %s %s %s\n", fPoly.c_str(), fVoices.c_str(), fGroup.c_str());
     
     if (atoi(fPoly.c_str())) {
         printf("mydsp_poly\n");
-        dsp = new mydsp_poly(atoi(fVoices.c_str()), llvm_dsp, true, true);
+        dsp = new mydsp_poly(atoi(fVoices.c_str()), llvm_dsp, true, atoi(fGroup.c_str()));
     } else{
         dsp = llvm_dsp;
     }
@@ -403,38 +405,40 @@ int dsp_server_connection_info::iteratePost(const char* key, const char* data, s
             if (fNameApp == "") {
                 fNameApp = "RemoteDSPServer_DefaultName";
             }
-        } else if (strcmp(key,"audio_type") == 0) {
+        } else if (strcmp(key, "audio_type") == 0) {
             fAudioType = data;
-        } else if (strcmp(key,"dsp_data") == 0) {
+        } else if (strcmp(key, "dsp_data") == 0) {
             fFaustCode += data;  // Possibly several post ?
         } else if (strcmp(key,"target") == 0) {
             fTarget = data;  
-        } else if (strcmp(key,"NJ_ip") == 0) {
+        } else if (strcmp(key, "NJ_ip") == 0) {
             fIP = data;
-        } else if (strcmp(key,"NJ_port") == 0) {
+        } else if (strcmp(key, "NJ_port") == 0) {
             fPort = data;   
-        } else if (strcmp(key,"NJ_latency") == 0) {
+        } else if (strcmp(key, "NJ_latency") == 0) {
             fLatency = data;
-        } else if (strcmp(key,"NJ_compression") == 0) {
+        } else if (strcmp(key, "NJ_compression") == 0) {
             fCompression = data;        
-        } else if (strcmp(key,"NJ_mtu") == 0) {
+        } else if (strcmp(key, "NJ_mtu") == 0) {
             fMTU = data;
-        } else if (strcmp(key,"shaKey") == 0) {
+        } else if (strcmp(key, "shaKey") == 0) {
             fSHAKey = data;
-        } else if (strcmp(key,"instanceKey") == 0) {
+        } else if (strcmp(key, "instanceKey") == 0) {
             fInstanceKey = data;
-        } else if (strcmp(key,"options") == 0) {
+        } else if (strcmp(key, "options") == 0) {
             fCompilationOptions.push_back(data);
-        } else if (strcmp(key,"opt_level") == 0) {
+        } else if (strcmp(key, "opt_level") == 0) {
             fOptLevel = data;
-        } else if (strcmp(key,"LA_sample_rate") == 0) {
+        } else if (strcmp(key, "LA_sample_rate") == 0) {
             fSampleRate = data;
-        } else if (strcmp(key,"LA_buffer_size") == 0) {
+        } else if (strcmp(key, "LA_buffer_size") == 0) {
             fBufferSize = data;
-        } else if (strcmp(key,"poly") == 0) {
+        } else if (strcmp(key, "poly") == 0) {
             fPoly = data;
-        } else if (strcmp(key,"voices") == 0) {
+        } else if (strcmp(key, "voices") == 0) {
             fVoices = data;
+        } else if (strcmp(key, "group") == 0) {
+            fGroup = data;
         }
     }
     
@@ -832,7 +836,7 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
     
         try {
             if (con_info->fAudioType == "kNetJack") {
-                std::cout << con_info->fPoly << " " << con_info->fVoices << std::endl;
+                std::cout << con_info->fPoly << " " << con_info->fVoices << " " << con_info->fGroup << std::endl;
                 audio = new netjack_dsp(factory, 
                                         con_info->fCompression, 
                                         con_info->fIP, con_info->fPort, 
@@ -841,6 +845,7 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
                                         con_info->fInstanceKey,
                                         con_info->fPoly, 
                                         con_info->fVoices, 
+                                        con_info->fGroup, 
                                         fCreateDSPInstanceCb, fCreateDSPInstanceCb_arg,
                                         fDeleteDSPInstanceCb, fDeleteDSPInstanceCb_arg);
                 pthread_t thread;
@@ -864,6 +869,7 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
                 audio = new audio_dsp(factory,
                                     atoi(con_info->fPoly.c_str()),
                                     atoi(con_info->fVoices.c_str()),
+                                    atoi(con_info->fGroup.c_str()),
                                     factory->getName(),
                                     //getCName(factory),
                                     con_info->fInstanceKey,

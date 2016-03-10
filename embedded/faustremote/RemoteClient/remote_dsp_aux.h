@@ -116,9 +116,12 @@ class remote_dsp_factory : public smartable {
     
     private:
         
-        string      fSHAKey;                // Unique Index to bind a Remote_Factory to its llvm_factory on the server side
-        string      fExpandedDSP;
-        string      fServerURL;             // URL of remote server 
+        string fSHAKey;                // Unique Index to bind a Remote_Factory to its llvm_factory on the server side
+        string fExpandedDSP;
+        string fServerURL;             // URL of remote server 
+        string fPoly; 
+        string fVoices; 
+        string fGroup; 
         
         JSONUIDecoder* fJSONDecoder;
         
@@ -150,6 +153,9 @@ class remote_dsp_factory : public smartable {
         string              getName();
         string              getSHAKey();
         string              getDSPCode();
+        string              getPoly();
+        string              getVoices();
+        string              getGroup();
         
         vector<string>      getRemoteDSPFactoryLibraryList() { return fPathnameList; }
         
