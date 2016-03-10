@@ -164,7 +164,7 @@ struct JSONUIDecoder {
             // Meta data declaration for group opening or closing
             else {
                 for (int i = 0; i < (*it)->meta.size(); i++) {
-                    ui->declare(0, (*it)->meta[i].first.c_str(), (*it).meta[i]->second.c_str());
+                    ui->declare(0, (*it)->meta[i].first.c_str(), (*it).meta[i].second.c_str());
                 }
             }
             
