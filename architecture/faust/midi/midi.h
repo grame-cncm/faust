@@ -102,6 +102,61 @@ class midi_handler : public midi {
     
         std::vector<midi*> fMidiInputs;
         std::string fName;
+        
+        void handleSync(double time, int type) 
+        {
+            if (type == MIDI_CLOCK) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->clock(time);
+                }
+            } else if (type == MIDI_START) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->start(time);
+                }
+            } else if (type == MIDI_STOP) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->stop(time);
+                }
+            }
+        }
+        
+        void handleData1(double time, int type, int channel, int data1) 
+        {
+            if (type == MIDI_PROGRAM_CHANGE) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->progChange(time, channel, data1);
+                }
+            } else if (type == MIDI_AFTERTOUCH) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->chanPress(time, channel, data1);
+                }
+            }
+        }
+        
+        void handleData2(double time, int type, int channel, int data1, int data2) 
+        {
+            if (type == MIDI_NOTE_OFF || ((type == MIDI_NOTE_ON) && (data2 == 0))) { 
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->keyOff(time, channel, data1, data2);
+                }
+            } else if (type == MIDI_NOTE_ON) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->keyOn(time, channel, data1, data2);
+                }
+            } else if (type == MIDI_CONTROL_CHANGE) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->ctrlChange(time, channel, data1, data2);
+                }
+            } else if (type == MIDI_PITCH_BEND) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->pitchWheel(time, channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
+                }
+            } else if (type == MIDI_POLY_AFTERTOUCH) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->keyPress(time, channel, data1, data2);
+                }
+            }
+        }
 
     public:
 
