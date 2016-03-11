@@ -86,15 +86,16 @@ class bela_midi : public midi_handler {
        
     public:
     
-        bela_midi(const std::string& name):midi_handler(name)
+        bela_midi(const std::string& name)
+            :midi_handler(name)
         {}
         
         virtual ~bela_midi()
         {
-            stop();
+            stop_midi();
         }
         
-        bool start()
+        bool start_midi()
         {
             if (fBelaMidi.readFrom(0) < 0) {
                 return false;
@@ -109,7 +110,7 @@ class bela_midi : public midi_handler {
             return true;
         }
         
-        void stop()
+        void stop_midi()
         { 
             // Nothing todo?
         }
