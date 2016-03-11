@@ -132,7 +132,6 @@ struct JSONUIDecoder {
         
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
             
-            map<string,string>::iterator it2;
             bool isInItem = false;
             bool isOutItem = false;
             string type = (*it)->type;
@@ -148,24 +147,24 @@ struct JSONUIDecoder {
                 isOutItem = true;        
             }
             
-            // Meta Data declaration for input items
+            // Meta data declaration for input items
             if ((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type != "close") {
                 fInControl[counterIn] = init;
-                for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {
-                    ui->declare(&fInControl[counterIn], it2->first.c_str(), it2->second.c_str());
+                for (int i = 0; i < (*it)->meta.size(); i++) {
+                    ui->declare(&fInControl[counterIn], (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
                 }
             }
-            // Meta Data declaration for output items
+            // Meta data declaration for output items
             else if ((*it)->type.find("bargraph") != string::npos) {
                 fOutControl[counterOut] = init;
-                for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {
-                    ui->declare(&fOutControl[counterOut], it2->first.c_str(), it2->second.c_str());
+                for (int i = 0; i < (*it)->meta.size(); i++) {
+                    ui->declare(&fOutControl[counterOut], (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
                 }
             }
-            // Meta Data declaration for group opening or closing
+            // Meta data declaration for group opening or closing
             else {
-                for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {
-                    ui->declare(0, it2->first.c_str(), it2->second.c_str());
+                for (int i = 0; i < (*it)->meta.size(); i++) {
+                    ui->declare(0, (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
                 }
             }
             

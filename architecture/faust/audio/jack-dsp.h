@@ -48,7 +48,6 @@
 #include "faust/audio/audio.h"
 #include "faust/dsp/dsp.h"
 #include "faust/midi/midi.h"
-#include "faust/gui/ring-buffer.h"
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 #define snprintf _snprintf_s
@@ -460,14 +459,12 @@ class jackaudio : public audio {
 
 // Add JACK MIDI
 
-class jackaudio_midi : public jackaudio, public midi_handler {  
+class jackaudio_midi : public jackaudio, public jack_midi_handler {  
 
     protected:
     
         jack_port_t* fInputMidiPort;       // JACK input MIDI port
         jack_port_t* fOutputMidiPort;      // JACK output MIDI port
-        
-        ringbuffer_t* fOutBuffer;
         
         virtual void save_connections()
         {
@@ -499,78 +496,8 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         virtual void processMidiIn(jack_nframes_t nframes) 
         {
             // MIDI input
-            void* port_buf_in = jack_port_get_buffer(fInputMidiPort, nframes);
-           
-            for (int i = 0; i < jack_midi_get_event_count(port_buf_in); ++i) {
-                jack_midi_event_t event;
-                if (jack_midi_event_get(&event, port_buf_in, i) == 0) {
-                
-                    size_t nBytes = event.size;
-                    int cmd = (int)event.buffer[0] & 0xf0;
-                    int channel = (int)event.buffer[0] & 0x0f;
-                    double time = event.time; // Timestamp in frames
-                    
-                    // MIDI sync
-                    if (nBytes == 1) {
-                    
-                        int sync = (int)event.buffer[0];
-                        
-                        if (sync == MIDI_CLOCK) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->clock(time);
-                            }
-                        } else if (sync == MIDI_START) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->start(time);
-                            }
-                        } else if (sync == MIDI_STOP) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->stop(time);
-                            }
-                        }
-                        
-                    } else if (nBytes == 2) {
-                     
-                        int data1 = (int)event.buffer[1];
-                        
-                        if (cmd == MIDI_PROGRAM_CHANGE) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->progChange(time, channel, data1);
-                            }
-                        } else if (cmd == MIDI_AFTERTOUCH) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->chanPress(time, channel, data1);
-                            }
-                        }
-                    
-                    } else if (nBytes == 3) {
-                    
-                        int data1 = (int)event.buffer[1];
-                        int data2 = (int)event.buffer[2];
-                        
-                        if (cmd == MIDI_NOTE_OFF || ((cmd == MIDI_NOTE_ON) && (data2 == 0))) { 
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->keyOff(time, channel, data1, data2);
-                            }
-                        } else if (cmd == MIDI_NOTE_ON) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->keyOn(time, channel, data1, data2);
-                            }
-                        } else if (cmd == MIDI_CONTROL_CHANGE) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->ctrlChange(time, channel, data1, data2);
-                            }
-                        } else if (cmd == MIDI_PITCH_BEND) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->pitchWheel(time, channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
-                            }
-                        } else if (cmd == MIDI_POLY_AFTERTOUCH) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->keyPress(time, channel, data1, data2);
-                            }
-                        }
-                    } 
-                }
+            if (fInputMidiPort) {
+                processMidiInBuffer(jack_port_get_buffer(fInputMidiPort, nframes));
             }
         }
         
@@ -597,63 +524,29 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         virtual void processMidiOut(jack_nframes_t nframes) 
         {
             // MIDI output 
-            unsigned char* port_buf_out = (unsigned char*)jack_port_get_buffer(fOutputMidiPort, nframes);
-            jack_midi_clear_buffer(port_buf_out);
-            size_t res, message_size;
-            
-            // Write each message one by one
-            while (ringbuffer_read(fOutBuffer, (char*)&message_size, sizeof(message_size)) == sizeof(message_size)) {
-                // Reserve MIDI event with the correct size
-                jack_midi_data_t* data = jack_midi_event_reserve(port_buf_out, 0, message_size);
-                if (data) {
-                    // Write its content
-                    if ((res = ringbuffer_read(fOutBuffer, (char*)data, message_size)) != message_size) {
-                        fprintf(stderr, "processMidiOut incorrect message : res =  %lu\n", res);
-                    }
-                } else {
-                    fprintf(stderr, "jack_midi_event_reserve error\n");
-                }
+            if (fOutputMidiPort) {
+                processMidiOutBuffer(jack_port_get_buffer(fOutputMidiPort, nframes));
             }
         }
      
         virtual int process(jack_nframes_t nframes) 
         {
             // MIDI in
-            if (fInputMidiPort) {
-                processMidiIn(nframes);
-            }
+            processMidiIn(nframes);
             
             // Audio
             processAudio(nframes);
             
             // MIDI out
-            if (fOutputMidiPort) {
-                processMidiOut(nframes);
-            }
-            
+            processMidiOut(nframes);
             return 0;
         }
-        
-        void writeMessage(unsigned char* buffer, size_t size)
-        {
-            if (fOutBuffer) {
-                size_t res;
-                // Write size of message
-                if ((res = ringbuffer_write(fOutBuffer, (const char*)&size, sizeof(size_t))) != sizeof(size_t)) {
-                    fprintf(stderr, "writeMessage size : error size = %lu res = %lu\n", size, res);
-                }
-                // Write message content
-                if ((res = ringbuffer_write(fOutBuffer, (const char*)buffer, size)) != size) {
-                    fprintf(stderr, "writeMessage message : error size = %lu res = %lu\n", size, res);
-                }
-            }
-        }
-  
+      
     public: 
     
         jackaudio_midi(const void* icon_data = 0, size_t icon_size = 0, bool auto_connect = true) 
-            :jackaudio(icon_data, icon_size, auto_connect), midi_handler("JACKMidi"), 
-            fInputMidiPort(0), fOutputMidiPort(0), fOutBuffer(0)
+            :jackaudio(icon_data, icon_size, auto_connect), jack_midi_handler("JACKMidi"), 
+            fInputMidiPort(0), fOutputMidiPort(0)
         {}
         
         virtual ~jackaudio_midi()
@@ -662,9 +555,6 @@ class jackaudio_midi : public jackaudio, public midi_handler {
                 if (fInputMidiPort) { jack_port_unregister(fClient, fInputMidiPort); }
                 if (fOutputMidiPort) { jack_port_unregister(fClient, fOutputMidiPort); }
             }
-            if (fOutBuffer) { 
-                ringbuffer_free(fOutBuffer);
-            }
         }
         
         virtual bool init(const char* name, dsp* dsp, bool midi = false) 
@@ -672,7 +562,6 @@ class jackaudio_midi : public jackaudio, public midi_handler {
             if (jackaudio::init(name)) {
                 if (dsp) { set_dsp(dsp); }
                 if (midi) {
-                    fOutBuffer = ringbuffer_create(8192);
                     fInputMidiPort = jack_port_register(fClient, "midi_in_1", JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
                     fOutputMidiPort = jack_port_register(fClient, "midi_out_1", JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);
                 }
@@ -690,68 +579,6 @@ class jackaudio_midi : public jackaudio, public midi_handler {
         virtual void stop() 
         {
             jackaudio::stop();
-        }
-        
-        void keyOn(int channel, int pitch, int velocity) 
-        {
-            unsigned char buffer[3] = { static_cast<unsigned char>(MIDI_NOTE_ON + channel), static_cast<unsigned char>(pitch), static_cast<unsigned char>(velocity) };
-            writeMessage(buffer, 3);
-        }
-        
-        void keyOff(int channel, int pitch, int velocity) 
-        {
-            unsigned char buffer[3] = { static_cast<unsigned char>(MIDI_NOTE_OFF + channel), static_cast<unsigned char>(pitch), static_cast<unsigned char>(velocity) };
-            writeMessage(buffer, 3);
-        }
-        
-        void ctrlChange(int channel, int ctrl, int val) 
-        {
-            unsigned char buffer[3] = { static_cast<unsigned char>(MIDI_CONTROL_CHANGE + channel), static_cast<unsigned char>(ctrl), static_cast<unsigned char>(val) };
-            writeMessage(buffer, 3);
-        }
-        
-        void chanPress(int channel, int press) 
-        {
-            unsigned char buffer[2] = { static_cast<unsigned char>(MIDI_AFTERTOUCH + channel), static_cast<unsigned char>(press) };
-            writeMessage(buffer, 2);
-        }
-        
-        void progChange(int channel, int pgm) 
-        {
-            unsigned char buffer[2] = { static_cast<unsigned char>(MIDI_PROGRAM_CHANGE + channel), static_cast<unsigned char>(pgm) };
-            writeMessage(buffer, 2);
-        }
-          
-        void keyPress(int channel, int pitch, int press) 
-        {
-            unsigned char buffer[3] = { static_cast<unsigned char>(MIDI_POLY_AFTERTOUCH + channel), static_cast<unsigned char>(pitch), static_cast<unsigned char>(press) };
-            writeMessage(buffer, 3);
-        }
-   
-        void pitchWheel(int channel, int wheel) 
-        {
-            unsigned char buffer[3] = { static_cast<unsigned char>(MIDI_PITCH_BEND + channel), static_cast<unsigned char>(wheel & 0x7F), static_cast<unsigned char>((wheel >> 7) & 0x7F) };
-            writeMessage(buffer, 3);
-        }
-        
-        void ctrlChange14bits(int channel, int ctrl, int value) {}
-         
-        void start(double date) 
-        {
-            unsigned char buffer[1] = { MIDI_START };
-            writeMessage(buffer, 1);
-        }
-       
-        void stop(double date) 
-        {
-            unsigned char buffer[1] = { MIDI_STOP };
-            writeMessage(buffer, 1);
-        }
-        
-        void clock(double date) 
-        {
-            unsigned char buffer[1] = { MIDI_CLOCK };
-            writeMessage(buffer, 1);
         }
  
 };

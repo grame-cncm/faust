@@ -9,7 +9,7 @@ LLVM="false"
 FAUSTFLOAT="float"
 LOCAL="false"
 EMBED="false"
-WAWEFORM="false"
+WAVEFORM="false"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then

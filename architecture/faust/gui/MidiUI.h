@@ -117,7 +117,7 @@ class uiMidiStart : public uiMidiTimedItem
             FAUSTFLOAT v = *fZone;
             fCache = v;
             if (v != FAUSTFLOAT(0)) {
-                fMidiOut->start(0);
+                fMidiOut->start_sync(0);
             }
         }
         
@@ -139,7 +139,7 @@ class uiMidiStop : public uiMidiTimedItem
             FAUSTFLOAT v = *fZone;
             fCache = v;
             if (v != FAUSTFLOAT(1)) {
-                fMidiOut->stop(0);
+                fMidiOut->stop_sync(0);
             }
         }
 };
