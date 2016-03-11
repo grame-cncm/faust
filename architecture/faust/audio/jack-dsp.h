@@ -506,69 +506,17 @@ class jackaudio_midi : public jackaudio, public midi_handler {
                 if (jack_midi_event_get(&event, port_buf_in, i) == 0) {
                 
                     size_t nBytes = event.size;
-                    int cmd = (int)event.buffer[0] & 0xf0;
+                    int type = (int)event.buffer[0] & 0xf0;
                     int channel = (int)event.buffer[0] & 0x0f;
                     double time = event.time; // Timestamp in frames
                     
                     // MIDI sync
                     if (nBytes == 1) {
-                    
-                        int sync = (int)event.buffer[0];
-                        
-                        if (sync == MIDI_CLOCK) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->clock(time);
-                            }
-                        } else if (sync == MIDI_START) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->start(time);
-                            }
-                        } else if (sync == MIDI_STOP) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->stop(time);
-                            }
-                        }
-                        
+                        handleSync(time, (int)event.buffer[0]);
                     } else if (nBytes == 2) {
-                     
-                        int data1 = (int)event.buffer[1];
-                        
-                        if (cmd == MIDI_PROGRAM_CHANGE) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->progChange(time, channel, data1);
-                            }
-                        } else if (cmd == MIDI_AFTERTOUCH) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->chanPress(time, channel, data1);
-                            }
-                        }
-                    
+                        handleData1(time, type, channel, (int)event.buffer[1]);
                     } else if (nBytes == 3) {
-                    
-                        int data1 = (int)event.buffer[1];
-                        int data2 = (int)event.buffer[2];
-                        
-                        if (cmd == MIDI_NOTE_OFF || ((cmd == MIDI_NOTE_ON) && (data2 == 0))) { 
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->keyOff(time, channel, data1, data2);
-                            }
-                        } else if (cmd == MIDI_NOTE_ON) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->keyOn(time, channel, data1, data2);
-                            }
-                        } else if (cmd == MIDI_CONTROL_CHANGE) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->ctrlChange(time, channel, data1, data2);
-                            }
-                        } else if (cmd == MIDI_PITCH_BEND) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->pitchWheel(time, channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
-                            }
-                        } else if (cmd == MIDI_POLY_AFTERTOUCH) {
-                            for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                                fMidiInputs[i]->keyPress(time, channel, data1, data2);
-                            }
-                        }
+                        handleData2(time, type, channel, (int)event.buffer[1], (int)event.buffer[2]);
                     } 
                 }
             }
