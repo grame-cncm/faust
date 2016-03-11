@@ -172,8 +172,8 @@ class midi_handler : public midi {
             }
         }
         
-        virtual bool start() { return false; }
-        virtual void stop() {}
+        virtual bool start_midi() { return false; }
+        virtual void stop_midi() {}
 
 };
 
