@@ -496,7 +496,9 @@ class jackaudio_midi : public jackaudio, public jack_midi_handler {
         virtual void processMidiIn(jack_nframes_t nframes) 
         {
             // MIDI input
-            processMidiInBuffer(jack_port_get_buffer(fInputMidiPort, nframes));
+            if (fInputMidiPort) {
+                processMidiInBuffer(jack_port_get_buffer(fInputMidiPort, nframes));
+            }
         }
         
         virtual void processAudio(jack_nframes_t nframes) 
@@ -522,24 +524,21 @@ class jackaudio_midi : public jackaudio, public jack_midi_handler {
         virtual void processMidiOut(jack_nframes_t nframes) 
         {
             // MIDI output 
-            processMidiOutBuffer(jack_port_get_buffer(fOutputMidiPort, nframes));
+            if (fOutputMidiPort) {
+                processMidiOutBuffer(jack_port_get_buffer(fOutputMidiPort, nframes));
+            }
         }
      
         virtual int process(jack_nframes_t nframes) 
         {
             // MIDI in
-            if (fInputMidiPort) {
-                processMidiIn(nframes);
-            }
+            processMidiIn(nframes);
             
             // Audio
             processAudio(nframes);
             
             // MIDI out
-            if (fOutputMidiPort) {
-                processMidiOut(nframes);
-            }
-            
+            processMidiOut(nframes);
             return 0;
         }
       
