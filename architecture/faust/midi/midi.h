@@ -54,8 +54,8 @@ class midi {
         virtual void progChange(double date, int channel, int pgm)                     {}
         
         // MIDI sync
-        virtual void start(double date)  {}
-        virtual void stop(double date)   {}
+        virtual void start_sync(double date)  {}
+        virtual void stop_sync(double date)   {}
         virtual void clock(double date)  {}
         
         // Standard MIDI API
@@ -111,11 +111,11 @@ class midi_handler : public midi {
                 }
             } else if (type == MIDI_START) {
                 for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                    fMidiInputs[i]->start(time);
+                    fMidiInputs[i]->start_sync(time);
                 }
             } else if (type == MIDI_STOP) {
                 for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                    fMidiInputs[i]->stop(time);
+                    fMidiInputs[i]->stop_sync(time);
                 }
             }
         }
@@ -318,13 +318,13 @@ class jack_midi_handler : public midi_handler {
         
         void ctrlChange14bits(int channel, int ctrl, int value) {}
          
-        void start(double date) 
+        void start_sync(double date) 
         {
             unsigned char buffer[1] = { MIDI_START };
             writeMessage(buffer, 1);
         }
        
-        void stop(double date) 
+        void stop_sync(double date) 
         {
             unsigned char buffer[1] = { MIDI_STOP };
             writeMessage(buffer, 1);
