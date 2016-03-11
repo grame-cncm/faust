@@ -278,6 +278,7 @@ void dsp_server_connection_info::getJson(llvm_dsp_factory* factory)
    
     string code = factory->getDSPCode();
     JSONUI json(fNameApp, dsp->getNumInputs(), dsp->getNumOutputs(), factory->getSHAKey(), base64_encode(code.c_str(), code.size()));
+    metadataDSPFactory(factory, &json);
     dsp->buildUserInterface(&json);
     //deleteDSPInstance(dsp);  
     delete dsp;
