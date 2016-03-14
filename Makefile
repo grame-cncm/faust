@@ -148,6 +148,8 @@ install :
 	cp architecture/*.js $(prefix)/lib/faust/
 	cp architecture/*.html $(prefix)/lib/faust/
 	cp architecture/*.lib $(prefix)/lib/faust/
+	# This is needed by faust2lv2 -gui / lv2ui.cpp.
+	cp architecture/lv2qtgui.h $(prefix)/lib/faust/
 	# install iOS
 	rm -rf $(prefix)/lib/faust/iOS
 	cp -r architecture/iOS $(prefix)/lib/faust/
