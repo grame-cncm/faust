@@ -607,19 +607,9 @@ class mydsp_poly : public dsp, public midi {
         void keyPress(int channel, int pitch, int press)
         {}
         
-        void chanPress(double date, int channel, int press)
-        {
-            chanPress(channel, press);
-        }
-        
         void chanPress(int channel, int press)
         {}
-        
-        void ctrlChange14bits(double date, int channel, int ctrl, int value)
-        {
-            ctrlChange14bits(channel, ctrl, value);
-        }
-        
+         
         void ctrlChange14bits(int channel, int ctrl, int value)
         {}
  
