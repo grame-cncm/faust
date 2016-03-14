@@ -77,13 +77,17 @@ class jack_midi_handler : public midi_handler {
             }
         }
 
-        void processMidiOutBuffer(void* port_buf_out_aux)
+        void processMidiOutBuffer(void* port_buf_out_aux, bool reset = false)
         {
             // MIDI output
             unsigned char* port_buf_out = (unsigned char*)port_buf_out_aux;
-            jack_midi_clear_buffer(port_buf_out);
+            if (reset) {
+                jack_midi_reset_buffer(port_buf_out);
+            } else {
+                jack_midi_clear_buffer(port_buf_out);
+            }
             size_t res, message_size;
-
+         
             // Write each message one by one
             while (ringbuffer_read(fOutBuffer, (char*)&message_size, sizeof(message_size)) == sizeof(message_size)) {
                 // Reserve MIDI event with the correct size
