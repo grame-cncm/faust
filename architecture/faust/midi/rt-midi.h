@@ -51,7 +51,7 @@ class rt_midi : public midi_handler {
             } else if (nBytes == 2) {
                 midi->handleData1(time, type, channel, (int)message->at(1));
             } else if (nBytes == 3) {
-                midi->handleData2(time, type, channel, (int)message->at(0), (int)message->at(1));
+                midi->handleData2(time, type, channel, (int)message->at(1), (int)message->at(2));
             } 
         }
         
@@ -130,10 +130,10 @@ class rt_midi : public midi_handler {
         
         virtual ~rt_midi()
         {
-            stop();
+            stop_midi();
         }
         
-        bool start()
+        bool start_midi()
         {
             try {
             
@@ -148,12 +148,12 @@ class rt_midi : public midi_handler {
                 
             } catch (RtMidiError &error) {
                 error.printMessage();
-                stop();
+                stop_midi();
                 return false;
             }
         }
         
-        void stop()
+        void stop_midi()
         {
             std::vector<RtMidiIn*>::iterator it1;
             for (it1 = fInput.begin(); it1 != fInput.end(); it1++) {
