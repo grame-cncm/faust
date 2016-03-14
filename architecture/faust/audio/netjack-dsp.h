@@ -41,7 +41,7 @@
 #include "faust/audio/audio.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/ControlUI.h"
-#include "faust/midi/midi.h"
+#include "faust/midi/jack-midi.h"
 
 #include <jack/net.h>
 #include <string>
