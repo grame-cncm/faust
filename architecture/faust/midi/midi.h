@@ -43,14 +43,45 @@ class midi {
         virtual ~midi() {}
 
         // Additional time-stamped API for MIDI input
-        virtual void keyOn(double date, int channel, int pitch, int velocity)          {}
-        virtual void keyOff(double date, int channel, int pitch, int velocity)         {}
-        virtual void keyPress(double date, int channel, int pitch, int press)          {}
-        virtual void chanPress(double date, int channel, int press)                    {}
-        virtual void ctrlChange(double date, int channel, int ctrl, int value)         {}
-        virtual void ctrlChange14bits(double date, int channel, int ctrl, int value)   {}
-        virtual void pitchWheel(double date, int channel, int wheel)                   {}
-        virtual void progChange(double date, int channel, int pgm)                     {}
+        virtual void keyOn(double, int channel, int pitch, int velocity)
+        {
+            keyOn(channel, pitch, velocity);
+        }
+        
+        virtual void keyOff(double, int channel, int pitch, int velocity = 127)
+        {
+            keyOff(channel, pitch, velocity);
+        }
+        
+        virtual void pitchWheel(double, int channel, int wheel)
+        {
+            pitchWheel(channel, wheel);
+        }
+           
+        virtual void ctrlChange(double, int channel, int ctrl, int value)
+        {
+            ctrlChange(channel, ctrl, value);
+        }
+       
+        virtual void progChange(double, int channel, int pgm)
+        {
+            progChange(channel, pgm);
+        }
+        
+        virtual void keyPress(double, int channel, int pitch, int press)
+        {
+            keyPress(channel, pitch, press);
+        }
+        
+        virtual void chanPress(double date, int channel, int press)
+        {
+            chanPress(channel, press);
+        }
+       
+        virtual void ctrlChange14bits(double, int channel, int ctrl, int value)
+        {
+            ctrlChange14bits(channel, ctrl, value);
+        }
 
         // MIDI sync
         virtual void start_sync(double date)  {}
@@ -156,7 +187,7 @@ class midi_handler : public midi {
                 }
             }
         }
-
+       
     public:
 
         midi_handler(const std::string& name = "MIDIHandler"):fName(name) {}
