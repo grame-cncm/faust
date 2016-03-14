@@ -20,14 +20,15 @@
  ************************************************************************/
 
 #include <sstream>
-#include "remote_dsp_aux.h"
-#include "faust/gui/ControlUI.h"
-#include "llvm-dsp.h"
-#include "utilities.h"
-#include "rn_base64.h"
 #include <errno.h>
 #include <string.h>
 #include <libgen.h>
+#include "remote_dsp_aux.h"
+#include "faust/gui/ControlUI.h"
+#include "faust/gui/MidiUI.h"
+#include "llvm-dsp.h"
+#include "utilities.h"
+#include "rn_base64.h"
 
 RemoteFactoryDSPTableType remote_dsp_factory::gRemoteFactoryDSPTable;
 LocalFactoryDSPTableType remote_dsp_factory::gLocalFactoryDSPTable;
@@ -369,11 +370,11 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory)
         fAudioOutputs[i] = 0;
     }
     
-    fControlInputs = new float*[1];
-    fControlOutputs = new float*[1];
+    fControlInputs = new float*[2];
+    fControlOutputs = new float*[2];
     
-    fControlInputs[0] = 0;
-    fControlOutputs[0] = 0;
+    fControlInputs[0] = fControlInputs[1] = 0;
+    fControlOutputs[0] = fControlOutputs[1] = 0;
     
     fErrorCallback = 0;
     fErrorCallbackArg = 0;
@@ -397,7 +398,9 @@ remote_dsp_aux::~remote_dsp_aux()
         jack_net_master_close(fNetJack); 
         
         delete[] fControlInputs[0];
+        delete[] fControlInputs[1];
         delete[] fControlOutputs[0];
+        delete[] fControlOutputs[1];
     
         fNetJack = 0;
     }
@@ -425,6 +428,11 @@ void remote_dsp_aux::fillBufferWithZerosOffset(int channels, int offset, int siz
 // DecodeJSON to build user interface
 void remote_dsp_aux::buildUserInterface(UI* ui) 
 {
+    MidiUI* midi_ui = dynamic_cast<MidiUI*>(ui);
+    if (midi_ui) { 
+        midi_ui->addMidiIn(this); 
+    }
+            
     fFactory->fJSONDecoder->buildUserInterface(ui);
 }
 
@@ -441,7 +449,7 @@ void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int o
 
 void remote_dsp_aux::sendSlice(int buffer_size) 
 {
-    if (fRunning && jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, buffer_size) < 0) {
+    if (fRunning && jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 2, (void**)fControlInputs, buffer_size) < 0) {
         fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
         if (fErrorCallback) {
             fRunning = (fErrorCallback(ERROR_NETJACK_WRITE, fErrorCallbackArg) == 0);
@@ -451,7 +459,7 @@ void remote_dsp_aux::sendSlice(int buffer_size)
 
 void remote_dsp_aux::recvSlice(int buffer_size)
 {
-    if (fRunning && jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, buffer_size) < 0) {
+    if (fRunning && jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 2, (void**)fControlOutputs, buffer_size) < 0) {
         fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
         if (fErrorCallback) {
             fRunning = (fErrorCallback(ERROR_NETJACK_READ, fErrorCallbackArg) == 0);
@@ -472,18 +480,22 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         for (i = 0; i < numberOfCycles; i++) {
             setupBuffers(input, output, i*fBufferSize);
             ControlUI::encode_midi_control(fControlInputs[0], fFactory->fJSONDecoder->fInControl, fFactory->fJSONDecoder->fInputItems);
+            processMidiOutBuffer(fControlInputs[1], true);
             sendSlice(fBufferSize);
             recvSlice(fBufferSize);
             ControlUI::decode_midi_control(fControlOutputs[0], fFactory->fJSONDecoder->fOutControl, fFactory->fJSONDecoder->fOutputItems);
+            processMidiInBuffer(fControlOutputs[1]);
         }
         
         if (lastCycle > 0) {
             setupBuffers(input, output, i*fBufferSize);
             ControlUI::encode_midi_control(fControlInputs[0], fFactory->fJSONDecoder->fInControl, fFactory->fJSONDecoder->fInputItems);
+            processMidiOutBuffer(fControlInputs[1], true);
             fillBufferWithZerosOffset(getNumInputs(), lastCycle, fBufferSize-lastCycle, fAudioInputs);
             sendSlice(lastCycle);
             recvSlice(lastCycle);
             ControlUI::decode_midi_control(fControlOutputs[0], fFactory->fJSONDecoder->fOutControl, fFactory->fJSONDecoder->fOutputItems);
+            processMidiInBuffer(fControlOutputs[1]);
         }
         
     } else {
@@ -533,10 +545,14 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
      
     // Init Control Buffers
     fControlInputs[0] = new float[8192];
+    fControlInputs[1] = new float[8192];
     fControlOutputs[0] = new float[8192];
+    fControlOutputs[1] = new float[8192];
  
     memset(fControlInputs[0], 0, sizeof(float) * 8192);
+    memset(fControlInputs[1], 0, sizeof(float) * 8192);
     memset(fControlOutputs[0], 0, sizeof(float) * 8192);
+    memset(fControlOutputs[1], 0, sizeof(float) * 8192);
     
     // To be sure fCounterIn and fCounterOut are set before 'compute' is called, even if no 'buildUserInterface' is called by the client
     ControlUI dummy_ui;

@@ -8,9 +8,10 @@
 
 #include "remote_server.h"
 #include "utilities.h"
+#include "rn_base64.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUI.h"
-#include "rn_base64.h"
+#include "faust/gui/MidiUI.h"
 
 #define LLVM_DSP 1
 #include "faust/dsp/poly-dsp.h"
@@ -126,6 +127,7 @@ class netjack_dsp : public audio_dsp {
         string fCompression;
         string fMTU;
         string fLatency;
+        MidiUI* fMidiInterface;
      
     public:
     
@@ -137,6 +139,8 @@ class netjack_dsp : public audio_dsp {
                     const string& poly, const string& voices, const string& group,
                     createInstanceDSPCallback cb1, void* cb1_arg,
                     deleteInstanceDSPCallback cb2, void* cb2_arg);
+                    
+        virtual ~netjack_dsp() { delete fMidiInterface; }
         
         bool init(int u1, int u2);
        
@@ -157,18 +161,27 @@ netjack_dsp::netjack_dsp(llvm_dsp_factory* factory,
                         const string& group,
                         createInstanceDSPCallback cb1, void* cb1_arg,
                         deleteInstanceDSPCallback cb2, void* cb2_arg)
-                        :audio_dsp(factory, atoi(poly.c_str()), atoi(voices.c_str()), atoi(group.c_str()), name, key, cb1, cb1_arg, cb2, cb2_arg), fIP(ip), 
+                        :audio_dsp(factory, atoi(poly.c_str()), atoi(voices.c_str()), atoi(group.c_str()), 
+                        name, key, cb1, cb1_arg, cb2, cb2_arg), fIP(ip), 
                         fPort(port), fCompression(compression), 
-                        fMTU(mtu), fLatency(latency)
+                        fMTU(mtu), fLatency(latency), fMidiInterface(0)
 {}
 
 bool netjack_dsp::init(int u1, int u2)
 {
-    fAudio = new netjackaudio_slave(atoi(fCompression.c_str()), 
-                                    fIP, 
-                                    atoi(fPort.c_str()), 
-                                    atoi(fMTU.c_str()), 
-                                    atoi(fLatency.c_str()));
+    netjackaudio_slave* netjack_slave = new netjackaudio_slave(atoi(fCompression.c_str()), 
+                                                                fIP, 
+                                                                atoi(fPort.c_str()), 
+                                                                atoi(fMTU.c_str()), 
+                                                                atoi(fLatency.c_str()));
+    fAudio = netjack_slave;
+    
+    // If Polyphonic DSP, setup a MIDI interface
+    if (dynamic_cast<mydsp_poly*>(fDSP)) {
+        fMidiInterface = new MidiUI(netjack_slave);
+        fDSP->buildUserInterface(fMidiInterface);
+        fMidiInterface->run();
+    }
                                         
     if (!fAudio->init(fName.c_str(), fDSP)) {
         printf("netjack_dsp : init audio failed\n");
@@ -203,7 +216,8 @@ bool audio_dsp::init(int sr, int bs)
     }
 }
 
-audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool group, const string& name, const string& key, 
+audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool group, 
+                    const string& name, const string& key, 
                     createInstanceDSPCallback cb1, void* cb1_arg,
                     deleteInstanceDSPCallback cb2, void* cb2_arg)
                     :fName(name), fInstanceKey(key), fAudio(NULL), 

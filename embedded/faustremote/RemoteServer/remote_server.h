@@ -85,7 +85,8 @@ class audio_dsp {
   
     public:
     
-        audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool group, const string& name, const string& key, 
+        audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, 
+                bool group, const string& name, const string& key, 
                 createInstanceDSPCallback cb1, void* cb1_arg,
                 deleteInstanceDSPCallback cb2, void* cb2_arg);
         virtual ~audio_dsp();

@@ -29,7 +29,6 @@
 #include <assert.h>
 #include <pthread.h>
 #include <curl/curl.h>
-
 #include <sstream>
 #include <iostream>
 #include <fstream> 
@@ -38,6 +37,7 @@
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
 #include "faust/dsp/proxy-dsp.h"
+#include "faust/midi/jack-midi.h"
 #include "smartpointer.h"
 #include "lo/lo.h"
 #include "TMutex.h"
@@ -140,24 +140,24 @@ class remote_dsp_factory : public smartable {
                                                 
         remote_audio_aux* createRemoteAudioInstance(int argc, const char* argv[], int& error);
         
-        bool        init(int argc, const char *argv[], 
+        bool init(int argc, const char *argv[], 
                         const string& name_app, 
                         const string& dsp_content, 
                         string& error_msg, 
                         int opt_level);
         
-        void        metadataRemoteDSPFactory(Meta* m);  
+        void metadataRemoteDSPFactory(Meta* m);  
         
-        string              getURL() { return fServerURL; }
+        string getURL() { return fServerURL; }
         
-        string              getName();
-        string              getSHAKey();
-        string              getDSPCode();
-        string              getPoly();
-        string              getVoices();
-        string              getGroup();
+        string getName();
+        string getSHAKey();
+        string getDSPCode();
+        string getPoly();
+        string getVoices();
+        string getGroup();
         
-        vector<string>      getRemoteDSPFactoryLibraryList() { return fPathnameList; }
+        vector<string> getRemoteDSPFactoryLibraryList() { return fPathnameList; }
         
         static LocalFactoryDSPTableType gLocalFactoryDSPTable;
         static RemoteFactoryDSPTableType gRemoteFactoryDSPTable;
@@ -166,7 +166,7 @@ class remote_dsp_factory : public smartable {
 
 };
 
-class remote_dsp_aux : public dsp {
+class remote_dsp_aux : public dsp, public jack_midi_handler {
     
     private:
         
@@ -214,7 +214,6 @@ class remote_dsp_aux : public dsp {
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
   
         remote_dsp_factory* getFactory() { return fFactory; }
-
 };
 
 class remote_audio_aux {
@@ -271,7 +270,16 @@ class EXPORT remote_dsp : public dsp {
         void buildUserInterface(UI* ui);
         
         void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-         
+        
+        // MIDI polyphonic control
+        void keyOn(int channel, int pitch, int velocity);
+        void keyOff(int channel, int pitch, int velocity);
+        void keyPress(int channel, int pitch, int press);
+        void chanPress(int channel, int press);
+        void ctrlChange(int channel, int ctrl, int value);
+        void pitchWheel(int channel, int wheel);
+        void progChange(int channel, int pgm);
+        
 };
 
 class EXPORT remote_audio {
