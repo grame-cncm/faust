@@ -424,6 +424,15 @@ class dsp {
 #define FAUST_MIDICC 1
 #endif
 
+/* This enables or disables the plugin's custom Qt GUI (cf. lv2ui.cpp). Note
+   that this only affects the plugin manifest, the GUI code itself is in a
+   separate module created with the lv2ui.cpp architecture. Also, you'll have
+   to use the alternative lv2ui manifest templates to tell the LV2 host about
+   the GUI. */
+#ifndef FAUST_UI
+#define FAUST_UI 0
+#endif
+
 // You can define these for various debugging output items.
 //#define DEBUG_META 1 // recognized MIDI controller metadata
 //#define DEBUG_VOICES 1 // triggering of synth voices
@@ -1890,6 +1899,7 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
   fprintf(fp, "@prefix doap:  <http://usefulinc.com/ns/doap#> .\n\
 @prefix foaf:  <http://xmlns.com/foaf/0.1/> .\n\
 @prefix lv2:   <http://lv2plug.in/ns/lv2core#> .\n\
+@prefix ui:    <http://lv2plug.in/ns/extensions/ui#> .\n\
 @prefix epp:   <http://lv2plug.in/ns/ext/port-props#> .\n\
 @prefix atom:  <http://lv2plug.in/ns/ext/atom#> .\n\
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
@@ -1915,6 +1925,10 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
   if (plugin_license && *plugin_license)
     fprintf(fp, "\
        doap:license \"%s\" ;\n", plugin_license);
+#if FAUST_UI
+    fprintf(fp, "\
+       ui:ui <%sui> ;\n", PLUGIN_URI);
+#endif
   int idx = 0;
   // control ports
   for (int i = 0; i < k; i++, idx++) {
