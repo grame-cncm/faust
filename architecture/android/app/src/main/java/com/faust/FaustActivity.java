@@ -135,7 +135,7 @@ public class FaustActivity extends Activity {
         Log.d("FaustJava", "onCreate");
         if (!dsp_faust.isRunning()) {
 
-            WifiManager wifi = (WifiManager)getSystemService( Context.WIFI_SERVICE );
+            WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);
             if (wifi != null) {
                 WifiManager.MulticastLock lock = wifi.createMulticastLock("Log_Tag");
                 lock.acquire();
@@ -341,16 +341,20 @@ public class FaustActivity extends Activity {
     }
 
     @Override
-    protected void onStop(){
+    protected void onStop() {
         Log.d("FaustJava", "onStop");
         super.onStop();
+        // 15/03/2016 : desactivated so that dynamic activity change (like switch to MultiKeyboardActivity or PianoKeyboard)
+        // correctly work
+        /*
         if (!isChangingConfigurations()) {
             dsp_faust.stop();
         }
+        */
     }
 
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         Log.d("FaustJava", "onDestroy");
     	// only stops audio when the user press the return button (and not when the screen is rotated)
     	if (!isChangingConfigurations()) {
