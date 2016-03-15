@@ -163,12 +163,12 @@ fi
 # Create the temp directory and the bundle directory inside it.
 mkdir -p $tmpdir/$lv2name
 # Compile the Faust module.
-faust -i -a "$FAUSTLIB/$arch" -cn "$clsname" $OPTIONS "$dspname" -o "$tmpdir/$cppname"
+faust -i -a "$FAUSTLIB/$arch" -cn "$clsname" $OPTIONS "$dspname" -o "$tmpdir/$cppname" || exit
 $CXX -shared $CXXFLAGS -DDLLEXT="\"$dllext\"" $FAUSTTOOLSFLAGS $PROCARCH $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname"
 if [ -n "$plugin_gui" ]; then
 # Compile the UI module.
 mkdir -p $uitmpdir
-faust -i -a  "$FAUSTLIB/$archui" -cn "$clsname" $OPTIONS "$dspname" -o "$uitmpdir/$uicppname"
+faust -i -a  "$FAUSTLIB/$archui" -cn "$clsname" $OPTIONS "$dspname" -o "$uitmpdir/$uicppname" || exit
 (
     cd $uitmpdir
     $QMAKE -project -t lib -o ${clsname}ui.pro "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTLIB" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$(echo $CPPFLAGS|sed -e 's/"/\\\\\\"/g')" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTLIB/lv2qtgui.h" "HEADERS+=$FAUSTINC/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
