@@ -85,7 +85,7 @@ remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_key, co
  *  - Faust compilation parameters (like '-vec/-sch/'...)
  *  - '-lm <target>' (like '-lm x86_64-apple-macosx10.6.0:opteron') to cross-compile on client side and send machine code on server
  *  - '-rm <target>' (like '-rm arm-apple-ios7.0:cortex-a9') to cross-compile on server side and get machine code on client to re-create a local Factory
- *  - '-poly <0/1>' to create a polyphonic DSP
+ *  - '-poly <0/1>' to create a polyphonic DSP factory
  *  - '-voices <num>' number of polyphonic DSP voices
  *  - '-group <0/1>' whether to group polyphonic DSP voices
  * @param ip_server - IP of remote machine
@@ -113,7 +113,7 @@ remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename,
  *  - Faust compilation parameters (like '-vec/-sch/'...)
  *  - '-lm <target>' (like '-lm x86_64-apple-macosx10.6.0:opteron') to cross-compile on client side and send machine code on server
  *  - '-rm <target>' (like '-rm arm-apple-ios7.0:cortex-a9') to cross-compile on server side and get machine code on client to re-create a local Factory
- *  - '-poly <0/1>' to create a polyphonic DSP
+ *  - '-poly <0/1>' to create a polyphonic DSP factory
  *  - '-voices <num>' number of polyphonic DSP voices
  *  - '-group <0/1>' whether to group polyphonic DSP voices
  * @param ip_server - IP of remote machine

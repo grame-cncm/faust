@@ -1086,6 +1086,42 @@ EXPORT void remote_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** outp
     reinterpret_cast<remote_dsp_aux*>(this)->compute(count, input, output);
 }
 
+// MIDI polyphonic control
+EXPORT void remote_dsp::keyOn(int channel, int pitch, int velocity)
+{
+    reinterpret_cast<remote_dsp_aux*>(this)->keyOn(channel, pitch, velocity);
+}
+
+EXPORT void remote_dsp::keyOff(int channel, int pitch, int velocity)
+{
+    reinterpret_cast<remote_dsp_aux*>(this)->keyOff(channel, pitch, velocity);
+}
+
+EXPORT void remote_dsp::keyPress(int channel, int pitch, int press)
+{
+    reinterpret_cast<remote_dsp_aux*>(this)->keyPress(channel, pitch, press);
+}
+
+EXPORT void remote_dsp::chanPress(int channel, int press)
+{
+     reinterpret_cast<remote_dsp_aux*>(this)->chanPress(channel, press);
+}
+
+EXPORT void remote_dsp::ctrlChange(int channel, int ctrl, int value)
+{
+     reinterpret_cast<remote_dsp_aux*>(this)->ctrlChange(channel, ctrl, value);
+}
+
+EXPORT void remote_dsp::pitchWheel(int channel, int wheel)
+{
+     reinterpret_cast<remote_dsp_aux*>(this)->pitchWheel(channel, wheel);
+}
+
+EXPORT void remote_dsp::progChange(int channel, int pgm)
+{
+    reinterpret_cast<remote_dsp_aux*>(this)->progChange(channel, pgm);
+}
+
 //---------AUDIO INSTANCE
 
 EXPORT remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int argc, const char* argv[], int& error)
