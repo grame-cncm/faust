@@ -70,7 +70,7 @@ enum {
     ERROR_CURL_CONNECTION
 };
 
-// To be used as a Singleton 
+// To be used as a singleton 
 
 struct remote_DNS {
 
@@ -187,6 +187,8 @@ class remote_dsp_aux : public dsp, public jack_midi_handler {
         
         bool                    fRunning;
         
+        JSONUIDecoder*          fJSONDecoder;
+        
         void fillBufferWithZerosOffset(int channels, int offset, int size, FAUSTFLOAT** buffer);
         void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
         
@@ -245,7 +247,8 @@ class remote_dsp_machine_aux {
     
     public: 
     
-        remote_dsp_machine_aux(const string& ip, int port, const string& target):fIP(ip), fPort(port), fTarget(target)
+        remote_dsp_machine_aux(const string& ip, int port, const string& target)
+            :fIP(ip), fPort(port), fTarget(target)
         {}
         virtual ~remote_dsp_machine_aux() {}
         

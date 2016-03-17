@@ -358,7 +358,9 @@ static bool isLocalFactory(remote_dsp_factory* factory)
 remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory)
 {
     fFactory = factory;
-    fNetJack = NULL;
+    fJSONDecoder = new JSONUIDecoder(factory->fJSONDecoder->fJSON);
+    
+    fNetJack = 0;
     
     fAudioInputs = new float*[getNumInputs()];
     fAudioOutputs = new float*[getNumOutputs()];
@@ -415,6 +417,8 @@ remote_dsp_aux::~remote_dsp_aux()
     RemoteFactoryDSPTableIt it = remote_dsp_factory::gRemoteFactoryDSPTable.find(fFactory);
     assert(it != remote_dsp_factory::gRemoteFactoryDSPTable.end());
     (*it).second.first.remove(this);
+    
+    delete fJSONDecoder;
 }
 
 void remote_dsp_aux::fillBufferWithZerosOffset(int channels, int offset, int size, FAUSTFLOAT** buffer)
@@ -431,9 +435,9 @@ void remote_dsp_aux::buildUserInterface(UI* ui)
     MidiUI* midi_ui = dynamic_cast<MidiUI*>(ui);
     if (midi_ui) { 
         midi_ui->addMidiIn(this); 
+    } else {
+        fJSONDecoder->buildUserInterface(ui);
     }
-            
-    fFactory->fJSONDecoder->buildUserInterface(ui);
 }
 
 void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset)
@@ -479,22 +483,28 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         int i = 0;
         for (i = 0; i < numberOfCycles; i++) {
             setupBuffers(input, output, i*fBufferSize);
-            ControlUI::encode_midi_control(fControlInputs[0], fFactory->fJSONDecoder->fInControl, fFactory->fJSONDecoder->fInputItems);
+            // Hack : do not transmit control in polyphonic mode
+            if (fFactory->fPoly == "0") {
+                ControlUI::encode_midi_control(fControlInputs[0], fJSONDecoder->fInControl, fJSONDecoder->fInputItems);
+            }
             processMidiOutBuffer(fControlInputs[1], true);
             sendSlice(fBufferSize);
             recvSlice(fBufferSize);
-            ControlUI::decode_midi_control(fControlOutputs[0], fFactory->fJSONDecoder->fOutControl, fFactory->fJSONDecoder->fOutputItems);
+            ControlUI::decode_midi_control(fControlOutputs[0], fJSONDecoder->fOutControl, fJSONDecoder->fOutputItems);
             processMidiInBuffer(fControlOutputs[1]);
         }
         
         if (lastCycle > 0) {
             setupBuffers(input, output, i*fBufferSize);
-            ControlUI::encode_midi_control(fControlInputs[0], fFactory->fJSONDecoder->fInControl, fFactory->fJSONDecoder->fInputItems);
+            // Hack : do not transmit control in polyphonic mode
+            if (fFactory->fPoly == "0") {
+                ControlUI::encode_midi_control(fControlInputs[0], fJSONDecoder->fInControl, fJSONDecoder->fInputItems);
+            }
             processMidiOutBuffer(fControlInputs[1], true);
             fillBufferWithZerosOffset(getNumInputs(), lastCycle, fBufferSize-lastCycle, fAudioInputs);
             sendSlice(lastCycle);
             recvSlice(lastCycle);
-            ControlUI::decode_midi_control(fControlOutputs[0], fFactory->fJSONDecoder->fOutControl, fFactory->fJSONDecoder->fOutputItems);
+            ControlUI::decode_midi_control(fControlOutputs[0], fJSONDecoder->fOutControl, fJSONDecoder->fOutputItems);
             processMidiInBuffer(fControlOutputs[1]);
         }
         
@@ -511,12 +521,12 @@ void remote_dsp_aux::metadata(Meta* m)
 // Accessors to number of input/output of DSP
 int remote_dsp_aux::getNumInputs()
 { 
-    return fFactory->fJSONDecoder->fNumInputs;
+    return fJSONDecoder->fNumInputs;
 }
 
 int remote_dsp_aux::getNumOutputs()
 { 
-    return fFactory->fJSONDecoder->fNumOutputs;
+    return fJSONDecoder->fNumOutputs;
 }
 
 // Useless fonction in our case but required for a DSP interface
