@@ -208,7 +208,7 @@ class bela_midi : public midi_handler {
 // Use case example 
 
 #include "faust/gui/MidiUI.h"
-#include "faust/gui/bela_midi.h"
+#include "faust/midi/bela-midi.h"
 
 bela_midi fMIDI;
 MidiUI* fMidiUI;
