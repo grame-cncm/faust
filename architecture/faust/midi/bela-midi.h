@@ -42,12 +42,12 @@ class bela_midi : public midi_handler {
             bela_midi* midi = static_cast<bela_midi*>(arg);
             
             switch (message.getType()) {
-                case kmmNoteOff;
+                case kmmNoteOff:
                     for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->keyOff(0, message.getChannel(), message.getDataByte[0], message.getDataByte[1]);
                     }
                     break;
-                case kmmNoteOn;
+                case kmmNoteOn:
                      for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         if (message.getDataByte[1] != 0) {
                             midi->fMidiInputs[i]->keyOn(0, message.getChannel(), message.getDataByte[0], message.getDataByte[1]);
@@ -56,30 +56,34 @@ class bela_midi : public midi_handler {
                         }
                     }
                     break;
-                case kmmPolyphonicKeyPressure;
+                case kmmPolyphonicKeyPressure:
                     for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->keyPress(0, message.getChannel(), message.getDataByte[0], message.getDataByte[1]);
                     }
                     break;
-                case kmmControlChange;
+                case kmmControlChange:
                     for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->ctrlChange(0, message.getChannel(), message.getDataByte[0], message.getDataByte[1]);
                     }
                     break;
-                case kmmProgramChange;
+                case kmmProgramChange:
                     for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->progChange(0, message.getChannel(), message.getDataByte[0]);
                     }
                     break;
-                case kmmChannelPressure;
+                case kmmChannelPressure:
                     for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->chanPress(0, message.getChannel(), message.getDataByte[0],  message.getDataByte[1]);
                     }
                     break;
-                case kmmPitchBend;
+                case kmmPitchBend:
                     for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->pitchWheel(0, message.getChannel(), ((message.getDataByte[1] * 128.0 + message.getDataByte[0]) - 8192) / 8192.0);
                     }
+                    break;
+                case kmmNone:
+                case kmmAny:
+                default:
                     break;
             } 
         }
