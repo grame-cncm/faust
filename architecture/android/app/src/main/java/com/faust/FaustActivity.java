@@ -147,11 +147,13 @@ public class FaustActivity extends Activity {
 
             // Use machine buffer size and sample rate
             AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
-            String rate = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
-            String size = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
-            Log.d("FaustJava", "Size :" + size + "Rate: " + rate);
-
+            
+            // Do not work on Android 4.xx
+            //String rate = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+            //String size = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+            //Log.d("FaustJava", "Size :" + size + "Rate: " + rate);
             //dsp_faust.init(Integer.parseInt(rate), Integer.parseInt(size));
+            
             dsp_faust.init(44100, 512);
             Osc.startListening();
         }

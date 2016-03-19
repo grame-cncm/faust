@@ -51,9 +51,6 @@ class LV2QtGUI : public QObject {
   ERect rectangle;
   float voices_zone, tuning_zone;
 
- signals:
-  void getUIParameters(QObject* object);
-
  public slots:
   void updateUI_buttonPressed();
   void updateUI_buttonReleased();
