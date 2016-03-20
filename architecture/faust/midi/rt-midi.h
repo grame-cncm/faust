@@ -42,68 +42,16 @@ class rt_midi : public midi_handler {
         {
             rt_midi* midi = static_cast<rt_midi*>(arg);
             unsigned int nBytes = message->size();
-            
-            int cmd = (int)message->at(0) & 0xf0;
+            int type = (int)message->at(0) & 0xf0;
             int channel = (int)message->at(0) & 0x0f;
             
             // MIDI sync
             if (nBytes == 1) {
-            
-                int sync = (int)message->at(0);
-                if (sync == MIDI_CLOCK) {
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->clock(time);
-                    }
-                } else if (sync == MIDI_START) {
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->start(time);
-                    }
-                } else if (sync == MIDI_STOP) {
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->stop(time);
-                    }
-                }
-                
+                midi->handleSync(time, (int)message->at(0));
             } else if (nBytes == 2) {
-             
-                int data1 = (int)message->at(1);
-                
-                if (cmd == MIDI_PROGRAM_CHANGE) {
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->progChange(time, channel, data1);
-                    }
-                } else if (cmd == MIDI_AFTERTOUCH) {
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->chanPress(time, channel, data1);
-                    }
-                }
-            
+                midi->handleData1(time, type, channel, (int)message->at(1));
             } else if (nBytes == 3) {
-            
-                int data1 = (int)message->at(1);
-                int data2 = (int)message->at(2);
-                
-                if (cmd == MIDI_NOTE_OFF || ((cmd == MIDI_NOTE_ON) && (data2 == 0))) { 
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyOff(time, channel, data1, data2);
-                    }
-                } else if (cmd == MIDI_NOTE_ON) {
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyOn(time, channel, data1, data2);
-                    }
-                } else if (cmd == MIDI_CONTROL_CHANGE) {
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->ctrlChange(time, channel, data1, data2);
-                    }
-                } else if (cmd == MIDI_PITCH_BEND) {
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->pitchWheel(time, channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
-                    }
-                } else if (cmd == MIDI_POLY_AFTERTOUCH) {
-                    for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyPress(time, channel, data1, data2);
-                    }
-                }
+                midi->handleData2(time, type, channel, (int)message->at(1), (int)message->at(2));
             } 
         }
         
@@ -182,10 +130,10 @@ class rt_midi : public midi_handler {
         
         virtual ~rt_midi()
         {
-            stop();
+            stop_midi();
         }
         
-        bool start()
+        bool start_midi()
         {
             try {
             
@@ -200,12 +148,12 @@ class rt_midi : public midi_handler {
                 
             } catch (RtMidiError &error) {
                 error.printMessage();
-                stop();
+                stop_midi();
                 return false;
             }
         }
         
-        void stop()
+        void stop_midi()
         {
             std::vector<RtMidiIn*>::iterator it1;
             for (it1 = fInput.begin(); it1 != fInput.end(); it1++) {

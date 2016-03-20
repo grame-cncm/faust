@@ -135,7 +135,7 @@ public class FaustActivity extends Activity {
         Log.d("FaustJava", "onCreate");
         if (!dsp_faust.isRunning()) {
 
-            WifiManager wifi = (WifiManager)getSystemService( Context.WIFI_SERVICE );
+            WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);
             if (wifi != null) {
                 WifiManager.MulticastLock lock = wifi.createMulticastLock("Log_Tag");
                 lock.acquire();
@@ -147,11 +147,13 @@ public class FaustActivity extends Activity {
 
             // Use machine buffer size and sample rate
             AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
-            String rate = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
-            String size = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
-            Log.d("FaustJava", "Size :" + size + "Rate: " + rate);
-
+            
+            // Do not work on Android 4.xx
+            //String rate = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE);
+            //String size = audioManager.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER);
+            //Log.d("FaustJava", "Size :" + size + "Rate: " + rate);
             //dsp_faust.init(Integer.parseInt(rate), Integer.parseInt(size));
+            
             dsp_faust.init(44100, 512);
             Osc.startListening();
         }
@@ -341,16 +343,20 @@ public class FaustActivity extends Activity {
     }
 
     @Override
-    protected void onStop(){
+    protected void onStop() {
         Log.d("FaustJava", "onStop");
         super.onStop();
+        // 15/03/2016 : desactivated so that dynamic activity change (like switch to MultiKeyboardActivity or PianoKeyboard)
+        // correctly work
+        /*
         if (!isChangingConfigurations()) {
             dsp_faust.stop();
         }
+        */
     }
 
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         Log.d("FaustJava", "onDestroy");
     	// only stops audio when the user press the return button (and not when the screen is rotated)
     	if (!isChangingConfigurations()) {

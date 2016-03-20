@@ -59,6 +59,8 @@ using namespace std;
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
+#include "faust/gui/MidiUI.h"
+#include "faust/midi/bela-midi.h"
 
 const char * const pinNamesStrings[] =
 {
@@ -299,6 +301,8 @@ class BelaUI : public UI
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 /**************************************************************************************
 
@@ -312,6 +316,8 @@ float* gFaustIns[10]; // array of pointers to gInputBuffer data
 float* gFaustOuts[10]; // array of pointers to gOutputBuffers data
 mydsp fDSP;
 BelaUI fUI;
+bela_midi fMIDI;
+MidiUI* fMidiUI;
 
 bool setup(BeagleRTContext *context, void *userData)
 {
@@ -345,6 +351,10 @@ bool setup(BeagleRTContext *context, void *userData)
   // create the table of output channels
   for(int ch=0; ch<fDSP.getNumOutputs(); ++ch)
     gFaustOuts[ch] = gOutputBuffers + (ch * context->audioFrames);
+  
+  fMidiUI = new MidiUI(&fMIDI);
+  fDSP.buildUserInterface(fMidiUI);
+  fMidiUI->run();
   
   return true;
 }
@@ -405,6 +415,8 @@ void cleanup(BeagleRTContext *context, void *userData)
     free(gInputBuffers);
   if(gOutputBuffers != NULL)
     free(gOutputBuffers);
+    
+  delete fMidiUI;
 }
 
 

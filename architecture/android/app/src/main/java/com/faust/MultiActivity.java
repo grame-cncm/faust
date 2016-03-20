@@ -51,7 +51,7 @@ public class MultiActivity extends Activity {
 			}	
 		});
 	}
-	
+   	
 	@Override
 	public void onDestroy(){
     	super.onDestroy();

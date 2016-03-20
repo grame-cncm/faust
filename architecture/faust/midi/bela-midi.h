@@ -37,64 +37,69 @@ class bela_midi : public midi_handler {
     
         Midi fBelaMidi;
         
-        static void midiCallback(const MidiChannelMessage& message, void* arg)
+        static void midiCallback(MidiChannelMessage message, void* arg)
         {
             bela_midi* midi = static_cast<bela_midi*>(arg);
             
             switch (message.getType()) {
-                case kmmNoteOff;
+                case kmmNoteOff:
                     for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyOff(0, message.getChannel(), message.getDataByte[0], message.getDataByte[1]);
+                        midi->fMidiInputs[i]->keyOff(0, message.getChannel(), message.getDataByte(0), message.getDataByte(1));
                     }
                     break;
-                case kmmNoteOn;
+                case kmmNoteOn:
                      for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        if (message.getDataByte[1] != 0) {
-                            midi->fMidiInputs[i]->keyOn(0, message.getChannel(), message.getDataByte[0], message.getDataByte[1]);
+                        if (message.getDataByte(1) != 0) {
+                            midi->fMidiInputs[i]->keyOn(0, message.getChannel(), message.getDataByte(0), message.getDataByte(1));
                         } else {
-                            midi->fMidiInputs[i]->keyOff(0, message.getChannel(), message.getDataByte[0], message.getDataByte[1]);
+                            midi->fMidiInputs[i]->keyOff(0, message.getChannel(), message.getDataByte(0), message.getDataByte(1));
                         }
                     }
                     break;
-                case kmmPolyphonicKeyPressure;
+                case kmmPolyphonicKeyPressure:
                     for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyPress(0, message.getChannel(), message.getDataByte[0], message.getDataByte[1]);
+                        midi->fMidiInputs[i]->keyPress(0, message.getChannel(), message.getDataByte(0), message.getDataByte(1));
                     }
                     break;
-                case kmmControlChange;
+                case kmmControlChange:
                     for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->ctrlChange(0, message.getChannel(), message.getDataByte[0], message.getDataByte[1]);
+                        midi->fMidiInputs[i]->ctrlChange(0, message.getChannel(), message.getDataByte(0), message.getDataByte(1));
                     }
                     break;
-                case kmmProgramChange;
+                case kmmProgramChange:
                     for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->progChange(0, message.getChannel(), message.getDataByte[0]);
+                        midi->fMidiInputs[i]->progChange(0, message.getChannel(), message.getDataByte(0));
                     }
                     break;
-                case kmmChannelPressure;
+                case kmmChannelPressure:
                     for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->chanPress(0, message.getChannel(), message.getDataByte[0],  message.getDataByte[1]);
+                        midi->fMidiInputs[i]->chanPress(0, message.getChannel(), message.getDataByte(0));
                     }
                     break;
-                case kmmPitchBend;
+                case kmmPitchBend:
                     for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->pitchWheel(0, message.getChannel(), ((message.getDataByte[1] * 128.0 + message.getDataByte[0]) - 8192) / 8192.0);
+                        midi->fMidiInputs[i]->pitchWheel(0, message.getChannel(), ((message.getDataByte(1) * 128.0 + message.getDataByte(0)) - 8192) / 8192.0);
                     }
+                    break;
+                case kmmNone:
+                case kmmAny:
+                default:
                     break;
             } 
         }
        
     public:
     
-        bela_midi(const std::string& name):midi_handler(name)
+        bela_midi()
+            :midi_handler("bela")
         {}
         
         virtual ~bela_midi()
         {
-            stop();
+            stop_midi();
         }
         
-        bool start()
+        bool start_midi()
         {
             if (fBelaMidi.readFrom(0) < 0) {
                 return false;
@@ -109,7 +114,7 @@ class bela_midi : public midi_handler {
             return true;
         }
         
-        void stop()
+        void stop_midi()
         { 
             // Nothing todo?
         }
@@ -117,59 +122,73 @@ class bela_midi : public midi_handler {
         void keyOn(int channel, int pitch, int velocity) 
         {
             unsigned char buffer[3] 
-                = { static_cast<unsigned char>(MIDI_NOTE_ON + channel), static_cast<unsigned char>(pitch), static_cast<unsigned char>(velocity) };
+                = { static_cast<unsigned char>(MIDI_NOTE_ON + channel), 
+                    static_cast<unsigned char>(pitch), 
+                    static_cast<unsigned char>(velocity) };
             fBelaMidi.writeOutput(buffer, 3);
         }
         
         void keyOff(int channel, int pitch, int velocity) 
         {
             unsigned char buffer[3] 
-                = { static_cast<unsigned char>(MIDI_NOTE_OFF + channel), static_cast<unsigned char>(pitch), static_cast<unsigned char>(velocity) };
+                = { static_cast<unsigned char>(MIDI_NOTE_OFF + channel), 
+                    static_cast<unsigned char>(pitch), 
+                    static_cast<unsigned char>(velocity) };
             fBelaMidi.writeOutput(buffer, 3);
         }
         
         void ctrlChange(int channel, int ctrl, int val) 
         {
             unsigned char buffer[3] 
-                = { static_cast<unsigned char>(MIDI_CONTROL_CHANGE + channel), static_cast<unsigned char>(ctrl), static_cast<unsigned char>(val) };
+                = { static_cast<unsigned char>(MIDI_CONTROL_CHANGE + channel), 
+                    static_cast<unsigned char>(ctrl), 
+                    static_cast<unsigned char>(val) };
             fBelaMidi.writeOutput(buffer, 3);
         }
         
         void chanPress(int channel, int press) 
         {
-            unsigned char buffer[2] = { static_cast<unsigned char>(MIDI_AFTERTOUCH + channel), static_cast<unsigned char>(press) };
+            unsigned char buffer[2] 
+                = { static_cast<unsigned char>(MIDI_AFTERTOUCH + channel), 
+                    static_cast<unsigned char>(press) };
             fBelaMidi.writeOutput(buffer, 2);
         }
         
         void progChange(int channel, int pgm) 
         {
-            unsigned char buffer[2] = { static_cast<unsigned char>(MIDI_PROGRAM_CHANGE + channel), static_cast<unsigned char>(pgm) };
+            unsigned char buffer[2] 
+                = { static_cast<unsigned char>(MIDI_PROGRAM_CHANGE + channel), 
+                    static_cast<unsigned char>(pgm) };
             fBelaMidi.writeOutput(buffer, 2);
         }
           
         void keyPress(int channel, int pitch, int press) 
         {
             unsigned char buffer[3] 
-                = { static_cast<unsigned char>(MIDI_POLY_AFTERTOUCH + channel), static_cast<unsigned char>(pitch), static_cast<unsigned char>(press) };
+                = { static_cast<unsigned char>(MIDI_POLY_AFTERTOUCH + channel), 
+                    static_cast<unsigned char>(pitch), 
+                    static_cast<unsigned char>(press) };
             fBelaMidi.writeOutput(buffer, 3);
         }
    
         void pitchWheel(int channel, int wheel) 
         {
             unsigned char buffer[3] 
-                = { static_cast<unsigned char>(MIDI_PITCH_BEND + channel), static_cast<unsigned char>(wheel & 0x7F), static_cast<unsigned char>((wheel >> 7) & 0x7F) };
+                = { static_cast<unsigned char>(MIDI_PITCH_BEND + channel), 
+                    static_cast<unsigned char>(wheel & 0x7F), 
+                    static_cast<unsigned char>((wheel >> 7) & 0x7F) };
             fBelaMidi.writeOutput(buffer, 3);
         }
         
         void ctrlChange14bits(int channel, int ctrl, int value) {}
          
-        void start(double date) 
+        void start_sync(double date) 
         {
             unsigned char buffer[1] = { MIDI_START };
             fBelaMidi.writeOutput(buffer, 1);
         }
        
-        void stop(double date) 
+        void stop_sync(double date) 
         {
             unsigned char buffer[1] = { MIDI_STOP };
             fBelaMidi.writeOutput(buffer, 1);
@@ -189,7 +208,7 @@ class bela_midi : public midi_handler {
 // Use case example 
 
 #include "faust/gui/MidiUI.h"
-#include "faust/gui/bela_midi.h"
+#include "faust/midi/bela-midi.h"
 
 bela_midi fMIDI;
 MidiUI* fMidiUI;

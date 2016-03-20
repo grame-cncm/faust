@@ -33,11 +33,21 @@ function installfaust {
 	unzip max-sdk-7.1.0.zip
 	$SUDO cp -r max-sdk-7.1.0/source/c74support /usr/local/include/
 
-	# Install ROS Indigo
+	# Install ROS Jade
 	$SUDO sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-	$SUDO apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net --recv-key 0xB01FA116
+	$SUDO apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 0xB01FA116
 	$SUDO apt-get -y update
-	$SUDO apt-get install -y ros-indigo-ros-base
+	$SUDO apt-get install -y ros-jade-ros-base
+
+
+	# Install Bela
+	$SUDO apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf mercurial
+	$SUDO hg clone https://code.soundsoftware.ac.uk/hg/beaglert
+	$SUDO mv beaglert /usr/local/
+	# install xenomia (should be downloaded from an official place)
+	wget 192.168.1.3/xenomai.tgz
+	tar xzf xenomai.tgz
+	$SUDO mv xenomai /usr/arm-linux-gnueabihf/include/
 
 	# Install Faust
 	git clone git://git.code.sf.net/p/faudiostream/code faust

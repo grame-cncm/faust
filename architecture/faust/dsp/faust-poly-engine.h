@@ -62,11 +62,10 @@ public:
         fMonoDSP.buildUserInterface(&fJSONUI);
         fJSON = fJSONUI.JSON();
 
-        if (fJSON.find("keyboard") != std::string::npos ||
-            fJSON.find("poly") != std::string::npos){
+        if (fJSON.find("keyboard") != std::string::npos
+            || fJSON.find("poly") != std::string::npos) {
             fPolyMax = 6;
             fPolyDSP = new mydsp_poly(fPolyMax, true);
-            fPolyDSP->init(sampling_rate);
         } else {
             fPolyMax = 0;
             fPolyDSP = NULL;

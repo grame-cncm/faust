@@ -5,7 +5,7 @@
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation; either version 2.1 of the
+    published by the Free Software Foundation; either version 3 of the
     License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
@@ -69,7 +69,7 @@ struct Meta : std::map<const char*, const char*>
 /******************************************************************************
 *******************************************************************************
 
-		       VECTOR INTRINSICS
+            VECTOR INTRINSICS
 
 *******************************************************************************
 *******************************************************************************/
@@ -79,40 +79,12 @@ struct Meta : std::map<const char*, const char*>
 /******************************************************************************
 *******************************************************************************
 
-			ABSTRACT USER INTERFACE
+            ABSTRACT USER INTERFACE
 
 *******************************************************************************
 *******************************************************************************/
 
-class UI
-{
-  bool	fStopped;
-public:
-
-  UI() : fStopped(false) {}
-  virtual ~UI() {}
-
-  virtual void addButton(const char* label, float* zone) = 0;
-  virtual void addCheckButton(const char* label, float* zone) = 0;
-  virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-  virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-  virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
-
-  virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
-  virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
-
-  virtual void openTabBox(const char* label) = 0;
-  virtual void openHorizontalBox(const char* label) = 0;
-  virtual void openVerticalBox(const char* label) = 0;
-  virtual void closeBox() = 0;
-
-  virtual void run() = 0;
-
-  void stop() { fStopped = true; }
-  bool stopped() { return fStopped; }
-
-  virtual void declare(float* zone, const char* key, const char* value) {}
-};
+#include <faust/gui/UI.h>
 
 /***************************************************************************
    VST UI interface
@@ -136,7 +108,7 @@ struct ui_elem_t {
   float init, min, max, step;
 };
 
-class PFaustUI : public UI
+class VSTUI : public UI
 {
 public:
   bool is_instr;
@@ -144,8 +116,8 @@ public:
   ui_elem_t *elems;
   map< int, list<strpair> > metadata;
 
-  PFaustUI(int maxvoices = 0);
-  virtual ~PFaustUI();
+  VSTUI(int maxvoices = 0);
+  virtual ~VSTUI();
 
 protected:
   void add_elem(ui_elem_type_t type, const char *label = NULL);
@@ -178,7 +150,7 @@ public:
   virtual void declare(float* zone, const char* key, const char* value);
 };
 
-PFaustUI::PFaustUI(int maxvoices)
+VSTUI::VSTUI(int maxvoices)
 {
   is_instr = maxvoices>0;
   have_freq = have_gain = have_gate = false;
@@ -186,12 +158,12 @@ PFaustUI::PFaustUI(int maxvoices)
   elems = NULL;
 }
 
-PFaustUI::~PFaustUI()
+VSTUI::~VSTUI()
 {
   if (elems) free(elems);
 }
 
-void PFaustUI::declare(float* zone, const char* key, const char* value)
+void VSTUI::declare(float* zone, const char* key, const char* value)
 {
   map< int, list<strpair> >::iterator it = metadata.find(nelems);
   if (it != metadata.end())
@@ -200,7 +172,7 @@ void PFaustUI::declare(float* zone, const char* key, const char* value)
     metadata[nelems] = list<strpair>(1, strpair(key, value));
 }
 
-inline void PFaustUI::add_elem(ui_elem_type_t type, const char *label)
+inline void VSTUI::add_elem(ui_elem_type_t type, const char *label)
 {
   ui_elem_t *elems1 = (ui_elem_t*)realloc(elems, (nelems+1)*sizeof(ui_elem_t));
   if (elems1)
@@ -221,7 +193,7 @@ inline void PFaustUI::add_elem(ui_elem_type_t type, const char *label)
 
 #define portno(label) (is_voice_ctrl(label)?-1:nports++)
 
-inline void PFaustUI::add_elem(ui_elem_type_t type, const char *label, float *zone)
+inline void VSTUI::add_elem(ui_elem_type_t type, const char *label, float *zone)
 {
   ui_elem_t *elems1 = (ui_elem_t*)realloc(elems, (nelems+1)*sizeof(ui_elem_t));
   if (elems1)
@@ -240,7 +212,7 @@ inline void PFaustUI::add_elem(ui_elem_type_t type, const char *label, float *zo
   nelems++;
 }
 
-inline void PFaustUI::add_elem(ui_elem_type_t type, const char *label, float *zone, float init, float min, float max, float step)
+inline void VSTUI::add_elem(ui_elem_type_t type, const char *label, float *zone, float init, float min, float max, float step)
 {
   ui_elem_t *elems1 = (ui_elem_t*)realloc(elems, (nelems+1)*sizeof(ui_elem_t));
   if (elems1)
@@ -259,7 +231,7 @@ inline void PFaustUI::add_elem(ui_elem_type_t type, const char *label, float *zo
   nelems++;
 }
 
-inline void PFaustUI::add_elem(ui_elem_type_t type, const char *label, float *zone, float min, float max)
+inline void VSTUI::add_elem(ui_elem_type_t type, const char *label, float *zone, float min, float max)
 {
   ui_elem_t *elems1 = (ui_elem_t*)realloc(elems, (nelems+1)*sizeof(ui_elem_t));
   if (elems1)
@@ -278,7 +250,7 @@ inline void PFaustUI::add_elem(ui_elem_type_t type, const char *label, float *zo
   nelems++;
 }
 
-inline bool PFaustUI::is_voice_ctrl(const char *label)
+inline bool VSTUI::is_voice_ctrl(const char *label)
 {
   if (!is_instr)
     return false;
@@ -292,37 +264,37 @@ inline bool PFaustUI::is_voice_ctrl(const char *label)
     return false;
 }
 
-void PFaustUI::addButton(const char* label, float* zone)
+void VSTUI::addButton(const char* label, float* zone)
 { add_elem(UI_BUTTON, label, zone); }
-void PFaustUI::addCheckButton(const char* label, float* zone)
+void VSTUI::addCheckButton(const char* label, float* zone)
 { add_elem(UI_CHECK_BUTTON, label, zone); }
-void PFaustUI::addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
+void VSTUI::addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
 { add_elem(UI_V_SLIDER, label, zone, init, min, max, step); }
-void PFaustUI::addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
+void VSTUI::addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
 { add_elem(UI_H_SLIDER, label, zone, init, min, max, step); }
-void PFaustUI::addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
+void VSTUI::addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
 { add_elem(UI_NUM_ENTRY, label, zone, init, min, max, step); }
 
-void PFaustUI::addHorizontalBargraph(const char* label, float* zone, float min, float max)
+void VSTUI::addHorizontalBargraph(const char* label, float* zone, float min, float max)
 { add_elem(UI_H_BARGRAPH, label, zone, min, max); }
-void PFaustUI::addVerticalBargraph(const char* label, float* zone, float min, float max)
+void VSTUI::addVerticalBargraph(const char* label, float* zone, float min, float max)
 { add_elem(UI_V_BARGRAPH, label, zone, min, max); }
 
-void PFaustUI::openTabBox(const char* label)
+void VSTUI::openTabBox(const char* label)
 { add_elem(UI_T_GROUP, label); }
-void PFaustUI::openHorizontalBox(const char* label)
+void VSTUI::openHorizontalBox(const char* label)
 { add_elem(UI_H_GROUP, label); }
-void PFaustUI::openVerticalBox(const char* label)
+void VSTUI::openVerticalBox(const char* label)
 { add_elem(UI_V_GROUP, label); }
-void PFaustUI::closeBox()
+void VSTUI::closeBox()
 { add_elem(UI_END_GROUP); }
 
-void PFaustUI::run() {}
+void VSTUI::run() {}
 
 /******************************************************************************
 *******************************************************************************
 
-			    FAUST DSP
+                FAUST DSP
 
 *******************************************************************************
 *******************************************************************************/
@@ -356,7 +328,7 @@ class dsp {
 //  VST interface
 //----------------------------------------------------------------------------
 
-#line 360 "faustvst.cpp"
+#line 332 "faustvst.cpp"
 
 #include <assert.h>
 #include <stdio.h>
@@ -389,6 +361,11 @@ VST_EXPORT AEffect * main(audioMasterCallback audioMaster)
    range 1..NVOICES. */
 //#define NVOICES 16
 
+/* This enables special polyphony/tuning controls on the GUI (VSTi only). */
+#ifndef VOICE_CTRLS
+#define VOICE_CTRLS 1
+#endif
+
 /* This enables a special "tuning" control in a VSTi plugin which lets you
    select the MTS tuning to be used for the synth. In order to use this, you
    just drop some sysex (.syx) files with MTS octave-based tunings in 1- or
@@ -415,6 +392,13 @@ VST_EXPORT AEffect * main(audioMasterCallback audioMaster)
    least shouldn't, send us the MIDI controllers in the first place.) */
 #ifndef FAUST_MIDICC
 #define FAUST_MIDICC 1
+#endif
+
+/* This enables or disables the plugin's custom Qt GUI (see the Qt-specific
+   part at the end of this module). This is disabled by default, but enabled
+   with gui=1 in the Makefile or the -gui option of the faust2vst script. */
+#ifndef FAUST_UI
+#define FAUST_UI 0
 #endif
 
 // You can define these for various debugging output items.
@@ -598,14 +582,15 @@ static float ctrlval(const ui_elem_t &el, uint8_t v)
    internal data structures, so that implementation details can be changed
    more easily. */
 
-struct PFaustPlugin {
+struct VSTPlugin {
   const int maxvoices;	// maximum number of voices (zero if not an instrument)
   const int ndsps;	// number of dsp instances (1 if maxvoices==0)
   int nvoices;		// current number of voices (<= maxvoices)
   bool active;		// activation status
+  bool modified;	// keep track of modified controls
   int rate;		// sampling rate
   mydsp **dsp;		// the dsps
-  PFaustUI **ui;	// their Faust interface descriptions
+  VSTUI **ui;		// their Faust interface descriptions
   int n_in, n_out;	// number of input and output control ports
   int poly, tuning;	// polyphony and tuning ports
   int *ctrls;		// Faust ui elements (indices into ui->elems)
@@ -732,7 +717,7 @@ struct PFaustPlugin {
   {
     const int num_voices = numVoices();
     mydsp dsp;
-    PFaustUI ui(num_voices);
+    VSTUI ui(num_voices);
     dsp.buildUserInterface(&ui);
     // reserve one extra port for the polyphony control (instruments only)
     int num_extra = (num_voices>0);
@@ -746,7 +731,7 @@ struct PFaustPlugin {
 
   // Instance methods.
 
-  PFaustPlugin(const int num_voices, const int sr)
+  VSTPlugin(const int num_voices, const int sr)
     : maxvoices(num_voices), ndsps(num_voices<=0?1:num_voices),
       vd(num_voices>0?new VoiceData(num_voices):0)
   {
@@ -758,14 +743,14 @@ struct PFaustPlugin {
 #endif
     // Allocate data structures and set some reasonable defaults.
     dsp = (mydsp**)calloc(ndsps, sizeof(mydsp*));
-    ui = (PFaustUI**)calloc(ndsps, sizeof(PFaustUI*));
+    ui = (VSTUI**)calloc(ndsps, sizeof(VSTUI*));
     assert(dsp && ui);
     if (vd) {
       vd->note_info = (NoteInfo*)calloc(ndsps, sizeof(NoteInfo));
       vd->lastgate = (float*)calloc(ndsps, sizeof(float));
       assert(vd->note_info && vd->lastgate);
     }
-    active = false;
+    active = modified = false;
     rate = sr;
     nvoices = maxvoices;
     n_in = n_out = 0;
@@ -801,7 +786,7 @@ struct PFaustPlugin {
     // Initialize the Faust DSPs.
     for (int i = 0; i < ndsps; i++) {
       dsp[i] = new mydsp();
-      ui[i] = new PFaustUI(num_voices);
+      ui[i] = new VSTUI(num_voices);
       dsp[i]->init(rate);
       dsp[i]->buildUserInterface(ui[i]);
     }
@@ -940,7 +925,7 @@ struct PFaustPlugin {
     }
   }
 
-  ~PFaustPlugin()
+  ~VSTPlugin()
   {
     const int n = dsp[0]->getNumInputs();
     const int m = dsp[0]->getNumOutputs();
@@ -1263,6 +1248,7 @@ struct PFaustPlugin {
   {
     int n = dsp[0]->getNumInputs(), m = dsp[0]->getNumOutputs();
     AVOIDDENORMALS;
+    modified = false;
     if (maxvoices > 0) queued_notes_off();
     if (!active) {
       // Depending on the plugin architecture, this code might never be
@@ -1283,6 +1269,7 @@ struct PFaustPlugin {
     }
     // Handle changes in the polyphony control.
     if (nvoices != poly && poly > 0 && poly <= maxvoices) {
+      modified = true;
       for (int i = 0; i < nvoices; i++)
 	voice_off(i);
       nvoices = poly;
@@ -1306,6 +1293,7 @@ struct PFaustPlugin {
       int j = inctrls[i], k = ui[0]->elems[j].port;
       float &oldval = portvals[k], newval = ports[k];
       if (newval != oldval) {
+	modified = true;
 	if (is_instr) {
 	  // instrument: update running voices
 	  for (boost::circular_buffer<int>::iterator it =
@@ -1343,7 +1331,7 @@ struct PFaustPlugin {
       n_samples = blocksz;
     }
     if (outbuf) {
-      // Pphonic instrument: Mix the voices down to one signal.
+      // Polyphonic instrument: Mix the voices down to one signal.
       for (int i = 0; i < m; i++)
 	for (unsigned j = 0; j < n_samples; j++)
 	  outputs[i][j] = 0.0f;
@@ -1364,6 +1352,7 @@ struct PFaustPlugin {
     // updated in real-time (if the host supports this at all).
     // FIXME: It's not clear how to aggregate the data of the different
     // voices. We compute the maximum of each control for now.
+    if (n_out > 0) modified = true;
     for (int i = 0; i < n_out; i++) {
       int j = outctrls[i], k = ui[0]->elems[j].port;
       float *z = ui[0]->elems[j].zone;
@@ -1385,7 +1374,7 @@ struct PFaustPlugin {
   // This processes just a single MIDI message, so to process an entire series
   // of MIDI events you'll have to loop over the event data in the plugin's
   // MIDI callback. XXXTODO: Sample-accurate processing of MIDI events.
-  
+
   void process_midi(unsigned char *data, int sz)
   {
 #if DEBUG_MIDI
@@ -1655,7 +1644,7 @@ struct PFaustPlugin {
   }
 
   // Change to a given preloaded tuning. The given tuning number may be in the
-  // range 1..PFaustPlugin::n_tunings, zero denotes the default tuning (equal
+  // range 1..VSTPlugin::n_tunings, zero denotes the default tuning (equal
   // temperament). This is only supported if FAUST_MTS is defined at compile
   // time.
 
@@ -1663,6 +1652,7 @@ struct PFaustPlugin {
   {
 #if FAUST_MTS
     if (!mts || num == tuning) return;
+    modified = true;
     if (num < 0) num = 0;
     if (num > mts->tuning.size())
       num = mts->tuning.size();
@@ -1682,15 +1672,27 @@ struct PFaustPlugin {
 
 };
 
-Meta *PFaustPlugin::meta = 0;
-int PFaustPlugin::n_tunings = 0;
+Meta *VSTPlugin::meta = 0;
+int VSTPlugin::n_tunings = 0;
 #if FAUST_MTS
-MTSTunings *PFaustPlugin::mts = 0;
+MTSTunings *VSTPlugin::mts = 0;
 #endif
 
 /* VST-specific part starts here. ********************************************/
 
 #include "audioeffectx.h"
+#if FAUST_UI
+#include "faustvstqt.h"
+#endif
+
+/* NOTE: Some hosts are blacklisted here due to incompatibilities with the
+   optional Qt GUI code. We include Ardour by default, but you may want to put
+   other hosts on this list if they give you random crashes. You can also
+   comment out the following define to enable the GUI in all hosts for testing
+   purposes. Note that in any case the VST plugins *will* run in the
+   blacklisted hosts, just without a custom GUI. */
+#define HOST_BLACKLIST { "Ardour", NULL }
+//#define HOST_BLACKLIST { "Ardour", "Tracktion", NULL }
 
 class VSTWrapper : public AudioEffectX
 {
@@ -1719,6 +1721,11 @@ public:
   virtual void getParameterDisplay(VstInt32 index, char *text);
   virtual void getParameterName(VstInt32 index, char *text);
 
+  virtual VstInt32 getChunk(void** data,
+			    bool isPreset = false);
+  virtual VstInt32 setChunk(void* data, VstInt32 byteSize,
+			    bool isPreset = false);
+
   virtual bool getInputProperties(VstInt32 index,
 				  VstPinProperties *properties);
   virtual bool getOutputProperties(VstInt32 index,
@@ -1736,10 +1743,25 @@ public:
   // output for passive Faust controls in the future.
   virtual VstInt32 getNumMidiOutputChannels()  { return 0; }
 
+#if FAUST_UI
+  // GUI-specific methods
+  float getMinimum(VstInt32 index);
+  float getMaximum(VstInt32 index);
+  float getStep(VstInt32 index);
+  int isPassiveControl(VstInt32 index);
+  int getMaxVoices();
+  int getNumTunings();
+  int getNumControls();
+  const char *getHostName();
+#endif
+
 private:
-  PFaustPlugin *plugin;
+  VSTPlugin *plugin;
   char progname[kVstMaxProgNameLen+1];
-  float *defprog;
+#if FAUST_UI
+  char host[65];
+#endif
+  float *progdata;
 };
 
 // Create a "unique" VST plugin ID using Murmur2 hashes. This can't possibly
@@ -1819,21 +1841,38 @@ AudioEffect *createEffectInstance(audioMasterCallback audioMaster)
 }
 
 VSTWrapper::VSTWrapper(audioMasterCallback audioMaster)
-  : AudioEffectX(audioMaster, 1, PFaustPlugin::numControls())
+  : AudioEffectX(audioMaster, 1, VSTPlugin::numControls())
 {
-  const char *dsp_name = PFaustPlugin::pluginName();
-  const int num_voices = PFaustPlugin::numVoices();
+  const char *dsp_name = VSTPlugin::pluginName();
+  const int num_voices = VSTPlugin::numVoices();
   // Get the initial sample rate from the VST host.
   const int rate = getSampleRate();
-  plugin = new PFaustPlugin(num_voices, rate);
+  plugin = new VSTPlugin(num_voices, rate);
+#if FAUST_UI
+  // Get the name of the host (product string).
+  strcpy(host, "Unknown");
+  // Some hosts like Ardour properly report the product string even though
+  // getHostProductString() returns false, so we just ignore the return value.
+  getHostProductString(host);
+#endif
   // VST-specific initialization:
   if (audioMaster) {
     setNumInputs(plugin->dsp[0]->getNumInputs());
-    setNumOutputs(plugin->dsp[0]->getNumOutputs());		
+    setNumOutputs(plugin->dsp[0]->getNumOutputs());
     canProcessReplacing();
+    programsAreChunks();
     if (plugin->maxvoices > 0) isSynth();
     // XXXFIXME: Maybe do something more clever for the unique id.
     setUniqueID((VstInt32)idhash(dsp_name));
+
+#if FAUST_UI
+#ifdef HOST_BLACKLIST
+    char *blacklist[] = HOST_BLACKLIST, **b = blacklist;
+    while (*b && strcmp(host, *b)) ++b;
+    if (!*b)
+#endif
+    setEditor(new VSTQtGUI(this));
+#endif
   }
   // We only provide one "program" (a.k.a. built-in control preset), which
   // corresponds to the initial input control values in the Faust UI. Faust
@@ -1842,19 +1881,27 @@ VSTWrapper::VSTWrapper(audioMasterCallback audioMaster)
   // presets in a number of different formats, such as fxb and fxp files.
   curProgram = 0;
   setProgramName("Default");
-  // Initialize the program storage.
-  defprog = (float*)calloc(plugin->n_in, sizeof(float));
-  assert(plugin->n_in == 0 || defprog);
-  // At this point, the first n_in elements of plugin->ports should already be
-  // filled with the initial input control values, copy them over to the
-  // default program.
-  memcpy(defprog, plugin->ports, plugin->n_in*sizeof(float));
+  // Initialize the program storage. This is also used with getChunk/setChunk.
+  // We reserve two extra entries for the instrument poly and tuning controls
+  // here if needed.
+  int k = plugin->ui[0]->nports;
+#if FAUST_MTS
+  int m = (plugin->maxvoices > 0)?2:0;
+#else
+  int m = (plugin->maxvoices > 0)?1:0;
+#endif
+  progdata = (float*)calloc(k+m, sizeof(float));
+  assert(k+m == 0 || progdata);
+  // At this point, plugin->ports should already be filled with the initial
+  // control values, use getChunk to copy them over to the program storage.
+  void *data;
+  (void)getChunk(&data);
 }
 
 VSTWrapper::~VSTWrapper()
 {
   delete plugin;
-  if (defprog) free(defprog);
+  if (progdata) free(progdata);
 }
 
 // plugin activation and deactivation
@@ -1882,10 +1929,14 @@ void VSTWrapper::setProgram(VstInt32 prog)
 {
   if (prog < 0 || prog >= 1) return;
   curProgram = prog;
-  memcpy(plugin->ports, defprog, plugin->n_in*sizeof(float));
-  // Also reset the polyphony and tuning controls to their default values.
-  plugin->poly = plugin->maxvoices/2;
-  plugin->change_tuning(0);
+  int k = plugin->ui[0]->nports;
+  // instrument data size
+#if FAUST_MTS
+  int m = (plugin->maxvoices > 0)?2:0;
+#else
+  int m = (plugin->maxvoices > 0)?1:0;
+#endif
+  (void)setChunk(progdata, (k+m)*sizeof(float));
   // Some hosts may require this to force a GUI update of the parameters.
   updateDisplay();
 }
@@ -1900,7 +1951,7 @@ void VSTWrapper::getProgramName(char *name)
   vst_strncpy(name, progname, kVstMaxProgNameLen);
 }
 
-bool VSTWrapper::getProgramNameIndexed(VstInt32 category, VstInt32 index, 
+bool VSTWrapper::getProgramNameIndexed(VstInt32 category, VstInt32 index,
 				       char* text)
 {
   if (index < 1) {
@@ -1911,6 +1962,47 @@ bool VSTWrapper::getProgramNameIndexed(VstInt32 category, VstInt32 index,
 }
 
 // control values (setters, getters, meta data)
+
+VstInt32 VSTWrapper::getChunk(void** data, bool isPreset)
+{
+  int k = plugin->ui[0]->nports;
+  // data for the k ports is already in plugin->ports, for instruments we also
+  // add the values of the polyphony and (if enabled) the tuning control
+  memcpy(progdata, plugin->ports, k*sizeof(float));
+  if (plugin->maxvoices > 0) {
+    progdata[k++] = plugin->poly;
+#if FAUST_MTS
+    progdata[k++] = plugin->tuning;
+#endif
+  }
+  *data = progdata;
+  return k*sizeof(float);
+}
+
+VstInt32 VSTWrapper::setChunk(void* data, VstInt32 byteSize, bool isPreset)
+{
+  int k = plugin->ui[0]->nports, l = byteSize/sizeof(float);
+  // instrument data size
+#if FAUST_MTS
+  int m = (plugin->maxvoices > 0)?2:0;
+#else
+  int m = (plugin->maxvoices > 0)?1:0;
+#endif
+  if (byteSize != (k+m)*sizeof(float)) return 0; // data size mismatch
+  // copy the data over to the program storage
+  if (progdata != data) memcpy(progdata, data, (k+m)*sizeof(float));
+  // set the control data
+  memcpy(plugin->ports, progdata, k*sizeof(float));
+  if (plugin->maxvoices > 0) {
+    plugin->poly = min(plugin->maxvoices, max(1, (int)progdata[k]));
+#if FAUST_MTS
+    plugin->change_tuning((int)progdata[k+1]);
+#endif
+  }
+  // Noone seems to know what the return value is good for. Just always
+  // returning zero reportedly works with existing hosts.
+  return 0;
+}
 
 void VSTWrapper::getParameterName(VstInt32 index, char *label)
 {
@@ -2095,7 +2187,7 @@ bool VSTWrapper::string2parameter(VstInt32 index, char *text)
 bool VSTWrapper::getInputProperties(VstInt32 index,
 				    VstPinProperties* properties)
 {
-  const char *dsp_name = PFaustPlugin::pluginName();
+  const char *dsp_name = VSTPlugin::pluginName();
   const int n = plugin->dsp[0]->getNumInputs();
   if (index < 0 || index >= n)
     return false;
@@ -2112,7 +2204,7 @@ bool VSTWrapper::getInputProperties(VstInt32 index,
 bool VSTWrapper::getOutputProperties(VstInt32 index,
 				     VstPinProperties* properties)
 {
-  const char *dsp_name = PFaustPlugin::pluginName();
+  const char *dsp_name = VSTPlugin::pluginName();
   const int n = plugin->dsp[0]->getNumOutputs();
   if (index < 0 || index >= n)
     return false;
@@ -2130,28 +2222,28 @@ bool VSTWrapper::getOutputProperties(VstInt32 index,
 
 bool VSTWrapper::getEffectName(char *name)
 {
-  const char *dsp_name = PFaustPlugin::pluginName();
+  const char *dsp_name = VSTPlugin::pluginName();
   vst_strncpy(name, dsp_name, kVstMaxEffectNameLen);
   return true;
 }
 
 bool VSTWrapper::getVendorString(char *text)
 {
-  const char *vendorString = PFaustPlugin::pluginAuthor();
+  const char *vendorString = VSTPlugin::pluginAuthor();
   vst_strncpy(text, vendorString, kVstMaxVendorStrLen);
   return true;
 }
 
 bool VSTWrapper::getProductString(char *text)
 {
-  const char *productString = PFaustPlugin::pluginDescription();
+  const char *productString = VSTPlugin::pluginDescription();
   vst_strncpy(text, productString, kVstMaxProductStrLen);
   return true;
 }
 
 VstInt32 VSTWrapper::getVendorVersion()
-{ 
-  const char *versionString = PFaustPlugin::pluginVersion();
+{
+  const char *versionString = VSTPlugin::pluginVersion();
   return (VstInt32)(atof(versionString)*1000.0);
 }
 
@@ -2171,10 +2263,10 @@ void VSTWrapper::processReplacing(float **inputs, float **outputs,
 				  VstInt32 n_samples)
 {
   plugin->process_audio(n_samples, inputs, outputs);
-  // Some hosts may require this to force a GUI update of the passive
-  // controls. XXXFIXME: Alas, some hosts don't seem to handle output
-  // parameters at all (e.g., Tracktion).
-  if (plugin->n_out > 0) updateDisplay();
+  // Some hosts may require this to force a GUI update of the controls.
+  // XXXFIXME: Alas, some hosts don't seem to handle this at all (e.g.,
+  // Tracktion).
+  if (plugin->modified) updateDisplay();
 }
 
 VstInt32 VSTWrapper::processEvents(VstEvents* events)
@@ -2206,8 +2298,983 @@ VstInt32 VSTWrapper::processEvents(VstEvents* events)
       plugin->process_sysex(data, sz);
     } else {
       fprintf(stderr, "%s: unknown event type %d\n",
-	      PFaustPlugin::pluginName(), events->events[i]->type);
+	      VSTPlugin::pluginName(), events->events[i]->type);
     }
   }
   return 1;
 }
+
+#if FAUST_UI
+
+/* Qt-specific part starts here. *********************************************/
+
+/* Copyright (c) 2015-2016 by Roman Svidler (rosvid). Some improvements and
+   HTTPD/OSC support added by Albert Gräf (ag). Distributed under the LGPLv3+.
+   Original code is available at https://github.com/rosvid/faust-vst-qt. */
+
+// special getters needed by the GUI code
+
+float VSTWrapper::getMinimum(VstInt32 index)
+{
+  int k = plugin->ui[0]->nports;
+  if (index < 0)
+    return 0.0f;
+  else if (index < k) {
+    int j = plugin->ctrls[index];
+    assert(index == plugin->ui[0]->elems[j].port);
+    float min = plugin->ui[0]->elems[j].min;
+    return min;
+  } else if (index == k && plugin->maxvoices > 0) {
+    return 0.0f;
+#if FAUST_MTS
+  } else if (index == k+1 && plugin->n_tunings > 0) {
+    return 0.0f;
+#endif
+  } else
+    return 0.0f;
+}
+
+float VSTWrapper::getMaximum(VstInt32 index)
+{
+  int k = plugin->ui[0]->nports;
+  if (index < 0)
+    return 0.0f;
+  else if (index < k) {
+    int j = plugin->ctrls[index];
+    assert(index == plugin->ui[0]->elems[j].port);
+    float max = plugin->ui[0]->elems[j].max;
+    return max;
+  } else if (index == k && plugin->maxvoices > 0) {
+    return (float)plugin->maxvoices;
+#if FAUST_MTS
+  } else if (index == k+1 && plugin->n_tunings > 0) {
+    return (float)plugin->mts->tuning.size();
+#endif
+  } else
+    return 0.0f;
+}
+
+float VSTWrapper::getStep(VstInt32 index)
+{
+  int k = plugin->ui[0]->nports;
+  if (index < 0)
+    return 0.0f;
+  else if (index < k) {
+    int j = plugin->ctrls[index];
+    assert(index == plugin->ui[0]->elems[j].port);
+    float step = plugin->ui[0]->elems[j].step;
+    return step;
+  } else if (index == k && plugin->maxvoices > 0) {
+    return 1.0f;
+#if FAUST_MTS
+  } else if (index == k+1 && plugin->n_tunings > 0) {
+    return 1.0f;
+#endif
+  } else
+    return 0.0f;
+}
+
+int VSTWrapper::isPassiveControl(VstInt32 index)
+{
+  int k = plugin->ui[0]->nports;
+  if (index >= 0 && index < k) {
+    int j = plugin->ctrls[index];
+    assert(index == plugin->ui[0]->elems[j].port);
+    switch (plugin->ui[0]->elems[j].type) {
+    case UI_V_BARGRAPH:
+      return 1;         // passive control is of type UI_V_BARGRAPH
+    case UI_H_BARGRAPH:
+      return 2;         // passive control is of type UI_H_BARGRAPH
+    default:
+      return 0;         // not a passive control
+    }
+  } else
+    return 0;
+}
+
+int VSTWrapper::getMaxVoices()
+{
+  return plugin->maxvoices;
+}
+
+int VSTWrapper::getNumTunings()
+{
+#if FAUST_MTS
+  return plugin->n_tunings;
+#else
+  return 0;
+#endif
+}
+
+int VSTWrapper::getNumControls()
+{
+  return plugin->ui[0]->nports;;
+}
+
+const char *VSTWrapper::getHostName()
+{
+  return host;
+}
+
+// OSCUI.h and httpdUI.h pull in their own definition of the Meta struct,
+// prevent name clashes with our version.
+#define Meta FaustMeta
+
+#include <iostream>
+#include <QApplication>
+#include <faust/gui/faustqt.h>
+#ifdef OSCCTRL
+#include <faust/gui/OSCUI.h>
+#endif
+#ifdef HTTPCTRL
+#include <faust/gui/httpdUI.h>
+#endif
+
+#include <QWidget>
+#include <QX11Info>
+#include <X11/Xlib.h>
+
+#line 2438 "faustvst.cpp"
+
+std::list<GUI*> GUI::fGuiList;
+
+/* Define this to get debugging output from the Qt-related code, or add the
+   corresponding option to the qmake project options in the faust2faustvstqt
+   script to achieve the same effect. Setting this to a value >1 will give
+   even more extensive debugging output. Using a zero value or commenting the
+   following line makes sure that no qDebug calls are included in the code at
+   all. -ag */
+//#define FAUSTQT_DEBUG 1
+
+/**
+ * @brief VSTQtGUI::VSTQtGUI
+ * - initializations that need to be done when creating an editor object
+ *   (make sure that the QApplication is initialized if needed)
+ * @param effect
+ */
+VSTQtGUI::VSTQtGUI(VSTWrapper* effect) : effect(effect),
+  widget(NULL), uidsp(NULL),
+#ifdef OSCCTRL
+  oscinterface(NULL),
+#endif
+#ifdef HTTPCTRL
+  httpdinterface(NULL),
+#endif
+  qtinterface(NULL)
+{
+  static int argc = 0;
+  static char* argv[1] = {0};
+  if(qApp) {
+#if FAUSTQT_DEBUG
+    qDebug() << "qApp already exists";
+#endif
+  } else {
+#if FAUSTQT_DEBUG
+    qDebug() << "qApp is created!";
+#endif
+    new QApplication(argc, argv);
+  }
+
+  int n_controls = effect->getNumControls();
+  // instruments can have up to 2 controls more (poly+tuning)
+  if (effect->getMaxVoices()>0) n_controls += 2;
+  // this array is used to keep track of the current status of control values;
+  // GUI controls are only set if the value has changed
+  control_values = (float*)calloc(n_controls, sizeof(float));
+
+#if FAUSTQT_DEBUG
+  qDebug() << "qApp=" << qApp;
+  static bool first_time = false;
+  if (!first_time) {
+    first_time = true;
+    qDebug() << "VST host: " << effect->getHostName();
+  }
+#endif
+}
+
+/**
+ * @brief VSTQtGUI::~VSTQtGUI
+ * - finalizations that need to be done when destroying an editor object
+ */
+VSTQtGUI::~VSTQtGUI()
+{
+  if (control_values) free(control_values);
+}
+
+// This is a little wrapper class around QTGUI which takes care of eliminating
+// the freq/gain/gate controls of instruments in the user interface when
+// running the dsp's buildUserInterface method. It also adds polyphony and
+// tuning controls to instruments as needed. -ag
+
+class QTGUIWrapper : public UI
+{
+protected:
+  bool is_instr;
+  QTGUI *ui;
+  int level, maxvoices, numtunings;
+  float *voices_zone, *tuning_zone;
+  bool have_freq, have_gain, have_gate;
+  bool is_voice_ctrl(const char *label)
+  {
+    if (!is_instr)
+      return false;
+    else if (!have_freq && !strcmp(label, "freq"))
+      return (have_freq = true);
+    else if (!have_gain && !strcmp(label, "gain"))
+      return (have_gain = true);
+    else if (!have_gate && !strcmp(label, "gate"))
+      return (have_gate = true);
+    else
+      return false;
+  }
+public:
+  QTGUIWrapper(QTGUI *_ui, int _maxvoices, int _numtunings,
+	       float *_voices_zone, float *_tuning_zone) :
+    is_instr(_maxvoices>0), ui(_ui), level(0),
+    maxvoices(_maxvoices), numtunings(_numtunings),
+    voices_zone(_voices_zone), tuning_zone(_tuning_zone),
+    have_freq(false), have_gain(false), have_gate(false)
+  {}
+  virtual ~QTGUIWrapper() {}
+
+  // -- widget's layouts
+  virtual void openTabBox(const char* label)
+  { ui->openTabBox(label); level++; }
+  virtual void openHorizontalBox(const char* label)
+  { ui->openHorizontalBox(label); level++; }
+  virtual void openVerticalBox(const char* label)
+  { ui->openVerticalBox(label); level++; }
+  virtual void closeBox()
+  {
+    if (--level == 0 && is_instr) {
+#if VOICE_CTRLS
+      // Add polyphony and tuning controls (experimental).
+      ui->addHorizontalSlider("polyphony", voices_zone,
+			      maxvoices/2, 0, maxvoices, 1);
+#if FAUST_MTS
+      if (numtunings>0)
+	ui->addHorizontalSlider("tuning", tuning_zone, 0, 0, numtunings, 1);
+#endif
+#endif
+    }
+    ui->closeBox();
+  }
+
+  // -- active widgets
+  virtual void addButton(const char* label, FAUSTFLOAT* zone)
+  { if (!is_voice_ctrl(label))
+      ui->addButton(label, zone); }
+  virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
+  { if (!is_voice_ctrl(label))
+      ui->addCheckButton(label, zone); }
+  virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone,
+				 FAUSTFLOAT init, FAUSTFLOAT min,
+				 FAUSTFLOAT max, FAUSTFLOAT step)
+  { if (!is_voice_ctrl(label))
+      ui->addVerticalSlider(label, zone, init, min, max, step); }
+  virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone,
+				   FAUSTFLOAT init, FAUSTFLOAT min,
+				   FAUSTFLOAT max, FAUSTFLOAT step)
+  { if (!is_voice_ctrl(label))
+      ui->addHorizontalSlider(label, zone, init, min, max, step); }
+  virtual void addNumEntry(const char* label, FAUSTFLOAT* zone,
+			   FAUSTFLOAT init, FAUSTFLOAT min,
+			   FAUSTFLOAT max, FAUSTFLOAT step)
+  { if (!is_voice_ctrl(label))
+      ui->addNumEntry(label, zone, init, min, max, step); }
+
+  // -- passive widgets
+  virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone,
+				     FAUSTFLOAT min, FAUSTFLOAT max)
+  { ui->addHorizontalBargraph(label, zone, min, max); }
+  virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone,
+				   FAUSTFLOAT min, FAUSTFLOAT max)
+  { ui->addVerticalBargraph(label, zone, min, max); }
+
+  virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+  { ui->declare(zone, key, val); }
+
+};
+
+/**
+ * @brief VSTQtGUI::open
+ * - method to open the plug-in GUI
+ * - the GUI is generated through faustqt.h (QTGUI() class)
+ * - communication between GUI elements and the corresponding VST parameters
+ *   is realized using Qt's signal-slot mechanism
+ * @param ptr
+ * @return
+ */
+bool VSTQtGUI::open(void *ptr)
+{
+  static int argc = 0;
+  static char* argv[1] = {0};
+#if FAUSTQT_DEBUG
+  qDebug() << "open editor: " << ptr;
+#endif
+  AEffEditor::open(ptr);
+
+  widget = new QScrollArea();
+  widget->setWidgetResizable(true);
+  qtinterface = new QTGUI(widget);
+  widget->setWidget(qtinterface);
+
+  mydsp* dsp = new mydsp();
+
+#if FAUSTQT_DEBUG
+  qDebug() << "open interface: " << qtinterface;
+#endif
+  // We build the QTGUI indirectly through QTGUIWrapper whose sole purpose is
+  // to eliminate the voice controls in case of an instrument plugin.
+  QTGUIWrapper qtwrapper(qtinterface,
+			 effect->getMaxVoices(), effect->getNumTunings(),
+			 &voices_zone, &tuning_zone);
+  dsp->buildUserInterface(&qtwrapper);
+
+  // HTTPD and OSC support (experimental)
+#ifdef HTTPCTRL
+  httpdinterface = new httpdUI(VSTPlugin::pluginName(),
+			       dsp->getNumInputs(), dsp->getNumOutputs(),
+			       argc, argv);
+  dsp->buildUserInterface(httpdinterface);
+#if FAUSTQT_DEBUG
+  qDebug() << "HTTPD is on";
+#endif
+#endif
+
+#ifdef OSCCTRL
+  oscinterface = new OSCUI(VSTPlugin::pluginName(), argc, argv);
+  dsp->buildUserInterface(oscinterface);
+#if FAUSTQT_DEBUG
+  qDebug() << "OSC is on";
+#endif
+#endif
+
+  // update the size of the QTGUI after creating the GUI elements
+  qtinterface->adjustSize();
+
+  // the dimensions of the plug-in window must not exceed screenGeometry
+  // (-80 pixel tolerance)
+  int desktopHeight = QApplication::desktop()->screenGeometry().height()-80;
+  int desktopWidth  = QApplication::desktop()->screenGeometry().width()-80;
+
+#if FAUSTQT_DEBUG>1
+  qDebug() << "desktop-height: " <<
+           QApplication::desktop()->screenGeometry().height();
+  qDebug() << "desktop-width: "  <<
+           QApplication::desktop()->screenGeometry().width();
+#endif
+
+  // determine the window size
+  rectangle.top    = 0;
+  rectangle.left   = 0;
+  // the height of the plug-in GUI must not exceed the desktop resolution
+  if(qtinterface->height() > desktopHeight)
+    rectangle.bottom = desktopHeight;
+  else // add 20 pixels for scroll bars
+    rectangle.bottom = qtinterface->height()+20;
+  // the width of the plug-in GUI must not exceed the desktop resolution
+  if(qtinterface->width() > desktopWidth)
+    rectangle.right  = desktopWidth;
+  else // add 20 pixels for scroll bars
+    rectangle.right  = qtinterface->width()+20;
+
+  // adjust the widget size
+  widget->resize(rectangle.right, rectangle.bottom);
+  // some hosts (e.g., Qtractor) need this to properly adjust the window size
+  effect->sizeWindow(rectangle.right, rectangle.bottom);
+
+  // determine all children of qtinterface of type QObject*
+  QList<QObject*> allObjects = qtinterface->findChildren<QObject*>();
+#if FAUSTQT_DEBUG>1
+  qDebug() << "QObjects total count: " << allObjects.count();
+#endif
+
+  int vstParamCount = 0;
+
+  bool vBargraphChecked = true; // used in HorizontalBargraph search
+  QObject* lastObject;          // used in addNumDisplay check
+
+  for (QList<QObject*>::iterator i = allObjects.begin(); i != allObjects.end();
+       ++i) {
+#if FAUSTQT_DEBUG>1
+    qDebug("");
+    // debugging output: class name of found object
+    qDebug() << "QObject: " << (*i)->metaObject()->className();
+    qDebug() << "VST parameter assigned: " << vstParamCount;
+#endif
+
+    // Slider
+    QSlider* slider = qobject_cast<QSlider*>(*i);
+    if (slider) {
+#if FAUSTQT_DEBUG>1
+      qDebug("found slider!");
+#endif
+      slider->setProperty("vstParam", vstParamCount);
+      controls.append(slider);
+
+      connect(slider, SIGNAL(valueChanged(int)), this, SLOT(updateVST()),
+              Qt::QueuedConnection);
+      updateQTGUI(slider, effect->getParameter(vstParamCount), true);
+
+      vstParamCount++;
+    }
+
+    // Knob
+    QDial* dial = qobject_cast<QDial*>(*i);
+    if (dial) {
+#if FAUSTQT_DEBUG>1
+      qDebug("found knob!");
+#endif
+      dial->setProperty("vstParam", vstParamCount);
+      controls.append(dial);
+
+      connect(dial, SIGNAL(valueChanged(int)), this, SLOT(updateVST()),
+              Qt::QueuedConnection);
+      updateQTGUI(dial, effect->getParameter(vstParamCount), true);
+
+      vstParamCount++;
+    }
+
+    // Button
+    QPushButton* button = qobject_cast<QPushButton*>(*i);
+    if (button) {
+#if FAUSTQT_DEBUG>1
+      qDebug("found button!");
+#endif
+      button->setProperty("vstParam", vstParamCount);
+      controls.append(button);
+
+      connect(button, SIGNAL(pressed()), this,
+	      SLOT(updateVST_buttonPressed()), Qt::QueuedConnection);
+      connect(button, SIGNAL(released()), this,
+	      SLOT(updateVST_buttonReleased()), Qt::QueuedConnection);
+
+      // button is released when GUI opens
+      effect->setParameter(vstParamCount, 0.0f);
+      control_values[vstParamCount] = 0.0f;
+
+      vstParamCount++;
+    }
+
+    // NumDisplay (list) / NumEntry / numerical HorizontalBargraph
+    QDoubleSpinBox* num = qobject_cast<QDoubleSpinBox*>(*i);
+    if (num) {
+      // ignore QDoubleSpinBox with NoButtons, as it's not a list but
+      // a NumDisplay
+      if(num->buttonSymbols() != QAbstractSpinBox::NoButtons) {
+#if FAUSTQT_DEBUG>1
+        qDebug("found list!");
+#endif
+        num->setProperty("vstParam", vstParamCount);
+        controls.append(num);
+
+        connect(num, SIGNAL(valueChanged(double)), this, SLOT(updateVST()),
+                Qt::QueuedConnection);
+
+        updateQTGUI(num, effect->getParameter(vstParamCount), true);
+
+        vstParamCount++;
+
+        // if previous control is passive and vBargraphChecked==false:
+        // found NumDisplay of VerticalBargraphs
+        // this is always called if we found a vBargraph in the previous
+        // iteration
+      } else if(effect->isPassiveControl(vstParamCount-1)==1
+                && !vBargraphChecked) {
+#if FAUSTQT_DEBUG>1
+        qDebug("found numDisplay!");
+#endif
+        num->setProperty("vstParam", vstParamCount-1);
+        passive_controls.append(num);
+
+        // the corresponding display of the vBargraphs is now set
+        vBargraphChecked = true;
+      } else if(effect->isPassiveControl(vstParamCount)==2
+                && vBargraphChecked) {
+        QAbstractSlider* sliderOrKnob =
+	  qobject_cast<QAbstractSlider*>(lastObject);
+        // only if the previously found QObject is neither slider nor
+        // knob
+        if(!sliderOrKnob) {
+#if FAUSTQT_DEBUG>1
+          qDebug("found horizontal bargraph with numerical style!");
+#endif
+          num->setProperty("vstParam", vstParamCount);
+	  controls.append(num);
+          passive_controls.append(num);
+	  control_values[vstParamCount] = effect->getMinimum(vstParamCount);
+
+          vstParamCount++;
+        }
+      }
+    }
+
+    // CheckBox
+    QCheckBox* checkBox = qobject_cast<QCheckBox*>(*i);
+    if (checkBox) {
+#if FAUSTQT_DEBUG>1
+      qDebug("found checkbox!");
+#endif
+      checkBox->setProperty("vstParam", vstParamCount);
+      controls.append(checkBox);
+
+      connect(checkBox, SIGNAL(stateChanged(int)), this,
+	      SLOT(updateVST_checkBox()), Qt::QueuedConnection);
+
+      // if the VST parameter of the checkbox is less than 0.5 then the
+      // checkbox is unchecked
+      if(effect->getParameter(vstParamCount) < 0.5f) {
+        checkBox->setChecked(false);
+	control_values[vstParamCount] = 0.0f;
+      } else {
+        checkBox->setChecked(true);
+	control_values[vstParamCount] = 1.0f;
+      }
+
+      vstParamCount++;
+    }
+
+    // Bargraph
+    AbstractDisplay* bargraph = dynamic_cast<AbstractDisplay*>(*i);
+    if (bargraph) {
+      if(effect->isPassiveControl(vstParamCount)==1) {
+#if FAUSTQT_DEBUG>1
+        qDebug("found vertical bargraph!");
+#endif
+        vBargraphChecked = false;
+      }
+#if FAUSTQT_DEBUG>1
+      else
+        qDebug("found horizontal bargraph!");
+#endif
+
+      bargraph->setProperty("vstParam", vstParamCount);
+      //led->setProperty("elemType", "led");
+      controls.append(bargraph);
+      passive_controls.append(bargraph);
+      control_values[vstParamCount] = effect->getMinimum(vstParamCount);
+
+      vstParamCount++;
+    }
+
+    // Radiobuttons
+    uiRadioButtons* uiRadio = dynamic_cast<uiRadioButtons*>(*i);
+    if (uiRadio) {
+#if FAUSTQT_DEBUG>1
+      qDebug("found radio buttons!");
+#endif
+
+      QList<QRadioButton*> radiobuttons =
+	uiRadio->findChildren<QRadioButton*>();
+
+      int radioCount = 0;
+      bool valueIsSet = false;
+      // iterate over all radio buttons in this group
+      for (QList<QRadioButton*>::iterator r = radiobuttons.begin();
+           r != radiobuttons.end(); ++r) {
+        float minimum = effect->getMinimum(vstParamCount);
+        float maximum = effect->getMaximum(vstParamCount);
+        // set all properties needed for updateVST()
+        (*r)->setProperty("value", radioCount);
+        (*r)->setProperty("vstParam", vstParamCount);
+        (*r)->setProperty("minimum", minimum);
+        (*r)->setProperty("maximum", maximum);
+        (*r)->setProperty("singleStep",
+			  effect->getStep(vstParamCount));
+        connect((*r), SIGNAL(clicked(bool)), this, SLOT(updateVST()),
+                Qt::QueuedConnection);
+
+        // set the proper radio button as "clicked" when the GUI opens
+        if(!valueIsSet) {
+          if(valueToVST(radioCount,minimum,maximum) >=
+	     effect->getParameter(vstParamCount)) {
+            (*r)->click();
+            valueIsSet = true;
+          }
+        }
+        radioCount++;
+      }
+      // XXXFIXME: there's no single GUI object for this control, skipped for
+      // now (need list of QObjects to cope with this)
+      controls.append(NULL);
+      control_values[vstParamCount] = 0.0f;
+      vstParamCount++;
+    }
+
+    // Menu
+    uiMenu* menu = dynamic_cast<uiMenu*>(*i);
+    if (menu) {
+#if FAUSTQT_DEBUG>1
+      qDebug("found menu!");
+#endif
+
+      float minimum = effect->getMinimum(vstParamCount);
+      float maximum = effect->getMaximum(vstParamCount);
+
+      menu->setProperty("vstParam", vstParamCount);
+      menu->setProperty("minimum", minimum);
+      menu->setProperty("maximum", maximum);
+      menu->setProperty("singleStep", effect->getStep(vstParamCount));
+      controls.append(menu);
+
+      connect(menu, SIGNAL(activated(int)), this, SLOT(updateVST()),
+              Qt::QueuedConnection);
+
+      updateQTGUI(menu, effect->getParameter(vstParamCount), true);
+      menu->updateZone(0);    // updates the currentIndex
+
+      vstParamCount++;
+    }
+    // save the QObject of this iteration
+    lastObject = (*i);
+  }
+
+
+#if FAUSTQT_DEBUG>1
+  qDebug() << "VST parameters assigned: " << vstParamCount;
+#endif
+
+#ifdef HTTPCTRL
+  httpdinterface->run();
+#ifdef QRCODECTRL
+  // FIXME: This will pop up each time the GUI is opened. We should maybe have
+  // a little button in the GUI somewhere so that the user can show the QR
+  // code when needed.
+  qtinterface->displayQRCode(httpdinterface->getTCPPort());
+#endif
+#endif
+
+#ifdef OSCCTRL
+  oscinterface->run();
+#endif
+
+  qtinterface->run();
+
+  // The STYLE symbol is set during compilation when using the -style option
+  // of the faust2faustvstqt script or the corresponding options in the
+  // Makefile. You can also set this manually if needed, but note that the
+  // corresponding resource needs to be present in the qmake project (this is
+  // taken care of automagically when using the -style option). Otherwise (or
+  // if no style was specified) the default style will be used. -ag
+#ifdef STYLE
+  // set the style sheet for this GUI, if any
+  QString styleSheet("");
+  // C preprocessor stringify magic to insert the style sheet name
+#define __xstr(s) __str(s)
+#define __str(s) #s
+  QFile file(":/" __xstr(STYLE) ".qss");
+  if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    styleSheet = QLatin1String(file.readAll());
+    file.close();
+  }
+  widget->setStyleSheet(styleSheet);
+#endif
+
+  // embed the plug-in widget into the window provided by the host
+  Display* display = QX11Info::display();
+  XReparentWindow(display, widget->winId(), WId(ptr), 0, 0);
+  XMapWindow(display, WId(ptr));
+  XFlush(display);
+
+  widget->show();
+
+#if FAUSTQT_DEBUG>1
+  qDebug() << "Number of controls: " << controls.size();
+  qDebug() << "Number of passive controls: " << passive_controls.size();
+#endif
+
+  uidsp = dsp;
+  return true;
+}
+
+/**
+ * @brief VSTQtGUI::idle
+ * - idle() is called repeatedly at some time interval determined by the host
+ *   to process any pending GUI events
+ * - it also updates control elements in the GUI as needed
+ */
+void VSTQtGUI::idle()
+{
+  if (qApp) {
+    QApplication::processEvents();
+    for (int i = 0; i < controls.size(); ++i)
+      if (controls[i]) {
+	float val = effect->getParameter(i);
+	if (effect->isPassiveControl(i))
+	  updatePassiveControl(controls[i], val);
+	else
+	  updateQTGUI(controls[i], val);
+      }
+  }
+#if FAUSTQT_DEBUG
+  else
+    qDebug("qApp ERROR! QApplication doesn't exist!");
+#endif
+}
+
+/**
+ * @brief VSTQtGUI::close
+ * - when closing the plugin GUI, all GUI elements are destroyed and the
+ *   controls and passive_controls vectors are cleared
+ */
+void VSTQtGUI::close()
+{
+#ifdef HTTPCTRL
+  httpdinterface->stop();
+  delete httpdinterface;
+  httpdinterface = NULL;
+#endif
+#ifdef OSCCTRL
+  oscinterface->stop();
+  delete oscinterface;
+  oscinterface = NULL;
+#endif
+  qtinterface->stop();
+  delete qtinterface;
+  qtinterface = NULL;
+  delete widget;
+  widget = NULL;
+  mydsp* dsp = (mydsp*)uidsp;
+  delete dsp;
+  dsp = NULL;
+  controls.clear();
+  passive_controls.clear();
+
+#if FAUSTQT_DEBUG
+  qDebug("close editor");
+#endif
+  AEffEditor::close();
+}
+
+/**
+ * @brief VSTQtGUI::getRect
+ * - required pointer "rect" to determine the size of the plug-in window
+ * @param rect
+ * @return
+ */
+bool VSTQtGUI::getRect (ERect** rect)
+{
+  *rect = &rectangle;
+  return true;
+}
+
+/**
+ * @brief VSTQtGUI::valueToVST
+ * - converts a value from the Faust to the VST representation
+ * @param value
+ * @param minimum
+ * @param maximum
+ * @return
+ */
+float VSTQtGUI::valueToVST(double value, double minimum,
+                                    double maximum)
+{
+  float newFloat = 0.f;
+  if(minimum==maximum)
+    return newFloat;
+  else {
+    newFloat = (value-minimum) / (maximum-minimum);
+    return newFloat;
+  }
+}
+
+/**
+ * @brief VSTQtGUI::updateQTGUI
+ * - method to update a GUI element
+ * - called for GUI elements in the open() and idle() methods
+ * - VST values are converted to Faust ranges to determine the position of
+ *   sliders, knobs, etc.
+ * @param object
+ * @param value
+ */
+void VSTQtGUI::updateQTGUI(QObject* object, float value, bool init)
+{
+  int vstParam = object->property("vstParam").toInt();
+  if (init || control_values[vstParam] != value) {
+    const double eps = 1e-5;
+    double minimum, maximum, step, newValue;
+    char* valueChar;
+
+    control_values[vstParam] = value;
+
+    if (QString(object->metaObject()->className())=="uiMenu")
+      valueChar = "currentIndex";
+    else
+      valueChar = "value";
+
+    minimum = object->property("minimum").toDouble();
+    maximum = object->property("maximum").toDouble();
+    step    = object->property("singleStep").toDouble();
+
+#if FAUSTQT_DEBUG>1
+    qDebug() << "QTGUI: VST value: " << value;
+    qDebug() << "QTGUI: old Qt value: "
+	     << object->property(valueChar).toDouble();
+#endif
+
+    newValue = (minimum==maximum)?minimum : minimum+quantize(value*
+               (maximum-minimum), step);
+
+    if (fabs(newValue) < fabs(step) ||
+	fabs(newValue)/fabs(maximum-minimum) < eps)
+      newValue = 0.0;
+
+    // set new value with setProperty("value",..), as setValue() is not
+    // defined for QObject
+    object->setProperty(valueChar, newValue);
+#if FAUSTQT_DEBUG>1
+    qDebug() << "QTGUI: new Qt value: "
+	     << object->property(valueChar).toDouble();
+#endif
+  }
+}
+
+/**
+ * @brief VSTQtGUI::updatePassiveControl
+ * - method to update the passive control elements (bargraphs)
+ * - called in idle()
+ * @param object
+ */
+void VSTQtGUI::updatePassiveControl(QObject* object, float value)
+{
+  int vstParam = object->property("vstParam").toInt();
+  float minimum  = effect->getMinimum(vstParam);
+  float maximum  = effect->getMaximum(vstParam);
+
+  if (control_values[vstParam] != value) {
+    // convert the VST value back to the corresponding Faust value
+    float fValue = value*maximum - value*minimum + minimum;
+
+    AbstractDisplay* bargraph  = dynamic_cast<AbstractDisplay*>(object);
+    QDoubleSpinBox* numDisplay = dynamic_cast<QDoubleSpinBox*>(object);
+
+    if(bargraph)
+      bargraph->setValue(fValue);
+    else if(numDisplay)
+      numDisplay->setValue(fValue);
+    control_values[vstParam] = value;
+  }
+}
+
+
+/***********************
+ *******  Slots ********
+ ***********************/
+
+// The slots are called in response to interactive changes of a GUI element
+// (e.g., slider movements). Here we update the corresponding VST parameters.
+
+/**
+ * @brief VSTQtGUI::updateVST_buttonPressed
+ * - slot for pressing a button object
+ */
+void VSTQtGUI::updateVST_buttonPressed()
+{
+  int vstParam = QObject::sender()->property("vstParam").toInt();
+#if FAUSTQT_DEBUG>1
+  qDebug() << "VST: vstParam: " << vstParam;
+  qDebug() << "VST: button pressed";
+#endif
+  effect->setParameter(vstParam, 1.0f);
+  control_values[vstParam] = 1.0f;
+}
+
+/**
+ * @brief VSTQtGUI::updateVST_buttonReleased
+ * - slot for releasing a button object
+ */
+void VSTQtGUI::updateVST_buttonReleased()
+{
+  int vstParam = QObject::sender()->property("vstParam").toInt();
+#if FAUSTQT_DEBUG>1
+  qDebug() << "VST: vstParam: " << vstParam;
+  qDebug() << "VST: button released";
+#endif
+  effect->setParameter(vstParam, 0.0f);
+  control_values[vstParam] = 0.0f;
+}
+
+/**
+ * @brief VSTQtGUI::updateVST_checkBox
+ * - slot for check boxes
+ */
+void VSTQtGUI::updateVST_checkBox()
+{
+  int vstParam = QObject::sender()->property("vstParam").toInt();
+#if FAUSTQT_DEBUG>1
+  qDebug() << "VST: vstParam: " << vstParam;
+#endif
+
+  // if CheckBox == checked
+  if(QObject::sender()->property("checked").toBool()) {
+#if FAUSTQT_DEBUG>1
+    qDebug("checkbox checked");
+#endif
+    effect->setParameter(vstParam, 1.0f);
+    control_values[vstParam] = 1.0f;
+  } else {
+#if FAUSTQT_DEBUG>1
+    qDebug("checkbox unchecked");
+#endif
+    effect->setParameter(vstParam, 0.0f);
+    control_values[vstParam] = 0.0f;
+  }
+}
+
+/**
+ * @brief VSTQtGUI::updateVST
+ * - slot for all other active control elements (sliders, knobs, menus, radio
+ *   buttons etc.)
+ */
+void VSTQtGUI::updateVST()
+{
+  double value, minimum, maximum, step;
+  int vstParam;
+
+  // for uiMenu we have the property "currentIndex" instead of the property
+  // "value"
+  if (QString(QObject::sender()->metaObject()->className())=="uiMenu")
+    value = QObject::sender()->property("currentIndex").toDouble();
+  else
+    value = QObject::sender()->property("value").toDouble();
+  vstParam  = QObject::sender()->property("vstParam").toInt();
+  minimum   = QObject::sender()->property("minimum").toDouble();
+  maximum   = QObject::sender()->property("maximum").toDouble();
+  step      = QObject::sender()->property("singleStep").toDouble();
+
+#if FAUSTQT_DEBUG>1
+  qDebug() << "VST: vstParam: "       << vstParam;
+  char text[32];
+  effect->getParameterName(vstParam, text);
+  qDebug() << "VST: label: "          << text;
+  qDebug() << "VST: min: "            << minimum;
+  qDebug() << "VST: max: "            << maximum;
+  qDebug() << "VST: step: "           << step;
+  qDebug() << "VST: new Qt value: "   << value;
+  qDebug() << "VST: old VST value: "  << effect->getParameter(vstParam);
+#endif
+
+  float newFloat = valueToVST(value, minimum, maximum);
+  effect->setParameter(vstParam, newFloat);
+  control_values[vstParam] = newFloat;
+#if FAUSTQT_DEBUG>1
+  qDebug() << "VST: new VST value: " << effect->getParameter(vstParam);
+#endif
+#if VOICE_CTRLS
+  if (vstParam >= effect->getNumControls()) {
+    // Extra polyphony and tuning controls. Generate some informative tooltips
+    // for these so that the user understands the meaning of these values.
+    QWidget *widget = qobject_cast<QWidget*>(QObject::sender());
+    char text[32];
+    effect->getParameterDisplay(vstParam, text);
+    widget->setToolTip(text);
+    // Also make sure that we trigger a host GUI update for changes in the
+    // tuning control here, since this isn't done elsewhere.
+    if (vstParam > effect->getNumControls())
+      effect->updateDisplay();
+  }
+#endif
+}
+
+#endif // FAUST_UI

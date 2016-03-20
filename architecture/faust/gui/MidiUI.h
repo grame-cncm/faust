@@ -48,11 +48,12 @@ class uiMidiItem : public uiItem {
     protected:
     
          midi* fMidiOut;
+         bool fInputCtrl;
 
     public:
     
-        uiMidiItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone)
-            :uiItem(ui, zone), fMidiOut(midi_out) {}
+        uiMidiItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input)
+            :uiItem(ui, zone), fMidiOut(midi_out), fInputCtrl(input) {}
         virtual ~uiMidiItem() {}
  
 };
@@ -65,8 +66,8 @@ class uiMidiTimedItem : public uiMidiItem
    
     public:
        
-        uiMidiTimedItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone)
-            :uiMidiItem(midi_out, ui, zone)
+        uiMidiTimedItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true)
+            :uiMidiItem(midi_out, ui, zone, input)
         {
             if (GUI::gTimedZoneMap.find(fZone) == GUI::gTimedZoneMap.end()) {
                 GUI::gTimedZoneMap[fZone] = ringbuffer_create(8192);
@@ -106,8 +107,8 @@ class uiMidiStart : public uiMidiTimedItem
   
     public:
     
-        uiMidiStart(midi* midi_out, GUI* ui, FAUSTFLOAT* zone)
-            :uiMidiTimedItem(midi_out, ui, zone)
+        uiMidiStart(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true)
+            :uiMidiTimedItem(midi_out, ui, zone, input)
         {}
         virtual ~uiMidiStart()
         {}
@@ -117,7 +118,7 @@ class uiMidiStart : public uiMidiTimedItem
             FAUSTFLOAT v = *fZone;
             fCache = v;
             if (v != FAUSTFLOAT(0)) {
-                fMidiOut->start(0);
+                fMidiOut->start_sync(0);
             }
         }
         
@@ -128,8 +129,8 @@ class uiMidiStop : public uiMidiTimedItem
   
     public:
     
-        uiMidiStop(midi* midi_out, GUI* ui, FAUSTFLOAT* zone)
-            :uiMidiTimedItem(midi_out, ui, zone)
+        uiMidiStop(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true)
+            :uiMidiTimedItem(midi_out, ui, zone, input)
         {}
         virtual ~uiMidiStop()
         {}
@@ -139,7 +140,7 @@ class uiMidiStop : public uiMidiTimedItem
             FAUSTFLOAT v = *fZone;
             fCache = v;
             if (v != FAUSTFLOAT(1)) {
-                fMidiOut->stop(0);
+                fMidiOut->stop_sync(0);
             }
         }
 };
@@ -153,16 +154,18 @@ class uiMidiClock : public uiMidiTimedItem
   
     public:
     
-        uiMidiClock(midi* midi_out, GUI* ui, FAUSTFLOAT* zone)
-            :uiMidiTimedItem(midi_out, ui, zone), fState(false)
+        uiMidiClock(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true)
+            :uiMidiTimedItem(midi_out, ui, zone, input), fState(false)
         {}
         virtual ~uiMidiClock()
         {}
         
         void modifyZone(double date, FAUSTFLOAT v) 	
         { 
-            fState = !fState;
-            uiMidiTimedItem::modifyZone(date, FAUSTFLOAT(fState));
+            if (fInputCtrl) {
+                fState = !fState;
+                uiMidiTimedItem::modifyZone(date, FAUSTFLOAT(fState));
+            }
         }
         
         virtual void reflectZone()
@@ -181,8 +184,8 @@ class uiMidiProgChange : public uiMidiItem
   
     public:
     
-        uiMidiProgChange(midi* midi_out, int pgm, GUI* ui, FAUSTFLOAT* zone)
-            :uiMidiItem(midi_out, ui, zone), fPgm(pgm)
+        uiMidiProgChange(midi* midi_out, int pgm, GUI* ui, FAUSTFLOAT* zone, bool input = true)
+            :uiMidiItem(midi_out, ui, zone, input), fPgm(pgm)
         {}
         virtual ~uiMidiProgChange()
         {}
@@ -206,8 +209,8 @@ class uiMidiChanPress : public uiMidiItem
   
     public:
     
-        uiMidiChanPress(midi* midi_out, int press, GUI* ui, FAUSTFLOAT* zone)
-            :uiMidiItem(midi_out, ui, zone), fPress(press)
+        uiMidiChanPress(midi* midi_out, int press, GUI* ui, FAUSTFLOAT* zone, bool input = true)
+            :uiMidiItem(midi_out, ui, zone, input), fPress(press)
         {}
         virtual ~uiMidiChanPress()
         {}
@@ -232,8 +235,8 @@ class uiMidiCtrlChange : public uiMidiItem
  
     public:
     
-        uiMidiCtrlChange(midi* midi_out, int ctrl, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-            :uiMidiItem(midi_out, ui, zone), fCtrl(ctrl), fConverter(0., 127., double(min), double(max))
+        uiMidiCtrlChange(midi* midi_out, int ctrl, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
+            :uiMidiItem(midi_out, ui, zone, input), fCtrl(ctrl), fConverter(0., 127., double(min), double(max))
         {}
         virtual ~uiMidiCtrlChange()
         {}
@@ -247,7 +250,9 @@ class uiMidiCtrlChange : public uiMidiItem
         
         void modifyZone(int v) 	
         { 
-            uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
+            if (fInputCtrl) {
+                uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
+            }
         }
  
 };
@@ -261,8 +266,8 @@ class uiMidiPitchWheel : public uiMidiItem
  
     public:
     
-        uiMidiPitchWheel(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-            :uiMidiItem(midi_out, ui, zone), fConverter(0., 16383, double(min), double(max))
+        uiMidiPitchWheel(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
+            :uiMidiItem(midi_out, ui, zone, input), fConverter(0., 16383, double(min), double(max))
         {}
         virtual ~uiMidiPitchWheel()
         {}
@@ -276,7 +281,9 @@ class uiMidiPitchWheel : public uiMidiItem
         
         void modifyZone(int v) 	
         { 
-            uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
+            if (fInputCtrl) {
+                uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
+            }
         }
  
 };
@@ -291,8 +298,8 @@ class uiMidiKeyOn : public uiMidiItem
   
     public:
     
-        uiMidiKeyOn(midi* midi_out, int key, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-            :uiMidiItem(midi_out, ui, zone), fKeyOn(key), fConverter(0., 127., double(min), double(max))
+        uiMidiKeyOn(midi* midi_out, int key, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
+            :uiMidiItem(midi_out, ui, zone, input), fKeyOn(key), fConverter(0., 127., double(min), double(max))
         {}
         virtual ~uiMidiKeyOn()
         {}
@@ -306,7 +313,9 @@ class uiMidiKeyOn : public uiMidiItem
         
         void modifyZone(int v) 	
         { 
-            uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
+            if (fInputCtrl) {
+                uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
+            }
         }
         
 };
@@ -321,8 +330,8 @@ class uiMidiKeyPress : public uiMidiItem
   
     public:
     
-        uiMidiKeyPress(midi* midi_out, int key, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-            :uiMidiItem(midi_out, ui, zone), fKeyOn(key), fConverter(0., 127., double(min), double(max))
+        uiMidiKeyPress(midi* midi_out, int key, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
+            :uiMidiItem(midi_out, ui, zone, input), fKeyOn(key), fConverter(0., 127., double(min), double(max))
         {}
         virtual ~uiMidiKeyPress()
         {}
@@ -336,7 +345,9 @@ class uiMidiKeyPress : public uiMidiItem
         
         void modifyZone(int v) 	
         { 
-            uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
+            if (fInputCtrl) {
+                uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
+            }
         }
         
 };
@@ -362,32 +373,32 @@ class MidiUI : public GUI, public midi
         midi_handler* fMidiHandler;
         bool fDelete;
         
-        void addGenericZone(FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        void addGenericZone(FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
         {
             if (fMetaAux.size() > 0) {
                 for (size_t i = 0; i < fMetaAux.size(); i++) {
                     unsigned num;
                     if (fMetaAux[i].first == "midi") {
                         if (sscanf(fMetaAux[i].second.c_str(), "ctrl %u", &num) == 1) {
-                            fCtrlChangeTable[num].push_back(new uiMidiCtrlChange(fMidiHandler, num, this, zone, min, max));
+                            fCtrlChangeTable[num].push_back(new uiMidiCtrlChange(fMidiHandler, num, this, zone, min, max, input));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "keyon %u", &num) == 1) {
-                            fKeyOnTable[num].push_back(new uiMidiKeyOn(fMidiHandler, num, this, zone, min, max));
+                            fKeyOnTable[num].push_back(new uiMidiKeyOn(fMidiHandler, num, this, zone, min, max, input));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "keypress %u", &num) == 1) {
-                            fKeyPressTable[num].push_back(new uiMidiKeyPress(fMidiHandler, num, this, zone, min, max));
+                            fKeyPressTable[num].push_back(new uiMidiKeyPress(fMidiHandler, num, this, zone, min, max, input));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "pgm %u", &num) == 1) {
-                            fProgChangeTable[num].push_back(new uiMidiProgChange(fMidiHandler, num, this, zone));
+                            fProgChangeTable[num].push_back(new uiMidiProgChange(fMidiHandler, num, this, zone, input));
                         } else if (sscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num) == 1) {
-                            fChanPressTable[num].push_back(new uiMidiChanPress(fMidiHandler, num, this, zone));
+                            fChanPressTable[num].push_back(new uiMidiChanPress(fMidiHandler, num, this, zone, input));
                         } else if (strcmp(fMetaAux[i].second.c_str(), "pitchwheel") == 0 
                             || strcmp(fMetaAux[i].second.c_str(), "pitchbend") == 0) {
-                            fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiHandler, this, zone, min, max));
+                            fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiHandler, this, zone, min, max, input));
                         // MIDI sync
                         } else if (strcmp(fMetaAux[i].second.c_str(), "start") == 0) {
-                            fStartTable.push_back(new uiMidiStart(fMidiHandler, this, zone));
+                            fStartTable.push_back(new uiMidiStart(fMidiHandler, this, zone, input));
                         } else if (strcmp(fMetaAux[i].second.c_str(), "stop") == 0) {
-                            fStopTable.push_back(new uiMidiStop(fMidiHandler, this, zone));
+                            fStopTable.push_back(new uiMidiStop(fMidiHandler, this, zone, input));
                         } else if (strcmp(fMetaAux[i].second.c_str(), "clock") == 0) {
-                            fClockTable.push_back(new uiMidiClock(fMidiHandler, this, zone));
+                            fClockTable.push_back(new uiMidiClock(fMidiHandler, this, zone, input));
                         }
                     }
                 }
@@ -402,7 +413,6 @@ class MidiUI : public GUI, public midi
             fMidiHandler = new rt_midi(name);
             fMidiHandler->addMidiIn(this);
             fDelete = true;
-           
         }
         
         MidiUI(midi_handler* midi_handler)
@@ -421,8 +431,8 @@ class MidiUI : public GUI, public midi
             }
         }
         
-        void run() { fMidiHandler->start(); }
-        void stop() { fMidiHandler->stop(); }
+        void run() { fMidiHandler->start_midi(); }
+        void stop() { fMidiHandler->stop_midi(); }
         
         void addMidiIn(midi* midi_dsp) { fMidiHandler->addMidiIn(midi_dsp); }
         void removeMidiIn(midi* midi_dsp) { fMidiHandler->removeMidiIn(midi_dsp); }
@@ -466,11 +476,11 @@ class MidiUI : public GUI, public midi
 
         virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
         {
-            addGenericZone(zone, min, max);
+            addGenericZone(zone, min, max, false);
         }
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            addGenericZone(zone, min, max);
+            addGenericZone(zone, min, max, false);
         }
 
         // -- metadata declarations

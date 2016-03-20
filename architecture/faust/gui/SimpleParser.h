@@ -46,7 +46,7 @@ struct itemInfo {
     std::string min;
     std::string max;
     std::string step;
-    std::map<std::string, std::string> meta;
+    std::vector<std::pair<std::string, std::string> > meta;
 };
 
 bool parseMenuList(const char*& p, vector<string>& names, vector<double>& values);
@@ -295,6 +295,21 @@ static bool parseMetaData(const char*& p, std::map<std::string, std::string>& me
     }
 }
 
+static bool parseItemMetaData(const char*& p, std::vector<std::pair<std::string, std::string> >& metadatas)
+{
+    std::string metaKey, metaValue;
+    if (parseChar(p, ':') && parseChar(p, '[')) {
+        do { 
+            if (parseChar(p, '{') && parseDQString(p, metaKey) && parseChar(p, ':') && parseDQString(p, metaValue) && parseChar(p, '}')) {
+                metadatas.push_back(std::make_pair(metaKey, metaValue));
+            }
+        } while (tryChar(p, ','));
+        return parseChar(p, ']');
+    } else {
+        return false;
+    }
+}
+
 // ---------------------------------------------------------------------
 // Parse metadatas of the interface:
 // "name" : "...", "inputs" : "...", "outputs" : "...", ...
@@ -304,9 +319,9 @@ static bool parseGlobalMetaData(const char*& p, std::string& key, std::string& v
 {
     if (parseDQString(p, key)) {
         if (key == "meta") {
-        return parseMetaData(p, metadatas);
+            return parseMetaData(p, metadatas);
         } else {
-           return parseChar(p, ':') && parseDQString(p, value);
+            return parseChar(p, ':') && parseDQString(p, value);
         }
     } else {
         return false;
@@ -354,7 +369,7 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
                 
                 else if (label == "meta") {
                     itemInfo* item = uiItems[numItems];
-                    if (!parseMetaData(p, item->meta)) {
+                    if (!parseItemMetaData(p, item->meta)) {
                         return false;
                     }
                 }
@@ -421,7 +436,7 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
 // and store the result in map Metadatas and vector containing the items of the interface. Returns true if parsing was successfull.
 //
 
-inline bool parseJson(const char*& p, std::map<std::string,std::string>& metadatas, std::vector<itemInfo*>& uiItems)
+inline bool parseJson(const char*& p, std::map<std::string, std::string>& metadatas, std::vector<itemInfo*>& uiItems)
 {
     parseChar(p, '{');
     

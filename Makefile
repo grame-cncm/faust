@@ -101,6 +101,10 @@ install :
 	mkdir -p $(prefix)/lib/faust
 	cp architecture/*.cpp $(prefix)/lib/faust/
 	cp architecture/*.lib $(prefix)/lib/faust/
+	# This is needed by faust2lv2 -gui / lv2ui.cpp.
+	cp architecture/lv2qtgui.h $(prefix)/lib/faust/
+	# This is needed by faust2faustvst -gui / faustvst.cpp.
+	cp architecture/faustvstqt.h $(prefix)/lib/faust/
 	# install iOS
 	rm -rf $(prefix)/lib/faust/iOS
 	cp -r architecture/iOS $(prefix)/lib/faust/
