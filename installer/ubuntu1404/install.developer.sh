@@ -14,6 +14,10 @@ function installfaust {
 	$SUDO apt-get install -y qt4-default libcsound64-dev dssi-dev lv2-dev puredata-dev supercollider-dev wget unzip libboost1.54-dev
 	$SUDO apt-get install -y inkscape graphviz
 
+    # install QT5 for faust2faustvst
+    $SUDO apt-get install -y qtbase5-dev qt5-qmake libqt5x11extras5-dev
+    $SUDO ln -s /usr/lib/x86_64-linux-gnu/qt5/bin/qmake /usr/bin/qmake-qt5
+
 	# Install faust2pd from Albert Greaf Pure-lang PPA
 	$SUDO apt-get install -y software-properties-common
 	$SUDO add-apt-repository -y ppa:dr-graef/pure-lang.trusty
