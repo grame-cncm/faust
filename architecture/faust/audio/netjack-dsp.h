@@ -320,7 +320,7 @@ class netjackaudio_midicontrol : public netjackaudio, public ControlUI, public j
             encode_midi_control(midi_outputs[0], fResult.buffer_size);
             
             // Encode MIDI messages
-            processMidiOutBuffer(midi_outputs[1]);
+            processMidiOutBuffer(midi_outputs[1], true);
         }
         
     public:
