@@ -37,7 +37,8 @@
 
 #include "llvm-dsp.h"
 #include "faust/audio/audio.h"
-#include "utilities.h"
+#include "faust/gui/OSCUI.h"
+#include "faust/gui/httpdUI.h"
 #include "TMutex.h"
 
 #define POSTBUFFERSIZE 512
@@ -77,6 +78,9 @@ class audio_dsp {
         dsp* fDSP;          // DSP Instance 
         audio* fAudio;      // Audio driver
         
+        OSCUI* fOSCUI;
+        httpdUI* fHttpdUI;
+        
         createInstanceDSPCallback fCreateDSPInstanceCb;
         void* fCreateDSPInstanceCb_arg;
    
@@ -85,8 +89,10 @@ class audio_dsp {
   
     public:
     
-        audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, 
-                bool group, const string& name, const string& key, 
+        audio_dsp(llvm_dsp_factory* factory, 
+                bool poly, int voices, bool group, 
+                bool osc, bool httpd,
+                const string& name, const string& key, 
                 createInstanceDSPCallback cb1, void* cb1_arg,
                 deleteInstanceDSPCallback cb2, void* cb2_arg);
         virtual ~audio_dsp();
@@ -156,6 +162,8 @@ struct dsp_server_connection_info {
     //------DATAS RECEIVED TO CREATE NEW local Audio INSTANCE-------
     string fSampleRate;
     string fBufferSize;
+    string fOSC;
+    string fHTTPD;
     
     dsp_server_connection_info();
     virtual ~dsp_server_connection_info() {}

@@ -237,7 +237,7 @@ remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
 void deleteRemoteDSPInstance(remote_dsp* dsp);
 
 /**
- * Audio instance class. Use 'start/stop' to (de)activate audio on server side.
+ * Audio instance class. Use 'start/stop' to control audio instance on server side.
  */
 class remote_audio {
     
@@ -257,8 +257,10 @@ class remote_audio {
  * @param factory - the DSP factory
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters 
- *                  --LA_buffer_size 
- *                  --LA_sample_rate 
+ *                  --LA_buffer_size size
+ *                  --LA_sample_rate rate
+ *                  --osc <0/1>
+ *                  --httpd <0/1>
  * @param error - the error value to be filled
  * 
  * @return the remote DSP instance on success, otherwise a null pointer.

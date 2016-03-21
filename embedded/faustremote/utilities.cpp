@@ -92,7 +92,7 @@ bool isopt(int argc, const char* argv[], const char* name)
 	return false;
 }
 
-int lopt_Spe(int i, const char* argv[], const char* name, char* path)
+int lopt_spe(int i, const char* argv[], const char* name, char* path)
 {
     if (!strcmp(argv[i], name)){
         strcpy(path, argv[i+1]);

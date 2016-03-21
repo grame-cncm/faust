@@ -32,9 +32,10 @@
 // 									MAIN
 //-------------------------------------------------------------------------
 
-#include "remote_server.h"
+#include "remote-dsp.h"
 #include "faust/gui/GUI.h"
 #include "utilities.h"
+#include <iostream>
 
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
@@ -44,7 +45,7 @@ int main(int argc, const char* argv[])
     int	port = lopt(argv, "--port", 7777);
     
     if (isopt((const char**)argv, "--help")) {
-        printf("RemoteServer --port XXX (default port is 7777) \n");
+        std::cout << "RemoteServer --port XXX (default port is 7777)" << std::endl;
         return -1;
     }
     
@@ -54,11 +55,11 @@ int main(int argc, const char* argv[])
         std::cerr << "Unable to start Faust Remote Processing Server" << std::endl;
         return -1;
     } else {
-        std::cerr << "Faust Remote Processing Server is running on port : "<< port<<std::endl;
+        std::cerr << "Faust Remote Processing Server is running on port : "<< port << std::endl;
     }
-    
-    getchar();
-    printf("Quit server...\n");
+   
+    printf("Type 'q' to quit server...\n");
+    while (getchar() != 'q') {}
     server->stop();
     deleteRemoteDSPServer(server);
     return 0;

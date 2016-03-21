@@ -162,6 +162,7 @@ netjack_dsp::netjack_dsp(llvm_dsp_factory* factory,
                         createInstanceDSPCallback cb1, void* cb1_arg,
                         deleteInstanceDSPCallback cb2, void* cb2_arg)
                         :audio_dsp(factory, atoi(poly.c_str()), atoi(voices.c_str()), atoi(group.c_str()), 
+                        false, false, 
                         name, key, cb1, cb1_arg, cb2, cb2_arg), fIP(ip), 
                         fPort(port), fCompression(compression), 
                         fMTU(mtu), fLatency(latency), fMidiInterface(0)
@@ -217,6 +218,7 @@ bool audio_dsp::init(int sr, int bs)
 }
 
 audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool group, 
+                    bool osc, bool httpd, 
                     const string& name, const string& key, 
                     createInstanceDSPCallback cb1, void* cb1_arg,
                     deleteInstanceDSPCallback cb2, void* cb2_arg)
@@ -224,7 +226,6 @@ audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool grou
                     fCreateDSPInstanceCb(cb1), fCreateDSPInstanceCb_arg(cb1_arg),
                     fDeleteDSPInstanceCb(cb2), fDeleteDSPInstanceCb_arg(cb2_arg)
 {
-    printf("audio_dsp %d %d\n", poly, voices);
     llvm_dsp* dsp = createDSPInstance(factory);
     if (!dsp) {
         throw -1;
@@ -234,6 +235,20 @@ audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool grou
         fDSP = new mydsp_poly(voices, dsp, true, group);
     } else{
         fDSP = dsp;
+    }
+    
+    if (osc) {
+        fOSCUI = new OSCUI(name.c_str(), 0, NULL);
+        fDSP->buildUserInterface(fOSCUI);
+    } else {
+        fOSCUI = 0;
+    }
+    
+    if (httpd) {
+        fHttpdUI = new httpdUI(name.c_str(), fDSP->getNumInputs(),fDSP->getNumOutputs(), 0, NULL);
+        fDSP->buildUserInterface(fHttpdUI);
+    } else {
+        fHttpdUI = 0;
     }
     
     if (fCreateDSPInstanceCb) {
@@ -248,31 +263,20 @@ audio_dsp::~audio_dsp()
     }
     
     delete fAudio;
-    delete fDSP;
-    //deleteDSPInstance(fDSP);
+    delete fDSP;  //deleteDSPInstance(fDSP);
+    delete fOSCUI;
+    delete fHttpdUI;
 }
 
 //------------ CONNECTION INFO -------------------------------
 
 dsp_server_connection_info::dsp_server_connection_info() 
-{   
-    fAnswercode = -1;
-    fAnswer = "";
-    fNameApp = "";
-    fFaustCode = "";
-    fTarget = "";
-    fOptLevel = "";
-    fIP = "";
-    fPort = "";
-    fCompression = "";
-    fMTU = "";
-    fLatency = "";
-    fSHAKey = "";
-    fInstanceKey = "";
-    fPoly = "";
-    fVoices = "";
-    fGroup = "";
-}
+    :fAnswercode(-1), fAnswer(""), fNameApp(""), fFaustCode(""),
+     fTarget(""), fOptLevel(""), fIP(""), fPort(""), fCompression(""),
+     fMTU(""), fLatency(""), fSHAKey(""), fInstanceKey(""), 
+     fPoly(""), fVoices(""), fGroup(""),
+     fOSC(""), fHTTPD("")
+{}
 
 void dsp_server_connection_info::getJson(llvm_dsp_factory* factory) 
 {
@@ -281,10 +285,7 @@ void dsp_server_connection_info::getJson(llvm_dsp_factory* factory)
     llvm_dsp* llvm_dsp = createDSPInstance(factory);
     dsp* dsp;
     
-    printf("dsp_server_connection_info::getJson %s %s %s\n", fPoly.c_str(), fVoices.c_str(), fGroup.c_str());
-    
     if (atoi(fPoly.c_str())) {
-        printf("mydsp_poly\n");
         dsp = new mydsp_poly(atoi(fVoices.c_str()), llvm_dsp, true, atoi(fGroup.c_str()));
     } else{
         dsp = llvm_dsp;
@@ -297,8 +298,6 @@ void dsp_server_connection_info::getJson(llvm_dsp_factory* factory)
     //deleteDSPInstance(dsp);  
     delete dsp;
     fAnswer = json.JSON();    
-    
-    printf("fAnswer %s\n", fAnswer.c_str());
     /*
     fNameApp = getCName(factory);
     // This instance is used only to build JSON interface, then it's deleted
@@ -454,7 +453,11 @@ int dsp_server_connection_info::iteratePost(const char* key, const char* data, s
             fVoices = data;
         } else if (strcmp(key, "group") == 0) {
             fGroup = data;
-        }
+        } else if (strcmp(key, "osc") == 0) {
+            fOSC = data;
+        } else if (strcmp(key, "httpd") == 0) {
+            fHTTPD = data;
+        }  
     }
     
     fAnswercode = MHD_HTTP_OK;
@@ -885,6 +888,8 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
                                     atoi(con_info->fPoly.c_str()),
                                     atoi(con_info->fVoices.c_str()),
                                     atoi(con_info->fGroup.c_str()),
+                                    atoi(con_info->fOSC.c_str()),
+                                    atoi(con_info->fHTTPD.c_str()),
                                     factory->getName(),
                                     //getCName(factory),
                                     con_info->fInstanceKey,
