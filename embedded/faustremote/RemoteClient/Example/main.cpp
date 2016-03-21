@@ -45,6 +45,7 @@
 #include "faust/audio/jack-dsp.h"
 
 std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 int main(int argc, const char* argv[])
 {
@@ -137,19 +138,21 @@ int main(int argc, const char* argv[])
                         
                         DSP->buildUserInterface(interface);   
                         
-                        if (!audio->init("Test", DSP))
+                        if (!audio->init("Test", DSP)) {
                             break;
-                        else
+                        } else {
                             printf("INIT\n");
+                        }
                         
-                        if (!audio->start())
+                        if (!audio->start()) {
                             break;
-                        else
+                        } else {
                             printf("START\n");
+                        }
                         
                         interface->run();
                         
-                    }else {
+                    } else {
                         printf("CREATE INSTANCE FAILED = %d\n", errorInstance);
                     }
                 }

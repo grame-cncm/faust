@@ -339,7 +339,6 @@ class remote_dsp_server {
         bool start(int port = 7777); /* Start the DSP compilation service on a given port. */
         void stop();                 /* Stop the DSP compilation service. */
         
-        
         void setCreateDSPFactoryCallback(createFactoryDSPCallback callback, void* callback_arg);
         void setDeleteDSPFactoryCallback(deleteFactoryDSPCallback callback, void* callback_arg);
         

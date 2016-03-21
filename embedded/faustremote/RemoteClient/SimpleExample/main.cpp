@@ -42,6 +42,7 @@
 #include "faust/audio/jack-dsp.h"
 
 std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 int testClient(int argc, const char* argv[])
 {
@@ -111,7 +112,6 @@ int testClient(int argc, const char* argv[])
     //arguments[nbArgument++] = "-vec";
               
     string content = pathToContent(filePath);
-    
     remote_dsp_factory* factory = createRemoteDSPFactoryFromString("FaustRemote", content, nbArgument, arguments, ipServer, portServer, errorFactory, 3);
     
     /*remote_dsp_factory* factory = 0;
@@ -165,7 +165,6 @@ int testClient(int argc, const char* argv[])
 }
 
 pthread_t gThread;
-
 QTGUI* interface = NULL;
 httpdUI* httpdinterface = NULL;
  
@@ -182,7 +181,7 @@ static void* RunDSP(void* arg)
     return 0;
 }
 
-static bool DSPCallback(llvm_dsp* dsp, void* arg)
+static bool DSPCallback(dsp* dsp, void* arg)
 {
     printf("DSPCallback\n");
     
