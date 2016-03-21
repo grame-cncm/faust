@@ -114,9 +114,19 @@ remote_dsp_factory::~remote_dsp_factory()
     string finalRequest = "shaKey=" + fSHAKey;
     string response;
     int errorCode = -1;
-    string url = fServerURL + "/DeleteFactory";
-    sendRequest(url, finalRequest, response, errorCode);
+    sendRequest(fServerURL + "/DeleteFactory", finalRequest, response, errorCode);
+    
     delete fJSONDecoder;
+}
+
+bool remote_dsp_factory::sendFinalRequest(void* obj, const string& cmd)
+{
+    stringstream finalRequest;
+    string response;
+    int errorCode = -1;
+    
+    finalRequest << "instanceKey=" << obj;
+    return sendRequest(fServerURL + cmd, finalRequest.str(), response, errorCode);
 }
 
 // Compile on server side and get machine code on client to re-create a local Factory
@@ -386,14 +396,7 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory)
         
 remote_dsp_aux::~remote_dsp_aux()
 {
-    // Request 'delete' on server side
-    stringstream finalRequest;
-    string response;
-    int errorCode = -1;
-    
-    finalRequest << "instanceKey=" << this;
-    string url = fFactory->getURL() + "/DeleteInstance";
-    sendRequest(url, finalRequest.str(), response, errorCode);
+    fFactory->sendFinalRequest(this, "/DeleteInstance");
     
     if (fNetJack) {
     
@@ -592,7 +595,10 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
    
     // Open NetJack connection
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
-        jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sample_rate), "net_master", 5, partial_cycle};
+        jack_master_t request = { -1, -1, -1, -1, 
+                                static_cast<jack_nframes_t>(buffer_size), 
+                                static_cast<jack_nframes_t>(sample_rate), 
+                                "net_master", 5, partial_cycle};
         jack_slave_t result;
         if ((fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), &request, &result))) {
             res = true;
@@ -613,14 +619,7 @@ remote_audio_aux::remote_audio_aux(remote_dsp_factory* factory)
 
 remote_audio_aux::~remote_audio_aux()
 {
-    // Request 'delete' on server side
-    stringstream finalRequest;
-    string response;
-    int errorCode = -1;
-    
-    finalRequest << "instanceKey=" << this;
-    string url = fFactory->getURL() + "/DeleteInstance";
-    sendRequest(url, finalRequest.str(), response, errorCode);
+    fFactory->sendFinalRequest(this, "/DeleteInstance");
 }  
 
 bool remote_audio_aux::init(int argc, const char* argv[], int& error)
@@ -645,24 +644,12 @@ bool remote_audio_aux::init(int argc, const char* argv[], int& error)
 
 bool remote_audio_aux::start()
 {
-    stringstream finalRequest;
-    string response;
-    int errorCode = -1;
-    
-    finalRequest << "instanceKey=" << this;
-    string url = fFactory->getURL() + "/StartInstance";
-    return sendRequest(url, finalRequest.str(), response, errorCode);
+    return fFactory->sendFinalRequest(this, "/StartInstance");
 }
 
 bool remote_audio_aux::stop()
 {
-    stringstream finalRequest;
-    string response;
-    int errorCode = -1;
-    
-    finalRequest << "instanceKey=" << this;
-    string url = fFactory->getURL() + "/StopInstance";
-    return sendRequest(url, finalRequest.str(), response, errorCode);
+    return fFactory->sendFinalRequest(this, "/StopInstance");
 }            
 
 //------ DISCOVERY OF AVAILABLE MACHINES

@@ -158,12 +158,13 @@ class remote_dsp_factory : public smartable {
         string getGroup();
         
         vector<string> getRemoteDSPFactoryLibraryList() { return fPathnameList; }
+        bool sendFinalRequest(void* obj, const string& cmd);
         
         static LocalFactoryDSPTableType gLocalFactoryDSPTable;
         static RemoteFactoryDSPTableType gRemoteFactoryDSPTable;
         static CURL* gCurl;
         static remote_DNS* gDNS;
-
+     
 };
 
 class remote_dsp_aux : public dsp, public jack_midi_handler {
