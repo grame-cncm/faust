@@ -80,7 +80,27 @@ class OSCUI : public GUI
 	oscfaust::OSCControler*	fCtrl;
 	std::vector<const char*> fAlias;
 	
-	const char* tr(const char* label) const;
+    const char* tr(const char* label) const
+    {
+        static char buffer[1024];
+        char * ptr = buffer; int n=1;
+        while (*label && (n++ < 1024)) {
+            switch (*label) {
+                case ' ': case '	':
+                    *ptr++ = '_';
+                    break;
+                case '#': case '*': case ',': case '/': case '?':
+                case '[': case ']': case '{': case '}': case '(': case ')':
+                    *ptr++ = '_';
+                    break;
+                default: 
+                    *ptr++ = *label;
+            }
+            label++;
+        }
+        *ptr = 0;
+        return buffer;
+    }
 	
 	// add all accumulated alias
 	void addalias(FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, const char* label)
@@ -154,27 +174,5 @@ class OSCUI : public GUI
     int	getUDPErr()                 { return fCtrl->getUDPErr(); }
     const char* getDestAddress()    { return fCtrl->getDestAddress(); }
 };
-
-const char* OSCUI::tr(const char* label) const
-{
-	static char buffer[1024];
-	char * ptr = buffer; int n=1;
-	while (*label && (n++ < 1024)) {
-		switch (*label) {
-			case ' ': case '	':
-				*ptr++ = '_';
-				break;
-			case '#': case '*': case ',': case '/': case '?':
-			case '[': case ']': case '{': case '}': case '(': case ')':
-				*ptr++ = '_';
-				break;
-			default: 
-				*ptr++ = *label;
-		}
-		label++;
-	}
-	*ptr = 0;
-	return buffer;
-}
 
 #endif // __OSCUI__
