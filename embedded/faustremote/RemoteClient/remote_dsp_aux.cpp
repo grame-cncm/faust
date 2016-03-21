@@ -637,6 +637,7 @@ bool remote_audio_aux::init(int argc, const char* argv[], int& error)
     finalRequest << "&LA_buffer_size=" << atoi(loptions(argc, argv, "--LA_buffer_size ", "512"));
     finalRequest << "&osc=" << loptions(argc, argv, "--osc ", "0");
     finalRequest << "&httpd=" << loptions(argc, argv, "--httpd ", "0");
+    finalRequest << "&midi=" << loptions(argc, argv, "--midi ", "0");
     finalRequest << "&shaKey=" << fFactory->getSHAKey();
     finalRequest << "&instanceKey=" << this;
     

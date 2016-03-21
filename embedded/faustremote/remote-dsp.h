@@ -261,6 +261,7 @@ class remote_audio {
  *                  --LA_sample_rate rate
  *                  --osc <0/1>
  *                  --httpd <0/1>
+ *                  --midi <0/1> 
  * @param error - the error value to be filled
  * 
  * @return the remote DSP instance on success, otherwise a null pointer.

@@ -212,6 +212,9 @@ bool audio_dsp::init(int sr, int bs)
         printf("audio_dsp : init audio failed\n");
         return false;
     } else {
+        if (fOSCUI)     { fOSCUI->run(); }
+        if (fHttpdUI)   { fHttpdUI->run(); }
+        if (fMidiUI)    { fMidiUI->run(); }
         return true;
     }
 }
@@ -246,6 +249,7 @@ audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool grou
     if (httpd) {
         fHttpdUI = new httpdUI(name.c_str(), fDSP->getNumInputs(),fDSP->getNumOutputs(), 0, NULL);
         fDSP->buildUserInterface(fHttpdUI);
+        fHttpdUI->run();
     } else {
         fHttpdUI = 0;
     }
@@ -253,7 +257,7 @@ audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool grou
     if (midi) {
         //fMidiUI = new MidiUI();
         //fDSP->buildUserInterface(fMidiUI);
-         fMidiUI = 0;
+        fMidiUI = 0;
     } else {
         fMidiUI = 0;
     }
@@ -466,7 +470,7 @@ int dsp_server_connection_info::iteratePost(const char* key, const char* data, s
             fOSC = data;
         } else if (strcmp(key, "httpd") == 0) {
             fHTTPD = data;
-        } else if (strcmp(key, "MIDI") == 0) {
+        } else if (strcmp(key, "midi") == 0) {
             fMIDI = data;
         }  
     }
