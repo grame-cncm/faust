@@ -11,10 +11,10 @@
 #include "rn_base64.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUI.h"
-#include "faust/gui/MidiUI.h"
 
 #define LLVM_DSP 1
 #include "faust/dsp/poly-dsp.h"
+//#include "faust/midi/RtMidi.cpp"
 
 #include <string.h>
 #include <stdio.h>
@@ -127,7 +127,6 @@ class netjack_dsp : public audio_dsp {
         string fCompression;
         string fMTU;
         string fLatency;
-        MidiUI* fMidiInterface;
      
     public:
     
@@ -140,7 +139,7 @@ class netjack_dsp : public audio_dsp {
                     createInstanceDSPCallback cb1, void* cb1_arg,
                     deleteInstanceDSPCallback cb2, void* cb2_arg);
                     
-        virtual ~netjack_dsp() { delete fMidiInterface; }
+        virtual ~netjack_dsp() {}
         
         bool init(int u1, int u2);
        
@@ -162,10 +161,10 @@ netjack_dsp::netjack_dsp(llvm_dsp_factory* factory,
                         createInstanceDSPCallback cb1, void* cb1_arg,
                         deleteInstanceDSPCallback cb2, void* cb2_arg)
                         :audio_dsp(factory, atoi(poly.c_str()), atoi(voices.c_str()), atoi(group.c_str()), 
-                        false, false, 
+                        false, false, false,
                         name, key, cb1, cb1_arg, cb2, cb2_arg), fIP(ip), 
                         fPort(port), fCompression(compression), 
-                        fMTU(mtu), fLatency(latency), fMidiInterface(0)
+                        fMTU(mtu), fLatency(latency)
 {}
 
 bool netjack_dsp::init(int u1, int u2)
@@ -179,9 +178,9 @@ bool netjack_dsp::init(int u1, int u2)
     
     // If Polyphonic DSP, setup a MIDI interface
     if (dynamic_cast<mydsp_poly*>(fDSP)) {
-        fMidiInterface = new MidiUI(netjack_slave);
-        fDSP->buildUserInterface(fMidiInterface);
-        fMidiInterface->run();
+        fMidiUI = new MidiUI(netjack_slave);
+        fDSP->buildUserInterface(fMidiUI);
+        fMidiUI->run();
     }
                                         
     if (!fAudio->init(fName.c_str(), fDSP)) {
@@ -218,7 +217,7 @@ bool audio_dsp::init(int sr, int bs)
 }
 
 audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool group, 
-                    bool osc, bool httpd, 
+                    bool osc, bool httpd, bool midi, 
                     const string& name, const string& key, 
                     createInstanceDSPCallback cb1, void* cb1_arg,
                     deleteInstanceDSPCallback cb2, void* cb2_arg)
@@ -250,7 +249,15 @@ audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool grou
     } else {
         fHttpdUI = 0;
     }
-    
+     
+    if (midi) {
+        //fMidiUI = new MidiUI();
+        //fDSP->buildUserInterface(fMidiUI);
+         fMidiUI = 0;
+    } else {
+        fMidiUI = 0;
+    }
+   
     if (fCreateDSPInstanceCb) {
         fCreateDSPInstanceCb(fDSP, fCreateDSPInstanceCb_arg);
     }
@@ -264,8 +271,10 @@ audio_dsp::~audio_dsp()
     
     delete fAudio;
     delete fDSP;  //deleteDSPInstance(fDSP);
+    
     delete fOSCUI;
     delete fHttpdUI;
+    delete fMidiUI;
 }
 
 //------------ CONNECTION INFO -------------------------------
@@ -275,7 +284,7 @@ dsp_server_connection_info::dsp_server_connection_info()
      fTarget(""), fOptLevel(""), fIP(""), fPort(""), fCompression(""),
      fMTU(""), fLatency(""), fSHAKey(""), fInstanceKey(""), 
      fPoly(""), fVoices(""), fGroup(""),
-     fOSC(""), fHTTPD("")
+     fOSC(""), fHTTPD(""), fMIDI("")
 {}
 
 void dsp_server_connection_info::getJson(llvm_dsp_factory* factory) 
@@ -457,6 +466,8 @@ int dsp_server_connection_info::iteratePost(const char* key, const char* data, s
             fOSC = data;
         } else if (strcmp(key, "httpd") == 0) {
             fHTTPD = data;
+        } else if (strcmp(key, "MIDI") == 0) {
+            fMIDI = data;
         }  
     }
     
@@ -890,6 +901,7 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
                                     atoi(con_info->fGroup.c_str()),
                                     atoi(con_info->fOSC.c_str()),
                                     atoi(con_info->fHTTPD.c_str()),
+                                    atoi(con_info->fMIDI.c_str()),
                                     factory->getName(),
                                     //getCName(factory),
                                     con_info->fInstanceKey,

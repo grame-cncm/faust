@@ -39,6 +39,7 @@
 #include "faust/audio/audio.h"
 #include "faust/gui/OSCUI.h"
 #include "faust/gui/httpdUI.h"
+#include "faust/gui/MidiUI.h"
 #include "TMutex.h"
 
 #define POSTBUFFERSIZE 512
@@ -78,8 +79,9 @@ class audio_dsp {
         dsp* fDSP;          // DSP Instance 
         audio* fAudio;      // Audio driver
         
-        OSCUI* fOSCUI;
-        httpdUI* fHttpdUI;
+        OSCUI* fOSCUI;      // OSC controler
+        httpdUI* fHttpdUI;  // Httpd controler
+        MidiUI* fMidiUI;    // MIDIcontroler
         
         createInstanceDSPCallback fCreateDSPInstanceCb;
         void* fCreateDSPInstanceCb_arg;
@@ -91,7 +93,7 @@ class audio_dsp {
     
         audio_dsp(llvm_dsp_factory* factory, 
                 bool poly, int voices, bool group, 
-                bool osc, bool httpd,
+                bool osc, bool httpd, bool midi,
                 const string& name, const string& key, 
                 createInstanceDSPCallback cb1, void* cb1_arg,
                 deleteInstanceDSPCallback cb2, void* cb2_arg);
@@ -164,6 +166,7 @@ struct dsp_server_connection_info {
     string fBufferSize;
     string fOSC;
     string fHTTPD;
+    string fMIDI;
     
     dsp_server_connection_info();
     virtual ~dsp_server_connection_info() {}
