@@ -656,6 +656,7 @@ bool remote_audio_aux::stop()
 }            
 
 //------ DISCOVERY OF AVAILABLE MACHINES
+
 remote_DNS* remote_dsp_factory::gDNS = NULL;
 
 __attribute__((constructor)) static void initialize_libfaustremote() 
@@ -723,7 +724,6 @@ int remote_DNS::pingHandler(const char* path, const char* types,
 }
 
 //----------------------------------REMOTE DSP/AUDIO PUBLIC API-------------------------------------------
-
 // FACTORIES
 
 // TODO : possibly recompute the DSP (if Faust compilation parameters change)
@@ -1026,7 +1026,7 @@ EXPORT std::string remote_dsp_machine::getTarget()
 
 EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
                                             int argc, 
-                                            const char *argv[], 
+                                            const char* argv[], 
                                             remoteDSPErrorCallback error_callback, 
                                             void* error_callback_arg, 
                                             int& error)

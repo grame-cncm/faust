@@ -27,7 +27,6 @@
 #include <map>
 #include <list>
 #include <assert.h>
-#include <pthread.h>
 #include <curl/curl.h>
 #include <sstream>
 #include <iostream>
@@ -109,6 +108,8 @@ class remote_audio_aux;
 class remote_dsp_factory;
 
 typedef class SMARTP<remote_dsp_factory> Sremote_dsp_factory;
+
+// The proxy DSP factory 
     
 class remote_dsp_factory : public smartable {
 
@@ -167,6 +168,8 @@ class remote_dsp_factory : public smartable {
      
 };
 
+// The proxy DSP instance 
+
 class remote_dsp_aux : public dsp, public jack_midi_handler {
     
     private:
@@ -219,6 +222,8 @@ class remote_dsp_aux : public dsp, public jack_midi_handler {
         remote_dsp_factory* getFactory() { return fFactory; }
 };
 
+// The proxy audio instance 
+
 class remote_audio_aux {
     
     private:
@@ -237,6 +242,9 @@ class remote_audio_aux {
         bool start();
         bool stop();
 };
+
+
+// The proxy machine 
 
 class remote_dsp_machine_aux {
 
