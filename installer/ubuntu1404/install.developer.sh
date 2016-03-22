@@ -47,6 +47,10 @@ function installfaust {
 	# Install Bela
 	$SUDO apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf mercurial
 	$SUDO hg clone https://code.soundsoftware.ac.uk/hg/beaglert
+	# currently needed for experimental midi stuff
+	$SUDO hg checkout mergingClockSync
+	$SUDO hg pull -u
+	# end midi stuff
 	$SUDO mv beaglert /usr/local/
 	# install xenomia (should be downloaded from an official place)
 	wget 192.168.1.3/xenomai.tgz
@@ -72,6 +76,7 @@ function testfaust {
 	echo "Test Faust Installation"
 	testscript faust2alsa -httpd -osc -poly -midi
 	testscript faust2alqt
+	testscript faust2bela
 	testscript faust2dssi
 	testscript faust2jackinternal
 	testscript faust2msp
@@ -82,9 +87,10 @@ function testfaust {
 	testscript faust2jackserver
 	testscript faust2netjackconsole
 	testscript faust2raqt
-	testscript faust2vst
 	testscript faust2alsaconsole
 	testscript faust2faustvst
+	testscript faust2faustvst -gui -qt4
+	testscript faust2faustvst -gui -qt5
 	testscript faust2jaqt
 	testscript faust2netjackqt
 	testscript faust2ros
@@ -98,6 +104,8 @@ function testfaust {
 	testscript faust2api
 	testscript faust2gen
 	testscript faust2lv2
+	testscript faust2lv2 -gui -qt4
+	testscript faust2lv2 -gui -qt4
 	testscript faust2owl
 	testscript faust2rpialsaconsole
 	testscript faust2w32msp
