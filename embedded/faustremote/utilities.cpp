@@ -33,9 +33,9 @@ string pathToContent(const string& path)
 {
     ifstream file(path.c_str(), std::ifstream::binary);
     
-    file.seekg (0, file.end);
+    file.seekg(0, file.end);
     int size = file.tellg();
-    file.seekg (0, file.beg);
+    file.seekg(0, file.beg);
     
     // And allocate buffer to that a single line can be read...
     char* buffer = new char[size + 1];

@@ -302,25 +302,6 @@ faust.createDSPFactory = function (code, argv) {
     }
 
     console.log(factory_code);
-
-    // 'libfaust.js' asm.js backend generates the ASM module + UI method, then we compile the code
-    eval(factory_code);
-
-    // Compile the ASM module itself : 'buffer' is the emscripten global memory context
-    factory = eval(factory_name + "Module(window, null, buffer)");        
-    console.log(factory);
-
-    var path_table_function = eval("getPathTable" + factory_name); 
-    factory.pathTable = path_table_function();
-
-    factory.getJSON = eval("getJSON" + factory_name);
-    factory.metadata = eval("metadata" + factory_name);
-    factory.getSize = eval("getSize" + factory_name);
-    
-    factory.factory_name = factory_name;
-    factory.sha_key = sha_key;
-    faust.factory_table[sha_key] = factory;
-    console.log(sha_key);
     
     // Free strings
     Module._free(code_ptr);
@@ -335,9 +316,50 @@ faust.createDSPFactory = function (code, argv) {
         Module._free(argv_ptr_buffer[i]);
     }
     Module._free(argv_ptr);
+     
+    return faust.readDSPFactoryFromMachineAux(sha_key, factory_name, factory_code);
+};
+
+faust.writeDSPFactoryToMachine = function (factory)
+{
+    return [factory.name, factory.code];
+}
+
+faust.readDSPFactoryFromMachine = function (factory_name_code)
+{
+    var sha_key = Sha1.hash(factory_name_code[1], true);
+    var factory = faust.factory_table[sha_key];
+    if (factory) {
+        // Existing factory, do not create it...
+        return factory;
+    } else {
+        return faust.readDSPFactoryFromMachineAux(sha_key, factory_name_code[0], factory_name_code[1]);
+    }
+}
+
+faust.readDSPFactoryFromMachineAux = function (sha_key, factory_name, factory_code)
+{
+    // 'libfaust.js' asm.js backend generates the ASM module + UI method, then we compile the code
+    eval(factory_code);
+
+    // Compile the ASM module itself : 'buffer' is the emscripten global memory context
+    factory = eval(factory_name + "Module(window, null, buffer)");        
+  
+    var path_table_function = eval("getPathTable" + factory_name); 
+    factory.pathTable = path_table_function();
+
+    factory.getJSON = eval("getJSON" + factory_name);
+    factory.metadata = eval("metadata" + factory_name);
+    factory.getSize = eval("getSize" + factory_name);
+    
+    factory.name = factory_name;
+    factory.sha_key = sha_key;
+    factory.code = factory_code;
+    
+    faust.factory_table[sha_key] = factory;
     
     return factory;
-};
+}
 
 faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; };
 
