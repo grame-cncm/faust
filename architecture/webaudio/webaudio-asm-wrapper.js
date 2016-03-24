@@ -322,18 +322,18 @@ faust.createDSPFactory = function (code, argv) {
 
 faust.writeDSPFactoryToMachine = function (factory)
 {
-    return [factory.name, factory.code];
+    return { name : factory.name, code : factory.code };
 }
 
-faust.readDSPFactoryFromMachine = function (factory_name_code)
+faust.readDSPFactoryFromMachine = function (machine)
 {
-    var sha_key = Sha1.hash(factory_name_code[1], true);
+    var sha_key = Sha1.hash(machine.code, true);
     var factory = faust.factory_table[sha_key];
     if (factory) {
         // Existing factory, do not create it...
         return factory;
     } else {
-        return faust.readDSPFactoryFromMachineAux(factory_name_code[0], factory_name_code[1], sha_key);
+        return faust.readDSPFactoryFromMachineAux(machine.name, machine.code, sha_key);
     }
 }
 
