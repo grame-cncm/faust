@@ -317,7 +317,7 @@ faust.createDSPFactory = function (code, argv) {
     }
     Module._free(argv_ptr);
      
-    return faust.readDSPFactoryFromMachineAux(sha_key, factory_name, factory_code);
+    return faust.readDSPFactoryFromMachineAux(factory_name, factory_code, sha_key);
 };
 
 faust.writeDSPFactoryToMachine = function (factory)
@@ -333,11 +333,11 @@ faust.readDSPFactoryFromMachine = function (factory_name_code)
         // Existing factory, do not create it...
         return factory;
     } else {
-        return faust.readDSPFactoryFromMachineAux(sha_key, factory_name_code[0], factory_name_code[1]);
+        return faust.readDSPFactoryFromMachineAux(factory_name_code[0], factory_name_code[1], sha_key);
     }
 }
 
-faust.readDSPFactoryFromMachineAux = function (sha_key, factory_name, factory_code)
+faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, sha_key)
 {
     // 'libfaust.js' asm.js backend generates the ASM module + UI method, then we compile the code
     eval(factory_code);

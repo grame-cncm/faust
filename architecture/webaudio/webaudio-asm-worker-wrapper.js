@@ -259,7 +259,65 @@ faust.pow2limit = function (x) {
     return (n < 65536) ? 65536 : n; // Minimum = 64 kB
 }
 
-faust.createDSPFactoryTmp = function (factory_code, factory_name, sha_key, max_polyphony) {
+faust.createDSPFactoryAux = function (code, argv, max_polyphony, callback) {
+
+    if (max_polyphony > 0) {
+        code = "declare DSP \"POLY\";\n" + code;  
+    } else {
+        code = "declare DSP \"MONO\";\n" + code;  
+    }
+  
+    var sha_key = Sha1.hash(code, true);
+    var factory = faust.factory_table[sha_key];
+    if (factory) {
+        if (callback) callback(factory);
+        return;
+    }
+    
+    // use a Worker to compile the code...
+    var factory_name = "mydsp" + faust.factory_number++;
+    var worker = new Worker("create-factory-worker.js");
+    
+    worker.onmessage = function(event) {
+        var factory_code = event.data.factory_code;
+        var factory = null;
+        faust.error_msg = event.data.error_msg;
+        if (factory_code) {
+            factory = faust.readDSPFactoryFromMachineAux(factory_name, factory_code, sha_key, max_polyphony);
+        }
+        if (callback) {
+            callback(factory);
+        }
+    };
+    
+    worker.postMessage({code: code, argv: argv, factory_name: factory_name});
+};
+
+// Mono
+faust.createDSPFactory = function (code, argv, callback) {
+    faust.createDSPFactoryAux(code, argv, 0, callback);
+};
+
+faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; };
+
+faust.writeDSPFactoryToMachine = function (factory)
+{
+    return [factory.name, factory.code];
+}
+
+faust.readDSPFactoryFromMachine = function (factory_name_code, max_polyphony)
+{
+    var sha_key = Sha1.hash(factory_name_code[1], true);
+    var factory = faust.factory_table[sha_key];
+    if (factory) {
+        // Existing factory, do not create it...
+        return factory;
+    } else {
+        return faust.readDSPFactoryFromMachineAux(factory_name_code[0], factory_name_code[1], sha_key, max_polyphony);
+    }
+}
+
+faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, sha_key, max_polyphony) {
     
     console.log(factory_code);
 
@@ -346,88 +404,6 @@ faust.createDSPFactoryTmp = function (factory_code, factory_name, sha_key, max_p
     }
     
     console.log(factory);
-    return factory;
-}
-
-faust.createDSPFactoryAux = function (code, argv, max_polyphony, callback) {
-
-    if (max_polyphony > 0) {
-        code = "declare DSP \"POLY\";\n" + code;  
-    } else {
-        code = "declare DSP \"MONO\";\n" + code;  
-    }
-  
-    var sha_key = Sha1.hash(code, true);
-    var factory = faust.factory_table[sha_key];
-    if (factory) {
-        if (callback) callback(factory);
-        return;
-    }
-    
-    // use a Worker to compile the code...
-    var factory_name = "mydsp" + faust.factory_number++;
-    var worker = new Worker("create-factory-worker.js");
-    
-    worker.onmessage = function(event) {
-        var factory_code = event.data.factory_code;
-        var factory = null;
-        faust.error_msg = event.data.error_msg;
-        if (factory_code) {
-            factory = faust.createDSPFactoryTmp(factory_code, factory_name, sha_key, max_polyphony);
-        }
-        if (callback) {
-            callback(factory);
-        }
-    };
-    
-    worker.postMessage({code: code, argv: argv, factory_name: factory_name});
-};
-
-// Mono
-faust.createDSPFactory = function (code, argv, callback) {
-    faust.createDSPFactoryAux(code, argv, 0, callback);
-};
-
-faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; };
-
-faust.writeDSPFactoryToMachine = function (factory)
-{
-    return [factory.name, factory.code];
-}
-
-faust.readDSPFactoryFromMachine = function (factory_name_code)
-{
-    var sha_key = Sha1.hash(factory_name_code[1], true);
-    var factory = faust.factory_table[sha_key];
-    if (factory) {
-        // Existing factory, do not create it...
-        return factory;
-    } else {
-        return faust.readDSPFactoryFromMachineAux(sha_key, factory_name_code[0], factory_name_code[1]);
-    }
-}
-
-faust.readDSPFactoryFromMachineAux = function (sha_key, factory_name, factory_code)
-{
-    // 'libfaust.js' asm.js backend generates the ASM module + UI method, then we compile the code
-    eval(factory_code);
-
-    // Compile the ASM module itself : 'buffer' is the emscripten global memory context
-    factory = eval(factory_name + "Module(window, null, buffer)");        
- 
-    var path_table_function = eval("getPathTable" + factory_name); 
-    factory.pathTable = path_table_function();
-
-    factory.getJSON = eval("getJSON" + factory_name);
-    factory.metadata = eval("metadata" + factory_name);
-    factory.getSize = eval("getSize" + factory_name);
-    
-    factory.name = factory_name;
-    factory.sha_key = sha_key;
-    factory.code = factory_code;
-    
-    faust.factory_table[sha_key] = factory;
-    
     return factory;
 }
 
