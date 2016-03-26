@@ -2711,11 +2711,12 @@ bool VSTQtGUI::open(void *ptr)
       qDebug("found slider!");
 #endif
       slider->setProperty("vstParam", vstParamCount);
-      controls.append(slider);
+      QList<QObject*> c; c.append(slider);
+      controls.append(c);
 
       connect(slider, SIGNAL(valueChanged(int)), this, SLOT(updateVST()),
               Qt::QueuedConnection);
-      updateQTGUI(slider, effect->getParameter(vstParamCount), true);
+      updateQTGUI(slider, effect->getParameter(vstParamCount));
 
       vstParamCount++;
     }
@@ -2727,11 +2728,12 @@ bool VSTQtGUI::open(void *ptr)
       qDebug("found knob!");
 #endif
       dial->setProperty("vstParam", vstParamCount);
-      controls.append(dial);
+      QList<QObject*> c; c.append(dial);
+      controls.append(c);
 
       connect(dial, SIGNAL(valueChanged(int)), this, SLOT(updateVST()),
               Qt::QueuedConnection);
-      updateQTGUI(dial, effect->getParameter(vstParamCount), true);
+      updateQTGUI(dial, effect->getParameter(vstParamCount));
 
       vstParamCount++;
     }
@@ -2743,7 +2745,8 @@ bool VSTQtGUI::open(void *ptr)
       qDebug("found button!");
 #endif
       button->setProperty("vstParam", vstParamCount);
-      controls.append(button);
+      QList<QObject*> c; c.append(button);
+      controls.append(c);
 
       connect(button, SIGNAL(pressed()), this,
 	      SLOT(updateVST_buttonPressed()), Qt::QueuedConnection);
@@ -2767,12 +2770,13 @@ bool VSTQtGUI::open(void *ptr)
         qDebug("found list!");
 #endif
         num->setProperty("vstParam", vstParamCount);
-        controls.append(num);
+	QList<QObject*> c; c.append(num);
+        controls.append(c);
 
         connect(num, SIGNAL(valueChanged(double)), this, SLOT(updateVST()),
                 Qt::QueuedConnection);
 
-        updateQTGUI(num, effect->getParameter(vstParamCount), true);
+        updateQTGUI(num, effect->getParameter(vstParamCount));
 
         vstParamCount++;
 
@@ -2786,6 +2790,7 @@ bool VSTQtGUI::open(void *ptr)
         qDebug("found numDisplay!");
 #endif
         num->setProperty("vstParam", vstParamCount-1);
+	controls[vstParamCount-1].append(num);
         passive_controls.append(num);
 
         // the corresponding display of the vBargraphs is now set
@@ -2801,8 +2806,9 @@ bool VSTQtGUI::open(void *ptr)
           qDebug("found horizontal bargraph with numerical style!");
 #endif
           num->setProperty("vstParam", vstParamCount);
-	  controls.append(num);
-          passive_controls.append(num);
+	  QList<QObject*> c; c.append(num);
+	  controls.append(c);
+	  passive_controls.append(num);
 	  control_values[vstParamCount] = effect->getMinimum(vstParamCount);
 
           vstParamCount++;
@@ -2817,20 +2823,15 @@ bool VSTQtGUI::open(void *ptr)
       qDebug("found checkbox!");
 #endif
       checkBox->setProperty("vstParam", vstParamCount);
-      controls.append(checkBox);
+      QList<QObject*> c; c.append(checkBox);
+      controls.append(c);
 
       connect(checkBox, SIGNAL(stateChanged(int)), this,
 	      SLOT(updateVST_checkBox()), Qt::QueuedConnection);
 
       // if the VST parameter of the checkbox is less than 0.5 then the
       // checkbox is unchecked
-      if(effect->getParameter(vstParamCount) < 0.5f) {
-        checkBox->setChecked(false);
-	control_values[vstParamCount] = 0.0f;
-      } else {
-        checkBox->setChecked(true);
-	control_values[vstParamCount] = 1.0f;
-      }
+      updateQTGUI(checkBox, effect->getParameter(vstParamCount));
 
       vstParamCount++;
     }
@@ -2851,7 +2852,8 @@ bool VSTQtGUI::open(void *ptr)
 
       bargraph->setProperty("vstParam", vstParamCount);
       //led->setProperty("elemType", "led");
-      controls.append(bargraph);
+      QList<QObject*> c; c.append(bargraph);
+      controls.append(c);
       passive_controls.append(bargraph);
       control_values[vstParamCount] = effect->getMinimum(vstParamCount);
 
@@ -2869,36 +2871,28 @@ bool VSTQtGUI::open(void *ptr)
 	uiRadio->findChildren<QRadioButton*>();
 
       int radioCount = 0;
-      bool valueIsSet = false;
+      QList<QObject*> c;
       // iterate over all radio buttons in this group
       for (QList<QRadioButton*>::iterator r = radiobuttons.begin();
            r != radiobuttons.end(); ++r) {
         float minimum = effect->getMinimum(vstParamCount);
         float maximum = effect->getMaximum(vstParamCount);
+	float step = effect->getStep(vstParamCount);
         // set all properties needed for updateVST()
         (*r)->setProperty("value", radioCount);
         (*r)->setProperty("vstParam", vstParamCount);
         (*r)->setProperty("minimum", minimum);
         (*r)->setProperty("maximum", maximum);
-        (*r)->setProperty("singleStep",
-			  effect->getStep(vstParamCount));
+        (*r)->setProperty("singleStep", step);
         connect((*r), SIGNAL(clicked(bool)), this, SLOT(updateVST()),
                 Qt::QueuedConnection);
 
         // set the proper radio button as "clicked" when the GUI opens
-        if(!valueIsSet) {
-          if(valueToVST(radioCount,minimum,maximum) >=
-	     effect->getParameter(vstParamCount)) {
-            (*r)->click();
-            valueIsSet = true;
-          }
-        }
+	updateQTGUI(*r, effect->getParameter(vstParamCount));
+	c.append(*r);
         radioCount++;
       }
-      // XXXFIXME: there's no single GUI object for this control, skipped for
-      // now (need list of QObjects to cope with this)
-      controls.append(NULL);
-      control_values[vstParamCount] = 0.0f;
+      controls.append(c);
       vstParamCount++;
     }
 
@@ -2911,18 +2905,19 @@ bool VSTQtGUI::open(void *ptr)
 
       float minimum = effect->getMinimum(vstParamCount);
       float maximum = effect->getMaximum(vstParamCount);
+      float step = effect->getStep(vstParamCount);
 
       menu->setProperty("vstParam", vstParamCount);
       menu->setProperty("minimum", minimum);
       menu->setProperty("maximum", maximum);
-      menu->setProperty("singleStep", effect->getStep(vstParamCount));
-      controls.append(menu);
+      menu->setProperty("singleStep", step);
+      QList<QObject*> c; c.append(menu);
+      controls.append(c);
 
       connect(menu, SIGNAL(activated(int)), this, SLOT(updateVST()),
               Qt::QueuedConnection);
 
-      updateQTGUI(menu, effect->getParameter(vstParamCount), true);
-      menu->updateZone(0);    // updates the currentIndex
+      updateQTGUI(menu, effect->getParameter(vstParamCount));
 
       vstParamCount++;
     }
@@ -2952,7 +2947,7 @@ bool VSTQtGUI::open(void *ptr)
   qtinterface->run();
 
   // The STYLE symbol is set during compilation when using the -style option
-  // of the faust2faustvstqt script or the corresponding options in the
+  // of the faust2faustvst script or the corresponding options in the
   // Makefile. You can also set this manually if needed, but note that the
   // corresponding resource needs to be present in the qmake project (this is
   // taken care of automagically when using the -style option). Otherwise (or
@@ -2998,14 +2993,21 @@ void VSTQtGUI::idle()
 {
   if (qApp) {
     QApplication::processEvents();
-    for (int i = 0; i < controls.size(); ++i)
-      if (controls[i]) {
-	float val = effect->getParameter(i);
-	if (effect->isPassiveControl(i))
-	  updatePassiveControl(controls[i], val);
-	else
-	  updateQTGUI(controls[i], val);
+    for (int i = 0; i < controls.size(); ++i) {
+      float val = effect->getParameter(i);
+      if (!controls[i].empty() && control_values[i] != val) {
+	if (effect->isPassiveControl(i)) {
+	  for (QList<QObject*>::iterator it = controls[i].begin();
+	       it != controls[i].end(); ++it)
+	    updatePassiveControl(*it, val);
+	} else {
+	  for (QList<QObject*>::iterator it = controls[i].begin();
+	       it != controls[i].end(); ++it)
+	    updateQTGUI(*it, val, false);
+	}
+	control_values[i] = val;
       }
+    }
   }
 #if FAUSTQT_DEBUG
   else
@@ -3090,44 +3092,65 @@ float VSTQtGUI::valueToVST(double value, double minimum,
  */
 void VSTQtGUI::updateQTGUI(QObject* object, float value, bool init)
 {
-  int vstParam = object->property("vstParam").toInt();
-  if (init || control_values[vstParam] != value) {
-    const double eps = 1e-5;
-    double minimum, maximum, step, newValue;
-    char* valueChar;
+  const double eps = 1e-5;
+  double minimum, maximum, step, newValue;
+  char* valueChar;
 
+  if (init) {
+    int vstParam = object->property("vstParam").toInt();
     control_values[vstParam] = value;
-
-    if (QString(object->metaObject()->className())=="uiMenu")
-      valueChar = "currentIndex";
-    else
-      valueChar = "value";
-
-    minimum = object->property("minimum").toDouble();
-    maximum = object->property("maximum").toDouble();
-    step    = object->property("singleStep").toDouble();
-
-#if FAUSTQT_DEBUG>1
-    qDebug() << "QTGUI: VST value: " << value;
-    qDebug() << "QTGUI: old Qt value: "
-	     << object->property(valueChar).toDouble();
-#endif
-
-    newValue = (minimum==maximum)?minimum : minimum+quantize(value*
-               (maximum-minimum), step);
-
-    if (fabs(newValue) < fabs(step) ||
-	fabs(newValue)/fabs(maximum-minimum) < eps)
-      newValue = 0.0;
-
-    // set new value with setProperty("value",..), as setValue() is not
-    // defined for QObject
-    object->setProperty(valueChar, newValue);
-#if FAUSTQT_DEBUG>1
-    qDebug() << "QTGUI: new Qt value: "
-	     << object->property(valueChar).toDouble();
-#endif
   }
+
+  // checkboxes and radio buttons need special treatment
+  QCheckBox* checkBox = qobject_cast<QCheckBox*>(object);
+  if (checkBox) {
+    if (value < 0.5f)
+      checkBox->setChecked(false);
+    else
+      checkBox->setChecked(true);
+    return;
+  }
+
+  minimum = object->property("minimum").toDouble();
+  maximum = object->property("maximum").toDouble();
+  step    = object->property("singleStep").toDouble();
+
+  QRadioButton* radioBut = qobject_cast<QRadioButton*>(object);
+  if (radioBut) {
+    int radioVal = radioBut->property("value").toInt();
+    float val = valueToVST(radioVal, minimum, maximum);
+    if (fabs(val-value)/(1+fabs(maximum-minimum)) < eps)
+      radioBut->click();
+    return;
+  }
+
+  if (QString(object->metaObject()->className())=="uiMenu")
+    valueChar = "currentIndex";
+  else
+    valueChar = "value";
+
+#if FAUSTQT_DEBUG>1
+  qDebug() << "QTGUI: VST value: " << value;
+  qDebug() << "QTGUI: old Qt value: "
+	   << object->property(valueChar).toDouble();
+#endif
+
+  newValue = (minimum==maximum)?minimum : minimum+quantize(value*
+							   (maximum-minimum), step);
+
+  if (fabs(newValue) < fabs(step) ||
+      fabs(newValue)/fabs(maximum-minimum) < eps)
+    newValue = 0.0;
+
+  // set new value with setProperty("value",..), as setValue() is not
+  // defined for QObject
+  object->setProperty(valueChar, newValue);
+#if FAUSTQT_DEBUG>1
+  qDebug() << "QTGUI: new Qt value: "
+	   << object->property(valueChar).toDouble();
+#endif
+  uiMenu* menu = dynamic_cast<uiMenu*>(object);
+  if (menu) menu->updateZone(0); // updates the currentIndex
 }
 
 /**
@@ -3142,19 +3165,16 @@ void VSTQtGUI::updatePassiveControl(QObject* object, float value)
   float minimum  = effect->getMinimum(vstParam);
   float maximum  = effect->getMaximum(vstParam);
 
-  if (control_values[vstParam] != value) {
-    // convert the VST value back to the corresponding Faust value
-    float fValue = value*maximum - value*minimum + minimum;
+  // convert the VST value back to the corresponding Faust value
+  float fValue = value*maximum - value*minimum + minimum;
 
-    AbstractDisplay* bargraph  = dynamic_cast<AbstractDisplay*>(object);
-    QDoubleSpinBox* numDisplay = dynamic_cast<QDoubleSpinBox*>(object);
+  AbstractDisplay* bargraph  = dynamic_cast<AbstractDisplay*>(object);
+  QDoubleSpinBox* numDisplay = dynamic_cast<QDoubleSpinBox*>(object);
 
-    if(bargraph)
-      bargraph->setValue(fValue);
-    else if(numDisplay)
-      numDisplay->setValue(fValue);
-    control_values[vstParam] = value;
-  }
+  if(bargraph)
+    bargraph->setValue(fValue);
+  else if(numDisplay)
+    numDisplay->setValue(fValue);
 }
 
 

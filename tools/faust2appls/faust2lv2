@@ -6,12 +6,12 @@
 # preferred). We try to locate the qmake executable in some common locations
 # here. If this doesn't work out then you can also set the QMAKE environment
 # variable explicitly, or use one of the -qt4 and -qt5 options below.
-[ -z $QMAKE ] && QMAKE=$(which qmake-qt5 || which /opt/local/libexec/qt5/bin/qmake || which qmake-qt4 || which /opt/local/libexec/qt4/bin/qmake || echo qmake)
+[ -z "$QMAKE" ] && QMAKE=$(which qmake-qt5 || which /opt/local/libexec/qt5/bin/qmake || which qmake-qt4 || which /opt/local/libexec/qt4/bin/qmake || echo qmake)
 
 # Where the Faust includes live. We assume that this is under the prefix of
 # whatever Faust binary 'which' locates. You can also specify this explicitly
 # by setting the FAUSTINC environment variable accordingly.
-[ -z $FAUSTINC ] && FAUSTINC=$(which faust 2>/dev/null | sed -e 's?/bin/faust?/include/faust?')
+[ -z "$FAUSTINC" ] && FAUSTINC=$(which faust 2>/dev/null | sed -e 's?/bin/faust?/include/faust?')
 
 # Where our own Faust library files are. This may be under a different prefix
 # or not installed anywhere. We try 'ls' on lv2ui.cpp in some common locations
@@ -19,8 +19,8 @@
 # that you can run the script from the faust-lv2 source directory. You can
 # also specify this explicitly by setting the FAUSTLIB environment variable
 # accordingly.
-[ -z $FAUSTLIB ] && FAUSTLIB=$(dirname $((ls -f /usr/lib/faust/lv2ui.cpp /usr/local/lib/faust/lv2ui.cpp /opt/local/lib/faust/lv2ui.cpp $PWD/lv2ui.cpp 2>/dev/null)|tail -1))
-[ -z $FAUSTLIB ] && FAUSTLIB=$PWD
+[ -z "$FAUSTLIB" ] && FAUSTLIB=$(dirname "$((ls -f /usr/lib/faust/lv2ui.cpp /usr/local/lib/faust/lv2ui.cpp /opt/local/lib/faust/lv2ui.cpp "$PWD/lv2ui.cpp" 2>/dev/null)|tail -1)")
+[ -z "$FAUSTLIB" ] && FAUSTLIB="$PWD"
 
 # defaults (these can be changed with the options listed below)
 URI_PREFIX=http://faustlv2.bitbucket.org
@@ -32,6 +32,7 @@ VOICE_CTRLS=1
 NVOICES=-1
 
 KEEP="no"
+STYLE=""
 
 PROCARCH="-fPIC"
 dllext=".so"
@@ -61,6 +62,7 @@ Options:
 -nvoices N: number of synth voices (instruments only; arg must be an integer)
 -osc: activate OSC control
 -qt4, -qt5: select the GUI toolkit (requires Qt4/5; implies -gui)
+-style S: select the stylesheet (arg must be Default, Blue, Grey or Salmon)
 -uri-prefix URI: URI prefix of plugin (arg must be a valid URI)
 
 Environment variables:
@@ -121,6 +123,9 @@ EOF
 	dllext=".dylib"
     elif [ $p = "-keep" ]; then
 	KEEP="yes"
+    elif [ $p = "-style" ]; then
+	(( i++ ))
+	STYLE=${!i}
     elif [ ${p:0:1} = "-" ]; then
 	OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -163,6 +168,13 @@ lv2name="$clsname.lv2"
 tmpdir=`mktemp -d /tmp/faust2lv2.XXXXXX`
 uitmpdir=$tmpdir/${clsname}ui.src
 
+RESOURCES=
+STYLE_CXXFLAGS=
+if [ -n "$STYLE" ]; then
+    RESOURCES="RESOURCES+=$FAUSTINC/gui/Styles/$STYLE.qrc"
+    STYLE_CXXFLAGS="QMAKE_CXXFLAGS+=-DSTYLE=\"$STYLE\""
+fi
+
 CXX=g++
 CPPFLAGS="-DPLUGIN_URI=\"$URI_PREFIX/$clsname\" -DFAUST_META=$FAUST_META -DFAUST_MIDICC=$FAUST_MIDICC -DFAUST_MTS=$FAUST_MTS -DFAUST_UI=$FAUST_UI -DVOICE_CTRLS=$VOICE_CTRLS"
 if [ $NVOICES -ge 0 ]; then
@@ -181,7 +193,7 @@ mkdir -p $uitmpdir
 faust -i -a  "$FAUSTLIB/$archui" -cn "$clsname" $OPTIONS "$dspname" -o "$uitmpdir/$uicppname" || exit 1
 (
     cd $uitmpdir
-    $QMAKE -project -t lib -o ${clsname}ui.pro "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTLIB" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$(echo $CPPFLAGS|sed -e 's/"/\\\\\\"/g')" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTLIB/lv2qtgui.h" "HEADERS+=$FAUSTINC/gui/faustqt.h" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
+    $QMAKE -project -t lib -o ${clsname}ui.pro "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTLIB" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$(echo $CPPFLAGS|sed -e 's/"/\\\\\\"/g')" $STYLE_CXXFLAGS "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTLIB/lv2qtgui.h $FAUSTINC/gui/faustqt.h" $RESOURCES "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
     $QMAKE *.pro
     make || exit 1
     mv $uisoname "$tmpdir/$lv2name"

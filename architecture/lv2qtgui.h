@@ -35,7 +35,7 @@ class LV2QtGUI : public QObject {
   LV2PluginUI* plugui;
 
   // vector of all GUI controls, indexed by parameter indices
-  QVector<QObject*> controls;
+  QVector< QList<QObject*> > controls;
   // vector of all passive controls needing continuous update (this isn't used
   // right now, as all live updates are done through the controls vector, but
   // we keep it around for debugging purposes)

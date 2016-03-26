@@ -15,12 +15,12 @@
 # preferred). We try to locate the qmake executable in some common locations
 # here. If this doesn't work out then you can also set the QMAKE environment
 # variable explicitly, or use one of the -qt4 and -qt5 options below.
-[ -z $QMAKE ] && QMAKE=$(which qmake-qt5 || which /opt/local/libexec/qt5/bin/qmake || which qmake-qt4 || which /opt/local/libexec/qt4/bin/qmake || echo qmake)
+[ -z "$QMAKE" ] && QMAKE=$(which qmake-qt5 || which /opt/local/libexec/qt5/bin/qmake || which qmake-qt4 || which /opt/local/libexec/qt4/bin/qmake || echo qmake)
 
 # Where the Faust includes live. We assume that this is under the prefix of
 # whatever Faust binary 'which' locates. You can also specify this explicitly
 # by setting the FAUSTINC environment variable accordingly.
-[ -z $FAUSTINC ] && FAUSTINC=$(which faust 2>/dev/null | sed -e 's?/bin/faust?/include/faust?')
+[ -z "$FAUSTINC" ] && FAUSTINC=$(which faust 2>/dev/null | sed -e 's?/bin/faust?/include/faust?')
 
 # Where our own Faust library files are. This may be under a different prefix
 # or not installed anywhere. We try 'ls' on faustvstqt.h in some common
@@ -28,8 +28,8 @@
 # found, so that you can run the script from the faust-vst source
 # directory. You can also specify this explicitly by setting the FAUSTLIB
 # environment variable accordingly.
-[ -z $FAUSTLIB ] && FAUSTLIB=$(dirname $((ls -f /usr/lib/faust/faustvstqt.h /usr/local/lib/faust/faustvstqt.h /opt/local/lib/faust/faustvstqt.h $PWD/faustvstqt.h 2>/dev/null)|tail -1))
-[ -z $FAUSTLIB ] && FAUSTLIB=$PWD
+[ -z "$FAUSTLIB" ] && FAUSTLIB=$(dirname "$((ls -f /usr/lib/faust/faustvstqt.h /usr/local/lib/faust/faustvstqt.h /opt/local/lib/faust/faustvstqt.h "$PWD/faustvstqt.h" 2>/dev/null)|tail -1)")
+[ -z "$FAUSTLIB" ] && FAUSTLIB="$PWD"
 
 # defaults (these can be changed with the options listed below)
 FAUST_META=1
