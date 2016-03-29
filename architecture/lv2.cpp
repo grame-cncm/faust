@@ -1331,18 +1331,18 @@ struct LV2Plugin {
     if (outbuf) {
       // Polyphonic instrument: Mix the voices down to one signal.
       for (int i = 0; i < m; i++)
-	for (unsigned j = 0; j < n_samples; j++)
+	for (unsigned j = 0; j < blocksz; j++)
 	  outputs[i][j] = 0.0f;
       for (int l = 0; l < nvoices; l++) {
 	// Let Faust do all the hard work.
-	dsp[l]->compute(n_samples, inputs, outbuf);
+	dsp[l]->compute(blocksz, inputs, outbuf);
 	for (int i = 0; i < m; i++)
-	  for (unsigned j = 0; j < n_samples; j++)
+	  for (unsigned j = 0; j < blocksz; j++)
 	    outputs[i][j] += outbuf[i][j];
       }
     } else {
       // Simple effect: We can write directly to the output buffer.
-      dsp[0]->compute(n_samples, inputs, outputs);
+      dsp[0]->compute(blocksz, inputs, outputs);
     }
     // Finally grab the passive controls and write them back to the
     // corresponding control ports. NOTE: Depending on the plugin

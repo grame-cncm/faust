@@ -188,8 +188,8 @@ inline void LV2UI::add_elem(ui_elem_type_t type, const char *label, float *zone)
   elems[nelems].ref = NULL;
   elems[nelems].init = 0.0;
   elems[nelems].min = 0.0;
-  elems[nelems].max = 0.0;
-  elems[nelems].step = 0.0;
+  elems[nelems].max = 1.0;
+  elems[nelems].step = 1.0;
   nelems++;
 }
 
@@ -1244,7 +1244,8 @@ QWidget* LV2QtGUI::open()
       qDebug("found slider!");
 #endif
       slider->setProperty("lv2Param", lv2ParamCount);
-      controls.append(slider);
+      QList<QObject*> c; c.append(slider);
+      controls.append(c);
 
       connect(slider, SIGNAL(valueChanged(int)), this, SLOT(updateUI()),
               Qt::QueuedConnection);
@@ -1260,7 +1261,8 @@ QWidget* LV2QtGUI::open()
       qDebug("found knob!");
 #endif
       dial->setProperty("lv2Param", lv2ParamCount);
-      controls.append(dial);
+      QList<QObject*> c; c.append(dial);
+      controls.append(c);
 
       connect(dial, SIGNAL(valueChanged(int)), this, SLOT(updateUI()),
               Qt::QueuedConnection);
@@ -1276,7 +1278,8 @@ QWidget* LV2QtGUI::open()
       qDebug("found button!");
 #endif
       button->setProperty("lv2Param", lv2ParamCount);
-      controls.append(button);
+      QList<QObject*> c; c.append(button);
+      controls.append(c);
 
       connect(button, SIGNAL(pressed()), this,
 	      SLOT(updateUI_buttonPressed()), Qt::QueuedConnection);
@@ -1299,7 +1302,8 @@ QWidget* LV2QtGUI::open()
         qDebug("found list!");
 #endif
         num->setProperty("lv2Param", lv2ParamCount);
-        controls.append(num);
+	QList<QObject*> c; c.append(num);
+        controls.append(c);
 
         connect(num, SIGNAL(valueChanged(double)), this, SLOT(updateUI()),
                 Qt::QueuedConnection);
@@ -1318,6 +1322,7 @@ QWidget* LV2QtGUI::open()
         qDebug("found numDisplay!");
 #endif
         num->setProperty("lv2Param", lv2ParamCount-1);
+	controls[lv2ParamCount-1].append(num);
         passive_controls.append(num);
 
         // the corresponding display of the vBargraphs is now set
@@ -1333,7 +1338,8 @@ QWidget* LV2QtGUI::open()
           qDebug("found horizontal bargraph with numerical style!");
 #endif
           num->setProperty("lv2Param", lv2ParamCount);
-	  controls.append(num);
+	  QList<QObject*> c; c.append(num);
+	  controls.append(c);
 	  passive_controls.append(num);
 
           lv2ParamCount++;
@@ -1348,17 +1354,15 @@ QWidget* LV2QtGUI::open()
       qDebug("found checkbox!");
 #endif
       checkBox->setProperty("lv2Param", lv2ParamCount);
-      controls.append(checkBox);
+      QList<QObject*> c; c.append(checkBox);
+      controls.append(c);
 
       connect(checkBox, SIGNAL(stateChanged(int)), this,
 	      SLOT(updateUI_checkBox()), Qt::QueuedConnection);
 
       // if the LV2 parameter of the checkbox is less than 0.5 then the
       // checkbox is unchecked
-      if(plugui->getParameter(lv2ParamCount) < 0.5f)
-        checkBox->setChecked(false);
-      else
-        checkBox->setChecked(true);
+      updateQTGUI(checkBox, plugui->getParameter(lv2ParamCount));
 
       lv2ParamCount++;
     }
@@ -1379,7 +1383,8 @@ QWidget* LV2QtGUI::open()
 
       bargraph->setProperty("lv2Param", lv2ParamCount);
       //led->setProperty("elemType", "led");
-      controls.append(bargraph);
+      QList<QObject*> c; c.append(bargraph);
+      controls.append(c);
       passive_controls.append(bargraph);
 
       lv2ParamCount++;
@@ -1396,7 +1401,7 @@ QWidget* LV2QtGUI::open()
 	uiRadio->findChildren<QRadioButton*>();
 
       int radioCount = 0;
-      bool valueIsSet = false;
+      QList<QObject*> c;
       // iterate over all radio buttons in this group
       for (QList<QRadioButton*>::iterator r = radiobuttons.begin();
            r != radiobuttons.end(); ++r) {
@@ -1413,17 +1418,11 @@ QWidget* LV2QtGUI::open()
                 Qt::QueuedConnection);
 
         // set the proper radio button as "clicked" when the GUI opens
-        if(!valueIsSet) {
-          if(radioCount >= plugui->getParameter(lv2ParamCount)) {
-            (*r)->click();
-            valueIsSet = true;
-          }
-        }
+	updateQTGUI(*r, plugui->getParameter(lv2ParamCount));
+	c.append(*r);
         radioCount++;
       }
-      // XXXFIXME: there's no single GUI object for this control, skipped for
-      // now (need list of QObjects to cope with this)
-      controls.append(NULL);
+      controls.append(c);
       lv2ParamCount++;
     }
 
@@ -1442,13 +1441,13 @@ QWidget* LV2QtGUI::open()
       menu->setProperty("minimum", minimum);
       menu->setProperty("maximum", maximum);
       menu->setProperty("singleStep", step);
-      controls.append(menu);
+      QList<QObject*> c; c.append(menu);
+      controls.append(c);
 
       connect(menu, SIGNAL(activated(int)), this, SLOT(updateUI()),
               Qt::QueuedConnection);
 
       updateQTGUI(menu, plugui->getParameter(lv2ParamCount));
-      menu->updateZone(0);    // updates the currentIndex
 
       lv2ParamCount++;
     }
@@ -1475,6 +1474,26 @@ QWidget* LV2QtGUI::open()
 #endif
 
   qtinterface->run();
+
+  // The STYLE symbol is set during compilation when using the -style option
+  // of the faust2lv2 script or the corresponding options in the Makefile. You
+  // can also set this manually if needed, but note that the corresponding
+  // resource needs to be present in the qmake project (this is taken care of
+  // automagically when using the -style option). Otherwise (or if no style
+  // was specified) the default style will be used. -ag
+#ifdef STYLE
+  // set the style sheet for this GUI, if any
+  QString styleSheet("");
+  // C preprocessor stringify magic to insert the style sheet name
+#define __xstr(s) __str(s)
+#define __str(s) #s
+  QFile file(":/" __xstr(STYLE) ".qss");
+  if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    styleSheet = QLatin1String(file.readAll());
+    file.close();
+  }
+  widget->setStyleSheet(styleSheet);
+#endif
 
 #if FAUSTQT_DEBUG
   qDebug() << "Number of controls: " << controls.size();
@@ -1515,14 +1534,33 @@ void LV2QtGUI::updateQTGUI(QObject* object, float value)
   double minimum, maximum, step, newValue;
   const char* valueChar;
 
-  if (QString(object->metaObject()->className())=="uiMenu")
-    valueChar = "currentIndex";
-  else
-    valueChar = "value";
+  // checkboxes and radio buttons need special treatment
+  QCheckBox* checkBox = qobject_cast<QCheckBox*>(object);
+  if (checkBox) {
+    if (value < 0.5f)
+      checkBox->setChecked(false);
+    else
+      checkBox->setChecked(true);
+    return;
+  }
 
   minimum = object->property("minimum").toDouble();
   maximum = object->property("maximum").toDouble();
   step    = object->property("singleStep").toDouble();
+
+  QRadioButton* radioBut = qobject_cast<QRadioButton*>(object);
+  if (radioBut) {
+    int radioVal = radioBut->property("value").toInt();
+    float val = plugui->normalize(minimum, maximum, radioVal);
+    if (fabs(val-value)/(1+fabs(maximum-minimum)) < eps)
+      radioBut->click();
+    return;
+  }
+
+  if (QString(object->metaObject()->className())=="uiMenu")
+    valueChar = "currentIndex";
+  else
+    valueChar = "value";
 
 #if FAUSTQT_DEBUG>1
   qDebug() << "QTGUI: LV2 value: " << value;
@@ -1544,6 +1582,8 @@ void LV2QtGUI::updateQTGUI(QObject* object, float value)
   qDebug() << "QTGUI: new Qt value: "
 	   << object->property(valueChar).toDouble();
 #endif
+  uiMenu* menu = dynamic_cast<uiMenu*>(object);
+  if (menu) menu->updateZone(0); // updates the currentIndex
 }
 
 void LV2QtGUI::updatePassiveControl(QObject* object, float value)
@@ -1700,13 +1740,18 @@ cleanup(LV2UI_Handle ui)
 
 static void update_portval(LV2QtGUI* self, int i)
 {
-  if (i >= 0 && i < self->controls.size() && self->controls[i]) {
+  if (i >= 0 && i < self->controls.size() && !self->controls[i].empty()) {
     LV2PluginUI* plugui = (LV2PluginUI*)self->plugui;
     float val = plugui->getParameter(i);
-    if (plugui->isPassiveControl(i))
-      self->updatePassiveControl(self->controls[i], val);
-    else
-      self->updateQTGUI(self->controls[i], val);
+    if (plugui->isPassiveControl(i)) {
+      for (QList<QObject*>::iterator it = self->controls[i].begin();
+	   it != self->controls[i].end(); ++it)
+	self->updatePassiveControl(*it, val);
+    } else {
+      for (QList<QObject*>::iterator it = self->controls[i].begin();
+	   it != self->controls[i].end(); ++it)
+	self->updateQTGUI(*it, val);
+    }
   }
 }
 

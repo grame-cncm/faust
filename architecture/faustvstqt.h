@@ -28,7 +28,7 @@ class VSTQtGUI : public QObject, public AEffEditor {
   QTGUI* qtinterface;
 
   // vector of all GUI controls, indexed by parameter indices
-  QVector<QObject*> controls;
+  QVector< QList<QObject*> > controls;
   // cached control values, so that we only update the GUI when needed
   float *control_values;
   // vector of all passive controls needing continuous update (this isn't used
@@ -50,7 +50,7 @@ public:
   virtual void close();
 
   float valueToVST(double value, double minimum, double maximum);
-  void updateQTGUI(QObject* object, float value, bool init = false);
+  void updateQTGUI(QObject* object, float value, bool init = true);
   void updatePassiveControl(QObject* object, float value);
 
 protected:
