@@ -1265,10 +1265,11 @@ struct LV2Plugin {
     if (is_instr) {
       if (!poly)
 	; // this shouldn't happen but...
-      else if (nvoices != *poly && *poly > 0 && *poly <= maxvoices) {
+      else if (nvoices != (int)*poly &&
+	       (int)*poly > 0 && (int)*poly <= maxvoices) {
 	for (int i = 0; i < nvoices; i++)
 	  voice_off(i);
-	nvoices = *poly;
+        nvoices = (int)*poly;
 	// Reset the voice allocation.
 	memset(vd->notes, 0xff, sizeof(vd->notes));
 	vd->free_voices.clear();
@@ -1280,7 +1281,7 @@ struct LV2Plugin {
       } else
 	*poly = nvoices;
 #if FAUST_MTS
-      if (tuning && tuning_no != *tuning) change_tuning(*tuning);
+      if (tuning && tuning_no != (int)*tuning) change_tuning((int)*tuning);
 #endif
     }
     // Only update the controls (of all voices simultaneously) if a port value
