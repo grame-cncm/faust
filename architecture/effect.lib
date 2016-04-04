@@ -194,7 +194,8 @@ exciter = _ <: (highpass : compressor : pregain : harmonicCreator : postgain), _
 //   fr = corner-resonance frequency in Hz ( less than SR/6.3 or so )
 //   res  = Normalized amount of corner-resonance between 0 and 1
 //        (0 is no resonance, 1 is maximum)
-// Requires filter.lib.
+//
+// REQUIRES: filter.lib
 //
 // DESCRIPTION: Moog VCF implemented using the same logical block diagram
 //   as the classic analog circuit.  As such, it neglects the one-sample
@@ -1550,7 +1551,7 @@ with {
 //      with { busi(N,x) = bus(N) : par(i,N,*(-1)) : par(i,N-1,_), +(x); };
 //   process = 1-1' : mesh_square_test(4); // all modes excited forever
 //
-// REQUIRES: math.lib.
+// REQUIRES: math.lib
 //
 // REFERENCE:
 //   https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Mesh.html
