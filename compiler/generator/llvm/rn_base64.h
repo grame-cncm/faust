@@ -26,6 +26,7 @@
 */
 
 #include <string>
+#include <cstring>
 
 static const std::string base64_chars =
              "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
