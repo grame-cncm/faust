@@ -45,18 +45,8 @@ Symbol*	Symbol::gSymbolTable[kHashTableSize];
   
 Symbol* Symbol::get(const string& str)
 {
-	char 	buf[1024];
-	int		i;
-	int		n = (int)str.length();
-	
-	if (n>1023) n = 1023;
-	for (i = 0; i < n; i++) { buf[i] = str[i]; }
-	buf[i] = 0;
-	
-	return Symbol::get(buf);
+    return Symbol::get(str.c_str());
 }
-
-
 
 /**
  * Search the hash table for the symbol of name \p str or returns a new one.
@@ -64,14 +54,22 @@ Symbol* Symbol::get(const string& str)
  * \return a symbol of name str
  */ 
 
-Symbol* Symbol::get(const char* str)
+Symbol* Symbol::get(const char* rawstr)
 {
-    unsigned int 			hsh  = calcHashKey(str);
+    // ---replaces control characters with white spaces---
+    char* str = strdup(rawstr);
+    for (size_t i = 0; i < strlen(rawstr); i++) {
+        char c = rawstr[i];
+        str[i] = (c >= 0 && c < 32) ? 32 : c;
+    }
+ 
+    unsigned int 	hsh  = calcHashKey(str);
     int 			bckt = hsh % kHashTableSize;
 	Symbol*			item = gSymbolTable[bckt];
-
+  
     while ( item && !item->equiv(hsh,str) ) item = item->fNext;
 	Symbol* r = item ? item : gSymbolTable[bckt] = new Symbol(str, hsh, gSymbolTable[bckt]);
+     
 	return r;
 }
 
@@ -84,7 +82,7 @@ Symbol* Symbol::get(const char* str)
 
 bool Symbol::isnew(const char* str)
 {
-    unsigned int 			hsh  = calcHashKey(str);
+    unsigned int    hsh  = calcHashKey(str);
     int 			bckt = hsh % kHashTableSize;
 	Symbol*			item = gSymbolTable[bckt];
 	
@@ -149,18 +147,15 @@ unsigned int Symbol::calcHashKey (const char* str)
 
 /**
  * Constructs a symbol ready to be placed in the hash table. 
- * It makes a private copy of its name.
+ * Gets a string to be kept.
  * \param str the name of the symbol
  * \param hsh the hash key of the symbol
  * \param nxt a pointer to the next symbol in the hash table entry
  */
 
-Symbol::Symbol(const char* str, unsigned int hsh, Symbol* nxt)
+Symbol::Symbol(char* str, unsigned int hsh, Symbol* nxt)
 {
-	int len = (int)strlen(str);
-	
-    fName = new char [len+1];
-    memcpy(fName, str, len+1);
+    fName = str;
     fHash = hsh;
     fNext = nxt;
 	fData = 0;
@@ -168,7 +163,7 @@ Symbol::Symbol(const char* str, unsigned int hsh, Symbol* nxt)
 
 Symbol::~Symbol ()
 {
-	delete [] fName;
+	free(fName);
 }
 
 ostream& Symbol::print (ostream& fout) const 					///< print a symbol on a stream

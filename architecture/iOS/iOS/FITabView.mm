@@ -22,7 +22,6 @@
 
 @synthesize cornerRadius;
 
-
 #pragma mark -
 #pragma mark Init
 
@@ -57,7 +56,7 @@
 - (void)addButtonWithLabel:(NSString *)label
 {
     FIButton*   button = [[[FIButton alloc] initWithDelegate:self] autorelease];
-    int         nbButtons = 0;
+    NSUInteger  nbButtons = 0;
     float       viewWidth = self.frame.size.width;
     float       viewHeight = self.frame.size.height;
     int         i = 0;
@@ -88,7 +87,6 @@
     [self addSubview:button];
 }
 
-
 #pragma mark -
 #pragma mark Touch Handling
 
@@ -97,7 +95,7 @@
     if (value == 1)
     {
         int         i = 0;
-        int         nbButtons = [_buttons count];
+        NSUInteger  nbButtons = [_buttons count];
         
         for (i = 0; i < nbButtons; ++i)
         {
@@ -113,14 +111,13 @@
     }
 }
 
-
 #pragma mark -
 #pragma mark Drawing
 
 - (void)drawRect:(CGRect)rect
 {
     int         i = 0;
-    int         nbButtons = [_buttons count];
+    NSUInteger  nbButtons = [_buttons count];
     
     if (self.hideOnGUI) return;
     

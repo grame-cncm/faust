@@ -51,7 +51,6 @@
 #include "ip/PacketListener.h"
 #include "ip/TimerListener.h"
 
-
 #if defined(__APPLE__) && !defined(_SOCKLEN_T)
 // pre system 10.3 didn have socklen_t
 typedef ssize_t socklen_t;
@@ -161,6 +160,12 @@ public:
 		return IpEndpointNameFromSockaddr( sockAddr );
 	}
 
+	void allowBroadcast()
+	{
+		int val = 1;
+		setsockopt (socket_, SOL_SOCKET, SO_BROADCAST, &val, sizeof(val));
+	}
+
 	void Connect( const IpEndpointName& remoteEndpoint )
 	{
 		SockaddrFromIpEndpointName( connectedAddr_, remoteEndpoint );
@@ -205,16 +210,52 @@ public:
 	{
 		assert( isBound_ );
 
-		struct sockaddr_in fromAddr;
-        socklen_t fromAddrLen = sizeof(fromAddr);
-             	 
-        int result = recvfrom(socket_, data, size, 0,
-                    (struct sockaddr *) &fromAddr, (socklen_t*)&fromAddrLen);
+		// Main structure to read the message
+		struct msghdr mh;
+		memset(&mh, 0, sizeof(mh));
+
+		// Structure to write remote/source sockaddr
+		struct sockaddr_in peeraddr;
+		mh.msg_name = &peeraddr;
+		mh.msg_namelen = sizeof(peeraddr);
+
+		// Structure for control data, the control data is dumped here
+		char cmbuf[0x100];memset(&cmbuf, 0, sizeof(cmbuf));
+		mh.msg_control = cmbuf;
+		mh.msg_controllen = sizeof(cmbuf);
+
+		// Structure to access the message data.
+		struct iovec    iov;
+		iov.iov_base = data;
+		iov.iov_len = size;
+		mh.msg_iov = &iov;
+		mh.msg_iovlen = 1;
+
+		// Set socket option
+		int val = 1;
+		setsockopt (socket_, IPPROTO_IP, IP_PKTINFO, &val, sizeof(val));
+		int result = recvmsg(socket_, &mh, 0);
 		if( result < 0 )
 			return 0;
 
-		remoteEndpoint.address = ntohl(fromAddr.sin_addr.s_addr);
-		remoteEndpoint.port = ntohs(fromAddr.sin_port);
+		for ( // iterate through all the control headers
+			struct cmsghdr *cmsg = CMSG_FIRSTHDR(&mh);
+			cmsg != NULL;
+			cmsg = CMSG_NXTHDR(&mh, cmsg))
+		{
+			// ignore the control headers that don't match what we want
+			if (cmsg->cmsg_level != IPPROTO_IP ||
+				cmsg->cmsg_type != IP_PKTINFO)
+			{
+				continue;
+			}
+			// Get the destination address
+			struct in_pktinfo *pi = (struct in_pktinfo *)CMSG_DATA(cmsg);
+			// pi->ipi_addr is the destination in_addr
+			remoteEndpoint.destAddress = ntohl(pi->ipi_addr.s_addr);
+		}
+		remoteEndpoint.address = ntohl(peeraddr.sin_addr.s_addr);
+		remoteEndpoint.port = ntohs(peeraddr.sin_port);
 
 		return result;
 	}
@@ -230,6 +271,11 @@ UdpSocket::UdpSocket()
 UdpSocket::~UdpSocket()
 {
 	delete impl_;
+}
+
+void UdpSocket::allowBroadcast()
+{
+	impl_->allowBroadcast();
 }
 
 IpEndpointName UdpSocket::LocalEndpointFor( const IpEndpointName& remoteEndpoint ) const

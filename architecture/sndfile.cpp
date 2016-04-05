@@ -51,7 +51,7 @@
 
 #include "faust/gui/console.h"
 #include "faust/gui/FUI.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/misc.h"
 
 #ifndef FAUSTFLOAT
@@ -64,22 +64,22 @@
 /******************************************************************************
 *******************************************************************************
 
-							       VECTOR INTRINSICS
+VECTOR INTRINSICS
 
-							       *******************************************************************************
-							       *******************************************************************************/
+*******************************************************************************
+*******************************************************************************/
 
 <<includeIntrinsic>>
 
-  /********************END ARCHITECTURE SECTION (part 1/2)****************/
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
 
-  /**************************BEGIN USER SECTION **************************/
+/**************************BEGIN USER SECTION **************************/
 
 <<includeclass>>
 
-  /***************************END USER SECTION ***************************/
+/***************************END USER SECTION ***************************/
 
-  /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 mydsp	DSP;
 
@@ -128,7 +128,7 @@ public:
   {
     for (int s = 0; s < fNumFrames; s++) {
       for (int c = 0; c < fNumInputs; c++) {
-	fOutputs[c][s] = fInput[c + s*fNumInputs];
+        fOutputs[c][s] = fInput[c + s*fNumInputs];
       }
     }
   }
@@ -136,11 +136,11 @@ public:
 
 class Interleaver
 {
-  int		fNumFrames;
-  int		fNumChans;
+  int fNumFrames;
+  int fNumChans;
 
-  FAUSTFLOAT*	fInputs[256];
-  FAUSTFLOAT*	fOutput;
+  FAUSTFLOAT* fInputs[256];
+  FAUSTFLOAT* fOutput;
 
 public:
 
@@ -174,11 +174,11 @@ public:
 
   FAUSTFLOAT* 	output()		{ return fOutput; }
 
-  void 	interleave()
+  void interleave()
   {
     for (int s = 0; s < fNumFrames; s++) {
       for (int c = 0; c < fNumChans; c++) {
-	fOutput[c + s*fNumChans] = fInputs[c][s];
+        fOutput[c + s*fNumChans] = fInputs[c][s];
       }
     }
   }
@@ -187,14 +187,14 @@ public:
 #define kFrames 512
 
 // loptrm : Scan command-line arguments and remove and return long int value when found
-long loptrm (int *argcP, char *argv[], const char* longname, const char* shortname, long def)
+long loptrm(int *argcP, char *argv[], const char* longname, const char* shortname, long def)
 {
   int argc = *argcP;
   for (int i=2; i<argc; i++) {
     if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0) {
       int optval = atoi(argv[i]);
       for (int j=i-1; j<argc-2; j++) {  // make it go away for sake of "faust/gui/console.h"
-	argv[j] = argv[j+2];
+        argv[j] = argv[j+2];
       }
       *argcP -= 2;
       return optval;
@@ -203,13 +203,13 @@ long loptrm (int *argcP, char *argv[], const char* longname, const char* shortna
   return def;
 }
 
-int main(int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
-  SNDFILE*		in_sf;
-  SNDFILE*		out_sf;
-  SF_INFO			in_info;
-  SF_INFO			out_info;
-  unsigned int		nAppend = 0; // number of frames to append beyond input file
+  SNDFILE*	in_sf;
+  SNDFILE*	out_sf;
+  SF_INFO	in_info;
+  SF_INFO	out_info;
+  unsigned int nAppend = 0; // number of frames to append beyond input file
 
   if (argc < 3) {
     fprintf(stderr,"*** USAGE: %s input_soundfile output_soundfile\n",argv[0]);
@@ -224,7 +224,7 @@ int main(int argc, char *argv[] )
 
   // open input file
   in_info.format = 0;
-  in_sf = sf_open (interface->input_file(), SFM_READ, &in_info);
+  in_sf = sf_open(interface->input_file(), SFM_READ, &in_info);
   if (in_sf == NULL) {
     fprintf(stderr,"*** Input file not found.\n");
     sf_perror(in_sf); 
@@ -243,8 +243,8 @@ int main(int argc, char *argv[] )
   }
 
   // create separator and interleaver
-  Separator   sep (kFrames, in_info.channels, DSP.getNumInputs());
-  Interleaver ilv (kFrames, DSP.getNumOutputs());
+  Separator   sep(kFrames, in_info.channels, DSP.getNumInputs());
+  Interleaver ilv(kFrames, DSP.getNumOutputs());
 
   // init signal processor
   DSP.init(in_info.samplerate);

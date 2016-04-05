@@ -8,7 +8,12 @@ set (CMAKE_CONFIGURATION_TYPES Debug Release)
 set (TARGET	OSCFaust)
 #######################################
 # versions management
-set (version 0.93)
+set (version 0.95)
+set (SOVERS 0)
+
+#######################################
+# Options disabled by default
+option ( SHARED 	"compiles a shared library" off )
 
 #######################################
 if(WIN32)
@@ -70,17 +75,30 @@ endif(WIN32)
 # set targets
 include_directories (${INCL} ${OSC_PATH} )
 
-add_library ( ${TARGET} STATIC ${SRCFILES} ${HEADERFILES} ${OSCPACK} )
+if(WIN32)
+  	set ( LIBS ws2_32.lib ${ROOT}/../../oscpack.lib)
+endif()
+if(UNIX)
+  	set ( LIBS -L${ROOT}/../.. -loscpack)
+endif()
+
+if (SHARED)
+	message (STATUS "Target is a shared library - Use -DSHARED=no to change.")
+	set(LIB SHARED)
+else()
+	message (STATUS "Target is a static library - Use -DSHARED=yes to change.")
+	set(LIB STATIC)
+endif()
+
+add_library ( ${TARGET} ${LIB} ${SRCFILES}  ${OSCPACK} ${HEADERFILES} )
 set_source_files_properties (${HEADERFILES} PROPERTIES HEADER_FILE_ONLY TRUE)
 set_target_properties (${TARGET} PROPERTIES 
 	VERSION ${version} 
+	SOVERSION ${SOVERS}
 	ARCHIVE_OUTPUT_DIRECTORY "${ROOT}/../.."
 	ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${ROOT}/../.."
 )
-
-if(WIN32)
-  target_link_libraries ( ${TARGET} ws2_32.lib )
-endif(WIN32)
+target_link_libraries ( ${TARGET} ${LIBS} )
 
 if (WIN32)
  set (OUTLIB "${TARGET}.lib")

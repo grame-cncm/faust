@@ -36,7 +36,6 @@ class htmlui
 		virtual ~htmlui();
 
 		// -- widget's layouts
-//		virtual void openFrameBox(const char* label);
 		virtual void openTabBox(const char* label);
 		virtual void openHorizontalBox(const char* label);
 		virtual void openVerticalBox(const char* label);
@@ -44,21 +43,18 @@ class htmlui
 
 		// -- active widgets
 		virtual void addButton(const char* label, float* zone);
-//		virtual void addToggleButton(const char* label, float* zone);
 		virtual void addCheckButton(const char* label, float* zone);
 		virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step);
 		virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step);
 		virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step);
 
 		// -- passive widgets
-		virtual void addNumDisplay(const char* label, float* zone, int precision);
-		virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max);
 		virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max);
 		virtual void addVerticalBargraph(const char* label, float* zone, float min, float max);
 
 		// -- metadata declarations
 
-		virtual void declare(float* , const char* , const char* ) {}
+		virtual void declare(float*, const char*, const char*) {}
 };
 
 #endif

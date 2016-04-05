@@ -45,3 +45,6 @@ add lines
 	set tabsize 4
 	include "/usr/share/nano/faust.nanorc"
 to file /etc/nanorc
+
+8) ATOM
+Place the directory 'language-faust/' into '~/.atom/packages/'. 

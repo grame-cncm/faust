@@ -48,13 +48,15 @@ class htmlfactory;
 class HTTPDControler
 {
 	int fTCPPort;				// the tcp port number
-	FaustFactory *	fFactory;	// a factory to build the memory representation
+	FaustFactory*	fFactory;	// a factory to build the memory representation
 	jsonfactory*	fJson;
 	htmlfactory*	fHtml;
 	HTTPDSetup*		fHttpd;		// the network manager
 	std::string		fHTML;		// the corresponding HTML page
 	std::map<std::string, std::string>	fCurrentMeta;	// the current meta declarations 
 
+    bool            fInit;
+    
 	public:
 		/*
 			base udp port is chosen in an unassigned range from IANA PORT NUMBERS (last updated 2011-01-24)
@@ -63,28 +65,28 @@ class HTTPDControler
 		*/
 		enum { kTCPBasePort = 5510};
 
-				 HTTPDControler (int argc, char *argv[], const char* applicationname);
-		virtual ~HTTPDControler ();
+				 HTTPDControler(int argc, char *argv[], const char* applicationname, bool init = true);
+		virtual ~HTTPDControler();
 	
 		//--------------------------------------------------------------------------
 		// addnode, opengroup and closegroup are simply relayed to the factory
 		//--------------------------------------------------------------------------
-		template <typename C> void addnode (const char* type, const char* label, C* zone);
-		template <typename C> void addnode (const char* type, const char* label, C* zone, C min, C max);
-		template <typename C> void addnode (const char* type, const char* label, C* zone, C init, C min, C max, C step);
-							  void declare (const char* key, const char* val ) { fCurrentMeta[key] = val; }
+		template <typename C> void addnode(const char* type, const char* label, C* zone);
+		template <typename C> void addnode(const char* type, const char* label, C* zone, C min, C max);
+		template <typename C> void addnode(const char* type, const char* label, C* zone, C init, C min, C max, C step);
+							  void declare(const char* key, const char* val ) { fCurrentMeta[key] = val; }
 
-		void opengroup (const char* type, const char* label);
-		void closegroup ();
+		void opengroup(const char* type, const char* label);
+		void closegroup();
 
 		//--------------------------------------------------------------------------
-		void run ();				// start the httpd server
-		void quit ();				// stop the httpd server
+		void run();				// start the httpd server
+		void stop();			// stop the httpd server
 		
 		int	getTCPPort()			{ return fTCPPort; }
-        std::string get_jsonInterface();
-        void        set_Inputs(int numInputs);
-        void        set_Outputs(int numOutputs);
+        std::string getJSON();
+        void        setInputs(int numInputs);
+        void        setOutputs(int numOutputs);
 
 		static float version();				// the Faust httpd library version number
 		static const char* versionstr();	// the Faust httpd library version number as a string

@@ -128,12 +128,6 @@ static void printRule(ostream& fout, Tree rule)
 	 affichage d'une expression box comme en entree
 *****************************************************************************/
 
-// if t has a node of type symbol, return its name otherwise error		
-static string tree2quotedstr (Tree t)
-{
-	return "\"" + string(tree2str(t)) + "\"";
-}
-
 static string type2str(int type)
 {
 	switch (type) {
@@ -165,7 +159,7 @@ ostream& boxpp::print (ostream& fout) const
 
     Tree	t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg,
             body, fun, args, abstr, genv, vis, lenv, ldef, slot,
-            ident, rules, filename;
+            ident, rules;
 
     const char* str;
 
@@ -295,7 +289,7 @@ ostream& boxpp::print (ostream& fout) const
     
         fout << "waveform";
         char sep = '{';
-        for (size_t i=0; i<box->arity(); i++) {
+        for (int i=0; i<box->arity(); i++) {
             fout << sep << boxpp(box->branch(i));
             sep = ',';
         }

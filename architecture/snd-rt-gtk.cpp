@@ -54,8 +54,6 @@
 
 #include <rt-various.h> // realtime memory allocation in Snd.
 
-
-
 using namespace std;
 
 struct Meta : map<const char*, const char*>
@@ -63,26 +61,17 @@ struct Meta : map<const char*, const char*>
   void declare (const char* key, const char* value) { (*this)[key]=value; }
 };
 	 	 
-
-
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
 inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
 // g++ -O3 -lm -ljack `gtk-config --cflags --libs` ex2.cpp
  
-	
-
-
-
 // abs is now predefined
 //template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
-
 
 inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
 inline int 		int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
-
-
 
 /******************************************************************************
 *******************************************************************************
@@ -94,13 +83,7 @@ inline int 		int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
 
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
 
-
 <<includeIntrinsic>>
-
-
-
-
-
 
 /******************************************************************************
 *******************************************************************************
@@ -118,7 +101,6 @@ using namespace std;
 
 struct uiItem;
 typedef void (*uiCallback)(float val, void* data);
-
 
 #ifdef MAKE_GUI // It's enough to compile GUI code once.
 

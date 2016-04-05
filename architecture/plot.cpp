@@ -50,7 +50,7 @@
 #include <iostream> 
 
 #include "faust/gui/console.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/misc.h"
 
 /******************************************************************************
@@ -136,7 +136,7 @@ int main(int argc, char *argv[] )
 			for (int c = 0; c < nouts; c++) {
 				printf("%8f\t", chan.buffers()[c][i]);
 			}
-			cout << endl;
+			std::cout << std::endl;
 		}
 		nbsamples -= kFrames;
 	}
@@ -146,7 +146,7 @@ int main(int argc, char *argv[] )
 		for (int c = 0; c < nouts; c++) {
 			printf("%8f\t", chan.buffers()[c][i]);
 		}
-		cout << endl;
+		std::cout << std::endl;
 	}
 	return 0;
 } 

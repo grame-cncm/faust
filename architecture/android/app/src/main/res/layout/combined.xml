@@ -1,0 +1,25 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="2"
+	android:keepScreenOn="true">
+    
+    <com.faust.MultiParams
+        android:id="@+id/MultiParams"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="top"
+        android:layout_weight="1"/>
+
+    <com.faust.PianoKeyboard
+        android:id="@+id/PianoKeyboard"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom"
+        custom:keys="21"
+        android:layout_weight="1"/>
+    
+</LinearLayout>

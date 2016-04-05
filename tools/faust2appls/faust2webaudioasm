@@ -1,0 +1,119 @@
+#!/bin/bash
+
+#-------------------------------------------------------------------
+# Wrapping resources
+
+EXPORT_FOOTER=""
+HTML_FOOTER=webaudio-asm-footer.html
+CPP_WRAPPER=webaudio-asm.cpp
+JS_WRAPPER=webaudio-asm-emcc.js
+LINKS=""
+SVG=""
+EXPORT="false"
+
+#-------------------------------------------------------------------
+# Set Faust include path
+
+if [ -f $FAUST_LIB_PATH/music.lib ]
+then
+  FAUSTLIB=$FAUST_LIB_PATH
+elif [ -f /usr/local/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/local/lib/faust/
+elif [ -f /usr/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/lib/faust/
+else
+  error "$0: Cannot find Faust library dir (usually /usr/local/lib/faust)"
+fi
+
+#-------------------------------------------------------------------
+# Analyze command arguments :
+# faust options                 -> OPTIONS
+# existing *.dsp files          -> FILES
+#
+
+for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2webaudioasm [-poly] [-links] <file.dsp>"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-links' to add links to source code and SVG diagrams in the generated HTML file"
+    elif [ $p = "-links" ]; then
+        SVG="-svg"
+        LINKS="<div style=\"text-align:center;height:20px\"> 
+                <style>
+				a:link {font-family:Arial; font-size:12px; color:#3D3C3A; text-decoration:none}
+				a:visited {font-family:Arial; font-size:12px; color:#3D3C3A; text-decoration:none}
+				a:hover {font-family:Arial; font-size:12px; color:white; text-decoration:none}
+                </style>
+            <a href=\"DSP.dsp\" target=\"_blank\">source</a> 
+            <a href=\"DSP-svg/process.svg\" target=\"_blank\">diagram</a>
+            </div>"
+        EXPORT="true"
+        EXPORT_FOOTER=export-wrapper.html
+    elif [ $p = "-poly" ]; then
+        HTML_FOOTER=webaudio-asm-poly-footer.html
+        CPP_WRAPPER=webaudio-asm-poly.cpp
+        JS_WRAPPER=webaudio-asm-poly-emcc.js
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -e "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#
+BINARIES=""
+
+for f in $FILES; do
+    name=$(basename "$f" .dsp)
+    
+    # compile the Faust DSP to C++ code
+    faust $SVG -a $FAUSTLIB/webaudio/$CPP_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
+    
+    if [ $HTML_FOOTER = webaudio-asm-footer.html ]; then
+        EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
+     else
+	    EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_allNotesOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel','_"$name"_poly_pitchBend']"       
+	fi
+     
+    # compile the C++ code to asm.js
+    emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_MEMORY=100663296 --pre-js $FAUSTLIB/js/jsscripts.js --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
+        -s EXPORTED_FUNCTIONS=$EXPORTED || exit
+          
+    # compose the self-contained HTML page
+    echo "<html>" > $name-temp2.html
+    echo "<head>" >> $name-temp2.html
+    echo "<meta charset=\"UTF-8\">" >> $name-temp2.html
+    echo "<style type=\"text/css\">" >> $name-temp2.html
+    cat $FAUSTLIB/js/stylesheet.js >> $name-temp2.html
+    echo "</style>" >> $name-temp2.html
+    echo "<script type=\"text/javascript\">" >> $name-temp2.html
+    cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
+    cat $FAUSTLIB/webaudio/WebMIDIAPI.js >> $name-temp2.html
+    sed -e "s/DSP/"$name"/g" $name-temp1.js >> $name-temp2.html
+    echo "</script>" >> $name-temp2.html 
+    echo "</head>" >> $name-temp2.html
+    echo "<body>" >> $name-temp2.html
+    echo $LINKS >> $name-temp2.html
+    cat $FAUSTLIB/webaudio/$HTML_FOOTER >> $name-temp2.html
+    if [ $EXPORT = "true" ] ; then
+        cat $FAUSTLIB/webaudio/$EXPORT_FOOTER >> $name-temp2.html
+    fi
+    echo "</body>" >> $name-temp2.html
+    echo "</html>" >> $name-temp2.html
+    sed -e "s/DSP/"$name"/g" $name-temp2.html > $name.html
+    
+    rm $name-temp1.js
+    rm $name-temp2.html
+    rm $name.cpp
+
+	BINARIES="$BINARIES$name.html;"
+
+done
+
+echo $BINARIES

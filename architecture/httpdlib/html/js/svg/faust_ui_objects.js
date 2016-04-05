@@ -10,13 +10,14 @@ _f4u$t.UIObject = function() {
   this.y = 0.0;
 }
 
-_f4u$t.UIObject.prototype.make_group = function(svg, parent, id) {
-  var out = svg.group(
+_f4u$t.UIObject.prototype.make_group = function(svg, parent, id, opts) {
+  opts = opts ? opts : {};
+  opts.transform = 'translate('+this.x+','+this.y+')';
+  var out = _f4u$t.make_g(
+    svg,
     parent,
     id,
-    {
-      transform: 'translate('+this.x+','+this.y+')'
-    });
+    opts);
 
   return out;
 }
@@ -74,14 +75,12 @@ _f4u$t.UIObject.prototype.get_layout_manager = function() {
   return (this.mom instanceof _f4u$t.LayoutManager ? this.mom : this.mom.get_layout_manager());
 }
 
-_f4u$t.delayed_tooltips = [];
-
-_f4u$t.UIObject.prototype.make_delayed_tooltips = function() {
-  for (var i = 0; i < _f4u$t.delayed_tooltips.length; i++) {
-    _f4u$t.delayed_tooltips[i][0].make_tooltip(
-      _f4u$t.delayed_tooltips[i][1],
-      _f4u$t.delayed_tooltips[i][2],
-      _f4u$t.delayed_tooltips[i][3]
+_f4u$t.UIObject.prototype.make_delayed_tooltips = function(svg) {
+  for (var i = 0; i < svg._delayed_tooltip_list.length; i++) {
+    svg._delayed_tooltip_list[i][0].make_tooltip(
+      svg,
+      svg._delayed_tooltip_list[i][1],
+      svg._delayed_tooltip_list[i][2]
     );
   }
 }
@@ -97,7 +96,8 @@ _f4u$t.UIObject.prototype.tooltip_text_dims = function() {
 _f4u$t.UIObject.prototype.make_tooltip_text = function(svg, parent, id) {
   var text = this.tooltip_text();
   var full_id = 'faust_tooltip_text_'+id;
-  var tttext = svg.text(
+  var tttext = _f4u$t.make_text(
+    svg,
     parent,
     0,
     0,
@@ -133,7 +133,7 @@ _f4u$t.UIObject.prototype.make_tooltip_box = function(svg, parent, id) {
 }
 
 _f4u$t.UIObject.prototype.make_delayed_tooltip = function(obj, svg, linked_obj_id, id) {
-  _f4u$t.delayed_tooltips.push([obj, svg, linked_obj_id, id]);
+  svg._delayed_tooltip_list.push([obj, linked_obj_id, id]);
 }
 
 _f4u$t.UIObject.prototype.make_tooltip = function(svg, linked_obj_id, id) {
@@ -195,7 +195,8 @@ _f4u$t.ValueBox.prototype.make_box = function(svg, parent) {
 _f4u$t.ValueBox.prototype.make_value = function(svg, parent) {
   var id = this.id;
   var mousedown = this.keysink ? '_f4u$t.rotating_button_key_sink("'+id+'")' : '_f4u$t.devnull()';
-  var vv = svg.text(
+  var vv = _f4u$t.make_text(
+    svg,
     parent,
     _f4u$t.xy(this.get_layout_manager().axis, 4, this.width  / 2.0),
     this.height - 4,
@@ -213,7 +214,7 @@ _f4u$t.ValueBox.prototype.make_value = function(svg, parent) {
 
 _f4u$t.ValueBox.prototype.make = function(svg, parent) {
   var id = this.id;
-  var g = this.make_group(svg, parent, id);
+  var g = this.make_group(svg, parent, id+"_vbox");
 
   this.make_box(svg, g, id);
   this.make_value(svg, g, id);
@@ -248,7 +249,8 @@ _f4u$t.Label.prototype.make = function(svg, parent) {
   var id = this.id;
 
   var label = this.label_text();
-  var vl = svg.text(
+  var vl = _f4u$t.make_text(
+    svg,
     parent,
     0,
     this.dims()[_f4u$t.Y_AXIS],
@@ -351,7 +353,8 @@ _f4u$t.RotatingButton.prototype.make_mgroove = function(svg, parent, id) {
     this.r() * Math.cos(_f4u$t.d2r(this.a0)) + xo, // outside X
     this.r() * Math.sin(_f4u$t.d2r(this.a0)) + yo// outside Y
   ]);
-  var mgroove = svg.path(
+  var mgroove = _f4u$t.make_path(
+    svg,
     parent,
     d,
     {
@@ -372,7 +375,8 @@ _f4u$t.RotatingButton.prototype.make_dot = function(svg, parent, id, rot) {
   var mousedown = _f4u$t.activate_rbutton;
   var xo = this.r();
   var yo = this.r();
-  var dot = svg.circle(
+  var dot = _f4u$t.make_circle(
+    svg,
     parent,
     this.r() * (this.kp + 1) * 0.5 * Math.cos(_f4u$t.d2r(rot * 45)) + xo,
     this.r() * (this.kp + 1) * 0.5 * Math.sin(_f4u$t.d2r(rot * 45)) + yo,
@@ -417,7 +421,8 @@ _f4u$t.RotatingButton.prototype.make_meter = function(svg, parent, id) {
     this.r() * Math.cos(_f4u$t.d2r(startp)) + xo, // outside X
     this.r() * Math.sin(_f4u$t.d2r(startp)) + yo// outside Y
   ]);
-  var meter = svg.path(
+  var meter = _f4u$t.make_path(
+    svg,
     parent,
     d,
     {
@@ -436,7 +441,8 @@ _f4u$t.RotatingButton.prototype.make_meter = function(svg, parent, id) {
 _f4u$t.RotatingButton.prototype.make_groove = function(svg, parent, id) {
   var mousedown = _f4u$t.activate_rbutton;
   var full_id = 'faust_rbutton_groove_'+id;
-  var groove = svg.circle(
+  var groove = _f4u$t.make_circle(
+    svg,
     parent,
     this.r(),
     this.r(),
@@ -459,7 +465,8 @@ _f4u$t.RotatingButton.prototype.make_handle = function(svg, parent, id) {
   var origin = [this.r(), this.r()];
   var startp = _f4u$t.remap(this.init, this.min, this.max, this.a0, this.a0 + this.sweep);
   var mousedown = _f4u$t.activate_rbutton;
-  var handle = svg.line(
+  var handle = _f4u$t.make_line(
+    svg,
     parent,
     origin[0],
     origin[1],
@@ -485,7 +492,8 @@ _f4u$t.RotatingButton.prototype.make_anchor = function(svg, parent, id) {
   var origin = [this.r(), this.r()];
   var full_id = 'faust_rbutton_anchor_'+id;
 
-  var anchor = svg.path(
+  var anchor = _f4u$t.make_path(
+    svg,
     parent,
     "M 0 0L0 1L1 1L1 0L0 0",
     {
@@ -776,7 +784,7 @@ _f4u$t.BarGraph.prototype.make_curtain = function(svg, parent, id) {
       fill : _f4u$t.color_to_rgb(this.curtain_fill),
       stroke : _f4u$t.color_to_rgb(this.curtain_stroke),
       id : full_id,
-      transform : 'translate('+xo+',0)',
+      transform : _f4u$t.xy(this.axis,'translate('+(xo + this.length)+',0) scale(-1,1)', 'translate('+xo+',0)'),
       'class' : _f4u$t.xy(this.axis, 'faust-hbargraph-curtain', 'faust-vbargraph-curtain')
     });
 
@@ -916,7 +924,8 @@ _f4u$t.CheckBox.prototype.make_check = function(svg, parent, id) {
   var xo = (dims[0] - w) / 2.0;
   var mouseup = '_f4u$t.change_checkbox("'+full_id+'")';
   //var touchup = '_f4u$t.touch_checkbox("'+full_id+'")';
-  var box = svg.path(
+  var box = _f4u$t.make_path(
+    svg,
     parent,
     "M0 0L"+this.d+" "+this.d+"M0 "+this.d+"L"+this.d+" 0",
     {
@@ -1008,7 +1017,8 @@ _f4u$t.Button.prototype.make_button_box = function(svg, parent, id) {
 }
 
 _f4u$t.Button.prototype.make_label = function(svg, parent, id) {
-  var vl = svg.text(
+  var vl = _f4u$t.make_text(
+    svg,
     parent,
     0,
     0,
@@ -1029,16 +1039,14 @@ _f4u$t.Button.prototype.make = function(svg, parent) {
   var full_id = 'faust_button_box_'+id;
   var mousedown = '_f4u$t.button_down("'+full_id+'")';
   var mouseup = '_f4u$t.button_up("'+full_id+'")';
-  var g = this.make_group(svg, parent, id);
+  var g = this.make_group(svg, parent, id,
+    {
+      onmousedown : mousedown,
+      //ontouchstart : mousedown,
+      onmouseup : mouseup,
+      //ontouchend : mouseup
+    });
 
-  svg.configure(g,
-  {
-    onmousedown : mousedown,
-    //ontouchstart : mousedown,
-    onmouseup : mouseup,
-    //ontouchend : mouseup
-  },
-  false);
   _f4u$t.initiate_button(
     id,
     _f4u$t.color_to_rgb(this.fill_off),
@@ -1142,7 +1150,8 @@ _f4u$t.NumericalEntry.prototype.make_minus = function(svg, parent, id) {
   var mouseup = _f4u$t.nentry_up_minus;
 
   var d = "M"+x0+" "+y+"L"+x1+" "+y;
-  var minus = svg.path(
+  var minus = _f4u$t.make_path(
+    svg,
     parent,
     d,
     {
@@ -1174,7 +1183,8 @@ _f4u$t.NumericalEntry.prototype.make_plus = function(svg, parent, id) {
   var mousedown = _f4u$t.nentry_down_plus;
   var mouseup = _f4u$t.nentry_up_plus;
 
-  var plus = svg.path(
+  var plus = _f4u$t.make_path(
+    svg,
     parent,
     d,
     {
@@ -1377,7 +1387,8 @@ _f4u$t.LayoutManager.prototype.make_background = function(svg, parent) {
 // only for debugging
 _f4u$t.LayoutManager.prototype.make_dim_cross = function(svg, parent) {
   var dims = this.dims();
-  svg.path(
+  _f4u$t.make_path(
+    svg,
     parent,
     "M0 0L"+dims[0]+' '+dims[1]
   );
@@ -1467,7 +1478,8 @@ _f4u$t.TabGroup.prototype.do_spacing = function(leaf) {
 
 _f4u$t.TabGroup.prototype.make_label = function(svg, parent, x, y, l, goodid, badidstr) {
   var mousedown = '_f4u$t.activate_tgroup(0,'+(this.headroom + this.headpadding)+',"'+goodid+'","'+badidstr+'")'
-  var vl = svg.text(
+  var vl = _f4u$t.make_text(
+    svg,
     parent,
     0,
     0,
@@ -1509,7 +1521,8 @@ _f4u$t.TabGroup.prototype.make_tab = function(svg, parent, w, h, x, y, goodid, b
 
 _f4u$t.TabGroup.prototype.make_tabs = function(svg, parent) {
   // we evenly space buttons across x axis
-  var g = svg.group('faust_tabgroup_tabbar_'+this.id, parent);
+  // was a bug...
+  var g = _f4u$t.make_g(svg, parent, 'faust_tabgroup_tabbar_'+this.id);
 
   var running_count = 0;
   for (var i = 0; i < this.objs.length; i++) {
@@ -1575,10 +1588,9 @@ _f4u$t.SVG.prototype.get_y_offset = function() {
 }
 
 _f4u$t.SVG.prototype.defs = function() {
-  var defs = this.svg.defs();
   for (var gradient in _f4u$t.linear_gradient_inits) {
-    this.svg.linearGradient(
-      defs,
+    _f4u$t.make_linear_gradient(
+      this.svg,
       gradient,
       _f4u$t.linear_gradient_inits[gradient]['stops'],
       _f4u$t.linear_gradient_inits[gradient]['x1'],
@@ -1590,8 +1602,8 @@ _f4u$t.SVG.prototype.defs = function() {
   }
 
   for (var gradient in _f4u$t.radial_gradient_inits) {
-    this.svg.radialGradient(
-      defs,
+    _f4u$t.make_radial_gradient(
+      this.svg,
       gradient,
       _f4u$t.radial_gradient_inits[gradient]['stops'],
       _f4u$t.radial_gradient_inits[gradient]['cx'],
@@ -1605,21 +1617,24 @@ _f4u$t.SVG.prototype.defs = function() {
 }
 
 _f4u$t.SVG.prototype.make = function() {
-  this.svg.configure(
+  _f4u$t.configure_svg(
+    this.svg,
     {
       width : this.w+'px',
       height : this.h+'px'
     },
     true);
   _f4u$t.ROOT = this.title;
+  this.svg._delayed_tooltip_list = [];
   this.lm.populate_objects();
   this.lm.do_spacing(0);
   this.lm.make(this.svg, this.svg);
-  this.tooltip_group = this.svg.group(this.svg,'faust_tooltip_group');
-  this.make_delayed_tooltips();
+  this.tooltip_group = _f4u$t.make_g(this.svg, this.svg,'faust_tooltip_group');
+  this.make_delayed_tooltips(this.svg);
   // if there is no constrain, the viewport needs to be scaled
   var viewport_dims = this.lm.dims();
-  this.svg.configure(
+  _f4u$t.configure_svg(
+    this.svg,
     {
       viewBox: '0 0 '+viewport_dims[0]+' '+viewport_dims[1],
       width : this.w+'px',

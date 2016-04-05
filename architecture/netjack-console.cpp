@@ -73,7 +73,9 @@
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 mydsp DSP;
-std::list<GUI*>     GUI::fGuiList;
+
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -104,9 +106,9 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef HTTPCTRL
-    httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
+    httpdUI* httpdinterface = new httpdUI(appname, DSP.getNumInputs(), DSP.getNumOutputs(), argc, argv);
     DSP.buildUserInterface(httpdinterface);
-#endif
+ #endif
 
     netjackaudio audio(celt, master_ip, master_port, mtu, latency);
     if (!audio.init(appname, &DSP)) {

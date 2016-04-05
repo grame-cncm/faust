@@ -1,0 +1,57 @@
+\chapter{Common Error Messages}
+\label{chap:errors}
+Compiling can fail. Here are some common mistakes and how to solve them.
+\section{The command does not output anything}
+If, after typing your command followed by a file name, your terminal does not output anything like \lstinline'myfile.zip;' or \lstinline'myfile.cpp;' and returns only a blank line, make sure \textbf{you are in the correct directory or you entered the correct path to reach the DSP file.} 
+
+\section{No such file or directory}
+If you used the \lstinline'-install' option, make sure you typed the complete workspace path.
+For instance, instead of typing this :
+\begin{lstlisting}
+faust2ros -install myworkspace ~/path/to/myfile.dsp
+\end{lstlisting}
+you should type :
+\begin{lstlisting}
+faust2ros -install path/to/myworkspace ~/path/to/myfile.dsp
+\end{lstlisting}
+
+%\section{Fatal error during \lstinline'catkin_make' operation}
+%Once your DSP file compiled into a cpp file, if you try to compile it into a \ros executable, the terminal might output :
+%\begin{lstlisting}
+%fatal error: faust_msgs/faust_param.h: No such file or directory
+%\end{lstlisting}
+%\newpage
+%You have two possibilities :
+%
+%\begin{itemize}[leftmargin=*]
+%	\item If your workspace is only a test workspace, then type :
+%	\begin{lstlisting}
+%source path/to/myworkspace/devel/setup.bash
+%	\end{lstlisting}
+%	in your terminal.
+%	\item If your workspace is going to be your current \ros workspace, you can add it to the source directories :
+%	\begin{lstlisting}
+%echo "source path/to/myworkspace/devel/setup.bash" >> ~/.bashrc 
+%	\end{lstlisting}
+%\end{itemize}
+
+\section{[rosrun] error}
+\label{sec:rosrun error}
+If, while trying to run a \faust node (called \textit{myname}), an error message showed up saying :
+
+\begin{lstlisting}
+[rosrun] Couldn't find executable named myname below /path/to/myworkspace/src/myname
+\end{lstlisting}
+
+Then you have to source your workspace :
+\begin{itemize}[leftmargin=*]
+	\item If your workspace is only a test workspace, then type :
+	\begin{lstlisting}
+source path/to/myworkspace/devel/setup.bash
+	\end{lstlisting}
+	in your terminal.
+	\item If your workspace is going to be your current \ros workspace, you can add it to the source directories :
+	\begin{lstlisting}
+echo "source path/to/myworkspace/devel/setup.bash" >> ~/.bashrc 
+	\end{lstlisting}
+\end{itemize}

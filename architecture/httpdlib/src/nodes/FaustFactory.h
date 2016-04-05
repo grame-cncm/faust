@@ -56,24 +56,24 @@ class FaustFactory
 		/**
 		 * Add a node to the OSC UI tree in the current group at the top of the stack 
 		 */
-		template <typename C> void addnode (const char* label, C* zone, C init, C min, C max)
+		template <typename C> void addnode (const char* label, C* zone, C init, C min, C max, bool initZone)
 		{
 			SMessageDriven top = fNodes.size() ? fNodes.top() : fRoot;
 			if (top) {
 				std::string prefix = top->getAddress();
-				top->add( FaustNode<C>::create (label, zone, init, min, max, prefix.c_str()) );
+				top->add( FaustNode<C>::create (label, zone, init, min, max, prefix.c_str(), initZone));
 			}
 		}
 
 		/**
 		 * Add a node to the OSC UI tree in the current group at the top of the stack 
 		 */
-		template <typename C> void addnode (const char* label, C* zone, C min, C max)
+		template <typename C> void addnode (const char* label, C* zone, C min, C max, bool initZone)
 		{
 			SMessageDriven top = fNodes.size() ? fNodes.top() : fRoot;
 			if (top) {
 				std::string prefix = top->getAddress();
-				top->add( FaustNode<C>::create (label, zone, min, max, prefix.c_str()) );
+				top->add( FaustNode<C>::create (label, zone, min, max, prefix.c_str(), initZone) );
 			}
 		}
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash -e
 
 #####################################################################
 #                                                                   #
@@ -30,6 +30,24 @@ createInfoPList() {
 	echo '</plist>'
 	) > "$2"
 }
+
+#-------------------------------------------------------------------
+# Set Faust include path
+
+if [ -f $FAUST_LIB_PATH/music.lib ]
+then
+  FAUSTLIB=$FAUST_LIB_PATH
+elif [ -f /usr/local/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/local/lib/faust
+  JSFILE_PATH="\/usr\/local\/lib\/faust\/max-msp\/ui.js"
+elif [ -f /usr/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/lib/faust
+  JSFILE_PATH="\/usr\/lib\/faust\/max-msp\/ui.js"
+else
+  error "$0: Cannot find Faust library dir (usually /usr/local/lib/faust)"
+fi
 
 
 #-------------------------------------------------------------------
@@ -98,15 +116,15 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -double -a max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	faust -i -double -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary
     (
 	cd "$TMP"
 	install -d "${f%.dsp}$EXT/Contents/MacOS"
 
-	$CC  -Wfatal-errors -framework Carbon -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
-    ) > /dev/null
+	$CC  -Wfatal-errors -framework Carbon -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -arch x86_64  -Wl,-U,_object_new_imp -Wl,-U,_object_method_imp -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+    ) > /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
 
@@ -119,6 +137,15 @@ for p in $FILES; do
 
     # collect binary file name for FaustGIDE
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
+    
+    # create Max patch
+    cat $FAUSTLIB/max-msp/wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+    sed -e "s/DSP_NAME/"${f%.dsp}"~/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
+    sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
+    
+    rm ${f%.dsp}-temp1.maxpat
+    rm ${f%.dsp}-temp2.maxpat
+    
 done
 
 echo $BINARIES

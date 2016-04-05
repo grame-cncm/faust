@@ -51,8 +51,10 @@ public:
 		, port( port_ ) {}
 
 	// address and port are maintained in host byte order here
-    unsigned long address;
-    int port;
+	unsigned long address;
+	int port;
+
+	unsigned long destAddress; // Destination address of the packet.
 
 	enum { ADDRESS_STRING_LENGTH=17 };
 	void AddressAsString( char *s ) const;

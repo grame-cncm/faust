@@ -35,6 +35,7 @@
 #include <map>
 
 #include "description.hh"
+#include "faust/gui/JSONUI.h"
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -54,6 +55,7 @@ protected:
 	bool			fNeedToDeleteClass;
 	Tree			fUIRoot;
 	Description*	fDescription;
+    JSONUI          fJSON;
 
 public:
 	Compiler (const string& name, const string& super, int numInputs, int numOutputs, bool vec);
@@ -80,6 +82,7 @@ protected:
 // gestion de la description arborescente de l'IU
 	void 		addUIWidget(Tree path, Tree widget);
 	void 		generateWidgetCode(Tree fulllabel, Tree varname, Tree sig);
+    void        generateMetaData();
 	void 		generateUserInterfaceTree(Tree t);
 	void 		generateUserInterfaceElements(Tree elements);
 	Tree 		prepareUserInterfaceTree(Tree t);

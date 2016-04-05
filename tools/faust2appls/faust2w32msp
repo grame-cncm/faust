@@ -11,24 +11,42 @@
 
 #------------------------------------------------------------------------------
 # 1/ MAX/MSP SDK Should be installed somewhere
-MAXSDK=/usr/local/lib/maxmspsdk/c74support
+MAXSDK=/usr/local/include/c74support
 EXT="~.mxe"
 
 #------------------------------------------------------------------------------
 # 2/ mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
-CROSS="/usr/bin/i586-mingw32msvc-"
-CXX="${CROSS}g++"
-DLLWRAP="${CROSS}dllwrap --target=i386-mingw32 -mno-cygwin"
-STRIP="${CROSS}strip"
+# It must be in the PATH and the exact prefix should be specified in
+# the environment variable MINGWPREFIX
+
+: ${MINGWPREFIX="i686-w64-mingw32-"}
+CXX="${MINGWPREFIX}g++"
+(which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
+DLLWRAP="${MINGWPREFIX}dllwrap --target=i386-mingw32"
+STRIP="${MINGWPREFIX}strip"
 
 
 #-----------------------------------------------------------------------------
 # Compilation flags
 LIBS="$MAXSDK/max-includes/MaxAPI.lib  $MAXSDK/msp-includes/MaxAudio.lib"
 CXXINCS="-I$MAXSDK/max-includes -I$MAXSDK/msp-includes "
-CXXFLAGS="-DWIN_VERSION -DWIN_EXT_VERSION" 
+CXXFLAGS="-DWIN_VERSION -DWIN_EXT_VERSION"
 
+#-------------------------------------------------------------------
+# Set Faust include path
 
+if [ -f $FAUST_LIB_PATH/music.lib ]
+then
+  FAUSTLIB=$FAUST_LIB_PATH
+elif [ -f /usr/local/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/local/lib/faust
+elif [ -f /usr/lib/faust/music.lib ]
+then
+  FAUSTLIB=/usr/lib/faust
+else
+  error "$0: Cannot find Faust library dir (usually /usr/local/lib/faust)"
+fi
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -47,7 +65,7 @@ for p in $@; do
             OMP="-fopenmp"
         fi
     fi
-  
+
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ ${p:0:1} = "-" ]; then
@@ -55,7 +73,7 @@ for p in $@; do
 	elif [[ -e "$p" ]]; then
 	    FILES="$FILES $p"
 	else
-	    OPTIONS="$OPTIONS $p"        
+	    OPTIONS="$OPTIONS $p"
 	fi
 done
 
@@ -67,35 +85,35 @@ for p in $FILES; do
     CUR=$(pwd)
     f=$(basename "$p")
 	SRCDIR=$(dirname "$p")
-	
-    # creates a temporary dir 
+
+    # creates a temporary dir
     TDR=$(mktemp -d faust.XXX)
 	TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -a max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	faust -i -a $FAUSTLIB/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary
     (
 		cd "$TMP"
 		echo "TMP=$TMP"
-	
+
 		# we need to create the .def file needed to generate the .dll
 		echo "LIBRARY     ${f%.dsp}~" 						 > ${f%.dsp}.def
 		echo "DESCRIPTION 'Faust generated MAX plugin'" 	>> ${f%.dsp}.def
 		echo "EXPORTS     main" 							>> ${f%.dsp}.def
-	
+
 		$CXX $CXXINCS $CXXFLAGS -c "${f%.dsp}.cpp" -o "${f%.dsp}.o"
-		$DLLWRAP --driver-name $CXX --def ${f%.dsp}.def *.o  $LIBS -o "${f%.dsp}$EXT"
+		$DLLWRAP --driver-name $CXX --def ${f%.dsp}.def *.o  $LIBS -static-libstdc++ -static-libgcc -o "${f%.dsp}$EXT"
 		$STRIP "${f%.dsp}$EXT"
-    ) > /dev/null
-		
+    ) > /dev/null || exit
+
 	cp "$TMP/${f%.dsp}$EXT" "$SRCDIR"
-    
+
     # remove temporary directory
     rm -rf "$TDR"
-    
+
     # collect binary file name for FaustWorks
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
 done

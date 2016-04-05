@@ -49,27 +49,26 @@ class jsonfactory
 	std::stack<Sjsonnode>	fNodes;		///< maintains the current hierarchy level
 	jsonroot				fRoot;		///< keep track of the root node
 
-	void addnode(Sjsonnode node, const char * label);
+	void addnode(Sjsonnode node, const char* label);
 
 	public:
-				typedef std::map<std::string, std::string>	TMetas;
-
-				 jsonfactory(const char *name, const char* address, int port) : fRoot(name, address, port) {}
+    
+                jsonfactory(const char* name, const char* address, int port) : fRoot(name, address, port) {}
 		virtual ~jsonfactory() {}
 
 		template <typename C> void addnode (const char* type, const char* label, C min, C max, const TMetas& m) {
-				addnode (jsoncontrol<C>::create (label, type, min, max, m), label);
+				addnode(jsoncontrol<C>::create (label, type, min, max, m), label);
 			}
 
 		template <typename C> void addnode (const char* type, const char* label, C init, C min, C max, C step, const TMetas& m) {
-				addnode (jsoncontrol<C>::create (label, type, init, min, max, step, m), label);
+				addnode(jsoncontrol<C>::create (label, type, init, min, max, step, m), label);
 			}
 
 		template <typename C> void addnode (const char* type, const char* label, const TMetas& m) {
-				addnode (jsoncontrol<C>::create (label, type, m), label);
+				addnode(jsoncontrol<C>::create (label, type, m), label);
 			}
 
-		void opengroup(const char* type, const char* label);
+		void opengroup(const char* type, const char* label, const TMetas& m);
 		void closegroup();
 
 		jsonroot&	root()			{ return fRoot; }

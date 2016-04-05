@@ -1,0 +1,235 @@
+\chapter{Introduction}
+\label{chap:intro}
+If you wanted to add some sound to your robot, or if you wanted to use your sound applications 
+on a robot, it is now possible with \faust and the \lstinline'faust2ros' and
+\lstinline'faust2rosgtk' commands. \\
+\faust (\textit{Functional Audio Stream}) is a functional programming language specifically 
+designed for real-time signal processing and synthesis.  \faust targets high-performance signal 
+processing applications and audio plug-ins for a variety of platforms and standards.\newline
+\ros (\textit{Robot Operating System}) is a flexible framework for robot software writing. It 
+is a collection of tools, libraries, and conventions that aim to simplify the task of creating 
+complex and robust robot behavior across a wide variety of robotic platforms.
+
+
+\section{FAUST} 
+\subsection{Design Principles}
+
+Various principles have guided the design of \faust :
+
+\begin{itemize}
+
+\item \faust is a \textit{specification language}. It aims at providing an adequate notation to describe \textit{signal processors} from a mathematical point of view. \faust is, as much as possible, free from implementation details. 
+
+\item \faust programs are fully compiled, not interpreted. The compiler translates \faust programs into equivalent C++ programs taking care of generating the most efficient code. The result can generally compete with, and sometimes even outperform, C++ code written by seasoned programmers. 
+
+\item The generated code works at the sample level. It is therefore suited to implement low-level DSP functions like recursive filters. Moreover the code can be easily embedded. It is self-contained and doesn't depend of any DSP library or runtime system. It has a very deterministic behavior and a constant memory footprint. 
+
+\item The semantic of \faust is simple and well defined. This is not just of academic interest. It allows the \faust compiler to be \emph{semantically driven}. Instead of compiling a program literally, it compiles the mathematical function it denotes. This feature is useful for example to promote components reuse while preserving optimal performance.  
+
+\item \faust is a textual language but nevertheless block-diagram oriented. It actually combines two approaches: \textit{functional programming} and \textit{algebraic block-diagrams}. The key idea is to view block-diagram construction as function composition. For that purpose, \faust relies on a \emph{block-diagram algebra} of five composition operations (\lstinline': , ~ <: :>').
+
+\item Thanks to the notion of \textit{architecture}, \faust programs can be easily deployed on a large variety of audio platforms and plugin formats without any change to the \faust code.
+
+\end{itemize}
+
+\subsection{Signal Processor Semantic}
+A \faust program describes a \emph{signal processor}. 
+The role of a \textit{signal processor} is to transform a group  of (possibly empty) \emph{input signals} in order to produce a group of (possibly empty) \emph{output signals}. 
+Most audio equipments can be modeled as \emph{signal processors}. 
+They have audio inputs, audio outputs as well as control signals interfaced with sliders, knobs, vu-meters, etc... \\
+
+For more informations about \faust, please see \textit{faust-quick-reference.pdf} and the tutorials in \faust documentation.
+
+\section{ROS}
+\subsection{What is it ?}
+\marginpar {This section's content (1.2 \ros) is taken from \ros documentation. It can be found on \href{http://www.ros.org}{\ros official website} and \href{http://www.wiki.ros.org }{\ros wiki}.} Creating truly robust, general-purpose robot software is \textit {hard}. From the robot's perspective, problems that seem trivial to humans often vary wildly between instances of tasks and environments. Dealing with these variations is so hard that no single individual, laboratory, or institution can hope to do it on their own. \newline
+
+\ros is an open-source, meta-operating system for your robot. It provides the services you would expect from an operating system, including hardware abstraction, low-level device control, implementation of commonly-used functionality, message-passing between processes, and package management. It also provides tools and libraries for obtaining, building, writing, and running code across multiple computers. \newline
+
+As a result, \ros was built from the ground up to encourage \textit{collaborative} robotics software development. For example, one laboratory might have experts in mapping indoor environments, and could contribute a world-class system for producing maps. Another group might have experts at using maps to navigate, and yet another group might have discovered a computer vision approach that works well for recognizing small objects in clutter. \ros was designed specifically for groups like these to collaborate and build upon each other's work, as is described throughout this site.\\
+
+\subsection{Concepts}
+\subsubsection{Filesystem level}
+The filesystem level concepts mainly cover \ros resources that you encounter on disk, such as:
+
+\begin{itemize}
+
+\item \textbf{Packages} are the main unit for organizing software in \ros. 
+	A package may contain \ros runtime processes (nodes), a \ros-dependent library, datasets, configuration files, or anything else that is usefully organized together. 
+	Packages are the most atomic build item and release item in \ros. Meaning that the most granular thing you can build and release is a package.
+
+\item \textbf{Metapackages} are specialized Packages which only serve to represent a group of related other packages. 
+
+
+\item \textbf{Services : }
+Service descriptions, stored in my\_package/srv/MyServiceType.srv, define the request and response data structures for  \href{http://wiki.ros.org/Services}{services} in \ros.
+
+\item \textbf{Messages : }  
+Message descriptions, stored in my\_package/msg/MyMessageType.msg, define the data structures for  \href{http://wiki.ros.org/Messages}{messages} sent in \ros.
+
+
+\end{itemize}
+
+
+\subsubsection{Computation Graph level}
+The Computation Graph is the peer-to-peer network of \ros processes that are processing data together. The basic Computation Graph concepts of \ros are nodes, Master, Parameter Server, messages, services, topics, and bags, all of which provide data to the Graph in different ways.
+
+\begin{itemize}
+\item \textbf{Master : }
+The \ros Master provides name registration and lookup to the rest of the Computation Graph. Without the Master, nodes would not be able to find each other, exchange messages, or invoke services.
+
+\item \textbf{Nodes : } 
+Nodes are processes that perform computation. \ros is designed to be modular at a fine-grained scale; a robot control system usually comprises many nodes. For example, one node controls a laser range-finder, one node controls the wheel motors, one node performs localization, one node performs path planning, one Node provides a graphical view of the system, and so on. A \ros node is written with the use of a \ros client \href{http://wiki.ros.org/Client\%20Libraries}{library}, such as \href{http://wiki.ros.org/roscpp}{roscpp} or \href{http://wiki.ros.org/rospy}{rospy}.
+
+\item \textbf{Topics : } Messages are routed via a transport system with publish / subscribe semantics. A node sends out a message by publishing it to a given \href{http://wiki.ros.org/Topics}{topic}. The topic is a name that is used to identify the content of the message. A node that is interested in a certain kind of data will subscribe to the appropriate topic. There may be multiple concurrent publishers and subscribers for a single topic, and a single node may publish and/or subscribe to multiple topics. In general, publishers and subscribers are not aware of each others' existence. The idea is to decouple the production of information from its consumption. Logically, one can think of a topic as a strongly typed message bus. Each bus has a name, and anyone can connect to the bus to send or receive messages as long as they are the right type.
+
+\item \textbf{The Parameter Server : }The Parameter Server allows data to be stored by key in a central location. It is currently part of the Master.
+
+\item \textbf{Messages : }Nodes communicate with each other by passing \href{http://wiki.ros.org/Messages}{messages}. A message is simply a data structure, comprising typed fields. Standard primitive types (integer, floating point, boolean, etc.) are supported, as are arrays of primitive types. Messages can include arbitrarily nested structures and arrays (much like C structures).
+
+\end{itemize}
+
+\begin{figure}[ht!]
+\centering
+
+ \begin{tikzpicture} [remember picture]
+ \node[draw=roscolor, label={[roscolor] above left:{MASTER}}, ] (master) {
+ 	\begin{tikzpicture}[node distance=2.5cm]
+	  \node[fill=roscolor, text=white, ellipse, text width=1.5cm, align=center](n1){Node 1};	  
+	  \node[fill=roscolor, text=white, ellipse, text width=1.5cm, below=of n1, align=center](n2){Node 2};
+	  \node[draw=roscolor, text=roscolor, rounded corners=3pt, text width=1.5cm, right=of n1, align=center](t1){Topic 1};
+	  \node[draw=roscolor, text=roscolor, rounded corners=3pt, text width=1.5cm, right=of n2, align=center](t2){Topic 2};
+	  \node[fill=roscolor, text=white, ellipse, text width=1.5cm, right=of t1, align=center](n3){Node 3};
+	  \node[fill=roscolor, text=white, ellipse, text width=1.5cm, below=of n3, align=center](n4){Node 4};
+	  
+ 
+	  \draw[margincolor,->, very thick] (n1) to node [sloped, midway, above] {publication} (t1);
+	  \draw[margincolor,->, very thick] (n2) to node [sloped, midway, above] {publication} (t1.south west);
+ 	  \draw[margincolor,->, very thick] (n3) to node [sloped, midway, above] {publication} (t2.north east);
+	  \draw[yoheader,->, very thick] (t1) to node [sloped, midway, above] {subscription} (n3);
+ 	  \draw[yoheader,->, very thick] (t2) to node [sloped, midway, above, text width=1.9cm, align=center] {subscription} (n2);
+  	  \draw[yoheader,->, very thick] (t2) to node [sloped, midway, above, text width=1.9cm, align=center] {subscription} (n4);
+	\end{tikzpicture}
+ };
+  
+ \end{tikzpicture}
+
+\caption{\ros Concepts in a Diagram }
+\label{fig:ROS Concepts}
+\end{figure}
+
+\subsubsection{Names}
+Names are really important in \ros. Valid names have these characteristics :
+\begin{itemize}
+	\item first chararacter is an alpha character : [a-z][A-Z]
+	\item subsequent characters can be alphanumeric : [a-z][A-Z][0-9], underscores : \_ or forward slash : /
+	\item there is at most one forward slash : /
+
+\end{itemize}
+
+For more informations on \ros and tutorials, please have a look to the website :
+\myurl{www.wiki.ros.org}.\\
+\newpage
+\section{Using FAUST with ROS}
+The idea of using \faust modules with \ros could be summed up in the following diagrams.
+
+\begin{figure}[ht!]
+\centering
+
+\begin{tikzpicture} [remember picture, node distance=0.5cm]
+ \node[draw, dashed, label=above:{\faust part}] (faust) { 
+ 	\begin{tikzpicture}
+	 \node[draw, solid, text=yoheader, fill=lightgray] (dsp) {.dsp file};
+	 \node[draw=yoheader, solid, ellipse, text=black, right=of dsp, text width=1.5cm, align=center](compiler) {\faust compiler};
+	 \node[draw, solid, text=yoheader, fill=lightgray, above=of compiler](archfile){architecture file};
+	 \draw[->, very thick, solid] (dsp)--(compiler);
+	 \draw[->, very thick, solid] (archfile)--(compiler);
+	 \end{tikzpicture}
+ };
+ \node[draw, solid, text=yoheader, fill=lightgray, right=of compiler] (cpp) {.cpp file};
+ \node[draw, dashed, right=of cpp, label=above:{\ros part}] (ROS) {
+	 \begin{tikzpicture}
+	 
+	 \node[draw=yoheader, solid, ellipse, text=black, right=of cpp] (CMake) {catkin};
+	 \node[draw, solid, text=yoheader, fill=lightgray, right=of CMake, text width=2cm, align=center] (exec) {\ros executable};
+	 
+	 \draw[->, very thick, solid] (CMake)--(exec);
+	 \end{tikzpicture}
+ };
+ \draw[->,very thick] (cpp.east) -- (CMake.west);
+ \draw[->,very thick] (compiler.east) -- (cpp.west);
+ 
+\end{tikzpicture}
+\caption{Compilation process }
+\label{fig:Compilation principle}
+\end{figure}
+
+As shown on figure~\ref{fig:Compilation principle}, the dsp file is compiled into a C++ file thanks to the \faust compiler. Then, the C++ file can be compiled with \textit{catkin} in a \ros package to create a \ros executable, that you can run with \lstinline'rosrun'.
+
+\begin{figure}[ht!]
+\centering
+
+ \begin{tikzpicture} [remember picture]
+ 
+%  \node[fill=faustcolor, text=white, rounded corners=3pt, text width=1.5cm, align=center](sensor topic){Robot sensors topic};
+  \node[fill=roscolor, text=white, ellipse, text width=3.5cm,  align=center](process node){\large Robot Node\\ (sends sensor data)};
+  \node[draw=roscolor, text=roscolor, rounded corners=3pt, text width=3cm, align=center,  right=4cm of process node](faust topic){\large A Topic};
+  \node[draw=roscolor, text=roscolor, rounded corners=3pt, text width=3cm, align=center,  below=1.5cm of process node](faust topic2){\large An other Topic};
+  \node[fill=faustcolor, text=white, ellipse, text width=3.5cm, below=0.9cm of faust topic, align=center, minimum height=\heightof{process node}](faust node){\large \faust Node \\(sets audio\\ parameters with messages contents)};
+% \node[fill=roscolor, text=white, ellipse, text width=1.8cm, right=of faust topic2, align=center](faust node2){\faust node : signal processing};
+ 
+% \draw[yoheader,->, very thick] (sensor topic) to node [sloped, midway, above] {subscribing} (process node);
+ \draw[margincolor,->, very thick] (process node) to node [midway, above, text width=3cm, align=center] {publishes messages} (faust topic);
+ \draw[margincolor,->, thick] (process node) to node [midway, left,  text width=2.5cm, align=center] {publishes \\ other messages} (faust topic2);
+ \draw[yoheader,->, very thick] (faust topic) to node [ midway, right,  text width=2.5cm] {is subscribed} (faust node);
+ \draw[yoheader,->, very thick] (faust topic2) to node [ midway, above,  text width=2cm] {is subscribed} (faust node);
+ 
+ \end{tikzpicture}
+
+\caption{Robot using \faust}
+\label{fig:Use Diagram}
+\end{figure}
+
+Once the executables coming from DSP files compiled, you can run and combine them with robotic applications (figure~\ref{fig:Use Diagram}).
+\newpage
+\section{Audio Server}
+\faust applications use the jack audio server. Make sure it is installed on your machine.
+\begin{figure}[ht!]
+	\centering
+	\begin{tikzpicture}[remember picture, node distance=3.5cm]
+	
+		\node[node distance=0, label=\color{teal}{Node 1}](node1)
+		{
+			\begin{tikzpicture}
+				\node[draw=black,text=white, fill=indigodye, text width=4cm, align=center](processing1){\ros : processing \\ and interface};
+				\node[draw=black, fill=darkpastelblue, below=of processing1, text width=4cm, align=center](audio1){jack : audio server};
+			\end{tikzpicture}
+		};
+		\node[right=of node1, node distance=0, label=\color{teal}{Node 2}](node2){
+			\begin{tikzpicture}
+				\node[draw=black,text=white, fill=indigodye, text width=4cm, align=center](processing2){\ros : processing \\ and interface};
+				\node[draw=black, fill=darkpastelblue, below=of processing2, text width=4cm, align=center](audio2){jack : audio server};
+			\end{tikzpicture}		
+		};	
+		 \draw[indigodye, <->, very thick, text width=3cm, align=center] (processing1.east) to node [sloped, midway, above] {nodes parameters \\ through topics} (processing2.west);
+		  \draw[darkpastelblue, <->, very thick] (audio1.east) to node [sloped, midway, below, darkcerulean] {audio datas} (audio2.west);
+
+	\end{tikzpicture}
+	
+	\caption{APIs used by \faust nodes}
+	\label{fig: Audio server}
+\end{figure}
+
+\section{Installation}
+\subsection{FAUST}
+You can get \faust on the \faust website : \href{http://faust.grame.fr/index.php/downloads}
+{faust.grame.fr}. Either get it on the
+ \href{https://sourceforge.net/projects/faudiostream/files/}{Source Forge Project}, or browse
+  the \href{https://sourceforge.net/p/faudiostream/_list/git}{\faust's git repository}.
+ You also can download the ubuntu package directly by typing : 
+ \lstinline'sudo apt-get install faust' (probably an outdated version).
+ \subsection{ROS}
+ A \ros installation guide can be found on the
+  \href{http://wiki.ros.org/indigo/Installation/Ubuntu}{\ros website}.
+ \subsection{Jack}
+ A Jack installation layout can be found on \href{https://github.com/jackaudio/jackaudio.github.com/wiki/InstallationLayout}{Jack's github's page}. You can download it as an Ubuntu package by typing : \lstinline'sudo apt-get install jackd2'.

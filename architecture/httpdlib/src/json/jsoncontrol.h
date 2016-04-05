@@ -30,7 +30,6 @@
 #include <map>
 #include "jsonnode.h"
 
-
 namespace httpdfaust
 {
 
@@ -43,11 +42,10 @@ template <typename C> class jsoncontrol : public jsonnode
 	std::string fName;
 	std::string fType;
 	C fInit, fMin, fMax, fStep;
-	std::map<std::string, std::string> fMeta;
+	TMetas fMeta;
 		
 	public:
-				typedef std::map<std::string, std::string>	TMetas;
-
+		
 	static Sjsonnode create (const char *name, const char* type, C min, C max, const TMetas& m)
 			{ return new jsoncontrol (name, type, min, max, m); }
 	static Sjsonnode create (const char *name, const char* type, C init, C min, C max, C step, const TMetas& m)
@@ -57,7 +55,7 @@ template <typename C> class jsoncontrol : public jsonnode
 
 		virtual void	print(std::ostream& out, jsonendl& eol) const
 		{
-			bool button = (fType == "button");
+			bool button = (fType == "button") || (fType == "checkbox");
 			bool bargraph = (fType == "vbargraph") || (fType == "hbargraph");
 
 			out << eol << "{"; eol++;
@@ -82,8 +80,9 @@ template <typename C> class jsoncontrol : public jsonnode
 			}
 			out << "," << eol << "\"min\": \"" << fMin << "\",";
 			out << eol << "\"max\": \"" << fMax << "\"";
-			if (!bargraph)
+			if (!bargraph) {
 				out << "," << eol << "\"step\": \"" << fStep << "\"";
+            }
 			out << --eol << "}";
 		}
 	

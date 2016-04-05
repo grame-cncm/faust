@@ -24,6 +24,8 @@ faust2jaqt <file.dsp>...       	: create JACK/QT application for each input file
 
 faust2ladspa  <file.dsp>...    	: create a LADSPA plugin for each input file
 
+faust2lv2  <file.dsp>...  		: create an LV2 plugin for each input file
+
 faust2max6  <file.dsp>...		: create a Max/MSP 6 plugin (64 bits samples) for each input file
 
 faust2msp  <file.dsp>...      		: create a Max/MSP 4 or 5 plugin (32 bits samples) for each input file
@@ -40,6 +42,18 @@ faust2supercollider <file.dsp>... 	: create a SuperCollider plugin for each inpu
 
 faust2vst  <file.dsp>...  		: create a VST plugin for each input file
 
+faust2webaudio  <file.dsp>...       : create a HTML/WebAudioAPI (with JavaScript code) application for each input file
+
+faust2asmjs  <file.dsp>...          : using Emscripten compiler, create a WebAudioAPI node for each input file
+
+faust2webaudioasm  <file.dsp>...   	: using Emscripten compiler, create a HTML/WebAudioAPI (with asm.js code) application for each input file
+
+NOTE: In the latest Faust versions there's also an alternative VST
+architecture available, featuring multi-channel MIDI, MIDI CC and MIDI Tuning
+Standard (MTS) support. It is invoked as follows:
+
+faust2faustvst  <file.dsp>...  		: create a VST plugin for each input file
+
 
 2) The following scripts can be used to generate block diagrams
 
@@ -55,3 +69,9 @@ faust2eps  <file1.dsp>...       : create svg block-diagrams for each input file
 faust2firefox  <file1.dsp>...   : faust2svg with visualization using firefox
 
 faust2octave <file.dsp>         : faust2plot with visualization using octave   
+
+4) the following scripts can be used to generate documentation
+
+faust2mathdoc <file.dsp>        : generate mathematical documentation 
+
+faust2md <file.dsp> > file.md   : generate markdown documentation from the comments in the code

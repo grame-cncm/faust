@@ -30,12 +30,10 @@
     return self;
 }
 
-
 - (void)updateFrame:(CGRect)frame
 {
     self.frame = frame;
 }
-
 
 - (void)dealloc
 {

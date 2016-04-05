@@ -37,8 +37,10 @@
 #import <UIKit/UIKit.h>
 #import "FIMainViewController.h"
 
+#include "faust/dsp/dsp.h"
 #include "faust/gui/GUI.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/APIUI.h"
 #include "faust/misc.h"
 
 #include <list>
@@ -76,16 +78,20 @@ class uiBox;
 #define kAssignationAccelX              1
 #define kAssignationAccelY              2
 #define kAssignationAccelZ              3
-#define kAssignationShake               4
-#define kAssignationCompass             5
-#define kAssignationGyroX               6
-#define kAssignationGyroY               7
-#define kAssignationGyroZ               8
+#define kAssignationGyroX               4
+#define kAssignationGyroY               5
+#define kAssignationGyroZ               6
+
+#define kCurve1                         0
+#define kCurve2                         1
+#define kCurve3                         2
+#define kCurve4                         3
 
 // Current layout mode
 #define kHorizontalLayout               0
 #define kVerticalLayout                 1
 #define kTabLayout                      2
+#define kColorLayout                    3
 
 // Global dimensions
 #define kWidgetSlice                    50.f
@@ -139,12 +145,14 @@ class uiBox;
 CGPoint inBoxPosition2absolutePosition(float x, float y, uiCocoaItem* box);
 CGPoint absolutePosition(uiCocoaItem* widget);
 
-
 // All Cocoa widget classes inheritate from uiCocoaItem, which inheritate from Faust uiItem
 class uiCocoaItem : public uiItem
 {
     
 protected:
+    
+    static int              gItemCount;
+    int                     fItemCount;
     
     NSString*               fName;
     BOOL                    fHidden;
@@ -161,20 +169,23 @@ protected:
     BOOL                    fSelected;
     
     int                     fInitAssignationType;
-    float                   fInitAssignationRefPointX;
-    float                   fInitAssignationRefPointY;
-    BOOL                    fInitAssignationInverse;
-    BOOL                    fInitAssignationFiltered;
-    float                   fInitAssignationSensibility;
+    int                     fInitAssignationCurve;
+    
     float                   fInitR;
     float                   fInitG;
     float                   fInitB;
+    
+    float                   fInitMinCurve;
+    float                   fInitMidCurve;
+    float                   fInitMaxCurve;
+    
     int                     fAssignationType;
-    float                   fAssignationRefPointX;
-    float                   fAssignationRefPointY;
-    BOOL                    fAssignationInverse;
-    BOOL                    fAssignationFiltered;
-    float                   fAssignationSensibility;
+    int                     fAssignationCurve;
+    
+    float                   fMinCurve;
+    float                   fMidCurve;
+    float                   fMaxCurve;
+    
     float                   fR;
     float                   fG;
     float                   fB;
@@ -182,7 +193,6 @@ protected:
     
 public:
     
-    FIMainViewController*   mainViewController;
     UILabel*                fLabel;
     float                   fInit;
     
@@ -190,19 +200,20 @@ public:
     void resetParameters()
     {
         fAssignationType = fInitAssignationType;
-        fAssignationRefPointX = fInitAssignationRefPointX;
-        fAssignationRefPointY = fInitAssignationRefPointY;
-        fAssignationInverse = fInitAssignationInverse;
-        fAssignationFiltered = fInitAssignationFiltered;
-        fAssignationSensibility = fInitAssignationSensibility;
+        fAssignationCurve = fInitAssignationCurve;
+        
         fR = fInitR;
         fG = fInitG;
         fB = fInitB;
+        
+        fMinCurve = fInitMinCurve;
+        fMidCurve = fInitMidCurve;
+        fMaxCurve = fInitMaxCurve;
     }
     
     // Constructor / Destuctor
     uiCocoaItem(GUI* ui, float* zone, FIMainViewController* controller, const char* name)
-    : uiItem(ui, zone), mainViewController(controller)
+    : uiItem(ui, zone)
     {
         fName = [[NSString alloc] initWithString:[NSString stringWithCString:name encoding:NSASCIIStringEncoding]];
         fLabel = nil;
@@ -216,19 +227,24 @@ public:
         fAbstractY = 0.f;
         fAbstractW = 0.f;
         fAbstractH = 0.f;
-        resetParameters();
         fSelected = false;
         fInitAssignationType = kAssignationNone;
-        fInitAssignationRefPointX = 0.f;
-        fInitAssignationRefPointY = 0.f;
-        fInitAssignationInverse = false;
-        fInitAssignationFiltered = false;
-        fInitAssignationSensibility = 1.;
+        
         fInitR = 0.f;
         fInitG = 0.f;
         fInitB = 1.f;
+        fInitMinCurve = -100.f;
+        fInitMidCurve = 0.f;
+        fInitMaxCurve = 100.f;
         fHideOnGUI = false;
         fInit = 0.f;
+        if (zone) {
+            fItemCount = gItemCount++;
+        } else {
+            fItemCount = -1;
+        }
+        
+        resetParameters();
     }
     
     ~uiCocoaItem()
@@ -236,7 +252,9 @@ public:
         [fName release];
     }
         
-    // Getters, setters 
+    // Getters, setters
+    int getItemCount()                                                  {return fItemCount;}
+    
     NSString* getName()                                                 {return fName;}
     
     virtual void resetInitialValue() = 0;
@@ -272,37 +290,36 @@ public:
 
     int getAssignationType()                                            {return fAssignationType;}
     virtual void setAssignationType(int assignationType)                {fAssignationType = assignationType;}
-
-    float getInitAssignationRefPointX()                                 {return fInitAssignationRefPointX;}
-    void setInitAssignationRefPointX(float assignationRefPointX)        {fInitAssignationRefPointX = assignationRefPointX; setAssignationRefPointX(assignationRefPointX);}
-
-    float getAssignationRefPointX()                                     {return fAssignationRefPointX;}
-    void setAssignationRefPointX(float assignationRefPointX)            {fAssignationRefPointX = assignationRefPointX;}
     
-    float getInitAssignationRefPointY()                                 {return fInitAssignationRefPointY;}
-    void setInitAssignationRefPointY(float assignationRefPointY)        {fInitAssignationRefPointY = assignationRefPointY; setAssignationRefPointY(assignationRefPointY);}
+    int getInitAssignationCurve()                                       {return fInitAssignationCurve;}
+    void setInitAssignationCurve(int assignationCurve)                  {fInitAssignationCurve = assignationCurve; setAssignationCurve(assignationCurve);}
 
-    float getAssignationRefPointY()                                     {return fAssignationRefPointY;}
-    void setAssignationRefPointY(float assignationRefPointY)            {fAssignationRefPointY = assignationRefPointY;}
-
-    BOOL getInitAssignationInverse()                                    {return fInitAssignationInverse;}
-    void setInitAssignationInverse(BOOL assignationInverse)             {fInitAssignationInverse = assignationInverse; setAssignationInverse(assignationInverse);}
-
-    BOOL getAssignationInverse()                                        {return fAssignationInverse;}
-    void setAssignationInverse(BOOL assignationInverse)                 {fAssignationInverse = assignationInverse;}
-
-    BOOL getInitAssignationFiltered()                                   {return fInitAssignationFiltered;}
-    void setInitAssignationFiltered(BOOL assignationFiltered)           {fInitAssignationFiltered = assignationFiltered; setAssignationFiltered(assignationFiltered);}
-
-    BOOL getAssignationFiltered()                                       {return fAssignationFiltered;}
-    void setAssignationFiltered(BOOL assignationFiltered)               {fAssignationFiltered = assignationFiltered;}
-
-    float getInitAssignationSensibility()                               {return fInitAssignationSensibility;}
-    void setInitAssignationSensibility(float assignationSensibility)    {fInitAssignationSensibility = assignationSensibility; setAssignationSensibility(assignationSensibility);}
-
-    float getAssignationSensibility()                                   {return fAssignationSensibility;}
-    void setAssignationSensibility(float assignationSensibility)        {fAssignationSensibility = assignationSensibility;}
-
+    int getAssignationCurve()                                           {return fAssignationCurve;}
+    virtual void setAssignationCurve(int assignationCurve)              {fAssignationCurve = assignationCurve;}
+    
+    float getCurveMin()                                                 {return fMinCurve;}
+    virtual void setCurveMin(float minCurve)                            {fMinCurve = minCurve;}
+    
+    float getCurveMid()                                                 {return fMidCurve;}
+    virtual void setCurveMid(float midCurve)                            {fMidCurve = midCurve;}
+   
+    float getCurveMax()                                                 {return fMaxCurve;}
+    virtual void setCurveMax(float maxCurve)                            {fMaxCurve = maxCurve;}
+    
+    float getInitCurveMin()                                             {return fInitMinCurve;}
+    float getInitCurveMid()                                             {return fInitMidCurve;}
+    float getInitCurveMax()                                             {return fInitMaxCurve;}
+    
+    virtual void setCurve(float min, float mid, float max)
+    {
+        fMinCurve = min; fMidCurve = mid; fMaxCurve = max;
+    }
+    
+    virtual void setInitCurve(float min, float mid, float max)
+    {
+        fInitMinCurve = min; fInitMidCurve = mid; fInitMaxCurve = max;
+    }
+  
     float getInitR()                                                    {return fInitR;}
     float getInitG()                                                    {return fInitG;}
     float getInitB()                                                    {return fInitB;}
@@ -362,6 +379,10 @@ public:
         
         [controller.dspView addSubview:fBox];
         
+        if (boxType == kColorLayout) {
+            fBox.backgroundColor = [UIColor whiteColor];
+        }
+        
         if (boxType != kTabLayout)
         {
             fLabel = [[[UILabel alloc] init] autorelease];
@@ -380,6 +401,7 @@ public:
     ~uiBox()
     {
         if (fLabel) [fLabel release];
+        if (fTabView) [fTabView release];
         [fBox release];
     }
     
@@ -418,13 +440,26 @@ public:
         return cpt;
     }
     
+    void setColor(int color)
+    {
+        CGFloat red = CGFloat(255 & (color >> 16))/255.;
+        CGFloat green = CGFloat(255 & (color >> 8))/255.;
+        CGFloat blue = CGFloat(255 & (color >> 0))/255.;
+        fBox.backgroundColor =  [UIColor colorWithRed:red green:green blue:blue alpha:1.f];
+    }
+    
     void setFrame(float x, float y, float w, float h)
     {
         CGPoint                         pt = inBoxPosition2absolutePosition(x, y, fParent);
         list<uiCocoaItem*>::iterator    i;
         float                           labelYOffset = 0.f;
 
-        uiCocoaItem::setFrame(x, y, w, h);
+        if (fBoxType == kColorLayout) {
+            // Hack to force full screen layout even in 'portrait' only mode
+            w = h = std::max(w, h);
+        } else {
+            uiCocoaItem::setFrame(x, y, w, h);
+        }
 
         // For tab views : simply resize the tab corresponding box
         if (fTabView)
@@ -621,15 +656,15 @@ public :
         
         uiCocoaItem::setFrame(x, y, w, h);
 
-        fKnob.frame = CGRectMake(   pt.x + (w - kStdKnobWidth) / 2.f,
-                                    pt.y + (h - kStdKnobHeight - kSpaceSize - kStdKnobLabelHeight) / 2.f,
-                                    kStdKnobWidth,
-                                    kStdKnobHeight);
+        fKnob.frame = CGRectMake(pt.x + (w - kStdKnobWidth) / 2.f,
+                                pt.y + (h - kStdKnobHeight - kSpaceSize - kStdKnobLabelHeight) / 2.f,
+                                kStdKnobWidth,
+                                kStdKnobHeight);
         
-        fLabel.frame = CGRectMake(  pt.x + (w - kStdKnobLabelWidth) / 2.f,
-                                    pt.y + (h + kStdKnobHeight - kSpaceSize - kStdKnobLabelHeight) / 2.f + kSpaceSize,
-                                    kStdKnobLabelWidth,
-                                    kStdKnobLabelHeight);
+        fLabel.frame = CGRectMake(pt.x + (w - kStdKnobLabelWidth) / 2.f,
+                                pt.y + (h + kStdKnobHeight - kSpaceSize - kStdKnobLabelHeight) / 2.f + kSpaceSize,
+                                kStdKnobLabelWidth,
+                                kStdKnobLabelHeight);
     }
     
     void setHidden(BOOL hidden)
@@ -846,7 +881,7 @@ class uiButton : public uiCocoaItem
     
 public:
     
-    FIButton*                       fButton;
+    FIButton* fButton;
     //UILongPressGestureRecognizer*   fLongPressGesture;
     
     uiButton(GUI* ui, FIMainViewController* controller, const char* name, float* zone, int type)
@@ -901,7 +936,7 @@ public:
     
     void setFrame(float x, float y, float w, float h)
     {
-        CGPoint         pt = inBoxPosition2absolutePosition(x, y, fParent);
+        CGPoint pt = inBoxPosition2absolutePosition(x, y, fParent);
         
         uiCocoaItem::setFrame(x, y, w, h);
         
@@ -954,7 +989,6 @@ public:
     }
 };
 
-
 // ------------------------------ Num Entry -----------------------------------
 
 class uiNumEntry : public uiCocoaItem
@@ -962,7 +996,7 @@ class uiNumEntry : public uiCocoaItem
     
 public:
     
-    FITextField*        fTextField;
+    FITextField* fTextField;
     
     uiNumEntry(GUI* ui, FIMainViewController* controller, const char* label, float* zone, float init, float min, float max, float step)
     : uiCocoaItem(ui, zone, controller, label)
@@ -1045,7 +1079,6 @@ public:
         fTextField.value = v;
     }
 };
-
 
 // ------------------------------ Bargraph -----------------------------------
 
@@ -1133,52 +1166,52 @@ public:
             
             if (fHorizontal)
             {
-                fBargraph.frame = CGRectMake(   pt.x + kStdLedWidth + kSpaceSize,
-                                                pt.y + (h - kStdLedHeight) / 2.f,
-                                                w - kStdBargraphLabelWidth - kSpaceSize,
-                                                kStdLedHeight);
+                fBargraph.frame = CGRectMake(pt.x + kStdLedWidth + kSpaceSize,
+                                            pt.y + (h - kStdLedHeight) / 2.f,
+                                            w - kStdBargraphLabelWidth - kSpaceSize,
+                                            kStdLedHeight);
                 
-                fLabel.frame = CGRectMake(      pt.x,
-                                                pt.y + (h - kStdBargraphLabelHeight) / 2.f,
-                                                kStdBargraphLabelWidth,
-                                                kStdBargraphLabelHeight);
+                fLabel.frame = CGRectMake(pt.x,
+                                        pt.y + (h - kStdBargraphLabelHeight) / 2.f,
+                                        kStdBargraphLabelWidth,
+                                        kStdBargraphLabelHeight);
             }
             else
             {
-                fBargraph.frame = CGRectMake(   pt.x + (w - kStdLedWidth) / 2.f,
-                                                pt.y,
-                                                kStdLedWidth,
-                                                h - kSpaceSize - kStdBargraphLabelHeight);
+                fBargraph.frame = CGRectMake(pt.x + (w - kStdLedWidth) / 2.f,
+                                            pt.y,
+                                            kStdLedWidth,
+                                            h - kSpaceSize - kStdBargraphLabelHeight);
                 
-                fLabel.frame = CGRectMake(      pt.x + (w - kStdBargraphLabelWidth) / 2.f,
-                                                pt.y + h - kSpaceSize - kStdBargraphLabelHeight,
-                                                kStdBargraphLabelWidth,
-                                                kStdBargraphLabelHeight);
+                fLabel.frame = CGRectMake(pt.x + (w - kStdBargraphLabelWidth) / 2.f,
+                                        pt.y + h - kSpaceSize - kStdBargraphLabelHeight,
+                                        kStdBargraphLabelWidth,
+                                        kStdBargraphLabelHeight);
             }
         }
         else if (fHorizontal)
         {
-            fBargraph.frame = CGRectMake(   pt.x + kStdBargraphLabelWidth + kSpaceSize,
-                                            pt.y + (h - kStdHorizontalBargraphHeight) / 2.f,
-                                            w - kStdBargraphLabelWidth - kSpaceSize,
-                                            kStdHorizontalBargraphHeight);
+            fBargraph.frame = CGRectMake(pt.x + kStdBargraphLabelWidth + kSpaceSize,
+                                        pt.y + (h - kStdHorizontalBargraphHeight) / 2.f,
+                                        w - kStdBargraphLabelWidth - kSpaceSize,
+                                        kStdHorizontalBargraphHeight);
             
-            fLabel.frame = CGRectMake(      pt.x,
-                                            pt.y + (h - kStdBargraphLabelHeight) / 2.f,
-                                            kStdBargraphLabelWidth,
-                                            kStdBargraphLabelHeight);
+            fLabel.frame = CGRectMake(pt.x,
+                                    pt.y + (h - kStdBargraphLabelHeight) / 2.f,
+                                    kStdBargraphLabelWidth,
+                                    kStdBargraphLabelHeight);
         }
         else
         {
-            fBargraph.frame = CGRectMake(   pt.x + (w - kStdVerticalBargraphWidth) / 2.f,
-                                            pt.y,
-                                            kStdVerticalBargraphWidth,
-                                            h - kSpaceSize - kStdBargraphLabelHeight);
+            fBargraph.frame = CGRectMake(pt.x + (w - kStdVerticalBargraphWidth) / 2.f,
+                                        pt.y,
+                                        kStdVerticalBargraphWidth,
+                                        h - kSpaceSize - kStdBargraphLabelHeight);
             
-            fLabel.frame = CGRectMake(      pt.x + (w - kStdBargraphLabelWidth) / 2.f,
-                                            pt.y + h - kSpaceSize - kStdBargraphLabelHeight,
-                                            kStdBargraphLabelWidth,
-                                            kStdBargraphLabelHeight);
+            fLabel.frame = CGRectMake(pt.x + (w - kStdBargraphLabelWidth) / 2.f,
+                                    pt.y + h - kSpaceSize - kStdBargraphLabelHeight,
+                                    kStdBargraphLabelWidth,
+                                    kStdBargraphLabelHeight);
         }
     }
     
@@ -1220,8 +1253,17 @@ class CocoaUI : public GUI
 {
     
 public:
+    
     list <uiCocoaItem*>             fWidgetList;
     
+    void setHidden(bool state)
+    {
+        map<float*, bool>::iterator it;
+        for (it = fHideOnGUI.begin(); it != fHideOnGUI.end(); it++) {
+            (*it).second = state;
+        }
+    }
+   
 private:
     
     UIWindow*                       fWindow;
@@ -1232,40 +1274,34 @@ private:
     map<float*, int>                fG;
     map<float*, int>                fB;
     map<float*, int>                fAssignationType;
-    map<float*, bool>               fAssignationFiltered;
-    map<float*, float>              fAssignationSensibility;
-    map<float*, bool>               fAssignationInverse;
-    map<float*, float>              fAssignationRefPointX;
-    map<float*, float>              fAssignationRefPointY;
     map<float*, bool>               fHideOnGUI;
     map<float*, bool>               fLed;
     map<float*, float>              fLedR;
     map<float*, float>              fLedG;
     map<float*, float>              fLedB;
+    map<float*, string>             fMenuDescription;
     set<float*>                     fKnobSet;
     int                             fCurrentLayoutType;
     bool                            fNextBoxIsHideOnGUI;
+    APIUI                           fAPIUI;
+    bool                            fBuildUI;
+    uiBox*                          fMonoView;
     
     // Layout management
     
     uiBox* getActiveBox()
     {
-        list<uiCocoaItem*>::iterator i;
+        list<uiCocoaItem*>::reverse_iterator i;
         
         // Loop on each widgets, from the last
-        for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+        for (i = fWidgetList.rbegin(); i != fWidgetList.rend(); i++)
         {
-            if (dynamic_cast<uiBox*>(*i))
-            {
-                if (!dynamic_cast<uiBox*>(*i)->fClosed)
-                {
-                    return dynamic_cast<uiBox*>(*i);
-                }
+            uiBox* box = dynamic_cast<uiBox*>(*i);
+            if (box && !box->fClosed) {
+                return box;
             }
         }
-        
-        i = fWidgetList.begin();
-        return dynamic_cast<uiBox*>(*i);
+        return NULL;        
     }
     
     // General rules to place objet
@@ -1284,14 +1320,11 @@ private:
             y = 0.f;
             
             // If main box : no label
-            if (dynamic_cast<uiBox*>(widget))
-            {
-                if (dynamic_cast<uiBox*>(widget)->fLabel)
-                {
-                    [dynamic_cast<uiBox*>(widget)->fLabel removeFromSuperview];
-                    dynamic_cast<uiBox*>(widget)->fLabel = nil;
-                    dynamic_cast<uiBox*>(widget)->fLastY = dynamic_cast<uiBox*>(widget)->fLastY - kStdBoxLabelHeight;
-                }
+            uiBox* box = dynamic_cast<uiBox*>(widget);
+            if (box && box->fLabel) {
+                [box->fLabel removeFromSuperview];
+                box->fLabel = nil;
+                box->fLastY = box->fLastY - kStdBoxLabelHeight;
             }
         }
         
@@ -1301,14 +1334,11 @@ private:
             // If the box is a tab content box : no label
             if (parent->fBoxType == kTabLayout)
             {
-                if (dynamic_cast<uiBox*>(widget))
-                {
-                    if (dynamic_cast<uiBox*>(widget)->fLabel)
-                    {
-                        [dynamic_cast<uiBox*>(widget)->fLabel removeFromSuperview];
-                        dynamic_cast<uiBox*>(widget)->fLabel = nil;
-                        dynamic_cast<uiBox*>(widget)->fLastY = dynamic_cast<uiBox*>(widget)->fLastY - kStdBoxLabelHeight;
-                    }
+                uiBox* box = dynamic_cast<uiBox*>(widget);
+                if (box && box->fLabel) {
+                    [box->fLabel removeFromSuperview];
+                    box->fLabel = nil;
+                    box->fLastY = box->fLastY - kStdBoxLabelHeight;
                 }
             }
             
@@ -1461,56 +1491,64 @@ private:
     
     void updateBoxChildren(const char* label, uiCocoaItem* widget)
     {
-        list<uiCocoaItem*>::iterator i;
+        list<uiCocoaItem*>::reverse_iterator i;
+        uiBox* box = NULL;
         
         if (fCurrentLayoutType == kTabLayout)
         {
-            for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+            for (i = fWidgetList.rbegin(); i != fWidgetList.rend(); i++)
             {
-                if (dynamic_cast<uiBox*>(*i))
+                if ((box = dynamic_cast<uiBox*>(*i)))
                 {
-                    if (dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
-                        && dynamic_cast<uiBox*>(*i) != widget
-                        && !dynamic_cast<uiBox*>(*i)->fClosed)
+                    if (box->fBoxType == kTabLayout
+                        && box != widget
+                        && !box->fClosed)
                     {   
                         // Add FIButton in the fTabView
-                        [dynamic_cast<uiBox*>(*i)->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
+                        [box->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
                         
                         // Add uiCocoaItem in the uiBox (*i)
-                        dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);                        
+                        box->fWidgetList.push_back(widget);
                     }
                 }
-            }   
-            i = fWidgetList.begin();
-            if (dynamic_cast<uiBox*>(*i)->fBoxType == kTabLayout
-                && dynamic_cast<uiBox*>(*i) != widget)
-            {
-                [dynamic_cast<uiBox*>(*i)->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
-                
-                dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);
             }
+            
+            /* SL : 01/09/16 : seems unecessary...
+            list<uiCocoaItem*>::iterator i1 = fWidgetList.begin();
+            box = dynamic_cast<uiBox*>(*i1);
+            
+            if (box->fBoxType == kTabLayout
+                && box != widget)
+            {
+                [box->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
+                box->fWidgetList.push_back(widget);
+            }
+            */
         }
         else
         {
-            for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+            for (i = fWidgetList.rbegin(); i != fWidgetList.rend(); i++)
             {
-                if (dynamic_cast<uiBox*>(*i))
+                if ((box = dynamic_cast<uiBox*>(*i)))
                 {
-                    if (    (dynamic_cast<uiBox*>(*i)->fBoxType == kHorizontalLayout
-                                || dynamic_cast<uiBox*>(*i)->fBoxType == kVerticalLayout)
-                            && dynamic_cast<uiBox*>(*i) != widget)
+                    if ((box->fBoxType == kHorizontalLayout
+                        || box->fBoxType == kVerticalLayout)
+                        && box != widget)
                     {   
                         // Add uiCocoaItem in the uiBox (*i)
-                        dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);
+                        box->fWidgetList.push_back(widget);
                     }
                 }
             }   
-            i = fWidgetList.begin();
-            if (    (dynamic_cast<uiBox*>(*i)->fBoxType == kHorizontalLayout
-                        || dynamic_cast<uiBox*>(*i)->fBoxType == kVerticalLayout)
-                    && dynamic_cast<uiBox*>(*i) != widget)
+       
+            list<uiCocoaItem*>::iterator i1 = fWidgetList.begin();
+            box = dynamic_cast<uiBox*>(*i1);
+            
+            if (((box)->fBoxType == kHorizontalLayout
+                || box->fBoxType == kVerticalLayout)
+                && box != widget)
             {
-                dynamic_cast<uiBox*>(*i)->fWidgetList.push_back(widget);
+                box->fWidgetList.push_back(widget);
             }
         }
     }
@@ -1544,7 +1582,7 @@ public:
     
     // -- layout groups
     
-    CocoaUI(UIWindow* window, FIMainViewController* viewController, MY_Meta* metadata)
+    CocoaUI(UIWindow* window, FIMainViewController* viewController, MY_Meta* metadata, dsp* DSP)
     {
         fCurrentLayoutType = kVerticalLayout;
         fViewController = viewController;
@@ -1555,20 +1593,78 @@ public:
         fViewController.dspView.backgroundColor = [UIColor blackColor];
         fViewController.dspScrollView.indicatorStyle = UIScrollViewIndicatorStyleWhite;
         
+        DSP->buildUserInterface(&fAPIUI);
+        
         [window addSubview:viewController.view];
         [window makeKeyAndVisible];
+        
+        fBuildUI = (fAPIUI.getScreenColor() < 0);
+        
+        if (!fBuildUI) {
+            fMonoView = new uiBox(this, fViewController, "ColorBox", kColorLayout);
+            insert("ColorBox", fMonoView);
+        } else {
+            fMonoView = NULL;
+        }
     }
     
     ~CocoaUI()
     {
         [fViewController release];
         [fWindow release];
+        delete fMonoView;
+    }
+    
+    bool isScreenUI() { return !fBuildUI; }
+     
+    void setAccValues(float x, float y, float z)
+    {
+        fAPIUI.propagateAcc(0, x);
+        fAPIUI.propagateAcc(1, y);
+        fAPIUI.propagateAcc(2, z);
+    }
+    
+    void setGyrValues(float x, float y, float z)
+    {
+        fAPIUI.propagateGyr(0, x);
+        fAPIUI.propagateGyr(1, y);
+        fAPIUI.propagateGyr(2, z);
+    }
+    
+    void setAccConverter(int index, int type, int curve, float min, float mid, float max)
+    {
+        printf("setAccConverter %d %d %d %f %f %f\n", index, type, curve, min, mid, max);
+        fAPIUI.setAccConverter(index, type, curve, min, mid, max);
+    }
+    
+    void getAccConverter(int index, int& type, int& curve, float& min, float& mid, float& max)
+    {
+        double dmin, dmid, dmax;
+        fAPIUI.getAccConverter(index, type, curve, dmin, dmid, dmax);
+        min = dmin;
+        mid = dmid;
+        max = dmax;
+        printf("getAccConverter %d %d %d %f %f %f\n", index, type, curve, min, mid, max);
+    }
+    
+    void setGyrConverter(int index, int type, int curve, float min, float mid, float max)
+    {
+        fAPIUI.setGyrConverter(index, type, curve, min, mid, max);
+    }
+    
+    void getGyrConverter(int index, int& type, int& curve, float& min, float& mid, float& max)
+    {
+        double dmin, dmid, dmax;
+        fAPIUI.getGyrConverter(index, type, curve, dmin, dmid, dmax);
+        min = dmin;
+        mid = dmid;
+        max = dmax;
     }
     
     // Abstract layout : layout computed regardless screen dimensions
     void saveAbstractLayout()
     {
-        list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
+        list<uiCocoaItem*>::iterator i = fWidgetList.begin();
         
         for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
         {
@@ -1578,11 +1674,28 @@ public:
     
     void loadAbstractLayout()
     {
-        list<uiCocoaItem*>::iterator    i = fWidgetList.begin();
+        list<uiCocoaItem*>::iterator i = fWidgetList.begin();
         
         for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
         {
             (*i)->setFrame((*i)->getAbstractX(), (*i)->getAbstractY(), (*i)->getAbstractW(), (*i)->getAbstractH());
+        }
+    }
+    
+    void setHideOnGUI(BOOL state)
+    {
+        list<uiCocoaItem*>::iterator i = fWidgetList.begin();
+        
+        for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
+        {
+            (*i)->setHideOnGUI(state);
+        }
+    }
+    
+    void updateScreenCorlor() 
+    {
+        if (fMonoView) {
+            fMonoView->setColor(fAPIUI.getScreenColor());
         }
     }
     
@@ -1599,7 +1712,7 @@ public:
         float                           rx = 1.f;
         float                           cpt = 0.f;
         float                           newVal = 0.f;
-
+        
         // Loop on every boxes of the layout
         for (i = fWidgetList.begin(); i != fWidgetList.end(); i++)
         {
@@ -1676,10 +1789,35 @@ public:
                                 else labelHeight = 0.f;
                                 
                                 // Place objects on all the height of the box
+                                float y;
+                                float h;
+                                
+                                if (contentSize.height == kSpaceSize)
+                                {
+                                    y = 0.f;
+                                    h = 0.f;
+                                }
+                                else
+                                {
+                                    float divider = (contentSize.height - kSpaceSize - labelHeight);
+                                    
+                                    if(divider != 0.0)
+                                    {
+                                        y = ((*j)->getY() - kSpaceSize - labelHeight) * ((box->getH() - 2.f * kSpaceSize - labelHeight) / divider) + kSpaceSize + labelHeight;
+                                        h = (*j)->getH() * ((box->getH() - 2.f * kSpaceSize - labelHeight) / divider);
+                                    }
+                                    else
+                                    {
+                                        y = 0.f;
+                                        h = 0.f;
+                                    }
+                                        
+                                }
+                                
                                 (*j)->setFrame((*j)->getX(),
-                                               ((*j)->getY() - kSpaceSize - labelHeight) * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)) + kSpaceSize + labelHeight,
+                                               y,
                                                (*j)->getW(),
-                                               (*j)->getH() * ((box->getH() - 2.f * kSpaceSize - labelHeight) / (contentSize.height - kSpaceSize - labelHeight)));
+                                               h);
                             }
                         }
                     }
@@ -1750,9 +1888,23 @@ public:
                             if ((*j)->getParent() == box)
                             {
                                 // Place objects on all the width of the box
-                                (*j)->setFrame(((*j)->getX() - kSpaceSize) * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)) + kSpaceSize,
+                                float x;
+                                float w;
+                                
+                                if (contentSize.width == kSpaceSize)
+                                {
+                                    x = 0.f;
+                                    w = 0.f;
+                                }
+                                else
+                                {
+                                    x = ((*j)->getX() - kSpaceSize) * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)) + kSpaceSize;
+                                    w = (*j)->getW() * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize));
+                                }
+                                
+                                (*j)->setFrame(x,
                                                (*j)->getY(),
-                                               (*j)->getW() * ((box->getW() - 2.f * kSpaceSize) / (contentSize.width - kSpaceSize)),
+                                               w,
                                                (*j)->getH());
                             }
                         }
@@ -1772,13 +1924,14 @@ public:
         float                           newWidth = 0.f;
         float                           newHeight = 0.f;
         int                             cpt = 0;
+        uiBox*                          box = NULL;
         
-        if (dynamic_cast<uiBox*>(*i))
+        if ((box = dynamic_cast<uiBox*>(*i)))
         {
             // Make main box transparent if it is not a tab box
-            if (dynamic_cast<uiBox*>(*i)->fBoxType != kTabLayout)
+            if (box->fBoxType != kTabLayout)
             {
-                dynamic_cast<uiBox*>(*i)->fBox.color = [UIColor clearColor];
+                box->fBox.color = [UIColor clearColor];
             }
             
             // Load abstract layout
@@ -1799,18 +1952,18 @@ public:
             
             for (j = fWidgetList.begin(); j != fWidgetList.end(); j++)
             {
-                if (dynamic_cast<uiBox*>(*j))
+                if ((box = dynamic_cast<uiBox*>(*j)))
                 {
                     if (!hExpandable
-                        && dynamic_cast<uiBox*>(*j)->fBoxType == kHorizontalLayout
-                        && dynamic_cast<uiBox*>(*j)->getNumberOfDirectChildren() > 1)
+                        && box->fBoxType == kHorizontalLayout
+                        && box->getNumberOfDirectChildren() > 1)
                     {
                         hExpandable = TRUE;
                     }
                     
                     if (!vExpandable
-                        && dynamic_cast<uiBox*>(*j)->fBoxType == kVerticalLayout
-                        && dynamic_cast<uiBox*>(*j)->getNumberOfDirectChildren() > 1)
+                        && box->fBoxType == kVerticalLayout
+                        && box->getNumberOfDirectChildren() > 1)
                     {
                         vExpandable = TRUE;
                     }
@@ -1848,6 +2001,10 @@ public:
         }
         
         expandBoxesContent();
+        
+       if (!fBuildUI) {
+           fMonoView->setFrame(0, 0, width, height);
+        }
     }
     
     CGRect getBoxAbsoluteFrameForWidget(uiCocoaItem* widget)
@@ -1859,12 +2016,13 @@ public:
     // Returns the box containing the point
     uiBox* getBoxForPoint(CGPoint pt)
     {
-        list<uiCocoaItem*>::iterator i = fWidgetList.begin();
+        list<uiCocoaItem*>::reverse_iterator i;
+        uiBox* box = NULL;
         
         // Loop on each widgets, from the last
-        for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+        for (i = fWidgetList.rbegin(); i != fWidgetList.rend(); i++)
         {
-            if (dynamic_cast<uiBox*>(*i))
+            if ((box = dynamic_cast<uiBox*>(*i)))
             {
                 if (!(*i)->isHidden()
                     && pt.x >= absolutePosition(*i).x
@@ -1872,27 +2030,25 @@ public:
                     && pt.y >= absolutePosition(*i).y
                     && pt.y <= absolutePosition(*i).y + (*i)->getH())
                 {
-                    if (dynamic_cast<uiBox*>(*i)->getParent())
+                    if (box->getParent())
                     {
-                        if (dynamic_cast<uiBox*>(dynamic_cast<uiBox*>(*i)->getParent())->fBoxType == kTabLayout)
+                        if (dynamic_cast<uiBox*>(box->getParent())->fBoxType == kTabLayout)
                         {
-                            return dynamic_cast<uiBox*>(dynamic_cast<uiBox*>(*i)->getParent());
+                            return dynamic_cast<uiBox*>(box->getParent());
                         }
                     }
                     
-                    return dynamic_cast<uiBox*>(*i);
+                    return box;
                 }
             }
         }
         
-        return dynamic_cast<uiBox*>(*i);
+        return NULL;
     }
     
     uiBox* getMainBox()
     {
-        list<uiCocoaItem*>::iterator i = fWidgetList.begin();
-        
-        return dynamic_cast<uiBox*>(*i);
+         return (fWidgetList.size() > 0) ? dynamic_cast<uiBox*>(*fWidgetList.begin()): NULL;
     }
     
     bool isKnob(float* zone)
@@ -1904,12 +2060,20 @@ public:
     {}
     virtual void openTabBox(const char* label = "")
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiBox(this, fViewController, label, kTabLayout);
         insert(label, item);
         fCurrentLayoutType = kTabLayout;
     }
     virtual void openHorizontalBox(const char* label = "")
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiBox(this, fViewController, label, kHorizontalLayout);
         
         if (getCurrentOpenedBox()) item->setHideOnGUI(fNextBoxIsHideOnGUI || getCurrentOpenedBox()->getHideOnGUI());
@@ -1921,6 +2085,10 @@ public:
     }
     virtual void openVerticalBox(const char* label = "")
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiBox(this, fViewController, label, kVerticalLayout);
         
         if (getCurrentOpenedBox()) item->setHideOnGUI(fNextBoxIsHideOnGUI || getCurrentOpenedBox()->getHideOnGUI());
@@ -1944,87 +2112,39 @@ public:
     
     virtual uiBox* getCurrentOpenedBox()
     {
-        list<uiCocoaItem*>::iterator        i;
-        uiBox*                              box = NULL;
-        BOOL                                found = false;
-        
+        list<uiCocoaItem*>::reverse_iterator i;
+       
         // Find the last box to close
-        for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
+        for (i = fWidgetList.rbegin(); i != fWidgetList.rend(); i++)
         {
-            if (dynamic_cast<uiBox*>(*i))
-            {
-                if (!found)
-                {
-                    if (!dynamic_cast<uiBox*>(*i)->fClosed)
-                    {
-                        box = dynamic_cast<uiBox*>(*i);
-                        found = true;
-                    }
-                }
+            uiBox* box = dynamic_cast<uiBox*>(*i);
+            if (box && !box->fClosed) {
+                return box;
             }
         }
         
-        if (!found && dynamic_cast<uiBox*>(*i))
-        {
-            box = dynamic_cast<uiBox*>(*i);
-        }
-        
-        return box;
+        return NULL;
     }
     
     virtual void closeBox()
     {
-        list<uiCocoaItem*>::iterator        i;
-        uiBox*                              box = NULL;
-        BOOL                                found = false;
-        uiBox*                              parent = NULL;
-                        
-        // Find the last box to close
-        for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
-        {
-            if (dynamic_cast<uiBox*>(*i))
-            {
-                if (!found)
-                {
-                    if (!dynamic_cast<uiBox*>(*i)->fClosed)
-                    {
-                        box = dynamic_cast<uiBox*>(*i);
-                        box->close(fWidgetList.size());
-                        found = true;
-                    }
-                }
-            }            
-        }
+        list<uiCocoaItem*>::reverse_iterator i;
         
-        if (!found && dynamic_cast<uiBox*>(*i))
-        {
-            box = dynamic_cast<uiBox*>(*i);
-            box->close(fWidgetList.size());
+        for (i = fWidgetList.rbegin(); i != fWidgetList.rend(); i++) {
+            uiBox* box = dynamic_cast<uiBox*>(*i);
+            if (box && !box->fClosed) {
+                box->close(fWidgetList.size());
+                break;
+            }
         }
-        
-        // Find the last layout type
-        found = false;
-        for (i = fWidgetList.end(); i != fWidgetList.begin(); i--)
-        {
-            if (dynamic_cast<uiBox*>(*i))
-            {
-                if (!found)
-                {
-                    if (!dynamic_cast<uiBox*>(*i)->fClosed)
-                    {
-                        fCurrentLayoutType = dynamic_cast<uiBox*>(*i)->fBoxType;
-                        found = true;
-                    }
-                }
-            }            
+     
+        for (i = fWidgetList.rbegin(); i != fWidgetList.rend(); i++) {
+            uiBox* box = dynamic_cast<uiBox*>(*i);
+            if (box && !box->fClosed) {
+                fCurrentLayoutType = box->fBoxType;
+                break;
+            }
         }
-        
-        if (!found && dynamic_cast<uiBox*>(*i))
-        {
-            fCurrentLayoutType = dynamic_cast<uiBox*>(*i)->fBoxType;
-        }
-                
-        if (box) parent = dynamic_cast<uiBox*>(box->getParent());
     }
     
     //virtual void adjustStack(int n);
@@ -2033,6 +2153,10 @@ public:
     
     virtual void addButton(const char* label, float* zone)
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiButton(this, fViewController, label, zone, kPushButtonType);
         
         // Default parameters
@@ -2051,6 +2175,10 @@ public:
     }
     virtual void addToggleButton(const char* label, float* zone)
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiButton(this, fViewController, label, zone, kToggleButtonType);
         
         // Default parameters
@@ -2069,6 +2197,10 @@ public:
     }
     virtual void addCheckButton(const char* label, float* zone)
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiButton(this, fViewController, label, zone, kToggleButtonType);
         
         // Default parameters
@@ -2094,11 +2226,6 @@ public:
         // Default parameters
         if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
         if (fAssignationType[zone]) item->setInitAssignationType(fAssignationType[zone]);
-        if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
-        if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
-        if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
-        if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
-        if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY(fAssignationRefPointY[zone]);
         if (getCurrentOpenedBox())
         {
             if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
@@ -2120,11 +2247,6 @@ public:
         // Default parameters
         if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
         if (fAssignationType[zone]) item->setInitAssignationType(fAssignationType[zone]);
-        if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
-        if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
-        if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
-        if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
-        if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY(fAssignationRefPointY[zone]);
         if (getCurrentOpenedBox())
         {
             if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
@@ -2137,14 +2259,23 @@ public:
         
         insert(label, item);
     }
+    
+    virtual void addMenu(const char* label , float* zone, float init, float min, float max, float step, const char* mdescr)
+	{
+        // TODO
+    }
+    
     virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
-        if (isKnob(zone))
-        {
-            addVerticalKnob(label, zone, init, min, max, step);
+        if (!fBuildUI) {
+            return;
         }
-        else
-        {
+        
+        if (isKnob(zone)) {
+            addVerticalKnob(label, zone, init, min, max, step);
+        }  else if (fMenuDescription.count(zone)) {
+            addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
+        } else {
             uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, false);
             if (dynamic_cast<uiSlider*>(item)->fSlider.suffixe) [dynamic_cast<uiSlider*>(item)->fSlider.suffixe release];
             dynamic_cast<uiSlider*>(item)->fSlider.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
@@ -2152,11 +2283,6 @@ public:
             // Default parameters
             if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
             if (fAssignationType[zone]) item->setInitAssignationType(fAssignationType[zone]);
-            if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
-            if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
-            if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
-            if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
-            if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY(fAssignationRefPointY[zone]);
             if (getCurrentOpenedBox())
             {
                 if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
@@ -2172,12 +2298,15 @@ public:
     }
     virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
-        if (isKnob(zone))
-        {
-            addHorizontalKnob(label, zone, init, min, max, step);
+        if (!fBuildUI) {
+            return;
         }
-        else
-        {
+        
+        if (isKnob(zone)){
+            addHorizontalKnob(label, zone, init, min, max, step);
+        }  else if (fMenuDescription.count(zone)) {
+            addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
+        } else {
             uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, true);
             if (dynamic_cast<uiSlider*>(item)->fSlider.suffixe) [dynamic_cast<uiSlider*>(item)->fSlider.suffixe release];
             dynamic_cast<uiSlider*>(item)->fSlider.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
@@ -2185,11 +2314,6 @@ public:
             // Default parameters
             if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
             if (fAssignationType[zone]) item->setInitAssignationType(fAssignationType[zone]);
-            if (fAssignationSensibility[zone]) item->setInitAssignationSensibility(fAssignationSensibility[zone]);
-            if (fAssignationInverse[zone]) item->setInitAssignationInverse(fAssignationInverse[zone]);
-            if (fAssignationFiltered[zone]) item->setInitAssignationFiltered(fAssignationFiltered[zone]);
-            if (fAssignationRefPointX[zone]) item->setInitAssignationRefPointX(fAssignationRefPointX[zone]);
-            if (fAssignationRefPointY[zone]) item->setInitAssignationRefPointY(fAssignationRefPointY[zone]);
             if (getCurrentOpenedBox())
             {
                 if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
@@ -2205,6 +2329,10 @@ public:
     }
     virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         if (isKnob(zone))
         {
             addVerticalKnob(label, zone, init, min, max, step);
@@ -2239,6 +2367,10 @@ public:
     {}
     virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max)
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiBargraph(this, fViewController, label, zone, min, max, true);
         
         if (fR[zone] && fG[zone] && fB[zone])
@@ -2271,6 +2403,10 @@ public:
     }
     virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)
     {
+        if (!fBuildUI) {
+            return;
+        }
+        
         uiCocoaItem* item = new uiBargraph(this, fViewController, label, zone, min, max, false);
         
         if (fR[zone] && fG[zone] && fB[zone])
@@ -2331,7 +2467,7 @@ public:
 		}
         else
         {
-			if (strcmp(key,"size") == 0)
+            if (strcmp(key,"size") == 0)
             {
 				//fGuiSize[zone]=atof(value);
 			}
@@ -2343,7 +2479,7 @@ public:
             {
 				fUnit[zone] = value;
 			}
-            if (strcmp(key,"hidden") == 0)
+            else if (strcmp(key,"hidden") == 0)
             {
 				NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
                 NSArray* arr = [str componentsSeparatedByString:@" "];
@@ -2387,6 +2523,15 @@ public:
                         fLedG[zone] = (float)[((NSString*)[arr objectAtIndex:2]) integerValue] / 255.f;
                         fLedB[zone] = (float)[((NSString*)[arr objectAtIndex:3]) integerValue] / 255.f;
                     }
+                } else {
+                    
+                    NSString* str = (NSString*)[arr objectAtIndex:0];
+                    NSRange range = [str rangeOfString:@"menu"];
+                    if (range.location == 0 && range.length > 0) {
+                        NSString* str1 = [str substringFromIndex:range.length];
+                        fMenuDescription[zone] = [str1 UTF8String];
+                    }
+                    
                 }
 			}
             else if (strcmp(key,"color") == 0)
@@ -2403,84 +2548,23 @@ public:
                      || strcmp(key,"accz") == 0
                      || strcmp(key,"gyrox") == 0
                      || strcmp(key,"gyroy") == 0
-                     || strcmp(key,"gyroz") == 0
-                     || strcmp(key,"compass") == 0)
+                     || strcmp(key,"gyroz") == 0)
             {
-                float sensibility = 1.f;
-                bool filtered = true;
-                float refPointX = 0.f;
-                float refPointY = 0.f;
-                                   
                 if (strcmp(key,"accx") == 0) fAssignationType[zone] = kAssignationAccelX;
                 else if (strcmp(key,"accy") == 0) fAssignationType[zone] = kAssignationAccelY;
                 else if (strcmp(key,"accz") == 0) fAssignationType[zone] = kAssignationAccelZ;
                 else if (strcmp(key,"gyrox") == 0) fAssignationType[zone] = kAssignationGyroX;
                 else if (strcmp(key,"gyroy") == 0) fAssignationType[zone] = kAssignationGyroY;
                 else if (strcmp(key,"gyroz") == 0) fAssignationType[zone] = kAssignationGyroZ;
-                else if (strcmp(key,"compass") == 0) fAssignationType[zone] = kAssignationCompass;
-
-                NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
-                NSArray* arr = [str componentsSeparatedByString:@" "];
-                
-                if ([arr count] == 0)
-                {
-                    sensibility = 1.f;
-                    refPointX = 0.f;
-                    refPointY = 0.f;
-                    filtered = true;
-                }
-                else if ([arr count] == 1)
-                {
-                    sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
-                    refPointX = 0.f;
-                    refPointY = 0.f;
-                    filtered = true;
-                }
-                else if ([arr count] == 2)
-                {
-                    sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
-                    refPointX = [((NSString*)[arr objectAtIndex:1]) floatValue];
-                    refPointY = 0.f;
-                    filtered = true;
-                }
-                else if ([arr count] == 3)
-                {
-                    sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
-                    refPointX = [((NSString*)[arr objectAtIndex:1]) floatValue];
-                    refPointY = [((NSString*)[arr objectAtIndex:2]) floatValue];
-                    filtered = true;
-                }
-                else
-                {
-                    sensibility = [((NSString*)[arr objectAtIndex:0]) floatValue];
-                    refPointX = [((NSString*)[arr objectAtIndex:1]) floatValue];
-                    refPointY = [((NSString*)[arr objectAtIndex:2]) floatValue];
-                    filtered = [((NSString*)[arr objectAtIndex:3]) boolValue];
-                }
-                
-                if (sensibility < 0.)
-                {
-                    fAssignationSensibility[zone] = -sensibility;
-                    fAssignationInverse[zone] = true;
-                }
-                else
-                {
-                    fAssignationSensibility[zone] = sensibility;
-                    fAssignationInverse[zone] = false;
-                }
-                                
-                fAssignationRefPointX[zone] = refPointX;
-                fAssignationRefPointY[zone] = refPointY;
-                fAssignationFiltered[zone] = filtered;
             }
 		}
 	}
 };
 
-
 // global static fields
 
-list<GUI*>                   GUI::fGuiList;
+list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 CGPoint inBoxPosition2absolutePosition(float x, float y, uiCocoaItem* box)
 {
@@ -2499,7 +2583,6 @@ CGPoint inBoxPosition2absolutePosition(float x, float y, uiCocoaItem* box)
     }
     
     absolutePosition = CGPointMake(x + parentBoxOrigin.x, y + parentBoxOrigin.y);
-    
     return absolutePosition;
 }
                       

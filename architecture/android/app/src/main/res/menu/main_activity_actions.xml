@@ -1,0 +1,28 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <!-- Search, should appear as action button -->
+    <item android:id="@+id/action_keyboard"
+          android:icon="@drawable/ic_keyboardicon"
+          android:title="@string/keyboard"
+          android:showAsAction="ifRoom" />
+    <item android:id="@+id/action_zoomin"
+          android:icon="@drawable/ic_zoomin"
+          android:title="@string/zoomin"
+          android:showAsAction="ifRoom" />
+    <item android:id="@+id/action_zoomout"
+          android:icon="@drawable/ic_zoomout"
+          android:title="@string/zoomout"
+          android:showAsAction="ifRoom" />
+    <item android:id="@+id/action_lock"
+        android:icon="@drawable/ic_lockiconclose"
+        android:title="@string/lock"
+        android:showAsAction="ifRoom" />
+    <item android:id="@+id/action_reset"
+        android:icon="@drawable/ic_reset"
+        android:title="@string/reset"
+        android:showAsAction="ifRoom" />
+          <!--
+    <item android:id="@+id/action_settings"
+          android:title="@string/action_settings"
+          android:showAsAction="never" />
+          -->
+</menu>

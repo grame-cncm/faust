@@ -41,7 +41,7 @@
 #include "faust/gui/faustqt.h"
 #include "faust/gui/OSCUI.h"
 #include "faust/misc.h"
-#include "faust/audio/oscdsp.h"
+#include "faust/audio/osc-dsp.h"
 
 
 /**************************BEGIN USER SECTION **************************/
@@ -55,16 +55,16 @@
 *******************************************************************************/
 <<includeIntrinsic>>
 
-
 <<includeclass>>
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp	DSP;
+mydsp DSP;
 
-std::list<GUI*>               GUI::fGuiList;
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 /******************************************************************************
 *******************************************************************************
@@ -104,7 +104,7 @@ int main( int argc, char *argv[] )
 	oscinterface->run();
 	interface->run();	
     
-    myApp.setStyleSheet(STYLESHEET);
+    myApp.setStyleSheet(interface->styleSheet());
     myApp.exec();
     interface->stop();
     

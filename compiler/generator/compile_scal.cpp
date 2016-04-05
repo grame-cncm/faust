@@ -56,7 +56,8 @@ using namespace std;
 
 extern bool     gInPlace;
 extern bool     gDrawSignals;
-extern bool     gLessTempSwitch;
+extern bool     gPrintJSONSwitch;
+extern bool     gDrawSignals;
 extern int      gMaxCopyDelay;
 extern string   gClassName;
 extern string   gMasterDocument;
@@ -136,6 +137,7 @@ endTiming("ScalarCompiler::prepare");
         ofstream dotfile(subst("$0-sig.dot", makeDrawPath()).c_str());
         sigToGraph(L3, dotfile, fRates);
     }
+    
   	return L3;
 }
 
@@ -185,11 +187,18 @@ void ScalarCompiler::compileMultiSignal (Tree L)
             fClass->addExecCode(subst("if ((i%$3)==0) { output$0[i/$3] = $2$1; }", T(i), CS(sig), xcast(), T(p)));
         }
 	}
+    
+    generateMetaData();
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
 	if (fDescription) {
 		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
 	}
+    
+    if (gPrintJSONSwitch) {
+        ofstream xout(subst("$0.json", makeDrawPath()).c_str());
+        xout << fJSON.JSON();
+    } 
 }
 
 
@@ -1397,16 +1406,21 @@ string ScalarCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
     //cerr << "ScalarCompiler::generateFixDelay exp = " << *exp << endl;
     //cerr << "ScalarCompiler::generateFixDelay del = " << *delay << endl;
 
-    CS(exp); // ensure exp is compiled to have a vector name
     
     // ******** for debug purposes ********
     //std::cerr << ppsig(sig) << " has rate (in fix delay) " << rate << " in context [" << o->getMinRate() << "," << o->getMaxRate() << "]" << std::endl;
+    string code = CS(exp); // ensure exp is compiled to have a vector name
 
 	mxd = fOccMarkup.retrieveOccurences(exp)->getMaxDelay();
 
 	if (! getVectorNameProperty(exp, vecname)) {
-        cerr << "No vector name for : " << ppsig(exp) << endl;
-        assert(0);
+        if (mxd == 0) {
+            //cerr << "it is a pure zero delay : " << code << endl;
+            return code;
+        } else {
+            cerr << "No vector name for : " << ppsig(exp) << endl;
+            assert(0);
+        }
     }
 
     if (mxd == 0) {

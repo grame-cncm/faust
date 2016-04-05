@@ -33,6 +33,11 @@
 #include "Message.h"
 #include "MessageProcessor.h"
 
+#ifdef _WIN32
+#include <io.h>
+#define lseek _lseek
+#endif
+
 using namespace std;
 
 namespace httpdfaust
@@ -100,8 +105,8 @@ static int _get_params (void *cls, enum MHD_ValueKind kind, const char *key, con
 //--------------------------------------------------------------------------
 // the http server
 //--------------------------------------------------------------------------
-HTTPDServer::HTTPDServer(MessageProcessor* mp, int port)  
-	: fProcessor(mp), fPort(port), fServer(0), fDebug(false)
+HTTPDServer::HTTPDServer(MessageProcessor* mp)
+	: fProcessor(mp), fServer(0), fDebug(false)
 {
 }
 

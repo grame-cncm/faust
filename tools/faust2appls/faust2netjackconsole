@@ -25,9 +25,9 @@ fi
 
 for p in $@; do
     if [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -L$FAUSTLIB -lOSCFaust -loscpack"
+	 OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
+	 HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -37,13 +37,12 @@ for p in $@; do
 	fi
 done
 
-
 #-------------------------------------------------------------------
 # compile the *.dsp files
 #
 for f in $FILES; do
-    faust -i -a netjack-console.cpp $OPTIONS $f -o $f.cpp
-    g++  $f.cpp $FAUSTTOOLSFLAGS -I/usr/local/include -L/usr/local/lib -ljacknet $OSCDEFS $HTTPDEFS -o  ${f%.dsp} 
+    faust -i -a netjack-console.cpp $OPTIONS $f -o $f.cpp || exit
+    g++  $f.cpp $FAUSTTOOLSFLAGS -I/usr/local/include -L/usr/local/lib -ljacknet $OSCDEFS $HTTPDEFS -o  ${f%.dsp} || exit
     rm $f.cpp
 
     # collect binary file name for FaustGIDE

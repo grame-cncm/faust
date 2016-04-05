@@ -40,7 +40,7 @@
 #include <list>
 
 #include "faust/gui/FUI.h"
-#include "faust/gui/PUI.h"
+#include "faust/gui/PrintUI.h"
 #include "faust/misc.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/audio/jack-dsp.h"
@@ -51,6 +51,10 @@
 
 #ifdef HTTPCTRL
 #include "faust/gui/httpdUI.h"
+#endif
+
+#ifdef OCVCTRL
+#include "faust/gui/OCVUI.h"
 #endif
 
 /**************************BEGIN USER SECTION **************************/
@@ -65,15 +69,16 @@
 
 <<includeIntrinsic>>
 
-
 <<includeclass>>
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp		DSP;
-std::list<GUI*>	GUI::fGuiList;
+mydsp DSP;
+
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -91,17 +96,22 @@ int main(int argc, char *argv[])
 	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(interface);
 	DSP.buildUserInterface(finterface);
-    DSP.buildUserInterface(new PrintUI());
-
+ 
 #ifdef HTTPCTRL
-	httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
+	httpdUI* httpdinterface = new httpdUI(appname, DSP.getNumInputs(), DSP.getNumOutputs(), argc, argv);
 	DSP.buildUserInterface(httpdinterface);
-	std::cout << "HTTPD is on" << std::endl;
+ 	std::cout << "HTTPD is on" << std::endl;
 #endif
 
 #ifdef OSCCTRL
 	GUI* oscinterface = new OSCUI(appname, argc, argv);
 	DSP.buildUserInterface(oscinterface);
+#endif
+
+#ifdef OCVCTRL
+	std::cout<<"OCVCTRL defined"<<std::endl;
+	OCVUI* ocvinterface = new OCVUI();
+	DSP.buildUserInterface(ocvinterface);
 #endif
 
 	jackaudio audio;
@@ -116,6 +126,11 @@ int main(int argc, char *argv[])
 #ifdef OSCCTRL
 	oscinterface->run();
 #endif
+
+#ifdef OCVCTRL
+	ocvinterface->run();
+#endif
+
 	interface->run();
 	
 	audio.stop();
@@ -129,6 +144,10 @@ int main(int argc, char *argv[])
 #endif
 #ifdef OSCCTRL
 	 delete oscinterface;
+#endif
+
+#ifdef OCVCTRL
+	 delete ocvinterface;
 #endif
 
   	return 0;

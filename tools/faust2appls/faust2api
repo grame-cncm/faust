@@ -1,0 +1,57 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#    Generates an API for Android or iOS based on a Faust object    #
+#               (c) Romain Michon CCRMA and Grame, 2014             #
+#                                                                   #
+#####################################################################
+
+# change if you want to get the log of what's happening
+LOG="/dev/null"
+#LOG="log"
+
+# exit if a command fails
+set -e
+
+# global option variables
+ANDROID=0
+IOS=0
+
+# dispatch command arguments
+for p in $@; do
+	if [[ -f "$p" ]]; then
+	    FILE="$p"
+	elif [ $p = "-android" ]; then
+		ANDROID=1
+	elif [ $p = "-ios" ]; then
+		IOS=1
+	elif [ $p = "-h" ]; then
+		echo "TODO doc"
+		exit
+	fi
+done
+
+if [ -z $FILE ]; then
+	echo "Please, provide a Faust file to process"
+	exit
+fi
+
+if [ $ANDROID -eq 1 ]; then
+	APIFOLDER="dsp-faust"
+	rm -r "$APIFOLDER" > /dev/null || true
+	mkdir "$APIFOLDER"
+	cp -r /usr/local/lib/faust/android/app/src/main/java/com/grame/dsp_faust $APIFOLDER
+	cp -r /usr/local/lib/faust/android/app/src/main/jni $APIFOLDER
+	faust -i -a android.cpp "$FILE" -o "$APIFOLDER/jni/dsp_faust.cpp" || exit
+	echo "Your faust-dsp API package for Android was created"
+elif [ $IOS -eq 1 ]; then
+	faust -i -a ios-coreaudio-api.cpp "$FILE" -o dsp-faust.h || exit
+	echo "Your dsp-faust.h C++ API for IOS was created"
+else
+	echo "Please specify an architecture or a platform:"
+	echo "-android"
+	echo "-ios"
+	echo "For more informations, visit http://ccrma.stanford.edu/~rmichon/mobileFaust"
+	exit 1
+fi

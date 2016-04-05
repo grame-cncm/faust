@@ -76,7 +76,7 @@
 	}
 
 #if defined(_MBCS) || __MINGW32__
-	bool chdir(const char* path)
+	int chdir(const char* path)
 	{
 		return !SetCurrentDirectory(path);
 	}
@@ -86,7 +86,7 @@
 		return CreateDirectory(path,NULL);
 	}
 
-	char* getcwd(char* str, unsigned int size)
+	char* getcwd(char* str, int size)
 	{
 		GetCurrentDirectory(size, str);
 		return str;

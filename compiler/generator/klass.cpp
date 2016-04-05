@@ -207,7 +207,11 @@ void Klass::printIncludeFile(ostream& fout)
 
     collectIncludeFile(S);
     for (f = S.begin(); f != S.end(); f++) 	{
-        fout << "#include " << *f << "\n";
+        string inc = *f;
+        // Only print non-empty include (inc is actually quoted)
+        if (inc.size() > 2) { 
+            fout << "#include " << *f << "\n";
+        }
     }
 }
 
@@ -227,6 +231,7 @@ void Klass::printAdditionalCode(ostream& fout)
         fout << "template <int N> inline int faustpower(int x)              { return faustpower<N/2>(x) * faustpower<N-N/2>(x); } " << endl;
         fout << "template <> 	 inline int faustpower<0>(int x)            { return 1; }" << endl;
         fout << "template <> 	 inline int faustpower<1>(int x)            { return x; }" << endl;
+        fout << "template <> 	 inline int faustpower<2>(int x)            { return x*x; }" << endl;
         fout << "#endif" << endl;
     }
 
@@ -238,11 +243,13 @@ void Klass::printAdditionalCode(ostream& fout)
 void Klass::printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout)
 {
     tab(n,fout); fout   << "static void metadata(Meta* m) \t{ ";
-
+    
+    // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
     for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
             tab(n+1,fout); fout << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
         } else {
+            // But the "author" meta data is accumulated, the upper level becomes the main author and sub-levels become "contributor"
             for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
                 if (j == i->second.begin()) {
                      tab(n+1,fout); fout << "m->declare(\"" << *(i->first) << "\", " << **j << ");" ;
@@ -341,7 +348,7 @@ void Klass::buildTasksList()
     addDeclCode("FAUSTFLOAT** input;");
     addDeclCode("FAUSTFLOAT** output;");
     addDeclCode("volatile bool fIsFinished;");
-    addDeclCode("int fFullCount;");
+    addDeclCode("int fCount;");
     addDeclCode("int fIndex;");
     addDeclCode("DSPThreadPool* fThreadPool;");
     addDeclCode("int fStaticNumThreads;");
@@ -857,12 +864,14 @@ void Klass::printComputeMethodVectorFaster(int n, ostream& fout)
 {
     // in vector mode we need to split loops in smaller pieces not larger
     // than gVecSize
-    tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {", xfloat());
+    tab(n+1,fout); fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
         printlines(n+2, fZone1Code, fout);
         printlines(n+2, fZone2Code, fout);
         printlines(n+2, fZone2bCode, fout);
 
         tab(n+2,fout); fout << "int index;";
+		tab(n+2,fout); fout << "int fullcount = count;";
+		
         tab(n+2,fout); fout << "for (index = 0; index <= fullcount - " << gVecSize << "; index += " << gVecSize << ") {";
             tab(n+3,fout); fout << "// compute by blocks of " << gVecSize << " samples";
             tab(n+3,fout); fout << "const int count = " << gVecSize << ";";
@@ -886,11 +895,13 @@ void Klass::printComputeMethodVectorSimple(int n, ostream& fout)
 {
     // in vector mode we need to split loops in smaller pieces not larger
     // than gVecSize
-    tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {", xfloat());
+    tab(n+1,fout); fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
         printlines(n+2, fZone1Code, fout);
         printlines(n+2, fZone2Code, fout);
         printlines(n+2, fZone2bCode, fout);
-        tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
+		
+        tab(n+2,fout); fout << "int fullcount = count;";
+		tab(n+2,fout); fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
             tab(n+3,fout); fout << "int count = min("<< gVecSize << ", fullcount-index);";
             printlines (n+3, fZone3Code, fout);
             printLoopGraphVector(n+3,fout);
@@ -957,9 +968,10 @@ void Klass::printComputeMethodOpenMP(int n, ostream& fout)
 {
     // in openMP mode we need to split loops in smaller pieces not larger
     // than gVecSize and add OpenMP pragmas
-    tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {", xfloat());
+    tab(n+1,fout); fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
         printlines(n+2, fZone1Code, fout);
         printlines(n+2, fZone2Code, fout);
+        tab(n+2,fout); fout << "int fullcount = count;";
         tab(n+2,fout); fout << "#pragma omp parallel";
         printdecllist(n+3, "firstprivate", fFirstPrivateDecl, fout);
 
@@ -1058,7 +1070,7 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
         tab(n+2,fout); fout << "fGraph.Display();";
     tab(n+1,fout); fout << "}";
 
-    tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {", xfloat());
+    tab(n+1,fout); fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
 
         tab(n+2,fout); fout << "GetRealTime();";
 
@@ -1066,10 +1078,12 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
         tab(n+2,fout); fout << "this->output = output;";
 
         tab(n+2,fout); fout << "StartMeasure();";
+        
+        tab(n+2,fout); fout << "int fullcount = count;";
 
         tab(n+2,fout); fout << "for (fIndex = 0; fIndex < fullcount; fIndex += " << gVecSize << ") {";
 
-        tab(n+3,fout); fout << "fFullCount = min ("<< gVecSize << ", fullcount-fIndex);";
+        tab(n+3,fout); fout << "fCount = min ("<< gVecSize << ", fullcount-fIndex);";
         tab(n+3,fout); fout << "TaskQueue::Init();";
         printlines (n+3, fZone2cCode, fout);
 
@@ -1085,6 +1099,9 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
     tab(n+1,fout); fout << "}";
 
     tab(n+1,fout); fout << "void computeThread(int cur_thread) {";
+    
+        tab(n+2,fout); fout << "int count = fCount;";
+        
         printlines (n+2, fZone1Code, fout);
         printlines (n+2, fZone2Code, fout);
 
@@ -1093,8 +1110,7 @@ void Klass::printComputeMethodScheduler (int n, ostream& fout)
         tab(n+2,fout); fout << "{";
             tab(n+3,fout); fout << "TaskQueue taskqueue(cur_thread);";
             tab(n+3,fout); fout << "int tasknum = -1;";
-            tab(n+3,fout); fout << "int count = fFullCount;";
-
+    
             // Init input and output
             tab(n+3,fout); fout << "// Init input and output";
             printlines (n+3, fZone3Code, fout);

@@ -67,20 +67,24 @@ class OSCStream
 	osc::OutboundPacketStream	fOutStream;
 	UdpSocket*					fSocket;
 	
+    static int fRefCount; // Since this stream is shared, a counter is needed to know when to delete object.
+    
 //	void initSocket();
 	
 	public:
-	static bool start();
+	static void start();
 	static void stop();
 
-				 OSCStream();
-				 OSCStream(UdpSocket* socket) 
-					: fState(kIdle), fPort(1024), fAddress(kLocalhost), fOutStream(fBuffer, kOutBufferSize), fSocket(socket) {} 
+        OSCStream(UdpSocket* socket) 
+            : fState(kIdle), fPort(1024), fAddress(kLocalhost), fOutStream(fBuffer, kOutBufferSize), fSocket(socket) 
+        {
+            fSocket->allowBroadcast();
+        } 
 		virtual ~OSCStream() {}
 		
 		osc::OutboundPacketStream& stream()				{ return fOutStream; }
-		int					getPort () const			{ return fPort; }
-		unsigned long		getAddress () const			{ return fAddress; }
+		int					getPort() const             { return fPort; }
+		unsigned long		getAddress() const			{ return fAddress; }
 		UdpSocket*			socket()					{ return fSocket; }
 		int					state()	const				{ return fState; }
 		
@@ -88,9 +92,9 @@ class OSCStream
 		OSCStream&			end();
 		void				send(unsigned long ipdest, int port);
 
-		void setPort (int port)							{ fPort = port; }
-		void setAddress (unsigned long address)			{ fAddress = address; }
-		void setAddress (const std::string& address);
+		void setPort(int port)							{ fPort = port; }
+		void setAddress(unsigned long address)			{ fAddress = address; }
+		void setAddress(const std::string& address);
 };
 
 						OSCStream& operator <<(OSCStream& s, OSCEnd val);

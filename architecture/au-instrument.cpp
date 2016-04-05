@@ -56,8 +56,7 @@
 
 /*
  #include "faust/misc.h"
- #include "faust/audio/dsp.h"
- 
+ #include "faust/dsp/dsp.h"
  #include "faust/au/AUUI.h"
  */
 
@@ -167,8 +166,10 @@ class FaustAUInstrument: public AUMonotimbralInstrumentBase {
 	mydsp* dsp = NULL;
     
 	int frequencyParameterID = -1;
-  int gateParameterID = -1;
-  int gainParameterID = -1;
+    float freqMin = 0.0;
+    float freqMax = 1.0;
+    int gateParameterID = -1;
+    int gainParameterID = -1;
     
 };
 
@@ -394,8 +395,8 @@ OSStatus FaustAUInstrument::GetParameterInfo(AudioUnitScope inScope,
 	  // gainMax = slider->fMax;
 	} else if (strcmp(name, "freq")==0) {
 	  frequencyParameterID = inParameterID;
-	  // freqMin = slider->fMin;
-	  // freqMax = slider->fMax;
+	  freqMin = slider->fMin;
+	  freqMax = slider->fMax;
 	}
 	str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
 	AUBase::FillInParameterName(outParameterInfo, str, false);
@@ -509,7 +510,7 @@ OSStatus FaustAUInstrumentNote::Render(UInt64 inAbsoluteSampleFrame,
             (auSlider*) dspUI->fUITable[synth->frequencyParameterID];
 			if (frequencySlider)
             //TODO change the SetValue function call accordingly
-            frequencySlider->SetValue((Frequency() - 20 )/ ((float)(SampleRate() / 2)));
+            frequencySlider->SetValue( (Frequency() - synth->freqMin) / (synth->freqMax - synth->freqMin) );
 			//frequencySlider->SetValue((float) GetMidiKey() / 88.0);
 		}
         

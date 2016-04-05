@@ -42,14 +42,15 @@ class jsongroup : public jsonnode
 {
 	std::string fName;
 	std::string fType;
+    TMetas fMeta;
 	std::vector<Sjsonnode> fContent;
 	
 	protected:
-				 jsongroup(const char *name, const char* type)  : fName(name), fType(type) {}
+				 jsongroup(const char *name, const char* type, const TMetas& m)  : fName(name), fType(type), fMeta(m) {}
 		virtual ~jsongroup() {}
 		
 	public:
-	static Sjsonnode create (const char *name, const char* type) { return new jsongroup (name, type); }
+	static Sjsonnode create (const char *name, const char* type, const TMetas& m) { return new jsongroup (name, type, m); }
 
 		virtual void	add (const Sjsonnode& node)		{ fContent.push_back(node); }
 		virtual void	print(std::ostream& out, jsonendl& eol) const;

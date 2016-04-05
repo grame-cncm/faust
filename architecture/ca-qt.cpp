@@ -34,16 +34,25 @@
  ************************************************************************
  ************************************************************************/
 
-
 #include <libgen.h>
 #include <stdlib.h>
 #include <iostream>
 #include <list>
 
+#include "faust/dsp/timed-dsp.h"
+#include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/gui/faustqt.h"
 #include "faust/misc.h"
+#include "faust/audio/audio.h"
+
+#ifdef IOS
+#include "faust/gui/APIUI.h"
+#include "faust/audio/coreaudio-ios-dsp.h"
+#else
 #include "faust/audio/coreaudio-dsp.h"
+#endif
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -51,6 +60,13 @@
 
 #ifdef HTTPCTRL
 #include "faust/gui/httpdUI.h"
+#endif
+
+// Always include this file, otherwise -poly only mode does not compile....
+#include "faust/gui/MidiUI.h"
+
+#ifdef MIDICTRL
+#include "faust/midi/RtMidi.cpp"
 #endif
 
 /**************************BEGIN USER SECTION **************************/
@@ -64,16 +80,112 @@
 *******************************************************************************/
 <<includeIntrinsic>>
 
-
 <<includeclass>>
+
+#ifdef POLY
+#include "faust/dsp/poly-dsp.h"
+#endif
+
+dsp* DSP;
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp DSP;
-
 std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+
+/******************************************************************************
+*******************************************************************************
+
+                                Sensors section
+
+*******************************************************************************
+*******************************************************************************/
+#ifdef IOS
+#include <QAccelerometer>
+#include <QGyroscope>
+#include <QAccelerometerReading>
+#include <QGyroscopeReading>
+#include <QTimer>
+
+//------------------------------------------------------------------------
+class Sensor
+{
+	private:
+		QSensor*		fSensor;
+		int				fType;
+		QSensorReading*	fReader;
+		QSensor*		create(int type) const;
+	
+	public:
+		enum  { kSensorStart=1, kAccelerometer=1, kGyroscope, kSensorMax };
+
+				 Sensor(int type) : fSensor(0), fType(type), fReader(0)
+									{ fSensor = create (type); fSensor->connectToBackend(); }
+		virtual ~Sensor()			{ if (available()) activate (false); delete fSensor; }
+
+		int				isAccel() const		{ return fType == kAccelerometer; }
+		int				isGyro () const		{ return fType == kGyroscope; }
+		bool			available() const	{ return fSensor->isConnectedToBackend(); }
+		bool			active() const		{ return fSensor->isActive(); }
+		void			activate(bool state){ fSensor->setActive(state); fReader = fSensor->reading(); }
+		int				count()				{ return fReader ? fReader->valueCount() : 0; }
+		float			value(int i) const	{ return fReader->value(i).value<float>(); }
+};
+
+//------------------------------------------------------------------------
+QSensor* Sensor::create (int type) const
+{
+	switch (type) {
+		case kAccelerometer:			return new QAccelerometer();
+		case kGyroscope:				return new QGyroscope();
+		default:
+			cerr << "unknown sensor type " << type << endl;
+	}
+	return 0;
+}
+
+//------------------------------------------------------------------------
+class Sensors : public QObject
+{
+	APIUI* fUI;
+	Sensor 	fAccel,	fGyro;
+	int		fTimerID;
+	public:
+		typedef std::map<int, Sensor*> TSensors;
+				 Sensors(APIUI* ui)
+				 		: fUI(ui), fAccel(Sensor::kAccelerometer), fGyro(Sensor::kGyroscope), fTimerID(0) {}
+		virtual ~Sensors()		{	killTimer(fTimerID); }
+		void 	start();
+	protected:
+		void timerEvent(QTimerEvent * );
+};
+
+//------------------------------------------------------------------------
+void Sensors::timerEvent(QTimerEvent * )
+{
+	if (fAccel.active()) {
+        int count = fAccel.count();
+        for (int i=0; (i< count) && (i < 3); i++)
+        	fUI->propagateAcc (i, fAccel.value(i));
+	}
+	if (fGyro.active()) {
+        int count = fGyro.count();
+        for (int i=0; (i< count) && (i < 3); i++)
+        	fUI->propagateGyr (i, fGyro.value(i));
+	}
+}
+
+//------------------------------------------------------------------------
+void Sensors::start() 
+{
+	bool activate = false;
+	if (fAccel.available()) { fAccel.activate(true); activate = true; }
+	if (fGyro.available()) 	{ fGyro.activate(true);  activate = true; }
+	if (activate) fTimerID = startTimer(10);
+}
+#endif
 
 /******************************************************************************
 *******************************************************************************
@@ -83,72 +195,138 @@ std::list<GUI*> GUI::fGuiList;
 *******************************************************************************
 *******************************************************************************/
 
+static bool hasMIDISync()
+{
+    JSONUI jsonui;
+    mydsp tmp_dsp;
+    tmp_dsp.buildUserInterface(&jsonui);
+    std::string json = jsonui.JSON();
+    
+    return ((json.find("midi") != std::string::npos) &&
+            ((json.find("start") != std::string::npos) ||
+            (json.find("stop") != std::string::npos) ||
+            (json.find("clock") != std::string::npos)));
+}
+
+#ifdef IOS
+#define lopt(a,b,val)	val
+#define coreaudio		iosaudio
+#endif
+
 int main(int argc, char *argv[])
 {
 	char name[256];
 	char rcfilename[256];
 	char* home = getenv("HOME");
-
-	snprintf(name, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
-
-    long srate = (long)lopt(argv, "--frequency", -1);
-    int	fpb = lopt(argv, "--buffer", 512);
-
-	QApplication myApp(argc, argv);
-    
-    QTGUI* interface = new QTGUI();
-	DSP.buildUserInterface(interface);
-	FUI* finterface	= new FUI();
-	DSP.buildUserInterface(finterface);
-
-#ifdef HTTPCTRL
-	httpdUI*	httpdinterface = new httpdUI(name, argc, argv);
-	DSP.buildUserInterface(httpdinterface);
+#ifdef IOS
+    APIUI apiui;
+    Sensors sensors (&apiui);
 #endif
 
+	snprintf(name, 255, "%s", basename(argv[0]));
+	snprintf(rcfilename, 255, "%s/.%src", home, name);
+    
+    long srate = (long)lopt(argv, "--frequency", -1);
+    int fpb = lopt(argv, "--buffer", 512);
+    
+#ifdef POLY
+
+    int poly = lopt(argv, "--poly", 4);
+    int group = lopt(argv, "--group", 1);
+
+#if MIDICTRL
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new mydsp_poly(poly, true, group));
+    } else {
+        DSP = new mydsp_poly(poly, true, group);
+    }
+#else
+    DSP = new mydsp_poly(poly, false, group);
+#endif
+
+#else
+
+#if MIDICTRL
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new mydsp());
+    } else {
+        DSP = new mydsp();
+    }
+#else
+    DSP = new mydsp();
+#endif
+    
+#endif
+   
+    if (DSP == 0) {
+        std::cerr << "Unable to allocate Faust DSP object" << std::endl;
+        exit(1);
+    }
+ 
+	QApplication myApp(argc, argv);
+    
+    QTGUI interface;
+    FUI finterface;
+    DSP->buildUserInterface(&interface);
+    DSP->buildUserInterface(&finterface);
+#ifdef IOS
+    DSP->buildUserInterface(&apiui);
+#endif
+
+#ifdef MIDICTRL
+    MidiUI midiinterface(name);
+    DSP->buildUserInterface(&midiinterface);
+    std::cout << "MIDI is on" << std::endl;
+#endif
+
+#ifdef HTTPCTRL
+    httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+    DSP->buildUserInterface(&httpdinterface);
+    std::cout << "HTTPD is on" << std::endl;
+ #endif
+
 #ifdef OSCCTRL
-	GUI*	oscinterface = new OSCUI(name, argc, argv);
-	DSP.buildUserInterface(oscinterface);
+	OSCUI oscinterface(name, argc, argv);
+    DSP->buildUserInterface(&oscinterface);
+    std::cout << "OSC is on" << std::endl;
 #endif
 
 	coreaudio audio(srate, fpb);
-	audio.init(name, &DSP);
-	finterface->recallState(rcfilename);
+	audio.init(name, DSP);
+	finterface.recallState(rcfilename);
 	audio.start();
+#ifdef IOS
+	sensors.start();
+#endif
+	
+    printf("ins %d\n", audio.get_num_inputs());
+    printf("outs %d\n", audio.get_num_outputs());
 
 #ifdef HTTPCTRL
-	httpdinterface->run();
+	httpdinterface.run();
 #ifdef QRCODECTRL
-    interface->displayQRCode( httpdinterface->getTCPPort() );
+    interface.displayQRCode(httpdinterface.getTCPPort());
 #endif
 #endif
 
 #ifdef OSCCTRL
-	oscinterface->run();
+	oscinterface.run();
 #endif
-	interface->run();
+#ifdef MIDICTRL
+	midiinterface.run();
+#endif
+	interface.run();
+	
 
-    myApp.setStyleSheet(STYLESHEET);
+    myApp.setStyleSheet(interface.styleSheet());
     myApp.exec();
-    interface->stop();
+    interface.stop();
     
 	audio.stop();
-	finterface->saveState(rcfilename);
-    
-    // desallocation
-    delete interface;
-    delete finterface;
-#ifdef HTTPCTRL
-	 delete httpdinterface;
-#endif
-#ifdef OSCCTRL
-	 delete oscinterface;
-#endif
+	finterface.saveState(rcfilename);
 
   	return 0;
 }
-
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

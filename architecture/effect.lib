@@ -161,7 +161,9 @@ exciter = _ <: (highpass : compressor : pregain : harmonicCreator : postgain), _
   ex_group(x) = hgroup("EXCITER  [tooltip: Reference: Patent US4150253 A]", x);
 
   //Highpass - selectable cutoff frequency
-  fc = ex_group(hslider("[0] Cutoff Frequency [unit:Hz] [style:knob] [tooltip: Cutoff frequency for highpassed components to be excited]", 5000, 1000, 10000, 100));
+  fc = ex_group(hslider("[0] Cutoff Frequency [unit:Hz] [style:knob] [scale:log] 
+                        [tooltip: Cutoff frequency for highpassed components to be excited]", 
+			5000, 1000, 10000, 100));
   highpass = component("filter.lib").highpass(2, fc);
   x = highpass;
 
@@ -274,9 +276,7 @@ with {
 moog_vcf_demo = bypass1(bp,vcf) with {
    mvcf_group(x)  = hgroup("MOOG VCF (Voltage Controlled Filter)
       [tooltip: See Faust's effect.lib for info and references]",x);
-
-   meter_group(x) = mvcf_group(vgroup("[0]",x));
-   cb_group(x) = meter_group(hgroup("[0]",x));
+   cb_group(x) = mvcf_group(hgroup("[0]",x));
 
    bp = cb_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF has no effect]"));
    archsw = cb_group(checkbox("[1] Use Biquads
@@ -284,7 +284,7 @@ moog_vcf_demo = bypass1(bp,vcf) with {
    bqsw = cb_group(checkbox("[2] Normalized Ladders
    [tooltip: If using biquads, make them normalized ladders (moog_vcf_2bn)]"));
 
-   freq = mvcf_group(hslider("[1] Corner Frequency [unit:PK] [style:knob]
+   freq = mvcf_group(hslider("[1] Corner Frequency [unit:PK]
    [tooltip: The VCF resonates at the corner frequency (specified in PianoKey (PK) units, with A440 = 49 PK).  The VCF response is flat below the corner frequency, and rolls off -24 dB per octave above.]",
    25, 1, 88, 0.01) : pianokey2hz) : smooth(0.999);
 
@@ -292,7 +292,7 @@ moog_vcf_demo = bypass1(bp,vcf) with {
    [tooltip: Amount of resonance near VCF corner frequency (specified between 0 and 1)]",
    0.9, 0, 1, 0.01));
 
-   outgain  = meter_group(hslider("[1] VCF Output Level [unit:dB]
+   outgain  = mvcf_group(hslider("[3] VCF Output Level [unit:dB] [style:knob]
    [tooltip: output level in decibels]",
    5, -60, 20, 0.1)) : component("music.lib").db2linear : smooth(0.999);
 
@@ -316,7 +316,7 @@ wah4_demo = bypass1(bp, wah4(fr)) with {
        [tooltip: Fourth-order wah effect made using moog_vcf]", x);
   bp = wah4_group(checkbox("[0] Bypass
        [tooltip: When this is checked, the wah pedal has no effect]"));
-  fr = wah4_group(hslider("[1] Resonance Frequency
+  fr = wah4_group(hslider("[1] Resonance Frequency [scale:log]
        [tooltip: wah resonance frequency in Hz]",
      200,100,2000,1));
 // Avoid dc with the moog_vcf (amplitude too high when freq comes up from dc)
@@ -590,14 +590,55 @@ phaser2_demo = bypass2(pbp,phaser2_stereo_demo) with {
    depth  = ctl_group(hslider("[2] Notch Depth (Intensity) [style:knob]", 1, 0, 1, 0.001));
    fb     = ctl_group(hslider("[3] Feedback Gain [style:knob]", 0, -0.999, 0.999, 0.001));
 
-   width  = nch_group(hslider("[1] Notch width [unit:Hz] [style:knob]", 1000, 10, 5000, 1));
-   frqmin = nch_group(hslider("[2] Min Notch1 Freq [unit:Hz] [style:knob]", 100, 20, 5000, 1));
-   frqmax = nch_group(hslider("[3] Max Notch1 Freq [unit:Hz] [style:knob]", 800, 20, 10000, 1)) : max(frqmin);
+   width  = nch_group(hslider("[1] Notch width [unit:Hz] [style:knob] [scale:log]", 1000, 10, 5000, 1));
+   frqmin = nch_group(hslider("[2] Min Notch1 Freq [unit:Hz] [style:knob] [scale:log]", 100, 20, 5000, 1));
+   frqmax = nch_group(hslider("[3] Max Notch1 Freq [unit:Hz] [style:knob] [scale:log]", 800, 20, 10000, 1)) : max(frqmin);
    fratio = nch_group(hslider("[4] Notch Freq Ratio: NotchFreq(n+1)/NotchFreq(n)  [style:knob]", 1.5, 1.1, 4, 0.001));
 
    level  = lvl_group(hslider("Phaser Output Level [unit:dB]", 0, -60, 10, 0.1)) : component("music.lib").db2linear;
 
    mdepth = select2(vibr,depth,2); // Improve "ease of use"
+};
+
+//---------------------------- vocoder -------------------------
+// A very simple vocoder where the spectrum of the modulation signal
+// is analyzed using a filter bank.
+//
+// USAGE: 
+// 		vocoder(nBands,att,rel,BWRatio,source,excitation) : _;
+//
+// where
+// nBands = Number of vocoder bands
+// att = Attack time in seconds
+// rel = Release time in seconds
+// BWRatio = Coefficient to adjust the bandwidth of each band (0.1 - 2)
+// source = Modulation signal
+// excitation = Excitation/Carrier signal
+  
+oneVocoderBand(band,bandsNumb,bwRatio,bandGain,x) = x : resonbp(bandFreq,bandQ,bandGain) with{
+	bandFreq = 25*pow(2,(band+1)*(9/bandsNumb));
+	BW = (bandFreq - 25*pow(2,(band)*(9/bandsNumb)))*bwRatio;
+	bandQ = bandFreq/BW;
+};
+
+vocoder(nBands,att,rel,BWRatio,source,excitation) = source <: par(i,nBands,oneVocoderBand(i,nBands,BWRatio,1) : amp_follower_ar(att,rel) : _,excitation : oneVocoderBand(i,nBands,BWRatio)) :> _ ;
+
+//---------------------------- vocoder_demo -------------------------
+// Use example of the vocoder function where an impulse train is used 
+// as excitation.
+// USAGE: 
+// 		_ : vocoder_demo : _;
+
+vocoder_demo = hgroup("My Vocoder",_,impTrain(freq)*gain : vocoder(bands,att,rel,BWRatio) <: _,_) with{
+	bands = 32;
+	impTrain = component("oscillator.lib").lf_imptrain;
+	vocoderGroup(x) = vgroup("Vocoder",x);
+	att = vocoderGroup(hslider("[0] Attack [style:knob] [tooltip: Attack time in seconds]",5,0.1,100,0.1)*0.001);
+	rel = vocoderGroup(hslider("[1] Release [style:knob] [tooltip: Release time in seconds]",5,0.1,100,0.1)*0.001);
+	BWRatio = vocoderGroup(hslider("[2] BW [style:knob] [tooltip: Coefficient to adjust the bandwidth of each band]",0.5,0.1,2,0.001));
+	excitGroup(x) = vgroup("Excitation",x);
+	freq = excitGroup(hslider("[0] Freq [style:knob]",330,50,2000,0.1));
+	gain = excitGroup(vslider("[1] Gain",0.5,0,1,0.01) : smooth(0.999));
 };
 
 //------------------------- stereo_width(w) ---------------------------
@@ -638,11 +679,12 @@ with {
 
 amp_follower(rel) = abs : env with {
  p = tau2pole(rel);
- env(x) = x * (1.0 - p) : + ~ max(x,_) * p;
+ env(x) = x * (1.0 - p) : (+ : max(x,_)) ~ *(p);
 };
 
 //--------------------------- amp_follower_ud ---------------------------
 // Envelope follower with different up and down time-constants
+// (also called a "peak detector").
 //
 // USAGE:
 //    _ : amp_follower_ud(att,rel) : _
@@ -651,9 +693,76 @@ amp_follower(rel) = abs : env with {
 //  att = attack time = amplitude-envelope time constant (sec) going up
 //  rel = release time = amplitude-envelope time constant (sec) going down
 //
-// For audio, att should be faster (smaller) than rel (e.g., 0.001 and 0.01)
+// NOTE: We assume rel >> att.  Otherwise, consider rel ~ max(rel,att).
+// For audio, att is normally faster (smaller) than rel (e.g., 0.001 and 0.01).
+// Use
+//
+//   _ : amp_follower_ar(att,rel) : _
+//
+// below to remove this restriction.
+//
+// REFERENCE:
+//   "Digital Dynamic Range Compressor Design --- A Tutorial and Analysis", by
+//   Dimitrios Giannoulis, Michael Massberg, and Joshua D. Reiss
+//   http://www.eecs.qmul.ac.uk/~josh/documents/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf
 
 amp_follower_ud(att,rel) = amp_follower(rel) : smooth(tau2pole(att));
+
+// Begin contributions by Jonatan Liljedahl at http://kymatica.com
+// (in addition to his refinement of amp_follower above)
+
+/*****************************************************
+    _ : amp_follower_ar(att,rel) : _;
+
+Envelope follower with independent attack and release times. The
+release can be shorter than the attack (unlike in amp_follower_ud
+above).
+
+*****************************************************/
+
+amp_follower_ar(att,rel) = abs : lag_ud(att,rel);
+
+/*****************************************************
+    _ : lag_ud(up, dn, signal) : _;
+
+    Lag filter with separate times for up and down.
+*****************************************************/
+
+lag_ud(up,dn) = _ <: ((>,tau2pole(up),tau2pole(dn):select2),_:smooth) ~ _;
+
+/*****************************************************
+    _ : peakhold(mode,sig) : _;
+
+    Outputs current max value above zero.
+    'mode' means:
+    0 - Pass through. A single sample 0 trigger will work as a reset.
+    1 - Track and hold max value.
+*****************************************************/
+
+peakhold = (*,_:max) ~ _;
+
+/*****************************************************
+    sweep(period,run);
+
+    Counts from 0 to 'period' samples repeatedly, while 'run' is 1.
+    Outsputs zero while 'run' is 0.
+*****************************************************/
+
+sweep = %(int(*:max(1)))~+(1);
+
+/*****************************************************
+    peakholder(holdtime, sig);
+
+    Tracks abs peak and holds peak for 'holdtime' samples.
+*****************************************************/
+
+peakholder(holdtime) = peakhold2 ~ reset : (!,_) with {
+    reset = sweep(holdtime) > 0;
+    // first out is gate that is 1 while holding last peak
+    peakhold2 = _,abs <: peakhold,!,_ <: >=,_,!;
+};
+
+// End of contributions (so far) by Jonatan Liljedahl at http://kymatica.com
 
 //=============== Gates, Limiters, and Dynamic Range Compression ============
 
@@ -682,12 +791,14 @@ gate_stereo(thresh,att,hold,rel,x,y) = ggm*x, ggm*y with {
   ggm = gate_gain_mono(thresh,att,hold,rel,abs(x)+abs(y));
 };
 
-gate_gain_mono(thresh,att,hold,rel,x) = extendedrawgate : amp_follower_ud(att,rel) with {
-  extendedrawgate = max(float(rawgatesig),holdsig);
-  rawgatesig = inlevel(x) > db2linear(thresh);
-  inlevel(x) = amp_follower_ud(att/2,rel/2,x);
-  holdsig = ((max(holdreset & holdsamps,_) ~-(1)) > 0);
-  holdreset = rawgatesig > rawgatesig'; // reset hold when raw gate falls
+gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : amp_follower_ar(att,rel) with {
+  extendedrawgate(x) = max(float(rawgatesig(x)),holdsig(x));
+  rawgatesig(x) = inlevel(x) > db2linear(thresh);
+  minrate = min(att,rel);
+  inlevel = amp_follower_ar(minrate,minrate);
+  holdcounter(x) = (max(holdreset(x) * holdsamps,_) ~-(1));
+  holdsig(x) = holdcounter(x) > 0;
+  holdreset(x) = rawgatesig(x) < rawgatesig(x)'; // reset hold when raw gate falls
   holdsamps = int(hold*SR);
 };
 
@@ -718,7 +829,7 @@ compressor_stereo(ratio,thresh,att,rel,x,y) = cgm*x, cgm*y with {
 };
 
 compression_gain_mono(ratio,thresh,att,rel) =
-  amp_follower_ud(att,rel) : linear2db : outminusindb(ratio,thresh) :
+  amp_follower_ar(att,rel) : linear2db : outminusindb(ratio,thresh) :
   kneesmooth(att) : db2linear
 with {
   // kneesmooth(att) installs a "knee" in the dynamic-range compression,
@@ -751,14 +862,17 @@ gate_demo = bypass2(gbp,gate_stereo_demo) with {
    gatethr = knob_group(hslider("[1] Threshold [unit:dB] [style:knob]  [tooltip: When the signal level falls below the Threshold (expressed in dB), the signal is muted]",
      -30, -120, 0, 0.1));
 
-   gateatt = knob_group(hslider("[2] Attack [unit:us] [style:knob]  [tooltip: Time constant in MICROseconds (1/e smoothing time) for the gate gain to go (exponentially) from 0 (muted) to 1 (unmuted)]",
+   gateatt = knob_group(hslider("[2] Attack [unit:us] [style:knob] [scale:log]
+     [tooltip: Time constant in MICROseconds (1/e smoothing time) for the gate gain to go (exponentially) from 0 (muted) to 1 (unmuted)]",
      10, 10, 10000, 1)) : *(0.000001) : max(1.0/float(SR));
 
-   gatehold = knob_group(hslider("[3] Hold [unit:ms] [style:knob]  [tooltip: Time in ms to keep the gate open (no muting) after the signal level falls below the Threshold]",
-     200, 0, 1000, 1)) : *(0.001) : max(1.0/float(SR));
+   gatehold = knob_group(hslider("[3] Hold [unit:ms] [style:knob] [scale:log]
+     [tooltip: Time in ms to keep the gate open (no muting) after the signal level falls below the Threshold]",
+     200, 1, 1000, 1)) : *(0.001) : max(1.0/float(SR));
 
-   gaterel = knob_group(hslider("[4] Release [unit:ms] [style:knob]  [tooltip: Time constant in ms (1/e smoothing time) for the gain to go (exponentially) from 1 (unmuted) to 0 (muted)]",
-     100, 0, 1000, 1)) : *(0.001) : max(1.0/float(SR));
+   gaterel = knob_group(hslider("[4] Release [unit:ms] [style:knob] [scale:log]
+     [tooltip: Time constant in ms (1/e smoothing time) for the gain to go (exponentially) from 1 (unmuted) to 0 (muted)]",
+     100, 1, 1000, 1)) : *(0.001) : max(1.0/float(SR));
 };
 
 //---------------------------- compressor_demo -------------------------
@@ -786,21 +900,26 @@ compressor_demo = bypass2(cbp,compressor_stereo_demo) with {
 
    ctl_group(x)  = knob_group(hgroup("[3] Compression Control", x));
 
-   ratio = ctl_group(hslider("[0] Ratio [style:knob]  [tooltip: A compression Ratio of N means that for each N dB increase in input signal level above Threshold, the output level goes up 1 dB]",
+   ratio = ctl_group(hslider("[0] Ratio [style:knob]
+     [tooltip: A compression Ratio of N means that for each N dB increase in input signal level above Threshold, the output level goes up 1 dB]",
      5, 1, 20, 0.1));
 
-   threshold = ctl_group(hslider("[1] Threshold [unit:dB] [style:knob]  [tooltip: When the signal level exceeds the Threshold (in dB), its level is compressed according to the Ratio]",
+   threshold = ctl_group(hslider("[1] Threshold [unit:dB] [style:knob]
+     [tooltip: When the signal level exceeds the Threshold (in dB), its level is compressed according to the Ratio]",
      -30, -100, 10, 0.1));
 
    env_group(x)  = knob_group(hgroup("[4] Compression Response", x));
 
-   attack = env_group(hslider("[1] Attack [unit:ms] [style:knob]  [tooltip: Time constant in ms (1/e smoothing time) for the compression gain to approach (exponentially) a new lower target level (the compression `kicking in')]",
-     50, 0, 500, 0.1)) : *(0.001) : max(1/SR);
+   attack = env_group(hslider("[1] Attack [unit:ms] [style:knob] [scale:log]
+     [tooltip: Time constant in ms (1/e smoothing time) for the compression gain to approach (exponentially) a new lower target level (the compression `kicking in')]",
+     50, 1, 1000, 0.1)) : *(0.001) : max(1/SR);
 
-   release = env_group(hslider("[2] Release [unit:ms] [style: knob]  [tooltip: Time constant in ms (1/e smoothing time) for the compression gain to approach (exponentially) a new higher target level (the compression 'releasing')]",
-     500, 0, 1000, 0.1)) : *(0.001) : max(1/SR);
+   release = env_group(hslider("[2] Release [unit:ms] [style: knob] [scale:log]
+     [tooltip: Time constant in ms (1/e smoothing time) for the compression gain to approach (exponentially) a new higher target level (the compression 'releasing')]",
+     500, 1, 1000, 0.1)) : *(0.001) : max(1/SR);
 
-   makeupgain = comp_group(hslider("[5] Makeup Gain [unit:dB]  [tooltip: The compressed-signal output level is increased by this amount (in dB) to make up for the level lost due to compression]",
+   makeupgain = comp_group(hslider("[5] Makeup Gain [unit:dB]
+     [tooltip: The compressed-signal output level is increased by this amount (in dB) to make up for the level lost due to compression]",
      40, -96, 96, 0.1)) : db2linear;
 };
 
@@ -901,9 +1020,66 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
     rev2N( 16, 12,0.7);
 };
 
-//-------------------------------- freeverb --------------------------------
-// Freeverb is a widely used, free, open-source Schroeder reverb contributed
-// by ``Jezar at Dreampoint.'' See <faust_distribution>/examples/freeverb.dsp
+//---------------------------- mono_freeverb, stereo_freeverb -------------------------
+// A simple Schroeder reverberator primarily developed by "Jezar at Dreampoint" that 
+// is extensively used in the free-software world. It uses four Schroeder allpasses in 
+// series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each 
+//audio channel, and is said to be especially well tuned. 
+//
+// USAGE: 
+// 		_ : mono_freeverb(fb1, fb2, damp, spread) : _;
+// or
+// 		_,_ : stereo_freeverb(fb1, fb2, damp, spread) : _,_;
+//
+// where
+// fb1 = coefficient of the lowpass comb filters (0-1)
+// fb2 = coefficient of the allpass comb filters (0-1)
+// damp = damping of the lowpass comb filter (0-1)
+// spread = spatial spread in number of samples (for stereo)
+
+mono_freeverb(fb1, fb2, damp, spread) = _ <: par(i,8,lbcf(combtuningL(i)+spread,fb1,damp)) :> seq(i,4,allpass_comb(1024, allpasstuningL(i)+spread, -fb2))
+with{
+	origSR = 44100;
+	
+	// Filters parameters 
+	combtuningL(0) = 1116*SR/origSR : int;
+	combtuningL(1) = 1188*SR/origSR : int;
+	combtuningL(2) = 1277*SR/origSR : int;
+	combtuningL(3) = 1356*SR/origSR : int;
+	combtuningL(4) = 1422*SR/origSR : int;
+	combtuningL(5) = 1491*SR/origSR : int;
+	combtuningL(6) = 1557*SR/origSR : int;
+	combtuningL(7) = 1617*SR/origSR : int;
+
+	allpasstuningL(0) = 556*SR/origSR : int;
+	allpasstuningL(1) = 441*SR/origSR : int;
+	allpasstuningL(2) = 341*SR/origSR : int;
+	allpasstuningL(3) = 225*SR/origSR : int;
+	// Lowpass Feedback Combfiler: 
+	// https://ccrma.stanford.edu/~jos/pasp/Lowpass_Feedback_Comb_Filter.html
+	lbcf(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
+};
+
+stereo_freeverb(fb1, fb2, damp, spread) =  + <: mono_freeverb(fb1, fb2, damp,0), mono_freeverb(fb1, fb2, damp, spread);
+
+//---------------------------- freeverb_demo -------------------------
+// USAGE: _,_ : freeverb_demo : _,_;
+//
+
+freeverb_demo = _,_ <: (*(g)*fixedgain,*(g)*fixedgain : stereo_freeverb(combfeed, allpassfeed, damping, spatSpread)), *(1-g), *(1-g) :> _,_ with{
+	scaleroom   = 0.28;
+	offsetroom  = 0.7;
+	allpassfeed = 0.5;
+	scaledamp   = 0.4;
+	fixedgain   = 0.1;
+	origSR = 44100;
+	parameters(x) = hgroup("Freeverb",x);
+	knobGroup(x) = parameters(vgroup("[0]",x));
+	damping = knobGroup(vslider("[0] Damp [style: knob] [tooltip: Somehow control the density of the reverb.]",0.5, 0, 1, 0.025)*scaledamp*origSR/SR);
+	combfeed = knobGroup(vslider("[1] RoomSize [style: knob] [tooltip: The room size between 0 and 1 with 1 for the largest room.]", 0.5, 0, 1, 0.025)*scaleroom*origSR/SR + offsetroom);
+	spatSpread = knobGroup(vslider("[2] Stereo Spread [style: knob] [tooltip: Spatial spread between 0 and 1 with 1 for maximum spread.]",0.5,0,1,0.01)*46*SR/origSR : int);
+	g = parameters(vslider("[1] Wet [tooltip: The amount of reverb applied to the signal between 0 and 1 with 1 for the maximum amount of reverb.]", 0.3333, 0, 1, 0.025));
+};
 
 //=============== Feedback Delay Network (FDN) Reverberators  ==============
 
@@ -1065,21 +1241,21 @@ with {
   loopgainmax = 1.0-0.5*quench_group(button("[1] Quench
          [tooltip: Hold down 'Quench' to clear the reverberator]"));
 
-  pathmin = path_group(hslider("[1] min acoustic ray length [unit:m]
+  pathmin = path_group(hslider("[1] min acoustic ray length [unit:m] [scale:log]
     [tooltip: This length (in meters) determines the shortest delay-line used in the FDN reverberator.
     	      Think of it as the shortest wall-to-wall separation in the room.]",
 	    46, 0.1, 63, 0.1));
-  pathmax = path_group(hslider("[2] max acoustic ray length [unit:m]
+  pathmax = path_group(hslider("[2] max acoustic ray length [unit:m] [scale:log]
     [tooltip: This length (in meters) determines the longest delay-line used in the FDN reverberator.
     	      Think of it as the largest wall-to-wall separation in the room.]",
 	    63, 0.1, 63, 0.1));
 
-  durvals(i) = t60_group(vslider("[%i] %i [unit:s]
+  durvals(i) = t60_group(vslider("[%i] %i [unit:s] [scale:log]
     [tooltip: T60 is the 60dB decay-time in seconds. For concert halls, an overall reverberation time (T60) near 1.9 seconds is typical [Beranek 2004]. Here we may set T60 independently in each frequency band.  In real rooms, higher frequency bands generally decay faster due to absorption and scattering.]",
-    take(i+1,defdurs), 0.1, 10, 0.1));
+    take(i+1,defdurs), 0.1, 100, 0.1));
   durs = par(i,NB,durvals(NB-1-i));
 
-  freqvals(i) = freq_group(hslider("[%i] Band %i upper edge in Hz [unit:Hz]
+  freqvals(i) = freq_group(hslider("[%i] Band %i upper edge in Hz [unit:Hz] [scale:log]
     [tooltip: Each delay-line signal is split into frequency-bands for separate decay-time control in each band]",
     take(i+1,deffreqs), 100, 10000, 1));
   freqs = par(i,NB-1,freqvals(i));
@@ -1198,13 +1374,13 @@ with {
     [style:knob]
     [tooltip: T60 = time (in seconds) to decay 60dB in low-frequency band]",
     3, 1, 8, 0.1));
-  f1 = fdn_group(vslider("[2] LF X [unit:Hz] [style:knob]
+  f1 = fdn_group(vslider("[2] LF X [unit:Hz] [style:knob] [scale:log]
     [tooltip: Crossover frequency (Hz) separating low and middle frequencies]",
     200, 50, 1000, 1));
-  t60m = fdn_group(vslider("[3] Mid RT60 [unit:s] [style:knob]
+  t60m = fdn_group(vslider("[3] Mid RT60 [unit:s] [style:knob] [scale:log]
     [tooltip: T60 = time (in seconds) to decay 60dB in middle band]",
     2, 1, 8, 0.1));
-  f2 = fdn_group(vslider("[4] HF Damping [unit:Hz] [style:knob]
+  f2 = fdn_group(vslider("[4] HF Damping [unit:Hz] [style:knob] [scale:log]
     [tooltip: Frequency (Hz) at which the high-frequency T60 is half the middle-band's T60]",
     6000, 1500, 0.49*fsmax, 1));
 };
@@ -1286,19 +1462,19 @@ with {
 
   freq_group(x) = fdn_group(hgroup("[2] Decay Times in Bands (see tooltips)", x));
 
-  f1 = freq_group(vslider("[1] LF X [unit:Hz] [style:knob]
+  f1 = freq_group(vslider("[1] LF X [unit:Hz] [style:knob] [scale:log]
        [tooltip: Crossover frequency (Hz) separating low and middle frequencies]",
        200, 50, 1000, 1));
 
-  t60dc = freq_group(vslider("[2] Low RT60 [unit:s] [style:knob]
+  t60dc = freq_group(vslider("[2] Low RT60 [unit:s] [style:knob] [scale:log]
           [style:knob] [tooltip: T60 = time (in seconds) to decay 60dB in low-frequency band]",
 	  3, 1, 8, 0.1));
 
-  t60m = freq_group(vslider("[3] Mid RT60 [unit:s] [style:knob]
+  t60m = freq_group(vslider("[3] Mid RT60 [unit:s] [style:knob] [scale:log]
           [tooltip: T60 = time (in seconds) to decay 60dB in middle band]",
 	  2, 1, 8, 0.1));
 
-  f2 = freq_group(vslider("[4] HF Damping [unit:Hz] [style:knob]
+  f2 = freq_group(vslider("[4] HF Damping [unit:Hz] [style:knob] [scale:log]
        [tooltip: Frequency (Hz) at which the high-frequency T60 is half the middle-band's T60]",
        6000, 1500, 0.49*fsmax, 1));
 
@@ -1315,7 +1491,7 @@ with {
 
   eq1_group(x) = fdn_group(hgroup("[3] RM Peaking Equalizer 1", x));
 
-  eq1f = eq1_group(vslider("[1] Eq1 Freq [unit:Hz] [style:knob]
+  eq1f = eq1_group(vslider("[1] Eq1 Freq [unit:Hz] [style:knob] [scale:log]
        [tooltip: Center-frequency of second-order Regalia-Mitra peaking equalizer section 1]",
        315, 40, 2500, 1));
 
@@ -1329,9 +1505,9 @@ with {
 
   eq2_group(x) = fdn_group(hgroup("[4] RM Peaking Equalizer 2", x));
 
-  eq2f = eq2_group(vslider("[1] Eq2 Freq [unit:Hz] [style:knob]
+  eq2f = eq2_group(vslider("[1] Eq2 Freq [unit:Hz] [style:knob] [scale:log]
        [tooltip: Center-frequency of second-order Regalia-Mitra peaking equalizer section 2]",
-       315, 40, 2500, 1));
+       1500, 160, 10000, 1));
 
   eq2l = eq2_group(vslider("[2] Eq2 Level [unit:dB] [style:knob]
        [tooltip: Peak level in dB of second-order Regalia-Mitra peaking equalizer section 2]",

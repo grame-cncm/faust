@@ -1,0 +1,117 @@
+QPushButton{
+min-width : 80px;
+border: 2px solid grey;
+border-radius: 6px;
+margin-top: 1ex;
+border-color: #811453;
+background-color: transparent;
+}
+
+QPushButton:hover{
+border: 2px;
+border-radius: 6px;
+border-color: #811453;
+background-color: #6A455D;
+}
+
+QPushButton:pressed{
+background-color: #6A455D;
+border-radius: 6px;
+border-color: #811453;
+}
+
+QGroupBox{
+subcontrol: .QGroupBox;
+margin-top: 3ex;
+font-size: 10pt;
+font-weight: bold;
+color: black;
+}
+
+QGroupBox::title {
+subcontrol-origin: margin;
+subcontrol-position: top center;
+padding: 0 5px;
+color: black;
+}
+
+QMainWindow {
+margin-top: 3ex;
+font-size:10pt;
+font-weight:bold;
+color: black;
+}
+
+QPlainTextEdit, QTextEdit{
+background-color: transparent;
+border: 2px solid gray;
+border-radius: 5px;
+top: 3px;
+margin-top: 3ex;
+font-size:12pt;
+font-weight:bold;
+color: black;
+}
+
+QTextBrowser {
+color: black;
+}
+QTextBrowser:document{
+text-decoration: underline;
+color: black;
+font: Menlo;
+font-size: 14px
+}
+
+QLabel{
+color : black;
+background: transparent;
+}
+
+QSlider::groove:vertical {
+background: red;
+position: absolute; 
+left: 13px; right: 13px;
+}
+
+QSlider::handle:vertical {
+height: 40px;
+width: 30px;
+background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #E67E30, stop : 0.05 #AD4F09, stop: 0.3 #E67E30, stop : 0.90 #AD4F09, stop: 0.91 #AD4F09);
+margin: 0 -5px;
+border-radius: 5px;
+}
+
+QSlider::add-page:vertical {
+background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0,
+stop: 0 #6A455D, stop : 0.5 #6A455D);
+}
+
+QSlider::sub-page:vertical {
+background: grey;
+}
+
+QSlider::groove:horizontal {
+background: red;
+position: absolute;
+top: 14px; bottom: 14px;
+}
+
+QSlider::handle:horizontal {
+width: 40px;
+background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #E67E30, stop : 0.05 #AD4F09, stop: 0.3 #E67E30, stop : 0.90 #AD4F09, stop: 0.91 #AD4F09);
+margin: -5px 0;
+border-radius: 5px;
+}
+
+QSlider::sub-page:horizontal {
+background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6A455D, stop : 0.5 #6A455D);
+}
+
+QSlider::add-page:horizontal {
+background: grey;
+}
+
+QListWidget{
+background-color: transparent;
+}

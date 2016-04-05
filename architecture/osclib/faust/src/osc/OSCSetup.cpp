@@ -42,29 +42,35 @@ class OscThread : public TThreads
         ErrorCallback fErrCallback;
         void*         fArg;
 	
-				 OscThread(MessageProcessor* mp, int udpport)  
-							 { fListener = OSCListener::create (mp, udpport); }
-    
-                OscThread(MessageProcessor* mp, int udpport, ErrorCallback errCallback, void* arg){
-                        fListener = OSCListener::create (mp, udpport);
-                    fErrCallback = errCallback;
-                    fArg = arg;
-                }
+        OscThread(MessageProcessor* mp, int udpport) { fListener = OSCListener::create(mp, udpport); }
+
+        OscThread(MessageProcessor* mp, int udpport, ErrorCallback errCallback, void* arg)
+        {
+            fListener = OSCListener::create(mp, udpport);
+            fErrCallback = errCallback;
+            fArg = arg;
+        }
 		virtual ~OscThread() { stop(); }
 
 		/// \brief starts the osc listener
-    void run ()				{ 
-        try {
-            fListener->run(); 
+        void run()				
+        { 
+            try {
+                fListener->run(); 
+            }
+            catch (osc::Exception& e) {
+                if (fErrCallback != NULL) {
+                    (*fErrCallback)(fArg);
+                }
+            }        
+            catch (std::runtime_error& err) {
+                if (fErrCallback != NULL) {
+                    (*fErrCallback)(fArg);
+                }
+            }
         }
-        catch (...) {
-            
-            if(fErrCallback != NULL)
-                (*fErrCallback)(fArg);
-        }
-        }
-		void stop ()			{ fListener->stop(); quit(); }
-		SOSCListener&	listener()		{ return fListener; }
+		void stop()	{ fListener->stop(); quit(); }
+		SOSCListener& listener() { return fListener; }
 };
 
 //--------------------------------------------------------------------------
@@ -72,7 +78,7 @@ OSCSetup::~OSCSetup()			{ stop(); }
 bool OSCSetup::running() const	{ return fOSCThread ? fOSCThread->isRunning() : false; }
 
 //--------------------------------------------------------------------------
-bool OSCSetup::start(MessageProcessor* mp, int& inPort, int outPort, int errPort, const char* address )
+bool OSCSetup::start(MessageProcessor* mp, int& inPort, int outPort, int errPort, const char* address)
 {
 	int port = inPort;
 	bool done = false;
@@ -83,13 +89,13 @@ bool OSCSetup::start(MessageProcessor* mp, int& inPort, int outPort, int errPort
 			oscerr.setPort (errPort);
 			oscout.setAddress(address);
 			oscerr.setAddress(address);
-			fOSCThread = new OscThread (mp, port, fErrCallback, fArg);
+			fOSCThread = new OscThread(mp, port, fErrCallback, fArg);
             fOSCThread->start();
 			done = true;
 		}
-//        In case the OSC Listener could not be allocated = PORT IS BUSY
+        // In case the OSC Listener could not be allocated = PORT IS BUSY
 		catch (std::runtime_error e) {
-			if ( port - inPort > 1000) return false;
+			if (port - inPort > 1000) return false;
 			do {
 				port++;
 			} while ((port == outPort) || (port == errPort));

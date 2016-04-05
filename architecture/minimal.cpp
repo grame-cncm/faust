@@ -15,12 +15,16 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  ************************************************************************
  ************************************************************************/
+ 
+ #include <math.h>
+#include <algorithm>
 
-#include <cmath>
+#include "faust/gui/UI.h"
+#include "faust/gui/meta.h"
+#include "faust/audio/dummy-audio.h"
 
-#include "faust/gui/GUI.h"
-#include "faust/audio/dsp.h"
-#include "faust/misc.h"
+using std::max;
+using std::min;
 
 /******************************************************************************
 *******************************************************************************
@@ -45,3 +49,15 @@
 //----------------------------------------------------------------------------
 
 <<includeclass>>
+
+int main(int argc, char *argv[])
+{
+    mydsp DSP;
+
+    dummy_audio audio(BUFFER_TO_RENDER);
+    audio.init("Test", &DSP);
+    audio.start();
+    // Render BUFFER_TO_RENDER buffers...
+    audio.stop();
+}
+

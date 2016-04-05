@@ -41,20 +41,20 @@ template <typename C> class jsonui
 		virtual ~jsonui()				{ delete fFactory; }
 
 		// -- widget's layouts
-		virtual void openTabBox(const char* label)					{ fFactory->opengroup( "tgroup", label); }
-		virtual void openHorizontalBox(const char* label)			{ fFactory->opengroup( "hgroup", label); }
-		virtual void openVerticalBox(const char* label)				{ fFactory->opengroup( "vgroup", label); }
+		virtual void openTabBox(const char* label)					{ fFactory->opengroup("tgroup", label, fMeta); fMeta.clear(); }
+		virtual void openHorizontalBox(const char* label)			{ fFactory->opengroup("hgroup", label, fMeta); fMeta.clear(); }
+		virtual void openVerticalBox(const char* label)				{ fFactory->opengroup("vgroup", label, fMeta); fMeta.clear(); }
 		virtual void closeBox()										{ fFactory->closegroup(); }
 
 		// -- active widgets
-		virtual void addButton(const char* label, C* zone)			{ fFactory->addnode<C>( "button", label, fMeta); fMeta.clear();}
-		virtual void addCheckButton(const char* label, C* zone)		{ fFactory->addnode<C>( "checkbox", label, fMeta); fMeta.clear();}
+		virtual void addButton(const char* label, C* zone)			{ fFactory->addnode<C>( "button", label, fMeta); fMeta.clear(); }
+		virtual void addCheckButton(const char* label, C* zone)		{ fFactory->addnode<C>( "checkbox", label, fMeta); fMeta.clear(); }
 		virtual void addVerticalSlider(const char* label, C* zone, C init, C min, C max, C step)
-							{ fFactory->addnode<C>( "vslider", label, init, min, max, step, fMeta); fMeta.clear();}
+							{ fFactory->addnode<C>( "vslider", label, init, min, max, step, fMeta); fMeta.clear(); }
 		virtual void addHorizontalSlider(const char* label, C* zone, C init, C min, C max, C step)
-							{ fFactory->addnode<C>( "hslider", label, init, min, max, step, fMeta); fMeta.clear();}
+							{ fFactory->addnode<C>( "hslider", label, init, min, max, step, fMeta); fMeta.clear(); }
 		virtual void addNumEntry(const char* label, C* zone, C init, C min, C max, C step)
-							{ fFactory->addnode<C>( "nentry", label, init, min, max, step, fMeta); fMeta.clear();}
+							{ fFactory->addnode<C>( "nentry", label, init, min, max, step, fMeta); fMeta.clear(); }
 
 		// -- passive widgets
 		virtual void addHorizontalBargraph(const char* label, C* zone, C min, C max)		{ fFactory->addnode<C>( "hbargraph", label, min, max, fMeta); fMeta.clear();}
@@ -66,14 +66,14 @@ template <typename C> class jsonui
 		//--------------------------------------------
 		// additionnal methods (not part of UI)
 		//--------------------------------------------
-		void numInput( int n )								{ fFactory->root().setInputs(n); }
-		void numOutput( int n )								{ fFactory->root().setOutputs(n); }
+		void numInput(int n)								{ fFactory->root().setInputs(n); }
+		void numOutput(int n)								{ fFactory->root().setOutputs(n); }
 		void declare(const char* key, const char* val)		{ fFactory->root().declare(key, val);}
 
 		//--------------------------------------------
 		// and eventually how to get the json as a string
 		//--------------------------------------------
-		std::string json ()							{ return fFactory->root().json(); }
+		std::string json(bool flatten)				{ return fFactory->root().json(flatten); }
 };
 
 } //end namespace

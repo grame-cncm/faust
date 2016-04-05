@@ -79,14 +79,15 @@ These OSC parameters can be changed from the command line using one of the follo
 %	-outport number
 %	-errport number
 %	-desthost host
-%	-xmit	0|1 
+%	-xmit	0|1|2 
 %\end{lstlisting}
 \begin{itemize}
 \item \lstinline'-port number' set the port number used by the application to receive messages.
 \item \lstinline'-outport number' set the port number used by the application to transmit messages.
 \item \lstinline'-errport number' set the port number used by the application to transmit error messages.
 \item \lstinline'-desthost host' set the destination host for the messages sent by the application.
-\item \lstinline'-xmit 1|0' turn transmission ON or OFF (default OFF). When transmission is ON user's actions are transmitted as OSC messages.
+\item \lstinline'-xmit 0|1|2' turn transmission OFF, ALL, or ALIAS (default OFF). When transmission is OFF, input elements can be controlled using their addresses or aliases (if present). When transmission is ALL, input elements can be controlled using their addresses or aliases (if present), user's actions and output elements (bargraph) are transmitted as OSC messages as well as aliases (if present). When transmission is ALIAS,  input elements can only be controlled using their aliases, user's actions and output elements (bargraph) are transmitted as aliases only.
+\item \lstinline'-xmitfilter path' allows to filter output messages. Note that 'path' can be a regular expression (like "/freeverb/Reverb1/*").
 \end{itemize}
 
 For example:
@@ -221,7 +222,7 @@ The xmit message at the root level is used to control the realtime transmission 
 	T1$ oscsend localhost 5510 /noise si xmit 1
 \end{lstlisting}
 
-turns transmission on. Now if we move the level slider we get a bunch of messages:
+turns transmission in ALL mode. Now if we move the level slider we get a bunch of messages:
 
 \begin{lstlisting}
 	T2: /noise/level f 0.024000
@@ -243,10 +244,46 @@ This feature can be typically used for automation to record and replay actions o
 	T1$ oscsend localhost 5510 /noise si xmit 0
 \end{lstlisting}
 
+Use the ALIAS (xmit = 2) mode if you need restricted access to your program: when ALIAS is mode is used, only aliases of input elements (sliders, buttons...) can be used to control them, and output elements (bargraph) will only emit on their aliases.
+
+\section{Filtering OSC messages}
+
+When the transmission of OSC messages is ON, all the user interface elements are sent through the OSC connection.  
+
+\begin{lstlisting}
+	T2: /harpe/level f 0.024000
+	T2: /harpe/hand f 0.1
+	T2: /harpe/level f 0.024000
+	T2: /harpe/hand f 0.25
+	T2: /harpe/level f 0.024000
+	T2: /harpe/hand f 0.44
+	T2: /noise/level f 0.145000
+	T2: /harpe/hand f 0.78
+	T2: /noise/level f 0.145000
+	T2: /harpe/hand f 0.99
+\end{lstlisting}
+
+We can choose to filter the unwanted parameters (or group of parameters).  For example:
+\begin{lstlisting}
+	T1$ oscsend localhost 5510 /harpe si xmit 1 xmitfilter /harpe/level
+\end{lstlisting}
+
+As a result, we will receive:
+\begin{lstlisting}
+	T2: /harpe/hand f 0.1
+	T2: /harpe/hand f 0.25
+	T2: /harpe/hand f 0.44
+	T2: /harpe/hand f 0.78
+\end{lstlisting}
+
+To reset the filter, send:
+\begin{lstlisting}
+	T1$ oscsend localhost 5510 /harpe si xmit 1 xmitfilter
+\end{lstlisting}
 
 \section{Using OSC aliases}
 
-Aliases are a convenient mechanism to control a FAUST application from a preexisting set of OSC messages. 
+Aliases are a convenient mechanism to control a \faust application from a preexisting set of OSC messages. 
 
 Let's say we want to control our noise example with touchOSC on Android. The first step is to configure TouchOSC host to 192.168.1.102 (the host running our noise application) and outgoing port to 5510. 
 
@@ -295,8 +332,6 @@ As we can see TouchOSC send the x, y and z accelerometers in a single message, a
 \begin{lstlisting}
  process = library("music.lib").noise * hslider("level[osc:/accxyz/0 0 9.81]",0,0,1,0.01);
 \end{lstlisting}
-
-
 
 \begin{table}[htdp]
 \begin{center}
@@ -354,7 +389,8 @@ As we can see TouchOSC send the x, y and z accelerometers in a single message, a
 \lstinline'-outport' $n$ & set the port number used by the application to transmit messages\\
 \lstinline'-errport' $n$ & set the port number used by the application to transmit error messages\\
 \lstinline'-desthost' $h$ & set the destination host for the messages sent by the application\\
-\lstinline'-xmit 1|0' & turn transmission ON or OFF (default OFF)
+\lstinline'-xmit 0|1|2' & turn transmission OFF, ALL or ALIAS (default OFF) \\
+\lstinline'-xmitfilter' $s$ & filter the \faust paths at emission time
 \end{tabular}
 
 \subsection*{Discovery messages}
@@ -367,7 +403,7 @@ As we can see TouchOSC send the x, y and z accelerometers in a single message, a
 \subsection*{Control messages}
 
 \begin{tabular}{ll}
-\lstinline'oscsend' \emph{host} \emph{port} \lstinline'"/*"' \lstinline'si xmit 0|1' & set transmission mode \\
+\lstinline'oscsend' \emph{host} \emph{port} \lstinline'"/*"' \lstinline'si xmit 0|1|2' & set transmission mode \\
 \lstinline'oscsend' \emph{host} \emph{port} \emph{widget} \lstinline's get' & get widget's value \\
 \lstinline'oscsend' \emph{host} \emph{port} \emph{widget} \lstinline'f' $v$ & set widget's value
 \end{tabular}

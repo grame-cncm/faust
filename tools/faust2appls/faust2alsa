@@ -1,6 +1,7 @@
 #!/bin/bash
 
 OSCDEFS=""
+
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to alsa-gtk                 #
@@ -34,6 +35,14 @@ done
 
 #PHASE 2 : dispatch command arguments
 for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2alsa [-http] [-qrcode] [-midi] [-osc] <file.dsp>"
+        echo "Use '-http' to activate HTTP control"
+        echo "Use '-qrcode' to activate QR code generation"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-midi' to activate MIDI control"
+        echo "Use '-osc' to activate OSC control"
+    fi
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
             OMP="-openmp"
@@ -44,10 +53,16 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-poly" ]; then
+        POLYDEFS="-DPOLY"
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="-DMIDICTRL"
     elif [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -L$FAUSTLIB -lOSCFaust -loscpack"
+	 OSCDEFS="-DOSCCTRL -lOSCFaust"
+	 YPATH="-L/usr/local/lib"
     elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -L$FAUSTLIB -lHTTPDFaust -lmicrohttpd"
+	 HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+	 YPATH="-L/usr/local/lib"
     elif [ $p = "-arch32" ]; then
 	PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
@@ -61,27 +76,23 @@ for p in $@; do
 	fi
 done
 
-
-
-	
 #-------------------------------------------------------------------
 # compile the *.dsp files using ALSA and GTK on linux
 #
 for f in $FILES; do
 	
 	# compile faust to c++
-	faust -i -a alsa-gtk.cpp $OPTIONS "$f" -o "$f.cpp"
+	faust -i -a alsa-gtk.cpp $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa gtk+-2.0` $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
-	) > /dev/null
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa gtk+-2.0` $PROCARCH $YPATH $OSCDEFS $HTTPDEFS $POLYDEFS $MIDIDEFS -o "${f%.dsp}"
+	)> /dev/null  || exit
 	rm "$f.cpp"
 
 	# collect binary file name for FaustWorks
 	BINARIES="$BINARIES${f%.dsp};"
 done
-
 
 echo $BINARIES
 

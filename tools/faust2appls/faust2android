@@ -3,142 +3,146 @@
 #####################################################################
 #                                                                   #
 #               Compile a Faust program to an android app           #
-#               (c) Romain Michon CCRMA and Grame, 2013             #
+#               (c) Romain Michon CCRMA and Grame, 2014             #
+#               (c) Yann Orlarey Grame, 2015             			#
 #                                                                   #
 #####################################################################
 
+# change if you want to get the log of what's happening
+LOG="/dev/null"
 
+# exit if a command fails
 set -e
 
-# make sure we always execute this script with the appropriate $PATH definition
-NDKBUILD=$(which ndk-build)
-if [ -z "$NDKBUILD" ]
-then
-	if [ -f ~/.profile ]
-	then
-		. ~/.profile
-	fi
-	if [ -f ~/.bashrc ]
-	then
-		. ~/.bashrc
-	fi
-fi
-
-# create the temporary directory were compilation will take place
-TMPFILES=$(mktemp -d faust.XXX)
-
-cp -r /usr/local/lib/faust/android/*  $TMPFILES
-
-# Global variables for options
+# Global variables for file and options
+FILE=
 INSTALL=0
-ECLIPSE=0
-
-LOG="/dev/null"
+SOURCE=0
+SWIG=0
+FAUST=0
+KEYBOARD=0
+REUSE=0
 
 # PHASE 2 : dispatch command arguments
 for p in $@; do
+	if [ $p = "-swig" ]; then
+		SWIG=1
+	fi
 	if [[ -f "$p" ]]; then
-	    FILES="$FILES $p"
+	    FILE="$p"
 	elif [ $p = "-install" ]; then
 		INSTALL=1
-	elif [ $p = "-eclipse" ]; then
-		ECLIPSE=1
+	elif [ $p = "-source" ]; then
+		SOURCE=1
+	elif [ $p = "-faust" ]; then
+		FAUST=1
+	elif [ $p = "-reuse" ]; then
+		REUSE=1
+	elif [ $p = "-keyboard" ]; then
+		KEYBOARD=1
 	elif [ $p = "-debug" ]; then
 		LOG="/dev/stdout"
+    elif [ "$p" = "-noagc" ]; then
+        NOAGC="1"
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
 	elif [ $p = "-h" ]; then
 		echo "Usage: faust2android faustFile.dsp"
 		echo "OPTIONS:"
-		echo "-install : once compilation is over, installs the generated app on the Android device connected to the computer."
-		echo "-eclipse : creates an eclipse project of the app in the current directory."
+		echo "-install: once compilation is over, installs the generated app on the Android device connected to the computer."
+		echo "-source: creates an eclipse project of the app in the current directory."
 		echo "Any other options are considered as Faust options. To get a list of the Faust options type: faust -h."
+		echo "-swig: regenerate the C++ and the JAVA interface for the native portion of the app."
+		echo "-faust: only carries out the Faust compilation and install the generated C++ file in the JNI folder."
+		echo "-reuse: keep build directory and reuse it to speedup compilation."
+		echo "-debug: verbose output."
 		exit 1
 	else
 	    OPTIONS="$OPTIONS $p"        
 	fi
 done
 
-# Faust compilation
-for f in $FILES; do
-	faust -xml -i -a android.cpp "$f" -o "$TMPFILES/jni/mydsp.cpp"
-done
+# only carry out the faust compilation 
+if [ $FAUST -eq 1 ]; then
+	faust -i -a android.cpp $OPTIONS "$FILE" -o "app/src/main/jni/dsp_faust.cpp"
+	exit 1
+fi
+ 
+# Create the temporary directory where compilation will take place
 
-# Copy include files *.h if any (ignore any error here)
-(cp *.h "$TMPFILES/jni/" 2> /dev/null) || true
+APPNAME=$(basename "$FILE")
+APPNAME="${APPNAME%.dsp}"
+BUILDDIR="faustandro.$APPNAME"
+APPFOLDER="$BUILDDIR/app/src/main"
+JNIFOLDER="$APPFOLDER/jni"
 
-# Get the number of input and output of the Faust object 
-NINPUTS=$(cat "$f.xml" | grep \<inputs\> | awk '{sub(/.*<inputs>/,"");sub(/<\/inputs>.*/,"");print;}')
-NOUTPUTS=$(cat "$f.xml" | grep \<outputs\> | awk '{sub(/.*<outputs>/,"");sub(/<\/outputs>.*/,"");print;}')
-
-# If the number of input signals is greater than one, they are merged into one signal
-if [ $NINPUTS -gt 1 -o $NOUTPUTS -gt  2 ]; then
-	if [ $NINPUTS -gt  1 ]; then
-		INMOD="_ <:"
-		echo "Your Faust object has more than one inputs!"
-	elif [ $NOUTPUTS -gt  2 ]; then
-		OUTMOD=":> _,_"
-		echo "Your Faust object has more than two outputs!"
+if [ $REUSE -eq 0 ]; then
+	if [ -d "$BUILDDIR" ]; then
+		echo "Delete existing Android project $BUILDDIR" > $LOG
+		rm -rf "$BUILDDIR"
 	fi
-	echo "It was modified as follows:"
-	echo "process = $INMOD component(\"$f\") $OUTMOD;"
-	echo "process = $INMOD component(\"$f\") $OUTMOD;" > tmpMOD.dsp
-	faust -xml -i -a android.cpp tmpMOD.dsp -o "$TMPFILES/jni/mydsp.cpp"
-	rm tmpMOD.dsp
-	rm tmpMOD.dsp.xml
+fi
+		
+if [ ! -d "$BUILDDIR" ]; then
+  	echo "Creating new Android project $BUILDDIR"  > $LOG
+  	
+  	mkdir -p "$BUILDDIR"
+	cp -r /usr/local/lib/faust/android/*  "$BUILDDIR"
+	# Copy include files *.h if any (ignore any error here)
+	(cp *.h $JNIFOLDER 2> $LOG) || true
+	
+	# change 'faust' with real *APPNAME
+	PLATFORM=$(uname)
+
+	if [ $PLATFORM = "Darwin" ]; then
+		sed -i '' 's,com.faust,com.'$APPNAME',g' $BUILDDIR/app/build.gradle
+        if [ "$NOAGC" = "1" ]; then
+            sed -i '' 's,-DDISABLE_AGC,'-DDISABLE_AGC',g' $BUILDDIR/app/build.gradle
+        else
+            sed -i '' 's,-DDISABLE_AGC,'',g' $BUILDDIR/app/build.gradle
+        fi
+		sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/faust/*
+		sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
+		sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
+		sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/res/layout/*
+		sed -i '' 's,1,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
+	else
+		sed -i 's,com.faust,com.'$APPNAME',g' $BUILDDIR/app/build.gradle
+        if [ "$NOAGC" = "1" ]; then
+            sed -i 's,-DDISABLE_AGC,'-DDISABLE_AGC',g' $BUILDDIR/app/build.gradle
+        else
+            sed -i 's,-DDISABLE_AGC,'',g' $BUILDDIR/app/build.gradle
+        fi
+		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/faust/*
+		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
+		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
+		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/res/layout/*
+		sed -i 's,1,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
+	fi
+	
+	mv $APPFOLDER/java/com/faust $APPFOLDER/java/com/$APPNAME
+
+	# TODO wrong: should be checked
+	if [ $SWIG -eq 1 ]; then
+		rm -rf $APPFOLDER/java/com/dsp_faust || true
+		mkdir -p $APPFOLDER/java/com/dsp_faust
+		swig -java -package com.dsp_faust -includeall -verbose -outdir $APPFOLDER/java/com/dsp_faust -c++ -I/usr/local/include -I/System/Library/Frameworks/JavaVM.framework/Headers -I$JNIFOLDER -o $JNIFOLDER/java_interface_wrap.cpp $BUILDDIR/dsp_faust_interface.i
+	fi
+else
+	echo "Reusing existing Android project $BUILDDIR" > $LOG
 fi
 
-# Declare global variables in the C++ code for the number of parameters
-echo 'const int numbParams = '$(cat $f.xml | grep \<\/widget\> | wc -l)';' | cat - $TMPFILES/jni/mydsp.cpp > temp && mv temp $TMPFILES/jni/mydsp.cpp
-echo 'const int numbLayouts = '$(cat $f.xml | grep \<\/group\> | wc -l)';' | cat - $TMPFILES/jni/mydsp.cpp > temp && mv temp $TMPFILES/jni/mydsp.cpp
 
-APPNAME=$(basename "$f")
-APPNAME="${APPNAME%.dsp}"
-
-# Customize the package name in function of the name of the app (dirty... I know)
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/faustApp.java > temp && mv temp $TMPFILES/src/com/faustApp/faustApp.java
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/About.java > temp && mv temp $TMPFILES/src/com/faustApp/About.java
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/accel.java > temp && mv temp $TMPFILES/src/com/faustApp/accel.java
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/AudioSettings.java > temp && mv temp $TMPFILES/src/com/faustApp/AudioSettings.java
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/DisplayWelcomeActivity.java > temp && mv temp $TMPFILES/src/com/faustApp/DisplayWelcomeActivity.java
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/OSCSettings.java > temp && mv temp $TMPFILES/src/com/faustApp/OSCSettings.java
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/Settings.java > temp && mv temp $TMPFILES/src/com/faustApp/Settings.java
-echo 'package com.'$APPNAME';' | cat - $TMPFILES/src/com/faustApp/UI.java > temp && mv temp $TMPFILES/src/com/faustApp/UI.java
+# Compile the Faust code for the NDK
+faust -i -a android.cpp $OPTIONS "$FILE" -o "$JNIFOLDER/dsp_faust.cpp" || exit
 
 
-sed 's/REP/'$APPNAME'/g' $TMPFILES/AndroidManifest.xml > temp && mv temp $TMPFILES/AndroidManifest.xml
-
-cd $TMPFILES 
-
-mv res/values/strings.xml res/values/stringsN.xml 
-sed 's#\(<string name=\"app_name\">\)[0-9]*\(</string>\)#\1'$APPNAME'\2#g' res/values/stringsN.xml > res/values/strings.xml
-rm res/values/stringsN.xml
-
-# *************
-# COMPILATION
-# *************
-
-rm -rf src/faust_dsp
-mkdir -p src/faust_dsp
-
-swig -java -package faust_dsp -includeall -verbose -outdir src/faust_dsp -c++ -I/usr/share/swig2.0 -I/usr/local/include -I/System/Library/Frameworks/JavaVM.framework/Headers -I./jni -o jni/java_interface_wrap.cpp faust_dsp_interface.i > /dev/null
-
-ndk-build TARGET_PLATFORM=android-14 V=1 > $LOG
-
-
-# To be checked on the mac
-android update project --target $(android list targets | grep android-17 | sed -e 's/id:\ \(.*\)or\ "android-17"/\1/') --path . > $LOG
-
-ant release > $LOG
-
-# Code used to generate the faust2android key:
-# keytool -genkey -v -keystore faust2android.keystore -alias faust2an -keyalg RSA -keysize 2048 -validity 10000
-
-jarsigner -storepass mephisto -sigalg MD5withRSA -digestalg SHA1 -keystore faust2android.keystore bin/faustApp-release-unsigned.apk faust2an
-
-# Check the alignment of the compressed file
-zipalign -v 4 bin/faustApp-release-unsigned.apk bin/faustApp-release.apk >/dev/null
-
-cp -r bin/faustApp-release.apk ../$APPNAME.apk
+# Run Gradle
+cd $BUILDDIR
+./gradlew assembleRelease > $LOG
 cd ..
+
+cp -r $BUILDDIR/app/build/outputs/apk/app-release.apk $APPNAME.apk
 
 # ****************
 # TREAT OPTIONS
@@ -147,14 +151,18 @@ cd ..
 if [ $INSTALL -eq 1 ]; then
 	adb install -r $APPNAME.apk
 fi
-if [ $ECLIPSE -eq 1 ]; then
+
+if [ $SOURCE -eq 1 ]; then
 	rm -rf faustApp
-	mv $TMPFILES faustApp
-	echo "An eclipse project named faustApp was created."
+	mv $BUILDDIR faustApp
+	echo "An Android studio project named faustApp was created." > $LOG
 else
-	rm -rf $TMPFILES
+	if [ $REUSE -eq 0 ]; then
+		echo "Delete Android project $BUILDDIR" > $LOG
+		rm -rf $BUILDDIR
+	fi
 fi
 
-rm "$f.xml"
-
 echo "$APPNAME.apk;"
+
+

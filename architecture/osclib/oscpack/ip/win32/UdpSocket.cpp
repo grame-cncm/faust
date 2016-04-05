@@ -30,6 +30,8 @@
 #include "ip/UdpSocket.h"
 
 #include <winsock2.h>   // this must come first to prevent errors with MSVC7
+#include <Ws2tcpip.h>
+#include <Mswsock.h>
 #include <windows.h>
 #include <mmsystem.h>   // for timeGetTime()
 
@@ -42,7 +44,6 @@
 #include "ip/NetworkingUtils.h"
 #include "ip/PacketListener.h"
 #include "ip/TimerListener.h"
-
 
 typedef int socklen_t;
 
@@ -94,7 +95,7 @@ public:
 		, isConnected_( false )
 		, socket_( INVALID_SOCKET )
 	{
-		if( (socket_ = socket( AF_INET, SOCK_DGRAM, 0 )) == INVALID_SOCKET ){
+		if( (socket_ = WSASocket(AF_INET, SOCK_DGRAM, 0, 0, 0, 0)) == INVALID_SOCKET ){
             throw std::runtime_error("unable to create udp socket\n");
         }
 
@@ -105,6 +106,12 @@ public:
 	~Implementation()
 	{
 		if (socket_ != INVALID_SOCKET) closesocket(socket_);
+	}
+	
+	void allowBroadcast()
+	{
+		int val = 1;
+		setsockopt(socket_, SOL_SOCKET, SO_BROADCAST, (char *)&val, sizeof(val));
 	}
 
 	IpEndpointName LocalEndpointFor( const IpEndpointName& remoteEndpoint ) const
@@ -194,19 +201,70 @@ public:
     int ReceiveFrom( IpEndpointName& remoteEndpoint, char *data, int size )
 	{
 		assert( isBound_ );
+	
+		// Load WSARecvMsg function
+		static LPFN_WSARECVMSG WSARecvMsg = NULL;
+		if (WSARecvMsg == NULL) {
+        GUID guid = WSAID_WSARECVMSG;
+        DWORD bytes_returned;
+			if (WSAIoctl(socket_, SIO_GET_EXTENSION_FUNCTION_POINTER, &guid, sizeof(guid),
+					&WSARecvMsg, sizeof(WSARecvMsg), &bytes_returned, NULL, NULL) == SOCKET_ERROR) {
+				return 0;
+			}
+		}
 
-		struct sockaddr_in fromAddr;
-        socklen_t fromAddrLen = sizeof(fromAddr);
-             	 
-        int result = recvfrom(socket_, data, size, 0,
-                    (struct sockaddr *) &fromAddr, (socklen_t*)&fromAddrLen);
-		if( result < 0 )
+		// Main structure to read the message
+		WSAMSG msg;
+
+		// Structure to write remote/source sockaddr
+		struct sockaddr_in peeraddr;
+		socklen_t fromAddrLen = sizeof(peeraddr);	
+		msg.name =  (struct sockaddr *)&peeraddr;
+		msg.namelen = fromAddrLen;
+	
+		// Structure for control data
+		char controlbuf[0x100];
+		msg.Control.len = sizeof(controlbuf);
+		msg.Control.buf = controlbuf;
+
+		// Structure to access the message data.
+		WSABUF buffer;		
+		buffer.buf = data;
+		buffer.len = size;
+		msg.lpBuffers = &buffer;
+		msg.dwBufferCount = 1;
+
+		msg.dwFlags = 0;
+
+		// Set socket option
+		int val = 1;
+		setsockopt(socket_, IPPROTO_IP, IP_PKTINFO, (char *)&val, sizeof(val));
+
+		DWORD readLen = 0; // Size of data read
+		WSARecvMsg(socket_, &msg, &readLen, 0, 0);
+
+		if( readLen < 0 )
 			return 0;
 
-		remoteEndpoint.address = ntohl(fromAddr.sin_addr.s_addr);
-		remoteEndpoint.port = ntohs(fromAddr.sin_port);
-
-		return result;
+		for ( // iterate through all the control headers
+			LPWSACMSGHDR cmsg = WSA_CMSG_FIRSTHDR(&msg);
+			cmsg != NULL;
+			cmsg = WSA_CMSG_NXTHDR(&msg, cmsg))
+		{
+			// ignore the control headers that don't match what we want
+			if (cmsg->cmsg_level != IPPROTO_IP ||
+				cmsg->cmsg_type != IP_PKTINFO)
+			{
+				continue;
+			}
+			// Get the destination address
+			struct in_pktinfo *pi = (struct in_pktinfo *)WSA_CMSG_DATA(cmsg);
+			// pi->ipi_addr is the destination in_addr
+			remoteEndpoint.destAddress = ntohl(pi->ipi_addr.s_addr);
+		}
+		remoteEndpoint.address = ntohl(peeraddr.sin_addr.s_addr);
+		remoteEndpoint.port = ntohs(peeraddr.sin_port);
+		return readLen;
 	}
 
 	SOCKET& Socket() { return socket_; }
@@ -220,6 +278,11 @@ UdpSocket::UdpSocket()
 UdpSocket::~UdpSocket()
 {
 	delete impl_;
+}
+
+void UdpSocket::allowBroadcast()
+{
+	impl_->allowBroadcast();
 }
 
 IpEndpointName UdpSocket::LocalEndpointFor( const IpEndpointName& remoteEndpoint ) const

@@ -1,0 +1,58 @@
+'.source.faust':
+  'import':
+    'prefix': 'import'
+    'body': 'import("${1:filter}.lib");'
+  'library':
+    'prefix': 'library'
+    'body': 'library("${1:filter}.lib")'
+  'component':
+    'prefix': 'component'
+    'body': 'component("${1:filter}.lib")'
+  'process':
+    'prefix': 'process'
+    'body': "process = ${1:expression};$2"
+  'definition':
+    'prefix': 'def'
+    'body': "${1:name} = ${2:expression};$3"
+  'hslider':
+    'prefix': 'hslider'
+    'body': 'hslider("${1:volume}",0,0,1,0.01)'
+  'vslider':
+    'prefix': 'vslider'
+    'body': 'vslider("${1:volume}",0,0,1,0.01)'
+  'button':
+    'prefix': 'button'
+    'body': 'button("${1:play}")'
+  'checkbox':
+    'prefix': 'checkbox'
+    'body': 'checkbox("${1:mute}")'
+  'hbargraph':
+    'prefix': 'hbargraph'
+    'body': 'hbargraph("${1:vumeter}",0,1)'
+  'vbargraph':
+    'prefix': 'vbargraph'
+    'body': 'vbargraph("${1:vumeter}",0,1)'
+  'environment':
+    'prefix': 'environment'
+    'body': 'environment {${1:definition};}'
+  'with':
+    'prefix': 'with'
+    'body': """
+    	with {
+    		${1:name} = ${2:definition};$3
+    	}
+    """
+  'doc':
+    'prefix': 'doc'
+    'body':"""
+        //--------------- ${1:func} ----------------
+        // ${2:presentation}
+        //
+        // ### Usage:
+        //    `${3:example}`
+        //
+        // #### Where:
+        // + ${4:arg1} = ${5:role and value}
+        //
+        //------------------------------------------
+    """

@@ -1,7 +1,7 @@
 \chapter{\faust syntax}
 
 This section describes the syntax of \faust. Figure \ref{fig:syntax} gives an overview of the various concepts and where they are defined in this section. 
-%% suggestion Carlos : la figure crée une confusion entre la syructure de la syntaxe et la structure de la section. Faire un autre schema!
+%% suggestion Carlos : la figure crée une confusion entre la structure de la syntaxe et la structure de la section. Faire un autre schema!
 \begin{figure}[ht!]
 \centering
 \includegraphics[scale=0.45]{illustrations/syntax-chart}
@@ -790,7 +790,7 @@ For example we can create a customized version of \lstinline'component("freeverb
 Reference to external C \textit{functions}, \textit{variables} and \textit{constants} can be introduced using the \textit{foreign function} mechanism.
  
 \begin{rail}
-foreignexp : 'ffunction' '(' signature ',' includefile ',' comment ')' 
+foreignexp : 'ffunction' '(' signature ',' includefile ',' library')' 
           | 'fvariable' '(' type identifier ',' includefile ')' 
           | 'fconstant' '(' type identifier ',' includefile ')' ;
 \end{rail}
@@ -831,24 +831,23 @@ type : 'int'|'float';
 External variables and constants can also be declared with a similar syntax. In the same \lstinline'"math.lib"' file we can found the definition of the sampling rate constant \lstinline'SR' and the definition of the block-size variable \lstinline'BS' :
 
 \begin{lstlisting}
-SR 			= fconstant(int fSamplingFreq, <math.h>);
-BS          = fvariable(int count, <math.h>);
+SR    = fconstant(int fSamplingFreq, <math.h>);
+BS    = fvariable(int count, <math.h>);
 \end{lstlisting}
 
 Foreign constants are not supposed to vary. Therefore expressions involving only foreign constants are only computed once, during the initialization period. 
 
 Variable are considered to vary at block speed. This means that expressions depending of external variables are computed every block.
 
-
 \subsubsection{include file}
-In declaring foreign functions one as also to specify the include file. It allows the \faust compiler to add the corresponding \lstinline'#include...' in the generated code.
-
+In declaring foreign functions one has also to specify the include file. It allows the \faust compiler to add the corresponding \lstinline'#include...' in the generated code.
 
 \begin{rail}
 includefile : '<' (char+) '>' | '"' (char+) '"' ;
 \end{rail}
 
-
+\subsubsection{library file}
+In declaring foreign functions one can possibly specify the library where the actual code is located. It allows the \faust compiler to (possibly) automatically link the library. Note that this feature is only used with the LLVM backend in 'libfaust' dynamic library model.
 
 %The syntax of these foreign declarations is the following :
 %The foreign function mechanism allows to use external functions, variables and constants. External functions are limited to numerical ones. 
@@ -1469,6 +1468,6 @@ a convenient means to control the alphabetical order of the widgets.
 \subsubsection{Attach}
 The \lstinline'attach' primitive takes two input signals and produce one output signal which is a copy of the first input. The role of \lstinline'attach' is to force its second input signal to be compiled with the first one. From a mathematical point of view \lstinline'attach(x,y)' is equivalent to \lstinline'1*x+0*y', which is in turn equivalent to \lstinline'x', but it tells the compiler not to optimize-out \lstinline'y'.
 
-To illustrate this role let say that we want to develop a mixer application with a vumeter for each input signals. Such vumeters can be easily coded in \faust using an envelop detector connected to a bargraph. The problem is that these envelop signals have no role in the output signals. Using \lstinline'attach(x,vumeter(x))' one can tel the compiler that when \lstinline'x' is compiled \lstinline'vumeter(x)' should also be compiled. 
+To illustrate this role let say that we want to develop a mixer application with a vumeter for each input signals. Such vumeters can be easily coded in \faust using an envelop detector connected to a bargraph. The problem is that these envelop signals have no role in the output signals. Using \lstinline'attach(x,vumeter(x))' one can tell the compiler that when \lstinline'x' is compiled \lstinline'vumeter(x)' should also be compiled. 
 
 

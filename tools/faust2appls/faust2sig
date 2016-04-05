@@ -1,7 +1,26 @@
-#!/bin/bash
-for f in $@; do
-    faust -sg $f -o /dev/null
-	dot -Tpdf $f-sig.dot -o $f-sig.pdf
-	rm $f-sig.dot
+#! /bin/bash -e
+
+#  usage : faust2sig foo.dsp        -> foo-sig.pdf
+#  usage : faust2sig -svg foo.dsp   -> foo-sig.svg
+
+FILES=""
+IGNORE=""
+FORMAT="pdf"
+
+# Analyze command line
+for p in $@; do
+    if [ "$p" = -svg ]; then
+        FORMAT="svg"
+	elif [[ -f "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    IGNORE="$IGNORE $p"
+	fi
 done
 
+
+for f in $FILES; do
+    faust -sg $f -o /dev/null || exit
+	dot -T$FORMAT $f-sig.dot -o $f.sig.$FORMAT
+	rm $f-sig.dot
+done

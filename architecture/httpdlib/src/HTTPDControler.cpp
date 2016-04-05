@@ -22,12 +22,16 @@
   research@grame.fr
 
 */
+#ifdef _WIN32
+#include <winsock2.h>
+#else
+#include <netdb.h>
+#include <unistd.h>
+#endif
 
 #include <stdlib.h>
-#include <unistd.h>
 #include <iostream>
 #include <sstream>
-#include <netdb.h>
 
 #include "HTTPDControler.h"
 #include "FaustFactory.h"
@@ -41,17 +45,17 @@ using namespace std;
 namespace httpdfaust
 {
 
-#define kVersion	 0.72f
-#define kVersionStr	"0.72"
+#define kVersion	 0.73f
+#define kVersionStr	"0.73"
 
 static const char* kPortOpt	= "-port";
 
 //--------------------------------------------------------------------------
 // utility for command line arguments 
 //--------------------------------------------------------------------------
-static int getPortOption (int argc, char *argv[], const std::string& option, int defaultValue)
+static int getPortOption(int argc, char *argv[], const std::string& option, int defaultValue)
 {
-	for (int i=0; i < argc-1; i++) {
+	for (int i = 0; i < argc-1; i++) {
 		if (option == argv[i]) {
 			int val = strtol( argv[i+1], 0, 10);
 			if (val) return val;
@@ -67,12 +71,12 @@ static bool getNetInfos(string& name, string& ip)
 {
 	char szBuffer[1024];
 
-	if(gethostname(szBuffer, sizeof(szBuffer)))
+	if (gethostname(szBuffer, sizeof(szBuffer)))
 	return false;
 	
 	name = szBuffer;
 	struct hostent *host = gethostbyname(szBuffer);
-	if(!host) return false;
+	if (!host) return false;
 
 	stringstream s;
 	unsigned char * ptr = (unsigned char *)host->h_addr;
@@ -83,10 +87,10 @@ static bool getNetInfos(string& name, string& ip)
 
 
 //--------------------------------------------------------------------------
-HTTPDControler::HTTPDControler (int argc, char *argv[], const char* applicationname)
-	: fTCPPort(kTCPBasePort), fJson(0)
+HTTPDControler::HTTPDControler(int argc, char *argv[], const char* applicationname, bool init)
+	: fTCPPort(kTCPBasePort), fJson(0), fInit(init)
 {
-	fTCPPort = getPortOption (argc, argv, kPortOpt, fTCPPort);
+	fTCPPort = getPortOption(argc, argv, kPortOpt, fTCPPort);
 	fFactory = new FaustFactory();
 	fHttpd = new HTTPDSetup();
 	
@@ -98,9 +102,9 @@ HTTPDControler::HTTPDControler (int argc, char *argv[], const char* applicationn
 	fHtml = new htmlfactory(applicationname, hostname, fTCPPort);
 }
 
-HTTPDControler::~HTTPDControler ()
+HTTPDControler::~HTTPDControler()
 { 
-	quit(); 
+	stop(); 
 	delete fFactory;
 	delete fHttpd;
 	delete fJson;
@@ -112,86 +116,85 @@ const char* HTTPDControler::versionstr()	{ return kVersionStr; }
 
 //--------------------------------------------------------------------------
 // Add a node in the current group (top of the group stack)
-template<> void HTTPDControler::addnode<float> (const char* type, const char* label, float* zone, float init, float min, float max, float step)
+template<> void HTTPDControler::addnode<float>(const char* type, const char* label, float* zone, float init, float min, float max, float step)
 {
-	fFactory->addnode (label, zone, init, min, max);
-	fJson->addnode<float> (type, label, init, min, max, step, fCurrentMeta);
-	fHtml->addnode (type, label, init, min, max, step);
+	fFactory->addnode(label, zone, init, min, max, fInit);
+	fJson->addnode<float>(type, label, init, min, max, step, fCurrentMeta);
+	fHtml->addnode(type, label, init, min, max, step);
 	fCurrentMeta.clear();
 }
-template<> void HTTPDControler::addnode<float> (const char* type, const char* label, float* zone, float min, float max)
+template<> void HTTPDControler::addnode<float>(const char* type, const char* label, float* zone, float min, float max)
 {
-	fFactory->addnode (label, zone, min, max);
-	fJson->addnode<float> (type, label, min, max, fCurrentMeta);
-	fHtml->addnode (type, label, min, max);
+	fFactory->addnode(label, zone, min, max, fInit);
+	fJson->addnode<float>(type, label, min, max, fCurrentMeta);
+	fHtml->addnode(type, label, min, max);
 	fCurrentMeta.clear();
 }
-template<> void HTTPDControler::addnode<float> (const char* type, const char* label, float* zone)
+template<> void HTTPDControler::addnode<float>(const char* type, const char* label, float* zone)
 {
-	fFactory->addnode (label, zone, 0.f, 0.f, 1.f);
-	fJson->addnode<float> (type, label, fCurrentMeta);
-	fHtml->addnode (type, label);
-	fCurrentMeta.clear();
-}
-
-template<> void HTTPDControler::addnode<double> (const char* type, const char* label, double* zone, double min, double max)
-{
-	fFactory->addnode (label, zone, min, max);
-	fJson->addnode<double> (type, label, min, max, fCurrentMeta);
-	fHtml->addnode (type, label, min, max);
+	fFactory->addnode(label, zone, 0.f, 0.f, 1.f, fInit);
+	fJson->addnode<float>(type, label, fCurrentMeta);
+	fHtml->addnode(type, label);
 	fCurrentMeta.clear();
 }
 
-template<> void HTTPDControler::addnode<double> (const char* type, const char* label, double* zone, double init, double min, double max, double step)
+template<> void HTTPDControler::addnode<double>(const char* type, const char* label, double* zone, double min, double max)
 {
-	fFactory->addnode (label, zone, init, min, max);
-	fJson->addnode<double> (type, label, init, min, max, step, fCurrentMeta);
-	fHtml->addnode (type, label, init, min, max, step);
+	fFactory->addnode(label, zone, min, max, fInit);
+	fJson->addnode<double>(type, label, min, max, fCurrentMeta);
+	fHtml->addnode(type, label, min, max);
 	fCurrentMeta.clear();
 }
-template<> void HTTPDControler::addnode<double> (const char* type, const char* label, double* zone)
+
+template<> void HTTPDControler::addnode<double>(const char* type, const char* label, double* zone, double init, double min, double max, double step)
 {
-	fFactory->addnode (label, zone, 0., 0., 1.);
-	fJson->addnode<double> (type, label, fCurrentMeta);
-	fHtml->addnode (type, label);
+	fFactory->addnode(label, zone, init, min, max, fInit);
+	fJson->addnode<double>(type, label, init, min, max, step, fCurrentMeta);
+	fHtml->addnode(type, label, init, min, max, step);
+	fCurrentMeta.clear();
+}
+template<> void HTTPDControler::addnode<double>(const char* type, const char* label, double* zone)
+{
+	fFactory->addnode(label, zone, 0., 0., 1., fInit);
+	fJson->addnode<double>(type, label, fCurrentMeta);
+	fHtml->addnode(type, label);
 	fCurrentMeta.clear();
 }
 
 //--------------------------------------------------------------------------
-void HTTPDControler::opengroup (const char* type, const char* label)
+void HTTPDControler::opengroup(const char* type, const char* label)
 {
-	fFactory->opengroup (label);
-	fJson->opengroup (type, label);
-	fHtml->opengroup (type, label);
+	fFactory->opengroup(label);
+	fJson->opengroup(type, label, fCurrentMeta);
+	fHtml->opengroup(type, label);
+    fCurrentMeta.clear();
 }
 
 //--------------------------------------------------------------------------
 void HTTPDControler::closegroup ()
 {
-	fFactory->closegroup ();
-	fJson->closegroup ();
-	fHtml->closegroup ();
+	fFactory->closegroup();
+	fJson->closegroup();
+	fHtml->closegroup();
 }
 
 //--------------------------------------------------------------------------
 // start the network services
-void HTTPDControler::run ()
+void HTTPDControler::run()
 {
 	SMessageDriven root = fFactory->root();		// first get the root node
 	if (root) {
 		// and cast it to a RootNode
-		RootNode * rootnode = dynamic_cast<RootNode*> ((MessageDriven*)root);
+		RootNode * rootnode = dynamic_cast<RootNode*>((MessageDriven*)root);
 		// starts the network services
-		if (fHttpd->start (root, fTCPPort)) {
-			stringstream strjson;
-			fJson->root().setPort (fTCPPort);
-			fJson->root().print(strjson);
-			if (rootnode) rootnode->setJSON (strjson.str());
-
-			stringstream strhtml;
-			fHtml->root().setPort (fTCPPort);
-			fHtml->root().print(strhtml, strjson.str());
-			if (rootnode) rootnode->setHtml (strhtml.str());
+		if (fHttpd->start(root, fTCPPort)) {
+            fJson->root().setPort(fTCPPort);
+            string json = fJson->root().json();  // fJson->root().json(true); to 'flatten' JSON 
+            if (rootnode) rootnode->setJSON(json);
+            stringstream strhtml;
+            fHtml->root().setPort(fTCPPort);
+            fHtml->root().print(strhtml, json);
+            if (rootnode) rootnode->setHtml(strhtml.str());
 			// and outputs a message
 			cout << "Faust httpd server version " << version() <<  " is running on TCP port " << fTCPPort << endl;
 		}
@@ -199,25 +202,24 @@ void HTTPDControler::run ()
 }
 
 //--------------------------------------------------------------------------
-void HTTPDControler::quit ()
+void HTTPDControler::stop()
 {
 	fHttpd->stop();
 }
 
 //------------------------------Accessor to json Interface
-std::string HTTPDControler::get_jsonInterface(){        
-    stringstream strjson;
-    fJson->root().print(strjson);
-
-    return strjson.str();
+std::string HTTPDControler::getJSON() 
+{   
+    return fJson->root().json();
 }
     
-void HTTPDControler::set_Inputs(int numInputs){
+void HTTPDControler::setInputs(int numInputs) 
+{
     fJson->root().setInputs(numInputs);
-        
 }
     
-void HTTPDControler::set_Outputs(int numOutputs){
+void HTTPDControler::setOutputs(int numOutputs) 
+{
     fJson->root().setOutputs(numOutputs);
 }
     

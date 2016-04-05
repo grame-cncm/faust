@@ -155,7 +155,6 @@ private:
 	auUI* dspUI;
     
 protected:
-	float* outBuffer[MAX_OUT_CHANNELS];
     
 public:
 	mydsp* dsp;
@@ -175,15 +174,7 @@ FaustAUEffect::FaustAUEffect(AudioUnit component)
     
 	dsp = new mydsp();
     
-	int inChannels = dsp->getNumInputs();
-	int outChannels = dsp->getNumOutputs();
-    
 	SetParamHasSampleRateDependency(true);
-    
-	UInt32 frames = GetMaxFramesPerSlice();
-    
-	for (int i = 0; i < outChannels; i++)
-        outBuffer[i] = new float[frames];
     
 	dsp->buildUserInterface(dspUI);
     
@@ -208,13 +199,6 @@ FaustAUEffect::FaustAUEffect(AudioUnit component)
 }
 
 FaustAUEffect::~FaustAUEffect() {
-    
-	int outChannels = dsp->getNumOutputs();
-    
-	for (int i = 0; i < outChannels; i++)
-		if (outBuffer[i])
-			delete[] outBuffer[i];
-    
 }
 
 OSStatus FaustAUEffect::Initialize() {
@@ -443,20 +427,26 @@ OSStatus FaustAUEffect::ProcessBufferLists(AudioUnitRenderActionFlags& iFlags,
 										   const AudioBufferList& inBufferList, AudioBufferList& outBufferList,
 										   UInt32 iFrames) {
     
-	int inChannels = dsp->getNumInputs();
-	int outChannels = dsp->getNumOutputs();
+    int inChannels = dsp->getNumInputs();
+    int outChannels = dsp->getNumOutputs();
     
-	float* audioData[inChannels];
+    // audio data type conversion before faust computation
+    FAUSTFLOAT* inputData[inChannels];
+    FAUSTFLOAT* outputData[outChannels];
+    for (int i=0; i < inChannels; i++) {
+        inputData[i] = (FAUSTFLOAT*) inBufferList.mBuffers[i].mData;
+    }
     
-	for (int i = 0; i < inChannels; i++) {
-		audioData[i] = (float*) inBufferList.mBuffers[i].mData;
-	}
+    for (int i=0; i < outChannels; i++) {
+        outputData[i] = (FAUSTFLOAT*) outBufferList.mBuffers[i].mData;
+    }
     
-	dsp->compute(iFrames, audioData, outBuffer);
+    dsp->compute(iFrames, inputData, outputData);
     
-	for (int i = 0; i < outChannels; i++) {
-		outBufferList.mBuffers[i].mData = outBuffer[i];
-	}
+    // give data back to AU
+    for (int i=0; i<outChannels; i++) {
+        outBufferList.mBuffers[i].mData = outputData[i];
+    }
 	
     
     //TODO

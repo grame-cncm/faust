@@ -32,7 +32,6 @@
 
 #include "TThreads.h"
 
-
 //_____________________________________________________________________
 static void * baseThreadProc (void * ptr)
 {
@@ -40,6 +39,7 @@ static void * baseThreadProc (void * ptr)
 	thread->running (true);
 	thread->run();
 	thread->running (false);
+	pthread_exit(NULL);
 	return 0;
 }
 

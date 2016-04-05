@@ -69,8 +69,11 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp       DSP;
-std::list<GUI*>  GUI::fGuiList;
+mydsp DSP;
+
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -92,13 +95,13 @@ int main(int argc, char *argv[])
     
     QApplication myApp(argc, argv);
     
-    GUI* interface = new QTGUI();
+    QTGUI* interface = new QTGUI();
     FUI* finterface	= new FUI();
     DSP.buildUserInterface(interface);
     DSP.buildUserInterface(finterface);
 
 #ifdef HTTPCTRL
-    httpdUI*	httpdinterface = new httpdUI(appname, argc, argv);
+    httpdUI* httpdinterface = new httpdUI(appname, DSP.getNumInputs(), DSP.getNumOutputs(), argc, argv);
     DSP.buildUserInterface(httpdinterface);
 #endif
 
@@ -125,7 +128,7 @@ int main(int argc, char *argv[])
 #endif
     interface->run();
 	
-    myApp.setStyleSheet(STYLESHEET);
+    myApp.setStyleSheet(interface->styleSheet());
     myApp.exec();
     interface->stop();
     

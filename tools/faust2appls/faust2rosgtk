@@ -1,0 +1,254 @@
+#! /bin/bash -e
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to ROS packages             #
+#               with a GTK interface                                #
+#               (c) Grame, 2014                                     #
+#                                                                   #
+#####################################################################
+
+. faustpath
+
+ARCHFILE="jack-gtk-ros.cpp"
+
+path=$(pwd)
+CURRENT_DIR=$(pwd)
+
+# Dispatch command arguments
+WORKSPACES=''
+NEW_NAMES=''
+params=("$@")
+n=0
+for p in $@; do
+	n=$(($n+1))
+	
+	# install option, get workspace's name
+    if [ "$p" = "-install" ]; then
+	WORKSPACES="$WORKSPACES ${params[$n]}"
+	
+	# o option, get the new application's name	
+    elif [ "$p" = "-o" ]; then
+	NEW_NAMES="$NEW_NAMES ${params[$n]}"
+	
+	elif [ "$p" = "--help" ] || [ "$p" = "-h" ] ; then
+	HELP=true
+
+    elif [ ${p:0:1} = "-" ]; then
+    	OPTIONS="$OPTIONS $p ${params[$n]}"
+	
+    elif [[ -f "$p" ]]; then
+	FILES="$FILES $p"
+       
+    fi
+done
+
+# Puts option parameters in tables
+NEW_NAMES=($NEW_NAMES)
+WORKSPACES=($WORKSPACES)
+
+
+# Get parameters tables size 
+NAMES_LENGTH=${#NEW_NAMES[@]}
+WS_LENGTH=${#WORKSPACES[@]}
+
+if [ $HELP ]
+then
+############ BEGIN HELP MESSAGE ############
+echo -e "####################################################################################################
+######################################## FAUST2ROS HELP ############################################
+####################################################################################################
+
+################################################################################################
+		This command allows you to compile a FAUST DSP file into a ROS package, 
+			compressed or ready to be used in a workspace.
+################################################################################################
+USAGE:
+faust2rosgtk ~/path/to/mydsp.dsp
+Output : mydsp.zip, a compressed package
+
+OPTIONS :
+	-install
+		faust2rosgtk -install ~/path/to/my/workspace ~/other/path/to/mydsp.dsp
+		Output : mydsp.cpp, a C++ file in a package, in a workspace,
+							ready to be run
+	-o 
+		faust2rosgtk -o mynewname ~/path/to/mydsp.dsp
+		Output : mynewname.zip
+	
+For more options and informations, type faust -h or faust --help
+
+####################################################################################################
+"
+############ END HELP MESSAGE ############
+else
+	# Check if packages exist ; if not, create them
+	i=0
+	for (( i = 0 ; i < $WS_LENGTH ; i=$i+1 ))
+	do  
+	    if [ ! -d ${WORKSPACES[${i}]} ]
+	    then
+	        mkdir -p ${WORKSPACES[${i}]}/src
+	    else 
+	        cd ${WORKSPACES[${i}]}
+		        if [ ! -d src ]
+    		    then mkdir src
+        		fi
+    	fi
+    	cd ${WORKSPACES[${i}]}/src
+    		if [ !  CMakeLists.txt ] || [ -w CMakeLists.txt ] 
+    		then	
+    			rm -f CMakeLists.txt
+    			catkin_init_workspace > /dev/null
+    		fi
+	done
+
+	# if there is only one workspace specified, no need to run a loop
+	if [ $WS_LENGTH = 1 ]   
+	then WORKSPACE_PATH="${WORKSPACES[$1]}"/src
+	fi
+
+	#-------------------------------------------------------------------
+	# compile the *.dsp files
+	#
+	i=0
+	   
+	    for p in $FILES
+	    do 
+	
+			# Check .dsp path ; if there is no path, file should be in curent directory
+			temp=$(basename "$p")
+			temp_path=$(dirname ${p})
+
+			if [ ! $temp_path = '.' ]
+			then
+	    		p=$temp
+	    		path=$temp_path
+			fi
+	
+			# Create dsp package depending on options
+			if [ "$NEW_NAMES" = "" ]
+			then
+	    		f=$(basename "$p")
+	    		name="${f%.dsp}"
+			else
+			    name="${NEW_NAMES[${i}]}"
+			fi
+			name=$name"_gtk"
+			# zip file
+    		if [ $WS_LENGTH = 0 ] 
+    		then
+				cd $CURRENT_DIR	
+					temp_dir=$(mktemp -d ROS.XXXXXX)
+				cd $temp_dir
+					mkdir src
+		    	cd src
+		    		catkin_create_pkg $name roscpp std_msgs > /dev/null
+					PACKAGE_PATH=$CURRENT_DIR/$temp_dir/src/$name
+			else
+	    	# install in workspace
+	    		if [ $WS_LENGTH = 1 ]
+	    		then
+					cd $WORKSPACE_PATH
+	    	    		if [[ -d $WORKSPACE_PATH/$name ]]
+		    			then
+							rm -r $WORKSPACE_PATH/$name
+						fi
+		    			catkin_create_pkg $name roscpp std_msgs > /dev/null
+		    			PACKAGE_PATH=$WORKSPACE_PATH/$name
+	   			else 
+					WORKSPACE_PATH="${WORKSPACES[${i}]}"/src
+					cd $WORKSPACE_PATH
+	    	    		if [ -d $WORKSPACE_PATH/$name ]
+		    			then
+		        			rm -r $WORKSPACE_PATH/$name	
+						fi
+						catkin_create_pkg $name roscpp std_msgs > /dev/null
+						PACKAGE_PATH=$WORKSPACE_PATH/$name
+	    		fi
+			fi
+			cd $PACKAGE_PATH
+
+# Set CMakeLists.txt to fit to the faust package
+############## CMAKELISTS ############################	
+echo -e "cmake_minimum_required(VERSION 2.8.3) 
+project($name)
+
+SET(CMAKE_CXX_FLAGS \"${CMAKE_CXX_FLAGS} -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math\")
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTK2 REQUIRED gtk+-2.0)
+include_directories(\${catkin_INCLUDE_DIRS} \${GTK2_INCLUDE_DIRS})
+link_directories(\${GTK2_LIBRARY_DIRS})
+catkin_package()
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  std_msgs
+)
+
+add_executable(\${PROJECT_NAME} src/\${PROJECT_NAME}.cpp)
+
+target_link_libraries(\${PROJECT_NAME} \${GTK2_LIBRARIES} jack \${catkin_LIBRARIES})" > CMakeLists.txt
+############# END CMAKELISTS #########################
+	    
+			# Double compilation
+			cd src
+				faust -i -a ros-callbacks.cpp -o "$PACKAGE_PATH/src/$name.cpp" $path/$p || exit
+				g++ $name.cpp -o $name
+				faust -i -a $ARCHFILE $OPTIONS "$path/$p" -o "$PACKAGE_PATH/src/$name.cpp" $path/$p	> /dev/null || exit
+				./$name		# adds the callbacks declaration to the generated c++ file
+    			rm $name 
+	
+				# zip file
+				if [ $WS_LENGTH = 0 ]
+				then
+	   				cd $CURRENT_DIR/$temp_dir/src/$name
+############ BEGIN README ############
+echo -e "			README : Using Faust with ROS
+		Grame, Centre National de Creation Musicale
+		###########################################
+
+This file was automatically generated with faust2ros or faust2rosgtk
+
+To run your new application : 
+	1) unzip this package into a ROS workspace.
+	2) source this workspace :
+		a) go in your workspace's root
+		b) type 'source devel/setup.bash'
+	3) run with 'rosrun myapp myapp'
+
+For more informations, check the documentation :
+https://sourceforge.net/p/faudiostream/code/ci/master/tree/documentation" > README.txt
+############ END README ############
+					cd $CURRENT_DIR/$temp_dir/src
+					    zip -r $name.zip $name > /dev/null
+	    			cd $CURRENT_DIR
+	    				cp $temp_dir/src/$name.zip $CURRENT_DIR
+	    				rm -r $temp_dir
+	    				OUTPUT="$OUTPUT $name.zip;"
+					# package installation
+				else
+				    cd ${WORKSPACES[${i}]}
+############ BEGIN README ############
+echo -e "			README : Using Faust with ROS
+		Grame, Centre National de Creation Musicale
+		###########################################
+
+This file was automatically generated with faust2ros or faust2rosgtk
+
+To run your new application : 
+	1) source this workspace :
+		a) go in your workspace's root
+		b) type 'source devel/setup.bash'
+	3) run with 'rosrun myapp myapp'
+
+For more informations, check the documentation :
+https://sourceforge.net/p/faudiostream/code/ci/master/tree/documentation" > README.txt
+############ END README ############
+						catkin_make > /dev/null || exit
+	    				OUTPUT="$OUTPUT $name.cpp;"
+				fi 
+			    i=$((i+1))
+	    done	
+	echo $OUTPUT
+fi	

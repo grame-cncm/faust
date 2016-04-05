@@ -1,0 +1,22 @@
+#!/bin/bash
+
+BEAGLERT="/usr/local/beaglert"				# sources of beagleRT
+BINARY="BeagleRT"							# name of the binary we want to obtain
+
+FILENAME=$1
+CLASSNAME=`basename $FILENAME .dsp`
+
+faust -i -a bela.cpp -cn $CLASSNAME $FILENAME -o render.cpp || exit
+
+arm-linux-gnueabihf-g++ -O2 -L/usr/arm-linux-gnueabihf/lib -L/usr/arm-linux-gnueabihf/lib/xenomai -L/usr/lib/arm-linux-gnueabihf -L/usr/arm-linux-gnueabihf/include/xenomai/lib -pthread -rdynamic -I/usr/arm-linux-gnueabihf/include/xenomai/include -I$BEAGLERT/include -o $BINARY $BEAGLERT/core/*.cpp render.cpp $BEAGLERT/libprussdrv.a $BEAGLERT/libNE10.a -lrt -lnative -lxenomai || exit
+
+rm render.cpp
+
+echo "$BINARY;"
+
+
+
+
+
+
+
