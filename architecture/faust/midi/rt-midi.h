@@ -231,14 +231,14 @@ class rt_midi : public midi_handler {
         
         void ctrlChange14bits(int channel, int ctrl, int value) {}
          
-        void start(double date) 
+        void start_sync(double date) 
         {
             std::vector<unsigned char> message;
             message.push_back(MIDI_START);
             sendMessage(message);
         }
        
-        void stop(double date) 
+        void stop_sync(double date) 
         {
             std::vector<unsigned char> message;
             message.push_back(MIDI_STOP);
