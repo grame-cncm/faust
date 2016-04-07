@@ -550,14 +550,14 @@ class MidiUI : public GUI, public midi
         
         // MIDI sync
         
-        void start(double date)
+        void start_sync(double date)
         {
             for (unsigned int i = 0; i < fStartTable.size(); i++) {
                 fStartTable[i]->modifyZone(date, FAUSTFLOAT(1));
             }
         }
         
-        void stop(double date)
+        void stop_sync(double date)
         {
             for (unsigned int i = 0; i < fStopTable.size(); i++) {
                 fStopTable[i]->modifyZone(date, FAUSTFLOAT(0));
