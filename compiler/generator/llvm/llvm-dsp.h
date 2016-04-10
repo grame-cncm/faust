@@ -85,7 +85,7 @@ llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all 
- * allocated factories so that the compilation of same DSP code (that is same source code and 
+ * allocated factories so that the compilation of the same DSP code (that is same source code and 
  * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer. You will have to explicitly
  * use deleteDSPFactory to properly decrement the reference counter when the factory is no more needed.
  * 
@@ -106,7 +106,7 @@ llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename,
 
 /**
  * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all 
- * allocated factories so that the compilation of same DSP code (that is same source code and 
+ * allocated factories so that the compilation of the same DSP code (that is same source code and 
  * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer. You will have to explicitly
  * use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
  * 
@@ -174,7 +174,7 @@ void stopMTDSPFactories();
 
 /**
  * Create a Faust DSP factory from a base64 encoded LLVM bitcode string. Note that the library keeps an internal cache of all 
- * allocated factories so that the compilation of same DSP code (that is the same LLVM bitcode string) will return 
+ * allocated factories so that the compilation of the same DSP code (that is the same LLVM bitcode string) will return 
  * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
  * decrement reference counter when the factory is no more needed.
  * 
@@ -198,7 +198,7 @@ std::string writeDSPFactoryToBitcode(llvm_dsp_factory* factory);
 
 /**
  * Create a Faust DSP factory from a LLVM bitcode file. Note that the library keeps an internal cache of all 
- * allocated factories so that the compilation of same DSP code (that is the same LLVM bitcode file) will return 
+ * allocated factories so that the compilation of the same DSP code (that is the same LLVM bitcode file) will return 
  * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
  * decrement reference counter when the factory is no more needed.
  * 
@@ -223,7 +223,7 @@ void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const std::string& 
 
 /**
  * Create a Faust DSP factory from a LLVM IR (textual) string. Note that the library keeps an internal cache of all 
- * allocated factories so that the compilation of same DSP code (that is the same LLVM IR string) will return 
+ * allocated factories so that the compilation of the same DSP code (that is the same LLVM IR string) will return 
  * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
  * decrement reference counter when the factory is no more needed.
  * 
@@ -248,7 +248,7 @@ std::string writeDSPFactoryToIR(llvm_dsp_factory* factory);
 
 /**
  * Create a Faust DSP factory from a LLVM IR (textual) file. Note that the library keeps an internal cache of all 
- * allocated factories so that the compilation of same DSP code (that is the same LLVM IR file) will return 
+ * allocated factories so that the compilation of the same DSP code (that is the same LLVM IR file) will return 
  * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
  * decrement reference counter when the factory is no more needed.
  * 
@@ -273,7 +273,7 @@ void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_co
 
 /**
  * Create a Faust DSP factory from a base64 encoded machine code string. Note that the library keeps an internal cache of all 
- * allocated factories so that the compilation of same DSP code (that is the same machine code string) will return 
+ * allocated factories so that the compilation of the same DSP code (that is the same machine code string) will return 
  * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
  * decrement reference counter when the factory is no more needed.
  * 
@@ -296,7 +296,7 @@ std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std::strin
 
 /**
  * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all 
- * allocated factories so that the compilation of same DSP code (that is the same machine code file) will return 
+ * allocated factories so that the compilation of the same DSP code (that is the same machine code file) will return 
  * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
  * decrement reference counter when the factory is no more needed.
  * 
