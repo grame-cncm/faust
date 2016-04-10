@@ -68,6 +68,7 @@ class dsp {
         virtual int getNumOutputs() 									= 0;
         virtual void buildUserInterface(UI* ui_interface) 				= 0;
         virtual void init(int samplingRate) 							= 0;
+        virtual void instanceInit(int samplingRate) 							= 0;
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 	= 0;
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
        
