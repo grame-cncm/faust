@@ -246,7 +246,8 @@ class proxy_dsp : public dsp {
         virtual void buildUserInterface(UI* ui) { fDecoder->buildUserInterface(ui); }
         
         // To possibly implement in a concrete proxy dsp 
-        virtual void init(int samplingRate) {}  
+        virtual void init(int samplingRate) {}
+        virtual void instanceInit(int samplingRate) {}
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {} 
         
