@@ -52,6 +52,7 @@
 #include "faust/gui/console.h"
 #include "faust/dsp/dsp.h"
 #include "faust/misc.h"
+#include "faust/audio/channels.h"
 
 /******************************************************************************
 *******************************************************************************
@@ -75,36 +76,6 @@
 					
 mydsp	DSP;
 	
-class channels
-{
-	int 	fNumFrames;
-	int		fNumChannels;
-	FAUSTFLOAT*	fBuffers[256];
-
-  public:
-		  
-	channels(int nframes, int nchannels) 
-	{
-		fNumFrames		= nframes;
-		fNumChannels 	= nchannels;
-		
-		// allocate audio  channels
-		for (int i = 0; i < fNumChannels; i++) {
-			fBuffers[i] = (FAUSTFLOAT*) calloc (fNumFrames, sizeof(FAUSTFLOAT));
-		}
-	}
-	
-	~channels()
-	{
-		// free separate input channels
-		for (int i = 0; i < fNumChannels; i++) {
-            free(fBuffers[i]);
-		}		
-	}
-	
-	FAUSTFLOAT**	buffers()		{ return fBuffers; }
-};
-
 #define kFrames 512
 	
 int main(int argc, char *argv[] )
