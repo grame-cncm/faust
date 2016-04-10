@@ -200,6 +200,7 @@ struct llvm_dsp_voice : public dsp_voice {
     virtual int getNumOutputs() { return fVoice->getNumOutputs(); }
     virtual void buildUserInterface(UI* ui_interface) { fVoice->buildUserInterface(ui_interface); }
     virtual void init(int samplingRate) { fVoice->init(samplingRate); }
+    virtual void instanceInit(int samplingRate) { fVoice->instanceInit(samplingRate); }
     virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice->compute(len, inputs, outputs); }
     
     virtual void metadata(Meta* meta) { fVoice->metadata(meta); }
