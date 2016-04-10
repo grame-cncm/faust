@@ -187,22 +187,22 @@ public class UI {
 		JSONArray uiArray = getJSONui();
 		
 		// TODO Dirty way to detect keyboard: could be improved
-		if (uiArray.toString().contains("\"style\":\"keyboard\"")) {
-			hasKeyboard = true;
-			hasMulti = false;
-		}
-		else if (uiArray.toString().contains("\"style\":\"multi\"")) {
-			hasMulti = true;
-			hasKeyboard = false;
-		}
-		else if (uiArray.toString().contains("\"style\":\"multikeyboard\"")) {
-			hasMulti = true;
-			hasKeyboard = true;
-		}
-		else {
-			hasMulti = false;
-			hasKeyboard = false;
-		}
+        if (uiArray.toString().contains("\"style\":\"keyboard\"")) {
+            hasMulti = false;
+            hasKeyboard = true;
+        }
+        else if (uiArray.toString().contains("\"style\":\"multi\"")) {
+            hasMulti = true;
+            hasKeyboard = false;
+        }
+        else if (uiArray.toString().contains("\"style\":\"multikeyboard\"")) {
+            hasMulti = true;
+            hasKeyboard = true;
+        }
+        else {
+            hasMulti = false;
+            hasKeyboard = false;
+        }
 		
 		parseJSON(c,uiArray,mainGroup,groupLevel,0,Math.round(screenSizeX*(1+parametersInfo.zoom*0.1f)));
 	}

@@ -1069,7 +1069,7 @@ with { // octave script output:
 // - http://en.wikipedia.org/wiki/Equalization
 // - filterbank (below, here in filter.lib)
 // - http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
-//   Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999, p. 124
+// - Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999, p. 124
 // - https://ccrma.stanford.edu/~jos/filters/Low_High_Shelving_Filters.html
 // - https://ccrma.stanford.edu/~jos/filters/Peaking_Equalizers.html
 // - maxmsp.lib in the Faust distribution
