@@ -418,7 +418,9 @@ extern "C"
     
     int getNumOutputsCDSPInstance(llvm_dsp* dsp);
     
-    void initCDSPInstance(llvm_dsp* dsp, int samplingFreq);
+    void initCDSPInstance(llvm_dsp* dsp, int samplingRate);
+    
+    void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate);
     
     void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* interface);
     

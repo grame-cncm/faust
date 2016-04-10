@@ -547,6 +547,7 @@ void llvm_dsp_factory::init(const string& type_name, const string& dsp_name)
     fGetNumOutputs = 0;
     fBuildUserInterface = 0;
     fInit = 0;
+    fInstanceInit = 0;
     fCompute = 0;
     fClassName = "mydsp";
     fDSPName = dsp_name;
@@ -839,6 +840,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fGetNumOutputs = (getNumOutputsFun)loadOptimize("getNumOutputs" + fClassName);
         fBuildUserInterface = (buildUserInterfaceFun)loadOptimize("buildUserInterface" + fClassName);
         fInit = (initFun)loadOptimize("init" + fClassName);
+        fInstanceInit = (initFun)loadOptimize("instanceInit" + fClassName);
         fCompute = (computeFun)loadOptimize("compute" + fClassName);
         fMetadata = (metadataFun)loadOptimize("metadata" + fClassName);
         endTiming("initJIT");
@@ -955,6 +957,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fGetNumOutputs = (getNumOutputsFun)loadOptimize("getNumOutputs" + fClassName);
         fBuildUserInterface = (buildUserInterfaceFun)loadOptimize("buildUserInterface" + fClassName);
         fInit = (initFun)loadOptimize("init" + fClassName);
+        fInstanceInit = (initFun)loadOptimize("instanceInit" + fClassName);
         fCompute = (computeFun)loadOptimize("compute" + fClassName);
         fMetadata = (metadataFun)loadOptimize("metadata" + fClassName);
         endTiming("initJIT");
@@ -1054,9 +1057,14 @@ int llvm_dsp_aux::getNumOutputs()
     return fDSPFactory->fGetNumOutputs(fDSP);
 }
 
-void llvm_dsp_aux::init(int samplingFreq)
+void llvm_dsp_aux::init(int samplingRate)
 {
-    fDSPFactory->fInit(fDSP, samplingFreq);
+    fDSPFactory->fInit(fDSP, samplingRate);
+}
+
+void llvm_dsp_aux::instanceInit(int samplingRate)
+{
+    fDSPFactory->fInstanceInit(fDSP, samplingRate);
 }
 
 void llvm_dsp_aux::buildUserInterface(UI* ui_interface)
@@ -1643,9 +1651,14 @@ int EXPORT llvm_dsp::getNumOutputs()
     return reinterpret_cast<llvm_dsp_aux*>(this)->getNumOutputs();
 }
 
-EXPORT void llvm_dsp::init(int samplingFreq)
+EXPORT void llvm_dsp::init(int samplingRate)
 {
-    reinterpret_cast<llvm_dsp_aux*>(this)->init(samplingFreq);
+    reinterpret_cast<llvm_dsp_aux*>(this)->init(samplingRate);
+}
+    
+EXPORT void llvm_dsp::instanceInit(int samplingRate)
+{
+    reinterpret_cast<llvm_dsp_aux*>(this)->instanceInit(samplingRate);
 }
 
 EXPORT void llvm_dsp::buildUserInterface(UI* ui_interface)
@@ -1896,10 +1909,17 @@ EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp)
     return (dsp) ? reinterpret_cast<llvm_dsp_aux*>(dsp)->getNumOutputs() : 0;
 }
 
-EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingFreq)
+EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingRate)
 {
     if (dsp) {
-        reinterpret_cast<llvm_dsp_aux*>(dsp)->init(samplingFreq);
+        reinterpret_cast<llvm_dsp_aux*>(dsp)->init(samplingRate);
+    }
+}
+    
+EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate)
+{
+    if (dsp) {
+        reinterpret_cast<llvm_dsp_aux*>(dsp)->instanceInit(samplingRate);
     }
 }
 

@@ -399,7 +399,8 @@ class llvm_dsp : public dsp {
         int getNumInputs();
         int getNumOutputs();
         
-        void init(int samplingFreq);
+        void init(int samplingRate);
+        void instanceInit(int samplingRate);
         
         void buildUserInterface(UI* ui_interface);
         
