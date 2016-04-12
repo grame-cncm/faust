@@ -50,7 +50,7 @@
 #include <iostream> 
 
 #include "faust/gui/console.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/misc.h"
 
 /******************************************************************************
