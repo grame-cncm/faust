@@ -212,6 +212,8 @@ struct llvm_dsp_voice_factory : public voice_factory {
     llvm_dsp* fDSP;
     
     llvm_dsp_voice_factory(llvm_dsp* dsp):fDSP(dsp) {}
+    
+    virtual ~llvm_dsp_voice_factory() {}
 
     virtual dsp_voice* create() { return new llvm_dsp_voice(fDSP->copy()); }
 };
