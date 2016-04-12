@@ -35,8 +35,10 @@
 #include <assert.h>
 
 #if __APPLE__
-    #if TARGET_OS_IPHONE
-    inline double GetCurrentTimeInUsec() { return double(CAHostTimeBase::GetCurrentTimeInNanos()) / 1000.; }
+#if TARGET_OS_IPHONE
+    //inline double GetCurrentTimeInUsec() { return double(CAHostTimeBase::GetCurrentTimeInNanos()) / 1000.; }
+    // TODO
+    inline double GetCurrentTimeInUsec() { return 0.0; }
 #else
     #include <CoreAudio/HostTime.h>
     inline double GetCurrentTimeInUsec() { return double(AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())) / 1000.; }
