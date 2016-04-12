@@ -66,6 +66,7 @@
 #include "faust/gui/MidiUI.h"
 
 #ifdef MIDICTRL
+#include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
 #endif
 
@@ -113,13 +114,14 @@ ztimedmap GUI::gTimedZoneMap;
 class Sensor
 {
 	private:
-		QSensor*		fSensor;
-		int				fType;
-		QSensorReading*	fReader;
-		QSensor*		create(int type) const;
+    
+		QSensor* fSensor;
+		int fType;
+		QSensorReading* fReader;
+		QSensor* create(int type) const;
 	
 	public:
-		enum  { kSensorStart=1, kAccelerometer=1, kGyroscope, kSensorMax };
+		enum  { kSensorStart = 1, kAccelerometer = 1, kGyroscope, kSensorMax };
 
 				 Sensor(int type) : fSensor(0), fType(type), fReader(0)
 									{ fSensor = create (type); fSensor->connectToBackend(); }
@@ -138,8 +140,8 @@ class Sensor
 QSensor* Sensor::create (int type) const
 {
 	switch (type) {
-		case kAccelerometer:			return new QAccelerometer();
-		case kGyroscope:				return new QGyroscope();
+		case kAccelerometer: return new QAccelerometer();
+		case kGyroscope: return new QGyroscope();
 		default:
 			cerr << "unknown sensor type " << type << endl;
 	}
@@ -149,31 +151,39 @@ QSensor* Sensor::create (int type) const
 //------------------------------------------------------------------------
 class Sensors : public QObject
 {
-	APIUI* fUI;
-	Sensor 	fAccel,	fGyro;
-	int		fTimerID;
+    private:
+    
+        APIUI* fUI;
+        Sensor fAccel, fGyro;
+        int fTimerID;
+        
 	public:
+    
 		typedef std::map<int, Sensor*> TSensors;
 				 Sensors(APIUI* ui)
 				 		: fUI(ui), fAccel(Sensor::kAccelerometer), fGyro(Sensor::kGyroscope), fTimerID(0) {}
-		virtual ~Sensors()		{	killTimer(fTimerID); }
-		void 	start();
+		virtual ~Sensors()		{ killTimer(fTimerID); }
+		void start();
+        
 	protected:
-		void timerEvent(QTimerEvent * );
+    
+		void timerEvent(QTimerEvent*);
 };
 
 //------------------------------------------------------------------------
-void Sensors::timerEvent(QTimerEvent * )
+void Sensors::timerEvent(QTimerEvent*)
 {
 	if (fAccel.active()) {
         int count = fAccel.count();
-        for (int i=0; (i< count) && (i < 3); i++)
-        	fUI->propagateAcc (i, fAccel.value(i));
+        for (int i = 0; (i< count) && (i < 3); i++) {
+        	fUI->propagateAcc(i, fAccel.value(i));
+        }
 	}
 	if (fGyro.active()) {
         int count = fGyro.count();
-        for (int i=0; (i< count) && (i < 3); i++)
-        	fUI->propagateGyr (i, fGyro.value(i));
+        for (int i = 0; (i< count) && (i < 3); i++) {
+        	fUI->propagateGyr(i, fGyro.value(i));
+        }
 	}
 }
 
@@ -274,7 +284,8 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef MIDICTRL
-    MidiUI midiinterface(name);
+    rt_midi midi_handler(name);
+    MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
     std::cout << "MIDI is on" << std::endl;
 #endif
