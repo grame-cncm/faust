@@ -2,12 +2,12 @@
 /************************************************************************
  ************************************************************************
     FAUST Architecture File
-	Copyright (C) 2013 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2013 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
-	as published by the Free Software Foundation; either version 3 of
-	the License, or (at your option) any later version.
+    as published by the Free Software Foundation; either version 3 of
+    the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-	along with this program; If not, see <http://www.gnu.org/licenses/>.
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
 
  ************************************************************************
  ************************************************************************/
@@ -47,10 +47,8 @@ int main(int argc, char *argv[])
         exit(-1);
     }
     
-    //printf("argv[1]%
-    
     // Error check to add....
-    //llvm_dsp_factory* factory = createDSPFactoryFromFile(argv[1], argc-2, (const char**)&argv[2], "", error_msg, -1);
+    // llvm_dsp_factory* factory = createDSPFactoryFromFile(argv[1], argc-2, (const char**)&argv[2], "", error_msg, -1);
     
     // Another possibility by directly giving the Faust program as a string
     
