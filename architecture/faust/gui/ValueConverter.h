@@ -75,18 +75,6 @@ ZoneReader(zone, valueConverter) : a zone with a data converter
 #include <vector>
 
 //--------------------------------------------------------------------------------------
-// Range(lo,hi) clip a value between lo and hi
-//--------------------------------------------------------------------------------------
-struct Range
-{
-    double fLo;
-    double fHi;
-
-    Range(double x, double y) : fLo(std::min(x,y)), fHi(std::max(x,y)) {}
-    double operator()(double x) { return (x<fLo) ? fLo : (x>fHi) ? fHi : x; }
-};
-
-//--------------------------------------------------------------------------------------
 // Interpolator(lo,hi,v1,v2)
 // Maps a value x between lo and hi to a value y between v1 and v2
 // y = v1 + (x-lo)/(hi-lo)*(v2-v1)
@@ -97,8 +85,20 @@ struct Range
 //--------------------------------------------------------------------------------------
 class Interpolator
 {
-
     private:
+
+        //--------------------------------------------------------------------------------------
+        // Range(lo,hi) clip a value between lo and hi
+        //--------------------------------------------------------------------------------------
+        struct Range
+        {
+            double fLo;
+            double fHi;
+
+            Range(double x, double y) : fLo(std::min(x,y)), fHi(std::max(x,y)) {}
+            double operator()(double x) { return (x<fLo) ? fLo : (x>fHi) ? fHi : x; }
+        };
+
 
         Range fRange;
         double fCoef;
