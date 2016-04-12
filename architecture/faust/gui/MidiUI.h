@@ -31,7 +31,7 @@
 #endif
 
 #include "faust/gui/GUI.h"
-#include "faust/midi/rt-midi.h"
+#include "faust/midi/midi.h"
 #include "faust/gui/ValueConverter.h"
 #include <vector>
 #include <string>
@@ -404,7 +404,6 @@ class MidiUI : public GUI, public midi
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         
         midi_handler* fMidiHandler;
-        bool fDelete;
         
         void addGenericZone(FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
         {
@@ -443,27 +442,15 @@ class MidiUI : public GUI, public midi
 
     public:
 
-        MidiUI(const std::string& name = "MidiHandler")
-        {
-            fMidiHandler = new rt_midi(name);
-            fMidiHandler->addMidiIn(this);
-            fDelete = true;
-        }
-        
         MidiUI(midi_handler* midi_handler)
         {
             fMidiHandler = midi_handler;
             fMidiHandler->addMidiIn(this);
-            fDelete = false;
         }
  
         virtual ~MidiUI() 
         { 
-            if (fDelete) {
-                delete fMidiHandler;
-            } else {
-                fMidiHandler->removeMidiIn(this);
-            }
+            fMidiHandler->removeMidiIn(this);
         }
         
         void run() { fMidiHandler->start_midi(); }
