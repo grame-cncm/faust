@@ -34,7 +34,37 @@
 #include <float.h>
 #include <assert.h>
 
-double GetCurrentTimeInUsec();
+#if __APPLE__
+#if TARGET_OS_IPHONE
+    //inline double GetCurrentTimeInUsec() { return double(CAHostTimeBase::GetCurrentTimeInNanos()) / 1000.; }
+    // TODO
+    inline double GetCurrentTimeInUsec() { return 0.0; }
+#else
+    #include <CoreAudio/HostTime.h>
+    inline double GetCurrentTimeInUsec() { return double(AudioConvertHostTimeToNanos(AudioGetCurrentHostTime())) / 1000.; }
+#endif
+#endif
+
+#if __linux__
+#include <sys/time.h>
+inline double GetCurrentTimeInUsec() 
+{
+    struct timeval tv;
+    (void)gettimeofday(&tv, (struct timezone *)NULL);
+    return double((tv.tv_sec * 1000000) + tv.tv_usec);
+}
+#endif
+
+#if _WIN32
+inline double GetCurrentTimeInUsec(void)
+{
+    LARGE_INTEGER time;
+    LARGE_INTEGER frequency
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&time);
+    return double(time.QuadPart) / double(frequency.QuadPart) * 1000000.0;
+}
+#endif
 
 //----------------------------------------------------------------
 // ZoneUI : Faust User Interface
