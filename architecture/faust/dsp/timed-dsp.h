@@ -151,12 +151,12 @@ class timed_dsp : public decorator_dsp {
         void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
             if (slice > 0) {
-                FAUSTFLOAT** inputs_slice = (float**)alloca(fDSP->getNumInputs() * sizeof(float*));
+                FAUSTFLOAT** inputs_slice = (FAUSTFLOAT**)alloca(fDSP->getNumInputs() * sizeof(FAUSTFLOAT*));
                 for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
                     inputs_slice[chan] = &(inputs[chan][offset]);
                 }
                 
-                FAUSTFLOAT** outputs_slice = (float**)alloca(fDSP->getNumOutputs() * sizeof(float*));
+                FAUSTFLOAT** outputs_slice = (FAUSTFLOAT**)alloca(fDSP->getNumOutputs() * sizeof(FAUSTFLOAT*));
                 for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
                     outputs_slice[chan] = &(outputs[chan][offset]);
                 }
