@@ -220,7 +220,7 @@ class mydsp_poly : public dsp, public midi {
         std::string fFreqLabel;
         FAUSTFLOAT fPanic;
         
-        int fMaxPolyphony;
+        int fPolyphony;
         bool fVoiceControl;
         bool fGroupControl;
         
@@ -236,7 +236,7 @@ class mydsp_poly : public dsp, public midi {
         {
             FAUSTFLOAT level = 0;
             // Normalize sample by the max polyphony (as in vst.cpp file)
-            FAUSTFLOAT gain_level = 1./sqrt(fMaxPolyphony);
+            FAUSTFLOAT gain_level = 1./sqrt(fPolyphony);
             for (int i = 0; i < fNumOutputs; i++) {
                 FAUSTFLOAT* mixChannel = mixBuffer[i];
                 FAUSTFLOAT* outChannel = outputBuffer[i];
@@ -262,7 +262,7 @@ class mydsp_poly : public dsp, public midi {
           
         inline int getVoice(int note, bool steal = false)
         {
-            for (int i = 0; i < fMaxPolyphony; i++) {
+            for (int i = 0; i < fPolyphony; i++) {
                 if (fVoiceTable[i]->fNote == note) {
                     if (steal) { fVoiceTable[i]->fDate = fDate++; }
                     return i;
@@ -272,7 +272,7 @@ class mydsp_poly : public dsp, public midi {
             if (steal) {
                 int voice = kNoVoice;
                 int date = INT_MAX;
-                for (int i = 0; i < fMaxPolyphony; i++) {
+                for (int i = 0; i < fPolyphony; i++) {
                     // Try to steal a voice in kReleaseVoice mode...
                     if (fVoiceTable[i]->fNote == kReleaseVoice) {
                         printf("Steal release voice : voice_date = %d cur_date = %d voice = %d\n", fVoiceTable[i]->fDate, fDate, i);
@@ -298,11 +298,11 @@ class mydsp_poly : public dsp, public midi {
         {
             fVoiceControl = control;
             fGroupControl = group;
-            fMaxPolyphony = max_polyphony;
+            fPolyphony = max_polyphony;
             fFreqLabel = fGateLabel = fGainLabel = "";
             
             // Create voices
-            for (int i = 0; i < fMaxPolyphony; i++) {
+            for (int i = 0; i < fPolyphony; i++) {
                 fVoiceTable.push_back(factory->create());
             }
             
@@ -316,7 +316,7 @@ class mydsp_poly : public dsp, public midi {
             // Groups all uiItem for a given path
             fVoiceGroup = new proxy_dsp(fVoiceTable[0], mydsp::metadata);
             fVoiceGroup->buildUserInterface(&fGroups);
-            for (int i = 0; i < fMaxPolyphony; i++) {
+            for (int i = 0; i < fPolyphony; i++) {
                 fVoiceTable[i]->buildUserInterface(&fGroups);
             }
             
@@ -353,9 +353,9 @@ class mydsp_poly : public dsp, public midi {
             
             // In not group, also add individual voices UI
             if  (!fGroupControl) {
-                for (int i = 0; i < fMaxPolyphony; i++) {
+                for (int i = 0; i < fPolyphony; i++) {
                     char buffer[32];
-                    snprintf(buffer, 31, ((fMaxPolyphony < 8) ? "Voice%d" : "V%d"), i+1);
+                    snprintf(buffer, 31, ((fPolyphony < 8) ? "Voice%d" : "V%d"), i+1);
                     ui_interface->openHorizontalBox(buffer);
                     fVoiceTable[i]->buildUserInterface(ui_interface);
                     ui_interface->closeBox();
@@ -421,7 +421,7 @@ class mydsp_poly : public dsp, public midi {
             }
             delete[] fMixBuffer;
             
-            for (int i = 0; i < fMaxPolyphony; i++) {
+            for (int i = 0; i < fPolyphony; i++) {
                 delete fVoiceTable[i];
             }
             
@@ -436,7 +436,7 @@ class mydsp_poly : public dsp, public midi {
         void init(int sample_rate)
         {
             // Init voices
-            for (int i = 0; i < fMaxPolyphony; i++) {
+            for (int i = 0; i < fPolyphony; i++) {
                 fVoiceTable[i]->init(sample_rate);
             }
         }
@@ -444,7 +444,7 @@ class mydsp_poly : public dsp, public midi {
         void instanceInit(int sample_rate)
         {
             // Init voices
-            for (int i = 0; i < fMaxPolyphony; i++) {
+            for (int i = 0; i < fPolyphony; i++) {
                 fVoiceTable[i]->instanceInit(sample_rate);
             }
         }
@@ -458,7 +458,7 @@ class mydsp_poly : public dsp, public midi {
             
             if (fVoiceControl) {
                 // Mix all playing voices
-                for (int i = 0; i < fMaxPolyphony; i++) {
+                for (int i = 0; i < fPolyphony; i++) {
                     if (fVoiceTable[i]->fNote != kFreeVoice) {
                         if (fVoiceTable[i]->fTrigger) {
                             //If stolen note and need for envelop re-trigger
@@ -482,7 +482,7 @@ class mydsp_poly : public dsp, public midi {
                 }
             } else {
                 // Mix all voices
-                for (int i = 0; i < fMaxPolyphony; i++) {
+                for (int i = 0; i < fPolyphony; i++) {
                     fVoiceTable[i]->compute(count, inputs, fMixBuffer);
                     mixVoice(count, fMixBuffer, outputs);
                 }
@@ -508,7 +508,7 @@ class mydsp_poly : public dsp, public midi {
                 midi_ui->addMidiIn(this); 
             }
             
-            if (fMaxPolyphony > 1) {
+            if (fPolyphony > 1) {
                 uIBuilder(ui_interface);
             } else {
                 fVoiceTable[0]->buildUserInterface(ui_interface);
@@ -584,7 +584,7 @@ class mydsp_poly : public dsp, public midi {
         void allNotesOff()
         {
             if (checkPolyphony()) {
-                for (int i = 0; i < fMaxPolyphony; i++) {
+                for (int i = 0; i < fPolyphony; i++) {
                     fVoiceTable[i]->setValue(fGateLabel, 0.0f);
                     fVoiceTable[i]->fNote = kReleaseVoice;
                     fVoiceTable[i]->fTrigger = false;
@@ -594,7 +594,7 @@ class mydsp_poly : public dsp, public midi {
        
         void setValue(const char* path, float value)
         {
-            for (int i = 0; i < fMaxPolyphony; i++) {
+            for (int i = 0; i < fPolyphony; i++) {
                 fVoiceTable[i]->setValue(path, value);
             }
         }
