@@ -26,10 +26,8 @@
 
 #include "faustgen~.h"
 
-/*
 #define LLVM_DSP
 #include "faust/dsp/poly-dsp.h"
-*/
 
 #ifndef WIN32
 #include "faust/sound-file.h"
@@ -38,6 +36,9 @@
 int faustgen_factory::gFaustCounter = 0;
 map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
 t_jrgba faustgen::gDefaultColor = {-1., -1., -1., -1.};
+
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 //===================
 // Faust DSP Factory
@@ -152,6 +153,8 @@ faustgen_factory::faustgen_factory(const string& name)
     gFaustCounter++;
     fFaustNumber = gFaustCounter;
     
+    fMidiHandler.start_midi();
+    
 #ifdef __APPLE__
     // OSX only : access to the fautgen~ bundle
     CFBundleRef faustgen_bundle = CFBundleGetBundleWithIdentifier(CFSTR("com.grame.faustgen"));
@@ -206,6 +209,8 @@ faustgen_factory::~faustgen_factory()
     free_dsp_factory();
     free_sourcecode();
     free_bitcode();
+    
+    fMidiHandler.stop_midi();
    
     remove_svg();
     systhread_mutex_free(fDSPMutex);
@@ -316,11 +321,13 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     }
 }
 
-::dsp* faustgen_factory::create_dsp_instance()
+::dsp* faustgen_factory::create_dsp_instance(int poly)
 {
-    //dsp* dsp = new mydsp_poly(4, createDSPInstance(fDSPfactory), false);
-    dsp* dsp = createDSPInstance(fDSPfactory);
-    return dsp;
+    if (poly > 0) {
+        return new mydsp_poly(poly, createDSPInstance(fDSPfactory), true);
+    } else {
+        return createDSPInstance(fDSPfactory);
+    }
 }
 
 ::dsp* faustgen_factory::create_dsp_aux()
@@ -916,7 +923,7 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
 { 
     m_siginlets = 0;
     m_sigoutlets = 0;
-   
+    
     fDSP = 0;
     fDSPfactory = 0;
     fEditor = 0;
@@ -942,6 +949,8 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
         effect_name = "faustgen_factory-" + num.str();
         res = allocate_factory(effect_name);
     }
+    
+    fMidiUI = new MidiUI(&fDSPfactory->fMidiHandler);
     
     t_object* box; 
     object_obex_lookup((t_object*)&m_ob, gensym("#B"), &box);
@@ -981,8 +990,8 @@ void faustgen::free_dsp()
 {
     //deleteDSPInstance(fDSP);
     delete fDSP;
-    fDSPUI.clear();
     fDSP = 0;
+    fDSPUI.clear();
 }
 
 t_dictionary* faustgen::json_reader(const char* jsontext)
@@ -1028,9 +1037,10 @@ static int count_digit(const string& name)
 // Allows to set a value to the Faust module's parameter, or a list of values
 void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
 {
+    if (ac < 0) return;
+    
     bool res = false;
     string name = string((s)->s_name);
-    if (ac < 0) return;
     
     // Check if no argument is there, consider it is a toggle message for a button
     if (ac == 0 && fDSPUI.isValue(name)) {
@@ -1073,10 +1083,10 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         for (i = 0, ap = av; i < ac; i++, ap++) {
             float value;
             switch (atom_gettype(ap)) {
-                case A_LONG: {
+                case A_LONG: 
                     value = (float)ap[0].a_w.w_long;
                     break;
-                }
+            
                 case A_FLOAT:
                     value = ap[0].a_w.w_float;
                     break;
@@ -1139,6 +1149,36 @@ void faustgen::read(long inlet, t_symbol* s)
 void faustgen::write(long inlet, t_symbol* s)
 {
     fDSPfactory->write(inlet, s);
+}
+
+void faustgen::poly(long inlet, t_symbol* s, long ac, t_atom* av) 
+{
+    if (fDSPfactory->lock()) {
+        free_dsp();
+        fDSP = fDSPfactory->create_dsp_instance(av[0].a_w.w_long);
+        assert(fDSP);
+        fDSP->buildUserInterface(&fDSPUI);
+        fDSP->buildUserInterface(fMidiUI);
+        fDSPfactory->unlock();
+    } else {
+        post("Mutex lock cannot be taken...");
+    }
+}
+
+void faustgen::midievent(long inlet, t_symbol* s, long ac, t_atom* av) 
+{
+    if (ac > 0) {
+        int type = (int)av[0].a_w.w_long & 0xf0;
+        int channel = (int)av[0].a_w.w_long & 0x0f;
+                
+        if (ac == 1) {
+            fDSPfactory->fMidiHandler.handleSync(0.0, av[0].a_w.w_long);
+        } else if (ac == 2) {
+            fDSPfactory->fMidiHandler.handleData1(0.0, type, channel, av[1].a_w.w_long);
+        } else if (ac == 3) {
+            fDSPfactory->fMidiHandler.handleData2(0.0, type, channel, av[1].a_w.w_long, av[2].a_w.w_long);
+        }
+    }
 }
 
 void faustgen::librarypath(long inlet, t_symbol* s)
@@ -1498,6 +1538,12 @@ int main(void)
     
     // Process the "compileoptions" message, to add optional compilation possibilities
     REGISTER_METHOD_GIMME(faustgen, compileoptions);
+    
+    // Process the "midievent" message
+    REGISTER_METHOD_GIMME(faustgen, midievent);
+    
+    // Process the "poly" message
+    REGISTER_METHOD_GIMME(faustgen, poly);
     
     // Register inside Max the necessary methods
     REGISTER_METHOD_DEFSYM(faustgen, read);

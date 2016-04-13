@@ -41,6 +41,7 @@
 
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/gui/JSONUI.h"
+#include "faust/gui/MidiUI.h"
 #include "maxcpp5.h"
 
 #ifndef WIN32
@@ -83,11 +84,13 @@ class faustgen;
 class faustgen_factory {
 
     typedef vector<string>::const_iterator StringVectorIt;
+    friend class faustgen;
 
     private:
       
         set<faustgen*> fInstances;      // set of all DSP 
         llvm_dsp_factory* fDSPfactory;  // pointer to the LLVM Faust factory
+        midi_handler fMidiHandler;      // Generic MIDI handler          
    
         long fSourceCodeSize;           // length of source code string
         char** fSourceCode;             // source code string
@@ -163,7 +166,7 @@ class faustgen_factory {
         void display_pdf();
         void display_libraries();
         
-        ::dsp* create_dsp_instance();
+        ::dsp* create_dsp_instance(int poly = 0);
         void add_instance(faustgen* dsp) { fInstances.insert(dsp); }
         void remove_instance(faustgen* dsp)  
         { 
@@ -199,6 +202,7 @@ class faustgen : public MspCpp5<faustgen> {
         map<string, vector <t_object*> > fOutputTable;
         
         mspUI fDSPUI;               // DSP UI
+        MidiUI* fMidiUI;            // Midi UI
         ::dsp* fDSP;                // pointer to the LLVM Faust dsp
         t_object* fEditor;          // text editor object
         bool fMute;                 // DSP mute state
@@ -257,6 +261,9 @@ class faustgen : public MspCpp5<faustgen> {
          
         void read(long inlet, t_symbol* s);
         void write(long inlet, t_symbol* s);
+        
+        void poly(long inlet, t_symbol* s, long argc, t_atom* argv);
+        void midievent(long inlet, t_symbol* s, long argc, t_atom* argv);
         
         void librarypath(long inlet, t_symbol* s);
    
