@@ -193,6 +193,7 @@ struct mydsp_voice : public dsp_voice {
     virtual int getNumOutputs() { return fVoice.getNumOutputs(); }
     virtual void buildUserInterface(UI* ui_interface) { fVoice.buildUserInterface(ui_interface); }
     virtual void init(int samplingRate) { fVoice.init(samplingRate); }
+    virtual void instanceInit(int samplingRate) { fVoice.instanceInit(samplingRate); }
     virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice.compute(len, inputs, outputs); }
 
     virtual void metadata(Meta* meta) { mydsp::metadata(meta); }
@@ -325,6 +326,19 @@ class mydsp_poly : public dsp, public midi {
             uIBuilder(&builder);
             fJSON = builder.JSON();
             fDate = 0;
+            
+            // Keep gain, freq and gate labels
+            std::map<std::string, FAUSTFLOAT*>::iterator it;
+            for (it = fVoiceTable[0]->getMap().begin(); it != fVoiceTable[0]->getMap().end(); it++) {
+                std::string label = (*it).first;
+                if (ends_with(label, "/gate")) {
+                    fGateLabel = label;
+                } else if (ends_with(label, "/freq")) {
+                    fFreqLabel = label;
+                } else if (ends_with(label, "/gain")) {
+                    fGainLabel = label;
+                }
+            }
         }
         
         void uIBuilder(UI* ui_interface)
@@ -371,12 +385,12 @@ class mydsp_poly : public dsp, public midi {
         inline void computeSlice(dsp* dsp, int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
             if (slice > 0) {
-                FAUSTFLOAT** inputs_slice = (float**)alloca(dsp->getNumInputs() * sizeof(float*));
+                FAUSTFLOAT** inputs_slice = (FAUSTFLOAT**)alloca(dsp->getNumInputs() * sizeof(FAUSTFLOAT*));
                 for (int chan = 0; chan < dsp->getNumInputs(); chan++) {
                     inputs_slice[chan] = &(inputs[chan][offset]);
                 }
                 
-                FAUSTFLOAT** outputs_slice = (float**)alloca(dsp->getNumOutputs() * sizeof(float*));
+                FAUSTFLOAT** outputs_slice = (FAUSTFLOAT**)alloca(dsp->getNumOutputs() * sizeof(FAUSTFLOAT*));
                 for (int chan = 0; chan < dsp->getNumOutputs(); chan++) {
                     outputs_slice[chan] = &(outputs[chan][offset]);
                 }
@@ -419,28 +433,23 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
-        void init(int sample_rate) 
+        void init(int sample_rate)
         {
             // Init voices
             for (int i = 0; i < fMaxPolyphony; i++) {
                 fVoiceTable[i]->init(sample_rate);
             }
-            
-            // Keep gain, freq and gate labels
-            std::map<std::string, FAUSTFLOAT*>::iterator it;
-            for (it = fVoiceTable[0]->getMap().begin(); it != fVoiceTable[0]->getMap().end(); it++) {
-                std::string label = (*it).first;
-                if (ends_with(label, "/gate")) {
-                    fGateLabel = label;
-                } else if (ends_with(label, "/freq")) {
-                    fFreqLabel = label;
-                } else if (ends_with(label, "/gain")) {
-                    fGainLabel = label;
-                }
+        }
+    
+        void instanceInit(int sample_rate)
+        {
+            // Init voices
+            for (int i = 0; i < fMaxPolyphony; i++) {
+                fVoiceTable[i]->instanceInit(sample_rate);
             }
         }
-        
-        void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
+    
+        void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             assert(count < MIX_BUFFER_SIZE);
             
