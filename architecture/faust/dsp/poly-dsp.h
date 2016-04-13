@@ -385,12 +385,12 @@ class mydsp_poly : public dsp, public midi {
         inline void computeSlice(dsp* dsp, int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
             if (slice > 0) {
-                FAUSTFLOAT** inputs_slice = (float**)alloca(dsp->getNumInputs() * sizeof(float*));
+                FAUSTFLOAT** inputs_slice = (FAUSTFLOAT**)alloca(dsp->getNumInputs() * sizeof(FAUSTFLOAT*));
                 for (int chan = 0; chan < dsp->getNumInputs(); chan++) {
                     inputs_slice[chan] = &(inputs[chan][offset]);
                 }
                 
-                FAUSTFLOAT** outputs_slice = (float**)alloca(dsp->getNumOutputs() * sizeof(float*));
+                FAUSTFLOAT** outputs_slice = (FAUSTFLOAT**)alloca(dsp->getNumOutputs() * sizeof(FAUSTFLOAT*));
                 for (int chan = 0; chan < dsp->getNumOutputs(); chan++) {
                     outputs_slice[chan] = &(outputs[chan][offset]);
                 }
