@@ -59,6 +59,7 @@
 #include "faust/gui/MidiUI.h"
 
 #ifdef MIDICTRL
+#include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
 #endif
 
@@ -154,7 +155,8 @@ int main(int argc, char *argv[])
 	DSP->buildUserInterface(finterface);
     
 #ifdef MIDICTRL
-    MidiUI midiinterface(name);
+    rt_midi midi_handler(name);
+    MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
     std::cout << "MIDI is on" << std::endl;
 #endif
