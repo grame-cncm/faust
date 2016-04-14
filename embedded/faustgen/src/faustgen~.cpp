@@ -237,7 +237,6 @@ void faustgen_factory::free_bitcode()
 void faustgen_factory::free_dsp_factory()
 {
    if (lock()) {
-   
         // Free all instances
         set<faustgen*>::const_iterator it;
         for (it = fInstances.begin(); it != fInstances.end(); it++) {
@@ -950,6 +949,7 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
         res = allocate_factory(effect_name);
     }
     
+    // One MidiUI for each polyphonic DSP
     fMidiUI = new MidiUI(&fDSPfactory->fMidiHandler);
     
     t_object* box; 
@@ -984,6 +984,8 @@ faustgen::~faustgen()
     }
      
     fDSPfactory->remove_instance(this);
+    
+    delete fMidiUI;
 }
 
 void faustgen::free_dsp()
