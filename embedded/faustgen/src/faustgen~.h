@@ -54,7 +54,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"math.lib\"); \nimport(\"maxmsp.lib\"); \nimport(\"music.lib\"); \nimport(\"oscillator.lib\"); \nimport(\"reduce.lib\"); \nimport(\"filter.lib\"); \nimport(\"effect.lib\"); \n \nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.07"
+#define FAUSTGEN_VERSION "1.08"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 
 #ifdef __APPLE__
@@ -262,7 +262,7 @@ class faustgen : public MspCpp5<faustgen> {
         void read(long inlet, t_symbol* s);
         void write(long inlet, t_symbol* s);
         
-        void poly(long inlet, t_symbol* s, long argc, t_atom* argv);
+        void polyphony(long inlet, t_symbol* s, long argc, t_atom* argv);
         void midievent(long inlet, t_symbol* s, long argc, t_atom* argv);
         
         void librarypath(long inlet, t_symbol* s);

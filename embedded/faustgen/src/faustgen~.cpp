@@ -1151,14 +1151,17 @@ void faustgen::write(long inlet, t_symbol* s)
     fDSPfactory->write(inlet, s);
 }
 
-void faustgen::poly(long inlet, t_symbol* s, long ac, t_atom* av) 
+void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av) 
 {
     if (fDSPfactory->lock()) {
         free_dsp();
         fDSP = fDSPfactory->create_dsp_instance(av[0].a_w.w_long);
         assert(fDSP);
+        // Initialize User Interface (here connnection with controls)
         fDSP->buildUserInterface(&fDSPUI);
         fDSP->buildUserInterface(fMidiUI);
+         // Initialize at the system's sampling rate
+        fDSP->init(sys_getsr());
         fDSPfactory->unlock();
     } else {
         post("Mutex lock cannot be taken...");
@@ -1286,6 +1289,8 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
             fDSP->compute(vs, (FAUSTFLOAT**)inputs, (FAUSTFLOAT**)outputs);
             update_outputs();
         }
+        
+        GUI::updateAllGuis();
     
         fDSPfactory->unlock();
     } else {
@@ -1542,8 +1547,8 @@ int main(void)
     // Process the "midievent" message
     REGISTER_METHOD_GIMME(faustgen, midievent);
     
-    // Process the "poly" message
-    REGISTER_METHOD_GIMME(faustgen, poly);
+    // Process the "polyphony" message
+    REGISTER_METHOD_GIMME(faustgen, polyphony);
     
     // Register inside Max the necessary methods
     REGISTER_METHOD_DEFSYM(faustgen, read);
