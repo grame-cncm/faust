@@ -56,6 +56,8 @@
 #define VOICE_STOP_LEVEL  0.001
 #define MIX_BUFFER_SIZE   16384
 
+#define FLOAT_MAX(a, b) (((a) < (b)) ? (b) : (a))
+
 // ends_with(<str>,<end>) : returns true if <str> ends with <end>
 static bool ends_with(std::string const& str, std::string const& end)
 {
@@ -283,7 +285,7 @@ class mydsp_poly : public dsp, public midi {
                 FAUSTFLOAT* mixChannel = mixBuffer[i];
                 FAUSTFLOAT* outChannel = outputBuffer[i];
                 for (int j = 0; j < count; j++) {
-                    level = std::max(level, (FAUSTFLOAT)fabs(outChannel[j]));
+                    level = FLOAT_MAX(level, (FAUSTFLOAT)fabs(outChannel[j]));
                     mixChannel[j] += outChannel[j] * gain_level;
                 }
             }
