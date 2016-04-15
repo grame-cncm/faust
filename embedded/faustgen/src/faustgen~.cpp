@@ -1007,11 +1007,11 @@ t_dictionary* faustgen::json_reader(const char* jsontext)
     if (!err) {
         t_object *ro = (t_object*)atom_getobj(result);
         if (ro) {
-                if (object_classname_compare(ro, _sym_dictionary)) {
-                    d = (t_dictionary*)ro;
-                } else {
-                    object_free(ro);
-                }
+            if (object_classname_compare(ro, _sym_dictionary)) {
+                d = (t_dictionary*)ro;
+            } else {
+                object_free(ro);
+            }
         }
     }
     object_free(jsonreader);
@@ -1021,7 +1021,7 @@ t_dictionary* faustgen::json_reader(const char* jsontext)
 static bool check_digit(const string& name)
 {
     for (int i = name.size() - 1; i >= 0; i--) {
-        if (isdigit(name[i])) return true;
+        if (isdigit(name[i])) { return true; }
     }
     return false;
 }
@@ -1030,7 +1030,7 @@ static int count_digit(const string& name)
 {
     int count = 0;
     for (int i = name.size() - 1; i >= 0; i--) {
-        if (isdigit(name[i])) count++;
+        if (isdigit(name[i])) { count++; }
     }
     return count;
 }
@@ -1291,9 +1291,7 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
             fDSP->compute(vs, (FAUSTFLOAT**)inputs, (FAUSTFLOAT**)outputs);
             update_outputs();
         }
-        
         GUI::updateAllGuis();
-    
         fDSPfactory->unlock();
     } else {
         // Write null buffers to outs
@@ -1469,12 +1467,10 @@ void faustgen::create_jsui()
     fOutputTable.clear();
     for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
         obj = jbox_get_object(box);
-        t_symbol *scriptingname = jbox_get_varname(obj); // scripting name
-        if (scriptingname) {
-            // Keep control outputs
-            if (fDSPUI.isOutputValue(scriptingname->s_name)) {
-                fOutputTable[scriptingname->s_name].push_back(obj);
-            }
+        t_symbol* scriptingname = jbox_get_varname(obj); // scripting name
+        // Keep control outputs
+        if (scriptingname && fDSPUI.isOutputValue(scriptingname->s_name)) {
+            fOutputTable[scriptingname->s_name].push_back(obj);
         }
     }
 }
