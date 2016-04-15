@@ -398,7 +398,7 @@ class mydsp_poly : public dsp, public midi {
             ui_interface->closeBox();
             
             // In not group, also add individual voices UI
-            if  (!fGroupControl) {
+            if (!fGroupControl) {
                 for (int i = 0; i < fPolyphony; i++) {
                     char buffer[32];
                     snprintf(buffer, 31, ((fPolyphony < 8) ? "Voice%d" : "V%d"), i+1);
