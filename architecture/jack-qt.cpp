@@ -59,6 +59,7 @@
 #include "faust/gui/MidiUI.h"
 
 #ifdef MIDICTRL
+#include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
 #endif
 
@@ -184,7 +185,8 @@ int main(int argc, char *argv[])
 
     MidiUI* midiinterface;
     if (rtmidi) {
-        midiinterface = new MidiUI(name);
+        rt_midi midi_handler(name);
+        midiinterface = new MidiUI(&midi_handler);
         printf("RtMidi is used\n");
     } else {
         midiinterface = new MidiUI(&audio);

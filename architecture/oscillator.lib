@@ -187,7 +187,7 @@ sawtooth_demo = signal with {
       0.1,0.001,10,0.001));
   sfreq = freq : fl.smooth(fl.tau2pole(portamento));
   saworder = knob_group(nentry("[6] Saw Order [tooltip: Order of sawtootn aliasing suppression]",2,1,MAX_SAW_ORDER,1));
-  sawchoice = _ <: par(i,MAX_SAW_ORDER,sawN(i+1)) : ml.selectn(int(saworder-1),int(MAX_SAW_ORDER)); // when max is pwr of 2
+  sawchoice = _ <: par(i,MAX_SAW_ORDER,sawN(i+1)) : ml.selectn(int(MAX_SAW_ORDER), int(saworder-1)); // when max is pwr of 2
   tone = (amp/3) * (sawchoice(sfreq) + sawchoice(sfreq*detune1) + sawchoice(sfreq*detune2));
   signal = amp * select2(ei, select2(ss, tone, pink_noise), _);
   checkbox_group(x) = knob_group(vgroup("[7] Alternate Signals",x));
@@ -245,10 +245,10 @@ virtual_analog_oscillator_demo = signal with {
   // Signals
   sawchoice = _ <:
     // When MAX_SAW_ORDER is a power of 2:
-    par(i,MAX_SAW_ORDER,sawN(i+1)) : ml.selectn(int(saworder-1),int(MAX_SAW_ORDER));
+    par(i,MAX_SAW_ORDER,sawN(i+1)) : ml.selectn(int(MAX_SAW_ORDER), int(saworder-1));
     // When MAX_SAW_ORDER is NOT a power of 2:
     // (par(i,MAX_SAW_ORDER,sawN(i+1)), par(j,MAX_SAW_ORDER_NEXTPOW2-MAX_SAW_ORDER,_))
-    //   : ml.selectn(saworder-1,MAX_SAW_ORDER_NEXTPOW2);
+    //   : ml.selectn(MAX_SAW_ORDER_NEXTPOW2, saworder-1);
   saw = (amp/3) *
     (sawchoice(sfreq) + sawchoice(sfreq*detune1) + sawchoice(sfreq*detune2));
   sq = (amp/3) *

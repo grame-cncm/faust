@@ -1265,10 +1265,11 @@ struct LV2Plugin {
     if (is_instr) {
       if (!poly)
 	; // this shouldn't happen but...
-      else if (nvoices != *poly && *poly > 0 && *poly <= maxvoices) {
+      else if (nvoices != (int)*poly &&
+	       (int)*poly > 0 && (int)*poly <= maxvoices) {
 	for (int i = 0; i < nvoices; i++)
 	  voice_off(i);
-	nvoices = *poly;
+        nvoices = (int)*poly;
 	// Reset the voice allocation.
 	memset(vd->notes, 0xff, sizeof(vd->notes));
 	vd->free_voices.clear();
@@ -1280,7 +1281,7 @@ struct LV2Plugin {
       } else
 	*poly = nvoices;
 #if FAUST_MTS
-      if (tuning && tuning_no != *tuning) change_tuning(*tuning);
+      if (tuning && tuning_no != (int)*tuning) change_tuning((int)*tuning);
 #endif
     }
     // Only update the controls (of all voices simultaneously) if a port value
@@ -1945,26 +1946,26 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
 	a lv2:InputPort ;\n\
 	a lv2:ControlPort ;\n\
 	lv2:index %d ;\n\
-	lv2:symbol \"%s\" ;\n\
+	lv2:symbol \"%s_%d\" ;\n\
 	lv2:name \"%s\" ;\n\
         lv2:portProperty epp:hasStrictBounds ;\n\
         lv2:portProperty lv2:toggled ;\n\
 	lv2:default 0.00000 ;\n\
 	lv2:minimum 0.00000 ;\n\
-	lv2:maximum 1.00000 ;\n", idx, sym.c_str(), label);
+	lv2:maximum 1.00000 ;\n", idx, sym.c_str(), idx, label);
       break;
     case UI_NUM_ENTRY: case UI_H_SLIDER: case UI_V_SLIDER:
     fprintf(fp, "\
 	a lv2:InputPort ;\n\
 	a lv2:ControlPort ;\n\
 	lv2:index %d ;\n\
-	lv2:symbol \"%s\" ;\n\
+	lv2:symbol \"%s_%d\" ;\n\
 	lv2:name \"%s\" ;\n\
         lv2:portProperty epp:hasStrictBounds ;\n\
         epp:rangeSteps %u ;\n\
 	lv2:default %g ;\n\
 	lv2:minimum %g ;\n\
-	lv2:maximum %g ;\n", idx, sym.c_str(), label,
+	lv2:maximum %g ;\n", idx, sym.c_str(), idx, label,
 	    steps(plugin->ui[0]->elems[j].min,
 		  plugin->ui[0]->elems[j].max,
 		  plugin->ui[0]->elems[j].step),
@@ -1978,11 +1979,11 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
 	a lv2:OutputPort ;\n\
 	a lv2:ControlPort ;\n\
 	lv2:index %d ;\n\
-	lv2:symbol \"%s\" ;\n\
+	lv2:symbol \"%s_%d\" ;\n\
 	lv2:name \"%s\" ;\n\
 	lv2:default %g ;\n\
 	lv2:minimum %g ;\n\
-	lv2:maximum %g ;\n", idx, sym.c_str(), label,
+	lv2:maximum %g ;\n", idx, sym.c_str(), idx, label,
 	    plugin->ui[0]->elems[j].min,
 	    plugin->ui[0]->elems[j].min,
 	    plugin->ui[0]->elems[j].max);
@@ -2077,8 +2078,8 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
 	a lv2:InputPort ;\n\
 	a lv2:ControlPort ;\n\
 	lv2:index %d ;\n\
-	lv2:symbol \"nvoices\" ;\n\
-	lv2:name \"Polyphony\" ;\n\
+	lv2:symbol \"polyphony\" ;\n\
+	lv2:name \"polyphony\" ;\n\
         lv2:portProperty epp:hasStrictBounds ;\n\
 #       lv2:portProperty epp:expensive ;\n\
         lv2:portProperty lv2:integer ;\n\
@@ -2098,7 +2099,7 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
 	a lv2:ControlPort ;\n\
 	lv2:index %d ;\n\
 	lv2:symbol \"tuning\" ;\n\
-	lv2:name \"Tuning\" ;\n\
+	lv2:name \"tuning\" ;\n\
         lv2:portProperty epp:hasStrictBounds ;\n\
         lv2:portProperty lv2:integer ;\n\
         epp:rangeSteps %d ;\n\

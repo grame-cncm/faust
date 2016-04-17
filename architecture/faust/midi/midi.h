@@ -133,6 +133,23 @@ class midi_handler : public midi {
         std::vector<midi*> fMidiInputs;
         std::string fName;
 
+    public:
+
+        midi_handler(const std::string& name = "MIDIHandler"):fName(name) {}
+        virtual ~midi_handler() {}
+
+        virtual void addMidiIn(midi* midi_dsp) { fMidiInputs.push_back(midi_dsp); }
+        virtual void removeMidiIn(midi* midi_dsp)
+        {
+            std::vector<midi*>::iterator it = std::find(fMidiInputs.begin(), fMidiInputs.end(), midi_dsp);
+            if (it != fMidiInputs.end()) {
+                fMidiInputs.erase(it);
+            }
+        }
+
+        virtual bool start_midi() { return false; }
+        virtual void stop_midi() {}
+        
         void handleSync(double time, int type)
         {
             if (type == MIDI_CLOCK) {
@@ -179,7 +196,7 @@ class midi_handler : public midi {
                 }
             } else if (type == MIDI_PITCH_BEND) {
                 for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                    fMidiInputs[i]->pitchWheel(time, channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
+                    fMidiInputs[i]->pitchWheel(time, channel, (data2 * 128.0) + data1);
                 }
             } else if (type == MIDI_POLY_AFTERTOUCH) {
                 for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
@@ -187,23 +204,7 @@ class midi_handler : public midi {
                 }
             }
         }
-       
-    public:
 
-        midi_handler(const std::string& name = "MIDIHandler"):fName(name) {}
-        virtual ~midi_handler() {}
-
-        virtual void addMidiIn(midi* midi_dsp) { fMidiInputs.push_back(midi_dsp); }
-        virtual void removeMidiIn(midi* midi_dsp)
-        {
-            std::vector<midi*>::iterator it = std::find(fMidiInputs.begin(), fMidiInputs.end(), midi_dsp);
-            if (it != fMidiInputs.end()) {
-                fMidiInputs.erase(it);
-            }
-        }
-
-        virtual bool start_midi() { return false; }
-        virtual void stop_midi() {}
 
 };
 

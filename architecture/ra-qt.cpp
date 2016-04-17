@@ -55,7 +55,8 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
-// Always include this file, otherwise -poly only mode does not compile....
+// Always include this file, otherwise -poly only mode does not compile...
+#include "faust/midi/rt-midi.h"
 #include "faust/gui/MidiUI.h"
 
 #ifdef MIDICTRL
@@ -162,7 +163,8 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(&finterface);
 
 #ifdef MIDICTRL
-    MidiUI midiinterface(name);
+    rt_midi midi_handler(name);
+    MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
     std::cout << "MIDI is on" << std::endl;
 #endif

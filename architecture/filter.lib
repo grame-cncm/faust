@@ -754,7 +754,7 @@ tf1sb(b1,b0,a0,w1,wc) = tf2(b0d/a0d,b1d/a0d,b2d/a0d,a1d/a0d,a2d/a0d) with {
 resonlp(fc,Q,gain) = tf2s(b2,b1,b0,a1,a0,wc)
 with {
      wc = 2*PI*fc;
-     a1 = 2/Q;
+     a1 = 1/Q;
      a0 = 1;
      b2 = 0;
      b1 = 0;
@@ -768,7 +768,7 @@ resonhp(fc,Q,gain,x) = gain*x-resonlp(fc,Q,gain,x);
 resonbp(fc,Q,gain) = tf2s(b2,b1,b0,a1,a0,wc) 
 with {
      wc = 2*PI*fc;
-     a1 = 2/Q;
+     a1 = 1/Q;
      a0 = 1;
      b2 = 0;
      b1 = gain;
@@ -1069,7 +1069,7 @@ with { // octave script output:
 // - http://en.wikipedia.org/wiki/Equalization
 // - filterbank (below, here in filter.lib)
 // - http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
-//   Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999, p. 124
+// - Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999, p. 124
 // - https://ccrma.stanford.edu/~jos/filters/Low_High_Shelving_Filters.html
 // - https://ccrma.stanford.edu/~jos/filters/Peaking_Equalizers.html
 // - maxmsp.lib in the Faust distribution

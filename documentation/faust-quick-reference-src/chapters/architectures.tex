@@ -153,7 +153,6 @@ class UI
 
    -- active widgets
   virtual void addButton(const char* l, float* z)       = 0;
-  virtual void addToggleButton(const char* l, float* z) = 0;
   virtual void addCheckButton(const char* l, float* z)  = 0;
   
   virtual void addVerticalSlider(const char* l, float* z, 
@@ -166,12 +165,6 @@ class UI
       float init, float min, float max, float step)     = 0;
       
    -- passive widgets
-  virtual void addNumDisplay(const char* l, float* z,
-                                                 int p) = 0;
-                                                 
-  virtual void addTextDisplay(const char* l, float* z, 
-             const char* names[], float min, float max) = 0;
-             
   virtual void addHorizontalBargraph(const char* l,
                         float* z, float min, float max) = 0;
                         
@@ -197,18 +190,18 @@ class UI
 \subsection{Active widgets}
 \label{sec:awidget}
 Active widgets are graphical elements that control a parameter value. They are initialized with the widget name and a pointer to the linked value.
-The widget currently considered are \code{Button},  \code{ToggleButton},  \code{CheckButton},  \code{VerticalSlider},  \code{HorizontalSlider} and  \code{NumEntry}. \\
+The widget currently considered are \code{Button},  \code{CheckButton},  \code{VerticalSlider},  \code{HorizontalSlider} and  \code{NumEntry}. \\
 A GUI architecture must implement a method \\
-\code{addXxx (const char* name, float* zone, ...)} for each active widget.
+\code{addXxx(const char* name, float* zone, ...)} for each active widget.
 Additional parameters are available for \code{Slider} and \code{NumEntry}: the \code{init} value, the \code{min} and \code{max} values and the \code{step}.
 
 %---------------------------------------------------
 \subsection{Passive widgets}
 \label{sec:pwidget}
 Passive widgets are graphical elements that reflect values. Similarly to active widgets, they are initialized with the widget name and a pointer to the linked value.
-The widget currently considered are \code{NumDisplay},  \code{TextDisplay},  \code{HorizontalBarGraph} and  \code{VerticalBarGraph}. \\
+The widget currently considered are  \code{HorizontalBarGraph} and  \code{VerticalBarGraph}. \\
 A UI architecture must implement a method \\
-\code{addxxx (const char* name, float* zone, ...)} for each passive widget.
+\code{addxxx(const char* name, float* zone, ...)} for each passive widget.
 Additional parameters are available, depending on the passive widget type.
 
 %---------------------------------------------------
@@ -216,10 +209,10 @@ Additional parameters are available, depending on the passive widget type.
 \label{sec:wlayout}
 Generally, a  GUI is hierarchically organized into boxes and/or tab boxes. 
 A UI architecture must support the following methods to setup this hierarchy : \\
-\htab\code{openTabBox (const char* label)} \\
-\htab\code{openHorizontalBox (const char* label)} \\
-\htab\code{openVerticalBox (const char* label)} \\
-\htab\code{closeBox (const char* label)} \\
+\htab\code{openTabBox(const char* label)} \\
+\htab\code{openHorizontalBox(const char* label)} \\
+\htab\code{openVerticalBox(const char* label)} \\
+\htab\code{closeBox(const char* label)} \\
 Note that all the widgets are added to the current box.
 
 %---------------------------------------------------

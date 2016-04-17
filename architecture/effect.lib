@@ -120,7 +120,7 @@ declare exciter_name "Harmonic Exciter";
 declare exciter_author "Priyanka Shekar (pshekar@ccrma.stanford.edu)";
 declare exciter_copyright "Copyright (c) 2013 Priyanka Shekar";
 declare exciter_version "1.0";
-declare exciter_license "MIT License (MIT)"; 
+declare exciter_license "MIT License (MIT)";
 
 exciter = _ <: (highpass : compressor : pregain : harmonicCreator : postgain), _ : balance with {
 
@@ -161,9 +161,9 @@ exciter = _ <: (highpass : compressor : pregain : harmonicCreator : postgain), _
   ex_group(x) = hgroup("EXCITER  [tooltip: Reference: Patent US4150253 A]", x);
 
   //Highpass - selectable cutoff frequency
-  fc = ex_group(hslider("[0] Cutoff Frequency [unit:Hz] [style:knob] [scale:log] 
-                        [tooltip: Cutoff frequency for highpassed components to be excited]", 
-			5000, 1000, 10000, 100));
+  fc = ex_group(hslider("[0] Cutoff Frequency [unit:Hz] [style:knob] [scale:log]
+                        [tooltip: Cutoff frequency for highpassed components to be excited]",
+                        5000, 1000, 10000, 100));
   highpass = component("filter.lib").highpass(2, fc);
   x = highpass;
 
@@ -194,7 +194,8 @@ exciter = _ <: (highpass : compressor : pregain : harmonicCreator : postgain), _
 //   fr = corner-resonance frequency in Hz ( less than SR/6.3 or so )
 //   res  = Normalized amount of corner-resonance between 0 and 1
 //        (0 is no resonance, 1 is maximum)
-// Requires filter.lib.
+//
+// REQUIRES: filter.lib
 //
 // DESCRIPTION: Moog VCF implemented using the same logical block diagram
 //   as the classic analog circuit.  As such, it neglects the one-sample
@@ -604,8 +605,8 @@ phaser2_demo = bypass2(pbp,phaser2_stereo_demo) with {
 // A very simple vocoder where the spectrum of the modulation signal
 // is analyzed using a filter bank.
 //
-// USAGE: 
-// 		vocoder(nBands,att,rel,BWRatio,source,excitation) : _;
+// USAGE:
+//              vocoder(nBands,att,rel,BWRatio,source,excitation) : _;
 //
 // where
 // nBands = Number of vocoder bands
@@ -614,31 +615,31 @@ phaser2_demo = bypass2(pbp,phaser2_stereo_demo) with {
 // BWRatio = Coefficient to adjust the bandwidth of each band (0.1 - 2)
 // source = Modulation signal
 // excitation = Excitation/Carrier signal
-  
+
 oneVocoderBand(band,bandsNumb,bwRatio,bandGain,x) = x : resonbp(bandFreq,bandQ,bandGain) with{
-	bandFreq = 25*pow(2,(band+1)*(9/bandsNumb));
-	BW = (bandFreq - 25*pow(2,(band)*(9/bandsNumb)))*bwRatio;
-	bandQ = bandFreq/BW;
+        bandFreq = 25*pow(2,(band+1)*(9/bandsNumb));
+        BW = (bandFreq - 25*pow(2,(band)*(9/bandsNumb)))*bwRatio;
+        bandQ = bandFreq/BW;
 };
 
 vocoder(nBands,att,rel,BWRatio,source,excitation) = source <: par(i,nBands,oneVocoderBand(i,nBands,BWRatio,1) : amp_follower_ar(att,rel) : _,excitation : oneVocoderBand(i,nBands,BWRatio)) :> _ ;
 
 //---------------------------- vocoder_demo -------------------------
-// Use example of the vocoder function where an impulse train is used 
+// Use example of the vocoder function where an impulse train is used
 // as excitation.
-// USAGE: 
-// 		_ : vocoder_demo : _;
+// USAGE:
+//              _ : vocoder_demo : _;
 
 vocoder_demo = hgroup("My Vocoder",_,impTrain(freq)*gain : vocoder(bands,att,rel,BWRatio) <: _,_) with{
-	bands = 32;
-	impTrain = component("oscillator.lib").lf_imptrain;
-	vocoderGroup(x) = vgroup("Vocoder",x);
-	att = vocoderGroup(hslider("[0] Attack [style:knob] [tooltip: Attack time in seconds]",5,0.1,100,0.1)*0.001);
-	rel = vocoderGroup(hslider("[1] Release [style:knob] [tooltip: Release time in seconds]",5,0.1,100,0.1)*0.001);
-	BWRatio = vocoderGroup(hslider("[2] BW [style:knob] [tooltip: Coefficient to adjust the bandwidth of each band]",0.5,0.1,2,0.001));
-	excitGroup(x) = vgroup("Excitation",x);
-	freq = excitGroup(hslider("[0] Freq [style:knob]",330,50,2000,0.1));
-	gain = excitGroup(vslider("[1] Gain",0.5,0,1,0.01) : smooth(0.999));
+        bands = 32;
+        impTrain = component("oscillator.lib").lf_imptrain;
+        vocoderGroup(x) = vgroup("Vocoder",x);
+        att = vocoderGroup(hslider("[0] Attack [style:knob] [tooltip: Attack time in seconds]",5,0.1,100,0.1)*0.001);
+        rel = vocoderGroup(hslider("[1] Release [style:knob] [tooltip: Release time in seconds]",5,0.1,100,0.1)*0.001);
+        BWRatio = vocoderGroup(hslider("[2] BW [style:knob] [tooltip: Coefficient to adjust the bandwidth of each band]",0.5,0.1,2,0.001));
+        excitGroup(x) = vgroup("Excitation",x);
+        freq = excitGroup(hslider("[0] Freq [style:knob]",330,50,2000,0.1));
+        gain = excitGroup(vslider("[1] Gain",0.5,0,1,0.01) : smooth(0.999));
 };
 
 //------------------------- stereo_width(w) ---------------------------
@@ -1021,15 +1022,15 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
 };
 
 //---------------------------- mono_freeverb, stereo_freeverb -------------------------
-// A simple Schroeder reverberator primarily developed by "Jezar at Dreampoint" that 
-// is extensively used in the free-software world. It uses four Schroeder allpasses in 
-// series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each 
-//audio channel, and is said to be especially well tuned. 
+// A simple Schroeder reverberator primarily developed by "Jezar at Dreampoint" that
+// is extensively used in the free-software world. It uses four Schroeder allpasses in
+// series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each
+//audio channel, and is said to be especially well tuned.
 //
-// USAGE: 
-// 		_ : mono_freeverb(fb1, fb2, damp, spread) : _;
+// USAGE:
+//              _ : mono_freeverb(fb1, fb2, damp, spread) : _;
 // or
-// 		_,_ : stereo_freeverb(fb1, fb2, damp, spread) : _,_;
+//              _,_ : stereo_freeverb(fb1, fb2, damp, spread) : _,_;
 //
 // where
 // fb1 = coefficient of the lowpass comb filters (0-1)
@@ -1039,25 +1040,25 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
 
 mono_freeverb(fb1, fb2, damp, spread) = _ <: par(i,8,lbcf(combtuningL(i)+spread,fb1,damp)) :> seq(i,4,allpass_comb(1024, allpasstuningL(i)+spread, -fb2))
 with{
-	origSR = 44100;
-	
-	// Filters parameters 
-	combtuningL(0) = 1116*SR/origSR : int;
-	combtuningL(1) = 1188*SR/origSR : int;
-	combtuningL(2) = 1277*SR/origSR : int;
-	combtuningL(3) = 1356*SR/origSR : int;
-	combtuningL(4) = 1422*SR/origSR : int;
-	combtuningL(5) = 1491*SR/origSR : int;
-	combtuningL(6) = 1557*SR/origSR : int;
-	combtuningL(7) = 1617*SR/origSR : int;
+        origSR = 44100;
 
-	allpasstuningL(0) = 556*SR/origSR : int;
-	allpasstuningL(1) = 441*SR/origSR : int;
-	allpasstuningL(2) = 341*SR/origSR : int;
-	allpasstuningL(3) = 225*SR/origSR : int;
-	// Lowpass Feedback Combfiler: 
-	// https://ccrma.stanford.edu/~jos/pasp/Lowpass_Feedback_Comb_Filter.html
-	lbcf(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
+        // Filters parameters
+        combtuningL(0) = 1116*SR/origSR : int;
+        combtuningL(1) = 1188*SR/origSR : int;
+        combtuningL(2) = 1277*SR/origSR : int;
+        combtuningL(3) = 1356*SR/origSR : int;
+        combtuningL(4) = 1422*SR/origSR : int;
+        combtuningL(5) = 1491*SR/origSR : int;
+        combtuningL(6) = 1557*SR/origSR : int;
+        combtuningL(7) = 1617*SR/origSR : int;
+
+        allpasstuningL(0) = 556*SR/origSR : int;
+        allpasstuningL(1) = 441*SR/origSR : int;
+        allpasstuningL(2) = 341*SR/origSR : int;
+        allpasstuningL(3) = 225*SR/origSR : int;
+        // Lowpass Feedback Combfiler:
+        // https://ccrma.stanford.edu/~jos/pasp/Lowpass_Feedback_Comb_Filter.html
+        lbcf(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
 };
 
 stereo_freeverb(fb1, fb2, damp, spread) =  + <: mono_freeverb(fb1, fb2, damp,0), mono_freeverb(fb1, fb2, damp, spread);
@@ -1067,18 +1068,18 @@ stereo_freeverb(fb1, fb2, damp, spread) =  + <: mono_freeverb(fb1, fb2, damp,0),
 //
 
 freeverb_demo = _,_ <: (*(g)*fixedgain,*(g)*fixedgain : stereo_freeverb(combfeed, allpassfeed, damping, spatSpread)), *(1-g), *(1-g) :> _,_ with{
-	scaleroom   = 0.28;
-	offsetroom  = 0.7;
-	allpassfeed = 0.5;
-	scaledamp   = 0.4;
-	fixedgain   = 0.1;
-	origSR = 44100;
-	parameters(x) = hgroup("Freeverb",x);
-	knobGroup(x) = parameters(vgroup("[0]",x));
-	damping = knobGroup(vslider("[0] Damp [style: knob] [tooltip: Somehow control the density of the reverb.]",0.5, 0, 1, 0.025)*scaledamp*origSR/SR);
-	combfeed = knobGroup(vslider("[1] RoomSize [style: knob] [tooltip: The room size between 0 and 1 with 1 for the largest room.]", 0.5, 0, 1, 0.025)*scaleroom*origSR/SR + offsetroom);
-	spatSpread = knobGroup(vslider("[2] Stereo Spread [style: knob] [tooltip: Spatial spread between 0 and 1 with 1 for maximum spread.]",0.5,0,1,0.01)*46*SR/origSR : int);
-	g = parameters(vslider("[1] Wet [tooltip: The amount of reverb applied to the signal between 0 and 1 with 1 for the maximum amount of reverb.]", 0.3333, 0, 1, 0.025));
+        scaleroom   = 0.28;
+        offsetroom  = 0.7;
+        allpassfeed = 0.5;
+        scaledamp   = 0.4;
+        fixedgain   = 0.1;
+        origSR = 44100;
+        parameters(x) = hgroup("Freeverb",x);
+        knobGroup(x) = parameters(vgroup("[0]",x));
+        damping = knobGroup(vslider("[0] Damp [style: knob] [tooltip: Somehow control the density of the reverb.]",0.5, 0, 1, 0.025)*scaledamp*origSR/SR);
+        combfeed = knobGroup(vslider("[1] RoomSize [style: knob] [tooltip: The room size between 0 and 1 with 1 for the largest room.]", 0.5, 0, 1, 0.025)*scaleroom*origSR/SR + offsetroom);
+        spatSpread = knobGroup(vslider("[2] Stereo Spread [style: knob] [tooltip: Spatial spread between 0 and 1 with 1 for maximum spread.]",0.5,0,1,0.01)*46*SR/origSR : int);
+        g = parameters(vslider("[1] Wet [tooltip: The amount of reverb applied to the signal between 0 and 1 with 1 for the maximum amount of reverb.]", 0.3333, 0, 1, 0.025));
 };
 
 //=============== Feedback Delay Network (FDN) Reverberators  ==============
@@ -1218,7 +1219,7 @@ stereo_reverb_tester(revin_group,x,y) = inx,iny with {
 //      = odd positive integer
 
 fdnrev0_demo(N,NB,BBSO,x,y) = stereo_reverb_tester(revin_group,x,y)
-	  <: fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl)
+          <: fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl)
           :> *(gain),*(gain)
 with {
   MAXDELAY = 8192; // sync w delays and prime_power_delays above
@@ -1237,18 +1238,18 @@ with {
   quench_group(x) = revin_group(vgroup("[3] Reverb State",x));
 
   nonl = nonl_group(hslider("[style:knob] [tooltip: nonlinear mode coupling]",
-	    0, -0.999, 0.999, 0.001));
+            0, -0.999, 0.999, 0.001));
   loopgainmax = 1.0-0.5*quench_group(button("[1] Quench
          [tooltip: Hold down 'Quench' to clear the reverberator]"));
 
   pathmin = path_group(hslider("[1] min acoustic ray length [unit:m] [scale:log]
     [tooltip: This length (in meters) determines the shortest delay-line used in the FDN reverberator.
-    	      Think of it as the shortest wall-to-wall separation in the room.]",
-	    46, 0.1, 63, 0.1));
+              Think of it as the shortest wall-to-wall separation in the room.]",
+            46, 0.1, 63, 0.1));
   pathmax = path_group(hslider("[2] max acoustic ray length [unit:m] [scale:log]
     [tooltip: This length (in meters) determines the longest delay-line used in the FDN reverberator.
-    	      Think of it as the largest wall-to-wall separation in the room.]",
-	    63, 0.1, 63, 0.1));
+              Think of it as the largest wall-to-wall separation in the room.]",
+            63, 0.1, 63, 0.1));
 
   durvals(i) = t60_group(vslider("[%i] %i [unit:s] [scale:log]
     [tooltip: T60 is the 60dB decay-time in seconds. For concert halls, an overall reverberation time (T60) near 1.9 seconds is typical [Beranek 2004]. Here we may set T60 independently in each frequency band.  In real rooms, higher frequency bands generally decay faster due to absorption and scattering.]",
@@ -1446,7 +1447,7 @@ with {
 //   filter.lib (peak_eq_rm)
 
 zita_rev1(x,y) = zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax,x,y)
-	  : out_eq : dry_wet(x,y) : out_level
+          : out_eq : dry_wet(x,y) : out_level
 with {
 
   fsmax = 48000.0;  // highest sampling rate that will be used
@@ -1468,11 +1469,11 @@ with {
 
   t60dc = freq_group(vslider("[2] Low RT60 [unit:s] [style:knob] [scale:log]
           [style:knob] [tooltip: T60 = time (in seconds) to decay 60dB in low-frequency band]",
-	  3, 1, 8, 0.1));
+          3, 1, 8, 0.1));
 
   t60m = freq_group(vslider("[3] Mid RT60 [unit:s] [style:knob] [scale:log]
           [tooltip: T60 = time (in seconds) to decay 60dB in middle band]",
-	  2, 1, 8, 0.1));
+          2, 1, 8, 0.1));
 
   f2 = freq_group(vslider("[4] HF Damping [unit:Hz] [style:knob] [scale:log]
        [tooltip: Frequency (Hz) at which the high-frequency T60 is half the middle-band's T60]",
@@ -1545,24 +1546,59 @@ with {
 // WHERE
 //   N = number of nodes along each edge - a power of two (1,2,4,8,...)
 //
-// EXAMPLE: Reflectively terminated mesh impulsed at one corner:
-//   mesh_square_test(N,x) = mesh_square(N)~(busi(4*N,x)) // input to corner
-//      with { busi(N,x) = bus(N) : par(i,N,*(-1)) : par(i,N-1,_), +(x); };
-//   process = 1-1' : mesh_square_test(4); // all modes excited forever
-//
-// REQUIRES: math.lib.
+// REQUIRES: math.lib
 //
 // REFERENCE:
 //   https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Mesh.html
+//
+// SIGNAL ORDER IN AND OUT:
+//   The mesh is constructed recursively using 2x2 embeddings.  Thus,
+//   the top level of mesh_square(M) is a block 2x2 mesh, where each
+//   block is a mesh(M/2).  Let these blocks be numbered 1,2,3,4 in the
+//   geometry NW,NE,SW,SE, i.e., as
+//         1 2
+//         3 4
+//   Each block has four vector inputs and four vector outputs, where the
+//   length of each vector is M/2.  Label the input vectors as Ni,Ei,Wi,Si,
+//   i.e., as the inputs from the North, East South, and West,
+//   and similarly for the outputs.  Then, for example, the upper
+//   left input block of M/2 signals is labeled 1Ni.  Most of the
+//   connections are internal, such as 1Eo -> 2Wi.  The 8*(M/2) input
+//   signals are grouped in the order
+//        1Ni 2Ni
+//        3Si 4Si
+//        1Wi 3Wi
+//        2Ei 4Ei
+//   and the output signals are
+//        1No 1Wo
+//        2No 2Eo
+//        3So 3Wo
+//        4So 4Eo
+//   or
+//         In: 1No 1Wo 2No 2Eo 3So 3Wo 4So 4Eo
+//        Out: 1Ni 2Ni 3Si 4Si 1Wi 3Wi 2Ei 4Ei
+//   Thus, the inputs are grouped by direction N,S,W,E, while the
+//   outputs are grouped by block number 1,2,3,4, which can also be
+//   interpreted as directions NW, NE, SW, SE.  A simple program
+//   illustrating these orderings is `process = mesh_square(2);`.
+//
+// EXAMPLE: Reflectively terminated mesh impulsed at one corner:
+//  `mesh_square_test(N,x) = mesh_square(N)~(busi(4*N,x)) // input to corner
+//   with { busi(N,x) = bus(N) : par(i,N,*(-1)) : par(i,N-1,_), +(x); };
+//   process = 1-1' : mesh_square_test(4); // all modes excited forever`
+// In this simple example, the mesh edges are connected as follows:
+//        1No -> 1Ni, 1Wo -> 2Ni, 2No -> 3Si, 2Eo -> 4Si,
+//        3So -> 1Wi, 3Wo -> 3Wi, 4So -> 2Ei, 4Eo -> 4Ei
+// A routing matrix can be used to obtain other connection geometries.
 
 // four-port scattering junction:
-mesh_square(1)
-  = bus(4) <: par(i,4,*(-1)), (bus(4) :> (*(.5)) <: bus(4)) :> bus(4);
+mesh_square(1) =
+          bus(4) <: par(i,4,*(-1)), (bus(4) :> (*(.5)) <: bus(4)) :> bus(4);
 
 // rectangular NxN square waveguide mesh:
 mesh_square(N) = bus(4*N) : (route_inputs(N/2) : par(i,4,mesh_square(N/2)))
-	  ~(prune_feedback(N/2))
-	  : prune_outputs(N/2) : route_outputs(N/2) : bus(4*N)
+          ~(prune_feedback(N/2))
+          : prune_outputs(N/2) : route_outputs(N/2) : bus(4*N)
 with {
   block(N) = par(i,N,!);
 
