@@ -78,7 +78,7 @@ class dsp_adapter : public decorator_dsp {
             }
         }
         
-        virtual~ dsp_adapter()
+        virtual ~dsp_adapter()
         {
             for (int i = 0; i < fDSP->getNumInputs() - fHardwareInputs; i++) {
                 delete [] fAdaptedInputs[i + fHardwareInputs];
@@ -102,6 +102,6 @@ class dsp_adapter : public decorator_dsp {
             adaptBuffers(inputs, outputs);
             fDSP->compute(count, fAdaptedInputs, fAdaptedOutputs);
         }
-    };
+};
 
 #endif

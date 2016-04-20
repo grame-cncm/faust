@@ -39,6 +39,7 @@ done
 OSCINC=""
 QTDEFS=""
 OSCLIB=""
+POLY=""
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
@@ -65,6 +66,10 @@ for p in $@; do
     	ignore=" "
     elif [ $p = "-poly" ]; then
         POLYDEFS="DEFINES += POLY"
+        POLY="POLY1"
+    elif [ $p = "-poly2" ]; then
+        POLYDEFS="DEFINES += POLY2"
+        POLY="POLY2"
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
     elif [ $p = "-osc" ]; then
@@ -118,7 +123,14 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    if [ $POLY = "POLY1" ]; then 
+        faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    fi
+    
+    if [ $POLY = "POLY2" ]; then
+        faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/${f%.dsp}_voice.dsp" -o "$TMP/${f%.dsp}_voice.cpp" || exit
+        faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/${f%.dsp}_effect.dsp" -o "$TMP/effect.cpp" || exit
+    fi
 
     # compile c++ to binary
     (

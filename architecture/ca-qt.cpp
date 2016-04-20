@@ -83,8 +83,13 @@
 
 <<includeclass>>
 
-#ifdef POLY
+#if defined(POLY) || defined(POLY2)
 #include "faust/dsp/poly-dsp.h"
+#include "faust/dsp/dsp-combiner.h"
+#endif
+
+#if defined(POLY2)
+#include "effect.cpp"
 #endif
 
 dsp* DSP;
@@ -192,7 +197,7 @@ void Sensors::start()
 {
 	bool activate = false;
 	if (fAccel.available()) { fAccel.activate(true); activate = true; }
-	if (fGyro.available()) 	{ fGyro.activate(true);  activate = true; }
+	if (fGyro.available()) 	{ fGyro.activate(true); activate = true; }
 	if (activate) fTimerID = startTimer(10);
 }
 #endif
@@ -230,7 +235,7 @@ int main(int argc, char *argv[])
 	char* home = getenv("HOME");
 #ifdef IOS
     APIUI apiui;
-    Sensors sensors (&apiui);
+    Sensors sensors(&apiui);
 #endif
 
 	snprintf(name, 255, "%s", basename(argv[0]));
@@ -239,7 +244,22 @@ int main(int argc, char *argv[])
     long srate = (long)lopt(argv, "--frequency", -1);
     int fpb = lopt(argv, "--buffer", 512);
     
-#ifdef POLY
+#ifdef POLY2
+
+    int poly = lopt(argv, "--poly", 4);
+    int group = lopt(argv, "--group", 1);
+
+#if MIDICTRL
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(poly, true, group), new effect()));
+    } else {
+        DSP = new dsp_sequencer(new mydsp_poly(poly, false, group), new effect());
+    }
+#else
+    DSP = new dsp_sequencer(new mydsp_poly(poly, false, group), new effect());
+#endif
+
+#elif POLY
 
     int poly = lopt(argv, "--poly", 4);
     int group = lopt(argv, "--group", 1);
@@ -254,9 +274,7 @@ int main(int argc, char *argv[])
     DSP = new mydsp_poly(poly, false, group);
 #endif
 
-#else
-
-#if MIDICTRL
+#elif MIDICTRL
     if (hasMIDISync()) {
         DSP = new timed_dsp(new mydsp());
     } else {
@@ -264,8 +282,6 @@ int main(int argc, char *argv[])
     }
 #else
     DSP = new mydsp();
-#endif
-    
 #endif
    
     if (DSP == 0) {
@@ -327,7 +343,6 @@ int main(int argc, char *argv[])
 	midiinterface.run();
 #endif
 	interface.run();
-	
 
     myApp.setStyleSheet(interface.styleSheet());
     myApp.exec();
