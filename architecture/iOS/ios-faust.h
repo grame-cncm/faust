@@ -1,9 +1,9 @@
 //----------------------------------------------------------
-// name: "Noise"
-// version: "1.1"
+// name: "volume"
+// version: "1.0"
 // author: "Grame"
 // license: "BSD"
-// copyright: "(c)GRAME 2009"
+// copyright: "(c)GRAME 2006"
 //
 // Code generated with Faust 0.9.73 (http://faust.grame.fr)
 //----------------------------------------------------------
@@ -79,43 +79,66 @@
 class mydsp : public dsp {
   private:
 	FAUSTFLOAT 	fslider0;
-	int 	iRec0[2];
+	float 	fRec0[2];
+	FAUSTFLOAT 	fslider1;
+	float 	fRec1[2];
   public:
 	static void metadata(Meta* m) 	{ 
-		m->declare("name", "Noise");
-		m->declare("version", "1.1");
+		m->declare("name", "volume");
+		m->declare("version", "1.0");
 		m->declare("author", "Grame");
 		m->declare("license", "BSD");
-		m->declare("copyright", "(c)GRAME 2009");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/version", "1.0");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/version", "1.0");
+		m->declare("math.lib/license", "LGPL with exception");
 	}
 
-	virtual int getNumInputs() 	{ return 0; }
-	virtual int getNumOutputs() 	{ return 1; }
+	virtual int getNumInputs() 	{ return 2; }
+	virtual int getNumOutputs() 	{ return 2; }
 	static void classInit(int samplingFreq) {
 	}
 	virtual void instanceInit(int samplingFreq) {
 		fSamplingFreq = samplingFreq;
 		fslider0 = 0.0f;
-		for (int i=0; i<2; i++) iRec0[i] = 0;
+		for (int i=0; i<2; i++) fRec0[i] = 0;
+		fslider1 = 0.0f;
+		for (int i=0; i<2; i++) fRec1[i] = 0;
 	}
 	virtual void init(int samplingFreq) {
 		classInit(samplingFreq);
 		instanceInit(samplingFreq);
 	}
 	virtual void buildUserInterface(UI* interface) {
-		interface->openVerticalBox("0x00");
-		interface->declare(&fslider0, "style", "knob");
-		interface->addVerticalSlider("Volume", &fslider0, 0.0f, 0.0f, 1.0f, 0.1f);
+		interface->openHorizontalBox("Group1");
+		interface->declare(&fslider0, "acc", "2 1 -10 0 50");
+		interface->addVerticalSlider("Volume1", &fslider0, 0.0f, -7e+01f, 4.0f, 0.1f);
+		interface->declare(&fslider1, "acc", "1 3 -20 0 50");
+		interface->addVerticalSlider("Volume2", &fslider1, 0.0f, -7e+01f, 4.0f, 0.1f);
 		interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fSlow0 = (4.656612875245797e-10f * float(fslider0));
+		float 	fSlow0 = (0.0010000000000000009f * powf(10,(0.05f * float(fslider0))));
+		float 	fSlow1 = (0.0010000000000000009f * powf(10,(0.05f * float(fslider1))));
+		FAUSTFLOAT* input0 = input[0];
+		FAUSTFLOAT* input1 = input[1];
 		FAUSTFLOAT* output0 = output[0];
+		FAUSTFLOAT* output1 = output[1];
 		for (int i=0; i<count; i++) {
-			iRec0[0] = (12345 + (1103515245 * iRec0[1]));
-			output0[i] = (FAUSTFLOAT)(fSlow0 * iRec0[0]);
+			fRec0[0] = ((0.999f * fRec0[1]) + fSlow0);
+			output0[i] = (FAUSTFLOAT)((float)input0[i] * fRec0[0]);
+			fRec1[0] = ((0.999f * fRec1[1]) + fSlow1);
+			output1[i] = (FAUSTFLOAT)((float)input1[i] * fRec1[0]);
 			// post processing
-			iRec0[1] = iRec0[0];
+			fRec1[1] = fRec1[0];
+			fRec0[1] = fRec0[0];
 		}
 	}
 };
