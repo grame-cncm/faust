@@ -1457,12 +1457,8 @@ static inline const char* transmit_value(int num)
 // Reset widget parameters
 - (IBAction)resetWidgetPreferences:(id)sender
 {
+    // Reset to default state
     _selectedWidget->resetParameters();
-    
-    // Reset acc/gyr mapping
-    int index =_selectedWidget->getItemCount();
-    uiinterface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
-    uiinterface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
     
     [self updateWidgetPreferencesView];
     [self widgetPreferencesChanged:_gyroAxisSegmentedControl];
@@ -1471,16 +1467,15 @@ static inline const char* transmit_value(int num)
 
 - (void)resetAllWidgetsPreferences
 {
-    list<uiCocoaItem*>::iterator    i;
+    list<uiCocoaItem*>::iterator i;
+    
+    // Reset DSP state to default
+    DSP->init(int(sample_rate));
     
     for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
     {
+        // Reset to default state
         (*i)->resetParameters();
-        
-        // Reset acc/gyr mapping
-        int index = (*i)->getItemCount();
-        uiinterface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
-        uiinterface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
         
         // Save parameters in user defaults
         NSString* key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:(*i)]];
@@ -1542,8 +1537,13 @@ static inline const char* transmit_value(int num)
             int type, curve;
             float min, mid, max;
             
-            // Get default state
+            // Get current state
             uiinterface->getAccConverter(index, type, curve, min, mid, max);
+            
+            // Keep default state
+            (*i)->setInitAssignationType(type);
+            (*i)->setInitAssignationCurve(curve);
+            (*i)->setInitCurve(min, mid, max);
             
             // Sensor assignation
             key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:(*i)]];
