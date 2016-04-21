@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
     if (hasMIDISync()) {
         DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(poly, true, group), new effect()));
     } else {
-        DSP = new dsp_sequencer(new mydsp_poly(poly, false, group), new effect());
+        DSP = new dsp_sequencer(new mydsp_poly(poly, true, group), new effect());
     }
 #else
     DSP = new dsp_sequencer(new mydsp_poly(poly, false, group), new effect());
