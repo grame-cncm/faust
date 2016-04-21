@@ -8,6 +8,8 @@
 #                                                                   #
 #####################################################################
 
+POLY=""
+
 # path to max SDK
 
 SDK=/usr/local/include/c74support/
@@ -86,6 +88,7 @@ for p in $@; do
     	ignore=" "
     elif [ $p = "-poly" ]; then
         POLYDEFS="-DPOLY"
+        POLY="POLY1"
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
     elif [ ${p:0:1} = "-" ]; then
@@ -147,7 +150,11 @@ for p in $FILES; do
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
     
     # create Max patch
-    cat $FAUSTLIB/max-msp/wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+    if [ $POLY = "POLY1" ]; then 
+        cat $FAUSTLIB/max-msp/wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
+    else
+        cat $FAUSTLIB/max-msp/wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+    fi
     sed -e "s/DSP_NAME/"${f%.dsp}"~/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
     sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
     
