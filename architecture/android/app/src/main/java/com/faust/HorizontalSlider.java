@@ -159,7 +159,7 @@ class HorizontalSlider {
 			}
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 				parametersInfo.values[id] = (float) progress*step + min;
-				dsp_faust.setParam(address, parametersInfo.values[id]);
+				dsp_faust.setParamValue(address, parametersInfo.values[id]);
 				setDisplayedValue(parametersInfo.values[id]);
             }
 	    });

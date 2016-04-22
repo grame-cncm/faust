@@ -107,7 +107,7 @@ class Menu{
 		menu.setOnItemSelectedListener(new OnItemSelectedListener(){
         	public void onItemSelected(AdapterView parent, View view, int pos, long id) {
         		parametersInfo.values[ID] = pos;
-        		dsp_faust.setParam(address, values[pos]);
+        		dsp_faust.setParamValue(address, values[pos]);
         	} 
         	public void onNothingSelected(AdapterView parent) {	 		
         	}

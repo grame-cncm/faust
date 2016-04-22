@@ -114,12 +114,12 @@ class MapUI : public UI, public PathBuilder
         {}
         
         // set/get
-        void setValue(const std::string& path, float value)
+        void setParamValue(const std::string& path, float value)
         {
             *fZoneMap[path] = value;
         }
         
-        float getValue(const std::string& path)
+        float getParamValue(const std::string& path)
         {
             return *fZoneMap[path];
         }
@@ -129,7 +129,7 @@ class MapUI : public UI, public PathBuilder
         
         int getParamsCount() { return fZoneMap.size(); }
         
-        std::string getParamPath(int index) 
+        std::string getParamAdress(int index) 
         { 
             std::map<std::string, FAUSTFLOAT*>::iterator it = fZoneMap.begin();
             while (index-- > 0 && it++ != fZoneMap.end()) {}
