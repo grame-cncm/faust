@@ -221,7 +221,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         if (ouputs_items.length > 0 && handler && ouputs_timer-- === 0) {
             ouputs_timer = 5;
             for (var i = 0; i < ouputs_items.length; i++) {
-                handler(ouputs_items[i], factory.getValue(dsp_voices[0], pathTable[ouputs_items[i]]));
+                handler(ouputs_items[i], factory.getParamValue(dsp_voices[0], pathTable[ouputs_items[i]]));
             }
         }
     }
@@ -253,9 +253,9 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
             if (dsp_voices_state[i] != kFreeVoice) {
                 if (dsp_voices_trigger[i]) {
                     // FIXME : properly cut the buffer in 2 slices...
-                    factory.setValue(dsp_voices[i], fGateLabel, 0.0);
+                    factory.setParamValue(dsp_voices[i], fGateLabel, 0.0);
                     factory.compute(dsp_voices[i], 1, ins, mixing);
-                    factory.setValue(dsp_voices[i], fGateLabel, 1.0);
+                    factory.setParamValue(dsp_voices[i], fGateLabel, 1.0);
                     factory.compute(dsp_voices[i], buffer_size, ins, mixing);
                     dsp_voices_trigger[i] = false;
                 } else {
@@ -433,9 +433,9 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
             var voice = getVoice(kFreeVoice, true);
             if (voice >= 0) {
                 //console.log("keyOn voice %d", voice);
-                factory.setValue(dsp_voices[voice], fFreqLabel, midiToFreq(pitch));
-                factory.setValue(dsp_voices[voice], fGainLabel, velocity/127.);
-                factory.setValue(dsp_voices[voice], fGateLabel, 1.0);
+                factory.setParamValue(dsp_voices[voice], fFreqLabel, midiToFreq(pitch));
+                factory.setParamValue(dsp_voices[voice], fGainLabel, velocity/127.);
+                factory.setParamValue(dsp_voices[voice], fGateLabel, 1.0);
                 dsp_voices_state[voice] = pitch;
             } else {
                 console.log("No more free voice...\n");
@@ -447,7 +447,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
             var voice = getVoice(pitch, false);
             if (voice >= 0) {
                 //console.log("keyOff voice %d", voice);
-                factory.setValue(dsp_voices[voice], fGateLabel, 0.0);
+                factory.setParamValue(dsp_voices[voice], fGateLabel, 0.0);
                 dsp_voices_state[voice] = kReleaseVoice;
             } else {
                 console.log("Playing voice not found...\n");
@@ -457,7 +457,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         allNotesOff : function ()
         {
             for (var i = 0; i < max_polyphony; i++) {
-                factory.setValue(dsp_voices[i], fGateLabel, 0.0);
+                factory.setParamValue(dsp_voices[i], fGateLabel, 0.0);
                 dsp_voices_state[i] = kReleaseVoice;
             }
         },
@@ -466,7 +466,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         {
             if (ctrl === 123 || ctrl === 120) {
                 for (var i = 0; i < max_polyphony; i++) {
-                    factory.setValue(dsp_voices[i], fGateLabel, 0.0);
+                    factory.setParamValue(dsp_voices[i], fGateLabel, 0.0);
                     dsp_voices_state[i] = kReleaseVoice;
                 }
             }
@@ -479,7 +479,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         {
             var voice = getVoice(pitch, false);
             if (voice >= 0) {
-                factory.setValue(dsp_voices[voice], fFreqLabel, midiToFreq(tuned_pitch));
+                factory.setParamValue(dsp_voices[voice], fFreqLabel, midiToFreq(tuned_pitch));
             } else {
                 console.log("Playing voice not found...\n");
             }
@@ -495,16 +495,16 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
             scriptProcessor.disconnect(context.destination);
         },
 
-        setValue : function (path, val) 
+        setParamValue : function (path, val) 
         {
             for (var i = 0; i < max_polyphony; i++) {
-                factory.setValue(dsp_voices[i], pathTable[path], val);
+                factory.setParamValue(dsp_voices[i], pathTable[path], val);
             }
         },
 
-        getValue : function (path) 
+        getParamValue : function (path) 
         {
-            return factory.getValue(dsp_voices[0], pathTable[path]);
+            return factory.getParamValue(dsp_voices[0], pathTable[path]);
         },
 
         controls : function()

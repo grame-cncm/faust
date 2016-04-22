@@ -100,7 +100,7 @@ faust.mydsp = function (context, buffer_size) {
  
     var pathTable = getPathTablemydsp();
     
-    // Allocate table for 'setValue'
+    // Allocate table for 'setParamValue'
     var value_table = [];
         
     function update_outputs () 
@@ -108,7 +108,7 @@ faust.mydsp = function (context, buffer_size) {
         if (ouputs_items.length > 0 && handler && ouputs_timer-- === 0) {
             ouputs_timer = 5;
             for (var i = 0; i < ouputs_items.length; i++) {
-                handler(ouputs_items[i], factory.getValue(dsp, pathTable[ouputs_items[i]]));
+                handler(ouputs_items[i], factory.getParamValue(dsp, pathTable[ouputs_items[i]]));
             }
         }
     }
@@ -130,7 +130,7 @@ faust.mydsp = function (context, buffer_size) {
         for (i = 0; i < inputs_items.length; i++) {
             var path = inputs_items[i];
             var values = value_table[path];
-            factory.setValue(dsp, pathTable[path], values[0]);
+            factory.setParamValue(dsp, pathTable[path], values[0]);
             values[0] = values[1];
         }
         
@@ -231,7 +231,7 @@ faust.mydsp = function (context, buffer_size) {
         for (i = 0; i < inputs_items.length; i++) {
             var path = inputs_items[i];
             var values = new Float32Array(2);
-            values[0] = values[1] = factory.getValue(dsp, pathTable[path]);
+            values[0] = values[1] = factory.getParamValue(dsp, pathTable[path]);
             value_table[path] = values;
         }
     }
@@ -290,20 +290,20 @@ faust.mydsp = function (context, buffer_size) {
             scriptProcessor.disconnect(context.destination);
         },
 
-        setValue : function (path, val) 
+        setParamValue : function (path, val) 
         {
             var values = value_table[path];
             if (values) {
-                if (factory.getValue(dsp, pathTable[path]) == values[0]) {
+                if (factory.getParamValue(dsp, pathTable[path]) == values[0]) {
                     values[0] = val;
                 } 
                 values[1] = val;
             }
         },
 
-        getValue : function (path) 
+        getParamValue : function (path) 
         {
-            return factory.getValue(dsp, pathTable[path]);
+            return factory.getParamValue(dsp, pathTable[path]);
         },
         
         controls : function()

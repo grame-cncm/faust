@@ -539,7 +539,7 @@
                     
                     faustsvg = $('<div />');
                     $('body').append(faustsvg);
-                    var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
+                    var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setParamValue);
                     DSP.setHandler(handler);
                                   
                     console.log(DSP.getNumInputs());
@@ -579,7 +579,7 @@
                     
                     faustsvg = $('<div />');
                     $('body').append(faustsvg);
-                    var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setValue);
+                    var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setParamValue);
                     DSP.setHandler(handler);
                                   
                     console.log(DSP.getNumInputs());

@@ -416,7 +416,7 @@
         
         // Setup UI
         _f4u$t.main_loop = function() {}
-        var handler = _f4u$t.main(DSP.json(), container.innerHTML, DSP.setValue);
+        var handler = _f4u$t.main(DSP.json(), container.innerHTML, DSP.setParamValue);
         DSP.setHandler(handler);
         
         console.log(DSP.getNumInputs());
