@@ -40,174 +40,174 @@
 using namespace std;
 
 class FaustPolyEngine {
-    
-protected:
+        
+    protected:
 
-    mydsp fMonoDSP;           // the monophonic Faust object
-    mydsp_poly* fPolyDSP;     // the polyphonic Faust object
-    APIUI fAPIUI;             // the UI description
-    JSONUI fJSONUI;
-    string fJSON;
-    bool fRunning;
-    int fPolyMax;
-    audio* fDriver;
-    
-public:
+        mydsp fMonoDSP;           // the monophonic Faust object
+        mydsp_poly* fPolyDSP;     // the polyphonic Faust object
+        APIUI fAPIUI;             // the UI description
+        JSONUI fJSONUI;
+        string fJSON;
+        bool fRunning;
+        int fPolyMax;
+        audio* fDriver;
+        
+    public:
 
-    FaustPolyEngine(int sampling_rate, int buffer_size)
-    :fJSONUI(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs()), fRunning(false)
-    {
-        // configuring the UI
-        fMonoDSP.buildUserInterface(&fAPIUI);
-        fMonoDSP.buildUserInterface(&fJSONUI);
-        fJSON = fJSONUI.JSON();
+        FaustPolyEngine(int sampling_rate, int buffer_size)
+        :fJSONUI(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs()), fRunning(false)
+        {
+            // configuring the UI
+            fMonoDSP.buildUserInterface(&fAPIUI);
+            fMonoDSP.buildUserInterface(&fJSONUI);
+            fJSON = fJSONUI.JSON();
 
-        if (fJSON.find("keyboard") != std::string::npos
-            || fJSON.find("poly") != std::string::npos) {
-            fPolyMax = 6;
-            fPolyDSP = new mydsp_poly(fPolyMax, true);
-        } else {
-            fPolyMax = 0;
-            fPolyDSP = NULL;
+            if (fJSON.find("keyboard") != std::string::npos
+                || fJSON.find("poly") != std::string::npos) {
+                fPolyMax = 6;
+                fPolyDSP = new mydsp_poly(fPolyMax, true);
+            } else {
+                fPolyMax = 0;
+                fPolyDSP = NULL;
+            }
         }
-    }
 
-    virtual ~FaustPolyEngine()
-    {
-        delete fPolyDSP;
-        delete fDriver;
-    }
-
-    bool init()
-    {
-        return fDriver->init("Dummy", (fPolyMax > 0) ? (dsp*)fPolyDSP : &fMonoDSP);
-    }
-
-    bool start()
-    {
-        if (!fRunning) {
-            fRunning = fDriver->start();
+        virtual ~FaustPolyEngine()
+        {
+            delete fPolyDSP;
+            delete fDriver;
         }
-        return fRunning;
-    }
 
-    void stop()
-    {
-        if (fRunning) {
-            fRunning = false;
-            fDriver->stop();
+        bool init()
+        {
+            return fDriver->init("Dummy", (fPolyMax > 0) ? (dsp*)fPolyDSP : &fMonoDSP);
         }
-    }
 
-    int keyOn(int pitch, int velocity)
-    {
-        if (fPolyMax > 0) {
-            fPolyDSP->keyOn(0, pitch, velocity);
-            return 1;
-        } else {
-            return 0;
+        bool start()
+        {
+            if (!fRunning) {
+                fRunning = fDriver->start();
+            }
+            return fRunning;
         }
-    }
 
-    int keyOff(int pitch, int velocity = 127)
-    {
-        if (fPolyMax > 0) {
-            fPolyDSP->keyOff(0, pitch, velocity);
-            return 1;
-        } else {
-            return 0;
+        void stop()
+        {
+            if (fRunning) {
+                fRunning = false;
+                fDriver->stop();
+            }
         }
-    }
 
-    int pitchBend(int refPitch, float pitch)
-    {
-        if (fPolyMax > 0) {
-            fPolyDSP->pitchBend(0, refPitch, pitch);
-            return 1;
-        } else {
-            return 0;
+        int keyOn(int pitch, int velocity)
+        {
+            if (fPolyMax > 0) {
+                fPolyDSP->keyOn(0, pitch, velocity);
+                return 1;
+            } else {
+                return 0;
+            }
         }
-    }
-    
-    const char* getJSON()
-    {
-        return fJSON.c_str();
-    }
 
-    int getParamsCount()
-    {
-        return fAPIUI.getParamsCount();
-    }
-
-    float getParam(const char* address)
-    {
-        if (fPolyMax > 0) {
-            return fPolyDSP->getValue(address);
-         } else {
-            return fAPIUI.getParamValue(fAPIUI.getParamIndex(address));
+        int keyOff(int pitch, int velocity = 127)
+        {
+            if (fPolyMax > 0) {
+                fPolyDSP->keyOff(0, pitch, velocity);
+                return 1;
+            } else {
+                return 0;
+            }
         }
-    }
 
-    void setParam(const char* address, float value)
-    {
-        if (fPolyMax > 0) {
-            fPolyDSP->setValue(address, value);
-        } else {
-            fAPIUI.setParamValue(fAPIUI.getParamIndex(address), value);
+        int pitchBend(int refPitch, float pitch)
+        {
+            if (fPolyMax > 0) {
+                fPolyDSP->pitchBend(0, refPitch, pitch);
+                return 1;
+            } else {
+                return 0;
+            }
         }
-    }
-
-    int setVoiceParam(const char* address, int pitch, float value)
-    {
-        if (fPolyMax > 0) {
-            fPolyDSP->setValue(address, pitch, value);
-            return 1;
-        } else {
-            return 0;
+        
+        const char* getJSON()
+        {
+            return fJSON.c_str();
         }
-    }
 
-    int setVoiceGain(int pitch, float gain)
-    {
-        if (fPolyMax > 0) {
-            fPolyDSP->setVoiceGain(pitch, gain);
-            return 1;
-        } else {
-            return 0;
+        int getParamsCount()
+        {
+            return fAPIUI.getParamsCount();
         }
-    }
 
-    const char* getParamAddress(int id)
-    {
-        return fAPIUI.getParamName(id);
-    }
+        float getParamValue(const char* address)
+        {
+            if (fPolyMax > 0) {
+                return fPolyDSP->getParamValue(address);
+             } else {
+                return fAPIUI.getParamValue(fAPIUI.getParamIndex(address));
+            }
+        }
 
-    void propagateAcc(int acc, float v)
-    {
-        fAPIUI.propagateAcc(acc, v);
-    }
+        void setParamValue(const char* address, float value)
+        {
+            if (fPolyMax > 0) {
+                fPolyDSP->setParamqValue(address, value);
+            } else {
+                fAPIUI.setParamValue(fAPIUI.getParamIndex(address), value);
+            }
+        }
 
-    void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
-    {
-       fAPIUI.setAccConverter(p, acc, curve, amin, amid, amax);
-    }
+        int setVoiceParam(const char* address, int pitch, float value)
+        {
+            if (fPolyMax > 0) {
+                fPolyDSP->setValue(address, pitch, value);
+                return 1;
+            } else {
+                return 0;
+            }
+        }
 
-    void propagateGyr(int gyr, float v)
-    {
-        fAPIUI.propagateGyr(gyr, v);
-    }
+        int setVoiceGain(int pitch, float gain)
+        {
+            if (fPolyMax > 0) {
+                fPolyDSP->setVoiceGain(pitch, gain);
+                return 1;
+            } else {
+                return 0;
+            }
+        }
 
-    void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax)
-    {
-        fAPIUI.setGyrConverter(p, gyr, curve, amin, amid, amax);
-    }
+        const char* getParamAddress(int id)
+        {
+            return fAPIUI.getParamName(id);
+        }
 
-    float getCPULoad() { return fDriver->get_cpu_load(); }
+        void propagateAcc(int acc, float v)
+        {
+            fAPIUI.propagateAcc(acc, v);
+        }
 
-    int getScreenColor()
-    {
-        return fAPIUI.getScreenColor();
-    }
+        void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
+        {
+           fAPIUI.setAccConverter(p, acc, curve, amin, amid, amax);
+        }
+
+        void propagateGyr(int gyr, float v)
+        {
+            fAPIUI.propagateGyr(gyr, v);
+        }
+
+        void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax)
+        {
+            fAPIUI.setGyrConverter(p, gyr, curve, amin, amid, amax);
+        }
+
+        float getCPULoad() { return fDriver->get_cpu_load(); }
+
+        int getScreenColor()
+        {
+            return fAPIUI.getScreenColor();
+        }
 
 };
 

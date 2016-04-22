@@ -74,7 +74,7 @@ class Radio{
 			button.setId(i);
 			if(init == i){ 
 				button.setChecked(true);
-				dsp_faust.setParam(address, values[i]);
+				dsp_faust.setParamValue(address, values[i]);
 			}
 			radio.addView(button);
 		}
@@ -98,7 +98,7 @@ class Radio{
 	    {
 	        public void onCheckedChanged(RadioGroup group, int checkedId) {
 	        	parametersInfo.values[ID] = (float) checkedId;
-				dsp_faust.setParam(address, values[checkedId]);
+				dsp_faust.setParamValue(address, values[checkedId]);
 	        }
 	    });
 	}

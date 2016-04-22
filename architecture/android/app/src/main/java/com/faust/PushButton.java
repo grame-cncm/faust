@@ -52,10 +52,10 @@ class PushButton{
             public boolean onTouch(View v, MotionEvent event) {
                 if(event.getAction() == MotionEvent.ACTION_DOWN) {
                 	parametersInfo.values[id] = 1.f;
-                	dsp_faust.setParam(address, parametersInfo.values[id]);
+                	dsp_faust.setParamValue(address, parametersInfo.values[id]);
                 } else if (event.getAction() == MotionEvent.ACTION_UP || !inViewBounds(v, event)) {
                 	parametersInfo.values[id] = 0.f;
-                	dsp_faust.setParam(address, parametersInfo.values[id]);
+                	dsp_faust.setParamValue(address, parametersInfo.values[id]);
                 }
 	          	return true;
             }
