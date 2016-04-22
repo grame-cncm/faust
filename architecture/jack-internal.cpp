@@ -71,7 +71,7 @@ using namespace std;
 
 struct Meta : map<const char*, const char*>
 {
-    void declare (const char* key, const char* value) { (*this)[key]=value; }
+    void declare(const char* key, const char* value) { (*this)[key]=value; }
 };
 
 

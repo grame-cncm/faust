@@ -26,8 +26,8 @@ var DSP_poly_compute = Module.cwrap('DSP_poly_compute', null, ['number', 'number
 var DSP_poly_getNumInputs = Module.cwrap('DSP_poly_getNumInputs', 'number', ['number']);
 var DSP_poly_getNumOutputs = Module.cwrap('DSP_poly_getNumOutputs', 'number', ['number']);
 var DSP_poly_getJSON = Module.cwrap('DSP_poly_getJSON', 'number', ['number']);
-var DSP_poly_setValue = Module.cwrap('DSP_poly_setValue', null, ['number', 'number', 'number']);
-var DSP_poly_getValue = Module.cwrap('DSP_poly_getValue', 'number', ['number', 'number']);
+var DSP_poly_setParamValue = Module.cwrap('DSP_poly_setParamValue', null, ['number', 'number', 'number']);
+var DSP_poly_getParamValue = Module.cwrap('DSP_poly_getParamValue', 'number', ['number', 'number']);
 var DSP_poly_keyOn = Module.cwrap('DSP_poly_keyOn', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_keyOff = Module.cwrap('DSP_poly_keyOff', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_allNotesOff = Module.cwrap('DSP_poly_allNotesOff', null, ['number']);
@@ -65,7 +65,7 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, callback) {
             ouputs_timer = 5;
             for (var i = 0; i < ouputs_items.length; i++) {
                 Module.writeStringToMemory(ouputs_items[i], path_ptr);
-                handler(ouputs_items[i], DSP_poly_getValue(ptr, path_ptr));
+                handler(ouputs_items[i], DSP_poly_getParamValue(ptr, path_ptr));
             }
         }
     }
@@ -282,16 +282,16 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, callback) {
             scriptProcessor.disconnect(context.destination);
         },
         
-        setValue : function (path, val) 
+        setParamValue : function (path, val) 
         {
             Module.writeStringToMemory(path, path_ptr);
-            DSP_poly_setValue(ptr, path_ptr, val);
+            DSP_poly_setParamValue(ptr, path_ptr, val);
         },
         
-        getValue : function (path) 
+        getParamValue : function (path) 
         {
             Module.writeStringToMemory(path, path_ptr);
-            return DSP_poly_getValue(ptr, path_ptr);
+            return DSP_poly_getParamValue(ptr, path_ptr);
         },
                 
         controls : function ()

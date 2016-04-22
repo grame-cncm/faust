@@ -24,8 +24,8 @@ var DSP_compute = Module.cwrap('DSP_compute', null, ['number', 'number', 'number
 var DSP_getNumInputs = Module.cwrap('DSP_getNumInputs', 'number', ['number']);
 var DSP_getNumOutputs = Module.cwrap('DSP_getNumOutputs', 'number', ['number']);
 var DSP_getJSON = Module.cwrap('DSP_getJSON', 'number', ['number']);
-var DSP_setValue = Module.cwrap('DSP_setValue', null, ['number', 'number', 'number']);
-var DSP_getValue = Module.cwrap('DSP_getValue', 'number', ['number', 'number']);
+var DSP_setParamValue = Module.cwrap('DSP_setParamValue', null, ['number', 'number', 'number']);
+var DSP_getParamValue = Module.cwrap('DSP_getParamValue', 'number', ['number', 'number']);
 
 // Standard Faust DSP
 
@@ -58,7 +58,7 @@ faust.DSP = function (context, buffer_size) {
             ouputs_timer = 5;
             for (var i = 0; i < ouputs_items.length; i++) {
                 Module.writeStringToMemory(ouputs_items[i], path_ptr);
-                handler(ouputs_items[i], DSP_getValue(ptr, path_ptr));
+                handler(ouputs_items[i], DSP_getParamValue(ptr, path_ptr));
             }
         }
     }
@@ -240,16 +240,16 @@ faust.DSP = function (context, buffer_size) {
             scriptProcessor.disconnect(context.destination);
         },
         
-        setValue : function (path, val) 
+        setParamValue : function (path, val) 
         {
             Module.writeStringToMemory(path, path_ptr);
-            DSP_setValue(ptr, path_ptr, val);
+            DSP_setParamValue(ptr, path_ptr, val);
         },
         
-        getValue : function (path) 
+        getParamValue : function (path) 
         {
             Module.writeStringToMemory(path, path_ptr);
-            return DSP_getValue(ptr, path_ptr);
+            return DSP_getParamValue(ptr, path_ptr);
         },
          
         json : function ()

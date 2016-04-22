@@ -44,7 +44,7 @@ extern "C" {
     // C like API
     mydsp_poly* mydsp_poly_constructor(int sample_rate, int max_polyphony) 
     {
-        mydsp_poly* poly = new mydsp_poly(max_polyphony);
+        mydsp_poly* poly = new mydsp_poly(max_polyphony, true, true);
         if (poly) poly->init(sample_rate);
         return poly;
     }
@@ -104,14 +104,14 @@ extern "C" {
         poly->pitchBend(channel, refPitch, pitch);
     }
     
-    void mydsp_poly_setValue(mydsp_poly* poly, const char* path, float value)
+    void mydsp_poly_setParamValue(mydsp_poly* poly, const char* path, float value)
     {
-        poly->setValue(path, value);
+        poly->setParamValue(path, value);
     }
 
-    float mydsp_poly_getValue(mydsp_poly* poly, const char* path)
+    float mydsp_poly_getParamValue(mydsp_poly* poly, const char* path)
     {
-        return poly->getValue(path);
+        return poly->getParamValue(path);
     }
         
 };
