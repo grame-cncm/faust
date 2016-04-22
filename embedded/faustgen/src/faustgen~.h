@@ -122,6 +122,7 @@ class faustgen_factory {
         void add_compile_option(const string& key, const string& value);
         void add_compile_option(const string& value);
         void display_libraries_aux(const char* lib);
+        void make_json(::dsp* dsp);
         
     public:
     
