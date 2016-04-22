@@ -151,7 +151,7 @@ class FaustPolyEngine {
         void setParamValue(const char* address, float value)
         {
             if (fPolyMax > 0) {
-                fPolyDSP->setParamqValue(address, value);
+                fPolyDSP->setParamValue(address, value);
             } else {
                 fAPIUI.setParamValue(fAPIUI.getParamIndex(address), value);
             }
@@ -160,7 +160,7 @@ class FaustPolyEngine {
         int setVoiceParam(const char* address, int pitch, float value)
         {
             if (fPolyMax > 0) {
-                fPolyDSP->setValue(address, pitch, value);
+                fPolyDSP->setParamValue(address, pitch, value);
                 return 1;
             } else {
                 return 0;
