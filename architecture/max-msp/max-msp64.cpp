@@ -174,7 +174,10 @@ typedef struct faust
 #endif
 } t_faust;
 
-void *faust_class;
+void* faust_class;
+
+void faust_create_jsui(t_faust* x);
+void faust_make_json(t_faust* x);
 
 /*--------------------------------------------------------------------------*/
 class mspUIObject {
@@ -617,6 +620,13 @@ void faust_polyphony(t_faust* obj, t_symbol* s, short ac, t_atom* av)
     #endif
         // Initialize at the system's sampling rate
         obj->m_dsp->init(long(sys_getsr()));
+        
+        // Prepare JSON
+        faust_make_json(obj);
+      
+        // Send JSON to JS script
+        faust_create_jsui(obj);
+    
         systhread_mutex_unlock(obj->m_mutex);
     } else {
         post("Mutex lock cannot be taken...");
@@ -689,10 +699,22 @@ void faust_update_outputs(t_faust* x)
 }
 
 /*--------------------------------------------------------------------------*/
+void faust_make_json(t_faust* x)
+{
+    // Prepare JSON
+    if (x->m_json) free(x->m_json);
+    JSONUI builder(x->m_dsp->getNumInputs(), x->m_dsp->getNumOutputs());
+    mydsp::metadata(&builder);
+    x->m_dsp->buildUserInterface(&builder);
+    x->m_json = strdup(builder.JSON().c_str());
+}
+
+/*--------------------------------------------------------------------------*/
 void* faust_new(t_symbol* s, short ac, t_atom* av)
 {
     t_faust* x = (t_faust*)newobject(faust_class);
 
+    x->m_json = 0;
     x->m_mute = false;
     x->m_dsp = new mydsp();
     x->m_Inputs = x->m_dsp->getNumInputs();
@@ -714,10 +736,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 #endif
     
     // Prepare JSON
-    JSONUI builder(x->m_dsp->getNumInputs(), x->m_dsp->getNumOutputs());
-    mydsp::metadata(&builder);
-    x->m_dsp->buildUserInterface(&builder);
-    x->m_json = strdup(builder.JSON().c_str());
+    faust_make_json(x);
     
     int num_input;
     
@@ -738,7 +757,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 
     ((t_pxobject*)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
     
-    // send JSON to JS script
+    // Send JSON to JS script
     faust_create_jsui(x);
     return x;
 }

@@ -385,11 +385,17 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     m_sigoutlets = dsp->getNumOutputs();
     
     // Prepare JSON
+    make_json(dsp);
+    return dsp;
+}
+
+void faustgen_factory::make_json(::dsp* dsp)
+{
+    // Prepare JSON
     JSONUI builder(m_siginlets, m_sigoutlets);
     metadataDSPFactory(fDSPfactory, &builder);
     dsp->buildUserInterface(&builder);
     fJSON = builder.JSON();
-    return dsp;
 }
 
 void faustgen_factory::add_library_path(const string& library_path)
@@ -1159,10 +1165,18 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
         free_dsp();
         fDSP = fDSPfactory->create_dsp_instance(av[0].a_w.w_long);
         assert(fDSP);
+        
         // Initialize User Interface (here connnection with controls)
         fDSP->buildUserInterface(&fDSPUI);
         fDSP->buildUserInterface(fMidiUI);
-         // Initialize at the system's sampling rate
+        
+        // Prepare JSON
+        fDSPfactory->make_json(fDSP);
+        
+        // Send JSON to JS script
+        create_jsui();
+    
+        // Initialize at the system's sampling rate
         fDSP->init(sys_getsr());
         fDSPfactory->unlock();
     } else {
@@ -1411,7 +1425,7 @@ void faustgen::create_dsp(bool init)
             dsp_status("start");
         }
   
-        // send JSON to JS script
+        // Send JSON to JS script
         create_jsui();
         
         fDSPfactory->unlock();
