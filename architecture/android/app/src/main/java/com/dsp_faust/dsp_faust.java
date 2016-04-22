@@ -54,12 +54,12 @@ public class dsp_faust {
     return dsp_faustJNI.getParamsCount();
   }
 
-  public static float getParam(String arg0) {
-    return dsp_faustJNI.getParam(arg0);
+  public static float getParamValue(String arg0) {
+    return dsp_faustJNI.getParamValue(arg0);
   }
 
-  public static void setParam(String arg0, float arg1) {
-    dsp_faustJNI.setParam(arg0, arg1);
+  public static void setParamValue(String arg0, float arg1) {
+    dsp_faustJNI.setParamValue(arg0, arg1);
   }
 
   public static int setVoiceParam(String arg0, int arg1, float arg2) {
@@ -90,11 +90,9 @@ public class dsp_faust {
      dsp_faustJNI.setGyrConverter(p, gyr, curve, amin, amid,  amax);
   }
 
-
   public static float getCPULoad() {
     return dsp_faustJNI.getCPULoad();
   }
-
 
   // return -1 when no screen color control is requested, otherwise the current color to display 0xRRGGBB.
   public static int getScreenColor() {

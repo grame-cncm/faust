@@ -355,7 +355,7 @@ SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getParamsCount(JNIEnv 
 }
 
 
-SWIGEXPORT jfloat JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getParam(JNIEnv *jenv, jclass jcls, jstring jarg1) {
+SWIGEXPORT jfloat JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getParamValue(JNIEnv *jenv, jclass jcls, jstring jarg1) {
   jfloat jresult = 0 ;
   char *arg1 = (char *) 0 ;
   float result;
@@ -367,14 +367,14 @@ SWIGEXPORT jfloat JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getParam(JNIEnv *jen
     arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
     if (!arg1) return 0;
   }
-  result = (float)getParam((char const *)arg1);
+  result = (float)getParamValue((char const *)arg1);
   jresult = (jfloat)result;
   if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
   return jresult;
 }
 
 
-SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setParam(JNIEnv *jenv, jclass jcls, jstring jarg1, jfloat jarg2) {
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setParamValue(JNIEnv *jenv, jclass jcls, jstring jarg1, jfloat jarg2) {
   char *arg1 = (char *) 0 ;
   float arg2 ;
 
@@ -386,7 +386,7 @@ SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setParam(JNIEnv *jenv,
     if (!arg1) return ;
   }
   arg2 = (float)jarg2;
-  setParam((char const *)arg1,arg2);
+  setParamValue((char const *)arg1,arg2);
   if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
 }
 

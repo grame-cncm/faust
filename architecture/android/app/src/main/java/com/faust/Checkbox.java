@@ -84,7 +84,7 @@ class Checkbox{
         	public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
         		if (isChecked) parametersInfo.values[id] = 1.f;
         		else parametersInfo.values[id] = 0.f;
-        		dsp_faust.setParam(address, parametersInfo.values[id]);
+        		dsp_faust.setParamValue(address, parametersInfo.values[id]);
         	}
         });
 	}

@@ -59,7 +59,7 @@ public class MultiKeyboardActivity extends Activity {
 				labels[currentIndex] = parametersInfo.label[i];
 				min[currentIndex] = parametersInfo.min[i];
 				max[currentIndex] = parametersInfo.max[i];
-				values[currentIndex] = dsp_faust.getParam(addresses[currentIndex]);
+				values[currentIndex] = dsp_faust.getParamValue(addresses[currentIndex]);
 			}
 		}
 		mp.setParams(labels, min, max, values);
@@ -67,7 +67,7 @@ public class MultiKeyboardActivity extends Activity {
 		mp.setOnMultiParamsChangeListener(new OnMultiParamsChangeListener(){
 			@Override
 			public void onParamChange(int paramID, float value) {
-				dsp_faust.setParam(addresses[paramID], value);
+				dsp_faust.setParamValue(addresses[paramID], value);
 			}	
 		});
 	}
