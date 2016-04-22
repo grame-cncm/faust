@@ -112,10 +112,10 @@ for f in $FILES; do
     if [ $EMCC = emcc ] ; then
         # prepare emcc compilation files
         if [ $POLY = "false" ]; then
-            EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
+            EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setParamValue','_"$name"_getParamValue','_"$name"_getJSON']"
             
         else
-            EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_allNotesOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel','_"$name"_poly_pitchBend']" 
+            EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setParamValue','_"$name"_poly_getParamValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_allNotesOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel','_"$name"_poly_pitchBend']" 
                   
         fi
         # compile the C++ code to asm.js

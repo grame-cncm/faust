@@ -95,14 +95,14 @@ extern "C" {
         return n->getJSON();
     }
     
-    void mydsp_setValue(mydsp_wrap* n, const char* path, float value)
+    void mydsp_setParamValue(mydsp_wrap* n, const char* path, float value)
     {
-        n->setValue(path, value);
+        n->setParamValue(path, value);
     }
     
-    float mydsp_getValue(mydsp_wrap* n, const char* path)
+    float mydsp_getParamValue(mydsp_wrap* n, const char* path)
     {
-        return n->getValue(path);
+        return n->getParamValue(path);
     }
     
 }
