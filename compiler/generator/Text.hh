@@ -40,6 +40,7 @@ string subst(const string& model, const string& a0, const string& a1, const stri
 string T(char* c);
 string T(int n);
 string T(long n);
+string T(float n);
 string T(double n);
 
 // add and remove quotes of a string

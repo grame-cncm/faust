@@ -22,14 +22,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Text.hh"
-#include "compatibility.hh"
 #include <string>
 #include <vector>
 #include <iostream>
 #include <sstream>
 #include <assert.h>
 
+#include "Text.hh"
+#include "compatibility.hh"
 #include "floats.hh"
 
 static string substitution (const string& model, const vector<string>& args);
@@ -174,16 +174,29 @@ static void ensureFloat(char* c)
 }
 
 /**
+ * Convert a simple-precision float into a string.
+ * Adjusts the precision p to the needs.
+ */
+string T(float n)
+{
+    char c[64];
+    int p = 1;
+    
+    do { snprintf(c, 32, "%.*g", p++, n); } while (strtof(c, 0) != n);
+    ensureFloat(c);
+    return string(c)+inumix();
+}
+
+/**
  * Convert a double-precision float into a string.
- * Adjusts the precision p to the needs. Add a trailing
- * f if single-precision is required.
+ * Adjusts the precision p to the needs.
  */
 string T(double n)
 {
-    char    c[64];
-    int     p = 1;
-
-    do { snprintf(c, 32, "%.*g", p++, n); } while (atof(c) != n);
+    char c[64];
+    int p = 1;
+    
+    do { snprintf(c, 32, "%.*g", p++, n); } while (strtod(c, 0) != n);
     ensureFloat(c);
     return string(c)+inumix();
 }
@@ -252,50 +265,19 @@ string rmWhiteSpaces(const string& s)
 
 string checkFloat(float val)
 {
-    stringstream num; num << val;
-    string str = num.str();
-
-    bool dot = false;
-    for (unsigned int i = 0; i < str.size(); i++) {
-        if (str[i] == '.' || str[i] == 'e') {
-           dot = true;
-           break;
-        }
-    }
-    return (dot) ? (str + "f") : (str + ".f");
+    return T(val);
 }
 
 string checkDouble(double val)
 {
-    stringstream num; num << val;
-    string str = num.str();
-
-    bool dot = false;
-    int e_pos = -1;
-    for (unsigned int i = 0; i < str.size(); i++) {
-        if (str[i] == '.') {
-            dot = true;
-            break;
-        } else if (str[i] == 'e') {
-            e_pos = i;
-            break;
-        }
-    }
-    
-    if (e_pos >= 0) {
-        return str.insert(e_pos, 1, '.');
-    } else {
-        return (dot) ? str : (str + ".");
-    }    
+    return T(val);
 }
+
+// 'Quad' (= long double) are currectly treated like 'double'
 
 string checkReal(double val)
 {
-    if (strcmp(ifloat(), "float") == 0) {
-        return checkFloat(val);
-    } else {
-        return checkDouble(val);
-    }
+    return (strcmp(ifloat(), "float") == 0) ? checkFloat(val) : checkDouble(val);
 }
 
 string indent(string const & str, int tabs)
@@ -304,8 +286,9 @@ string indent(string const & str, int tabs)
     stringstream outstream;
     string line;
     while (getline(instream, line, '\n')) {
-        for (int i = 0; i != tabs; ++i)
+        for (int i = 0; i != tabs; ++i) {
             outstream << '\t';
+        }
         outstream << line << endl;
     }
 
