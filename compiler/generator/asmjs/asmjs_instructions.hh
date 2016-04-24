@@ -303,13 +303,37 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 assert(false);
             }
         }
-                
+    
+        inline string checkDouble1(double val)
+        {
+            stringstream num; num << val;
+            string str = num.str();
+            
+            bool dot = false;
+            int e_pos = -1;
+            for (unsigned int i = 0; i < str.size(); i++) {
+                if (str[i] == '.') {
+                    dot = true;
+                    break;
+                } else if (str[i] == 'e') {
+                    e_pos = i;
+                    break;
+                }
+            }
+            
+            if (e_pos >= 0) {
+                return str.insert(e_pos, 1, '.');
+            } else {
+                return (dot) ? str : (str + ".");
+            }
+        }
+
         // No .f syntax for float in JS
         virtual void visit(FloatNumInst* inst)
         {
             fTypingVisitor.visit(inst);
             // 'dot' syntax for float
-            *fOut << checkDouble(inst->fNum);
+            *fOut << checkDouble1(inst->fNum);
         }
         
         virtual void visit(IntNumInst* inst)
@@ -327,7 +351,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(DoubleNumInst* inst)
         {
             fTypingVisitor.visit(inst);
-            *fOut << checkDouble(inst->fNum);
+            *fOut << checkDouble1(inst->fNum);
         }
                  
         virtual void visit(Select2Inst* inst)

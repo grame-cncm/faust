@@ -162,7 +162,7 @@ static void ensureFloat(char* c)
 {
     bool isInt = true;
     while (*c != 0) {
-        if ((*c == '.') | (*c == 'e'))  isInt = false;
+        if ((*c == '.') | (*c == 'e')) isInt = false;
         c++;
     }
 

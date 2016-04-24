@@ -77,6 +77,12 @@ CodeContainer* ASMJAVAScriptCodeContainer::createContainer(const string& name, i
 {
     CodeContainer* container;
 
+    if (gGlobal->gFloatSize == 2) {
+        throw faustexception("ERROR : double format not supported in ASMJavaScript\n");
+    }
+    if (gGlobal->gFloatSize == 3) {
+        throw faustexception("ERROR : quad format not supported in ASMJavaScript\n");
+    }
     if (gGlobal->gOpenCLSwitch) {
         throw faustexception("ERROR : OpenCL not supported for ASMJavaScript\n");
     }
