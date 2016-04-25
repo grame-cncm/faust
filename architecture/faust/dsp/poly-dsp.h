@@ -43,6 +43,7 @@
 #include <ostream>
 #include <sstream>
 #include <vector>
+#include <limits.h>
 
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/JSONUI.h"
