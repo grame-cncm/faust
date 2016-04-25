@@ -53,12 +53,14 @@
 #define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
 #define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
 
-#if defined(POLY) || defined(POLY2)
+#if POLY
 #include "faust/dsp/poly-dsp.h"
 #include "faust/dsp/dsp-combiner.h"
 #endif
 
-#if defined(POLY2)
+#if POLY2
+#include "faust/dsp/poly-dsp.h"
+#include "faust/dsp/dsp-combiner.h"
 #include "effect.cpp"
 #endif
 
