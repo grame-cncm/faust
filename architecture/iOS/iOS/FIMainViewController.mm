@@ -67,6 +67,7 @@
 #if MIDICTRL
 #include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
+rt_midi* midi_handler;
 MidiUI* midiinterface = NULL;
 #endif
 
@@ -194,8 +195,8 @@ bool hasMIDISync()
     uiinterface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata, DSP);
     finterface = new FUI();
 #if MIDICTRL
-    rt_midi midi_handler(_name);
-    midiinterface = new MidiUI(&midi_handler);
+    midi_handler = new rt_midi(_name);
+    midiinterface = new MidiUI(midi_handler);
 #endif
       
     // Read user preferences
@@ -512,6 +513,7 @@ error:
     
 #if MIDICTRL
     delete midiinterface;
+    delete midi_handler;
 #endif
     
     delete DSP;
