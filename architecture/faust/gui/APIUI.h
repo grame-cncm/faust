@@ -273,7 +273,7 @@ class APIUI : public PathBuilder, public Meta, public UI
 		// Simple API part
 		//-------------------------------------------------------------------------------
 		int getParamsCount()				{ return fNumParameters; }
-		int getParamIndex(const char* n) 	{ return (fMap.count(n)>0) ? fMap[n] : -1; }
+		int getParamIndex(const char* n) 	{ return (fMap.count(n) > 0) ? fMap[n] : -1; }
 		const char* getParamName(int p)		{ return fName[p].c_str(); }
 		const char* getParamUnit(int p)		{ return fUnit[p].c_str(); }
 		FAUSTFLOAT getParamMin(int p)		{ return fMin[p]; }

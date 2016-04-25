@@ -126,7 +126,7 @@ class Nentry{
 		       if(isNumeric(value)){
 		    	   if(numValue >= min && numValue <= max){ 
 		    		   parametersInfo.values[id] = numValue;
-		    		   dsp_faust.setParam(address, parametersInfo.values[id]);
+		    		   dsp_faust.setParamValue(address, parametersInfo.values[id]);
 		    	   }
 		    	   else if(numValue < min) setValue(min);
 		    	   else if(numValue > max) setValue(max);

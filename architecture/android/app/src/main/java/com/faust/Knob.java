@@ -158,7 +158,7 @@ class Knob {
 			}
 			public void onProgressChanged(SeekArc seekArc, int progress, boolean fromUser) {
 				parametersInfo.values[id] = (float) progress*0.01f*(max-min) + min;
-				dsp_faust.setParam(address, parametersInfo.values[id]);
+				dsp_faust.setParamValue(address, parametersInfo.values[id]);
 				setDisplayedValue(parametersInfo.values[id]);
 	          }
 	    });

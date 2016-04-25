@@ -38,6 +38,10 @@
  * API" section.
  */
 
+//**************************************************************
+// Polyphony
+//**************************************************************
+
 #include "faust/dsp/faust-poly-engine.h"
 
 //**************************************************************
@@ -58,16 +62,16 @@ ztimedmap GUI::gTimedZoneMap;
 
 class AndroidEngine : public FaustPolyEngine {
 
-public:
+    public:
 
-    AndroidEngine(int sampling_rate, int buffer_size):FaustPolyEngine(sampling_rate, buffer_size)
-    {
-        // allocating audio driver
-        fDriver = new androidaudio(sampling_rate, buffer_size);
-    }
-    
-    virtual ~AndroidEngine()
-    {}
+        AndroidEngine(int sampling_rate, int buffer_size):FaustPolyEngine(sampling_rate, buffer_size)
+        {
+            // allocating audio driver
+            fDriver = new androidaudio(sampling_rate, buffer_size);
+        }
+        
+        virtual ~AndroidEngine()
+        {}
     
 };
 
@@ -197,18 +201,18 @@ int getParamsCount()
  * Takes the address of a parameter and returns its current
  * value.
  */
-float getParam(const char* address)
+float getParamValue(const char* address)
 {
-    return gGlobal->getParam(address);
+    return gGlobal->getParamValue(address);
 }
 
 /*
  * setParam(address,value)
  * Sets the value of the parameter associated with address.
  */
-void setParam(const char* address, float value)
+void setParamValue(const char* address, float value)
 {
-    return gGlobal->setParam(address, value);
+    return gGlobal->setParamValue(address, value);
 }
 
 /*

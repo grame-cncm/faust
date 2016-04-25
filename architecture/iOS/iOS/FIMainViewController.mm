@@ -17,6 +17,7 @@
  ************************************************************************/
 
 //#define POLY 1
+//#define POLY2 1
 //#define MIDICTRL 1
 
 #import <QuartzCore/QuartzCore.h>
@@ -54,9 +55,17 @@
 
 #if POLY
 #include "faust/dsp/poly-dsp.h"
+#include "faust/dsp/dsp-combiner.h"
+#endif
+
+#if POLY2
+#include "faust/dsp/poly-dsp.h"
+#include "faust/dsp/dsp-combiner.h"
+#include "effect.cpp"
 #endif
 
 #if MIDICTRL
+#include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
 MidiUI* midiinterface = NULL;
 #endif
@@ -132,22 +141,32 @@ bool hasMIDISync()
     [super viewDidLoad];
     ((FIAppDelegate*)[UIApplication sharedApplication].delegate).mainViewController = self;
     _openPanelChanged = YES;
-
-#if POLY
+    
+#if POLY2
     
 #if MIDICTRL
     if (hasMIDISync()) {
-        DSP = new timed_dsp(new mydsp_poly(4, true));
+        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(4, true, true), new effect()));
     } else {
-        DSP = new mydsp_poly(4, true);
+        DSP = new dsp_sequencer(new mydsp_poly(4, true, true), new effect());
     }
 #else
-    DSP = new mydsp_poly(4);
+    DSP = new dsp_sequencer(new mydsp_poly(4, false, true), new effect());
 #endif
     
-#else
+#elif POLY
     
 #if MIDICTRL
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new mydsp_poly(4, true, true));
+    } else {
+        DSP = new mydsp_poly(4, true, true);
+    }
+#else
+    DSP = new mydsp_poly(4, false, true);
+#endif
+    
+#elif MIDICTRL
     if (hasMIDISync()) {
         DSP = new timed_dsp(new mydsp());
     } else {
@@ -155,8 +174,6 @@ bool hasMIDISync()
     }
 #else
     DSP = new mydsp();
-#endif
-    
 #endif
     
     // Faust initialization
@@ -177,7 +194,8 @@ bool hasMIDISync()
     uiinterface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata, DSP);
     finterface = new FUI();
 #if MIDICTRL
-    midiinterface = new MidiUI(_name);
+    rt_midi midi_handler(_name);
+    midiinterface = new MidiUI(&midi_handler);
 #endif
       
     // Read user preferences
@@ -1441,12 +1459,8 @@ static inline const char* transmit_value(int num)
 // Reset widget parameters
 - (IBAction)resetWidgetPreferences:(id)sender
 {
+    // Reset to default state
     _selectedWidget->resetParameters();
-    
-    // Reset acc/gyr mapping
-    int index =_selectedWidget->getItemCount();
-    uiinterface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
-    uiinterface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
     
     [self updateWidgetPreferencesView];
     [self widgetPreferencesChanged:_gyroAxisSegmentedControl];
@@ -1455,16 +1469,15 @@ static inline const char* transmit_value(int num)
 
 - (void)resetAllWidgetsPreferences
 {
-    list<uiCocoaItem*>::iterator    i;
+    list<uiCocoaItem*>::iterator i;
+    
+    // Reset DSP state to default
+    DSP->init(int(sample_rate));
     
     for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
     {
+        // Reset to default state
         (*i)->resetParameters();
-        
-        // Reset acc/gyr mapping
-        int index = (*i)->getItemCount();
-        uiinterface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
-        uiinterface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
         
         // Save parameters in user defaults
         NSString* key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:(*i)]];
@@ -1526,8 +1539,13 @@ static inline const char* transmit_value(int num)
             int type, curve;
             float min, mid, max;
             
-            // Get default state
+            // Get current state
             uiinterface->getAccConverter(index, type, curve, min, mid, max);
+            
+            // Keep default state
+            (*i)->setInitAssignationType(type);
+            (*i)->setInitAssignationCurve(curve);
+            (*i)->setInitCurve(min, mid, max);
             
             // Sensor assignation
             key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:(*i)]];
