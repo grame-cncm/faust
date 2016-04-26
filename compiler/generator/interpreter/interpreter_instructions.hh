@@ -41,8 +41,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         static map <string, string> gMathLibTable;
         
         int fRealHeapOffset;    // Offset in Real HEAP    
-        int fIntHeapOffset;     // Offset in Integer HEAP    
-                                     
+        int fIntHeapOffset;     // Offset in Integer HEAP
+    
+        int fSROffset;          // Offset in Integer HEAP for "fSamplingFreq"
+    
         map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
           
         TypingVisitor fTypingVisitor;
@@ -56,6 +58,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             fCurrentBlock = new FIRBlockInstruction<T>();
             fRealHeapOffset = 0;
             fIntHeapOffset = 0;
+            fSROffset = 0;
         }
         
         inline bool isRealType(Typed::VarType type) 
@@ -79,7 +82,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     
         void initMathTable()
         {
-            
+           // TODO
         }
         
         virtual ~InterpreterInstVisitor()
@@ -87,7 +90,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
    
         virtual void visit(AddMetaDeclareInst* inst)
         {
-            printf("AddMetaDeclareInst : %s \n", inst->fZone.c_str());
             pair<int, Typed::VarType> tmp = fFieldTable[inst->fZone];
             if (inst->fZone == "0") {
                 fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(FIRInstruction::kDeclare, -1, inst->fKey, inst->fValue));
@@ -178,21 +180,26 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             }
             
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-            printf("DeclareVarInst name %s\n",inst->fAddress->getName().c_str());
             
             if (array_typed && array_typed->fSize > 1) {
                 if (array_typed->fType->getType() == Typed::kInt) {
-                    fFieldTable[inst->fAddress->getName()] = make_pair(fIntHeapOffset, Typed::getPtrFromType(array_typed->fType->getType()));
+                    printf("DeclareVarInst int/array name %s offset %d\n", inst->fAddress->getName().c_str(), fIntHeapOffset);
+                    fFieldTable[inst->fAddress->getName()] = make_pair(fIntHeapOffset, array_typed->fType->getType());
                     fIntHeapOffset += array_typed->fSize * NUM_SIZE;
                 } else {
-                    fFieldTable[inst->fAddress->getName()] = make_pair(fRealHeapOffset, Typed::getPtrFromType(array_typed->fType->getType()));
+                    printf("DeclareVarInst float/array name %s offset %d\n", inst->fAddress->getName().c_str(), fRealHeapOffset);
+                    fFieldTable[inst->fAddress->getName()] = make_pair(fRealHeapOffset, array_typed->fType->getType());
                     fRealHeapOffset += array_typed->fSize * NUM_SIZE;
                 }
             } else {
                 if (inst->fType->getType() == Typed::kInt) {
+                    // Keep "fSamplingFreq" offset
+                    if (inst->fAddress->getName() == "fSamplingFreq") fSROffset = fIntHeapOffset;
+                    printf("DeclareVarInst int name %s offset %d\n", inst->fAddress->getName().c_str(), fIntHeapOffset);
                     fFieldTable[inst->fAddress->getName()] = make_pair(fIntHeapOffset, inst->fType->getType());
                     fIntHeapOffset += NUM_SIZE;
                 } else {
+                    printf("DeclareVarInst array name %s offset %d\n", inst->fAddress->getName().c_str(), fRealHeapOffset);
                     fFieldTable[inst->fAddress->getName()] = make_pair(fRealHeapOffset, inst->fType->getType());
                     fRealHeapOffset += NUM_SIZE;
                 }
@@ -209,6 +216,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         // Memory
         virtual void visit(LoadVarInst* inst) 
         {
+            fTypingVisitor.visit(inst);
+            
             // Compile address
             inst->fAddress->accept(this);
             
@@ -237,13 +246,11 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         
         //virtual void visit(LoadVarAddressInst* inst) {}
         
-        // Reverse order...
-        
         virtual void visitStore(Address* address, ValueInst* value)
         {
             // Compile value address
-            value->accept(this);
             address->accept(this);
+            value->accept(this);
             
             NamedAddress* named = dynamic_cast<NamedAddress*>(address);
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
@@ -285,6 +292,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         // Primitives : numbers
         virtual void visit(FloatNumInst* inst) 
         {
+            fTypingVisitor.visit(inst);
+            
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst->fNum));
         }
         
@@ -292,17 +301,26 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         
         virtual void visit(IntNumInst* inst)  
         {
+            fTypingVisitor.visit(inst);
+            
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst->fNum, 0));
         }
         
         virtual void visit(IntArrayNumInst* inst) {}
         
-        virtual void visit(BoolNumInst* inst) {}
+        virtual void visit(BoolNumInst* inst)
+        {
+            fTypingVisitor.visit(inst);
+            
+            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst->fNum, 0));
+        }
         
         virtual void visit(DoubleNumInst* inst) 
         {
+            fTypingVisitor.visit(inst);
+            
             // Double considered real...
-            printf(" visit(DoubleNumInst %lf\n", inst->fNum);
+            printf("visit(DoubleNumInst %lf)\n", inst->fNum);
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst->fNum));
         }
         
@@ -311,16 +329,16 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         // Numerical computation
         virtual void visit(BinopInst* inst) 
         {
-            inst->fInst1->accept(&fTypingVisitor);
+            fTypingVisitor.visit(inst);
         
             // Compile sub-expressions in reverse order... 
             inst->fInst2->accept(this);
             inst->fInst1->accept(this);
             
-            if (fTypingVisitor.fCurType == Typed::kInt) {
-                fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpIntInst));
-            } else {
+            if (fTypingVisitor.fCurType == Typed::kFloat) {
                 fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpFloatInst));
+            } else {
+                fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpIntInst));
             }
         }
         
@@ -345,6 +363,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 printf("cast int ==> kFloatMacro or internal float\n");
                 fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastReal));
             }
+            fTypingVisitor.visit(inst);
         }
 
         // Function call
@@ -353,7 +372,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(DropInst* inst) {}
 
         // Conditionnal
-        virtual void visit(Select2Inst* inst) {}
+        virtual void visit(Select2Inst* inst)
+        {
+            fTypingVisitor.visit(inst);
+        }
         virtual void visit(IfInst* inst) {}
         virtual void visit(SwitchInst* inst) {}
 

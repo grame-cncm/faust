@@ -78,34 +78,41 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
 {
     cout << "InterpreterCodeContainer::produceModuleFloat() " << fNumInputs << " " << fNumOutputs << endl;
     
-    printf("InterpreterCodeContainer::produceClass\n");
-    
     // Add "fSamplingFreq" variable at offset 0 in HEAP
-    pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
+    if (!fGeneratedSR) {
+        fDeclarationInstructions->pushBackInst(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
+    }
     
+    cout << "-----generateGlobalDeclarations-----" << endl;
     generateGlobalDeclarations(&fCodeProducer);
 
+    cout << "-----generateDeclarations-----" << endl;
     generateDeclarations(&fCodeProducer);
     
     //generateAllocate(&fCodeProducer);
     //generateDestroy(&fCodeProducer);
     
+    cout << "-----generateStaticInit-----" << endl;
     generateStaticInit(&fCodeProducer);
     
+    cout << "-----generateInit-----" << endl;
     generateInit(&fCodeProducer);
     
     FIRBlockInstruction<float>* init_block = fCodeProducer.fCurrentBlock;
     fCodeProducer.fCurrentBlock = new FIRBlockInstruction<float>();
     
+    cout << "-----generateUserInterface-----" << endl;
     generateUserInterface(&fCodeProducer);
     
     // Generates local variables declaration and setup
+    cout << "-----generateComputeBlock-----" << endl;
     generateComputeBlock(&fCodeProducer);
     
     FIRBlockInstruction<float>* compute_control_block = fCodeProducer.fCurrentBlock;
     fCodeProducer.fCurrentBlock = new FIRBlockInstruction<float>();
 
     // Generates one single scalar loop
+    cout << "-----generateScalarLoop-----" << endl;
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     loop->accept(&fCodeProducer);
     
@@ -125,7 +132,8 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
                                         
     return new interpreter_dsp_factory(fNumInputs, fNumOutputs, 
                                         fCodeProducer.fRealHeapOffset, 
-                                        fCodeProducer.fIntHeapOffset, 
+                                        fCodeProducer.fIntHeapOffset,
+                                        fCodeProducer.fSROffset,
                                         fCodeProducer.fUserInterfaceBlock, 
                                         init_block, compute_control_block, compute_dsp_block);
 }
@@ -174,9 +182,7 @@ void InterpreterCodeContainer::produceClass()
 }
 
 void InterpreterCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
-{   
-   
-}
+{}
 
 void InterpreterScalarCodeContainer::generateCompute(int n)
 {

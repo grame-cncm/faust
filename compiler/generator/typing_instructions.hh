@@ -98,7 +98,7 @@ struct TypingVisitor : public InstVisitor {
                     if (isRealType(type2)) {
                         fCurType = Typed::kFloat;
                     } else if (type1 == Typed::kInt || type2 == Typed::kInt) {
-                         fCurType = Typed::kInt;
+                        fCurType = Typed::kInt;
                     } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
                         fCurType = Typed::kBool;
                     } else {
@@ -106,6 +106,8 @@ struct TypingVisitor : public InstVisitor {
                     }
                 }
             }
+            
+            printf("TypingVisitorvisit(BinopInst* inst) %d\n", fCurType);
         }
 
         virtual void visit(CastNumInst* inst)

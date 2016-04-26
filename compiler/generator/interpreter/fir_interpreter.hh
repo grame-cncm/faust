@@ -179,7 +179,8 @@ class FIRInterpreter  {
         
         int fRealHeapSize;
         int fIntHeapSize;
-        
+        int fSROffset;
+    
         int fRealStackSize;
         int fIntStackSize;
         
@@ -219,10 +220,12 @@ class FIRInterpreter  {
                             break;
                             
                         case FIRInstruction::kAddHorizontalSlider:
+                            printf("FIRInstruction::kAddHorizontalSlider : label %s offset %d\n", (*it)->fLabel.c_str(), (*it)->fOffset);
                             interface->addHorizontalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
                             break;
                             
                         case FIRInstruction::kAddVerticalSlider:
+                            printf("FIRInstruction::kAddVerticalSlider : label %s offset %d\n", (*it)->fLabel.c_str(), (*it)->fOffset);
                             interface->addVerticalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
                             break;
                             
@@ -652,7 +655,7 @@ class FIRInterpreter  {
         
         void PrintBlock(FIRBlockInstruction<T>* block)
         {
-            printf("PrintBlock size = %d\n", block->fInstructions.size()); 
+            printf("PrintBlock size = %lu\n", block->fInstructions.size());
             typename std::vector<FIRBasicInstruction<T>* >::iterator it;
             for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
                 printf("opcode = %s int = %d real = %f offset = %d\n", 
@@ -722,7 +725,10 @@ class FIRInterpreter  {
                         
                     case FIRInstruction::kStoreIndexedInt: {
                         int val = pop_int();
-                        fIntHeap[(*it)->fOffset + pop_int()] = val;
+                        int addr = pop_int();
+                        //printf("kStoreIndexedInt addr = %d val = %d\n", addr, val);
+                        fIntHeap[(*it)->fOffset + addr] = val;
+                        //fIntHeap[(*it)->fOffset + pop_int()] = val;
                         break;
                     }
                         
@@ -731,14 +737,22 @@ class FIRInterpreter  {
                         push_real(fInputs[(*it)->fOffset][pop_int()]);
                         break;
                         
-                    case FIRInstruction::kStoreOutput:
+                    case FIRInstruction::kStoreOutput: {
                         fOutputs[(*it)->fOffset][pop_int()] = pop_real();
                         break;
+                    }
                       
                     // Cast operations
-                    case FIRInstruction::kCastReal:
+                    case FIRInstruction::kCastReal: {
+                        /*
+                        int val = pop_int();
+                        T cast = T(val);
+                        printf("kCastReal val = %d cast = %f\n", val, cast);
+                        push_real(cast);
+                        */
                         push_real(T(pop_int()));
                         break;
+                    }
                         
                     case FIRInstruction::kCastInt:
                         push_int(int(pop_real()));
@@ -790,6 +804,7 @@ class FIRInterpreter  {
                         T v1 = pop_real();
                         T v2 = pop_real();
                         push_real(v1 * v2);
+                        //printf("kMultReal %f %f %f\n", v1, v2, v1 * v2);
                         break;
                     }
                         
@@ -1010,8 +1025,7 @@ class FIRInterpreter  {
             }
         }
         */
-        
-        
+    
         void ExecuteLoopBlock(FIRBlockInstruction<T>* block, int loop_offset, int loop_count)
         {
             //printf("ExecuteLoopBlock loop_offset = %d loop_count = %d\n", loop_offset, loop_count);
@@ -1073,7 +1087,10 @@ class FIRInterpreter  {
                             
                         case FIRInstruction::kStoreIndexedInt: {
                             int val = pop_int();
-                            fIntHeap[(*it)->fOffset + pop_int()] = val;
+                            int addr = pop_int();
+                            ///printf("kStoreIndexedInt addr = %d val = %d\n", addr, val);
+                            fIntHeap[(*it)->fOffset + addr] = val;
+                            //fIntHeap[(*it)->fOffset + pop_int()] = val;
                             break;
                         }
                             
@@ -1082,14 +1099,22 @@ class FIRInterpreter  {
                             push_real(fInputs[(*it)->fOffset][pop_int()]);
                             break;
                             
-                        case FIRInstruction::kStoreOutput:
+                        case FIRInstruction::kStoreOutput: {
                             fOutputs[(*it)->fOffset][pop_int()] = pop_real();
                             break;
+                        }
                           
                         // Cast operations
-                        case FIRInstruction::kCastReal:
+                        case FIRInstruction::kCastReal: {
+                            /*
+                            int val = pop_int();
+                            T cast = T(val);
+                            printf("kCastReal val = %d cast = %f\n", val, cast);
+                            push_real(cast);
+                            */
                             push_real(T(pop_int()));
                             break;
+                        }
                             
                         case FIRInstruction::kCastInt:
                             push_int(int(pop_real()));
@@ -1141,6 +1166,7 @@ class FIRInterpreter  {
                             T v1 = pop_real();
                             T v2 = pop_real();
                             push_real(v1 * v2);
+                            //printf("kMultReal %f %f %f\n", v1, v2, v1 * v2);
                             break;
                         }
                             
@@ -1348,13 +1374,14 @@ class FIRInterpreter  {
     
     public:
         
-        FIRInterpreter(int real_heap_size, int int_heap_size)
+        FIRInterpreter(int real_heap_size, int int_heap_size, int sr_offset)
         {
-            printf("FIRInterpreter : %d %d\n", real_heap_size, int_heap_size);
+            printf("FIRInterpreter : %d %d %d\n", real_heap_size, int_heap_size, sr_offset);
             
             // HEAP
             fRealHeapSize = real_heap_size;
             fIntHeapSize = int_heap_size;
+            fSROffset = sr_offset;
             fRealHeap = new T[real_heap_size];
             fIntHeap = new int[int_heap_size];
             

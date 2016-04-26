@@ -110,8 +110,8 @@ ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.7.0 3.7.1 3.7.2))
 endif
 
 ifeq ($(system), Darwin)
-    #CXXFLAGS += -g
-    CXXFLAGS += -O3
+    CXXFLAGS += -g
+#CXXFLAGS += -O3
 else
 ifneq ($(findstring MINGW32, $(system)),)
 	CXXFLAGS += -O1 -I/usr/include

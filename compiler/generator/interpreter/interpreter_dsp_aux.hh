@@ -45,16 +45,14 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
     public:
       
         interpreter_dsp_aux(int inputs, int ouputs, 
-                            int real_heap_size, int int_heap_size, 
+                            int real_heap_size, int int_heap_size, int sr_offset,
                             FIRUserInterfaceBlockInstruction<T>* interface, 
                             FIRBlockInstruction<T>* init, 
                             FIRBlockInstruction<T>* compute_control,
                             FIRBlockInstruction<T>* compute_dsp) 
-                            : FIRInterpreter<T>(real_heap_size, int_heap_size)
+                            : FIRInterpreter<T>(real_heap_size, int_heap_size, sr_offset)
         {
-            printf("interpreter_dsp_aux %d %d\n", inputs, ouputs);
-            printf("interpreter_dsp_aux %d %d\n", real_heap_size, int_heap_size);
-            printf("interpreter_dsp_aux %p  %p  %p\n", init, compute_control, compute_dsp); 
+            printf("interpreter_dsp_aux inputs = %d ouputs = %d  real_heap_size = %d int_heap_size = %d sr_offset = %d\n", inputs, ouputs, real_heap_size, int_heap_size, sr_offset);
             fNumInputs = inputs;
             fNumOutputs = ouputs;
             this->fInputs = new FAUSTFLOAT*[inputs];
@@ -73,9 +71,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         }
           
         void static metadata(Meta* m) 
-        { 
-            
-        }
+        {}
 
         virtual int getNumInputs() 
         {
@@ -97,16 +93,15 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             return -1;
         }
         
-        static void classInit(int samplingFreq) 
+        static void classInit(int samplingRate)
         {}
         
-        virtual void instanceInit(int samplingFreq) 
+        virtual void instanceInit(int samplingRate)
         {
-            printf("instanceInit samplingFreq = %d\n", samplingFreq);
-            //return;
+            printf("instanceInit samplingFreq = %d\n", samplingRate);
             
-            // Store samplingFreq in "fSamplingFreq" variable (at offset 0 in HEAP) 
-            this->fRealHeap[0] = samplingFreq;
+            // Store samplingFreq in "fSamplingFreq" variable at correct offset in fIntHeap
+            this->fIntHeap[this->fSROffset] = samplingRate;
             
             int int_val;
             T real_val;
@@ -114,8 +109,9 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             //this->PrintBlock(fInitBlock);
             
             // Execute init instructions 
-            if (fInitBlock)
+            if (fInitBlock) {
                 this->ExecuteBlock(fInitBlock, int_val, real_val, true);
+            }
         }
         
         virtual void init(int samplingFreq) 
@@ -132,8 +128,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
-            //printf("compute count = %d fNumInputs = %d fNumOutputs = %d\n", count, fNumInputs, fNumOutputs);
-            //return;
+            printf("compute\n");
             
             // Prepare in/out buffers
             for (int i = 0; i < fNumInputs; i++) {
@@ -145,12 +140,10 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             
             // Executes the 'control' block
             if (fComputeBlock) {
-                //this->PrintBlock(fComputeBlock);
+                this->PrintBlock(fComputeBlock);
                 this->ExecuteBlockReal(fComputeBlock);
             }
-                
-            //return;
-                
+            
             //this->PrintBlock(fComputeDSPBlock);
             
             // Executes the DSP loop
@@ -173,7 +166,8 @@ class EXPORT interpreter_dsp : public dsp {
         int getNumInputs();
         int getNumOutputs();
     
-        void init(int samplingFreq);
+        void init(int samplingRate);
+        void instanceInit(int samplingRate);
       
         void buildUserInterface(UI* ui_interface);
         
@@ -192,6 +186,8 @@ class EXPORT interpreter_dsp_factory {
         
         int fRealHeapSize;
         int fIntHeapSize;
+    
+        int fSROffset;
         
         FIRUserInterfaceBlockInstruction<float>* fUserInterfaceBlock;
         FIRBlockInstruction<float>* fInitBlock;
@@ -205,7 +201,7 @@ class EXPORT interpreter_dsp_factory {
     public: 
     
         interpreter_dsp_factory(int inputs, int ouputs, 
-                                int real_heap_size, int int_heap_size, 
+                                int real_heap_size, int int_heap_size, int sr_offset,
                                 FIRUserInterfaceBlockInstruction<float>* interface, 
                                 FIRBlockInstruction<float>* init, 
                                 FIRBlockInstruction<float>* compute_control,
@@ -214,6 +210,7 @@ class EXPORT interpreter_dsp_factory {
             fNumOutputs(ouputs),
             fRealHeapSize(real_heap_size),
             fIntHeapSize(int_heap_size),
+            fSROffset(sr_offset),
             fUserInterfaceBlock(interface),
             fInitBlock(init),
             fComputeBlock(compute_control),

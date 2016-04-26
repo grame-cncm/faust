@@ -32,6 +32,7 @@ interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
                                                                             fNumOutputs, 
                                                                             fRealHeapSize, 
                                                                             fIntHeapSize,
+                                                                            fSROffset,
                                                                             fUserInterfaceBlock, 
                                                                             fInitBlock, 
                                                                             fComputeBlock, 
@@ -56,7 +57,8 @@ EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const std::s
     } 
 }
 
-EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
+EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std::string& name_app,
+                                                                    const std::string& dsp_content,
                                                                     int argc, const char* argv[], 
                                                                     std::string& error_msg)
 {
@@ -87,7 +89,7 @@ EXPORT bool deleteDSPInterpreterFactory(interpreter_dsp_factory* factory)
 
 EXPORT std::vector<std::string> getDSPInterpreterFactoryLibraryList(interpreter_dsp_factory* factory)
 {
-    
+    // TODO
 }
 
 EXPORT std::vector<std::string> getAllDSPInterpreterFactories()
