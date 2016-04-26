@@ -189,7 +189,7 @@ struct dsp_aux {
                 break;
             #else
             case kAlsaRenderer:
-                // TODO
+                fDriver = new alsaaudio(sr, bsize);
                 break;
             #endif
         #endif
