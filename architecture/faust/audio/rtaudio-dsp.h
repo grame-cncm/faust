@@ -97,7 +97,7 @@ class rtaudio : public audio {
       
     public:
         
-        rtaudio(long srate, long bsize) : fDsp(0),
+        rtaudio(int srate, int bsize) : fDsp(0),
                 fSampleRate(srate), fBufferSize(bsize), 
                 fDevNumInChans(0), fDevNumOutChans(0) {}
             
