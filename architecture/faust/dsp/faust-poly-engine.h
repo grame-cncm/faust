@@ -54,8 +54,7 @@ class FaustPolyEngine {
         
     public:
 
-        FaustPolyEngine(int sampling_rate, int buffer_size)
-        :fJSONUI(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs()), fRunning(false)
+        FaustPolyEngine():fJSONUI(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs()), fRunning(false)
         {
             // configuring the UI
             fMonoDSP.buildUserInterface(&fAPIUI);

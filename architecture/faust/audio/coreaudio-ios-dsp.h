@@ -723,7 +723,7 @@ class iosaudio : public audio {
         
     public:
     
-        iosaudio(int srate, int fpb) : fSampleRate(srate), fBufferSize(fpb) {}
+        iosaudio(int srate, int bsize) : fSampleRate(srate), fBufferSize(bsize) {}
         virtual ~iosaudio() { fAudioDevice.Close(); }
         
         virtual bool init(const char* /*name*/, dsp* DSP) 
