@@ -30,8 +30,13 @@ extern "C"
     const char* getLastError();
 
     // Creation API
+
+    // Dynamic DSP creation using libfaust and LLLVM
     dsp* create1Dsp(const char* name_app, const char* dsp_content);
     dsp* create2Dsp(const char* name_app, const char* dsp_content, const char* argv, const char* target, int opt_level);
+
+    // Static DSP creation
+    dsp* create3Dsp();
 
     void destroyDsp(dsp* dsp);
 

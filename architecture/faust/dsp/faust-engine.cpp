@@ -75,6 +75,18 @@
     #include "faust/audio/jack-dsp.h"
 #endif 
 
+#if !defined(LLVM_DSP)
+
+/**************************BEGIN USER SECTION **************************/
+
+<<includeIntrinsic>>
+
+<<includeclass>>
+
+/***************************END USER SECTION ***************************/
+
+#endif
+
 //**************************************************************
 // APIUI : Faust User Interface
 // This class a simple parameter based interface
@@ -94,19 +106,23 @@ static string gLastError;
 
 struct dsp_aux {
     
+#ifdef LLVM_DSP
     llvm_dsp_factory* fFactory;
     llvm_dsp* fDSP;
+#else
+    mydsp* fDSP;
+#endif
     audio* fDriver;
     APIUI fParams;
-    string fName;
     string fJSON;
     
+#ifdef LLVM_DSP
     dsp_aux(const char* name_app, 
             const char* dsp_content, 
             const char* argv, 
             const char* target, 
             int opt_level)
-        :fDSP(0),fDriver(0)
+        :fDriver(0)
     {
         int argc1 = 0;
         const char* argv1[64];
@@ -132,15 +148,18 @@ struct dsp_aux {
     
         if (fFactory) {
             fDSP = createDSPInstance(fFactory);
-            // JSON creation
-            JSONUI json(name_app, fDSP->getNumInputs(), fDSP->getNumOutputs());
-            metadataDSPFactory(fFactory, &json);
-            fDSP->buildUserInterface(&json);
-            fJSON = json.JSON();
+            createJSON(name_app);
         } else {
             throw -1;
         }
     }
+#else
+    dsp_aux():fDriver(0)
+    {
+        fDSP = new mydsp();
+        createJSON("dummy_dsp");
+    }
+#endif
     
     virtual ~dsp_aux()
     {
@@ -148,28 +167,36 @@ struct dsp_aux {
             fDriver->stop();
             delete fDriver;
         }
-        deleteDSPInstance(fDSP);
+        delete fDSP;
+    #ifdef LLVM_DSP
         deleteDSPFactory(fFactory);
+    #endif
+    }
+    
+    void createJSON(const string& name_app)
+    {
+        // JSON creation
+        JSONUI json(name_app, fDSP->getNumInputs(), fDSP->getNumOutputs());
+        metadataDSPFactory(fFactory, &json);
+        fDSP->buildUserInterface(&json);
+        fJSON = json.JSON();
     }
     
     bool init2(const char* name, int sr, int bsize, int renderer)
     {
-        fName = name;
-        
         switch (renderer) {
-        
+         #ifdef HAS_JACK
+            case kJackRenderer:
+                fDriver = new jackaudio();
+                break;
+        #endif
+                
         #ifdef _WIN32
             case kPortAudioRenderer:
                 fDriver = new portaudio(sr, bsize);
                 break;
         #endif
                 
-        #ifdef HAS_JACK
-            case kJackRenderer:
-                fDriver = new jackaudio();
-                break;
-        #endif
-         
         #ifdef __APPLE__
             #if defined(TARGET_OS_IPHONE)
             case kCoreAudioRenderer:
@@ -329,17 +356,32 @@ extern "C"
 
     dsp* create2Dsp(const char* name_app, const char* dsp_content, const char* argv, const char* target, int opt_level)
     {
+    #ifdef LLVM_DSP
         try {
             return reinterpret_cast<dsp*>(new dsp_aux(name_app, dsp_content, argv, target, opt_level));
         } catch (...) {
             printf("Cannot create DSP\n");
         }
+    #endif
         return 0;
     }
 
     dsp* create1Dsp(const char* name_app, const char* dsp_content)
     {
+    #ifdef LLVM_DSP
         return create2Dsp(name_app, dsp_content, "", "", 3);
+    #else
+        return 0;
+    #endif
+    }
+
+    dsp* create3Dsp()
+    {
+    #ifdef LLVM_DSP
+        return 0;
+    #else
+        return reinterpret_cast<dsp*>(new dsp_aux());
+    #endif
     }
 
     const char* getLastError() { return gLastError.c_str(); }
@@ -393,10 +435,10 @@ extern "C"
     FAUSTFLOAT getParamStepDsp(dsp* dsp_ext, int p)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamStep(p); }
         
     FAUSTFLOAT getParamValueDsp(dsp* dsp_ext, int p)            { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamValue(p); }
-    void  setParamValueDsp(dsp* dsp_ext, int p, FAUSTFLOAT v)	{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamValue(p,v); }
+    void setParamValueDsp(dsp* dsp_ext, int p, FAUSTFLOAT v)	{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamValue(p,v); }
         
-    FAUSTFLOAT getParamRatioDsp(dsp* dsp_ext, int p)            { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamRatio(p); }
-    void  setParamRatioDsp(dsp* dsp_ext, int p, FAUSTFLOAT v)   { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamRatio(p,v); }
+    FAUSTFLOAT getParamRatioDsp(dsp* dsp_ext, int p)           { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamRatio(p); }
+    void setParamRatioDsp(dsp* dsp_ext, int p, FAUSTFLOAT v)   { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamRatio(p,v); }
         
     FAUSTFLOAT value2ratioDsp(dsp* dsp_ext, int p, FAUSTFLOAT r) { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.value2ratio(p, r); }
     FAUSTFLOAT ratio2valueDsp(dsp* dsp_ext, int p, FAUSTFLOAT r) { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.ratio2value(p, r); }
@@ -418,7 +460,7 @@ extern "C"
         *amin = FAUSTFLOAT(amax_tmp);
     }
         
-    void propagateGyrDsp(dsp* dsp_ext, int acc, FAUSTFLOAT a)	{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateGyr(acc, a); }
+    void propagateGyrDsp(dsp* dsp_ext, int acc, FAUSTFLOAT a) { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateGyr(acc, a); }
     void setGyrConverterDsp(dsp* dsp_ext, int p, int acc, int curve, FAUSTFLOAT amin, FAUSTFLOAT amid, FAUSTFLOAT amax)
     {
         reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setGyrConverter(p, acc, curve, double(amin), double(amid), double(amax));

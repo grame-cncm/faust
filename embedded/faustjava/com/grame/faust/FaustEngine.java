@@ -23,6 +23,11 @@ public class FaustEngine implements FaustEngineConstants {
     return (cPtr == 0) ? null : new dsp(cPtr, false);
   }
 
+  public static dsp create3Dsp() {
+    long cPtr = FaustEngineJNI.create3Dsp();
+    return (cPtr == 0) ? null : new dsp(cPtr, false);
+  }
+
   public static void destroyDsp(dsp dsp) {
     FaustEngineJNI.destroyDsp(dsp.getCPtr(dsp), dsp);
   }

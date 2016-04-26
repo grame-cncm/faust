@@ -409,6 +409,18 @@ SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustEngineJNI_create2Dsp(JNIEnv *
 }
 
 
+SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustEngineJNI_create3Dsp(JNIEnv *jenv, jclass jcls) {
+  jlong jresult = 0 ;
+  dsp *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (dsp *)create3Dsp();
+  *(dsp **)&jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_destroyDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   dsp *arg1 = (dsp *) 0 ;
   
