@@ -69,7 +69,11 @@ class dummy_audio : public audio {
 
     public:
 
-        dummy_audio(int count = 10):fCount(count) {}
+        dummy_audio(int count = 10)
+            :fSampleRate(48000), fBufferSize(512), fCount(count) {}
+        dummy_audio(int srate, int bsize, int count = 10)
+            :fSampleRate(srate), fBufferSize(bsize), (fCount(count) {}
+    
         virtual ~dummy_audio() 
         {
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
@@ -86,9 +90,6 @@ class dummy_audio : public audio {
         virtual bool init(const char* name, dsp* dsp)
         {
             fDSP = dsp;
-            fBufferSize = 512;
-            fSampleRate = 48000;
-            
             fDSP->init(fSampleRate);
             
             fInChannel = new FAUSTFLOAT*[fDSP->getNumInputs()];
