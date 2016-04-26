@@ -71,7 +71,6 @@ install:
 	install faust2webaudioasm $(dest)
 	install faustoptflags $(dest)
 	install faustpath $(dest)
-	rm -f faust2faustvst
 
 uninstall:
 	rm -f $(dest)/faust2sc
