@@ -52,22 +52,22 @@ using namespace std;
 /*--------------------------------------------------------------------------*/
 class mspUIObject {
     
-protected:
-    
-    string fLabel;
-    FAUSTFLOAT* fZone;
-    
-    FAUSTFLOAT range(FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT val) {return (val < min) ? min : (val > max) ? max : val;}
-    
-public:
-    
-    mspUIObject(const string& label, FAUSTFLOAT* zone):fLabel(label),fZone(zone) {}
-    virtual ~mspUIObject() {}
-    
-    virtual void setValue(FAUSTFLOAT f) { *fZone = range(0.0, 1.0, f); }
-    virtual FAUSTFLOAT getValue() { return *fZone; }
-    virtual void toString(char* buffer) {}
-    virtual string getName() { return fLabel; }
+    protected:
+        
+        string fLabel;
+        FAUSTFLOAT* fZone;
+        
+        FAUSTFLOAT range(FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT val) {return (val < min) ? min : (val > max) ? max : val;}
+        
+    public:
+        
+        mspUIObject(const string& label, FAUSTFLOAT* zone):fLabel(label),fZone(zone) {}
+        virtual ~mspUIObject() {}
+        
+        virtual void setValue(FAUSTFLOAT f) { *fZone = range(0.0, 1.0, f); }
+        virtual FAUSTFLOAT getValue() { return *fZone; }
+        virtual void toString(char* buffer) {}
+        virtual string getName() { return fLabel; }
   
 };
 

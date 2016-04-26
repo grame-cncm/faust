@@ -69,12 +69,12 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-	faust -i -a jack-console.cpp $OPTIONS "$f" -o "$f.cpp"
+	faust -i -a jack-console.cpp $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(
 		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib -ljack $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
-	) > /dev/null
+	) > /dev/null || exit
 	rm "$f.cpp"
 
 	# collect binary file name for FaustWorks

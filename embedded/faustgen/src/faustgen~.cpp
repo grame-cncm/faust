@@ -25,6 +25,10 @@
  ************************************************************************/
 
 #include "faustgen~.h"
+
+#define LLVM_DSP
+#include "faust/dsp/poly-dsp.h"
+
 #ifndef WIN32
 #include "faust/sound-file.h"
 #endif
@@ -32,6 +36,9 @@
 int faustgen_factory::gFaustCounter = 0;
 map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
 t_jrgba faustgen::gDefaultColor = {-1., -1., -1., -1.};
+
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 //===================
 // Faust DSP Factory
@@ -146,6 +153,8 @@ faustgen_factory::faustgen_factory(const string& name)
     gFaustCounter++;
     fFaustNumber = gFaustCounter;
     
+    fMidiHandler.start_midi();
+    
 #ifdef __APPLE__
     // OSX only : access to the fautgen~ bundle
     CFBundleRef faustgen_bundle = CFBundleGetBundleWithIdentifier(CFSTR("com.grame.faustgen"));
@@ -200,6 +209,8 @@ faustgen_factory::~faustgen_factory()
     free_dsp_factory();
     free_sourcecode();
     free_bitcode();
+    
+    fMidiHandler.stop_midi();
    
     remove_svg();
     systhread_mutex_free(fDSPMutex);
@@ -226,7 +237,6 @@ void faustgen_factory::free_bitcode()
 void faustgen_factory::free_dsp_factory()
 {
    if (lock()) {
-   
         // Free all instances
         set<faustgen*>::const_iterator it;
         for (it = fInstances.begin(); it != fInstances.end(); it++) {
@@ -284,10 +294,12 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     }
 
 #ifdef WIN32
-	argv[fCompileOptions.size()] = "-l";
-	argv[fCompileOptions.size()+1] = "llvm_math.ll";
+    argv[fCompileOptions.size()] = "-l";
+    argv[fCompileOptions.size() + 1] = "llvm_math.ll";
+    argv[fCompileOptions.size() + 2] = 0;  // NULL terminated argv
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size() + 2, argv, getTarget(), error, LLVM_OPTIMIZATION);
 #else
+    argv[fCompileOptions.size()] = 0;  // NULL terminated argv
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error, LLVM_OPTIMIZATION);
 #endif
 
@@ -308,15 +320,24 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     }
 }
 
-llvm_dsp* faustgen_factory::create_dsp_aux()
+::dsp* faustgen_factory::create_dsp_instance(int poly)
 {
-    llvm_dsp* dsp = 0;
+    if (poly > 0) {
+        return new mydsp_poly(poly, createDSPInstance(fDSPfactory), true);
+    } else {
+        return createDSPInstance(fDSPfactory);
+    }
+}
+
+::dsp* faustgen_factory::create_dsp_aux()
+{
+    ::dsp* dsp = 0;
     Max_Meta meta;
     string error;
     
     // Factory already allocated
     if (fDSPfactory) {
-        dsp = createDSPInstance(fDSPfactory);
+        dsp = create_dsp_instance();
         post("Factory already allocated, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
         goto end;
     }
@@ -326,7 +347,7 @@ llvm_dsp* faustgen_factory::create_dsp_aux()
         fDSPfactory = create_factory_from_bitcode();
         if (fDSPfactory) {
             metadataDSPFactory(fDSPfactory, &meta);
-            dsp = createDSPInstance(fDSPfactory);
+            dsp = create_dsp_instance();
             post("Compilation from bitcode succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
             goto end; 
         }
@@ -337,7 +358,7 @@ llvm_dsp* faustgen_factory::create_dsp_aux()
         fDSPfactory = create_factory_from_sourcecode();
         if (fDSPfactory) {
             metadataDSPFactory(fDSPfactory, &meta);
-            dsp = createDSPInstance(fDSPfactory);
+            dsp = create_dsp_instance();
             post("Compilation from source code succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
             goto end; 
         } 
@@ -345,15 +366,16 @@ llvm_dsp* faustgen_factory::create_dsp_aux()
 
     // Otherwise creates default DSP keeping the same input/output number
 #ifdef WIN32
-	int argc = 2;
-	const char* argv[2];
-	argv[0] = "-l";
-	argv[1] = "llvm_math.ll";
+    int argc = 2;
+    const char* argv[3];
+    argv[0] = "-l";
+    argv[1] = "llvm_math.ll";
+    argv[2] = 0;  // NULL terminated argv
     fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, argc, argv, getTarget(), error, LLVM_OPTIMIZATION);
 #else
-	fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, LLVM_OPTIMIZATION);
+    fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, LLVM_OPTIMIZATION);
 #endif
-	dsp = createDSPInstance(fDSPfactory);
+    dsp = create_dsp_instance();
     post("Allocation of default DSP succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
   
  end:
@@ -363,12 +385,17 @@ llvm_dsp* faustgen_factory::create_dsp_aux()
     m_sigoutlets = dsp->getNumOutputs();
     
     // Prepare JSON
+    make_json(dsp);
+    return dsp;
+}
+
+void faustgen_factory::make_json(::dsp* dsp)
+{
+    // Prepare JSON
     JSONUI builder(m_siginlets, m_sigoutlets);
     metadataDSPFactory(fDSPfactory, &builder);
     dsp->buildUserInterface(&builder);
     fJSON = builder.JSON();
-    
-    return dsp;
 }
 
 void faustgen_factory::add_library_path(const string& library_path)
@@ -380,7 +407,7 @@ void faustgen_factory::add_library_path(const string& library_path)
 
 void faustgen_factory::add_compile_option(const string& key, const string& value)
 {
-    if ((value != "") && find(fCompileOptions.begin(), fCompileOptions.end(), value) == fCompileOptions.end()) {
+    if ((key != "") && (value != "")) {
         fCompileOptions.push_back(key);
         fCompileOptions.push_back(value);
     }
@@ -388,7 +415,7 @@ void faustgen_factory::add_compile_option(const string& key, const string& value
 
 void faustgen_factory::add_compile_option(const string& value)
 {
-    if ((value != "") && find(fCompileOptions.begin(), fCompileOptions.end(), value) == fCompileOptions.end()) {
+    if (value != "") {
         fCompileOptions.push_back(value);
     }
 }
@@ -901,7 +928,7 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
 { 
     m_siginlets = 0;
     m_sigoutlets = 0;
-   
+    
     fDSP = 0;
     fDSPfactory = 0;
     fEditor = 0;
@@ -927,6 +954,9 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
         effect_name = "faustgen_factory-" + num.str();
         res = allocate_factory(effect_name);
     }
+    
+    // One MidiUI for each polyphonic DSP
+    fMidiUI = new MidiUI(&fDSPfactory->fMidiHandler);
     
     t_object* box; 
     object_obex_lookup((t_object*)&m_ob, gensym("#B"), &box);
@@ -960,13 +990,16 @@ faustgen::~faustgen()
     }
      
     fDSPfactory->remove_instance(this);
+    
+    delete fMidiUI;
 }
 
 void faustgen::free_dsp()
 {
-    deleteDSPInstance(fDSP);
-    fDSPUI.clear();
+    //deleteDSPInstance(fDSP);
+    delete fDSP;
     fDSP = 0;
+    fDSPUI.clear();
 }
 
 t_dictionary* faustgen::json_reader(const char* jsontext)
@@ -980,11 +1013,11 @@ t_dictionary* faustgen::json_reader(const char* jsontext)
     if (!err) {
         t_object *ro = (t_object*)atom_getobj(result);
         if (ro) {
-                if (object_classname_compare(ro, _sym_dictionary)) {
-                    d = (t_dictionary*)ro;
-                } else {
-                    object_free(ro);
-                }
+            if (object_classname_compare(ro, _sym_dictionary)) {
+                d = (t_dictionary*)ro;
+            } else {
+                object_free(ro);
+            }
         }
     }
     object_free(jsonreader);
@@ -994,7 +1027,7 @@ t_dictionary* faustgen::json_reader(const char* jsontext)
 static bool check_digit(const string& name)
 {
     for (int i = name.size() - 1; i >= 0; i--) {
-        if (isdigit(name[i])) return true;
+        if (isdigit(name[i])) { return true; }
     }
     return false;
 }
@@ -1003,7 +1036,7 @@ static int count_digit(const string& name)
 {
     int count = 0;
     for (int i = name.size() - 1; i >= 0; i--) {
-        if (isdigit(name[i])) count++;
+        if (isdigit(name[i])) { count++; }
     }
     return count;
 }
@@ -1012,9 +1045,10 @@ static int count_digit(const string& name)
 // Allows to set a value to the Faust module's parameter, or a list of values
 void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
 {
+    if (ac < 0) return;
+    
     bool res = false;
     string name = string((s)->s_name);
-    if (ac < 0) return;
     
     // Check if no argument is there, consider it is a toggle message for a button
     if (ac == 0 && fDSPUI.isValue(name)) {
@@ -1057,10 +1091,10 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         for (i = 0, ap = av; i < ac; i++, ap++) {
             float value;
             switch (atom_gettype(ap)) {
-                case A_LONG: {
+                case A_LONG: 
                     value = (float)ap[0].a_w.w_long;
                     break;
-                }
+            
                 case A_FLOAT:
                     value = ap[0].a_w.w_float;
                     break;
@@ -1123,6 +1157,47 @@ void faustgen::read(long inlet, t_symbol* s)
 void faustgen::write(long inlet, t_symbol* s)
 {
     fDSPfactory->write(inlet, s);
+}
+
+void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av) 
+{
+    if (fDSPfactory->lock()) {
+        free_dsp();
+        fDSP = fDSPfactory->create_dsp_instance(av[0].a_w.w_long);
+        assert(fDSP);
+        
+        // Initialize User Interface (here connnection with controls)
+        fDSP->buildUserInterface(&fDSPUI);
+        fDSP->buildUserInterface(fMidiUI);
+        
+        // Prepare JSON
+        fDSPfactory->make_json(fDSP);
+        
+        // Send JSON to JS script
+        create_jsui();
+    
+        // Initialize at the system's sampling rate
+        fDSP->init(sys_getsr());
+        fDSPfactory->unlock();
+    } else {
+        post("Mutex lock cannot be taken...");
+    }
+}
+
+void faustgen::midievent(long inlet, t_symbol* s, long ac, t_atom* av) 
+{
+    if (ac > 0) {
+        int type = (int)av[0].a_w.w_long & 0xf0;
+        int channel = (int)av[0].a_w.w_long & 0x0f;
+                
+        if (ac == 1) {
+            fDSPfactory->fMidiHandler.handleSync(0.0, av[0].a_w.w_long);
+        } else if (ac == 2) {
+            fDSPfactory->fMidiHandler.handleData1(0.0, type, channel, av[1].a_w.w_long);
+        } else if (ac == 3) {
+            fDSPfactory->fMidiHandler.handleData2(0.0, type, channel, av[1].a_w.w_long, av[2].a_w.w_long);
+        }
+    }
 }
 
 void faustgen::librarypath(long inlet, t_symbol* s)
@@ -1230,7 +1305,7 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
             fDSP->compute(vs, (FAUSTFLOAT**)inputs, (FAUSTFLOAT**)outputs);
             update_outputs();
         }
-    
+        GUI::updateAllGuis();
         fDSPfactory->unlock();
     } else {
         // Write null buffers to outs
@@ -1350,7 +1425,7 @@ void faustgen::create_dsp(bool init)
             dsp_status("start");
         }
   
-        // send JSON to JS script
+        // Send JSON to JS script
         create_jsui();
         
         fDSPfactory->unlock();
@@ -1406,12 +1481,10 @@ void faustgen::create_jsui()
     fOutputTable.clear();
     for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
         obj = jbox_get_object(box);
-        t_symbol *scriptingname = jbox_get_varname(obj); // scripting name
-        if (scriptingname) {
-            // Keep control outputs
-            if (fDSPUI.isOutputValue(scriptingname->s_name)) {
-                fOutputTable[scriptingname->s_name].push_back(obj);
-            }
+        t_symbol* scriptingname = jbox_get_varname(obj); // scripting name
+        // Keep control outputs
+        if (scriptingname && fDSPUI.isOutputValue(scriptingname->s_name)) {
+            fOutputTable[scriptingname->s_name].push_back(obj);
         }
     }
 }
@@ -1472,7 +1545,7 @@ int main(void)
     faustgen::makeMaxClass("faustgen~");
     post("faustgen~ v%s (sample = 64 bits code = %s)", FAUSTGEN_VERSION, getCodeSize());
     post("LLVM powered Faust embedded compiler");
-    post("Copyright (c) 2012-2015 Grame");
+    post("Copyright (c) 2012-2016 Grame");
     
     // Start 'libfaust' in multi-thread safe mode
     startMTDSPFactories();
@@ -1482,6 +1555,12 @@ int main(void)
     
     // Process the "compileoptions" message, to add optional compilation possibilities
     REGISTER_METHOD_GIMME(faustgen, compileoptions);
+    
+    // Process the "midievent" message
+    REGISTER_METHOD_GIMME(faustgen, midievent);
+    
+    // Process the "polyphony" message
+    REGISTER_METHOD_GIMME(faustgen, polyphony);
     
     // Register inside Max the necessary methods
     REGISTER_METHOD_DEFSYM(faustgen, read);

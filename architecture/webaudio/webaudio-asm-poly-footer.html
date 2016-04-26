@@ -154,7 +154,7 @@ function startDSPAux(buffer_size)
     
     faustsvg = $('<div />');
     $('body').append(faustsvg);
-    var handler = _f4u$t.main(DSP_poly.json(), faustsvg, DSP_poly.setValue);
+    var handler = _f4u$t.main(DSP_poly.json(), faustsvg, DSP_poly.setParamValue);
     DSP_poly.setHandler(handler);
 }
 

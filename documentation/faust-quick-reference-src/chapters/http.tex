@@ -2,7 +2,7 @@
 \chapter{HTTP support} \label{sec:http}
 %---------------------------------------------------
 
-Similarly to OSC, several \faust architectures provide also HTTP support. This allows \faust applications to be remotely controlled from any web browser using specific URLs. Moreover OSC and HTTPD can be freely combined.
+Similarly to OSC, several \faust architectures provide also HTTP support. This allows \faust applications to be remotely controlled from any Web browser using specific URLs. Moreover OSC and HTTPD can be freely combined.
 
 While OSC support is installed by default when \faust is build, this is not the case for HTTP. That's because it depends on GNU \emph{libmicrohttpd} library which is usually not installed by default on the system. An additional \lstinline'make httpd' step is therefore required when compiling and installing \faust:
 \begin{lstlisting}
@@ -65,7 +65,7 @@ We are going to compile this example as a standalone Jack QT application with HT
 \begin{lstlisting}
 faust2jaqt -httpd mix4.dsp
 \end{lstlisting}
-Th effect of the \code{-httpd} is to embed a small web server into the application. The purpose of this web server is to serve an HTML page representing the user interface for the application. This page makes use of javascript and SVG and is quite similar to the native QT interface.
+Th effect of the \code{-httpd} is to embed a small Web server into the application, which  purpose is to serve an HTML page representing its user interface. This page makes use of JavaScript and SVG and is quite similar to the native QT interface.
 
 When we start the application from the command line:
 \begin{lstlisting}
@@ -75,18 +75,19 @@ we get various information on the standard output, including:
 \begin{lstlisting}
 Faust httpd server version 0.72 is running on TCP port 5510
 \end{lstlisting}
-As we can see the embedded WEB server is running by default on TCP port 5510. The entry point is \url{http://localhost:5510}. It can be open from any recent browser and it produces the page reproduced figure \ref{fig:mix4-http}.
+
+As we can see the embedded Web server is running by default on TCP port 5510. The entry point is \url{http://localhost:5510}. It can be open from any recent browser and it produces the page reproduced figure \ref{fig:mix4-http}.
 
 
 \begin{figure}[h!]
   \centering
   \includegraphics[scale=0.275]{images/mix4-http.png}
-  \caption{User interface of mix4.dsp in a web browser}   
+  \caption{User interface of mix4.dsp in a Web browser}   
   \label{fig:mix4-http}
 \end{figure}
 
 \section{JSON description of the user interface}
-The communication between the application and the web browser is based on several underlying URLs. The first one is \url{http://localhost:5510/JSON} that return a json description of the user interface of the application. This json description is used internally by the Javascript code to build the graphical user interface. Here is (part of) the json returned by \code{mix4}:
+The communication between the application and the Web browser is based on several underlying URLs. The first one is \url{http://localhost:5510/JSON} that return a json description of the user interface of the application. This json description is used internally by the JavaScript code to build the graphical user interface. Here is (part of) the json returned by \code{mix4}:
 \begin{lstlisting}
 {
   "name": "mix4",
@@ -151,7 +152,6 @@ To get the all the values at once we simply use \url{http://localhost:5510/mixer
 /mixer/input_3/mute  0.00000 
 \end{lstlisting}
 
-
 \section{Changing the value of a widget}
 
 \begin{figure}[h!]
@@ -165,25 +165,32 @@ Let's say that we want to mute input 1 of our mixer. We can use for that purpose
 
 All widgets can be controlled similarly. For example \url{http://localhost:5510/mixer/input_3/level?value=0.7} will sets the input 3 level to 0.7.
 
+\section{Proxy control access to the Web server}
+
+A control application may want to access and control the running DSP using its Web server, but without using the delivered HTML page in a browser. Since the complete json can be retrieved,  control applications can purely be developed in C/C++, then build a \textit{proxy} version of the use interface, and set and get parameters using HTTP requests. 
+
+This mode can be started dynamically using the \textit{ -server URL } parameter. Assuming an application with HTTP support is running remotely on the given URL, the control application will fetch its json description, use it to dynamically build the user interface, and allow to access the remote parameters.
 
 \section{HTTP cheat sheet}
-Here is a summary of the various URLs used to interact with the application's web server.
+Here is a summary of the various URLs used to interact with the application's Web server.
 \subsection*{Default ports}
 
 \begin{tabular}{ll}
-\lstinline'5510' & default TCP port used by the application's web server\\
+\lstinline'5510' & default TCP port used by the application's Web server\\
 \lstinline'5511...' & alternative TCP ports
 \end{tabular}
 
 \subsection*{Command line options}
 
 \begin{tabular}{rl}
-\lstinline'-port' $n$ & set the TCP port number used by the application's web server\\
+\lstinline'-port' $n$ & set the TCP port number used by the application's Web server\\
+\lstinline'-server' $URL$ & start a proxy control application accessing the remote application running on the given URL \\
 \end{tabular}
 
 \subsection*{URLs}
 
 \begin{tabular}{ll}
+\code{http://}\emph{host}\code{:}\emph{port} & the base URL to be used in proxy control access mode \\
 \code{http://}\emph{host}\code{:}\emph{port}\code{/JSON} & get a json description of the user interface \\
 \code{http://}\emph{host}\code{:}\emph{port}\code{/}\emph{address} & get the value of a widget or a group of widgets \\
 \code{http://}\emph{host}\code{:}\emph{port}\code{/}\emph{address}\code{?value=}\emph{v} & set the value of a widget to $v$

@@ -1,3 +1,29 @@
+/************************************************************************
+    FAUST Architecture File
+    Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This Architecture section is free software; you can redistribute it
+    and/or modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 3 of
+    the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+    EXCEPTION : As a special exception, you may create a larger work
+    that contains this FAUST architecture section and distribute
+    that work under terms of your choice, so long as this FAUST
+    architecture section is not modified.
+
+
+ ************************************************************************
+ ************************************************************************/
+
 #ifndef FAUST_GTKUI_H
 #define FAUST_GTKUI_H
 
@@ -49,14 +75,14 @@ namespace gtk_knob
 
 class GtkKnob
 {
-private:
-	double start_x, start_y, max_value;
-public:
-	GtkRange parent;
-	int last_quadrant;
-	GtkKnob();
-	~GtkKnob();
-	GtkWidget* gtk_knob_new_with_adjustment(GtkAdjustment *_adjustment);
+    private:
+        double start_x, start_y, max_value;
+    public:
+        GtkRange parent;
+        int last_quadrant;
+        GtkKnob();
+        ~GtkKnob();
+        GtkWidget* gtk_knob_new_with_adjustment(GtkAdjustment *_adjustment);
 	
 };
 
@@ -141,7 +167,7 @@ static void knob_expose(GtkWidget* widget, int knob_x, int knob_y, GdkEventExpos
 	cairo_arc(cr,knobx1+arc_offset, knoby1+arc_offset, knob_x/2.1, 0, 2 * M_PI );
 	cairo_pattern_t*pat =
 		cairo_pattern_create_radial (knobx1+arc_offset-knob_x/6,knoby1+arc_offset-knob_x/6, 1,knobx1+arc_offset,knoby1+arc_offset,knob_x/2.1 );
-	if(adj->lower<0 && adj->value>0.) {
+	if (adj->lower<0 && adj->value>0.) {
 		cairo_pattern_add_color_stop_rgb (pat, 0, r+0.4, g+0.4 + knobstate-knobstate1, b+0.4);
 		cairo_pattern_add_color_stop_rgb (pat, 0.7, r+0.15, g+0.15 + (knobstate-knobstate1)*0.5, b+0.15);
 		cairo_pattern_add_color_stop_rgb (pat, 1, r, g, b);
@@ -216,10 +242,11 @@ static void gtk_knob_set_value (GtkWidget* widget, int dir_down)
 	int oldstep = (int)(0.5f + (adj->value - adj->lower) / adj->step_increment);
 	int step;
 	int nsteps = (int)(0.5f + (adj->upper - adj->lower) / adj->step_increment);
-	if (dir_down)
+	if (dir_down) {
 		step = oldstep - 1;
-	else
+	} else {
 		step = oldstep + 1;
+    }
 	FAUSTFLOAT value = adj->lower + step * double(adj->upper - adj->lower) / nsteps;
 	gtk_widget_grab_focus(widget);
 	gtk_range_set_value(GTK_RANGE(widget), value);
@@ -329,7 +356,6 @@ static gboolean gtk_knob_button_press (GtkWidget* widget, GdkEventButton *event)
 	
 	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
 	
-
 	switch (event->button) {
 	case 1:  // left button
 		gtk_widget_grab_focus(widget);
@@ -690,7 +716,7 @@ class GTKUI : public GUI
 
 // global static fields
 
-bool                             GTKUI::fInitialized = false;
+bool                                  GTKUI::fInitialized = false;
 std::map<FAUSTFLOAT*, FAUSTFLOAT>     GTKUI::fGuiSize;
 std::map<FAUSTFLOAT*, std::string>    GTKUI::fTooltip;
 std::set<FAUSTFLOAT*>                 GTKUI::fKnobSet;       // set of widget zone to be knobs
@@ -713,7 +739,6 @@ static std::string formatTooltip(unsigned int n, const std::string& tt)
 			lri = lws;
 		}
 	}
-	//std::cout << ss;
 	return ss;
 }
 
@@ -792,11 +817,9 @@ void GTKUI::declare(FAUSTFLOAT* zone, const char* key, const char* value)
 	} else {
 		if (strcmp(key,"size")==0) {
 			fGuiSize[zone] = atof(value);
-		}
-		else if (strcmp(key,"tooltip") == 0) {
+		} else if (strcmp(key,"tooltip") == 0) {
 			fTooltip[zone] = formatTooltip(30,value) ;
-		}
-		else if (strcmp(key,"style") == 0) {
+		} else if (strcmp(key,"style") == 0) {
 			if (strcmp(value,"knob") == 0) {
 				fKnobSet.insert(zone);
 			}
@@ -1182,33 +1205,26 @@ struct uiValueDisplay : public uiItem
 		: uiItem(ui, zone), fLabel(label), fPrecision(precision) {}
 
 	virtual void reflectZone()
-		{
-			FAUSTFLOAT v = *fZone;
-			fCache = v;
-			char s[64];
-			if (fPrecision <= 0)
-				snprintf(s, 63, "%d", int(v));
-
-			else if (fPrecision > 3)
-				snprintf(s, 63, "%f", v);
-
-			else if (fPrecision == 1)
-			{
-				const char* format[] = {"%.1f", "%.2f", "%.3f"};
-				snprintf(s, 63, format[1-1], v);
-			}
-			else if (fPrecision == 2)
-			{
-				const char* format[] = {"%.1f", "%.2f", "%.3f"};
-				snprintf(s, 63, format[2-1], v);
-			}
-			else
-			{
-				const char* format[] = {"%.1f", "%.2f", "%.3f"};
-				snprintf(s, 63, format[3-1], v);
-			}
-			gtk_label_set_text(fLabel, s);
-		}
+    {
+        FAUSTFLOAT v = *fZone;
+        fCache = v;
+        char s[64];
+        if (fPrecision <= 0) {
+            snprintf(s, 63, "%d", int(v));
+        } else if (fPrecision > 3) {
+            snprintf(s, 63, "%f", v);
+        } else if (fPrecision == 1) {
+            const char* format[] = {"%.1f", "%.2f", "%.3f"};
+            snprintf(s, 63, format[1-1], v);
+        } else if (fPrecision == 2) {
+            const char* format[] = {"%.1f", "%.2f", "%.3f"};
+            snprintf(s, 63, format[2-1], v);
+        } else {
+            const char* format[] = {"%.1f", "%.2f", "%.3f"};
+            snprintf(s, 63, format[3-1], v);
+        }
+        gtk_label_set_text(fLabel, s);
+    }
 };
 
 // ------------------------------- Knob -----------------------------------------
@@ -1229,7 +1245,7 @@ void GTKUI::addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTF
 	GtkWidget* lw = gtk_label_new("");
 	new uiValueDisplay(this, zone, GTK_LABEL(lw),precision(step));
 	gtk_container_add (GTK_CONTAINER(rei), re);
-	if(fGuiSize[zone]) {
+	if (fGuiSize[zone]) {
 		FAUSTFLOAT size = 30 * fGuiSize[zone];
 		gtk_widget_set_size_request(rei, size, size );
 		gtk_box_pack_start (GTK_BOX(slider), fil, TRUE, TRUE, 0);

@@ -369,6 +369,8 @@ LLVMResult* llvm_dsp_factory::compileModule(int argc, const char* argv[], const 
     for (int i = 0; i < argc; i++) {
         argv1[i+3] = argv[i];
     }
+    
+    argv1[argc1] = 0;  // NULL terminated argv
 
     return compile_faust_llvm(argc1, argv1, input_name, input, error_msg);
 }
@@ -545,6 +547,7 @@ void llvm_dsp_factory::init(const string& type_name, const string& dsp_name)
     fGetNumOutputs = 0;
     fBuildUserInterface = 0;
     fInit = 0;
+    fInstanceInit = 0;
     fCompute = 0;
     fClassName = "mydsp";
     fDSPName = dsp_name;
@@ -730,9 +733,12 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         TargetOptions targetOptions;
         //targetOptions.NoFramePointerElim = true;
         //targetOptions.LessPreciseFPMADOption = true;
+        /*
         targetOptions.UnsafeFPMath = true;
         targetOptions.NoInfsFPMath = true;
         targetOptions.NoNaNsFPMath = true;
+        */
+        
         targetOptions.GuaranteedTailCallOpt = true;
          
         string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
@@ -774,9 +780,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
             // data layout of the module. -ag
             fResult->fModule->setDataLayout(fJIT->getDataLayout());
         #else
-            const string &ModuleDataLayout = fResult->fModule->getDataLayout();
-            DataLayout* td = new DataLayout(ModuleDataLayout);
-            pm.add(td);
+            fResult->fModule->setDataLayout(fJIT->getDataLayout()->getStringRepresentation());
         #endif
           
             // Add internal analysis passes from the target machine (mandatory for vectorization to work)
@@ -836,6 +840,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fGetNumOutputs = (getNumOutputsFun)loadOptimize("getNumOutputs" + fClassName);
         fBuildUserInterface = (buildUserInterfaceFun)loadOptimize("buildUserInterface" + fClassName);
         fInit = (initFun)loadOptimize("init" + fClassName);
+        fInstanceInit = (initFun)loadOptimize("instanceInit" + fClassName);
         fCompute = (computeFun)loadOptimize("compute" + fClassName);
         fMetadata = (metadataFun)loadOptimize("metadata" + fClassName);
         endTiming("initJIT");
@@ -952,6 +957,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fGetNumOutputs = (getNumOutputsFun)loadOptimize("getNumOutputs" + fClassName);
         fBuildUserInterface = (buildUserInterfaceFun)loadOptimize("buildUserInterface" + fClassName);
         fInit = (initFun)loadOptimize("init" + fClassName);
+        fInstanceInit = (initFun)loadOptimize("instanceInit" + fClassName);
         fCompute = (computeFun)loadOptimize("compute" + fClassName);
         fMetadata = (metadataFun)loadOptimize("metadata" + fClassName);
         endTiming("initJIT");
@@ -1013,6 +1019,13 @@ llvm_dsp_aux::llvm_dsp_aux(llvm_dsp_factory* factory, llvm_dsp_imp* dsp)
         
 llvm_dsp_aux::~llvm_dsp_aux()
 {   
+    TLock lock(gDSPFactoriesLock);
+ 
+    // Remove 'this' from its factory
+    FactoryTableIt it = llvm_dsp_factory::gFactoryTable.find(fDSPFactory);
+    assert(it != llvm_dsp_factory::gFactoryTable.end());
+    (*it).second.remove(this);
+    
     if (fDSP) {
         fDSPFactory->fDelete(fDSP);
     }
@@ -1044,9 +1057,14 @@ int llvm_dsp_aux::getNumOutputs()
     return fDSPFactory->fGetNumOutputs(fDSP);
 }
 
-void llvm_dsp_aux::init(int samplingFreq)
+void llvm_dsp_aux::init(int samplingRate)
 {
-    fDSPFactory->fInit(fDSP, samplingFreq);
+    fDSPFactory->fInit(fDSP, samplingRate);
+}
+
+void llvm_dsp_aux::instanceInit(int samplingRate)
+{
+    fDSPFactory->fInstanceInit(fDSP, samplingRate);
 }
 
 void llvm_dsp_aux::buildUserInterface(UI* ui_interface)
@@ -1169,7 +1187,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
 {
     TLock lock(gDSPFactoriesLock);
     
-    const char** argv1 = (const char**)alloca(argc * sizeof(char*));
+    const char** argv1 = (const char**)alloca((argc + 1) * sizeof(char*));
     int argc1 = 0;
  
     // Filter arguments 
@@ -1188,6 +1206,8 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             argv1[argc1++] = argv[i];
         }
     }
+    
+    argv1[argc1] = 0;  // NULL terminated argv
         
     string expanded_dsp_content;
     string sha_key;
@@ -1611,18 +1631,8 @@ EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)
 
 EXPORT void deleteDSPInstance(llvm_dsp* dsp) 
 {
-    TLock lock(gDSPFactoriesLock);
-    
     if (dsp) {
-        FactoryTableIt it;
-        llvm_dsp_aux* dsp_aux = reinterpret_cast<llvm_dsp_aux*>(dsp);
-        llvm_dsp_factory* factory = dsp_aux->getFactory();
-        
-        it = llvm_dsp_factory::gFactoryTable.find(factory);
-        assert(it != llvm_dsp_factory::gFactoryTable.end());
-        (*it).second.remove(dsp_aux);
-         
-        delete dsp_aux; 
+        delete (reinterpret_cast<llvm_dsp_aux*>(dsp));
     }
 }
 
@@ -1641,9 +1651,14 @@ int EXPORT llvm_dsp::getNumOutputs()
     return reinterpret_cast<llvm_dsp_aux*>(this)->getNumOutputs();
 }
 
-EXPORT void llvm_dsp::init(int samplingFreq)
+EXPORT void llvm_dsp::init(int samplingRate)
 {
-    reinterpret_cast<llvm_dsp_aux*>(this)->init(samplingFreq);
+    reinterpret_cast<llvm_dsp_aux*>(this)->init(samplingRate);
+}
+    
+EXPORT void llvm_dsp::instanceInit(int samplingRate)
+{
+    reinterpret_cast<llvm_dsp_aux*>(this)->instanceInit(samplingRate);
 }
 
 EXPORT void llvm_dsp::buildUserInterface(UI* ui_interface)
@@ -1894,10 +1909,17 @@ EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp)
     return (dsp) ? reinterpret_cast<llvm_dsp_aux*>(dsp)->getNumOutputs() : 0;
 }
 
-EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingFreq)
+EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingRate)
 {
     if (dsp) {
-        reinterpret_cast<llvm_dsp_aux*>(dsp)->init(samplingFreq);
+        reinterpret_cast<llvm_dsp_aux*>(dsp)->init(samplingRate);
+    }
+}
+    
+EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate)
+{
+    if (dsp) {
+        reinterpret_cast<llvm_dsp_aux*>(dsp)->instanceInit(samplingRate);
     }
 }
 
@@ -1928,7 +1950,7 @@ EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
 {
     if (dsp) {
-        delete reinterpret_cast<llvm_dsp_aux*>(dsp); 
+        delete (reinterpret_cast<llvm_dsp_aux*>(dsp)); 
     }
 }
 

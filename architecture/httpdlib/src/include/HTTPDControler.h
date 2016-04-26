@@ -48,7 +48,7 @@ class htmlfactory;
 class HTTPDControler
 {
 	int fTCPPort;				// the tcp port number
-	FaustFactory *	fFactory;	// a factory to build the memory representation
+	FaustFactory*	fFactory;	// a factory to build the memory representation
 	jsonfactory*	fJson;
 	htmlfactory*	fHtml;
 	HTTPDSetup*		fHttpd;		// the network manager
@@ -65,26 +65,26 @@ class HTTPDControler
 		*/
 		enum { kTCPBasePort = 5510};
 
-				 HTTPDControler (int argc, char *argv[], const char* applicationname, bool init = true);
-		virtual ~HTTPDControler ();
+				 HTTPDControler(int argc, char *argv[], const char* applicationname, bool init = true);
+		virtual ~HTTPDControler();
 	
 		//--------------------------------------------------------------------------
 		// addnode, opengroup and closegroup are simply relayed to the factory
 		//--------------------------------------------------------------------------
-		template <typename C> void addnode (const char* type, const char* label, C* zone);
-		template <typename C> void addnode (const char* type, const char* label, C* zone, C min, C max);
-		template <typename C> void addnode (const char* type, const char* label, C* zone, C init, C min, C max, C step);
-							  void declare (const char* key, const char* val ) { fCurrentMeta[key] = val; }
+		template <typename C> void addnode(const char* type, const char* label, C* zone);
+		template <typename C> void addnode(const char* type, const char* label, C* zone, C min, C max);
+		template <typename C> void addnode(const char* type, const char* label, C* zone, C init, C min, C max, C step);
+							  void declare(const char* key, const char* val ) { fCurrentMeta[key] = val; }
 
-		void opengroup (const char* type, const char* label);
-		void closegroup ();
+		void opengroup(const char* type, const char* label);
+		void closegroup();
 
 		//--------------------------------------------------------------------------
-		void run ();				// start the httpd server
-		void quit ();				// stop the httpd server
+		void run();				// start the httpd server
+		void stop();			// stop the httpd server
 		
 		int	getTCPPort()			{ return fTCPPort; }
-        std::string getJSONInterface();
+        std::string getJSON();
         void        setInputs(int numInputs);
         void        setOutputs(int numOutputs);
 

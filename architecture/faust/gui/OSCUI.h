@@ -1,3 +1,29 @@
+/************************************************************************
+    FAUST Architecture File
+    Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This Architecture section is free software; you can redistribute it
+    and/or modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 3 of
+    the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+    EXCEPTION : As a special exception, you may create a larger work
+    that contains this FAUST architecture section and distribute
+    that work under terms of your choice, so long as this FAUST
+    architecture section is not modified.
+
+
+ ************************************************************************
+ ************************************************************************/
+
 /*
    Copyright (C) 2011 Grame - Lyon
    All rights reserved.
@@ -54,7 +80,27 @@ class OSCUI : public GUI
 	oscfaust::OSCControler*	fCtrl;
 	std::vector<const char*> fAlias;
 	
-	const char* tr(const char* label) const;
+    const char* tr(const char* label) const
+    {
+        static char buffer[1024];
+        char * ptr = buffer; int n=1;
+        while (*label && (n++ < 1024)) {
+            switch (*label) {
+                case ' ': case '	':
+                    *ptr++ = '_';
+                    break;
+                case '#': case '*': case ',': case '/': case '?':
+                case '[': case ']': case '{': case '}': case '(': case ')':
+                    *ptr++ = '_';
+                    break;
+                default: 
+                    *ptr++ = *label;
+            }
+            label++;
+        }
+        *ptr = 0;
+        return buffer;
+    }
 	
 	// add all accumulated alias
 	void addalias(FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, const char* label)
@@ -116,6 +162,12 @@ class OSCUI : public GUI
     {
         fCtrl->run(); 
     }
+    
+    void stop()
+    {
+        fCtrl->stop(); 
+    }
+    
 	const char* getRootName()		{ return fCtrl->getRootName(); }
     int getUDPPort()                { return fCtrl->getUDPPort(); }
     int	getUDPOut()                 { return fCtrl->getUDPOut(); }
@@ -123,26 +175,4 @@ class OSCUI : public GUI
     const char* getDestAddress()    { return fCtrl->getDestAddress(); }
 };
 
-const char* OSCUI::tr(const char* label) const
-{
-	static char buffer[1024];
-	char * ptr = buffer; int n=1;
-	while (*label && (n++ < 1024)) {
-		switch (*label) {
-			case ' ': case '	':
-				*ptr++ = '_';
-				break;
-			case '#': case '*': case ',': case '/': case '?':
-			case '[': case ']': case '{': case '}': case '(': case ')':
-				*ptr++ = '_';
-				break;
-			default: 
-				*ptr++ = *label;
-		}
-		label++;
-	}
-	*ptr = 0;
-	return buffer;
-}
-
-#endif
+#endif // __OSCUI__

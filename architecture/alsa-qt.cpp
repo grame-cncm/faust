@@ -39,7 +39,10 @@
 #include <iostream>
 #include <list>
 
+#include "faust/dsp/timed-dsp.h"
+#include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/misc.h"
 #include "faust/gui/faustqt.h"
 #include "faust/audio/alsa-dsp.h"
@@ -52,6 +55,13 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
+// Always include this file, otherwise -poly only mode does not compile....
+#include "faust/gui/MidiUI.h"
+
+#ifdef MIDICTRL
+#include "faust/midi/rt-midi.h"
+#include "faust/midi/RtMidi.cpp"
+#endif
 
 /**************************BEGIN USER SECTION **************************/
 /******************************************************************************
@@ -64,29 +74,75 @@
 
 <<includeIntrinsic>>
 
-
 <<includeclass>>
+
+#ifdef POLY
+#include "faust/dsp/poly-dsp.h"
+#endif
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp*	DSP;
+dsp* DSP;
 
-std::list<GUI*>               GUI::fGuiList;
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
-int main(int argc, char *argv[] )
+
+static bool hasMIDISync()
 {
-	char* appname = basename (argv [0]);
-    char  rcfilename[256];
+    JSONUI jsonui;
+    mydsp tmp_dsp;
+    tmp_dsp.buildUserInterface(&jsonui);
+    std::string json = jsonui.JSON();
+    
+    return ((json.find("midi") != std::string::npos) &&
+            ((json.find("start") != std::string::npos) ||
+            (json.find("stop") != std::string::npos) ||
+            (json.find("clock") != std::string::npos)));
+}
+
+int main(int argc, char *argv[])
+{
+	char* name = basename (argv [0]);
+    char rcfilename[256];
 	char* home = getenv("HOME");
-	snprintf(rcfilename, 255, "%s/.%src", home, appname);
+	snprintf(rcfilename, 255, "%s/.%src", home, name);
 	
-	DSP = new mydsp();
-	if (DSP==0) {
+#ifdef POLY
+    
+    int poly = lopt(argv, "--poly", 4);
+    int group = lopt(argv, "--group", 1);
+
+#if MIDICTRL
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new mydsp_poly(poly, true, group));
+    } else {
+        DSP = new mydsp_poly(poly, true, group);
+    }
+#else
+    DSP = new mydsp_poly(poly, false, group);
+#endif
+
+#else
+
+#if MIDICTRL
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new mydsp());
+    } else {
+        DSP = new mydsp();
+    }
+#else
+    DSP = new mydsp();
+#endif
+    
+#endif
+    
+	if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
 		exit(1);
 	}
@@ -97,20 +153,27 @@ int main(int argc, char *argv[] )
 	FUI* finterface	= new FUI();
 	DSP->buildUserInterface(interface);
 	DSP->buildUserInterface(finterface);
+    
+#ifdef MIDICTRL
+    rt_midi midi_handler(name);
+    MidiUI midiinterface(&midi_handler);
+    DSP->buildUserInterface(&midiinterface);
+    std::cout << "MIDI is on" << std::endl;
+#endif
 
 #ifdef HTTPCTRL
-	httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+	httpdUI* httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
 	DSP->buildUserInterface(httpdinterface);
-     std::cout << "HTTPD is on" << std::endl;
+    std::cout << "HTTPD is on" << std::endl;
 #endif
 
 #ifdef OSCCTRL
-	GUI* oscinterface = new OSCUI(appname, argc, argv);
+	GUI* oscinterface = new OSCUI(name, argc, argv);
 	DSP->buildUserInterface(oscinterface);
 #endif
 
 	alsaaudio audio (argc, argv, DSP);
-	audio.init(appname, DSP);
+	audio.init(name, DSP);
 	finterface->recallState(rcfilename);	
 	audio.start();
 	
@@ -121,6 +184,10 @@ int main(int argc, char *argv[] )
 #ifdef OSCCTRL
 	oscinterface->run();
 #endif
+
+#ifdef MIDICTRL
+	midiinterface.run();
+#endif
 	interface->run();
 	
     myApp.setStyleSheet(interface->styleSheet());
@@ -130,7 +197,7 @@ int main(int argc, char *argv[] )
 	audio.stop();
 	finterface->saveState(rcfilename);
     
-   // desallocation
+    // desallocation
     delete interface;
     delete finterface;
 #ifdef HTTPCTRL
@@ -142,5 +209,6 @@ int main(int argc, char *argv[] )
 
   	return 0;
 }
+
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

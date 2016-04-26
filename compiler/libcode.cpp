@@ -73,8 +73,6 @@
 #include "libfaust.h"
 #include "Text.hh"
 
-#define FAUSTVERSION "2.0.a38"
-
 using namespace std;
 
 // Timing can be used outside of the scope of 'gGlobal'
@@ -637,7 +635,11 @@ static bool process_cmdline(int argc, const char* argv[])
              gGlobal->gInPlace = true;
              i += 1;
              
-        } else if (isCmd(argv[i], "-lm", "--local-machine") || isCmd(argv[i], "-rm", "--remote-machine")) {
+        } else if (isCmd(argv[i], "-lm", "--local-machine") 
+                || isCmd(argv[i], "-rm", "--remote-machine")
+                || isCmd(argv[i], "-poly", "--polyphonic-mode")
+                || isCmd(argv[i], "-voices", "--polyphonic-voices")
+                || isCmd(argv[i], "-group", "--polyphonic-group")) {
              // Ignore arg
              i += 2;
 
@@ -701,7 +703,7 @@ static bool process_cmdline(int argc, const char* argv[])
 static void printversion()
 {
 	cout << "FAUST : DSP to C, C++, JAVA, JavaScript/ASMJavaScript, WebAssembly, LLVM IR version " << FAUSTVERSION << "\n";
-	cout << "Copyright (C) 2002-2015, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+	cout << "Copyright (C) 2002-2016, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 static void printhelp()
@@ -1132,7 +1134,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         if (gGlobal->gVectorSwitch) {
             comp = new DAGInstructionsCompiler(container);
         } else {
-            comp = new InstructionsCompiler(container, (gGlobal->gOutputLang != "ajs"));
+            comp = new InstructionsCompiler(container, (gGlobal->gOutputLang != "ajs" && gGlobal->gOutputLang != "js"));
         }
 
         if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());

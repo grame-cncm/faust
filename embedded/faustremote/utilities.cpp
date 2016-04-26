@@ -33,9 +33,9 @@ string pathToContent(const string& path)
 {
     ifstream file(path.c_str(), std::ifstream::binary);
     
-    file.seekg (0, file.end);
+    file.seekg(0, file.end);
     int size = file.tellg();
-    file.seekg (0, file.beg);
+    file.seekg(0, file.beg);
     
     // And allocate buffer to that a single line can be read...
     char* buffer = new char[size + 1];
@@ -92,7 +92,7 @@ bool isopt(int argc, const char* argv[], const char* name)
 	return false;
 }
 
-int lopt_Spe(int i, const char* argv[], const char* name, char* path)
+int lopt_spe(int i, const char* argv[], const char* name, char* path)
 {
     if (!strcmp(argv[i], name)){
         strcpy(path, argv[i+1]);

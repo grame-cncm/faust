@@ -34,12 +34,13 @@ template<> void FaustNode<float>::sendOSC() const
 {
     if (OSCControler::gXmit != kNoXmit && !OSCControler::isPathFiltered(getOSCAddress())) {
         std::vector<std::string> aliases = fRoot->getAliases(getOSCAddress());
-        // If aliases are present and output element (bargraph)
-        if (aliases.size() > 0 && !fInput) {  
+        // If aliases are present
+        if (aliases.size() > 0) {  
             for (size_t i = 0; i < aliases.size(); i++) {
                 oscout << OSCStart(aliases[i].c_str()) << float(*fZone) << OSCEnd();
             }
         }
+        // Also emit regular address
         if (OSCControler::gXmit == kAll) {
             oscout << OSCStart(getOSCAddress().c_str()) << float(*fZone) << OSCEnd();
         } 
@@ -51,12 +52,13 @@ template<> void FaustNode<double>::sendOSC() const
 {
     if (OSCControler::gXmit != kNoXmit && !OSCControler::isPathFiltered(getOSCAddress())) {
         std::vector<std::string> aliases = fRoot->getAliases(getOSCAddress());
-        // If aliases are present and output element (bargraph)
-        if (aliases.size() > 0 && !fInput) { 
+        // If aliases are present
+        if (aliases.size() > 0) { 
             for (size_t i = 0; i < aliases.size(); i++) {
                 oscout << OSCStart(aliases[i].c_str()) << double(*fZone) << OSCEnd();
             }
         }
+        // Also emit regular address
         if (OSCControler::gXmit == kAll) {
             oscout << OSCStart(getOSCAddress().c_str()) << double(*fZone) << OSCEnd();
         } 
@@ -89,7 +91,7 @@ template<> bool FaustNode<float>::accept(const Message* msg)			///< handler for 
     if (msg->size() == 1) {			// checks for the message parameters count
                                     // messages with a param count other than 1 are rejected
         int ival; float fval;
-        if (OSCControler::gXmit == kAll || (OSCControler::gXmit == kAlias && msg->alias() != "")) {
+        if ((OSCControler::gXmit == kNoXmit) || (OSCControler::gXmit == kAll) || (OSCControler::gXmit == kAlias && msg->alias() != "")) {
             if (msg->param(0, fval)) {
                 return store(float(fval));	// accepts float values
             } else if (msg->param(0, ival)) {
@@ -107,7 +109,7 @@ template<> bool FaustNode<double>::accept(const Message* msg)			///< handler for
                                     // messages with a param count other than 1 are rejected
         int ival; float fval;
         std::vector<std::string> aliases = fRoot->getAliases(getOSCAddress());
-        if (OSCControler::gXmit == kAll || (OSCControler::gXmit == kAlias && msg->alias() != "")) {
+        if ((OSCControler::gXmit == kNoXmit) || (OSCControler::gXmit == kAll) || (OSCControler::gXmit == kAlias && msg->alias() != "")) {
            if (msg->param(0, fval)) {
                 return store(double(fval));	// accepts float values
             } else if (msg->param(0, ival)) {

@@ -20,14 +20,15 @@
  ************************************************************************/
 
 #include <sstream>
-#include "remote_dsp_aux.h"
-#include "faust/gui/ControlUI.h"
-#include "faust/dsp/llvm-dsp.h"
-#include "utilities.h"
-#include "rn_base64.h"
 #include <errno.h>
 #include <string.h>
 #include <libgen.h>
+#include "remote_dsp_aux.h"
+#include "faust/gui/ControlUI.h"
+#include "faust/gui/MidiUI.h"
+#include "llvm-dsp.h"
+#include "utilities.h"
+#include "rn_base64.h"
 
 RemoteFactoryDSPTableType remote_dsp_factory::gRemoteFactoryDSPTable;
 LocalFactoryDSPTableType remote_dsp_factory::gLocalFactoryDSPTable;
@@ -103,9 +104,8 @@ remote_dsp_factory::remote_dsp_factory(const string& ip_server, int port_server,
     serverURL << "http://" << ip_server << ":" << port_server;
     fServerURL = serverURL.str();
     fSHAKey = sha_key;
-    fNumInputs = fNumOutputs = 0;
-    fName = "";
     fExpandedDSP = "";
+    fJSONDecoder = 0;
 }
 
 remote_dsp_factory::~remote_dsp_factory()
@@ -114,13 +114,19 @@ remote_dsp_factory::~remote_dsp_factory()
     string finalRequest = "shaKey=" + fSHAKey;
     string response;
     int errorCode = -1;
-    string url = fServerURL + "/DeleteFactory";
-    sendRequest(url, finalRequest, response, errorCode);
+    sendRequest(fServerURL + "/DeleteFactory", finalRequest, response, errorCode);
     
-    vector<itemInfo*>::iterator it;
-    for (it = fUiItems.begin(); it != fUiItems.end() ; it++) {
-        delete(*it);
-    }
+    delete fJSONDecoder;
+}
+
+bool remote_dsp_factory::sendFinalRequest(void* obj, const string& cmd)
+{
+    stringstream finalRequest;
+    string response;
+    int errorCode = -1;
+    
+    finalRequest << "instanceKey=" << obj;
+    return sendRequest(fServerURL + cmd, finalRequest.str(), response, errorCode);
 }
 
 // Compile on server side and get machine code on client to re-create a local Factory
@@ -163,7 +169,8 @@ static remote_dsp_factory* crossCompile(int argc, const char *argv[],
     string url = serverURL.str() + "/CrossCompileFactory";
    
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
-        llvm_dsp_factory* factory = readCDSPFactoryFromMachine(response.c_str(), getDSPMachineTarget().c_str());
+        //llvm_dsp_factory* factory = readCDSPFactoryFromMachine(response.c_str(), getDSPMachineTarget().c_str());
+        llvm_dsp_factory* factory = readDSPFactoryFromMachine(response, getDSPMachineTarget());
         remote_dsp_factory::gLocalFactoryDSPTable.push_back(factory);
         return reinterpret_cast<remote_dsp_factory*>(factory); 
     } else {
@@ -191,12 +198,27 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     // Adding Compilation options 
     finalRequest << "&number_options=" << argc;
     for (int i = 0; i < argc; i++) {
-        finalRequest << "&options=" << argv[i];
+        if ((strcmp(argv[i], "-poly") == 0) 
+            || (strcmp(argv[i], "-voices") == 0)
+            || (strcmp(argv[i], "-group") == 0)) {
+            // Move to next token...
+            i++;
+        } else {
+            finalRequest << "&options=" << argv[i];
+        }
     }
     
     // LLVM optimization level and SHA key
     finalRequest << "&opt_level=" << opt_level << "&shaKey=" << fSHAKey;
     
+    // Polyphonic support
+    fPoly = loptions(argc, argv, "-poly", "0");
+    fVoices = loptions(argc, argv, "-voices", "4");
+    fGroup = loptions(argc, argv, "-group", "0");
+    finalRequest << "&poly=" << fPoly;
+    finalRequest << "&voices=" << fVoices;
+    finalRequest << "&group=" << fGroup;
+   
     // Compile on client side and send machine code on server side
     if (isopt(argc, argv, "-lm")) {
         llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, loptions(argv, "-lm", ""), error_msg, opt_level);
@@ -236,7 +258,7 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
     string url = fServerURL + "/CreateFactory";
 
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
-        decodeJson(response);
+        decodeJSON(response);
         return true;
     } else {
         error_msg = response;
@@ -248,35 +270,16 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
 // fUiItems : Structure containing the graphical items
 // fMetadatas : Structure containing the metadatas
 // Some "extra" metadatas are kept separatly
-void remote_dsp_factory::decodeJson(const string& json)
+void remote_dsp_factory::decodeJSON(const string& json)
 {
-    const char* p = json.c_str();
+    fJSONDecoder = new JSONUIDecoder(json);
     
-    parseJson(p, fMetadatas, fUiItems);
-    
-    if (fMetadatas.find("name") != fMetadatas.end()) {
-        fName = fMetadatas["name"];
-        fMetadatas.erase("name");
+    if (fJSONDecoder->fMetadatas.find("code") != fJSONDecoder->fMetadatas.end()) {
+        fExpandedDSP = base64_decode(fJSONDecoder->fMetadatas["code"]);
     }
     
-    if (fMetadatas.find("code") != fMetadatas.end()) {
-        fExpandedDSP = base64_decode(fMetadatas["code"]);
-        fMetadatas.erase("code");
-    }
-    
-    if (fMetadatas.find("sha_key") != fMetadatas.end()) {
-        fSHAKey = fMetadatas["sha_key"];
-        fMetadatas.erase("sha_key");
-    }
-    
-    if (fMetadatas.find("inputs") != fMetadatas.end()) {
-        fNumInputs = atoi(fMetadatas["inputs"].c_str());
-        fMetadatas.erase("inputs");
-    }
-    
-    if (fMetadatas.find("outputs") != fMetadatas.end()) {
-        fNumOutputs = atoi(fMetadatas["outputs"].c_str());
-        fMetadatas.erase("outputs");
+    if (fJSONDecoder->fMetadatas.find("sha_key") != fJSONDecoder->fMetadatas.end()) {
+        fSHAKey = fJSONDecoder->fMetadatas["sha_key"];
     }
 }
 
@@ -284,7 +287,7 @@ void remote_dsp_factory::decodeJson(const string& json)
 void remote_dsp_factory::metadataRemoteDSPFactory(Meta* m) 
 { 
     map<string,string>::iterator it;
-    for (it = fMetadatas.begin() ; it != fMetadatas.end(); it++) {
+    for (it = fJSONDecoder->fMetadatas.begin() ; it != fJSONDecoder->fMetadatas.end(); it++) {
         m->declare(it->first.c_str(), it->second.c_str());
     }
 }   
@@ -365,7 +368,9 @@ static bool isLocalFactory(remote_dsp_factory* factory)
 remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory)
 {
     fFactory = factory;
-    fNetJack = NULL;
+    fJSONDecoder = new JSONUIDecoder(factory->fJSONDecoder->fJSON);
+    
+    fNetJack = 0;
     
     fAudioInputs = new float*[getNumInputs()];
     fAudioOutputs = new float*[getNumOutputs()];
@@ -377,14 +382,11 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory)
         fAudioOutputs[i] = 0;
     }
     
-    fControlInputs = new float*[1];
-    fControlOutputs = new float*[1];
+    fControlInputs = new float*[2];
+    fControlOutputs = new float*[2];
     
-    fControlInputs[0] = 0;
-    fControlOutputs[0] = 0;
-    
-    fCounterIn = 0;
-    fCounterOut = 0;
+    fControlInputs[0] = fControlInputs[1] = 0;
+    fControlOutputs[0] = fControlOutputs[1] = 0;
     
     fErrorCallback = 0;
     fErrorCallbackArg = 0;
@@ -394,24 +396,16 @@ remote_dsp_aux::remote_dsp_aux(remote_dsp_factory* factory)
         
 remote_dsp_aux::~remote_dsp_aux()
 {
-    // Request 'delete' on server side
-    stringstream finalRequest;
-    string response;
-    int errorCode = -1;
-    
-    finalRequest << "instanceKey=" << this;
-    string url = fFactory->getURL() + "/DeleteInstance";
-    sendRequest(url, finalRequest.str(), response, errorCode);
+    fFactory->sendFinalRequest(this, "/DeleteInstance");
     
     if (fNetJack) {
     
         jack_net_master_close(fNetJack); 
         
-        delete[] fInControl;
-        delete[] fOutControl;
-        
         delete[] fControlInputs[0];
+        delete[] fControlInputs[1];
         delete[] fControlOutputs[0];
+        delete[] fControlOutputs[1];
     
         fNetJack = 0;
     }
@@ -421,6 +415,13 @@ remote_dsp_aux::~remote_dsp_aux()
     
     delete[] fControlInputs;
     delete[] fControlOutputs;
+     
+    // Remove 'this' from its factory
+    RemoteFactoryDSPTableIt it = remote_dsp_factory::gRemoteFactoryDSPTable.find(fFactory);
+    assert(it != remote_dsp_factory::gRemoteFactoryDSPTable.end());
+    (*it).second.first.remove(this);
+    
+    delete fJSONDecoder;
 }
 
 void remote_dsp_aux::fillBufferWithZerosOffset(int channels, int offset, int size, FAUSTFLOAT** buffer)
@@ -431,105 +432,15 @@ void remote_dsp_aux::fillBufferWithZerosOffset(int channels, int offset, int siz
     }
 }
 
-// Decode internal structure, to build user interface
+// DecodeJSON to build user interface
 void remote_dsp_aux::buildUserInterface(UI* ui) 
 {
-    // To be sure the floats are correctly encoded
-    char* tmp_local = setlocale(LC_ALL, NULL);
-    setlocale(LC_ALL, "C");
-    
-    int counterIn = 0;
-    int counterOut = 0;
-    
-    vector<itemInfo*>::iterator it;
-    
-    for (it = fFactory->fUiItems.begin(); it != fFactory->fUiItems.end(); it++) {
-        
-        float init = strtod((*it)->init.c_str(), NULL);
-        float min = strtod((*it)->min.c_str(), NULL);
-        float max = strtod((*it)->max.c_str(), NULL);
-        float step = strtod((*it)->step.c_str(), NULL);
-        
-        map<string,string>::iterator it2;
-        
-        bool isInItem = false;
-        bool isOutItem = false;
-        
-        // Meta Data declaration for entry items
-        if ((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type != "close") {
-            
-            fInControl[counterIn] = init;
-            isInItem = true;
-            
-            for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {
-                ui->declare(&fInControl[counterIn], it2->first.c_str(), it2->second.c_str());
-            }
-        }
-        // Meta Data declaration for exit items
-        else if ((*it)->type.find("bargraph") != string::npos){
-            
-            fOutControl[counterOut] = init;
-            isOutItem = true;
-            
-            for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {
-                ui->declare(&fOutControl[counterOut], it2->first.c_str(), it2->second.c_str());
-            }
-        }
-        // Meta Data declaration for group opening or closing
-        else {
-            for (it2 = (*it)->meta.begin(); it2 != (*it)->meta.end(); it2++) {
-                ui->declare(0, it2->first.c_str(), it2->second.c_str());
-            }
-        }
-        
-        // Item declaration
-        string type = (*it)->type;
-        if (type == "hgroup") {
-            ui->openHorizontalBox((*it)->label.c_str());
-        
-        } else if (type == "vgroup") { 
-             ui->openVerticalBox((*it)->label.c_str());
-     
-        } else if (type == "tgroup") {
-            ui->openTabBox((*it)->label.c_str());
-        
-        } else if (type == "vslider") {
-            ui->addVerticalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
-        
-        } else if (type == "hslider") {
-            ui->addHorizontalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);            
-        
-        } else if (type == "checkbox") {
-            ui->addCheckButton((*it)->label.c_str(), &fInControl[counterIn]);
-        
-        } else if (type == "hbargraph") {
-            ui->addHorizontalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
-        
-        } else if (type == "vbargraph") {
-            ui->addVerticalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
-        
-        } else if (type == "nentry") {
-            ui->addNumEntry((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);
-        
-        } else if (type == "button") {
-            ui->addButton((*it)->label.c_str(), &fInControl[counterIn]);
-        
-        } else if (type == "close") {
-            ui->closeBox();
-        }
-            
-        if (isInItem)
-            counterIn++;
-            
-        if (isOutItem)
-            counterOut++;
+    MidiUI* midi_ui = dynamic_cast<MidiUI*>(ui);
+    if (midi_ui) { 
+        midi_ui->addMidiIn(this); 
+    } else {
+        fJSONDecoder->buildUserInterface(ui);
     }
-    
-    // Keep them for compute method...
-    fCounterIn = counterIn;
-    fCounterOut = counterOut;
-    
-    setlocale(LC_ALL, tmp_local);
 }
 
 void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset)
@@ -545,7 +456,7 @@ void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int o
 
 void remote_dsp_aux::sendSlice(int buffer_size) 
 {
-    if (fRunning && jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 1, (void**)fControlInputs, buffer_size) < 0) {
+    if (fRunning && jack_net_master_send_slice(fNetJack, getNumInputs(), fAudioInputs, 2, (void**)fControlInputs, buffer_size) < 0) {
         fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
         if (fErrorCallback) {
             fRunning = (fErrorCallback(ERROR_NETJACK_WRITE, fErrorCallbackArg) == 0);
@@ -555,7 +466,7 @@ void remote_dsp_aux::sendSlice(int buffer_size)
 
 void remote_dsp_aux::recvSlice(int buffer_size)
 {
-    if (fRunning && jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 1, (void**)fControlOutputs, buffer_size) < 0) {
+    if (fRunning && jack_net_master_recv_slice(fNetJack, getNumOutputs(), fAudioOutputs, 2, (void**)fControlOutputs, buffer_size) < 0) {
         fillBufferWithZerosOffset(getNumOutputs(), 0, buffer_size, fAudioOutputs);
         if (fErrorCallback) {
             fRunning = (fErrorCallback(ERROR_NETJACK_READ, fErrorCallbackArg) == 0);
@@ -575,19 +486,29 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         int i = 0;
         for (i = 0; i < numberOfCycles; i++) {
             setupBuffers(input, output, i*fBufferSize);
-            ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
+            // Hack : do not transmit control in polyphonic mode
+            if (fFactory->fPoly == "0") {
+                ControlUI::encode_midi_control(fControlInputs[0], fJSONDecoder->fInControl, fJSONDecoder->fInputItems);
+            }
+            processMidiOutBuffer(fControlInputs[1], true);
             sendSlice(fBufferSize);
             recvSlice(fBufferSize);
-            ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
+            ControlUI::decode_midi_control(fControlOutputs[0], fJSONDecoder->fOutControl, fJSONDecoder->fOutputItems);
+            processMidiInBuffer(fControlOutputs[1]);
         }
         
         if (lastCycle > 0) {
             setupBuffers(input, output, i*fBufferSize);
-            ControlUI::encode_midi_control(fControlInputs[0], fInControl, fCounterIn);
+            // Hack : do not transmit control in polyphonic mode
+            if (fFactory->fPoly == "0") {
+                ControlUI::encode_midi_control(fControlInputs[0], fJSONDecoder->fInControl, fJSONDecoder->fInputItems);
+            }
+            processMidiOutBuffer(fControlInputs[1], true);
             fillBufferWithZerosOffset(getNumInputs(), lastCycle, fBufferSize-lastCycle, fAudioInputs);
             sendSlice(lastCycle);
             recvSlice(lastCycle);
-            ControlUI::decode_midi_control(fControlOutputs[0], fOutControl, fCounterOut);
+            ControlUI::decode_midi_control(fControlOutputs[0], fJSONDecoder->fOutControl, fJSONDecoder->fOutputItems);
+            processMidiInBuffer(fControlOutputs[1]);
         }
         
     } else {
@@ -603,17 +524,18 @@ void remote_dsp_aux::metadata(Meta* m)
 // Accessors to number of input/output of DSP
 int remote_dsp_aux::getNumInputs()
 { 
-     return fFactory->getNumInputs();
+    return fJSONDecoder->fNumInputs;
 }
 
 int remote_dsp_aux::getNumOutputs()
 { 
-    return fFactory->getNumOutputs();
+    return fJSONDecoder->fNumOutputs;
 }
 
 // Useless fonction in our case but required for a DSP interface
 //Interesting to implement one day ! 
-void remote_dsp_aux::init(int /*sampling_rate*/) {}
+void remote_dsp_aux::init(int /*samplingRate*/) {}
+void remote_dsp_aux::instanceInit(int /*samplingRate*/) {}
 
 // Init remote dsp instance sends a POST request to a remote server
 // The URL extension used is /CreateInstance
@@ -636,17 +558,15 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     fErrorCallbackArg = error_callback_arg;
      
     // Init Control Buffers
-    fOutControl = new float[buffer_size];
-    fInControl = new float[buffer_size];
-
     fControlInputs[0] = new float[8192];
+    fControlInputs[1] = new float[8192];
     fControlOutputs[0] = new float[8192];
+    fControlOutputs[1] = new float[8192];
  
-    memset(fOutControl, 0, sizeof(float) * buffer_size);
-    memset(fInControl, 0, sizeof(float) * buffer_size);
-    
     memset(fControlInputs[0], 0, sizeof(float) * 8192);
+    memset(fControlInputs[1], 0, sizeof(float) * 8192);
     memset(fControlOutputs[0], 0, sizeof(float) * 8192);
+    memset(fControlOutputs[1], 0, sizeof(float) * 8192);
     
     // To be sure fCounterIn and fCounterOut are set before 'compute' is called, even if no 'buildUserInterface' is called by the client
     ControlUI dummy_ui;
@@ -667,13 +587,19 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     finalRequest << "&NJ_mtu=" << loptions(argc, argv, "--NJ_mtu", "1500");
     finalRequest << "&shaKey=" << fFactory->getSHAKey();
     finalRequest << "&instanceKey=" << this;
+    finalRequest << "&poly=" << fFactory->getPoly();
+    finalRequest << "&voices=" << fFactory->getVoices();
+    finalRequest << "&group=" << fFactory->getGroup();
     
     bool res = false;
     string url = fFactory->getURL() + "/CreateInstance";
    
     // Open NetJack connection
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
-        jack_master_t request = { -1, -1, -1, -1, static_cast<jack_nframes_t>(buffer_size), static_cast<jack_nframes_t>(sample_rate), "net_master", 5, partial_cycle};
+        jack_master_t request = { -1, -1, -1, -1, 
+                                static_cast<jack_nframes_t>(buffer_size), 
+                                static_cast<jack_nframes_t>(sample_rate), 
+                                "net_master", 5, partial_cycle};
         jack_slave_t result;
         if ((fNetJack = jack_net_master_open(DEFAULT_MULTICAST_IP, atoi(port), &request, &result))) {
             res = true;
@@ -694,14 +620,7 @@ remote_audio_aux::remote_audio_aux(remote_dsp_factory* factory)
 
 remote_audio_aux::~remote_audio_aux()
 {
-    // Request 'delete' on server side
-    stringstream finalRequest;
-    string response;
-    int errorCode = -1;
-    
-    finalRequest << "instanceKey=" << this;
-    string url = fFactory->getURL() + "/DeleteInstance";
-    sendRequest(url, finalRequest.str(), response, errorCode);
+    fFactory->sendFinalRequest(this, "/DeleteInstance");
 }  
 
 bool remote_audio_aux::init(int argc, const char* argv[], int& error)
@@ -717,6 +636,9 @@ bool remote_audio_aux::init(int argc, const char* argv[], int& error)
     // Parse NetJack Parameters
     finalRequest << "&LA_sample_rate=" << atoi(loptions(argc, argv, "--LA_sample_rate ", "44100"));
     finalRequest << "&LA_buffer_size=" << atoi(loptions(argc, argv, "--LA_buffer_size ", "512"));
+    finalRequest << "&osc=" << loptions(argc, argv, "--osc ", "0");
+    finalRequest << "&httpd=" << loptions(argc, argv, "--httpd ", "0");
+    finalRequest << "&midi=" << loptions(argc, argv, "--midi ", "0");
     finalRequest << "&shaKey=" << fFactory->getSHAKey();
     finalRequest << "&instanceKey=" << this;
     
@@ -726,27 +648,16 @@ bool remote_audio_aux::init(int argc, const char* argv[], int& error)
 
 bool remote_audio_aux::start()
 {
-    stringstream finalRequest;
-    string response;
-    int errorCode = -1;
-    
-    finalRequest << "instanceKey=" << this;
-    string url = fFactory->getURL() + "/StartInstance";
-    return sendRequest(url, finalRequest.str(), response, errorCode);
+    return fFactory->sendFinalRequest(this, "/StartInstance");
 }
 
 bool remote_audio_aux::stop()
 {
-    stringstream finalRequest;
-    string response;
-    int errorCode = -1;
-    
-    finalRequest << "instanceKey=" << this;
-    string url = fFactory->getURL() + "/StopInstance";
-    return sendRequest(url, finalRequest.str(), response, errorCode);
+    return fFactory->sendFinalRequest(this, "/StopInstance");
 }            
 
 //------ DISCOVERY OF AVAILABLE MACHINES
+
 remote_DNS* remote_dsp_factory::gDNS = NULL;
 
 __attribute__((constructor)) static void initialize_libfaustremote() 
@@ -814,7 +725,6 @@ int remote_DNS::pingHandler(const char* path, const char* types,
 }
 
 //----------------------------------REMOTE DSP/AUDIO PUBLIC API-------------------------------------------
-
 // FACTORIES
 
 // TODO : possibly recompute the DSP (if Faust compilation parameters change)
@@ -843,7 +753,7 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, 
         string url = serverURL.str() + "/GetFactoryFromSHAKey";
         
         if (sendRequest(url, finalRequest, response, errorCode)) {
-            factory->decodeJson(response);
+            factory->decodeJSON(response);
             remote_dsp_factory::gRemoteFactoryDSPTable[factory] = make_pair(list<remote_dsp_aux*>(), list<remote_audio_aux*>());
             return factory;
         } else {
@@ -989,11 +899,17 @@ EXPORT void deleteAllRemoteDSPFactories()
     }
 }
 
-EXPORT std::string remote_dsp_factory::getName() { return fName; }
+EXPORT std::string remote_dsp_factory::getName() { return fJSONDecoder->fName; }
 
 EXPORT std::string remote_dsp_factory::getSHAKey() { return fSHAKey; }
 
 EXPORT std::string remote_dsp_factory::getDSPCode() { return fExpandedDSP; }
+
+EXPORT std::string remote_dsp_factory::getPoly() { return fPoly; }
+
+EXPORT std::string remote_dsp_factory::getVoices() { return fVoices; }
+
+EXPORT std::string remote_dsp_factory::getGroup() { return fGroup; }
 
 EXPORT void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m)
 {
@@ -1004,10 +920,6 @@ EXPORT vector<string> getRemoteDSPFactoryLibraryList(remote_dsp_factory* factory
 { 
     return factory->getRemoteDSPFactoryLibraryList(); 
 }
-
-EXPORT int remote_dsp_factory::getNumInputs() { return fNumInputs; }
-
-EXPORT int remote_dsp_factory::getNumOutputs() { return fNumOutputs; }
 
 EXPORT bool getRemoteDSPMachines(map<string, remote_dsp_machine* >* machine_list)
 {
@@ -1115,7 +1027,7 @@ EXPORT std::string remote_dsp_machine::getTarget()
 
 EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
                                             int argc, 
-                                            const char *argv[], 
+                                            const char* argv[], 
                                             remoteDSPErrorCallback error_callback, 
                                             void* error_callback_arg, 
                                             int& error)
@@ -1136,17 +1048,12 @@ EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
 
 EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp)
 {
-    RemoteFactoryDSPTableIt it;
-    remote_dsp_aux* dsp_aux = reinterpret_cast<remote_dsp_aux*>(dsp);
-    remote_dsp_factory* factory = dsp_aux->getFactory();
+    remote_dsp_factory* factory = reinterpret_cast<remote_dsp_aux*>(dsp)->getFactory();
     
     if (isLocalFactory(factory))  {
-         deleteDSPInstance(reinterpret_cast<llvm_dsp*>(dsp));
+        deleteDSPInstance(reinterpret_cast<llvm_dsp*>(dsp));
     } else {
-        it = remote_dsp_factory::gRemoteFactoryDSPTable.find(factory);
-        assert(it != remote_dsp_factory::gRemoteFactoryDSPTable.end());
-        (*it).second.first.remove(dsp_aux);
-        delete dsp_aux; 
+        delete reinterpret_cast<remote_dsp_aux*>(dsp); 
     }
 }
 
@@ -1165,9 +1072,14 @@ EXPORT int remote_dsp::getNumOutputs()
     return reinterpret_cast<remote_dsp_aux*>(this)->getNumOutputs();
 }
 
-EXPORT void remote_dsp::init(int sampling_rate)
+EXPORT void remote_dsp::init(int samplingRate)
 {
-    reinterpret_cast<remote_dsp_aux*>(this)->init(sampling_rate);
+    reinterpret_cast<remote_dsp_aux*>(this)->init(samplingRate);
+}
+
+EXPORT void remote_dsp::instanceInit(int samplingRate)
+{
+    reinterpret_cast<remote_dsp_aux*>(this)->instanceInit(samplingRate);
 }
 
 EXPORT void remote_dsp::buildUserInterface(UI* interface)
@@ -1178,6 +1090,42 @@ EXPORT void remote_dsp::buildUserInterface(UI* interface)
 EXPORT void remote_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     reinterpret_cast<remote_dsp_aux*>(this)->compute(count, input, output);
+}
+
+// MIDI polyphonic control
+EXPORT void remote_dsp::keyOn(int channel, int pitch, int velocity)
+{
+    reinterpret_cast<remote_dsp_aux*>(this)->keyOn(channel, pitch, velocity);
+}
+
+EXPORT void remote_dsp::keyOff(int channel, int pitch, int velocity)
+{
+    reinterpret_cast<remote_dsp_aux*>(this)->keyOff(channel, pitch, velocity);
+}
+
+EXPORT void remote_dsp::keyPress(int channel, int pitch, int press)
+{
+    reinterpret_cast<remote_dsp_aux*>(this)->keyPress(channel, pitch, press);
+}
+
+EXPORT void remote_dsp::chanPress(int channel, int press)
+{
+     reinterpret_cast<remote_dsp_aux*>(this)->chanPress(channel, press);
+}
+
+EXPORT void remote_dsp::ctrlChange(int channel, int ctrl, int value)
+{
+     reinterpret_cast<remote_dsp_aux*>(this)->ctrlChange(channel, ctrl, value);
+}
+
+EXPORT void remote_dsp::pitchWheel(int channel, int wheel)
+{
+     reinterpret_cast<remote_dsp_aux*>(this)->pitchWheel(channel, wheel);
+}
+
+EXPORT void remote_dsp::progChange(int channel, int pgm)
+{
+    reinterpret_cast<remote_dsp_aux*>(this)->progChange(channel, pgm);
 }
 
 //---------AUDIO INSTANCE

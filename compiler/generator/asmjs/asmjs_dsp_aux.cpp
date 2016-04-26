@@ -67,6 +67,8 @@ EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const ch
         argv1[i+5] = argv[i];
     }
      
+    argv1[argc1] = 0;  // NULL terminated argv
+    
     string str;
     try {
         str = compile_faust_asmjs(argc1, argv1, name_app, dsp_content, error_msg);

@@ -53,7 +53,7 @@ extern "C"
     char* getCLibFaustVersion();
       
     /**
-     * Get the target (triple + CPU) of the DSP machine.
+     * Get the target (triple + CPU) of the machine.
      * 
      * @return the target as a string (to be deleted by the caller).
      */
@@ -62,7 +62,7 @@ extern "C"
     /**
      * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
      * if already allocated in the factories cache and increment it's reference counter. You will have to explicitly
-     * use deleteCDSPFactory to properly decrement reference counter when the factory is no more needed.
+     * use deleteCDSPFactory to properly decrement the reference counter when the factory is no more needed.
      *
      * @param sha_key - the SHA key for an already created factory, kept in the factory cache
      *
@@ -72,7 +72,7 @@ extern "C"
     
     /**
      * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all 
-     * allocated factories so that the compilation of same DSP code (that is same source code and 
+     * allocated factories so that the compilation of the same DSP code (that is same source code and 
      * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer. You will 
      * have to explicitly use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
      *
@@ -92,7 +92,7 @@ extern "C"
     
     /**
      * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all 
-     * allocated factories so that the compilation of same DSP code (that is same source code and 
+     * allocated factories so that the compilation of the same DSP code (that is same source code and 
      * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer. You will 
      * have to explicitly use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
      * 
@@ -196,7 +196,7 @@ extern "C"
   
     /**
      * Create a Faust DSP factory from a base64 encoded LLVM bitcode string. Note that the library keeps an internal cache of all 
-     * allocated factories so that the compilation of same DSP code (that is the same LLVM bitcode string) will return 
+     * allocated factories so that the compilation of the same DSP code (that is the same LLVM bitcode string) will return 
      * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
      * decrement reference counter when the factory is no more needed.
      * 
@@ -221,7 +221,7 @@ extern "C"
     
     /**
      * Create a Faust DSP factory from a LLVM bitcode file. Note that the library keeps an internal cache of all 
-     * allocated factories so that the compilation of same DSP code (that is the same LLVM bitcode file) will return 
+     * allocated factories so that the compilation of the same DSP code (that is the same LLVM bitcode file) will return 
      * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
      * decrement reference counter when the factory is no more needed.
      * 
@@ -229,7 +229,7 @@ extern "C"
      * @param target - the LLVM machine target (using empty string will takes current machine settings)
      * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
      * since the maximum value may change with new LLVM versions). A higher value than the one used when 
-     * calling createDSPFactory can possibly be used
+     * calling createDSPFactory can possibly be used.
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
@@ -246,7 +246,7 @@ extern "C"
     
     /**
      * Create a Faust DSP factory from a LLVM IR (textual) string. Note that the library keeps an internal cache of all 
-     * allocated factories so that the compilation of same DSP code (that is the same LLVM IR string) will return 
+     * allocated factories so that the compilation of the same DSP code (that is the same LLVM IR string) will return 
      * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
      * decrement reference counter when the factory is no more needed.
      * 
@@ -270,7 +270,7 @@ extern "C"
     
     /**
      * Create a Faust DSP factory from a LLVM IR (textual) file. Note that the library keeps an internal cache of all 
-     * allocated factories so that the compilation of same DSP code (that is the same LLVM IR file) will return 
+     * allocated factories so that the compilation of the same DSP code (that is the same LLVM IR file) will return 
      * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
      * decrement reference counter when the factory is no more needed.
      * 
@@ -278,7 +278,7 @@ extern "C"
      * @param target - the LLVM machine target (using empty string will takes current machine settings)
      * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
      * since the maximum value may change with new LLVM versions). A higher value than the one used when calling 
-     * createDSPFactory can possibly be used
+     * createDSPFactory can possibly be used.
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
@@ -295,7 +295,7 @@ extern "C"
     
     /**
      * Create a Faust DSP factory from a base64 encoded machine code string. Note that the library keeps an internal cache of all 
-     * allocated factories so that the compilation of same DSP code (that is the same machine code string) will return 
+     * allocated factories so that the compilation of the same DSP code (that is the same machine code string) will return 
      * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
      * decrement reference counter when the factory is no more needed.
      * 
@@ -318,7 +318,7 @@ extern "C"
 
     /**
      * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all 
-     * allocated factories so that the compilation of same DSP code (that is the same machine code file) will return 
+     * allocated factories so that the compilation of the same DSP code (that is the same machine code file) will return 
      * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
      * decrement reference counter when the factory is no more needed.
      * 
@@ -385,7 +385,7 @@ extern "C"
                              char* error_msg);
     
     /**
-     * From a DSP source file, generates auxillary files : SVG, XML, ps... depending of the 'argv' parameters.
+     * From a DSP source file, generates auxiliary files : SVG, XML, ps... depending of the 'argv' parameters.
      
      * @param filename - the DSP filename
      * @param argc - the number of parameters in argv array
@@ -397,7 +397,7 @@ extern "C"
     bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
     
     /**
-     * From a DSP source file, generates auxillary files : SVG, XML, ps... depending of the 'argv' parameters.
+     * From a DSP source file, generates auxiliary files : SVG, XML, ps... depending of the 'argv' parameters.
      
      * @param name_app - the name of the Faust program
      * @param dsp_content - the Faust program as a string
@@ -418,7 +418,9 @@ extern "C"
     
     int getNumOutputsCDSPInstance(llvm_dsp* dsp);
     
-    void initCDSPInstance(llvm_dsp* dsp, int samplingFreq);
+    void initCDSPInstance(llvm_dsp* dsp, int samplingRate);
+    
+    void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate);
     
     void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* interface);
     
@@ -468,5 +470,5 @@ extern "C"
 /*!
  @}
  */
-
+ 
 #endif

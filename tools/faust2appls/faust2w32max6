@@ -92,7 +92,7 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -double -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	faust -i -double -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary
     (
@@ -107,7 +107,7 @@ for p in $FILES; do
 		$CXX $CXXINCS $CXXFLAGS -c "${f%.dsp}.cpp" -o "${f%.dsp}.o"
 		$DLLWRAP --driver-name $CXX --def ${f%.dsp}.def *.o  $LIBS -static -o "${f%.dsp}$EXT"
 		$STRIP "${f%.dsp}$EXT"
-    ) > /dev/null
+    ) > /dev/null || exit
 
 	cp "$TMP/${f%.dsp}$EXT" "$SRCDIR"
 

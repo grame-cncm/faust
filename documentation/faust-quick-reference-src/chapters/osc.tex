@@ -79,14 +79,14 @@ These OSC parameters can be changed from the command line using one of the follo
 %	-outport number
 %	-errport number
 %	-desthost host
-%	-xmit	0|1 
+%	-xmit	0|1|2 
 %\end{lstlisting}
 \begin{itemize}
 \item \lstinline'-port number' set the port number used by the application to receive messages.
 \item \lstinline'-outport number' set the port number used by the application to transmit messages.
 \item \lstinline'-errport number' set the port number used by the application to transmit error messages.
 \item \lstinline'-desthost host' set the destination host for the messages sent by the application.
-\item \lstinline'-xmit 1|0' turn transmission ON or OFF (default OFF). When transmission is ON user's actions are transmitted as OSC messages.
+\item \lstinline'-xmit 0|1|2' turn transmission OFF, ALL, or ALIAS (default OFF). When transmission is OFF, input elements can be controlled using their addresses or aliases (if present). When transmission is ALL, input elements can be controlled using their addresses or aliases (if present), user's actions and output elements (bargraph) are transmitted as OSC messages as well as aliases (if present). When transmission is ALIAS,  input elements can only be controlled using their aliases, user's actions and output elements (bargraph) are transmitted as aliases only.
 \item \lstinline'-xmitfilter path' allows to filter output messages. Note that 'path' can be a regular expression (like "/freeverb/Reverb1/*").
 \end{itemize}
 
@@ -222,7 +222,7 @@ The xmit message at the root level is used to control the realtime transmission 
 	T1$ oscsend localhost 5510 /noise si xmit 1
 \end{lstlisting}
 
-turns transmission on. Now if we move the level slider we get a bunch of messages:
+turns transmission in ALL mode. Now if we move the level slider we get a bunch of messages:
 
 \begin{lstlisting}
 	T2: /noise/level f 0.024000
@@ -243,6 +243,8 @@ This feature can be typically used for automation to record and replay actions o
 \begin{lstlisting}
 	T1$ oscsend localhost 5510 /noise si xmit 0
 \end{lstlisting}
+
+Use the ALIAS (xmit = 2) mode if you need restricted access to your program: when ALIAS is mode is used, only aliases of input elements (sliders, buttons...) can be used to control them, and output elements (bargraph) will only emit on their aliases.
 
 \section{Filtering OSC messages}
 
@@ -387,7 +389,7 @@ As we can see TouchOSC send the x, y and z accelerometers in a single message, a
 \lstinline'-outport' $n$ & set the port number used by the application to transmit messages\\
 \lstinline'-errport' $n$ & set the port number used by the application to transmit error messages\\
 \lstinline'-desthost' $h$ & set the destination host for the messages sent by the application\\
-\lstinline'-xmit 1|0' & turn transmission ON or OFF (default OFF) \\
+\lstinline'-xmit 0|1|2' & turn transmission OFF, ALL or ALIAS (default OFF) \\
 \lstinline'-xmitfilter' $s$ & filter the \faust paths at emission time
 \end{tabular}
 
@@ -401,7 +403,7 @@ As we can see TouchOSC send the x, y and z accelerometers in a single message, a
 \subsection*{Control messages}
 
 \begin{tabular}{ll}
-\lstinline'oscsend' \emph{host} \emph{port} \lstinline'"/*"' \lstinline'si xmit 0|1' & set transmission mode \\
+\lstinline'oscsend' \emph{host} \emph{port} \lstinline'"/*"' \lstinline'si xmit 0|1|2' & set transmission mode \\
 \lstinline'oscsend' \emph{host} \emph{port} \emph{widget} \lstinline's get' & get widget's value \\
 \lstinline'oscsend' \emph{host} \emph{port} \emph{widget} \lstinline'f' $v$ & set widget's value
 \end{tabular}

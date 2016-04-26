@@ -177,12 +177,10 @@ void CPPCodeContainer::produceInternal()
 
     // Memory methods (as globals)
     tab(n, *fOut); *fOut << fKlassName << "* " << "new" <<  fKlassName << "() {"
-                        << "return (" << fKlassName << "*) new "<< fKlassName << "()"
+                        << " return (" << fKlassName << "*)new "<< fKlassName << "()"
                         << "; }";
 
-    tab(n, *fOut); *fOut << "void " << "delete" << fKlassName << "(" << fKlassName << "* dsp) {"
-                        << "delete dsp"
-                        << "; }";
+    tab(n, *fOut); *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) { delete dsp; }";
     tab(n, *fOut);
 }
 

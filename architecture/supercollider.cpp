@@ -28,7 +28,7 @@
 #include <string.h>
 #include <SC_PlugIn.h>
 
-#include <faust/audio/dsp.h>
+#include <faust/dsp/dsp.h>
 #include <faust/gui/UI.h>
 #include <faust/misc.h>
 

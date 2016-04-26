@@ -90,6 +90,8 @@ EXPORT string expandDSPFromString(const string& name_app,
             argv1[i+1] = argv[i];
         }
         
+        argv1[argc1] = 0;  // NULL terminated argv
+        
         char error_msg_aux[512];
         char sha_key_aux[128];
         const char* name = name_app.c_str();
@@ -124,6 +126,8 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
             argv1[argc1++] = argv[i];
         }
     }
+    
+    argv1[argc1] = 0;  // NULL terminated argv
   
     char error_msg_aux[512];
     if (!compile_faust(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg_aux, false)) {

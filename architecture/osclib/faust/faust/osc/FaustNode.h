@@ -71,7 +71,7 @@ template <typename C> class FaustNode : public MessageDriven, public uiItem
                 }
             }
 			
-		virtual ~FaustNode() { printf("this %x\n",this);}
+		virtual ~FaustNode() {}
 
 	public:
 		typedef SMARTP<FaustNode<C> > SFaustNode;

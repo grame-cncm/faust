@@ -49,8 +49,6 @@
 
 #include "faust/gui/UI.h"
 
-//using namespace std;
-
 /******************************************************************************
 *******************************************************************************
 
@@ -86,8 +84,8 @@ class CMDUI : public UI
 
 	std::string simplify(const std::string& src)
 	{
-		int		i=0;
-		int		level=0;
+		int	i = 0;
+		int	level = 0;
 		std::string	dst;
 
 		while (src[i] ) {
@@ -119,8 +117,7 @@ class CMDUI : public UI
 							if (isalnum(src[i])) {
 								dst+= tolower(src[i]);
 							}
-
-					}
+                    }
 					break;
 
 				default :
@@ -254,8 +251,8 @@ public:
 		}
 	}
 
-	int 	files()         { return fFiles.size(); }
-	char* 	file (int n)	{ return fFiles[n]; }
+	unsigned long	files()		{ return fFiles.size(); }
+	char*		file (int n)	{ return fFiles[n]; }
 
 	char* input_file ()     { std::cout << "input file " << fFiles[0] << "\n"; return fFiles[0]; }
 	char* output_file() 	{ std::cout << "output file " << fFiles[1] << "\n"; return fFiles[1]; }

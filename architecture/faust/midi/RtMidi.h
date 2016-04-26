@@ -47,6 +47,8 @@
 #if !defined(__CAHostTimeBase_h__)
 #define __CAHostTimeBase_h__
 
+#ifdef __APPLE__
+
 //=============================================================================
 //	Includes
 //=============================================================================
@@ -64,8 +66,6 @@
 #else
 	#error	Unsupported operating system
 #endif
-
-//#include "CADebugMacros.h"
 
 //=============================================================================
 //	CAHostTimeBase
@@ -118,6 +118,7 @@ inline UInt64 CAHostTimeBase::GetTheCurrentTime()
 
 	#if TARGET_OS_MAC
 		theTime = mach_absolute_time();
+          
 	#elif TARGET_OS_WIN32
 		LARGE_INTEGER theValue;
 		QueryPerformanceCounter(&theValue);
@@ -217,6 +218,8 @@ inline SInt64 CAHostTimeBase::HostDeltaToNanos(UInt64 inStartTime, UInt64 inEndT
 	return theSign * ConvertToNanos(theAnswer);
 }
 
+#endif // __APPLE__
+
 #endif
 
 /**********************************************************************/
@@ -273,6 +276,7 @@ inline SInt64 CAHostTimeBase::HostDeltaToNanos(UInt64 inStartTime, UInt64 inEndT
 
 #if __APPLE__
 #define __MACOSX_CORE__ 1
+//#define __UNIX_JACK__ 1
 #endif
 
 #if __linux__

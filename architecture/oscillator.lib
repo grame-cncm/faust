@@ -8,7 +8,6 @@ ml = library("music.lib");  // SR, db2linear, frac, PI, noise, ...
 fl = library("filter.lib"); // wgr, nlf2, tf2, smooth, tau2pole, iir, ...
 
 //--------------------Oscillator library for Faust--------------------------
-//
 // Virtual analog oscillators and filter-based oscillators.
 // For wavetable-based oscillators, see osc* in ./music.lib
 //
@@ -63,17 +62,27 @@ lf_rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
 // simple sawtooth waveform oscillator between 0 and 1
 lf_sawpos(freq) = lf_rawsaw(periodsamps) / periodsamps
 with {
-  periodsamps = float(ml.SR)/freq; // period in samples (not nec. integer)
+  periodsamps = float(ml.SR)/max(1.0e-7,abs(freq)); // period in samples (not nec. integer)
 };
 
 // --- saw1 ---
+//
 // simple sawtooth waveform oscillator between -1 and 1
 saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0; // zero-mean in [-1,1)
 // no lf prefix because order 1 explicit called for here
 
 //---------------- Bandlimited Sawtooth sawN, saw2, ... ------------------
 //
-// ### METHOD:
+// ### METHOD 1 (saw2):
+// Polynomial Transition Regions (PTR) (for aliasing suppression)
+// ### REFERENCE:
+// Kleimola, J.; Valimaki, V., "Reducing Aliasing from Synthetic Audio
+// Signals Using Polynomial Transition Regions," in Signal Processing
+// Letters, IEEE , vol.19, no.2, pp.67-70, Feb. 2012
+// https://aaltodoc.aalto.fi/bitstream/handle/123456789/7747/publication6.pdf?sequence=9
+// http://research.spa.aalto.fi/publications/papers/spl-ptr/
+//
+// ### METHOD 2 (sawN):
 // Differentiated Polynomial Waves (DPW) (for aliasing suppression)
 // ### REFERENCE:
 // "Alias-Suppressed Oscillators based on Differentiated Polynomial Waveforms",
@@ -82,27 +91,29 @@ saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0; // zero-mean in [-1,1)
 // Vol. 18, no. 5, May 2010.
 
 // --- sawN for N = 1 to 6 ---
-sawN(N,freq) = saw1 : poly(N) : D(N-1) : gate(N-1)
+//We can do 6, but 5 and 6 have noise at low fundamentals: MAX_SAW_ORDER = 6; MAX_SAW_ORDER_NEXTPOW2 = 8;
+MAX_SAW_ORDER = 4; MAX_SAW_ORDER_NEXTPOW2 = 8; // par cannot handle the case of 0 elements
+sawN(N,freq) = saw1l : poly(Nc) : D(Nc-1) : gate(Nc-1)
 with {
-  p0n = float(ml.SR)/float(freq); // period in samples
+  Nc = max(1,min(N,MAX_SAW_ORDER));
+  clippedFreq = max(20.0,abs(freq)); // use lf_sawpos(freq) for LFOs (freq < 20 Hz)
+  p0n = float(ml.SR)/clippedFreq; // period in samples
   lfsawpos = (_,1:fmod) ~ +(1.0/p0n); // sawtooth waveform in [0,1)
   // To introduce a phase offset here (phase in [0,1]):
   // lfsawpos(phase) = (+(phase*(1-1')), 1 : fmod ) ~ +(1.0/p0n);
-  saw1 = 2*lfsawpos - 1; // zero-mean, amplitude +/- 1
+  saw1l = 2*lfsawpos - 1; // zero-mean, amplitude +/- 1
   poly(1,x) =  x;
   poly(2,x) =  x*x;
   poly(3,x) =  x*x*x - x;
   poly(4,x) =  x*x*(x*x - 2.0);
-  poly(5,x) =  pow(x,5) - pow(x,3)*10.0/3.0 + x*7.0/3.0;
-  poly(6,x) =  pow(x,6) - 5.0*pow(x,4) + 7.0*poly(2,x);
+  poly(5,x) =  x*(7.0/3 + x*x*(-10.0/3.0 + x*x));
+  poly(6,x) =  x*x*(7.0 + x*x*(-5.0 + x*x));
   diff1(x) =  (x - x')/(2.0/p0n);
   diff(N) = seq(n,N,diff1); // N diff1s in series
+  factorial(0) = 1;
+  factorial(i) = i * factorial(i-1);
   D(0) = _;
-  D(1) = diff1/2.0;
-  D(2) = diff(2)/6.0;
-  D(3) = diff(3)/24.0;
-  D(4) = diff(4)/120.0;
-  D(5) = diff(5)/720.0;
+  D(i) = diff(i)/factorial(i+1);
   gate(N) = *(1@(N)); // delayed step for blanking startup glitch
 };
 
@@ -113,8 +124,18 @@ sawNp(N,freq,phase) = sawN(N,freq) : @(max(0,min(8191,int(phase*ml.SR/freq))));
 // Special named cases:
 
 // --- sawN ---
-saw2(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*ml.SR/freq);
+saw2dpw(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*ml.SR/freq); // inferior to saw2 below
 saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
+
+
+saw2(freq) = y with { // newer PTR version (stateless - freq can vary at any speed)
+  p0 = float(ml.SR)/float(max(1.0e-7,abs(freq))); // period in samples
+  t0 = 1.0/p0; // phase increment
+  p = ((_<:(-(1)<:_,_),_) <: selector1,selector2) ~(+(t0)):!,_;
+  selector1 = select2(<(0)); // for feedback
+  selector2 = select2(<(0), (_<:_,(*(1-p0):+(1)):+), _); // for output
+  y = 2*p-1;
+};
 
 // --- sawtooth ---
 sawtooth = saw2; // default choice for sawtooth signal - see also sawN
@@ -136,6 +157,7 @@ saw2f4 = saw2 : cf4 with {
 };
 
 //-------------------------- sawtooth_demo ---------------------------
+//
 // ### USAGE:  sawtooth_demo : _
 
 sawtooth_demo = signal with {
@@ -164,10 +186,11 @@ sawtooth_demo = signal with {
       [tooltip: Portamento (frequency-glide) time-constant in seconds]",
       0.1,0.001,10,0.001));
   sfreq = freq : fl.smooth(fl.tau2pole(portamento));
-  tone = (amp/3) *
-    (sawtooth(sfreq) + sawtooth(sfreq*detune1) + sawtooth(sfreq*detune2));
+  saworder = knob_group(nentry("[6] Saw Order [tooltip: Order of sawtootn aliasing suppression]",2,1,MAX_SAW_ORDER,1));
+  sawchoice = _ <: par(i,MAX_SAW_ORDER,sawN(i+1)) : ml.selectn(int(MAX_SAW_ORDER), int(saworder-1)); // when max is pwr of 2
+  tone = (amp/3) * (sawchoice(sfreq) + sawchoice(sfreq*detune1) + sawchoice(sfreq*detune2));
   signal = amp * select2(ei, select2(ss, tone, pink_noise), _);
-  checkbox_group(x) = knob_group(vgroup("[6] Alternate Signals",x));
+  checkbox_group(x) = knob_group(vgroup("[7] Alternate Signals",x));
   ss = checkbox_group(checkbox("[0]
 [tooltip: Pink Noise (or 1/f noise) is Constant-Q Noise, meaning that it has the same total power in every octave] Pink Noise Instead (uses only Amplitude control on the left)"));
   ei = checkbox_group(checkbox(
@@ -220,8 +243,14 @@ virtual_analog_oscillator_demo = signal with {
     [tooltip: See Faust's oscillator.lib for documentation and references]",x);
 
   // Signals
+  sawchoice = _ <:
+    // When MAX_SAW_ORDER is a power of 2:
+    par(i,MAX_SAW_ORDER,sawN(i+1)) : ml.selectn(int(MAX_SAW_ORDER), int(saworder-1));
+    // When MAX_SAW_ORDER is NOT a power of 2:
+    // (par(i,MAX_SAW_ORDER,sawN(i+1)), par(j,MAX_SAW_ORDER_NEXTPOW2-MAX_SAW_ORDER,_))
+    //   : ml.selectn(MAX_SAW_ORDER_NEXTPOW2, saworder-1);
   saw = (amp/3) *
-    (sawtooth(sfreq) + sawtooth(sfreq*detune1) + sawtooth(sfreq*detune2));
+    (sawchoice(sfreq) + sawchoice(sfreq*detune1) + sawchoice(sfreq*detune2));
   sq = (amp/3) *
     (square(sfreq) + square(sfreq*detune1) + square(sfreq*detune2));
   tri = (amp/3) *
@@ -281,6 +310,7 @@ virtual_analog_oscillator_demo = signal with {
     vslider("[5] Portamento [unit:sec] [style:knob] [scale:log]
       [tooltip: Portamento (frequency-glide) time-constant in seconds]",
       0.1,0.001,10,0.001));
+  saworder = knob_group(nentry("[6] Saw Order [tooltip: Order of sawtooth aliasing suppression]",2,1,MAX_SAW_ORDER,1));
   sfreq = freq : fl.smooth(fl.tau2pole(portamento));
 };
 
@@ -376,9 +406,24 @@ oscr_demo = oscrs_demo; // synonym
 //  https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html
 //
 
-pink_noise = ml.noise :
-   fl.iir((0.049922035, -0.095993537, 0.050612699, -0.004408786),
+pink_filter = fl.iir((0.049922035, -0.095993537, 0.050612699, -0.004408786),
                     (-2.494956002, 2.017265875, -0.522189400));
+
+pink_noise = ml.noise : pink_filter;
+
+// ### USAGE: pink_noise_vm(N) : _;
+// where N = number of latched white-noise processes to sum,
+//       not to exceed sizeof(int) in C++ (typically 32).
+//
+// ### References:
+//  http://www.dsprelated.com/showarticle/908.php
+//  http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney
+
+pink_noise_vm(N) = ml.noise <: _,par(i,N,fl.latch(clock(i))) :> _
+with {
+  clock(i) = (counter>>i)&1; // i'th latch clock signal
+  counter = (+(1)~_) - 1;
+};
 
 //----------------------- lfnoise, lfnoise0, lfnoiseN ---------------------
 // Low-frequency noise generators

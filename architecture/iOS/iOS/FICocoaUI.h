@@ -37,7 +37,7 @@
 #import <UIKit/UIKit.h>
 #import "FIMainViewController.h"
 
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/gui/GUI.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/APIUI.h"
@@ -454,7 +454,12 @@ public:
         list<uiCocoaItem*>::iterator    i;
         float                           labelYOffset = 0.f;
 
-        uiCocoaItem::setFrame(x, y, w, h);
+        if (fBoxType == kColorLayout) {
+            // Hack to force full screen layout even in 'portrait' only mode
+            w = h = std::max(w, h);
+        } else {
+            uiCocoaItem::setFrame(x, y, w, h);
+        }
 
         // For tab views : simply resize the tab corresponding box
         if (fTabView)
@@ -1508,6 +1513,7 @@ private:
                 }
             }
             
+            /* SL : 01/09/16 : seems unecessary...
             list<uiCocoaItem*>::iterator i1 = fWidgetList.begin();
             box = dynamic_cast<uiBox*>(*i1);
             
@@ -1517,6 +1523,7 @@ private:
                 [box->fTabView addButtonWithLabel:[NSString stringWithCString:label encoding:NSASCIIStringEncoding]];
                 box->fWidgetList.push_back(widget);
             }
+            */
         }
         else
         {
@@ -2557,6 +2564,7 @@ public:
 // global static fields
 
 list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 CGPoint inBoxPosition2absolutePosition(float x, float y, uiCocoaItem* box)
 {

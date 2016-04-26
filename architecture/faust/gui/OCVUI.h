@@ -1,6 +1,3 @@
-#ifndef _OCVUI_H
-#define _OCVUI_H
-
 /******************************************************************************
 *******************************************************************************
 
@@ -8,6 +5,9 @@
 
 *******************************************************************************
 *******************************************************************************/
+#ifndef _OCVUI_H
+#define _OCVUI_H
+
 /**
  * \file OCVUI.h
  * \brief OpenCV user interface
@@ -45,7 +45,7 @@ static void* ocvLoop(void*);
 class OCVUI : public UI
 {
     
-    public :
+    public:
     
 	// STRUCTURES
 	
@@ -83,7 +83,6 @@ class OCVUI : public UI
 		bool used;			/*!< Bool variable				*/
 	};
 	
-
 	// FUNCTIONS
 	
 	//-- UI Functions Redefinition
@@ -95,8 +94,8 @@ class OCVUI : public UI
 	// Destructor
 	~OCVUI() 
 	{
-	exit_=true;
-	pthread_join(loop_, NULL);	
+        exit_ = true;
+        pthread_join(loop_, NULL);	
 	};
 	
 	
@@ -120,9 +119,7 @@ class OCVUI : public UI
 	void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max){}
 	void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max){}
 
-
 	// -- METADATA DECLARATION
-	
 	
 	/**
 	 * \fn bool parser(std::string string2parse, metadata *pmeta)
@@ -143,12 +140,12 @@ class OCVUI : public UI
 	    // String analysis 
 	    for (int i = 0 ; i < string2parse.size() ; i++)
 	    {
-	    	if (string2parse[i]==SPACE)
+	    	if (string2parse[i] == SPACE)
 	    	{
-	    	    std::string oneParameter= string2parse.substr(0,i);
+	    	    std::string oneParameter= string2parse.substr(0, i);
 	    	    parameters.push_back(oneParameter);
 	    	    string2parse.erase(string2parse.begin(), string2parse.begin()+i+1);
-	    	    i=0;
+	    	    i = 0;
 	    	}	
 	    }
 	    std::string lastParameter = string2parse;
@@ -158,7 +155,7 @@ class OCVUI : public UI
 	    // Store Parameters in a Metadata Structure
 	    
 	    // Parameters count must be 2
-	    if (parameters.size()==2)
+	    if (parameters.size() == 2)
 	    {
 	    	/**
 	    	 * \enum color
@@ -166,7 +163,6 @@ class OCVUI : public UI
 	    	 *
 	    	 * Colors are indexed
 	    	 */
-	    	
 	    		
 	    	if (parameters[0]=="red")			/*!< red = 1		*/
 	    	{
@@ -215,7 +211,7 @@ class OCVUI : public UI
 	 */
 	void declare(FAUSTFLOAT* zone, const char* key, const char* val) 
 	{
-		if (key=="ocv")
+		if (key == "ocv")
 		{
 			metadata newMeta;
 			bool string_parsed = false;
@@ -248,19 +244,19 @@ class OCVUI : public UI
 	
     void contoursProcess(std::vector<std::vector<cv::Point> > contours, int color)
 	{
-		int tempArea=0;
+		int tempArea = 0;
 		cv::Rect myRect;
-		for (int j=0 ; j<contours.size() ; j++)
+		for (int j = 0 ; j<contours.size() ; j++)
 		{
 			std::vector<std::vector<cv::Point> > contours_poly( contours.size() );
 			std::vector<cv::Rect> boundRect( contours.size() );
 		
-			if (contours[j].size()>40)										// Do not take care about small
+			if (contours[j].size() > 40)										// Do not take care about small
 																				// contours
 			{
 				approxPolyDP( cv::Mat(contours[j]), contours_poly[j], 3, true );// Approximate contours to 
 																				// a polygone
-				boundRect[j] = cv::boundingRect( cv::Mat(contours_poly[j]) );		// Bound a contour in a 
+				boundRect[j] = cv::boundingRect( cv::Mat(contours_poly[j]) );	// Bound a contour in a 
 																				// rectangle
 				if ((int)boundRect[j].area()>tempArea)	
 				{
@@ -368,7 +364,6 @@ class OCVUI : public UI
 		cv::circle(my_image, cv::Point(my_object.centerX, my_object.centerY),
 				   my_object.radius, bgr_color, 2, 8, 0);
 	}
-
 	
 	/**
 	 * \fn imageProcessing(cv::Mat BGRImage)
@@ -387,7 +382,6 @@ class OCVUI : public UI
 		width_ = BGRImage.cols;
 		
 		cv::Mat HsvImage;
-		
 		cv::cvtColor(BGRImage, HsvImage, CV_BGR2HSV);	// Convert frame to HSV format 
    	    												// in order to use "inRange"
    	    
@@ -425,7 +419,7 @@ class OCVUI : public UI
 		cv::findContours(m_mask, m_contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
 	
 		// Process every contour. Note that color is taken in account.
-		for (int i=1 ; i<=6 ; i++)
+		for (int i = 1; i <= 6; i++)
 		{
 			switch (i)
 			{
@@ -465,11 +459,11 @@ class OCVUI : public UI
 		}
 		
 		// Audio parameters setting
-		for (int i=0 ; i<objects_storage_.size() ; i++)
+		for (int i = 0; i<objects_storage_.size(); i++)
 		{
-			for (int j=0 ; j<parameters_storage_.size() ; j++)
+			for (int j = 0; j < parameters_storage_.size(); j++)
 			{
-				if(objects_storage_[i].color==parameters_storage_[j].color
+				if (objects_storage_[i].color == parameters_storage_[j].color
 					&& !parameters_storage_[j].used)
 				{
 					if (parameters_storage_[j].param=="color")
@@ -505,12 +499,12 @@ class OCVUI : public UI
 
 	void empty()
     {
-    	while (objects_storage_.size()>0)
+    	while (objects_storage_.size() > 0)
     	{
     		objects_storage_.pop_back();
     	}
 		
-		for(int l=0 ; l<parameters_storage_.size() ; l++)
+		for (int l = 0; l<parameters_storage_.size(); l++)
 		{
 			parameters_storage_[l].used=false;
 		}
@@ -544,7 +538,7 @@ class OCVUI : public UI
 	 */
 	void run()
 	{		
-		exit_=false;
+		exit_ = false;
 		int create_thread = 1;
 	
 		create_thread = pthread_create(&loop_, NULL, ocvLoop, (void *) this);
@@ -553,8 +547,7 @@ class OCVUI : public UI
 		{
 			std::cout<<"Could not create thread. Thread Creation failed."<< std::endl;
 		}
-
-	}
+    }
        	
     ////////////////////////////////////////////
 	////									////
@@ -562,7 +555,7 @@ class OCVUI : public UI
 	////									////
 	////////////////////////////////////////////
 	
-    private :
+    private:
     	
 	// HSV min and max values variables
 	// #1 : RED
@@ -590,11 +583,11 @@ class OCVUI : public UI
 	static cv::Scalar magenta_max;
 
 	// Objects Storage
-		// Where all the objects are stored
+    // Where all the objects are stored
 	std::vector<object> objects_storage_;
 	
 	// Parameters Storage
-		// Where all the "ocv" metadata parameters are stored
+    // Where all the "ocv" metadata parameters are stored
 	std::vector<metadata> parameters_storage_;
 	
 	// Matrix height and width
@@ -605,12 +598,11 @@ class OCVUI : public UI
 	
 	// Thread EXIT variable
 	bool exit_;
-		
 };
 
 // HSV min and max values
-	// Note that H is between 0 and 180 
-	// in openCV
+// Note that H is between 0 and 180 
+// in openCV
 	
 // #1 = RED
 cv::Scalar OCVUI::red_min = cv::Scalar (0,200,55);
@@ -636,11 +628,10 @@ cv::Scalar OCVUI::blue_max = cv::Scalar (125,255,255);
 cv::Scalar OCVUI::magenta_min = cv::Scalar (145,200,55);
 cv::Scalar OCVUI::magenta_max = cv::Scalar (155,255,255);
 
-
 // OpenCV Main Loop Function Implementation
-	// This function is a loop that gets every frame from a camera
-	// and calls the image processing functions.
-	// This is the OCVUI.h main function.
+// This function is a loop that gets every frame from a camera
+// and calls the image processing functions.
+// This is the OCVUI.h main function.
 /**
  * \fn void* ocvLoop(void* ocv_object)
  * \brief Loop function for image processing
@@ -648,7 +639,7 @@ cv::Scalar OCVUI::magenta_max = cv::Scalar (155,255,255);
 void* ocvLoop(void* ocv_object)
 {
 	// The camera index allows to select the camera.
-		// 0 stands for the default camera.
+    // 0 stands for the default camera.
 	int camIndex=1;
 	//std::cout<<"camera index ?"<<std::endl;
 	//std::cin>>camIndex;
@@ -658,32 +649,26 @@ void* ocvLoop(void* ocv_object)
 	cv::VideoCapture cap(camIndex);
 	std::cout<<"Video Capture from camera n°"<<camIndex<<std::endl;
 	
-	if(!cap.isOpened())  // check if we succeeded to read frames
+	if (!cap.isOpened())  // check if we succeeded to read frames
 						 // from camera
 	{
 		std::cout<<"Could not open camera n°"<<camIndex<<" !"<<std::endl;
-		
 	}
     	  
 	cap.set(CV_CAP_PROP_FPS, 60); 	// Set frames rate
-		
-	cv::namedWindow( "Tracking", 1 );	// Create a window
+	cv::namedWindow("Tracking", 1);	// Create a window
 
-	while(!ocv->exit())
+	while (!ocv->exit())
    	{
+        cap >> frame;							// Get frame from camera
+        ocv->imageProcessing(frame);				// Objects Detection function
 
-   	    cap >> frame;							// Get frame from camera
-       														
-		ocv->imageProcessing(frame);				// Objects Detection function
-	
    		/*** Show image ***/
    		cv::imshow("Tracking", frame);
-
-   		ocv->empty();								// Empty the objects and parameters storages
+  		ocv->empty();								// Empty the objects and parameters storages
    	}
    	
    	ocv->exitThread();
-
 }
 
 #endif

@@ -36,7 +36,7 @@
 
 #include "faust/misc.h"
 #include "faust/gui/UI.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/jsonfaustui.h"
 #include "faust/gui/JSONUI.h"
@@ -232,19 +232,19 @@ public:
      * Takes the address of a parameter and returns its current
      * value.
      */
-    float getParam(const char* address) {
-        return (polyMax == 0) ? mapUI.getValue(address) : DSPpoly->getValue(address);
+    float getParamValue(const char* address) {
+        return (polyMax == 0) ? mapUI.getParamValue(address) : DSPpoly->getParamValue(address);
      }
     
     /*
      * setParam(address,value)
      * Sets the value of the parameter associated with address.
      */
-    void setParam(const char* address, float value) {
+    void setParamValue(const char* address, float value) {
         if (polyMax == 0) {
-            mapUI.setValue(address, value);
+            mapUI.setParamValue(address, value);
         } else {
-            DSPpoly->setValue(address, value);
+            DSPpoly->setParamValue(address, value);
         }
     }
     
@@ -286,6 +286,6 @@ public:
      * Returns the address of a parameter in function of its "id".
      */
     const char* getParamAddress(int id) {
-        return mapUI.getParamPath(id).c_str();
+        return mapUI.getParamAdress(id).c_str();
     }  
 };

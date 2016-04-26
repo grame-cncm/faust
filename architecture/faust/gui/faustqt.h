@@ -319,8 +319,7 @@ class dbAbstractDisplay : public AbstractDisplay
     FAUSTFLOAT      fScaleMin;
     FAUSTFLOAT      fScaleMax;
     std::vector<int>     fLevel;
-    std::vector<QBrush>  fBrush;
-    
+    std::vector<QBrush>  fBrush;    
     
     /**
      * Convert a dB value into a scale between 0 and 1 (following IEC standard ?)
@@ -419,7 +418,6 @@ class dbAbstractDisplay : public AbstractDisplay
             fLevel.push_back(+10);
             fBrush.push_back(QBrush(g));
         }
-        
     }
     
 public:
@@ -495,7 +493,7 @@ protected:
     /**
      * Draw the LED using a transparency depending of its value
      */
-    virtual void paintEvent ( QPaintEvent *)
+    virtual void paintEvent(QPaintEvent *)
     {
         QPainter painter(this);
         painter.drawRect(rect());
@@ -538,23 +536,22 @@ class linBargraph : public AbstractDisplay
     /**
      * The length of the rectangle is proportional to the value
      */
-    void paintContent (QPainter* painter) const
+    void paintContent(QPainter* painter) const
     {
         int     w = width();
         int     h = height();
         FAUSTFLOAT   v = (fValue-fMin)/(fMax-fMin);
         
-        if (h>w) {
+        if (h > w) {
             // draw vertical rectangle
             painter->fillRect(0,(1-v)*h,w, v*h, fBrush);
         } else {
             // draw horizontal rectangle
             painter->fillRect(0, 0, v*w, h, fBrush);
         }
-        
     }
     
-    virtual void paintEvent ( QPaintEvent *)
+    virtual void paintEvent(QPaintEvent *)
     {
         QPainter painter(this);
         paintContent(&painter);
@@ -646,7 +643,7 @@ class dbBargraph : public dbAbstractDisplay
     /**
      * Draw the content using colored segments
      */
-    void paintContent (QPainter* painter) const
+    void paintContent(QPainter* painter) const
     {
         int   l = fLevel.size();
         
@@ -663,8 +660,7 @@ class dbBargraph : public dbAbstractDisplay
         painter->drawRect(0,0,width(),height());
     }
     
-    
-    virtual void paintEvent ( QPaintEvent *)
+    virtual void paintEvent (QPaintEvent *)
     {
         QPainter painter(this);
         paintScale(&painter);
@@ -675,11 +671,9 @@ public:
     
     dbBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : dbAbstractDisplay(lo,hi)
     {
-        
         QFont f = this->font();
         f.setPointSize(6);
         this->setFont(f);
-        
         fBackColor = QBrush(QColor(20,20,20));
     }
 };
@@ -699,7 +693,6 @@ protected:
         FAUSTFLOAT s1 = fScaleMax;
         FAUSTFLOAT sx = dB2Scale(dB);
         int    h = height();
-        
         return h - h*(s0-sx)/(s0-s1);
     }
     
@@ -728,7 +721,6 @@ protected:
         painter->fillRect(0, y, width(), pos-y+1, b);
         return y;
     }
-    
     
 public:
     
@@ -761,7 +753,6 @@ protected:
         FAUSTFLOAT s1 = fScaleMax;
         FAUSTFLOAT sx = dB2Scale(dB);
         int    w = width();
-        
         return w - w*(s1-sx)/(s1-s0);
     }
     
@@ -786,7 +777,6 @@ protected:
         painter->fillRect(pos, 0, x-pos, height(), b);
         return x;
     }
-    
     
 public:
     
@@ -989,8 +979,6 @@ class uiCheckButton : public QObject, public uiItem
 	void setState(int v)		{ modifyZone(FAUSTFLOAT(v>0)); }
 };
 
-
-
 /**
  * A slider that controls/reflects the value (min..max)
  * of a zone.
@@ -1056,13 +1044,15 @@ class ZoneSetter : public QObject
     Q_OBJECT
     FAUSTFLOAT  fValue;
     FAUSTFLOAT* fZone;
+    
 public:
     explicit ZoneSetter(FAUSTFLOAT v, FAUSTFLOAT* z, QObject *parent = 0):
     QObject(parent), fValue(v), fZone(z)
     {}
     
     public slots:
-    void set(bool){
+    void set(bool)
+    {
         *fZone = fValue;
         //        qDebug() << "setting " << fValue << " --> " << fZone;
     }
@@ -1106,7 +1096,7 @@ class uiRadioButtons : public QGroupBox, public uiItem
             
             for (unsigned int i = 0; i < names.size(); i++) {
                 double v = values[i];
-                if ( (v >= lo) && (v <= hi) ) {
+                if ((v >= lo) && (v <= hi)) {
                     
                     // It is a valid value included in slider's range
                     QRadioButton*   b = new QRadioButton(QString(names[i].c_str()), this);
@@ -1150,9 +1140,6 @@ class uiRadioButtons : public QGroupBox, public uiItem
         if (defaultitem > -1) { fButtons[defaultitem]->setChecked(true); }
     }
 };
-
-
-
 
 /**
  * A popup menu. The names and values used for the menu items
@@ -1259,7 +1246,6 @@ class uiBargraph : public QObject, public uiItem
     }
 };
 
-
 /**
  * A numerical entry that controls/reflects the value (min..max)
  * of a zone.
@@ -1288,7 +1274,6 @@ class uiNumEntry : public QObject, public uiItem
 		fNumEntry->setValue(fCur);
 		*fZone = fCur;
 	}
-    
     
 	virtual void reflectZone()
 	{
@@ -1377,7 +1362,6 @@ class QTGUI : public QWidget, public GUI
 		return ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0));
 	}
     
-    
     /**
      * Insert a widget into the parent widget (the top of
      * the stack group). The label is used if this group is
@@ -1459,8 +1443,7 @@ class QTGUI : public QWidget, public GUI
         
         label = startWith(label, "0x") ? "" : label;
         
-        if(fGroupStack.empty())
-        {
+        if (fGroupStack.empty()) {
             if (isTabContext()) {
                 box = new QWidget(this);
                 // set background color
@@ -1489,10 +1472,7 @@ class QTGUI : public QWidget, public GUI
                 box->setToolTip(gGroupTooltip.c_str());
                 gGroupTooltip = std::string();
             }
-            
-        }
-        
-        else{
+        } else {
             if (isTabContext()) {
                 box = new QWidget();
                 // set background color
@@ -1528,11 +1508,10 @@ class QTGUI : public QWidget, public GUI
 	{
 		QTabWidget* group;
         
-        if(fGroupStack.empty()){
+        if (fGroupStack.empty()) {
             group = new QTabWidget(this);
             fGeneralLayout->addWidget(group);
-        }
-        else{
+        } else {
             group = new QTabWidget();
         }
         
@@ -1542,7 +1521,8 @@ class QTGUI : public QWidget, public GUI
     
     public slots :
     
-	void update()		{
+	void update()		
+    {
         //std::cout << '.' << std::endl;
         //		updateAllZones();
 		updateAllGuis();
@@ -1550,8 +1530,8 @@ class QTGUI : public QWidget, public GUI
     
 public:
     
-
-    QTGUI(QWidget* parent) : QWidget(parent){
+    QTGUI(QWidget* parent) : QWidget(parent)
+    {
         fGeneralLayout = new QVBoxLayout;
         setLayout(fGeneralLayout);
         QWidget::show();
@@ -1560,8 +1540,8 @@ public:
         fTimer = 0;
     }
 
-    QTGUI():QWidget(){
-        
+    QTGUI():QWidget()
+    {
         fGeneralLayout = new QVBoxLayout;
         setLayout(fGeneralLayout);
         QWidget::show();
@@ -1577,19 +1557,17 @@ public:
         fMainWindow->setCentralWidget(sa);
     }
 
-	virtual ~QTGUI() {
-        
+	virtual ~QTGUI() 
+    {
         delete fGeneralLayout;
     }
 
-    QString styleSheet(){
-        
+    QString styleSheet()
+    {
         QString styleSheet("");
+        QFile file(":/Grey.qss");
         
-         QFile file(":/Grey.qss");
-        
-        if(file.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
+        if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
             styleSheet = QLatin1String(file.readAll());
             file.close();
         }
@@ -1605,29 +1583,29 @@ public:
     {
         if (zone == 0) {
             // special zone 0 means group metadata
-            if (strcmp(key,"tooltip")==0) {
+            if (strcmp(key,"tooltip") == 0) {
                 // only group tooltip are currently implemented
                 gGroupTooltip = formatTooltip(30, value);
             }
         } else {
-            if (strcmp(key,"size")==0) {
+            if (strcmp(key,"size") == 0) {
                 fGuiSize[zone]=atof(value);
             }
-            else if (strcmp(key,"tooltip")==0) {
+            else if (strcmp(key,"tooltip") == 0) {
                 fTooltip[zone] = formatTooltip(30, value) ;
             }
-            else if (strcmp(key,"unit")==0) {
+            else if (strcmp(key,"unit") == 0) {
                 fUnit[zone] = value ;
             }
-            else if (strcmp(key,"scale")==0) {
+            else if (strcmp(key,"scale") == 0) {
                 if (strcmp(value,"log") == 0) {
                     fLogSet.insert(zone);
                 } else if (strcmp(value,"exp") == 0) {
                     fExpSet.insert(zone);
                 }
             }
-            else if (strcmp(key,"style")==0) {
-                // else if ((strcmp(key,"style")==0) || (strcmp(key,"type")==0)) {
+            else if (strcmp(key,"style") == 0) {
+                // else if ((strcmp(key,"style") == 0) || (strcmp(key,"type") == 0)) {
                 if (strcmp(value,"knob") == 0) {
                     fKnobSet.insert(zone);
                 } else if (strcmp(value,"led") == 0) {
@@ -1654,9 +1632,7 @@ public:
     QString extractIPnum()
     {
         QList<QHostAddress> ipAdresses = QNetworkInterface::allAddresses();
-        
         QList<QHostAddress>::iterator it;
-        
         QString localhost("localhost"); 
         
         for(it = ipAdresses.begin(); it != ipAdresses.end(); it++){
@@ -1683,7 +1659,7 @@ public:
     
     void displayQRCode(const QString& url, QMainWindow* parent = NULL){
         
-        if(parent == NULL)
+        if (parent == NULL)
             parent = new QMainWindow;
         
         QWidget* centralWidget = new QWidget;
@@ -1748,8 +1724,8 @@ public:
         parent->show();
     }
     
-    bool toPNG(const QString& filename, QString& error){
-        
+    bool toPNG(const QString& filename, QString& error)
+    {
         QFile file(filename);
         if(file.open(QIODevice::WriteOnly)){
             fQrCode.save(&file, "PNG");
@@ -1770,7 +1746,7 @@ public:
      		fTimer->start(100);
 		}
 
-        if(fMainWindow)
+        if (fMainWindow)
             fMainWindow->show();
 	}
     
@@ -1790,17 +1766,20 @@ public:
     //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-    virtual void openHorizontalBox(const char* label) {
+    virtual void openHorizontalBox(const char* label) 
+    {
 		openBox(label, new QHBoxLayout());
 	}
     
-	virtual void openVerticalBox(const char* label) 	{
+	virtual void openVerticalBox(const char* label) 	
+    {
         openBox(label, new QVBoxLayout());
     }
     
-    virtual void openFrameBox(const char* ) 		{ }
+    virtual void openFrameBox(const char* ) 		{}
     
-	virtual void openTabBox(const char* label) 		{ 
+	virtual void openTabBox(const char* label) 		
+    { 
 		openTab(label);
 	}
     
@@ -1810,7 +1789,6 @@ public:
 		fGroupStack.pop();
 		if (fGroupStack.empty()) { group->show(); group->adjustSize();}
 	}
-    
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -1844,7 +1822,6 @@ public:
         checkForTooltip(zone, w);
         clearMetadata();
 	}
-    
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -1896,7 +1873,6 @@ public:
         clearMetadata();
     }
     
-    
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
     // ADD KNOBS
@@ -1937,7 +1913,6 @@ public:
         checkForTooltip(zone, w);
         clearMetadata();
 	}
-    
     
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -1997,7 +1972,6 @@ public:
         clearMetadata();
 	}
     
-    
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // ADD RADIO-BUTTONS AND MENUS
@@ -2033,7 +2007,6 @@ public:
         if (label && label[0]) closeBox();
         clearMetadata();
     }
-    
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
     //

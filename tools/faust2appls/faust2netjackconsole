@@ -41,8 +41,8 @@ done
 # compile the *.dsp files
 #
 for f in $FILES; do
-    faust -i -a netjack-console.cpp $OPTIONS $f -o $f.cpp
-    g++  $f.cpp $FAUSTTOOLSFLAGS -I/usr/local/include -L/usr/local/lib -ljacknet $OSCDEFS $HTTPDEFS -o  ${f%.dsp} 
+    faust -i -a netjack-console.cpp $OPTIONS $f -o $f.cpp || exit
+    g++  $f.cpp $FAUSTTOOLSFLAGS -I/usr/local/include -L/usr/local/lib -ljacknet $OSCDEFS $HTTPDEFS -o  ${f%.dsp} || exit
     rm $f.cpp
 
     # collect binary file name for FaustGIDE

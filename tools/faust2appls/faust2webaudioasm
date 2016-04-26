@@ -100,27 +100,27 @@ fi
 BINARIES=""
 
 for f in $FILES; do
-    name=${f%.dsp}
+    name=$(basename "$f" .dsp)
     
     # compile the Faust DSP to C++ or asm.js code
     if [ $EMCC = emcc ] ; then
-        faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp
+        faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
-        faust -lang ajs $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -cn $name $OPTIONS $f -o $name-temp1.js
+        faust -lang ajs $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -cn $name $OPTIONS $f -o $name-temp1.js || exit
     fi
      
     if [ $EMCC = emcc ] ; then
         # prepare emcc compilation files
         if [ $POLY = "false" ]; then
-            EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setValue','_"$name"_getValue','_"$name"_getJSON']"
+            EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setParamValue','_"$name"_getParamValue','_"$name"_getJSON']"
             
         else
-            EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setValue','_"$name"_poly_getValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_allNotesOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel','_"$name"_poly_pitchBend']" 
+            EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setParamValue','_"$name"_poly_getParamValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_allNotesOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel','_"$name"_poly_pitchBend']" 
                   
         fi
         # compile the C++ code to asm.js
         emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_MEMORY=100663296 --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp1.js \
-            -s EXPORTED_FUNCTIONS=$EXPORTED
+            -s EXPORTED_FUNCTIONS=$EXPORTED || exit
  
         # remove intermediate C++  file
         rm $name.cpp

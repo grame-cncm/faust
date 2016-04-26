@@ -1,21 +1,21 @@
 /************************************************************************
 
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
+    IMPORTANT NOTE : this file contains two clearly delimited sections :
+    the ARCHITECTURE section (in two parts) and the USER section. Each section
+    is governed by its own copyright and license. Please check individually
+    each section for license and copyright information.
 *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
 
 /************************************************************************
     FAUST Architecture File
-	Copyright (C) 2004-2011 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2004-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU Lesser General Public
-	License as published by the Free Software Foundation; either version 3
-	of the License, or (at your option) any later version.
+    License as published by the Free Software Foundation; either version 3
+    of the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,16 +23,16 @@
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public License
-	along with this program; If not, see <http://www.gnu.org/licenses/>.
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-	EXCEPTION : As a special exception, you may create a larger work
-	that contains this FAUST architecture section and distribute
-	that work under terms of your choice, so long as this FAUST
-	architecture section is not modified.
+    EXCEPTION : As a special exception, you may create a larger work
+    that contains this FAUST architecture section and distribute
+    that work under terms of your choice, so long as this FAUST
+    architecture section is not modified.
 
-	MAX MSP SDK : in order to compile a MaxMSP external with this
-	architecture file you will need the official MaxMSP SDK from
-	cycling'74. Please check the corresponding license.
+    MAX MSP SDK : in order to compile a MaxMSP external with this
+    architecture file you will need the official MaxMSP SDK from
+    cycling'74. Please check the corresponding license.
 
  ************************************************************************
  ************************************************************************/
@@ -51,7 +51,6 @@
 #include <vector>
 #include <map>
 #include <math.h>
-
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -72,7 +71,7 @@
 
 #include "faust/gui/UI.h"
 #include "faust/gui/JSONUI.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/misc.h"
 
 using namespace std;
@@ -97,7 +96,6 @@ using namespace std;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-
 /* Faust code wrapper ------- */
 
 #include "ext.h"
@@ -109,7 +107,17 @@ using namespace std;
 #define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2		/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION "0.55"
+#define EXTERNAL_VERSION "0.56"
+
+#include "faust/gui/GUI.h"
+#include "faust/gui/MidiUI.h"
+
+#ifdef POLY
+#include "faust/dsp/poly-dsp.h"
+#endif
+
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 static const char* getCodeSize()
 {
@@ -150,16 +158,26 @@ typedef struct faust
 {
     t_pxobject m_ob;
     t_atom *m_seen, *m_want;
-    map<string, t_object*> m_output_table;
+    map<string, vector <t_object*> > m_output_table;
     short m_where;
     bool m_mute;
-    void** args;
-    mspUI* dspUI;
-    mydsp* dsp;
+    void** m_args;
+    mspUI* m_dspUI;
+    dsp* m_dsp;
     char* m_json;
+    t_systhread_mutex m_mutex;    
+    int m_Inputs;
+    int m_Outputs;
+#ifdef MIDICTRL
+    MidiUI* m_midiUI;
+    midi_handler* m_midiHandler;
+#endif
 } t_faust;
 
-void *faust_class;
+void* faust_class;
+
+void faust_create_jsui(t_faust* x);
+void faust_make_json(t_faust* x);
 
 /*--------------------------------------------------------------------------*/
 class mspUIObject {
@@ -321,7 +339,7 @@ class mspUI : public UI
 
 	public:
     
-		typedef map<string,mspUIObject*>::iterator iterator;
+		typedef map<string, mspUIObject*>::iterator iterator;
 
 		mspUI() 
         {
@@ -465,7 +483,7 @@ class mspUI : public UI
 static bool check_digit(const string& name)
 {
     for (int i = name.size() - 1; i >= 0; i--) {
-        if (isdigit(name[i])) return true;
+        if (isdigit(name[i])) { return true; }
     }
     return false;
 }
@@ -474,26 +492,27 @@ static int count_digit(const string& name)
 {
     int count = 0;
     for (int i = name.size() - 1; i >= 0; i--) {
-        if (isdigit(name[i])) count++;
+        if (isdigit(name[i])) { count++; }
     }
     return count;
 }
 
+/*--------------------------------------------------------------------------*/
 void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 {
-    bool res = false;
-    string name = string((s)->s_name);
-     
     if (ac < 0) return;
     
+    bool res = false;
+    string name = string((s)->s_name);
+    
     // Check if no argument is there, consider it is a toggle message for a button
-    if (ac == 0 && obj->dspUI->isValue(name)) {
+    if (ac == 0 && obj->m_dspUI->isValue(name)) {
         
         string name = string((s)->s_name);
         float off = 0.0f;
         float on = 1.0f;
-        obj->dspUI->setValue(name, off);
-        obj->dspUI->setValue(name, on);
+        obj->m_dspUI->setValue(name, off);
+        obj->m_dspUI->setValue(name, on);
         
         av[0].a_type = A_FLOAT;
         av[0].a_w.w_float = off;
@@ -528,10 +547,10 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         for (i = 0, ap = av; i < ac; i++, ap++) {
             float value;
             switch (atom_gettype(ap)) {
-                case A_LONG: {
+                case A_LONG: 
                     value = (float)ap[0].a_w.w_long;
                     break;
-                }
+                
                 case A_FLOAT:
                     value = ap[0].a_w.w_float;
                     break;
@@ -558,11 +577,11 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
             }
             
             // Try special naming scheme for list of parameters
-            res = obj->dspUI->setValue(param_name, value); 
+            res = obj->m_dspUI->setValue(param_name, value); 
             
             // Otherwise try standard name
             if (!res) {
-                res = obj->dspUI->setValue(name, value);
+                res = obj->m_dspUI->setValue(name, value);
             }
             
             if (!res) {
@@ -572,13 +591,67 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
     } else {
         // Standard parameter name
         float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
-        res = obj->dspUI->setValue(name, value);
+        res = obj->m_dspUI->setValue(name, value);
     }
     
     if (!res) {
         post("Unknown parameter : %s", (s)->s_name);
     }
 }
+
+/*--------------------------------------------------------------------------*/
+#ifdef POLY
+void faust_polyphony(t_faust* obj, t_symbol* s, short ac, t_atom* av)
+{
+    if (systhread_mutex_lock(obj->m_mutex) == MAX_ERR_NONE) {
+        // Delete old
+        delete obj->m_dsp;
+        obj->m_dspUI->clear();
+        // Allocate new one
+        if (av[0].a_w.w_long > 0) {
+            obj->m_dsp = new mydsp_poly(av[0].a_w.w_long, true, true);
+        } else {
+            obj->m_dsp = new mydsp();
+        }
+        // Initialize User Interface (here connnection with controls)
+        obj->m_dsp->buildUserInterface(obj->m_dspUI);
+    #ifdef MIDICTRL
+        obj->m_dsp->buildUserInterface(obj->m_midiUI);
+    #endif
+        // Initialize at the system's sampling rate
+        obj->m_dsp->init(long(sys_getsr()));
+        
+        // Prepare JSON
+        faust_make_json(obj);
+      
+        // Send JSON to JS script
+        faust_create_jsui(obj);
+    
+        systhread_mutex_unlock(obj->m_mutex);
+    } else {
+        post("Mutex lock cannot be taken...");
+    }
+}
+#endif
+
+/*--------------------------------------------------------------------------*/
+#ifdef MIDICTRL
+void faust_midievent(t_faust* obj, t_symbol* s, short ac, t_atom* av) 
+{
+    if (ac > 0) {
+        int type = (int)av[0].a_w.w_long & 0xf0;
+        int channel = (int)av[0].a_w.w_long & 0x0f;
+                
+        if (ac == 1) {
+            obj->m_midiHandler->handleSync(0.0, av[0].a_w.w_long);
+        } else if (ac == 2) {
+            obj->m_midiHandler->handleData1(0.0, type, channel, av[1].a_w.w_long);
+        } else if (ac == 3) {
+            obj->m_midiHandler->handleData2(0.0, type, channel, av[1].a_w.w_long, av[2].a_w.w_long);
+        }
+    }
+}
+#endif
 
 /*--------------------------------------------------------------------------*/
 void faust_create_jsui(t_faust* x)
@@ -601,24 +674,39 @@ void faust_create_jsui(t_faust* x)
     x->m_output_table.clear();
     for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
         obj = jbox_get_object(box);
-        t_symbol *scriptingname = jbox_get_varname(obj); // scripting name
-        if (scriptingname && x->dspUI->isOutputValue(scriptingname->s_name)) {
-            x->m_output_table[scriptingname->s_name] = obj;
+        t_symbol* scriptingname = jbox_get_varname(obj); // scripting name
+        // Keep control outputs
+        if (scriptingname && x->m_dspUI->isOutputValue(scriptingname->s_name)) {
+            x->m_output_table[scriptingname->s_name].push_back(obj);
         }
     }
 }
 
 void faust_update_outputs(t_faust* x)
 {
-    map<string, t_object*>::iterator it;
-    for (it =  x->m_output_table.begin(); it != x->m_output_table.end(); it++) {
-        FAUSTFLOAT value = x->dspUI->isOutputValue((*it).first);
+    map<string, vector<t_object*> >::iterator it1;
+    vector<t_object*>::iterator it2;
+    for (it1 = x->m_output_table.begin(); it1 != x->m_output_table.end(); it1++) {
+        FAUSTFLOAT value = x->m_dspUI->getOutputValue((*it1).first);
         if (value != NAN) {
             t_atom at_value;
             atom_setfloat(&at_value, value);
-            object_method_typed((*it).second, gensym("float"), 1, &at_value, 0);
+            for (it2 = (*it1).second.begin(); it2 != (*it1).second.end(); it2++) {
+                object_method_typed((*it2), gensym("float"), 1, &at_value, 0);
+            }
         }
     }
+}
+
+/*--------------------------------------------------------------------------*/
+void faust_make_json(t_faust* x)
+{
+    // Prepare JSON
+    if (x->m_json) free(x->m_json);
+    JSONUI builder(x->m_dsp->getNumInputs(), x->m_dsp->getNumOutputs());
+    mydsp::metadata(&builder);
+    x->m_dsp->buildUserInterface(&builder);
+    x->m_json = strdup(builder.JSON().c_str());
 }
 
 /*--------------------------------------------------------------------------*/
@@ -626,40 +714,50 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 {
     t_faust* x = (t_faust*)newobject(faust_class);
 
+    x->m_json = 0;
     x->m_mute = false;
+    x->m_dsp = new mydsp();
+    x->m_Inputs = x->m_dsp->getNumInputs();
+    x->m_Outputs = x->m_dsp->getNumOutputs();
+   
+    x->m_dspUI = new mspUI();
 
-    x->dsp = new mydsp();
-    x->dspUI = new mspUI();
-
-    x->dsp->init(long(sys_getsr()));
-    x->dsp->buildUserInterface(x->dspUI);
+    x->m_dsp->init(long(sys_getsr()));
+    x->m_dsp->buildUserInterface(x->m_dspUI);
+    
+    t_max_err err = systhread_mutex_new(&x->m_mutex, SYSTHREAD_MUTEX_NORMAL);
+    if (err != MAX_ERR_NONE) {
+        post("Cannot allocate mutex...");
+    }
+    
+#ifdef MIDICTRL
+    x->m_midiHandler = new midi_handler();
+    x->m_midiUI = new MidiUI(x->m_midiHandler);
+#endif
     
     // Prepare JSON
-    JSONUI builder(x->dsp->getNumInputs(), x->dsp->getNumOutputs());
-    x->dsp->metadata(&builder);
-    x->dsp->buildUserInterface(&builder);
-    x->m_json = strdup(builder.JSON().c_str());
+    faust_make_json(x);
     
     int num_input;
     
-    if (x->dspUI->isMulti()) {
-        num_input = x->dsp->getNumInputs() + 1;
+    if (x->m_dspUI->isMulti()) {
+        num_input = x->m_dsp->getNumInputs() + 1;
     } else {
-        num_input = x->dsp->getNumInputs();
+        num_input = x->m_dsp->getNumInputs();
     }
     
-    x->args = (void**)calloc((num_input + x->dsp->getNumOutputs()) + 2, sizeof(void*));
+    x->m_args = (void**)calloc((num_input + x->m_dsp->getNumOutputs()) + 2, sizeof(void*));
     /* Multi in */
     dsp_setup((t_pxobject*)x, num_input);
 
     /* Multi out */
-    for (int i = 0; i< x->dsp->getNumOutputs(); i++) {
+    for (int i = 0; i< x->m_dsp->getNumOutputs(); i++) {
         outlet_new((t_pxobject*)x, (char*)"signal");
     }
 
     ((t_pxobject*)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
     
-    // send JSON to JS script
+    // Send JSON to JS script
     faust_create_jsui(x);
     return x;
 }
@@ -668,7 +766,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 void faust_dblclick(t_faust* x, long inlet)
 {
     post((char*)"------------------");
-    for (mspUI::iterator it = x->dspUI->begin1(); it != x->dspUI->end1(); ++it) {
+    for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); ++it) {
         char param[256];
         it->second->toString(param);
         post(param);
@@ -681,20 +779,20 @@ void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
 {
     if (msg == ASSIST_INLET) {
         if (a == 0) {
-            if (x->dsp->getNumInputs() == 0) {
+            if (x->m_dsp->getNumInputs() == 0) {
                 sprintf(dst, "(signal) : Unused Input");
             } else {
                 sprintf(dst, "(signal) : Audio Input %ld", (a+1));
 			}
             /*
 			post((char*)"------------------");
-			for (mspUI::iterator it = x->dspUI->begin1(); it != x->dspUI->end1(); ++it) {
+			for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); ++it) {
 				char param[256];
 				it->second->toString(param);
 				post(param);
 			}
             */
-        } else if (a < x->dsp->getNumInputs()) {
+        } else if (a < x->m_dsp->getNumInputs()) {
             sprintf(dst, "(signal) : Audio Input %ld", (a+1));
         }
     } else if (msg == ASSIST_OUTLET) {
@@ -714,29 +812,40 @@ void faust_mute(t_faust* obj, t_symbol* s, short ac, t_atom* at)
 void faust_free(t_faust* x)
 {
 	dsp_free((t_pxobject*)x);
-	if (x->dsp) delete x->dsp;
-	if (x->dspUI) delete x->dspUI;
-	if (x->args) free(x->args);
+	delete x->m_dsp;
+	delete x->m_dspUI;
+	if (x->m_args) free(x->m_args);
     if (x->m_json) free(x->m_json);
+    systhread_mutex_free(x->m_mutex);
+#ifdef MIDICTRL
+    delete x->m_midiHandler;
+    delete x->m_midiUI;
+#endif
 }
 
 /*--------------------------------------------------------------------------*/
 void faust_perform64(t_faust* x, t_object* dsp64, double** ins, long numins, double** outs, long numouts, long sampleframes, long flags, void* userparam)
 {
     AVOIDDENORMALS;
-    if (x->m_mute) {
+    if (!x->m_mute && systhread_mutex_trylock(x->m_mutex) == MAX_ERR_NONE) {
+        if (x->m_dsp) {
+            if (x->m_dspUI->isMulti()) {
+                x->m_dspUI->setMultiValues(ins[0], sampleframes);
+                x->m_dsp->compute(sampleframes, ++ins, outs);
+            } else {
+                x->m_dsp->compute(sampleframes, ins, outs);
+            }
+            faust_update_outputs(x);
+        }
+    #ifdef MIDICTRL
+        GUI::updateAllGuis();
+    #endif
+         systhread_mutex_unlock(x->m_mutex);
+    } else {
         // Write null buffers to outs
         for (int i = 0; i < numouts; i++) {
              memset(outs[i], 0, sizeof(double) * sampleframes);
         }
-    } else {
-        if (x->dspUI->isMulti()) {
-            x->dspUI->setMultiValues(ins[0], sampleframes);
-            x->dsp->compute(sampleframes, ++ins, outs);
-        } else {
-            x->dsp->compute(sampleframes, ins, outs);
-        }
-        faust_update_outputs(x);
     }
 }
 
@@ -752,12 +861,18 @@ extern "C" int main(void)
 	setup((t_messlist**)&faust_class, (method)faust_new, (method)faust_free,
 		(short)sizeof(t_faust), 0L, A_DEFFLOAT, 0);
 
-	dsp* thedsp = new mydsp();
-    mspUI dspUI;
-	thedsp->buildUserInterface(&dspUI);
+    dsp* tmp_dsp = new mydsp();
+    mspUI m_dspUI;
+    tmp_dsp->buildUserInterface(&m_dspUI);
 
     // 03/11/14 : use 'anything' to handle all parameter changes
     addmess((method)faust_anything, (char*)"anything", A_GIMME, 0);
+#ifdef POLY
+    addmess((method)faust_polyphony, (char*)"polyphony", A_GIMME, 0);
+#endif
+#ifdef MIDICTRL
+    addmess((method)faust_midievent, (char*)"midievent", A_GIMME, 0);
+#endif
     addmess((method)faust_dsp64, (char*)"dsp64", A_CANT, 0);
     addmess((method)faust_dblclick, (char*)"dblclick", A_CANT, 0);
     addmess((method)faust_assist, (char*)"assist", A_CANT, 0);
@@ -765,7 +880,7 @@ extern "C" int main(void)
     dsp_initclass();
 
     post((char*)"Faust DSP object v%s (sample = 64 bits code = %s)", EXTERNAL_VERSION, getCodeSize());
-    post((char*)"Copyright (c) 2012-2015 Grame");
+    post((char*)"Copyright (c) 2012-2016 Grame");
     Max_Meta1 meta1;
     mydsp::metadata(&meta1);
     if (meta1.fCount > 0) {
@@ -775,8 +890,8 @@ extern "C" int main(void)
         post("------------------------------");
     }
     
-    delete(thedsp);
-	return 0;
+    delete(tmp_dsp);
+    return 0;
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

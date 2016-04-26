@@ -42,7 +42,7 @@ CXX = /opt/local/libexec/llvm-3.6/bin/clang++
 LLC = /opt/local/libexec/llvm-3.6/bin/llc
 endif
 
-ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.7.0))
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.7.0 3.7.1 3.7.2))
 LLVM_VERSION  = LLVM_37
 CXX = /opt/local/libexec/llvm-3.7/bin/clang++
 LLC = /opt/local/libexec/llvm-3.7/bin/llc
@@ -59,7 +59,6 @@ MYGCCFLAGS := '-O3  -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -
 endif
 
 MYICCFLAGS := '-O3 -xHost -ftz -fno-alias -fp-model fast=2' 
-
 
 VSIZE := 1024
 
@@ -223,8 +222,6 @@ idalsavec :
 idalsaomp :
 	install -d idalsaompdir
 	$(MAKE) DEST='idalsaompdir/' ARCH='alsa-gtk-bench.cpp' VEC='-double -omp -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS='-openmp '$(MYICCFLAGS) -f Makefile.compile
-
-
 
 ### intel-compiler quad-precision x {scalar, vector and openMP}
 

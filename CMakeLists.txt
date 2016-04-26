@@ -1,6 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
 project (faust)
-
 enable_testing()
 
 # uninstall support
@@ -14,6 +13,9 @@ ADD_CUSTOM_TARGET(uninstall
 
 option(EXTENSIVE_TESTSUITE "run extensive testsuite (can take some time)")
 option(CTAGS "Generate ctags." ON)
+option(OSX_FAT_BINARIES "Enable fat binaries on OS X" ON)
+option(BUILD_FAUST_SHARED "Build shared library version of faust" ON)
+option(BUILD_FAUST_CLI "Build faust CLI" ON)
 
 add_subdirectory(compiler)
 
@@ -32,7 +34,7 @@ install(DIRECTORY examples
   DESTINATION share/doc/faust/examples
 )
 
-if(APPLE)
+if(APPLE AND OSX_FAT_BINARIES)
  set(CMAKE_OSX_ARCHITECTURES i386;x86_64 CACHE STRING "Build
 architectures for OSX" FORCE)
 endif()

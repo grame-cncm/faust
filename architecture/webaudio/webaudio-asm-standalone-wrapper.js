@@ -28,8 +28,6 @@ faust.mydsp = function (context, buffer_size) {
 
     var handler = null;
     var ins, outs;
-    var numIn, numOut;
-    
     var scriptProcessor;
     
     var dspInChannnels = [];
@@ -47,6 +45,9 @@ faust.mydsp = function (context, buffer_size) {
     {
         return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
     }
+    
+    var numIn = getNumInputsAux();
+    var numOut = getNumOutputsAux();
      
     // Memory allocator
     var ptr_size = 4; 
@@ -59,7 +60,7 @@ faust.mydsp = function (context, buffer_size) {
         return (n < 65536) ? 65536 : n; // Minimum = 64 kB
     }
      
-    var memory_size = pow2limit(getSizemydsp() + (getNumInputsAux() + getNumOutputsAux()) * (ptr_size + (buffer_size * sample_size)));
+    var memory_size = pow2limit(getSizemydsp() + (numIn + numOut) * (ptr_size + (buffer_size * sample_size)));
    
     var HEAP = new ArrayBuffer(memory_size);
     var HEAP32 = new Int32Array(HEAP);
@@ -81,14 +82,14 @@ faust.mydsp = function (context, buffer_size) {
      
     // Setup pointers offset
     var audio_heap_ptr_inputs = audio_heap_ptr; 
-    var audio_heap_ptr_outputs = audio_heap_ptr_inputs + (getNumInputsAux() * ptr_size);
+    var audio_heap_ptr_outputs = audio_heap_ptr_inputs + (numIn * ptr_size);
      
     // Setup buffer offset
-    var audio_heap_inputs = audio_heap_ptr_outputs + (getNumOutputsAux() * ptr_size);
-    var audio_heap_outputs = audio_heap_inputs + (getNumInputsAux() * buffer_size * sample_size);
+    var audio_heap_inputs = audio_heap_ptr_outputs + (numOut * ptr_size);
+    var audio_heap_outputs = audio_heap_inputs + (numIn * buffer_size * sample_size);
     
     // Setup DSP offset
-    var dsp_start = audio_heap_outputs + (getNumOutputsAux() * buffer_size * sample_size);
+    var dsp_start = audio_heap_outputs + (numOut * buffer_size * sample_size);
      
     // Start of DSP memory
     var dsp = dsp_start;
@@ -99,7 +100,7 @@ faust.mydsp = function (context, buffer_size) {
  
     var pathTable = getPathTablemydsp();
     
-    // Allocate table for 'setValue'
+    // Allocate table for 'setParamValue'
     var value_table = [];
         
     function update_outputs () 
@@ -107,7 +108,7 @@ faust.mydsp = function (context, buffer_size) {
         if (ouputs_items.length > 0 && handler && ouputs_timer-- === 0) {
             ouputs_timer = 5;
             for (var i = 0; i < ouputs_items.length; i++) {
-                handler(ouputs_items[i], factory.getValue(dsp, pathTable[ouputs_items[i]]));
+                handler(ouputs_items[i], factory.getParamValue(dsp, pathTable[ouputs_items[i]]));
             }
         }
     }
@@ -129,7 +130,7 @@ faust.mydsp = function (context, buffer_size) {
         for (i = 0; i < inputs_items.length; i++) {
             var path = inputs_items[i];
             var values = value_table[path];
-            factory.setValue(dsp, pathTable[path], values[0]);
+            factory.setParamValue(dsp, pathTable[path], values[0]);
             values[0] = values[1];
         }
         
@@ -153,7 +154,6 @@ faust.mydsp = function (context, buffer_size) {
     function parse_ui (ui) 
     {
         for (var i = 0; i < ui.length; i++) {
-            console.log(ui[i]);
             parse_group(ui[i]);
         }
     }
@@ -189,10 +189,6 @@ faust.mydsp = function (context, buffer_size) {
     function init ()
     {
         var i;
-        
-        // Get input / output counts
-        numIn = getNumInputsAux();
-        numOut = getNumOutputsAux();
          
         // Setup web audio context
         console.log("buffer_size %d", buffer_size);
@@ -205,6 +201,7 @@ faust.mydsp = function (context, buffer_size) {
                 HEAP32[(ins >> 2) + i] = audio_heap_inputs + ((buffer_size * sample_size) * i);
             }
      
+            // Prepare Ins buffer tables
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
             for (i = 0; i < numIn; i++) {
                 dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * sample_size) >> 2);
@@ -217,6 +214,7 @@ faust.mydsp = function (context, buffer_size) {
                 HEAP32[(outs >> 2) + i] = audio_heap_outputs + ((buffer_size * sample_size) * i);
             }
           
+            // Prepare Out buffer tables
             var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptr_size) >> 2);
             for (i = 0; i < numOut; i++) {
                 dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * sample_size) >> 2);
@@ -233,7 +231,7 @@ faust.mydsp = function (context, buffer_size) {
         for (i = 0; i < inputs_items.length; i++) {
             var path = inputs_items[i];
             var values = new Float32Array(2);
-            values[0] = values[1] = factory.getValue(dsp, pathTable[path]);
+            values[0] = values[1] = factory.getParamValue(dsp, pathTable[path]);
             value_table[path] = values;
         }
     }
@@ -248,12 +246,12 @@ faust.mydsp = function (context, buffer_size) {
             return getNumInputsAux();
         },
         
-        getNumOutputs : function() 
+        getNumOutputs : function () 
         {
             return getNumOutputsAux();
         },
     
-        destroy : function  ()
+        destroy : function ()
         {
             // Nothing to do
         },
@@ -292,20 +290,20 @@ faust.mydsp = function (context, buffer_size) {
             scriptProcessor.disconnect(context.destination);
         },
 
-        setValue : function (path, val) 
+        setParamValue : function (path, val) 
         {
             var values = value_table[path];
             if (values) {
-                if (factory.getValue(dsp, pathTable[path]) == values[0]) {
+                if (factory.getParamValue(dsp, pathTable[path]) == values[0]) {
                     values[0] = val;
                 } 
                 values[1] = val;
             }
         },
 
-        getValue : function (path) 
+        getParamValue : function (path) 
         {
-            return factory.getValue(dsp, pathTable[path]);
+            return factory.getParamValue(dsp, pathTable[path]);
         },
         
         controls : function()

@@ -69,15 +69,16 @@
 
 <<includeIntrinsic>>
 
-
 <<includeclass>>
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp		DSP;
-std::list<GUI*>	GUI::fGuiList;
+mydsp DSP;
+
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -95,8 +96,7 @@ int main(int argc, char *argv[])
 	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(interface);
 	DSP.buildUserInterface(finterface);
-    DSP.buildUserInterface(new PrintUI());
-
+ 
 #ifdef HTTPCTRL
 	httpdUI* httpdinterface = new httpdUI(appname, DSP.getNumInputs(), DSP.getNumOutputs(), argc, argv);
 	DSP.buildUserInterface(httpdinterface);

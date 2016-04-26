@@ -31,37 +31,37 @@ using namespace std;
 namespace httpdfaust
 {
 
-static const char * kJSONAddr = "/JSON";
+static const char* kJSONAddr = "/JSON";
 
 
 //--------------------------------------------------------------------------
-bool RootNode::processMessage( const Message* msg, vector<Message*>& outMsg )
+bool RootNode::processMessage(const Message* msg, vector<Message*>& outMsg)
 {
 	const string& addr = msg->address();
 	if (addr.empty() || (addr == "/")) {
 		return accept(msg, outMsg);
 	}
 	else if (addr == kJSONAddr) {
-		Message* msg = new Message (fJson);
-		msg->setMIMEType ("application/json");
-		outMsg.push_back (msg);
+		Message* msg = new Message(fJson);
+		msg->setMIMEType("application/json");
+		outMsg.push_back(msg);
 		return true;
 	}
-	return MessageDriven::processMessage( msg, outMsg );
+	return MessageDriven::processMessage(msg, outMsg);
 }
 
 //--------------------------------------------------------------------------
-bool RootNode::accept( const Message* msg, vector<Message*>& outMsg )
+bool RootNode::accept(const Message* msg, vector<Message*>& outMsg)
 {
 	string val;
 	// checks for the 'JSON' message first
 	if ((msg->size() == 0) && (msg->address() == "/")) {
 		Message* msg = new Message (fHtml);
-		msg->setMIMEType ("text/html");
+		msg->setMIMEType("text/html");
 		outMsg.push_back(msg);
 		return true;
 	}
-	return MessageDriven::accept (msg, outMsg);
+	return MessageDriven::accept(msg, outMsg);
 }
 
 } // end namespoace

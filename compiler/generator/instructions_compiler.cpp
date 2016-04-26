@@ -65,7 +65,7 @@ InstructionsCompiler::InstructionsCompiler(CodeContainer* container, bool allow_
 						    prepare
 *****************************************************************************/
 
-// Taken form sharing.cpp
+// Taken from sharing.cpp
 
 int InstructionsCompiler::getSharingCount(Tree sig)
 {
@@ -494,7 +494,7 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 	}
 }
 
-// like generateCacheCode but we force caching like if sharing was always > 1
+// Like generateCacheCode but we force caching like if sharing was always > 1
 ValueInst* InstructionsCompiler::forceCacheCode(Tree sig, ValueInst* exp)
 {
     ValueInst* code;
@@ -509,16 +509,12 @@ ValueInst* InstructionsCompiler::forceCacheCode(Tree sig, ValueInst* exp)
     Typed::VarType ctype;
     
 	// check for expression occuring in delays
-	if (o->getMaxDelay()>0) {
-        
+	if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         return generateDelayVec(sig, generateVariableStore(sig,exp), ctype, vname, o->getMaxDelay());
-        
-	} else  {
-        
+    } else  {
         return generateVariableStore(sig, exp);
-        
-	}
+ 	}
 }
 
 ValueInst* InstructionsCompiler::CS(Tree sig)

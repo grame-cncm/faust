@@ -6,7 +6,7 @@ import com.grame.faust.*;
 
 public class FaustProcessing {
 	PApplet parent;
-	dsp		myDSP;
+	dsp	myDSP;
 
 	// transfert depuis le code processing du chargement de la librairie
 	static {
@@ -22,8 +22,6 @@ public class FaustProcessing {
 	}
 
  //:/Users/yannorlarey/Documents/Processing/libraries/faustProcessing/library:/Users/yannorlarey/Documents/Processing/libraries/controlP5/library::/Applications/Processing.app/Contents/Java:/Applications/Processing.app/Contents/MacOS
-
-
 
 	public FaustProcessing(PApplet parent, String name, String code) {
     	this.parent = parent;
@@ -56,7 +54,6 @@ public class FaustProcessing {
 	public void stop() {
 		if (myDSP != null) { FaustEngine.stopDsp(myDSP); }
 	}
-
 
   	public void dispose() {
     	// Anything in here will be called automatically when 
@@ -166,37 +163,37 @@ public class FaustProcessing {
 
   	public void propagateAccX(float a) {
   		if (myDSP != null) {
-    		FaustEngine.propagateAccXDsp(myDSP, a);
+    		FaustEngine.propagateAccDsp(myDSP, 0, a);
     	}
   	}
 
   	public void propagateAccY(float a) {
   		if (myDSP != null) {
-    		FaustEngine.propagateAccYDsp(myDSP, a);
+    		FaustEngine.propagateAccDsp(myDSP, 1, a);
     	}
   	}
 
   	public void propagateAccZ(float a) {
   		if (myDSP != null) {
-    		FaustEngine.propagateAccZDsp(myDSP, a);
+    		FaustEngine.propagateAccDsp(myDSP, 2, a);
     	}
   	}
     
     public void propagateGyrX(float a) {
   		if (myDSP != null) {
-    		FaustEngine.propagateGyrXDsp(myDSP, a);
+    		FaustEngine.propagateGyrDsp(myDSP, 0, a);
     	}
   	}
 
   	public void propagateGyrY(float a) {
   		if (myDSP != null) {
-    		FaustEngine.propagateGyrYDsp(myDSP, a);
+    		FaustEngine.propagateGyrDsp(myDSP, 1, a);
     	}
   	}
 
   	public void propagateGyrZ(float a) {
   		if (myDSP != null) {
-    		FaustEngine.propagateGyrZDsp(myDSP, a);
+    		FaustEngine.propagateGyrDsp(myDSP, 2, a);
     	}
   	}
 }

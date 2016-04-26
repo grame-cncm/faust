@@ -16,21 +16,32 @@
  ************************************************************************
  ************************************************************************/
 
+//#define POLY 1
+//#define POLY2 1
+//#define MIDICTRL 1
+
 #import <QuartzCore/QuartzCore.h>
 #import "FIMainViewController.h"
 #import "ios-faust.h"
+#include "faust/dsp/timed-dsp.h"
+#include "faust/gui/JSONUI.h"
 #import "FIFlipsideViewController.h"
 #import "FIAppDelegate.h"
-#import "FICocoaUI.h"
+#include "faust/audio/coreaudio-ios-dsp.h"
+#if OSCCTRL
 #include "faust/gui/OSCUI.h"
+#endif
+
+#if MIDICTRL
 #include "faust/gui/MidiUI.h"
+#endif
 
 #define kMenuBarsHeight             66
 #define kMotionUpdateRate           30
 
 #define kRefreshTimerInterval       0.04
 
-#define ONE_G 9.91
+#define ONE_G 9.81
 
 // Test Jack
 #define kJackViewHeight 130
@@ -42,6 +53,24 @@
 #define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
 #define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
 
+#if POLY
+#include "faust/dsp/poly-dsp.h"
+#include "faust/dsp/dsp-combiner.h"
+#endif
+
+#if POLY2
+#include "faust/dsp/poly-dsp.h"
+#include "faust/dsp/dsp-combiner.h"
+#include "effect.cpp"
+#endif
+
+#if MIDICTRL
+#include "faust/midi/rt-midi.h"
+#include "faust/midi/RtMidi.cpp"
+rt_midi* midi_handler;
+MidiUI* midiinterface = NULL;
+#endif
+
 @implementation FIMainViewController
 
 @synthesize flipsidePopoverController = _flipsidePopoverController;
@@ -50,8 +79,10 @@
 audio* audio_device = NULL;
 CocoaUI* uiinterface = NULL;
 FUI* finterface = NULL;
+
+#if OSCCTRL
 GUI* oscinterface = NULL;
-MidiUI* midiinterface = NULL;
+#endif
 
 MY_Meta metadata;
 char rcfilename[256];
@@ -85,6 +116,22 @@ static void jack_shutdown_callback(const char* message, void* arg)
 
 #endif
 
+bool hasMIDISync()
+{
+    JSONUI* jsonui = new JSONUI();
+    mydsp* tmp_dsp = new mydsp();
+    tmp_dsp->buildUserInterface(jsonui);
+    std::string json = jsonui->JSON();
+    
+    bool res = ((json.find("midi") != std::string::npos) &&
+                ((json.find("start") != std::string::npos) ||
+                 (json.find("stop") != std::string::npos) ||
+                 (json.find("clock") != std::string::npos)));
+    delete tmp_dsp;
+    delete jsonui;
+    return res;
+}
+
 - (void)viewDidLoad
 {
     // General UI initializations
@@ -96,8 +143,42 @@ static void jack_shutdown_callback(const char* message, void* arg)
     ((FIAppDelegate*)[UIApplication sharedApplication].delegate).mainViewController = self;
     _openPanelChanged = YES;
     
+#if POLY2
+    
+#if MIDICTRL
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(4, true, true), new effect()));
+    } else {
+        DSP = new dsp_sequencer(new mydsp_poly(4, true, true), new effect());
+    }
+#else
+    DSP = new dsp_sequencer(new mydsp_poly(4, false, true), new effect());
+#endif
+    
+#elif POLY
+    
+#if MIDICTRL
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new mydsp_poly(4, true, true));
+    } else {
+        DSP = new mydsp_poly(4, true, true);
+    }
+#else
+    DSP = new mydsp_poly(4, false, true);
+#endif
+    
+#elif MIDICTRL
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new mydsp());
+    } else {
+        DSP = new mydsp();
+    }
+#else
+    DSP = new mydsp();
+#endif
+    
     // Faust initialization
-    DSP.metadata(&metadata);
+    mydsp::metadata(&metadata);
     
     // Read parameters values
     const char* home = getenv("HOME");
@@ -111,9 +192,12 @@ static void jack_shutdown_callback(const char* message, void* arg)
         _name = [[[NSProcessInfo processInfo] processName] UTF8String];
     }
     
-    uiinterface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata, &DSP);
+    uiinterface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata, DSP);
     finterface = new FUI();
-    midiinterface = new MidiUI(_name);
+#if MIDICTRL
+    midi_handler = new rt_midi(_name);
+    midiinterface = new MidiUI(midi_handler);
+#endif
       
     // Read user preferences
     NSString* oscIPOutputText = nil;
@@ -123,7 +207,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     sample_rate = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"sampleRate"];
     buffer_size = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"bufferSize"];
     openWidgetPanel = [[NSUserDefaults standardUserDefaults] boolForKey:@"openWidgetPanel"];
-    int oscTransmit = [[NSUserDefaults standardUserDefaults] integerForKey:@"oscTransmit"];
+    int oscTransmit = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"oscTransmit"];
     
     oscIPOutputText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscIPOutputText"];
     oscIPOutputText =  (oscIPOutputText) ? oscIPOutputText : @"192.168.1.1";
@@ -135,17 +219,23 @@ static void jack_shutdown_callback(const char* message, void* arg)
     oscOutputPortText =  (oscOutputPortText) ? oscOutputPortText : @"5511";
     
     [self openAudio];
-    [self displayTitle];
     
     // Build Faust interface
-    DSP.init(int(sample_rate));
-    DSP.buildUserInterface(uiinterface);
-    DSP.buildUserInterface(finterface);
-    DSP.buildUserInterface(midiinterface);
+    DSP->init(int(sample_rate));
+    DSP->buildUserInterface(uiinterface);
+    DSP->buildUserInterface(finterface);
+#if MIDICTRL
+    DSP->buildUserInterface(midiinterface);
+#endif
+    
+    [self displayTitle];
 
+#if MIDICTRL
     midiinterface->run();
+#endif
     
     uiinterface->setHidden(true);
+    
     // Start OSC
     [self setOSCParameters:oscTransmit output:oscIPOutputText inputport:oscInputPortText outputport:oscOutputPortText];
     
@@ -230,9 +320,9 @@ static void jack_shutdown_callback(const char* message, void* arg)
     if (!audio_device) {
         
         NSString* iconFile;
-        if (DSP.getNumInputs() > 0 && DSP.getNumOutputs() > 0) {
+        if (DSP->getNumInputs() > 0 && DSP->getNumOutputs() > 0) {
             iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Fx136" ofType:@"png"];
-        } else if (DSP.getNumOutputs() > 0) {
+        } else if (DSP->getNumOutputs() > 0) {
             iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Output136" ofType:@"png"];
         } else {
             iconFile = [[NSBundle mainBundle] pathForResource:@"Icon-Analyzer136" ofType:@"png"];
@@ -245,7 +335,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
         [fileHandle closeFile];
         
         audio_device = new jackaudio(icon_data, size, true);
-        if (!audio_device->init((_name) ? _name : "Faust", &DSP)) {
+        if (!audio_device->init((_name) ? _name : "Faust", DSP)) {
             printf("Cannot connect to JACK server\n");
             goto error;
         }
@@ -300,7 +390,7 @@ error:
     if (!audio_device) {
         audio_device = new iosaudio(sampleRate, bufferSize);
         
-        if (!audio_device->init((_name) ? _name : "Faust", &DSP)) {
+        if (!audio_device->init((_name) ? _name : "Faust", DSP)) {
             printf("Cannot init iOS audio device\n");
             goto error;
         }
@@ -416,7 +506,17 @@ error:
     
     delete uiinterface;
     delete finterface;
+    
+#if OSCCTRL
     delete oscinterface;
+#endif
+    
+#if MIDICTRL
+    delete midiinterface;
+    delete midi_handler;
+#endif
+    
+    delete DSP;
     
     [_refreshTimer invalidate];
     [self stopMotion];
@@ -435,7 +535,6 @@ error:
     [_centerSlider release];
     [super dealloc];
 }
-
 
 #pragma mark - DSP view
 
@@ -768,15 +867,22 @@ T findCorrespondingUiItem(FIResponder* sender)
         }
     }
     
-    if (!titleString) titleString = [[NSString alloc] initWithString:@"Faust | Grame"];
+    if (!titleString) titleString = @"Faust | Grame";
     
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone)
     {
-        _titleLabel.text = titleString;
+        _titleLabel.text = (!uiinterface->isScreenUI()) ? titleString : @"";
     }
     else if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad)
     {
-        _titleNavigationItem.title = titleString;
+        // Hide "title" and "Info" button in Screen mode
+        if (uiinterface->isScreenUI()) {
+            _titleNavigationItem.title =  @"";
+            UINavigationBar* bar = (UINavigationBar*)self.view.subviews[1];
+            bar.topItem.rightBarButtonItem.title = @"";
+        } else {
+            _titleNavigationItem.title = titleString;
+        }
     }
 }
 
@@ -909,7 +1015,7 @@ T findCorrespondingUiItem(FIResponder* sender)
             audio_device->stop();
             audio_device = NULL;
             [self openCoreAudio:bufferSize :sampleRate];
-            DSP.init(int(sampleRate));
+            DSP->init(int(sampleRate));
         }
         finterface->recallState(rcfilename);
         buffer_size = bufferSize;
@@ -935,6 +1041,7 @@ static inline const char* transmit_value(int num)
 // OSC
 - (void)setOSCParameters:(int)transmit output:(NSString*)outputIPText inputport:(NSString*)inputPortText outputport:(NSString*)outputPortText;
 {
+#if OSCCTRL
     delete oscinterface;
     const char* argv[9];
     argv[0] = (char*)_name;
@@ -947,8 +1054,9 @@ static inline const char* transmit_value(int num)
     argv[7] = "-outport";
     argv[8] = [outputPortText cStringUsingEncoding:[NSString defaultCStringEncoding]];
     oscinterface = new OSCUI(_name, 9, (char**)argv);
-    DSP.buildUserInterface(oscinterface);
+    DSP->buildUserInterface(oscinterface);
     oscinterface->run();
+#endif
 }
 
 #pragma mark - Flipside View Controller
@@ -1353,12 +1461,8 @@ static inline const char* transmit_value(int num)
 // Reset widget parameters
 - (IBAction)resetWidgetPreferences:(id)sender
 {
+    // Reset to default state
     _selectedWidget->resetParameters();
-    
-    // Reset acc/gyr mapping
-    int index =_selectedWidget->getItemCount();
-    uiinterface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
-    uiinterface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
     
     [self updateWidgetPreferencesView];
     [self widgetPreferencesChanged:_gyroAxisSegmentedControl];
@@ -1367,16 +1471,15 @@ static inline const char* transmit_value(int num)
 
 - (void)resetAllWidgetsPreferences
 {
-    list<uiCocoaItem*>::iterator    i;
+    list<uiCocoaItem*>::iterator i;
+    
+    // Reset DSP state to default
+    DSP->init(int(sample_rate));
     
     for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
     {
+        // Reset to default state
         (*i)->resetParameters();
-        
-        // Reset acc/gyr mapping
-        int index = (*i)->getItemCount();
-        uiinterface->setAccConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
-        uiinterface->setGyrConverter(index, -1, 0, 0, 0, 0);  // -1 means no mapping
         
         // Save parameters in user defaults
         NSString* key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:(*i)]];
@@ -1438,8 +1541,13 @@ static inline const char* transmit_value(int num)
             int type, curve;
             float min, mid, max;
             
-            // Get default state
+            // Get current state
             uiinterface->getAccConverter(index, type, curve, min, mid, max);
+            
+            // Keep default state
+            (*i)->setInitAssignationType(type + 1);
+            (*i)->setInitAssignationCurve(curve);
+            (*i)->setInitCurve(min, mid, max);
             
             // Sensor assignation
             key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:(*i)]];
@@ -1534,7 +1642,6 @@ static inline const char* transmit_value(int num)
     if (_motionManager == nil)
     {
         _motionManager = [[CMMotionManager alloc] init];
-        //_sensorFilter = [[FISensorFilter alloc] initWithSampleRate:kMotionUpdateRate * 10 cutoffFrequency:100];
         [_motionManager startAccelerometerUpdates];
         [_motionManager startGyroUpdates];
         _motionTimer = [NSTimer scheduledTimerWithTimeInterval:1./kMotionUpdateRate

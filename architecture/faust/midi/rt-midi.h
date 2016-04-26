@@ -20,166 +20,170 @@
     that work under terms of your choice, so long as this FAUST
     architecture section is not modified.
 
-
  ************************************************************************
  ************************************************************************/
  
+#ifndef __rt_midi__
+#define __rt_midi__ 
+ 
 #include <iostream>
 #include <cstdlib>
-#include "faust/midi/RtMidi.cpp"
+#include "faust/midi/RtMidi.h"
 #include "faust/midi/midi.h"
 
-class rtmidi : public midi {
+class rt_midi : public midi_handler {
 
     private:
     
-        enum MidiStatus {
-	
-            // channel voice messages
-            MIDI_NOTE_OFF           = 0x80, 
-            MIDI_NOTE_ON            = 0x90, 
-            MIDI_CONTROL_CHANGE     = 0xB0,
-            MIDI_PROGRAM_CHANGE     = 0xC0,
-            MIDI_PITCH_BEND         = 0xE0,
-            MIDI_AFTERTOUCH         = 0xD0,	// aka channel pressure
-            MIDI_POLY_AFTERTOUCH    = 0xA0	// aka key pressure
-
-        };
-  
-        RtMidiIn* fInput;
-        RtMidiOut* fOutput;
-        std::vector<midi*> fMidiInputs;
-        std::string fName;
+        std::vector<RtMidiIn*> fInput;
+        std::vector<RtMidiOut*> fOutput;
         
-        static void midiCallback(double deltatime, std::vector<unsigned char>* message, void* arg)
+        static void midiCallback(double time, std::vector<unsigned char>* message, void* arg)
         {
-            rtmidi* midi = static_cast<rtmidi*>(arg);
+            rt_midi* midi = static_cast<rt_midi*>(arg);
             unsigned int nBytes = message->size();
-            
-            int cmd = (int)message->at(0) & 0xf0;
+            int type = (int)message->at(0) & 0xf0;
             int channel = (int)message->at(0) & 0x0f;
             
-            if (nBytes == 2) {
-             
-                int data1 = (int)message->at(1);
-                if (cmd == MIDI_PROGRAM_CHANGE) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->progChange(channel, data1);
-                    }
-                }
-            
+            // MIDI sync
+            if (nBytes == 1) {
+                midi->handleSync(time, (int)message->at(0));
+            } else if (nBytes == 2) {
+                midi->handleData1(time, type, channel, (int)message->at(1));
             } else if (nBytes == 3) {
-            
-                int data1 = (int)message->at(1);
-                int data2 = (int)message->at(2);
-                if (channel == 9) {
-                    return;
-                } else if (cmd == MIDI_NOTE_OFF || ((cmd == MIDI_NOTE_ON) && (data2 == 0))) { 
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyOff(channel, data1, data2);
-                    }
-                } else if (cmd == MIDI_NOTE_ON) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->keyOn(channel, data1, data2);
-                    }
-                } else if (cmd == MIDI_CONTROL_CHANGE) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->ctrlChange(channel, data1, data2);
-                    }
-                } else if (cmd == MIDI_PITCH_BEND) {
-                    for (int i = 0; i < midi->fMidiInputs.size(); i++) {
-                        midi->fMidiInputs[i]->pitchWheel(channel, ((data2 * 128.0 + data1) - 8192) / 8192.0);
-                    }
-                }
-                
-            } else {
-                 std::cout << "long message : " << nBytes << std::endl;
-            }
+                midi->handleData2(time, type, channel, (int)message->at(1), (int)message->at(2));
+            } 
         }
         
-        bool chooseMidiInputPort(const std::string& name)
+        bool openMidiInputPorts()
         {
-         #if TARGET_OS_IPHONE
-            unsigned int i = 0, nPorts = fInput->getPortCount();
-            if (nPorts == 0) {
+            // Get number of input ports
+            RtMidiIn midi_in;
+            unsigned nInPorts = midi_in.getPortCount();
+            if (nInPorts == 0) {
                 std::cout << "No input ports available!" << std::endl;
                 return false;
             }
-            for (i = 0; i < nPorts; i++) {
-                std::string portName = fInput->getPortName(i);
+    
+            // Then open all of them
+            for (unsigned int i = 0; i < nInPorts; i++) {
+                RtMidiIn* midi_in = new RtMidiIn();
+                midi_in->ignoreTypes(true, false, true);
+                fInput.push_back(midi_in);
+                midi_in->openPort(i);
+                midi_in->setCallback(&midiCallback, this);
+                std::string portName = midi_in->getPortName(i);
                 std::cout << "Input port #" << i << ": " << portName << '\n';
-                fInput->openPort(i);
             }
-        #else
-            // opens a virtual port when available on API
-            fInput->openVirtualPort(name);
-        #endif   
             return true;
         }
         
-        bool chooseMidiOutPort(const std::string& name)
+        bool openMidiOutputPorts()
         {
-        #if TARGET_OS_IPHONE  
-            unsigned int i = 0, nPorts = fOutput->getPortCount();
-            if (nPorts == 0) {
+            // Get number of output ports
+            RtMidiOut midi_out;
+            unsigned nOutPorts = midi_out.getPortCount();
+            if (nOutPorts == 0) {
                 std::cout << "No output ports available!" << std::endl;
                 return false;
             }
-            for (i = 0; i < nPorts; i++) {
-                std::string portName = fOutput->getPortName(i);
+    
+            // Then open all of them
+            for (unsigned int i = 0; i < nOutPorts; i++) {
+                RtMidiOut* midi_out = new RtMidiOut();
+                fOutput.push_back(midi_out);
+                midi_out->openPort(i);
+                std::string portName = midi_out->getPortName(i);
                 std::cout << "Output port #" << i << ": " << portName << '\n';
-                fOutput->openPort(i);
             }
-        #else 
-            // opens a virtual port when available on API
-            fOutput->openVirtualPort(name);
-        #endif 
             return true;
+        }
+        
+        void chooseMidiInputPort(const std::string& name)
+        {
+            RtMidiIn* midi_in = new RtMidiIn();
+            midi_in->ignoreTypes(true, false, true);
+            fInput.push_back(midi_in);
+            midi_in->setCallback(&midiCallback, this);
+            midi_in->openVirtualPort(name);
+        }
+        
+        void chooseMidiOutPort(const std::string& name)
+        {
+            RtMidiOut* midi_out = new RtMidiOut();
+            fOutput.push_back(midi_out);
+            midi_out->openVirtualPort(name);
+        }
+        
+        void sendMessage(std::vector<unsigned char>& message)
+        {
+            std::vector<RtMidiOut*>::iterator it;
+            for (it = fOutput.begin(); it != fOutput.end(); it++) {
+                (*it)->sendMessage(&message);
+            }
         }
     
     public:
     
-        rtmidi(const std::string& name = "RtMidi"):fInput(0), fOutput(0), fName(name)
+        rt_midi(const std::string& name = "RtMidi"):midi_handler(name)
         {}
         
-        virtual ~rtmidi()
+        virtual ~rt_midi()
         {
-            stop();
+            stop_midi();
         }
         
-        void addMidiIn(midi* dsp) { fMidiInputs.push_back(dsp); }
-        
-        bool start()
+        bool start_midi()
         {
             try {
             
-                fInput = new RtMidiIn();
-                if (!chooseMidiInputPort(fName)) goto cleanup;
-                fInput->setCallback(&midiCallback, this);
-                
-                fOutput = new RtMidiOut();
-                if (!chooseMidiOutPort(fName)) goto cleanup; 
-                
+            #if TARGET_OS_IPHONE
+                if (!openMidiInputPorts())  { stop_midi(); return false; }
+                if (!openMidiOutputPorts()) { stop_midi(); return false; }
+            #else
+                chooseMidiInputPort(fName);
+                chooseMidiOutPort(fName);
+            #endif
                 return true;
                 
             } catch (RtMidiError &error) {
                 error.printMessage();
+                stop_midi();
                 return false;
             }
-            
-        cleanup:
-
-            delete fInput;
-            delete fOutput;
-            return false;
         }
         
-        void stop()
+        void stop_midi()
         {
-            delete fInput;
-            delete fOutput;
-            fInput = 0;
-            fOutput = 0;
+            std::vector<RtMidiIn*>::iterator it1;
+            for (it1 = fInput.begin(); it1 != fInput.end(); it1++) {
+                delete (*it1);
+            }
+            fInput.clear();
+            
+            std::vector<RtMidiOut*>::iterator it2;
+            for (it2 = fOutput.begin(); it2 != fOutput.end(); it2++) {
+                delete (*it2);
+            }
+            fOutput.clear();
+        }
+        
+        void keyOn(int channel, int pitch, int velocity) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_NOTE_ON + channel);
+            message.push_back(pitch);
+            message.push_back(velocity);
+            sendMessage(message);
+        }
+        
+        void keyOff(int channel, int pitch, int velocity) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_NOTE_OFF + channel);
+            message.push_back(pitch);
+            message.push_back(velocity);
+            sendMessage(message);
         }
         
         void ctrlChange(int channel, int ctrl, int val) 
@@ -188,7 +192,15 @@ class rtmidi : public midi {
             message.push_back(MIDI_CONTROL_CHANGE + channel);
             message.push_back(ctrl);
             message.push_back(val);
-            fOutput->sendMessage(&message);
+            sendMessage(message);
+        }
+        
+        void chanPress(int channel, int press) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_AFTERTOUCH + channel);
+            message.push_back(press);
+            sendMessage(message);
         }
         
         void progChange(int channel, int pgm) 
@@ -196,34 +208,51 @@ class rtmidi : public midi {
             std::vector<unsigned char> message;
             message.push_back(MIDI_PROGRAM_CHANGE + channel);
             message.push_back(pgm);
-            fOutput->sendMessage(&message);
+            sendMessage(message);
         }
-        
-        void keyOn(int channel, int note, int velocity) 
+          
+        void keyPress(int channel, int pitch, int press) 
         {
             std::vector<unsigned char> message;
-            message.push_back(MIDI_NOTE_ON + channel);
-            message.push_back(note);
-            message.push_back(velocity);
-            fOutput->sendMessage(&message);
+            message.push_back(MIDI_POLY_AFTERTOUCH + channel);
+            message.push_back(pitch);
+            message.push_back(press);
+            sendMessage(message);
         }
-        
-        void keyOff(int channel, int note, int velocity) 
-        {
-            std::vector<unsigned char> message;
-            message.push_back(MIDI_NOTE_OFF + channel);
-            message.push_back(note);
-            message.push_back(velocity);
-            fOutput->sendMessage(&message);
-        }
-        
+   
         void pitchWheel(int channel, int wheel) 
         {
             std::vector<unsigned char> message;
             message.push_back(MIDI_PITCH_BEND + channel);
             message.push_back(wheel & 0x7F);		// lsb 7bit
             message.push_back((wheel >> 7) & 0x7F);	// msb 7bit
-            fOutput->sendMessage(&message);
+            sendMessage(message);
         }
-   
+        
+        void ctrlChange14bits(int channel, int ctrl, int value) {}
+         
+        void start_sync(double date) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_START);
+            sendMessage(message);
+        }
+       
+        void stop_sync(double date) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_STOP);
+            sendMessage(message);
+        }
+        
+        void clock(double date) 
+        {
+            std::vector<unsigned char> message;
+            message.push_back(MIDI_CLOCK);
+            sendMessage(message);
+        }
+        
 };
+
+
+#endif // __rt_midi__

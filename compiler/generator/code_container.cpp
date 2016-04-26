@@ -171,7 +171,11 @@ void CodeContainer::printIncludeFile(ostream& fout)
 
     collectIncludeFile(S);
     for (f = S.begin(); f != S.end(); f++) {
-        fout << "#include " << *f << "\n";
+        string inc = *f;
+        // Only print non-empty include (inc is actually quoted)
+        if (inc.size() > 2) { 
+            fout << "#include " << *f << "\n";
+        }
     }
 }
 

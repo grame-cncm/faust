@@ -27,17 +27,16 @@
 #include <map>
 #include <list>
 #include <assert.h>
-#include <pthread.h>
 #include <curl/curl.h>
-
 #include <sstream>
 #include <iostream>
 #include <fstream> 
 
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
-#include "faust/audio/dsp.h"
-#include "faust/gui/SimpleParser.h"
+#include "faust/dsp/dsp.h"
+#include "faust/dsp/proxy-dsp.h"
+#include "faust/midi/jack-midi.h"
 #include "smartpointer.h"
 #include "lo/lo.h"
 #include "TMutex.h"
@@ -50,16 +49,16 @@
 	#define	EXPORT __attribute__ ((visibility("default")))
 #endif
 
-using namespace std;
-
-class llvm_dsp_factory;
-
 #define LocalFactoryDSPTableType list<llvm_dsp_factory*>
 #define LocalFactoryDSPTableIt   LocalFactoryDSPTableType::iterator
 
 #define RemoteFactoryDSPTable     pair<list<remote_dsp_aux*>, list<remote_audio_aux*> >
 #define RemoteFactoryDSPTableType map<Sremote_dsp_factory, RemoteFactoryDSPTable>
 #define RemoteFactoryDSPTableIt   RemoteFactoryDSPTableType::iterator
+
+using namespace std;
+
+class llvm_dsp_factory;
 
 enum {
     ERROR_FACTORY_NOTFOUND,
@@ -70,7 +69,7 @@ enum {
     ERROR_CURL_CONNECTION
 };
 
-// To be used as a Singleton 
+// To be used as a singleton 
 
 struct remote_DNS {
 
@@ -109,6 +108,8 @@ class remote_audio_aux;
 class remote_dsp_factory;
 
 typedef class SMARTP<remote_dsp_factory> Sremote_dsp_factory;
+
+// The proxy DSP factory 
     
 class remote_dsp_factory : public smartable {
 
@@ -116,29 +117,23 @@ class remote_dsp_factory : public smartable {
     
     private:
         
-        string      fName;    
-        string      fSHAKey;                // Unique Index to bind a Remote_Factory to its llvm_factory on the server side
-        string      fExpandedDSP;
+        string fSHAKey;                // Unique Index to bind a Remote_Factory to its llvm_factory on the server side
+        string fExpandedDSP;
+        string fServerURL;             // URL of remote server 
+        string fPoly; 
+        string fVoices; 
+        string fGroup; 
         
-        int         fNumInputs;             // Compiled DSP factory inputs
-        int         fNumOutputs;            // Compiled DSP factory outputs
-        
-        string      fServerURL;             // URL of remote server 
-        
-        map<string, string>  fMetadatas;    // Metadatas extracted from json
-        vector<itemInfo*>   fUiItems;       // Items extracted from json
+        JSONUIDecoder* fJSONDecoder;
         
         vector<string> fPathnameList;
            
-        int getNumInputs();
-        int getNumOutputs();
-          
     public: 
     
         remote_dsp_factory(const string& ip_server, int port_server, const string& sha_key);
         virtual ~remote_dsp_factory();
         
-        void decodeJson(const string& json);
+        void decodeJSON(const string& json);
         
         remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], 
                                                 remoteDSPErrorCallback error_callback, 
@@ -146,36 +141,42 @@ class remote_dsp_factory : public smartable {
                                                 
         remote_audio_aux* createRemoteAudioInstance(int argc, const char* argv[], int& error);
         
-        bool        init(int argc, const char *argv[], 
+        bool init(int argc, const char *argv[], 
                         const string& name_app, 
                         const string& dsp_content, 
                         string& error_msg, 
                         int opt_level);
         
-        void        metadataRemoteDSPFactory(Meta* m);  
+        void metadataRemoteDSPFactory(Meta* m);  
         
-        string              getURL() { return fServerURL; }
+        string getURL() { return fServerURL; }
         
-        string              getName();
-        string              getSHAKey();
-        string              getDSPCode();
+        string getName();
+        string getSHAKey();
+        string getDSPCode();
+        string getPoly();
+        string getVoices();
+        string getGroup();
         
-        vector<string>      getRemoteDSPFactoryLibraryList() { return fPathnameList; }
+        vector<string> getRemoteDSPFactoryLibraryList() { return fPathnameList; }
+        bool sendFinalRequest(void* obj, const string& cmd);
         
         static LocalFactoryDSPTableType gLocalFactoryDSPTable;
         static RemoteFactoryDSPTableType gRemoteFactoryDSPTable;
         static CURL* gCurl;
         static remote_DNS* gDNS;
-
+     
 };
 
-class remote_dsp_aux : public dsp {
+// The proxy DSP instance 
+
+class remote_dsp_aux : public dsp, public jack_midi_handler {
     
     private:
         
         int                     fBufferSize;        // Buffer size of NetJack connection   
         
-        remote_dsp_factory*     fFactory;           // Factory is it created from
+        remote_dsp_factory*     fFactory;           // Factory it is created from
         
         jack_net_master_t*      fNetJack;           // NetJack Connection
         
@@ -184,17 +185,13 @@ class remote_dsp_aux : public dsp {
         
         float**                 fControlInputs;     // control buffer
         float**                 fControlOutputs;    // control buffer
-        
-        FAUSTFLOAT*             fOutControl;        // Buffer containing the values of controls
-        FAUSTFLOAT*             fInControl;         // Buffer containing the values of controls
-        
-        int                     fCounterIn;
-        int                     fCounterOut;
-        
+         
         remoteDSPErrorCallback  fErrorCallback;
         void*                   fErrorCallbackArg;
         
         bool                    fRunning;
+        
+        JSONUIDecoder*          fJSONDecoder;
         
         void fillBufferWithZerosOffset(int channels, int offset, int size, FAUSTFLOAT** buffer);
         void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
@@ -216,15 +213,17 @@ class remote_dsp_aux : public dsp {
         virtual int getNumInputs();
         virtual int getNumOutputs();
         
-        virtual void init(int samplingFreq);
+        virtual void init(int samplingRate);
+        virtual void instanceInit(int samplingRate);
         
         virtual void buildUserInterface(UI* ui);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
   
         remote_dsp_factory* getFactory() { return fFactory; }
-
 };
+
+// The proxy audio instance 
 
 class remote_audio_aux {
     
@@ -245,6 +244,9 @@ class remote_audio_aux {
         bool stop();
 };
 
+
+// The proxy machine 
+
 class remote_dsp_machine_aux {
 
     private:
@@ -255,8 +257,10 @@ class remote_dsp_machine_aux {
     
     public: 
     
-        remote_dsp_machine_aux(const string& ip, int port, const string& target):fIP(ip), fPort(port), fTarget(target)
+        remote_dsp_machine_aux(const string& ip, int port, const string& target)
+            :fIP(ip), fPort(port), fTarget(target)
         {}
+        virtual ~remote_dsp_machine_aux() {}
         
         string getIP() { return fIP; }
         int getPort() { return fPort; }
@@ -275,11 +279,21 @@ class EXPORT remote_dsp : public dsp {
         int getNumOutputs();
         
         void init(int samplingFreq);
+        void instanceInit(int samplingRate);
         
         void buildUserInterface(UI* ui);
         
         void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-         
+        
+        // MIDI polyphonic control
+        void keyOn(int channel, int pitch, int velocity);
+        void keyOff(int channel, int pitch, int velocity);
+        void keyPress(int channel, int pitch, int press);
+        void chanPress(int channel, int press);
+        void ctrlChange(int channel, int ctrl, int value);
+        void pitchWheel(int channel, int wheel);
+        void progChange(int channel, int pgm);
+        
 };
 
 class EXPORT remote_audio {
@@ -313,9 +327,9 @@ EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename
                                                         string& error_msg, int opt_level = -1);
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, 
-                                                        int argc, const char* argv[], 
-                                                        const string& ip_server, int port_server, 
-                                                        string& error, int opt_level = -1);
+                                                            int argc, const char* argv[], 
+                                                            const string& ip_server, int port_server, 
+                                                            string& error, int opt_level = -1);
 
 EXPORT bool deleteRemoteDSPFactory(remote_dsp_factory* factory);
 
@@ -338,8 +352,8 @@ EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp);
 // Audio instance
 
 EXPORT remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, 
-                                            int argc, const char* argv[],  
-                                            int& error);
+                                                int argc, const char* argv[],  
+                                                int& error);
 
 EXPORT void deleteRemoteAudioInstance(remote_audio* audio);
 

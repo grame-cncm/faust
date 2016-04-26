@@ -18,3 +18,4 @@ compile.sh
 windows/_output/
 *.opensdf
 *.sdf
+compiler/faust

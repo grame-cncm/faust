@@ -35,12 +35,14 @@ bool isInt(const char* word);
 long lopt(const char *argv[], const char* name, long def);
 
 bool isopt(const char* argv[], const char* name);
+
 bool isopt(int argc, const char *argv[], const char *name);
 
 const char* loptions(const char* argv[], const char* name, const char* def);
+
 const char* loptions(int argc, const char* argv[], const char* name, const char* def);
 
-int lopt_Spe(int i, const char* argv[], const char* name, char* path);
+int lopt_spe(int i, const char* argv[], const char* name, char* path);
 
 string nameWithoutSpaces(const string& name);
 

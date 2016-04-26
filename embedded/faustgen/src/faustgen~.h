@@ -41,6 +41,7 @@
 
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/gui/JSONUI.h"
+#include "faust/gui/MidiUI.h"
 #include "maxcpp5.h"
 
 #ifndef WIN32
@@ -53,7 +54,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"math.lib\"); \nimport(\"maxmsp.lib\"); \nimport(\"music.lib\"); \nimport(\"oscillator.lib\"); \nimport(\"reduce.lib\"); \nimport(\"filter.lib\"); \nimport(\"effect.lib\"); \n \nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.06"
+#define FAUSTGEN_VERSION "1.08"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 
 #ifdef __APPLE__
@@ -83,11 +84,13 @@ class faustgen;
 class faustgen_factory {
 
     typedef vector<string>::const_iterator StringVectorIt;
+    friend class faustgen;
 
     private:
       
         set<faustgen*> fInstances;      // set of all DSP 
         llvm_dsp_factory* fDSPfactory;  // pointer to the LLVM Faust factory
+        midi_handler fMidiHandler;      // Generic MIDI handler          
    
         long fSourceCodeSize;           // length of source code string
         char** fSourceCode;             // source code string
@@ -119,6 +122,7 @@ class faustgen_factory {
         void add_compile_option(const string& key, const string& value);
         void add_compile_option(const string& value);
         void display_libraries_aux(const char* lib);
+        void make_json(::dsp* dsp);
         
     public:
     
@@ -128,7 +132,7 @@ class faustgen_factory {
             
         llvm_dsp_factory* create_factory_from_bitcode();
         llvm_dsp_factory* create_factory_from_sourcecode();
-        llvm_dsp* create_dsp_aux();
+        ::dsp* create_dsp_aux();
      
         void free_dsp_factory();
         void free_sourcecode();
@@ -163,6 +167,7 @@ class faustgen_factory {
         void display_pdf();
         void display_libraries();
         
+        ::dsp* create_dsp_instance(int poly = 0);
         void add_instance(faustgen* dsp) { fInstances.insert(dsp); }
         void remove_instance(faustgen* dsp)  
         { 
@@ -178,7 +183,7 @@ class faustgen_factory {
         bool try_lock() { return systhread_mutex_trylock(fDSPMutex) == MAX_ERR_NONE; }
         bool lock() { return systhread_mutex_lock(fDSPMutex) == MAX_ERR_NONE; }
         void unlock() { systhread_mutex_unlock(fDSPMutex); }
-    
+      
         static int gFaustCounter;       // global variable to count the number of faustgen objects inside the patcher
       
         static map<string, faustgen_factory*> gFactoryMap;
@@ -198,7 +203,8 @@ class faustgen : public MspCpp5<faustgen> {
         map<string, vector <t_object*> > fOutputTable;
         
         mspUI fDSPUI;               // DSP UI
-        llvm_dsp* fDSP;             // pointer to the LLVM Faust dsp
+        MidiUI* fMidiUI;            // Midi UI
+        ::dsp* fDSP;                // pointer to the LLVM Faust dsp
         t_object* fEditor;          // text editor object
         bool fMute;                 // DSP mute state
         static t_jrgba gDefaultColor;  // Color of the object to be used when restoring default color
@@ -256,6 +262,9 @@ class faustgen : public MspCpp5<faustgen> {
          
         void read(long inlet, t_symbol* s);
         void write(long inlet, t_symbol* s);
+        
+        void polyphony(long inlet, t_symbol* s, long argc, t_atom* argv);
+        void midievent(long inlet, t_symbol* s, long argc, t_atom* argv);
         
         void librarypath(long inlet, t_symbol* s);
    

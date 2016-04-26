@@ -1,6 +1,9 @@
 subprojects := html httpd include json lib msg nodes
-sources = $(wildcard *.cpp) $(wildcard html/*.cpp) $(wildcard httpd/*.cpp)  $(wildcard json/*.cpp) $(wildcard msg/*.cpp) $(wildcard nodes/*.cpp)
-objects = $(sources:.cpp=.o)
+http_fetcher = ../../../compiler/parser/sourcefetcher.cpp
+sources0 = $(wildcard *.cpp) $(wildcard html/*.cpp) $(wildcard httpd/*.cpp)  $(wildcard json/*.cpp) $(wildcard msg/*.cpp) $(wildcard nodes/*.cpp)
+sources = $(sources0) $(http_fetcher)
+objects = $(sources0:.cpp=.o)
+objects += sourcefetcher.o
 objects += hexa/jsscripts.o
 objects += hexa/stylesheet.o
 
@@ -47,12 +50,15 @@ endif
 #INSTALL_PREFIX = @rpath/
 
 CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
-CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I../../../compiler/tlib -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
 all: ../libHTTPDFaust.a
 
 dynamic : ../libHTTPDFaust.$(LIB_EXT)
 
+sourcefetcher.o: $(http_fetcher)
+	$(CXX) $(CXXFLAGS) -fPIC $(http_fetcher) -c -o sourcefetcher.o
+	
 ../libHTTPDFaust.a : $(objects)
 	rm -f $@
 	ar cq $@ $(objects)
@@ -145,3 +151,5 @@ nodes/FaustNode.o: httpd/HTTPDServer.h
 nodes/MessageDriven.o: httpd/Address.h msg/Message.h lib/smartpointer.h nodes/MessageDriven.h msg/MessageProcessor.h
 nodes/MessageDriven.o: httpd/HTTPDServer.h
 nodes/RootNode.o: nodes/RootNode.h nodes/MessageDriven.h msg/MessageProcessor.h lib/smartpointer.h msg/Message.h
+../../../compiler/parser/sourcefetcher.o: ../../../compiler/tlib/compatibility.hh
+../../../compiler/parser/sourcefetcher.o: ../../../compiler/parser/sourcefetcher.hh

@@ -57,7 +57,6 @@
 
 <<includeIntrinsic>>
 
-
 <<includeclass>>
 
 /***************************END USER SECTION ***************************/
@@ -66,12 +65,13 @@
 
 mydsp		DSP;
 list<GUI*>	GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
 #if 0
-int main(int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
 	gtk_init (&argc, &argv);
 	const char* name = basename(argv[0]);
@@ -84,7 +84,7 @@ int main(int argc, char *argv[] )
 	DSP.buildUserInterface(interface);
 
 #ifdef OSCCTRL
-	GUI*	oscinterface = new OSCUI(jname, argc, argv);
+	GUI* oscinterface = new OSCUI(jname, argc, argv);
 	DSP.buildUserInterface(oscinterface);
 #endif
 
@@ -145,9 +145,6 @@ int main(int argc, char *argv[])
    // desallocation
     delete interface;
     delete finterface;
-#ifdef HTTPCTRL
-	 delete httpdinterface;
-#endif
 #ifdef OSCCTRL
 	 delete oscinterface;
 #endif

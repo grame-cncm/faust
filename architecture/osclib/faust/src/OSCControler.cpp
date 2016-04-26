@@ -40,8 +40,8 @@ using namespace std;
 namespace oscfaust
 {
 
-#define kVersion	 0.95f
-#define kVersionStr	"0.95"
+#define kVersion	 0.96f
+#define kVersionStr	"0.96"
 
 static const char* kUDPPortOpt	= "-port";
 static const char* kUDPOutOpt	= "-outport";
@@ -60,7 +60,7 @@ std::vector<OSCRegexp*> OSCControler::fFilteredPaths;
 //--------------------------------------------------------------------------
 static int getPortOption(int argc, char *argv[], const std::string& option, int defaultValue)
 {
-	for (int i=0; i < argc-1; i++) {
+	for (int i = 0; i < argc-1; i++) {
 		if (option == argv[i]) {
 			int val = strtol(argv[i+1], 0, 10);
 			if (val) return val;
@@ -71,7 +71,7 @@ static int getPortOption(int argc, char *argv[], const std::string& option, int 
 
 static const char* getDestOption(int argc, char *argv[], const std::string& option, const char* defaultValue)
 {
-	for (int i=0; i < argc-1; i++) {
+	for (int i = 0; i < argc-1; i++) {
 		if (option == argv[i])
 			return argv[i+1];
 	}
@@ -80,7 +80,7 @@ static const char* getDestOption(int argc, char *argv[], const std::string& opti
 
 static int getXmitOption(int argc, char *argv[], const std::string& option, bool defaultValue)
 {
-	for (int i=0; i < argc-1; i++) {
+	for (int i = 0; i < argc-1; i++) {
     	if (option == argv[i]) {
 			int val = strtol(argv[i+1], 0, 10);
 			return val;
@@ -125,7 +125,7 @@ OSCControler::OSCControler(int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCall
 //--------------------------------------------------------------------------
 OSCControler::~OSCControler()
 { 
-	quit(); 
+	stop(); 
 	delete fFactory;
 	delete fOsc;
 }
@@ -201,7 +201,7 @@ void OSCControler::resetFilteredPaths()
 }  
 
 //--------------------------------------------------------------------------
-void OSCControler::quit ()
+void OSCControler::stop()
 {
 	fOsc->stop();
 }

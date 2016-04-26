@@ -201,9 +201,9 @@ target_link_libraries(\${PROJECT_NAME} jack \${catkin_LIBRARIES})" > CMakeLists.
 	    
 		# double compilation
 		cd src
-			faust -i -a ros-callbacks.cpp -o "$PACKAGE_PATH/src/$name.cpp" $path/$p
-			g++ $name.cpp -o $name
-	    	faust -i -a $ARCHFILE $OPTIONS "$path/$p" -o "$PACKAGE_PATH/src/$name.cpp" $path/$p	> /dev/null	
+			faust -i -a ros-callbacks.cpp -o "$PACKAGE_PATH/src/$name.cpp" $path/$p || exit
+			g++ $name.cpp -o $name || exit
+	    	faust -i -a $ARCHFILE $OPTIONS "$path/$p" -o "$PACKAGE_PATH/src/$name.cpp" $path/$p	> /dev/null	 || exit
 	    	./$name		# adds the callbacks declaration to the generated c++ file
 	    	rm $name
 		# zip file
@@ -252,7 +252,7 @@ To run your new application :
 For more informations, check the documentation :
 https://sourceforge.net/p/faudiostream/code/ci/master/tree/documentation" > README.txt
 ############ END README #############################	    
-	    		catkin_make > /dev/null
+	    		catkin_make > /dev/null || exit
 	   			OUTPUT="$OUTPUT $name.cpp;"
 		fi 
 

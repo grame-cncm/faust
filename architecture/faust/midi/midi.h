@@ -20,30 +20,192 @@
     that work under terms of your choice, so long as this FAUST
     architecture section is not modified.
 
-
  ************************************************************************
  ************************************************************************/
 
 #ifndef __midi__
 #define __midi__
 
+#include <vector>
+#include <string>
+#include <algorithm>
+
+
 //----------------------------------------------------------------
 //  MIDI processor definition
 //----------------------------------------------------------------
 
 class midi {
- 
+
     public:
 
         midi() {}
         virtual ~midi() {}
 
-        virtual void keyOn(int channel, int note, int velocity)         = 0;
-        virtual void keyOff(int channel, int note, int velocity)        = 0;
-        virtual void pitchWheel(int channel, int wheel)                 = 0;
-        virtual void ctrlChange(int channel, int ctrl, int value)       = 0;
-        virtual void progChange(int channel, int pgm)                   = 0;
+        // Additional time-stamped API for MIDI input
+        virtual void keyOn(double, int channel, int pitch, int velocity)
+        {
+            keyOn(channel, pitch, velocity);
+        }
+        
+        virtual void keyOff(double, int channel, int pitch, int velocity = 127)
+        {
+            keyOff(channel, pitch, velocity);
+        }
+        
+        virtual void pitchWheel(double, int channel, int wheel)
+        {
+            pitchWheel(channel, wheel);
+        }
+           
+        virtual void ctrlChange(double, int channel, int ctrl, int value)
+        {
+            ctrlChange(channel, ctrl, value);
+        }
        
+        virtual void progChange(double, int channel, int pgm)
+        {
+            progChange(channel, pgm);
+        }
+        
+        virtual void keyPress(double, int channel, int pitch, int press)
+        {
+            keyPress(channel, pitch, press);
+        }
+        
+        virtual void chanPress(double date, int channel, int press)
+        {
+            chanPress(channel, press);
+        }
+       
+        virtual void ctrlChange14bits(double, int channel, int ctrl, int value)
+        {
+            ctrlChange14bits(channel, ctrl, value);
+        }
+
+        // MIDI sync
+        virtual void start_sync(double date)  {}
+        virtual void stop_sync(double date)   {}
+        virtual void clock(double date)  {}
+
+        // Standard MIDI API
+        virtual void keyOn(int channel, int pitch, int velocity)        {}
+        virtual void keyOff(int channel, int pitch, int velocity)       {}
+        virtual void keyPress(int channel, int pitch, int press)        {}
+        virtual void chanPress(int channel, int press)                  {}
+        virtual void ctrlChange(int channel, int ctrl, int value)       {}
+        virtual void ctrlChange14bits(int channel, int ctrl, int value) {}
+        virtual void pitchWheel(int channel, int wheel)                 {}
+        virtual void progChange(int channel, int pgm)                   {}
+
+        enum MidiStatus {
+
+            // channel voice messages
+            MIDI_NOTE_OFF           = 0x80,
+            MIDI_NOTE_ON            = 0x90,
+            MIDI_CONTROL_CHANGE     = 0xB0,
+            MIDI_PROGRAM_CHANGE     = 0xC0,
+            MIDI_PITCH_BEND         = 0xE0,
+            MIDI_AFTERTOUCH         = 0xD0,	// aka channel pressure
+            MIDI_POLY_AFTERTOUCH    = 0xA0,	// aka key pressure
+            MIDI_CLOCK              = 0xF8,
+            MIDI_START              = 0xFA,
+            MIDI_STOP               = 0xFC
+
+        };
+
+        enum MidiCtrl {
+
+            ALL_NOTES_OFF = 123,
+            ALL_SOUND_OFF = 120
+
+        };
 };
 
-#endif
+//----------------------------------------------------------------
+//  Base class for MIDI API handling
+//----------------------------------------------------------------
+
+class midi_handler : public midi {
+
+    protected:
+
+        std::vector<midi*> fMidiInputs;
+        std::string fName;
+
+    public:
+
+        midi_handler(const std::string& name = "MIDIHandler"):fName(name) {}
+        virtual ~midi_handler() {}
+
+        virtual void addMidiIn(midi* midi_dsp) { fMidiInputs.push_back(midi_dsp); }
+        virtual void removeMidiIn(midi* midi_dsp)
+        {
+            std::vector<midi*>::iterator it = std::find(fMidiInputs.begin(), fMidiInputs.end(), midi_dsp);
+            if (it != fMidiInputs.end()) {
+                fMidiInputs.erase(it);
+            }
+        }
+
+        virtual bool start_midi() { return false; }
+        virtual void stop_midi() {}
+        
+        void handleSync(double time, int type)
+        {
+            if (type == MIDI_CLOCK) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->clock(time);
+                }
+            } else if (type == MIDI_START) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->start_sync(time);
+                }
+            } else if (type == MIDI_STOP) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->stop_sync(time);
+                }
+            }
+        }
+
+        void handleData1(double time, int type, int channel, int data1)
+        {
+            if (type == MIDI_PROGRAM_CHANGE) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->progChange(time, channel, data1);
+                }
+            } else if (type == MIDI_AFTERTOUCH) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->chanPress(time, channel, data1);
+                }
+            }
+        }
+
+        void handleData2(double time, int type, int channel, int data1, int data2)
+        {
+            if (type == MIDI_NOTE_OFF || ((type == MIDI_NOTE_ON) && (data2 == 0))) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->keyOff(time, channel, data1, data2);
+                }
+            } else if (type == MIDI_NOTE_ON) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->keyOn(time, channel, data1, data2);
+                }
+            } else if (type == MIDI_CONTROL_CHANGE) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->ctrlChange(time, channel, data1, data2);
+                }
+            } else if (type == MIDI_PITCH_BEND) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->pitchWheel(time, channel, (data2 * 128.0) + data1);
+                }
+            } else if (type == MIDI_POLY_AFTERTOUCH) {
+                for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
+                    fMidiInputs[i]->keyPress(time, channel, data1, data2);
+                }
+            }
+        }
+
+
+};
+
+#endif // __midi__

@@ -43,9 +43,10 @@ enum {
 
 /**
  * DSP factory class.
- * Each received DSP source will be compiled as as 'DSP factory'. Depending of the kind of created factory 
+ * Each received DSP source will be compiled as a 'DSP factory'. Depending of the kind of created factory 
  * (local = client side) or (remote = server side), 'DSP instances' will be create locally or remotely.
- * Remote 'DSP instances' will be connected to the client side using NetJack master/slave connection.
+ * Remote 'DSP instances' will be connected to the client side using NetJack master/slave connection
+ * or possibly launched on server side.
  */
 class remote_dsp_factory {
     
@@ -85,6 +86,9 @@ remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_key, co
  *  - Faust compilation parameters (like '-vec/-sch/'...)
  *  - '-lm <target>' (like '-lm x86_64-apple-macosx10.6.0:opteron') to cross-compile on client side and send machine code on server
  *  - '-rm <target>' (like '-rm arm-apple-ios7.0:cortex-a9') to cross-compile on server side and get machine code on client to re-create a local Factory
+ *  - '-poly <0/1>' to create a polyphonic DSP factory
+ *  - '-voices <num>' number of polyphonic DSP voices
+ *  - '-group <0/1>' whether to group polyphonic DSP voices
  * @param ip_server - IP of remote machine
  * @param port_server - port on which the remote machine started
  * @param error - the error string to be filled
@@ -110,6 +114,9 @@ remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename,
  *  - Faust compilation parameters (like '-vec/-sch/'...)
  *  - '-lm <target>' (like '-lm x86_64-apple-macosx10.6.0:opteron') to cross-compile on client side and send machine code on server
  *  - '-rm <target>' (like '-rm arm-apple-ios7.0:cortex-a9') to cross-compile on server side and get machine code on client to re-create a local Factory
+ *  - '-poly <0/1>' to create a polyphonic DSP factory
+ *  - '-voices <num>' number of polyphonic DSP voices
+ *  - '-group <0/1>' whether to group polyphonic DSP voices
  * @param ip_server - IP of remote machine
  * @param port_server - port on which the remote machine started
  * @param error - the error string to be filled
@@ -173,7 +180,8 @@ class remote_dsp : public dsp {
         int getNumInputs();
         int getNumOutputs();
         
-        void init(int samplingFreq);
+        void init(int samplingRate);
+        void instanceInit(int samplingRate);
         
         void buildUserInterface(UI* ui);
         
@@ -224,14 +232,14 @@ remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
                                     int& error);
 
 /**
- * Delete a Faust remote DSP instance.
+ * Delete a Faust remote DSP instance. You can also simply use C++ 'delete'. 
  * 
  * @param dsp - the DSP instance to be deleted.
  */ 
 void deleteRemoteDSPInstance(remote_dsp* dsp);
 
 /**
- * Audio instance class. Use 'start/stop' to (de)activate audio on server side.
+ * Audio instance class. Use 'start/stop' to control audio instance on server side.
  */
 class remote_audio {
     
@@ -251,8 +259,11 @@ class remote_audio {
  * @param factory - the DSP factory
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters 
- *                  --LA_buffer_size 
- *                  --LA_sample_rate 
+ *                  --LA_buffer_size size
+ *                  --LA_sample_rate rate
+ *                  --osc <0/1>
+ *                  --httpd <0/1>
+ *                  --midi <0/1> 
  * @param error - the error value to be filled
  * 
  * @return the remote DSP instance on success, otherwise a null pointer.
@@ -260,7 +271,7 @@ class remote_audio {
 remote_audio* createRemoteAudioInstance(remote_dsp_factory* factory, int argc, const char* argv[], int& error);
 
 /**
- * Destroy a Faust remote Audio instance.
+ * Delete a Faust remote Audio instance. You can also simply use C++ 'delete'.
  * 
  * @param audio - the Audio instance to be deleted.
  */ 
@@ -315,13 +326,13 @@ bool getRemoteDSPFactories(const std::string& ip_server, int port_server, std::v
 typedef bool (*createFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
 
 /* Called each time a DSP factory is deleted */
-typedef bool (*createInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
+typedef bool (*createInstanceDSPCallback) (dsp* dsp, void* arg);
 
 /* Called each time a new DSP instance is created */
 typedef bool (*deleteFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
 
 /* Called each time a DSP instance is deleted */
-typedef bool (*deleteInstanceDSPCallback) (llvm_dsp* dsp, void* arg);
+typedef bool (*deleteInstanceDSPCallback) (dsp* dsp, void* arg);
 
 class remote_dsp_server {
     
@@ -329,7 +340,6 @@ class remote_dsp_server {
         
         bool start(int port = 7777); /* Start the DSP compilation service on a given port. */
         void stop();                 /* Stop the DSP compilation service. */
-        
         
         void setCreateDSPFactoryCallback(createFactoryDSPCallback callback, void* callback_arg);
         void setDeleteDSPFactoryCallback(deleteFactoryDSPCallback callback, void* callback_arg);
@@ -349,7 +359,7 @@ class remote_dsp_server {
 remote_dsp_server* createRemoteDSPServer(int argc, const char* argv[]);
 
 /**
- * Destroy a Faust remote DSP server.
+ * Delete a Faust remote DSP server. You can also simply use C++ 'delete'.
  * 
  * @param server - the DSP server to be deleted.
  */ 

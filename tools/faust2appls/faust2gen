@@ -7,6 +7,8 @@
 #                                                                   #
 #####################################################################
 
+POLY="MONO"
+
 #-------------------------------------------------------------------
 # Set Faust include path
 
@@ -27,8 +29,15 @@ fi
 
 #PHASE 2 : dispatch command arguments
 for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2gen [-poly] <file.dsp>"
+        echo "Use '-poly' to produce a polyphonic patch ready to be used with MIDI events"
+    fi
+    
     if [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
+    elif [ $p = "-poly" ]; then
+        POLY="POLY1"
 	else
 	    OPTIONS="$OPTIONS $p"        
 	fi
@@ -43,7 +52,11 @@ for p in $FILES; do
     f=$(basename "$p")
 
     # create Max patch
-    cat $FAUSTLIB/max-msp/faustgen-wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+    if [ $POLY = "POLY1" ]; then
+        cat $FAUSTLIB/max-msp/faustgen-wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
+    else
+        cat $FAUSTLIB/max-msp/faustgen-wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+    fi
     sed -e "s/DSP_NAME/"$f"/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
     sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
       

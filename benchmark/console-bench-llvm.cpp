@@ -23,7 +23,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
 #include "faust/dsp/llvm-dsp.h"

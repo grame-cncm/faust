@@ -39,11 +39,13 @@
 #include <iostream>
 #include <list>
 
+#include "faust/dsp/timed-dsp.h"
+#include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/gui/faustqt.h"
 #include "faust/misc.h"
 #include "faust/audio/rtaudio-dsp.h"
-#include "faust/midi/midi.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -53,8 +55,12 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
-#if MIDICTRL
+// Always include this file, otherwise -poly only mode does not compile...
+#include "faust/midi/rt-midi.h"
 #include "faust/gui/MidiUI.h"
+
+#ifdef MIDICTRL
+#include "faust/midi/RtMidi.cpp"
 #endif
 
 /**************************BEGIN USER SECTION **************************/
@@ -72,16 +78,16 @@
 
 #ifdef POLY
 #include "faust/dsp/poly-dsp.h"
-mydsp_poly*	DSP;
-#else
-mydsp* DSP;
 #endif
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
+dsp* DSP;
+
 std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 /******************************************************************************
 *******************************************************************************
@@ -90,6 +96,19 @@ std::list<GUI*> GUI::fGuiList;
 
 *******************************************************************************
 *******************************************************************************/
+
+static bool hasMIDISync()
+{
+    JSONUI jsonui;
+    mydsp tmp_dsp;
+    tmp_dsp.buildUserInterface(&jsonui);
+    std::string json = jsonui.JSON();
+    
+    return ((json.find("midi") != std::string::npos) &&
+            ((json.find("start") != std::string::npos) ||
+            (json.find("stop") != std::string::npos) ||
+            (json.find("clock") != std::string::npos)));
+}
 
 int main(int argc, char *argv[])
 {
@@ -102,21 +121,34 @@ int main(int argc, char *argv[])
     
     long srate = (long)lopt(argv, "--frequency", 44100);
     int fpb = lopt(argv, "--buffer", 512);
-    int poly = lopt(argv, "--poly", 4);
-    
-#if MIDICTRL
-    rtmidi midi;
-#endif
 
 #ifdef POLY
+
+    int poly = lopt(argv, "--poly", 4);
+    int group = lopt(argv, "--group", 1);
+
 #if MIDICTRL
-    DSP = new mydsp_poly(poly, true);
-    midi.addMidiIn(DSP);
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new mydsp_poly(poly, true, group));
+    } else {
+        DSP = new mydsp_poly(poly, true, group);
+    }
 #else
-    DSP = new mydsp_poly(poly);
+    DSP = new mydsp_poly(poly, false, group);
 #endif
+
+#else
+
+#if MIDICTRL
+    if (hasMIDISync()) {
+        DSP = new timed_dsp(new mydsp());
+    } else {
+        DSP = new mydsp();
+    }
 #else
     DSP = new mydsp();
+#endif
+    
 #endif
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
@@ -131,7 +163,8 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(&finterface);
 
 #ifdef MIDICTRL
-    MidiUI midiinterface(name);
+    rt_midi midi_handler(name);
+    MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
     std::cout << "MIDI is on" << std::endl;
 #endif
@@ -155,11 +188,7 @@ int main(int argc, char *argv[])
     
     printf("ins %d\n", audio.get_num_inputs());
     printf("outs %d\n", audio.get_num_outputs());
-    
-#if MIDICTRL
-    midi.start();
-#endif
-
+ 
 #ifdef HTTPCTRL
 	httpdinterface.run();
 #ifdef QRCODECTRL
@@ -182,10 +211,6 @@ int main(int argc, char *argv[])
 	audio.stop();
 	finterface.saveState(rcfilename);
     
-#ifdef MIDICTRL
-    midi.stop();
-#endif
-
   	return 0;
 }
 

@@ -38,12 +38,9 @@
 #include <iostream>
 #include <fstream>
 
-
 #include "faust/misc.h"
 #include "faust/gui/RosCI.h"
-#include "faust/audio/dsp.h"
-
-
+#include "faust/dsp/dsp.h"
 
 /**************************BEGIN USER SECTION **************************/
 

@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/au/AUUI.h"
 
 #define FaustAU _FaustAUClass_

@@ -200,7 +200,7 @@ inline int int2pow2 (int x) { int r=0; while ((1<<r)<x) r++; return r; }
 *****************************************************************************/
 
 #include "faust/vst/vstui.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 

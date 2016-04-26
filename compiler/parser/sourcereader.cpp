@@ -243,6 +243,7 @@ Tree SourceReader::parsefile(string fname)
         }
         yy_scan_string(buffer);
         Tree res = parse(yyfilename);
+        // 'http_fetch' result must be deallocated
         free(buffer);
     #endif
         return res;

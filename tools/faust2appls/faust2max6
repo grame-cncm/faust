@@ -8,6 +8,8 @@
 #                                                                   #
 #####################################################################
 
+POLY=""
+
 # path to max SDK
 
 SDK=/usr/local/include/c74support/
@@ -68,6 +70,12 @@ done
 
 #PHASE 2 : dispatch command arguments
 for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2max6  [-poly] [-midi] <file.dsp>"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-midi' to activate MIDI control"
+    fi
+    
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
             OMP="-openmp"
@@ -78,6 +86,11 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-poly" ]; then
+        POLYDEFS="-DPOLY"
+        POLY="POLY1"
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="-DMIDICTRL"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -86,8 +99,6 @@ for p in $@; do
 	    OPTIONS="$OPTIONS $p"        
 	fi
 done
-
-
 
 #-------------------------------------------------------------------
 # Check darwin specifics
@@ -116,15 +127,15 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -double -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	faust -i -double -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary
     (
 	cd "$TMP"
 	install -d "${f%.dsp}$EXT/Contents/MacOS"
 
-	$CC  -Wfatal-errors -framework Carbon -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -arch x86_64  -Wl,-U,_object_new_imp -Wl,-U,_object_method_imp -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
-    ) > /dev/null
+	$CC  -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -arch x86_64  -Wl,-U,_object_new_imp -Wl,-U,_object_method_imp -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+    ) > /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
 
@@ -139,7 +150,11 @@ for p in $FILES; do
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
     
     # create Max patch
-    cat $FAUSTLIB/max-msp/wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+    if [ $POLY = "POLY1" ]; then 
+        cat $FAUSTLIB/max-msp/wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
+    else
+        cat $FAUSTLIB/max-msp/wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+    fi
     sed -e "s/DSP_NAME/"${f%.dsp}"~/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
     sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
     

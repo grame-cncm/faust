@@ -67,6 +67,12 @@ done
 
 #PHASE 2 : dispatch command arguments
 for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2msp  [-poly] [-midi] <file.dsp>"
+        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-midi' to activate MIDI control"
+    fi
+    
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
             OMP="-openmp"
@@ -77,6 +83,10 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-poly" ]; then
+        POLYDEFS="-DPOLY"
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="-DMIDICTRL"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -85,8 +95,6 @@ for p in $@; do
 	    OPTIONS="$OPTIONS $p"        
 	fi
 done
-
-
 
 #-------------------------------------------------------------------
 # Check darwin specifics
@@ -114,15 +122,15 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -a $FAUSTLIB/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"
+	faust -i -a $FAUSTLIB/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary
     (
 	cd "$TMP"
 	install -d "${f%.dsp}$EXT/Contents/MacOS"
-
-	$CC  -Wfatal-errors -framework Carbon -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
-    ) 
+ 
+	$CC  -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+    ) >/dev/null  || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
 

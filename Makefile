@@ -1,4 +1,4 @@
-version := 2.0.a41
+version := 2.0.a43
 
 system	?= $(shell uname -s)
 
@@ -134,7 +134,6 @@ install :
 	([ -e compiler/faust ] && install compiler/faust $(prefix)/bin/)  || echo faust not available
 	([ -e compiler/libfaust.$(LIB_EXT) ] && install compiler/libfaust.$(LIB_EXT) $(prefix)/lib/) || echo libfaust.$(LIB_EXT) not available
 	([ -e compiler/libfaust.a ] && install compiler/libfaust.a $(prefix)/lib/) || echo libfaust.a not available
-	([ -e compiler/libfaust.js ] && install compiler/libfaust.js $(prefix)/lib/faust) || echo libfaust.js not available
 	cp compiler/libfaust.h  $(prefix)/include/faust/
 	cp compiler/generator/llvm/llvm-dsp.h  $(prefix)/include/faust/dsp/
 	cp compiler/generator/llvm/llvm-c-dsp.h  $(prefix)/include/faust/dsp/
@@ -149,6 +148,10 @@ install :
 	cp architecture/*.js $(prefix)/lib/faust/
 	cp architecture/*.html $(prefix)/lib/faust/
 	cp architecture/*.lib $(prefix)/lib/faust/
+	# This is needed by faust2lv2 -gui / lv2ui.cpp.
+	cp architecture/lv2qtgui.h $(prefix)/lib/faust/
+	# This is needed by faust2faustvst -gui / faustvst.cpp.
+	cp architecture/faustvstqt.h $(prefix)/lib/faust/
 	# install iOS
 	rm -rf $(prefix)/lib/faust/iOS
 	cp -r architecture/iOS $(prefix)/lib/faust/

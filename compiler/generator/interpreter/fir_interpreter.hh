@@ -22,7 +22,7 @@
 #ifndef _FIR_INTERPRETER_H
 #define _FIR_INTERPRETER_H
 
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
 #include "fir_opcode.hh"

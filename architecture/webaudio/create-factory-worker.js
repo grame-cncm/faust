@@ -16,10 +16,13 @@ onmessage = function(e) {
     Module.writeStringToMemory(name, name_ptr);
     Module.writeStringToMemory(code, code_ptr);
     
-    var createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number']);
+    var createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number','number']);
     var getCLibFaustVersion = Module.cwrap('getCLibFaustVersion', 'number', []);
     var freeCDSP = Module.cwrap('freeCDSP', null, ['number']);
     
+    console.log("libfaustworker.js version : %s", Pointer_stringify(getCLibFaustVersion()));
+    
+    // Add 'cn' option with the factory name
     argv = (argv === null) ? new Array() : argv;
     argv.push("-cn", factory_name);
     
@@ -51,6 +54,7 @@ onmessage = function(e) {
     }
     Module._free(argv_ptr);
    
-	postMessage({factory_code: factory_code, error_msg: error_msg});
+    // Returns compiled factory
+    postMessage({factory_code: factory_code, error_msg: error_msg});
 }
 

@@ -54,7 +54,7 @@ extern "C" void* compile_faust_llvm(int argc, const char* argv[], const char* li
 //----------------------------------------------------------------------------
 
 #ifdef LLVM
-llvm_dsp* DSP;
+dsp* DSP;
 #else
 interpreter_dsp* DSP;
 #endif
@@ -183,7 +183,6 @@ int main(int argc, char *argv[])
         
         std::string error_msg3;
         //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "i386-apple-darwin10.6.0-cortex-m3", error_msg3, 0);
-    
     #ifdef LLVM
         factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, -1);
     #else
@@ -194,9 +193,7 @@ int main(int argc, char *argv[])
         
         ///deleteDSPFactory(factory3);
         //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
-        
         //factory4 = createDSPFactoryFromString("titi", "process = +,+,+;", argc-2, (const char**)argv[argc-1], "", error_msg3, 4);
-        
         //factory4 = createDSPFactoryFromString("toto", "process = +;", argc-2, (const char**)argv[argc-1], "", error_msg3, 4);
         
         /*
@@ -304,11 +301,7 @@ int main(int argc, char *argv[])
     finterface->saveState(rcfilename);
     delete(interface);
     delete(finterface);
-#ifdef LLVM
-    deleteDSPInstance(DSP);
-#else
-    deleteDSPInterpreterInstance(DSP);
-#endif
+    delete DSP;
 
 #ifdef LLVM
     deleteDSPFactory(factory3);

@@ -8,9 +8,13 @@
 
 #include "remote_server.h"
 #include "utilities.h"
+#include "rn_base64.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUI.h"
-#include "rn_base64.h"
+
+#define LLVM_DSP 1
+#include "faust/dsp/poly-dsp.h"
+//#include "faust/midi/RtMidi.cpp"
 
 #include <string.h>
 #include <stdio.h>
@@ -19,13 +23,18 @@
 
 #ifdef __APPLE__
 #include <dns_sd.h>
-#endif
 
 // For iOS specific compilation
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= 50000
 #define IOSAUDIO 1
 #else
 #define COREAUDIO 1
+#endif
+
+#endif
+
+#ifdef __linux__
+#define JACK 1
 #endif
 
 //#define JACK 1
@@ -126,8 +135,11 @@ class netjack_dsp : public audio_dsp {
                     const string& ip, const string& port, 
                     const string& mtu, const string& latency,
                     const string& name, const string& key,
+                    const string& poly, const string& voices, const string& group,
                     createInstanceDSPCallback cb1, void* cb1_arg,
                     deleteInstanceDSPCallback cb2, void* cb2_arg);
+                    
+        virtual ~netjack_dsp() {}
         
         bool init(int u1, int u2);
        
@@ -143,20 +155,33 @@ netjack_dsp::netjack_dsp(llvm_dsp_factory* factory,
                         const string& latency,
                         const string& name,
                         const string& key,
+                        const string& poly, 
+                        const string& voices,
+                        const string& group,
                         createInstanceDSPCallback cb1, void* cb1_arg,
                         deleteInstanceDSPCallback cb2, void* cb2_arg)
-                        :audio_dsp(factory, name, key, cb1, cb1_arg, cb2, cb2_arg), fIP(ip), 
+                        :audio_dsp(factory, atoi(poly.c_str()), atoi(voices.c_str()), atoi(group.c_str()), 
+                        false, false, false,
+                        name, key, cb1, cb1_arg, cb2, cb2_arg), fIP(ip), 
                         fPort(port), fCompression(compression), 
                         fMTU(mtu), fLatency(latency)
 {}
 
 bool netjack_dsp::init(int u1, int u2)
 {
-    fAudio = new netjackaudio_slave(atoi(fCompression.c_str()), 
-                                    fIP, 
-                                    atoi(fPort.c_str()), 
-                                    atoi(fMTU.c_str()), 
-                                    atoi(fLatency.c_str()));
+    netjackaudio_slave* netjack_slave = new netjackaudio_slave(atoi(fCompression.c_str()), 
+                                                                fIP, 
+                                                                atoi(fPort.c_str()), 
+                                                                atoi(fMTU.c_str()), 
+                                                                atoi(fLatency.c_str()));
+    fAudio = netjack_slave;
+    
+    // If Polyphonic DSP, setup a MIDI interface
+    if (dynamic_cast<mydsp_poly*>(fDSP)) {
+        fMidiUI = new MidiUI(netjack_slave);
+        fDSP->buildUserInterface(fMidiUI);
+        fMidiUI->run();
+    }
                                         
     if (!fAudio->init(fName.c_str(), fDSP)) {
         printf("netjack_dsp : init audio failed\n");
@@ -187,50 +212,111 @@ bool audio_dsp::init(int sr, int bs)
         printf("audio_dsp : init audio failed\n");
         return false;
     } else {
+        if (fOSCUI)     { fOSCUI->run(); }
+        if (fHttpdUI)   { fHttpdUI->run(); }
+        if (fMidiUI)    { fMidiUI->run(); }
         return true;
     }
+}
+
+audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool group, 
+                    bool osc, bool httpd, bool midi, 
+                    const string& name, const string& key, 
+                    createInstanceDSPCallback cb1, void* cb1_arg,
+                    deleteInstanceDSPCallback cb2, void* cb2_arg)
+                    :fName(name), fInstanceKey(key), fAudio(NULL), 
+                    fCreateDSPInstanceCb(cb1), fCreateDSPInstanceCb_arg(cb1_arg),
+                    fDeleteDSPInstanceCb(cb2), fDeleteDSPInstanceCb_arg(cb2_arg)
+{
+    llvm_dsp* dsp = createDSPInstance(factory);
+    if (!dsp) {
+        throw -1;
+    }
+    
+    if (poly) {
+        fDSP = new mydsp_poly(voices, dsp, true, group);
+    } else{
+        fDSP = dsp;
+    }
+    
+    if (osc) {
+        fOSCUI = new OSCUI(name.c_str(), 0, NULL);
+        fDSP->buildUserInterface(fOSCUI);
+    } else {
+        fOSCUI = 0;
+    }
+    
+    if (httpd) {
+        fHttpdUI = new httpdUI(name.c_str(), fDSP->getNumInputs(),fDSP->getNumOutputs(), 0, NULL);
+        fDSP->buildUserInterface(fHttpdUI);
+        fHttpdUI->run();
+    } else {
+        fHttpdUI = 0;
+    }
+     
+    if (midi) {
+        //fMidiUI = new MidiUI();
+        //fDSP->buildUserInterface(fMidiUI);
+        fMidiUI = 0;
+    } else {
+        fMidiUI = 0;
+    }
+   
+    if (fCreateDSPInstanceCb) {
+        fCreateDSPInstanceCb(fDSP, fCreateDSPInstanceCb_arg);
+    }
+}
+ 
+audio_dsp::~audio_dsp()
+{   
+    if (fDeleteDSPInstanceCb) {
+        fDeleteDSPInstanceCb(fDSP, fDeleteDSPInstanceCb_arg);
+    }
+    
+    delete fAudio;
+    delete fDSP;  //deleteDSPInstance(fDSP);
+    
+    delete fOSCUI;
+    delete fHttpdUI;
+    delete fMidiUI;
 }
 
 //------------ CONNECTION INFO -------------------------------
 
 dsp_server_connection_info::dsp_server_connection_info() 
-{   
-    fAnswercode = -1;
-    fAnswer = "";
-    fNameApp = "";
-    fFaustCode = "";
-    fTarget = "";
-    fOptLevel = "";
-    fIP = "";
-    fPort = "";
-    fCompression = "";
-    fMTU = "";
-    fLatency = "";
-    fSHAKey = "";
-    fInstanceKey = "";
-}
+    :fAnswercode(-1), fAnswer(""), fNameApp(""), fFaustCode(""),
+     fTarget(""), fOptLevel(""), fIP(""), fPort(""), fCompression(""),
+     fMTU(""), fLatency(""), fSHAKey(""), fInstanceKey(""), 
+     fPoly(""), fVoices(""), fGroup(""),
+     fOSC(""), fHTTPD(""), fMIDI("")
+{}
 
 void dsp_server_connection_info::getJson(llvm_dsp_factory* factory) 
 {
-    /*
     fNameApp = factory->getName();
     // This instance is used only to build JSON interface, then it's deleted
-    llvm_dsp* dsp = createDSPInstance(factory);
-    string code = factory->getDSPCode();
-    JSONUI json(fNameApp, dsp->getNumInputs(), dsp->getNumOutputs(), factory->getSHAKey(), base64_encode((const unsigned char*)code.c_str(), code.size()));
-    dsp->buildUserInterface(&json);
-    deleteDSPInstance(dsp);  
-    fAnswer = json.JSON();
-    */
+    llvm_dsp* llvm_dsp = createDSPInstance(factory);
+    dsp* dsp;
     
+    if (atoi(fPoly.c_str())) {
+        dsp = new mydsp_poly(atoi(fVoices.c_str()), llvm_dsp, true, atoi(fGroup.c_str()));
+    } else{
+        dsp = llvm_dsp;
+    }
+   
+    string code = factory->getDSPCode();
+    JSONUI json(fNameApp, dsp->getNumInputs(), dsp->getNumOutputs(), factory->getSHAKey(), base64_encode(code.c_str(), code.size()));
+    metadataDSPFactory(factory, &json);
+    dsp->buildUserInterface(&json);
+    //deleteDSPInstance(dsp);  
+    delete dsp;
+    fAnswer = json.JSON();    
+    /*
     fNameApp = getCName(factory);
     // This instance is used only to build JSON interface, then it's deleted
     llvm_dsp* dsp = createDSPInstance(factory);
     string code = getCDSPCode(factory);
     char* base64_code = base64_encode(code.c_str(), code.size());
-    //string base64_code = base64_encode(code);
-    
-    //string base64_code = "";
     string sha_key = getCSHAKey(factory);
     printf("code %s\n", code.c_str());
     printf("shakey %s\n", sha_key.c_str());
@@ -238,13 +324,14 @@ void dsp_server_connection_info::getJson(llvm_dsp_factory* factory)
     dsp->buildUserInterface(json);
     deleteDSPInstance(dsp);
     fAnswer = json->JSON();
+    */
 }
 
 bool dsp_server_connection_info::getFactoryFromSHAKey(DSPServer* server)
 {
     // Will increment factory reference counter...
-    //llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(fSHAKey);
-    llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(fSHAKey.c_str());
+    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(fSHAKey);
+    //llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(fSHAKey.c_str());
      
     if (factory) {
         getJson(factory);
@@ -261,8 +348,8 @@ llvm_dsp_factory* dsp_server_connection_info::crossCompileFactory(DSPServer* ser
     llvm_dsp_factory* factory;
   
     // Already in the cache...
-    //if ((factory = getDSPFactoryFromSHAKey(fSHAKey))) {
-    if ((factory = getCDSPFactoryFromSHAKey(fSHAKey.c_str()))) {
+    if ((factory = getDSPFactoryFromSHAKey(fSHAKey))) {
+   // if ((factory = getCDSPFactoryFromSHAKey(fSHAKey.c_str()))) {
         return factory;
     } else {
         // Sort out compilation options
@@ -271,11 +358,18 @@ llvm_dsp_factory* dsp_server_connection_info::crossCompileFactory(DSPServer* ser
         for (int i = 0; i < argc; i++) {
             argv[i] = fCompilationOptions[i].c_str();
         }
-     
+        
+        /*
         char error1[256];
         factory = createCDSPFactoryFromString(fNameApp.c_str(),
                                             fFaustCode.c_str(),
                                             argc, argv, fTarget.c_str(),
+                                            error1, atoi(fOptLevel.c_str()));
+        */
+        string error1;
+        factory = createDSPFactoryFromString(fNameApp,
+                                            fFaustCode,
+                                            argc, argv, fTarget,
                                             error1, atoi(fOptLevel.c_str()));
                                                                 
         error = error1;                                                    
@@ -301,22 +395,24 @@ llvm_dsp_factory* dsp_server_connection_info::createFactory(DSPServer* server, s
      
     if (isopt(argc, argv, "-lm")) {
         // Machine code
-        //fFactory = readDSPFactoryFromMachine(fFaustCode);
-        factory = readCDSPFactoryFromMachine(fFaustCode.c_str(), loptions(argv, "-lm", ""));
+        factory = readDSPFactoryFromMachine(fFaustCode, loptions(argv, "-lm", ""));
+        //factory = readCDSPFactoryFromMachine(fFaustCode.c_str(), loptions(argv, "-lm", ""));
     } else {
         // DSP code
-        /*
-        fFactory = createDSPFactoryFromString(fNameApp,
+        string error1;
+        factory = createDSPFactoryFromString(fNameApp,
                                             fFaustCode, 
                                             argc, argv, "", 
                                             error, atoi(fOptLevel.c_str()));
-        */
     
+        /*
         char error1[256];
         factory = createCDSPFactoryFromString(fNameApp.c_str(),
                                             fFaustCode.c_str(),
                                             argc, argv, "",
                                             error1, atoi(fOptLevel.c_str()));
+        */
+        
         error = error1;
     }
     
@@ -336,35 +432,47 @@ int dsp_server_connection_info::iteratePost(const char* key, const char* data, s
             if (fNameApp == "") {
                 fNameApp = "RemoteDSPServer_DefaultName";
             }
-        } else if (strcmp(key,"audio_type") == 0) {
+        } else if (strcmp(key, "audio_type") == 0) {
             fAudioType = data;
-        } else if (strcmp(key,"dsp_data") == 0) {
+        } else if (strcmp(key, "dsp_data") == 0) {
             fFaustCode += data;  // Possibly several post ?
         } else if (strcmp(key,"target") == 0) {
             fTarget = data;  
-        } else if (strcmp(key,"NJ_ip") == 0) {
+        } else if (strcmp(key, "NJ_ip") == 0) {
             fIP = data;
-        } else if (strcmp(key,"NJ_port") == 0) {
+        } else if (strcmp(key, "NJ_port") == 0) {
             fPort = data;   
-        } else if (strcmp(key,"NJ_latency") == 0) {
+        } else if (strcmp(key, "NJ_latency") == 0) {
             fLatency = data;
-        } else if (strcmp(key,"NJ_compression") == 0) {
+        } else if (strcmp(key, "NJ_compression") == 0) {
             fCompression = data;        
-        } else if (strcmp(key,"NJ_mtu") == 0) {
+        } else if (strcmp(key, "NJ_mtu") == 0) {
             fMTU = data;
-        } else if (strcmp(key,"shaKey") == 0) {
+        } else if (strcmp(key, "shaKey") == 0) {
             fSHAKey = data;
-        } else if (strcmp(key,"instanceKey") == 0) {
+        } else if (strcmp(key, "instanceKey") == 0) {
             fInstanceKey = data;
-        } else if (strcmp(key,"options") == 0) {
+        } else if (strcmp(key, "options") == 0) {
             fCompilationOptions.push_back(data);
-        } else if (strcmp(key,"opt_level") == 0) {
+        } else if (strcmp(key, "opt_level") == 0) {
             fOptLevel = data;
-        } else if (strcmp(key,"LA_sample_rate") == 0) {
+        } else if (strcmp(key, "LA_sample_rate") == 0) {
             fSampleRate = data;
-        } else if (strcmp(key,"LA_buffer_size") == 0) {
+        } else if (strcmp(key, "LA_buffer_size") == 0) {
             fBufferSize = data;
-        }
+        } else if (strcmp(key, "poly") == 0) {
+            fPoly = data;
+        } else if (strcmp(key, "voices") == 0) {
+            fVoices = data;
+        } else if (strcmp(key, "group") == 0) {
+            fGroup = data;
+        } else if (strcmp(key, "osc") == 0) {
+            fOSC = data;
+        } else if (strcmp(key, "httpd") == 0) {
+            fHTTPD = data;
+        } else if (strcmp(key, "midi") == 0) {
+            fMIDI = data;
+        }  
     }
     
     fAnswercode = MHD_HTTP_OK;
@@ -405,7 +513,8 @@ void* DSPServer::registration(void* arg)
     
     char host_name[256];
     gethostname(host_name, sizeof(host_name));
-    char* target = getCDSPMachineTarget();
+    //char* target = getCDSPMachineTarget();
+    string target = getDSPMachineTarget();
     stringstream name_service;
     name_service << searchIP() << ":" << serv->fPort << ":" << host_name << ":" << target;
     lo_address adress = lo_address_new("224.0.0.1", "7770");
@@ -420,7 +529,7 @@ void* DSPServer::registration(void* arg)
         lo_send(adress, "/faustcompiler", "is", getpid(), name_service.str().c_str());
     }
     
-    freeCDSP(target);
+    //freeCDSP(target);
     pthread_exit(NULL);
 }
     
@@ -483,7 +592,7 @@ void DSPServer::open(audio_dsp* dsp)
 //---- Creating response page with right header syntaxe
 int DSPServer::sendPage(MHD_Connection* connection, const string& page, int status_code, const string& type)
 {
-    struct MHD_Response *response = MHD_create_response_from_buffer(page.size(), (void*)page.c_str(), MHD_RESPMEM_PERSISTENT);
+    struct MHD_Response* response = MHD_create_response_from_buffer(page.size(), (void*)page.c_str(), MHD_RESPMEM_PERSISTENT);
     if (response) {
         MHD_add_response_header(response, "Content-Type", type.c_str());
         return MHD_queue_response(connection, status_code, response);
@@ -576,8 +685,8 @@ bool DSPServer::getAvailableFactories(MHD_Connection* connection)
     stringstream answer;
     for (FactoryTableIt it = fFactories.begin(); it != fFactories.end(); it++) {
         llvm_dsp_factory* factory = *it;
-        //answer << factory->getName() << ":" << factory->getTarget() << " " << factory->getSHAKey() << " ";
-        answer << getCName(factory) << ":" << getCTarget(factory) << " " << getCSHAKey(factory) << " ";
+        answer << factory->getName() << ":" << factory->getTarget() << " " << factory->getSHAKey() << " ";
+        //answer << getCName(factory) << ":" << getCTarget(factory) << " " << getCSHAKey(factory) << " ";
     }
     return sendPage(connection, answer.str(), MHD_HTTP_OK, "text/plain");
 }
@@ -614,12 +723,12 @@ bool DSPServer::crossCompileFactory(MHD_Connection* connection, dsp_server_conne
         fFactories.insert(factory);
         
         // Return machine_code to client
-        //string machine_code = writeDSPFactoryToMachine(factory, info->fTarget);
-        char* machine_code = writeCDSPFactoryToMachine(factory, info->fTarget.c_str());
+        string machine_code = writeDSPFactoryToMachine(factory, info->fTarget);
+        //char* machine_code = writeCDSPFactoryToMachine(factory, info->fTarget.c_str());
          
         // And keep the new compiled target, so that is it "cached"
-        //llvm_dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget);
-        llvm_dsp_factory* new_factory = readCDSPFactoryFromMachine(machine_code, info->fTarget.c_str());
+        llvm_dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget);
+        //llvm_dsp_factory* new_factory = readCDSPFactoryFromMachine(machine_code, info->fTarget.c_str());
         
         //freeCDSP(machine_code);  // TODO
         
@@ -677,8 +786,8 @@ bool DSPServer::stop(MHD_Connection* connection, dsp_server_connection_info* inf
 bool DSPServer::deleteFactory(MHD_Connection* connection, dsp_server_connection_info* info)
 {
     // Returns the factory (with incremented reference counter)
-    //llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(info->fSHAKey);
-    llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(info->fSHAKey.c_str());
+    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(info->fSHAKey);
+    //llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(info->fSHAKey.c_str());
     
     if (factory) {
         // Remove from the list
@@ -751,8 +860,8 @@ void DSPServer::requestCompleted(void* cls, MHD_Connection* connection, void** c
 // Create DSP Instance
 bool DSPServer::createInstance(dsp_server_connection_info* con_info)
 {
-    //llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(con_info->fSHAKey);
-    llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(con_info->fSHAKey.c_str());
+    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(con_info->fSHAKey);
+    //llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(con_info->fSHAKey.c_str());
     audio_dsp* audio = NULL;
     llvm_dsp* dsp = NULL;
     
@@ -760,11 +869,16 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
     
         try {
             if (con_info->fAudioType == "kNetJack") {
-                audio = new netjack_dsp(factory, con_info->fCompression, 
+                std::cout << con_info->fPoly << " " << con_info->fVoices << " " << con_info->fGroup << std::endl;
+                audio = new netjack_dsp(factory, 
+                                        con_info->fCompression, 
                                         con_info->fIP, con_info->fPort, 
                                         con_info->fMTU, con_info->fLatency, 
                                         factory->getName(),
                                         con_info->fInstanceKey,
+                                        con_info->fPoly, 
+                                        con_info->fVoices, 
+                                        con_info->fGroup, 
                                         fCreateDSPInstanceCb, fCreateDSPInstanceCb_arg,
                                         fDeleteDSPInstanceCb, fDeleteDSPInstanceCb_arg);
                 pthread_t thread;
@@ -786,8 +900,14 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
                 */
                 
                 audio = new audio_dsp(factory,
-                                    //factory->getName(),
-                                    getCName(factory),
+                                    atoi(con_info->fPoly.c_str()),
+                                    atoi(con_info->fVoices.c_str()),
+                                    atoi(con_info->fGroup.c_str()),
+                                    atoi(con_info->fOSC.c_str()),
+                                    atoi(con_info->fHTTPD.c_str()),
+                                    atoi(con_info->fMIDI.c_str()),
+                                    factory->getName(),
+                                    //getCName(factory),
                                     con_info->fInstanceKey,
                                     fCreateDSPInstanceCb, 
                                     fCreateDSPInstanceCb_arg,

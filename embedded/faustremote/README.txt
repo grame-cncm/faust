@@ -28,6 +28,12 @@ class remote_dsp_server {
         
         bool start(int port = 7777); /* Start the DSP compilation service on a given port. */
         void stop();                 /* Sop the DSP compilation. */
+
+	 void setCreateDSPFactoryCallback(createFactoryDSPCallback callback, void* callback_arg);
+        void setDeleteDSPFactoryCallback(deleteFactoryDSPCallback callback, void* callback_arg);
+        
+        void setCreateDSPInstanceCallback(createInstanceDSPCallback callback, void* callback_arg);
+        void setDeleteDSPInstanceCallback(deleteInstanceDSPCallback callback, void* callback_arg);
 };
 
 
@@ -54,10 +60,8 @@ d. Use instances as any "static" DSP
         virtual void    init(int samplingFreq);
   
         virtual void    buildUserInterface(UI* ui);
-        virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 
-	virtual void 	startAudio();
-  	virtual void 	stopAudio();
+        virtual void    compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 
 e. deleteRemoteDSPInstance(remote_dsp* dsp)
 
@@ -72,8 +76,8 @@ b. NetJack parameters of slave to be open on remote machine (localIP/Port/Latenc
 c. The dsp files you want to run in JACK/QT environment and the number of instances for each
 d. Syntax is given with ./RemoteClient --help
 
-LINK:	-faustremote
-	-curl
-	-jacknet
+LINK:	-lfaustremote
+	-lcurl
+	-ljacknet
 
 

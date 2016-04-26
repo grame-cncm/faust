@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include <vector>
 #include <iostream>
+#include <sys/time.h>
 
 #include <AudioToolbox/AudioConverter.h>
 #include <CoreAudio/CoreAudio.h>
@@ -48,9 +49,7 @@
 #include <CoreServices/CoreServices.h>
 
 #include "faust/audio/audio.h"
-#include "faust/audio/dsp.h"
-
-#include <sys/time.h>
+#include "faust/dsp/dsp.h"
 
 /******************************************************************************
 *******************************************************************************
@@ -974,15 +973,13 @@ class TCoreAudioRenderer
                 for (int i = 0; i < fDevNumOutChans; i++) {
                     fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
                 }
-                fDSP->compute(inNumberFrames, fInChannel, fOutChannel);
+                fDSP->compute(double(AudioConvertHostTimeToNanos(inTimeStamp->mHostTime))/1000., inNumberFrames, fInChannel, fOutChannel);
             } else {
                 printf("AudioUnitRender error... %x\n", fInputData);
                 printError(err);
             }
             return err;
         }
-    
-        
         
     public:
 
@@ -1398,6 +1395,8 @@ class TCoreAudioRenderer
             }
             AudioUnitUninitialize(fAUHAL);
             CloseComponent(fAUHAL);
+            fAUHAL = NULL;
+            
             DestroyAggregateDevice();
             
             delete[] fInChannel;
@@ -1467,46 +1466,48 @@ class TCoreAudioRenderer
 *******************************************************************************/
 class coreaudio : public audio {
 
-    TCoreAudioRenderer fAudioDevice;
-	int fSampleRate, fBufferSize;
+    protected:
+        
+        TCoreAudioRenderer fAudioDevice;
+        int fSampleRate, fBufferSize;
 
- public:
-  
-    coreaudio(int srate, int fpb) : fSampleRate(srate), fBufferSize(fpb) {}
-    coreaudio(int fpb) : fSampleRate(-1), fBufferSize(fpb) {}
-	virtual ~coreaudio() { fAudioDevice.Close(); }
+    public:
+      
+        coreaudio(int srate, int bsize) : fSampleRate(srate), fBufferSize(bsize) {}
+            coreaudio(int bsize) : fSampleRate(-1), fBufferSize(bsize) {}
+        virtual ~coreaudio() { fAudioDevice.Close(); }
 
-	virtual bool init(const char* /*name*/, dsp* DSP) 
-    {
-		if (fAudioDevice.OpenDefault(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fBufferSize, fSampleRate) < 0) {
-			printf("Cannot open CoreAudio device\n");
-			return false;
-		}
-        fAudioDevice.set_dsp(DSP);
-        // If -1 was given, fSampleRate will be changed by OpenDefault
-        DSP->init(fSampleRate);
-        return true;
-    }
+        virtual bool init(const char* /*name*/, dsp* DSP) 
+        {
+            if (fAudioDevice.OpenDefault(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fBufferSize, fSampleRate) < 0) {
+                printf("Cannot open CoreAudio device\n");
+                return false;
+            }
+            fAudioDevice.set_dsp(DSP);
+            // If -1 was given, fSampleRate will be changed by OpenDefault
+            DSP->init(fSampleRate);
+            return true;
+        }
 
-	virtual bool start() 
-    {
-		if (fAudioDevice.Start() < 0) {
-			printf("Cannot start CoreAudio device\n");
-			return false;
-		}
-		return true;
-	}
+        virtual bool start() 
+        {
+            if (fAudioDevice.Start() < 0) {
+                printf("Cannot start CoreAudio device\n");
+                return false;
+            }
+            return true;
+        }
 
-	virtual void stop() 
-    {
-		fAudioDevice.Stop();
-	}
-    
-    virtual int get_buffer_size() { return fAudioDevice.GetBufferSize(); }
-    virtual int get_sample_rate() { return fAudioDevice.GetSampleRate(); }
-    
-    virtual int get_num_inputs() { return fAudioDevice.GetNumInputs(); }
-    virtual int get_num_outputs() { return fAudioDevice.GetNumOutputs(); }
+        virtual void stop() 
+        {
+            fAudioDevice.Stop();
+        }
+        
+        virtual int get_buffer_size() { return fAudioDevice.GetBufferSize(); }
+        virtual int get_sample_rate() { return fAudioDevice.GetSampleRate(); }
+        
+        virtual int get_num_inputs() { return fAudioDevice.GetNumInputs(); }
+        virtual int get_num_outputs() { return fAudioDevice.GetNumOutputs(); }
 
 };
 

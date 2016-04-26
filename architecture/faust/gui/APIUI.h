@@ -1,9 +1,36 @@
+/************************************************************************
+    FAUST Architecture File
+    Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This Architecture section is free software; you can redistribute it
+    and/or modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 3 of
+    the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+    EXCEPTION : As a special exception, you may create a larger work
+    that contains this FAUST architecture section and distribute
+    that work under terms of your choice, so long as this FAUST
+    architecture section is not modified.
+
+
+ ************************************************************************
+ ************************************************************************/
+
 #ifndef API_UI_H
 #define API_UI_H
 
 #include "faust/misc.h"
 #include "faust/gui/meta.h"
-#include "faust/gui/PathUI.h"
+#include "faust/gui/UI.h"
+#include "faust/gui/PathBuilder.h"
 #include "faust/gui/ValueConverter.h"
 #include <sstream>
 #include <string>
@@ -14,7 +41,7 @@ using namespace std;
 
 enum { kLin = 0, kLog = 1, kExp = 2 };
 
-class APIUI : public PathUI, public Meta
+class APIUI : public PathBuilder, public Meta, public UI
 {
     protected:
 
@@ -246,7 +273,7 @@ class APIUI : public PathUI, public Meta
 		// Simple API part
 		//-------------------------------------------------------------------------------
 		int getParamsCount()				{ return fNumParameters; }
-		int getParamIndex(const char* n) 	{ return (fMap.count(n)>0) ? fMap[n] : -1; }
+		int getParamIndex(const char* n) 	{ return (fMap.count(n) > 0) ? fMap[n] : -1; }
 		const char* getParamName(int p)		{ return fName[p].c_str(); }
 		const char* getParamUnit(int p)		{ return fUnit[p].c_str(); }
 		FAUSTFLOAT getParamMin(int p)		{ return fMin[p]; }

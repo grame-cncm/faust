@@ -31,7 +31,7 @@
 #include <vector>
 #include <utility>
 #include "faust/gui/CUI.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "export.hh"
 #include "libfaust.h"
 #include "smartpointer.h"
@@ -87,6 +87,7 @@ class llvm_dsp_factory : public smartable {
         getNumOutputsFun fGetNumOutputs;
         buildUserInterfaceFun fBuildUserInterface;
         initFun fInit;
+        initFun fInstanceInit;
         computeFun fCompute;
         metadataFun fMetadata;
         
@@ -182,7 +183,8 @@ class llvm_dsp_aux : public dsp {
         virtual int getNumInputs();
         virtual int getNumOutputs();
     
-        virtual void init(int samplingFreq);
+        virtual void init(int samplingRate);
+        virtual void instanceInit(int samplingRate);
       
         virtual void buildUserInterface(UI* ui_interface);
         virtual void buildUserInterface(UIGlue* glue);
@@ -266,7 +268,8 @@ class EXPORT llvm_dsp : public dsp {
         int getNumInputs();
         int getNumOutputs();
     
-        void init(int samplingFreq);
+        void init(int samplingRate);
+        void instanceInit(int samplingRate);
       
         void buildUserInterface(UI* ui_interface);
         
@@ -354,7 +357,9 @@ EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp);
 
 EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp);
 
-EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingFreq);
+EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingRate);
+    
+EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate);
 
 EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* ui_interface);
 

@@ -17,20 +17,11 @@
  ************************************************************************
  ************************************************************************/
 
-/*
- * README:
- * The file only implements the native part of faust2android applications.
- * The native C API is documented at the end of this file in the "Native Faust
- * API" section.
- */
-
 #include <math.h>
 #include "faust/misc.h"
-#include "faust/gui/UI.h"
-#include "faust/audio/dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
-#include "faust/gui/jsonfaustui.h"
-#include "faust/gui/JSONUI.h"
+#include "faust/gui/UI.h"
 
 //**************************************************************
 // DSP class
@@ -40,21 +31,24 @@
 
 <<includeclass>>
 
+/*
+ * README:
+ * The file only implements the native part of faust2android applications.
+ * The native C API is documented at the end of this file in the "Native Faust
+ * API" section.
+ */
+
 //**************************************************************
 // Polyphony
 //**************************************************************
 
-#include "faust/dsp/poly-dsp.h"
+#include "faust/dsp/faust-poly-engine.h"
 
 //**************************************************************
 // Android Audio
 //**************************************************************
 
-#define FAUSTFLOAT float
-
 #include "faust/audio/android-dsp.h"
-
-#include "faust/gui/APIUI.h"
 
 //**************************************************************
 // Native Faust API
@@ -62,191 +56,23 @@
 
 #include <android/log.h>
 #include "dsp_faust.h"
-#include <stdio.h>
-#include <string.h>
 
-using namespace std;
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
-struct AndroidEngine {
+class AndroidEngine : public FaustPolyEngine {
 
-    androidaudio* fDriver;    // the audio engine
-    mydsp fMonoDSP;           // the monophonic Faust object
-    mydsp_poly* fPolyDSP;     // the polyphonic Faust object
-    APIUI fAPIUI;             // the UI description
-    JSONUI fJSON;
-    string fJSONString;
-    bool fRunning;
+    public:
 
-    int fSampleRate, fBufferSize, fPolyMax;
-
-    AndroidEngine(int sampling_rate, int buffer_size):fJSON(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs())
-    {
-        fPolyDSP = NULL;
-        fDriver = NULL;
-        fSampleRate = sampling_rate;
-        fBufferSize = buffer_size;
-        fRunning = false;
-
-        // configuring the UI
-        fMonoDSP.buildUserInterface(&fAPIUI);
-        fMonoDSP.buildUserInterface(&fJSON);
-
-        fJSONString = fJSON.JSON();
-
-        if (fJSONString.find("keyboard") != std::string::npos ||
-            fJSONString.find("poly") != std::string::npos){
-            fPolyMax = 6;
-            fPolyDSP = new mydsp_poly(fBufferSize, fPolyMax);
-            fPolyDSP->init(fSampleRate);
-        } else {
-            fPolyMax = 0;
+        AndroidEngine(int srate, int bsize):FaustPolyEngine()
+        {
+            // allocating audio driver
+            fDriver = new androidaudio(srate, bsize);
         }
-
-        // allocating audio
-        fDriver = new androidaudio(fSampleRate, fBufferSize);
-    }
-
-    virtual ~AndroidEngine()
-    {
-        delete fDriver;
-        delete fPolyDSP;
-    }
-
-    bool init()
-    {
-        return fDriver->init("Dummy", (fPolyMax == 0) ? &fMonoDSP : (dsp*)fPolyDSP);
-    }
-
-    bool start()
-    {
-        if (!fRunning) {
-            __android_log_print(ANDROID_LOG_ERROR, "Faust", "REAL start");
-            fRunning = fDriver->start();
-        }
-        return fRunning;
-    }
-
-    void stop()
-    {
-        if (fRunning) {
-            fRunning = false;
-            __android_log_print(ANDROID_LOG_ERROR, "Faust", "REAL stop");
-            fDriver->stop();
-        }
-    }
-
-    int keyOn(int pitch, int velocity)
-    {
-        if (fPolyMax > 0) {
-            fPolyDSP->keyOn(0, pitch, velocity);
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-    int keyOff(int pitch)
-    {
-        if (fPolyMax > 0) {
-            fPolyDSP->keyOff(0, pitch);
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-    int pitchBend(int refPitch, float pitch)
-    {
-        if (fPolyMax > 0) {
-            fPolyDSP->pitchBend(0, refPitch, pitch);
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-    const char* getJSON()
-    {
-        return fJSONString.c_str();
-    }
-
-    int getParamsCount()
-    {
-        return fAPIUI.getParamsCount();
-    }
-
-    float getParam(const char* address)
-    {
-        if (fPolyMax == 0) {
-            return fAPIUI.getParamValue(fAPIUI.getParamIndex(address));
-        } else {
-            return fPolyDSP->getValue(address);
-        }
-    }
-
-    void setParam(const char* address, float value)
-    {
-        if (fPolyMax == 0) {
-            fAPIUI.setParamValue(fAPIUI.getParamIndex(address), value);
-        } else {
-            fPolyDSP->setValue(address, value);
-        }
-    }
-
-    int setVoiceParam(const char* address, int pitch, float value)
-    {
-        if (fPolyMax > 0) {
-            fPolyDSP->setValue(address, pitch, value);
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-    int setVoiceGain(int pitch, float gain) {
-        if (fPolyMax > 0) {
-            fPolyDSP->setVoiceGain(pitch, gain);
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-    const char* getParamAddress(int id) {
-        return fAPIUI.getParamName(id);
-    }
-
-    void propagateAcc(int acc, float v)
-    {
-        fAPIUI.propagateAcc(acc, v);
-    }
-
-    void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
-    {
-        __android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d %d %d %f %f %f", p, acc, curve, amin, amid, amax);
-        fAPIUI.setAccConverter(p, acc, curve, amin, amid, amax);
-    }
-
-    void propagateGyr(int gyr, float v)
-    {
-        fAPIUI.propagateGyr(gyr, v);
-    }
-
-    void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax)
-    {
-        __android_log_print(ANDROID_LOG_ERROR, "Faust", "setGyrConverter %d %d %d %f %f %f", p, gyr, curve, amin, amid, amax);
-        fAPIUI.setGyrConverter(p, gyr, curve, amin, amid, amax);
-    }
-
-    float getCPULoad() { return fDriver->getCPULoad(); }
-
-    int getScreenColor()
-    {
-        int c = fAPIUI.getScreenColor();
-        __android_log_print(ANDROID_LOG_ERROR, "Faust", "getScreenColor() = %d", c);
-        return c;
-    }
-
+        
+        virtual ~AndroidEngine()
+        {}
+    
 };
 
 static AndroidEngine* gGlobal = NULL;
@@ -375,18 +201,18 @@ int getParamsCount()
  * Takes the address of a parameter and returns its current
  * value.
  */
-float getParam(const char* address)
+float getParamValue(const char* address)
 {
-    return gGlobal->getParam(address);
+    return gGlobal->getParamValue(address);
 }
 
 /*
  * setParam(address,value)
  * Sets the value of the parameter associated with address.
  */
-void setParam(const char* address, float value)
+void setParamValue(const char* address, float value)
 {
-    return gGlobal->setParam(address, value);
+    return gGlobal->setParamValue(address, value);
 }
 
 /*
