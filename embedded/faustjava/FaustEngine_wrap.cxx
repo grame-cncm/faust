@@ -293,6 +293,42 @@ SWIGEXPORT jint JNICALL Java_com_grame_faust_FaustEngineJNI_kCoreAudioRenderer_1
 }
 
 
+SWIGEXPORT jint JNICALL Java_com_grame_faust_FaustEngineJNI_kiOSRenderer_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (int)kiOSRenderer;
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_com_grame_faust_FaustEngineJNI_kAlsaRenderer_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (int)kAlsaRenderer;
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_com_grame_faust_FaustEngineJNI_kAndroidRenderer_1get(JNIEnv *jenv, jclass jcls) {
+  jint jresult = 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (int)kAndroidRenderer;
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
 SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustEngineJNI_getLastError(JNIEnv *jenv, jclass jcls) {
   jstring jresult = 0 ;
   char *result = 0 ;

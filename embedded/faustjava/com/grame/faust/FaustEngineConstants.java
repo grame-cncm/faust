@@ -12,5 +12,8 @@ public interface FaustEngineConstants {
   public final static int kPortAudioRenderer = FaustEngineJNI.kPortAudioRenderer_get();
   public final static int kJackRenderer = FaustEngineJNI.kJackRenderer_get();
   public final static int kCoreAudioRenderer = FaustEngineJNI.kCoreAudioRenderer_get();
+  public final static int kiOSRenderer = FaustEngineJNI.kiOSRenderer_get();
+  public final static int kAlsaRenderer = FaustEngineJNI.kAlsaRenderer_get();
+  public final static int kAndroidRenderer = FaustEngineJNI.kAndroidRenderer_get();
 
 }

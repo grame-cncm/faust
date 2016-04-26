@@ -43,19 +43,36 @@
 #include "faust/dsp/llvm-dsp.h"
 
 #if defined(_WIN32)
-#define STRDUP _strdup
-#include "faust/audio/portaudio-dsp.h"	
+
+    #define STRDUP _strdup
+    #include "faust/audio/portaudio-dsp.h"
+
 #elif defined(__APPLE__) 
-#define STRDUP strdup
-#include "faust/audio/coreaudio-dsp.h"	
+
+    #define STRDUP strdup
+    #if defined(TARGET_OS_IPHONE)
+        #include "faust/audio/coreaudio-ios-dsp"
+    #else
+        #include "faust/audio/coreaudio-dsp.h"
+    #endif
+
+#elif defined(__linux__)
+
+    #define STRDUP strdup
+    #if defined(ANDROID)
+        #include "faust/audio/android-dsp.h"
+    #else
+        #include "faust/audio/alsa-dsp.h"
+    #endif
+
 #endif
 
-#if defined(_WIN32) || defined(__APPLE__) 
-#define HAS_JACK 1
+#if defined(_WIN32) || defined(__APPLE__) || defined(__linux__)
+    #define HAS_JACK 1
 #endif 
 
 #if HAS_JACK
-#include "faust/audio/jack-dsp.h"
+    #include "faust/audio/jack-dsp.h"
 #endif 
 
 //**************************************************************
@@ -65,7 +82,7 @@
 
 using namespace std;
 
-enum { kPortAudioRenderer = 0, kJackRenderer, kCoreAudioRenderer };
+enum { kPortAudioRenderer = 0, kJackRenderer, kCoreAudioRenderer, kiOSRenderer, kAlsaRenderer, kAndroidRenderer };
 
 //**************************************************************
 // Globals
@@ -154,9 +171,27 @@ struct dsp_aux {
         #endif
          
         #ifdef __APPLE__
+            #if defined(TARGET_OS_IPHONE)
             case kCoreAudioRenderer:
                 fDriver = new coreaudio(sr, bsize);
                 break;
+            #else
+            case kiOSRenderer:
+                fDriver = new iosaudio(sr, bsize);
+                break;
+            #endif
+        #endif
+                
+        #ifdef __linux__
+            #if defined(ANDROID)
+            case kAndroidRenderer:
+                fDriver = new androidaudio(sr, bsize);
+                break;
+            #else
+            case kAlsaRenderer:
+                // TODO
+                break;
+            #endif
         #endif
         
         };

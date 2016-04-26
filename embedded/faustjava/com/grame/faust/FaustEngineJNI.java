@@ -14,6 +14,9 @@ public class FaustEngineJNI {
   public final static native int kPortAudioRenderer_get();
   public final static native int kJackRenderer_get();
   public final static native int kCoreAudioRenderer_get();
+  public final static native int kiOSRenderer_get();
+  public final static native int kAlsaRenderer_get();
+  public final static native int kAndroidRenderer_get();
   public final static native String getLastError();
   public final static native long create1Dsp(String jarg1, String jarg2);
   public final static native long create2Dsp(String jarg1, String jarg2, String jarg3, String jarg4, int jarg5);

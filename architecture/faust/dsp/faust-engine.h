@@ -25,7 +25,7 @@ extern "C"
      
     typedef struct {} dsp;
 
-    enum { kPortAudioRenderer = 0, kJackRenderer, kCoreAudioRenderer };
+    enum { kPortAudioRenderer = 0, kJackRenderer, kCoreAudioRenderer, kiOSRenderer, kAlsaRenderer, kAndroidRenderer };
 
     const char* getLastError();
 
