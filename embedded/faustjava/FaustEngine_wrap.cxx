@@ -749,81 +749,125 @@ SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_setParamRatioDsp(JNI
 }
 
 
-SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_propagateAccXDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_propagateAccDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2, jfloat jarg3) {
   dsp *arg1 = (dsp *) 0 ;
-  float arg2 ;
+  int arg2 ;
+  float arg3 ;
   
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   arg1 = *(dsp **)&jarg1; 
-  arg2 = (float)jarg2; 
-  propagateAccXDsp(arg1,arg2);
+  arg2 = (int)jarg2; 
+  arg3 = (float)jarg3; 
+  propagateAccDsp(arg1,arg2,arg3);
 }
 
 
-SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_propagateAccYDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_setAccConverterDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2, jint jarg3, jint jarg4, jfloat jarg5, jfloat jarg6, jfloat jarg7) {
   dsp *arg1 = (dsp *) 0 ;
-  float arg2 ;
+  int arg2 ;
+  int arg3 ;
+  int arg4 ;
+  float arg5 ;
+  float arg6 ;
+  float arg7 ;
   
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   arg1 = *(dsp **)&jarg1; 
-  arg2 = (float)jarg2; 
-  propagateAccYDsp(arg1,arg2);
+  arg2 = (int)jarg2; 
+  arg3 = (int)jarg3; 
+  arg4 = (int)jarg4; 
+  arg5 = (float)jarg5; 
+  arg6 = (float)jarg6; 
+  arg7 = (float)jarg7; 
+  setAccConverterDsp(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
 }
 
 
-SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_propagateAccZDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_getAccConverterDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2, jlong jarg3, jlong jarg4, jlong jarg5, jlong jarg6, jlong jarg7) {
   dsp *arg1 = (dsp *) 0 ;
-  float arg2 ;
+  int arg2 ;
+  int *arg3 = (int *) 0 ;
+  int *arg4 = (int *) 0 ;
+  float *arg5 = (float *) 0 ;
+  float *arg6 = (float *) 0 ;
+  float *arg7 = (float *) 0 ;
   
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   arg1 = *(dsp **)&jarg1; 
-  arg2 = (float)jarg2; 
-  propagateAccZDsp(arg1,arg2);
+  arg2 = (int)jarg2; 
+  arg3 = *(int **)&jarg3; 
+  arg4 = *(int **)&jarg4; 
+  arg5 = *(float **)&jarg5; 
+  arg6 = *(float **)&jarg6; 
+  arg7 = *(float **)&jarg7; 
+  getAccConverterDsp(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
 }
 
 
-SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_propagateGyrXDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_propagateGyrDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2, jfloat jarg3) {
   dsp *arg1 = (dsp *) 0 ;
-  float arg2 ;
+  int arg2 ;
+  float arg3 ;
   
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   arg1 = *(dsp **)&jarg1; 
-  arg2 = (float)jarg2; 
-  propagateGyrXDsp(arg1,arg2);
+  arg2 = (int)jarg2; 
+  arg3 = (float)jarg3; 
+  propagateGyrDsp(arg1,arg2,arg3);
 }
 
 
-SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_propagateGyrYDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_setGyrConverterDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2, jint jarg3, jint jarg4, jfloat jarg5, jfloat jarg6, jfloat jarg7) {
   dsp *arg1 = (dsp *) 0 ;
-  float arg2 ;
+  int arg2 ;
+  int arg3 ;
+  int arg4 ;
+  float arg5 ;
+  float arg6 ;
+  float arg7 ;
   
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   arg1 = *(dsp **)&jarg1; 
-  arg2 = (float)jarg2; 
-  propagateGyrYDsp(arg1,arg2);
+  arg2 = (int)jarg2; 
+  arg3 = (int)jarg3; 
+  arg4 = (int)jarg4; 
+  arg5 = (float)jarg5; 
+  arg6 = (float)jarg6; 
+  arg7 = (float)jarg7; 
+  setGyrConverterDsp(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
 }
 
 
-SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_propagateGyrZDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jfloat jarg2) {
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustEngineJNI_getGyrConverterDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2, jlong jarg3, jlong jarg4, jlong jarg5, jlong jarg6, jlong jarg7) {
   dsp *arg1 = (dsp *) 0 ;
-  float arg2 ;
+  int arg2 ;
+  int *arg3 = (int *) 0 ;
+  int *arg4 = (int *) 0 ;
+  float *arg5 = (float *) 0 ;
+  float *arg6 = (float *) 0 ;
+  float *arg7 = (float *) 0 ;
   
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   arg1 = *(dsp **)&jarg1; 
-  arg2 = (float)jarg2; 
-  propagateGyrZDsp(arg1,arg2);
+  arg2 = (int)jarg2; 
+  arg3 = *(int **)&jarg3; 
+  arg4 = *(int **)&jarg4; 
+  arg5 = *(float **)&jarg5; 
+  arg6 = *(float **)&jarg6; 
+  arg7 = *(float **)&jarg7; 
+  getGyrConverterDsp(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
 }
 
 

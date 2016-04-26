@@ -39,10 +39,10 @@ public class FaustEngineJNI {
   public final static native void setParamValueDsp(long jarg1, dsp jarg1_, int jarg2, float jarg3);
   public final static native float getParamRatioDsp(long jarg1, dsp jarg1_, int jarg2);
   public final static native void setParamRatioDsp(long jarg1, dsp jarg1_, int jarg2, float jarg3);
-  public final static native void propagateAccXDsp(long jarg1, dsp jarg1_, float jarg2);
-  public final static native void propagateAccYDsp(long jarg1, dsp jarg1_, float jarg2);
-  public final static native void propagateAccZDsp(long jarg1, dsp jarg1_, float jarg2);
-  public final static native void propagateGyrXDsp(long jarg1, dsp jarg1_, float jarg2);
-  public final static native void propagateGyrYDsp(long jarg1, dsp jarg1_, float jarg2);
-  public final static native void propagateGyrZDsp(long jarg1, dsp jarg1_, float jarg2);
+  public final static native void propagateAccDsp(long jarg1, dsp jarg1_, int jarg2, float jarg3);
+  public final static native void setAccConverterDsp(long jarg1, dsp jarg1_, int jarg2, int jarg3, int jarg4, float jarg5, float jarg6, float jarg7);
+  public final static native void getAccConverterDsp(long jarg1, dsp jarg1_, int jarg2, long jarg3, long jarg4, long jarg5, long jarg6, long jarg7);
+  public final static native void propagateGyrDsp(long jarg1, dsp jarg1_, int jarg2, float jarg3);
+  public final static native void setGyrConverterDsp(long jarg1, dsp jarg1_, int jarg2, int jarg3, int jarg4, float jarg5, float jarg6, float jarg7);
+  public final static native void getGyrConverterDsp(long jarg1, dsp jarg1_, int jarg2, long jarg3, long jarg4, long jarg5, long jarg6, long jarg7);
 }

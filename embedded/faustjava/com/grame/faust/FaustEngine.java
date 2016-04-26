@@ -111,28 +111,28 @@ public class FaustEngine implements FaustEngineConstants {
     FaustEngineJNI.setParamRatioDsp(dsp.getCPtr(dsp), dsp, p, v);
   }
 
-  public static void propagateAccXDsp(dsp dsp, float a) {
-    FaustEngineJNI.propagateAccXDsp(dsp.getCPtr(dsp), dsp, a);
+  public static void propagateAccDsp(dsp dsp, int acc, float a) {
+    FaustEngineJNI.propagateAccDsp(dsp.getCPtr(dsp), dsp, acc, a);
   }
 
-  public static void propagateAccYDsp(dsp dsp, float a) {
-    FaustEngineJNI.propagateAccYDsp(dsp.getCPtr(dsp), dsp, a);
+  public static void setAccConverterDsp(dsp dsp, int p, int acc, int curve, float amin, float amid, float amax) {
+    FaustEngineJNI.setAccConverterDsp(dsp.getCPtr(dsp), dsp, p, acc, curve, amin, amid, amax);
   }
 
-  public static void propagateAccZDsp(dsp dsp, float a) {
-    FaustEngineJNI.propagateAccZDsp(dsp.getCPtr(dsp), dsp, a);
+  public static void getAccConverterDsp(dsp dsp, int p, SWIGTYPE_p_int acc, SWIGTYPE_p_int curve, SWIGTYPE_p_float amin, SWIGTYPE_p_float amid, SWIGTYPE_p_float amax) {
+    FaustEngineJNI.getAccConverterDsp(dsp.getCPtr(dsp), dsp, p, SWIGTYPE_p_int.getCPtr(acc), SWIGTYPE_p_int.getCPtr(curve), SWIGTYPE_p_float.getCPtr(amin), SWIGTYPE_p_float.getCPtr(amid), SWIGTYPE_p_float.getCPtr(amax));
   }
 
-  public static void propagateGyrXDsp(dsp dsp, float a) {
-    FaustEngineJNI.propagateGyrXDsp(dsp.getCPtr(dsp), dsp, a);
+  public static void propagateGyrDsp(dsp dsp, int acc, float a) {
+    FaustEngineJNI.propagateGyrDsp(dsp.getCPtr(dsp), dsp, acc, a);
   }
 
-  public static void propagateGyrYDsp(dsp dsp, float a) {
-    FaustEngineJNI.propagateGyrYDsp(dsp.getCPtr(dsp), dsp, a);
+  public static void setGyrConverterDsp(dsp dsp, int p, int acc, int curve, float amin, float amid, float amax) {
+    FaustEngineJNI.setGyrConverterDsp(dsp.getCPtr(dsp), dsp, p, acc, curve, amin, amid, amax);
   }
 
-  public static void propagateGyrZDsp(dsp dsp, float a) {
-    FaustEngineJNI.propagateGyrZDsp(dsp.getCPtr(dsp), dsp, a);
+  public static void getGyrConverterDsp(dsp dsp, int p, SWIGTYPE_p_int acc, SWIGTYPE_p_int curve, SWIGTYPE_p_float amin, SWIGTYPE_p_float amid, SWIGTYPE_p_float amax) {
+    FaustEngineJNI.getGyrConverterDsp(dsp.getCPtr(dsp), dsp, p, SWIGTYPE_p_int.getCPtr(acc), SWIGTYPE_p_int.getCPtr(curve), SWIGTYPE_p_float.getCPtr(amin), SWIGTYPE_p_float.getCPtr(amid), SWIGTYPE_p_float.getCPtr(amax));
   }
 
 }
