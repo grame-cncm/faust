@@ -1066,6 +1066,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         
         if (gGlobal->gFloatSize == 1) {
             gGlobal->gInterpDSPFactoryFloat = interpreter_container->produceModuleFloat();
+            gGlobal->gInterpDSPFactoryFloat->dump();
         } else if (gGlobal->gFloatSize == 2) {
             //gGlobal->gInterpDSPDouble = interpreter_container->produceModuleDouble();
         } else if (gGlobal->gFloatSize == 3) {

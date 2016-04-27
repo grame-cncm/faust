@@ -121,14 +121,6 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
     
     //generateComputeFunctions(&fCodeProducer);
     
-    /*
-    return new interpreter_dsp_factory(fNumInputs, fNumOutputs, 
-                                        fCodeProducer.fRealHeapOffset, 
-                                        fCodeProducer.fIntHeapOffset, 
-                                        fCodeProducer.fUserInterfaceBlock, 
-                                        fCodeProducer.fCurrentBlock, NULL, NULL);
-                                        */
-                                        
     return new interpreter_dsp_factory(fNumInputs, fNumOutputs, 
                                         fCodeProducer.fRealHeapOffset, 
                                         fCodeProducer.fIntHeapOffset,

@@ -31,6 +31,7 @@
 #include <string>
 #include <math.h>
 #include <assert.h>
+#include <iostream>
 
 // Interpreter
 
@@ -63,9 +64,7 @@ struct FIRBasicInstruction : public FIRInstruction {
                         FIRBlockInstruction<T>* branch2) 
                         : fOpcode(opcode), fIntValue(val_int), fRealValue(val_real), 
                         fOffset(offset), fbranch1(branch1), fbranch2(branch2) 
-    {
-        printf("FIRBasicInstruction %p %p\n", branch1, branch2);
-    }
+    {}
     
     FIRBasicInstruction(Opcode opcode, 
                         int val_int, T val_real) 
@@ -90,7 +89,17 @@ struct FIRBasicInstruction : public FIRInstruction {
         delete fbranch1;
         delete fbranch2;
     }
-     
+    
+    void dump()
+    {
+        std::cout << "opcode = " << gFIRInstructionTable[fOpcode]
+        << " int = " << fIntValue
+        << " real = " << fRealValue
+        << " offset = " << fOffset << std::endl;
+        if (fbranch1) fbranch1->dump();
+        if (fbranch2) fbranch2->dump();
+    }
+    
 };
 
 template <class T>
@@ -133,38 +142,57 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
     virtual ~FIRUserInterfaceInstruction()
     {}
     
+    void dump()
+    {
+        
+    }
+    
 };
 
 template <class T>
 struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
 
-     std::vector<FIRUserInterfaceInstruction<T>*> fInstructions;
+    std::vector<FIRUserInterfaceInstruction<T>*> fInstructions;
      
-     virtual ~FIRUserInterfaceBlockInstruction()
-     {
-         typename std::vector<FIRUserInterfaceInstruction<T>* >::iterator it;
-         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-             delete(*it);
-         }
-     }
+    virtual ~FIRUserInterfaceBlockInstruction()
+    {
+        typename std::vector<FIRUserInterfaceInstruction<T>* >::iterator it;
+        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+            delete(*it);
+        }
+    }
      
-     void push(FIRUserInterfaceInstruction<T>* inst) { fInstructions.push_back(inst); }
+    void push(FIRUserInterfaceInstruction<T>* inst) { fInstructions.push_back(inst); }
+    
+    void dump()
+    {}
+    
 };
 
 template <class T>
 struct FIRBlockInstruction : public FIRInstruction {
 
-     std::vector<FIRBasicInstruction<T>*> fInstructions;
+    std::vector<FIRBasicInstruction<T>*> fInstructions;
      
-     virtual ~FIRBlockInstruction()
-     {
-         typename std::vector<FIRBasicInstruction<T>* >::iterator it;
-         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-             delete(*it);
-         }
-     }
+    virtual ~FIRBlockInstruction()
+    {
+        typename std::vector<FIRBasicInstruction<T>* >::iterator it;
+        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+            delete(*it);
+        }
+    }
      
-     void push(FIRBasicInstruction<T>* inst) { fInstructions.push_back(inst); }
+    void push(FIRBasicInstruction<T>* inst) { fInstructions.push_back(inst); }
+    
+    void dump()
+    {
+        std::cout << "Block size = " << fInstructions.size() << std::endl;
+        
+        typename std::vector<FIRBasicInstruction<T>* >::iterator it;
+        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+            (*it)->dump();
+        }
+    }
 };
 
 template <class T>
@@ -174,7 +202,7 @@ class FIRInterpreter  {
     
         T* fRealHeap;
         int* fIntHeap;
-        
+    
         int fRealHeapSize;
         int fIntHeapSize;
         int fSROffset;
@@ -218,12 +246,12 @@ class FIRInterpreter  {
                             break;
                             
                         case FIRInstruction::kAddHorizontalSlider:
-                            printf("FIRInstruction::kAddHorizontalSlider : label %s offset %d\n", (*it)->fLabel.c_str(), (*it)->fOffset);
+                            //printf("FIRInstruction::kAddHorizontalSlider : label %s offset %d\n", (*it)->fLabel.c_str(), (*it)->fOffset);
                             interface->addHorizontalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
                             break;
                             
                         case FIRInstruction::kAddVerticalSlider:
-                            printf("FIRInstruction::kAddVerticalSlider : label %s offset %d\n", (*it)->fLabel.c_str(), (*it)->fOffset);
+                            //printf("FIRInstruction::kAddVerticalSlider : label %s offset %d\n", (*it)->fLabel.c_str(), (*it)->fOffset);
                             interface->addVerticalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
                             break;
                             
@@ -242,10 +270,10 @@ class FIRInterpreter  {
                         case FIRInstruction::kDeclare:
                             // Special case for "0" zone
                             if ((*it)->fOffset == -1) {
-                                printf("FIRInstruction::kDeclare : NULL %d\n", (*it)->fOffset);
+                                //printf("FIRInstruction::kDeclare : NULL %d\n", (*it)->fOffset);
                                 interface->declare(NULL, (*it)->fKey.c_str(), (*it)->fValue.c_str());
                             } else {
-                                printf("FIRInstruction::kDeclare : %d \n", (*it)->fOffset);
+                                //printf("FIRInstruction::kDeclare : %d \n", (*it)->fOffset);
                                 interface->declare(&fRealHeap[(*it)->fOffset], (*it)->fKey.c_str(), (*it)->fValue.c_str());
                             }
                             break;
@@ -255,19 +283,7 @@ class FIRInterpreter  {
                 }
             }
         }
-        
-        void PrintBlock(FIRBlockInstruction<T>* block)
-        {
-            printf("PrintBlock size = %lu\n", block->fInstructions.size());
-            
-            typename std::vector<FIRBasicInstruction<T>* >::iterator it;
-            for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
-                printf("opcode = %s int = %d real = %f offset = %d\n", gFIRInstructionTable[(*it)->fOpcode].c_str(),
-                                                                       (*it)->fIntValue,
-                                                                       (*it)->fRealValue,
-                                                                       (*it)->fOffset);
-            }
-        }
+    
         
         inline void ExecuteBlock(FIRBlockInstruction<T>* block, int& res_int, T& res_real, int get_result)
         {

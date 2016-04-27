@@ -26,6 +26,19 @@
 
 using namespace std;
 
+void interpreter_dsp_factory::dump()
+{
+    cout << "------interpreter_dsp_factory------" << endl;
+    cout << "fNumInputs = " << fNumInputs << " fNumOutputs = " << fNumOutputs << endl;
+    cout << "fRealHeapSize = " << fRealHeapSize << " fIntHeapSize = " << fIntHeapSize << endl;
+    cout << "------Init block------" << endl;
+    fInitBlock->dump();
+    cout << "------control block------" << endl;
+    fComputeBlock->dump();
+    cout << "------DSP block------" << endl;
+    fComputeDSPBlock->dump();
+}
+
 interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
 {
      return reinterpret_cast<interpreter_dsp*>(new interpreter_dsp_aux<float>(fNumInputs, 

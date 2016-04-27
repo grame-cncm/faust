@@ -52,8 +52,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
                             FIRBlockInstruction<T>* compute_dsp) 
                             : FIRInterpreter<T>(real_heap_size, int_heap_size, sr_offset)
         {
-            printf("interpreter_dsp_aux inputs = %d ouputs = %d real_heap_size = %d int_heap_size = %d sr_offset = %d\n",
-                   inputs, ouputs, real_heap_size, int_heap_size, sr_offset);
+            //printf("interpreter_dsp_aux inputs = %d ouputs = %d real_heap_size = %d int_heap_size = %d sr_offset = %d\n", inputs, ouputs, real_heap_size, int_heap_size, sr_offset);
             fNumInputs = inputs;
             fNumOutputs = ouputs;
             this->fInputs = new FAUSTFLOAT*[inputs];
@@ -99,7 +98,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         
         virtual void instanceInit(int samplingRate)
         {
-            printf("instanceInit samplingFreq = %d\n", samplingRate);
+            //printf("instanceInit samplingFreq = %d\n", samplingRate);
             
             // Store samplingRate in "fSamplingFreq" variable at correct offset in fIntHeap
             this->fIntHeap[this->fSROffset] = samplingRate;
@@ -123,7 +122,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         
         virtual void buildUserInterface(UI* interface) 
         {
-            printf("buildUserInterface\n");
+            //printf("buildUserInterface\n");
             this->ExecuteBuildUserInterface(fUserInterfaceBlock, interface);
         }
         
@@ -141,7 +140,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             
             // Executes the 'control' block
             if (fComputeBlock) {
-                //this->PrintBlock(fComputeBlock);
+                //this->fComputeBlock->dump();
                 this->ExecuteBlockReal(fComputeBlock);
             }
             
@@ -152,7 +151,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             //printf("loop %d %d %d\n", loop->fOpcode, loop->fOffset, count);
            
             assert(loop->fOpcode == FIRInstruction::kLoop);
-            //this->PrintBlock(loop->fbranch1);
+            //loop->fbranch1->dump();
             this->ExecuteLoopBlock(loop->fbranch1, loop->fOffset, count);
        }
 	
@@ -187,7 +186,6 @@ class EXPORT interpreter_dsp_factory {
         
         int fRealHeapSize;
         int fIntHeapSize;
-    
         int fSROffset;
         
         FIRUserInterfaceBlockInstruction<float>* fUserInterfaceBlock;
@@ -217,7 +215,7 @@ class EXPORT interpreter_dsp_factory {
             fComputeBlock(compute_control),
             fComputeDSPBlock(compute_dsp)
         {
-            printf("interpreter_dsp_factory %d %d %d %d\n", inputs, ouputs, real_heap_size, int_heap_size);
+            //printf("interpreter_dsp_factory %d %d %d %d\n", inputs, ouputs, real_heap_size, int_heap_size);
         }
         
         virtual ~interpreter_dsp_factory()
@@ -239,7 +237,9 @@ class EXPORT interpreter_dsp_factory {
         std::string getDSPCode();
         
         interpreter_dsp* createDSPInstance();
-     
+    
+        void dump();
+    
 };
 
 // Public C++ interface
