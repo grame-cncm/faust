@@ -87,7 +87,6 @@ struct FIRBasicInstruction : public FIRInstruction {
      
     virtual ~FIRBasicInstruction()
     {
-        printf("~FIRBasicInstruction\n");
         delete fbranch1;
         delete fbranch2;
     }
@@ -132,9 +131,8 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
     {}
     
     virtual ~FIRUserInterfaceInstruction()
-    {
-        printf("~FIRUserInterfaceInstruction\n");
-    }
+    {}
+    
 };
 
 template <class T>
@@ -144,10 +142,10 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
      
      virtual ~FIRUserInterfaceBlockInstruction()
      {
-        typename std::vector<FIRUserInterfaceInstruction<T>* >::iterator it;
-        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-            delete(*it);
-        }
+         typename std::vector<FIRUserInterfaceInstruction<T>* >::iterator it;
+         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+             delete(*it);
+         }
      }
      
      void push(FIRUserInterfaceInstruction<T>* inst) { fInstructions.push_back(inst); }
@@ -160,10 +158,10 @@ struct FIRBlockInstruction : public FIRInstruction {
      
      virtual ~FIRBlockInstruction()
      {
-        typename std::vector<FIRBasicInstruction<T>* >::iterator it;
-        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-            delete(*it);
-        }
+         typename std::vector<FIRBasicInstruction<T>* >::iterator it;
+         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+             delete(*it);
+         }
      }
      
      void push(FIRBasicInstruction<T>* inst) { fInstructions.push_back(inst); }
@@ -172,7 +170,7 @@ struct FIRBlockInstruction : public FIRInstruction {
 template <class T>
 class FIRInterpreter  {
 
-    protected :
+    protected:
     
         T* fRealHeap;
         int* fIntHeap;
@@ -261,10 +259,13 @@ class FIRInterpreter  {
         void PrintBlock(FIRBlockInstruction<T>* block)
         {
             printf("PrintBlock size = %lu\n", block->fInstructions.size());
+            
             typename std::vector<FIRBasicInstruction<T>* >::iterator it;
             for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
-                printf("opcode = %s int = %d real = %f offset = %d\n", 
-                    gFIRInstructionTable[(*it)->fOpcode].c_str(), (*it)->fIntValue, (*it)->fRealValue, (*it)->fOffset);
+                printf("opcode = %s int = %d real = %f offset = %d\n", gFIRInstructionTable[(*it)->fOpcode].c_str(),
+                                                                       (*it)->fIntValue,
+                                                                       (*it)->fRealValue,
+                                                                       (*it)->fOffset);
             }
         }
         
@@ -330,7 +331,7 @@ class FIRInterpreter  {
                         
                     case FIRInstruction::kStoreIndexedInt: {
                         int val = pop_int();
-                        fIntHeap[(*it)->fOffset + addr] = val;
+                        fIntHeap[(*it)->fOffset + pop_int()] = val;
                         break;
                     }
                         
@@ -503,42 +504,42 @@ class FIRInterpreter  {
                     case FIRInstruction::kGTReal: {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(v1 > v2);
+                        push_int(v1 > v2);
                         break;
                     }  
                         
                     case FIRInstruction::kLTReal: {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(v1 < v2);
+                        push_int(v1 < v2);
                         break;
                     }  
                          
                     case FIRInstruction::kGEReal: {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(v1 >= v2);
+                        push_int(v1 >= v2);
                         break;
                     }  
                         
                     case FIRInstruction::kLEReal: {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(v1<= v2);
+                        push_int(v1 <= v2);
                         break;
                     }  
                     
                     case FIRInstruction::kEQReal: {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(v1 == v2);
+                        push_int(v1 == v2);
                         break;
                     }  
                         
                     case FIRInstruction::kNEReal: {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(v1 != v2);
+                        push_int(v1 != v2);
                         break;
                     }  
                     
@@ -646,7 +647,7 @@ class FIRInterpreter  {
         
         FIRInterpreter(int real_heap_size, int int_heap_size, int sr_offset)
         {
-            printf("FIRInterpreter : %d %d %d\n", real_heap_size, int_heap_size, sr_offset);
+            printf("FIRInterpreter : real_heap_size = %d int_heap_size = %d sr_offset = %d\n", real_heap_size, int_heap_size, sr_offset);
             
             // HEAP
             fRealHeapSize = real_heap_size;

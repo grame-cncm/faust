@@ -20,9 +20,6 @@ trigger(n) 	= upfront : release(n) : >(0.0);
 
 size 		= hslider("excitation [unit:f]", 128, 2, 512, 1);
 
-
-
-
 // resonator
 //-----------------
 
