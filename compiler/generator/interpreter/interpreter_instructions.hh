@@ -235,6 +235,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(DeclareFunInst* inst) {}
     
         // Memory
+    
+        /*
         virtual void visit(LoadVarInst* inst) 
         {
             fTypingVisitor.visit(inst);
@@ -262,9 +264,47 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 }
             }
         }
-        
+        */
+    
+        virtual void visit(LoadVarInst* inst)
+        {
+            fTypingVisitor.visit(inst);
+            
+            NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
+            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+            
+            pair<int, Typed::VarType> tmp = fFieldTable[inst->fAddress->getName()];
+            
+            if (named) {
+                fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt)
+                                                               ? FIRInstruction::kLoadInt : FIRInstruction::kLoadReal, 0, 0, tmp.first));
+            } else {
+                // Indexed
+                string num;
+                if (startWithRes(indexed->getName(), "input", num)) {
+                    // Compile address
+                    inst->fAddress->accept(this);
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInput, 0, 0, atoi(num.c_str())));
+                } else {
+                    IntNumInst* num_inst = dynamic_cast<IntNumInst*>(indexed->fIndex);
+                    if (num_inst) {
+                        fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt)
+                                                                       ? FIRInstruction::kLoadInt : FIRInstruction::kLoadReal, 0, 0, tmp.first + num_inst->fNum));
+                        
+                    } else {
+                        // Compile address
+                        inst->fAddress->accept(this);
+                        fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt)
+                                                                   ? FIRInstruction::kLoadIndexedInt : FIRInstruction::kLoadIndexedReal, 0, 0, tmp.first));
+                    }
+                    
+                }
+            }
+        }
+    
         //virtual void visit(LoadVarAddressInst* inst) {}
-        
+    
+        /*
         virtual void visitStore(Address* address, ValueInst* value)
         {
             // Compile address and value
@@ -287,6 +327,46 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 } else {
                     fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
                                         ? FIRInstruction::kStoreIndexedInt : FIRInstruction::kStoreIndexedReal, 0, 0, tmp.first));
+                }
+            }
+        }
+        */
+    
+        virtual void visitStore(Address* address, ValueInst* value)
+        {
+            
+            NamedAddress* named = dynamic_cast<NamedAddress*>(address);
+            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
+            
+            pair<int, Typed::VarType> tmp = fFieldTable[address->getName()];
+            
+            if (named) {
+                // Compile value
+                value->accept(this);
+                fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt)
+                                                               ? FIRInstruction::kStoreInt : FIRInstruction::kStoreReal, 0, 0, tmp.first));
+            } else {
+                // Indexed
+                string num;
+                if (startWithRes(indexed->getName(), "output", num)) {
+                    // Compile address and value
+                    address->accept(this);
+                    value->accept(this);
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, atoi(num.c_str())));
+                } else {
+                    IntNumInst* num_inst = dynamic_cast<IntNumInst*>(indexed->fIndex);
+                    if (num_inst) {
+                        // Compile value
+                        value->accept(this);
+                        fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt)
+                                                                       ? FIRInstruction::kStoreInt : FIRInstruction::kStoreReal, 0, 0, tmp.first + num_inst->fNum));
+                    } else {
+                        // Compile address and value
+                        address->accept(this);
+                        value->accept(this);
+                        fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt)
+                                                                   ? FIRInstruction::kStoreIndexedInt : FIRInstruction::kStoreIndexedReal, 0, 0, tmp.first));
+                    }
                 }
             }
         }
