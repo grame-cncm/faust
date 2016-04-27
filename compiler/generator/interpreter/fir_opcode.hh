@@ -30,21 +30,24 @@ struct FIRInstruction {
 
     enum Opcode { 
     
+        // Halt
+        kHalt = 0,
+        
         // Numbers
-        kRealValue, kIntValue,  
+        kRealValue, kIntValue,  // 2
         
         // Memory
         kLoadReal, kLoadInt, 
         kStoreReal, kStoreInt,
         kLoadIndexedReal, kLoadIndexedInt, 
         kStoreIndexedReal, kStoreIndexedInt,
-        kLoadInput, kStoreOutput,  
+        kLoadInput, kStoreOutput,  // 12
         
         // Cast
-        kCastReal, kCastInt,
+        kCastReal, kCastInt, // 14
         
         // Select/if
-        kSelectInt, kSelectReal, kIf,
+        kSelectInt, kSelectReal, kIf, // 17
         
         // Standard math
         kAddReal, kAddInt, kSubReal, kSubInt,  
@@ -53,49 +56,60 @@ struct FIRInstruction {
         kLTInt, kGEInt, kLEInt, kEQInt, kNEInt, 
         kGTReal, kLTReal, kGEReal, 
         kLEReal, kEQReal, kNEReal, 
-        kANDInt, kORInt, kXORInt,  
+        kANDInt, kORInt, kXORInt,  // 44
         
         // Math
-        kSqrt,
-        kSin, kCos, 
+        kSqrt,  // 45
+        kSin, kCos, // 47
+        
+        // Control
+        kLoop, // 48
         
         // User Interface 
         kOpenVerticalBox, kOpenHorizontalBox, kOpenTabBox, kCloseBox,
         kAddButton, kAddCheckButton, 
         kAddHorizontalSlider, kAddVerticalSlider, kAddNumEntry, 
         kAddHorizontalBargraph, kAddVerticalBargraph,
-        kDeclare,
+        kDeclare, // 60
         
-        // Control
-        kLoop
     };
      
 };
 
 static std::string gFIRInstructionTable[] = {
-                                            "kRealValue", "kIntValue",  
+                                            "kHalt",
+    
+                                            "kRealValue", "kIntValue",
+    
                                             "kLoadReal", "kLoadInt", 
                                             "kStoreReal", "kStoreInt",
                                             "kLoadIndexedReal", "kLoadIndexedInt", 
-                                            "kStoreIndexedReal", "kStoreIndexedInt", 
-                                            "kLoadInput", "kStoreOutput",  
+                                            "kStoreIndexedReal", "kStoreIndexedInt",
+                                            "kLoadInput", "kStoreOutput",  // 12
+    
                                             "kCastReal", "kCastInt",
-                                            "kSelectInt", "kSelectReal",
+    
+                                            "kSelectInt", "kSelectReal", "kIf", // 17
+    
                                             "kAddReal", "kAddInt", "kSubReal", "kSubInt",  
                                             "kMultReal", "kMultInt", "kDivReal", "kDivInt",
                                             "kRemReal", "kRemInt", "kLshInt", "kRshInt", "kGTInt", 
                                             "kLTInt", "kGEInt", "kLEInt", "kEQInt", "kNEInt", 
                                             "kGTReal", "kLTReal", "kGEReal", 
                                             "kLEReal", "kEQReal", "kNEReal", 
-                                            "kANDInt", "kORInt", "kXORInt",
+                                            "kANDInt", "kORInt", "kXORInt", // 44
+    
                                             "kSqrt",
-                                            "kSin", "kCos", 
+                                            "kSin", "kCos", // 47
+    
+                                            "kLoop", // 48
+    
                                             "kOpenVerticalBox", "kOpenHorizontalBox", "kOpenTabBox", "kCloseBox",
                                             "kAddButton", "kAddChecButton", 
                                             "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", 
                                             "kAddHorizontalBargraph", "kAddVerticalBargraph",
-                                            "kDeclare",
-                                            "kLoop"
+                                            "kDeclare"
+    
                                         };
 
 #endif

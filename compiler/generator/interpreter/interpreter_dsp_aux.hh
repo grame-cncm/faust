@@ -134,12 +134,14 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
                 this->fOutputs[i] = outputs[i];
             }
             
+            //printf("control\n");
             // Executes the 'control' block
             if (fComputeBlock) {
                 //this->fComputeBlock->dump();
                 this->ExecuteBlockReal(fComputeBlock);
             }
             
+            //printf("DSP\n");
             // Executes the DSP loop
             FIRBasicInstruction<T>* loop = fComputeDSPBlock->fInstructions[2];
             assert(loop->fOpcode == FIRInstruction::kLoop);
@@ -207,7 +209,12 @@ class EXPORT interpreter_dsp_factory {
             fInitBlock(init),
             fComputeBlock(compute_control),
             fComputeDSPBlock(compute_dsp)
-        {}
+        {
+            // Add kHalt in blocks
+            fInitBlock->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
+            fComputeBlock->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
+            fComputeDSPBlock->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
+        }
         
         virtual ~interpreter_dsp_factory()
         {

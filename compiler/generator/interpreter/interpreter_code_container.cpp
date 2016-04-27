@@ -77,6 +77,10 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
 {
     cout << "InterpreterCodeContainer::produceModuleFloat() " << fNumInputs << " " << fNumOutputs << endl;
     
+    for (int i = 0; i < (int)FIRInstruction::kDeclare; i++) {
+        std::cout << gFIRInstructionTable[i] << std::endl;
+    }
+    
     // Add "fSamplingFreq" variable at offset 0 in HEAP
     if (!fGeneratedSR) {
         fDeclarationInstructions->pushBackInst(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
