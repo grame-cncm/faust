@@ -402,25 +402,81 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         // Conditionnal
         virtual void visit(Select2Inst* inst)
         {
+            printf("visit(Select2Inst* inst)\n");
             fTypingVisitor.visit(inst);
+            
+            // Compile condition
+            inst->fCond->accept(this);
+            
+            // Keep current block
+            FIRBlockInstruction<T>* previous = fCurrentBlock;
+            
+            // Compile 'then' in a new block
+            FIRBlockInstruction<T>* then_block = new FIRBlockInstruction<T>();
+            fCurrentBlock = then_block;
+            inst->fThen->accept(this);
+            
+            // Compile 'else' in a new block
+            FIRBlockInstruction<T>* else_block = new FIRBlockInstruction<T>();
+            fCurrentBlock = else_block;
+            inst->fElse->accept(this);
+            
+            // Compile 'select'
+            previous->push(new FIRBasicInstruction<T>((isIntType(fTypingVisitor.fCurType) ? FIRInstruction::kSelectInt : FIRInstruction::kSelectReal),
+                                                           0, 0, 0, then_block, else_block));
+                                                           
+            // Restore current block
+            fCurrentBlock = previous;
         }
-        virtual void visit(IfInst* inst) {}
+    
+        virtual void visit(IfInst* inst)
+        {
+            // Compile condition
+            inst->fCond->accept(this);
+            
+            // Keep current block
+            FIRBlockInstruction<T>* previous = fCurrentBlock;
+            
+            // Compile 'then' in a new block
+            FIRBlockInstruction<T>* then_block = new FIRBlockInstruction<T>();
+            fCurrentBlock = then_block;
+            inst->fThen->accept(this);
+            
+            // Possibly compile 'else' in a new block
+            FIRBlockInstruction<T>* else_block = 0;
+            if (inst->fElse->fCode.size() > 0) {
+                else_block = new FIRBlockInstruction<T>();
+                fCurrentBlock = else_block;
+                inst->fElse->accept(this);
+            }
+            
+            // Compile 'if'
+            previous->push(new FIRBasicInstruction<T>(FIRInstruction::kIf, 0, 0, 0, then_block, else_block));
+            
+            // Restore current block
+            fCurrentBlock = previous;
+        }
+    
         virtual void visit(SwitchInst* inst) {}
 
         // Loops
         virtual void visit(ForLoopInst* inst) 
         {
-            // Loop variable declaration
+            // Compile loop variable declaration
             inst->fInit->accept(this);
            
-            // Then generate loop block (in a new block)
+            // Keep current block
             FIRBlockInstruction<T>* previous = fCurrentBlock;
+            
+            // Compile 'loop code' in a new block
             fCurrentBlock = new FIRBlockInstruction<T>();
             inst->fCode->accept(this);
            
             // Push Loop instruction
             pair<int, Typed::VarType> tmp = fFieldTable[inst->getVariableName()];
             previous->push(new FIRBasicInstruction<T>(FIRInstruction::kLoop, inst->getVariableCount(), 0, tmp.first, fCurrentBlock, NULL));
+            
+            // Restore current block
             fCurrentBlock = previous;
         }
         

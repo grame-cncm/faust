@@ -300,12 +300,10 @@ class FIRInterpreter  {
                         
                     // Number operations
                     case FIRInstruction::kRealValue:
-                        //printf("kRealValue %f\n", (*it)->fRealValue);
                         push_real((*it)->fRealValue);
                         break;
                          
                     case FIRInstruction::kIntValue:
-                        //printf("kIntValue %d\n", (*it)->fIntValue);
                         push_int((*it)->fIntValue);
                         break;
                     
@@ -366,16 +364,25 @@ class FIRInterpreter  {
                         push_int(int(pop_real()));
                         break;
                         
-                    // Select operation
-                    case FIRInstruction::kIfInt: {
+                    // Select/If operation
+                    case FIRInstruction::kSelectInt: {
                         int cond = pop_int();
                         push_int(cond ? ExecuteBlockInt((*it)->fbranch1) : ExecuteBlockInt((*it)->fbranch2));
                         break;
                     }
                 
-                    case FIRInstruction::kIfReal:
+                    case FIRInstruction::kSelectReal:
                         push_real(pop_int() ? ExecuteBlockInt((*it)->fbranch1) : ExecuteBlockInt((*it)->fbranch2));
                         break;
+                        
+                    case FIRInstruction::kIf: {
+                        if (pop_int()) {
+                            ExecuteBlockInt((*it)->fbranch1);
+                        } else if ((*it)->fbranch2) { // Execute 'else' block if there is one
+                            ExecuteBlockInt((*it)->fbranch2);
+                        }
+                        break;
+                    }
                         
                     // Standard math operations
                     case FIRInstruction::kAddReal: {
@@ -388,7 +395,6 @@ class FIRInterpreter  {
                     case FIRInstruction::kAddInt: {
                         int v1 = pop_int();
                         int v2 = pop_int();
-                        //printf("kAddInt %d %d\n", v1, v2);
                         push_int(v1 + v2);
                         break;
                     }
@@ -403,7 +409,6 @@ class FIRInterpreter  {
                     case FIRInstruction::kSubInt: {
                         int v1 = pop_int();
                         int v2 = pop_int();
-                        //printf("kSubInt %d %d\n", v1, v2);
                         push_int(v1 - v2);
                         break;
                     }
@@ -412,7 +417,6 @@ class FIRInterpreter  {
                         T v1 = pop_real();
                         T v2 = pop_real();
                         push_real(v1 * v2);
-                        //printf("kMultReal %f %f %f\n", v1, v2, v1 * v2);
                         break;
                     }
                         
@@ -558,7 +562,6 @@ class FIRInterpreter  {
                     case FIRInstruction::kANDInt: {
                         int v1 = pop_int();
                         int v2 = pop_int();
-                        //printf("kANDInt %d %d\n", v1, v2);
                         push_int(v1 & v2);
                         break;
                     }     
@@ -580,7 +583,6 @@ class FIRInterpreter  {
                     // Other Math operations
                     case FIRInstruction::kSin: {
                         T v = pop_real();
-                        printf("kSin1 %f\n", v);
                         push_real(sinf(v));
                         break;
                     }

@@ -44,7 +44,7 @@ struct FIRInstruction {
         kCastReal, kCastInt,
         
         // Select/if
-        kIfInt, kIfReal, 
+        kSelectInt, kSelectReal, kIf,
         
         // Standard math
         kAddReal, kAddInt, kSubReal, kSubInt,  
@@ -80,7 +80,7 @@ static std::string gFIRInstructionTable[] = {
                                             "kStoreIndexedReal", "kStoreIndexedInt", 
                                             "kLoadInput", "kStoreOutput",  
                                             "kCastReal", "kCastInt",
-                                            "kIfInt", "kIfReal", 
+                                            "kSelectInt", "kSelectReal",
                                             "kAddReal", "kAddInt", "kSubReal", "kSubInt",  
                                             "kMultReal", "kMultInt", "kDivReal", "kDivInt",
                                             "kRemReal", "kRemInt", "kLshInt", "kRshInt", "kGTInt", 
