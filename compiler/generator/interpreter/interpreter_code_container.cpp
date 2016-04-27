@@ -27,8 +27,7 @@
 
 using namespace std;
 
-template <class T> map <string, int> InterpreterInstVisitor<T>::gFunctionSymbolTable;     
-template <class T> map <string, string> InterpreterInstVisitor<T>::gMathLibTable;
+template <class T> map <string, FIRInstruction::Opcode> InterpreterInstVisitor<T>::gMathLibTable;
 
 CodeContainer* InterpreterCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
@@ -51,7 +50,7 @@ CodeContainer* InterpreterCodeContainer::createContainer(const string& name, int
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler not supported for Interpreter\n");
     } else if (gGlobal->gVectorSwitch) {
-        throw faustexception("Vector mode not supported for Interpreter\n");
+        throw faustexception("ERROR : Vector not supported for Interpreter\n");
     } else {
         container = new InterpreterScalarCodeContainer(name, numInputs, numOutputs, kInt);
     }

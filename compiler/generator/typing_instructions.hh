@@ -44,7 +44,6 @@ struct TypingVisitor : public InstVisitor {
                     fCurType = Typed::getTypeFromPtr(fCurType);
                 }
             } else {
-                //printf("LoadVarInst : %s\n", inst->getName().c_st()): 
                 fCurType = Typed::kNoType;
             }
         }
@@ -106,8 +105,6 @@ struct TypingVisitor : public InstVisitor {
                     }
                 }
             }
-            
-            printf("TypingVisitorvisit(BinopInst* inst) %d\n", fCurType);
         }
 
         virtual void visit(CastNumInst* inst)
@@ -126,7 +123,6 @@ struct TypingVisitor : public InstVisitor {
             if (gGlobal->gVarTypeTable.find(inst->fName) != gGlobal->gVarTypeTable.end()) {
                 fCurType = gGlobal->gVarTypeTable[inst->fName]->getType();
             } else {
-                //printf("FunCallInst : %s\n", inst->fName.c_st()): 
                 fCurType = Typed::kNoType;
             }
         }

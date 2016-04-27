@@ -52,7 +52,8 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
                             FIRBlockInstruction<T>* compute_dsp) 
                             : FIRInterpreter<T>(real_heap_size, int_heap_size, sr_offset)
         {
-            printf("interpreter_dsp_aux inputs = %d ouputs = %d  real_heap_size = %d int_heap_size = %d sr_offset = %d\n", inputs, ouputs, real_heap_size, int_heap_size, sr_offset);
+            printf("interpreter_dsp_aux inputs = %d ouputs = %d real_heap_size = %d int_heap_size = %d sr_offset = %d\n",
+                   inputs, ouputs, real_heap_size, int_heap_size, sr_offset);
             fNumInputs = inputs;
             fNumOutputs = ouputs;
             this->fInputs = new FAUSTFLOAT*[inputs];
@@ -100,7 +101,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         {
             printf("instanceInit samplingFreq = %d\n", samplingRate);
             
-            // Store samplingFreq in "fSamplingFreq" variable at correct offset in fIntHeap
+            // Store samplingRate in "fSamplingFreq" variable at correct offset in fIntHeap
             this->fIntHeap[this->fSROffset] = samplingRate;
             
             int int_val;
@@ -128,7 +129,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
-            printf("compute\n");
+            //printf("compute\n");
             
             // Prepare in/out buffers
             for (int i = 0; i < fNumInputs; i++) {
@@ -140,7 +141,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             
             // Executes the 'control' block
             if (fComputeBlock) {
-                this->PrintBlock(fComputeBlock);
+                //this->PrintBlock(fComputeBlock);
                 this->ExecuteBlockReal(fComputeBlock);
             }
             
@@ -216,8 +217,7 @@ class EXPORT interpreter_dsp_factory {
             fComputeBlock(compute_control),
             fComputeDSPBlock(compute_dsp)
         {
-            printf("interpreter_dsp_factory %d %d\n", inputs, ouputs);
-            printf("interpreter_dsp_factory %d %d\n", real_heap_size, int_heap_size);
+            printf("interpreter_dsp_factory %d %d %d %d\n", inputs, ouputs, real_heap_size, int_heap_size);
         }
         
         virtual ~interpreter_dsp_factory()
@@ -250,7 +250,8 @@ EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const std::s
                                                                   int argc, const char* argv[], 
                                                                   std::string& error_msg);
 
-EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
+EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std::string& name_app,
+                                                                    const std::string& dsp_content,
                                                                     int argc, const char* argv[], 
                                                                     std::string& error_msg);
 

@@ -55,7 +55,8 @@ struct FIRInstruction {
         kLEReal, kEQReal, kNEReal, 
         kANDInt, kORInt, kXORInt,  
         
-        // Trigonometric
+        // Math
+        kSqrt,
         kSin, kCos, 
         
         // User Interface 
@@ -86,7 +87,8 @@ static std::string gFIRInstructionTable[] = {
                                             "kLTInt", "kGEInt", "kLEInt", "kEQInt", "kNEInt", 
                                             "kGTReal", "kLTReal", "kGEReal", 
                                             "kLEReal", "kEQReal", "kNEReal", 
-                                            "kANDInt", "kORInt", "kXORInt",  
+                                            "kANDInt", "kORInt", "kXORInt",
+                                            "kSqrt",
                                             "kSin", "kCos", 
                                             "kOpenVerticalBox", "kOpenHorizontalBox", "kOpenTabBox", "kCloseBox",
                                             "kAddButton", "kAddChecButton", 

@@ -37,12 +37,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
          Global functions names table as a static variable in the visitor
          so that each function prototype is generated as most once in the module.
          */
-        static map <string, int> gFunctionSymbolTable;      
-        static map <string, string> gMathLibTable;
+        static map <string, FIRInstruction::Opcode> gMathLibTable;
         
         int fRealHeapOffset;    // Offset in Real HEAP    
         int fIntHeapOffset;     // Offset in Integer HEAP
-    
         int fSROffset;          // Offset in Integer HEAP for "fSamplingFreq"
     
         map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
@@ -59,9 +57,15 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             fRealHeapOffset = 0;
             fIntHeapOffset = 0;
             fSROffset = 0;
+            initMathTable();
         }
-        
-        inline bool isRealType(Typed::VarType type) 
+    
+        inline bool isIntType(Typed::VarType type)
+        {
+            return (type == Typed::kInt);
+        }
+    
+        inline bool isRealType(Typed::VarType type)
         { 
             return (type == Typed::kFloat 
                 || type == Typed::kFloatMacro 
@@ -82,7 +86,28 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     
         void initMathTable()
         {
-           // TODO
+            // TODO
+            //fMathLibTable["abs"] = "global.Math.abs";
+            //fMathLibTable["absf"] = "global.Math.abs";
+            //fMathLibTable["fabsf"] = "global.Math.abs";
+            //fMathLibTable["acosf"] = "global.Math.acos";
+            //fMathLibTable["asinf"] = "global.Math.asin";
+            //fMathLibTable["atanf"] = "global.Math.atan";
+            //fMathLibTable["atan2f"] = "global.Math.atan2";
+            //fMathLibTable["ceilf"] = "global.Math.ceil";
+            gMathLibTable["cosf"] = FIRInstruction::kCos;
+            //fMathLibTable["expf"] = "global.Math.exp";
+            //fMathLibTable["floorf"] = "global.Math.floor";
+            //fMathLibTable["fmodf"] = "manual";      // Manually generated
+            //fMathLibTable["logf"] = "global.Math.log";
+            //fMathLibTable["log10f"] = "manual";     // Manually generated
+            //fMathLibTable["max"] = "global.Math.max";
+            //fMathLibTable["min"] = "global.Math.min";
+            //fMathLibTable["powf"] = "global.Math.pow";
+            //fMathLibTable["roundf"] = "global.Math.round";
+            gMathLibTable["sinf"] = FIRInstruction::kSin;
+            gMathLibTable["sqrtf"] = FIRInstruction::kSqrt;
+            //fMathLibTable["tanf"] = "global.Math.tan";
         }
         
         virtual ~InterpreterInstVisitor()
@@ -329,6 +354,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         // Numerical computation
         virtual void visit(BinopInst* inst) 
         {
+            /*
             fTypingVisitor.visit(inst);
         
             // Compile sub-expressions in reverse order... 
@@ -340,6 +366,29 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             } else {
                 fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpIntInst));
             }
+            */
+            
+            // Compile arguments in reverse order
+            inst->fInst2->accept(this);
+            inst->fInst1->accept(this);
+            
+            inst->fInst1->accept(&fTypingVisitor);
+            Typed::VarType type1 = fTypingVisitor.fCurType;
+            
+            inst->fInst2->accept(&fTypingVisitor);
+            Typed::VarType type2 = fTypingVisitor.fCurType;
+            
+            if (isRealType(type1) || isRealType(type2)) {
+                fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpFloatInst));
+            } else if (isIntType(type1) || isIntType(type2)) {
+                fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpIntInst));
+            } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
+                fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpIntInst));
+            } else {
+                assert(false);
+            }
+            
+            fTypingVisitor.visit(inst);
         }
         
         virtual void visit(CastNumInst* inst) 
@@ -367,7 +416,12 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         }
 
         // Function call
-        virtual void visit(FunCallInst* inst) {}
+        virtual void visit(FunCallInst* inst)
+        {
+            // Compile args
+            //list<ValueInst*>::const_iterator it = beg;
+            fCurrentBlock->push(new FIRBasicInstruction<T>(gMathLibTable[inst->fName]));
+        }
         virtual void visit(RetInst* inst) {}
         virtual void visit(DropInst* inst) {}
 
