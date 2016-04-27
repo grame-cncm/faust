@@ -107,7 +107,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             
             // Execute init instructions 
             if (fInitBlock) {
-                this->ExecuteBlock(fInitBlock, int_val, real_val, true);
+                this->ExecuteBlockFast(fInitBlock, int_val, real_val, 0);
             }
         }
         

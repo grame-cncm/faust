@@ -279,7 +279,7 @@ class FIRInterpreter  {
             }
         }
     
-        inline void ExecuteBlock(FIRBlockInstruction<T>* block, int& res_int, T& res_real, int get_result)
+        inline void ExecuteSlowBlock(FIRBlockInstruction<T>* block, int& res_int, T& res_real, int get_result)
         {
             typename std::vector<FIRBasicInstruction<T>* >::iterator it;
              
@@ -1065,7 +1065,7 @@ class FIRInterpreter  {
             T res_real;
             
             for (fIntHeap[loop_offset] = 0; fIntHeap[loop_offset] < loop_count; fIntHeap[loop_offset]++) {
-                //ExecuteBlock(block, res_int, res_real, 0);
+                //ExecuteSlowBlock(block, res_int, res_real, 0);
                 ExecuteBlockFast(block, res_int, res_real, 0);
             }
         }
@@ -1074,7 +1074,8 @@ class FIRInterpreter  {
         {
             int res_int;
             T res_real;
-            ExecuteBlock(block, res_int, res_real, 1);
+            //ExecuteSlowBlock(block, res_int, res_real, 1);
+            ExecuteBlockFast(block, res_int, res_real, 1);
             return res_int;
         }
     
@@ -1082,7 +1083,8 @@ class FIRInterpreter  {
         {
             int res_int;
             T res_real;
-            ExecuteBlock(block, res_int, res_real, 2);
+            //ExecuteSlowBlock(block, res_int, res_real, 2);
+            ExecuteBlockFast(block, res_int, res_real, 2);
             return res_real;
         }
     
