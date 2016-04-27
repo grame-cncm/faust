@@ -187,7 +187,6 @@ struct FIRBlockInstruction : public FIRInstruction {
     void dump()
     {
         std::cout << "Block size = " << fInstructions.size() << std::endl;
-        
         typename std::vector<FIRBasicInstruction<T>* >::iterator it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
             (*it)->dump();
@@ -246,12 +245,10 @@ class FIRInterpreter  {
                             break;
                             
                         case FIRInstruction::kAddHorizontalSlider:
-                            //printf("FIRInstruction::kAddHorizontalSlider : label %s offset %d\n", (*it)->fLabel.c_str(), (*it)->fOffset);
                             interface->addHorizontalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
                             break;
                             
                         case FIRInstruction::kAddVerticalSlider:
-                            //printf("FIRInstruction::kAddVerticalSlider : label %s offset %d\n", (*it)->fLabel.c_str(), (*it)->fOffset);
                             interface->addVerticalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
                             break;
                             
@@ -270,10 +267,8 @@ class FIRInterpreter  {
                         case FIRInstruction::kDeclare:
                             // Special case for "0" zone
                             if ((*it)->fOffset == -1) {
-                                //printf("FIRInstruction::kDeclare : NULL %d\n", (*it)->fOffset);
                                 interface->declare(NULL, (*it)->fKey.c_str(), (*it)->fValue.c_str());
                             } else {
-                                //printf("FIRInstruction::kDeclare : %d \n", (*it)->fOffset);
                                 interface->declare(&fRealHeap[(*it)->fOffset], (*it)->fKey.c_str(), (*it)->fValue.c_str());
                             }
                             break;
@@ -635,10 +630,7 @@ class FIRInterpreter  {
             int res_int;
             T res_real;
             
-            //printf("ExecuteLoopBlock loop_offset = %d loop_count = %d\n", loop_offset, loop_count);
-            
-            for (fIntHeap[loop_offset] = 0; fIntHeap[loop_offset] < loop_count; fIntHeap[loop_offset]++) { 
-                //printf("fIntHeap[loop_offset] %d\n", fIntHeap[loop_offset]);
+            for (fIntHeap[loop_offset] = 0; fIntHeap[loop_offset] < loop_count; fIntHeap[loop_offset]++) {
                 ExecuteBlock(block, res_int, res_real, 0);
             }
         }
