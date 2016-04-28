@@ -234,7 +234,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     
         // Memory
     
-        /*
+    
         virtual void visit(LoadVarInst* inst) 
         {
             fTypingVisitor.visit(inst);
@@ -249,21 +249,21 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             
             if (named) {
                 fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
-                                    ? FIRInstruction::kLoadInt : FIRInstruction::kLoadReal, 0, 0, tmp.first));
+                                    ? FIRInstruction::kLoadInt : FIRInstruction::kLoadReal, 0, 0, tmp.first, 0));
             } else {
                 // Indexed 
                 string num;
                 if (startWithRes(indexed->getName(), "input", num)) {
-                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInput, 0, 0, atoi(num.c_str())));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInput, 0, 0, atoi(num.c_str()), 0));
                 } else {
                     fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
-                                        ? FIRInstruction::kLoadIndexedInt : FIRInstruction::kLoadIndexedReal, 0, 0, tmp.first));
+                                        ? FIRInstruction::kLoadIndexedInt : FIRInstruction::kLoadIndexedReal, 0, 0, tmp.first, 0));
                 
                 }
             }
         }
-        */
     
+        /*
         virtual void visit(LoadVarInst* inst)
         {
             fTypingVisitor.visit(inst);
@@ -303,14 +303,14 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 }
             }
         }
+         */
     
         //virtual void visit(LoadVarAddressInst* inst) {}
     
-        /*
+    
         virtual void visitStore(Address* address, ValueInst* value)
         {
-            // Compile address and value
-            address->accept(this);
+            // Compile value
             value->accept(this);
             
             NamedAddress* named = dynamic_cast<NamedAddress*>(address);
@@ -320,20 +320,22 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             
             if (named) {
                 fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
-                                    ? FIRInstruction::kStoreInt : FIRInstruction::kStoreReal, 0, 0, tmp.first));
+                                    ? FIRInstruction::kStoreInt : FIRInstruction::kStoreReal, 0, 0, tmp.first, 0));
             } else {
+                // Compile  address
+                address->accept(this);
                 // Indexed 
                 string num;
                 if (startWithRes(indexed->getName(), "output", num)) {
-                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, atoi(num.c_str())));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, atoi(num.c_str()), 0));
                 } else {
                     fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
-                                        ? FIRInstruction::kStoreIndexedInt : FIRInstruction::kStoreIndexedReal, 0, 0, tmp.first));
+                                        ? FIRInstruction::kStoreIndexedInt : FIRInstruction::kStoreIndexedReal, 0, 0, tmp.first, 0));
                 }
             }
         }
-        */
     
+        /*
         virtual void visitStore(Address* address, ValueInst* value)
         {
             
@@ -376,6 +378,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 }
             }
         }
+         */
 
         virtual void visit(StoreVarInst* inst)
         {
@@ -513,7 +516,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             
             // Compile 'select'
             previous->push(new FIRBasicInstruction<T>((isIntType(fTypingVisitor.fCurType) ? FIRInstruction::kSelectInt : FIRInstruction::kSelectReal),
-                                                           0, 0, 0, then_block, else_block));
+                                                    0, 0, 0, 0,
+                                                    then_block, else_block));
                                                            
             // Restore current block
             fCurrentBlock = previous;
@@ -545,7 +549,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             }
             
             // Compile 'if'
-            previous->push(new FIRBasicInstruction<T>(FIRInstruction::kIf, 0, 0, 0, then_block, else_block));
+            previous->push(new FIRBasicInstruction<T>(FIRInstruction::kIf, 0, 0, 0, 0, then_block, else_block));
             
             // Restore current block
             fCurrentBlock = previous;
@@ -571,7 +575,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
            
             // Push Loop instruction
             pair<int, Typed::VarType> tmp = fFieldTable[inst->getVariableName()];
-            previous->push(new FIRBasicInstruction<T>(FIRInstruction::kLoop, inst->getVariableCount(), 0, tmp.first, loop_block, NULL));
+            previous->push(new FIRBasicInstruction<T>(FIRInstruction::kLoop, inst->getVariableCount(), 0, tmp.first, 0, loop_block, 0));
             
             // Restore current block
             fCurrentBlock = previous;

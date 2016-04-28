@@ -146,8 +146,8 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             FIRBasicInstruction<T>* loop = fComputeDSPBlock->fInstructions[2];
             assert(loop->fOpcode == FIRInstruction::kLoop);
             
-            //loop->fbranch1->dump();
-            this->ExecuteLoopBlock(loop->fbranch1, loop->fOffset, count);
+            //loop->fBranch1->dump();
+            this->ExecuteLoopBlock(loop->fBranch1, loop->fOffset1, count);
        }
 	
 };
@@ -210,10 +210,35 @@ class EXPORT interpreter_dsp_factory {
             fComputeBlock(compute_control),
             fComputeDSPBlock(compute_dsp)
         {
-            // Add kHalt in blocks
-            fInitBlock->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
-            fComputeBlock->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
-            fComputeDSPBlock->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
+            
+            //FIRInstructionCopyOptimizer<float> opt1;
+            
+            // Optimize indexed load/store in normal load/store
+            FIRInstructionLoadStoreOptimizer<float> opt1;
+            fInitBlock = FIRBlockInstruction<float>::optimize(init, opt1);
+            fComputeBlock = FIRBlockInstruction<float>::optimize(compute_control, opt1);
+            fComputeDSPBlock = FIRBlockInstruction<float>::optimize(compute_dsp, opt1);
+            
+            delete init;
+            delete compute_control;
+            delete compute_dsp;
+            
+            
+            init = fInitBlock;
+            compute_control = fComputeBlock;
+            compute_dsp = fComputeDSPBlock;
+            
+            // Optimize load/store in move
+            FIRInstructionMoveOptimizer<float> opt2;
+            fInitBlock = FIRBlockInstruction<float>::optimize(init, opt2);
+            fComputeBlock = FIRBlockInstruction<float>::optimize(compute_control, opt2);
+            fComputeDSPBlock = FIRBlockInstruction<float>::optimize(compute_dsp, opt2);
+            
+            delete init;
+            delete compute_control;
+            delete compute_dsp;
+             
+            
         }
         
         virtual ~interpreter_dsp_factory()

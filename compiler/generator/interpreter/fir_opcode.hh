@@ -41,6 +41,7 @@ struct FIRInstruction {
         kStoreReal, kStoreInt,
         kLoadIndexedReal, kLoadIndexedInt, 
         kStoreIndexedReal, kStoreIndexedInt,
+        kMoveReal, kMoveInt,
         kLoadInput, kStoreOutput,  // 12
         
         // Cast
@@ -85,6 +86,7 @@ static std::string gFIRInstructionTable[] = {
                                             "kStoreReal", "kStoreInt",
                                             "kLoadIndexedReal", "kLoadIndexedInt", 
                                             "kStoreIndexedReal", "kStoreIndexedInt",
+                                            "kMoveReal", "kMoveInt",
                                             "kLoadInput", "kStoreOutput",  // 12
     
                                             "kCastReal", "kCastInt",

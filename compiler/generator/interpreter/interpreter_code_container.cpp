@@ -125,12 +125,19 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
     
     //generateComputeFunctions(&fCodeProducer);
     
-    return new interpreter_dsp_factory(fNumInputs, fNumOutputs, 
+    // Add kHalt in blocks
+    init_block->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
+    compute_control_block->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
+    compute_dsp_block->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
+    
+    return new interpreter_dsp_factory(fNumInputs, fNumOutputs,
                                         fCodeProducer.fRealHeapOffset, 
                                         fCodeProducer.fIntHeapOffset,
                                         fCodeProducer.fSROffset,
                                         fCodeProducer.fUserInterfaceBlock, 
-                                        init_block, compute_control_block, compute_dsp_block);
+                                        init_block,
+                                        compute_control_block,
+                                        compute_dsp_block);
 }
 
 /*

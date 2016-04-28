@@ -52,42 +52,47 @@ struct FIRBasicInstruction : public FIRInstruction {
     Opcode fOpcode;
     int fIntValue;
     T fRealValue;
-    int fOffset;
+    int fOffset1;
+    int fOffset2;
     
-    FIRBlockInstruction<T>* fbranch1;
-    FIRBlockInstruction<T>* fbranch2;
+    FIRBlockInstruction<T>* fBranch1;
+    FIRBlockInstruction<T>* fBranch2;
     
     FIRBasicInstruction(Opcode opcode, 
                         int val_int, T val_real, 
-                        int offset, 
+                        int off1, int off2,
                         FIRBlockInstruction<T>* branch1, 
                         FIRBlockInstruction<T>* branch2) 
-                        : fOpcode(opcode), fIntValue(val_int), fRealValue(val_real), 
-                        fOffset(offset), fbranch1(branch1), fbranch2(branch2) 
+                        :fOpcode(opcode), fIntValue(val_int), fRealValue(val_real),
+                        fOffset1(off1), fOffset2(off2),
+                        fBranch1(branch1), fBranch2(branch2)
     {}
     
     FIRBasicInstruction(Opcode opcode, 
                         int val_int, T val_real) 
-                        : fOpcode(opcode), fIntValue(val_int), fRealValue(val_real), 
-                        fOffset(0), fbranch1(NULL), fbranch2(NULL) 
+                        :fOpcode(opcode), fIntValue(val_int), fRealValue(val_real),
+                        fOffset1(0), fOffset2(0),
+                        fBranch1(0), fBranch2(0)
     {}
     
     FIRBasicInstruction(Opcode opcode, 
-                        int val_int, T val_real, int offset) 
-                        : fOpcode(opcode), fIntValue(val_int), fRealValue(val_real), 
-                        fOffset(offset), fbranch1(NULL), fbranch2(NULL) 
+                        int val_int, T val_real, int off1, int off2)
+                        :fOpcode(opcode), fIntValue(val_int), fRealValue(val_real),
+                        fOffset1(off1), fOffset2(off2),
+                        fBranch1(0), fBranch2(0)
     {}
     
     FIRBasicInstruction(Opcode opcode) 
-                        : fOpcode(opcode), fIntValue(0), fRealValue(0), 
-                        fOffset(0), fbranch1(NULL), fbranch2(NULL) 
+                        :fOpcode(opcode), fIntValue(0), fRealValue(0),
+                        fOffset1(0), fOffset2(0),
+                        fBranch1(0), fBranch2(0)
     {}
     
      
     virtual ~FIRBasicInstruction()
     {
-        delete fbranch1;
-        delete fbranch2;
+        delete fBranch1;
+        delete fBranch2;
     }
     
     void dump()
@@ -95,9 +100,16 @@ struct FIRBasicInstruction : public FIRInstruction {
         std::cout << "opcode = " << fOpcode << " " << gFIRInstructionTable[fOpcode]
         << " int = " << fIntValue
         << " real = " << fRealValue
-        << " offset = " << fOffset << std::endl;
-        if (fbranch1) fbranch1->dump();
-        if (fbranch2) fbranch2->dump();
+        << " offset1 = " << fOffset1
+        << " offset2 = " << fOffset2
+        << std::endl;
+        if (fBranch1) fBranch1->dump();
+        if (fBranch2) fBranch2->dump();
+    }
+    
+    FIRBasicInstruction<T>* copy()
+    {
+        return new FIRBasicInstruction<T>(fOpcode, fIntValue, fRealValue, fOffset1, fOffset2, ((fBranch1) ? fBranch1->copy() : 0), ((fBranch2) ? fBranch2->copy() : 0));
     }
     
 };
@@ -149,6 +161,9 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
     
 };
 
+#define InstructionIT typename std::vector<FIRBasicInstruction<T>* >::iterator
+#define UIInstructionIT typename std::vector<FIRUserInterfaceInstruction<T>* >::iterator
+
 template <class T>
 struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
 
@@ -156,7 +171,7 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
      
     virtual ~FIRUserInterfaceBlockInstruction()
     {
-        typename std::vector<FIRUserInterfaceInstruction<T>* >::iterator it;
+        UIInstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
             delete(*it);
         }
@@ -167,18 +182,110 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
     void dump()
     {}
     
+    
 };
+
+// Block optimizer : compact and reorganize instructions
+template <class T>
+struct FIRInstructionOptimizer {
+    
+    virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    {
+        return 0;
+    }
+};
+
+template <class T>
+struct FIRInstructionCopyOptimizer : public FIRInstructionOptimizer<T>  {
+    
+    virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    {
+        end = cur + 1;
+        return (*cur)->copy();
+    }
+};
+
+
+// Rewrite indexed Load/Store as simple Load/Store
+template <class T>
+struct FIRInstructionLoadStoreOptimizer : public FIRInstructionOptimizer<T> {
+    
+    FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    {
+        FIRBasicInstruction<T>* inst1 = *cur;
+        FIRBasicInstruction<T>* inst2 = *(cur + 1);
+        
+        if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kLoadIndexedReal) {
+            end = cur + 2;
+            //printf("FIRInstructionMoveOptimizer rewrite kLoadIndexedReal\n");
+            return new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
+        } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kLoadIndexedInt) {
+            end = cur + 2;
+            //printf("FIRInstructionLoadStoreOptimizer rewrite kLoadIndexedInt\n");
+            return new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
+        } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kStoreIndexedReal) {
+            end = cur + 2;
+            //printf("FIRInstructionLoadStoreOptimizer rewrite kStoreIndexedReal\n");
+            return new FIRBasicInstruction<T>(FIRInstruction::kStoreReal, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
+        } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kStoreIndexedInt) {
+            end = cur + 2;
+            //printf("FIRInstructionLoadStoreOptimizer rewrite kStoreIndexedInt\n");
+            return new FIRBasicInstruction<T>(FIRInstruction::kStoreInt, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
+        } else {
+            //printf("rewrite FIRInstructionLoadStoreOptimizer default\n");
+            end = cur + 1;
+            return (*cur)->copy();
+        }
+    }
+    
+};
+
+// Rewrite heap Load/Store as Move
+template <class T>
+struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
+    
+    FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    {
+        FIRBasicInstruction<T>* inst1 = *cur;
+        FIRBasicInstruction<T>* inst2 = *(cur + 1);
+        
+        if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kStoreReal) {
+            end = cur + 2;
+            //printf("FIRInstructionMoveOptimizer rewrite kMoveReal\n");
+            return new FIRBasicInstruction<T>(FIRInstruction::kMoveReal, 0, 0, inst1->fOffset1, inst2->fOffset1);
+        } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kStoreInt) {
+            end = cur + 2;
+            //printf("FIRInstructionMoveOptimizer rewrite kMoveInt\n");
+            return new FIRBasicInstruction<T>(FIRInstruction::kMoveInt, 0, 0, inst1->fOffset1, inst2->fOffset1);
+        } else {
+            end = cur + 1;
+            return (*cur)->copy();
+        }
+    }
+    
+};
+
+template <class T>
+struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
+    
+    FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    {
+        // TODO
+        return 0;
+    }
+};
+
 
 template <class T>
 struct FIRBlockInstruction : public FIRInstruction {
 
     std::vector<FIRBasicInstruction<T>*> fInstructions;
-     
+    
     virtual ~FIRBlockInstruction()
     {
-        typename std::vector<FIRBasicInstruction<T>* >::iterator it;
+        InstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-            delete(*it);
+            delete (*it);
         }
     }
      
@@ -187,12 +294,61 @@ struct FIRBlockInstruction : public FIRInstruction {
     void dump()
     {
         std::cout << "Block size = " << fInstructions.size() << std::endl;
-        typename std::vector<FIRBasicInstruction<T>* >::iterator it;
+        InstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
             (*it)->dump();
         }
     }
+    
+    FIRBlockInstruction<T>* copy()
+    {
+        FIRBlockInstruction<T>* block = new FIRBlockInstruction<T>();
+        InstructionIT it;
+        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+            block->push((*it)->copy());
+        }
+        return block;
+    }
+    
+    // Return an optimized block
+    static FIRBlockInstruction* optimize(FIRBlockInstruction<T>* cur_block, FIRInstructionOptimizer<T>& optimizer)
+    {
+        FIRBlockInstruction<T>* new_block = new FIRBlockInstruction<T>();
+        InstructionIT next, cur = cur_block->fInstructions.begin();
+        
+        do {
+            FIRBasicInstruction<T>* inst = *cur;
+            if (inst->fOpcode == FIRInstruction::kLoop) {
+                //printf("FIRBlockInstruction::optimize kLoop\n");
+                new_block->push(new FIRBasicInstruction<T>(FIRInstruction::kLoop,
+                                                           inst->fIntValue, inst->fRealValue, inst->fOffset1, inst->fOffset2,
+                                                           FIRBlockInstruction::optimize(inst->fBranch1, optimizer), 0));
+                cur++;
+            } else if (inst->fOpcode == FIRInstruction::kSelectInt || inst->fOpcode == FIRInstruction::kSelectReal) {
+                //printf("FIRBlockInstruction::optimize kSelect\n");
+                new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,
+                                                          inst->fIntValue, inst->fRealValue, inst->fOffset1, inst->fOffset2,
+                                                           FIRBlockInstruction::optimize(inst->fBranch1, optimizer),
+                                                           FIRBlockInstruction::optimize(inst->fBranch2, optimizer)));
+                cur++;
+            } else if (inst->fOpcode == FIRInstruction::kIf) {
+                //printf("FIRBlockInstruction::optimize kIf\n");
+                new_block->push(new FIRBasicInstruction<T>(FIRInstruction::kIf,
+                                                          inst->fIntValue, inst->fRealValue, inst->fOffset1, inst->fOffset2,
+                                                           FIRBlockInstruction::optimize(inst->fBranch1, optimizer),
+                                                           (inst->fBranch2) ? FIRBlockInstruction::optimize(inst->fBranch2, optimizer) : 0));
+                cur++;
+            } else {
+                new_block->push(optimizer.rewrite(cur, next));
+                cur = next;
+            }
+        } while (cur != cur_block->fInstructions.end());
+    
+        return new_block;
+    }
+    
 };
+
 
 template <class T>
 class FIRInterpreter  {
@@ -214,7 +370,7 @@ class FIRInterpreter  {
         
         void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UI* interface)
         {
-            typename std::vector<FIRUserInterfaceInstruction<T>* >::iterator it;
+            UIInstructionIT it;
             
             for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
             
@@ -281,7 +437,7 @@ class FIRInterpreter  {
     
         inline void ExecuteSlowBlock(FIRBlockInstruction<T>* block, int& res_int, T& res_real, int get_result)
         {
-            typename std::vector<FIRBasicInstruction<T>* >::iterator it;
+            InstructionIT it;
              
             int real_stack_index = 0;
             int int_stack_index = 0;
@@ -308,48 +464,58 @@ class FIRInterpreter  {
                     
                     // Memory operations
                     case FIRInstruction::kLoadReal:
-                        push_real(fRealHeap[(*it)->fOffset]);
+                        push_real(fRealHeap[(*it)->fOffset1]);
                         break;
                         
                     case FIRInstruction::kLoadInt:
-                        push_int(fIntHeap[(*it)->fOffset]);
+                        push_int(fIntHeap[(*it)->fOffset1]);
                         break;
                         
                     case FIRInstruction::kStoreReal:
-                        fRealHeap[(*it)->fOffset] = pop_real();
+                        fRealHeap[(*it)->fOffset1] = pop_real();
                         break;
                         
                     case FIRInstruction::kStoreInt:
-                        fIntHeap[(*it)->fOffset] = pop_int();
+                        fIntHeap[(*it)->fOffset1] = pop_int();
                         break;
                          
                     case FIRInstruction::kLoadIndexedReal:
-                        push_real(fRealHeap[(*it)->fOffset + pop_int()]);
+                        push_real(fRealHeap[(*it)->fOffset1 + pop_int()]);
                         break;
                         
                     case FIRInstruction::kLoadIndexedInt: {
                         int val = pop_int();
-                        push_int(fIntHeap[(*it)->fOffset + val]);
+                        push_int(fIntHeap[(*it)->fOffset1 + val]);
                         break;
                     }
                          
                     case FIRInstruction::kStoreIndexedReal:
-                        fRealHeap[(*it)->fOffset + pop_int()] = pop_real();
+                        fRealHeap[(*it)->fOffset1 + pop_int()] = pop_real();
                         break;
-                        
+                    
                     case FIRInstruction::kStoreIndexedInt: {
-                        int val = pop_int();
-                        fIntHeap[(*it)->fOffset + pop_int()] = val;
+                        int offset = pop_int();
+                        fIntHeap[(*it)->fOffset1 + offset] = pop_int();
                         break;
                     }
                         
+                    case FIRInstruction::kMoveReal: {
+                        fRealHeap[(*it)->fOffset2] = fRealHeap[(*it)->fOffset1];
+                        break;
+                    }
+                        
+                    case FIRInstruction::kMoveInt: {
+                        fIntHeap[(*it)->fOffset2] = fIntHeap[(*it)->fOffset1];
+                        break;
+                    }
+            
                     // Input/output access
                     case FIRInstruction::kLoadInput: 
-                        push_real(fInputs[(*it)->fOffset][pop_int()]);
+                        push_real(fInputs[(*it)->fOffset1][pop_int()]);
                         break;
                         
                     case FIRInstruction::kStoreOutput: {
-                        fOutputs[(*it)->fOffset][pop_int()] = pop_real();
+                        fOutputs[(*it)->fOffset1][pop_int()] = pop_real();
                         break;
                     }
                       
@@ -366,19 +532,19 @@ class FIRInterpreter  {
                     // Select/If operation
                     case FIRInstruction::kSelectInt: {
                         int cond = pop_int();
-                        push_int(cond ? ExecuteBlockInt((*it)->fbranch1) : ExecuteBlockInt((*it)->fbranch2));
+                        push_int(cond ? ExecuteBlockInt((*it)->fBranch1) : ExecuteBlockInt((*it)->fBranch2));
                         break;
                     }
                 
                     case FIRInstruction::kSelectReal:
-                        push_real(pop_int() ? ExecuteBlockInt((*it)->fbranch1) : ExecuteBlockInt((*it)->fbranch2));
+                        push_real(pop_int() ? ExecuteBlockInt((*it)->fBranch1) : ExecuteBlockInt((*it)->fBranch2));
                         break;
                         
                     case FIRInstruction::kIf: {
                         if (pop_int()) {
-                            ExecuteBlockInt((*it)->fbranch1);
-                        } else if ((*it)->fbranch2) { // Execute 'else' block if there is one
-                            ExecuteBlockInt((*it)->fbranch2);
+                            ExecuteBlockInt((*it)->fBranch1);
+                        } else if ((*it)->fBranch2) { // Execute 'else' block if there is one
+                            ExecuteBlockInt((*it)->fBranch2);
                         }
                         break;
                     }
@@ -597,7 +763,7 @@ class FIRInterpreter  {
                     }
                         
                     case FIRInstruction::kLoop: {
-                        ExecuteLoopBlock((*it)->fbranch1, (*it)->fOffset, (*it)->fIntValue);
+                        ExecuteLoopBlock((*it)->fBranch1, (*it)->fOffset1, (*it)->fIntValue);
                         break;
                     }
                     
@@ -644,6 +810,7 @@ class FIRInterpreter  {
                 &&do_kStoreReal, &&do_kStoreInt,
                 &&do_kLoadIndexedReal, &&do_kLoadIndexedInt,
                 &&do_kStoreIndexedReal, &&do_kStoreIndexedInt,
+                &&do_kMoveReal, &&do_kMoveInt,
                 &&do_kLoadInput, &&do_kStoreOutput,
                 
                 &&do_kCastReal, &&do_kCastInt,
@@ -666,7 +833,7 @@ class FIRInterpreter  {
             
             //printf("Start\n");
             
-            typename std::vector<FIRBasicInstruction<T>* >::iterator it = block->fInstructions.begin();
+            InstructionIT it = block->fInstructions.begin();
             DISPATCH_FIRST();
             
             while (1) {
@@ -693,64 +860,76 @@ class FIRInterpreter  {
                 // Memory operations
                 do_kLoadReal:
                 {
-                    push_real(fRealHeap[(*it)->fOffset]);
+                    push_real(fRealHeap[(*it)->fOffset1]);
                     DISPATCH();
                 }
                     
                 do_kLoadInt:
                 {
-                    push_int(fIntHeap[(*it)->fOffset]);
+                    push_int(fIntHeap[(*it)->fOffset1]);
                     DISPATCH();
                 }
                     
                 do_kStoreReal:
                 {
-                    fRealHeap[(*it)->fOffset] = pop_real();
+                    fRealHeap[(*it)->fOffset1] = pop_real();
                     DISPATCH();
                 }
                     
                 do_kStoreInt:
                 {
-                    fIntHeap[(*it)->fOffset] = pop_int();
+                    fIntHeap[(*it)->fOffset1] = pop_int();
                     DISPATCH();
                 }
                     
                 do_kLoadIndexedReal:
                 {
-                    push_real(fRealHeap[(*it)->fOffset + pop_int()]);
+                    push_real(fRealHeap[(*it)->fOffset1 + pop_int()]);
                     DISPATCH();
                 }
                     
                 do_kLoadIndexedInt:
                 {
                     int val = pop_int();
-                    push_int(fIntHeap[(*it)->fOffset + val]);
+                    push_int(fIntHeap[(*it)->fOffset1 + val]);
                     DISPATCH();
                 }
                 
                 do_kStoreIndexedReal:
                 {
-                    fRealHeap[(*it)->fOffset + pop_int()] = pop_real();
+                    fRealHeap[(*it)->fOffset1 + pop_int()] = pop_real();
                     DISPATCH();
                 }
-                    
+                
                 do_kStoreIndexedInt:
                 {
-                    int val = pop_int();
-                    fIntHeap[(*it)->fOffset + pop_int()] = val;
+                    int offset = pop_int();
+                    fIntHeap[(*it)->fOffset1 + offset] = pop_int();
+                    DISPATCH();
+                }
+                
+                do_kMoveReal:
+                {
+                    fRealHeap[(*it)->fOffset2] = fRealHeap[(*it)->fOffset1];
+                    DISPATCH();
+                }
+                
+                do_kMoveInt:
+                {
+                    fIntHeap[(*it)->fOffset2] = fIntHeap[(*it)->fOffset1];
                     DISPATCH();
                 }
                 
                 // Input/output access
                 do_kLoadInput:
                 {
-                    push_real(fInputs[(*it)->fOffset][pop_int()]);
+                    push_real(fInputs[(*it)->fOffset1][pop_int()]);
                     DISPATCH();
                 }
                     
                 do_kStoreOutput:
                 {
-                    fOutputs[(*it)->fOffset][pop_int()] = pop_real();
+                    fOutputs[(*it)->fOffset1][pop_int()] = pop_real();
                     DISPATCH();
                 }
                 
@@ -771,22 +950,22 @@ class FIRInterpreter  {
                 do_kSelectInt:
                 {
                     int cond = pop_int();
-                    push_int(cond ? ExecuteBlockInt((*it)->fbranch1) : ExecuteBlockInt((*it)->fbranch2));
+                    push_int(cond ? ExecuteBlockInt((*it)->fBranch1) : ExecuteBlockInt((*it)->fBranch2));
                     DISPATCH();
                 }
                 
                 do_kSelectReal:
                 {
-                    push_real(pop_int() ? ExecuteBlockInt((*it)->fbranch1) : ExecuteBlockInt((*it)->fbranch2));
+                    push_real(pop_int() ? ExecuteBlockInt((*it)->fBranch1) : ExecuteBlockInt((*it)->fBranch2));
                     DISPATCH();
                 }
                 
                 do_kIf:
                 {
                     if (pop_int()) {
-                        ExecuteBlockInt((*it)->fbranch1);
-                    } else if ((*it)->fbranch2) { // Execute 'else' block if there is one
-                        ExecuteBlockInt((*it)->fbranch2);
+                        ExecuteBlockInt((*it)->fBranch1);
+                    } else if ((*it)->fBranch2) { // Execute 'else' block if there is one
+                        ExecuteBlockInt((*it)->fBranch2);
                     }
                     DISPATCH();
                 }
@@ -1036,7 +1215,7 @@ class FIRInterpreter  {
                 
                 do_kLoop:
                 {
-                    ExecuteLoopBlock((*it)->fbranch1, (*it)->fOffset, (*it)->fIntValue);
+                    ExecuteLoopBlock((*it)->fBranch1, (*it)->fOffset1, (*it)->fIntValue);
                     DISPATCH();
                 }
             }
