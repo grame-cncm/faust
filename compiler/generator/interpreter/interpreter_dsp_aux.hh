@@ -210,35 +210,17 @@ class EXPORT interpreter_dsp_factory {
             fComputeBlock(compute_control),
             fComputeDSPBlock(compute_dsp)
         {
-            
-            //FIRInstructionCopyOptimizer<float> opt1;
-            
             // Optimize indexed load/store in normal load/store
             FIRInstructionLoadStoreOptimizer<float> opt1;
-            fInitBlock = FIRBlockInstruction<float>::optimize(init, opt1);
-            fComputeBlock = FIRBlockInstruction<float>::optimize(compute_control, opt1);
-            fComputeDSPBlock = FIRBlockInstruction<float>::optimize(compute_dsp, opt1);
-            
-            delete init;
-            delete compute_control;
-            delete compute_dsp;
-            
-            
-            init = fInitBlock;
-            compute_control = fComputeBlock;
-            compute_dsp = fComputeDSPBlock;
+            fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt1);
+            fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt1);
+            fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt1);
             
             // Optimize load/store in move
             FIRInstructionMoveOptimizer<float> opt2;
-            fInitBlock = FIRBlockInstruction<float>::optimize(init, opt2);
-            fComputeBlock = FIRBlockInstruction<float>::optimize(compute_control, opt2);
-            fComputeDSPBlock = FIRBlockInstruction<float>::optimize(compute_dsp, opt2);
-            
-            delete init;
-            delete compute_control;
-            delete compute_dsp;
-             
-            
+            fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt2);
+            fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt2);
+            fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt2);
         }
         
         virtual ~interpreter_dsp_factory()
