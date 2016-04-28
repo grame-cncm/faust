@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _INETERPRETER_CODE_CONTAINER_H
-#define _INETERPRETER_CODE_CONTAINER_H
+#ifndef _INTERPRETER_CODE_CONTAINER_H
+#define _INTERPRETER_CODE_CONTAINER_H
 
 #include "code_container.hh"
 #include "interpreter_instructions.hh"
@@ -43,6 +43,23 @@ class InterpreterCodeContainer : public virtual CodeContainer {
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
+            
+            
+            // Init heap opcode
+            for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
+                FIRInstruction::gFIRMath2Heap[FIRInstruction::Opcode(i)]
+                = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal));
+                
+                std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+            }
+            
+            // Init heap opcode
+            for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
+                FIRInstruction::gFIRMath2Direct[FIRInstruction::Opcode(i)]
+                = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal));
+                
+                std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal)] << std::endl;
+            }
             
         }
         virtual ~InterpreterCodeContainer()

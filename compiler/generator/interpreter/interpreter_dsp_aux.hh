@@ -210,17 +210,31 @@ class EXPORT interpreter_dsp_factory {
             fComputeBlock(compute_control),
             fComputeDSPBlock(compute_dsp)
         {
+            printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
+            
             // Optimize indexed load/store in normal load/store
             FIRInstructionLoadStoreOptimizer<float> opt1;
             fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt1);
             fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt1);
             fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt1);
             
+            printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
+            
             // Optimize load/store in move
             FIRInstructionMoveOptimizer<float> opt2;
             fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt2);
             fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt2);
             fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt2);
+            
+            printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
+            
+            // Optimize math operations
+            FIRInstructionMathOptimizer<float> opt3;
+            fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt3);
+            fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt3);
+            fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt3);
+            
+            printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
         }
         
         virtual ~interpreter_dsp_factory()

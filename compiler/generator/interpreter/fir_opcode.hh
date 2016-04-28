@@ -23,6 +23,7 @@
 #define _FIR_OPCODE_H
 
 #include <string>
+#include <map>
 
 // Interpreter
 
@@ -59,6 +60,22 @@ struct FIRInstruction {
         kLEReal, kEQReal, kNEReal, 
         kANDInt, kORInt, kXORInt,  // 44
         
+        kAddRealHeap, kAddIntHeap, kSubRealHeap, kSubIntHeap,
+        kMultRealHeap, kMultIntHeap, kDivRealHeap, kDivIntHeap,
+        kRemRealHeap, kRemIntHeap, kLshIntHeap, kRshIntHeap, kGTIntHeap,
+        kLTIntHeap, kGEIntHeap, kLEIntHeap, kEQIntHeap, kNEIntHeap,
+        kGTRealHeap, kLTRealHeap, kGERealHeap,
+        kLERealHeap, kEQRealHeap, kNERealHeap,
+        kANDIntHeap, kORIntHeap, kXORIntHeap,  // 44
+        
+        kAddRealDirect, kAddIntDirect, kSubRealDirect, kSubIntDirect,
+        kMultRealDirect, kMultIntDirect, kDivRealDirect, kDivIntDirect,
+        kRemRealDirect, kRemIntDirect, kLshIntDirect, kRshIntDirect, kGTIntDirect,
+        kLTIntDirect, kGEIntDirect, kLEIntDirect, kEQIntDirect, kNEIntDirect,
+        kGTRealDirect, kLTRealDirect, kGERealDirect,
+        kLERealDirect, kEQRealDirect, kNERealDirect,
+        kANDIntDirect, kORIntDirect, kXORIntDirect,  // 44
+   
         // Math
         kSqrt,  // 45
         kSin, kCos, // 47
@@ -74,44 +91,68 @@ struct FIRInstruction {
         kDeclare, // 60
         
     };
-     
+    
+    virtual int size() { return 1; }
+    
+    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Heap;
+    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Direct;
+    
+    static bool isMath(Opcode opt) { return opt >= kAddReal && opt <= kXORInt; }
+
 };
 
+
 static std::string gFIRInstructionTable[] = {
-                                            "kHalt",
+    "kHalt",
+
+    "kRealValue", "kIntValue",
+
+    "kLoadReal", "kLoadInt", 
+    "kStoreReal", "kStoreInt",
+    "kLoadIndexedReal", "kLoadIndexedInt", 
+    "kStoreIndexedReal", "kStoreIndexedInt",
+    "kMoveReal", "kMoveInt",
+    "kLoadInput", "kStoreOutput",  // 12
+
+    "kCastReal", "kCastInt",
+
+    "kSelectInt", "kSelectReal", "kIf", // 17
+
+    "kAddReal", "kAddInt", "kSubReal", "kSubInt",  
+    "kMultReal", "kMultInt", "kDivReal", "kDivInt",
+    "kRemReal", "kRemInt", "kLshInt", "kRshInt", "kGTInt", 
+    "kLTInt", "kGEInt", "kLEInt", "kEQInt", "kNEInt", 
+    "kGTReal", "kLTReal", "kGEReal", 
+    "kLEReal", "kEQReal", "kNEReal", 
+    "kANDInt", "kORInt", "kXORInt", // 44
     
-                                            "kRealValue", "kIntValue",
+    "kAddRealHeap", "kAddIntHeap", "kSubRealHeap", "kSubIntHeap",
+    "kMultRealHeap", "kMultIntHeap", "kDivRealHeap", "kDivIntHeap",
+    "kRemRealHeap", "kRemIntHeap", "kLshIntHeap", "kRshIntHeap", "kGTIntHeap",
+    "kLTIntHeap", "kGEIntHeap", "kLEIntHeap", "kEQIntHeap", "kNEIntHeap",
+    "kGTRealHeap", "kLTRealHeap", "kGERealHeap",
+    "kLERealHeap", "kEQRealHeap", "kNERealHeap",
+    "kANDIntHeap", "kORIntHeap", "kXORIntHeap",  // 44
     
-                                            "kLoadReal", "kLoadInt", 
-                                            "kStoreReal", "kStoreInt",
-                                            "kLoadIndexedReal", "kLoadIndexedInt", 
-                                            "kStoreIndexedReal", "kStoreIndexedInt",
-                                            "kMoveReal", "kMoveInt",
-                                            "kLoadInput", "kStoreOutput",  // 12
+    "kAddRealDirect", "kAddIntDirect", "kSubRealDirect", "kSubIntDirect",
+    "kMultRealDirect", "kMultIntDirect", "kDivRealDirect", "kDivIntDirect",
+    "kRemRealDirect", "kRemIntDirect", "kLshIntDirect", "kRshIntDirect", "kGTIntDirect",
+    "kLTIntDirect", "kGEIntDirect", "kLEIntDirect", "kEQIntDirect", "kNEIntDirect",
+    "kGTRealDirect", "kLTRealDirect", "kGERealDirect",
+    "kLERealDirect", "kEQRealDirect", "kNERealDirect",
+    "kANDIntDirect", "kORIntDirect", "kXORIntDirect",  // 44
     
-                                            "kCastReal", "kCastInt",
-    
-                                            "kSelectInt", "kSelectReal", "kIf", // 17
-    
-                                            "kAddReal", "kAddInt", "kSubReal", "kSubInt",  
-                                            "kMultReal", "kMultInt", "kDivReal", "kDivInt",
-                                            "kRemReal", "kRemInt", "kLshInt", "kRshInt", "kGTInt", 
-                                            "kLTInt", "kGEInt", "kLEInt", "kEQInt", "kNEInt", 
-                                            "kGTReal", "kLTReal", "kGEReal", 
-                                            "kLEReal", "kEQReal", "kNEReal", 
-                                            "kANDInt", "kORInt", "kXORInt", // 44
-    
-                                            "kSqrt",
-                                            "kSin", "kCos", // 47
-    
-                                            "kLoop", // 48
-    
-                                            "kOpenVerticalBox", "kOpenHorizontalBox", "kOpenTabBox", "kCloseBox",
-                                            "kAddButton", "kAddChecButton", 
-                                            "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", 
-                                            "kAddHorizontalBargraph", "kAddVerticalBargraph",
-                                            "kDeclare"
-    
-                                        };
+    "kSqrt",
+    "kSin", "kCos", // 47
+
+    "kLoop", // 48
+
+    "kOpenVerticalBox", "kOpenHorizontalBox", "kOpenTabBox", "kCloseBox",
+    "kAddButton", "kAddChecButton", 
+    "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", 
+    "kAddHorizontalBargraph", "kAddVerticalBargraph",
+    "kDeclare"
+
+};
 
 #endif
