@@ -28,8 +28,6 @@ using namespace std;
 #include "typing_instructions.hh"
 #include "fir_interpreter.hh"
 
-#define NUM_SIZE 4
-
 template <class T>
 struct InterpreterInstVisitor : public DispatchVisitor {
 
@@ -209,20 +207,20 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             if (array_typed && array_typed->fSize > 1) {
                 if (array_typed->fType->getType() == Typed::kInt) {
                     fFieldTable[inst->fAddress->getName()] = make_pair(fIntHeapOffset, array_typed->fType->getType());
-                    fIntHeapOffset += array_typed->fSize * NUM_SIZE;
+                    fIntHeapOffset += array_typed->fSize;
                 } else {
                     fFieldTable[inst->fAddress->getName()] = make_pair(fRealHeapOffset, array_typed->fType->getType());
-                    fRealHeapOffset += array_typed->fSize * NUM_SIZE;
+                    fRealHeapOffset += array_typed->fSize;
                 }
             } else {
                 if (inst->fType->getType() == Typed::kInt) {
                     // Keep "fSamplingFreq" offset
                     if (inst->fAddress->getName() == "fSamplingFreq") fSROffset = fIntHeapOffset;
                     fFieldTable[inst->fAddress->getName()] = make_pair(fIntHeapOffset, inst->fType->getType());
-                    fIntHeapOffset += NUM_SIZE;
+                    fIntHeapOffset++;
                 } else {
                     fFieldTable[inst->fAddress->getName()] = make_pair(fRealHeapOffset, inst->fType->getType());
-                    fRealHeapOffset += NUM_SIZE;
+                    fRealHeapOffset++;
                 }
             }
             
@@ -286,10 +284,14 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     inst->fAddress->accept(this);
                     fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInput, 0, 0, atoi(num.c_str())));
                 } else {
+                    // If index is a known value, we can directly compute the final offset and generate a normal Load
                     IntNumInst* num_inst = dynamic_cast<IntNumInst*>(indexed->fIndex);
                     if (num_inst) {
                         fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt)
-                                                                       ? FIRInstruction::kLoadInt : FIRInstruction::kLoadReal, 0, 0, tmp.first + num_inst->fNum));
+                                                                       ? FIRInstruction::kLoadInt : FIRInstruction::kLoadReal,
+                                                                       0, 0,
+                                                                       tmp.first + num_inst->fNum
+                                                                       ));
                         
                     } else {
                         // Compile address
@@ -354,12 +356,16 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     value->accept(this);
                     fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, atoi(num.c_str())));
                 } else {
+                    // If index is a known value, we can directly compute the final offset and generate a normal Store
                     IntNumInst* num_inst = dynamic_cast<IntNumInst*>(indexed->fIndex);
                     if (num_inst) {
                         // Compile value
                         value->accept(this);
                         fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt)
-                                                                       ? FIRInstruction::kStoreInt : FIRInstruction::kStoreReal, 0, 0, tmp.first + num_inst->fNum));
+                                                                       ? FIRInstruction::kStoreInt : FIRInstruction::kStoreReal,
+                                                                       0, 0,
+                                                                       tmp.first + num_inst->fNum
+                                                                       ));
                     } else {
                         // Compile address and value
                         address->accept(this);
