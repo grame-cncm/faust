@@ -50,21 +50,21 @@ class InterpreterCodeContainer : public virtual CodeContainer {
             for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
                 FIRInstruction::gFIRMath2Heap[FIRInstruction::Opcode(i)]
                 = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal));
-                std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+                //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
             }
             
             // Init direct opcode
             for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
                 FIRInstruction::gFIRMath2Direct[FIRInstruction::Opcode(i)]
                 = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal));
-                std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal)] << std::endl;
+                //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal)] << std::endl;
             }
             
             // Init direct opcode (non commutative operation)
             for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
                 FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::Opcode(i)]
                 = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal));
-                std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal)] << std::endl;
+                //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal)] << std::endl;
             }
             
             FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kSubReal] = FIRInstruction::kSubRealDirectInvert;

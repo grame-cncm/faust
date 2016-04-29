@@ -31,7 +31,7 @@ struct FIRInstruction {
 
     enum Opcode { 
     
-        // Halt
+        // End operation
         kHalt = 0,
         
         // Numbers
@@ -60,6 +60,7 @@ struct FIRInstruction {
         kLEReal, kEQReal, kNEReal, 
         kANDInt, kORInt, kXORInt,  // 44
         
+        // Standard math (heap version)
         kAddRealHeap, kAddIntHeap, kSubRealHeap, kSubIntHeap,
         kMultRealHeap, kMultIntHeap, kDivRealHeap, kDivIntHeap,
         kRemRealHeap, kRemIntHeap, kLshIntHeap, kRshIntHeap, kGTIntHeap,
@@ -68,6 +69,7 @@ struct FIRInstruction {
         kLERealHeap, kEQRealHeap, kNERealHeap,
         kANDIntHeap, kORIntHeap, kXORIntHeap,  // 44
         
+        // Standard math (direct version)
         kAddRealDirect, kAddIntDirect, kSubRealDirect, kSubIntDirect,
         kMultRealDirect, kMultIntDirect, kDivRealDirect, kDivIntDirect,
         kRemRealDirect, kRemIntDirect, kLshIntDirect, kRshIntDirect, kGTIntDirect,
@@ -76,7 +78,7 @@ struct FIRInstruction {
         kLERealDirect, kEQRealDirect, kNERealDirect,
         kANDIntDirect, kORIntDirect, kXORIntDirect,  // 44
         
-        // Non commutatives operations
+        // Standard math (direct version) : non commutatives operations
         kSubRealDirectInvert, kSubIntDirectInvert,
         kDivRealDirectInvert, kDivIntDirectInvert,
         kRemRealDirectInvert, kRemIntDirectInvert,
@@ -86,7 +88,7 @@ struct FIRInstruction {
         kGTRealDirectInvert, kLTRealDirectInvert,
         kGERealDirectInvert, kLERealDirectInvert,
       
-        // Math
+        // Extended math
         kSqrt,  // 45
         kSin, kCos, // 47
         

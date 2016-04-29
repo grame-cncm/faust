@@ -222,22 +222,17 @@ struct FIRInstructionLoadStoreOptimizer : public FIRInstructionOptimizer<T> {
         
         if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kLoadIndexedReal) {
             end = cur + 2;
-            //printf("FIRInstructionMoveOptimizer rewrite kLoadIndexedReal\n");
             return new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
         } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kLoadIndexedInt) {
             end = cur + 2;
-            //printf("FIRInstructionLoadStoreOptimizer rewrite kLoadIndexedInt\n");
             return new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
         } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kStoreIndexedReal) {
             end = cur + 2;
-            //printf("FIRInstructionLoadStoreOptimizer rewrite kStoreIndexedReal\n");
             return new FIRBasicInstruction<T>(FIRInstruction::kStoreReal, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
         } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kStoreIndexedInt) {
             end = cur + 2;
-            //printf("FIRInstructionLoadStoreOptimizer rewrite kStoreIndexedInt\n");
             return new FIRBasicInstruction<T>(FIRInstruction::kStoreInt, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
         } else {
-            //printf("rewrite FIRInstructionLoadStoreOptimizer default\n");
             end = cur + 1;
             return (*cur)->copy();
         }
@@ -256,11 +251,9 @@ struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
         
         if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kStoreReal) {
             end = cur + 2;
-            //printf("FIRInstructionMoveOptimizer rewrite kMoveReal\n");
             return new FIRBasicInstruction<T>(FIRInstruction::kMoveReal, 0, 0, inst2->fOffset1, inst1->fOffset1);   // reverse order
         } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kStoreInt) {
             end = cur + 2;
-            //printf("FIRInstructionMoveOptimizer rewrite kMoveInt\n");
             return new FIRBasicInstruction<T>(FIRInstruction::kMoveInt, 0, 0, inst2->fOffset1, inst1->fOffset1);    // reverse order
         } else {
             end = cur + 1;
@@ -270,49 +263,38 @@ struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
     
 };
 
+// Rewrite some binary math operation as 'heap' or 'direct' versions
 template <class T>
 struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
     
     FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
-        
         FIRBasicInstruction<T>* inst1 = *cur;
         FIRBasicInstruction<T>* inst2 = *(cur + 1);
         FIRBasicInstruction<T>* inst3 = *(cur + 2);
         
         if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kLoadReal && FIRInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
-            printf("FIRInstructionMathOptimizer kLoadReal %d %d\n", inst3->fOpcode, FIRInstruction::gFIRMath2Heap[inst3->fOpcode]);
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
         } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
-            printf("FIRInstructionMathOptimizer kLoadInt %d %d\n", inst3->fOpcode, FIRInstruction::gFIRMath2Heap[inst3->fOpcode]);
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
         } else if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kRealValue && FIRInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Direct[inst3->fOpcode], 0, inst2->fRealValue, inst1->fOffset1, 0);
-            //end = cur + 1;
-            //return (*cur)->copy();
         } else if (inst1->fOpcode == FIRInstruction::kRealValue && inst2->fOpcode == FIRInstruction::kLoadReal && FIRInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2DirectInvert[inst3->fOpcode], 0, inst1->fRealValue, inst2->fOffset1, 0);
-            //end = cur + 1;
-            //return (*cur)->copy();
         } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kIntValue && FIRInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Direct[inst3->fOpcode], inst2->fIntValue, 0, inst1->fOffset1, 0);
-            //end = cur + 1;
-            //return (*cur)->copy();
         } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2DirectInvert[inst3->fOpcode], inst1->fIntValue, 0, inst2->fOffset1, 0);
-            //end = cur + 1;
-            //return (*cur)->copy();
         } else {
             end = cur + 1;
             return (*cur)->copy();
         }
-        
     }
     
 };
@@ -361,20 +343,17 @@ struct FIRBlockInstruction : public FIRInstruction {
         do {
             FIRBasicInstruction<T>* inst = *cur;
             if (inst->fOpcode == FIRInstruction::kLoop) {
-                //printf("FIRBlockInstruction::optimize kLoop\n");
                 new_block->push(new FIRBasicInstruction<T>(FIRInstruction::kLoop,
                                                            inst->fIntValue, inst->fRealValue, inst->fOffset1, inst->fOffset2,
                                                            FIRBlockInstruction::optimize_aux(inst->fBranch1, optimizer), 0));
                 cur++;
             } else if (inst->fOpcode == FIRInstruction::kSelectInt || inst->fOpcode == FIRInstruction::kSelectReal) {
-                //printf("FIRBlockInstruction::optimize kSelect\n");
                 new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,
                                                            inst->fIntValue, inst->fRealValue, inst->fOffset1, inst->fOffset2,
                                                            FIRBlockInstruction::optimize_aux(inst->fBranch1, optimizer),
                                                            FIRBlockInstruction::optimize_aux(inst->fBranch2, optimizer)));
                 cur++;
             } else if (inst->fOpcode == FIRInstruction::kIf) {
-                //printf("FIRBlockInstruction::optimize kIf\n");
                 new_block->push(new FIRBasicInstruction<T>(FIRInstruction::kIf,
                                                            inst->fIntValue, inst->fRealValue, inst->fOffset1, inst->fOffset2,
                                                            FIRBlockInstruction::optimize_aux(inst->fBranch1, optimizer),
@@ -862,10 +841,14 @@ class FIRInterpreter  {
             #define DISPATCH() { it++; goto *fDispatchTable[(*it)->fOpcode]; }
             
             static void* fDispatchTable[] = {
+                
+                // End operation
                 &&do_kHalt,
                 
+                // Numbers
                 &&do_kRealValue, &&do_kIntValue,
                 
+                // Memory
                 &&do_kLoadReal, &&do_kLoadInt,
                 &&do_kStoreReal, &&do_kStoreInt,
                 &&do_kLoadIndexedReal, &&do_kLoadIndexedInt,
@@ -873,10 +856,13 @@ class FIRInterpreter  {
                 &&do_kMoveReal, &&do_kMoveInt,
                 &&do_kLoadInput, &&do_kStoreOutput,
                 
+                // Cast
                 &&do_kCastReal, &&do_kCastInt,
                 
+                // Select/if
                 &&do_kSelectInt, &&do_kSelectReal, &&do_kIf,
                 
+                // Standard math
                 &&do_kAddReal, &&do_kAddInt, &&do_kSubReal, &&do_kSubInt,
                 &&do_kMultReal, &&do_kMultInt, &&do_kDivReal, &&do_kDivInt,
                 &&do_kRemReal, &&do_kRemInt, &&do_kLshInt, &&do_kRshInt, &&do_kGTInt,
@@ -885,23 +871,25 @@ class FIRInterpreter  {
                 &&do_kLEReal, &&do_kEQReal, &&do_kNEReal,
                 &&do_kANDInt, &&do_kORInt, &&do_kXORInt,
                 
+                // Standard math (heap version)
                 &&do_kAddRealHeap, &&do_kAddIntHeap, &&do_kSubRealHeap, &&do_kSubIntHeap,
                 &&do_kMultRealHeap, &&do_kMultIntHeap, &&do_kDivRealHeap, &&do_kDivIntHeap,
                 &&do_kRemRealHeap, &&do_kRemIntHeap, &&do_kLshIntHeap, &&do_kRshIntHeap, &&do_kGTIntHeap,
                 &&do_kLTIntHeap, &&do_kGEIntHeap, &&do_kLEIntHeap, &&do_kEQIntHeap, &&do_kNEIntHeap,
                 &&do_kGTRealHeap, &&do_kLTRealHeap, &&do_kGERealHeap,
                 &&do_kLERealHeap, &&do_kEQRealHeap, &&do_kNERealHeap,
-                &&do_kANDIntHeap, &&do_kORIntHeap, &&do_kXORIntHeap,  // 44
+                &&do_kANDIntHeap, &&do_kORIntHeap, &&do_kXORIntHeap,
                 
+                // Standard math (direct version)
                 &&do_kAddRealDirect, &&do_kAddIntDirect, &&do_kSubRealDirect, &&do_kSubIntDirect,
                 &&do_kMultRealDirect, &&do_kMultIntDirect, &&do_kDivRealDirect, &&do_kDivIntDirect,
                 &&do_kRemRealDirect, &&do_kRemIntDirect, &&do_kLshIntDirect, &&do_kRshIntDirect, &&do_kGTIntDirect,
                 &&do_kLTIntDirect, &&do_kGEIntDirect, &&do_kLEIntDirect, &&do_kEQIntDirect, &&do_kNEIntDirect,
                 &&do_kGTRealDirect, &&do_kLTRealDirect, &&do_kGERealDirect,
                 &&do_kLERealDirect, &&do_kEQRealDirect, &&do_kNERealDirect,
-                &&do_kANDIntDirect, &&do_kORIntDirect, &&do_kXORIntDirect,  // 44
+                &&do_kANDIntDirect, &&do_kORIntDirect, &&do_kXORIntDirect,
                 
-                // Non commutatives operations
+                // Standard math (direct version) : non commutatives operations
                 &&do_kSubRealDirectInvert, &&do_kSubIntDirectInvert,
                 &&do_kDivRealDirectInvert, &&do_kDivIntDirectInvert,
                 &&do_kRemRealDirectInvert, &&do_kRemIntDirectInvert,
@@ -911,9 +899,11 @@ class FIRInterpreter  {
                 &&do_kGTRealDirectInvert, &&do_kLTRealDirectInvert,
                 &&do_kGERealDirectInvert, &&do_kLERealDirectInvert,
                 
+                // Extended math
                 &&do_kSqrt,
                 &&do_kSin, &&do_kCos,
                 
+                // Control
                 &&do_kLoop
             };
             
