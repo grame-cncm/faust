@@ -30,7 +30,7 @@ using namespace std;
 /*
 Interpretor : 
  
- - multiple uneeded cast are eliminated in CastNumInst
+ - multiple unneeded cast are eliminated in CastNumInst
  - 'faustpower' recoded as pow(x,y)
 
 */

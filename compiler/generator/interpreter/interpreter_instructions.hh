@@ -40,7 +40,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         
         int fRealHeapOffset;    // Offset in Real HEAP    
         int fIntHeapOffset;     // Offset in Integer HEAP
-        int fSROffset;          // Offset in Integer HEAP for "fSamplingFreq"
+        int fSROffset;          // Kept offset in Integer HEAP for "fSamplingFreq"
     
         map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
           

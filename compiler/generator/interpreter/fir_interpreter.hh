@@ -200,7 +200,7 @@ struct FIRInstructionOptimizer {
     }
 };
 
-// Copy (= identity) optimizer (to test...)
+// Copy (= identity) optimizer (used to test...)
 template <class T>
 struct FIRInstructionCopyOptimizer : public FIRInstructionOptimizer<T>  {
     
@@ -274,7 +274,7 @@ struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
     
 };
 
-// Rewrite some binary math operation as 'heap' or 'direct' versions
+// Rewrite some binary math operations as 'heap' or 'direct' versions
 template <class T>
 struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
     
@@ -350,7 +350,7 @@ struct FIRBlockInstruction : public FIRInstruction {
         return block;
     }
     
-    // Return an optimized block
+    // Return an optimized block by traversing it (including sub-blocks) with an 'optimizer'
     static FIRBlockInstruction* optimize_aux(FIRBlockInstruction<T>* cur_block, FIRInstructionOptimizer<T>& optimizer)
     {
         FIRBlockInstruction<T>* new_block = new FIRBlockInstruction<T>();
@@ -360,18 +360,21 @@ struct FIRBlockInstruction : public FIRInstruction {
             FIRBasicInstruction<T>* inst = *cur;
             if (inst->fOpcode == FIRInstruction::kLoop) {
                 new_block->push(new FIRBasicInstruction<T>(FIRInstruction::kLoop,
-                                                           inst->fIntValue, inst->fRealValue, inst->fOffset1, inst->fOffset2,
+                                                           inst->fIntValue, inst->fRealValue,
+                                                           inst->fOffset1, inst->fOffset2,
                                                            FIRBlockInstruction::optimize_aux(inst->fBranch1, optimizer), 0));
                 cur++;
             } else if (inst->fOpcode == FIRInstruction::kSelectInt || inst->fOpcode == FIRInstruction::kSelectReal) {
                 new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,
-                                                           inst->fIntValue, inst->fRealValue, inst->fOffset1, inst->fOffset2,
+                                                           inst->fIntValue, inst->fRealValue,
+                                                           inst->fOffset1, inst->fOffset2,
                                                            FIRBlockInstruction::optimize_aux(inst->fBranch1, optimizer),
                                                            FIRBlockInstruction::optimize_aux(inst->fBranch2, optimizer)));
                 cur++;
             } else if (inst->fOpcode == FIRInstruction::kIf) {
                 new_block->push(new FIRBasicInstruction<T>(FIRInstruction::kIf,
-                                                           inst->fIntValue, inst->fRealValue, inst->fOffset1, inst->fOffset2,
+                                                           inst->fIntValue, inst->fRealValue,
+                                                           inst->fOffset1, inst->fOffset2,
                                                            FIRBlockInstruction::optimize_aux(inst->fBranch1, optimizer),
                                                            (inst->fBranch2) ? FIRBlockInstruction::optimize_aux(inst->fBranch2, optimizer) : 0));
                 cur++;
