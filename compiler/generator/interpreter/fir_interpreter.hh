@@ -288,30 +288,31 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             end = cur + 3;
             printf("FIRInstructionMathOptimizer kLoadInt %d %d\n", inst3->fOpcode, FIRInstruction::gFIRMath2Heap[inst3->fOpcode]);
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
-        }  else {
-            end = cur + 1;
-            return (*cur)->copy();
-        }
-            
-         /*
-            
-            if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kRealValue && FIRInstruction::isMath(inst3->fOpcode)) {
+        } else if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kRealValue && FIRInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
-            return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Direct[inst3->fOpcode], inst2->fRealValue, 0, inst1->fOffset1, 0);
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Direct[inst3->fOpcode], 0, inst2->fRealValue, inst1->fOffset1, 0);
+            //end = cur + 1;
+            //return (*cur)->copy();
         } else if (inst1->fOpcode == FIRInstruction::kRealValue && inst2->fOpcode == FIRInstruction::kLoadReal && FIRInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
-            return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Direct[inst3->fOpcode], inst1->fRealValue, 0, inst2->fOffset1, 0);
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2DirectInvert[inst3->fOpcode], 0, inst1->fRealValue, inst2->fOffset1, 0);
+            //end = cur + 1;
+            //return (*cur)->copy();
         } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kIntValue && FIRInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Direct[inst3->fOpcode], inst2->fIntValue, 0, inst1->fOffset1, 0);
+            //end = cur + 1;
+            //return (*cur)->copy();
         } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
-            return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Direct[inst3->fOpcode], inst1->fIntValue, 0, inst2->fOffset1, 0);
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2DirectInvert[inst3->fOpcode], inst1->fIntValue, 0, inst2->fOffset1, 0);
+            //end = cur + 1;
+            //return (*cur)->copy();
         } else {
             end = cur + 1;
             return (*cur)->copy();
         }
-        */
+        
     }
     
 };
@@ -900,6 +901,16 @@ class FIRInterpreter  {
                 &&do_kLERealDirect, &&do_kEQRealDirect, &&do_kNERealDirect,
                 &&do_kANDIntDirect, &&do_kORIntDirect, &&do_kXORIntDirect,  // 44
                 
+                // Non commutatives operations
+                &&do_kSubRealDirectInvert, &&do_kSubIntDirectInvert,
+                &&do_kDivRealDirectInvert, &&do_kDivIntDirectInvert,
+                &&do_kRemRealDirectInvert, &&do_kRemIntDirectInvert,
+                &&do_kLshIntDirectInvert, &&do_kRshIntDirectInvert,
+                &&do_kGTIntDirectInvert, &&do_kLTIntDirectInvert,
+                &&do_kGEIntDirectInvert, &&do_kLEIntDirectInvert,
+                &&do_kGTRealDirectInvert, &&do_kLTRealDirectInvert,
+                &&do_kGERealDirectInvert, &&do_kLERealDirectInvert,
+                
                 &&do_kSqrt,
                 &&do_kSin, &&do_kCos,
                 
@@ -1445,7 +1456,6 @@ class FIRInterpreter  {
                 // Direct version
                 //-----------------
                 
-                /*
                 do_kAddRealDirect:
                 {
                     push_real((*it)->fRealValue + fRealHeap[(*it)->fOffset1]);
@@ -1613,57 +1623,38 @@ class FIRInterpreter  {
                     push_int((*it)->fIntValue ^ fIntHeap[(*it)->fOffset1]);
                     DISPATCH();
                 }
-                 */
                 
-            do_kAddRealDirect:
-                {
-                    push_real(fRealHeap[(*it)->fOffset1] + (*it)->fRealValue);
-                    DISPATCH();
-                }
+                //-----------------------------
+                // Direct inverted version
+                // (non commutative opetation)
+                //-----------------------------
                 
-            do_kAddIntDirect:
-                {
-                    push_int(fIntHeap[(*it)->fOffset1] + (*it)->fIntValue);
-                    DISPATCH();
-                }
                 
-            do_kSubRealDirect:
+                do_kSubRealDirectInvert:
                 {
                     push_real(fRealHeap[(*it)->fOffset1] - (*it)->fRealValue);
                     DISPATCH();
                 }
                 
-            do_kSubIntDirect:
+                do_kSubIntDirectInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] - (*it)->fIntValue);
                     DISPATCH();
                 }
                 
-            do_kMultRealDirect:
-                {
-                    push_real(fRealHeap[(*it)->fOffset1] * (*it)->fRealValue);
-                    DISPATCH();
-                }
-                
-            do_kMultIntDirect:
-                {
-                    push_int(fIntHeap[(*it)->fOffset1] * (*it)->fIntValue);
-                    DISPATCH();
-                }
-                
-            do_kDivRealDirect:
+                do_kDivRealDirectInvert:
                 {
                     push_real(fRealHeap[(*it)->fOffset1] / (*it)->fRealValue);
                     DISPATCH();
                 }
                 
-            do_kDivIntDirect:
+                do_kDivIntDirectInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] / (*it)->fIntValue);
                     DISPATCH();
                 }
                 
-            do_kRemRealDirect:
+                do_kRemRealDirectInvert:
                 {
                     //    T v1 = pop_real();
                     //    T v2 = pop_real();
@@ -1671,118 +1662,75 @@ class FIRInterpreter  {
                     //    DISPATCH();
                 }
                 
-            do_kRemIntDirect:
+                do_kRemIntDirectInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] % (*it)->fIntValue);
                     DISPATCH();
                 }
                 
                 // Shift operation
-            do_kLshIntDirect:
+                do_kLshIntDirectInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] << (*it)->fIntValue);
                     DISPATCH();
                 }
                 
-            do_kRshIntDirect:
+                do_kRshIntDirectInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] >> (*it)->fIntValue);
                     DISPATCH();
                 }
                 
                 // Comparaison Int
-            do_kGTIntDirect:
+                do_kGTIntDirectInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] > (*it)->fIntValue);
                     DISPATCH();
                 }
                 
-            do_kLTIntDirect:
+                do_kLTIntDirectInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] < (*it)->fIntValue);
                     DISPATCH();
                 }
                 
-            do_kGEIntDirect:
+                do_kGEIntDirectInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] >= (*it)->fIntValue);
                     DISPATCH();
                 }
                 
-            do_kLEIntDirect:
+                do_kLEIntDirectInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] <= (*it)->fIntValue);
                     DISPATCH();
                 }
                 
-            do_kEQIntDirect:
-                {
-                    push_int(fIntHeap[(*it)->fOffset1] == (*it)->fIntValue);
-                    DISPATCH();
-                }
-                
-            do_kNEIntDirect:
-                {
-                    push_int(fIntHeap[(*it)->fOffset1] != (*it)->fIntValue);
-                    DISPATCH();
-                }
-                
                 // Comparaison Real
-            do_kGTRealDirect:
+                do_kGTRealDirectInvert:
                 {
                     push_int(fRealHeap[(*it)->fOffset1] > (*it)->fRealValue);
                     DISPATCH();
                 }
                 
-            do_kLTRealDirect:
+                do_kLTRealDirectInvert:
                 {
                     push_int(fRealHeap[(*it)->fOffset1] < (*it)->fRealValue);
                     DISPATCH();
                 }
                 
-            do_kGERealDirect:
+                do_kGERealDirectInvert:
                 {
                     push_int(fRealHeap[(*it)->fOffset1] >= (*it)->fRealValue);
                     DISPATCH();
                 }
                 
-            do_kLERealDirect:
+                do_kLERealDirectInvert:
                 {
                     push_int(fRealHeap[(*it)->fOffset1] <= (*it)->fRealValue);
                     DISPATCH();
                 }
-                
-            do_kEQRealDirect:
-                {
-                    push_int(fRealHeap[(*it)->fOffset1] == (*it)->fRealValue);
-                    DISPATCH();
-                }
-                
-            do_kNERealDirect:
-                {
-                    push_int(fRealHeap[(*it)->fOffset1] != (*it)->fRealValue);
-                    DISPATCH();
-                }
-                
-                // Logical operations
-            do_kANDIntDirect:
-                {
-                    push_int(fIntHeap[(*it)->fOffset1 & (*it)->fIntValue]);
-                    DISPATCH();
-                }
-                
-            do_kORIntDirect:
-                {
-                    push_int(fIntHeap[(*it)->fOffset1] | (*it)->fIntValue);
-                    DISPATCH();
-                }
-                
-            do_kXORIntDirect:
-                {
-                    push_int(fIntHeap[(*it)->fOffset1] ^ (*it)->fIntValue);
-                    DISPATCH();
-                }
-                
+       
                 // Math operations
                 do_kSqrt:
                 {

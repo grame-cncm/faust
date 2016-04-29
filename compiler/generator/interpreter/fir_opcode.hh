@@ -75,7 +75,17 @@ struct FIRInstruction {
         kGTRealDirect, kLTRealDirect, kGERealDirect,
         kLERealDirect, kEQRealDirect, kNERealDirect,
         kANDIntDirect, kORIntDirect, kXORIntDirect,  // 44
-   
+        
+        // Non commutatives operations
+        kSubRealDirectInvert, kSubIntDirectInvert,
+        kDivRealDirectInvert, kDivIntDirectInvert,
+        kRemRealDirectInvert, kRemIntDirectInvert,
+        kLshIntDirectInvert, kRshIntDirectInvert,
+        kGTIntDirectInvert, kLTIntDirectInvert,
+        kGEIntDirectInvert, kLEIntDirectInvert,
+        kGTRealDirectInvert, kLTRealDirectInvert,
+        kGERealDirectInvert, kLERealDirectInvert,
+      
         // Math
         kSqrt,  // 45
         kSin, kCos, // 47
@@ -96,6 +106,7 @@ struct FIRInstruction {
     
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Heap;
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Direct;
+    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2DirectInvert;
     
     static bool isMath(Opcode opt) { return opt >= kAddReal && opt <= kXORInt; }
 
@@ -141,6 +152,16 @@ static std::string gFIRInstructionTable[] = {
     "kGTRealDirect", "kLTRealDirect", "kGERealDirect",
     "kLERealDirect", "kEQRealDirect", "kNERealDirect",
     "kANDIntDirect", "kORIntDirect", "kXORIntDirect",  // 44
+    
+    // Non commutatives operations
+    "kSubRealDirectInvert", "kSubIntDirectInvert",
+    "kDivRealDirectInvert", "kDivIntDirectInvert",
+    "kRemRealDirectInvert", "kRemIntDirectInvert",
+    "kLshIntDirectInvert", "kRshIntDirectInvert",
+    "kGTIntDirectInvert", "kLTIntDirectInvert",
+    "kLTIntDirectInvert", "kLEIntDirectInvert",
+    "kGTRealDirectInvert", "kLTRealDirectInvert",
+    "kGERealDirectInvert", "kLERealDirectInvert",
     
     "kSqrt",
     "kSin", "kCos", // 47
