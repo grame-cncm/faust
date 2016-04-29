@@ -882,7 +882,6 @@ class FIRInterpreter  {
                     T v1 = pop_real();
                     T v2 = pop_real();
                     push_int(v1 > v2);
-                    //std::cout << "do_kGTReal" << " " << v1 << " " << v2 << " " << (v1 > v2) << std::endl;
                     DISPATCH();
                 }
                 
@@ -891,7 +890,6 @@ class FIRInterpreter  {
                     T v1 = pop_real();
                     T v2 = pop_real();
                     push_int(v1 < v2);
-                    //std::cout << "do_kLTReal" << " " << v1 << " " << v2 << " " << (v1 < v2) << std::endl;
                     DISPATCH();
                 }
                 
@@ -932,7 +930,6 @@ class FIRInterpreter  {
                 {
                     int v1 = pop_int();
                     int v2 = pop_int();
-                    //std::cout << "do_kANDInt" << " " << v1 << " " << v2 << " " << (v1 & v2) << std::endl;
                     push_int(v1 & v2);
                     DISPATCH();
                 }

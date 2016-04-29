@@ -384,7 +384,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             
             if (inst->fType->getType() == Typed::kInt) {
                 if (isIntType(fTypingVisitor.fCurType)) {
-                    std::cout << "CastNumInst :" << "cast to int, but arg already int !" << std::endl;
+                    std::cout << "CastNumInst : cast to int, but arg already int !" << std::endl;
                 } else {
                     fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastInt));
                 }
@@ -394,7 +394,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 // We assume that kFloatMacro and internal float are the same for now, so no cast...
             } else {
                 if (isRealType(fTypingVisitor.fCurType)) {
-                    std::cout << "CastNumInst :" << "cast to real, but arg already real !" << std::endl;
+                    std::cout << "CastNumInst : cast to real, but arg already real !" << std::endl;
                 } else {
                     fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastReal));
                 }
@@ -405,30 +405,25 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         // Function call
          virtual void visit(FunCallInst* inst)
         {
-            string fun_name = startWith(inst->fName, "faustpower") ? "faustpower" : inst->fName;
-            
-            //fTypingVisitor.visit(inst);
-            
-            //std::cout << "FunCallInst " << fun_name << std::endl;
-            
             // Compile args in reverse order
             list<ValueInst*>::reverse_iterator it;
             for (it = inst->fArgs.rbegin(); it != inst->fArgs.rend(); it++) {
                 (*it)->accept(this);
                  //std::cout << "FunCallInst ARG" << std::endl;
             }
-            if (gMathLibTable.find(fun_name) == gMathLibTable.end()) {
+            
+            if (gMathLibTable.find(inst->fName) == gMathLibTable.end()) {
                 stringstream error;
                 error << "Missing function : " << inst->fName << std::endl;
                 throw faustexception(error.str());
-            } else if (fun_name == "min") {
+            } else if (inst->fName == "min") {
                 
                 // HACK : get type of first arg...
                 (*inst->fArgs.begin())->accept(&fTypingVisitor);
                 Typed::VarType type1 = fTypingVisitor.fCurType;
                 
                 fCurrentBlock->push(new FIRBasicInstruction<T>(isRealType(type1) ? FIRInstruction::kMinf : FIRInstruction::kMin));
-            } else if (fun_name == "max") {
+            } else if (inst->fName == "max") {
                 
                 // HACK : get type of first arg...
                 (*inst->fArgs.begin())->accept(&fTypingVisitor);
@@ -436,10 +431,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 
                 fCurrentBlock->push(new FIRBasicInstruction<T>(isRealType(type1) ? FIRInstruction::kMaxf : FIRInstruction::kMax));
             } else {
-                fCurrentBlock->push(new FIRBasicInstruction<T>(gMathLibTable[fun_name]));
+                fCurrentBlock->push(new FIRBasicInstruction<T>(gMathLibTable[inst->fName]));
             }
-            
         }
+    
         virtual void visit(RetInst* inst) {}
         virtual void visit(DropInst* inst) {}
 

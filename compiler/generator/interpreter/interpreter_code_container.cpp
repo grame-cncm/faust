@@ -27,6 +27,14 @@
 
 using namespace std;
 
+/*
+Interpretor : 
+ 
+ - multiple uneeded cast are eliminated in CastNumInst
+ - 'faustpower' recoded as pow(x,y)
+
+*/
+
 template <class T> map <string, FIRInstruction::Opcode> InterpreterInstVisitor<T>::gMathLibTable;
 
 CodeContainer* InterpreterCodeContainer::createScalarContainer(const string& name, int sub_container_type)
