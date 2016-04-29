@@ -83,6 +83,15 @@ class InterpreterCodeContainer : public virtual CodeContainer {
             FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLTReal] = FIRInstruction::kLTRealDirectInvert;
             FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kGEReal] = FIRInstruction::kGERealDirectInvert;
             FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLEReal] = FIRInstruction::kLERealDirectInvert;
+            
+            // Init heap opcode
+            /*
+            for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
+                FIRInstruction::gFIRMath2Heap[FIRInstruction::Opcode(i)]
+                = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal));
+                //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+            }
+             */
         }
     
         virtual ~InterpreterCodeContainer()

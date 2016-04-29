@@ -123,8 +123,6 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
-            //printf("compute\n");
-            
             // Prepare in/out buffers
             for (int i = 0; i < fNumInputs; i++) {
                 this->fInputs[i] = inputs[i];
@@ -133,20 +131,11 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
                 this->fOutputs[i] = outputs[i];
             }
             
-            //printf("control\n");
-            
             // Executes the 'control' block
-            //this->fComputeBlock->dump();
             this->ExecuteBlockVoid(fComputeBlock);
             
-            //printf("DSP\n");
-            
             // Executes the DSP loop
-            FIRBasicInstruction<T>* loop = fComputeDSPBlock->fInstructions[2];
-            assert(loop->fOpcode == FIRInstruction::kLoop);
-            
-            //loop->fBranch1->dump();
-            this->ExecuteLoopBlock(loop->fBranch1, loop->fOffset1, count);
+            this->ExecuteLoopBlock(fComputeDSPBlock, count);
             
             //std::cout << outputs[0][0] << std::endl;
        }
@@ -214,7 +203,7 @@ class EXPORT interpreter_dsp_factory {
             
             printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
             
-            // Optimize indexed load/store in normal load/store
+            // 1) optimize indexed 'heap' load/store in normal load/store
             FIRInstructionLoadStoreOptimizer<float> opt1;
             fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt1);
             fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt1);
@@ -222,7 +211,7 @@ class EXPORT interpreter_dsp_factory {
             
             printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
             
-            // Optimize load/store in move
+            // 2) then pptimize simple 'heap' load/store in move
             FIRInstructionMoveOptimizer<float> opt2;
             fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt2);
             fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt2);
@@ -230,7 +219,7 @@ class EXPORT interpreter_dsp_factory {
             
             printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
             
-            // Optimize math operations
+            // 3) them optimize 'heap' and 'direct' math operations
             FIRInstructionMathOptimizer<float> opt3;
             fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt3);
             fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt3);

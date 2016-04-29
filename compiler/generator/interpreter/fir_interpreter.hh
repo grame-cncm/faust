@@ -307,7 +307,10 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
         } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2DirectInvert[inst3->fOpcode], inst1->fIntValue, 0, inst2->fOffset1, 0);
+        //} else if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isMath(inst3->fOpcode)) {
+           
         } else {
+            
             end = cur + 1;
             return (*cur)->copy();
         }
@@ -568,23 +571,59 @@ class FIRInterpreter  {
                 &&do_kGTRealDirectInvert, &&do_kLTRealDirectInvert,
                 &&do_kGERealDirectInvert, &&do_kLERealDirectInvert,
                 
-                // Extended math
+                // Extended unary math
                 &&do_kAbs, &&do_kAbsf,
                 &&do_kAcosf, &&do_kAsinf,
-                &&do_kAtanf, &&do_kAtan2f,
+                &&do_kAtanf,
                 &&do_kCeilf,
                 &&do_kCosf, &&do_kCoshf,
                 &&do_kExpf,
                 &&do_kFloorf,
-                &&do_kFmodf,
                 &&do_kLogf, &&do_kLog10f,
-                &&do_kPowf, &&do_kFoundf,
+                &&do_kRoundf,
                 &&do_kSinf, &&do_kSinhf,
                 &&do_kSqrtf,
                 &&do_kTanf, &&do_kTanhf,
+
+                // Extended binary math
+                &&do_kAtan2f,
+                &&do_kFmodf,
+                &&do_kPowf,
                 &&do_kMax, &&do_kMaxf,
                 &&do_kMin, &&do_kMinf,
-                &&do_kFaustpower,
+                
+                // Extended unary math (heap version)
+                &&do_kAbsHeap, &&do_kAbsfHeap,
+                &&do_kAcosfHeap, &&do_kAsinfHeap,
+                &&do_kAtanfHeap,
+                &&do_kCeilfHeap,
+                &&do_kCosfHeap, &&do_kCoshfHeap,
+                &&do_kExpfHeap,
+                &&do_kFloorfHeap,
+                &&do_kLogfHeap, &&do_kLog10fHeap,
+                &&do_kRoundfHeap,
+                &&do_kSinfHeap, &&do_kSinhfHeap,
+                &&do_kSqrtfHeap,
+                &&do_kTanfHeap, &&do_kTanhfHeap,
+                
+                // Extended binary math (heap version)
+                &&do_kAtan2fHeap,
+                &&do_kFmodfHeap,
+                &&do_kPowfHeap,
+                &&do_kMaxHeap, &&do_kMaxfHeap,
+                &&do_kMinHeap, &&do_kMinfHeap,
+                
+                // Extended binary math (direct version)
+                &&do_kAtan2fDirect,
+                &&do_kFmodfDirect,
+                &&do_kPowfDirect,
+                &&do_kMaxDirect, &&do_kMaxfDirect,
+                &&do_kMinDirect, &&do_kMinfDirect,
+                
+                // Extended binary math (direct version) : non commutative operations
+                &&do_kAtan2fDirectInvert,
+                &&do_kFmodfDirectInvert,
+                &&do_kPowfDirectInvert,
                 
                 // Control
                 &&do_kLoop
@@ -1403,9 +1442,9 @@ class FIRInterpreter  {
                     DISPATCH();
                 }
        
-                //---------------
-                // Extended math
-                //---------------
+                //---------------------
+                // Extended unary math
+                //---------------------
                 
                 do_kAbs:
                 {
@@ -1439,14 +1478,6 @@ class FIRInterpreter  {
                 {
                     T v = pop_real();
                     push_real(atanf(v));
-                    DISPATCH();
-                }
-                
-                do_kAtan2f:
-                {
-                    T v1 = pop_real();
-                    T v2 = pop_real();
-                    push_real(atan2f(v1, v2));
                     DISPATCH();
                 }
                 
@@ -1485,14 +1516,6 @@ class FIRInterpreter  {
                     DISPATCH();
                 }
 
-                do_kFmodf:
-                {
-                    T v1 = pop_real();
-                    T v2 = pop_real();
-                    push_real(fmodf(v1, v2));
-                    DISPATCH();
-                }
-
                 do_kLogf:
                 {
                     T v = pop_real();
@@ -1507,16 +1530,7 @@ class FIRInterpreter  {
                     DISPATCH();
                 }
                 
-                do_kPowf:
-                {
-                    T v1 = pop_real();
-                    T v2 = pop_real();
-                    //printf("do_kPowf %f\n", v2);
-                    push_real(powf(v1, v2));
-                    DISPATCH();
-                }
-                
-                do_kFoundf:
+                do_kRoundf:
                 {
                     T v = pop_real();
                     push_real(roundf(v));
@@ -1558,6 +1572,34 @@ class FIRInterpreter  {
                     DISPATCH();
                 }
                 
+                //---------------------
+                // Extended binary math
+                //---------------------
+                
+                do_kAtan2f:
+                {
+                    T v1 = pop_real();
+                    T v2 = pop_real();
+                    push_real(atan2f(v1, v2));
+                    DISPATCH();
+                }
+           
+                do_kFmodf:
+                {
+                    T v1 = pop_real();
+                    T v2 = pop_real();
+                    push_real(fmodf(v1, v2));
+                    DISPATCH();
+                }
+                
+                do_kPowf:
+                {
+                    T v1 = pop_real();
+                    T v2 = pop_real();
+                    push_real(powf(v1, v2));
+                    DISPATCH();
+                }
+                
                 do_kMax:
                 {
                     int v1 = pop_int();
@@ -1590,12 +1632,232 @@ class FIRInterpreter  {
                     DISPATCH();
                 }
                 
-                do_kFaustpower:
+                //------------------------------------
+                // Extended unary math (head version)
+                ///------------------------------------
+                
+                do_kAbsHeap:
                 {
-                    // TODO ?
+                    push_int(abs(fIntHeap[(*it)->fOffset1]));
                     DISPATCH();
                 }
-      
+                
+                do_kAbsfHeap:
+                {
+                    push_real(fabsf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kAcosfHeap:
+                {
+                    push_real(acosf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kAsinfHeap:
+                {
+                    push_real(asinf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kAtanfHeap:
+                {
+                    push_real(atanf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kCeilfHeap:
+                {
+                    push_real(ceilf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kCosfHeap:
+                {
+                    push_real(cosf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kCoshfHeap:
+                {
+                    push_real(coshf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kExpfHeap:
+                {
+                    push_real(expf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kFloorfHeap:
+                {
+                    push_real(floorf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kLogfHeap:
+                {
+                    push_real(logf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kLog10fHeap:
+                {
+                    push_real(log10f(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kRoundfHeap:
+                {
+                    push_real(roundf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kSinfHeap:
+                {
+                    push_real(sinf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kSinhfHeap:
+                {
+                    push_real(sinhf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kSqrtfHeap:
+                {
+                    push_real(sqrtf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kTanfHeap:
+                {
+                    push_real(tanf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                do_kTanhfHeap:
+                {
+                    push_real(tanhf(fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+                
+                //-------------------------------------
+                // Extended binary math (heap version)
+                //-------------------------------------
+                
+                do_kAtan2fHeap:
+                {
+                    push_real(atan2f(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
+                    DISPATCH();
+                }
+
+                do_kFmodfHeap:
+                {
+                    push_real(fmodf(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
+                    DISPATCH();
+                }
+
+                do_kPowfHeap:
+                {
+                    push_real(powf(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
+                    DISPATCH();
+                }
+
+                do_kMaxHeap:
+                {
+                    push_int(std::max(fIntHeap[(*it)->fOffset1], fIntHeap[(*it)->fOffset2]));
+                    DISPATCH();
+                }
+
+                do_kMaxfHeap:
+                {
+                    push_real(std::max(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
+                    DISPATCH();
+                }
+
+                do_kMinHeap:
+                {
+                    push_int(std::min(fIntHeap[(*it)->fOffset1], fIntHeap[(*it)->fOffset2]));
+                    DISPATCH();
+                }
+
+                do_kMinfHeap:
+                {
+                    push_real(std::min(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
+                    DISPATCH();
+                }
+
+                //-------------------------------------
+                // Extended binary math (direct version)
+                //-------------------------------------
+
+                do_kAtan2fDirect:
+                {
+                    push_real(atan2f((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+
+                do_kFmodfDirect:
+                {
+                    push_real(fmodf((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+
+                do_kPowfDirect:
+                {
+                    push_real(powf((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+
+                do_kMaxDirect:
+                {
+                    push_int(std::max((*it)->fIntValue, fIntHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+
+                do_kMaxfDirect:
+                {
+                    push_real(std::max((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+
+                do_kMinDirect:
+                {
+                    push_int(std::min((*it)->fIntValue, fIntHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+
+                do_kMinfDirect:
+                {
+                    push_real(std::min((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
+                    DISPATCH();
+                }
+
+                //-------------------------------------------------------------------
+                // Extended binary math (direct version) : non commutative operations
+                //-------------------------------------------------------------------
+
+                do_kAtan2fDirectInvert:
+                {
+                    push_real(atan2f(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
+                    DISPATCH();
+                }
+
+                do_kFmodfDirectInvert:
+                {
+                    push_real(fmodf(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
+                    DISPATCH();
+                }
+
+                do_kPowfDirectInvert:
+                {
+                    push_real(powf(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
+                    DISPATCH();
+                }
+
                 //---------
                 // Control
                 //---------
@@ -1624,8 +1886,15 @@ class FIRInterpreter  {
             //printf("END real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
             assert(real_stack_index == 0 && int_stack_index == 0);
         }
+    
+        void ExecuteLoopBlock(FIRBlockInstruction<T>* block, int count)
+        {
+            // 2 first compiled instructions are not needed
+            FIRBasicInstruction<T>* loop = block->fInstructions[2];
+            ExecuteLoopBlock(loop->fBranch1, loop->fOffset1, count);
+        }
         
-        void ExecuteLoopBlock(FIRBlockInstruction<T>* block, int loop_offset, int loop_count)
+        inline void ExecuteLoopBlock(FIRBlockInstruction<T>* block, int loop_offset, int loop_count)
         {
             int res_int;
             T res_real;
@@ -1634,7 +1903,7 @@ class FIRInterpreter  {
             }
         }
 
-        int ExecuteBlockInt(FIRBlockInstruction<T>* block)
+        inline int ExecuteBlockInt(FIRBlockInstruction<T>* block)
         {
             int res_int;
             T res_real;
@@ -1642,7 +1911,7 @@ class FIRInterpreter  {
             return res_int;
         }
     
-        T ExecuteBlockReal(FIRBlockInstruction<T>* block)
+        inline T ExecuteBlockReal(FIRBlockInstruction<T>* block)
         {
             int res_int;
             T res_real;
@@ -1650,7 +1919,7 @@ class FIRInterpreter  {
             return res_real;
         }
     
-        void ExecuteBlockVoid(FIRBlockInstruction<T>* block)
+        inline void ExecuteBlockVoid(FIRBlockInstruction<T>* block)
         {
             int res_int;
             T res_real;

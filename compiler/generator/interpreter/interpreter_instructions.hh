@@ -100,7 +100,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             gMathLibTable["logf"] =  FIRInstruction::kLogf;
             gMathLibTable["log10f"] =  FIRInstruction::kLog10f;
             gMathLibTable["powf"] =  FIRInstruction::kPowf;
-            gMathLibTable["roundf"] =  FIRInstruction::kFoundf;
+            gMathLibTable["roundf"] =  FIRInstruction::kRoundf;
             gMathLibTable["sinf"] = FIRInstruction::kSinf;
             gMathLibTable["sinfh"] = FIRInstruction::kSinhf;
             gMathLibTable["sqrtf"] = FIRInstruction::kSqrtf;
@@ -110,7 +110,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             gMathLibTable["maxf"] =  FIRInstruction::kMaxf;
             gMathLibTable["min"] =  FIRInstruction::kMin;
             gMathLibTable["minf"] =  FIRInstruction::kMinf;
-            gMathLibTable["faustpower"] = FIRInstruction::kFaustpower;
         }
         
         virtual ~InterpreterInstVisitor()
@@ -512,6 +511,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         {
             // Compile loop variable declaration
             inst->fInit->accept(this);
+            
+            fCurrentBlock->dump();
            
             // Keep current block
             FIRBlockInstruction<T>* previous = fCurrentBlock;

@@ -30,6 +30,10 @@ std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMat
 std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Direct;
 std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2DirectInvert;
 
+std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2Heap;
+std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2Direct;
+std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2DirectInvert;
+
 void interpreter_dsp_factory::dump()
 {
     cout << "------interpreter_dsp_factory------" << endl;

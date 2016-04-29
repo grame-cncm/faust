@@ -88,23 +88,59 @@ struct FIRInstruction {
         kGTRealDirectInvert, kLTRealDirectInvert,
         kGERealDirectInvert, kLERealDirectInvert,
       
-        // Extended math
+        // Extended unary math
         kAbs, kAbsf,
         kAcosf, kAsinf,
-        kAtanf, kAtan2f,
+        kAtanf,
         kCeilf,
         kCosf, kCoshf,
         kExpf,
         kFloorf,
-        kFmodf,
         kLogf, kLog10f,
-        kPowf, kFoundf,
+        kRoundf,
         kSinf, kSinhf,
         kSqrtf,
         kTanf, kTanhf,
+        
+        // Extended binary math
+        kAtan2f,
+        kFmodf,
+        kPowf,
         kMax, kMaxf,
         kMin, kMinf,
-        kFaustpower,
+        
+        // Extended unary math (heap version)
+        kAbsHeap, kAbsfHeap,
+        kAcosfHeap, kAsinfHeap,
+        kAtanfHeap,
+        kCeilfHeap,
+        kCosfHeap, kCoshfHeap,
+        kExpfHeap,
+        kFloorfHeap,
+        kLogfHeap, kLog10fHeap,
+        kRoundfHeap,
+        kSinfHeap, kSinhfHeap,
+        kSqrtfHeap,
+        kTanfHeap, kTanhfHeap,
+        
+        // Extended binary math (heap version)
+        kAtan2fHeap,
+        kFmodfHeap,
+        kPowfHeap,
+        kMaxHeap, kMaxfHeap,
+        kMinHeap, kMinfHeap,
+        
+        // Extended binary math (direct version)
+        kAtan2fDirect,
+        kFmodfDirect,
+        kPowfDirect,
+        kMaxDirect, kMaxfDirect,
+        kMinDirect, kMinfDirect,
+        
+        // Extended binary math (direct version) : non commutative operations
+        kAtan2fDirectInvert,
+        kFmodfDirectInvert,
+        kPowfDirectInvert,
         
         // Control
         kLoop,
@@ -123,7 +159,13 @@ struct FIRInstruction {
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Direct;
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2DirectInvert;
     
+    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2Heap;
+    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2Direct;
+    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2DirectInvert;
+    
     static bool isMath(Opcode opt) { return opt >= kAddReal && opt <= kXORInt; }
+    static bool isExtendedUnaryMath(Opcode opt) { return opt >= kAbs && opt <= kTanhf; }
+    static bool isExtendedBinaryMath(Opcode opt) { return opt >= kAtan2f && opt <= kMinf; }
 
 };
 
@@ -187,23 +229,59 @@ static std::string gFIRInstructionTable[] = {
     "kGTRealDirectInvert", "kLTRealDirectInvert",
     "kGERealDirectInvert", "kLERealDirectInvert",
     
-    // Extended math
+    // Extended unary math
     "kAbs", "kAbsf",
     "kAcosf", "kAsinf",
-    "kAtanf", "kAtan2f",
+    "kAtanf",
     "kCeilf",
     "kCosf", "kCoshf",
     "kExpf",
     "kFloorf",
-    "kFmodf",
     "kLogf", "kLog10f",
-    "kPowf", "kFoundf",
+    "kRoundf",
     "kSinf", "kSinhf",
     "kSqrtf",
     "kTanf", "kTanhf",
+    
+    // Extended binary math
+    "kAtan2f",
+    "kFmodf",
+    "kPowf",
     "kMax", "kMaxf",
     "kMin", "kMinf",
-    "kFaustpower",
+    
+    // Extended unary math (heap version)
+    "kAbsHeap", "kAbsfHeap",
+    "kAcosfHeap", "kAsinfHeap",
+    "kAtanfHeap",
+    "kCeilfHeap",
+    "kCosfHeap", "kCoshfHeap",
+    "kExpfHeap",
+    "kFloorfHeap",
+    "kLogfHeap", "kLog10fHeap",
+    "kRoundfHeap",
+    "kSinfHeap", "kSinhfHeap",
+    "kSqrtfHeap",
+    "kTanfHeap", "kTanhfHeap",
+    
+    // Extended binary math (heap version)
+    "kAtan2fHeap",
+    "kFmodfHeap",
+    "kPowfHeap",
+    "kMaxHeap", "kMaxfHeap",
+    "kMinHeap", "kMinfHeap",
+    
+    // Extended binary math (direct version)
+    "kAtan2fDirect",
+    "kFmodfDirect",
+    "kPowfDirect",
+    "kMaxDirect", "kMaxfDirect",
+    "kMinDirect", "kMinfDirect",
+    
+    // Extended binary math (direct version) : non commutative operations
+    "kAtan2fDirectInvert",
+    "kFmodfDirectInvert",
+    "kPowfDirectInvert",
 
     // Control
     "kLoop",
