@@ -29,44 +29,116 @@
 #include "fir_interpreter.hh"
 #include "smartpointer.h"
 
+class interpreter_dsp;
+
+struct EXPORT interpreter_dsp_factory {
+    
+    int fNumInputs;
+    int fNumOutputs;
+    
+    int fRealHeapSize;
+    int fIntHeapSize;
+    int fSROffset;
+    
+    FIRUserInterfaceBlockInstruction<float>* fUserInterfaceBlock;
+    FIRBlockInstruction<float>* fInitBlock;
+    FIRBlockInstruction<float>* fComputeBlock;
+    FIRBlockInstruction<float>* fComputeDSPBlock;
+    
+    std::string fExpandedDSP;
+    std::string fShaKey;
+    std::string fName;
+    
+    interpreter_dsp_factory(int inputs, int ouputs,
+                            int real_heap_size, int int_heap_size, int sr_offset,
+                            FIRUserInterfaceBlockInstruction<float>* interface,
+                            FIRBlockInstruction<float>* init,
+                            FIRBlockInstruction<float>* compute_control,
+                            FIRBlockInstruction<float>* compute_dsp)
+    :fNumInputs(inputs),
+    fNumOutputs(ouputs),
+    fRealHeapSize(real_heap_size),
+    fIntHeapSize(int_heap_size),
+    fSROffset(sr_offset),
+    fUserInterfaceBlock(interface),
+    fInitBlock(init),
+    fComputeBlock(compute_control),
+    fComputeDSPBlock(compute_dsp)
+    {
+        
+        printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
+        
+        // 1) optimize indexed 'heap' load/store in normal load/store
+        FIRInstructionLoadStoreOptimizer<float> opt1;
+        fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt1);
+        fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt1);
+        fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt1);
+        
+        printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
+        
+        // 2) then pptimize simple 'heap' load/store in move
+        FIRInstructionMoveOptimizer<float> opt2;
+        fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt2);
+        fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt2);
+        fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt2);
+        
+        printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
+        
+        // 3) them optimize 'heap' and 'direct' math operations
+        FIRInstructionMathOptimizer<float> opt3;
+        fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt3);
+        fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt3);
+        fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt3);
+        
+        printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
+        
+    }
+    
+    virtual ~interpreter_dsp_factory()
+    {
+        // No more DSP instances, so delete
+        delete fUserInterfaceBlock;
+        delete fInitBlock;
+        delete fComputeBlock;
+        delete fComputeDSPBlock;
+    }
+    
+    /* Return Factory name */
+    std::string getName();
+    
+    /* Return Factory SHA key */
+    std::string getSHAKey();
+    
+    /* Return Factory expanded DSP code */
+    std::string getDSPCode();
+    
+    interpreter_dsp* createDSPInstance();
+    
+    void dump();
+    
+};
+
 template <class T>
 class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
 	
     protected:
-        
-        int fNumInputs;
-        int fNumOutputs;
-         
-        FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
-        FIRBlockInstruction<T>* fInitBlock;
-        FIRBlockInstruction<T>* fComputeBlock;
-        FIRBlockInstruction<T>* fComputeDSPBlock;
+    
+        interpreter_dsp_factory* fFactory;
   	
     public:
-      
-        interpreter_dsp_aux(int inputs, int ouputs, 
-                            int real_heap_size, int int_heap_size, int sr_offset,
-                            FIRUserInterfaceBlockInstruction<T>* interface, 
-                            FIRBlockInstruction<T>* init, 
-                            FIRBlockInstruction<T>* compute_control,
-                            FIRBlockInstruction<T>* compute_dsp) 
-                            : FIRInterpreter<T>(real_heap_size, int_heap_size, sr_offset)
+    
+        interpreter_dsp_aux(interpreter_dsp_factory* factory)
+        : FIRInterpreter<T>(factory->fRealHeapSize, factory->fIntHeapSize, factory->fSROffset)
         {
-            fNumInputs = inputs;
-            fNumOutputs = ouputs;
-            this->fInputs = new FAUSTFLOAT*[inputs];
-            this->fOutputs = new FAUSTFLOAT*[ouputs];
-            fUserInterfaceBlock = interface;
-            fInitBlock = init;
-            fComputeBlock = compute_control;
-            fComputeDSPBlock = compute_dsp;
+            fFactory = factory;
+            this->fInputs = new FAUSTFLOAT*[fFactory->fNumInputs];
+            this->fOutputs = new FAUSTFLOAT*[fFactory->fNumOutputs];
         }
-        
+    
         virtual ~interpreter_dsp_aux()
         {
             delete [] this->fInputs;
             delete [] this->fOutputs;
-            // Block fields are kept in factory and shared between all instances
         }
           
         void static metadata(Meta* m) 
@@ -74,12 +146,12 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
 
         virtual int getNumInputs() 
         {
-            return fNumInputs;
+            return fFactory->fNumInputs;
         }
         
         virtual int getNumOutputs() 
         {
-            return fNumOutputs;
+            return fFactory->fNumOutputs;
         }
         
         virtual int getInputRate(int channel) 
@@ -97,17 +169,15 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         
         virtual void instanceInit(int samplingRate)
         {
-             printf("instanceInit\n");
+            //printf("instanceInit\n");
             
             // Store samplingRate in "fSamplingFreq" variable at correct offset in fIntHeap
             this->fIntHeap[this->fSROffset] = samplingRate;
             
-            //this->fInitBlock->dump();
+            //fFactory->fInitBlock->dump();
             
             // Execute init instructions
-            int int_val;
-            T real_val;
-            this->ExecuteBlockFast(fInitBlock, int_val, real_val, 0);
+            this->ExecuteBlockVoid(fFactory->fInitBlock);
          }
         
         virtual void init(int samplingFreq) 
@@ -118,24 +188,24 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         
         virtual void buildUserInterface(UI* interface) 
         {
-            this->ExecuteBuildUserInterface(fUserInterfaceBlock, interface);
+            this->ExecuteBuildUserInterface(fFactory->fUserInterfaceBlock, interface);
         }
         
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
             // Prepare in/out buffers
-            for (int i = 0; i < fNumInputs; i++) {
+            for (int i = 0; i < fFactory->fNumInputs; i++) {
                 this->fInputs[i] = inputs[i];
             }
-            for (int i = 0; i < fNumOutputs; i++) {
+            for (int i = 0; i < fFactory->fNumOutputs; i++) {
                 this->fOutputs[i] = outputs[i];
             }
             
             // Executes the 'control' block
-            this->ExecuteBlockVoid(fComputeBlock);
+            this->ExecuteBlockVoid(fFactory->fComputeBlock);
             
             // Executes the DSP loop
-            this->ExecuteLoopBlock(fComputeDSPBlock, count);
+            this->ExecuteLoopBlock(fFactory->fComputeDSPBlock, count);
             
             //std::cout << outputs[0][0] << std::endl;
        }
@@ -160,97 +230,6 @@ class EXPORT interpreter_dsp : public dsp {
         
         interpreter_dsp* copy();
      
-};
-
-class EXPORT interpreter_dsp_factory {
-
-    private:
-    
-        int fNumInputs;
-        int fNumOutputs;
-        
-        int fRealHeapSize;
-        int fIntHeapSize;
-        int fSROffset;
-        
-        FIRUserInterfaceBlockInstruction<float>* fUserInterfaceBlock;
-        FIRBlockInstruction<float>* fInitBlock;
-        FIRBlockInstruction<float>* fComputeBlock;
-        FIRBlockInstruction<float>* fComputeDSPBlock;
-        
-        std::string fExpandedDSP;
-        std::string fShaKey;
-        std::string fName;
-
-    public: 
-    
-        interpreter_dsp_factory(int inputs, int ouputs, 
-                                int real_heap_size, int int_heap_size, int sr_offset,
-                                FIRUserInterfaceBlockInstruction<float>* interface, 
-                                FIRBlockInstruction<float>* init, 
-                                FIRBlockInstruction<float>* compute_control,
-                                FIRBlockInstruction<float>* compute_dsp)
-            :fNumInputs(inputs),
-            fNumOutputs(ouputs),
-            fRealHeapSize(real_heap_size),
-            fIntHeapSize(int_heap_size),
-            fSROffset(sr_offset),
-            fUserInterfaceBlock(interface),
-            fInitBlock(init),
-            fComputeBlock(compute_control),
-            fComputeDSPBlock(compute_dsp)
-        {
-            
-            printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
-            
-            // 1) optimize indexed 'heap' load/store in normal load/store
-            FIRInstructionLoadStoreOptimizer<float> opt1;
-            fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt1);
-            fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt1);
-            fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt1);
-            
-            printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
-            
-            // 2) then pptimize simple 'heap' load/store in move
-            FIRInstructionMoveOptimizer<float> opt2;
-            fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt2);
-            fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt2);
-            fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt2);
-            
-            printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
-            
-            // 3) them optimize 'heap' and 'direct' math operations
-            FIRInstructionMathOptimizer<float> opt3;
-            fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt3);
-            fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt3);
-            fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt3);
-            
-            printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
-            
-        }
-        
-        virtual ~interpreter_dsp_factory()
-        {
-            // No more DSP instances, so delete
-            delete fUserInterfaceBlock;
-            delete fInitBlock;
-            delete fComputeBlock;
-            delete fComputeDSPBlock;
-        }
-        
-        /* Return Factory name */
-        std::string getName();
-        
-        /* Return Factory SHA key */
-        std::string getSHAKey();
-  
-        /* Return Factory expanded DSP code */
-        std::string getDSPCode();
-        
-        interpreter_dsp* createDSPInstance();
-    
-        void dump();
-    
 };
 
 // Public C++ interface

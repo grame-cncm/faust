@@ -274,7 +274,7 @@ struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
     
 };
 
-// Rewrite some binary math operations as 'heap' or 'direct' versions
+// Rewrite math operations as 'heap' or 'direct' versions
 template <class T>
 struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
     
@@ -1861,6 +1861,7 @@ class FIRInterpreter  {
                 //---------
                 // Control
                 //---------
+                
                 do_kLoop:
                 {
                     ExecuteLoopBlock((*it)->fBranch1, (*it)->fOffset1, (*it)->fIntValue);
@@ -1893,37 +1894,35 @@ class FIRInterpreter  {
             FIRBasicInstruction<T>* loop = block->fInstructions[2];
             ExecuteLoopBlock(loop->fBranch1, loop->fOffset1, count);
         }
-        
+    
         inline void ExecuteLoopBlock(FIRBlockInstruction<T>* block, int loop_offset, int loop_count)
         {
-            int res_int;
-            T res_real;
             for (fIntHeap[loop_offset] = 0; fIntHeap[loop_offset] < loop_count; fIntHeap[loop_offset]++) {
-                ExecuteBlockFast(block, res_int, res_real, 0);
+                ExecuteBlockVoid(block);
             }
         }
 
         inline int ExecuteBlockInt(FIRBlockInstruction<T>* block)
         {
             int res_int;
-            T res_real;
-            ExecuteBlockFast(block, res_int, res_real, 1);
+            T dummy_res_real;
+            ExecuteBlockFast(block, res_int, dummy_res_real, 1);
             return res_int;
         }
     
         inline T ExecuteBlockReal(FIRBlockInstruction<T>* block)
         {
-            int res_int;
+            int dummy_res_int;
             T res_real;
-            ExecuteBlockFast(block, res_int, res_real, 2);
+            ExecuteBlockFast(block, dummy_res_int, res_real, 2);
             return res_real;
         }
     
         inline void ExecuteBlockVoid(FIRBlockInstruction<T>* block)
         {
-            int res_int;
-            T res_real;
-            ExecuteBlockFast(block, res_int, res_real, 0);
+            int dummy_res_int;
+            T dummy_res_real;
+            ExecuteBlockFast(block, dummy_res_int, dummy_res_real, 0);
         }
     
     public:

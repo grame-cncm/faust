@@ -315,7 +315,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(FloatNumInst* inst) 
         {
             fTypingVisitor.visit(inst);
-            
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst->fNum));
         }
         
@@ -324,7 +323,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(IntNumInst* inst)  
         {
             fTypingVisitor.visit(inst);
-            
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst->fNum, 0));
         }
         
@@ -333,14 +331,12 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(BoolNumInst* inst)
         {
             fTypingVisitor.visit(inst);
-            
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst->fNum, 0));
         }
         
         virtual void visit(DoubleNumInst* inst) 
         {
             fTypingVisitor.visit(inst);
-            
             // Double considered real...
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst->fNum));
         }
@@ -512,7 +508,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             // Compile loop variable declaration
             inst->fInit->accept(this);
             
-            fCurrentBlock->dump();
+            //fCurrentBlock->dump();
            
             // Keep current block
             FIRBlockInstruction<T>* previous = fCurrentBlock;

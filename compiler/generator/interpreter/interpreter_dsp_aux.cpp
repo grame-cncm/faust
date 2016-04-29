@@ -49,15 +49,7 @@ void interpreter_dsp_factory::dump()
 
 interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
 {
-     return reinterpret_cast<interpreter_dsp*>(new interpreter_dsp_aux<float>(fNumInputs, 
-                                                                            fNumOutputs, 
-                                                                            fRealHeapSize, 
-                                                                            fIntHeapSize,
-                                                                            fSROffset,
-                                                                            fUserInterfaceBlock, 
-                                                                            fInitBlock, 
-                                                                            fComputeBlock, 
-                                                                            fComputeDSPBlock));
+    return reinterpret_cast<interpreter_dsp*>(new interpreter_dsp_aux<float>(this));
 }
 
 EXPORT interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const std::string& sha_key)
