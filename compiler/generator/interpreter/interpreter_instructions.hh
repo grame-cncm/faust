@@ -383,13 +383,21 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             assert(fTypingVisitor.fCurType != Typed::kNoType);
             
             if (inst->fType->getType() == Typed::kInt) {
-                fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastInt));
+                if (isIntType(fTypingVisitor.fCurType)) {
+                    std::cout << "CastNumInst :" << "cast to int, but arg already int !" << std::endl;
+                } else {
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastInt));
+                }
             } else if (isInternalRealType(inst->fType->getType()) && (fTypingVisitor.fCurType == Typed::kFloatMacro)) {
                 // We assume that kFloatMacro and internal float are the same for now, so no cast...
             } else if (isInternalRealType(fTypingVisitor.fCurType) && (inst->fType->getType() == Typed::kFloatMacro)) {
                 // We assume that kFloatMacro and internal float are the same for now, so no cast...
             } else {
-                fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastReal));
+                if (isRealType(fTypingVisitor.fCurType)) {
+                    std::cout << "CastNumInst :" << "cast to real, but arg already real !" << std::endl;
+                } else {
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastReal));
+                }
             }
             fTypingVisitor.visit(inst);
         }
@@ -401,13 +409,13 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             
             //fTypingVisitor.visit(inst);
             
-            std::cout << "FunCallInst " << fun_name << std::endl;
+            //std::cout << "FunCallInst " << fun_name << std::endl;
             
             // Compile args in reverse order
             list<ValueInst*>::reverse_iterator it;
             for (it = inst->fArgs.rbegin(); it != inst->fArgs.rend(); it++) {
                 (*it)->accept(this);
-                 std::cout << "FunCallInst ARG" << std::endl;
+                 //std::cout << "FunCallInst ARG" << std::endl;
             }
             if (gMathLibTable.find(fun_name) == gMathLibTable.end()) {
                 stringstream error;

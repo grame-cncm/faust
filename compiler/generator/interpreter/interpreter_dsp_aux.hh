@@ -237,7 +237,7 @@ class EXPORT interpreter_dsp_factory {
             fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt3);
             
             printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
-             
+            
         }
         
         virtual ~interpreter_dsp_factory()

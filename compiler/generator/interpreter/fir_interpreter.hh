@@ -501,8 +501,10 @@ class FIRInterpreter  {
             #define DISPATCH_FIRST() { goto *fDispatchTable[(*it)->fOpcode]; }
             #define DISPATCH() { it++; goto *fDispatchTable[(*it)->fOpcode]; }
             
-            //#define DISPATCH_FIRST() { printf("real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index); (*it)->dump(); goto *fDispatchTable[(*it)->fOpcode]; }
-            //#define DISPATCH() { assert(real_stack_index >=0);   assert(int_stack_index >=0); printf("real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index); it++; (*it)->dump();  goto *fDispatchTable[(*it)->fOpcode]; }
+            /*
+            #define DISPATCH_FIRST() { printf("real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index); (*it)->dump(); goto *fDispatchTable[(*it)->fOpcode]; }
+            #define DISPATCH() { assert(real_stack_index >=0);   assert(int_stack_index >=0); printf("real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index); it++; (*it)->dump();  goto *fDispatchTable[(*it)->fOpcode]; }
+            */
             
             static void* fDispatchTable[] = {
                 
