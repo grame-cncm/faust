@@ -100,16 +100,13 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             // Store samplingRate in "fSamplingFreq" variable at correct offset in fIntHeap
             this->fIntHeap[this->fSROffset] = samplingRate;
             
-            int int_val;
-            T real_val;
-            
             //this->fInitBlock->dump();
             
-            // Execute init instructions 
-            if (fInitBlock) {
-                this->ExecuteBlockFast(fInitBlock, int_val, real_val, 0);
-            }
-        }
+            // Execute init instructions
+            int int_val;
+            T real_val;
+            this->ExecuteBlockFast(fInitBlock, int_val, real_val, 0);
+         }
         
         virtual void init(int samplingFreq) 
         {
@@ -135,13 +132,13 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             }
             
             //printf("control\n");
+            
             // Executes the 'control' block
-            if (fComputeBlock) {
-                //this->fComputeBlock->dump();
-                this->ExecuteBlockReal(fComputeBlock);
-            }
+            //this->fComputeBlock->dump();
+            this->ExecuteBlockReal(fComputeBlock);
             
             //printf("DSP\n");
+            
             // Executes the DSP loop
             FIRBasicInstruction<T>* loop = fComputeDSPBlock->fInstructions[2];
             assert(loop->fOpcode == FIRInstruction::kLoop);

@@ -215,6 +215,12 @@ struct FIRInstructionCopyOptimizer : public FIRInstructionOptimizer<T>  {
 template <class T>
 struct FIRInstructionLoadStoreOptimizer : public FIRInstructionOptimizer<T> {
     
+    
+    FIRInstructionLoadStoreOptimizer()
+    {
+        std::cout << "FIRInstructionLoadStoreOptimizer" << std::endl;
+    }
+    
     FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
         FIRBasicInstruction<T>* inst1 = *cur;
@@ -244,6 +250,11 @@ struct FIRInstructionLoadStoreOptimizer : public FIRInstructionOptimizer<T> {
 template <class T>
 struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
     
+    FIRInstructionMoveOptimizer()
+    {
+        std::cout << "FIRInstructionMoveOptimizer" << std::endl;
+    }
+    
     FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
         FIRBasicInstruction<T>* inst1 = *cur;
@@ -266,6 +277,11 @@ struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
 // Rewrite some binary math operation as 'heap' or 'direct' versions
 template <class T>
 struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
+    
+    FIRInstructionMathOptimizer()
+    {
+        std::cout << "FIRInstructionMathOptimizer" << std::endl;
+    }
     
     FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
@@ -474,361 +490,6 @@ class FIRInterpreter  {
             }
         }
     
-        inline void ExecuteSlowBlock(FIRBlockInstruction<T>* block, int& res_int, T& res_real, int get_result)
-        {
-            InstructionIT it;
-             
-            int real_stack_index = 0;
-            int int_stack_index = 0;
-            
-            //printf("ExecuteBlock size = %d fRealStackSize = %d fIntStackSize = %d\n", block->fInstructions.size(), fRealStackSize, fIntStackSize); 
-        
-            T real_stack[fRealStackSize];
-            int int_stack[fIntStackSize];
-             
-            for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
-                
-                //printf("fOpcode %d real_stack_index %d int_stack_index %d\n", (*it)->fOpcode, real_stack_index, int_stack_index);
-             
-                switch ((*it)->fOpcode) {
-                        
-                    // Number operations
-                    case FIRInstruction::kRealValue:
-                        push_real((*it)->fRealValue);
-                        break;
-                         
-                    case FIRInstruction::kIntValue:
-                        push_int((*it)->fIntValue);
-                        break;
-                    
-                    // Memory operations
-                    case FIRInstruction::kLoadReal:
-                        push_real(fRealHeap[(*it)->fOffset1]);
-                        break;
-                        
-                    case FIRInstruction::kLoadInt:
-                        push_int(fIntHeap[(*it)->fOffset1]);
-                        break;
-                        
-                    case FIRInstruction::kStoreReal:
-                        fRealHeap[(*it)->fOffset1] = pop_real();
-                        break;
-                        
-                    case FIRInstruction::kStoreInt:
-                        fIntHeap[(*it)->fOffset1] = pop_int();
-                        break;
-                         
-                    case FIRInstruction::kLoadIndexedReal:
-                        push_real(fRealHeap[(*it)->fOffset1 + pop_int()]);
-                        break;
-                        
-                    case FIRInstruction::kLoadIndexedInt: {
-                        int val = pop_int();
-                        push_int(fIntHeap[(*it)->fOffset1 + val]);
-                        break;
-                    }
-                         
-                    case FIRInstruction::kStoreIndexedReal:
-                        fRealHeap[(*it)->fOffset1 + pop_int()] = pop_real();
-                        break;
-                    
-                    case FIRInstruction::kStoreIndexedInt: {
-                        int offset = pop_int();
-                        fIntHeap[(*it)->fOffset1 + offset] = pop_int();
-                        break;
-                    }
-                        
-                    case FIRInstruction::kMoveReal: {
-                        fRealHeap[(*it)->fOffset2] = fRealHeap[(*it)->fOffset1];
-                        break;
-                    }
-                        
-                    case FIRInstruction::kMoveInt: {
-                        fIntHeap[(*it)->fOffset2] = fIntHeap[(*it)->fOffset1];
-                        break;
-                    }
-            
-                    // Input/output access
-                    case FIRInstruction::kLoadInput: 
-                        push_real(fInputs[(*it)->fOffset1][pop_int()]);
-                        break;
-                        
-                    case FIRInstruction::kStoreOutput: {
-                        fOutputs[(*it)->fOffset1][pop_int()] = pop_real();
-                        break;
-                    }
-                      
-                    // Cast operations
-                    case FIRInstruction::kCastReal: {
-                        push_real(T(pop_int()));
-                        break;
-                    }
-                        
-                    case FIRInstruction::kCastInt:
-                        push_int(int(pop_real()));
-                        break;
-                        
-                    // Select/If operation
-                    case FIRInstruction::kSelectInt: {
-                        int cond = pop_int();
-                        push_int(cond ? ExecuteBlockInt((*it)->fBranch1) : ExecuteBlockInt((*it)->fBranch2));
-                        break;
-                    }
-                
-                    case FIRInstruction::kSelectReal:
-                        push_real(pop_int() ? ExecuteBlockInt((*it)->fBranch1) : ExecuteBlockInt((*it)->fBranch2));
-                        break;
-                        
-                    case FIRInstruction::kIf: {
-                        if (pop_int()) {
-                            ExecuteBlockInt((*it)->fBranch1);
-                        } else if ((*it)->fBranch2) { // Execute 'else' block if there is one
-                            ExecuteBlockInt((*it)->fBranch2);
-                        }
-                        break;
-                    }
-                        
-                    // Standard math operations
-                    case FIRInstruction::kAddReal: {
-                        T v1 = pop_real();
-                        T v2 = pop_real();
-                        push_real(v1 + v2);
-                        break;
-                    }
-                        
-                    case FIRInstruction::kAddInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 + v2);
-                        break;
-                    }
-       
-                    case FIRInstruction::kSubReal: {
-                        T v1 = pop_real();
-                        T v2 = pop_real();
-                        push_real(v1 - v2);
-                        break;
-                    }
-                        
-                    case FIRInstruction::kSubInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 - v2);
-                        break;
-                    }
-                        
-                    case FIRInstruction::kMultReal: {
-                        T v1 = pop_real();
-                        T v2 = pop_real();
-                        push_real(v1 * v2);
-                        break;
-                    }
-                        
-                    case FIRInstruction::kMultInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 * v2);
-                        break;
-                    }
-                        
-                    case FIRInstruction::kDivReal: {
-                        T v1 = pop_real();
-                        T v2 = pop_real();
-                        push_real(v1 / v2);
-                        break;
-                    }
-                        
-                    case FIRInstruction::kDivInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 / v2);
-                        break;
-                    }
-                    
-                    //case FIRInstruction::kRemReal: {
-                    //    T v1 = pop_real();
-                    //    T v2 = pop_real();
-                    //    push_real(v1 % v2);
-                    //    break;
-                    //}
-                        
-                    case FIRInstruction::kRemInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 % v2);
-                        break;
-                    }
-                        
-                    // Shift operation
-                    case FIRInstruction::kLshInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 << v2);
-                        break;
-                    }
-       
-                    case FIRInstruction::kRshInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 >> v2);
-                        break;
-                    }      
-                                   
-                    // Comparaison Int
-                    case FIRInstruction::kGTInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 > v2);
-                        break;
-                    }         
-                                     
-                    case FIRInstruction::kLTInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 < v2);
-                        break;
-                    }      
-                                        
-                    case FIRInstruction::kGEInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 >= v2);
-                        break;
-                    }           
-                                   
-                    case FIRInstruction::kLEInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 <= v2);
-                        break;
-                    }           
-                               
-                    case FIRInstruction::kEQInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 == v2);
-                        break;
-                    }             
-                                 
-                    case FIRInstruction::kNEInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 != v2);
-                        break;
-                    }        
-                                      
-                    // Comparaison Real    
-                    case FIRInstruction::kGTReal: {
-                        T v1 = pop_real();
-                        T v2 = pop_real();
-                        push_int(v1 > v2);
-                        break;
-                    }  
-                        
-                    case FIRInstruction::kLTReal: {
-                        T v1 = pop_real();
-                        T v2 = pop_real();
-                        push_int(v1 < v2);
-                        break;
-                    }  
-                         
-                    case FIRInstruction::kGEReal: {
-                        T v1 = pop_real();
-                        T v2 = pop_real();
-                        push_int(v1 >= v2);
-                        break;
-                    }  
-                        
-                    case FIRInstruction::kLEReal: {
-                        T v1 = pop_real();
-                        T v2 = pop_real();
-                        push_int(v1 <= v2);
-                        break;
-                    }  
-                    
-                    case FIRInstruction::kEQReal: {
-                        T v1 = pop_real();
-                        T v2 = pop_real();
-                        push_int(v1 == v2);
-                        break;
-                    }  
-                        
-                    case FIRInstruction::kNEReal: {
-                        T v1 = pop_real();
-                        T v2 = pop_real();
-                        push_int(v1 != v2);
-                        break;
-                    }  
-                    
-                    // Logical operations
-                    case FIRInstruction::kANDInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 & v2);
-                        break;
-                    }     
-                                                            
-                    case FIRInstruction::kORInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 | v2);
-                        break;
-                    }     
-                                                               
-                    case FIRInstruction::kXORInt: {
-                        int v1 = pop_int();
-                        int v2 = pop_int();
-                        push_int(v1 ^ v2);
-                        break;
-                    }                        
-                       
-                    // Other Math operations
-                    case FIRInstruction::kSin: {
-                        T v = pop_real();
-                        push_real(sinf(v));
-                        break;
-                    }
-                        
-                    case FIRInstruction::kCos: {
-                        T v = pop_real();
-                        push_real(cosf(v));
-                        break;
-                    }
-                        
-                    case FIRInstruction::kSqrt: {
-                        T v = pop_real();
-                        push_real(sqrtf(v));
-                        break;
-                    }
-                        
-                    case FIRInstruction::kLoop: {
-                        ExecuteLoopBlock((*it)->fBranch1, (*it)->fOffset1, (*it)->fIntValue);
-                        break;
-                    }
-                    
-                    default:
-                        break;
-                }
-            }
-            
-            switch (get_result) {
-                
-                case 0:
-                    break;
-                    
-                case 1:
-                    res_int = pop_int();
-                    break;
-                    
-                case 2:
-                    res_real = pop_real();
-                    break;
-            
-            }
-            
-            //printf("real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
-        }
-    
         inline void ExecuteBlockFast(FIRBlockInstruction<T>* block, int& res_int, T& res_real, int get_result)
         {
             int real_stack_index = 0;
@@ -907,16 +568,16 @@ class FIRInterpreter  {
                 &&do_kLoop
             };
             
-            //printf("Start\n");
-            
             InstructionIT it = block->fInstructions.begin();
             DISPATCH_FIRST();
             
             while (1) {
                 
+                //-----
+                // End
+                //-----
                 do_kHalt:
                 {
-                    //printf("do_kHalt\n");
                     break;
                 }
                 
@@ -1270,9 +931,9 @@ class FIRInterpreter  {
                     DISPATCH();
                 }
                 
-                //------------------
-                // Heap version
-                //-----------------
+                //-----------------------------------------
+                // Standard math operations : heap version
+                //-----------------------------------------
                 
                 do_kAddRealHeap:
                 {
@@ -1442,9 +1103,9 @@ class FIRInterpreter  {
                     DISPATCH();
                 }
                 
-                //-----------------
-                // Direct version
-                //-----------------
+                //-------------------------------------------
+                // Standard math operations : direct version
+                //-------------------------------------------
                 
                 do_kAddRealDirect:
                 {
@@ -1614,11 +1275,10 @@ class FIRInterpreter  {
                     DISPATCH();
                 }
                 
-                //-----------------------------
-                // Direct inverted version
-                // (non commutative opetation)
-                //-----------------------------
-                
+                //----------------------------------------------------
+                // Standard math operations : direct inverted version
+                // (non commutative operations)
+                //----------------------------------------------------
                 
                 do_kSubRealDirectInvert:
                 {
@@ -1729,6 +1389,10 @@ class FIRInterpreter  {
                     DISPATCH();
                 }
                 
+                //---------------
+                // Extended math
+                //---------------
+                
                 do_kSin:
                 {
                     T v = pop_real();
@@ -1743,6 +1407,9 @@ class FIRInterpreter  {
                     DISPATCH();
                 }
                 
+                //---------
+                // Control
+                //---------
                 do_kLoop:
                 {
                     ExecuteLoopBlock((*it)->fBranch1, (*it)->fOffset1, (*it)->fIntValue);
@@ -1774,7 +1441,6 @@ class FIRInterpreter  {
             T res_real;
             
             for (fIntHeap[loop_offset] = 0; fIntHeap[loop_offset] < loop_count; fIntHeap[loop_offset]++) {
-                //ExecuteSlowBlock(block, res_int, res_real, 0);
                 ExecuteBlockFast(block, res_int, res_real, 0);
             }
         }
@@ -1783,7 +1449,6 @@ class FIRInterpreter  {
         {
             int res_int;
             T res_real;
-            //ExecuteSlowBlock(block, res_int, res_real, 1);
             ExecuteBlockFast(block, res_int, res_real, 1);
             return res_int;
         }
@@ -1792,7 +1457,6 @@ class FIRInterpreter  {
         {
             int res_int;
             T res_real;
-            //ExecuteSlowBlock(block, res_int, res_real, 2);
             ExecuteBlockFast(block, res_int, res_real, 2);
             return res_real;
         }
