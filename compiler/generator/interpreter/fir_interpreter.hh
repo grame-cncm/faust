@@ -501,6 +501,9 @@ class FIRInterpreter  {
             #define DISPATCH_FIRST() { goto *fDispatchTable[(*it)->fOpcode]; }
             #define DISPATCH() { it++; goto *fDispatchTable[(*it)->fOpcode]; }
             
+            //#define DISPATCH_FIRST() { printf("real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index); (*it)->dump(); goto *fDispatchTable[(*it)->fOpcode]; }
+            //#define DISPATCH() { assert(real_stack_index >=0);   assert(int_stack_index >=0); printf("real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index); it++; (*it)->dump();  goto *fDispatchTable[(*it)->fOpcode]; }
+            
             static void* fDispatchTable[] = {
                 
                 // End operation
@@ -550,7 +553,7 @@ class FIRInterpreter  {
                 &&do_kLERealDirect, &&do_kEQRealDirect, &&do_kNERealDirect,
                 &&do_kANDIntDirect, &&do_kORIntDirect, &&do_kXORIntDirect,
                 
-                // Standard math (direct version) : non commutatives operations
+                // Standard math (direct version) : non commutative operations
                 &&do_kSubRealDirectInvert, &&do_kSubIntDirectInvert,
                 &&do_kDivRealDirectInvert, &&do_kDivIntDirectInvert,
                 &&do_kRemRealDirectInvert, &&do_kRemIntDirectInvert,
@@ -561,8 +564,22 @@ class FIRInterpreter  {
                 &&do_kGERealDirectInvert, &&do_kLERealDirectInvert,
                 
                 // Extended math
-                &&do_kSqrt,
-                &&do_kSin, &&do_kCos,
+                &&do_kAbs, &&do_kAbsf,
+                &&do_kAcosf, &&do_kAsinf,
+                &&do_kAtanf, &&do_kAtan2f,
+                &&do_kCeilf,
+                &&do_kCosf, &&do_kCoshf,
+                &&do_kExpf,
+                &&do_kFloorf,
+                &&do_kFmodf,
+                &&do_kLogf, &&do_kLog10f,
+                &&do_kPowf, &&do_kFoundf,
+                &&do_kSinf, &&do_kSinhf,
+                &&do_kSqrtf,
+                &&do_kTanf, &&do_kTanhf,
+                &&do_kMax, &&do_kMaxf,
+                &&do_kMin, &&do_kMinf,
+                &&do_kFaustpower,
                 
                 // Control
                 &&do_kLoop
@@ -627,8 +644,8 @@ class FIRInterpreter  {
                     
                 do_kLoadIndexedInt:
                 {
-                    int val = pop_int();
-                    push_int(fIntHeap[(*it)->fOffset1 + val]);
+                    int offset = pop_int();
+                    push_int(fIntHeap[(*it)->fOffset1 + offset]);
                     DISPATCH();
                 }
                 
@@ -693,16 +710,16 @@ class FIRInterpreter  {
                 
                 do_kSelectReal:
                 {
-                    push_real(pop_int() ? ExecuteBlockInt((*it)->fBranch1) : ExecuteBlockInt((*it)->fBranch2));
+                    push_real(pop_int() ? ExecuteBlockReal((*it)->fBranch1) : ExecuteBlockReal((*it)->fBranch2));
                     DISPATCH();
                 }
                 
                 do_kIf:
                 {
                     if (pop_int()) {
-                        ExecuteBlockInt((*it)->fBranch1);
+                        ExecuteBlockVoid((*it)->fBranch1);
                     } else if ((*it)->fBranch2) { // Execute 'else' block if there is one
-                        ExecuteBlockInt((*it)->fBranch2);
+                        ExecuteBlockVoid((*it)->fBranch2);
                     }
                     DISPATCH();
                 }
@@ -863,6 +880,7 @@ class FIRInterpreter  {
                     T v1 = pop_real();
                     T v2 = pop_real();
                     push_int(v1 > v2);
+                    //std::cout << "do_kGTReal" << " " << v1 << " " << v2 << " " << (v1 > v2) << std::endl;
                     DISPATCH();
                 }
                 
@@ -871,6 +889,7 @@ class FIRInterpreter  {
                     T v1 = pop_real();
                     T v2 = pop_real();
                     push_int(v1 < v2);
+                    //std::cout << "do_kLTReal" << " " << v1 << " " << v2 << " " << (v1 < v2) << std::endl;
                     DISPATCH();
                 }
                 
@@ -911,6 +930,7 @@ class FIRInterpreter  {
                 {
                     int v1 = pop_int();
                     int v2 = pop_int();
+                    //std::cout << "do_kANDInt" << " " << v1 << " " << v2 << " " << (v1 & v2) << std::endl;
                     push_int(v1 & v2);
                     DISPATCH();
                 }
@@ -1381,32 +1401,199 @@ class FIRInterpreter  {
                     DISPATCH();
                 }
        
-                // Math operations
-                do_kSqrt:
-                {
-                    T v = pop_real();
-                    push_real(sqrtf(v));
-                    DISPATCH();
-                }
-                
                 //---------------
                 // Extended math
                 //---------------
                 
-                do_kSin:
+                do_kAbs:
                 {
-                    T v = pop_real();
-                    push_real(sinf(v));
+                    int v = pop_int();
+                    push_int(abs(v));
                     DISPATCH();
                 }
                 
-                do_kCos:
+                do_kAbsf:
+                {
+                    T v = pop_real();
+                    push_real(fabsf(v));
+                    DISPATCH();
+                }
+                
+                do_kAcosf:
+                {
+                    T v = pop_real();
+                    push_real(acosf(v));
+                    DISPATCH();
+                }
+                
+                do_kAsinf:
+                {
+                    T v = pop_real();
+                    push_real(asinf(v));
+                    DISPATCH();
+                }
+                
+                do_kAtanf:
+                {
+                    T v = pop_real();
+                    push_real(atanf(v));
+                    DISPATCH();
+                }
+                
+                do_kAtan2f:
+                {
+                    T v1 = pop_real();
+                    T v2 = pop_real();
+                    push_real(atan2f(v1, v2));
+                    DISPATCH();
+                }
+                
+                do_kCeilf:
+                {
+                    T v = pop_real();
+                    push_real(ceilf(v));
+                    DISPATCH();
+                }
+                
+                do_kCosf:
                 {
                     T v = pop_real();
                     push_real(cosf(v));
                     DISPATCH();
                 }
                 
+                do_kCoshf:
+                {
+                    T v = pop_real();
+                    push_real(coshf(v));
+                    DISPATCH();
+                }
+                
+                do_kExpf:
+                {
+                    T v = pop_real();
+                    push_real(expf(v));
+                    DISPATCH();
+                }
+
+                do_kFloorf:
+                {
+                    T v = pop_real();
+                    push_real(floorf(v));
+                    DISPATCH();
+                }
+
+                do_kFmodf:
+                {
+                    T v1 = pop_real();
+                    T v2 = pop_real();
+                    push_real(fmodf(v1, v2));
+                    DISPATCH();
+                }
+
+                do_kLogf:
+                {
+                    T v = pop_real();
+                    push_real(logf(v));
+                    DISPATCH();
+                }
+                
+                do_kLog10f:
+                {
+                    T v = pop_real();
+                    push_real(log10f(v));
+                    DISPATCH();
+                }
+                
+                do_kPowf:
+                {
+                    T v1 = pop_real();
+                    T v2 = pop_real();
+                    //printf("do_kPowf %f\n", v2);
+                    push_real(powf(v1, v2));
+                    DISPATCH();
+                }
+                
+                do_kFoundf:
+                {
+                    T v = pop_real();
+                    push_real(roundf(v));
+                    DISPATCH();
+                }
+                
+                do_kSinf:
+                {
+                    T v = pop_real();
+                    push_real(sinf(v));
+                    DISPATCH();
+                }
+                
+                do_kSinhf:
+                {
+                    T v = pop_real();
+                    push_real(sinhf(v));
+                    DISPATCH();
+                }
+                
+                do_kSqrtf:
+                {
+                    T v = pop_real();
+                    push_real(sqrtf(v));
+                    DISPATCH();
+                }
+                
+                do_kTanf:
+                {
+                    T v = pop_real();
+                    push_real(tanf(v));
+                    DISPATCH();
+                }
+                
+                do_kTanhf:
+                {
+                    T v = pop_real();
+                    push_real(tanhf(v));
+                    DISPATCH();
+                }
+                
+                do_kMax:
+                {
+                    int v1 = pop_int();
+                    int v2 = pop_int();
+                    push_int(std::max(v1, v2));
+                    DISPATCH();
+                }
+                
+                do_kMaxf:
+                {
+                    T v1 = pop_real();
+                    T v2 = pop_real();
+                    push_real(std::max(v1, v2));
+                    DISPATCH();
+                }
+                
+                do_kMin:
+                {
+                    int v1 = pop_int();
+                    int v2 = pop_int();
+                    push_int(std::min(v1, v2));
+                    DISPATCH();
+                }
+                
+                do_kMinf:
+                {
+                    T v1 = pop_real();
+                    T v2 = pop_real();
+                    push_real(std::min(v1, v2));
+                    DISPATCH();
+                }
+                
+                do_kFaustpower:
+                {
+                    // TODO ?
+                    DISPATCH();
+                }
+      
                 //---------
                 // Control
                 //---------
@@ -1432,14 +1619,14 @@ class FIRInterpreter  {
                     
             }
             
-            //printf("real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
+            //printf("END real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
+            assert(real_stack_index == 0 && int_stack_index == 0);
         }
         
         void ExecuteLoopBlock(FIRBlockInstruction<T>* block, int loop_offset, int loop_count)
         {
             int res_int;
             T res_real;
-            
             for (fIntHeap[loop_offset] = 0; fIntHeap[loop_offset] < loop_count; fIntHeap[loop_offset]++) {
                 ExecuteBlockFast(block, res_int, res_real, 0);
             }
@@ -1459,6 +1646,13 @@ class FIRInterpreter  {
             T res_real;
             ExecuteBlockFast(block, res_int, res_real, 2);
             return res_real;
+        }
+    
+        void ExecuteBlockVoid(FIRBlockInstruction<T>* block)
+        {
+            int res_int;
+            T res_real;
+            ExecuteBlockFast(block, res_int, res_real, 0);
         }
     
     public:

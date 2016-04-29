@@ -27,6 +27,7 @@ using namespace std;
 #include "instructions.hh"
 #include "typing_instructions.hh"
 #include "fir_interpreter.hh"
+#include "exception.hh"
 
 template <class T>
 struct InterpreterInstVisitor : public DispatchVisitor {
@@ -84,28 +85,32 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     
         void initMathTable()
         {
-            // TODO
-            //fMathLibTable["abs"] = "global.Math.abs";
-            //fMathLibTable["absf"] = "global.Math.abs";
-            //fMathLibTable["fabsf"] = "global.Math.abs";
-            //fMathLibTable["acosf"] = "global.Math.acos";
-            //fMathLibTable["asinf"] = "global.Math.asin";
-            //fMathLibTable["atanf"] = "global.Math.atan";
-            //fMathLibTable["atan2f"] = "global.Math.atan2";
-            //fMathLibTable["ceilf"] = "global.Math.ceil";
-            gMathLibTable["cosf"] = FIRInstruction::kCos;
-            //fMathLibTable["expf"] = "global.Math.exp";
-            //fMathLibTable["floorf"] = "global.Math.floor";
-            //fMathLibTable["fmodf"] = "manual";      // Manually generated
-            //fMathLibTable["logf"] = "global.Math.log";
-            //fMathLibTable["log10f"] = "manual";     // Manually generated
-            //fMathLibTable["max"] = "global.Math.max";
-            //fMathLibTable["min"] = "global.Math.min";
-            //fMathLibTable["powf"] = "global.Math.pow";
-            //fMathLibTable["roundf"] = "global.Math.round";
-            gMathLibTable["sinf"] = FIRInstruction::kSin;
-            gMathLibTable["sqrtf"] = FIRInstruction::kSqrt;
-            //fMathLibTable["tanf"] = "global.Math.tan";
+            gMathLibTable["abs"] = FIRInstruction::kAbs;
+            gMathLibTable["fabsf"] = FIRInstruction::kAbsf;
+            gMathLibTable["acosf"] = FIRInstruction::kAcosf;
+            gMathLibTable["asinf"] = FIRInstruction::kAsinf;
+            gMathLibTable["atanf"] = FIRInstruction::kAtanf;
+            gMathLibTable["atan2f"] = FIRInstruction::kAtan2f;
+            gMathLibTable["ceilf"] = FIRInstruction::kCeilf;
+            gMathLibTable["cosf"] = FIRInstruction::kCosf;
+            gMathLibTable["coshf"] = FIRInstruction::kCoshf;
+            gMathLibTable["expf"] = FIRInstruction::kExpf;
+            gMathLibTable["floorf"] = FIRInstruction::kFloorf;
+            gMathLibTable["fmodf"] = FIRInstruction::kFmodf;
+            gMathLibTable["logf"] =  FIRInstruction::kLogf;
+            gMathLibTable["log10f"] =  FIRInstruction::kLog10f;
+            gMathLibTable["powf"] =  FIRInstruction::kPowf;
+            gMathLibTable["roundf"] =  FIRInstruction::kFoundf;
+            gMathLibTable["sinf"] = FIRInstruction::kSinf;
+            gMathLibTable["sinfh"] = FIRInstruction::kSinhf;
+            gMathLibTable["sqrtf"] = FIRInstruction::kSqrtf;
+            gMathLibTable["tanf"] =  FIRInstruction::kTanf;
+            gMathLibTable["tanhf"] =  FIRInstruction::kTanhf;
+            gMathLibTable["max"] =  FIRInstruction::kMax;
+            gMathLibTable["maxf"] =  FIRInstruction::kMaxf;
+            gMathLibTable["min"] =  FIRInstruction::kMin;
+            gMathLibTable["minf"] =  FIRInstruction::kMinf;
+            gMathLibTable["faustpower"] = FIRInstruction::kFaustpower;
         }
         
         virtual ~InterpreterInstVisitor()
@@ -233,7 +238,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(DeclareFunInst* inst) {}
     
         // Memory
-    
     
         virtual void visit(LoadVarInst* inst) 
         {
@@ -391,11 +395,42 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         }
 
         // Function call
-        virtual void visit(FunCallInst* inst)
+         virtual void visit(FunCallInst* inst)
         {
-            // Compile args
-            //list<ValueInst*>::const_iterator it = beg;
-            fCurrentBlock->push(new FIRBasicInstruction<T>(gMathLibTable[inst->fName]));
+            string fun_name = startWith(inst->fName, "faustpower") ? "faustpower" : inst->fName;
+            
+            //fTypingVisitor.visit(inst);
+            
+            std::cout << "FunCallInst " << fun_name << std::endl;
+            
+            // Compile args in reverse order
+            list<ValueInst*>::reverse_iterator it;
+            for (it = inst->fArgs.rbegin(); it != inst->fArgs.rend(); it++) {
+                (*it)->accept(this);
+                 std::cout << "FunCallInst ARG" << std::endl;
+            }
+            if (gMathLibTable.find(fun_name) == gMathLibTable.end()) {
+                stringstream error;
+                error << "Missing function : " << inst->fName << std::endl;
+                throw faustexception(error.str());
+            } else if (fun_name == "min") {
+                
+                // HACK : get type of first arg...
+                (*inst->fArgs.begin())->accept(&fTypingVisitor);
+                Typed::VarType type1 = fTypingVisitor.fCurType;
+                
+                fCurrentBlock->push(new FIRBasicInstruction<T>(isRealType(type1) ? FIRInstruction::kMinf : FIRInstruction::kMin));
+            } else if (fun_name == "max") {
+                
+                // HACK : get type of first arg...
+                (*inst->fArgs.begin())->accept(&fTypingVisitor);
+                Typed::VarType type1 = fTypingVisitor.fCurType;
+                
+                fCurrentBlock->push(new FIRBasicInstruction<T>(isRealType(type1) ? FIRInstruction::kMaxf : FIRInstruction::kMax));
+            } else {
+                fCurrentBlock->push(new FIRBasicInstruction<T>(gMathLibTable[fun_name]));
+            }
+            
         }
         virtual void visit(RetInst* inst) {}
         virtual void visit(DropInst* inst) {}
@@ -404,6 +439,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(Select2Inst* inst)
         {
             fTypingVisitor.visit(inst);
+            Typed::VarType res_type = fTypingVisitor.fCurType;
             
             // Compile condition
             inst->fCond->accept(this);
@@ -426,7 +462,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             else_block->push(new FIRBasicInstruction<T>(FIRInstruction::kHalt));
             
             // Compile 'select'
-            previous->push(new FIRBasicInstruction<T>((isIntType(fTypingVisitor.fCurType) ? FIRInstruction::kSelectInt : FIRInstruction::kSelectReal),
+            previous->push(new FIRBasicInstruction<T>((isIntType(res_type) ? FIRInstruction::kSelectInt : FIRInstruction::kSelectReal),
                                                     0, 0, 0, 0,
                                                     then_block, else_block));
                                                            

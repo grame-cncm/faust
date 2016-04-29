@@ -35,7 +35,7 @@ struct FIRInstruction {
         kHalt = 0,
         
         // Numbers
-        kRealValue, kIntValue,  // 2
+        kRealValue, kIntValue,
         
         // Memory
         kLoadReal, kLoadInt, 
@@ -43,13 +43,13 @@ struct FIRInstruction {
         kLoadIndexedReal, kLoadIndexedInt, 
         kStoreIndexedReal, kStoreIndexedInt,
         kMoveReal, kMoveInt,
-        kLoadInput, kStoreOutput,  // 12
+        kLoadInput, kStoreOutput,
         
         // Cast
-        kCastReal, kCastInt, // 14
+        kCastReal, kCastInt,
         
         // Select/if
-        kSelectInt, kSelectReal, kIf, // 17
+        kSelectInt, kSelectReal, kIf,
         
         // Standard math
         kAddReal, kAddInt, kSubReal, kSubInt,  
@@ -58,7 +58,7 @@ struct FIRInstruction {
         kLTInt, kGEInt, kLEInt, kEQInt, kNEInt, 
         kGTReal, kLTReal, kGEReal, 
         kLEReal, kEQReal, kNEReal, 
-        kANDInt, kORInt, kXORInt,  // 44
+        kANDInt, kORInt, kXORInt,
         
         // Standard math (heap version)
         kAddRealHeap, kAddIntHeap, kSubRealHeap, kSubIntHeap,
@@ -67,7 +67,7 @@ struct FIRInstruction {
         kLTIntHeap, kGEIntHeap, kLEIntHeap, kEQIntHeap, kNEIntHeap,
         kGTRealHeap, kLTRealHeap, kGERealHeap,
         kLERealHeap, kEQRealHeap, kNERealHeap,
-        kANDIntHeap, kORIntHeap, kXORIntHeap,  // 44
+        kANDIntHeap, kORIntHeap, kXORIntHeap,
         
         // Standard math (direct version)
         kAddRealDirect, kAddIntDirect, kSubRealDirect, kSubIntDirect,
@@ -76,9 +76,9 @@ struct FIRInstruction {
         kLTIntDirect, kGEIntDirect, kLEIntDirect, kEQIntDirect, kNEIntDirect,
         kGTRealDirect, kLTRealDirect, kGERealDirect,
         kLERealDirect, kEQRealDirect, kNERealDirect,
-        kANDIntDirect, kORIntDirect, kXORIntDirect,  // 44
+        kANDIntDirect, kORIntDirect, kXORIntDirect,
         
-        // Standard math (direct version) : non commutatives operations
+        // Standard math (direct version) : non commutative operations
         kSubRealDirectInvert, kSubIntDirectInvert,
         kDivRealDirectInvert, kDivIntDirectInvert,
         kRemRealDirectInvert, kRemIntDirectInvert,
@@ -89,19 +89,32 @@ struct FIRInstruction {
         kGERealDirectInvert, kLERealDirectInvert,
       
         // Extended math
-        kSqrt,  // 45
-        kSin, kCos, // 47
+        kAbs, kAbsf,
+        kAcosf, kAsinf,
+        kAtanf, kAtan2f,
+        kCeilf,
+        kCosf, kCoshf,
+        kExpf,
+        kFloorf,
+        kFmodf,
+        kLogf, kLog10f,
+        kPowf, kFoundf,
+        kSinf, kSinhf,
+        kSqrtf,
+        kTanf, kTanhf,
+        kMax, kMaxf,
+        kMin, kMinf,
+        kFaustpower,
         
         // Control
-        kLoop, // 48
+        kLoop,
         
         // User Interface 
         kOpenVerticalBox, kOpenHorizontalBox, kOpenTabBox, kCloseBox,
         kAddButton, kAddCheckButton, 
         kAddHorizontalSlider, kAddVerticalSlider, kAddNumEntry, 
         kAddHorizontalBargraph, kAddVerticalBargraph,
-        kDeclare, // 60
-        
+        kDeclare,
     };
     
     virtual int size() { return 1; }
@@ -116,44 +129,53 @@ struct FIRInstruction {
 
 
 static std::string gFIRInstructionTable[] = {
+    
+    // End operation
     "kHalt",
 
+    // Numbers
     "kRealValue", "kIntValue",
 
+    // Memory
     "kLoadReal", "kLoadInt", 
     "kStoreReal", "kStoreInt",
     "kLoadIndexedReal", "kLoadIndexedInt", 
     "kStoreIndexedReal", "kStoreIndexedInt",
     "kMoveReal", "kMoveInt",
-    "kLoadInput", "kStoreOutput",  // 12
+    "kLoadInput", "kStoreOutput",
 
+    // Cast
     "kCastReal", "kCastInt",
 
-    "kSelectInt", "kSelectReal", "kIf", // 17
+    // Select/if
+    "kSelectInt", "kSelectReal", "kIf",
 
+    // Standard math
     "kAddReal", "kAddInt", "kSubReal", "kSubInt",  
     "kMultReal", "kMultInt", "kDivReal", "kDivInt",
     "kRemReal", "kRemInt", "kLshInt", "kRshInt", "kGTInt", 
     "kLTInt", "kGEInt", "kLEInt", "kEQInt", "kNEInt", 
     "kGTReal", "kLTReal", "kGEReal", 
     "kLEReal", "kEQReal", "kNEReal", 
-    "kANDInt", "kORInt", "kXORInt", // 44
+    "kANDInt", "kORInt", "kXORInt",
     
+    // Standard math (heap version)
     "kAddRealHeap", "kAddIntHeap", "kSubRealHeap", "kSubIntHeap",
     "kMultRealHeap", "kMultIntHeap", "kDivRealHeap", "kDivIntHeap",
     "kRemRealHeap", "kRemIntHeap", "kLshIntHeap", "kRshIntHeap", "kGTIntHeap",
     "kLTIntHeap", "kGEIntHeap", "kLEIntHeap", "kEQIntHeap", "kNEIntHeap",
     "kGTRealHeap", "kLTRealHeap", "kGERealHeap",
     "kLERealHeap", "kEQRealHeap", "kNERealHeap",
-    "kANDIntHeap", "kORIntHeap", "kXORIntHeap",  // 44
+    "kANDIntHeap", "kORIntHeap", "kXORIntHeap",
     
+    // Standard math (direct version) : non commutative operations
     "kAddRealDirect", "kAddIntDirect", "kSubRealDirect", "kSubIntDirect",
     "kMultRealDirect", "kMultIntDirect", "kDivRealDirect", "kDivIntDirect",
     "kRemRealDirect", "kRemIntDirect", "kLshIntDirect", "kRshIntDirect", "kGTIntDirect",
     "kLTIntDirect", "kGEIntDirect", "kLEIntDirect", "kEQIntDirect", "kNEIntDirect",
     "kGTRealDirect", "kLTRealDirect", "kGERealDirect",
     "kLERealDirect", "kEQRealDirect", "kNERealDirect",
-    "kANDIntDirect", "kORIntDirect", "kXORIntDirect",  // 44
+    "kANDIntDirect", "kORIntDirect", "kXORIntDirect",
     
     // Non commutatives operations
     "kSubRealDirectInvert", "kSubIntDirectInvert",
@@ -165,11 +187,28 @@ static std::string gFIRInstructionTable[] = {
     "kGTRealDirectInvert", "kLTRealDirectInvert",
     "kGERealDirectInvert", "kLERealDirectInvert",
     
-    "kSqrt",
-    "kSin", "kCos", // 47
+    // Extended math
+    "kAbs", "kAbsf",
+    "kAcosf", "kAsinf",
+    "kAtanf", "kAtan2f",
+    "kCeilf",
+    "kCosf", "kCoshf",
+    "kExpf",
+    "kFloorf",
+    "kFmodf",
+    "kLogf", "kLog10f",
+    "kPowf", "kFoundf",
+    "kSinf", "kSinhf",
+    "kSqrtf",
+    "kTanf", "kTanhf",
+    "kMax", "kMaxf",
+    "kMin", "kMinf",
+    "kFaustpower",
 
-    "kLoop", // 48
+    // Control
+    "kLoop",
 
+    // User Interface
     "kOpenVerticalBox", "kOpenHorizontalBox", "kOpenTabBox", "kCloseBox",
     "kAddButton", "kAddChecButton", 
     "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", 

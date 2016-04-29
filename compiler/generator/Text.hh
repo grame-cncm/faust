@@ -60,7 +60,7 @@ string replaceChar(string str, char ch1, char ch2);
 
 inline bool startWith(const string& str, const string& prefix)
 {
-     return (str.find(prefix) == 0);
+    return (str.find(prefix) != string::npos);
 }
 
 inline bool endWith(const string& str, const string& suffix)
@@ -71,7 +71,7 @@ inline bool endWith(const string& str, const string& suffix)
 
 inline string startWithRes(const string& str, const string& prefix)
 {   
-    return (str.find(prefix) == 0) ? str.substr(prefix.size()) : "";
+    return (str.find(prefix) != string::npos) ? str.substr(prefix.size()) : "";
 }
 
 inline bool startWithRes(const string& str, const string& prefix, string& res)

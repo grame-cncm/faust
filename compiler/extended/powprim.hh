@@ -24,6 +24,7 @@
 #include "xtended.hh"
 #include "Text.hh"
 #include "floats.hh"
+#include "global.hh"
 
 class PowPrim : public xtended
 {
@@ -36,9 +37,9 @@ class PowPrim : public xtended
 
 	virtual unsigned int arity () { return 2; }
 
-	virtual bool needCache ()	{ return true; }
+	virtual bool needCache() { return true; }
 
-	virtual Type infereSigType (const vector<Type>& args)
+	virtual Type infereSigType(const vector<Type>& args)
 	{
 		assert (args.size() == arity());
     
@@ -47,14 +48,16 @@ class PowPrim : public xtended
 		return castInterval(args[0]|args[1], pow(i,j));
     }
 
-	virtual void sigVisit (Tree sig, sigvisitor* visitor) {}
+	virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
 
-	virtual int infereSigOrder (const vector<int>& args) {
+	virtual int infereSigOrder (const vector<int>& args)
+    {
 		assert (args.size() == arity());
 		return max(args[0], args[1]);
 	}
 
-	virtual Tree computeSigOutput (const vector<Tree>& args) {
+	virtual Tree computeSigOutput(const vector<Tree>& args)
+    {
 		num n,m;
 		assert (args.size() == arity());
 		if (isNum(args[0],n) & isNum(args[1],m)) {
@@ -77,7 +80,7 @@ class PowPrim : public xtended
         it++;
         IntNumInst* arg1 = dynamic_cast<IntNumInst*>(*it);
 
-        if ((types[1]->nature() == kInt) && (types[1]->variability() == kKonst) && (types[1]->computability() == kComp) && arg1) {
+        if ((types[1]->nature() == kInt) && (types[1]->variability() == kKonst) && (types[1]->computability() == kComp) && arg1 && gGlobal->gOutputLang != "interp") {
 
             arg_types[0] = (types[0]->nature() == kInt) ? Typed::kInt : itfloat();
             arg_types[1] = Typed::kInt;

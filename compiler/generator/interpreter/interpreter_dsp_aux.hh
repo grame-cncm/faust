@@ -97,6 +97,8 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         
         virtual void instanceInit(int samplingRate)
         {
+             printf("instanceInit\n");
+            
             // Store samplingRate in "fSamplingFreq" variable at correct offset in fIntHeap
             this->fIntHeap[this->fSROffset] = samplingRate;
             
@@ -135,7 +137,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             
             // Executes the 'control' block
             //this->fComputeBlock->dump();
-            this->ExecuteBlockReal(fComputeBlock);
+            this->ExecuteBlockVoid(fComputeBlock);
             
             //printf("DSP\n");
             
@@ -145,6 +147,8 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             
             //loop->fBranch1->dump();
             this->ExecuteLoopBlock(loop->fBranch1, loop->fOffset1, count);
+            
+            //std::cout << outputs[0][0] << std::endl;
        }
 	
 };
@@ -207,6 +211,7 @@ class EXPORT interpreter_dsp_factory {
             fComputeBlock(compute_control),
             fComputeDSPBlock(compute_dsp)
         {
+            
             printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
             
             // Optimize indexed load/store in normal load/store
@@ -232,6 +237,7 @@ class EXPORT interpreter_dsp_factory {
             fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt3);
             
             printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
+             
         }
         
         virtual ~interpreter_dsp_factory()
