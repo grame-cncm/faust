@@ -168,6 +168,11 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
     compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt3);
     
     printf("fComputeDSPBlock size = %d\n", compute_dsp_block->size());
+    
+    int int_index = 0;
+    int real_index = 0;
+    compute_dsp_block->stackMove(int_index, real_index);
+    printf("fComputeDSPBlock int stack = %d real stack = %d\n", int_index, real_index);
    
     return new interpreter_dsp_factory(fNumInputs, fNumOutputs,
                                         fCodeProducer.fRealHeapOffset,

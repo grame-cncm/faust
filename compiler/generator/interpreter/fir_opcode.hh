@@ -155,6 +155,8 @@ struct FIRInstruction {
     
     virtual int size() { return 1; }
     
+    virtual void stackMove(int& int_index, int& real_index) {}
+    
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Heap;
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Direct;
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2DirectInvert;

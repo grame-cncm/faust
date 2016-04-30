@@ -177,6 +177,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             this->ExecuteBlockVoid(fFactory->fComputeBlock);
             
             // Executes the DSP loop
+           // printf("DSP\n");
             this->ExecuteLoopBlock(fFactory->fComputeDSPBlock, count);
             
             //std::cout << outputs[0][0] << std::endl;

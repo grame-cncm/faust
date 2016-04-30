@@ -92,6 +92,165 @@ struct FIRBasicInstruction : public FIRInstruction {
         return (branches > 0) ? branches : 1;
     }
     
+    void stackMove(int& int_index, int& real_index)
+    {
+        //----------------
+        // Int operations
+        //----------------
+        
+        std::cout << "fOpcode " << fOpcode << " " << gFIRInstructionTable[fOpcode] << std::endl;
+        
+        if (fOpcode == kIntValue) {
+            int_index++;
+        } else if (fOpcode == kLoadInt) {
+            int_index++;
+        } else if (fOpcode == kLoadIndexedInt) {
+            // Nothing
+        } else if (fOpcode == kStoreInt) {
+            int_index--;
+        } else if (fOpcode == kStoreIndexedInt) {
+            int_index -= 2;
+        } else if (fOpcode == kSelectInt) {
+            int_index--; // cond
+            
+            // ExecuteBlockInt
+            int branch1_int_index = 0;
+            int branch1_real_index = 0;
+            fBranch1->stackMove(branch1_int_index, branch1_real_index);
+            branch1_int_index--;
+            
+            // ExecuteBlockInt
+            int branch2_int_index = 0;
+            int branch2_real_index = 0;
+            fBranch2->stackMove(branch2_int_index, branch2_real_index);
+            branch2_int_index--;
+            
+            // Adjust indexes
+            int_index += std::max(branch1_int_index, branch2_int_index);
+            real_index += std::max(branch1_real_index, branch2_real_index);
+            
+        } else if (fOpcode == kIf) {
+            int_index--; // cond
+            
+            int branch1_int_index = 0;
+            int branch1_real_index = 0;
+            fBranch1->stackMove(branch1_int_index, branch1_real_index);
+            
+            int branch2_int_index = 0;
+            int branch2_real_index = 0;
+            if (fBranch2) { fBranch2->stackMove(branch2_int_index, branch2_real_index); }
+            
+            // Adjust indexes
+            int_index += std::max(branch1_int_index, branch2_int_index);
+            real_index += std::max(branch1_real_index, branch2_real_index);
+            
+        } else if (fOpcode == kCastInt) {
+            int_index++; real_index--;
+        } else if ((fOpcode == kAddInt) || (fOpcode == kSubInt) ||
+                (fOpcode == kMultInt) || (fOpcode == kDivInt) ||
+                (fOpcode == kRemInt) || (fOpcode == kLshInt) ||
+                (fOpcode == kRshInt) || (fOpcode == kGTInt) ||
+                (fOpcode == kLTInt) || (fOpcode == kGEInt) ||
+                (fOpcode == kLEInt) || (fOpcode == kEQInt) ||
+                (fOpcode == kNEInt) || (fOpcode == kANDInt) ||
+                (fOpcode == kORInt) || (fOpcode == kXORInt)) {
+            int_index--;
+        } else if ((fOpcode == kAddIntHeap) || (fOpcode == kSubIntHeap) ||
+                (fOpcode == kMultIntHeap) || (fOpcode == kDivIntHeap) ||
+                (fOpcode == kRemIntHeap) || (fOpcode == kLshIntHeap) ||
+                (fOpcode == kRshIntHeap) || (fOpcode == kGTIntHeap) ||
+                (fOpcode == kLTIntHeap) || (fOpcode == kGEIntHeap) ||
+                (fOpcode == kLEIntHeap) || (fOpcode == kEQIntHeap) ||
+                (fOpcode == kNEIntHeap) || (fOpcode == kANDIntHeap) ||
+                (fOpcode == kORIntHeap) || (fOpcode == kXORIntHeap) ||
+                
+                (fOpcode == kAddIntDirect) || (fOpcode == kSubIntDirect) ||
+                (fOpcode == kMultIntDirect) || (fOpcode == kDivIntDirect) ||
+                (fOpcode == kRemIntDirect) || (fOpcode == kLshIntDirect) ||
+                (fOpcode == kRshIntDirect) || (fOpcode == kGTIntDirect) ||
+                (fOpcode == kLTIntDirect) || (fOpcode == kGEIntDirect) ||
+                (fOpcode == kLEIntDirect) || (fOpcode == kEQIntDirect) ||
+                (fOpcode == kNEIntDirect) || (fOpcode == kANDIntDirect) ||
+                (fOpcode == kORIntDirect) || (fOpcode == kXORIntDirect) ||
+                
+                (fOpcode == kSubIntDirectInvert) || (fOpcode == kDivIntDirectInvert) ||
+                (fOpcode == kRemIntDirectInvert) || (fOpcode == kLshIntDirectInvert) ||
+                (fOpcode == kRshIntDirectInvert) || (fOpcode == kGTIntDirectInvert) ||
+                (fOpcode == kLTIntDirectInvert) || (fOpcode == kGEIntDirectInvert) ||
+                (fOpcode == kLEIntDirectInvert)) {
+            int_index++;
+        } else if (fOpcode == kLoop) {
+            
+            fBranch1->stackMove(int_index, real_index);
+     
+        //-----------------
+        // Real operations
+        //-----------------
+        
+        } else if (fOpcode == kRealValue) {
+            real_index++;
+        } else if ((fOpcode == kLoadReal) || kLoadInput) {
+            real_index++;
+        } else if (fOpcode == kLoadIndexedReal) {
+            int_index--; real_index++;
+        } else if ((fOpcode == kStoreReal) || kStoreOutput) {
+            real_index--;
+        } else if (fOpcode == kStoreIndexedReal) {
+            int_index--; real_index--;
+        } else if (fOpcode == kSelectReal) {
+            int_index--; // cond
+            
+            // ExecuteBlockReal
+            int branch1_int_index = 0;
+            int branch1_real_index = 0;
+            fBranch1->stackMove(branch1_int_index, branch1_real_index);
+            branch1_real_index--;
+            
+            // ExecuteBlockReal
+            int branch2_int_index = 0;
+            int branch2_real_index = 0;
+            fBranch2->stackMove(branch2_int_index, branch2_real_index);
+            branch2_real_index--;
+            
+            // Adjust indexes
+            int_index += std::max(branch1_int_index, branch2_int_index);
+            real_index += std::max(branch1_real_index, branch2_real_index);
+            
+        } else if (fOpcode == kCastReal) {
+            int_index--; real_index++;
+            printf("int_index %d real_index %d\n", int_index, real_index);
+            
+        } else if ((fOpcode == kAddReal) || (fOpcode == kSubReal) ||
+                   (fOpcode == kMultReal) || (fOpcode == kDivReal) ||
+                   (fOpcode == kRemReal) || (fOpcode == kGTReal) ||
+                   (fOpcode == kLTReal) || (fOpcode == kGEReal) ||
+                   (fOpcode == kLEReal) || (fOpcode == kEQReal) ||
+                   (fOpcode == kNEReal)) {
+            real_index--;
+        } else if ((fOpcode == kAddRealHeap) || (fOpcode == kSubRealHeap) ||
+                   (fOpcode == kMultRealHeap) || (fOpcode == kDivRealHeap) ||
+                   (fOpcode == kRemRealHeap) || (fOpcode == kGTRealHeap) ||
+                   (fOpcode == kLTRealHeap) || (fOpcode == kGERealHeap) ||
+                   (fOpcode == kLERealHeap) || (fOpcode == kEQRealHeap) ||
+                   (fOpcode == kNERealHeap) ||
+                   
+                   (fOpcode == kAddRealDirect) || (fOpcode == kSubRealDirect) ||
+                   (fOpcode == kMultRealDirect) || (fOpcode == kDivRealDirect) ||
+                   (fOpcode == kRemRealDirect) || (fOpcode == kGTRealDirect) ||
+                   (fOpcode == kLTRealDirect) || (fOpcode == kGERealDirect) ||
+                   (fOpcode == kLERealDirect) || (fOpcode == kEQRealDirect) ||
+                   (fOpcode == kNERealDirect) ||
+                   
+                   (fOpcode == kSubRealDirectInvert) || (fOpcode == kDivRealDirectInvert) ||
+                   (fOpcode == kRemRealDirectInvert) || (fOpcode == kGTRealDirectInvert) ||
+                   (fOpcode == kLTRealDirectInvert) || (fOpcode == kGERealDirectInvert) ||
+                   (fOpcode == kLERealDirectInvert)) {
+            real_index++;
+        } else {
+            // No move
+        }
+    }
+    
     void dump()
     {
         std::cout << "opcode = " << fOpcode << " " << gFIRInstructionTable[fOpcode]
@@ -106,7 +265,9 @@ struct FIRBasicInstruction : public FIRInstruction {
     
     FIRBasicInstruction<T>* copy()
     {
-        return new FIRBasicInstruction<T>(fOpcode, fIntValue, fRealValue, fOffset1, fOffset2, ((fBranch1) ? fBranch1->copy() : 0), ((fBranch2) ? fBranch2->copy() : 0));
+        return new FIRBasicInstruction<T>(fOpcode, fIntValue, fRealValue, fOffset1, fOffset2,
+                                          ((fBranch1) ? fBranch1->copy() : 0),
+                                          ((fBranch2) ? fBranch2->copy() : 0));
     }
     
 };
@@ -202,6 +363,21 @@ struct FIRBlockInstruction : public FIRInstruction {
         InstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
             (*it)->dump();
+        }
+    }
+    
+    void stackMove(int& int_index, int& real_index)
+    {
+        std::cout << "FIRBlockInstruction::stackMove" << std::endl;
+        InstructionIT it;
+        int tmp_int_index = 0;
+        int tmp_real_index = 0;
+        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+            (*it)->stackMove(tmp_int_index, tmp_real_index);
+            (*it)->dump();
+            std::cout << "tmp_int_index " << tmp_int_index << " tmp_real_index " << tmp_real_index << std::endl;
+            int_index = std::max(int_index, tmp_int_index);
+            real_index = std::max(real_index, tmp_real_index);
         }
     }
     

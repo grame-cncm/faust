@@ -134,8 +134,19 @@ class FIRInterpreter  {
             T real_stack[fRealStackSize];
             int int_stack[fIntStackSize];
             
+            int max_real_stack = 0;
+            int max_int_stack = 0;
+            
+            /*
+            
+            #define DISPATCH_FIRST() { printf("int_stack_index = %d real_stack_index = %d\n", int_stack_index, real_stack_index); (*it)->dump(); goto *fDispatchTable[(*it)->fOpcode]; }
+            #define DISPATCH() { printf("int_stack_index = %d real_stack_index = %d\n", int_stack_index, real_stack_index);  max_real_stack = std::max(max_real_stack, real_stack_index); max_int_stack = std::max(max_int_stack, int_stack_index); it++; (*it)->dump(); goto *fDispatchTable[(*it)->fOpcode]; }
+             
+            */
+            
             #define DISPATCH_FIRST() { goto *fDispatchTable[(*it)->fOpcode]; }
             #define DISPATCH() { it++; goto *fDispatchTable[(*it)->fOpcode]; }
+            
             
             /*
             #define DISPATCH_FIRST() { printf("real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index); (*it)->dump(); goto *fDispatchTable[(*it)->fOpcode]; }
@@ -1516,6 +1527,8 @@ class FIRInterpreter  {
             
             //printf("END real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
             assert(real_stack_index == 0 && int_stack_index == 0);
+            
+            //printf("STACK int stack = %d real stack = %d\n", max_int_stack, max_real_stack);
         }
     
         void ExecuteLoopBlock(FIRBlockInstruction<T>* block, int count)
