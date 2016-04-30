@@ -282,16 +282,22 @@ struct FIRBasicInstruction : public FIRInstruction {
         }
     }
     
-    void dump()
+    void dump(std::ostream* out)
     {
-        std::cout << "opcode = " << fOpcode << " " << gFIRInstructionTable[fOpcode]
-        << " int = " << fIntValue
-        << " real = " << fRealValue
-        << " offset1 = " << fOffset1
-        << " offset2 = " << fOffset2
+        *out << "opcode " << fOpcode << " " << gFIRInstructionTable[fOpcode]
+        << " int " << fIntValue
+        << " real " << fRealValue
+        << " offset1 " << fOffset1
+        << " offset2 " << fOffset2
         << std::endl;
-        if (fBranch1) fBranch1->dump();
-        if (fBranch2) fBranch2->dump();
+        if (fBranch1) fBranch1->dump(out);
+        if (fBranch2) fBranch2->dump(out);
+    }
+    
+    static FIRBasicInstruction* parse(std::istream* in)
+    {
+        
+        
     }
     
     FIRBasicInstruction<T>* copy()
@@ -343,8 +349,17 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
     virtual ~FIRUserInterfaceInstruction()
     {}
     
-    void dump()
+    void dump(std::ostream* out)
     {
+        *out << "opcode " << fOpcode << " " << gFIRInstructionTable[fOpcode]
+        << " offset " << fOffset
+        << " label " << "\"" << fLabel << "\"" << " key " << "\"" << fKey << "\"" << " value " << "\"" << fValue << "\""
+        << " init " << fInit << " min " << fMin << " max " << fMax << " step " << fStep << std::endl;
+    }
+    
+    static FIRUserInterfaceInstruction* parse(std::istream* in)
+    {
+        
         
     }
     
@@ -368,8 +383,14 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
      
     void push(FIRUserInterfaceInstruction<T>* inst) { fInstructions.push_back(inst); }
     
-    void dump()
-    {}
+    void dump(std::ostream* out)
+    {
+        *out << "block_size " << fInstructions.size() << std::endl;
+        UIInstructionIT it;
+        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+            (*it)->dump(out);
+        }
+    }
     
 };
 
@@ -388,12 +409,12 @@ struct FIRBlockInstruction : public FIRInstruction {
     
     void push(FIRBasicInstruction<T>* inst) { fInstructions.push_back(inst); }
     
-    void dump()
+    void dump(std::ostream* out)
     {
-        std::cout << "Block size = " << fInstructions.size() << std::endl;
+        *out << "block_size " << fInstructions.size() << std::endl;
         InstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-            (*it)->dump();
+            (*it)->dump(out);
         }
     }
     
@@ -405,7 +426,7 @@ struct FIRBlockInstruction : public FIRInstruction {
         int tmp_real_index = 0;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
             (*it)->stackMove(tmp_int_index, tmp_real_index);
-            (*it)->dump();
+            (*it)->dump(&std::cout);
             std::cout << "int_stack_index " << tmp_int_index << " real_stack_index " << tmp_real_index << std::endl;
             assert(tmp_int_index >= 0 && tmp_real_index >= 0);
             int_index = std::max(int_index, tmp_int_index);

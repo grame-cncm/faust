@@ -86,7 +86,12 @@ struct EXPORT interpreter_dsp_factory {
     
     interpreter_dsp* createDSPInstance();
     
-    void dump();
+    void dump(std::ostream* out);
+    
+    static interpreter_dsp_factory* parse(std::istream* in);
+    
+    static FIRUserInterfaceBlockInstruction<float>* parseUIBlock(std::istream* in);
+    static FIRBlockInstruction<float>* parseCodeBlock(std::istream* in);
     
 };
 

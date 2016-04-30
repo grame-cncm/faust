@@ -26,6 +26,8 @@
 
 using namespace std;
 
+#define VERSION 0.5
+
 std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Heap;
 std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Direct;
 std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2DirectInvert;
@@ -34,18 +36,95 @@ std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExt
 std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2Direct;
 std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2DirectInvert;
 
-void interpreter_dsp_factory::dump()
+void interpreter_dsp_factory::dump(std::ostream* out)
 {
-    cout << "------interpreter_dsp_factory------" << endl;
-    cout << "fNumInputs = " << fNumInputs << " fNumOutputs = " << fNumOutputs << endl;
-    cout << "fRealHeapSize = " << fRealHeapSize << " fIntHeapSize = " << fIntHeapSize << endl;
-    cout << "------Init block------" << endl;
-    fInitBlock->dump();
-    cout << "------control block------" << endl;
-    fComputeBlock->dump();
-    cout << "------DSP block------" << endl;
-    fComputeDSPBlock->dump();
+    *out << "interpreter_dsp_factory" << endl;
+    *out << "version " << VERSION << endl;
+    
+    *out << "inputs " << fNumInputs << " ouputs " << fNumOutputs << endl;
+    *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize << " sr_offet " << fSROffset << endl;
+    
+    *out << "user_unterface_block" << endl;
+    fUserInterfaceBlock->dump(out);
+    
+    *out << "init_block" << endl;
+    fInitBlock->dump(out);
+    
+    *out << "control_block" << endl;
+    fComputeBlock->dump(out);
+    
+    *out << "dsp_block" << endl;
+    fComputeDSPBlock->dump(out);
 }
+
+// Factory parser
+
+interpreter_dsp_factory* interpreter_dsp_factory::parse(std::istream* in)
+{
+    char dummy_line[256];
+    
+    // Parse version
+    char version[256];
+    in->getline(dummy_line, 256);
+    in->getline(version, 256);
+    
+    // Parse inputs/outputs
+    char ins_outs[256];
+    int inputs, outputs;
+    in->getline(ins_outs, 256);
+    
+    // Parse int/real heap size
+    char heap_size[256];
+    int int_heap_size, real_heap_size, sr_offset;
+    in->getline(heap_size, 256);
+    
+    // Parse User Interface block
+    in->getline(dummy_line, 256);
+    FIRUserInterfaceBlockInstruction<float>* ui_block = parseUIBlock(in);
+    
+    // Parse Init block
+    in->getline(dummy_line, 256);
+    FIRBlockInstruction<float>* init_block = parseCodeBlock(in);
+    
+    // Parse Control block
+    in->getline(dummy_line, 256);
+    FIRBlockInstruction<float>* compute_control_block = parseCodeBlock(in);
+    
+    // Parse DSP block
+    in->getline(dummy_line, 256);
+    FIRBlockInstruction<float>* compute_dsp_block = parseCodeBlock(in);
+    
+    return new interpreter_dsp_factory(inputs, outputs,
+                                       int_heap_size,
+                                       real_heap_size,
+                                       sr_offset,
+                                       ui_block,
+                                       init_block,
+                                       compute_control_block,
+                                       compute_dsp_block);
+}
+
+FIRUserInterfaceBlockInstruction<float>* interpreter_dsp_factory::parseUIBlock(std::istream* in)
+{
+    char ui_item[256];
+    in->getline(ui_item, 256);
+    
+    /*
+    while (ui_item != ) {
+        int opcode, offset;
+        std::string label, key, value;
+        float int, min, max, step;
+    }
+    */
+    
+}
+
+FIRBlockInstruction<float>* interpreter_dsp_factory::parseCodeBlock(std::istream* in)
+{
+    
+}
+
+// Instances
 
 interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
 {
