@@ -48,7 +48,7 @@ enum {
  * Remote 'DSP instances' will be connected to the client side using NetJack master/slave connection
  * or possibly launched on server side.
  */
-class remote_dsp_factory {
+class remote_dsp_factory : public dsp_factory {
     
     public: 
     
