@@ -113,7 +113,9 @@ struct FIRBasicInstruction : public FIRInstruction {
         } else if (fOpcode == kStoreIndexedInt) {
             int_index -= 2;
         } else if (fOpcode == kSelectInt) {
-            int_index--; // cond
+            
+            // cond
+            int_index--;
             
             // ExecuteBlockInt
             int branch1_int_index = 0;
@@ -132,7 +134,9 @@ struct FIRBasicInstruction : public FIRInstruction {
             real_index += std::max(branch1_real_index, branch2_real_index);
             
         } else if (fOpcode == kIf) {
-            int_index--; // cond
+            
+            // cond
+            int_index--;
             
             int branch1_int_index = 0;
             int branch1_real_index = 0;
@@ -204,7 +208,9 @@ struct FIRBasicInstruction : public FIRInstruction {
         } else if (fOpcode == kStoreIndexedReal) {
             int_index--; real_index--;
         } else if (fOpcode == kSelectReal) {
-            int_index--; // cond
+            
+            // cond
+            int_index--;
             
             // ExecuteBlockReal
             int branch1_int_index = 0;
@@ -228,36 +234,49 @@ struct FIRBasicInstruction : public FIRInstruction {
                    (fOpcode == kMultReal) || (fOpcode == kDivReal) ||
                    (fOpcode == kRemReal)) {
             real_index--;
-        } else if ((fOpcode == kGTReal) ||
-                   (fOpcode == kLTReal) || (fOpcode == kGEReal) ||
-                   (fOpcode == kLEReal) || (fOpcode == kEQReal) ||
-                   (fOpcode == kNEReal)) {
+        } else if ((fOpcode == kGTReal) || (fOpcode == kLTReal) ||
+                   (fOpcode == kGEReal) || (fOpcode == kLEReal) ||
+                   (fOpcode == kEQReal) || (fOpcode == kNEReal)) {
             int_index++; real_index -= 2;
         } else if ((fOpcode == kAddRealHeap) || (fOpcode == kSubRealHeap) ||
                    (fOpcode == kMultRealHeap) || (fOpcode == kDivRealHeap) ||
                    (fOpcode == kRemRealHeap)) {
             real_index++;
-        } else if ((fOpcode == kGTRealHeap) ||
-                   (fOpcode == kLTRealHeap) || (fOpcode == kGERealHeap) ||
-                   (fOpcode == kLERealHeap) || (fOpcode == kEQRealHeap) ||
-                   (fOpcode == kNERealHeap)) {
+        } else if ((fOpcode == kGTRealHeap) || (fOpcode == kLTRealHeap) ||
+                   (fOpcode == kGERealHeap) || (fOpcode == kLERealHeap) ||
+                   (fOpcode == kEQRealHeap) || (fOpcode == kNERealHeap)) {
             int_index++;
         } else if ((fOpcode == kAddRealDirect) || (fOpcode == kSubRealDirect) ||
                    (fOpcode == kMultRealDirect) || (fOpcode == kDivRealDirect) ||
                    (fOpcode == kRemRealDirect)) {
             real_index++;
-        } else if ((fOpcode == kGTRealDirect) ||
-                   (fOpcode == kLTRealDirect) || (fOpcode == kGERealDirect) ||
-                   (fOpcode == kLERealDirect) || (fOpcode == kEQRealDirect) ||
-                   (fOpcode == kNERealDirect)) {
+        } else if ((fOpcode == kGTRealDirect) || (fOpcode == kLTRealDirect) ||
+                   (fOpcode == kGERealDirect) || (fOpcode == kLERealDirect) ||
+                   (fOpcode == kEQRealDirect) || (fOpcode == kNERealDirect)) {
             int_index++;
-         } else if ((fOpcode == kSubRealDirectInvert) || (fOpcode == kDivRealDirectInvert) ||
-                    (fOpcode == kRemRealDirectInvert)) {
+        } else if ((fOpcode == kSubRealDirectInvert) || (fOpcode == kDivRealDirectInvert) ||
+                   (fOpcode == kRemRealDirectInvert)) {
             real_index++;
-         } else if ((fOpcode == kGTRealDirectInvert) ||
-                   (fOpcode == kLTRealDirectInvert) || (fOpcode == kGERealDirectInvert) ||
-                   (fOpcode == kLERealDirectInvert)) {
+        } else if ((fOpcode == kGTRealDirectInvert) || (fOpcode == kLTRealDirectInvert) ||
+                   (fOpcode == kGERealDirectInvert) || (fOpcode == kLERealDirectInvert)) {
             int_index++;
+        } else if ((fOpcode == kAtan2f) || (fOpcode == kFmodf) ||
+                   (fOpcode == kPowf) || (fOpcode == kMax) ||
+                   (fOpcode == kMaxf) || (fOpcode == kMin) ||
+                   (fOpcode == kMinf)) {
+            real_index++;
+        } else if ((fOpcode == kAtan2fHeap) || (fOpcode == kFmodfHeap) ||
+                   (fOpcode == kPowfHeap) || (fOpcode == kMaxHeap) ||
+                   (fOpcode == kMaxfHeap) || (fOpcode == kMinHeap) ||
+                   (fOpcode == kMinfHeap)) {
+            real_index++;
+        } else if ((fOpcode == kAtan2fDirect) || (fOpcode == kFmodfDirect) ||
+                   (fOpcode == kPowfDirect) || (fOpcode == kMaxDirect) ||
+                   (fOpcode == kMaxfDirect) || (fOpcode == kMinDirect) ||
+                   (fOpcode == kMinfDirect)) {
+            real_index++;
+        } else if ((fOpcode == kAtan2fDirectInvert) || (fOpcode == kFmodfDirectInvert)
+                   || (fOpcode == kPowfDirectInvert)) {
         } else {
             // No move
         }

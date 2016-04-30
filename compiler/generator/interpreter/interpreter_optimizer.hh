@@ -195,7 +195,6 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
         //} else if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isMath(inst3->fOpcode)) {
            
         } else {
-            
             end = cur + 1;
             return (*cur)->copy();
         }

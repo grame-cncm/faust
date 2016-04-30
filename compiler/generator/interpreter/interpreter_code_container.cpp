@@ -54,24 +54,25 @@ InterpreterCodeContainer::InterpreterCodeContainer(const string& name, int numIn
     // Init heap opcode
     for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
         FIRInstruction::gFIRMath2Heap[FIRInstruction::Opcode(i)]
-        = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal));
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal));
         //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
     }
     
     // Init direct opcode
     for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
         FIRInstruction::gFIRMath2Direct[FIRInstruction::Opcode(i)]
-        = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal));
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal));
         //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal)] << std::endl;
     }
     
     // Init direct opcode (non commutative operation)
     for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
         FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::Opcode(i)]
-        = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal));
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal));
         //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal)] << std::endl;
     }
     
+    // Manually set inverted versions
     FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kSubReal] = FIRInstruction::kSubRealDirectInvert;
     FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kSubInt] = FIRInstruction::kSubIntDirectInvert;
     FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kDivReal] = FIRInstruction::kDivRealDirectInvert;
@@ -89,14 +90,26 @@ InterpreterCodeContainer::InterpreterCodeContainer(const string& name, int numIn
     FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kGEReal] = FIRInstruction::kGERealDirectInvert;
     FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLEReal] = FIRInstruction::kLERealDirectInvert;
     
-    // Init heap opcode
-    /*
-     for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
-     FIRInstruction::gFIRMath2Heap[FIRInstruction::Opcode(i)]
-     = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal));
-     //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
-     }
-     */
+    // Init unary math heap opcode
+    for (int i = FIRInstruction::kAbs; i <= FIRInstruction::kMinf; i++) {
+        FIRInstruction::gFIRExtendedMath2Heap[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAbsHeap - FIRInstruction::kAbs));
+        //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+    }
+    
+    // Init unary math direct opcode
+    for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kMinf; i++) {
+        FIRInstruction::gFIRExtendedMath2Direct[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fDirect - FIRInstruction::kAtan2f));
+        //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+    }
+    
+    // Init unary math direct opcode : non commutative operations
+    for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kPowf; i++) {
+        FIRInstruction::gFIRExtendedMath2DirectInvert[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fDirectInvert - FIRInstruction::kAtan2f));
+        //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+    }
 }
 
 CodeContainer* InterpreterCodeContainer::createScalarContainer(const string& name, int sub_container_type)
