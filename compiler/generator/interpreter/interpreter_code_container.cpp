@@ -136,6 +136,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
     
     //generateComputeFunctions(&fCodeProducer);
     
+    
     // Add kHalt in blocks
     init_block->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
     compute_control_block->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
@@ -169,10 +170,13 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
     
     printf("fComputeDSPBlock size = %d\n", compute_dsp_block->size());
     
+    // TODO
+    /*
     int int_index = 0;
     int real_index = 0;
     compute_dsp_block->stackMove(int_index, real_index);
     printf("fComputeDSPBlock int stack = %d real stack = %d\n", int_index, real_index);
+    */
    
     return new interpreter_dsp_factory(fNumInputs, fNumOutputs,
                                         fCodeProducer.fRealHeapOffset,

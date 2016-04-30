@@ -92,13 +92,15 @@ struct FIRBasicInstruction : public FIRInstruction {
         return (branches > 0) ? branches : 1;
     }
     
+    // TODO : fix some remaining issues : do a "all instructions" trace comparation with FIRInterpreter::ExecuteBlockFast
+    
     void stackMove(int& int_index, int& real_index)
     {
         //----------------
         // Int operations
         //----------------
         
-        std::cout << "fOpcode " << fOpcode << " " << gFIRInstructionTable[fOpcode] << std::endl;
+        //std::cout << "fOpcode " << fOpcode << " " << gFIRInstructionTable[fOpcode] << std::endl;
         
         if (fOpcode == kIntValue) {
             int_index++;
@@ -189,12 +191,16 @@ struct FIRBasicInstruction : public FIRInstruction {
         
         } else if (fOpcode == kRealValue) {
             real_index++;
-        } else if ((fOpcode == kLoadReal) || kLoadInput) {
+        } else if (fOpcode == kLoadReal) {
             real_index++;
+        } else if (fOpcode == kLoadInput) {
+            int_index--; real_index++;
         } else if (fOpcode == kLoadIndexedReal) {
             int_index--; real_index++;
-        } else if ((fOpcode == kStoreReal) || kStoreOutput) {
+        } else if (fOpcode == kStoreReal) {
             real_index--;
+        } else if (fOpcode == kStoreOutput) {
+            int_index--; real_index--;
         } else if (fOpcode == kStoreIndexedReal) {
             int_index--; real_index--;
         } else if (fOpcode == kSelectReal) {
@@ -218,34 +224,40 @@ struct FIRBasicInstruction : public FIRInstruction {
             
         } else if (fOpcode == kCastReal) {
             int_index--; real_index++;
-            printf("int_index %d real_index %d\n", int_index, real_index);
-            
         } else if ((fOpcode == kAddReal) || (fOpcode == kSubReal) ||
                    (fOpcode == kMultReal) || (fOpcode == kDivReal) ||
-                   (fOpcode == kRemReal) || (fOpcode == kGTReal) ||
+                   (fOpcode == kRemReal)) {
+            real_index--;
+        } else if ((fOpcode == kGTReal) ||
                    (fOpcode == kLTReal) || (fOpcode == kGEReal) ||
                    (fOpcode == kLEReal) || (fOpcode == kEQReal) ||
                    (fOpcode == kNEReal)) {
-            real_index--;
+            int_index++; real_index -= 2;
         } else if ((fOpcode == kAddRealHeap) || (fOpcode == kSubRealHeap) ||
                    (fOpcode == kMultRealHeap) || (fOpcode == kDivRealHeap) ||
-                   (fOpcode == kRemRealHeap) || (fOpcode == kGTRealHeap) ||
+                   (fOpcode == kRemRealHeap)) {
+            real_index++;
+        } else if ((fOpcode == kGTRealHeap) ||
                    (fOpcode == kLTRealHeap) || (fOpcode == kGERealHeap) ||
                    (fOpcode == kLERealHeap) || (fOpcode == kEQRealHeap) ||
-                   (fOpcode == kNERealHeap) ||
-                   
-                   (fOpcode == kAddRealDirect) || (fOpcode == kSubRealDirect) ||
+                   (fOpcode == kNERealHeap)) {
+            int_index++;
+        } else if ((fOpcode == kAddRealDirect) || (fOpcode == kSubRealDirect) ||
                    (fOpcode == kMultRealDirect) || (fOpcode == kDivRealDirect) ||
-                   (fOpcode == kRemRealDirect) || (fOpcode == kGTRealDirect) ||
+                   (fOpcode == kRemRealDirect)) {
+            real_index++;
+        } else if ((fOpcode == kGTRealDirect) ||
                    (fOpcode == kLTRealDirect) || (fOpcode == kGERealDirect) ||
                    (fOpcode == kLERealDirect) || (fOpcode == kEQRealDirect) ||
-                   (fOpcode == kNERealDirect) ||
-                   
-                   (fOpcode == kSubRealDirectInvert) || (fOpcode == kDivRealDirectInvert) ||
-                   (fOpcode == kRemRealDirectInvert) || (fOpcode == kGTRealDirectInvert) ||
+                   (fOpcode == kNERealDirect)) {
+            int_index++;
+         } else if ((fOpcode == kSubRealDirectInvert) || (fOpcode == kDivRealDirectInvert) ||
+                    (fOpcode == kRemRealDirectInvert)) {
+            real_index++;
+         } else if ((fOpcode == kGTRealDirectInvert) ||
                    (fOpcode == kLTRealDirectInvert) || (fOpcode == kGERealDirectInvert) ||
                    (fOpcode == kLERealDirectInvert)) {
-            real_index++;
+            int_index++;
         } else {
             // No move
         }
@@ -375,7 +387,8 @@ struct FIRBlockInstruction : public FIRInstruction {
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
             (*it)->stackMove(tmp_int_index, tmp_real_index);
             (*it)->dump();
-            std::cout << "tmp_int_index " << tmp_int_index << " tmp_real_index " << tmp_real_index << std::endl;
+            std::cout << "int_stack_index " << tmp_int_index << " real_stack_index " << tmp_real_index << std::endl;
+            assert(tmp_int_index >= 0 && tmp_real_index >= 0);
             int_index = std::max(int_index, tmp_int_index);
             real_index = std::max(real_index, tmp_real_index);
         }
