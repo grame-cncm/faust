@@ -998,9 +998,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         } else {
             // To trigger 'sig.dot' generation
             if (gGlobal->gVectorSwitch) {
-                comp = new DAGInstructionsCompiler(container);
+                comp = new DAGInstructionsCompiler(container, true, true);
             } else {
-                comp = new InstructionsCompiler(container);
+                comp = new InstructionsCompiler(container, true, true);
             }
             comp->prepare(signals);
         }
@@ -1011,9 +1011,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
         if (gGlobal->gVectorSwitch) {
-            comp = new DAGInstructionsCompiler(container);
+            comp = new DAGInstructionsCompiler(container, true, false); // No foreign functions
         } else {
-            comp = new InstructionsCompiler(container);
+            comp = new InstructionsCompiler(container, true, false);    // No foreign functions
         }
 
         if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
@@ -1051,9 +1051,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         container = InterpreterCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
        
         if (gGlobal->gVectorSwitch) {
-            comp = new DAGInstructionsCompiler(container);
+            comp = new DAGInstructionsCompiler(container, false, false); // No 'select with if', no foreign functions
         } else {
-            comp = new InstructionsCompiler(container, false); // allow_foreign_function = false
+            comp = new InstructionsCompiler(container, false, false);    // No 'select with if', no foreign functions
         }
 
         if (gGlobal->gPrintXMLSwitch) comp->setDescription(new Description());
@@ -1118,9 +1118,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, true);
 
             if (gGlobal->gVectorSwitch) {
-                comp = new DAGInstructionsCompiler(container);
+                comp = new DAGInstructionsCompiler(container, true, true);
             } else {
-                comp = new InstructionsCompiler(container);
+                comp = new InstructionsCompiler(container, true, true);
             }
 
             comp->compileMultiSignal(signals);
@@ -1133,9 +1133,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             throw faustexception(error.str());
         }
         if (gGlobal->gVectorSwitch) {
-            comp = new DAGInstructionsCompiler(container);
+            comp = new DAGInstructionsCompiler(container, true, true);
         } else {
-            comp = new InstructionsCompiler(container, (gGlobal->gOutputLang != "ajs" && gGlobal->gOutputLang != "js"));
+            comp = new InstructionsCompiler(container, true, (gGlobal->gOutputLang != "ajs" && gGlobal->gOutputLang != "js"));
         }
 
         if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());

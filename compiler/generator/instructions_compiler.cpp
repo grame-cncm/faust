@@ -56,9 +56,9 @@ static inline ValueInst* promote2int(int type, ValueInst* val) { return (type ==
 static inline ValueInst* cast2real(int type, ValueInst* val) { return (type == kReal) ? InstBuilder::genCastNumFloatInst(val) : val; }
 static inline ValueInst* cast2int(int type, ValueInst* val) { return (type == kInt) ? InstBuilder::genCastNumIntInst(val) : val; }
 
-InstructionsCompiler::InstructionsCompiler(CodeContainer* container, bool allow_foreign_function)
+InstructionsCompiler::InstructionsCompiler(CodeContainer* container, bool generate_select_with_if, bool allow_foreign_function)
             :fContainer(container), fSharingKey(NULL), fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", ""))), gGlobal->nil)), 
-            fDescription(0), fLoadedIota(false), fAllowForeignFunction(allow_foreign_function)
+            fDescription(0), fLoadedIota(false), fGenerateSelectWithIf(generate_select_with_if), fAllowForeignFunction(allow_foreign_function)
 {}
 
 /*****************************************************************************
@@ -277,7 +277,7 @@ CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree s
 	::Type t = getCertifiedSigType(sig);
 
 	CodeContainer* container = fContainer->createScalarContainer(name, t->nature());
-    InstructionsCompiler C(container);
+    InstructionsCompiler C(container, fGenerateSelectWithIf, fAllowForeignFunction);
     C.compileSingleSignal(sig);
     return container;
 }
@@ -989,7 +989,7 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
         v2 = promote2real(t2, v2);
     }
     
-    if (type->variability() == kSamp && (!dynamic_cast<SimpleValueInst*>(v1) || !dynamic_cast<SimpleValueInst*>(v2))) {
+    if (fGenerateSelectWithIf && (type->variability() == kSamp) && (!dynamic_cast<SimpleValueInst*>(v1) || !dynamic_cast<SimpleValueInst*>(v2))) {
         return generateSelect2WithIf(sig, (((t1 == kReal) || (t2 == kReal)) ? itfloat() : Typed::kInt), cond, v1, v2);
     } else {
         return generateSelect2WithSelect(sig, cond, v1, v2);

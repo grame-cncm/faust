@@ -35,7 +35,7 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
 
     public:
 
-        DAGInstructionsCompiler(CodeContainer* container);
+        DAGInstructionsCompiler(CodeContainer* container, bool generate_select_with_if, bool allow_foreign_function = true);
 
         virtual void compileMultiSignal(Tree sig);
 

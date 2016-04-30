@@ -57,6 +57,7 @@ class InstructionsCompiler : public virtual Garbageable {
         Tree fUIRoot;
         Description* fDescription;
         bool fLoadedIota;
+        bool fGenerateSelectWithIf;
         bool fAllowForeignFunction;
     
         void getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype, string& vname);
@@ -123,7 +124,7 @@ class InstructionsCompiler : public virtual Garbageable {
 
     public:
 
-        InstructionsCompiler(CodeContainer* container, bool allow_foreign_function = true);
+        InstructionsCompiler(CodeContainer* container, bool generate_select_with_if, bool allow_foreign_function = true);
       
         virtual ~InstructionsCompiler()
         {}
