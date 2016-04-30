@@ -43,6 +43,8 @@
 #ifndef __dsp__
 #define __dsp__
 
+#include <string>
+
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
@@ -97,6 +99,25 @@ class decorator_dsp : public dsp {
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(count, inputs, outputs); }
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(date_usec, count, inputs, outputs); }
        
+};
+
+//----------------------------------------------------------------
+// DSP factory class.
+//----------------------------------------------------------------
+
+class dsp_factory {
+    
+    public:
+        
+        /* Return Factory name */
+        virtual std::string getName() = 0;
+    
+        /* Return Factory SHA key */
+        virtual std::string getSHAKey() = 0;
+        
+        /* Return Factory expanded DSP code */
+        virtual std::string getDSPCode() = 0;
+    
 };
 
 //----------------------------------------------------------------

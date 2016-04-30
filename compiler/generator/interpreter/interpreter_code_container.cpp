@@ -143,7 +143,7 @@ void InterpreterCodeContainer::produceInternal()
     
 }
 
-interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
+interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
 {
     cout << "InterpreterCodeContainer::produceModuleFloat() " << fNumInputs << " " << fNumOutputs << endl;
     

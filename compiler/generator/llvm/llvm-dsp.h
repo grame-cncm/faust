@@ -26,7 +26,6 @@
 #define FAUSTFLOAT float
 #endif
 
-#include <string>
 #include <vector>
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
@@ -47,7 +46,7 @@ std::string getLibFaustVersion();
 * DSP factory class.
 */
 
-class llvm_dsp_factory {
+class llvm_dsp_factory : public dsp_factory {
 
      public: 
         

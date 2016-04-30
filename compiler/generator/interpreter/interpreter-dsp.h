@@ -38,10 +38,10 @@
  */
 
 /**
-* DSP factory class.
+* Interpreter DSP factory class.
 */
 
-class interpreter_dsp_factory {
+class interpreter_dsp_factory : public dsp_factory {
 
      public: 
         
