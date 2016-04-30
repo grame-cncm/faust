@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
  
-#ifndef interpreter_dsp_aux__h
-#define interpreter_dsp_aux__h
+#ifndef interpreter_dsp_aux_h
+#define interpreter_dsp_aux_h
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
@@ -64,35 +64,7 @@ struct EXPORT interpreter_dsp_factory {
     fInitBlock(init),
     fComputeBlock(compute_control),
     fComputeDSPBlock(compute_dsp)
-    {
-        
-        printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
-        
-        // 1) optimize indexed 'heap' load/store in normal load/store
-        FIRInstructionLoadStoreOptimizer<float> opt1;
-        fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt1);
-        fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt1);
-        fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt1);
-        
-        printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
-        
-        // 2) then pptimize simple 'heap' load/store in move
-        FIRInstructionMoveOptimizer<float> opt2;
-        fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt2);
-        fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt2);
-        fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt2);
-        
-        printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
-        
-        // 3) them optimize 'heap' and 'direct' math operations
-        FIRInstructionMathOptimizer<float> opt3;
-        fInitBlock = FIRBlockInstruction<float>::optimize(fInitBlock, opt3);
-        fComputeBlock = FIRBlockInstruction<float>::optimize(fComputeBlock, opt3);
-        fComputeDSPBlock = FIRBlockInstruction<float>::optimize(fComputeDSPBlock, opt3);
-        
-        printf("fComputeDSPBlock size = %d\n", fComputeDSPBlock->size());
-        
-    }
+    {}
     
     virtual ~interpreter_dsp_factory()
     {

@@ -19,11 +19,12 @@
  ************************************************************************
  ************************************************************************/
 
-#include "interpreter_code_container.hh"
 #include "exception.hh"
 #include "Text.hh"
 #include "floats.hh"
 #include "global.hh"
+#include "interpreter_code_container.hh"
+#include "interpreter_optimizer.hh"
 
 using namespace std;
 
@@ -140,8 +141,36 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
     compute_control_block->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
     compute_dsp_block->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
     
+    // Bytecode optimization
+    
+    printf("fComputeDSPBlock size = %d\n", compute_dsp_block->size());
+    
+    // 1) optimize indexed 'heap' load/store in normal load/store
+    FIRInstructionLoadStoreOptimizer<float> opt1;
+    init_block = FIRInstructionOptimizer<float>::optimize(init_block, opt1);
+    compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt1);
+    compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt1);
+    
+    printf("fComputeDSPBlock size = %d\n", compute_dsp_block->size());
+    
+    // 2) then pptimize simple 'heap' load/store in move
+    FIRInstructionMoveOptimizer<float> opt2;
+    init_block = FIRInstructionOptimizer<float>::optimize(init_block, opt2);
+    compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt2);
+    compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt2);
+    
+    printf("fComputeDSPBlock size = %d\n", compute_dsp_block->size());
+    
+    // 3) them optimize 'heap' and 'direct' math operations
+    FIRInstructionMathOptimizer<float> opt3;
+    init_block = FIRInstructionOptimizer<float>::optimize(init_block, opt3);
+    compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt3);
+    compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt3);
+    
+    printf("fComputeDSPBlock size = %d\n", compute_dsp_block->size());
+   
     return new interpreter_dsp_factory(fNumInputs, fNumOutputs,
-                                        fCodeProducer.fRealHeapOffset, 
+                                        fCodeProducer.fRealHeapOffset,
                                         fCodeProducer.fIntHeapOffset,
                                         fCodeProducer.fSROffset,
                                         fCodeProducer.fUserInterfaceBlock, 

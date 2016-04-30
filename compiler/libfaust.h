@@ -52,7 +52,7 @@ typedef struct LLVMResult {
 template <class T>
 class interpreter_dsp_aux;
 
-class interpreter_dsp_factory;
+struct interpreter_dsp_factory;
 
 /*
     Low level dynamic compilation interface. Better use the public API defined in llvm-dsp.h or llvm-c-dsp.h

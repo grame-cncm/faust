@@ -23,6 +23,7 @@
 #define _FAUST_EXCEPTION_
 
 #include <stdexcept>
+#include <iostream>
 
 class faustexception : public std::runtime_error {
 
@@ -42,7 +43,7 @@ class faustexception : public std::runtime_error {
 
         void PrintMessage()
         {
-            cerr << what();
+            std::cerr << what();
         }
 };
 
