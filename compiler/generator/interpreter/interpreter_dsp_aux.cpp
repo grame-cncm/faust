@@ -40,7 +40,7 @@ std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExt
 std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2Direct;
 std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2DirectInvert;
 
-void interpreter_dsp_factory::dump(std::ostream* out)
+void interpreter_dsp_factory::write(std::ostream* out)
 {
     *out << "interpreter_dsp_factory" << endl;
     *out << "version " << VERSION << endl;
@@ -49,54 +49,54 @@ void interpreter_dsp_factory::dump(std::ostream* out)
     *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize << " sr_offet " << fSROffset << endl;
     
     *out << "user_unterface_block" << endl;
-    fUserInterfaceBlock->dump(out);
+    fUserInterfaceBlock->write(out);
     
     *out << "init_block" << endl;
-    fInitBlock->dump(out);
+    fInitBlock->write(out);
     
     *out << "control_block" << endl;
-    fComputeBlock->dump(out);
+    fComputeBlock->write(out);
     
     *out << "dsp_block" << endl;
-    fComputeDSPBlock->dump(out);
+    fComputeDSPBlock->write(out);
 }
 
-// Factory parser
+// Factory reader
 
-interpreter_dsp_factory* interpreter_dsp_factory::parse(std::istream* in)
+interpreter_dsp_factory* interpreter_dsp_factory::read(std::istream* in)
 {
     char dummy_line[256];
     
-    // Parse version
+    // Read version
     char version[256];
     in->getline(dummy_line, 256);
     in->getline(version, 256);
     
-    // Parse inputs/outputs
+    // Read inputs/outputs
     char ins_outs[256];
     int inputs, outputs;
     in->getline(ins_outs, 256);
     
-    // Parse int/real heap size
+    // Read int/real heap size
     char heap_size[256];
     int int_heap_size, real_heap_size, sr_offset;
     in->getline(heap_size, 256);
     
-    // Parse User Interface block
+    // Read User Interface block
     in->getline(dummy_line, 256);
-    FIRUserInterfaceBlockInstruction<float>* ui_block = parseUIBlock(in);
+    FIRUserInterfaceBlockInstruction<float>* ui_block = readUIBlock(in);
     
-    // Parse Init block
+    // Read Init block
     in->getline(dummy_line, 256);
-    FIRBlockInstruction<float>* init_block = parseCodeBlock(in);
+    FIRBlockInstruction<float>* init_block = readCodeBlock(in);
     
-    // Parse Control block
+    // Read Control block
     in->getline(dummy_line, 256);
-    FIRBlockInstruction<float>* compute_control_block = parseCodeBlock(in);
+    FIRBlockInstruction<float>* compute_control_block = readCodeBlock(in);
     
-    // Parse DSP block
+    // Read DSP block
     in->getline(dummy_line, 256);
-    FIRBlockInstruction<float>* compute_dsp_block = parseCodeBlock(in);
+    FIRBlockInstruction<float>* compute_dsp_block = readCodeBlock(in);
     
     return new interpreter_dsp_factory(inputs, outputs,
                                        int_heap_size,
@@ -108,7 +108,7 @@ interpreter_dsp_factory* interpreter_dsp_factory::parse(std::istream* in)
                                        compute_dsp_block);
 }
 
-FIRUserInterfaceBlockInstruction<float>* interpreter_dsp_factory::parseUIBlock(std::istream* in)
+FIRUserInterfaceBlockInstruction<float>* interpreter_dsp_factory::readUIBlock(std::istream* in)
 {
     char ui_item[256];
     in->getline(ui_item, 256);
@@ -123,7 +123,7 @@ FIRUserInterfaceBlockInstruction<float>* interpreter_dsp_factory::parseUIBlock(s
     
 }
 
-FIRBlockInstruction<float>* interpreter_dsp_factory::parseCodeBlock(std::istream* in)
+FIRBlockInstruction<float>* interpreter_dsp_factory::readCodeBlock(std::istream* in)
 {
     
 }
@@ -207,25 +207,25 @@ EXPORT void deleteDSPInterpreterInstance(interpreter_dsp* dsp)
 EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachine(const std::string& machine_code)
 {
     std::stringstream reader(machine_code);
-    return interpreter_dsp_factory::parse(&reader);
+    return interpreter_dsp_factory::read(&reader);
 }
 
 EXPORT std::string writeDSPInterpreterFactoryToMachine(interpreter_dsp_factory* factory)
 {
     std::stringstream writer;
-    factory->dump(&writer);
+    factory->write(&writer);
     return writer.str();
 }
 
 EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachineFile(const std::string& machine_code_path)
 {
     std::ifstream reader(machine_code_path);
-    return interpreter_dsp_factory::parse(&reader);
+    return interpreter_dsp_factory::read(&reader);
 }
 
 EXPORT void writeDSPInterpreterFactoryToMachineFile(interpreter_dsp_factory* factory, const std::string& machine_code_path)
 {
     std::ofstream writer(machine_code_path);
-    factory->dump(&writer);
+    factory->write(&writer);
 }
 

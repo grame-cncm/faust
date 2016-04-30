@@ -86,12 +86,12 @@ struct EXPORT interpreter_dsp_factory {
     
     interpreter_dsp* createDSPInstance();
     
-    void dump(std::ostream* out);
+    void write(std::ostream* out);
     
-    static interpreter_dsp_factory* parse(std::istream* in);
+    static interpreter_dsp_factory* read(std::istream* in);
     
-    static FIRUserInterfaceBlockInstruction<float>* parseUIBlock(std::istream* in);
-    static FIRBlockInstruction<float>* parseCodeBlock(std::istream* in);
+    static FIRUserInterfaceBlockInstruction<float>* readUIBlock(std::istream* in);
+    static FIRBlockInstruction<float>* readCodeBlock(std::istream* in);
     
 };
 
@@ -151,7 +151,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             // Store samplingRate in "fSamplingFreq" variable at correct offset in fIntHeap
             this->fIntHeap[this->fSROffset] = samplingRate;
             
-            //fFactory->fInitBlock->dump();
+            //fFactory->fInitBlock->write();
             
             // Execute init instructions
             this->ExecuteBlockVoid(fFactory->fInitBlock);

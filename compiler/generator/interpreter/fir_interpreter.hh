@@ -141,7 +141,7 @@ class FIRInterpreter  {
             
             /*
             #define dispatch_first() {  goto *fDispatchTable[(*it)->fOpcode]; }
-            #define dispatch() { (*it)->dump(); printf("int_stack_index = %d real_stack_index = %d\n", int_stack_index, real_stack_index);  max_real_stack = std::max(max_real_stack, real_stack_index); max_int_stack = std::max(max_int_stack, int_stack_index); it++; goto *fDispatchTable[(*it)->fOpcode]; }
+            #define dispatch() { (*it)->write(); printf("int_stack_index = %d real_stack_index = %d\n", int_stack_index, real_stack_index);  max_real_stack = std::max(max_real_stack, real_stack_index); max_int_stack = std::max(max_int_stack, int_stack_index); it++; goto *fDispatchTable[(*it)->fOpcode]; }
              
             */
             #define dispatch_first() { goto *fDispatchTable[(*it)->fOpcode]; }
@@ -149,7 +149,7 @@ class FIRInterpreter  {
             
             /*
             #define dispatch_first() { printf("int_stack_index = %d real_stack_index = %d\n",int_stack_index, real_stack_index); (*it)->dump(); goto *fDispatchTable[(*it)->fOpcode]; }
-            #define dispatch() { assert(real_stack_index >=0); assert(int_stack_index >=0); printf("real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index); it++; (*it)->dump();  goto *fDispatchTable[(*it)->fOpcode]; }
+            #define dispatch() { assert(real_stack_index >=0); assert(int_stack_index >=0); printf("real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index); it++; (*it)->write();  goto *fDispatchTable[(*it)->fOpcode]; }
             */
             
             static void* fDispatchTable[] = {

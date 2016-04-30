@@ -508,7 +508,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             // Compile loop variable declaration
             inst->fInit->accept(this);
             
-            //fCurrentBlock->dump();
+            //fCurrentBlock->write();
            
             // Keep current block
             FIRBlockInstruction<T>* previous = fCurrentBlock;
