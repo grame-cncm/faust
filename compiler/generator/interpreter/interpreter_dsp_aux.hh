@@ -231,3 +231,4 @@ EXPORT interpreter_dsp* createDSPInterpreterInstance(interpreter_dsp_factory* fa
 EXPORT void deleteDSPInterpreterInstance(interpreter_dsp* dsp);
 
 #endif
+

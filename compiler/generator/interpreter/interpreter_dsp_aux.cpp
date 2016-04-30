@@ -86,7 +86,7 @@ EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std:
         argv1[i+3] = argv[i];
     }
     
-    interpreter_dsp_factory* factory  = compile_faust_interpreter(argc1, argv1, 
+    interpreter_dsp_factory* factory = compile_faust_interpreter(argc1, argv1,
                                                                 name_app.c_str(), 
                                                                 dsp_content.c_str(), 
                                                                 error_msg_aux);

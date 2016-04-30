@@ -174,6 +174,7 @@ interpreter_dsp* createDSPInterpreterInstance(interpreter_dsp_factory* factory);
  */ 
 void deleteDSPInterpreterInstance(interpreter_dsp* dsp);
 
+
 /*!
  @}
  */
