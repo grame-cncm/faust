@@ -30,7 +30,7 @@
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
-#include "interpreter_optimizer.hh"
+#include "interpreter_bytecode.hh"
 
 // Interpreter
 
@@ -126,7 +126,7 @@ class FIRInterpreter  {
             }
         }
     
-        inline void ExecuteBlockFast(FIRBlockInstruction<T>* block, int& res_int, T& res_real, int get_result)
+        inline void ExecuteBlock(FIRBlockInstruction<T>* block, int& res_int, T& res_real, int get_result)
         {
             int real_stack_index = 0;
             int int_stack_index = 0;
@@ -137,7 +137,7 @@ class FIRInterpreter  {
             int max_real_stack = 0;
             int max_int_stack = 0;
             
-            //printf("ExecuteBlockFast\n");
+            //printf("ExecuteBlock\n");
             
             /*
             #define dispatch_first() {  goto *fDispatchTable[(*it)->fOpcode]; }
@@ -1548,7 +1548,7 @@ class FIRInterpreter  {
         {
             int res_int;
             T dummy_res_real;
-            ExecuteBlockFast(block, res_int, dummy_res_real, 1);
+            ExecuteBlock(block, res_int, dummy_res_real, 1);
             return res_int;
         }
     
@@ -1556,7 +1556,7 @@ class FIRInterpreter  {
         {
             int dummy_res_int;
             T res_real;
-            ExecuteBlockFast(block, dummy_res_int, res_real, 2);
+            ExecuteBlock(block, dummy_res_int, res_real, 2);
             return res_real;
         }
     
@@ -1564,7 +1564,7 @@ class FIRInterpreter  {
         {
             int dummy_res_int;
             T dummy_res_real;
-            ExecuteBlockFast(block, dummy_res_int, dummy_res_real, 0);
+            ExecuteBlock(block, dummy_res_int, dummy_res_real, 0);
         }
     
     public:

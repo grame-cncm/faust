@@ -21,6 +21,10 @@
 
 #include <string>
 #include <libgen.h>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+
 #include "interpreter_dsp_aux.hh"
 #include "libfaust.h"
 
@@ -198,5 +202,30 @@ EXPORT interpreter_dsp* createDSPInterpreterInstance(interpreter_dsp_factory* fa
 EXPORT void deleteDSPInterpreterInstance(interpreter_dsp* dsp)
 {
     delete reinterpret_cast<interpreter_dsp_aux<float>*>(dsp);
+}
+
+EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachine(const std::string& machine_code)
+{
+    std::stringstream reader(machine_code);
+    return interpreter_dsp_factory::parse(&reader);
+}
+
+EXPORT std::string writeDSPInterpreterFactoryToMachine(interpreter_dsp_factory* factory)
+{
+    std::stringstream writer;
+    factory->dump(&writer);
+    return writer.str();
+}
+
+EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachineFile(const std::string& machine_code_path)
+{
+    std::ifstream reader(machine_code_path);
+    return interpreter_dsp_factory::parse(&reader);
+}
+
+EXPORT void writeDSPInterpreterFactoryToMachineFile(interpreter_dsp_factory* factory, const std::string& machine_code_path)
+{
+    std::ofstream writer(machine_code_path);
+    factory->dump(&writer);
 }
 

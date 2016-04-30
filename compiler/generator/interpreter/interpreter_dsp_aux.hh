@@ -229,6 +229,14 @@ EXPORT std::vector<std::string> getDSPInterpreterFactoryLibraryList(interpreter_
 
 EXPORT std::vector<std::string> getAllDSPInterpreterFactories();
 
+EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachine(const std::string& machine_code);
+
+EXPORT std::string writeDSPInterpreterFactoryToMachine(interpreter_dsp_factory* factory);
+
+EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachineFile(const std::string& machine_code_path);
+
+EXPORT void writeDSPInterpreterFactoryToMachineFile(interpreter_dsp_factory* factory, const std::string& machine_code_path);
+
 EXPORT void deleteAllDSPInterpreterFactories();
 
 EXPORT interpreter_dsp* createDSPInterpreterInstance(interpreter_dsp_factory* factory);

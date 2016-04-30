@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -135,6 +135,48 @@ void deleteAllDSPInterpreterFactories();
  * @return the Faust DSP factories.
  */                                 
 std::vector<std::string> getAllDSPInterpreterFactories();
+
+/**
+ * Create a Faust DSP factory from a base64 encoded machine code string. Note that the library keeps an internal cache of all
+ * allocated factories so that the compilation of the same DSP code (that is the same machine code string) will return
+ * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPInterpreterFactory to properly
+ * decrement reference counter when the factory is no more needed.
+ *
+ * @param machine_code - the machine code string
+ *
+ * @return the DSP factory on success, otherwise a null pointer.
+ */
+interpreter_dsp_factory* readDSPInterpreterFactoryFromMachine(const std::string& machine_code);
+
+/**
+ * Write a Faust DSP factory into a base64 encoded machine code string.
+ *
+ * @param factory - the DSP factory
+ *
+ * @return the machine code as a string.
+ */
+std::string writeDSPInterpreterFactoryToMachine(interpreter_dsp_factory* factory);
+
+/**
+ * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all
+ * allocated factories so that the compilation of the same DSP code (that is the same machine code file) will return
+ * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPInterpreterFactory to properly
+ * decrement reference counter when the factory is no more needed.
+ *
+ * @param machine_code_path - the machine code file pathname
+ *
+ * @return the DSP factory on success, otherwise a null pointer.
+ */
+interpreter_dsp_factory* readDSPInterpreterFactoryFromMachineFile(const std::string& machine_code_path);
+
+/**
+ * Write a Faust DSP factory into a machine code file.
+ *
+ * @param factory - the DSP factory
+ * @param machine_code_path - the machine code file pathname
+ *
+ */
+void writeDSPInterpreterFactoryToMachineFile(interpreter_dsp_factory* factory, const std::string& machine_code_path);
 
 /**
  * Instance class with related methods.

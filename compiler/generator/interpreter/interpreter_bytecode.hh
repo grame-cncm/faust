@@ -92,7 +92,7 @@ struct FIRBasicInstruction : public FIRInstruction {
         return (branches > 0) ? branches : 1;
     }
     
-    // TODO : fix some remaining issues : do a "all instructions" trace comparation with FIRInterpreter::ExecuteBlockFast
+    // TODO : fix some remaining issues : do a "all instructions" trace comparation with FIRInterpreter::ExecuteBlock
     
     void stackMove(int& int_index, int& real_index)
     {
