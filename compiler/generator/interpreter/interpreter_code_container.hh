@@ -23,7 +23,6 @@
 #define _INTERPRETER_CODE_CONTAINER_H
 
 #include "code_container.hh"
-#include "interpreter_instructions.hh"
 #include "interpreter_dsp_aux.hh"
 
 using namespace std;           
@@ -33,66 +32,13 @@ class InterpreterCodeContainer : public virtual CodeContainer {
     protected:
 
         // TODO : use template
-        InterpreterInstVisitor<float> fCodeProducer;
+        //InterpreterInstVisitor<float> fCodeProducer;
         
         void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
 
     public:
 
-        InterpreterCodeContainer(const string& name, int numInputs, int numOutputs)
-        {
-            initializeCodeContainer(numInputs, numOutputs);
-            fKlassName = name;
-            
-            // Initializations for FIRInstructionMathOptimizer pass
-            
-            // Init heap opcode
-            for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
-                FIRInstruction::gFIRMath2Heap[FIRInstruction::Opcode(i)]
-                = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal));
-                //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
-            }
-            
-            // Init direct opcode
-            for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
-                FIRInstruction::gFIRMath2Direct[FIRInstruction::Opcode(i)]
-                = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal));
-                //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal)] << std::endl;
-            }
-            
-            // Init direct opcode (non commutative operation)
-            for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
-                FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::Opcode(i)]
-                = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal));
-                //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal)] << std::endl;
-            }
-            
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kSubReal] = FIRInstruction::kSubRealDirectInvert;
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kSubInt] = FIRInstruction::kSubIntDirectInvert;
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kDivReal] = FIRInstruction::kDivRealDirectInvert;
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kDivInt] = FIRInstruction::kDivIntDirectInvert;
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kRemReal] = FIRInstruction::kRemRealDirectInvert;
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kRemInt] = FIRInstruction::kRemIntDirectInvert;
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLshInt] = FIRInstruction::kLshIntDirectInvert;
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kRshInt] = FIRInstruction::kRshIntDirectInvert;
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kGTInt] = FIRInstruction::kGTIntDirectInvert;
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLTInt] = FIRInstruction::kLTIntDirectInvert;
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kGEInt] = FIRInstruction::kGEIntDirectInvert;
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLEInt] = FIRInstruction::kLEIntDirectInvert;
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kGTReal] = FIRInstruction::kGTRealDirectInvert;
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLTReal] = FIRInstruction::kLTRealDirectInvert;
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kGEReal] = FIRInstruction::kGERealDirectInvert;
-            FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLEReal] = FIRInstruction::kLERealDirectInvert;
-            
-            // Init heap opcode
-            /*
-            for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
-                FIRInstruction::gFIRMath2Heap[FIRInstruction::Opcode(i)]
-                = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal));
-                //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
-            }
-             */
-        }
+        InterpreterCodeContainer(const string& name, int numInputs, int numOutputs);
     
         virtual ~InterpreterCodeContainer()
         {}

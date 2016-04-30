@@ -25,6 +25,7 @@
 #include "global.hh"
 #include "interpreter_code_container.hh"
 #include "interpreter_optimizer.hh"
+#include "interpreter_instructions.hh"
 
 using namespace std;
 
@@ -37,6 +38,66 @@ Interpretor :
 */
 
 template <class T> map <string, FIRInstruction::Opcode> InterpreterInstVisitor<T>::gMathLibTable;
+
+InterpreterCodeContainer::InterpreterCodeContainer(const string& name, int numInputs, int numOutputs)
+{
+    initializeCodeContainer(numInputs, numOutputs);
+    fKlassName = name;
+    
+    // Allocate one static visitor
+    if (!gGlobal->gInterpreterVisitor) {
+        gGlobal->gInterpreterVisitor = new InterpreterInstVisitor<float>();
+    }
+    
+    // Initializations for FIRInstructionMathOptimizer pass
+    
+    // Init heap opcode
+    for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
+        FIRInstruction::gFIRMath2Heap[FIRInstruction::Opcode(i)]
+        = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal));
+        //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+    }
+    
+    // Init direct opcode
+    for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
+        FIRInstruction::gFIRMath2Direct[FIRInstruction::Opcode(i)]
+        = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal));
+        //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal)] << std::endl;
+    }
+    
+    // Init direct opcode (non commutative operation)
+    for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
+        FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::Opcode(i)]
+        = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal));
+        //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal)] << std::endl;
+    }
+    
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kSubReal] = FIRInstruction::kSubRealDirectInvert;
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kSubInt] = FIRInstruction::kSubIntDirectInvert;
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kDivReal] = FIRInstruction::kDivRealDirectInvert;
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kDivInt] = FIRInstruction::kDivIntDirectInvert;
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kRemReal] = FIRInstruction::kRemRealDirectInvert;
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kRemInt] = FIRInstruction::kRemIntDirectInvert;
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLshInt] = FIRInstruction::kLshIntDirectInvert;
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kRshInt] = FIRInstruction::kRshIntDirectInvert;
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kGTInt] = FIRInstruction::kGTIntDirectInvert;
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLTInt] = FIRInstruction::kLTIntDirectInvert;
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kGEInt] = FIRInstruction::kGEIntDirectInvert;
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLEInt] = FIRInstruction::kLEIntDirectInvert;
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kGTReal] = FIRInstruction::kGTRealDirectInvert;
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLTReal] = FIRInstruction::kLTRealDirectInvert;
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kGEReal] = FIRInstruction::kGERealDirectInvert;
+    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLEReal] = FIRInstruction::kLERealDirectInvert;
+    
+    // Init heap opcode
+    /*
+     for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
+     FIRInstruction::gFIRMath2Heap[FIRInstruction::Opcode(i)]
+     = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal));
+     //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+     }
+     */
+}
 
 CodeContainer* InterpreterCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
@@ -98,43 +159,43 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
     }
     
     cout << "-----generateGlobalDeclarations-----" << endl;
-    generateGlobalDeclarations(&fCodeProducer);
+    generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
 
     cout << "-----generateDeclarations-----" << endl;
-    generateDeclarations(&fCodeProducer);
+    generateDeclarations(gGlobal->gInterpreterVisitor);
     
-    //generateAllocate(&fCodeProducer);
-    //generateDestroy(&fCodeProducer);
+    //generateAllocate(gGlobal->gInterpreterVisitor);
+    //generateDestroy(gGlobal->gInterpreterVisitor);
     
     cout << "-----generateStaticInit-----" << endl;
-    generateStaticInit(&fCodeProducer);
+    generateStaticInit(gGlobal->gInterpreterVisitor);
     
     cout << "-----generateInit-----" << endl;
-    generateInit(&fCodeProducer);
+    generateInit(gGlobal->gInterpreterVisitor);
     
-    FIRBlockInstruction<float>* init_block = fCodeProducer.fCurrentBlock;
-    fCodeProducer.fCurrentBlock = new FIRBlockInstruction<float>();
+    FIRBlockInstruction<float>* init_block = gGlobal->gInterpreterVisitor->fCurrentBlock;
+    gGlobal->gInterpreterVisitor->fCurrentBlock = new FIRBlockInstruction<float>();
     
     cout << "-----generateUserInterface-----" << endl;
-    generateUserInterface(&fCodeProducer);
+    generateUserInterface(gGlobal->gInterpreterVisitor);
     
     // Generates local variables declaration and setup
     cout << "-----generateComputeBlock-----" << endl;
-    generateComputeBlock(&fCodeProducer);
+    generateComputeBlock(gGlobal->gInterpreterVisitor);
     
-    FIRBlockInstruction<float>* compute_control_block = fCodeProducer.fCurrentBlock;
-    fCodeProducer.fCurrentBlock = new FIRBlockInstruction<float>();
+    FIRBlockInstruction<float>* compute_control_block = gGlobal->gInterpreterVisitor->fCurrentBlock;
+    gGlobal->gInterpreterVisitor->fCurrentBlock = new FIRBlockInstruction<float>();
 
     // Generates one single scalar loop
     cout << "-----generateScalarLoop-----" << endl;
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-    loop->accept(&fCodeProducer);
+    loop->accept(gGlobal->gInterpreterVisitor);
     
-    FIRBlockInstruction<float>* compute_dsp_block = fCodeProducer.fCurrentBlock;
+    FIRBlockInstruction<float>* compute_dsp_block = gGlobal->gInterpreterVisitor->fCurrentBlock;
     
     // generateCompute(0);
     
-    //generateComputeFunctions(&fCodeProducer);
+    //generateComputeFunctions(gGlobal->gInterpreterVisitor);
     
     
     // Add kHalt in blocks
@@ -179,10 +240,10 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceModuleFloat()
     */
    
     return new interpreter_dsp_factory(fNumInputs, fNumOutputs,
-                                        fCodeProducer.fRealHeapOffset,
-                                        fCodeProducer.fIntHeapOffset,
-                                        fCodeProducer.fSROffset,
-                                        fCodeProducer.fUserInterfaceBlock, 
+                                        gGlobal->gInterpreterVisitor->fRealHeapOffset,
+                                        gGlobal->gInterpreterVisitor->fIntHeapOffset,
+                                        gGlobal->gInterpreterVisitor->fSROffset,
+                                        gGlobal->gInterpreterVisitor->fUserInterfaceBlock,
                                         init_block,
                                         compute_control_block,
                                         compute_dsp_block);
@@ -212,22 +273,22 @@ void InterpreterCodeContainer::produceClass()
     // Add "fSamplingFreq" variable at offset 0 in HEAP
     pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
     
-    generateGlobalDeclarations(&fCodeProducer);
+    generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
 
-    generateDeclarations(&fCodeProducer);
+    generateDeclarations(gGlobal->gInterpreterVisitor);
     
-    //generateAllocate(&fCodeProducer);
-    //generateDestroy(&fCodeProducer);
+    //generateAllocate(gGlobal->gInterpreterVisitor);
+    //generateDestroy(gGlobal->gInterpreterVisitor);
     
-    generateStaticInit(&fCodeProducer);
+    generateStaticInit(gGlobal->gInterpreterVisitor);
     
-    //generateInit(&fCodeProducer);
+    //generateInit(gGlobal->gInterpreterVisitor);
     
-    generateUserInterface(&fCodeProducer);
+    generateUserInterface(gGlobal->gInterpreterVisitor);
     
     generateCompute(0);
     
-    //generateComputeFunctions(&fCodeProducer);
+    //generateComputeFunctions(gGlobal->gInterpreterVisitor);
     */
 }
 
@@ -237,10 +298,10 @@ void InterpreterCodeContainer::produceInfoFunctions(int tabs, const string& clas
 void InterpreterScalarCodeContainer::generateCompute(int n)
 {
     // Generates local variables declaration and setup
-    //generateComputeBlock(&fCodeProducer);
+    //generateComputeBlock(gGlobal->gInterpreterVisitor);
 
     // Generates one single scalar loop
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-    loop->accept(&fCodeProducer);
+    loop->accept(gGlobal->gInterpreterVisitor);
 }
 

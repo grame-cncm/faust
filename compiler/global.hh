@@ -55,6 +55,9 @@ struct LLVMResult;
 
 class ASMJAVAScriptInstVisitor;
 
+template <class T>
+struct InterpreterInstVisitor;
+
 struct interpreter_dsp_factory;
 
 typedef long double quad;
@@ -428,7 +431,11 @@ struct global {
     
     string gOutputLang;
     
+    // One single global visitor for asm.js, so that sub-containers and main class use the same heap
     ASMJAVAScriptInstVisitor* gASMJSVisitor;
+    
+    // One single global visitor for Interpreter, so that sub-containers and main class use the same heap
+    InterpreterInstVisitor<float>* gInterpreterVisitor;
     
     bool gHelpSwitch;
     bool gVersionSwitch;

@@ -46,6 +46,8 @@
 #include "instructions.hh"
 
 #include "asmjs_instructions.hh"
+#include "interpreter_instructions.hh"
+
 #include "c_code_container.hh"
 #include "cpp_code_container.hh"
 #include "js_code_container.hh"
@@ -292,6 +294,8 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gOutputLang = "";
     
     gASMJSVisitor = 0; // Will be (possibly) allocated in ASMJS backend
+    
+    gInterpreterVisitor = 0; // Will be (possibly) allocated in Interperted backend
     
     gHelpSwitch = false;
     gVersionSwitch = false;
