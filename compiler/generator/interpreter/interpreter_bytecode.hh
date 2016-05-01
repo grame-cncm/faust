@@ -169,6 +169,8 @@ struct FIRBasicInstruction : public FIRInstruction {
             
         } else if (fOpcode == kCastInt) {
             int_index++; real_index--;
+        } else if (fOpcode == kCastIntHeap) {
+            int_index++;
         } else if ((fOpcode == kAddInt) || (fOpcode == kSubInt) ||
                 (fOpcode == kMultInt) || (fOpcode == kDivInt) ||
                 (fOpcode == kRemInt) || (fOpcode == kLshInt) ||
@@ -247,6 +249,8 @@ struct FIRBasicInstruction : public FIRInstruction {
             
         } else if (fOpcode == kCastReal) {
             int_index--; real_index++;
+        } else if (fOpcode == kCastRealHeap) {
+            real_index++;
         } else if ((fOpcode == kAddReal) || (fOpcode == kSubReal) ||
                    (fOpcode == kMultReal) || (fOpcode == kDivReal) ||
                    (fOpcode == kRemReal)) {

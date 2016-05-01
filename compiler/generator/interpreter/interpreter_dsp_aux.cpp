@@ -71,8 +71,6 @@ void interpreter_dsp_factory::write(ostream* out)
 
 // Factory reader
 
-#define SEP ' '
-
 interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
 {
     string dummy, value;

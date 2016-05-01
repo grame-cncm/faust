@@ -236,11 +236,19 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     
     cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
     
-    // 3) them optimize 'heap' and 'direct' math operations
-    FIRInstructionMathOptimizer<float> opt3;
+    // 3) optimize 'cast' in heap cast
+    FIRInstructionCastOptimizer<float> opt3;
     init_block = FIRInstructionOptimizer<float>::optimize(init_block, opt3);
     compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt3);
     compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt3);
+ 
+    cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
+    
+    // 4) them optimize 'heap' and 'direct' math operations
+    FIRInstructionMathOptimizer<float> opt4;
+    init_block = FIRInstructionOptimizer<float>::optimize(init_block, opt4);
+    compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt4);
+    compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt4);
     
     cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl << endl;
     

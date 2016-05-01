@@ -170,6 +170,7 @@ class FIRInterpreter  {
                 
                 // Cast
                 &&do_kCastReal, &&do_kCastInt,
+                &&do_kCastRealHeap, &&do_kCastIntHeap,
                 
                 // Select/if
                 &&do_kSelectInt, &&do_kSelectReal, &&do_kIf,
@@ -378,12 +379,24 @@ class FIRInterpreter  {
                     dispatch();
                 }
                 
+                do_kCastRealHeap:
+                {
+                    push_real(T(fIntHeap[(*it)->fOffset1]));
+                    dispatch();
+                }
+                
                 do_kCastInt:
                 {
                     push_int(int(pop_real()));
                     dispatch();
                 }
-                    
+                
+                do_kCastIntHeap:
+                {
+                    push_int(int(fRealHeap[(*it)->fOffset1]));
+                    dispatch();
+                }
+                
                 // Select/If operation
                 do_kSelectInt:
                 {

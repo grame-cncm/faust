@@ -90,10 +90,43 @@ struct FIRInstructionOptimizer {
 template <class T>
 struct FIRInstructionCopyOptimizer : public FIRInstructionOptimizer<T>  {
     
+    FIRInstructionCopyOptimizer()
+    {
+        std::cout << "FIRInstructionCopyOptimizer" << std::endl;
+    }
+    
     virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
         end = cur + 1;
         return (*cur)->copy();
+    }
+};
+
+// Cast optimizer
+template <class T>
+struct FIRInstructionCastOptimizer : public FIRInstructionOptimizer<T>  {
+    
+    
+    FIRInstructionCastOptimizer()
+    {
+        std::cout << "FIRInstructionCastOptimizer" << std::endl;
+    }
+    
+    virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    {
+        FIRBasicInstruction<T>* inst1 = *cur;
+        FIRBasicInstruction<T>* inst2 = *(cur + 1);
+        
+        if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kCastReal) {
+            end = cur + 2;
+            return new FIRBasicInstruction<T>(FIRInstruction::kCastRealHeap, 0, 0, inst1->fOffset1, 0);
+        } else if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kCastInt) {
+            end = cur + 2;
+            return new FIRBasicInstruction<T>(FIRInstruction::kCastIntHeap, 0, 0, inst1->fOffset1, 0);
+        } else {
+            end = cur + 1;
+            return (*cur)->copy();
+        }
     }
 };
 

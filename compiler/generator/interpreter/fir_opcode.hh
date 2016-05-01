@@ -47,6 +47,7 @@ struct FIRInstruction {
         
         // Cast
         kCastReal, kCastInt,
+        kCastRealHeap, kCastIntHeap,
         
         // Select/if
         kSelectInt, kSelectReal, kIf,
@@ -190,6 +191,7 @@ static std::string gFIRInstructionTable[] = {
 
     // Cast
     "kCastReal", "kCastInt",
+    "kCastRealHeap", "kCastIntHeap",
 
     // Select/if
     "kSelectInt", "kSelectReal", "kIf",
