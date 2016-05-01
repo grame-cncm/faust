@@ -33,6 +33,8 @@
 template <class T>
 struct FIRInstructionOptimizer {
     
+    // Rewrite a sequence of instructions starting from 'cur' to 'end' in a new single instruction.
+    // Update 'end' so that caller can move at the correct next location
     virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
         return 0;
@@ -46,22 +48,11 @@ struct FIRInstructionOptimizer {
         
         do {
             FIRBasicInstruction<T>* inst = *cur;
-            if (inst->fOpcode == FIRInstruction::kLoop) {
-                new_block->push(new FIRBasicInstruction<T>(FIRInstruction::kLoop,
-                                                           inst->fIntValue, inst->fRealValue,
-                                                           inst->fOffset1, inst->fOffset2,
-                                                           optimize_aux(inst->fBranch1, optimizer),
-                                                           optimize_aux(inst->fBranch2, optimizer)));
-                cur++;
-            } else if (inst->fOpcode == FIRInstruction::kSelectInt || inst->fOpcode == FIRInstruction::kSelectReal) {
+            if (inst->fOpcode == FIRInstruction::kLoop
+                || inst->fOpcode == FIRInstruction::kSelectInt
+                || inst->fOpcode == FIRInstruction::kSelectReal
+                || inst->fOpcode == FIRInstruction::kIf) {
                 new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,
-                                                           inst->fIntValue, inst->fRealValue,
-                                                           inst->fOffset1, inst->fOffset2,
-                                                           optimize_aux(inst->fBranch1, optimizer),
-                                                           optimize_aux(inst->fBranch2, optimizer)));
-                cur++;
-            } else if (inst->fOpcode == FIRInstruction::kIf) {
-                new_block->push(new FIRBasicInstruction<T>(FIRInstruction::kIf,
                                                            inst->fIntValue, inst->fRealValue,
                                                            inst->fOffset1, inst->fOffset2,
                                                            optimize_aux(inst->fBranch1, optimizer),
@@ -76,7 +67,7 @@ struct FIRInstructionOptimizer {
         return new_block;
     }
     
-    // Return an optimized block (copy), delete the original one
+    // Return an optimized new block, then delete the original one
     static FIRBlockInstruction<T>* optimize(FIRBlockInstruction<T>* cur_block, FIRInstructionOptimizer<T>& optimizer)
     {
         FIRBlockInstruction<T>* new_block = optimize_aux(cur_block, optimizer);
