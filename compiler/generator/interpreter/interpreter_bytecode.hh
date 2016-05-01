@@ -30,6 +30,21 @@
 
 #include "fir_opcode.hh"
 
+static inline std::string quote1(const std::string& s)
+{
+    return "\"" + s + "\"";
+}
+
+static inline std::string replaceChar1(std::string str, char ch1, char ch2)
+{
+    for (unsigned int i = 0; i < str.length(); ++i) {
+        if (str[i] == ch1) {
+            str[i] = ch2;
+        }
+    }
+    return quote1(str);
+}
+
 // Bytecode definition
 
 typedef long double quad;
@@ -297,12 +312,6 @@ struct FIRBasicInstruction : public FIRInstruction {
         if (fBranch2) fBranch2->write(out);
     }
     
-    static FIRBasicInstruction* read(std::istream* in)
-    {
-        
-        
-    }
-    
     FIRBasicInstruction<T>* copy()
     {
         return new FIRBasicInstruction<T>(fOpcode, fIntValue, fRealValue, fOffset1, fOffset2,
@@ -363,14 +372,8 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
     {
         *out << "opcode " << fOpcode << " " << gFIRInstructionTable[fOpcode]
         << " offset " << fOffset
-        << " label " << "\"" << fLabel << "\"" << " key " << "\"" << fKey << "\"" << " value " << "\"" << fValue << "\""
+        << " label " << replaceChar1(fLabel, ' ', '_') << " key " << replaceChar1(fKey, ' ', '_') << " value " << replaceChar1(fValue, ' ', '_')
         << " init " << fInit << " min " << fMin << " max " << fMax << " step " << fStep << std::endl;
-    }
-    
-    static FIRUserInterfaceInstruction* read(std::istream* in)
-    {
-        
-        
     }
     
 };

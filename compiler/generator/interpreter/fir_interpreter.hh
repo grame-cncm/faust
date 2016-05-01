@@ -1569,9 +1569,9 @@ class FIRInterpreter  {
     
     public:
     
-        FIRInterpreter(int real_heap_size, int int_heap_size, int sr_offset)
+        FIRInterpreter(int int_heap_size, int real_heap_size, int sr_offset)
         {
-            printf("FIRInterpreter : real_heap_size = %d int_heap_size = %d sr_offset = %d\n", real_heap_size, int_heap_size, sr_offset);
+            printf("FIRInterpreter : int_heap_size = %d real_heap_size = %d sr_offset = %d\n", int_heap_size, real_heap_size, sr_offset);
             
             // HEAP
             fRealHeapSize = real_heap_size;

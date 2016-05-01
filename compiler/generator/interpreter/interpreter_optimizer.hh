@@ -50,7 +50,8 @@ struct FIRInstructionOptimizer {
                 new_block->push(new FIRBasicInstruction<T>(FIRInstruction::kLoop,
                                                            inst->fIntValue, inst->fRealValue,
                                                            inst->fOffset1, inst->fOffset2,
-                                                           optimize_aux(inst->fBranch1, optimizer), 0));
+                                                           optimize_aux(inst->fBranch1, optimizer),
+                                                           optimize_aux(inst->fBranch2, optimizer)));
                 cur++;
             } else if (inst->fOpcode == FIRInstruction::kSelectInt || inst->fOpcode == FIRInstruction::kSelectReal) {
                 new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,

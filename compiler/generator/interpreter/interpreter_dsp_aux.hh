@@ -33,11 +33,15 @@ class interpreter_dsp;
 
 struct EXPORT interpreter_dsp_factory {
     
+    std::string fExpandedDSP;
+    std::string fShaKey;
+    std::string fName;
+    
     int fNumInputs;
     int fNumOutputs;
     
-    int fRealHeapSize;
     int fIntHeapSize;
+    int fRealHeapSize;
     int fSROffset;
     
     FIRUserInterfaceBlockInstruction<float>* fUserInterfaceBlock;
@@ -45,20 +49,18 @@ struct EXPORT interpreter_dsp_factory {
     FIRBlockInstruction<float>* fComputeBlock;
     FIRBlockInstruction<float>* fComputeDSPBlock;
     
-    std::string fExpandedDSP;
-    std::string fShaKey;
-    std::string fName;
-    
-    interpreter_dsp_factory(int inputs, int ouputs,
-                            int real_heap_size, int int_heap_size, int sr_offset,
+    interpreter_dsp_factory(const std::string& name,
+                            int inputs, int ouputs,
+                            int int_heap_size, int real_heap_size, int sr_offset,
                             FIRUserInterfaceBlockInstruction<float>* interface,
                             FIRBlockInstruction<float>* init,
                             FIRBlockInstruction<float>* compute_control,
                             FIRBlockInstruction<float>* compute_dsp)
-    :fNumInputs(inputs),
+    :fName(name),
+    fNumInputs(inputs),
     fNumOutputs(ouputs),
-    fRealHeapSize(real_heap_size),
     fIntHeapSize(int_heap_size),
+    fRealHeapSize(real_heap_size),
     fSROffset(sr_offset),
     fUserInterfaceBlock(interface),
     fInitBlock(init),
@@ -92,11 +94,11 @@ struct EXPORT interpreter_dsp_factory {
     
     static FIRUserInterfaceBlockInstruction<float>* readUIBlock(std::istream* in);
     
-    static FIRUserInterfaceInstruction<float>* readUIItem(std::stringstream* item);
+    static FIRUserInterfaceInstruction<float>* readUIInstruction(std::stringstream* inst);
     
     static FIRBlockInstruction<float>* readCodeBlock(std::istream* in);
     
-    static FIRBasicInstruction<float>* readCodeInstruction(std::istream* in);
+    static FIRBasicInstruction<float>* readCodeInstruction(std::istream* inst, std::istream* in);
     
 };
 
@@ -110,7 +112,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
     public:
     
         interpreter_dsp_aux(interpreter_dsp_factory* factory)
-        : FIRInterpreter<T>(factory->fRealHeapSize, factory->fIntHeapSize, factory->fSROffset)
+        : FIRInterpreter<T>(factory->fIntHeapSize, factory->fRealHeapSize, factory->fSROffset)
         {
             fFactory = factory;
             this->fInputs = new FAUSTFLOAT*[fFactory->fNumInputs];

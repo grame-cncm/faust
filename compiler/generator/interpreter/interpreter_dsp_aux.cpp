@@ -41,10 +41,17 @@ map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtended
 map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2Direct;
 map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2DirectInvert;
 
+static inline string unquote(const string& str)
+{
+    return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
+}
+
 void interpreter_dsp_factory::write(ostream* out)
 {
     *out << "interpreter_dsp_factory" << endl;
     *out << "version " << VERSION << endl;
+    
+    *out << "name " << fName << endl;
     
     *out << "inputs " << fNumInputs << " outputs " << fNumOutputs << endl;
     *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize << " sr_offet " << fSROffset << endl;
@@ -75,6 +82,14 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
     getline(*in, dummy);    // Read "interpreter_dsp_factory" line
     getline(*in, version);  // Read "version" line
     
+    // Read name
+    string name, factory_name;
+    getline(*in, name);
+    
+    stringstream name_reader(name);
+    name_reader >> dummy; // Read "name" token
+    name_reader >> factory_name;
+    
     // Read inputs/outputs
     string ins_outs;
     int inputs, outputs;
@@ -91,7 +106,7 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
     int int_heap_size, real_heap_size, sr_offset;
     getline(*in, heap_size);
     
-    stringstream heap_size_reader(ins_outs);
+    stringstream heap_size_reader(heap_size);
     heap_size_reader >> dummy; // Read "int_heap_size" token
     heap_size_reader >> value; int_heap_size = strtol(value.c_str(), 0, 10);
     heap_size_reader >> dummy; // Read "real_heap_size" token
@@ -115,7 +130,8 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
     getline(*in, dummy);    // Read "dsp_block" line
     FIRBlockInstruction<float>* compute_dsp_block = readCodeBlock(in);
     
-    return new interpreter_dsp_factory(inputs, outputs,
+    return new interpreter_dsp_factory(factory_name,
+                                       inputs, outputs,
                                        int_heap_size,
                                        real_heap_size,
                                        sr_offset,
@@ -142,40 +158,40 @@ FIRUserInterfaceBlockInstruction<float>* interpreter_dsp_factory::readUIBlock(is
     for (int i = 0; i < size; i++) {
         getline(*in, line);
         stringstream item_line_reader(line);
-        ui_block->push(readUIItem(&item_line_reader));
+        ui_block->push(readUIInstruction(&item_line_reader));
     }
     
     return ui_block;
 }
 
-FIRUserInterfaceInstruction<float>* interpreter_dsp_factory::readUIItem(stringstream* item)
+FIRUserInterfaceInstruction<float>* interpreter_dsp_factory::readUIInstruction(stringstream* inst)
 {
     FIRBlockInstruction<float>::Opcode opcode;
     int offset;
     float init, min, max, step;
     string dummy, value, label, key, val;
     
-    *item >> dummy;  // Read "opcode" token
-    *item >> value; opcode = FIRBlockInstruction<float>::Opcode(strtol(value.c_str(), 0, 10));
-    *item >> dummy;  // Read opcode representation
-    *item >> dummy;  // Read "offset" token
-    *item >> value; offset = strtol(value.c_str(), 0, 10);
-    *item >> dummy;  // Read "label"
-    *item >> label;
-    *item >> dummy;  // Read "key" token
-    *item >> key;
-    *item >> dummy;  // Read "value" token
-    *item >> val;
-    *item >> dummy;  // Read "init" token
-    *item >> value; init = strtof(value.c_str(), 0);
-    *item >> dummy;  // Read "min" token
-    *item >> value; min = strtof(value.c_str(), 0);
-    *item >> dummy;  // Read "max" token
-    *item >> value; max = strtof(value.c_str(), 0);
-    *item >> dummy;  // Read "step" token
-    *item >> value; step = strtof(value.c_str(), 0);
+    *inst >> dummy;  // Read "opcode" token
+    *inst >> value; opcode = FIRBlockInstruction<float>::Opcode(strtol(value.c_str(), 0, 10));
+    *inst >> dummy;  // Read opcode representation
+    *inst >> dummy;  // Read "offset" token
+    *inst >> value; offset = strtol(value.c_str(), 0, 10);
+    *inst >> dummy;  // Read "label"
+    *inst >> label;
+    *inst >> dummy;  // Read "key" token
+    *inst >> key;
+    *inst >> dummy;  // Read "value" token
+    *inst >> val;
+    *inst >> dummy;  // Read "init" token
+    *inst >> value; init = strtof(value.c_str(), 0);
+    *inst >> dummy;  // Read "min" token
+    *inst >> value; min = strtof(value.c_str(), 0);
+    *inst >> dummy;  // Read "max" token
+    *inst >> value; max = strtof(value.c_str(), 0);
+    *inst >> dummy;  // Read "step" token
+    *inst >> value; step = strtof(value.c_str(), 0);
 
-    return new FIRUserInterfaceInstruction<float>(opcode, offset, label, key, value, init, min, max, step);
+    return new FIRUserInterfaceInstruction<float>(opcode, offset, unquote(label), unquote(key), unquote(val), init, min, max, step);
 }
 
 FIRBlockInstruction<float>* interpreter_dsp_factory::readCodeBlock(istream* in)
@@ -195,11 +211,13 @@ FIRBlockInstruction<float>* interpreter_dsp_factory::readCodeBlock(istream* in)
     for (int i = 0; i < size; i++) {
         getline(*in, line);
         stringstream inst_line_reader(line);
-        code_block->push(readCodeInstruction(&inst_line_reader));
+        code_block->push(readCodeInstruction(&inst_line_reader, in));
     }
+    
+    return code_block;
 }
 
-FIRBasicInstruction<float>* interpreter_dsp_factory::readCodeInstruction(std::istream* inst)
+FIRBasicInstruction<float>* interpreter_dsp_factory::readCodeInstruction(std::istream* inst, std::istream* in)
 {
     FIRBlockInstruction<float>::Opcode opcode;
     int offset1, offset2, val_int;
@@ -227,8 +245,8 @@ FIRBasicInstruction<float>* interpreter_dsp_factory::readCodeInstruction(std::is
         opcode == FIRInstruction::kIf ||
         opcode == FIRInstruction::kLoop) {
         
-        branch1 = readCodeBlock(inst);
-        branch2 = readCodeBlock(inst);
+        branch1 = readCodeBlock(in);  // consume 'in'
+        branch2 = readCodeBlock(in);  // consume 'in'
     }
     
     return new FIRBasicInstruction<float>(opcode, val_int, val_real, offset1, offset2, branch1, branch2);

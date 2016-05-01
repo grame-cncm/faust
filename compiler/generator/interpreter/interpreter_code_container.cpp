@@ -252,9 +252,32 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     printf("fComputeDSPBlock int stack = %d real stack = %d\n", int_index, real_index);
     */
    
-    return new interpreter_dsp_factory(fNumInputs, fNumOutputs,
-                                        gGlobal->gInterpreterVisitor->fRealHeapOffset,
+    /*
+    // Test reader/writer
+    interpreter_dsp_factory* factory = new interpreter_dsp_factory(fKlassName,
+                                                                   fNumInputs, fNumOutputs,
+                                                                   gGlobal->gInterpreterVisitor->fIntHeapOffset,
+                                                                   gGlobal->gInterpreterVisitor->fRealHeapOffset,
+                                                                   gGlobal->gInterpreterVisitor->fSROffset,
+                                                                   gGlobal->gInterpreterVisitor->fUserInterfaceBlock,
+                                                                   init_block,
+                                                                   compute_control_block,
+                                                                   compute_dsp_block);
+    
+    
+    cout << "writeDSPInterpreterFactoryToMachine" << endl;
+    string machine_code = writeDSPInterpreterFactoryToMachine(factory);
+    
+    cout << "readDSPInterpreterFactoryFromMachine" << endl;
+    interpreter_dsp_factory* factory1 = readDSPInterpreterFactoryFromMachine(machine_code);
+    
+    return factory1;
+    */
+    
+    return new interpreter_dsp_factory(fKlassName,
+                                        fNumInputs, fNumOutputs,
                                         gGlobal->gInterpreterVisitor->fIntHeapOffset,
+                                        gGlobal->gInterpreterVisitor->fRealHeapOffset,
                                         gGlobal->gInterpreterVisitor->fSROffset,
                                         gGlobal->gInterpreterVisitor->fUserInterfaceBlock,
                                         init_block,
