@@ -30,11 +30,6 @@
 
 #include "fir_opcode.hh"
 
-static inline std::string quote1(const std::string& s)
-{
-    return "\"" + s + "\"";
-}
-
 static inline std::string replaceChar1(std::string str, char ch1, char ch2)
 {
     for (unsigned int i = 0; i < str.length(); ++i) {
@@ -42,7 +37,7 @@ static inline std::string replaceChar1(std::string str, char ch1, char ch2)
             str[i] = ch2;
         }
     }
-    return quote1(str);
+    return "\"" + str + "\"";
 }
 
 // Bytecode definition

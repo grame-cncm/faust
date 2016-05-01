@@ -193,7 +193,7 @@ struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
     
 };
 
-// Rewrite math operations as 'heap' or 'direct' versions
+// Rewrite math operations as 'heap', 'stack' or 'direct' versions
 template <class T>
 struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
     
