@@ -758,16 +758,15 @@ generator/interpreter/interpreter_code_container.o: generator/interpreter/interp
 generator/interpreter/interpreter_code_container.o: generator/code_container.hh generator/description.hh
 generator/interpreter/interpreter_code_container.o: generator/uitree.hh generator/function_builder.hh
 generator/interpreter/interpreter_code_container.o: parallelize/code_loop.hh generator/json_instructions.hh
+generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_dsp_aux.hh export.hh
+generator/interpreter/interpreter_code_container.o: generator/interpreter/fir_interpreter.hh
+generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_bytecode.hh
+generator/interpreter/interpreter_code_container.o: generator/smartpointer.h
+generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_optimizer.hh
 generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_instructions.hh
 generator/interpreter/interpreter_code_container.o: generator/typing_instructions.hh
-generator/interpreter/interpreter_code_container.o: generator/interpreter/fir_interpreter.hh
-generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_optimizer.hh
-generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_bytecode.hh
-generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_dsp_aux.hh export.hh
-generator/interpreter/interpreter_code_container.o: generator/smartpointer.h
 generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/interpreter_dsp_aux.hh export.hh
 generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/fir_interpreter.hh
-generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/interpreter_optimizer.hh
 generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/interpreter_bytecode.hh
 generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/fir_opcode.hh generator/smartpointer.h libfaust.h
 generator/java/java_code_container.o: generator/java/java_code_container.hh generator/code_container.hh
@@ -823,12 +822,11 @@ libcode.o: generator/java/java_instructions.hh generator/typing_instructions.hh 
 libcode.o: generator/js/js_instructions.hh generator/asmjs/asmjs_code_container.hh
 libcode.o: generator/asmjs/asmjs_instructions.hh generator/wasm/wasm_code_container.hh
 libcode.o: generator/wasm/wasm_instructions.hh generator/llvm/clang_code_container.hh libfaust.h export.hh
-libcode.o: generator/interpreter/interpreter_code_container.hh generator/interpreter/interpreter_instructions.hh
-libcode.o: generator/interpreter/fir_interpreter.hh generator/interpreter/interpreter_optimizer.hh
-libcode.o: generator/interpreter/interpreter_bytecode.hh errors/exception.hh
-libcode.o: generator/interpreter/interpreter_dsp_aux.hh generator/smartpointer.h generator/fir/fir_code_container.hh
-libcode.o: generator/fir/fir_instructions.hh draw/schema/schema.h draw/device/device.h draw/drawschema.hh
-libcode.o: errors/timing.hh signals/ppsig.hh
+libcode.o: generator/interpreter/interpreter_code_container.hh generator/interpreter/interpreter_dsp_aux.hh
+libcode.o: generator/interpreter/fir_interpreter.hh generator/interpreter/interpreter_bytecode.hh
+libcode.o: generator/smartpointer.h generator/fir/fir_code_container.hh generator/fir/fir_instructions.hh
+libcode.o: draw/schema/schema.h draw/device/device.h draw/drawschema.hh errors/timing.hh signals/ppsig.hh
+libcode.o: errors/exception.hh
 global.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
 global.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
 global.o: generator/interpreter/fir_opcode.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh
@@ -841,11 +839,13 @@ global.o: extended/remainderprim.hh extended/powprim.hh extended/minprim.hh exte
 global.o: extended/log10prim.hh extended/fmodprim.hh extended/floorprim.hh extended/expprim.hh extended/cosprim.hh
 global.o: extended/ceilprim.hh extended/atanprim.hh extended/atan2prim.hh extended/asinprim.hh
 global.o: generator/asmjs/asmjs_instructions.hh generator/text_instructions.hh generator/type_manager.hh
-global.o: generator/typing_instructions.hh generator/c/c_code_container.hh generator/c/c_instructions.hh
-global.o: generator/vec_code_container.hh generator/omp_code_container.hh generator/wss_code_container.hh
-global.o: generator/cpp/cpp_code_container.hh generator/cpp/cpp_instructions.hh generator/cpp/opencl_instructions.hh
-global.o: generator/js/js_code_container.hh generator/js/js_instructions.hh generator/java/java_code_container.hh
-global.o: generator/java/java_instructions.hh generator/fir/fir_code_container.hh generator/fir/fir_instructions.hh
+global.o: generator/typing_instructions.hh generator/interpreter/interpreter_instructions.hh
+global.o: generator/interpreter/fir_interpreter.hh generator/interpreter/interpreter_bytecode.hh errors/exception.hh
+global.o: generator/c/c_code_container.hh generator/c/c_instructions.hh generator/vec_code_container.hh
+global.o: generator/omp_code_container.hh generator/wss_code_container.hh generator/cpp/cpp_code_container.hh
+global.o: generator/cpp/cpp_instructions.hh generator/cpp/opencl_instructions.hh generator/js/js_code_container.hh
+global.o: generator/js/js_instructions.hh generator/java/java_code_container.hh generator/java/java_instructions.hh
+global.o: generator/fir/fir_code_container.hh generator/fir/fir_instructions.hh
 main.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
 main.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
 main.o: generator/interpreter/fir_opcode.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh
