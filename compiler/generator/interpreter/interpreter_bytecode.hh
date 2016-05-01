@@ -140,11 +140,13 @@ struct FIRBasicInstruction : public FIRInstruction {
             
             int branch1_int_index = 0;
             int branch1_real_index = 0;
+            assert(fBranch1);
             fBranch1->stackMove(branch1_int_index, branch1_real_index);
             
             int branch2_int_index = 0;
             int branch2_real_index = 0;
-            if (fBranch2) { fBranch2->stackMove(branch2_int_index, branch2_real_index); }
+            assert(fBranch2);
+            fBranch2->stackMove(branch2_int_index, branch2_real_index);
             
             // Adjust indexes
             int_index += std::max(branch1_int_index, branch2_int_index);
@@ -290,6 +292,7 @@ struct FIRBasicInstruction : public FIRInstruction {
         << " offset1 " << fOffset1
         << " offset2 " << fOffset2
         << std::endl;
+        // If select/if/loop : write branches
         if (fBranch1) fBranch1->write(out);
         if (fBranch2) fBranch2->write(out);
     }
@@ -321,6 +324,13 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
     T fMin;
     T fMax;
     T fStep;
+    
+    FIRUserInterfaceInstruction(Opcode opcode, int offset,
+                                const std::string& label,
+                                const std::string& key,
+                                const std::string& value, T init, T min, T max, T step)
+        :fOpcode(opcode), fOffset(offset), fLabel(label), fKey(key), fValue(value), fInit(init), fMin(min), fMax(max), fStep(step)
+    {}
     
     FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label, T init, T min, T max, T step)
         :fOpcode(opcode), fOffset(offset), fLabel(label), fInit(init), fMin(min), fMax(max), fStep(step)

@@ -402,7 +402,7 @@ class FIRInterpreter  {
                 {
                     if (pop_int()) {
                         ExecuteBlockVoid((*it)->fBranch1);
-                    } else if ((*it)->fBranch2) { // Execute 'else' block if there is one
+                    } else {
                         ExecuteBlockVoid((*it)->fBranch2);
                     }
                     dispatch();

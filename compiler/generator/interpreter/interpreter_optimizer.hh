@@ -64,7 +64,7 @@ struct FIRInstructionOptimizer {
                                                            inst->fIntValue, inst->fRealValue,
                                                            inst->fOffset1, inst->fOffset2,
                                                            optimize_aux(inst->fBranch1, optimizer),
-                                                           (inst->fBranch2) ? optimize_aux(inst->fBranch2, optimizer) : 0));
+                                                           optimize_aux(inst->fBranch2, optimizer)));
                 cur++;
             } else {
                 new_block->push(optimizer.rewrite(cur, next));

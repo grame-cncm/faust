@@ -24,6 +24,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <stdlib.h>
 
 #include "interpreter_dsp_aux.hh"
 #include "libfaust.h"
@@ -32,20 +33,20 @@ using namespace std;
 
 #define VERSION 0.5
 
-std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Heap;
-std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Direct;
-std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2DirectInvert;
+map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Heap;
+map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Direct;
+map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2DirectInvert;
 
-std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2Heap;
-std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2Direct;
-std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2DirectInvert;
+map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2Heap;
+map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2Direct;
+map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2DirectInvert;
 
-void interpreter_dsp_factory::write(std::ostream* out)
+void interpreter_dsp_factory::write(ostream* out)
 {
     *out << "interpreter_dsp_factory" << endl;
     *out << "version " << VERSION << endl;
     
-    *out << "inputs " << fNumInputs << " ouputs " << fNumOutputs << endl;
+    *out << "inputs " << fNumInputs << " outputs " << fNumOutputs << endl;
     *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize << " sr_offet " << fSROffset << endl;
     
     *out << "user_unterface_block" << endl;
@@ -63,39 +64,55 @@ void interpreter_dsp_factory::write(std::ostream* out)
 
 // Factory reader
 
-interpreter_dsp_factory* interpreter_dsp_factory::read(std::istream* in)
+#define SEP ' '
+
+interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
 {
-    char dummy_line[256];
+    string dummy, value;
     
     // Read version
-    char version[256];
-    in->getline(dummy_line, 256);
-    in->getline(version, 256);
+    string version;
+    getline(*in, dummy);    // Read "interpreter_dsp_factory" line
+    getline(*in, version);  // Read "version" line
     
     // Read inputs/outputs
-    char ins_outs[256];
+    string ins_outs;
     int inputs, outputs;
-    in->getline(ins_outs, 256);
+    getline(*in, ins_outs);
     
-    // Read int/real heap size
-    char heap_size[256];
+    stringstream in_out_reader(ins_outs);
+    in_out_reader >> dummy; // Read "inputs" token
+    in_out_reader >> value; inputs = strtol(value.c_str(), 0, 10);
+    in_out_reader >> dummy; // Read "outputs" token
+    in_out_reader >> value; outputs = strtol(value.c_str(), 0, 10);
+    
+    // Read int/real heap size and sr offset
+    string heap_size;
     int int_heap_size, real_heap_size, sr_offset;
-    in->getline(heap_size, 256);
+    getline(*in, heap_size);
     
-    // Read User Interface block
-    in->getline(dummy_line, 256);
+    stringstream heap_size_reader(ins_outs);
+    heap_size_reader >> dummy; // Read "int_heap_size" token
+    heap_size_reader >> value; int_heap_size = strtol(value.c_str(), 0, 10);
+    heap_size_reader >> dummy; // Read "real_heap_size" token
+    heap_size_reader >> value; real_heap_size = strtol(value.c_str(), 0, 10);
+    heap_size_reader >> dummy; // Read "sr_offet" token
+    heap_size_reader >> value; sr_offset = strtol(value.c_str(), 0, 10);
+    
+    // Read user interface block
+    getline(*in, dummy);    // Read "user_unterface_block" line
     FIRUserInterfaceBlockInstruction<float>* ui_block = readUIBlock(in);
     
-    // Read Init block
-    in->getline(dummy_line, 256);
+    // Read init block
+    getline(*in, dummy);    // Read "init_block" line
     FIRBlockInstruction<float>* init_block = readCodeBlock(in);
     
-    // Read Control block
-    in->getline(dummy_line, 256);
+    // Read control block
+    getline(*in, dummy);    // Read "control_block" line
     FIRBlockInstruction<float>* compute_control_block = readCodeBlock(in);
     
     // Read DSP block
-    in->getline(dummy_line, 256);
+    getline(*in, dummy);    // Read "dsp_block" line
     FIRBlockInstruction<float>* compute_dsp_block = readCodeBlock(in);
     
     return new interpreter_dsp_factory(inputs, outputs,
@@ -108,24 +125,113 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(std::istream* in)
                                        compute_dsp_block);
 }
 
-FIRUserInterfaceBlockInstruction<float>* interpreter_dsp_factory::readUIBlock(std::istream* in)
+FIRUserInterfaceBlockInstruction<float>* interpreter_dsp_factory::readUIBlock(istream* in)
 {
-    char ui_item[256];
-    in->getline(ui_item, 256);
+    string dummy, value, line;
+    int size;
     
-    /*
-    while (ui_item != ) {
-        int opcode, offset;
-        std::string label, key, value;
-        float int, min, max, step;
+    // Read "block_size" line
+    getline(*in, line);
+    stringstream line_reader(line);
+    
+    line_reader >> dummy; // Read "block_size" token
+    line_reader >> value; size = strtol(value.c_str(), 0, 10);
+    
+    FIRUserInterfaceBlockInstruction<float>* ui_block = new FIRUserInterfaceBlockInstruction<float>();
+    
+    for (int i = 0; i < size; i++) {
+        getline(*in, line);
+        stringstream item_line_reader(line);
+        ui_block->push(readUIItem(&item_line_reader));
     }
-    */
     
+    return ui_block;
 }
 
-FIRBlockInstruction<float>* interpreter_dsp_factory::readCodeBlock(std::istream* in)
+FIRUserInterfaceInstruction<float>* interpreter_dsp_factory::readUIItem(stringstream* item)
 {
+    FIRBlockInstruction<float>::Opcode opcode;
+    int offset;
+    float init, min, max, step;
+    string dummy, value, label, key, val;
     
+    *item >> dummy;  // Read "opcode" token
+    *item >> value; opcode = FIRBlockInstruction<float>::Opcode(strtol(value.c_str(), 0, 10));
+    *item >> dummy;  // Read opcode representation
+    *item >> dummy;  // Read "offset" token
+    *item >> value; offset = strtol(value.c_str(), 0, 10);
+    *item >> dummy;  // Read "label"
+    *item >> label;
+    *item >> dummy;  // Read "key" token
+    *item >> key;
+    *item >> dummy;  // Read "value" token
+    *item >> val;
+    *item >> dummy;  // Read "init" token
+    *item >> value; init = strtof(value.c_str(), 0);
+    *item >> dummy;  // Read "min" token
+    *item >> value; min = strtof(value.c_str(), 0);
+    *item >> dummy;  // Read "max" token
+    *item >> value; max = strtof(value.c_str(), 0);
+    *item >> dummy;  // Read "step" token
+    *item >> value; step = strtof(value.c_str(), 0);
+
+    return new FIRUserInterfaceInstruction<float>(opcode, offset, label, key, value, init, min, max, step);
+}
+
+FIRBlockInstruction<float>* interpreter_dsp_factory::readCodeBlock(istream* in)
+{
+    string dummy, value, line;
+    int size;
+    
+    // Read "block_size" line
+    getline(*in, line);
+    stringstream line_reader(line);
+    
+    line_reader >> dummy; // Read "block_size" token
+    line_reader >> value; size = strtol(value.c_str(), 0, 10);
+    
+    FIRBlockInstruction<float>* code_block = new FIRBlockInstruction<float>();
+    
+    for (int i = 0; i < size; i++) {
+        getline(*in, line);
+        stringstream inst_line_reader(line);
+        code_block->push(readCodeInstruction(&inst_line_reader));
+    }
+}
+
+FIRBasicInstruction<float>* interpreter_dsp_factory::readCodeInstruction(std::istream* inst)
+{
+    FIRBlockInstruction<float>::Opcode opcode;
+    int offset1, offset2, val_int;
+    float val_real;
+    string dummy, value;
+    
+    *inst >> dummy;  // Read "opcode" token
+    *inst >> value; opcode = FIRBlockInstruction<float>::Opcode(strtol(value.c_str(), 0, 10));
+    *inst >> dummy;  // Read opcode representation
+    *inst >> dummy;  // Read "int" token
+    *inst >> value; val_int = strtol(value.c_str(), 0, 10);
+    *inst >> dummy;  // Read "real" token
+    *inst >> value; val_real = strtof(value.c_str(), 0);
+    *inst >> dummy;  // Read "offset1" token
+    *inst >> value; offset1 = strtol(value.c_str(), 0, 10);
+    *inst >> dummy;  // Read "offset2" token
+    *inst >> value; offset2 = strtol(value.c_str(), 0, 10);
+    
+    FIRBlockInstruction<float>* branch1 = 0;
+    FIRBlockInstruction<float>* branch2 = 0;
+    
+    // Possibly read sub-blocks
+    if (opcode == FIRInstruction::kSelectInt ||
+        opcode == FIRInstruction::kSelectReal ||
+        opcode == FIRInstruction::kIf ||
+        opcode == FIRInstruction::kLoop) {
+        
+        branch1 = readCodeBlock(inst);
+        branch2 = readCodeBlock(inst);
+    }
+    
+    return new FIRBasicInstruction<float>(opcode, val_int, val_real, offset1, offset2, branch1, branch2);
 }
 
 // Instances
@@ -135,12 +241,12 @@ interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
     return reinterpret_cast<interpreter_dsp*>(new interpreter_dsp_aux<float>(this));
 }
 
-EXPORT interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const std::string& sha_key)
+EXPORT interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const string& sha_key)
 {}
 
-EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const std::string& filename, 
+EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const string& filename, 
                                                                   int argc, const char* argv[], 
-                                                                  std::string& error_msg)
+                                                                  string& error_msg)
 {
     string base = basename((char*)filename.c_str());
     size_t pos = filename.find(".dsp");
@@ -153,10 +259,10 @@ EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const std::s
     } 
 }
 
-EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std::string& name_app,
-                                                                    const std::string& dsp_content,
+EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const string& name_app,
+                                                                    const string& dsp_content,
                                                                     int argc, const char* argv[], 
-                                                                    std::string& error_msg)
+                                                                    string& error_msg)
 {
     int argc1 = argc + 3;
     const char* argv1[32];
@@ -183,12 +289,12 @@ EXPORT bool deleteDSPInterpreterFactory(interpreter_dsp_factory* factory)
     return true;
 }
 
-EXPORT std::vector<std::string> getDSPInterpreterFactoryLibraryList(interpreter_dsp_factory* factory)
+EXPORT vector<string> getDSPInterpreterFactoryLibraryList(interpreter_dsp_factory* factory)
 {
     // TODO
 }
 
-EXPORT std::vector<std::string> getAllDSPInterpreterFactories()
+EXPORT vector<string> getAllDSPInterpreterFactories()
 {}
 
 EXPORT void deleteAllDSPInterpreterFactories()
@@ -204,28 +310,28 @@ EXPORT void deleteDSPInterpreterInstance(interpreter_dsp* dsp)
     delete reinterpret_cast<interpreter_dsp_aux<float>*>(dsp);
 }
 
-EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachine(const std::string& machine_code)
+EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachine(const string& machine_code)
 {
-    std::stringstream reader(machine_code);
+    stringstream reader(machine_code);
     return interpreter_dsp_factory::read(&reader);
 }
 
-EXPORT std::string writeDSPInterpreterFactoryToMachine(interpreter_dsp_factory* factory)
+EXPORT string writeDSPInterpreterFactoryToMachine(interpreter_dsp_factory* factory)
 {
-    std::stringstream writer;
+    stringstream writer;
     factory->write(&writer);
     return writer.str();
 }
 
-EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachineFile(const std::string& machine_code_path)
+EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachineFile(const string& machine_code_path)
 {
-    std::ifstream reader(machine_code_path);
+    ifstream reader(machine_code_path);
     return interpreter_dsp_factory::read(&reader);
 }
 
-EXPORT void writeDSPInterpreterFactoryToMachineFile(interpreter_dsp_factory* factory, const std::string& machine_code_path)
+EXPORT void writeDSPInterpreterFactoryToMachineFile(interpreter_dsp_factory* factory, const string& machine_code_path)
 {
-    std::ofstream writer(machine_code_path);
+    ofstream writer(machine_code_path);
     factory->write(&writer);
 }
 

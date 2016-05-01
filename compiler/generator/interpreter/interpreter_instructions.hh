@@ -483,15 +483,14 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             // Add kHalt in block
             then_block->push(new FIRBasicInstruction<T>(FIRInstruction::kHalt));
             
-            // Possibly compile 'else' in a new block
-            FIRBlockInstruction<T>* else_block = 0;
+            // Compile 'else' in a (possibly empty) new block
+            FIRBlockInstruction<T>* else_block = new FIRBlockInstruction<T>();
             if (inst->fElse->fCode.size() > 0) {
-                else_block = new FIRBlockInstruction<T>();
                 fCurrentBlock = else_block;
                 inst->fElse->accept(this);
-                // Add kHalt in block
-                else_block->push(new FIRBasicInstruction<T>(FIRInstruction::kHalt));
             }
+            // Add kHalt in block
+            else_block->push(new FIRBasicInstruction<T>(FIRInstruction::kHalt));
             
             // Compile 'if'
             previous->push(new FIRBasicInstruction<T>(FIRInstruction::kIf, 0, 0, 0, 0, then_block, else_block));
@@ -519,10 +518,14 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             inst->fCode->accept(this);
             // Add kHalt in block
             loop_block->push(new FIRBasicInstruction<T>(FIRInstruction::kHalt));
+            
+            // Prepare a dummy (= empty) block for branch 2
+            FIRBlockInstruction<T>* dummy_branch2 = new FIRBlockInstruction<T>();
+            dummy_branch2->push(new FIRBasicInstruction<T>(FIRInstruction::kHalt));
            
             // Push Loop instruction
             pair<int, Typed::VarType> tmp = fFieldTable[inst->getVariableName()];
-            previous->push(new FIRBasicInstruction<T>(FIRInstruction::kLoop, inst->getVariableCount(), 0, tmp.first, 0, loop_block, 0));
+            previous->push(new FIRBasicInstruction<T>(FIRInstruction::kLoop, inst->getVariableCount(), 0, tmp.first, 0, loop_block, dummy_branch2));
             
             // Restore current block
             fCurrentBlock = previous;

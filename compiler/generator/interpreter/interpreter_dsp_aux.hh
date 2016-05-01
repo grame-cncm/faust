@@ -91,7 +91,12 @@ struct EXPORT interpreter_dsp_factory {
     static interpreter_dsp_factory* read(std::istream* in);
     
     static FIRUserInterfaceBlockInstruction<float>* readUIBlock(std::istream* in);
+    
+    static FIRUserInterfaceInstruction<float>* readUIItem(std::stringstream* item);
+    
     static FIRBlockInstruction<float>* readCodeBlock(std::istream* in);
+    
+    static FIRBasicInstruction<float>* readCodeInstruction(std::istream* in);
     
 };
 
