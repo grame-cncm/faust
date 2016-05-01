@@ -31,8 +31,6 @@
 
 using namespace std;
 
-#define VERSION 0.5
-
 map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Heap;
 map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Stack;
 map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Direct;
@@ -50,12 +48,12 @@ static inline string unquote(const string& str)
 void interpreter_dsp_factory::write(ostream* out)
 {
     *out << "interpreter_dsp_factory" << endl;
-    *out << "version " << VERSION << endl;
+    *out << "version " << INTERP_VERSION << endl;
     
     *out << "name " << fName << endl;
     
     *out << "inputs " << fNumInputs << " outputs " << fNumOutputs << endl;
-    *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize << " sr_offet " << fSROffset << endl;
+    *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize << " sr_offset " << fSROffset << endl;
     
     *out << "user_unterface_block" << endl;
     fUserInterfaceBlock->write(out);
@@ -76,17 +74,29 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
 {
     string dummy, value;
     
-    // Read version
+    // Read "interpreter_dsp_factory" line
+    getline(*in, dummy);
+    
+    // Read "version" line
     string version;
-    getline(*in, dummy);    // Read "interpreter_dsp_factory" line
-    getline(*in, version);  // Read "version" line
+    int version_num;
+    getline(*in, version);
+    
+    stringstream version_reader(version);
+    version_reader >> dummy;   // Read "version" token
+    version_reader >> value; version_num = strtof(value.c_str(), 0);
+    
+    if (INTERP_VERSION != version_num) {
+        cerr << "File interpreter number : " << version_num << "different from compiled one : " << INTERP_VERSION << endl;
+        return 0;
+    }
     
     // Read name
     string name, factory_name;
     getline(*in, name);
     
     stringstream name_reader(name);
-    name_reader >> dummy; // Read "name" token
+    name_reader >> dummy;   // Read "name" token
     name_reader >> factory_name;
     
     // Read inputs/outputs
@@ -130,6 +140,7 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
     FIRBlockInstruction<float>* compute_dsp_block = readCodeBlock(in);
     
     return new interpreter_dsp_factory(factory_name,
+                                       version_num,
                                        inputs, outputs,
                                        int_heap_size,
                                        real_heap_size,

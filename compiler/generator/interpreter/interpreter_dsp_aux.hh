@@ -29,6 +29,8 @@
 #include "fir_interpreter.hh"
 #include "smartpointer.h"
 
+#define INTERP_VERSION 0.5
+
 class interpreter_dsp;
 
 struct EXPORT interpreter_dsp_factory {
@@ -37,6 +39,7 @@ struct EXPORT interpreter_dsp_factory {
     std::string fShaKey;
     std::string fName;
     
+    float fVersion;
     int fNumInputs;
     int fNumOutputs;
     
@@ -50,6 +53,7 @@ struct EXPORT interpreter_dsp_factory {
     FIRBlockInstruction<float>* fComputeDSPBlock;
     
     interpreter_dsp_factory(const std::string& name,
+                            float version_num,
                             int inputs, int ouputs,
                             int int_heap_size, int real_heap_size, int sr_offset,
                             FIRUserInterfaceBlockInstruction<float>* interface,
@@ -57,6 +61,7 @@ struct EXPORT interpreter_dsp_factory {
                             FIRBlockInstruction<float>* compute_control,
                             FIRBlockInstruction<float>* compute_dsp)
     :fName(name),
+    fVersion(version_num),
     fNumInputs(inputs),
     fNumOutputs(ouputs),
     fIntHeapSize(int_heap_size),

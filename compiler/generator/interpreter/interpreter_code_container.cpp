@@ -270,6 +270,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     /*
     // Test reader/writer
     interpreter_dsp_factory* factory = new interpreter_dsp_factory(fKlassName,
+                                                                   INTERP_VERSION,
                                                                    fNumInputs, fNumOutputs,
                                                                    gGlobal->gInterpreterVisitor->fIntHeapOffset,
                                                                    gGlobal->gInterpreterVisitor->fRealHeapOffset,
@@ -289,7 +290,9 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     return factory1;
     */
     
+    
     return new interpreter_dsp_factory(fKlassName,
+                                        INTERP_VERSION,
                                         fNumInputs, fNumOutputs,
                                         gGlobal->gInterpreterVisitor->fIntHeapOffset,
                                         gGlobal->gInterpreterVisitor->fRealHeapOffset,
