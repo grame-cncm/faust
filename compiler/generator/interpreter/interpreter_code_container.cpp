@@ -58,6 +58,13 @@ InterpreterCodeContainer::InterpreterCodeContainer(const string& name, int numIn
         //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
     }
     
+    // Init stack opcode
+    for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
+        FIRInstruction::gFIRMath2Stack[FIRInstruction::Opcode(i)]
+        = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealStack - FIRInstruction::kAddReal));
+        //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+    }
+    
     // Init direct opcode
     for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
         FIRInstruction::gFIRMath2Direct[FIRInstruction::Opcode(i)]

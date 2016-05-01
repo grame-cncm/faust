@@ -208,26 +208,46 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
         FIRBasicInstruction<T>* inst2 = *(cur + 1);
         FIRBasicInstruction<T>* inst3 = *(cur + 2);
         
+        // kLoadReal op kLoadReal ==> Heap version
         if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kLoadReal && FIRInstruction::isMath(inst3->fOpcode)) {
+            //std::cout << "kLoadReal op kLoadReal ==> Heap version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
+        // kLoadRInt op kLoadInt ==> Heap version
         } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isMath(inst3->fOpcode)) {
+            //std::cout << "kLoadRInt op kLoadInt ==> Heap version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
+        // kLoadReal op kRealValue ==> Direct version
         } else if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kRealValue && FIRInstruction::isMath(inst3->fOpcode)) {
+            //std::cout << "kLoadReal op kRealValue ==> Direct version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Direct[inst3->fOpcode], 0, inst2->fRealValue, inst1->fOffset1, 0);
+        // kRealValue op kLoadReal ==> Direct version
         } else if (inst1->fOpcode == FIRInstruction::kRealValue && inst2->fOpcode == FIRInstruction::kLoadReal && FIRInstruction::isMath(inst3->fOpcode)) {
+            //std::cout << "kRealValue op kLoadReal ==> Direct version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2DirectInvert[inst3->fOpcode], 0, inst1->fRealValue, inst2->fOffset1, 0);
+        // kLoadInt op kIntValue ==> Direct version
         } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kIntValue && FIRInstruction::isMath(inst3->fOpcode)) {
+            //std::cout << "kLoadInt op kIntValue ==> Direct version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Direct[inst3->fOpcode], inst2->fIntValue, 0, inst1->fOffset1, 0);
+        // kIntValue op kLoadInt ==> Direct version
         } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isMath(inst3->fOpcode)) {
+            //std::cout << "kIntValue op kLoadInt ==> Direct version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2DirectInvert[inst3->fOpcode], inst1->fIntValue, 0, inst2->fOffset1, 0);
-        //} else if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isMath(inst3->fOpcode)) {
-           
+        // kLoadReal/kLoadInt binary op ==> Stack version
+        } else if (((inst1->fOpcode == FIRInstruction::kLoadReal) || (inst1->fOpcode == FIRInstruction::kLoadInt)) && FIRInstruction::isMath(inst2->fOpcode)) {
+            //std::cout << "kLoadReal/kLoadInt binary op ==> Stack version " << gFIRInstructionTable[inst2->fOpcode] << endl;
+            end = cur + 2;
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Stack[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
+        // kLoadReal unary  ==> Heap version
+        } else if (inst1->fOpcode == FIRInstruction::kLoadReal && FIRInstruction::isExtendedUnaryMath(inst2->fOpcode)) {
+            //std::cout << "kLoadReal unary ==> Heap version " << gFIRInstructionTable[inst2->fOpcode] << endl;
+            end = cur + 2;
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2Heap[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
         } else {
             end = cur + 1;
             return (*cur)->copy();

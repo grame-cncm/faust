@@ -70,6 +70,15 @@ struct FIRInstruction {
         kLERealHeap, kEQRealHeap, kNERealHeap,
         kANDIntHeap, kORIntHeap, kXORIntHeap,
         
+        // Standard math (stack version)
+        kAddRealStack, kAddIntStack, kSubRealStack, kSubIntStack,
+        kMultRealStack, kMultIntStack, kDivRealStack, kDivIntStack,
+        kRemRealStack, kRemIntStack, kLshIntStack, kRshIntStack, kGTIntStack,
+        kLTIntStack, kGEIntStack, kLEIntStack, kEQIntStack, kNEIntStack,
+        kGTRealStack, kLTRealStack, kGERealStack,
+        kLERealStack, kEQRealStack, kNERealStack,
+        kANDIntStack, kORIntStack, kXORIntStack,
+        
         // Standard math (direct version)
         kAddRealDirect, kAddIntDirect, kSubRealDirect, kSubIntDirect,
         kMultRealDirect, kMultIntDirect, kDivRealDirect, kDivIntDirect,
@@ -159,6 +168,7 @@ struct FIRInstruction {
     virtual void stackMove(int& int_index, int& real_index) {}
     
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Heap;
+    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Stack;
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Direct;
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2DirectInvert;
     
@@ -213,6 +223,15 @@ static std::string gFIRInstructionTable[] = {
     "kGTRealHeap", "kLTRealHeap", "kGERealHeap",
     "kLERealHeap", "kEQRealHeap", "kNERealHeap",
     "kANDIntHeap", "kORIntHeap", "kXORIntHeap",
+    
+    // Standard math (stack version)
+    "kAddRealStack", "kAddIntStack", "kSubRealStack", "kSubIntStack",
+    "kMultRealStack", "kMultIntStack", "kDivRealStack", "kDivIntStack",
+    "kRemRealStack", "kRemIntStack", "kLshIntStack", "kRshIntStack", "kGTIntStack",
+    "kLTIntStack", "kGEIntStack", "kLEIntStack", "kEQIntStack", "kNEIntStack",
+    "kGTRealStack", "kLTRealStack", "kGERealStack",
+    "kLERealStack", "kEQRealStack", "kNERealStack",
+    "kANDIntStack", "kORIntStack", "kXORIntStack",
     
     // Standard math (direct version) : non commutative operations
     "kAddRealDirect", "kAddIntDirect", "kSubRealDirect", "kSubIntDirect",
