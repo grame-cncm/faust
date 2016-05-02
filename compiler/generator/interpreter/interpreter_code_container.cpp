@@ -163,6 +163,39 @@ void InterpreterCodeContainer::produceInternal()
     
 }
 
+FIRBlockInstruction<float>* InterpreterCodeContainer::testOptimizer(FIRBlockInstruction<float>* block, int& size)
+{
+    
+    cout << "fComputeDSPBlock size = " << block->size() << endl;
+    
+    // 1) optimize indexed 'heap' load/store in normal load/store
+    FIRInstructionLoadStoreOptimizer<float> opt1;
+    block = FIRInstructionOptimizer<float>::optimize(block, opt1);
+    
+    cout << "fComputeDSPBlock size = " << block->size() << endl;
+    
+    // 2) then pptimize simple 'heap' load/store in move
+    FIRInstructionMoveOptimizer<float> opt2;
+    block = FIRInstructionOptimizer<float>::optimize(block, opt2);
+    
+    cout << "fComputeDSPBlock size = " << block->size() << endl;
+    
+    // 3) optimize 'cast' in heap cast
+    FIRInstructionCastOptimizer<float> opt3;
+    block = FIRInstructionOptimizer<float>::optimize(block, opt3);
+    
+    cout << "fComputeDSPBlock size = " << block->size() << endl;
+    
+    // 4) them optimize 'heap' and 'direct' math operations
+    FIRInstructionMathOptimizer<float> opt4;
+    block = FIRInstructionOptimizer<float>::optimize(block, opt4);
+    
+    cout << "fComputeDSPBlock size = " << block->size() << endl << endl;
+    
+    size = block->size();
+    return block;
+}
+
 interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
 {
     cout << "InterpreterCodeContainer::produceModuleFloat() " << fNumInputs << " " << fNumOutputs << endl;
@@ -209,14 +242,12 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     // Generates one single scalar loop
     cout << "generateScalarLoop" << endl;
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+    
     loop->accept(gGlobal->gInterpreterVisitor);
-    
     FIRBlockInstruction<float>* compute_dsp_block = gGlobal->gInterpreterVisitor->fCurrentBlock;
-    
-    // generateCompute(0);
-    
+   
+    //generateCompute(0);
     //generateComputeFunctions(gGlobal->gInterpreterVisitor);
-    
     
     // Add kHalt in blocks
     init_block->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
@@ -289,7 +320,6 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     
     return factory1;
     */
-    
     
     return new interpreter_dsp_factory(fKlassName,
                                         INTERP_VERSION,

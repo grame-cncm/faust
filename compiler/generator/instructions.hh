@@ -282,6 +282,8 @@ struct ValueInst : public Printable, public Vectorizable
 
     ValueInst(int size = 1):Vectorizable(size)
     {}
+    
+    virtual int size() { return 1; }
 };
 
 // ==================
@@ -296,6 +298,7 @@ struct NullInst : public ValueInst
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
 };
 
 // ==========================
@@ -1034,6 +1037,8 @@ struct BinopInst : public ValueInst
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    virtual int size() { return fInst1->size() + fInst2->size(); }
 };
 
 struct CastNumInst : public ValueInst
@@ -1051,6 +1056,8 @@ struct CastNumInst : public ValueInst
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    virtual int size() { return fInst->size(); }
 };
 
 // ==============
@@ -1120,6 +1127,8 @@ struct Select2Inst : public ValueInst
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    virtual int size() { return std::max(fThen->size(), fElse->size()); }
 };
 
 struct IfInst : public StatementInst

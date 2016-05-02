@@ -35,6 +35,8 @@ class InterpreterCodeContainer : public virtual CodeContainer {
         //InterpreterInstVisitor<float> fCodeProducer;
         
         void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
+    
+        FIRBlockInstruction<float>* testOptimizer(FIRBlockInstruction<float>* block, int& size);
 
     public:
 

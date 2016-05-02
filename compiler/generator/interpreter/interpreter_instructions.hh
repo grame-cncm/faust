@@ -41,6 +41,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         int fRealHeapOffset;    // Offset in Real HEAP    
         int fIntHeapOffset;     // Offset in Integer HEAP
         int fSROffset;          // Kept offset in Integer HEAP for "fSamplingFreq"
+        bool fCommute;
     
         map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
           
@@ -57,6 +58,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             fIntHeapOffset = 0;
             fSROffset = 0;
             initMathTable();
+            fCommute = true;
         }
     
         inline bool isIntType(Typed::VarType type)
@@ -346,9 +348,19 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         // Numerical computation
         virtual void visit(BinopInst* inst) 
         {
-            // Compile arguments in reverse order
-            inst->fInst2->accept(this);
-            inst->fInst1->accept(this);
+            if (isCommutativeOpcode(inst->fOpcode) && fCommute) {
+                // Tries to order branches to allow better math optimization later on
+                if ((inst->fInst1->size() < inst->fInst2->size())) {
+                    inst->fInst2->accept(this);
+                    inst->fInst1->accept(this);
+                } else {
+                    inst->fInst1->accept(this);
+                    inst->fInst2->accept(this);
+                }
+            } else {
+                inst->fInst2->accept(this);
+                inst->fInst1->accept(this);
+            }
             
             inst->fInst1->accept(&fTypingVisitor);
             Typed::VarType type1 = fTypingVisitor.fCurType;
