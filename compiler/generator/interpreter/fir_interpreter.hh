@@ -34,13 +34,13 @@
 
 // Interpreter
 
-#define push_real(val) real_stack[real_stack_index++] = val
-#define push_int(val) int_stack[int_stack_index++] = val
-#define push_addr(addr) address_stack[addr_stack_index++] = addr
+#define push_real(val) (real_stack[real_stack_index++] = val)
+#define push_int(val) (int_stack[int_stack_index++] = val)
+#define push_addr(addr) (address_stack[addr_stack_index++] = addr)
 
 #define pop_real() (real_stack[--real_stack_index])
-#define pop_int() int_stack[--int_stack_index]
-#define pop_addr() address_stack[--addr_stack_index]
+#define pop_int() (int_stack[--int_stack_index])
+#define pop_addr() (address_stack[--addr_stack_index])
 
 // FIR bytecode interpreter
 template <class T>
@@ -54,6 +54,7 @@ class FIRInterpreter  {
         int fRealHeapSize;
         int fIntHeapSize;
         int fSROffset;
+        int fCountOffset;
     
         int fRealStackSize;
         int fIntStackSize;
@@ -145,12 +146,16 @@ class FIRInterpreter  {
             //printf("ExecuteBlock\n");
             
             /*
-            #define dispatch_first() {  goto *fDispatchTable[(*it)->fOpcode]; }
-            #define dispatch() { (*it)->write(); printf("int_stack_index = %d real_stack_index = %d\n", int_stack_index, real_stack_index);  max_real_stack = std::max(max_real_stack, real_stack_index); max_int_stack = std::max(max_int_stack, int_stack_index); it++; goto *fDispatchTable[(*it)->fOpcode]; }
-             
+            #define dispatch_first() {  (*it)->write(&std::cout); goto *fDispatchTable[(*it)->fOpcode]; }
+            #define dispatch() { (*it)->write(&std::cout); printf("int_stack_index = %d real_stack_index = %d\n", int_stack_index, real_stack_index);  \
+                                max_real_stack = std::max(max_real_stack, real_stack_index); max_int_stack = std::max(max_int_stack, int_stack_index); \
+                                assert(real_stack_index >= 0 && int_stack_index >= 0); \
+                                it++; goto *fDispatchTable[(*it)->fOpcode]; }
             */
+            
             #define dispatch_first() { goto *fDispatchTable[(*it)->fOpcode]; }
             #define dispatch() { it++; goto *fDispatchTable[(*it)->fOpcode]; }
+            
             
             /*
             #define dispatch_first() { printf("int_stack_index = %d real_stack_index = %d\n",int_stack_index, real_stack_index); (*it)->dump(); goto *fDispatchTable[(*it)->fOpcode]; }
@@ -158,9 +163,6 @@ class FIRInterpreter  {
             */
             
             static void* fDispatchTable[] = {
-                
-                // End operation
-                &&do_kReturn,
                 
                 // Numbers
                 &&do_kRealValue, &&do_kIntValue,
@@ -176,9 +178,6 @@ class FIRInterpreter  {
                 // Cast
                 &&do_kCastReal, &&do_kCastInt,
                 &&do_kCastRealHeap, &&do_kCastIntHeap,
-                
-                // Select/if
-                &&do_kIf,
                 
                 // Standard math
                 &&do_kAddReal, &&do_kAddInt, &&do_kSubReal, &&do_kSubInt,
@@ -281,28 +280,19 @@ class FIRInterpreter  {
                 &&do_kPowfDirectInvert,
                 
                 // Control
-                &&do_kLoop
+                &&do_kLoop,
+                &&do_kReturn,
+                
+                // Select/if
+                &&do_kIf,
+                &&do_kCondBranch
+                
             };
             
             InstructionIT it = block->fInstructions.begin();
             dispatch_first();
             
             while (true) {
-                
-                //-----
-                // End
-                //-----
-                do_kReturn:
-                {
-                    //std::cout << "do_kReturn " << addr_stack_index << std::endl;
-                    if (addr_stack_index == 0) {
-                        // End of computation
-                        break;
-                    } else {
-                        it = pop_addr();
-                        dispatch_first();
-                    }
-                }
                 
                 // Number operations
                 do_kRealValue:
@@ -416,24 +406,6 @@ class FIRInterpreter  {
                 {
                     push_int(int(fRealHeap[(*it)->fOffset1]));
                     dispatch();
-                }
-                
-                do_kIf:
-                {
-                    // Keep next instruction
-                    push_addr(it + 1);
-                    
-                    if (pop_int()) {
-                        // Execute new block
-                        it = (*it)->fBranch1->fInstructions.begin();
-                        // Int value (SelectInt), Real value (SelectFloat), or no value (If)
-                    } else {
-                        // Execute new block
-                        it = (*it)->fBranch2->fInstructions.begin();
-                        // Int value (SelectInt), Real value (SelectFloat), or no value (If)
-                    }
-                    
-                    dispatch_first();
                 }
                 
                 //------------------------------------------
@@ -1728,37 +1700,79 @@ class FIRInterpreter  {
                 // Control
                 //---------
                 
+                do_kReturn:
+                {
+                    if (addr_stack_index == 0) {
+                        // End of computation
+                        break;
+                    } else {
+                        it = pop_addr();
+                        dispatch_first();
+                    }
+                }
+                
+                do_kIf:
+                {
+                    // Keep next instruction
+                    push_addr(it + 1);
+                    
+                    if (pop_int()) {
+                        // Execute new block
+                        it = (*it)->fBranch1->fInstructions.begin();
+                        // Int value (SelectInt), Real value (SelectFloat), or no value (If)
+                    } else {
+                        // Execute new block
+                        it = (*it)->fBranch2->fInstructions.begin();
+                        // Int value (SelectInt), Real value (SelectFloat), or no value (If)
+                    }
+                    
+                    dispatch_first();
+                }
+                
+                do_kCondBranch:
+                {
+                    if (pop_int()) {
+                        // Branch on given block
+                        it = (*it)->fBranch1->fInstructions.begin();
+                        dispatch_first();
+                        // Int value (SelectInt), Real value (SelectFloat), or no value (If)
+                    } else {
+                        // Just continue
+                        dispatch();
+                    }
+                }
+                
                 do_kLoop:
                 {
-                    ExecuteLoopBlock((*it)->fBranch1, (*it)->fOffset1, (*it)->fIntValue);
-                    dispatch();
+                    // Keep next instruction
+                    push_addr(it + 1);
+                    
+                    // And start look block
+                    it = (*it)->fBranch1->fInstructions.begin();
+                    dispatch_first();
                 }
             }
-            
         
             //printf("END real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
             assert(real_stack_index == 0 && int_stack_index == 0);
+        }
+    
+        inline void ExecuteComputeBlock(FIRBlockInstruction<T>* block, int count)
+        {
+            // Set 'count' at the appropriate location in HEAP
+            fIntHeap[fCountOffset] = count;
             
-            //printf("STACK_END int stack = %d real stack = %d\n", max_int_stack, max_real_stack);
+            //std::cout << "ExecuteComputeBlock " <<  fCountOffset << " " << count << std::endl;
+            //block->write(&std::cout);
+            
+            // Then start the loop
+            ExecuteBlock(block);
         }
     
-        void ExecuteLoopBlock(FIRBlockInstruction<T>* block, int count)
-        {
-            // 2 first compiled instructions are not needed
-            FIRBasicInstruction<T>* loop = block->fInstructions[2];
-            ExecuteLoopBlock(loop->fBranch1, loop->fOffset1, count);
-        }
-    
-        inline void ExecuteLoopBlock(FIRBlockInstruction<T>* block, int loop_offset, int loop_count)
-        {
-            for (fIntHeap[loop_offset] = 0; fIntHeap[loop_offset] < loop_count; fIntHeap[loop_offset]++) {
-                ExecuteBlock(block);
-            }
-        }
     
     public:
     
-        FIRInterpreter(int int_heap_size, int real_heap_size, int sr_offset)
+        FIRInterpreter(int int_heap_size, int real_heap_size, int sr_offset, int count_offset)
         {
             printf("FIRInterpreter : int_heap_size = %d real_heap_size = %d sr_offset = %d\n", int_heap_size, real_heap_size, sr_offset);
             
@@ -1766,6 +1780,7 @@ class FIRInterpreter  {
             fRealHeapSize = real_heap_size;
             fIntHeapSize = int_heap_size;
             fSROffset = sr_offset;
+            fCountOffset = count_offset;
             fRealHeap = new T[real_heap_size];
             fIntHeap = new int[int_heap_size];
             

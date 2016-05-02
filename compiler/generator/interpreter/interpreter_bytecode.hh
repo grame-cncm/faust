@@ -89,16 +89,27 @@ struct FIRBasicInstruction : public FIRInstruction {
                         fBranch1(0), fBranch2(0)
     {}
     
+    FIRBlockInstruction<T>* getBranch1()
+    {
+        //return (fOpcode != kCondBranch) ? fBranch1 : 0;
+        if (fOpcode == kCondBranch) {
+            std::cout << "Looped block" << std::endl;
+            return 0;
+        } else {
+            return fBranch1;
+        }
+    }
+    
      
     virtual ~FIRBasicInstruction()
     {
-        delete fBranch1;
+        delete getBranch1();
         delete fBranch2;
     }
     
     int size()
     {
-        int branches = std::max(((fBranch1) ? fBranch1->size() : 0), ((fBranch2) ? fBranch2->size() : 0));
+        int branches = std::max(((getBranch1()) ? fBranch1->size() : 0), ((fBranch2) ? fBranch2->size() : 0));
         return (branches > 0) ? branches : 1;
     }
     
@@ -265,14 +276,14 @@ struct FIRBasicInstruction : public FIRInstruction {
         << " offset2 " << fOffset2
         << std::endl;
         // If select/if/loop : write branches
-        if (fBranch1) fBranch1->write(out);
+        if (getBranch1()) fBranch1->write(out);
         if (fBranch2) fBranch2->write(out);
     }
     
     FIRBasicInstruction<T>* copy()
     {
         return new FIRBasicInstruction<T>(fOpcode, fIntValue, fRealValue, fOffset1, fOffset2,
-                                          ((fBranch1) ? fBranch1->copy() : 0),
+                                          ((getBranch1()) ? fBranch1->copy() : 0),
                                           ((fBranch2) ? fBranch2->copy() : 0));
     }
     
@@ -404,12 +415,19 @@ struct FIRBlockInstruction : public FIRInstruction {
         }
     }
     
-    FIRBlockInstruction<T>* copy()
+    virtual FIRBlockInstruction<T>* copy()
     {
         FIRBlockInstruction<T>* block = new FIRBlockInstruction<T>();
         InstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-            block->push((*it)->copy());
+            FIRBasicInstruction<T>* inst = *it;
+            if (inst->fOpcode == kCondBranch) {   // Special case for loops
+                FIRBasicInstruction<T>* inst_copy = (*it)->copy();
+                inst_copy->fBranch1 = block;
+                block->push(inst_copy);
+            } else {
+                block->push((*it)->copy());
+            }
         }
         return block;
     }
@@ -424,5 +442,6 @@ struct FIRBlockInstruction : public FIRInstruction {
         return size;
     }
 };
+
 
 #endif

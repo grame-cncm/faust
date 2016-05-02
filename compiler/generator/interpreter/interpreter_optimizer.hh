@@ -48,13 +48,25 @@ struct FIRInstructionOptimizer {
         
         do {
             FIRBasicInstruction<T>* inst = *cur;
-            if (inst->fOpcode == FIRInstruction::kLoop || inst->fOpcode == FIRInstruction::kIf) {
+            if (inst->fOpcode == FIRInstruction::kLoop) {
                 new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,
                                                            inst->fIntValue, inst->fRealValue,
                                                            inst->fOffset1, inst->fOffset2,
                                                            optimize_aux(inst->fBranch1, optimizer),
-                                                           optimize_aux(inst->fBranch2, optimizer)));
+                                                           0));
                 cur++;
+            } else if (inst->fOpcode == FIRInstruction::kIf) {
+                new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,
+                                                            inst->fIntValue, inst->fRealValue,
+                                                            inst->fOffset1, inst->fOffset2,
+                                                            optimize_aux(inst->fBranch1, optimizer),
+                                                            optimize_aux(inst->fBranch2, optimizer)));
+                cur++;
+            } else if (inst->fOpcode == FIRInstruction::kCondBranch) {   // Special case for loops
+                FIRBasicInstruction<T>* optimized = optimizer.rewrite(cur, next);
+                optimized->fBranch1 = new_block;
+                new_block->push(optimized);
+                cur = next;
             } else {
                 new_block->push(optimizer.rewrite(cur, next));
                 cur = next;
@@ -85,6 +97,9 @@ struct FIRInstructionCopyOptimizer : public FIRInstructionOptimizer<T>  {
     
     virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
+        std::cout << "rewrite" << std::endl;
+        (*cur)->write(&std::cout);
+        
         end = cur + 1;
         return (*cur)->copy();
     }

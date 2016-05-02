@@ -31,9 +31,6 @@ struct FIRInstruction {
 
     enum Opcode { 
     
-        // Return operation
-        kReturn = 0,
-        
         // Numbers
         kRealValue, kIntValue,
         
@@ -48,9 +45,6 @@ struct FIRInstruction {
         // Cast
         kCastReal, kCastInt,
         kCastRealHeap, kCastIntHeap,
-        
-        // Select/if
-        kIf,
         
         // Standard math
         kAddReal, kAddInt, kSubReal, kSubInt,  
@@ -152,8 +146,15 @@ struct FIRInstruction {
         kFmodfDirectInvert,
         kPowfDirectInvert,
         
+        //==========
         // Control
+        //==========
         kLoop,
+        kReturn,
+        
+        // Select/if
+        kIf,
+        kCondBranch,
         
         // User Interface 
         kOpenVerticalBox, kOpenHorizontalBox, kOpenTabBox, kCloseBox,
@@ -185,9 +186,6 @@ struct FIRInstruction {
 
 static std::string gFIRInstructionTable[] = {
     
-    // End operation
-    "kReturn",
-
     // Numbers
     "kRealValue", "kIntValue",
 
@@ -202,9 +200,6 @@ static std::string gFIRInstructionTable[] = {
     // Cast
     "kCastReal", "kCastInt",
     "kCastRealHeap", "kCastIntHeap",
-
-    // Select/if
-    "kIf",
 
     // Standard math
     "kAddReal", "kAddInt", "kSubReal", "kSubInt",  
@@ -306,9 +301,17 @@ static std::string gFIRInstructionTable[] = {
     "kFmodfDirectInvert",
     "kPowfDirectInvert",
 
+    //==========
     // Control
+    //==========
+    
     "kLoop",
-
+    "kReturn",
+    
+    // Select/if
+    "kIf",
+    "kCondBranch",
+ 
     // User Interface
     "kOpenVerticalBox", "kOpenHorizontalBox", "kOpenTabBox", "kCloseBox",
     "kAddButton", "kAddChecButton", 

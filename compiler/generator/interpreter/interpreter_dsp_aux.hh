@@ -46,6 +46,7 @@ struct EXPORT interpreter_dsp_factory {
     int fIntHeapSize;
     int fRealHeapSize;
     int fSROffset;
+    int fCountOffset;
     
     FIRUserInterfaceBlockInstruction<float>* fUserInterfaceBlock;
     FIRBlockInstruction<float>* fInitBlock;
@@ -55,7 +56,8 @@ struct EXPORT interpreter_dsp_factory {
     interpreter_dsp_factory(const std::string& name,
                             float version_num,
                             int inputs, int ouputs,
-                            int int_heap_size, int real_heap_size, int sr_offset,
+                            int int_heap_size, int real_heap_size,
+                            int sr_offset, int count_offset,
                             FIRUserInterfaceBlockInstruction<float>* interface,
                             FIRBlockInstruction<float>* init,
                             FIRBlockInstruction<float>* compute_control,
@@ -67,6 +69,7 @@ struct EXPORT interpreter_dsp_factory {
     fIntHeapSize(int_heap_size),
     fRealHeapSize(real_heap_size),
     fSROffset(sr_offset),
+    fCountOffset(count_offset),
     fUserInterfaceBlock(interface),
     fInitBlock(init),
     fComputeBlock(compute_control),
@@ -117,7 +120,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
     public:
     
         interpreter_dsp_aux(interpreter_dsp_factory* factory)
-        : FIRInterpreter<T>(factory->fIntHeapSize, factory->fRealHeapSize, factory->fSROffset)
+        : FIRInterpreter<T>(factory->fIntHeapSize, factory->fRealHeapSize, factory->fSROffset, factory->fCountOffset)
         {
             fFactory = factory;
             this->fInputs = new FAUSTFLOAT*[fFactory->fNumInputs];
@@ -158,12 +161,8 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         
         virtual void instanceInit(int samplingRate)
         {
-            //printf("instanceInit\n");
-            
             // Store samplingRate in "fSamplingFreq" variable at correct offset in fIntHeap
             this->fIntHeap[this->fSROffset] = samplingRate;
-            
-            //fFactory->fInitBlock->write();
             
             // Execute init instructions
             this->ExecuteBlock(fFactory->fInitBlock);
@@ -194,8 +193,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             this->ExecuteBlock(fFactory->fComputeBlock);
             
             // Executes the DSP loop
-            //printf("DSP\n");
-            this->ExecuteLoopBlock(fFactory->fComputeDSPBlock, count);
+            this->ExecuteComputeBlock(fFactory->fComputeDSPBlock, count);
             
             //std::cout << "sample " << outputs[0][0] << std::endl;
        }

@@ -211,6 +211,9 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
         fDeclarationInstructions->pushBackInst(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
     }
     
+    // "count" variable
+    fDeclarationInstructions->pushBackInst(InstBuilder::genDecStructVar("count", InstBuilder::genBasicTyped(Typed::kInt)));
+    
     cout << "generateGlobalDeclarations" << endl;
     generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
 
@@ -256,7 +259,17 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     
     // Bytecode optimization
     
+    /*
     cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
+    
+    FIRInstructionCopyOptimizer<float> opt0;
+    init_block = FIRInstructionOptimizer<float>::optimize(init_block, opt0);
+    compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt0);
+    compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt0);
+     */
+    
+    cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
+    
     
     // 1) optimize indexed 'heap' load/store in normal load/store
     FIRInstructionLoadStoreOptimizer<float> opt1;
@@ -290,6 +303,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     
     cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl << endl;
     
+     
     // TODO
     /*
     int int_index = 0;
@@ -327,6 +341,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
                                         gGlobal->gInterpreterVisitor->fIntHeapOffset,
                                         gGlobal->gInterpreterVisitor->fRealHeapOffset,
                                         gGlobal->gInterpreterVisitor->fSROffset,
+                                        gGlobal->gInterpreterVisitor->fCountOffset,
                                         gGlobal->gInterpreterVisitor->fUserInterfaceBlock,
                                         init_block,
                                         compute_control_block,

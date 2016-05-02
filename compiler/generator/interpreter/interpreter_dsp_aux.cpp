@@ -53,7 +53,8 @@ void interpreter_dsp_factory::write(ostream* out)
     *out << "name " << fName << endl;
     
     *out << "inputs " << fNumInputs << " outputs " << fNumOutputs << endl;
-    *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize << " sr_offset " << fSROffset << endl;
+    *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize
+         << " sr_offset " << fSROffset << " count_offset " << fCountOffset << endl;
     
     *out << "user_unterface_block" << endl;
     fUserInterfaceBlock->write(out);
@@ -112,7 +113,7 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
     
     // Read int/real heap size and sr offset
     string heap_size;
-    int int_heap_size, real_heap_size, sr_offset;
+    int int_heap_size, real_heap_size, sr_offset, count_offset;
     getline(*in, heap_size);
     
     stringstream heap_size_reader(heap_size);
@@ -122,6 +123,8 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
     heap_size_reader >> value; real_heap_size = strtol(value.c_str(), 0, 10);
     heap_size_reader >> dummy; // Read "sr_offet" token
     heap_size_reader >> value; sr_offset = strtol(value.c_str(), 0, 10);
+    heap_size_reader >> dummy; // Read "count_offset" token
+    heap_size_reader >> value; count_offset = strtol(value.c_str(), 0, 10);
     
     // Read user interface block
     getline(*in, dummy);    // Read "user_unterface_block" line
@@ -145,6 +148,7 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
                                        int_heap_size,
                                        real_heap_size,
                                        sr_offset,
+                                       count_offset,
                                        ui_block,
                                        init_block,
                                        compute_control_block,

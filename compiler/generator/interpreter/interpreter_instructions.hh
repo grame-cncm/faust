@@ -41,6 +41,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         int fRealHeapOffset;    // Offset in Real HEAP    
         int fIntHeapOffset;     // Offset in Integer HEAP
         int fSROffset;          // Kept offset in Integer HEAP for "fSamplingFreq"
+        int fCountOffset;       // Kept offset in Integer HEAP for "count"
+
         bool fCommute;
     
         map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
@@ -57,6 +59,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             fRealHeapOffset = 0;
             fIntHeapOffset = 0;
             fSROffset = 0;
+            fCountOffset = 0;
             initMathTable();
             fCommute = true;
         }
@@ -221,7 +224,9 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             } else {
                 if (inst->fType->getType() == Typed::kInt) {
                     // Keep "fSamplingFreq" offset
-                    if (inst->fAddress->getName() == "fSamplingFreq") fSROffset = fIntHeapOffset;
+                    if (inst->fAddress->getName() == "fSamplingFreq") { fSROffset = fIntHeapOffset; }
+                    // Keep "count" offset
+                    if (inst->fAddress->getName() == "count") { fCountOffset = fIntHeapOffset; }
                     fFieldTable[inst->fAddress->getName()] = make_pair(fIntHeapOffset, inst->fType->getType());
                     fIntHeapOffset++;
                 } else {
@@ -512,31 +517,36 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(SwitchInst* inst) {}
 
         // Loops
-        virtual void visit(ForLoopInst* inst) 
+        virtual void visit(ForLoopInst* inst)
         {
             // Compile loop variable declaration
             inst->fInit->accept(this);
             
-            //fCurrentBlock->write();
-           
             // Keep current block
             FIRBlockInstruction<T>* previous = fCurrentBlock;
-            
+           
             // Compile 'loop code' in a new block
             FIRBlockInstruction<T>* loop_block = new FIRBlockInstruction<T>();
             fCurrentBlock = loop_block;
+            
+            // Compile loop code
             inst->fCode->accept(this);
-            // Add kReturn in block
-            loop_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
             
-            // Prepare a dummy (= empty) block for branch 2
-            FIRBlockInstruction<T>* dummy_branch2 = new FIRBlockInstruction<T>();
-            dummy_branch2->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
-           
-            // Push Loop instruction
-            pair<int, Typed::VarType> tmp = fFieldTable[inst->getVariableName()];
-            previous->push(new FIRBasicInstruction<T>(FIRInstruction::kLoop, inst->getVariableCount(), 0, tmp.first, 0, loop_block, dummy_branch2));
+            // Compile increment
+            inst->fIncrement->accept(this);
             
+            // Compile test
+            inst->fEnd->accept(this);
+            
+            // Add branch that moves back on loop block itself
+            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCondBranch, 0, 0, 0, 0, loop_block, 0));
+              
+            // Finally add 'return'
+            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
+                                
+            // Add the loop block in previous
+            previous->push(new FIRBasicInstruction<T>(FIRInstruction::kLoop, 0, 0, 0, 0, loop_block, 0));
+                                
             // Restore current block
             fCurrentBlock = previous;
         }
