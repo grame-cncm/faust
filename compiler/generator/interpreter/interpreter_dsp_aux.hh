@@ -166,7 +166,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             //fFactory->fInitBlock->write();
             
             // Execute init instructions
-            this->ExecuteBlockVoid(fFactory->fInitBlock);
+            this->ExecuteBlock(fFactory->fInitBlock);
          }
         
         virtual void init(int samplingFreq) 
@@ -191,7 +191,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             }
             
             // Executes the 'control' block
-            this->ExecuteBlockVoid(fFactory->fComputeBlock);
+            this->ExecuteBlock(fFactory->fComputeBlock);
             
             // Executes the DSP loop
             //printf("DSP\n");

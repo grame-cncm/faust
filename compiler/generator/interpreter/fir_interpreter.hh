@@ -128,7 +128,7 @@ class FIRInterpreter  {
             }
         }
     
-        inline void ExecuteBlock(FIRBlockInstruction<T>* block, int& res_int, T& res_real, int get_result)
+        inline void ExecuteBlock(FIRBlockInstruction<T>* block)
         {
             int real_stack_index = 0;
             int int_stack_index = 0;
@@ -1735,21 +1735,7 @@ class FIRInterpreter  {
                 }
             }
             
-            switch (get_result) {
-                    
-                case 0:
-                    break;
-                    
-                case 1:
-                    res_int = pop_int();
-                    break;
-                    
-                case 2:
-                    res_real = pop_real();
-                    break;
-                    
-            }
-            
+        
             //printf("END real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
             assert(real_stack_index == 0 && int_stack_index == 0);
             
@@ -1766,31 +1752,8 @@ class FIRInterpreter  {
         inline void ExecuteLoopBlock(FIRBlockInstruction<T>* block, int loop_offset, int loop_count)
         {
             for (fIntHeap[loop_offset] = 0; fIntHeap[loop_offset] < loop_count; fIntHeap[loop_offset]++) {
-                ExecuteBlockVoid(block);
+                ExecuteBlock(block);
             }
-        }
-
-        inline int ExecuteBlockInt(FIRBlockInstruction<T>* block)
-        {
-            int res_int;
-            T dummy_res_real;
-            ExecuteBlock(block, res_int, dummy_res_real, 1);
-            return res_int;
-        }
-    
-        inline T ExecuteBlockReal(FIRBlockInstruction<T>* block)
-        {
-            int dummy_res_int;
-            T res_real;
-            ExecuteBlock(block, dummy_res_int, res_real, 2);
-            return res_real;
-        }
-    
-        inline void ExecuteBlockVoid(FIRBlockInstruction<T>* block)
-        {
-            int dummy_res_int;
-            T dummy_res_real;
-            ExecuteBlock(block, dummy_res_int, dummy_res_real, 0);
         }
     
     public:
