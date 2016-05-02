@@ -250,11 +250,7 @@ FIRBasicInstruction<float>* interpreter_dsp_factory::readCodeInstruction(std::is
     FIRBlockInstruction<float>* branch2 = 0;
     
     // Possibly read sub-blocks
-    if (opcode == FIRInstruction::kSelectInt ||
-        opcode == FIRInstruction::kSelectReal ||
-        opcode == FIRInstruction::kIf ||
-        opcode == FIRInstruction::kLoop) {
-        
+    if (opcode == FIRInstruction::kIf || opcode == FIRInstruction::kLoop) {
         branch1 = readCodeBlock(in);  // consume 'in'
         branch2 = readCodeBlock(in);  // consume 'in'
     }

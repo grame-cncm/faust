@@ -461,20 +461,18 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             FIRBlockInstruction<T>* then_block = new FIRBlockInstruction<T>();
             fCurrentBlock = then_block;
             inst->fThen->accept(this);
-            // Add kHalt in block
-            then_block->push(new FIRBasicInstruction<T>(FIRInstruction::kHalt));
+            // Add kReturn in block
+            then_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
             
             // Compile 'else' in a new block
             FIRBlockInstruction<T>* else_block = new FIRBlockInstruction<T>();
             fCurrentBlock = else_block;
             inst->fElse->accept(this);
-            // Add kHalt in block
-            else_block->push(new FIRBasicInstruction<T>(FIRInstruction::kHalt));
+            // Add kReturn in block
+            else_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
             
             // Compile 'select'
-            previous->push(new FIRBasicInstruction<T>((isIntType(res_type) ? FIRInstruction::kSelectInt : FIRInstruction::kSelectReal),
-                                                    0, 0, 0, 0,
-                                                    then_block, else_block));
+            previous->push(new FIRBasicInstruction<T>(FIRInstruction::kIf, 0, 0, 0, 0, then_block, else_block));
                                                            
             // Restore current block
             fCurrentBlock = previous;
@@ -492,8 +490,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             FIRBlockInstruction<T>* then_block = new FIRBlockInstruction<T>();
             fCurrentBlock = then_block;
             inst->fThen->accept(this);
-            // Add kHalt in block
-            then_block->push(new FIRBasicInstruction<T>(FIRInstruction::kHalt));
+            // Add kReturn in block
+            then_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
             
             // Compile 'else' in a (possibly empty) new block
             FIRBlockInstruction<T>* else_block = new FIRBlockInstruction<T>();
@@ -501,8 +499,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 fCurrentBlock = else_block;
                 inst->fElse->accept(this);
             }
-            // Add kHalt in block
-            else_block->push(new FIRBasicInstruction<T>(FIRInstruction::kHalt));
+            // Add kReturn in block
+            else_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
             
             // Compile 'if'
             previous->push(new FIRBasicInstruction<T>(FIRInstruction::kIf, 0, 0, 0, 0, then_block, else_block));
@@ -528,12 +526,12 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             FIRBlockInstruction<T>* loop_block = new FIRBlockInstruction<T>();
             fCurrentBlock = loop_block;
             inst->fCode->accept(this);
-            // Add kHalt in block
-            loop_block->push(new FIRBasicInstruction<T>(FIRInstruction::kHalt));
+            // Add kReturn in block
+            loop_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
             
             // Prepare a dummy (= empty) block for branch 2
             FIRBlockInstruction<T>* dummy_branch2 = new FIRBlockInstruction<T>();
-            dummy_branch2->push(new FIRBasicInstruction<T>(FIRInstruction::kHalt));
+            dummy_branch2->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
            
             // Push Loop instruction
             pair<int, Typed::VarType> tmp = fFieldTable[inst->getVariableName()];

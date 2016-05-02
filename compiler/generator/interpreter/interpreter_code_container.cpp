@@ -249,10 +249,10 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     //generateCompute(0);
     //generateComputeFunctions(gGlobal->gInterpreterVisitor);
     
-    // Add kHalt in blocks
-    init_block->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
-    compute_control_block->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
-    compute_dsp_block->push(new FIRBasicInstruction<float>(FIRInstruction::kHalt));
+    // Add kReturn in blocks
+    init_block->push(new FIRBasicInstruction<float>(FIRInstruction::kReturn));
+    compute_control_block->push(new FIRBasicInstruction<float>(FIRInstruction::kReturn));
+    compute_dsp_block->push(new FIRBasicInstruction<float>(FIRInstruction::kReturn));
     
     // Bytecode optimization
     

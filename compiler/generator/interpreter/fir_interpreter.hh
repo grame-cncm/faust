@@ -36,9 +36,11 @@
 
 #define push_real(val) real_stack[real_stack_index++] = val
 #define push_int(val) int_stack[int_stack_index++] = val
+#define push_addr(addr) address_stack[addr_stack_index++] = addr
 
 #define pop_real() (real_stack[--real_stack_index])
 #define pop_int() int_stack[--int_stack_index]
+#define pop_addr() address_stack[--addr_stack_index]
 
 // FIR bytecode interpreter
 template <class T>
@@ -130,9 +132,12 @@ class FIRInterpreter  {
         {
             int real_stack_index = 0;
             int int_stack_index = 0;
+            int addr_stack_index = 0;
             
             T real_stack[fRealStackSize];
             int int_stack[fIntStackSize];
+            
+            InstructionIT address_stack[32];
             
             int max_real_stack = 0;
             int max_int_stack = 0;
@@ -155,7 +160,7 @@ class FIRInterpreter  {
             static void* fDispatchTable[] = {
                 
                 // End operation
-                &&do_kHalt,
+                &&do_kReturn,
                 
                 // Numbers
                 &&do_kRealValue, &&do_kIntValue,
@@ -173,7 +178,7 @@ class FIRInterpreter  {
                 &&do_kCastRealHeap, &&do_kCastIntHeap,
                 
                 // Select/if
-                &&do_kSelectInt, &&do_kSelectReal, &&do_kIf,
+                &&do_kIf,
                 
                 // Standard math
                 &&do_kAddReal, &&do_kAddInt, &&do_kSubReal, &&do_kSubInt,
@@ -287,9 +292,16 @@ class FIRInterpreter  {
                 //-----
                 // End
                 //-----
-                do_kHalt:
+                do_kReturn:
                 {
-                    break;
+                    //std::cout << "do_kReturn " << addr_stack_index << std::endl;
+                    if (addr_stack_index == 0) {
+                        // End of computation
+                        break;
+                    } else {
+                        it = pop_addr();
+                        dispatch_first();
+                    }
                 }
                 
                 // Number operations
@@ -406,28 +418,22 @@ class FIRInterpreter  {
                     dispatch();
                 }
                 
-                // Select/If operation
-                do_kSelectInt:
-                {
-                    int cond = pop_int();
-                    push_int(cond ? ExecuteBlockInt((*it)->fBranch1) : ExecuteBlockInt((*it)->fBranch2));
-                    dispatch();
-                }
-                
-                do_kSelectReal:
-                {
-                    push_real(pop_int() ? ExecuteBlockReal((*it)->fBranch1) : ExecuteBlockReal((*it)->fBranch2));
-                    dispatch();
-                }
-                
                 do_kIf:
                 {
+                    // Keep next instruction
+                    push_addr(it + 1);
+                    
                     if (pop_int()) {
-                        ExecuteBlockVoid((*it)->fBranch1);
+                        // Execute new block
+                        it = (*it)->fBranch1->fInstructions.begin();
+                        // Int value (SelectInt), Real value (SelectFloat), or no value (If)
                     } else {
-                        ExecuteBlockVoid((*it)->fBranch2);
+                        // Execute new block
+                        it = (*it)->fBranch2->fInstructions.begin();
+                        // Int value (SelectInt), Real value (SelectFloat), or no value (If)
                     }
-                    dispatch();
+                    
+                    dispatch_first();
                 }
                 
                 //------------------------------------------

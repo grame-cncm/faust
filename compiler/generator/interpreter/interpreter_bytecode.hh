@@ -122,27 +122,6 @@ struct FIRBasicInstruction : public FIRInstruction {
             int_index--;
         } else if (fOpcode == kStoreIndexedInt) {
             int_index -= 2;
-        } else if (fOpcode == kSelectInt) {
-            
-            // cond
-            int_index--;
-            
-            // ExecuteBlockInt
-            int branch1_int_index = 0;
-            int branch1_real_index = 0;
-            fBranch1->stackMove(branch1_int_index, branch1_real_index);
-            branch1_int_index--;
-            
-            // ExecuteBlockInt
-            int branch2_int_index = 0;
-            int branch2_real_index = 0;
-            fBranch2->stackMove(branch2_int_index, branch2_real_index);
-            branch2_int_index--;
-            
-            // Adjust indexes
-            int_index += std::max(branch1_int_index, branch2_int_index);
-            real_index += std::max(branch1_real_index, branch2_real_index);
-            
         } else if (fOpcode == kIf) {
             
             // cond
@@ -221,27 +200,6 @@ struct FIRBasicInstruction : public FIRInstruction {
             int_index--; real_index--;
         } else if (fOpcode == kStoreIndexedReal) {
             int_index--; real_index--;
-        } else if (fOpcode == kSelectReal) {
-            
-            // cond
-            int_index--;
-            
-            // ExecuteBlockReal
-            int branch1_int_index = 0;
-            int branch1_real_index = 0;
-            fBranch1->stackMove(branch1_int_index, branch1_real_index);
-            branch1_real_index--;
-            
-            // ExecuteBlockReal
-            int branch2_int_index = 0;
-            int branch2_real_index = 0;
-            fBranch2->stackMove(branch2_int_index, branch2_real_index);
-            branch2_real_index--;
-            
-            // Adjust indexes
-            int_index += std::max(branch1_int_index, branch2_int_index);
-            real_index += std::max(branch1_real_index, branch2_real_index);
-            
         } else if (fOpcode == kCastReal) {
             int_index--; real_index++;
         } else if (fOpcode == kCastRealHeap) {

@@ -31,8 +31,8 @@ struct FIRInstruction {
 
     enum Opcode { 
     
-        // End operation
-        kHalt = 0,
+        // Return operation
+        kReturn = 0,
         
         // Numbers
         kRealValue, kIntValue,
@@ -50,7 +50,7 @@ struct FIRInstruction {
         kCastRealHeap, kCastIntHeap,
         
         // Select/if
-        kSelectInt, kSelectReal, kIf,
+        kIf,
         
         // Standard math
         kAddReal, kAddInt, kSubReal, kSubInt,  
@@ -186,7 +186,7 @@ struct FIRInstruction {
 static std::string gFIRInstructionTable[] = {
     
     // End operation
-    "kHalt",
+    "kReturn",
 
     // Numbers
     "kRealValue", "kIntValue",
@@ -204,7 +204,7 @@ static std::string gFIRInstructionTable[] = {
     "kCastRealHeap", "kCastIntHeap",
 
     // Select/if
-    "kSelectInt", "kSelectReal", "kIf",
+    "kIf",
 
     // Standard math
     "kAddReal", "kAddInt", "kSubReal", "kSubInt",  

@@ -48,10 +48,7 @@ struct FIRInstructionOptimizer {
         
         do {
             FIRBasicInstruction<T>* inst = *cur;
-            if (inst->fOpcode == FIRInstruction::kLoop
-                || inst->fOpcode == FIRInstruction::kSelectInt
-                || inst->fOpcode == FIRInstruction::kSelectReal
-                || inst->fOpcode == FIRInstruction::kIf) {
+            if (inst->fOpcode == FIRInstruction::kLoop || inst->fOpcode == FIRInstruction::kIf) {
                 new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,
                                                            inst->fIntValue, inst->fRealValue,
                                                            inst->fOffset1, inst->fOffset2,
