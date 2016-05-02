@@ -167,6 +167,11 @@ bool isBoolOpcode(int o)
     return (o >= kGT && o <= kNE);
 }
 
+bool isCommutativeOpcode(int o)
+{
+    return ((o == kAdd) || (o == kMul) || (o == kEQ) || (o == kNE) || (o == kAND) || (o == kOR) || (o == kXOR));
+}
+
 bool isLogicalOpcode(int o)
 {
     return (o >= kAND && o <= kXOR);

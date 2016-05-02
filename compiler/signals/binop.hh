@@ -94,5 +94,6 @@ enum {
 
 bool isBoolOpcode(int o);
 bool isLogicalOpcode(int o);
+bool isCommutativeOpcode(int o);
 
 #endif
