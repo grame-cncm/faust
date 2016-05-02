@@ -137,7 +137,6 @@ class FIRInterpreter  {
             
             T real_stack[fRealStackSize];
             int int_stack[fIntStackSize];
-            
             InstructionIT address_stack[32];
             
             int max_real_stack = 0;
@@ -146,7 +145,7 @@ class FIRInterpreter  {
             //printf("ExecuteBlock\n");
             
             /*
-            #define dispatch_first() {  (*it)->write(&std::cout); goto *fDispatchTable[(*it)->fOpcode]; }
+            #define dispatch_first() { (*it)->write(&std::cout); goto *fDispatchTable[(*it)->fOpcode]; }
             #define dispatch() { (*it)->write(&std::cout); printf("int_stack_index = %d real_stack_index = %d\n", int_stack_index, real_stack_index);  \
                                 max_real_stack = std::max(max_real_stack, real_stack_index); max_int_stack = std::max(max_int_stack, int_stack_index); \
                                 assert(real_stack_index >= 0 && int_stack_index >= 0); \
@@ -1702,8 +1701,8 @@ class FIRInterpreter  {
                 
                 do_kReturn:
                 {
+                    // Empty addr stack = end of computation
                     if (addr_stack_index == 0) {
-                        // End of computation
                         break;
                     } else {
                         it = pop_addr();
@@ -1732,12 +1731,11 @@ class FIRInterpreter  {
                 do_kCondBranch:
                 {
                     if (pop_int()) {
-                        // Branch on given block
+                        // Branch back on 'loop' block
                         it = (*it)->fBranch1->fInstructions.begin();
                         dispatch_first();
-                        // Int value (SelectInt), Real value (SelectFloat), or no value (If)
                     } else {
-                        // Just continue
+                        // Just continue after 'loop block'
                         dispatch();
                     }
                 }
@@ -1768,7 +1766,6 @@ class FIRInterpreter  {
             // Then start the loop
             ExecuteBlock(block);
         }
-    
     
     public:
     
