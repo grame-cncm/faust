@@ -33,10 +33,8 @@
 #include "prim2.hh"
 #include "exception.hh"
 
-DAGInstructionsCompiler::DAGInstructionsCompiler(CodeContainer* container,
-                                                 bool generate_select_with_if,
-                                                 bool allow_foreign_function):
-    InstructionsCompiler(container, generate_select_with_if, allow_foreign_function)
+DAGInstructionsCompiler::DAGInstructionsCompiler(CodeContainer* container)
+:InstructionsCompiler(container)
 {}
 
 void DAGInstructionsCompiler::compileMultiSignal(Tree L)

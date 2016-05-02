@@ -998,9 +998,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         } else {
             // To trigger 'sig.dot' generation
             if (gGlobal->gVectorSwitch) {
-                comp = new DAGInstructionsCompiler(container, true, true);
+                comp = new DAGInstructionsCompiler(container);
             } else {
-                comp = new InstructionsCompiler(container, true, true);
+                comp = new InstructionsCompiler(container);
             }
             comp->prepare(signals);
         }
@@ -1009,11 +1009,13 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     } else if (gGlobal->gOutputLang == "llvm") {
    
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+        
+        gGlobal->gAllowForeignFunction = false; // No foreign functions
 
         if (gGlobal->gVectorSwitch) {
-            comp = new DAGInstructionsCompiler(container, true, false); // No foreign functions
+            comp = new DAGInstructionsCompiler(container);
         } else {
-            comp = new InstructionsCompiler(container, true, false);    // No foreign functions
+            comp = new InstructionsCompiler(container);
         }
 
         if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
@@ -1049,11 +1051,15 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     } else if (gGlobal->gOutputLang == "interp") {
     
         container = InterpreterCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+        
+        gGlobal->gAllowForeignFunction = false; // No foreign functions
+        gGlobal->gGenerateSelectWithIf = false; // No 'select with if',
+        gGlobal->gComputeIOA = true;            // Ensure IOTA base fixed delays are computed once
        
         if (gGlobal->gVectorSwitch) {
-            comp = new DAGInstructionsCompiler(container, false, false); // No 'select with if', no foreign functions
+            comp = new DAGInstructionsCompiler(container);
         } else {
-            comp = new InstructionsCompiler(container, false, false);    // No 'select with if', no foreign functions
+            comp = new InstructionsCompiler(container);
         }
 
         if (gGlobal->gPrintXMLSwitch) comp->setDescription(new Description());
@@ -1118,9 +1124,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, true);
 
             if (gGlobal->gVectorSwitch) {
-                comp = new DAGInstructionsCompiler(container, true, true);
+                comp = new DAGInstructionsCompiler(container);
             } else {
-                comp = new InstructionsCompiler(container, true, true);
+                comp = new InstructionsCompiler(container);
             }
 
             comp->compileMultiSignal(signals);
@@ -1132,10 +1138,13 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             error << "ERROR : cannot find compiler for " << "\"" << gGlobal->gOutputLang  << "\"" << endl;
             throw faustexception(error.str());
         }
+        
+        gGlobal->gAllowForeignFunction = (gGlobal->gOutputLang != "ajs" && gGlobal->gOutputLang != "js");
+        
         if (gGlobal->gVectorSwitch) {
-            comp = new DAGInstructionsCompiler(container, true, true);
+            comp = new DAGInstructionsCompiler(container);
         } else {
-            comp = new InstructionsCompiler(container, true, (gGlobal->gOutputLang != "ajs" && gGlobal->gOutputLang != "js"));
+            comp = new InstructionsCompiler(container);
         }
 
         if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());

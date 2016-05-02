@@ -129,6 +129,11 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     
     gStringResult = 0;
     
+    // Backend configuration : default values
+    gGenerateSelectWithIf = true;
+    gAllowForeignFunction  = true;
+    gComputeIOA = false;
+    
     gLstDependenciesSwitch	= true; ///< mdoc listing management.
     gLstMdocTagsSwitch		= true; ///< mdoc listing management.
     gLstDistributedSwitch	= true; ///< mdoc listing management.

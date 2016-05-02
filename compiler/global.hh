@@ -135,6 +135,11 @@ struct global {
     bool			gDSPStruct;
 
     string			gClassName;
+    
+    // Backend configuration
+    bool            gGenerateSelectWithIf;
+    bool            gAllowForeignFunction;
+    bool            gComputeIOA;
 
     // LLVM backend
     LLVMResult*     gLLVMResult;

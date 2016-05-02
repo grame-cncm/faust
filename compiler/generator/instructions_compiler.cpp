@@ -56,9 +56,9 @@ static inline ValueInst* promote2int(int type, ValueInst* val) { return (type ==
 static inline ValueInst* cast2real(int type, ValueInst* val) { return (type == kReal) ? InstBuilder::genCastNumFloatInst(val) : val; }
 static inline ValueInst* cast2int(int type, ValueInst* val) { return (type == kInt) ? InstBuilder::genCastNumIntInst(val) : val; }
 
-InstructionsCompiler::InstructionsCompiler(CodeContainer* container, bool generate_select_with_if, bool allow_foreign_function)
+InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
             :fContainer(container), fSharingKey(NULL), fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", ""))), gGlobal->nil)), 
-            fDescription(0), fLoadedIota(false), fGenerateSelectWithIf(generate_select_with_if), fAllowForeignFunction(allow_foreign_function)
+            fDescription(0), fLoadedIota(false)
 {}
 
 /*****************************************************************************
@@ -277,7 +277,7 @@ CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree s
 	::Type t = getCertifiedSigType(sig);
 
 	CodeContainer* container = fContainer->createScalarContainer(name, t->nature());
-    InstructionsCompiler C(container, fGenerateSelectWithIf, fAllowForeignFunction);
+    InstructionsCompiler C(container);
     C.compileSingleSignal(sig);
     return container;
 }
@@ -604,9 +604,8 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
 	} else {
 		// Long delay : we use a ring buffer of size 2^x
 		int N = pow2limit(mxd + 1);
-
         FIRIndex value2 = (FIRIndex(InstBuilder::genLoadStructVar("IOTA")) - CS(delay)) & InstBuilder::genIntNumInst(N - 1);
-        return InstBuilder::genLoadArrayStructVar(vname,  value2);
+        return InstBuilder::genLoadArrayStructVar(vname, value2);
     }
 }
 
@@ -691,7 +690,7 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 	fContainer->addLibrary(fflibfile(ff));
     string funname = ffname(ff);
     
-    if (!fAllowForeignFunction) {
+    if (!gGlobal->gAllowForeignFunction) {
         stringstream error;
         error << "ERROR : calling foreign function '"<< funname  << "'" << " is not allowed in this compilation mode!" << endl;
         throw faustexception(error.str());
@@ -989,7 +988,7 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
         v2 = promote2real(t2, v2);
     }
     
-    if (fGenerateSelectWithIf && (type->variability() == kSamp) && (!dynamic_cast<SimpleValueInst*>(v1) || !dynamic_cast<SimpleValueInst*>(v2))) {
+    if (gGlobal->gGenerateSelectWithIf && (type->variability() == kSamp) && (!dynamic_cast<SimpleValueInst*>(v1) || !dynamic_cast<SimpleValueInst*>(v2))) {
         return generateSelect2WithIf(sig, (((t1 == kReal) || (t2 == kReal)) ? itfloat() : Typed::kInt), cond, v1, v2);
     } else {
         return generateSelect2WithSelect(sig, cond, v1, v2);
@@ -1400,8 +1399,18 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
         pushInitMethod(generateInitArray(vname, ctype, N));
 
         // Generate table use
-        FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) & InstBuilder::genIntNumInst(N - 1);
-        pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, value2, exp));
+        if (gGlobal->gComputeIOA) {  // Ensure IOTA base fixed delays are computed once
+            if (fIOTATable.find(N) == fIOTATable.end()) {
+                string iota_name = subst("i$0", gGlobal->getFreshID("IOTA_temp"));
+                FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) & InstBuilder::genIntNumInst(N - 1);
+                pushComputeDSPMethod(InstBuilder::genDecStackVar(iota_name, InstBuilder::genBasicTyped(Typed::kInt), value2));
+                fIOTATable[N] = iota_name;
+            }
+            pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genLoadStackVar(fIOTATable[N]), exp));
+        } else {
+            FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) & InstBuilder::genIntNumInst(N - 1);
+            pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, value2, exp));
+        }
     }
 
     return exp;
