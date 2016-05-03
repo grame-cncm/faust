@@ -80,7 +80,7 @@ class PowPrim : public xtended
         it++;
         IntNumInst* arg1 = dynamic_cast<IntNumInst*>(*it);
 
-        if ((types[1]->nature() == kInt) && (types[1]->variability() == kKonst) && (types[1]->computability() == kComp) && arg1 && gGlobal->gOutputLang != "interp") {
+        if ((types[1]->nature() == kInt) && (types[1]->variability() == kKonst) && (types[1]->computability() == kComp) && arg1 && (gGlobal->gOutputLang != "interp")) {
 
             arg_types[0] = (types[0]->nature() == kInt) ? Typed::kInt : itfloat();
             arg_types[1] = Typed::kInt;

@@ -33,7 +33,7 @@ using namespace std;
 Interpretor : 
  
  - multiple unneeded cast are eliminated in CastNumInst
- - 'faustpower' recoded as pow(x,y)
+ - 'faustpower' recoded as pow(x,y) in powprim.hh
 
 */
 
@@ -160,6 +160,13 @@ InterpreterScalarCodeContainer::~InterpreterScalarCodeContainer()
 
 void InterpreterCodeContainer::produceInternal()
 {
+    /*
+    //cout << "generateGlobalDeclarations" << endl;
+    generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
+    
+    //cout << "generateDeclarations" << endl;
+    generateDeclarations(gGlobal->gInterpreterVisitor);
+    */
     
 }
 
@@ -199,12 +206,6 @@ FIRBlockInstruction<float>* InterpreterCodeContainer::testOptimizer(FIRBlockInst
 interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
 {
     //cout << "InterpreterCodeContainer::produceModuleFloat() " << fNumInputs << " " << fNumOutputs << endl;
-    
-    /*
-    for (int i = 0; i < (int)FIRInstruction::kDeclare; i++) {
-        std::cout << gFIRInstructionTable[i] << std::endl;
-    }
-    */
     
     // Add "fSamplingFreq" variable at offset 0 in HEAP
     if (!fGeneratedSR) {
@@ -266,7 +267,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     init_block = FIRInstructionOptimizer<float>::optimize(init_block, opt0);
     compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt0);
     compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt0);
-     */
+    */
     
     //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
     

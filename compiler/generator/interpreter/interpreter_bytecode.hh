@@ -99,7 +99,7 @@ struct FIRBasicInstruction : public FIRInstruction {
             return fBranch1;
         }
     }
-     
+    
     virtual ~FIRBasicInstruction()
     {
         delete getBranch1();

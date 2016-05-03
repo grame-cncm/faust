@@ -1717,10 +1717,12 @@ class FIRInterpreter  {
                     
                     if (pop_int()) {
                         // Execute new block
+                        assert((*it)->fBranch1);
                         it = (*it)->fBranch1->fInstructions.begin();
                         // Int value (SelectInt), Real value (SelectFloat), or no value (If)
                     } else {
                         // Execute new block
+                        assert((*it)->fBranch2);
                         it = (*it)->fBranch2->fInstructions.begin();
                         // Int value (SelectInt), Real value (SelectFloat), or no value (If)
                     }
@@ -1732,6 +1734,7 @@ class FIRInterpreter  {
                 {
                     if (pop_int()) {
                         // Branch back on 'loop' block
+                        assert((*it)->fBranch1);
                         it = (*it)->fBranch1->fInstructions.begin();
                         dispatch_first();
                     } else {
@@ -1746,6 +1749,7 @@ class FIRInterpreter  {
                     push_addr(it + 1);
                     
                     // And start look block
+                    assert((*it)->fBranch1);
                     it = (*it)->fBranch1->fInstructions.begin();
                     dispatch_first();
                 }
@@ -1759,7 +1763,12 @@ class FIRInterpreter  {
     
         FIRInterpreter(int int_heap_size, int real_heap_size, int sr_offset, int count_offset)
         {
-            printf("FIRInterpreter : int_heap_size = %d real_heap_size = %d sr_offset = %d\n", int_heap_size, real_heap_size, sr_offset);
+            std::cout << "FIRInterpreter :"
+                    << " int_heap_size " << int_heap_size
+                    << " real_heap_size "  << real_heap_size
+                    << " sr_offset "  << sr_offset
+                    << " count_offset "  << count_offset << std::endl;
+            
             
             // HEAP
             fRealHeapSize = real_heap_size;

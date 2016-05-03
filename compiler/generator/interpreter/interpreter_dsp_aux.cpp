@@ -48,7 +48,6 @@ static inline string unquote(const string& str)
     return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
 }
 
-
 #ifdef LOADER
 static string path_to_content(const string& path)
 {

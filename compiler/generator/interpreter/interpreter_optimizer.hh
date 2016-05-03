@@ -43,6 +43,8 @@ struct FIRInstructionOptimizer {
     // Return an optimized block by traversing it (including sub-blocks) with an 'optimizer'
     static FIRBlockInstruction<T>* optimize_aux(FIRBlockInstruction<T>* cur_block, FIRInstructionOptimizer<T>& optimizer)
     {
+        assert(cur_block);
+        
         FIRBlockInstruction<T>* new_block = new FIRBlockInstruction<T>();
         InstructionIT next, cur = cur_block->fInstructions.begin();
         
@@ -97,9 +99,6 @@ struct FIRInstructionCopyOptimizer : public FIRInstructionOptimizer<T>  {
     
     virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
-        std::cout << "rewrite" << std::endl;
-        (*cur)->write(&std::cout);
-        
         end = cur + 1;
         return (*cur)->copy();
     }

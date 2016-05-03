@@ -454,7 +454,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(Select2Inst* inst)
         {
             fTypingVisitor.visit(inst);
-            Typed::VarType res_type = fTypingVisitor.fCurType;
             
             // Compile condition
             inst->fCond->accept(this);
@@ -500,10 +499,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             
             // Compile 'else' in a (possibly empty) new block
             FIRBlockInstruction<T>* else_block = new FIRBlockInstruction<T>();
-            if (inst->fElse->fCode.size() > 0) {
-                fCurrentBlock = else_block;
-                inst->fElse->accept(this);
-            }
+            fCurrentBlock = else_block;
+            inst->fElse->accept(this);
             // Add kReturn in block
             else_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
             
