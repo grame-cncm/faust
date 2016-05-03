@@ -25,9 +25,14 @@
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
-#include "export.hh"
 #include "fir_interpreter.hh"
-#include "smartpointer.h"
+//#include "smartpointer.h"
+
+#ifdef _WIN32
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT __attribute__ ((visibility("default")))
+#endif
 
 #define INTERP_VERSION 0.5
 

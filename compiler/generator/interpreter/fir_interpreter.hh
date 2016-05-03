@@ -1754,7 +1754,7 @@ class FIRInterpreter  {
             //printf("END real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
             assert(real_stack_index == 0 && int_stack_index == 0);
         }
-        
+    
     public:
     
         FIRInterpreter(int int_heap_size, int real_heap_size, int sr_offset, int count_offset)

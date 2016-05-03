@@ -27,7 +27,10 @@
 #include <stdlib.h>
 
 #include "interpreter_dsp_aux.hh"
+
+#ifndef LOADER
 #include "libfaust.h"
+#endif
 
 using namespace std;
 
@@ -44,6 +47,29 @@ static inline string unquote(const string& str)
 {
     return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
 }
+
+
+#ifdef LOADER
+static string path_to_content(const string& path)
+{
+    ifstream file(path.c_str(), ifstream::binary);
+    
+    file.seekg(0, file.end);
+    int size = file.tellg();
+    file.seekg(0, file.beg);
+    
+    // And allocate buffer to that a single line can be read...
+    char* buffer = new char[size + 1];
+    file.read(buffer, size);
+    
+    // Terminate the string
+    buffer[size] = 0;
+    string result = buffer;
+    file.close();
+    delete [] buffer;
+    return result;
+}
+#endif
 
 void interpreter_dsp_factory::write(ostream* out)
 {
@@ -80,7 +106,7 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
     
     // Read "version" line
     string version;
-    int version_num;
+    float version_num;
     getline(*in, version);
     
     stringstream version_reader(version);
@@ -88,7 +114,7 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
     version_reader >> value; version_num = strtof(value.c_str(), 0);
     
     if (INTERP_VERSION != version_num) {
-        cerr << "File interpreter number : " << version_num << "different from compiled one : " << INTERP_VERSION << endl;
+        cerr << "File interpreter number : " << version_num << " different from compiled one : " << INTERP_VERSION << endl;
         return 0;
     }
     
@@ -225,7 +251,11 @@ FIRBlockInstruction<float>* interpreter_dsp_factory::readCodeBlock(istream* in)
     for (int i = 0; i < size; i++) {
         getline(*in, line);
         stringstream inst_line_reader(line);
-        code_block->push(readCodeInstruction(&inst_line_reader, in));
+        FIRBasicInstruction<float>* inst = readCodeInstruction(&inst_line_reader, in);
+        if (inst->fOpcode == FIRInstruction::kCondBranch) {   // Special case for loops
+            inst->fBranch1 = code_block;
+        }
+        code_block->push(inst);
     }
     
     return code_block;
@@ -254,9 +284,11 @@ FIRBasicInstruction<float>* interpreter_dsp_factory::readCodeInstruction(std::is
     FIRBlockInstruction<float>* branch2 = 0;
     
     // Possibly read sub-blocks
-    if (opcode == FIRInstruction::kIf || opcode == FIRInstruction::kLoop) {
+    if (opcode == FIRInstruction::kIf) {
         branch1 = readCodeBlock(in);  // consume 'in'
         branch2 = readCodeBlock(in);  // consume 'in'
+    } else if (opcode == FIRInstruction::kLoop) {
+        branch1 = readCodeBlock(in);  // consume 'in'
     }
     
     return new FIRBasicInstruction<float>(opcode, val_int, val_real, offset1, offset2, branch1, branch2);
@@ -292,10 +324,13 @@ EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const stri
                                                                     int argc, const char* argv[], 
                                                                     string& error_msg)
 {
+#ifdef LOADER
+   return 0;
+#else
     int argc1 = argc + 3;
     const char* argv1[32];
     char error_msg_aux[512];
-
+    
     argv1[0] = "faust";
     argv1[1] = "-lang";
     argv1[2] = "interp";
@@ -304,12 +339,13 @@ EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const stri
     }
     
     interpreter_dsp_factory* factory = compile_faust_interpreter(argc1, argv1,
-                                                                name_app.c_str(), 
-                                                                dsp_content.c_str(), 
-                                                                error_msg_aux);
+                                                                 name_app.c_str(),
+                                                                 dsp_content.c_str(),
+                                                                 error_msg_aux);
     error_msg = error_msg_aux;
     return factory;
-}   
+#endif
+}
 
 EXPORT bool deleteDSPInterpreterFactory(interpreter_dsp_factory* factory)
 {

@@ -92,7 +92,7 @@ struct FIRInstructionCopyOptimizer : public FIRInstructionOptimizer<T>  {
     
     FIRInstructionCopyOptimizer()
     {
-        std::cout << "FIRInstructionCopyOptimizer" << std::endl;
+        //std::cout << "FIRInstructionCopyOptimizer" << std::endl;
     }
     
     virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
@@ -112,7 +112,7 @@ struct FIRInstructionCastOptimizer : public FIRInstructionOptimizer<T>  {
     
     FIRInstructionCastOptimizer()
     {
-        std::cout << "FIRInstructionCastOptimizer" << std::endl;
+        //std::cout << "FIRInstructionCastOptimizer" << std::endl;
     }
     
     virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
@@ -140,7 +140,7 @@ struct FIRInstructionLoadStoreOptimizer : public FIRInstructionOptimizer<T> {
     
     FIRInstructionLoadStoreOptimizer()
     {
-        std::cout << "FIRInstructionLoadStoreOptimizer" << std::endl;
+        //std::cout << "FIRInstructionLoadStoreOptimizer" << std::endl;
     }
     
     FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
@@ -174,7 +174,7 @@ struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
     
     FIRInstructionMoveOptimizer()
     {
-        std::cout << "FIRInstructionMoveOptimizer" << std::endl;
+        //std::cout << "FIRInstructionMoveOptimizer" << std::endl;
     }
     
     FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
@@ -202,7 +202,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
     
     FIRInstructionMathOptimizer()
     {
-        std::cout << "FIRInstructionMathOptimizer" << std::endl;
+        //std::cout << "FIRInstructionMathOptimizer" << std::endl;
     }
     
     FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)

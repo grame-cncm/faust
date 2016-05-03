@@ -198,7 +198,7 @@ FIRBlockInstruction<float>* InterpreterCodeContainer::testOptimizer(FIRBlockInst
 
 interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
 {
-    cout << "InterpreterCodeContainer::produceModuleFloat() " << fNumInputs << " " << fNumOutputs << endl;
+    //cout << "InterpreterCodeContainer::produceModuleFloat() " << fNumInputs << " " << fNumOutputs << endl;
     
     /*
     for (int i = 0; i < (int)FIRInstruction::kDeclare; i++) {
@@ -214,36 +214,36 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     // "count" variable
     fDeclarationInstructions->pushBackInst(InstBuilder::genDecStructVar("count", InstBuilder::genBasicTyped(Typed::kInt)));
     
-    cout << "generateGlobalDeclarations" << endl;
+    //cout << "generateGlobalDeclarations" << endl;
     generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
 
-    cout << "generateDeclarations" << endl;
+    //cout << "generateDeclarations" << endl;
     generateDeclarations(gGlobal->gInterpreterVisitor);
     
     //generateAllocate(gGlobal->gInterpreterVisitor);
     //generateDestroy(gGlobal->gInterpreterVisitor);
     
-    cout << "generateStaticInit" << endl;
+    //cout << "generateStaticInit" << endl;
     generateStaticInit(gGlobal->gInterpreterVisitor);
     
-    cout << "generateInit" << endl;
+    //cout << "generateInit" << endl;
     generateInit(gGlobal->gInterpreterVisitor);
     
     FIRBlockInstruction<float>* init_block = gGlobal->gInterpreterVisitor->fCurrentBlock;
     gGlobal->gInterpreterVisitor->fCurrentBlock = new FIRBlockInstruction<float>();
     
-    cout << "generateUserInterface" << endl;
+    //cout << "generateUserInterface" << endl;
     generateUserInterface(gGlobal->gInterpreterVisitor);
     
     // Generates local variables declaration and setup
-    cout << "generateComputeBlock" << endl;
+    //cout << "generateComputeBlock" << endl;
     generateComputeBlock(gGlobal->gInterpreterVisitor);
     
     FIRBlockInstruction<float>* compute_control_block = gGlobal->gInterpreterVisitor->fCurrentBlock;
     gGlobal->gInterpreterVisitor->fCurrentBlock = new FIRBlockInstruction<float>();
 
     // Generates one single scalar loop
-    cout << "generateScalarLoop" << endl;
+    //cout << "generateScalarLoop" << endl;
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     
     loop->accept(gGlobal->gInterpreterVisitor);
@@ -268,7 +268,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt0);
      */
     
-    cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
+    //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
     
     
     // 1) optimize indexed 'heap' load/store in normal load/store
@@ -277,7 +277,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt1);
     compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt1);
     
-    cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
+    //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
     
     // 2) then pptimize simple 'heap' load/store in move
     FIRInstructionMoveOptimizer<float> opt2;
@@ -285,7 +285,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt2);
     compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt2);
     
-    cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
+    //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
     
     // 3) optimize 'cast' in heap cast
     FIRInstructionCastOptimizer<float> opt3;
@@ -293,7 +293,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt3);
     compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt3);
  
-    cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
+    //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
     
     // 4) them optimize 'heap' and 'direct' math operations
     FIRInstructionMathOptimizer<float> opt4;
@@ -301,7 +301,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt4);
     compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt4);
     
-    cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl << endl;
+    //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl << endl;
     
      
     // TODO

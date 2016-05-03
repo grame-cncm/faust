@@ -93,13 +93,12 @@ struct FIRBasicInstruction : public FIRInstruction {
     {
         //return (fOpcode != kCondBranch) ? fBranch1 : 0;
         if (fOpcode == kCondBranch) {
-            std::cout << "Looped block" << std::endl;
+            //std::cout << "Looped block" << std::endl;
             return 0;
         } else {
             return fBranch1;
         }
     }
-    
      
     virtual ~FIRBasicInstruction()
     {
