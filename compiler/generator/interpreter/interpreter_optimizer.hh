@@ -168,7 +168,7 @@ struct FIRInstructionLoadStoreOptimizer : public FIRInstructionOptimizer<T> {
     
 };
 
-// Rewrite heap Load/Store as Move
+// Rewrite heap Load/Store as Move or direct Value store
 template <class T>
 struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
     
@@ -182,12 +182,21 @@ struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
         FIRBasicInstruction<T>* inst1 = *cur;
         FIRBasicInstruction<T>* inst2 = *(cur + 1);
         
+        // Optimize Heap Load/Store as Move
         if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kStoreReal) {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::kMoveReal, 0, 0, inst2->fOffset1, inst1->fOffset1);   // reverse order
         } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kStoreInt) {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::kMoveInt, 0, 0, inst2->fOffset1, inst1->fOffset1);    // reverse order
+        // Optimize Value Load/Store as Value Store
+        } else if (inst1->fOpcode == FIRInstruction::kRealValue && inst2->fOpcode == FIRInstruction::kStoreReal) {
+            end = cur + 2;
+            return new FIRBasicInstruction<T>(FIRInstruction::kStoreRealValue, 0, inst1->fRealValue, inst2->fOffset1, 0);
+        } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kStoreInt) {
+            end = cur + 2;
+            return new FIRBasicInstruction<T>(FIRInstruction::kStoreIntValue, inst1->fIntValue, 0, inst2->fOffset1, 0);
+         
         } else {
             end = cur + 1;
             return (*cur)->copy();

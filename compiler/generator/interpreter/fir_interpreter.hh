@@ -158,6 +158,7 @@ class FIRInterpreter  {
                 // Memory
                 &&do_kLoadReal, &&do_kLoadInt,
                 &&do_kStoreReal, &&do_kStoreInt,
+                &&do_kStoreRealValue, &&do_kStoreIntValue,
                 &&do_kLoadIndexedReal, &&do_kLoadIndexedInt,
                 &&do_kStoreIndexedReal, &&do_kStoreIndexedInt,
                 &&do_kMoveReal, &&do_kMoveInt,
@@ -330,7 +331,20 @@ class FIRInterpreter  {
                     fIntHeap[(*it)->fOffset1] = pop_int();
                     dispatch();
                 }
-                    
+                
+                // Directly store a value
+                do_kStoreRealValue:
+                {
+                    fRealHeap[(*it)->fOffset1] = (*it)->fRealValue;
+                    dispatch();
+                }
+                
+                do_kStoreIntValue:
+                {
+                    fIntHeap[(*it)->fOffset1] = (*it)->fIntValue;
+                    dispatch();
+                }
+                
                 do_kLoadIndexedReal:
                 {
                     push_real(fRealHeap[(*it)->fOffset1 + pop_int()]);
