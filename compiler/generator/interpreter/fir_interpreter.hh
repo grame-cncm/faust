@@ -131,17 +131,6 @@ class FIRInterpreter  {
     
         inline void ExecuteBlock(FIRBlockInstruction<T>* block)
         {
-            int real_stack_index = 0;
-            int int_stack_index = 0;
-            int addr_stack_index = 0;
-            
-            T real_stack[fRealStackSize];
-            int int_stack[fIntStackSize];
-            InstructionIT address_stack[32];
-            
-            int max_real_stack = 0;
-            int max_int_stack = 0;
-            
             //printf("ExecuteBlock\n");
             
             /*
@@ -287,6 +276,17 @@ class FIRInterpreter  {
                 &&do_kCondBranch
                 
             };
+            
+            int real_stack_index = 0;
+            int int_stack_index = 0;
+            int addr_stack_index = 0;
+            
+            T real_stack[fRealStackSize];
+            int int_stack[fIntStackSize];
+            InstructionIT address_stack[32];
+            
+            int max_real_stack = 0;
+            int max_int_stack = 0;
             
             InstructionIT it = block->fInstructions.begin();
             dispatch_first();
@@ -1756,6 +1756,8 @@ class FIRInterpreter  {
             }
         
             //printf("END real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
+            
+            // Check stack coherency
             assert(real_stack_index == 0 && int_stack_index == 0);
         }
     

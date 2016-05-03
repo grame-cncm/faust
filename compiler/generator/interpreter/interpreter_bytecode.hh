@@ -268,15 +268,16 @@ struct FIRBasicInstruction : public FIRInstruction {
     
     void write(std::ostream* out)
     {
-        *out << "opcode " << fOpcode << " " << gFIRInstructionTable[fOpcode]
-        << " int " << fIntValue
-        << " real " << fRealValue
-        << " offset1 " << fOffset1
-        << " offset2 " << fOffset2
-        << std::endl;
+        *out << "opcode " << fOpcode << " "
+            << gFIRInstructionTable[fOpcode]
+            << " int " << fIntValue
+            << " real " << fRealValue
+            << " offset1 " << fOffset1
+            << " offset2 " << fOffset2
+            << std::endl;
         // If select/if/loop : write branches
-        if (getBranch1()) fBranch1->write(out);
-        if (fBranch2) fBranch2->write(out);
+        if (getBranch1()) { fBranch1->write(out); }
+        if (fBranch2) { fBranch2->write(out); }
     }
     
     FIRBasicInstruction<T>* copy()
@@ -305,7 +306,8 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
                                 const std::string& label,
                                 const std::string& key,
                                 const std::string& value, T init, T min, T max, T step)
-        :fOpcode(opcode), fOffset(offset), fLabel(label), fKey(key), fValue(value), fInit(init), fMin(min), fMax(max), fStep(step)
+        :fOpcode(opcode), fOffset(offset), fLabel(label), fKey(key),
+        fValue(value), fInit(init), fMin(min), fMax(max), fStep(step)
     {}
     
     FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label, T init, T min, T max, T step)
@@ -338,9 +340,11 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
     void write(std::ostream* out)
     {
         *out << "opcode " << fOpcode << " " << gFIRInstructionTable[fOpcode]
-        << " offset " << fOffset
-        << " label " << replaceChar1(fLabel, ' ', '_') << " key " << replaceChar1(fKey, ' ', '_') << " value " << replaceChar1(fValue, ' ', '_')
-        << " init " << fInit << " min " << fMin << " max " << fMax << " step " << fStep << std::endl;
+            << " offset " << fOffset
+            << " label " << replaceChar1(fLabel, ' ', '_')
+            << " key " << replaceChar1(fKey, ' ', '_')
+            << " value " << replaceChar1(fValue, ' ', '_')
+            << " init " << fInit << " min " << fMin << " max " << fMax << " step " << fStep << std::endl;
     }
     
 };

@@ -131,8 +131,10 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
     getline(*in, ins_outs);
     
     stringstream in_out_reader(ins_outs);
+    
     in_out_reader >> dummy; // Read "inputs" token
     in_out_reader >> value; inputs = strtol(value.c_str(), 0, 10);
+    
     in_out_reader >> dummy; // Read "outputs" token
     in_out_reader >> value; outputs = strtol(value.c_str(), 0, 10);
     
@@ -142,12 +144,16 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
     getline(*in, heap_size);
     
     stringstream heap_size_reader(heap_size);
+    
     heap_size_reader >> dummy; // Read "int_heap_size" token
     heap_size_reader >> value; int_heap_size = strtol(value.c_str(), 0, 10);
+    
     heap_size_reader >> dummy; // Read "real_heap_size" token
     heap_size_reader >> value; real_heap_size = strtol(value.c_str(), 0, 10);
+    
     heap_size_reader >> dummy; // Read "sr_offet" token
     heap_size_reader >> value; sr_offset = strtol(value.c_str(), 0, 10);
+    
     heap_size_reader >> dummy; // Read "count_offset" token
     heap_size_reader >> value; count_offset = strtol(value.c_str(), 0, 10);
     
@@ -212,21 +218,29 @@ FIRUserInterfaceInstruction<float>* interpreter_dsp_factory::readUIInstruction(s
     
     *inst >> dummy;  // Read "opcode" token
     *inst >> value; opcode = FIRBlockInstruction<float>::Opcode(strtol(value.c_str(), 0, 10));
-    *inst >> dummy;  // Read opcode representation
+    *inst >> dummy;  // Read opcode string representation (that is not used)
+    
     *inst >> dummy;  // Read "offset" token
     *inst >> value; offset = strtol(value.c_str(), 0, 10);
-    *inst >> dummy;  // Read "label"
-    *inst >> label;
+    
+    *inst >> dummy;  // Read "label" token
+    *inst >> label;  // Read "label" content
+    
     *inst >> dummy;  // Read "key" token
-    *inst >> key;
+    *inst >> key;    // Read "key" content
+    
     *inst >> dummy;  // Read "value" token
-    *inst >> val;
+    *inst >> val;    // Read "value" conent
+    
     *inst >> dummy;  // Read "init" token
     *inst >> value; init = strtof(value.c_str(), 0);
+    
     *inst >> dummy;  // Read "min" token
     *inst >> value; min = strtof(value.c_str(), 0);
+    
     *inst >> dummy;  // Read "max" token
     *inst >> value; max = strtof(value.c_str(), 0);
+    
     *inst >> dummy;  // Read "step" token
     *inst >> value; step = strtof(value.c_str(), 0);
 
@@ -269,13 +283,18 @@ FIRBasicInstruction<float>* interpreter_dsp_factory::readCodeInstruction(std::is
     
     *inst >> dummy;  // Read "opcode" token
     *inst >> value; opcode = FIRBlockInstruction<float>::Opcode(strtol(value.c_str(), 0, 10));
-    *inst >> dummy;  // Read opcode representation
+    
+    *inst >> dummy;  // Read opcode string representation (that is not used)
+    
     *inst >> dummy;  // Read "int" token
     *inst >> value; val_int = strtol(value.c_str(), 0, 10);
+    
     *inst >> dummy;  // Read "real" token
     *inst >> value; val_real = strtof(value.c_str(), 0);
+    
     *inst >> dummy;  // Read "offset1" token
     *inst >> value; offset1 = strtol(value.c_str(), 0, 10);
+    
     *inst >> dummy;  // Read "offset2" token
     *inst >> value; offset2 = strtol(value.c_str(), 0, 10);
     
