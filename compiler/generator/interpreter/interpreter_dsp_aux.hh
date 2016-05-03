@@ -192,8 +192,11 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             // Executes the 'control' block
             this->ExecuteBlock(fFactory->fComputeBlock);
             
-            // Executes the DSP loop
-            this->ExecuteComputeBlock(fFactory->fComputeDSPBlock, count);
+            // Set 'count' at the appropriate location in HEAP
+            this->fIntHeap[this->fCountOffset] = count;
+            
+            // Executes the 'DSP' block
+            this->ExecuteBlock(fFactory->fComputeDSPBlock);
             
             //std::cout << "sample " << outputs[0][0] << std::endl;
        }
