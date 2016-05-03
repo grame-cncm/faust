@@ -73,7 +73,7 @@ static string path_to_content(const string& path)
 void interpreter_dsp_factory::write(ostream* out)
 {
     *out << "interpreter_dsp_factory" << endl;
-    *out << "version " << INTERP_VERSION << endl;
+    *out << "version " << INTERP_FILE_VERSION << endl;
     
     *out << "name " << fName << endl;
     
@@ -112,8 +112,8 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
     version_reader >> dummy;   // Read "version" token
     version_reader >> value; version_num = strtof(value.c_str(), 0);
     
-    if (INTERP_VERSION != version_num) {
-        cerr << "File interpreter number : " << version_num << " different from compiled one : " << INTERP_VERSION << endl;
+    if (INTERP_FILE_VERSION != version_num) {
+        cerr << "Interpreter file format version '" << version_num << "' different from compiled one '" << INTERP_FILE_VERSION << "'" << endl;
         return 0;
     }
     
@@ -301,7 +301,10 @@ interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
 }
 
 EXPORT interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const string& sha_key)
-{}
+{
+    // TODO
+    return 0;
+}
 
 EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const string& filename, 
                                                                   int argc, const char* argv[], 
@@ -314,7 +317,7 @@ EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const string
         return createDSPInterpreterFactoryFromString(base.substr(0, pos), path_to_content(filename), argc, argv, error_msg);
     } else {
         error_msg = "File Extension is not the one expected (.dsp expected)";
-        return NULL;
+        return 0;
     } 
 }
 
@@ -355,10 +358,16 @@ EXPORT bool deleteDSPInterpreterFactory(interpreter_dsp_factory* factory)
 EXPORT vector<string> getDSPInterpreterFactoryLibraryList(interpreter_dsp_factory* factory)
 {
     // TODO
+    vector<string> res;
+    return res;
 }
 
 EXPORT vector<string> getAllDSPInterpreterFactories()
-{}
+{
+    // TODO
+    vector<string> res;
+    return res;
+}
 
 EXPORT void deleteAllDSPInterpreterFactories()
 {}
@@ -388,8 +397,16 @@ EXPORT string writeDSPInterpreterFactoryToMachine(interpreter_dsp_factory* facto
 
 EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachineFile(const string& machine_code_path)
 {
-    ifstream reader(machine_code_path);
-    return interpreter_dsp_factory::read(&reader);
+    string base = basename((char*)machine_code_path.c_str());
+    size_t pos = machine_code_path.find(".fbc");
+    
+    if (pos != string::npos) {
+        ifstream reader(machine_code_path);
+        return interpreter_dsp_factory::read(&reader);
+    } else {
+        std::cerr << "File Extension is not the one expected (.fbc expected)" << std::endl;
+        return 0;
+    }
 }
 
 EXPORT void writeDSPInterpreterFactoryToMachineFile(interpreter_dsp_factory* factory, const string& machine_code_path)

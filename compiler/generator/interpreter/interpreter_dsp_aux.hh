@@ -34,8 +34,6 @@
 #define EXPORT __attribute__ ((visibility("default")))
 #endif
 
-#define INTERP_VERSION 0.5
-
 class interpreter_dsp;
 
 struct EXPORT interpreter_dsp_factory {

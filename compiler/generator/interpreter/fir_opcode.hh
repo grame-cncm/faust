@@ -321,4 +321,6 @@ static std::string gFIRInstructionTable[] = {
 
 };
 
+#define INTERP_FILE_VERSION 0.5
+
 #endif

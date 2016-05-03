@@ -337,7 +337,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     */
     
     return new interpreter_dsp_factory(fKlassName,
-                                        INTERP_VERSION,
+                                        INTERP_FILE_VERSION,
                                         fNumInputs, fNumOutputs,
                                         gGlobal->gInterpreterVisitor->fIntHeapOffset,
                                         gGlobal->gInterpreterVisitor->fRealHeapOffset,
