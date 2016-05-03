@@ -65,13 +65,11 @@ struct FIRInstructionOptimizer {
                                                             optimize_aux(inst->fBranch1, optimizer),
                                                             optimize_aux(inst->fBranch2, optimizer)));
                 cur++;
-            } else if (inst->fOpcode == FIRInstruction::kCondBranch) {   // Special case for loops
-                FIRBasicInstruction<T>* optimized = optimizer.rewrite(cur, next);
-                optimized->fBranch1 = new_block;
-                new_block->push(optimized);
-                cur = next;
             } else {
-                new_block->push(optimizer.rewrite(cur, next));
+                FIRBasicInstruction<T>* optimized = optimizer.rewrite(cur, next);
+                // Special case for loops
+                if (inst->fOpcode == FIRInstruction::kCondBranch) { optimized->fBranch1 = new_block; }
+                new_block->push(optimized);
                 cur = next;
             }
         } while (cur != cur_block->fInstructions.end());

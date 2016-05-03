@@ -423,14 +423,12 @@ struct FIRBlockInstruction : public FIRInstruction {
         FIRBlockInstruction<T>* block = new FIRBlockInstruction<T>();
         InstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-            FIRBasicInstruction<T>* inst = *it;
-            if (inst->fOpcode == kCondBranch) {   // Special case for loops
-                FIRBasicInstruction<T>* inst_copy = (*it)->copy();
+            FIRBasicInstruction<T>* inst_copy = (*it)->copy();
+            if ((*it)->fOpcode == kCondBranch) {   // Special case for loops
                 inst_copy->fBranch1 = block;
-                block->push(inst_copy);
-            } else {
-                block->push((*it)->copy());
             }
+            block->push(inst_copy);
+            
         }
         return block;
     }

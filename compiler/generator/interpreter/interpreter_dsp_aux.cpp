@@ -266,9 +266,8 @@ FIRBlockInstruction<float>* interpreter_dsp_factory::readCodeBlock(istream* in)
         getline(*in, line);
         stringstream inst_line_reader(line);
         FIRBasicInstruction<float>* inst = readCodeInstruction(&inst_line_reader, in);
-        if (inst->fOpcode == FIRInstruction::kCondBranch) {   // Special case for loops
-            inst->fBranch1 = code_block;
-        }
+        // Special case for loops
+        if (inst->fOpcode == FIRInstruction::kCondBranch) {inst->fBranch1 = code_block; }
         code_block->push(inst);
     }
     
