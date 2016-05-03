@@ -255,11 +255,23 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             //std::cout << "kLoadReal/kLoadInt binary op ==> Stack version " << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Stack[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
+        // kRealValue binary op ==> Stack/Value version
+        } else if ((inst1->fOpcode == FIRInstruction::kRealValue) && FIRInstruction::isMath(inst2->fOpcode)) {
+            //std::cout << "kRealValue binary op ==> Stack/Value version " << gFIRInstructionTable[inst2->fOpcode] << endl;
+            end = cur + 2;
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2StackValue[inst2->fOpcode], 0, inst1->fRealValue);
+        // kIntValue binary op ==> Stack/Value version
+        } else if ((inst1->fOpcode == FIRInstruction::kIntValue) && FIRInstruction::isMath(inst2->fOpcode)) {
+            //std::cout << "kIntValue binary op ==> Stack/Value version " << gFIRInstructionTable[inst2->fOpcode] << endl;
+            end = cur + 2;
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2StackValue[inst2->fOpcode], inst1->fIntValue, 0);
         // kLoadReal unary  ==> Heap version
         } else if (inst1->fOpcode == FIRInstruction::kLoadReal && FIRInstruction::isExtendedUnaryMath(inst2->fOpcode)) {
             //std::cout << "kLoadReal unary ==> Heap version " << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2Heap[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
+            
+        // TODO : heap, stack, stack/value vefrsions of extended math
         } else {
             end = cur + 1;
             return (*cur)->copy();

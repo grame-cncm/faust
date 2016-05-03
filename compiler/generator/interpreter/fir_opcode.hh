@@ -74,6 +74,15 @@ struct FIRInstruction {
         kLERealStack, kEQRealStack, kNERealStack,
         kANDIntStack, kORIntStack, kXORIntStack,
         
+        // Standard math (stack/value version)
+        kAddRealStackValue, kAddIntStackValue, kSubRealStackValue, kSubIntStackValue,
+        kMultRealStackValue, kMultIntStackValue, kDivRealStackValue, kDivIntStackValue,
+        kRemRealStackValue, kRemIntStackValue, kLshIntStackValue, kRshIntStackValue, kGTIntStackValue,
+        kLTIntStackValue, kGEIntStackValue, kLEIntStackValue, kEQIntStackValue, kNEIntStackValue,
+        kGTRealStackValue, kLTRealStackValue, kGERealStackValue,
+        kLERealStackValue, kEQRealStackValue, kNERealStackValue,
+        kANDIntStackValue, kORIntStackValue, kXORIntStackValue,
+        
         // Standard math (Value version)
         kAddRealValue, kAddIntValue, kSubRealValue, kSubIntValue,
         kMultRealValue, kMultIntValue, kDivRealValue, kDivIntValue,
@@ -171,6 +180,7 @@ struct FIRInstruction {
     
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Heap;
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Stack;
+    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2StackValue;
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Value;
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2ValueInvert;
     
@@ -229,6 +239,15 @@ static std::string gFIRInstructionTable[] = {
     "kGTRealStack", "kLTRealStack", "kGERealStack",
     "kLERealStack", "kEQRealStack", "kNERealStack",
     "kANDIntStack", "kORIntStack", "kXORIntStack",
+    
+    // Standard math (stack/value version)
+    "kAddRealStackValue", "kAddIntStackValue", "kSubRealStackValue", "kSubIntStackValue",
+    "kMultRealStackValue", "kMultIntStackValue", "kDivRealStackValue", "kDivIntStackValue",
+    "kRemRealStackValue", "kRemIntStackValue", "kLshIntStackValue", "kRshIntStackValue", "kGTIntStackValue",
+    "kLTIntStackValue", "kGEIntStackValue", "kLEIntStackValue", "kEQIntStackValue", "kNEIntStackValue",
+    "kGTRealStackValue", "kLTRealStackValue", "kGERealStackValue",
+    "kLERealStackValue", "kEQRealStackValue", "kNERealStackValue",
+    "kANDIntStackValue", "kORIntStackValue", "kXORIntStackValue",
     
     // Standard math (Value version) : non commutative operations
     "kAddRealValue", "kAddIntValue", "kSubRealValue", "kSubIntValue",

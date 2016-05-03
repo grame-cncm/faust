@@ -36,6 +36,7 @@ using namespace std;
 
 map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Heap;
 map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Stack;
+map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2StackValue;
 map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Value;
 map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2ValueInvert;
 

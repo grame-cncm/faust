@@ -194,6 +194,15 @@ class FIRInterpreter  {
                 &&do_kGTRealStack, &&do_kLTRealStack, &&do_kGERealStack,
                 &&do_kLERealStack, &&do_kEQRealStack, &&do_kNERealStack,
                 &&do_kANDIntStack, &&do_kORIntStack, &&do_kXORIntStack,
+                
+                // Standard math (stack/value version)
+                &&do_kAddRealStackValue, &&do_kAddIntStackValue, &&do_kSubRealStackValue, &&do_kSubIntStackValue,
+                &&do_kMultRealStackValue, &&do_kMultIntStackValue, &&do_kDivRealStackValue, &&do_kDivIntStackValue,
+                &&do_kRemRealStackValue, &&do_kRemIntStackValue, &&do_kLshIntStackValue, &&do_kRshIntStackValue, &&do_kGTIntStackValue,
+                &&do_kLTIntStackValue, &&do_kGEIntStackValue, &&do_kLEIntStackValue, &&do_kEQIntStackValue, &&do_kNEIntStackValue,
+                &&do_kGTRealStackValue, &&do_kLTRealStackValue, &&do_kGERealStackValue,
+                &&do_kLERealStackValue, &&do_kEQRealStackValue, &&do_kNERealStackValue,
+                &&do_kANDIntStackValue, &&do_kORIntStackValue, &&do_kXORIntStackValue,
     
                 // Standard math (Value version)
                 &&do_kAddRealValue, &&do_kAddIntValue, &&do_kSubRealValue, &&do_kSubIntValue,
@@ -421,9 +430,9 @@ class FIRInterpreter  {
                     dispatch();
                 }
                 
-                //------------------------------------------
-                // Standard math operations : stack version
-                //------------------------------------------
+                //-------------------------------------------------------
+                // Standard math operations : 'stack' OP 'stack' version
+                //-------------------------------------------------------
                 
                 do_kAddReal:
                 {
@@ -645,9 +654,9 @@ class FIRInterpreter  {
                     dispatch();
                 }
                 
-                //-----------------------------------------
-                // Standard math operations : heap version
-                //-----------------------------------------
+                //-----------------------------------------------------
+                // Standard math operations : 'heap' OP 'heap' version
+                //-----------------------------------------------------
                 
                 do_kAddRealHeap:
                 {
@@ -817,9 +826,9 @@ class FIRInterpreter  {
                     dispatch();
                 }
                 
-                //-----------------------------------------
-                // Standard math operations : stack version
-                //-----------------------------------------
+                //------------------------------------------------------
+                // Standard math operations : 'stack' OP 'heap' version
+                //------------------------------------------------------
                 
                 do_kAddRealStack:
                 {
@@ -1015,9 +1024,207 @@ class FIRInterpreter  {
                     dispatch();
                 }
                 
-                //-------------------------------------------
-                // Standard math operations : Value version
-                //-------------------------------------------
+                //-----------------------------------------------------
+                // Standard math operations : 'stack' OP 'value' version
+                //-----------------------------------------------------
+                
+                do_kAddRealStackValue:
+                {
+                    T v1 = pop_real();
+                    push_real((*it)->fRealValue + v1);
+                    dispatch();
+                }
+                
+                do_kAddIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue + v1);
+                    dispatch();
+                }
+                
+                do_kSubRealStackValue:
+                {
+                    T v1 = pop_real();
+                    push_real((*it)->fRealValue - v1);
+                    dispatch();
+                }
+                
+                do_kSubIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue - v1);
+                    dispatch();
+                }
+                
+                do_kMultRealStackValue:
+                {
+                    T v1 = pop_real();
+                    push_real((*it)->fRealValue * v1);
+                    dispatch();
+                }
+                
+                do_kMultIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue * v1);
+                    dispatch();
+                }
+                
+                do_kDivRealStackValue:
+                {
+                    T v1 = pop_real();
+                    push_real((*it)->fRealValue / v1);
+                    dispatch();
+                }
+                
+                do_kDivIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue / v1);
+                    dispatch();
+                }
+                
+                do_kRemRealStackValue:
+                {
+                    //    T v1 = pop_real();
+                    //    T v2 = pop_real();
+                    //    push_real(v1 % v2);
+                    //    dispatch();
+                }
+                
+                do_kRemIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue % v1);
+                    dispatch();
+                }
+                
+                // Shift operation
+                do_kLshIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue << v1);
+                    dispatch();
+                }
+                
+                do_kRshIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue >> v1);
+                    dispatch();
+                }
+                
+                // Comparaison Int
+                do_kGTIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue > v1);
+                    dispatch();
+                }
+                
+                do_kLTIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue < v1);
+                    dispatch();
+                }
+                
+                do_kGEIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue >= v1);
+                    dispatch();
+                }
+                
+                do_kLEIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue <= v1);
+                    dispatch();
+                }
+                
+                do_kEQIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue == v1);
+                    dispatch();
+                }
+                
+                do_kNEIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue != v1);
+                    dispatch();
+                }
+                
+                // Comparaison Real
+                do_kGTRealStackValue:
+                {
+                    T v1 = pop_real();
+                    push_int((*it)->fRealValue > v1);
+                    dispatch();
+                }
+                
+                do_kLTRealStackValue:
+                {
+                    T v1 = pop_real();
+                    push_int((*it)->fRealValue < v1);
+                    dispatch();
+                }
+                
+                do_kGERealStackValue:
+                {
+                    T v1 = pop_real();
+                    push_int((*it)->fRealValue >= v1);
+                    dispatch();
+                }
+                
+                do_kLERealStackValue:
+                {
+                    T v1 = pop_real();
+                    push_int((*it)->fRealValue <= v1);
+                    dispatch();
+                }
+                
+                do_kEQRealStackValue:
+                {
+                    T v1 = pop_real();
+                    push_int((*it)->fRealValue == v1);
+                    dispatch();
+                }
+                
+                do_kNERealStackValue:
+                {
+                    T v1 = pop_real();
+                    push_int((*it)->fRealValue != v1);
+                    dispatch();
+                }
+                
+                // Logical operations
+                do_kANDIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue & v1);
+                    dispatch();
+                }
+                
+                do_kORIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue | v1);
+                    dispatch();
+                }
+                
+                do_kXORIntStackValue:
+                {
+                    int v1 = pop_int();
+                    push_int((*it)->fIntValue ^ v1);
+                    dispatch();
+                }
+      
+                //-------------------------------------------------------
+                // Standard math operations : 'value' OP 'heap' version
+                //-------------------------------------------------------
                 
                 do_kAddRealValue:
                 {
