@@ -65,37 +65,37 @@ InterpreterCodeContainer::InterpreterCodeContainer(const string& name, int numIn
         //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
     }
     
-    // Init direct opcode
+    // Init Value opcode
     for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
-        FIRInstruction::gFIRMath2Direct[FIRInstruction::Opcode(i)]
-            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal));
-        //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal)] << std::endl;
+        FIRInstruction::gFIRMath2Value[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealValue - FIRInstruction::kAddReal));
+        //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealValue - FIRInstruction::kAddReal)] << std::endl;
     }
     
-    // Init direct opcode (non commutative operation)
+    // Init Value opcode (non commutative operation)
     for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
-        FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::Opcode(i)]
-            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal));
-        //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealDirect - FIRInstruction::kAddReal)] << std::endl;
+        FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealValue - FIRInstruction::kAddReal));
+        //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealValue - FIRInstruction::kAddReal)] << std::endl;
     }
     
     // Manually set inverted versions
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kSubReal] = FIRInstruction::kSubRealDirectInvert;
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kSubInt] = FIRInstruction::kSubIntDirectInvert;
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kDivReal] = FIRInstruction::kDivRealDirectInvert;
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kDivInt] = FIRInstruction::kDivIntDirectInvert;
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kRemReal] = FIRInstruction::kRemRealDirectInvert;
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kRemInt] = FIRInstruction::kRemIntDirectInvert;
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLshInt] = FIRInstruction::kLshIntDirectInvert;
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kRshInt] = FIRInstruction::kRshIntDirectInvert;
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kGTInt] = FIRInstruction::kGTIntDirectInvert;
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLTInt] = FIRInstruction::kLTIntDirectInvert;
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kGEInt] = FIRInstruction::kGEIntDirectInvert;
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLEInt] = FIRInstruction::kLEIntDirectInvert;
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kGTReal] = FIRInstruction::kGTRealDirectInvert;
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLTReal] = FIRInstruction::kLTRealDirectInvert;
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kGEReal] = FIRInstruction::kGERealDirectInvert;
-    FIRInstruction::gFIRMath2DirectInvert[FIRInstruction::kLEReal] = FIRInstruction::kLERealDirectInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kSubReal] = FIRInstruction::kSubRealValueInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kSubInt] = FIRInstruction::kSubIntValueInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kDivReal] = FIRInstruction::kDivRealValueInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kDivInt] = FIRInstruction::kDivIntValueInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kRemReal] = FIRInstruction::kRemRealValueInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kRemInt] = FIRInstruction::kRemIntValueInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kLshInt] = FIRInstruction::kLshIntValueInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kRshInt] = FIRInstruction::kRshIntValueInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kGTInt] = FIRInstruction::kGTIntValueInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kLTInt] = FIRInstruction::kLTIntValueInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kGEInt] = FIRInstruction::kGEIntValueInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kLEInt] = FIRInstruction::kLEIntValueInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kGTReal] = FIRInstruction::kGTRealValueInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kLTReal] = FIRInstruction::kLTRealValueInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kGEReal] = FIRInstruction::kGERealValueInvert;
+    FIRInstruction::gFIRMath2ValueInvert[FIRInstruction::kLEReal] = FIRInstruction::kLERealValueInvert;
     
     // Init unary math heap opcode
     for (int i = FIRInstruction::kAbs; i <= FIRInstruction::kMinf; i++) {
@@ -104,17 +104,17 @@ InterpreterCodeContainer::InterpreterCodeContainer(const string& name, int numIn
         //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
     }
     
-    // Init unary math direct opcode
+    // Init unary math Value opcode
     for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kMinf; i++) {
-        FIRInstruction::gFIRExtendedMath2Direct[FIRInstruction::Opcode(i)]
-            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fDirect - FIRInstruction::kAtan2f));
+        FIRInstruction::gFIRExtendedMath2Value[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fValue - FIRInstruction::kAtan2f));
         //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
     }
     
-    // Init unary math direct opcode : non commutative operations
+    // Init unary math Value opcode : non commutative operations
     for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kPowf; i++) {
-        FIRInstruction::gFIRExtendedMath2DirectInvert[FIRInstruction::Opcode(i)]
-            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fDirectInvert - FIRInstruction::kAtan2f));
+        FIRInstruction::gFIRExtendedMath2ValueInvert[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fValueInvert - FIRInstruction::kAtan2f));
         //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
     }
 }
@@ -193,7 +193,7 @@ FIRBlockInstruction<float>* InterpreterCodeContainer::testOptimizer(FIRBlockInst
     
     cout << "fComputeDSPBlock size = " << block->size() << endl;
     
-    // 4) them optimize 'heap' and 'direct' math operations
+    // 4) them optimize 'heap' and 'Value' math operations
     FIRInstructionMathOptimizer<float> opt4;
     block = FIRInstructionOptimizer<float>::optimize(block, opt4);
     
@@ -296,7 +296,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
  
     //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
     
-    // 4) them optimize 'heap' and 'direct' math operations
+    // 4) them optimize 'heap' and 'Value' math operations
     FIRInstructionMathOptimizer<float> opt4;
     init_block = FIRInstructionOptimizer<float>::optimize(init_block, opt4);
     compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt4);

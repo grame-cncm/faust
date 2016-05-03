@@ -194,24 +194,24 @@ class FIRInterpreter  {
                 &&do_kLERealStack, &&do_kEQRealStack, &&do_kNERealStack,
                 &&do_kANDIntStack, &&do_kORIntStack, &&do_kXORIntStack,
     
-                // Standard math (direct version)
-                &&do_kAddRealDirect, &&do_kAddIntDirect, &&do_kSubRealDirect, &&do_kSubIntDirect,
-                &&do_kMultRealDirect, &&do_kMultIntDirect, &&do_kDivRealDirect, &&do_kDivIntDirect,
-                &&do_kRemRealDirect, &&do_kRemIntDirect, &&do_kLshIntDirect, &&do_kRshIntDirect, &&do_kGTIntDirect,
-                &&do_kLTIntDirect, &&do_kGEIntDirect, &&do_kLEIntDirect, &&do_kEQIntDirect, &&do_kNEIntDirect,
-                &&do_kGTRealDirect, &&do_kLTRealDirect, &&do_kGERealDirect,
-                &&do_kLERealDirect, &&do_kEQRealDirect, &&do_kNERealDirect,
-                &&do_kANDIntDirect, &&do_kORIntDirect, &&do_kXORIntDirect,
+                // Standard math (Value version)
+                &&do_kAddRealValue, &&do_kAddIntValue, &&do_kSubRealValue, &&do_kSubIntValue,
+                &&do_kMultRealValue, &&do_kMultIntValue, &&do_kDivRealValue, &&do_kDivIntValue,
+                &&do_kRemRealValue, &&do_kRemIntValue, &&do_kLshIntValue, &&do_kRshIntValue, &&do_kGTIntValue,
+                &&do_kLTIntValue, &&do_kGEIntValue, &&do_kLEIntValue, &&do_kEQIntValue, &&do_kNEIntValue,
+                &&do_kGTRealValue, &&do_kLTRealValue, &&do_kGERealValue,
+                &&do_kLERealValue, &&do_kEQRealValue, &&do_kNERealValue,
+                &&do_kANDIntValue, &&do_kORIntValue, &&do_kXORIntValue,
                 
-                // Standard math (direct version) : non commutative operations
-                &&do_kSubRealDirectInvert, &&do_kSubIntDirectInvert,
-                &&do_kDivRealDirectInvert, &&do_kDivIntDirectInvert,
-                &&do_kRemRealDirectInvert, &&do_kRemIntDirectInvert,
-                &&do_kLshIntDirectInvert, &&do_kRshIntDirectInvert,
-                &&do_kGTIntDirectInvert, &&do_kLTIntDirectInvert,
-                &&do_kGEIntDirectInvert, &&do_kLEIntDirectInvert,
-                &&do_kGTRealDirectInvert, &&do_kLTRealDirectInvert,
-                &&do_kGERealDirectInvert, &&do_kLERealDirectInvert,
+                // Standard math (Value version) : non commutative operations
+                &&do_kSubRealValueInvert, &&do_kSubIntValueInvert,
+                &&do_kDivRealValueInvert, &&do_kDivIntValueInvert,
+                &&do_kRemRealValueInvert, &&do_kRemIntValueInvert,
+                &&do_kLshIntValueInvert, &&do_kRshIntValueInvert,
+                &&do_kGTIntValueInvert, &&do_kLTIntValueInvert,
+                &&do_kGEIntValueInvert, &&do_kLEIntValueInvert,
+                &&do_kGTRealValueInvert, &&do_kLTRealValueInvert,
+                &&do_kGERealValueInvert, &&do_kLERealValueInvert,
                 
                 // Extended unary math
                 &&do_kAbs, &&do_kAbsf,
@@ -255,17 +255,17 @@ class FIRInterpreter  {
                 &&do_kMaxHeap, &&do_kMaxfHeap,
                 &&do_kMinHeap, &&do_kMinfHeap,
                 
-                // Extended binary math (direct version)
-                &&do_kAtan2fDirect,
-                &&do_kFmodfDirect,
-                &&do_kPowfDirect,
-                &&do_kMaxDirect, &&do_kMaxfDirect,
-                &&do_kMinDirect, &&do_kMinfDirect,
+                // Extended binary math (Value version)
+                &&do_kAtan2fValue,
+                &&do_kFmodfValue,
+                &&do_kPowfValue,
+                &&do_kMaxValue, &&do_kMaxfValue,
+                &&do_kMinValue, &&do_kMinfValue,
                 
-                // Extended binary math (direct version) : non commutative operations
-                &&do_kAtan2fDirectInvert,
-                &&do_kFmodfDirectInvert,
-                &&do_kPowfDirectInvert,
+                // Extended binary math (Value version) : non commutative operations
+                &&do_kAtan2fValueInvert,
+                &&do_kFmodfValueInvert,
+                &&do_kPowfValueInvert,
                 
                 // Control
                 &&do_kLoop,
@@ -1002,58 +1002,58 @@ class FIRInterpreter  {
                 }
                 
                 //-------------------------------------------
-                // Standard math operations : direct version
+                // Standard math operations : Value version
                 //-------------------------------------------
                 
-                do_kAddRealDirect:
+                do_kAddRealValue:
                 {
                     push_real((*it)->fRealValue + fRealHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kAddIntDirect:
+                do_kAddIntValue:
                 {
                     push_int((*it)->fIntValue + fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kSubRealDirect:
+                do_kSubRealValue:
                 {
                     push_real((*it)->fRealValue - fRealHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kSubIntDirect:
+                do_kSubIntValue:
                 {
                     push_int((*it)->fIntValue - fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kMultRealDirect:
+                do_kMultRealValue:
                 {
                     push_real((*it)->fRealValue * fRealHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kMultIntDirect:
+                do_kMultIntValue:
                 {
                     push_int((*it)->fIntValue * fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kDivRealDirect:
+                do_kDivRealValue:
                 {
                     push_real((*it)->fRealValue / fRealHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kDivIntDirect:
+                do_kDivIntValue:
                 {
                     push_int((*it)->fIntValue / fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kRemRealDirect:
+                do_kRemRealValue:
                 {
                     //    T v1 = pop_real();
                     //    T v2 = pop_real();
@@ -1061,148 +1061,148 @@ class FIRInterpreter  {
                     //    dispatch();
                 }
                 
-                do_kRemIntDirect:
+                do_kRemIntValue:
                 {
                     push_int((*it)->fIntValue % fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
                 // Shift operation
-                do_kLshIntDirect:
+                do_kLshIntValue:
                 {
                     push_int((*it)->fIntValue << fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kRshIntDirect:
+                do_kRshIntValue:
                 {
                     push_int((*it)->fIntValue >> fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
                 // Comparaison Int
-                do_kGTIntDirect:
+                do_kGTIntValue:
                 {
                     push_int((*it)->fIntValue > fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kLTIntDirect:
+                do_kLTIntValue:
                 {
                     push_int((*it)->fIntValue < fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kGEIntDirect:
+                do_kGEIntValue:
                 {
                     push_int((*it)->fIntValue >= fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kLEIntDirect:
+                do_kLEIntValue:
                 {
                     push_int((*it)->fIntValue <= fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kEQIntDirect:
+                do_kEQIntValue:
                 {
                     push_int((*it)->fIntValue == fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kNEIntDirect:
+                do_kNEIntValue:
                 {
                     push_int((*it)->fIntValue != fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
                 // Comparaison Real
-                do_kGTRealDirect:
+                do_kGTRealValue:
                 {
                     push_int((*it)->fRealValue > fRealHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kLTRealDirect:
+                do_kLTRealValue:
                 {
                     push_int((*it)->fRealValue < fRealHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kGERealDirect:
+                do_kGERealValue:
                 {
                     push_int((*it)->fRealValue >= fRealHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kLERealDirect:
+                do_kLERealValue:
                 {
                     push_int((*it)->fRealValue <= fRealHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kEQRealDirect:
+                do_kEQRealValue:
                 {
                     push_int((*it)->fRealValue == fRealHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kNERealDirect:
+                do_kNERealValue:
                 {
                     push_int((*it)->fRealValue != fRealHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
                 // Logical operations
-                do_kANDIntDirect:
+                do_kANDIntValue:
                 {
                     push_int((*it)->fIntValue & fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kORIntDirect:
+                do_kORIntValue:
                 {
                     push_int((*it)->fIntValue | fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
-                do_kXORIntDirect:
+                do_kXORIntValue:
                 {
                     push_int((*it)->fIntValue ^ fIntHeap[(*it)->fOffset1]);
                     dispatch();
                 }
                 
                 //----------------------------------------------------
-                // Standard math operations : direct inverted version
+                // Standard math operations : Value inverted version
                 // (non commutative operations)
                 //----------------------------------------------------
                 
-                do_kSubRealDirectInvert:
+                do_kSubRealValueInvert:
                 {
                     push_real(fRealHeap[(*it)->fOffset1] - (*it)->fRealValue);
                     dispatch();
                 }
                 
-                do_kSubIntDirectInvert:
+                do_kSubIntValueInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] - (*it)->fIntValue);
                     dispatch();
                 }
                 
-                do_kDivRealDirectInvert:
+                do_kDivRealValueInvert:
                 {
                     push_real(fRealHeap[(*it)->fOffset1] / (*it)->fRealValue);
                     dispatch();
                 }
                 
-                do_kDivIntDirectInvert:
+                do_kDivIntValueInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] / (*it)->fIntValue);
                     dispatch();
                 }
                 
-                do_kRemRealDirectInvert:
+                do_kRemRealValueInvert:
                 {
                     //    T v1 = pop_real();
                     //    T v2 = pop_real();
@@ -1210,70 +1210,70 @@ class FIRInterpreter  {
                     //    dispatch();
                 }
                 
-                do_kRemIntDirectInvert:
+                do_kRemIntValueInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] % (*it)->fIntValue);
                     dispatch();
                 }
                 
                 // Shift operation
-                do_kLshIntDirectInvert:
+                do_kLshIntValueInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] << (*it)->fIntValue);
                     dispatch();
                 }
                 
-                do_kRshIntDirectInvert:
+                do_kRshIntValueInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] >> (*it)->fIntValue);
                     dispatch();
                 }
                 
                 // Comparaison Int
-                do_kGTIntDirectInvert:
+                do_kGTIntValueInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] > (*it)->fIntValue);
                     dispatch();
                 }
                 
-                do_kLTIntDirectInvert:
+                do_kLTIntValueInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] < (*it)->fIntValue);
                     dispatch();
                 }
                 
-                do_kGEIntDirectInvert:
+                do_kGEIntValueInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] >= (*it)->fIntValue);
                     dispatch();
                 }
                 
-                do_kLEIntDirectInvert:
+                do_kLEIntValueInvert:
                 {
                     push_int(fIntHeap[(*it)->fOffset1] <= (*it)->fIntValue);
                     dispatch();
                 }
                 
                 // Comparaison Real
-                do_kGTRealDirectInvert:
+                do_kGTRealValueInvert:
                 {
                     push_int(fRealHeap[(*it)->fOffset1] > (*it)->fRealValue);
                     dispatch();
                 }
                 
-                do_kLTRealDirectInvert:
+                do_kLTRealValueInvert:
                 {
                     push_int(fRealHeap[(*it)->fOffset1] < (*it)->fRealValue);
                     dispatch();
                 }
                 
-                do_kGERealDirectInvert:
+                do_kGERealValueInvert:
                 {
                     push_int(fRealHeap[(*it)->fOffset1] >= (*it)->fRealValue);
                     dispatch();
                 }
                 
-                do_kLERealDirectInvert:
+                do_kLERealValueInvert:
                 {
                     push_int(fRealHeap[(*it)->fOffset1] <= (*it)->fRealValue);
                     dispatch();
@@ -1628,68 +1628,68 @@ class FIRInterpreter  {
                 }
 
                 //-------------------------------------
-                // Extended binary math (direct version)
+                // Extended binary math (Value version)
                 //-------------------------------------
 
-                do_kAtan2fDirect:
+                do_kAtan2fValue:
                 {
                     push_real(atan2f((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
                     dispatch();
                 }
 
-                do_kFmodfDirect:
+                do_kFmodfValue:
                 {
                     push_real(fmodf((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
                     dispatch();
                 }
 
-                do_kPowfDirect:
+                do_kPowfValue:
                 {
                     push_real(powf((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
                     dispatch();
                 }
 
-                do_kMaxDirect:
+                do_kMaxValue:
                 {
                     push_int(std::max((*it)->fIntValue, fIntHeap[(*it)->fOffset1]));
                     dispatch();
                 }
 
-                do_kMaxfDirect:
+                do_kMaxfValue:
                 {
                     push_real(std::max((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
                     dispatch();
                 }
 
-                do_kMinDirect:
+                do_kMinValue:
                 {
                     push_int(std::min((*it)->fIntValue, fIntHeap[(*it)->fOffset1]));
                     dispatch();
                 }
 
-                do_kMinfDirect:
+                do_kMinfValue:
                 {
                     push_real(std::min((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
                     dispatch();
                 }
 
                 //-------------------------------------------------------------------
-                // Extended binary math (direct version) : non commutative operations
+                // Extended binary math (Value version) : non commutative operations
                 //-------------------------------------------------------------------
 
-                do_kAtan2fDirectInvert:
+                do_kAtan2fValueInvert:
                 {
                     push_real(atan2f(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
                     dispatch();
                 }
 
-                do_kFmodfDirectInvert:
+                do_kFmodfValueInvert:
                 {
                     push_real(fmodf(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
                     dispatch();
                 }
 
-                do_kPowfDirectInvert:
+                do_kPowfValueInvert:
                 {
                     push_real(powf(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
                     dispatch();

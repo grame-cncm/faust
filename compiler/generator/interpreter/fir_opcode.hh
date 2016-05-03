@@ -73,24 +73,24 @@ struct FIRInstruction {
         kLERealStack, kEQRealStack, kNERealStack,
         kANDIntStack, kORIntStack, kXORIntStack,
         
-        // Standard math (direct version)
-        kAddRealDirect, kAddIntDirect, kSubRealDirect, kSubIntDirect,
-        kMultRealDirect, kMultIntDirect, kDivRealDirect, kDivIntDirect,
-        kRemRealDirect, kRemIntDirect, kLshIntDirect, kRshIntDirect, kGTIntDirect,
-        kLTIntDirect, kGEIntDirect, kLEIntDirect, kEQIntDirect, kNEIntDirect,
-        kGTRealDirect, kLTRealDirect, kGERealDirect,
-        kLERealDirect, kEQRealDirect, kNERealDirect,
-        kANDIntDirect, kORIntDirect, kXORIntDirect,
+        // Standard math (Value version)
+        kAddRealValue, kAddIntValue, kSubRealValue, kSubIntValue,
+        kMultRealValue, kMultIntValue, kDivRealValue, kDivIntValue,
+        kRemRealValue, kRemIntValue, kLshIntValue, kRshIntValue, kGTIntValue,
+        kLTIntValue, kGEIntValue, kLEIntValue, kEQIntValue, kNEIntValue,
+        kGTRealValue, kLTRealValue, kGERealValue,
+        kLERealValue, kEQRealValue, kNERealValue,
+        kANDIntValue, kORIntValue, kXORIntValue,
         
-        // Standard math (direct version) : non commutative operations
-        kSubRealDirectInvert, kSubIntDirectInvert,
-        kDivRealDirectInvert, kDivIntDirectInvert,
-        kRemRealDirectInvert, kRemIntDirectInvert,
-        kLshIntDirectInvert, kRshIntDirectInvert,
-        kGTIntDirectInvert, kLTIntDirectInvert,
-        kGEIntDirectInvert, kLEIntDirectInvert,
-        kGTRealDirectInvert, kLTRealDirectInvert,
-        kGERealDirectInvert, kLERealDirectInvert,
+        // Standard math (Value version) : non commutative operations
+        kSubRealValueInvert, kSubIntValueInvert,
+        kDivRealValueInvert, kDivIntValueInvert,
+        kRemRealValueInvert, kRemIntValueInvert,
+        kLshIntValueInvert, kRshIntValueInvert,
+        kGTIntValueInvert, kLTIntValueInvert,
+        kGEIntValueInvert, kLEIntValueInvert,
+        kGTRealValueInvert, kLTRealValueInvert,
+        kGERealValueInvert, kLERealValueInvert,
       
         // Extended unary math
         kAbs, kAbsf,
@@ -134,17 +134,17 @@ struct FIRInstruction {
         kMaxHeap, kMaxfHeap,
         kMinHeap, kMinfHeap,
         
-        // Extended binary math (direct version)
-        kAtan2fDirect,
-        kFmodfDirect,
-        kPowfDirect,
-        kMaxDirect, kMaxfDirect,
-        kMinDirect, kMinfDirect,
+        // Extended binary math (Value version)
+        kAtan2fValue,
+        kFmodfValue,
+        kPowfValue,
+        kMaxValue, kMaxfValue,
+        kMinValue, kMinfValue,
         
-        // Extended binary math (direct version) : non commutative operations
-        kAtan2fDirectInvert,
-        kFmodfDirectInvert,
-        kPowfDirectInvert,
+        // Extended binary math (Value version) : non commutative operations
+        kAtan2fValueInvert,
+        kFmodfValueInvert,
+        kPowfValueInvert,
         
         //==========
         // Control
@@ -170,12 +170,12 @@ struct FIRInstruction {
     
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Heap;
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Stack;
-    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Direct;
-    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2DirectInvert;
+    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Value;
+    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2ValueInvert;
     
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2Heap;
-    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2Direct;
-    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2DirectInvert;
+    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2Value;
+    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2ValueInvert;
     
     static bool isMath(Opcode opt) { return opt >= kAddReal && opt <= kXORInt; }
     static bool isExtendedUnaryMath(Opcode opt) { return opt >= kAbs && opt <= kTanhf; }
@@ -228,24 +228,24 @@ static std::string gFIRInstructionTable[] = {
     "kLERealStack", "kEQRealStack", "kNERealStack",
     "kANDIntStack", "kORIntStack", "kXORIntStack",
     
-    // Standard math (direct version) : non commutative operations
-    "kAddRealDirect", "kAddIntDirect", "kSubRealDirect", "kSubIntDirect",
-    "kMultRealDirect", "kMultIntDirect", "kDivRealDirect", "kDivIntDirect",
-    "kRemRealDirect", "kRemIntDirect", "kLshIntDirect", "kRshIntDirect", "kGTIntDirect",
-    "kLTIntDirect", "kGEIntDirect", "kLEIntDirect", "kEQIntDirect", "kNEIntDirect",
-    "kGTRealDirect", "kLTRealDirect", "kGERealDirect",
-    "kLERealDirect", "kEQRealDirect", "kNERealDirect",
-    "kANDIntDirect", "kORIntDirect", "kXORIntDirect",
+    // Standard math (Value version) : non commutative operations
+    "kAddRealValue", "kAddIntValue", "kSubRealValue", "kSubIntValue",
+    "kMultRealValue", "kMultIntValue", "kDivRealValue", "kDivIntValue",
+    "kRemRealValue", "kRemIntValue", "kLshIntValue", "kRshIntValue", "kGTIntValue",
+    "kLTIntValue", "kGEIntValue", "kLEIntValue", "kEQIntValue", "kNEIntValue",
+    "kGTRealValue", "kLTRealValue", "kGERealValue",
+    "kLERealValue", "kEQRealValue", "kNERealValue",
+    "kANDIntValue", "kORIntValue", "kXORIntValue",
     
     // Non commutatives operations
-    "kSubRealDirectInvert", "kSubIntDirectInvert",
-    "kDivRealDirectInvert", "kDivIntDirectInvert",
-    "kRemRealDirectInvert", "kRemIntDirectInvert",
-    "kLshIntDirectInvert", "kRshIntDirectInvert",
-    "kGTIntDirectInvert", "kLTIntDirectInvert",
-    "kLTIntDirectInvert", "kLEIntDirectInvert",
-    "kGTRealDirectInvert", "kLTRealDirectInvert",
-    "kGERealDirectInvert", "kLERealDirectInvert",
+    "kSubRealValueInvert", "kSubIntValueInvert",
+    "kDivRealValueInvert", "kDivIntValueInvert",
+    "kRemRealValueInvert", "kRemIntValueInvert",
+    "kLshIntValueInvert", "kRshIntValueInvert",
+    "kGTIntValueInvert", "kLTIntValueInvert",
+    "kLTIntValueInvert", "kLEIntValueInvert",
+    "kGTRealValueInvert", "kLTRealValueInvert",
+    "kGERealValueInvert", "kLERealValueInvert",
     
     // Extended unary math
     "kAbs", "kAbsf",
@@ -289,17 +289,17 @@ static std::string gFIRInstructionTable[] = {
     "kMaxHeap", "kMaxfHeap",
     "kMinHeap", "kMinfHeap",
     
-    // Extended binary math (direct version)
-    "kAtan2fDirect",
-    "kFmodfDirect",
-    "kPowfDirect",
-    "kMaxDirect", "kMaxfDirect",
-    "kMinDirect", "kMinfDirect",
+    // Extended binary math (Value version)
+    "kAtan2fValue",
+    "kFmodfValue",
+    "kPowfValue",
+    "kMaxValue", "kMaxfValue",
+    "kMinValue", "kMinfValue",
     
-    // Extended binary math (direct version) : non commutative operations
-    "kAtan2fDirectInvert",
-    "kFmodfDirectInvert",
-    "kPowfDirectInvert",
+    // Extended binary math (Value version) : non commutative operations
+    "kAtan2fValueInvert",
+    "kFmodfValueInvert",
+    "kPowfValueInvert",
 
     //==========
     // Control

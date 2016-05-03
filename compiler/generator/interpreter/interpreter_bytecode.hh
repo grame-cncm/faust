@@ -173,20 +173,20 @@ struct FIRBasicInstruction : public FIRInstruction {
                 (fOpcode == kNEIntHeap) || (fOpcode == kANDIntHeap) ||
                 (fOpcode == kORIntHeap) || (fOpcode == kXORIntHeap) ||
                 
-                (fOpcode == kAddIntDirect) || (fOpcode == kSubIntDirect) ||
-                (fOpcode == kMultIntDirect) || (fOpcode == kDivIntDirect) ||
-                (fOpcode == kRemIntDirect) || (fOpcode == kLshIntDirect) ||
-                (fOpcode == kRshIntDirect) || (fOpcode == kGTIntDirect) ||
-                (fOpcode == kLTIntDirect) || (fOpcode == kGEIntDirect) ||
-                (fOpcode == kLEIntDirect) || (fOpcode == kEQIntDirect) ||
-                (fOpcode == kNEIntDirect) || (fOpcode == kANDIntDirect) ||
-                (fOpcode == kORIntDirect) || (fOpcode == kXORIntDirect) ||
+                (fOpcode == kAddIntValue) || (fOpcode == kSubIntValue) ||
+                (fOpcode == kMultIntValue) || (fOpcode == kDivIntValue) ||
+                (fOpcode == kRemIntValue) || (fOpcode == kLshIntValue) ||
+                (fOpcode == kRshIntValue) || (fOpcode == kGTIntValue) ||
+                (fOpcode == kLTIntValue) || (fOpcode == kGEIntValue) ||
+                (fOpcode == kLEIntValue) || (fOpcode == kEQIntValue) ||
+                (fOpcode == kNEIntValue) || (fOpcode == kANDIntValue) ||
+                (fOpcode == kORIntValue) || (fOpcode == kXORIntValue) ||
                 
-                (fOpcode == kSubIntDirectInvert) || (fOpcode == kDivIntDirectInvert) ||
-                (fOpcode == kRemIntDirectInvert) || (fOpcode == kLshIntDirectInvert) ||
-                (fOpcode == kRshIntDirectInvert) || (fOpcode == kGTIntDirectInvert) ||
-                (fOpcode == kLTIntDirectInvert) || (fOpcode == kGEIntDirectInvert) ||
-                (fOpcode == kLEIntDirectInvert)) {
+                (fOpcode == kSubIntValueInvert) || (fOpcode == kDivIntValueInvert) ||
+                (fOpcode == kRemIntValueInvert) || (fOpcode == kLshIntValueInvert) ||
+                (fOpcode == kRshIntValueInvert) || (fOpcode == kGTIntValueInvert) ||
+                (fOpcode == kLTIntValueInvert) || (fOpcode == kGEIntValueInvert) ||
+                (fOpcode == kLEIntValueInvert)) {
             int_index++;
         } else if (fOpcode == kLoop) {
             
@@ -230,19 +230,19 @@ struct FIRBasicInstruction : public FIRInstruction {
                    (fOpcode == kGERealHeap) || (fOpcode == kLERealHeap) ||
                    (fOpcode == kEQRealHeap) || (fOpcode == kNERealHeap)) {
             int_index++;
-        } else if ((fOpcode == kAddRealDirect) || (fOpcode == kSubRealDirect) ||
-                   (fOpcode == kMultRealDirect) || (fOpcode == kDivRealDirect) ||
-                   (fOpcode == kRemRealDirect)) {
+        } else if ((fOpcode == kAddRealValue) || (fOpcode == kSubRealValue) ||
+                   (fOpcode == kMultRealValue) || (fOpcode == kDivRealValue) ||
+                   (fOpcode == kRemRealValue)) {
             real_index++;
-        } else if ((fOpcode == kGTRealDirect) || (fOpcode == kLTRealDirect) ||
-                   (fOpcode == kGERealDirect) || (fOpcode == kLERealDirect) ||
-                   (fOpcode == kEQRealDirect) || (fOpcode == kNERealDirect)) {
+        } else if ((fOpcode == kGTRealValue) || (fOpcode == kLTRealValue) ||
+                   (fOpcode == kGERealValue) || (fOpcode == kLERealValue) ||
+                   (fOpcode == kEQRealValue) || (fOpcode == kNERealValue)) {
             int_index++;
-        } else if ((fOpcode == kSubRealDirectInvert) || (fOpcode == kDivRealDirectInvert) ||
-                   (fOpcode == kRemRealDirectInvert)) {
+        } else if ((fOpcode == kSubRealValueInvert) || (fOpcode == kDivRealValueInvert) ||
+                   (fOpcode == kRemRealValueInvert)) {
             real_index++;
-        } else if ((fOpcode == kGTRealDirectInvert) || (fOpcode == kLTRealDirectInvert) ||
-                   (fOpcode == kGERealDirectInvert) || (fOpcode == kLERealDirectInvert)) {
+        } else if ((fOpcode == kGTRealValueInvert) || (fOpcode == kLTRealValueInvert) ||
+                   (fOpcode == kGERealValueInvert) || (fOpcode == kLERealValueInvert)) {
             int_index++;
         } else if ((fOpcode == kAtan2f) || (fOpcode == kFmodf) ||
                    (fOpcode == kPowf) || (fOpcode == kMax) ||
@@ -254,13 +254,13 @@ struct FIRBasicInstruction : public FIRInstruction {
                    (fOpcode == kMaxfHeap) || (fOpcode == kMinHeap) ||
                    (fOpcode == kMinfHeap)) {
             real_index++;
-        } else if ((fOpcode == kAtan2fDirect) || (fOpcode == kFmodfDirect) ||
-                   (fOpcode == kPowfDirect) || (fOpcode == kMaxDirect) ||
-                   (fOpcode == kMaxfDirect) || (fOpcode == kMinDirect) ||
-                   (fOpcode == kMinfDirect)) {
+        } else if ((fOpcode == kAtan2fValue) || (fOpcode == kFmodfValue) ||
+                   (fOpcode == kPowfValue) || (fOpcode == kMaxValue) ||
+                   (fOpcode == kMaxfValue) || (fOpcode == kMinValue) ||
+                   (fOpcode == kMinfValue)) {
             real_index++;
-        } else if ((fOpcode == kAtan2fDirectInvert) || (fOpcode == kFmodfDirectInvert)
-                   || (fOpcode == kPowfDirectInvert)) {
+        } else if ((fOpcode == kAtan2fValueInvert) || (fOpcode == kFmodfValueInvert)
+                   || (fOpcode == kPowfValueInvert)) {
         } else {
             // No move
         }
