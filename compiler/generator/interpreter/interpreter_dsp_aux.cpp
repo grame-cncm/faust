@@ -314,10 +314,11 @@ FIRBasicInstruction<float>* interpreter_dsp_factory::readCodeInstruction(std::is
 
 // Instances
 
-interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
+interpreter_dsp_aux<float>* interpreter_dsp_factory::createDSPInstance()
 {
-    return reinterpret_cast<interpreter_dsp*>(new interpreter_dsp_aux<float>(this));
+    return new interpreter_dsp_aux<float>(this);
 }
+
 
 EXPORT interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const string& sha_key)
 {
@@ -393,12 +394,55 @@ EXPORT void deleteAllDSPInterpreterFactories()
 
 EXPORT interpreter_dsp* createDSPInterpreterInstance(interpreter_dsp_factory* factory)
 {
-    return factory->createDSPInstance();
+    return reinterpret_cast<interpreter_dsp*>(factory->createDSPInstance());
 }
 
 EXPORT void deleteDSPInterpreterInstance(interpreter_dsp* dsp)
 {
     delete reinterpret_cast<interpreter_dsp_aux<float>*>(dsp);
+}
+
+/*
+EXPORT void interpreter_dsp::metadata(Meta* m)
+{
+    reinterpret_cast<interpreter_dsp_aux*>(this)->metadata(m);
+}
+ 
+*/
+
+EXPORT int interpreter_dsp::getNumInputs()
+{
+    return reinterpret_cast<interpreter_dsp_aux<float>*>(this)->getNumInputs();
+}
+
+int EXPORT interpreter_dsp::getNumOutputs()
+{
+    return reinterpret_cast<interpreter_dsp_aux<float>*>(this)->getNumOutputs();
+}
+
+EXPORT void interpreter_dsp::init(int samplingRate)
+{
+    reinterpret_cast<interpreter_dsp_aux<float>*>(this)->init(samplingRate);
+}
+
+EXPORT void interpreter_dsp::instanceInit(int samplingRate)
+{
+    reinterpret_cast<interpreter_dsp_aux<float>*>(this)->instanceInit(samplingRate);
+}
+
+EXPORT void interpreter_dsp::buildUserInterface(UI* ui_interface)
+{
+    reinterpret_cast<interpreter_dsp_aux<float>*>(this)->buildUserInterface(ui_interface);
+}
+
+EXPORT void interpreter_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+{
+    reinterpret_cast<interpreter_dsp_aux<float>*>(this)->compute(count, input, output);
+}
+
+EXPORT interpreter_dsp* interpreter_dsp::copy()
+{
+    return reinterpret_cast<interpreter_dsp*>(reinterpret_cast<interpreter_dsp_aux<float>*>(this)->copy());
 }
 
 EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachine(const string& machine_code)
@@ -420,7 +464,8 @@ EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachineFile(const s
     size_t pos = machine_code_path.find(".fbc");
     
     if (pos != string::npos) {
-        ifstream reader(machine_code_path);
+        //ifstream reader(machine_code_path);
+        ifstream reader(machine_code_path.c_str());
         return interpreter_dsp_factory::read(&reader);
     } else {
         std::cerr << "File Extension is not the one expected (.fbc expected)" << std::endl;
@@ -430,7 +475,8 @@ EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachineFile(const s
 
 EXPORT void writeDSPInterpreterFactoryToMachineFile(interpreter_dsp_factory* factory, const string& machine_code_path)
 {
-    ofstream writer(machine_code_path);
+    //ofstream writer(machine_code_path);
+    ofstream writer(machine_code_path.c_str());
     factory->write(&writer);
 }
 

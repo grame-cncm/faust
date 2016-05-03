@@ -36,6 +36,9 @@
 
 class interpreter_dsp;
 
+template <class T>
+class interpreter_dsp_aux;
+
 struct EXPORT interpreter_dsp_factory {
     
     std::string fExpandedDSP;
@@ -97,7 +100,7 @@ struct EXPORT interpreter_dsp_factory {
     /* Return Factory expanded DSP code */
     std::string getDSPCode();
     
-    interpreter_dsp* createDSPInstance();
+    interpreter_dsp_aux<float>* createDSPInstance();
     
     void write(std::ostream* out);
     
@@ -202,8 +205,10 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             this->ExecuteBlock(fFactory->fComputeDSPBlock);
             
             //std::cout << "sample " << outputs[0][0] << std::endl;
-       }
-	
+        }
+    
+        interpreter_dsp_aux<T>* copy()  { return this->fFactory->createDSPInstance(); }
+    
 };
 
 class EXPORT interpreter_dsp : public dsp {

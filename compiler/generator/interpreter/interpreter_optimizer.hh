@@ -30,6 +30,7 @@
 #include "interpreter_bytecode.hh"
 
 // Block optimizer : compact and reorganize instructions
+
 template <class T>
 struct FIRInstructionOptimizer {
     
@@ -78,7 +79,7 @@ struct FIRInstructionOptimizer {
         return new_block;
     }
     
-    // Return an optimized new block, then delete the original one
+    // Apply an optimizer on the block, return the optimized new block, then delete the original one
     static FIRBlockInstruction<T>* optimize(FIRBlockInstruction<T>* cur_block, FIRInstructionOptimizer<T>& optimizer)
     {
         FIRBlockInstruction<T>* new_block = optimize_aux(cur_block, optimizer);

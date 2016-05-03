@@ -75,6 +75,28 @@
 
 using namespace std;
 
+static inline std::string flatten(const std::string& src)
+{
+    std::stringstream dst;
+    size_t size = src.size();
+    for (size_t i = 0; i < src.size(); i++) {
+        switch (src[i]) {
+            case '\n':
+            case '\t':
+            case '\r':
+                dst << '\\' << 'n';
+                break;
+             case '"':
+                dst << '\\' << '\"';
+                break;
+            default:
+                dst << src[i];
+                break;
+        }
+    }
+    return "\"" + dst.str() + "\"";
+}
+
 // Timing can be used outside of the scope of 'gGlobal'
 extern bool gTimingSwitch;
 
@@ -1072,7 +1094,16 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         
         if (gGlobal->gFloatSize == 1) {
             gGlobal->gInterpDSPFactoryFloat = interpreter_container->produceFactoryFloat();
+            
             gGlobal->gInterpDSPFactoryFloat->write(&cout);
+            
+            /*
+            std::stringstream dst;
+            gGlobal->gInterpDSPFactoryFloat->write(&dst);
+            std::string code = flatten(dst.str());
+            cout << code;
+            */
+            
         } else if (gGlobal->gFloatSize == 2) {
             //gGlobal->gInterpDSPDouble = interpreter_container->produceModuleDouble();
         } else if (gGlobal->gFloatSize == 3) {
