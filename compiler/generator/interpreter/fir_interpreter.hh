@@ -1656,109 +1656,109 @@ class FIRInterpreter  {
                 // Extended unary math (heap version)
                 ///------------------------------------
                 
-            do_kAbsHeap:
+                do_kAbsHeap:
                 {
                     push_int(abs(fIntHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kAbsfHeap:
+                do_kAbsfHeap:
                 {
                     push_real(fabsf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kAcosfHeap:
+                do_kAcosfHeap:
                 {
                     push_real(acosf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kAsinfHeap:
+                do_kAsinfHeap:
                 {
                     push_real(asinf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kAtanfHeap:
+                do_kAtanfHeap:
                 {
                     push_real(atanf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kCeilfHeap:
+                do_kCeilfHeap:
                 {
                     push_real(ceilf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kCosfHeap:
+                do_kCosfHeap:
                 {
                     push_real(cosf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kCoshfHeap:
+                do_kCoshfHeap:
                 {
                     push_real(coshf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kExpfHeap:
+                do_kExpfHeap:
                 {
                     push_real(expf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kFloorfHeap:
+                do_kFloorfHeap:
                 {
                     push_real(floorf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kLogfHeap:
+                do_kLogfHeap:
                 {
                     push_real(logf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kLog10fHeap:
+                do_kLog10fHeap:
                 {
                     push_real(log10f(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kRoundfHeap:
+                do_kRoundfHeap:
                 {
                     push_real(roundf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kSinfHeap:
+                do_kSinfHeap:
                 {
                     push_real(sinf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kSinhfHeap:
+                do_kSinhfHeap:
                 {
                     push_real(sinhf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kSqrtfHeap:
+                do_kSqrtfHeap:
                 {
                     push_real(sqrtf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kTanfHeap:
+                do_kTanfHeap:
                 {
                     push_real(tanf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
-            do_kTanhfHeap:
+                do_kTanhfHeap:
                 {
                     push_real(tanhf(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
@@ -1876,49 +1876,49 @@ class FIRInterpreter  {
                 // Extended binary math (stack version)
                 //-------------------------------------
                 
-            do_kAtan2fStack:
+                do_kAtan2fStack:
                 {
                     T v1 = pop_real();
                     push_real(atan2f(fRealHeap[(*it)->fOffset1], v1));
                     dispatch_next();
                 }
                 
-            do_kFmodfStack:
+                do_kFmodfStack:
                 {
                     T v1 = pop_real();
                     push_real(fmodf(fRealHeap[(*it)->fOffset1], v1));
                     dispatch_next();
                 }
                 
-            do_kPowfStack:
+                do_kPowfStack:
                 {
                     T v1 = pop_real();
                     push_real(powf(fRealHeap[(*it)->fOffset1], v1));
                     dispatch_next();
                 }
                 
-            do_kMaxStack:
+                do_kMaxStack:
                 {
                     int v1 = pop_int();
                     push_int(std::max(fIntHeap[(*it)->fOffset1], v1));
                     dispatch_next();
                 }
                 
-            do_kMaxfStack:
+                do_kMaxfStack:
                 {
                     T v1 = pop_real();
                     push_real(std::max(fRealHeap[(*it)->fOffset1], v1));
                     dispatch_next();
                 }
                 
-            do_kMinStack:
+                do_kMinStack:
                 {
                     int v1 = pop_int();
                     push_int(std::min(fIntHeap[(*it)->fOffset1], v1));
                     dispatch_next();
                 }
                 
-            do_kMinfStack:
+                do_kMinfStack:
                 {
                     T v1 = pop_real();
                     push_real(std::min(fRealHeap[(*it)->fOffset1], v1));
@@ -1929,49 +1929,49 @@ class FIRInterpreter  {
                 // Extended binary math (stack/value version)
                 //-------------------------------------
                 
-            do_kAtan2fStackValue:
+                do_kAtan2fStackValue:
                 {
                     T v1 = pop_real();
                     push_real(atan2f((*it)->fRealValue, v1));
                     dispatch_next();
                 }
                 
-            do_kFmodfStackValue:
+                do_kFmodfStackValue:
                 {
                     T v1 = pop_real();
                     push_real(fmodf((*it)->fRealValue, v1));
                     dispatch_next();
                 }
                 
-            do_kPowfStackValue:
+                do_kPowfStackValue:
                 {
                     T v1 = pop_real();
                     push_real(powf((*it)->fRealValue, v1));
                     dispatch_next();
                 }
                 
-            do_kMaxStackValue:
+                do_kMaxStackValue:
                 {
                     int v1 = pop_int();
                     push_int(std::max((*it)->fIntValue, v1));
                     dispatch_next();
                 }
                 
-            do_kMaxfStackValue:
+                do_kMaxfStackValue:
                 {
                     T v1 = pop_real();
                     push_real(std::max((*it)->fRealValue, v1));
                     dispatch_next();
                 }
                 
-            do_kMinStackValue:
+                do_kMinStackValue:
                 {
                     int v1 = pop_int();
                     push_int(std::min((*it)->fIntValue, v1));
                     dispatch_next();
                 }
                 
-            do_kMinfStackValue:
+                do_kMinfStackValue:
                 {
                     T v1 = pop_real();
                     push_real(std::min((*it)->fRealValue, v1));

@@ -155,7 +155,9 @@ InterpreterCodeContainer::InterpreterCodeContainer(const string& name, int numIn
         //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
     }
     
+    // Test
     
+    /*
     std::cout << "gFIRExtendedMath2Heap" << std::endl;
     for (int i = FIRInstruction::kAbs; i <= FIRInstruction::kTanhf; i++) {
         if (FIRInstruction::gFIRExtendedMath2Heap.find(FIRInstruction::Opcode(i)) !=  FIRInstruction::gFIRExtendedMath2Heap.end()) {
@@ -202,7 +204,7 @@ InterpreterCodeContainer::InterpreterCodeContainer(const string& name, int numIn
             << gFIRInstructionTable[FIRInstruction::gFIRExtendedMath2ValueInvert[FIRInstruction::Opcode(i)]] << std::endl;
         }
     }
-    
+    */
 }
 
 CodeContainer* InterpreterCodeContainer::createScalarContainer(const string& name, int sub_container_type)
