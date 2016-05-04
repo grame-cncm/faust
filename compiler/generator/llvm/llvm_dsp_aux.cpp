@@ -557,13 +557,6 @@ void llvm_dsp_factory::init(const string& type_name, const string& dsp_name)
     fTarget = "";
 }
 
-llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
-{
-    assert(fResult->fModule);
-    assert(fJIT);
-    return new llvm_dsp_aux(this, fNew());
-}
-
 int llvm_dsp_factory::getOptlevel()
 {
     // TODO LLVM_36
@@ -1031,11 +1024,14 @@ llvm_dsp_aux::~llvm_dsp_aux()
     }
 }
 
+/*
 llvm_dsp_aux* llvm_dsp_aux::copy()
 {
     return fDSPFactory->createDSPInstance();
 }
+*/
 
+/*
 void llvm_dsp_aux::metadata(Meta* m)
 {
     MetaGlue glue;
@@ -1047,6 +1043,7 @@ void llvm_dsp_aux::metadata(MetaGlue* m)
 {
     return fDSPFactory->fMetadata(m);
 }
+ */
 
 int llvm_dsp_aux::getNumInputs()
 {
@@ -1326,6 +1323,13 @@ EXPORT std::string llvm_dsp_factory::getSHAKey() { return fSHAKey; }
 EXPORT std::string llvm_dsp_factory::getDSPCode() { return fExpandedDSP; }
 
 EXPORT std::string llvm_dsp_factory::getTarget() { return fTarget; }
+    
+EXPORT void llvm_dsp_factory::metadata(Meta* meta)
+{
+    MetaGlue glue;
+    buildMetaGlue(&glue, meta);
+    fMetadata(&glue);
+}
 
 EXPORT std::string getDSPMachineTarget()
 {
@@ -1615,13 +1619,22 @@ EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m)
 
 // Instance
 
+    
+EXPORT dsp* llvm_dsp_factory::createDSPInstance()
+{
+    assert(fResult->fModule);
+    assert(fJIT);
+    return reinterpret_cast<dsp*>(new llvm_dsp_aux(this, fNew()));
+}
+
+    
 EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)
 {  
     TLock lock(gDSPFactoriesLock);
     
     FactoryTableIt it;
     if ((it = llvm_dsp_factory::gFactoryTable.find(factory)) != llvm_dsp_factory::gFactoryTable.end()) {
-        llvm_dsp_aux* instance = factory->createDSPInstance();
+        llvm_dsp_aux* instance = reinterpret_cast<llvm_dsp_aux*>(factory->createDSPInstance());
         (*it).second.push_back(instance);
         return reinterpret_cast<llvm_dsp*>(instance);
     } else {
@@ -1636,10 +1649,12 @@ EXPORT void deleteDSPInstance(llvm_dsp* dsp)
     }
 }
 
+    /*
 EXPORT void llvm_dsp::metadata(Meta* m)
 {
     reinterpret_cast<llvm_dsp_aux*>(this)->metadata(m);
 }
+     */
 
 EXPORT int llvm_dsp::getNumInputs()
 {
@@ -1671,10 +1686,12 @@ EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output
     reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
 }
 
+/*
 EXPORT llvm_dsp* llvm_dsp::copy()
 {
     return reinterpret_cast<llvm_dsp*>(reinterpret_cast<llvm_dsp_aux*>(this)->copy());
 }
+*/
 
 // Public C interface : lock management is done by called C++ API
 
@@ -1892,12 +1909,14 @@ EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* glue)
     }
 }
 
+/*
 EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* glue)
 {
     if (dsp) {
         reinterpret_cast<llvm_dsp_aux*>(dsp)->metadata(glue);
     }
 }
+*/
 
 EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp)
 {
@@ -1937,10 +1956,12 @@ EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FA
     }
 }
 
+/*
 EXPORT llvm_dsp* copyCDSPInstance(llvm_dsp* dsp)
 {
     return (dsp) ? reinterpret_cast<llvm_dsp*>(reinterpret_cast<llvm_dsp_aux*>(dsp)->copy()) : 0;
 }
+*/
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
 {

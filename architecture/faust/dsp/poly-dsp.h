@@ -185,19 +185,19 @@ struct voice_factory {
 
 #ifdef LLVM_DSP
 
-#include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/dsp.h"
 
-struct llvm_dsp_voice : public dsp_voice {
+struct dynamic_dsp_voice : public dsp_voice {
 
-    llvm_dsp* fVoice;
+    dsp* fVoice;
 
-    llvm_dsp_voice(llvm_dsp* dsp):dsp_voice()
+    dynamic_dsp_voice(dsp* dsp):dsp_voice()
     {
         fVoice = dsp;
         fVoice->buildUserInterface(this);
     }
     
-    virtual ~llvm_dsp_voice() { delete fVoice; }
+    virtual ~dynamic_dsp_voice() { delete fVoice; }
     
     virtual int getNumInputs() { return fVoice->getNumInputs(); }
     virtual int getNumOutputs() { return fVoice->getNumOutputs(); }
@@ -206,19 +206,23 @@ struct llvm_dsp_voice : public dsp_voice {
     virtual void instanceInit(int samplingRate) { fVoice->instanceInit(samplingRate); }
     virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice->compute(len, inputs, outputs); }
     
-    virtual void metadata(Meta* meta) { fVoice->metadata(meta); }
+    virtual void metadata(Meta* meta)
+    {
+        // TODO
+        //fVoice->metadata(meta);
+    }
     
 };
 
-struct llvm_dsp_voice_factory : public voice_factory {
+struct dynamic_dsp_voice_factory : public voice_factory {
 
-    llvm_dsp* fDSP;
+    dsp_factory* fFactory;
     
-    llvm_dsp_voice_factory(llvm_dsp* dsp):fDSP(dsp) {}
+    dynamic_dsp_voice_factory(dsp_factory* factory):fFactory(factory) {}
     
-    virtual ~llvm_dsp_voice_factory() {}
-
-    virtual dsp_voice* create() { return new llvm_dsp_voice(fDSP->copy()); }
+    virtual ~dynamic_dsp_voice_factory() {}
+   
+    virtual dsp_voice* create() { return new dynamic_dsp_voice(fFactory->createDSPInstance()); }
 };
 
 #else
@@ -457,17 +461,17 @@ class mydsp_poly : public dsp, public midi {
     
     #ifdef LLVM_DSP
         mydsp_poly(int max_polyphony, 
-                llvm_dsp* dsp = NULL,
-                 bool control = false, 
-                 bool group = true):fGroups(&fPanic, Panic, this)
+                   dsp_factory* factory = NULL,
+                   bool control = false,
+                   bool group = true):fGroups(&fPanic, Panic, this)
         {
-            llvm_dsp_voice_factory dsp_factory(dsp);
+            dynamic_dsp_voice_factory dsp_factory(factory);
             init(max_polyphony, &dsp_factory, control, group);
         }
     #else
         mydsp_poly(int max_polyphony, 
-                bool control = false,   
-                bool group = true):fGroups(&fPanic, Panic, this)
+                   bool control = false,
+                   bool group = true):fGroups(&fPanic, Panic, this)
         {
             mydsp_voice_factory factory;
             init(max_polyphony, &factory, control, group);

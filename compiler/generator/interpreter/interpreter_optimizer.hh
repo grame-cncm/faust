@@ -187,14 +187,13 @@ struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
         } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kStoreInt) {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::kMoveInt, 0, 0, inst2->fOffset1, inst1->fOffset1);    // reverse order
-        // Optimize Value Load/Store as Value Store
+        // Optimize Value Load/Store as direct value Store
         } else if (inst1->fOpcode == FIRInstruction::kRealValue && inst2->fOpcode == FIRInstruction::kStoreReal) {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::kStoreRealValue, 0, inst1->fRealValue, inst2->fOffset1, 0);
         } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kStoreInt) {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::kStoreIntValue, inst1->fIntValue, 0, inst2->fOffset1, 0);
-         
         } else {
             end = cur + 1;
             return (*cur)->copy();
@@ -269,7 +268,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2Heap[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
             
-        // TODO : heap, stack, stack/value vefrsions of extended math
+        // TODO : heap, stack, stack/value versions of extended math
         } else {
             end = cur + 1;
             return (*cur)->copy();

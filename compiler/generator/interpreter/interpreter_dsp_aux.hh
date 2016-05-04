@@ -39,7 +39,7 @@ class interpreter_dsp;
 template <class T>
 class interpreter_dsp_aux;
 
-struct EXPORT interpreter_dsp_factory {
+struct EXPORT interpreter_dsp_factory : public dsp_factory {
     
     std::string fExpandedDSP;
     std::string fShaKey;
@@ -92,15 +92,19 @@ struct EXPORT interpreter_dsp_factory {
     }
     
     /* Return Factory name */
-    std::string getName();
+    EXPORT std::string getName();
     
     /* Return Factory SHA key */
-    std::string getSHAKey();
+    EXPORT std::string getSHAKey();
     
     /* Return Factory expanded DSP code */
-    std::string getDSPCode();
+    EXPORT std::string getDSPCode();
     
-    interpreter_dsp_aux<float>* createDSPInstance();
+    EXPORT dsp* createDSPInstance();
+    
+    EXPORT void metadata(Meta* meta);
+    
+    //interpreter_dsp_aux<float>* createDSPInstance();
     
     void write(std::ostream* out);
     
@@ -167,7 +171,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         
         virtual void instanceInit(int samplingRate)
         {
-            // Store samplingRate in "fSamplingFreq" variable at correct offset in fIntHeap
+            // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
             this->fIntHeap[this->fSROffset] = samplingRate;
             
             // Execute init instructions
@@ -198,7 +202,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             // Executes the 'control' block
             this->ExecuteBlock(fFactory->fComputeBlock);
             
-            // Set 'count' at the appropriate location in HEAP
+            // Set count in 'count' variable at the correct offset in fIntHeap
             this->fIntHeap[this->fCountOffset] = count;
             
             // Executes the 'DSP' block
@@ -207,7 +211,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             //std::cout << "sample " << outputs[0][0] << std::endl;
         }
     
-        interpreter_dsp_aux<T>* copy()  { return this->fFactory->createDSPInstance(); }
+        //interpreter_dsp_aux<T>* copy()  { return this->fFactory->createDSPInstance(); }
     
 };
 
@@ -227,7 +231,7 @@ class EXPORT interpreter_dsp : public dsp {
         
         void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
         
-        interpreter_dsp* copy();
+        //interpreter_dsp* copy();
      
 };
 

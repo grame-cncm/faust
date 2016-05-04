@@ -32,6 +32,7 @@
 #include <utility>
 #include "faust/gui/CUI.h"
 #include "faust/dsp/dsp.h"
+#include "faust/gui/meta.h"
 #include "export.hh"
 #include "libfaust.h"
 #include "smartpointer.h"
@@ -40,6 +41,7 @@
 using namespace std;
 
 class llvm_dsp_aux;
+class llvm_dsp;
 
 struct Meta;
 
@@ -59,7 +61,7 @@ struct FactoryTableType : public map<Sllvm_dsp_factory, list<llvm_dsp_aux*> >
 
 class FaustObjectCache;
 
-class llvm_dsp_factory : public smartable {
+class EXPORT llvm_dsp_factory : public dsp_factory, public smartable {
 
     friend class llvm_dsp_aux;
 
@@ -125,9 +127,7 @@ class llvm_dsp_factory : public smartable {
     #endif
       
         virtual ~llvm_dsp_factory();
-      
-        llvm_dsp_aux* createDSPInstance();
-        
+    
         // Bitcode
         string writeDSPFactoryToBitcode();
         
@@ -148,17 +148,21 @@ class llvm_dsp_factory : public smartable {
         
         void metadataDSPFactory(MetaGlue* glue);
     
-        EXPORT string getName();
-
-        EXPORT string getSHAKey();
-
-        EXPORT string getDSPCode();
-
         EXPORT string getTarget();
         void setTarget(const string target) { fTarget = target; }
     
         vector<std::string> getDSPFactoryLibraryList() { return fResult->fPathnameList; }
     
+        EXPORT string getName();
+    
+        EXPORT string getSHAKey();
+    
+        EXPORT string getDSPCode();
+    
+        EXPORT dsp* createDSPInstance();
+    
+        EXPORT void metadata(Meta* meta);
+   
         static FactoryTableType gFactoryTable;
         static int gInstance;
 };
@@ -177,8 +181,8 @@ class llvm_dsp_aux : public dsp {
         llvm_dsp_aux(llvm_dsp_factory* factory, llvm_dsp_imp* dsp);
         virtual ~llvm_dsp_aux();
     
-        void metadata(Meta* m);
-        void metadata(MetaGlue* m);
+        //void metadata(Meta* m);
+        //void metadata(MetaGlue* m);
      
         virtual int getNumInputs();
         virtual int getNumOutputs();
@@ -191,7 +195,7 @@ class llvm_dsp_aux : public dsp {
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
         
-        virtual llvm_dsp_aux* copy();
+        //virtual llvm_dsp_aux* copy();
     
         llvm_dsp_factory* getFactory() { return fDSPFactory; }
        
@@ -263,7 +267,7 @@ class EXPORT llvm_dsp : public dsp {
                 
     public:
     
-        void metadata(Meta* m);
+        //void metadata(Meta* m);
      
         int getNumInputs();
         int getNumOutputs();
@@ -275,7 +279,7 @@ class EXPORT llvm_dsp : public dsp {
         
         void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
         
-        llvm_dsp* copy();
+        //llvm_dsp* copy();
      
 };
 
@@ -351,7 +355,7 @@ EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char*
 
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
     
-EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
+//EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
 
 EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp);
 
@@ -365,7 +369,7 @@ EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* ui_interface);
 
 EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 
-EXPORT llvm_dsp* copyCDSPInstance(llvm_dsp* dsp);
+//EXPORT llvm_dsp* copyCDSPInstance(llvm_dsp* dsp);
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 

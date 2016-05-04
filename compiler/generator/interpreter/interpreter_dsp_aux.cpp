@@ -312,13 +312,35 @@ FIRBasicInstruction<float>* interpreter_dsp_factory::readCodeInstruction(std::is
     return new FIRBasicInstruction<float>(opcode, val_int, val_real, offset1, offset2, branch1, branch2);
 }
 
-// Instances
-
-interpreter_dsp_aux<float>* interpreter_dsp_factory::createDSPInstance()
+EXPORT std::string interpreter_dsp_factory::getName()
 {
-    return new interpreter_dsp_aux<float>(this);
+    return fName;
 }
 
+EXPORT std::string interpreter_dsp_factory::getSHAKey()
+{
+    // TODO
+    return "";
+}
+
+/* Return Factory expanded DSP code */
+EXPORT std::string interpreter_dsp_factory::getDSPCode()
+{
+    // TODO
+    return "";
+}
+
+EXPORT dsp* interpreter_dsp_factory::createDSPInstance()
+{
+     return reinterpret_cast<dsp*>(new interpreter_dsp_aux<float>(this));
+}
+
+EXPORT void interpreter_dsp_factory::metadata(Meta* meta)
+{
+   // TODO
+}
+
+// Instances
 
 EXPORT interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const string& sha_key)
 {
@@ -407,7 +429,6 @@ EXPORT void interpreter_dsp::metadata(Meta* m)
 {
     reinterpret_cast<interpreter_dsp_aux*>(this)->metadata(m);
 }
- 
 */
 
 EXPORT int interpreter_dsp::getNumInputs()
@@ -440,10 +461,12 @@ EXPORT void interpreter_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT**
     reinterpret_cast<interpreter_dsp_aux<float>*>(this)->compute(count, input, output);
 }
 
+/*
 EXPORT interpreter_dsp* interpreter_dsp::copy()
 {
     return reinterpret_cast<interpreter_dsp*>(reinterpret_cast<interpreter_dsp_aux<float>*>(this)->copy());
 }
+*/
 
 EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachine(const string& machine_code)
 {

@@ -102,21 +102,26 @@ class decorator_dsp : public dsp {
 };
 
 //----------------------------------------------------------------
-// DSP factory class.
+// DSP factory class
 //----------------------------------------------------------------
+
+struct Meta;
 
 class dsp_factory {
     
     public:
+    
+        virtual ~dsp_factory() {}
         
-        /* Return Factory name */
         virtual std::string getName() = 0;
     
-        /* Return Factory SHA key */
         virtual std::string getSHAKey() = 0;
         
-        /* Return Factory expanded DSP code */
         virtual std::string getDSPCode() = 0;
+    
+        virtual dsp* createDSPInstance() = 0;
+    
+        virtual void metadata(Meta* meta) = 0;
     
 };
 
