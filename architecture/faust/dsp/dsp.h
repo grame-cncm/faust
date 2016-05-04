@@ -109,10 +109,13 @@ struct Meta;
 
 class dsp_factory {
     
+    protected:
+    
+        // So that to force sub-classes to use deleteDSPFactory(dsp_factory* factory);
+        ~dsp_factory() {}
+    
     public:
     
-        virtual ~dsp_factory() {}
-        
         virtual std::string getName() = 0;
     
         virtual std::string getSHAKey() = 0;

@@ -48,7 +48,7 @@
 #include <gdk/gdkkeysyms.h>
 #include <assert.h>
 
-#define stackSize 256
+#define kStackSize 256
 
 // Insertion modes
 
@@ -637,8 +637,8 @@ class GTKUI : public GUI
  protected :
     GtkWidget*  fWindow;
     int         fTop;
-    GtkWidget*  fBox[stackSize];
-    int         fMode[stackSize];
+    GtkWidget*  fBox[kStackSize];
+    int         fMode[kStackSize];
     bool        fStopped;
 
     GtkWidget* addWidget(const char* label, GtkWidget* w);
@@ -777,7 +777,7 @@ GTKUI::GTKUI(char * name, int* pargc, char*** pargv)
 void GTKUI::pushBox(int mode, GtkWidget* w)
 {
     ++fTop;
-    assert(fTop < stackSize);
+    assert(fTop < kStackSize);
     fMode[fTop] = mode;
     fBox[fTop] = w;
 }
