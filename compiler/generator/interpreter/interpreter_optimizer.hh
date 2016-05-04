@@ -131,6 +131,103 @@ struct FIRInstructionCastOptimizer : public FIRInstructionOptimizer<T>  {
     }
 };
 
+
+/*
+// Select optimizer : when branchees are simple (Values or Load)
+template <class T>
+struct FIRInstructionSelectOptimizer : public FIRInstructionOptimizer<T>  {
+    
+    
+    FIRInstructionSelectOptimizer()
+    {
+        //std::cout << "FIRInstructionSelectOptimizer" << std::endl;
+    }
+    
+    FIRBasicInstruction<T>* rewriteSimpleSelect(FIRBasicInstruction<T>* inst1, FIRBasicInstruction<T>* inst2)
+    {
+        FIRBasicInstruction<T>* res;
+        
+        if (inst1->fOpcode == FIRInstruction::kIntValue) {
+            if (inst2->fOpcode == FIRInstruction::kIntValue) {
+                res = new FIRBasicInstruction<T>(FIRInstruction::kSimpleSelectTwoInt, inst1->fIntValue, T(inst2->fIntValue)); // Cast int ==> T here
+            } else if (inst2->fOpcode == FIRInstruction::kLoadInt) {
+                res = new FIRBasicInstruction<T>(FIRInstruction::kSimpleSelectTwoInt, inst1->fIntValue, 0, inst2->fOffset1, 0);
+            } else {
+                assert(false); // Should never happen
+            }
+        } else if (inst1->fOpcode == FIRInstruction::kLoadInt) {
+            if (inst2->fOpcode == FIRInstruction::kIntValue) {
+                res = new FIRBasicInstruction<T>(FIRInstruction::kSimpleSelectTwoInt, inst2->fIntValue, 0, inst1->fOffset1, 0);
+            } else if (inst2->fOpcode == FIRInstruction::kLoadInt) {
+                res = new FIRBasicInstruction<T>(FIRInstruction::kSimpleSelectTwoInt, 0, 0, inst1->fOffset1, inst2->fOffset1);
+            } else {
+                assert(false); // Should never happen
+            }
+        } else if (inst1->fOpcode == FIRInstruction::kRealValue) {
+            if (inst2->fOpcode == FIRInstruction::kRealValue) {
+                res = new FIRBasicInstruction<T>(FIRInstruction::kSimpleSelectTwoInt, int(inst1->fRealValue), inst2->fRealValue); // Cast T ==> int here
+            } else if (inst2->fOpcode == FIRInstruction::kLoadReal) {
+                res = new FIRBasicInstruction<T>(FIRInstruction::kSimpleSelectTwoInt, 0, inst1->fRealValue, inst2->fOffset1, 0);
+            } else {
+                assert(false); // Should never happen
+            }
+        } else if (inst1->fOpcode == FIRInstruction::kLoadReal) {
+            if (inst2->fOpcode == FIRInstruction::kRealValue) {
+                res = new FIRBasicInstruction<T>(FIRInstruction::kSimpleSelectTwoInt, 0, inst2->fRealValue, inst1->fOffset1, 0); // Cast T ==> int here
+            } else if (inst2->fOpcode == FIRInstruction::kLoadReal) {
+                res = new FIRBasicInstruction<T>(FIRInstruction::kSimpleSelectTwoInt, 0, 0, inst1->fOffset1, inst2->fOffset1);
+            } else {
+                assert(false); // Should never happen
+            }
+        } else {
+            assert(false); // Should never happen
+        }
+        
+        return res;
+    }
+    
+    FIRBasicInstruction<T>* rewriteSimpleBranchSelect(FIRBasicInstruction<T>* inst, FIRBlockInstruction<T>* branch)
+    {
+        if (inst->fOpcode == FIRInstruction::kIntValue) {
+            res = new FIRBasicInstruction<T>(FIRInstruction::kSimpleSelectIntValue, inst->fIntValue, 0, 0, 0, branch, 0); // Cast int ==> T here
+        } else if (inst->fOpcode == FIRInstruction::kLoadInt) {
+             res = new FIRBasicInstruction<T>(FIRInstruction::kSimpleSelectLoadInt, 0, 0, inst->fOffset1, 0, branch, 0);
+        } else if (inst->fOpcode == FIRInstruction::kRealInt) {
+             res = new FIRBasicInstruction<T>(FIRInstruction::kSimpleSelectRealValue, 0, inst->fRealValue, 0, 0, branch, 0);
+        } else if (inst->fOpcode == FIRInstruction::kLoadReal) {
+            res = new FIRBasicInstruction<T>(FIRInstruction::kSimpleSelectLoadReal, 0, 0, inst->fOffset1, 0, branch, 0);
+        } else {
+            assert(false); // Should never happen
+        }
+        
+        return res;
+    }
+    
+    virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    {
+        FIRBasicInstruction<T>* inst1 = *cur;
+        
+        if (inst1->fOpcode == FIRInstruction::kIf) {
+            FIRBlockInstruction<T>* branch1 = (*cur)->fBranch1;
+            FIRBlockInstruction<T>* branch2 = (*cur)->fBranch2;
+            if (branch1->size() == 1) {
+                if (branch2->size() == 1)) {
+                    return new rewriteSimpleSelect(*branch1->begin(), *branch2->begin());
+                } else {
+                    return new rewriteSimpleBranch1Select(*branch1->begin(), branch2);
+                }
+            } else if ((branch2->size() == 1) {
+                return new rewriteSimpleBranch2Select(branch1, *branch2->begin());
+            }
+        }
+                       
+        // Default
+        end = cur + 1;
+        return (*cur)->copy();
+    }
+};
+ */
+
 // Rewrite indexed Load/Store as simple Load/Store
 template <class T>
 struct FIRInstructionLoadStoreOptimizer : public FIRInstructionOptimizer<T> {
@@ -217,58 +314,161 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
         FIRBasicInstruction<T>* inst2 = *(cur + 1);
         FIRBasicInstruction<T>* inst3 = *(cur + 2);
         
-        // kLoadReal op kLoadReal ==> Heap version
+        //===========
+        // HEAP
+        //===========
+        
+            //===========
+            // MATH
+            //===========
+        
+        // kLoadReal OP kLoadReal ==> Heap version
         if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kLoadReal && FIRInstruction::isMath(inst3->fOpcode)) {
             //std::cout << "kLoadReal op kLoadReal ==> Heap version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
-        // kLoadRInt op kLoadInt ==> Heap version
+            
+        // kLoadInt OP kLoadInt ==> Heap version
         } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isMath(inst3->fOpcode)) {
             //std::cout << "kLoadRInt op kLoadInt ==> Heap version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
-        // kLoadReal op kRealValue ==> Value version
+            
+            //==============
+            // EXTENDED MATH
+            //==============
+            
+        // kLoadReal EXTENDED-OP kLoadReal ==> Heap version
+        } else  if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kLoadReal && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
+            //std::cout << "kLoadReal op kLoadReal ==> Heap version" << gFIRInstructionTable[inst2->fOpcode] << endl;
+            end = cur + 3;
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
+            
+        // kLoadInt EXTENDED-OP kLoadInt ==> Heap version
+        } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
+            //std::cout << "kLoadRInt op kLoadInt ==> Heap version" << gFIRInstructionTable[inst2->fOpcode] << endl;
+            end = cur + 3;
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
+        
+        //===========
+        // VALUE
+        //===========
+            
+            //===========
+            // MATH
+            //===========
+            
+        // kLoadReal OP kRealValue ==> Value version
         } else if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kRealValue && FIRInstruction::isMath(inst3->fOpcode)) {
             //std::cout << "kLoadReal op kRealValue ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Value[inst3->fOpcode], 0, inst2->fRealValue, inst1->fOffset1, 0);
-        // kRealValue op kLoadReal ==> Value version
+          
+        // kRealValue OP kLoadReal ==> Value version (special case for non-commutative operation)
         } else if (inst1->fOpcode == FIRInstruction::kRealValue && inst2->fOpcode == FIRInstruction::kLoadReal && FIRInstruction::isMath(inst3->fOpcode)) {
             //std::cout << "kRealValue op kLoadReal ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2ValueInvert[inst3->fOpcode], 0, inst1->fRealValue, inst2->fOffset1, 0);
-        // kLoadInt op kIntValue ==> Value version
+           
+        // kLoadInt OP kIntValue ==> Value version
         } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kIntValue && FIRInstruction::isMath(inst3->fOpcode)) {
             //std::cout << "kLoadInt op kIntValue ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Value[inst3->fOpcode], inst2->fIntValue, 0, inst1->fOffset1, 0);
-        // kIntValue op kLoadInt ==> Value version
+            
+        // kIntValue OP kLoadInt ==> Value version (special case for non-commutative operation)
         } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isMath(inst3->fOpcode)) {
             //std::cout << "kIntValue op kLoadInt ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2ValueInvert[inst3->fOpcode], inst1->fIntValue, 0, inst2->fOffset1, 0);
-        // kLoadReal/kLoadInt binary op ==> Stack version
+            
+            //==============
+            // EXTENDED MATH
+            //==============
+      
+            
+        // kLoadReal EXTENDED-OP kRealValue ==> Value version
+        } else if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kRealValue && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
+            //std::cout << "kLoadReal op kRealValue ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
+            end = cur + 3;
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2Value[inst3->fOpcode], 0, inst2->fRealValue, inst1->fOffset1, 0);
+            
+        // kRealValue EXTENDED-OP kLoadReal ==> Value version (special case for non-commutative operation)
+        } else if (inst1->fOpcode == FIRInstruction::kRealValue && inst2->fOpcode == FIRInstruction::kLoadReal && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
+            //std::cout << "kRealValue op kLoadReal ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
+            end = cur + 3;
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2ValueInvert[inst3->fOpcode], 0, inst1->fRealValue, inst2->fOffset1, 0);
+            
+        // kLoadInt EXTENDED-OP kIntValue ==> Value version
+        } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kIntValue && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
+            //std::cout << "kLoadInt op kIntValue ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
+            end = cur + 3;
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2Value[inst3->fOpcode], inst2->fIntValue, 0, inst1->fOffset1, 0);
+            
+        // kIntValue EXTENDED-OP kLoadInt ==> Value version (special case for non-commutative operation)
+        } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
+            //std::cout << "kIntValue op kLoadInt ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
+            end = cur + 3;
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2ValueInvert[inst3->fOpcode], inst1->fIntValue, 0, inst2->fOffset1, 0);
+        
+        //===========
+        // STACK
+        //===========
+            
+            //===========
+            // MATH
+            //===========
+            
+        // kLoadReal/kLoadInt binary OP ==> Stack version
         } else if (((inst1->fOpcode == FIRInstruction::kLoadReal) || (inst1->fOpcode == FIRInstruction::kLoadInt)) && FIRInstruction::isMath(inst2->fOpcode)) {
             //std::cout << "kLoadReal/kLoadInt binary op ==> Stack version " << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Stack[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
-        // kRealValue binary op ==> Stack/Value version
+        
+        // kRealValue binary OP ==> Stack/Value version
         } else if ((inst1->fOpcode == FIRInstruction::kRealValue) && FIRInstruction::isMath(inst2->fOpcode)) {
             //std::cout << "kRealValue binary op ==> Stack/Value version " << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2StackValue[inst2->fOpcode], 0, inst1->fRealValue);
-        // kIntValue binary op ==> Stack/Value version
-        } else if ((inst1->fOpcode == FIRInstruction::kIntValue) && FIRInstruction::isMath(inst2->fOpcode)) {
-            //std::cout << "kIntValue binary op ==> Stack/Value version " << gFIRInstructionTable[inst2->fOpcode] << endl;
+          
+        // kIntValue binary OP ==> Stack/Value version
+        } else if (((inst1->fOpcode == FIRInstruction::kRealValue) || (inst1->fOpcode == FIRInstruction::kIntValue)) && FIRInstruction::isMath(inst2->fOpcode)) {
+            //std::cout << "kRealValue binary op ==> Stack/Value version " << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2StackValue[inst2->fOpcode], inst1->fIntValue, 0);
+        
+            //==============
+            // EXTENDED MATH
+            //==============
+      
+        // kLoadReal/kLoadInt binary EXTENDED-OP ==> Stack version
+        } else if (((inst1->fOpcode == FIRInstruction::kLoadReal) || (inst1->fOpcode == FIRInstruction::kLoadInt)) && FIRInstruction::isExtendedBinaryMath(inst2->fOpcode)) {
+            //std::cout << "kLoadReal/kLoadInt binary op ==> Stack version " << gFIRInstructionTable[inst2->fOpcode] << endl;
+            end = cur + 2;
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2Stack[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
+            
+        // kRealValue EXTENDED-OP ==> Stack/Value version
+        } else if ((inst1->fOpcode == FIRInstruction::kRealValue) && FIRInstruction::isExtendedBinaryMath(inst2->fOpcode)) {
+            //std::cout << "kRealValue binary op ==> Stack/Value version " << gFIRInstructionTable[inst2->fOpcode] << endl;
+            end = cur + 2;
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2StackValue[inst2->fOpcode], 0, inst1->fRealValue);
+     
+        // kIntValue binary EXTENDED-OP ==> Stack/Value version
+        } else if ((inst1->fOpcode == FIRInstruction::kIntValue) && FIRInstruction::isExtendedBinaryMath(inst2->fOpcode)) {
+            //std::cout << "kRealValue binary op ==> Stack/Value version " << gFIRInstructionTable[inst2->fOpcode] << endl;
+            end = cur + 2;
+            return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2StackValue[inst2->fOpcode], inst1->fIntValue, 0);
+            
+        //====================
+        // UNARY EXTENDED MATH
+        //=====================
+            
         // kLoadReal unary  ==> Heap version
         } else if (inst1->fOpcode == FIRInstruction::kLoadReal && FIRInstruction::isExtendedUnaryMath(inst2->fOpcode)) {
             //std::cout << "kLoadReal unary ==> Heap version " << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2Heap[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
             
-        // TODO : heap, stack, stack/value versions of extended math
         } else {
             end = cur + 1;
             return (*cur)->copy();

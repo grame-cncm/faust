@@ -394,7 +394,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             inst->fInst->accept(&fTypingVisitor);
             assert(fTypingVisitor.fCurType != Typed::kNoType);
             
-            std::cout << "CastNumInst " << fTypingVisitor.fCurType << std::endl;
+            //std::cout << "CastNumInst " << fTypingVisitor.fCurType << std::endl;
             
             if (inst->fType->getType() == Typed::kInt) {
                 if (isIntType(fTypingVisitor.fCurType)) {
@@ -404,10 +404,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 }
             } else if (isInternalRealType(inst->fType->getType()) && (fTypingVisitor.fCurType == Typed::kFloatMacro)) {
                 // We assume that kFloatMacro and internal float are the same for now, so no cast...
-                std::cout << "CastNumInst : cast from kFloatMacro to Real !" << std::endl;
+                //std::cout << "CastNumInst : cast from kFloatMacro to Real !" << std::endl;
             } else if (isInternalRealType(fTypingVisitor.fCurType) && (inst->fType->getType() == Typed::kFloatMacro)) {
                 // We assume that kFloatMacro and internal float are the same for now, so no cast...
-                std::cout << "CastNumInst : cast from Real to kFloatMacro !" << std::endl;
+                //std::cout << "CastNumInst : cast from Real to kFloatMacro !" << std::endl;
             } else {
                 if (isRealType(fTypingVisitor.fCurType)) {
                     std::cout << "CastNumInst : cast to real, but arg already real !" << std::endl;

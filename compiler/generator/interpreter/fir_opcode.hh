@@ -116,13 +116,6 @@ struct FIRInstruction {
         kSqrtf,
         kTanf, kTanhf,
         
-        // Extended binary math
-        kAtan2f,
-        kFmodf,
-        kPowf,
-        kMax, kMaxf,
-        kMin, kMinf,
-        
         // Extended unary math (heap version)
         kAbsHeap, kAbsfHeap,
         kAcosfHeap, kAsinfHeap,
@@ -137,12 +130,33 @@ struct FIRInstruction {
         kSqrtfHeap,
         kTanfHeap, kTanhfHeap,
         
+        // Extended binary math
+        kAtan2f,
+        kFmodf,
+        kPowf,
+        kMax, kMaxf,
+        kMin, kMinf,
+        
         // Extended binary math (heap version)
         kAtan2fHeap,
         kFmodfHeap,
         kPowfHeap,
         kMaxHeap, kMaxfHeap,
         kMinHeap, kMinfHeap,
+        
+        // Extended binary math (stack version)
+        kAtan2fStack,
+        kFmodfStack,
+        kPowfStack,
+        kMaxStack, kMaxfStack,
+        kMinStack, kMinfStack,
+   
+        // Extended binary math (Stack/Value version)
+        kAtan2fStackValue,
+        kFmodfStackValue,
+        kPowfStackValue,
+        kMaxStackValue, kMaxfStackValue,
+        kMinStackValue, kMinfStackValue,
         
         // Extended binary math (Value version)
         kAtan2fValue,
@@ -164,6 +178,11 @@ struct FIRInstruction {
         
         // Select/if
         kIf,
+        /*
+        kSimpleSelectInt, kSimpleSelectReal,
+        kSimpleBranch1SelectInt, kSimpleBranch1SelectReal,
+        kSimpleBranch2SelectInt, kSimpleBranch2SelectReal,
+        */
         kCondBranch,
         
         // User Interface 
@@ -185,6 +204,8 @@ struct FIRInstruction {
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2ValueInvert;
     
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2Heap;
+    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2Stack;
+    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2StackValue;
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2Value;
     static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2ValueInvert;
     
@@ -282,13 +303,6 @@ static std::string gFIRInstructionTable[] = {
     "kSqrtf",
     "kTanf", "kTanhf",
     
-    // Extended binary math
-    "kAtan2f",
-    "kFmodf",
-    "kPowf",
-    "kMax", "kMaxf",
-    "kMin", "kMinf",
-    
     // Extended unary math (heap version)
     "kAbsHeap", "kAbsfHeap",
     "kAcosfHeap", "kAsinfHeap",
@@ -303,12 +317,33 @@ static std::string gFIRInstructionTable[] = {
     "kSqrtfHeap",
     "kTanfHeap", "kTanhfHeap",
     
+    // Extended binary math
+    "kAtan2f",
+    "kFmodf",
+    "kPowf",
+    "kMax", "kMaxf",
+    "kMin", "kMinf",
+    
     // Extended binary math (heap version)
     "kAtan2fHeap",
     "kFmodfHeap",
     "kPowfHeap",
     "kMaxHeap", "kMaxfHeap",
     "kMinHeap", "kMinfHeap",
+    
+    // Extended binary math (stack version)
+    "kAtan2fStack",
+    "kFmodfStack",
+    "kPowfStack",
+    "kMaxStack", "kMaxfStack",
+    "kMinStack", "kMinfStack",
+    
+    // Extended binary math (Stack/Value version)
+    "kAtan2fStackValue",
+    "kFmodfStackValue",
+    "kPowfStackValue",
+    "kMaxStackValue", "kMaxStackfValue",
+    "kMinStackValue", "kMinfStackValue",
     
     // Extended binary math (Value version)
     "kAtan2fValue",
@@ -331,6 +366,11 @@ static std::string gFIRInstructionTable[] = {
     
     // Select/if
     "kIf",
+    /*
+    "kSimpleSelectInt", "kSimpleSelectReal",
+    "kSimpleBranch1SelectInt", "kSimpleBranch1SelectReal",
+    "kSimpleBranch2SelectInt", "kSimpleBranch2SelectReal",
+    */
     "kCondBranch",
  
     // User Interface

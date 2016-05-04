@@ -41,6 +41,8 @@ map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Val
 map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2ValueInvert;
 
 map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2Heap;
+map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2Stack;
+map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2StackValue;
 map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2Value;
 map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2ValueInvert;
 
