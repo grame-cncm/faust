@@ -191,19 +191,7 @@ struct FIRInstruction {
     virtual int size() { return 1; }
     
     virtual void stackMove(int& int_index, int& real_index) {}
-    
-    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Heap;
-    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Stack;
-    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2StackValue;
-    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Value;
-    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2ValueInvert;
-    
-    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2Heap;
-    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2Stack;
-    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2StackValue;
-    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2Value;
-    static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2ValueInvert;
-    
+  
     static bool isMath(Opcode opt) { return opt >= kAddReal && opt <= kXORInt; }
     static bool isExtendedUnaryMath(Opcode opt) { return opt >= kAbs && opt <= kTanhf; }
     static bool isExtendedBinaryMath(Opcode opt) { return opt >= kAtan2f && opt <= kMinf; }

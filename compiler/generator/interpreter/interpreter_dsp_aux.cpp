@@ -34,18 +34,6 @@
 
 using namespace std;
 
-map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Heap;
-map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Stack;
-map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2StackValue;
-map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2Value;
-map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRMath2ValueInvert;
-
-map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2Heap;
-map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2Stack;
-map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2StackValue;
-map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2Value;
-map<FIRInstruction::Opcode, FIRInstruction::Opcode> FIRInstruction::gFIRExtendedMath2ValueInvert;
-
 static inline string unquote(const string& str)
 {
     return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
