@@ -226,13 +226,13 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
 };
 
 /*
-Computing on a downsampled version of signal
+Computing on a downsampled version of signals
  
 TODO:
  
 - anti alias filter at input
  
-- interporlation at output
+- interpolation at output
  
 */
 

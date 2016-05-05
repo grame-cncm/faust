@@ -205,6 +205,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
     
     
+    
     // 1) optimize indexed 'heap' load/store in normal load/store
     FIRInstructionLoadStoreOptimizer<float> opt1;
     init_block = FIRInstructionOptimizer<float>::optimize(init_block, opt1);
@@ -236,8 +237,14 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt4);
     
     cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl << endl;
-    
      
+    
+    /*
+    init_block = FIRInstructionOptimizer<float>::optimizeBlock(init_block);
+    compute_control_block = FIRInstructionOptimizer<float>::optimizeBlock(compute_control_block);
+    compute_dsp_block = FIRInstructionOptimizer<float>::optimizeBlock(compute_dsp_block);
+     */
+    
     // TODO
     /*
     int int_index = 0;

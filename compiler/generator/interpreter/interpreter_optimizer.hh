@@ -43,220 +43,7 @@ static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath
 static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2Value;
 static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRExtendedMath2ValueInvert;
 
-template <class T>
-struct FIRInstructionOptimizer {
-    
-    // Rewrite a sequence of instructions starting from 'cur' to 'end' in a new single instruction.
-    // Update 'end' so that caller can move at the correct next location
-    virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
-    {
-        return 0;
-    }
-    
-    // Return an optimized block by traversing it (including sub-blocks) with an 'optimizer'
-    static FIRBlockInstruction<T>* optimize_aux(FIRBlockInstruction<T>* cur_block, FIRInstructionOptimizer<T>& optimizer)
-    {
-        assert(cur_block);
-        
-        FIRBlockInstruction<T>* new_block = new FIRBlockInstruction<T>();
-        InstructionIT next, cur = cur_block->fInstructions.begin();
-        
-        do {
-            FIRBasicInstruction<T>* inst = *cur;
-            if (inst->fOpcode == FIRInstruction::kLoop) {
-                new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,
-                                                           inst->fIntValue, inst->fRealValue,
-                                                           inst->fOffset1, inst->fOffset2,
-                                                           optimize_aux(inst->fBranch1, optimizer),
-                                                           0));
-                cur++;
-            } else if (inst->fOpcode == FIRInstruction::kIf) {
-                new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,
-                                                            inst->fIntValue, inst->fRealValue,
-                                                            inst->fOffset1, inst->fOffset2,
-                                                            optimize_aux(inst->fBranch1, optimizer),
-                                                            optimize_aux(inst->fBranch2, optimizer)));
-                cur++;
-            } else {
-                FIRBasicInstruction<T>* optimized = optimizer.rewrite(cur, next);
-                // Special case for loops
-                if (inst->fOpcode == FIRInstruction::kCondBranch) { optimized->fBranch1 = new_block; }
-                new_block->push(optimized);
-                cur = next;
-            }
-        } while (cur != cur_block->fInstructions.end());
-        
-        return new_block;
-    }
-    
-    // Apply an optimizer on the block, return the optimized new block, then delete the original one
-    static FIRBlockInstruction<T>* optimize(FIRBlockInstruction<T>* cur_block, FIRInstructionOptimizer<T>& optimizer)
-    {
-        FIRBlockInstruction<T>* new_block = optimize_aux(cur_block, optimizer);
-        delete cur_block;
-        return new_block;
-    }
-    
-    static void initTables()
-    {
-        // Initializations for FIRInstructionMathOptimizer pass
-        
-        //===============
-        // Math
-        //===============
-        
-        // Init heap opcode
-        for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
-            gFIRMath2Heap[FIRInstruction::Opcode(i)]
-            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal));
-            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
-        }
-        
-        // Init stack opcode
-        for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
-            gFIRMath2Stack[FIRInstruction::Opcode(i)]
-            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealStack - FIRInstruction::kAddReal));
-            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealStack - FIRInstruction::kAddReal)] << std::endl;
-        }
-        
-        // Init stack/value opcode
-        for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
-            gFIRMath2StackValue[FIRInstruction::Opcode(i)]
-            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealStackValue - FIRInstruction::kAddReal));
-            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealStackValue - FIRInstruction::kAddReal)] << std::endl;
-        }
-        
-        // Init Value opcode
-        for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
-            gFIRMath2Value[FIRInstruction::Opcode(i)]
-            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealValue - FIRInstruction::kAddReal));
-            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealValue - FIRInstruction::kAddReal)] << std::endl;
-        }
-        
-        // Init Value opcode (non commutative operation)
-        for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
-            gFIRMath2ValueInvert[FIRInstruction::Opcode(i)]
-            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealValue - FIRInstruction::kAddReal));
-            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealValue - FIRInstruction::kAddReal)] << std::endl;
-        }
-        
-        // Manually set inverted versions
-        gFIRMath2ValueInvert[FIRInstruction::kSubReal] = FIRInstruction::kSubRealValueInvert;
-        gFIRMath2ValueInvert[FIRInstruction::kSubInt] = FIRInstruction::kSubIntValueInvert;
-        gFIRMath2ValueInvert[FIRInstruction::kDivReal] = FIRInstruction::kDivRealValueInvert;
-        gFIRMath2ValueInvert[FIRInstruction::kDivInt] = FIRInstruction::kDivIntValueInvert;
-        gFIRMath2ValueInvert[FIRInstruction::kRemReal] = FIRInstruction::kRemRealValueInvert;
-        gFIRMath2ValueInvert[FIRInstruction::kRemInt] = FIRInstruction::kRemIntValueInvert;
-        gFIRMath2ValueInvert[FIRInstruction::kLshInt] = FIRInstruction::kLshIntValueInvert;
-        gFIRMath2ValueInvert[FIRInstruction::kRshInt] = FIRInstruction::kRshIntValueInvert;
-        gFIRMath2ValueInvert[FIRInstruction::kGTInt] = FIRInstruction::kGTIntValueInvert;
-        gFIRMath2ValueInvert[FIRInstruction::kLTInt] = FIRInstruction::kLTIntValueInvert;
-        gFIRMath2ValueInvert[FIRInstruction::kGEInt] = FIRInstruction::kGEIntValueInvert;
-        gFIRMath2ValueInvert[FIRInstruction::kLEInt] = FIRInstruction::kLEIntValueInvert;
-        gFIRMath2ValueInvert[FIRInstruction::kGTReal] = FIRInstruction::kGTRealValueInvert;
-        gFIRMath2ValueInvert[FIRInstruction::kLTReal] = FIRInstruction::kLTRealValueInvert;
-        gFIRMath2ValueInvert[FIRInstruction::kGEReal] = FIRInstruction::kGERealValueInvert;
-        gFIRMath2ValueInvert[FIRInstruction::kLEReal] = FIRInstruction::kLERealValueInvert;
-        
-        //===============
-        // EXTENDED math
-        //===============
-        
-        // Init unary extended math heap opcode
-        for (int i = FIRInstruction::kAbs; i <= FIRInstruction::kTanhf; i++) {
-            gFIRExtendedMath2Heap[FIRInstruction::Opcode(i)]
-            = FIRInstruction::Opcode(i + (FIRInstruction::kAbsHeap - FIRInstruction::kAbs));
-            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
-        }
-        
-        // Init binary extended math heap opcode
-        for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kMinf; i++) {
-            gFIRExtendedMath2Heap[FIRInstruction::Opcode(i)]
-            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fHeap - FIRInstruction::kAtan2f));
-            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
-        }
-        
-        
-        // Init binary extended math stack opcode
-        for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kMinf; i++) {
-            gFIRExtendedMath2Stack[FIRInstruction::Opcode(i)]
-            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fStack - FIRInstruction::kAtan2f));
-            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
-        }
-        
-        // Init binary extended math stack/value opcode
-        for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kMinf; i++) {
-            gFIRExtendedMath2StackValue[FIRInstruction::Opcode(i)]
-            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fStackValue - FIRInstruction::kAtan2f));
-            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
-        }
-        
-        // Init unary math Value opcode
-        for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kMinf; i++) {
-            gFIRExtendedMath2Value[FIRInstruction::Opcode(i)]
-            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fValue - FIRInstruction::kAtan2f));
-            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
-        }
-        
-        // Init unary math Value opcode : non commutative operations
-        for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kPowf; i++) {
-            gFIRExtendedMath2ValueInvert[FIRInstruction::Opcode(i)]
-            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fValueInvert - FIRInstruction::kAtan2f));
-            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
-        }
-        
-        // Test
-        
-        /*
-         std::cout << "gFIRExtendedMath2Heap" << std::endl;
-         for (int i = FIRInstruction::kAbs; i <= FIRInstruction::kTanhf; i++) {
-         if (FIRInstruction::gFIRExtendedMath2Heap.find(FIRInstruction::Opcode(i)) !=  FIRInstruction::gFIRExtendedMath2Heap.end()) {
-         std::cout   << gFIRInstructionTable[FIRInstruction::Opcode(i)] << " ==> "
-         << gFIRInstructionTable[FIRInstruction::gFIRExtendedMath2Heap[FIRInstruction::Opcode(i)]] << std::endl;
-         }
-         }
-         std::cout << "gFIRExtendedMath2Heap" << std::endl << std::endl;
-         for (int i = FIRInstruction::kAbsHeap; i <= FIRInstruction::kMinf; i++) {
-         if (FIRInstruction::gFIRExtendedMath2Heap.find(FIRInstruction::Opcode(i)) !=  FIRInstruction::gFIRExtendedMath2Heap.end()) {
-         std::cout   << gFIRInstructionTable[FIRInstruction::Opcode(i)] << " ==> "
-         << gFIRInstructionTable[FIRInstruction::gFIRExtendedMath2Heap[FIRInstruction::Opcode(i)]] << std::endl;
-         }
-         }
-         
-         std::cout << "gFIRExtendedMath2Stack" << std::endl << std::endl;
-         for (int i = FIRInstruction::kAbsHeap; i <= FIRInstruction::kMinf; i++) {
-         if (FIRInstruction::gFIRExtendedMath2Stack.find(FIRInstruction::Opcode(i)) !=  FIRInstruction::gFIRExtendedMath2Stack.end()) {
-         std::cout   << gFIRInstructionTable[FIRInstruction::Opcode(i)] << " ==> "
-         << gFIRInstructionTable[FIRInstruction::gFIRExtendedMath2Stack[FIRInstruction::Opcode(i)]] << std::endl;
-         }
-         }
-         
-         std::cout << "gFIRExtendedMath2StackValue" << std::endl << std::endl;
-         for (int i = FIRInstruction::kAbsHeap; i <= FIRInstruction::kMinf; i++) {
-         if (FIRInstruction::gFIRExtendedMath2StackValue.find(FIRInstruction::Opcode(i)) !=  FIRInstruction::gFIRExtendedMath2StackValue.end()) {
-         std::cout   << gFIRInstructionTable[FIRInstruction::Opcode(i)] << " ==> "
-         << gFIRInstructionTable[FIRInstruction::gFIRExtendedMath2StackValue[FIRInstruction::Opcode(i)]] << std::endl;
-         }
-         }
-         
-         std::cout << "gFIRExtendedMath2Value" << std::endl << std::endl;
-         for (int i = FIRInstruction::kAbsHeap; i <= FIRInstruction::kMinf; i++) {
-         if (FIRInstruction::gFIRExtendedMath2Value.find(FIRInstruction::Opcode(i)) !=  FIRInstruction::gFIRExtendedMath2Value.end()) {
-         std::cout   << gFIRInstructionTable[FIRInstruction::Opcode(i)] << " ==> "
-         << gFIRInstructionTable[FIRInstruction::gFIRExtendedMath2Value[FIRInstruction::Opcode(i)]] << std::endl;
-         }
-         }
-         
-         std::cout << "gFIRExtendedMath2ValueInvert" << std::endl << std::endl;
-         for (int i = FIRInstruction::kAbsHeap; i <= FIRInstruction::kMinf; i++) {
-         if (FIRInstruction::gFIRExtendedMath2ValueInvert.find(FIRInstruction::Opcode(i)) !=  FIRInstruction::gFIRExtendedMath2ValueInvert.end()) {
-         std::cout   << gFIRInstructionTable[FIRInstruction::Opcode(i)] << " ==> "
-         << gFIRInstructionTable[FIRInstruction::gFIRExtendedMath2ValueInvert[FIRInstruction::Opcode(i)]] << std::endl;
-         }
-         }
-         */
-    }
-};
+template <class T> struct FIRInstructionOptimizer;
 
 // Copy (= identity) optimizer (used to test...)
 template <class T>
@@ -301,8 +88,6 @@ struct FIRInstructionCastOptimizer : public FIRInstructionOptimizer<T>  {
         }
     }
 };
-
-
 
 // Rewrite indexed Load/Store as simple Load/Store
 template <class T>
@@ -551,5 +336,242 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
     }
     
 };
+
+template <class T>
+struct FIRInstructionOptimizer {
+    
+    // Rewrite a sequence of instructions starting from 'cur' to 'end' in a new single instruction.
+    // Update 'end' so that caller can move at the correct next location
+    virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    {
+        return 0;
+    }
+    
+    // Return an optimized block by traversing it (including sub-blocks) with an 'optimizer'
+    static FIRBlockInstruction<T>* optimize_aux(FIRBlockInstruction<T>* cur_block, FIRInstructionOptimizer<T>& optimizer)
+    {
+        assert(cur_block);
+        
+        FIRBlockInstruction<T>* new_block = new FIRBlockInstruction<T>();
+        InstructionIT next, cur = cur_block->fInstructions.begin();
+        
+        do {
+            FIRBasicInstruction<T>* inst = *cur;
+            if (inst->fOpcode == FIRInstruction::kLoop) {
+                new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,
+                                                           inst->fIntValue, inst->fRealValue,
+                                                           inst->fOffset1, inst->fOffset2,
+                                                           optimize_aux(inst->fBranch1, optimizer),
+                                                           0));
+                cur++;
+            } else if (inst->fOpcode == FIRInstruction::kIf) {
+                new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,
+                                                           inst->fIntValue, inst->fRealValue,
+                                                           inst->fOffset1, inst->fOffset2,
+                                                           optimize_aux(inst->fBranch1, optimizer),
+                                                           optimize_aux(inst->fBranch2, optimizer)));
+                cur++;
+            } else {
+                FIRBasicInstruction<T>* optimized = optimizer.rewrite(cur, next);
+                // Special case for loops
+                if (inst->fOpcode == FIRInstruction::kCondBranch) { optimized->fBranch1 = new_block; }
+                new_block->push(optimized);
+                cur = next;
+            }
+        } while (cur != cur_block->fInstructions.end());
+        
+        return new_block;
+    }
+    
+    // Apply an optimizer on the block, return the optimized new block, then delete the original one
+    static FIRBlockInstruction<T>* optimize(FIRBlockInstruction<T>* cur_block, FIRInstructionOptimizer<T>& optimizer)
+    {
+        FIRBlockInstruction<T>* new_block = optimize_aux(cur_block, optimizer);
+        delete cur_block;
+        return new_block;
+    }
+    
+    static FIRBlockInstruction<T>* optimizeBlock(FIRBlockInstruction<T>* block)
+    {
+        // 1) optimize indexed 'heap' load/store in normal load/store
+        FIRInstructionLoadStoreOptimizer<T> opt1;
+        block = FIRInstructionOptimizer<T>::optimize(block, opt1);
+        
+        // 2) then pptimize simple 'heap' load/store in move
+        FIRInstructionMoveOptimizer<T> opt2;
+        block = FIRInstructionOptimizer<T>::optimize(block, opt2);
+        
+        // 3) optimize 'cast' in heap cast
+        FIRInstructionCastOptimizer<T> opt3;
+        block = FIRInstructionOptimizer<T>::optimize(block, opt3);
+        
+        // 4) them optimize 'heap' and 'Value' math operations
+        FIRInstructionMathOptimizer<T> opt4;
+        block = FIRInstructionOptimizer<T>::optimize(block, opt4);
+        
+        return block;
+    }
+    
+    static void initTables()
+    {
+        // Initializations for FIRInstructionMathOptimizer pass
+        
+        //===============
+        // Math
+        //===============
+        
+        // Init heap opcode
+        for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
+            gFIRMath2Heap[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal));
+            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+        }
+        
+        // Init stack opcode
+        for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
+            gFIRMath2Stack[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealStack - FIRInstruction::kAddReal));
+            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealStack - FIRInstruction::kAddReal)] << std::endl;
+        }
+        
+        // Init stack/value opcode
+        for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
+            gFIRMath2StackValue[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealStackValue - FIRInstruction::kAddReal));
+            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealStackValue - FIRInstruction::kAddReal)] << std::endl;
+        }
+        
+        // Init Value opcode
+        for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
+            gFIRMath2Value[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealValue - FIRInstruction::kAddReal));
+            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealValue - FIRInstruction::kAddReal)] << std::endl;
+        }
+        
+        // Init Value opcode (non commutative operation)
+        for (int i = FIRInstruction::kAddReal; i <= FIRInstruction::kXORInt; i++) {
+            gFIRMath2ValueInvert[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAddRealValue - FIRInstruction::kAddReal));
+            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealValue - FIRInstruction::kAddReal)] << std::endl;
+        }
+        
+        // Manually set inverted versions
+        gFIRMath2ValueInvert[FIRInstruction::kSubReal] = FIRInstruction::kSubRealValueInvert;
+        gFIRMath2ValueInvert[FIRInstruction::kSubInt] = FIRInstruction::kSubIntValueInvert;
+        gFIRMath2ValueInvert[FIRInstruction::kDivReal] = FIRInstruction::kDivRealValueInvert;
+        gFIRMath2ValueInvert[FIRInstruction::kDivInt] = FIRInstruction::kDivIntValueInvert;
+        gFIRMath2ValueInvert[FIRInstruction::kRemReal] = FIRInstruction::kRemRealValueInvert;
+        gFIRMath2ValueInvert[FIRInstruction::kRemInt] = FIRInstruction::kRemIntValueInvert;
+        gFIRMath2ValueInvert[FIRInstruction::kLshInt] = FIRInstruction::kLshIntValueInvert;
+        gFIRMath2ValueInvert[FIRInstruction::kRshInt] = FIRInstruction::kRshIntValueInvert;
+        gFIRMath2ValueInvert[FIRInstruction::kGTInt] = FIRInstruction::kGTIntValueInvert;
+        gFIRMath2ValueInvert[FIRInstruction::kLTInt] = FIRInstruction::kLTIntValueInvert;
+        gFIRMath2ValueInvert[FIRInstruction::kGEInt] = FIRInstruction::kGEIntValueInvert;
+        gFIRMath2ValueInvert[FIRInstruction::kLEInt] = FIRInstruction::kLEIntValueInvert;
+        gFIRMath2ValueInvert[FIRInstruction::kGTReal] = FIRInstruction::kGTRealValueInvert;
+        gFIRMath2ValueInvert[FIRInstruction::kLTReal] = FIRInstruction::kLTRealValueInvert;
+        gFIRMath2ValueInvert[FIRInstruction::kGEReal] = FIRInstruction::kGERealValueInvert;
+        gFIRMath2ValueInvert[FIRInstruction::kLEReal] = FIRInstruction::kLERealValueInvert;
+        
+        //===============
+        // EXTENDED math
+        //===============
+        
+        // Init unary extended math heap opcode
+        for (int i = FIRInstruction::kAbs; i <= FIRInstruction::kTanhf; i++) {
+            gFIRExtendedMath2Heap[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAbsHeap - FIRInstruction::kAbs));
+            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+        }
+        
+        // Init binary extended math heap opcode
+        for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kMinf; i++) {
+            gFIRExtendedMath2Heap[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fHeap - FIRInstruction::kAtan2f));
+            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+        }
+        
+        
+        // Init binary extended math stack opcode
+        for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kMinf; i++) {
+            gFIRExtendedMath2Stack[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fStack - FIRInstruction::kAtan2f));
+            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+        }
+        
+        // Init binary extended math stack/value opcode
+        for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kMinf; i++) {
+            gFIRExtendedMath2StackValue[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fStackValue - FIRInstruction::kAtan2f));
+            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+        }
+        
+        // Init unary math Value opcode
+        for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kMinf; i++) {
+            gFIRExtendedMath2Value[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fValue - FIRInstruction::kAtan2f));
+            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+        }
+        
+        // Init unary math Value opcode : non commutative operations
+        for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kPowf; i++) {
+            gFIRExtendedMath2ValueInvert[FIRInstruction::Opcode(i)]
+            = FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fValueInvert - FIRInstruction::kAtan2f));
+            //std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] << std::endl;
+        }
+        
+        // Test
+        
+        /*
+         std::cout << "gFIRExtendedMath2Heap" << std::endl;
+         for (int i = FIRInstruction::kAbs; i <= FIRInstruction::kTanhf; i++) {
+         if (FIRInstruction::gFIRExtendedMath2Heap.find(FIRInstruction::Opcode(i)) !=  FIRInstruction::gFIRExtendedMath2Heap.end()) {
+         std::cout   << gFIRInstructionTable[FIRInstruction::Opcode(i)] << " ==> "
+         << gFIRInstructionTable[FIRInstruction::gFIRExtendedMath2Heap[FIRInstruction::Opcode(i)]] << std::endl;
+         }
+         }
+         std::cout << "gFIRExtendedMath2Heap" << std::endl << std::endl;
+         for (int i = FIRInstruction::kAbsHeap; i <= FIRInstruction::kMinf; i++) {
+         if (FIRInstruction::gFIRExtendedMath2Heap.find(FIRInstruction::Opcode(i)) !=  FIRInstruction::gFIRExtendedMath2Heap.end()) {
+         std::cout   << gFIRInstructionTable[FIRInstruction::Opcode(i)] << " ==> "
+         << gFIRInstructionTable[FIRInstruction::gFIRExtendedMath2Heap[FIRInstruction::Opcode(i)]] << std::endl;
+         }
+         }
+         
+         std::cout << "gFIRExtendedMath2Stack" << std::endl << std::endl;
+         for (int i = FIRInstruction::kAbsHeap; i <= FIRInstruction::kMinf; i++) {
+         if (FIRInstruction::gFIRExtendedMath2Stack.find(FIRInstruction::Opcode(i)) !=  FIRInstruction::gFIRExtendedMath2Stack.end()) {
+         std::cout   << gFIRInstructionTable[FIRInstruction::Opcode(i)] << " ==> "
+         << gFIRInstructionTable[FIRInstruction::gFIRExtendedMath2Stack[FIRInstruction::Opcode(i)]] << std::endl;
+         }
+         }
+         
+         std::cout << "gFIRExtendedMath2StackValue" << std::endl << std::endl;
+         for (int i = FIRInstruction::kAbsHeap; i <= FIRInstruction::kMinf; i++) {
+         if (FIRInstruction::gFIRExtendedMath2StackValue.find(FIRInstruction::Opcode(i)) !=  FIRInstruction::gFIRExtendedMath2StackValue.end()) {
+         std::cout   << gFIRInstructionTable[FIRInstruction::Opcode(i)] << " ==> "
+         << gFIRInstructionTable[FIRInstruction::gFIRExtendedMath2StackValue[FIRInstruction::Opcode(i)]] << std::endl;
+         }
+         }
+         
+         std::cout << "gFIRExtendedMath2Value" << std::endl << std::endl;
+         for (int i = FIRInstruction::kAbsHeap; i <= FIRInstruction::kMinf; i++) {
+         if (FIRInstruction::gFIRExtendedMath2Value.find(FIRInstruction::Opcode(i)) !=  FIRInstruction::gFIRExtendedMath2Value.end()) {
+         std::cout   << gFIRInstructionTable[FIRInstruction::Opcode(i)] << " ==> "
+         << gFIRInstructionTable[FIRInstruction::gFIRExtendedMath2Value[FIRInstruction::Opcode(i)]] << std::endl;
+         }
+         }
+         
+         std::cout << "gFIRExtendedMath2ValueInvert" << std::endl << std::endl;
+         for (int i = FIRInstruction::kAbsHeap; i <= FIRInstruction::kMinf; i++) {
+         if (FIRInstruction::gFIRExtendedMath2ValueInvert.find(FIRInstruction::Opcode(i)) !=  FIRInstruction::gFIRExtendedMath2ValueInvert.end()) {
+         std::cout   << gFIRInstructionTable[FIRInstruction::Opcode(i)] << " ==> "
+         << gFIRInstructionTable[FIRInstruction::gFIRExtendedMath2ValueInvert[FIRInstruction::Opcode(i)]] << std::endl;
+         }
+         }
+         */
+    }
+};
+
 
 #endif

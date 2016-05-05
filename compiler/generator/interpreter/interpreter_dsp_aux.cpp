@@ -367,8 +367,8 @@ EXPORT std::string interpreter_dsp_factory::getDSPCode()
 
 EXPORT dsp* interpreter_dsp_factory::createDSPInstance()
 {
-    //return reinterpret_cast<dsp*>(new interpreter_dsp_aux<float>(this));
-    return reinterpret_cast<dsp*>(new interpreter_dsp_aux_down<float>(this, 2));
+    return reinterpret_cast<dsp*>(new interpreter_dsp_aux<float>(this));
+    //return reinterpret_cast<dsp*>(new interpreter_dsp_aux_down<float>(this, 2));
 }
 
 EXPORT void interpreter_dsp_factory::metadata(Meta* meta)
