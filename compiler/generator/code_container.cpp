@@ -517,7 +517,7 @@ void CodeContainer::generateDeclarations(InstVisitor* visitor)
 void CodeContainer::generateMetaData(JSONUI* json)
 {
     // Add global metadata
-    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
             stringstream str1, str2;
             str1 << *(i->first);

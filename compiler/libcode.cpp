@@ -1095,14 +1095,14 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         if (gGlobal->gFloatSize == 1) {
             gGlobal->gInterpDSPFactoryFloat = interpreter_container->produceFactoryFloat();
             
-            //gGlobal->gInterpDSPFactoryFloat->write(&cout);
+            gGlobal->gInterpDSPFactoryFloat->write(&cout);
             
-            
+            /*
             std::stringstream dst;
             gGlobal->gInterpDSPFactoryFloat->write(&dst);
             std::string code = flatten(dst.str());
             cout << code;
-            
+            */
             
             
         } else if (gGlobal->gFloatSize == 2) {

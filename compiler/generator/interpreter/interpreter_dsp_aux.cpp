@@ -84,6 +84,9 @@ void interpreter_dsp_factory::write(ostream* out)
     *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize
          << " sr_offset " << fSROffset << " count_offset " << fCountOffset << endl;
     
+    *out << "meta_block" << endl;
+    fMetaBlock->write(out);
+    
     *out << "user_unterface_block" << endl;
     fUserInterfaceBlock->write(out);
     
@@ -128,7 +131,7 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
     name_reader >> dummy;   // Read "name" token
     name_reader >> factory_name;
     
-    // Read inputs/outputs
+     // Read inputs/outputs
     string ins_outs;
     int inputs, outputs;
     getline(*in, ins_outs);
@@ -160,6 +163,10 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
     heap_size_reader >> dummy; // Read "count_offset" token
     heap_size_reader >> value; count_offset = strtol(value.c_str(), 0, 10);
     
+    // Read meta block
+    getline(*in, dummy);    // Read "mata_block" line
+    FIRMetaBlockInstruction* meta_block = readMetaBlock(in);
+    
     // Read user interface block
     getline(*in, dummy);    // Read "user_unterface_block" line
     FIRUserInterfaceBlockInstruction<float>* ui_block = readUIBlock(in);
@@ -183,10 +190,48 @@ interpreter_dsp_factory* interpreter_dsp_factory::read(istream* in)
                                        real_heap_size,
                                        sr_offset,
                                        count_offset,
+                                       meta_block,
                                        ui_block,
                                        init_block,
                                        compute_control_block,
                                        compute_dsp_block);
+}
+
+FIRMetaBlockInstruction* interpreter_dsp_factory::readMetaBlock(istream* in)
+{
+    string dummy, value, line;
+    int size;
+    
+    // Read "block_size" line
+    getline(*in, line);
+    stringstream line_reader(line);
+    
+    line_reader >> dummy; // Read "block_size" token
+    line_reader >> value; size = strtol(value.c_str(), 0, 10);
+    
+    FIRMetaBlockInstruction* meta_block = new FIRMetaBlockInstruction();
+    
+    for (int i = 0; i < size; i++) {
+        getline(*in, line);
+        stringstream item_line_reader(line);
+        meta_block->push(readMetaInstruction(&item_line_reader));
+    }
+    
+    return meta_block;
+}
+
+FIRMetaInstruction* interpreter_dsp_factory::readMetaInstruction(stringstream* inst)
+{
+    string dummy, value, key, val;
+    
+    *inst >> dummy;  // Read "meta" token
+    *inst >> dummy;  // Read "key" token
+    *inst >> key;    // Read "key" content
+    
+    *inst >> dummy;  // Read "value" token
+    *inst >> val;    // Read "val" conent
+    
+    return new FIRMetaInstruction(unquote(key), unquote(val));
 }
 
 FIRUserInterfaceBlockInstruction<float>* interpreter_dsp_factory::readUIBlock(istream* in)
@@ -232,8 +277,8 @@ FIRUserInterfaceInstruction<float>* interpreter_dsp_factory::readUIInstruction(s
     *inst >> dummy;  // Read "key" token
     *inst >> key;    // Read "key" content
     
-    *inst >> dummy;  // Read "value" token
-    *inst >> val;    // Read "value" conent
+    *inst >> dummy;  // Read "val" token
+    *inst >> val;    // Read "val" conent
     
     *inst >> dummy;  // Read "init" token
     *inst >> value; init = strtof(value.c_str(), 0);

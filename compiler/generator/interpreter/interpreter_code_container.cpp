@@ -401,14 +401,15 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     printf("fComputeDSPBlock int stack = %d real stack = %d\n", int_index, real_index);
     */
    
-    /*
     // Test reader/writer
     interpreter_dsp_factory* factory = new interpreter_dsp_factory(fKlassName,
-                                                                   INTERP_VERSION,
+                                                                   INTERP_FILE_VERSION,
                                                                    fNumInputs, fNumOutputs,
                                                                    gGlobal->gInterpreterVisitor->fIntHeapOffset,
                                                                    gGlobal->gInterpreterVisitor->fRealHeapOffset,
                                                                    gGlobal->gInterpreterVisitor->fSROffset,
+                                                                   gGlobal->gInterpreterVisitor->fCountOffset,
+                                                                   produceMetadata(),
                                                                    gGlobal->gInterpreterVisitor->fUserInterfaceBlock,
                                                                    init_block,
                                                                    compute_control_block,
@@ -422,8 +423,8 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     interpreter_dsp_factory* factory1 = readDSPInterpreterFactoryFromMachine(machine_code);
     
     return factory1;
-    */
     
+    /*
     return new interpreter_dsp_factory(fKlassName,
                                         INTERP_FILE_VERSION,
                                         fNumInputs, fNumOutputs,
@@ -431,10 +432,12 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
                                         gGlobal->gInterpreterVisitor->fRealHeapOffset,
                                         gGlobal->gInterpreterVisitor->fSROffset,
                                         gGlobal->gInterpreterVisitor->fCountOffset,
+                                        produceMetadata(),
                                         gGlobal->gInterpreterVisitor->fUserInterfaceBlock,
                                         init_block,
                                         compute_control_block,
                                         compute_dsp_block);
+     */
 }
 
 /*
@@ -491,5 +494,35 @@ void InterpreterScalarCodeContainer::generateCompute(int n)
     // Generates one single scalar loop
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     loop->accept(gGlobal->gInterpreterVisitor);
+}
+
+FIRMetaBlockInstruction*  InterpreterCodeContainer::produceMetadata()
+{
+    FIRMetaBlockInstruction* block = new FIRMetaBlockInstruction();
+    
+    // Add global metadata
+    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+        if (i->first != tree("author")) {
+            stringstream str1, str2;
+            str1 << *(i->first);
+            str2 << **(i->second.begin());
+            block->push(new FIRMetaInstruction(str1.str(), unquote(str2.str())));
+        } else {
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+                if (j == i->second.begin()) {
+                    stringstream str1, str2;
+                    str1 << *(i->first);
+                    str2 << **j;
+                    block->push(new FIRMetaInstruction(str1.str(), unquote(str2.str())));
+                } else {
+                    stringstream str2;
+                    str2 << **j;
+                    block->push(new FIRMetaInstruction("contributor", unquote(str2.str())));
+                }
+            }
+        }
+    }
+    
+    return block;
 }
 

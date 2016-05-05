@@ -54,6 +54,7 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
     int fSROffset;
     int fCountOffset;
     
+    FIRMetaBlockInstruction* fMetaBlock;
     FIRUserInterfaceBlockInstruction<float>* fUserInterfaceBlock;
     FIRBlockInstruction<float>* fInitBlock;
     FIRBlockInstruction<float>* fComputeBlock;
@@ -64,6 +65,7 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
                             int inputs, int ouputs,
                             int int_heap_size, int real_heap_size,
                             int sr_offset, int count_offset,
+                            FIRMetaBlockInstruction* meta,
                             FIRUserInterfaceBlockInstruction<float>* interface,
                             FIRBlockInstruction<float>* init,
                             FIRBlockInstruction<float>* compute_control,
@@ -76,6 +78,7 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
     fRealHeapSize(real_heap_size),
     fSROffset(sr_offset),
     fCountOffset(count_offset),
+    fMetaBlock(meta),
     fUserInterfaceBlock(interface),
     fInitBlock(init),
     fComputeBlock(compute_control),
@@ -107,6 +110,10 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
     void write(std::ostream* out);
     
     static interpreter_dsp_factory* read(std::istream* in);
+    
+    static FIRMetaBlockInstruction* readMetaBlock(std::istream* in);
+    
+    static FIRMetaInstruction* readMetaInstruction(std::stringstream* inst);
     
     static FIRUserInterfaceBlockInstruction<float>* readUIBlock(std::istream* in);
     

@@ -30,7 +30,7 @@
 
 #include "fir_opcode.hh"
 
-static inline std::string replaceChar1(std::string str, char ch1, char ch2)
+static inline std::string replaceCharQuote(std::string str, char ch1, char ch2)
 {
     for (unsigned int i = 0; i < str.length(); ++i) {
         if (str[i] == ch1) {
@@ -341,16 +341,37 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
     {
         *out << "opcode " << fOpcode << " " << gFIRInstructionTable[fOpcode]
             << " offset " << fOffset
-            << " label " << replaceChar1(fLabel, ' ', '_')
-            << " key " << replaceChar1(fKey, ' ', '_')
-            << " value " << replaceChar1(fValue, ' ', '_')
+            << " label " << replaceCharQuote(fLabel, ' ', '_')
+            << " key " << replaceCharQuote(fKey, ' ', '_')
+            << " value " << replaceCharQuote(fValue, ' ', '_')
             << " init " << fInit << " min " << fMin << " max " << fMax << " step " << fStep << std::endl;
     }
     
 };
 
+struct FIRMetaInstruction : public FIRInstruction {
+    
+    std::string fKey;
+    std::string fValue;
+ 
+    FIRMetaInstruction(const std::string& key, const std::string& value)
+        :fKey(key), fValue(value)
+    {}
+    
+    virtual ~FIRMetaInstruction()
+    {}
+    
+    void write(std::ostream* out)
+    {
+        *out << "meta"
+            << " key " << replaceCharQuote(fKey, ' ', '_')
+            << " value " << replaceCharQuote(fValue, ' ', '_') << std::endl;
+    }
+};
+
 #define InstructionIT typename std::vector<FIRBasicInstruction<T>* >::iterator
 #define UIInstructionIT typename std::vector<FIRUserInterfaceInstruction<T>* >::iterator
+#define MetaInstructionIT std::vector<FIRMetaInstruction* >::iterator
 
 template <class T>
 struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
@@ -371,6 +392,31 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         UIInstructionIT it;
+        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+            (*it)->write(out);
+        }
+    }
+    
+};
+
+struct FIRMetaBlockInstruction : public FIRInstruction {
+    
+    std::vector<FIRMetaInstruction*> fInstructions;
+    
+    virtual ~FIRMetaBlockInstruction()
+    {
+        MetaInstructionIT it;
+        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+            delete(*it);
+        }
+    }
+    
+    void push(FIRMetaInstruction* inst) { fInstructions.push_back(inst); }
+    
+    void write(std::ostream* out)
+    {
+        *out << "block_size " << fInstructions.size() << std::endl;
+        MetaInstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
             (*it)->write(out);
         }
