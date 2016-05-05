@@ -58,7 +58,7 @@ class FIRInterpreter  {
     
         int fRealStackSize;
         int fIntStackSize;
-        
+    
         FAUSTFLOAT** fInputs;
         FAUSTFLOAT** fOutputs;
     
@@ -286,8 +286,8 @@ class FIRInterpreter  {
             int int_stack_index = 0;
             int addr_stack_index = 0;
             
-            T real_stack[256];
-            int int_stack[256];
+            T real_stack[fRealStackSize];
+            int int_stack[fIntStackSize];
             InstructionIT address_stack[64];
             
             
