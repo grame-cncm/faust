@@ -254,6 +254,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     */
    
     // Test reader/writer
+    /*
     interpreter_dsp_factory* factory = new interpreter_dsp_factory(fKlassName,
                                                                    INTERP_FILE_VERSION,
                                                                    fNumInputs, fNumOutputs,
@@ -275,8 +276,9 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
     interpreter_dsp_factory* factory1 = readDSPInterpreterFactoryFromMachine(machine_code);
     
     return factory1;
+    */
     
-    /*
+    
     return new interpreter_dsp_factory(fKlassName,
                                         INTERP_FILE_VERSION,
                                         fNumInputs, fNumOutputs,
@@ -289,7 +291,7 @@ interpreter_dsp_factory* InterpreterCodeContainer::produceFactoryFloat()
                                         init_block,
                                         compute_control_block,
                                         compute_dsp_block);
-     */
+    
 }
 
 /*

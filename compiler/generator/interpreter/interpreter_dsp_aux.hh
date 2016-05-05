@@ -327,36 +327,36 @@ class EXPORT interpreter_dsp : public dsp {
 
 // Public C++ interface
 
-EXPORT interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const std::string& sha_key);
+EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& sha_key);
 
-EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const std::string& filename, 
+EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& filename, 
                                                                   int argc, const char* argv[], 
                                                                   std::string& error_msg);
 
-EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const std::string& name_app,
+EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string& name_app,
                                                                     const std::string& dsp_content,
                                                                     int argc, const char* argv[], 
                                                                     std::string& error_msg);
 
-EXPORT bool deleteDSPInterpreterFactory(interpreter_dsp_factory* factory);
+EXPORT bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory);
 
-EXPORT std::vector<std::string> getDSPInterpreterFactoryLibraryList(interpreter_dsp_factory* factory);
+EXPORT std::vector<std::string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory);
 
-EXPORT std::vector<std::string> getAllDSPInterpreterFactories();
+EXPORT std::vector<std::string> getAllInterpreterDSPFactories();
 
-EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachine(const std::string& machine_code);
+EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const std::string& machine_code);
 
-EXPORT std::string writeDSPInterpreterFactoryToMachine(interpreter_dsp_factory* factory);
+EXPORT std::string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* factory);
 
-EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachineFile(const std::string& machine_code_path);
+EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::string& machine_code_path);
 
-EXPORT void writeDSPInterpreterFactoryToMachineFile(interpreter_dsp_factory* factory, const std::string& machine_code_path);
+EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const std::string& machine_code_path);
 
-EXPORT void deleteAllDSPInterpreterFactories();
+EXPORT void deleteAllInterpreterDSPFactories();
 
-EXPORT interpreter_dsp* createDSPInterpreterInstance(interpreter_dsp_factory* factory);
+EXPORT interpreter_dsp* createInterpreterDSPInstance(interpreter_dsp_factory* factory);
 
-EXPORT void deleteDSPInterpreterInstance(interpreter_dsp* dsp);
+EXPORT void deleteInterpreterDSPInstance(interpreter_dsp* dsp);
 
 #endif
 

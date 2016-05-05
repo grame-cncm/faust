@@ -378,13 +378,13 @@ EXPORT void interpreter_dsp_factory::metadata(Meta* meta)
 
 // Instances
 
-EXPORT interpreter_dsp_factory* getDSPInterpreterFactoryFromSHAKey(const string& sha_key)
+EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const string& sha_key)
 {
     // TODO
     return 0;
 }
 
-EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const string& filename, 
+EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string& filename, 
                                                                   int argc, const char* argv[], 
                                                                   string& error_msg)
 {
@@ -392,14 +392,14 @@ EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromFile(const string
     size_t pos = filename.find(".dsp");
     
     if (pos != string::npos) {
-        return createDSPInterpreterFactoryFromString(base.substr(0, pos), path_to_content(filename), argc, argv, error_msg);
+        return createInterpreterDSPFactoryFromString(base.substr(0, pos), path_to_content(filename), argc, argv, error_msg);
     } else {
         error_msg = "File Extension is not the one expected (.dsp expected)";
         return 0;
     } 
 }
 
-EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const string& name_app,
+EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const string& name_app,
                                                                     const string& dsp_content,
                                                                     int argc, const char* argv[], 
                                                                     string& error_msg)
@@ -427,35 +427,35 @@ EXPORT interpreter_dsp_factory* createDSPInterpreterFactoryFromString(const stri
 #endif
 }
 
-EXPORT bool deleteDSPInterpreterFactory(interpreter_dsp_factory* factory)
+EXPORT bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory)
 {
     delete factory;
     return true;
 }
 
-EXPORT vector<string> getDSPInterpreterFactoryLibraryList(interpreter_dsp_factory* factory)
+EXPORT vector<string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory)
 {
     // TODO
     vector<string> res;
     return res;
 }
 
-EXPORT vector<string> getAllDSPInterpreterFactories()
+EXPORT vector<string> getAllInterpreterDSPFactories()
 {
     // TODO
     vector<string> res;
     return res;
 }
 
-EXPORT void deleteAllDSPInterpreterFactories()
+EXPORT void deleteAllInterpreterDSPFactories()
 {}
 
-EXPORT interpreter_dsp* createDSPInterpreterInstance(interpreter_dsp_factory* factory)
+EXPORT interpreter_dsp* createInterpreterDSPInstance(interpreter_dsp_factory* factory)
 {
     return reinterpret_cast<interpreter_dsp*>(factory->createDSPInstance());
 }
 
-EXPORT void deleteDSPInterpreterInstance(interpreter_dsp* dsp)
+EXPORT void deleteInterpreterDSPInstance(interpreter_dsp* dsp)
 {
     delete reinterpret_cast<interpreter_dsp_aux<float>*>(dsp);
 }
@@ -490,20 +490,20 @@ EXPORT void interpreter_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT**
     reinterpret_cast<interpreter_dsp_aux<float>*>(this)->compute(count, input, output);
 }
 
-EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachine(const string& machine_code)
+EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const string& machine_code)
 {
     stringstream reader(machine_code);
     return interpreter_dsp_factory::read(&reader);
 }
 
-EXPORT string writeDSPInterpreterFactoryToMachine(interpreter_dsp_factory* factory)
+EXPORT string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* factory)
 {
     stringstream writer;
     factory->write(&writer);
     return writer.str();
 }
 
-EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachineFile(const string& machine_code_path)
+EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const string& machine_code_path)
 {
     string base = basename((char*)machine_code_path.c_str());
     size_t pos = machine_code_path.find(".fbc");
@@ -518,7 +518,7 @@ EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachineFile(const s
     }
 }
 
-EXPORT void writeDSPInterpreterFactoryToMachineFile(interpreter_dsp_factory* factory, const string& machine_code_path)
+EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const string& machine_code_path)
 {
     //ofstream writer(machine_code_path);
     ofstream writer(machine_code_path.c_str());

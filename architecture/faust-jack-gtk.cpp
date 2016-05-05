@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
     #ifdef LLVM
         factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, -1);
     #else
-        factory3 = createDSPInterpreterFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg3);
+        factory3 = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg3);
     #endif
         
         printf("factory3 %p\n", factory3);
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
         #ifdef LLVM
             DSP = createDSPInstance(factory3);
         #else
-            DSP = createDSPInterpreterInstance(factory3);
+            DSP = createInterpreterDSPInstance(factory3);
         #endif
             assert(DSP);
          } else {
@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
 #ifdef LLVM
     deleteDSPFactory(factory3);
 #else
-    deleteDSPInterpreterFactory(factory3);
+    deleteInterpreterDSPFactory(factory3);
 #endif
     //deleteDSPFactory(factory4);
      
