@@ -1522,10 +1522,10 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
 
 #endif
 
-EXPORT interpreter_dsp_factory* compile_faust_interpreter(int argc, const char* argv[], const char* name, const char* dsp_content, char* error_msg)
+EXPORT interpreter_dsp_factory_aux<float>* compile_faust_interpreter(int argc, const char* argv[], const char* name, const char* dsp_content, char* error_msg)
 {
     gGlobal = NULL;
-    interpreter_dsp_factory* res;
+    interpreter_dsp_factory_aux<float>* res;
     
     try {
     

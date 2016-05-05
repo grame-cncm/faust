@@ -58,7 +58,8 @@ class ASMJAVAScriptInstVisitor;
 template <class T>
 struct InterpreterInstVisitor;
 
-struct interpreter_dsp_factory;
+template <class T>
+struct interpreter_dsp_factory_aux;
 
 typedef long double quad;
 
@@ -145,7 +146,7 @@ struct global {
     LLVMResult*     gLLVMResult;
     
     // Interpreter backend
-    interpreter_dsp_factory* gInterpDSPFactoryFloat;
+    interpreter_dsp_factory_aux<float>* gInterpDSPFactoryFloat;
     //interpreter_dsp_aux<double>* gInterpDSPFactoryDouble;
     //interpreter_dsp_aux<quad>* gInterpDSPFactoryQuad;
     

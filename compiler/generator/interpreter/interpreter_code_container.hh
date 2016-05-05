@@ -50,7 +50,7 @@ class InterpreterCodeContainer : public virtual CodeContainer {
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
         
-        interpreter_dsp_factory* produceFactoryFloat();
+        interpreter_dsp_factory_aux<float>* produceFactoryFloat();
         //interpreter_dsp_factory<double>* produceModuleDouble();
         //interpreter_dsp_factory<quad>* produceModuleQuad();
 
