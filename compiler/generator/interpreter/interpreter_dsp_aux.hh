@@ -104,8 +104,6 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
     
     EXPORT void metadata(Meta* meta);
     
-    //interpreter_dsp_aux<float>* createDSPInstance();
-    
     void write(std::ostream* out);
     
     static interpreter_dsp_factory* read(std::istream* in);
@@ -144,10 +142,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             delete [] this->fOutputs;
         }
           
-        void static metadata(Meta* m) 
-        {}
-
-        virtual int getNumInputs() 
+        virtual int getNumInputs()
         {
             return this->fFactory->fNumInputs;
         }
@@ -217,7 +212,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
 };
 
 /*
-Computing on a dowasmapled version of signal
+Computing on a downsampled version of signal
  
 TODO:
  
@@ -304,8 +299,6 @@ class EXPORT interpreter_dsp : public dsp {
     
     public:
     
-        void metadata(Meta* m);
-    
         int getNumInputs();
         int getNumOutputs();
     
@@ -315,9 +308,7 @@ class EXPORT interpreter_dsp : public dsp {
         void buildUserInterface(UI* ui_interface);
         
         void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-        
-        //interpreter_dsp* copy();
-     
+    
 };
 
 // Public C++ interface

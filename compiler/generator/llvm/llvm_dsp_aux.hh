@@ -181,9 +181,6 @@ class llvm_dsp_aux : public dsp {
         llvm_dsp_aux(llvm_dsp_factory* factory, llvm_dsp_imp* dsp);
         virtual ~llvm_dsp_aux();
     
-        //void metadata(Meta* m);
-        //void metadata(MetaGlue* m);
-     
         virtual int getNumInputs();
         virtual int getNumOutputs();
     
@@ -267,8 +264,6 @@ class EXPORT llvm_dsp : public dsp {
                 
     public:
     
-        //void metadata(Meta* m);
-     
         int getNumInputs();
         int getNumOutputs();
     
@@ -278,9 +273,7 @@ class EXPORT llvm_dsp : public dsp {
         void buildUserInterface(UI* ui_interface);
         
         void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-        
-        //llvm_dsp* copy();
-     
+    
 };
 
 EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
@@ -354,9 +347,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code
 EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
 
 EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
-    
-//EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
-
+ 
 EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp);
 
 EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp);
@@ -368,8 +359,6 @@ EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate);
 EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* ui_interface);
 
 EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-
-//EXPORT llvm_dsp* copyCDSPInstance(llvm_dsp* dsp);
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 

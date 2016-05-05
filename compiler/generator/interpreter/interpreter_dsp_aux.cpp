@@ -427,13 +427,6 @@ EXPORT void deleteDSPInterpreterInstance(interpreter_dsp* dsp)
     delete reinterpret_cast<interpreter_dsp_aux<float>*>(dsp);
 }
 
-/*
-EXPORT void interpreter_dsp::metadata(Meta* m)
-{
-    reinterpret_cast<interpreter_dsp_aux*>(this)->metadata(m);
-}
-*/
-
 EXPORT int interpreter_dsp::getNumInputs()
 {
     return reinterpret_cast<interpreter_dsp_aux<float>*>(this)->getNumInputs();
@@ -463,13 +456,6 @@ EXPORT void interpreter_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT**
 {
     reinterpret_cast<interpreter_dsp_aux<float>*>(this)->compute(count, input, output);
 }
-
-/*
-EXPORT interpreter_dsp* interpreter_dsp::copy()
-{
-    return reinterpret_cast<interpreter_dsp*>(reinterpret_cast<interpreter_dsp_aux<float>*>(this)->copy());
-}
-*/
 
 EXPORT interpreter_dsp_factory* readDSPInterpreterFactoryFromMachine(const string& machine_code)
 {

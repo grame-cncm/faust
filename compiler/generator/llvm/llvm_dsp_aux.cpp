@@ -1649,13 +1649,6 @@ EXPORT void deleteDSPInstance(llvm_dsp* dsp)
     }
 }
 
-    /*
-EXPORT void llvm_dsp::metadata(Meta* m)
-{
-    reinterpret_cast<llvm_dsp_aux*>(this)->metadata(m);
-}
-     */
-
 EXPORT int llvm_dsp::getNumInputs()
 {
     return reinterpret_cast<llvm_dsp_aux*>(this)->getNumInputs();
@@ -1908,15 +1901,6 @@ EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* glue)
         factory->metadataDSPFactory(glue);
     }
 }
-
-/*
-EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* glue)
-{
-    if (dsp) {
-        reinterpret_cast<llvm_dsp_aux*>(dsp)->metadata(glue);
-    }
-}
-*/
 
 EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp)
 {
