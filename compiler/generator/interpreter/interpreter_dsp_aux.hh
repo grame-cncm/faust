@@ -123,6 +123,15 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
     
     static FIRBasicInstruction<float>* readCodeInstruction(std::istream* inst, std::istream* in);
     
+    void ExecuteMeta(FIRMetaBlockInstruction* block, Meta* meta)
+    {
+        MetaInstructionIT it;
+        
+        for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
+            meta->declare((*it)->fKey.c_str(), (*it)->fValue.c_str());
+        }
+    }
+    
 };
 
 template <class T>
@@ -213,8 +222,6 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             
              //std::cout << "sample " << outputs[0][0] << std::endl;
         }
-    
-        //interpreter_dsp_aux<T>* copy()  { return this->fFactory->createDSPInstance(); }
     
 };
 

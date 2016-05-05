@@ -62,15 +62,6 @@ class FIRInterpreter  {
         FAUSTFLOAT** fInputs;
         FAUSTFLOAT** fOutputs;
     
-        void ExecuteMeta(FIRMetaBlockInstruction* block, Meta* meta)
-        {
-            MetaInstructionIT it;
-            
-            for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
-                meta->declare((*it)->fKey.c_str(), (*it)->fValue.c_str());
-            }
-        }
-    
         void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UI* interface)
         {
             UIInstructionIT it;

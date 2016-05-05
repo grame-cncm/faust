@@ -385,7 +385,7 @@ EXPORT dsp* interpreter_dsp_factory::createDSPInstance()
 
 EXPORT void interpreter_dsp_factory::metadata(Meta* meta)
 {
-   // TODO
+    ExecuteMeta(fMetaBlock, meta);
 }
 
 // Instances
