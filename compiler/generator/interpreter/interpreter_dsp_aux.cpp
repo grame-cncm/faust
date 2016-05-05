@@ -179,6 +179,7 @@ EXPORT string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* facto
     return writer.str();
 }
 
+// TODO : code in fileformat which concrete <float> of <double> type interpreter_dsp_aux<T> will be
 EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const string& machine_code_path)
 {
     string base = basename((char*)machine_code_path.c_str());

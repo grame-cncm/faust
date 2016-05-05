@@ -47,11 +47,6 @@ static inline std::string unquote1(const std::string& str)
     return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
 }
 
-class interpreter_dsp;
-
-template <class T>
-class interpreter_dsp_aux;
-
 template <class T>
 struct interpreter_dsp_factory_aux : public dsp_factory {
     
@@ -609,12 +604,15 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T> {
 template <class T>
 dsp* interpreter_dsp_factory_aux<T>::createDSPInstance()
 {
+    // TODO : keep a state in interpreter_dsp to know which concrete <float> of <double> type interpreter_dsp_aux<T> will be
+    
     return reinterpret_cast<dsp*>(new interpreter_dsp_aux<float>(this));
     //return reinterpret_cast<dsp*>(new interpreter_dsp_aux_down<float>(this, 2));
 }
 
 class EXPORT interpreter_dsp : public dsp {
     
+    // TODO : keep an a state to know which concrete <float> of <double> type interpreter_dsp_aux<T> will be
     public:
     
         int getNumInputs();
@@ -647,14 +645,7 @@ public:
     /* Return Factory expanded DSP code */
     std::string getDSPCode();
     
-    /*
-    dsp* createDSPInstance()
-    {
-        return reinterpret_cast<dsp*>(new interpreter_dsp_aux<float>(this));
-        //return reinterpret_cast<dsp*>(new interpreter_dsp_aux_down<float>(this, 2));
-    }
-     */
-
+    dsp* createDSPInstance();
     
 };
 
