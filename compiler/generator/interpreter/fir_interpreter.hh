@@ -149,7 +149,7 @@ class FIRInterpreter  {
                 &&do_kCastReal, &&do_kCastInt,
                 &&do_kCastRealHeap, &&do_kCastIntHeap,
                 
-                // Standard math
+                // Standard math (stack OP stack)
                 &&do_kAddReal, &&do_kAddInt, &&do_kSubReal, &&do_kSubInt,
                 &&do_kMultReal, &&do_kMultInt, &&do_kDivReal, &&do_kDivInt,
                 &&do_kRemReal, &&do_kRemInt, &&do_kLshInt, &&do_kRshInt, &&do_kGTInt,
@@ -218,7 +218,7 @@ class FIRInterpreter  {
                 &&do_kSqrtf,
                 &&do_kTanf, &&do_kTanhf,
                 
-                // Extended unary math (heap version)
+                // Extended unary math (heap OP heap)
                 &&do_kAbsHeap, &&do_kAbsfHeap,
                 &&do_kAcosfHeap, &&do_kAsinfHeap,
                 &&do_kAtanfHeap,
@@ -286,16 +286,17 @@ class FIRInterpreter  {
             int int_stack_index = 0;
             int addr_stack_index = 0;
             
-            T real_stack[fRealStackSize];
-            int int_stack[fIntStackSize];
-            InstructionIT address_stack[32];
+            T real_stack[256];
+            int int_stack[256];
+            InstructionIT address_stack[64];
             
-            int max_real_stack = 0;
-            int max_int_stack = 0;
             
             //printf("ExecuteBlock\n");
             
             /*
+             int max_real_stack = 0;
+             int max_int_stack = 0;
+             
              #define dispatch_first() { (*it)->write(&std::cout); goto *fDispatchTable[(*it)->fOpcode]; }
              #define dispatch() { (*it)->write(&std::cout); printf("int_stack_index = %d real_stack_index = %d\n", int_stack_index, real_stack_index);  \
              max_real_stack = std::max(max_real_stack, real_stack_index); max_int_stack = std::max(max_int_stack, int_stack_index); \
@@ -317,8 +318,6 @@ class FIRInterpreter  {
              #define dispatch_first() { printf("int_stack_index = %d real_stack_index = %d\n",int_stack_index, real_stack_index); (*it)->dump(); goto *fDispatchTable[(*it)->fOpcode]; }
              #define dispatch() { assert(real_stack_index >=0); assert(int_stack_index >=0); printf("real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index); it++; (*it)->write();  goto *fDispatchTable[(*it)->fOpcode]; }
              */
-            
-            FIRBasicInstruction<T>* inst;
             
             InstructionIT it = block->fInstructions.begin();
             dispatch_first();

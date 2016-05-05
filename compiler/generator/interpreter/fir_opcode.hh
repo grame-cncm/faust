@@ -47,7 +47,7 @@ struct FIRInstruction {
         kCastReal, kCastInt,
         kCastRealHeap, kCastIntHeap,
         
-        // Standard math
+        // Standard math (stack OP stack)
         kAddReal, kAddInt, kSubReal, kSubInt,  
         kMultReal, kMultInt, kDivReal, kDivInt,
         kRemReal, kRemInt, kLshInt, kRshInt, kGTInt, 
@@ -56,7 +56,7 @@ struct FIRInstruction {
         kLEReal, kEQReal, kNEReal, 
         kANDInt, kORInt, kXORInt,
         
-        // Standard math (heap version)
+        // Standard math (heap OP heap)
         kAddRealHeap, kAddIntHeap, kSubRealHeap, kSubIntHeap,
         kMultRealHeap, kMultIntHeap, kDivRealHeap, kDivIntHeap,
         kRemRealHeap, kRemIntHeap, kLshIntHeap, kRshIntHeap, kGTIntHeap,
@@ -65,7 +65,7 @@ struct FIRInstruction {
         kLERealHeap, kEQRealHeap, kNERealHeap,
         kANDIntHeap, kORIntHeap, kXORIntHeap,
         
-        // Standard math (stack version)
+        // Standard math (heap OP stack)
         kAddRealStack, kAddIntStack, kSubRealStack, kSubIntStack,
         kMultRealStack, kMultIntStack, kDivRealStack, kDivIntStack,
         kRemRealStack, kRemIntStack, kLshIntStack, kRshIntStack, kGTIntStack,
@@ -74,7 +74,7 @@ struct FIRInstruction {
         kLERealStack, kEQRealStack, kNERealStack,
         kANDIntStack, kORIntStack, kXORIntStack,
         
-        // Standard math (stack/value version)
+        // Standard math (heap OP stack)
         kAddRealStackValue, kAddIntStackValue, kSubRealStackValue, kSubIntStackValue,
         kMultRealStackValue, kMultIntStackValue, kDivRealStackValue, kDivIntStackValue,
         kRemRealStackValue, kRemIntStackValue, kLshIntStackValue, kRshIntStackValue, kGTIntStackValue,
@@ -83,7 +83,7 @@ struct FIRInstruction {
         kLERealStackValue, kEQRealStackValue, kNERealStackValue,
         kANDIntStackValue, kORIntStackValue, kXORIntStackValue,
         
-        // Standard math (Value version)
+        // Standard math (value OP heap)
         kAddRealValue, kAddIntValue, kSubRealValue, kSubIntValue,
         kMultRealValue, kMultIntValue, kDivRealValue, kDivIntValue,
         kRemRealValue, kRemIntValue, kLshIntValue, kRshIntValue, kGTIntValue,
@@ -92,7 +92,7 @@ struct FIRInstruction {
         kLERealValue, kEQRealValue, kNERealValue,
         kANDIntValue, kORIntValue, kXORIntValue,
         
-        // Standard math (Value version) : non commutative operations
+        // Standard math (value OP heap) : non commutative operations
         kSubRealValueInvert, kSubIntValueInvert,
         kDivRealValueInvert, kDivIntValueInvert,
         kRemRealValueInvert, kRemIntValueInvert,
@@ -116,7 +116,7 @@ struct FIRInstruction {
         kSqrtf,
         kTanf, kTanhf,
         
-        // Extended unary math (heap version)
+        // Extended unary math (heap OP)
         kAbsHeap, kAbsfHeap,
         kAcosfHeap, kAsinfHeap,
         kAtanfHeap,
@@ -137,35 +137,35 @@ struct FIRInstruction {
         kMax, kMaxf,
         kMin, kMinf,
         
-        // Extended binary math (heap version)
+        // Extended binary math (heap OP heap)
         kAtan2fHeap,
         kFmodfHeap,
         kPowfHeap,
         kMaxHeap, kMaxfHeap,
         kMinHeap, kMinfHeap,
         
-        // Extended binary math (stack version)
+        // Extended binary math (heap OP stack)
         kAtan2fStack,
         kFmodfStack,
         kPowfStack,
         kMaxStack, kMaxfStack,
         kMinStack, kMinfStack,
    
-        // Extended binary math (Stack/Value version)
+        // Extended binary math (value OP stack)
         kAtan2fStackValue,
         kFmodfStackValue,
         kPowfStackValue,
         kMaxStackValue, kMaxfStackValue,
         kMinStackValue, kMinfStackValue,
         
-        // Extended binary math (Value version)
+        // Extended binary math (value OP heap)
         kAtan2fValue,
         kFmodfValue,
         kPowfValue,
         kMaxValue, kMaxfValue,
         kMinValue, kMinfValue,
         
-        // Extended binary math (Value version) : non commutative operations
+        // Extended binary math (value OP heap) : non commutative operations
         kAtan2fValueInvert,
         kFmodfValueInvert,
         kPowfValueInvert,
@@ -178,11 +178,6 @@ struct FIRInstruction {
         
         // Select/if
         kIf,
-        /*
-        kSimpleSelectInt, kSimpleSelectReal,
-        kSimpleBranch1SelectInt, kSimpleBranch1SelectReal,
-        kSimpleBranch2SelectInt, kSimpleBranch2SelectReal,
-        */
         kCondBranch,
         
         // User Interface 
@@ -215,7 +210,6 @@ struct FIRInstruction {
 
 };
 
-
 static std::string gFIRInstructionTable[] = {
     
     // Numbers
@@ -234,7 +228,7 @@ static std::string gFIRInstructionTable[] = {
     "kCastReal", "kCastInt",
     "kCastRealHeap", "kCastIntHeap",
 
-    // Standard math
+    // Standard math (stack OP stack)
     "kAddReal", "kAddInt", "kSubReal", "kSubInt",  
     "kMultReal", "kMultInt", "kDivReal", "kDivInt",
     "kRemReal", "kRemInt", "kLshInt", "kRshInt", "kGTInt", 
@@ -243,7 +237,7 @@ static std::string gFIRInstructionTable[] = {
     "kLEReal", "kEQReal", "kNEReal", 
     "kANDInt", "kORInt", "kXORInt",
     
-    // Standard math (heap version)
+    // Standard math (heap OP heap)
     "kAddRealHeap", "kAddIntHeap", "kSubRealHeap", "kSubIntHeap",
     "kMultRealHeap", "kMultIntHeap", "kDivRealHeap", "kDivIntHeap",
     "kRemRealHeap", "kRemIntHeap", "kLshIntHeap", "kRshIntHeap", "kGTIntHeap",
@@ -252,7 +246,7 @@ static std::string gFIRInstructionTable[] = {
     "kLERealHeap", "kEQRealHeap", "kNERealHeap",
     "kANDIntHeap", "kORIntHeap", "kXORIntHeap",
     
-    // Standard math (stack version)
+    // Standard math (heap OP stack)
     "kAddRealStack", "kAddIntStack", "kSubRealStack", "kSubIntStack",
     "kMultRealStack", "kMultIntStack", "kDivRealStack", "kDivIntStack",
     "kRemRealStack", "kRemIntStack", "kLshIntStack", "kRshIntStack", "kGTIntStack",
@@ -261,7 +255,7 @@ static std::string gFIRInstructionTable[] = {
     "kLERealStack", "kEQRealStack", "kNERealStack",
     "kANDIntStack", "kORIntStack", "kXORIntStack",
     
-    // Standard math (stack/value version)
+    // Standard math (value OP stack)
     "kAddRealStackValue", "kAddIntStackValue", "kSubRealStackValue", "kSubIntStackValue",
     "kMultRealStackValue", "kMultIntStackValue", "kDivRealStackValue", "kDivIntStackValue",
     "kRemRealStackValue", "kRemIntStackValue", "kLshIntStackValue", "kRshIntStackValue", "kGTIntStackValue",
@@ -270,7 +264,7 @@ static std::string gFIRInstructionTable[] = {
     "kLERealStackValue", "kEQRealStackValue", "kNERealStackValue",
     "kANDIntStackValue", "kORIntStackValue", "kXORIntStackValue",
     
-    // Standard math (Value version) : non commutative operations
+    // Standard math (value OP heap)
     "kAddRealValue", "kAddIntValue", "kSubRealValue", "kSubIntValue",
     "kMultRealValue", "kMultIntValue", "kDivRealValue", "kDivIntValue",
     "kRemRealValue", "kRemIntValue", "kLshIntValue", "kRshIntValue", "kGTIntValue",
@@ -279,7 +273,7 @@ static std::string gFIRInstructionTable[] = {
     "kLERealValue", "kEQRealValue", "kNERealValue",
     "kANDIntValue", "kORIntValue", "kXORIntValue",
     
-    // Non commutatives operations
+    // Standard math (value OP heap) : non commutative operations
     "kSubRealValueInvert", "kSubIntValueInvert",
     "kDivRealValueInvert", "kDivIntValueInvert",
     "kRemRealValueInvert", "kRemIntValueInvert",
@@ -303,7 +297,7 @@ static std::string gFIRInstructionTable[] = {
     "kSqrtf",
     "kTanf", "kTanhf",
     
-    // Extended unary math (heap version)
+    // Extended unary math (heap OP heap)
     "kAbsHeap", "kAbsfHeap",
     "kAcosfHeap", "kAsinfHeap",
     "kAtanfHeap",
@@ -366,11 +360,6 @@ static std::string gFIRInstructionTable[] = {
     
     // Select/if
     "kIf",
-    /*
-    "kSimpleSelectInt", "kSimpleSelectReal",
-    "kSimpleBranch1SelectInt", "kSimpleBranch1SelectReal",
-    "kSimpleBranch2SelectInt", "kSimpleBranch2SelectReal",
-    */
     "kCondBranch",
  
     // User Interface

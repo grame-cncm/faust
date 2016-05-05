@@ -219,13 +219,13 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
         FIRBasicInstruction<T>* inst2 = *(cur + 1);
         FIRBasicInstruction<T>* inst3 = *(cur + 2);
         
-        //===========
+        //======
         // HEAP
-        //===========
+        //======
         
-            //===========
+            //======
             // MATH
-            //===========
+            //======
         
         // kLoadReal OP kLoadReal ==> Heap version
         if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kLoadReal && FIRInstruction::isMath(inst3->fOpcode)) {
@@ -239,9 +239,9 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
             
-            //==============
+            //===============
             // EXTENDED MATH
-            //==============
+            //===============
             
         // kLoadReal EXTENDED-OP kLoadReal ==> Heap version
         } else  if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kLoadReal && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
@@ -255,13 +255,13 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
         
-        //===========
+        //=======
         // VALUE
-        //===========
+        //=======
             
-            //===========
+            //======
             // MATH
-            //===========
+            //======
             
         // kLoadReal OP kRealValue ==> Value version
         } else if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kRealValue && FIRInstruction::isMath(inst3->fOpcode)) {
@@ -287,10 +287,9 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2ValueInvert[inst3->fOpcode], inst1->fIntValue, 0, inst2->fOffset1, 0);
             
-            //==============
+            //===============
             // EXTENDED MATH
-            //==============
-      
+            //===============
             
         // kLoadReal EXTENDED-OP kRealValue ==> Value version
         } else if (inst1->fOpcode == FIRInstruction::kLoadReal && inst2->fOpcode == FIRInstruction::kRealValue && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
@@ -316,13 +315,13 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             end = cur + 3;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2ValueInvert[inst3->fOpcode], inst1->fIntValue, 0, inst2->fOffset1, 0);
         
-        //===========
+        //=======
         // STACK
-        //===========
+        //=======
             
-            //===========
+            //======
             // MATH
-            //===========
+            //======
             
         // kLoadReal/kLoadInt binary OP ==> Stack version
         } else if (((inst1->fOpcode == FIRInstruction::kLoadReal) || (inst1->fOpcode == FIRInstruction::kLoadInt)) && FIRInstruction::isMath(inst2->fOpcode)) {
@@ -342,9 +341,9 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRMath2StackValue[inst2->fOpcode], inst1->fIntValue, 0);
         
-            //==============
+            //===============
             // EXTENDED MATH
-            //==============
+            //===============
       
         // kLoadReal/kLoadInt binary EXTENDED-OP ==> Stack version
         } else if (((inst1->fOpcode == FIRInstruction::kLoadReal) || (inst1->fOpcode == FIRInstruction::kLoadInt)) && FIRInstruction::isExtendedBinaryMath(inst2->fOpcode)) {
@@ -364,7 +363,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::gFIRExtendedMath2StackValue[inst2->fOpcode], inst1->fIntValue, 0);
             
-        //====================
+        //=====================
         // UNARY EXTENDED MATH
         //=====================
             

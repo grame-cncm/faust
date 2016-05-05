@@ -126,13 +126,14 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
     protected:
     
         interpreter_dsp_factory* fFactory;
-  	
+   	
     public:
     
         interpreter_dsp_aux(interpreter_dsp_factory* factory)
         : FIRInterpreter<T>(factory->fIntHeapSize, factory->fRealHeapSize, factory->fSROffset, factory->fCountOffset)
         {
             fFactory = factory;
+            
             this->fInputs = new FAUSTFLOAT*[fFactory->fNumInputs];
             this->fOutputs = new FAUSTFLOAT*[fFactory->fNumOutputs];
         }
@@ -148,12 +149,12 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
 
         virtual int getNumInputs() 
         {
-            return fFactory->fNumInputs;
+            return this->fFactory->fNumInputs;
         }
         
         virtual int getNumOutputs() 
         {
-            return fFactory->fNumOutputs;
+            return this->fFactory->fNumOutputs;
         }
         
         virtual int getInputRate(int channel) 
@@ -176,51 +177,135 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             
             // Execute init instructions
             this->ExecuteBlock(fFactory->fInitBlock);
-         }
-        
-        virtual void init(int samplingFreq) 
-        {
-            classInit(samplingFreq);
-            instanceInit(samplingFreq);
         }
-        
-        virtual void buildUserInterface(UI* interface) 
+    
+        virtual void init(int samplingRate)
+        {
+            classInit(samplingRate);
+            this->instanceInit(samplingRate);
+        }
+    
+        virtual void buildUserInterface(UI* interface)
         {
             this->ExecuteBuildUserInterface(fFactory->fUserInterfaceBlock, interface);
         }
-        
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
+    
+        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             // Prepare in/out buffers
-            for (int i = 0; i < fFactory->fNumInputs; i++) {
+            for (int i = 0; i < this->fFactory->fNumInputs; i++) {
                 this->fInputs[i] = inputs[i];
             }
-            for (int i = 0; i < fFactory->fNumOutputs; i++) {
+            for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
                 this->fOutputs[i] = outputs[i];
             }
             
             // Executes the 'control' block
-            this->ExecuteBlock(fFactory->fComputeBlock);
+            this->ExecuteBlock(this->fFactory->fComputeBlock);
             
             // Set count in 'count' variable at the correct offset in fIntHeap
             this->fIntHeap[this->fCountOffset] = count;
             
             // Executes the 'DSP' block
-            this->ExecuteBlock(fFactory->fComputeDSPBlock);
+            this->ExecuteBlock(this->fFactory->fComputeDSPBlock);
             
-            //std::cout << "sample " << outputs[0][0] << std::endl;
+             //std::cout << "sample " << outputs[0][0] << std::endl;
         }
     
         //interpreter_dsp_aux<T>* copy()  { return this->fFactory->createDSPInstance(); }
     
 };
 
+/*
+Computing on a dowasmapled version of signal
+ 
+TODO:
+ 
+- anti alias filter at input
+ 
+- interporlation at output
+ 
+*/
+
+template <class T>
+class interpreter_dsp_aux_down : public interpreter_dsp_aux<T> {
+    
+    private:
+    
+        int fDownSamplingFactor;
+
+    public:
+    
+        interpreter_dsp_aux_down(interpreter_dsp_factory* factory, int down_sampling_factor)
+            : interpreter_dsp_aux<T>(factory), fDownSamplingFactor(down_sampling_factor)
+        {
+            // Allocate and set downsampled inputs/outputs
+            for (int i = 0; i < this->fFactory->fNumInputs; i++) {
+                this->fInputs[i] = new T[2048];
+            }
+            for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
+                this->fOutputs[i] = new T[2048];
+            }
+        }
+        
+        virtual ~interpreter_dsp_aux_down()
+        {
+            // Delete downsampled inputs/outputs
+            for (int i = 0; i < this->fFactory->fNumInputs; i++) {
+                delete [] this->fInputs[i];
+            }
+            for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
+                delete [] this->fOutputs[i];
+            }
+        }
+    
+        static void classInit(int samplingRate)
+        {}
+
+        virtual void init(int samplingRate)
+        {
+            classInit(samplingRate / fDownSamplingFactor);
+            this->instanceInit(samplingRate / fDownSamplingFactor);
+        }
+    
+        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            // Downsample inputs
+            for (int i = 0; i < this->fFactory->fNumInputs; i++) {
+                for (int j = 0; j < count / fDownSamplingFactor; j++) {
+                    this->fInputs[i][j] = inputs[i][j * fDownSamplingFactor];
+                }
+            }
+            
+            // Executes the 'control' block
+            this->ExecuteBlock(this->fFactory->fComputeBlock);
+            
+            // Set count in 'count' variable at the correct offset in fIntHeap
+            this->fIntHeap[this->fCountOffset] = count / fDownSamplingFactor;
+            
+            // Executes the 'DSP' block
+            this->ExecuteBlock(this->fFactory->fComputeDSPBlock);
+            
+            // Upsample ouputs
+            for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
+                for (int j = 0; j < count / fDownSamplingFactor; j++) {
+                    T sample = this->fOutputs[i][j];
+                    outputs[i][j * fDownSamplingFactor] = sample;
+                    outputs[i][(j * fDownSamplingFactor) + 1] = sample;
+                }
+            }
+            
+            //std::cout << "sample " << outputs[0][0] << std::endl;
+        }
+    
+};
+
 class EXPORT interpreter_dsp : public dsp {
-                
+    
     public:
     
         void metadata(Meta* m);
-     
+    
         int getNumInputs();
         int getNumOutputs();
     
