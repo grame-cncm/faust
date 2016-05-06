@@ -48,8 +48,14 @@ static inline std::string unquote1(const std::string& str)
     return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
 }
 
+struct interpreter_dsp_factory_base {
+    
+    virtual void write(std::ostream* out) = 0;
+
+};
+
 template <class T>
-struct interpreter_dsp_factory_aux {
+struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     
     std::string fExpandedDSP;
     std::string fShaKey;
@@ -446,8 +452,23 @@ struct BufferGeneric {
     void setOutputs(double**& outputs)  { outputs = fDoubleOutputs; }
 };
 
+struct interpreter_dsp_base : public dsp {
+    
+    // Not implemented;
+    void buildUserInterface(UI* ui_interface) {}
+    
+    virtual void buildUserInterface(UIGeneric* glue) = 0;
+    
+    // Not implemented;
+    virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
+    virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs){}
+    
+    virtual void compute(int count, BufferGeneric& buffers) = 0;
+    
+};
+
 template <class T>
-class interpreter_dsp_aux : public FIRInterpreter<T> {
+class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T> {
 	
     protected:
     
@@ -541,7 +562,6 @@ class interpreter_dsp_aux : public FIRInterpreter<T> {
             
              //std::cout << "sample " << outputs[0][0] << std::endl;
         }
-    
 };
 
 /*
@@ -633,12 +653,11 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T> {
 
 struct EXPORT interpreter_dsp : public dsp {
     
-    interpreter_dsp_aux<float>* fFloatInstance;
-    interpreter_dsp_aux<double>* fDoubleInstance;
+    interpreter_dsp_base* fDSP;
     
-    interpreter_dsp(interpreter_dsp_aux<float>* instance):fFloatInstance(instance), fDoubleInstance(0)
+    interpreter_dsp(interpreter_dsp_aux<float>* dsp):fDSP(dsp)
     {}
-    interpreter_dsp(interpreter_dsp_aux<double>* instance):fFloatInstance(0), fDoubleInstance(instance)
+    interpreter_dsp(interpreter_dsp_aux<double>* dsp):fDSP(dsp)
     {}
 
     virtual ~interpreter_dsp()
@@ -663,9 +682,8 @@ struct EXPORT interpreter_dsp : public dsp {
 
 struct EXPORT interpreter_dsp_factory : public dsp_factory {
     
-    interpreter_dsp_factory_aux<float>* fFloatFactory;
-    interpreter_dsp_factory_aux<double>* fDoubleFactory;
-
+    interpreter_dsp_factory_base* fFactory;
+  
     interpreter_dsp_factory(const std::string& name,
                          float version_num,
                          int inputs, int ouputs,
@@ -677,13 +695,12 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
                          FIRBlockInstruction<float>* compute_control,
                          FIRBlockInstruction<float>* compute_dsp)
     {
-        fFloatFactory = new interpreter_dsp_factory_aux<float>(name, version_num,
+        fFactory = new interpreter_dsp_factory_aux<float>(name, version_num,
                                                                 inputs, ouputs,
                                                                 int_heap_size, real_heap_size,
                                                                 sr_offset, count_offset,
                                                                 meta, interface,
                                                                 init, compute_control, compute_dsp);
-        fDoubleFactory = 0;
     }
 
     interpreter_dsp_factory(const std::string& name,
@@ -697,19 +714,18 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
                             FIRBlockInstruction<double>* compute_control,
                             FIRBlockInstruction<double>* compute_dsp)
     {
-        fDoubleFactory = new interpreter_dsp_factory_aux<double>(name, version_num,
+        fFactory = new interpreter_dsp_factory_aux<double>(name, version_num,
                                                                 inputs, ouputs,
                                                                 int_heap_size, real_heap_size,
                                                                 sr_offset, count_offset,
                                                                 meta, interface,
                                                                 init, compute_control, compute_dsp);
-        fFloatFactory = 0;
     }
     
-    interpreter_dsp_factory(interpreter_dsp_factory_aux<float>* factory):fFloatFactory(factory), fDoubleFactory(0)
+    interpreter_dsp_factory(interpreter_dsp_factory_aux<float>* factory):fFactory(factory)
     {}
     
-    interpreter_dsp_factory(interpreter_dsp_factory_aux<double>* factory):fFloatFactory(0), fDoubleFactory(factory)
+    interpreter_dsp_factory(interpreter_dsp_factory_aux<double>* factory):fFactory(factory)
     {}
     
     virtual ~interpreter_dsp_factory()

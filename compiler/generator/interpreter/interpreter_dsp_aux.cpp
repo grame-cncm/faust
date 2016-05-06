@@ -53,10 +53,10 @@ static string path_to_content(const string& path)
 
 dsp* interpreter_dsp_factory::createDSPInstance()
 {
-    if (fFloatFactory) {
-        return new interpreter_dsp(new interpreter_dsp_aux<float>(fFloatFactory));
-    } else if (fDoubleFactory) {
-        return new interpreter_dsp(new interpreter_dsp_aux<double>(fDoubleFactory));
+    if (dynamic_cast<interpreter_dsp_factory_aux<float>*>(fFactory)) {
+        return new interpreter_dsp(new interpreter_dsp_aux<float>(dynamic_cast<interpreter_dsp_factory_aux<float>*>(fFactory)));
+    } else if (dynamic_cast<interpreter_dsp_factory_aux<double>*>(fFactory)) {
+        return new interpreter_dsp(new interpreter_dsp_aux<double>(dynamic_cast<interpreter_dsp_factory_aux<double>*>(fFactory)));
     } else {
         assert(false);
     }
@@ -180,13 +180,7 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const strin
 EXPORT string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* factory)
 {
     stringstream writer;
-    if (factory->fFloatFactory) {
-        factory->fFloatFactory->write(&writer);
-    } else if (factory->fDoubleFactory) {
-        factory->fDoubleFactory->write(&writer);
-    } else {
-        assert(false);
-    }
+    factory->fFactory->write(&writer);
     return writer.str();
 }
 
@@ -217,84 +211,38 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const s
 EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const string& machine_code_path)
 {
     ofstream writer(machine_code_path.c_str());
-    if (factory->fFloatFactory) {
-        factory->fFloatFactory->write(&writer);
-    } else if (factory->fDoubleFactory) {
-        factory->fDoubleFactory->write(&writer);
-    } else {
-        assert(false);
-    }
+    factory->fFactory->write(&writer);
 }
-
 
 EXPORT int interpreter_dsp::getNumInputs()
 {
-    if (fFloatInstance) {
-        return fFloatInstance->getNumInputs();
-    } else if (fDoubleInstance) {
-        return fDoubleInstance->getNumInputs();
-    } else {
-        assert(false);
-        return -1;
-    }
+    return fDSP->getNumInputs();
 }
 
 int EXPORT interpreter_dsp::getNumOutputs()
 {
-    if (fFloatInstance) {
-        return fFloatInstance->getNumOutputs();
-    } else if (fDoubleInstance) {
-        return fDoubleInstance->getNumOutputs();
-    } else {
-        assert(false);
-        return -1;
-    }
+    return fDSP->getNumOutputs();
 }
 
 EXPORT void interpreter_dsp::init(int samplingRate)
 {
-    if (fFloatInstance) {
-        fFloatInstance->init(samplingRate);
-    } else if (fDoubleInstance) {
-        fDoubleInstance->init(samplingRate);
-    } else {
-        assert(false);
-    }
+    fDSP->init(samplingRate);
 }
 
 EXPORT void interpreter_dsp::instanceInit(int samplingRate)
 {
-    if (fFloatInstance) {
-        fFloatInstance->instanceInit(samplingRate);
-    } else if (fDoubleInstance) {
-        fDoubleInstance->instanceInit(samplingRate);
-    } else {
-        assert(false);
-    }
+    fDSP->instanceInit(samplingRate);
 }
 
 EXPORT void interpreter_dsp::buildUserInterface(UI* ui_interface)
 {
-    if (fFloatInstance) {
-        UIGeneric glue(ui_interface);
-        fFloatInstance->buildUserInterface(&glue);
-    } else if (fDoubleInstance) {
-        UIGeneric glue(ui_interface);
-        fDoubleInstance->buildUserInterface(&glue);
-    } else {
-        assert(false);
-    }
+    UIGeneric glue(ui_interface);
+    fDSP->buildUserInterface(&glue);
 }
 
 EXPORT void interpreter_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     BufferGeneric buffers(input, output);
-    if (fFloatInstance) {
-        fFloatInstance->compute(count, buffers);
-    } else if (fDoubleInstance) {
-        fDoubleInstance->compute(count, buffers);
-    } else {
-        assert(false);
-    }
+    fDSP->compute(count, buffers);
 }
 
