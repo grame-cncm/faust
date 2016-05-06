@@ -19,13 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-#include <string>
-#include <libgen.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <stdlib.h>
-
 #include "interpreter_dsp_aux.hh"
 
 #ifndef LOADER
@@ -149,7 +142,7 @@ EXPORT interpreter_dsp* createInterpreterDSPInstance(interpreter_dsp_factory* fa
 
 EXPORT void deleteInterpreterDSPInstance(interpreter_dsp* dsp)
 {
-     delete dsp;
+    delete dsp;
 }
 
 // Read/write

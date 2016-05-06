@@ -37,8 +37,6 @@
 #include "interpreter_bytecode.hh"
 //#include "smartpointer.h"
 
-#define REAL_IS_FLOAT 1
-
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport)
 #else
@@ -212,8 +210,6 @@ struct interpreter_dsp_factory_aux {
         // Read DSP block
         getline(*in, dummy);    // Read "dsp_block" line
         FIRBlockInstruction<T>* compute_dsp_block = readCodeBlock(in);
-        
-        //std::cout << "READ OK " << sizeof(T) << std::endl;
         
         return new interpreter_dsp_factory_aux(factory_name,
                                                version_num,
