@@ -31,10 +31,13 @@
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
+#include "faust/gui/UIGlue.h"
 #include "faust/gui/meta.h"
 #include "fir_interpreter.hh"
 #include "interpreter_bytecode.hh"
 //#include "smartpointer.h"
+
+#define REAL_IS_FLOAT 1
 
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport)
@@ -48,7 +51,7 @@ static inline std::string unquote1(const std::string& str)
 }
 
 template <class T>
-struct interpreter_dsp_factory_aux : public dsp_factory {
+struct interpreter_dsp_factory_aux {
     
     std::string fExpandedDSP;
     std::string fShaKey;
@@ -105,7 +108,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory {
     
     void write(std::ostream* out)
     {
-        *out << "interpreter_dsp_factory" << std::endl;
+        *out << "interpreter_dsp_factory " << ((sizeof(T) == 8) ? "double" : "float") << std::endl;
         *out << "version " << INTERP_FILE_VERSION << std::endl;
         
         *out << "name " << fName << std::endl;
@@ -135,9 +138,6 @@ struct interpreter_dsp_factory_aux : public dsp_factory {
     static interpreter_dsp_factory_aux<T>* read(std::istream* in)
     {
         std::string dummy, value;
-        
-        // Read "interpreter_dsp_factory" line
-        getline(*in, dummy);
         
         // Read "version" line
         std::string version;
@@ -212,6 +212,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory {
         // Read DSP block
         getline(*in, dummy);    // Read "dsp_block" line
         FIRBlockInstruction<T>* compute_dsp_block = readCodeBlock(in);
+        
+        //std::cout << "READ OK " << sizeof(T) << std::endl;
         
         return new interpreter_dsp_factory_aux(factory_name,
                                                version_num,
@@ -422,12 +424,34 @@ struct interpreter_dsp_factory_aux : public dsp_factory {
         }
     }
     
-    dsp* createDSPInstance();
+    //dsp* createDSPInstance();
     
 };
 
+struct BufferGeneric {
+    
+    float** fFloatInputs;
+    float** fFloatOutputs;
+    
+    double** fDoubleInputs;
+    double** fDoubleOutputs;
+    
+    BufferGeneric(float** inputs, float** outputs)
+        :fFloatInputs(inputs), fFloatOutputs(outputs)
+    {}
+    BufferGeneric(double** inputs, double** outputs)
+        :fDoubleInputs(inputs), fDoubleOutputs(outputs)
+    {}
+
+    void setInputs(float**& inputs) { inputs = fFloatInputs; }
+    void setInputs(double**& inputs)  { inputs = fDoubleInputs; }
+    
+    void setOutputs(float**& outputs)  { outputs = fFloatOutputs; }
+    void setOutputs(double**& outputs)  { outputs = fDoubleOutputs; }
+};
+
 template <class T>
-class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
+class interpreter_dsp_aux : public FIRInterpreter<T> {
 	
     protected:
     
@@ -440,8 +464,8 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         {
             fFactory = factory;
             
-            this->fInputs = new FAUSTFLOAT*[fFactory->fNumInputs];
-            this->fOutputs = new FAUSTFLOAT*[fFactory->fNumOutputs];
+            this->fInputs = new T*[fFactory->fNumInputs];
+            this->fOutputs = new T*[fFactory->fNumOutputs];
         }
     
         virtual ~interpreter_dsp_aux()
@@ -475,6 +499,7 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
         
         virtual void instanceInit(int samplingRate)
         {
+            //std::cout << "instanceInit " << samplingRate << std::endl;
             // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
             this->fIntHeap[this->fSROffset] = samplingRate;
             
@@ -488,13 +513,19 @@ class interpreter_dsp_aux : public dsp, public FIRInterpreter<T> {
             this->instanceInit(samplingRate);
         }
     
-        virtual void buildUserInterface(UI* interface)
+        virtual void buildUserInterface(UIGeneric* glue)
         {
-            this->ExecuteBuildUserInterface(fFactory->fUserInterfaceBlock, interface);
+            //std::cout << "buildUserInterface" << std::endl;
+            this->ExecuteBuildUserInterface(fFactory->fUserInterfaceBlock, glue);
         }
     
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, BufferGeneric& buffers)
         {
+            //std::cout << "compute " << count << std::endl;
+            
+            T** inputs; buffers.setInputs(inputs);
+            T** outputs; buffers.setOutputs(outputs);
+            
             // Prepare in/out buffers
             for (int i = 0; i < this->fFactory->fNumInputs; i++) {
                 this->fInputs[i] = inputs[i];
@@ -569,8 +600,11 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T> {
             this->instanceInit(samplingRate / fDownSamplingFactor);
         }
     
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, BufferGeneric& buffers)
         {
+            T** inputs; buffers.setInputs(inputs);
+            T** outputs; buffers.setOutputs(outputs);
+            
             // Downsample inputs
             for (int i = 0; i < this->fFactory->fNumInputs; i++) {
                 for (int j = 0; j < count / fDownSamplingFactor; j++) {
@@ -601,51 +635,122 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T> {
     
 };
 
-template <class T>
-dsp* interpreter_dsp_factory_aux<T>::createDSPInstance()
-{
-    // TODO : keep a state in interpreter_dsp to know which concrete <float> of <double> type interpreter_dsp_aux<T> will be
+struct EXPORT interpreter_dsp : public dsp {
     
-    return reinterpret_cast<dsp*>(new interpreter_dsp_aux<float>(this));
-    //return reinterpret_cast<dsp*>(new interpreter_dsp_aux_down<float>(this, 2));
-}
+    interpreter_dsp_aux<float>* fFloatInstance;
+    interpreter_dsp_aux<double>* fDoubleInstance;
+    
+    interpreter_dsp(interpreter_dsp_aux<float>* instance):fFloatInstance(instance), fDoubleInstance(0)
+    {}
+    interpreter_dsp(interpreter_dsp_aux<double>* instance):fFloatInstance(0), fDoubleInstance(instance)
+    {}
 
-class EXPORT interpreter_dsp : public dsp {
+    virtual ~interpreter_dsp()
+    {
+        // TODO
+    }
+
+    int getNumInputs();
+    int getNumOutputs();
+
+    void init(int samplingRate);
+    void instanceInit(int samplingRate);
+  
+    void buildUserInterface(UI* ui_interface);
     
-    // TODO : keep an a state to know which concrete <float> of <double> type interpreter_dsp_aux<T> will be
-    public:
-    
-        int getNumInputs();
-        int getNumOutputs();
-    
-        void init(int samplingRate);
-        void instanceInit(int samplingRate);
-      
-        void buildUserInterface(UI* ui_interface);
-        
-        void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    void compute(int count, float** input, float** output);
+    void compute(int count, double** input, double** output);
     
 };
 
 // Public C++ interface
 
-class EXPORT interpreter_dsp_factory : public dsp_factory {
+struct EXPORT interpreter_dsp_factory : public dsp_factory {
     
-public:
+    interpreter_dsp_factory_aux<float>* fFloatFactory;
+    interpreter_dsp_factory_aux<double>* fDoubleFactory;
+
+    interpreter_dsp_factory(const std::string& name,
+                         float version_num,
+                         int inputs, int ouputs,
+                         int int_heap_size, int real_heap_size,
+                         int sr_offset, int count_offset,
+                         FIRMetaBlockInstruction* meta,
+                         FIRUserInterfaceBlockInstruction<float>* interface,
+                         FIRBlockInstruction<float>* init,
+                         FIRBlockInstruction<float>* compute_control,
+                         FIRBlockInstruction<float>* compute_dsp)
+    {
+        fFloatFactory = new interpreter_dsp_factory_aux<float>(name, version_num,
+                                                                inputs, ouputs,
+                                                                int_heap_size, real_heap_size,
+                                                                sr_offset, count_offset,
+                                                                meta, interface,
+                                                                init, compute_control, compute_dsp);
+        fDoubleFactory = 0;
+    }
+
+    interpreter_dsp_factory(const std::string& name,
+                            float version_num,
+                            int inputs, int ouputs,
+                            int int_heap_size, int real_heap_size,
+                            int sr_offset, int count_offset,
+                            FIRMetaBlockInstruction* meta,
+                            FIRUserInterfaceBlockInstruction<double>* interface,
+                            FIRBlockInstruction<double>* init,
+                            FIRBlockInstruction<double>* compute_control,
+                            FIRBlockInstruction<double>* compute_dsp)
+    {
+        fDoubleFactory = new interpreter_dsp_factory_aux<double>(name, version_num,
+                                                                inputs, ouputs,
+                                                                int_heap_size, real_heap_size,
+                                                                sr_offset, count_offset,
+                                                                meta, interface,
+                                                                init, compute_control, compute_dsp);
+        fFloatFactory = 0;
+    }
     
-    /* Return Factory name */
-    std::string getName();
+    interpreter_dsp_factory(interpreter_dsp_factory_aux<float>* factory):fFloatFactory(factory), fDoubleFactory(0)
+    {}
     
-    /* Return Factory LLVM target */
-    std::string getTarget();
+    interpreter_dsp_factory(interpreter_dsp_factory_aux<double>* factory):fFloatFactory(0), fDoubleFactory(factory)
+    {}
     
-    /* Return Factory SHA key */
-    std::string getSHAKey();
+    virtual ~interpreter_dsp_factory()
+    {
+        // TODO
+    }
+
+    std::string getName()
+    {
+        // TODO
+        return "";
+    }
     
-    /* Return Factory expanded DSP code */
-    std::string getDSPCode();
+    std::string getTarget()
+    {
+        // TODO
+        return "";
+    }
+    
+    std::string getSHAKey()
+    {
+        // TODO
+        return "";
+    }
+    
+    std::string getDSPCode()
+    {
+        // TODO
+        return "";
+    }
     
     dsp* createDSPInstance();
+    
+    void metadata(Meta* meta)
+    {
+        // TODO
+    }
     
 };
 

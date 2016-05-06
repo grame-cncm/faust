@@ -26,6 +26,10 @@
 #define FAUSTFLOAT float
 #endif
 
+//#ifndef REAL_IS_FLOAT
+#define REAL_IS_FLOAT 1
+//#endif
+
 #include <string>
 #include <vector>
 #include "faust/dsp/dsp.h"

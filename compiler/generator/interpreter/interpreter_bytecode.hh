@@ -490,5 +490,4 @@ struct FIRBlockInstruction : public FIRInstruction {
     }
 };
 
-
 #endif

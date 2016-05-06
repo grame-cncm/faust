@@ -29,6 +29,8 @@
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
+#include "faust/gui/CUI.h"
+#include "faust/gui/UIGlue.h"
 #include "faust/gui/meta.h"
 #include "interpreter_bytecode.hh"
 
@@ -59,67 +61,72 @@ class FIRInterpreter  {
         int fRealStackSize;
         int fIntStackSize;
     
-        FAUSTFLOAT** fInputs;
-        FAUSTFLOAT** fOutputs;
+        T** fInputs;
+        T** fOutputs;
     
-        void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UI* interface)
+        void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UIGeneric* glue)
         {
             UIInstructionIT it;
             
             for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
+                
+                //(*it)->write(&std::cout);
             
                 switch ((*it)->fOpcode) {
                  
                         case FIRInstruction::kOpenVerticalBox:
-                            interface->openVerticalBox((*it)->fLabel.c_str()); 
+                            glue->openVerticalBox((*it)->fLabel.c_str());
                             break;
                             
                         case FIRInstruction::kOpenHorizontalBox:
-                            interface->openHorizontalBox((*it)->fLabel.c_str()); 
+                            glue->openHorizontalBox((*it)->fLabel.c_str());
                             break;
                             
                         case FIRInstruction::kOpenTabBox:
-                            interface->openTabBox((*it)->fLabel.c_str()); 
+                            glue->openTabBox((*it)->fLabel.c_str());
                             break;
                  
                         case FIRInstruction::kCloseBox:
-                            interface->closeBox(); 
+                            glue->closeBox();
                             break;
                             
                         case FIRInstruction::kAddButton:
-                            interface->addButton((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset]);
+                            glue->addButton((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset]);
                             break;
                             
                         case FIRInstruction::kAddCheckButton:
-                            interface->addCheckButton((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset]);
+                            glue->addCheckButton((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset]);
                             break;
                             
                         case FIRInstruction::kAddHorizontalSlider:
-                            interface->addHorizontalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
+                            glue->addHorizontalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset],
+                                                           (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
                             break;
                             
                         case FIRInstruction::kAddVerticalSlider:
-                            interface->addVerticalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
+                            glue->addVerticalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset],
+                                                         (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
                             break;
                             
                         case FIRInstruction::kAddNumEntry:
-                            interface->addNumEntry((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin, (*it)->fMax, (*it)->fStep);
+                            glue->addNumEntry((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit,
+                                                   (*it)->fMin, (*it)->fMax, (*it)->fStep);
                             break;
                             
                         case FIRInstruction::kAddHorizontalBargraph:
-                            interface->addHorizontalBargraph((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fMin, (*it)->fMax);
+                            glue->addHorizontalBargraph((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fMin, (*it)->fMax);
                             break;
                             
                         case FIRInstruction::kAddVerticalBargraph:
-                            interface->addVerticalBargraph((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fMin, (*it)->fMax);
+                            glue->addVerticalBargraph((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fMin, (*it)->fMax);
                             break;
                             
                         case FIRInstruction::kDeclare:
                             // Special case for "0" zone
                             if ((*it)->fOffset == -1) {
-                                interface->declare(NULL, (*it)->fKey.c_str(), (*it)->fValue.c_str());
+                                glue->declare(static_cast<T*>(NULL), (*it)->fKey.c_str(), (*it)->fValue.c_str());
                             } else {
-                                interface->declare(&fRealHeap[(*it)->fOffset], (*it)->fKey.c_str(), (*it)->fValue.c_str());
+                                glue->declare(&fRealHeap[(*it)->fOffset], (*it)->fKey.c_str(), (*it)->fValue.c_str());
                             }
                             break;
                             

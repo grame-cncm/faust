@@ -255,7 +255,7 @@ interpreter_dsp_factory_aux<float>* InterpreterCodeContainer::produceFactoryFloa
    
     // Test reader/writer
     /*
-    interpreter_dsp_factory* factory = new tnterpreter_dsp_factory_aux<float>(fKlassName,
+    interpreter_dsp_factory_aux<float>* factory = new interpreter_dsp_factory_aux<float>(fKlassName,
                                                                            INTERP_FILE_VERSION,
                                                                            fNumInputs, fNumOutputs,
                                                                            gGlobal->gInterpreterVisitor->fIntHeapOffset,
@@ -291,6 +291,7 @@ interpreter_dsp_factory_aux<float>* InterpreterCodeContainer::produceFactoryFloa
                                                 init_block,
                                                 compute_control_block,
                                                 compute_dsp_block);
+    
     
 }
 

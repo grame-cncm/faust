@@ -19,7 +19,12 @@
  ************************************************************************
  ************************************************************************/
 
-
+#include <string>
+#include <libgen.h>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <stdlib.h>
 
 #include "interpreter_dsp_aux.hh"
 
@@ -51,7 +56,18 @@ static string path_to_content(const string& path)
 }
 #endif
 
-// Instances
+// External API
+
+dsp* interpreter_dsp_factory::createDSPInstance()
+{
+    if (fFloatFactory) {
+        return new interpreter_dsp(new interpreter_dsp_aux<float>(fFloatFactory));
+    } else if (fDoubleFactory) {
+        return new interpreter_dsp(new interpreter_dsp_aux<double>(fDoubleFactory));
+    } else {
+        assert(false);
+    }
+}
 
 EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const string& sha_key)
 {
@@ -98,14 +114,14 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
                                                                          dsp_content.c_str(),
                                                                          error_msg_aux);
     error_msg = error_msg_aux;
-    return reinterpret_cast<interpreter_dsp_factory*>(factory);
+    return new interpreter_dsp_factory(factory);
 #endif
 }
 
 EXPORT bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory)
 {
     // TODO: use of smart pointer
-    delete reinterpret_cast<interpreter_dsp_aux<float>*>(factory);
+    delete factory;
     return true;
 }
 
@@ -133,53 +149,54 @@ EXPORT interpreter_dsp* createInterpreterDSPInstance(interpreter_dsp_factory* fa
 
 EXPORT void deleteInterpreterDSPInstance(interpreter_dsp* dsp)
 {
-    delete reinterpret_cast<interpreter_dsp_aux<float>*>(dsp);
+     delete dsp;
 }
 
-EXPORT int interpreter_dsp::getNumInputs()
-{
-    return reinterpret_cast<interpreter_dsp_aux<float>*>(this)->getNumInputs();
-}
+// Read/write
 
-int EXPORT interpreter_dsp::getNumOutputs()
+static std::string read_type(std::istream* in)
 {
-    return reinterpret_cast<interpreter_dsp_aux<float>*>(this)->getNumOutputs();
-}
-
-EXPORT void interpreter_dsp::init(int samplingRate)
-{
-    reinterpret_cast<interpreter_dsp_aux<float>*>(this)->init(samplingRate);
-}
-
-EXPORT void interpreter_dsp::instanceInit(int samplingRate)
-{
-    reinterpret_cast<interpreter_dsp_aux<float>*>(this)->instanceInit(samplingRate);
-}
-
-EXPORT void interpreter_dsp::buildUserInterface(UI* ui_interface)
-{
-    reinterpret_cast<interpreter_dsp_aux<float>*>(this)->buildUserInterface(ui_interface);
-}
-
-EXPORT void interpreter_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
-{
-    reinterpret_cast<interpreter_dsp_aux<float>*>(this)->compute(count, input, output);
+    std::string type_line;
+    getline(*in, type_line);
+    
+    std::stringstream  type_reader(type_line);
+    std::string dummy, type;
+    type_reader >> dummy;   // Read "interpreter_dsp_factory" token
+    type_reader >> type;
+    
+    return type;
 }
 
 EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const string& machine_code)
 {
     stringstream reader(machine_code);
-    return reinterpret_cast<interpreter_dsp_factory*>(interpreter_dsp_factory_aux<float>::read(&reader));
+    std::string type = read_type(&reader);
+    
+    std::cout << type << std::endl;
+    
+    if (type == "float") {
+        return new interpreter_dsp_factory(interpreter_dsp_factory_aux<float>::read(&reader));
+    } else if (type == "double") {
+        return new interpreter_dsp_factory(interpreter_dsp_factory_aux<double>::read(&reader));
+    } else {
+        assert(false);
+        return 0;
+    }
 }
 
 EXPORT string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* factory)
 {
     stringstream writer;
-    reinterpret_cast<interpreter_dsp_factory_aux<float>*>(factory)->write(&writer);
+    if (factory->fFloatFactory) {
+        factory->fFloatFactory->write(&writer);
+    } else if (factory->fDoubleFactory) {
+        factory->fDoubleFactory->write(&writer);
+    } else {
+        assert(false);
+    }
     return writer.str();
 }
 
-// TODO : code in fileformat which concrete <float> of <double> type interpreter_dsp_aux<T> will be
 EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const string& machine_code_path)
 {
     string base = basename((char*)machine_code_path.c_str());
@@ -188,7 +205,16 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const s
     if (pos != string::npos) {
         //ifstream reader(machine_code_path);
         ifstream reader(machine_code_path.c_str());
-        return reinterpret_cast<interpreter_dsp_factory*>(interpreter_dsp_factory_aux<float>::read(&reader));
+        std::string type = read_type(&reader);
+        
+        if (type == "float") {
+            return new interpreter_dsp_factory(interpreter_dsp_factory_aux<float>::read(&reader));
+        } else if (type == "double") {
+            return new interpreter_dsp_factory(interpreter_dsp_factory_aux<double>::read(&reader));
+        } else {
+            assert(false);
+            return 0;
+        }
     } else {
         std::cerr << "File Extension is not the one expected (.fbc expected)" << std::endl;
         return 0;
@@ -197,8 +223,85 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const s
 
 EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const string& machine_code_path)
 {
-    //ofstream writer(machine_code_path);
     ofstream writer(machine_code_path.c_str());
-    reinterpret_cast<interpreter_dsp_factory_aux<float>*>(factory)->write(&writer);
+    if (factory->fFloatFactory) {
+        factory->fFloatFactory->write(&writer);
+    } else if (factory->fDoubleFactory) {
+        factory->fDoubleFactory->write(&writer);
+    } else {
+        assert(false);
+    }
+}
+
+
+EXPORT int interpreter_dsp::getNumInputs()
+{
+    if (fFloatInstance) {
+        return fFloatInstance->getNumInputs();
+    } else if (fDoubleInstance) {
+        return fDoubleInstance->getNumInputs();
+    } else {
+        assert(false);
+        return -1;
+    }
+}
+
+int EXPORT interpreter_dsp::getNumOutputs()
+{
+    if (fFloatInstance) {
+        return fFloatInstance->getNumOutputs();
+    } else if (fDoubleInstance) {
+        return fDoubleInstance->getNumOutputs();
+    } else {
+        assert(false);
+        return -1;
+    }
+}
+
+EXPORT void interpreter_dsp::init(int samplingRate)
+{
+    if (fFloatInstance) {
+        fFloatInstance->init(samplingRate);
+    } else if (fDoubleInstance) {
+        fDoubleInstance->init(samplingRate);
+    } else {
+        assert(false);
+    }
+}
+
+EXPORT void interpreter_dsp::instanceInit(int samplingRate)
+{
+    if (fFloatInstance) {
+        fFloatInstance->instanceInit(samplingRate);
+    } else if (fDoubleInstance) {
+        fDoubleInstance->instanceInit(samplingRate);
+    } else {
+        assert(false);
+    }
+}
+
+EXPORT void interpreter_dsp::buildUserInterface(UI* ui_interface)
+{
+    if (fFloatInstance) {
+        UIGeneric glue(ui_interface);
+        fFloatInstance->buildUserInterface(&glue);
+    } else if (fDoubleInstance) {
+        UIGeneric glue(ui_interface);
+        fDoubleInstance->buildUserInterface(&glue);
+    } else {
+        assert(false);
+    }
+}
+
+EXPORT void interpreter_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+{
+    BufferGeneric buffers(input, output);
+    if (fFloatInstance) {
+        fFloatInstance->compute(count, buffers);
+    } else if (fDoubleInstance) {
+        fDoubleInstance->compute(count, buffers);
+    } else {
+        assert(false);
+    }
 }
 
