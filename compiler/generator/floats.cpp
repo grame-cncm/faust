@@ -36,7 +36,7 @@ extern int  gFloatSize;
 
 
 const char* mathsuffix[] = {"", "f", "", "l"};                                  // suffix for math functions
-const char* numsuffix[]  = {"", "f", "", "L"};                                   // suffix for numeric constants
+const char* numsuffix[]  = {"", "f", "", "L"};                                  // suffix for numeric constants
 const char* floatname[]  = {FLOATMACRO, "float", "double", "quad"};      // float types
 const char* castname[]   = {FLOATCAST, "(float)", "(double)", "(quad)"}; // float castings
 

@@ -2,14 +2,25 @@
 
 #set -x
 
-# These should be detected properly at build time, but you can also set them
-# to alternative locations using the SDK and SDKSRC environment variables.
-# Set this to the location where you keep your VST SDK files.
-[ -z $SDK ] && SDK=@SDK@
+# Check for some common locations of the VST SDK files. This falls back to
+# /usr/local/src/vstsdk if none of these are found. In that case, or if make
+# picks the wrong location, you can also set the SDK variable explicitly.
+
+#SDK=/usr/local/src/vstsdk
+
+# Note that the paths to be searched are listed in reverse order here, so that
+# the preferred path comes *last*.
+sdkpaths='/usr/src/VST* /usr/src/vst* /usr/include/VST* /usr/include/vst* /opt/local/src/VST* /opt/local/src/vst* /opt/local/include/VST* /opt/local/include/vst* /usr/local/src/VST* /usr/local/src/vst* /usr/local/include/VST* /usr/local/include/vst*'
+# This should hopefully work on *BSD, Linux and Mac OSX.
+[ -z "$SDK" ] && SDK=$(ls -f -d $sdkpaths 2>/dev/null | tail -n 1)
+[ -z "$SDK" ] && SDK=/usr/local/src/vstsdk
+
 # SDKSRC should point to the SDK source files (vstplugmain.cpp et al).
 # Usually these are either directly under $SDK or in the
 # public.sdk/source/vst2.x subdirectory.
-[ -z $SDKSRC ] && SDKSRC=@SDKSRC@
+[ -z "$SDKSRC" -a -f "$SDK/vstplugmain.cpp" ] && SDKSRC="$SDK"
+[ -z "$SDKSRC" -a -f "$SDK/public.sdk/source/vst2.x/vstplugmain.cpp" ] && SDKSRC="$SDK/public.sdk/source/vst2.x"
+[ -z "$SDKSRC" ] && SDKSRC="$SDK/public.sdk/source/vst2.x"
 
 # Default qmake setup (for GUI compilation). This requires Qt4 or Qt5 (Qt5 is
 # preferred). We try to locate the qmake executable in some common locations
@@ -80,6 +91,10 @@ FAUSTLIB: specify the location of the Faust VST library files
   Default: $FAUSTLIB
 QMAKE: specify the location of the qmake binary
   Default: $QMAKE
+SDK: specify the location of the VST SDK
+  Default: $SDK
+SDKSRC: specify the location of the VST SDK sources
+  Default: $SDKSRC
 EOF
 	exit 0
     elif [ $p = "-omp" ]; then
