@@ -1612,7 +1612,7 @@ class FIRInterpreter  {
                 do_kLog10f:
                 {
                     T v = pop_real();
-                    push_real(log10f(v));
+                    push_real(std::log10(v));
                     dispatch_next();
                 }
                 
@@ -1730,7 +1730,7 @@ class FIRInterpreter  {
                 
                 do_kLog10fHeap:
                 {
-                    push_real(log10f(fRealHeap[(*it)->fOffset1]));
+                    push_real(std::log10(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
                 
