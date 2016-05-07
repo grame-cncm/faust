@@ -51,8 +51,13 @@ static inline std::string unquote1(const std::string& str)
 struct interpreter_dsp_factory_base {
     
     virtual void write(std::ostream* out) = 0;
+    
+    virtual dsp* createDSPInstance() = 0;
 
 };
+
+template <class T>
+class interpreter_dsp_aux;
 
 template <class T>
 struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
@@ -426,7 +431,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         }
     }
     
-    //dsp* createDSPInstance();
+    dsp* createDSPInstance();
     
 };
 
@@ -678,6 +683,9 @@ struct EXPORT interpreter_dsp : public dsp {
     
 };
 
+template <class T>
+dsp* interpreter_dsp_factory_aux<T>::createDSPInstance() { return new interpreter_dsp(new interpreter_dsp_aux<T>(this)); }
+
 // Public C++ interface
 
 struct EXPORT interpreter_dsp_factory : public dsp_factory {
@@ -757,7 +765,7 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
         return "";
     }
     
-    dsp* createDSPInstance();
+    dsp* createDSPInstance() { return fFactory->createDSPInstance(); }
     
     void metadata(Meta* meta)
     {

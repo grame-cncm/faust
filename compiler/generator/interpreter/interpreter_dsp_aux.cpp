@@ -51,20 +51,6 @@ static string path_to_content(const string& path)
 
 // External API
 
-dsp* interpreter_dsp_factory::createDSPInstance()
-{
-    interpreter_dsp_factory_aux<float>* float_factory = dynamic_cast<interpreter_dsp_factory_aux<float>*>(fFactory);
-    interpreter_dsp_factory_aux<double>* double_factory = dynamic_cast<interpreter_dsp_factory_aux<double>*>(fFactory);
-    
-    if (float_factory) {
-        return new interpreter_dsp(new interpreter_dsp_aux<float>(float_factory));
-    } else if (double_factory) {
-        return new interpreter_dsp(new interpreter_dsp_aux<double>(double_factory));
-    } else {
-        assert(false);
-    }
-}
-
 EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const string& sha_key)
 {
     // TODO
@@ -150,7 +136,7 @@ EXPORT void deleteInterpreterDSPInstance(interpreter_dsp* dsp)
 
 // Read/write
 
-static std::string read_type(std::istream* in)
+static std::string read_real_type(std::istream* in)
 {
     std::string type_line;
     getline(*in, type_line);
@@ -163,21 +149,23 @@ static std::string read_type(std::istream* in)
     return type;
 }
 
-EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const string& machine_code)
+static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(std::istream* in)
 {
-    stringstream reader(machine_code);
-    std::string type = read_type(&reader);
-    
-    std::cout << type << std::endl;
-    
+    std::string type = read_real_type(in);
     if (type == "float") {
-        return new interpreter_dsp_factory(interpreter_dsp_factory_aux<float>::read(&reader));
+        return new interpreter_dsp_factory(interpreter_dsp_factory_aux<float>::read(in));
     } else if (type == "double") {
-        return new interpreter_dsp_factory(interpreter_dsp_factory_aux<double>::read(&reader));
+        return new interpreter_dsp_factory(interpreter_dsp_factory_aux<double>::read(in));
     } else {
         assert(false);
         return 0;
     }
+}
+
+EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const string& machine_code)
+{
+    stringstream reader(machine_code);
+    return readInterpreterDSPFactoryFromMachineAux(&reader);
 }
 
 EXPORT string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* factory)
@@ -195,16 +183,6 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const s
     if (pos != string::npos) {
         //ifstream reader(machine_code_path);
         ifstream reader(machine_code_path.c_str());
-        std::string type = read_type(&reader);
-        
-        if (type == "float") {
-            return new interpreter_dsp_factory(interpreter_dsp_factory_aux<float>::read(&reader));
-        } else if (type == "double") {
-            return new interpreter_dsp_factory(interpreter_dsp_factory_aux<double>::read(&reader));
-        } else {
-            assert(false);
-            return 0;
-        }
     } else {
         std::cerr << "File Extension is not the one expected (.fbc expected)" << std::endl;
         return 0;
