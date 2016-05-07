@@ -687,7 +687,11 @@ struct EXPORT interpreter_dsp : public dsp {
 };
 
 template <class T>
-dsp* interpreter_dsp_factory_aux<T>::createDSPInstance() { return new interpreter_dsp(new interpreter_dsp_aux<T>(this)); }
+dsp* interpreter_dsp_factory_aux<T>::createDSPInstance()
+{
+    return new interpreter_dsp(new interpreter_dsp_aux<T>(this));
+    //return new interpreter_dsp(new interpreter_dsp_aux_down<T>(this, 2));
+}
 
 // Public C++ interface
 

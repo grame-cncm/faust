@@ -51,8 +51,6 @@ InterpreterCodeContainer<T>::InterpreterCodeContainer(const string& name, int nu
         gInterpreterVisitor = new InterpreterInstVisitor<T>();
     }
     
-    std::cout << "InterpreterCodeContainer<T>::InterpreterCodeContainer" << std::endl;
-    
     FIRInstructionOptimizer<T>::initTables();
 }
 
@@ -147,7 +145,7 @@ FIRBlockInstruction<T>* InterpreterCodeContainer<T>::testOptimizer(FIRBlockInstr
 }
 
 template <class T>
-interpreter_dsp_factory_aux<T>* InterpreterCodeContainer<T>::produceFactoryAux()
+interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
 {
     //cout << "InterpreterCodeContainer<T>::produceModuleFloat() " << fNumInputs << " " << fNumOutputs << endl;
     
@@ -266,17 +264,17 @@ interpreter_dsp_factory_aux<T>* InterpreterCodeContainer<T>::produceFactoryAux()
     // Test reader/writer
     /*
     interpreter_dsp_factory_aux<T>* factory = new interpreter_dsp_factory_aux<T>(fKlassName,
-                                                                           INTERP_FILE_VERSION,
-                                                                           fNumInputs, fNumOutputs,
-                                                                           gInterpreterVisitor->fIntHeapOffset,
-                                                                           gInterpreterVisitor->fRealHeapOffset,
-                                                                           gInterpreterVisitor->fSROffset,
-                                                                           gInterpreterVisitor->fCountOffset,
-                                                                           produceMetadata(),
-                                                                           gInterpreterVisitor->fUserInterfaceBlock,
-                                                                           init_block,
-                                                                           compute_control_block,
-                                                                           compute_dsp_block);
+                                                                               INTERP_FILE_VERSION,
+                                                                               fNumInputs, fNumOutputs,
+                                                                               gInterpreterVisitor->fIntHeapOffset,
+                                                                               gInterpreterVisitor->fRealHeapOffset,
+                                                                               gInterpreterVisitor->fSROffset,
+                                                                               gInterpreterVisitor->fCountOffset,
+                                                                               produceMetadata(),
+                                                                               gInterpreterVisitor->fUserInterfaceBlock,
+                                                                               init_block,
+                                                                               compute_control_block,
+                                                                               compute_dsp_block);
     
     
     cout << "writeDSPInterpreterFactoryToMachine" << endl;
@@ -288,24 +286,18 @@ interpreter_dsp_factory_aux<T>* InterpreterCodeContainer<T>::produceFactoryAux()
     return factory1;
     */
     
-    return new interpreter_dsp_factory_aux<T>(fKlassName,
-                                                INTERP_FILE_VERSION,
-                                                fNumInputs, fNumOutputs,
-                                                gInterpreterVisitor->fIntHeapOffset,
-                                                gInterpreterVisitor->fRealHeapOffset,
-                                                gInterpreterVisitor->fSROffset,
-                                                gInterpreterVisitor->fCountOffset,
-                                                produceMetadata(),
-                                                gInterpreterVisitor->fUserInterfaceBlock,
-                                                init_block,
-                                                compute_control_block,
-                                                compute_dsp_block);
-}
-
-template <class T>
-interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
-{
-    return new interpreter_dsp_factory(produceFactoryAux());
+    return new interpreter_dsp_factory(new interpreter_dsp_factory_aux<T>(fKlassName,
+                                            INTERP_FILE_VERSION,
+                                            fNumInputs, fNumOutputs,
+                                            gInterpreterVisitor->fIntHeapOffset,
+                                            gInterpreterVisitor->fRealHeapOffset,
+                                            gInterpreterVisitor->fSROffset,
+                                            gInterpreterVisitor->fCountOffset,
+                                            produceMetadata(),
+                                            gInterpreterVisitor->fUserInterfaceBlock,
+                                            init_block,
+                                            compute_control_block,
+                                            compute_dsp_block));
 }
 
 template <class T>
