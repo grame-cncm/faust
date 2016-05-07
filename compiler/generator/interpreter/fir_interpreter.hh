@@ -27,11 +27,7 @@
 #include <assert.h>
 #include <iostream>
 
-#include "faust/dsp/dsp.h"
-#include "faust/gui/UI.h"
-#include "faust/gui/CUI.h"
 #include "faust/gui/UIGlue.h"
-#include "faust/gui/meta.h"
 #include "interpreter_bytecode.hh"
 
 // Interpreter

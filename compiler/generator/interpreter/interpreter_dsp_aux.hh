@@ -30,7 +30,6 @@
 #include <stdlib.h>
 
 #include "faust/dsp/dsp.h"
-#include "faust/gui/UI.h"
 #include "faust/gui/UIGlue.h"
 #include "faust/gui/meta.h"
 #include "fir_interpreter.hh"
@@ -136,7 +135,6 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     {
         *out << "interpreter_dsp_factory " << ((sizeof(T) == 8) ? "double" : "float") << std::endl;
         *out << "version " << INTERP_FILE_VERSION << std::endl;
-        
         *out << "name " << fName << std::endl;
         
         *out << "inputs " << fNumInputs << " outputs " << fNumOutputs << std::endl;

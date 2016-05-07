@@ -23,7 +23,6 @@
 #define _FIR_INTERPRETER_OPTIMIZER_H
 
 #include <string>
-#include <math.h>
 #include <assert.h>
 #include <iostream>
 
@@ -170,7 +169,6 @@ struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
  opcode 12 kMoveReal int 0 real 0 offset1 120327 offset2 120326
  
  ==>  opcode 13 kBlockMoveReal int 0 real 0 offset1 120321 offset2 120327
-
 */
 
 template <class T>
@@ -222,7 +220,6 @@ struct FIRInstructionBlockMoveOptimizer : public FIRInstructionOptimizer<T> {
  
  opcode 14 kPairMoveReal int 0 real 0 offset1 120322 offset2 120321
  opcode 14 kPairMoveReal int 0 real 0 offset1 120325 offset2 120324
-
 */
 
 template <class T>
