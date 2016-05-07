@@ -239,7 +239,7 @@ interpreter_dsp_factory_aux<T>* InterpreterCodeContainer<T>::produceFactoryAux()
     compute_control_block = FIRInstructionOptimizer<T>::optimize(compute_control_block, opt3);
     compute_dsp_block = FIRInstructionOptimizer<T>::optimize(compute_dsp_block, opt3);
  
-    cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
+    //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
     
     // 4) them optimize 'heap' and 'Value' math operations
     FIRInstructionMathOptimizer<T> opt4;
@@ -247,14 +247,13 @@ interpreter_dsp_factory_aux<T>* InterpreterCodeContainer<T>::produceFactoryAux()
     compute_control_block = FIRInstructionOptimizer<T>::optimize(compute_control_block, opt4);
     compute_dsp_block = FIRInstructionOptimizer<T>::optimize(compute_dsp_block, opt4);
     
-    cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl << endl;
-     
+    //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl << endl;
     
     /*
     init_block = FIRInstructionOptimizer<T>::optimizeBlock(init_block);
     compute_control_block = FIRInstructionOptimizer<T>::optimizeBlock(compute_control_block);
     compute_dsp_block = FIRInstructionOptimizer<T>::optimizeBlock(compute_dsp_block);
-     */
+    */
     
     // TODO
     /*
@@ -288,7 +287,6 @@ interpreter_dsp_factory_aux<T>* InterpreterCodeContainer<T>::produceFactoryAux()
     
     return factory1;
     */
-    
     
     return new interpreter_dsp_factory_aux<T>(fKlassName,
                                                 INTERP_FILE_VERSION,
