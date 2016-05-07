@@ -124,9 +124,9 @@ EXPORT vector<string> getAllInterpreterDSPFactories()
 EXPORT void deleteAllInterpreterDSPFactories()
 {}
 
-EXPORT interpreter_dsp* createInterpreterDSPInstance(interpreter_dsp_factory* factory)
+EXPORT dsp* createInterpreterDSPInstance(interpreter_dsp_factory* factory)
 {
-    return reinterpret_cast<interpreter_dsp*>(factory->createDSPInstance());
+    return factory->createDSPInstance();
 }
 
 EXPORT void deleteInterpreterDSPInstance(interpreter_dsp* dsp)
@@ -183,6 +183,7 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const s
     if (pos != string::npos) {
         //ifstream reader(machine_code_path);
         ifstream reader(machine_code_path.c_str());
+        return readInterpreterDSPFactoryFromMachineAux(&reader);
     } else {
         std::cerr << "File Extension is not the one expected (.fbc expected)" << std::endl;
         return 0;
@@ -223,7 +224,7 @@ EXPORT void interpreter_dsp::buildUserInterface(UI* ui_interface)
 
 EXPORT void interpreter_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
-    BufferGeneric buffers(input, output);
+    RealBuffers buffers(input, output);
     fDSP->compute(count, buffers);
 }
 

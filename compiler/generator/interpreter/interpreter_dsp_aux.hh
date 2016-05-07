@@ -50,9 +50,20 @@ static inline std::string unquote1(const std::string& str)
 
 struct interpreter_dsp_factory_base {
     
+    virtual ~interpreter_dsp_factory_base()
+    {}
+    
+    virtual std::string getName() = 0;
+    
+    virtual std::string getSHAKey() = 0;
+    
+    virtual std::string getDSPCode() = 0;
+    
     virtual void write(std::ostream* out) = 0;
     
     virtual dsp* createDSPInstance() = 0;
+    
+    virtual void metadata(Meta* meta) = 0;
 
 };
 
@@ -114,6 +125,12 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         delete fComputeBlock;
         delete fComputeDSPBlock;
     }
+    
+    std::string getName() { return fName; }
+    
+    std::string getSHAKey() { return fShaKey; }
+    
+    std::string getDSPCode() { return fExpandedDSP; }
     
     void write(std::ostream* out)
     {
@@ -398,25 +415,6 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         return new FIRBasicInstruction<T>(opcode, val_int, val_real, offset1, offset2, branch1, branch2);
     }
     
-    std::string getName()
-    {
-        return fName;
-    }
-    
-    std::string getSHAKey()
-    {
-        // TODO
-        return "";
-    }
-    
-    /* Return Factory expanded DSP code */
-    std::string getDSPCode()
-    {
-        // TODO
-        return "";
-    }
-   
-    
     void metadata(Meta* meta)
     {
         ExecuteMeta(fMetaBlock, meta);
@@ -435,7 +433,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     
 };
 
-struct BufferGeneric {
+struct RealBuffers {
     
     float** fFloatInputs;
     float** fFloatOutputs;
@@ -443,10 +441,10 @@ struct BufferGeneric {
     double** fDoubleInputs;
     double** fDoubleOutputs;
     
-    BufferGeneric(float** inputs, float** outputs)
+    RealBuffers(float** inputs, float** outputs)
         :fFloatInputs(inputs), fFloatOutputs(outputs)
     {}
-    BufferGeneric(double** inputs, double** outputs)
+    RealBuffers(double** inputs, double** outputs)
         :fDoubleInputs(inputs), fDoubleOutputs(outputs)
     {}
 
@@ -459,16 +457,21 @@ struct BufferGeneric {
 
 struct interpreter_dsp_base : public dsp {
     
-    // Not implemented;
+    virtual ~interpreter_dsp_base()
+    {}
+    
+    // Not implemented...
     void buildUserInterface(UI* ui_interface) {}
     
+    // Replaced by this one
     virtual void buildUserInterface(UIGeneric* glue) = 0;
     
-    // Not implemented;
+    // Not implemented...
     virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
     virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs){}
     
-    virtual void compute(int count, BufferGeneric& buffers) = 0;
+    // Replaced by this one
+    virtual void compute(int count, RealBuffers& buffers) = 0;
     
 };
 
@@ -541,7 +544,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->ExecuteBuildUserInterface(fFactory->fUserInterfaceBlock, glue);
         }
     
-        virtual void compute(int count, BufferGeneric& buffers)
+        virtual void compute(int count, RealBuffers& buffers)
         {
             //std::cout << "compute " << count << std::endl;
             
@@ -570,7 +573,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
 };
 
 /*
-Computing on a downsampled version of signals
+Computing using on a down-sampled version of signals
  
 TODO:
  
@@ -621,7 +624,7 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T> {
             this->instanceInit(samplingRate / fDownSamplingFactor);
         }
     
-        virtual void compute(int count, BufferGeneric& buffers)
+        virtual void compute(int count, RealBuffers& buffers)
         {
             T** inputs; buffers.setInputs(inputs);
             T** outputs; buffers.setOutputs(outputs);
@@ -667,7 +670,7 @@ struct EXPORT interpreter_dsp : public dsp {
 
     virtual ~interpreter_dsp()
     {
-        // TODO
+        delete fDSP;
     }
 
     int getNumInputs();
@@ -704,11 +707,11 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
                          FIRBlockInstruction<float>* compute_dsp)
     {
         fFactory = new interpreter_dsp_factory_aux<float>(name, version_num,
-                                                                inputs, ouputs,
-                                                                int_heap_size, real_heap_size,
-                                                                sr_offset, count_offset,
-                                                                meta, interface,
-                                                                init, compute_control, compute_dsp);
+                                                        inputs, ouputs,
+                                                        int_heap_size, real_heap_size,
+                                                        sr_offset, count_offset,
+                                                        meta, interface,
+                                                        init, compute_control, compute_dsp);
     }
 
     interpreter_dsp_factory(const std::string& name,
@@ -723,11 +726,11 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
                             FIRBlockInstruction<double>* compute_dsp)
     {
         fFactory = new interpreter_dsp_factory_aux<double>(name, version_num,
-                                                                inputs, ouputs,
-                                                                int_heap_size, real_heap_size,
-                                                                sr_offset, count_offset,
-                                                                meta, interface,
-                                                                init, compute_control, compute_dsp);
+                                                        inputs, ouputs,
+                                                        int_heap_size, real_heap_size,
+                                                        sr_offset, count_offset,
+                                                        meta, interface,
+                                                        init, compute_control, compute_dsp);
     }
     
     interpreter_dsp_factory(interpreter_dsp_factory_aux<float>* factory):fFactory(factory)
@@ -738,39 +741,18 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
     
     virtual ~interpreter_dsp_factory()
     {
-        // TODO
+        delete fFactory;
     }
 
-    std::string getName()
-    {
-        // TODO
-        return "";
-    }
+    std::string getName() { return fFactory->getName(); }
     
-    std::string getTarget()
-    {
-        // TODO
-        return "";
-    }
+    std::string getSHAKey() { return fFactory->getSHAKey(); }
     
-    std::string getSHAKey()
-    {
-        // TODO
-        return "";
-    }
-    
-    std::string getDSPCode()
-    {
-        // TODO
-        return "";
-    }
+    std::string getDSPCode() { return fFactory->getDSPCode(); }
     
     dsp* createDSPInstance() { return fFactory->createDSPInstance(); }
     
-    void metadata(Meta* meta)
-    {
-        // TODO
-    }
+    void metadata(Meta* meta) { fFactory->metadata(meta); }
     
     void write(std::ostream* out) { fFactory->write(out); }
     
@@ -803,7 +785,7 @@ EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* fac
 
 EXPORT void deleteAllInterpreterDSPFactories();
 
-EXPORT interpreter_dsp* createInterpreterDSPInstance(interpreter_dsp_factory* factory);
+EXPORT dsp* createInterpreterDSPInstance(interpreter_dsp_factory* factory);
 
 EXPORT void deleteInterpreterDSPInstance(interpreter_dsp* dsp);
 

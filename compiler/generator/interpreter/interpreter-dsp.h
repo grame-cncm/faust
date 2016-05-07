@@ -53,6 +53,8 @@ class interpreter_dsp_factory : public dsp_factory {
   
         /* Return Factory expanded DSP code */
         std::string getDSPCode();
+    
+        dsp* createDSPInstance();
 
 };
 

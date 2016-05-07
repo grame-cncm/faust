@@ -53,11 +53,7 @@ extern "C" void* compile_faust_llvm(int argc, const char* argv[], const char* li
 // 	FAUST generated code
 //----------------------------------------------------------------------------
 
-#ifdef LLVM
 dsp* DSP;
-#else
-interpreter_dsp* DSP;
-#endif
 
 std::list<GUI*> GUI::fGuiList;
 
@@ -216,7 +212,7 @@ int main(int argc, char *argv[])
         #ifdef LLVM
             DSP = createDSPInstance(factory3);
         #else
-            DSP = createInterpreterDSPInstance(factory3);
+            DSP = factory3->createDSPInstance();
         #endif
             assert(DSP);
          } else {
