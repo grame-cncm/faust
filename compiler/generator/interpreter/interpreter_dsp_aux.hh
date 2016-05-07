@@ -175,7 +175,8 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         version_reader >> value; version_num = strtof(value.c_str(), 0);
         
         if (INTERP_FILE_VERSION != version_num) {
-            std::cerr << "Interpreter file format version '" << version_num << "' different from compiled one '" << INTERP_FILE_VERSION << "'" << std::endl;
+            std::cerr << "Interpreter file format version '" << version_num
+            << "' different from compiled one '" << INTERP_FILE_VERSION << "'" << std::endl;
             return 0;
         }
         
@@ -220,11 +221,11 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         heap_size_reader >> value; count_offset = strtol(value.c_str(), 0, 10);
         
         // Read meta block
-        getline(*in, dummy);    // Read "mata_block" line
+        getline(*in, dummy);    // Read "meta_block" line
         FIRMetaBlockInstruction* meta_block = readMetaBlock(in);
         
         // Read user interface block
-        getline(*in, dummy);    // Read "user_unterface_block" line
+        getline(*in, dummy);    // Read "user_interface_block" line
         FIRUserInterfaceBlockInstruction<T>* ui_block = readUIBlock(in);
         
         // Read init block
@@ -423,7 +424,6 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     void ExecuteMeta(FIRMetaBlockInstruction* block, Meta* meta)
     {
         MetaInstructionIT it;
-        
         for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
             meta->declare((*it)->fKey.c_str(), (*it)->fValue.c_str());
         }
@@ -468,7 +468,7 @@ struct interpreter_dsp_base : public dsp {
     
     // Not implemented...
     virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
-    virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs){}
+    virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
     
     // Replaced by this one
     virtual void compute(int count, RealBuffers& buffers) = 0;
@@ -488,7 +488,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         : FIRInterpreter<T>(factory->fIntHeapSize, factory->fRealHeapSize, factory->fSROffset, factory->fCountOffset)
         {
             fFactory = factory;
-            
             this->fInputs = new T*[fFactory->fNumInputs];
             this->fOutputs = new T*[fFactory->fNumOutputs];
         }
@@ -739,7 +738,6 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
     
     interpreter_dsp_factory(interpreter_dsp_factory_aux<float>* factory):fFactory(factory)
     {}
-    
     interpreter_dsp_factory(interpreter_dsp_factory_aux<double>* factory):fFactory(factory)
     {}
     

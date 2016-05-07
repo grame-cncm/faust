@@ -29,7 +29,7 @@
 
 #include "interpreter_bytecode.hh"
 
-// Block optimizer : compact and reorganize instructions
+// Block optimizer : compact list of instructions in a more efficient single one
 
 static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Heap;
 static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Stack;
@@ -152,6 +152,108 @@ struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
         } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kStoreInt) {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::kStoreIntValue, inst1->fIntValue, 0, inst2->fOffset1, 0);
+        } else {
+            end = cur + 1;
+            return (*cur)->copy();
+        }
+    }
+    
+};
+
+
+/*
+ opcode 12 kMoveReal int 0 real 0 offset1 120322 offset2 120321
+ opcode 12 kMoveReal int 0 real 0 offset1 120321 offset2 120320
+ opcode 12 kMoveReal int 0 real 0 offset1 120325 offset2 120324
+ opcode 12 kMoveReal int 0 real 0 offset1 120324 offset2 120323
+ opcode 12 kMoveReal int 0 real 0 offset1 120328 offset2 120327
+ opcode 12 kMoveReal int 0 real 0 offset1 120327 offset2 120326
+ 
+ ==>  opcode 13 kBlockMoveReal int 0 real 0 offset1 120321 offset2 120327
+
+*/
+
+template <class T>
+struct FIRInstructionBlockMoveOptimizer : public FIRInstructionOptimizer<T> {
+    
+    FIRInstructionBlockMoveOptimizer()
+    {
+        //std::cout << "FIRInstructionBlockMoveOptimizer" << std::endl;
+    }
+    
+    FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    {
+        FIRBasicInstruction<T>* inst = *cur;
+        InstructionIT next = cur;
+        
+        int begin_move = -1;
+        int end_move = -1;
+        int last_offset = -1;
+        
+        while (inst->fOpcode != FIRInstruction::kReturn && inst->fOpcode == FIRInstruction::kMoveReal) {
+            if ((inst->fOffset1 == inst->fOffset2 + 1) && ((last_offset == -1) || (inst->fOffset1 == last_offset + 2))) {
+                if (begin_move == -1) { begin_move = inst->fOffset2; }
+                last_offset = end_move = inst->fOffset1;
+                inst = *(++next);
+            } else {
+                break;
+            }
+        }
+        
+        if (begin_move != -1 && end_move != -1 && ((end_move - begin_move) > 4)) {
+            //std::cout << "FIRInstructionBlockMoveOptimizer " << begin_move  << " " << end_move << std::endl;
+            end = next;
+            return new FIRBasicInstruction<T>(FIRInstruction::kBlockMoveReal, 0, 0, begin_move, end_move);
+        } else {
+            end = cur + 1;
+            return (*cur)->copy();
+        }
+    }
+    
+};
+
+/*
+ opcode 12 kMoveReal int 0 real 0 offset1 120322 offset2 120321
+ opcode 12 kMoveReal int 0 real 0 offset1 120321 offset2 120320
+ opcode 12 kMoveReal int 0 real 0 offset1 120325 offset2 120324
+ opcode 12 kMoveReal int 0 real 0 offset1 120324 offset2 120323
+ 
+ ==>
+ 
+ opcode 14 kPairMoveReal int 0 real 0 offset1 120322 offset2 120321
+ opcode 14 kPairMoveReal int 0 real 0 offset1 120325 offset2 120324
+
+*/
+
+template <class T>
+struct FIRInstructionPairMoveOptimizer : public FIRInstructionOptimizer<T> {
+    
+    FIRInstructionPairMoveOptimizer()
+    {
+        //std::cout << "FIRInstructionPairMoveOptimizer" << std::endl;
+    }
+    
+    FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    {
+        FIRBasicInstruction<T>* inst1 = *cur;
+        FIRBasicInstruction<T>* inst2 = *(cur + 1);
+        
+        if (inst1->fOpcode == FIRInstruction::kMoveReal
+            && inst2->fOpcode == FIRInstruction::kMoveReal
+            && (inst1->fOffset1 == (inst1->fOffset2 + 1))
+            && (inst2->fOffset1 == (inst2->fOffset2 + 1))
+            && (inst2->fOffset1 == inst1->fOffset2)) {
+            end = cur + 2;
+            //std::cout << "FIRInstructionPairMoveOptimizer" << inst1->fOffset1 << " " << inst2->fOffset1 << std::endl;
+            return new FIRBasicInstruction<T>(FIRInstruction::kPairMoveReal, 0, 0, inst1->fOffset1, inst2->fOffset1);
+        } else if (inst1->fOpcode == FIRInstruction::kMoveInt
+                && inst2->fOpcode == FIRInstruction::kMoveInt
+                && (inst1->fOffset1 == (inst1->fOffset2 + 1))
+                && (inst2->fOffset1 == (inst2->fOffset2 + 1))
+                && (inst2->fOffset1 == inst1->fOffset2)) {
+                end = cur + 2;
+                //std::cout << "FIRInstructionPairMoveOptimizer" << inst1->fOffset1 << " " << inst2->fOffset1 << std::endl;
+                return new FIRBasicInstruction<T>(FIRInstruction::kPairMoveInt, 0, 0, inst1->fOffset1, inst2->fOffset1);
         } else {
             end = cur + 1;
             return (*cur)->copy();

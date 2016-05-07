@@ -42,8 +42,6 @@ static inline std::string replaceCharQuote(std::string str, char ch1, char ch2)
 
 // Bytecode definition
 
-typedef long double quad;
-
 template <class T>
 struct FIRBlockInstruction;
 
