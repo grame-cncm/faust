@@ -24,20 +24,21 @@
 
 #include "code_container.hh"
 #include "interpreter_dsp_aux.hh"
+#include "interpreter_instructions.hh"
 
 using namespace std;           
 
+template <class T>
 class InterpreterCodeContainer : public virtual CodeContainer {
 
     protected:
 
-        // TODO : use template
-        //InterpreterInstVisitor<float> fCodeProducer;
-        
+        static InterpreterInstVisitor<T>* gInterpreterVisitor;
+    
         void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
         FIRMetaBlockInstruction* produceMetadata();
     
-        FIRBlockInstruction<float>* testOptimizer(FIRBlockInstruction<float>* block, int& size);
+        FIRBlockInstruction<T>* testOptimizer(FIRBlockInstruction<T>* block, int& size);
 
     public:
 
@@ -50,16 +51,17 @@ class InterpreterCodeContainer : public virtual CodeContainer {
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
         
-        interpreter_dsp_factory_aux<float>* produceFactoryFloat();
-        //interpreter_dsp_factory<double>* produceModuleDouble();
-        //interpreter_dsp_factory<quad>* produceModuleQuad();
-
+        interpreter_dsp_factory_aux<T>* produceFactoryAux();
+        interpreter_dsp_factory* produceFactory();
+    
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
         static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs);
+    
 };
 
-class InterpreterScalarCodeContainer : public InterpreterCodeContainer {
+template <class T>
+class InterpreterScalarCodeContainer : public InterpreterCodeContainer<T> {
 
     protected:
 

@@ -55,11 +55,7 @@ struct LLVMResult;
 
 class ASMJAVAScriptInstVisitor;
 
-template <class T>
-struct InterpreterInstVisitor;
-
-template <class T>
-struct interpreter_dsp_factory_aux;
+struct interpreter_dsp_factory;
 
 typedef long double quad;
 
@@ -146,9 +142,7 @@ struct global {
     LLVMResult*     gLLVMResult;
     
     // Interpreter backend
-    interpreter_dsp_factory_aux<float>* gInterpDSPFactoryFloat;
-    //interpreter_dsp_aux<double>* gInterpDSPFactoryDouble;
-    //interpreter_dsp_aux<quad>* gInterpDSPFactoryQuad;
+    interpreter_dsp_factory* gInterpDSPFactory;
     
     const char*     gInputString;
     
@@ -441,7 +435,7 @@ struct global {
     ASMJAVAScriptInstVisitor* gASMJSVisitor;
     
     // One single global visitor for Interpreter, so that sub-containers and main class use the same heap
-    InterpreterInstVisitor<float>* gInterpreterVisitor;
+    //InterpreterInstVisitor<float>* gInterpreterVisitor;
     
     bool gHelpSwitch;
     bool gVersionSwitch;

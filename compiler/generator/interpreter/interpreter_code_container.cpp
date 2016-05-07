@@ -38,26 +38,32 @@ Interpretor :
 */
 
 template <class T> map <string, FIRInstruction::Opcode> InterpreterInstVisitor<T>::gMathLibTable;
+template <class T> InterpreterInstVisitor<T>* InterpreterCodeContainer<T>::gInterpreterVisitor;
 
-InterpreterCodeContainer::InterpreterCodeContainer(const string& name, int numInputs, int numOutputs)
+template <class T>
+InterpreterCodeContainer<T>::InterpreterCodeContainer(const string& name, int numInputs, int numOutputs)
 {
     initializeCodeContainer(numInputs, numOutputs);
     fKlassName = name;
     
     // Allocate one static visitor
-    if (!gGlobal->gInterpreterVisitor) {
-        gGlobal->gInterpreterVisitor = new InterpreterInstVisitor<float>();
+    if (!gInterpreterVisitor) {
+        gInterpreterVisitor = new InterpreterInstVisitor<T>();
     }
     
-    FIRInstructionOptimizer<float>::initTables();
+    std::cout << "InterpreterCodeContainer<T>::InterpreterCodeContainer" << std::endl;
+    
+    FIRInstructionOptimizer<T>::initTables();
 }
 
-CodeContainer* InterpreterCodeContainer::createScalarContainer(const string& name, int sub_container_type)
+template <class T>
+CodeContainer* InterpreterCodeContainer<T>::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new InterpreterScalarCodeContainer(name, 0, 1, sub_container_type);
+    return new InterpreterScalarCodeContainer<T>(name, 0, 1, sub_container_type);
 }
 
-CodeContainer* InterpreterCodeContainer::createContainer(const string& name, int numInputs, int numOutputs)
+template <class T>
+CodeContainer* InterpreterCodeContainer<T>::createContainer(const string& name, int numInputs, int numOutputs)
 {
     CodeContainer* container;
 
@@ -75,60 +81,64 @@ CodeContainer* InterpreterCodeContainer::createContainer(const string& name, int
     } else if (gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : Vector not supported for Interpreter\n");
     } else {
-        container = new InterpreterScalarCodeContainer(name, numInputs, numOutputs, kInt);
+        container = new InterpreterScalarCodeContainer<T>(name, numInputs, numOutputs, kInt);
     }
 
     return container;
 }
 
 // Scalar
-InterpreterScalarCodeContainer::InterpreterScalarCodeContainer(const string& name,  int numInputs, int numOutputs, int sub_container_type)
-    :InterpreterCodeContainer(name, numInputs, numOutputs)
+template <class T>
+InterpreterScalarCodeContainer<T>::InterpreterScalarCodeContainer(const string& name, int numInputs, int numOutputs, int sub_container_type)
+    :InterpreterCodeContainer<T>(name, numInputs, numOutputs)
 {
-     fSubContainerType = sub_container_type;
+     this->fSubContainerType = sub_container_type;
 }
 
-InterpreterScalarCodeContainer::~InterpreterScalarCodeContainer()
+template <class T>
+InterpreterScalarCodeContainer<T>::~InterpreterScalarCodeContainer()
 {}
 
-void InterpreterCodeContainer::produceInternal()
+template <class T>
+void InterpreterCodeContainer<T>::produceInternal()
 {
     /*
     //cout << "generateGlobalDeclarations" << endl;
-    generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
+    generateGlobalDeclarations(gInterpreterVisitor);
     
     //cout << "generateDeclarations" << endl;
-    generateDeclarations(gGlobal->gInterpreterVisitor);
+    generateDeclarations(gInterpreterVisitor);
     */
     
 }
 
-FIRBlockInstruction<float>* InterpreterCodeContainer::testOptimizer(FIRBlockInstruction<float>* block, int& size)
+template <class T>
+FIRBlockInstruction<T>* InterpreterCodeContainer<T>::testOptimizer(FIRBlockInstruction<T>* block, int& size)
 {
     
     cout << "fComputeDSPBlock size = " << block->size() << endl;
     
     // 1) optimize indexed 'heap' load/store in normal load/store
-    FIRInstructionLoadStoreOptimizer<float> opt1;
-    block = FIRInstructionOptimizer<float>::optimize(block, opt1);
+    FIRInstructionLoadStoreOptimizer<T> opt1;
+    block = FIRInstructionOptimizer<T>::optimize(block, opt1);
     
     cout << "fComputeDSPBlock size = " << block->size() << endl;
     
     // 2) then pptimize simple 'heap' load/store in move
-    FIRInstructionMoveOptimizer<float> opt2;
-    block = FIRInstructionOptimizer<float>::optimize(block, opt2);
+    FIRInstructionMoveOptimizer<T> opt2;
+    block = FIRInstructionOptimizer<T>::optimize(block, opt2);
     
     cout << "fComputeDSPBlock size = " << block->size() << endl;
     
     // 3) optimize 'cast' in heap cast
-    FIRInstructionCastOptimizer<float> opt3;
-    block = FIRInstructionOptimizer<float>::optimize(block, opt3);
+    FIRInstructionCastOptimizer<T> opt3;
+    block = FIRInstructionOptimizer<T>::optimize(block, opt3);
     
     cout << "fComputeDSPBlock size = " << block->size() << endl;
     
     // 4) them optimize 'heap' and 'Value' math operations
-    FIRInstructionMathOptimizer<float> opt4;
-    block = FIRInstructionOptimizer<float>::optimize(block, opt4);
+    FIRInstructionMathOptimizer<T> opt4;
+    block = FIRInstructionOptimizer<T>::optimize(block, opt4);
     
     cout << "fComputeDSPBlock size = " << block->size() << endl << endl;
     
@@ -136,9 +146,10 @@ FIRBlockInstruction<float>* InterpreterCodeContainer::testOptimizer(FIRBlockInst
     return block;
 }
 
-interpreter_dsp_factory_aux<float>* InterpreterCodeContainer::produceFactoryFloat()
+template <class T>
+interpreter_dsp_factory_aux<T>* InterpreterCodeContainer<T>::produceFactoryAux()
 {
-    //cout << "InterpreterCodeContainer::produceModuleFloat() " << fNumInputs << " " << fNumOutputs << endl;
+    //cout << "InterpreterCodeContainer<T>::produceModuleFloat() " << fNumInputs << " " << fNumOutputs << endl;
     
     // Add "fSamplingFreq" variable at offset 0 in HEAP
     if (!fGeneratedSR) {
@@ -149,57 +160,57 @@ interpreter_dsp_factory_aux<float>* InterpreterCodeContainer::produceFactoryFloa
     fDeclarationInstructions->pushBackInst(InstBuilder::genDecStructVar("count", InstBuilder::genBasicTyped(Typed::kInt)));
     
     //cout << "generateGlobalDeclarations" << endl;
-    generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
+    generateGlobalDeclarations(gInterpreterVisitor);
 
     //cout << "generateDeclarations" << endl;
-    generateDeclarations(gGlobal->gInterpreterVisitor);
+    generateDeclarations(gInterpreterVisitor);
     
-    //generateAllocate(gGlobal->gInterpreterVisitor);
-    //generateDestroy(gGlobal->gInterpreterVisitor);
+    //generateAllocate(gInterpreterVisitor);
+    //generateDestroy(gInterpreterVisitor);
     
     //cout << "generateStaticInit" << endl;
-    generateStaticInit(gGlobal->gInterpreterVisitor);
+    generateStaticInit(gInterpreterVisitor);
     
     //cout << "generateInit" << endl;
-    generateInit(gGlobal->gInterpreterVisitor);
+    generateInit(gInterpreterVisitor);
     
-    FIRBlockInstruction<float>* init_block = gGlobal->gInterpreterVisitor->fCurrentBlock;
-    gGlobal->gInterpreterVisitor->fCurrentBlock = new FIRBlockInstruction<float>();
+    FIRBlockInstruction<T>* init_block = gInterpreterVisitor->fCurrentBlock;
+    gInterpreterVisitor->fCurrentBlock = new FIRBlockInstruction<T>();
     
     //cout << "generateUserInterface" << endl;
-    generateUserInterface(gGlobal->gInterpreterVisitor);
+    generateUserInterface(gInterpreterVisitor);
     
     // Generates local variables declaration and setup
     //cout << "generateComputeBlock" << endl;
-    generateComputeBlock(gGlobal->gInterpreterVisitor);
+    generateComputeBlock(gInterpreterVisitor);
     
-    FIRBlockInstruction<float>* compute_control_block = gGlobal->gInterpreterVisitor->fCurrentBlock;
-    gGlobal->gInterpreterVisitor->fCurrentBlock = new FIRBlockInstruction<float>();
+    FIRBlockInstruction<T>* compute_control_block = gInterpreterVisitor->fCurrentBlock;
+    gInterpreterVisitor->fCurrentBlock = new FIRBlockInstruction<T>();
 
     // Generates one single scalar loop
     //cout << "generateScalarLoop" << endl;
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     
-    loop->accept(gGlobal->gInterpreterVisitor);
-    FIRBlockInstruction<float>* compute_dsp_block = gGlobal->gInterpreterVisitor->fCurrentBlock;
+    loop->accept(gInterpreterVisitor);
+    FIRBlockInstruction<T>* compute_dsp_block = gInterpreterVisitor->fCurrentBlock;
    
     //generateCompute(0);
-    //generateComputeFunctions(gGlobal->gInterpreterVisitor);
+    //generateComputeFunctions(gInterpreterVisitor);
     
     // Add kReturn in blocks
-    init_block->push(new FIRBasicInstruction<float>(FIRInstruction::kReturn));
-    compute_control_block->push(new FIRBasicInstruction<float>(FIRInstruction::kReturn));
-    compute_dsp_block->push(new FIRBasicInstruction<float>(FIRInstruction::kReturn));
+    init_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
+    compute_control_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
+    compute_dsp_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     
     // Bytecode optimization
     
     /*
     cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
     
-    FIRInstructionCopyOptimizer<float> opt0;
-    init_block = FIRInstructionOptimizer<float>::optimize(init_block, opt0);
-    compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt0);
-    compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt0);
+    FIRInstructionCopyOptimizer<T> opt0;
+    init_block = FIRInstructionOptimizer<T>::optimize(init_block, opt0);
+    compute_control_block = FIRInstructionOptimizer<T>::optimize(compute_control_block, opt0);
+    compute_dsp_block = FIRInstructionOptimizer<T>::optimize(compute_dsp_block, opt0);
     */
     
     //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
@@ -207,42 +218,42 @@ interpreter_dsp_factory_aux<float>* InterpreterCodeContainer::produceFactoryFloa
     
     
     // 1) optimize indexed 'heap' load/store in normal load/store
-    FIRInstructionLoadStoreOptimizer<float> opt1;
-    init_block = FIRInstructionOptimizer<float>::optimize(init_block, opt1);
-    compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt1);
-    compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt1);
+    FIRInstructionLoadStoreOptimizer<T> opt1;
+    init_block = FIRInstructionOptimizer<T>::optimize(init_block, opt1);
+    compute_control_block = FIRInstructionOptimizer<T>::optimize(compute_control_block, opt1);
+    compute_dsp_block = FIRInstructionOptimizer<T>::optimize(compute_dsp_block, opt1);
     
     //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
     
     // 2) then pptimize simple 'heap' load/store in move
-    FIRInstructionMoveOptimizer<float> opt2;
-    init_block = FIRInstructionOptimizer<float>::optimize(init_block, opt2);
-    compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt2);
-    compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt2);
+    FIRInstructionMoveOptimizer<T> opt2;
+    init_block = FIRInstructionOptimizer<T>::optimize(init_block, opt2);
+    compute_control_block = FIRInstructionOptimizer<T>::optimize(compute_control_block, opt2);
+    compute_dsp_block = FIRInstructionOptimizer<T>::optimize(compute_dsp_block, opt2);
     
     //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
     
     // 3) optimize 'cast' in heap cast
-    FIRInstructionCastOptimizer<float> opt3;
-    init_block = FIRInstructionOptimizer<float>::optimize(init_block, opt3);
-    compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt3);
-    compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt3);
+    FIRInstructionCastOptimizer<T> opt3;
+    init_block = FIRInstructionOptimizer<T>::optimize(init_block, opt3);
+    compute_control_block = FIRInstructionOptimizer<T>::optimize(compute_control_block, opt3);
+    compute_dsp_block = FIRInstructionOptimizer<T>::optimize(compute_dsp_block, opt3);
  
     cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
     
     // 4) them optimize 'heap' and 'Value' math operations
-    FIRInstructionMathOptimizer<float> opt4;
-    init_block = FIRInstructionOptimizer<float>::optimize(init_block, opt4);
-    compute_control_block = FIRInstructionOptimizer<float>::optimize(compute_control_block, opt4);
-    compute_dsp_block = FIRInstructionOptimizer<float>::optimize(compute_dsp_block, opt4);
+    FIRInstructionMathOptimizer<T> opt4;
+    init_block = FIRInstructionOptimizer<T>::optimize(init_block, opt4);
+    compute_control_block = FIRInstructionOptimizer<T>::optimize(compute_control_block, opt4);
+    compute_dsp_block = FIRInstructionOptimizer<T>::optimize(compute_dsp_block, opt4);
     
     cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl << endl;
      
     
     /*
-    init_block = FIRInstructionOptimizer<float>::optimizeBlock(init_block);
-    compute_control_block = FIRInstructionOptimizer<float>::optimizeBlock(compute_control_block);
-    compute_dsp_block = FIRInstructionOptimizer<float>::optimizeBlock(compute_dsp_block);
+    init_block = FIRInstructionOptimizer<T>::optimizeBlock(init_block);
+    compute_control_block = FIRInstructionOptimizer<T>::optimizeBlock(compute_control_block);
+    compute_dsp_block = FIRInstructionOptimizer<T>::optimizeBlock(compute_dsp_block);
      */
     
     // TODO
@@ -255,15 +266,15 @@ interpreter_dsp_factory_aux<float>* InterpreterCodeContainer::produceFactoryFloa
    
     // Test reader/writer
     /*
-    interpreter_dsp_factory_aux<float>* factory = new interpreter_dsp_factory_aux<float>(fKlassName,
+    interpreter_dsp_factory_aux<T>* factory = new interpreter_dsp_factory_aux<T>(fKlassName,
                                                                            INTERP_FILE_VERSION,
                                                                            fNumInputs, fNumOutputs,
-                                                                           gGlobal->gInterpreterVisitor->fIntHeapOffset,
-                                                                           gGlobal->gInterpreterVisitor->fRealHeapOffset,
-                                                                           gGlobal->gInterpreterVisitor->fSROffset,
-                                                                           gGlobal->gInterpreterVisitor->fCountOffset,
+                                                                           gInterpreterVisitor->fIntHeapOffset,
+                                                                           gInterpreterVisitor->fRealHeapOffset,
+                                                                           gInterpreterVisitor->fSROffset,
+                                                                           gInterpreterVisitor->fCountOffset,
                                                                            produceMetadata(),
-                                                                           gGlobal->gInterpreterVisitor->fUserInterfaceBlock,
+                                                                           gInterpreterVisitor->fUserInterfaceBlock,
                                                                            init_block,
                                                                            compute_control_block,
                                                                            compute_dsp_block);
@@ -279,79 +290,71 @@ interpreter_dsp_factory_aux<float>* InterpreterCodeContainer::produceFactoryFloa
     */
     
     
-    return new interpreter_dsp_factory_aux<float>(fKlassName,
+    return new interpreter_dsp_factory_aux<T>(fKlassName,
                                                 INTERP_FILE_VERSION,
                                                 fNumInputs, fNumOutputs,
-                                                gGlobal->gInterpreterVisitor->fIntHeapOffset,
-                                                gGlobal->gInterpreterVisitor->fRealHeapOffset,
-                                                gGlobal->gInterpreterVisitor->fSROffset,
-                                                gGlobal->gInterpreterVisitor->fCountOffset,
+                                                gInterpreterVisitor->fIntHeapOffset,
+                                                gInterpreterVisitor->fRealHeapOffset,
+                                                gInterpreterVisitor->fSROffset,
+                                                gInterpreterVisitor->fCountOffset,
                                                 produceMetadata(),
-                                                gGlobal->gInterpreterVisitor->fUserInterfaceBlock,
+                                                gInterpreterVisitor->fUserInterfaceBlock,
                                                 init_block,
                                                 compute_control_block,
                                                 compute_dsp_block);
-    
-    
 }
 
-/*
-interpreter_dsp_aux<double>* InterpreterCodeContainer::produceModuleDouble()
+template <class T>
+interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
 {
-    cout << "InterpreterCodeContainer::produceModuleDouble()" << endl;
-    //return new interpreter_dsp_aux<double>(fNumInputs, fNumOutputs, 0, 0, NULL, NULL, NULL, NULL);
-    return NULL;
+    return new interpreter_dsp_factory(produceFactoryAux());
 }
 
-interpreter_dsp_aux<quad>* InterpreterCodeContainer::produceModuleQuad()
-{
-    cout << "InterpreterCodeContainer::produceModuleQuad()" << endl;
-    //return new interpreter_dsp_aux<quad>(fNumInputs, fNumOutputs, 0, 0, NULL, NULL, NULL, NULL);
-    return NULL;
-}
-*/
-
-void InterpreterCodeContainer::produceClass()
+template <class T>
+void InterpreterCodeContainer<T>::produceClass()
 {
     /*
-    printf("InterpreterCodeContainer::produceClass\n");
+    printf("InterpreterCodeContainer<T>::produceClass\n");
     
     // Add "fSamplingFreq" variable at offset 0 in HEAP
     pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
     
-    generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
+    generateGlobalDeclarations(gInterpreterVisitor);
 
-    generateDeclarations(gGlobal->gInterpreterVisitor);
+    generateDeclarations(gInterpreterVisitor);
     
-    //generateAllocate(gGlobal->gInterpreterVisitor);
-    //generateDestroy(gGlobal->gInterpreterVisitor);
+    //generateAllocate(gInterpreterVisitor);
+    //generateDestroy(gInterpreterVisitor);
     
-    generateStaticInit(gGlobal->gInterpreterVisitor);
+    generateStaticInit(gInterpreterVisitor);
     
-    //generateInit(gGlobal->gInterpreterVisitor);
+    //generateInit(gInterpreterVisitor);
     
-    generateUserInterface(gGlobal->gInterpreterVisitor);
+    generateUserInterface(gInterpreterVisitor);
     
     generateCompute(0);
     
-    //generateComputeFunctions(gGlobal->gInterpreterVisitor);
+    //generateComputeFunctions(gInterpreterVisitor);
     */
 }
 
-void InterpreterCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
+template <class T>
+void InterpreterCodeContainer<T>::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
 {}
 
-void InterpreterScalarCodeContainer::generateCompute(int n)
+template <class T>
+void InterpreterScalarCodeContainer<T>::generateCompute(int n)
 {
     // Generates local variables declaration and setup
-    //generateComputeBlock(gGlobal->gInterpreterVisitor);
+    //generateComputeBlock(gInterpreterVisitor);
 
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-    loop->accept(gGlobal->gInterpreterVisitor);
+    ForLoopInst* loop = this->fCurLoop->generateScalarLoop(this->fFullCount);
+    loop->accept(this->gInterpreterVisitor);
 }
 
-FIRMetaBlockInstruction* InterpreterCodeContainer::produceMetadata()
+template <class T>
+FIRMetaBlockInstruction* InterpreterCodeContainer<T>::produceMetadata()
 {
     FIRMetaBlockInstruction* block = new FIRMetaBlockInstruction();
     

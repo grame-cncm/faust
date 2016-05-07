@@ -764,6 +764,8 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
         // TODO
     }
     
+    void write(std::ostream* out) { fFactory->write(out); }
+    
 };
 
 EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& sha_key);

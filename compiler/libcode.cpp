@@ -59,7 +59,9 @@
 #include "asmjs_code_container.hh"
 #include "wasm_code_container.hh"
 #include "clang_code_container.hh"
-#include "interpreter_code_container.hh"
+
+#include "interpreter_code_container.cpp"
+
 #if LLVM_BUILD
 #include "llvm_code_container.hh"
 #endif
@@ -1072,7 +1074,13 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
     } else if (gGlobal->gOutputLang == "interp") {
     
-        container = InterpreterCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+        if (gGlobal->gFloatSize == 1) {
+            container = InterpreterCodeContainer<float>::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+        } else if (gGlobal->gFloatSize == 2) {
+            container = InterpreterCodeContainer<double>::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+        } else {
+            throw faustexception("ERROR : quad format not supported in Interp\n");
+        }
         
         gGlobal->gAllowForeignFunction = false; // No foreign functions
         gGlobal->gGenerateSelectWithIf = false; // No 'select with if',
@@ -1089,14 +1097,10 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
      
         comp->compileMultiSignal(signals);
         container->produceClass();
-         
-        InterpreterCodeContainer* interpreter_container = dynamic_cast<InterpreterCodeContainer*>(container);
         
         if (gGlobal->gFloatSize == 1) {
-            gGlobal->gInterpDSPFactoryFloat = interpreter_container->produceFactoryFloat();
-            
-            gGlobal->gInterpDSPFactoryFloat->write(&cout);
-            
+            InterpreterCodeContainer<float>* interpreter_container = dynamic_cast<InterpreterCodeContainer<float>*>(container);
+            gGlobal->gInterpDSPFactory = interpreter_container->produceFactory();
             /*
             std::stringstream dst;
             gGlobal->gInterpDSPFactoryFloat->write(&dst);
@@ -1104,12 +1108,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             cout << code;
             */
             
-            
         } else if (gGlobal->gFloatSize == 2) {
-            //gGlobal->gInterpDSPDouble = interpreter_container->produceModuleDouble();
-        } else if (gGlobal->gFloatSize == 3) {
-            //gGlobal->gInterpDSPQuad = interpreter_container->produceModuleQuad();
+            InterpreterCodeContainer<double>* interpreter_container = dynamic_cast<InterpreterCodeContainer<double>*>(container);
+            gGlobal->gInterpDSPFactory = interpreter_container->produceFactory();
         }
+        gGlobal->gInterpDSPFactory->write(&cout);
      
     } else {
         
@@ -1522,10 +1525,10 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
 
 #endif
 
-EXPORT interpreter_dsp_factory_aux<float>* compile_faust_interpreter(int argc, const char* argv[], const char* name, const char* dsp_content, char* error_msg)
+EXPORT interpreter_dsp_factory* compile_faust_interpreter(int argc, const char* argv[], const char* name, const char* dsp_content, char* error_msg)
 {
     gGlobal = NULL;
-    interpreter_dsp_factory_aux<float>* res;
+    interpreter_dsp_factory* res;
     
     try {
     
@@ -1534,7 +1537,7 @@ EXPORT interpreter_dsp_factory_aux<float>* compile_faust_interpreter(int argc, c
         gGlobal->gLLVMOut = true; 
         compile_faust_internal(argc, argv, name, dsp_content, true);
         strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);  
-        res = gGlobal->gInterpDSPFactoryFloat;
+        res = gGlobal->gInterpDSPFactory;
             
     } catch (faustexception& e) {
         strncpy(error_msg, e.Message().c_str(), 256);

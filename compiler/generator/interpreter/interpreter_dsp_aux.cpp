@@ -53,10 +53,13 @@ static string path_to_content(const string& path)
 
 dsp* interpreter_dsp_factory::createDSPInstance()
 {
-    if (dynamic_cast<interpreter_dsp_factory_aux<float>*>(fFactory)) {
-        return new interpreter_dsp(new interpreter_dsp_aux<float>(dynamic_cast<interpreter_dsp_factory_aux<float>*>(fFactory)));
-    } else if (dynamic_cast<interpreter_dsp_factory_aux<double>*>(fFactory)) {
-        return new interpreter_dsp(new interpreter_dsp_aux<double>(dynamic_cast<interpreter_dsp_factory_aux<double>*>(fFactory)));
+    interpreter_dsp_factory_aux<float>* float_factory = dynamic_cast<interpreter_dsp_factory_aux<float>*>(fFactory);
+    interpreter_dsp_factory_aux<double>* double_factory = dynamic_cast<interpreter_dsp_factory_aux<double>*>(fFactory);
+    
+    if (float_factory) {
+        return new interpreter_dsp(new interpreter_dsp_aux<float>(float_factory));
+    } else if (double_factory) {
+        return new interpreter_dsp(new interpreter_dsp_aux<double>(double_factory));
     } else {
         assert(false);
     }
@@ -102,12 +105,12 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
         argv1[i+3] = argv[i];
     }
     
-    interpreter_dsp_factory_aux<float>* factory = compile_faust_interpreter(argc1, argv1,
-                                                                         name_app.c_str(),
-                                                                         dsp_content.c_str(),
-                                                                         error_msg_aux);
+    interpreter_dsp_factory* factory = compile_faust_interpreter(argc1, argv1,
+                                                                 name_app.c_str(),
+                                                                 dsp_content.c_str(),
+                                                                 error_msg_aux);
     error_msg = error_msg_aux;
-    return new interpreter_dsp_factory(factory);
+    return factory;
 #endif
 }
 

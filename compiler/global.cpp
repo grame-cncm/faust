@@ -121,7 +121,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 
     gLLVMResult = 0;
     
-    gInterpDSPFactoryFloat = 0;
+    gInterpDSPFactory = 0;
     //gInterpDSPDouble = 0;
     //gInterpDSPQuad = 0;
     
@@ -299,8 +299,6 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gOutputLang = "";
     
     gASMJSVisitor = 0; // Will be (possibly) allocated in ASMJS backend
-    
-    gInterpreterVisitor = 0; // Will be (possibly) allocated in Interperted backend
     
     gHelpSwitch = false;
     gVersionSwitch = false;
