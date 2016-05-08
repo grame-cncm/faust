@@ -629,7 +629,7 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T> {
     
         virtual void init(int samplingRate)
         {
-            classInit(samplingRate / fDownSamplingFactor);
+            this->classInit(samplingRate / fDownSamplingFactor);
             this->instanceInit(samplingRate / fDownSamplingFactor);
         }
     
