@@ -458,6 +458,25 @@ DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, bool 
     return InstBuilder::genDeclareFunInst(name, fun_type, init_block);
 }
 
+DeclareFunInst* CodeContainer::generateFillFun(const string& name, bool ismethod, bool isvirtual, bool addreturn)
+{
+    list<NamedTyped*> args;
+    if (!ismethod) {
+        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+    }
+    args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt));
+    args.push_back(InstBuilder::genNamedTyped("output", Typed::kFloat_ptr));
+    
+    BlockInst* fill_block = InstBuilder::genBlockInst();
+    fill_block->pushBackInst(fComputeBlockInstructions);
+    fill_block->pushBackInst(fCurLoop->generateScalarLoop("count"));
+    
+    if (addreturn) { fill_block->pushBackInst(InstBuilder::genRetInst()); }
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst(name, fun_type, fill_block);
+}
 
 // Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
 void CodeContainer::produceInfoFunctions(int tabs, const string& classname, bool ismethod, bool isvirtual, TextInstVisitor* producer)

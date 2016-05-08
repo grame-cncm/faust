@@ -79,3 +79,5 @@ bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
     return sortArrayDeclarationsAux(a, b);
 }
 #endif
+
+

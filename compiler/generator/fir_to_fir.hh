@@ -157,4 +157,38 @@ struct DspRenamer : public BasicCloneVisitor {
     
 };
 
+// Replace a void function call with the actual inlined function code
+
+struct InlineVoidFunctionCall : public BasicCloneVisitor {
+    
+    DeclareFunInst* fFunction;
+    
+    InlineVoidFunctionCall(DeclareFunInst* function):fFunction(function)
+    {}
+    
+    BlockInst* ReplaceParametersByArgs(BlockInst* code, FunTyped* fType, list<ValueInst*> args)
+    {
+        std::cout << "ReplaceParametersByArgs " << fFunction->fName << std::endl;
+        return code;
+    }
+    
+    virtual StatementInst* visit(DropInst* inst)
+    {
+        FunCallInst* fun_call;
+        if (inst->fResult
+            && (fun_call = dynamic_cast<FunCallInst*>(inst->fResult))
+            && fun_call->fName == fFunction->fName) {
+            return ReplaceParametersByArgs(fFunction->fCode, fFunction->fType, fun_call->fArgs);
+        } else {
+            BasicCloneVisitor cloner;
+            return inst->clone(&cloner);
+        }
+    }
+   
+    BlockInst* getCode(BlockInst* src)
+    {
+        return dynamic_cast<BlockInst*>(src->clone(this));
+    }
+};
+
 #endif

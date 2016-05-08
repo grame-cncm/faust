@@ -25,6 +25,7 @@
 #include "floats.hh"
 #include "exception.hh"
 #include "global.hh"
+#include "fir_to_fir.hh"
 
 using namespace std;
 
@@ -144,6 +145,7 @@ void CPPCodeContainer::produceInternal()
             generateInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
     
+    
         // Fill
         string counter = "count";
         tab(n+1, *fOut);
@@ -158,9 +160,15 @@ void CPPCodeContainer::produceInternal()
             ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
             loop->accept(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
+    
+        /*
+        tab(n+1, *fOut);
+        fCodeProducer.Tab(n+1);
+        generateFillFun("fill" + fKlassName, true, false)->accept(&fCodeProducer);
+        */
 
     tab(n, *fOut); *fOut << "};" << endl;
-
+  
     // Memory methods (as globals)
     tab(n, *fOut); *fOut << fKlassName << "* " << "new" <<  fKlassName << "() {"
                         << " return (" << fKlassName << "*)new "<< fKlassName << "()"
@@ -260,6 +268,33 @@ void CPPCodeContainer::produceClass()
             fCodeProducer.Tab(n+2);
             generateStaticInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
+    
+        /*
+        // Start inline
+        BlockInst* res1 = fStaticInitInstructions;
+        BlockInst* res2 = fPostStaticInitInstructions;
+    
+        list<CodeContainer*>::const_iterator it;
+        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false);
+            InlineVoidFunctionCall inliner1(inst_init_fun);
+            res1 = inliner1.getCode(res1);
+            res2 = inliner1.getCode(res2);
+            DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false);
+            InlineVoidFunctionCall inliner2(fill_fun);
+            res1 = inliner2.getCode(res1);
+            res2 = inliner2.getCode(res2);
+        }
+    
+        tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            res1->accept(&fCodeProducer);
+            res2->accept(&fCodeProducer);
+        tab(n+1, *fOut); *fOut << "}";
+    
+        // End inline
+        */
     
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "virtual void instanceInit(int samplingFreq) {";

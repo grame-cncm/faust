@@ -200,6 +200,7 @@ class CodeContainer : public virtual Garbageable {
     
         DeclareFunInst* generateStaticInitFun(const string& name, bool isstatic, bool addreturn = false);
         DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn = false);
+        DeclareFunInst* generateFillFun(const string& name, bool ismethod, bool isvirtual, bool addreturn = false);
 
         void produceInfoFunctions(int tabs, const string& classname, bool ismethod, bool isvirtual, TextInstVisitor* producer);
     
