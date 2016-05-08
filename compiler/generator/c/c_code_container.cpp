@@ -92,12 +92,15 @@ void CCodeContainer::produceInternal()
     produceInfoFunctions(n, fKlassName, false, false, &fCodeProducer);
     
     // Init
+    // TODO
+    //generateInstanceInitFun("instanceInit" + fKlassName, false, false)->accept(&fCodeProducer);
+    
     tab(n, *fOut); *fOut << "static void instanceInit" << fKlassName << "(" << fKlassName << "* dsp, int samplingFreq) {";
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateInit(&fCodeProducer);
     tab(n, *fOut); *fOut << "}";
-
+ 
     // Fill
     tab(n, *fOut);
     string counter = "count";
@@ -201,6 +204,15 @@ void CCodeContainer::produceClass()
     produceInfoFunctions(n, fKlassName, false, false, &fCodeProducer);
 
     // Inits
+    
+    // TODO
+    /*
+     CInstVisitor codeproducer1(fOut, "");
+     codeproducer1.Tab(n+1);
+     generateStaticInitFun("classInit" + fKlassName, false)->accept(&codeproducer1);
+     generateInstanceInitFun("instanceInit" + fKlassName, false, false)->accept(&codeproducer2);
+     */
+    
     tab(n, *fOut); *fOut << "void classInit" << fKlassName << "(int samplingFreq) {";
         {
             tab(n+1, *fOut);
@@ -210,7 +222,7 @@ void CCodeContainer::produceClass()
             generateStaticInit(&codeproducer);
         }
     tab(n, *fOut); *fOut << "}";
-
+  
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "void instanceInit" << fKlassName << "(" << fKlassName << "* dsp, int samplingFreq) {";
         {
@@ -221,7 +233,7 @@ void CCodeContainer::produceClass()
             generateInit(&codeproducer);
         }
     tab(n, *fOut); *fOut << "}";
-
+   
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "void init" << fKlassName << "(" << fKlassName << "* dsp, int samplingFreq) {";
         tab(n+1, *fOut); *fOut << "classInit" << fKlassName << "(samplingFreq);";

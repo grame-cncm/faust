@@ -197,6 +197,9 @@ class CodeContainer : public virtual Garbageable {
         DeclareFunInst* generateGetIORate(const string& name, vector<int>& io, bool ismethod, bool isvirtual);
         DeclareFunInst* generateGetInputRate(const string& name, bool ismethod, bool isvirtual);
         DeclareFunInst* generateGetOutputRate(const string& name, bool ismethod, bool isvirtual);
+    
+        DeclareFunInst* generateStaticInitFun(const string& name, bool isstatic, bool addreturn = false);
+        DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn = false);
 
         void produceInfoFunctions(int tabs, const string& classname, bool ismethod, bool isvirtual, TextInstVisitor* producer);
     

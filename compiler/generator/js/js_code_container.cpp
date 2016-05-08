@@ -90,6 +90,9 @@ void JAVAScriptCodeContainer::produceInternal()
         tab(n+1, *fOut);
         // fKlassName used in method naming for subclasses
         produceInfoFunctions(n+1, fKlassName, true, false, &fCodeProducer);
+    
+        // TODO
+        //generateInstanceInitFun("instanceInit" + fKlassName, true, false)->accept(&fCodeProducer);
 
         // Inits
         tab(n+1, *fOut); *fOut << "this.instanceInit" << fKlassName << " = function(samplingFreq) {";
@@ -97,7 +100,7 @@ void JAVAScriptCodeContainer::produceInternal()
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
-
+   
         // Fill
         string counter = "count";
         tab(n+1, *fOut);
@@ -171,19 +174,26 @@ void JAVAScriptCodeContainer::produceClass()
         produceInfoFunctions(n+1, "", true, true, &fCodeProducer);
 
         // Inits
+    
+        // TODO
+        /*
+        generateStaticInitFun("classInit", false)->accept(&fCodeProducer);
+        generateInstanceInitFun("instanceInit", true, true)->accept(&fCodeProducer);
+        */
+
         tab(n+1, *fOut); *fOut << "this.classInit = function(samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateStaticInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
-
+    
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "this.instanceInit = function(samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
-
+   
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "this.init = function(samplingFreq) {";
             tab(n+2, *fOut); *fOut << "this.classInit(samplingFreq);";

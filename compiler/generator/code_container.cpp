@@ -425,6 +425,40 @@ DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name, bool is
     return generateGetIORate(name, fOutputRates, ismethod, isvirtual);
 }
 
+DeclareFunInst* CodeContainer::generateStaticInitFun(const string& name, bool isstatic, bool addreturn)
+{
+    list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
+    
+    BlockInst* static_init_block = InstBuilder::genBlockInst();
+    static_init_block->pushBackInst(fStaticInitInstructions);
+    static_init_block->pushBackInst(fPostStaticInitInstructions);
+    if (addreturn) { static_init_block->pushBackInst(InstBuilder::genRetInst()); }
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), (isstatic) ? FunTyped::kStatic : FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst(name, fun_type, static_init_block);
+}
+
+DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn)
+{
+    list<NamedTyped*> args;
+    if (!ismethod) {
+        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+    }
+    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
+    
+    BlockInst* init_block = InstBuilder::genBlockInst();
+    init_block->pushBackInst(fInitInstructions);
+    init_block->pushBackInst(fPostInitInstructions);
+    if (addreturn) { init_block->pushBackInst(InstBuilder::genRetInst()); }
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst(name, fun_type, init_block);
+}
+
+
 // Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
 void CodeContainer::produceInfoFunctions(int tabs, const string& classname, bool ismethod, bool isvirtual, TextInstVisitor* producer)
 {

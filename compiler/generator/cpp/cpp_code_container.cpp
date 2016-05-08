@@ -133,6 +133,9 @@ void CPPCodeContainer::produceInternal()
         tab(n+1, *fOut);
         // fKlassName used in method naming for subclasses
         produceInfoFunctions(n+1, fKlassName, true, false, &fCodeProducer);
+    
+        // TODO
+        //generateInstanceInitFun("instanceInit" + fKlassName, true, false)->accept(&fCodeProducer);
 
         // Inits
         tab(n+1, *fOut); *fOut << "void instanceInit" << fKlassName << "(int samplingFreq) {";
@@ -140,7 +143,7 @@ void CPPCodeContainer::produceInternal()
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
-
+    
         // Fill
         string counter = "count";
         tab(n+1, *fOut);
@@ -245,20 +248,26 @@ void CPPCodeContainer::produceClass()
         tab(n+1, *fOut);
         // No class name for main class
         produceInfoFunctions(n+1, "", true, true, &fCodeProducer);  // Inits
-
+    
+        // TODO
+        /*
+        generateStaticInitFun("classInit", true)->accept(&fCodeProducer);
+        generateInstanceInitFun("instanceInit", true, true)->accept(&fCodeProducer);
+        */
+    
         tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateStaticInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
-
+    
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "virtual void instanceInit(int samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
-
+    
         tab(n+1, *fOut);
         produceInit(n+1);
 

@@ -180,6 +180,10 @@ class CPPInstVisitor : public TextInstVisitor {
             if (inst->fType->fAttribute & FunTyped::kVirtual) {
                 *fOut << "virtual ";
             }
+            
+            if (inst->fType->fAttribute & FunTyped::kStatic) {
+                *fOut << "static ";
+            }
                        
             // Prototype
             *fOut << generateType(inst->fType->fResult, generateFunName(inst->fName));
