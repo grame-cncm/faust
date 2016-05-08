@@ -87,6 +87,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     
     FIRMetaBlockInstruction* fMetaBlock;
     FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
+    FIRBlockInstruction<T>* fStaticInitBlock;
     FIRBlockInstruction<T>* fInitBlock;
     FIRBlockInstruction<T>* fComputeBlock;
     FIRBlockInstruction<T>* fComputeDSPBlock;
@@ -98,6 +99,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
                                 int sr_offset, int count_offset,
                                 FIRMetaBlockInstruction* meta,
                                 FIRUserInterfaceBlockInstruction<T>* interface,
+                                FIRBlockInstruction<T>* static_init,
                                 FIRBlockInstruction<T>* init,
                                 FIRBlockInstruction<T>* compute_control,
                                 FIRBlockInstruction<T>* compute_dsp)
@@ -111,6 +113,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     fCountOffset(count_offset),
     fMetaBlock(meta),
     fUserInterfaceBlock(interface),
+    fStaticInitBlock(static_init),
     fInitBlock(init),
     fComputeBlock(compute_control),
     fComputeDSPBlock(compute_dsp)
@@ -120,6 +123,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     {
         // No more DSP instances, so delete
         delete fUserInterfaceBlock;
+        delete fStaticInitBlock;
         delete fInitBlock;
         delete fComputeBlock;
         delete fComputeDSPBlock;
@@ -146,6 +150,9 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         
         *out << "user_unterface_block" << std::endl;
         fUserInterfaceBlock->write(out);
+        
+        *out << "static_init_block" << std::endl;
+        fStaticInitBlock->write(out);
         
         *out << "init_block" << std::endl;
         fInitBlock->write(out);
@@ -226,6 +233,10 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         getline(*in, dummy);    // Read "user_interface_block" line
         FIRUserInterfaceBlockInstruction<T>* ui_block = readUIBlock(in);
         
+        // Read static init block
+        getline(*in, dummy);    // Read "static_init_block" line
+        FIRBlockInstruction<T>* static_init_block = readCodeBlock(in);
+        
         // Read init block
         getline(*in, dummy);    // Read "init_block" line
         FIRBlockInstruction<T>* init_block = readCodeBlock(in);
@@ -247,6 +258,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
                                                count_offset,
                                                meta_block,
                                                ui_block,
+                                               static_init_block,
                                                init_block,
                                                compute_control_block,
                                                compute_dsp_block);
@@ -516,8 +528,11 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             return -1;
         }
         
-        static void classInit(int samplingRate)
-        {}
+        virtual void classInit(int samplingRate)
+        {
+            // Execute static init instructions
+            this->ExecuteBlock(fFactory->fStaticInitBlock);
+        }
         
         virtual void instanceInit(int samplingRate)
         {
@@ -612,9 +627,6 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T> {
             }
         }
     
-        static void classInit(int samplingRate)
-        {}
-
         virtual void init(int samplingRate)
         {
             classInit(samplingRate / fDownSamplingFactor);
@@ -703,6 +715,7 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
                          int sr_offset, int count_offset,
                          FIRMetaBlockInstruction* meta,
                          FIRUserInterfaceBlockInstruction<float>* interface,
+                         FIRBlockInstruction<float>* static_init,
                          FIRBlockInstruction<float>* init,
                          FIRBlockInstruction<float>* compute_control,
                          FIRBlockInstruction<float>* compute_dsp)
@@ -712,7 +725,8 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
                                                         int_heap_size, real_heap_size,
                                                         sr_offset, count_offset,
                                                         meta, interface,
-                                                        init, compute_control, compute_dsp);
+                                                        static_init, init,
+                                                        compute_control, compute_dsp);
     }
 
     interpreter_dsp_factory(const std::string& name,
@@ -722,6 +736,7 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
                             int sr_offset, int count_offset,
                             FIRMetaBlockInstruction* meta,
                             FIRUserInterfaceBlockInstruction<double>* interface,
+                            FIRBlockInstruction<double>* static_init,
                             FIRBlockInstruction<double>* init,
                             FIRBlockInstruction<double>* compute_control,
                             FIRBlockInstruction<double>* compute_dsp)
@@ -731,7 +746,8 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
                                                         int_heap_size, real_heap_size,
                                                         sr_offset, count_offset,
                                                         meta, interface,
-                                                        init, compute_control, compute_dsp);
+                                                        static_init, init,
+                                                        compute_control, compute_dsp);
     }
     
     interpreter_dsp_factory(interpreter_dsp_factory_aux<float>* factory):fFactory(factory)

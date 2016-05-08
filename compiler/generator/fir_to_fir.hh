@@ -119,4 +119,42 @@ struct RemoverCloneVisitor : public BasicCloneVisitor {
     }
 };
 
+/*
+ For subcontainers table generation : rename 'sig' in 'dsp' and remove 'dsp' allocation
+ (using in ASMJavaScript and Interpreter backend)
+*/
+
+struct DspRenamer : public BasicCloneVisitor {
+    
+    DspRenamer()
+    {}
+    
+    // change access
+    virtual Address* visit(NamedAddress* named)
+    {
+        if (startWith(named->getName(), "sig")) {
+            return InstBuilder::genNamedAddress("dsp", named->fAccess);
+        } else {
+            return BasicCloneVisitor::visit(named);
+        }
+    }
+    
+    // remove allocation
+    virtual StatementInst* visit(DeclareVarInst* inst)
+    {
+        if (startWith(inst->fAddress->getName(), "sig")) {
+            return InstBuilder::genDropInst();
+        } else {
+            BasicCloneVisitor cloner;
+            return inst->clone(&cloner);
+        }
+    }
+    
+    BlockInst* getCode(BlockInst* src)
+    {
+        return dynamic_cast<BlockInst*>(src->clone(this));
+    }
+    
+};
+
 #endif

@@ -25,6 +25,7 @@
 #include "exception.hh"
 #include "global.hh"
 #include "json_instructions.hh"
+#include "fir_to_fir.hh"
 
 using namespace std;
 
@@ -164,7 +165,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         tab(n+2, *fOut); *fOut << "output = output | 0;";
         tab(n+2, *fOut); gGlobal->gASMJSVisitor->Tab(n+2);
     
-        // Generates one single scalar loop and put is the the block
+        // Generates one single scalar loop and put it in the block
         ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
         fComputeBlockInstructions->pushBackInst(loop);
         
@@ -244,7 +245,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut);
             gGlobal->gASMJSVisitor->Tab(n+2);
-            // Replace use of "sig" in use of "dsp"
+            // Rename 'sig' in 'dsp' and remove 'dsp' allocation
             DspRenamer renamer1;
             BlockInst* block0 = renamer1.getCode(fStaticInitInstructions);
             block0->accept(gGlobal->gASMJSVisitor);
@@ -257,7 +258,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut);
             gGlobal->gASMJSVisitor->Tab(n+2);
-            // Replace use of "sig" in use of "dsp"
+            // Rename 'sig' in 'dsp' and remove 'dsp' allocation
             DspRenamer renamer2;
             BlockInst* block2 = renamer2.getCode(fInitInstructions);
             // Moves all variables declaration at the beginning of the block

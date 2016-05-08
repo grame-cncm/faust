@@ -419,7 +419,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         }
 
         // Function call
-         virtual void visit(FunCallInst* inst)
+        virtual void visit(FunCallInst* inst)
         {
             // Compile args in reverse order
             list<ValueInst*>::reverse_iterator it;
@@ -429,30 +429,30 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             }
             
             if (gMathLibTable.find(inst->fName) == gMathLibTable.end()) {
+                std::cout << "FunCallInst " << inst->fName << std::endl;
+                /*
                 stringstream error;
-                error << "Missing function : " << inst->fName << std::endl;
+                error << "ERROR : missing function : " << inst->fName << std::endl;
                 throw faustexception(error.str());
-            } else if (inst->fName == "min") {
+                 */
                 
+            } else if (inst->fName == "min") {
                 // HACK : get type of first arg...
                 (*inst->fArgs.begin())->accept(&fTypingVisitor);
                 Typed::VarType type1 = fTypingVisitor.fCurType;
-                
                 fCurrentBlock->push(new FIRBasicInstruction<T>(isRealType(type1) ? FIRInstruction::kMinf : FIRInstruction::kMin));
             } else if (inst->fName == "max") {
-                
                 // HACK : get type of first arg...
                 (*inst->fArgs.begin())->accept(&fTypingVisitor);
                 Typed::VarType type1 = fTypingVisitor.fCurType;
-                
                 fCurrentBlock->push(new FIRBasicInstruction<T>(isRealType(type1) ? FIRInstruction::kMaxf : FIRInstruction::kMax));
             } else {
                 fCurrentBlock->push(new FIRBasicInstruction<T>(gMathLibTable[inst->fName]));
             }
         }
     
-        virtual void visit(RetInst* inst) {}
-        virtual void visit(DropInst* inst) {}
+        virtual void visit(RetInst* inst) { if (inst->fResult) {inst->fResult->accept(this);} }
+        virtual void visit(DropInst* inst) { if (inst->fResult) {inst->fResult->accept(this);} }
 
         // Conditionnal
         virtual void visit(Select2Inst* inst)

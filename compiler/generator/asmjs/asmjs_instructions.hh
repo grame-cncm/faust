@@ -623,40 +623,6 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
     
 };
 
-// Used for subcontainers table generation : rename 'sig' in 'dsp' 
-struct DspRenamer : public BasicCloneVisitor {
-    
-    DspRenamer() 
-    {}
-    
-    // change access
-    virtual Address* visit(NamedAddress* named)
-    {  
-         if (startWith(named->getName(), "sig")) {
-             return InstBuilder::genNamedAddress("dsp", named->fAccess);
-         } else {
-             return BasicCloneVisitor::visit(named);
-         }
-    }
-    
-    // remove allocation
-    virtual StatementInst* visit(DeclareVarInst* inst)
-    {
-        if (startWith(inst->fAddress->getName(), "sig")) {
-            return InstBuilder::genDropInst();
-        } else {
-            BasicCloneVisitor cloner;
-            return inst->clone(&cloner);
-        }
-    }
-    
-    BlockInst* getCode(BlockInst* src)
-    {
-        return dynamic_cast<BlockInst*>(src->clone(this));
-    }
-    
-};
-
 // Mathematical functions are declared as variables, they have to be generated before any other function (like 'faustpower')
 struct sortDeclareFunctions
 {

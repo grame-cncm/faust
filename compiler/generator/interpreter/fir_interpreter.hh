@@ -2147,9 +2147,9 @@ class FIRInterpreter  {
         {
             std::cout << "FIRInterpreter :"
                     << " int_heap_size " << int_heap_size
-                    << " real_heap_size "  << real_heap_size
-                    << " sr_offset "  << sr_offset
-                    << " count_offset "  << count_offset << std::endl;
+                    << " real_heap_size " << real_heap_size
+                    << " sr_offset " << sr_offset
+                    << " count_offset " << count_offset << std::endl;
             
             
             // HEAP

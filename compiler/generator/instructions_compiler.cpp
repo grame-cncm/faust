@@ -130,7 +130,7 @@ void InstructionsCompiler::sharingAnnotation(int vctxt, Tree sig)
 			// Annotate the sub signals
 			vector<Tree> subsig;
 			int n = getSubSignals(sig, subsig);
-			if (n>0 && ! isSigGen(sig)) {
+			if (n>0 && !isSigGen(sig)) {
 				for (int i=0; i<n; i++) sharingAnnotation(v, subsig[i]);
 			}
 		}

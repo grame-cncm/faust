@@ -1103,7 +1103,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             gGlobal->gInterpDSPFactory = interpreter_container->produceFactory();
             /*
             std::stringstream dst;
-            gGlobal->gInterpDSPFactoryFloat->write(&dst);
+            gGlobal->gInterpDSPFactory->write(&dst);
             std::string code = flatten(dst.str());
             cout << code;
             */
