@@ -27,6 +27,7 @@
 #include "floats.hh"
 #include "global.hh"
 #include "type_manager.hh"
+#include "text_instructions.hh"
 #include "fir_to_fir.hh"
 
 using namespace std;
@@ -424,6 +425,23 @@ DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name, bool is
     return generateGetIORate(name, fOutputRates, ismethod, isvirtual);
 }
 
+// Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
+void CodeContainer::produceInfoFunctions(int tabs, const string& classname, bool ismethod, bool isvirtual, TextInstVisitor* producer)
+{
+    // Input/Output method
+    producer->Tab(tabs);
+    generateGetInputs(subst("getNumInputs$0", classname), ismethod, isvirtual)->accept(producer);
+    generateGetOutputs(subst("getNumOutputs$0", classname), ismethod, isvirtual)->accept(producer);
+    
+    // Input Rates
+    producer->Tab(tabs);
+    generateGetInputRate(subst("getInputRate$0", classname), ismethod, isvirtual)->accept(producer);
+    
+    // Output Rates
+    producer->Tab(tabs);
+    generateGetOutputRate(subst("getOutputRate$0", classname), ismethod, isvirtual)->accept(producer);
+}
+
 void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst* count, bool omp)
 {
     if (gGlobal->gVecLoopSize > 0 && !loop->fIsRecursive) {
@@ -441,10 +459,14 @@ void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, Dec
         generateDAGLoopInternal(loop, block, count, omp);
         Loop2FunctionBuider builder(subst("fun$0" + getClassName(), T(loop_num)), block, gGlobal->gDSPStruct);
         pushOtherComputeMethod(builder.fFunctionDef);
-        loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("/* Recursive function $0 */", T(loop_num)) : subst("/* Vectorizable function $0 */", T(loop_num))));
+        loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive)
+                                                          ? subst("/* Recursive function $0 */", T(loop_num))
+                                                          : subst("/* Vectorizable function $0 */", T(loop_num))));
         loop_code->pushBackInst(builder.fFunctionCall);
     } else {
-        loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("/* Recursive loop $0 */", T(loop_num)) : subst("/* Vectorizable loop $0 */", T(loop_num))));
+        loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive)
+                                                          ? subst("/* Recursive loop $0 */", T(loop_num))
+                                                          : subst("/* Vectorizable loop $0 */", T(loop_num))));
         // Generates scalar or vectorized loop
         generateDAGLoopInternal(loop, loop_code, count, omp);
     }

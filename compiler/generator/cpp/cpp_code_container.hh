@@ -39,7 +39,6 @@ class CPPCodeContainer : public virtual CodeContainer {
         std::ostream* fOut;
         string fSuperKlassName;
 
-        void produceInfoFunctions(int tabs, const string& classname, bool isVirtual);
         void produceMetadata(int tabs);
         void produceInit(int tabs);
 

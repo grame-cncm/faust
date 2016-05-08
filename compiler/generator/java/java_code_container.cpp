@@ -89,7 +89,7 @@ void JAVACodeContainer::produceInternal()
 
         tab(n+1, *fOut);
         // fKlassName used in method naming for subclasses
-        produceInfoFunctions(n+1, fKlassName, false);
+        produceInfoFunctions(n+1, fKlassName, true, false, &fCodeProducer);
         
         // Inits
         tab(n+1, *fOut); *fOut << "void instanceInit" << fKlassName << "(int samplingFreq) {";
@@ -188,7 +188,7 @@ void JAVACodeContainer::produceClass()
 
         tab(n+1, *fOut);
         // No class name for main class
-        produceInfoFunctions(n+1, "", true);
+        produceInfoFunctions(n+1, "", true, true, &fCodeProducer);
         
         // Inits
         tab(n+1, *fOut); *fOut << "public void classInit(int samplingFreq) {";
@@ -228,23 +228,6 @@ void JAVACodeContainer::produceClass()
         generateComputeFunctions(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "};\n" << endl;
-}
-
-// Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
-void JAVACodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
-{   
-    // Input/Output method
-    fCodeProducer.Tab(tabs);
-    generateGetInputs(subst("getNumInputs$0", classname), true, isvirtual)->accept(&fCodeProducer);
-    generateGetOutputs(subst("getNumOutputs$0", classname), true, isvirtual)->accept(&fCodeProducer);
-
-    // Input Rates
-    fCodeProducer.Tab(tabs);
-    generateGetInputRate(subst("getInputRate$0", classname), true, isvirtual)->accept(&fCodeProducer);
-
-    // Output Rates
-    fCodeProducer.Tab(tabs);
-    generateGetOutputRate(subst("getOutputRate$0", classname), true, isvirtual)->accept(&fCodeProducer);
 }
 
 void JAVAScalarCodeContainer::generateCompute(int n)

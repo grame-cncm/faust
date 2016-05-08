@@ -36,6 +36,8 @@
 #include "garbageable.hh"
 #include "json_instructions.hh"
 
+class TextInstVisitor;
+
 class CodeContainer : public virtual Garbageable {
 
     protected:
@@ -133,7 +135,12 @@ class CodeContainer : public virtual Garbageable {
         CodeContainer* getParentContainer()              { return fParentContainer; }
         CodeContainer* getTopParentContainer()           { return (fParentContainer != 0) ? fParentContainer->getTopParentContainer() : this; }
  
-        string  getFullClassName() { return (fParentContainer != 0) ? fParentContainer->getFullClassName() + "::" + getClassName() : getClassName(); }    ///< Returns the name of the class
+        string getFullClassName()
+        {
+            return (fParentContainer != 0)
+                    ? fParentContainer->getFullClassName() + "::" + getClassName()
+                    : getClassName();
+        }    ///< Returns the name of the class
 
         void setGeneratedSR()
         {
@@ -191,6 +198,8 @@ class CodeContainer : public virtual Garbageable {
         DeclareFunInst* generateGetInputRate(const string& name, bool ismethod, bool isvirtual);
         DeclareFunInst* generateGetOutputRate(const string& name, bool ismethod, bool isvirtual);
 
+        void produceInfoFunctions(int tabs, const string& classname, bool ismethod, bool isvirtual, TextInstVisitor* producer);
+    
         void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);
         
         void generateJSON();

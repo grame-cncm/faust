@@ -60,23 +60,6 @@ CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs
     return container;
 }
 
-// Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
-void CCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
-{
-    // Input/Output method
-    fCodeProducer.Tab(tabs);
-    generateGetInputs(subst("getNumInputs$0", classname), false, isvirtual)->accept(&fCodeProducer);
-    generateGetOutputs(subst("getNumOutputs$0", classname), false, isvirtual)->accept(&fCodeProducer);
-
-    // Input Rates
-    fCodeProducer.Tab(tabs);
-    generateGetInputRate(subst("getInputRate$0", classname), false, isvirtual)->accept(&fCodeProducer);
-
-    // Output Rates
-    fCodeProducer.Tab(tabs);
-    generateGetOutputRate(subst("getOutputRate$0", classname), false, isvirtual)->accept(&fCodeProducer);
-}
-
 void CCodeContainer::produceInternal()
 {
     int n = 0;
@@ -106,7 +89,7 @@ void CCodeContainer::produceInternal()
 
     tab(n, *fOut);
     tab(n, *fOut);
-    produceInfoFunctions(n, fKlassName, false);
+    produceInfoFunctions(n, fKlassName, false, false, &fCodeProducer);
     
     // Init
     tab(n, *fOut); *fOut << "static void instanceInit" << fKlassName << "(" << fKlassName << "* dsp, int samplingFreq) {";
@@ -215,7 +198,7 @@ void CCodeContainer::produceClass()
 
     tab(n, *fOut);
     tab(n, *fOut);
-    produceInfoFunctions(n, fKlassName, false);
+    produceInfoFunctions(n, fKlassName, false, false, &fCodeProducer);
 
     // Inits
     tab(n, *fOut); *fOut << "void classInit" << fKlassName << "(int samplingFreq) {";

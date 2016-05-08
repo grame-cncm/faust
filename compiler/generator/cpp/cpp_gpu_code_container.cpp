@@ -68,7 +68,8 @@ void CPPOpenCLCodeContainer::produceInternal()
 
         // Input method
         tab(n+1, *fOut);
-        produceInfoFunctions(n+1, fKlassName, false);
+        // TO CHECK
+        produceInfoFunctions(n+1, fKlassName, false, false, &fCodeProducer);
 
         // Inits
         tab(n+1, *fOut);
@@ -556,7 +557,8 @@ void CPPOpenCLCodeContainer::produceClass()
         tab(n+1, *fOut);  *fOut << "}";
         tab(n+1, *fOut);
 
-        produceInfoFunctions(n+1, fKlassName, true);
+        // TO CHECK
+        produceInfoFunctions(n+1, fKlassName, false, true, &fCodeProducer);
 
         // Inits
         tab(n+1, *fOut);
@@ -822,7 +824,8 @@ void CPPCUDACodeContainer::produceInternal()
     tab(n, *fOut); *fOut << "  public:";
 
         tab(n+1, *fOut);
-        produceInfoFunctions(n+1, fKlassName, false);
+        // TO CHECK
+        produceInfoFunctions(n+1, fKlassName, false, false, &fCodeProducer);
 
         // Inits
         tab(n+1, *fOut);
@@ -1284,8 +1287,9 @@ void CPPCUDACodeContainer::produceClass()
             generateDestroy(&fCodeProducer);
         tab(n+1, *fOut);  *fOut << "}";
         tab(n+1, *fOut);
-
-        produceInfoFunctions(n+1, fKlassName, true);
+    
+        // TO CHECK
+        produceInfoFunctions(n+1, fKlassName, false, true, &fCodeProducer);
 
         // Inits
         tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";

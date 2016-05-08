@@ -390,9 +390,11 @@ void InterpreterCodeContainer<T>::produceClass()
     */
 }
 
+/*
 template <class T>
 void InterpreterCodeContainer<T>::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
 {}
+*/
 
 template <class T>
 void InterpreterScalarCodeContainer<T>::generateCompute(int n)

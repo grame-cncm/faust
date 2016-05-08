@@ -35,7 +35,7 @@ class InterpreterCodeContainer : public virtual CodeContainer {
 
         static InterpreterInstVisitor<T>* gInterpreterVisitor;
     
-        void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
+        //void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
         FIRMetaBlockInstruction* produceMetadata();
     
         FIRBlockInstruction<T>* testOptimizer(FIRBlockInstruction<T>* block, int& size);

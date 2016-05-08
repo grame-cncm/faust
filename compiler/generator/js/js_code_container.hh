@@ -33,9 +33,7 @@ class JAVAScriptCodeContainer : public virtual CodeContainer {
 
         JAVAScriptInstVisitor fCodeProducer;
         std::ostream* fOut;
-        
-        void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
-
+ 
     public:
 
         JAVAScriptCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)

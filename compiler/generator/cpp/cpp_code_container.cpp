@@ -70,23 +70,6 @@ CodeContainer* CPPCodeContainer::createContainer(const string& name, const strin
     return container;
 }
 
-// Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
-void CPPCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
-{
-    // Input/Output method
-    fCodeProducer.Tab(tabs);
-    generateGetInputs(subst("getNumInputs$0", classname), true, isvirtual)->accept(&fCodeProducer);
-    generateGetOutputs(subst("getNumOutputs$0", classname), true, isvirtual)->accept(&fCodeProducer);
-    
-    // Input Rates
-    fCodeProducer.Tab(tabs);
-    generateGetInputRate(subst("getInputRate$0", classname), true, isvirtual)->accept(&fCodeProducer);
-    
-    // Output Rates
-    fCodeProducer.Tab(tabs);
-    generateGetOutputRate(subst("getOutputRate$0", classname), true, isvirtual)->accept(&fCodeProducer);
-}
-
 void CPPCodeContainer::produceMetadata(int tabs)
 {
     tab(tabs, *fOut); *fOut << "void static metadata(Meta* m) { ";
@@ -149,7 +132,7 @@ void CPPCodeContainer::produceInternal()
         tab(n+1, *fOut);
         tab(n+1, *fOut);
         // fKlassName used in method naming for subclasses
-        produceInfoFunctions(n+1, fKlassName, false);
+        produceInfoFunctions(n+1, fKlassName, true, false, &fCodeProducer);
 
         // Inits
         tab(n+1, *fOut); *fOut << "void instanceInit" << fKlassName << "(int samplingFreq) {";
@@ -261,7 +244,7 @@ void CPPCodeContainer::produceClass()
         
         tab(n+1, *fOut);
         // No class name for main class
-        produceInfoFunctions(n+1, "", true);  // Inits
+        produceInfoFunctions(n+1, "", true, true, &fCodeProducer);  // Inits
 
         tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
             tab(n+2, *fOut);
