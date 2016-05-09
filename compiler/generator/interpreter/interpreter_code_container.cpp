@@ -26,7 +26,6 @@
 #include "interpreter_code_container.hh"
 #include "interpreter_optimizer.hh"
 #include "interpreter_instructions.hh"
-#include "fir_to_fir.hh"
 
 using namespace std;
 
@@ -119,35 +118,47 @@ InterpreterScalarCodeContainer<T>::~InterpreterScalarCodeContainer()
 {}
 
 template <class T>
-FIRBlockInstruction<T>* InterpreterCodeContainer<T>::testOptimizer(FIRBlockInstruction<T>* block, int& size)
+FIRBlockInstruction<T>* InterpreterCodeContainer<T>::Optimize(FIRBlockInstruction<T>* block, int& size)
 {
-    cout << "fComputeDSPBlock size = " << block->size() << endl;
+    cout << "Optimize = " << block->size() << endl;
     
     // 1) optimize indexed 'heap' load/store in normal load/store
+    
     FIRInstructionLoadStoreOptimizer<T> opt1;
     block = FIRInstructionOptimizer<T>::optimize(block, opt1);
+   
+    cout << "block size = " << block->size() << endl;
     
-    cout << "fComputeDSPBlock size = " << block->size() << endl;
-    
-    // 2) then pptimize simple 'heap' load/store in move
+    // 2) then optimize simple 'heap' load/store in move
     FIRInstructionMoveOptimizer<T> opt2;
     block = FIRInstructionOptimizer<T>::optimize(block, opt2);
     
-    cout << "fComputeDSPBlock size = " << block->size() << endl;
+    cout << "block size = " << block->size() << endl;
     
-    // 3) optimize 'cast' in heap cast
-    FIRInstructionCastOptimizer<T> opt3;
+    // 3) then optimize moves in block move
+    FIRInstructionBlockMoveOptimizer<T> opt3;
     block = FIRInstructionOptimizer<T>::optimize(block, opt3);
     
-    cout << "fComputeDSPBlock size = " << block->size() << endl;
+    cout << "block size = " << block->size() << endl;
     
-    // 4) them optimize 'heap' and 'Value' math operations
-    FIRInstructionMathOptimizer<T> opt4;
+    // 4) then optimize 2 moves in pair move
+    FIRInstructionPairMoveOptimizer<T> opt4;
     block = FIRInstructionOptimizer<T>::optimize(block, opt4);
+   
+    cout << "block size = " << block->size() << endl;
     
-    cout << "fComputeDSPBlock size = " << block->size() << endl << endl;
+    // 5) optimize 'cast' in heap cast
+    FIRInstructionCastOptimizer<T> opt5;
+    block = FIRInstructionOptimizer<T>::optimize(block, opt5);
+    
+    cout << "block size = " << block->size() << endl;
+    
+    // 6) them optimize 'heap' and 'value' math operations
+    FIRInstructionMathOptimizer<T> opt6;
+    block = FIRInstructionOptimizer<T>::optimize(block, opt6);
     
     size = block->size();
+    block->write(&std::cout);
     return block;
 }
 
@@ -180,45 +191,15 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     // After field declaration...
     generateSubContainers();
     
-    // Rename 'sig' in 'dsp' and remove 'dsp' allocation then inline subcontainers 'instanceInit' and 'fill'
-    {
-        DspRenamer renamer;
-        BlockInst* res1 = renamer.getCode(fStaticInitInstructions);
-        
-        list<CodeContainer*>::const_iterator it;
-        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false);
-            InlineVoidFunctionCall inliner1(inst_init_fun);
-            res1 = inliner1.getCode(res1);
-            DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false);
-            InlineVoidFunctionCall inliner2(fill_fun);
-            res1 = inliner2.getCode(res1);
-        }
-        
-        res1->accept(gGlobal->gInterpreterVisitor);
-    }
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    InlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gInterpreterVisitor);
     
     // Keep "init_static_block"
     FIRBlockInstruction<T>* init_static_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FIRBlockInstruction<T>());
     
-    // Rename 'sig' in 'dsp' and remove 'dsp' allocation then inline subcontainers 'instanceInit' and 'fill'
-    {
-        DspRenamer renamer;
-        BlockInst* res1 = renamer.getCode(fInitInstructions);
-        
-        list<CodeContainer*>::const_iterator it;
-        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false);
-            InlineVoidFunctionCall inliner1(inst_init_fun);
-            res1 = inliner1.getCode(res1);
-            DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false);
-            InlineVoidFunctionCall inliner2(fill_fun);
-            res1 = inliner2.getCode(res1);
-        }
-        
-        res1->accept(gGlobal->gInterpreterVisitor);
-    }
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    InlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gInterpreterVisitor);
     
     FIRBlockInstruction<T>* init_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FIRBlockInstruction<T>);
@@ -243,17 +224,27 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     compute_control_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     compute_dsp_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     
-    // Bytecode optimization
+    // Bytecode optimization (to check : does not wortk this way...)
+    
+    
+    int size;
+    init_static_block = Optimize(init_static_block, size);
+    init_block = Optimize(init_block, size);
+    compute_control_block = Optimize(compute_control_block, size);
+    compute_dsp_block = Optimize(compute_dsp_block, size);
+    
     
     /*
     cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
     
     FIRInstructionCopyOptimizer<T> opt0;
+    init_static_block = FIRInstructionOptimizer<T>::optimize(init_static_block, opt0);
     init_block = FIRInstructionOptimizer<T>::optimize(init_block, opt0);
     compute_control_block = FIRInstructionOptimizer<T>::optimize(compute_control_block, opt0);
     compute_dsp_block = FIRInstructionOptimizer<T>::optimize(compute_dsp_block, opt0);
     */
     
+    /*
     //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl;
    
     // 1) optimize indexed 'heap' load/store in normal load/store
@@ -309,6 +300,7 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     compute_dsp_block = FIRInstructionOptimizer<T>::optimize(compute_dsp_block, opt6);
     
     //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl << endl;
+    */
     
     return new interpreter_dsp_factory(new interpreter_dsp_factory_aux<T>(fKlassName,
                                                                         INTERP_FILE_VERSION,
@@ -323,7 +315,6 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
                                                                         init_block,
                                                                         compute_control_block,
                                                                         compute_dsp_block));
-    
 }
 
 template <class T>

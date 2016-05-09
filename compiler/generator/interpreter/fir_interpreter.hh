@@ -295,9 +295,6 @@ class FIRInterpreter  {
             int int_stack[fIntStackSize];
             InstructionIT address_stack[64];
             
-            
-            //printf("ExecuteBlock\n");
-            
             /*
              int max_real_stack = 0;
              int max_int_stack = 0;
@@ -307,7 +304,7 @@ class FIRInterpreter  {
              max_real_stack = std::max(max_real_stack, real_stack_index); max_int_stack = std::max(max_int_stack, int_stack_index); \
              assert(real_stack_index >= 0 && int_stack_index >= 0); \
              it++; goto *fDispatchTable[(*it)->fOpcode]; }
-             */
+            */
             
             #define dispatch_first() { goto *fDispatchTable[(*it)->fOpcode]; }
             #define dispatch_next() { it++; goto *fDispatchTable[(*it)->fOpcode]; }
@@ -318,11 +315,6 @@ class FIRInterpreter  {
             #define dispatch_return() { it = pop_addr(); dispatch_first(); }
             #define save_return() { push_addr(it + 1); }
             #define empty_return() (addr_stack_index == 0)
-            
-            /*
-             #define dispatch_first() { printf("int_stack_index = %d real_stack_index = %d\n",int_stack_index, real_stack_index); (*it)->dump(); goto *fDispatchTable[(*it)->fOpcode]; }
-             #define dispatch() { assert(real_stack_index >=0); assert(int_stack_index >=0); printf("real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index); it++; (*it)->write();  goto *fDispatchTable[(*it)->fOpcode]; }
-             */
             
             InstructionIT it = block->fInstructions.begin();
             dispatch_first();
@@ -1080,9 +1072,9 @@ class FIRInterpreter  {
                     dispatch_next();
                 }
                 
-                //-----------------------------------------------------
+                //-------------------------------------------------------
                 // Standard math operations : 'stack' OP 'value' version
-                //-----------------------------------------------------
+                //-------------------------------------------------------
                 
                 do_kAddRealStackValue:
                 {
@@ -1278,9 +1270,9 @@ class FIRInterpreter  {
                     dispatch_next();
                 }
       
-                //-------------------------------------------------------
+                //------------------------------------------------------
                 // Standard math operations : 'value' OP 'heap' version
-                //-------------------------------------------------------
+                //------------------------------------------------------
                 
                 do_kAddRealValue:
                 {
@@ -1688,7 +1680,7 @@ class FIRInterpreter  {
                 
                 //------------------------------------
                 // Extended unary math (heap version)
-                ///------------------------------------
+                ///-----------------------------------
                 
                 do_kAbsHeap:
                 {
@@ -1799,9 +1791,9 @@ class FIRInterpreter  {
                 }
 
                 
-                //---------------------
+                //----------------------
                 // Extended binary math
-                //---------------------
+                //----------------------
                 
                 do_kAtan2f:
                 {
@@ -1906,9 +1898,9 @@ class FIRInterpreter  {
                     dispatch_next();
                 }
                 
-                //-------------------------------------
+                //--------------------------------------
                 // Extended binary math (stack version)
-                //-------------------------------------
+                //--------------------------------------
                 
                 do_kAtan2fStack:
                 {
@@ -1959,9 +1951,9 @@ class FIRInterpreter  {
                     dispatch_next();
                 }
                 
-                //-------------------------------------
+                //--------------------------------------------
                 // Extended binary math (stack/value version)
-                //-------------------------------------
+                //--------------------------------------------
                 
                 do_kAtan2fStackValue:
                 {
@@ -2150,7 +2142,6 @@ class FIRInterpreter  {
                     << " real_heap_size " << real_heap_size
                     << " sr_offset " << sr_offset
                     << " count_offset " << count_offset << std::endl;
-            
             
             // HEAP
             fRealHeapSize = real_heap_size;

@@ -451,6 +451,11 @@ struct FIRInstructionOptimizer {
     {
         assert(cur_block);
         
+        // Block should have at least 2 instructions...
+        if (cur_block->size() < 2) {
+            return cur_block->copy();
+        }
+        
         FIRBlockInstruction<T>* new_block = new FIRBlockInstruction<T>();
         InstructionIT next, cur = cur_block->fInstructions.begin();
         
@@ -470,11 +475,12 @@ struct FIRInstructionOptimizer {
                                                            optimize_aux(inst->fBranch1, optimizer),
                                                            optimize_aux(inst->fBranch2, optimizer)));
                 cur++;
+            } else if (inst->fOpcode == FIRInstruction::kCondBranch) {
+                // Special case for loops : branch to new_block
+                new_block->push(new FIRBasicInstruction<T>(FIRInstruction::kCondBranch, 0, 0, 0, 0, new_block, 0));
+                cur++;
             } else {
-                FIRBasicInstruction<T>* optimized = optimizer.rewrite(cur, next);
-                // Special case for loops
-                if (inst->fOpcode == FIRInstruction::kCondBranch) { optimized->fBranch1 = new_block; }
-                new_block->push(optimized);
+                new_block->push(optimizer.rewrite(cur, next));
                 cur = next;
             }
         } while (cur != cur_block->fInstructions.end());

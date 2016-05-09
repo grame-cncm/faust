@@ -70,7 +70,7 @@ struct FIRBasicInstruction : public FIRInstruction {
     FIRBasicInstruction(Opcode opcode, 
                         int val_int, T val_real) 
                         :fOpcode(opcode), fIntValue(val_int), fRealValue(val_real),
-                        fOffset1(0), fOffset2(0),
+                        fOffset1(-1), fOffset2(-1),
                         fBranch1(0), fBranch2(0)
     {}
     
@@ -83,19 +83,13 @@ struct FIRBasicInstruction : public FIRInstruction {
     
     FIRBasicInstruction(Opcode opcode) 
                         :fOpcode(opcode), fIntValue(0), fRealValue(0),
-                        fOffset1(0), fOffset2(0),
+                        fOffset1(-1), fOffset2(-1),
                         fBranch1(0), fBranch2(0)
     {}
     
     FIRBlockInstruction<T>* getBranch1()
     {
-        //return (fOpcode != kCondBranch) ? fBranch1 : 0;
-        if (fOpcode == kCondBranch) {
-            //std::cout << "Looped block" << std::endl;
-            return 0;
-        } else {
-            return fBranch1;
-        }
+        return (fOpcode == kCondBranch) ? 0 : fBranch1;
     }
     
     virtual ~FIRBasicInstruction()
@@ -111,7 +105,6 @@ struct FIRBasicInstruction : public FIRInstruction {
     }
     
     // TODO : fix some remaining issues : do a "all instructions" trace comparation with FIRInterpreter::ExecuteBlock
-    
     void stackMove(int& int_index, int& real_index)
     {
         //----------------

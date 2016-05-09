@@ -256,7 +256,7 @@ class CodeContainer : public virtual Garbageable {
         {
            if (fDeclarationInstructions->fCode.size() > 0) {
                 fDeclarationInstructions->accept(visitor);
-            }
+           }
         }
 
         void generateInit(InstVisitor* visitor)
