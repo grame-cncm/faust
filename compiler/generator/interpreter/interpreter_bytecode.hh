@@ -486,6 +486,8 @@ struct FIRBlockInstruction : public FIRInstruction {
         }
         return size;
     }
+    
+    bool isRealInst() { return isRealType(fInstructions.back()->fOpcode); }
 };
 
 #endif

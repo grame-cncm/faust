@@ -2165,8 +2165,8 @@ class FIRInterpreter  {
             memset(fIntHeap, 0, int_heap_size * sizeof(int));
             
             // Stack
-            fRealStackSize = 256;
-            fIntStackSize = 256;
+            fRealStackSize = 512;
+            fIntStackSize = 512;
         }
         
         virtual ~FIRInterpreter()

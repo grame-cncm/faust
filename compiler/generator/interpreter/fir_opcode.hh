@@ -193,7 +193,47 @@ struct FIRInstruction {
     virtual int size() { return 1; }
     
     virtual void stackMove(int& int_index, int& real_index) {}
-  
+    
+    static bool isRealType(Opcode opt)
+    {
+        return ((opt == kRealValue)
+                
+                || (opt == kLoadReal)
+                || (opt == kLoadIndexedReal)
+        
+                || (opt == kCastReal)
+        
+                || (opt == kAddReal)
+                || (opt == kSubReal)
+                || (opt == kMultReal)
+                || (opt == kDivReal)
+                || (opt == kRemReal)
+        
+                || (opt == kAbsf)
+                || (opt == kAcosf)
+                || (opt == kAsinf)
+                || (opt == kAtanf)
+                || (opt == kCeilf)
+                || (opt == kCosf)
+                || (opt == kCoshf)
+                || (opt == kExpf)
+                || (opt == kFloorf)
+                || (opt == kLogf)
+                || (opt == kLog10f)
+                || (opt == kRoundf)
+                || (opt == kSinf)
+                || (opt == kSinhf)
+                || (opt == kSqrtf)
+                || (opt == kTanf)
+                || (opt == kTanhf)
+        
+                || (opt == kAtan2f)
+                || (opt == kFmodf)
+                || (opt == kPowf)
+                || (opt == kMaxf)
+                || (opt == kMinf));
+    }
+    
     static bool isMath(Opcode opt) { return opt >= kAddReal && opt <= kXORInt; }
     static bool isExtendedUnaryMath(Opcode opt) { return opt >= kAbs && opt <= kTanhf; }
     static bool isExtendedBinaryMath(Opcode opt) { return opt >= kAtan2f && opt <= kMinf; }

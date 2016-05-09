@@ -46,9 +46,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         bool fCommute;
     
         map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
-          
-        TypingVisitor fTypingVisitor;
-   
+    
         FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
         FIRBlockInstruction<T>* fCurrentBlock;
    
@@ -62,30 +60,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             fCountOffset = 0;
             initMathTable();
             fCommute = true;
-        }
-    
-        inline bool isIntType(Typed::VarType type)
-        {
-            return (type == Typed::kInt);
-        }
-    
-        inline bool isRealType(Typed::VarType type)
-        { 
-            return (type == Typed::kFloat 
-                || type == Typed::kFloatMacro 
-                || type == Typed::kDouble); 
-        }
-        
-        inline bool isRealPtrType(Typed::VarType type) 
-        { 
-            return (type == Typed::kFloat_ptr 
-                || type == Typed::kFloatMacro_ptr 
-                || type == Typed::kDouble_ptr); 
-        }
-        
-        inline bool isInternalRealType(Typed::VarType type) 
-        { 
-            return (type == Typed::kFloat || type == Typed::kDouble); 
         }
     
         void initMathTable()
@@ -247,8 +221,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     
         virtual void visit(LoadVarInst* inst) 
         {
-            fTypingVisitor.visit(inst);
-            
             // Compile address
             inst->fAddress->accept(this);
             
@@ -321,7 +293,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         // Primitives : numbers
         virtual void visit(FloatNumInst* inst) 
         {
-            fTypingVisitor.visit(inst);
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst->fNum));
         }
         
@@ -329,7 +300,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         
         virtual void visit(IntNumInst* inst)  
         {
-            fTypingVisitor.visit(inst);
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst->fNum, 0));
         }
         
@@ -337,13 +307,11 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         
         virtual void visit(BoolNumInst* inst)
         {
-            fTypingVisitor.visit(inst);
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst->fNum, 0));
         }
         
         virtual void visit(DoubleNumInst* inst) 
         {
-            fTypingVisitor.visit(inst);
             // Double considered real...
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst->fNum));
         }
@@ -353,69 +321,55 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         // Numerical computation
         virtual void visit(BinopInst* inst) 
         {
+            bool real_t1, real_t2;
+            
             if (isCommutativeOpcode(inst->fOpcode) && fCommute) {
                 // Tries to order branches to allow better math optimization later on
                 if ((inst->fInst1->size() < inst->fInst2->size())) {
                     inst->fInst2->accept(this);
+                    real_t2 = fCurrentBlock->isRealInst();
                     inst->fInst1->accept(this);
+                    real_t1 = fCurrentBlock->isRealInst();
                 } else {
                     inst->fInst1->accept(this);
+                    real_t1 = fCurrentBlock->isRealInst();
                     inst->fInst2->accept(this);
+                    real_t2 = fCurrentBlock->isRealInst();
                 }
             } else {
                 inst->fInst2->accept(this);
+                real_t2 = fCurrentBlock->isRealInst();
                 inst->fInst1->accept(this);
+                real_t1 = fCurrentBlock->isRealInst();
             }
             
-            inst->fInst1->accept(&fTypingVisitor);
-            Typed::VarType type1 = fTypingVisitor.fCurType;
-            
-            inst->fInst2->accept(&fTypingVisitor);
-            Typed::VarType type2 = fTypingVisitor.fCurType;
-            
-            if (isRealType(type1) || isRealType(type2)) {
+            if (real_t1 || real_t2) {
                 fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpFloatInst));
-            } else if (isIntType(type1) || isIntType(type2)) {
-                fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpIntInst));
-            } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
+            } else if (!real_t1 || !real_t2) {
                 fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpIntInst));
             } else {
                 assert(false);
             }
-            
-            fTypingVisitor.visit(inst);
         }
         
         virtual void visit(CastNumInst* inst) 
         {
             inst->fInst->accept(this);
-       
-            // Typing the argument
-            inst->fInst->accept(&fTypingVisitor);
-            assert(fTypingVisitor.fCurType != Typed::kNoType);
-            
-            //std::cout << "CastNumInst " << fTypingVisitor.fCurType << std::endl;
+            bool real_t1 = fCurrentBlock->isRealInst();
             
             if (inst->fType->getType() == Typed::kInt) {
-                if (isIntType(fTypingVisitor.fCurType)) {
+                if (!real_t1) {
                     std::cout << "CastNumInst : cast to int, but arg already int !" << std::endl;
                 } else {
                     fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastInt));
                 }
-            } else if (isInternalRealType(inst->fType->getType()) && (fTypingVisitor.fCurType == Typed::kFloatMacro)) {
-                // We assume that kFloatMacro and internal float are the same for now, so no cast...
-                //std::cout << "CastNumInst : cast from kFloatMacro to Real !" << std::endl;
-            } else if (isInternalRealType(fTypingVisitor.fCurType) && (inst->fType->getType() == Typed::kFloatMacro)) {
-                // We assume that kFloatMacro and internal float are the same for now, so no cast...
-                //std::cout << "CastNumInst : cast from Real to kFloatMacro !" << std::endl;
             } else {
-                if (isRealType(fTypingVisitor.fCurType)) {
+                if (real_t1) {
                     std::cout << "CastNumInst : cast to real, but arg already real !" << std::endl;
                 } else {
                     fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastReal));
                 }
             }
-            fTypingVisitor.visit(inst);
         }
 
         // Function call
@@ -423,29 +377,24 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         {
             // Compile args in reverse order
             list<ValueInst*>::reverse_iterator it;
+            vector<bool> arg_types;
             for (it = inst->fArgs.rbegin(); it != inst->fArgs.rend(); it++) {
                 (*it)->accept(this);
+                arg_types.push_back(fCurrentBlock->isRealInst());
                  //std::cout << "FunCallInst ARG" << std::endl;
             }
             
             if (gMathLibTable.find(inst->fName) == gMathLibTable.end()) {
                 std::cout << "FunCallInst " << inst->fName << std::endl;
-                /*
                 stringstream error;
                 error << "ERROR : missing function : " << inst->fName << std::endl;
                 throw faustexception(error.str());
-                 */
-                
             } else if (inst->fName == "min") {
                 // HACK : get type of first arg...
-                (*inst->fArgs.begin())->accept(&fTypingVisitor);
-                Typed::VarType type1 = fTypingVisitor.fCurType;
-                fCurrentBlock->push(new FIRBasicInstruction<T>(isRealType(type1) ? FIRInstruction::kMinf : FIRInstruction::kMin));
+                fCurrentBlock->push(new FIRBasicInstruction<T>(arg_types[0] ? FIRInstruction::kMinf : FIRInstruction::kMin));
             } else if (inst->fName == "max") {
                 // HACK : get type of first arg...
-                (*inst->fArgs.begin())->accept(&fTypingVisitor);
-                Typed::VarType type1 = fTypingVisitor.fCurType;
-                fCurrentBlock->push(new FIRBasicInstruction<T>(isRealType(type1) ? FIRInstruction::kMaxf : FIRInstruction::kMax));
+                fCurrentBlock->push(new FIRBasicInstruction<T>(arg_types[0] ? FIRInstruction::kMaxf : FIRInstruction::kMax));
             } else {
                 fCurrentBlock->push(new FIRBasicInstruction<T>(gMathLibTable[inst->fName]));
             }
@@ -457,8 +406,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         // Conditionnal
         virtual void visit(Select2Inst* inst)
         {
-            fTypingVisitor.visit(inst);
-            
             // Compile condition
             inst->fCond->accept(this);
             
