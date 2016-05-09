@@ -38,7 +38,7 @@ class InterpreterCodeContainer : public virtual CodeContainer {
     
         FIRMetaBlockInstruction* produceMetadata();
     
-        FIRBlockInstruction<T>* Optimize(FIRBlockInstruction<T>* block, int& size);
+        FIRBlockInstruction<T>* OptimizeBlock(FIRBlockInstruction<T>* block, int& size);
     
         BlockInst* InlineSubcontainersFunCalls(BlockInst* block)
         {
