@@ -122,8 +122,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gLLVMResult = 0;
     
     gInterpDSPFactory = 0;
-    //gInterpDSPDouble = 0;
-    //gInterpDSPQuad = 0;
+    gInterpreterVisitor = 0;
     
     gInputString = 0;
     

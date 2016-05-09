@@ -143,6 +143,7 @@ struct global {
     
     // Interpreter backend
     interpreter_dsp_factory* gInterpDSPFactory;
+    DispatchVisitor*         gInterpreterVisitor;
     
     const char*     gInputString;
     

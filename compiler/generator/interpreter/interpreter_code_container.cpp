@@ -40,7 +40,24 @@ Interpretor :
 */
 
 template <class T> map <string, FIRInstruction::Opcode> InterpreterInstVisitor<T>::gMathLibTable;
-template <class T> InterpreterInstVisitor<T>* InterpreterCodeContainer<T>::gInterpreterVisitor;
+
+template <class T>
+static FIRBlockInstruction<T>* getCurrentBlock()
+{
+    return dynamic_cast<InterpreterInstVisitor<T>*>(gGlobal->gInterpreterVisitor)->fCurrentBlock;
+}
+
+template <class T>
+static InterpreterInstVisitor<T>* getInterpreterVisitor()
+{
+    return dynamic_cast<InterpreterInstVisitor<T>*>(gGlobal->gInterpreterVisitor);
+}
+
+template <class T>
+static void setCurrentBlock(FIRBlockInstruction<T>* block)
+{
+    dynamic_cast<InterpreterInstVisitor<T>*>(gGlobal->gInterpreterVisitor)->fCurrentBlock = block;
+}
 
 template <class T>
 InterpreterCodeContainer<T>::InterpreterCodeContainer(const string& name, int numInputs, int numOutputs)
@@ -49,8 +66,9 @@ InterpreterCodeContainer<T>::InterpreterCodeContainer(const string& name, int nu
     fKlassName = name;
     
     // Allocate one static visitor
-    if (!gInterpreterVisitor) {
-        gInterpreterVisitor = new InterpreterInstVisitor<T>();
+    if (!gGlobal->gInterpreterVisitor) {
+        gGlobal->gInterpreterVisitor = new InterpreterInstVisitor<T>();
+        cout << "InterpreterCodeContainer<T>::InterpreterCodeContainer INIT" << endl;
     }
     
     FIRInstructionOptimizer<T>::initTables();
@@ -136,10 +154,10 @@ template <class T>
 void InterpreterCodeContainer<T>::produceInternal()
 {
     //cout << "generateGlobalDeclarations" << endl;
-    generateGlobalDeclarations(gInterpreterVisitor);
+    generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
     
     //cout << "generateDeclarations" << endl;
-    generateDeclarations(gInterpreterVisitor);
+    generateDeclarations(gGlobal->gInterpreterVisitor);
 }
 
 template <class T>
@@ -157,10 +175,10 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     mergeSubContainers();
     
     //cout << "generateGlobalDeclarations" << endl;
-    generateGlobalDeclarations(gInterpreterVisitor);
+    generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
 
     //cout << "generateDeclarations" << endl;
-    generateDeclarations(gInterpreterVisitor);
+    generateDeclarations(gGlobal->gInterpreterVisitor);
     
     // After field declaration...
     generateSubContainers();
@@ -180,13 +198,13 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
             res1 = inliner2.getCode(res1);
         }
         
-        res1->accept(gInterpreterVisitor);
+        res1->accept(gGlobal->gInterpreterVisitor);
     }
     // End inline
     
     // Keep "init_static_block"
-    FIRBlockInstruction<T>* init_static_block = gInterpreterVisitor->fCurrentBlock;
-    gInterpreterVisitor->fCurrentBlock = new FIRBlockInstruction<T>();
+    FIRBlockInstruction<T>* init_static_block = getCurrentBlock<T>();
+    setCurrentBlock<T>(new FIRBlockInstruction<T>());
     
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation and inline
     {
@@ -203,29 +221,29 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
             res1 = inliner2.getCode(res1);
         }
         
-        res1->accept(gInterpreterVisitor);
+        res1->accept(gGlobal->gInterpreterVisitor);
     }
     // End inline
     
-    FIRBlockInstruction<T>* init_block = gInterpreterVisitor->fCurrentBlock;
-    gInterpreterVisitor->fCurrentBlock = new FIRBlockInstruction<T>();
+    FIRBlockInstruction<T>* init_block = getCurrentBlock<T>();
+    setCurrentBlock<T>(new FIRBlockInstruction<T>);
     
     //cout << "generateUserInterface" << endl;
-    generateUserInterface(gInterpreterVisitor);
+    generateUserInterface(gGlobal->gInterpreterVisitor);
     
     // Generates local variables declaration and setup
     //cout << "generateComputeBlock" << endl;
-    generateComputeBlock(gInterpreterVisitor);
+    generateComputeBlock(gGlobal->gInterpreterVisitor);
     
-    FIRBlockInstruction<T>* compute_control_block = gInterpreterVisitor->fCurrentBlock;
-    gInterpreterVisitor->fCurrentBlock = new FIRBlockInstruction<T>();
+    FIRBlockInstruction<T>* compute_control_block = getCurrentBlock<T>();
+    setCurrentBlock<T>(new FIRBlockInstruction<T>);
 
     // Generates one single scalar loop
     //cout << "generateScalarLoop" << endl;
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     
-    loop->accept(gInterpreterVisitor);
-    FIRBlockInstruction<T>* compute_dsp_block = gInterpreterVisitor->fCurrentBlock;
+    loop->accept(gGlobal->gInterpreterVisitor);
+    FIRBlockInstruction<T>* compute_dsp_block = getCurrentBlock<T>();
     
     // Add kReturn in generated blocks
     init_static_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
@@ -319,12 +337,12 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     interpreter_dsp_factory* factory = new interpreter_dsp_factory(new interpreter_dsp_factory_aux<T>(fKlassName,
                                                                                                        INTERP_FILE_VERSION,
                                                                                                        fNumInputs, fNumOutputs,
-                                                                                                       gInterpreterVisitor->fIntHeapOffset,
-                                                                                                       gInterpreterVisitor->fRealHeapOffset,
-                                                                                                       gInterpreterVisitor->fSROffset,
-                                                                                                       gInterpreterVisitor->fCountOffset,
+                                                                                                       gGlobal->gInterpreterVisitor->fIntHeapOffset,
+                                                                                                       gGlobal->gInterpreterVisitor->fRealHeapOffset,
+                                                                                                       gGlobal->gInterpreterVisitor->fSROffset,
+                                                                                                       gGlobal->gInterpreterVisitor->fCountOffset,
                                                                                                        produceMetadata(),
-                                                                                                       gInterpreterVisitor->fUserInterfaceBlock,
+                                                                                                       gGlobal->gInterpreterVisitor->fUserInterfaceBlock,
                                                                                                        init_static_block,
                                                                                                        init_block,
                                                                                                        compute_control_block,
@@ -342,12 +360,12 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     return new interpreter_dsp_factory(new interpreter_dsp_factory_aux<T>(fKlassName,
                                                                         INTERP_FILE_VERSION,
                                                                         fNumInputs, fNumOutputs,
-                                                                        gInterpreterVisitor->fIntHeapOffset,
-                                                                        gInterpreterVisitor->fRealHeapOffset,
-                                                                        gInterpreterVisitor->fSROffset,
-                                                                        gInterpreterVisitor->fCountOffset,
+                                                                        getInterpreterVisitor<T>()->fIntHeapOffset,
+                                                                        getInterpreterVisitor<T>()->fRealHeapOffset,
+                                                                        getInterpreterVisitor<T>()->fSROffset,
+                                                                        getInterpreterVisitor<T>()->fCountOffset,
                                                                         produceMetadata(),
-                                                                        gInterpreterVisitor->fUserInterfaceBlock,
+                                                                        getInterpreterVisitor<T>()->fUserInterfaceBlock,
                                                                         init_static_block,
                                                                         init_block,
                                                                         compute_control_block,

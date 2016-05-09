@@ -1102,18 +1102,18 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             InterpreterCodeContainer<float>* interpreter_container = dynamic_cast<InterpreterCodeContainer<float>*>(container);
             gGlobal->gInterpDSPFactory = interpreter_container->produceFactory();
             
-            /*
+            
             std::stringstream dst;
             gGlobal->gInterpDSPFactory->write(&dst);
             std::string code = flatten(dst.str());
             cout << code;
-            */
+            
             
         } else if (gGlobal->gFloatSize == 2) {
             InterpreterCodeContainer<double>* interpreter_container = dynamic_cast<InterpreterCodeContainer<double>*>(container);
             gGlobal->gInterpDSPFactory = interpreter_container->produceFactory();
         }
-        gGlobal->gInterpDSPFactory->write(&cout);
+        //gGlobal->gInterpDSPFactory->write(&cout);
      
     } else {
         
