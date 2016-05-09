@@ -101,7 +101,6 @@ InterpreterScalarCodeContainer<T>::~InterpreterScalarCodeContainer()
 template <class T>
 FIRBlockInstruction<T>* InterpreterCodeContainer<T>::testOptimizer(FIRBlockInstruction<T>* block, int& size)
 {
-    
     cout << "fComputeDSPBlock size = " << block->size() << endl;
     
     // 1) optimize indexed 'heap' load/store in normal load/store
@@ -135,14 +134,15 @@ FIRBlockInstruction<T>* InterpreterCodeContainer<T>::testOptimizer(FIRBlockInstr
 template <class T>
 void InterpreterCodeContainer<T>::produceInternal()
 {
-    cout << "InterpreterCodeContainer<T>::produceInternal" << endl;
+    //cout << "InterpreterCodeContainer<T>::produceInternal" << endl;
     
-    cout << "generateGlobalDeclarations" << endl;
+    //cout << "generateGlobalDeclarations" << endl;
     generateGlobalDeclarations(gInterpreterVisitor);
     
-    cout << "generateDeclarations" << endl;
+    //cout << "generateDeclarations" << endl;
     generateDeclarations(gInterpreterVisitor);
     
+    /*
     cout << "generateStaticInit" << endl;
     generateStaticInit(gInterpreterVisitor);
     
@@ -156,7 +156,7 @@ void InterpreterCodeContainer<T>::produceInternal()
     ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
     loop->accept(gInterpreterVisitor);
     //fComputeBlockInstructions->pushBackInst(loop);
-    
+    */
 }
 
 template <class T>
@@ -191,11 +191,24 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     //fStaticInitInstructions->accept(gInterpreterVisitor);
     //fPostStaticInitInstructions->accept(gInterpreterVisitor);
     
-    // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-    DspRenamer renamer1;
-    BlockInst* block1 = renamer1.getCode(fStaticInitInstructions);
-    block1->accept(gInterpreterVisitor);
-    
+    // Rename 'sig' in 'dsp' and remove 'dsp' allocation and inline
+    {
+        DspRenamer renamer;
+        BlockInst* res1 = renamer.getCode(fStaticInitInstructions);
+        
+        list<CodeContainer*>::const_iterator it;
+        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false);
+            InlineVoidFunctionCall inliner1(inst_init_fun);
+            res1 = inliner1.getCode(res1);
+            DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false);
+            InlineVoidFunctionCall inliner2(fill_fun);
+            res1 = inliner2.getCode(res1);
+        }
+        
+        res1->accept(gInterpreterVisitor);
+    }
+    // End inline
     
     // Keep "init_static_block"
     FIRBlockInstruction<T>* init_static_block = gInterpreterVisitor->fCurrentBlock;
@@ -207,10 +220,30 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     */
     
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
+    /*
     DspRenamer renamer2;
     BlockInst* block2 = renamer2.getCode(fInitInstructions);
     block2->accept(gInterpreterVisitor);
+    */
     
+    // Rename 'sig' in 'dsp' and remove 'dsp' allocation and inline
+    {
+        DspRenamer renamer;
+        BlockInst* res1 = renamer.getCode(fInitInstructions);
+        
+        list<CodeContainer*>::const_iterator it;
+        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false);
+            InlineVoidFunctionCall inliner1(inst_init_fun);
+            res1 = inliner1.getCode(res1);
+            DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false);
+            InlineVoidFunctionCall inliner2(fill_fun);
+            res1 = inliner2.getCode(res1);
+        }
+        
+        res1->accept(gInterpreterVisitor);
+    }
+    // End inline
     
     FIRBlockInstruction<T>* init_block = gInterpreterVisitor->fCurrentBlock;
     gInterpreterVisitor->fCurrentBlock = new FIRBlockInstruction<T>();

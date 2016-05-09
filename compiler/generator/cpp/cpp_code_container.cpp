@@ -269,30 +269,29 @@ void CPPCodeContainer::produceClass()
             generateStaticInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
     
+        // TEST
         /*
         // Start inline
-        BlockInst* res1 = fStaticInitInstructions;
-        BlockInst* res2 = fPostStaticInitInstructions;
-    
-        list<CodeContainer*>::const_iterator it;
-        for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false);
-            InlineVoidFunctionCall inliner1(inst_init_fun);
-            res1 = inliner1.getCode(res1);
-            res2 = inliner1.getCode(res2);
-            DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false);
-            InlineVoidFunctionCall inliner2(fill_fun);
-            res1 = inliner2.getCode(res1);
-            res2 = inliner2.getCode(res2);
+        {
+            DspRenamer renamer;
+            BlockInst* res1 = renamer.getCode(fStaticInitInstructions);
+         
+            list<CodeContainer*>::const_iterator it;
+            for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+                DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false);
+                InlineVoidFunctionCall inliner1(inst_init_fun);
+                res1 = inliner1.getCode(res1);
+                DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false);
+                InlineVoidFunctionCall inliner2(fill_fun);
+                res1 = inliner2.getCode(res1);
+            }
+        
+            tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
+                tab(n+2, *fOut);
+                fCodeProducer.Tab(n+2);
+                res1->accept(&fCodeProducer);
+            tab(n+1, *fOut); *fOut << "}";
         }
-    
-        tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
-            tab(n+2, *fOut);
-            fCodeProducer.Tab(n+2);
-            res1->accept(&fCodeProducer);
-            res2->accept(&fCodeProducer);
-        tab(n+1, *fOut); *fOut << "}";
-    
         // End inline
         */
     
@@ -302,8 +301,39 @@ void CPPCodeContainer::produceClass()
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
-    
         tab(n+1, *fOut);
+    
+        // TEST
+        /*
+        // Start inline
+        {
+            DspRenamer renamer;
+            BlockInst* res1 = renamer.getCode(fInitInstructions);
+            BlockInst* res2 = renamer.getCode(fPostInitInstructions);
+            
+            list<CodeContainer*>::const_iterator it;
+            for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+                DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false);
+                InlineVoidFunctionCall inliner1(inst_init_fun);
+                res1 = inliner1.getCode(res1);
+                res2 = inliner1.getCode(res2);
+                DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false);
+                InlineVoidFunctionCall inliner2(fill_fun);
+                res1 = inliner2.getCode(res1);
+                res2 = inliner2.getCode(res2);
+            }
+            
+            tab(n+1, *fOut); *fOut << "virtual void instanceInit(int samplingFreq) {";
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            res1->accept(&fCodeProducer);
+            res2->accept(&fCodeProducer);
+            tab(n+1, *fOut); *fOut << "}";
+        }
+        // End inline
+        */
+    
+        // Init
         produceInit(n+1);
 
         // User interface
