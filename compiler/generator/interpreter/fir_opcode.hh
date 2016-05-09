@@ -200,6 +200,7 @@ struct FIRInstruction {
                 
                 || (opt == kLoadReal)
                 || (opt == kLoadIndexedReal)
+                || (opt == kLoadInput)
         
                 || (opt == kCastReal)
         
