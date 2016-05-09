@@ -31,12 +31,14 @@
 using namespace std;
 
 /*
-Interpretor : 
+Interpreter :
  
  - a single global visitor for main and sub-containers
+ - 'fSamplingFreq' and 'count' variable manually added in the IntHeap to be setup in 'instanceInit' and 'compute'
  - multiple unneeded cast are eliminated in CastNumInst
  - 'faustpower' recoded as pow(x,y) in powprim.hh
  - sub-containers code is 'inlined' : fields declarations (using the  global visitor) and code 'classInit', and 'instanceInit' of the main container
+
 */
 
 template <class T> map <string, FIRInstruction::Opcode> InterpreterInstVisitor<T>::gMathLibTable;
@@ -68,7 +70,6 @@ InterpreterCodeContainer<T>::InterpreterCodeContainer(const string& name, int nu
     // Allocate one static visitor
     if (!gGlobal->gInterpreterVisitor) {
         gGlobal->gInterpreterVisitor = new InterpreterInstVisitor<T>();
-        cout << "InterpreterCodeContainer<T>::InterpreterCodeContainer INIT" << endl;
     }
     
     FIRInstructionOptimizer<T>::initTables();
@@ -153,10 +154,8 @@ FIRBlockInstruction<T>* InterpreterCodeContainer<T>::testOptimizer(FIRBlockInstr
 template <class T>
 void InterpreterCodeContainer<T>::produceInternal()
 {
-    //cout << "generateGlobalDeclarations" << endl;
+    /// Fields generation
     generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
-    
-    //cout << "generateDeclarations" << endl;
     generateDeclarations(gGlobal->gInterpreterVisitor);
 }
 
@@ -168,22 +167,20 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
         fDeclarationInstructions->pushBackInst(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
     }
     
-    // "count" variable
+    // "count" variable added to be set up later by 'compute'
     fDeclarationInstructions->pushBackInst(InstBuilder::genDecStructVar("count", InstBuilder::genBasicTyped(Typed::kInt)));
     
     // Sub containers
     mergeSubContainers();
     
-    //cout << "generateGlobalDeclarations" << endl;
     generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
 
-    //cout << "generateDeclarations" << endl;
     generateDeclarations(gGlobal->gInterpreterVisitor);
     
     // After field declaration...
     generateSubContainers();
     
-    // Rename 'sig' in 'dsp' and remove 'dsp' allocation and inline
+    // Rename 'sig' in 'dsp' and remove 'dsp' allocation then inline subcontainers 'instanceInit' and 'fill'
     {
         DspRenamer renamer;
         BlockInst* res1 = renamer.getCode(fStaticInitInstructions);
@@ -200,13 +197,12 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
         
         res1->accept(gGlobal->gInterpreterVisitor);
     }
-    // End inline
     
     // Keep "init_static_block"
     FIRBlockInstruction<T>* init_static_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FIRBlockInstruction<T>());
     
-    // Rename 'sig' in 'dsp' and remove 'dsp' allocation and inline
+    // Rename 'sig' in 'dsp' and remove 'dsp' allocation then inline subcontainers 'instanceInit' and 'fill'
     {
         DspRenamer renamer;
         BlockInst* res1 = renamer.getCode(fInitInstructions);
@@ -223,23 +219,19 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
         
         res1->accept(gGlobal->gInterpreterVisitor);
     }
-    // End inline
     
     FIRBlockInstruction<T>* init_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FIRBlockInstruction<T>);
     
-    //cout << "generateUserInterface" << endl;
     generateUserInterface(gGlobal->gInterpreterVisitor);
     
     // Generates local variables declaration and setup
-    //cout << "generateComputeBlock" << endl;
     generateComputeBlock(gGlobal->gInterpreterVisitor);
     
     FIRBlockInstruction<T>* compute_control_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FIRBlockInstruction<T>);
 
     // Generates one single scalar loop
-    //cout << "generateScalarLoop" << endl;
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     
     loop->accept(gGlobal->gInterpreterVisitor);
@@ -317,45 +309,6 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     compute_dsp_block = FIRInstructionOptimizer<T>::optimize(compute_dsp_block, opt6);
     
     //cout << "fComputeDSPBlock size = " << compute_dsp_block->size() << endl << endl;
-    
-    /*
-    init_block = FIRInstructionOptimizer<T>::optimizeBlock(init_block);
-    compute_control_block = FIRInstructionOptimizer<T>::optimizeBlock(compute_control_block);
-    compute_dsp_block = FIRInstructionOptimizer<T>::optimizeBlock(compute_dsp_block);
-    */
-    
-    // TODO
-    /*
-    int int_index = 0;
-    int real_index = 0;
-    compute_dsp_block->stackMove(int_index, real_index);
-    printf("fComputeDSPBlock int stack = %d real stack = %d\n", int_index, real_index);
-    */
-   
-    // Test reader/writer
-    /*
-    interpreter_dsp_factory* factory = new interpreter_dsp_factory(new interpreter_dsp_factory_aux<T>(fKlassName,
-                                                                                                       INTERP_FILE_VERSION,
-                                                                                                       fNumInputs, fNumOutputs,
-                                                                                                       gGlobal->gInterpreterVisitor->fIntHeapOffset,
-                                                                                                       gGlobal->gInterpreterVisitor->fRealHeapOffset,
-                                                                                                       gGlobal->gInterpreterVisitor->fSROffset,
-                                                                                                       gGlobal->gInterpreterVisitor->fCountOffset,
-                                                                                                       produceMetadata(),
-                                                                                                       gGlobal->gInterpreterVisitor->fUserInterfaceBlock,
-                                                                                                       init_static_block,
-                                                                                                       init_block,
-                                                                                                       compute_control_block,
-                                                                                                       compute_dsp_block));
-    
-    cout << "writeInterpreterDSPFactoryToMachine" << endl;
-    string machine_code = writeInterpreterDSPFactoryToMachine(factory);
-    
-    cout << "readInterpreterDSPFactoryFromMachine" << endl;
-    interpreter_dsp_factory* factory1 = readInterpreterDSPFactoryFromMachine(machine_code);
-    
-    return factory1;
-    */
     
     return new interpreter_dsp_factory(new interpreter_dsp_factory_aux<T>(fKlassName,
                                                                         INTERP_FILE_VERSION,

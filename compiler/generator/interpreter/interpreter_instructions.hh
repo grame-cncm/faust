@@ -42,8 +42,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         int fIntHeapOffset;     // Offset in Integer HEAP
         int fSROffset;          // Kept offset in Integer HEAP for "fSamplingFreq"
         int fCountOffset;       // Kept offset in Integer HEAP for "count"
-
-        bool fCommute;
+        bool fCommute;          // Whether to try commutative operation reverse order generation
     
         map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
     
@@ -58,8 +57,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             fIntHeapOffset = 0;
             fSROffset = 0;
             fCountOffset = 0;
-            initMathTable();
             fCommute = true;
+            initMathTable();
         }
     
         void initMathTable()
@@ -218,8 +217,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(DeclareFunInst* inst) {}
     
         // Memory
-    
-        virtual void visit(LoadVarInst* inst) 
+        virtual void visit(LoadVarInst* inst)
         {
             // Compile address
             inst->fAddress->accept(this);
@@ -359,13 +357,13 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             
             if (inst->fType->getType() == Typed::kInt) {
                 if (!real_t1) {
-                    std::cout << "CastNumInst : cast to int, but arg already int !" << std::endl;
+                    //std::cout << "CastNumInst : cast to int, but arg already int !" << std::endl;
                 } else {
                     fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastInt));
                 }
             } else {
                 if (real_t1) {
-                    std::cout << "CastNumInst : cast to real, but arg already real !" << std::endl;
+                    //std::cout << "CastNumInst : cast to real, but arg already real !" << std::endl;
                 } else {
                     fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastReal));
                 }
@@ -381,7 +379,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             for (it = inst->fArgs.rbegin(); it != inst->fArgs.rend(); it++) {
                 (*it)->accept(this);
                 arg_types.push_back(fCurrentBlock->isRealInst());
-                 //std::cout << "FunCallInst ARG" << std::endl;
             }
             
             if (gMathLibTable.find(inst->fName) == gMathLibTable.end()) {
@@ -401,9 +398,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         }
     
         virtual void visit(RetInst* inst) { if (inst->fResult) {inst->fResult->accept(this);} }
+    
         virtual void visit(DropInst* inst) { if (inst->fResult) {inst->fResult->accept(this);} }
 
-        // Conditionnal
+        // Conditionnal : select/if
         virtual void visit(Select2Inst* inst)
         {
             // Compile condition
