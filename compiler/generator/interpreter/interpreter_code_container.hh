@@ -35,7 +35,6 @@ class InterpreterCodeContainer : public virtual CodeContainer {
 
         static InterpreterInstVisitor<T>* gInterpreterVisitor;
     
-        //void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
         FIRMetaBlockInstruction* produceMetadata();
     
         FIRBlockInstruction<T>* testOptimizer(FIRBlockInstruction<T>* block, int& size);
@@ -47,10 +46,7 @@ class InterpreterCodeContainer : public virtual CodeContainer {
         virtual ~InterpreterCodeContainer()
         {}
 
-        virtual void produceClass();
-        virtual void generateCompute(int tab) = 0;
         void produceInternal();
-        
         interpreter_dsp_factory* produceFactory();
     
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);

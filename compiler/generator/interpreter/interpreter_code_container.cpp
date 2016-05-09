@@ -33,9 +33,10 @@ using namespace std;
 /*
 Interpretor : 
  
+ - a single global visitor for main and sub-containers
  - multiple unneeded cast are eliminated in CastNumInst
  - 'faustpower' recoded as pow(x,y) in powprim.hh
-
+ - sub-containers code is 'inlined' : fields declarations (using the  global visitor) and code 'classInit', and 'instanceInit' of the main container
 */
 
 template <class T> map <string, FIRInstruction::Opcode> InterpreterInstVisitor<T>::gMathLibTable;
@@ -134,29 +135,11 @@ FIRBlockInstruction<T>* InterpreterCodeContainer<T>::testOptimizer(FIRBlockInstr
 template <class T>
 void InterpreterCodeContainer<T>::produceInternal()
 {
-    //cout << "InterpreterCodeContainer<T>::produceInternal" << endl;
-    
     //cout << "generateGlobalDeclarations" << endl;
     generateGlobalDeclarations(gInterpreterVisitor);
     
     //cout << "generateDeclarations" << endl;
     generateDeclarations(gInterpreterVisitor);
-    
-    /*
-    cout << "generateStaticInit" << endl;
-    generateStaticInit(gInterpreterVisitor);
-    
-    cout << "generateInit" << endl;
-    generateInit(gInterpreterVisitor);
-    
-    cout << "generateFill" << endl;
-    string counter = "count";
-    
-    // Generates one single scalar loop and put is the the block
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
-    loop->accept(gInterpreterVisitor);
-    //fComputeBlockInstructions->pushBackInst(loop);
-    */
 }
 
 template <class T>
@@ -182,15 +165,6 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     // After field declaration...
     generateSubContainers();
     
-    //generateAllocate(gInterpreterVisitor);
-    //generateDestroy(gInterpreterVisitor);
-    
-    //cout << "generateStaticInit" << endl;
-    //generateStaticInit(gInterpreterVisitor);
-    
-    //fStaticInitInstructions->accept(gInterpreterVisitor);
-    //fPostStaticInitInstructions->accept(gInterpreterVisitor);
-    
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation and inline
     {
         DspRenamer renamer;
@@ -213,18 +187,6 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     // Keep "init_static_block"
     FIRBlockInstruction<T>* init_static_block = gInterpreterVisitor->fCurrentBlock;
     gInterpreterVisitor->fCurrentBlock = new FIRBlockInstruction<T>();
-    
-    /*
-    //cout << "generateInit" << endl;
-    generateInit(gInterpreterVisitor);
-    */
-    
-    // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-    /*
-    DspRenamer renamer2;
-    BlockInst* block2 = renamer2.getCode(fInitInstructions);
-    block2->accept(gInterpreterVisitor);
-    */
     
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation and inline
     {
@@ -264,11 +226,8 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     
     loop->accept(gInterpreterVisitor);
     FIRBlockInstruction<T>* compute_dsp_block = gInterpreterVisitor->fCurrentBlock;
-   
-    //generateCompute(0);
-    //generateComputeFunctions(gInterpreterVisitor);
     
-    // Add kReturn in blocks
+    // Add kReturn in generated blocks
     init_static_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     init_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     compute_control_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
@@ -394,51 +353,6 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
                                                                         compute_control_block,
                                                                         compute_dsp_block));
     
-}
-
-template <class T>
-void InterpreterCodeContainer<T>::produceClass()
-{
-    /*
-    printf("InterpreterCodeContainer<T>::produceClass\n");
-    
-    // Add "fSamplingFreq" variable at offset 0 in HEAP
-    pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
-    
-    generateGlobalDeclarations(gInterpreterVisitor);
-
-    generateDeclarations(gInterpreterVisitor);
-    
-    //generateAllocate(gInterpreterVisitor);
-    //generateDestroy(gInterpreterVisitor);
-    
-    generateStaticInit(gInterpreterVisitor);
-    
-    //generateInit(gInterpreterVisitor);
-    
-    generateUserInterface(gInterpreterVisitor);
-    
-    generateCompute(0);
-    
-    //generateComputeFunctions(gInterpreterVisitor);
-    */
-}
-
-/*
-template <class T>
-void InterpreterCodeContainer<T>::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
-{}
-*/
-
-template <class T>
-void InterpreterScalarCodeContainer<T>::generateCompute(int n)
-{
-    // Generates local variables declaration and setup
-    //generateComputeBlock(gInterpreterVisitor);
-
-    // Generates one single scalar loop
-    ForLoopInst* loop = this->fCurLoop->generateScalarLoop(this->fFullCount);
-    loop->accept(this->gInterpreterVisitor);
 }
 
 template <class T>
