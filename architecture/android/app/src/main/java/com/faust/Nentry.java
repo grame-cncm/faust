@@ -15,9 +15,11 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import android.util.Log;
+
 class Nentry{
-	float min = 0.0f, max = 100.0f, step = 1.0f;
-	int id = 0;
+	float min = 0.0f, max = 100.0f, step = 1.0f, lastvalue = Float.MAX_VALUE;
+   int id = 0;
 	String  address = "";
 	LinearLayout frame, nentryLayout, localVerticalGroup;
 	EditText nentry;
@@ -83,9 +85,16 @@ class Nentry{
 	/*
 	 * Set the nentry's value
 	 */
-	public void setValue(float theValue){
-		nentry.setText(Float.toString(theValue));
-	}
+    public void setValue(float theValue){
+       if (theValue != lastvalue) {
+            if ((theValue - (int)theValue) != 0) {
+                nentry.setText(Float.toString(theValue));
+            } else {
+                nentry.setText(String.valueOf((int)theValue));
+            }
+            lastvalue = theValue;
+        }
+    }
 	
 	/*
 	 * Set the value of the slider as a number between 0 and 1
@@ -118,36 +127,33 @@ class Nentry{
 		    }
 		    @Override
 		    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-		    }
+               if (nentry.getText().length() > 0) {
+                    nentry.setSelection(nentry.getText().length());
+                }
+            }
 		    @Override
 		    public void afterTextChanged(Editable editable) {
-		       String value = nentry.getText().toString();
-		       float numValue = Float.parseFloat(value);
-		       if(isNumeric(value)){
-		    	   if(numValue >= min && numValue <= max){ 
-		    		   parametersInfo.values[id] = numValue;
-		    		   dsp_faust.setParamValue(address, parametersInfo.values[id]);
-		    	   }
-		    	   else if(numValue < min) setValue(min);
-		    	   else if(numValue > max) setValue(max);
-		       }
-		    }
+                String value = nentry.getText().toString();
+                if (nentry.getText().length() == 0) return;
+                
+                try {
+                    float numValue = Float.parseFloat(value);
+                    
+                    if (numValue >= min && numValue <= max){
+                        parametersInfo.values[id] = numValue;
+                        dsp_faust.setParamValue(address, parametersInfo.values[id]);
+                    } else if(numValue < min) {
+                        lastvalue = Float.MAX_VALUE;
+                        setValue(min);
+                    }  else if(numValue > max) {
+                        lastvalue = Float.MAX_VALUE;
+                        setValue(max);
+                    }
+                    
+                } catch(NumberFormatException nfe) {
+                    Log.i("FaustJava", "NumberFormatException ");
+                }
+            }
 		});
-	}
-	
-	/*
-	 * Check if a string is a number.
-	 */
-	private static boolean isNumeric(String str)  
-	{  
-	  try  
-	  {  
-	    double d = Double.parseDouble(str);  
-	  }  
-	  catch(NumberFormatException nfe)  
-	  {  
-	    return false;  
-	  } 
-	  return true; 
 	}
 }
