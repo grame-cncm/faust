@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include <vector>
 #include <iostream>
+#include <sys/time.h>
 
 #include <AudioToolbox/AudioConverter.h>
 #include <CoreAudio/CoreAudio.h>
@@ -49,8 +50,6 @@
 
 #include "faust/audio/audio.h"
 #include "faust/dsp/dsp.h"
-
-#include <sys/time.h>
 
 /******************************************************************************
 *******************************************************************************
@@ -1467,46 +1466,48 @@ class TCoreAudioRenderer
 *******************************************************************************/
 class coreaudio : public audio {
 
-    TCoreAudioRenderer fAudioDevice;
-	int fSampleRate, fBufferSize;
+    protected:
+        
+        TCoreAudioRenderer fAudioDevice;
+        int fSampleRate, fBufferSize;
 
- public:
-  
-    coreaudio(int sample_rate, int buffer_size) : fSampleRate(sample_rate), fBufferSize(buffer_size) {}
-    coreaudio(int buffer_size) : fSampleRate(-1), fBufferSize(buffer_size) {}
-	virtual ~coreaudio() { fAudioDevice.Close(); }
+    public:
+      
+        coreaudio(int srate, int bsize) : fSampleRate(srate), fBufferSize(bsize) {}
+            coreaudio(int bsize) : fSampleRate(-1), fBufferSize(bsize) {}
+        virtual ~coreaudio() { fAudioDevice.Close(); }
 
-	virtual bool init(const char* /*name*/, dsp* DSP) 
-    {
-		if (fAudioDevice.OpenDefault(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fBufferSize, fSampleRate) < 0) {
-			printf("Cannot open CoreAudio device\n");
-			return false;
-		}
-        fAudioDevice.set_dsp(DSP);
-        // If -1 was given, fSampleRate will be changed by OpenDefault
-        DSP->init(fSampleRate);
-        return true;
-    }
+        virtual bool init(const char* /*name*/, dsp* DSP) 
+        {
+            if (fAudioDevice.OpenDefault(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fBufferSize, fSampleRate) < 0) {
+                printf("Cannot open CoreAudio device\n");
+                return false;
+            }
+            fAudioDevice.set_dsp(DSP);
+            // If -1 was given, fSampleRate will be changed by OpenDefault
+            DSP->init(fSampleRate);
+            return true;
+        }
 
-	virtual bool start() 
-    {
-		if (fAudioDevice.Start() < 0) {
-			printf("Cannot start CoreAudio device\n");
-			return false;
-		}
-		return true;
-	}
+        virtual bool start() 
+        {
+            if (fAudioDevice.Start() < 0) {
+                printf("Cannot start CoreAudio device\n");
+                return false;
+            }
+            return true;
+        }
 
-	virtual void stop() 
-    {
-		fAudioDevice.Stop();
-	}
-    
-    virtual int get_buffer_size() { return fAudioDevice.GetBufferSize(); }
-    virtual int get_sample_rate() { return fAudioDevice.GetSampleRate(); }
-    
-    virtual int get_num_inputs() { return fAudioDevice.GetNumInputs(); }
-    virtual int get_num_outputs() { return fAudioDevice.GetNumOutputs(); }
+        virtual void stop() 
+        {
+            fAudioDevice.Stop();
+        }
+        
+        virtual int get_buffer_size() { return fAudioDevice.GetBufferSize(); }
+        virtual int get_sample_rate() { return fAudioDevice.GetSampleRate(); }
+        
+        virtual int get_num_inputs() { return fAudioDevice.GetNumInputs(); }
+        virtual int get_num_outputs() { return fAudioDevice.GetNumOutputs(); }
 
 };
 

@@ -38,6 +38,10 @@
  * API" section.
  */
 
+//**************************************************************
+// Polyphony
+//**************************************************************
+
 #include "faust/dsp/faust-poly-engine.h"
 
 //**************************************************************
@@ -60,10 +64,10 @@ class AndroidEngine : public FaustPolyEngine {
 
     public:
 
-        AndroidEngine(int sampling_rate, int buffer_size):FaustPolyEngine(sampling_rate, buffer_size)
+        AndroidEngine(int srate, int bsize):FaustPolyEngine()
         {
             // allocating audio driver
-            fDriver = new androidaudio(sampling_rate, buffer_size);
+            fDriver = new androidaudio(srate, bsize);
         }
         
         virtual ~AndroidEngine()

@@ -821,7 +821,7 @@ gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : amp_follower_ar(at
 // - http://en.wikipedia.org/wiki/Dynamic_range_compression
 // - https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html
 // - Albert Graef's <faust2pd>/examples/synth/compressor_.dsp
-//
+// - More features: https://github.com/magnetophon/faustCompressors
 
 compressor_mono(ratio,thresh,att,rel,x) = x * compression_gain_mono(ratio,thresh,att,rel,x);
 

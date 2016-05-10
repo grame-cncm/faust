@@ -54,8 +54,7 @@ class FaustPolyEngine {
         
     public:
 
-        FaustPolyEngine(int sampling_rate, int buffer_size)
-        :fJSONUI(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs()), fRunning(false)
+        FaustPolyEngine():fJSONUI(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs()), fRunning(false)
         {
             // configuring the UI
             fMonoDSP.buildUserInterface(&fAPIUI);
@@ -83,6 +82,13 @@ class FaustPolyEngine {
             return fDriver->init("Dummy", (fPolyMax > 0) ? (dsp*)fPolyDSP : &fMonoDSP);
         }
 
+        /*
+         * start()
+         * Begins the processing and return 1 if the connection
+         * with the audio device was successful and 0 if not.
+         * On Android it also creates the native thread where the
+         * DSP tasks will be computed.
+         */
         bool start()
         {
             if (!fRunning) {
@@ -90,7 +96,22 @@ class FaustPolyEngine {
             }
             return fRunning;
         }
+        
+        /*
+         * isRunning()
+         * returns true if the DSP frames are being computed and
+         * false if not.
+         */
+        bool isRunning() 
+        {
+            return fRunning;
+        }
 
+        /*
+         * stop()
+         * Stops the processing, closes the audio engine and terminates
+         * the native thread on Android.
+         */
         void stop()
         {
             if (fRunning) {
@@ -98,7 +119,15 @@ class FaustPolyEngine {
                 fDriver->stop();
             }
         }
-
+    
+        /*
+         * keyOn(pitch, velocity)
+         * Instantiates a new polyphonic voice where velocity
+         * and pitch are MIDI numbers (0-127). keyOn can only
+         * be used if the [style:poly] metadata is used in the
+         * Faust code. keyOn will return 0 if the object is not
+         * polyphonic and 1 otherwise.
+         */
         int keyOn(int pitch, int velocity)
         {
             if (fPolyMax > 0) {
@@ -109,6 +138,14 @@ class FaustPolyEngine {
             }
         }
 
+        /*
+         * keyOff(pitch)
+         * De-instantiates a polyphonic voice where pitch is the
+         * MIDI number of the note (0-127). keyOff can only be
+         * used if the [style:poly] metadata is used in the Faust
+         * code. keyOn will return 0 if the object is not polyphonic
+         * and 1 otherwise.
+         */
         int keyOff(int pitch, int velocity = 127)
         {
             if (fPolyMax > 0) {
@@ -119,6 +156,14 @@ class FaustPolyEngine {
             }
         }
 
+        /*
+         * pitchBend(refPitch, pitch)
+         * Replaces refPitch in the voice associated with it with pitch.
+         * pitch is a MIDI number expressed as a decimal number.
+         * pitchBend can only be used if the [style:poly] metadata
+         * is used in the Faust code. pitchBend will return 0
+         * if the object is not polyphonic and 1 otherwise.
+         */
         int pitchBend(int refPitch, float pitch)
         {
             if (fPolyMax > 0) {
@@ -129,16 +174,30 @@ class FaustPolyEngine {
             }
         }
         
+        /*
+         * getJSON()
+         * Returns a string containing a JSON description of the
+         * UI of the Faust object.
+         */
         const char* getJSON()
         {
             return fJSON.c_str();
         }
 
+        /*
+         * getParamsCount()
+         * Returns the number of parameters of the Faust object.
+         */
         int getParamsCount()
         {
             return fAPIUI.getParamsCount();
         }
 
+        /*
+         * getParamValus(address)
+         * Takes the address of a parameter and returns its current
+         * value.
+         */
         float getParamValue(const char* address)
         {
             if (fPolyMax > 0) {
@@ -148,6 +207,10 @@ class FaustPolyEngine {
             }
         }
 
+        /*
+         * setParam(address,value)
+         * Sets the value of the parameter associated with address.
+         */
         void setParamValue(const char* address, float value)
         {
             if (fPolyMax > 0) {
@@ -157,6 +220,14 @@ class FaustPolyEngine {
             }
         }
 
+        /*
+         * setVoiceParam(address,pitch,value)
+         * Sets the value of the parameter associated with address for
+         * the voice associated with pitch. setVoiceParam can only be
+         * used if the [style:poly] metadata is used in the Faust code.
+         * setVoiceParam will return 0 if the object is not polyphonic
+         * and 1 otherwise.
+         */
         int setVoiceParam(const char* address, int pitch, float value)
         {
             if (fPolyMax > 0) {
@@ -167,6 +238,13 @@ class FaustPolyEngine {
             }
         }
 
+        /*
+         * setVoiceGain(pitch,gain)
+         * Sets the gain (0-1) of the voice associated with pitch.
+         * setVoiceGain can only be used if the [style:poly] metadata
+         * is used in the Faust code. setVoiceGain will return 0 if the
+         * object is not polyphonic and 1 otherwise.
+         */
         int setVoiceGain(int pitch, float gain)
         {
             if (fPolyMax > 0) {
@@ -177,6 +255,10 @@ class FaustPolyEngine {
             }
         }
 
+        /*
+         * getParamAddress(id)
+         * Returns the address of a parameter in function of its "id".
+         */
         const char* getParamAddress(int id)
         {
             return fAPIUI.getParamName(id);

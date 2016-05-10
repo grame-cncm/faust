@@ -53,18 +53,21 @@
 #define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
 #define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
 
-#if defined(POLY) || defined(POLY2)
+#if POLY
 #include "faust/dsp/poly-dsp.h"
 #include "faust/dsp/dsp-combiner.h"
 #endif
 
-#if defined(POLY2)
+#if POLY2
+#include "faust/dsp/poly-dsp.h"
+#include "faust/dsp/dsp-combiner.h"
 #include "effect.cpp"
 #endif
 
 #if MIDICTRL
 #include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
+rt_midi* midi_handler;
 MidiUI* midiinterface = NULL;
 #endif
 
@@ -192,8 +195,8 @@ bool hasMIDISync()
     uiinterface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata, DSP);
     finterface = new FUI();
 #if MIDICTRL
-    rt_midi midi_handler(_name);
-    midiinterface = new MidiUI(&midi_handler);
+    midi_handler = new rt_midi(_name);
+    midiinterface = new MidiUI(midi_handler);
 #endif
       
     // Read user preferences
@@ -510,6 +513,7 @@ error:
     
 #if MIDICTRL
     delete midiinterface;
+    delete midi_handler;
 #endif
     
     delete DSP;
@@ -1541,7 +1545,7 @@ static inline const char* transmit_value(int num)
             uiinterface->getAccConverter(index, type, curve, min, mid, max);
             
             // Keep default state
-            (*i)->setInitAssignationType(type);
+            (*i)->setInitAssignationType(type + 1);
             (*i)->setInitAssignationCurve(curve);
             (*i)->setInitCurve(min, mid, max);
             
