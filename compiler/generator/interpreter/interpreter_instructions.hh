@@ -422,6 +422,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             FIRBlockInstruction<T>* then_block = new FIRBlockInstruction<T>();
             fCurrentBlock = then_block;
             inst->fThen->accept(this);
+            bool real_t1 = fCurrentBlock->isRealInst(); // Type is the same on both branches, so takes the first one
+            
             // Add kReturn in block
             then_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
             
@@ -433,7 +435,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             else_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
             
             // Compile 'select'
-            previous->push(new FIRBasicInstruction<T>(FIRInstruction::kIf, 0, 0, 0, 0, then_block, else_block));
+            previous->push(new FIRBasicInstruction<T>((real_t1) ? FIRInstruction::kSelectReal : FIRInstruction::kSelectInt, 0, 0, 0, 0, then_block, else_block));
                                                            
             // Restore current block
             fCurrentBlock = previous;

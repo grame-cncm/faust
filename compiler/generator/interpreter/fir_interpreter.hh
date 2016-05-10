@@ -283,7 +283,7 @@ class FIRInterpreter  {
                 &&do_kReturn,
                 
                 // Select/if
-                &&do_kIf,
+                &&do_kIf, &&do_kSelectReal, &&do_kSelectInt,
                 &&do_kCondBranch
                 
             };
@@ -2112,14 +2112,50 @@ class FIRInterpreter  {
                         // Execute new block
                         assert((*it)->fBranch1);
                         dispatch_branch1();
-                        // Int value (SelectInt), Real value (SelectFloat), or no value (If)
+                        // No value (If)
                     } else {
                         // Execute new block
                         assert((*it)->fBranch2);
                         dispatch_branch2();
-                        // Int value (SelectInt), Real value (SelectFloat), or no value (If)
+                        // No value (If)
                     }
-                 }
+                }
+                
+                do_kSelectReal:
+                {
+                    // Keep next instruction
+                    save_return();
+                    
+                    if (pop_int()) {
+                        // Execute new block
+                        assert((*it)->fBranch1);
+                        dispatch_branch1();
+                        // Real value
+                    } else {
+                        // Execute new block
+                        assert((*it)->fBranch2);
+                        dispatch_branch2();
+                        // Real value
+                    }
+                }
+                
+                do_kSelectInt:
+                {
+                    // Keep next instruction
+                    save_return();
+                    
+                    if (pop_int()) {
+                        // Execute new block
+                        assert((*it)->fBranch1);
+                        dispatch_branch1();
+                        // Int value
+                    } else {
+                        // Execute new block
+                        assert((*it)->fBranch2);
+                        dispatch_branch2();
+                        // Int value
+                    }
+                }
                 
                 do_kCondBranch:
                 {

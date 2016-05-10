@@ -180,7 +180,7 @@ struct FIRInstruction {
         kReturn,
         
         // Select/if
-        kIf,
+        kIf, kSelectReal, kSelectInt,
         kCondBranch,
         
         // User Interface 
@@ -204,6 +204,8 @@ struct FIRInstruction {
                 || (opt == kLoadInput)
         
                 || (opt == kCastReal)
+                
+                || (opt == kSelectReal)
         
                 || (opt == kAddReal)
                 || (opt == kSubReal)
@@ -394,7 +396,7 @@ static std::string gFIRInstructionTable[] = {
     "kReturn",
     
     // Select/if
-    "kIf",
+    "kIf", "kSelectReal", "kSelectInt",
     "kCondBranch",
  
     // User Interface

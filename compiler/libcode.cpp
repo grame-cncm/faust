@@ -80,7 +80,6 @@ using namespace std;
 static inline std::string flatten(const std::string& src)
 {
     std::stringstream dst;
-    size_t size = src.size();
     for (size_t i = 0; i < src.size(); i++) {
         switch (src[i]) {
             case '\n':
