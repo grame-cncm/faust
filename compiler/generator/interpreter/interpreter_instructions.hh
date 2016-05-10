@@ -293,7 +293,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             pair<int, Typed::VarType> tmp = fFieldTable[inst->fAddress->getName()];
             fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt)
                                                                ? FIRInstruction::kBlockShiftBackwardInt
-                                                               : FIRInstruction::kBlockShiftBackwardReal, 0, 0, inst->fDelay, 0));
+                                                               : FIRInstruction::kBlockShiftBackwardReal, 0, 0, tmp.first + inst->fDelay, tmp.first));
         }
 
         // Primitives : numbers

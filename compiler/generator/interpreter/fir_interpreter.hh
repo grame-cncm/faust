@@ -1806,8 +1806,7 @@ class FIRInterpreter  {
                     push_real(std::tanh(fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
-
-                
+      
                 //----------------------
                 // Extended binary math
                 //----------------------
