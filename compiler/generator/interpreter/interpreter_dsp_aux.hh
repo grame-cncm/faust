@@ -34,7 +34,7 @@
 #include "faust/gui/meta.h"
 #include "fir_interpreter.hh"
 #include "interpreter_bytecode.hh"
-//#include "smartpointer.h"
+#include "dsp_aux.hh"
 
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport)
@@ -47,21 +47,16 @@ static inline std::string unquote1(const std::string& str)
     return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
 }
 
+struct interpreter_dsp_factory;
+
 struct interpreter_dsp_factory_base {
     
     virtual ~interpreter_dsp_factory_base()
     {}
     
     virtual std::string getName() = 0;
-    
-    virtual std::string getSHAKey() = 0;
-    
-    virtual std::string getDSPCode() = 0;
-    
     virtual void write(std::ostream* out) = 0;
-    
-    virtual dsp* createDSPInstance() = 0;
-    
+    virtual dsp* createDSPInstance(interpreter_dsp_factory* factory) = 0;
     virtual void metadata(Meta* meta) = 0;
 
 };
@@ -72,8 +67,6 @@ class interpreter_dsp_aux;
 template <class T>
 struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     
-    std::string fExpandedDSP;
-    std::string fShaKey;
     std::string fName;
     
     float fVersion;
@@ -130,10 +123,6 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     }
     
     std::string getName() { return fName; }
-    
-    std::string getSHAKey() { return fShaKey; }
-    
-    std::string getDSPCode() { return fExpandedDSP; }
     
     void write(std::ostream* out)
     {
@@ -439,7 +428,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         }
     }
     
-    dsp* createDSPInstance();
+    dsp* createDSPInstance(interpreter_dsp_factory* factory);
     
 };
 
@@ -671,16 +660,16 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T> {
 struct EXPORT interpreter_dsp : public dsp {
     
     interpreter_dsp_base* fDSP;
+    interpreter_dsp_factory* fFactory;
     
-    interpreter_dsp(interpreter_dsp_aux<float>* dsp):fDSP(dsp)
+    interpreter_dsp(interpreter_dsp_aux<float>* dsp, interpreter_dsp_factory* factory)
+        :fDSP(dsp), fFactory(factory)
     {}
-    interpreter_dsp(interpreter_dsp_aux<double>* dsp):fDSP(dsp)
+    interpreter_dsp(interpreter_dsp_aux<double>* dsp, interpreter_dsp_factory* factory)
+        :fDSP(dsp), fFactory(factory)
     {}
 
-    virtual ~interpreter_dsp()
-    {
-        delete fDSP;
-    }
+    virtual ~interpreter_dsp();
 
     int getNumInputs();
     int getNumOutputs();
@@ -696,17 +685,19 @@ struct EXPORT interpreter_dsp : public dsp {
 };
 
 template <class T>
-dsp* interpreter_dsp_factory_aux<T>::createDSPInstance()
+dsp* interpreter_dsp_factory_aux<T>::createDSPInstance(interpreter_dsp_factory* factory)
 {
-    return new interpreter_dsp(new interpreter_dsp_aux<T>(this));
+    return new interpreter_dsp(new interpreter_dsp_aux<T>(this), factory);
     //return new interpreter_dsp(new interpreter_dsp_aux_down<T>(this, 2));
 }
 
 // Public C++ interface
 
-struct EXPORT interpreter_dsp_factory : public dsp_factory {
+struct EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartable {
     
     interpreter_dsp_factory_base* fFactory;
+    std::string fExpandedDSP;
+    std::string fShaKey;
   
     interpreter_dsp_factory(const std::string& name,
                          float version_num,
@@ -762,11 +753,12 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory {
 
     std::string getName() { return fFactory->getName(); }
     
-    std::string getSHAKey() { return fFactory->getSHAKey(); }
+    std::string getSHAKey() { return fShaKey; }
+    void setSHAKey(std::string sha_key) { fShaKey = sha_key; }
     
-    std::string getDSPCode() { return fFactory->getDSPCode(); }
+    std::string getDSPCode() { return fExpandedDSP; }
     
-    dsp* createDSPInstance() { return fFactory->createDSPInstance(); }
+    dsp* createDSPInstance();
     
     void metadata(Meta* meta) { fFactory->metadata(meta); }
     
@@ -801,9 +793,11 @@ EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* fac
 
 EXPORT void deleteAllInterpreterDSPFactories();
 
-EXPORT dsp* createInterpreterDSPInstance(interpreter_dsp_factory* factory);
 
-EXPORT void deleteInterpreterDSPInstance(interpreter_dsp* dsp);
+
+//EXPORT dsp* createInterpreterDSPInstance(interpreter_dsp_factory* factory);
+
+//EXPORT void deleteInterpreterDSPInstance(interpreter_dsp* dsp);
 
 #endif
 

@@ -180,6 +180,10 @@ interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::str
  */
 void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const std::string& machine_code_path);
 
+
+void deleteAllInterpreterDSPFactories();
+
+
 /**
  * Instance class with related methods.
  */

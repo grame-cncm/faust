@@ -20,12 +20,18 @@
  ************************************************************************/
 
 #include "interpreter_dsp_aux.hh"
+#include "dsp_aux.hh"
 
 #ifndef LOADER
 #include "libfaust.h"
 #endif
 
 using namespace std;
+
+typedef class faust_smartptr<interpreter_dsp_factory> SDsp_factory;
+
+dsp_factory_table<SDsp_factory> gFactoryTable;
+
 
 #ifdef LOADER
 static string path_to_content(const string& path)
@@ -80,31 +86,50 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
 #ifdef LOADER
    return 0;
 #else
-    int argc1 = argc + 3;
-    const char* argv1[32];
-    char error_msg_aux[512];
+   
+    string expanded_dsp_content, sha_key;
     
-    argv1[0] = "faust";
-    argv1[1] = "-lang";
-    argv1[2] = "interp";
-    for (int i = 0; i < argc; i++) {
-        argv1[i+3] = argv[i];
+    if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
+        return 0;
+    } else {
+        
+        int argc1 = argc + 3;
+        const char* argv1[32];
+        char error_msg_aux[512];
+        
+        argv1[0] = "faust";
+        argv1[1] = "-lang";
+        argv1[2] = "interp";
+        for (int i = 0; i < argc; i++) {
+            argv1[i+3] = argv[i];
+        }
+        
+        dsp_factory_table<SDsp_factory>::factory_iterator it;
+        interpreter_dsp_factory* factory = 0;
+        
+        if (gFactoryTable.getFactory(sha_key, it)) {
+            SDsp_factory sfactory = (*it).first;
+            sfactory->addReference();
+            return sfactory;
+        } else if ((factory = compile_faust_interpreter(argc1, argv1,
+                                                        name_app.c_str(),
+                                                        dsp_content.c_str(),
+                                                        error_msg_aux)) != 0) {
+            gFactoryTable.setFactory(factory);
+            factory->setSHAKey(sha_key);
+            error_msg = error_msg_aux;
+            return factory;
+        } else {
+            error_msg = error_msg_aux;
+            return 0;
+        }
     }
-    
-    interpreter_dsp_factory* factory = compile_faust_interpreter(argc1, argv1,
-                                                                 name_app.c_str(),
-                                                                 dsp_content.c_str(),
-                                                                 error_msg_aux);
-    error_msg = error_msg_aux;
-    return factory;
-#endif
+ #endif
 }
 
 EXPORT bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory)
 {
-    // TODO: use of smart pointer
-    delete factory;
-    return true;
+    return gFactoryTable.deleteDSPFactory(factory);
 }
 
 EXPORT vector<string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory)
@@ -122,17 +147,39 @@ EXPORT vector<string> getAllInterpreterDSPFactories()
 }
 
 EXPORT void deleteAllInterpreterDSPFactories()
-{}
+{
+    gFactoryTable.deleteAllDSPFactories();
+}
 
+EXPORT interpreter_dsp::~interpreter_dsp()
+{
+    gFactoryTable.removeDSP(fFactory, this);
+    delete fDSP;
+}
+
+EXPORT dsp* interpreter_dsp_factory::createDSPInstance()
+{
+    dsp* dsp = fFactory->createDSPInstance(this);
+    gFactoryTable.addDSP(this, dsp);
+    return dsp;
+}
+
+/*
 EXPORT dsp* createInterpreterDSPInstance(interpreter_dsp_factory* factory)
 {
-    return factory->createDSPInstance();
+    dsp* dsp = factory->createDSPInstance();
+    gFactoryTable.addDSP(dsp);
+    return dsp;
 }
 
 EXPORT void deleteInterpreterDSPInstance(interpreter_dsp* dsp)
 {
     delete dsp;
+    if (dsp) {
+        delete (reinterpret_cast<llvm_dsp_aux*>(dsp));
+    }
 }
+ */
 
 // Read/write
 

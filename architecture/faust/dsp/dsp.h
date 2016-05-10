@@ -117,13 +117,9 @@ class dsp_factory {
     public:
     
         virtual std::string getName() = 0;
-    
         virtual std::string getSHAKey() = 0;
-        
         virtual std::string getDSPCode() = 0;
-    
         virtual dsp* createDSPInstance() = 0;
-    
         virtual void metadata(Meta* meta) = 0;
     
 };

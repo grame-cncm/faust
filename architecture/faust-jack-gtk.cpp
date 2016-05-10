@@ -26,11 +26,17 @@
 #include <libgen.h>
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
+
+#ifdef LLVM
 #include "faust/dsp/llvm-dsp.h"
+#else
 #include "faust/dsp/interpreter-dsp.h"
+#endif
+
 #include "faust/gui/faustgtk.h"
 #include "faust/audio/jack-dsp.h"
 #include "faust/gui/jsonfaustui.h"
+
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -54,6 +60,7 @@ extern "C" void* compile_faust_llvm(int argc, const char* argv[], const char* li
 //----------------------------------------------------------------------------
 
 dsp* DSP;
+dsp* DSP1;
 
 std::list<GUI*> GUI::fGuiList;
 
@@ -66,10 +73,13 @@ int main(int argc, char *argv[])
 
 #ifdef LLVM
     llvm_dsp_factory* factory3 = 0;
+    llvm_dsp_factory* factory4 = 0;
 #else
     interpreter_dsp_factory* factory3 = 0;
+    interpreter_dsp_factory* factory4 = 0;
+    interpreter_dsp_factory* factory5 = 0;
 #endif
-    llvm_dsp_factory* factory4 = 0;
+    
 
     if (argc < 2) {
         printf("Usage: faust-jack-gtk args [file.dsp | file.bc]\n");
@@ -183,6 +193,8 @@ int main(int argc, char *argv[])
         factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, -1);
     #else
         factory3 = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg3);
+        factory4 = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg3);
+        factory5 = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg3);
     #endif
         
         printf("factory3 %p\n", factory3);
@@ -302,11 +314,18 @@ int main(int argc, char *argv[])
 #ifdef LLVM
     deleteDSPFactory(factory3);
 #else
-    deleteInterpreterDSPFactory(factory3);
+    //deleteInterpreterDSPFactory(factory3);
+    std::cout << "AFTER  deleteInterpreterDSPFactory(factory3)" << std::endl;
+    
+    //deleteInterpreterDSPFactory(factory4);
+    std::cout << "AFTER  deleteInterpreterDSPFactory(factory4)" << std::endl;
+    
+    //deleteInterpreterDSPFactory(factory5);
+    std::cout << "AFTER  deleteInterpreterDSPFactory(factory5)" << std::endl;
 #endif
     //deleteDSPFactory(factory4);
      
-    //deleteAllDSPFactories();
+    //deleteAllInterpreterDSPFactories();
   	return 0;
 }
 
