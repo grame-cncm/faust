@@ -168,7 +168,7 @@ struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
  opcode 12 kMoveReal int 0 real 0 offset1 120328 offset2 120327
  opcode 12 kMoveReal int 0 real 0 offset1 120327 offset2 120326
  
- ==>  opcode 13 kBlockMoveReal int 0 real 0 offset1 120321 offset2 120327
+ ==>  opcode 13 kBlockPairMoveReal int 0 real 0 offset1 120321 offset2 120327
 */
 
 template <class T>
@@ -201,7 +201,7 @@ struct FIRInstructionBlockMoveOptimizer : public FIRInstructionOptimizer<T> {
         if (begin_move != -1 && end_move != -1 && ((end_move - begin_move) > 4)) {
             //std::cout << "FIRInstructionBlockMoveOptimizer " << begin_move  << " " << end_move << std::endl;
             end = next;
-            return new FIRBasicInstruction<T>(FIRInstruction::kBlockMoveReal, 0, 0, begin_move, end_move);
+            return new FIRBasicInstruction<T>(FIRInstruction::kBlockPairMoveReal, 0, 0, begin_move, end_move);
         } else {
             end = cur + 1;
             return (*cur)->copy();

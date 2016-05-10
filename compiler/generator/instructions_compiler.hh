@@ -74,7 +74,7 @@ class InstructionsCompiler : public virtual Garbageable {
         StatementInst* generateInitArray(const string& vname, Typed::VarType ctype, int delay);
         StatementInst* generateCopyArray(const string& vname, int index_from, int index_to);
         StatementInst* generateCopyArray(const string& vname_to, const string& vname_from, int size);
-        StatementInst* generateShiftArray(const string& vname, int delay);
+        virtual StatementInst* generateShiftArray(const string& vname, int delay);  // Redefined in InterpreterInstructionsCompiler
 
         ValueInst* generateButtonAux(Tree sig, Tree path, const string& name);
         ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const string& name);

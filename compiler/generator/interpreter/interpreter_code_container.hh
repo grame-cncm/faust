@@ -25,6 +25,7 @@
 #include "code_container.hh"
 #include "interpreter_dsp_aux.hh"
 #include "interpreter_instructions.hh"
+#include "instructions_compiler.hh"
 #include "fir_to_fir.hh"
 
 using namespace std;           
@@ -90,6 +91,19 @@ class InterpreterScalarCodeContainer : public InterpreterCodeContainer<T> {
 
         void generateCompute(int tab);
 
+};
+
+class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
+
+    public:
+    
+        InterpreterInstructionsCompiler(CodeContainer* container):InstructionsCompiler(container)
+        {}
+    
+        StatementInst* generateShiftArray(const string& vname, int delay)
+        {
+            return InstBuilder::genShiftArrayVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct), delay);
+        }
 };
 
 #endif

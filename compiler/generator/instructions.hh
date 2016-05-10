@@ -50,6 +50,7 @@ struct DeclareTypeInst;
 struct LoadVarInst;
 struct LoadVarAddressInst;
 struct StoreVarInst;
+struct ShiftArrayVarInst;
 template <class TYPE> struct ArrayNumInst;
 struct FloatNumInst;
 struct FloatArrayNumInst;
@@ -128,6 +129,7 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(LoadVarInst* inst) {}
     virtual void visit(LoadVarAddressInst* inst) {}
     virtual void visit(StoreVarInst* inst) {}
+    virtual void visit(ShiftArrayVarInst* inst) {}
 
     // Addresses
     virtual void visit(NamedAddress* address) {}
@@ -183,6 +185,7 @@ struct CloneVisitor : public virtual Garbageable {
     virtual ValueInst* visit(LoadVarInst* inst) = 0;
     virtual ValueInst* visit(LoadVarAddressInst* inst) = 0;
     virtual StatementInst* visit(StoreVarInst* inst) = 0;
+    virtual StatementInst* visit(ShiftArrayVarInst* inst) = 0;
 
     // Addresses
     virtual Address* visit(NamedAddress* address) = 0;
@@ -906,6 +909,22 @@ struct StoreVarInst : public StatementInst
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+struct ShiftArrayVarInst : public StatementInst
+{
+    Address* fAddress;
+    int fDelay;
+    
+    ShiftArrayVarInst(Address* address, int delay) :fAddress(address), fDelay(delay)
+    {}
+    
+    virtual ~ShiftArrayVarInst()
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 // ========
 // Numbers
 // ========
@@ -1341,6 +1360,7 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual ValueInst* visit(LoadVarInst* inst) { return new LoadVarInst(inst->fAddress->clone(this), inst->fSize); }
         virtual ValueInst* visit(LoadVarAddressInst* inst) { return new LoadVarAddressInst(inst->fAddress->clone(this), inst->fSize); }
         virtual StatementInst* visit(StoreVarInst* inst) { return new StoreVarInst(inst->fAddress->clone(this), inst->fValue->clone(this)); }
+        virtual StatementInst* visit(ShiftArrayVarInst* inst) { return new ShiftArrayVarInst(inst->fAddress->clone(this), inst->fDelay); }
 
         // Addresses
         virtual Address* visit(NamedAddress* address) { return new NamedAddress(address->fName, address->fAccess); }
@@ -1476,6 +1496,11 @@ struct DispatchVisitor : public InstVisitor {
     {
         inst->fAddress->accept(this);
         inst->fValue->accept(this);
+    }
+    
+    virtual void visit(ShiftArrayVarInst* inst)
+    {
+        inst->fAddress->accept(this);
     }
 
     virtual void visit(IndexedAddress* address)
@@ -1626,6 +1651,11 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
 
             fScalarVisitor->visit(inst);
         }
+    
+        virtual void visit(ShiftArrayVarInst* inst)
+        {
+            fScalarVisitor->visit(inst);
+        }
 
         virtual void visit(FloatNumInst* inst)
         {
@@ -1763,7 +1793,8 @@ struct InstBuilder
     // Memory
     static LoadVarInst* genLoadVarInst(Address* address, int size = 1) { return new LoadVarInst(address, size); }
     static LoadVarAddressInst* genLoadVarAddressInst(Address* address, int size = 1) { return new LoadVarAddressInst(address, size); }
-    static StoreVarInst* genStoreVarInst(Address* address, ValueInst* value) {return new StoreVarInst(address, value); }
+    static StoreVarInst* genStoreVarInst(Address* address, ValueInst* value) { return new StoreVarInst(address, value); }
+    static ShiftArrayVarInst* genShiftArrayVarInst(Address* address, int delay) { return new ShiftArrayVarInst(address, delay); }
 
     // Numbers
     static FloatNumInst* genFloatNumInst(float num, int size = 1) { return new FloatNumInst(num, size);}

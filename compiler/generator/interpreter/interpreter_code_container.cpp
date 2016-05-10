@@ -128,19 +128,19 @@ FIRBlockInstruction<T>* InterpreterCodeContainer<T>::OptimizeBlock(FIRBlockInstr
    
     //cout << "block size = " << block->size() << endl;
     
-    // 2) then optimize simple 'heap' load/store in move
+    // 2) optimize simple 'heap' load/store in move
     FIRInstructionMoveOptimizer<T> opt2;
     block = FIRInstructionOptimizer<T>::optimize(block, opt2);
     
     //cout << "block size = " << block->size() << endl;
     
-    // 3) then optimize moves in block move
+    // 3) optimize moves in block move
     FIRInstructionBlockMoveOptimizer<T> opt3;
     block = FIRInstructionOptimizer<T>::optimize(block, opt3);
     
     //cout << "block size = " << block->size() << endl;
     
-    // 4) then optimize 2 moves in pair move
+    // 4) optimize 2 moves in pair move
     FIRInstructionPairMoveOptimizer<T> opt4;
     block = FIRInstructionOptimizer<T>::optimize(block, opt4);
    
@@ -152,7 +152,7 @@ FIRBlockInstruction<T>* InterpreterCodeContainer<T>::OptimizeBlock(FIRBlockInstr
     
     //cout << "block size = " << block->size() << endl;
     
-    // 6) them optimize 'heap' and 'value' math operations
+    // 6) optimize 'heap' and 'value' math operations
     FIRInstructionMathOptimizer<T> opt6;
     block = FIRInstructionOptimizer<T>::optimize(block, opt6);
     
@@ -277,4 +277,3 @@ FIRMetaBlockInstruction* InterpreterCodeContainer<T>::produceMetadata()
     
     return block;
 }
-

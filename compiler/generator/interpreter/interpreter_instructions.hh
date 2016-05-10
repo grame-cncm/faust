@@ -287,6 +287,14 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         {   
             indexed->fIndex->accept(this);
         }
+    
+        virtual void visit(ShiftArrayVarInst* inst)
+        {
+            pair<int, Typed::VarType> tmp = fFieldTable[inst->fAddress->getName()];
+            fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt)
+                                                               ? FIRInstruction::kBlockShiftBackwardInt
+                                                               : FIRInstruction::kBlockShiftBackwardReal, 0, 0, inst->fDelay, 0));
+        }
 
         // Primitives : numbers
         virtual void visit(FloatNumInst* inst) 
