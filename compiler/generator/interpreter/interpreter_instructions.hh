@@ -258,7 +258,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 if (ctype == Typed::kInt) {
                     
                     IntArrayNumInst* int_array = dynamic_cast<IntArrayNumInst*>(value);
-                    fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(FIRInstruction::kBlockStoreInt, tmp.first, 0, int_array->fNumTable));
+                    fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(FIRInstruction::kBlockStoreInt, tmp.first, int_array->fNumTable.size(), int_array->fNumTable));
                 
                 } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
                     
@@ -285,8 +285,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 } else if (ctype == Typed::kDouble) {
                     
                     DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(value);
-                    
-                    //fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.first, 0, double_array->fNumTable));
                     
                     vector<T> num_table;
                     for (int i = 0; i < double_array->fNumTable.size(); i++) {

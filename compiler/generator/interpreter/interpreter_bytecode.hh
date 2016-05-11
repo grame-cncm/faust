@@ -263,7 +263,7 @@ struct FIRBasicInstruction : public FIRInstruction {
         }
     }
     
-    void write(std::ostream* out)
+    virtual void write(std::ostream* out)
     {
         *out << "opcode " << fOpcode << " "
             << gFIRInstructionTable[fOpcode]
@@ -277,7 +277,7 @@ struct FIRBasicInstruction : public FIRInstruction {
         if (fBranch2) { fBranch2->write(out); }
     }
     
-    FIRBasicInstruction<T>* copy()
+    virtual FIRBasicInstruction<T>* copy()
     {
         return new FIRBasicInstruction<T>(fOpcode, fIntValue, fRealValue, fOffset1, fOffset2,
                                           ((getBranch1()) ? fBranch1->copy() : 0),
@@ -329,12 +329,12 @@ struct FIRBlockStoreRealInstruction : public FIRBasicInstruction<T> {
     }
      */
     
-    FIRBlockStoreRealInstruction<T>* copy()
+    virtual FIRBlockStoreRealInstruction<T>* copy()
     {
         return new FIRBlockStoreRealInstruction<T>(this->fOpcode, this->fOffset1 , this->fOffset2, this->fNumTable);
     }
     
-    void write(std::ostream* out)
+    virtual void write(std::ostream* out)
     {
         *out << "opcode " << this->fOpcode << " "
         << gFIRInstructionTable[this->fOpcode]
@@ -365,12 +365,12 @@ struct FIRBlockStoreIntInstruction : public FIRBasicInstruction<T> {
         this->fNumTable = numtable;
     }
     
-    FIRBlockStoreIntInstruction<T>* copy()
+    virtual FIRBlockStoreIntInstruction<T>* copy()
     {
         return new FIRBlockStoreIntInstruction<T>(this->fOpcode, this->fOffset1 , this->fOffset2, this->fNumTable);
     }
     
-    void write(std::ostream* out)
+    virtual void write(std::ostream* out)
     {
         *out << "opcode " << this->fOpcode << " "
         << gFIRInstructionTable[this->fOpcode]
@@ -432,7 +432,7 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
     virtual ~FIRUserInterfaceInstruction()
     {}
     
-    void write(std::ostream* out)
+    virtual void write(std::ostream* out)
     {
         *out << "opcode " << fOpcode << " " << gFIRInstructionTable[fOpcode]
             << " offset " << fOffset
@@ -456,7 +456,7 @@ struct FIRMetaInstruction : public FIRInstruction {
     virtual ~FIRMetaInstruction()
     {}
     
-    void write(std::ostream* out)
+    virtual void write(std::ostream* out)
     {
         *out << "meta"
             << " key " << replaceCharQuote(fKey, ' ', '_')
@@ -483,7 +483,7 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
      
     void push(FIRUserInterfaceInstruction<T>* inst) { fInstructions.push_back(inst); }
     
-    void write(std::ostream* out)
+    virtual void write(std::ostream* out)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         UIInstructionIT it;
@@ -508,7 +508,7 @@ struct FIRMetaBlockInstruction : public FIRInstruction {
     
     void push(FIRMetaInstruction* inst) { fInstructions.push_back(inst); }
     
-    void write(std::ostream* out)
+    virtual void write(std::ostream* out)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         MetaInstructionIT it;
@@ -534,7 +534,7 @@ struct FIRBlockInstruction : public FIRInstruction {
     
     void push(FIRBasicInstruction<T>* inst) { fInstructions.push_back(inst); }
     
-    void write(std::ostream* out)
+    virtual void write(std::ostream* out)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         InstructionIT it;

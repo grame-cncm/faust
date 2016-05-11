@@ -400,7 +400,7 @@ class FIRInterpreter  {
                     dispatch_next();
                 }
                 
-            do_kBlockStoreReal:
+                do_kBlockStoreReal:
                 {
                     FIRBlockStoreRealInstruction<T>* inst = dynamic_cast<FIRBlockStoreRealInstruction<T>*>(*it);
                     assert(inst);
@@ -410,7 +410,7 @@ class FIRInterpreter  {
                     dispatch_next();
                 }
                 
-            do_kBlockStoreInt:
+                do_kBlockStoreInt:
                 {
                     FIRBlockStoreIntInstruction<T>* inst = dynamic_cast<FIRBlockStoreIntInstruction<T>*>(*it);
                     assert(inst);

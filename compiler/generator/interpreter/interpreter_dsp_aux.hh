@@ -370,7 +370,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
             std::stringstream inst_line_reader(line);
             FIRBasicInstruction<T>* inst = readCodeInstruction(&inst_line_reader, in);
             // Special case for loops
-            if (inst->fOpcode == FIRInstruction::kCondBranch) {inst->fBranch1 = code_block; }
+            if (inst->fOpcode == FIRInstruction::kCondBranch) { inst->fBranch1 = code_block; }
             code_block->push(inst);
         }
         
@@ -614,7 +614,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             // Executes the 'DSP' block
             this->ExecuteBlock(this->fFactory->fComputeDSPBlock);
             
-             //std::cout << "sample " << outputs[0][0] << std::endl;
+            //std::cout << "sample " << outputs[0][0] << std::endl;
         }
 };
 

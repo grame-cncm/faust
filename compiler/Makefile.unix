@@ -761,8 +761,8 @@ generator/interpreter/interpreter_code_container.o: generator/uitree.hh generato
 generator/interpreter/interpreter_code_container.o: parallelize/code_loop.hh generator/json_instructions.hh
 generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_dsp_aux.hh
 generator/interpreter/interpreter_code_container.o: generator/interpreter/fir_interpreter.hh
-generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_bytecode.hh
-generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_instructions.hh
+generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_bytecode.hh generator/dsp_aux.hh
+generator/interpreter/interpreter_code_container.o: export.hh generator/interpreter/interpreter_instructions.hh
 generator/interpreter/interpreter_code_container.o: generator/typing_instructions.hh generator/instructions_compiler.hh
 generator/interpreter/interpreter_code_container.o: generator/occurences.hh generator/fir_to_fir.hh
 generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_optimizer.hh
@@ -826,7 +826,7 @@ libcode.o: generator/asmjs/asmjs_instructions.hh generator/wasm/wasm_code_contai
 libcode.o: generator/wasm/wasm_instructions.hh generator/llvm/clang_code_container.hh libfaust.h export.hh
 libcode.o: generator/interpreter/interpreter_code_container.cpp errors/exception.hh
 libcode.o: generator/interpreter/interpreter_code_container.hh generator/interpreter/interpreter_dsp_aux.hh
-libcode.o: generator/interpreter/fir_interpreter.hh generator/interpreter/interpreter_bytecode.hh
+libcode.o: generator/interpreter/fir_interpreter.hh generator/interpreter/interpreter_bytecode.hh generator/dsp_aux.hh
 libcode.o: generator/interpreter/interpreter_instructions.hh generator/fir_to_fir.hh
 libcode.o: generator/interpreter/interpreter_optimizer.hh generator/fir/fir_code_container.hh
 libcode.o: generator/fir/fir_instructions.hh draw/schema/schema.h draw/device/device.h draw/drawschema.hh
