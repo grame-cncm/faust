@@ -220,22 +220,30 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         // Read user interface block
         getline(*in, dummy);    // Read "user_interface_block" line
         FIRUserInterfaceBlockInstruction<T>* ui_block = readUIBlock(in);
-        
+         
         // Read static init block
         getline(*in, dummy);    // Read "static_init_block" line
         FIRBlockInstruction<T>* static_init_block = readCodeBlock(in);
+        
+         //static_init_block->write(&std::cout);
         
         // Read init block
         getline(*in, dummy);    // Read "init_block" line
         FIRBlockInstruction<T>* init_block = readCodeBlock(in);
         
+         //init_block->write(&std::cout);
+        
         // Read control block
         getline(*in, dummy);    // Read "control_block" line
         FIRBlockInstruction<T>* compute_control_block = readCodeBlock(in);
+         //
+        compute_control_block->write(&std::cout);
         
         // Read DSP block
         getline(*in, dummy);    // Read "dsp_block" line
         FIRBlockInstruction<T>* compute_dsp_block = readCodeBlock(in);
+        
+         //compute_dsp_block->write(&std::cout);
         
         /*
         return new interpreter_dsp_factory_aux(factory_name,
