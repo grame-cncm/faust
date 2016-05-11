@@ -303,32 +303,6 @@ struct FIRBlockStoreRealInstruction : public FIRBasicInstruction<T> {
         this->fNumTable = numtable;
     }
     
-    /*
-    FIRBlockStoreRealInstruction(FIRInstruction::Opcode opcode, int offset1, int offset2, const std::vector<float>& numtable)
-    {
-        this->fOpcode = opcode;
-        this->fIntValue = 0;
-        this->fRealValue = 0;
-        this->fOffset1 = offset1;
-        this->fOffset2 = offset2;
-        this->fBranch1 = 0;
-        this->fBranch2 = 0;
-        this->fNumTable = numtable;
-    }
-    
-    FIRBlockStoreRealInstruction(FIRInstruction::Opcode opcode, int offset1, int offset2, const std::vector<double>& numtable)
-    {
-        this->fOpcode = opcode;
-        this->fIntValue = 0;
-        this->fRealValue = 0;
-        this->fOffset1 = offset1;
-        this->fOffset2 = offset2;
-        this->fBranch1 = 0;
-        this->fBranch2 = 0;
-        this->fNumTable = numtable;
-    }
-     */
-    
     virtual FIRBlockStoreRealInstruction<T>* copy()
     {
         return new FIRBlockStoreRealInstruction<T>(this->fOpcode, this->fOffset1 , this->fOffset2, this->fNumTable);

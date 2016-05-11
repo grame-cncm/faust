@@ -222,21 +222,31 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         getline(*in, dummy);    // Read "user_interface_block" line
         FIRUserInterfaceBlockInstruction<T>* ui_block = readUIBlock(in);
         
+        //ui_block->write(&std::cout);
+        
         // Read static init block
         getline(*in, dummy);    // Read "static_init_block" line
         FIRBlockInstruction<T>* static_init_block = readCodeBlock(in);
+        
+         //static_init_block->write(&std::cout);
         
         // Read init block
         getline(*in, dummy);    // Read "init_block" line
         FIRBlockInstruction<T>* init_block = readCodeBlock(in);
         
+         //init_block->write(&std::cout);
+        
         // Read control block
         getline(*in, dummy);    // Read "control_block" line
         FIRBlockInstruction<T>* compute_control_block = readCodeBlock(in);
+         //
+        compute_control_block->write(&std::cout);
         
         // Read DSP block
         getline(*in, dummy);    // Read "dsp_block" line
         FIRBlockInstruction<T>* compute_dsp_block = readCodeBlock(in);
+        
+         //compute_dsp_block->write(&std::cout);
         
         return new interpreter_dsp_factory_aux(factory_name,
                                                version_num,
@@ -382,7 +392,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         FIRInstruction::Opcode opcode;
         int offset1, offset2, val_int;
         float val_real;
-        std::string dummy, value;
+        std::string dummy, value, line;
         
         *inst >> dummy;  // Read "opcode" token
         *inst >> value; opcode = FIRInstruction::Opcode(strtol(value.c_str(), 0, 10));
@@ -403,10 +413,19 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
             *inst >> dummy;  // Read "size" token
             *inst >> value; block_size = strtol(value.c_str(), 0, 10);
             
+            std::cout << "readCodeInstruction kBlockStoreReal " << offset1 << " " << offset2 << " " << block_size << std::endl;
+            
+            // Read samples line
+            getline(*in, line);
+            std::stringstream sample_line_reader(line);
+            
+            // Read each sample
             for (int i = 0; i < block_size; i++) {
-                *inst >> value; float val_num = strtof(value.c_str(), 0);
+                sample_line_reader >> value; float val_num = strtof(value.c_str(), 0);
                 block_values.push_back(val_num);
             }
+            
+            std::cout << "readCodeInstruction kBlockStoreReal " << block_values.size() << std::endl;
             
             return new FIRBlockStoreRealInstruction<T>(opcode, offset1, offset2, block_values);
             
@@ -424,8 +443,13 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
             *inst >> dummy;  // Read "size" token
             *inst >> value; block_size = strtol(value.c_str(), 0, 10);
             
+            // Read samples line
+            getline(*in, line);
+            std::stringstream sample_line_reader(line);
+            
+            // Read each sample
             for (int i = 0; i < block_size; i++) {
-                *inst >> value; int val_num = strtol(value.c_str(), 0, 10);
+                sample_line_reader >> value; int val_num = strtol(value.c_str(), 0, 10);
                 block_values.push_back(val_num);
             }
             

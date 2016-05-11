@@ -263,47 +263,17 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
                     
                     FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(value);
-                    
-                    vector<T> num_table;
-                    for (int i = 0; i < float_array->fNumTable.size(); i++) {
-                        num_table.push_back(T(float_array->fNumTable[i]));
-                    }
-                    fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.first, float_array->fNumTable.size(), num_table));
-                    
-                    /*
-                    if (sizeof(T) == 4) {
-                        fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.first, 0, float_array->fNumTable));
-                    } else {
-                        vector<T> num_table;
-                        for (int i = 0; i < float_array->fNumTable.size(); i++) {
-                            num_table.push_back(T(float_array->fNumTable[i]));
-                        }
-                        fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.first, 0, num_table));
-                    }
-                    */
+                    fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal,
+                                                                            tmp.first, float_array->fNumTable.size(),
+                                                                            reinterpret_cast<const std::vector<T>&>(float_array->fNumTable)));
                     
                 } else if (ctype == Typed::kDouble) {
                     
                     DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(value);
-                    
-                    vector<T> num_table;
-                    for (int i = 0; i < double_array->fNumTable.size(); i++) {
-                        num_table.push_back(T(double_array->fNumTable[i]));
-                    }
-                    fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.first, double_array->fNumTable.size(), num_table));
-                    
-                    /*
-                    if (sizeof(T) == 8) {
-                        fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.first, 0, double_array->fNumTable));
-                    } else {
-                        vector<T> num_table;
-                        for (int i = 0; i < double_array->fNumTable.size(); i++) {
-                            num_table.push_back(T(double_array->fNumTable[i]));
-                        }
-                        fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.first, 0, num_table));
-                    }
-                    */
-                    
+                    fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal,
+                                                                            tmp.first, double_array->fNumTable.size(),
+                                                                            reinterpret_cast<const std::vector<T>&>(double_array->fNumTable)));
+                     
                 } else {
                     assert(false);
                 }
