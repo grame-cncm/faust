@@ -87,6 +87,12 @@ struct FIRBasicInstruction : public FIRInstruction {
                         fBranch1(0), fBranch2(0)
     {}
     
+    FIRBasicInstruction():fOpcode(FIRInstruction::kNone),
+                        fIntValue(0), fRealValue(0),
+                        fOffset1(-1), fOffset2(-1),
+                        fBranch1(0), fBranch2(0)
+    {}
+    
     FIRBlockInstruction<T>* getBranch1()
     {
         return (fOpcode == kCondBranch) ? 0 : fBranch1;
@@ -278,6 +284,104 @@ struct FIRBasicInstruction : public FIRInstruction {
                                           ((fBranch2) ? fBranch2->copy() : 0));
     }
     
+};
+
+template <class T>
+struct FIRBlockStoreRealInstruction : public FIRBasicInstruction<T> {
+
+    std::vector<T> fNumTable;
+    
+    FIRBlockStoreRealInstruction(FIRInstruction::Opcode opcode, int offset1, int offset2, const std::vector<T>& numtable)
+    {
+        this->fOpcode = opcode;
+        this->fIntValue = 0;
+        this->fRealValue = 0;
+        this->fOffset1 = offset1;
+        this->fOffset2 = offset2;
+        this->fBranch1 = 0;
+        this->fBranch2 = 0;
+        this->fNumTable = numtable;
+    }
+    
+    /*
+    FIRBlockStoreRealInstruction(FIRInstruction::Opcode opcode, int offset1, int offset2, const std::vector<float>& numtable)
+    {
+        this->fOpcode = opcode;
+        this->fIntValue = 0;
+        this->fRealValue = 0;
+        this->fOffset1 = offset1;
+        this->fOffset2 = offset2;
+        this->fBranch1 = 0;
+        this->fBranch2 = 0;
+        this->fNumTable = numtable;
+    }
+    
+    FIRBlockStoreRealInstruction(FIRInstruction::Opcode opcode, int offset1, int offset2, const std::vector<double>& numtable)
+    {
+        this->fOpcode = opcode;
+        this->fIntValue = 0;
+        this->fRealValue = 0;
+        this->fOffset1 = offset1;
+        this->fOffset2 = offset2;
+        this->fBranch1 = 0;
+        this->fBranch2 = 0;
+        this->fNumTable = numtable;
+    }
+     */
+    
+    FIRBlockStoreRealInstruction<T>* copy()
+    {
+        return new FIRBlockStoreRealInstruction<T>(this->fOpcode, this->fOffset1 , this->fOffset2, this->fNumTable);
+    }
+    
+    void write(std::ostream* out)
+    {
+        *out << "opcode " << this->fOpcode << " "
+        << gFIRInstructionTable[this->fOpcode]
+        << " offset1 " << this->fOffset1
+        << " offset2 " << this->fOffset2
+        << " size " << this->fNumTable.size() << std::endl;
+        for (int i = 0; i < fNumTable.size(); i++) {
+            *out << this->fNumTable[i] << " ";
+        }
+        *out << std::endl;
+    }
+};
+
+template <class T>
+struct FIRBlockStoreIntInstruction : public FIRBasicInstruction<T> {
+    
+    std::vector<int> fNumTable;
+    
+    FIRBlockStoreIntInstruction(FIRInstruction::Opcode opcode, int offset1, int offset2, const std::vector<int>& numtable)
+    {
+        this->fOpcode = opcode;
+        this->fIntValue = 0;
+        this->fRealValue = 0;
+        this->fOffset1 = offset1;
+        this->fOffset2 = offset2;
+        this->fBranch1 = 0;
+        this->fBranch2 = 0;
+        this->fNumTable = numtable;
+    }
+    
+    FIRBlockStoreIntInstruction<T>* copy()
+    {
+        return new FIRBlockStoreIntInstruction<T>(this->fOpcode, this->fOffset1 , this->fOffset2, this->fNumTable);
+    }
+    
+    void write(std::ostream* out)
+    {
+        *out << "opcode " << this->fOpcode << " "
+        << gFIRInstructionTable[this->fOpcode]
+        << " offset1 " << this->fOffset1
+        << " offset2 " << this->fOffset2
+        << " size " << this->fNumTable.size() << std::endl;
+        for (int i = 0; i < fNumTable.size(); i++) {
+            *out << this->fNumTable[i] << " ";
+        }
+        *out << std::endl;
+    }
 };
 
 template <class T>

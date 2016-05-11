@@ -566,16 +566,16 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
             // "In extension" array definition
             } else if (array_typed) {
                 fVarTable.push_back(InstBuilder::genDeclareVarInst(inst->fAddress->clone(&cloner), 
-                                                        inst->fType->clone(&cloner), 
-                                                        InstBuilder::genTypedZero(inst->fType->getType())));
+                                                                    inst->fType->clone(&cloner),
+                                                                    InstBuilder::genTypedZero(inst->fType->getType())));
                 Typed::VarType ctype = array_typed->fType->getType();
                 if (array_typed->fSize > 0) {
                     if (ctype == Typed::kInt) {
-                        IntArrayNumInst* int_num_array = dynamic_cast<IntArrayNumInst*>(inst->fValue);
+                        IntArrayNumInst* int_array = dynamic_cast<IntArrayNumInst*>(inst->fValue);
                         for (int i = 0; i < array_typed->fSize; i++) {
                             fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(inst->fAddress->getName(), 
                                                 InstBuilder::genIntNumInst(i), 
-                                                InstBuilder::genIntNumInst(int_num_array->getValue(i))));
+                                                InstBuilder::genIntNumInst(int_array->getValue(i))));
                         }
                     } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
                         FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(inst->fValue);

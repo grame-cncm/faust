@@ -40,10 +40,11 @@ struct FIRInstruction {
         kStoreRealValue, kStoreIntValue,
         kLoadIndexedReal, kLoadIndexedInt,
         kStoreIndexedReal, kStoreIndexedInt,
+        kBlockStoreReal, kBlockStoreInt,
         kMoveReal, kMoveInt,
         kPairMoveReal, kPairMoveInt,
         kBlockPairMoveReal, kBlockPairMoveInt,
-        kBlockShiftBackwardReal, kBlockShiftBackwardInt,
+        kBlockShiftReal, kBlockShiftInt,
         kLoadInput, kStoreOutput,
         
         // Cast
@@ -189,6 +190,8 @@ struct FIRInstruction {
         kAddHorizontalSlider, kAddVerticalSlider, kAddNumEntry, 
         kAddHorizontalBargraph, kAddVerticalBargraph,
         kDeclare,
+        
+        kNone,
     };
     
     virtual int size() { return 1; }
@@ -255,10 +258,11 @@ static std::string gFIRInstructionTable[] = {
     "kStoreRealValue", "kStoreIntValue",
     "kLoadIndexedReal", "kLoadIndexedInt", 
     "kStoreIndexedReal", "kStoreIndexedInt",
+    "kBlockStoreReal", "kBlockStoreInt",
     "kMoveReal", "kMoveInt",
     "kPairMoveReal", "kPairMoveInt",
     "kBlockPairMoveReal", "kBlockPairMoveInt",
-    "kBlockShiftBackwardReal", "kBlockShiftBackwardInt",
+    "kBlockShiftReal", "kBlockShiftInt",
     "kLoadInput", "kStoreOutput",
 
     // Cast
@@ -404,8 +408,9 @@ static std::string gFIRInstructionTable[] = {
     "kAddButton", "kAddChecButton", 
     "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", 
     "kAddHorizontalBargraph", "kAddVerticalBargraph",
-    "kDeclare"
-
+    "kDeclare",
+    
+    "kNone"
 };
 
 #define INTERP_FILE_VERSION 0.50

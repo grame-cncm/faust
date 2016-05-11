@@ -389,30 +389,75 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         
         *inst >> dummy;  // Read opcode string representation (that is not used)
         
-        *inst >> dummy;  // Read "int" token
-        *inst >> value; val_int = strtol(value.c_str(), 0, 10);
+        if (opcode == FIRInstruction::kBlockStoreReal) {
+            
+            int block_size;
+            std::vector<T> block_values;
+            
+            *inst >> dummy;  // Read "offset1" token
+            *inst >> value; offset1 = strtol(value.c_str(), 0, 10);
+            
+            *inst >> dummy;  // Read "offset2" token
+            *inst >> value; offset2 = strtol(value.c_str(), 0, 10);
+           
+            *inst >> dummy;  // Read "size" token
+            *inst >> value; block_size = strtol(value.c_str(), 0, 10);
+            
+            for (int i = 0; i < block_size; i++) {
+                *inst >> value; float val_num = strtof(value.c_str(), 0);
+                block_values.push_back(val_num);
+            }
+            
+            return new FIRBlockStoreRealInstruction<T>(opcode, offset1, offset2, block_values);
+            
+        } else if (opcode == FIRInstruction::kBlockStoreInt) {
+            
+            int block_size;
+            std::vector<int> block_values;
+            
+            *inst >> dummy;  // Read "offset1" token
+            *inst >> value; offset1 = strtol(value.c_str(), 0, 10);
+            
+            *inst >> dummy;  // Read "offset2" token
+            *inst >> value; offset2 = strtol(value.c_str(), 0, 10);
+            
+            *inst >> dummy;  // Read "size" token
+            *inst >> value; block_size = strtol(value.c_str(), 0, 10);
+            
+            for (int i = 0; i < block_size; i++) {
+                *inst >> value; int val_num = strtol(value.c_str(), 0, 10);
+                block_values.push_back(val_num);
+            }
+            
+            return new FIRBlockStoreIntInstruction<T>(opcode, offset1, offset2, block_values);
+            
+        } else {
         
-        *inst >> dummy;  // Read "real" token
-        *inst >> value; val_real = strtof(value.c_str(), 0);
-        
-        *inst >> dummy;  // Read "offset1" token
-        *inst >> value; offset1 = strtol(value.c_str(), 0, 10);
-        
-        *inst >> dummy;  // Read "offset2" token
-        *inst >> value; offset2 = strtol(value.c_str(), 0, 10);
-        
-        FIRBlockInstruction<T>* branch1 = 0;
-        FIRBlockInstruction<T>* branch2 = 0;
-        
-        // Possibly read sub-blocks
-        if (opcode == FIRInstruction::kIf) {
-            branch1 = readCodeBlock(in);  // consume 'in'
-            branch2 = readCodeBlock(in);  // consume 'in'
-        } else if (opcode == FIRInstruction::kLoop) {
-            branch1 = readCodeBlock(in);  // consume 'in'
+            *inst >> dummy;  // Read "int" token
+            *inst >> value; val_int = strtol(value.c_str(), 0, 10);
+            
+            *inst >> dummy;  // Read "real" token
+            *inst >> value; val_real = strtof(value.c_str(), 0);
+            
+            *inst >> dummy;  // Read "offset1" token
+            *inst >> value; offset1 = strtol(value.c_str(), 0, 10);
+            
+            *inst >> dummy;  // Read "offset2" token
+            *inst >> value; offset2 = strtol(value.c_str(), 0, 10);
+            
+            FIRBlockInstruction<T>* branch1 = 0;
+            FIRBlockInstruction<T>* branch2 = 0;
+            
+            // Possibly read sub-blocks
+            if (opcode == FIRInstruction::kIf) {
+                branch1 = readCodeBlock(in);  // consume 'in'
+                branch2 = readCodeBlock(in);  // consume 'in'
+            } else if (opcode == FIRInstruction::kLoop) {
+                branch1 = readCodeBlock(in);  // consume 'in'
+            }
+            
+            return new FIRBasicInstruction<T>(opcode, val_int, val_real, offset1, offset2, branch1, branch2);
         }
-        
-        return new FIRBasicInstruction<T>(opcode, val_int, val_real, offset1, offset2, branch1, branch2);
     }
     
     void metadata(Meta* meta)

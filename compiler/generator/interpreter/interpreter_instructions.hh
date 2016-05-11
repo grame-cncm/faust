@@ -210,7 +210,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             
             // Simulate a 'Store'
             if (inst->fValue) {
-                visitStore(inst->fAddress, inst->fValue);
+                visitStore(inst->fAddress, inst->fValue, inst->fType);
             }
         }
         
@@ -245,29 +245,96 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     
         //virtual void visit(LoadVarAddressInst* inst) {}
     
-        virtual void visitStore(Address* address, ValueInst* value)
+        virtual void visitStore(Address* address, ValueInst* value, Typed* type = NULL)
         {
-            // Compile value
-            value->accept(this);
+            ArrayTyped* array_typed;
             
-            NamedAddress* named = dynamic_cast<NamedAddress*>(address);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
-            
-            pair<int, Typed::VarType> tmp = fFieldTable[address->getName()];
-            
-            if (named) {
-                fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
-                                    ? FIRInstruction::kStoreInt : FIRInstruction::kStoreReal, 0, 0, tmp.first, 0));
-            } else {
-                // Compile  address
-                address->accept(this);
-                // Indexed 
-                string num;
-                if (startWithRes(indexed->getName(), "output", num)) {
-                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, atoi(num.c_str()), 0));
+            // Waveform array store...
+            if (type && (array_typed = dynamic_cast<ArrayTyped*>(type))) {
+                
+                pair<int, Typed::VarType> tmp = fFieldTable[address->getName()];
+                
+                Typed::VarType ctype = array_typed->fType->getType();
+                if (ctype == Typed::kInt) {
+                    
+                    IntArrayNumInst* int_array = dynamic_cast<IntArrayNumInst*>(value);
+                    fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(FIRInstruction::kBlockStoreInt, tmp.first, 0, int_array->fNumTable));
+                
+                } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
+                    
+                    FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(value);
+                    
+                    vector<T> num_table;
+                    for (int i = 0; i < float_array->fNumTable.size(); i++) {
+                        num_table.push_back(T(float_array->fNumTable[i]));
+                    }
+                    fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.first, float_array->fNumTable.size(), num_table));
+                    
+                    /*
+                    if (sizeof(T) == 4) {
+                        fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.first, 0, float_array->fNumTable));
+                    } else {
+                        vector<T> num_table;
+                        for (int i = 0; i < float_array->fNumTable.size(); i++) {
+                            num_table.push_back(T(float_array->fNumTable[i]));
+                        }
+                        fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.first, 0, num_table));
+                    }
+                    */
+                    
+                } else if (ctype == Typed::kDouble) {
+                    
+                    DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(value);
+                    
+                    //fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.first, 0, double_array->fNumTable));
+                    
+                    vector<T> num_table;
+                    for (int i = 0; i < double_array->fNumTable.size(); i++) {
+                        num_table.push_back(T(double_array->fNumTable[i]));
+                    }
+                    fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.first, double_array->fNumTable.size(), num_table));
+                    
+                    /*
+                    if (sizeof(T) == 8) {
+                        fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.first, 0, double_array->fNumTable));
+                    } else {
+                        vector<T> num_table;
+                        for (int i = 0; i < double_array->fNumTable.size(); i++) {
+                            num_table.push_back(T(double_array->fNumTable[i]));
+                        }
+                        fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.first, 0, num_table));
+                    }
+                    */
+                    
                 } else {
+                    assert(false);
+                }
+            
+            // Standard store
+            } else {
+                
+                // Compile value
+                value->accept(this);
+                
+                NamedAddress* named = dynamic_cast<NamedAddress*>(address);
+                IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
+                
+                pair<int, Typed::VarType> tmp = fFieldTable[address->getName()];
+                
+                if (named) {
                     fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
-                                        ? FIRInstruction::kStoreIndexedInt : FIRInstruction::kStoreIndexedReal, 0, 0, tmp.first, 0));
+                                        ? FIRInstruction::kStoreInt : FIRInstruction::kStoreReal, 0, 0, tmp.first, 0));
+                } else {
+                    // Compile  address
+                    address->accept(this);
+                    // Indexed 
+                    string num;
+                    if (startWithRes(indexed->getName(), "output", num)) {
+                        fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, atoi(num.c_str()), 0));
+                    } else {
+                        fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
+                                            ? FIRInstruction::kStoreIndexedInt : FIRInstruction::kStoreIndexedReal, 0, 0, tmp.first, 0));
+                    }
                 }
             }
         }
@@ -292,8 +359,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         {
             pair<int, Typed::VarType> tmp = fFieldTable[inst->fAddress->getName()];
             fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt)
-                                                               ? FIRInstruction::kBlockShiftBackwardInt
-                                                               : FIRInstruction::kBlockShiftBackwardReal, 0, 0, tmp.first + inst->fDelay, tmp.first));
+                                                               ? FIRInstruction::kBlockShiftInt
+                                                               : FIRInstruction::kBlockShiftReal, 0, 0, tmp.first + inst->fDelay, tmp.first));
         }
 
         // Primitives : numbers
@@ -301,14 +368,16 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         {
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst->fNum));
         }
-        
+
+        // for Waveform : done in DeclareVarInst and visitStore
         virtual void visit(FloatArrayNumInst* inst) {}
-        
-        virtual void visit(IntNumInst* inst)  
+
+        virtual void visit(IntNumInst* inst)
         {
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst->fNum, 0));
         }
-        
+
+        // for Waveform : done in DeclareVarInst and visitStore
         virtual void visit(IntArrayNumInst* inst) {}
         
         virtual void visit(BoolNumInst* inst)
@@ -321,7 +390,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             // Double considered real...
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst->fNum));
         }
-        
+
+        // for Waveform : done in DeclareVarInst and visitStore
         virtual void visit(DoubleArrayNumInst* inst) {}
 
         // Numerical computation

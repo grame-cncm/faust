@@ -1693,12 +1693,12 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
     int i;
         
     if (ctype == Typed::kInt) {
-        IntArrayNumInst* int_num_array = dynamic_cast<IntArrayNumInst*>(num_array);
+        IntArrayNumInst* int_array = dynamic_cast<IntArrayNumInst*>(num_array);
         for (int k = 0; k < size; k++) {
             if (isSigInt(sig->branch(k), &i)) {   
-                int_num_array->setValue(k, i);
+                int_array->setValue(k, i);
             } else if (isSigReal(sig->branch(k), &r)) {
-                int_num_array->setValue(k, int(r));
+                int_array->setValue(k, int(r));
             }
         }
     } else if (ctype == Typed::kFloat) {
@@ -1723,9 +1723,9 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         assert(false);
     }
     
-    // Ugly hack: in asm.js waveforms are allocated in the DSP object memory, itself allocted in a unique global heap
+    // Ugly hack: in 'asmjs' or 'interp' waveforms are allocated in the DSP object memory, itself allocated in a unique global heap
     // so initialisation is moved in "init" method
-    if (gGlobal->gOutputLang == "ajs") {
+    if ((gGlobal->gOutputLang == "ajs") || (gGlobal->gOutputLang == "interp")) {
         pushInitMethod(InstBuilder::genDecStaticStructVar(vname, type, num_array));
     } else {
         pushGlobalDeclare(InstBuilder::genDecStaticStructVar(vname, type, num_array));

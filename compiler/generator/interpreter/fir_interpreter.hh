@@ -145,10 +145,11 @@ class FIRInterpreter  {
                 &&do_kStoreRealValue, &&do_kStoreIntValue,
                 &&do_kLoadIndexedReal, &&do_kLoadIndexedInt,
                 &&do_kStoreIndexedReal, &&do_kStoreIndexedInt,
+                &&do_kBlockStoreReal, &&do_kBlockStoreInt,
                 &&do_kMoveReal, &&do_kMoveInt,
                 &&do_kPairMoveReal, &&do_kPairMoveInt,
                 &&do_kBlockPairMoveReal, &&do_kBlockPairMoveInt,
-                &&do_kBlockShiftBackwardReal, &&do_kBlockShiftBackwardInt,
+                &&do_kBlockShiftReal, &&do_kBlockShiftInt,
                 &&do_kLoadInput, &&do_kStoreOutput,
                 
                 // Cast
@@ -399,6 +400,26 @@ class FIRInterpreter  {
                     dispatch_next();
                 }
                 
+            do_kBlockStoreReal:
+                {
+                    FIRBlockStoreRealInstruction<T>* inst = dynamic_cast<FIRBlockStoreRealInstruction<T>*>(*it);
+                    assert(inst);
+                    for (int i = 0; i < inst->fOffset2; i++) {
+                        fRealHeap[inst->fOffset1 + i] = inst->fNumTable[i];
+                    }
+                    dispatch_next();
+                }
+                
+            do_kBlockStoreInt:
+                {
+                    FIRBlockStoreIntInstruction<T>* inst = dynamic_cast<FIRBlockStoreIntInstruction<T>*>(*it);
+                    assert(inst);
+                    for (int i = 0; i < inst->fOffset2; i++) {
+                        fIntHeap[inst->fOffset1 + i] = inst->fNumTable[i];
+                    }
+                    dispatch_next();
+                }
+                
                 do_kMoveReal:
                 {
                     fRealHeap[(*it)->fOffset1] = fRealHeap[(*it)->fOffset2];
@@ -441,7 +462,7 @@ class FIRInterpreter  {
                     dispatch_next();
                 }
                 
-                do_kBlockShiftBackwardReal:
+                do_kBlockShiftReal:
                 {
                     for (int i = (*it)->fOffset1; i > (*it)->fOffset2; i-=1) {
                         fRealHeap[i] = fRealHeap[i-1];
@@ -449,7 +470,7 @@ class FIRInterpreter  {
                     dispatch_next();
                 }
                 
-                do_kBlockShiftBackwardInt:
+                do_kBlockShiftInt:
                 {
                     for (int i = (*it)->fOffset1; i > (*it)->fOffset2; i-=1) {
                         fIntHeap[i] = fIntHeap[i-1];

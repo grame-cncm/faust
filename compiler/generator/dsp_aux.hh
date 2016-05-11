@@ -40,24 +40,24 @@
  */
 class faust_smartable {
     
-private:
-    
-    unsigned refCount;
-    
-public:
-    //! gives the reference count of the object
-    unsigned refs() const         { return refCount; }
-    //! addReference increments the ref count and checks for refCount overflow
-    void addReference()           { refCount++; assert(refCount != 0); }
-    //! removeReference delete the object when refCount is zero
-    void removeReference()		  { if (--refCount == 0) delete this; }
-    
-protected:
-    faust_smartable() : refCount(0) {}
-    faust_smartable(const faust_smartable&): refCount(0) {}
-    //! destructor checks for non-zero refCount
-    virtual ~faust_smartable()    { assert (refCount == 0); }
-    faust_smartable& operator=(const faust_smartable&) { return *this; }
+    private:
+        
+        unsigned refCount;
+        
+    public:
+        //! gives the reference count of the object
+        unsigned refs() const         { return refCount; }
+        //! addReference increments the ref count and checks for refCount overflow
+        void addReference()           { refCount++; assert(refCount != 0); }
+        //! removeReference delete the object when refCount is zero
+        void removeReference()		  { if (--refCount == 0) delete this; }
+        
+    protected:
+        faust_smartable() : refCount(0) {}
+        faust_smartable(const faust_smartable&): refCount(0) {}
+        //! destructor checks for non-zero refCount
+        virtual ~faust_smartable()    { assert (refCount == 0); }
+        faust_smartable& operator=(const faust_smartable&) { return *this; }
 };
 
 /*!
@@ -72,70 +72,69 @@ protected:
  */
 template<class T> class faust_smartptr {
     
-private:
-    
-    //! the actual pointer to the class
-    T* fSmartPtr;
-    
-public:
-    
-    //! an empty constructor - points to null
-    faust_smartptr()	: fSmartPtr(0) {}
-    //! build a smart pointer from a class pointer
-    faust_smartptr(T* rawptr) : fSmartPtr(rawptr)              { if (fSmartPtr) fSmartPtr->addReference(); }
-    //! build a smart pointer from an convertible class reference
-    template<class T2>
-    faust_smartptr(const faust_smartptr<T2>& ptr) : fSmartPtr((T*)ptr) { if (fSmartPtr) fSmartPtr->addReference(); }
-    //! build a smart pointer from another smart pointer reference
-    faust_smartptr(const faust_smartptr& ptr) : fSmartPtr((T*)ptr)     { if (fSmartPtr) fSmartPtr->addReference(); }
-    
-    //! the smart pointer destructor: simply removes one reference count
-    ~faust_smartptr()  { if (fSmartPtr) fSmartPtr->removeReference(); }
-    
-    //! cast operator to retrieve the actual class pointer
-    operator T*() const  { return fSmartPtr;	}
-    
-    //! '*' operator to access the actual class pointer
-    T& operator*() const {
-        // checks for null dereference
-        assert (fSmartPtr != 0);
-        return *fSmartPtr;
-    }
-    
-    //! operator -> overloading to access the actual class pointer
-    T* operator->() const	{
-        // checks for null dereference
-        assert (fSmartPtr != 0);
-        return fSmartPtr;
-    }
-    
-    //! operator = that moves the actual class pointer
-    template <class T2>
-    faust_smartptr& operator=(T2 p1_)	{ *this=(T*)p1_; return *this; }
-    
-    //! operator = that moves the actual class pointer
-    faust_smartptr& operator=(T* p_)	{
-        // check first that pointers differ
-        if (fSmartPtr != p_) {
-            // increments the ref count of the new pointer if not null
-            if (p_ != 0) p_->addReference();
-            // decrements the ref count of the old pointer if not null
-            if (fSmartPtr != 0) fSmartPtr->removeReference();
-            // and finally stores the new actual pointer
-            fSmartPtr = p_;
+    private:
+        
+        //! the actual pointer to the class
+        T* fSmartPtr;
+        
+    public:
+        
+        //! an empty constructor - points to null
+        faust_smartptr()	: fSmartPtr(0) {}
+        //! build a smart pointer from a class pointer
+        faust_smartptr(T* rawptr) : fSmartPtr(rawptr)              { if (fSmartPtr) fSmartPtr->addReference(); }
+        //! build a smart pointer from an convertible class reference
+        template<class T2>
+        faust_smartptr(const faust_smartptr<T2>& ptr) : fSmartPtr((T*)ptr) { if (fSmartPtr) fSmartPtr->addReference(); }
+        //! build a smart pointer from another smart pointer reference
+        faust_smartptr(const faust_smartptr& ptr) : fSmartPtr((T*)ptr)     { if (fSmartPtr) fSmartPtr->addReference(); }
+        
+        //! the smart pointer destructor: simply removes one reference count
+        ~faust_smartptr()  { if (fSmartPtr) fSmartPtr->removeReference(); }
+        
+        //! cast operator to retrieve the actual class pointer
+        operator T*() const  { return fSmartPtr;	}
+        
+        //! '*' operator to access the actual class pointer
+        T& operator*() const {
+            // checks for null dereference
+            assert (fSmartPtr != 0);
+            return *fSmartPtr;
         }
-        return *this;
-    }
-    //! operator < to support faust_smartptr map with Visual C++
-    bool operator<(const faust_smartptr<T>& p_)	const			  { return fSmartPtr < ((T *) p_); }
-    //! operator = to support inherited class reference
-    faust_smartptr& operator=(const faust_smartptr<T>& p_)                { return operator=((T *) p_); }
-    //! dynamic cast support
-    template<class T2> faust_smartptr& cast(T2* p_)               { return operator=(dynamic_cast<T*>(p_)); }
-    //! dynamic cast support
-    template<class T2> faust_smartptr& cast(const faust_smartptr<T2>& p_) { return operator=(dynamic_cast<T*>(p_)); }
+        
+        //! operator -> overloading to access the actual class pointer
+        T* operator->() const	{
+            // checks for null dereference
+            assert (fSmartPtr != 0);
+            return fSmartPtr;
+        }
+        
+        //! operator = that moves the actual class pointer
+        template <class T2>
+        faust_smartptr& operator=(T2 p1_)	{ *this=(T*)p1_; return *this; }
+        
+        //! operator = that moves the actual class pointer
+        faust_smartptr& operator=(T* p_)	{
+            // check first that pointers differ
+            if (fSmartPtr != p_) {
+                // increments the ref count of the new pointer if not null
+                if (p_ != 0) p_->addReference();
+                // decrements the ref count of the old pointer if not null
+                if (fSmartPtr != 0) fSmartPtr->removeReference();
+                // and finally stores the new actual pointer
+                fSmartPtr = p_;
+            }
+            return *this;
+        }
+        //! operator < to support faust_smartptr map with Visual C++
+        bool operator<(const faust_smartptr<T>& p_)	const			  { return fSmartPtr < ((T *) p_); }
+        //! operator = to support inherited class reference
+        faust_smartptr& operator=(const faust_smartptr<T>& p_)                { return operator=((T *) p_); }
+        //! dynamic cast support
+        template<class T2> faust_smartptr& cast(T2* p_)               { return operator=(dynamic_cast<T*>(p_)); }
+        //! dynamic cast support
+        template<class T2> faust_smartptr& cast(const faust_smartptr<T2>& p_) { return operator=(dynamic_cast<T*>(p_)); }
 };
-
 
 //----------------------------------------------------------------
 // Smart DSP factory table
