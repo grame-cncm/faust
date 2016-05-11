@@ -232,6 +232,7 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     compute_dsp_block = OptimizeBlock(compute_dsp_block, size);
     
     // Then create factory
+    /*
     return new interpreter_dsp_factory(new interpreter_dsp_factory_aux<T>(fKlassName,
                                                                         INTERP_FILE_VERSION,
                                                                         fNumInputs, fNumOutputs,
@@ -245,6 +246,32 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
                                                                         init_block,
                                                                         compute_control_block,
                                                                         compute_dsp_block));
+     */
+    
+    interpreter_dsp_factory* factory = new interpreter_dsp_factory(new interpreter_dsp_factory_aux<T>(fKlassName,
+                                                                          INTERP_FILE_VERSION,
+                                                                          fNumInputs, fNumOutputs,
+                                                                          getInterpreterVisitor<T>()->fIntHeapOffset,
+                                                                          getInterpreterVisitor<T>()->fRealHeapOffset,
+                                                                          getInterpreterVisitor<T>()->fSROffset,
+                                                                          getInterpreterVisitor<T>()->fCountOffset,
+                                                                          produceMetadata(),
+                                                                          getInterpreterVisitor<T>()->fUserInterfaceBlock,
+                                                                          init_static_block,
+                                                                          init_block,
+                                                                          compute_control_block,
+                                                                          compute_dsp_block));
+    /*
+    std::string code = writeInterpreterDSPFactoryToMachine(factory);
+    interpreter_dsp_factory* factory1 = readInterpreterDSPFactoryFromMachine(code);
+     
+    //std::cout << code;
+    */
+    
+    writeInterpreterDSPFactoryToMachineFile(factory, "test.fbc");
+    interpreter_dsp_factory* factory1 = readInterpreterDSPFactoryFromMachineFile("test.fbc");
+    
+    return factory1;
 }
 
 template <class T>
