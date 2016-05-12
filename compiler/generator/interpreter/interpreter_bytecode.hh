@@ -384,11 +384,11 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
     {}
     
     FIRUserInterfaceInstruction(Opcode opcode)
-        :fOpcode(opcode), fOffset(0), fLabel(""), fKey(""), fValue(""), fInit(0), fMin(0), fMax(0), fStep(0)
+        :fOpcode(opcode), fOffset(-1), fLabel(""), fKey(""), fValue(""), fInit(0), fMin(0), fMax(0), fStep(0)
     {}
     
     FIRUserInterfaceInstruction(Opcode opcode, const std::string& label)
-        :fOpcode(opcode), fOffset(0), fLabel(label), fKey(""), fValue(""), fInit(0), fMin(0), fMax(0), fStep(0)
+        :fOpcode(opcode), fOffset(-1), fLabel(label), fKey(""), fValue(""), fInit(0), fMin(0), fMax(0), fStep(0)
     {}
     
     FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label)

@@ -199,14 +199,22 @@ static std::string read_real_type(std::istream* in)
 static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(std::istream* in)
 {
     std::string type = read_real_type(in);
+    interpreter_dsp_factory* factory = 0;
+    
     if (type == "float") {
-        return new interpreter_dsp_factory(interpreter_dsp_factory_aux<float>::read(in));
+        factory =  new interpreter_dsp_factory(interpreter_dsp_factory_aux<float>::read(in));
     } else if (type == "double") {
-        return new interpreter_dsp_factory(interpreter_dsp_factory_aux<double>::read(in));
+        factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<double>::read(in));
     } else {
         assert(false);
-        return 0;
     }
+    
+    /*
+     Factory is added in the table but no SHAKey is actually computed, since this is no real gain 
+     in checking if a same stream will result in a same factory before reading and buiding it...
+    */
+    gFactoryTable.setFactory(factory);
+    return factory;
 }
 
 EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const string& machine_code)

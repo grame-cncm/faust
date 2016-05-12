@@ -161,6 +161,7 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> >
             }
         }
         
+        std::cerr << "ERROR : getFactory factory not found!" << std::endl;
         return false;
     }
     
@@ -178,6 +179,7 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> >
             (*it).second.push_back(dsp);
             return true;
         } else {
+            std::cerr << "ERROR : addDSP factory not found!" << std::endl;
             return false;
         }
     }
@@ -192,6 +194,7 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> >
             (*it).second.remove(dsp);
             return true;
         } else {
+            std::cerr << "ERROR : removeDSP factory not found!" << std::endl;
             return false;
         }
     }
@@ -217,6 +220,7 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> >
             sfactory->addReference();
             return sfactory;
         } else {
+            std::cerr << "WARNING : getDSPFactoryFromSHAKey factory not found!" << std::endl;
             return 0;
         }
     }
@@ -239,6 +243,7 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> >
             }
         }
         
+        std::cerr << "ERROR : deleteDSPFactory factory not found!" << std::endl;
         return false;
     }
     
