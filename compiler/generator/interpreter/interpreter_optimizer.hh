@@ -25,6 +25,7 @@
 #include <string>
 #include <assert.h>
 #include <iostream>
+#include <map>
 
 #include "interpreter_bytecode.hh"
 
@@ -468,7 +469,9 @@ struct FIRInstructionOptimizer {
                                                            optimize_aux(inst->fBranch1, optimizer),
                                                            0));
                 cur++;
-            } else if (inst->fOpcode == FIRInstruction::kIf) {
+            } else if (inst->fOpcode == FIRInstruction::kIf
+                       || inst->fOpcode == FIRInstruction::kSelectReal
+                       || inst->fOpcode == FIRInstruction::kSelectInt) {
                 new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,
                                                            inst->fIntValue, inst->fRealValue,
                                                            inst->fOffset1, inst->fOffset2,
@@ -678,5 +681,172 @@ struct FIRInstructionOptimizer {
     }
 };
 
+/*
+
+template <class T>
+struct FIRInstructionSpecialier {
+    
+    typedef std::map<int, T>    RealMap;
+    typedef std::map<int, int>  IntMap;
+    
+    static FIRBlockInstruction<T>* specializeBlock(FIRBlockInstruction<T>* cur_block, IntMap& int_map, RealMap& real_map)
+    {
+        FIRBlockInstruction<T>* new_block = new FIRBlockInstruction<T>();
+        
+        InstructionIT cur = cur_block->fInstructions.begin();
+        
+        FIRBasicInstruction<T>* res = 0;
+        
+        FIRBasicInstruction<T>* inst1 = *cur;
+        FIRBasicInstruction<T>* inst2 = *(cur + 1);
+        FIRBasicInstruction<T>* inst3 = *(cur + 2);
+        
+        int consumed;
+        
+        while ((res = specializeInstruction(inst1, inst2, inst3, int_map, real_map, consumed)) {
+            inst1 = res;
+            if (
+        }
+        
+        
+        if (res) {
+            
+        }
+       
+        
+        
+    }
+    
+    static FIRBasicInstruction<T>* specializeInstruction(FIRBasicInstruction<T>* inst1
+                                                         FIRBasicInstruction<T>* inst2
+                                                         FIRBasicInstruction<T>* inst3,
+                                                         IntMap& int_map,
+                                                         RealMap& real_map
+                                                         int& consumed)
+    {
+        
+        FIRBasicInstruction<T>* res = 0;
+        
+        if (inst1->fOpcode == FIRInstruction::kLoadReal) {
+            
+            if (real_map.find(inst1->fOffset1) != real_map.end()) {
+                res = FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, real_map[inst1->fOffset1]);
+                consumed = 1;
+            }
+            
+        } else if (inst1->fOpcode == FIRInstruction::kLoadInt) {
+            
+            if (int_map.find(inst1->fOffset1) != int_map.end()) {
+                res = FIRBasicInstruction<T>(FIRInstruction::kIntValue, int_map[inst1->fOffset1], 0);
+                consumed = 1;
+            }
+            
+        } else if (inst1->fOpcode == FIRInstruction::kRealValue
+                   inst2->fOpcode == FIRInstruction::kStoreReal) {
+            
+            // Add a new entry in real_map
+            real_map[inst2->fOffset1] = inst1->fRealValue;
+            consumed = 2;
+            
+        } else if (inst1->fOpcode == FIRInstruction::kIntValue
+                   inst2->fOpcode == FIRInstruction::kStoreInt) {
+            
+            // Add a new entry in int_map
+            int_map[inst2->fOffset1] = inst1->fIntValue;
+            consumed = 2;
+            
+        // kLoadIndexed
+        } else if (inst1->fOpcode == FIRInstruction::kIntValue
+                   inst2->fOpcode == FIRInstruction::kLoadIndexedReal) {
+            
+            if (int_map.find(inst2->fOffset1) != int_map.end()) {
+                res = FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, int_map[inst2->fOffset1] + inst1->fIntValue);
+                consumed = 2;
+            }
+            
+        } else if (inst1->fOpcode == FIRInstruction::kIntValue
+                   inst2->fOpcode == FIRInstruction::kLoadIndexedInt) {
+            
+            if (int_map.find(inst2->fOffset1) != int_map.end()) {
+                res = FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, int_map[inst2->fOffset1] + inst1->fIntValue);
+                consumed = 2;
+            }
+            
+        // kStoreIndexed
+        } else if (inst1->fOpcode == FIRInstruction::kIntValue
+                   inst2->fOpcode == FIRInstruction::kStoreIndexedReal) {
+            
+            if (int_map.find(inst2->fOffset1) != int_map.end()) {
+                res = FIRBasicInstruction<T>(FIRInstruction::kStoreReal, 0, 0, int_map[inst2->fOffset1] + inst1->fIntValue);
+                consumed = 2;
+            }
+            
+        } else if (inst1->fOpcode == FIRInstruction::kIntValue
+                   inst2->fOpcode == FIRInstruction::kStoreIndexedInt) {
+            
+            if (int_map.find(inst2->fOffset1) != int_map.end()) {
+                res = FIRBasicInstruction<T>(FIRInstruction::kStoreInt, 0, 0, int_map[inst2->fOffset1] + inst1->fIntValue);
+                consumed = 2;
+            }
+           
+        // TODO : Input/output
+            
+        } else if (inst1->fOpcode == FIRInstruction::kRealValue
+                   && inst2->fOpcode == FIRInstruction::kRealValue
+                   && (isMath(inst3->fOpcode) || isExtendedBinaryMath(inst3->fOpcode))) {
+            
+            res = specializeBinaryMath(inst1, inst2, inst3, int_map, real_map);
+            consumed = 3;
+            
+        } else if (inst1->fOpcode == FIRInstruction::kIntValue
+                   && inst2->fOpcode == FIRInstruction::kIntValue
+                   && (isMath(inst3->fOpcode) || isExtendedBinaryMath(inst3->fOpcode))) {
+            
+            res = specializeBinaryMath(inst1, inst2, inst3, int_map, real_map);
+            consumed = 3;
+            
+        } else if (inst1->fOpcode == FIRInstruction::kRealValue
+                   && isExtendedUnaryMath(inst2->fOpcode)) {
+            
+            res = specializeUnaryMath(inst1, inst2, int_map, real_map);
+            consumed = 2;
+            
+        } else if (inst1->fOpcode == FIRInstruction::kIntValue
+                   && isExtendedUnaryMath(inst2->fOpcode)) {
+            
+            res = specializeUnaryMath(inst1, inst2, int_map, real_map);
+            consumed = 2;
+            
+        } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kCastReal) {
+            
+            res = FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, T(inst1->fIntValue));
+            consumed = 1;
+            
+        } else if (inst1->fOpcode == FIRInstruction::kRealValue && inst2->fOpcode == FIRInstruction::kCastInt) {
+            
+            res = FIRBasicInstruction<T>(FIRInstruction::kIntValue, int(inst1->fIntValue), 0);
+            consumed = 1;
+         
+        // SelectReal/SelectInt
+        } else if (inst1->fOpcode == FIRInstruction::kIntValue
+                   && ((inst2->fOpcode == FIRInstruction::kSelectReal)
+                       ||(inst2->fOpcode == FIRInstruction::kSelectInt))) {
+            
+            if (inst1->fIntValue) {
+                specializeBlock((*it)->fBranch1, int_map, real_map);
+                consumed = 1;
+            } else {
+                specializeBlock((*it)->fBranch2, int_map, real_map);
+                consumed = 1;
+            }
+         
+        }
+        
+        
+        return res;
+    }
+
+};
+*/
 
 #endif
