@@ -2253,7 +2253,7 @@ class FIRInterpreter  {
             typename std::map<int, T>::iterator it2;
             for (it2 = real_map.begin(); it2 != real_map.end(); it2++) {
                 std::cout << "offset " << (*it2).first << " value " << (*it2).second << std::endl;
-                fRealHeap[(*it1).first] = (*it1).second;
+                fRealHeap[(*it2).first] = (*it2).second;
             }
         }
 

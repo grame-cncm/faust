@@ -575,14 +575,15 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->fInputs = new T*[fFactory->fNumInputs];
             this->fOutputs = new T*[fFactory->fNumOutputs];
             
-            
             std::map<int, T> real_map = factory->fUserInterfaceBlock->getDefaultValues();
             std::map<int, int> int_map;
             
             // TODO : do this at instance level
             factory->fComputeBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeBlock, int_map, real_map);
+            factory->fComputeBlock->write(&std::cout);
             
-            //factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeDSPBlock, int_map, real_map);
+            factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeDSPBlock, int_map, real_map);
+            factory->fComputeDSPBlock->write(&std::cout);
             
             this->freeezeValues(int_map, real_map);
         }
@@ -655,7 +656,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
                 this->fOutputs[i] = outputs[i];
             }
-            
+           
             // Executes the 'control' block
             this->ExecuteBlock(this->fFactory->fComputeBlock);
             

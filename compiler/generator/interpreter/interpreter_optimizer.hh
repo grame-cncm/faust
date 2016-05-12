@@ -505,10 +505,16 @@ struct FIRInstructionConstantValueHeap2Map : public FIRInstructionOptimizer<T>  
             end = cur + 2;
             // Add a new entry in real_map
             fRealMap[inst2->fOffset1] = inst1->fRealValue;
+            
+            std::cout << " kNop FIRInstruction::kRealValue && FIRInstruction::kStoreReal " << std::endl;
+  
             return new FIRBasicInstruction<T>(FIRInstruction::kNop);
         } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kStoreInt) {
             end = cur + 2;
             // Add a new entry in int_map
+            
+            std::cout << " kNop FIRInstruction::kIntValue && FIRInstruction::kStoreInt " << std::endl;
+            
             fIntMap[inst2->fOffset1] = inst1->fIntValue;
             return new FIRBasicInstruction<T>(FIRInstruction::kNop);
         } else {
@@ -688,55 +694,55 @@ struct FIRInstructionMathComputeOptimizer : public FIRInstructionOptimizer<T>  {
                 
                 
             case FIRInstruction::kAbsf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::fabs(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::fabs(inst1->fIntValue));
                 
             case FIRInstruction::kAcosf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::acos(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::acos(inst1->fIntValue));
                 
             case FIRInstruction::kAsinf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::asin(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::asin(inst1->fIntValue));
                 
             case FIRInstruction::kAtanf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::atan(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::atan(inst1->fIntValue));
                 
             case FIRInstruction::kCeilf:
-               return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::ceil(inst1->fIntValue));
+               return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::ceil(inst1->fIntValue));
                 
             case FIRInstruction::kCosf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::cos(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::cos(inst1->fIntValue));
                 
             case FIRInstruction::kCoshf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::cosh(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::cosh(inst1->fIntValue));
                 
             case FIRInstruction::kExpf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::exp(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::exp(inst1->fIntValue));
                 
             case FIRInstruction::kFloorf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::floor(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::floor(inst1->fIntValue));
                 
             case FIRInstruction::kLogf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::log(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::log(inst1->fIntValue));
                 
             case FIRInstruction::kLog10f:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::log10(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::log10(inst1->fIntValue));
                 
             case FIRInstruction::kRoundf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::round(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::round(inst1->fIntValue));
                 
             case FIRInstruction::kSinf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::sin(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::sin(inst1->fIntValue));
                 
             case FIRInstruction::kSinhf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::sinh(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::sinh(inst1->fIntValue));
                 
             case FIRInstruction::kSqrtf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::sqrt(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::sqrt(inst1->fIntValue));
                 
             case FIRInstruction::kTanf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::tan(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::tan(inst1->fIntValue));
                 
             case FIRInstruction::kTanhf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, std::tanh(inst1->fIntValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::tanh(inst1->fIntValue));
                 
             default:
                 assert(false);
@@ -767,28 +773,28 @@ struct FIRInstructionMathComputeOptimizer : public FIRInstructionOptimizer<T>  {
         
         if (inst1->fOpcode == FIRInstruction::kRealValue
             && inst2->fOpcode == FIRInstruction::kRealValue
-            && (FIRInstruction::isMath(inst3->fOpcode) || FIRInstruction::isMath(inst3->fOpcode))) {
+            && FIRInstruction::isMath(inst3->fOpcode)) {
             
             end = cur + 3;
             return rewriteBinaryRealMath(inst1, inst2, inst3);
             
         } else if (inst1->fOpcode == FIRInstruction::kIntValue
                    && inst2->fOpcode == FIRInstruction::kIntValue
-                   && (FIRInstruction::isMath(inst3->fOpcode) || FIRInstruction::isMath(inst3->fOpcode))) {
+                   && FIRInstruction::isMath(inst3->fOpcode)) {
             
             end = cur + 3;
             return rewriteBinaryIntMath(inst1, inst2, inst3);
             
         } else if (inst1->fOpcode == FIRInstruction::kRealValue
                    && inst2->fOpcode == FIRInstruction::kRealValue
-                   && (FIRInstruction::isMath(inst3->fOpcode) || FIRInstruction::isExtendedBinaryMath(inst3->fOpcode))) {
+                   && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
             
             end = cur + 3;
             return rewriteExtendedBinaryRealMath(inst1, inst2, inst3);
             
         } else if (inst1->fOpcode == FIRInstruction::kIntValue
                    && inst2->fOpcode == FIRInstruction::kIntValue
-                   && (FIRInstruction::isMath(inst3->fOpcode) || FIRInstruction::isExtendedBinaryMath(inst3->fOpcode))) {
+                   && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
             
             end = cur + 3;
             return rewriteExtendedBinaryIntMath(inst1, inst2, inst3);
@@ -878,11 +884,6 @@ struct FIRInstructionOptimizer {
     // Specialize a block
     static FIRBlockInstruction<T>* specialize(FIRBlockInstruction<T>* cur_block, std::map<int, int>& int_map, std::map<int, T>& real_map)
     {
-        /*
-        std::map<int, int> fIntMap = int_map;
-        std::map<int, T> fRealMap = real_map;
-         */
-        
         typename std::map<int, T>::iterator it;
         
         FIRInstructionConstantValueMap2Heap<T> map_2_heap(int_map, real_map);
@@ -910,9 +911,11 @@ struct FIRInstructionOptimizer {
             cur_block = optimize(cur_block, map_2_heap);
             cur_block->write(&std::cout);
             
+            
             std::cout << "FIRInstructionMathComputeOptimizer" << std::endl;
             cur_block = optimize(cur_block, math_compute);
             cur_block->write(&std::cout);
+            
             
             std::cout << "FIRInstructionConstantValueHeap2Map" << std::endl;
             cur_block = optimize(cur_block, heap_2_map);
@@ -928,15 +931,15 @@ struct FIRInstructionOptimizer {
             std::cout << "real_map offset " << (*it).first << " value " << (*it).second << std::endl;
         }
         
-        // Cleanup kNop instructions
+        // Remove kNop instructions
         FIRBlockInstruction<T>* res_block = new FIRBlockInstruction<T>();
         InstructionIT it1;
         for (it1 = cur_block->fInstructions.begin(); it1 != cur_block->fInstructions.end(); it1++) {
-            if ((*it1)->fOpcode != FIRInstruction::kNop) {   // Special case for loops
+            if ((*it1)->fOpcode != FIRInstruction::kNop) {
                 res_block->push((*it1)->copy());
             }
         }
-        
+        delete cur_block;
         return res_block;
     }
    
