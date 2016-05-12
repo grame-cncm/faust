@@ -118,7 +118,7 @@ InterpreterScalarCodeContainer<T>::~InterpreterScalarCodeContainer()
 {}
 
 template <class T>
-FIRBlockInstruction<T>* InterpreterCodeContainer<T>::OptimizeBlock(FIRBlockInstruction<T>* block, int& size)
+FIRBlockInstruction<T>* InterpreterCodeContainer<T>::optimizeBlock(FIRBlockInstruction<T>* block, int& size)
 {
     //cout << "Optimize = " << block->size() << endl;
     
@@ -192,14 +192,14 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     generateSubContainers();
     
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
-    InlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gInterpreterVisitor);
+    inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gInterpreterVisitor);
     
     // Keep "init_static_block"
     FIRBlockInstruction<T>* init_static_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FIRBlockInstruction<T>());
     
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
-    InlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gInterpreterVisitor);
+    inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gInterpreterVisitor);
     
     FIRBlockInstruction<T>* init_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FIRBlockInstruction<T>);
@@ -224,12 +224,14 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     compute_control_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     compute_dsp_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     
+    /*
     // Bytecode optimization
     int size;
-    init_static_block = OptimizeBlock(init_static_block, size);
-    init_block = OptimizeBlock(init_block, size);
-    compute_control_block = OptimizeBlock(compute_control_block, size);
-    compute_dsp_block = OptimizeBlock(compute_dsp_block, size);
+    init_static_block = optimizeBlock(init_static_block, size);
+    init_block = optimizeBlock(init_block, size);
+    compute_control_block = optimizeBlock(compute_control_block, size);
+    compute_dsp_block = optimizeBlock(compute_dsp_block, size);
+     */
     
     // Then create factory
     /*

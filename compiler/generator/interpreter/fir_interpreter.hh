@@ -1836,7 +1836,7 @@ class FIRInterpreter  {
                 {
                     T v1 = pop_real();
                     T v2 = pop_real();
-                    push_real(atan2f(v1, v2));
+                    push_real(std::atan2(v1, v2));
                     dispatch_next();
                 }
            
@@ -1844,7 +1844,7 @@ class FIRInterpreter  {
                 {
                     T v1 = pop_real();
                     T v2 = pop_real();
-                    push_real(fmodf(v1, v2));
+                    push_real(std::fmod(v1, v2));
                     dispatch_next();
                 }
                 
@@ -1852,7 +1852,7 @@ class FIRInterpreter  {
                 {
                     T v1 = pop_real();
                     T v2 = pop_real();
-                    push_real(powf(v1, v2));
+                    push_real(std::pow(v1, v2));
                     dispatch_next();
                 }
                 
@@ -1895,19 +1895,19 @@ class FIRInterpreter  {
                 
                 do_kAtan2fHeap:
                 {
-                    push_real(atan2f(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
+                    push_real(std::atan2(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
                     dispatch_next();
                 }
 
                 do_kFmodfHeap:
                 {
-                    push_real(fmodf(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
+                    push_real(std::fmod(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
                     dispatch_next();
                 }
 
                 do_kPowfHeap:
                 {
-                    push_real(powf(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
+                    push_real(std::pow(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
                     dispatch_next();
                 }
 
@@ -1942,21 +1942,21 @@ class FIRInterpreter  {
                 do_kAtan2fStack:
                 {
                     T v1 = pop_real();
-                    push_real(atan2f(fRealHeap[(*it)->fOffset1], v1));
+                    push_real(std::atan2(fRealHeap[(*it)->fOffset1], v1));
                     dispatch_next();
                 }
                 
                 do_kFmodfStack:
                 {
                     T v1 = pop_real();
-                    push_real(fmodf(fRealHeap[(*it)->fOffset1], v1));
+                    push_real(std::fmod(fRealHeap[(*it)->fOffset1], v1));
                     dispatch_next();
                 }
                 
                 do_kPowfStack:
                 {
                     T v1 = pop_real();
-                    push_real(powf(fRealHeap[(*it)->fOffset1], v1));
+                    push_real(std::pow(fRealHeap[(*it)->fOffset1], v1));
                     dispatch_next();
                 }
                 
@@ -1995,21 +1995,21 @@ class FIRInterpreter  {
                 do_kAtan2fStackValue:
                 {
                     T v1 = pop_real();
-                    push_real(atan2f((*it)->fRealValue, v1));
+                    push_real(std::atan2((*it)->fRealValue, v1));
                     dispatch_next();
                 }
                 
                 do_kFmodfStackValue:
                 {
                     T v1 = pop_real();
-                    push_real(fmodf((*it)->fRealValue, v1));
+                    push_real(std::fmod((*it)->fRealValue, v1));
                     dispatch_next();
                 }
                 
                 do_kPowfStackValue:
                 {
                     T v1 = pop_real();
-                    push_real(powf((*it)->fRealValue, v1));
+                    push_real(std::pow((*it)->fRealValue, v1));
                     dispatch_next();
                 }
                 
@@ -2047,19 +2047,19 @@ class FIRInterpreter  {
 
                 do_kAtan2fValue:
                 {
-                    push_real(atan2f((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
+                    push_real(std::atan2((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
 
                 do_kFmodfValue:
                 {
-                    push_real(fmodf((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
+                    push_real(std::fmod((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
 
                 do_kPowfValue:
                 {
-                    push_real(powf((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
+                    push_real(std::pow((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
                     dispatch_next();
                 }
 
@@ -2093,19 +2093,19 @@ class FIRInterpreter  {
 
                 do_kAtan2fValueInvert:
                 {
-                    push_real(atan2f(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
+                    push_real(std::atan2(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
                     dispatch_next();
                 }
 
                 do_kFmodfValueInvert:
                 {
-                    push_real(fmodf(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
+                    push_real(std::fmod(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
                     dispatch_next();
                 }
 
                 do_kPowfValueInvert:
                 {
-                    push_real(powf(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
+                    push_real(std::pow(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
                     dispatch_next();
                 }
 
@@ -2238,6 +2238,25 @@ class FIRInterpreter  {
             delete [] fRealHeap;
             delete [] fIntHeap;
         }
+    
+        // Freeze values
+        void freeezeValues(std::map<int, int>& int_map, std::map<int, T>& real_map)
+        {
+            std::cout << "freeezeValues Int " << std::endl;
+            typename std::map<int, int>::iterator it1;
+            for (it1 = int_map.begin(); it1 != int_map.end(); it1++) {
+                std::cout << "offset " << (*it1).first << " value " << (*it1).second << std::endl;
+                fIntHeap[(*it1).first] = (*it1).second;
+            }
+            
+            std::cout << "freeezeValues Real" << std::endl;
+            typename std::map<int, T>::iterator it2;
+            for (it2 = real_map.begin(); it2 != real_map.end(); it2++) {
+                std::cout << "offset " << (*it2).first << " value " << (*it2).second << std::endl;
+                fRealHeap[(*it1).first] = (*it1).second;
+            }
+        }
+
  
 };
 

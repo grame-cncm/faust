@@ -34,6 +34,7 @@
 #include "faust/gui/meta.h"
 #include "fir_interpreter.hh"
 #include "interpreter_bytecode.hh"
+#include "interpreter_optimizer.hh"
 #include "dsp_aux.hh"
 
 #ifdef _WIN32
@@ -573,6 +574,17 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             fFactory = factory;
             this->fInputs = new T*[fFactory->fNumInputs];
             this->fOutputs = new T*[fFactory->fNumOutputs];
+            
+            
+            std::map<int, T> real_map = factory->fUserInterfaceBlock->getDefaultValues();
+            std::map<int, int> int_map;
+            
+            // TODO : do this at instance level
+            factory->fComputeBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeBlock, int_map, real_map);
+            
+            //factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeDSPBlock, int_map, real_map);
+            
+            this->freeezeValues(int_map, real_map);
         }
     
         virtual ~interpreter_dsp_aux()

@@ -191,7 +191,7 @@ struct FIRInstruction {
         kAddHorizontalBargraph, kAddVerticalBargraph,
         kDeclare,
         
-        kNone,
+        kNop,
     };
     
     virtual int size() { return 1; }
@@ -410,7 +410,7 @@ static std::string gFIRInstructionTable[] = {
     "kAddHorizontalBargraph", "kAddVerticalBargraph",
     "kDeclare",
     
-    "kNone"
+    "kNop"
 };
 
 #define INTERP_FILE_VERSION 0.50

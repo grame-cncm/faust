@@ -87,7 +87,7 @@ struct FIRBasicInstruction : public FIRInstruction {
                         fBranch1(0), fBranch2(0)
     {}
     
-    FIRBasicInstruction():fOpcode(FIRInstruction::kNone),
+    FIRBasicInstruction():fOpcode(FIRInstruction::kNop),
                         fIntValue(0), fRealValue(0),
                         fOffset1(-1), fOffset2(-1),
                         fBranch1(0), fBranch2(0)
@@ -464,6 +464,24 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
             (*it)->write(out);
         }
+    }
+    
+    std::map<int, T> getDefaultValues()
+    {
+        std::map<int, T> real_map;
+        UIInstructionIT it;
+        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+            if ((*it)->fOpcode == FIRInstruction::kAddButton
+                || (*it)->fOpcode == FIRInstruction::kAddCheckButton
+                || (*it)->fOpcode == FIRInstruction::kAddHorizontalSlider
+                || (*it)->fOpcode == FIRInstruction::kAddVerticalSlider
+                || (*it)->fOpcode == FIRInstruction::kAddNumEntry) {
+                
+                real_map[(*it)->fOffset] = (*it)->fInit;
+            }
+        }
+        
+        return real_map;
     }
     
 };
