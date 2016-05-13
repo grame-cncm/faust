@@ -621,9 +621,9 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
 };
 
 
-//=======================
-// Partial evaluation
-//=======================
+//============================================
+// Partial evaluation by constant propagation
+//============================================
 
 //typedef std::map<int, T>    RealMap;
 //typedef std::map<int, int>  IntMap;

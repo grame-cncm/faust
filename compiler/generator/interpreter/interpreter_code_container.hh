@@ -39,8 +39,6 @@ class InterpreterCodeContainer : public virtual CodeContainer {
     
         FIRMetaBlockInstruction* produceMetadata();
     
-        FIRBlockInstruction<T>* optimizeBlock(FIRBlockInstruction<T>* block, int& size);
-    
         BlockInst* inlineSubcontainersFunCalls(BlockInst* block)
         {
             // Rename 'sig' in 'dsp' and remove 'dsp' allocation
