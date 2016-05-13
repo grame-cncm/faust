@@ -681,18 +681,18 @@ struct FIRInstructionConstantValueHeap2Map : public FIRInstructionOptimizer<T>  
         
         if (inst1->fOpcode == FIRInstruction::kRealValue && inst2->fOpcode == FIRInstruction::kStoreReal) {
             end = cur + 2;
+           
+            std::cout << "kNop FIRInstruction::kRealValue && FIRInstruction::kStoreReal " << inst1->fRealValue << std::endl;
+  
             // Add a new entry in real_map
             fRealMap[inst2->fOffset1] = inst1->fRealValue;
-            
-            std::cout << " kNop FIRInstruction::kRealValue && FIRInstruction::kStoreReal " << std::endl;
-  
             return new FIRBasicInstruction<T>(FIRInstruction::kNop);
         } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kStoreInt) {
             end = cur + 2;
+            
+            std::cout << "kNop FIRInstruction::kIntValue && FIRInstruction::kStoreInt " << inst1->fIntValue << std::endl;
+            
             // Add a new entry in int_map
-            
-            std::cout << " kNop FIRInstruction::kIntValue && FIRInstruction::kStoreInt " << std::endl;
-            
             fIntMap[inst2->fOffset1] = inst1->fIntValue;
             return new FIRBasicInstruction<T>(FIRInstruction::kNop);
         } else {
@@ -736,7 +736,7 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
     
     FIRInstructionMathComputeSpecializer()
     {
-        //std::cout << "FIRInstructionMathComputeOptimizer" << std::endl;
+        //std::cout << "FIRInstructionMathComputeSpecializer" << std::endl;
     }
     
     FIRBasicInstruction<T>* rewriteBinaryRealMath(FIRBasicInstruction<T>* inst1,
@@ -764,22 +764,22 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
                 return new FIRBasicInstruction<T>(FIRInstruction::kNop);
                 
             case FIRInstruction::kGTReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst1->fRealValue > inst2->fRealValue);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fRealValue > inst2->fRealValue, 0);
                 
             case FIRInstruction::kLTReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst1->fRealValue < inst2->fRealValue);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fRealValue < inst2->fRealValue, 0);
                 
             case FIRInstruction::kGEReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst1->fRealValue >= inst2->fRealValue);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fRealValue >= inst2->fRealValue, 0);
                 
             case FIRInstruction::kLEReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst1->fRealValue <= inst2->fRealValue);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fRealValue <= inst2->fRealValue, 0);
                 
             case FIRInstruction::kEQReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst1->fRealValue == inst2->fRealValue);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fRealValue == inst2->fRealValue, 0);
                 
             case FIRInstruction::kNEReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst1->fRealValue != inst2->fRealValue);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fRealValue != inst2->fRealValue, 0);
                 
             default:
                 assert(false);

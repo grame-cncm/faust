@@ -580,16 +580,18 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             
             // TODO : do this at instance level
             factory->fComputeBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeBlock, int_map, real_map);
+            
+            std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeBlock" << std::endl;
             factory->fComputeBlock->write(&std::cout);
             
             //factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeDSPBlock, int_map, real_map);
             //factory->fComputeDSPBlock->write(&std::cout);
             
-            std::cout << "interpreter_dsp_aux CONSTRUCTOR" << std::endl;
+            std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeDSPBlock" << std::endl;
             
             //factory->fComputeDSPBlock->write(&std::cout);
             factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(factory->fComputeDSPBlock);
-            ///factory->fComputeDSPBlock->write(&std::cout);
+            factory->fComputeDSPBlock->write(&std::cout);
             
             this->freeezeValues(int_map, real_map);
         }
