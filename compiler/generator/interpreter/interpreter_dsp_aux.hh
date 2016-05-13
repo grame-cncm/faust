@@ -582,7 +582,13 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             factory->fComputeBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeBlock, int_map, real_map);
             factory->fComputeBlock->write(&std::cout);
             
-            factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeDSPBlock, int_map, real_map);
+            //factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeDSPBlock, int_map, real_map);
+            //factory->fComputeDSPBlock->write(&std::cout);
+            
+            std::cout << "interpreter_dsp_aux CONSTRUCTOR" << std::endl;
+            
+            factory->fComputeDSPBlock->write(&std::cout);
+            factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(factory->fComputeDSPBlock);
             factory->fComputeDSPBlock->write(&std::cout);
             
             this->freeezeValues(int_map, real_map);
@@ -664,6 +670,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->fIntHeap[this->fCountOffset] = count;
             
             // Executes the 'DSP' block
+            //std::cout << "fComputeDSPBlock" << std::endl;
             this->ExecuteBlock(this->fFactory->fComputeDSPBlock);
             
             //std::cout << "sample " << outputs[0][0] << std::endl;

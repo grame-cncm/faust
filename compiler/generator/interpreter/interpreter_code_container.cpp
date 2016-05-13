@@ -71,7 +71,6 @@ InterpreterCodeContainer<T>::InterpreterCodeContainer(const string& name, int nu
         gGlobal->gInterpreterVisitor = new InterpreterInstVisitor<T>();
     }
     
-    FIRInstructionOptimizer<T>::initTables();
 }
 
 template <class T>
@@ -224,14 +223,16 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     compute_control_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     compute_dsp_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     
-    /*
+    
     // Bytecode optimization
     int size;
-    init_static_block = optimizeBlock(init_static_block, size);
-    init_block = optimizeBlock(init_block, size);
-    compute_control_block = optimizeBlock(compute_control_block, size);
-    compute_dsp_block = optimizeBlock(compute_dsp_block, size);
-     */
+    //init_static_block = optimizeBlock(init_static_block, size);
+    //init_block = optimizeBlock(init_block, size);
+    //compute_control_block = optimizeBlock(compute_control_block, size);
+    
+    //compute_dsp_block = optimizeBlock(compute_dsp_block, size);
+    //compute_dsp_block = FIRInstructionOptimizer<T>::optimizeBlock(compute_dsp_block);
+    
     
     // Then create factory
     /*

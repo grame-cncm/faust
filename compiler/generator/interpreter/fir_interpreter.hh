@@ -298,16 +298,16 @@ class FIRInterpreter  {
             InstructionIT address_stack[64];
             
             /*
-             int max_real_stack = 0;
-             int max_int_stack = 0;
-             
-             #define dispatch_first() { (*it)->write(&std::cout); goto *fDispatchTable[(*it)->fOpcode]; }
-             #define dispatch() { (*it)->write(&std::cout); printf("int_stack_index = %d real_stack_index = %d\n", int_stack_index, real_stack_index);  \
-             max_real_stack = std::max(max_real_stack, real_stack_index); max_int_stack = std::max(max_int_stack, int_stack_index); \
-             assert(real_stack_index >= 0 && int_stack_index >= 0); \
-             it++; goto *fDispatchTable[(*it)->fOpcode]; }
+            int max_real_stack = 0;
+            int max_int_stack = 0;
+         
+            #define dispatch_first() { goto *fDispatchTable[(*it)->fOpcode]; }
+            #define dispatch_next() { (*it)->write(&std::cout); printf("int_stack_index = %d real_stack_index = %d\n", int_stack_index, real_stack_index);  \
+            max_real_stack = std::max(max_real_stack, real_stack_index); max_int_stack = std::max(max_int_stack, int_stack_index); \
+            assert(real_stack_index >= 0 && int_stack_index >= 0); \
+            it++; goto *fDispatchTable[(*it)->fOpcode]; }
             */
-            
+          
             #define dispatch_first() { goto *fDispatchTable[(*it)->fOpcode]; }
             #define dispatch_next() { it++; goto *fDispatchTable[(*it)->fOpcode]; }
                         
