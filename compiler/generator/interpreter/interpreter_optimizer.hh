@@ -951,6 +951,24 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
                 ? new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0)
                 : 0;
                 
+            case FIRInstruction::kANDInt:
+                if (inst1->fIntValue == 1) {        // neutral
+                    new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0);
+                } else if (inst1->fIntValue == 0) { // absorbant
+                    new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, 0);
+                } else {
+                    return 0;
+                }
+                
+            case FIRInstruction::kORInt:
+                if (inst1->fIntValue == 1) {        // absorbant
+                    new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 1, 0);
+                } else if (inst1->fIntValue == 0) { // neutral
+                    new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0);
+                } else {
+                    return 0;
+                }
+         
             default:
                 return 0;
         }
