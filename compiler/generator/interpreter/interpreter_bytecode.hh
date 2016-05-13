@@ -478,6 +478,7 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
                 || (*it)->fOpcode == FIRInstruction::kAddNumEntry) {
                 
                 real_map[(*it)->fOffset] = (*it)->fInit;
+                std::cout << "getDefaultValues offset " << (*it)->fOffset << " value " << (*it)->fInit << std::endl;
             }
         }
         

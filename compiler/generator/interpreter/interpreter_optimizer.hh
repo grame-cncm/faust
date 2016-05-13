@@ -702,11 +702,39 @@ struct FIRInstructionConstantValueHeap2Map : public FIRInstructionOptimizer<T>  
     }
 };
 
+// Cast optimizer
+template <class T>
+struct FIRInstructionCastSpecializer : public FIRInstructionOptimizer<T>  {
+    
+    
+    FIRInstructionCastSpecializer()
+    {
+        //std::cout << "FIRInstructionCastSpecializer" << std::endl;
+    }
+    
+    virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    {
+        FIRBasicInstruction<T>* inst1 = *cur;
+        FIRBasicInstruction<T>* inst2 = *(cur + 1);
+        
+        if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kCastReal) {
+            end = cur + 2;
+            return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, T(inst1->fIntValue));
+        } else if (inst1->fOpcode == FIRInstruction::kRealValue && inst2->fOpcode == FIRInstruction::kCastInt) {
+            end = cur + 2;
+            return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, int(inst1->fRealValue), 0);
+        } else {
+            end = cur + 1;
+            return (*cur)->copy();
+        }
+    }
+};
+
 // Math computation
 template <class T>
-struct FIRInstructionMathComputeOptimizer : public FIRInstructionOptimizer<T>  {
+struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T>  {
     
-    FIRInstructionMathComputeOptimizer()
+    FIRInstructionMathComputeSpecializer()
     {
         //std::cout << "FIRInstructionMathComputeOptimizer" << std::endl;
     }
@@ -1065,9 +1093,11 @@ struct FIRInstructionOptimizer {
         typename std::map<int, T>::iterator it;
         
         FIRInstructionConstantValueMap2Heap<T> map_2_heap(int_map, real_map);
-        FIRInstructionMathComputeOptimizer<T> math_compute;
+        FIRInstructionMathComputeSpecializer<T> math_specializer;
+        FIRInstructionCastSpecializer<T> cast_specializer;
         FIRInstructionConstantValueHeap2Map<T> heap_2_map(int_map, real_map);
         
+        // Global specialization
         int cur_block_size = cur_block->size();
         int new_block_size = cur_block->size();
         
@@ -1085,22 +1115,29 @@ struct FIRInstructionOptimizer {
             std::cout << "LOOP specialize size " << cur_block->size() << std::endl;
             cur_block_size = new_block_size;
             
+            // Propagate constant values from the heap into the code
             std::cout << "FIRInstructionConstantValueMap2Heap" << std::endl;
             cur_block = optimize(cur_block, map_2_heap);
             cur_block->write(&std::cout);
             
+            // Math and cast specialization
+            int math_cur_block_size = cur_block->size();
+            int math_new_block_size = cur_block->size();
+            do {
+                math_cur_block_size = math_new_block_size;
+                std::cout << "FIRInstructionMathComputeSpecializer" << std::endl;
+                cur_block = optimize(cur_block, math_specializer);
+                cur_block = optimize(cur_block, cast_specializer);
+                cur_block->write(&std::cout);
+                math_new_block_size = cur_block->size();
+            } while (math_new_block_size < math_cur_block_size);
             
-            std::cout << "FIRInstructionMathComputeOptimizer" << std::endl;
-            cur_block = optimize(cur_block, math_compute);
-            cur_block->write(&std::cout);
-            
-            
+            // Propagate constant value stored in the code into the heap
             std::cout << "FIRInstructionConstantValueHeap2Map" << std::endl;
             cur_block = optimize(cur_block, heap_2_map);
             cur_block->write(&std::cout);
             
             new_block_size = cur_block->size();
-            
             std::cout << "new_block_size " << new_block_size << " " << cur_block_size << std::endl;
             
         } while (new_block_size < cur_block_size);

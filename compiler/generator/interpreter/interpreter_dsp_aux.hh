@@ -587,9 +587,9 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             
             std::cout << "interpreter_dsp_aux CONSTRUCTOR" << std::endl;
             
-            factory->fComputeDSPBlock->write(&std::cout);
+            //factory->fComputeDSPBlock->write(&std::cout);
             factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(factory->fComputeDSPBlock);
-            factory->fComputeDSPBlock->write(&std::cout);
+            ///factory->fComputeDSPBlock->write(&std::cout);
             
             this->freeezeValues(int_map, real_map);
         }
