@@ -739,6 +739,8 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
         //std::cout << "FIRInstructionMathComputeSpecializer" << std::endl;
     }
     
+    // Beware : inverted args...
+    
     FIRBasicInstruction<T>* rewriteBinaryRealMath(FIRBasicInstruction<T>* inst1,
                                                   FIRBasicInstruction<T>* inst2,
                                                   FIRBasicInstruction<T>* inst3)
@@ -747,39 +749,39 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
         switch (inst3->fOpcode) {
                 
             case FIRInstruction::kAddReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst1->fRealValue + inst2->fRealValue);
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst2->fRealValue + inst1->fRealValue);
                 
             case FIRInstruction::kSubReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst1->fRealValue - inst2->fRealValue);
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst2->fRealValue - inst1->fRealValue);
                 
             case FIRInstruction::kMultReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst1->fRealValue * inst2->fRealValue);
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst2->fRealValue * inst1->fRealValue);
                 
             case FIRInstruction::kDivReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst1->fRealValue / inst2->fRealValue);
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst2->fRealValue / inst1->fRealValue);
                 
             case FIRInstruction::kRemReal:
-                //return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst1->fRealValue % inst2->fRealValue);
+                //return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst2->fRealValue % inst1->fRealValue);
                 assert(false);
                 return new FIRBasicInstruction<T>(FIRInstruction::kNop);
                 
             case FIRInstruction::kGTReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fRealValue > inst2->fRealValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue > inst1->fRealValue, 0);
                 
             case FIRInstruction::kLTReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fRealValue < inst2->fRealValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue < inst1->fRealValue, 0);
                 
             case FIRInstruction::kGEReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fRealValue >= inst2->fRealValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue >= inst1->fRealValue, 0);
                 
             case FIRInstruction::kLEReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fRealValue <= inst2->fRealValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue <= inst1->fRealValue, 0);
                 
             case FIRInstruction::kEQReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fRealValue == inst2->fRealValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue == inst1->fRealValue, 0);
                 
             case FIRInstruction::kNEReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fRealValue != inst2->fRealValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue != inst1->fRealValue, 0);
                 
             default:
                 assert(false);
@@ -795,52 +797,52 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
         switch (inst3->fOpcode) {
                 
             case FIRInstruction::kAddInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue + inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue + inst1->fIntValue, 0);
                 
             case FIRInstruction::kSubInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue - inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue - inst1->fIntValue, 0);
                 
             case FIRInstruction::kMultInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue * inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue * inst1->fIntValue, 0);
                 
             case FIRInstruction::kDivInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue / inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue / inst1->fIntValue, 0);
                 
             case FIRInstruction::kRemInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue % inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue % inst1->fIntValue, 0);
                 
             case FIRInstruction::kLshInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue << inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue << inst1->fIntValue, 0);
                 
             case FIRInstruction::kRshInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue >> inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue >> inst1->fIntValue, 0);
                 
             case FIRInstruction::kGTInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue > inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue > inst1->fIntValue, 0);
                 
             case FIRInstruction::kLTInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue < inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue < inst1->fIntValue, 0);
                 
             case FIRInstruction::kGEInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue >= inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue >= inst1->fIntValue, 0);
                 
             case FIRInstruction::kLEInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue <= inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue <= inst1->fIntValue, 0);
                 
             case FIRInstruction::kEQInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue == inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue == inst1->fIntValue, 0);
                 
             case FIRInstruction::kNEInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue != inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue != inst1->fIntValue, 0);
                 
             case FIRInstruction::kANDInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue & inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue & inst1->fIntValue, 0);
                 
             case FIRInstruction::kORInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue | inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue | inst1->fIntValue, 0);
                 
             case FIRInstruction::kXORInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst1->fIntValue ^ inst2->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue ^ inst1->fIntValue, 0);
                 
             default:
                 assert(false);
@@ -855,19 +857,19 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
         switch (inst3->fOpcode) {
                 
             case FIRInstruction::kAtan2f:
-                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::atan2(inst1->fRealValue, inst2->fRealValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::atan2(inst2->fRealValue, inst1->fRealValue));
                 
             case FIRInstruction::kFmodf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::fmod(inst1->fRealValue, inst2->fRealValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::fmod(inst2->fRealValue, inst1->fRealValue));
                 
             case FIRInstruction::kPowf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::pow(inst1->fRealValue, inst2->fRealValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::pow(inst2->fRealValue, inst1->fRealValue));
                 
             case FIRInstruction::kMaxf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::max(inst1->fRealValue, inst2->fRealValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::max(inst2->fRealValue, inst1->fRealValue));
                 
             case FIRInstruction::kMinf:
-                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::min(inst1->fRealValue, inst2->fRealValue));
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::min(inst2->fRealValue, inst1->fRealValue));
         
             default:
                 assert(false);
@@ -882,10 +884,10 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
         switch (inst3->fOpcode) {
                 
             case FIRInstruction::kMax:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, std::max(inst1->fIntValue, inst2->fIntValue), 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, std::max(inst2->fIntValue, inst1->fIntValue), 0);
                 
             case FIRInstruction::kMin:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, std::min(inst1->fIntValue, inst2->fIntValue), 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, std::min(inst2->fIntValue, inst1->fIntValue), 0);
                 
             default:
                 assert(false);
@@ -968,7 +970,6 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
                 assert(false);
                 break;
         }
-
     }
     
     virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)

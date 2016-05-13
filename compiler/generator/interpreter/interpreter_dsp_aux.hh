@@ -579,7 +579,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             std::map<int, int> int_map;
             
             // TODO : do this at instance level
-            factory->fComputeBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeBlock, int_map, real_map);
+            //factory->fComputeBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeBlock, int_map, real_map);
             
             std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeBlock" << std::endl;
             factory->fComputeBlock->write(&std::cout);
