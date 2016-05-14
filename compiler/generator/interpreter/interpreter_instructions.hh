@@ -42,6 +42,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         int fIntHeapOffset;     // Offset in Integer HEAP
         int fSROffset;          // Kept offset in Integer HEAP for "fSamplingFreq"
         int fCountOffset;       // Kept offset in Integer HEAP for "count"
+        int fIOTAOffset;        // Kept offset in Integer HEAP for "IOTA"
         bool fCommute;          // Whether to try commutative operation reverse order generation
     
         map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
@@ -196,6 +197,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 }
             } else {
                 if (inst->fType->getType() == Typed::kInt) {
+                    // Keep "IOTA" offset
+                    if (inst->fAddress->getName() == "IOTA") { fIOTAOffset = fIntHeapOffset; }
                     // Keep "fSamplingFreq" offset
                     if (inst->fAddress->getName() == "fSamplingFreq") { fSROffset = fIntHeapOffset; }
                     // Keep "count" offset

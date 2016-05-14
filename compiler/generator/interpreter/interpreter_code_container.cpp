@@ -212,6 +212,7 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
                                                                           getInterpreterVisitor<T>()->fRealHeapOffset,
                                                                           getInterpreterVisitor<T>()->fSROffset,
                                                                           getInterpreterVisitor<T>()->fCountOffset,
+                                                                          getInterpreterVisitor<T>()->fIOTAOffset,
                                                                           produceMetadata(),
                                                                           getInterpreterVisitor<T>()->fUserInterfaceBlock,
                                                                           init_static_block,

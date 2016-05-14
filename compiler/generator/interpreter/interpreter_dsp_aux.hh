@@ -78,6 +78,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     int fRealHeapSize;
     int fSROffset;
     int fCountOffset;
+    int fIOTAOffset;
     
     FIRMetaBlockInstruction* fMetaBlock;
     FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
@@ -90,7 +91,9 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
                                 float version_num,
                                 int inputs, int ouputs,
                                 int int_heap_size, int real_heap_size,
-                                int sr_offset, int count_offset,
+                                int sr_offset,
+                                int count_offset,
+                                int iota_offset,
                                 FIRMetaBlockInstruction* meta,
                                 FIRUserInterfaceBlockInstruction<T>* interface,
                                 FIRBlockInstruction<T>* static_init,
@@ -105,6 +108,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     fRealHeapSize(real_heap_size),
     fSROffset(sr_offset),
     fCountOffset(count_offset),
+    fIOTAOffset(iota_offset),
     fMetaBlock(meta),
     fUserInterfaceBlock(interface),
     fStaticInitBlock(static_init),
@@ -133,7 +137,9 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         
         *out << "inputs " << fNumInputs << " outputs " << fNumOutputs << std::endl;
         *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize
-        << " sr_offset " << fSROffset << " count_offset " << fCountOffset << std::endl;
+        << " sr_offset " << fSROffset
+        << " count_offset " << fCountOffset
+        << " iota_offset " << fIOTAOffset << std::endl;
         
         *out << "meta_block" << std::endl;
         fMetaBlock->write(out);
@@ -197,7 +203,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         
         // Read int/real heap size and sr offset
         std::string heap_size;
-        int int_heap_size, real_heap_size, sr_offset, count_offset;
+        int int_heap_size, real_heap_size, sr_offset, count_offset, iota_offset;
         getline(*in, heap_size);
         
         std::stringstream heap_size_reader(heap_size);
@@ -213,6 +219,9 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         
         heap_size_reader >> dummy; // Read "count_offset" token
         heap_size_reader >> value; count_offset = strtol(value.c_str(), 0, 10);
+        
+        heap_size_reader >> dummy; // Read "iota_offset" token
+        heap_size_reader >> value; iota_offset = strtol(value.c_str(), 0, 10);
         
         // Read meta block
         getline(*in, dummy);    // Read "meta_block" line
@@ -270,6 +279,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
                                                                                   real_heap_size,
                                                                                   sr_offset,
                                                                                   count_offset,
+                                                                                  iota_offset,
                                                                                   meta_block,
                                                                                   ui_block,
                                                                                   static_init_block,
@@ -570,7 +580,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
     public:
     
         interpreter_dsp_aux(interpreter_dsp_factory_aux<T>* factory)
-        : FIRInterpreter<T>(factory->fIntHeapSize, factory->fRealHeapSize, factory->fSROffset, factory->fCountOffset)
+        : FIRInterpreter<T>(factory->fIntHeapSize, factory->fRealHeapSize,
+                            factory->fSROffset, factory->fCountOffset)
         {
             fFactory = factory;
             this->fInputs = new T*[fFactory->fNumInputs];
@@ -589,6 +600,9 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             factory->fInitBlock = FIRInstructionOptimizer<T>::specialize(factory->fInitBlock, int_map, real_map);
             std::cout << "interpreter_dsp_aux CONSTRUCTOR fInitBlock" << std::endl;
             factory->fInitBlock->write(&std::cout);
+            
+            // Suppress IOTA from real_map since we don't want specialization to use it
+            int_map.erase(int_map.find(factory->fIOTAOffset));
             
             // TODO : do this at instance level
             factory->fComputeBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeBlock, int_map, real_map);
@@ -822,7 +836,9 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartab
                          float version_num,
                          int inputs, int ouputs,
                          int int_heap_size, int real_heap_size,
-                         int sr_offset, int count_offset,
+                         int sr_offset,
+                         int count_offset,
+                         int iota_offset,
                          FIRMetaBlockInstruction* meta,
                          FIRUserInterfaceBlockInstruction<float>* interface,
                          FIRBlockInstruction<float>* static_init,
@@ -833,7 +849,9 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartab
         fFactory = new interpreter_dsp_factory_aux<float>(name, version_num,
                                                         inputs, ouputs,
                                                         int_heap_size, real_heap_size,
-                                                        sr_offset, count_offset,
+                                                        sr_offset,
+                                                        count_offset,
+                                                        iota_offset,
                                                         meta, interface,
                                                         static_init, init,
                                                         compute_control, compute_dsp);
@@ -843,7 +861,9 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartab
                             float version_num,
                             int inputs, int ouputs,
                             int int_heap_size, int real_heap_size,
-                            int sr_offset, int count_offset,
+                            int sr_offset,
+                            int count_offset,
+                            int iota_offset,
                             FIRMetaBlockInstruction* meta,
                             FIRUserInterfaceBlockInstruction<double>* interface,
                             FIRBlockInstruction<double>* static_init,
@@ -854,7 +874,9 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartab
         fFactory = new interpreter_dsp_factory_aux<double>(name, version_num,
                                                         inputs, ouputs,
                                                         int_heap_size, real_heap_size,
-                                                        sr_offset, count_offset,
+                                                        sr_offset,
+                                                        count_offset,
+                                                        iota_offset,
                                                         meta, interface,
                                                         static_init, init,
                                                         compute_control, compute_dsp);
