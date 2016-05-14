@@ -41,7 +41,7 @@ resonator(d, a) = (+ : delay(4096, d-1.5)) ~ (average : *(1.0-a)) ;
 //-----------------
 
 detune 		= hslider("detune", 32, 0, 512, 1);
-polyphony 	= hslider("polyphony", 1, 0, 32, 1);
+polyphony 	= hslider("polyphony", 0, 0, 32, 1);
 
 
 
@@ -51,6 +51,6 @@ output 		= hslider("output volume", 0.5, 0, 1, 0.1);
 process =  vgroup("karplus32",
 	 		   	vgroup("noise generator", noise * hslider("level", 0.5, 0, 1, 0.1))
 				 : vgroup("excitator", *(button("play"): trigger(size)))
-				<: vgroup("resonator x32", par(i,32, resonator(dur+i*detune, att) * (polyphony > i)))
+				<: vgroup("resonator x32", par(i,4, resonator(dur+i*detune, att) * (polyphony > i)))
 				:> *(output),*(output)
 			);

@@ -613,9 +613,14 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeBlock" << std::endl;
             factory->fComputeBlock->write(&std::cout);
             
+            // Optimize memory
+            factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(factory->fComputeDSPBlock, 4);
+            std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeDSPBlock Optimize memory" << std::endl;
+            factory->fComputeDSPBlock->write(&std::cout);
             
             factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeDSPBlock, int_map, real_map);
-            //factory->fComputeDSPBlock->write(&std::cout);
+            std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeDSPBlock specialize memory" << std::endl;
+            factory->fComputeDSPBlock->write(&std::cout);
             
             std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeDSPBlock" << std::endl;
             
