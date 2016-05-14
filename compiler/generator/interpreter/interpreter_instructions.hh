@@ -511,6 +511,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(SwitchInst* inst) {}
 
         // Loops
+        /*
         virtual void visit(ForLoopInst* inst)
         {
             // Compile loop variable declaration
@@ -544,7 +545,49 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             // Restore current block
             fCurrentBlock = previous;
         }
-        
+         */
+    
+        virtual void visit(ForLoopInst* inst)
+        {
+            // Keep current block
+            FIRBlockInstruction<T>* previous = fCurrentBlock;
+            
+            // Compile 'loop code' in a new block
+            FIRBlockInstruction<T>* init_block = new FIRBlockInstruction<T>();
+            fCurrentBlock = init_block;
+            
+            // Compile loop variable declaration
+            inst->fInit->accept(this);
+            
+            // Add kReturn in block
+            init_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
+            
+            // Compile 'loop code' in a new block
+            FIRBlockInstruction<T>* loop_block = new FIRBlockInstruction<T>();
+            fCurrentBlock = loop_block;
+            
+            // Compile loop code
+            inst->fCode->accept(this);
+            
+            // Compile increment
+            inst->fIncrement->accept(this);
+            
+            // Compile test
+            inst->fEnd->accept(this);
+            
+            // Add branch that moves back on loop block itself
+            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCondBranch, 0, 0, 0, 0, loop_block, 0));
+            
+            // Finally add 'return'
+            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
+            
+            // Add the loop block in previous
+            previous->push(new FIRBasicInstruction<T>(FIRInstruction::kLoop, 0, 0, 0, 0, init_block, loop_block));
+            
+            // Restore current block
+            fCurrentBlock = previous;
+        }
+    
         virtual void visit(WhileLoopInst* inst) {}
 
 };

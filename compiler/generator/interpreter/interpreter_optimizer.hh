@@ -1140,8 +1140,7 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
                 end = cur + 1;
                 return (*cur)->copy();
             }
-
-            
+        
         } else if (inst1->fOpcode == FIRInstruction::kRealValue
                    && inst2->fOpcode == FIRInstruction::kRealValue
                    && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
@@ -1205,8 +1204,8 @@ struct FIRInstructionOptimizer {
                 new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,
                                                            inst->fIntValue, inst->fRealValue,
                                                            inst->fOffset1, inst->fOffset2,
-                                                           optimize_aux(inst->fBranch1, optimizer),
-                                                           0));
+                                                           inst->fBranch1->copy(),  // No optimization for loop variable declaration
+                                                           optimize_aux(inst->fBranch2, optimizer)));
                 cur++;
             } else if (inst->fOpcode == FIRInstruction::kIf
                        || inst->fOpcode == FIRInstruction::kSelectReal

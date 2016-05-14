@@ -494,6 +494,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
                 branch2 = readCodeBlock(in);  // consume 'in'
             } else if (opcode == FIRInstruction::kLoop) {
                 branch1 = readCodeBlock(in);  // consume 'in'
+                branch2 = readCodeBlock(in);  // consume 'in'
             }
             
             return new FIRBasicInstruction<T>(opcode, val_int, val_real, offset1, offset2, branch1, branch2);
@@ -584,7 +585,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeBlock" << std::endl;
             factory->fComputeBlock->write(&std::cout);
             
-            //factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeDSPBlock, int_map, real_map);
+            
+            factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeDSPBlock, int_map, real_map);
             //factory->fComputeDSPBlock->write(&std::cout);
             
             std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeDSPBlock" << std::endl;

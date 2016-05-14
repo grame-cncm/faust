@@ -313,7 +313,10 @@ class FIRInterpreter  {
                         
             #define dispatch_branch1() { it = (*it)->fBranch1->fInstructions.begin(); dispatch_first(); }
             #define dispatch_branch2() { it = (*it)->fBranch2->fInstructions.begin(); dispatch_first(); }
-                        
+            
+            #define push_branch1() { push_addr((*it)->fBranch1->fInstructions.begin()); }
+            #define push_branch2() { push_addr((*it)->fBranch2->fInstructions.begin()); }
+            
             #define dispatch_return() { it = pop_addr(); dispatch_first(); }
             #define save_return() { push_addr(it + 1); }
             #define empty_return() (addr_stack_index == 0)
@@ -2194,7 +2197,10 @@ class FIRInterpreter  {
                     // Keep next instruction
                     save_return();
                     
-                    // And start look block (finished by a kCondBranch instruction that points to same block)
+                    // Push branch2 (loop content)
+                    push_branch2();
+                    
+                    // And start branch1 loop variable declaration block
                     assert((*it)->fBranch1);
                     dispatch_branch1();
                 }
