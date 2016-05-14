@@ -576,8 +576,19 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->fInputs = new T*[fFactory->fNumInputs];
             this->fOutputs = new T*[fFactory->fNumOutputs];
             
-            std::map<int, T> real_map = factory->fUserInterfaceBlock->getDefaultValues();
+            //std::map<int, T> real_map = factory->fUserInterfaceBlock->getDefaultValues();
+            
+            std::map<int, T> real_map;
             std::map<int, int> int_map;
+            
+            // Set sample rate
+            int_map[factory->fSROffset] = 44100;
+            
+            factory->fStaticInitBlock = FIRInstructionOptimizer<T>::specialize(factory->fStaticInitBlock, int_map, real_map);
+            
+            factory->fInitBlock = FIRInstructionOptimizer<T>::specialize(factory->fInitBlock, int_map, real_map);
+            std::cout << "interpreter_dsp_aux CONSTRUCTOR fInitBlock" << std::endl;
+            factory->fInitBlock->write(&std::cout);
             
             // TODO : do this at instance level
             factory->fComputeBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeBlock, int_map, real_map);
