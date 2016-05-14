@@ -1319,61 +1319,63 @@ struct FIRInstructionOptimizer {
         return res_block;
     }
    
-    static FIRBlockInstruction<T>* optimizeBlock(FIRBlockInstruction<T>* block)
+    static FIRBlockInstruction<T>* optimizeBlock(FIRBlockInstruction<T>* block, int op_level = 6)
     {
         std::cout << "optimizeBlock = " << block->size() << std::endl;
         
-        // 1) optimize indexed 'heap' load/store in normal load/store
-        FIRInstructionLoadStoreOptimizer<T> opt1;
-        block = FIRInstructionOptimizer<T>::optimize(block, opt1);
+        if (op_level >= 1) {
+            // 1) optimize indexed 'heap' load/store in normal load/store
+            FIRInstructionLoadStoreOptimizer<T> opt1;
+            block = FIRInstructionOptimizer<T>::optimize(block, opt1);
+            
+            std::cout << "FIRInstructionLoadStoreOptimizer block size = " << block->size() << std::endl;
+            block->write(&std::cout);
+        }
         
-        std::cout << "FIRInstructionLoadStoreOptimizer block size = " << block->size() << std::endl;
-        block->write(&std::cout);
+        if (op_level >= 2) {
+            // 2) optimize simple 'heap' load/store in move
+            FIRInstructionMoveOptimizer<T> opt2;
+            block = FIRInstructionOptimizer<T>::optimize(block, opt2);
+            
+            std::cout << "FIRInstructionMoveOptimizer block size = " << block->size() << std::endl;
+            block->write(&std::cout);
+        }
         
-        // 2) optimize simple 'heap' load/store in move
-        FIRInstructionMoveOptimizer<T> opt2;
-        block = FIRInstructionOptimizer<T>::optimize(block, opt2);
+        if (op_level >= 3) {
+            // 3) optimize moves in block move
+            FIRInstructionBlockMoveOptimizer<T> opt3;
+            block = FIRInstructionOptimizer<T>::optimize(block, opt3);
+            
+            std::cout << "FIRInstructionBlockMoveOptimizer block size = " << block->size() << std::endl;
+            block->write(&std::cout);
+        }
         
-        std::cout << "FIRInstructionMoveOptimizer block size = " << block->size() << std::endl;
-        block->write(&std::cout);
+        if (op_level >= 4) {
+            // 4) optimize 2 moves in pair move
+            FIRInstructionPairMoveOptimizer<T> opt4;
+            block = FIRInstructionOptimizer<T>::optimize(block, opt4);
+            
+            std::cout << "FIRInstructionPairMoveOptimizer block size = " << block->size() << std::endl;
+            block->write(&std::cout);
+        }
+       
+        if (op_level >= 5) {
+            // 5) optimize 'cast' in heap cast
+            FIRInstructionCastOptimizer<T> opt5;
+            block = FIRInstructionOptimizer<T>::optimize(block, opt5);
+            
+            std::cout << "FIRInstructionCastOptimizer block size = " << block->size() << std::endl;
+            block->write(&std::cout);
+        }
         
-        //std::cout << "block size = " << block->size() << std::endl;
-        
-        // 3) optimize moves in block move
-        FIRInstructionBlockMoveOptimizer<T> opt3;
-        block = FIRInstructionOptimizer<T>::optimize(block, opt3);
-        
-        std::cout << "FIRInstructionBlockMoveOptimizer block size = " << block->size() << std::endl;
-        block->write(&std::cout);
-        
-        //std::cout << "block size = " << block->size() << std::endl;
-        
-        // 4) optimize 2 moves in pair move
-        FIRInstructionPairMoveOptimizer<T> opt4;
-        block = FIRInstructionOptimizer<T>::optimize(block, opt4);
-        
-        std::cout << "FIRInstructionPairMoveOptimizer block size = " << block->size() << std::endl;
-        block->write(&std::cout);
-        
-        //std::cout << "block size = " << block->size() << std::endl;
-        
-        // 5) optimize 'cast' in heap cast
-        FIRInstructionCastOptimizer<T> opt5;
-        block = FIRInstructionOptimizer<T>::optimize(block, opt5);
-        
-        std::cout << "FIRInstructionCastOptimizer block size = " << block->size() << std::endl;
-        block->write(&std::cout);
-        
-        //std::cout << "block size = " << block->size() << std::endl;
-        
-        // 6) optimize 'heap' and 'value' math operations
-        FIRInstructionMathOptimizer<T> opt6;
-        block = FIRInstructionOptimizer<T>::optimize(block, opt6);
-        
-        std::cout << "FIRInstructionMathOptimizer block size = " << block->size() << std::endl;
-        block->write(&std::cout);
-        
-        //std::cout << "block size = " << block->size() << std::endl;
+        if (op_level >= 6) {
+            // 6) optimize 'heap' and 'value' math operations
+            FIRInstructionMathOptimizer<T> opt6;
+            block = FIRInstructionOptimizer<T>::optimize(block, opt6);
+            
+            std::cout << "FIRInstructionMathOptimizer block size = " << block->size() << std::endl;
+            block->write(&std::cout);
+        }
         
         return block;
     }

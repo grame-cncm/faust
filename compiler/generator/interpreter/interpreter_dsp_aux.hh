@@ -596,17 +596,20 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             int_map[factory->fSROffset] = 44100;
             
             factory->fStaticInitBlock = FIRInstructionOptimizer<T>::specialize(factory->fStaticInitBlock, int_map, real_map);
+            std::cout << "interpreter_dsp_aux CONSTRUCTOR fStaticInitBlock" << std::endl;
+            factory->fStaticInitBlock->write(&std::cout);
             
             factory->fInitBlock = FIRInstructionOptimizer<T>::specialize(factory->fInitBlock, int_map, real_map);
             std::cout << "interpreter_dsp_aux CONSTRUCTOR fInitBlock" << std::endl;
             factory->fInitBlock->write(&std::cout);
             
             // Suppress IOTA from real_map since we don't want specialization to use it
-            int_map.erase(int_map.find(factory->fIOTAOffset));
+            if (int_map.find(factory->fIOTAOffset) != int_map.end()) {
+                int_map.erase(int_map.find(factory->fIOTAOffset));
+            }
             
             // TODO : do this at instance level
             factory->fComputeBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeBlock, int_map, real_map);
-            
             std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeBlock" << std::endl;
             factory->fComputeBlock->write(&std::cout);
             
