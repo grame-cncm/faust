@@ -466,9 +466,8 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
         }
     }
     
-    std::map<int, T> getDefaultValues()
+    void freezeDefaultValues(std::map<int, T>& real_map)
     {
-        std::map<int, T> real_map;
         UIInstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
             if ((*it)->fOpcode == FIRInstruction::kAddButton
@@ -478,6 +477,16 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
                 || (*it)->fOpcode == FIRInstruction::kAddNumEntry) {
                 real_map[(*it)->fOffset] = (*it)->fInit;
                 std::cout << "getDefaultValues offset " << (*it)->fOffset << " value " << (*it)->fInit << std::endl;
+            }
+        }
+    }
+    
+    void unFreezeDefaultValues(std::map<int, T>& real_map)
+    {
+        UIInstructionIT it;
+        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+            if (real_map.find((*it)->fOffset) != real_map.end()) {
+                real_map.erase(real_map.find((*it)->fOffset));
             }
         }
         return real_map;

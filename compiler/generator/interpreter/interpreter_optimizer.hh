@@ -1288,8 +1288,9 @@ struct FIRInstructionOptimizer {
             do {
                 math_cur_block_size = math_new_block_size;
                 std::cout << "FIRInstructionMathComputeSpecializer" << std::endl;
-                cur_block = optimize(cur_block, math_specializer);
                 cur_block = optimize(cur_block, cast_specializer);
+                cur_block = optimize(cur_block, math_specializer);
+                //cur_block = optimize(cur_block, cast_specializer);
                 cur_block->write(&std::cout);
                 math_new_block_size = cur_block->size();
             } while (math_new_block_size < math_cur_block_size);

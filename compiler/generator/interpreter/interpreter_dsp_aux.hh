@@ -579,6 +579,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
    	
     public:
     
+        /*
         interpreter_dsp_aux(interpreter_dsp_factory_aux<T>* factory)
         : FIRInterpreter<T>(factory->fIntHeapSize, factory->fRealHeapSize,
                             factory->fSROffset, factory->fCountOffset)
@@ -587,10 +588,10 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->fInputs = new T*[fFactory->fNumInputs];
             this->fOutputs = new T*[fFactory->fNumOutputs];
             
-            //std::map<int, T> real_map = factory->fUserInterfaceBlock->getDefaultValues();
-            
             std::map<int, T> real_map;
             std::map<int, int> int_map;
+            
+            //factory->fUserInterfaceBlock->freezeDefaultValues(real_map);
             
             // Set sample rate
             int_map[factory->fSROffset] = 44100;
@@ -618,9 +619,13 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeDSPBlock Optimize memory" << std::endl;
             factory->fComputeDSPBlock->write(&std::cout);
             
+            std::cout << "fComputeDSPBlock size = " << factory->fComputeDSPBlock->size() << std::endl;
+            
             factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeDSPBlock, int_map, real_map);
             std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeDSPBlock specialize memory" << std::endl;
             factory->fComputeDSPBlock->write(&std::cout);
+            
+            std::cout << "fComputeDSPBlock size = " << factory->fComputeDSPBlock->size() << std::endl;
             
             std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeDSPBlock" << std::endl;
             
@@ -630,7 +635,17 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             
             this->freeezeValues(int_map, real_map);
         }
+        */
     
+        interpreter_dsp_aux(interpreter_dsp_factory_aux<T>* factory)
+        : FIRInterpreter<T>(factory->fIntHeapSize, factory->fRealHeapSize,
+                            factory->fSROffset, factory->fCountOffset)
+        {
+            fFactory = factory;
+            this->fInputs = new T*[fFactory->fNumInputs];
+            this->fOutputs = new T*[fFactory->fNumOutputs];
+        }
+        
         virtual ~interpreter_dsp_aux()
         {
             delete [] this->fInputs;

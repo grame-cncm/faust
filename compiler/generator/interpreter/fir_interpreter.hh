@@ -2262,7 +2262,6 @@ class FIRInterpreter  {
                 fRealHeap[(*it2).first] = (*it2).second;
             }
         }
-
  
 };
 
