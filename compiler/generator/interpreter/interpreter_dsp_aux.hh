@@ -235,13 +235,9 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         getline(*in, dummy);    // Read "static_init_block" line
         FIRBlockInstruction<T>* static_init_block = readCodeBlock(in);
         
-         //static_init_block->write(&std::cout);
-        
         // Read init block
         getline(*in, dummy);    // Read "init_block" line
         FIRBlockInstruction<T>* init_block = readCodeBlock(in);
-        
-         //init_block->write(&std::cout);
         
         // Read control block
         getline(*in, dummy);    // Read "control_block" line
@@ -252,8 +248,6 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         // Read DSP block
         getline(*in, dummy);    // Read "dsp_block" line
         FIRBlockInstruction<T>* compute_dsp_block = readCodeBlock(in);
-        
-         //compute_dsp_block->write(&std::cout);
         
         /*
         return new interpreter_dsp_factory_aux(factory_name,
@@ -269,8 +263,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
                                                init_block,
                                                compute_control_block,
                                                compute_dsp_block);
-         
-         */
+        */
         
         interpreter_dsp_factory_aux<T>* factory = new interpreter_dsp_factory_aux(factory_name,
                                                                                   version_num,
@@ -286,8 +279,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
                                                                                   init_block,
                                                                                   compute_control_block,
                                                                                   compute_dsp_block);
-        
-        factory->write(&std::cout);
+        //factory->write(&std::cout);
         return factory;
     }
     
@@ -570,6 +562,7 @@ struct interpreter_dsp_base : public dsp {
     
 };
 
+
 template <class T>
 class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T> {
 	
@@ -579,7 +572,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
    	
     public:
     
-        /*
+    
         interpreter_dsp_aux(interpreter_dsp_factory_aux<T>* factory)
         : FIRInterpreter<T>(factory->fIntHeapSize, factory->fRealHeapSize,
                             factory->fSROffset, factory->fCountOffset)
@@ -626,7 +619,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             factory->fComputeDSPBlock->write(&std::cout);
             
             std::cout << "fComputeDSPBlock size = " << factory->fComputeDSPBlock->size() << std::endl;
-            
             std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeDSPBlock" << std::endl;
             
             //factory->fComputeDSPBlock->write(&std::cout);
@@ -635,8 +627,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             
             this->freeezeValues(int_map, real_map);
         }
-        */
     
+        /*
         interpreter_dsp_aux(interpreter_dsp_factory_aux<T>* factory)
         : FIRInterpreter<T>(factory->fIntHeapSize, factory->fRealHeapSize,
                             factory->fSROffset, factory->fCountOffset)
@@ -645,7 +637,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->fInputs = new T*[fFactory->fNumInputs];
             this->fOutputs = new T*[fFactory->fNumOutputs];
         }
-        
+        */
+    
         virtual ~interpreter_dsp_aux()
         {
             delete [] this->fInputs;
@@ -956,8 +949,6 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const s
 EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const std::string& machine_code_path);
 
 EXPORT void deleteAllInterpreterDSPFactories();
-
-
 
 //EXPORT dsp* createInterpreterDSPInstance(interpreter_dsp_factory* factory);
 

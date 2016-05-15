@@ -69,7 +69,6 @@ struct FIRInstructionCopyOptimizer : public FIRInstructionOptimizer<T>  {
 template <class T>
 struct FIRInstructionCastOptimizer : public FIRInstructionOptimizer<T>  {
     
-    
     FIRInstructionCastOptimizer()
     {
         //std::cout << "FIRInstructionCastOptimizer" << std::endl;
@@ -96,7 +95,6 @@ struct FIRInstructionCastOptimizer : public FIRInstructionOptimizer<T>  {
 // Rewrite indexed Load/Store as simple Load/Store
 template <class T>
 struct FIRInstructionLoadStoreOptimizer : public FIRInstructionOptimizer<T> {
-    
     
     FIRInstructionLoadStoreOptimizer()
     {
@@ -125,7 +123,6 @@ struct FIRInstructionLoadStoreOptimizer : public FIRInstructionOptimizer<T> {
             return (*cur)->copy();
         }
     }
-    
 };
 
 // Rewrite heap Load/Store as Move or direct Value store
@@ -161,9 +158,7 @@ struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
             return (*cur)->copy();
         }
     }
-    
 };
-
 
 /*
  opcode 12 kMoveReal int 0 real 0 offset1 120322 offset2 120321
@@ -212,7 +207,6 @@ struct FIRInstructionBlockMoveOptimizer : public FIRInstructionOptimizer<T> {
             return (*cur)->copy();
         }
     }
-    
 };
 
 /*
@@ -261,7 +255,6 @@ struct FIRInstructionPairMoveOptimizer : public FIRInstructionOptimizer<T> {
             return (*cur)->copy();
         }
     }
-    
 };
 
 // Rewrite math operations as 'heap', 'stack' or 'Value' versions
@@ -558,9 +551,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             return (*cur)->copy();
         }
     }
-    
 };
-
 
 //============================================
 // Partial evaluation by constant propagation
@@ -647,7 +638,6 @@ struct FIRInstructionConstantValueHeap2Map : public FIRInstructionOptimizer<T> {
 template <class T>
 struct FIRInstructionCastSpecializer : public FIRInstructionOptimizer<T> {
     
-    
     FIRInstructionCastSpecializer()
     {
         //std::cout << "FIRInstructionCastSpecializer" << std::endl;
@@ -686,8 +676,7 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
                                                   FIRBasicInstruction<T>* inst2,
                                                   FIRBasicInstruction<T>* inst3)
     {
-        
-        switch (inst3->fOpcode) {
+         switch (inst3->fOpcode) {
                 
             case FIRInstruction::kAddReal:
                 return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst2->fRealValue + inst1->fRealValue);
@@ -737,7 +726,6 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
                                                   FIRBasicInstruction<T>* inst2,
                                                   FIRBasicInstruction<T>* inst3)
     {
-        
         switch (inst3->fOpcode) {
                 
             case FIRInstruction::kAddReal:
@@ -777,7 +765,6 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
                                                    FIRBasicInstruction<T>* inst2,
                                                    FIRBasicInstruction<T>* inst3)
     {
-        
         switch (inst3->fOpcode) {
                 
             case FIRInstruction::kAddReal:
@@ -859,7 +846,6 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
         }
     }
     
-    
     // FIRInstruction::kIntValue
     // FIRInstruction::kLoadInt
     
@@ -867,7 +853,6 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
                                                    FIRBasicInstruction<T>* inst2,
                                                    FIRBasicInstruction<T>* inst3)
     {
-        
         switch (inst3->fOpcode) {
                 
             case FIRInstruction::kAddInt:
@@ -879,7 +864,6 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
                 return (inst1->fIntValue == 0)
                 ? new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0)
                 : 0;
-                
                 
             case FIRInstruction::kMultInt:
                 if (inst1->fIntValue == 1) {        // neutral
@@ -924,7 +908,6 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
                                                    FIRBasicInstruction<T>* inst2,
                                                    FIRBasicInstruction<T>* inst3)
     {
-        
         switch (inst3->fOpcode) {
                 
             case FIRInstruction::kAddInt:
@@ -991,7 +974,6 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
                                                 FIRBasicInstruction<T>* inst2)
     {
         switch (inst2->fOpcode) {
-                
                 
             case FIRInstruction::kAbsf:
                 return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::fabs(inst1->fRealValue));
@@ -1178,9 +1160,8 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
             end = cur + 1;
             return (*cur)->copy();
         }
-    };
+    }
 };
-
 
 template <class T>
 struct FIRInstructionOptimizer {
@@ -1245,14 +1226,29 @@ struct FIRInstructionOptimizer {
     }
     
     // Specialize a block
+    static FIRBlockInstruction<T>* specialize(FIRBlockInstruction<T>* cur_block, FIRInstructionOptimizer<T>& optimizer)
+    {
+        int cur_block_size = cur_block->size();
+        int new_block_size = cur_block->size();
+        
+        do {
+            cur_block_size = new_block_size;
+            cur_block = optimize(cur_block, optimizer);
+            new_block_size = cur_block->size();
+        } while (new_block_size < cur_block_size);
+        
+        return cur_block;
+    }
+    
+    // Specialize a block
     static FIRBlockInstruction<T>* specialize(FIRBlockInstruction<T>* cur_block, std::map<int, int>& int_map, std::map<int, T>& real_map)
     {
         typename std::map<int, int>::iterator it1;
         typename std::map<int, T>::iterator it2;
         
         FIRInstructionConstantValueMap2Heap<T> map_2_heap(int_map, real_map);
-        FIRInstructionMathComputeSpecializer<T> math_specializer;
         FIRInstructionCastSpecializer<T> cast_specializer;
+        FIRInstructionMathComputeSpecializer<T> math_specializer;
         FIRInstructionConstantValueHeap2Map<T> heap_2_map(int_map, real_map);
         
         // Global specialization
@@ -1282,18 +1278,11 @@ struct FIRInstructionOptimizer {
             cur_block = optimize(cur_block, map_2_heap);
             cur_block->write(&std::cout);
             
-            // Math and cast specialization
-            int math_cur_block_size = cur_block->size();
-            int math_new_block_size = cur_block->size();
-            do {
-                math_cur_block_size = math_new_block_size;
-                std::cout << "FIRInstructionMathComputeSpecializer" << std::endl;
-                cur_block = optimize(cur_block, cast_specializer);
-                cur_block = optimize(cur_block, math_specializer);
-                //cur_block = optimize(cur_block, cast_specializer);
-                cur_block->write(&std::cout);
-                math_new_block_size = cur_block->size();
-            } while (math_new_block_size < math_cur_block_size);
+            // Cast specialization
+            cur_block = specialize(cur_block, cast_specializer);
+            
+            // Math specialization
+            cur_block = specialize(cur_block, math_specializer);
             
             // Propagate constant values stored in the code into the heap
             std::cout << "FIRInstructionConstantValueHeap2Map" << std::endl;
@@ -1387,15 +1376,12 @@ struct FIRInstructionOptimizer {
         
         return block;
     }
-    
 };
 
-    
 /*
 
 template <class T>
 struct FIRInstructionSpecializer {
-    
     
     // Rewrite a sequence of instructions starting from 'cur' to 'end' in a new single instruction.
     // Update 'end' so that caller can move at the correct next location
@@ -1591,7 +1577,6 @@ struct FIRInstructionSpecializer {
     }
 
 };
-         */
-
+*/
 
 #endif

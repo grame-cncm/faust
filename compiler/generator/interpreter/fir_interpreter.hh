@@ -2198,6 +2198,7 @@ class FIRInterpreter  {
                     save_return();
                     
                     // Push branch2 (loop content)
+                    assert((*it)->fBranch2);
                     push_branch2();
                     
                     // And start branch1 loop variable declaration block
