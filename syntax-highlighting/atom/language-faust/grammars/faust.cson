@@ -1,6 +1,7 @@
 'comment': 'faust language'
 'fileTypes': [
-  'dsp'
+  'dsp',
+  'lib'
 ]
 'foldingStartMarker': '({|\\()\\s*$'
 'foldingStopMarker': '(}|\\))\\s*$'
