@@ -663,11 +663,11 @@ struct FIRInstructionCastSpecializer : public FIRInstructionOptimizer<T> {
 
 // Math computation
 template <class T>
-struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> {
+struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
     
-    FIRInstructionMathComputeSpecializer()
+    FIRInstructionMathSpecializer()
     {
-        //std::cout << "FIRInstructionMathComputeSpecializer" << std::endl;
+        //std::cout << "FIRInstructionMathSpecializer" << std::endl;
     }
     
     // Beware : inverted args...
@@ -726,6 +726,8 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
                                                   FIRBasicInstruction<T>* inst2,
                                                   FIRBasicInstruction<T>* inst3)
     {
+        std::cout << "rewriteBinaryRealMath2" << std::endl;
+        
         switch (inst3->fOpcode) {
                 
             case FIRInstruction::kAddReal:
@@ -737,16 +739,19 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
                 return (inst1->fRealValue == T(0))
                     ? new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0)
                     : 0;
-
                 
-            case FIRInstruction::kMultReal:
+            case FIRInstruction::kMultReal: {
+                //std::cout << "rewriteBinaryRealMath2 : inst1->fRealValue " << inst1->fRealValue << " " << T(0) << std::endl;
+                //std::cout << "rewriteBinaryRealMath2 : inst1->fRealValue " << (inst1->fRealValue == T(0)) << std::endl;
+                
                 if (inst1->fRealValue == T(1)) {        // neutral
-                    new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0);
+                    return new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0);
                 } else if (inst1->fRealValue == T(0)) { // absorbant
-                    new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, T(0));
+                    return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, T(0));
                 } else {
                     return 0;
                 }
+            }
 
             case FIRInstruction::kDivReal:
                 return (inst1->fRealValue == T(1))
@@ -774,9 +779,9 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
                 
             case FIRInstruction::kMultReal:
                 if (inst2->fRealValue == T(1)) {        // neutral
-                    new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, inst1->fOffset1, 0);
+                    return new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, inst1->fOffset1, 0);
                 } else if (inst2->fRealValue == T(0)) { // absorbant
-                    new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, T(0));
+                    return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, T(0));
                 } else {
                     return 0;
                 }
@@ -1069,7 +1074,7 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
             // Utilise les elements absorbants (0 pour + et - et 1 pour * et /)
             res = rewriteBinaryRealMath2(inst1, inst2, inst3);
             if (res) {
-                std::cout << "rewriteBinaryRealMath2" << std::endl;
+                std::cout << "rewriteBinaryRealMath2 OK" << std::endl;
                 end = cur + 3;
                 return res;
             } else {
@@ -1084,7 +1089,7 @@ struct FIRInstructionMathComputeSpecializer : public FIRInstructionOptimizer<T> 
             // Utilise les elements absorbants (0 pour + et - et 1 pour * et /)
             res = rewriteBinaryRealMath3(inst1, inst2, inst3);
             if (res) {
-                std::cout << "rewriteBinaryRealMath3" << std::endl;
+                std::cout << "rewriteBinaryRealMath3 OK" << std::endl;
                 end = cur + 3;
                 return res;
             } else {
@@ -1248,7 +1253,7 @@ struct FIRInstructionOptimizer {
         
         FIRInstructionConstantValueMap2Heap<T> map_2_heap(int_map, real_map);
         FIRInstructionCastSpecializer<T> cast_specializer;
-        FIRInstructionMathComputeSpecializer<T> math_specializer;
+        FIRInstructionMathSpecializer<T> math_specializer;
         FIRInstructionConstantValueHeap2Map<T> heap_2_map(int_map, real_map);
         
         // Global specialization

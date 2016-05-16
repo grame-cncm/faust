@@ -638,7 +638,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->fOutputs = new T*[fFactory->fNumOutputs];
         }
         */
-    
+        
         virtual ~interpreter_dsp_aux()
         {
             delete [] this->fInputs;
