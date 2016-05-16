@@ -268,7 +268,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             return;
         }
         
-        std::cout << "initTables" << std::endl;
+        //std::cout << "initTables" << std::endl;
         
         //===============
         // Math
@@ -557,12 +557,6 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
 // Partial evaluation by constant propagation
 //============================================
 
-//typedef std::map<int, T>    RealMap;
-//typedef std::map<int, int>  IntMap;
-
-//typedef typename std::map<int, T>    RealMap;
-//typedef typename std::map<int, int>  IntMap;
-
 // Constant Values Optimizer : propagate Int and Real constant values
 template <class T>
 struct FIRInstructionConstantValueMap2Heap : public FIRInstructionOptimizer<T> {
@@ -613,17 +607,13 @@ struct FIRInstructionConstantValueHeap2Map : public FIRInstructionOptimizer<T> {
         
         if (inst1->fOpcode == FIRInstruction::kRealValue && inst2->fOpcode == FIRInstruction::kStoreReal) {
             end = cur + 2;
-           
-            std::cout << "kNop FIRInstruction::kRealValue && FIRInstruction::kStoreReal " << inst1->fRealValue << std::endl;
-  
+            //std::cout << "kNop FIRInstruction::kRealValue && FIRInstruction::kStoreReal " << inst1->fRealValue << std::endl;
             // Add a new entry in real_map
             fRealMap[inst2->fOffset1] = inst1->fRealValue;
             return new FIRBasicInstruction<T>(FIRInstruction::kNop);
         } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kStoreInt) {
             end = cur + 2;
-            
-            std::cout << "kNop FIRInstruction::kIntValue && FIRInstruction::kStoreInt " << inst1->fIntValue << std::endl;
-            
+            //std::cout << "kNop FIRInstruction::kIntValue && FIRInstruction::kStoreInt " << inst1->fIntValue << std::endl;
             // Add a new entry in int_map
             fIntMap[inst2->fOffset1] = inst1->fIntValue;
             return new FIRBasicInstruction<T>(FIRInstruction::kNop);
@@ -634,7 +624,7 @@ struct FIRInstructionConstantValueHeap2Map : public FIRInstructionOptimizer<T> {
     }
 };
 
-// Cast optimizer
+// Cast specializer
 template <class T>
 struct FIRInstructionCastSpecializer : public FIRInstructionOptimizer<T> {
     
@@ -661,7 +651,7 @@ struct FIRInstructionCastSpecializer : public FIRInstructionOptimizer<T> {
     }
 };
 
-// Math computation
+// Math specializer
 template <class T>
 struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
     
@@ -671,7 +661,6 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
     }
     
     // Beware : inverted args...
-    
     FIRBasicInstruction<T>* rewriteBinaryRealMath(FIRBasicInstruction<T>* inst1,
                                                   FIRBasicInstruction<T>* inst2,
                                                   FIRBasicInstruction<T>* inst3)
@@ -721,12 +710,11 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
     
     // FIRInstruction::kRealValue
     // FIRInstruction::kLoadReal
-    
     FIRBasicInstruction<T>* rewriteBinaryRealMath2(FIRBasicInstruction<T>* inst1,
                                                   FIRBasicInstruction<T>* inst2,
                                                   FIRBasicInstruction<T>* inst3)
     {
-        std::cout << "rewriteBinaryRealMath2" << std::endl;
+        //std::cout << "rewriteBinaryRealMath2" << std::endl;
         
         switch (inst3->fOpcode) {
                 
@@ -741,9 +729,6 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                     : 0;
                 
             case FIRInstruction::kMultReal: {
-                //std::cout << "rewriteBinaryRealMath2 : inst1->fRealValue " << inst1->fRealValue << " " << T(0) << std::endl;
-                //std::cout << "rewriteBinaryRealMath2 : inst1->fRealValue " << (inst1->fRealValue == T(0)) << std::endl;
-                
                 if (inst1->fRealValue == T(1)) {        // neutral
                     return new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0);
                 } else if (inst1->fRealValue == T(0)) { // absorbant
@@ -1071,10 +1056,10 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                    && inst2->fOpcode == FIRInstruction::kLoadReal
                    && FIRInstruction::isMath(inst3->fOpcode)) {
            
-            // Utilise les elements absorbants (0 pour + et - et 1 pour * et /)
+            // Utilise les elements neutres et absorbants (0 pour + et - et 1 pour * et /)
             res = rewriteBinaryRealMath2(inst1, inst2, inst3);
             if (res) {
-                std::cout << "rewriteBinaryRealMath2 OK" << std::endl;
+                //std::cout << "rewriteBinaryRealMath2 OK" << std::endl;
                 end = cur + 3;
                 return res;
             } else {
@@ -1086,10 +1071,10 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                    && inst2->fOpcode == FIRInstruction::kRealValue
                    && FIRInstruction::isMath(inst3->fOpcode)) {
             
-            // Utilise les elements absorbants (0 pour + et - et 1 pour * et /)
+            // Utilise les elements neutres et absorbants (0 pour + et - et 1 pour * et /)
             res = rewriteBinaryRealMath3(inst1, inst2, inst3);
             if (res) {
-                std::cout << "rewriteBinaryRealMath3 OK" << std::endl;
+                //std::cout << "rewriteBinaryRealMath3 OK" << std::endl;
                 end = cur + 3;
                 return res;
             } else {
@@ -1112,7 +1097,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
             // Utilise les elements absorbants (0 pour + et - et 1 pour * et /)
             res = rewriteBinaryIntMath2(inst1, inst2, inst3);
             if (res) {
-                std::cout << "rewriteBinaryIntMath2" << std::endl;
+                //std::cout << "rewriteBinaryIntMath2" << std::endl;
                 end = cur + 3;
                 return res;
             } else {
@@ -1127,7 +1112,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
             // Utilise les elements absorbants (0 pour + et - et 1 pour * et /)
             res = rewriteBinaryIntMath3(inst1, inst2, inst3);
             if (res) {
-                std::cout << "rewriteBinaryIntMath3" << std::endl;
+                //std::cout << "rewriteBinaryIntMath3" << std::endl;
                 end = cur + 3;
                 return res;
             } else {
@@ -1205,7 +1190,6 @@ struct FIRInstructionOptimizer {
                     } else {
                         assert(false);
                     }
-                    
                     cur+=2;
                     
             } else  if (inst1->fOpcode == FIRInstruction::kLoop) {
@@ -1243,7 +1227,7 @@ struct FIRInstructionOptimizer {
         return new_block;
     }
     
-    // Specialize a block
+    // Specialize a block with an optimizer
     static FIRBlockInstruction<T>* specialize(FIRBlockInstruction<T>* cur_block, FIRInstructionOptimizer<T>& optimizer)
     {
         int cur_block_size = cur_block->size();
@@ -1258,12 +1242,25 @@ struct FIRInstructionOptimizer {
         return cur_block;
     }
     
-    // Specialize a block
-    static FIRBlockInstruction<T>* specialize(FIRBlockInstruction<T>* cur_block, std::map<int, int>& int_map, std::map<int, T>& real_map)
+    static void displayMaps(std::map<int, int>& int_map, std::map<int, T>& real_map)
     {
         typename std::map<int, int>::iterator it1;
         typename std::map<int, T>::iterator it2;
         
+        std::cout << "displayMaps : int_map" << std::endl;
+        for (it1 = int_map.begin(); it1 != int_map.end(); it1++) {
+            std::cout << "int_map offset " << (*it1).first << " value " << (*it1).second << std::endl;
+        }
+        
+        std::cout << "displayMaps : real_map" << std::endl;
+        for (it2 = real_map.begin(); it2 != real_map.end(); it2++) {
+            std::cout << "real_map offset " << (*it2).first << " value " << (*it2).second << std::endl;
+        }
+    }
+    
+    // Specialize a block
+    static FIRBlockInstruction<T>* specialize(FIRBlockInstruction<T>* cur_block, std::map<int, int>& int_map, std::map<int, T>& real_map)
+    {
         FIRInstructionConstantValueMap2Heap<T> map_2_heap(int_map, real_map);
         FIRInstructionCastSpecializer<T> cast_specializer;
         FIRInstructionMathSpecializer<T> math_specializer;
@@ -1273,28 +1270,14 @@ struct FIRInstructionOptimizer {
         int cur_block_size = cur_block->size();
         int new_block_size = cur_block->size();
         
-        std::cout << "specialize BEGIN: int_map" << std::endl;
-        for (it1 = int_map.begin(); it1 != int_map.end(); it1++) {
-            std::cout << "int_map offset " << (*it1).first << " value " << (*it1).second << std::endl;
-        }
-        
-        std::cout << "specialize BEGIN: real_map" << std::endl;
-        for (it2 = real_map.begin(); it2 != real_map.end(); it2++) {
-            std::cout << "real_map offset " << (*it2).first << " value " << (*it2).second << std::endl;
-        }
-        
-        std::cout << "specialize size " << cur_block_size << std::endl;
-        cur_block->write(&std::cout);
+        displayMaps(int_map, real_map);
         
         do {
 
-            std::cout << "LOOP specialize size " << cur_block->size() << std::endl;
             cur_block_size = new_block_size;
             
             // Propagate constant values from the heap into the code
-            std::cout << "FIRInstructionConstantValueMap2Heap" << std::endl;
             cur_block = optimize(cur_block, map_2_heap);
-            cur_block->write(&std::cout);
             
             // Cast specialization
             cur_block = specialize(cur_block, cast_specializer);
@@ -1303,24 +1286,13 @@ struct FIRInstructionOptimizer {
             cur_block = specialize(cur_block, math_specializer);
             
             // Propagate constant values stored in the code into the heap
-            std::cout << "FIRInstructionConstantValueHeap2Map" << std::endl;
             cur_block = optimize(cur_block, heap_2_map);
-            cur_block->write(&std::cout);
             
             new_block_size = cur_block->size();
-            std::cout << "new_block_size " << new_block_size << " " << cur_block_size << std::endl;
             
         } while (new_block_size < cur_block_size);
         
-        std::cout << "specialize END: int_map" << std::endl;
-        for (it1 = int_map.begin(); it1 != int_map.end(); it1++) {
-            std::cout << "int_map offset " << (*it1).first << " value " << (*it1).second << std::endl;
-        }
-        
-        std::cout << "specialize END: real_map" << std::endl;
-        for (it2 = real_map.begin(); it2 != real_map.end(); it2++) {
-            std::cout << "real_map offset " << (*it2).first << " value " << (*it2).second << std::endl;
-        }
+        displayMaps(int_map, real_map);
         
         // Remove kNop instructions
         FIRBlockInstruction<T>* res_block = new FIRBlockInstruction<T>();
@@ -1342,8 +1314,7 @@ struct FIRInstructionOptimizer {
             // 1) optimize indexed 'heap' load/store in normal load/store
             FIRInstructionLoadStoreOptimizer<T> opt1;
             block = FIRInstructionOptimizer<T>::optimize(block, opt1);
-            
-            std::cout << "FIRInstructionLoadStoreOptimizer block size = " << block->size() << std::endl;
+            //std::cout << "FIRInstructionLoadStoreOptimizer block size = " << block->size() << std::endl;
             block->write(&std::cout);
         }
         
@@ -1351,8 +1322,7 @@ struct FIRInstructionOptimizer {
             // 2) optimize simple 'heap' load/store in move
             FIRInstructionMoveOptimizer<T> opt2;
             block = FIRInstructionOptimizer<T>::optimize(block, opt2);
-            
-            std::cout << "FIRInstructionMoveOptimizer block size = " << block->size() << std::endl;
+            //std::cout << "FIRInstructionMoveOptimizer block size = " << block->size() << std::endl;
             block->write(&std::cout);
         }
         
@@ -1360,8 +1330,7 @@ struct FIRInstructionOptimizer {
             // 3) optimize moves in block move
             FIRInstructionBlockMoveOptimizer<T> opt3;
             block = FIRInstructionOptimizer<T>::optimize(block, opt3);
-            
-            std::cout << "FIRInstructionBlockMoveOptimizer block size = " << block->size() << std::endl;
+            //std::cout << "FIRInstructionBlockMoveOptimizer block size = " << block->size() << std::endl;
             block->write(&std::cout);
         }
         
@@ -1369,8 +1338,7 @@ struct FIRInstructionOptimizer {
             // 4) optimize 2 moves in pair move
             FIRInstructionPairMoveOptimizer<T> opt4;
             block = FIRInstructionOptimizer<T>::optimize(block, opt4);
-            
-            std::cout << "FIRInstructionPairMoveOptimizer block size = " << block->size() << std::endl;
+            //std::cout << "FIRInstructionPairMoveOptimizer block size = " << block->size() << std::endl;
             block->write(&std::cout);
         }
        
@@ -1378,8 +1346,7 @@ struct FIRInstructionOptimizer {
             // 5) optimize 'cast' in heap cast
             FIRInstructionCastOptimizer<T> opt5;
             block = FIRInstructionOptimizer<T>::optimize(block, opt5);
-            
-            std::cout << "FIRInstructionCastOptimizer block size = " << block->size() << std::endl;
+            //std::cout << "FIRInstructionCastOptimizer block size = " << block->size() << std::endl;
             block->write(&std::cout);
         }
         
@@ -1387,8 +1354,7 @@ struct FIRInstructionOptimizer {
             // 6) optimize 'heap' and 'value' math operations
             FIRInstructionMathOptimizer<T> opt6;
             block = FIRInstructionOptimizer<T>::optimize(block, opt6);
-            
-            std::cout << "FIRInstructionMathOptimizer block size = " << block->size() << std::endl;
+            //std::cout << "FIRInstructionMathOptimizer block size = " << block->size() << std::endl;
             block->write(&std::cout);
         }
         
