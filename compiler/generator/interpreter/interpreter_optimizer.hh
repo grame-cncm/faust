@@ -1192,24 +1192,42 @@ struct FIRInstructionOptimizer {
         InstructionIT next, cur = cur_block->fInstructions.begin();
         
         do {
-            FIRBasicInstruction<T>* inst = *cur;
-            if (inst->fOpcode == FIRInstruction::kLoop) {
-                new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,
-                                                           inst->fIntValue, inst->fRealValue,
-                                                           inst->fOffset1, inst->fOffset2,
-                                                           inst->fBranch1->copy(),  // No optimization for loop variable declaration
-                                                           optimize_aux(inst->fBranch2, optimizer)));
+            FIRBasicInstruction<T>* inst1 = *cur;
+            FIRBasicInstruction<T>* inst2 = *(cur + 1);
+            
+            // Specialization
+            if (inst1->fOpcode == FIRInstruction::kIntValue &&
+                (inst2->fOpcode == FIRInstruction::kIf
+                || inst2->fOpcode == FIRInstruction::kSelectReal
+                || inst2->fOpcode == FIRInstruction::kSelectInt)) {
+                
+                    if (inst1->fIntValue == 1) {
+                        new_block->merge(optimize_aux(inst2->fBranch1, optimizer));
+                    } else if (inst1->fIntValue == 0) {
+                        new_block->merge(optimize_aux(inst2->fBranch2, optimizer));
+                    } else {
+                        assert(false);
+                    }
+                    
+                    cur+=2;
+                    
+            } else  if (inst1->fOpcode == FIRInstruction::kLoop) {
+                new_block->push(new FIRBasicInstruction<T>(inst1->fOpcode,
+                                                           inst1->fIntValue, inst1->fRealValue,
+                                                           inst1->fOffset1, inst1->fOffset2,
+                                                           inst1->fBranch1->copy(),  // No optimization for loop variable declaration
+                                                           optimize_aux(inst1->fBranch2, optimizer)));
                 cur++;
-            } else if (inst->fOpcode == FIRInstruction::kIf
-                       || inst->fOpcode == FIRInstruction::kSelectReal
-                       || inst->fOpcode == FIRInstruction::kSelectInt) {
-                new_block->push(new FIRBasicInstruction<T>(inst->fOpcode,
-                                                           inst->fIntValue, inst->fRealValue,
-                                                           inst->fOffset1, inst->fOffset2,
-                                                           optimize_aux(inst->fBranch1, optimizer),
-                                                           optimize_aux(inst->fBranch2, optimizer)));
+            } else if (inst1->fOpcode == FIRInstruction::kIf
+                       || inst1->fOpcode == FIRInstruction::kSelectReal
+                       || inst1->fOpcode == FIRInstruction::kSelectInt) {
+                new_block->push(new FIRBasicInstruction<T>(inst1->fOpcode,
+                                                           inst1->fIntValue, inst1->fRealValue,
+                                                           inst1->fOffset1, inst1->fOffset2,
+                                                           optimize_aux(inst1->fBranch1, optimizer),
+                                                           optimize_aux(inst1->fBranch2, optimizer)));
                 cur++;
-            } else if (inst->fOpcode == FIRInstruction::kCondBranch) {
+            } else if (inst1->fOpcode == FIRInstruction::kCondBranch) {
                 // Special case for loops : branch to new_block
                 new_block->push(new FIRBasicInstruction<T>(FIRInstruction::kCondBranch, 0, 0, 0, 0, new_block, 0));
                 cur++;
