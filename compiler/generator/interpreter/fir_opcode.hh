@@ -241,9 +241,10 @@ struct FIRInstruction {
                 || (opt == kMinf));
     }
     
-    static bool isMath(Opcode opt) { return opt >= kAddReal && opt <= kXORInt; }
-    static bool isExtendedUnaryMath(Opcode opt) { return opt >= kAbs && opt <= kTanhf; }
-    static bool isExtendedBinaryMath(Opcode opt) { return opt >= kAtan2f && opt <= kMinf; }
+    static bool isMath(Opcode opt) { return (opt >= kAddReal) && (opt <= kXORInt); }
+    static bool isExtendedUnaryMath(Opcode opt) { return (opt >= kAbs) && (opt <= kTanhf); }
+    static bool isExtendedBinaryMath(Opcode opt) { return (opt >= kAtan2f) && (opt <= kMinf); }
+    static bool isChoice(Opcode opt) { return (opt == kIf) || (opt == kSelectReal) || (opt == kSelectInt); }
 
 };
 
