@@ -481,11 +481,21 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
         }
     }
     
-    void unFreezeDefaultValues(std::map<int, T>& real_map, FIRInstruction::Opcode opcode = FIRInstruction::kNop)
+    void unFreezeDefaultValues(std::map<int, T>& real_map, FIRInstruction::Opcode opcode)
     {
         UIInstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
             if (((*it)->fOpcode == opcode) && real_map.find((*it)->fOffset) != real_map.end()) {
+                real_map.erase(real_map.find((*it)->fOffset));
+            }
+        }
+    }
+    
+    void unFreezeDefaultValues(std::map<int, T>& real_map)
+    {
+        UIInstructionIT it;
+        for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
+            if (real_map.find((*it)->fOffset) != real_map.end()) {
                 real_map.erase(real_map.find((*it)->fOffset));
             }
         }

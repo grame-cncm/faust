@@ -602,7 +602,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
                 int_map.erase(int_map.find(factory->fIOTAOffset));
             }
             
-            factory->fUserInterfaceBlock->unFreezeDefaultValues(real_map, FIRInstruction::kAddButton);
+            //factory->fUserInterfaceBlock->unFreezeDefaultValues(real_map, FIRInstruction::kAddButton);
+            factory->fUserInterfaceBlock->unFreezeDefaultValues(real_map);
             
             // TODO : do this at instance level
             factory->fComputeBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeBlock, int_map, real_map);
@@ -627,7 +628,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(factory->fComputeDSPBlock);
             factory->fComputeDSPBlock->write(&std::cout);
             
-            this->freeezeValues(int_map, real_map);
+            this->freezeValues(int_map, real_map);
         }
     
         /*

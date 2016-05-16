@@ -2247,16 +2247,16 @@ class FIRInterpreter  {
         }
     
         // Freeze values
-        void freeezeValues(std::map<int, int>& int_map, std::map<int, T>& real_map)
+        void freezeValues(std::map<int, int>& int_map, std::map<int, T>& real_map)
         {
-            std::cout << "freeezeValues Int " << std::endl;
+            std::cout << "freezeValues Int " << std::endl;
             typename std::map<int, int>::iterator it1;
             for (it1 = int_map.begin(); it1 != int_map.end(); it1++) {
                 std::cout << "offset " << (*it1).first << " value " << (*it1).second << std::endl;
                 fIntHeap[(*it1).first] = (*it1).second;
             }
             
-            std::cout << "freeezeValues Real" << std::endl;
+            std::cout << "freezeValues Real" << std::endl;
             typename std::map<int, T>::iterator it2;
             for (it2 = real_map.begin(); it2 != real_map.end(); it2++) {
                 std::cout << "offset " << (*it2).first << " value " << (*it2).second << std::endl;
