@@ -562,17 +562,23 @@ struct interpreter_dsp_base : public dsp {
     
 };
 
-
 template <class T>
 class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T> {
 	
     protected:
     
         interpreter_dsp_factory_aux<T>* fFactory;
+    
+        FIRBlockInstruction<T>* fStaticInitBlock;
+        FIRBlockInstruction<T>* fInitBlock;
+        FIRBlockInstruction<T>* fComputeBlock;
+        FIRBlockInstruction<T>* fComputeDSPBlock;
+    
+        std::map<int, int> fIntMap;
+        std::map<int, T> fRealMap;
    	
     public:
     
-    
         interpreter_dsp_aux(interpreter_dsp_factory_aux<T>* factory)
         : FIRInterpreter<T>(factory->fIntHeapSize, factory->fRealHeapSize,
                             factory->fSROffset, factory->fCountOffset)
@@ -580,72 +586,22 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             fFactory = factory;
             this->fInputs = new T*[fFactory->fNumInputs];
             this->fOutputs = new T*[fFactory->fNumOutputs];
-            
-            std::map<int, T> real_map;
-            std::map<int, int> int_map;
-            
-            //factory->fUserInterfaceBlock->freezeDefaultValues(real_map);
-            
-            // Set sample rate
-            int_map[factory->fSROffset] = 44100;
-            
-            factory->fStaticInitBlock = FIRInstructionOptimizer<T>::specialize(factory->fStaticInitBlock, int_map, real_map);
-            std::cout << "interpreter_dsp_aux CONSTRUCTOR fStaticInitBlock" << std::endl;
-            factory->fStaticInitBlock->write(&std::cout);
-            
-            factory->fInitBlock = FIRInstructionOptimizer<T>::specialize(factory->fInitBlock, int_map, real_map);
-            std::cout << "interpreter_dsp_aux CONSTRUCTOR fInitBlock" << std::endl;
-            factory->fInitBlock->write(&std::cout);
-            
-            // Suppress IOTA from real_map since we don't want specialization to use it
-            if (int_map.find(factory->fIOTAOffset) != int_map.end()) {
-                int_map.erase(int_map.find(factory->fIOTAOffset));
-            }
-            
-            factory->fUserInterfaceBlock->unFreezeDefaultValues(real_map, FIRInstruction::kAddButton);
-            //factory->fUserInterfaceBlock->unFreezeDefaultValues(real_map);
-            
-            // TODO : do this at instance level
-            factory->fComputeBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeBlock, int_map, real_map);
-            std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeBlock" << std::endl;
-            factory->fComputeBlock->write(&std::cout);
-            
-            // Optimize memory
-            factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(factory->fComputeDSPBlock, 4);
-            std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeDSPBlock Optimize memory" << std::endl;
-            factory->fComputeDSPBlock->write(&std::cout);
-            
-            std::cout << "fComputeDSPBlock size = " << factory->fComputeDSPBlock->size() << std::endl;
-            
-            factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::specialize(factory->fComputeDSPBlock, int_map, real_map);
-            std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeDSPBlock specialize memory" << std::endl;
-            factory->fComputeDSPBlock->write(&std::cout);
-            
-            std::cout << "fComputeDSPBlock size = " << factory->fComputeDSPBlock->size() << std::endl;
-            std::cout << "interpreter_dsp_aux CONSTRUCTOR fComputeDSPBlock" << std::endl;
-            
-            //factory->fComputeDSPBlock->write(&std::cout);
-            factory->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(factory->fComputeDSPBlock);
-            factory->fComputeDSPBlock->write(&std::cout);
-            
-            this->freezeValues(int_map, real_map);
+         
+            this->fStaticInitBlock = 0;
+            this->fInitBlock = 0;
+            this->fComputeBlock = 0;
+            this->fComputeDSPBlock = 0;
         }
     
-        /*
-        interpreter_dsp_aux(interpreter_dsp_factory_aux<T>* factory)
-        : FIRInterpreter<T>(factory->fIntHeapSize, factory->fRealHeapSize,
-                            factory->fSROffset, factory->fCountOffset)
-        {
-            fFactory = factory;
-            this->fInputs = new T*[fFactory->fNumInputs];
-            this->fOutputs = new T*[fFactory->fNumOutputs];
-        }
-        */
-        
         virtual ~interpreter_dsp_aux()
         {
             delete [] this->fInputs;
             delete [] this->fOutputs;
+            
+            delete this->fStaticInitBlock;
+            delete this->fInitBlock;
+            delete this->fComputeBlock;
+            delete this->fComputeDSPBlock;
         }
           
         virtual int getNumInputs()
@@ -676,19 +632,65 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         
         virtual void instanceInit(int samplingRate)
         {
-            //std::cout << "instanceInit " << samplingRate << std::endl;
-            // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
-            this->fIntHeap[this->fSROffset] = samplingRate;
-            
             // Execute init instructions
             this->ExecuteBlock(fFactory->fInitBlock);
         }
     
         virtual void init(int samplingRate)
         {
-            classInit(samplingRate);
+            // Store samplingRate in specialization fIntMap
+            this->fIntMap[this->fSROffset] = samplingRate;
+            
+            // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
+            this->fIntHeap[this->fSROffset] = samplingRate;
+            
+            this->classInit(samplingRate);
             this->instanceInit(samplingRate);
         }
+    
+        /*
+        virtual void init(int samplingRate)
+        {
+            // Store samplingRate in specialization fIntMap
+            this->fIntMap[this->fSROffset] = samplingRate;
+            
+            // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
+            this->fIntHeap[this->fSROffset] = samplingRate;
+            
+            this->classInit(samplingRate);
+            this->instanceInit(samplingRate);
+            
+            this->fStaticInitBlock = FIRInstructionOptimizer<T>::specialize2Heap(fFactory->fStaticInitBlock->copy(), fIntMap, fRealMap);
+            this->fInitBlock = FIRInstructionOptimizer<T>::specialize2Heap(fFactory->fInitBlock->copy(), fIntMap, fRealMap);
+            
+            // Suppress IOTA from fRealMap since we don't want specialization to use it
+            if (this->fIntMap.find(fFactory->fIOTAOffset) != this->fIntMap.end()) {
+                this->fIntMap.erase(this->fIntMap.find(fFactory->fIOTAOffset));
+            }
+            
+            // Keep control ON
+            //fFactory->fUserInterfaceBlock->unFreezeDefaultValues(fRealMap, FIRInstruction::kAddButton);
+            fFactory->fUserInterfaceBlock->unFreezeDefaultValues(fRealMap);
+            
+            // Specialization
+            //this->fComputeBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeBlock->copy(), 4);
+            
+            this->fComputeBlock = FIRInstructionOptimizer<T>::specialize(fFactory->fComputeBlock->copy(), fIntMap, fRealMap);
+            this->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeDSPBlock->copy(), 1, 4);
+            this->fComputeDSPBlock = FIRInstructionOptimizer<T>::specialize(this->fComputeDSPBlock, fIntMap, fRealMap);
+            
+            // Optimization
+            this->fComputeBlock = FIRInstructionOptimizer<T>::optimizeBlock(this->fComputeBlock, 5, 6);
+            this->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(this->fComputeDSPBlock, 5, 6);
+            
+            std::cout << "INIT" << std::endl;
+            
+            this->fStaticInitBlock->write(&std::cout);
+            this->fInitBlock->write(&std::cout);
+            this->fComputeBlock->write(&std::cout);
+            this->fComputeDSPBlock->write(&std::cout);
+        }
+        */
     
         virtual void buildUserInterface(UIGeneric* glue)
         {
@@ -710,19 +712,48 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
                 this->fOutputs[i] = outputs[i];
             }
-           
-            // Executes the 'control' block
-            this->ExecuteBlock(this->fFactory->fComputeBlock);
             
             // Set count in 'count' variable at the correct offset in fIntHeap
             this->fIntHeap[this->fCountOffset] = count;
             
+            // Executes the 'control' block
+            this->ExecuteBlock(fFactory->fComputeBlock);
+            
             // Executes the 'DSP' block
             //std::cout << "fComputeDSPBlock" << std::endl;
-            this->ExecuteBlock(this->fFactory->fComputeDSPBlock);
-            
-            //std::cout << "sample " << outputs[0][0] << std::endl;
+            this->ExecuteBlock(fFactory->fComputeDSPBlock);
         }
+    
+        /*
+        virtual void compute(int count, RealBuffers& buffers)
+        {
+            //std::cout << "compute " << count << std::endl;
+            
+            T** inputs; buffers.setInputs(inputs);
+            T** outputs; buffers.setOutputs(outputs);
+            
+            // Prepare in/out buffers
+            for (int i = 0; i < this->fFactory->fNumInputs; i++) {
+                this->fInputs[i] = inputs[i];
+            }
+            for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
+                this->fOutputs[i] = outputs[i];
+            }
+            
+            // Set count in 'count' variable at the correct offset in fIntHeap
+            this->fIntHeap[this->fCountOffset] = count;
+            
+            // Executes the 'control' block
+            //this->ExecuteBlock(this->fFactory->fComputeBlock);
+            assert(this->fComputeBlock);
+            this->ExecuteBlock(this->fComputeBlock);
+            
+            // Executes the 'DSP' block
+            //std::cout << "fComputeDSPBlock" << std::endl;
+            assert(this->fComputeDSPBlock);
+            this->ExecuteBlock(this->fComputeDSPBlock);
+        }
+        */
 };
 
 /*

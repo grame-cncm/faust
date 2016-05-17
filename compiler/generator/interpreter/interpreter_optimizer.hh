@@ -1258,6 +1258,14 @@ struct FIRInstructionOptimizer {
         }
     }
     
+    static FIRBlockInstruction<T>* specialize2Heap(FIRBlockInstruction<T>* cur_block, std::map<int, int>& int_map, std::map<int, T>& real_map)
+    {
+        FIRInstructionConstantValueHeap2Map<T> heap_2_map(int_map, real_map);
+        
+        // Propagate constant values stored in the code into the heap
+        return optimize(cur_block, heap_2_map);
+    }
+    
     // Specialize a block
     static FIRBlockInstruction<T>* specialize(FIRBlockInstruction<T>* cur_block, std::map<int, int>& int_map, std::map<int, T>& real_map)
     {
@@ -1306,11 +1314,11 @@ struct FIRInstructionOptimizer {
         return res_block;
     }
    
-    static FIRBlockInstruction<T>* optimizeBlock(FIRBlockInstruction<T>* block, int op_level = 6)
+    static FIRBlockInstruction<T>* optimizeBlock(FIRBlockInstruction<T>* block, int min_level, int max_level)
     {
         std::cout << "optimizeBlock = " << block->size() << std::endl;
         
-        if (op_level >= 1) {
+        if (min_level <= 1 && 1 <= max_level) {
             // 1) optimize indexed 'heap' load/store in normal load/store
             FIRInstructionLoadStoreOptimizer<T> opt1;
             block = FIRInstructionOptimizer<T>::optimize(block, opt1);
@@ -1318,7 +1326,7 @@ struct FIRInstructionOptimizer {
             block->write(&std::cout);
         }
         
-        if (op_level >= 2) {
+        if (min_level <= 2 && 2 <= max_level) {
             // 2) optimize simple 'heap' load/store in move
             FIRInstructionMoveOptimizer<T> opt2;
             block = FIRInstructionOptimizer<T>::optimize(block, opt2);
@@ -1326,7 +1334,7 @@ struct FIRInstructionOptimizer {
             block->write(&std::cout);
         }
         
-        if (op_level >= 3) {
+        if (min_level <= 3 && 3 <= max_level) {
             // 3) optimize moves in block move
             FIRInstructionBlockMoveOptimizer<T> opt3;
             block = FIRInstructionOptimizer<T>::optimize(block, opt3);
@@ -1334,7 +1342,7 @@ struct FIRInstructionOptimizer {
             block->write(&std::cout);
         }
         
-        if (op_level >= 4) {
+        if (min_level <= 4 && 4 <= max_level) {
             // 4) optimize 2 moves in pair move
             FIRInstructionPairMoveOptimizer<T> opt4;
             block = FIRInstructionOptimizer<T>::optimize(block, opt4);
@@ -1342,7 +1350,7 @@ struct FIRInstructionOptimizer {
             block->write(&std::cout);
         }
        
-        if (op_level >= 5) {
+        if (min_level <= 5 && 5 <= max_level) {
             // 5) optimize 'cast' in heap cast
             FIRInstructionCastOptimizer<T> opt5;
             block = FIRInstructionOptimizer<T>::optimize(block, opt5);
@@ -1350,7 +1358,7 @@ struct FIRInstructionOptimizer {
             block->write(&std::cout);
         }
         
-        if (op_level >= 6) {
+        if (min_level <= 6 && 6 <= max_level) {
             // 6) optimize 'heap' and 'value' math operations
             FIRInstructionMathOptimizer<T> opt6;
             block = FIRInstructionOptimizer<T>::optimize(block, opt6);
