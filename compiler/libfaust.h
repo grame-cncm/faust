@@ -47,7 +47,7 @@ typedef struct LLVMResult {
 #define COMPILATION_OPTIONS_KEY "compilation_options"
 #define COMPILATION_OPTIONS "declare compilation_options    "
 
-#define FAUSTVERSION "2.0.a44"
+#define FAUSTVERSION "2.0.a45"
 
 struct interpreter_dsp_factory;
 

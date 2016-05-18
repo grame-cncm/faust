@@ -680,9 +680,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst2->fRealValue / inst1->fRealValue);
                 
             case FIRInstruction::kRemReal:
-                //return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst2->fRealValue % inst1->fRealValue);
                 assert(false);
-                return new FIRBasicInstruction<T>(FIRInstruction::kNop);
                 
             case FIRInstruction::kGTReal:
                 return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue > inst1->fRealValue, 0);
@@ -1059,7 +1057,6 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
             // Utilise les elements neutres et absorbants (0 pour + et - et 1 pour * et /)
             res = rewriteBinaryRealMath2(inst1, inst2, inst3);
             if (res) {
-                //std::cout << "rewriteBinaryRealMath2 OK" << std::endl;
                 end = cur + 3;
                 return res;
             } else {
@@ -1074,7 +1071,6 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
             // Utilise les elements neutres et absorbants (0 pour + et - et 1 pour * et /)
             res = rewriteBinaryRealMath3(inst1, inst2, inst3);
             if (res) {
-                //std::cout << "rewriteBinaryRealMath3 OK" << std::endl;
                 end = cur + 3;
                 return res;
             } else {
@@ -1097,7 +1093,6 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
             // Utilise les elements absorbants (0 pour + et - et 1 pour * et /)
             res = rewriteBinaryIntMath2(inst1, inst2, inst3);
             if (res) {
-                //std::cout << "rewriteBinaryIntMath2" << std::endl;
                 end = cur + 3;
                 return res;
             } else {
@@ -1112,7 +1107,6 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
             // Utilise les elements absorbants (0 pour + et - et 1 pour * et /)
             res = rewriteBinaryIntMath3(inst1, inst2, inst3);
             if (res) {
-                //std::cout << "rewriteBinaryIntMath3" << std::endl;
                 end = cur + 3;
                 return res;
             } else {

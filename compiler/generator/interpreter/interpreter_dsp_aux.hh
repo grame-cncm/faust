@@ -247,38 +247,20 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         getline(*in, dummy);    // Read "dsp_block" line
         FIRBlockInstruction<T>* compute_dsp_block = readCodeBlock(in);
         
-        /*
         return new interpreter_dsp_factory_aux(factory_name,
-                                               version_num,
-                                               inputs, outputs,
-                                               int_heap_size,
-                                               real_heap_size,
-                                               sr_offset,
-                                               count_offset,
-                                               meta_block,
-                                               ui_block,
-                                               static_init_block,
-                                               init_block,
-                                               compute_control_block,
-                                               compute_dsp_block);
-        */
-        
-        interpreter_dsp_factory_aux<T>* factory = new interpreter_dsp_factory_aux(factory_name,
-                                                                                  version_num,
-                                                                                  inputs, outputs,
-                                                                                  int_heap_size,
-                                                                                  real_heap_size,
-                                                                                  sr_offset,
-                                                                                  count_offset,
-                                                                                  iota_offset,
-                                                                                  meta_block,
-                                                                                  ui_block,
-                                                                                  static_init_block,
-                                                                                  init_block,
-                                                                                  compute_control_block,
-                                                                                  compute_dsp_block);
-        //factory->write(&std::cout);
-        return factory;
+                                              version_num,
+                                              inputs, outputs,
+                                              int_heap_size,
+                                              real_heap_size,
+                                              sr_offset,
+                                              count_offset,
+                                              iota_offset,
+                                              meta_block,
+                                              ui_block,
+                                              static_init_block,
+                                              init_block,
+                                              compute_control_block,
+                                              compute_dsp_block);
     }
     
     static FIRMetaBlockInstruction* readMetaBlock(std::istream* in)
@@ -760,7 +742,6 @@ Computing using on a down-sampled version of signals
 TODO:
  
 - anti alias filter at input
- 
 - interpolation at output
  
 */
@@ -981,10 +962,6 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const s
 EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const std::string& machine_code_path);
 
 EXPORT void deleteAllInterpreterDSPFactories();
-
-//EXPORT dsp* createInterpreterDSPInstance(interpreter_dsp_factory* factory);
-
-//EXPORT void deleteInterpreterDSPInstance(interpreter_dsp* dsp);
 
 #endif
 

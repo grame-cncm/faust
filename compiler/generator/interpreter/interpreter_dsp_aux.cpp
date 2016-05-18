@@ -164,23 +164,6 @@ EXPORT dsp* interpreter_dsp_factory::createDSPInstance()
     return dsp;
 }
 
-/*
-EXPORT dsp* createInterpreterDSPInstance(interpreter_dsp_factory* factory)
-{
-    dsp* dsp = factory->createDSPInstance();
-    gFactoryTable.addDSP(dsp);
-    return dsp;
-}
-
-EXPORT void deleteInterpreterDSPInstance(interpreter_dsp* dsp)
-{
-    delete dsp;
-    if (dsp) {
-        delete (reinterpret_cast<llvm_dsp_aux*>(dsp));
-    }
-}
- */
-
 // Read/write
 
 static std::string read_real_type(std::istream* in)

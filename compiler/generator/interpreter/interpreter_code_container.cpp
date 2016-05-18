@@ -36,7 +36,7 @@ Interpreter :
  - 'fSamplingFreq' and 'count' variable manually added in the IntHeap to be setup in 'instanceInit' and 'compute'
  - multiple unneeded cast are eliminated in CastNumInst
  - 'faustpower' recoded as pow(x,y) in powprim.hh
- - sub-containers code is 'inlined' : fields declarations (using the  global visitor) and code 'classInit', and 'instanceInit' of the main container
+ - sub-containers code is 'inlined' : fields declarations (using the global visitor) and code 'classInit', and 'instanceInit' of the main container
 
 */
 
@@ -178,7 +178,6 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     compute_control_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     compute_dsp_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     
-    
     // Bytecode optimization
     init_static_block = FIRInstructionOptimizer<T>::optimizeBlock(init_static_block, 1, 6);
     init_block = FIRInstructionOptimizer<T>::optimizeBlock(init_block, 1, 6);
@@ -187,7 +186,6 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     compute_dsp_block = FIRInstructionOptimizer<T>::optimizeBlock(compute_dsp_block, 1, 6);
     
     // Then create factory
-    /*
     return new interpreter_dsp_factory(new interpreter_dsp_factory_aux<T>(fKlassName,
                                                                         INTERP_FILE_VERSION,
                                                                         fNumInputs, fNumOutputs,
@@ -195,39 +193,13 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
                                                                         getInterpreterVisitor<T>()->fRealHeapOffset,
                                                                         getInterpreterVisitor<T>()->fSROffset,
                                                                         getInterpreterVisitor<T>()->fCountOffset,
+                                                                        getInterpreterVisitor<T>()->fIOTAOffset,
                                                                         produceMetadata(),
                                                                         getInterpreterVisitor<T>()->fUserInterfaceBlock,
                                                                         init_static_block,
                                                                         init_block,
                                                                         compute_control_block,
                                                                         compute_dsp_block));
-     */
-    
-    interpreter_dsp_factory* factory = new interpreter_dsp_factory(new interpreter_dsp_factory_aux<T>(fKlassName,
-                                                                          INTERP_FILE_VERSION,
-                                                                          fNumInputs, fNumOutputs,
-                                                                          getInterpreterVisitor<T>()->fIntHeapOffset,
-                                                                          getInterpreterVisitor<T>()->fRealHeapOffset,
-                                                                          getInterpreterVisitor<T>()->fSROffset,
-                                                                          getInterpreterVisitor<T>()->fCountOffset,
-                                                                          getInterpreterVisitor<T>()->fIOTAOffset,
-                                                                          produceMetadata(),
-                                                                          getInterpreterVisitor<T>()->fUserInterfaceBlock,
-                                                                          init_static_block,
-                                                                          init_block,
-                                                                          compute_control_block,
-                                                                          compute_dsp_block));
-    /*
-    std::string code = writeInterpreterDSPFactoryToMachine(factory);
-    interpreter_dsp_factory* factory1 = readInterpreterDSPFactoryFromMachine(code);
-     
-    //std::cout << code;
-    */
-    
-    writeInterpreterDSPFactoryToMachineFile(factory, "test.fbc");
-    interpreter_dsp_factory* factory1 = readInterpreterDSPFactoryFromMachineFile("test.fbc");
-    
-    return factory1;
 }
 
 template <class T>

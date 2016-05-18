@@ -202,26 +202,8 @@ class interpreter_dsp : public dsp {
         void buildUserInterface(UI* inter);
         
         void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-        
-        interpreter_dsp* copy();
+    
 };
-
-/**
- * Create a Faust DSP instance.
- * 
- * @param factory - the DSP factory
- * 
- * @return the DSP instance on success, otherwise a null pointer.
- */
-interpreter_dsp* createInterpreterDSPInstance(interpreter_dsp_factory* factory);
-
-/**
- * Delete a Faust DSP instance.
- * 
- * @param dsp - the DSP instance to be deleted.
- */ 
-void deleteInterpreterDSPInstance(interpreter_dsp* dsp);
-
 
 /*!
  @}
