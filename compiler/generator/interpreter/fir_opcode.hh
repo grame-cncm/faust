@@ -196,8 +196,6 @@ struct FIRInstruction {
     
     virtual int size() { return 1; }
     
-    virtual void stackMove(int& int_index, int& real_index) {}
-    
     static bool isRealType(Opcode opt)
     {
         return ((opt == kRealValue)
