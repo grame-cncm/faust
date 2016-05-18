@@ -1316,14 +1316,14 @@ struct FIRInstructionOptimizer {
    
     static FIRBlockInstruction<T>* optimizeBlock(FIRBlockInstruction<T>* block, int min_level, int max_level)
     {
-        std::cout << "optimizeBlock = " << block->size() << std::endl;
+        //std::cout << "optimizeBlock = " << block->size() << std::endl;
         
         if (min_level <= 1 && 1 <= max_level) {
             // 1) optimize indexed 'heap' load/store in normal load/store
             FIRInstructionLoadStoreOptimizer<T> opt1;
             block = FIRInstructionOptimizer<T>::optimize(block, opt1);
             //std::cout << "FIRInstructionLoadStoreOptimizer block size = " << block->size() << std::endl;
-            block->write(&std::cout);
+            //block->write(&std::cout);
         }
         
         if (min_level <= 2 && 2 <= max_level) {
@@ -1331,7 +1331,7 @@ struct FIRInstructionOptimizer {
             FIRInstructionMoveOptimizer<T> opt2;
             block = FIRInstructionOptimizer<T>::optimize(block, opt2);
             //std::cout << "FIRInstructionMoveOptimizer block size = " << block->size() << std::endl;
-            block->write(&std::cout);
+            //block->write(&std::cout);
         }
         
         if (min_level <= 3 && 3 <= max_level) {
@@ -1339,7 +1339,7 @@ struct FIRInstructionOptimizer {
             FIRInstructionBlockMoveOptimizer<T> opt3;
             block = FIRInstructionOptimizer<T>::optimize(block, opt3);
             //std::cout << "FIRInstructionBlockMoveOptimizer block size = " << block->size() << std::endl;
-            block->write(&std::cout);
+            //block->write(&std::cout);
         }
         
         if (min_level <= 4 && 4 <= max_level) {
@@ -1347,7 +1347,7 @@ struct FIRInstructionOptimizer {
             FIRInstructionPairMoveOptimizer<T> opt4;
             block = FIRInstructionOptimizer<T>::optimize(block, opt4);
             //std::cout << "FIRInstructionPairMoveOptimizer block size = " << block->size() << std::endl;
-            block->write(&std::cout);
+            //block->write(&std::cout);
         }
        
         if (min_level <= 5 && 5 <= max_level) {
@@ -1355,7 +1355,7 @@ struct FIRInstructionOptimizer {
             FIRInstructionCastOptimizer<T> opt5;
             block = FIRInstructionOptimizer<T>::optimize(block, opt5);
             //std::cout << "FIRInstructionCastOptimizer block size = " << block->size() << std::endl;
-            block->write(&std::cout);
+            //block->write(&std::cout);
         }
         
         if (min_level <= 6 && 6 <= max_level) {
@@ -1363,7 +1363,7 @@ struct FIRInstructionOptimizer {
             FIRInstructionMathOptimizer<T> opt6;
             block = FIRInstructionOptimizer<T>::optimize(block, opt6);
             //std::cout << "FIRInstructionMathOptimizer block size = " << block->size() << std::endl;
-            block->write(&std::cout);
+            //block->write(&std::cout);
         }
         
         return block;

@@ -242,8 +242,6 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         // Read control block
         getline(*in, dummy);    // Read "control_block" line
         FIRBlockInstruction<T>* compute_control_block = readCodeBlock(in);
-         //
-        compute_control_block->write(&std::cout);
         
         // Read DSP block
         getline(*in, dummy);    // Read "dsp_block" line
