@@ -31,6 +31,7 @@
 #include "Text.hh"
 #include "compatibility.hh"
 #include "floats.hh"
+#include "global.hh"
 
 static string substitution (const string& model, const vector<string>& args);
 
@@ -193,10 +194,16 @@ string T(float n)
  */
 string T(double n)
 {
-    char c[64];
-    int p = 1;
-    
-    do { snprintf(c, 32, "%.*g", p++, n); } while (strtod(c, 0) != n);
+    char    c[64];
+    char*   endp;
+    int     p = 1;
+
+    if (gGlobal->gFloatSize == 2) {
+        do { snprintf(c, 32, "%.*g", p++, n); endp=0; } while (strtod(c, &endp) != n);
+    } if (gGlobal->gFloatSize == 3) {
+        long double q = n;
+        do { snprintf(c, 32, "%.*Lg", p++, q); endp=0; } while (strtold(c, &endp) != q);
+    }
     ensureFloat(c);
     return string(c)+inumix();
 }
