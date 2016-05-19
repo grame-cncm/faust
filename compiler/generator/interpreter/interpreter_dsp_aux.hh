@@ -859,7 +859,7 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartab
     
     interpreter_dsp_factory_base* fFactory;
     std::string fExpandedDSP;
-    std::string fShaKey;
+    std::string fSHAKey;
   
     interpreter_dsp_factory(const std::string& name,
                          float version_num,
@@ -923,8 +923,8 @@ struct EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartab
 
     std::string getName() { return fFactory->getName(); }
     
-    std::string getSHAKey() { return fShaKey; }
-    void setSHAKey(std::string sha_key) { fShaKey = sha_key; }
+    std::string getSHAKey() { return fSHAKey; }
+    void setSHAKey(std::string sha_key) { fSHAKey = sha_key; }
     
     std::string getDSPCode() { return fExpandedDSP; }
     

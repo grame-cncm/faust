@@ -55,6 +55,8 @@ class interpreter_dsp_factory : public dsp_factory {
         std::string getDSPCode();
     
         dsp* createDSPInstance();
+    
+        void metadata(Meta* meta);
 
 };
 

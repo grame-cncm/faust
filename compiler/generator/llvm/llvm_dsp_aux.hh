@@ -36,7 +36,9 @@
 #include "export.hh"
 #include "libfaust.h"
 #include "smartpointer.h"
+#include "dsp_aux.hh"
 #include "TMutex.h"
+
 
 using namespace std;
 
@@ -47,6 +49,7 @@ struct Meta;
 
 class llvm_dsp_factory;
 
+/*
 typedef class SMARTP<llvm_dsp_factory> Sllvm_dsp_factory;
 
 struct FactoryTableType : public map<Sllvm_dsp_factory, list<llvm_dsp_aux*> > 
@@ -56,6 +59,7 @@ struct FactoryTableType : public map<Sllvm_dsp_factory, list<llvm_dsp_aux*> >
     virtual ~FactoryTableType() 
     {}
 };
+*/
 
 #define FactoryTableIt FactoryTableType::iterator
 
@@ -157,13 +161,15 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public smartable {
     
         EXPORT string getSHAKey();
     
+        void setSHAKey(std::string sha_key) { fSHAKey = sha_key; }
+    
         EXPORT string getDSPCode();
     
         EXPORT dsp* createDSPInstance();
     
         EXPORT void metadata(Meta* meta);
    
-        static FactoryTableType gFactoryTable;
+        //static FactoryTableType gFactoryTable;
         static int gInstance;
 };
 

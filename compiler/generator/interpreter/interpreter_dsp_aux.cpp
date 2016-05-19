@@ -30,7 +30,7 @@ using namespace std;
 
 typedef class faust_smartptr<interpreter_dsp_factory> SDsp_factory;
 
-dsp_factory_table<SDsp_factory> gFactoryTable;
+dsp_factory_table<SDsp_factory> gInterpreterFactoryTable;
 
 
 #ifdef LOADER
@@ -107,7 +107,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
         dsp_factory_table<SDsp_factory>::factory_iterator it;
         interpreter_dsp_factory* factory = 0;
         
-        if (gFactoryTable.getFactory(sha_key, it)) {
+        if (gInterpreterFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
@@ -115,7 +115,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
                                                         name_app.c_str(),
                                                         dsp_content.c_str(),
                                                         error_msg_aux)) != 0) {
-            gFactoryTable.setFactory(factory);
+            gInterpreterFactoryTable.setFactory(factory);
             factory->setSHAKey(sha_key);
             error_msg = error_msg_aux;
             return factory;
@@ -129,7 +129,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
 
 EXPORT bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory)
 {
-    return gFactoryTable.deleteDSPFactory(factory);
+    return gInterpreterFactoryTable.deleteDSPFactory(factory);
 }
 
 EXPORT vector<string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory)
@@ -148,19 +148,19 @@ EXPORT vector<string> getAllInterpreterDSPFactories()
 
 EXPORT void deleteAllInterpreterDSPFactories()
 {
-    gFactoryTable.deleteAllDSPFactories();
+    gInterpreterFactoryTable.deleteAllDSPFactories();
 }
 
 EXPORT interpreter_dsp::~interpreter_dsp()
 {
-    gFactoryTable.removeDSP(fFactory, this);
+    gInterpreterFactoryTable.removeDSP(fFactory, this);
     delete fDSP;
 }
 
 EXPORT dsp* interpreter_dsp_factory::createDSPInstance()
 {
     dsp* dsp = fFactory->createDSPInstance(this);
-    gFactoryTable.addDSP(this, dsp);
+    gInterpreterFactoryTable.addDSP(this, dsp);
     return dsp;
 }
 
@@ -196,7 +196,7 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(std::ist
      Factory is added in the table but no SHAKey is actually computed, since this is no real gain 
      in checking if a same stream will result in a same factory before reading and buiding it...
     */
-    gFactoryTable.setFactory(factory);
+    gInterpreterFactoryTable.setFactory(factory);
     return factory;
 }
 
