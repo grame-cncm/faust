@@ -161,6 +161,8 @@ class MaxPrim : public xtended
                 casted_args.push_back((*it2));
                 return container->pushFunction("max", result_type, arg_types, casted_args);
             } else {
+                // both are booleans, theoratically no need to cast, but we still do it to be sure 'true' is actually '1'
+                // and 'false' is actually '0' (which is not the case if compiled in SSE mode)
                 assert(b0 == kBool); assert(b1 == kBool);   // both are booleans, cast both
                 list<ValueInst*>::const_iterator it2 = args.begin();
                 casted_args.push_back(InstBuilder::genCastNumIntInst(*it2));

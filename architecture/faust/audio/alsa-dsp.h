@@ -655,7 +655,7 @@ class alsaaudio : public audio
             .outputs(DSP->getNumOutputs()));
     }
     
-    alsaaudio(int srate, int bsize, dsp* DSP) : fDSP(DSP), fRunning(false)
+    alsaaudio(int srate, int bsize) : fDSP(0), fRunning(false)
     {
         fAudio = new AudioInterface(AudioParam().cardName("hw:0")
                                     .frequency(srate)
