@@ -106,7 +106,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
         virtual void visit(OpenboxInst* inst)
         {
-            FIRInstruction::Opcode opcode;
+            FIRInstruction::Opcode opcode = FIRInstruction::kNop;
             switch (inst->fOrient) {
                 case 0:
                     opcode = FIRInstruction::kOpenVerticalBox;
@@ -116,6 +116,9 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     break;
                 case 2:
                     opcode = FIRInstruction::kOpenTabBox;
+                    break;
+                default:
+                    assert(false);
                     break;
             }
             
