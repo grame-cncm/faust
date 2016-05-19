@@ -22,6 +22,7 @@
 #ifndef _FIR_INTERPRETER_H
 #define _FIR_INTERPRETER_H
 
+#include <string.h>
 #include <string>
 #include <cmath>
 #include <assert.h>
