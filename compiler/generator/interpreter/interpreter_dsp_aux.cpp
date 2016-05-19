@@ -59,8 +59,7 @@ static string path_to_content(const string& path)
 
 EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const string& sha_key)
 {
-    // TODO
-    return 0;
+    return reinterpret_cast<interpreter_dsp_factory*>(gInterpreterFactoryTable.getDSPFactoryFromSHAKey(sha_key));
 }
 
 EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string& filename, 
@@ -141,9 +140,7 @@ EXPORT vector<string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factor
 
 EXPORT vector<string> getAllInterpreterDSPFactories()
 {
-    // TODO
-    vector<string> res;
-    return res;
+    return gInterpreterFactoryTable.getAllDSPFactories();
 }
 
 EXPORT void deleteAllInterpreterDSPFactories()

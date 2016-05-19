@@ -174,9 +174,7 @@ class llvm_dsp_aux : public dsp {
         virtual void buildUserInterface(UIGlue* glue);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-    
-        llvm_dsp_factory* getFactory() { return fFactory; }
-       
+        
 };
 
 // Public C++ interface
