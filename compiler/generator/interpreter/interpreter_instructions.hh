@@ -142,7 +142,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
         virtual void visit(AddSliderInst* inst)
         {
-            FIRInstruction::Opcode opcode;
+            FIRInstruction::Opcode opcode = FIRInstruction::kNop;
             switch (inst->fType) {
                 case AddSliderInst::kHorizontal:
                     opcode = FIRInstruction::kAddHorizontalSlider;
@@ -153,6 +153,9 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 case AddSliderInst::kNumEntry:
                     opcode = FIRInstruction::kAddNumEntry;
                     break;
+                default:
+                    assert(false);
+                    break;
             }
         
             pair<int, Typed::VarType> tmp = fFieldTable[inst->fZone];
@@ -161,13 +164,16 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
         virtual void visit(AddBargraphInst* inst)
         {
-            FIRInstruction::Opcode opcode;
+            FIRInstruction::Opcode opcode = FIRInstruction::kNop;
             switch (inst->fType) {
                 case AddBargraphInst::kHorizontal:
                     opcode = FIRInstruction::kAddHorizontalBargraph;
                     break;
                 case AddBargraphInst::kVertical:
                     opcode = FIRInstruction::kAddVerticalBargraph;
+                    break;
+                default:
+                    assert(false);
                     break;
             }
             
