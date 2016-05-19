@@ -206,7 +206,7 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const strin
 EXPORT string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* factory)
 {
     stringstream writer;
-    factory->fFactory->write(&writer);
+    factory->write(&writer);
     return writer.str();
 }
 
@@ -228,7 +228,7 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const s
 EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const string& machine_code_path)
 {
     ofstream writer(machine_code_path.c_str());
-    factory->fFactory->write(&writer);
+    factory->write(&writer);
 }
 
 EXPORT int interpreter_dsp::getNumInputs()

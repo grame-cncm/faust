@@ -48,7 +48,7 @@ static inline std::string unquote1(const std::string& str)
     return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
 }
 
-struct interpreter_dsp_factory;
+class interpreter_dsp_factory;
 
 struct interpreter_dsp_factory_base {
     
@@ -855,84 +855,88 @@ dsp* interpreter_dsp_factory_aux<T>::createDSPInstance(interpreter_dsp_factory* 
 
 // Public C++ interface
 
-struct EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartable {
+class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartable {
     
-    interpreter_dsp_factory_base* fFactory;
-    std::string fExpandedDSP;
-    std::string fSHAKey;
-  
-    interpreter_dsp_factory(const std::string& name,
-                         float version_num,
-                         int inputs, int ouputs,
-                         int int_heap_size, int real_heap_size,
-                         int sr_offset,
-                         int count_offset,
-                         int iota_offset,
-                         FIRMetaBlockInstruction* meta,
-                         FIRUserInterfaceBlockInstruction<float>* interface,
-                         FIRBlockInstruction<float>* static_init,
-                         FIRBlockInstruction<float>* init,
-                         FIRBlockInstruction<float>* compute_control,
-                         FIRBlockInstruction<float>* compute_dsp)
-    {
-        fFactory = new interpreter_dsp_factory_aux<float>(name, version_num,
-                                                        inputs, ouputs,
-                                                        int_heap_size, real_heap_size,
-                                                        sr_offset,
-                                                        count_offset,
-                                                        iota_offset,
-                                                        meta, interface,
-                                                        static_init, init,
-                                                        compute_control, compute_dsp);
-    }
+    protected:
+        
+        interpreter_dsp_factory_base* fFactory;
+        std::string fExpandedDSP;
+        std::string fSHAKey;
+    
+        virtual ~interpreter_dsp_factory()
+        {
+            delete fFactory;
+        }
+    
+    public:
+    
+        interpreter_dsp_factory(const std::string& name,
+                             float version_num,
+                             int inputs, int ouputs,
+                             int int_heap_size, int real_heap_size,
+                             int sr_offset,
+                             int count_offset,
+                             int iota_offset,
+                             FIRMetaBlockInstruction* meta,
+                             FIRUserInterfaceBlockInstruction<float>* interface,
+                             FIRBlockInstruction<float>* static_init,
+                             FIRBlockInstruction<float>* init,
+                             FIRBlockInstruction<float>* compute_control,
+                             FIRBlockInstruction<float>* compute_dsp)
+        {
+            fFactory = new interpreter_dsp_factory_aux<float>(name, version_num,
+                                                            inputs, ouputs,
+                                                            int_heap_size, real_heap_size,
+                                                            sr_offset,
+                                                            count_offset,
+                                                            iota_offset,
+                                                            meta, interface,
+                                                            static_init, init,
+                                                            compute_control, compute_dsp);
+        }
 
-    interpreter_dsp_factory(const std::string& name,
-                            float version_num,
-                            int inputs, int ouputs,
-                            int int_heap_size, int real_heap_size,
-                            int sr_offset,
-                            int count_offset,
-                            int iota_offset,
-                            FIRMetaBlockInstruction* meta,
-                            FIRUserInterfaceBlockInstruction<double>* interface,
-                            FIRBlockInstruction<double>* static_init,
-                            FIRBlockInstruction<double>* init,
-                            FIRBlockInstruction<double>* compute_control,
-                            FIRBlockInstruction<double>* compute_dsp)
-    {
-        fFactory = new interpreter_dsp_factory_aux<double>(name, version_num,
-                                                        inputs, ouputs,
-                                                        int_heap_size, real_heap_size,
-                                                        sr_offset,
-                                                        count_offset,
-                                                        iota_offset,
-                                                        meta, interface,
-                                                        static_init, init,
-                                                        compute_control, compute_dsp);
-    }
-    
-    interpreter_dsp_factory(interpreter_dsp_factory_aux<float>* factory):fFactory(factory)
-    {}
-    interpreter_dsp_factory(interpreter_dsp_factory_aux<double>* factory):fFactory(factory)
-    {}
-    
-    virtual ~interpreter_dsp_factory()
-    {
-        delete fFactory;
-    }
-
-    std::string getName() { return fFactory->getName(); }
-    
-    std::string getSHAKey() { return fSHAKey; }
-    void setSHAKey(std::string sha_key) { fSHAKey = sha_key; }
-    
-    std::string getDSPCode() { return fExpandedDSP; }
-    
-    dsp* createDSPInstance();
-    
-    void metadata(Meta* meta) { fFactory->metadata(meta); }
-    
-    void write(std::ostream* out) { fFactory->write(out); }
+        interpreter_dsp_factory(const std::string& name,
+                                float version_num,
+                                int inputs, int ouputs,
+                                int int_heap_size, int real_heap_size,
+                                int sr_offset,
+                                int count_offset,
+                                int iota_offset,
+                                FIRMetaBlockInstruction* meta,
+                                FIRUserInterfaceBlockInstruction<double>* interface,
+                                FIRBlockInstruction<double>* static_init,
+                                FIRBlockInstruction<double>* init,
+                                FIRBlockInstruction<double>* compute_control,
+                                FIRBlockInstruction<double>* compute_dsp)
+        {
+            fFactory = new interpreter_dsp_factory_aux<double>(name, version_num,
+                                                            inputs, ouputs,
+                                                            int_heap_size, real_heap_size,
+                                                            sr_offset,
+                                                            count_offset,
+                                                            iota_offset,
+                                                            meta, interface,
+                                                            static_init, init,
+                                                            compute_control, compute_dsp);
+        }
+        
+        interpreter_dsp_factory(interpreter_dsp_factory_aux<float>* factory):fFactory(factory)
+        {}
+        interpreter_dsp_factory(interpreter_dsp_factory_aux<double>* factory):fFactory(factory)
+        {}
+   
+        std::string getName() { return fFactory->getName(); }
+        
+        std::string getSHAKey() { return fSHAKey; }
+        void setSHAKey(std::string sha_key) { fSHAKey = sha_key; }
+        
+        std::string getDSPCode() { return fExpandedDSP; }
+        
+        dsp* createDSPInstance();
+        
+        void metadata(Meta* meta) { fFactory->metadata(meta); }
+        
+        void write(std::ostream* out) { fFactory->write(out); }
     
 };
 

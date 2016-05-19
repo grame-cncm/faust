@@ -93,8 +93,12 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public smartable {
     #endif
     
         string writeDSPFactoryToMachineAux(const string& target);
+  
+    protected:
+    
+        virtual ~llvm_dsp_factory();
                    
-  public:
+    public:
   
         llvm_dsp_factory(const string& sha_key, int argc, const char* argv[], 
                         const string& name, 
@@ -108,7 +112,15 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public smartable {
         llvm_dsp_factory(const string& sha_key, const string& machine_code, const string& target);
     #endif
       
-        virtual ~llvm_dsp_factory();
+        static llvm_dsp_factory* checkDSPFactory(llvm_dsp_factory* factory, string& error_msg)
+        {
+            if (factory->initJIT(error_msg)) {
+                return factory;
+            } else {
+                delete factory;
+                return NULL;
+            }
+        }
     
         // Bitcode
         string writeDSPFactoryToBitcode();
@@ -270,9 +282,9 @@ EXPORT char* getCLibFaustVersion();
 EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
 
 EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, 
-                                                    int argc, const char* argv[], 
-                                                    const char* target, 
-                                                    char* error_msg, int opt_level);
+                                                   int argc, const char* argv[],
+                                                   const char* target,
+                                                   char* error_msg, int opt_level);
 
 EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, 
                                                     int argc, const char* argv[], 

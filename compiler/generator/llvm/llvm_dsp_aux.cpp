@@ -212,15 +212,6 @@ static bool isParam(int argc, const char* argv[], const string& param)
     return false;
 }
 
-static llvm_dsp_factory* checkDSPFactory(llvm_dsp_factory* factory, string& error_msg)
-{   
-    if (factory->initJIT(error_msg)) {
-        return factory;
-    } else {
-        delete factory;
-        return NULL;
-    }
-}
 
 // ObjectCache & MCCJIT is not taken into account when compiled with Visual Studio for the resulting compiler doesn't work 
 #if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
@@ -1181,7 +1172,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             SDsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
-        } else if ((factory = checkDSPFactory(new llvm_dsp_factory(sha_key, argc1, argv1, name_app, dsp_content,
+        } else if ((factory = llvm_dsp_factory::checkDSPFactory(new llvm_dsp_factory(sha_key, argc1, argv1, name_app, dsp_content,
                                                                    expanded_dsp_content, target, error_msg, opt_level), error_msg)) != 0) {
             gLLVMFactoryTable.setFactory(factory);
             factory->setSHAKey(sha_key);
@@ -1201,7 +1192,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
         Sllvm_dsp_factory sfactory = (*it).first;
         sfactory->addReference();
         return sfactory;
-    } else if ((factory = checkDSPFactory(new llvm_dsp_factory(sha_key, argc, argv, name_app, dsp_content, target, error_msg, opt_level), error_msg)) != 0) {
+    } else if ((factory = llvm_dsp_factory::checkDSPFactory(new llvm_dsp_factory(sha_key, argc, argv, name_app, dsp_content, target, error_msg, opt_level), error_msg)) != 0) {
         llvm_dsp_factory::gLLVMFactoryTable[factory] = list<llvm_dsp_aux*>();
         return factory;
     } else {
@@ -1294,7 +1285,7 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, cons
         LLVMContext* context = new LLVMContext();
         Module* module = ParseBitcodeFile(buffer, *context, &error_msg);
         llvm_dsp_factory* factory = 0;
-        if (module && ((factory = checkDSPFactory(new llvm_dsp_factory(sha_key, module, context, target, opt_level), error_msg)) != 0)) {
+        if (module && ((factory = llvm_dsp_factory::checkDSPFactory(new llvm_dsp_factory(sha_key, module, context, target, opt_level), error_msg)) != 0)) {
             gLLVMFactoryTable.setFactory(factory);
             factory->setSHAKey(sha_key);
             return factory;
@@ -1373,7 +1364,7 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
         setlocale(LC_ALL, tmp_local);
         llvm_dsp_factory* factory = 0;
         string error_msg;
-        if (module && ((factory = checkDSPFactory(new llvm_dsp_factory(sha_key, module, context, target, opt_level), error_msg)) != 0)) {
+        if (module && ((factory = llvm_dsp_factory::checkDSPFactory(new llvm_dsp_factory(sha_key, module, context, target, opt_level), error_msg)) != 0)) {
             gLLVMFactoryTable.setFactory(factory);
             factory->setSHAKey(sha_key);
             return factory;
@@ -1443,7 +1434,7 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, cons
     } else {
         string error_msg;
         try {
-            llvm_dsp_factory* factory = checkDSPFactory(new llvm_dsp_factory(sha_key, MEMORY_BUFFER_GET(buffer).str(), target), error_msg);
+            llvm_dsp_factory* factory = llvm_dsp_factory::checkDSPFactory(new llvm_dsp_factory(sha_key, MEMORY_BUFFER_GET(buffer).str(), target), error_msg);
             gLLVMFactoryTable.setFactory(factory);
             factory->setSHAKey(sha_key);
             return factory;

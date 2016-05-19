@@ -49,7 +49,7 @@ typedef struct LLVMResult {
 
 #define FAUSTVERSION "2.0.a45"
 
-struct interpreter_dsp_factory;
+class interpreter_dsp_factory;
 
 /*
     Low level dynamic compilation interface. Better use the public API defined in llvm-dsp.h or llvm-c-dsp.h
