@@ -39,36 +39,14 @@
 #include "dsp_aux.hh"
 #include "TMutex.h"
 
-
 using namespace std;
-
-class llvm_dsp_aux;
-class llvm_dsp;
-
-struct Meta;
-
-class llvm_dsp_factory;
-
-/*
-typedef class SMARTP<llvm_dsp_factory> Sllvm_dsp_factory;
-
-struct FactoryTableType : public map<Sllvm_dsp_factory, list<llvm_dsp_aux*> > 
-{
-    FactoryTableType() 
-    {}
-    virtual ~FactoryTableType() 
-    {}
-};
-*/
-
-#define FactoryTableIt FactoryTableType::iterator
 
 class FaustObjectCache;
 
 class EXPORT llvm_dsp_factory : public dsp_factory, public smartable {
 
     friend class llvm_dsp_aux;
-
+    
     private:
     
         ExecutionEngine* fJIT;
@@ -169,7 +147,6 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public smartable {
     
         EXPORT void metadata(Meta* meta);
    
-        //static FactoryTableType gFactoryTable;
         static int gInstance;
 };
 
@@ -179,7 +156,7 @@ class llvm_dsp_aux : public dsp {
    
     private:
 
-        llvm_dsp_factory* fDSPFactory;
+        llvm_dsp_factory* fFactory;
         llvm_dsp_imp* fDSP;
                  
     public:
@@ -197,10 +174,8 @@ class llvm_dsp_aux : public dsp {
         virtual void buildUserInterface(UIGlue* glue);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-        
-        //virtual llvm_dsp_aux* copy();
     
-        llvm_dsp_factory* getFactory() { return fDSPFactory; }
+        llvm_dsp_factory* getFactory() { return fFactory; }
        
 };
 
