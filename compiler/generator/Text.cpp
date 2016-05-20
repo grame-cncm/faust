@@ -35,6 +35,7 @@
 #include "floats.hh"
 
 extern bool gInternDoubleSwitch;
+extern int  gFloatSize;
 
 static string substitution (const string& model, const vector<string>& args);
 
@@ -188,9 +189,18 @@ static void ensureFloat(char* c)
 string T(double n)
 {
     char    c[64];
+    char*   endp;
     int     p = 1;
 
-    do { snprintf(c, 32, "%.*g", p++, n); } while (atof(c) != n);
+    if (gFloatSize==1) {
+        float v = (float)n;
+        do { snprintf(c, 32, "%.*g", p++, v); endp=0; } while (strtof(c, &endp) != v);
+    } else if (gFloatSize==2) {
+        do { snprintf(c, 32, "%.*g", p++, n); endp=0; } while (strtod(c, &endp) != n);
+    } if (gFloatSize==3) {
+        long double q = n;
+        do { snprintf(c, 32, "%.*Lg", p++, q); endp=0; } while (strtold(c, &endp) != q);
+    }
     ensureFloat(c);
     return string(c)+inumix();
 }

@@ -69,10 +69,10 @@ libOSCFaust.$(VERSION).dylib : $(objects)
 	$(CXX) -dynamiclib $(INSTALL_NAME) -compatibility_version $(SOVERSION) -current_version $(VERSION) $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.$(VERSION).dylib
 
 libOSCFaust.so.$(VERSION) : $(objects)
-	$(CXX) -shared -Wl,-soname,$(SONAME) -fPIC $(ARCHFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.so.$(VERSION)
+	$(CXX) -shared -Wl,-soname,$(SONAME) -fPIC $(ARCHFLAGS) $(LDFLAGS) $(objects) -L.. -loscpack -o libOSCFaust.so.$(VERSION)
 
 libOSCFaust-$(VERSION).dll : $(objects)
-	$(CXX) -shared $(ARCHFLAGS) $(objects) -L.. -loscpack -lwsock32 -lws2_32 -lwinmm -o libOSCFaust-$(VERSION).dll
+	$(CXX) -shared $(ARCHFLAGS) $(LDFLAGS) $(objects) -L.. -loscpack -lwsock32 -lws2_32 -lwinmm -o libOSCFaust-$(VERSION).dll
 
 libOSCFaust.a : $(objects)
 	rm -f $@

@@ -68,10 +68,10 @@ sourcefetcher.o: $(http_fetcher)
 	$(CXX) -dynamiclib $(INSTALL_NAME) $(ARCHFLAGS) $(objects) `pkg-config --libs libmicrohttpd` -o $@
 
 ../libHTTPDFaust.so  :  $(objects)
-	$(CXX) -shared -fPIC -o $@ $(objects) `pkg-config --libs libmicrohttpd`
+	$(CXX) -shared -fPIC $(LDFLAGS) -o $@ $(objects) `pkg-config --libs libmicrohttpd`
 
 ../libHTTPDFaust.dll  :  $(objects)
-	$(CXX) -shared -o $@ $(objects) `pkg-config --libs libmicrohttpd` -lwsock32
+	$(CXX) -shared $(LDFLAGS) -o $@ $(objects) `pkg-config --libs libmicrohttpd` -lwsock32
 	
 depend :
 	makedepend -fMakefile -w120 -Y -- $(CXXFLAGS) -- $(sources)
