@@ -27,6 +27,8 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
 
+#define LLVM 1
+
 #ifdef LLVM
 #include "faust/dsp/llvm-dsp.h"
 #else
@@ -41,8 +43,6 @@
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
 #endif
-
-//#define LLVM 1
 
 struct MyMeta : public Meta
 {
@@ -79,7 +79,6 @@ int main(int argc, char *argv[])
     interpreter_dsp_factory* factory4 = 0;
     interpreter_dsp_factory* factory5 = 0;
 #endif
-    
 
     if (argc < 2) {
         printf("Usage: faust-jack-gtk args [file.dsp | file.bc]\n");
@@ -189,6 +188,7 @@ int main(int argc, char *argv[])
         
         std::string error_msg3;
         //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "i386-apple-darwin10.6.0-cortex-m3", error_msg3, 0);
+        
     #ifdef LLVM
         factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, -1);
     #else
@@ -221,11 +221,7 @@ int main(int argc, char *argv[])
         */
         
         if (factory3) {
-        #ifdef LLVM
-            DSP = createDSPInstance(factory3);
-        #else
             DSP = factory3->createDSPInstance();
-        #endif
             assert(DSP);
          } else {
             printf("Cannot create factory : %s\n", error_msg3.c_str());
