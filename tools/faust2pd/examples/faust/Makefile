@@ -46,7 +46,7 @@ svg: $(svg)
 xml: $(xml)
 
 %~$(DLL): %.cpp
-	$(CXX) $(shared) $(EXTRA_CFLAGS) $(CFLAGS) -Dmydsp=$(@:%~$(DLL)=%) $< -o $@ $(PDLIB)
+	$(CXX) $(shared) $(EXTRA_CFLAGS) $(CFLAGS) -Dmydsp=$(@:%~$(DLL)=%) $(LDFLAGS) $< -o $@ $(PDLIB)
 
 %.cpp: %.dsp
 	faust $(VEC) -a $(ARCH) $< -o $@

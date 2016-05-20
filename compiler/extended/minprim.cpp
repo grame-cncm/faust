@@ -65,32 +65,6 @@ class MinPrim : public xtended
 		}
 	}
 		
-//	virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
-//	{
-//		assert (args.size() == arity());
-//		assert (types.size() == arity());
-////
-////		Type t = infereSigType(types);
-////		if (t->nature() == kReal) {
-////			return subst("min($0, $1)", args[0], args[1]);
-////		} else {
-////			return subst("min($0, $1)", args[0], args[1]);
-////		}
-
-//		// generates code compatible with overloaded min
-//		int n0 = types[0]->nature();
-//		int n1 = types[1]->nature();
-//		if (n0==n1) {
-//			return subst("min($0, $1)", args[0], args[1]);
-//		} else {
-//			if (n0==kInt) {
-//				return subst("min($2$0, $1)", args[0], args[1], icast());
-//			} else {
-//				return subst("min($0, $2$1)", args[0], args[1], icast());
-//			}
-//		}
-//	}
-
     virtual string 	generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
     {
         assert (args.size() == arity());
@@ -126,7 +100,9 @@ class MinPrim : public xtended
                 assert(b0==kBool);    // first is boolean, cast to int
                 return subst("min((int)$0, $1)", args[0], args[1], icast());
             } else {
-                assert(b0==kBool); assert(b1==kBool);   // both are booleans, no need to cast
+                // both are booleans, theoratically no need to cast, but we still do it to be sure 'true' is actually '1'
+                // and 'false' is actually '0' (which is not the case if compiled in SSE mode)
+                assert(b0==kBool); assert(b1==kBool);  
                 return subst("min((int)$0, (int)$1)", args[0], args[1]);
             }
         }

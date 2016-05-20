@@ -78,12 +78,13 @@ class IOSEngine : public FaustPolyEngine {
 
     public:
 
-        IOSEngine(int sampling_rate, int buffer_size):FaustPolyEngine(sampling_rate, buffer_size)
+        IOSEngine(int srate, int buffer_size):FaustPolyEngine()
         {
             // allocating audio driver
-            fDriver = new iosaudio(sampling_rate, buffer_size);
+            fDriver = new iosaudio(srate, bsize);
         }
         
         virtual ~IOSEngine()
         {}
+    
 };

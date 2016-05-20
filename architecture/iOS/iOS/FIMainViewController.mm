@@ -1545,7 +1545,7 @@ static inline const char* transmit_value(int num)
             uiinterface->getAccConverter(index, type, curve, min, mid, max);
             
             // Keep default state
-            (*i)->setInitAssignationType(type);
+            (*i)->setInitAssignationType(type + 1);
             (*i)->setInitAssignationCurve(curve);
             (*i)->setInitCurve(min, mid, max);
             

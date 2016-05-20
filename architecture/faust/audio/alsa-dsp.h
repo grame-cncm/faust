@@ -119,11 +119,9 @@ enum { kRead = 1, kWrite = 2, kReadWrite = 3 };
 /**
  * A convenient class to pass parameters to AudioInterface
  */
-class AudioParam
+struct AudioParam
 {
-  public:
-
-	const char*		fCardName;
+ 	const char*		fCardName;
 	unsigned int	fFrequency;
 	unsigned int	fBuffering;
 	unsigned int	fPeriods;
@@ -131,8 +129,7 @@ class AudioParam
 	unsigned int	fSoftInputs;
 	unsigned int	fSoftOutputs;
 
-  public :
-	AudioParam() :
+ 	AudioParam() :
 		fCardName("hw:0"),
 		fFrequency(44100),
 		fBuffering(512),
@@ -152,11 +149,11 @@ class AudioParam
 /**
  * An ALSA audio interface
  */
-class AudioInterface : public AudioParam
+struct AudioInterface : public AudioParam
 {
- public :
-	snd_pcm_t*				fOutputDevice ;
-	snd_pcm_t*				fInputDevice ;
+
+    snd_pcm_t*				fOutputDevice;
+	snd_pcm_t*				fInputDevice;
 	snd_pcm_hw_params_t* 	fInputParams;
 	snd_pcm_hw_params_t* 	fOutputParams;
 
@@ -182,8 +179,6 @@ class AudioInterface : public AudioParam
 	// non interleaved mod, floating point software buffers
 	float*		fInputSoftChannels[256];
 	float*		fOutputSoftChannels[256];
-
- public :
 
 	const char*	cardName()				{ return fCardName;  	}
  	int			frequency()				{ return fFrequency; 	}
@@ -414,7 +409,7 @@ class AudioInterface : public AudioParam
 			}
 
 		} else {
-			check_error_msg(-10000, "unknow access mode");
+			check_error_msg(-10000, "unknown access mode");
 		}
     }
 
@@ -499,7 +494,7 @@ class AudioInterface : public AudioParam
 			}
 
 		} else {
-			check_error_msg(-10000, "unknow access mode");
+			check_error_msg(-10000, "unknown access mode");
 		}
 	}
 
@@ -650,25 +645,37 @@ class alsaaudio : public audio
 
  public:
 
-	 alsaaudio(int argc, char *argv[], dsp* DSP) : fAudio(0), fDSP(DSP), fRunning(false) {
-			fAudio = new AudioInterface (
-				AudioParam().cardName( sopt(argc, argv, "--device", "-d",  	getDefaultEnv("FAUST2ALSA_DEVICE", "hw:0")  ) )
-				.frequency( lopt(argc, argv, "--frequency", "-f", 			getDefaultEnv("FAUST2ALSA_FREQUENCY",44100) ) )
-				.buffering( lopt(argc, argv, "--buffer", "-b",    			getDefaultEnv("FAUST2ALSA_BUFFER",512)     ) )
-				.periods( lopt(argc, argv, "--periods", "-p",     			getDefaultEnv("FAUST2ALSA_PERIODS",2)       ) )
-				.inputs(DSP->getNumInputs())
-				.outputs(DSP->getNumOutputs()));
-		}
+    alsaaudio(int argc, char *argv[], dsp* DSP) : fDSP(DSP), fRunning(false)
+    {
+        fAudio = new AudioInterface(AudioParam().cardName(sopt(argc, argv, "--device", "-d", getDefaultEnv("FAUST2ALSA_DEVICE", "hw:0")))
+            .frequency(lopt(argc, argv, "--frequency", "-f", getDefaultEnv("FAUST2ALSA_FREQUENCY", 44100)))
+            .buffering(lopt(argc, argv, "--buffer", "-b", getDefaultEnv("FAUST2ALSA_BUFFER", 512)))
+            .periods(lopt(argc, argv, "--periods", "-p", getDefaultEnv("FAUST2ALSA_PERIODS", 2)))
+            .inputs(DSP->getNumInputs())
+            .outputs(DSP->getNumOutputs()));
+    }
+    
+    alsaaudio(int srate, int bsize) : fDSP(0), fRunning(false)
+    {
+        fAudio = new AudioInterface(AudioParam().cardName("hw:0")
+                                    .frequency(srate)
+                                    .buffering(bsize)
+                                    .periods(2));
+    }
 
 	virtual ~alsaaudio() { stop(); delete fAudio; }
 
-	virtual bool init(const char */*name*/, dsp* DSP) {
+	virtual bool init(const char */*name*/, dsp* DSP)
+    {
+        fAudio->inputs(DSP->getNumInputs());
+        fAudio->outputs(DSP->getNumOutputs());
 		fAudio->open();
 	    DSP->init(fAudio->frequency());
  		return true;
 	}
 
-	virtual bool start() {
+	virtual bool start()
+    {
 		fRunning = true;
 		if (pthread_create(&fAudioThread, 0, __run, this)) {
 			fRunning = false;

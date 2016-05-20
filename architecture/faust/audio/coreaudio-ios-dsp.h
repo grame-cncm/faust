@@ -37,7 +37,6 @@
 #ifndef __coreaudio_ios_dsp__
 #define __coreaudio_ios_dsp__
 
-/* link with  */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -69,66 +68,66 @@ using namespace std;
 class TiPhoneCoreAudioRenderer
 {
     
-private:
+    protected:
 
-    AudioUnit fAUHAL;
+        AudioUnit fAUHAL;
 
-    int	fDevNumInChans;
-    int	fDevNumOutChans;
+        int	fDevNumInChans;
+        int	fDevNumOutChans;
 
-    int fHWNumInChans;
-    int fHWNumOutChans;
-    
-    dsp* fDSP;
+        int fHWNumInChans;
+        int fHWNumOutChans;
+        
+        dsp* fDSP;
 
-    AudioBufferList* fCAInputData;
+        AudioBufferList* fCAInputData;
 
-    static OSStatus Render(void *inRefCon,
-                           AudioUnitRenderActionFlags *ioActionFlags,
-                           const AudioTimeStamp *inTimeStamp,
-                           UInt32 inBusNumber,
-                           UInt32 inNumberFrames,
-                           AudioBufferList *ioData);
+        static OSStatus Render(void *inRefCon,
+                               AudioUnitRenderActionFlags *ioActionFlags,
+                               const AudioTimeStamp *inTimeStamp,
+                               UInt32 inBusNumber,
+                               UInt32 inNumberFrames,
+                               AudioBufferList *ioData);
 
-    static void InterruptionListener(void *inClientData, UInt32 inInterruption);
-    
-    static void AudioSessionPropertyListener(void* inClientData,
-                                             AudioSessionPropertyID inID,
-                                             UInt32 inDataSize,
-                                             const void* inData);
-    
-    OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
-                     const AudioTimeStamp *inTimeStamp,
-                     UInt32 inNumberFrames,
-                     AudioBufferList *ioData);
-                     
-    int SetupMixing();
+        static void InterruptionListener(void *inClientData, UInt32 inInterruption);
+        
+        static void AudioSessionPropertyListener(void* inClientData,
+                                                 AudioSessionPropertyID inID,
+                                                 UInt32 inDataSize,
+                                                 const void* inData);
+        
+        OSStatus Render(AudioUnitRenderActionFlags *ioActionFlags,
+                         const AudioTimeStamp *inTimeStamp,
+                         UInt32 inNumberFrames,
+                         AudioBufferList *ioData);
+                         
+        int SetupMixing();
 
-public:
+    public:
 
-    TiPhoneCoreAudioRenderer()
-        :fAUHAL(0), fDevNumInChans(0), fDevNumOutChans(0),
-        fHWNumInChans(0), fHWNumOutChans(0),
-        fDSP(0), fCAInputData(NULL)
-    {}
+        TiPhoneCoreAudioRenderer()
+            :fAUHAL(0), fDevNumInChans(0), fDevNumOutChans(0),
+            fHWNumInChans(0), fHWNumOutChans(0),
+            fDSP(0), fCAInputData(NULL)
+        {}
 
-    virtual ~TiPhoneCoreAudioRenderer()
-    {
-        if (fCAInputData) {
-            for (int i = 0; i < fDevNumInChans; i++) {
-                free(fCAInputData->mBuffers[i].mData);
+        virtual ~TiPhoneCoreAudioRenderer()
+        {
+            if (fCAInputData) {
+                for (int i = 0; i < fDevNumInChans; i++) {
+                    free(fCAInputData->mBuffers[i].mData);
+                }
+                free(fCAInputData);
             }
-            free(fCAInputData);
         }
-    }
 
-    int SetParameters(int bufferSize, int sampleRate);
+        int SetParameters(int bufferSize, int sampleRate);
 
-    int Open(dsp* dsp, int inChan, int outChan, int bufferSize, int sampleRate);
-    int Close();
+        int Open(dsp* dsp, int inChan, int outChan, int bufferSize, int sampleRate);
+        int Close();
 
-    int Start();
-    int Stop();
+        int Start();
+        int Stop();
 
 };
 
@@ -717,41 +716,42 @@ int TiPhoneCoreAudioRenderer::Stop()
  *******************************************************************************/
 class iosaudio : public audio {
 
-protected:
+    protected:
+        
+        TiPhoneCoreAudioRenderer fAudioDevice;
+        int fSampleRate, fBufferSize;
+        
+    public:
     
-    TiPhoneCoreAudioRenderer fAudioDevice;
-	int fSampleRate, fBufferSize;
-    
-public:
-    iosaudio(int srate, int fpb) : fSampleRate(srate), fBufferSize(fpb) {}
-	virtual ~iosaudio() { fAudioDevice.Close(); }
-    
-	virtual bool init(const char* /*name*/, dsp* DSP) 
-    {
-    	DSP->init(fSampleRate);
-		if (fAudioDevice.Open(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fBufferSize, fSampleRate) < 0) {
-			printf("Cannot open iOS audio device\n");
-    		return false;
-		}
-        return true;
-    }
-    
-	virtual bool start() 
-    {
-		if (fAudioDevice.Start() < 0) {
-			printf("Cannot start iOS audio device\n");
-			return false;
-		}
-		return true;
-	}
-    
-	virtual void stop() 
-    {
-		fAudioDevice.Stop();
-	}
-    
-    virtual int get_buffer_size() { return fBufferSize; }
-    virtual int get_sample_rate() { return fSampleRate; }
+        iosaudio(int srate, int bsize) : fSampleRate(srate), fBufferSize(bsize) {}
+        virtual ~iosaudio() { fAudioDevice.Close(); }
+        
+        virtual bool init(const char* /*name*/, dsp* DSP) 
+        {
+            DSP->init(fSampleRate);
+            if (fAudioDevice.Open(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fBufferSize, fSampleRate) < 0) {
+                printf("Cannot open iOS audio device\n");
+                return false;
+            }
+            return true;
+        }
+        
+        virtual bool start() 
+        {
+            if (fAudioDevice.Start() < 0) {
+                printf("Cannot start iOS audio device\n");
+                return false;
+            }
+            return true;
+        }
+        
+        virtual void stop() 
+        {
+            fAudioDevice.Stop();
+        }
+        
+        virtual int get_buffer_size() { return fBufferSize; }
+        virtual int get_sample_rate() { return fSampleRate; }
     
 };
 
