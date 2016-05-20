@@ -35,7 +35,14 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#include "llvm-dsp.h"
+#define LLVM_DSP 1
+
+#ifdef LLVM_DSP_FACTORY
+#include "faust/dsp/llvm-dsp.h"
+#else
+#include "faust/dsp/interpreter-dsp.h"
+#endif
+
 #include "faust/audio/audio.h"
 #include "faust/gui/OSCUI.h"
 #include "faust/gui/httpdUI.h"
