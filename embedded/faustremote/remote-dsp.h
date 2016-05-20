@@ -78,7 +78,7 @@ remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const std::string& sha_key, co
 
 /**
  * Create a Faust remote DSP factory from a DSP source code. You will have to explicitly use 
- * deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
+ * deleteRemoteDSPFactory to properly decrement reference counter when the factory is no more needed.
  *
  * @param filename - DSP filename
  * @param argc - the number of parameters in argv array
@@ -105,7 +105,7 @@ remote_dsp_factory* createRemoteDSPFactoryFromFile(const std::string& filename,
 
 /**
  * Create a Faust remote DSP factory from a DSP source code. You will have to explicitly use  
- * deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
+ * deleteRemoteDSPFactory to properly decrement reference counter when the factory is no more needed.
  *
  * @param name_app - the name of the Faust Application to be compiled
  * @param dsp_content - the Faust program as a string
