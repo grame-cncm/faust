@@ -130,7 +130,7 @@ class netjack_dsp : public audio_dsp {
      
     public:
     
-        netjack_dsp(llvm_dsp_factory* factory, 
+        netjack_dsp(dsp_factory* factory, 
                     const string& compression, 
                     const string& ip, const string& port, 
                     const string& mtu, const string& latency,
@@ -147,7 +147,7 @@ class netjack_dsp : public audio_dsp {
 
 };
 
-netjack_dsp::netjack_dsp(llvm_dsp_factory* factory, 
+netjack_dsp::netjack_dsp(dsp_factory* factory, 
                         const string& compression, 
                         const string& ip, 
                         const string& port, 
@@ -219,7 +219,7 @@ bool audio_dsp::init(int sr, int bs)
     }
 }
 
-audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool group, 
+audio_dsp::audio_dsp(dsp_factory* factory, bool poly, int voices, bool group, 
                     bool osc, bool httpd, bool midi, 
                     const string& name, const string& key, 
                     createInstanceDSPCallback cb1, void* cb1_arg,
@@ -228,15 +228,10 @@ audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool grou
                     fCreateDSPInstanceCb(cb1), fCreateDSPInstanceCb_arg(cb1_arg),
                     fDeleteDSPInstanceCb(cb2), fDeleteDSPInstanceCb_arg(cb2_arg)
 {
-    llvm_dsp* dsp = createDSPInstance(factory);
-    if (!dsp) {
-        throw -1;
-    }
-    
     if (poly) {
-        fDSP = new mydsp_poly(voices, dsp, true, group);
+        fDSP = new mydsp_poly(voices, factory, true, group);
     } else{
-        fDSP = dsp;
+        fDSP = factory->createDSPInstance();
     }
     
     if (osc) {
@@ -291,22 +286,21 @@ dsp_server_connection_info::dsp_server_connection_info()
      fOSC(""), fHTTPD(""), fMIDI("")
 {}
 
-void dsp_server_connection_info::getJson(llvm_dsp_factory* factory) 
+void dsp_server_connection_info::getJson(dsp_factory* factory) 
 {
     fNameApp = factory->getName();
     // This instance is used only to build JSON interface, then it's deleted
-    llvm_dsp* llvm_dsp = createDSPInstance(factory);
     dsp* dsp;
     
     if (atoi(fPoly.c_str())) {
-        dsp = new mydsp_poly(atoi(fVoices.c_str()), llvm_dsp, true, atoi(fGroup.c_str()));
+        dsp = new mydsp_poly(atoi(fVoices.c_str()), factory, true, atoi(fGroup.c_str()));
     } else{
-        dsp = llvm_dsp;
+        dsp = factory->createDSPInstance();
     }
    
     string code = factory->getDSPCode();
     JSONUI json(fNameApp, dsp->getNumInputs(), dsp->getNumOutputs(), factory->getSHAKey(), base64_encode(code.c_str(), code.size()));
-    metadataDSPFactory(factory, &json);
+    factory->metadata(&json);
     dsp->buildUserInterface(&json);
     //deleteDSPInstance(dsp);  
     delete dsp;
@@ -330,8 +324,8 @@ void dsp_server_connection_info::getJson(llvm_dsp_factory* factory)
 bool dsp_server_connection_info::getFactoryFromSHAKey(DSPServer* server)
 {
     // Will increment factory reference counter...
-    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(fSHAKey);
-    //llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(fSHAKey.c_str());
+    dsp_factory* factory = getDSPFactoryFromSHAKey(fSHAKey);
+    //dsp_factory* factory = getCDSPFactoryFromSHAKey(fSHAKey.c_str());
      
     if (factory) {
         getJson(factory);
@@ -343,9 +337,9 @@ bool dsp_server_connection_info::getFactoryFromSHAKey(DSPServer* server)
 }
 
 // Create DSP Factory 
-llvm_dsp_factory* dsp_server_connection_info::crossCompileFactory(DSPServer* server, string& error) 
+dsp_factory* dsp_server_connection_info::crossCompileFactory(DSPServer* server, string& error) 
 {
-    llvm_dsp_factory* factory;
+    dsp_factory* factory;
   
     // Already in the cache...
     if ((factory = getDSPFactoryFromSHAKey(fSHAKey))) {
@@ -382,7 +376,7 @@ llvm_dsp_factory* dsp_server_connection_info::crossCompileFactory(DSPServer* ser
 }
 
 // Create DSP Factory 
-llvm_dsp_factory* dsp_server_connection_info::createFactory(DSPServer* server, string& error) 
+dsp_factory* dsp_server_connection_info::createFactory(DSPServer* server, string& error) 
 {
     // Sort out compilation options
     int argc = fCompilationOptions.size();
@@ -391,7 +385,7 @@ llvm_dsp_factory* dsp_server_connection_info::createFactory(DSPServer* server, s
         argv[i] = fCompilationOptions[i].c_str();
     }
     
-    llvm_dsp_factory* factory = NULL;
+    dsp_factory* factory = NULL;
      
     if (isopt(argc, argv, "-lm")) {
         // Machine code
@@ -502,7 +496,8 @@ fDeleteDSPInstanceCb(NULL),fDeleteDSPInstanceCb_arg(NULL)
 DSPServer::~DSPServer() 
 {
     for (FactoryTableIt it = fFactories.begin(); it != fFactories.end(); it++) {
-        deleteDSPFactory(*it);
+        //deleteDSPFactory(*it);
+        deleteDSPFactory(dynamic_cast<llvm_dsp_factory*>(*it));
     }
 }
 
@@ -684,8 +679,9 @@ bool DSPServer::getAvailableFactories(MHD_Connection* connection)
 {
     stringstream answer;
     for (FactoryTableIt it = fFactories.begin(); it != fFactories.end(); it++) {
-        llvm_dsp_factory* factory = *it;
-        answer << factory->getName() << ":" << factory->getTarget() << " " << factory->getSHAKey() << " ";
+        dsp_factory* factory = *it;
+        //answer << factory->getName() << ":" << factory->getTarget() << " " << factory->getSHAKey() << " ";
+        answer << factory->getName() << " " << factory->getSHAKey() << " ";
         //answer << getCName(factory) << ":" << getCTarget(factory) << " " << getCSHAKey(factory) << " ";
     }
     return sendPage(connection, answer.str(), MHD_HTTP_OK, "text/plain");
@@ -702,7 +698,7 @@ bool DSPServer::getFactoryFromSHAKey(MHD_Connection* connection, dsp_server_conn
 
 bool DSPServer::createFactory(MHD_Connection* connection, dsp_server_connection_info* info)
 {
-    llvm_dsp_factory* factory;
+    dsp_factory* factory;
     
     if (info->getFactoryFromSHAKey(this)) {
         return sendPage(connection, info->fAnswer, MHD_HTTP_OK, "application/json");
@@ -717,18 +713,18 @@ bool DSPServer::createFactory(MHD_Connection* connection, dsp_server_connection_
 
 bool DSPServer::crossCompileFactory(MHD_Connection* connection, dsp_server_connection_info* info)
 {
-    llvm_dsp_factory* factory;
+    dsp_factory* factory;
     
     if ((factory = info->crossCompileFactory(this, info->fAnswer))) {
         fFactories.insert(factory);
         
         // Return machine_code to client
-        string machine_code = writeDSPFactoryToMachine(factory, info->fTarget);
+        string machine_code = writeDSPFactoryToMachine(dynamic_cast<llvm_dsp_factory*>(factory), info->fTarget);
         //char* machine_code = writeCDSPFactoryToMachine(factory, info->fTarget.c_str());
          
         // And keep the new compiled target, so that is it "cached"
-        llvm_dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget);
-        //llvm_dsp_factory* new_factory = readCDSPFactoryFromMachine(machine_code, info->fTarget.c_str());
+        dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget);
+        //dsp_factory* new_factory = readCDSPFactoryFromMachine(machine_code, info->fTarget.c_str());
         
         //freeCDSP(machine_code);  // TODO
         
@@ -786,15 +782,17 @@ bool DSPServer::stop(MHD_Connection* connection, dsp_server_connection_info* inf
 bool DSPServer::deleteFactory(MHD_Connection* connection, dsp_server_connection_info* info)
 {
     // Returns the factory (with incremented reference counter)
-    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(info->fSHAKey);
-    //llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(info->fSHAKey.c_str());
+    dsp_factory* factory = getDSPFactoryFromSHAKey(info->fSHAKey);
+    //dsp_factory* factory = getCDSPFactoryFromSHAKey(info->fSHAKey.c_str());
     
     if (factory) {
         // Remove from the list
         fFactories.erase(factory);
         // Has to be done twice since getDSPFactoryFromSHAKey has incremented once more...
-        deleteDSPFactory(factory); 
-        deleteDSPFactory(factory);
+        //deleteDSPFactory(factory);
+        //deleteDSPFactory(factory);
+        deleteDSPFactory(dynamic_cast<llvm_dsp_factory*>(factory));
+        deleteDSPFactory(dynamic_cast<llvm_dsp_factory*>(factory));
         return sendPage(connection, "", MHD_HTTP_OK, "text/html");
     } else {
         return sendPage(connection, builtError(ERROR_FACTORY_NOTFOUND), MHD_HTTP_BAD_REQUEST, "text/html");
@@ -860,8 +858,8 @@ void DSPServer::requestCompleted(void* cls, MHD_Connection* connection, void** c
 // Create DSP Instance
 bool DSPServer::createInstance(dsp_server_connection_info* con_info)
 {
-    llvm_dsp_factory* factory = getDSPFactoryFromSHAKey(con_info->fSHAKey);
-    //llvm_dsp_factory* factory = getCDSPFactoryFromSHAKey(con_info->fSHAKey.c_str());
+    dsp_factory* factory = getDSPFactoryFromSHAKey(con_info->fSHAKey);
+    //dsp_factory* factory = getCDSPFactoryFromSHAKey(con_info->fSHAKey.c_str());
     audio_dsp* audio = NULL;
     llvm_dsp* dsp = NULL;
     
@@ -925,7 +923,7 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
         }
     
         // Not more use of the locally needed factory (actually only decrement it's reference counter...)
-        deleteDSPFactory(factory);
+        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
         return true;
         
     } else {

@@ -54,9 +54,9 @@
 
 using namespace std;
 
-typedef bool (*createFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
+typedef bool (*createFactoryDSPCallback) (dsp_factory* factory, void* arg);
 typedef bool (*createInstanceDSPCallback) (dsp* dsp, void* arg);
-typedef bool (*deleteFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
+typedef bool (*deleteFactoryDSPCallback) (dsp_factory* factory, void* arg);
 typedef bool (*deleteInstanceDSPCallback) (dsp* dsp, void* arg);
 
 /*
@@ -91,7 +91,7 @@ class audio_dsp {
   
     public:
     
-        audio_dsp(llvm_dsp_factory* factory, 
+        audio_dsp(dsp_factory* factory, 
                 bool poly, int voices, bool group, 
                 bool osc, bool httpd, bool midi,
                 const string& name, const string& key, 
@@ -127,7 +127,8 @@ enum {
     ERROR_INSTANCE_NOTFOUND
 };
 
-typedef set<llvm_dsp_factory*> FactoryTable;
+
+typedef set<dsp_factory*> FactoryTable;  // TO CHECK
 #define FactoryTableIt FactoryTable::iterator
 
 class DSPServer;
@@ -171,13 +172,13 @@ struct dsp_server_connection_info {
     dsp_server_connection_info();
     virtual ~dsp_server_connection_info() {}
     
-    void getJson(llvm_dsp_factory* factory);
+    void getJson(dsp_factory* factory);
     bool getFactoryFromSHAKey(DSPServer* server);
     
     int iteratePost(const char* key, const char* data, size_t size); 
     
-    llvm_dsp_factory* createFactory(DSPServer* server, string& error);
-    llvm_dsp_factory* crossCompileFactory(DSPServer* server, string& error);
+    dsp_factory* createFactory(DSPServer* server, string& error);
+    dsp_factory* crossCompileFactory(DSPServer* server, string& error);
     
     virtual int postProcess(const char* upload_data, size_t* upload_data_size)
     {
