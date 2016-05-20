@@ -1346,7 +1346,7 @@ void faustgen::display_dsp_params()
         post("------------------");
     }
     
-    char param[256];
+    char param[1024];
     for (mspUI::iterator it = fDSPUI.begin(); it != fDSPUI.end(); ++it) {
         it->second->toString(param);
         post(param);
