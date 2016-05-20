@@ -204,9 +204,9 @@ scheduler_exp.h : ../architecture/scheduler.cpp
 
 faust : $(objects) main.o libcode.o global.o
 ifneq ($(findstring MINGW32, $(system)),)
-	$(CXX) $(CXXFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread -o faust
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread -o faust
 else
-	$(CXX) $(CXXFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) -ldl -lcrypto -lz -lncurses -lpthread -o faust
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) -ldl -lcrypto -lz -lncurses -lpthread -o faust
 endif
 
 ifeq ($(system), Darwin)

@@ -409,7 +409,7 @@ struct AudioInterface : public AudioParam
 			}
 
 		} else {
-			check_error_msg(-10000, "unknow access mode");
+			check_error_msg(-10000, "unknown access mode");
 		}
     }
 
@@ -494,7 +494,7 @@ struct AudioInterface : public AudioParam
 			}
 
 		} else {
-			check_error_msg(-10000, "unknow access mode");
+			check_error_msg(-10000, "unknown access mode");
 		}
 	}
 
@@ -655,7 +655,7 @@ class alsaaudio : public audio
             .outputs(DSP->getNumOutputs()));
     }
     
-    alsaaudio(int srate, int bsize) : fDSP(DSP), fRunning(false)
+    alsaaudio(int srate, int bsize) : fDSP(0), fRunning(false)
     {
         fAudio = new AudioInterface(AudioParam().cardName("hw:0")
                                     .frequency(srate)

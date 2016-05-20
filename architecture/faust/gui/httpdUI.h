@@ -28,14 +28,13 @@
 #define __httpdUI__
 
 #include <unistd.h>
+#include <iostream>
+#include <sstream>
 
 #include "faust/gui/HTTPDControler.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/PathBuilder.h"
 #include "faust/misc.h"
-
-#include <iostream>
-#include <sstream>
 
 #ifndef _WIN32
 #include <pthread.h>
