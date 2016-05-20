@@ -264,9 +264,9 @@ class DSPServer {
             
         // Reaction to a POST request
         int answerPost(MHD_Connection* connection, const char* url, 
-                                    const char* upload_data, size_t *upload_data_size, 
-                                    void** con_cls);
-            
+                        const char* upload_data, size_t *upload_data_size,
+                        void** con_cls);
+    
         // Reaction to a /CreateInstance request --> Creates llvm_dsp_instance & NetJack slave
         bool createInstance(dsp_server_connection_info* con_info);
         
