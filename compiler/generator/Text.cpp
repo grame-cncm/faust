@@ -198,7 +198,10 @@ string T(double n)
     char*   endp;
     int     p = 1;
 
-    if (gGlobal->gFloatSize == 2) {
+    if (gGlobal->gFloatSize == 1) {
+        float v = (float)n;
+        do { snprintf(c, 32, "%.*g", p++, v); endp=0; } while (strtof(c, &endp) != v);
+    } else if (gGlobal->gFloatSize == 2) {
         do { snprintf(c, 32, "%.*g", p++, n); endp=0; } while (strtod(c, &endp) != n);
     } if (gGlobal->gFloatSize == 3) {
         long double q = n;
