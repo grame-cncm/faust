@@ -215,7 +215,7 @@ ifeq ($(system), Darwin)
 	libtool $(LIBFLAGS) $(objects) libcode.o libmain.o global.o -static -o $@
 
     libfaust.dylib : $(objects) libcode.o libmain.o global.o
-	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(objects) libcode.o libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -ldl -lcrypto -lz -lncurses -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
+	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(LDFLAGS) $(objects) libcode.o libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -ldl -lcrypto -lz -lncurses -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
 else
 ifneq ($(findstring MINGW32, $(system)),)
     libfaust.a : $(objects) libcode.o libmain.o global.o
@@ -224,7 +224,7 @@ ifneq ($(findstring MINGW32, $(system)),)
 	ranlib $@
 
     libfaust.dll : $(objects) libcode.o libmain.o global.o
-	$(CXX) -shared $(objects) libcode.o libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread
+	$(CXX) -shared $(LDFLAGS) $(objects) libcode.o libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread
 else
     libfaust.a : $(objects) libcode.o libmain.o global.o
 	rm -f $@
@@ -232,7 +232,7 @@ else
 	ranlib $@
 
     libfaust.so : $(objects) libcode.o libmain.o global.o
-	$(CXX) -shared -fPIC $(objects) libcode.o libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -ldl -lcrypto -lstdc++
+	$(CXX) -shared -fPIC $(LDFLAGS) $(objects) libcode.o libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -ldl -lcrypto -lstdc++
 endif
 endif
 
