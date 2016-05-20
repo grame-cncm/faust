@@ -268,7 +268,8 @@ audio_dsp::~audio_dsp()
     }
     
     delete fAudio;
-    delete fDSP;  //deleteDSPInstance(fDSP);
+    //deleteDSPInstance(fDSP);
+    delete fDSP;
     
     delete fOSCUI;
     delete fHttpdUI;
@@ -425,7 +426,6 @@ dsp_factory* dsp_server_connection_info::createFactory(DSPServer* server, string
                                             error1, atoi(fOptLevel.c_str()));
         */
         
-        
         error = error1;
     }
     
@@ -535,7 +535,7 @@ void* DSPServer::registration(void* arg)
 #ifdef LLVM_DSP_FACTORY
     string target = getDSPMachineTarget();
 #else
-    string target = "";
+    string target = "Interpreter";
 #endif
     
     stringstream name_service;
@@ -746,23 +746,16 @@ bool DSPServer::crossCompileFactory(MHD_Connection* connection, dsp_server_conne
     if ((factory = info->crossCompileFactory(this, info->fAnswer))) {
         fFactories.insert(factory);
         
-        // Return machine_code to client
+        // Return machine_code to client, and keep the new compiled target, so that is it "cached"
     #ifdef LLVM_DSP_FACTORY
         string machine_code = writeDSPFactoryToMachine(dynamic_cast<llvm_dsp_factory*>(factory), info->fTarget);
-    #else
-        string machine_code = writeInterpreterDSPFactoryToMachine(dynamic_cast<interpreter_dsp_factory*>(factory));
-    #endif
-        
-        //char* machine_code = writeCDSPFactoryToMachine(factory, info->fTarget.c_str());
-         
-        // And keep the new compiled target, so that is it "cached"
-    #ifdef LLVM_DSP_FACTORY
         dsp_factory* new_factory = readDSPFactoryFromMachine(machine_code, info->fTarget);
     #else
-         dsp_factory* new_factory = readInterpreterDSPFactoryFromMachine(machine_code);
+        string machine_code = writeInterpreterDSPFactoryToMachine(dynamic_cast<interpreter_dsp_factory*>(factory));
+        dsp_factory* new_factory = readInterpreterDSPFactoryFromMachine(machine_code);
     #endif
-        //dsp_factory* new_factory = readCDSPFactoryFromMachine(machine_code, info->fTarget.c_str());
         
+        //dsp_factory* new_factory = readCDSPFactoryFromMachine(machine_code, info->fTarget.c_str());
         //freeCDSP(machine_code);  // TODO
         
         if (new_factory) {
@@ -937,7 +930,7 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
                 
                 /*
                  // Steph : 06/15
-                if (!(dsp = createDSPInstance(factory))) {
+                if (!(dsp = factory->createDSPInstance())) {
                     return false;
                 }
                 
@@ -1078,3 +1071,4 @@ EXPORT void remote_dsp_server::setDeleteDSPInstanceCallback(deleteInstanceDSPCal
 {
     reinterpret_cast<DSPServer*>(this)->setDeleteDSPInstanceCallback(callback, callback_arg);
 }
+
