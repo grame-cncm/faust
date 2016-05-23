@@ -27,7 +27,6 @@
 #ifndef API_UI_H
 #define API_UI_H
 
-#include "faust/misc.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/PathBuilder.h"

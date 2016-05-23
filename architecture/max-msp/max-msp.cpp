@@ -720,7 +720,7 @@ void faust_dblclick(t_faust* x, long inlet)
 {
     post((char*)"------------------");
     for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); ++it) {
-        char param[256];
+        char param[1024];
         it->second->toString(param);
         post(param);
     }
@@ -740,7 +740,7 @@ void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
             /*
 			post((char*)"------------------");
 			for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); ++it) {
-				char param[256];
+				char param[1024];
 				it->second->toString(param);
 				post(param);
 			}
