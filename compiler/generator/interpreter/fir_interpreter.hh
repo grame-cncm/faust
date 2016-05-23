@@ -590,10 +590,10 @@ class FIRInterpreter  {
                     
                 do_kRemReal:
                 {
-                //    T v1 = pop_real();
-                //    T v2 = pop_real();
-                //    push_real(v1 % v2);
-                //    dispatch_next();
+                    T v1 = pop_real();
+                    T v2 = pop_real();
+                    push_real(std::remainder(v1, v2));
+                    dispatch_next();
                 }
                 
                 do_kRemInt:
@@ -798,10 +798,8 @@ class FIRInterpreter  {
                 
                 do_kRemRealHeap:
                 {
-                    //    T v1 = pop_real();
-                    //    T v2 = pop_real();
-                    //    push_real(v1 % v2);
-                    //    dispatch_next();
+                    push_real(std::remainder(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
+                    dispatch_next();
                 }
                 
                 do_kRemIntHeap:
@@ -978,10 +976,9 @@ class FIRInterpreter  {
                 
                 do_kRemRealStack:
                 {
-                    //    T v1 = pop_real();
-                    //    T v2 = pop_real();
-                    //    push_real(v1 % v2);
-                    //    dispatch_next();
+                    T v1 = pop_real();
+                    push_real(std::remainder(fRealHeap[(*it)->fOffset1], v1));
+                    dispatch_next();
                 }
                 
                 do_kRemIntStack:
@@ -1176,10 +1173,9 @@ class FIRInterpreter  {
                 
                 do_kRemRealStackValue:
                 {
-                    //    T v1 = pop_real();
-                    //    T v2 = pop_real();
-                    //    push_real(v1 % v2);
-                    //    dispatch_next();
+                    T v1 = pop_real();
+                    push_real(std::remainder((*it)->fRealValue, v1));
+                    dispatch_next();
                 }
                 
                 do_kRemIntStackValue:
@@ -1366,12 +1362,10 @@ class FIRInterpreter  {
                 
                 do_kRemRealValue:
                 {
-                    //    T v1 = pop_real();
-                    //    T v2 = pop_real();
-                    //    push_real(v1 % v2);
-                    //    dispatch_next();
+                    push_real(std::remainder((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
+                    dispatch_next();
                 }
-                
+    
                 do_kRemIntValue:
                 {
                     push_int((*it)->fIntValue % fIntHeap[(*it)->fOffset1]);
@@ -1515,10 +1509,8 @@ class FIRInterpreter  {
                 
                 do_kRemRealValueInvert:
                 {
-                    //    T v1 = pop_real();
-                    //    T v2 = pop_real();
-                    //    push_real(v1 % v2);
-                    //    dispatch_next();
+                    push_real(std::remainder(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
+                    dispatch_next();
                 }
                 
                 do_kRemIntValueInvert:

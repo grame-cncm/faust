@@ -76,6 +76,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             gMathLibTable["expf"] = FIRInstruction::kExpf;
             gMathLibTable["floorf"] = FIRInstruction::kFloorf;
             gMathLibTable["fmodf"] = FIRInstruction::kFmodf;
+            gMathLibTable["remainderf"] =  FIRInstruction::kRemReal;
             gMathLibTable["logf"] =  FIRInstruction::kLogf;
             gMathLibTable["log10f"] =  FIRInstruction::kLog10f;
             gMathLibTable["powf"] =  FIRInstruction::kPowf;
