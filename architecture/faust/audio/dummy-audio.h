@@ -72,7 +72,7 @@ class dummy_audio : public audio {
         dummy_audio(int count = 10)
             :fSampleRate(48000), fBufferSize(512), fCount(count) {}
         dummy_audio(int srate, int bsize, int count = 10)
-            :fSampleRate(srate), fBufferSize(bsize), (fCount(count) {}
+            :fSampleRate(srate), fBufferSize(bsize), fCount(count) {}
     
         virtual ~dummy_audio() 
         {
