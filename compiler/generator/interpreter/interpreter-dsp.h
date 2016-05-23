@@ -63,7 +63,7 @@ class interpreter_dsp_factory : public dsp_factory {
 /**
  * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
  * if already allocated in the factories cache and increment it's reference counter. You will have to explicitly
- * use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
+ * use deleteInterpreterDSPFactory to properly decrement reference counter when the factory is no more needed.
  *
  * @param sha_key - the SHA key for an already created factory, kept in the factory cache
  *
@@ -75,7 +75,7 @@ interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& s
  * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all 
  * allocated factories so that the compilation of same DSP code (that is same source code and 
  * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer. You will have to explicitly
- * use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
+ * use deleteInterpreterDSPFactory to properly decrement reference counter when the factory is no more needed.
  * 
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array 
