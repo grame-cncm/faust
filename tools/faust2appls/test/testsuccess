@@ -3,6 +3,8 @@
 ## exclusion list for faust errors
 XLIST1="faust2md"
 
+OSX="faust2au faust2caqt faust2csound faust2faustvst faust2jaqt faust2max6 faust2msp faust2puredata faust2supercollider faust2vst faust2vsti"
+
 ## test exclusion : notinlist "toto" "a b c d e"
 notinlist() {
   for word in $2; do
@@ -13,12 +15,22 @@ notinlist() {
   return 0
 }
 
-echo
-echo "Test all Faust2xxx to work"
-echo
-for S in ../faust2*; do
-    scriptname=`basename $S .in`
-    if notinlist  $S "$XLIST1"; then
-	    ($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
-	fi
-done
+if [ "$1" = "osx" ]; then
+	echo
+	echo "Test OSX's Faust2xxx to work"
+	echo "$OSX"
+
+	for scriptname in $OSX; do
+    	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
+	done	
+else 
+	echo
+	echo "Test all Faust2xxx to work"
+	echo
+	for S in ../faust2*; do
+		scriptname=`basename $S .in`
+		if notinlist  $S "$XLIST1"; then
+			($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
+		fi
+	done
+fi
