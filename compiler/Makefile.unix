@@ -2,7 +2,6 @@ subprojects := . boxes errors evaluate  normalize parser propagate parallelize s
                 draw draw/device draw/schema extended patternmatcher documentator utils ../libraries \
                 generator generator/asmjs generator/c generator/cpp  \
                 generator/java generator/js generator/llvm generator/fir generator/wasm generator/interpreter
-                
 
 sources = $(wildcard */*.cpp) $(wildcard draw/*/*.cpp) $(wildcard generator/*/*.cpp) $(wildcard ../libraries/loki/*cpp)
 
@@ -33,10 +32,10 @@ ifeq ($(system), Darwin)
     ARCHFLAGS 	:=  -arch i386 -arch x86_64
     LIBFLAGS	:=
     CXX 		= clang++
-    #CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors  
+    #CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors
     LIB_EXT     = dylib
     ## --analyze   -Wall -pedantic
-    #CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors -stdlib=libc++ 
+    #CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors -stdlib=libc++
 else
     ARCHFLAGS 	:=
     LIBFLAGS	:= --mode=link --tag=CXX
@@ -56,7 +55,7 @@ LIBS = -lshell32 -lpsapi -limagehlp -lwsock32 `pkg-config --libs libcrypto` -lz
 EXE = .exe
 endif
 
-CXXFLAGS ?= -g -Wall -Wuninitialized 
+CXXFLAGS ?= -g -Wall -Wuninitialized
 ##CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
@@ -71,7 +70,7 @@ endif
 #            -lclangSema -lclangStaticAnalyzerFrontend \
 #            -lclangStaticAnalyzerCheckers -lclangStaticAnalyzerCore \
 #            -lclangAnalysis -lclangRewriteCore -lclangRewriteFrontend \
-#            -lclangEdit -lclangLex 
+#            -lclangEdit -lclangLex
 
 
 ifeq ($(LLVM_VERSION), 3.1)
@@ -120,7 +119,7 @@ else
 endif
 endif
 
-CXXFLAGS += -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+CXXFLAGS += -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 CXXFLAGS += -I`$(LLVM_CONFIG) --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 CXXFLAGS += $(ARCHFLAGS)
 
@@ -141,14 +140,14 @@ dynamic : faust libfaust.$(LIB_EXT)
 ios : IPHONEOS_DEPLOYMENT_TARGET=5.0
 ios : CXX = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang
 ios : CXXFLAGS = -arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk
-ios : CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+ios : CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 ios : LLVM_VERSION =
 ios : libfaust.a
 
 ios-llvm : IPHONEOS_DEPLOYMENT_TARGET=5.0
 ios-llvm : CXX = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang
 ios-llvm : CXXFLAGS = -arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS8.0.sdk
-ios-llvm : CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+ios-llvm : CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 ios-llvm : CXXFLAGS += -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 ios-llvm : CXXFLAGS += -stdlib=libc++  -std=c++11
 ios-llvm : CXXFLAGS += -I/Users/letz/llvm-ios/include
@@ -157,7 +156,7 @@ ios-llvm : libfaust.a libfaustmachine.a
 ## For the Web, do not compile LLVM part
 emcc : CC = emcc
 emcc : CXX = emcc
-emcc : CXXFLAGS = -DEMCC -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+emcc : CXXFLAGS = -DEMCC -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 emcc : ARCHFLAGS =
 emcc : LLVM_VERSION =
 emcc : libfaust.js libfaustworker.js
@@ -175,7 +174,7 @@ libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm
 libfaust.js : $(objects) libcode.o libmain.o global.o
 	$(CXX) -O3 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaust.js
 	cp libfaust.js ../architecture/webaudio
-	
+
 libfaustworker.js : $(objects) libcode.o libmain.o global.o
 	$(CXX) -O3 --memory-init-file 0 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaustworker.js
 	cp libfaustworker.js ../architecture/webaudio
@@ -191,10 +190,10 @@ global.o : global.cpp
 
 main.o : main.cpp
 	$(CXX) $(CXXFLAGS) main.cpp -c -o main.o
-    
+
 scheduler.ll : ../architecture/scheduler.cpp
 	$(LLVM_CLANG) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
-    
+
 CUI_exp.h : ../architecture/faust/gui/CUI.h
 	xxd -i ../architecture/faust/gui/CUI.h generator/llvm/CUI_exp.h
 
@@ -214,25 +213,25 @@ ifeq ($(system), Darwin)
     libfaust.a : $(objects) libcode.o libmain.o global.o
 	libtool $(LIBFLAGS) $(objects) libcode.o libmain.o global.o -static -o $@
 
-    libfaust.dylib : $(objects) libcode.o libmain.o global.o 
-	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(objects) libcode.o libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -ldl -lcrypto -lz -lncurses -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
-else	
+    libfaust.dylib : $(objects) libcode.o libmain.o global.o
+	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(LDFLAGS) $(objects) libcode.o libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -ldl -lcrypto -lz -lncurses -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
+else
 ifneq ($(findstring MINGW32, $(system)),)
     libfaust.a : $(objects) libcode.o libmain.o global.o
 	rm -f $@
 	ar cq $@ $(objects) libcode.o libmain.o global.o
 	ranlib $@
 
-    libfaust.dll : $(objects) libcode.o libmain.o global.o 
-	$(CXX) -shared $(objects) libcode.o libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread
+    libfaust.dll : $(objects) libcode.o libmain.o global.o
+	$(CXX) -shared $(LDFLAGS) $(objects) libcode.o libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread
 else
-    libfaust.a : $(objects) libcode.o libmain.o global.o 
+    libfaust.a : $(objects) libcode.o libmain.o global.o
 	rm -f $@
 	ar cq $@ $(objects) libcode.o libmain.o global.o
 	ranlib $@
 
-    libfaust.so : $(objects) libcode.o libmain.o global.o 
-	$(CXX) -shared -fPIC $(objects) libcode.o libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -ldl -lcrypto -lstdc++ 
+    libfaust.so : $(objects) libcode.o libmain.o global.o
+	$(CXX) -shared -fPIC $(LDFLAGS) $(objects) libcode.o libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -ldl -lcrypto -lstdc++
 endif
 endif
 

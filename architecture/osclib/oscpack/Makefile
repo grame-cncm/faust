@@ -6,11 +6,11 @@ subprojects := ip ip/posix osc
 sources     := $(wildcard ip/*.cpp)  $(wildcard ip/posix/*.cpp)  $(wildcard osc/*.cpp)
 ARCHFLAGS 	:=  -arch i386 -arch x86_64
 
-else 
+else
 ifeq ($(system), Linux)
 subprojects := ip ip/posix osc
 sources     := $(wildcard ip/*.cpp)  $(wildcard ip/posix/*.cpp)  $(wildcard osc/*.cpp)
-ARCHFLAGS 	:= 
+ARCHFLAGS 	:=
 CXXFLAGS += -fPIC
 
 else

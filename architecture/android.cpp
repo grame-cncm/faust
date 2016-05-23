@@ -255,7 +255,8 @@ const char* getParamAddress(int id)
  */
 void propagateAcc(int acc, float v)
 {
-    gGlobal->propagateAcc(acc, v);
+    // 05/23/26 : values have to be inverted to behave as with iOS implementation
+    gGlobal->propagateAcc(acc, -v);
 }
 
 /*
