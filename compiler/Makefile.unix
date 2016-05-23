@@ -29,7 +29,7 @@ CXXFLAGS += -fPIC
 all : faust
 
 faust : $(objects)
-	$(CXX) $(CXXFLAGS) $(objects) -o faust $(LIBS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(objects) -o faust $(LIBS)
 
 
 .PHONY: clean depend ctags parser

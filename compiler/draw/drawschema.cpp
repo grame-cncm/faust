@@ -530,7 +530,7 @@ static void UserInterfaceDescription(Tree box, string& d)
              << boxpp(step)<< ')';
     }
     else {
-        cerr << "INTERNAL ERROR : unknow user interface element " << endl;
+        cerr << "INTERNAL ERROR : unknown user interface element " << endl;
         exit(0);
     }
     d = fout.str();

@@ -8,7 +8,7 @@ all :  $(appl)
 
 $(DEST)%$(EXT) : %.dsp 
 	faust $(VEC) -a $(ARCH) $< -o $@.cpp
-	$(CXX) $@.cpp $(CXXFLAGS) $(LIB) -o $@
+	$(CXX) $@.cpp $(CXXFLAGS) $(LDFLAGS) $(LIB) -o $@
 	
 
 clean :

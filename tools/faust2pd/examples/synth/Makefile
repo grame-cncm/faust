@@ -82,7 +82,7 @@ realclean: distclean
 	faust -xml $< -o /dev/null
 
 %~$(DLL): %.cpp
-	$(CXX) $(shared) $(EXTRA_CFLAGS) $(CFLAGS) -Dmydsp=$(@:%~$(DLL)=%) $< -o $@ $(PDLIB)
+	$(CXX) $(shared) $(EXTRA_CFLAGS) $(CFLAGS) -Dmydsp=$(@:%~$(DLL)=%) $(LDFLAGS) $< -o $@ $(PDLIB)
 
 %.pd: %.dsp.xml
 	$(faust2pd) -s $<
