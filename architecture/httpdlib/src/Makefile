@@ -12,7 +12,7 @@ VPATH = $(subprojects)
 system	?= $(shell uname -s)
 
 ifeq ($(system), Darwin)
-##ARCHFLAGS :=  -arch i386 -arch x86_64
+ARCHFLAGS := -mmacosx-version-min=10.9  # we only support osx from 10.9 and up 
 LIB_EXT = dylib
 # Darwin/OS X: default installation name prefix for the dynamic library. This
 # defaults to the installation prefix (a fixed path) if we have one, but
@@ -49,8 +49,8 @@ endif
 # which has an rpath coded into it:
 #INSTALL_PREFIX = @rpath/
 
-CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
-CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I../../../compiler/tlib -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+CXXFLAGS ?= -O3 -Wall -Wuninitialized
+CXXFLAGS += `pkg-config --cflags libmicrohttpd` -I../../../architecture -I../../../compiler/tlib -I/usr/local/include -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' $(ARCHFLAGS)
 
 all: ../libHTTPDFaust.a
 
