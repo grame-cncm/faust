@@ -27,9 +27,11 @@
 #include <cmath>
 #include <assert.h>
 #include <iostream>
+#include <sstream>
 
 #include "faust/gui/UIGlue.h"
 #include "interpreter_bytecode.hh"
+#include "exception.hh"
 
 // Interpreter
 
@@ -40,6 +42,7 @@
 #define pop_real() (real_stack[--real_stack_index])
 #define pop_int() (int_stack[--int_stack_index])
 #define pop_addr() (address_stack[--addr_stack_index])
+
 
 // FIR bytecode interpreter
 template <class T>
@@ -60,6 +63,45 @@ class FIRInterpreter  {
     
         T** fInputs;
         T** fOutputs;
+    
+        inline int assert_audio_buffer(int index) { return index; }
+        inline int assert_int_heap(int index) { return index; }
+        inline int assert_real_heap(int index) { return index; }
+    
+        /*
+        inline int assert_audio_buffer(int index)
+        {
+            if ((index < 0) || (index >= fIntHeap[fCountOffset])) {
+                std::stringstream error;
+                error << "assert_audio_buffer : count " << fIntHeap[fCountOffset]  << " index " << index << std::endl;
+                throw faustexception(error.str());
+            } else {
+                return index;
+            }
+        }
+    
+        inline int assert_int_heap(int index)
+        {
+            if ((index < 0) || (index >= fIntHeapSize)) {
+                std::stringstream error;
+                error << "assert_int_heap : fIntHeapSize " << fIntHeapSize  << " index " << index << std::endl;
+                throw faustexception(error.str());
+            } else {
+                return index;
+            }
+        }
+    
+        inline int assert_real_heap(int index)
+        {
+            if ((index < 0) || (index >= fRealHeapSize)) {
+                std::stringstream error;
+                error << "assert_real_heap : fRealHeapSize " << fRealHeapSize  << " index " << index << std::endl;
+                throw faustexception(error.str());
+            } else {
+                return index;
+            }
+        }
+        */
     
         void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UIGeneric* glue)
         {
@@ -301,9 +343,9 @@ class FIRInterpreter  {
             /*
             int max_real_stack = 0;
             int max_int_stack = 0;
-         
+            
             #define dispatch_first() { goto *fDispatchTable[(*it)->fOpcode]; }
-            #define dispatch_next() { (*it)->write(&std::cout); printf("int_stack_index = %d real_stack_index = %d\n", int_stack_index, real_stack_index);  \
+            #define dispatch_next() { (*it)->write(&std::cout); std::cout << "int_stack_index " << int_stack_index << " real_stack_index " << real_stack_index << std::endl; \
             max_real_stack = std::max(max_real_stack, real_stack_index); max_int_stack = std::max(max_int_stack, int_stack_index); \
             assert(real_stack_index >= 0 && int_stack_index >= 0); \
             it++; goto *fDispatchTable[(*it)->fOpcode]; }
@@ -343,64 +385,64 @@ class FIRInterpreter  {
                 // Memory operations
                 do_kLoadReal:
                 {
-                    push_real(fRealHeap[(*it)->fOffset1]);
+                    push_real(fRealHeap[assert_real_heap((*it)->fOffset1)]);
                     dispatch_next();
                 }
                     
                 do_kLoadInt:
                 {
-                    push_int(fIntHeap[(*it)->fOffset1]);
+                    push_int(fIntHeap[assert_int_heap((*it)->fOffset1)]);
                     dispatch_next();
                 }
                     
                 do_kStoreReal:
                 {
-                    fRealHeap[(*it)->fOffset1] = pop_real();
+                    fRealHeap[assert_real_heap((*it)->fOffset1)] = pop_real();
                     dispatch_next();
                 }
                     
                 do_kStoreInt:
                 {
-                    fIntHeap[(*it)->fOffset1] = pop_int();
+                    fIntHeap[assert_int_heap((*it)->fOffset1)] = pop_int();
                     dispatch_next();
                 }
                 
                 // Directly store a value
                 do_kStoreRealValue:
                 {
-                    fRealHeap[(*it)->fOffset1] = (*it)->fRealValue;
+                    fRealHeap[assert_real_heap((*it)->fOffset1)] = (*it)->fRealValue;
                     dispatch_next();
                 }
                 
                 do_kStoreIntValue:
                 {
-                    fIntHeap[(*it)->fOffset1] = (*it)->fIntValue;
+                    fIntHeap[assert_int_heap((*it)->fOffset1)] = (*it)->fIntValue;
                     dispatch_next();
                 }
                 
                 do_kLoadIndexedReal:
                 {
-                    push_real(fRealHeap[(*it)->fOffset1 + pop_int()]);
+                    push_real(fRealHeap[assert_real_heap((*it)->fOffset1 + pop_int())]);
                     dispatch_next();
                 }
                     
                 do_kLoadIndexedInt:
                 {
                     int offset = pop_int();
-                    push_int(fIntHeap[(*it)->fOffset1 + offset]);
+                    push_int(fIntHeap[assert_int_heap((*it)->fOffset1 + offset)]);
                     dispatch_next();
                 }
                 
                 do_kStoreIndexedReal:
                 {
-                    fRealHeap[(*it)->fOffset1 + pop_int()] = pop_real();
+                    fRealHeap[assert_real_heap((*it)->fOffset1 + pop_int())] = pop_real();
                     dispatch_next();
                 }
                 
                 do_kStoreIndexedInt:
                 {
                     int offset = pop_int();
-                    fIntHeap[(*it)->fOffset1 + offset] = pop_int();
+                    fIntHeap[assert_int_heap((*it)->fOffset1 + offset)] = pop_int();
                     dispatch_next();
                 }
                 
@@ -485,13 +527,13 @@ class FIRInterpreter  {
                 // Input/output access
                 do_kLoadInput:
                 {
-                    push_real(fInputs[(*it)->fOffset1][pop_int()]);
+                    push_real(fInputs[(*it)->fOffset1][assert_audio_buffer(pop_int())]);
                     dispatch_next();
                 }
                     
                 do_kStoreOutput:
                 {
-                    fOutputs[(*it)->fOffset1][pop_int()] = pop_real();
+                    fOutputs[(*it)->fOffset1][assert_audio_buffer(pop_int())] = pop_real();
                     dispatch_next();
                 }
                 
