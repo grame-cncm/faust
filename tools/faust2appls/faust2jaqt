@@ -90,12 +90,11 @@ done
 #
 if [[ $(uname) == Darwin ]]; then
     ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio"
-    CXXFLAGS+=" -D__MACOSX_CORE__"
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
-	if [ $SYS_VERSION -gt 12 ]
+	if [ $SYS_VERSION -ge 13 ]
 	then
-	    SPEC="-spec macx-clang"
-	    CLANGOPT="CONFIG+=c++11"
+	    SPEC=""
+	    CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"   # works with El Capitan + QT 5.6 (macport)
 	else
 	    SPEC="-spec macx-g++"
 	    CLANGOPT=""
