@@ -67,30 +67,36 @@ class FIRInterpreter  {
     
     #ifdef INTERPRETER_TRACE
     
-        #define TRACE_STACK_SIZE 25
+        #define TRACE_STACK_SIZE 32
         
         struct InterpreterTrace {
             
             std::vector<std::string> fExecTrace;
+            
+            int fWriteIndex;
             
             InterpreterTrace()
             {
                 for (int i = 0; i < TRACE_STACK_SIZE; i++) {
                     fExecTrace.push_back("");
                 }
+                fWriteIndex = 0;
             }
             
             void push(const std::string& message)
             {
-                std::rotate(fExecTrace.begin(), fExecTrace.begin() + (TRACE_STACK_SIZE - 1), fExecTrace.end());
-                fExecTrace[0] = message;
+                fExecTrace[fWriteIndex] = message;
+                fWriteIndex = (fWriteIndex + 1) % TRACE_STACK_SIZE;
             }
             
             void write(std::ostream* out)
             {
                 *out << "-------- Interpreter crash trace start --------" << std::endl;
-                for (std::vector<std::string>::iterator it = fExecTrace.begin(); it != fExecTrace.end(); it++) {
-                    *out << (*it);
+                for (int i = fWriteIndex - 1; i >= 0; i--) {
+                    *out << fExecTrace[i];
+                }
+                for (int i = fExecTrace.size() - 1; i >= fWriteIndex; i--) {
+                    *out << fExecTrace[i];
                 }
                 *out << "--------- Interpreter crash trace end ---------" << std::endl;
             }
