@@ -48,6 +48,15 @@ extern "C" {
 
 // Globals
 
+static int GetPID()
+{
+#ifdef WIN32
+    return _getpid();
+#else
+    return getpid();
+#endif
+}
+
 #define WORK_STEALING_INDEX 0
 #define LAST_TASK_INDEX 1
 
@@ -97,6 +106,15 @@ extern "C" {
   (at your option) any later version.
 
   This program is distributed in the hope that it will be useful,
+static int GetPID()
+{
+#ifdef WIN32
+    return _getpid();
+#else
+    return getpid();
+#endif
+}
+
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
@@ -145,7 +163,8 @@ class Semaphore
     #elif defined(_WIN32)
         HANDLE _sem;  // types are overrated anyway
     #else
-        sem_t _sem;
+        char fName[128];
+        sem_t* _sem;
     #endif
 };
 
@@ -218,36 +237,39 @@ inline bool Semaphore::try_wait()
 
 Semaphore::Semaphore(unsigned initial)
 {
-	if (sem_init(&_sem, 0, initial)) {
-		throw -1;
-	}
+    sprintf(fName, "faust_sem_%d_%p", GetPID(), this);
+    if ((_sem = sem_open(fName, O_CREAT, 0777, 0)) == (sem_t*)SEM_FAILED) {
+        printf("Allocate: can't check in named semaphore name = %s err = %s", fName, strerror(errno));
+        throw -1;
+    }
 }
 
 inline Semaphore::~Semaphore()
 {
-	sem_destroy(&_sem);
+    sem_unlink(fName);
+    sem_close(_sem);
 }
 
 inline void Semaphore::post()
 {
-	sem_post(&_sem);
+     sem_post(_sem);
 }
 
 inline bool Semaphore::wait()
 {
-	while (sem_wait(&_sem)) {
-		if (errno != EINTR) {
-			return false;  // We are all doomed
-		}
-		/* Otherwise, interrupted (rare/weird), so try again. */
-	}
+    while (sem_wait(_sem)) {
+        if (errno != EINTR) {
+            return false;  // We are all doomed
+        }
+        // Otherwise, interrupted (rare/weird), so try again.
+    }
 
 	return true;
 }
 
 inline bool Semaphore::try_wait()
 {
-	return (sem_trywait(&_sem) == 0);
+     return (sem_trywait(_sem) == 0);
 }
 
 #endif
@@ -290,33 +312,12 @@ static INLINE void NOP(void)
 
 static INLINE char CAS1(volatile void* addr, volatile int value, int newvalue)
 {
-#ifdef __APPLE__
-    return __sync_bool_compare_and_swap((int*)addr, value, newvalue);
-#else
-    register char ret;
-    __asm__ __volatile__ ("# CAS \n\t"
-						  LOCK "cmpxchg %2, (%1) \n\t"
-						  "sete %0               \n\t"
-						  : "=a" (ret)
-						  : "c" (addr), "d" (newvalue), "a" (value)
-                          : "memory");
-    return ret;
-#endif
+     return __sync_bool_compare_and_swap((int*)addr, value, newvalue);
 }
 
 static INLINE int atomic_xadd(volatile int* atomic, int val) 
 { 
-#ifdef __APPLE__
-    // Returns new value
-    return __sync_add_and_fetch(atomic, val);
-#else
-    register int ret;
-    __asm__ __volatile__ ("# atomic_xadd \n\t"
-                          LOCK "xaddl %0,%1 \n\t"
-                          : "=r" (ret), "=m" (*atomic) 
-                          : "0" (val), "m" (*atomic));
-    return ret;
-#endif
+     return __sync_add_and_fetch(atomic, val);
 } 
 
 #endif
@@ -380,15 +381,6 @@ struct AtomicCounter
     }
     
 };
-
-static int GetPID()
-{
-#ifdef WIN32
-    return _getpid();
-#else
-    return getpid();
-#endif
-}
 
 /* use 512KB stack per thread - the default is way too high to be feasible
  * with mlockall() on many systems */
@@ -634,8 +626,8 @@ static void set_affinity(pthread_t thread, int tag) {}
 
 int get_max_cpu()
 {
-    return 1;
- }
+    return sysconf(_SC_NPROCESSORS_ONLN);
+}
 
 #endif
 
@@ -821,7 +813,7 @@ class TaskQueue
         {   
             AtomicCounter old_val;
             AtomicCounter new_val;
-             
+
             do {
                 old_val = fCounter;
                 new_val = old_val;
@@ -831,7 +823,7 @@ class TaskQueue
                     IncTail(new_val);
                 }
             } while (!CAS1(&fCounter, Value(old_val), Value(new_val)));
-            
+
             return fTaskList[Tail(old_val)];
         }
 
@@ -1018,7 +1010,7 @@ class DSPThread {
             
             AVOIDDENORMALS;
             get_affinity(thread->fThread);
-            
+
             // One "dummy" cycle to setup thread
             if (thread->fRealTime) {
                 thread->Run();
