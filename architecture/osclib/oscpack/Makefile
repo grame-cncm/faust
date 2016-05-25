@@ -1,10 +1,10 @@
 libname     := liboscpack.a
-system	?= $(shell uname -s)
+system		?= $(shell uname -s)
 
 ifeq ($(system), Darwin)
 subprojects := ip ip/posix osc
 sources     := $(wildcard ip/*.cpp)  $(wildcard ip/posix/*.cpp)  $(wildcard osc/*.cpp)
-ARCHFLAGS 	:=  -arch i386 -arch x86_64
+ARCHFLAGS 	:=  -mmacosx-version-min=10.9
 
 else
 ifeq ($(system), Linux)
@@ -22,8 +22,8 @@ endif
 
 VPATH = $(subprojects)
 
-CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
-CXXFLAGS += -Wno-parentheses -I. $(addprefix -I, $(subprojects))
+CXXFLAGS ?= -O3 -Wall -Wuninitialized
+CXXFLAGS += -Wno-parentheses -I. $(addprefix -I, $(subprojects)) $(ARCHFLAGS)
 
 objects := $(sources:.cpp=.o)
 
