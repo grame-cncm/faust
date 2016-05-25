@@ -36,6 +36,10 @@
 #include <arpa/inet.h>
 
 #define LLVM_DSP 1
+#define OSCCTRL 1
+#define HTTPCTRL 1
+#define MIDICTRL 1
+#define NETJACK 1
 
 #ifdef LLVM_DSP_FACTORY
 #include "faust/dsp/llvm-dsp.h"
@@ -44,9 +48,19 @@
 #endif
 
 #include "faust/audio/audio.h"
+
+#ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
+#endif
+
+#ifdef HTTPCTRL
 #include "faust/gui/httpdUI.h"
+#endif
+
+#ifdef MIDICTRL
 #include "faust/gui/MidiUI.h"
+#endif
+
 #include "TMutex.h"
 
 #define POSTBUFFERSIZE 512
@@ -85,11 +99,19 @@ class audio_dsp {
         
         dsp* fDSP;          // DSP Instance 
         audio* fAudio;      // Audio driver
-        
+    
+    #ifdef OSCCTRL
         OSCUI* fOSCUI;      // OSC controler
+    #endif
+    
+    #ifdef HTTPCTRL
         httpdUI* fHttpdUI;  // Httpd controler
+    #endif
+    
+    #ifdef MIDICTRL
         MidiUI* fMidiUI;    // MIDIcontroler
-        
+    #endif
+    
         createInstanceDSPCallback fCreateDSPInstanceCb;
         void* fCreateDSPInstanceCb_arg;
    

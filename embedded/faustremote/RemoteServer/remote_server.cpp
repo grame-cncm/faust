@@ -42,7 +42,9 @@
 //#define IOSAUDIO 1
 //#define ANDROID 1
 
+#ifdef NETJACK
 #include "faust/audio/netjack-dsp.h"
+#endif
 
 #ifdef COREAUDIO
 #include "faust/audio/coreaudio-dsp.h"
@@ -74,6 +76,7 @@ static string builtError(int error)
 
 // NetJack slave client
 
+#ifdef NETJACK
 class netjackaudio_slave : public netjackaudio_midicontrol {  
 
     private:
@@ -176,11 +179,13 @@ bool netjack_dsp::init(int u1, int u2)
     fAudio = netjack_slave;
     
     // If Polyphonic DSP, setup a MIDI interface
+#ifdef MIDICTRL
     if (dynamic_cast<mydsp_poly*>(fDSP)) {
         fMidiUI = new MidiUI(netjack_slave);
         fDSP->buildUserInterface(fMidiUI);
         fMidiUI->run();
     }
+#endif
                                         
     if (!fAudio->init(fName.c_str(), fDSP)) {
         printf("netjack_dsp : init audio failed\n");
@@ -189,6 +194,7 @@ bool netjack_dsp::init(int u1, int u2)
         return true;
     }
 }
+#endif
 
 bool audio_dsp::init(int sr, int bs)
 {
@@ -211,9 +217,15 @@ bool audio_dsp::init(int sr, int bs)
         printf("audio_dsp : init audio failed\n");
         return false;
     } else {
+    #ifdef OSCCTRL
         if (fOSCUI)     { fOSCUI->run(); }
+    #endif
+    #ifdef HTTPCTRL
         if (fHttpdUI)   { fHttpdUI->run(); }
+    #endif
+    #ifdef MIDICTRL
         if (fMidiUI)    { fMidiUI->run(); }
+    #endif
         return true;
     }
 }
@@ -233,13 +245,16 @@ audio_dsp::audio_dsp(dsp_factory* factory, bool poly, int voices, bool group,
         fDSP = factory->createDSPInstance();
     }
     
+#ifdef OSCCTRL
     if (osc) {
         fOSCUI = new OSCUI(name.c_str(), 0, NULL);
         fDSP->buildUserInterface(fOSCUI);
     } else {
         fOSCUI = 0;
     }
-    
+#endif
+  
+#ifdef HTTPCTRL
     if (httpd) {
         fHttpdUI = new httpdUI(name.c_str(), fDSP->getNumInputs(),fDSP->getNumOutputs(), 0, NULL);
         fDSP->buildUserInterface(fHttpdUI);
@@ -247,7 +262,9 @@ audio_dsp::audio_dsp(dsp_factory* factory, bool poly, int voices, bool group,
     } else {
         fHttpdUI = 0;
     }
-     
+#endif
+    
+#ifdef MIDICTRL
     if (midi) {
         //fMidiUI = new MidiUI();
         //fDSP->buildUserInterface(fMidiUI);
@@ -255,6 +272,7 @@ audio_dsp::audio_dsp(dsp_factory* factory, bool poly, int voices, bool group,
     } else {
         fMidiUI = 0;
     }
+ #endif
    
     if (fCreateDSPInstanceCb) {
         fCreateDSPInstanceCb(fDSP, fCreateDSPInstanceCb_arg);
@@ -269,10 +287,16 @@ audio_dsp::~audio_dsp()
     
     delete fAudio;
     delete fDSP;
-    
+  
+#ifdef OSCCTRL
     delete fOSCUI;
+#endif
+#ifdef HTTPCTRL
     delete fHttpdUI;
+#endif
+#ifdef MIDICTRL
     delete fMidiUI;
+#endif
 }
 
 //------------ CONNECTION INFO -------------------------------
@@ -862,6 +886,7 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
         try {
             if (con_info->fAudioType == "kNetJack") {
                 std::cout << con_info->fPoly << " " << con_info->fVoices << " " << con_info->fGroup << std::endl;
+            #ifdef NETJACK
                 audio = new netjack_dsp(factory, 
                                         con_info->fCompression, 
                                         con_info->fIP, con_info->fPort, 
@@ -878,6 +903,8 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
                 if (pthread_create(&thread, NULL, DSPServer::open, starter) != 0) {
                     goto error;
                 }
+                
+            #endif
             } else if (con_info->fAudioType == "kLocalAudio") {
                 
                 /*
