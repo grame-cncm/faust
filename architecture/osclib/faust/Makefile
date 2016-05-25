@@ -12,7 +12,7 @@ system	?= $(shell uname -s)
 # use some generic prefix such as @loader_path/ instead (see below).
 
 ifneq ($(PREFIX),)
-INSTALL_PREFIX = $(PREFIX)/lib/
+	INSTALL_PREFIX = $(PREFIX)/lib/
 endif
 
 # Here are some useful alternative options for the installation name prefix
@@ -31,37 +31,37 @@ endif
 #INSTALL_PREFIX = @rpath/
 
 ifeq ($(system), Darwin)
-ARCHFLAGS :=  -arch i386 -arch x86_64
+	ARCHFLAGS := -mmacosx-version-min=10.9  # we only support osx from 10.9 and up 
 else
-ARCHFLAGS := 
-ifeq ($(findstring MINGW32, $(system)),)
-CXXFLAGS += -fPIC
-endif
+	ARCHFLAGS := 
+	ifeq ($(findstring MINGW32, $(system)),)
+		CXXFLAGS += -fPIC
+	endif
 endif
 
 ifeq ($(MODE), SHARED)
-ifeq ($(system), Darwin)
-TARGET=libOSCFaust.$(VERSION).dylib
-SONAME=libOSCFaust.$(SOVERSION).dylib
-ifneq ($(INSTALL_PREFIX),)
-INSTALL_NAME = -install_name "$(INSTALL_PREFIX)$(SONAME)"
-endif
+	ifeq ($(system), Darwin)
+		TARGET=libOSCFaust.$(VERSION).dylib
+		SONAME=libOSCFaust.$(SOVERSION).dylib
+		ifneq ($(INSTALL_PREFIX),)
+			INSTALL_NAME = -install_name "$(INSTALL_PREFIX)$(SONAME)"
+		endif
+	else
+		ifneq ($(findstring MINGW32, $(system)),)
+			TARGET=libOSCFaust-$(VERSION).dll
+			SONAME=libOSCFaust-$(SOVERSION).dll
+		else
+			TARGET=libOSCFaust.so.$(VERSION)
+			SONAME=libOSCFaust.so.$(SOVERSION)
+		endif
+	endif
 else
-ifneq ($(findstring MINGW32, $(system)),)
-TARGET=libOSCFaust-$(VERSION).dll
-SONAME=libOSCFaust-$(SOVERSION).dll
-else
-TARGET=libOSCFaust.so.$(VERSION)
-SONAME=libOSCFaust.so.$(SOVERSION)
-endif
-endif
-else
-TARGET=libOSCFaust.a
+	TARGET=libOSCFaust.a
 endif
 
 
-CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
-CXXFLAGS += -Wno-parentheses -I../oscpack -I../oscpack/osc $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+CXXFLAGS ?= -O3 -Wall -Wuninitialized 
+CXXFLAGS += -Wno-parentheses -I../oscpack -I../oscpack/osc $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' $(ARCHFLAGS)
 
 all : $(TARGET)
 
