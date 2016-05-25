@@ -43,7 +43,7 @@
 #define pop_int() (int_stack[--int_stack_index])
 #define pop_addr() (address_stack[--addr_stack_index])
 
-//#define INTERPRETER_TRACE 1
+#define INTERPRETER_TRACE 1
 
 // FIR bytecode interpreter
 template <class T>
@@ -114,7 +114,7 @@ class FIRInterpreter  {
         {
             if ((index < 0) || (index >= fIntHeap[fCountOffset])) {
                 std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-                std::cout << "assert_audio_buffer : count " << fIntHeap[fCountOffset]  << " index " << index << std::endl;
+                std::cout << "assert_audio_buffer : count " << fIntHeap[fCountOffset]  << " index " << std::endl;
                 traceInstruction(it);
                 fTraceContext.write(&std::cout);
                 std::cout << "-------- Interpreter crash trace end --------" << std::endl;
@@ -124,11 +124,11 @@ class FIRInterpreter  {
             }
         }
         
-        inline int assert_int_heap(InstructionIT it, int index)
+        inline int assert_int_heap(InstructionIT it, int index, int size = -1)
         {
-            if ((index < 0) || (index >= fIntHeapSize)) {
+            if ((index < 0) || (index >= fIntHeapSize) || (size > 0 && index >= size)) {
                 std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-                std::cout << "assert_int_heap : fIntHeapSize " << fIntHeapSize  << " index " << index << std::endl;
+                std::cout << "assert_int_heap : fIntHeapSize " << fIntHeapSize  << " index " << index << " size " << size << std::endl;
                 traceInstruction(it);
                 fTraceContext.write(&std::cout);
                 std::cout << "-------- Interpreter crash trace end --------" << std::endl;
@@ -138,11 +138,11 @@ class FIRInterpreter  {
             }
         }
         
-        inline int assert_real_heap(InstructionIT it, int index)
+        inline int assert_real_heap(InstructionIT it, int index, int size = -1)
         {
-            if ((index < 0) || (index >= fRealHeapSize)) {
+            if ((index < 0) || (index >= fRealHeapSize) || (size > 0 && index >= size)) {
                 std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-                std::cout << "assert_real_heap : fRealHeapSize " << fRealHeapSize  << " index " << index << std::endl;
+                std::cout << "assert_real_heap : fRealHeapSize " << fRealHeapSize  << " index " << index << " size " << size << std::endl;
                 traceInstruction(it);
                 fTraceContext.write(&std::cout);
                  std::cout << "-------- Interpreter crash trace end --------" << std::endl;
@@ -153,8 +153,8 @@ class FIRInterpreter  {
         }
     #else
         inline int assert_audio_buffer(InstructionIT it, int index) { return index; }
-        inline int assert_int_heap(InstructionIT it, int index) { return index; }
-        inline int assert_real_heap(InstructionIT it, int index) { return index; }
+        inline int assert_int_heap(InstructionIT it, int index, int size = -1) { return index; }
+        inline int assert_real_heap(InstructionIT it, int index, int size = -1) { return index; }
     #endif
     
         void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UIGeneric* glue)
@@ -483,27 +483,27 @@ class FIRInterpreter  {
                     
                     do_kLoadIndexedReal:
                     {
-                        push_real(fRealHeap[assert_real_heap(it, (*it)->fOffset1 + pop_int())]);
+                        push_real(fRealHeap[(*it)->fOffset1 + assert_real_heap(it, pop_int(), (*it)->fOffset2)]);
                         dispatch_next();
                     }
                         
                     do_kLoadIndexedInt:
                     {
                         int offset = pop_int();
-                        push_int(fIntHeap[assert_int_heap(it, (*it)->fOffset1 + offset)]);
+                        push_int(fIntHeap[(*it)->fOffset1 + assert_int_heap(it, offset, (*it)->fOffset2)]);
                         dispatch_next();
                     }
                     
                     do_kStoreIndexedReal:
                     {
-                        fRealHeap[assert_real_heap(it, (*it)->fOffset1 + pop_int())] = pop_real();
+                        fRealHeap[(*it)->fOffset1 + assert_real_heap(it, pop_int(), (*it)->fOffset2)] = pop_real();
                         dispatch_next();
                     }
                     
                     do_kStoreIndexedInt:
                     {
                         int offset = pop_int();
-                        fIntHeap[assert_int_heap(it, (*it)->fOffset1 + offset)] = pop_int();
+                        fIntHeap[(*it)->fOffset1 + assert_int_heap(it, offset, (*it)->fOffset2)] = pop_int();
                         dispatch_next();
                     }
                     

@@ -178,13 +178,6 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     compute_control_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     compute_dsp_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     
-    // Bytecode optimization
-    init_static_block = FIRInstructionOptimizer<T>::optimizeBlock(init_static_block, 1, 6);
-    init_block = FIRInstructionOptimizer<T>::optimizeBlock(init_block, 1, 6);
-    compute_control_block = FIRInstructionOptimizer<T>::optimizeBlock(compute_control_block, 1, 6);
-    compute_dsp_block = FIRInstructionOptimizer<T>::optimizeBlock(compute_dsp_block, 1, 6);
-    compute_dsp_block = FIRInstructionOptimizer<T>::optimizeBlock(compute_dsp_block, 1, 6);
-    
     // Then create factory
     return new interpreter_dsp_factory(new interpreter_dsp_factory_aux<T>(fKlassName,
                                                                         INTERP_FILE_VERSION,

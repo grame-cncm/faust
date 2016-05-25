@@ -32,6 +32,21 @@ using namespace std;
 template <class T>
 struct InterpreterInstVisitor : public DispatchVisitor {
 
+        struct MemoryDesc {
+            
+            MemoryDesc():
+            fOffset(-1), fSize(-1), fType(Typed::kNoType)
+            {}
+            
+            MemoryDesc(int offset, int size, Typed::VarType type):
+                fOffset(offset), fSize(size), fType(type)
+            {}
+            
+            int fOffset;
+            int fSize;
+            Typed::VarType fType;
+        };
+    
         /*
          Global functions names table as a static variable in the visitor
          so that each function prototype is generated as most once in the module.
@@ -45,7 +60,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         int fIOTAOffset;        // Kept offset in Integer HEAP for "IOTA"
         bool fCommute;          // Whether to try commutative operation reverse order generation
     
-        map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
+        map <string, MemoryDesc> fFieldTable;   // Table : field_name, { offset, size, type }
     
         FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
         FIRBlockInstruction<T>* fCurrentBlock;
@@ -97,11 +112,11 @@ struct InterpreterInstVisitor : public DispatchVisitor {
    
         virtual void visit(AddMetaDeclareInst* inst)
         {
-            pair<int, Typed::VarType> tmp = fFieldTable[inst->fZone];
+            MemoryDesc tmp = fFieldTable[inst->fZone];
             if (inst->fZone == "0") {
                 fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(FIRInstruction::kDeclare, -1, inst->fKey, inst->fValue));
             } else {
-                fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(FIRInstruction::kDeclare, tmp.first, inst->fKey, inst->fValue));
+                fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(FIRInstruction::kDeclare, tmp.fOffset, inst->fKey, inst->fValue));
             }
         }
 
@@ -140,8 +155,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 opcode = FIRInstruction::kAddCheckButton;
             }
             
-            pair<int, Typed::VarType> tmp = fFieldTable[inst->fZone];
-            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, tmp.first, inst->fLabel));
+            MemoryDesc tmp = fFieldTable[inst->fZone];
+            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, tmp.fOffset, inst->fLabel));
         }
 
         virtual void visit(AddSliderInst* inst)
@@ -162,8 +177,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     break;
             }
         
-            pair<int, Typed::VarType> tmp = fFieldTable[inst->fZone];
-            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, tmp.first, inst->fLabel, inst->fInit, inst->fMin, inst->fMax, inst->fStep));
+            MemoryDesc tmp = fFieldTable[inst->fZone];
+            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, tmp.fOffset, inst->fLabel, inst->fInit, inst->fMin, inst->fMax, inst->fStep));
         }
 
         virtual void visit(AddBargraphInst* inst)
@@ -181,8 +196,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     break;
             }
             
-            pair<int, Typed::VarType> tmp = fFieldTable[inst->fZone];
-            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, tmp.first, inst->fLabel, inst->fMin, inst->fMax));
+            MemoryDesc tmp = fFieldTable[inst->fZone];
+            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, tmp.fOffset, inst->fLabel, inst->fMin, inst->fMax));
         }
         
         virtual void visit(LabelInst* inst) {}
@@ -199,10 +214,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             
             if (array_typed && array_typed->fSize > 1) {
                 if (array_typed->fType->getType() == Typed::kInt) {
-                    fFieldTable[inst->fAddress->getName()] = make_pair(fIntHeapOffset, array_typed->fType->getType());
+                    fFieldTable[inst->fAddress->getName()] = MemoryDesc(fIntHeapOffset, array_typed->fSize, array_typed->fType->getType());
                     fIntHeapOffset += array_typed->fSize;
                 } else {
-                    fFieldTable[inst->fAddress->getName()] = make_pair(fRealHeapOffset, array_typed->fType->getType());
+                    fFieldTable[inst->fAddress->getName()] = MemoryDesc(fRealHeapOffset, array_typed->fSize, array_typed->fType->getType());
                     fRealHeapOffset += array_typed->fSize;
                 }
             } else {
@@ -213,10 +228,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     if (inst->fAddress->getName() == "fSamplingFreq") { fSROffset = fIntHeapOffset; }
                     // Keep "count" offset
                     if (inst->fAddress->getName() == "count") { fCountOffset = fIntHeapOffset; }
-                    fFieldTable[inst->fAddress->getName()] = make_pair(fIntHeapOffset, inst->fType->getType());
+                    fFieldTable[inst->fAddress->getName()] = MemoryDesc(fIntHeapOffset, 1, inst->fType->getType());
                     fIntHeapOffset++;
                 } else {
-                    fFieldTable[inst->fAddress->getName()] = make_pair(fRealHeapOffset, inst->fType->getType());
+                    fFieldTable[inst->fAddress->getName()] = MemoryDesc(fRealHeapOffset, 1, inst->fType->getType());
                     fRealHeapOffset++;
                 }
             }
@@ -237,20 +252,19 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             
             NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            
-            pair<int, Typed::VarType> tmp = fFieldTable[inst->fAddress->getName()];
+            MemoryDesc tmp = fFieldTable[inst->fAddress->getName()];
             
             if (named) {
-                fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
-                                    ? FIRInstruction::kLoadInt : FIRInstruction::kLoadReal, 0, 0, tmp.first, 0));
+                fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt)
+                                    ? FIRInstruction::kLoadInt : FIRInstruction::kLoadReal, 0, 0, tmp.fOffset, 0));
             } else {
                 // Indexed 
                 string num;
                 if (startWithRes(indexed->getName(), "input", num)) {
                     fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInput, 0, 0, atoi(num.c_str()), 0));
                 } else {
-                    fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
-                                        ? FIRInstruction::kLoadIndexedInt : FIRInstruction::kLoadIndexedReal, 0, 0, tmp.first, 0));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt)
+                                        ? FIRInstruction::kLoadIndexedInt : FIRInstruction::kLoadIndexedReal, 0, 0, tmp.fOffset, tmp.fSize));
                 
                 }
             }
@@ -265,26 +279,26 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             // Waveform array store...
             if (type && (array_typed = dynamic_cast<ArrayTyped*>(type))) {
                 
-                pair<int, Typed::VarType> tmp = fFieldTable[address->getName()];
+                MemoryDesc tmp = fFieldTable[address->getName()];
                 
                 Typed::VarType ctype = array_typed->fType->getType();
                 if (ctype == Typed::kInt) {
                     
                     IntArrayNumInst* int_array = dynamic_cast<IntArrayNumInst*>(value);
-                    fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(FIRInstruction::kBlockStoreInt, tmp.first, int_array->fNumTable.size(), int_array->fNumTable));
+                    fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(FIRInstruction::kBlockStoreInt, tmp.fOffset, int_array->fNumTable.size(), int_array->fNumTable));
                 
                 } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
                     
                     FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(value);
                     fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal,
-                                                                            tmp.first, float_array->fNumTable.size(),
+                                                                            tmp.fOffset, float_array->fNumTable.size(),
                                                                             reinterpret_cast<const std::vector<T>&>(float_array->fNumTable)));
                     
                 } else if (ctype == Typed::kDouble) {
                     
                     DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(value);
                     fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal,
-                                                                            tmp.first, double_array->fNumTable.size(),
+                                                                            tmp.fOffset, double_array->fNumTable.size(),
                                                                             reinterpret_cast<const std::vector<T>&>(double_array->fNumTable)));
                      
                 } else {
@@ -299,12 +313,11 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 
                 NamedAddress* named = dynamic_cast<NamedAddress*>(address);
                 IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
-                
-                pair<int, Typed::VarType> tmp = fFieldTable[address->getName()];
+                MemoryDesc tmp = fFieldTable[address->getName()];
                 
                 if (named) {
-                    fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
-                                        ? FIRInstruction::kStoreInt : FIRInstruction::kStoreReal, 0, 0, tmp.first, 0));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt)
+                                        ? FIRInstruction::kStoreInt : FIRInstruction::kStoreReal, 0, 0, tmp.fOffset, 0));
                 } else {
                     // Compile  address
                     address->accept(this);
@@ -313,8 +326,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     if (startWithRes(indexed->getName(), "output", num)) {
                         fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, atoi(num.c_str()), 0));
                     } else {
-                        fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt) 
-                                            ? FIRInstruction::kStoreIndexedInt : FIRInstruction::kStoreIndexedReal, 0, 0, tmp.first, 0));
+                        fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt)
+                                            ? FIRInstruction::kStoreIndexedInt : FIRInstruction::kStoreIndexedReal, 0, 0, tmp.fOffset, tmp.fSize));
                     }
                 }
             }
@@ -338,10 +351,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     
         virtual void visit(ShiftArrayVarInst* inst)
         {
-            pair<int, Typed::VarType> tmp = fFieldTable[inst->fAddress->getName()];
-            fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.second == Typed::kInt)
+            MemoryDesc tmp = fFieldTable[inst->fAddress->getName()];
+            fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt)
                                                                ? FIRInstruction::kBlockShiftInt
-                                                               : FIRInstruction::kBlockShiftReal, 0, 0, tmp.first + inst->fDelay, tmp.first));
+                                                               : FIRInstruction::kBlockShiftReal, 0, 0, tmp.fOffset + inst->fDelay, tmp.fOffset));
         }
 
         // Primitives : numbers
