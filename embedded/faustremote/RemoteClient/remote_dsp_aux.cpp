@@ -26,7 +26,8 @@
 #include "remote_dsp_aux.h"
 #include "faust/gui/ControlUI.h"
 #include "faust/gui/MidiUI.h"
-#include "llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/interpreter-dsp.h"
 #include "utilities.h"
 #include "rn_base64.h"
 
@@ -221,15 +222,27 @@ bool remote_dsp_factory::init(int argc, const char *argv[],
    
     // Compile on client side and send machine code on server side
     if (isopt(argc, argv, "-lm")) {
+    #ifdef LLVM_DSP_FACTORY
         llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, loptions(argv, "-lm", ""), error_msg, opt_level);
+    #else
+        interpreter_dsp_factory* factory = createInterpreterDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg);
+    #endif
         if (factory) {
             // Transforming machine code to URL format
+        #ifdef LLVM_DSP_FACTORY
             string machine_code = writeDSPFactoryToMachine(factory, "");
+        #else
+            string machine_code = writeInterpreterDSPFactoryToMachine(factory);
+        #endif
             char* data_url = curl_easy_escape(remote_dsp_factory::gCurl, machine_code.c_str(), machine_code.size());
             finalRequest << "&dsp_data=";
             finalRequest << data_url;
             curl_free(data_url);
-            deleteDSPFactory(factory);
+        #ifdef LLVM_DSP_FACTORY
+            deleteDSPFactory(dynamic_cast<llvm_dsp_factory*>(factory));
+        #else
+            deleteInterpreterDSPFactory(dynamic_cast<interpreter_dsp_factory*>(factory));
+        #endif
         } else {
             return false;
         }

@@ -179,7 +179,7 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     compute_dsp_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     
     // Then create factory
-    return new interpreter_dsp_factory(new interpreter_dsp_factory_aux<T>(fKlassName,
+    return new interpreter_dsp_factory(new interpreter_dsp_factory_aux<T>(fKlassName, "",
                                                                         INTERP_FILE_VERSION,
                                                                         fNumInputs, fNumOutputs,
                                                                         getInterpreterVisitor<T>()->fIntHeapOffset,

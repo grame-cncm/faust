@@ -56,6 +56,8 @@ struct interpreter_dsp_factory_base {
     {}
     
     virtual std::string getName() = 0;
+    virtual std::string getSHAKey() = 0;
+    virtual void setSHAKey(const std::string& sha_key) = 0;
     virtual void write(std::ostream* out) = 0;
     virtual dsp* createDSPInstance(interpreter_dsp_factory* factory) = 0;
     virtual void metadata(Meta* meta) = 0;
@@ -69,7 +71,7 @@ template <class T>
 struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     
     std::string fName;
-    
+    std::string fSHAKey;
     float fVersion;
     int fNumInputs;
     int fNumOutputs;
@@ -88,6 +90,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     FIRBlockInstruction<T>* fComputeDSPBlock;
     
     interpreter_dsp_factory_aux(const std::string& name,
+                                const std::string& sha_key,
                                 float version_num,
                                 int inputs, int ouputs,
                                 int int_heap_size, int real_heap_size,
@@ -101,6 +104,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
                                 FIRBlockInstruction<T>* compute_control,
                                 FIRBlockInstruction<T>* compute_dsp)
     :fName(name),
+    fSHAKey(sha_key),
     fVersion(version_num),
     fNumInputs(inputs),
     fNumOutputs(ouputs),
@@ -128,12 +132,15 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     }
     
     std::string getName() { return fName; }
+    std::string getSHAKey() { return fSHAKey; }
+    void setSHAKey(const std::string& sha_key) { fSHAKey = sha_key; }
     
     void write(std::ostream* out)
     {
         *out << "interpreter_dsp_factory " << ((sizeof(T) == 8) ? "double" : "float") << std::endl;
         *out << "version " << INTERP_FILE_VERSION << std::endl;
         *out << "name " << fName << std::endl;
+        *out << "sha_key " << fSHAKey << std::endl;
         
         *out << "inputs " << fNumInputs << " outputs " << fNumOutputs << std::endl;
         *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize
@@ -187,6 +194,14 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         std::stringstream name_reader(name);
         name_reader >> dummy;   // Read "name" token
         name_reader >> factory_name;
+        
+        // Read sha_key
+        std::string sha_key_line, sha_key;
+        getline(*in, sha_key_line);
+        
+        std::stringstream sha_key_line_reader(sha_key_line);
+        sha_key_line_reader >> dummy;   // Read "sha_key" token
+        sha_key_line_reader >> sha_key;
         
         // Read inputs/outputs
         std::string ins_outs;
@@ -247,7 +262,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         getline(*in, dummy);    // Read "dsp_block" line
         FIRBlockInstruction<T>* compute_dsp_block = readCodeBlock(in);
         
-        return new interpreter_dsp_factory_aux(factory_name,
+        return new interpreter_dsp_factory_aux(factory_name, sha_key,
                                               version_num,
                                               inputs, outputs,
                                               int_heap_size,
@@ -870,7 +885,6 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
         
         interpreter_dsp_factory_base* fFactory;
         std::string fExpandedDSP;
-        std::string fSHAKey;
     
         virtual ~interpreter_dsp_factory()
         {
@@ -880,6 +894,7 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
     public:
     
         interpreter_dsp_factory(const std::string& name,
+                             const std::string& sha_key,
                              float version_num,
                              int inputs, int ouputs,
                              int int_heap_size, int real_heap_size,
@@ -893,7 +908,8 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
                              FIRBlockInstruction<float>* compute_control,
                              FIRBlockInstruction<float>* compute_dsp)
         {
-            fFactory = new interpreter_dsp_factory_aux<float>(name, version_num,
+            fFactory = new interpreter_dsp_factory_aux<float>(name, sha_key,
+                                                            version_num,
                                                             inputs, ouputs,
                                                             int_heap_size, real_heap_size,
                                                             sr_offset,
@@ -905,6 +921,7 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
         }
 
         interpreter_dsp_factory(const std::string& name,
+                                const std::string& sha_key,
                                 float version_num,
                                 int inputs, int ouputs,
                                 int int_heap_size, int real_heap_size,
@@ -918,7 +935,8 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
                                 FIRBlockInstruction<double>* compute_control,
                                 FIRBlockInstruction<double>* compute_dsp)
         {
-            fFactory = new interpreter_dsp_factory_aux<double>(name, version_num,
+            fFactory = new interpreter_dsp_factory_aux<double>(name, sha_key,
+                                                            version_num,
                                                             inputs, ouputs,
                                                             int_heap_size, real_heap_size,
                                                             sr_offset,
@@ -936,8 +954,8 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
    
         std::string getName() { return fFactory->getName(); }
         
-        std::string getSHAKey() { return fSHAKey; }
-        void setSHAKey(std::string sha_key) { fSHAKey = sha_key; }
+        std::string getSHAKey() { return fFactory->getSHAKey(); }
+        void setSHAKey(std::string sha_key) { fFactory->setSHAKey(sha_key); }
         
         std::string getDSPCode() { return fExpandedDSP; }
         

@@ -189,10 +189,6 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(std::ist
         assert(false);
     }
     
-    /*
-     Factory is added in the table but no SHAKey is actually computed, since this is no real gain 
-     in checking if a same stream will result in a same factory before reading and buiding it...
-    */
     gInterpreterFactoryTable.setFactory(factory);
     return factory;
 }
