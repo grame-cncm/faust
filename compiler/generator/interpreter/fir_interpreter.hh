@@ -43,7 +43,7 @@
 #define pop_int() (int_stack[--int_stack_index])
 #define pop_addr() (address_stack[--addr_stack_index])
 
-#define INTERPRETER_TRACE 1
+//#define INTERPRETER_TRACE 1
 
 // FIR bytecode interpreter
 template <class T>
@@ -151,10 +151,6 @@ class FIRInterpreter  {
                 return index;
             }
         }
-    #else
-        inline int assert_audio_buffer(InstructionIT it, int index) { return index; }
-        inline int assert_int_heap(InstructionIT it, int index, int size = -1) { return index; }
-        inline int assert_real_heap(InstructionIT it, int index, int size = -1) { return index; }
     #endif
     
         void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UIGeneric* glue)
@@ -394,16 +390,16 @@ class FIRInterpreter  {
             int int_stack[fIntStackSize];
             InstructionIT address_stack[64];
             
-            /*
-            int max_real_stack = 0;
-            int max_int_stack = 0;
+     
+            //int max_real_stack = 0;
+            //int max_int_stack = 0;
             
-            #define dispatch_first() { goto *fDispatchTable[(*it)->fOpcode]; }
-            #define dispatch_next() { (*it)->write(&std::cout); std::cout << "int_stack_index " << int_stack_index << " real_stack_index " << real_stack_index << std::endl; \
-            max_real_stack = std::max(max_real_stack, real_stack_index); max_int_stack = std::max(max_int_stack, int_stack_index); \
-            assert(real_stack_index >= 0 && int_stack_index >= 0); \
-            it++; goto *fDispatchTable[(*it)->fOpcode]; }
-            */
+            //#define dispatch_first() { goto *fDispatchTable[(*it)->fOpcode]; }
+            //#define dispatch_next() { (*it)->write(&std::cout); std::cout << "int_stack_index " << int_stack_index << " real_stack_index " << real_stack_index << std::endl; \
+            //max_real_stack = std::max(max_real_stack, real_stack_index); max_int_stack = std::max(max_int_stack, int_stack_index); \
+            //assert(real_stack_index >= 0 && int_stack_index >= 0); \
+            //it++; goto *fDispatchTable[(*it)->fOpcode]; }
+     
             
         #ifdef INTERPRETER_TRACE
             #define dispatch_first() { traceInstruction(it); goto *fDispatchTable[(*it)->fOpcode]; }
@@ -446,64 +442,104 @@ class FIRInterpreter  {
                     // Memory operations
                     do_kLoadReal:
                     {
+                    #ifdef INTERPRETER_TRACE
                         push_real(fRealHeap[assert_real_heap(it, (*it)->fOffset1)]);
+                    #else
+                        push_real(fRealHeap[(*it)->fOffset1]);
+                    #endif
                         dispatch_next();
                     }
                         
                     do_kLoadInt:
                     {
+                    #ifdef INTERPRETER_TRACE
                         push_int(fIntHeap[assert_int_heap(it, (*it)->fOffset1)]);
+                    #else
+                        push_int(fIntHeap[(*it)->fOffset1]);
+                    #endif
                         dispatch_next();
                     }
                         
                     do_kStoreReal:
                     {
+                    #ifdef INTERPRETER_TRACE
                         fRealHeap[assert_real_heap(it, (*it)->fOffset1)] = pop_real();
+                    #else
+                        fRealHeap[(*it)->fOffset1] = pop_real();
+                    #endif
                         dispatch_next();
                     }
                         
                     do_kStoreInt:
                     {
+                    #ifdef INTERPRETER_TRACE
                         fIntHeap[assert_int_heap(it, (*it)->fOffset1)] = pop_int();
+                    #else
+                        fIntHeap[(*it)->fOffset1] = pop_int();
+                    #endif
                         dispatch_next();
                     }
                     
                     // Directly store a value
                     do_kStoreRealValue:
                     {
+                    #ifdef INTERPRETER_TRACE
                         fRealHeap[assert_real_heap(it, (*it)->fOffset1)] = (*it)->fRealValue;
+                    #else
+                        fRealHeap[(*it)->fOffset1] = (*it)->fRealValue;
+                    #endif
                         dispatch_next();
                     }
                     
                     do_kStoreIntValue:
                     {
+                    #ifdef INTERPRETER_TRACE
                         fIntHeap[assert_int_heap(it, (*it)->fOffset1)] = (*it)->fIntValue;
+                    #else
+                        fIntHeap[(*it)->fOffset1] = (*it)->fIntValue;
+                    #endif
                         dispatch_next();
                     }
                     
                     do_kLoadIndexedReal:
                     {
+                    #ifdef INTERPRETER_TRACE
                         push_real(fRealHeap[(*it)->fOffset1 + assert_real_heap(it, pop_int(), (*it)->fOffset2)]);
+                    #else
+                        push_real(fRealHeap[(*it)->fOffset1 + pop_int()]);
+                    #endif
                         dispatch_next();
                     }
                         
                     do_kLoadIndexedInt:
                     {
                         int offset = pop_int();
+                    #ifdef INTERPRETER_TRACE
                         push_int(fIntHeap[(*it)->fOffset1 + assert_int_heap(it, offset, (*it)->fOffset2)]);
+                    #else
+                        push_int(fIntHeap[(*it)->fOffset1 + offset]);
+                    #endif
                         dispatch_next();
                     }
                     
                     do_kStoreIndexedReal:
                     {
+                    #ifdef INTERPRETER_TRACE
                         fRealHeap[(*it)->fOffset1 + assert_real_heap(it, pop_int(), (*it)->fOffset2)] = pop_real();
+                    #else
+                        fRealHeap[(*it)->fOffset1 + pop_int()] = pop_real();
+                    #endif
                         dispatch_next();
                     }
                     
                     do_kStoreIndexedInt:
                     {
                         int offset = pop_int();
+                    #ifdef INTERPRETER_TRACE
                         fIntHeap[(*it)->fOffset1 + assert_int_heap(it, offset, (*it)->fOffset2)] = pop_int();
+                    #else
+                        fIntHeap[(*it)->fOffset1 + offset] = pop_int();
+                    #endif
                         dispatch_next();
                     }
                     
@@ -588,13 +624,21 @@ class FIRInterpreter  {
                     // Input/output access
                     do_kLoadInput:
                     {
+                    #ifdef INTERPRETER_TRACE
                         push_real(fInputs[(*it)->fOffset1][assert_audio_buffer(it, pop_int())]);
+                    #else
+                        push_real(fInputs[(*it)->fOffset1][pop_int()]);
+                    #endif
                         dispatch_next();
                     }
                         
                     do_kStoreOutput:
                     {
+                    #ifdef INTERPRETER_TRACE
                         fOutputs[(*it)->fOffset1][assert_audio_buffer(it, pop_int())] = pop_real();
+                    #else
+                        fOutputs[(*it)->fOffset1][pop_int()] = pop_real();
+                    #endif
                         dispatch_next();
                     }
                     
@@ -2312,6 +2356,7 @@ class FIRInterpreter  {
                 std::cout << e.Message();
             }
         }
+  
     
     public:
     
@@ -2339,7 +2384,7 @@ class FIRInterpreter  {
             fRealStackSize = 512;
             fIntStackSize = 512;
         }
-        
+    
         virtual ~FIRInterpreter()
         {
             delete [] fRealHeap;

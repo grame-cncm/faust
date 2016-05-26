@@ -586,10 +586,16 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         #ifndef INTERPRETER_TRACE
             fFactory->fStaticInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fStaticInitBlock, 1, 6);
             fFactory->fInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fInitBlock, 1, 6);
-            fFactory->fStaticInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fStaticInitBlock, 1, 6);
             fFactory->fComputeBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeBlock, 1, 6);
             fFactory->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeDSPBlock, 1, 6);
         #endif
+            
+            /*
+            fFactory->fStaticInitBlock->write(&std::cout);
+            fFactory->fInitBlock->write(&std::cout);
+            fFactory->fComputeBlock->write(&std::cout);
+            fFactory->fComputeDSPBlock->write(&std::cout);
+            */
          
             this->fStaticInitBlock = 0;
             this->fInitBlock = 0;
