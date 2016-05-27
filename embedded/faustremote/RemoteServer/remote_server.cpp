@@ -932,7 +932,10 @@ bool DSPServer::createInstance(dsp_server_connection_info* con_info)
                                     fCreateDSPInstanceCb_arg,
                                     fDeleteDSPInstanceCb, 
                                     fDeleteDSPInstanceCb_arg);
-                if (audio->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str()))) {
+                
+                
+                //if (audio->init(atoi(con_info->fSampleRate.c_str()), atoi(con_info->fBufferSize.c_str()))) {
+                if (audio->init(44100, 1024)) {
                     fRunningDsp.push_back(audio);
                 } else {
                     delete audio;

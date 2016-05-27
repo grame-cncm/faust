@@ -29,6 +29,8 @@
 
 #include "interpreter_bytecode.hh"
 
+#define MAX_OPT_LEVEL 6
+
 // Tables for math optimization
 
 static std::map<FIRInstruction::Opcode, FIRInstruction::Opcode> gFIRMath2Heap;

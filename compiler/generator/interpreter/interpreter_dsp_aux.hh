@@ -81,6 +81,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     int fSROffset;
     int fCountOffset;
     int fIOTAOffset;
+    int fOptLevel;
     
     FIRMetaBlockInstruction* fMetaBlock;
     FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
@@ -97,6 +98,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
                                 int sr_offset,
                                 int count_offset,
                                 int iota_offset,
+                                int opt_level,
                                 FIRMetaBlockInstruction* meta,
                                 FIRUserInterfaceBlockInstruction<T>* interface,
                                 FIRBlockInstruction<T>* static_init,
@@ -113,6 +115,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     fSROffset(sr_offset),
     fCountOffset(count_offset),
     fIOTAOffset(iota_offset),
+    fOptLevel(opt_level),
     fMetaBlock(meta),
     fUserInterfaceBlock(interface),
     fStaticInitBlock(static_init),
@@ -141,6 +144,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         *out << "version " << INTERP_FILE_VERSION << std::endl;
         *out << "name " << fName << std::endl;
         *out << "sha_key " << fSHAKey << std::endl;
+        *out << "opt_level " << fOptLevel << std::endl;
         
         *out << "inputs " << fNumInputs << " outputs " << fNumOutputs << std::endl;
         *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize
@@ -202,6 +206,15 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         std::stringstream sha_key_line_reader(sha_key_line);
         sha_key_line_reader >> dummy;   // Read "sha_key" token
         sha_key_line_reader >> sha_key;
+        
+        // Read opt_level
+        std::string opt_level_line;
+        int opt_level;
+        getline(*in, opt_level_line);
+        
+        std::stringstream opt_level_line_reader(opt_level_line);
+        opt_level_line_reader >> dummy;   // Read "opt_level" token
+        opt_level_line_reader >> value; opt_level = strtol(value.c_str(), 0, 10);
         
         // Read inputs/outputs
         std::string ins_outs;
@@ -268,6 +281,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
                                               int_heap_size,
                                               real_heap_size,
                                               sr_offset,
+                                              opt_level,
                                               count_offset,
                                               iota_offset,
                                               meta_block,
@@ -584,10 +598,10 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             
         // Bytecode optimization
         #ifndef INTERPRETER_TRACE
-            fFactory->fStaticInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fStaticInitBlock, 1, 6);
-            fFactory->fInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fInitBlock, 1, 6);
-            fFactory->fComputeBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeBlock, 1, 6);
-            fFactory->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeDSPBlock, 1, 6);
+            fFactory->fStaticInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fStaticInitBlock, 1, fFactory->fOptLevel);
+            fFactory->fInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fInitBlock, 1, fFactory->fOptLevel);
+            fFactory->fComputeBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeBlock, 1, fFactory->fOptLevel);
+            fFactory->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeDSPBlock, 1, fFactory->fOptLevel);
         #endif
             
             /*
@@ -907,6 +921,7 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
                              int sr_offset,
                              int count_offset,
                              int iota_offset,
+                             int opt_level,
                              FIRMetaBlockInstruction* meta,
                              FIRUserInterfaceBlockInstruction<float>* interface,
                              FIRBlockInstruction<float>* static_init,
@@ -921,6 +936,7 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
                                                             sr_offset,
                                                             count_offset,
                                                             iota_offset,
+                                                            opt_level,
                                                             meta, interface,
                                                             static_init, init,
                                                             compute_control, compute_dsp);
@@ -934,6 +950,7 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
                                 int sr_offset,
                                 int count_offset,
                                 int iota_offset,
+                                int opt_level,
                                 FIRMetaBlockInstruction* meta,
                                 FIRUserInterfaceBlockInstruction<double>* interface,
                                 FIRBlockInstruction<double>* static_init,
@@ -948,6 +965,7 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
                                                             sr_offset,
                                                             count_offset,
                                                             iota_offset,
+                                                            opt_level,
                                                             meta, interface,
                                                             static_init, init,
                                                             compute_control, compute_dsp);

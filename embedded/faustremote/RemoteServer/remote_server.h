@@ -36,10 +36,12 @@
 #include <arpa/inet.h>
 
 #define LLVM_DSP 1
+/*
 #define OSCCTRL 1
 #define HTTPCTRL 1
 #define MIDICTRL 1
 #define NETJACK 1
+*/
 
 #ifdef LLVM_DSP_FACTORY
 #include "faust/dsp/llvm-dsp.h"
