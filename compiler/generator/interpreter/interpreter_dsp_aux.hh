@@ -281,9 +281,9 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
                                               int_heap_size,
                                               real_heap_size,
                                               sr_offset,
-                                              opt_level,
                                               count_offset,
                                               iota_offset,
+                                              opt_level,
                                               meta_block,
                                               ui_block,
                                               static_init_block,
@@ -603,7 +603,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             fFactory->fComputeBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeBlock, 1, fFactory->fOptLevel);
             fFactory->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeDSPBlock, 1, fFactory->fOptLevel);
         #endif
-            
             /*
             fFactory->fStaticInitBlock->write(&std::cout);
             fFactory->fInitBlock->write(&std::cout);
@@ -746,6 +745,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             // Executes the 'DSP' block
             //std::cout << "fComputeDSPBlock" << std::endl;
             this->ExecuteBlock(fFactory->fComputeDSPBlock);
+            
+            //std::cout << "sample " << outputs[0][0] << std::endl;
         }
     
         /*
