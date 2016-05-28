@@ -41,6 +41,7 @@
 #include "faust/gui/GUI.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/APIUI.h"
+#include "faust/gui/SimpleParser.h"
 #include "faust/misc.h"
 
 #include <list>
@@ -2261,7 +2262,7 @@ public:
     }
     
     virtual void addMenu(const char* label , float* zone, float init, float min, float max, float step, const char* mdescr)
-	{
+    {
         // TODO
     }
     
@@ -2493,6 +2494,7 @@ public:
             {
                 NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
                 NSArray* arr = [str componentsSeparatedByString:@" "];
+                const char* p = value;
                 
                 if ([arr count] == 0) return;
                 
@@ -2523,17 +2525,13 @@ public:
                         fLedG[zone] = (float)[((NSString*)[arr objectAtIndex:2]) integerValue] / 255.f;
                         fLedB[zone] = (float)[((NSString*)[arr objectAtIndex:3]) integerValue] / 255.f;
                     }
-                } else {
+                } else if (parseWord(p, "radio")) {
                     
-                    NSString* str = (NSString*)[arr objectAtIndex:0];
-                    NSRange range = [str rangeOfString:@"menu"];
-                    if (range.location == 0 && range.length > 0) {
-                        NSString* str1 = [str substringFromIndex:range.length];
-                        fMenuDescription[zone] = [str1 UTF8String];
-                    }
+                } else if (parseWord(p, "menu")) {
                     
+                    fMenuDescription[zone] = string(p);
                 }
-			}
+            }
             else if (strcmp(key,"color") == 0)
             {
                 NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
