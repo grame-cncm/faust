@@ -36,7 +36,7 @@
 #define kStdSliderHintSpace         10
 
 @implementation FISlider
-@synthesize handleSize, cornerRadius, isHorizontalSlider, biDirectional;
+@synthesize handleSize, cornerRadius, isHorizontalSlider, biDirectional, fMenuItemNames, fMenuItemValues;
 
 
 #pragma mark -
@@ -366,19 +366,29 @@
 		[self.labelColor set];
 		NSString *valueString = nil;
         float multiplier = 1.f;
+        
+        // In menu items, displays them instead of the value
+        if (self.fMenuItemValues.size() > 0) {
+        
+            for (int i = 0; i < self.fMenuItemValues.size(); i++) {
+                if (floor(self.value) == self.fMenuItemValues[i]) {
+                    valueString = [NSString stringWithCString:self.fMenuItemNames[i].c_str() encoding:NSUTF8StringEncoding];
+                }
+            }
+            
+        } else {
 
-        if ([self.suffixe compare:@""] == NSOrderedSame)
-        {
-            if (self.step < 0.01) valueString = [NSString stringWithFormat:@"%2.3f", self.value];
-            else if (self.step < 0.1) valueString = [NSString stringWithFormat:@"%2.2f", self.value];
-            else valueString = [NSString stringWithFormat:@"%2.1f", self.value];
-        }
-        else
-        {
-            if (self.step < 0.01) valueString = [NSString stringWithFormat:@"%2.3f\r%@", self.value, self.suffixe];
-            else if (self.step < 0.1) valueString = [NSString stringWithFormat:@"%2.2f\r%@", self.value, self.suffixe];
-            else valueString = [NSString stringWithFormat:@"%2.1f\r%@", self.value, self.suffixe];
-            multiplier = 2.f;
+            if ([self.suffixe compare:@""] == NSOrderedSame) {
+                if (self.step < 0.01) valueString = [NSString stringWithFormat:@"%2.3f", self.value];
+                else if (self.step < 0.1) valueString = [NSString stringWithFormat:@"%2.2f", self.value];
+                else valueString = [NSString stringWithFormat:@"%2.1f", self.value];
+            } else {
+                if (self.step < 0.01) valueString = [NSString stringWithFormat:@"%2.3f\r%@", self.value, self.suffixe];
+                else if (self.step < 0.1) valueString = [NSString stringWithFormat:@"%2.2f\r%@", self.value, self.suffixe];
+                else valueString = [NSString stringWithFormat:@"%2.1f\r%@", self.value, self.suffixe];
+                multiplier = 2.f;
+            }
+            
         }
 		
 		CGSize valueStringSize = [valueString sizeWithFont:self.labelFont];

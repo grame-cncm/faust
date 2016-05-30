@@ -35,11 +35,17 @@
 #import "FIResponder.h"
 #import "FIHint.h"
 
+#include <vector>
+#include <string>
+
 @interface FISlider : FIResponder
 {
 	CGFloat touchHandleOffset;
     FIHint* _hint;
 }
+
+@property std::vector<std::string>    fMenuItemNames;
+@property std::vector<double>         fMenuItemValues;
 
 @property CGFloat handleSize;				// default: longest side / 6 (minimum of 35.0)
 @property CGFloat cornerRadius;				// default: 3.0

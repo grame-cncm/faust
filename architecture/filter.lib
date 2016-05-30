@@ -1192,7 +1192,8 @@ peak_eq_rm(Lfx,fx,tanPiBT) = _ <: _,A,_ : +,- : *(0.5),*(K/2.0) : + with {
 };
 
 //-------------------------- parametric_eq_demo ------------------------------
-// USAGE: _ : parametric_eq_demo: _ ;
+// USAGE:
+//   _ : parametric_eq_demo: _ ;
 parametric_eq_demo = // input_signal : 
 	low_shelf(LL,FL) :
         peak_eq(LP,FP,BP) :
@@ -1236,6 +1237,59 @@ with {
   FH = hs_group(hslider("[1] Transition Frequency [unit:Hz] [style:knob] [scale:log]
                 [tooltip: Transition-frequency from boost (cut) to unity gain]",
                 8000,20,10000,1));
+};
+
+//------------------------- spectral_tilt --------------------------------
+// Spectral tilt filter, providing an arbitrary spectral rolloff factor
+// alpha in (-1,1), where
+//  -1 corresponds to one pole (-6 dB per octave), and
+//  +1 corresponds to one zero (+6 dB per octave).
+// In other words, alpha is the slope of the ln magnitude versus ln frequency.
+// For a "pinking filter" (e.g., to generate 1/f noise from white noise),
+// set alpha to -1/2.
+//
+// USAGE:
+//   _ : spectral_tilt(N,f0,bw,alpha) : _
+// where
+//     N = desired integer filter order (fixed at compile time)
+//    f0 = lower frequency limit for desired roll-off band
+//    bw = bandwidth of desired roll-off band
+// alpha = slope of roll-off desired in nepers per neper (ln mag / ln freq)
+//
+// EXAMPLE:
+//    spectral_tilt_demo below
+//
+// REFERENCE:
+//    Link to appear here when write up is done
+//
+spectral_tilt(N,f0,bw,alpha) = seq(i,N,sec(i)) with {
+  sec(i) = g * tf1s(b1,b0,a0,1) with {
+    g = a0/b0; // unity dc-gain scaling
+    b1 = 1.0;
+    b0 = mzh(i);
+    a0 = mph(i);
+    mzh(i) = prewarp(mz(i),SR,w0); // prewarping for bilinear transform
+    mph(i) = prewarp(mp(i),SR,w0);
+    prewarp(w,SR,wp) = wp * tan(w*T/2) / tan(wp*T/2) with { T = 1/SR; };
+    mz(i) = w0 * r ^ (-alpha+i); // minus zero i in s plane
+    mp(i) = w0 * r ^ i; // minus pole i in s plane
+    w0 = 2 * PI * f0; // radian frequency of first pole
+    f1 = f0 + bw; // upper band limit
+    r = (f1/f0)^(1.0/float(N-1)); // pole ratio (2 => octave spacing)
+  };
+};
+
+//-------------------------- spectral_tilt_demo ------------------------------
+// USAGE:
+//   _ : spectral_tilt_demo(N) : _ ;
+// where
+//   N = filter order (integer)
+// All other parameters interactive
+//
+spectral_tilt_demo(N) = spectral_tilt(N,f0,bw,alpha) with {
+	alpha = hslider("[1] Slope of Spectral Tilt across Band",-1/2,-1,1,0.001);
+	f0 = hslider("[2] Band Start Frequency [unit:Hz]",100,20,10000,1);
+	bw = hslider("[3] Band Width [unit:Hz]",5000,100,10000,1);
 };
 
 //========================= Lagrange Interpolation ========================
