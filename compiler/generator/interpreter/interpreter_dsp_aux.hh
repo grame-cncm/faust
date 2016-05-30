@@ -90,6 +90,8 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     int fIOTAOffset;
     int fOptLevel;
     
+    bool fOptimized;
+    
     FIRMetaBlockInstruction* fMetaBlock;
     FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
     FIRBlockInstruction<T>* fStaticInitBlock;
@@ -124,6 +126,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     fCountOffset(count_offset),
     fIOTAOffset(iota_offset),
     fOptLevel(opt_level),
+    fOptimized(false),
     fMetaBlock(meta),
     fUserInterfaceBlock(interface),
     fStaticInitBlock(static_init),
@@ -140,6 +143,21 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         delete fInitBlock;
         delete fComputeBlock;
         delete fComputeDSPBlock;
+    }
+    
+    void optimize()
+    {
+        if (!fOptimized) {
+            fOptimized = true;
+            // Bytecode optimization
+        #ifndef INTERPRETER_TRACE
+            fStaticInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(fStaticInitBlock, 1, fOptLevel);
+            fInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(fInitBlock, 1, fOptLevel);
+            fComputeBlock = FIRInstructionOptimizer<T>::optimizeBlock(fComputeBlock, 1, fOptLevel);
+            fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(fComputeDSPBlock, 1, fOptLevel);
+        #endif
+            
+        }
     }
     
     std::string getName() { return fName; }
@@ -608,15 +626,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->fInputs = new T*[fFactory->fNumInputs];
             this->fOutputs = new T*[fFactory->fNumOutputs];
             
-        // Bytecode optimization
-        #ifndef INTERPRETER_TRACE
-            fFactory->fStaticInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fStaticInitBlock, 1, fFactory->fOptLevel);
-            fFactory->fInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fInitBlock, 1, fFactory->fOptLevel);
-            fFactory->fComputeBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeBlock, 1, fFactory->fOptLevel);
-            fFactory->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeDSPBlock, 1, fFactory->fOptLevel);
-        #endif
-            
-            /*
+            fFactory->optimize();
+             /*
             fFactory->fStaticInitBlock->write(&std::cout);
             fFactory->fInitBlock->write(&std::cout);
             fFactory->fComputeBlock->write(&std::cout);
