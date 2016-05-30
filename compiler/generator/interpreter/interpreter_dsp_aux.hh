@@ -43,11 +43,6 @@
 #define EXPORT __attribute__ ((visibility("default")))
 #endif
 
-static inline std::string unquote1(const std::string& str)
-{
-    return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
-}
-
 class interpreter_dsp_factory;
 
 struct interpreter_dsp_factory_base {
@@ -147,7 +142,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     
     void optimize()
     {
-        if (!fOptimized) {
+        if (!fOptimized) {
             fOptimized = true;
             // Bytecode optimization
         #ifndef INTERPRETER_TRACE
@@ -156,7 +151,6 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
             fComputeBlock = FIRInstructionOptimizer<T>::optimizeBlock(fComputeBlock, 1, fOptLevel);
             fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(fComputeDSPBlock, 1, fOptLevel);
         #endif
-            
         }
     }
     
@@ -322,6 +316,14 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
                                               compute_dsp_block);
     }
     
+    static std::string parseStringToken(std::stringstream* inst)
+    {
+        std::string token;
+        getline(*inst, token, '"');
+        getline(*inst, token, '"');
+        return token;
+    }
+    
     static FIRMetaBlockInstruction* readMetaBlock(std::istream* in)
     {
         std::string dummy, value, line;
@@ -351,10 +353,11 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         
         *inst >> dummy;  // Read "meta" token
         *inst >> dummy;  // Read "key" token
-        *inst >> key;    // Read "key" content
-        
+        // Read "key" content (as a string)
+        key = parseStringToken(inst);
         *inst >> dummy;  // Read "value" token
-        *inst >> val;    // Read "val" conent
+        // Read "val" content (as a string)
+        val = parseStringToken(inst);
         
         return new FIRMetaInstruction(unquote1(key), unquote1(val));
     }
@@ -376,6 +379,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         for (int i = 0; i < size; i++) {
             getline(*in, line);
             std::stringstream item_line_reader(line);
+            std::cout << "readUIBlock " << line << std::endl;
             ui_block->push(readUIInstruction(&item_line_reader));
         }
         
@@ -389,6 +393,8 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         float init, min, max, step;
         std::string dummy, value, label, key, val;
         
+        std::string token;
+        
         *inst >> dummy;  // Read "opcode" token
         *inst >> value; opcode = FIRInstruction::Opcode(strtol(value.c_str(), 0, 10));
         *inst >> dummy;  // Read opcode string representation (that is not used)
@@ -397,13 +403,15 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         *inst >> value; offset = strtol(value.c_str(), 0, 10);
         
         *inst >> dummy;  // Read "label" token
-        *inst >> label;  // Read "label" content
+        // Read "label" content (as a string)
+        label = parseStringToken(inst);
         
         *inst >> dummy;  // Read "key" token
         *inst >> key;    // Read "key" content
-        
-        *inst >> dummy;  // Read "val" token
-        *inst >> val;    // Read "val" conent
+      
+        *inst >> dummy;  // Read "value" token
+        // Read "Value" content (as a string)
+        val = parseStringToken(inst);
         
         *inst >> dummy;  // Read "init" token
         *inst >> value; init = strtof(value.c_str(), 0);
@@ -627,7 +635,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->fOutputs = new T*[fFactory->fNumOutputs];
             
             fFactory->optimize();
-             /*
+            /*
             fFactory->fStaticInitBlock->write(&std::cout);
             fFactory->fInitBlock->write(&std::cout);
             fFactory->fComputeBlock->write(&std::cout);

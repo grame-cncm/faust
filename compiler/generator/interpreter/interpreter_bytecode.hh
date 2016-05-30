@@ -30,15 +30,16 @@
 
 #include "fir_opcode.hh"
 
-static inline std::string replaceCharQuote(std::string str, char ch1, char ch2)
+static inline std::string quote1(std::string str)
 {
-    for (unsigned int i = 0; i < str.length(); ++i) {
-        if (str[i] == ch1) {
-            str[i] = ch2;
-        }
-    }
     return "\"" + str + "\"";
 }
+
+static inline std::string unquote1(const std::string& str)
+{
+    return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
+}
+
 
 // Bytecode definition
 
@@ -257,9 +258,9 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
     {
         *out << "opcode " << fOpcode << " " << gFIRInstructionTable[fOpcode]
             << " offset " << fOffset
-            << " label " << replaceCharQuote(fLabel, ' ', '_')
-            << " key " << replaceCharQuote(fKey, ' ', '_')
-            << " value " << replaceCharQuote(fValue, ' ', '_')
+            << " label " << quote1(fLabel)
+            << " key " << quote1(fKey)
+            << " value " << quote1(fValue)
             << " init " << fInit << " min " << fMin << " max " << fMax << " step " << fStep << std::endl;
     }
     
@@ -280,8 +281,8 @@ struct FIRMetaInstruction : public FIRInstruction {
     virtual void write(std::ostream* out)
     {
         *out << "meta"
-            << " key " << replaceCharQuote(fKey, ' ', '_')
-            << " value " << replaceCharQuote(fValue, ' ', '_') << std::endl;
+            << " key " << quote1(fKey)
+            << " value " << quote1(fValue) << std::endl;
     }
 };
 
