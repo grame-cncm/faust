@@ -116,6 +116,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
                                                         error_msg_aux)) != 0) {
             gInterpreterFactoryTable.setFactory(factory);
             factory->setSHAKey(sha_key);
+            factory->setDSPCode(expanded_dsp_content);
             error_msg = error_msg_aux;
             return factory;
         } else {

@@ -56,8 +56,13 @@ struct interpreter_dsp_factory_base {
     {}
     
     virtual std::string getName() = 0;
+    
     virtual std::string getSHAKey() = 0;
     virtual void setSHAKey(const std::string& sha_key) = 0;
+    
+    virtual std::string getDSPCode() = 0;
+    virtual void setDSPCode(const std::string& code) = 0;
+    
     virtual void write(std::ostream* out) = 0;
     virtual dsp* createDSPInstance(interpreter_dsp_factory* factory) = 0;
     virtual void metadata(Meta* meta) = 0;
@@ -72,6 +77,8 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     
     std::string fName;
     std::string fSHAKey;
+    std::string fExpandedDSP;
+    
     float fVersion;
     int fNumInputs;
     int fNumOutputs;
@@ -107,6 +114,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
                                 FIRBlockInstruction<T>* compute_dsp)
     :fName(name),
     fSHAKey(sha_key),
+    fExpandedDSP(""),
     fVersion(version_num),
     fNumInputs(inputs),
     fNumOutputs(ouputs),
@@ -135,9 +143,13 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     }
     
     std::string getName() { return fName; }
+    
     std::string getSHAKey() { return fSHAKey; }
     void setSHAKey(const std::string& sha_key) { fSHAKey = sha_key; }
     
+    std::string getDSPCode() { return fExpandedDSP; }
+    void setDSPCode(const std::string& code) { fExpandedDSP = code; }
+   
     void write(std::ostream* out)
     {
         *out << "interpreter_dsp_factory " << ((sizeof(T) == 8) ? "double" : "float") << std::endl;
@@ -603,11 +615,13 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             fFactory->fComputeBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeBlock, 1, fFactory->fOptLevel);
             fFactory->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeDSPBlock, 1, fFactory->fOptLevel);
         #endif
+            
             /*
             fFactory->fStaticInitBlock->write(&std::cout);
             fFactory->fInitBlock->write(&std::cout);
             fFactory->fComputeBlock->write(&std::cout);
             fFactory->fComputeDSPBlock->write(&std::cout);
+            std::cout << "size " << fFactory->fComputeDSPBlock->size() << std::endl;
             */
          
             this->fStaticInitBlock = 0;
@@ -905,7 +919,6 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
     protected:
         
         interpreter_dsp_factory_base* fFactory;
-        std::string fExpandedDSP;
     
         virtual ~interpreter_dsp_factory()
         {
@@ -982,7 +995,8 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
         std::string getSHAKey() { return fFactory->getSHAKey(); }
         void setSHAKey(std::string sha_key) { fFactory->setSHAKey(sha_key); }
         
-        std::string getDSPCode() { return fExpandedDSP; }
+        std::string getDSPCode() { return fFactory->getDSPCode(); }
+        void setDSPCode(std::string code) { return fFactory->setDSPCode(code); }
         
         dsp* createDSPInstance();
         
