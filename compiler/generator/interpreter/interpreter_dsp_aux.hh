@@ -379,7 +379,6 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         for (int i = 0; i < size; i++) {
             getline(*in, line);
             std::stringstream item_line_reader(line);
-            std::cout << "readUIBlock " << line << std::endl;
             ui_block->push(readUIInstruction(&item_line_reader));
         }
         
@@ -392,8 +391,6 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         int offset;
         float init, min, max, step;
         std::string dummy, value, label, key, val;
-        
-        std::string token;
         
         *inst >> dummy;  // Read "opcode" token
         *inst >> value; opcode = FIRInstruction::Opcode(strtol(value.c_str(), 0, 10));
