@@ -389,10 +389,10 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     {
         int opcode, offset;
         float init, min, max, step;
-        std::string dummy, value, label, key, val;
+        std::string dummy, label, key, val;
         
         *inst >> dummy;  // Read "opcode" token
-        *inst >> value >> opcode;
+        *inst >> opcode;
         *inst >> dummy;  // Read opcode string representation (that is not used)
         
         *inst >> dummy;  // Read "offset" token
