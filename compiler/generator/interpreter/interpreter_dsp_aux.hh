@@ -352,9 +352,11 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         std::string dummy, value, key, val;
         
         *inst >> dummy;  // Read "meta" token
+        
         *inst >> dummy;  // Read "key" token
         // Read "key" content (as a string)
         key = parseStringToken(inst);
+        
         *inst >> dummy;  // Read "value" token
         // Read "val" content (as a string)
         val = parseStringToken(inst);

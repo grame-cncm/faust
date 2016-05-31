@@ -322,7 +322,7 @@ void dsp_server_connection_info::getJson(dsp_factory* factory)
     }
    
     string code = factory->getDSPCode();
-    JSONUI json(fNameApp, dsp->getNumInputs(), dsp->getNumOutputs(), factory->getSHAKey(), base64_encode(code.c_str(), code.size()));
+    JSONUI json(fNameApp, dsp->getNumInputs(), dsp->getNumOutputs(), factory->getSHAKey(), base64_encode(code.c_str(), int(code.size())));
     factory->metadata(&json);
     dsp->buildUserInterface(&json);
     delete dsp;
@@ -361,7 +361,7 @@ dsp_factory* dsp_server_connection_info::crossCompileFactory(DSPServer* server, 
         return factory;
     } else {
         // Sort out compilation options
-        int argc = fCompilationOptions.size();
+        int argc = int(fCompilationOptions.size());
         const char* argv[argc];
         for (int i = 0; i < argc; i++) {
             argv[i] = fCompilationOptions[i].c_str();
@@ -742,7 +742,7 @@ bool DSPServer::crossCompileFactory(MHD_Connection* connection, dsp_server_conne
             if (fCreateDSPFactoryCb) {
                 // Possibly call callback
                 fCreateDSPFactoryCb(new_factory, fCreateDSPFactoryCb_arg);
-           }
+            }
         }
         
         return sendPage(connection, machine_code, MHD_HTTP_OK, "text/html");
