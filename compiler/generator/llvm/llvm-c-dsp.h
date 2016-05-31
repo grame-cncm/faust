@@ -80,7 +80,7 @@ extern "C"
      * @param argc - the number of parameters in argv array
      * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
      * @param target - the LLVM machine target (using empty string will take current machine settings)
-     * @param error_msg - the error string to be filled, has to be 256 characters long
+     * @param error_msg - the error string to be filled, has to be 4096 characters long
      * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
      * since the maximum value may change with new LLVM versions)
      *
@@ -101,7 +101,7 @@ extern "C"
      * @param argc - the number of parameters in argv array
      * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
      * @param target - the LLVM machine target (using empty string will take current machine settings)
-     * @param error_msg - the error string to be filled, has to be 256 characters long
+     * @param error_msg - the error string to be filled, has to be 4096 characters long
      * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
      * since the maximum value may change with new LLVM versions)
      *

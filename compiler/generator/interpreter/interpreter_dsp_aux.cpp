@@ -94,7 +94,6 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
         
         int argc1 = argc + 3;
         const char* argv1[32];
-        char error_msg_aux[512];
         
         argv1[0] = "faust";
         argv1[1] = "-lang";
@@ -113,14 +112,12 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
         } else if ((factory = compile_faust_interpreter(argc1, argv1,
                                                         name_app.c_str(),
                                                         dsp_content.c_str(),
-                                                        error_msg_aux)) != 0) {
+                                                        error_msg)) != 0) {
             gInterpreterFactoryTable.setFactory(factory);
             factory->setSHAKey(sha_key);
             factory->setDSPCode(expanded_dsp_content);
-            error_msg = error_msg_aux;
             return factory;
         } else {
-            error_msg = error_msg_aux;
             return 0;
         }
     }

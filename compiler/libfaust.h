@@ -64,10 +64,10 @@ class interpreter_dsp_factory;
  * @param input - the Faust program as a string
  * @param error_msg - the error string to be filled, has to be 256 characters long
  *
- * @return 0 on success, otherwise a non-zero error code, with an error message in error_msg.
+ * @return true on success, otherwise false with an error message in error_msg.
  */
 
-EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* input, char* error_msg, bool generate);
+EXPORT bool compile_faust(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg, bool generate);
 
 /**
  * Compile a Faust program and produces a LLVM module.
@@ -81,13 +81,13 @@ EXPORT int compile_faust(int argc, const char* argv[], const char* name, const c
  * @return a LLVMResult with a LLVM module and LLVM context on success, 0 otherwise, with an error message in error_msg.
  */
 
-EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg);
 
-EXPORT interpreter_dsp_factory* compile_faust_interpreter(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+EXPORT interpreter_dsp_factory* compile_faust_interpreter(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg);
 
-EXPORT std::string compile_faust_asmjs(int argc, const char* argv[], const char* name, const char* input, char* error_msg);
+EXPORT std::string compile_faust_asmjs(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg);
 
-EXPORT std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, char* sha_key, char* error_msg);
+EXPORT std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key, std::string& error_msg);
 
 EXPORT llvm::Module* load_single_module(const std::string filename, llvm::LLVMContext* context);
 

@@ -337,7 +337,7 @@ void* llvm_dsp_factory::loadOptimize(const string& function)
 #endif
 }
 
-LLVMResult* llvm_dsp_factory::compileModule(int argc, const char* argv[], const char* input_name, const char* input, char* error_msg)
+LLVMResult* llvm_dsp_factory::compileModule(int argc, const char* argv[], const char* input_name, const char* input, string& error_msg)
 {
     int argc1 = argc + 3;
     const char* argv1[32];
@@ -511,11 +511,9 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key,
     fObjectCache = NULL;
 #endif
     
-    char error_msg_aux[512];
     fClassName = getParam(argc, argv, "-cn", "mydsp");
     fIsDouble = isParam(argc, argv, "-double");
-    fResult = compileModule(argc, argv, name_app.c_str(), dsp_content.c_str(), error_msg_aux);
-    error_msg = error_msg_aux;
+    fResult = compileModule(argc, argv, name_app.c_str(), dsp_content.c_str(), error_msg);
 }
 
 void llvm_dsp_factory::init(const string& type_name, const string& dsp_name)
@@ -1596,7 +1594,7 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename,
 {
     string error_msg_aux;
     llvm_dsp_factory* factory = createDSPFactoryFromFile(filename, argc, argv, target, error_msg_aux, opt_level);
-    strncpy(error_msg, error_msg_aux.c_str(), 256);
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;                                
 }
 
@@ -1607,7 +1605,7 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
 {
     string error_msg_aux;
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg_aux, opt_level);
-    strncpy(error_msg, error_msg_aux.c_str(), 256);
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }
 
