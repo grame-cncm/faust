@@ -198,7 +198,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     // Factory reader
     static interpreter_dsp_factory_aux<T>* read(std::istream* in)
     {
-        std::string dummy, value;
+        std::string dummy;
         
         // Read "version" line
         std::string version;
@@ -207,7 +207,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         
         std::stringstream version_reader(version);
         version_reader >> dummy;   // Read "version" token
-        version_reader >> value; version_num = strtof(value.c_str(), 0);
+        version_reader >> version_num;
         
         if (INTERP_FILE_VERSION != version_num) {
             std::cerr << "Interpreter file format version '" << version_num
@@ -238,7 +238,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         
         std::stringstream opt_level_line_reader(opt_level_line);
         opt_level_line_reader >> dummy;   // Read "opt_level" token
-        opt_level_line_reader >> value; opt_level = strtol(value.c_str(), 0, 10);
+        opt_level_line_reader >> opt_level;
         
         // Read inputs/outputs
         std::string ins_outs;
@@ -248,10 +248,10 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         std::stringstream in_out_reader(ins_outs);
         
         in_out_reader >> dummy; // Read "inputs" token
-        in_out_reader >> value; inputs = strtol(value.c_str(), 0, 10);
+        in_out_reader >> inputs;
         
         in_out_reader >> dummy; // Read "outputs" token
-        in_out_reader >> value; outputs = strtol(value.c_str(), 0, 10);
+        in_out_reader >> outputs;
         
         // Read int/real heap size and sr offset
         std::string heap_size;
@@ -261,19 +261,19 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         std::stringstream heap_size_reader(heap_size);
         
         heap_size_reader >> dummy; // Read "int_heap_size" token
-        heap_size_reader >> value; int_heap_size = strtol(value.c_str(), 0, 10);
+        heap_size_reader >> int_heap_size;
         
         heap_size_reader >> dummy; // Read "real_heap_size" token
-        heap_size_reader >> value; real_heap_size = strtol(value.c_str(), 0, 10);
+        heap_size_reader >> real_heap_size;
         
         heap_size_reader >> dummy; // Read "sr_offet" token
-        heap_size_reader >> value; sr_offset = strtol(value.c_str(), 0, 10);
+        heap_size_reader >> sr_offset;
         
         heap_size_reader >> dummy; // Read "count_offset" token
-        heap_size_reader >> value; count_offset = strtol(value.c_str(), 0, 10);
+        heap_size_reader >> count_offset;
         
         heap_size_reader >> dummy; // Read "iota_offset" token
-        heap_size_reader >> value; iota_offset = strtol(value.c_str(), 0, 10);
+        heap_size_reader >> iota_offset;
         
         // Read meta block
         getline(*in, dummy);    // Read "meta_block" line
@@ -326,7 +326,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     
     static FIRMetaBlockInstruction* readMetaBlock(std::istream* in)
     {
-        std::string dummy, value, line;
+        std::string dummy, line;
         int size;
         
         // Read "block_size" line
@@ -334,7 +334,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         std::stringstream line_reader(line);
         
         line_reader >> dummy; // Read "block_size" token
-        line_reader >> value; size = strtol(value.c_str(), 0, 10);
+        line_reader >> size;
         
         FIRMetaBlockInstruction* meta_block = new FIRMetaBlockInstruction();
         
@@ -364,7 +364,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     
     static FIRUserInterfaceBlockInstruction<T>* readUIBlock(std::istream* in)
     {
-        std::string dummy, value, line;
+        std::string dummy, line;
         int size;
         
         // Read "block_size" line
@@ -372,7 +372,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         std::stringstream line_reader(line);
         
         line_reader >> dummy; // Read "block_size" token
-        line_reader >> value; size = strtol(value.c_str(), 0, 10);
+        line_reader >> size;
         
         FIRUserInterfaceBlockInstruction<T>* ui_block = new FIRUserInterfaceBlockInstruction<T>();
         
@@ -387,17 +387,16 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     
     static FIRUserInterfaceInstruction<T>* readUIInstruction(std::stringstream* inst)
     {
-        FIRInstruction::Opcode opcode;
-        int offset;
+        int opcode, offset;
         float init, min, max, step;
         std::string dummy, value, label, key, val;
         
         *inst >> dummy;  // Read "opcode" token
-        *inst >> value; opcode = FIRInstruction::Opcode(strtol(value.c_str(), 0, 10));
+        *inst >> value >> opcode;
         *inst >> dummy;  // Read opcode string representation (that is not used)
         
         *inst >> dummy;  // Read "offset" token
-        *inst >> value; offset = strtol(value.c_str(), 0, 10);
+        *inst >> offset;
         
         *inst >> dummy;  // Read "label" token
         // Read "label" content (as a string)
@@ -405,29 +404,32 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         
         *inst >> dummy;  // Read "key" token
         *inst >> key;    // Read "key" content
-      
+        
         *inst >> dummy;  // Read "value" token
         // Read "Value" content (as a string)
         val = parseStringToken(inst);
         
         *inst >> dummy;  // Read "init" token
-        *inst >> value; init = strtof(value.c_str(), 0);
+        *inst >> init;
         
         *inst >> dummy;  // Read "min" token
-        *inst >> value; min = strtof(value.c_str(), 0);
+        *inst >> min;
         
         *inst >> dummy;  // Read "max" token
-        *inst >> value; max = strtof(value.c_str(), 0);
+        *inst >> max;
         
         *inst >> dummy;  // Read "step" token
-        *inst >> value; step = strtof(value.c_str(), 0);
+        *inst >> step;
         
-        return new FIRUserInterfaceInstruction<T>(opcode, offset, unquote1(label), unquote1(key), unquote1(val), init, min, max, step);
+        return new FIRUserInterfaceInstruction<T>(FIRInstruction::Opcode(opcode), offset,
+                                                  unquote1(label), unquote1(key),
+                                                  unquote1(val),
+                                                  init, min, max, step);
     }
     
     static FIRBlockInstruction<T>* readCodeBlock(std::istream* in)
     {
-        std::string dummy, value, line;
+        std::string dummy, line;
         int size;
         
         // Read "block_size" line
@@ -435,7 +437,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         std::stringstream line_reader(line);
         
         line_reader >> dummy; // Read "block_size" token
-        line_reader >> value; size = strtol(value.c_str(), 0, 10);
+        line_reader >> size;
         
         FIRBlockInstruction<T>* code_block = new FIRBlockInstruction<T>();
         
@@ -453,13 +455,13 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     
     static FIRBasicInstruction<T>* readCodeInstruction(std::istream* inst, std::istream* in)
     {
-        FIRInstruction::Opcode opcode;
-        int offset1, offset2, val_int;
+        int opcode, offset1, offset2;
+        int val_int;
         float val_real;
-        std::string dummy, value, line;
-        
+       
+        std::string dummy, line;
         *inst >> dummy;  // Read "opcode" token
-        *inst >> value; opcode = FIRInstruction::Opcode(strtol(value.c_str(), 0, 10));
+        *inst >> opcode;
         
         *inst >> dummy;  // Read opcode string representation (that is not used)
         
@@ -469,13 +471,13 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
             std::vector<T> block_values;
             
             *inst >> dummy;  // Read "offset1" token
-            *inst >> value; offset1 = strtol(value.c_str(), 0, 10);
+            *inst >> offset1;
             
             *inst >> dummy;  // Read "offset2" token
-            *inst >> value; offset2 = strtol(value.c_str(), 0, 10);
+            *inst >> offset2;
            
             *inst >> dummy;  // Read "size" token
-            *inst >> value; block_size = strtol(value.c_str(), 0, 10);
+            *inst >> block_size;
             
             // Read samples line
             getline(*in, line);
@@ -483,11 +485,11 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
             
             // Read each sample
             for (int i = 0; i < block_size; i++) {
-                sample_line_reader >> value; float val_num = strtof(value.c_str(), 0);
-                block_values.push_back(val_num);
+                sample_line_reader >> val_real;
+                block_values.push_back(val_real);
             }
             
-            return new FIRBlockStoreRealInstruction<T>(opcode, offset1, offset2, block_values);
+            return new FIRBlockStoreRealInstruction<T>(FIRInstruction::Opcode(opcode), offset1, offset2, block_values);
             
         } else if (opcode == FIRInstruction::kBlockStoreInt) {
             
@@ -495,39 +497,40 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
             std::vector<int> block_values;
             
             *inst >> dummy;  // Read "offset1" token
-            *inst >> value; offset1 = strtol(value.c_str(), 0, 10);
+            *inst >> offset1;
             
             *inst >> dummy;  // Read "offset2" token
-            *inst >> value; offset2 = strtol(value.c_str(), 0, 10);
+            *inst >> offset2;
             
             *inst >> dummy;  // Read "size" token
-            *inst >> value; block_size = strtol(value.c_str(), 0, 10);
+            *inst >> block_size;
             
             // Read samples line
             getline(*in, line);
             std::stringstream sample_line_reader(line);
             
             // Read each sample
+           
             for (int i = 0; i < block_size; i++) {
-                sample_line_reader >> value; int val_num = strtol(value.c_str(), 0, 10);
-                block_values.push_back(val_num);
+                sample_line_reader >> val_int;
+                block_values.push_back(val_int);
             }
             
-            return new FIRBlockStoreIntInstruction<T>(opcode, offset1, offset2, block_values);
+            return new FIRBlockStoreIntInstruction<T>(FIRInstruction::Opcode(opcode), offset1, offset2, block_values);
             
         } else {
         
             *inst >> dummy;  // Read "int" token
-            *inst >> value; val_int = strtol(value.c_str(), 0, 10);
+            *inst >> val_int;
             
             *inst >> dummy;  // Read "real" token
-            *inst >> value; val_real = strtof(value.c_str(), 0);
+            *inst >> val_real;
             
             *inst >> dummy;  // Read "offset1" token
-            *inst >> value; offset1 = strtol(value.c_str(), 0, 10);
+            *inst >> offset1;
             
             *inst >> dummy;  // Read "offset2" token
-            *inst >> value; offset2 = strtol(value.c_str(), 0, 10);
+            *inst >> offset2;
             
             FIRBlockInstruction<T>* branch1 = 0;
             FIRBlockInstruction<T>* branch2 = 0;
@@ -543,7 +546,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
                 branch2 = readCodeBlock(in);  // consume 'in'
             }
             
-            return new FIRBasicInstruction<T>(opcode, val_int, val_real, offset1, offset2, branch1, branch2);
+            return new FIRBasicInstruction<T>(FIRInstruction::Opcode(opcode), val_int, val_real, offset1, offset2, branch1, branch2);
         }
     }
     
