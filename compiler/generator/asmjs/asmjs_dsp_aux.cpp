@@ -71,7 +71,9 @@ EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const ch
     
     string str;
     try {
-        str = compile_faust_asmjs(argc1, argv1, name_app, dsp_content, error_msg);
+        string error_msg_aux;
+        str = compile_faust_asmjs(argc1, argv1, name_app, dsp_content, error_msg_aux);
+        strncpy(error_msg, error_msg_aux.c_str(), 4096);
         str = flatten(str);
         char* cstr = (char*)malloc(str.length() + 1);
         strcpy(cstr, str.c_str());

@@ -1426,7 +1426,7 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
 
 #if LLVM_BUILD
 
-EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* dsp_content, char* error_msg)
+EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& error_msg)
 {
     gGlobal = NULL;
     LLVMResult* res;
@@ -1437,11 +1437,11 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
         global::allocate();
         gGlobal->gLLVMOut = false;
         compile_faust_internal(argc, argv, name, dsp_content, true);
-        strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);  
+        error_msg = gGlobal->gErrorMsg;
         res = gGlobal->gLLVMResult;
             
     } catch (faustexception& e) {
-        strncpy(error_msg, e.Message().c_str(), 256);
+        error_msg = e.Message();
         res = NULL;
     }
     
@@ -1451,27 +1451,27 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
 
 #endif
 
-EXPORT int compile_faust(int argc, const char* argv[], const char* name, const char* dsp_content, char* error_msg, bool generate)
+EXPORT bool compile_faust(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& error_msg, bool generate)
 {
     gGlobal = NULL;
-    int res;
+    bool res;
     
     try {
         global::allocate();  
         gGlobal->gLLVMOut = true;   
         compile_faust_internal(argc, argv, name, dsp_content, generate);
-        strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
-        res = 0;
+        error_msg = gGlobal->gErrorMsg;
+        res = true;
     } catch (faustexception& e) {
-        strncpy(error_msg, e.Message().c_str(), 256);
-        res = -1;
+        error_msg = e.Message();
+        res = false;
     }
     
     global::destroy();
     return res;
 }
 
-EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name, const char* dsp_content, char* error_msg)
+EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& error_msg)
 {
     gGlobal = NULL;
     string res;
@@ -1480,10 +1480,10 @@ EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name
         global::allocate(); 
         gGlobal->gLLVMOut = true;    
         compile_faust_internal(argc, argv, name, dsp_content, true);
-        strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
+        error_msg = gGlobal->gErrorMsg;
         res = dynamic_cast<stringstream*>(gGlobal->gStringResult)->str();
     } catch (faustexception& e) {
-        strncpy(error_msg, e.Message().c_str(), 256);
+        error_msg = e.Message();
         res = "";
     }
     
@@ -1491,7 +1491,7 @@ EXPORT string compile_faust_asmjs(int argc, const char* argv[], const char* name
     return res;
 }
 
-EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* dsp_content, char* sha_key, char* error_msg)
+EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& sha_key, std::string& error_msg)
 {
     string res;
     gGlobal = NULL;
@@ -1499,10 +1499,10 @@ EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const c
     try {
         global::allocate();       
         res = expand_dsp_internal(argc, argv, name, dsp_content);
-        strcpy(sha_key, generateSHA1(res).c_str());
-        strncpy(error_msg, gGlobal->gErrorMsg.c_str(), 256);
+        sha_key = generateSHA1(res);
+        error_msg = gGlobal->gErrorMsg;
     } catch (faustexception& e) {
-        strncpy(error_msg, e.Message().c_str(), 256);
+        error_msg = e.Message();
         res = "";
     }
     

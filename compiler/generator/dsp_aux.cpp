@@ -92,15 +92,11 @@ EXPORT string expandDSPFromString(const string& name_app,
         
         argv1[argc1] = 0;  // NULL terminated argv
         
-        char error_msg_aux[512];
-        char sha_key_aux[128];
         const char* name = name_app.c_str();
         const char* content = dsp_content.c_str();
+        
         // 'expand_dsp' adds the normalized compilation options in the DSP code before computing the SHA key
-        string res = expand_dsp(argc1, argv1, name, content, sha_key_aux, error_msg_aux);
-        error_msg = error_msg_aux;
-        sha_key = sha_key_aux;
-        return res;
+        return expand_dsp(argc1, argv1, name, content, sha_key, error_msg);
     }
 }
 
@@ -129,13 +125,7 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
     
     argv1[argc1] = 0;  // NULL terminated argv
   
-    char error_msg_aux[512];
-    if (!compile_faust(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg_aux, false)) {
-        return true;
-    } else {
-        error_msg = error_msg_aux;
-        return false;
-    }
+    return compile_faust(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, false);
 }
 
 EXPORT const char* expandCDSPFromFile(const char* filename, 
@@ -147,7 +137,7 @@ EXPORT const char* expandCDSPFromFile(const char* filename,
     string error_msg_aux;
     string res = expandDSPFromFile(filename, argc, argv, sha_key_aux, error_msg_aux);
     strncpy(sha_key, sha_key_aux.c_str(), 64);
-    strncpy(error_msg, error_msg_aux.c_str(), 256);
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return strdup(res.c_str());
 }
 
@@ -161,7 +151,7 @@ EXPORT const char* expandCDSPFromString(const char* name_app,
     string error_msg_aux;
     string res = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key_aux, error_msg_aux);
     strncpy(sha_key, sha_key_aux.c_str(), 64);
-    strncpy(error_msg, error_msg_aux.c_str(), 256);
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return strdup(res.c_str());
 }
 
@@ -169,7 +159,7 @@ EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char
 {
     string error_msg_aux;
     bool res = generateAuxFilesFromFile(filename, argc, argv, error_msg_aux);
-    strncpy(error_msg, error_msg_aux.c_str(), 256);
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return res;
 }
 
@@ -177,6 +167,6 @@ EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_co
 {
     string error_msg_aux;
     bool res = generateAuxFilesFromString(name_app, dsp_content, argc, argv, error_msg_aux);
-    strncpy(error_msg, error_msg_aux.c_str(), 256);
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return res;
 }

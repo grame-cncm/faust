@@ -99,7 +99,7 @@ class llvm_dsp_factory : public smartable {
                                 const char* argv[], 
                                 const char* input_name, 
                                 const char* input, 
-                                char* error_msg);
+                                string& error_msg);
         void init(const string& dsp_name, const string& type_name);
         
         bool crossCompile(const std::string& target);
