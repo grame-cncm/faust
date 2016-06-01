@@ -50,6 +50,7 @@
 #include "faust/gui/MapUI.h"
 #include "faust/dsp/proxy-dsp.h"
 
+#define kActiveVoice      0
 #define kFreeVoice        -1
 #define kReleaseVoice     -2
 #define kNoVoice          -3
@@ -239,13 +240,12 @@ class mydsp_poly : public dsp, public midi {
         {
             FAUSTFLOAT level = 0;
             // Normalize sample by the max polyphony (as in vst.cpp file)
-            FAUSTFLOAT gain_level = 1./sqrt(fPolyphony);
             for (int i = 0; i < fNumOutputs; i++) {
                 FAUSTFLOAT* mixChannel = mixBuffer[i];
                 FAUSTFLOAT* outChannel = outputBuffer[i];
                 for (int j = 0; j < count; j++) {
                     level = FLOAT_MAX(level, (FAUSTFLOAT)fabs(outChannel[j]));
-                    mixChannel[j] += outChannel[j] * gain_level;
+                    mixChannel[j] += outChannel[j];
                 }
             }
             return level;
@@ -517,6 +517,19 @@ class mydsp_poly : public dsp, public midi {
                 fVoiceTable[0]->buildUserInterface(ui_interface);
             }
         }
+    
+        int newVoice()
+        {
+            int voice = -1;
+            voice = getVoice(kFreeVoice, true);
+            fVoiceTable[voice]->fNote = kActiveVoice;
+            return voice;
+        }
+        
+        void deleteVoice(int voice)
+        {
+            fVoiceTable[voice]->fNote = kReleaseVoice;
+        }
         
         // Pure MIDI control
         
@@ -604,7 +617,11 @@ class mydsp_poly : public dsp, public midi {
         
         void setParamValue(const char* path, int pitch, float value)
         {
-            int voice = getVoice(pitch);
+            setVoiceParam(path, getVoice(pitch), value);
+        }
+        
+        void setVoiceParam(const char* path, int voice, float value)
+        {
             if (voice >= 0) {
                 fVoiceTable[voice]->setParamValue(path, value);
             }
@@ -615,19 +632,21 @@ class mydsp_poly : public dsp, public midi {
             return fVoiceTable[0]->getParamValue(path);
         }
         
-        void setVoiceGain(int pitch, float value)
-        {   
-            int voice = getVoice(pitch);
-            if (voice >= 0) {
-                fVoiceTable[voice]->setParamValue(fGainLabel, value);
-            }
+        float getParamValue(const char* path, int pitch)
+        {
+            return getVoiceParam(path, getVoice(pitch));
         }
         
+        float getVoiceParam(const char* path, int voice)
+        {
+            return (voice >= 0) ? fVoiceTable[voice]->getParamValue(path) : 0.;
+        }
+    
         const char* getJSON()
         {
             return fJSON.c_str();
         }
     
 };
-   
+
 #endif // __poly_dsp__

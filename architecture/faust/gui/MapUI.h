@@ -116,12 +116,12 @@ class MapUI : public UI, public PathBuilder
         // set/get
         void setParamValue(const std::string& path, float value)
         {
-            *fZoneMap[path] = value;
+            if (fZoneMap.find(path) != fZoneMap.end()) { *fZoneMap[path] = value; }
         }
         
         float getParamValue(const std::string& path)
         {
-            return *fZoneMap[path];
+            return (fZoneMap.find(path) != fZoneMap.end()) ? *fZoneMap[path] : 0.;
         }
     
         // map access 
