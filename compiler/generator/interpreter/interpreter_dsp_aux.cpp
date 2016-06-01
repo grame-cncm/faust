@@ -39,7 +39,7 @@ static string path_to_content(const string& path)
     ifstream file(path.c_str(), ifstream::binary);
     
     file.seekg(0, file.end);
-    int size = file.tellg();
+    int size = int(file.tellg());
     file.seekg(0, file.beg);
     
     // And allocate buffer to that a single line can be read...
@@ -200,7 +200,7 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const strin
 EXPORT string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* factory)
 {
     stringstream writer;
-    factory->write(&writer);
+    factory->write(&writer, true);
     return writer.str();
 }
 
@@ -222,7 +222,7 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const s
 EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const string& machine_code_path)
 {
     ofstream writer(machine_code_path.c_str());
-    factory->write(&writer);
+    factory->write(&writer, true);
 }
 
 EXPORT int interpreter_dsp::getNumInputs()

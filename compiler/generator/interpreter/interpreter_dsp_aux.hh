@@ -58,7 +58,7 @@ struct interpreter_dsp_factory_base {
     virtual std::string getDSPCode() = 0;
     virtual void setDSPCode(const std::string& code) = 0;
     
-    virtual void write(std::ostream* out) = 0;
+    virtual void write(std::ostream* out, bool small = false) = 0;
     virtual dsp* createDSPInstance(interpreter_dsp_factory* factory) = 0;
     virtual void metadata(Meta* meta) = 0;
 
@@ -162,37 +162,69 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
     std::string getDSPCode() { return fExpandedDSP; }
     void setDSPCode(const std::string& code) { fExpandedDSP = code; }
    
-    void write(std::ostream* out)
+    void write(std::ostream* out, bool small = false)
     {
-        *out << "interpreter_dsp_factory " << ((sizeof(T) == 8) ? "double" : "float") << std::endl;
-        *out << "version " << INTERP_FILE_VERSION << std::endl;
-        *out << "name " << fName << std::endl;
-        *out << "sha_key " << fSHAKey << std::endl;
-        *out << "opt_level " << fOptLevel << std::endl;
-        
-        *out << "inputs " << fNumInputs << " outputs " << fNumOutputs << std::endl;
-        *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize
-        << " sr_offset " << fSROffset
-        << " count_offset " << fCountOffset
-        << " iota_offset " << fIOTAOffset << std::endl;
-        
-        *out << "meta_block" << std::endl;
-        fMetaBlock->write(out);
-        
-        *out << "user_interface_block" << std::endl;
-        fUserInterfaceBlock->write(out);
-        
-        *out << "static_init_block" << std::endl;
-        fStaticInitBlock->write(out);
-        
-        *out << "init_block" << std::endl;
-        fInitBlock->write(out);
-        
-        *out << "control_block" << std::endl;
-        fComputeBlock->write(out);
-        
-        *out << "dsp_block" << std::endl;
-        fComputeDSPBlock->write(out);
+        if (small) {
+            *out << "i " << ((sizeof(T) == 8) ? "double" : "float") << std::endl;
+            *out << "v " << INTERP_FILE_VERSION << std::endl;
+            *out << "n " << fName << std::endl;
+            *out << "s " << fSHAKey << std::endl;
+            *out << "o " << fOptLevel << std::endl;
+            
+            *out << "i " << fNumInputs << " o " << fNumOutputs << std::endl;
+            *out << "i " << fIntHeapSize << " r " << fRealHeapSize
+            << " s " << fSROffset
+            << " c " << fCountOffset
+            << " i " << fIOTAOffset << std::endl;
+            
+            *out << "m" << std::endl;
+            fMetaBlock->write(out, small);
+            
+            *out << "u" << std::endl;
+            fUserInterfaceBlock->write(out, small);
+            
+            *out << "s" << std::endl;
+            fStaticInitBlock->write(out, small);
+            
+            *out << "i" << std::endl;
+            fInitBlock->write(out, small);
+            
+            *out << "c" << std::endl;
+            fComputeBlock->write(out, small);
+            
+            *out << "d" << std::endl;
+            fComputeDSPBlock->write(out, small);
+        } else {
+            *out << "interpreter_dsp_factory " << ((sizeof(T) == 8) ? "double" : "float") << std::endl;
+            *out << "version " << INTERP_FILE_VERSION << std::endl;
+            *out << "name " << fName << std::endl;
+            *out << "sha_key " << fSHAKey << std::endl;
+            *out << "opt_level " << fOptLevel << std::endl;
+            
+            *out << "inputs " << fNumInputs << " outputs " << fNumOutputs << std::endl;
+            *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize
+            << " sr_offset " << fSROffset
+            << " count_offset " << fCountOffset
+            << " iota_offset " << fIOTAOffset << std::endl;
+            
+            *out << "meta_block" << std::endl;
+            fMetaBlock->write(out, small);
+            
+            *out << "user_interface_block" << std::endl;
+            fUserInterfaceBlock->write(out, small);
+            
+            *out << "static_init_block" << std::endl;
+            fStaticInitBlock->write(out, small);
+            
+            *out << "init_block" << std::endl;
+            fInitBlock->write(out, small);
+            
+            *out << "control_block" << std::endl;
+            fComputeBlock->write(out, small);
+            
+            *out << "dsp_block" << std::endl;
+            fComputeDSPBlock->write(out, small);
+        }
     }
     
     // Factory reader
@@ -1023,7 +1055,7 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
         
         void metadata(Meta* meta) { fFactory->metadata(meta); }
         
-        void write(std::ostream* out) { fFactory->write(out); }
+        void write(std::ostream* out, bool small = false) { fFactory->write(out, small); }
     
 };
 

@@ -40,7 +40,6 @@ static inline std::string unquote1(const std::string& str)
     return (str[0] == '"') ? str.substr(1, str.size() - 2) : str;
 }
 
-
 // Bytecode definition
 
 template <class T>
@@ -111,18 +110,27 @@ struct FIRBasicInstruction : public FIRInstruction {
         return (branches > 0) ? branches : 1;
     }
     
-    virtual void write(std::ostream* out)
+    virtual void write(std::ostream* out, bool small = false)
     {
-        *out << "opcode " << fOpcode << " "
+        if (small) {
+            *out << "o " << fOpcode << " k "
+            << " i " << fIntValue
+            << " r " << fRealValue
+            << " o " << fOffset1
+            << " o " << fOffset2
+            << std::endl;
+        } else {
+            *out << "opcode " << fOpcode << " "
             << gFIRInstructionTable[fOpcode]
             << " int " << fIntValue
             << " real " << fRealValue
             << " offset1 " << fOffset1
             << " offset2 " << fOffset2
             << std::endl;
+        }
         // If select/if/loop : write branches
-        if (getBranch1()) { fBranch1->write(out); }
-        if (fBranch2) { fBranch2->write(out); }
+        if (getBranch1()) { fBranch1->write(out, small); }
+        if (fBranch2) { fBranch2->write(out, small); }
     }
     
     virtual FIRBasicInstruction<T>* copy()
@@ -156,13 +164,20 @@ struct FIRBlockStoreRealInstruction : public FIRBasicInstruction<T> {
         return new FIRBlockStoreRealInstruction<T>(this->fOpcode, this->fOffset1 , this->fOffset2, this->fNumTable);
     }
     
-    virtual void write(std::ostream* out)
+    virtual void write(std::ostream* out, bool small = false)
     {
-        *out << "opcode " << this->fOpcode << " "
-        << gFIRInstructionTable[this->fOpcode]
-        << " offset1 " << this->fOffset1
-        << " offset2 " << this->fOffset2
-        << " size " << this->fNumTable.size() << std::endl;
+        if (small) {
+            *out << "o " << this->fOpcode << " k "
+            << " o " << this->fOffset1
+            << " o " << this->fOffset2
+            << " s " << this->fNumTable.size() << std::endl;
+        } else {
+            *out << "opcode " << this->fOpcode << " "
+            << gFIRInstructionTable[this->fOpcode]
+            << " offset1 " << this->fOffset1
+            << " offset2 " << this->fOffset2
+            << " size " << this->fNumTable.size() << std::endl;
+        }
         for (int i = 0; i < fNumTable.size(); i++) {
             *out << this->fNumTable[i] << " ";
         }
@@ -192,13 +207,20 @@ struct FIRBlockStoreIntInstruction : public FIRBasicInstruction<T> {
         return new FIRBlockStoreIntInstruction<T>(this->fOpcode, this->fOffset1 , this->fOffset2, this->fNumTable);
     }
     
-    virtual void write(std::ostream* out)
+    virtual void write(std::ostream* out, bool small = false)
     {
-        *out << "opcode " << this->fOpcode << " "
-        << gFIRInstructionTable[this->fOpcode]
-        << " offset1 " << this->fOffset1
-        << " offset2 " << this->fOffset2
-        << " size " << this->fNumTable.size() << std::endl;
+        if (small) {
+            *out << "o " << this->fOpcode << " k "
+            << " o " << this->fOffset1
+            << " o " << this->fOffset2
+            << " s " << this->fNumTable.size() << std::endl;
+        } else {
+            *out << "opcode " << this->fOpcode << " "
+            << gFIRInstructionTable[this->fOpcode]
+            << " offset1 " << this->fOffset1
+            << " offset2 " << this->fOffset2
+            << " size " << this->fNumTable.size() << std::endl;
+        }
         for (int i = 0; i < fNumTable.size(); i++) {
             *out << this->fNumTable[i] << " ";
         }
@@ -254,14 +276,29 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
     virtual ~FIRUserInterfaceInstruction()
     {}
     
-    virtual void write(std::ostream* out)
+    virtual void write(std::ostream* out, bool small = false)
     {
-        *out << "opcode " << fOpcode << " " << gFIRInstructionTable[fOpcode]
+        if (small) {
+            *out << "o " << fOpcode << " k "
+            << " o " << fOffset
+            << " l " << quote1(fLabel)
+            << " k " << quote1(fKey)
+            << " v " << quote1(fValue)
+            << " i " << fInit
+            << " m " << fMin
+            << " m " << fMax
+            << " s " << fStep << std::endl;
+        } else {
+            *out << "opcode " << fOpcode << " " << gFIRInstructionTable[fOpcode]
             << " offset " << fOffset
             << " label " << quote1(fLabel)
             << " key " << quote1(fKey)
             << " value " << quote1(fValue)
-            << " init " << fInit << " min " << fMin << " max " << fMax << " step " << fStep << std::endl;
+            << " init " << fInit
+            << " min " << fMin
+            << " max " << fMax
+            << " step " << fStep << std::endl;
+        }
     }
     
 };
@@ -278,11 +315,18 @@ struct FIRMetaInstruction : public FIRInstruction {
     virtual ~FIRMetaInstruction()
     {}
     
-    virtual void write(std::ostream* out)
+    virtual void write(std::ostream* out, bool small = false)
     {
-        *out << "meta"
+        if (small) {
+            *out << "m"
+            << " k " << quote1(fKey)
+            << " v " << quote1(fValue) << std::endl;
+        } else {
+            *out << "meta"
             << " key " << quote1(fKey)
             << " value " << quote1(fValue) << std::endl;
+
+        }
     }
 };
 
@@ -305,12 +349,12 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
      
     void push(FIRUserInterfaceInstruction<T>* inst) { fInstructions.push_back(inst); }
     
-    virtual void write(std::ostream* out)
+    virtual void write(std::ostream* out, bool small = false)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         UIInstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-            (*it)->write(out);
+            (*it)->write(out, small);
         }
     }
     
@@ -365,12 +409,12 @@ struct FIRMetaBlockInstruction : public FIRInstruction {
     
     void push(FIRMetaInstruction* inst) { fInstructions.push_back(inst); }
     
-    virtual void write(std::ostream* out)
+    virtual void write(std::ostream* out, bool small = false)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         MetaInstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-            (*it)->write(out);
+            (*it)->write(out, small);
         }
     }
     
@@ -401,12 +445,12 @@ struct FIRBlockInstruction : public FIRInstruction {
         }
     }
     
-    virtual void write(std::ostream* out)
+    virtual void write(std::ostream* out, bool small = false)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         InstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-            (*it)->write(out);
+            (*it)->write(out, small);
         }
     }
     
