@@ -80,8 +80,8 @@ public class FaustEngine implements FaustEngineConstants {
     return FaustEngineJNI.getParamIndexDsp(dsp.getCPtr(dsp), dsp, name);
   }
 
-  public static String getParamNameDsp(dsp dsp, int p) {
-    return FaustEngineJNI.getParamNameDsp(dsp.getCPtr(dsp), dsp, p);
+  public static String getParamAddressDsp(dsp dsp, int p) {
+    return FaustEngineJNI.getParamAddressDsp(dsp.getCPtr(dsp), dsp, p);
   }
 
   public static String getParamUnitDsp(dsp dsp, int p) {

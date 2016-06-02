@@ -417,7 +417,7 @@ extern "C"
      * Faust objects have control parameters that can be read and changed.
      * getParamsCountDsp() returns the number n of such parameters
      *
-     * getParamNameDsp(int index) retrieves the name of a parameter by its index
+     * getParamAddressDsp(int index) retrieves the name of a parameter by its index
      * getParamIndexDsp(const char* name) retrieves the index of a parameter by its name
      *
      * getNamedParamDsp(const char* name) retrieves the value of a parameter by its name
@@ -428,7 +428,7 @@ extern "C"
     int getParamsCountDsp(dsp* dsp_ext)  { return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamsCount(); }
 
     int getParamIndexDsp(dsp* dsp_ext, const char* name)	{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamIndex(name); }
-    const char* getParamNameDsp(dsp* dsp_ext, int p)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamName(p); }
+    const char* getParamAddressDsp(dsp* dsp_ext, int p)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamAddress(p); }
     const char* getParamUnitDsp(dsp* dsp_ext, int p)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamUnit(p); }		// [unit: Hz] metadata -> "Hz"
     FAUSTFLOAT getParamMinDsp(dsp* dsp_ext, int p)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamMin(p); }
     FAUSTFLOAT getParamMaxDsp(dsp* dsp_ext, int p)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamMax(p); }

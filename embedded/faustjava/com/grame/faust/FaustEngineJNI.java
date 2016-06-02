@@ -34,7 +34,7 @@ public class FaustEngineJNI {
   public final static native String getJSONDsp(long jarg1, dsp jarg1_);
   public final static native int getParamsCountDsp(long jarg1, dsp jarg1_);
   public final static native int getParamIndexDsp(long jarg1, dsp jarg1_, String jarg2);
-  public final static native String getParamNameDsp(long jarg1, dsp jarg1_, int jarg2);
+  public final static native String getParamAddressDsp(long jarg1, dsp jarg1_, int jarg2);
   public final static native String getParamUnitDsp(long jarg1, dsp jarg1_, int jarg2);
   public final static native float getParamMinDsp(long jarg1, dsp jarg1_, int jarg2);
   public final static native float getParamMaxDsp(long jarg1, dsp jarg1_, int jarg2);
