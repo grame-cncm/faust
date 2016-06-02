@@ -57,7 +57,7 @@ class FaustPolyEngine {
         FaustPolyEngine():fJSONUI(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs()), fRunning(false)
         {
             // configuring the UI
-            fMonoDSP.buildUserInterface(&fAPIUI);
+            
             fMonoDSP.buildUserInterface(&fJSONUI);
             fJSON = fJSONUI.JSON();
 
@@ -65,9 +65,11 @@ class FaustPolyEngine {
                 || fJSON.find("poly") != std::string::npos) {
                 fPolyMax = 6;
                 fPolyDSP = new mydsp_poly(fPolyMax, true);
+                fPolyDSP->buildUserInterface(&fAPIUI);
             } else {
                 fPolyMax = 0;
                 fPolyDSP = NULL;
+                fMonoDSP.buildUserInterface(&fAPIUI);
             }
         }
 
@@ -180,11 +182,7 @@ class FaustPolyEngine {
          */
         void setParamValue(const char* address, float value)
         {
-            if (fPolyMax > 0) {
-                fPolyDSP->setParamValue(address, value);
-            } else {
-                fAPIUI.setParamValue(fAPIUI.getParamIndex(address), value);
-            }
+            fAPIUI.setParamValue(fAPIUI.getParamIndex(address), value);
         }
 
         /*
@@ -194,11 +192,7 @@ class FaustPolyEngine {
          */
         float getParamValue(const char* address)
         {
-            if (fPolyMax > 0) {
-                return fPolyDSP->getParamValue(address);
-             } else {
-                return fAPIUI.getParamValue(fAPIUI.getParamIndex(address));
-            }
+            return fAPIUI.getParamValue(fAPIUI.getParamIndex(address));
         }
 
         /*
@@ -211,12 +205,15 @@ class FaustPolyEngine {
          */
         int setVoiceParamValue(const char* address, int voice, float value)
         {
+            // TODO
+            /*
             if (fPolyMax > 0) {
                 fPolyDSP->setVoiceParamValue(address, voice, value);
                 return 1;
             } else {
                 return 0;
             }
+            */
         }
     
         /*
@@ -229,11 +226,14 @@ class FaustPolyEngine {
     
          float getVoiceParamValue(const char* address, int voice)
          {
+             // TODO
+             /*
              if (fPolyMax > 0) {
                  return fPolyDSP->getVoiceParamValue(address, voice);
              } else {
                  return 0.0;
              }
+             */
          }
     
         /*
@@ -242,7 +242,7 @@ class FaustPolyEngine {
          */
         const char* getParamAddress(int id)
         {
-            return fAPIUI.getParamName(id);
+            return fAPIUI.getParamAddress(id);
         }
 
         void propagateAcc(int acc, float v)

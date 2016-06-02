@@ -32,6 +32,7 @@
 #include "faust/midi/midi.h"
 #include "faust/gui/ring-buffer.h"
 
+class MapUI;
 
 class jack_midi_handler : public midi_handler {
 
@@ -115,14 +116,14 @@ class jack_midi_handler : public midi_handler {
             ringbuffer_free(fOutBuffer);
         }
 
-        int keyOn(int channel, int pitch, int velocity)
+        MapUI* keyOn(int channel, int pitch, int velocity)
         {
             unsigned char buffer[3]
                 = { static_cast<unsigned char>(MIDI_NOTE_ON + channel),
                     static_cast<unsigned char>(pitch),
                     static_cast<unsigned char>(velocity) };
             writeMessage(buffer, 3);
-            return -1;
+            return 0;
         }
 
         void keyOff(int channel, int pitch, int velocity)

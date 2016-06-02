@@ -31,6 +31,8 @@
 #include "Midi.h"
 #include "faust/midi/midi.h"
 
+class MapUI;
+
 class bela_midi : public midi_handler {
 
     private:
@@ -119,14 +121,14 @@ class bela_midi : public midi_handler {
             // Nothing todo?
         }
         
-        int keyOn(int channel, int pitch, int velocity)
+        MapUI* keyOn(int channel, int pitch, int velocity)
         {
             unsigned char buffer[3] 
                 = { static_cast<unsigned char>(MIDI_NOTE_ON + channel), 
                     static_cast<unsigned char>(pitch), 
                     static_cast<unsigned char>(velocity) };
             fBelaMidi.writeOutput(buffer, 3);
-            return -1;
+            return 0;
         }
         
         void keyOff(int channel, int pitch, int velocity) 

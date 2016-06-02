@@ -31,6 +31,8 @@
 #include "faust/midi/RtMidi.h"
 #include "faust/midi/midi.h"
 
+class MapUI;
+
 class rt_midi : public midi_handler {
 
     private:
@@ -168,14 +170,14 @@ class rt_midi : public midi_handler {
             fOutput.clear();
         }
         
-        int keyOn(int channel, int pitch, int velocity)
+        MapUI* keyOn(int channel, int pitch, int velocity)
         {
             std::vector<unsigned char> message;
             message.push_back(MIDI_NOTE_ON + channel);
             message.push_back(pitch);
             message.push_back(velocity);
             sendMessage(message);
-            return -1;
+            return 0;
         }
         
         void keyOff(int channel, int pitch, int velocity) 

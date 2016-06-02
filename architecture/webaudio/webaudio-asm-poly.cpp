@@ -41,84 +41,95 @@
 
 extern "C" {
     
+    struct mydsp_poly_wrap : public mydsp_poly, public MapUI {
+        
+        std::string fJSON;
+    
+        mydsp_poly_wrap(int sample_rate, int max_polyphony):mydsp_poly(max_polyphony, true, true)
+        {
+            // Init it with sample_rate supplied...
+            init(sample_rate);
+            buildUserInterface(this);
+            
+            // Creates JSON
+            JSONUI builder(getNumInputs(), getNumOutputs());
+            mydsp::metadata(&builder);
+            buildUserInterface(&builder);
+            fJSON = builder.JSON();
+        }
+        
+        const char* getJSON()
+        {
+            return fJSON.c_str();
+        }
+    };
+    
     // C like API
-    mydsp_poly* mydsp_poly_constructor(int sample_rate, int max_polyphony) 
+    mydsp_poly_wrap* mydsp_poly_constructor(int sample_rate, int max_polyphony)
     {
-        mydsp_poly* poly = new mydsp_poly(max_polyphony, true, true);
-        if (poly) poly->init(sample_rate);
-        return poly;
+        return new mydsp_poly_wrap(sample_rate, max_polyphony);
     }
 
-    void mydsp_poly_destructor(mydsp_poly* poly) 
+    void mydsp_poly_destructor(mydsp_poly_wrap* poly)
     {
         delete poly;
     }
 
-    const char* mydsp_poly_getJSON(mydsp_poly* poly)
+    const char* mydsp_poly_getJSON(mydsp_poly_wrap* poly)
     {
         return poly->getJSON();
     }
   
-    void mydsp_poly_compute(mydsp_poly* poly, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
+    void mydsp_poly_compute(mydsp_poly_wrap* poly, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
     {
         poly->compute(count, inputs, outputs);
     }
 
-    int mydsp_poly_getNumInputs(mydsp_poly* poly)
+    int mydsp_poly_getNumInputs(mydsp_poly_wrap* poly)
     {
         return poly->getNumInputs();
     }
 
-    int mydsp_poly_getNumOutputs(mydsp_poly* poly)
+    int mydsp_poly_getNumOutputs(mydsp_poly_wrap* poly)
     {
         return poly->getNumOutputs();
     }
 
-    int mydsp_poly_keyOn(mydsp_poly* poly, int channel, int pitch, int velocity)
+    MapUI* mydsp_poly_keyOn(mydsp_poly_wrap* poly, int channel, int pitch, int velocity)
     {
         return poly->keyOn(channel, pitch, velocity);
     }
 
-    void mydsp_poly_keyOff(mydsp_poly* poly, int channel, int pitch, int velocity)
+    void mydsp_poly_keyOff(mydsp_poly_wrap* poly, int channel, int pitch, int velocity)
     {
         poly->keyOff(channel, pitch, velocity);
     }
     
-    void mydsp_poly_allNotesOff(mydsp_poly* poly)
+    void mydsp_poly_allNotesOff(mydsp_poly_wrap* poly)
     {
         poly->allNotesOff();
     }
     
-    void mydsp_poly_ctrlChange(mydsp_poly* poly, int channel, int ctrl, int value)
+    void mydsp_poly_ctrlChange(mydsp_poly_wrap* poly, int channel, int ctrl, int value)
     {
         poly->ctrlChange(channel, ctrl, value);
     }
     
-    void mydsp_poly_pitchWheel(mydsp_poly* poly, int channel, int wheel)
+    void mydsp_poly_pitchWheel(mydsp_poly_wrap* poly, int channel, int wheel)
     {
         poly->pitchWheel(channel, wheel);
     }
     
-    void mydsp_poly_setParamValue(mydsp_poly* poly, const char* path, float value)
+    void mydsp_poly_setParamValue(mydsp_poly_wrap* poly, const char* path, float value)
     {
         poly->setParamValue(path, value);
     }
 
-    float mydsp_poly_getParamValue(mydsp_poly* poly, const char* path)
+    float mydsp_poly_getParamValue(mydsp_poly_wrap* poly, const char* path)
     {
         return poly->getParamValue(path);
     }
     
-    void mydsp_poly_setVoiceParamValue(mydsp_poly* poly, const char* path, int voice, float value)
-    {
-        poly->setVoiceParamValue(path, voice, value);
-    }
-    
-    float mydsp_poly_getVoiceParamValue(mydsp_poly* poly, const char* path, int voice)
-    {
-        return poly->getVoiceParamValue(path, voice);
-    }
-        
 };
 
 std::list<GUI*> GUI::fGuiList;
