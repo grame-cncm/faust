@@ -60,7 +60,7 @@ extern "C"
      * Faust objects have control parameters that can be read and changed.
      * getParamsCount() returns the number n of such parameters
      *
-     * getParamName(int index) retrieves the name of a parameter by its index
+     * getParamAddress(int index) retrieves the name of a parameter by its index
      * getParamIndex(const char* name) retrieves the index of a parameter by its name
      *
      * getNamedParam(const char* name) retrieves the value of a parameter by its name
@@ -71,12 +71,12 @@ extern "C"
     int getParamsCountDsp(dsp* dsp);					///< number of control parameters
     int getParamIndexDsp(dsp* dsp, const char* name); 	///< returns the index of parameter name or -1
     
-    const char* getParamNameDsp(dsp* dsp, int p); 		///< returns the name of parameter p
+    const char* getParamAddressDsp(dsp* dsp, int p); 	///< returns the name of parameter p
     const char* getParamUnitDsp(dsp* dsp, int p); 		///< returns the name of parameter p
     FAUSTFLOAT getParamMinDsp(dsp* dsp, int p);         ///< returns the min value of parameter p
     FAUSTFLOAT getParamMaxDsp(dsp* dsp, int p);         ///< returns the max value of parameter p
     FAUSTFLOAT getParamStepDsp(dsp* dsp, int p);        ///< returns the min value of parameter p
-        
+
     FAUSTFLOAT getParamValueDsp(dsp* dsp, int p);           ///< returns the value of parameter p
     void  setParamValueDsp(dsp* dsp, int p, FAUSTFLOAT v); 	///< set the value of parameter p
         

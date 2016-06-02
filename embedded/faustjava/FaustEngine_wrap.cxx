@@ -648,7 +648,7 @@ SWIGEXPORT jint JNICALL Java_com_grame_faust_FaustEngineJNI_getParamIndexDsp(JNI
 }
 
 
-SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustEngineJNI_getParamNameDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
+SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustEngineJNI_getParamAddressDsp(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
   jstring jresult = 0 ;
   dsp *arg1 = (dsp *) 0 ;
   int arg2 ;
@@ -659,7 +659,7 @@ SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustEngineJNI_getParamNameDsp(J
   (void)jarg1_;
   arg1 = *(dsp **)&jarg1; 
   arg2 = (int)jarg2; 
-  result = (char *)getParamNameDsp(arg1,arg2);
+  result = (char *)getParamAddressDsp(arg1,arg2);
   if (result) jresult = jenv->NewStringUTF((const char *)result);
   return jresult;
 }

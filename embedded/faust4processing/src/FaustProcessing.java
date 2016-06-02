@@ -93,9 +93,9 @@ public class FaustProcessing {
     	}
   	}
 
-  	public String getParamName(int p) {
+  	public String getParamAddress(int p) {
   		if (myDSP != null) {
-    		return FaustEngine.getParamNameDsp(myDSP, p);
+    		return FaustEngine.getParamAddressDsp(myDSP, p);
     	} else {
     		return "";
     	}
