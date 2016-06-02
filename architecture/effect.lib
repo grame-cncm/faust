@@ -504,12 +504,13 @@ flanger_demo = bypass2(fbp,flanger_stereo_demo) with {
 // Phasing effect
 //
 // USAGE:
-//   _ : phaser2_mono(Notches,width,frqmin,fratio,frqmax,speed,depth,fb,invert) : _;
+//   _ : phaser2_mono(Notches,phase,width,frqmin,fratio,frqmax,speed,depth,fb,invert) : _;
 // _,_ : phaser2_stereo(") : _,_;
 // _,_ : phaser2_demo : _,_;
 //
 // ARGUMENTS:
 //   Notches = number of spectral notches (MACRO ARGUMENT - not a signal)
+//	 phase  = phase of the oscillator (0-1)
 //   width  = approximate width of spectral notches in Hz
 //   frqmin = approximate minimum frequency of first spectral notch in Hz
 //   fratio = ratio of adjacent notch frequencies
