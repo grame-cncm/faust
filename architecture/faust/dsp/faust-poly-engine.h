@@ -133,7 +133,7 @@ class FaustPolyEngine {
         int keyOn(int pitch, int velocity)
         {
             if (fPolyMax > 0) {
-                return fPolyDSP->keyOn(0, pitch, velocity);
+                return (int)fPolyDSP->keyOn(0, pitch, velocity);
             } else {
                 return -1;
             }
