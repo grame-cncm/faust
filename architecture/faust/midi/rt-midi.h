@@ -168,13 +168,14 @@ class rt_midi : public midi_handler {
             fOutput.clear();
         }
         
-        void keyOn(int channel, int pitch, int velocity) 
+        int keyOn(int channel, int pitch, int velocity)
         {
             std::vector<unsigned char> message;
             message.push_back(MIDI_NOTE_ON + channel);
             message.push_back(pitch);
             message.push_back(velocity);
             sendMessage(message);
+            return -1;
         }
         
         void keyOff(int channel, int pitch, int velocity) 

@@ -28,12 +28,13 @@ var DSP_poly_getNumOutputs = Module.cwrap('DSP_poly_getNumOutputs', 'number', ['
 var DSP_poly_getJSON = Module.cwrap('DSP_poly_getJSON', 'number', ['number']);
 var DSP_poly_setParamValue = Module.cwrap('DSP_poly_setParamValue', null, ['number', 'number', 'number']);
 var DSP_poly_getParamValue = Module.cwrap('DSP_poly_getParamValue', 'number', ['number', 'number']);
+var DSP_poly_setVoiceParamValue = Module.cwrap('DSP_poly_setVoiceParamValue', null, ['number', 'number', 'number', 'number']);
+var DSP_poly_getVoiceParamValue = Module.cwrap('DSP_poly_getVoiceParamValue', 'number', ['number', 'number', 'number']);
 var DSP_poly_keyOn = Module.cwrap('DSP_poly_keyOn', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_keyOff = Module.cwrap('DSP_poly_keyOff', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_allNotesOff = Module.cwrap('DSP_poly_allNotesOff', null, ['number']);
 var DSP_poly_ctrlChange = Module.cwrap('DSP_poly_ctrlChange', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_pitchWheel = Module.cwrap('DSP_poly_pitchWheel', null, ['number', 'number', 'number']);
-var DSP_poly_pitchBend = Module.cwrap('DSP_poly_pitchBend', null, ['number', 'number', 'number', 'number']);
 
 faust.DSP_poly = function (context, buffer_size, max_polyphony, callback) {
   
@@ -220,11 +221,6 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, callback) {
         pitchWheel : function (channel, pitchWheel)
         {
             DSP_poly_pitchWheel(ptr, channel, pitchWheel);
-        },
-        
-        pitchBend : function (channel, refPitch, pitch)
-        {
-            DSP_poly_pitchBend(ptr, channel, refPitch, pitch);
         },
         
         destroy : function ()

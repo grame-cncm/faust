@@ -74,9 +74,9 @@ extern "C" {
         return poly->getNumOutputs();
     }
 
-    void mydsp_poly_keyOn(mydsp_poly* poly, int channel, int pitch, int velocity)
+    int mydsp_poly_keyOn(mydsp_poly* poly, int channel, int pitch, int velocity)
     {
-        poly->keyOn(channel, pitch, velocity);
+        return poly->keyOn(channel, pitch, velocity);
     }
 
     void mydsp_poly_keyOff(mydsp_poly* poly, int channel, int pitch, int velocity)
@@ -99,11 +99,6 @@ extern "C" {
         poly->pitchWheel(channel, wheel);
     }
     
-    void mydsp_poly_pitchBend(mydsp_poly* poly, int channel, int refPitch, float pitch)
-    {
-        poly->pitchBend(channel, refPitch, pitch);
-    }
-    
     void mydsp_poly_setParamValue(mydsp_poly* poly, const char* path, float value)
     {
         poly->setParamValue(path, value);
@@ -112,6 +107,16 @@ extern "C" {
     float mydsp_poly_getParamValue(mydsp_poly* poly, const char* path)
     {
         return poly->getParamValue(path);
+    }
+    
+    void mydsp_poly_setVoiceParamValue(mydsp_poly* poly, const char* path, int voice, float value)
+    {
+        poly->setVoiceParamValue(path, voice, value);
+    }
+    
+    float mydsp_poly_getVoiceParamValue(mydsp_poly* poly, const char* path, int voice)
+    {
+        return poly->getVoiceParamValue(path, voice);
     }
         
 };

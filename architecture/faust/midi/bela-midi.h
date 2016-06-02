@@ -119,13 +119,14 @@ class bela_midi : public midi_handler {
             // Nothing todo?
         }
         
-        void keyOn(int channel, int pitch, int velocity) 
+        int keyOn(int channel, int pitch, int velocity)
         {
             unsigned char buffer[3] 
                 = { static_cast<unsigned char>(MIDI_NOTE_ON + channel), 
                     static_cast<unsigned char>(pitch), 
                     static_cast<unsigned char>(velocity) };
             fBelaMidi.writeOutput(buffer, 3);
+            return -1;
         }
         
         void keyOff(int channel, int pitch, int velocity) 

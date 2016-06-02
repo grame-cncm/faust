@@ -515,13 +515,14 @@ class MidiUI : public GUI, public midi
         
         // -- MIDI API 
         
-        void keyOn(double date, int channel, int note, int velocity) 
+        int keyOn(double date, int channel, int note, int velocity)
         {
             if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
                 for (unsigned int i = 0; i < fKeyOnTable[note].size(); i++) {
                     fKeyOnTable[note][i]->modifyZone(FAUSTFLOAT(velocity));
                 }
             }
+            return -1;
         }
         
         void keyOff(double date,  int channel, int note, int velocity)

@@ -42,10 +42,6 @@ public class dsp_faust {
     return dsp_faustJNI.keyOff(arg0);
   }
 
-  public static int pitchBend(int arg0, float arg1) {
-    return dsp_faustJNI.pitchBend(arg0, arg1);
-  }
-
   public static String getJSON() {
     return dsp_faustJNI.getJSON();
   }
@@ -54,20 +50,20 @@ public class dsp_faust {
     return dsp_faustJNI.getParamsCount();
   }
 
+  public static void setParamValue(String arg0, float arg1) {
+    dsp_faustJNI.setParamValue(arg0, arg1);
+  }
+    
   public static float getParamValue(String arg0) {
     return dsp_faustJNI.getParamValue(arg0);
   }
 
-  public static void setParamValue(String arg0, float arg1) {
-    dsp_faustJNI.setParamValue(arg0, arg1);
+  public static int setVoiceParamValue(String arg0, int arg1, float arg2) {
+    return dsp_faustJNI.setVoiceParamValue(arg0, arg1, arg2);
   }
-
-  public static int setVoiceParam(String arg0, int arg1, float arg2) {
-    return dsp_faustJNI.setVoiceParam(arg0, arg1, arg2);
-  }
-
-  public static int setVoiceGain(int arg0, float arg1) {
-    return dsp_faustJNI.setVoiceGain(arg0, arg1);
+    
+  public static float getVoiceParamValue(String arg0, int arg1) {
+    return dsp_faustJNI.getVoiceParamValue(arg0), arg1;
   }
 
   public static String getParamAddress(int arg0) {

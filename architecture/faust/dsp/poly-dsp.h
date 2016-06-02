@@ -520,10 +520,14 @@ class mydsp_poly : public dsp, public midi {
     
         int newVoice()
         {
-            int voice = -1;
-            voice = getVoice(kFreeVoice, true);
-            fVoiceTable[voice]->fNote = kActiveVoice;
-            return voice;
+            int voice = getVoice(kFreeVoice, true);
+            if (voice >= 0) {
+                fVoiceTable[voice]->fNote = kActiveVoice;
+                return voice;
+            } else {
+                printf("No more free voice...\n");
+                return -1;
+            }
         }
         
         void deleteVoice(int voice)
@@ -533,19 +537,20 @@ class mydsp_poly : public dsp, public midi {
         
         // Pure MIDI control
         
-        void keyOn(int channel, int pitch, int velocity)
+        int keyOn(int channel, int pitch, int velocity)
         {
             if (checkPolyphony()) {
-                int voice = getVoice(kFreeVoice, true);
+                int voice = newVoice();
                 if (voice >= 0) {
                     fVoiceTable[voice]->setParamValue(fFreqLabel, midiToFreq(pitch));
                     fVoiceTable[voice]->setParamValue(fGainLabel, float(velocity)/127.f);
                     fVoiceTable[voice]->setParamValue(fGateLabel, 1.0f);
                     fVoiceTable[voice]->fNote = pitch;
-                } else {
-                    printf("No more free voice...\n");
+                    return voice;
                 }
             }
+            
+            return -1;
         }
         
         void keyOff(int channel, int pitch, int velocity = 127)
@@ -555,7 +560,7 @@ class mydsp_poly : public dsp, public midi {
                 if (voice >= 0) {
                     // No use of velocity for now...
                     fVoiceTable[voice]->setParamValue(fGateLabel, 0.0f);
-                    fVoiceTable[voice]->fNote = kReleaseVoice;
+                    deleteVoice(voice);
                 } else {
                     printf("Playing pitch = %d not found\n", pitch);
                 }
@@ -585,18 +590,7 @@ class mydsp_poly : public dsp, public midi {
         {}
  
         // Additional API
-        void pitchBend(int channel, int pitch, float tuned_pitch)
-        {
-            if (checkPolyphony()) {
-                int voice = getVoice(pitch);
-                if (voice >= 0) {
-                    fVoiceTable[voice]->setParamValue(fFreqLabel, midiToFreq(tuned_pitch));
-                } else {
-                    printf("Playing voice not found...\n");
-                }
-            }
-        }
-        
+    
         void allNotesOff()
         {
             if (checkPolyphony()) {
@@ -607,37 +601,27 @@ class mydsp_poly : public dsp, public midi {
                 }
             }
         }
-       
+    
         void setParamValue(const char* path, float value)
         {
             for (int i = 0; i < fPolyphony; i++) {
                 fVoiceTable[i]->setParamValue(path, value);
             }
         }
-        
-        void setParamValue(const char* path, int pitch, float value)
+    
+        float getParamValue(const char* path)
         {
-            setVoiceParam(path, getVoice(pitch), value);
+            return fVoiceTable[0]->getParamValue(path);
         }
-        
-        void setVoiceParam(const char* path, int voice, float value)
+    
+        void setVoiceParamValue(const char* path, int voice, float value)
         {
             if (voice >= 0) {
                 fVoiceTable[voice]->setParamValue(path, value);
             }
         }
-        
-        float getParamValue(const char* path)
-        {
-            return fVoiceTable[0]->getParamValue(path);
-        }
-        
-        float getParamValue(const char* path, int pitch)
-        {
-            return getVoiceParam(path, getVoice(pitch));
-        }
-        
-        float getVoiceParam(const char* path, int voice)
+    
+        float getVoiceParamValue(const char* path, int voice)
         {
             return (voice >= 0) ? fVoiceTable[voice]->getParamValue(path) : 0.;
         }

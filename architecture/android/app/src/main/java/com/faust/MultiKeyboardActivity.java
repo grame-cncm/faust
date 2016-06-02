@@ -26,15 +26,14 @@ public class MultiKeyboardActivity extends Activity {
 				else dsp_faust.keyOff(note);
 			}
 			
-			@Override
-			public void onPitchBend(int refPitch, float pitch) {
-				dsp_faust.pitchBend(refPitch, pitch);
-			}
-
-			@Override
-			public void onYChanged(int pitch, float y) {
-				dsp_faust.setVoiceGain(pitch,y);
-			}
+            @Override
+            public void onPitchBend(int voice, float pitch) {
+                dsp_faust.setVoiceParamValue("freq", voice, 440.0 * Math.pow(2.0, (pitch-69.0)/12.0));
+            }
+            @Override
+            public void onYChanged(int voice, float y) {
+                dsp_faust.setVoiceParamValue("gain", voice, y);
+            }
         });
         
         int numberOfParameters = dsp_faust.getParamsCount();
