@@ -472,16 +472,6 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         pitchWheel : function (channel, wheel)
         {},
 
-        pitchBend : function (channel, pitch, tuned_pitch)
-        {
-            var voice = getVoice(pitch, false);
-            if (voice >= 0) {
-                factory.setParamValue(dsp_voices[voice], fFreqLabel, midiToFreq(tuned_pitch));
-            } else {
-                console.log("Playing voice not found...\n");
-            }
-        },
-
         start : function () 
         {
             scriptProcessor.connect(context.destination);

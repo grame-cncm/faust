@@ -30,6 +30,7 @@
 #include <string>
 #include <algorithm>
 
+class MapUI;
 
 //----------------------------------------------------------------
 //  MIDI processor definition
@@ -43,9 +44,9 @@ class midi {
         virtual ~midi() {}
 
         // Additional time-stamped API for MIDI input
-        virtual void keyOn(double, int channel, int pitch, int velocity)
+        virtual MapUI* keyOn(double, int channel, int pitch, int velocity)
         {
-            keyOn(channel, pitch, velocity);
+            return keyOn(channel, pitch, velocity);
         }
         
         virtual void keyOff(double, int channel, int pitch, int velocity = 127)
@@ -89,7 +90,7 @@ class midi {
         virtual void clock(double date)  {}
 
         // Standard MIDI API
-        virtual void keyOn(int channel, int pitch, int velocity)        {}
+        virtual MapUI* keyOn(int channel, int pitch, int velocity)      { return 0; }
         virtual void keyOff(int channel, int pitch, int velocity)       {}
         virtual void keyPress(int channel, int pitch, int press)        {}
         virtual void chanPress(int channel, int press)                  {}

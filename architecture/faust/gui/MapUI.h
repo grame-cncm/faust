@@ -31,11 +31,12 @@
 #define FAUSTFLOAT float
 #endif
 
-#include "faust/gui/UI.h"
-#include "faust/gui/PathBuilder.h"
 #include <vector>
 #include <map>
 #include <string>
+
+#include "faust/gui/UI.h"
+#include "faust/gui/PathBuilder.h"
 
 /*******************************************************************************
  * MapUI : Faust User Interface
@@ -46,14 +47,13 @@ class MapUI : public UI, public PathBuilder
 {
     
     protected:
-        
-        std::map<std::string, FAUSTFLOAT*> fZoneMap;
-        
-        void insertMap(std::string label, FAUSTFLOAT* zone)
-        {
-            fZoneMap[label] = zone;
-        }
-           
+    
+        // Complete path map
+        std::map<std::string, FAUSTFLOAT*> fPathZoneMap;
+    
+        // Label zone map
+        std::map<std::string, FAUSTFLOAT*> fLabelZoneMap;
+    
     public:
         
         MapUI() {};
@@ -80,33 +80,40 @@ class MapUI : public UI, public PathBuilder
         // -- active widgets
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
-            insertMap(buildPath(label), zone);
+            fPathZoneMap[buildPath(label)] = zone;
+            fLabelZoneMap[label] = zone;
         }
         void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
-            insertMap(buildPath(label), zone);
+            fPathZoneMap[buildPath(label)] = zone;
+            fLabelZoneMap[label] = zone;
         }
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
         {
-            insertMap(buildPath(label), zone);
+            fPathZoneMap[buildPath(label)] = zone;
+            fLabelZoneMap[label] = zone;
         }
         void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
         {
-            insertMap(buildPath(label), zone);
+            fPathZoneMap[buildPath(label)] = zone;
+            fLabelZoneMap[label] = zone;
         }
         void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
         {
-            insertMap(buildPath(label), zone);
+            fPathZoneMap[buildPath(label)] = zone;
+            fLabelZoneMap[label] = zone;
         }
         
         // -- passive widgets
         void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
         {
-            insertMap(buildPath(label), zone);
+            fPathZoneMap[buildPath(label)] = zone;
+            fLabelZoneMap[label] = zone;
         }
         void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
         {
-            insertMap(buildPath(label), zone);
+            fPathZoneMap[buildPath(label)] = zone;
+            fLabelZoneMap[label] = zone;
         }
         
         // -- metadata declarations
@@ -116,23 +123,33 @@ class MapUI : public UI, public PathBuilder
         // set/get
         void setParamValue(const std::string& path, float value)
         {
-            if (fZoneMap.find(path) != fZoneMap.end()) { *fZoneMap[path] = value; }
+            if (fPathZoneMap.find(path) != fPathZoneMap.end()) {
+                *fPathZoneMap[path] = value;
+            } else if (fLabelZoneMap.find(path) != fLabelZoneMap.end()) {
+                *fLabelZoneMap[path] = value;
+            }
         }
         
         float getParamValue(const std::string& path)
         {
-            return (fZoneMap.find(path) != fZoneMap.end()) ? *fZoneMap[path] : 0.;
+            if (fPathZoneMap.find(path) != fPathZoneMap.end()) {
+                return *fPathZoneMap[path];
+            } else if (fLabelZoneMap.find(path) != fLabelZoneMap.end()) {
+                return *fLabelZoneMap[path];
+            } else {
+                return 0.;
+            }
         }
     
         // map access 
-        std::map<std::string, FAUSTFLOAT*>& getMap() { return fZoneMap; }
+        std::map<std::string, FAUSTFLOAT*>& getMap() { return fPathZoneMap; }
         
-        int getParamsCount() { return fZoneMap.size(); }
+        int getParamsCount() { return fPathZoneMap.size(); }
         
         std::string getParamAdress(int index) 
         { 
-            std::map<std::string, FAUSTFLOAT*>::iterator it = fZoneMap.begin();
-            while (index-- > 0 && it++ != fZoneMap.end()) {}
+            std::map<std::string, FAUSTFLOAT*>::iterator it = fPathZoneMap.begin();
+            while (index-- > 0 && it++ != fPathZoneMap.end()) {}
             return (*it).first;
         }
 };

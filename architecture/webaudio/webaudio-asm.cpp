@@ -70,39 +70,39 @@ extern "C" {
         return new mydsp_wrap(sample_rate);
     }
     
-    void mydsp_destructor(mydsp_wrap* n) 
+    void mydsp_destructor(mydsp_wrap* dsp)
     {
-        delete n;
+        delete dsp;
     }
 
-    void mydsp_compute(mydsp_wrap* n, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
+    void mydsp_compute(mydsp_wrap* dsp, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
     {
-        n->compute(count, inputs, outputs);
+        dsp->compute(count, inputs, outputs);
     }
     
-    int mydsp_getNumInputs(mydsp_wrap* n)
+    int mydsp_getNumInputs(mydsp_wrap* dsp)
     {
-        return n->getNumInputs();
+        return dsp->getNumInputs();
     }
     
-    int mydsp_getNumOutputs(mydsp_wrap* n)
+    int mydsp_getNumOutputs(mydsp_wrap* dsp)
     {
-        return n->getNumOutputs();
+        return dsp->getNumOutputs();
     }
       
-    const char* mydsp_getJSON(mydsp_wrap* n)
+    const char* mydsp_getJSON(mydsp_wrap* dsp)
     {
-        return n->getJSON();
+        return dsp->getJSON();
     }
     
-    void mydsp_setParamValue(mydsp_wrap* n, const char* path, float value)
+    void mydsp_setParamValue(mydsp_wrap* dsp, const char* path, float value)
     {
-        n->setParamValue(path, value);
+        dsp->setParamValue(path, value);
     }
     
-    float mydsp_getParamValue(mydsp_wrap* n, const char* path)
+    float mydsp_getParamValue(mydsp_wrap* dsp, const char* path)
     {
-        return n->getParamValue(path);
+        return dsp->getParamValue(path);
     }
     
 }

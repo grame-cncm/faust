@@ -57,7 +57,7 @@ class FaustPolyEngine {
         FaustPolyEngine():fJSONUI(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs()), fRunning(false)
         {
             // configuring the UI
-            fMonoDSP.buildUserInterface(&fAPIUI);
+            
             fMonoDSP.buildUserInterface(&fJSONUI);
             fJSON = fJSONUI.JSON();
 
@@ -65,9 +65,11 @@ class FaustPolyEngine {
                 || fJSON.find("poly") != std::string::npos) {
                 fPolyMax = 6;
                 fPolyDSP = new mydsp_poly(fPolyMax, true);
+                fPolyDSP->buildUserInterface(&fAPIUI);
             } else {
                 fPolyMax = 0;
                 fPolyDSP = NULL;
+                fMonoDSP.buildUserInterface(&fAPIUI);
             }
         }
 
@@ -125,16 +127,15 @@ class FaustPolyEngine {
          * Instantiates a new polyphonic voice where velocity
          * and pitch are MIDI numbers (0-127). keyOn can only
          * be used if the [style:poly] metadata is used in the
-         * Faust code. keyOn will return 0 if the object is not
-         * polyphonic and 1 otherwise.
+         * Faust code. keyOn will return -1 if the object is not
+         * polyphonic and the alllocated voice otherwise.
          */
         int keyOn(int pitch, int velocity)
         {
             if (fPolyMax > 0) {
-                fPolyDSP->keyOn(0, pitch, velocity);
-                return 1;
+                return (int)fPolyDSP->keyOn(0, pitch, velocity);
             } else {
-                return 0;
+                return -1;
             }
         }
 
@@ -155,25 +156,7 @@ class FaustPolyEngine {
                 return 0;
             }
         }
-
-        /*
-         * pitchBend(refPitch, pitch)
-         * Replaces refPitch in the voice associated with it with pitch.
-         * pitch is a MIDI number expressed as a decimal number.
-         * pitchBend can only be used if the [style:poly] metadata
-         * is used in the Faust code. pitchBend will return 0
-         * if the object is not polyphonic and 1 otherwise.
-         */
-        int pitchBend(int refPitch, float pitch)
-        {
-            if (fPolyMax > 0) {
-                fPolyDSP->pitchBend(0, refPitch, pitch);
-                return 1;
-            } else {
-                return 0;
-            }
-        }
-        
+    
         /*
          * getJSON()
          * Returns a string containing a JSON description of the
@@ -192,76 +175,74 @@ class FaustPolyEngine {
         {
             return fAPIUI.getParamsCount();
         }
+    
+        /*
+         * setParam(address, value)
+         * Sets the value of the parameter associated with address.
+         */
+        void setParamValue(const char* address, float value)
+        {
+            fAPIUI.setParamValue(fAPIUI.getParamIndex(address), value);
+        }
 
         /*
-         * getParamValus(address)
+         * getParamValue(address)
          * Takes the address of a parameter and returns its current
          * value.
          */
         float getParamValue(const char* address)
         {
-            if (fPolyMax > 0) {
-                return fPolyDSP->getParamValue(address);
-             } else {
-                return fAPIUI.getParamValue(fAPIUI.getParamIndex(address));
-            }
+            return fAPIUI.getParamValue(fAPIUI.getParamIndex(address));
         }
 
         /*
-         * setParam(address,value)
-         * Sets the value of the parameter associated with address.
-         */
-        void setParamValue(const char* address, float value)
-        {
-            if (fPolyMax > 0) {
-                fPolyDSP->setParamValue(address, value);
-            } else {
-                fAPIUI.setParamValue(fAPIUI.getParamIndex(address), value);
-            }
-        }
-
-        /*
-         * setVoiceParam(address,pitch,value)
+         * setVoiceParamValue(address, voice, value)
          * Sets the value of the parameter associated with address for
-         * the voice associated with pitch. setVoiceParam can only be
+         * the voice. setVoiceParamValue can only be
          * used if the [style:poly] metadata is used in the Faust code.
-         * setVoiceParam will return 0 if the object is not polyphonic
+         * setVoiceParamValue will return 0 if the object is not polyphonic
          * and 1 otherwise.
          */
-        int setVoiceParam(const char* address, int pitch, float value)
+        int setVoiceParamValue(const char* address, int voice, float value)
         {
+            // TODO
+            /*
             if (fPolyMax > 0) {
-                fPolyDSP->setParamValue(address, pitch, value);
+                fPolyDSP->setVoiceParamValue(address, voice, value);
                 return 1;
             } else {
                 return 0;
             }
+            */
         }
-
+    
         /*
-         * setVoiceGain(pitch,gain)
-         * Sets the gain (0-1) of the voice associated with pitch.
-         * setVoiceGain can only be used if the [style:poly] metadata
-         * is used in the Faust code. setVoiceGain will return 0 if the
-         * object is not polyphonic and 1 otherwise.
+         * getVoiceParamValue(address, voice)
+         * Gets the parameter value associated with address for the voice.
+         * getVoiceParamValue can only be used if the [style:poly] metadata
+         * is used in the Faust code. getVoiceParamValue will return 0 if the
+         * object is not polyphonic and the value otherwise.
          */
-        int setVoiceGain(int pitch, float gain)
-        {
-            if (fPolyMax > 0) {
-                fPolyDSP->setVoiceGain(pitch, gain);
-                return 1;
-            } else {
-                return 0;
-            }
-        }
-
+    
+         float getVoiceParamValue(const char* address, int voice)
+         {
+             // TODO
+             /*
+             if (fPolyMax > 0) {
+                 return fPolyDSP->getVoiceParamValue(address, voice);
+             } else {
+                 return 0.0;
+             }
+             */
+         }
+    
         /*
          * getParamAddress(id)
          * Returns the address of a parameter in function of its "id".
          */
         const char* getParamAddress(int id)
         {
-            return fAPIUI.getParamName(id);
+            return fAPIUI.getParamAddress(id);
         }
 
         void propagateAcc(int acc, float v)

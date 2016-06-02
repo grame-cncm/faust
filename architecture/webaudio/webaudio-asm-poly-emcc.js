@@ -33,7 +33,6 @@ var DSP_poly_keyOff = Module.cwrap('DSP_poly_keyOff', null, ['number', 'number',
 var DSP_poly_allNotesOff = Module.cwrap('DSP_poly_allNotesOff', null, ['number']);
 var DSP_poly_ctrlChange = Module.cwrap('DSP_poly_ctrlChange', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_pitchWheel = Module.cwrap('DSP_poly_pitchWheel', null, ['number', 'number', 'number']);
-var DSP_poly_pitchBend = Module.cwrap('DSP_poly_pitchBend', null, ['number', 'number', 'number', 'number']);
 
 faust.DSP_poly = function (context, buffer_size, max_polyphony, callback) {
   
@@ -219,11 +218,6 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, callback) {
         pitchWheel : function (channel, pitchWheel)
         {
             DSP_poly_pitchWheel(ptr, channel, pitchWheel);
-        },
-        
-        pitchBend : function (channel, refPitch, pitch)
-        {
-            DSP_poly_pitchBend(ptr, channel, refPitch, pitch);
         },
         
         destroy : function ()

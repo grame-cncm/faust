@@ -60,9 +60,8 @@ lf_rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
 
 // --- lf_sawpos ---
 // simple sawtooth waveform oscillator between 0 and 1
-lf_sawpos(freq) = lf_rawsaw(periodsamps) / periodsamps
-with {
-  periodsamps = float(ml.SR)/max(1.0e-7,abs(freq)); // period in samples (not nec. integer)
+lf_sawpos(freq) = frac ~ +(freq/ml.SR) with { // Bart Brouns version
+   frac(x) = x - floor(x);
 };
 
 // --- saw1 ---
