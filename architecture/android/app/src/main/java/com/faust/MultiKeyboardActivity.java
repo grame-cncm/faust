@@ -21,9 +21,13 @@ public class MultiKeyboardActivity extends Activity {
         final PianoKeyboard keyboard = (PianoKeyboard) this.findViewById(R.id.PianoKeyboard);
         keyboard.setOnKeyboardChangeListener(new OnKeyboardChangeListener(){
 			@Override
-			public void onKeyChanged(int note, int velocity, boolean i) {
-				if(i) dsp_faust.keyOn(note,velocity);
-				else dsp_faust.keyOff(note);
+			public int onKeyChanged(int note, int velocity, boolean i) {
+                if (i) {
+                    return dsp_faust.keyOn(note,velocity);
+                } else {
+                    dsp_faust.keyOff(note);
+                    return -1;
+                }
 			}
 			
             @Override
