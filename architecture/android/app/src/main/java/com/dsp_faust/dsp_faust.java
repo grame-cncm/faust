@@ -63,7 +63,7 @@ public class dsp_faust {
   }
     
   public static float getVoiceParamValue(String arg0, int arg1) {
-    return dsp_faustJNI.getVoiceParamValue(arg0), arg1;
+    return dsp_faustJNI.getVoiceParamValue(arg0, arg1);
   }
 
   public static String getParamAddress(int arg0) {

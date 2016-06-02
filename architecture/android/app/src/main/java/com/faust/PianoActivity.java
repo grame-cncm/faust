@@ -29,7 +29,7 @@ public class PianoActivity extends Activity {
 			
             @Override
             public void onPitchBend(int voice, float pitch) {
-                dsp_faust.setVoiceParamValue("freq", voice, 440.0 * Math.pow(2.0, (pitch-69.0)/12.0));
+                dsp_faust.setVoiceParamValue("freq", voice, (float)(440.0 * Math.pow(2.0, (pitch-69.0)/12.0)));
             }
        
             @Override
