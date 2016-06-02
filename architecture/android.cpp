@@ -165,19 +165,6 @@ int keyOff(int pitch)
 }
 
 /*
- * pitchBend(refPitch, pitch)
- * Replaces refPitch in the voice associated with it with pitch.
- * pitch is a MIDI number expressed as a decimal number.
- * pitchBend can only be used if the [style:poly] metadata
- * is used in the Faust code. pitchBend will return 0
- * if the object is not polyphonic and 1 otherwise.
- */
-int pitchBend(int refPitch, float pitch)
-{
-    return gGlobal->pitchBend(refPitch, pitch);
-}
-
-/*
  * getJSON()
  * Returns a string containing a JSON description of the
  * UI of the Faust object.
@@ -207,7 +194,7 @@ float getParamValue(const char* address)
 }
 
 /*
- * setParam(address,value)
+ * setParam(address, value)
  * Sets the value of the parameter associated with address.
  */
 void setParamValue(const char* address, float value)
@@ -216,28 +203,28 @@ void setParamValue(const char* address, float value)
 }
 
 /*
- * setVoiceParam(address,pitch,value)
+ * setVoiceParamValue(address, voice, value)
  * Sets the value of the parameter associated with address for
- * the voice associated with pitch. setVoiceParam can only be
+ * the voice. setVoiceParamValue can only be
  * used if the [style:poly] metadata is used in the Faust code.
- * setVoiceParam will return 0 if the object is not polyphonic
+ * setVoiceParamValue will return 0 if the object is not polyphonic
  * and 1 otherwise.
  */
-int setVoiceParam(const char* address, int pitch, float value)
+int setVoiceParamValue(const char* address, int voice, float value)
 {
-    return gGlobal->setVoiceParam(address, pitch, value);
+    return gGlobal->setVoiceParamValue(address, voice, value);
 }
 
 /*
- * setVoiceGain(pitch,gain)
- * Sets the gain (0-1) of the voice associated with pitch.
- * setVoiceGain can only be used if the [style:poly] metadata
- * is used in the Faust code. setVoiceGain will return 0 if the
+ * getVoiceParamValue(address, voice)
+ * Gets the parameter value associated with address for the voice.
+ * getVoiceParamValue can only be used if the [style:poly] metadata
+ * is used in the Faust code. getVoiceParamValue will return 0 if the
  * object is not polyphonic and 1 otherwise.
  */
-int setVoiceGain(int pitch, float gain)
+float getVoiceParamValue(const char* address, int voice)
 {
-    return gGlobal->setVoiceGain(pitch, gain);
+    return gGlobal->getVoiceParamValue(address, voice);
 }
 
 /*

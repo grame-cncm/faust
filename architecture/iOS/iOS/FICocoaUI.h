@@ -41,6 +41,7 @@
 #include "faust/gui/GUI.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/APIUI.h"
+#include "faust/gui/SimpleParser.h"
 #include "faust/misc.h"
 
 #include <list>
@@ -722,7 +723,7 @@ public :
     BOOL                            fHorizontal;
     UILongPressGestureRecognizer*   fLongPressGesture;
     
-    uiSlider(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal)
+    uiSlider(GUI* ui, FIMainViewController* controller, const char* name, float* zone, float init, float min, float max, float step, BOOL horizontal, const char* menu = NULL)
     : uiCocoaItem(ui, zone, controller, name)
     {        
         fLabel = [[[UILabel alloc] init] autorelease];
@@ -753,6 +754,16 @@ public :
         fLongPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:controller action:@selector(showWidgetPreferencesView:)];
         fLongPressGesture.delegate = controller;
 		[fSlider addGestureRecognizer:fLongPressGesture];
+        
+        // Menu
+        if (menu) {
+            const char* p = menu;
+            vector<string> names;
+            vector<double> values;
+            parseMenuList(p, names, values);
+            fSlider.fMenuItemNames = names;
+            fSlider.fMenuItemValues = values;
+        }
     }
     
     ~uiSlider()
@@ -2260,11 +2271,6 @@ public:
         insert(label, item);
     }
     
-    virtual void addMenu(const char* label , float* zone, float init, float min, float max, float step, const char* mdescr)
-	{
-        // TODO
-    }
-    
     virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
         if (!fBuildUI) {
@@ -2273,10 +2279,8 @@ public:
         
         if (isKnob(zone)) {
             addVerticalKnob(label, zone, init, min, max, step);
-        }  else if (fMenuDescription.count(zone)) {
-            addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
         } else {
-            uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, false);
+            uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, false, ((fMenuDescription.count(zone) ? fMenuDescription[zone].c_str() : NULL)));
             if (dynamic_cast<uiSlider*>(item)->fSlider.suffixe) [dynamic_cast<uiSlider*>(item)->fSlider.suffixe release];
             dynamic_cast<uiSlider*>(item)->fSlider.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
             
@@ -2304,10 +2308,9 @@ public:
         
         if (isKnob(zone)){
             addHorizontalKnob(label, zone, init, min, max, step);
-        }  else if (fMenuDescription.count(zone)) {
-            addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
         } else {
-            uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, true);
+            uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, true,
+                                             ((fMenuDescription.count(zone) ? fMenuDescription[zone].c_str() : NULL)));
             if (dynamic_cast<uiSlider*>(item)->fSlider.suffixe) [dynamic_cast<uiSlider*>(item)->fSlider.suffixe release];
             dynamic_cast<uiSlider*>(item)->fSlider.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
                         
@@ -2493,6 +2496,7 @@ public:
             {
                 NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
                 NSArray* arr = [str componentsSeparatedByString:@" "];
+                const char* p = value;
                 
                 if ([arr count] == 0) return;
                 
@@ -2523,17 +2527,13 @@ public:
                         fLedG[zone] = (float)[((NSString*)[arr objectAtIndex:2]) integerValue] / 255.f;
                         fLedB[zone] = (float)[((NSString*)[arr objectAtIndex:3]) integerValue] / 255.f;
                     }
-                } else {
+                } else if (parseWord(p, "radio")) {
                     
-                    NSString* str = (NSString*)[arr objectAtIndex:0];
-                    NSRange range = [str rangeOfString:@"menu"];
-                    if (range.location == 0 && range.length > 0) {
-                        NSString* str1 = [str substringFromIndex:range.length];
-                        fMenuDescription[zone] = [str1 UTF8String];
-                    }
+                } else if (parseWord(p, "menu")) {
                     
+                    fMenuDescription[zone] = string(p);
                 }
-			}
+            }
             else if (strcmp(key,"color") == 0)
             {
                 NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];

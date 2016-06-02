@@ -216,7 +216,7 @@ function mydspMixer(global, foreign, buffer) {
         }
     }
 
-    function mixVoice(count, channels, inputs, outputs, polyphony) {
+    function mixVoice(count, channels, inputs, outputs) {
         count = count | 0;
         channels = channels | 0;
         inputs = inputs | 0;
@@ -225,14 +225,12 @@ function mydspMixer(global, foreign, buffer) {
         var i = 0;
         var j = 0;
         var level = 0.;
-        var gain_level = 0.;
-        gain_level = 1. / +sqrt(polyphony);
         for (i = 0; ((i | 0) < (channels | 0) | 0); i = ((i | 0) + 1 | 0)) {
             for (j = 0; ((j | 0) < (count | 0) | 0); j = ((j | 0) + 1 | 0)) {
                 level = max(+level, +(abs(+(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]))));
                 HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2] 
                     = +(HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]) + 
-                      +(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]) * +gain_level;
+                      +(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]);
             }
         }
         return +level;
@@ -834,7 +832,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, callback)
                     factory.compute(dsp_voices[i], buffer_size, ins, mixing);
                 }
                 // Mix it in result
-                dsp_voices_level[i] = mixer.mixVoice(buffer_size, numOut, mixing, outs, max_polyphony);
+                dsp_voices_level[i] = mixer.mixVoice(buffer_size, numOut, mixing, outs);
                 // Check the level to possibly set the voice in kFreeVoice again
                 if ((dsp_voices_level[i] < 0.001) && (dsp_voices_state[i] == kReleaseVoice)) {
                     dsp_voices_state[i] = kFreeVoice;
@@ -1045,17 +1043,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, callback)
                  
         pitchWheel : function (channel, wheel)
         {},
-        
-        pitchBend : function (channel, pitch, tuned_pitch)
-        {
-            var voice = getVoice(pitch, false);
-            if (voice >= 0) {
-                factory.setParamValue(dsp_voices[voice], fFreqLabel, midiToFreq(tuned_pitch));
-            } else {
-                console.log("Playing voice not found...\n");
-            }
-        },
-      
+         
         start : function () 
         {
             scriptProcessor.connect(context.destination);
