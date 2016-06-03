@@ -244,7 +244,8 @@ public class UI {
 	 * 	currentViewWidth: the current group width
 	 */
 	public void parseJSON(Context c, JSONArray uiArray, LinearLayout currentGroup, 
-			int currentGroupLevel, int currentGroupType, int currentViewWidth) {
+                        int currentGroupLevel, int currentGroupType, int currentViewWidth)
+    {
 		int nItemsTopLevel = uiArray.length(), groupDivisions;
 		JSONObject currentObject = new JSONObject();
 		JSONArray currentArray = new JSONArray();
@@ -307,13 +308,13 @@ public class UI {
                 if (metaDataHidden.equals("1")) {
                     paramVisible = false;
                 }
-
-                if (currentObject.getString("type").equals("vgroup")) {
+                // tgroup handled like vgroup
+                if (currentObject.getString("type").equals("tgroup") || currentObject.getString("type").equals("vgroup")) {
 					currentArray = currentObject.getJSONArray("items");
 					vgroup(c,currentArray,currentGroup,currentObject.getString("label"),
 							currentGroupLevel,groupDivisions,currentViewWidth);
 				}
-				else if (currentObject.getString("type").equals("hgroup")){
+            	else if (currentObject.getString("type").equals("hgroup")){
 					currentArray = currentObject.getJSONArray("items");
 					hgroup(c,currentArray,currentGroup,currentObject.getString("label"),
 							currentGroupLevel,groupDivisions,currentViewWidth);

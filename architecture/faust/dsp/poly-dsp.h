@@ -388,7 +388,7 @@ class mydsp_poly : public dsp, public midi {
             ui_interface->openTabBox("Polyphonic");
             
             // Grouped voices UI
-            ui_interface->openVerticalBox("All Voices");
+            ui_interface->openVerticalBox("Voices");
             ui_interface->addButton("Panic", &fPanic);
             fVoiceGroup->buildUserInterface(ui_interface);
             ui_interface->closeBox();
@@ -407,7 +407,7 @@ class mydsp_poly : public dsp, public midi {
             ui_interface->closeBox();
         }
         
-        static void Panic(FAUSTFLOAT val, void* arg)
+        static void panic(FAUSTFLOAT val, void* arg)
         {
             if (val == FAUSTFLOAT(1)) {
                 static_cast<mydsp_poly*>(arg)->allNotesOff();
@@ -472,7 +472,7 @@ class mydsp_poly : public dsp, public midi {
     #else
         mydsp_poly(int max_polyphony, 
                 bool control = false,   
-                bool group = true):fGroups(&fPanic, Panic, this)
+                bool group = true):fGroups(&fPanic, panic, this)
         {
             mydsp_voice_factory factory;
             init(max_polyphony, &factory, control, group);
@@ -591,6 +591,8 @@ class mydsp_poly : public dsp, public midi {
             std::vector<dsp_voice*>::iterator it = find(fVoiceTable.begin(), fVoiceTable.end(), reinterpret_cast<dsp_voice*>(voice));
             if (it != fVoiceTable.end()) {
                 (*it)->fNote = kReleaseVoice;
+            } else {
+                printf("Voice not found\n");
             }
         }
         
