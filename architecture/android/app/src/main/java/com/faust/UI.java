@@ -314,7 +314,7 @@ public class UI {
 					vgroup(c,currentArray,currentGroup,currentObject.getString("label"),
 							currentGroupLevel,groupDivisions,currentViewWidth);
 				}
-            	else if ( currentObject.getString("type").equals("hgroup")){
+            	else if (currentObject.getString("type").equals("hgroup")){
 					currentArray = currentObject.getJSONArray("items");
 					hgroup(c,currentArray,currentGroup,currentObject.getString("label"),
 							currentGroupLevel,groupDivisions,currentViewWidth);

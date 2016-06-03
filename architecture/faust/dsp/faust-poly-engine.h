@@ -23,7 +23,6 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include <pthread.h>
 
 #include "faust/misc.h"
 #include "faust/dsp/dsp.h"
@@ -52,7 +51,6 @@ class FaustPolyEngine {
         bool fRunning;
         int fPolyMax;
         audio* fDriver;
-        pthread_t fThread;
     
     public:
 
