@@ -854,6 +854,10 @@ int RateInferrer::computeRate(Tree sig)
 
         int i = checkSignalDenotesSize(n,sig);
         int r = rate(x);
+        if ((r%i != 0)) {
+            std::cerr << "DOWNSAMPLING ERROR : non integer rate " << r << '/' << i << " for signal " << ppsig(sig) << std::endl;
+            exit(1);
+        }
         assert(r%i == 0);
         return r/i;
 
