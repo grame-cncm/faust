@@ -30,13 +30,14 @@
 #define FAUSTFLOAT float
 #endif
 
-#include "faust/gui/GUI.h"
-#include "faust/midi/midi.h"
-#include "faust/gui/ValueConverter.h"
 #include <vector>
 #include <string>
 #include <utility>
 #include <iostream>
+
+#include "faust/gui/GUI.h"
+#include "faust/midi/midi.h"
+#include "faust/gui/ValueConverter.h"
 
 /*******************************************************************************
  * MidiUI : Faust User Interface
@@ -385,6 +386,8 @@ class uiMidiKeyPress : public uiMidiItem
         
 };
 
+class MapUI;
+
 class MidiUI : public GUI, public midi
 {
 
@@ -515,13 +518,14 @@ class MidiUI : public GUI, public midi
         
         // -- MIDI API 
         
-        void keyOn(double date, int channel, int note, int velocity) 
+        MapUI* keyOn(double date, int channel, int note, int velocity)
         {
             if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
                 for (unsigned int i = 0; i < fKeyOnTable[note].size(); i++) {
                     fKeyOnTable[note][i]->modifyZone(FAUSTFLOAT(velocity));
                 }
             }
+            return 0;
         }
         
         void keyOff(double date,  int channel, int note, int velocity)

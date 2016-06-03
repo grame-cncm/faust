@@ -160,13 +160,67 @@ class APIUI : public PathBuilder, public Meta, public UI
             fCurrentColor = "";
         }
 
-        int getAccZoneIndex(int p, int acc)
+        int getZoneIndex(vector<ZoneControl*>* table, int p, int val)
         {
             FAUSTFLOAT* zone = fZone[p];
-            for (int i = 0; i < fAcc[acc].size(); i++) {
-                if (zone == fAcc[acc][i]->getZone()) return i;
+            for (int i = 0; i < table[val].size(); i++) {
+                if (zone == table[val][i]->getZone()) return i;
             }
             return -1;
+        }
+    
+        void setConverter(vector<ZoneControl*>* table, int p, int val, int curve, double amin, double amid, double amax)
+        {
+            int id1 = getZoneIndex(table, p, 0);
+            int id2 = getZoneIndex(table, p, 1);
+            int id3 = getZoneIndex(table, p, 2);
+            
+            // Deactivates everywhere..
+            if (id1 != -1) table[0][id1]->setActive(false);
+            if (id2 != -1) table[1][id2]->setActive(false);
+            if (id3 != -1) table[2][id3]->setActive(false);
+            
+            if (val == -1) { // Means: no more mapping...
+                // So stay all deactivated...
+            } else {
+                int id4 = getZoneIndex(table, p, val);
+                if (id4 != -1) {
+                    // Reactivate the one we edit...
+                    table[val][id4]->setMappingValues(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]);
+                    table[val][id4]->setActive(true);
+                } else {
+                    // Allocate a new CurveZoneControl which is 'active' by default
+                    FAUSTFLOAT* zone = fZone[p];
+                    table[val].push_back(new CurveZoneControl(zone, curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]));
+                }
+            }
+        }
+    
+        void getConverter(vector<ZoneControl*>* table, int p, int& val, int& curve, double& amin, double& amid, double& amax)
+        {
+            int id1 = getZoneIndex(table, p, 0);
+            int id2 = getZoneIndex(table, p, 1);
+            int id3 = getZoneIndex(table, p, 2);
+            
+            if (id1 != -1) {
+                val = 0;
+                curve = fAcc[val][id1]->getCurve();
+                table[val][id1]->getMappingValues(amin, amid, amax);
+            } else if (id2 != -1) {
+                val = 1;
+                curve = fAcc[val][id2]->getCurve();
+                table[val][id2]->getMappingValues(amin, amid, amax);
+            } else if (id3 != -1) {
+                val = 2;
+                curve = fAcc[val][id3]->getCurve();
+                table[val][id3]->getMappingValues(amin, amid, amax);
+            } else {
+                val = -1; // No mapping
+                curve = 0;
+                amin = -100.;
+                amid = 0.;
+                amax = 100.;
+            }
         }
 
      public:
@@ -273,7 +327,7 @@ class APIUI : public PathBuilder, public Meta, public UI
 		//-------------------------------------------------------------------------------
 		int getParamsCount()				{ return fNumParameters; }
 		int getParamIndex(const char* n) 	{ return (fMap.count(n) > 0) ? fMap[n] : -1; }
-		const char* getParamName(int p)		{ return fName[p].c_str(); }
+		const char* getParamAddress(int p)	{ return fName[p].c_str(); }
 		const char* getParamUnit(int p)		{ return fUnit[p].c_str(); }
 		FAUSTFLOAT getParamMin(int p)		{ return fMin[p]; }
 		FAUSTFLOAT getParamMax(int p)		{ return fMax[p]; }
@@ -301,7 +355,7 @@ class APIUI : public PathBuilder, public Meta, public UI
                 fAcc[acc][i]->update(value);
             }
         }
-
+    
         /**
          * Used to edit accelerometer curves and mapping. Set curve and related mapping for a given UI parameter.
          *
@@ -315,33 +369,26 @@ class APIUI : public PathBuilder, public Meta, public UI
          */
         void setAccConverter(int p, int acc, int curve, double amin, double amid, double amax)
         {
-            int id1 = getAccZoneIndex(p, 0);
-            int id2 = getAccZoneIndex(p, 1);
-            int id3 = getAccZoneIndex(p, 2);
-
-            // Deactivates everywhere..
-            if (id1 != -1) fAcc[0][id1]->setActive(false);
-            if (id2 != -1) fAcc[1][id2]->setActive(false);
-            if (id3 != -1) fAcc[2][id3]->setActive(false);
-
-            if (acc == -1) { // Means: no more mapping...
-                // So stay all deactivated...
-            } else {
-                int id4 = getAccZoneIndex(p, acc);
-                if (id4 != -1) {
-                    // Reactivate the one we edit...
-                    fAcc[acc][id4]->setMappingValues(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]);
-                    fAcc[acc][id4]->setActive(true);
-                } else {
-                    // Allocate a new CurveZoneControl which is 'active' by default
-                    FAUSTFLOAT* zone = fZone[p];
-                    fAcc[acc].push_back(new CurveZoneControl(zone, curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]));
-                    //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter new CurveZoneControl %d", acc);
-                }
-            }
+            setConverter(fAcc, p, acc, curve, amin, amid, amax);
         }
-
-         /**
+    
+        /**
+         * Used to edit gyroscope curves and mapping. Set curve and related mapping for a given UI parameter.
+         *
+         * @param p - the UI parameter index
+         * @param acc - 0 for X gyroscope, 1 for Y gyroscope, 2 for Z gyroscope (-1 means "no mapping")
+         * @param curve - between 0 and 3
+         * @param amin - mapping 'min' point
+         * @param amid - mapping 'middle' point
+         * @param amax - mapping 'max' point
+         *
+         */
+        void setGyrConverter(int p, int gyr, int curve, double amin, double amid, double amax)
+        {
+             setConverter(fGyr, p, gyr, curve, amin, amid, amax);
+        }
+    
+        /**
          * Used to edit accelerometer curves and mapping. Get curve and related mapping for a given UI parameter.
          *
          * @param p - the UI parameter index
@@ -354,43 +401,39 @@ class APIUI : public PathBuilder, public Meta, public UI
          */
         void getAccConverter(int p, int& acc, int& curve, double& amin, double& amid, double& amax)
         {
-            int id1 = getAccZoneIndex(p, 0);
-            int id2 = getAccZoneIndex(p, 1);
-            int id3 = getAccZoneIndex(p, 2);
-       
-            if (id1 != -1) {
-                acc = 0;
-                curve = fAcc[acc][id1]->getCurve();
-                fAcc[acc][id1]->getMappingValues(amin, amid, amax);
-            } else if (id2 != -1) {
-                acc = 1;
-                curve = fAcc[acc][id2]->getCurve();
-                fAcc[acc][id2]->getMappingValues(amin, amid, amax);
-            } else if (id3 != -1) {
-                acc = 2;
-                curve = fAcc[acc][id3]->getCurve();
-                fAcc[acc][id3]->getMappingValues(amin, amid, amax);
-            } else {
-                acc = -1; // No mapping
-                curve = 0;
-                amin = -100.;
-                amid = 0.;
-                amax = 100.;
-            }
+            getConverter(fAcc, p, acc, curve, amin, amid, amax);
         }
 
-        // TODO
+        /**
+         * Used to edit gyroscope curves and mapping. Get curve and related mapping for a given UI parameter.
+         *
+         * @param p - the UI parameter index
+         * @param gyr - the gyr value to be retrieved (-1 means "no mapping")
+         * @param curve - the curve value to be retrieved
+         * @param amin - the amin value to be retrieved
+         * @param amid - the amid value to be retrieved
+         * @param amax - the amax value to be retrieved
+         *
+         */
+        void getGyrConverter(int p, int& gyr, int& curve, double& amin, double& amid, double& amax)
+        {
+            getConverter(fGyr, p, gyr, curve, amin, amid, amax);
+        }
+    
+        /**
+         * Set a new value coming from an gyroscope, propagate it to all relevant float* zones.
+         *
+         * @param gyr - 0 for X gyroscope, 1 for Y gyroscope, 2 for Z gyroscope
+         * @param value - the new value
+         *
+         */
         void propagateGyr(int gyr, double value)
         {
             for (int i = 0; i < fGyr[gyr].size(); i++) {
                 fGyr[gyr][i]->update(value);
             }
         }
-
-        void setGyrConverter(int p, int gyr, int curve, double amin, double amid, double amax) {}
-
-        void getGyrConverter(int p, int& gyr, int& curve, double& amin, double& amid, double& amax) {}
-
+   
         // getScreenColor() : -1 means no screen color control (no screencolor metadata found)
         // otherwise return 0x00RRGGBB a ready to use color
         int getScreenColor()

@@ -1,5 +1,6 @@
 package com.faust;
 
+import com.faust.PianoKeyboard.PianoKey;
 import com.faust.PianoKeyboard.OnKeyboardChangeListener;
 import com.dsp_faust.dsp_faust;
 
@@ -19,21 +20,25 @@ public class PianoActivity extends Activity {
         // no need for a dynamic interface: the keyboard is instantiated from the XML layout 
         final PianoKeyboard keyboard = (PianoKeyboard) this.findViewById(R.id.PianoKeyboard);
         keyboard.setOnKeyboardChangeListener(new OnKeyboardChangeListener(){
-			@Override
-			public void onKeyChanged(int note, int velocity, boolean i) {
-				if(i) dsp_faust.keyOn(note,velocity);
-				else dsp_faust.keyOff(note);
-			}
+            @Override
+            public void onKeyChanged(int note, int velocity, boolean status) {
+                if (status) {
+                    keyboard.keys[note - keyboard.baseNote].voice = dsp_faust.keyOn(note,velocity);
+                } else {
+                    dsp_faust.keyOff(note);
+                    keyboard.keys[note - keyboard.baseNote].voice = -1;
+                }
+            }
 			
-			@Override
-			public void onPitchBend(int refPitch, float pitch) {
-				dsp_faust.pitchBend(refPitch, pitch);
-			}
-
-			@Override
-			public void onYChanged(int pitch, float y) {
-				dsp_faust.setVoiceGain(pitch,y);
-			}
+            @Override
+            public void onPitchBend(int voice, float pitch) {
+                dsp_faust.setVoiceParamValue("freq", voice, (float)(440.0 * Math.pow(2.0, (pitch-69.0)/12.0)));
+            }
+       
+            @Override
+            public void onYChanged(int voice, float y) {
+                dsp_faust.setVoiceParamValue("gain", voice, y);
+            }
         });
 	}
 	

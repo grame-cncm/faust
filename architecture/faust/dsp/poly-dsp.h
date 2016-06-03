@@ -213,9 +213,7 @@ struct mydsp_voice_factory : public voice_factory {
 class mydsp_poly : public dsp, public midi {
 
     private:
-  
-        std::string fJSON;
-        
+    
         std::vector<dsp_voice*> fVoiceTable; // Individual voices
         dsp* fVoiceGroup;                    // Voices group to be used for GUI grouped control
         
@@ -323,11 +321,6 @@ class mydsp_poly : public dsp, public midi {
                 fVoiceTable[i]->buildUserInterface(&fGroups);
             }
             
-            // Creates global JSON
-            JSONUI builder(fVoiceTable[0]->getNumInputs(), fVoiceTable[0]->getNumOutputs());
-            fVoiceTable[0]->metadata(&builder);
-            uIBuilder(&builder);
-            fJSON = builder.JSON();
             fDate = 0;
             
             // Keep gain, freq and gate labels
@@ -349,7 +342,7 @@ class mydsp_poly : public dsp, public midi {
             ui_interface->openTabBox("Polyphonic");
             
             // Grouped voices UI
-            ui_interface->openVerticalBox("All Voices");
+            ui_interface->openVerticalBox("Voices");
             ui_interface->addButton("Panic", &fPanic);
             fVoiceGroup->buildUserInterface(ui_interface);
             ui_interface->closeBox();
@@ -368,7 +361,7 @@ class mydsp_poly : public dsp, public midi {
             ui_interface->closeBox();
         }
         
-        static void Panic(FAUSTFLOAT val, void* arg)
+        static void panic(FAUSTFLOAT val, void* arg)
         {
             if (val == FAUSTFLOAT(1)) {
                 static_cast<mydsp_poly*>(arg)->allNotesOff();
@@ -407,11 +400,23 @@ class mydsp_poly : public dsp, public midi {
             return !(n & (n - 1));
         }
     
-    public: 
+        int newVoiceAux()
+        {
+            int voice = getVoice(kFreeVoice, true);
+            if (voice >= 0) {
+                fVoiceTable[voice]->fNote = kActiveVoice;
+                return voice;
+            } else {
+                printf("No more free voice...\n");
+                return -1;
+            }
+        }
     
-        mydsp_poly(int max_polyphony, 
+    public:
+    
+        mydsp_poly(int max_polyphony,
                 bool control = false,   
-                bool group = true):fGroups(&fPanic, Panic, this)
+                bool group = true):fGroups(&fPanic, panic, this)
         {
             mydsp_voice_factory factory;
             init(max_polyphony, &factory, control, group);
@@ -518,34 +523,37 @@ class mydsp_poly : public dsp, public midi {
             }
         }
     
-        int newVoice()
+        MapUI* newVoice()
         {
-            int voice = -1;
-            voice = getVoice(kFreeVoice, true);
-            fVoiceTable[voice]->fNote = kActiveVoice;
-            return voice;
+            int voice = newVoiceAux();
+            return (voice >= 0) ? fVoiceTable[voice] : 0;
         }
         
-        void deleteVoice(int voice)
+        void deleteVoice(MapUI* voice)
         {
-            fVoiceTable[voice]->fNote = kReleaseVoice;
+            std::vector<dsp_voice*>::iterator it = find(fVoiceTable.begin(), fVoiceTable.end(), reinterpret_cast<dsp_voice*>(voice));
+            if (it != fVoiceTable.end()) {
+                (*it)->fNote = kReleaseVoice;
+            } else {
+                printf("Voice not found\n");
+            }
         }
         
         // Pure MIDI control
-        
-        void keyOn(int channel, int pitch, int velocity)
+        MapUI* keyOn(int channel, int pitch, int velocity)
         {
             if (checkPolyphony()) {
-                int voice = getVoice(kFreeVoice, true);
+                int voice = newVoiceAux();
                 if (voice >= 0) {
                     fVoiceTable[voice]->setParamValue(fFreqLabel, midiToFreq(pitch));
                     fVoiceTable[voice]->setParamValue(fGainLabel, float(velocity)/127.f);
                     fVoiceTable[voice]->setParamValue(fGateLabel, 1.0f);
                     fVoiceTable[voice]->fNote = pitch;
-                } else {
-                    printf("No more free voice...\n");
+                    return fVoiceTable[voice];
                 }
             }
+            
+            return 0;
         }
         
         void keyOff(int channel, int pitch, int velocity = 127)
@@ -555,6 +563,7 @@ class mydsp_poly : public dsp, public midi {
                 if (voice >= 0) {
                     // No use of velocity for now...
                     fVoiceTable[voice]->setParamValue(fGateLabel, 0.0f);
+                    // Relase voice
                     fVoiceTable[voice]->fNote = kReleaseVoice;
                 } else {
                     printf("Playing pitch = %d not found\n", pitch);
@@ -585,18 +594,6 @@ class mydsp_poly : public dsp, public midi {
         {}
  
         // Additional API
-        void pitchBend(int channel, int pitch, float tuned_pitch)
-        {
-            if (checkPolyphony()) {
-                int voice = getVoice(pitch);
-                if (voice >= 0) {
-                    fVoiceTable[voice]->setParamValue(fFreqLabel, midiToFreq(tuned_pitch));
-                } else {
-                    printf("Playing voice not found...\n");
-                }
-            }
-        }
-        
         void allNotesOff()
         {
             if (checkPolyphony()) {
@@ -607,46 +604,6 @@ class mydsp_poly : public dsp, public midi {
                 }
             }
         }
-       
-        void setParamValue(const char* path, float value)
-        {
-            for (int i = 0; i < fPolyphony; i++) {
-                fVoiceTable[i]->setParamValue(path, value);
-            }
-        }
-        
-        void setParamValue(const char* path, int pitch, float value)
-        {
-            setVoiceParam(path, getVoice(pitch), value);
-        }
-        
-        void setVoiceParam(const char* path, int voice, float value)
-        {
-            if (voice >= 0) {
-                fVoiceTable[voice]->setParamValue(path, value);
-            }
-        }
-        
-        float getParamValue(const char* path)
-        {
-            return fVoiceTable[0]->getParamValue(path);
-        }
-        
-        float getParamValue(const char* path, int pitch)
-        {
-            return getVoiceParam(path, getVoice(pitch));
-        }
-        
-        float getVoiceParam(const char* path, int voice)
-        {
-            return (voice >= 0) ? fVoiceTable[voice]->getParamValue(path) : 0.;
-        }
-    
-        const char* getJSON()
-        {
-            return fJSON.c_str();
-        }
-    
 };
 
 #endif // __poly_dsp__
