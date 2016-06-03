@@ -535,7 +535,7 @@ class mydsp_poly : public dsp, public midi {
             if (it != fVoiceTable.end()) {
                 (*it)->fNote = kReleaseVoice;
             } else {
-                printf("Voice = %d not found\n", voice);
+                printf("Voice not found\n");
             }
         }
         

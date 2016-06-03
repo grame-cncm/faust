@@ -37,7 +37,7 @@ public class PianoKeyboard extends ViewGroup {
 		 * velocity: MIDI velocity
 		 * statu: true for down, false for up
 		 */
-		void onKeyChanged(int note, int velocity, boolean status);
+		int onKeyChanged(int note, int velocity, boolean status);
 		/*
 		 * when the finger position on the Y axis changed where:
 		 * note: the MIDI pitch affected by this change

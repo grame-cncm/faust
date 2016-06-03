@@ -31,6 +31,8 @@
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/APIUI.h"
 
+#include <android/log.h>
+
 //**************************************************************
 // Polyphony
 //**************************************************************
@@ -46,7 +48,7 @@ class FaustPolyEngine {
         mydsp fMonoDSP;           // the monophonic Faust object
         mydsp_poly* fPolyDSP;     // the polyphonic Faust object
         APIUI fAPIUI;             // the UI description
-        JSONUI fJSONUI;
+    
         string fJSON;
         bool fRunning;
         int fPolyMax;
@@ -54,22 +56,34 @@ class FaustPolyEngine {
         
     public:
 
-        FaustPolyEngine():fJSONUI(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs()), fRunning(false)
+        FaustPolyEngine()
         {
-            // configuring the UI
+             fRunning = false;
             
-            fMonoDSP.buildUserInterface(&fJSONUI);
-            fJSON = fJSONUI.JSON();
+            // configuring the UI
+            JSONUI jsonui1(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs());
+            fMonoDSP.buildUserInterface(&jsonui1);
+            fJSON = jsonui1.JSON();
 
             if (fJSON.find("keyboard") != std::string::npos
                 || fJSON.find("poly") != std::string::npos) {
                 fPolyMax = 6;
                 fPolyDSP = new mydsp_poly(fPolyMax, true);
                 fPolyDSP->buildUserInterface(&fAPIUI);
+                
+                // Update JSON with Poly version
+                JSONUI jsonui2(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs());
+                fPolyDSP->buildUserInterface(&jsonui2);
+                fJSON = jsonui2.JSON();
+                
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine POLY");
+                
             } else {
                 fPolyMax = 0;
                 fPolyDSP = NULL;
                 fMonoDSP.buildUserInterface(&fAPIUI);
+                
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine MONO");
             }
         }
 
@@ -81,6 +95,7 @@ class FaustPolyEngine {
 
         bool init()
         {
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine init");
             return fDriver->init("Dummy", (fPolyMax > 0) ? (dsp*)fPolyDSP : &fMonoDSP);
         }
 
@@ -96,6 +111,7 @@ class FaustPolyEngine {
             if (!fRunning) {
                 fRunning = fDriver->start();
             }
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine start");
             return fRunning;
         }
         
@@ -132,6 +148,8 @@ class FaustPolyEngine {
          */
         int keyOn(int pitch, int velocity)
         {
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine keyOn %d %d", pitch, velocity);
+
             if (fPolyMax > 0) {
                 return (int)fPolyDSP->keyOn(0, pitch, velocity); // MapUI* passed to Java as an integer
             } else {
@@ -173,6 +191,11 @@ class FaustPolyEngine {
          */
         int getParamsCount()
         {
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine getParamsCount %d", fAPIUI.getParamsCount());
+            for (int i = 0; i < fAPIUI.getParamsCount(); i++) {
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine getParamsCount address %s", fAPIUI.getParamAddress(i));
+            }
+            
             return fAPIUI.getParamsCount();
         }
     
@@ -182,6 +205,7 @@ class FaustPolyEngine {
          */
         void setParamValue(const char* address, float value)
         {
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine setParamValue %s %f", address, value);
             fAPIUI.setParamValue(fAPIUI.getParamIndex(address), value);
         }
 
@@ -192,6 +216,7 @@ class FaustPolyEngine {
          */
         float getParamValue(const char* address)
         {
+             __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine getParamValue %s", address);
             return fAPIUI.getParamValue(fAPIUI.getParamIndex(address));
         }
 
@@ -214,7 +239,7 @@ class FaustPolyEngine {
                 return 0;
             }
             */
-            
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine setVoiceParamValue %d %s %f", voice, address, value);
             reinterpret_cast<MapUI*>(voice)->setParamValue(address, value);
         }
     
@@ -236,8 +261,8 @@ class FaustPolyEngine {
                  return 0.0;
              }
              */
-             
-             return reinterpret_cast<MapUI*>(voice)->getVoiceParamValue(address);
+             __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine getVoiceParamValue %s", address);
+             return reinterpret_cast<MapUI*>(voice)->getParamValue(address);
          }
     
         /*
@@ -246,6 +271,7 @@ class FaustPolyEngine {
          */
         const char* getParamAddress(int id)
         {
+            __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine getParamAddress %d %s", id, fAPIUI.getParamAddress(id));
             return fAPIUI.getParamAddress(id);
         }
 
