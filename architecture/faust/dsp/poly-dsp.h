@@ -468,15 +468,14 @@ class mydsp_poly : public dsp, public midi {
         mydsp_poly(int max_polyphony, 
                    dsp_factory* factory = NULL,
                    bool control = false,
-                   bool group = true):fGroups(&fPanic, Panic, this)
+                   bool group = true):fGroups(&fPanic, panic, this)
         {
             dynamic_dsp_voice_factory dsp_factory(factory);
             init(max_polyphony, &dsp_factory, control, group);
         }
     #else
         mydsp_poly(int max_polyphony, 
-                   bool control = false,
-                   bool group = true):fGroups(&fPanic, Panic, this)
+                   bool group = true):fGroups(&fPanic, panic, this)
         {
             mydsp_voice_factory factory;
             init(max_polyphony, &factory, control, group);
