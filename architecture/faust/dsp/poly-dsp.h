@@ -462,17 +462,17 @@ class mydsp_poly : public dsp, public midi {
     
     #ifdef LLVM_DSP
         mydsp_poly(int max_polyphony, 
-                llvm_dsp* dsp = NULL,
-                 bool control = false, 
-                 bool group = true):fGroups(&fPanic, Panic, this)
+                   llvm_dsp* dsp = NULL,
+                   bool control = false,
+                   bool group = true):fGroups(&fPanic, panic, this)
         {
             llvm_dsp_voice_factory dsp_factory(dsp);
             init(max_polyphony, &dsp_factory, control, group);
         }
     #else
         mydsp_poly(int max_polyphony, 
-                bool control = false,   
-                bool group = true):fGroups(&fPanic, panic, this)
+                   bool control = false,
+                   bool group = true):fGroups(&fPanic, panic, this)
         {
             mydsp_voice_factory factory;
             init(max_polyphony, &factory, control, group);
