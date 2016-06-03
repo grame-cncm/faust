@@ -46,32 +46,40 @@ class FaustPolyEngine {
         mydsp fMonoDSP;           // the monophonic Faust object
         mydsp_poly* fPolyDSP;     // the polyphonic Faust object
         APIUI fAPIUI;             // the UI description
-        JSONUI fJSONUI;
+    
         string fJSON;
         bool fRunning;
         int fPolyMax;
         audio* fDriver;
-        
+    
     public:
 
-        FaustPolyEngine():fJSONUI(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs()), fRunning(false)
+        FaustPolyEngine()
         {
-            // configuring the UI
+            fRunning = false;
             
-            fMonoDSP.buildUserInterface(&fJSONUI);
-            fJSON = fJSONUI.JSON();
+            // configuring the UI
+            JSONUI jsonui1(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs());
+            fMonoDSP.buildUserInterface(&jsonui1);
+            fJSON = jsonui1.JSON();
 
             if (fJSON.find("keyboard") != std::string::npos
                 || fJSON.find("poly") != std::string::npos) {
                 fPolyMax = 6;
                 fPolyDSP = new mydsp_poly(fPolyMax, true);
                 fPolyDSP->buildUserInterface(&fAPIUI);
+                
+                // Update JSON with Poly version
+                JSONUI jsonui2(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs());
+                fPolyDSP->buildUserInterface(&jsonui2);
+                fJSON = jsonui2.JSON();
+                
             } else {
                 fPolyMax = 0;
                 fPolyDSP = NULL;
                 fMonoDSP.buildUserInterface(&fAPIUI);
             }
-        }
+         }
 
         virtual ~FaustPolyEngine()
         {
@@ -128,12 +136,12 @@ class FaustPolyEngine {
          * and pitch are MIDI numbers (0-127). keyOn can only
          * be used if the [style:poly] metadata is used in the
          * Faust code. keyOn will return -1 if the object is not
-         * polyphonic and the alllocated voice otherwise.
+         * polyphonic and the allocated voice otherwise.
          */
         int keyOn(int pitch, int velocity)
         {
             if (fPolyMax > 0) {
-                return (int)fPolyDSP->keyOn(0, pitch, velocity);
+                return (int)fPolyDSP->keyOn(0, pitch, velocity); // MapUI* passed to Java as an integer
             } else {
                 return -1;
             }
@@ -183,6 +191,8 @@ class FaustPolyEngine {
         void setParamValue(const char* address, float value)
         {
             fAPIUI.setParamValue(fAPIUI.getParamIndex(address), value);
+            // In POLY mode, update all voices
+            GUI::updateAllGuis();
         }
 
         /*
@@ -205,15 +215,8 @@ class FaustPolyEngine {
          */
         int setVoiceParamValue(const char* address, int voice, float value)
         {
-            // TODO
-            /*
-            if (fPolyMax > 0) {
-                fPolyDSP->setVoiceParamValue(address, voice, value);
-                return 1;
-            } else {
-                return 0;
-            }
-            */
+            assert(sizeof(int) == sizeof(MapUI*));
+            reinterpret_cast<MapUI*>(voice)->setParamValue(address, value);
         }
     
         /*
@@ -223,18 +226,11 @@ class FaustPolyEngine {
          * is used in the Faust code. getVoiceParamValue will return 0 if the
          * object is not polyphonic and the value otherwise.
          */
-    
-         float getVoiceParamValue(const char* address, int voice)
-         {
-             // TODO
-             /*
-             if (fPolyMax > 0) {
-                 return fPolyDSP->getVoiceParamValue(address, voice);
-             } else {
-                 return 0.0;
-             }
-             */
-         }
+        float getVoiceParamValue(const char* address, int voice)
+        {
+            assert(sizeof(int) == sizeof(MapUI*));
+            return reinterpret_cast<MapUI*>(voice)->getParamValue(address);
+        }
     
         /*
          * getParamAddress(id)
