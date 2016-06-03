@@ -23,6 +23,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <pthread.h>
 
 #include "faust/misc.h"
 #include "faust/dsp/dsp.h"
@@ -30,8 +31,6 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/APIUI.h"
-
-#include <android/log.h>
 
 //**************************************************************
 // Polyphony
@@ -53,12 +52,13 @@ class FaustPolyEngine {
         bool fRunning;
         int fPolyMax;
         audio* fDriver;
-        
+        pthread_t fThread;
+    
     public:
 
         FaustPolyEngine()
         {
-             fRunning = false;
+            fRunning = false;
             
             // configuring the UI
             JSONUI jsonui1(fMonoDSP.getNumInputs(), fMonoDSP.getNumOutputs());
@@ -76,16 +76,12 @@ class FaustPolyEngine {
                 fPolyDSP->buildUserInterface(&jsonui2);
                 fJSON = jsonui2.JSON();
                 
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine POLY");
-                
             } else {
                 fPolyMax = 0;
                 fPolyDSP = NULL;
                 fMonoDSP.buildUserInterface(&fAPIUI);
-                
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine MONO");
             }
-        }
+         }
 
         virtual ~FaustPolyEngine()
         {
@@ -95,7 +91,6 @@ class FaustPolyEngine {
 
         bool init()
         {
-            __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine init");
             return fDriver->init("Dummy", (fPolyMax > 0) ? (dsp*)fPolyDSP : &fMonoDSP);
         }
 
@@ -111,7 +106,6 @@ class FaustPolyEngine {
             if (!fRunning) {
                 fRunning = fDriver->start();
             }
-            __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine start");
             return fRunning;
         }
         
@@ -148,8 +142,6 @@ class FaustPolyEngine {
          */
         int keyOn(int pitch, int velocity)
         {
-            __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine keyOn %d %d", pitch, velocity);
-
             if (fPolyMax > 0) {
                 return (int)fPolyDSP->keyOn(0, pitch, velocity); // MapUI* passed to Java as an integer
             } else {
@@ -191,11 +183,6 @@ class FaustPolyEngine {
          */
         int getParamsCount()
         {
-            __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine getParamsCount %d", fAPIUI.getParamsCount());
-            for (int i = 0; i < fAPIUI.getParamsCount(); i++) {
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine getParamsCount address %s", fAPIUI.getParamAddress(i));
-            }
-            
             return fAPIUI.getParamsCount();
         }
     
@@ -205,8 +192,9 @@ class FaustPolyEngine {
          */
         void setParamValue(const char* address, float value)
         {
-            __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine setParamValue %s %f", address, value);
             fAPIUI.setParamValue(fAPIUI.getParamIndex(address), value);
+            // In POLY mode, update all voices
+            GUI::updateAllGuis();
         }
 
         /*
@@ -216,7 +204,6 @@ class FaustPolyEngine {
          */
         float getParamValue(const char* address)
         {
-             __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine getParamValue %s", address);
             return fAPIUI.getParamValue(fAPIUI.getParamIndex(address));
         }
 
@@ -230,16 +217,7 @@ class FaustPolyEngine {
          */
         int setVoiceParamValue(const char* address, int voice, float value)
         {
-            // TODO
-            /*
-            if (fPolyMax > 0) {
-                fPolyDSP->setVoiceParamValue(address, voice, value);
-                return 1;
-            } else {
-                return 0;
-            }
-            */
-            __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine setVoiceParamValue %d %s %f", voice, address, value);
+            assert(sizeof(int) == sizeof(MapUI*));
             reinterpret_cast<MapUI*>(voice)->setParamValue(address, value);
         }
     
@@ -250,20 +228,11 @@ class FaustPolyEngine {
          * is used in the Faust code. getVoiceParamValue will return 0 if the
          * object is not polyphonic and the value otherwise.
          */
-    
-         float getVoiceParamValue(const char* address, int voice)
-         {
-             // TODO
-             /*
-             if (fPolyMax > 0) {
-                 return fPolyDSP->getVoiceParamValue(address, voice);
-             } else {
-                 return 0.0;
-             }
-             */
-             __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine getVoiceParamValue %s", address);
-             return reinterpret_cast<MapUI*>(voice)->getParamValue(address);
-         }
+        float getVoiceParamValue(const char* address, int voice)
+        {
+            assert(sizeof(int) == sizeof(MapUI*));
+            return reinterpret_cast<MapUI*>(voice)->getParamValue(address);
+        }
     
         /*
          * getParamAddress(id)
@@ -271,7 +240,6 @@ class FaustPolyEngine {
          */
         const char* getParamAddress(int id)
         {
-            __android_log_print(ANDROID_LOG_ERROR, "Faust", "FaustPolyEngine getParamAddress %d %s", id, fAPIUI.getParamAddress(id));
             return fAPIUI.getParamAddress(id);
         }
 

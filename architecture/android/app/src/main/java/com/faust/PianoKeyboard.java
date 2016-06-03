@@ -15,11 +15,11 @@ import android.view.ViewGroup;
  * This class implements a polyphonic continuous piano keyboard.
  */
 public class PianoKeyboard extends ViewGroup {
-	private PianoKey[] keys;
+    public PianoKey[] keys;
 	
 	// Config variables
 	private int numberOfKeys = 16;
-	private int baseNote = 72; // base MIDI note
+	public int baseNote = 72; // base MIDI note
 	
 	// local variables
 	private int numberOfWhiteKeys = 0;
@@ -35,9 +35,9 @@ public class PianoKeyboard extends ViewGroup {
 		/* when a key is pressed or released with:
 		 * note: MIDI note number
 		 * velocity: MIDI velocity
-		 * statu: true for down, false for up
+		 * status: true for down, false for up
 		 */
-		int onKeyChanged(int note, int velocity, boolean status);
+	    void onKeyChanged(int note, int velocity, boolean status);
 		/*
 		 * when the finger position on the Y axis changed where:
 		 * note: the MIDI pitch affected by this change
@@ -136,11 +136,11 @@ public class PianoKeyboard extends ViewGroup {
 	 * Subclass implementing a single key and its listener
 	 */
 	class PianoKey extends ViewGroup {
-		private PianoKeyElement keyUp, keyDown;
-		private int ID = 0; // key ID on the keyboard
-		private int keyType = 0; // key type (white left, center, right or black)
-        private int voice; // allocated voice for the played pitch
-		
+        private PianoKeyElement keyUp, keyDown;
+        private int ID = 0;         // key ID on the keyboard
+        private int keyType = 0;    // key type (white left, center, right or black)
+        public int voice;           // allocated voice for the played pitch
+
 		public PianoKey(Context context, int type, int id)
         {
 			super(context);
@@ -186,36 +186,48 @@ public class PianoKeyboard extends ViewGroup {
 			if (event.getAction() == MotionEvent.ACTION_DOWN) {
 				setKeyDown();
 				if (mOnKeyboardChangeListener != null) {
-					voice = mOnKeyboardChangeListener.onKeyChanged(pitch, (int)gain*127, true);
+                    mOnKeyboardChangeListener.onKeyChanged(pitch, (int)gain*127, true);
 				}
 			}
 			else if(event.getAction() == MotionEvent.ACTION_UP) {
                 setKeyUp();
                 if (mOnKeyboardChangeListener != null) {
-                    voice = mOnKeyboardChangeListener.onKeyChanged(pitch, 0, false);
+                     mOnKeyboardChangeListener.onKeyChanged(pitch, 0, false);
                 }
 			}
 			if (mOnKeyboardChangeListener != null) {
                 if (keyType != 3) {
                     if (event.getX() > whiteKeysWidth || event.getX() < 0) {
-                        mOnKeyboardChangeListener.onPitchBend(voice, pitch + (event.getX()/whiteKeysWidth));
+                        if (voice != -1) {
+                            mOnKeyboardChangeListener.onPitchBend(voice, pitch + (event.getX()/whiteKeysWidth));
+                        }
                     } else {
-                        mOnKeyboardChangeListener.onPitchBend(voice, pitch);
+                        if (voice != -1) {
+                            mOnKeyboardChangeListener.onPitchBend(voice, pitch);
+                        }
                     }
                 }
                 if (keyType == 3) {
                     if (event.getX() > blackKeysWidth || event.getX() < 0) {
-                        mOnKeyboardChangeListener.onPitchBend(voice, pitch + (event.getX()/blackKeysWidth));
+                        if (voice != -1) {
+                            mOnKeyboardChangeListener.onPitchBend(voice, pitch + (event.getX()/blackKeysWidth));
+                        }
                     } else {
-                        mOnKeyboardChangeListener.onPitchBend(voice, pitch);
+                        if (voice != -1) {
+                            mOnKeyboardChangeListener.onPitchBend(voice, pitch);
+                        }
                     }
                 }
                 if (event.getY() < blackKeysHeight) {
                     gain = event.getY()/blackKeysHeight;
-                    mOnKeyboardChangeListener.onYChanged(voice, gain);
+                    if (voice != -1) {
+                        mOnKeyboardChangeListener.onYChanged(voice, gain);
+                    }
                 } else {
                     gain = 1;
-                    mOnKeyboardChangeListener.onYChanged(voice, gain);
+                    if (voice != -1) {
+                        mOnKeyboardChangeListener.onYChanged(voice, gain);
+                    }
                 }
 			}
 			return true;

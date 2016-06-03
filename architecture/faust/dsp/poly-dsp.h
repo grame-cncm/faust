@@ -342,7 +342,7 @@ class mydsp_poly : public dsp, public midi {
             ui_interface->openTabBox("Polyphonic");
             
             // Grouped voices UI
-            ui_interface->openVerticalBox("All Voices");
+            ui_interface->openVerticalBox("Voices");
             ui_interface->addButton("Panic", &fPanic);
             fVoiceGroup->buildUserInterface(ui_interface);
             ui_interface->closeBox();

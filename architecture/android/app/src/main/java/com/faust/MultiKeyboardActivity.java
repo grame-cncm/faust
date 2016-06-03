@@ -1,6 +1,7 @@
 package com.faust;
 
 import com.faust.MultiParams.OnMultiParamsChangeListener;
+import com.faust.PianoKeyboard.PianoKey;
 import com.faust.PianoKeyboard.OnKeyboardChangeListener;
 import com.dsp_faust.dsp_faust;
 
@@ -18,15 +19,15 @@ public class MultiKeyboardActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.combined);
         
-        final PianoKeyboard keyboard = (PianoKeyboard) this.findViewById(R.id.PianoKeyboard);
+        final PianoKeyboard keyboard = (PianoKeyboard)this.findViewById(R.id.PianoKeyboard);
         keyboard.setOnKeyboardChangeListener(new OnKeyboardChangeListener(){
 			@Override
-			public int onKeyChanged(int note, int velocity, boolean i) {
-                if (i) {
-                    return dsp_faust.keyOn(note,velocity);
+	       public void onKeyChanged(int note, int velocity, boolean status) {
+               if (status) {
+                    keyboard.keys[note - keyboard.baseNote].voice = dsp_faust.keyOn(note, velocity);
                 } else {
                     dsp_faust.keyOff(note);
-                    return -1;
+                    keyboard.keys[note - keyboard.baseNote].voice = -1;
                 }
 			}
 			
