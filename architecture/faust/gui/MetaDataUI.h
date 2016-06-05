@@ -29,6 +29,7 @@
 
 #include <map>
 #include <set>
+#include <string>
 #include <assert.h>
 
 #include "faust/gui/SimpleParser.h"
@@ -96,6 +97,16 @@ protected:
         return fMenuDescription.count(zone) > 0;
     }
     
+    bool isLed(FAUSTFLOAT* zone)
+    {
+        return fLedSet.count(zone) > 0;
+    }
+    
+    bool isNumerical(FAUSTFLOAT* zone)
+    {
+        return fNumSet.count(zone) > 0;
+    }
+    
     /**
     * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
     * (but not those in the middle of the string)
@@ -132,38 +143,42 @@ protected:
                     }
                     break;
                     
-                case kEscape1 :
+                case kEscape1:
                     label += c;
                     state = kLabel;
                     break;
                     
-                case kEscape2 :
+                case kEscape2:
                     key += c;
                     state = kKey;
                     break;
                     
-                case kEscape3 :
+                case kEscape3:
                     value += c;
                     state = kValue;
                     break;
                     
-                case kKey :
+                case kKey:
                     assert(deep > 0);
                     switch (c) {
-                        case '\\' :  state = kEscape2;
+                        case '\\':
+                            state = kEscape2;
                             break;
                             
-                        case '[' :  deep++;
+                        case '[':
+                            deep++;
                             key += c;
                             break;
                             
-                        case ':' :  if (deep == 1) {
+                        case ':':
+                        if (deep == 1) {
                             state = kValue;
                         } else {
                             key += c;
                         }
                             break;
-                        case ']' :  deep--;
+                        case ']':
+                            deep--;
                             if (deep < 1) {
                                 metadata[rmWhiteSpaces(key)] = "";
                                 state = kLabel;
@@ -173,31 +188,34 @@ protected:
                                 key += c;
                             }
                             break;
-                        default :   key += c;
+                        default : key += c;
                     }
                     break;
                     
-                case kValue :
+                case kValue:
                     assert(deep > 0);
                     switch (c) {
-                        case '\\' : state = kEscape3;
+                        case '\\':
+                            state = kEscape3;
                             break;
                             
-                        case '[' :  deep++;
+                        case '[':
+                            deep++;
                             value += c;
                             break;
                             
-                        case ']' :  deep--;
+                        case ']':
+                            deep--;
                             if (deep < 1) {
-                                metadata[rmWhiteSpaces(key)]=rmWhiteSpaces(value);
+                                metadata[rmWhiteSpaces(key)] = rmWhiteSpaces(value);
                                 state = kLabel;
-                                key="";
-                                value="";
+                                key = "";
+                                value = "";
                             } else {
                                 value += c;
                             }
                             break;
-                        default :   value += c;
+                        default : value += c;
                     }
                     break;
                     
@@ -218,7 +236,7 @@ protected:
         std::string  ss = tt;	// ss string we are going to format
         int	lws = 0;            // last white space encountered
         int lri = 0;            // last return inserted
-        for (int i=0; i < (int)tt.size(); i++) {
+        for (int i = 0; i < (int)tt.size(); i++) {
             if (tt[i] == ' ') lws = i;
             if (((i-lri) >= n) && (lws > lri)) {
                 // insert return here
@@ -248,8 +266,7 @@ public:
     }
     
     /**
-     * Analyses the widget zone metadata declarations and takes
-     * appropriate actions
+     * Analyses the widget zone metadata declarations and takes appropriate actions
      */
     void declare(FAUSTFLOAT* zone, const char* key, const char* value)
     {

@@ -1412,11 +1412,12 @@ public:
         QList<QHostAddress>::iterator it;
         QString localhost("localhost"); 
         
-        for(it = ipAdresses.begin(); it != ipAdresses.end(); it++){
-            if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) != QHostAddress::LocalHost)
+        for (it = ipAdresses.begin(); it != ipAdresses.end(); it++) {
+            if ((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) != QHostAddress::LocalHost) {
                 return it->toString();
-            else if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) == QHostAddress::LocalHost)
+            } else if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) == QHostAddress::LocalHost) {
                 localhost = it->toString();
+            }
         }
         
         return localhost;
@@ -1504,11 +1505,10 @@ public:
     bool toPNG(const QString& filename, QString& error)
     {
         QFile file(filename);
-        if(file.open(QIODevice::WriteOnly)){
+        if (file.open(QIODevice::WriteOnly)) {
             fQrCode.save(&file, "PNG");
             return true;
-        }
-        else{
+        } else {
             error = "Impossible to write file.";
             return false;
         }
@@ -1523,8 +1523,9 @@ public:
      		fTimer->start(100);
 		}
 
-        if (fMainWindow)
+        if (fMainWindow) {
             fMainWindow->show();
+        }
 	}
     
     virtual void stop()
@@ -1565,7 +1566,10 @@ public:
 	{
 		QWidget* group = fGroupStack.top();
 		fGroupStack.pop();
-		if (fGroupStack.empty()) { group->show(); group->adjustSize();}
+		if (fGroupStack.empty()) {
+            group->show();
+            group->adjustSize();
+        }
 	}
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1592,8 +1596,8 @@ public:
     
 	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
 	{
-		QCheckBox* 	w = new QCheckBox(label);
-		uiCheckButton* 	c = new uiCheckButton(this, zone, w);
+		QCheckBox* w = new QCheckBox(label);
+		uiCheckButton* c = new uiCheckButton(this, zone, w);
         
 		insert(label, w);
 		QObject::connect(w, SIGNAL(stateChanged(int)), c, SLOT(setState(int)));
@@ -1641,7 +1645,7 @@ public:
                          "}"
                          );
 #endif
-        uiNumEntry*         c = new uiNumEntry(this, zone, w, init, min, max, step);
+        uiNumEntry* c = new uiNumEntry(this, zone, w, init, min, max, step);
         insert(label, w);
         w->setButtonSymbols(QAbstractSpinBox::NoButtons);
         w->setSuffix(fUnit[zone].c_str());
@@ -1711,11 +1715,11 @@ public:
             return;
         }
 		openVerticalBox(label);
-		QSlider* 	w = new QSlider(Qt::Vertical);
+		QSlider* w = new QSlider(Qt::Vertical);
         w->setMinimumHeight(160);
         w->setMinimumWidth(34);
 		//w->setTickPosition(QSlider::TicksBothSides);
- 		uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
+ 		uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
 		insert(label, w);
 		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
 		addNumDisplay(0, zone, init, min, max, step);
@@ -1737,11 +1741,11 @@ public:
             return;
         }
 		openHorizontalBox(label);
-		QSlider* 	w = new QSlider(Qt::Horizontal);
+		QSlider* w = new QSlider(Qt::Horizontal);
         w->setMinimumHeight(34);
         w->setMinimumWidth(160);
 		//w->setTickPosition(QSlider::TicksBothSides);
- 		uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
+ 		uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
 		insert(label, w);
 		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
 		addNumDisplay(0, zone, init, min, max, step);
@@ -1796,11 +1800,11 @@ public:
         openVerticalBox(label);
         bool db = (fUnit[zone] == "dB");
         
-        if (fNumSet.count(zone)) {
+        if (isNumerical(zone)) {
 			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
         } else {
             AbstractDisplay*  bargraph;
-            if (fLedSet.count(zone)) {
+            if (isLed(zone)) {
 				if (db) {
 					bargraph = new dbLED(min, max);
 				} else {
@@ -1828,10 +1832,10 @@ public:
         openVerticalBox(label);
         bool db = (fUnit[zone] == "dB");
         
-        if (fNumSet.count(zone)) {
+        if (isNumerical(zone)) {
 			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
         } else {
-			if (fLedSet.count(zone)) {
+			if (isLed(zone)) {
 				if (db) {
 					bargraph = new dbLED(min, max);
 				} else {
