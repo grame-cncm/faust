@@ -180,6 +180,8 @@ struct dsp_voice : public MapUI, public dsp {
 struct voice_factory {
 
     virtual dsp_voice* create() = 0;
+    virtual void metadata(Meta* meta) = 0;
+    
 };
 
 struct mydsp_voice : public dsp_voice {
@@ -203,6 +205,7 @@ struct mydsp_voice : public dsp_voice {
 struct mydsp_voice_factory : public voice_factory {
 
     virtual dsp_voice* create() { return new mydsp_voice(); }
+    virtual void metadata(Meta* meta) { mydsp::metadata(meta); }
 
 };
 
@@ -211,6 +214,7 @@ class mydsp_poly : public dsp, public midi {
 
     private:
     
+        voice_factory* fVoiceFactory;
         std::vector<dsp_voice*> fVoiceTable; // Individual voices
         dsp* fVoiceGroup;                    // Voices group to be used for GUI grouped control
         
@@ -411,15 +415,26 @@ class mydsp_poly : public dsp, public midi {
     
     public:
     
+        /**
+         * Constructor.
+         *
+         * @param max_polyphony - number of voices of polyphony
+         * @param control - whether voices will be dynamically allocated and controlled (typically by a MIDI controler). 
+         *                 If false all voices are always running.
+         * @param group - if true, voices are not individually accessible, a global "Voices" tab will automatically dispatch
+         *                 a given control on all voices, assuming GUI::updateAllGuis() is called.
+         *                If false, all voices can be individually controlled.
+         *
+         */
         mydsp_poly(int max_polyphony,
                 bool control = false,   
                 bool group = true):fGroups(&fPanic, panic, this)
         {
-            mydsp_voice_factory factory;
-            init(max_polyphony, &factory, control, group);
+            fVoiceFactory = new mydsp_voice_factory();
+            init(max_polyphony, fVoiceFactory, control, group);
         }
     
-        void metadata(Meta* meta) { mydsp::metadata(meta); }
+        void metadata(Meta* meta) { fVoiceFactory->metadata(meta); }
 
         virtual ~mydsp_poly()
         {
@@ -438,8 +453,9 @@ class mydsp_poly : public dsp, public midi {
             for (int i = 0; i < fMidiUIList.size(); i++) {
                 fMidiUIList[i]->removeMidiIn(this); 
             }
+            
+            delete fVoiceFactory;
         }
-    
     
         void init(int sample_rate)
         {
