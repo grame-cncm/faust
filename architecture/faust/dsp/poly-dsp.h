@@ -174,8 +174,6 @@ struct dsp_voice : public MapUI, public dsp {
         fDate = 0;
         fTrigger = false;
     }
-    
-    virtual void metadata(Meta* meta) = 0;
  
 };
 
@@ -240,7 +238,7 @@ struct mydsp_voice : public dsp_voice {
     virtual void instanceInit(int samplingRate) { fVoice.instanceInit(samplingRate); }
     virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice.compute(len, inputs, outputs); }
 
-    virtual void metadata(Meta* meta) { mydsp::metadata(meta); }
+    static void metadata(Meta* meta) { mydsp::metadata(meta); }
 
 };
 
@@ -500,7 +498,7 @@ class mydsp_poly : public dsp, public midi {
     
         static void metadata(Meta* m)
         {
-            mydsp::metadata(m);
+            mydsp_voice::metadata(m);
         }
         
         void init(int sample_rate)
