@@ -238,13 +238,13 @@ struct mydsp_voice : public dsp_voice {
     virtual void instanceInit(int samplingRate) { fVoice.instanceInit(samplingRate); }
     virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice.compute(len, inputs, outputs); }
 
-    static void metadata(Meta* meta) { mydsp::metadata(meta); }
-
 };
 
 struct mydsp_voice_factory : public voice_factory {
 
     virtual dsp_voice* create() { return new mydsp_voice(); }
+    
+    static void metadata(Meta* meta) { mydsp::metadata(meta); }
 };
 
 #endif
@@ -479,10 +479,10 @@ class mydsp_poly : public dsp, public midi {
     
         static void metadata(Meta* m)
         {
-            mydsp_voice::metadata(m);
+            mydsp_voice_factory::metadata(m);
         }
     #endif
- 
+    
         virtual ~mydsp_poly()
         {
             for (int i = 0; i < fNumOutputs; i++) {
