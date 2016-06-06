@@ -198,13 +198,13 @@ struct mydsp_voice : public dsp_voice {
     virtual void instanceInit(int samplingRate) { fVoice.instanceInit(samplingRate); }
     virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice.compute(len, inputs, outputs); }
 
-    static void metadata(Meta* meta) { mydsp::metadata(meta); }
-
 };
 
 struct mydsp_voice_factory : public voice_factory {
 
     virtual dsp_voice* create() { return new mydsp_voice(); }
+    
+    static void metadata(Meta* meta) { mydsp::metadata(meta); }
 };
 
 // Polyphonic DSP
@@ -419,7 +419,12 @@ class mydsp_poly : public dsp, public midi {
             mydsp_voice_factory factory;
             init(max_polyphony, &factory, control, group);
         }
-           
+    
+        static void metadata(Meta* m)
+        {
+            mydsp_voice_factory::metadata(m);
+        }
+
         virtual ~mydsp_poly()
         {
             for (int i = 0; i < fNumOutputs; i++) {
@@ -439,11 +444,7 @@ class mydsp_poly : public dsp, public midi {
             }
         }
     
-        static void metadata(Meta* m)
-        {
-            mydsp_voice::metadata(m);
-        }
-        
+    
         void init(int sample_rate)
         {
             // Init voices
