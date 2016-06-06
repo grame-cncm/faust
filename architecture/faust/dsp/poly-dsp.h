@@ -203,8 +203,7 @@ struct mydsp_voice : public dsp_voice {
 struct mydsp_voice_factory : public voice_factory {
 
     virtual dsp_voice* create() { return new mydsp_voice(); }
-    
-    static void metadata(Meta* meta) { mydsp::metadata(meta); }
+
 };
 
 // Polyphonic DSP
@@ -420,10 +419,7 @@ class mydsp_poly : public dsp, public midi {
             init(max_polyphony, &factory, control, group);
         }
     
-        static void metadata(Meta* m)
-        {
-            mydsp_voice_factory::metadata(m);
-        }
+        void metadata(Meta* meta) { mydsp::metadata(meta); }
 
         virtual ~mydsp_poly()
         {
