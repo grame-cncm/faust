@@ -24,7 +24,7 @@ Various principles have guided the design of \faust :
 
 \section{Signal Processor Semantic}
 A \faust program describes a \emph{signal processor}. 
-The role of a \textit{signal processor} is to transforms a group  of (possibly empty) \emph{input signals} in order to produce a group of (possibly empty) \emph{output signals}. 
+The role of a \textit{signal processor} is to transforms a (possibly empty) group  of \emph{input signals} in order to produce a (possibly empty) group of \emph{output signals}. 
 Most audio equipments can be modeled as \emph{signal processors}. 
 They have audio inputs, audio outputs as well as control signals interfaced with sliders, knobs, vu-meters, etc. 
 
@@ -32,10 +32,11 @@ More precisely :
 
 \begin{itemize}
 
-\item A \emph{signal} $s$ is a discrete function of time $s:\mathbb{N}\rightarrow\mathbb{R}$
-\marginpar{\faust considers two type of signals: \emph{integer signals} ($s:\mathbb{N}\rightarrow\mathbb{Z}$) and \emph{floating point signals} ($s:\mathbb{N}\rightarrow\mathbb{Q}$). Exchanges with the outside world are, by convention, made using floating point signals. The full range is represented by sample values between -1.0 and +1.0.}. 
-The value of signal $s$ at time $t$ is written $s(t)$. 
-The set $\mathbb{S}=\mathbb{N}\rightarrow\mathbb{R}$ is the set of all possible  signals.
+\item A \emph{signal} $s$ is a discrete function of time $s:\mathbb{Z}\rightarrow\mathbb{R}$.
+\marginpar{\faust considers two type of signals: \emph{integer signals} ($s:\mathbb{Z}\rightarrow\mathbb{Z}$) and \emph{floating point signals} ($s:\mathbb{Z}\rightarrow\mathbb{Q}$) Exchanges with the outside world are, by convention, made using floating point signals. The full range is represented by sample values between -1.0 and +1.0.}
+The value of a signal $s$ at time $t$ is written $s(t)$. The values of signals are usually needed starting from time $0$. But to take into account \emph{delay operations}, negative times are possible and are always mapped to zeros. Therefore for any \faust signal $s$ we have $\forall t<0, s(t)=0$. In operational terms this corresponds to assuming that all delay lines are signals initialized with $0$s.
+ 
+\item The set of all possible  signals is $\mathbb{S}=\mathbb{Z}\rightarrow\mathbb{R}$.
 
 \item A group of $n$ signals (a \emph{n}-tuple of signals) is written
 $(s_{1},\ldots,s_{n})\in \mathbb{S}^{n}$.

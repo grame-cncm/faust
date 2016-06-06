@@ -1077,7 +1077,9 @@ process = waveform {10,20,30,40,50,60,70}, %(7)~+(3) : rdtable;
 %--------------------------------------------------------------------------------------------------------------
 
 Most \faust primitives are analogue to their C counterpart but lifted to signal processing.
-For example $+$ is a function of type $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ that transforms a pair of signals $(x_1,x_2)$ into a 1-tuple of signals $(y)$ such that $\forall t\in\mathbb{N}, y(t)=x_{1}(t)+x_{2}(t)$.
+For example \lstinline|+| is a function of type $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ that transforms a pair of signals $(x_1,x_2)$ into a 1-tuple of signals $(y)$ such that $\forall t\in\mathbb{N}, y(t)=x_{1}(t)+x_{2}(t)$. The function \lstinline|-| has type $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ and transforms a pair of signals $(x_1,x_2)$ into a 1-tuple of signals $(y)$ such that $\forall t\in\mathbb{N}, y(t)=x_{1}(t)-x_{2}(t)$. 
+
+Please be aware that the unary \lstinline|-| only exists in a limited form\marginpar{Warning: unlinke other programming languages the unary operatior \lstinline|-| only exists in limited form in \faust}. It can be used with numbers: \lstinline|-0.5| and variables: \lstinline|-myvar|, but not with expressions surrounded by parenthesis, because in this case it represents a partial application.  For instance   \lstinline|-(a * b)| is a partial application. It is syntactic sugar for \lstinline|_,(a * b) : -|. If you want to negate a complex term in parenthesis, you'll have to use \lstinline|0 - (a * b)| instead.
 
 \bigskip
 
