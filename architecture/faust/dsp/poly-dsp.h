@@ -497,6 +497,11 @@ class mydsp_poly : public dsp, public midi {
                 fMidiUIList[i]->removeMidiIn(this); 
             }
         }
+    
+        static void metadata(Meta* m)
+        {
+            mydsp::metadata(m);
+        }
         
         void init(int sample_rate)
         {

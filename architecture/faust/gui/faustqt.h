@@ -62,22 +62,13 @@
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/ValueConverter.h"
-#include "faust/gui/SimpleParser.h"
+#include "faust/gui/MetaDataUI.h"
 
 #include <sstream>
-
-//#define STYLESHEET "QPushButton {background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #B0B0B0, stop: 1 #404040); border: 2px solid grey; border-radius: 6px; margin-top: 1ex; } QPushButton:hover { border: 2px solid orange; } QPushButton:pressed { background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #404040, stop: 1 #B0B0B0); } QGroupBox, QMainWindow { background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1, stop: 0 #A0A0A0, stop: 1 #202020); border: 2px solid gray; border-radius: 5px; margin-top: 3ex; font-size:10pt; font-weight:bold; color: white; } QGroupBox::title, QMainWindow::title { subcontrol-origin: margin; subcontrol-position: top center; padding: 0 5px; } QSlider::groove:vertical { background: red; position: absolute; left: 13px; right: 13px; } QSlider::handle:vertical { height: 40px; width: 30px; background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000); margin: 0 -5px; /* expand outside the groove */ border-radius: 5px; } QSlider::add-page:vertical { background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 yellow, stop : 0.5 orange); } QSlider::sub-page:vertical { background: grey; }  QSlider::groove:horizontal { background: red; position: absolute; top: 14px; bottom: 14px; }  QSlider::handle:horizontal { width: 40px; background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 #AAAAAA, stop : 0.05 #0A0A0A, stop: 0.3 #101010, stop : 0.90 #AAAAAA, stop: 0.91 #000000); margin: -5px 0; border-radius: 5px; } QSlider::sub-page:horizontal { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 yellow, stop : 0.5 orange); } QSlider::add-page:horizontal { background: grey; }QTabWidget::pane {border-top: 2px solid orange; background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #A0A0A0, stop: 1 #202020); } QTabWidget::tab-bar { left: 5px; }  QTabBar::tab { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #909090, stop: 0.4 #888888, stop: 0.5 #808080, stop: 1.0 #909090); border: 2px solid #808080; border-bottom-color: orange; border-top-left-radius: 4px; border-top-right-radius: 4px; min-width: 8ex; padding: 2px; }  QTabBar::tab:selected, QTabBar::tab:hover { background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #D0D0D0, stop: 0.4 #A0A0A0, stop: 0.5 #808080, stop: 1.0 #A0A0A0); } QTabBar::tab:selected { border-color: orange; border-bottom-color: #A0A0A0; } QTabBar::tab:!selected { margin-top: 2px; }"
-//#define STYLESHEET ""
-//----------------------------------
 
 // for compatibility
 #define minValue minimum
 #define maxValue maximum
-
-static inline bool startWith(const std::string& str, const std::string& prefix)
-{
-    return (str.substr(0, prefix.size()) == prefix);
-}
 
 //==============================BEGIN QSYNTHKNOB=====================================
 //
@@ -94,6 +85,7 @@ static inline bool startWith(const std::string& str, const std::string& prefix)
 
 class qsynthDialVokiStyle : public QCommonStyle
 {
+    
 public:
 	qsynthDialVokiStyle() {};
 	virtual ~qsynthDialVokiStyle() {};
@@ -106,9 +98,8 @@ public:
 			return;
 		}
         
-		const QStyleOptionSlider *dial = qstyleoption_cast<const QStyleOptionSlider *>(opt);
-		if (dial == NULL)
-			return;
+		const QStyleOptionSlider* dial = qstyleoption_cast<const QStyleOptionSlider *>(opt);
+		if (dial == NULL) return;
         
 		double angle = DIAL_MIN // offset
         + (DIAL_RANGE *
@@ -144,8 +135,7 @@ public:
 		p->setRenderHint(QPainter::Antialiasing, true);
         
 		// The bright metering bit...
-        
-		QConicalGradient meterShadow(xcenter, ycenter, -90);
+    	QConicalGradient meterShadow(xcenter, ycenter, -90);
 		meterShadow.setColorAt(0, meterColor.dark());
 		meterShadow.setColorAt(0.5, meterColor);
 		meterShadow.setColorAt(1.0, meterColor.light().light());
@@ -155,8 +145,7 @@ public:
                    meterWidth, meterWidth, (180 + 45) * 16, -(degrees - 45) * 16);
         
 		// Knob projected shadow
-		QRadialGradient projectionGradient(
-                                           xcenter + shineCenter, ycenter + shineCenter,
+		QRadialGradient projectionGradient(xcenter + shineCenter, ycenter + shineCenter,
                                            shineExtension,	xcenter + shadowShift, ycenter + shadowShift);
 		projectionGradient.setColorAt(0, QColor(  0, 0, 0, 100));
 		projectionGradient.setColorAt(1, QColor(200, 0, 0,  10));
@@ -166,14 +155,12 @@ public:
                        knobWidth, knobWidth);
         
 		// Knob body and face...
-        
-		QPen pen;
+      	QPen pen;
 		pen.setColor(knobColor);
 		pen.setWidth(knobBorderWidth);
 		p->setPen(pen);
         
-		QRadialGradient gradient(
-                                 xcenter - shineCenter, ycenter - shineCenter,
+		QRadialGradient gradient(xcenter - shineCenter, ycenter - shineCenter,
                                  shineExtension,	xcenter - shineFocus, ycenter - shineFocus);
 		gradient.setColorAt(0.2, knobColor.light().light());
 		gradient.setColorAt(0.5, knobColor);
@@ -184,11 +171,9 @@ public:
                        knobWidth, knobWidth);
         
 		// Tick notches...
+     	p->setBrush(Qt::NoBrush);
         
-		p->setBrush(Qt::NoBrush);
-        
-		if (dial->subControls & QStyle::SC_DialTickmarks)
-		{
+		if (dial->subControls & QStyle::SC_DialTickmarks) {
 			pen.setColor(pal.dark().color());
 			pen.setWidth(notchWidth);
 			p->setPen(pen);
@@ -236,8 +221,7 @@ public:
                    side - scaleShadowWidth, side - scaleShadowWidth, -45 * 16, 270 * 16);
         
 		// Pointer notch...
-        
-		double hyp = double(side) / 2.0;
+   	double hyp = double(side) / 2.0;
 		double len = hyp - indent - 1;
         
 		double x = xcenter - len * sin(angle);
@@ -274,7 +258,8 @@ public:
  */
 class AbstractDisplay : public QWidget
 {
-    protected :
+    
+protected:
     
     FAUSTFLOAT fMin;
     FAUSTFLOAT fMax;
@@ -314,7 +299,8 @@ public:
  */
 class dbAbstractDisplay : public AbstractDisplay
 {
-    protected :
+    
+protected:
     
     FAUSTFLOAT      fScaleMin;
     FAUSTFLOAT      fScaleMax;
@@ -441,6 +427,7 @@ public:
  */
 class dbLED : public dbAbstractDisplay
 {
+    
 protected:
     
     /**
@@ -486,9 +473,10 @@ public:
  */
 class LED : public AbstractDisplay
 {
-    QColor  fColor;
     
 protected:
+    
+     QColor  fColor;
     
     /**
      * Draw the LED using a transparency depending of its value
@@ -522,7 +510,9 @@ public:
  */
 class linBargraph : public AbstractDisplay
 {
-    protected :
+    
+protected:
+    
     QBrush  fBrush;
     
     /**
@@ -581,6 +571,7 @@ public:
  */
 class linVerticalBargraph : public linBargraph
 {
+    
 public:
     
     linVerticalBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : linBargraph(lo,hi)
@@ -599,6 +590,7 @@ public:
  */
 class linHorizontalBargraph : public linBargraph
 {
+    
 public:
     
     linHorizontalBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : linBargraph(lo,hi)
@@ -606,7 +598,7 @@ public:
         setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     }
     
-    virtual QSize sizeHint () const
+    virtual QSize sizeHint() const
     {
         return QSize(128, 16);
     }
@@ -617,9 +609,10 @@ public:
  */
 class dbBargraph : public dbAbstractDisplay
 {
-    QBrush  fBackColor;
     
-    protected :
+protected:
+    
+    QBrush  fBackColor;
     
     // These two abstract methods are implemented
     // according to the vertical or horizontal direction
@@ -645,12 +638,12 @@ class dbBargraph : public dbAbstractDisplay
      */
     void paintContent(QPainter* painter) const
     {
-        int   l = fLevel.size();
+        int l = fLevel.size();
         
-        FAUSTFLOAT   p = -1;   // fake value indicates to start from border
-        int     n = 0;
+        FAUSTFLOAT p = -1;   // fake value indicates to start from border
+        int n = 0;
         // paint all the full segments < fValue
-        for (n=0; (n < l) && (fValue > fLevel[n]); n++) {
+        for (n = 0; (n < l) && (fValue > fLevel[n]); n++) {
             p = paintSegment(painter, p, fLevel[n], fBrush[n]);
         }
         // paint the last segment
@@ -683,6 +676,7 @@ public:
  */
 class dbVerticalBargraph : public dbBargraph
 {
+    
 protected:
     /**
      * Convert a dB value into a vertical position
@@ -730,7 +724,7 @@ public:
         initLevelsColors(1);
     }
     
-    virtual QSize sizeHint () const
+    virtual QSize sizeHint() const
     {
         return QSize(18, 256);
     }
@@ -770,7 +764,7 @@ protected:
     /**
      * Paint a horizontal color segment
      */
-    int paintSegment (QPainter* painter, int pos, FAUSTFLOAT v, const QBrush& b) const
+    int paintSegment(QPainter* painter, int pos, FAUSTFLOAT v, const QBrush& b) const
     {
         if (pos == -1) pos = 0;
         FAUSTFLOAT x = dB2x(v);
@@ -796,128 +790,6 @@ public:
 //
 //===============================END DISPLAYS====================================
 
-//============================= BEGIN GROUP LABEL METADATA===========================
-// Unlike widget's label, metadata inside group's label are not extracted directly by
-// the Faust compiler. Therefore they must be extracted within the architecture file
-//-----------------------------------------------------------------------------------
-//
-
-/**
- * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
- * (but not those in the middle of the string)
- */
-static std::string rmWhiteSpaces(const std::string& s)
-{
-    size_t i = s.find_first_not_of(" \t");
-    size_t j = s.find_last_not_of(" \t");
-  	if ( (i != std::string::npos) && (j != std::string::npos) ) {
-		return s.substr(i, 1+j-i);
-	} else {
-		return "";
-	}
-}
-
-/**
- * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata(unit=dB)
- */
-static void extractMetadata(const std::string& fulllabel, std::string& label, std::map<std::string, std::string>& metadata)
-{
-    enum {kLabel, kEscape1, kEscape2, kEscape3, kKey, kValue};
-    int state = kLabel; int deep = 0;
-    std::string key, value;
-    
-    for (unsigned int i=0; i < fulllabel.size(); i++) {
-        char c = fulllabel[i];
-        switch (state) {
-            case kLabel :
-                assert (deep == 0);
-                switch (c) {
-                    case '\\' : state = kEscape1; break;
-                    case '[' : state = kKey; deep++; break;
-                    default : label += c;
-                }
-                break;
-                
-            case kEscape1 :
-                label += c;
-                state = kLabel;
-                break;
-                
-            case kEscape2 :
-                key += c;
-                state = kKey;
-                break;
-                
-            case kEscape3 :
-                value += c;
-                state = kValue;
-                break;
-                
-            case kKey :
-                assert (deep > 0);
-                switch (c) {
-                    case '\\' :  state = kEscape2;
-                        break;
-                        
-                    case '[' :  deep++;
-                        key += c;
-                        break;
-                        
-                    case ':' :  if (deep == 1) {
-                        state = kValue;
-                    } else {
-                        key += c;
-                    }
-                        break;
-                    case ']' :  deep--;
-                        if (deep < 1) {
-                            metadata[rmWhiteSpaces(key)] = "";
-                            state = kLabel;
-                            key="";
-                            value="";
-                        } else {
-                            key += c;
-                        }
-                        break;
-                    default :   key += c;
-                }
-                break;
-                
-            case kValue :
-                assert (deep > 0);
-                switch (c) {
-                    case '\\' : state = kEscape3;
-                        break;
-                        
-                    case '[' :  deep++;
-                        value += c;
-                        break;
-                        
-                    case ']' :  deep--;
-                        if (deep < 1) {
-                            metadata[rmWhiteSpaces(key)]=rmWhiteSpaces(value);
-                            state = kLabel;
-                            key="";
-                            value="";
-                        } else {
-                            value += c;
-                        }
-                        break;
-                    default :   value += c;
-                }
-                break;
-                
-            default :
-                std::cerr << "ERROR unrecognized state " << state << std::endl;
-        }
-    }
-    label = rmWhiteSpaces(label);
-}
-
-//
-//============================= END GROUP LABEL METADATA===========================
-
-
 /******************************************************************************
  *******************************************************************************
  
@@ -936,11 +808,11 @@ class uiButton : public QObject, public uiItem
 {
     Q_OBJECT
     
-    public :
+public:
+    
 	QAbstractButton* 	fButton;
     
 	uiButton (GUI* ui, FAUSTFLOAT* zone, QAbstractButton* b) : uiItem(ui, zone), fButton(b) {}
-    
     
 	virtual void reflectZone()
 	{
@@ -963,7 +835,8 @@ class uiCheckButton : public QObject, public uiItem
 {
     Q_OBJECT
     
-    public :
+public:
+    
 	QCheckBox* 	fCheckBox;
     
 	uiCheckButton (GUI* ui, FAUSTFLOAT* zone, QCheckBox* b) : uiItem(ui, zone), fCheckBox(b) {}
@@ -987,7 +860,8 @@ class uiSlider : public QObject, public uiItem
 {
     Q_OBJECT
     
-    public :
+protected:
+    
     QAbstractSlider* 	fSlider;
     FAUSTFLOAT			fCur;
     FAUSTFLOAT			fMin;
@@ -995,21 +869,15 @@ class uiSlider : public QObject, public uiItem
     FAUSTFLOAT			fStep;
 	ValueConverter*		fConverter;
     
-	enum Scale {
-		kLin,
-		kLog,
-		kExp
-	};
+public:
     
-    public :
-    
-    uiSlider (GUI* ui, FAUSTFLOAT* zone, QAbstractSlider* slider, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step, Scale scale)
+    uiSlider (GUI* ui, FAUSTFLOAT* zone, QAbstractSlider* slider, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step, MetaDataUI::Scale scale)
     : uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step)
     {
 		// select appropriate converter according to scale mode
-		if (scale == kLog) 			{ fConverter = new LogValueConverter(0, 10000, fMin, fMax); }
-		else if (scale == kExp) 	{ fConverter = new ExpValueConverter(0, 10000, fMin, fMax); }
-        else 						{ fConverter = new LinearValueConverter(0, 10000, fMin, fMax); }
+		if (scale == MetaDataUI::kLog) 			{ fConverter = new LogValueConverter(0, 10000, fMin, fMax); }
+		else if (scale == MetaDataUI::kExp) 	{ fConverter = new ExpValueConverter(0, 10000, fMin, fMax); }
+        else                                    { fConverter = new LinearValueConverter(0, 10000, fMin, fMax); }
         
         fSlider->setMinimum(0);
         fSlider->setMaximum(10000);
@@ -1042,6 +910,9 @@ class uiSlider : public QObject, public uiItem
 class ZoneSetter : public QObject
 {
     Q_OBJECT
+    
+protected:
+    
     FAUSTFLOAT  fValue;
     FAUSTFLOAT* fZone;
     
@@ -1068,10 +939,13 @@ public:
 class uiRadioButtons : public QGroupBox, public uiItem
 {
     Q_OBJECT
+    
+protected:
+    
     vector<double>          fValues;
     vector<QRadioButton*>   fButtons;
     
-    public :
+public:
     
     uiRadioButtons (GUI* ui, FAUSTFLOAT* z, const char* label,
                     FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT /*step*/,
@@ -1149,9 +1023,12 @@ class uiRadioButtons : public QGroupBox, public uiItem
 class uiMenu : public QComboBox, public uiItem
 {
     Q_OBJECT
+    
+protected:
+    
     vector<double>  fValues;
     
-    public :
+public:
     
     uiMenu (GUI* ui, FAUSTFLOAT* z, const char* /*label*/,
             FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT /*step*/,
@@ -1217,9 +1094,6 @@ class uiMenu : public QComboBox, public uiItem
     }
 };
 
-
-
-
 /**
  * A bargraph representing the value of a zone
  */
@@ -1227,8 +1101,11 @@ class uiBargraph : public QObject, public uiItem
 {
     Q_OBJECT
     
-    public :
+protected:
+    
     AbstractDisplay*   fBar;
+    
+public:
     
     uiBargraph (GUI* ui, FAUSTFLOAT* zone, AbstractDisplay* bar, FAUSTFLOAT lo, FAUSTFLOAT hi)
     : uiItem(ui, zone), fBar(bar)
@@ -1254,13 +1131,16 @@ class uiNumEntry : public QObject, public uiItem
 {
     Q_OBJECT
     
-    public :
+protected:
+    
 	QDoubleSpinBox* 	fNumEntry;
 	FAUSTFLOAT			fCur;
 	FAUSTFLOAT			fMin;
 	FAUSTFLOAT			fMax;
 	FAUSTFLOAT			fStep;
 	int					fDecimals;
+    
+public:
     
 	uiNumEntry (GUI* ui, FAUSTFLOAT* zone, QDoubleSpinBox* numEntry, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
     : uiItem(ui, zone), fNumEntry(numEntry), fCur(cur), fMin(lo), fMax(hi), fStep(step)
@@ -1297,64 +1177,19 @@ class uiNumEntry : public QObject, public uiItem
  *******************************************************************************
  *******************************************************************************/
 
-class QTGUI : public QWidget, public GUI
+class QTGUI : public QWidget, public GUI, public MetaDataUI
 {
     Q_OBJECT
     
+protected:
+    
 	QTimer*                 fTimer;
-    std::string				gGroupTooltip;
     std::stack<QWidget* > 	fGroupStack;
     
     QMainWindow*            fMainWindow;
     QVBoxLayout*            fGeneralLayout;
     
     QPixmap                 fQrCode;
-    
-    std::map<FAUSTFLOAT*, FAUSTFLOAT>      fGuiSize;            // map widget zone with widget size coef
-    std::map<FAUSTFLOAT*, std::string>     fTooltip;            // map widget zone with tooltip strings
-    std::map<FAUSTFLOAT*, std::string>     fUnit;               // map widget zone to unit string (i.e. "dB")
-    std::map<FAUSTFLOAT*, std::string>     fRadioDescription;   // map zone to {'low':440; ...; 'hi':1000.0}
-    std::map<FAUSTFLOAT*, std::string>     fMenuDescription;    // map zone to {'low':440; ...; 'hi':1000.0}
-    std::set<FAUSTFLOAT*>                  fKnobSet;            // set of widget zone to be knobs
-    std::set<FAUSTFLOAT*>                  fLedSet;             // set of widget zone to be LEDs
-    std::set<FAUSTFLOAT*>                  fNumSet;             // set of widget zone to be numerical bargraphs
-    std::set<FAUSTFLOAT*>                  fLogSet;             // set of widget zone having a log UI scale
-    std::set<FAUSTFLOAT*>                  fExpSet;             // set of widget zone having an exp UI scale
-    
-    void clearMetadata()
-    {
-        fGuiSize.clear();
-        fTooltip.clear();
-        fUnit.clear();
-        fRadioDescription.clear();
-        fMenuDescription.clear();
-        fKnobSet.clear();
-        fLedSet.clear();
-        fNumSet.clear();
-        fLogSet.clear();
-        fExpSet.clear();
-    }
-    
-    /**
-     * Format tooltip string by replacing some white spaces by
-     * return characters so that line width doesn't exceed n.
-     * Limitation : long words exceeding n are not cut
-     */
-	virtual std::string formatTooltip(int n, const std::string& tt)
-	{
-		std::string  ss = tt;	// ss string we are going to format
-		int	lws = 0;	// last white space encountered
-		int 	lri = 0;	// last return inserted
-		for (int i=0; i< (int)tt.size(); i++) {
-			if (tt[i] == ' ') lws = i;
-			if (((i-lri) >= n) && (lws > lri)) {
-				// insert return here
-				ss[lws] = '\n';
-				lri = lws;
-			}
-		}
-		return ss;
-	}
     
 	bool isTabContext()
 	{
@@ -1415,25 +1250,7 @@ class QTGUI : public QWidget, public GUI
         }
     }
     
-    /**
-     * Check if a log scale is required
-     */
-    uiSlider::Scale getScale(FAUSTFLOAT* zone)
-    {
-        if (fLogSet.count(zone) > 0) return uiSlider::kLog;
-		if (fExpSet.count(zone) > 0) return uiSlider::kExp;
-		return uiSlider::kLin;
-    }
-    
-    /**
-     * Check if a knob is required
-     */
-    bool isKnob(FAUSTFLOAT* zone)
-    {
-        return fKnobSet.count(zone) > 0;
-    }
-    
-	void openBox(const char* fulllabel, QLayout* layout)
+    void openBox(const char* fulllabel, QLayout* layout)
 	{
         std::map<std::string, std::string> metadata;
         std::string label;
@@ -1451,7 +1268,7 @@ class QTGUI : public QWidget, public GUI
                 pal.setColor(box->backgroundRole(), QColor::fromRgb(150, 150, 150));
                 box->setPalette(pal);
                 
-            } else  if (label.size()>0) {
+            } else if (label.size() > 0) {
                 QGroupBox* group = new QGroupBox(this);
                 group->setTitle(label.c_str());
                 box = group;
@@ -1477,7 +1294,7 @@ class QTGUI : public QWidget, public GUI
                 box = new QWidget();
                 // set background color
                 QPalette pal = box->palette();
-                pal.setColor(box->backgroundRole(), QColor::fromRgb(150, 150, 150) );
+                pal.setColor(box->backgroundRole(), QColor::fromRgb(150, 150, 150));
                 box->setPalette(pal);
                 
             } else  if (label.size()>0) {
@@ -1519,7 +1336,7 @@ class QTGUI : public QWidget, public GUI
 		fGroupStack.push(group);
 	}
     
-    public slots :
+    public slots:
     
 	void update()		
     {
@@ -1581,47 +1398,7 @@ public:
      */
     virtual void declare(FAUSTFLOAT* zone, const char* key, const char* value)
     {
-        if (zone == 0) {
-            // special zone 0 means group metadata
-            if (strcmp(key,"tooltip") == 0) {
-                // only group tooltip are currently implemented
-                gGroupTooltip = formatTooltip(30, value);
-            }
-        } else {
-            if (strcmp(key,"size") == 0) {
-                fGuiSize[zone]=atof(value);
-            }
-            else if (strcmp(key,"tooltip") == 0) {
-                fTooltip[zone] = formatTooltip(30, value) ;
-            }
-            else if (strcmp(key,"unit") == 0) {
-                fUnit[zone] = value ;
-            }
-            else if (strcmp(key,"scale") == 0) {
-                if (strcmp(value,"log") == 0) {
-                    fLogSet.insert(zone);
-                } else if (strcmp(value,"exp") == 0) {
-                    fExpSet.insert(zone);
-                }
-            }
-            else if (strcmp(key,"style") == 0) {
-                // else if ((strcmp(key,"style") == 0) || (strcmp(key,"type") == 0)) {
-                if (strcmp(value,"knob") == 0) {
-                    fKnobSet.insert(zone);
-                } else if (strcmp(value,"led") == 0) {
-                    fLedSet.insert(zone);
-                } else if (strcmp(value,"numerical") == 0) {
-                    fNumSet.insert(zone);
-                } else {
-                    const char* p = value;
-                    if (parseWord(p,"radio")) {
-                        fRadioDescription[zone] = string(p);
-                    } else if (parseWord(p,"menu")) {
-                        fMenuDescription[zone] = string(p);
-                    }
-                }
-            }
-        }
+        MetaDataUI::declare(zone, key, value);
     }
     
 #if defined(HTTPCTRL) && defined(QRCODECTRL)
@@ -1635,11 +1412,12 @@ public:
         QList<QHostAddress>::iterator it;
         QString localhost("localhost"); 
         
-        for(it = ipAdresses.begin(); it != ipAdresses.end(); it++){
-            if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) != QHostAddress::LocalHost)
+        for (it = ipAdresses.begin(); it != ipAdresses.end(); it++) {
+            if ((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) != QHostAddress::LocalHost) {
                 return it->toString();
-            else if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) == QHostAddress::LocalHost)
+            } else if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) == QHostAddress::LocalHost) {
                 localhost = it->toString();
+            }
         }
         
         return localhost;
@@ -1657,10 +1435,11 @@ public:
         displayQRCode(url, NULL);
     }
     
-    void displayQRCode(const QString& url, QMainWindow* parent = NULL){
-        
-        if (parent == NULL)
+    void displayQRCode(const QString& url, QMainWindow* parent = NULL)
+    {
+        if (parent == NULL) {
             parent = new QMainWindow;
+        }
         
         QWidget* centralWidget = new QWidget;
         parent->setCentralWidget(centralWidget);
@@ -1680,14 +1459,14 @@ public:
         // build the QRCode image
         QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_RGB32);
         // clear the image
-        for (int y=0; y<qrc->width+2*padding; y++) {
-            for (int x=0; x<qrc->width+2*padding; x++) {
+        for (int y = 0; y < qrc->width+2*padding; y++) {
+            for (int x = 0; x < qrc->width+2*padding; x++) {
                 image.setPixel(x, y, colors[0]);
             }
         }
         // copy the qrcode inside
-        for (int y=0; y<qrc->width; y++) {
-            for (int x=0; x<qrc->width; x++) {
+        for (int y = 0; y < qrc->width; y++) {
+            for (int x = 0; x < qrc->width; x++) {
                 image.setPixel(x+padding, y+padding, colors[qrc->data[y*qrc->width+x]&1]);
             }
         }
@@ -1696,7 +1475,6 @@ public:
         QLabel* myLabel = new QLabel(centralWidget);
         
         fQrCode = QPixmap::fromImage(big);
-        
         myLabel->setPixmap(fQrCode);
         
         //----Written Address
@@ -1727,11 +1505,10 @@ public:
     bool toPNG(const QString& filename, QString& error)
     {
         QFile file(filename);
-        if(file.open(QIODevice::WriteOnly)){
+        if (file.open(QIODevice::WriteOnly)) {
             fQrCode.save(&file, "PNG");
             return true;
-        }
-        else{
+        } else {
             error = "Impossible to write file.";
             return false;
         }
@@ -1746,8 +1523,9 @@ public:
      		fTimer->start(100);
 		}
 
-        if (fMainWindow)
+        if (fMainWindow) {
             fMainWindow->show();
+        }
 	}
     
     virtual void stop()
@@ -1776,7 +1554,8 @@ public:
         openBox(label, new QVBoxLayout());
     }
     
-    virtual void openFrameBox(const char* ) 		{}
+    virtual void openFrameBox(const char* )
+    {}
     
 	virtual void openTabBox(const char* label) 		
     { 
@@ -1787,7 +1566,10 @@ public:
 	{
 		QWidget* group = fGroupStack.top();
 		fGroupStack.pop();
-		if (fGroupStack.empty()) { group->show(); group->adjustSize();}
+		if (fGroupStack.empty()) {
+            group->show();
+            group->adjustSize();
+        }
 	}
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1814,8 +1596,8 @@ public:
     
 	virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
 	{
-		QCheckBox* 	w = new QCheckBox(label);
-		uiCheckButton* 	c = new uiCheckButton(this, zone, w);
+		QCheckBox* w = new QCheckBox(label);
+		uiCheckButton* c = new uiCheckButton(this, zone, w);
         
 		insert(label, w);
 		QObject::connect(w, SIGNAL(stateChanged(int)), c, SLOT(setState(int)));
@@ -1863,7 +1645,7 @@ public:
                          "}"
                          );
 #endif
-        uiNumEntry*         c = new uiNumEntry(this, zone, w, init, min, max, step);
+        uiNumEntry* c = new uiNumEntry(this, zone, w, init, min, max, step);
         insert(label, w);
         w->setButtonSymbols(QAbstractSpinBox::NoButtons);
         w->setSuffix(fUnit[zone].c_str());
@@ -1925,19 +1707,19 @@ public:
 		if (isKnob(zone)) {
 			addVerticalKnob(label, zone, init, min, max, step);
 			return;
-        } else if (fRadioDescription.count(zone)) {
-            addVerticalRadioButtons(label,zone,init,min,max,step,fRadioDescription[zone].c_str());
+        } else if (isRadio(zone)) {
+            addVerticalRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str());
             return;
-        } else if (fMenuDescription.count(zone)) {
-            addMenu(label,zone,init,min,max,step,fMenuDescription[zone].c_str());
+        } else if (isMenu(zone)) {
+            addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
             return;
         }
 		openVerticalBox(label);
-		QSlider* 	w = new QSlider(Qt::Vertical);
+		QSlider* w = new QSlider(Qt::Vertical);
         w->setMinimumHeight(160);
         w->setMinimumWidth(34);
 		//w->setTickPosition(QSlider::TicksBothSides);
- 		uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
+ 		uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
 		insert(label, w);
 		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
 		addNumDisplay(0, zone, init, min, max, step);
@@ -1951,19 +1733,19 @@ public:
 		if (isKnob(zone)) {
 			addHorizontalKnob(label, zone, init, min, max, step);
 			return;
-        } else if (fRadioDescription.count(zone)) {
-            addHorizontalRadioButtons(label,zone,init,min,max,step,fRadioDescription[zone].c_str());
+        } else if (isRadio(zone)) {
+            addHorizontalRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str());
             return;
-        } else if (fMenuDescription.count(zone)) {
-            addMenu(label,zone,init,min,max,step,fMenuDescription[zone].c_str());
+        } else if (isMenu(zone)) {
+            addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
             return;
         }
 		openHorizontalBox(label);
-		QSlider* 	w = new QSlider(Qt::Horizontal);
+		QSlider* w = new QSlider(Qt::Horizontal);
         w->setMinimumHeight(34);
         w->setMinimumWidth(160);
 		//w->setTickPosition(QSlider::TicksBothSides);
- 		uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
+ 		uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
 		insert(label, w);
 		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
 		addNumDisplay(0, zone, init, min, max, step);
@@ -1996,7 +1778,6 @@ public:
         clearMetadata();
     }
     
-    
     virtual void addMenu(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
                          FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
     {
@@ -2019,12 +1800,11 @@ public:
         openVerticalBox(label);
         bool db = (fUnit[zone] == "dB");
         
-        
-        if (fNumSet.count(zone)) {
+        if (isNumerical(zone)) {
 			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
         } else {
             AbstractDisplay*  bargraph;
-            if (fLedSet.count(zone)) {
+            if (isLed(zone)) {
 				if (db) {
 					bargraph = new dbLED(min, max);
 				} else {
@@ -2052,10 +1832,10 @@ public:
         openVerticalBox(label);
         bool db = (fUnit[zone] == "dB");
         
-        if (fNumSet.count(zone)) {
+        if (isNumerical(zone)) {
 			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
         } else {
-			if (fLedSet.count(zone)) {
+			if (isLed(zone)) {
 				if (db) {
 					bargraph = new dbLED(min, max);
 				} else {
