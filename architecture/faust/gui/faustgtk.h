@@ -28,6 +28,7 @@
 #define FAUST_GTKUI_H
 
 #include "faust/gui/GUI.h"
+#include "faust/gui/MetaDataUI.h"
 
 /******************************************************************************
 *******************************************************************************
@@ -55,11 +56,6 @@
 #define kSingleMode 0
 #define kBoxMode 1
 #define kTabMode 2
-
-static inline bool startWith(const std::string& str, const std::string& prefix)
-{
-    return (str.substr(0, prefix.size()) == prefix);
-}
 
 //------------ calculate needed precision
 static int precision(double n)
@@ -152,7 +148,7 @@ static void knob_expose(GtkWidget* widget, int knob_x, int knob_y, GdkEventExpos
 		   b = std::min(0.6,style->fg[gtk_widget_get_state(widget)].blue/65535.0);
 
 	/** paint focus **/
-	if (GTK_WIDGET_HAS_FOCUS(widget)== TRUE) {
+	if (GTK_WIDGET_HAS_FOCUS(widget)) {
 		gtk_paint_focus(widget->style, widget->window, GTK_STATE_NORMAL, NULL, widget, NULL,
 		                knobx-2, knoby-2, knob_x+4, knob_y+4);
 	}
@@ -209,19 +205,19 @@ static void knob_expose(GtkWidget* widget, int knob_x, int knob_y, GdkEventExpos
  */
 
 //----------- draw the Knob when moved
-static gboolean gtk_knob_expose (GtkWidget* widget, GdkEventExpose *event)
+static gboolean gtk_knob_expose(GtkWidget* widget, GdkEventExpose *event)
 {
 	g_assert(GTK_IS_KNOB(widget));
 	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
 	knob_expose(widget, klass->knob_x, klass->knob_y, event, 0);
-	return TRUE;
+	return true;
 }
 
 /****************************************************************
  ** set initial size for GdkDrawable per type
  */
 
-static void gtk_knob_size_request (GtkWidget* widget, GtkRequisition *requisition)
+static void gtk_knob_size_request(GtkWidget* widget, GtkRequisition *requisition)
 {
 	g_assert(GTK_IS_KNOB(widget));
 	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
@@ -233,7 +229,7 @@ static void gtk_knob_size_request (GtkWidget* widget, GtkRequisition *requisitio
  ** set value from key bindings
  */
 
-static void gtk_knob_set_value (GtkWidget* widget, int dir_down)
+static void gtk_knob_set_value(GtkWidget* widget, int dir_down)
 {
 	g_assert(GTK_IS_KNOB(widget));
 
@@ -256,7 +252,7 @@ static void gtk_knob_set_value (GtkWidget* widget, int dir_down)
  ** keyboard bindings
  */
 
-static gboolean gtk_knob_key_press (GtkWidget* widget, GdkEventKey *event)
+static gboolean gtk_knob_key_press(GtkWidget* widget, GdkEventKey *event)
 {
 	g_assert(GTK_IS_KNOB(widget));
 
@@ -264,25 +260,25 @@ static gboolean gtk_knob_key_press (GtkWidget* widget, GdkEventKey *event)
 	switch (event->keyval) {
 	case GDK_Home:
 		gtk_range_set_value(GTK_RANGE(widget), adj->lower);
-		return TRUE;
+		return true;
 	case GDK_End:
 		gtk_range_set_value(GTK_RANGE(widget), adj->upper);
-		return TRUE;
+		return true;
 	case GDK_Up:
 		gtk_knob_set_value(widget, 0);
-		return TRUE;
+		return true;
 	case GDK_Right:
 		gtk_knob_set_value(widget, 0);
-		return TRUE;
+		return true;
 	case GDK_Down:
 		gtk_knob_set_value(widget, 1);
-		return TRUE;
+		return true;
 	case GDK_Left:
 		gtk_knob_set_value(widget, 1);
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 /****************************************************************
@@ -350,7 +346,7 @@ static void knob_pointer_event(GtkWidget* widget, gdouble x, gdouble y, int knob
  ** mouse button pressed set value
  */
 
-static gboolean gtk_knob_button_press (GtkWidget* widget, GdkEventButton *event)
+static gboolean gtk_knob_button_press(GtkWidget* widget, GdkEventButton *event)
 {
 	g_assert(GTK_IS_KNOB(widget));
 	
@@ -374,27 +370,27 @@ static gboolean gtk_knob_button_press (GtkWidget* widget, GdkEventButton *event)
 	default: // do nothing
 		break;
 	}
-	return TRUE;
+	return true;
 }
 
 /****************************************************************
  ** mouse button release
  */
 
-static gboolean gtk_knob_button_release (GtkWidget* widget, GdkEventButton *event)
+static gboolean gtk_knob_button_release(GtkWidget* widget, GdkEventButton *event)
 {
 	g_assert(GTK_IS_KNOB(widget));
 	GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget))->button_is = 0;
 	if (GTK_WIDGET_HAS_GRAB(widget))
 		gtk_grab_remove(widget);
-	return FALSE;
+	return false;
 }
 
 /****************************************************************
  ** set the value from mouse movement
  */
 
-static gboolean gtk_knob_pointer_motion (GtkWidget* widget, GdkEventMotion *event)
+static gboolean gtk_knob_pointer_motion(GtkWidget* widget, GdkEventMotion *event)
 {
 	g_assert(GTK_IS_KNOB(widget));
 	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
@@ -405,25 +401,25 @@ static gboolean gtk_knob_pointer_motion (GtkWidget* widget, GdkEventMotion *even
 		knob_pointer_event(widget, event->x, event->y, klass->knob_x, klass->knob_y,
 						   true, event->state);
 	}
-	return FALSE;
+	return false;
 }
 
 /****************************************************************
  ** set value from mouseweel
  */
 
-static gboolean gtk_knob_scroll (GtkWidget* widget, GdkEventScroll *event)
+static gboolean gtk_knob_scroll(GtkWidget* widget, GdkEventScroll *event)
 {
 	usleep(5000);
 	gtk_knob_set_value(widget, event->direction);
-	return FALSE;
+	return false;
 }
 
 /****************************************************************
  ** init the GtkKnobClass
  */
 
-static void gtk_knob_class_init (GtkKnobClass *klass)
+static void gtk_knob_class_init(GtkKnobClass *klass)
 {
 	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
 
@@ -451,7 +447,7 @@ static void gtk_knob_class_init (GtkKnobClass *klass)
  ** init the Knob type/size
  */
 
-static void gtk_knob_init (GtkKnob *knob)
+static void gtk_knob_init(GtkKnob *knob)
 {
 	GtkWidget* widget = GTK_WIDGET(knob);
 	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
@@ -471,7 +467,7 @@ static gboolean gtk_knob_value_changed(gpointer obj)
 {
 	GtkWidget* widget = (GtkWidget* )obj;
 	gtk_widget_queue_draw(widget);
-	return FALSE;
+	return false;
 }
 
 /****************************************************************
@@ -495,7 +491,7 @@ GtkWidget* GtkKnob::gtk_knob_new_with_adjustment(GtkAdjustment *_adjustment)
  ** get the Knob type
  */
 
-GType gtk_knob_get_type (void)
+GType gtk_knob_get_type(void)
 {
 	static GType kn_type = 0;
 	if (!kn_type) {
@@ -510,131 +506,16 @@ GType gtk_knob_get_type (void)
 
 gtk_knob::GtkKnob myGtkKnob;
 
-/**
- * rmWhiteSpaces(): Remove the leading and trailing white spaces of a string
- * (but not those in the middle of the string)
- */
-static std::string rmWhiteSpaces(const std::string& s)
+
+class GTKUI : public GUI, public MetaDataUI
 {
-    size_t i = s.find_first_not_of(" \t");
-    size_t j = s.find_last_not_of(" \t");
-
-    if (i != std::string::npos & j != std::string::npos) {
-        return s.substr(i, 1+j-i);
-    } else {
-        return "";
-    }
-}
-
-/**
- * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
- */
-static void extractMetadata(const std::string& fulllabel, std::string& label, std::map<std::string, std::string>& metadata)
-{
-    enum {kLabel, kEscape1, kEscape2, kEscape3, kKey, kValue};
-    int state = kLabel; int deep = 0;
-    std::string key, value;
-
-    for (unsigned int i=0; i < fulllabel.size(); i++) {
-        char c = fulllabel[i];
-        switch (state) {
-            case kLabel :
-                assert (deep == 0);
-                switch (c) {
-                    case '\\' : state = kEscape1; break;
-                    case '[' : state = kKey; deep++; break;
-                    default : label += c;
-                }
-                break;
-
-            case kEscape1 :
-                label += c;
-                state = kLabel;
-                break;
-
-            case kEscape2 :
-                key += c;
-                state = kKey;
-                break;
-
-            case kEscape3 :
-                value += c;
-                state = kValue;
-                break;
-
-            case kKey :
-                assert (deep > 0);
-                switch (c) {
-                    case '\\' :  state = kEscape2;
-                                break;
-
-                    case '[' :  deep++;
-                                key += c;
-                                break;
-
-                    case ':' :  if (deep == 1) {
-                                    state = kValue;
-                                } else {
-                                    key += c;
-                                }
-                                break;
-                    case ']' :  deep--;
-                                if (deep < 1) {
-                                    metadata[rmWhiteSpaces(key)] = "";
-                                    state = kLabel;
-                                    key="";
-                                    value="";
-                                } else {
-                                    key += c;
-                                }
-                                break;
-                    default :   key += c;
-                }
-                break;
-
-            case kValue :
-                assert (deep > 0);
-                switch (c) {
-                    case '\\' : state = kEscape3;
-                                break;
-
-                    case '[' :  deep++;
-                                value += c;
-                                break;
-
-                    case ']' :  deep--;
-                                if (deep < 1) {
-                                    metadata[rmWhiteSpaces(key)]=rmWhiteSpaces(value);
-                                    state = kLabel;
-                                    key="";
-                                    value="";
-                                } else {
-                                    value += c;
-                                }
-                                break;
-                    default :   value += c;
-                }
-                break;
-
-            default :
-                std::cerr << "ERROR unrecognized state " << state << std::endl;
-        }
-    }
-    label = rmWhiteSpaces(label);
-}
-
-class GTKUI : public GUI
-{
- private :
-    static bool                         		fInitialized;
-    static std::map<FAUSTFLOAT*, FAUSTFLOAT> 	fGuiSize;       // map widget zone with widget size coef
-    static std::map<FAUSTFLOAT*, std::string>   fTooltip;       // map widget zone with tooltip strings
-    static std::set<FAUSTFLOAT*>             	fKnobSet;       // set of widget zone to be knobs
-	std::string									gGroupTooltip;
     
-    bool isKnob(FAUSTFLOAT* zone) {return fKnobSet.count(zone) > 0;}
+private:
     
- protected :
+    static bool fInitialized;
+    
+protected:
+    
     GtkWidget*  fWindow;
     int         fTop;
     GtkWidget*  fBox[kStackSize];
@@ -643,12 +524,12 @@ class GTKUI : public GUI
 
     GtkWidget* addWidget(const char* label, GtkWidget* w);
     virtual void pushBox(int mode, GtkWidget* w);
-
-        
- public :
-    static const gboolean expand = TRUE;
-    static const gboolean fill = TRUE;
-    static const gboolean homogene = FALSE;
+    
+public:
+    
+    static const gboolean expand = true;
+    static const gboolean fill = true;
+    static const gboolean homogene = false;
          
     GTKUI(char * name, int* pargc, char*** pargv);
 
@@ -715,32 +596,7 @@ class GTKUI : public GUI
 *******************************************************************************/
 
 // global static fields
-
-bool                                  GTKUI::fInitialized = false;
-std::map<FAUSTFLOAT*, FAUSTFLOAT>     GTKUI::fGuiSize;
-std::map<FAUSTFLOAT*, std::string>    GTKUI::fTooltip;
-std::set<FAUSTFLOAT*>                 GTKUI::fKnobSet;       // set of widget zone to be knobs
-
-/**
-* Format tooltip string by replacing some white spaces by 
-* return characters so that line width doesn't exceed n.
-* Limitation : long words exceeding n are not cut 
-*/
-static std::string formatTooltip(unsigned int n, const std::string& tt)
-{
-	std::string  ss = tt;	// ss string we are going to format
-	unsigned int lws = 0;	// last white space encountered
-	unsigned int lri = 0;	// last return inserted
-	for (unsigned int i = 0; i < tt.size(); i++) {
-		if (tt[i] == ' ') lws = i;
-		if (((i-lri) >= n) && (lws > lri)) {
-			// insert return here
-			ss[lws] = '\n';
-			lri = lws;
-		}
-	}
-	return ss;
-}
+bool GTKUI::fInitialized = false;
 
 static gint delete_event(GtkWidget* widget, GdkEvent *event, gpointer data)
 {
@@ -749,7 +605,7 @@ static gint delete_event(GtkWidget* widget, GdkEvent *event, gpointer data)
 
 static void destroy_event(GtkWidget* widget, gpointer data)
 {
-    gtk_main_quit ();
+    gtk_main_quit();
 }
 
 GTKUI::GTKUI(char * name, int* pargc, char*** pargv) 
@@ -808,23 +664,7 @@ void GTKUI::closeBox()
  */
 void GTKUI::declare(FAUSTFLOAT* zone, const char* key, const char* value)
 {
-	if (zone == 0) {
-		// special zone 0 means group metadata
-		if (strcmp(key,"tooltip") == 0) {
-			// only group tooltip are currently implemented
-			gGroupTooltip = formatTooltip(30, value);
-		}
-	} else {
-		if (strcmp(key,"size")==0) {
-			fGuiSize[zone] = atof(value);
-		} else if (strcmp(key,"tooltip") == 0) {
-			fTooltip[zone] = formatTooltip(30,value) ;
-		} else if (strcmp(key,"style") == 0) {
-			if (strcmp(value,"knob") == 0) {
-				fKnobSet.insert(zone);
-			}
-		}
-	}
+    MetaDataUI::declare(zone, key, value);
 }
     
 /**
@@ -1094,8 +934,7 @@ void GTKUI::addToggleButton(const char* label, FAUSTFLOAT* zone)
 
 void show_dialog(GtkWidget* widget, gpointer data)
 {
-    if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON(widget)) == TRUE)
-    {
+    if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON(widget))) {
         gtk_widget_show(GTK_WIDGET(data));
         gint root_x, root_y;
         gtk_window_get_position (GTK_WINDOW(data), &root_x, &root_y);
@@ -1105,16 +944,16 @@ void show_dialog(GtkWidget* widget, gpointer data)
     else gtk_widget_hide(GTK_WIDGET(data));
 }
 
-static gboolean deleteevent( GtkWidget* widget, gpointer   data )
+static gboolean deleteevent(GtkWidget* widget, gpointer data)
 {
-    return TRUE;
+    return true;
 } 
 
 void GTKUI::openDialogBox(const char* label, FAUSTFLOAT* zone)
 {
     // create toplevel window and set properties
     GtkWidget* dialog = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_decorated(GTK_WINDOW(dialog), TRUE);
+    gtk_window_set_decorated(GTK_WINDOW(dialog), true);
     gtk_window_set_deletable(GTK_WINDOW(dialog), FALSE);
     gtk_window_set_resizable(GTK_WINDOW(dialog), FALSE);
     gtk_window_set_gravity(GTK_WINDOW(dialog), GDK_GRAVITY_SOUTH);
@@ -1123,7 +962,7 @@ void GTKUI::openDialogBox(const char* label, FAUSTFLOAT* zone)
     gtk_window_set_keep_below (GTK_WINDOW(dialog), FALSE);
     gtk_window_set_title (GTK_WINDOW (dialog), label);
     g_signal_connect (G_OBJECT (dialog), "delete_event", G_CALLBACK (deleteevent), NULL); 
-    gtk_window_set_destroy_with_parent(GTK_WINDOW(dialog), TRUE);
+    gtk_window_set_destroy_with_parent(GTK_WINDOW(dialog), true);
 
     GtkWidget* box = gtk_hbox_new (homogene, 4);
  
@@ -1236,7 +1075,7 @@ void GTKUI::addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTF
     
     uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
 
-    gtk_signal_connect (GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
+    gtk_signal_connect(GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
     
 	GtkWidget* slider = gtk_vbox_new (FALSE, 0);
 	GtkWidget* fil = gtk_vbox_new (FALSE, 0);
@@ -1248,7 +1087,7 @@ void GTKUI::addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTF
 	if (fGuiSize[zone]) {
 		FAUSTFLOAT size = 30 * fGuiSize[zone];
 		gtk_widget_set_size_request(rei, size, size );
-		gtk_box_pack_start (GTK_BOX(slider), fil, TRUE, TRUE, 0);
+		gtk_box_pack_start (GTK_BOX(slider), fil, true, true, 0);
 		gtk_box_pack_start (GTK_BOX(slider), rei, FALSE, FALSE, 0);
 	} else {
 		gtk_container_add (GTK_CONTAINER(slider), fil);
@@ -1292,7 +1131,7 @@ void GTKUI::addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT in
 	}
 	gtk_widget_set_size_request(slider, -1, size);
 	
-    gtk_range_set_inverted (GTK_RANGE(slider), TRUE);
+    gtk_range_set_inverted (GTK_RANGE(slider), true);
     
     label = startWith(label, "0x") ? "" : label;
     if (label && label[0] != 0) {
@@ -1512,8 +1351,8 @@ void GTKUI::addTextDisplay(const char* label, FAUSTFLOAT* zone, const char* name
 void GTKUI::show() 
 {
     assert(fTop == 0);
-    gtk_widget_show  (fBox[0]);
-    gtk_widget_show  (fWindow);
+    gtk_widget_show(fBox[0]);
+    gtk_widget_show(fWindow);
 }
 
 /**
@@ -1523,16 +1362,16 @@ void GTKUI::show()
 static gboolean callUpdateAllGuis(gpointer)
 { 
     GUI::updateAllGuis(); 
-    return TRUE;
+    return true;
 }
 
 void GTKUI::run() 
 {
     assert(fTop == 0);
-    gtk_widget_show  (fBox[0]);
-    gtk_widget_show  (fWindow);
+    gtk_widget_show(fBox[0]);
+    gtk_widget_show(fWindow);
     gtk_timeout_add(40, callUpdateAllGuis, 0);
-    gtk_main ();
+    gtk_main();
     stop();
 }
 

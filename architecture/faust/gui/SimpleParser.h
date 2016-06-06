@@ -430,7 +430,7 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
 }
 
 // ---------------------------------------------------------------------
-// Parse full json record describing a JSON/Faust interface :
+// Parse full JSON record describing a JSON/Faust interface :
 // {"metadatas": "...", "ui": [{ "type": "...", "label": "...", "items": [...], "address": "...","init": "...", "min": "...", "max": "...","step": "..."}]}
 //
 // and store the result in map Metadatas and vector containing the items of the interface. Returns true if parsing was successfull.
