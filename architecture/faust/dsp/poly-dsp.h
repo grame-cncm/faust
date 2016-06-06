@@ -174,8 +174,6 @@ struct dsp_voice : public MapUI, public dsp {
         fDate = 0;
         fTrigger = false;
     }
-    
-    virtual void metadata(Meta* meta) = 0;
  
 };
 
@@ -200,13 +198,12 @@ struct mydsp_voice : public dsp_voice {
     virtual void instanceInit(int samplingRate) { fVoice.instanceInit(samplingRate); }
     virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice.compute(len, inputs, outputs); }
 
-    virtual void metadata(Meta* meta) { mydsp::metadata(meta); }
-
 };
 
 struct mydsp_voice_factory : public voice_factory {
 
     virtual dsp_voice* create() { return new mydsp_voice(); }
+
 };
 
 // Polyphonic DSP
@@ -421,7 +418,9 @@ class mydsp_poly : public dsp, public midi {
             mydsp_voice_factory factory;
             init(max_polyphony, &factory, control, group);
         }
-           
+    
+        void metadata(Meta* meta) { mydsp::metadata(meta); }
+
         virtual ~mydsp_poly()
         {
             for (int i = 0; i < fNumOutputs; i++) {
@@ -440,7 +439,8 @@ class mydsp_poly : public dsp, public midi {
                 fMidiUIList[i]->removeMidiIn(this); 
             }
         }
-        
+    
+    
         void init(int sample_rate)
         {
             // Init voices
