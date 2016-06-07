@@ -125,7 +125,7 @@ void InterpreterCodeContainer<T>::produceInternal()
 }
 
 template <class T>
-interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
+dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 {
     // Add "fSamplingFreq" variable in HEAP
     if (!fGeneratedSR) {
@@ -179,21 +179,20 @@ interpreter_dsp_factory* InterpreterCodeContainer<T>::produceFactory()
     compute_dsp_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     
     // Then create factory
-    return new interpreter_dsp_factory(new interpreter_dsp_factory_aux<T>(fKlassName, "",
-                                                                        INTERP_FILE_VERSION,
-                                                                        fNumInputs, fNumOutputs,
-                                                                        getInterpreterVisitor<T>()->fIntHeapOffset,
-                                                                        getInterpreterVisitor<T>()->fRealHeapOffset,
-                                                                        getInterpreterVisitor<T>()->fSROffset,
-                                                                        getInterpreterVisitor<T>()->fCountOffset,
-                                                                        getInterpreterVisitor<T>()->fIOTAOffset,
-                                                                        MAX_OPT_LEVEL,
-                                                                        produceMetadata(),
-                                                                        getInterpreterVisitor<T>()->fUserInterfaceBlock,
-                                                                        init_static_block,
-                                                                        init_block,
-                                                                        compute_control_block,
-                                                                        compute_dsp_block));
+    return new interpreter_dsp_factory_aux<T>(fKlassName, "", INTERP_FILE_VERSION,
+                                                              fNumInputs, fNumOutputs,
+                                                              getInterpreterVisitor<T>()->fIntHeapOffset,
+                                                              getInterpreterVisitor<T>()->fRealHeapOffset,
+                                                              getInterpreterVisitor<T>()->fSROffset,
+                                                              getInterpreterVisitor<T>()->fCountOffset,
+                                                              getInterpreterVisitor<T>()->fIOTAOffset,
+                                                              MAX_OPT_LEVEL,
+                                                              produceMetadata(),
+                                                              getInterpreterVisitor<T>()->fUserInterfaceBlock,
+                                                              init_static_block,
+                                                              init_block,
+                                                              compute_control_block,
+                                                              compute_dsp_block);
 }
 
 template <class T>

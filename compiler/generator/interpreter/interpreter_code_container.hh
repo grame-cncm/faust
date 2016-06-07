@@ -69,7 +69,7 @@ class InterpreterCodeContainer : public virtual CodeContainer {
         {}
 
         void produceInternal();
-        interpreter_dsp_factory* produceFactory();
+        dsp_factory_base* produceFactory();
     
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 

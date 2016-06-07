@@ -214,11 +214,9 @@ struct dynamic_dsp_voice_factory : public voice_factory {
     dsp_factory* fFactory;
     
     dynamic_dsp_voice_factory(dsp_factory* factory):fFactory(factory) {}
-    
     virtual ~dynamic_dsp_voice_factory() {}
 
     virtual dsp_voice* create() { return new dynamic_dsp_voice(fFactory->createDSPInstance()); }
-    
     virtual void metadata(Meta* meta) { fFactory->metadata(meta); }
 
 };

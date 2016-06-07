@@ -26,6 +26,12 @@
 #include <vector>
 #include "export.hh"
 
+#define LVVM_BACKEND_NAME "Faust LLVM backend"
+#define COMPILATION_OPTIONS_KEY "compilation_options"
+#define COMPILATION_OPTIONS "declare compilation_options    "
+
+#define FAUSTVERSION "2.0.a45"
+
 namespace llvm
 {
     class LLVMContext;
@@ -43,13 +49,7 @@ typedef struct LLVMResult {
 
 } LLVMResult;
 
-#define LVVM_BACKEND_NAME "Faust LLVM backend"
-#define COMPILATION_OPTIONS_KEY "compilation_options"
-#define COMPILATION_OPTIONS "declare compilation_options    "
-
-#define FAUSTVERSION "2.0.a45"
-
-class interpreter_dsp_factory;
+class dsp_factory_base;
 
 /*
     Low level dynamic compilation interface. Better use the public API defined in llvm-dsp.h or llvm-c-dsp.h
@@ -83,7 +83,7 @@ EXPORT bool compile_faust(int argc, const char* argv[], const char* name, const 
 
 EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg);
 
-EXPORT interpreter_dsp_factory* compile_faust_interpreter(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg);
+EXPORT dsp_factory_base* compile_faust_interpreter(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg);
 
 EXPORT std::string compile_faust_asmjs(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg);
 

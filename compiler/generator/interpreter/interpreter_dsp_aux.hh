@@ -32,10 +32,12 @@
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UIGlue.h"
 #include "faust/gui/meta.h"
+
 #include "fir_interpreter.hh"
 #include "interpreter_bytecode.hh"
 #include "interpreter_optimizer.hh"
 #include "dsp_aux.hh"
+#include "dsp_factory.hh"
 
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport)
@@ -45,30 +47,11 @@
 
 class interpreter_dsp_factory;
 
-struct interpreter_dsp_factory_base {
-    
-    virtual ~interpreter_dsp_factory_base()
-    {}
-    
-    virtual std::string getName() = 0;
-    
-    virtual std::string getSHAKey() = 0;
-    virtual void setSHAKey(const std::string& sha_key) = 0;
-    
-    virtual std::string getDSPCode() = 0;
-    virtual void setDSPCode(const std::string& code) = 0;
-    
-    virtual void write(std::ostream* out, bool small = false) = 0;
-    virtual dsp* createDSPInstance(interpreter_dsp_factory* factory) = 0;
-    virtual void metadata(Meta* meta) = 0;
-
-};
-
 template <class T>
 class interpreter_dsp_aux;
 
 template <class T>
-struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
+struct interpreter_dsp_factory_aux : public dsp_factory_base {
     
     std::string fName;
     std::string fSHAKey;
@@ -597,7 +580,7 @@ struct interpreter_dsp_factory_aux : public interpreter_dsp_factory_base {
         }
     }
     
-    dsp* createDSPInstance(interpreter_dsp_factory* factory);
+    dsp* createDSPInstance(dsp_factory* factory);
     
 };
 
@@ -958,20 +941,13 @@ struct EXPORT interpreter_dsp : public dsp {
     
 };
 
-template <class T>
-dsp* interpreter_dsp_factory_aux<T>::createDSPInstance(interpreter_dsp_factory* factory)
-{
-    return new interpreter_dsp(new interpreter_dsp_aux<T>(this), factory);
-    //return new interpreter_dsp(new interpreter_dsp_aux_down<T>(this, 2));
-}
-
 // Public C++ interface
 
 class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartable {
     
     protected:
         
-        interpreter_dsp_factory_base* fFactory;
+        dsp_factory_base* fFactory;
     
         virtual ~interpreter_dsp_factory()
         {
@@ -1037,10 +1013,8 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
                                                             static_init, init,
                                                             compute_control, compute_dsp);
         }
-        
-        interpreter_dsp_factory(interpreter_dsp_factory_aux<float>* factory):fFactory(factory)
-        {}
-        interpreter_dsp_factory(interpreter_dsp_factory_aux<double>* factory):fFactory(factory)
+    
+        interpreter_dsp_factory(dsp_factory_base* factory):fFactory(factory)
         {}
    
         std::string getName() { return fFactory->getName(); }
@@ -1058,6 +1032,14 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
         void write(std::ostream* out, bool small = false) { fFactory->write(out, small); }
     
 };
+
+template <class T>
+dsp* interpreter_dsp_factory_aux<T>::createDSPInstance(dsp_factory* factory)
+{
+    return new interpreter_dsp(new interpreter_dsp_aux<T>(this), dynamic_cast<interpreter_dsp_factory*>(factory));
+    //return new interpreter_dsp(new interpreter_dsp_aux_down<T>(this, 2), dynamic_cast<interpreter_dsp_factory*>(factory));
+}
+
 
 EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& sha_key);
 

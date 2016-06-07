@@ -1097,23 +1097,15 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
      
         comp->compileMultiSignal(signals);
         container->produceClass();
+          
+        gGlobal->gDSPFactory = container->produceFactory();
         
-        if (gGlobal->gFloatSize == 1) {
-            InterpreterCodeContainer<float>* interpreter_container = dynamic_cast<InterpreterCodeContainer<float>*>(container);
-            gGlobal->gInterpDSPFactory = interpreter_container->produceFactory();
-            
-            /*
-            std::stringstream dst;
-            gGlobal->gInterpDSPFactory->write(&dst);
-            std::string code = flatten(dst.str());
-            cout << code;
-            */
-            
-        } else if (gGlobal->gFloatSize == 2) {
-            InterpreterCodeContainer<double>* interpreter_container = dynamic_cast<InterpreterCodeContainer<double>*>(container);
-            gGlobal->gInterpDSPFactory = interpreter_container->produceFactory();
-        }
-        gGlobal->gInterpDSPFactory->write(&cout);
+        //std::stringstream dst;
+        //gGlobal->gDSPFactory->write(&dst);
+        //std::string code = flatten(dst.str());
+        //cout << code;
+        
+        gGlobal->gDSPFactory->write(&cout);
      
     } else {
         
@@ -1526,10 +1518,10 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
 
 #endif
 
-EXPORT interpreter_dsp_factory* compile_faust_interpreter(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& error_msg)
+EXPORT dsp_factory_base* compile_faust_interpreter(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& error_msg)
 {
     gGlobal = NULL;
-    interpreter_dsp_factory* res;
+    dsp_factory_base* res;
     
     try {
     
@@ -1538,7 +1530,7 @@ EXPORT interpreter_dsp_factory* compile_faust_interpreter(int argc, const char* 
         gGlobal->gLLVMOut = true; 
         compile_faust_internal(argc, argv, name, dsp_content, true);
         error_msg =  gGlobal->gErrorMsg;
-        res = gGlobal->gInterpDSPFactory;
+        res = gGlobal->gDSPFactory;
             
     } catch (faustexception& e) {
         error_msg = e.Message();

@@ -55,7 +55,7 @@ struct LLVMResult;
 
 class ASMJAVAScriptInstVisitor;
 
-class interpreter_dsp_factory;
+class dsp_factory_base;
 
 typedef long double quad;
 
@@ -142,8 +142,8 @@ struct global {
     LLVMResult*     gLLVMResult;
     
     // Interpreter backend
-    interpreter_dsp_factory* gInterpDSPFactory;
-    DispatchVisitor*         gInterpreterVisitor;
+    dsp_factory_base* gDSPFactory;
+    DispatchVisitor*  gInterpreterVisitor;
     
     const char*     gInputString;
     
