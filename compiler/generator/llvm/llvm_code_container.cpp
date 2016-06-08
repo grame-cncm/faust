@@ -48,11 +48,15 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fResult->fModule->setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128");
     fBuilder = new IRBuilder<>(getContext());
     
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37))    
+#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38))    
     // Set "-fast-math"
     FastMathFlags FMF;
     FMF.setUnsafeAlgebra();
+#if defined(LLVM_38)
+    fBuilder->setFastMathFlags(FMF);
+#else
     fBuilder->SetFastMathFlags(FMF);
+#endif
 #endif
     
     fAllocaBuilder = new IRBuilder<>(getContext());
@@ -71,11 +75,15 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fResult = result;
     fBuilder = new IRBuilder<>(getContext());
     
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37))    
+#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38))    
     // Set "-fast-math"
     FastMathFlags FMF;
     FMF.setUnsafeAlgebra();
+#if defined(LLVM_38)
+    fBuilder->setFastMathFlags(FMF);
+#else
     fBuilder->SetFastMathFlags(FMF);
+#endif
 #endif
     
     fAllocaBuilder = new IRBuilder<>(getContext());
@@ -143,11 +151,11 @@ void LLVMCodeContainer::generateFillBegin(const string& counter)
     llvm_fill->setCallingConv(CallingConv::C);
 
     Function::arg_iterator llvm_fill_args_it = llvm_fill->arg_begin();
-    Value* arg1 = llvm_fill_args_it++;
+    Value* arg1 = GET_ITERATOR(llvm_fill_args_it++);
     arg1->setName("dsp");
-    Value* arg2 = llvm_fill_args_it++;
+    Value* arg2 = GET_ITERATOR(llvm_fill_args_it++);
     arg2->setName(counter);
-    Value* arg4 = llvm_fill_args_it++;
+    Value* arg4 = GET_ITERATOR(llvm_fill_args_it++);
     arg4->setName("output");
 
     //llvm_fill->dump();
@@ -188,7 +196,7 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
     Function* llvm_compute = Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fKlassName, fResult->fModule);
     llvm_compute->setCallingConv(CallingConv::C);
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)
     llvm_compute->setDoesNotAlias(3U);
     llvm_compute->setDoesNotAlias(4U);
 #elif defined(LLVM_32) 
@@ -208,13 +216,13 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
 #endif
 
     Function::arg_iterator llvm_compute_args_it = llvm_compute->arg_begin();
-    Value* arg1 = llvm_compute_args_it++;
+    Value* arg1 = GET_ITERATOR(llvm_compute_args_it++);
     arg1->setName("dsp");
-    Value* arg2 = llvm_compute_args_it++;
+    Value* arg2 = GET_ITERATOR(llvm_compute_args_it++);
     arg2->setName(counter);
-    Value* arg3 = llvm_compute_args_it++;
+    Value* arg3 = GET_ITERATOR(llvm_compute_args_it++);
     arg3->setName("inputs");
-    Value* arg4 = llvm_compute_args_it++;
+    Value* arg4 = GET_ITERATOR(llvm_compute_args_it++);
     arg4->setName("outputs");
 
     // Add a first block
@@ -253,12 +261,12 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
     sr_fun->setCallingConv(CallingConv::C);
 
     Function::arg_iterator llvm_SR_args_it = sr_fun->arg_begin();
-    Value* dsp = llvm_SR_args_it++;
+    Value* dsp = GET_ITERATOR(llvm_SR_args_it++);
     dsp->setName("dsp");
 
     BasicBlock* block = BasicBlock::Create(getContext(), "entry_block", sr_fun);
     fBuilder->SetInsertPoint(block);
-#if defined(LLVM_37)
+#if defined(LLVM_37) || defined(LLVM_38)
     Value* zone_ptr = fBuilder->CreateStructGEP(nullptr, dsp, field_index);
 #else
     Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
@@ -295,7 +303,7 @@ void LLVMCodeContainer::generateClassInitBegin()
     llvm_classInit->setCallingConv(CallingConv::C);
 
     Function::arg_iterator llvm_classInit_args_it = llvm_classInit->arg_begin();
-    Value* sample_freq = llvm_classInit_args_it++;
+    Value* sample_freq = GET_ITERATOR(llvm_classInit_args_it++);
     sample_freq->setName("samplingFreq");
 
     // Add a first block
@@ -330,9 +338,9 @@ void LLVMCodeContainer::generateInstanceInitBegin(bool internal)
     llvm_instanceInit->setCallingConv(CallingConv::C);
 
     Function::arg_iterator llvm_instanceInit_args_it = llvm_instanceInit->arg_begin();
-    Value* dsp = llvm_instanceInit_args_it++;
+    Value* dsp = GET_ITERATOR(llvm_instanceInit_args_it++);
     dsp->setName("dsp");
-    Value* sample_freq = llvm_instanceInit_args_it++;
+    Value* sample_freq = GET_ITERATOR(llvm_instanceInit_args_it++);
     sample_freq->setName("samplingFreq");
 
     // Add a first block
@@ -419,9 +427,9 @@ void LLVMCodeContainer::generateInitFun()
     llvm_init->setCallingConv(CallingConv::C);
 
     Function::arg_iterator llvm_init_args_it = llvm_init->arg_begin();
-    Value* arg1 = llvm_init_args_it++;
+    Value* arg1 = GET_ITERATOR(llvm_init_args_it++);
     arg1->setName("dsp");
-    Value* arg2 = llvm_init_args_it++;
+    Value* arg2 = GET_ITERATOR(llvm_init_args_it++);
     arg2->setName("samplingFreq");
 
     /// llvm_init block
@@ -459,7 +467,7 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
 
     // Name arguments
     Function::arg_iterator llvm_metaData_args_it = llvm_metaData->arg_begin();
-    Value* meta = llvm_metaData_args_it++;
+    Value* meta = GET_ITERATOR(llvm_metaData_args_it++);
     meta->setName("m");
 
     BasicBlock* entry_block = BasicBlock::Create(getContext(), "entry_block", llvm_metaData);
@@ -480,12 +488,12 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
     for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         GlobalVariable* llvm_label1 = 0;
         GlobalVariable* llvm_label2 = 0;
-    #if defined(LLVM_37)
+    #if defined(LLVM_37) || defined(LLVM_38)
         llvm::Type* type_def1;
         llvm::Type* type_def2;
     #endif
         if (i->first != tree("author")) {
-        #if defined(LLVM_37)
+        #if defined(LLVM_37) || defined(LLVM_38)
             llvm_label1 = fCodeProducer->addStringConstant(tree2str(i->first), type_def1);
             llvm_label2 = fCodeProducer->addStringConstant(tree2str(*(i->second.begin())), type_def2);
         #else
@@ -494,7 +502,7 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
         #endif
         } else {
             for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-            #if defined(LLVM_37)
+            #if defined(LLVM_37) || defined(LLVM_38)
                 if (j == i->second.begin()) {
                     llvm_label1 = fCodeProducer->addStringConstant(tree2str(i->first), type_def1);
                     llvm_label2 = fCodeProducer->addStringConstant(tree2str(*j), type_def2);
@@ -518,7 +526,7 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
     
         Value* idx2[3];
         idx2[0] = load_meta_ptr;
-    #if defined(LLVM_37)
+    #if defined(LLVM_37) || defined(LLVM_38)
         idx2[1] = fBuilder->CreateConstGEP2_32(type_def1, llvm_label1, 0, 0);
         idx2[2] = fBuilder->CreateConstGEP2_32(type_def2, llvm_label2, 0, 0);
     #else
@@ -545,7 +553,7 @@ void LLVMCodeContainer::generateBuildUserInterfaceBegin()
     Function* llvm_buildUserInterface = fResult->fModule->getFunction("buildUserInterface" + fKlassName);
 
     // Get the already created init block and insert in it.
-    BasicBlock* entry_block = llvm_buildUserInterface->getBasicBlockList().begin();
+    BasicBlock* entry_block = GET_ITERATOR(llvm_buildUserInterface->getBasicBlockList().begin());
     fBuilder->SetInsertPoint(entry_block);
 }
 
@@ -952,9 +960,9 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadBegin()
     llvm_computethread->setCallingConv(CallingConv::C);
 
     Function::arg_iterator llvm_computethread_args_it = llvm_computethread->arg_begin();
-    Value* arg1 = llvm_computethread_args_it++;
+    Value* arg1 = GET_ITERATOR(llvm_computethread_args_it++);
     arg1->setName("dsp");
-    Value* arg2 = llvm_computethread_args_it++;
+    Value* arg2 = GET_ITERATOR(llvm_computethread_args_it++);
     arg2->setName("num_thread");
 
     // Add a first block
@@ -990,9 +998,9 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
     llvm_computethread->setCallingConv(CallingConv::C);
 
     Function::arg_iterator llvm_computethread_args_it = llvm_computethread->arg_begin();
-    Value* arg1 = llvm_computethread_args_it++;
+    Value* arg1 = GET_ITERATOR(llvm_computethread_args_it++);
     arg1->setName("dsp");
-    Value* arg2 = llvm_computethread_args_it++;
+    Value* arg2 = GET_ITERATOR(llvm_computethread_args_it++);
     arg2->setName("num_thread");
 
     // Add a first block
@@ -1000,7 +1008,7 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
 
     Function* llvm_computethreadInternal = fResult->fModule->getFunction("computeThread");
     assert(llvm_computethreadInternal);
-#if defined(LLVM_37)
+#if defined(LLVM_37) || defined(LLVM_38)
     Value* fun_args[] = { fBuilder->CreateBitCast(arg1, fStruct_DSP_ptr), arg2 };
     CallInst* call_inst = fBuilder->CreateCall(llvm_computethreadInternal, fun_args);
 #else

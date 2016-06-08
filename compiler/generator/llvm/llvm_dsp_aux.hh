@@ -67,7 +67,7 @@ class llvm_dsp_factory : public smartable {
     
         ExecutionEngine* fJIT;
 
-    #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)) && !defined(_MSC_VER)
+    #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)) && !defined(_MSC_VER)
         FaustObjectCache* fObjectCache;
     #endif
         LLVMResult* fResult;
@@ -104,7 +104,7 @@ class llvm_dsp_factory : public smartable {
         
         bool crossCompile(const std::string& target);
       
-    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)
+    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)
         static void LLVMFatalErrorHandler(const char* reason);
     #endif
     
@@ -120,7 +120,7 @@ class llvm_dsp_factory : public smartable {
               
         llvm_dsp_factory(const string& sha_key, Module* module, LLVMContext* context, const string& target, int opt_level = 0);
         
-    #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37)) && !defined(_MSC_VER)
+    #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)) && !defined(_MSC_VER)
         llvm_dsp_factory(const string& sha_key, const string& machine_code, const string& target);
     #endif
       
