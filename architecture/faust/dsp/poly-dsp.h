@@ -549,6 +549,8 @@ class mydsp_poly : public dsp, public midi {
         {
             std::vector<dsp_voice*>::iterator it = find(fVoiceTable.begin(), fVoiceTable.end(), reinterpret_cast<dsp_voice*>(voice));
             if (it != fVoiceTable.end()) {
+                (*it)->setParamValue(fGateLabel, 0.0f);
+                // Release voice
                 (*it)->fNote = kReleaseVoice;
             } else {
                 printf("Voice not found\n");
@@ -579,7 +581,7 @@ class mydsp_poly : public dsp, public midi {
                 if (voice >= 0) {
                     // No use of velocity for now...
                     fVoiceTable[voice]->setParamValue(fGateLabel, 0.0f);
-                    // Relase voice
+                    // Release voice
                     fVoiceTable[voice]->fNote = kReleaseVoice;
                 } else {
                     printf("Playing pitch = %d not found\n", pitch);
