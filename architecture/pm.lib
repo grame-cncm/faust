@@ -145,9 +145,8 @@ idealString(length,reflexion,pluckPosition,x) = fullTerminations(term,wg,term)
 with{
 	nMax = 512; // each segment of the string can't be longer than that
 	N = length*SR/320-8; // length (meters) to samples
-	xPos = pluckPosition : min(0.999) : max(0.001); // don't want a delay line of 0 sample
-	nUp = N/2*xPos; // upper string segment length
-	nDown = N/2*(1-xPos); // lower string segment length
+	nUp = N/2*pluckPosition : max(1); // upper string segment length
+	nDown = N/2*(1-pluckPosition) : max(1); // lower string segment length
 	wg = chain(waveguide(nMax,nUp) : input(x) : output : waveguide(nMax,nDown)); // waveguide chain
 	term = *(-reflexion); // terminations
 };
