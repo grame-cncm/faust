@@ -488,21 +488,13 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
     for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         GlobalVariable* llvm_label1 = 0;
         GlobalVariable* llvm_label2 = 0;
-    #if defined(LLVM_37) || defined(LLVM_38)
         llvm::Type* type_def1;
         llvm::Type* type_def2;
-    #endif
         if (i->first != tree("author")) {
-        #if defined(LLVM_37) || defined(LLVM_38)
             llvm_label1 = fCodeProducer->addStringConstant(tree2str(i->first), type_def1);
             llvm_label2 = fCodeProducer->addStringConstant(tree2str(*(i->second.begin())), type_def2);
-        #else
-            llvm_label1 = fCodeProducer->addStringConstant(tree2str(i->first));
-            llvm_label2 = fCodeProducer->addStringConstant(tree2str(*(i->second.begin())));
-        #endif
         } else {
             for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-            #if defined(LLVM_37) || defined(LLVM_38)
                 if (j == i->second.begin()) {
                     llvm_label1 = fCodeProducer->addStringConstant(tree2str(i->first), type_def1);
                     llvm_label2 = fCodeProducer->addStringConstant(tree2str(*j), type_def2);
@@ -510,20 +502,11 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
                     llvm_label1 = fCodeProducer->addStringConstant("contributor", type_def1);
                     llvm_label2 = fCodeProducer->addStringConstant(tree2str(*j), type_def2);
                 }
-            #else
-                if (j == i->second.begin()) {
-                    llvm_label1 = fCodeProducer->addStringConstant(tree2str(i->first));
-                    llvm_label2 = fCodeProducer->addStringConstant(tree2str(*j));
-                } else {
-                    llvm_label1 = fCodeProducer->addStringConstant("contributor");
-                    llvm_label2 = fCodeProducer->addStringConstant(tree2str(*j));
-                }
-            #endif
             }
         }
         assert(llvm_label1);
         assert(llvm_label2);
-    
+
         Value* idx2[3];
         idx2[0] = load_meta_ptr;
     #if defined(LLVM_37) || defined(LLVM_38)
