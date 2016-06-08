@@ -18,7 +18,7 @@
 #	//---------------------------------------
 # everything else is considered faust code.
 # The translation is the following:
-#   # foo(x,y)
+#   ## foo(x,y)
 #	markdown text....
 #	markdown text....
 #--------------------------------------------------------
