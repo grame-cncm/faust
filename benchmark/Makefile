@@ -48,6 +48,12 @@ CXX = /opt/local/libexec/llvm-3.7/bin/clang++
 LLC = /opt/local/libexec/llvm-3.7/bin/llc
 endif
 
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.8.0))
+LLVM_VERSION  = LLVM_38
+CXX = /opt/local/libexec/llvm-3.8/bin/clang++
+LLC = /opt/local/libexec/llvm-3.8/bin/llc
+endif
+
 ifeq ($(system), Darwin)
 #MYGCCFLAGS := '-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math '
 #MYGCCFLAGS := '-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -fvectorize -fslp-vectorize'

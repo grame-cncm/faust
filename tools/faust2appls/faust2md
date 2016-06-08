@@ -129,7 +129,7 @@ for file in args:
 						mode=1	# we just started a md-comment
 						idt = 0	# we have to measure the indentation
 						print ''
-						print '#', match.group(1)
+						print "##", match.group(1)
 					else:
 						# it is a comment but not a md-comment
 						# therefore it is part of the code

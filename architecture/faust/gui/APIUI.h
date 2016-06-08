@@ -34,6 +34,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <iostream>
 #include <map>
 
 enum { kLin = 0, kLog = 1, kExp = 2 };
