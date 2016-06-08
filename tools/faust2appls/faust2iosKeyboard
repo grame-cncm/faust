@@ -1,0 +1,78 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to iOS applications         #
+#               (c) Grame, 2012-2013                                #
+#                                                                   #
+#####################################################################
+
+. faustpath
+
+NOAGC="0"
+POLY="0"
+POLY2="0"
+
+#PHASE 1 : collects files and options from the command line
+
+for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2ios [-xcode] [-all] [-noagc] [-poly2] <file.dsp>"
+        echo "Use '-xcode' to keep the intermediate Xcode project"
+        echo "Use '-noagc' to deactivate audio automatic gain control"
+        echo "Use '-poly2' to produce a polyphonic DSP connected to the effect part, ready to be used with MIDI events"
+    fi
+
+    if [ "$p" = -icc ]; then
+        ignore=" "
+    elif [ "$p" = "-xcode" ]; then
+        XCODE="1"
+     elif [ "$p" = "-poly2" ]; then
+        POLY2="1"
+    elif [ "$p" = "-noagc" ]; then
+        NOAGC="1"
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+done
+
+
+#PHASE 2 : compile all files
+
+for p in $FILES; do
+	S=$(dirname "$p")
+	F=$(basename "$p")
+	P=${F%.dsp}
+  
+	T=$(mktemp -d faust.XXX)
+	cp -r /usr/local/lib/faust/iOSKeyboard/* $T
+#	cp -r /usr/local/include/faust $T
+
+    echo "Compile with CoreAudio support in 64/32 bits"
+    faust -i $OPTIONS -a iosKeyboard.cpp "$p" -o "$T/mydsp.h" || exit
+    if [ "$POLY2" = "1" ]; then
+        faust -i -cn effect -a minimal-effect.cpp "${F%.dsp}_effect.dsp" -o "$T/effect.h" || exit
+    fi
+    (
+        xcodebuild GCC_PREPROCESSOR_DEFINITIONS="${inherited} NOAGC=$NOAGC POLY2=$POLY2" -project "$T/iOSKeyboard.xcodeproj" -target iOSKeyboard PRODUCT_NAME=$P PRODUCT_BUNDLE_IDENTIFIER="romain.$P"
+        cd "$T" && xcodebuild -scheme iOSKeyboard archive PRODUCT_NAME=$P PRODUCT_BUNDLE_IDENTIFIER="romain.$P"
+    ) > /dev/null || exit
+    
+    # move generated app to source directory
+    rm -rf "$S/$P.app"
+    mv "$T/build/Release-iphoneos/$P.app" "$S/"
+    if [ "$XCODE" != "1" ]; then
+        rm -rf "$T"
+    else
+        echo "Keep Xcode project"
+    fi
+        
+	# collect binary file name for FaustGIDE
+    BINARIES="$BINARIES$S/$P.app;"
+done
+
+echo $BINARIES
