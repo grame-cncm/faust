@@ -5,7 +5,7 @@
 Most \faust architectures provide Open Sound Control (OSC) support \footnote{The implementation is based internally on the \emph{oscpack} library by Ross Bencina}. This allows \faust applications to be remotely controlled from any OSC capable application, programming language, or hardware device. OSC support can be activated using the 
 \code{-osc} option when building the application with the appropriate \code{faust2xxx} command. The following table (table \ref{tab:oscarch}) lists \faust's architectures which provide OSC support. 
 
-\begin{table}[htdp]
+\begin{table}[htp]
 \begin{center}
 \begin{tabular}{rcc}
 \hline
@@ -122,7 +122,7 @@ Once set we can use the \code{hello} message  to scan UDP ports for FAUST applic
 	T1$ oscsend localhost 5510 "/*" s hello
 \end{lstlisting}
 
-gives us the root message address, the network and the UDP ports used by the noise application :
+gives us the root message address, the network and the UDP ports used by the noise application:
 \begin{lstlisting}
 	T2: /noise siii "192.168.1.102" 5510 5511 5512
 \end{lstlisting}
@@ -333,7 +333,7 @@ As we can see TouchOSC send the x, y and z accelerometers in a single message, a
  process = library("music.lib").noise * hslider("level[osc:/accxyz/0 0 9.81]",0,0,1,0.01);
 \end{lstlisting}
 
-\begin{table}[htdp]
+\begin{table}[htp]
 \begin{center}
 \begin{tabular}{|l|l|}
 \hline

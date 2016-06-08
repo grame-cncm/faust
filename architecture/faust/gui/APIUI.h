@@ -34,9 +34,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <iostream>
 #include <map>
-
-using namespace std;
 
 enum { kLin = 0, kLog = 1, kExp = 2 };
 
@@ -45,31 +44,31 @@ class APIUI : public PathBuilder, public Meta, public UI
     protected:
 
         int	fNumParameters;
-        vector<string>			fName;
-        map<string, int>		fMap;
-        vector<ValueConverter*>	fConversion;
-        vector<FAUSTFLOAT*>		fZone;
-        vector<FAUSTFLOAT>		fInit;
-        vector<FAUSTFLOAT>		fMin;
-        vector<FAUSTFLOAT>		fMax;
-        vector<FAUSTFLOAT>		fStep;
-        vector<string>			fUnit;
-        vector<ZoneControl*>	fAcc[3];
-        vector<ZoneControl*>	fGyr[3];
+        std::vector<std::string>        fName;
+        std::map<std::string, int>      fMap;
+        std::vector<ValueConverter*>    fConversion;
+        std::vector<FAUSTFLOAT*>        fZone;
+        std::vector<FAUSTFLOAT>         fInit;
+        std::vector<FAUSTFLOAT>         fMin;
+        std::vector<FAUSTFLOAT>         fMax;
+        std::vector<FAUSTFLOAT>         fStep;
+        std::vector<std::string>	fUnit;
+        std::vector<ZoneControl*>	fAcc[3];
+        std::vector<ZoneControl*>	fGyr[3];
 
         // Screen color control
         // "...[screencolor:red]..." etc.
-        bool                    fHasScreenControl;      // true if control screen color metadata
-        ZoneReader*             fRedReader;
-        ZoneReader*             fGreenReader;
-        ZoneReader*             fBlueReader;
+        bool fHasScreenControl;      // true if control screen color metadata
+        ZoneReader* fRedReader;
+        ZoneReader* fGreenReader;
+        ZoneReader* fBlueReader;
 
         // Current values controlled by metadata
-        string	fCurrentUnit;
-        int     fCurrentScale;
-        string	fCurrentAcc;
-        string	fCurrentGyr;
-        string  fCurrentColor;
+        std::string fCurrentUnit;
+        int fCurrentScale;
+        std::string fCurrentAcc;
+        std::string fCurrentGyr;
+        std::string fCurrentColor;
 
         // Add a generic parameter
         virtual void addParameter(const char* label,
@@ -79,7 +78,7 @@ class APIUI : public PathBuilder, public Meta, public UI
                                 FAUSTFLOAT max,
                                 FAUSTFLOAT step)
         {
-            string name = buildPath(label);
+            std::string name = buildPath(label);
 
             fMap[name] = fNumParameters++;
             fName.push_back(name);
@@ -99,11 +98,11 @@ class APIUI : public PathBuilder, public Meta, public UI
                 case kLog : fConversion.push_back(new LogValueConverter(0,1, min, max)); break;
                 case kExp : fConversion.push_back(new ExpValueConverter(0,1, min, max)); break;
             }
-            fCurrentScale  = kLin;
+            fCurrentScale = kLin;
 
             // handle acc metadata "...[acc : <axe> <curve> <amin> <amid> <amax>]..."
             if (fCurrentAcc.size() > 0) {
-                istringstream iss(fCurrentAcc);
+                std::istringstream iss(fCurrentAcc);
                 int axe, curve;
                 double amin, amid, amax;
                 iss >> axe >> curve >> amin >> amid >> amax;
@@ -114,14 +113,14 @@ class APIUI : public PathBuilder, public Meta, public UI
                 {
                     fAcc[axe].push_back(new CurveZoneControl(zone, curve, amin, amid, amax, min, init, max));
                 } else {
-                    cerr << "incorrect acc metadata : " << fCurrentAcc << endl;
+                    std::cerr << "incorrect acc metadata : " << fCurrentAcc << std::endl;
                 }
             }
             fCurrentAcc = "";
 
             // handle gyr metadata "...[gyr : <axe> <curve> <amin> <amid> <amax>]..."
             if (fCurrentGyr.size() > 0) {
-                istringstream iss(fCurrentGyr);
+                std::istringstream iss(fCurrentGyr);
                 int axe, curve;
                 double amin, amid, amax;
                 iss >> axe >> curve >> amin >> amid >> amax;
@@ -132,7 +131,7 @@ class APIUI : public PathBuilder, public Meta, public UI
                 {
                     fGyr[axe].push_back(new CurveZoneControl(zone, curve, amin, amid, amax, min, init, max));
                 } else {
-                    cerr << "incorrect gyr metadata : " << fCurrentGyr << endl;
+                    std::cerr << "incorrect gyr metadata : " << fCurrentGyr << std::endl;
                 }
             }
             fCurrentGyr = "";
@@ -154,13 +153,13 @@ class APIUI : public PathBuilder, public Meta, public UI
                     fBlueReader = new ZoneReader(zone, min, max);
                     fHasScreenControl = true;
                 } else {
-                    cerr << "incorrect screencolor metadata : " << fCurrentColor << endl;
+                    std::cerr << "incorrect screencolor metadata : " << fCurrentColor << std::endl;
                 }
             }
             fCurrentColor = "";
         }
 
-        int getZoneIndex(vector<ZoneControl*>* table, int p, int val)
+        int getZoneIndex(std::vector<ZoneControl*>* table, int p, int val)
         {
             FAUSTFLOAT* zone = fZone[p];
             for (int i = 0; i < table[val].size(); i++) {
@@ -169,7 +168,7 @@ class APIUI : public PathBuilder, public Meta, public UI
             return -1;
         }
     
-        void setConverter(vector<ZoneControl*>* table, int p, int val, int curve, double amin, double amid, double amax)
+        void setConverter(std::vector<ZoneControl*>* table, int p, int val, int curve, double amin, double amid, double amax)
         {
             int id1 = getZoneIndex(table, p, 0);
             int id2 = getZoneIndex(table, p, 1);
@@ -196,7 +195,7 @@ class APIUI : public PathBuilder, public Meta, public UI
             }
         }
     
-        void getConverter(vector<ZoneControl*>* table, int p, int& val, int& curve, double& amin, double& amid, double& amax)
+        void getConverter(std::vector<ZoneControl*>* table, int p, int& val, int& curve, double& amin, double& amid, double& amax)
         {
             int id1 = getZoneIndex(table, p, 0);
             int id2 = getZoneIndex(table, p, 1);
@@ -230,12 +229,12 @@ class APIUI : public PathBuilder, public Meta, public UI
 
         virtual ~APIUI()
         {
-            vector<ValueConverter*>::iterator it1;
+            std::vector<ValueConverter*>::iterator it1;
             for (it1 = fConversion.begin(); it1 != fConversion.end(); it1++) {
                 delete(*it1);
             }
 
-            vector<ZoneControl*>::iterator it2;
+            std::vector<ZoneControl*>::iterator it2;
             for (int i = 0; i < 3; i++) {
                 for (it2 = fAcc[i].begin(); it2 != fAcc[i].end(); it2++) {
                     delete(*it2);
@@ -252,10 +251,10 @@ class APIUI : public PathBuilder, public Meta, public UI
 
         // -- widget's layouts
 
-        virtual void openTabBox(const char* label)			{ fControlsLevel.push_back(label); 	}
-        virtual void openHorizontalBox(const char* label)	{ fControlsLevel.push_back(label); 	}
-        virtual void openVerticalBox(const char* label)		{ fControlsLevel.push_back(label); 	}
-        virtual void closeBox()								{ fControlsLevel.pop_back();		}
+        virtual void openTabBox(const char* label)          { fControlsLevel.push_back(label); }
+        virtual void openHorizontalBox(const char* label)   { fControlsLevel.push_back(label); }
+        virtual void openVerticalBox(const char* label)     { fControlsLevel.push_back(label); }
+        virtual void closeBox()                             { fControlsLevel.pop_back(); }
 
         // -- active widgets
 
