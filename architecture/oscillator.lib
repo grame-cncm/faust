@@ -62,8 +62,8 @@ fracPart(x) = x - floor(x);
 
 // --- lf_sawpos ---
 // simple sawtooth waveform oscillator between 0 and 1
-lf_sawpos(freq) = fracPart ~ +(freq/ml.SR); // Bart Brouns version
-lf_sawpos_phase(phase,freq) = (+(phase*(1-1')) : fracPart ) ~ +(freq/ml.SR);
+lf_sawpos(freq) = fracPart ~ +(freq/ml.SR); // Bart Brouns versions
+lf_sawpos_phase(phase,freq) = (+(phase-phase') : fracPart ) ~ +(freq/ml.SR);
 
 // --- saw1 ---
 //
