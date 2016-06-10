@@ -49,9 +49,55 @@
 #define CONVMYFLT (1.f/32767.f)
 
 #define NUM_INPUTS 2
-#define NUM_OUPUTS 2
+#define NUM_OUTPUTS 2
 
+#define OPENSL_BUFFER_COUNT 8
 #define CPU_TABLE_SIZE 16
+#define COUNT_LOOP 1000
+
+struct CircularBuffer {
+    
+    short* fBuffer;
+    int fReadIndex;
+    int fWriteIndex;
+    int fSize;
+    int fChan;
+    
+    CircularBuffer(int frames, int chan)
+    {
+        fBuffer = new short[frames * chan];
+        memset(fBuffer, 0, sizeof(short) * frames * chan);
+        fSize = frames;
+        fChan = chan;
+        fReadIndex = 0;
+        fWriteIndex = frames/2; // Set write index in the middle
+    }
+    
+    ~CircularBuffer()
+    {
+        delete [] fBuffer;
+    }
+    
+    short* getWritePtr() { return &fBuffer[fWriteIndex * fChan]; }
+    short* getReadPtr() { return &fBuffer[fReadIndex * fChan]; }
+    
+    int getWriteSize() { return  fSize - fWriteIndex; }
+    int getReadSize() { return  fSize - fReadIndex; }
+    
+    void moveWritePtr(int frames)
+    {
+        //__android_log_print(ANDROID_LOG_ERROR, "Faust", "moveWritePtr %x fWriteIndex = %ld", this, fWriteIndex);
+        fWriteIndex = (fWriteIndex + frames) % fSize;
+    }
+    void moveReadPtr(int frames)
+    {
+        //__android_log_print(ANDROID_LOG_ERROR, "Faust", "moveReadPtr %x fReadIndex = %ld", this,  fReadIndex);
+        fReadIndex = (fReadIndex + frames) % fSize;
+    }
+    
+};
+
+//http://stackoverflow.com/questions/17188761/how-to-obtain-computation-time-in-ndk
 
 class androidaudio : public audio {
     
@@ -68,13 +114,15 @@ class androidaudio : public audio {
         int64_t fCPUTable[CPU_TABLE_SIZE];
         int fCPUTableIndex;
     
-        pthread_mutex_t fMutex;
-    
-        short* fFifobuffer;
-        short* fSilence;
-    
         float** fInputs;
         float** fOutputs;
+    
+        CircularBuffer* fOpenSLInputs;
+        CircularBuffer* fOpenSLOutputs;
+    
+        int64_t fLastCallback;
+        int64_t fLastInputCallback;
+        int64_t fLastOutputCallback;
     
         SLObjectItf fOpenSLEngine, fOutputMix, fInputBufferQueue, fOutputBufferQueue;
         SLAndroidSimpleBufferQueueItf fOutputBufferQueueInterface, fInputBufferQueueInterface;
@@ -82,46 +130,49 @@ class androidaudio : public audio {
         SLRecordItf fRecordInterface;
         SLPlayItf fPlayInterface;
     
-        int fFifoFirstSample, fFifoLastSample, fLatencySamples, fFifoCapacity;
+        int fInputCallbackCount;
+        int fOutputCallbackCount;
     
         int64_t getTimeUsec() 
         {
             struct timespec now;
-            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &now);
+            clock_gettime(CLOCK_MONOTONIC, &now);
             return ((int64_t) now.tv_sec * 1000000000LL + now.tv_nsec)/1000;
         }
     
-        int processAudio(short* audioIO)
+        void processAudio()
         {
             int64_t t1 = getTimeUsec();
-            
-            for (int chan = 0; chan < NUM_INPUTS; chan++) {
-                for (int i = 0; i < fBufferSize; i++) {
-                    fInputs[chan][i] =  float(audioIO[i * 2 + chan] * CONVMYFLT);
+            //__android_log_print(ANDROID_LOG_ERROR, "Faust", "processAudio delta = %ld", long(t1 - fLastCallback));
+            fLastCallback = t1;
+       
+            if (fNumInChans > 0) {
+                short* short_input = fOpenSLInputs->getReadPtr();
+                for (int chan = 0; chan < NUM_INPUTS; chan++) {
+                    for (int i  = 0; i < fBufferSize; i++) {
+                        fInputs[chan][i] = float(short_input[i * 2 + chan] * CONVMYFLT);
+                    }
                 }
+                fOpenSLInputs->moveReadPtr(fBufferSize);
             }
             
             // computing...
             fDsp->compute(fBufferSize, fInputs, fOutputs);
             
-            for (int chan = 0; chan < NUM_OUPUTS; chan++) {
-                for (int i = 0; i < fBufferSize; i++) {
-                    audioIO[i * 2 + chan] = short(min(1.f, max(-1.f, fOutputs[chan][i])) * CONV16BIT);
+            //__android_log_print(ANDROID_LOG_ERROR, "Faust", "processAudio fBufferSize = %ld", fBufferSize);
+            
+            if (fNumOutChans > 0) {
+                short* short_output = fOpenSLOutputs->getWritePtr();
+                for (int chan = 0; chan < NUM_OUTPUTS; chan++) {
+                    for (int i = 0; i < fBufferSize; i++) {
+                        short_output[i * 2 + chan] = short(min(1.f, max(-1.f, fOutputs[chan][i])) * CONV16BIT);
+                    }
                 }
+                fOpenSLOutputs->moveWritePtr(fBufferSize);
             }
             
             int64_t t2 = getTimeUsec();
             fCPUTable[(fCPUTableIndex++)&(CPU_TABLE_SIZE-1)] = t2 - t1;
-        }
-    
-        void checkRoom()
-        {
-            if (fFifoLastSample + fBufferSize >= fFifoCapacity) {
-                int samplesInFifo = fFifoLastSample - fFifoFirstSample;
-                if (samplesInFifo > 0) memmove(fFifobuffer, fFifobuffer + fFifoFirstSample * 2, samplesInFifo * 8);
-                fFifoFirstSample = 0;
-                fFifoLastSample = samplesInFifo;
-            };
         }
     
         static void inputCallback(SLAndroidSimpleBufferQueueItf caller, void* arg)
@@ -132,23 +183,19 @@ class androidaudio : public audio {
     
         void inputCallback(SLAndroidSimpleBufferQueueItf caller)
         {
-            pthread_mutex_lock(&fMutex);
-            checkRoom();
+            int64_t t1 = getTimeUsec();
+            //__android_log_print(ANDROID_LOG_ERROR, "Faust", "inputCallback delta = %ld", long(t1 - fLastInputCallback));
+            fLastInputCallback = t1;
+            fInputCallbackCount = fInputCallbackCount++ % COUNT_LOOP;
             
-            short* input = fFifobuffer + fFifoLastSample * 2;
-            fFifoLastSample += fBufferSize;
+            short* short_input = fOpenSLInputs->getWritePtr();
             
-            if (fNumOutChans > 0) {
-                pthread_mutex_unlock(&fMutex);
-                (*caller)->Enqueue(caller, input, fBufferSize * 4);
-            } else {
-                short* process = fFifobuffer + fFifoFirstSample * 2;
-                fFifoFirstSample += fBufferSize;
-                pthread_mutex_unlock(&fMutex);
-                (*caller)->Enqueue(caller, input, fBufferSize * 4);
-                // Actual processing
-                processAudio(process);
-            };
+            SLresult result = (*caller)->Enqueue(caller, short_input, fBufferSize * sizeof(short) * NUM_INPUTS);
+            if (result != SL_RESULT_SUCCESS)   {
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "inputCallback Enqueue error = %ld", result);
+            }
+            
+            fOpenSLInputs->moveWritePtr(fBufferSize);
         }
     
         static void outputCallback(SLAndroidSimpleBufferQueueItf caller, void* arg)
@@ -159,43 +206,35 @@ class androidaudio : public audio {
     
         void outputCallback(SLAndroidSimpleBufferQueueItf caller)
         {
-            pthread_mutex_lock(&fMutex);
+            int64_t t1 = getTimeUsec();
+            //__android_log_print(ANDROID_LOG_ERROR, "Faust", "outputCallback delta = %ld", long(t1 - fLastOutputCallback));
+            fLastOutputCallback = t1;
+            fOutputCallbackCount = fOutputCallbackCount ++ % COUNT_LOOP;
             
-            if (!(fNumInChans > 0)) {
-                checkRoom();
-                short* process = fFifobuffer + fFifoLastSample * 2;
-                fFifoLastSample += fBufferSize;
-                short* output = fFifobuffer + fFifoFirstSample * 2;
-                fFifoFirstSample += fBufferSize;
-                pthread_mutex_unlock(&fMutex);
-                // Actual processing
-                processAudio(process);
-                (*caller)->Enqueue(caller, output, fBufferSize * 4);
-            } else {
-                if (fFifoLastSample - fFifoFirstSample >= fLatencySamples) {
-                    short* output = fFifobuffer + fFifoFirstSample * 2;
-                    fFifoFirstSample += fBufferSize;
-                    pthread_mutex_unlock(&fMutex);
-                    // Actual processing
-                    processAudio(output);
-                    (*caller)->Enqueue(caller, output, fBufferSize * 4);
-                } else {
-                    pthread_mutex_unlock(&fMutex);
-                    (*caller)->Enqueue(caller, fSilence, fBufferSize * 4);
-                };
-            };
-        }
+            processAudio();
+            
+            short* short_input = fOpenSLOutputs->getReadPtr();
+            
+            SLresult result = (*caller)->Enqueue(caller, short_input, fBufferSize * sizeof(short) * NUM_OUTPUTS);
+            if (result != SL_RESULT_SUCCESS)   {
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "outputCallback Enqueue error = %ld", result);
+            }
+            
+            fOpenSLOutputs->moveReadPtr(fBufferSize);
+         }
           
     public:
     
         androidaudio(long srate, long bsize)
         : fDsp(0), fSampleRate(srate),
         fBufferSize(bsize), fCPUTableIndex(0), fNumInChans(0), fNumOutChans(0),
-        fFifoFirstSample(0), fFifoLastSample(0),
-        fLatencySamples(0), fFifoCapacity(0),
-        fOpenSLEngine(0), fOutputMix(0), fInputBufferQueue(0), fOutputBufferQueue(0)
+        fOpenSLEngine(0), fOutputMix(0), fInputBufferQueue(0), fOutputBufferQueue(0),
+        fInputCallbackCount(0), fOutputCallbackCount(0)
         {
             __android_log_print(ANDROID_LOG_ERROR, "Faust", "Constructor");
+            
+            fOpenSLInputs = new CircularBuffer(bsize * 4, NUM_INPUTS);
+            fOpenSLOutputs = new CircularBuffer(bsize * 4, NUM_OUTPUTS);
             
             // Allocating memory for input channels.
             fInputs = new float*[NUM_INPUTS];
@@ -205,8 +244,8 @@ class androidaudio : public audio {
             }
     
             // Allocating memory for output channels.
-            fOutputs = new float*[NUM_OUPUTS];
-            for (int i = 0; i < NUM_OUPUTS; i++) {
+            fOutputs = new float*[NUM_OUTPUTS];
+            for (int i = 0; i < NUM_OUTPUTS; i++) {
                 fOutputs[i] = new float[fBufferSize];
                 memset(fOutputs[i], 0, fBufferSize * sizeof(float));
             }
@@ -236,21 +275,19 @@ class androidaudio : public audio {
                 fOpenSLEngine = NULL;
             }
             
-            free(fFifobuffer);
-            free(fSilence);
-            
             for (int i = 0; i < NUM_INPUTS; i++) {
                 delete [] fInputs[i];
             }
             delete [] fInputs;
-            
-            for (int i = 0; i < NUM_OUPUTS; i++) {
+           
+            for (int i = 0; i < NUM_OUTPUTS; i++) {
                 delete [] fOutputs[i];
             }
             delete [] fOutputs;
             
-            pthread_mutex_destroy(&fMutex);
-        }
+            delete fOpenSLInputs;
+            delete fOpenSLOutputs;
+         }
     
         // DSP CPU load in percentage of the buffer size duration
         float getCPULoad()
@@ -270,9 +307,6 @@ class androidaudio : public audio {
             fNumInChans = fDsp->getNumInputs();
             fNumOutChans = fDsp->getNumOutputs();
             fDsp->init(fSampleRate);
-            if (pthread_mutex_init(&fMutex, NULL) != 0) {
-                return false;
-            }
             
             static const SLboolean requireds[2] = { SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE };
             SLresult result;
@@ -319,16 +353,7 @@ class androidaudio : public audio {
                 default:
                     return false;
             }
-            
-            fSilence = (short*)malloc(fBufferSize * 4);
-            memset(fSilence, 0, fBufferSize * 4);
-            fLatencySamples = fLatencySamples < fBufferSize ? fBufferSize : fLatencySamples;
-            
-            fFifoCapacity = fBufferSize * 100;
-            int fifoBufferSizeBytes = fFifoCapacity * 4 + fBufferSize * 4;
-            fFifobuffer = (short*)malloc(fifoBufferSizeBytes);
-            memset(fFifobuffer, 0, fifoBufferSizeBytes);
-            
+          
             // Create the OpenSL ES engine.
             result = slCreateEngine(&fOpenSLEngine, 0, NULL, 0, NULL, NULL);
             if (result != SL_RESULT_SUCCESS) return false;
@@ -395,6 +420,7 @@ class androidaudio : public audio {
             }
             
             if (fNumInChans > 0) { // Initialize
+                
                 result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_ANDROIDSIMPLEBUFFERQUEUE, &fInputBufferQueueInterface);
                 if (result != SL_RESULT_SUCCESS) return false;
                 
@@ -404,24 +430,33 @@ class androidaudio : public audio {
                 result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_RECORD, &fRecordInterface);
                 if (result != SL_RESULT_SUCCESS) return false;
                 
-                // init the input buffer queue.
-                result = (*fInputBufferQueueInterface)->Enqueue(fInputBufferQueueInterface, fFifobuffer, fBufferSize * 4);
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "androidaudio::init Enqueue %d", result);
+                result = (*fInputBufferQueueInterface)->Enqueue(fInputBufferQueueInterface,
+                                                                fOpenSLInputs->getWritePtr(), fBufferSize * sizeof(short) * NUM_INPUTS);
                 if (result != SL_RESULT_SUCCESS) return false;
+                fOpenSLInputs->moveWritePtr(fBufferSize);
+                
+                result = (*fRecordInterface)->SetRecordState(fRecordInterface, SL_RECORDSTATE_STOPPED);
+                if (result != SL_RESULT_SUCCESS) __android_log_print(ANDROID_LOG_ERROR, "Faust", "stop: SetRecordState error");
             }
             
             if (fNumOutChans > 0) { // Initialize
+              
                 result = (*fOutputBufferQueue)->GetInterface(fOutputBufferQueue, SL_IID_BUFFERQUEUE, &fOutputBufferQueueInterface);
                 if (result != SL_RESULT_SUCCESS) return false;
                 
                 result = (*fOutputBufferQueueInterface)->RegisterCallback(fOutputBufferQueueInterface, outputCallback, this);
                 if (result != SL_RESULT_SUCCESS) return false;
                 
-                result = (*fOutputBufferQueueInterface)->Enqueue(fOutputBufferQueueInterface, fFifobuffer, fBufferSize * 4);
-                if (result != SL_RESULT_SUCCESS) return false;
-                
                 result = (*fOutputBufferQueue)->GetInterface(fOutputBufferQueue, SL_IID_PLAY, &fPlayInterface);
                 if (result != SL_RESULT_SUCCESS) return false;
+                
+                result = (*fOutputBufferQueueInterface)->Enqueue(fOutputBufferQueueInterface,
+                                                                 fOpenSLOutputs->getReadPtr(), fBufferSize * sizeof(short) * NUM_OUTPUTS);
+                if (result != SL_RESULT_SUCCESS) return false;
+                fOpenSLOutputs->moveReadPtr(fBufferSize);
+                
+                result = (*fPlayInterface)->SetPlayState(fPlayInterface, SL_PLAYSTATE_STOPPED);
+                if (result != SL_RESULT_SUCCESS) __android_log_print(ANDROID_LOG_ERROR, "Faust", "stop: SetPlayState error");
             }
             
             return true;
