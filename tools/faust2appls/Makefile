@@ -33,6 +33,7 @@ install:
 	install faust2graph $(dest)
 	install faust2graphviewer $(dest)
 	install faust2ios $(dest)
+	install faust2iosKeyboard $(dest)
 	install faust2jack $(dest)
 	install faust2jackconsole $(dest)
 	install faust2jackinternal $(dest)
@@ -95,6 +96,7 @@ uninstall:
 	rm -f $(dest)/faust2graph
 	rm -f $(dest)/faust2graphviewer
 	rm -f $(dest)/faust2ios
+	rm -f $(dest)/faust2iosKeyboard
 	rm -f $(dest)/faust2jack
 	rm -f $(dest)/faust2jackconsole
 	rm -f $(dest)/faust2jackinternal

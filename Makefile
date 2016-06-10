@@ -156,6 +156,8 @@ install :
 	cp -r architecture/iOS $(prefix)/lib/faust/
 	cp -r architecture/osclib $(prefix)/lib/faust/iOS
 	rm -rf $(prefix)/lib/faust/iOS/DerivedData/
+	rm -rf $(prefix)/lib/faust/iOSKeyboard
+	cp -r architecture/iOSKeyboard $(prefix)/lib/faust/
 	# install AU
 	rm -rf $(prefix)/lib/faust/AU/
 	cp -r architecture/AU $(prefix)/lib/faust/

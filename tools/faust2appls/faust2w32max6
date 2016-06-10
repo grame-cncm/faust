@@ -22,7 +22,7 @@ EXT="~.mxe"
 : ${MINGWPREFIX="i686-w64-mingw32-"}
 CXX="${MINGWPREFIX}g++"
 (which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
-DLLWRAP="${MINGWPREFIX}dllwrap --target=i386-mingw32"
+DLLWRAP="${MINGWPREFIX}dllwrap --target=i686-w64-mingw32"
 STRIP="${MINGWPREFIX}strip"
 
 
