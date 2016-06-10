@@ -58,11 +58,12 @@ lf_trianglepos(freq) = 1-abs(saw1(freq)); // saw1 defined below
 // simple sawtooth waveform oscillator between 0 and period in samples:
 lf_rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
 
+fracPart(x) = x - floor(x);
+
 // --- lf_sawpos ---
 // simple sawtooth waveform oscillator between 0 and 1
-lf_sawpos(freq) = frac ~ +(freq/ml.SR) with { // Bart Brouns version
-   frac(x) = x - floor(x);
-};
+lf_sawpos(freq) = fracPart ~ +(freq/ml.SR); // Bart Brouns versions
+lf_sawpos_phase(phase,freq) = (+(phase-phase') : fracPart ) ~ +(freq/ml.SR);
 
 // --- saw1 ---
 //
@@ -96,11 +97,8 @@ sawN(N,freq) = saw1l : poly(Nc) : D(Nc-1) : gate(Nc-1)
 with {
   Nc = max(1,min(N,MAX_SAW_ORDER));
   clippedFreq = max(20.0,abs(freq)); // use lf_sawpos(freq) for LFOs (freq < 20 Hz)
-  p0n = float(ml.SR)/clippedFreq; // period in samples
-  lfsawpos = (_,1:fmod) ~ +(1.0/p0n); // sawtooth waveform in [0,1)
-  // To introduce a phase offset here (phase in [0,1]):
-  // lfsawpos(phase) = (+(phase*(1-1')), 1 : fmod ) ~ +(1.0/p0n);
-  saw1l = 2*lfsawpos - 1; // zero-mean, amplitude +/- 1
+  saw1l = 2*lf_sawpos(clippedFreq) - 1; // zero-mean, amplitude +/- 1
+  // Also note the availability of lf_sawpos_phase above.
   poly(1,x) =  x;
   poly(2,x) =  x*x;
   poly(3,x) =  x*x*x - x;
