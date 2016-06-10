@@ -378,6 +378,10 @@ void global::init()
     Typed::init();
     
     gCurrentLocal = setlocale(LC_ALL, NULL);
+    if (gCurrentLocal != NULL) {
+        gCurrentLocal = strdup(gCurrentLocal);
+    }
+    
     // Setup standard "C" local 
     // (workaround for a bug in bitcode generation : http://lists.cs.uiuc.edu/pipermail/llvmbugs/2012-May/023530.html)
     setlocale(LC_ALL, "C");
@@ -395,6 +399,7 @@ global::~global()
     BasicTyped::cleanup();
     DeclareVarInst::cleanup();
     setlocale(LC_ALL, gCurrentLocal);
+    free(gCurrentLocal);
     
     // Cleanup
     CInstVisitor::cleanup();
