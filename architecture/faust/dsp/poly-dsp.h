@@ -279,7 +279,6 @@ class mydsp_poly : public dsp, public midi {
         inline FAUSTFLOAT mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer) 
         {
             FAUSTFLOAT level = 0;
-            // Normalize sample by the max polyphony (as in vst.cpp file)
             for (int i = 0; i < fNumOutputs; i++) {
                 FAUSTFLOAT* mixChannel = mixBuffer[i];
                 FAUSTFLOAT* outChannel = outputBuffer[i];
@@ -446,16 +445,13 @@ class mydsp_poly : public dsp, public midi {
             return !(n & (n - 1));
         }
     
+        // Always returns a voice
         int newVoiceAux()
         {
             int voice = getVoice(kFreeVoice, true);
-            if (voice >= 0) {
-                fVoiceTable[voice]->fNote = kActiveVoice;
-                return voice;
-            } else {
-                printf("No more free voice...\n");
-                return -1;
-            }
+            assert(voice != kNoVoice);
+            fVoiceTable[voice]->fNote = kActiveVoice;
+            return voice;
         }
     
     public:
@@ -608,8 +604,7 @@ class mydsp_poly : public dsp, public midi {
     
         MapUI* newVoice()
         {
-            int voice = newVoiceAux();
-            return (voice >= 0) ? fVoiceTable[voice] : 0;
+            return fVoiceTable[newVoiceAux()];
         }
         
         void deleteVoice(MapUI* voice)
@@ -629,13 +624,11 @@ class mydsp_poly : public dsp, public midi {
         {
             if (checkPolyphony()) {
                 int voice = newVoiceAux();
-                if (voice >= 0) {
-                    fVoiceTable[voice]->setParamValue(fFreqLabel, midiToFreq(pitch));
-                    fVoiceTable[voice]->setParamValue(fGainLabel, float(velocity)/127.f);
-                    fVoiceTable[voice]->setParamValue(fGateLabel, 1.0f);
-                    fVoiceTable[voice]->fNote = pitch;
-                    return fVoiceTable[voice];
-                }
+                fVoiceTable[voice]->setParamValue(fFreqLabel, midiToFreq(pitch));
+                fVoiceTable[voice]->setParamValue(fGainLabel, float(velocity)/127.f);
+                fVoiceTable[voice]->setParamValue(fGateLabel, 1.0f);
+                fVoiceTable[voice]->fNote = pitch;
+                return fVoiceTable[voice];
             }
             
             return 0;
@@ -645,7 +638,7 @@ class mydsp_poly : public dsp, public midi {
         {
             if (checkPolyphony()) {
                 int voice = getVoice(pitch);
-                if (voice >= 0) {
+                if (voice != kNoVoice) {
                     // No use of velocity for now...
                     fVoiceTable[voice]->setParamValue(fGateLabel, 0.0f);
                     // Release voice
