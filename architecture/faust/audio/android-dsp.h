@@ -78,9 +78,6 @@ struct CircularBuffer {
     short* getWritePtr() { return &fBuffer[fWriteIndex * fChan]; }
     short* getReadPtr() { return &fBuffer[fReadIndex * fChan]; }
     
-    int getWriteSize() { return  fSize - fWriteIndex; }
-    int getReadSize() { return  fSize - fReadIndex; }
-    
     void moveWritePtr(int frames)
     {
         //__android_log_print(ANDROID_LOG_ERROR, "Faust", "moveWritePtr %x fWriteIndex = %ld", this, fWriteIndex);
@@ -408,9 +405,10 @@ class androidaudio : public audio {
                 if (result != SL_RESULT_SUCCESS) return false;
                 
                 result = (*fInputBufferQueueInterface)->Enqueue(fInputBufferQueueInterface,
-                                                                fOpenSLInputs->getWritePtr(), fBufferSize * sizeof(short) * NUM_INPUTS);
-                if (result != SL_RESULT_SUCCESS) return false;
+                                                                fOpenSLInputs->getWritePtr(),
+                                                                fBufferSize * sizeof(short) * NUM_INPUTS);
                 fOpenSLInputs->moveWritePtr(fBufferSize);
+                if (result != SL_RESULT_SUCCESS) return false;
                 
                 result = (*fRecordInterface)->SetRecordState(fRecordInterface, SL_RECORDSTATE_STOPPED);
                 if (result != SL_RESULT_SUCCESS) __android_log_print(ANDROID_LOG_ERROR, "Faust", "stop: SetRecordState error");
@@ -428,9 +426,10 @@ class androidaudio : public audio {
                 if (result != SL_RESULT_SUCCESS) return false;
                 
                 result = (*fOutputBufferQueueInterface)->Enqueue(fOutputBufferQueueInterface,
-                                                                 fOpenSLOutputs->getReadPtr(), fBufferSize * sizeof(short) * NUM_OUTPUTS);
-                if (result != SL_RESULT_SUCCESS) return false;
+                                                                 fOpenSLOutputs->getReadPtr(),
+                                                                 fBufferSize * sizeof(short) * NUM_OUTPUTS);
                 fOpenSLOutputs->moveReadPtr(fBufferSize);
+                if (result != SL_RESULT_SUCCESS) return false;
                 
                 result = (*fPlayInterface)->SetPlayState(fPlayInterface, SL_PLAYSTATE_STOPPED);
                 if (result != SL_RESULT_SUCCESS) __android_log_print(ANDROID_LOG_ERROR, "Faust", "stop: SetPlayState error");
