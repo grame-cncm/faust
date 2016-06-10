@@ -50,10 +50,7 @@
 
 #define NUM_INPUTS 2
 #define NUM_OUTPUTS 2
-
-#define OPENSL_BUFFER_COUNT 8
 #define CPU_TABLE_SIZE 16
-#define COUNT_LOOP 1000
 
 struct CircularBuffer {
     
@@ -120,10 +117,6 @@ class androidaudio : public audio {
         CircularBuffer* fOpenSLInputs;
         CircularBuffer* fOpenSLOutputs;
     
-        int64_t fLastCallback;
-        int64_t fLastInputCallback;
-        int64_t fLastOutputCallback;
-    
         SLObjectItf fOpenSLEngine, fOutputMix, fInputBufferQueue, fOutputBufferQueue;
         SLAndroidSimpleBufferQueueItf fOutputBufferQueueInterface, fInputBufferQueueInterface;
     
@@ -143,29 +136,27 @@ class androidaudio : public audio {
         void processAudio()
         {
             int64_t t1 = getTimeUsec();
-            //__android_log_print(ANDROID_LOG_ERROR, "Faust", "processAudio delta = %ld", long(t1 - fLastCallback));
-            fLastCallback = t1;
        
+            // Converting short to float
             if (fNumInChans > 0) {
-                short* short_input = fOpenSLInputs->getReadPtr();
+                short* input = fOpenSLInputs->getReadPtr();
                 for (int chan = 0; chan < NUM_INPUTS; chan++) {
                     for (int i  = 0; i < fBufferSize; i++) {
-                        fInputs[chan][i] = float(short_input[i * 2 + chan] * CONVMYFLT);
+                        fInputs[chan][i] = float(input[i * 2 + chan] * CONVMYFLT);
                     }
                 }
                 fOpenSLInputs->moveReadPtr(fBufferSize);
             }
             
-            // computing...
+            // Compute DSP
             fDsp->compute(fBufferSize, fInputs, fOutputs);
             
-            //__android_log_print(ANDROID_LOG_ERROR, "Faust", "processAudio fBufferSize = %ld", fBufferSize);
-            
+            // Converting float to short
             if (fNumOutChans > 0) {
-                short* short_output = fOpenSLOutputs->getWritePtr();
+                short* output = fOpenSLOutputs->getWritePtr();
                 for (int chan = 0; chan < NUM_OUTPUTS; chan++) {
                     for (int i = 0; i < fBufferSize; i++) {
-                        short_output[i * 2 + chan] = short(min(1.f, max(-1.f, fOutputs[chan][i])) * CONV16BIT);
+                        output[i * 2 + chan] = short(min(1.f, max(-1.f, fOutputs[chan][i])) * CONV16BIT);
                     }
                 }
                 fOpenSLOutputs->moveWritePtr(fBufferSize);
@@ -183,19 +174,11 @@ class androidaudio : public audio {
     
         void inputCallback(SLAndroidSimpleBufferQueueItf caller)
         {
-            int64_t t1 = getTimeUsec();
-            //__android_log_print(ANDROID_LOG_ERROR, "Faust", "inputCallback delta = %ld", long(t1 - fLastInputCallback));
-            fLastInputCallback = t1;
-            fInputCallbackCount = fInputCallbackCount++ % COUNT_LOOP;
-            
-            short* short_input = fOpenSLInputs->getWritePtr();
-            
-            SLresult result = (*caller)->Enqueue(caller, short_input, fBufferSize * sizeof(short) * NUM_INPUTS);
-            if (result != SL_RESULT_SUCCESS)   {
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "inputCallback Enqueue error = %ld", result);
-            }
-            
+            SLresult result = (*caller)->Enqueue(caller, fOpenSLInputs->getWritePtr(), fBufferSize * sizeof(short) * NUM_INPUTS);
             fOpenSLInputs->moveWritePtr(fBufferSize);
+            if (result != SL_RESULT_SUCCESS)   {
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "inputCallback Enqueue error = %d", int(result));
+            }
         }
     
         static void outputCallback(SLAndroidSimpleBufferQueueItf caller, void* arg)
@@ -206,22 +189,15 @@ class androidaudio : public audio {
     
         void outputCallback(SLAndroidSimpleBufferQueueItf caller)
         {
-            int64_t t1 = getTimeUsec();
-            //__android_log_print(ANDROID_LOG_ERROR, "Faust", "outputCallback delta = %ld", long(t1 - fLastOutputCallback));
-            fLastOutputCallback = t1;
-            fOutputCallbackCount = fOutputCallbackCount ++ % COUNT_LOOP;
-            
+            // Output callback drives DSP computation
             processAudio();
             
-            short* short_input = fOpenSLOutputs->getReadPtr();
-            
-            SLresult result = (*caller)->Enqueue(caller, short_input, fBufferSize * sizeof(short) * NUM_OUTPUTS);
-            if (result != SL_RESULT_SUCCESS)   {
-                __android_log_print(ANDROID_LOG_ERROR, "Faust", "outputCallback Enqueue error = %ld", result);
-            }
-            
+            SLresult result = (*caller)->Enqueue(caller, fOpenSLOutputs->getReadPtr(), fBufferSize * sizeof(short) * NUM_OUTPUTS);
             fOpenSLOutputs->moveReadPtr(fBufferSize);
-         }
+            if (result != SL_RESULT_SUCCESS)   {
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "outputCallback Enqueue error = %d", int(result));
+            }
+        }
           
     public:
     
@@ -390,7 +366,8 @@ class androidaudio : public audio {
                 SLAndroidConfigurationItf configObject;
                 result = (*fInputBufferQueue)->GetInterface(fInputBufferQueue, SL_IID_ANDROIDCONFIGURATION, &configObject);
                 if (result == SL_RESULT_SUCCESS) {
-                    SLuint32 mode = SL_ANDROID_RECORDING_PRESET_GENERIC;
+                    //SLuint32 mode = SL_ANDROID_RECORDING_PRESET_GENERIC;
+                    SLuint32 mode = SL_ANDROID_RECORDING_PRESET_VOICE_RECOGNITION;
                     result = (*configObject)->SetConfiguration(configObject, SL_ANDROID_KEY_RECORDING_PRESET, &mode, sizeof(mode));
                     if (result != SL_RESULT_SUCCESS) {
                        __android_log_print(ANDROID_LOG_ERROR, "Faust", "SetConfiguration SL_ANDROID_KEY_RECORDING_PRESET error %d", result);
