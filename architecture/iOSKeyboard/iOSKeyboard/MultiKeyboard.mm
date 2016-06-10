@@ -28,6 +28,7 @@
     CGFloat *zoneWidths; // the width of the different zones of each keyboards
     CGFloat zoneHeight; // the global height of each keyboard (same for all of them)
     Boolean UIon;
+    Boolean cancelOnce;
     
     float currentContinuousKey;
     float currentKeyboardY;
@@ -144,6 +145,7 @@
         if([parameters[@"quantizationMode"] intValue] == 2){
             [NSThread detachNewThreadSelector:@selector(pitchRounding) toTarget:self withObject:nil];
         }
+        cancelOnce = true;
     }
     return self;
 }
@@ -232,6 +234,7 @@
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event{
+    cancelOnce = true;
     /*
     parameters[@"keyb0_nKeys"] = [NSNumber numberWithInt:8];
     [self buildInterface];
@@ -294,9 +297,10 @@
 }
 
 -(void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event{
-    printf("Canceled1\n");
-    [self resetKeyboard];
-    printf("Canceled2\n");
+    if(cancelOnce){
+        [self resetKeyboard];
+        cancelOnce = false;
+    }
 }
 
 -(void)processTouchEvent:(int)eventType withTouchPoint:(CGPoint)touchPoint withFingerId:(int)fingerId{
@@ -477,7 +481,12 @@
     else if (eventType == 1 || (eventType == 4 && [parameters[@"quantizationMode"] intValue] == 0)){
         // allocating new voice to finger
         polyUI[fingerId] = faustDsp->newVoice();
-        polyUI[fingerId]->setParamValue("gate", 1);
+        if(polyUI[fingerId] != NULL){
+            polyUI[fingerId]->setParamValue("gate", 1);
+        }
+        else{
+            return;
+        }
         
         // setting first pitch (always quantized)
         if([parameters[@"quantizationMode"] intValue] == 0){
@@ -500,7 +509,7 @@
                 rawPitch[fingerId] = [self applyScale:currentContinuousKey+[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",keyboardId]] intValue]];
             }
         }
-        polyUI[fingerId]->setParamValue("freq", [self mtof:rawPitch[fingerId]]);
+        if(polyUI[fingerId] != NULL) polyUI[fingerId]->setParamValue("freq", [self mtof:rawPitch[fingerId]]);
         previousRawPitch[fingerId] = rawPitch[fingerId];
     }
     // update
@@ -515,16 +524,16 @@
         }
         
         if([parameters[@"quantizationMode"] intValue] == 1){
-            polyUI[fingerId]->setParamValue("freq", [self mtof:rawPitch[fingerId]]);
+            if(polyUI[fingerId] != NULL) polyUI[fingerId]->setParamValue("freq", [self mtof:rawPitch[fingerId]]);
         }
         // else sent from the pitch rounding method/thread...
     }
     
     // TODO: continuous x and y values are always sent: this should be optimized
-    polyUI[fingerId]->setParamValue("keyboard", keyboardId);
-    polyUI[fingerId]->setParamValue("key", keyId);
-    polyUI[fingerId]->setParamValue("x", fmod(currentContinuousKey,1));
-    polyUI[fingerId]->setParamValue("y", currentKeyboardY);
+    if(polyUI[fingerId] != NULL) polyUI[fingerId]->setParamValue("keyboard", keyboardId);
+    if(polyUI[fingerId] != NULL) polyUI[fingerId]->setParamValue("key", keyId);
+    if(polyUI[fingerId] != NULL) polyUI[fingerId]->setParamValue("x", fmod(currentContinuousKey,1));
+    if(polyUI[fingerId] != NULL) polyUI[fingerId]->setParamValue("y", currentKeyboardY);
 }
 
 // TODO: improve
@@ -543,6 +552,10 @@
         }
     }
     for(int i=0; i<[parameters[@"maxFingers"] intValue]; i++){
+        if(polyUI[i] != NULL){
+            polyUI[i]->setParamValue("gate", 0);
+            faustDsp->deleteVoice(polyUI[i]);
+        }
         previousTouchPoints[i].x = -1;
         previousTouchPoints[i].y = -1;
         previousTouchPoints_[i].x = -1;
@@ -553,7 +566,6 @@
         previousRawPitch[i] = -1;
         roundedPitch[i] = -1;
         moveCount[i] = 0;
-        if(polyUI[i] != NULL) polyUI[i]->setParamValue("gate", 0);
     }
 }
 
@@ -614,7 +626,7 @@
                 else{
                     roundedPitch[i] = (int)rawPitch[i];
                 }
-                polyUI[i]->setParamValue("freq", [self mtof:roundedPitch[i]]);
+                if(polyUI[i] != NULL) polyUI[i]->setParamValue("freq", [self mtof:roundedPitch[i]]);
             }
         }
         [NSThread sleepForTimeInterval:ROUNDING_UPDATE_SPEED];
@@ -632,47 +644,47 @@
         [zones removeAllObjects];
     }
     if(previousTouchPoints){
-        delete previousTouchPoints;
+        delete[] previousTouchPoints;
         previousTouchPoints = NULL;
     }
     if(previousTouchPoints_){
-        delete previousTouchPoints_;
+        delete[] previousTouchPoints_;
         previousTouchPoints_ = NULL;
     }
     if(previousTouchedKeyboards){
-        delete previousTouchedKeyboards;
+        delete[] previousTouchedKeyboards;
         previousTouchedKeyboards = NULL;
     }
     if(previousTouchedKeys){
-        delete previousTouchedKeys;
+        delete[] previousTouchedKeys;
         previousTouchedKeys = NULL;
     }
     if(zoneWidths){
-        delete zoneWidths;
+        delete[] zoneWidths;
         zoneWidths = NULL;
     }
     if(monoMode_previousActiveFinger){
-        delete monoMode_previousActiveFinger;
+        delete[] monoMode_previousActiveFinger;
         monoMode_previousActiveFinger = NULL;
     }
     if(rawPitch){
-        delete rawPitch;
+        delete[] rawPitch;
         rawPitch = NULL;
     }
     if(previousRawPitch){
-        delete previousRawPitch;
+        delete[] previousRawPitch;
         previousRawPitch = NULL;
     }
     if(roundedPitch){
-        delete roundedPitch;
+        delete[] roundedPitch;
         roundedPitch = NULL;
     }
     if(moveCount){
-        delete moveCount;
+        delete[] moveCount;
         moveCount = NULL;
     }
     if(polyUI){
-        delete polyUI;
+        delete[] polyUI;
         polyUI = NULL;
     }
 }

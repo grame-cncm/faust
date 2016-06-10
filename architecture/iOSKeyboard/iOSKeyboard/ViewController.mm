@@ -28,8 +28,14 @@ std::list<GUI*> GUI::fGuiList;
     int bufferSize = 256;
     audioDevice = new iosaudio(SR, bufferSize);
     synthDSP = new mydsp_poly(10,true,false);
+    
+    #if POLY2
     mainDSP = new dsp_sequencer(synthDSP, new effect());
     audioDevice->init("Faust", mainDSP);
+    #else
+    audioDevice->init("Faust", synthDSP);
+    #endif
+    
     audioDevice->start();
     
     // For now, just interface...
