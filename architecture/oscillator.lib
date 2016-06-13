@@ -105,6 +105,7 @@ with {
   poly(4,x) =  x*x*(x*x - 2.0);
   poly(5,x) =  x*(7.0/3 + x*x*(-10.0/3.0 + x*x));
   poly(6,x) =  x*x*(7.0 + x*x*(-5.0 + x*x));
+  p0n = float(ml.SR)/clippedFreq; // period in samples
   diff1(x) =  (x - x')/(2.0/p0n);
   diff(N) = seq(n,N,diff1); // N diff1s in series
   factorial(0) = 1;
