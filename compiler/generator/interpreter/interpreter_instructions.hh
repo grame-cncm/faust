@@ -80,6 +80,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         void initMathTable()
         {
             gMathLibTable["abs"] = FIRInstruction::kAbs;
+            
+            // Float version
             gMathLibTable["fabsf"] = FIRInstruction::kAbsf;
             gMathLibTable["acosf"] = FIRInstruction::kAcosf;
             gMathLibTable["asinf"] = FIRInstruction::kAsinf;
@@ -97,14 +99,35 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             gMathLibTable["powf"] =  FIRInstruction::kPowf;
             gMathLibTable["roundf"] =  FIRInstruction::kRoundf;
             gMathLibTable["sinf"] = FIRInstruction::kSinf;
-            gMathLibTable["sinfh"] = FIRInstruction::kSinhf;
+            gMathLibTable["sinhf"] = FIRInstruction::kSinhf;
             gMathLibTable["sqrtf"] = FIRInstruction::kSqrtf;
             gMathLibTable["tanf"] =  FIRInstruction::kTanf;
             gMathLibTable["tanhf"] =  FIRInstruction::kTanhf;
-            gMathLibTable["max"] =  FIRInstruction::kMax;
-            gMathLibTable["maxf"] =  FIRInstruction::kMaxf;
-            gMathLibTable["min"] =  FIRInstruction::kMin;
-            gMathLibTable["minf"] =  FIRInstruction::kMinf;
+            
+            // Double version
+            gMathLibTable["fabs"] = FIRInstruction::kAbsf;
+            gMathLibTable["acos"] = FIRInstruction::kAcosf;
+            gMathLibTable["asin"] = FIRInstruction::kAsinf;
+            gMathLibTable["atan"] = FIRInstruction::kAtanf;
+            gMathLibTable["atan2"] = FIRInstruction::kAtan2f;
+            gMathLibTable["ceil"] = FIRInstruction::kCeilf;
+            gMathLibTable["cos"] = FIRInstruction::kCosf;
+            gMathLibTable["cosh"] = FIRInstruction::kCoshf;
+            gMathLibTable["exp"] = FIRInstruction::kExpf;
+            gMathLibTable["floor"] = FIRInstruction::kFloorf;
+            gMathLibTable["fmod"] = FIRInstruction::kFmodf;
+            gMathLibTable["remainder"] =  FIRInstruction::kRemReal;
+            gMathLibTable["log"] =  FIRInstruction::kLogf;
+            gMathLibTable["log10"] =  FIRInstruction::kLog10f;
+            gMathLibTable["pow"] =  FIRInstruction::kPowf;
+            gMathLibTable["round"] =  FIRInstruction::kRoundf;
+            gMathLibTable["sin"] = FIRInstruction::kSinf;
+            gMathLibTable["sinh"] = FIRInstruction::kSinhf;
+            gMathLibTable["sqrt"] = FIRInstruction::kSqrtf;
+            gMathLibTable["tan"] =  FIRInstruction::kTanf;
+            gMathLibTable["tanh"] =  FIRInstruction::kTanhf;
+            
+            // Min/max directly handled in FunCallInst
         }
         
         virtual ~InterpreterInstVisitor()
@@ -453,17 +476,17 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 arg_types.push_back(fCurrentBlock->isRealInst());
             }
             
-            if (gMathLibTable.find(inst->fName) == gMathLibTable.end()) {
-                std::cout << "FunCallInst " << inst->fName << std::endl;
-                stringstream error;
-                error << "ERROR : missing function : " << inst->fName << std::endl;
-                throw faustexception(error.str());
-            } else if (inst->fName == "min") {
+            if (inst->fName == "min") {
                 // HACK : get type of first arg...
                 fCurrentBlock->push(new FIRBasicInstruction<T>(arg_types[0] ? FIRInstruction::kMinf : FIRInstruction::kMin));
             } else if (inst->fName == "max") {
                 // HACK : get type of first arg...
                 fCurrentBlock->push(new FIRBasicInstruction<T>(arg_types[0] ? FIRInstruction::kMaxf : FIRInstruction::kMax));
+            } else if (gMathLibTable.find(inst->fName) == gMathLibTable.end()) {
+                std::cout << "FunCallInst " << inst->fName << std::endl;
+                stringstream error;
+                error << "ERROR : missing function : " << inst->fName << std::endl;
+                throw faustexception(error.str());
             } else {
                 fCurrentBlock->push(new FIRBasicInstruction<T>(gMathLibTable[inst->fName]));
             }
