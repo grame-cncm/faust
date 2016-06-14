@@ -225,14 +225,33 @@ void Klass::printAdditionalCode(ostream& fout)
         fout << "#ifndef FAUSTPOWER" << endl;
         fout << "#define FAUSTPOWER" << endl;
         fout << "#include <cmath>" << endl;
-        fout << "template <int N> inline float faustpower(float x)          { return powf(x,N); } " << endl;
-        fout << "template <int N> inline double faustpower(double x)        { return pow(x,N); }"  << endl;
-        if (gFloatSize == 3) fout << "template <int N> inline long double faustpower(long double x) 	{ return powl(x,N); }"  << endl;
+        
         fout << "template <int N> inline int faustpower(int x)              { return faustpower<N/2>(x) * faustpower<N-N/2>(x); } " << endl;
         fout << "template <> 	 inline int faustpower<0>(int x)            { return 1; }" << endl;
         fout << "template <> 	 inline int faustpower<1>(int x)            { return x; }" << endl;
         fout << "template <> 	 inline int faustpower<2>(int x)            { return x*x; }" << endl;
+        
+        if (gFloatSize==1) {
+            
+            fout << "template <int N> inline float faustpower(float x)            { return faustpower<N/2>(x) * faustpower<N-N/2>(x); } " << endl;
+            fout << "template <> 	 inline float faustpower<0>(float x)          { return 1; }" << endl;
+            fout << "template <> 	 inline float faustpower<1>(float x)          { return x; }" << endl;
+            fout << "template <> 	 inline float faustpower<2>(float x)          { return x*x; }" << endl;
+            
+        } else if (gFloatSize==2) {
+        
+            fout << "template <int N> inline double faustpower(double x)          { return faustpower<N/2>(x) * faustpower<N-N/2>(x); } " << endl;
+            fout << "template <> 	 inline double faustpower<0>(double x)        { return 1; }" << endl;
+            fout << "template <> 	 inline double faustpower<1>(double x)        { return x; }" << endl;
+            fout << "template <> 	 inline double faustpower<2>(double x)        { return x*x; }" << endl;
+            
+        } else if (gFloatSize==3) {
+            
+            fout << "template <int N> inline long double faustpower(long double x){ return powl(x,N); }"  << endl;
+            
+        }
         fout << "#endif" << endl;
+
     }
 
 }
