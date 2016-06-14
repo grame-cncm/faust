@@ -83,14 +83,24 @@ static bool standardArgList(Tree args)
 	return true;
 }
 
-static string printPatternError(Tree lhs1, Tree rhs1, Tree lhs2, Tree rhs2)
+static string printPatternError(Tree symbol, Tree lhs1, Tree rhs1, Tree lhs2, Tree rhs2)
 {
     stringstream error;
-	error 	<< "ERROR : inconsistent number of parameters in pattern-matching rule: "
-    << boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
-    << " previous rule was: " 
-    << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
-    << endl;
+    
+    if (symbol == NULL) {
+        error << "ERROR : inconsistent number of parameters in pattern-matching rule: "
+        << boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
+        << " previous rule was: " 
+        << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
+        << endl;
+    } else {
+        error << "ERROR (file " << yyfilename << ":" << yylineno << ") : in the definition of " << boxpp(symbol) << endl
+        << "Inconsistent number of parameters in pattern-matching rule: "
+        << boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
+        << " previous rule was: "
+        << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
+        << endl;
+    }
     
     return error.str();
 }
@@ -98,8 +108,10 @@ static string printPatternError(Tree lhs1, Tree rhs1, Tree lhs2, Tree rhs2)
 Tree checkRulelist (Tree lr)
 {
 	Tree lrules = lr;
-	if (isNil(lrules)) { 
-        throw faustexception("ERROR : a case expression can't be empty\n");
+	if (isNil(lrules)) {
+        stringstream error;
+        error << "ERROR (file " << yyfilename << ":" << yylineno << ") : a case expression can't be empty" << endl;
+        throw faustexception(error.str());
     }
 	// first pattern used as a reference
 	Tree lhs1 = hd(hd(lrules));
@@ -110,7 +122,7 @@ Tree checkRulelist (Tree lr)
 		Tree lhs2 = hd(hd(lrules));
 		Tree rhs2 = tl(hd(lrules));
 		if (npat != len(lhs2)) {
-            throw faustexception(printPatternError(lhs1,rhs1,lhs2,rhs2));
+            throw faustexception(printPatternError(NULL, lhs1, rhs1, lhs2, rhs2));
 		}
 		
 		lhs1 = lhs2;
@@ -120,13 +132,32 @@ Tree checkRulelist (Tree lr)
 	return lr;
 }
 
+static string printRedefinitionError(Tree symbol, list<Tree>& variants)
+{
+    stringstream error;
+    
+    error << "ERROR (file " << yyfilename << ":" << yylineno << ") : multiple definitions of symbol " << boxpp(symbol) << endl;
+    for (auto p = variants.begin(); p != variants.end(); p++) {
+        Tree params = hd(*p);
+        Tree body = tl(*p);
+        if (isNil(params)) {
+            error << boxpp(symbol) << " = " << boxpp(body) << ";" << endl;
+        } else {
+            error << boxpp(symbol) << boxpp(params) << " = " << boxpp(body) << ";" << endl;
+        }
+    }
+    
+    return error.str();
+}
+
 /**
  * Transforms a list of variants (arglist.body) 
  * into an abstraction or a boxCase.
+ * @param symbol name only used in case of error
  * @param variants list of variants (arglist.body)
  * @return the corresponding box expression 
  */
-static Tree makeDefinition(list<Tree>& variants)
+static Tree makeDefinition(Tree symbol, list<Tree>& variants)
 {
 	if (variants.size() == 1) {
 		Tree rhs = *(variants.begin());
@@ -145,10 +176,15 @@ static Tree makeDefinition(list<Tree>& variants)
 		Tree	l = gGlobal->nil;
 		Tree	prev = *variants.begin();
 		int 	npat = len(hd(prev));
+        
+        if (npat == 0) {
+            throw faustexception(printRedefinitionError(symbol, variants));
+        }
+        
 		for (p=variants.begin(); p!=variants.end(); p++) {
 			Tree cur = *p;
-			if (npat != len(hd(cur))) {
-                throw faustexception(printPatternError(hd(prev), tl(prev), hd(cur), tl(cur)));
+			if ((npat == 0) || (npat != len(hd(cur)))) {
+                throw faustexception(printPatternError(symbol, hd(prev), tl(prev), hd(cur), tl(cur)));
 			}
 			prev = cur;
 			l = cons(*p,l);
@@ -186,9 +222,8 @@ Tree formatDefinitions(Tree rldef)
 	}
 	
 	// produce the definitions
-	
-	for (p=dic.begin(); p!=dic.end(); p++) {
-		ldef2 = cons (cons(p->first, makeDefinition(p->second)), ldef2);
+	for (p = dic.begin(); p != dic.end(); p++) {
+		ldef2 = cons (cons(p->first, makeDefinition(p->first,p->second)), ldef2);
 	}
 	
 	//cout << "list of definitions : " << *ldef2 << endl;
