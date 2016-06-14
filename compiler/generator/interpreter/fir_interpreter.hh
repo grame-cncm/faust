@@ -69,12 +69,14 @@ class FIRInterpreter  {
         {
             if (std::isnan(val)) {
                 std::cout << "-------- Interpreter 'Nan' trace start --------" << std::endl;
+                std::cout << "val = " << val << std::endl;
                 traceInstruction(it);
                 fTraceContext.write(&std::cout);
                 std::cout << "-------- Interpreter 'Nan' trace end --------" << std::endl;
                 throw faustexception("");
             } else if (!std::isfinite(val)) {
                 std::cout << "-------- Interpreter 'Inf' trace start --------" << std::endl;
+                std::cout << "val = " << val << std::endl;
                 traceInstruction(it);
                 fTraceContext.write(&std::cout);
                 std::cout << "-------- Interpreter 'Inf' trace end --------" << std::endl;

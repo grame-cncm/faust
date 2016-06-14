@@ -256,47 +256,71 @@ static inline BasicTyped* getTypeASM(Typed::VarType result)
 ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types, const list<ValueInst*>& args)
 {
     BasicTyped* result_type = InstBuilder::genBasicTyped(result);
+    
+    list<ValueInst*>::const_iterator it = args.begin();
 
     // Special case for "faustpower", generates sequence of multiplication
     if (name == "faustpower") {
         
-        list<ValueInst*>::const_iterator it = args.begin(); it++;
-        IntNumInst* arg1 = dynamic_cast<IntNumInst*>(*it);
-        
-        stringstream num; num << arg1->fNum;
-        string faust_power_name = name + num.str() + ((result == Typed::kInt) ? "_i" : "_f");
- 
-        list<NamedTyped*> named_args;
-        named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(types[0])));
-
-        // Expand the pow depending of the exposant argument
-        BlockInst* block = InstBuilder::genBlockInst();
-
-        if (arg1->fNum == 0) {
-             block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(1)));
-        } else {
-            ValueInst* res = InstBuilder::genLoadFunArgsVar("value");
-            for (int i= 0; i < arg1->fNum - 1; i++) {
-                res = InstBuilder::genMul(res, InstBuilder::genLoadFunArgsVar("value"));
-            }
-            // Use cast to "keep" result type
-            if (gGlobal->gOutputLang == "ajs") {
-                block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genCastNumInst(res, getTypeASM(result))));
+        // Do not generate 'faustpower' function call but directly inline the code
+        if (gGlobal->gOutputLang == "interp") {
+            
+            ValueInst* arg2 = *it; it++;
+            IntNumInst* arg1 = dynamic_cast<IntNumInst*>(*it);
+            stringstream num; num << arg1->fNum;
+            BasicCloneVisitor cloner;
+            
+            if (arg1->fNum == 0) {
+                return InstBuilder::genIntNumInst(1);
             } else {
-                block->pushBackInst(InstBuilder::genRetInst(res));
+                ValueInst* res = arg2->clone(&cloner);
+                for (int i = 0; i < arg1->fNum - 1; i++) {
+                    res = InstBuilder::genMul(res, arg2->clone(&cloner));
+                }
+                return res;
+            }
+            
+        } else {
+            
+            // Expand the pow depending of the exposant argument
+            BlockInst* block = InstBuilder::genBlockInst();
+            
+            it++;
+            IntNumInst* arg1 = dynamic_cast<IntNumInst*>(*it);
+            stringstream num; num << arg1->fNum;
+            string faust_power_name = name + num.str() + ((result == Typed::kInt) ? "_i" : "_f");
+     
+            list<NamedTyped*> named_args;
+            named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(types[0])));
+
+         
+            if (arg1->fNum == 0) {
+                 block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(1)));
+            } else {
+                ValueInst* res = InstBuilder::genLoadFunArgsVar("value");
+                for (int i = 0; i < arg1->fNum - 1; i++) {
+                    res = InstBuilder::genMul(res, InstBuilder::genLoadFunArgsVar("value"));
+                }
+                // Use cast to "keep" result type
+                if (gGlobal->gOutputLang == "ajs") {
+                    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genCastNumInst(res, getTypeASM(result))));
+                } else {
+                    block->pushBackInst(InstBuilder::genRetInst(res));
+                }
+            }
+            
+            pushGlobalDeclare(InstBuilder::genDeclareFunInst(faust_power_name, InstBuilder::genFunTyped(named_args, result_type), block));
+
+            list<ValueInst*> truncated_args;
+            truncated_args.push_back((*args.begin()));
+            if (gGlobal->gOutputLang == "ajs") {
+                // Use cast to "keep" result type
+                return InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(faust_power_name, truncated_args), getTypeASM(result));
+            } else {
+                return InstBuilder::genFunCallInst(faust_power_name, truncated_args);
             }
         }
         
-        pushGlobalDeclare(InstBuilder::genDeclareFunInst(faust_power_name, InstBuilder::genFunTyped(named_args, result_type), block));
-
-        list<ValueInst*> truncated_args;
-        truncated_args.push_back((*args.begin()));
-        if (gGlobal->gOutputLang == "ajs") {
-            // Use cast to "keep" result type
-            return InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(faust_power_name, truncated_args), getTypeASM(result));
-        } else {
-            return InstBuilder::genFunCallInst(faust_power_name, truncated_args);
-        }
     } else {
       
         list<NamedTyped*> named_args;
