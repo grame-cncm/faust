@@ -34,15 +34,6 @@
 #include "exception.hh"
 
 // Interpreter
-
-#define push_real(val) (real_stack[real_stack_index++] = val)
-#define push_int(val) (int_stack[int_stack_index++] = val)
-#define push_addr(addr) (address_stack[addr_stack_index++] = addr)
-
-#define pop_real() (real_stack[--real_stack_index])
-#define pop_int() (int_stack[--int_stack_index])
-#define pop_addr() (address_stack[--addr_stack_index])
-
 //#define INTERPRETER_TRACE 1
 
 // FIR bytecode interpreter
@@ -65,11 +56,38 @@ class FIRInterpreter  {
         T** fInputs;
         T** fOutputs;
     
+        #define push_int(val) (int_stack[int_stack_index++] = val)
+        #define push_addr(addr) (address_stack[addr_stack_index++] = addr)
+            
+        #define pop_real() (real_stack[--real_stack_index])
+        #define pop_int() (int_stack[--int_stack_index])
+        #define pop_addr() (address_stack[--addr_stack_index])
+    
     #ifdef INTERPRETER_TRACE
     
-        #define TRACE_STACK_SIZE 32
+        T check_val(InstructionIT it, T val)
+        {
+            if (std::isnan(val)) {
+                std::cout << "-------- Interpreter 'Nan' trace start --------" << std::endl;
+                traceInstruction(it);
+                fTraceContext.write(&std::cout);
+                std::cout << "-------- Interpreter 'Nan' trace end --------" << std::endl;
+                throw faustexception("");
+            } else if (!std::isfinite(val)) {
+                std::cout << "-------- Interpreter 'Inf' trace start --------" << std::endl;
+                traceInstruction(it);
+                fTraceContext.write(&std::cout);
+                std::cout << "-------- Interpreter 'Inf' trace end --------" << std::endl;
+                throw faustexception("");
+            }
+            return val;
+        }
         
+        #define push_real(it, val) (real_stack[real_stack_index++] = check_val(it, val))
+    
         struct InterpreterTrace {
+            
+            #define TRACE_STACK_SIZE 32
             
             std::vector<std::string> fExecTrace;
             int fWriteIndex;
@@ -151,6 +169,8 @@ class FIRInterpreter  {
                 return index;
             }
         }
+    #else
+        #define push_real(it, val) (real_stack[real_stack_index++] = val)
     #endif
     
         void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UIGeneric* glue)
@@ -429,7 +449,7 @@ class FIRInterpreter  {
                     // Number operations
                     do_kRealValue:
                     {
-                        push_real((*it)->fRealValue);
+                        push_real(it, (*it)->fRealValue);
                         dispatch_next();
                     }
                     
@@ -443,9 +463,9 @@ class FIRInterpreter  {
                     do_kLoadReal:
                     {
                     #ifdef INTERPRETER_TRACE
-                        push_real(fRealHeap[assert_real_heap(it, (*it)->fOffset1)]);
+                        push_real(it, fRealHeap[assert_real_heap(it, (*it)->fOffset1)]);
                     #else
-                        push_real(fRealHeap[(*it)->fOffset1]);
+                        push_real(it, fRealHeap[(*it)->fOffset1]);
                     #endif
                         dispatch_next();
                     }
@@ -504,9 +524,9 @@ class FIRInterpreter  {
                     do_kLoadIndexedReal:
                     {
                     #ifdef INTERPRETER_TRACE
-                        push_real(fRealHeap[(*it)->fOffset1 + assert_real_heap(it, pop_int(), (*it)->fOffset2)]);
+                        push_real(it, fRealHeap[(*it)->fOffset1 + assert_real_heap(it, pop_int(), (*it)->fOffset2)]);
                     #else
-                        push_real(fRealHeap[(*it)->fOffset1 + pop_int()]);
+                        push_real(it, fRealHeap[(*it)->fOffset1 + pop_int()]);
                     #endif
                         dispatch_next();
                     }
@@ -625,9 +645,9 @@ class FIRInterpreter  {
                     do_kLoadInput:
                     {
                     #ifdef INTERPRETER_TRACE
-                        push_real(fInputs[(*it)->fOffset1][assert_audio_buffer(it, pop_int())]);
+                        push_real(it, fInputs[(*it)->fOffset1][assert_audio_buffer(it, pop_int())]);
                     #else
-                        push_real(fInputs[(*it)->fOffset1][pop_int()]);
+                        push_real(it, fInputs[(*it)->fOffset1][pop_int()]);
                     #endif
                         dispatch_next();
                     }
@@ -645,13 +665,13 @@ class FIRInterpreter  {
                     // Cast operations
                     do_kCastReal:
                     {
-                        push_real(T(pop_int()));
+                        push_real(it, T(pop_int()));
                         dispatch_next();
                     }
                     
                     do_kCastRealHeap:
                     {
-                        push_real(T(fIntHeap[(*it)->fOffset1]));
+                        push_real(it, T(fIntHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
@@ -675,7 +695,7 @@ class FIRInterpreter  {
                     {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(v1 + v2);
+                        push_real(it, v1 + v2);
                         dispatch_next();
                     }
                   
@@ -691,7 +711,7 @@ class FIRInterpreter  {
                     {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(v1 - v2);
+                        push_real(it, v1 - v2);
                         dispatch_next();
                     }
                     
@@ -707,7 +727,7 @@ class FIRInterpreter  {
                     {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(v1 * v2);
+                        push_real(it, v1 * v2);
                         dispatch_next();
                     }
                     
@@ -723,7 +743,7 @@ class FIRInterpreter  {
                     {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(v1 / v2);
+                        push_real(it, v1 / v2);
                         dispatch_next();
                     }
                     
@@ -739,7 +759,7 @@ class FIRInterpreter  {
                     {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(std::remainder(v1, v2));
+                        push_real(it, std::remainder(v1, v2));
                         dispatch_next();
                     }
                     
@@ -897,7 +917,7 @@ class FIRInterpreter  {
                     
                     do_kAddRealHeap:
                     {
-                        push_real(fRealHeap[(*it)->fOffset1] + fRealHeap[(*it)->fOffset2]);
+                        push_real(it, fRealHeap[(*it)->fOffset1] + fRealHeap[(*it)->fOffset2]);
                         dispatch_next();
                     }
                     
@@ -909,7 +929,7 @@ class FIRInterpreter  {
                     
                     do_kSubRealHeap:
                     {
-                        push_real(fRealHeap[(*it)->fOffset1] - fRealHeap[(*it)->fOffset2]);
+                        push_real(it, fRealHeap[(*it)->fOffset1] - fRealHeap[(*it)->fOffset2]);
                         dispatch_next();
                     }
                     
@@ -921,7 +941,7 @@ class FIRInterpreter  {
                     
                     do_kMultRealHeap:
                     {
-                        push_real(fRealHeap[(*it)->fOffset1] * fRealHeap[(*it)->fOffset2]);
+                        push_real(it, fRealHeap[(*it)->fOffset1] * fRealHeap[(*it)->fOffset2]);
                         dispatch_next();
                     }
                     
@@ -933,7 +953,7 @@ class FIRInterpreter  {
                     
                     do_kDivRealHeap:
                     {
-                        push_real(fRealHeap[(*it)->fOffset1] / fRealHeap[(*it)->fOffset2]);
+                        push_real(it, fRealHeap[(*it)->fOffset1] / fRealHeap[(*it)->fOffset2]);
                         dispatch_next();
                     }
                     
@@ -945,7 +965,7 @@ class FIRInterpreter  {
                     
                     do_kRemRealHeap:
                     {
-                        push_real(std::remainder(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
+                        push_real(it, std::remainder(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
                         dispatch_next();
                     }
                     
@@ -1068,7 +1088,7 @@ class FIRInterpreter  {
                     do_kAddRealStack:
                     {
                         T v1 = pop_real();
-                        push_real(fRealHeap[(*it)->fOffset1] + v1);
+                        push_real(it, fRealHeap[(*it)->fOffset1] + v1);
                         dispatch_next();
                     }
                     
@@ -1082,7 +1102,7 @@ class FIRInterpreter  {
                     do_kSubRealStack:
                     {
                         T v1 = pop_real();
-                        push_real(fRealHeap[(*it)->fOffset1] - v1);
+                        push_real(it, fRealHeap[(*it)->fOffset1] - v1);
                         dispatch_next();
                     }
                     
@@ -1096,7 +1116,7 @@ class FIRInterpreter  {
                     do_kMultRealStack:
                     {
                         T v1 = pop_real();
-                        push_real(fRealHeap[(*it)->fOffset1] * v1);
+                        push_real(it, fRealHeap[(*it)->fOffset1] * v1);
                         dispatch_next();
                     }
                     
@@ -1110,7 +1130,7 @@ class FIRInterpreter  {
                     do_kDivRealStack:
                     {
                         T v1 = pop_real();
-                        push_real(fRealHeap[(*it)->fOffset1] / v1);
+                        push_real(it, fRealHeap[(*it)->fOffset1] / v1);
                         dispatch_next();
                     }
                     
@@ -1124,7 +1144,7 @@ class FIRInterpreter  {
                     do_kRemRealStack:
                     {
                         T v1 = pop_real();
-                        push_real(std::remainder(fRealHeap[(*it)->fOffset1], v1));
+                        push_real(it, std::remainder(fRealHeap[(*it)->fOffset1], v1));
                         dispatch_next();
                     }
                     
@@ -1265,7 +1285,7 @@ class FIRInterpreter  {
                     do_kAddRealStackValue:
                     {
                         T v1 = pop_real();
-                        push_real((*it)->fRealValue + v1);
+                        push_real(it, (*it)->fRealValue + v1);
                         dispatch_next();
                     }
                     
@@ -1279,7 +1299,7 @@ class FIRInterpreter  {
                     do_kSubRealStackValue:
                     {
                         T v1 = pop_real();
-                        push_real((*it)->fRealValue - v1);
+                        push_real(it, (*it)->fRealValue - v1);
                         dispatch_next();
                     }
                     
@@ -1293,7 +1313,7 @@ class FIRInterpreter  {
                     do_kMultRealStackValue:
                     {
                         T v1 = pop_real();
-                        push_real((*it)->fRealValue * v1);
+                        push_real(it, (*it)->fRealValue * v1);
                         dispatch_next();
                     }
                     
@@ -1307,7 +1327,7 @@ class FIRInterpreter  {
                     do_kDivRealStackValue:
                     {
                         T v1 = pop_real();
-                        push_real((*it)->fRealValue / v1);
+                        push_real(it, (*it)->fRealValue / v1);
                         dispatch_next();
                     }
                     
@@ -1321,7 +1341,7 @@ class FIRInterpreter  {
                     do_kRemRealStackValue:
                     {
                         T v1 = pop_real();
-                        push_real(std::remainder((*it)->fRealValue, v1));
+                        push_real(it, std::remainder((*it)->fRealValue, v1));
                         dispatch_next();
                     }
                     
@@ -1461,7 +1481,7 @@ class FIRInterpreter  {
                     
                     do_kAddRealValue:
                     {
-                        push_real((*it)->fRealValue + fRealHeap[(*it)->fOffset1]);
+                        push_real(it, (*it)->fRealValue + fRealHeap[(*it)->fOffset1]);
                         dispatch_next();
                     }
                     
@@ -1473,7 +1493,7 @@ class FIRInterpreter  {
                     
                     do_kSubRealValue:
                     {
-                        push_real((*it)->fRealValue - fRealHeap[(*it)->fOffset1]);
+                        push_real(it, (*it)->fRealValue - fRealHeap[(*it)->fOffset1]);
                         dispatch_next();
                     }
                     
@@ -1485,7 +1505,7 @@ class FIRInterpreter  {
                     
                     do_kMultRealValue:
                     {
-                        push_real((*it)->fRealValue * fRealHeap[(*it)->fOffset1]);
+                        push_real(it, (*it)->fRealValue * fRealHeap[(*it)->fOffset1]);
                         dispatch_next();
                     }
                     
@@ -1497,7 +1517,7 @@ class FIRInterpreter  {
                     
                     do_kDivRealValue:
                     {
-                        push_real((*it)->fRealValue / fRealHeap[(*it)->fOffset1]);
+                        push_real(it, (*it)->fRealValue / fRealHeap[(*it)->fOffset1]);
                         dispatch_next();
                     }
                     
@@ -1509,7 +1529,7 @@ class FIRInterpreter  {
                     
                     do_kRemRealValue:
                     {
-                        push_real(std::remainder((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::remainder((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
         
@@ -1632,7 +1652,7 @@ class FIRInterpreter  {
                     
                     do_kSubRealValueInvert:
                     {
-                        push_real(fRealHeap[(*it)->fOffset1] - (*it)->fRealValue);
+                        push_real(it, fRealHeap[(*it)->fOffset1] - (*it)->fRealValue);
                         dispatch_next();
                     }
                     
@@ -1644,7 +1664,7 @@ class FIRInterpreter  {
                     
                     do_kDivRealValueInvert:
                     {
-                        push_real(fRealHeap[(*it)->fOffset1] / (*it)->fRealValue);
+                        push_real(it, fRealHeap[(*it)->fOffset1] / (*it)->fRealValue);
                         dispatch_next();
                     }
                     
@@ -1656,7 +1676,7 @@ class FIRInterpreter  {
                     
                     do_kRemRealValueInvert:
                     {
-                        push_real(std::remainder(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
+                        push_real(it, std::remainder(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
                         dispatch_next();
                     }
                     
@@ -1743,119 +1763,119 @@ class FIRInterpreter  {
                     do_kAbsf:
                     {
                         T v = pop_real();
-                        push_real(std::fabs(v));
+                        push_real(it, std::fabs(v));
                         dispatch_next();
                     }
                     
                     do_kAcosf:
                     {
                         T v = pop_real();
-                        push_real(std::acos(v));
+                        push_real(it, std::acos(v));
                         dispatch_next();
                     }
                     
                     do_kAsinf:
                     {
                         T v = pop_real();
-                        push_real(std::asin(v));
+                        push_real(it, std::asin(v));
                         dispatch_next();
                     }
                     
                     do_kAtanf:
                     {
                         T v = pop_real();
-                        push_real(std::atan(v));
+                        push_real(it, std::atan(v));
                         dispatch_next();
                     }
                     
                     do_kCeilf:
                     {
                         T v = pop_real();
-                        push_real(std::ceil(v));
+                        push_real(it, std::ceil(v));
                         dispatch_next();
                     }
                     
                     do_kCosf:
                     {
                         T v = pop_real();
-                        push_real(std::cos(v));
+                        push_real(it, std::cos(v));
                         dispatch_next();
                     }
                     
                     do_kCoshf:
                     {
                         T v = pop_real();
-                        push_real(std::cosh(v));
+                        push_real(it, std::cosh(v));
                         dispatch_next();
                     }
                     
                     do_kExpf:
                     {
                         T v = pop_real();
-                        push_real(std::exp(v));
+                        push_real(it, std::exp(v));
                         dispatch_next();
                     }
 
                     do_kFloorf:
                     {
                         T v = pop_real();
-                        push_real(std::floor(v));
+                        push_real(it, std::floor(v));
                         dispatch_next();
                     }
 
                     do_kLogf:
                     {
                         T v = pop_real();
-                        push_real(std::log(v));
+                        push_real(it, std::log(v));
                         dispatch_next();
                     }
                     
                     do_kLog10f:
                     {
                         T v = pop_real();
-                        push_real(std::log10(v));
+                        push_real(it, std::log10(v));
                         dispatch_next();
                     }
                     
                     do_kRoundf:
                     {
                         T v = pop_real();
-                        push_real(std::round(v));
+                        push_real(it, std::round(v));
                         dispatch_next();
                     }
                     
                     do_kSinf:
                     {
                         T v = pop_real();
-                        push_real(std::sin(v));
+                        push_real(it, std::sin(v));
                         dispatch_next();
                     }
                     
                     do_kSinhf:
                     {
                         T v = pop_real();
-                        push_real(std::sinh(v));
+                        push_real(it, std::sinh(v));
                         dispatch_next();
                     }
                     
                     do_kSqrtf:
                     {
                         T v = pop_real();
-                        push_real(std::sqrt(v));
+                        push_real(it, std::sqrt(v));
                         dispatch_next();
                     }
                     
                     do_kTanf:
                     {
                         T v = pop_real();
-                        push_real(std::tan(v));
+                        push_real(it, std::tan(v));
                         dispatch_next();
                     }
                     
                     do_kTanhf:
                     {
                         T v = pop_real();
-                        push_real(std::tanh(v));
+                        push_real(it, std::tanh(v));
                         dispatch_next();
                     }
                     
@@ -1871,103 +1891,103 @@ class FIRInterpreter  {
                     
                     do_kAbsfHeap:
                     {
-                        push_real(std::fabs(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::fabs(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kAcosfHeap:
                     {
-                        push_real(std::acos(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::acos(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kAsinfHeap:
                     {
-                        push_real(std::asin(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::asin(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kAtanfHeap:
                     {
-                        push_real(std::atan(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::atan(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kCeilfHeap:
                     {
-                        push_real(std::ceil(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::ceil(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kCosfHeap:
                     {
-                        push_real(std::cos(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::cos(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kCoshfHeap:
                     {
-                        push_real(std::cosh(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::cosh(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kExpfHeap:
                     {
-                        push_real(std::exp(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::exp(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kFloorfHeap:
                     {
-                        push_real(std::floor(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::floor(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kLogfHeap:
                     {
-                        push_real(std::log(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::log(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kLog10fHeap:
                     {
-                        push_real(std::log10(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::log10(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kRoundfHeap:
                     {
-                        push_real(std::round(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::round(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kSinfHeap:
                     {
-                        push_real(std::sin(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::sin(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kSinhfHeap:
                     {
-                        push_real(std::sinh(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::sinh(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kSqrtfHeap:
                     {
-                        push_real(std::sqrt(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::sqrt(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kTanfHeap:
                     {
-                        push_real(std::tan(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::tan(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
                     do_kTanhfHeap:
                     {
-                        push_real(std::tanh(fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::tanh(fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
           
@@ -1979,7 +1999,7 @@ class FIRInterpreter  {
                     {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(std::atan2(v1, v2));
+                        push_real(it, std::atan2(v1, v2));
                         dispatch_next();
                     }
                
@@ -1987,7 +2007,7 @@ class FIRInterpreter  {
                     {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(std::fmod(v1, v2));
+                        push_real(it, std::fmod(v1, v2));
                         dispatch_next();
                     }
                     
@@ -1995,7 +2015,7 @@ class FIRInterpreter  {
                     {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(std::pow(v1, v2));
+                        push_real(it, std::pow(v1, v2));
                         dispatch_next();
                     }
                     
@@ -2011,7 +2031,7 @@ class FIRInterpreter  {
                     {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(std::max(v1, v2));
+                        push_real(it, std::max(v1, v2));
                         dispatch_next();
                     }
                     
@@ -2027,7 +2047,7 @@ class FIRInterpreter  {
                     {
                         T v1 = pop_real();
                         T v2 = pop_real();
-                        push_real(std::min(v1, v2));
+                        push_real(it, std::min(v1, v2));
                         dispatch_next();
                     }
                     
@@ -2038,19 +2058,19 @@ class FIRInterpreter  {
                     
                     do_kAtan2fHeap:
                     {
-                        push_real(std::atan2(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
+                        push_real(it, std::atan2(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
                         dispatch_next();
                     }
 
                     do_kFmodfHeap:
                     {
-                        push_real(std::fmod(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
+                        push_real(it, std::fmod(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
                         dispatch_next();
                     }
 
                     do_kPowfHeap:
                     {
-                        push_real(std::pow(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
+                        push_real(it, std::pow(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
                         dispatch_next();
                     }
 
@@ -2062,7 +2082,7 @@ class FIRInterpreter  {
 
                     do_kMaxfHeap:
                     {
-                        push_real(std::max(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
+                        push_real(it, std::max(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
                         dispatch_next();
                     }
 
@@ -2074,7 +2094,7 @@ class FIRInterpreter  {
 
                     do_kMinfHeap:
                     {
-                        push_real(std::min(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
+                        push_real(it, std::min(fRealHeap[(*it)->fOffset1], fRealHeap[(*it)->fOffset2]));
                         dispatch_next();
                     }
                     
@@ -2085,21 +2105,21 @@ class FIRInterpreter  {
                     do_kAtan2fStack:
                     {
                         T v1 = pop_real();
-                        push_real(std::atan2(fRealHeap[(*it)->fOffset1], v1));
+                        push_real(it, std::atan2(fRealHeap[(*it)->fOffset1], v1));
                         dispatch_next();
                     }
                     
                     do_kFmodfStack:
                     {
                         T v1 = pop_real();
-                        push_real(std::fmod(fRealHeap[(*it)->fOffset1], v1));
+                        push_real(it, std::fmod(fRealHeap[(*it)->fOffset1], v1));
                         dispatch_next();
                     }
                     
                     do_kPowfStack:
                     {
                         T v1 = pop_real();
-                        push_real(std::pow(fRealHeap[(*it)->fOffset1], v1));
+                        push_real(it, std::pow(fRealHeap[(*it)->fOffset1], v1));
                         dispatch_next();
                     }
                     
@@ -2113,7 +2133,7 @@ class FIRInterpreter  {
                     do_kMaxfStack:
                     {
                         T v1 = pop_real();
-                        push_real(std::max(fRealHeap[(*it)->fOffset1], v1));
+                        push_real(it, std::max(fRealHeap[(*it)->fOffset1], v1));
                         dispatch_next();
                     }
                     
@@ -2127,7 +2147,7 @@ class FIRInterpreter  {
                     do_kMinfStack:
                     {
                         T v1 = pop_real();
-                        push_real(std::min(fRealHeap[(*it)->fOffset1], v1));
+                        push_real(it, std::min(fRealHeap[(*it)->fOffset1], v1));
                         dispatch_next();
                     }
                     
@@ -2138,21 +2158,21 @@ class FIRInterpreter  {
                     do_kAtan2fStackValue:
                     {
                         T v1 = pop_real();
-                        push_real(std::atan2((*it)->fRealValue, v1));
+                        push_real(it, std::atan2((*it)->fRealValue, v1));
                         dispatch_next();
                     }
                     
                     do_kFmodfStackValue:
                     {
                         T v1 = pop_real();
-                        push_real(std::fmod((*it)->fRealValue, v1));
+                        push_real(it, std::fmod((*it)->fRealValue, v1));
                         dispatch_next();
                     }
                     
                     do_kPowfStackValue:
                     {
                         T v1 = pop_real();
-                        push_real(std::pow((*it)->fRealValue, v1));
+                        push_real(it, std::pow((*it)->fRealValue, v1));
                         dispatch_next();
                     }
                     
@@ -2166,7 +2186,7 @@ class FIRInterpreter  {
                     do_kMaxfStackValue:
                     {
                         T v1 = pop_real();
-                        push_real(std::max((*it)->fRealValue, v1));
+                        push_real(it, std::max((*it)->fRealValue, v1));
                         dispatch_next();
                     }
                     
@@ -2180,7 +2200,7 @@ class FIRInterpreter  {
                     do_kMinfStackValue:
                     {
                         T v1 = pop_real();
-                        push_real(std::min((*it)->fRealValue, v1));
+                        push_real(it, std::min((*it)->fRealValue, v1));
                         dispatch_next();
                     }
 
@@ -2190,19 +2210,19 @@ class FIRInterpreter  {
 
                     do_kAtan2fValue:
                     {
-                        push_real(std::atan2((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::atan2((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
 
                     do_kFmodfValue:
                     {
-                        push_real(std::fmod((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::fmod((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
 
                     do_kPowfValue:
                     {
-                        push_real(std::pow((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::pow((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
 
@@ -2214,7 +2234,7 @@ class FIRInterpreter  {
 
                     do_kMaxfValue:
                     {
-                        push_real(std::max((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::max((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
 
@@ -2226,7 +2246,7 @@ class FIRInterpreter  {
 
                     do_kMinfValue:
                     {
-                        push_real(std::min((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
+                        push_real(it, std::min((*it)->fRealValue, fRealHeap[(*it)->fOffset1]));
                         dispatch_next();
                     }
                     
@@ -2236,19 +2256,19 @@ class FIRInterpreter  {
 
                     do_kAtan2fValueInvert:
                     {
-                        push_real(std::atan2(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
+                        push_real(it, std::atan2(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
                         dispatch_next();
                     }
 
                     do_kFmodfValueInvert:
                     {
-                        push_real(std::fmod(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
+                        push_real(it, std::fmod(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
                         dispatch_next();
                     }
 
                     do_kPowfValueInvert:
                     {
-                        push_real(std::pow(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
+                        push_real(it, std::pow(fRealHeap[(*it)->fOffset1], (*it)->fRealValue));
                         dispatch_next();
                     }
 
