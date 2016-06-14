@@ -165,13 +165,11 @@ exciter = _ <: (highpass : compressor : pregain : harmonicCreator : postgain), _
                         [tooltip: Cutoff frequency for highpassed components to be excited]",
                         5000, 1000, 10000, 100));
   highpass = component("filter.lib").highpass(2, fc);
-  x = highpass;
-
+  
   //Pre-distortion gain - selectable percentage of harmonics
   ph = ex_group(hslider("[1] Harmonics [unit:percent] [style:knob] [tooltip: Percentage of harmonics generated]", 20, 0, 200, 1)) / 100;
   pregain = * (ph);
-  x = pregain;
-
+  
   //Asymmetric cubic soft clipper
   harmonicCreator(x) = x <: cubDist1, cubDist2, cubDist3 :> _;
   cubDist1(x) = (x < 0) * x;
