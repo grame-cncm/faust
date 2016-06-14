@@ -87,11 +87,11 @@ fa954e3 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
 bd6f7ab Correct faust2webaudioasm JS wrappers.
 440e0f2 Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
 11c3a20 Add FTZ in math.lib.
-de7a364 New « …[style:numerical]… » option added to barographs. It allows values to be displayed as numbers instead of bars.
+de7a364 New « …[style:numerical]… » option added to bargraphs. It allows values to be displayed as numbers instead of bars.
 056292b Merge branch 'master' of ssh://git.code.sf.net/p/faudiostream/code
 145120f fix closing braquet
 d2da626 Allows for UI-specific callbacks in web UI
-645cc8c faust2webaudioasm : remove handler parameter in DSP contructor.
+645cc8c faust2webaudioasm : remove handler parameter in DSP constructor.
 933b48e Correct  _f4u.main.
 2156a4d Makes the delayed tooltip list local to SVG objects instead of global.
 975db32 Fix for iRig in coreaudio-ios-dsp.h.

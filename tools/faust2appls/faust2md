@@ -11,11 +11,23 @@
 # And the option -f can be used to include a YAML front
 # matter with the name of the file and the date.
 #
+# The format of a title is :
+#	//############# Title Name #################
+#	//  markdown text....
+#	//  markdown text....
+#	//##########################################
+#
+# The format of a section is :
+#	//============== Section Name ==============
+#	//  markdown text....
+#	//  markdown text....
+#	//==========================================
+#
 # The format of a comment is :
-#	//------------ foo(x,y) ----------------
+#	//-------------- foo(x,y) ------------------
 #	//  markdown text....
 #	//  markdown text....
-#	//---------------------------------------
+#	//------------------------------------------
 # everything else is considered faust code.
 # The translation is the following:
 #   ## foo(x,y)
@@ -34,6 +46,30 @@ def outdent(line, n):
 	else:
 		return line[n:]
 
+# Match the first line of a title
+# of type "//**** Title ****"
+# at least 3 * are needed
+def matchBeginTitle(line):
+	return re.search(r'^\s*//#{3,}\s*([^#]+)#{3,}', line)
+
+# Match the last line of a title
+# of type "//********"
+# or a blank line
+def matchEndTitle(line):
+	return re.search(r'^\s*((//#{3,})|(\s*))$', line)
+
+# Match the first line of a section
+# of type "//==== Section ===="
+# at least 3 = are needed
+def matchBeginSection(line):
+	return re.search(r'^\s*//={3,}\s*([^=]+)={3,}', line)
+
+# Match the last line of a section
+# of type "//======="
+# or a blank line
+def matchEndSection(line):
+	return re.search(r'^\s*((//={3,})|(\s*))$', line)
+
 # Match the first line of a comment
 # of type "//--- foo(x,y) ----"
 # at least 3 - are needed
@@ -50,16 +86,16 @@ def matchEndComment(line):
 # that is the position of the first word character
 # after "//   "
 def indentation(line):
-	match = re.search(r'(^\s*//\s*\w)', line)
-	if match:
-		return len(match.group(1))-1
+	matchComment = re.search(r'(^\s*//\s*\w)', line)
+	if matchComment:
+		return len(matchComment.group(1))-1
 	else:
 		return 0
 
 # Indicates if a line is a comment
 def isComment(line):
-	match = re.search(r'^\s*//', line)
-	if match:
+	matchComment = re.search(r'^\s*//', line)
+	if matchComment:
 		return 1
 	else:
 		return 0
@@ -67,9 +103,9 @@ def isComment(line):
 # Measure the indentation of a md-comment line
 # that is the len of the prefix '//   '
 def indentation(line):
-	match = re.search(r'(^\s*//\s*\w)', line)
-	if match:
-		return len(match.group(1))-1
+	matchComment = re.search(r'(^\s*//\s*\w)', line)
+	if matchComment:
+		return len(matchComment.group(1))-1
 	else:
 		return 0
 
@@ -124,12 +160,21 @@ for file in args:
 					print '\t',line,
 			else:
 				if mode==0:	# we are in code
-					match = matchBeginComment(line)
-					if match:
+					matchComment = matchBeginComment(line)
+					matchSection = matchBeginSection(line)
+					matchTitle = matchBeginTitle(line)
+					if matchComment:
+						print ''
+						print "###", matchComment.group(1)
+					elif matchSection:
+						print ''
+						print "##", matchSection.group(1)
+					elif matchTitle:
+						print ''
+						print "#", matchTitle.group(1)
+					if matchComment or matchSection or matchTitle:
 						mode=1	# we just started a md-comment
 						idt = 0	# we have to measure the indentation
-						print ''
-						print "##", match.group(1)
 					else:
 						# it is a comment but not a md-comment
 						# therefore it is part of the code
@@ -141,8 +186,10 @@ for file in args:
 						# we have to measure the indentation
 						idt = indentation(line)
 					# check end of md-comment
-					match = matchEndComment(line)
-					if match:
+					matchComment = matchEndComment(line)
+					matchSection = matchEndSection(line)
+					matchTitle = matchEndTitle(line)
+					if matchComment or matchSection or matchTitle:
 						# end of md-comment switch back to mode O
 						mode = 0
 					else:
