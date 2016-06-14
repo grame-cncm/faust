@@ -409,7 +409,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_base {
     static FIRUserInterfaceInstruction<T>* readUIInstruction(std::stringstream* inst)
     {
         int opcode, offset;
-        float init, min, max, step;
+        T init, min, max, step;
         std::string dummy, label, key, val;
         
         *inst >> dummy;  // Read "opcode" token
