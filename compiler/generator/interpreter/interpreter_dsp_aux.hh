@@ -25,6 +25,8 @@
 #include <string>
 #include <libgen.h>
 #include <iostream>
+#include <iomanip>
+#include <limits>
 #include <sstream>
 #include <fstream>
 #include <stdlib.h>
@@ -147,6 +149,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_base {
    
     void write(std::ostream* out, bool small = false)
     {
+        *out << std::setprecision(std::numeric_limits<T>::max_digits10);
+        
         if (small) {
             *out << "i " << ((sizeof(T) == 8) ? "double" : "float") << std::endl;
             *out << "v " << INTERP_FILE_VERSION << std::endl;
