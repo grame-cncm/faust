@@ -267,7 +267,7 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
     BasicBlock* block = BasicBlock::Create(getContext(), "entry_block", sr_fun);
     fBuilder->SetInsertPoint(block);
 #if defined(LLVM_37) || defined(LLVM_38)
-    Value* zone_ptr = fBuilder->CreateStructGEP(nullptr, dsp, field_index);
+    Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
 #else
     Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
 #endif

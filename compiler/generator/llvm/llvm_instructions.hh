@@ -994,7 +994,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             } else {
                 int field_index = fDSPFieldsNames[inst->fZone];
             #if defined(LLVM_37) || defined(LLVM_38)
-                zone_ptr = fBuilder->CreateStructGEP(nullptr, dsp, field_index);
+                zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
             #else
                 zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
             #endif
@@ -1019,7 +1019,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Get LLVM constant string
             string name = replaceSpacesWithUnderscore(inst->fName);
-            llvm::Type* type_def = nullptr;
+            llvm::Type* type_def = 0;
             GlobalVariable* llvm_name = addStringConstant(inst->fName, type_def);
        #if defined(LLVM_37) || defined(LLVM_38)
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_name, 0, 0);
@@ -1078,7 +1078,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Get LLVM constant string
             string name = replaceSpacesWithUnderscore(label);
-            llvm::Type* type_def = nullptr;
+            llvm::Type* type_def = 0;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
        #if defined(LLVM_37) || defined(LLVM_38)
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
@@ -1095,7 +1095,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Generates access to zone
             int field_index = fDSPFieldsNames[zone];
         #if defined(LLVM_37) || defined(LLVM_38)
-            Value* zone_ptr = fBuilder->CreateStructGEP(nullptr, dsp, field_index);
+            Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
             Value* fun_args[] = { fUIInterface_ptr, const_string, zone_ptr };
             CallInst* call_inst = fBuilder->CreateCall(mth, fun_args);
         #else
@@ -1129,7 +1129,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Get LLVM constant string
             string name = replaceSpacesWithUnderscore(label);
-            llvm::Type* type_def = nullptr;
+            llvm::Type* type_def = 0;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
        #if defined(LLVM_37) || defined(LLVM_38)
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
@@ -1145,7 +1145,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Generates access to zone
             int field_index = fDSPFieldsNames[zone];
         #if defined(LLVM_37) || defined(LLVM_38)
-            Value* zone_ptr = fBuilder->CreateStructGEP(nullptr, dsp, field_index);
+            Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
         #else
             Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
         #endif
@@ -1189,7 +1189,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Get LLVM constant string
             string name = replaceSpacesWithUnderscore(label);
-            llvm::Type* type_def = nullptr;
+            llvm::Type* type_def = 0;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
        #if defined(LLVM_37) || defined(LLVM_38)
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
@@ -1206,7 +1206,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Generates access to zone
             int field_index = fDSPFieldsNames[zone];
         #if defined(LLVM_37) || defined(LLVM_38)
-            Value* zone_ptr = fBuilder->CreateStructGEP(nullptr, dsp, field_index);
+            Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
         #else
             Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
         #endif
@@ -1474,7 +1474,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             if (named_address->fAccess & Address::kStruct) {
                 int field_index = fDSPFieldsNames[named_address->fName];
             #if defined(LLVM_37) || defined(LLVM_38)
-                return fBuilder->CreateStructGEP(nullptr, getDSP(), field_index);
+                return fBuilder->CreateStructGEP(0, getDSP(), field_index);
             #else
                 return fBuilder->CreateStructGEP(getDSP(), field_index);
             #endif
@@ -1646,7 +1646,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             if (named_address->fAccess & Address::kStruct) {
                 int field_index = fDSPFieldsNames[named_address->fName];
             #if defined(LLVM_37) || defined(LLVM_38)
-                Value* store_ptr = fBuilder->CreateStructGEP(nullptr, getDSP(), field_index);
+                Value* store_ptr = fBuilder->CreateStructGEP(0, getDSP(), field_index);
             #else
                 Value* store_ptr = fBuilder->CreateStructGEP(getDSP(), field_index);
             #endif
