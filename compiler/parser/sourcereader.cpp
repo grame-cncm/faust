@@ -109,7 +109,7 @@ Tree checkRulelist (Tree lr)
 static void printRedefinitionError(Tree symbol, list<Tree>& variants)
 {
     cerr 	<< "ERROR (file " << yyfilename << ":" << yylineno << ") : multiple definitions of symbol " << boxpp(symbol) << endl;
-    for (auto p=variants.begin(); p!=variants.end(); p++) {
+    for (list<Tree>::iterator p=variants.begin(); p!=variants.end(); p++) {
         Tree params = hd(*p);
         Tree body = tl(*p);
         
