@@ -34,7 +34,11 @@
 #include "exception.hh"
 
 // Interpreter
-//#define INTERPRETER_TRACE 1
+/*
+ Only check 'non-optimized'interpreter operations, since the code is not optimized...
+*/
+
+#define INTERPRETER_TRACE 1
 
 // FIR bytecode interpreter
 template <class T>
@@ -64,6 +68,14 @@ class FIRInterpreter  {
         #define pop_addr() (address_stack[--addr_stack_index])
     
     #ifdef INTERPRETER_TRACE
+    
+        void warning_overflow(InstructionIT it)
+        {
+            std::cout << "-------- Interpreter 'Overflow' warning trace start --------" << std::endl;
+            traceInstruction(it);
+            fTraceContext.write(&std::cout);
+            std::cout << "-------- Interpreter 'Overflow' warning trace end --------" << std::endl;
+        }
     
         T check_val(InstructionIT it, T val)
         {
@@ -705,7 +717,15 @@ class FIRInterpreter  {
                     {
                         int v1 = pop_int();
                         int v2 = pop_int();
+                    #ifdef INTERPRETER_TRACE
+                        int res;
+                        if (__builtin_sadd_overflow(v1, v2, &res)) {
+                            warning_overflow(it);
+                        }
+                        push_int(res);
+                    #else
                         push_int(v1 + v2);
+                    #endif
                         dispatch_next();
                     }
                     
@@ -721,7 +741,15 @@ class FIRInterpreter  {
                     {
                         int v1 = pop_int();
                         int v2 = pop_int();
+                    #ifdef INTERPRETER_TRACE
+                        int res;
+                        if (__builtin_ssub_overflow(v1, v2, &res)) {
+                            warning_overflow(it);
+                        }
+                        push_int(res);
+                    #else
                         push_int(v1 - v2);
+                    #endif
                         dispatch_next();
                     }
                     
@@ -737,7 +765,15 @@ class FIRInterpreter  {
                     {
                         int v1 = pop_int();
                         int v2 = pop_int();
+                    #ifdef INTERPRETER_TRACE
+                        int res;
+                        if (__builtin_smul_overflow(v1, v2, &res)) {
+                            warning_overflow(it);
+                        }
+                        push_int(res);
+                    #else
                         push_int(v1 * v2);
+                    #endif
                         dispatch_next();
                     }
                     
