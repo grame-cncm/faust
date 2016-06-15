@@ -262,7 +262,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
     // Special case for "faustpower", generates sequence of multiplication
     if (name == "faustpower") {
         
-        // Do not generate 'faustpower' function call but directly inline the code
+        // In interpreter backend, do not generate 'faustpower' function call but directly inline the code
         if (gGlobal->gOutputLang == "interp") {
             
             ValueInst* arg2 = *it; it++;

@@ -35,10 +35,10 @@
 
 // Interpreter
 /*
- Only check 'non-optimized'interpreter operations, since the code is not optimized...
+ Trace mode: only check 'non-optimized' interpreter operations, since the code is not optimized in this case...
 */
 
-#define INTERPRETER_TRACE 1
+//#define INTERPRETER_TRACE 1
 
 // FIR bytecode interpreter
 template <class T>
@@ -69,7 +69,7 @@ class FIRInterpreter  {
     
     #ifdef INTERPRETER_TRACE
     
-        void warning_overflow(InstructionIT it)
+        inline void warning_overflow(InstructionIT it)
         {
             std::cout << "-------- Interpreter 'Overflow' warning trace start --------" << std::endl;
             traceInstruction(it);
@@ -77,7 +77,7 @@ class FIRInterpreter  {
             std::cout << "-------- Interpreter 'Overflow' warning trace end --------" << std::endl;
         }
     
-        T check_val(InstructionIT it, T val)
+        inline T check_real(InstructionIT it, T val)
         {
             if (std::isnan(val)) {
                 std::cout << "-------- Interpreter 'Nan' trace start --------" << std::endl;
@@ -97,7 +97,7 @@ class FIRInterpreter  {
             return val;
         }
         
-        #define push_real(it, val) (real_stack[real_stack_index++] = check_val(it, val))
+        #define push_real(it, val) (real_stack[real_stack_index++] = check_real(it, val))
     
         struct InterpreterTrace {
             
@@ -423,8 +423,7 @@ class FIRInterpreter  {
             T real_stack[fRealStackSize];
             int int_stack[fIntStackSize];
             InstructionIT address_stack[64];
-            
-     
+          
             //int max_real_stack = 0;
             //int max_int_stack = 0;
             

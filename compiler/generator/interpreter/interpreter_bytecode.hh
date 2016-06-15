@@ -480,7 +480,6 @@ struct FIRBlockInstruction : public FIRInstruction {
                 inst_copy->fBranch1 = block;
             }
             block->push(inst_copy);
-            
         }
         return block;
     }
