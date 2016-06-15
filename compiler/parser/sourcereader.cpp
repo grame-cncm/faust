@@ -137,7 +137,7 @@ static string printRedefinitionError(Tree symbol, list<Tree>& variants)
     stringstream error;
     
     error << "ERROR (file " << yyfilename << ":" << yylineno << ") : multiple definitions of symbol " << boxpp(symbol) << endl;
-    for (auto p = variants.begin(); p != variants.end(); p++) {
+    for (list<Tree>::iterator p = variants.begin(); p != variants.end(); p++) {
         Tree params = hd(*p);
         Tree body = tl(*p);
         if (isNil(params)) {
