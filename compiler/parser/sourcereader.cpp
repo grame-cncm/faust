@@ -64,19 +64,28 @@ static bool standardArgList(Tree args)
 }
 
 
-static void printPatternError(Tree lhs1, Tree rhs1, Tree lhs2, Tree rhs2)
+static void printPatternError(Tree symbol, Tree lhs1, Tree rhs1, Tree lhs2, Tree rhs2)
 {
-	cerr 	<< "ERROR : inconsistent number of parameters in pattern-matching rule: "
-			<< boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
-			<< " previous rule was: " 
-			<< boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
-			<< endl;
+    if (symbol==NULL) {
+        cerr 	<< "ERROR (file " << yyfilename << ":" << yylineno << ") : Inconsistent number of parameters in pattern-matching rule: "
+        << boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
+        << " previous rule was: "
+        << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
+        << endl;
+    } else {
+        cerr 	<< "ERROR (file " << yyfilename << ":" << yylineno << ") : in the definition of " << boxpp(symbol) << "\n"
+        << "Inconsistent number of parameters in pattern-matching rule: "
+        << boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
+        << " previous rule was: "
+        << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
+        << endl;
+    }
 }
 
 Tree checkRulelist (Tree lr)
 {
 	Tree lrules = lr;
-	if (isNil(lrules)) { cerr << "ERROR : a case expression can't be empty" << endl; exit(1); }
+	if (isNil(lrules)) { cerr << "ERROR (file " << yyfilename << ":" << yylineno << ") : a case expression can't be empty" << endl; exit(1); }
 	// first pattern used as a reference
 	Tree lhs1 = hd(hd(lrules));
 	Tree rhs1 = tl(hd(lrules));
@@ -86,7 +95,7 @@ Tree checkRulelist (Tree lr)
 		Tree lhs2 = hd(hd(lrules));
 		Tree rhs2 = tl(hd(lrules));
 		if (npat != len(lhs2)) {
-			printPatternError(lhs1,rhs1,lhs2,rhs2);
+			printPatternError(NULL, lhs1,rhs1,lhs2,rhs2);
 			exit(1);
 		}
 		
@@ -97,14 +106,30 @@ Tree checkRulelist (Tree lr)
 	return lr;
 }
 
+static void printRedefinitionError(Tree symbol, list<Tree>& variants)
+{
+    cerr 	<< "ERROR (file " << yyfilename << ":" << yylineno << ") : multiple definitions of symbol " << boxpp(symbol) << endl;
+    for (list<Tree>::iterator p=variants.begin(); p!=variants.end(); p++) {
+        Tree params = hd(*p);
+        Tree body = tl(*p);
+        
+        if (isNil(params)) {
+            cerr << boxpp(symbol) << " = " << boxpp(body) << ";" << endl;
+        } else {
+            cerr << boxpp(symbol) << boxpp(params) << " = " << boxpp(body) << ";" << endl;
+        }
+    }
+}
+
 
 /**
- * Transforms a list of variants (arglist.body) 
+ * Transforms a list of variants (arglist.body)
  * into an abstraction or a boxCase.
+ * @param symbol name only used in case of error
  * @param variants list of variants (arglist.body)
- * @return the corresponding box expression 
+ * @return the corresponding box expression
  */
-static Tree makeDefinition(list<Tree>& variants)
+static Tree makeDefinition(Tree symbol, list<Tree>& variants)
 {
 	if (variants.size() == 1) {
 		Tree rhs = *(variants.begin());
@@ -123,10 +148,14 @@ static Tree makeDefinition(list<Tree>& variants)
 		Tree	l = nil;
 		Tree	prev = *variants.begin();
 		int 	npat = len(hd(prev));
+        if (npat==0) {
+            printRedefinitionError(symbol, variants);
+            exit(1);
+        }
 		for (p=variants.begin(); p!=variants.end(); p++) {
 			Tree cur = *p;
-			if (npat != len(hd(cur))) {
-				printPatternError(hd(prev), tl(prev), hd(cur), tl(cur));
+			if ((npat==0) || (npat != len(hd(cur)))) {
+                printPatternError(symbol, hd(prev), tl(prev), hd(cur), tl(cur));
 				exit(1);
 			}
 			prev = cur;
@@ -169,7 +198,7 @@ Tree formatDefinitions(Tree rldef)
 	// produce the definitions
 	
 	for (p=dic.begin(); p!=dic.end(); p++) {
-		ldef2 = cons (cons(p->first, makeDefinition(p->second)), ldef2);
+		ldef2 = cons (cons(p->first, makeDefinition(p->first,p->second)), ldef2);
 	}
 	
 	//cout << "list of definitions : " << *ldef2 << endl;
@@ -227,14 +256,14 @@ Tree SourceReader::parse(string fname)
         // We are requested to parse a regular file
         FILE* tmp_file = yyin = fopensearch(yyfilename, fullpath);
         if (yyin == NULL) {
-            fprintf(stderr, "ERROR : Unable to open file  %s \n", yyfilename); 
+            cerr << "ERROR : Unable to open file " << yyfilename << endl;
             exit(1);
         }
         yyrestart(yyin);	// make sure we scan from file again (in case we scanned a string just before)
         yylineno = 1;
         int r = yyparse();
-        if (r) { 
-            fprintf(stderr, "Parse error : code = %d \n", r); 
+        if (r) {
+            cerr << "ERROR (file " << yyfilename << ":" << yylineno << ") : Parse error code " << r << endl;
         }
         if (yyerr > 0) {
             //fprintf(stderr, "Erreur de parsing 2, count = %d \n", yyerr); 

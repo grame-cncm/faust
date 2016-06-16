@@ -59,7 +59,7 @@ declare license "LGPL with exception";
 // ### Usage:
 //    `SR:_`
 //-----------------------------------------------------------------------------
-SR 			= min(192000, max(1, fconstant(int fSamplingFreq, <math.h>)));
+SR 			= min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
 
 
 //--------------------------------- BS ---------------------------------------
