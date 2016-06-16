@@ -189,6 +189,10 @@ for file in args:
 					matchComment = matchEndComment(line)
 					matchSection = matchEndSection(line)
 					matchTitle = matchEndTitle(line)
+					if matchComment:
+						print ''
+						print "---"
+						print ''
 					if matchComment or matchSection or matchTitle:
 						# end of md-comment switch back to mode O
 						mode = 0

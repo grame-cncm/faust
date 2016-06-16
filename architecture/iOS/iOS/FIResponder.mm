@@ -89,14 +89,16 @@
 
 - (void)setValue:(CGFloat)newValue
 {
-	if (newValue > self.max)
-		value = self.max;
-	else if (newValue < self.min)
-		value = self.min;
-	else
-		value = newValue;
-	if (self.delegate)
-		[self.delegate responderValueDidChange:self.value sender:self];
+    if (newValue > self.max) {
+        value = self.max;
+    } else if (newValue < self.min) {
+        value = self.min;
+    } else {
+        value = newValue;
+    }
+    if (self.delegate) {
+        [self.delegate responderValueDidChange:self.value sender:self];
+    }
     
 	[self setNeedsDisplay];
 }
