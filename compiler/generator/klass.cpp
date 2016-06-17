@@ -261,7 +261,7 @@ void Klass::printAdditionalCode(ostream& fout)
  */
 void Klass::printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout)
 {
-    tab(n,fout); fout   << "static void metadata(Meta* m) \t{ ";
+    tab(n,fout); fout << "virtual void metadata(Meta* m) \t{ ";
     
     // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
     for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
@@ -814,7 +814,10 @@ void Klass::println(int n, ostream& fout)
         tab(n+2,fout); fout << "classInit(samplingFreq);";
          tab(n+2,fout); fout << "instanceInit(samplingFreq);";
     tab(n+1,fout); fout << "}";
-
+    
+    tab(n+1,fout); fout << "virtual dsp* clone() {";
+    tab(n+2,fout); fout << "return new " << fKlassName << "();";
+    tab(n+1,fout); fout << "}";
 
     tab(n+1,fout); fout << "virtual void buildUserInterface(UI* interface) {";
         printlines (n+2, fUICode, fout);

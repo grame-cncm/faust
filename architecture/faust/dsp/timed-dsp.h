@@ -245,7 +245,12 @@ class timed_dsp : public decorator_dsp {
             // Only keep zones that are in GUI::gTimedZoneMap
             fDSP->buildUserInterface(&fZoneUI);
         }
-        
+    
+        virtual dsp* clone()
+        {
+            return new timed_dsp(fDSP->clone());
+        }
+    
         // Default method take a timestamp at 'compute' call time
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {

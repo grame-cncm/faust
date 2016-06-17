@@ -444,7 +444,10 @@ inline bool parseJson(const char*& p, std::map<std::string, std::string>& metada
         std::string key;
         std::string value;
         if (parseGlobalMetaData(p, key, value, metadatas)) {
-            metadatas[key] = value;
+            if (key != "meta") {
+                // keep "name", "inputs", "outputs" key/value pairs
+                metadatas[key] = value;
+            }
         } else if (key == "ui") {
             int numItems = 0;
             parseChar(p, '[') && parseUI(p, uiItems, numItems);
