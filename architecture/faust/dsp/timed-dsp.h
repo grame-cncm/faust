@@ -142,7 +142,6 @@ class timed_dsp : public decorator_dsp {
 
     protected:
         
-        double fSamplingFreq;
         double fDateUsec;       // Compute call date in usec
         double fOffsetUsec;     // Compute call offset in usec
         bool fFirstCallback;
@@ -167,7 +166,7 @@ class timed_dsp : public decorator_dsp {
         
         double convertUsecToSample(double usec)
         {
-            return std::max(0., (fSamplingFreq * (usec - fDateUsec)) / 1000000.);
+            return std::max(0., (double(getSampleRate()) * (usec - fDateUsec)) / 1000000.);
         }
         
         ztimedmap::iterator getNextControl(DatedControl& res, bool convert_ts)
@@ -228,14 +227,13 @@ class timed_dsp : public decorator_dsp {
 
     public:
 
-        timed_dsp(dsp* dsp):decorator_dsp(dsp),fSamplingFreq(0), fDateUsec(0),fOffsetUsec(0), fFirstCallback(true) 
+        timed_dsp(dsp* dsp):decorator_dsp(dsp), fDateUsec(0),fOffsetUsec(0), fFirstCallback(true)
         {}
         virtual ~timed_dsp() 
         {}
         
         virtual void init(int samplingRate)
         {
-            fSamplingFreq = double(samplingRate);
             fDSP->init(samplingRate);
         }
         

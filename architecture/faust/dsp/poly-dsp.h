@@ -438,6 +438,8 @@ class mydsp_poly : public dsp, public midi {
             }
         }
     
+        virtual int getSampleRate() { return fVoiceTable[0]->getSampleRate(); }
+    
         virtual dsp* clone()
         {
             return new mydsp_poly(fBaseDSP, fPolyphony, fVoiceControl, fGroupControl);

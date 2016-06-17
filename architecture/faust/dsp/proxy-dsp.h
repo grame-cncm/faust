@@ -227,7 +227,8 @@ struct JSONUIDecoder {
 class proxy_dsp : public dsp {
 
     private:
-        
+    
+        int fSamplingFreq;
         JSONUIDecoder* fDecoder;
         
     public:
@@ -235,6 +236,7 @@ class proxy_dsp : public dsp {
         proxy_dsp(const string& json)
         {
             fDecoder = new JSONUIDecoder(json);
+            fSamplingFreq = -1;
         }
           
         proxy_dsp(dsp* dsp)
@@ -242,6 +244,7 @@ class proxy_dsp : public dsp {
             JSONUI builder(dsp->getNumInputs(), dsp->getNumOutputs());
             dsp->metadata(&builder);
             dsp->buildUserInterface(&builder);
+            fSamplingFreq = dsp->getSampleRate();
             fDecoder = new JSONUIDecoder(builder.JSON());
         }
       
@@ -256,8 +259,10 @@ class proxy_dsp : public dsp {
         virtual void buildUserInterface(UI* ui) { fDecoder->buildUserInterface(ui); }
         
         // To possibly implement in a concrete proxy dsp 
-        virtual void init(int samplingRate) {}
+        virtual void init(int samplingRate) { fSamplingFreq = samplingRate; }
         virtual void instanceInit(int samplingRate) {}
+    
+        virtual int getSampleRate() { return fSamplingFreq; }
     
         virtual dsp* clone() { return new proxy_dsp(fDecoder->fJSON); }
         virtual void metadata(Meta* m) { fDecoder->metadata(m); }

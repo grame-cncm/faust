@@ -56,10 +56,6 @@ struct Meta;
 
 class dsp {
 
-    protected:
-
-        int fSamplingFreq;
-
     public:
 
         dsp() {}
@@ -68,6 +64,7 @@ class dsp {
         virtual int getNumInputs() = 0;
         virtual int getNumOutputs() = 0;
         virtual void buildUserInterface(UI* ui_interface) = 0;
+        virtual int getSampleRate() = 0;
         virtual void init(int samplingRate) = 0;
         virtual void instanceInit(int samplingRate) = 0;
         virtual dsp* clone() = 0;
@@ -95,6 +92,7 @@ class decorator_dsp : public dsp {
         virtual int getNumInputs() { return fDSP->getNumInputs(); }
         virtual int getNumOutputs() { return fDSP->getNumOutputs(); }
         virtual void buildUserInterface(UI* ui_interface) { fDSP->buildUserInterface(ui_interface); }
+        virtual int getSampleRate() { return fDSP->getSampleRate(); }
         virtual void init(int samplingRate) { fDSP->init(samplingRate); }
         virtual void instanceInit(int samplingRate) { fDSP->instanceInit(samplingRate); }
         virtual dsp* clone() { return new decorator_dsp(fDSP->clone()); }
