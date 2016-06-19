@@ -575,7 +575,6 @@ public:
     }
 };
 
-
 // -------------------------- Knob -----------------------------------
 
 class uiKnob : public uiCocoaItem
@@ -893,9 +892,10 @@ class uiButton : public uiCocoaItem
 public:
     
     FIButton* fButton;
+    float fValue;  // Specific value to be triggered by the button
     //UILongPressGestureRecognizer*   fLongPressGesture;
     
-    uiButton(GUI* ui, FIMainViewController* controller, const char* name, float* zone, int type)
+    uiButton(GUI* ui, FIMainViewController* controller, const char* name, float* zone, int type, float value = FLT_MAX)
     : uiCocoaItem(ui, zone, controller, name)
     {
         fButton = [[[FIButton alloc] initWithDelegate:controller] autorelease];
@@ -907,6 +907,8 @@ public:
         fButton.type = type;
         fButton.color = [UIColor colorWithRed:fR green:fG blue:fB alpha:1.f];
         [controller.dspView addSubview:fButton];
+        
+        fValue = value;
         
         //fLongPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:controller action:@selector(showWidgetPreferencesView:)];
         //fLongPressGesture.delegate = controller;
@@ -951,7 +953,7 @@ public:
         
         uiCocoaItem::setFrame(x, y, w, h);
         
-        fButton.frame = CGRectMake( pt.x + (w - kStdButtonWidth) / 2.f,
+        fButton.frame = CGRectMake(pt.x + (w - kStdButtonWidth) / 2.f,
                                     pt.y + (h - kStdButtonHeight) / 2.f,
                                     kStdButtonWidth,
                                     kStdButtonHeight);
@@ -992,12 +994,24 @@ public:
         [fButton setNeedsDisplay];
     }
     
+    void modifyZone(float value)
+    {
+        float tmp = (fValue != FLT_MAX) ? fValue : value;
+        
+        fCache = tmp;
+        if (*fZone != tmp) {
+            *fZone = tmp;
+            fGUI->updateZone(fZone);
+        }
+    }
+    
     void reflectZone()
     {
         float v = *fZone;
         fCache = v;
         if (fButton.type == kToggleButtonType) fButton.value = v;
     }
+
 };
 
 // ------------------------------ Num Entry -----------------------------------
@@ -1290,6 +1304,7 @@ private:
     map<float*, float>              fLedR;
     map<float*, float>              fLedG;
     map<float*, float>              fLedB;
+    map<float*, string>             fRadioDescription;
     map<float*, string>             fMenuDescription;
     set<float*>                     fKnobSet;
     int                             fCurrentLayoutType;
@@ -2067,6 +2082,11 @@ public:
         return fKnobSet.count(zone) > 0;
     }
     
+    bool isRadio(float* zone)
+    {
+        return fRadioDescription.count(zone) > 0;
+    }
+    
     virtual void openFrameBox(const char* label)
     {}
     virtual void openTabBox(const char* label = "")
@@ -2184,6 +2204,7 @@ public:
         
         insert(label, item);
     }
+    
     virtual void addToggleButton(const char* label, float* zone)
     {
         if (!fBuildUI) {
@@ -2206,6 +2227,7 @@ public:
         
         insert(label, item);
     }
+    
     virtual void addCheckButton(const char* label, float* zone)
     {
         if (!fBuildUI) {
@@ -2228,6 +2250,30 @@ public:
         
         insert(label, item);
     }
+    
+    virtual void addRadioButton(const char* label, float* zone, float value = FLT_MAX)
+    {
+        if (!fBuildUI) {
+            return;
+        }
+        
+        uiCocoaItem* item = new uiButton(this, fViewController, label, zone, kPushButtonType, value);
+        
+        // Default parameters
+        if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
+        if (getCurrentOpenedBox())
+        {
+            if (fHideOnGUI[zone] || getCurrentOpenedBox()->getHideOnGUI()) item->setHideOnGUI(TRUE);
+        }
+        else
+        {
+            if (fHideOnGUI[zone]) item->setHideOnGUI(TRUE);
+        }
+        dynamic_cast<uiButton*>(item)->fButton.hideOnGUI = item->getHideOnGUI();
+        
+        insert(label, item);
+    }
+    
     virtual void addVerticalKnob(const char* label , float* zone, float init, float min, float max, float step)
 	{
         uiCocoaItem* item = new uiKnob(this, fViewController, label, zone, init, min, max, step, false);
@@ -2249,6 +2295,7 @@ public:
         
         insert(label, item);
     }
+    
     virtual void addHorizontalKnob(const char* label , float* zone, float init, float min, float max, float step)
 	{
         uiCocoaItem* item = new uiKnob(this, fViewController, label, zone, init, min, max, step, true);
@@ -2279,8 +2326,11 @@ public:
         
         if (isKnob(zone)) {
             addVerticalKnob(label, zone, init, min, max, step);
+        } else if (isRadio(zone)) {
+            addVerticalRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str());
         } else {
-            uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, false, ((fMenuDescription.count(zone) ? fMenuDescription[zone].c_str() : NULL)));
+            uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, false,
+                                             ((fMenuDescription.count(zone) ? fMenuDescription[zone].c_str() : NULL)));
             if (dynamic_cast<uiSlider*>(item)->fSlider.suffixe) [dynamic_cast<uiSlider*>(item)->fSlider.suffixe release];
             dynamic_cast<uiSlider*>(item)->fSlider.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
             
@@ -2300,6 +2350,7 @@ public:
             insert(label, item);
         }
     }
+    
     virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
     {
         if (!fBuildUI) {
@@ -2308,6 +2359,8 @@ public:
         
         if (isKnob(zone)){
             addHorizontalKnob(label, zone, init, min, max, step);
+        } else if (isRadio(zone)) {
+            addHorizontalRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str());
         } else {
             uiCocoaItem* item = new uiSlider(this, fViewController, label, zone, init, min, max, step, true,
                                              ((fMenuDescription.count(zone) ? fMenuDescription[zone].c_str() : NULL)));
@@ -2330,6 +2383,41 @@ public:
             insert(label, item);
         }
     }
+    
+    virtual void addVerticalRadioButtons(const char* label, float* zone, float init, float min, float max, float step, const char* mdescr)
+    {
+        if (!fBuildUI) {
+            return;
+        }
+        const char* p = mdescr;
+        vector<string> names;
+        vector<double> values;
+        parseMenuList(p, names, values);
+        
+        openVerticalBox(label);
+        for (int i = 0; i < names.size(); i++) {
+            addRadioButton(names[i].c_str(), zone, values[i]);
+        }
+        closeBox();
+    }
+    
+    virtual void addHorizontalRadioButtons(const char* label, float* zone, float init, float min, float max, float step, const char* mdescr)
+    {
+        if (!fBuildUI) {
+            return;
+        }
+        const char* p = mdescr;
+        vector<string> names;
+        vector<double> values;
+        parseMenuList(p, names, values);
+        
+        openHorizontalBox(label);
+        for (int i = 0; i < names.size(); i++) {
+            addRadioButton(names[i].c_str(), zone, values[i]);
+        }
+        closeBox();
+    }
+    
     virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
     {
         if (!fBuildUI) {
@@ -2366,8 +2454,10 @@ public:
     
     virtual void addNumDisplay(const char* label, float* zone, int precision)
     {}
+    
     virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max)
     {}
+    
     virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max)
     {
         if (!fBuildUI) {
@@ -2404,6 +2494,7 @@ public:
         
         insert(label, item);
     }
+    
     virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)
     {
         if (!fBuildUI) {
@@ -2528,9 +2619,8 @@ public:
                         fLedB[zone] = (float)[((NSString*)[arr objectAtIndex:3]) integerValue] / 255.f;
                     }
                 } else if (parseWord(p, "radio")) {
-                    
+                    fRadioDescription[zone] = string(p);
                 } else if (parseWord(p, "menu")) {
-                    
                     fMenuDescription[zone] = string(p);
                 }
             }
