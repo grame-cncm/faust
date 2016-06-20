@@ -29,6 +29,7 @@
     CGFloat zoneHeight; // the global height of each keyboard (same for all of them)
     Boolean UIon;
     Boolean cancelOnce;
+    //Boolean roundDown; // used when a pitch needs to be rounded a full tone down
     
     float currentContinuousKey;
     float currentKeyboardY;
@@ -78,7 +79,7 @@
                                                                      @"maxFingers":[NSNumber numberWithInt:10],
                                                                      @"maxKeybPoly":[NSNumber numberWithInt:10],
                                                                      @"monoMode":[NSNumber numberWithInt:1],
-                                                                     @"quantizationMode":[NSNumber numberWithInt:2],
+                                                                     @"quantizationMode":[NSNumber numberWithInt:0],
                                                                      @"interKeybSlideAllowed":[NSNumber numberWithInt:1],
                                                                      @"arpegiatorOn":[NSNumber numberWithInt:0], // TODO
                                                                      @"keyb0_nKeys":[NSNumber numberWithInt:13],
@@ -93,6 +94,10 @@
                                                                      @"keyb1_scale":[NSNumber numberWithInt:0],
                                                                      @"keyb2_scale":[NSNumber numberWithInt:0],
                                                                      @"keyb3_scale":[NSNumber numberWithInt:0],
+                                                                     @"keyb0_showNotesName":[NSNumber numberWithInt:1],
+                                                                     @"keyb1_showNotesName":[NSNumber numberWithInt:1],
+                                                                     @"keyb2_showNotesName":[NSNumber numberWithInt:1],
+                                                                     @"keyb3_showNotesName":[NSNumber numberWithInt:1],
                                                                      @"keyb0_rootPos":[NSNumber numberWithInt:0],
                                                                      @"keyb1_rootPos":[NSNumber numberWithInt:0],
                                                                      @"keyb2_rootPos":[NSNumber numberWithInt:0],
@@ -155,6 +160,8 @@
     // dealocate previous instances first
     [self clean];
     UIon = true;
+    
+    //roundDown = false;
     
     // allocate memory and initialize the different elements
     previousTouchPoints = new CGPoint [[parameters[@"maxFingers"] intValue]];
@@ -219,12 +226,13 @@
             [[zones objectAtIndex:i] insertObject:[[Zone alloc] initWithFrame:CGRectMake(zoneWidths[i]*j+1, zoneHeight*i+1, zoneWidths[i]-2, zoneHeight-2)] atIndex:j];
             [[[zones objectAtIndex:i] objectAtIndex:j] setImageOn:[UIImage imageNamed:@"keyDown.png"]];
             [[[zones objectAtIndex:i] objectAtIndex:j] setImageOff:[UIImage imageNamed:@"keyUp.png"]];
-            if([parameters[[NSString stringWithFormat:@"keyb%d_keybMode",i]] boolValue]){
+            // set/display note name in the key only in keyboard mode and when scale is chromatic
+            if([parameters[[NSString stringWithFormat:@"keyb%d_keybMode",i]] boolValue] && [parameters[[NSString stringWithFormat:@"keyb%d_scale",i]] intValue]<1 && [parameters[[NSString stringWithFormat:@"keyb%d_showNotesName",i]] intValue]>0){
                 if([parameters[[NSString stringWithFormat:@"keyb%d_orientation",i]] boolValue]){
-                    [[[zones objectAtIndex:i] objectAtIndex:j] setNote:[self applyScale:[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",i]] intValue]+[parameters[[NSString stringWithFormat:@"keyb%d_nKeys",i]] intValue]-j-1]];
+                    [[[zones objectAtIndex:i] objectAtIndex:j] setNote:[self applyScale:[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",i]] intValue]+[parameters[[NSString stringWithFormat:@"keyb%d_nKeys",i]] intValue]-j-1 withKeyboardId:i]];
                 }
                 else{
-                    [[[zones objectAtIndex:i] objectAtIndex:j] setNote:[self applyScale:j+[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",i]] intValue]]];
+                    [[[zones objectAtIndex:i] objectAtIndex:j] setNote:[self applyScale:j+[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",i]] intValue] withKeyboardId:i]];
                 }
             }
             [[[zones objectAtIndex:i] objectAtIndex:j] setKeyboardMode:[parameters[[NSString stringWithFormat:@"keyb%d_keybMode",i]] boolValue]];
@@ -492,21 +500,24 @@
         if([parameters[@"quantizationMode"] intValue] == 0){
             // inverted keyboard
             if([parameters[[NSString stringWithFormat:@"keyb%d_orientation",keyboardId]] boolValue]){
-                rawPitch[fingerId] = [self applyScale:[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",keyboardId]] intValue]+[parameters[[NSString stringWithFormat:@"keyb%d_nKeys",keyboardId]] intValue]-keyId-1];
+                rawPitch[fingerId] = [self applyScale:[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",keyboardId]] intValue]+[parameters[[NSString stringWithFormat:@"keyb%d_nKeys",keyboardId]] intValue]-keyId-1 withKeyboardId:keyboardId];
             }
             // regular keyboard
             else{
-                rawPitch[fingerId] = [self applyScale:[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",keyboardId]] intValue]+keyId];
+                rawPitch[fingerId] = [self applyScale:[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",keyboardId]] intValue]+keyId withKeyboardId:keyboardId];
             }
         }
         else if([parameters[@"quantizationMode"] intValue] == 1 || [parameters[@"quantizationMode"] intValue] == 2){
+            int pitchShiftCenter = 0;
+            // -0.5 is here to center the pitch at the middle of the key
+            if([parameters[@"quantizationMode"] intValue] == 1) pitchShiftCenter = 0.5;
             // inverted keyboard
             if([parameters[[NSString stringWithFormat:@"keyb%d_orientation",keyboardId]] boolValue]){
-                rawPitch[fingerId] = [self applyScale:[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",keyboardId]] intValue]+[parameters[[NSString stringWithFormat:@"keyb%d_nKeys",keyboardId]] intValue]-currentContinuousKey];
+                rawPitch[fingerId] = [self applyScale:[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",keyboardId]] intValue]+[parameters[[NSString stringWithFormat:@"keyb%d_nKeys",keyboardId]] intValue]-currentContinuousKey-pitchShiftCenter withKeyboardId:keyboardId];
             }
             // regular keyboard
             else{
-                rawPitch[fingerId] = [self applyScale:currentContinuousKey+[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",keyboardId]] intValue]];
+                rawPitch[fingerId] = [self applyScale:currentContinuousKey+[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",keyboardId]] intValue]-pitchShiftCenter withKeyboardId:keyboardId];
             }
         }
         if(polyUI[fingerId] != NULL) polyUI[fingerId]->setParamValue("freq", [self mtof:rawPitch[fingerId]]);
@@ -514,13 +525,15 @@
     }
     // update
     else if(eventType == 2 && ([parameters[@"quantizationMode"] intValue] == 1 || [parameters[@"quantizationMode"] intValue] == 2)){
+        int pitchShiftCenter = 0;
+        if([parameters[@"quantizationMode"] intValue] == 1) pitchShiftCenter = 0.5;
         previousRawPitch[fingerId] = rawPitch[fingerId];
         if([parameters[[NSString stringWithFormat:@"keyb%d_orientation",keyboardId]] boolValue]){
-            rawPitch[fingerId] = [self applyScale:[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",keyboardId]] intValue]+[parameters[[NSString stringWithFormat:@"keyb%d_nKeys",keyboardId]] intValue]-currentContinuousKey];
+            rawPitch[fingerId] = [self applyScale:[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",keyboardId]] intValue]+[parameters[[NSString stringWithFormat:@"keyb%d_nKeys",keyboardId]] intValue]-currentContinuousKey-pitchShiftCenter  withKeyboardId:keyboardId];
         }
         // regular keyboard
         else{
-            rawPitch[fingerId] = [self applyScale:currentContinuousKey+[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",keyboardId]] intValue]];
+            rawPitch[fingerId] = [self applyScale:currentContinuousKey+[parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",keyboardId]] intValue]-pitchShiftCenter withKeyboardId:keyboardId];
         }
         
         if([parameters[@"quantizationMode"] intValue] == 1){
@@ -536,9 +549,35 @@
     if(polyUI[fingerId] != NULL) polyUI[fingerId]->setParamValue("y", currentKeyboardY);
 }
 
-// TODO: improve
--(float)applyScale:(float)pitch{
-    return pitch;
+-(float)applyScale:(float)pitch withKeyboardId:(int)keyboardId{
+    int refPitch = [parameters[[NSString stringWithFormat:@"keyb%d_lowestKey",keyboardId]] intValue];
+    float keyboardPitch = (pitch-refPitch); // float pitch on keyboard (from 0)
+    float scaledPitch = 0; // the final scaled pitch
+    
+    // TODO: rounding doesn't work well in major mode (see round down)
+    if([parameters[[NSString stringWithFormat:@"keyb%d_scale",keyboardId]] intValue] == 1){ // major key
+        int scaleCoeff[] = {2,2,1,2,2,2,1};
+        int scaleAdd = 0;
+        if(scaleCoeff[(int)keyboardPitch%7] == 2){
+            //roundDown = true;
+            for(int i=0; i<(int)keyboardPitch; i++){
+                if(scaleCoeff[i%7] == 1) scaleAdd--;
+            }
+        }
+        else if(scaleCoeff[(int)keyboardPitch%7] == 1){
+            //roundDown = false;
+            for(int i=0; i<(int)keyboardPitch; i++){
+                if(scaleCoeff[i%7] == 2) scaleAdd++;
+            }
+        }
+    
+        scaledPitch = refPitch+scaleAdd+
+            (keyboardPitch*scaleCoeff[(int)keyboardPitch%7]);
+    }
+    else{
+        scaledPitch = pitch;
+    }
+    return scaledPitch;
 }
 
 -(float)mtof:(float)note{
@@ -610,6 +649,7 @@
     fAPIUI.propagateGyr(2, _motionManager.gyroData.rotationRate.z);
 }
 
+// TODO for now, rounding range depends on key size which is a problem
 - (void) pitchRounding{
     while(UIon){
         for(int i=0; i<[parameters[@"maxFingers"] intValue]; i++){
@@ -624,9 +664,17 @@
                     roundedPitch[i] = rawPitch[i]-0.5;
                 }
                 else{
-                    roundedPitch[i] = (int)rawPitch[i];
+                    //if(fmod(currentContinuousKey,1)>=0.5 && roundDown){
+                    //    roundedPitch[i] = (int)rawPitch[i]-1;
+                    //}
+                    //else{
+                        roundedPitch[i] = (int)rawPitch[i];
+                    //}
                 }
-                if(polyUI[i] != NULL) polyUI[i]->setParamValue("freq", [self mtof:roundedPitch[i]]);
+                if(polyUI[i] != NULL){
+                    polyUI[i]->setParamValue("freq", [self mtof:roundedPitch[i]]);
+                    printf("%f\n",roundedPitch[i]);
+                }
             }
         }
         [NSThread sleepForTimeInterval:ROUNDING_UPDATE_SPEED];
