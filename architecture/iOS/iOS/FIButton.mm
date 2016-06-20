@@ -53,13 +53,16 @@
 	[super setFrame:frame];
 }
 
-
 #pragma mark -
 #pragma mark Touch Handling
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    if (self.type == kPushButtonType || self.type == kTabItemButtonType) self.value = 1.f;
+    if (self.type == kPushButtonType
+        || self.type == kTabItemButtonType
+        || self.type == kCheckButtonType) {
+        self.value = 1.f;
+    }
     [self setNeedsDisplay];
 }
 

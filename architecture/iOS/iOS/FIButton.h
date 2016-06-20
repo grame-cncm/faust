@@ -21,6 +21,7 @@
 #define kPushButtonType       0
 #define kToggleButtonType     1
 #define kTabItemButtonType    2
+#define kCheckButtonType      3
 
 @interface FIButton : FIResponder
 {
@@ -34,6 +35,7 @@
 - (id)initWithDelegate:(id)aDelegate;
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event;
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event;
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event;
 
 @end
