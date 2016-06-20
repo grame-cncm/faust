@@ -69,8 +69,11 @@ EXPORT string expandDSPFromString(const string& name_app,
 {
     TLock lock(gDSPFactoriesLock);
     
+    if (dsp_content == "") {
+        error_msg = "Unable to read file";
+        return "";
     // Already expanded version ?
-    if (start_with(dsp_content, COMPILATION_OPTIONS)) {
+    } else if (start_with(dsp_content, COMPILATION_OPTIONS)) {
         if (extract_compilation_options(dsp_content) == reorganize_compilation_options(argc, argv)) {
             // Same compilation options as the ones kept in the expanded version
             sha_key = generateSHA1(dsp_content);
@@ -111,21 +114,26 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
 {
     TLock lock(gDSPFactoriesLock);
     
-    int argc1 = 1;
-    const char* argv1[64];
-    argv1[0] = "faust";
+    if (dsp_content == "") {
+        error_msg = "Unable to read file";
+        return "";
+    } else {
     
-    // Filter arguments
-    for (int i = 0; i < argc; i++) {
-        if (!(strcmp(argv[i],"-vec") == 0 ||
-            strcmp(argv[i],"-sch") == 0)) {
-            argv1[argc1++] = argv[i];
+        int argc1 = 1;
+        const char* argv1[64];
+        argv1[0] = "faust";
+        
+        // Filter arguments
+        for (int i = 0; i < argc; i++) {
+            if (!(strcmp(argv[i],"-vec") == 0 ||
+                strcmp(argv[i],"-sch") == 0)) {
+                argv1[argc1++] = argv[i];
+            }
         }
+        
+        argv1[argc1] = 0;  // NULL terminated argv
+        return compile_faust(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, false);
     }
-    
-    argv1[argc1] = 0;  // NULL terminated argv
-  
-    return compile_faust(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, false);
 }
 
 EXPORT const char* expandCDSPFromFile(const char* filename, 
@@ -170,3 +178,29 @@ EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_co
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return res;
 }
+
+EXPORT string path_to_content(const string& path)
+{
+    ifstream file(path.c_str(), ifstream::binary);
+    
+    if (file.fail()) {
+        return "";
+    } else {
+        file.seekg(0, file.end);
+        int size = file.tellg();
+        file.seekg(0, file.beg);
+        
+        // And allocate buffer to that a single line can be read...
+        char* buffer = new char[size + 1];
+        file.read(buffer, size);
+        
+        // Terminate the string
+        buffer[size] = 0;
+        string result = buffer;
+        file.close();
+        delete [] buffer;
+        return result;
+    }
+}
+
+

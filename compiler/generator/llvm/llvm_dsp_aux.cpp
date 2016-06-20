@@ -1150,26 +1150,6 @@ EXPORT void stopMTDSPFactories()
     gDSPFactoriesLock = 0;
 }
 
-EXPORT string path_to_content(const string& path)
-{
-    ifstream file(path.c_str(), ifstream::binary);
-    
-    file.seekg(0, file.end);
-    int size = file.tellg();
-    file.seekg(0, file.beg);
-    
-    // And allocate buffer to that a single line can be read...
-    char* buffer = new char[size + 1];
-    file.read(buffer, size);
-    
-    // Terminate the string
-    buffer[size] = 0;
-    string result = buffer;
-    file.close();
-    delete [] buffer;
-    return result;
-}
-
 EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, 
                                                 int argc, const char* argv[], 
                                                 const string& target, 
