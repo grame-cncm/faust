@@ -167,8 +167,9 @@ const mterm& mterm::operator /= (Tree t)
 
 	if (isNum(t)) {
         if (isZero(t)) {
-            std::cerr << "ERROR: division by 0 in " << *this << " / " << ppsig(t) << endl;
-            exit(1);
+            stringstream error;
+            error << "ERROR: division by 0 in " << *this << " / " << ppsig(t) << endl;
+            throw faustexception(error.str());
         }
 		fCoef = divExtendedNums(fCoef,t);
 
