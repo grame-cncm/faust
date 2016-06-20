@@ -280,6 +280,7 @@ Tree mulNums(Tree a, Tree b)
 
 Tree divExtendedNums(Tree a, Tree b)
 {
+    //cerr.flags(ios::showpoint); cerr << "divExtendeNums " << *a << "/" << *b << " -> " << endl;
 	Tree r = tree(divExtendedNode(a->node(),b->node()));
 	//cerr.flags(ios::showpoint); cerr << "divExtendeNums " << *a << "/" << *b << " -> " << *r << endl;
 	return r;

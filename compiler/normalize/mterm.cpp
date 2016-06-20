@@ -166,6 +166,11 @@ const mterm& mterm::operator /= (Tree t)
 	assert(t!=0);
 
 	if (isNum(t)) {
+        if (isZero(t)) {
+            stringstream error;
+            error << "ERROR: division by 0 in " << *this << " / " << ppsig(t) << endl;
+            throw faustexception(error.str());
+        }
 		fCoef = divExtendedNums(fCoef,t);
 
 	} else if (isSigBinOp(t, &op, x, y) && (op == kMul)) {
