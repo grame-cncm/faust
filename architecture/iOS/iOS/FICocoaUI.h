@@ -994,24 +994,39 @@ public:
         [fButton setNeedsDisplay];
     }
     
+    
     void modifyZone(float value)
     {
-        float tmp = (fValue != FLT_MAX) ? fValue : value;
-        
-        fCache = tmp;
-        if (*fZone != tmp) {
-            *fZone = tmp;
-            fGUI->updateZone(fZone);
+        // Radio button mode : button is on
+        if (fButton.type == kCheckButtonType && fValue != FLT_MAX) {
+            if (value == 1.0f) {
+                fCache = fValue;
+                if (*fZone != fValue) {
+                    *fZone = fValue;
+                }
+            }
+        } else {
+            fCache = value;
+            if (*fZone != value) {
+                *fZone = value;
+                fGUI->updateZone(fZone);
+            }
         }
     }
     
     void reflectZone()
     {
         float v = *fZone;
-        fCache = v;
-        if (fButton.type == kToggleButtonType) fButton.value = v;
+        
+        // Radio button mode : button is off
+        if ((fButton.type == kCheckButtonType) && (fValue != FLT_MAX) && (v != fValue)) {
+            fButton.value = 0.0f;
+        } else {
+            fCache = v;
+            if (fButton.type == kToggleButtonType) fButton.value = v;
+        }
     }
-
+   
 };
 
 // ------------------------------ Num Entry -----------------------------------
@@ -2251,13 +2266,13 @@ public:
         insert(label, item);
     }
     
-    virtual void addRadioButton(const char* label, float* zone, float value = FLT_MAX)
+    virtual void addRadioButton(const char* label, float init, float* zone, float value = FLT_MAX)
     {
         if (!fBuildUI) {
             return;
         }
         
-        uiCocoaItem* item = new uiButton(this, fViewController, label, zone, kPushButtonType, value);
+        uiButton* item = new uiButton(this, fViewController, label, zone, kCheckButtonType, value);
         
         // Default parameters
         if (fR[zone] && fG[zone] && fB[zone]) item->setInitColor(fR[zone] - 1000., fG[zone] - 1000., fB[zone] - 1000.);
@@ -2396,7 +2411,7 @@ public:
         
         openVerticalBox(label);
         for (int i = 0; i < names.size(); i++) {
-            addRadioButton(names[i].c_str(), zone, values[i]);
+            addRadioButton(names[i].c_str(), init, zone, values[i]);
         }
         closeBox();
     }
@@ -2413,7 +2428,7 @@ public:
         
         openHorizontalBox(label);
         for (int i = 0; i < names.size(); i++) {
-            addRadioButton(names[i].c_str(), zone, values[i]);
+            addRadioButton(names[i].c_str(), init, zone, values[i]);
         }
         closeBox();
     }
