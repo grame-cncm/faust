@@ -365,6 +365,7 @@ void global::init()
     DEFNAMEPROPERTY = tree(symbol("DEFNAMEPROPERTY"));
     NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
     BCOMPLEXITY = tree("BCOMPLEXITY");
+    LETRECBODY = tree("RECURSIVEBODY");
     
     PROPAGATEPROPERTY = symbol("PropagateProperty");
     

@@ -1164,11 +1164,11 @@ static inline const char* transmit_value(int num)
     
     // SL : 04/09/14 was added for the SF concert ? deactivated for now
     
-    /*
     // If widget is hidden we don't show the window
-    if (_selectedWidget->getHideOnGUI()) return;
-    */
-    
+    if (_selectedWidget->getHideOnGUI()) {
+        return;
+    }
+     
     // Otherwise, set it selected (for selection display)
     _selectedWidget->setSelected(YES);
     

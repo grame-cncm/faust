@@ -188,6 +188,7 @@ struct global {
     Tree                    DEFNAMEPROPERTY;
     Tree                    NICKNAMEPROPERTY;
     Tree                    BCOMPLEXITY;        // Node used for memoization purposes
+    Tree                    LETRECBODY;
     
     Node                    PROPAGATEPROPERTY;
     

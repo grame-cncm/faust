@@ -79,6 +79,7 @@ Tree unquote(char* str)
 
 /* With local environment (lowest priority)*/
 %left WITH
+%left LETREC
 
 /* Block Diagram Algebra */
 /*%left SEQ SPLIT MIX*/
@@ -173,6 +174,7 @@ Tree unquote(char* str)
 %token LCROC
 %token RCROC
 %token WITH
+%token LETREC
 %token DEF
 
 %token IMPORT
@@ -230,14 +232,17 @@ Tree unquote(char* str)
 %type <exp> statement
 
 %type <exp> deflist
+%type <exp> reclist
 %type <exp> vallist
 %type <exp> definition
+%type <exp> recinition
 
 %type <exp> params
 
 %type <exp> expression
 
 %type <exp> defname
+%type <exp> recname
 %type <exp> infixexp
 %type <exp> primitive
 %type <exp> argument
@@ -309,6 +314,11 @@ stmtlist        : /*empty*/                     { $$ = gGlobal->nil; }
 deflist         : /*empty*/                     { $$ = gGlobal->nil; }
 				| deflist definition            { $$ = cons ($2,$1); }
 				;
+
+
+reclist         : /*empty*/                             { $$ = gGlobal->nil; }
+                | reclist recinition                    { $$ = cons ($2,$1); }
+                ;
 
 // vallist      : argument                              { $$ = cons($1,nil); }
 // 				| argument PAR vallist                  { $$ = cons ($1,$3); }
@@ -382,15 +392,23 @@ definition		: defname LPAR arglist RPAR DEF expression ENDDEF	{ $$ = cons($1,con
 				| error ENDDEF				   		   	{ $$ = gGlobal->nil; yyerr++; }
 				;
 
+recinition		: recname DEF expression ENDDEF		   	{ $$ = cons($1,cons(gGlobal->nil,$3)); }
+                | error ENDDEF				   		   	{ $$ = gGlobal->nil; yyerr++; }
+                ;
+
 defname			: ident 								{ $$=$1; setDefProp($1, yyfilename, yylineno); }
 				;
+
+recname			: DELAY1 ident 							{ $$=$2; setDefProp($2, yyfilename, yylineno); }
+                ;
 
 params			: ident					   				{ $$ = cons($1,gGlobal->nil); }
 				| params PAR ident				   		{ $$ = cons($3,$1); }
                 ;
 
 expression		: expression WITH LBRAQ deflist RBRAQ	{ $$ = boxWithLocalDef($1,formatDefinitions($4)); }
-				| expression PAR expression  			{ $$ = boxPar($1,$3); }
+                | expression LETREC LBRAQ reclist RBRAQ	{ $$ = boxWithRecDef  ($1,formatDefinitions($4)); }
+                | expression PAR expression  			{ $$ = boxPar($1,$3); }
 				| expression SEQ expression  			{ $$ = boxSeq($1,$3); }
 				| expression SPLIT  expression 		    { $$ = boxSplit($1,$3); }
 				| expression MIX expression 			{ $$ = boxMerge($1,$3); }
