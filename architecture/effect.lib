@@ -1554,7 +1554,7 @@ with {
 //   The mesh is constructed recursively using 2x2 embeddings.  Thus,
 //   the top level of mesh_square(M) is a block 2x2 mesh, where each
 //   block is a mesh(M/2).  Let these blocks be numbered 1,2,3,4 in the
-//   geometry NW,NE,SW,SE, i.e., as
+//   geometry [NW,NE;SW,SE], i.e., as
 //         1 2
 //         3 4
 //   Each block has four vector inputs and four vector outputs, where the
@@ -1574,8 +1574,8 @@ with {
 //        3So 3Wo
 //        4So 4Eo
 //   or
-//         In: 1No 1Wo 2No 2Eo 3So 3Wo 4So 4Eo
-//        Out: 1Ni 2Ni 3Si 4Si 1Wi 3Wi 2Ei 4Ei
+//         In: 1Ni 2Ni 3Si 4Si 1Wi 3Wi 2Ei 4Ei
+//        Out: 1No 1Wo 2No 2Eo 3So 3Wo 4So 4Eo
 //   Thus, the inputs are grouped by direction N,S,W,E, while the
 //   outputs are grouped by block number 1,2,3,4, which can also be
 //   interpreted as directions NW, NE, SW, SE.  A simple program
