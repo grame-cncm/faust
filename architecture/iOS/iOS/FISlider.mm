@@ -136,6 +136,8 @@
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    if (self.hideOnGUI) return;
+    
 	UITouch *touch = [touches anyObject];
 	CGPoint touchPosition = [touch locationInView:self];
 	CGFloat handleOrigin;
@@ -194,7 +196,6 @@
 
     [self updateHint];
 }
-
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
