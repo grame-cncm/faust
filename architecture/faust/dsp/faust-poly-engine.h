@@ -66,7 +66,7 @@ class FaustPolyEngine {
             if (fJSON.find("keyboard") != std::string::npos
                 || fJSON.find("poly") != std::string::npos) {
                 fPolyMax = 6;
-                fPolyDSP = new mydsp_poly(fPolyMax, true);
+                fPolyDSP = new mydsp_poly(&fMonoDSP, fPolyMax, true);
                 fPolyDSP->buildUserInterface(&fAPIUI);
                 
                 // Update JSON with Poly version
