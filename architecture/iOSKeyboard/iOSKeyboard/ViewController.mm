@@ -17,6 +17,7 @@ std::list<GUI*> GUI::fGuiList;
 
 @implementation ViewController{
     audio* audioDevice;
+    mydsp* faustDSP;
     mydsp_poly* synthDSP;
     dsp* mainDSP;
 }
@@ -27,7 +28,8 @@ std::list<GUI*> GUI::fGuiList;
     int SR = 44100;
     int bufferSize = 256;
     audioDevice = new iosaudio(SR, bufferSize);
-    synthDSP = new mydsp_poly(10,true,false);
+    faustDSP = new mydsp;
+    synthDSP = new mydsp_poly(faustDSP,10,true,false);
     
     #if POLY2
     mainDSP = new dsp_sequencer(synthDSP, new effect());

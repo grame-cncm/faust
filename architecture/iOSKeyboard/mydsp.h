@@ -1,6 +1,6 @@
 //----------------------------------------------------------
 //
-// Code generated with Faust 0.9.73 (http://faust.grame.fr)
+// Code generated with Faust 0.9.80 (http://faust.grame.fr)
 //----------------------------------------------------------
 
 /* link with  */
@@ -8,12 +8,14 @@
 #ifndef FAUSTPOWER
 #define FAUSTPOWER
 #include <cmath>
-template <int N> inline float faustpower(float x)          { return powf(x,N); } 
-template <int N> inline double faustpower(double x)        { return pow(x,N); }
 template <int N> inline int faustpower(int x)              { return faustpower<N/2>(x) * faustpower<N-N/2>(x); } 
 template <> 	 inline int faustpower<0>(int x)            { return 1; }
 template <> 	 inline int faustpower<1>(int x)            { return x; }
 template <> 	 inline int faustpower<2>(int x)            { return x*x; }
+template <int N> inline float faustpower(float x)            { return faustpower<N/2>(x) * faustpower<N-N/2>(x); } 
+template <> 	 inline float faustpower<0>(float x)          { return 1; }
+template <> 	 inline float faustpower<1>(float x)          { return x; }
+template <> 	 inline float faustpower<2>(float x)          { return x*x; }
 #endif
 //#include "faust/gui/FUI.h"
 /************************************************************************
@@ -1324,16 +1326,13 @@ class APIUI : public PathBuilder, public Meta, public UI
 #endif
 
 class UI;
+struct Meta;
 
 //----------------------------------------------------------------
 //  Signal processor definition
 //----------------------------------------------------------------
 
 class dsp {
-
-    protected:
-
-        int fSamplingFreq;
 
     public:
 
@@ -1343,8 +1342,11 @@ class dsp {
         virtual int getNumInputs() = 0;
         virtual int getNumOutputs() = 0;
         virtual void buildUserInterface(UI* ui_interface) = 0;
+        virtual int getSampleRate() = 0;
         virtual void init(int samplingRate) = 0;
         virtual void instanceInit(int samplingRate) = 0;
+        virtual dsp* clone() = 0;
+        virtual void metadata(Meta* m) = 0;
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) = 0;
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
        
@@ -1368,8 +1370,11 @@ class decorator_dsp : public dsp {
         virtual int getNumInputs() { return fDSP->getNumInputs(); }
         virtual int getNumOutputs() { return fDSP->getNumOutputs(); }
         virtual void buildUserInterface(UI* ui_interface) { fDSP->buildUserInterface(ui_interface); }
+        virtual int getSampleRate() { return fDSP->getSampleRate(); }
         virtual void init(int samplingRate) { fDSP->init(samplingRate); }
         virtual void instanceInit(int samplingRate) { fDSP->instanceInit(samplingRate); }
+        virtual dsp* clone() { return new decorator_dsp(fDSP->clone()); }
+        virtual void metadata(Meta* m) { return fDSP->metadata(m); }
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(count, inputs, outputs); }
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(date_usec, count, inputs, outputs); }
        
@@ -2201,46 +2206,53 @@ class iosaudio : public audio {
 
 class mydsp : public dsp {
   private:
-	int 	iConst0;
+	float 	fConst0;
 	float 	fConst1;
-	FAUSTFLOAT 	fslider0;
-	float 	fRec2[2];
-	FAUSTFLOAT 	fslider1;
 	float 	fConst2;
 	float 	fConst3;
-	FAUSTFLOAT 	fslider2;
 	FAUSTFLOAT 	fbutton0;
-	float 	fVec0[2];
-	float 	fRec5[2];
+	float 	fVec0[3];
+	float 	fRec2[2];
+	FAUSTFLOAT 	fslider0;
 	float 	fRec3[2];
+	float 	fConst4;
+	float 	fConst5;
+	FAUSTFLOAT 	fslider1;
+	FAUSTFLOAT 	fslider2;
 	float 	fRec6[2];
+	float 	fRec4[2];
 	float 	fVec1[2];
 	float 	fRec1[2];
 	float 	fRec0[3];
+	int fSamplingFreq;
+
   public:
-	static void metadata(Meta* m) 	{ 
-		m->declare("interface", "SmartKeyboard{  'nKeyb':'6',  'keyb0_nKeys':'13',  'keyb1_nKeys':'13',  'keyb2_nKeys':'13',  'keyb3_nKeys':'13',  'keyb4_nKeys':'13',  'keyb5_nKeys':'13',  'keyb0_lowestKey':'72',  'keyb1_lowestKey':'67',  'keyb2_lowestKey':'62',  'keyb3_lowestKey':'57',  'keyb4_lowestKey':'52',  'keyb5_lowestKey':'47' }");
-		m->declare("filter.lib/name", "Faust Filter Library");
-		m->declare("filter.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
-		m->declare("filter.lib/copyright", "Julius O. Smith III");
-		m->declare("filter.lib/version", "1.29");
-		m->declare("filter.lib/license", "STK-4.3");
-		m->declare("filter.lib/reference", "https://ccrma.stanford.edu/~jos/filters/");
-		m->declare("oscillator.lib/name", "Faust Oscillator Library");
-		m->declare("oscillator.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
-		m->declare("oscillator.lib/copyright", "Julius O. Smith III");
-		m->declare("oscillator.lib/version", "1.11");
-		m->declare("oscillator.lib/license", "STK-4.3");
-		m->declare("music.lib/name", "Music Library");
-		m->declare("music.lib/author", "GRAME");
-		m->declare("music.lib/copyright", "GRAME");
-		m->declare("music.lib/version", "1.0");
-		m->declare("music.lib/license", "LGPL with exception");
-		m->declare("math.lib/name", "Math Library");
+	virtual void metadata(Meta* m) 	{ 
+		m->declare("interface", "SmartKeyboard{  'nKeyb':'2',  'keyb0_nKeys':'7',  'keyb1_nKeys':'7',  'keyb0_lowestKey':'67',  'keyb1_lowestKey':'60',  'keyb0_scale':'0',  'keyb1_scale':'0',  'keyb0_orientation':'1',  'quantizationMode':'0' }");
+		m->declare("envelope.lib/name", "Faust Envelope Library");
+		m->declare("envelope.lib/version", "0.0");
+		m->declare("envelope.lib/author", "GRAME");
+		m->declare("envelope.lib/copyright", "GRAME");
+		m->declare("envelope.lib/license", "LGPL with exception");
+		m->declare("basic.lib/name", "Faust Basic Element Library");
+		m->declare("basic.lib/version", "0.0");
+		m->declare("math.lib/name", "Faust Math Library");
+		m->declare("math.lib/version", "2.0");
 		m->declare("math.lib/author", "GRAME");
 		m->declare("math.lib/copyright", "GRAME");
-		m->declare("math.lib/version", "1.0");
 		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("generator.lib/name", "Faust Generator Library");
+		m->declare("generator.lib/version", "0.0");
+		m->declare("delay.lib/name", "Faust Delay Library");
+		m->declare("delay.lib/version", "0.0");
+		m->declare("signal.lib/name", "Faust Signal Handling Library");
+		m->declare("signal.lib/version", "0.0");
+		m->declare("analyzer.lib/name", "Faust Analyzer Library");
+		m->declare("analyzer.lib/version", "0.0");
+		m->declare("synth.lib/name", "Faust Synthesizer Library");
+		m->declare("synth.lib/version", "0.0");
+		m->declare("filter.lib/name", "Faust Filter Library");
+		m->declare("filter.lib/version", "2.0");
 	}
 
 	virtual int getNumInputs() 	{ return 0; }
@@ -2249,19 +2261,21 @@ class mydsp : public dsp {
 	}
 	virtual void instanceInit(int samplingFreq) {
 		fSamplingFreq = samplingFreq;
-		iConst0 = min(192000, max(1, fSamplingFreq));
-		fConst1 = (3.1415927f / float(iConst0));
-		fslider0 = 1.0f;
-		for (int i=0; i<2; i++) fRec2[i] = 0;
-		fslider1 = 1.0f;
-		fConst2 = float(iConst0);
-		fConst3 = (1.0f / fConst2);
-		fslider2 = 3e+02f;
+		fConst0 = min(1.92e+05f, max(1.0f, (float)fSamplingFreq));
+		fConst1 = (3.1415927f / fConst0);
+		fConst2 = expf((0 - (1e+02f / fConst0)));
+		fConst3 = (1.0f - fConst2);
 		fbutton0 = 0.0;
-		for (int i=0; i<2; i++) fVec0[i] = 0;
-		for (int i=0; i<2; i++) fRec5[i] = 0;
+		for (int i=0; i<3; i++) fVec0[i] = 0;
+		for (int i=0; i<2; i++) fRec2[i] = 0;
+		fslider0 = 0.0f;
 		for (int i=0; i<2; i++) fRec3[i] = 0;
+		fConst4 = float(fConst0);
+		fConst5 = (1.0f / fConst4);
+		fslider1 = 3e+02f;
+		fslider2 = 0.0f;
 		for (int i=0; i<2; i++) fRec6[i] = 0;
+		for (int i=0; i<2; i++) fRec4[i] = 0;
 		for (int i=0; i<2; i++) fVec1[i] = 0;
 		for (int i=0; i<2; i++) fRec1[i] = 0;
 		for (int i=0; i<3; i++) fRec0[i] = 0;
@@ -2270,52 +2284,60 @@ class mydsp : public dsp {
 		classInit(samplingFreq);
 		instanceInit(samplingFreq);
 	}
+	virtual dsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSamplingFreq;
+	}
 	virtual void buildUserInterface(UI* interface) {
-		interface->openVerticalBox("SmartKeyboard");
-		interface->addHorizontalSlider("freq", &fslider2, 3e+02f, 5e+01f, 2e+03f, 0.01f);
-		interface->addHorizontalSlider("gain", &fslider1, 1.0f, 0.0f, 1.0f, 0.01f);
+		interface->openVerticalBox("0x00");
+		interface->addHorizontalSlider("freq", &fslider1, 3e+02f, 5e+01f, 2e+03f, 0.01f);
+		interface->declare(&fslider0, "acc", "1 0 -2 -2 10");
+		interface->addHorizontalSlider("gain", &fslider0, 0.0f, 0.0f, 1.0f, 0.01f);
 		interface->addButton("gate", &fbutton0);
-		interface->addHorizontalSlider("y", &fslider0, 1.0f, 0.0f, 1.0f, 0.001f);
+		interface->declare(&fslider2, "acc", "0 0 -10 0 10");
+		interface->addHorizontalSlider("vibrato", &fslider2, 0.0f, -1.0f, 1.0f, 0.01f);
 		interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fSlow0 = (0.001f * (50 + (5000 * float(fslider0))));
-		float 	fSlow1 = float(fslider1);
-		float 	fSlow2 = float(fslider2);
-		float 	fSlow3 = float(fbutton0);
-		int 	iSlow4 = (fSlow3 == 0);
-		float 	fSlow5 = (0.001f * fSlow3);
+		float 	fSlow0 = float(fbutton0);
+		float 	fSlow1 = (fConst3 * fSlow0);
+		float 	fSlow2 = (0.001f * faustpower<2>(float(fslider0)));
+		float 	fSlow3 = (float(fslider1) * (1 + (0.1f * float(fslider2))));
+		int 	iSlow4 = (fSlow0 == 0);
 		FAUSTFLOAT* output0 = output[0];
 		for (int i=0; i<count; i++) {
-			fRec2[0] = (fSlow0 + (0.999f * fRec2[1]));
-			float fTemp0 = tanf((fConst1 * fRec2[0]));
-			float fTemp1 = (1.0f / fTemp0);
-			float fTemp2 = (1 + fTemp1);
-			fVec0[0] = fSlow3;
-			int iTemp3 = ((fSlow3 == fVec0[1]) | iSlow4);
-			fRec5[0] = ((fSlow2 * (1.0f - (0.999f * iTemp3))) + (0.999f * (iTemp3 * fRec5[1])));
-			float fTemp4 = float(max(1e-07f, fabsf(fRec5[0])));
-			float fTemp5 = (fRec3[1] + (fConst3 * fTemp4));
-			float fTemp6 = (fTemp5 - 1);
-			int iTemp7 = int((fTemp6 < 0));
-			fRec3[0] = ((iTemp7)?fTemp5:fTemp6);
-			float 	fRec4 = ((iTemp7)?fTemp5:(fTemp5 + ((1 - (fConst2 / fTemp4)) * fTemp6)));
-			fRec6[0] = ((0.999f * fRec6[1]) + fSlow5);
-			float fTemp8 = (fSlow1 * (((2 * fRec4) - 1) * fRec6[0]));
-			fVec1[0] = fTemp8;
-			fRec1[0] = ((fRec1[1] * (0 - ((1 - fTemp1) / fTemp2))) + ((fVec1[0] + fVec1[1]) / fTemp2));
-			float fTemp9 = (1 + ((1.0f + fTemp1) / fTemp0));
-			fRec0[0] = (fRec1[0] - (((fRec0[2] * (1 + ((fTemp1 - 1.0f) / fTemp0))) + (2 * (fRec0[1] * (1 - (1.0f / faustpower<2>(fTemp0)))))) / fTemp9));
-			output0[i] = (FAUSTFLOAT)((fRec0[2] + (fRec0[0] + (2 * fRec0[1]))) / fTemp9);
+			fVec0[0] = fSlow0;
+			fRec2[0] = (fSlow1 + (fConst2 * fRec2[1]));
+			fRec3[0] = (fSlow2 + (0.999f * fRec3[1]));
+			float fTemp0 = (fRec2[0] * fRec3[0]);
+			float fTemp1 = tanf((fConst1 * (50 + (5000 * fTemp0))));
+			float fTemp2 = (1.0f / fTemp1);
+			float fTemp3 = (1 + fTemp2);
+			int iTemp4 = ((fSlow0 == fVec0[2]) | iSlow4);
+			fRec6[0] = ((fSlow3 * (1.0f - (0.999f * iTemp4))) + (0.999f * (iTemp4 * fRec6[1])));
+			float fTemp5 = float(max(1e-07f, fabsf(fRec6[0])));
+			float fTemp6 = (fRec4[1] + (fConst5 * fTemp5));
+			float fTemp7 = (fTemp6 - 1);
+			int iTemp8 = int((fTemp7 < 0));
+			fRec4[0] = ((iTemp8)?fTemp6:fTemp7);
+			float 	fRec5 = ((iTemp8)?fTemp6:(fTemp6 + ((1 - (fConst4 / fTemp5)) * fTemp7)));
+			float fTemp9 = (fTemp0 * ((2 * fRec5) - 1));
+			fVec1[0] = fTemp9;
+			fRec1[0] = ((fRec1[1] * (0 - ((1 - fTemp2) / fTemp3))) + ((fVec1[0] + fVec1[1]) / fTemp3));
+			float fTemp10 = (1 + ((1.0f + fTemp2) / fTemp1));
+			fRec0[0] = (fRec1[0] - (((fRec0[2] * (1 + ((fTemp2 - 1.0f) / fTemp1))) + (2 * (fRec0[1] * (1 - (1.0f / faustpower<2>(fTemp1)))))) / fTemp10));
+			output0[i] = (FAUSTFLOAT)((fRec0[2] + (fRec0[0] + (2 * fRec0[1]))) / fTemp10);
 			// post processing
 			fRec0[2] = fRec0[1]; fRec0[1] = fRec0[0];
 			fRec1[1] = fRec1[0];
 			fVec1[1] = fVec1[0];
+			fRec4[1] = fRec4[0];
 			fRec6[1] = fRec6[0];
 			fRec3[1] = fRec3[0];
-			fRec5[1] = fRec5[0];
-			fVec0[1] = fVec0[0];
 			fRec2[1] = fRec2[0];
+			fVec0[2] = fVec0[1]; fVec0[1] = fVec0[0];
 		}
 	}
 };
@@ -4809,7 +4831,10 @@ inline bool parseJson(const char*& p, std::map<std::string, std::string>& metada
         std::string key;
         std::string value;
         if (parseGlobalMetaData(p, key, value, metadatas)) {
-            metadatas[key] = value;
+            if (key != "meta") {
+                // keep "name", "inputs", "outputs" key/value pairs
+                metadatas[key] = value;
+            }
         } else if (key == "ui") {
             int numItems = 0;
             parseChar(p, '[') && parseUI(p, uiItems, numItems);
@@ -4853,24 +4878,28 @@ struct JSONUIDecoder {
         const char* p = fJSON.c_str();
         parseJson(p, fMetadatas, fUiItems);
         
+        // fMetadatas will contain the "meta" section as well as <name : val>, <inputs : val>, <ouputs : val> pairs
         if (fMetadatas.find("name") != fMetadatas.end()) {
             fName = fMetadatas["name"];
+            fMetadatas.erase("name");
         } else {
             fName = "";
         }
          
         if (fMetadatas.find("inputs") != fMetadatas.end()) {
             fNumInputs = atoi(fMetadatas["inputs"].c_str());
+            fMetadatas.erase("inputs");
         } else {
-            fNumInputs = 0;
+            fNumInputs = -1;
         }
         
         if (fMetadatas.find("outputs") != fMetadatas.end()) {
             fNumOutputs = atoi(fMetadatas["outputs"].c_str());
+            fMetadatas.erase("outputs");
         } else {
-            fNumOutputs = 0;
-        }   
-             
+            fNumOutputs = -1;
+        }
+        
         vector<itemInfo*>::iterator it;
         fInputItems = 0;
         fOutputItems = 0;
@@ -4896,6 +4925,14 @@ struct JSONUIDecoder {
         }
         delete [] fInControl;
         delete [] fOutControl;
+    }
+    
+    void metadata(Meta* m)
+    {
+        std::map<std::string, std::string>::iterator it;
+        for (it = fMetadatas.begin(); it != fMetadatas.end(); it++) {
+            m->declare((*it).first.c_str(), (*it).second.c_str());
+        }
     }
    
     void buildUserInterface(UI* ui)
@@ -4990,12 +5027,11 @@ struct JSONUIDecoder {
 //  possibly running somewhere else.
 //----------------------------------------------------------------
 
-typedef void (*metadataFun) (Meta* m);
-
 class proxy_dsp : public dsp {
 
     private:
-        
+    
+        int fSamplingFreq;
         JSONUIDecoder* fDecoder;
         
     public:
@@ -5003,13 +5039,15 @@ class proxy_dsp : public dsp {
         proxy_dsp(const string& json)
         {
             fDecoder = new JSONUIDecoder(json);
+            fSamplingFreq = -1;
         }
           
-        proxy_dsp(dsp* dsp, metadataFun fun = 0)
+        proxy_dsp(dsp* dsp)
         {
             JSONUI builder(dsp->getNumInputs(), dsp->getNumOutputs());
-            if (fun) { fun(&builder); }
+            dsp->metadata(&builder);
             dsp->buildUserInterface(&builder);
+            fSamplingFreq = dsp->getSampleRate();
             fDecoder = new JSONUIDecoder(builder.JSON());
         }
       
@@ -5024,8 +5062,14 @@ class proxy_dsp : public dsp {
         virtual void buildUserInterface(UI* ui) { fDecoder->buildUserInterface(ui); }
         
         // To possibly implement in a concrete proxy dsp 
-        virtual void init(int samplingRate) {}
+        virtual void init(int samplingRate) { fSamplingFreq = samplingRate; }
         virtual void instanceInit(int samplingRate) {}
+    
+        virtual int getSampleRate() { return fSamplingFreq; }
+    
+        virtual dsp* clone() { return new proxy_dsp(fDecoder->fJSON); }
+        virtual void metadata(Meta* m) { fDecoder->metadata(m); }
+    
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {} 
         
@@ -5143,15 +5187,16 @@ class GroupUI : public GUI, public PathBuilder
 };
 
 // One voice of polyphony
-struct dsp_voice : public MapUI, public dsp {
-       
+struct dsp_voice : public MapUI, public decorator_dsp {
+    
     int fNote;          // Playing note actual pitch
     int fDate;          // KeyOn date
     bool fTrigger;      // True if stolen note and need for envelop re-trigger
     FAUSTFLOAT fLevel;  // Last audio block level
 
-    dsp_voice()
+    dsp_voice(dsp* dsp):decorator_dsp(dsp)
     {
+        dsp->buildUserInterface(this);
         fNote = kFreeVoice;
         fLevel = FAUSTFLOAT(0);
         fDate = 0;
@@ -5160,44 +5205,12 @@ struct dsp_voice : public MapUI, public dsp {
  
 };
 
-struct voice_factory {
-
-    virtual dsp_voice* create() = 0;
-    virtual void metadata(Meta* meta) = 0;
-    
-};
-
-struct mydsp_voice : public dsp_voice {
-
-    mydsp fVoice;
-     
-    mydsp_voice():dsp_voice()
-    {
-        fVoice.buildUserInterface(this);
-    }
-    
-    virtual int getNumInputs() { return fVoice.getNumInputs(); }
-    virtual int getNumOutputs() { return fVoice.getNumOutputs(); }
-    virtual void buildUserInterface(UI* ui_interface) { fVoice.buildUserInterface(ui_interface); }
-    virtual void init(int samplingRate) { fVoice.init(samplingRate); }
-    virtual void instanceInit(int samplingRate) { fVoice.instanceInit(samplingRate); }
-    virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice.compute(len, inputs, outputs); }
-
-};
-
-struct mydsp_voice_factory : public voice_factory {
-
-    virtual dsp_voice* create() { return new mydsp_voice(); }
-    virtual void metadata(Meta* meta) { mydsp::metadata(meta); }
-
-};
-
 // Polyphonic DSP
 class mydsp_poly : public dsp, public midi {
 
     private:
     
-        voice_factory* fVoiceFactory;
+        dsp* fBaseDSP;
         std::vector<dsp_voice*> fVoiceTable; // Individual voices
         dsp* fVoiceGroup;                    // Voices group to be used for GUI grouped control
         
@@ -5221,7 +5234,6 @@ class mydsp_poly : public dsp, public midi {
         inline FAUSTFLOAT mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer) 
         {
             FAUSTFLOAT level = 0;
-            // Normalize sample by the max polyphony (as in vst.cpp file)
             for (int i = 0; i < fNumOutputs; i++) {
                 FAUSTFLOAT* mixChannel = mixBuffer[i];
                 FAUSTFLOAT* outChannel = outputBuffer[i];
@@ -5279,8 +5291,9 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
-        inline void init(int max_polyphony, voice_factory* factory, bool control, bool group)
+        inline void init(dsp* dsp, int max_polyphony, bool control, bool group)
         {
+            fBaseDSP = dsp;
             fVoiceControl = control;
             fGroupControl = group;
             fPolyphony = max_polyphony;
@@ -5288,7 +5301,7 @@ class mydsp_poly : public dsp, public midi {
             
             // Create voices
             for (int i = 0; i < fPolyphony; i++) {
-                fVoiceTable.push_back(factory->create());
+                fVoiceTable.push_back(new dsp_voice(dsp->clone()));
             }
             
             // Init audio output buffers
@@ -5299,7 +5312,7 @@ class mydsp_poly : public dsp, public midi {
             }
             
             // Groups all uiItem for a given path
-            fVoiceGroup = new proxy_dsp(fVoiceTable[0], mydsp::metadata);
+            fVoiceGroup = new proxy_dsp(fVoiceTable[0]);
             fVoiceGroup->buildUserInterface(&fGroups);
             for (int i = 0; i < fPolyphony; i++) {
                 fVoiceTable[i]->buildUserInterface(&fGroups);
@@ -5384,16 +5397,13 @@ class mydsp_poly : public dsp, public midi {
             return !(n & (n - 1));
         }
     
+        // Always returns a voice
         int newVoiceAux()
         {
             int voice = getVoice(kFreeVoice, true);
-            if (voice >= 0) {
-                fVoiceTable[voice]->fNote = kActiveVoice;
-                return voice;
-            } else {
-                printf("No more free voice...\n");
-                return -1;
-            }
+            assert(voice != kNoVoice);
+            fVoiceTable[voice]->fNote = kActiveVoice;
+            return voice;
         }
     
     public:
@@ -5401,6 +5411,7 @@ class mydsp_poly : public dsp, public midi {
         /**
          * Constructor.
          *
+         * @param dsp - the dsp to be used for one voice
          * @param max_polyphony - number of voices of polyphony
          * @param control - whether voices will be dynamically allocated and controlled (typically by a MIDI controler). 
          *                 If false all voices are always running.
@@ -5409,15 +5420,15 @@ class mydsp_poly : public dsp, public midi {
          *                If false, all voices can be individually controlled.
          *
          */
-        mydsp_poly(int max_polyphony,
+        mydsp_poly(dsp* dsp,
+                int max_polyphony,
                 bool control = false,   
                 bool group = true):fGroups(&fPanic, panic, this)
         {
-            fVoiceFactory = new mydsp_voice_factory();
-            init(max_polyphony, fVoiceFactory, control, group);
+            init(dsp, max_polyphony, control, group);
         }
     
-        void metadata(Meta* meta) { fVoiceFactory->metadata(meta); }
+        void metadata(Meta* meta) { fVoiceTable[0]->metadata(meta); }
 
         virtual ~mydsp_poly()
         {
@@ -5436,8 +5447,6 @@ class mydsp_poly : public dsp, public midi {
             for (int i = 0; i < fMidiUIList.size(); i++) {
                 fMidiUIList[i]->removeMidiIn(this); 
             }
-            
-            delete fVoiceFactory;
         }
     
         void init(int sample_rate)
@@ -5454,6 +5463,13 @@ class mydsp_poly : public dsp, public midi {
             for (int i = 0; i < fPolyphony; i++) {
                 fVoiceTable[i]->instanceInit(sample_rate);
             }
+        }
+    
+        virtual int getSampleRate() { return fVoiceTable[0]->getSampleRate(); }
+    
+        virtual dsp* clone()
+        {
+            return new mydsp_poly(fBaseDSP, fPolyphony, fVoiceControl, fGroupControl);
         }
     
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -5524,14 +5540,15 @@ class mydsp_poly : public dsp, public midi {
     
         MapUI* newVoice()
         {
-            int voice = newVoiceAux();
-            return (voice >= 0) ? fVoiceTable[voice] : 0;
+            return fVoiceTable[newVoiceAux()];
         }
         
         void deleteVoice(MapUI* voice)
         {
             std::vector<dsp_voice*>::iterator it = find(fVoiceTable.begin(), fVoiceTable.end(), reinterpret_cast<dsp_voice*>(voice));
             if (it != fVoiceTable.end()) {
+                (*it)->setParamValue(fGateLabel, 0.0f);
+                // Release voice
                 (*it)->fNote = kReleaseVoice;
             } else {
                 printf("Voice not found\n");
@@ -5543,13 +5560,11 @@ class mydsp_poly : public dsp, public midi {
         {
             if (checkPolyphony()) {
                 int voice = newVoiceAux();
-                if (voice >= 0) {
-                    fVoiceTable[voice]->setParamValue(fFreqLabel, midiToFreq(pitch));
-                    fVoiceTable[voice]->setParamValue(fGainLabel, float(velocity)/127.f);
-                    fVoiceTable[voice]->setParamValue(fGateLabel, 1.0f);
-                    fVoiceTable[voice]->fNote = pitch;
-                    return fVoiceTable[voice];
-                }
+                fVoiceTable[voice]->setParamValue(fFreqLabel, midiToFreq(pitch));
+                fVoiceTable[voice]->setParamValue(fGainLabel, float(velocity)/127.f);
+                fVoiceTable[voice]->setParamValue(fGateLabel, 1.0f);
+                fVoiceTable[voice]->fNote = pitch;
+                return fVoiceTable[voice];
             }
             
             return 0;
@@ -5559,10 +5574,10 @@ class mydsp_poly : public dsp, public midi {
         {
             if (checkPolyphony()) {
                 int voice = getVoice(pitch);
-                if (voice >= 0) {
+                if (voice != kNoVoice) {
                     // No use of velocity for now...
                     fVoiceTable[voice]->setParamValue(fGateLabel, 0.0f);
-                    // Relase voice
+                    // Release voice
                     fVoiceTable[voice]->fNote = kReleaseVoice;
                 } else {
                     printf("Playing pitch = %d not found\n", pitch);

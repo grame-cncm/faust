@@ -141,12 +141,15 @@ void InstructionsCompiler::sharingAnnotation(int vctxt, Tree sig)
 Tree InstructionsCompiler::prepare(Tree LS)
 {
     startTiming("prepare");
-
+    startTiming("first simplification");
+    LS = simplify(LS);
+    endTiming("first simplification");
     startTiming("deBruijn2Sym");
 	Tree L1 = deBruijn2Sym(LS);   	// convert debruijn recursion into symbolic recursion
     endTiming("deBruijn2Sym");
-
+    startTiming("second simplification");
 	Tree L2 = simplify(L1);			// simplify by executing every computable operation
+    endTiming("second simplification");
 	Tree L3 = privatise(L2);		// Un-share tables with multiple writers
 
 	// dump normal form
