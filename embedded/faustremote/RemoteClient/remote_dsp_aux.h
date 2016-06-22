@@ -174,7 +174,8 @@ class remote_dsp_aux : public dsp, public jack_midi_handler {
     
     private:
         
-        int                     fBufferSize;        // Buffer size of NetJack connection   
+        int                     fBufferSize;        // Buffer size of NetJack connection
+        int                     fSampleRate;        // Sample rate of NetJack connection
         
         remote_dsp_factory*     fFactory;           // Factory it is created from
         
@@ -215,7 +216,10 @@ class remote_dsp_aux : public dsp, public jack_midi_handler {
         
         virtual void init(int samplingRate);
         virtual void instanceInit(int samplingRate);
-        
+    
+        virtual dsp* clone();
+        virtual int getSampleRate();
+    
         virtual void buildUserInterface(UI* ui);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
@@ -282,7 +286,10 @@ class EXPORT remote_dsp : public dsp {
         void instanceInit(int samplingRate);
         
         void buildUserInterface(UI* ui);
-        
+    
+        dsp* clone();
+        int getSampleRate();
+    
         void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
         
         // MIDI polyphonic control

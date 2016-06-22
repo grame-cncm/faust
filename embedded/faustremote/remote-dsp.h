@@ -182,6 +182,9 @@ class remote_dsp : public dsp {
         
         void init(int samplingRate);
         void instanceInit(int samplingRate);
+    
+        dsp* clone();
+        int getSampleRate();
         
         void buildUserInterface(UI* ui);
         

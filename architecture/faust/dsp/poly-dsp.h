@@ -400,7 +400,6 @@ class mydsp_poly : public dsp, public midi {
         {
             init(dsp, max_polyphony, control, group);
         }
-    #endif
     
         void metadata(Meta* meta) { fVoiceTable[0]->metadata(meta); }
 

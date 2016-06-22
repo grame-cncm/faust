@@ -239,9 +239,14 @@ audio_dsp::audio_dsp(dsp_factory* factory, bool poly, int voices, bool group,
                     fCreateDSPInstanceCb(cb1), fCreateDSPInstanceCb_arg(cb1_arg),
                     fDeleteDSPInstanceCb(cb2), fDeleteDSPInstanceCb_arg(cb2_arg)
 {
+    dsp* dsp = factory->createDSPInstance();
+    if (!dsp) {
+        throw -1;
+    }
+    
     if (poly) {
-        fDSP = new mydsp_poly(voices, factory, true, group);
-    } else{
+        fDSP = new mydsp_poly(dsp, voices, true, group);
+    } else {
         fDSP = factory->createDSPInstance();
     }
     
@@ -312,20 +317,23 @@ dsp_server_connection_info::dsp_server_connection_info()
 void dsp_server_connection_info::getJson(dsp_factory* factory) 
 {
     fNameApp = factory->getName();
-    // This instance is used only to build JSON interface, then it's deleted
-    dsp* dsp;
+    // Those instances are only used to build JSON interface, then they are deleted
+    dsp* tmp_dsp;
     
     if (atoi(fPoly.c_str())) {
-        dsp = new mydsp_poly(atoi(fVoices.c_str()), factory, true, atoi(fGroup.c_str()));
-    } else{
-        dsp = factory->createDSPInstance();
+        dsp* tmp_dsp1 = factory->createDSPInstance();
+        tmp_dsp = new mydsp_poly(tmp_dsp1, atoi(fVoices.c_str()), true, atoi(fGroup.c_str()));
+        delete tmp_dsp1;
+    } else {
+        tmp_dsp = factory->createDSPInstance();
     }
    
     string code = factory->getDSPCode();
-    JSONUI json(fNameApp, dsp->getNumInputs(), dsp->getNumOutputs(), factory->getSHAKey(), base64_encode(code.c_str(), int(code.size())));
-    factory->metadata(&json);
-    dsp->buildUserInterface(&json);
-    delete dsp;
+    JSONUI json(fNameApp, tmp_dsp->getNumInputs(), tmp_dsp->getNumOutputs(), factory->getSHAKey(), base64_encode(code.c_str(), int(code.size())));
+    tmp_dsp->metadata(&json);
+    tmp_dsp->buildUserInterface(&json);
+    delete tmp_dsp;
+   
     fAnswer = json.JSON();    
 }
 
