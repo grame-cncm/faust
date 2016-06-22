@@ -66,6 +66,16 @@
     [self setNeedsDisplay];
 }
 
+- (void)setOn
+{
+    if (self.type == kPushButtonType
+        || self.type == kTabItemButtonType
+        || self.type == kCheckButtonType) {
+        self.value = 1.f;
+    }
+    [self setNeedsDisplay];
+}
+
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if (self.type == kToggleButtonType) self.value = 1.f - self.value;

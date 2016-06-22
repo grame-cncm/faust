@@ -452,7 +452,8 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
     ft = inTable;
 
     MetaData meta;
-    FAUSTCLASS::metadata(&meta);
+    mydsp tmp_dsp;
+    tmp_dsp.metadata(&meta);
 
     std::string name = meta["name"];
 

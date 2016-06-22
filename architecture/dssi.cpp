@@ -245,7 +245,8 @@ char* get_metadata_if_exists(const char* key, const char* default_string)
 {
     // TODO probably want to free these somehow.  Currently only used for ladspa descriptor
     Meta meta;
-    mydsp::metadata(&meta);
+    static mydsp dsp;
+    dsp.metadata(&meta);
     if(meta.find(key) != meta.end())
     {
         return strdup(meta[key]);

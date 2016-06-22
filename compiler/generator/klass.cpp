@@ -261,7 +261,7 @@ void Klass::printAdditionalCode(ostream& fout)
  */
 void Klass::printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout)
 {
-    tab(n,fout); fout   << "static void metadata(Meta* m) \t{ ";
+    tab(n,fout); fout << "virtual void metadata(Meta* m) \t{ ";
     
     // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
     for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
@@ -783,8 +783,10 @@ void Klass::println(int n, ostream& fout)
     for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) 	(*k)->println(n+1, fout);
 
     printlines(n+1, fDeclCode, fout);
+    
+    tab(n+1,fout); fout << "int fSamplingFreq;\n";
 
-	tab(n,fout); fout << "  public:";
+    tab(n,fout); fout << "  public:";
 
     printMetadata(n+1, gMetaDataSet, fout);
 
@@ -793,11 +795,11 @@ void Klass::println(int n, ostream& fout)
                             << "DSPThreadPool::Destroy()"
                             << "; }";
     }
-
-    tab(n+1,fout); fout     << "virtual int getNumInputs() \t{ "
+    
+    tab(n+1,fout); fout << "virtual int getNumInputs() \t{ "
                     << "return " << fNumInputs
                     << "; }";
-    tab(n+1,fout); fout 	<< "virtual int getNumOutputs() \t{ "
+    tab(n+1,fout); fout << "virtual int getNumOutputs() \t{ "
                     << "return " << fNumOutputs
                     << "; }";
 
@@ -814,7 +816,14 @@ void Klass::println(int n, ostream& fout)
         tab(n+2,fout); fout << "classInit(samplingFreq);";
          tab(n+2,fout); fout << "instanceInit(samplingFreq);";
     tab(n+1,fout); fout << "}";
-
+    
+    tab(n+1,fout); fout << "virtual dsp* clone() {";
+    tab(n+2,fout); fout << "return new " << fKlassName << "();";
+    tab(n+1,fout); fout << "}";
+    
+    tab(n+1,fout); fout << "virtual int getSampleRate() {";
+    tab(n+2,fout); fout << "return fSamplingFreq;";
+    tab(n+1,fout); fout << "}";
 
     tab(n+1,fout); fout << "virtual void buildUserInterface(UI* interface) {";
         printlines (n+2, fUICode, fout);

@@ -75,24 +75,28 @@ struct JSONUIDecoder {
         const char* p = fJSON.c_str();
         parseJson(p, fMetadatas, fUiItems);
         
+        // fMetadatas will contain the "meta" section as well as <name : val>, <inputs : val>, <ouputs : val> pairs
         if (fMetadatas.find("name") != fMetadatas.end()) {
             fName = fMetadatas["name"];
+            fMetadatas.erase("name");
         } else {
             fName = "";
         }
          
         if (fMetadatas.find("inputs") != fMetadatas.end()) {
             fNumInputs = atoi(fMetadatas["inputs"].c_str());
+            fMetadatas.erase("inputs");
         } else {
-            fNumInputs = 0;
+            fNumInputs = -1;
         }
         
         if (fMetadatas.find("outputs") != fMetadatas.end()) {
             fNumOutputs = atoi(fMetadatas["outputs"].c_str());
+            fMetadatas.erase("outputs");
         } else {
-            fNumOutputs = 0;
-        }   
-             
+            fNumOutputs = -1;
+        }
+        
         vector<itemInfo*>::iterator it;
         fInputItems = 0;
         fOutputItems = 0;
@@ -118,6 +122,14 @@ struct JSONUIDecoder {
         }
         delete [] fInControl;
         delete [] fOutControl;
+    }
+    
+    void metadata(Meta* m)
+    {
+        std::map<std::string, std::string>::iterator it;
+        for (it = fMetadatas.begin(); it != fMetadatas.end(); it++) {
+            m->declare((*it).first.c_str(), (*it).second.c_str());
+        }
     }
    
     void buildUserInterface(UI* ui)
@@ -212,12 +224,11 @@ struct JSONUIDecoder {
 //  possibly running somewhere else.
 //----------------------------------------------------------------
 
-typedef void (*metadataFun) (Meta* m);
-
 class proxy_dsp : public dsp {
 
     private:
-        
+    
+        int fSamplingFreq;
         JSONUIDecoder* fDecoder;
         
     public:
@@ -225,13 +236,15 @@ class proxy_dsp : public dsp {
         proxy_dsp(const string& json)
         {
             fDecoder = new JSONUIDecoder(json);
+            fSamplingFreq = -1;
         }
           
-        proxy_dsp(dsp* dsp, metadataFun fun = 0)
+        proxy_dsp(dsp* dsp)
         {
             JSONUI builder(dsp->getNumInputs(), dsp->getNumOutputs());
-            if (fun) { fun(&builder); }
+            dsp->metadata(&builder);
             dsp->buildUserInterface(&builder);
+            fSamplingFreq = dsp->getSampleRate();
             fDecoder = new JSONUIDecoder(builder.JSON());
         }
       
@@ -246,8 +259,14 @@ class proxy_dsp : public dsp {
         virtual void buildUserInterface(UI* ui) { fDecoder->buildUserInterface(ui); }
         
         // To possibly implement in a concrete proxy dsp 
-        virtual void init(int samplingRate) {}
+        virtual void init(int samplingRate) { fSamplingFreq = samplingRate; }
         virtual void instanceInit(int samplingRate) {}
+    
+        virtual int getSampleRate() { return fSamplingFreq; }
+    
+        virtual dsp* clone() { return new proxy_dsp(fDecoder->fJSON); }
+        virtual void metadata(Meta* m) { fDecoder->metadata(m); }
+    
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {} 
         
