@@ -234,7 +234,7 @@ audio_dsp::audio_dsp(llvm_dsp_factory* factory, bool poly, int voices, bool grou
     }
     
     if (poly) {
-        fDSP = new mydsp_poly(voices, dsp, true, group);
+        fDSP = new mydsp_poly(dsp, voices, true, group);
     } else{
         fDSP = dsp;
     }
@@ -299,7 +299,7 @@ void dsp_server_connection_info::getJson(llvm_dsp_factory* factory)
     dsp* dsp;
     
     if (atoi(fPoly.c_str())) {
-        dsp = new mydsp_poly(atoi(fVoices.c_str()), llvm_dsp, true, atoi(fGroup.c_str()));
+        dsp = new mydsp_poly(llvm_dsp, atoi(fVoices.c_str()), true, atoi(fGroup.c_str()));
     } else{
         dsp = llvm_dsp;
     }

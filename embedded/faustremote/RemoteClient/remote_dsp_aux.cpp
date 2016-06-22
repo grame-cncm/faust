@@ -521,6 +521,16 @@ void remote_dsp_aux::metadata(Meta* m)
     fFactory->metadataRemoteDSPFactory(m);
 }
 
+dsp* remote_dsp_aux::clone()
+{
+    return new remote_dsp_aux(fFactory);
+}
+
+int remote_dsp_aux::getSampleRate()
+{
+    return fSampleRate;
+}
+
 // Accessors to number of input/output of DSP
 int remote_dsp_aux::getNumInputs()
 { 
@@ -553,6 +563,7 @@ bool remote_dsp_aux::init(int argc, const char* argv[],
     const char* port = loptions(argc, argv, "--NJ_port", "19000");
    
     fBufferSize = buffer_size;
+    fSampleRate = sample_rate;
     
     fErrorCallback = error_callback;
     fErrorCallbackArg = error_callback_arg;
@@ -1080,6 +1091,16 @@ EXPORT void remote_dsp::init(int samplingRate)
 EXPORT void remote_dsp::instanceInit(int samplingRate)
 {
     reinterpret_cast<remote_dsp_aux*>(this)->instanceInit(samplingRate);
+}
+
+EXPORT dsp* remote_dsp::clone()
+{
+    return reinterpret_cast<remote_dsp_aux*>(this)->clone();
+}
+
+EXPORT int remote_dsp::getSampleRate()
+{
+    return reinterpret_cast<remote_dsp_aux*>(this)->getSampleRate();
 }
 
 EXPORT void remote_dsp::buildUserInterface(UI* interface)
