@@ -35,6 +35,7 @@
 #include "remote-dsp.h"
 #include "faust/gui/GUI.h"
 #include "utilities.h"
+#include <stdio.h>
 #include <iostream>
 
 std::list<GUI*> GUI::fGuiList;

@@ -33,6 +33,7 @@
 #include <sys/stat.h>
 #include <iostream>
 #include <pthread.h>
+#include <stdio.h>
 
 #include "../../utilities.h"
 #include "faust/dsp/remote-dsp.h"
