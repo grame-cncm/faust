@@ -48,16 +48,13 @@
 #endif
 
 class UI;
+struct Meta;
 
 //----------------------------------------------------------------
 //  Signal processor definition
 //----------------------------------------------------------------
 
 class dsp {
-
-    protected:
-
-        int fSamplingFreq;
 
     public:
 
@@ -67,8 +64,11 @@ class dsp {
         virtual int getNumInputs() = 0;
         virtual int getNumOutputs() = 0;
         virtual void buildUserInterface(UI* ui_interface) = 0;
+        virtual int getSampleRate() = 0;
         virtual void init(int samplingRate) = 0;
         virtual void instanceInit(int samplingRate) = 0;
+        virtual dsp* clone() = 0;
+        virtual void metadata(Meta* m) = 0;
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) = 0;
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
        
@@ -92,8 +92,11 @@ class decorator_dsp : public dsp {
         virtual int getNumInputs() { return fDSP->getNumInputs(); }
         virtual int getNumOutputs() { return fDSP->getNumOutputs(); }
         virtual void buildUserInterface(UI* ui_interface) { fDSP->buildUserInterface(ui_interface); }
+        virtual int getSampleRate() { return fDSP->getSampleRate(); }
         virtual void init(int samplingRate) { fDSP->init(samplingRate); }
         virtual void instanceInit(int samplingRate) { fDSP->instanceInit(samplingRate); }
+        virtual dsp* clone() { return new decorator_dsp(fDSP->clone()); }
+        virtual void metadata(Meta* m) { return fDSP->metadata(m); }
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(count, inputs, outputs); }
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(date_usec, count, inputs, outputs); }
        

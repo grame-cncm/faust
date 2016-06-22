@@ -615,6 +615,7 @@ To keep their original meaning, \faust expressions are bounded to their lexical 
 
 \begin{rail}
 envexp :    expression 'with' lbrace (definition+) rbrace
+          | expression 'letrec' lbrace (diffequation+) rbrace
           | 'environment' lbrace (definition+) rbrace
 		  | expression '.' ident
           | 'library' '(' filename ')'
@@ -658,6 +659,37 @@ Please note that \lstinline'with' is left associative and has the lowest priorit
 \item[-] \lstinline'f : + ~ g with {...}' is equivalent to \lstinline'(f : + ~ g)  with {...}'. 
 \item[-] \lstinline'f : + ~ g with {...} with {...}' is equivalent to \lstinline'((f : + ~ g)  with {...})  with {...}'. 
 \end{itemize}
+
+\subsubsection{Letrec} 
+The \lstinline'letrec' construction is somehow similar to \lstinline'with', but for   \emph{difference equations} instead of regular definitions. It allows to easily express groups of mutually recursive signals, for example:
+\begin{eqnarray*}
+x(t)&=&y(t-1)+10;\\
+y(t)&=&x(t-1)-1;
+\end{eqnarray*}
+as \lstinline|E letrec { 'x = y+10; 'y = x-1; }|	
+
+The syntax is defined by the following rules:
+\begin{rail}
+	letrecexpression : expression 'letrec' lbrace (diffequation+) rbrace;
+diffequation :    kot ident '=' expression ';';  
+\end{rail}
+
+Please remarks the special notation \lstinline|'x=y+10| instead of \lstinline|x=y'+10|. It makes syntactically impossible to write non-sensical equations like \lstinline|x=x+1|.
+
+Here is a more involved example. Let say we want to define an envelop generator with an attack time, a release time and a gate signal. A possible definition is the following:
+
+\begin{lstlisting}
+ar(a,r,g) = v
+  letrec {
+    'n = (n+1) * (g<=g');
+    'v = max(0, v + (n<a)/a - (n>=a)/r) * (g<=g');
+  };
+\end{lstlisting}
+With the following semantics for $n(t)$ and $v(t)$:
+\begin{eqnarray*}
+	n(t)&=&(n(t-1)+1) * (g(t) <= g(t-1))\\
+	v(t)&=& max(0, v(t-1) + (n(t-1)<a(t))/a(t) - (n(t-1)>=a(t))/r(t)) * (g(t)<=g(t-1))
+\end{eqnarray*}
 
 \subsubsection{Environment} 
 
@@ -1107,8 +1139,8 @@ $n.m$ & $\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}$ & floating point number: $y(t)
 \texttt{|} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & logical OR: $y(t)=x_{1}(t)|x_{2}(t)$   \\
 \texttt{xor} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & logical XOR: $y(t)=x_{1}(t)\land x_{2}(t)$   \\
 
-\texttt{<<} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & arith. shift left: $y(t)=x_{1}(t) << x_{2}(t)$   \\
-\texttt{>>} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & arith. shift right: $y(t)=x_{1}(t) >> x_{2}(t)$   \\
+\texttt{<}\texttt{<} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & arith. shift left: $y(t)=x_{1}(t) << x_{2}(t)$   \\
+\texttt{>}\texttt{>} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & arith. shift right: $y(t)=x_{1}(t) >> x_{2}(t)$   \\
 
 
 \texttt{<} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & less than: $y(t)=x_{1}(t) < x_{2}(t)$   \\

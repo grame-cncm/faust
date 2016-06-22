@@ -185,6 +185,8 @@ bool isBoxAccess(Tree t, Tree& exp, Tree& id);
 Tree boxWithLocalDef (Tree body, Tree ldef);
 bool isBoxWithLocalDef (Tree t, Tree& body, Tree& ldef);
 
+Tree boxWithRecDef (Tree body, Tree ldef);
+
 
 /*****************************************************************************
                         Modification of local definitions

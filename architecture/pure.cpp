@@ -448,7 +448,8 @@ extern "C" void deldsp(mydsp* d)
 extern "C" Meta *newmeta()
 {
   Meta *m = new Meta;
-  mydsp::metadata(m);
+  mydsp tmp_dsp;
+  tmp_dsp.metadata(m);
   return m;
 }
 

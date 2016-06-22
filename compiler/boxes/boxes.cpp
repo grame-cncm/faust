@@ -266,6 +266,101 @@ bool isBoxWithLocalDef (Tree t, Tree& body, Tree& ldef)		{ return isTree(t, BOXW
 
 
 /*****************************************************************************
+ Boxes with recursive definitions
+ *****************************************************************************/
+Tree LETRECBODY         = boxIdent("RECURSIVEBODY");
+
+// def2names transforms a liste of definition (name.expression) into a list of name
+static Tree def2names(Tree ldef)
+{
+    if (isNil(ldef)) {
+        return nil;
+    } else {
+        Tree def = hd(ldef);
+        return cons(hd(def), def2names(tl(ldef)));
+    }
+}
+
+// def2exp transforms a list of definition (name.expression) into a list of expressions
+static Tree def2exp(Tree ldef)
+{
+    if (isNil(ldef)) {
+        return nil;
+    } else {
+        Tree def = hd(ldef);
+        return cons(tl(def), def2exp(tl(ldef)));
+    }
+}
+
+// makeBus(3) => "_,_,_"
+static Tree makeBus(int n)
+{
+    return (n<=1) ? boxWire() : boxPar(boxWire(), makeBus(n-1));
+}
+
+// makeParList((a,b,d)) => "a,b,c"
+static Tree makeParList(Tree lexp)
+{
+    Tree l2 = tl(lexp);
+    if (isNil(l2)) {
+        return hd(lexp);
+    } else {
+        return boxPar(hd(lexp), makeParList(l2));
+    }
+}
+
+// makeBoxAbstr(largs,body) => \(lnames).(body)
+static Tree makeBoxAbstr	(Tree largs, Tree body)
+{
+    if (isNil(largs)) {
+        return body;
+    } else {
+        return boxAbstr(hd(largs), makeBoxAbstr(tl(largs),body));
+    }
+}
+
+// makeSelector(5,2) => "!,!,_,!,!"
+static Tree makeSelector(int n, int i)
+{
+    Tree op = (i==0) ? boxWire() : boxCut();
+    return (n==1) ? op : boxPar(op, makeSelector(n-1, i-1));
+}
+
+// defines each symbol si of lnames as => "si = RECURSIVEBODY : select(n,i);"
+static Tree makeRecProjectionsList(int n, int i, Tree lnames, Tree ldef)
+{
+    if (i==n) {
+        return ldef;
+    } else {
+        Tree sel = boxSeq(LETRECBODY, makeSelector(n,i));
+        return cons(cons(hd(lnames), sel), makeRecProjectionsList(n, i+1, tl(lnames), ldef));
+    }
+}
+
+// buildRecursiveBodyDef(n,lnames,lexp) => "RECURSIVEBODY = \(lnames).(lexp) ~ bus(n);"
+static Tree buildRecursiveBodyDef(int n, Tree lnames, Tree lexp)
+{
+    return cons(LETRECBODY, boxRec(makeBoxAbstr(lnames, makeParList(lexp)), makeBus(n)));
+}
+
+//----------------------------------------------------------------------------
+// Transform a letrec expression into a with expression
+//----------------------------------------------------------------------------
+Tree boxWithRecDef (Tree body, Tree ldef) {
+    //cout << "list of recursive definitions : " << *ldef << endl;
+    Tree lnames = def2names(ldef);
+    Tree   lexp = def2exp  (ldef);
+    int       n = len(ldef);
+
+    Tree   rdef = buildRecursiveBodyDef(n, lnames, lexp);
+    Tree    lrp = makeRecProjectionsList(n, 0, lnames, nil);
+    Tree      w = boxWithLocalDef(body, cons(rdef, lrp));
+    //cerr << "boxWithRecDef(" << boxpp(body) << ',' << *ldef << ") -> " << boxpp(w) << endl;
+    return w;
+}
+
+
+/*****************************************************************************
                         Boxes modif local definitions
 *****************************************************************************/
 Sym BOXMODIFLOCALDEF 	= symbol ("BoxModifLocalDef");
