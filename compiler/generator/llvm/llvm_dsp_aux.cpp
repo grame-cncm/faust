@@ -1033,9 +1033,9 @@ llvm_dsp_aux::~llvm_dsp_aux()
     }
 }
 
-llvm_dsp_aux* llvm_dsp_aux::copy()
+dsp* llvm_dsp_aux::clone()
 {
-    return fDSPFactory->createDSPInstance();
+    return reinterpret_cast<dsp*>(fDSPFactory->createDSPInstance());
 }
 
 void llvm_dsp_aux::metadata(Meta* m)
@@ -1067,6 +1067,11 @@ void llvm_dsp_aux::init(int samplingRate)
 void llvm_dsp_aux::instanceInit(int samplingRate)
 {
     fDSPFactory->fInstanceInit(fDSP, samplingRate);
+}
+
+int llvm_dsp_aux::getSampleRate()
+{
+    return fDSPFactory->fGetSampleRate(fDSP);
 }
 
 void llvm_dsp_aux::buildUserInterface(UI* ui_interface)
@@ -1657,9 +1662,9 @@ EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output
     reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
 }
 
-EXPORT llvm_dsp* llvm_dsp::copy()
+EXPORT dsp* llvm_dsp::clone()
 {
-    return reinterpret_cast<llvm_dsp*>(reinterpret_cast<llvm_dsp_aux*>(this)->copy());
+    return reinterpret_cast<llvm_dsp_aux*>(this)->clone();
 }
 
 // Public C interface : lock management is done by called C++ API
@@ -1923,9 +1928,9 @@ EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FA
     }
 }
 
-EXPORT llvm_dsp* copyCDSPInstance(llvm_dsp* dsp)
+EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp)
 {
-    return (dsp) ? reinterpret_cast<llvm_dsp*>(reinterpret_cast<llvm_dsp_aux*>(dsp)->copy()) : 0;
+    return (dsp) ? reinterpret_cast<llvm_dsp*>(reinterpret_cast<llvm_dsp_aux*>(dsp)->clone()) : 0;
 }
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)

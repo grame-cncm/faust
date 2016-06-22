@@ -89,7 +89,7 @@ void CPPCodeContainer::produceInfoFunctions(int tabs, const string& classname, b
 
 void CPPCodeContainer::produceMetadata(int tabs)
 {
-    tab(tabs, *fOut); *fOut << "void static metadata(Meta* m) { ";
+    tab(tabs, *fOut); *fOut << "void metadata(Meta* m) { ";
     
     // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
     for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
@@ -278,6 +278,14 @@ void CPPCodeContainer::produceClass()
 
         tab(n+1, *fOut);
         produceInit(n+1);
+    
+        tab(n+1, *fOut); *fOut << "virtual dsp* clone() {";
+        tab(n+2, *fOut); *fOut << "return new " << fKlassName << "();";
+        tab(n+1, *fOut); *fOut << "}";
+    
+        tab(n+1, *fOut); *fOut << "virtual int getSampleRate() {";
+        tab(n+2, *fOut); *fOut << "return fSamplingFreq;";
+        tab(n+1, *fOut); *fOut << "}";
 
         // User interface
         tab(n+1, *fOut);

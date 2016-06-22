@@ -511,9 +511,10 @@ bool Faust::getProgramNameIndexed (VstInt32 category, VstInt32 index,
 
 const char* Faust::getMetadata(const char* key, const char* defaultString)
 {
-	Meta meta;
-	mydsp::metadata(&meta);
-	return meta.get(key, defaultString);
+    Meta meta;
+    mydsp tmp_dsp;
+    tmp_dsp.metadata(&meta);
+    return meta.get(key, defaultString);
 } // end of getMetadata
 
 //-----------------------------------------------------------------------------
