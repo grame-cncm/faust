@@ -1782,6 +1782,7 @@ struct InstBuilder
         } else {
             assert(false);
         }
+        return NULL;
     }
     
     static ValueInst* genArrayNumInst(Typed::VarType ctype, int size)
@@ -1795,6 +1796,7 @@ struct InstBuilder
         } else {
             assert(false);
         }
+        return NULL;
     }
 
     static IntNumInst* genIntNumInst(int num, int size = 1) { return new IntNumInst(num); }

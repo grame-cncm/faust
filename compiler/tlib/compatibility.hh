@@ -26,6 +26,14 @@
 
 unsigned faust_alarm(unsigned seconds);
 
+
+#ifdef __MINGW32__
+#define faust_mkdir(path, attribute) mkdir(path)
+#else
+#define faust_mkdir(path, attribute) mkdir(path, attribute)
+#endif
+
+
 #ifdef _WIN32
 #include <windows.h>
 #include <time.h>
@@ -39,32 +47,47 @@ unsigned faust_alarm(unsigned seconds);
 #endif
 #define YY_NO_UNISTD_H 1
 
+#define GCC_VERSION (__GNUC__ * 10000                 \
+                     + __GNUC_MINOR__ * 100           \
+                     + __GNUC_PATCHLEVEL__)
+
+#if GCC_VERSION < 40700
 struct timezone 
 {
 	int  tz_minuteswest; /* minutes W of Greenwich */
 	int  tz_dsttime;     /* type of dst correction */
 };
+#endif
 
 #define alarm(x) 0
+
 #ifndef __MINGW32__
 // mingw has these in its headers.
 #define strdup _strdup
 #define snprintf _snprintf
 #endif
+
+
 extern "C" {
 #if (_MSC_VER<=1700)
     double  rint(double nr);
 #endif
+
 int gettimeofday(struct timeval *tv, struct timezone *tz);
 int chdir(const char* path);
-int mkdir(const char* path, unsigned int attribute);
+#if _MSC_VER
+  int mkdir(const char* path);
+#endif
 char* getcwd(char* str, int size);
 int isatty(int file);
 }
+
+
 void getFaustPathname(char* str, unsigned int size);
 void getFaustPathname(char* str, unsigned int size);
 char* realpath(const char* path, char resolved_path[PATH_MAX]);
 char* basename(const char* fullpath);
+
 
 #ifdef  NDEBUG
 #undef assert
@@ -84,10 +107,12 @@ char* basename(const char* fullpath);
 	#define S_IRWXU 0
 #endif
 
+#if !defined(__MINGW32__) || GCC_VERSION < 40903
 #define S_IRWXG 0
 #define S_IROTH 0
 #define S_IXOTH 0
 #define DIRSEP '\\'
+#endif
 
 #undef min
 #undef max
@@ -100,6 +125,8 @@ char* basename(const char* fullpath);
 
 void getFaustPathname(char* str, unsigned int size);
 
-#endif
+#endif // _WIN32
+
+
 
 #endif

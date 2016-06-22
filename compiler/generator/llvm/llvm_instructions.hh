@@ -1544,6 +1544,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             } else {
                 // Default
                 assert(false);
+                return NULL;
             }
             
             return fBuilder->CreateInBoundsGEP(res_load_ptr, fCurValue);
@@ -1701,6 +1702,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             } else {
                 // default
                 assert(false);
+                return;
             }
             
             // Compute value to be stored, result is in fCurValue
