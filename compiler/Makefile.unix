@@ -55,6 +55,9 @@ LIBS = -lshell32 -lpsapi -limagehlp -lwsock32 `pkg-config --libs libcrypto` -lz
 EXE = .exe
 endif
 
+AR ?= ar
+RANLIB ?= ranlib
+
 CXXFLAGS ?= -g -Wall -Wuninitialized
 ##CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
@@ -119,7 +122,7 @@ else
 ifneq ($(findstring MINGW32, $(system)),)
 	CXXFLAGS += -O1 -I/usr/include
 else
-	CXXFLAGS += -O1 -fPIC
+	CXXFLAGS += -O1 -fPIC -D__USE_MINGW_ANSI_STDIO
 endif
 endif
 
@@ -223,16 +226,16 @@ else
 ifneq ($(findstring MINGW32, $(system)),)
     libfaust.a : $(objects) libcode.o libmain.o global.o
 	rm -f $@
-	ar cq $@ $(objects) libcode.o libmain.o global.o
-	ranlib $@
+	$(AR) cq $@ $(objects) libcode.o libmain.o global.o
+	$(RANLIB) $@
 
     libfaust.dll : $(objects) libcode.o libmain.o global.o
 	$(CXX) -shared $(LDFLAGS) $(objects) libcode.o libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread
 else
     libfaust.a : $(objects) libcode.o libmain.o global.o
 	rm -f $@
-	ar cq $@ $(objects) libcode.o libmain.o global.o
-	ranlib $@
+	$(AR) cq $@ $(objects) libcode.o libmain.o global.o
+	$(RANLIB) $@
 
     libfaust.so : $(objects) libcode.o libmain.o global.o
 	$(CXX) -shared -fPIC $(LDFLAGS) $(objects) libcode.o libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -ldl -lcrypto -lstdc++

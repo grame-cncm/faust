@@ -40,7 +40,7 @@ static bool sortArrayDeclarationsAux(StatementInst* a, StatementInst* b)
                 ArrayTyped* array_typed2 = dynamic_cast<ArrayTyped*>(inst2->fType);
                 if (array_typed2) {
                     return (array_typed1->fSize == array_typed2->fSize) 
-                            ? (long)array_typed1 > (long)array_typed1
+                            ? (intptr_t)array_typed1 > (intptr_t)array_typed1
                             : array_typed1->fSize > array_typed2->fSize;
                 } 
             }

@@ -925,6 +925,12 @@ public:
     {
     }
     
+    void setOn()
+    {
+        [fButton setOn];
+    }
+
+    
     BOOL isHExpandable()
     {
         return TRUE;
@@ -997,7 +1003,7 @@ public:
     
     void modifyZone(float value)
     {
-        // Radio button mode : button is on
+        // Radio button mode 
         if (fButton.type == kCheckButtonType && fValue != FLT_MAX) {
             if (value == 1.0f) {
                 fCache = fValue;
@@ -1018,9 +1024,9 @@ public:
     {
         float v = *fZone;
         
-        // Radio button mode : button is off
-        if ((fButton.type == kCheckButtonType) && (fValue != FLT_MAX) && (v != fValue)) {
-            fButton.value = 0.0f;
+        // Radio button mode
+        if ((fButton.type == kCheckButtonType) && (fValue != FLT_MAX)) {
+            fButton.value = (v == fValue) ? 1.f : 0.f;
         } else {
             fCache = v;
             if (fButton.type == kToggleButtonType) fButton.value = v;
@@ -2287,6 +2293,10 @@ public:
         dynamic_cast<uiButton*>(item)->fButton.hideOnGUI = item->getHideOnGUI();
         
         insert(label, item);
+        
+        if (init == value) {
+            item->setOn();
+        }
     }
     
     virtual void addVerticalKnob(const char* label , float* zone, float init, float min, float max, float step)

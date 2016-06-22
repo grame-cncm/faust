@@ -142,9 +142,10 @@ static Tree normalizeLabel(Tree label, Tree path)
 	if (isList(label)) {
 		return cons(label, path);
 	} else {
-		Sym s;
-		assert (isSym(label->node(),&s));
-		return concatPath(label2path(name(s)),path);
+        Sym s;
+        bool is_sym = isSym(label->node(),&s);
+        assert(is_sym);
+        return concatPath(label2path(name(s)),path);
 	}
 }
 

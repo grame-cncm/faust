@@ -61,7 +61,7 @@ int mkchdir(string dirname)
 {
     getCurrentDir();
     if (gGlobal->gCurrentDir != "") {
-		int status = mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		int status = faust_mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		if (status == 0 || errno == EEXIST) {
 			if (chdir(dirname.c_str()) == 0) {
 				return 0;
@@ -78,7 +78,7 @@ int	makedir(string dirname)
 {
     getCurrentDir();
     if (gGlobal->gCurrentDir != "") {
-		int status = mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		int status = faust_mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 		if (status == 0 || errno == EEXIST) {
 			return 0;
 		}

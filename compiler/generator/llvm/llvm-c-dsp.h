@@ -339,14 +339,6 @@ extern "C"
      */
     void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
     
-    /**
-     * Call global declarations with the given meta object.
-     * 
-     * @param factory - the Faust DSP factory
-     * @param meta - the meta object to be used.
-     *
-     */
-    void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
     
     /**
      * From a DSP source file, creates a 'self-contained' DSP source string where all needed librairies have been included.
@@ -426,7 +418,7 @@ extern "C"
     
     void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
-    llvm_dsp* copyCDSPInstance(llvm_dsp* dsp);
+    llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp);
     
     /**
      * Create a Faust DSP instance.

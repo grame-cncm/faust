@@ -51,10 +51,10 @@ const Typed::VarType itfloat()
             return Typed::kDouble;
         case 3:
             return Typed::kQuad;
-        default:
-            assert(false);
-            break;
     }
+
+    assert(false);
+    return Typed::kFloat;
 }
 
 const char* ifloat() { return floatname[gGlobal->gFloatSize]; }
