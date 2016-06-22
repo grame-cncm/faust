@@ -128,10 +128,6 @@ public class Faust {
     FaustJNI.writeCDSPFactoryToMachineFile(llvm_dsp_factory.getCPtr(factory), factory, machine_code_path, target);
   }
 
-  public static void metadataCDSPFactory(llvm_dsp_factory factory, SWIGTYPE_p_MetaGlue meta) {
-    FaustJNI.metadataCDSPFactory(llvm_dsp_factory.getCPtr(factory), factory, SWIGTYPE_p_MetaGlue.getCPtr(meta));
-  }
-
   public static String expandCDSPFromFile(String filename, int argc, SWIGTYPE_p_p_char argv, String sha_key, String error_msg) {
     return FaustJNI.expandCDSPFromFile(filename, argc, SWIGTYPE_p_p_char.getCPtr(argv), sha_key, error_msg);
   }
@@ -176,8 +172,8 @@ public class Faust {
     FaustJNI.computeCDSPInstance(llvm_dsp.getCPtr(dsp), dsp, count, SWIGTYPE_p_p_float.getCPtr(input), SWIGTYPE_p_p_float.getCPtr(output));
   }
 
-  public static llvm_dsp copyCDSPInstance(llvm_dsp dsp) {
-    long cPtr = FaustJNI.copyCDSPInstance(llvm_dsp.getCPtr(dsp), dsp);
+  public static llvm_dsp cloneCDSPInstance(llvm_dsp dsp) {
+    long cPtr = FaustJNI.cloneCDSPInstance(llvm_dsp.getCPtr(dsp), dsp);
     return (cPtr == 0) ? null : new llvm_dsp(cPtr, false);
   }
 
