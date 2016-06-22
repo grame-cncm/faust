@@ -680,7 +680,22 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             delete this->fComputeBlock;
             delete this->fComputeDSPBlock;
         }
-          
+    
+        virtual void metadata(Meta* meta)
+        {
+            this->fFactory->metadata(meta);
+        }
+    
+        virtual int getSampleRate()
+        {
+            return this->fIntMap[this->fSROffset];
+        }
+    
+        virtual dsp* clone()
+        {
+            return new interpreter_dsp_aux(fFactory);
+        }
+    
         virtual int getNumInputs()
         {
             return this->fFactory->fNumInputs;
@@ -931,14 +946,18 @@ struct EXPORT interpreter_dsp : public dsp {
     {}
 
     virtual ~interpreter_dsp();
-
+    
+    void metadata(Meta* meta);
+  
     int getNumInputs();
     int getNumOutputs();
 
     void init(int samplingRate);
     void instanceInit(int samplingRate);
+    dsp* clone();
   
     void buildUserInterface(UI* ui_interface);
+    int getSampleRate();
     
     void compute(int count, float** input, float** output);
     void compute(int count, double** input, double** output);
@@ -1030,8 +1049,6 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
         void setDSPCode(std::string code) { return fFactory->setDSPCode(code); }
         
         dsp* createDSPInstance();
-        
-        void metadata(Meta* meta) { fFactory->metadata(meta); }
         
         void write(std::ostream* out, bool small = false) { fFactory->write(out, small); }
     

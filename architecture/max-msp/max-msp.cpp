@@ -570,7 +570,8 @@ void faust_polyphony(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         obj->m_dspUI->clear();
         // Allocate new one
         if (av[0].a_w.w_long > 0) {
-            obj->m_dsp = new mydsp_poly(av[0].a_w.w_long, true, true);
+            mydsp tmp_dsp;
+            obj->m_dsp = new mydsp_poly(&tmp_dsp, av[0].a_w.w_long, true, true);
         } else {
             obj->m_dsp = new mydsp();
         }
@@ -665,7 +666,7 @@ void faust_make_json(t_faust* x)
     // Prepare JSON
     if (x->m_json) free(x->m_json);
     JSONUI builder(x->m_dsp->getNumInputs(), x->m_dsp->getNumOutputs());
-    mydsp::metadata(&builder);
+    x->m_dsp->metadata(&builder);
     x->m_dsp->buildUserInterface(&builder);
     x->m_json = strdup(builder.JSON().c_str());
 }
@@ -840,11 +841,11 @@ extern "C" int main(void)
     post((char*)"Faust DSP object v%s (sample = 32 bits code = 32 bits)", EXTERNAL_VERSION);
     post((char*)"Copyright (c) 2012-2016 Grame");
     Max_Meta1 meta1;
-    mydsp::metadata(&meta1);
+    tmp_dsp->metadata(&meta1);
     if (meta1.fCount > 0) {
         Max_Meta2 meta2;
         post("------------------------------");
-        mydsp::metadata(&meta2);
+        tmp_dsp->metadata(&meta2);
         post("------------------------------");
     }
 

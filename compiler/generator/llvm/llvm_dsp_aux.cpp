@@ -1001,6 +1001,18 @@ llvm_dsp_aux::~llvm_dsp_aux()
     }
 }
 
+dsp* llvm_dsp_aux::clone()
+{
+    return reinterpret_cast<dsp*>(fFactory->createDSPInstance());
+}
+
+void llvm_dsp_aux::metadata(Meta* m)
+{
+    MetaGlue glue;
+    buildMetaGlue(&glue, m);
+    return fFactory->fMetadata(&glue);
+}
+
 int llvm_dsp_aux::getNumInputs()
 {
     return fFactory->fGetNumInputs(fDSP);
@@ -1018,6 +1030,11 @@ void llvm_dsp_aux::init(int samplingRate)
 void llvm_dsp_aux::instanceInit(int samplingRate)
 {
     fFactory->fInstanceInit(fDSP, samplingRate);
+}
+
+int llvm_dsp_aux::getSampleRate()
+{
+    return fFactory->fGetSampleRate(fDSP);
 }
 
 void llvm_dsp_aux::buildUserInterface(UI* ui_interface)
@@ -1537,6 +1554,11 @@ EXPORT void deleteDSPInstance(llvm_dsp* dsp)
         delete (reinterpret_cast<llvm_dsp_aux*>(dsp));
     }
 }
+        
+EXPORT void llvm_dsp::metadata(Meta* m)
+{
+    reinterpret_cast<llvm_dsp_aux*>(this)->metadata(m);
+}
 
 EXPORT int llvm_dsp::getNumInputs()
 {
@@ -1557,6 +1579,11 @@ EXPORT void llvm_dsp::instanceInit(int samplingRate)
 {
     reinterpret_cast<llvm_dsp_aux*>(this)->instanceInit(samplingRate);
 }
+        
+EXPORT int llvm_dsp::getSampleRate()
+{
+    return reinterpret_cast<llvm_dsp_aux*>(this)->getSampleRate();
+}
 
 EXPORT void llvm_dsp::buildUserInterface(UI* ui_interface)
 {
@@ -1566,6 +1593,11 @@ EXPORT void llvm_dsp::buildUserInterface(UI* ui_interface)
 EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
+}
+
+EXPORT dsp* llvm_dsp::clone()
+{
+    return reinterpret_cast<llvm_dsp_aux*>(this)->clone();
 }
 
 // Public C interface : lock management is done by called C++ API
@@ -1820,6 +1852,11 @@ EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FA
     if (dsp) {
         reinterpret_cast<llvm_dsp_aux*>(dsp)->compute(count, input, output);
     }
+}
+
+EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp)
+{
+    return (dsp) ? reinterpret_cast<llvm_dsp*>(reinterpret_cast<llvm_dsp_aux*>(dsp)->clone()) : 0;
 }
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)

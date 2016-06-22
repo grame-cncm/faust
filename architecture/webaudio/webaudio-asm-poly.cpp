@@ -45,7 +45,8 @@ extern "C" {
         
         std::string fJSON;
     
-        mydsp_poly_wrap(int sample_rate, int max_polyphony):mydsp_poly(max_polyphony, true, true)
+        mydsp_poly_wrap(dsp* dsp, int sample_rate, int max_polyphony)
+            :mydsp_poly(dsp, max_polyphony, true, true)
         {
             // Init it with sample_rate supplied...
             init(sample_rate);
@@ -53,7 +54,7 @@ extern "C" {
             
             // Creates JSON
             JSONUI builder(getNumInputs(), getNumOutputs());
-            mydsp::metadata(&builder);
+            metadata(&builder);
             buildUserInterface(&builder);
             fJSON = builder.JSON();
         }
@@ -67,7 +68,8 @@ extern "C" {
     // C like API
     mydsp_poly_wrap* mydsp_poly_constructor(int sample_rate, int max_polyphony)
     {
-        return new mydsp_poly_wrap(sample_rate, max_polyphony);
+        mydsp tmp_dsp;
+        return new mydsp_poly_wrap(&tmp_dsp, sample_rate, max_polyphony);
     }
 
     void mydsp_poly_destructor(mydsp_poly_wrap* poly)

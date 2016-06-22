@@ -72,6 +72,7 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public smartable {
         buildUserInterfaceFun fBuildUserInterface;
         initFun fInit;
         initFun fInstanceInit;
+        getSampleRateFun fGetSampleRate;
         computeFun fCompute;
         metadataFun fMetadata;
         
@@ -93,6 +94,8 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public smartable {
     #endif
     
         string writeDSPFactoryToMachineAux(const string& target);
+    
+
   
     protected:
     
@@ -137,10 +140,10 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public smartable {
         void writeDSPFactoryToMachineFile(const string& machine_code_path, const string& target);
         
         bool initJIT(std::string& error_msg);
-        
+    
         void metadataDSPFactory(Meta* meta);
-        
         void metadataDSPFactory(MetaGlue* glue);
+        EXPORT void metadata(Meta* meta);
     
         EXPORT string getTarget();
         void setTarget(const string target) { fTarget = target; }
@@ -156,8 +159,6 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public smartable {
         EXPORT string getDSPCode();
     
         EXPORT dsp* createDSPInstance();
-    
-        EXPORT void metadata(Meta* meta);
    
         static int gInstance;
 };
@@ -176,17 +177,25 @@ class llvm_dsp_aux : public dsp {
         llvm_dsp_aux(llvm_dsp_factory* factory, llvm_dsp_imp* dsp);
         virtual ~llvm_dsp_aux();
     
+        void metadata(Meta* m);
+    
         virtual int getNumInputs();
         virtual int getNumOutputs();
     
         virtual void init(int samplingRate);
         virtual void instanceInit(int samplingRate);
+    
+        virtual int getSampleRate();
       
         virtual void buildUserInterface(UI* ui_interface);
         virtual void buildUserInterface(UIGlue* glue);
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
         
+        virtual dsp* clone();
+    
+        llvm_dsp_factory* getFactory() { return fFactory; }
+    
 };
 
 // Public C++ interface
@@ -249,8 +258,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machin
 
 EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path, const std::string& target);
 
-EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m);
-
 class EXPORT llvm_dsp : public dsp {
                 
     public:
@@ -258,12 +265,17 @@ class EXPORT llvm_dsp : public dsp {
         int getNumInputs();
         int getNumOutputs();
     
+        void metadata(Meta* m);
+    
         void init(int samplingRate);
         void instanceInit(int samplingRate);
       
         void buildUserInterface(UI* ui_interface);
+        int getSampleRate();
         
         void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    
+        dsp* clone();
     
 };
 
@@ -350,6 +362,8 @@ EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate);
 EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* ui_interface);
 
 EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+
+EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp);
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 

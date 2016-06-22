@@ -404,10 +404,11 @@ class llvm_dsp : public dsp {
         void instanceInit(int samplingRate);
         
         void buildUserInterface(UI* ui_interface);
+        int getSampleRate();
         
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
         
-        llvm_dsp* copy();
+        dsp* clone();
 };
 
 /**

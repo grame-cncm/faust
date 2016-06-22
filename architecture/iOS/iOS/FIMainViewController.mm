@@ -144,27 +144,27 @@ bool hasMIDISync()
     _openPanelChanged = YES;
     
 #if POLY2
-    
+    mydsp tmp_dsp;
 #if MIDICTRL
     if (hasMIDISync()) {
-        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(4, true, true), new effect()));
+        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(&tmp_dsp, 4, true, true), new effect()));
     } else {
-        DSP = new dsp_sequencer(new mydsp_poly(4, true, true), new effect());
+        DSP = new dsp_sequencer(new mydsp_poly(&tmp_dsp, 4, true, true), new effect());
     }
 #else
-    DSP = new dsp_sequencer(new mydsp_poly(4, false, true), new effect());
+    DSP = new dsp_sequencer(new mydsp_poly(&tmp_dsp, 4, false, true), new effect());
 #endif
     
 #elif POLY
-    
+    mydsp tmp_dsp;
 #if MIDICTRL
     if (hasMIDISync()) {
-        DSP = new timed_dsp(new mydsp_poly(4, true, true));
+        DSP = new timed_dsp(new mydsp_poly(&tmp_dsp, 4, true, true));
     } else {
-        DSP = new mydsp_poly(4, true, true);
+        DSP = new mydsp_poly(&tmp_dsp, 4, true, true);
     }
 #else
-    DSP = new mydsp_poly(4, false, true);
+    DSP = new mydsp_poly(&tmp_dsp, 4, false, true);
 #endif
     
 #elif MIDICTRL
@@ -178,7 +178,7 @@ bool hasMIDISync()
 #endif
     
     // Faust initialization
-    mydsp::metadata(&metadata);
+    DSP->metadata(&metadata);
     
     // Read parameters values
     const char* home = getenv("HOME");
@@ -1164,11 +1164,11 @@ static inline const char* transmit_value(int num)
     
     // SL : 04/09/14 was added for the SF concert ? deactivated for now
     
-    /*
     // If widget is hidden we don't show the window
-    if (_selectedWidget->getHideOnGUI()) return;
-    */
-    
+    if (_selectedWidget->getHideOnGUI()) {
+        return;
+    }
+     
     // Otherwise, set it selected (for selection display)
     _selectedWidget->setSelected(YES);
     

@@ -39,6 +39,7 @@
 #include <iostream>
 #include <list>
 
+#include "faust/dsp/proxy-dsp.h"
 #include "faust/dsp/timed-dsp.h"
 #include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
@@ -245,33 +246,33 @@ int main(int argc, char *argv[])
     int fpb = lopt(argv, "--buffer", 512);
     
 #ifdef POLY2
-
+    mydsp tmp_dsp;
     int poly = lopt(argv, "--poly", 4);
     int group = lopt(argv, "--group", 1);
 
 #if MIDICTRL
     if (hasMIDISync()) {
-        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(poly, true, group), new effect()));
+        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(&tmp_dsp, poly, true, group), new effect()));
     } else {
-        DSP = new dsp_sequencer(new mydsp_poly(poly, true, group), new effect());
+        DSP = new dsp_sequencer(new mydsp_poly(&tmp_dsp, poly, true, group), new effect());
     }
 #else
-    DSP = new dsp_sequencer(new mydsp_poly(poly, false, group), new effect());
+    DSP = new dsp_sequencer(new mydsp_poly(&tmp_dsp, poly, false, group), new effect());
 #endif
 
 #elif POLY
-
+    mydsp tmp_dsp;
     int poly = lopt(argv, "--poly", 4);
     int group = lopt(argv, "--group", 1);
 
 #if MIDICTRL
     if (hasMIDISync()) {
-        DSP = new timed_dsp(new mydsp_poly(poly, true, group));
+        DSP = new timed_dsp(new mydsp_poly(&tmp_dsp, poly, true, group));
     } else {
-        DSP = new mydsp_poly(poly, true, group);
+        DSP = new mydsp_poly(&tmp_dsp, poly, true, group);
     }
 #else
-    DSP = new mydsp_poly(poly, false, group);
+    DSP = new mydsp_poly(&tmp_dsp, poly, false, group);
 #endif
 
 #elif MIDICTRL
@@ -283,7 +284,7 @@ int main(int argc, char *argv[])
 #else
     DSP = new mydsp();
 #endif
-   
+    
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);

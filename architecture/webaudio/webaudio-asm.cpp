@@ -52,7 +52,7 @@ extern "C" {
             
             // Creates JSON
             JSONUI builder(getNumInputs(), getNumOutputs());
-            mydsp::metadata(&builder);
+            metadata(&builder);
             buildUserInterface(&builder);
             fJSON = builder.JSON();
         }

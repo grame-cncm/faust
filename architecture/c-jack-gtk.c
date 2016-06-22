@@ -105,8 +105,26 @@ class Cdsp : public dsp {
     {
 		instanceInitmydsp(fDsp, samplingFreq);
 	}
+    
+    virtual void metadata(Meta* m)
+    {
+        MetaGlue glue;
+        buildMetaGlue(&glue, m);
+        metadatamydsp(&glue);
+    }
+    
+    virtual dsp* clone()
+    {
+       return (dsp*)newmydsp();
+    }
+    
+    virtual int getSampleRate()
+    {
+        return getSampleRatemydsp(fDsp);
+    }
 
-	virtual void init(int samplingFreq) {
+	virtual void init(int samplingFreq)
+    {
 		initmydsp(fDsp, samplingFreq);
 	}
 

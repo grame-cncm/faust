@@ -225,6 +225,21 @@ EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* fac
     factory->write(&writer, true);
 }
 
+EXPORT void interpreter_dsp::metadata(Meta* meta)
+{
+    fDSP->metadata(meta);
+}
+
+EXPORT dsp* interpreter_dsp::clone()
+{
+    return fDSP->clone();
+}
+
+EXPORT int interpreter_dsp::getSampleRate()
+{
+    return fDSP->getSampleRate();
+}
+
 EXPORT int interpreter_dsp::getNumInputs()
 {
     return fDSP->getNumInputs();

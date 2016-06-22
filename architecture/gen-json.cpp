@@ -55,18 +55,9 @@ mydsp DSP;
 
 int main(int argc, char *argv[])
 {
-    /*
-    httpdfaust::jsonfaustui json("", "", 0);
-    DSP.buildUserInterface(&json);
-    mydsp::metadata(&json);
-    json.numInput(DSP.getNumInputs());
-    json.numOutput(DSP.getNumOutputs());
-    cout << json.json();
-    */
-    
     JSONUI json(DSP.getNumInputs(), DSP.getNumOutputs());
     // Add metadata before UI is mandatory for proper JSONUI functionning
-    mydsp::metadata(&json);
+    DSP.metadata(&json);
     DSP.buildUserInterface(&json);
     cout << json.JSON();
 }

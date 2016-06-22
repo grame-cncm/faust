@@ -160,15 +160,16 @@ class GroupUI : public GUI, public PathBuilder
 };
 
 // One voice of polyphony
-struct dsp_voice : public MapUI, public dsp {
-       
+struct dsp_voice : public MapUI, public decorator_dsp {
+    
     int fNote;          // Playing note actual pitch
     int fDate;          // KeyOn date
     bool fTrigger;      // True if stolen note and need for envelop re-trigger
     FAUSTFLOAT fLevel;  // Last audio block level
 
-    dsp_voice()
+    dsp_voice(dsp* dsp):decorator_dsp(dsp)
     {
+        dsp->buildUserInterface(this);
         fNote = kFreeVoice;
         fLevel = FAUSTFLOAT(0);
         fDate = 0;
@@ -177,85 +178,12 @@ struct dsp_voice : public MapUI, public dsp {
  
 };
 
-struct voice_factory {
-
-    virtual dsp_voice* create() = 0;
-    virtual void metadata(Meta* meta) = 0;
-    
-};
-
-#ifdef LLVM_DSP
-
-#include "faust/dsp/dsp.h"
-
-struct dynamic_dsp_voice : public dsp_voice {
-
-    dsp* fVoice;
-
-    dynamic_dsp_voice(dsp* dsp):dsp_voice()
-    {
-        fVoice = dsp;
-        fVoice->buildUserInterface(this);
-    }
-    
-    virtual ~dynamic_dsp_voice() { delete fVoice; }
-    
-    virtual int getNumInputs() { return fVoice->getNumInputs(); }
-    virtual int getNumOutputs() { return fVoice->getNumOutputs(); }
-    virtual void buildUserInterface(UI* ui_interface) { fVoice->buildUserInterface(ui_interface); }
-    virtual void init(int samplingRate) { fVoice->init(samplingRate); }
-    virtual void instanceInit(int samplingRate) { fVoice->instanceInit(samplingRate); }
-    virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice->compute(len, inputs, outputs); }
-    
-};
-
-struct dynamic_dsp_voice_factory : public voice_factory {
-
-    dsp_factory* fFactory;
-    
-    dynamic_dsp_voice_factory(dsp_factory* factory):fFactory(factory) {}
-    virtual ~dynamic_dsp_voice_factory() {}
-
-    virtual dsp_voice* create() { return new dynamic_dsp_voice(fFactory->createDSPInstance()); }
-    virtual void metadata(Meta* meta) { fFactory->metadata(meta); }
-
-};
-
-#else
-
-struct mydsp_voice : public dsp_voice {
-
-    mydsp fVoice;
-     
-    mydsp_voice():dsp_voice()
-    {
-        fVoice.buildUserInterface(this);
-    }
-    
-    virtual int getNumInputs() { return fVoice.getNumInputs(); }
-    virtual int getNumOutputs() { return fVoice.getNumOutputs(); }
-    virtual void buildUserInterface(UI* ui_interface) { fVoice.buildUserInterface(ui_interface); }
-    virtual void init(int samplingRate) { fVoice.init(samplingRate); }
-    virtual void instanceInit(int samplingRate) { fVoice.instanceInit(samplingRate); }
-    virtual void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fVoice.compute(len, inputs, outputs); }
-
-};
-
-struct mydsp_voice_factory : public voice_factory {
-
-    virtual dsp_voice* create() { return new mydsp_voice(); }
-    virtual void metadata(Meta* meta) { mydsp::metadata(meta); }
-
-};
-
-#endif
-
 // Polyphonic DSP
 class mydsp_poly : public dsp, public midi {
 
     private:
     
-        voice_factory* fVoiceFactory;
+        dsp* fBaseDSP;
         std::vector<dsp_voice*> fVoiceTable; // Individual voices
         dsp* fVoiceGroup;                    // Voices group to be used for GUI grouped control
         
@@ -336,8 +264,9 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
-        inline void init(int max_polyphony, voice_factory* factory, bool control, bool group)
+        inline void init(dsp* dsp, int max_polyphony, bool control, bool group)
         {
+            fBaseDSP = dsp;
             fVoiceControl = control;
             fGroupControl = group;
             fPolyphony = max_polyphony;
@@ -345,7 +274,7 @@ class mydsp_poly : public dsp, public midi {
             
             // Create voices
             for (int i = 0; i < fPolyphony; i++) {
-                fVoiceTable.push_back(factory->create());
+                fVoiceTable.push_back(new dsp_voice(dsp->clone()));
             }
             
             // Init audio output buffers
@@ -356,11 +285,7 @@ class mydsp_poly : public dsp, public midi {
             }
             
             // Groups all uiItem for a given path
-        #ifdef LLVM_DSP
             fVoiceGroup = new proxy_dsp(fVoiceTable[0]);
-        #else
-            fVoiceGroup = new proxy_dsp(fVoiceTable[0], mydsp::metadata);
-        #endif
             fVoiceGroup->buildUserInterface(&fGroups);
             for (int i = 0; i < fPolyphony; i++) {
                 fVoiceTable[i]->buildUserInterface(&fGroups);
@@ -456,30 +381,10 @@ class mydsp_poly : public dsp, public midi {
     
     public:
  
-    #ifdef LLVM_DSP
-      /**
-         * Constructor.
-         *
-         * @param max_polyphony - number of voices of polyphony
-         * @param control - whether voices will be dynamically allocated and controlled (typically by a MIDI controler).
-         *                 If false all voices are always running.
-         * @param group - if true, voices are not individually accessible, a global "Voices" tab will automatically dispatch
-         *                 a given control on all voices, assuming GUI::updateAllGuis() is called.
-         *                If false, all voices can be individually controlled.
-         *
-         */
-       mydsp_poly(int max_polyphony,
-                   dsp_factory* factory = NULL,
-                   bool control = false,
-                   bool group = true):fGroups(&fPanic, panic, this)
-        {
-            fVoiceFactory = new dynamic_dsp_voice_factory(factory);
-            init(max_polyphony, fVoiceFactory, control, group);
-        }
-    #else
         /**
          * Constructor.
          *
+         * @param dsp - the dsp to be used for one voice
          * @param max_polyphony - number of voices of polyphony
          * @param control - whether voices will be dynamically allocated and controlled (typically by a MIDI controler). 
          *                 If false all voices are always running.
@@ -488,17 +393,17 @@ class mydsp_poly : public dsp, public midi {
          *                If false, all voices can be individually controlled.
          *
          */
-        mydsp_poly(int max_polyphony,
-                   bool control = false,
-                   bool group = true):fGroups(&fPanic, panic, this)
+        mydsp_poly(dsp* dsp,
+                int max_polyphony,
+                bool control = false,   
+                bool group = true):fGroups(&fPanic, panic, this)
         {
-            fVoiceFactory = new mydsp_voice_factory();
-            init(max_polyphony, fVoiceFactory, control, group);
+            init(dsp, max_polyphony, control, group);
         }
     #endif
     
-        void metadata(Meta* meta) { fVoiceFactory->metadata(meta); }
-    
+        void metadata(Meta* meta) { fVoiceTable[0]->metadata(meta); }
+
         virtual ~mydsp_poly()
         {
             for (int i = 0; i < fNumOutputs; i++) {
@@ -516,8 +421,6 @@ class mydsp_poly : public dsp, public midi {
             for (int i = 0; i < fMidiUIList.size(); i++) {
                 fMidiUIList[i]->removeMidiIn(this); 
             }
-            
-            delete fVoiceFactory;
         }
     
         void init(int sample_rate)
@@ -534,6 +437,13 @@ class mydsp_poly : public dsp, public midi {
             for (int i = 0; i < fPolyphony; i++) {
                 fVoiceTable[i]->instanceInit(sample_rate);
             }
+        }
+    
+        virtual int getSampleRate() { return fVoiceTable[0]->getSampleRate(); }
+    
+        virtual dsp* clone()
+        {
+            return new mydsp_poly(fBaseDSP, fPolyphony, fVoiceControl, fGroupControl);
         }
     
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)

@@ -55,9 +55,7 @@ class interpreter_dsp_factory : public dsp_factory {
         std::string getDSPCode();
     
         dsp* createDSPInstance();
-    
-        void metadata(Meta* meta);
-
+  
 };
 
 /**
@@ -200,9 +198,11 @@ class interpreter_dsp : public dsp {
         
         void init(int samplingRate);
         void instanceInit(int samplingRate);
-        
+        dsp* clone();
+    
         void buildUserInterface(UI* inter);
-        
+        int getSampleRate();
+    
         void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
 };
