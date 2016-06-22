@@ -1651,6 +1651,11 @@ EXPORT void llvm_dsp::instanceInit(int samplingRate)
 {
     reinterpret_cast<llvm_dsp_aux*>(this)->instanceInit(samplingRate);
 }
+        
+EXPORT int llvm_dsp::getSampleRate()
+{
+    reinterpret_cast<llvm_dsp_aux*>(this)->getSampleRate();
+}
 
 EXPORT void llvm_dsp::buildUserInterface(UI* ui_interface)
 {

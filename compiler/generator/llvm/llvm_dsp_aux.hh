@@ -273,6 +273,8 @@ class EXPORT llvm_dsp : public dsp {
     
         void init(int samplingRate);
         void instanceInit(int samplingRate);
+    
+        int getSampleRate();
       
         void buildUserInterface(UI* ui_interface);
         
