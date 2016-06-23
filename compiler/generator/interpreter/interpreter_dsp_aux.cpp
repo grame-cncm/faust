@@ -232,7 +232,7 @@ EXPORT void interpreter_dsp::metadata(Meta* meta)
 
 EXPORT dsp* interpreter_dsp::clone()
 {
-    return fDSP->clone();
+    return fFactory->createDSPInstance();
 }
 
 EXPORT int interpreter_dsp::getSampleRate()
