@@ -998,19 +998,7 @@ llvm_dsp_factory::~llvm_dsp_factory()
     }
 }
 
-void llvm_dsp_factory::metadataDSPFactory(Meta* meta)
-{
-    MetaGlue glue;
-    buildMetaGlue(&glue, meta);
-    fMetadata(&glue);
-}
-
-void llvm_dsp_factory::metadataDSPFactory(MetaGlue* glue)
-{
-    fMetadata(glue);
-}
-
-// Instance 
+// Instance
 
 llvm_dsp_aux::llvm_dsp_aux(llvm_dsp_factory* factory, llvm_dsp_imp* dsp)
     :fDSPFactory(factory), fDSP(dsp)
@@ -1305,7 +1293,9 @@ EXPORT std::string llvm_dsp_factory::getName()
     
     if (fDSPName == "") {
         MyMeta metadata;
-        metadataDSPFactory(&metadata);
+        MetaGlue glue;
+        buildMetaGlue(&glue, &metadata);
+        fMetadata(&glue);
         return fTypeName + "_" + metadata.name;
     } else {
         return fTypeName + "_" + fDSPName;
@@ -1595,15 +1585,6 @@ EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string
 
 #endif
 
-EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m)
-{
-    TLock lock(gDSPFactoriesLock);
-    
-    if (factory && m) {
-        factory->metadataDSPFactory(m);
-    }
-}
-
 // Instance
 
 EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)
@@ -1880,13 +1861,6 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code
 EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const std::string& target)
 {}
 #endif
-
-EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* glue)
-{
-    if (factory) {
-        factory->metadataDSPFactory(glue);
-    }
-}
 
 EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* glue)
 {

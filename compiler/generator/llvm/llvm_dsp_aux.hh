@@ -144,10 +144,6 @@ class llvm_dsp_factory : public smartable {
         void writeDSPFactoryToMachineFile(const string& machine_code_path, const string& target);
         
         bool initJIT(std::string& error_msg);
-        
-        void metadataDSPFactory(Meta* meta);
-        
-        void metadataDSPFactory(MetaGlue* glue);
     
         EXPORT string getName();
 
@@ -260,8 +256,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machin
 
 EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path, const std::string& target);
 
-EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m);
-
 class EXPORT llvm_dsp : public dsp {
                 
     public:
@@ -353,8 +347,6 @@ EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* ta
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target);
 
 EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
-
-EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
     
 EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
 
