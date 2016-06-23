@@ -141,10 +141,6 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public smartable {
         
         bool initJIT(std::string& error_msg);
     
-        void metadataDSPFactory(Meta* meta);
-        void metadataDSPFactory(MetaGlue* glue);
-        EXPORT void metadata(Meta* meta);
-    
         EXPORT string getTarget();
         void setTarget(const string target) { fTarget = target; }
     
@@ -178,6 +174,7 @@ class llvm_dsp_aux : public dsp {
         virtual ~llvm_dsp_aux();
     
         void metadata(Meta* m);
+        void metadata(MetaGlue* glue);
     
         virtual int getNumInputs();
         virtual int getNumOutputs();
@@ -349,9 +346,9 @@ EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* ta
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target);
 
 EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
+    
+EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
 
-EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* meta);
- 
 EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp);
 
 EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp);

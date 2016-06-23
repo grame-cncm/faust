@@ -971,19 +971,7 @@ llvm_dsp_factory::~llvm_dsp_factory()
     }
 }
 
-void llvm_dsp_factory::metadataDSPFactory(Meta* meta)
-{
-    MetaGlue glue;
-    buildMetaGlue(&glue, meta);
-    fMetadata(&glue);
-}
-
-void llvm_dsp_factory::metadataDSPFactory(MetaGlue* glue)
-{
-    fMetadata(glue);
-}
-
-// Instance 
+// Instance
 
 llvm_dsp_aux::llvm_dsp_aux(llvm_dsp_factory* factory, llvm_dsp_imp* dsp)
     :fFactory(factory), fDSP(dsp)
@@ -1011,6 +999,11 @@ void llvm_dsp_aux::metadata(Meta* m)
     MetaGlue glue;
     buildMetaGlue(&glue, m);
     return fFactory->fMetadata(&glue);
+}
+
+void llvm_dsp_aux::metadata(MetaGlue* glue)
+{
+    return fFactory->fMetadata(glue);
 }
 
 int llvm_dsp_aux::getNumInputs()
@@ -1236,7 +1229,9 @@ EXPORT string llvm_dsp_factory::getName()
     
     if (fDSPName == "") {
         MyMeta metadata;
-        metadataDSPFactory(&metadata);
+        MetaGlue glue;
+        buildMetaGlue(&glue, &metadata);
+        fMetadata(&glue);
         return fTypeName + "_" + metadata.name;
     } else {
         return fTypeName + "_" + fDSPName;
@@ -1249,13 +1244,6 @@ EXPORT string llvm_dsp_factory::getDSPCode() { return fExpandedDSP; }
 
 EXPORT string llvm_dsp_factory::getTarget() { return fTarget; }
     
-EXPORT void llvm_dsp_factory::metadata(Meta* meta)
-{
-    MetaGlue glue;
-    buildMetaGlue(&glue, meta);
-    fMetadata(&glue);
-}
-
 EXPORT string getDSPMachineTarget()
 {
     return (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME);
@@ -1519,17 +1507,8 @@ EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string
 }
 
 #endif
-
-EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m)
-{
-    TLock lock(gDSPFactoriesLock);
-    if (factory && m) {
-        factory->metadataDSPFactory(m);
-    }
-}
-
+        
 // Instance
-
     
 EXPORT dsp* llvm_dsp_factory::createDSPInstance()
 {
@@ -1809,10 +1788,10 @@ EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char*
 {}
 #endif
 
-EXPORT void metadataCDSPFactory(llvm_dsp_factory* factory, MetaGlue* glue)
+EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* glue)
 {
-    if (factory) {
-        factory->metadataDSPFactory(glue);
+    if (dsp) {
+        reinterpret_cast<llvm_dsp_aux*>(dsp)->metadata(glue);
     }
 }
 
