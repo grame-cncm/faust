@@ -108,8 +108,6 @@ class decorator_dsp : public dsp {
 // DSP factory class
 //----------------------------------------------------------------
 
-struct Meta;
-
 class dsp_factory {
     
     protected:

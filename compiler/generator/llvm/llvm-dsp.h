@@ -50,18 +50,19 @@ class llvm_dsp_factory : public dsp_factory {
 
      public: 
         
-        /* Return Factory name */
+        /* Returns Factory name */
         std::string getName();
         
-        /* Return Factory LLVM target */
+        /* Returns Factory LLVM target */
         std::string getTarget();
         
-        /* Return Factory SHA key */
+        /* Returns Factory SHA key */
         std::string getSHAKey();
   
-        /* Return Factory expanded DSP code */
+        /* Returns Factory expanded DSP code */
         std::string getDSPCode();
     
+        /* Creates a new dsp instance */
         dsp* createDSPInstance();
 
 };
@@ -389,7 +390,7 @@ bool generateAuxFilesFromFile(const std::string& filename, int argc, const char*
 bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg);
 
 /**
- * Instance class with related methods.
+ * DSP instance class with methods.
  */
 class llvm_dsp : public dsp {
     
@@ -402,13 +403,13 @@ class llvm_dsp : public dsp {
         
         void init(int samplingRate);
         void instanceInit(int samplingRate);
+        dsp* clone();
         
         void buildUserInterface(UI* ui_interface);
         int getSampleRate();
         
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
-        
-        dsp* clone();
+    
 };
 
 /**

@@ -54,6 +54,7 @@ class interpreter_dsp_factory : public dsp_factory {
         /* Return Factory expanded DSP code */
         std::string getDSPCode();
     
+        /* Creates a new dsp instance */
         dsp* createDSPInstance();
   
 };
@@ -180,12 +181,10 @@ interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::str
  */
 void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const std::string& machine_code_path);
 
-
 void deleteAllInterpreterDSPFactories();
 
-
 /**
- * Instance class with related methods.
+ * DSP instance class with methods.
  */
 class interpreter_dsp : public dsp {
     
