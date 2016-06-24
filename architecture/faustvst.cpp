@@ -620,7 +620,8 @@ struct VSTPlugin {
   {
     if (!meta) {
       meta = new Meta;
-      mydsp::metadata(meta);
+      mydsp tmp_dsp;
+      tmp_dsp.metadata(meta);
     }
   }
 
