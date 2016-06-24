@@ -517,8 +517,7 @@ struct LV2PluginUI {
   {
     if (!meta) {
       meta = new Meta;
-      mydsp tmp_dsp;
-      tmp_dsp.metadata(meta);
+      mydsp::metadata(meta);
     }
   }
 
