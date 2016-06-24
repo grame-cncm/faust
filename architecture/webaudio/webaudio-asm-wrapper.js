@@ -221,7 +221,6 @@ function mydspMixer(global, foreign, buffer) {
         channels = channels | 0;
         inputs = inputs | 0;
         outputs = outputs | 0;
-        polyphony = +polyphony;
         var i = 0;
         var j = 0;
         var level = 0.;
@@ -270,7 +269,7 @@ faust.createDSPFactory = function (code, argv) {
     var code_ptr = Module._malloc(code.length + 1);
     var name = "FaustDSP";
     var name_ptr = Module._malloc(name.length + 1);
-    var error_msg_ptr = Module._malloc(256);
+    var error_msg_ptr = Module._malloc(4096);
     
     Module.writeStringToMemory(name, name_ptr);
     Module.writeStringToMemory(code, code_ptr);

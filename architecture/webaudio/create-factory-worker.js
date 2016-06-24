@@ -11,7 +11,7 @@ onmessage = function(e) {
     var code_ptr = Module._malloc(code.length + 1);
     var name = "FaustDSP";
     var name_ptr = Module._malloc(name.length + 1);
-    var error_msg_ptr = Module._malloc(256);
+    var error_msg_ptr = Module._malloc(4096);
     
     Module.writeStringToMemory(name, name_ptr);
     Module.writeStringToMemory(code, code_ptr);

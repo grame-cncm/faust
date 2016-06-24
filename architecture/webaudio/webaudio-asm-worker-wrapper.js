@@ -221,7 +221,6 @@ function mydspMixer(global, foreign, buffer) {
         channels = channels | 0;
         inputs = inputs | 0;
         outputs = outputs | 0;
-        polyphony = +polyphony;
         var i = 0;
         var j = 0;
         var level = 0.;
