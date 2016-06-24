@@ -1,5 +1,8 @@
 # Faust iOS Keyboard Documentation
-Faust iOS Keyboard (`SmartKeyboard`) is a special version of the Faust iOS architecture whose goal is to create Faust smartphone applications with a touch screen interface better adapted to musical performance. Indeed, while "traditional" Faust iOS applications build the user interface based on the description provided in the Faust code with sliders, knobs, buttons, etc., the iOS Keyboard architecture replaces this interface by a highly configurable keyboard that can easily be turned into a drum pad, an isomorphic keyboard keyboard, an X/Y control interface, etc. 
+
+WARNING: this is a work in progress! While this architecture should theoretically work fine you use it at you own risk! 
+
+Faust iOS Keyboard (`SmartKeyboard`) is a special version of the Faust iOS architecture whose goal is to create Faust smartphone applications with a touch screen interface better suited for musical performance. While "traditional" Faust iOS applications build the user interface based on the description provided in the Faust code with sliders, knobs, buttons, etc., the iOS Keyboard architecture replaces this interface with a highly configurable keyboard that can easily be turned into a drum pad, an isomorphic keyboard keyboard, an X/Y control interface, etc. We believe that it can implement most gestures allowed by a touch screen.
 
 ## Configuration
 
@@ -23,9 +26,9 @@ By using `freq` as the name of the slider, `frequency` is now controlled by the 
 
 The standard parameters of `SmartKeyboard` are: 
 
-* `freq`: the frequency of key of the current keyboard. If the keyboard is not quantized mode 0, frequency will be continuous or rounded.
+* `freq`: the frequency of the key of the current keyboard. If the keyboard is not in quantized mode 0, frequency will be continuous or rounded.
 * `gate`: the trigger signal sent when a finger touches the screen (1) or when it stops touching it (0). In quantized mode "0", "0" and "1" are sent everytime a finger slides to a new key (a new voice is allocated everytime).
-* `keyboard`: the keyboard ID of the current keyboard. The top keyboard has always ID number 0, etc.
+* `keyboard`: the keyboard ID of the current keyboard. The top keyboard has always ID number 0 (even if the orientation of the keyboard is reverted), etc.
 * `key`: the key ID in the current keyboard. The first key on the left has always ID number 0, etc.
 * `x`: the normalized (0-1) X position of the finger in the current key.
 * `y`: the normalized (0-1) Y position of the finger in the current key.
@@ -72,11 +75,11 @@ The following keys can be used to configure a `SmartKeyboard` interface:
 * `keybN_showNotesName`: when 0, hides the name of the notes on the keys. `N` is the keyboard ID.
 * `keybN_rootPos`: shifts the position of the fundamental relatively to the lowest key on the keyboard. This is useful when `keybN_scale != 0`. `N` is the keyboard ID.
 * `keybN_orientation`: when `>0`, reverses the orientation of the keyboard (right to left instead of left to right). `N` is the keyboard ID.
-* `keybN_keybMode`: when `>0`, "keyboard mode" is activated which means that pitch names are displayed and keys change colors when they are touched. The whole point of having this functionality is that it allows to configure a `SmartKeyboard` as a drum pad for example by having 2 keyboards of 2 keys each (see example section below). `N` is the keyboard ID. 
+* `keybN_keybMode`: when `>0`, "keyboard mode" is activated which means that pitch names are displayed and keys change color when they are touched. The whole point of having this functionality is that it allows to configure a `SmartKeyboard` as a drum pad for example by having 2 keyboards of 2 keys each (see example section below). `N` is the keyboard ID. 
 
 ## Usage
 
-A Faust code can be compiled as an iOS keyboard application simply by using the `faust2iosKeybaord` compilation script:
+A Faust code can be compiled as an iOS keyboard application simply by using the `faust2iosKeyboard` compilation script:
 
 ```
 faust2iosKeyboard yourFaustCode.dsp
@@ -98,4 +101,6 @@ and open the generated xcode project. Run it and try to fix the app signing issu
 
 ## Examples
 
-See the examples folder...
+The `examples` folder contains various Faust codes illustrating the use of this architecture. They show the different strategies that can be used to design standalone musical instruments using the `SmartKeyboard` interface.
+
+Also, checkout this page: <https://ccrma.stanford.edu/~rmichon/faustMobileInstruments> on *Making Faust-Based Smartphone Musical Instruments*.
