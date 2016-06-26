@@ -83,12 +83,12 @@ modeFreqRatios = par(i,nModes,1+(i+1)/nModes*modeSpread);
 minModeGain = 0.3;
 modeGains = par(i,nModes,1-(i+1)/(nModes*minModeGain));
 // smoothed mode resonance
-modeRes = res : smoo;
+modeRes = res : si.smoo;
 
 //============================================ DSP =======================================
 //========================================================================================
 
-process = additiveDrum(freq,modeFreqRatios,modeGains,0.8,0.001,modeRes,gate)*0.5;
+process = sy.additiveDrum(freq,modeFreqRatios,modeGains,0.8,0.001,modeRes,gate)*0.5;
 
 
 

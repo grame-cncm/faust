@@ -13,7 +13,7 @@
 // 06/17/2016
 //########################################################################################
 
-import("synth.lib");
+import("faustStd.lib");
 
 
 //========================= Smart Keyboard Configuration ================================= 
@@ -46,15 +46,15 @@ cutoff = hslider("cutoff[acc: 0 0 -10 0 10]",2500,50,5000,0.01);
 
 maxFreq = 100;
 minFreq = 1;
-freq = x*(maxFreq-minFreq) + minFreq : polySmooth(gate,0.999,2);
+freq = x*(maxFreq-minFreq) + minFreq : si.polySmooth(gate,0.999,2);
 
 maxQ = 40;
 minQ = 1;
-q = (1-y)*(maxQ-minQ) + minQ : smoo;
-filterCutoff = cutoff : smoo; 
+q = (1-y)*(maxQ-minQ) + minQ : si.smoo;
+filterCutoff = cutoff : si.smoo; 
 
 
 //============================================ DSP =======================================
 //========================================================================================
 
-process = dubDub(freq,filterCutoff,q,gate);
+process = sy.dubDub(freq,filterCutoff,q,gate);

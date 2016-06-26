@@ -15,7 +15,7 @@
 // 06/17/2016
 //########################################################################################
 
-import("synth.lib");
+import("faustStd.lib");
 
 
 //========================= Smart Keyboard Configuration ================================= 
@@ -58,12 +58,12 @@ gate = button("gate");
 // As a ratio of freq...
 vibratoAmplitude = 0.1;
 // freq is modulated by vibrato and then smoothed to prevent clicks
-synthFreq = freq+(vibrato*freq*vibratoAmplitude) : polySmooth(gate,0.999,2);
+synthFreq = freq+(vibrato*freq*vibratoAmplitude) : si.polySmooth(gate,0.999,2);
 
-synthGain = gain : lin2LogGain : smoo;
+synthGain = gain : ba.lin2LogGain : si.smoo;
 
 
 //============================================ DSP =======================================
 //========================================================================================
 
-process = sawTrombone(synthFreq,synthGain,gate);
+process = sy.sawTrombone(synthFreq,synthGain,gate);
