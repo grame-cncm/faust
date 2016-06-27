@@ -46,19 +46,19 @@ modFreqRatio = hslider("res[acc: 0 0 -10 0 10]",1,0,2,0.01);
 // carrier frequency
 minFreq = 80;
 maxFreq = 500;
-cFreq = x*(maxFreq-minFreq) + minFreq : polySmooth(gate,0.999,2);
+cFreq = x*(maxFreq-minFreq) + minFreq : si.polySmooth(gate,0.999,2);
 
 // modulator frequency
-modFreq = cFreq*modFreqRatio : smoo;
+modFreq = cFreq*modFreqRatio : si.smoo;
 
 // modulation index
-modIndex = y*100 : smoo;
+modIndex = y*100 : si.smoo;
 
 
 //============================================ DSP =======================================
 //========================================================================================
 
 // since the generated sound is pretty chaotic, there is no need for an envelope generator
-fmSynth = fm((cFreq,modFreq),(modIndex))*gate;
+fmSynth = sy.fm((cFreq,modFreq),(modIndex))*gate;
 
 process = fmSynth;
