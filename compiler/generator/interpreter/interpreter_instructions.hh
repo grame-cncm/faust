@@ -55,9 +55,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         
         int fRealHeapOffset;    // Offset in Real HEAP    
         int fIntHeapOffset;     // Offset in Integer HEAP
-        int fSROffset;          // Kept offset in Integer HEAP for "fSamplingFreq"
-        int fCountOffset;       // Kept offset in Integer HEAP for "count"
-        int fIOTAOffset;        // Kept offset in Integer HEAP for "IOTA"
         bool fCommute;          // Whether to try commutative operation reverse order generation
     
         map <string, MemoryDesc> fFieldTable;   // Table : field_name, { offset, size, type }
@@ -71,10 +68,13 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             fCurrentBlock = new FIRBlockInstruction<T>();
             fRealHeapOffset = 0;
             fIntHeapOffset = 0;
-            fSROffset = 0;
-            fCountOffset = 0;
             fCommute = true;
             initMathTable();
+        }
+    
+        int getFieldOffset(const string& name)
+        {
+            return (fFieldTable.find(name) != fFieldTable.end()) ? fFieldTable[name].fOffset : -1;
         }
     
         void initMathTable()
@@ -245,12 +245,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 }
             } else {
                 if (inst->fType->getType() == Typed::kInt) {
-                    // Keep "IOTA" offset
-                    if (inst->fAddress->getName() == "IOTA") { fIOTAOffset = fIntHeapOffset; }
-                    // Keep "fSamplingFreq" offset
-                    if (inst->fAddress->getName() == "fSamplingFreq") { fSROffset = fIntHeapOffset; }
-                    // Keep "count" offset
-                    if (inst->fAddress->getName() == "count") { fCountOffset = fIntHeapOffset; }
                     fFieldTable[inst->fAddress->getName()] = MemoryDesc(fIntHeapOffset, 1, inst->fType->getType());
                     fIntHeapOffset++;
                 } else {

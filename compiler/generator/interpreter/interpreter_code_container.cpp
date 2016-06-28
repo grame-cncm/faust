@@ -96,7 +96,7 @@ CodeContainer* InterpreterCodeContainer<T>::createContainer(const string& name, 
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler not supported for Interpreter\n");
     } else if (gGlobal->gVectorSwitch) {
-        throw faustexception("ERROR : Vector not supported for Interpreter\n");
+        throw faustexception("ERROR : Vector mode not supported for Interpreter\n");
     } else {
         container = new InterpreterScalarCodeContainer<T>(name, numInputs, numOutputs, kInt);
     }
@@ -183,9 +183,9 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
                                                               fNumInputs, fNumOutputs,
                                                               getInterpreterVisitor<T>()->fIntHeapOffset,
                                                               getInterpreterVisitor<T>()->fRealHeapOffset,
-                                                              getInterpreterVisitor<T>()->fSROffset,
-                                                              getInterpreterVisitor<T>()->fCountOffset,
-                                                              getInterpreterVisitor<T>()->fIOTAOffset,
+                                                              getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                                                              getInterpreterVisitor<T>()->getFieldOffset("count"),
+                                                              getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
                                                               MAX_OPT_LEVEL,
                                                               produceMetadata(),
                                                               getInterpreterVisitor<T>()->fUserInterfaceBlock,
