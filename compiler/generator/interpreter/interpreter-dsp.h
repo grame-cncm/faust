@@ -32,8 +32,7 @@
 #include "faust/gui/meta.h"
 
 /*!
- \addtogroup llvmcpp C++ interface for compiling Faust code. Note that the API is not thread safe : 
- use 'startMTDSPFactories/stopMTDSPFactories' to use it in a multi-thread context.
+ \addtogroup interpretercpp C++ interface for compiling Faust code.
  @{
  */
 
