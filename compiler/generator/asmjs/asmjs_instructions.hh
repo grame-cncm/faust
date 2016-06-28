@@ -93,6 +93,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         int getStructSize() { return fStructOffset; }
         map <string, pair<int, Typed::VarType> >& getFieldTable() { return fFieldTable; }
         map <string, string>& getMathLibTable() { return fMathLibTable; }
+    
+        int getFieldOffset(const string& name)
+        {
+            return (fFieldTable.find(name) != fFieldTable.end()) ? fFieldTable[name].first : -1;
+        }
 
         // Struct variables are not generated at all, their offset in memory is kept in fFieldTable
         virtual void visit(DeclareVarInst* inst)

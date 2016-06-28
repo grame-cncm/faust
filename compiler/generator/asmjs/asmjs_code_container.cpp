@@ -275,6 +275,13 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << fObjPrefix << "instanceInit(dsp, samplingFreq);";
         tab(n+1, *fOut); *fOut << "}";
     
+        // getSampleRate
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << fObjPrefix << "function getSampleRate(dsp) {";
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut); *fOut << "HEAPF32[dsp + " << gGlobal->gASMJSVisitor->getFieldOffset("fSamplingFreq") << " >> 2] = value;";
+        tab(n+1, *fOut); *fOut << "}";
+ 
         // setParamValue
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << fObjPrefix << "function setParamValue(dsp, offset, value) {";
@@ -308,6 +315,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         *fOut << "classInit : classInit, ";
         *fOut << "instanceInit : instanceInit, ";
         *fOut << "init : init, ";
+        *fOut << "getSampleRate : getSampleRate, ";
         *fOut << "setParamValue : setParamValue, ";
         *fOut << "getParamValue : getParamValue, ";
         *fOut << "compute : compute";
