@@ -193,7 +193,7 @@ Active widgets are graphical elements that control a parameter value. They are i
 The widget currently considered are \code{Button},  \code{CheckButton},  \code{VerticalSlider},  \code{HorizontalSlider} and  \code{NumEntry}. \\
 A GUI architecture must implement a method \\
 \code{addXxx(const char* name, float* zone, ...)} for each active widget.
-Additional parameters are available for \code{Slider} and \code{NumEntry}: the \code{init} value, the \code{min} and \code{max} values and the \code{step}.
+Additional parameters are available for \code{Slider} and \code{NumEntry}: the \code{init},  \code{min},  \code{max} and \code{step} values.
 
 %---------------------------------------------------
 \subsection{Passive widgets}
@@ -201,7 +201,7 @@ Additional parameters are available for \code{Slider} and \code{NumEntry}: the \
 Passive widgets are graphical elements that reflect values. Similarly to active widgets, they are initialized with the widget name and a pointer to the linked value.
 The widget currently considered are  \code{HorizontalBarGraph} and  \code{VerticalBarGraph}. \\
 A UI architecture must implement a method \\
-\code{addxxx(const char* name, float* zone, ...)} for each passive widget.
+\code{addXxx(const char* name, float* zone, ...)} for each passive widget.
 Additional parameters are available, depending on the passive widget type.
 
 %---------------------------------------------------
