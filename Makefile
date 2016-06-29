@@ -1,4 +1,4 @@
-version := 0.9.80
+version := 0.9.81L
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -100,7 +100,7 @@ install :
 	# install architecture and faust library files
 	mkdir -p $(prefix)/lib/faust
 	cp architecture/*.cpp $(prefix)/lib/faust/
-	cp architecture/*.lib $(prefix)/lib/faust/
+	cp libraries/*.lib $(prefix)/lib/faust/
 	# This is needed by faust2lv2 -gui / lv2ui.cpp.
 	cp architecture/lv2qtgui.h $(prefix)/lib/faust/
 	# This is needed by faust2faustvst -gui / faustvst.cpp.
