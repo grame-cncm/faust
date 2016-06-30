@@ -77,9 +77,8 @@ interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& s
  * 
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array 
- * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
+ * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
- * since the maximum value may change with new LLVM versions)
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
@@ -96,9 +95,8 @@ interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& 
  * @param name_app - the name of the Faust program
  * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
- * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
+ * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
- * since the maximum value may change with new LLVM versions)
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
