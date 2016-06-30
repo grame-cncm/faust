@@ -1,0 +1,12 @@
+declare name 		"gate_compressor";
+
+import("stdfaust.lib");
+
+process = 
+// ol.sawtooth_demo <: 
+//      el.gate_demo : ef.compressor_demo :> fi.spectral_level_demo <: _,_;
+   vgroup("[1]", ge.sawtooth_demo) <:
+   vgroup("[2]", ef.gate_demo) : 
+   vgroup("[3]", ef.compressor_demo) :>
+   vgroup("[4]", an.spectral_level_demo) <:
+    _,_;

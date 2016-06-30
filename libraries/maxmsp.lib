@@ -26,7 +26,7 @@ declare copyright "GRAME";
 declare version "1.1";
 declare license "LGPL"; 
 
-import("music.lib");
+import("stdfaust.lib");
 
 atodb = db2lin;
 
@@ -144,10 +144,10 @@ filtercoeff(f0, dBgain, Q) = environment
 	
 	// common values
 //	alpha 	= sin(w0)/(2*Q);
-//	w0 		= 2*PI*f0/Fs;
+//	w0 		= 2*ma.PI*f0/Fs;
 	alpha 	= sin(w0)/(2*max(0.001,Q));
-	w0 		= 2*PI*max(0,f0)/Fs;
-	Fs 		= SR;
+	w0 		= 2*ma.PI*max(0,f0)/Fs;
+	Fs 		= ma.SR;
 	A  		= 10^(dBgain/40);     		// (for peaking and shelving EQ filters only)
 	G  		= sqrt(max(0.00001, dBgain));   // When gain is a linear values (i.e. not in dB)
 };
@@ -214,6 +214,6 @@ line (value, time) = state~(_,_):!,_
 		state (t, c) = nt, if (nt <= 0, value, c+(value - c) / nt)
 		with {
 			nt = if( value != value', samples, t-1);
-			samples = time*SR/1000.0;
+			samples = time*ma.SR/1000.0;
 		};
 	};

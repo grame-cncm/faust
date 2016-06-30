@@ -1,6 +1,23 @@
-// # `pm.lib`: Physical Modeling Library
+//##################################### pm.lib ###########################################
+// Faust physical modeling library.
+//
+// It should be used using the `fi` environment:
+//
+// ```
+// pm = library("pm.lib");
+// process = pm.functionCall;
+// ```
+//
+// Another option is to import `stdfaust.lib` which already contains the `pm`
+// environment:
+//
+// ```
+// import("stdfaust.lib");
+// process = pm.functionCall;
+// ```
+//########################################################################################
 
-import("filter.lib");
+import("stdfaust.lib");
 
 //-------chain(A:B:...)----------
 // Creates a chain of bidirectional blocks. 
@@ -20,7 +37,7 @@ import("filter.lib");
 // ### Requires
 // `filter.lib` (`crossnn`)
 //-----------------------------
-chain(A:As) = (crossnn(1),_',_ : _,A : crossnn(1),_,_ : _,chain(As) : crossnn(1),_,_) ~ _ : !,_,_,_;
+chain(A:As) = (si.crossnn(1),_',_ : _,A : si.crossnn(1),_,_ : _,chain(As) : si.crossnn(1),_,_) ~ _ : !,_,_,_;
 chain(A) = A;
 
 //-------input(x)--------------
@@ -59,7 +76,7 @@ output(x,y,s) = x,y,x+y+s;
 // ### Requires
 // `filter.lib` (`crossnn`)
 //----------------------------------------
-terminations(a,b,c) = (_,crossnn(1),_,_ : +,+,_ : b) ~ (c,a : crossnn(1)); // adds 2 samples to the loop!
+terminations(a,b,c) = (_,si.crossnn(1),_,_ : +,+,_ : b) ~ (c,a : si.crossnn(1)); // adds 2 samples to the loop!
 
 //-------fullTerminations(a,b,c)----------
 // Same as `terminations()` but closes the inputs and outputs of the bidirectional chain
@@ -124,7 +141,7 @@ rightTermination(b,c) = terminations(*(0),b,c) : !,!,_;
 // ### Requires
 // `filter.lib` (`fdelay4`)
 //----------------------------------
-waveguide(nMax,n) = fdelay4(nMax,n),fdelay4(nMax,n),_;
+waveguide(nMax,n) = de.fdelay4(nMax,n),de.fdelay4(nMax,n),_;
 
 //-------idealString(length,reflexion,xPosition,x)----------
 // An ideal string with rigid terminations and where the plucking position and the 
@@ -144,7 +161,7 @@ waveguide(nMax,n) = fdelay4(nMax,n),fdelay4(nMax,n),_;
 idealString(length,reflexion,pluckPosition,x) = fullTerminations(term,wg,term)
 with{
 	nMax = 512; // each segment of the string can't be longer than that
-	N = length*SR/320-8; // length (meters) to samples
+	N = length*ma.SR/320-8; // length (meters) to samples
 	nUp = N/2*pluckPosition : max(1); // upper string segment length
 	nDown = N/2*(1-pluckPosition) : max(1); // lower string segment length
 	wg = chain(waveguide(nMax,nUp) : input(x) : output : waveguide(nMax,nDown)); // waveguide chain

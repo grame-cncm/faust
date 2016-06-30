@@ -1,0 +1,14 @@
+#!/bin/bash
+
+for p in $@; do
+	if [ $p = "-help" ] || [ $p = "-h" ]; then
+		echo "Just run it! It will automatically look for all the .lib files and generate the corresponding documentation in /doc."
+		exit 1
+	fi
+done
+
+FILES="analyzer.lib basic.lib delay.lib effect.lib envelope.lib filter.lib generator.lib hoa.lib math.lib pm.lib signal.lib spat.lib synth.lib demo.lib"
+
+for p in $FILES; do
+	faust2md $p > doc/${p%.lib}.md
+done
