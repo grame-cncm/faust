@@ -86,7 +86,11 @@ class FaustPolyEngine {
             delete fPolyDSP;
             delete fDriver;
         }
-
+    
+        /*
+         * init()
+         * Initialize the underlying audio driver with the DSP.
+         */
         bool init()
         {
             return fDriver->init("Dummy", (fPolyMax > 0) ? (dsp*)fPolyDSP : &fMonoDSP);
@@ -171,10 +175,24 @@ class FaustPolyEngine {
         {
             return fJSON.c_str();
         }
+    
+    
+        /*
+         * buildUserInterface(ui)
+         * Calls the polyphonic of monophonic buildUserInterface with the ui parameter.
+         */
+        void buildUserInterface(UI* ui_interface)
+        {
+            if (fPolyMax > 0) {
+                fPolyMax->buildUserInterface(ui_interface);
+            } else {
+                fMonoDSP.buildUserInterface(ui_interface);
+            }
+        }
 
         /*
          * getParamsCount()
-         * Returns the number of parameters of the Faust object.
+         * Returns the number of control parameters of the Faust object.
          */
         int getParamsCount()
         {
@@ -235,21 +253,37 @@ class FaustPolyEngine {
             return fAPIUI.getParamAddress(id);
         }
 
+        /*
+         * propagateAcc(int acc, float v)
+         * Propage accelerometer value to the curve conversion layer.
+         */
         void propagateAcc(int acc, float v)
         {
             fAPIUI.propagateAcc(acc, v);
         }
 
+        /*
+         * setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
+         * Change accelerometer curve mapping.
+         */
         void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
         {
            fAPIUI.setAccConverter(p, acc, curve, amin, amid, amax);
         }
 
+        /*
+         * propagateGyr(int gyr, float v)
+         * Propage gyroscope value to the curve conversion layer.
+         */
         void propagateGyr(int gyr, float v)
         {
             fAPIUI.propagateGyr(gyr, v);
         }
 
+        /*
+         * setGyrConverter(int p, int acc, int curve, float amin, float amid, float amax)
+         * Change gyroscope curve mapping.
+         */
         void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax)
         {
             fAPIUI.setGyrConverter(p, gyr, curve, amin, amid, amax);

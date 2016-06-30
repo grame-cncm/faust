@@ -176,7 +176,7 @@ const char* getJSON()
 
 /*
  * getParamsCount()
- * Returns the number of parameters of the Faust object.
+ * Returns the number of control parameters of the Faust object.
  */
 int getParamsCount()
 {
