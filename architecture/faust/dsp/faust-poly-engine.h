@@ -94,10 +94,8 @@ class FaustPolyEngine {
 
         /*
          * start()
-         * Begins the processing and return 1 if the connection
-         * with the audio device was successful and 0 if not.
-         * On Android it also creates the native thread where the
-         * DSP tasks will be computed.
+         * Begins the processing and return true if the connection
+         * with the audio device was successful and false if not.
          */
         bool start()
         {
@@ -109,7 +107,7 @@ class FaustPolyEngine {
         
         /*
          * isRunning()
-         * returns true if the DSP frames are being computed and
+         * Returns true if the DSP frames are being computed and
          * false if not.
          */
         bool isRunning() 
@@ -119,8 +117,7 @@ class FaustPolyEngine {
 
         /*
          * stop()
-         * Stops the processing, closes the audio engine and terminates
-         * the native thread on Android.
+         * Stops the processing, closes the audio engine.
          */
         void stop()
         {
@@ -210,10 +207,8 @@ class FaustPolyEngine {
          * Sets the value of the parameter associated with address for
          * the voice. setVoiceParamValue can only be
          * used if the [style:poly] metadata is used in the Faust code.
-         * setVoiceParamValue will return 0 if the object is not polyphonic
-         * and 1 otherwise.
          */
-        int setVoiceParamValue(const char* address, int voice, float value)
+        void setVoiceParamValue(const char* address, int voice, float value)
         {
             assert(sizeof(int) == sizeof(MapUI*));
             reinterpret_cast<MapUI*>(voice)->setParamValue(address, value);
@@ -223,8 +218,7 @@ class FaustPolyEngine {
          * getVoiceParamValue(address, voice)
          * Gets the parameter value associated with address for the voice.
          * getVoiceParamValue can only be used if the [style:poly] metadata
-         * is used in the Faust code. getVoiceParamValue will return 0 if the
-         * object is not polyphonic and the value otherwise.
+         * is used in the Faust code.
          */
         float getVoiceParamValue(const char* address, int voice)
         {

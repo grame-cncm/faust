@@ -207,20 +207,17 @@ void setParamValue(const char* address, float value)
  * Sets the value of the parameter associated with address for
  * the voice. setVoiceParamValue can only be
  * used if the [style:poly] metadata is used in the Faust code.
- * setVoiceParamValue will return 0 if the object is not polyphonic
- * and 1 otherwise.
  */
-int setVoiceParamValue(const char* address, int voice, float value)
+void setVoiceParamValue(const char* address, int voice, float value)
 {
-    return gGlobal->setVoiceParamValue(address, voice, value);
+    gGlobal->setVoiceParamValue(address, voice, value);
 }
 
 /*
  * getVoiceParamValue(address, voice)
  * Gets the parameter value associated with address for the voice.
  * getVoiceParamValue can only be used if the [style:poly] metadata
- * is used in the Faust code. getVoiceParamValue will return 0 if the
- * object is not polyphonic and 1 otherwise.
+ * is used in the Faust code.
  */
 float getVoiceParamValue(const char* address, int voice)
 {
