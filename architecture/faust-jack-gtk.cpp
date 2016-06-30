@@ -52,9 +52,6 @@ struct MyMeta : public Meta
     }
 };
 
-extern "C" int compile_faust(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
-extern "C" void* compile_faust_llvm(int argc, const char* argv[], const char* library_path, const char* draw_path, const char* name, const char* input, char* error_msg);
-
 //----------------------------------------------------------------------------
 // 	FAUST generated code
 //----------------------------------------------------------------------------
@@ -72,51 +69,20 @@ int main(int argc, char *argv[])
 	char* 	home = getenv("HOME");
 
 #ifdef LLVM
-    llvm_dsp_factory* factory3 = 0;
-    llvm_dsp_factory* factory4 = 0;
+    llvm_dsp_factory* factory = 0;
 #else
-    interpreter_dsp_factory* factory3 = 0;
-    interpreter_dsp_factory* factory4 = 0;
-    interpreter_dsp_factory* factory5 = 0;
-#endif
+    interpreter_dsp_factory* factory = 0;
+ #endif
 
     if (argc < 2) {
         printf("Usage: faust-jack-gtk args [file.dsp | file.bc]\n");
         exit(1);
     } else {
-    
-        /*
-        int argc1 = 2;
-        const char* argv1[argc1];
-        argv1[0] = "faust";
-        argv1[1] = "-svg";
-
-        compile_faust(argc1, (char**)argv1, false, "", "in1", "process = +,+;", error_msg);
-        compile_faust(argc1, (char**)argv1, false, "", "in2", "process = _,_;", error_msg);
-        */
-        
-        /*
-        try {
-            
-            int argc1 = 1;
-            char* argv1[argc1];
-            argv1[0] = "-svg";
-            //DSP = new llvmdsp(argc1, argv1, "/Users/letz", "in1", "import(\"test.lib\"); process = TOTO;", error_msg);
-            DSP = new llvmdsp(argc1, argv1, "", "in1", "process = +,+;", error_msg);
-            //delete(DSP);
-            //DSP = new llvmdsp(argc1, argv1, "in2", "process = +,+;", "/Users/letz", error_msg);
-            //DSP = new llvmdsp(0, NULL, "in1", "process = +,+;", error_msg);
-        }
-        catch (...) {
-            printf("Mauvais code source : %s", error_msg);
-            DSP = new llvmdsp(0, NULL, "/Users/letz", "in1", "process = +,+;", error_msg);
-        }
-        */
         
         int argc1 = 1;
         const char* argv1[argc1];
         argv1[0] = "-svg";
-        std::string error_msg1;
+        std::string error_msg;
         
         /*
         llvm_dsp_factory* factory1 = createDSPFactory(argc1, argv1, "/Users/letz", "", "in1", "process = +,+", "", error_msg1);
@@ -132,175 +98,60 @@ int main(int argc, char *argv[])
         } else {
             printf("Cannot create factory : %s", error_msg1);
         }
-        
-        char error_msg2[256];
-        llvm_dsp_factory* factory2 = createDSPFactory(argc1, argv1, "/Users/letz", "", "in1", "process = +,+", "", error_msg1);
-        if (factory2) {
-            llvm_dsp* imp2 = createDSPInstance(factory2);
-            deleteDSPInstance(imp2);
-            llvm_dsp* imp21 = createDSPInstance(factory2);
-            deleteDSPInstance(imp21);
-            printf("createInstance %x %s\n", imp2, error_msg2);
-            DSP = createDSPInstance(factory2);
-            deleteDSPInstance(DSP);
-            deleteDSPFactory(factory2);
-        } else {
-            printf("Cannot create factory : %s", error_msg2);
-        }
         */
-        
-        /*
-        char error_msg3[256];
-        factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 3);
-        //printf("createDSPFactory %x\n", factory3);
-        if (factory3) {
-            DSP = createDSPInstance(factory3);
-            assert(DSP);
-         } else {
-            printf("Cannot create factory : %s\n", error_msg3);
-            return 1;
-        }
-        
-        MyMeta meta;
-        httpdfaust::jsonfaustui json("", "", 0);
-        DSP->buildUserInterface(&json);
-        metadataDSPFactory(factory3, &json);
-        metadataDSPFactory(factory3, &meta);
-        printf("JSON %s\n", json.json());
-        
-        error_msg3[256];
-        factory3 = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error_msg3, 3);
-        //printf("createDSPFactory %x\n", factory3);
-        if (factory3) {
-            DSP = createDSPInstance(factory3);
-            assert(DSP);
-         } else {
-            printf("Cannot create factory : %s\n", error_msg3);
-            return 1;
-        }
-        
-        meta;
-        DSP->buildUserInterface(&json);
-        metadataDSPFactory(factory3, &json);
-        metadataDSPFactory(factory3, &meta);
-        printf("JSON %s\n", json.json());
-        */
-        
-        std::string error_msg3;
-        //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "i386-apple-darwin10.6.0-cortex-m3", error_msg3, 0);
+
         
     #ifdef LLVM
-        factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, -1);
+        factory = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg, -1);
     #else
-        factory3 = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg3);
-        factory4 = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg3);
-        factory5 = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg3);
+        factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg);
     #endif
         
-        printf("factory3 %p\n", factory3);
-        
-        ///deleteDSPFactory(factory3);
-        //factory3 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg3, 3);
-        //factory4 = createDSPFactoryFromString("titi", "process = +,+,+;", argc-2, (const char**)argv[argc-1], "", error_msg3, 4);
-        //factory4 = createDSPFactoryFromString("toto", "process = +;", argc-2, (const char**)argv[argc-1], "", error_msg3, 4);
-        
-        /*
-        for (int i = 0; i < 10; i++) {
-            std::string machine_code = writeDSPFactoryToMachine(factory3);
-            printf("writeDSPFactoryToMachine %d\n", i);
-            factory3 = readDSPFactoryFromMachine(machine_code);
-        }
-        */
-        
-        /*
-        for (int i = 0; i < 10; i++) {
-            writeDSPFactoryToMachineFile(factory3, "/Users/letz/machinecode");
-            printf("writeDSPFactoryToMachineFile %d\n", i);
-            factory3 = readDSPFactoryFromMachineFile("/Users/letz/machinecode");
-        }
-        */
-        
-        if (factory3) {
-            DSP = factory3->createDSPInstance();
+        if (factory) {
+            DSP = factory->createDSPInstance();
             assert(DSP);
          } else {
-            printf("Cannot create factory : %s\n", error_msg3.c_str());
+            printf("Cannot create factory : %s\n", error_msg.c_str());
             return 1;
         }
-        
-        /*
-        if (factory4) {
-            DSP = createDSPInstance(factory4);
-            assert(DSP);
-         } else {
-            printf("Cannot create factory : %s\n", error_msg3.c_str());
-            return 1;
-        }
-        */
-       
-        /*
-        meta;
-        DSP->buildUserInterface(&json);
-        metadataDSPFactory(factory3, &json);
-        metadataDSPFactory(factory3, &meta);
-        printf("JSON %s\n", json.json());
-        */
-        
-        //deleteDSPInstance(DSP);
-        //deleteDSPFactory(factory3);
-               
-        /*
-        printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
-        DSP = new llvmdsp(1, NULL, "process = +,+;");
-        printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
-        delete DSP;
-        DSP = new llvmdsp(1, NULL, "process = +;");
-        printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
-        delete DSP;
-        DSP = new llvmdsp(1, NULL, "process = +,+,+,+;");
-        printf("DSP in/out %d %d\n", DSP->getNumInputs(), DSP->getNumOutputs());
-        */
-        
     }
-    
-    
-	
-	snprintf(appname, 255, "%s", basename(argv[0]));
+  
+    snprintf(appname, 255, "%s", basename(argv[0]));
     snprintf(filename, 255, "%s", basename(argv[argc-1]));
-	snprintf(rcfilename, 255, "%s/.%s-%src", home, appname, argv[1]);
+    snprintf(rcfilename, 255, "%s/.%s-%src", home, appname, argv[1]);
 
-	GUI* interface 	= new GTKUI(filename, &argc, &argv);
-	FUI* finterface	= new FUI();
-    
-	DSP->buildUserInterface(interface);
-	DSP->buildUserInterface(finterface);
+    GUI* interface 	= new GTKUI(filename, &argc, &argv);
+    FUI* finterface	= new FUI();
+
+    DSP->buildUserInterface(interface);
+    DSP->buildUserInterface(finterface);
 
 #ifdef HTTPCTRL
-	httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
-	DSP->buildUserInterface(httpdinterface);
+    httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
+    DSP->buildUserInterface(httpdinterface);
 #endif
 
 #ifdef OSCCTRL
-	GUI* oscinterface = new OSCUI(filename, argc, argv);
-	DSP->buildUserInterface(oscinterface);
+    GUI* oscinterface = new OSCUI(filename, argc, argv);
+    DSP->buildUserInterface(oscinterface);
 #endif
-  
-	jackaudio audio;
+
+    jackaudio audio;
     if (!audio.init(filename, DSP)) {
         return 0;
     }
-	finterface->recallState(rcfilename);
-	audio.start();
-  
+    finterface->recallState(rcfilename);
+    audio.start();
+
 #ifdef HTTPCTRL
-	httpdinterface->run();
+    httpdinterface->run();
 #endif
 
 #ifdef OSCCTRL
-	oscinterface->run();
+    oscinterface->run();
 #endif
-	interface->run();
-    
+    interface->run();
+
     audio.stop();
     finterface->saveState(rcfilename);
     delete(interface);
@@ -308,20 +159,10 @@ int main(int argc, char *argv[])
     delete DSP;
 
 #ifdef LLVM
-    deleteDSPFactory(factory3);
+    deleteDSPFactory(factory);
 #else
-    //deleteInterpreterDSPFactory(factory3);
-    std::cout << "AFTER  deleteInterpreterDSPFactory(factory3)" << std::endl;
-    
-    //deleteInterpreterDSPFactory(factory4);
-    std::cout << "AFTER  deleteInterpreterDSPFactory(factory4)" << std::endl;
-    
-    //deleteInterpreterDSPFactory(factory5);
-    std::cout << "AFTER  deleteInterpreterDSPFactory(factory5)" << std::endl;
+    deleteInterpreterDSPFactory(factory);
 #endif
-    //deleteDSPFactory(factory4);
-     
-    //deleteAllInterpreterDSPFactories();
   	return 0;
 }
 
