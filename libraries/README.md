@@ -1,4 +1,131 @@
-# Faust Libraries Update
+# Faust Libraries
+
+WARNING: the libraries implemented in this folder are meant to replace the current Faust libraries. They are still being beta tested so it is very likely that you will encounter bugs while using them. If you find a bug, please report it at rmichon_at_ccrma_dot_stanford_dot_edu. Thanks ;)!
+
+This folder contains the different Faust libraries. The markdown documentation of each library can be found in the `/doc` folder. This README page provides information on how to use the Faust libraries. If you wish to add your own functions to this library collection, you can refer to the "Contributing" section at the end of this file that provides a set of coding conventions.
+
+## Using the Faust Libraries
+
+The easiest and most standard way to use the Faust libraries is to import `stdfaust.lib` in your Faust code:
+
+```
+import("stdfaust.lib");
+```
+
+This will give you access to all the Faust libraries through a series of environments:
+
+* `ma`: `math.lib`
+* `ba`: `basic.lib`
+* `de`: `delay.lib`
+* `en`: `envelope.lib`
+* `ro`: `route.lib`
+* `si`: `signal.lib`
+* `an`: `analyzer.lib`
+* `fi`: `filter.lib`
+* `os`: `oscillator.lib`
+* `no`: `noise.lib`
+* `ho`: `hoa.lib`
+* `sp`: `spat.lib`
+* `sy`: `synth.lib`
+* `ef`: `misceffect.lib`
+* `ve`: `vaeffect.lib`
+* `co`: `compressor.lib`
+* `pf`: `phafla.lib`
+* `re`: `reverb.lib`
+* `de`: `demo.lib`
+
+Environments can then be used as follows in your Faust code:
+
+```
+import("stdfaust.lib");
+process = os.osc(440);
+```
+
+In this case, we're calling the `osc` function from `oscillator.lib`.
+
+Alternatively, environments can be created by hand:
+
+```
+os = library("oscillator.lib");
+process = os.osc(440);
+```
+
+Finally, libraries can be simply imported in the Faust code (not recommended):
+
+```
+import("oscillator.lib");
+process = osc(440);
+```
+
+## Contributing
+
+If you wish to add a function to any of these libraries or if you plan to add a new library, make sure that you follow the following conventions:
+
+### New Functions
+
+* All functions must be preceded by a markdown documentation header respecting the following format (open the source code of any of the libraries for an example):
+
+```
+//-----------------functionName--------------------
+// Description
+// 
+// #### Usage
+// 
+// ```
+// Usage Example
+// ```
+//
+// Where:
+//
+// * argument1: argument 1 descirption
+//-------------------------------------------------
+```
+
+* Every time a new function is added, the documentation should be updated simply by running `./generateDoc`.
+* All libraries import `stdfaust.lib` so the environment system should be used when calling a function declared in another library (see the section on *Using the Faust Libraries*).
+* Try to reuse exisiting functions as much as possible.
+* If you have any question, send an e-mail to rmichon_at_ccrma_dot_stanford_dot_edu.
+
+### New Libraries
+
+* Any new library should be declared in `stdfaust.lib` with its own environment (2 letters - see `stdfaust.lib`).
+* Any new library must be added to `generateDoc`.
+* Functions must be organized by sections.
+* Any new library should at least `declare` a `name` and a `version`. 
+* The comment based markdown documentation of each library must respect the following format (open the source code of any of the libraries for an example):
+
+```
+//############### libraryName ##################
+// Description
+// 
+// * Section Name 1
+// * Section Name 2
+// * ...
+//
+// It should be used using the `[...]` environment:
+//
+// ```
+// [...] = library("libraryName");
+// process = [...].functionCall;
+// ```
+//
+// Another option is to import `stdfaust.lib` which already contains the `[...]`
+// environment:
+//
+// ```
+// import("stdfaust.lib");
+// process = [...].functionCall;
+// ```
+//##############################################
+
+//================= Section Name ===============
+// Description
+//==============================================
+```
+* If you have any question, send an e-mail to rmichon_at_ccrma_dot_stanford_dot_edu.
+
+## Notes About the Implemenation of the New Library System (Old README)
+
 This repository contains a fully rewritten version of the Faust libraries. The goals of this project are to:
 
 * document the libraries using the `faust2md` system,
