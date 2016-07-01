@@ -523,3 +523,15 @@ Where:
 
 ---
 
+
+### `diffn(x)`
+Negated first-roder difference.
+
+#### Usage
+
+```
+_ : diffn : _
+```
+
+---
+

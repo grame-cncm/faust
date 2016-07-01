@@ -515,6 +515,35 @@ Where:
 ---
 
 
+### peakhold(mode,sig)
+Outputs current max value above zero. 
+
+#### Usage
+
+```
+_ : peakhold(mode,sig) : _;
+```
+
+Where:
+
+`mode` means: 0 - Pass through. A single sample 0 trigger will work as a reset.
+   1 - Track and hold max value.
+
+---
+
+
+### peakholder(holdtime)
+Tracks abs peak and holds peak for 'holdtime' samples.
+
+#### Usage 
+
+```
+peakholder(holdtime, sig);
+```
+
+---
+
+
 ### `impulsify`
 Turns the signal from a button into an impulse (1,0,0,... when
 button turns on).

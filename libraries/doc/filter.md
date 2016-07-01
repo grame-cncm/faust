@@ -187,7 +187,7 @@ Where:
 ### `rev1`
 Special case of `fb_comb` (`rev1(maxdel,N,g)`).
 The "rev1 section" dates back to the 1960s in computer-music reverberation.
-See the `jcrev` and `brassrev` in `misceffect.lib` for usage examples.
+See the `jcrev` and `brassrev` in `reverb.lib` for usage examples.
 
 ---
 
@@ -252,7 +252,7 @@ Where:
 ### `rev2`
 Special case of `allpass_comb` (`rev2(maxlen,len,g)`).
 The "rev2 section" dates back to the 1960s in computer-music reverberation.
-See the `jcrev` and `brassrev` in `misceffect.lib` for usage examples.
+See the `jcrev` and `brassrev` in `reverb.lib` for usage examples.
 
 ---
 
@@ -1296,6 +1296,29 @@ See `spectral_tilt_demo`.
 
 #### Reference
 Link to appear here when write up is done
+
+---
+
+
+### `levelfilter` and `levelfilterN`
+Dynamic level lowpass filter.
+
+#### Usage
+
+```
+_ : levelfilter(L,freq) : _
+_ : levelfilterN(N,freq,L) : _
+```
+
+Where:
+
+* `L`: desired level (in dB) at Nyquist limit (SR/2), e.g., -60
+* `freq`: corner frequency (-3dB point) usually set to fundamental freq
+* `N`: Number of filters in series where L = L/N
+
+#### Reference
+
+<https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html>
 
 ---
 
