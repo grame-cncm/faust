@@ -816,6 +816,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fBuildUserInterface = (buildUserInterfaceFun)loadOptimize("buildUserInterface" + fClassName);
         fInit = (initFun)loadOptimize("init" + fClassName);
         fInstanceInit = (initFun)loadOptimize("instanceInit" + fClassName);
+        fGetSampleRate = (getSampleRateFun)loadOptimize("getSampleRate" + fClassName);
         fCompute = (computeFun)loadOptimize("compute" + fClassName);
         fMetadata = (metadataFun)loadOptimize("metadata" + fClassName);
         endTiming("initJIT");
@@ -933,6 +934,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fBuildUserInterface = (buildUserInterfaceFun)loadOptimize("buildUserInterface" + fClassName);
         fInit = (initFun)loadOptimize("init" + fClassName);
         fInstanceInit = (initFun)loadOptimize("instanceInit" + fClassName);
+        fGetSampleRate = (getSampleRateFun)loadOptimize("getSampleRate" + fClassName);
         fCompute = (computeFun)loadOptimize("compute" + fClassName);
         fMetadata = (metadataFun)loadOptimize("metadata" + fClassName);
         endTiming("initJIT");
