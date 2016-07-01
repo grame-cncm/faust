@@ -1,12 +1,12 @@
 
-# generator.lib 
+# oscillator.lib 
 This library contains a collection of sound generators.
 
 It should be used using the `ge` environment:
 
 ```
-ge = library("generator.lib");
-process = ge.functionCall;
+os = library("oscillator.lib");
+process = os.functionCall;
 ```
 
 Another option is to import `stdfaust.lib` which already contains the `ge`
@@ -14,7 +14,7 @@ environment:
 
 ```
 import("stdfaust.lib");
-process = ge.functionCall;
+process = os.functionCall;
 ```
 
 ## Noises

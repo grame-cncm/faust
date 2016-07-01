@@ -15,7 +15,7 @@ fsmax = 48000.0;  // highest sampling rate that will be used
 
 fdn_group(x) = hgroup(
     "[0] Zita_Rev1 [tooltip: ~ ZITA REV1 FEEDBACK DELAY NETWORK (FDN) & SCHROEDER 
-    ALLPASS-COMB REVERBERATOR (8x8). See Faust's effect.lib for documentation and 
+    ALLPASS-COMB REVERBERATOR (8x8). See Faust's reverb.lib for documentation and 
     references]", x);
 
 in_group(x) = fdn_group(hgroup("[1] Input", x));
@@ -92,5 +92,5 @@ gain = out_group(vslider("[2] Level [unit:dB] [style:knob] [tooltip: Output scal
 //============================================ DSP =======================================
 //========================================================================================
 
-process = _,_ <: ef.zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ : out_eq,_,_ : 
+process = _,_ <: re.zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ : out_eq,_,_ : 
 	dry_wet : out_level;	

@@ -36,5 +36,5 @@ g = parameters(vslider("[1] Wet [tooltip: The amount of reverb applied to the si
 //========================================================================================
 
 process = _,_ <: (*(g)*fixedgain,*(g)*fixedgain : 
-	ef.stereo_freeverb(combfeed, allpassfeed, damping, spatSpread)), 
+	re.stereo_freeverb(combfeed, allpassfeed, damping, spatSpread)), 
 	*(1-g), *(1-g) :> _,_ ;

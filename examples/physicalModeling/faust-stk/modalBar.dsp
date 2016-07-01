@@ -73,7 +73,7 @@ stereo = stereoizer(ma.SR/freq);
 vibratoOn = presetNumber == 1;
 
 //vibrato
-vibrato = 1 + ge.osc(vibratoFreq)*vibratoGain*vibratoOn;
+vibrato = 1 + os.osc(vibratoFreq)*vibratoGain*vibratoOn;
 
 //filter bank output gain
 directGain = loadPreset(presetNumber,3,2);

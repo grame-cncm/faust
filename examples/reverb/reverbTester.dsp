@@ -30,7 +30,7 @@ reverb_tester(revin_group,x,y) = inx,iny with {
 
   inx = x*mutegain + (pulseL+pulseC) + pn;
   iny = y*mutegain + (pulseR+pulseC) + pn;
-  pn = 0.1*pinkin*ge.pink_noise;
+  pn = 0.1*pinkin*no.pink_noise;
 };
 
 

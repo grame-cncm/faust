@@ -43,7 +43,7 @@ freqToNoteNumber = (log-log(440))/log(2)*12+69+0.5 : int;
 freqn = freq : freqToNoteNumber;
 
 //string excitation
-soundBoard = dryTapAmp*ge.noise
+soundBoard = dryTapAmp*no.noise
 	with{
 		dryTapAmpT60 = ffunction(float getValueDryTapAmpT60(float), <harpsichord.h>,"");
 		noteCutOffTime = freqn : dryTapAmpT60*gain;

@@ -90,9 +90,9 @@ stereo = stereoizer(ma.SR/freq);
 //Breath pressure + vibrato + breath noise + envelope (Attack / Decay / Sustain / Release)
 envelope = en.adsr(envelopeAttack,envelopeDecay,100,envelopeRelease,gate)*pressure*0.9;
 
-vibrato = ge.osc(vibratoFreq)*vibratoGain*
+vibrato = os.osc(vibratoFreq)*vibratoGain*
 	envVibrato(0.1*2*vibratoAttack,0.9*2*vibratoAttack,100,vibratoRelease,gate);
-breath = envelope + envelope*ge.noise*noiseGain;
+breath = envelope + envelope*no.noise*noiseGain;
 breathPressure = breath + breath*vibrato;
 
 process =

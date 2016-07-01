@@ -48,7 +48,7 @@ delayLength = float(ma.SR)/freq;
 stereo = stereoizer(delayLength);
 
 //string excitation
-excitation = asympT60(-0.5,-0.985,0.02,gate),ge.noise*asympT60(gain,0,touchLength,gate) : 
+excitation = asympT60(-0.5,-0.985,0.02,gate),no.noise*asympT60(gain,0,touchLength,gate) : 
 	   onePoleSwep : excitationFilter : excitationFilter
 	   with{
 		//the exitation filter is a one pole filter (declared in instrument.lib)

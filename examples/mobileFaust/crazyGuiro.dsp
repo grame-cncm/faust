@@ -78,7 +78,7 @@ q = 8;
 //============================================ DSP =======================================
 //========================================================================================
 
-reverb(wet,res)  =  _ <: *(1-wet),(*(wet) : ef.mono_freeverb(res, 0.5, 0.5, 0)) :> _;
+reverb(wet,res)  =  _ <: *(1-wet),(*(wet) : re.mono_freeverb(res, 0.5, 0.5, 0)) :> _;
 
 process = sy.popFilterDrum(drumResFreq,q,gate) : reverb(wet,res);
 

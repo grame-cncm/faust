@@ -16,13 +16,19 @@ Only the libraries that are considered to be "standard" are documented:
 * `analyzer.lib` 
 * `basic.lib` 
 * `delay.lib`
-* `effect.lib`
+* `misceffect.lib`
+* `compressor.lib`
+* `vaeffect.lib`
+* `phafla.lib`
+* `reverb.lib`
 * `envelope.lib`
 * `filter.lib`
-* `generator.lib`
+* `oscillator.lib`
+* `noise.lib`
 * `hoa.lib`
 * `math.lib`
 * `pm.lib`
+* `route.lib`
 * `signal.lib`
 * `spat.lib`
 * `synth.lib`
@@ -56,14 +62,20 @@ ma = library("math.lib");
 ba = library("basic.lib");
 de = library("delay.lib");
 en = library("envelope.lib");
+ro = library("route.lib");
 si = library("signal.lib");
 an = library("analyzer.lib");
 fi = library("filter.lib");
-ge = library("generator.lib");
+os = library("oscillator.lib");
+no = library("noise.lib");
 ho = library("hoa.lib");
 sp = library("spat.lib");
 sy = library("synth.lib");
-ef = library("effect.lib");
+ef = library("misceffect.lib");
+ve = library("vaeffect.lib");
+co = library("compressor.lib");
+pf = library("phafla.lib");
+re = library("reverb.lib");
 ```
 
 For example, if we wanted to use the `smooth` function which is now declared in `signal.lib`, we would do the following:
@@ -74,7 +86,7 @@ import("stdfaust.lib");
 process = si.smooth(0.999);
 ```
 
-This standard is only used within the libraries: nothing prevents coders to still import `signal.lib` directly and call `smooth` without `si.`, etc.
+This standard is only used within the libraries: nothing prevents coders to still import `signal.lib` directly and call `smooth` without `ro.`, etc.
 
 ### "Demo" Functions
 

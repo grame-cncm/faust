@@ -1,4 +1,4 @@
-// WARNING: This a "legacy example based on a deprecated library". Check generator.lib
+// WARNING: This a "legacy example based on a deprecated library". Check noise.lib
 // for more accurate examples of noise functions
 
 declare name 		"Noise";

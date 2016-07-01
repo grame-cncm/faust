@@ -14,7 +14,7 @@ import("stdfaust.lib");
 fsmax = 48000.0;
 fdn_group(x) = hgroup("Zita_Rev Internal FDN Reverb [tooltip: ~ Zita_Rev's internal 
 	8x8 Feedback Delay Network (FDN) & Schroeder allpass-comb reverberator.  See 
-	Faust's effect.lib for documentation and references]",x);
+	Faust's reverb.lib for documentation and references]",x);
 t60dc = fdn_group(vslider("[1] Low RT60 [unit:s] [style:knob][style:knob]
     [tooltip: T60 = time (in seconds) to decay 60dB in low-frequency band]",
     3, 1, 8, 0.1));
@@ -31,4 +31,4 @@ f2 = fdn_group(vslider("[4] HF Damping [unit:Hz] [style:knob] [scale:log]
 //============================================ DSP =======================================
 //========================================================================================
 
-process = ef.zita_rev_fdn(f1,f2,t60dc,t60m,fsmax);
+process = re.zita_rev_fdn(f1,f2,t60dc,t60m,fsmax);

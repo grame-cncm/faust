@@ -32,6 +32,6 @@ average(x)	= (x+x')/2;
 
 resonator(d, a) = (+ : de.delay(4096, d-1.5)) ~ (average : *(1.0-a)) ;
 
-process = ge.noise * hslider("level", 0.5, 0, 1, 0.01)
+process = no.noise * hslider("level", 0.5, 0, 1, 0.01)
 		: vgroup("excitator", *(button("play"): trigger(size)))
 		: vgroup("resonator", resonator(dur, att));

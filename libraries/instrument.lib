@@ -237,7 +237,7 @@ nonLinearModulator(nonlinearity,env,freq,typeMod,freqMod,order) =
 			  + tsigsquared(x)*(typeMod == 2);
 
 		//theta is modulated by a sine wave generator
-		tosc = nonlinearity*ma.PI*ge.osc(freqOscMod)*env;
+		tosc = nonlinearity*ma.PI*os.osc(freqOscMod)*env;
 
 		//incoming signal is sent to the nonlinear passive allpass ladder filter
 		nonLinearFilterSig(x) = x <: fi.allpassnn(order,(par(i,order,tsig(x))));
@@ -266,13 +266,13 @@ stereoizer(periodDuration) = _ <: _,widthdelay : stereopanner
 	   };
 
 //----------------------- INSTRREVERB ----------------------------
-// GUI for zita_rev1_stereo from effect.lib
+// GUI for zita_rev1_stereo from reverb.lib
 //
 // USAGE:
 //  _,_ : instrRerveb
 
 instrReverb = _,_ <: *(reverbGain),*(reverbGain),*(1 - reverbGain),*(1 - reverbGain) :
-ef.zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ <: _,!,_,!,!,_,!,_ : +,+
+de.zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ <: _,!,_,!,!,_,!,_ : +,+
        with{
        reverbGain = hslider("v:Reverb/reverbGain",0.137,0,1,0.01) : si.smoo;
        roomSize = hslider("v:Reverb/roomSize",0.72,0.01,2,0.01);

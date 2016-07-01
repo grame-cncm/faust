@@ -13,7 +13,7 @@ declare exciter_license "MIT License (MIT)";
 import("stdfaust.lib");
 
 
-// TODO: not really sure why this doesn't use the standard compressor from effect.lib:
+// TODO: not really sure why this doesn't use the standard compressor from compressor.lib:
 // needs to be investigated
 compressor = ba.bypass1(cbp,compressorMono) 
 with{
@@ -26,13 +26,13 @@ with{
     cbp = meter_group(checkbox("[0] Bypass  [tooltip: When this is checked, 
     	the compressor has no effect]"));
 
-    gainview = ef.compression_gain_mono(ratio,threshold,attack,release) : ba.linear2db 
+    gainview = co.compression_gain_mono(ratio,threshold,attack,release) : ba.linear2db 
     	: meter_group(hbargraph("[1] Compressor Gain [unit:dB] [tooltip: Current gain 
     	of the compressor in dB]",-50,+10));
 
     displaygain = _ <: _,abs : _,gainview : attach;
 
-    compressorMono = displaygain(ef.compressor_mono(ratio,threshold,attack,release));
+    compressorMono = displaygain(co.compressor_mono(ratio,threshold,attack,release));
 
     ctl_group(x)  = knob_group(hgroup("[3] Compression Control", x));
 

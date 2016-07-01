@@ -37,7 +37,7 @@ import("stdfaust.lib");
 // ### Requires
 // `filter.lib` (`crossnn`)
 //-----------------------------
-chain(A:As) = (si.crossnn(1),_',_ : _,A : si.crossnn(1),_,_ : _,chain(As) : si.crossnn(1),_,_) ~ _ : !,_,_,_;
+chain(A:As) = (ro.crossnn(1),_',_ : _,A : ro.crossnn(1),_,_ : _,chain(As) : ro.crossnn(1),_,_) ~ _ : !,_,_,_;
 chain(A) = A;
 
 //-------input(x)--------------
@@ -76,7 +76,7 @@ output(x,y,s) = x,y,x+y+s;
 // ### Requires
 // `filter.lib` (`crossnn`)
 //----------------------------------------
-terminations(a,b,c) = (_,si.crossnn(1),_,_ : +,+,_ : b) ~ (c,a : si.crossnn(1)); // adds 2 samples to the loop!
+terminations(a,b,c) = (_,ro.crossnn(1),_,_ : +,+,_ : b) ~ (c,a : ro.crossnn(1)); // adds 2 samples to the loop!
 
 //-------fullTerminations(a,b,c)----------
 // Same as `terminations()` but closes the inputs and outputs of the bidirectional chain

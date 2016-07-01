@@ -49,7 +49,7 @@ output 		= hslider("output volume", 0.5, 0, 1, 0.1);
 
 
 process =  vgroup("karplus32",
-	 		   	vgroup("noise generator", ge.noise * hslider("level", 0.5, 0, 1, 0.1))
+	 		   	vgroup("noise generator", no.noise * hslider("level", 0.5, 0, 1, 0.1))
 				 : vgroup("excitator", *(button("play"): trigger(size)))
 				<: vgroup("resonator x32", par(i,32, resonator(dur+i*detune, att) * (polyphony > i)))
 				:> *(output),*(output)

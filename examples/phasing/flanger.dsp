@@ -27,10 +27,10 @@ flangeview = lfor(freq) + lfol(freq) : meter_group(hbargraph("[2] Flange LFO
 	[style: led] [tooltip: Display sum of flange delays]", -1.5,+1.5));
 
 flanger_stereo_demo(x,y) = attach(x,flangeview),y :
-	*(level),*(level) : ef.flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert);
+	*(level),*(level) : pf.flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert);
 
-lfol = ge.oscrs;
-lfor = ge.oscrc;
+lfol = os.oscrs;
+lfor = os.oscrc;
 
 dmax = 2048;
 dflange = 0.001 * ma.SR *

@@ -28,7 +28,7 @@ vibr = meter_group(checkbox("[2] Vibrato Mode")); // In this mode you can hear a
 // phaser2_stereo_demo(x,y) = attach(x,flangeview),y : ...
 
 phaser2_stereo_demo = *(level),*(level) :
-	ef.phaser2_stereo(Notches,width,frqmin,fratio,frqmax,speed,mdepth,fb,invert);
+	pf.phaser2_stereo(Notches,width,frqmin,fratio,frqmax,speed,mdepth,fb,invert);
 
 Notches = 4; // Compile-time parameter: 2 is typical for analog phaser stomp-boxes
 

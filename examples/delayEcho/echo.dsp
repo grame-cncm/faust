@@ -1,4 +1,4 @@
-// WARNING: This a "legacy example based on a deprecated library". Check effect.lib
+// WARNING: This a "legacy example based on a deprecated library". Check misceffect.lib
 // for more accurate examples of echo functions
 
 declare name 		"echo";

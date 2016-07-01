@@ -25,7 +25,7 @@ portamento = osc_group(
     [tooltip: Portamento (frequency-glide) time-constant in seconds]",
     0.1,0.001,10,0.001));
 sfreq = freq : si.smooth(ba.tau2pole(portamento));
-signal = amp * ge.oscrs(sfreq);
+signal = amp * os.oscrs(sfreq);
 
 
 //============================================ DSP =======================================

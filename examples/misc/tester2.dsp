@@ -26,7 +26,7 @@ freq = hslider("[1] freq [unit:Hz][scale:log]", 440, 40, 20000, 1);
 wave = hslider("[3] signal [style:menu{'white noise':0;'pink noise':1;'sine':2}]", 0, 0, 2, 1) : int;
 dest = hslider("[4] channel [style:radio{'none':0;'left':1;'right':2;'both':3}]", 0, 0, 3, 1) : int;
 
-testsignal	= ge.noise, pink(ge.noise), ge.osci(freq): select3(wave);
+testsignal	= no.noise, pink(no.noise), os.osci(freq): select3(wave);
 
 process 	= vgroup("Stereo Audio Tester",
 				testsignal*vol 

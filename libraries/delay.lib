@@ -171,6 +171,48 @@ with {
 	} ) ~ (_,_,_,_) : (!,_,_,_);
 };
 
+
+// ----------`prime_power_delays`-----------
+// Prime Power Delay Line Lengths.
+//
+// #### Usage
+//
+// ```
+// bus(N) : prime_power_delays(N,pathmin,pathmax) : bus(N);
+// ```
+//
+// Where:
+//
+// * `N`: positive integer up to 16 (for higher powers of 2, extend 'primes' array below.)
+// * `pathmin`: minimum acoustic ray length in the reverberator (in meters)
+// * `pathmax`: maximum acoustic ray length (meters) - think "room size"
+//
+// #### Reference
+//
+// <https://ccrma.stanford.edu/~jos/pasp/Prime_Power_Delay_Line.html>
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
+// TODO: may be this should be moved to delay.lib?
+prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with {
+  Np = 16;
+  primes = 2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53;
+  prime(n) = primes : ba.selector(n,Np); // math.lib
+
+  // Prime Power Bounds [matlab: floor(log(maxdel)./log(primes(53)))]
+  maxdel=8192; // more than 63 meters at 44100 samples/sec & 343 m/s
+  ppbs = 13,8,5,4, 3,3,3,3, 2,2,2,2, 2,2,2,2; // 8192 is enough for all
+  ppb(i) = ba.take(i+1,ppbs);
+
+  // Approximate desired delay-line lengths using powers of distinct primes:
+  c = 343; // soundspeed in m/s at 20 degrees C for dry air
+  dmin = ma.SR*pathmin/c;
+  dmax = ma.SR*pathmax/c;
+  dl(i) = dmin * (dmax/dmin)^(i/float(N-1)); // desired delay in samples
+  ppwr(i) = floor(0.5+log(dl(i))/log(prime(i))); // best prime power
+  delayvals(i) = prime(i)^ppwr(i); // each delay a power of a distinct prime
+};
+
+
 //===============================Lagrange Interpolation===================================
 //========================================================================================
 

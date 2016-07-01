@@ -24,5 +24,5 @@ excitGroup(x) = vgroup("Excitation",x);
 freq = excitGroup(hslider("[0] Freq [style:knob]",330,50,2000,0.1));
 gain = excitGroup(vslider("[1] Gain",0.5,0,1,0.01) : si.smoo);
 
-process = hgroup("My Vocoder",_,ge.lf_imptrain(freq)*gain : 
-	ef.vocoder(bands,att,rel,BWRatio) <: _,_);
+process = hgroup("My Vocoder",_,os.lf_imptrain(freq)*gain : 
+	ve.vocoder(bands,att,rel,BWRatio) <: _,_);

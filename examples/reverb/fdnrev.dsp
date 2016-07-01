@@ -26,7 +26,7 @@ deflens = (56.3,63.0); // 2 default min and max path lengths
 //========================================================================================
 
 fdn_group(x)  = vgroup("FEEDBACK DELAY NETWORK (FDN) REVERBERATOR, ORDER 16
-    [tooltip: See Faust's effect.lib for documentation and references]", x);
+    [tooltip: See Faust's reverb.lib for documentation and references]", x);
 
 freq_group(x)  = fdn_group(vgroup("[1] Band Crossover Frequencies", x));
 t60_group(x)  = fdn_group(hgroup("[2] Band Decay Times (T60)", x));
@@ -61,7 +61,7 @@ freqvals(i) = freq_group(hslider("[%i] Band %i upper edge in Hz [unit:Hz] [scale
     decay-time control in each band]",ba.take(i+1,deffreqs), 100, 10000, 1));
 freqs = par(i,NB-1,freqvals(i));
 
-delays = ef.prime_power_delays(N,pathmin,pathmax);
+delays = de.prime_power_delays(N,pathmin,pathmax);
 
 gain = hslider("[3] Output Level (dB) [unit:dB][tooltip: Output scale factor]", 
 	-40, -70, 20, 0.1) : ba.db2linear;
@@ -72,5 +72,5 @@ gain = hslider("[3] Output Level (dB) [unit:dB][tooltip: Output scale factor]",
 //========================================================================================
 
 process = dm.stereo_reverb_tester(revin_group)
-          <: ef.fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl)
+          <: re.fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl)
           :> *(gain),*(gain);

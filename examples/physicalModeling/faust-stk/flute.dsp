@@ -104,9 +104,9 @@ env2 = en.asr(env2Attack,100,env2Release,gate)*0.5;
 //Vibrato Envelope
 vibratoEnvelope = envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*vibratoGain; 
 
-vibrato = ge.osc(vibratoFreq)*vibratoEnvelope;
+vibrato = os.osc(vibratoFreq)*vibratoEnvelope;
 
-breath = ge.noise*env1;
+breath = no.noise*env1;
 
 flow = env1 + breath*breathAmp + vibrato;
 

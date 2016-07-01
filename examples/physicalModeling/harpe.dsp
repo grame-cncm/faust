@@ -15,7 +15,7 @@ process = harpe(11); 	// an 11 strings harpe
 //-----------------------------------------------
 // 		String simulation
 //-----------------------------------------------
-string(freq, att, level, trig) = ge.noise*level
+string(freq, att, level, trig) = no.noise*level
 							: *(trig : trigger(freq2samples(freq)))
 							: resonator(freq2samples(freq), att)
 	with {

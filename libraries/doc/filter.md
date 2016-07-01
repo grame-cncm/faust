@@ -187,7 +187,7 @@ Where:
 ### `rev1`
 Special case of `fb_comb` (`rev1(maxdel,N,g)`).
 The "rev1 section" dates back to the 1960s in computer-music reverberation.
-See the `jcrev` and `brassrev` in `effect.lib` for usage examples.
+See the `jcrev` and `brassrev` in `misceffect.lib` for usage examples.
 
 ---
 
@@ -252,7 +252,7 @@ Where:
 ### `rev2`
 Special case of `allpass_comb` (`rev2(maxlen,len,g)`).
 The "rev2 section" dates back to the 1960s in computer-music reverberation.
-See the `jcrev` and `brassrev` in `effect.lib` for usage examples.
+See the `jcrev` and `brassrev` in `misceffect.lib` for usage examples.
 
 ---
 
@@ -440,7 +440,7 @@ Where:
 * `av`: parallel signal bank `a1,...,aN`
 * `sv`: parallel signal bank `s1,...,sN`
 
-where `si = ith` reflection coefficient, and
+where `ro = ith` reflection coefficient, and
       `ai` = coefficient of `z^(-i)` in the filter
          transfer-function denominator `A(z)`.
 

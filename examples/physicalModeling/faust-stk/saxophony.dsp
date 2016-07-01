@@ -89,11 +89,11 @@ delay2 = de.fdelay(4096,fdel2);
 
 //Breath pressure is controlled by an attack / sustain / release envelope (asr is declared in instrument.lib)
 envelope = (0.55+pressure*0.3)*en.asr(pressure*envelopeAttack,100,pressure*envelopeRelease,gate);
-breath = envelope + envelope*noiseGain*ge.noise;
+breath = envelope + envelope*noiseGain*no.noise;
 
 //envVibrato is decalred in instrument.lib
 vibrato = vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*osc(vibratoFreq);
-breathPressure = breath + breath*vibratoGain*ge.osc(vibratoFreq);
+breathPressure = breath + breath*vibratoGain*os.osc(vibratoFreq);
 
 //Body filter is a one zero filter (declared in instrument.lib)
 bodyFilter = *(gain) : oneZero1(b0,b1)

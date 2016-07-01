@@ -70,7 +70,7 @@ import("stdfaust.lib");
 // * `gate`: the trigger signal (0 or 1)
 //----------------------------------------------------------------------------------------
 // TODO: author RM
-popFilterDrum(freq,q,gate) = en.ar(0.001,0.001,gate)*ge.noise : fi.resonbp(freq,q,1);
+popFilterDrum(freq,q,gate) = en.ar(0.001,0.001,gate)*no.noise : fi.resonbp(freq,q,1);
 
 
 //---------------------------------------`dubDub`-----------------------------------------
@@ -90,7 +90,7 @@ popFilterDrum(freq,q,gate) = en.ar(0.001,0.001,gate)*ge.noise : fi.resonbp(freq,
 // * `gate`: the trigger signal (0 or 1)
 //----------------------------------------------------------------------------------------
 // TODO: author RM
-dubDub(freq,ctFreq,q,gate) = ge.sawtooth(freq)*gainEnvelope : fi.resonlp(ctFreq,q,1)
+dubDub(freq,ctFreq,q,gate) = os.sawtooth(freq)*gainEnvelope : fi.resonlp(ctFreq,q,1)
 with{
 	maxGain = 0.5;
 	gainEnvelope = en.smoothEnvelope(0.01,gate)*maxGain;
@@ -114,7 +114,7 @@ with{
 // * `gate`: the gate (0 or 1)
 //----------------------------------------------------------------------------------------
 // TODO: author RM
-sawTrombone(freq,gain,gate) = ge.sawtooth(freq)*gainEnvelope : fi.lowpass(3,cutoff)
+sawTrombone(freq,gain,gate) = os.sawtooth(freq)*gainEnvelope : fi.lowpass(3,cutoff)
 with{
 	// controls both the gain of the instrument and the lowpass frequency
 	gainEnvelope = en.smoothEnvelope(0.01,gate)*gain;
@@ -144,7 +144,7 @@ with{
 	N = ma.SR/freq;
 	b0 = 1;
 	aN = ba.tau2pole(res*0.001)*-1;
-	excitation = ge.noise*en.ar(0.001,0.001,gate);
+	excitation = no.noise*en.ar(0.001,0.001,gate);
 };
 
 
@@ -172,7 +172,7 @@ with{
 // * `gate`: trigger signal (0 or 1)
 //----------------------------------------------------------------------------------------
 // TODO: author RM
-additiveDrum(freq,freqRatio,gain,modeDec,att,rel,gate) = par(i,N,ge.osc(modeFreq(i))*gainEnvelope(i)) :> _
+additiveDrum(freq,freqRatio,gain,modeDec,att,rel,gate) = par(i,N,os.osc(modeFreq(i))*gainEnvelope(i)) :> _
 with{
 	N = ba.count(freqRatio);
 	modeFreq(i) = freq*ba.take(i+1,freqRatio);
@@ -204,8 +204,8 @@ with{
 	N = ba.count(freqs);
 	freq(i) = ba.take(N-i,freqs);
 	gain(i) = ba.take(N-i,indices);
-	fmBlock(0) = freq(0) : ge.osc;
-	fmBlock(i) = *(gain(i))*freq(i) : ge.osc;
+	fmBlock(0) = freq(0) : os.osc;
+	fmBlock(i) = *(gain(i))*freq(i) : os.osc;
 };
 
 

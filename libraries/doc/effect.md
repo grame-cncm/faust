@@ -1,11 +1,11 @@
 
-# effect.lib 
+# misceffect.lib 
 This library contains a collection of audio effects.
 
 It should be used using the `ef` environment:
 
 ```
-ef = library("effect.lib");
+ef = library("misceffect.lib");
 process = ef.functionCall;
 ```
 

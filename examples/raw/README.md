@@ -1,1 +1,0 @@
-This folder contains Faust objects where the main funcion

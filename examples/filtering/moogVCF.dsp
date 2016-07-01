@@ -11,7 +11,7 @@ import("stdfaust.lib");
 //========================================================================================
 
 mvcf_group(x) = hgroup("MOOG VCF (Voltage Controlled Filter) [tooltip: See Faust's 
-	effect.lib for info and references]",x);
+	vaeffect.lib for info and references]",x);
 cb_group(x) = mvcf_group(hgroup("[0]",x));
 
 bp = cb_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF 
@@ -33,8 +33,8 @@ res = mvcf_group(hslider("[2] Corner Resonance [style:knob] [tooltip: Amount of
 outgain  = mvcf_group(hslider("[3] VCF Output Level [unit:dB] [style:knob] [tooltip: 
 	output level in decibels]", 5, -60, 20, 0.1)) : ba.db2linear : si.smoo;
 
-vcfbq = _ <: select2(bqsw, ef.moog_vcf_2b(res,freq), ef.moog_vcf_2bn(res,freq));
-vcfarch = _ <: select2(archsw, ef.moog_vcf(res^4,freq), vcfbq);
+vcfbq = _ <: select2(bqsw, ve.moog_vcf_2b(res,freq), ve.moog_vcf_2bn(res,freq));
+vcfarch = _ <: select2(archsw, ve.moog_vcf(res^4,freq), vcfbq);
 vcf = vcfarch : *(outgain);
 
 process = ba.bypass1(bp,vcf);

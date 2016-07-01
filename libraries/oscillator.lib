@@ -1,19 +1,19 @@
-//############################## generator.lib ##########################################
+//############################## oscillator.lib ##########################################
 // This library contains a collection of sound generators.
 //
-// It should be used using the `ge` environment:
+// It should be used using the `os` environment:
 //
 // ```
-// ge = library("generator.lib");
-// process = ge.functionCall;
+// os = library("oscillator.lib");
+// process = os.functionCall;
 // ```
 //
-// Another option is to import `stdfaust.lib` which already contains the `ge`
+// Another option is to import `stdfaust.lib` which already contains the `os`
 // environment:
 //
 // ```
 // import("stdfaust.lib");
-// process = ge.functionCall;
+// process = os.functionCall;
 // ```
 //########################################################################################
 
@@ -49,145 +49,10 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-declare name "Faust Generator Library";
+declare name "Faust Oscillator Library";
 declare version "0.0";
 
 import("stdfaust.lib");
-
-//========================================Noises==========================================
-//========================================================================================
-
-//-------`noise()`----------
-// White noise generator (outputs random number between -1 and 1).
-// 
-// #### Usage
-//
-// ```
-// noise : _
-// ```
-//------------------------
-noise = random / RANDMAX
-with{
-	random = +(12345) ~ *(1103515245); // "linear congruential"
-	RANDMAX	= 2147483647.0; // = 2^31-1 = MAX_SIGNED_INT in 32 bits
-};
-
-//---------------------`multirandom(n)`--------------------------
-// Generates multiple decorrelated random numbers 
-// in parallel. 
-//
-// #### Usage
-// ```
-// multirandom(n) : _
-// ```
-//
-// Where:
-//
-// * `n`: the number of decorrelated random numbers in parallel
-//-------------------------------------------------------------
-multirandom(n) = randomize(n) ~_
-with {
-	randomize (1) 	= +(12345) : *(1103515245);
-	randomize (n) 	= randomize(1) <: randomize(n-1),_;
-};
-
-//-----------------------`multinoise(n)`------------------------
-// Generates multiple decorrelated noises
-// in parallel.
-//
-// #### Usage
-//
-// ```
-// multinoise(n) : _
-// ```
-//
-// Where:
-//
-// * `n`: the number of decorrelated random numbers in parallel
-//------------------------------------------------------------
-multinoise(n) = multirandom(n) : par(i,n,/(RANDMAX)) 
-with { 
-	RANDMAX = 2147483647.0; 
-};
-
-
-//-----------------------`noises(n,i)`------------------------
-// TODO: not sure what the point is with this one.
-//----------------------------------------------------------
-noises(N,i) = multinoise(N) : ba.selector(i,N);
-
-
-//---------------------------`pink_noise`--------------------------
-// Pink noise (1/f noise) generator (third-order approximation)
-//
-// #### Usage
-//
-// ```
-// pink_noise : _;
-// ```
-//
-// #### Reference:
-//
-// <https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html>
-//------------------------------------------------------------
-// TODO: author JOS, revised by RM
-
-pink_filter = fi.iir((0.049922035, -0.095993537, 0.050612699, -0.004408786),
-                    (-2.494956002, 2.017265875, -0.522189400));
-
-pink_noise = noise : pink_filter;
-
-//-------------------------`pink_noise_vm`-------------------
-// Multi pink noise generator.
-//
-// #### Usage
-//
-// ```
-// pink_noise_vm(N) : _;
-// ```
-//
-// Where: 
-//
-// * `N`: number of latched white-noise processes to sum,
-// 	not to exceed sizeof(int) in C++ (typically 32).
-//
-// #### References
-// 
-// * <http://www.dsprelated.com/showarticle/908.php>
-// * <http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney>
-//------------------------------------------------------------
-// TODO: author JOS, revised by RM
-pink_noise_vm(N) = noise <: _,par(i,N,ba.latch(clock(i))) :> _
-with {
-  clock(i) = (ba.time>>i)&1; // i'th latch clock signal
-};
-
-//-----------------------`lfnoise`, `lfnoise0` and `lfnoiseN`---------------------
-// Low-frequency noise generators (Butterworth-filtered downsampled white noise)
-//
-// #### Usage
-//
-// ```
-// lfnoise0(rate) : _;   // new random number every int(SR/rate) samples or so
-// lfnoiseN(N,rate) : _; // same as "lfnoise0(rate) : lowpass(N,rate)" [see filter.lib]
-// lfnoise(rate) : _;    // same as "lfnoise0(rate) : seq(i,5,lowpass(N,rate))" (no overshoot)
-// ```
-//
-// #### Example 
-//
-// (view waveforms in faust2octave):
-//
-// ```
-// rate = SR/100.0; // new random value every 100 samples (SR from music.lib)
-// process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
-//           lfnoiseN(3,rate), // lfnoise0 smoothed by 3rd order Butterworth LPF
-//           lfnoise(rate);    // lfnoise0 smoothed with no overshoot
-// ```
-//------------------------------------------------------------
-// TODO: author JOS, revised by RM
-lfnoise0(freq) = noise : ba.latch(oscrs(freq));
-lfnoiseN(N,freq) = lfnoise0(freq) : fi.lowpass(N,freq); // Nth-order Butterworth lowpass
-lfnoise(freq) = lfnoise0(freq) : seq(i,5,fi.lowpass(1,freq)); // non-overshooting lowpass
 
 
 //=========================Wave-Table-Based Oscillators===================================
@@ -604,8 +469,8 @@ pulsetrain = pulsetrainN(2);
 squareN(N,freq) = pulsetrainN(N,freq,0.5);
 square = squareN(2);
 
-impulse = 1-1'; // TODO: may be this should be moved to signal.lib
-imptrainN(N,freq) = impulse + 0.5*si.diffn(sawN(N,freq));
+impulse = 1-1'; // TODO: may be this should be moved to route.lib
+imptrainN(N,freq) = impulse + 0.5*ma.diffn(sawN(N,freq));
 imptrain = imptrainN(2); // default based on saw2
 
 triangleN(N,freq) = squareN(N,freq) : fi.pole(p) : *(gain) with {

@@ -586,4 +586,17 @@ chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
 		L(n,c)      = chebychev(n)*c;
 	};
 
+	
+//------------------`diffn(x)`----------------------------
+// Negated first-roder difference.
+//
+// #### Usage
+//
+// ```
+// _ : diffn : _
+// ```
+//--------------------------------------------------------
+// TODO: author JOS, revised by RM
+diffn(x) = x' - x; // negated first-order difference
+
 

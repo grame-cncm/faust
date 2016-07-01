@@ -19,14 +19,14 @@ knob_group(x)  = comp_group(hgroup("[1]", x));
 
 cbp = meter_group(checkbox("[0] Bypass  [tooltip: When this is checked, the compressor 
 	has no effect]"));
-gainview = ef.compression_gain_mono(ratio,threshold,attack,release) : ba.linear2db :
+gainview = co.compression_gain_mono(ratio,threshold,attack,release) : ba.linear2db :
      meter_group(hbargraph("[1] Compressor Gain [unit:dB] [tooltip: Current gain of 
      the compressor in dB]",-50,+10));
 
 displaygain = _,_ <: _,_,(abs,abs:+) : _,_,gainview : _,attach;
 
 compressor_stereo_demo =
-     displaygain(ef.compressor_stereo(ratio,threshold,attack,release)) :
+     displaygain(co.compressor_stereo(ratio,threshold,attack,release)) :
      *(makeupgain), *(makeupgain);
 
 ctl_group(x)  = knob_group(hgroup("[3] Compression Control", x));

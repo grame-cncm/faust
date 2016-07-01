@@ -17,23 +17,23 @@ osc_group(x) = vgroup("[0] VIRTUAL ANALOG OSCILLATORS
 // Signals
 sawchoice = _ <:
 // When MAX_SAW_ORDER is a power of 2:
-par(i,ge.MAX_SAW_ORDER,ge.sawN(i+1)) : ba.selectn(int(ge.MAX_SAW_ORDER), int(saworder-1));
+par(i,os.MAX_SAW_ORDER,os.sawN(i+1)) : ba.selectn(int(os.MAX_SAW_ORDER), int(saworder-1));
 // When MAX_SAW_ORDER is NOT a power of 2:
 // (par(i,MAX_SAW_ORDER,sawN(i+1)), par(j,MAX_SAW_ORDER_NEXTPOW2-MAX_SAW_ORDER,_))
 //   : selectn(MAX_SAW_ORDER_NEXTPOW2, saworder-1);
 saw = (amp/3) *
 	(sawchoice(sfreq) + sawchoice(sfreq*detune1) + sawchoice(sfreq*detune2));
 sq = (amp/3) *
-    (ge.square(sfreq) + ge.square(sfreq*detune1) + ge.square(sfreq*detune2));
+    (os.square(sfreq) + os.square(sfreq*detune1) + os.square(sfreq*detune2));
 tri = (amp/3) *
-    (ge.triangle(sfreq) + ge.triangle(sfreq*detune1) + ge.triangle(sfreq*detune2));
-pt = (amp/3) * (ge.pulsetrain(sfreq,ptd)
-                + ge.pulsetrain(sfreq*detune1,ptd)
-                + ge.pulsetrain(sfreq*detune2,ptd));
-ptN = (amp/3) * (ge.pulsetrainN(N,sfreq,ptd)
-                + ge.pulsetrainN(N,sfreq*detune1,ptd)
-                + ge.pulsetrainN(N,sfreq*detune2,ptd)) with {N=3;};
-pn = amp * ge.pink_noise;
+    (os.triangle(sfreq) + os.triangle(sfreq*detune1) + os.triangle(sfreq*detune2));
+pt = (amp/3) * (os.pulsetrain(sfreq,ptd)
+                + os.pulsetrain(sfreq*detune1,ptd)
+                + os.pulsetrain(sfreq*detune2,ptd));
+ptN = (amp/3) * (os.pulsetrainN(N,sfreq,ptd)
+                + os.pulsetrainN(N,sfreq*detune1,ptd)
+                + os.pulsetrainN(N,sfreq*detune2,ptd)) with {N=3;};
+pn = amp * no.pink_noise;
 
 signal = ssaw*saw + ssq*sq + stri*tri
            + spt*((ssptN*ptN)+(1-ssptN)*pt)
@@ -81,7 +81,7 @@ portamento = knob_group(
     [tooltip: Portamento (frequency-glide) time-constant in seconds]",
     0.1,0.001,10,0.001));
 saworder = knob_group(nentry("[6] Saw Order [tooltip: Order of sawtooth aliasing 
-suppression]",2,1,ge.MAX_SAW_ORDER,1));
+suppression]",2,1,os.MAX_SAW_ORDER,1));
 sfreq = freq : si.smooth(ba.tau2pole(portamento));
 
 

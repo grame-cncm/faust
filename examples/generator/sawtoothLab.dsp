@@ -11,7 +11,7 @@ import("stdfaust.lib");
 //==================================== GUI Declaration ===================================
 //========================================================================================
 
-osc_group(x) = vgroup("[0] SAWTOOTH OSCILLATOR [tooltip: See Faust's generator.lib 
+osc_group(x) = vgroup("[0] SAWTOOTH OSCILLATOR [tooltip: See Faust's oscillator.lib 
 	for documentation and references]",x);
 knob_group(x)  = osc_group(hgroup("[1]", x));
 ampdb  = knob_group(vslider("[1] Amplitude [unit:dB] [style:knob] [tooltip: Sawtooth 
@@ -28,12 +28,12 @@ portamento = knob_group(vslider("[5] Portamento [unit:sec] [style:knob] [scale:l
     [tooltip: Portamento (frequency-glide) time-constant in seconds]",0.1,0.001,10,0.001));
 sfreq = freq : si.smooth(ba.tau2pole(portamento));
 saworder = knob_group(nentry("[6] Saw Order [tooltip: Order of sawtootn aliasing 
-	suppression]",2,1,ge.MAX_SAW_ORDER,1));
-sawchoice = _ <: par(i,ge.MAX_SAW_ORDER,ge.sawN(i+1)) : 
-	ba.selectn(int(ge.MAX_SAW_ORDER), int(saworder-1)); // when max is pwr of 2
+	suppression]",2,1,os.MAX_SAW_ORDER,1));
+sawchoice = _ <: par(i,os.MAX_SAW_ORDER,os.sawN(i+1)) : 
+	ba.selectn(int(os.MAX_SAW_ORDER), int(saworder-1)); // when max is pwr of 2
 tone = (amp/3) * (sawchoice(sfreq) + sawchoice(sfreq*detune1) + sawchoice(sfreq*detune2));
 signal = amp * select2(ei, select2(ss, tone, white_or_pink_noise), _);
-white_or_pink_noise = select2(wp,ge.noise,ge.pink_noise);
+white_or_pink_noise = select2(wp,no.noise,no.pink_noise);
 checkbox_group(x) = knob_group(vgroup("[7] Alternate Signals",x));
 ss = checkbox_group(checkbox("[0] Noise (White or Pink - uses only Amplitude control on 
 	the left)"));

@@ -84,7 +84,7 @@ boreDelay = de.fdelay(4096,slideTarget);
 //----------------------- Algorithm implementation ----------------------------
 
 //vibrato
-vibrato = vibratoGain*ge.osc(vibratoFreq)*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate);
+vibrato = vibratoGain*os.osc(vibratoFreq)*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate);
 
 //envelope (Attack / Decay / Sustain / Release), breath pressure and vibrato
 breathPressure = pressure*en.adsr(envelopeAttack,envelopeDecay,100,envelopeRelease,gate) + vibrato;

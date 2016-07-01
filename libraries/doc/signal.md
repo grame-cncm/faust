@@ -1,12 +1,12 @@
 
-# signal.lib 
+# route.lib 
 A library of basic elements to handle signals in Faust.
 
 It should be used using the `si` environment:
 
 ```
-si = library("signal.lib");
-process = si.functionCall;
+ro = library("route.lib");
+process = ro.functionCall;
 ```
 
 Another option is to import `stdfaust.lib` which already contains the `si`
@@ -14,7 +14,7 @@ environment:
 
 ```
 import("stdfaust.lib");
-process = si.functionCall;
+process = ro.functionCall;
 ```
 
 ## Functions Reference

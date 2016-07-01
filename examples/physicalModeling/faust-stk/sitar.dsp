@@ -28,7 +28,7 @@ envelope = en.adsr(0.001,0.04,100,0.5,gate);
 
 //the delay length is randomly modulated
 targetDelay = ma.SR/freq;
-delayLength = targetDelay*((1+(0.5*ge.noise)) : si.smooth(0.9992));
+delayLength = targetDelay*((1+(0.5*no.noise)) : si.smooth(0.9992));
 delayLine = de.delay(4096,delayLength);
 
 //the loop gain control the resonance duration
@@ -43,5 +43,5 @@ filter = oneZero1(b0,b1)
 		b1 = -zero*b0;
 	};
 
-process = (*(loopGain) : filter + (envelope*ge.noise*amGain))~delayLine : *(8) : 
+process = (*(loopGain) : filter + (envelope*no.noise*amGain))~delayLine : *(8) : 
 stereo : instrReverb;

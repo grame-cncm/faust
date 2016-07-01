@@ -233,7 +233,7 @@ fb_fcomb(maxdel,N,b0,aN) = (+ <: de.fdelay(maxdel,float(N)-1.0),_) ~ *(-aN) : !,
 //-----------------------`rev1`-----------------------
 // Special case of `fb_comb` (`rev1(maxdel,N,g)`).
 // The "rev1 section" dates back to the 1960s in computer-music reverberation.
-// See the `jcrev` and `brassrev` in `effect.lib` for usage examples.
+// See the `jcrev` and `brassrev` in `reverb.lib` for usage examples.
 //------------------------------------------------------------
 // TODO: author JOS
 rev1(maxdel,N,g) = fb_comb (maxdel,N,1,-g);
@@ -300,7 +300,7 @@ allpass_fcomb(maxdel,N,aN) = (+ <: de.fdelay(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_
 //-----------------------`rev2`-----------------------
 // Special case of `allpass_comb` (`rev2(maxlen,len,g)`).
 // The "rev2 section" dates back to the 1960s in computer-music reverberation.
-// See the `jcrev` and `brassrev` in `effect.lib` for usage examples.
+// See the `jcrev` and `brassrev` in `reverb.lib` for usage examples.
 //------------------------------------------------------------
 rev2(maxlen,len,g) = allpass_comb(maxlen,len,-g);
 
@@ -542,7 +542,7 @@ tf21t(b0,b1,b2,a1,a2) = // tf2, direct-form 1 transposed:
 // * `av`: parallel signal bank `a1,...,aN`
 // * `sv`: parallel signal bank `s1,...,sN`
 // 
-// where `si = ith` reflection coefficient, and
+// where `ro = ith` reflection coefficient, and
 //       `ai` = coefficient of `z^(-i)` in the filter
 //          transfer-function denominator `A(z)`.
 //
@@ -640,8 +640,8 @@ allpassnt(n,sv) =
 //0:   x <: ((+ <: (allpassnt(n-1,sv)),*(s))~(*(-s))) : _',_ :+
        _ : ((+ <: (allpassnt(n-1,sv),*(s)))~*(-s)) : fsec(n)
 with {
-  fsec(1) = si.crossnn(1) : _, (_<:mem,_) : +,_;
-  fsec(n) = si.crossn1(n) : _, (_<:mem,_),par(i,n-1,_) : +, par(i,n,_);
+  fsec(1) = ro.crossnn(1) : _, (_<:mem,_) : +,_;
+  fsec(n) = ro.crossn1(n) : _, (_<:mem,_),par(i,n-1,_) : +, par(i,n,_);
   innertaps(n) = par(i,n,_);
   s = ba.take(n,sv); // reflection coefficient s = sin(theta)
 };
@@ -743,12 +743,12 @@ with {
 // TODO: might need more info for the documentation
 // TODO: author JOS, revised by RM
 allpassn1mt(0,sv) = _;
-allpassn1mt(n,sv)= _ <: _,_ : ((+:*(s) <: _,_),_ : _,+ : si.crossnn(1)
+allpassn1mt(n,sv)= _ <: _,_ : ((+:*(s) <: _,_),_ : _,+ : ro.crossnn(1)
 		  : allpassn1mt(n-1,sv),_)~(*(-1)) : fsec(n)
 with {
 //0:  fsec(n) = _',_ : +
-  fsec(1) = si.crossnn(1) : _, (_<:mem,_) : +,_;
-  fsec(n) = si.crossn1(n) : _, (_<:mem,_),par(i,n-1,_) : +, par(i,n,_);
+  fsec(1) = ro.crossnn(1) : _, (_<:mem,_) : +,_;
+  fsec(n) = ro.crossn1(n) : _, (_<:mem,_),par(i,n-1,_) : +, par(i,n,_);
   innertaps(n) = par(i,n,_);
   s = ba.take(n,sv); // reflection coefficient s = sin(theta)
 };
@@ -1878,6 +1878,38 @@ spectral_tilt(N,f0,bw,alpha) = seq(i,N,sec(i)) with {
     r = (f1/f0)^(1.0/float(N-1)); // pole ratio (2 => octave spacing)
   };
 };
+
+
+//----------------------`levelfilter` and `levelfilterN`----------------------
+// Dynamic level lowpass filter.
+//
+// #### Usage
+//
+// ```
+// _ : levelfilter(L,freq) : _
+// _ : levelfilterN(N,freq,L) : _
+// ```
+//
+// Where:
+//
+// * `L`: desired level (in dB) at Nyquist limit (SR/2), e.g., -60
+// * `freq`: corner frequency (-3dB point) usually set to fundamental freq
+// * `N`: Number of filters in series where L = L/N
+//
+// #### Reference
+//
+// <https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html>
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
+levelfilter(L,freq,x) = (L * L0 * x) + ((1.0-L) * lp2out(x))
+with {
+  L0 = pow(L,1/3);
+  Lw = ma.PI*freq/ma.SR; // = w1 T / 2
+  Lgain = Lw / (1.0 + Lw);
+  Lpole2 = (1.0 - Lw) / (1.0 + Lw);
+  lp2out = *(Lgain) : + ~ *(Lpole2);
+};
+levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 
 
 //=================================Mth-Octave Filter-Banks================================

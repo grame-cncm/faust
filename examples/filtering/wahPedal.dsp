@@ -23,4 +23,4 @@ fr = wah4_group(hslider("[1] Resonance Frequency [scale:log] [tooltip: wah reson
 //============================================ DSP =======================================
 //========================================================================================
 
-process = ba.bypass1(bp, ef.wah4(fr));
+process = ba.bypass1(bp, ve.wah4(fr));

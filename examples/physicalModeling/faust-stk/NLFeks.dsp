@@ -47,7 +47,7 @@ frequencyMod = hslider("freqMod",220,20,1000,0.1) : si.smoo;
 //----------------------- noiseburst -------------------------
 // White noise burst (adapted from Faust's karplus.dsp example)
 // Requires music.lib (for noise)
-noiseburst(gate,P) = ge.noise : *(gate : trigger(P))
+noiseburst(gate,P) = no.noise : *(gate : trigger(P))
 with {
   diffgtz(x) = (x-x') > 0;
   decay(n,x) = x - (x>0)/n;
@@ -62,7 +62,7 @@ Pmax = 4096; // maximum P (for delay-line allocation)
 ppdel = beta*P; // pick position delay
 pickposfilter = fi.ffcombfilter(Pmax,ppdel,-1); 
 
-excitation = noiseburst(gate,P) : *(gain); // defined in signal.lib
+excitation = noiseburst(gate,P) : *(gain); // defined in route.lib
 
 rho = pow(0.001,1.0/(freq*t60)); // multiplies loop-gain
 
