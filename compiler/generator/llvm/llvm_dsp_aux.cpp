@@ -309,7 +309,7 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
         if (ErrMsg) *ErrMsg = EC.message();
         return NULL;
     } else {
-        return ModuleOrErr.get().get();
+        return ModuleOrErr.get().release();
     }
 }
 #endif
