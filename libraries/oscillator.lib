@@ -124,7 +124,7 @@ with{
 };
 
 //-----------------------`osc(freq)`------------------------
-// Sine wave oscillator (same as `oscsin`).
+// Default sine wave oscillator (same as `oscrs`).
 //
 // #### Usage
 //
@@ -136,7 +136,8 @@ with{
 //
 // * `freq`: the frequency of the wave (Hz)
 //------------------------------------------------------------
-osc	= oscsin;
+//osc	= oscsin;
+osc	= oscrs;
 
 //-----------------------`oscos(freq)`------------------------
 // Cosine wave oscillator.

@@ -104,7 +104,7 @@ parametric_eq_demo = component("examples/filtering/parametricEqualizer.dsp");
 // All other parameters interactive
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-spectral_tilt_demo(N) = component("examples/filtering/parametricEqualizer.dsp")[O = N;];
+spectral_tilt_demo(N) = component("examples/filtering/spectralTilt.dsp")[O = N;];
 
 
 //---------`mth_octave_filterbank_demo` and `filterbank_demo`-------------

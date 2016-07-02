@@ -85,7 +85,7 @@ Where:
 
 
 ### `osc(freq)`
-Sine wave oscillator (same as `oscsin`).
+Default sine wave oscillator (same as `oscrs`).
 
 #### Usage
 
