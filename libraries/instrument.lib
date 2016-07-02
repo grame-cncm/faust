@@ -272,7 +272,7 @@ stereoizer(periodDuration) = _ <: _,widthdelay : stereopanner
 //  _,_ : instrRerveb
 
 instrReverb = _,_ <: *(reverbGain),*(reverbGain),*(1 - reverbGain),*(1 - reverbGain) :
-de.zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ <: _,!,_,!,!,_,!,_ : +,+
+dm.zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ <: _,!,_,!,!,_,!,_ : +,+
        with{
        reverbGain = hslider("v:Reverb/reverbGain",0.137,0,1,0.01) : si.smoo;
        roomSize = hslider("v:Reverb/roomSize",0.72,0.01,2,0.01);
