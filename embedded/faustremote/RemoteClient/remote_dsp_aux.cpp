@@ -1057,7 +1057,7 @@ EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory,
                                             int& error)
 {
     if (isLocalFactory(factory)) {
-        return reinterpret_cast<remote_dsp*>(createDSPInstance(reinterpret_cast<llvm_dsp_factory*>(factory)));
+        return reinterpret_cast<remote_dsp*>(reinterpret_cast<llvm_dsp_factory*>(factory)->createDSPInstance());
     } else {
         RemoteFactoryDSPTableIt it;
         if ((it = remote_dsp_factory::gRemoteFactoryDSPTable.find(factory)) != remote_dsp_factory::gRemoteFactoryDSPTable.end()) {
@@ -1074,11 +1074,15 @@ EXPORT void deleteRemoteDSPInstance(remote_dsp* dsp)
 {
     remote_dsp_factory* factory = reinterpret_cast<remote_dsp_aux*>(dsp)->getFactory();
     
+    /*
     if (isLocalFactory(factory))  {
         deleteDSPInstance(reinterpret_cast<llvm_dsp*>(dsp));
     } else {
         delete reinterpret_cast<remote_dsp_aux*>(dsp); 
     }
+    */
+    
+    delete dsp; // TO CHECK
 }
 
 EXPORT void remote_dsp::metadata(Meta* m)

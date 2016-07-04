@@ -323,9 +323,9 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
 ::dsp* faustgen_factory::create_dsp_instance(int poly)
 {
     if (poly > 0) {
-        return new mydsp_poly(poly, createDSPInstance(fDSPfactory), true);
+        return new mydsp_poly(fDSPfactory->createDSPInstance(), poly, true);
     } else {
-        return createDSPInstance(fDSPfactory);
+        return fDSPfactory->createDSPInstance();
     }
 }
 
@@ -346,8 +346,8 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     if (fBitCodeSize > 0) {
         fDSPfactory = create_factory_from_bitcode();
         if (fDSPfactory) {
-            metadataDSPFactory(fDSPfactory, &meta);
             dsp = create_dsp_instance();
+            dsp->metadata(&meta);
             post("Compilation from bitcode succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
             goto end; 
         }
@@ -357,8 +357,8 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     if (fSourceCodeSize > 0) {
         fDSPfactory = create_factory_from_sourcecode();
         if (fDSPfactory) {
-            metadataDSPFactory(fDSPfactory, &meta);
             dsp = create_dsp_instance();
+            dsp->metadata(&meta);
             post("Compilation from source code succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
             goto end; 
         } 
@@ -393,8 +393,8 @@ void faustgen_factory::make_json(::dsp* dsp)
 {
     // Prepare JSON
     JSONUI builder(m_siginlets, m_sigoutlets);
-    metadataDSPFactory(fDSPfactory, &builder);
     dsp->buildUserInterface(&builder);
+    dsp->metadata(&builder);
     fJSON = builder.JSON();
 }
 
@@ -884,8 +884,10 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
         post("Start looking for optimal compilation options...");
          
 	#ifndef WIN32
+        /*
         FaustLLVMOptimizer optimizer(string(*fSourceCode), (*fLibraryPath.begin()).c_str(), getTarget(), sys_getblksize(), 3);
         fOptions = optimizer.findOptimize();
+        */
 	#endif
         
         post("Optimal compilation options found");
@@ -996,7 +998,6 @@ faustgen::~faustgen()
 
 void faustgen::free_dsp()
 {
-    //deleteDSPInstance(fDSP);
     delete fDSP;
     fDSP = 0;
     fDSPUI.clear();

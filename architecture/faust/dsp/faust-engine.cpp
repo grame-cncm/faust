@@ -108,10 +108,8 @@ struct dsp_aux {
     
 #ifdef LLVM_DSP
     llvm_dsp_factory* fFactory;
-    llvm_dsp* fDSP;
-#else
-    mydsp* fDSP;
 #endif
+    dsp* fDSP;
     audio* fDriver;
     APIUI fParams;
     string fJSON;
@@ -147,7 +145,7 @@ struct dsp_aux {
         }
     
         if (fFactory) {
-            fDSP = createDSPInstance(fFactory);
+            fDSP = fFactory->createDSPInstance();
             createJSON(name_app);
         } else {
             throw -1;
@@ -177,8 +175,8 @@ struct dsp_aux {
     {
         // JSON creation
         JSONUI json(name_app, fDSP->getNumInputs(), fDSP->getNumOutputs());
-        metadataDSPFactory(fFactory, &json);
         fDSP->buildUserInterface(&json);
+        fDSP->metadata(&json);
         fJSON = json.JSON();
     }
     

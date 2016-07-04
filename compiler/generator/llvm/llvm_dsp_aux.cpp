@@ -1521,20 +1521,6 @@ EXPORT dsp* llvm_dsp_factory::createDSPInstance()
     gLLVMFactoryTable.addDSP(this, instance);
     return instance;
 }
-
-    
-EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory)
-{  
-    TLock lock(gDSPFactoriesLock);
-    return  reinterpret_cast<llvm_dsp*>(factory->createDSPInstance());
-}
-
-EXPORT void deleteDSPInstance(llvm_dsp* dsp) 
-{
-    if (dsp) {
-        delete (reinterpret_cast<llvm_dsp_aux*>(dsp));
-    }
-}
         
 EXPORT void llvm_dsp::metadata(Meta* m)
 {

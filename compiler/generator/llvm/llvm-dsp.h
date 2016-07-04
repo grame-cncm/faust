@@ -26,6 +26,8 @@
 #define FAUSTFLOAT float
 #endif
 
+#define DEPRECATED __attribute__ ((deprecated));
+
 #include <vector>
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
@@ -322,11 +324,12 @@ void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& 
 /**
  * Call global declarations with the given meta object.
  * 
+ * @deprecated : use DSP instance metadata method.
  * @param factory - the DSP factory
  * @param meta - the meta object to be used.
  *
  */
-void metadataDSPFactory(llvm_dsp_factory* factory, Meta* meta);
+void metadataDSPFactory(llvm_dsp_factory* factory, Meta* meta) DEPRECATED;
 
 /**
  * From a DSP source file, creates a 'self-contained' DSP source string where all needed librairies have been included.
@@ -415,18 +418,20 @@ class llvm_dsp : public dsp {
 /**
  * Create a Faust DSP instance.
  * 
+ * @deprecated : use factory createDSPInstance method.
  * @param factory - the DSP factory
  * 
  * @return the DSP instance on success, otherwise a null pointer.
  */
-llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
+llvm_dsp* createDSPInstance(llvm_dsp_factory* factory) DEPRECATED;
 
 /**
  * Delete a Faust DSP instance. You can also simply use C++ 'delete'. 
  * 
+ * @deprecated : simply use C++ delete.
  * @param dsp - the DSP instance to be deleted.
  */ 
-void deleteDSPInstance(llvm_dsp* dsp);
+void deleteDSPInstance(llvm_dsp* dsp) DEPRECATED;
 
 /**
  * Compute a SHA1 key from a string

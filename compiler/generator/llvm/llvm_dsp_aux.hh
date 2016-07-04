@@ -277,10 +277,6 @@ class EXPORT llvm_dsp : public dsp {
     
 };
 
-EXPORT llvm_dsp* createDSPInstance(llvm_dsp_factory* factory);
-
-EXPORT void deleteDSPInstance(llvm_dsp* dsp);
-
 #ifdef __cplusplus
 extern "C" {
 #endif

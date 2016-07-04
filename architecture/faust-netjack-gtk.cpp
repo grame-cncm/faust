@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
         exit(1);
     } else {
         factory = createDSPFactoryFromFile(argv[1], argc-2-inc_arg, (const char**)&argv[inc_arg+2], "", error_msg);
-        DSP = createDSPInstance(factory);
+        DSP = factory->createDSPInstance();
         if (!DSP) {
             std::cerr << error_msg;
             std::cerr << "Cannot load .dsp or .bc file" << std::endl;

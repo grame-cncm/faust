@@ -536,7 +536,7 @@ class FaustLLVMOptimizer {
             }
             */
             
-            fDSP = createDSPInstance(fFactory);
+            fDSP = fFactory->createDSPInstance();
             
             if (!fDSP)  {
                 cout << "Cannot create instance..." << endl;
@@ -545,7 +545,7 @@ class FaustLLVMOptimizer {
             
             res = bench();
             
-            deleteDSPInstance(fDSP);
+            delete fDSP;
             deleteDSPFactory(fFactory);
             fFactory = 0;
             fDSP = 0;

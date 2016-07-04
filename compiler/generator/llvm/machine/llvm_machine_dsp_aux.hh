@@ -182,8 +182,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_co
 // machine <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target);
 
-EXPORT void metadataDSPFactory(llvm_dsp_factory* factory, Meta* m);
-
 class EXPORT llvm_dsp : public dsp {
                 
     public:
