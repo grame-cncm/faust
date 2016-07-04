@@ -168,7 +168,7 @@ protected:
   , fRange(hi-lo) 
   {}
     
-  void update(BeagleRTContext *context) 
+  void update(BelaContext *context) 
   { 
     switch(fBelaPin)
     {
@@ -180,7 +180,7 @@ protected:
       case kANALOG_5:
       case kANALOG_6:
       case kANALOG_7:
-        *fZone = fMin + fRange * analogReadFrame(context, 0 /* TODO: average frame?*/, (int) fBelaPin);
+        *fZone = fMin + fRange * analogRead(context, 0 /* TODO: average frame?*/, (int) fBelaPin);
         break;
       case kDIGITAL_0:
       case kDIGITAL_1:
@@ -198,7 +198,7 @@ protected:
       case kDIGITAL_13:
       case kDIGITAL_14:
       case kDIGITAL_15:
-        *fZone = digitalReadFrame(context, 0 /* TODO: average frame?*/, ((int) fBelaPin - kDIGITAL_0)) > 0 ? fMin : fMin+fRange;
+        *fZone = digitalRead(context, 0 /* TODO: average frame?*/, ((int) fBelaPin - kDIGITAL_0)) > 0 ? fMin : fMin+fRange;
         break;
       default:
       break;
@@ -252,7 +252,7 @@ class BelaUI : public UI
   virtual ~BelaUI() {}
   
   // should be called before compute() to update widget's zones registered as Bela parameters
-  void update(BeagleRTContext *context)
+  void update(BelaContext *context)
   {
     for (int i=0; i<fIndex; i++)
       fTable[i].update(context);
@@ -319,9 +319,12 @@ BelaUI fUI;
 bela_midi fMIDI;
 MidiUI* fMidiUI;
 
-bool setup(BeagleRTContext *context, void *userData)
+bool setup(BelaContext *context, void *userData)
 {
-  gNumBuffers = context->audioChannels + context->analogChannels;
+  gNumBuffers = context->audioInChannels
+                + context->audioOutChannels
+                + context->analogInChannels
+                + context->analogOutChannels;
 //   rt_printf("context->audioFrames %i\n", context->audioFrames);
 //   rt_printf("context->audioChannels %i\n", context->audioChannels);
 //   rt_printf("context->analogChannels %i\n", context->analogChannels);
@@ -359,24 +362,24 @@ bool setup(BeagleRTContext *context, void *userData)
   return true;
 }
 
-void render(BeagleRTContext *context, void *userData)
+void render(BelaContext *context, void *userData)
 {
   // De-interleave the input data
   for(unsigned int frame = 0; frame < context->audioFrames; frame++)
   {
     for(unsigned int ch = 0; ch < gNumBuffers; ch++)
     {
-      if(ch >= context->audioChannels+context->analogChannels)
+      if(ch >= context->audioInChannels+context->analogInChannels)
         break;
-      if(ch >= context->audioChannels) // handle analogChannels
+      if(ch >= context->audioInChannels) // handle analogChannels
       {
         unsigned int m = frame/2;
-        float mIn = (float) context->analogIn[m * context->analogChannels + (ch-context->audioChannels)];
+        float mIn = (float) context->analogIn[m * context->analogInChannels + (ch-context->audioInChannels)];
         gInputBuffers[ch * context->audioFrames + frame] = mIn;
       }
-      else // handle audioChannels
+      else // handle audioInChannels
       {
-        gInputBuffers[ch * context->audioFrames + frame] = context->audioIn[frame * context->audioChannels + ch];
+        gInputBuffers[ch * context->audioFrames + frame] = context->audioIn[frame * context->audioInChannels + ch];
       }
     }
   }
@@ -391,14 +394,14 @@ void render(BeagleRTContext *context, void *userData)
   {
     for(unsigned int ch = 0; ch < gNumBuffers; ch++)
     {
-      if(ch >= context->audioChannels+context->analogChannels) 
+      if(ch >= context->audioOutChannels+context->analogOutChannels)
         break;
       else 
       {
-        if(ch >= context->audioChannels) // handle analogChannels
+        if(ch >= context->audioOutChannels) // handle analogChannels
         {
           unsigned int m = frame/2;
-          context->analogOut[m * context->analogFrames + (ch-context->audioChannels)] = gOutputBuffers[ch*context->audioFrames + frame];
+          context->analogOut[m * context->analogFrames + (ch-context->audioOutChannels)] = gOutputBuffers[ch*context->audioFrames + frame];
         } 
         else // handle audioChannels
         {
@@ -409,7 +412,7 @@ void render(BeagleRTContext *context, void *userData)
   }
 }
 
-void cleanup(BeagleRTContext *context, void *userData)
+void cleanup(BelaContext *context, void *userData)
 {
   if(gInputBuffers != NULL)
     free(gInputBuffers);
@@ -419,9 +422,6 @@ void cleanup(BeagleRTContext *context, void *userData)
   delete fMidiUI;
 }
 
-
-
 #endif // __FaustBela_H__
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
