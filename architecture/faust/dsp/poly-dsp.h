@@ -384,7 +384,7 @@ class mydsp_poly : public dsp, public midi {
         /**
          * Constructor.
          *
-         * @param dsp - the dsp to be used for one voice
+         * @param dsp - the dsp to be used for one voice. Beware : mydsp_poly will use and finally delete the pointer.
          * @param max_polyphony - number of voices of polyphony
          * @param control - whether voices will be dynamically allocated and controlled (typically by a MIDI controler). 
          *                 If false all voices are always running.
@@ -420,6 +420,8 @@ class mydsp_poly : public dsp, public midi {
             for (int i = 0; i < fMidiUIList.size(); i++) {
                 fMidiUIList[i]->removeMidiIn(this); 
             }
+            
+            delete fBaseDSP;
         }
     
         void init(int sample_rate)
