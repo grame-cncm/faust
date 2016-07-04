@@ -86,7 +86,11 @@ class FaustPolyEngine {
             delete fPolyDSP;
             delete fDriver;
         }
-
+    
+        /*
+         * init()
+         * Initialize the underlying audio driver with the DSP.
+         */
         bool init()
         {
             return fDriver->init("Dummy", (fPolyMax > 0) ? (dsp*)fPolyDSP : &fMonoDSP);
@@ -94,10 +98,8 @@ class FaustPolyEngine {
 
         /*
          * start()
-         * Begins the processing and return 1 if the connection
-         * with the audio device was successful and 0 if not.
-         * On Android it also creates the native thread where the
-         * DSP tasks will be computed.
+         * Begins the processing and return true if the connection
+         * with the audio device was successful and false if not.
          */
         bool start()
         {
@@ -109,7 +111,7 @@ class FaustPolyEngine {
         
         /*
          * isRunning()
-         * returns true if the DSP frames are being computed and
+         * Returns true if the DSP frames are being computed and
          * false if not.
          */
         bool isRunning() 
@@ -119,8 +121,7 @@ class FaustPolyEngine {
 
         /*
          * stop()
-         * Stops the processing, closes the audio engine and terminates
-         * the native thread on Android.
+         * Stops the processing, closes the audio engine.
          */
         void stop()
         {
@@ -174,10 +175,24 @@ class FaustPolyEngine {
         {
             return fJSON.c_str();
         }
+    
+    
+        /*
+         * buildUserInterface(ui)
+         * Calls the polyphonic of monophonic buildUserInterface with the ui parameter.
+         */
+        void buildUserInterface(UI* ui_interface)
+        {
+            if (fPolyMax > 0) {
+                fPolyMax->buildUserInterface(ui_interface);
+            } else {
+                fMonoDSP.buildUserInterface(ui_interface);
+            }
+        }
 
         /*
          * getParamsCount()
-         * Returns the number of parameters of the Faust object.
+         * Returns the number of control parameters of the Faust object.
          */
         int getParamsCount()
         {
@@ -210,10 +225,8 @@ class FaustPolyEngine {
          * Sets the value of the parameter associated with address for
          * the voice. setVoiceParamValue can only be
          * used if the [style:poly] metadata is used in the Faust code.
-         * setVoiceParamValue will return 0 if the object is not polyphonic
-         * and 1 otherwise.
          */
-        int setVoiceParamValue(const char* address, int voice, float value)
+        void setVoiceParamValue(const char* address, int voice, float value)
         {
             assert(sizeof(int) == sizeof(MapUI*));
             reinterpret_cast<MapUI*>(voice)->setParamValue(address, value);
@@ -223,8 +236,7 @@ class FaustPolyEngine {
          * getVoiceParamValue(address, voice)
          * Gets the parameter value associated with address for the voice.
          * getVoiceParamValue can only be used if the [style:poly] metadata
-         * is used in the Faust code. getVoiceParamValue will return 0 if the
-         * object is not polyphonic and the value otherwise.
+         * is used in the Faust code.
          */
         float getVoiceParamValue(const char* address, int voice)
         {
@@ -241,21 +253,37 @@ class FaustPolyEngine {
             return fAPIUI.getParamAddress(id);
         }
 
+        /*
+         * propagateAcc(int acc, float v)
+         * Propage accelerometer value to the curve conversion layer.
+         */
         void propagateAcc(int acc, float v)
         {
             fAPIUI.propagateAcc(acc, v);
         }
 
+        /*
+         * setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
+         * Change accelerometer curve mapping.
+         */
         void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
         {
            fAPIUI.setAccConverter(p, acc, curve, amin, amid, amax);
         }
 
+        /*
+         * propagateGyr(int gyr, float v)
+         * Propage gyroscope value to the curve conversion layer.
+         */
         void propagateGyr(int gyr, float v)
         {
             fAPIUI.propagateGyr(gyr, v);
         }
 
+        /*
+         * setGyrConverter(int p, int acc, int curve, float amin, float amid, float amax)
+         * Change gyroscope curve mapping.
+         */
         void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax)
         {
             fAPIUI.setGyrConverter(p, gyr, curve, amin, amid, amax);

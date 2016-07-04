@@ -28,7 +28,7 @@ const char* getJSON(void);
 int getParamsCount(void);
 void setParamValue(const char*, float);
 float getParamValue(const char*);
-int setVoiceParamValue(const char*, int, float);
+void setVoiceParamValue(const char*, int, float);
 float getVoiceParamValue(const char*, int);
 const char* getParamAddress(int);
 void propagateAcc(int acc, float v);

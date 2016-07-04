@@ -58,8 +58,8 @@ public class dsp_faust {
     return dsp_faustJNI.getParamValue(arg0);
   }
 
-  public static int setVoiceParamValue(String arg0, int arg1, float arg2) {
-    return dsp_faustJNI.setVoiceParamValue(arg0, arg1, arg2);
+  public static void setVoiceParamValue(String arg0, int arg1, float arg2) {
+      dsp_faustJNI.setVoiceParamValue(arg0, arg1, arg2);
   }
     
   public static float getVoiceParamValue(String arg0, int arg1) {
