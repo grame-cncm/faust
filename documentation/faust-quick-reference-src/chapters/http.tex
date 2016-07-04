@@ -2,7 +2,7 @@
 \chapter{HTTP support} \label{sec:http}
 %---------------------------------------------------
 
-Similarly to OSC, several \faust architectures provide also HTTP support. This allows \faust applications to be remotely controlled from any Web browser using specific URLs. Moreover OSC and HTTPD can be freely combined.
+Similarly to OSC, several \faust architectures also provide HTTP support. This allows \faust applications to be remotely controlled from any Web browser using specific URLs. Moreover OSC and HTTPD can be freely combined.
 
 While OSC support is installed by default when \faust is build, this is not the case for HTTP. That's because it depends on GNU \emph{libmicrohttpd} library which is usually not installed by default on the system. An additional \lstinline'make httpd' step is therefore required when compiling and installing \faust:
 \begin{lstlisting}

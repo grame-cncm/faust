@@ -13,7 +13,7 @@
 // 06/17/2016
 //########################################################################################
 
-import("synth.lib");
+import("faustStd.lib");
 
 
 //========================= Smart Keyboard Configuration ================================= 
@@ -49,7 +49,7 @@ gain = hslider("gain[acc: 1 0 -10 0 10]",0.5,0,1,0.01);
 // sawtooth frequency
 minFreq = 80;
 maxFreq = 500;
-freq = x*(maxFreq-minFreq) + minFreq : polySmooth(gate,0.999,2);
+freq = x*(maxFreq-minFreq) + minFreq : si.polySmooth(gate,0.999,2);
 
 // filter q
 q = 8;
@@ -57,14 +57,14 @@ q = 8;
 // filter cutoff frequency is modulate with a triangle wave
 minFilterCutoff = 50;
 maxFilterCutoff = 5000;
-filterModFreq = modFreq : smoo;
-filterCutoff = (1-lf_trianglepos(modFreq)*(1-y))*(maxFilterCutoff-minFilterCutoff)+minFilterCutoff;
+filterModFreq = modFreq : si.smoo;
+filterCutoff = (1-ge.lf_trianglepos(modFreq)*(1-y))*(maxFilterCutoff-minFilterCutoff)+minFilterCutoff;
 
 // general gain of the synth
-generalGain = gain : lin2LogGain : smoo;
+generalGain = gain : ba.lin2LogGain : si.smoo;
 
 
 //============================================ DSP =======================================
 //========================================================================================
 
-process = dubDub(freq,filterCutoff,q,gate)*generalGain;
+process = sy.dubDub(freq,filterCutoff,q,gate)*generalGain;

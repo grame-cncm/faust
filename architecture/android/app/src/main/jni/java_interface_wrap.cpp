@@ -373,8 +373,7 @@ SWIGEXPORT jfloat JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getParamValue(JNIEnv
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setVoiceParamValue(JNIEnv *jenv, jclass jcls, jstring jarg1, jint jarg2, jfloat jarg3) {
-  jint jresult = 0 ;
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setVoiceParamValue(JNIEnv *jenv, jclass jcls, jstring jarg1, jint jarg2, jfloat jarg3) {
   char *arg1 = (char *) 0 ;
   int arg2 ;
   float arg3 ;
@@ -389,10 +388,9 @@ SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setVoiceParamValue(JNI
   }
   arg2 = (int)jarg2;
   arg3 = (float)jarg3;
-  result = (int)setVoiceParamValue((char const *)arg1,arg2,arg3);
+  setVoiceParamValue((char const *)arg1,arg2,arg3);
   jresult = (jint)result;
   if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
-  return jresult;
 }
 
     

@@ -17,8 +17,7 @@
 // 06/17/2016
 //########################################################################################
 
-import("effect.lib");
-import("synth.lib");
+import("faustStd.lib");
 
 
 //========================= Smart Keyboard Configuration ================================= 
@@ -69,9 +68,9 @@ gate = button("gate");
 // the selected keyboard and key on it
 minKey = 50; // min key of lowest keyboard
 keySkipKeyboard = 8; // key skip per keyboard
-drumResFreq = (key+minKey)+(keyboard*keySkipKeyboard) : midikey2hz;
-reverbWet = wet : smoo;
-reverbRes = wet : smoo;
+drumResFreq = (key+minKey)+(keyboard*keySkipKeyboard) : ba.midikey2hz;
+reverbWet = wet : si.smoo;
+reverbRes = wet : si.smoo;
 
 // filter q
 q = 8;
@@ -79,9 +78,9 @@ q = 8;
 //============================================ DSP =======================================
 //========================================================================================
 
-reverb(wet,res)  =  _ <: *(1-wet),(*(wet) : mono_freeverb(res, 0.5, 0.5, 0)) :> _;
+reverb(wet,res)  =  _ <: *(1-wet),(*(wet) : ef.mono_freeverb(res, 0.5, 0.5, 0)) :> _;
 
-process = popFilterDrum(drumResFreq,q,gate) : reverb(wet,res);
+process = sy.popFilterDrum(drumResFreq,q,gate) : reverb(wet,res);
 
 
 
