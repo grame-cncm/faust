@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "22.0.1"
+    compileSdkVersion 24
+    buildToolsVersion "24"
 
     defaultConfig {
         applicationId "com.faust"
-        minSdkVersion 16
-        targetSdkVersion 16
+        minSdkVersion 11
+        targetSdkVersion 11
 
         ndk {
             moduleName "dsp_faust"
@@ -37,6 +37,3 @@ android {
     }
 }
 
-dependencies {
-    compile 'com.android.support:support-v4:22.1.1'
-}
