@@ -609,8 +609,8 @@ void faust_polyphony(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         obj->m_dspUI->clear();
         // Allocate new one
         if (av[0].a_w.w_long > 0) {
-            mydsp tmp_dsp;
-            obj->m_dsp = new mydsp_poly(&tmp_dsp, av[0].a_w.w_long, true, true);
+            dsp* tmp_dsp = new mydsp();
+            obj->m_dsp = new mydsp_poly(tmp_dsp, av[0].a_w.w_long, true, true);
         } else {
             obj->m_dsp = new mydsp();
         }
