@@ -31,7 +31,7 @@ LLVM_CONFIG = $(lastword $(wildcard /usr/bin/llvm-config* /opt/local/bin/llvm-co
 ifeq ($(system), Darwin)
     ARCHFLAGS 	:=  -arch i386 -arch x86_64
     LIBFLAGS	:=
-    CXX 		= clang++
+    #CXX 		= clang++
     #CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors
     LIB_EXT     = dylib
     ## --analyze   -Wall -pedantic
@@ -58,7 +58,7 @@ endif
 AR ?= ar
 RANLIB ?= ranlib
 
-CXXFLAGS ?= -g -Wall -Wuninitialized
+CXXFLAGS ?= -O3 -Wall -Wuninitialized
 ##CXXFLAGS ?= -O3 -Wall -Wuninitialized $(ARCHFLAGS)
 CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
@@ -118,6 +118,7 @@ endif
 ifeq ($(system), Darwin)
 #CXXFLAGS += -g
     CXXFLAGS += -O3
+    CXXFLAGS += -stdlib=libc++
 else
 ifneq ($(findstring MINGW32, $(system)),)
 	CXXFLAGS += -O1 -I/usr/include

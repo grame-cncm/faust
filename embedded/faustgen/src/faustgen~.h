@@ -54,7 +54,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"math.lib\"); \nimport(\"maxmsp.lib\"); \nimport(\"music.lib\"); \nimport(\"oscillator.lib\"); \nimport(\"reduce.lib\"); \nimport(\"filter.lib\"); \nimport(\"effect.lib\"); \n \nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.08"
+#define FAUSTGEN_VERSION "1.09"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 
 #ifdef __APPLE__
@@ -70,7 +70,7 @@
     #define SEPARATOR '\\'
 #endif
 
-#define LLVM_OPTIMIZATION 3
+#define LLVM_OPTIMIZATION -1  // means 'maximum'
 #define DEFAULT_CODE "process = _,_;"
 
 const char* TEXT_APPL_LIST[] = {"Smultron", "TextWrangler", "TextExit", "" };

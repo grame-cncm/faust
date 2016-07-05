@@ -1535,12 +1535,17 @@ static int __foo__channels() { return channelsSFR(__foo__reader); }
 static void __foo__destroy() { return destroySFR(__foo__reader); }
 */
 
+/*
+// For Max 6
 #ifdef WIN32
 //extern "C" int main(void)
 extern "C" void ext_main(void* r)
 #else
 int main(void)
 #endif
+ */
+
+extern "C" void ext_main(void* r)
 {
     // Creates an instance of Faustgen
     faustgen::makeMaxClass("faustgen~");
