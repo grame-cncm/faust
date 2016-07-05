@@ -26,9 +26,9 @@ A special \lstinline'[midi:xxx yyy...]' metadata needs to be added in the UI  el
 
 - \lstinline'[midi:pitchwheel]' in a slider of bargraph will map the UI element value to (0,16383) range. When used with a button or checkbox, 1 will be mapped to 16383, 0 will be mapped to 0.
 
-\section{A simple examples}
+\section{A simple example}
 
-An example where a \emph{volume} slider is controlled with MIDI ctrlchange 7 messages :
+An example with a \emph{volume} slider controlled with MIDI ctrlchange 7 messages :
 
 \begin{lstlisting}
 
@@ -44,7 +44,7 @@ process = *(gain);
 
 \end{lstlisting}
 
-A complete testing example named  \emph{midi\_tester.dsp}  is available in the \faust distribution examples folder.
+A complete testing example named  \emph{midi\_tester.dsp}  is available in the \faust distribution \emph{examples} folder.
 
 \begin{figure}[h!]
   \centering
@@ -84,7 +84,7 @@ Jack 			& Qt  & yes\\
 
 \section{MIDI synchronization}
 
-MIDI clock based synchronization can be used to  \emph{slave} a given Faust program. The following three messages need to be used:
+MIDI clock based synchronization can be used to slave a given Faust program. The following three messages need to be used:
 
 - \lstinline'[midi:start]' in a button or checkbox will trigger a value of 1 when a \emph{start} MIDI message is received
 
