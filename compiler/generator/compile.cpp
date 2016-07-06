@@ -188,23 +188,23 @@ void Compiler::generateUserInterfaceTree(Tree t)
             const string& key = i->first;
             const set<string>& values = i->second;
             for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
-                fClass->addUICode(subst("interface->declare($0, \"$1\", \"$2\");", "0", wdel(key) ,wdel(*j)));
+                fClass->addUICode(subst("ui_interface->declare($0, \"$1\", \"$2\");", "0", wdel(key) ,wdel(*j)));
                 fJSON.declare(NULL, wdel(key).c_str(), wdel(*j).c_str());
             }
         }
         
         //-----------------
 		switch (orient) {
-			case 0 : model = "interface->openVerticalBox(\"$0\");"; fJSON.openVerticalBox(checkNullLabel(t, simplifiedLabel).c_str()); break;
-			case 1 : model = "interface->openHorizontalBox(\"$0\");"; fJSON.openHorizontalBox(checkNullLabel(t, simplifiedLabel).c_str()); break;
-			case 2 : model = "interface->openTabBox(\"$0\");"; fJSON.openTabBox(checkNullLabel(t, simplifiedLabel).c_str()); break;
+			case 0 : model = "ui_interface->openVerticalBox(\"$0\");"; fJSON.openVerticalBox(checkNullLabel(t, simplifiedLabel).c_str()); break;
+			case 1 : model = "ui_interface->openHorizontalBox(\"$0\");"; fJSON.openHorizontalBox(checkNullLabel(t, simplifiedLabel).c_str()); break;
+			case 2 : model = "ui_interface->openTabBox(\"$0\");"; fJSON.openTabBox(checkNullLabel(t, simplifiedLabel).c_str()); break;
 			default :
                 fprintf(stderr, "error in user interface generation 1\n");
 				exit(1);
 		}
         fClass->addUICode(subst(model, checkNullLabel(t, simplifiedLabel)));
 		generateUserInterfaceElements(elements);
-		fClass->addUICode("interface->closeBox();");
+		fClass->addUICode("ui_interface->closeBox();");
         fJSON.closeBox();
 
 	} else if (isUiWidget(t, label, varname, sig)) {
@@ -247,24 +247,24 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
         const string& key = i->first;
         const set<string>& values = i->second;
         for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
-            fClass->addUICode(subst("interface->declare(&$0, \"$1\", \"$2\");", tree2str(varname), wdel(key), wdel(*j)));
+            fClass->addUICode(subst("ui_interface->declare(&$0, \"$1\", \"$2\");", tree2str(varname), wdel(key), wdel(*j)));
              fJSON.declare(NULL, wdel(key).c_str(), wdel(*j).c_str());
         }
     }
 
 	if ( isSigButton(sig, path) ) 					{
         fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addButton(\"$0\", &$1);", checkNullLabel(varname, label), tree2str(varname)));
+		fClass->addUICode(subst("ui_interface->addButton(\"$0\", &$1);", checkNullLabel(varname, label), tree2str(varname)));
         fJSON.addButton(checkNullLabel(varname, label).c_str(), NULL);
 
 	} else if ( isSigCheckbox(sig, path) ) 			{
         fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addCheckButton(\"$0\", &$1);", checkNullLabel(varname, label), tree2str(varname)));
+		fClass->addUICode(subst("ui_interface->addCheckButton(\"$0\", &$1);", checkNullLabel(varname, label), tree2str(varname)));
         fJSON.addCheckButton(checkNullLabel(varname, label).c_str(), NULL);
 
 	} else if ( isSigVSlider(sig, path,c,x,y,z) )	{
         fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addVerticalSlider(\"$0\", &$1, $2, $3, $4, $5);",
+		fClass->addUICode(subst("ui_interface->addVerticalSlider(\"$0\", &$1, $2, $3, $4, $5);",
                                 checkNullLabel(varname, label),
                                 tree2str(varname),
                                 T(tree2float(c)),
@@ -275,7 +275,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 
 	} else if ( isSigHSlider(sig, path,c,x,y,z) )	{
         fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addHorizontalSlider(\"$0\", &$1, $2, $3, $4, $5);",
+		fClass->addUICode(subst("ui_interface->addHorizontalSlider(\"$0\", &$1, $2, $3, $4, $5);",
                                 checkNullLabel(varname, label),
                                 tree2str(varname),
                                 T(tree2float(c)),
@@ -286,7 +286,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 
 	} else if ( isSigNumEntry(sig, path,c,x,y,z) )	{
         fClass->incUIActiveCount();
-		fClass->addUICode(subst("interface->addNumEntry(\"$0\", &$1, $2, $3, $4, $5);",
+		fClass->addUICode(subst("ui_interface->addNumEntry(\"$0\", &$1, $2, $3, $4, $5);",
                                 checkNullLabel(varname, label),
                                 tree2str(varname),
                                 T(tree2float(c)),
@@ -297,7 +297,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 
 	} else if ( isSigVBargraph(sig, path,x,y,z) )	{
         fClass->incUIPassiveCount();
-		fClass->addUICode(subst("interface->addVerticalBargraph(\"$0\", &$1, $2, $3);",
+		fClass->addUICode(subst("ui_interface->addVerticalBargraph(\"$0\", &$1, $2, $3);",
                                 checkNullLabel(varname, label, true),
                                 tree2str(varname),
                                 T(tree2float(x)),
@@ -306,7 +306,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 
 	} else if ( isSigHBargraph(sig, path,x,y,z) )	{
         fClass->incUIPassiveCount();
-		fClass->addUICode(subst("interface->addHorizontalBargraph(\"$0\", &$1, $2, $3);",
+		fClass->addUICode(subst("ui_interface->addHorizontalBargraph(\"$0\", &$1, $2, $3);",
                                 checkNullLabel(varname, label, true),
                                 tree2str(varname),
                                 T(tree2float(x)),
