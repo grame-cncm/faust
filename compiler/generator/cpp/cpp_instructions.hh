@@ -73,9 +73,9 @@ class CPPInstVisitor : public TextInstVisitor {
         {
             // Special case
             if (inst->fZone == "0") {
-                *fOut << "interface->declare(" << inst->fZone <<", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
+                *fOut << "ui_interface->declare(" << inst->fZone <<", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
             } else {
-                *fOut << "interface->declare(" << "&" << inst->fZone <<", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
+                *fOut << "ui_interface->declare(" << "&" << inst->fZone <<", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
             }
             EndLine();
         }
@@ -85,11 +85,11 @@ class CPPInstVisitor : public TextInstVisitor {
             string name;
             switch (inst->fOrient) {
                 case 0:
-                    name = "interface->openVerticalBox("; break;
+                    name = "ui_interface->openVerticalBox("; break;
                 case 1:
-                    name = "interface->openHorizontalBox("; break;
+                    name = "ui_interface->openHorizontalBox("; break;
                 case 2:
-                    name = "interface->openTabBox("; break;
+                    name = "ui_interface->openTabBox("; break;
             }
             *fOut << name << quote(inst->fName) << ")";
             EndLine();
@@ -97,15 +97,15 @@ class CPPInstVisitor : public TextInstVisitor {
 
         virtual void visit(CloseboxInst* inst)
         {
-            *fOut << "interface->closeBox();"; tab(fTab, *fOut);
+            *fOut << "ui_interface->closeBox();"; tab(fTab, *fOut);
         }
         
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "interface->addButton(" << quote(inst->fLabel) << "," << "&" << inst->fZone << ")"; 
+                *fOut << "ui_interface->addButton(" << quote(inst->fLabel) << "," << "&" << inst->fZone << ")"; 
             } else {
-                *fOut << "interface->addCheckButton(" << quote(inst->fLabel) << "," << "&" << inst->fZone << ")"; 
+                *fOut << "ui_interface->addCheckButton(" << quote(inst->fLabel) << "," << "&" << inst->fZone << ")"; 
             }
             EndLine();
         }
@@ -115,11 +115,11 @@ class CPPInstVisitor : public TextInstVisitor {
             string name;
             switch (inst->fType) {
                 case AddSliderInst::kHorizontal:
-                    name = "interface->addHorizontalSlider"; break;
+                    name = "ui_interface->addHorizontalSlider"; break;
                 case AddSliderInst::kVertical:
-                    name = "interface->addVerticalSlider"; break;
+                    name = "ui_interface->addVerticalSlider"; break;
                 case AddSliderInst::kNumEntry:
-                    name = "interface->addNumEntry"; break;
+                    name = "ui_interface->addNumEntry"; break;
             }
             *fOut << name << "(" << quote(inst->fLabel) << ", " 
             << "&" << inst->fZone << ", " << checkReal(inst->fInit) 
@@ -133,9 +133,9 @@ class CPPInstVisitor : public TextInstVisitor {
             string name;
             switch (inst->fType) {
                 case AddBargraphInst::kHorizontal:
-                    name = "interface->addHorizontalBargraph"; break;
+                    name = "ui_interface->addHorizontalBargraph"; break;
                 case AddBargraphInst::kVertical:
-                    name = "interface->addVerticalBargraph"; break;
+                    name = "ui_interface->addVerticalBargraph"; break;
             }
             *fOut << name << "(" << quote(inst->fLabel) << ", " << "&" << inst->fZone << ", "<< checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
             EndLine();

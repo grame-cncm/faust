@@ -47,15 +47,40 @@ function installfaust {
 	# Install Bela
 	$SUDO apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf mercurial
 	$SUDO hg clone https://code.soundsoftware.ac.uk/hg/beaglert
-	# currently needed for experimental midi stuff
+	## currently needed for experimental midi stuff
+	cd beaglert
 	$SUDO hg checkout mergingClockSync
 	$SUDO hg pull -u
-	# end midi stuff
+	cd ..
+	## end midi stuff
 	$SUDO mv beaglert /usr/local/
-	# install xenomia (should be downloaded from an official place)
+	## install xenomia (should be downloaded from an official place)
 	wget 192.168.1.3/xenomai.tgz
 	tar xzf xenomai.tgz
 	$SUDO mv xenomai /usr/arm-linux-gnueabihf/include/
+	
+	# Install Android development tools
+	## install java 8
+	echo y |sudo add-apt-repository ppa:webupd8team/java
+	sudo apt-get update -y
+	sudo apt-get install -y oracle-java8-installer
+
+	## install android sdk
+	install -d /opt/android
+	cd /opt/android
+	wget https://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
+	tar -xzf android-sdk_r24.4.1-linux.tgz
+	mv android-sdk-linux/ sdk
+	rm android-sdk_r24.4.1-linux.tgz
+
+	## install android ndk
+	wget https://dl.google.com/android/repository/android-ndk-r12-linux-x86_64.zip
+	unzip -q android-ndk-r12-linux-x86_64.zip
+	mv android-ndk-r12 ndk
+	rm android-ndk-r12-linux-x86_64.zip
+
+	export PATH="/opt/android/sdk/tools:/opt/android/sdk/platform-tools:/opt/android/ndk:$PATH"
+	echo y | android update sdk --no-ui -a --filter tools,platform-tools,android-24,build-tools-24.0.0
 
 	# Install Faust
 	git clone git://git.code.sf.net/p/faudiostream/code faust

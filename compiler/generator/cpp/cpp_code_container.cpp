@@ -346,7 +346,7 @@ void CPPCodeContainer::produceClass()
 
         // User interface
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "virtual void buildUserInterface(UI* interface) {";
+        tab(n+1, *fOut); *fOut << "virtual void buildUserInterface(UI* ui_interface) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateUserInterface(&fCodeProducer);

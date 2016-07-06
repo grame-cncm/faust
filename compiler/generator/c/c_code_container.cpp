@@ -242,7 +242,7 @@ void CCodeContainer::produceClass()
 
     // User interface
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void buildUserInterface" << fKlassName << "(" << fKlassName << "* dsp, UIGlue* interface) {";
+    tab(n, *fOut); *fOut << "void buildUserInterface" << fKlassName << "(" << fKlassName << "* dsp, UIGlue* ui_interface) {";
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateUserInterface(&fCodeProducer);
