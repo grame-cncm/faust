@@ -1529,7 +1529,7 @@ EXPORT dsp_factory_base* compile_faust_interpreter(int argc, const char* argv[],
         global::allocate();
         gGlobal->gLLVMOut = true; 
         compile_faust_internal(argc, argv, name, dsp_content, true);
-        error_msg =  gGlobal->gErrorMsg;
+        error_msg = gGlobal->gErrorMsg;
         res = gGlobal->gDSPFactory;
             
     } catch (faustexception& e) {
