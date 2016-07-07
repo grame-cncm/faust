@@ -184,7 +184,7 @@ class FaustPolyEngine {
         void buildUserInterface(UI* ui_interface)
         {
             if (fPolyMax > 0) {
-                fPolyMax->buildUserInterface(ui_interface);
+                fPolyDSP->buildUserInterface(ui_interface);
             } else {
                 fMonoDSP.buildUserInterface(ui_interface);
             }
