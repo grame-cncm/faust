@@ -11,7 +11,6 @@
 . faustoptflags
 
 ARCHFILE="pa-qt.cpp"
-ARCHLIB="-L/usr/local/lib -L/opt/local/lib -lportaudio -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
 
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
@@ -92,6 +91,9 @@ done
 if [[ $(uname) == Darwin ]]; then
     SPEC="-spec macx-g++"
     EXT=".app"
+	ARCHLIB="-L/usr/local/lib -L/opt/local/lib -lportaudio -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
+else
+	ARCHLIB="-L/usr/local/lib -L/opt/local/lib -lportaudio -lasound"
 fi
 
 #-------------------------------------------------------------------
