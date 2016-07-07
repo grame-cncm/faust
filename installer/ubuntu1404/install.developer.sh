@@ -24,6 +24,10 @@ function installfaust {
 	$SUDO apt-get -y update
 	$SUDO apt-get install -y faust2pd
 
+	# Install pd.dll needed to cross compile pd externals for windows
+	wget http://faust.grame.fr/pd.dll
+	$SUDO mv pd.dll /usr/include/pd/
+
 	# Install VST SDK
 	wget http://www.steinberg.net/sdk_downloads/vstsdk365_12_11_2015_build_67.zip
 	unzip vstsdk365_12_11_2015_build_67.zip

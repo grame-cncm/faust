@@ -25,6 +25,11 @@ function installfaust {
 	$SUDO apt-get -y update
 	$SUDO apt-get install -y faust2pd
 
+	# Install pd.dll needed to cross compile pd externals for windows
+	wget http://faust.grame.fr/pd.dll
+	$SUDO mv pd.dll /usr/include/pd/
+
+
 	# Install VST SDK
 	wget http://www.steinberg.net/sdk_downloads/vstsdk365_12_11_2015_build_67.zip
 	unzip vstsdk365_12_11_2015_build_67.zip
@@ -59,6 +64,30 @@ function installfaust {
 	wget 192.168.1.3/xenomai.tgz
 	tar xzf xenomai.tgz
 	$SUDO mv xenomai /usr/arm-linux-gnueabihf/include/
+
+	# Install Android
+	## install java 8
+	$SUDO apt-get install -y openjdk-8-jdk
+
+	## install android sdk
+	$SUDO install -d /opt/android
+	cd /opt/android
+	$SUDO wget https://dl.google.com/android/android-sdk_r24.4.1-linux.tgz
+	$SUDO tar -xzf android-sdk_r24.4.1-linux.tgz
+	$SUDO mv android-sdk-linux/ sdk
+	$SUDO chown -R root:root sdk
+	$SUDO chmod a+x sdk/tools/android
+	$SUDO rm android-sdk_r24.4.1-linux.tgz
+
+	## install android ndk
+	$SUDO wget https://dl.google.com/android/repository/android-ndk-r12-linux-x86_64.zip
+	$SUDO unzip -q android-ndk-r12-linux-x86_64.zip
+	$SUDO mv android-ndk-r12 ndk
+	$SUDO rm android-ndk-r12-linux-x86_64.zip
+
+	export PATH="/opt/android/sdk/tools:/opt/android/sdk/platform-tools:/opt/android/ndk:$PATH"
+	echo y | $SUDO /opt/android/sdk/tools/android update sdk --no-ui -a --filter tools,platform-tools,android-24,build-tools-24.0.0
+
 
 	# Install Faust
 	git clone git://git.code.sf.net/p/faudiostream/code faust
