@@ -88,6 +88,8 @@ function installfaust {
 	export PATH="/opt/android/sdk/tools:/opt/android/sdk/platform-tools:/opt/android/ndk:$PATH"
 	echo y | $SUDO /opt/android/sdk/tools/android update sdk --no-ui -a --filter tools,platform-tools,android-24,build-tools-24.0.0
 
+	# Install Latex
+	$SUDO apt-get install -y texlive-full
 
 	# Install Faust
 	git clone git://git.code.sf.net/p/faudiostream/code faust
