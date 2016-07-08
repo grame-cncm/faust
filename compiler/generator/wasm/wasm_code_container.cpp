@@ -27,6 +27,17 @@
 
 using namespace std;
 
+WASMCodeContainer::WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out):fOut(out)
+{
+    initializeCodeContainer(numInputs, numOutputs);
+    fKlassName = name;
+    
+    // Allocate one static visitor
+    if (!gGlobal->gWASMVisitor) {
+        gGlobal->gWASMVisitor = new WASMInstVisitor(fOut);
+    }
+}
+
 CodeContainer* WASMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new WASMScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
@@ -72,8 +83,110 @@ void WASMCodeContainer::produceInternal()
 void WASMCodeContainer::produceClass()
 {
     int n = 0;
+    
+    generateSR();
+
     tab(n, *fOut);
-    *fOut << "WebAssembly code generation still empty..." << endl;
+    gGlobal->gWASMVisitor->Tab(n);
+    
+    tab(n, *fOut); *fOut << "(module";
+    
+        // Memory access
+        tab(n+1, *fOut); *fOut << "(memory 256 256)";
+        tab(n+1, *fOut); *fOut << "(export \"memory\" memory)";
+    
+        // Imported functions
+        tab(n+1, *fOut); *fOut << "(import $log \"global.Math\" \"log\" (param f64) (result f64))";
+        tab(n+1, *fOut); *fOut << "(import $f64-rem \"asm2wasm\" \"f64-rem\" (param f64 f64) (result f64))";
+    
+        // Exported functions
+        tab(n+1, *fOut); *fOut << "(export \"getNumInputs\" $getNumInputs)";
+        tab(n+1, *fOut); *fOut << "(export \"getNumOutputs\" $getNumOutputs)";
+        tab(n+1, *fOut); *fOut << "(export \"classInit\" $classInit)";
+        tab(n+1, *fOut); *fOut << "(export \"instanceInit\" $instanceInit)";
+        tab(n+1, *fOut); *fOut << "(export \"init\" $init)";
+        tab(n+1, *fOut); *fOut << "(export \"getSampleRate\" $getSampleRate)";
+        tab(n+1, *fOut); *fOut << "(export \"setParamValue\" $setParamValue)";
+        tab(n+1, *fOut); *fOut << "(export \"getParamValue\" $getParamValue)";
+        tab(n+1, *fOut); *fOut << "(export \"compute\" $compute)";
+    
+        // Sub containers : before functions generation
+        mergeSubContainers();
+    
+        // All mathematical functions (got from math library as variables) have to be first...
+        generateGlobalDeclarations(gGlobal->gWASMVisitor);
+    
+        // Always generated mathematical functions
+        tab(n+1, *fOut);
+        
+        tab(n+1, *fOut); *fOut << "(func $fmodf (param $0 f64) (param $1 f64) (result f64)";
+            tab(n+2, *fOut); *fOut << "(call_import $f64-rem (get_local $0) (get_local $1))";
+        tab(n+1, *fOut); *fOut << ")";
+        
+        tab(n+1, *fOut); *fOut <<  "(func $log10f (param $0 f64) (result f64)";
+            tab(n+2, *fOut); *fOut << "(f64.div (call_import $log (get_local $0)) (call_import $log (f64.const 10)))";
+        tab(n+1, *fOut); *fOut << ")";
+    
+        // Fields : compute the structure size to use in 'new'
+        gGlobal->gWASMVisitor->Tab(n+1);
+        generateDeclarations(gGlobal->gWASMVisitor);
+        
+        // After field declaration...
+        generateSubContainers();
+    
+        tab(n+1, *fOut); *fOut << "(func $getNumInputs (param $dsp i32) (result i32)";
+            tab(n+2, *fOut); *fOut << "(i32.const " << fNumInputs << ")";
+        tab(n+1, *fOut); *fOut << ")";
+    
+        tab(n+1, *fOut); *fOut << "(func $getNumOutputs (param $dsp i32) (result i32)";
+            tab(n+2, *fOut); *fOut << "(i32.const " << fNumOutputs << ")";
+        tab(n+1, *fOut); *fOut << ")";
+    
+        // Inits
+        tab(n+1, *fOut); *fOut << "(func $classInit (param $dsp i32) (param $samplingFreq i32)";
+            tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
+        // TODO
+        tab(n+1, *fOut); *fOut << ")";
+    
+        tab(n+1, *fOut); *fOut << "(func $instanceInit (param $dsp i32) (param $samplingFreq i32)";
+            tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
+        // TODO
+        tab(n+1, *fOut); *fOut << ")";
+    
+        tab(n+1, *fOut); *fOut << "(func $init (param $dsp i32) (param $samplingFreq i32)";
+            tab(n+2, *fOut); *fOut << "(call $classInit (get_local $dsp) (get_local $samplingFreq))";
+            tab(n+2, *fOut); *fOut << "(call $instanceInit (get_local $dsp) (get_local $samplingFreq))";
+        tab(n+1, *fOut); *fOut << ")";
+    
+        // getSampleRate
+        tab(n+1, *fOut); *fOut << "(func $getSampleRate (param $dsp i32) (result i32)";
+            tab(n+2, *fOut); *fOut << "(i32.load offset=" << gGlobal->gWASMVisitor->getFieldOffset("fSamplingFreq") << " (get_local $dsp))";
+        tab(n+1, *fOut); *fOut << ")";
+    
+        // setParamValue
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "(func $setParamValue (param $dsp i32) (param $index i32) (param $value f64)";
+            tab(n+2, *fOut); *fOut << "(f32.store ";
+                tab(n+3, *fOut); *fOut << "(i32.add (get_local $dsp) (get_local $index))";
+                tab(n+3, *fOut); *fOut << "(f32.demote/f64 (get_local $value))";
+            tab(n+2, *fOut); *fOut << ")";
+        tab(n+1, *fOut); *fOut << ")";
+    
+        // getParamValue
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "(func $getParamValue (param $dsp i32) (param $index i32) (result f64)";
+            tab(n+2, *fOut); *fOut << "(f64.promote/f32 (f32.load (i32.add (get_local $dsp) (get_local $index))))";
+        tab(n+1, *fOut); *fOut << ")";
+
+        // compute
+        generateCompute(n);
+        
+        // Possibly generate separated functions
+        gGlobal->gWASMVisitor->Tab(n+1);
+        tab(n+1, *fOut);
+        generateComputeFunctions(gGlobal->gWASMVisitor);
+    
+    tab(n, *fOut); *fOut << ")";
     tab(n, *fOut);
 }
 
@@ -81,4 +194,8 @@ void WASMCodeContainer::produceInfoFunctions(int tabs, const string& classname, 
 {}
 
 void WASMScalarCodeContainer::generateCompute(int n)
-{}
+{
+    tab(n+1, *fOut); *fOut << "(func $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
+    // TODO
+    tab(n+1, *fOut); *fOut << ")";
+}

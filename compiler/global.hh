@@ -54,6 +54,7 @@ class Garbageable;
 struct LLVMResult;
 
 class ASMJAVAScriptInstVisitor;
+class WASMInstVisitor;
 
 class dsp_factory_base;
 
@@ -436,8 +437,8 @@ struct global {
     // One single global visitor for asm.js, so that sub-containers and main class use the same heap
     ASMJAVAScriptInstVisitor* gASMJSVisitor;
     
-    // One single global visitor for Interpreter, so that sub-containers and main class use the same heap
-    //InterpreterInstVisitor<float>* gInterpreterVisitor;
+    // One single global visitor for WebAssembly, so that sub-containers and main class use the same heap
+    WASMInstVisitor* gWASMVisitor;
     
     bool gHelpSwitch;
     bool gVersionSwitch;

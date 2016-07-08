@@ -57,8 +57,7 @@ using namespace std;
  
 */
 
-ASMJAVAScriptCodeContainer::ASMJAVAScriptCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
-            :fOut(out), fObjPrefix("")
+ASMJAVAScriptCodeContainer::ASMJAVAScriptCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out):fOut(out)
 {
     initializeCodeContainer(numInputs, numOutputs);
     fKlassName = name;
@@ -115,8 +114,6 @@ ASMJAVAScriptScalarCodeContainer::ASMJAVAScriptScalarCodeContainer(const string&
 ASMJAVAScriptScalarCodeContainer::~ASMJAVAScriptScalarCodeContainer()
 {}
 
-int ASMJAVAScriptCodeContainer::getStructSize() { return gGlobal->gASMJSVisitor->getStructSize(); }
-
 void ASMJAVAScriptCodeContainer::produceInternal()
 {
     int n = 0;
@@ -132,19 +129,19 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     // fKlassName used in method naming for subclasses
     
     // getNumInputs/getNumOutputs
-    tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumInputs" << fKlassName << "(dsp) {";
+    tab(n+1, *fOut); *fOut << "function getNumInputs" << fKlassName << "(dsp) {";
         tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
         tab(n+2, *fOut); *fOut << "return " << fNumInputs << ";";
     tab(n+1, *fOut); *fOut << "}";
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumOutputs" << fKlassName << "(dsp) {";
+    tab(n+1, *fOut); *fOut << "function getNumOutputs" << fKlassName << "(dsp) {";
         tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
         tab(n+2, *fOut); *fOut << "return " << fNumOutputs << ";";
     tab(n+1, *fOut); *fOut << "}";
     tab(n+1, *fOut);
     
     // Inits
-    tab(n+1, *fOut); *fOut << fObjPrefix << "function instanceInit" << fKlassName << "(dsp, samplingFreq) {";
+    tab(n+1, *fOut); *fOut << "function instanceInit" << fKlassName << "(dsp, samplingFreq) {";
         tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
         tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
         tab(n+2, *fOut); gGlobal->gASMJSVisitor->Tab(n+2);
@@ -159,7 +156,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     // Fill
     string counter = "count";
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << fObjPrefix << "function fill" << fKlassName << subst("(dsp, $0, output) {", counter);
+    tab(n+1, *fOut); *fOut << "function fill" << fKlassName << subst("(dsp, $0, output) {", counter);
         tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
         tab(n+2, *fOut); *fOut << counter << " = " << counter << " | 0;";
         tab(n+2, *fOut); *fOut << "output = output | 0;";
@@ -182,9 +179,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
    
     generateSR();
 
-    // Libraries
-    printLibrary(*fOut);
- 
     // Global declarations
     tab(n, *fOut);
     gGlobal->gASMJSVisitor->Tab(n);
@@ -198,7 +192,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "var HEAP32 = new global.Int32Array(buffer);"; 
         tab(n+1, *fOut); *fOut << "var HEAPF32 = new global.Float32Array(buffer);"; 
     
-        // Always generated
+        // Always generated mathematical functions
         tab(n+1, *fOut); 
         tab(n+1, *fOut); *fOut << "var imul = global.Math.imul;";
         tab(n+1, *fOut); *fOut << "var log = global.Math.log;";
@@ -215,7 +209,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         fGlobalDeclarationInstructions->fCode.sort(sorter);
         generateGlobalDeclarations(gGlobal->gASMJSVisitor);
           
-        // Manually and always generated
+        // Manually always generated mathematical functions
         tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
         tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
            
@@ -228,19 +222,19 @@ void ASMJAVAScriptCodeContainer::produceClass()
         
         // getNumInputs/getNumOutputs
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumInputs(dsp) {";
+        tab(n+1, *fOut); *fOut << "function getNumInputs(dsp) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "return " << fNumInputs << ";";
         tab(n+1, *fOut); *fOut << "}";
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "function getNumOutputs(dsp) {";
+        tab(n+1, *fOut); *fOut << "function getNumOutputs(dsp) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "return " << fNumOutputs << ";";
         tab(n+1, *fOut); *fOut << "}";
     
         // Inits
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "function classInit(dsp, samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "function classInit(dsp, samplingFreq) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut);
@@ -253,7 +247,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "function instanceInit(dsp, samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "function instanceInit(dsp, samplingFreq) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut);
@@ -268,23 +262,23 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "function init(dsp, samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "function init(dsp, samplingFreq) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
-            tab(n+2, *fOut); *fOut << fObjPrefix << "classInit(dsp, samplingFreq);";
-            tab(n+2, *fOut); *fOut << fObjPrefix << "instanceInit(dsp, samplingFreq);";
+            tab(n+2, *fOut); *fOut << "classInit(dsp, samplingFreq);";
+            tab(n+2, *fOut); *fOut << "instanceInit(dsp, samplingFreq);";
         tab(n+1, *fOut); *fOut << "}";
     
         // getSampleRate
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "function getSampleRate(dsp) {";
+        tab(n+1, *fOut); *fOut << "function getSampleRate(dsp) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-            tab(n+2, *fOut); *fOut << "return HEAPF32[dsp + " << gGlobal->gASMJSVisitor->getFieldOffset("fSamplingFreq") << " >> 2];";
+            tab(n+2, *fOut); *fOut << "return HEAP32[dsp + " << gGlobal->gASMJSVisitor->getFieldOffset("fSamplingFreq") << " >> 2];";
         tab(n+1, *fOut); *fOut << "}";
  
         // setParamValue
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "function setParamValue(dsp, offset, value) {";
+        tab(n+1, *fOut); *fOut << "function setParamValue(dsp, offset, value) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "offset = offset | 0;";
             tab(n+2, *fOut); *fOut << "value = +value;";
@@ -293,7 +287,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     
         // getParamValue
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << fObjPrefix << "function getParamValue(dsp, offset) {";
+        tab(n+1, *fOut); *fOut << "function getParamValue(dsp, offset) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "offset = offset | 0;";
             tab(n+2, *fOut); *fOut << "return +HEAPF32[dsp + offset >> 2];";
@@ -338,12 +332,12 @@ void ASMJAVAScriptCodeContainer::produceClass()
     
     // Fields to path
     tab(n, *fOut); *fOut << "function getPathTable" << fKlassName << "() {";
-    tab(n+1, *fOut); *fOut << fObjPrefix << "var pathTable = [];"; 
+    tab(n+1, *fOut); *fOut << "var pathTable = [];"; 
     map <string, string>::iterator it;
     map <string, pair<int, Typed::VarType> >& fieldTable = gGlobal->gASMJSVisitor->getFieldTable();
     for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
         pair<int, Typed::VarType> tmp = fieldTable[(*it).first];
-        tab(n+1, *fOut); *fOut << fObjPrefix << "pathTable[\"" << (*it).second << "\"] = " << tmp.first << ";"; 
+        tab(n+1, *fOut); *fOut << "pathTable[\"" << (*it).second << "\"] = " << tmp.first << ";"; 
     }
     tab(n+1, *fOut); *fOut << "return pathTable;"; 
     tab(n, *fOut); *fOut << "}";
@@ -379,7 +373,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
 void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
 {
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << fObjPrefix << subst("function compute(dsp, $0, inputs, outputs) {", fFullCount);
+    tab(n+1, *fOut); *fOut << subst("function compute(dsp, $0, inputs, outputs) {", fFullCount);
         tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
         tab(n+2, *fOut); *fOut << fFullCount << " = " << fFullCount << " | 0;";
         tab(n+2, *fOut); *fOut << "inputs = inputs | 0;";
@@ -414,7 +408,7 @@ void ASMJAVAScriptVectorCodeContainer::generateCompute(int n)
 {
     // Generates declaration
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << fObjPrefix << subst("function compute(dsp, $0, inputs, outputs) {", fFullCount);
+    tab(n+1, *fOut); *fOut << subst("function compute(dsp, $0, inputs, outputs) {", fFullCount);
         tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
         tab(n+2, *fOut); *fOut << fFullCount << " = " << fFullCount << " | 0;";
         tab(n+2, *fOut); *fOut << "inputs = inputs | 0;";

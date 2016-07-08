@@ -38,6 +38,12 @@ class WASMInstVisitor : public TextInstVisitor {
 
         virtual ~WASMInstVisitor()
         {}
+    
+        int getFieldOffset(const string& name)
+        {
+            // TODO
+            return 100;
+        }
 
         virtual void visit(AddMetaDeclareInst* inst)
         {}
@@ -81,10 +87,19 @@ class WASMInstVisitor : public TextInstVisitor {
         }
                 
         virtual void visit(FloatNumInst* inst)
-        {}
+        {
+            *fOut << "(f32.const " << checkFloat(inst->fNum) << ")";
+        }
         
         virtual void visit(DoubleNumInst* inst)
-        {}
+        {
+            *fOut << "(f64.const " << checkDouble(inst->fNum) << ")";
+        }
+    
+        virtual void visit(IntNumInst* inst)
+        {
+            *fOut << "(i32.const " << inst->fNum << ")";
+        }
 
         virtual void visit(CastNumInst* inst)
         {}

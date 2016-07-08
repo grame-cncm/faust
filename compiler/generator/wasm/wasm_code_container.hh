@@ -31,19 +31,13 @@ class WASMCodeContainer : public virtual CodeContainer {
 
     protected:
 
-        WASMInstVisitor fCodeProducer;
         std::ostream* fOut;
         
         void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
 
     public:
 
-        WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
-            :fCodeProducer(out), fOut(out)
-        {
-            initializeCodeContainer(numInputs, numOutputs);
-            fKlassName = name;
-        }
+        WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
         virtual ~WASMCodeContainer()
         {}
 
