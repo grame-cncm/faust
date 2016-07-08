@@ -45,29 +45,6 @@ class WASMInstVisitor : public TextInstVisitor {
             return 100;
         }
 
-        virtual void visit(AddMetaDeclareInst* inst)
-        {}
-
-        virtual void visit(OpenboxInst* inst)
-        {}
-
-        virtual void visit(CloseboxInst* inst)
-        {}
-        
-        virtual void visit(AddButtonInst* inst)
-        {}
-        
-        virtual void visit(AddSliderInst* inst)
-        {}
-
-        virtual void visit(AddBargraphInst* inst)
-        {}
-
-        virtual void visit(LabelInst* inst)
-        {
-            // Empty
-        }
-
         virtual void visit(DeclareVarInst* inst)
         {}
         

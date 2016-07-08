@@ -32,7 +32,7 @@ class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
 
     protected:
 
-         std::ostream* fOut;
+        std::ostream* fOut;
  
     public:
 

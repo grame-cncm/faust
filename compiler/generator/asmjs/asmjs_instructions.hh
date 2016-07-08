@@ -36,9 +36,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         TypingVisitor fTypingVisitor;
         map <string, int> fFunctionSymbolTable; 
         map <string, string> fMathLibTable;
-       
-        string fObjPrefix;
-        
+    
         int fStructOffset;                                      // Keep the offset in bytes of the structure
         map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
         
@@ -83,7 +81,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["sqrtf"] = "global.Math.sqrt";
             fMathLibTable["tanf"] = "global.Math.tan";
             
-            fObjPrefix = "";
             fStructOffset = 0;
         }
 
@@ -103,7 +100,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(DeclareVarInst* inst)
         {
             bool is_struct = (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct); 
-            string prefix = is_struct ? fObjPrefix : "var ";
+            string prefix = "var ";
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
             
             if (array_typed && array_typed->fSize > 1) {
@@ -192,7 +189,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 }
             } else {
                 // Prototype
-                tab(fTab, *fOut); *fOut << fObjPrefix << "function " << generateFunName(inst->fName);
+                tab(fTab, *fOut); *fOut << "function " << generateFunName(inst->fName);
                 generateFunDefArgs(inst);
                 generateFunDefBody(inst);
             }
