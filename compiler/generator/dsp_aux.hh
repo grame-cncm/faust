@@ -161,7 +161,6 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> >
             }
         }
         
-        std::cerr << "WARNING : getFactory factory not yet allocated!" << std::endl;
         return false;
     }
     

@@ -401,11 +401,9 @@ extended/xtended.o: tlib/property.hh generator/Text.hh signals/sigvisitor.hh sig
 extended/xtended.o: generator/floats.hh
 generator/Text.o: generator/Text.hh tlib/compatibility.hh generator/floats.hh generator/instructions.hh
 generator/Text.o: signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh generator/interpreter/fir_opcode.hh
-generator/Text.o: tlib/property.hh tlib/tree.hh
-generator/Text.o: signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh tlib/property.hh tlib/tree.hh global.hh
-generator/Text.o: parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
-generator/Text.o: signals/signals.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-generator/Text.o: evaluate/loopDetector.hh tlib/occurrences.hh
+generator/Text.o: tlib/property.hh tlib/tree.hh global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh
+generator/Text.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/sigtype.hh tlib/smartpointer.hh
+generator/Text.o: signals/interval.hh evaluate/loopDetector.hh tlib/occurrences.hh
 generator/code_container.o: generator/code_container.hh generator/instructions.hh signals/binop.hh tlib/node.hh
 generator/code_container.o: tlib/symbol.hh garbageable.hh generator/interpreter/fir_opcode.hh tlib/property.hh
 generator/code_container.o: tlib/tree.hh generator/Text.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
@@ -774,15 +772,16 @@ generator/interpreter/interpreter_code_container.o: generator/interpreter/interp
 generator/interpreter/interpreter_code_container.o: generator/interpreter/fir_interpreter.hh
 generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_bytecode.hh
 generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_optimizer.hh generator/dsp_aux.hh
-generator/interpreter/interpreter_code_container.o: export.hh generator/interpreter/interpreter_instructions.hh
+generator/interpreter/interpreter_code_container.o: export.hh dsp_factory.hh
+generator/interpreter/interpreter_code_container.o: generator/interpreter/interpreter_instructions.hh
 generator/interpreter/interpreter_code_container.o: generator/typing_instructions.hh generator/instructions_compiler.hh
 generator/interpreter/interpreter_code_container.o: generator/occurences.hh generator/fir_to_fir.hh
 generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/interpreter_dsp_aux.hh
 generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/fir_interpreter.hh
 generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/interpreter_bytecode.hh
-generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/fir_opcode.hh
+generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/fir_opcode.hh errors/exception.hh
 generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/interpreter_optimizer.hh generator/dsp_aux.hh
-generator/interpreter/interpreter_dsp_aux.o: export.hh libfaust.h
+generator/interpreter/interpreter_dsp_aux.o: export.hh dsp_factory.hh libfaust.h
 generator/java/java_code_container.o: generator/java/java_code_container.hh generator/code_container.hh
 generator/java/java_code_container.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/java/java_code_container.o: garbageable.hh generator/interpreter/fir_opcode.hh tlib/property.hh tlib/tree.hh
@@ -839,7 +838,7 @@ libcode.o: generator/wasm/wasm_instructions.hh generator/llvm/clang_code_contain
 libcode.o: generator/interpreter/interpreter_code_container.cpp errors/exception.hh
 libcode.o: generator/interpreter/interpreter_code_container.hh generator/interpreter/interpreter_dsp_aux.hh
 libcode.o: generator/interpreter/fir_interpreter.hh generator/interpreter/interpreter_bytecode.hh
-libcode.o: generator/interpreter/interpreter_optimizer.hh generator/dsp_aux.hh
+libcode.o: generator/interpreter/interpreter_optimizer.hh generator/dsp_aux.hh dsp_factory.hh
 libcode.o: generator/interpreter/interpreter_instructions.hh generator/fir_to_fir.hh
 libcode.o: generator/fir/fir_code_container.hh generator/fir/fir_instructions.hh draw/schema/schema.h
 libcode.o: draw/device/device.h draw/drawschema.hh errors/timing.hh signals/ppsig.hh

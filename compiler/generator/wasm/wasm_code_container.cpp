@@ -114,6 +114,7 @@ void WASMCodeContainer::produceClass()
         mergeSubContainers();
     
         // All mathematical functions (got from math library as variables) have to be first...
+        gGlobal->gWASMVisitor->Tab(n+1);
         generateGlobalDeclarations(gGlobal->gWASMVisitor);
     
         // Always generated mathematical functions
@@ -196,6 +197,14 @@ void WASMCodeContainer::produceInfoFunctions(int tabs, const string& classname, 
 void WASMScalarCodeContainer::generateCompute(int n)
 {
     tab(n+1, *fOut); *fOut << "(func $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
-    // TODO
+    tab(n+2, *fOut);
+    gGlobal->gWASMVisitor->Tab(n+2);
+    
+    // Generates one single scalar loop and put is the the block
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+    fComputeBlockInstructions->pushBackInst(loop);
+    
+    loop->accept(gGlobal->gWASMVisitor);
+
     tab(n+1, *fOut); *fOut << ")";
 }

@@ -72,6 +72,9 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             initMathTable();
         }
     
+        virtual ~InterpreterInstVisitor()
+        {}
+    
         int getFieldOffset(const string& name)
         {
             return (fFieldTable.find(name) != fFieldTable.end()) ? fFieldTable[name].fOffset : -1;
@@ -129,9 +132,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             
             // Min/max directly handled in FunCallInst
         }
-        
-        virtual ~InterpreterInstVisitor()
-        {}
    
         virtual void visit(AddMetaDeclareInst* inst)
         {
