@@ -6,9 +6,12 @@ BINARY="BeagleRT"							# name of the binary we want to obtain
 FILENAME=$1
 CLASSNAME=`basename $FILENAME .dsp`
 
+# list of cpp files needed to compile $BINARY
+COREFILES="$BEAGLERT/core/default_main.cpp $BEAGLERT/core/DigitalChannelManager.cpp $BEAGLERT/core/GPIOcontrol.cpp $BEAGLERT/core/I2c_Codec.cpp $BEAGLERT/core/I2c_TouchKey.cpp $BEAGLERT/core/Midi.cpp $BEAGLERT/core/OSCClient.cpp $BEAGLERT/core/OSCServer.cpp $BEAGLERT/core/PRU.cpp $BEAGLERT/core/PulseIn.cpp $BEAGLERT/core/RTAudioCommandLine.cpp $BEAGLERT/core/RTAudio.cpp $BEAGLERT/core/Scope.cpp $BEAGLERT/core/UdpClient.cpp $BEAGLERT/core/UdpServer.cpp $BEAGLERT/core/WriteFile.cpp"
+
 faust -i -a bela.cpp -cn $CLASSNAME $FILENAME -o render.cpp || exit
 
-arm-linux-gnueabihf-g++ -O2 -L/usr/arm-linux-gnueabihf/lib -L/usr/arm-linux-gnueabihf/lib/xenomai -L/usr/lib/arm-linux-gnueabihf -L/usr/arm-linux-gnueabihf/include/xenomai/lib -pthread -rdynamic -I/usr/arm-linux-gnueabihf/include/xenomai/include -I$BEAGLERT/include -o $BINARY $BEAGLERT/core/*.cpp render.cpp $BEAGLERT/libprussdrv.a $BEAGLERT/libNE10.a -lrt -lnative -lxenomai || exit
+arm-linux-gnueabihf-g++ -O2 -L/usr/arm-linux-gnueabihf/lib -L/usr/arm-linux-gnueabihf/lib/xenomai -L/usr/lib/arm-linux-gnueabihf -L/usr/arm-linux-gnueabihf/include/xenomai/lib -pthread -rdynamic -I/usr/arm-linux-gnueabihf/include/xenomai/include -I$BEAGLERT/include -o $BINARY $COREFILES render.cpp $BEAGLERT/libprussdrv.a $BEAGLERT/libNE10.a -lrt -lnative -lxenomai || exit
 
 rm render.cpp
 

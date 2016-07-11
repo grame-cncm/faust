@@ -62,7 +62,7 @@ function installfaust {
 	wget 192.168.1.3/xenomai.tgz
 	tar xzf xenomai.tgz
 	$SUDO mv xenomai /usr/arm-linux-gnueabihf/include/
-	
+
 	# Install Android development tools
 	## install java 8
 	echo y |sudo add-apt-repository ppa:webupd8team/java
@@ -85,6 +85,9 @@ function installfaust {
 
 	export PATH="/opt/android/sdk/tools:/opt/android/sdk/platform-tools:/opt/android/ndk:$PATH"
 	echo y | android update sdk --no-ui -a --filter tools,platform-tools,android-24,build-tools-24.0.0
+
+	# Install Latex
+	$SUDO apt-get install -y texlive-full
 
 	# Install Faust
 	git clone git://git.code.sf.net/p/faudiostream/code faust
