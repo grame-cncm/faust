@@ -64,7 +64,7 @@ class llvm_dsp_factory : public dsp_factory {
         /* Returns Factory expanded DSP code */
         std::string getDSPCode();
     
-        /* Creates a new dsp instance */
+        /* Creates a new dsp instance, to be deleted with C++ 'delete' before the DSP factiry is itself deleted */
         dsp* createDSPInstance();
 
 };
@@ -132,7 +132,7 @@ llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const 
 
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possible really deleting the internal pointer. 
- * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted with deleteDSPInstance.
+ * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted with C++ delete.
  * Beware : all kept factories and DSP pointers (in local variables...) thus become invalid.
  * 
  * @param factory - the DSP factory

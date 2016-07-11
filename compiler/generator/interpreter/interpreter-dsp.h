@@ -53,7 +53,7 @@ class interpreter_dsp_factory : public dsp_factory {
         /* Return Factory expanded DSP code */
         std::string getDSPCode();
     
-        /* Creates a new dsp instance */
+        /* Creates a new dsp instance, to be deleted with C++ 'delete' before the DSP factiry is itself deleted */
         dsp* createDSPInstance();
   
 };
