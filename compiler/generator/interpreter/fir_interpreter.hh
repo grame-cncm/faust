@@ -77,6 +77,16 @@ class FIRInterpreter  {
             std::cout << "-------- Interpreter 'Overflow' warning trace end --------" << std::endl;
         }
     
+        inline void check_div_zero(InstructionIT it, T val)
+        {
+            if (val == T(0)) {
+                std::cout << "-------- Interpreter 'div by zero' trace start --------" << std::endl;
+                traceInstruction(it);
+                fTraceContext.write(&std::cout);
+                std::cout << "-------- Interpreter 'div by zero' trace end --------" << std::endl;
+            }
+        }
+    
         inline T check_real(InstructionIT it, T val)
         {
             if (std::isnan(val)) {
@@ -780,6 +790,9 @@ class FIRInterpreter  {
                     {
                         T v1 = pop_real();
                         T v2 = pop_real();
+                    #ifdef INTERPRETER_TRACE
+                        check_div_zero(it, v2);
+                    #endif
                         push_real(it, v1 / v2);
                         dispatch_next();
                     }
@@ -788,6 +801,9 @@ class FIRInterpreter  {
                     {
                         int v1 = pop_int();
                         int v2 = pop_int();
+                    #ifdef INTERPRETER_TRACE
+                        check_div_zero(it, v2);
+                    #endif
                         push_int(v1 / v2);
                         dispatch_next();
                     }
