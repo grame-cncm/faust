@@ -49,7 +49,7 @@ typedef struct LLVMResult {
 
 } LLVMResult;
 
-class dsp_factory_base;
+struct dsp_factory_base;
 
 /*
     Low level dynamic compilation interface. Better use the public API defined in llvm-dsp.h or llvm-c-dsp.h

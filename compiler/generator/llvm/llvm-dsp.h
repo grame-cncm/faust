@@ -406,7 +406,7 @@ class llvm_dsp : public dsp {
         
         void init(int samplingRate);
         void instanceInit(int samplingRate);
-        dsp* clone();
+        llvm_dsp* clone();
         
         void buildUserInterface(UI* ui_interface);
         int getSampleRate();

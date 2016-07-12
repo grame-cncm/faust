@@ -230,9 +230,9 @@ EXPORT void interpreter_dsp::metadata(Meta* meta)
     fDSP->metadata(meta);
 }
 
-EXPORT dsp* interpreter_dsp::clone()
+EXPORT interpreter_dsp* interpreter_dsp::clone()
 {
-    return fFactory->createDSPInstance();
+    return reinterpret_cast<interpreter_dsp*>(fFactory->createDSPInstance());
 }
 
 EXPORT int interpreter_dsp::getSampleRate()

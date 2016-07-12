@@ -273,7 +273,7 @@ class EXPORT llvm_dsp : public dsp {
         
         void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
-        dsp* clone();
+        llvm_dsp* clone();
     
 };
 

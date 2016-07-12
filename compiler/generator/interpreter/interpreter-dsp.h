@@ -194,7 +194,7 @@ class interpreter_dsp : public dsp {
         
         void init(int samplingRate);
         void instanceInit(int samplingRate);
-        dsp* clone();
+        interpreter_dsp* clone();
     
         void buildUserInterface(UI* inter);
         int getSampleRate();

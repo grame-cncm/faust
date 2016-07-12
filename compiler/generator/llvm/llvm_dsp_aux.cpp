@@ -1562,9 +1562,9 @@ EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output
     reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
 }
 
-EXPORT dsp* llvm_dsp::clone()
+EXPORT llvm_dsp* llvm_dsp::clone()
 {
-    return reinterpret_cast<llvm_dsp_aux*>(this)->clone();
+    return reinterpret_cast<llvm_dsp*>(reinterpret_cast<llvm_dsp_aux*>(this)->clone());
 }
 
 // Public C interface : lock management is done by called C++ API
