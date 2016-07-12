@@ -264,7 +264,7 @@ class proxy_dsp : public dsp {
     
         virtual int getSampleRate() { return fSamplingFreq; }
     
-        virtual dsp* clone() { return new proxy_dsp(fDecoder->fJSON); }
+        virtual proxy_dsp* clone() { return new proxy_dsp(fDecoder->fJSON); }
         virtual void metadata(Meta* m) { fDecoder->metadata(m); }
     
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}

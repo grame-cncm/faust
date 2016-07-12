@@ -244,7 +244,7 @@ class timed_dsp : public decorator_dsp {
             fDSP->buildUserInterface(&fZoneUI);
         }
     
-        virtual dsp* clone()
+        virtual timed_dsp* clone()
         {
             return new timed_dsp(fDSP->clone());
         }
