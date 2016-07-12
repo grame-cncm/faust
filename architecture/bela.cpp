@@ -14,7 +14,7 @@
   Oli Larkin 2016
   www.olilarkin.co.uk
   Based on owl.cpp
-  
+
 
   FAUST Architecture File
   Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
@@ -49,7 +49,7 @@
 #include <math.h>
 #include <strings.h>
 #include <cstdlib>
-#include <BeagleRT.h>
+#include <Bela.h>
 #include <Utilities.h>
 
 using namespace std;
@@ -90,7 +90,7 @@ const char * const pinNamesStrings[] =
   "DIGITAL_14",
   "DIGITAL_15"
  };
- 
+
 enum EInputPin
 {
   kNoPin = -1,
@@ -129,29 +129,29 @@ struct Meta
 
 /**************************************************************************************
 
-  BelaWidget : object used by BelaUI to ensures the connection between an Bela parameter 
+  BelaWidget : object used by BelaUI to ensures the connection between an Bela parameter
   and a faust widget
-  
+
 ***************************************************************************************/
 
 class BelaWidget
 {
 protected:
-  EInputPin fBelaPin; 
+  EInputPin fBelaPin;
   FAUSTFLOAT* fZone;  // Faust widget zone
-  const char* fLabel; // Faust widget label 
+  const char* fLabel; // Faust widget label
   float fMin;         // Faust widget minimal value
   float fRange;       // Faust widget value range (max-min)
-  
+
   public:
-  BelaWidget() 
+  BelaWidget()
   : fBelaPin(kNoPin)
   , fZone(0)
   , fLabel("")
   , fMin(0)
   , fRange(1)
   {}
-    
+
   BelaWidget(const BelaWidget& w)
   : fBelaPin(w.fBelaPin)
   , fZone(w.fZone)
@@ -159,17 +159,17 @@ protected:
   , fMin(w.fMin)
   , fRange(w.fRange)
   {}
-    
+
   BelaWidget(EInputPin pin, FAUSTFLOAT* z, const char* l, float lo, float hi)
   : fBelaPin(pin)
   , fZone(z)
   , fLabel(l)
   , fMin(lo)
-  , fRange(hi-lo) 
+  , fRange(hi-lo)
   {}
-    
-  void update(BelaContext *context) 
-  { 
+
+  void update(BelaContext *context)
+  {
     switch(fBelaPin)
     {
       case kANALOG_0:
@@ -204,20 +204,20 @@ protected:
       break;
     };
   }
-  
+
 };
 
 /**************************************************************************************
 
   BelaUI : Faust User Interface builder. Passed to buildUserInterface BelaUI allows
   the mapping between BELA pins and faust widgets. It relies on specific
-  metadata "...[BELA:DIGITAL_0]..." in the widget's label for that. For example any 
-  faust widget with metadata [BELA:DIGITAL_0] will be controlled by DIGITAL_0 
+  metadata "...[BELA:DIGITAL_0]..." in the widget's label for that. For example any
+  faust widget with metadata [BELA:DIGITAL_0] will be controlled by DIGITAL_0
   (the second knob).
-  
+
 ***************************************************************************************/
 
-// The maximun number of mappings between Bela parameters and faust widgets 
+// The maximun number of mappings between Bela parameters and faust widgets
 #define MAXBELAWIDGETS 8
 
 class BelaUI : public UI
@@ -225,9 +225,9 @@ class BelaUI : public UI
   int fIndex; // number of BelaWidgets collected so far
   EInputPin fBelaPin; // current pin id
   BelaWidget fTable[MAXBELAWIDGETS]; // kind of static list of BelaWidgets
-  
+
   // check if the widget is linked to a Bela parameter and, if so, add the corresponding BelaWidget
-  void addBelaWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) 
+  void addBelaWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
   {
     if (fBelaPin != kNoPin && (fIndex < MAXBELAWIDGETS))
     {
@@ -244,13 +244,13 @@ class BelaUI : public UI
 
  public:
 
-  BelaUI() 
-  : fIndex(0) 
+  BelaUI()
+  : fIndex(0)
   , fBelaPin(kNoPin)
   {}
-  
+
   virtual ~BelaUI() {}
-  
+
   // should be called before compute() to update widget's zones registered as Bela parameters
   void update(BelaContext *context)
   {
@@ -259,7 +259,7 @@ class BelaUI : public UI
   }
 
   //---------------------- virtual methods called by buildUserInterface ----------------
-  
+
   // -- widget's layouts
   virtual void openTabBox(const char* label) {}
   virtual void openHorizontalBox(const char* label) {}
@@ -307,7 +307,7 @@ ztimedmap GUI::gTimedZoneMap;
 /**************************************************************************************
 
   Bela render.cpp that calls FAUST generated code
-  
+
 ***************************************************************************************/
 
 unsigned int gNumBuffers = 0; // the number of de-interleaved buffers for audio and analog i/o
@@ -331,34 +331,34 @@ bool setup(BelaContext *context, void *userData)
 //   rt_printf("context->analogFrames %i\n", context->analogFrames);
 
   fDSP.init(context->audioSampleRate);
-  fDSP.buildUserInterface(&fUI); // Maps Bela Analog/Digital IO and faust widgets 
+  fDSP.buildUserInterface(&fUI); // Maps Bela Analog/Digital IO and faust widgets
 
   gInputBuffers = (float *) malloc(gNumBuffers * context->audioFrames * sizeof(float));
   gOutputBuffers = (float *) malloc(gNumBuffers * context->audioFrames * sizeof(float));
-  
+
   if(gInputBuffers == NULL || gOutputBuffers == NULL)
   {
     rt_printf("setup() failed: couldn't allocated buffers");
     return false;
   }
-  
+
   if(fDSP.getNumInputs() > 10 || fDSP.getNumOutputs() > 10)
   {
     rt_printf("setup() failed: FAUST DSP has too many i/o");
     return false;
-  } 
+  }
   // create the table of input channels
   for(int ch=0; ch<fDSP.getNumInputs(); ++ch)
     gFaustIns[ch] = gInputBuffers + (ch * context->audioFrames);
-  
+
   // create the table of output channels
   for(int ch=0; ch<fDSP.getNumOutputs(); ++ch)
     gFaustOuts[ch] = gOutputBuffers + (ch * context->audioFrames);
-  
+
   fMidiUI = new MidiUI(&fMIDI);
   fDSP.buildUserInterface(fMidiUI);
   fMidiUI->run();
-  
+
   return true;
 }
 
@@ -383,12 +383,12 @@ void render(BelaContext *context, void *userData)
       }
     }
   }
-    
+
   // reads Bela pins and updates corresponding Faust Widgets zones
-  fUI.update(context); 
+  fUI.update(context);
   // Process FAUST DSP
   fDSP.compute(context->audioFrames, gFaustIns, gFaustOuts);
-  
+
   // Interleave the output data
   for(unsigned int frame = 0; frame < context->audioFrames; frame++)
   {
@@ -396,16 +396,16 @@ void render(BelaContext *context, void *userData)
     {
       if(ch >= context->audioOutChannels+context->analogOutChannels)
         break;
-      else 
+      else
       {
         if(ch >= context->audioOutChannels) // handle analogChannels
         {
           unsigned int m = frame/2;
           context->analogOut[m * context->analogFrames + (ch-context->audioOutChannels)] = gOutputBuffers[ch*context->audioFrames + frame];
-        } 
+        }
         else // handle audioChannels
         {
-          context->audioOut[frame * context->audioChannels + ch] = gOutputBuffers[ch * context->audioFrames + frame];
+          context->audioOut[frame * context->audioOutChannels + ch] = gOutputBuffers[ch * context->audioFrames + frame];
         }
       }
     }
@@ -418,7 +418,7 @@ void cleanup(BelaContext *context, void *userData)
     free(gInputBuffers);
   if(gOutputBuffers != NULL)
     free(gOutputBuffers);
-    
+
   delete fMidiUI;
 }
 
