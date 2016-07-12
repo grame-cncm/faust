@@ -97,7 +97,7 @@ class decorator_dsp : public dsp {
         virtual int getSampleRate() { return fDSP->getSampleRate(); }
         virtual void init(int samplingRate) { fDSP->init(samplingRate); }
         virtual void instanceInit(int samplingRate) { fDSP->instanceInit(samplingRate); }
-        virtual dsp* clone() { return new decorator_dsp(fDSP->clone()); }
+        virtual decorator_dsp* clone() { return new decorator_dsp(fDSP->clone()); }
         virtual void metadata(Meta* m) { return fDSP->metadata(m); }
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(count, inputs, outputs); }
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(date_usec, count, inputs, outputs); }
