@@ -46,7 +46,7 @@ else
 endif
 endif
 
-LLVM_STATIC_LIBS = $(shell $(LLVM_CONFIG) --libfiles)
+LLVM_STATIC_LIBS = $(shell $(LLVM_CONFIG) --libfiles --system-libs)
 LLVM_VERSION = $(shell $(LLVM_CONFIG) --version)
 
 ## On Windows (mingw32) we must link against the socket library.
@@ -133,11 +133,11 @@ CXXFLAGS += $(ARCHFLAGS)
 
 LLVMSHLIB = $(wildcard $(shell $(LLVM_CONFIG) --libdir)/libLLVM-$(shell $(LLVM_CONFIG) --version).$(LIB_EXT))
 
-ifeq ($(LLVMSHLIB),)
-    LLVMLIBS = $(shell $(LLVM_CONFIG) --libs --system-libs)
-else
+ifneq ($(LLVMSHLIB),)
     LLVMLIBS = -l$(patsubst lib%,%,$(notdir $(basename $(LLVMSHLIB))))
 endif
+
+LLVMLIBS += $(shell $(LLVM_CONFIG) --system-libs)
 
 all : faust libfaust.a
 
@@ -213,7 +213,7 @@ faust : $(objects) main.o libcode.o global.o
 ifneq ($(findstring MINGW32, $(system)),)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread -o faust
 else
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) -ldl -lcrypto -o faust
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) -lcrypto -o faust
 endif
 
 ifeq ($(system), Darwin)
@@ -222,7 +222,7 @@ ifeq ($(system), Darwin)
 	libtool $(LIBFLAGS) $(objects) libcode.o libmain.o global.o -static -o $@
 
     libfaust.dylib : $(objects) libcode.o libmain.o global.o
-	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(LDFLAGS) $(objects) libcode.o libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -ldl -lcrypto -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
+	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(LDFLAGS) $(objects) libcode.o libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -lcrypto -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
 else
 ifneq ($(findstring MINGW32, $(system)),)
     libfaust.a : $(objects) libcode.o libmain.o global.o
@@ -239,7 +239,7 @@ else
 	$(RANLIB) $@
 
     libfaust.so : $(objects) libcode.o libmain.o global.o
-	$(CXX) -shared -fPIC $(LDFLAGS) $(objects) libcode.o libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -ldl -lcrypto -lstdc++
+	$(CXX) -shared -fPIC $(LDFLAGS) $(objects) libcode.o libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -lcrypto -lstdc++
 endif
 endif
 
