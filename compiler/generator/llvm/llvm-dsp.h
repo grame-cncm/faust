@@ -50,7 +50,9 @@ std::string getLibFaustVersion();
 
 class llvm_dsp_factory : public dsp_factory {
 
-     public: 
+     public:
+    
+        virtual ~llvm_dsp_factory();
         
         /* Returns Factory name */
         std::string getName();

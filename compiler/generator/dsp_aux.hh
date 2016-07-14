@@ -239,11 +239,12 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> >
                 return true;
             } else {
                 factory->removeReference();
+                return false;
             }
+        } else {
+            std::cerr << "WARNING : deleteDSPFactory factory not found!" << std::endl;
+            return false;
         }
-        
-        std::cerr << "WARNING : deleteDSPFactory factory not found!" << std::endl;
-        return false;
     }
     
     void deleteAllDSPFactories()

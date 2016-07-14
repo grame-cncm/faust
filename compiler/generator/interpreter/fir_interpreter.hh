@@ -2395,7 +2395,7 @@ class FIRInterpreter  {
                     
                     do_kCondBranch:
                     {
-                        // If condition is true, just branch back on the block begining
+                        // If condition is true, just branch back on the block beginning
                         if (pop_int()) {
                             assert((*it)->fBranch1);
                             dispatch_branch1();

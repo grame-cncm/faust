@@ -42,8 +42,10 @@
 
 class interpreter_dsp_factory : public dsp_factory {
 
-     public: 
-        
+     public:
+    
+        virtual ~interpreter_dsp_factory();
+    
         /* Return Factory name */
         std::string getName();
         

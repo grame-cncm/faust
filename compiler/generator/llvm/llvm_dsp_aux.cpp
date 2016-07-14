@@ -1211,9 +1211,13 @@ EXPORT vector<string> getAllDSPFactories()
 }
 
 EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory) 
-{   
-    TLock lock(gDSPFactoriesLock);
-    return gLLVMFactoryTable.deleteDSPFactory(factory);
+{
+    if (factory) {
+        TLock lock(gDSPFactoriesLock);
+        return gLLVMFactoryTable.deleteDSPFactory(factory);
+    } else {
+        return false;
+    }
 }
 
 EXPORT string llvm_dsp_factory::getName()

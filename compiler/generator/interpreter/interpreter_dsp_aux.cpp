@@ -126,7 +126,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
 
 EXPORT bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory)
 {
-    return gInterpreterFactoryTable.deleteDSPFactory(factory);
+    return (factory) ? gInterpreterFactoryTable.deleteDSPFactory(factory): false;
 }
 
 EXPORT vector<string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory)
