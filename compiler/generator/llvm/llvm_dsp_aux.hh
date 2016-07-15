@@ -43,6 +43,28 @@ using namespace std;
 
 class FaustObjectCache;
 
+class EXPORT llvm_dsp : public dsp {
+    
+public:
+    
+    int getNumInputs();
+    int getNumOutputs();
+    
+    void metadata(Meta* m);
+    
+    void init(int samplingRate);
+    void instanceInit(int samplingRate);
+    
+    int getSampleRate();
+    
+    void buildUserInterface(UI* ui_interface);
+    
+    void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    
+    llvm_dsp* clone();
+    
+};
+
 class EXPORT llvm_dsp_factory : public dsp_factory, public smartable {
 
     friend class llvm_dsp_aux;
@@ -154,7 +176,7 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public smartable {
     
         EXPORT string getDSPCode();
     
-        EXPORT dsp* createDSPInstance();
+        EXPORT llvm_dsp* createDSPInstance();
    
         static int gInstance;
 };
@@ -189,7 +211,7 @@ class llvm_dsp_aux : public dsp {
         
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
         
-        virtual dsp* clone();
+        virtual llvm_dsp_aux* clone();
     
         llvm_dsp_factory* getFactory() { return fFactory; }
     
@@ -254,28 +276,6 @@ EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target);
 
 EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path, const std::string& target);
-
-class EXPORT llvm_dsp : public dsp {
-                
-    public:
-    
-        int getNumInputs();
-        int getNumOutputs();
-    
-        void metadata(Meta* m);
-    
-        void init(int samplingRate);
-        void instanceInit(int samplingRate);
-    
-        int getSampleRate();
-      
-        void buildUserInterface(UI* ui_interface);
-        
-        void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-    
-        llvm_dsp* clone();
-    
-};
 
 #ifdef __cplusplus
 extern "C" {

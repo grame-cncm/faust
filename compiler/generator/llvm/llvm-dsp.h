@@ -45,9 +45,31 @@
 std::string getLibFaustVersion();
 
 /**
-* DSP factory class.
-*/
+ * DSP instance class with methods.
+ */
+class llvm_dsp : public dsp {
+    
+public:
+    
+    void metadata(Meta* m);
+    
+    int getNumInputs();
+    int getNumOutputs();
+    
+    void init(int samplingRate);
+    void instanceInit(int samplingRate);
+    llvm_dsp* clone();
+    
+    void buildUserInterface(UI* ui_interface);
+    int getSampleRate();
+    
+    void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+    
+};
 
+/**
+ * DSP factory class.
+ */
 class llvm_dsp_factory : public dsp_factory {
 
      public:
@@ -67,7 +89,7 @@ class llvm_dsp_factory : public dsp_factory {
         std::string getDSPCode();
     
         /* Creates a new dsp instance, to be deleted with C++ 'delete' before the DSP factiry is itself deleted */
-        dsp* createDSPInstance();
+        llvm_dsp* createDSPInstance();
 
 };
 
@@ -393,29 +415,6 @@ bool generateAuxFilesFromFile(const std::string& filename, int argc, const char*
  * @return true if compilation succedeed, false and an error_msg in case of failure.
  */ 
 bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg);
-
-/**
- * DSP instance class with methods.
- */
-class llvm_dsp : public dsp {
-    
-    public:
-        
-        void metadata(Meta* m);
-        
-        int getNumInputs();
-        int getNumOutputs();
-        
-        void init(int samplingRate);
-        void instanceInit(int samplingRate);
-        llvm_dsp* clone();
-        
-        void buildUserInterface(UI* ui_interface);
-        int getSampleRate();
-        
-        void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
-    
-};
 
 /**
  * Create a Faust DSP instance.

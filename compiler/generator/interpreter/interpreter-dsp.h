@@ -37,6 +37,29 @@
  */
 
 /**
+ * DSP instance class with methods.
+ */
+class interpreter_dsp : public dsp {
+    
+public:
+    
+    void metadata(Meta* m);
+    
+    int getNumInputs();
+    int getNumOutputs();
+    
+    void init(int samplingRate);
+    void instanceInit(int samplingRate);
+    interpreter_dsp* clone();
+    
+    void buildUserInterface(UI* inter);
+    int getSampleRate();
+    
+    void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    
+};
+
+/**
 * Interpreter DSP factory class.
 */
 
@@ -56,7 +79,7 @@ class interpreter_dsp_factory : public dsp_factory {
         std::string getDSPCode();
     
         /* Creates a new dsp instance, to be deleted with C++ 'delete' before the DSP factiry is itself deleted */
-        dsp* createDSPInstance();
+        interpreter_dsp* createDSPInstance();
   
 };
 
@@ -181,29 +204,6 @@ interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::str
 void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const std::string& machine_code_path);
 
 void deleteAllInterpreterDSPFactories();
-
-/**
- * DSP instance class with methods.
- */
-class interpreter_dsp : public dsp {
-    
-    public:
-        
-        void metadata(Meta* m);
-        
-        int getNumInputs();
-        int getNumOutputs();
-        
-        void init(int samplingRate);
-        void instanceInit(int samplingRate);
-        interpreter_dsp* clone();
-    
-        void buildUserInterface(UI* inter);
-        int getSampleRate();
-    
-        void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-    
-};
 
 /*!
  @}

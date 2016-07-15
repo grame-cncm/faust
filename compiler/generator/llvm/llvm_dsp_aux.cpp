@@ -991,9 +991,9 @@ llvm_dsp_aux::~llvm_dsp_aux()
     }
 }
 
-dsp* llvm_dsp_aux::clone()
+llvm_dsp_aux* llvm_dsp_aux::clone()
 {
-    return reinterpret_cast<dsp*>(fFactory->createDSPInstance());
+    return reinterpret_cast<llvm_dsp_aux*>(fFactory->createDSPInstance());
 }
 
 void llvm_dsp_aux::metadata(Meta* m)
@@ -1516,12 +1516,12 @@ EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string
         
 // Instance
     
-EXPORT dsp* llvm_dsp_factory::createDSPInstance()
+EXPORT llvm_dsp* llvm_dsp_factory::createDSPInstance()
 {
     assert(fResult->fModule);
     assert(fJIT);
     
-    dsp* instance = reinterpret_cast<dsp*>(new llvm_dsp_aux(this, fNew()));
+    llvm_dsp* instance = reinterpret_cast<llvm_dsp*>(new llvm_dsp_aux(this, fNew()));
     gLLVMFactoryTable.addDSP(this, instance);
     return instance;
 }

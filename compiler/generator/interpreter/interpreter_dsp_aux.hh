@@ -1048,7 +1048,7 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
         std::string getDSPCode() { return fFactory->getDSPCode(); }
         void setDSPCode(std::string code) { return fFactory->setDSPCode(code); }
         
-        dsp* createDSPInstance();
+        interpreter_dsp* createDSPInstance();
         
         void write(std::ostream* out, bool small = false) { fFactory->write(out, small); }
     

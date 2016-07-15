@@ -152,11 +152,11 @@ EXPORT interpreter_dsp::~interpreter_dsp()
     delete fDSP;
 }
 
-EXPORT dsp* interpreter_dsp_factory::createDSPInstance()
+EXPORT interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
 {
     dsp* dsp = fFactory->createDSPInstance(this);
     gInterpreterFactoryTable.addDSP(this, dsp);
-    return dsp;
+    return reinterpret_cast<interpreter_dsp*>(dsp);
 }
 
 // Read/write
