@@ -178,7 +178,7 @@ struct FIRBlockStoreRealInstruction : public FIRBasicInstruction<T> {
             << " offset2 " << this->fOffset2
             << " size " << this->fNumTable.size() << std::endl;
         }
-        for (int i = 0; i < fNumTable.size(); i++) {
+        for (unsigned int i = 0; i < fNumTable.size(); i++) {
             *out << this->fNumTable[i] << " ";
         }
         *out << std::endl;
@@ -221,7 +221,7 @@ struct FIRBlockStoreIntInstruction : public FIRBasicInstruction<T> {
             << " offset2 " << this->fOffset2
             << " size " << this->fNumTable.size() << std::endl;
         }
-        for (int i = 0; i < fNumTable.size(); i++) {
+        for (unsigned int i = 0; i < fNumTable.size(); i++) {
             *out << this->fNumTable[i] << " ";
         }
         *out << std::endl;
