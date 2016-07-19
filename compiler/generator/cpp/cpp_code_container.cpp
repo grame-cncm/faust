@@ -336,7 +336,7 @@ void CPPCodeContainer::produceClass()
         // Init
         produceInit(n+1);
     
-        tab(n+1, *fOut); *fOut << "virtual dsp* clone() {";
+        tab(n+1, *fOut); *fOut << "virtual "<< fKlassName <<"* clone() {";
         tab(n+2, *fOut); *fOut << "return new " << fKlassName << "();";
         tab(n+1, *fOut); *fOut << "}";
     
