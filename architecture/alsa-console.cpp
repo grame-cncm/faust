@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <list>
+#include <cmath>
 
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"

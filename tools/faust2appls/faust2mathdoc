@@ -37,7 +37,8 @@ convert_svgprocesses2pdf()
 	    for SRC in $FILE ; do
 		echo ' --> '$SRC
 		PDF=${SRC%.svg}'.pdf'
-		svg2pdf "$SRC" "$PDF"
+		##svg2pdf "$SRC" "$PDF"
+		inkscape --without-gui --file="$SRC" --export-pdf="$PDF"
 		echo ' <-- '$PDF
 	    done
 	    cd -
@@ -62,7 +63,8 @@ convert_svgdirs2pdf()
 	    for SRC in $FILES ; do
 		#echo ' --> '$SRC
 		PDF=${SRC%.svg}'.pdf'
-		svg2pdf "$SRC" "$PDF"
+		##svg2pdf "$SRC" "$PDF"
+		inkscape --without-gui --file="$SRC" --export-pdf="$PDF"
 		echo "svg2pdf $SRC $PDF"
 		#echo ' <-- '$PDF
 	    done

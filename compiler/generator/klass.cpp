@@ -817,7 +817,7 @@ void Klass::println(int n, ostream& fout)
          tab(n+2,fout); fout << "instanceInit(samplingFreq);";
     tab(n+1,fout); fout << "}";
     
-    tab(n+1,fout); fout << "virtual dsp* clone() {";
+    tab(n+1,fout); fout << "virtual "<< fKlassName <<"* clone() {";
     tab(n+2,fout); fout << "return new " << fKlassName << "();";
     tab(n+1,fout); fout << "}";
     
@@ -825,7 +825,7 @@ void Klass::println(int n, ostream& fout)
     tab(n+2,fout); fout << "return fSamplingFreq;";
     tab(n+1,fout); fout << "}";
 
-    tab(n+1,fout); fout << "virtual void buildUserInterface(UI* interface) {";
+    tab(n+1,fout); fout << "virtual void buildUserInterface(UI* ui_interface) {";
         printlines (n+2, fUICode, fout);
     tab(n+1,fout); fout << "}";
 
