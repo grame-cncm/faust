@@ -115,6 +115,9 @@ int main(int argc, char *argv[])
             return 1;
         }
     }
+    
+    DSP->instanceInit(44100);
+    //DSP->instanceClear();
   
     snprintf(appname, 255, "%s", basename(argv[0]));
     snprintf(filename, 255, "%s", basename(argv[argc-1]));

@@ -49,21 +49,27 @@ std::string getLibFaustVersion();
  */
 class llvm_dsp : public dsp {
     
-public:
-    
-    void metadata(Meta* m);
-    
-    int getNumInputs();
-    int getNumOutputs();
-    
-    void init(int samplingRate);
-    void instanceInit(int samplingRate);
-    llvm_dsp* clone();
-    
-    void buildUserInterface(UI* ui_interface);
-    int getSampleRate();
-    
-    void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+    public:
+        
+        int getNumInputs();
+       
+        int getNumOutputs();
+        
+        void buildUserInterface(UI* ui_interface);
+       
+        int getSampleRate();
+        
+        void init(int samplingRate);
+       
+        void instanceInit(int samplingRate);
+        
+        void instanceClear();
+        
+        llvm_dsp* clone();
+        
+        void metadata(Meta* m);
+        
+        void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
     
 };
 

@@ -1375,7 +1375,7 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
    } else if (mxd < gGlobal->gMaxCopyDelay) {
 
         // Generates table init
-        pushInitMethod(generateInitArray(vname, ctype, mxd + 1));
+        pushClearMethod(generateInitArray(vname, ctype, mxd + 1));
 
         // Generate table use
         pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genIntNumInst(0), exp));
@@ -1399,7 +1399,7 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
         ensureIotaCode();
 
         // Generates table init
-        pushInitMethod(generateInitArray(vname, ctype, N));
+        pushClearMethod(generateInitArray(vname, ctype, N));
 
         // Generate table use
         if (gGlobal->gComputeIOA) {  // Ensure IOTA base fixed delays are computed once
@@ -1433,7 +1433,7 @@ void InstructionsCompiler::ensureIotaCode()
         fLoadedIota = true;
 
         pushDeclare(InstBuilder::genDecStructVar("IOTA", InstBuilder::genBasicTyped(Typed::kInt)));
-        pushInitMethod(InstBuilder::genStoreStructVar("IOTA", InstBuilder::genIntNumInst(0)));
+        pushClearMethod(InstBuilder::genStoreStructVar("IOTA", InstBuilder::genIntNumInst(0)));
 
         FIRIndex value = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) + 1;
         pushComputePostDSPMethod(InstBuilder::genStoreStructVar("IOTA", value));

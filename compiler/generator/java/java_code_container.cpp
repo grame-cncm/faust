@@ -99,6 +99,7 @@ void JAVACodeContainer::produceInternal()
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
+            generateClear(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
     
         // Fill
@@ -212,6 +213,14 @@ void JAVACodeContainer::produceClass()
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
+            *fOut << "instanceClear();";
+        tab(n+1, *fOut); *fOut << "}";
+    
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "public void instanceClear() {";
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+        generateClear(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
    
         tab(n+1, *fOut);

@@ -404,21 +404,26 @@ extern "C"
     /**
      * Instance functions.
      */
-    void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
     
     int getNumInputsCDSPInstance(llvm_dsp* dsp);
     
     int getNumOutputsCDSPInstance(llvm_dsp* dsp);
     
+    void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* interface);
+    
+    int getSampleRateCDSPInstance(llvm_dsp* dsp);
+    
     void initCDSPInstance(llvm_dsp* dsp, int samplingRate);
     
     void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate);
     
-    void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* interface);
-    
-    void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    void instanceClearCDSPInstance(llvm_dsp* dsp);
     
     llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp);
+    
+    void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
+    
+    void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
     /**
      * Create a Faust DSP instance.

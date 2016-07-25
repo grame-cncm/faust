@@ -45,23 +45,27 @@ class FaustObjectCache;
 
 class EXPORT llvm_dsp : public dsp {
     
-public:
-    
-    int getNumInputs();
-    int getNumOutputs();
-    
-    void metadata(Meta* m);
-    
-    void init(int samplingRate);
-    void instanceInit(int samplingRate);
-    
-    int getSampleRate();
-    
-    void buildUserInterface(UI* ui_interface);
-    
-    void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-    
-    llvm_dsp* clone();
+    public:
+        
+        int getNumInputs();
+        
+        int getNumOutputs();
+        
+        void buildUserInterface(UI* ui_interface);
+        
+        int getSampleRate();
+        
+        void init(int samplingRate);
+        
+        void instanceInit(int samplingRate);
+        
+        void instanceClear();
+        
+        llvm_dsp* clone();
+        
+        void metadata(Meta* m);
+        
+        void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
 };
 
@@ -94,6 +98,7 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public smartable {
         buildUserInterfaceFun fBuildUserInterface;
         initFun fInit;
         initFun fInstanceInit;
+        clearFun fInstanceClear;
         getSampleRateFun fGetSampleRate;
         computeFun fCompute;
         metadataFun fMetadata;
@@ -212,6 +217,8 @@ class llvm_dsp_aux : public dsp {
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
         
         virtual llvm_dsp_aux* clone();
+    
+        virtual void instanceClear();
     
         llvm_dsp_factory* getFactory() { return fFactory; }
     
@@ -349,15 +356,19 @@ EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp);
 
 EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp);
 
+EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* ui_interface);
+    
+EXPORT int getSampleRateCDSPInstance(llvm_dsp* dsp);
+
 EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingRate);
     
 EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate);
 
-EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* ui_interface);
+EXPORT void instanceClearCDSPInstance(llvm_dsp* dsp);
+    
+EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp);
 
 EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-
-EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp);
 
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 

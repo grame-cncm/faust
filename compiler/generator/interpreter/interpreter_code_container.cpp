@@ -45,7 +45,10 @@ template <class T> map <string, FIRInstruction::Opcode> InterpreterInstVisitor<T
 template <class T>
 static FIRBlockInstruction<T>* getCurrentBlock()
 {
-    return dynamic_cast<InterpreterInstVisitor<T>*>(gGlobal->gInterpreterVisitor)->fCurrentBlock;
+    FIRBlockInstruction<T>* block = dynamic_cast<InterpreterInstVisitor<T>*>(gGlobal->gInterpreterVisitor)->fCurrentBlock;
+    // Add kReturn in generated block
+    block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
+    return block;
 }
 
 template <class T>
@@ -155,28 +158,32 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gInterpreterVisitor);
     
+    // Keep "init_block"
     FIRBlockInstruction<T>* init_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FIRBlockInstruction<T>);
     
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    inlineSubcontainersFunCalls(fClearInstructions)->accept(gGlobal->gInterpreterVisitor);
+    
+    // Keep "clear_block"
+    FIRBlockInstruction<T>* clear_block = getCurrentBlock<T>();
+    setCurrentBlock<T>(new FIRBlockInstruction<T>);
+    
+    // Generate UI
     generateUserInterface(gGlobal->gInterpreterVisitor);
     
-    // Generates local variables declaration and setup
+    // Generate local variables declaration and setup
     generateComputeBlock(gGlobal->gInterpreterVisitor);
     
+    // Keep "compute_control_block"
     FIRBlockInstruction<T>* compute_control_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FIRBlockInstruction<T>);
 
-    // Generates one single scalar loop
+    // Generate one single scalar loop
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     
     loop->accept(gGlobal->gInterpreterVisitor);
     FIRBlockInstruction<T>* compute_dsp_block = getCurrentBlock<T>();
-    
-    // Add kReturn in generated blocks
-    init_static_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
-    init_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
-    compute_control_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
-    compute_dsp_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     
     // Then create factory
     return new interpreter_dsp_factory_aux<T>(fKlassName, "", INTERP_FILE_VERSION,
@@ -191,6 +198,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
                                                               getInterpreterVisitor<T>()->fUserInterfaceBlock,
                                                               init_static_block,
                                                               init_block,
+                                                              clear_block,
                                                               compute_control_block,
                                                               compute_dsp_block);
 }

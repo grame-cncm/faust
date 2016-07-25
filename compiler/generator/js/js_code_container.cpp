@@ -99,6 +99,7 @@ void JAVAScriptCodeContainer::produceInternal()
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
+            generateClear(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
    
         // Fill
@@ -192,8 +193,16 @@ void JAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
+             *fOut << "this.instanceClear();";
         tab(n+1, *fOut); *fOut << "}";
-   
+
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "this.instanceClear = function() {";
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateClear(&fCodeProducer);
+        tab(n+1, *fOut); *fOut << "}";
+       
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "this.init = function(samplingFreq) {";
             tab(n+2, *fOut); *fOut << "this.classInit(samplingFreq);";

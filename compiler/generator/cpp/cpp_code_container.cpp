@@ -143,6 +143,7 @@ void CPPCodeContainer::produceInternal()
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
+            generateClear(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
     
     
@@ -300,6 +301,14 @@ void CPPCodeContainer::produceClass()
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
+            *fOut << "instanceClear();";
+        tab(n+1, *fOut); *fOut << "}";
+        tab(n+1, *fOut);
+    
+        tab(n+1, *fOut); *fOut << "virtual void instanceClear() {";
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateClear(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
         tab(n+1, *fOut);
     
@@ -336,12 +345,14 @@ void CPPCodeContainer::produceClass()
         // Init
         produceInit(n+1);
     
+        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "virtual "<< fKlassName <<"* clone() {";
-        tab(n+2, *fOut); *fOut << "return new " << fKlassName << "();";
+            tab(n+2, *fOut); *fOut << "return new " << fKlassName << "();";
         tab(n+1, *fOut); *fOut << "}";
     
+        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "virtual int getSampleRate() {";
-        tab(n+2, *fOut); *fOut << "return fSamplingFreq;";
+            tab(n+2, *fOut); *fOut << "return fSamplingFreq;";
         tab(n+1, *fOut); *fOut << "}";
 
         // User interface

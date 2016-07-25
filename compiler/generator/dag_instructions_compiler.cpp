@@ -524,7 +524,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         delay = (delay+3) & -4;
 
         // allocate permanent storage for delayed samples
-        pushInitMethod(generateInitArray(pmem, ctype, delay));
+        pushClearMethod(generateInitArray(pmem, ctype, delay));
 
         // compute method
 
@@ -558,13 +558,13 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         string idx_save = subst("$0_idx_save", vname);
 
         // allocate permanent storage for delayed samples
-        pushInitMethod(generateInitArray(vname, ctype, delay));
+        pushClearMethod(generateInitArray(vname, ctype, delay));
         pushDeclare(InstBuilder::genDecStructVar(idx, InstBuilder::genBasicTyped(Typed::kInt)));
         pushDeclare(InstBuilder::genDecStructVar(idx_save, InstBuilder::genBasicTyped(Typed::kInt)));
 
         // init permanent memory
-        pushInitMethod(InstBuilder::genStoreStructVar(idx, InstBuilder::genIntNumInst(0)));
-        pushInitMethod(InstBuilder::genStoreStructVar(idx_save, InstBuilder::genIntNumInst(0)));
+        pushClearMethod(InstBuilder::genStoreStructVar(idx, InstBuilder::genIntNumInst(0)));
+        pushClearMethod(InstBuilder::genStoreStructVar(idx_save, InstBuilder::genIntNumInst(0)));
 
         // -- update index
         FIRIndex index1 = FIRIndex(InstBuilder::genLoadStructVar(idx)) + InstBuilder::genLoadStructVar(idx_save);

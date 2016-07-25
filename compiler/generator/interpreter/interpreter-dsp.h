@@ -41,21 +41,27 @@
  */
 class interpreter_dsp : public dsp {
     
-public:
-    
-    void metadata(Meta* m);
-    
-    int getNumInputs();
-    int getNumOutputs();
-    
-    void init(int samplingRate);
-    void instanceInit(int samplingRate);
-    interpreter_dsp* clone();
-    
-    void buildUserInterface(UI* inter);
-    int getSampleRate();
-    
-    void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    public:
+        
+        int getNumInputs();
+        
+        int getNumOutputs();
+        
+        void buildUserInterface(UI* ui_interface);
+        
+        int getSampleRate();
+        
+        void init(int samplingRate);
+        
+        void instanceInit(int samplingRate);
+        
+        void instanceClear();
+        
+        interpreter_dsp* clone();
+        
+        void metadata(Meta* m);
+        
+        void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
 };
 

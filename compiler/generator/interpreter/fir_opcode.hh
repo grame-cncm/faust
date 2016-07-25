@@ -412,6 +412,6 @@ static std::string gFIRInstructionTable[] = {
     "kNop"
 };
 
-#define INTERP_FILE_VERSION 0.50
+#define INTERP_FILE_VERSION 0.51
 
 #endif

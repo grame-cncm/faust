@@ -462,6 +462,10 @@ class FIRInterpreter  {
             #define save_return() { push_addr(it + 1); }
             #define empty_return() (addr_stack_index == 0)
             
+            // Check block coherency
+            InstructionIT it1 = block->fInstructions.end(); it1--;
+            assert((*it1)->fOpcode == FIRInstruction::kReturn);
+            
             try {
                 
                 InstructionIT it = block->fInstructions.begin();

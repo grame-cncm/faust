@@ -97,13 +97,6 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* d
     generateGetOutputRate(subst("$0::getOutputRate", fKlassName), true, true)->accept(&firvisitor);
     *dst << std::endl;
  
-    if (fInitInstructions->fCode.size() > 0) {
-        *dst << "======= Init ==========" << std::endl;
-        *dst << std::endl;
-        fInitInstructions->accept(&firvisitor);
-        *dst << std::endl;
-    }
-
     if (fStaticInitInstructions->fCode.size() > 0) {
         *dst << "======= Static Init ==========" << std::endl;
         *dst << std::endl;
@@ -111,6 +104,20 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* d
         if (fPostStaticInitInstructions->fCode.size() > 0) {
             fPostStaticInitInstructions->accept(&firvisitor);
         }
+        *dst << std::endl;
+    }
+    
+    if (fInitInstructions->fCode.size() > 0) {
+        *dst << "======= Init ==========" << std::endl;
+        *dst << std::endl;
+        fInitInstructions->accept(&firvisitor);
+        *dst << std::endl;
+    }
+    
+    if (fClearInstructions->fCode.size() > 0) {
+        *dst << "======= Clear ==========" << std::endl;
+        *dst << std::endl;
+        fClearInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
 

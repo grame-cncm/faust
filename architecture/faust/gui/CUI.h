@@ -100,6 +100,7 @@ typedef int (* getNumInputsFun) (struct llvm_dsp_imp* dsp);
 typedef int (* getNumOutputsFun) (struct llvm_dsp_imp* dsp);
 typedef void (* buildUserInterfaceFun) (struct llvm_dsp_imp* dsp, UIGlue* ui);
 typedef void (* initFun) (struct llvm_dsp_imp* dsp, int freq);
+typedef void (* clearFun) (struct llvm_dsp_imp* dsp);
 typedef int (* getSampleRateFun) (struct llvm_dsp_imp* dsp);
 typedef void (* computeFun) (struct llvm_dsp_imp* dsp, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 typedef void (* metadataFun) (MetaGlue* meta);

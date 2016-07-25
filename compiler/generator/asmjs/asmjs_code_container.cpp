@@ -145,11 +145,18 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
         tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
         tab(n+2, *fOut); gGlobal->gASMJSVisitor->Tab(n+2);
-    
-        // Moves all variables declaration at the beginning of the block
-        MoveVariablesInFront2 mover1;
-        BlockInst* block1 = mover1.getCode(fInitInstructions); 
-        block1->accept(gGlobal->gASMJSVisitor);
+        {
+            // Moves all variables declaration at the beginning of the block
+            MoveVariablesInFront2 mover1;
+            BlockInst* block1 = mover1.getCode(fInitInstructions); 
+            block1->accept(gGlobal->gASMJSVisitor);
+        }
+        {
+            // Moves all variables declaration at the beginning of the block
+            MoveVariablesInFront2 mover1;
+            BlockInst* block1 = mover1.getCode(fClearInstructions);
+            block1->accept(gGlobal->gASMJSVisitor);
+        }
     
     tab(n+1, *fOut); *fOut << "}";
     
@@ -252,13 +259,32 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut);
             gGlobal->gASMJSVisitor->Tab(n+2);
-            // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-            DspRenamer renamer2;
-            BlockInst* block2 = renamer2.getCode(fInitInstructions);
-            // Moves all variables declaration at the beginning of the block
-            MoveVariablesInFront2 mover1;
-            BlockInst* block3 = mover1.getCode(block2); 
-            block3->accept(gGlobal->gASMJSVisitor);
+            {
+                // Rename 'sig' in 'dsp' and remove 'dsp' allocation
+                DspRenamer renamer2;
+                BlockInst* block2 = renamer2.getCode(fInitInstructions);
+                // Moves all variables declaration at the beginning of the block
+                MoveVariablesInFront2 mover1;
+                BlockInst* block3 = mover1.getCode(block2); 
+                block3->accept(gGlobal->gASMJSVisitor);
+            }
+            *fOut << "instanceClear(dsp);";
+        tab(n+1, *fOut); *fOut << "}";
+    
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "function instanceClear(dsp) {";
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut);
+            gGlobal->gASMJSVisitor->Tab(n+2);
+            {
+                // Rename 'sig' in 'dsp' and remove 'dsp' allocation
+                DspRenamer renamer2;
+                BlockInst* block2 = renamer2.getCode(fClearInstructions);
+                // Moves all variables declaration at the beginning of the block
+                MoveVariablesInFront2 mover1;
+                BlockInst* block3 = mover1.getCode(block2);
+                block3->accept(gGlobal->gASMJSVisitor);
+            }
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);

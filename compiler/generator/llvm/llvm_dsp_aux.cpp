@@ -526,6 +526,7 @@ void llvm_dsp_factory::init(const string& type_name, const string& dsp_name)
     fBuildUserInterface = 0;
     fInit = 0;
     fInstanceInit = 0;
+    fInstanceClear = 0;
     fCompute = 0;
     fClassName = "mydsp";
     fDSPName = dsp_name;
@@ -816,6 +817,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fBuildUserInterface = (buildUserInterfaceFun)loadOptimize("buildUserInterface" + fClassName);
         fInit = (initFun)loadOptimize("init" + fClassName);
         fInstanceInit = (initFun)loadOptimize("instanceInit" + fClassName);
+        fInstanceClear = (clearFun)loadOptimize("instanceClear" + fClassName);
         fGetSampleRate = (getSampleRateFun)loadOptimize("getSampleRate" + fClassName);
         fCompute = (computeFun)loadOptimize("compute" + fClassName);
         fMetadata = (metadataFun)loadOptimize("metadata" + fClassName);
@@ -934,6 +936,7 @@ bool llvm_dsp_factory::initJIT(string& error_msg)
         fBuildUserInterface = (buildUserInterfaceFun)loadOptimize("buildUserInterface" + fClassName);
         fInit = (initFun)loadOptimize("init" + fClassName);
         fInstanceInit = (initFun)loadOptimize("instanceInit" + fClassName);
+        fInstanceClear = (clearFun)loadOptimize("instanceClear" + fClassName);
         fGetSampleRate = (getSampleRateFun)loadOptimize("getSampleRate" + fClassName);
         fCompute = (computeFun)loadOptimize("compute" + fClassName);
         fMetadata = (metadataFun)loadOptimize("metadata" + fClassName);
@@ -1025,6 +1028,11 @@ void llvm_dsp_aux::init(int samplingRate)
 void llvm_dsp_aux::instanceInit(int samplingRate)
 {
     fFactory->fInstanceInit(fDSP, samplingRate);
+}
+
+void llvm_dsp_aux::instanceClear()
+{
+    fFactory->fInstanceClear(fDSP);
 }
 
 int llvm_dsp_aux::getSampleRate()
@@ -1551,6 +1559,11 @@ EXPORT void llvm_dsp::instanceInit(int samplingRate)
     reinterpret_cast<llvm_dsp_aux*>(this)->instanceInit(samplingRate);
 }
         
+EXPORT void llvm_dsp::instanceClear()
+{
+    reinterpret_cast<llvm_dsp_aux*>(this)->instanceClear();
+}
+        
 EXPORT int llvm_dsp::getSampleRate()
 {
     return reinterpret_cast<llvm_dsp_aux*>(this)->getSampleRate();
@@ -1810,7 +1823,14 @@ EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate)
         reinterpret_cast<llvm_dsp_aux*>(dsp)->instanceInit(samplingRate);
     }
 }
-
+        
+EXPORT void instanceClearCDSPInstance(llvm_dsp* dsp)
+{
+    if (dsp) {
+        reinterpret_cast<llvm_dsp_aux*>(dsp)->instanceClear();
+    }
+}
+        
 EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* glue)
 {
     if (dsp) {

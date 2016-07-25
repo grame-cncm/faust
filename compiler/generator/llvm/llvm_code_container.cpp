@@ -168,7 +168,7 @@ void LLVMCodeContainer::generateFillEnd()
 {
     Function* llvm_fill = fResult->fModule->getFunction("fill" + fKlassName);
     assert(llvm_fill);
-    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_fill);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_fill);
     ReturnInst::Create(getContext(), return_block);
 
     // If previous block branch from previous to current
@@ -236,7 +236,7 @@ void LLVMCodeContainer::generateComputeEnd()
 {
     Function* llvm_compute = fResult->fModule->getFunction("compute" + fKlassName);
     assert(llvm_compute);
-    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_compute);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_compute);
     ReturnInst::Create(getContext(), return_block);
 
     // If previous block branch from previous to current
@@ -314,7 +314,7 @@ void LLVMCodeContainer::generateClassInitEnd()
 {
     Function* llvm_classInit = fResult->fModule->getFunction("classInit" + fKlassName);
     assert(llvm_classInit);
-    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_classInit);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_classInit);
     ReturnInst::Create(getContext(), return_block);
 
     // If previous block branch from previous to current
@@ -351,7 +351,24 @@ void LLVMCodeContainer::generateInstanceInitEnd()
 {
     Function* llvm_instanceInit = fResult->fModule->getFunction("instanceInit" + fKlassName);
     assert(llvm_instanceInit);
-    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_instanceInit);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_instanceInit);
+    
+    Function* llvm_instanceClear = fResult->fModule->getFunction("instanceClear" + fKlassName);
+    if (llvm_instanceClear) {
+        
+        VECTOR_OF_TYPES llvm_instanceInit_args;
+        llvm_instanceInit_args.push_back(fStruct_DSP_ptr);
+        
+        Function::arg_iterator llvm_instanceInit_args_it = llvm_instanceInit->arg_begin();
+        Value* dsp = GET_ITERATOR(llvm_instanceInit_args_it++);
+        
+        vector<Value*> params;
+        params.push_back(dsp);
+        
+        CallInst* call_inst = CREATE_CALL1(llvm_instanceClear, params, "", return_block);
+        call_inst->setCallingConv(CallingConv::C);
+    }
+    
     ReturnInst::Create(getContext(), return_block);
 
     // If previous block branch from previous to current
@@ -361,6 +378,40 @@ void LLVMCodeContainer::generateInstanceInitEnd()
 
     //llvm_instanceInit->dump();
     verifyFunction(*llvm_instanceInit);
+    fBuilder->ClearInsertionPoint();
+}
+
+void LLVMCodeContainer::generateInstanceClearBegin(bool internal)
+{
+    VECTOR_OF_TYPES llvm_instanceClear_args;
+    llvm_instanceClear_args.push_back(fStruct_DSP_ptr);
+    FunctionType* llvm_instanceClear_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_instanceClear_args), false);
+    
+    Function* llvm_instanceClear = Function::Create(llvm_instanceClear_type, (internal) ? Function::InternalLinkage : Function::ExternalLinkage, "instanceClear" + fKlassName, fResult->fModule);
+    llvm_instanceClear->setCallingConv(CallingConv::C);
+    
+    Function::arg_iterator llvm_instanceClear_args_it = llvm_instanceClear->arg_begin();
+    Value* dsp = GET_ITERATOR(llvm_instanceClear_args_it++);
+    dsp->setName("dsp");
+    
+    // Add a first block
+    fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry_block", llvm_instanceClear));
+}
+
+void LLVMCodeContainer::generateInstanceClearEnd()
+{
+    Function* llvm_instanceClear = fResult->fModule->getFunction("instanceClear" + fKlassName);
+    assert(llvm_instanceClear);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_instanceClear);
+    ReturnInst::Create(getContext(), return_block);
+    
+    // If previous block branch from previous to current
+    if (fBuilder->GetInsertBlock()) {
+        fBuilder->CreateBr(return_block);
+    }
+    
+    //llvm_instanceClear->dump();
+    verifyFunction(*llvm_instanceClear);
     fBuilder->ClearInsertionPoint();
 }
 
@@ -377,7 +428,7 @@ void LLVMCodeContainer::generateDestroyEnd()
 {
     Function* llvm_destroy = fResult->fModule->getFunction("destroy" + fKlassName);
     assert(llvm_destroy);
-    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_destroy);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_destroy);
     ReturnInst::Create(getContext(), return_block);
 
     // If previous block branch from previous to current
@@ -403,7 +454,7 @@ void LLVMCodeContainer::generateAllocateEnd()
 {
     Function* llvm_allocate = fResult->fModule->getFunction("allocate" + fKlassName);
     assert(llvm_allocate);
-    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_allocate);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_allocate);
     ReturnInst::Create(getContext(), return_block);
 
     // If previous block branch from previous to current
@@ -450,6 +501,16 @@ void LLVMCodeContainer::generateInitFun()
     assert(llvm_instanceInit);
     CallInst* call_inst2 = CREATE_CALL1(llvm_instanceInit, params2, "", return_block2);
     call_inst2->setCallingConv(CallingConv::C);
+    
+    /*
+    vector<Value*> params3;
+    params3.push_back(arg1);
+    
+    Function* llvm_instanceClear = fResult->fModule->getFunction("instanceClear" + fKlassName);
+    assert(llvm_instanceClear);
+    CallInst* call_inst3 = CREATE_CALL1(llvm_instanceClear, params3, "", return_block2);
+    call_inst3->setCallingConv(CallingConv::C);
+    */
 
     ReturnInst::Create(getContext(), return_block2);
     verifyFunction(*llvm_init);
@@ -521,7 +582,7 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
     }
 
     // Create return block
-    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_metaData);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_metaData);
     ReturnInst::Create(getContext(), return_block);
 
     // Insert return block
@@ -543,7 +604,7 @@ void LLVMCodeContainer::generateBuildUserInterfaceBegin()
 void LLVMCodeContainer::generateBuildUserInterfaceEnd()
 {
     Function* llvm_buildUserInterface = fResult->fModule->getFunction("buildUserInterface" + fKlassName);
-    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_buildUserInterface);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_buildUserInterface);
     ReturnInst::Create(getContext(), return_block);
 
     // Insert return block
@@ -573,6 +634,7 @@ void LLVMCodeContainer::produceInternal()
 
     generateInstanceInitBegin(true);
     generateInit(fCodeProducer);
+    generateClear(fCodeProducer);
     generateInstanceInitEnd();
 
     // Fill
@@ -618,6 +680,10 @@ LLVMResult* LLVMCodeContainer::produceModule(const string& filename)
     generateStaticInit(fCodeProducer);
     generateClassInitEnd();
 
+    generateInstanceClearBegin();
+    generateClear(fCodeProducer);
+    generateInstanceClearEnd();
+   
     generateInstanceInitBegin();
     generateInit(fCodeProducer);
     generateInstanceInitEnd();
@@ -956,7 +1022,7 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadEnd()
 {
     Function* llvm_computethread = fResult->fModule->getFunction("computeThread");
     assert(llvm_computethread);
-    BasicBlock* return_block = BasicBlock::Create(getContext(), "return", llvm_computethread);
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_computethread);
     ReturnInst::Create(getContext(), return_block);
 
     // If previous block branch from previous to current
