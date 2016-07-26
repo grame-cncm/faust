@@ -261,6 +261,7 @@ class proxy_dsp : public dsp {
         // To possibly implement in a concrete proxy dsp 
         virtual void init(int samplingRate) { fSamplingFreq = samplingRate; }
         virtual void instanceInit(int samplingRate) {}
+        virtual void instanceClear() {}
     
         virtual int getSampleRate() { return fSamplingFreq; }
     

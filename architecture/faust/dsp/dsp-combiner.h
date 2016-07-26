@@ -75,6 +75,7 @@ class dsp_sequencer : public dsp {
                
         virtual int getNumInputs() { return fDSP1->getNumInputs(); }
         virtual int getNumOutputs() { return fDSP2->getNumOutputs(); }
+    
         virtual void buildUserInterface(UI* ui_interface)
         {
             ui_interface->openTabBox("DSP sequencer");
@@ -86,16 +87,25 @@ class dsp_sequencer : public dsp {
             ui_interface->closeBox();
             ui_interface->closeBox();
         }
+    
         virtual void init(int samplingRate)
         {
             fDSP1->init(samplingRate);
             fDSP2->init(samplingRate);
         }
+    
         virtual void instanceInit(int samplingRate)
         {
             fDSP1->instanceInit(samplingRate);
             fDSP2->instanceInit(samplingRate);
         }
+    
+        virtual void instanceClear()
+        {
+            fDSP1->instanceClear();
+            fDSP2->instanceClear();
+        }
+    
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fDSP1->compute(count, inputs, fSeqBuffer);
@@ -127,6 +137,7 @@ class dsp_parallelizer : public dsp {
                
         virtual int getNumInputs() { return fDSP1->getNumInputs() + fDSP2->getNumInputs(); }
         virtual int getNumOutputs() { return fDSP1->getNumOutputs() + fDSP2->getNumOutputs(); }
+    
         virtual void buildUserInterface(UI* ui_interface)
         {
             ui_interface->openTabBox("DSP parallelizer");
@@ -138,16 +149,25 @@ class dsp_parallelizer : public dsp {
             ui_interface->closeBox();
             ui_interface->closeBox();
         }
+    
         virtual void init(int samplingRate)
         {
             fDSP1->init(samplingRate);
             fDSP2->init(samplingRate);
         }
+    
         virtual void instanceInit(int samplingRate)
         {
             fDSP1->instanceInit(samplingRate);
             fDSP2->instanceInit(samplingRate);
         }
+    
+        virtual void instanceClear()
+        {
+            fDSP1->instanceClear();
+            fDSP2->instanceClear();
+        }
+    
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fDSP1->compute(count, inputs, outputs);
