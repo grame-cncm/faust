@@ -35,7 +35,7 @@ else
 	echo
 	echo "Test all Faust2xxx to work"
 	echo
-	for S in ../faust2*; do
+	for S in ../../tools/faust2appls/faust2*; do
 		scriptname=`basename $S .in`
 		if notinlist  $S "$XLIST1"; then
 			($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
