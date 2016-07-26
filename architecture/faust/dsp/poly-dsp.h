@@ -440,6 +440,13 @@ class mydsp_poly : public dsp, public midi {
             }
         }
     
+        void instanceClear()
+        {
+            for (int i = 0; i < fPolyphony; i++) {
+                fVoiceTable[i]->instanceClear();
+            }
+        }
+    
         virtual int getSampleRate() { return fVoiceTable[0]->getSampleRate(); }
     
         virtual mydsp_poly* clone()
