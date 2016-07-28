@@ -48,118 +48,133 @@
 
 class FUI : public UI
 {
-    
-    std::stack<std::string>             fGroupStack;
-	std::vector<std::string>            fNameList;
-	std::map<std::string, FAUSTFLOAT*>	fName2Zone;
 
- protected:
+    protected:
 
- 	// labels are normalized by replacing white spaces by underscores and by
- 	// removing parenthesis
-	std::string normalizeLabel(const char* label)
-	{
-		std::string 	s;
-		char 	c;
+        std::stack<std::string> fGroupStack;
+        std::vector<std::string> fNameList;
+        std::map<std::string, FAUSTFLOAT*> fName2Zone;
+        std::map<FAUSTFLOAT*, bool> fButtons;
 
-		while ((c=*label++)) {
-			if (isspace(c)) 				{ s += '_'; }
-			//else if ((c == '(') | (c == ')') ) 	{ }
-			else 							{ s += c; }
-		}
-		return s;
-	}
+        // labels are normalized by replacing white spaces by underscores and by removing parenthesis
+        std::string normalizeLabel(const char* label)
+        {
+            std::string s;
+            char c;
 
-	// add an element by relating its full name and memory zone
-	virtual void addElement(const char* label, FAUSTFLOAT* zone)
-	{
-		std::string fullname (fGroupStack.top() + '/' + normalizeLabel(label));
-		fNameList.push_back(fullname);
-		fName2Zone[fullname] = zone;
-	}
+            while ((c = *label++)) {
+                if (isspace(c)) { s += '_'; }
+                //else if ((c == '(') | (c == ')') ) 	{ }
+                else { s += c; }
+            }
+            return s;
+        }
 
-	// keep track of full group names in a stack
-	virtual void pushGroupLabel(const char* label)
-	{
-		if (fGroupStack.empty()) {
-			fGroupStack.push(normalizeLabel(label));
-		} else {
-			fGroupStack.push(fGroupStack.top() + '/' + normalizeLabel(label));
-		}
-	}
+        // add an element by relating its full name and memory zone
+        virtual void addElement(const char* label, FAUSTFLOAT* zone, bool button = false)
+        {
+            std::string fullname (fGroupStack.top() + '/' + normalizeLabel(label));
+            fNameList.push_back(fullname);
+            fName2Zone[fullname] = zone;
+            fButtons[zone] = button;
+        }
 
-	virtual void popGroupLabel()
-	{
-		fGroupStack.pop();
-	}
+        // keep track of full group names in a stack
+        virtual void pushGroupLabel(const char* label)
+        {
+            if (fGroupStack.empty()) {
+                fGroupStack.push(normalizeLabel(label));
+            } else {
+                fGroupStack.push(fGroupStack.top() + '/' + normalizeLabel(label));
+            }
+        }
 
- public:
+        virtual void popGroupLabel()
+        {
+            fGroupStack.pop();
+        }
 
-	FUI() 			{}
-	virtual ~FUI() 	{}
 
-	// -- Save and recall methods
+    public:
 
-	// save the zones values and full names
-	virtual void saveState(const char* filename)
-	{
-		std::ofstream f(filename);
+        FUI() 			{}
+        virtual ~FUI() 	{}
 
-		for (unsigned int i=0; i<fNameList.size(); i++) {
-			std::string	n = fNameList[i];
-			FAUSTFLOAT*	z = fName2Zone[n];
-			f << *z << ' ' << n.c_str() << std::endl;
-		}
+        // -- Save and recall methods
 
-		f << std::endl;
-		f.close();
-	}
+        // save the zones values and full names
+        virtual void saveState(const char* filename)
+        {
+            std::ofstream f(filename);
 
-	// recall the zones values and full names
-	virtual void recallState(const char* filename)
-	{
-		std::ifstream f(filename);
-		FAUSTFLOAT	v;
-		std::string	n;
+            for (unsigned int i = 0; i < fNameList.size(); i++) {
+                std::string	n = fNameList[i];
+                FAUSTFLOAT*	z = fName2Zone[n];
+                f << *z << ' ' << n.c_str() << std::endl;
+            }
 
-		while (f.good()) {
-			f >> v >> n;
-			if (fName2Zone.count(n)>0) {
-				*(fName2Zone[n]) = v;
-			} else {
-				std::cerr << "recallState : parameter not found : " << n.c_str() << " with value : " << v << std::endl;
-			}
-		}
-		f.close();
-	}
+            f << std::endl;
+            f.close();
+        }
 
-    // -- widget's layouts (just keep track of group labels)
+        // recall the zones values and full names
+        virtual void recallState(const char* filename)
+        {
+            std::ifstream f(filename);
+            FAUSTFLOAT v;
+            std::string n;
 
-    virtual void openTabBox(const char* label) 			{ pushGroupLabel(label); }
-    virtual void openHorizontalBox(const char* label) 	{ pushGroupLabel(label); }
-    virtual void openVerticalBox(const char* label)  	{ pushGroupLabel(label); }
-    virtual void closeBox() 							{ popGroupLabel(); };
+            while (f.good()) {
+                f >> v >> n;
+                if (fName2Zone.count(n) > 0) {
+                    *(fName2Zone[n]) = v;
+                } else {
+                    std::cerr << "recallState : parameter not found : " << n.c_str() << " with value : " << v << std::endl;
+                }
+            }
+            f.close();
+        }
 
-    // -- active widgets (just add an element)
+        void setButtons(bool state)
+        {
+            std::map<FAUSTFLOAT*, bool>::iterator it;
+            for (it = fButtons.begin(); it != fButtons.end(); it++) {
+                FAUSTFLOAT* zone = (*it).first;
+                if ((*it).second) {
+                    *zone = state;
+                }
+            }
+        }
 
-    virtual void addButton(const char* label, FAUSTFLOAT* zone) 		{ addElement(label, zone); }
-    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 	{ addElement(label, zone); }
-    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
-    																{ addElement(label, zone); }
-    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
-    																{ addElement(label, zone); }
-    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
-    																{ addElement(label, zone); }
+        // -- widget's layouts (just keep track of group labels)
 
-    // -- passive widgets (are ignored)
+        virtual void openTabBox(const char* label) { pushGroupLabel(label); }
+        virtual void openHorizontalBox(const char* label) { pushGroupLabel(label); }
+        virtual void openVerticalBox(const char* label) { pushGroupLabel(label); }
+        virtual void closeBox() { popGroupLabel(); };
 
-    virtual void addHorizontalBargraph(const char*, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {};
-    virtual void addVerticalBargraph(const char*, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {};
+        // -- active widgets (just add an element)
 
-	// -- metadata are not used
+        virtual void addButton(const char* label, FAUSTFLOAT* zone) { addElement(label, zone, true); }
+        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { addElement(label, zone); }
+        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
+                                                                    { addElement(label, zone); }
+        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
+                                                                    { addElement(label, zone); }
+        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
+                                                                    { addElement(label, zone); }
 
-    virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
+        // -- passive widgets (are ignored)
+
+        virtual void addHorizontalBargraph(const char*, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {};
+        virtual void addVerticalBargraph(const char*, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {};
+
+        // -- metadata are not used
+
+        virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
+
 };
+
 #endif
 
 #endif

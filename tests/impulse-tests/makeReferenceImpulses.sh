@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Creates the reference impulse responses				#
-#               in scalar and vetor mode            				#
+#               in scalar, vector and sheduler mode            		#
 #               (c) Grame, 2016                                     #
 #                                                                   #
 #####################################################################
