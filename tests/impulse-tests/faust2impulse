@@ -59,9 +59,9 @@ done
 # compile the *.dsp files 
 
 for f in $FILES; do
-	
-	# compile faust to c++
-    faust -t 5000 -i -double -a impulsearch.cpp $OPTIONS "$f" -o "$f.cpp" || exit
+
+	# compile Faust to c++
+    faust $OPTIONS -i -a impulsearch.cpp  "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(
