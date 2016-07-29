@@ -576,7 +576,8 @@ void CodeContainer::processFIR(void)
 {
     if (gGlobal->gGroupTaskSwitch) {
         CodeLoop::computeUseCount(fCurLoop);
-        CodeLoop::groupSeqLoops(fCurLoop);
+        set<CodeLoop*> visited;
+        CodeLoop::groupSeqLoops(fCurLoop, visited);
     }
 }
 

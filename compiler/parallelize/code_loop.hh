@@ -160,7 +160,7 @@ class CodeLoop : public virtual Garbageable {
 
         static void sortGraph(CodeLoop* root, lclgraph& V);
         static void computeUseCount(CodeLoop* l);
-        static void groupSeqLoops(CodeLoop* l);
+        static void groupSeqLoops(CodeLoop* l, set<CodeLoop*>& visited);
 
 };
 
