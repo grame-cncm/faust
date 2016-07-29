@@ -324,25 +324,28 @@ static void computeUseCount(Loop* l)
 /**
  * Group together sequences of loops
  */
-static void groupSeqLoops(Loop* l)
+static void groupSeqLoops(Loop* l, set<Loop*>& visited)
 {
-	int n = (int)l->fBackwardLoopDependencies.size();
-	if (n==0) {
-		return;
-	} else if (n==1) {
-		Loop* f = *(l->fBackwardLoopDependencies.begin());
-		if (f->fUseCount ==  1) {
-			l->concat(f);
-			groupSeqLoops(l);
-		} else {
-			groupSeqLoops(f);
-		}
-		return;
-	} else if (n > 1) {
-		for (lset::iterator p =l->fBackwardLoopDependencies.begin(); p!=l->fBackwardLoopDependencies.end(); p++) {
-			groupSeqLoops(*p);
-		}
-	}
+    if (visited.find(l) == visited.end()) {
+        visited.insert(l);
+        int n = (int)l->fBackwardLoopDependencies.size();
+        if (n==0) {
+            return;
+        } else if (n==1) {
+            Loop* f = *(l->fBackwardLoopDependencies.begin());
+            if (f->fUseCount ==  1) {
+                l->concat(f);
+                groupSeqLoops(l, visited);
+            } else {
+                groupSeqLoops(f, visited);
+            }
+            return;
+        } else if (n > 1) {
+            for (lset::iterator p =l->fBackwardLoopDependencies.begin(); p!=l->fBackwardLoopDependencies.end(); p++) {
+                groupSeqLoops(*p, visited);
+            }
+        }
+    }
 }
 
 #define WORK_STEALING_INDEX 0
@@ -357,7 +360,8 @@ void Klass::buildTasksList()
 
     if (gGroupTaskSwitch) {
         computeUseCount(fTopLoop);
-        groupSeqLoops(fTopLoop);
+        set<Loop*> visited;
+        groupSeqLoops(fTopLoop, visited);
     }
 
     sortGraph(fTopLoop, G);
@@ -475,7 +479,8 @@ void Klass::printLoopGraphVector(int n, ostream& fout)
 {
     if (gGroupTaskSwitch) {
         computeUseCount(fTopLoop);
-        groupSeqLoops(fTopLoop);
+        set<Loop*> visited;
+        groupSeqLoops(fTopLoop, visited);
     }
 
     lgraph G;
@@ -506,7 +511,8 @@ void Klass::printLoopGraphOpenMP(int n, ostream& fout)
 {
     if (gGroupTaskSwitch) {
         computeUseCount(fTopLoop);
-        groupSeqLoops(fTopLoop);
+        set<Loop*> visited;
+        groupSeqLoops(fTopLoop, visited);
     }
 
     lgraph G;
@@ -526,7 +532,8 @@ void Klass::printLoopGraphScheduler(int n, ostream& fout)
 {
     if (gGroupTaskSwitch) {
         computeUseCount(fTopLoop);
-        groupSeqLoops(fTopLoop);
+        set<Loop*> visited;
+        groupSeqLoops(fTopLoop, visited);
     }
 
     lgraph G;
