@@ -110,7 +110,7 @@ class CodeLoop : public virtual Garbageable {
         // Graph sorting
         static void setOrder(CodeLoop* l, int order, lclgraph& V);
         static void setLevel(int order, const lclset& T1, lclset& T2, lclgraph& V);
-        static void resetOrder(CodeLoop* l);
+        static void resetOrder(CodeLoop* l, set<CodeLoop*>& visited);
 
     public:
 

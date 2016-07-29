@@ -332,22 +332,29 @@ void CodeLoop::setLevel(int order, const lclset& T1, lclset& T2, lclgraph& V)
     }
 }
 
-void CodeLoop::resetOrder(CodeLoop* l)
+void CodeLoop::resetOrder(CodeLoop* l, set<CodeLoop*>& visited)
 {
-    l->fOrder = -1;
-    for (lclset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
-        resetOrder(*p);
+    // Not yet visited...
+    if (visited.find(l) == visited.end()) {
+        visited.insert(l);
+        l->fOrder = -1;
+        for (lclset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
+            resetOrder(*p, visited);
+        }
     }
 }
 
 void CodeLoop::sortGraph(CodeLoop* root, lclgraph& V)
 {
-    lclset T1, T2;
-    int level;
-
     assert(root);
-    resetOrder(root);
-    T1.insert(root); level = 0; V.clear();
+    set<CodeLoop*> visited;
+    resetOrder(root, visited);
+    
+    lclset T1, T2;
+    T1.insert(root);
+    int level = 0;
+    V.clear();
+    
     do {
         setLevel(level, T1, T2, V);
         T1 = T2; T2.clear(); level++;

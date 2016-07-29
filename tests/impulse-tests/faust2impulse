@@ -2,7 +2,7 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to plotters					#
+#               Compiles Faust programs to impulse tests			#
 #               (c) Grame, 2016                                     #
 #                                                                   #
 #####################################################################
@@ -59,9 +59,9 @@ done
 # compile the *.dsp files 
 
 for f in $FILES; do
-	
-	# compile faust to c++
-    faust -i -double -a impulsearch.cpp $OPTIONS "$f" -o "$f.cpp" || exit
+
+	# compile Faust to c++
+    faust $OPTIONS -i -a impulsearch.cpp  "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(
@@ -72,6 +72,6 @@ for f in $FILES; do
 	./"${f%.dsp}" -n 60000
 
 	# cleanup
-	rm "${f%.dsp}" "$f.cpp"
+    rm "${f%.dsp}" "$f.cpp"
 done
 

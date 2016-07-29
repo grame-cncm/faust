@@ -1,15 +1,12 @@
-/* matlabplot.cpp = simple variation of plot.cpp */
+#include <libgen.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
-#include <math.h>
 #include <errno.h>
 #include <time.h>
 #include <ctype.h>
 
-#include <vector>
-#include <stack>
 #include <string>
 #include <map>
 #include <iostream>
@@ -19,12 +16,13 @@
 
 #include "faust/gui/console.h"
 #include "faust/dsp/dsp.h"
+#include "faust/gui/FUI.h"
 #include "faust/audio/channels.h"
 
 using std::max;
 using std::min;
 
-#define kFrames 512
+#define kFrames 64
 
 using namespace std;
 
@@ -51,14 +49,20 @@ static inline float normalize(float f)
     return (fabs(f) < 0.000001) ? 0.0 : f;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     float fnbsamples;
-
+    char rcfilename[256];
+  
     CMDUI* interface = new CMDUI(argc, argv);
     DSP.buildUserInterface(interface);
     interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
-
+    
+    FUI finterface;
+    snprintf(rcfilename, 255, "%src", argv[0]);
+    
+    DSP.buildUserInterface(&finterface);
+ 
     // init signal processor and the user interface values:
     DSP.init(44100);
 
@@ -75,6 +79,9 @@ int main(int argc, char *argv[])
     int linenum = 0;
     int run = 0;
     
+    // recall saved state
+    finterface.recallState(rcfilename);
+    
     // print general informations
     printf("number of inputs  : %3d\n", nins);
     printf("number of outputs : %3d\n", nouts);
@@ -82,8 +89,14 @@ int main(int argc, char *argv[])
     
     // print audio frames
     while (nbsamples > 0) {
-        if (run == 0) ichan.impulse();
-        if (run == 1) ichan.zero();
+        if (run == 0) {
+            ichan.impulse();
+            finterface.setButtons(true);
+        }
+        if (run == 1) {
+            ichan.zero();
+            finterface.setButtons(false);
+        }
         int nFrames = min(kFrames, nbsamples);
         DSP.compute(nFrames, ichan.buffers(), ochan.buffers());
         run++;
