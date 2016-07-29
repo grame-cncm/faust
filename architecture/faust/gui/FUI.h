@@ -128,8 +128,8 @@ class FUI : public UI
                 f >> v >> n;
                 if (fName2Zone.count(n) > 0) {
                     *(fName2Zone[n]) = v;
-                } else {
-                    std::cerr << "recallState : parameter not found : " << n.c_str() << " with value : " << v << std::endl;
+                } else if (n.size() > 0) {
+                    std::cerr << "recallState : parameter not found : " << n << " with value : " << v << std::endl;
                 }
             }
             f.close();
