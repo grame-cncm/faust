@@ -22,26 +22,29 @@
 #ifndef __audio_channels__
 #define __audio_channels__
 
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif
+
 class channels
 {
     private:
     
         int fNumFrames;
         int fNumChannels;
-        float** fBuffers;
+        FAUSTFLOAT** fBuffers;
 
     public:
 
         channels(int nframes, int nchannels)
         {
-            fBuffers = new float*[nchannels];
-
+            fBuffers = new FAUSTFLOAT*[nchannels];
             fNumFrames = nframes;
             fNumChannels = nchannels;
 
             // allocate audio channels
             for (int i = 0; i < fNumChannels; i++) {
-                fBuffers[i] =  new float[fNumFrames];
+                fBuffers[i] =  new FAUSTFLOAT[fNumFrames];
             }
         }
 
@@ -50,7 +53,7 @@ class channels
             // allocate audio channels
             for (int i = 0; i < fNumChannels; i++) {
                 for (int f = 0; f < fNumFrames; f++) {
-                    fBuffers[i][f] = 0.0;
+                    fBuffers[i][f] = FAUSTFLOAT(0.0);
                 }
             }
         }
@@ -59,9 +62,9 @@ class channels
         {
             // allocate audio channels
             for (int i = 0; i < fNumChannels; i++) {
-                fBuffers[i][0] = 1.0;
+                fBuffers[i][0] = FAUSTFLOAT(1.0);
                 for (int f = 1; f < fNumFrames; f++) {
-                    fBuffers[i][f] = 0.0;
+                    fBuffers[i][f] = FAUSTFLOAT(0.0);
                 }
             }
         }
@@ -75,7 +78,7 @@ class channels
             delete [] fBuffers;
         }
 
-        float** buffers() { return fBuffers; }
+        FAUSTFLOAT** buffers() { return fBuffers; }
     
 };
 
