@@ -6,18 +6,19 @@
 #include <errno.h>
 #include <time.h>
 #include <ctype.h>
-
 #include <string>
 #include <map>
 #include <iostream>
-
 #include <math.h>
 #include <algorithm>
 
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT double
+#endif
+
 #include "faust/gui/console.h"
-#include "faust/dsp/dsp.h"
+#include "faust/dsp/interpreter-dsp.h"
 #include "faust/gui/FUI.h"
-#include "faust/gui/UIGlue.h"
 #include "faust/audio/channels.h"
 
 using std::max;
@@ -29,47 +30,55 @@ using namespace std;
 
 //----------------------------------------------------------------------------
 //FAUST generated code
-// ----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 
-<<includeIntrinsic>>
-
-<<includeclass>>
-
-mydsp DSP;
-
-static inline float normalize(float f)
+static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
 {
-    return (fabs(f) < 0.000001) ? 0.0 : f;
+    return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
 }
-
+            
 int main(int argc, char* argv[])
 {
-    float fnbsamples;
+    FAUSTFLOAT fnbsamples;
     char rcfilename[256];
-   
+    
+    int argc1 = 1;
+    const char* argv1[1];
+    argv1[0] = "-double";
+    
+    string error_msg;
+    interpreter_dsp_factory* factory = createInterpreterDSPFactoryFromFile(argv[1], argc1, argv1, error_msg);
+    if (!factory) {
+        cout << "createInterpreterDSPFactoryFromFile " << error_msg << endl;
+        exit(-1);
+    }
+    
+    dsp* DSP = factory->createDSPInstance();
+    if (!DSP) {
+        exit(-1);
+    }
+  
     CMDUI* interface = new CMDUI(argc, argv);
-    UIGlue glue1;
-    buildUIGlue(&glue1, interface, true);
-    buildUserInterfacemydsp(&DSP, &glue1);
+    DSP->buildUserInterface(interface);
     interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
     
     FUI finterface;
-    snprintf(rcfilename, 255, "%src", argv[0]);
+    string filename = argv[1];
+    filename = filename.substr(0, filename.find ('.'));
+    snprintf(rcfilename, 255, "%src", filename.c_str());
     
-    UIGlue glue2;
-    buildUIGlue(&glue2, &finterface, true);
-    buildUserInterfacemydsp(&DSP, &glue2);
+    DSP->buildUserInterface(&finterface);
  
     // init signal processor and the user interface values:
-    initmydsp(&DSP, 44100);
+    DSP->init(44100);
 
     // modify the UI values according to the command - line options:
     interface->process_command();
 
-    int nins = getNumInputsmydsp(&DSP);
+    int nins = DSP->getNumInputs();
     channels ichan(kFrames, nins);
 
-    int nouts = getNumOutputsmydsp(&DSP);
+    int nouts = DSP->getNumOutputs();
     channels ochan(kFrames, nouts);
 
     int nbsamples = int(fnbsamples);
@@ -95,12 +104,12 @@ int main(int argc, char* argv[])
             finterface.setButtons(false);
         }
         int nFrames = min(kFrames, nbsamples);
-        computemydsp(&DSP, nFrames, ichan.buffers(), ochan.buffers());
+        DSP->compute(nFrames, ichan.buffers(), ochan.buffers());
         run++;
         for (int i = 0; i < nFrames; i++) {
             printf("%6d : ", linenum++);
             for (int c = 0; c < nouts; c++) {
-                float f = normalize(ochan.buffers()[c][i]);
+                FAUSTFLOAT f = normalize(ochan.buffers()[c][i]);
                 printf(" %8.6f", f);
             }
             printf("\n");

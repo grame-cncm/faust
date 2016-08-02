@@ -15,6 +15,7 @@
 #include "faust/gui/console.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/UIGlue.h"
 #include "faust/audio/channels.h"
 
 using std::max;
@@ -23,14 +24,6 @@ using std::min;
 #define kFrames 64
 
 using namespace std;
-
-struct Meta: map < const char *, const char *>
-{
-    void declare(const char *key, const char *value)
-    {
-        (*this)[key] = value;
-    }
-};
 
 //----------------------------------------------------------------------------
 //FAUST generated code
@@ -51,29 +44,33 @@ int main(int argc, char* argv[])
 {
     float fnbsamples;
     char rcfilename[256];
-  
+   
     CMDUI* interface = new CMDUI(argc, argv);
-    DSP.buildUserInterface(interface);
+    UIGlue glue1;
+    buildUIGlue(&glue1, interface, true);
+    buildUserInterfacemydsp(&DSP, &glue1);
     interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
     
     FUI finterface;
     snprintf(rcfilename, 255, "%src", argv[0]);
     
-    DSP.buildUserInterface(&finterface);
+    UIGlue glue2;
+    buildUIGlue(&glue2, &finterface, true);
+    buildUserInterfacemydsp(&DSP, &glue2);
  
     // init signal processor and the user interface values:
-    DSP.init(44100);
+    initmydsp(&DSP, 44100);
 
     // modify the UI values according to the command - line options:
     interface->process_command();
 
-    int nins = DSP.getNumInputs();
+    int nins = getNumInputsmydsp(&DSP);
     channels ichan(kFrames, nins);
 
-    int nouts = DSP.getNumOutputs();
+    int nouts = getNumOutputsmydsp(&DSP);
     channels ochan(kFrames, nouts);
 
-    int nbsamples = int (fnbsamples);
+    int nbsamples = int(fnbsamples);
     int linenum = 0;
     int run = 0;
     
@@ -96,7 +93,7 @@ int main(int argc, char* argv[])
             finterface.setButtons(false);
         }
         int nFrames = min(kFrames, nbsamples);
-        DSP.compute(nFrames, ichan.buffers(), ochan.buffers());
+        computemydsp(&DSP, nFrames, ichan.buffers(), ochan.buffers());
         run++;
         for (int i = 0; i < nFrames; i++) {
             printf("%6d : ", linenum++);

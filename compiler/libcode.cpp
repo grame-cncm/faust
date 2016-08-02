@@ -1105,7 +1105,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         //std::string code = flatten(dst.str());
         //cout << code;
         
-        gGlobal->gDSPFactory->write(&cout);
+        gGlobal->gDSPFactory->write(&cerr);
      
     } else {
         

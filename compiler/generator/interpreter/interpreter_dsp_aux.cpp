@@ -271,15 +271,8 @@ EXPORT void interpreter_dsp::buildUserInterface(UI* ui_interface)
     fDSP->buildUserInterface(&glue);
 }
 
-EXPORT void interpreter_dsp::compute(int count, float** input, float** output)
+EXPORT void interpreter_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
-    RealBuffers buffers(input, output);
-    fDSP->compute(count, buffers);
-}
-
-EXPORT void interpreter_dsp::compute(int count, double** input, double** output)
-{
-    RealBuffers buffers(input, output);
-    fDSP->compute(count, buffers);
+    fDSP->compute(count, input, output);
 }
 

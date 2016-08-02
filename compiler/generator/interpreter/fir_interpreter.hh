@@ -2439,11 +2439,13 @@ class FIRInterpreter  {
     
         FIRInterpreter(int int_heap_size, int real_heap_size, int sr_offset, int count_offset)
         {
+            /*
             std::cout << "FIRInterpreter :"
                     << " int_heap_size " << int_heap_size
                     << " real_heap_size " << real_heap_size
                     << " sr_offset " << sr_offset
                     << " count_offset " << count_offset << std::endl;
+            */
             
             // HEAP
             fRealHeapSize = real_heap_size;

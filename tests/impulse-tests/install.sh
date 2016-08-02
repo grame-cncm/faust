@@ -8,8 +8,13 @@
 #                                                                   #
 #####################################################################
 
+g++ impulsearch3.cpp -lfaust `llvm-config --ldflags --libs all --system-libs` -lcrypto -o impulseinterp
+
 cp faust2impulse /usr/local/bin/
 cp faust2impulse2 /usr/local/bin/
+cp faust2impulse3 /usr/local/bin/
+cp impulseinterp /usr/local/bin/
+
 cp impulsearch.cpp /usr/local/lib/faust/
-cp impulsearch.c /usr/local/lib/faust/
+cp impulsearch2.cpp /usr/local/lib/faust/
 

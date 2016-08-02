@@ -604,28 +604,6 @@ struct interpreter_dsp_factory_aux : public dsp_factory_base {
     
 };
 
-struct RealBuffers {
-    
-    float** fFloatInputs;
-    float** fFloatOutputs;
-    
-    double** fDoubleInputs;
-    double** fDoubleOutputs;
-    
-    RealBuffers(float** inputs, float** outputs)
-        :fFloatInputs(inputs), fFloatOutputs(outputs)
-    {}
-    RealBuffers(double** inputs, double** outputs)
-        :fDoubleInputs(inputs), fDoubleOutputs(outputs)
-    {}
-
-    void setInputs(float**& inputs) { inputs = fFloatInputs; }
-    void setInputs(double**& inputs)  { inputs = fDoubleInputs; }
-    
-    void setOutputs(float**& outputs)  { outputs = fFloatOutputs; }
-    void setOutputs(double**& outputs)  { outputs = fDoubleOutputs; }
-};
-
 struct interpreter_dsp_base : public dsp {
     
     virtual ~interpreter_dsp_base()
@@ -644,9 +622,6 @@ struct interpreter_dsp_base : public dsp {
     // Not implemented...
     virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
     virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
-    
-    // Replaced by this one
-    virtual void compute(int count, RealBuffers& buffers) = 0;
     
 };
 
@@ -822,12 +797,11 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->ExecuteBuildUserInterface(fFactory->fUserInterfaceBlock, glue);
         }
     
-        virtual void compute(int count, RealBuffers& buffers)
+        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         {
             //std::cout << "compute " << count << std::endl;
-            
-            T** inputs; buffers.setInputs(inputs);
-            T** outputs; buffers.setOutputs(outputs);
+            T** inputs = reinterpret_cast<T**>(input);
+            T** outputs = reinterpret_cast<T**>(output);
             
             // Prepare in/out buffers
             for (int i = 0; i < this->fFactory->fNumInputs; i++) {
@@ -851,13 +825,13 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         }
     
         /*
-        virtual void compute(int count, RealBuffers& buffers)
+        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         {
             //std::cout << "compute " << count << std::endl;
             
-            T** inputs; buffers.setInputs(inputs);
-            T** outputs; buffers.setOutputs(outputs);
-            
+            T** inputs = reinterpret_cast<T**>(input);
+            T** outputs = reinterpret_cast<T**>(output);
+         
             // Prepare in/out buffers
             for (int i = 0; i < this->fFactory->fNumInputs; i++) {
                 this->fInputs[i] = inputs[i];
@@ -930,10 +904,10 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T> {
             this->instanceInit(samplingRate / fDownSamplingFactor);
         }
     
-        virtual void compute(int count, RealBuffers& buffers)
+        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         {
-            T** inputs; buffers.setInputs(inputs);
-            T** outputs; buffers.setOutputs(outputs);
+            T** inputs = reinterpret_cast<T**>(input);
+            T** outputs = reinterpret_cast<T**>(output);
             
             // Downsample inputs
             for (int i = 0; i < this->fFactory->fNumInputs; i++) {
@@ -994,8 +968,7 @@ struct EXPORT interpreter_dsp : public dsp {
     void buildUserInterface(UI* ui_interface);
     int getSampleRate();
     
-    void compute(int count, float** input, float** output);
-    void compute(int count, double** input, double** output);
+    void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
     
 };
 
