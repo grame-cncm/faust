@@ -65,7 +65,7 @@ import("stdfaust.lib");
 // ```
 //------------------------------------------------------------
 // TODO: author JOS and Orlarey, revised by RM 
-mth_octave_spectral_level_demo(BPO) = component("examples/analysis/spectralLevel.dsp")[M = BPO;];
+mth_octave_spectral_level_demo(BPO) = component("spectralLevel.dsp")[M = BPO;];
 
 spectral_level_demo = mth_octave_spectral_level_demo(1.5); // 2/3 octave
 
@@ -84,7 +84,7 @@ spectral_level_demo = mth_octave_spectral_level_demo(1.5); // 2/3 octave
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-parametric_eq_demo = component("examples/filtering/parametricEqualizer.dsp");
+parametric_eq_demo = component("parametricEqualizer.dsp");
 
 
 //-------------------`spectral_tilt_demo`-----------------------
@@ -104,7 +104,7 @@ parametric_eq_demo = component("examples/filtering/parametricEqualizer.dsp");
 // All other parameters interactive
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-spectral_tilt_demo(N) = component("examples/filtering/spectralTilt.dsp")[O = N;];
+spectral_tilt_demo(N) = component("spectralTilt.dsp")[O = N;];
 
 
 //---------`mth_octave_filterbank_demo` and `filterbank_demo`-------------
@@ -123,7 +123,7 @@ spectral_tilt_demo(N) = component("examples/filtering/spectralTilt.dsp")[O = N;]
 // * `N`: number of bands per octave
 //--------------------------------------------------------------
 // TODO: author JOS, revised by RM
-mth_octave_filterbank_demo(N) = component("examples/filtering/filterBank.dsp")[M = N;];
+mth_octave_filterbank_demo(N) = component("filterBank.dsp")[M = N;];
 
 filterbank_demo = mth_octave_filterbank_demo(1); // octave-bands = default
 
@@ -142,7 +142,7 @@ filterbank_demo = mth_octave_filterbank_demo(1); // octave-bands = default
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-cubicnl_demo = component("examples/dynamic/distortion.dsp");
+cubicnl_demo = component("distortion.dsp");
 
 
 //----------------------------`gate_demo`-------------------------
@@ -156,7 +156,7 @@ cubicnl_demo = component("examples/dynamic/distortion.dsp");
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-gate_demo = component("examples/dynamic/noiseGate.dsp");
+gate_demo = component("noiseGate.dsp");
 
 
 //----------------------------`compressor_demo`-------------------------
@@ -170,7 +170,7 @@ gate_demo = component("examples/dynamic/noiseGate.dsp");
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-compressor_demo = component("examples/dynamic/compressor.dsp");
+compressor_demo = component("compressor.dsp");
 
 
 // TODO: need a demo function for speakerbp
@@ -191,7 +191,7 @@ compressor_demo = component("examples/dynamic/compressor.dsp");
 // * <https://www.researchgate.net/publication/258333577_Modeling_the_Harmonic_Exciter>
 //------------------------------------------------------------
 // TODO: author PPriyanka Shekar + licence, etc., revised by RM
-exciter = component("examples/psychoacoustic/harmonicExciter.dsp");
+exciter = component("harmonicExciter.dsp");
 
 
 //-------------------------`moog_vcf_demo`---------------------------
@@ -205,7 +205,7 @@ exciter = component("examples/psychoacoustic/harmonicExciter.dsp");
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-moog_vcf_demo = component("examples/filtering/moogVCF.dsp");
+moog_vcf_demo = component("moogVCF.dsp");
 
 
 //-------------------------`wah4_demo`---------------------------
@@ -219,7 +219,7 @@ moog_vcf_demo = component("examples/filtering/moogVCF.dsp");
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-wah4_demo = component("examples/filtering/wahPedal.dsp");
+wah4_demo = component("wahPedal.dsp");
 
 
 //-------------------------`crybaby_demo`---------------------------
@@ -233,7 +233,7 @@ wah4_demo = component("examples/filtering/wahPedal.dsp");
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-crybaby_demo = component("examples/filtering/cryBaby.dsp");
+crybaby_demo = component("cryBaby.dsp");
 
 
 //----------------------------`vocoder_demo`-------------------------
@@ -248,7 +248,7 @@ crybaby_demo = component("examples/filtering/cryBaby.dsp");
 // ```
 //------------------------------------------------------------
 // TODO: author RM
-vocoder_demo = component("examples/filtering/vocoder.dsp");
+vocoder_demo = component("vocoder.dsp");
 
 
 //-------------------------`flanger_demo`---------------------------
@@ -262,7 +262,7 @@ vocoder_demo = component("examples/filtering/vocoder.dsp");
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-flanger_demo = component("examples/phasing/flanger.dsp");
+flanger_demo = component("flanger.dsp");
 
 
 //-------------------------`phaser2_demo`---------------------------
@@ -276,7 +276,7 @@ flanger_demo = component("examples/phasing/flanger.dsp");
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-phaser2_demo = component("examples/phasing/phaser.dsp");
+phaser2_demo = component("phaser.dsp");
 
 
 //----------------------------`freeverb_demo`-------------------------
@@ -290,7 +290,7 @@ phaser2_demo = component("examples/phasing/phaser.dsp");
 // ```
 //------------------------------------------------------------
 // TODO: author RM
-freeverb_demo = component("examples/reverb/freeverb.dsp");
+freeverb_demo = component("freeverb.dsp");
 
 
 
@@ -305,7 +305,7 @@ freeverb_demo = component("examples/reverb/freeverb.dsp");
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-stereo_reverb_tester(revin_group,x,y) = component("examples/reverb/reverbTester.dsp");
+stereo_reverb_tester(revin_group,x,y) = component("reverbTester.dsp");
 
 
 //-------------------------`fdnrev0_demo`---------------------------
@@ -329,7 +329,7 @@ stereo_reverb_tester(revin_group,x,y) = component("examples/reverb/reverbTester.
 // 	used at each crossover freq / odd positive integer
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-fdnrev0_demo(n,nb,bbso) = component("examples/reverb/fdnrev.dsp")[N = n; NB = nb; BBSO = bbso;];
+fdnrev0_demo(n,nb,bbso) = component("fdnrev.dsp")[N = n; NB = nb; BBSO = bbso;];
 
 
 
@@ -344,7 +344,7 @@ fdnrev0_demo(n,nb,bbso) = component("examples/reverb/fdnrev.dsp")[N = n; NB = nb
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-zita_rev_fdn_demo = component("examples/reverb/zitaRevFDN.dsp");
+zita_rev_fdn_demo = component("zitaRevFDN.dsp");
 
 
 
@@ -366,7 +366,7 @@ zita_rev_fdn_demo = component("examples/reverb/zitaRevFDN.dsp");
 // <http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html>
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-zita_rev1 = component("examples/reverb/zitaRev.dsp");
+zita_rev1 = component("zitaRev.dsp");
 
 
 //====================================Generators==========================================
@@ -383,7 +383,7 @@ zita_rev1 = component("examples/reverb/zitaRev.dsp");
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-sawtooth_demo = component("examples/generator/sawtoothLab.dsp");
+sawtooth_demo = component("sawtoothLab.dsp");
 
 
 //----------------------`virtual_analog_oscillator_demo`----------------------
@@ -397,7 +397,7 @@ sawtooth_demo = component("examples/generator/sawtoothLab.dsp");
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-virtual_analog_oscillator_demo = component("examples/generator/virtualAnalog.dsp");
+virtual_analog_oscillator_demo = component("virtualAnalog.dsp");
 
 
 //-------------------------- oscrs_demo ---------------------------
@@ -410,7 +410,7 @@ virtual_analog_oscillator_demo = component("examples/generator/virtualAnalog.dsp
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-oscrs_demo = component("examples/generator/filterOsc.dsp");
+oscrs_demo = component("filterOsc.dsp");
 
 oscr_demo = oscrs_demo; // synonym
 

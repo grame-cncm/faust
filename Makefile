@@ -100,8 +100,15 @@ install :
 	# install architecture and faust library files
 	mkdir -p $(prefix)/lib/faust
 	cp architecture/*.cpp $(prefix)/lib/faust/
+	cp libraries/old/*.lib $(prefix)/lib/faust/
 	cp libraries/*.lib $(prefix)/lib/faust/
-	cp -r examples $(prefix)/lib/faust/
+	cp -r examples/filtering/*.dsp $(prefix)/lib/faust/
+	cp -r examples/dynamic/*.dsp $(prefix)/lib/faust/
+	cp -r examples/psychoacoustic/*.dsp $(prefix)/lib/faust/
+	cp -r examples/phasing/*.dsp $(prefix)/lib/faust/
+	cp -r examples/reverb/*.dsp $(prefix)/lib/faust/
+	cp -r examples/generator/*.dsp $(prefix)/lib/faust/
+	cp -r examples/analysis/*.dsp $(prefix)/lib/faust/
 	# This is needed by faust2lv2 -gui / lv2ui.cpp.
 	cp architecture/lv2qtgui.h $(prefix)/lib/faust/
 	# This is needed by faust2faustvst -gui / faustvst.cpp.

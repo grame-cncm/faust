@@ -72,7 +72,7 @@ closed source license or any other license if you decide so.
 import("stdfaust.lib");
 
 declare name "Faust Filter Library";
-declare version "2.0"; // TODO to check
+declare version "2.0";
 
 //===============================Basic Filters============================================
 //========================================================================================
@@ -610,7 +610,6 @@ bvav2nuv(bv,av) = par(m,M+1,nu(m)) with {
 // * bv: zeros as a bank of parallel signals
 // * av: poles as a bank of parallel signals
 //------------------------------------------------------------
-// TODO: might need more info for the documentation
 // TODO: author JOS, revised by RM
 iir_lat2(bv,av) = allpassnt(M,sv) : sum(i,M+1,*(ba.take(M-i+1,tg)))
 with {
@@ -633,7 +632,6 @@ with {
 // * `n`: the order of the filter
 // * `sv`: the reflexion coefficients (-1 1)
 //------------------------------------------------------------
-// TODO: might need more info for the documentation
 // TODO: author JOS, revised by RM
 allpassnt(0,sv) = _;
 allpassnt(n,sv) =
@@ -660,7 +658,6 @@ with {
 // * bv: zeros as a bank of parallel signals
 // * av: poles as a bank of parallel signals
 //------------------------------------------------------------
-// TODO: might need more info for the documentation
 // TODO: author JOS, revised by RM
 iir_kl(bv,av) = allpassnklt(M,sv) : sum(i,M+1,*(tghr(i)))
 with {
@@ -687,7 +684,6 @@ with {
 // * `n`: the order of the filter
 // * `sv`: the reflexion coefficients (-1 1)
 //------------------------------------------------------------
-// TODO: might need more info for the documentation
 // TODO: author JOS, revised by RM
 allpassnklt(0,sv) = _;
 allpassnklt(n,sv) = _ <: *(s),(*(1+s) : (+
@@ -713,7 +709,6 @@ with {
 // * bv: zeros as a bank of parallel signals
 // * av: poles as a bank of parallel signals
 //------------------------------------------------------------
-// TODO: might need more info for the documentation
 // TODO: author JOS, revised by RM
 iir_lat1(bv,av) = allpassn1mt(M,sv) : sum(i,M+1,*(tghr(i+1)))
 with {
@@ -740,7 +735,6 @@ with {
 // * `n`: the order of the filter
 // * `sv`: the reflexion coefficients (-1 1)
 //------------------------------------------------------------
-// TODO: might need more info for the documentation
 // TODO: author JOS, revised by RM
 allpassn1mt(0,sv) = _;
 allpassn1mt(n,sv)= _ <: _,_ : ((+:*(s) <: _,_),_ : _,+ : ro.crossnn(1)
@@ -772,7 +766,6 @@ with {
 // * J. D. Markel and A. H. Gray, Linear Prediction of Speech, New York: Springer Verlag, 1976.
 // * <https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html>
 //------------------------------------------------------------
-// TODO: might need more info for the documentation
 // TODO: author JOS, revised by RM
 iir_nl(bv,av) = allpassnnlt(M,sv) : sum(i,M+1,*(tghr(i)))
 with {
@@ -806,7 +799,6 @@ with {
 // * J. D. Markel and A. H. Gray, Linear Prediction of Speech, New York: Springer Verlag, 1976.
 // * <https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html>
 //------------------------------------------------------------
-// TODO: might need more info for the documentation
 // TODO: author JOS, revised by RM
 allpassnnlt(0,sv) = _;
 allpassnnlt(n,scl*(sv)) = allpassnnlt(n,par(i,count(sv),scl*(sv(i))));
@@ -962,11 +954,16 @@ with{
 // ```
 // _ : allpassn(n,sv) : _
 // ```
-
-//// Where:
+// #### Where:
 //
 // * `n`: the order of the filter
 // * `sv`: the reflexion coefficients (-1 1)
+//
+// #### References
+//
+// * J. O. Smith and R. Michon, "Nonlinear Allpass Ladder Filters in FAUST", in 
+// Proceedings of the 14th International Conference on Digital Audio Effects 
+// (DAFx-11), Paris, France, September 19-23, 2011.
 //----------------------------------------------
 // TODO: author JOS, revised by RM
 allpassn(0,sv) = _;

@@ -310,7 +310,7 @@ with {
 //========================================================================================
 
 
-// TODO: the following should be in pm.lib
+// TODO: the following should be in pm.lib when it will be operational
 //----------------------------------`mesh_square`------------------------------
 // Square Rectangular Digital Waveguide Mesh.
 //

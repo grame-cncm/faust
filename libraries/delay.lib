@@ -74,6 +74,7 @@ declare version "0.0";
 // * `n`: the max delay length as a power of 2
 // * `d`: the delay length as a number of samples (integer)
 //-----------------------------
+// TODO: add MBH np2
 delay(n,d,x) = x@(int(d)&(n-1));
 
 
@@ -192,7 +193,6 @@ with {
 // <https://ccrma.stanford.edu/~jos/pasp/Prime_Power_Delay_Line.html>
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-// TODO: may be this should be moved to delay.lib?
 prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with {
   Np = 16;
   primes = 2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53;

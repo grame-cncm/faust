@@ -66,6 +66,7 @@ declare version "0.0";
 // noise : _
 // ```
 //------------------------
+// TODO: add mask for 32 bits
 noise = random / RANDMAX
 with{
 	random = +(12345) ~ *(1103515245); // "linear congruential"
@@ -112,7 +113,7 @@ with {
 
 
 //-----------------------`noises(n,i)`------------------------
-// TODO: not sure what the point is with this one.
+// TODO.
 //----------------------------------------------------------
 noises(N,i) = multinoise(N) : ba.selector(i,N);
 
