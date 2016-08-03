@@ -22,7 +22,7 @@ This will give you access to all the Faust libraries through a series of environ
 * `si`: `signal.lib`
 * `an`: `analyzer.lib`
 * `fi`: `miscfilter.lib`
-* `os`: `oscillator.lib`
+* `os`: `miscoscillator.lib`
 * `no`: `noise.lib`
 * `ho`: `hoa.lib`
 * `sp`: `spat.lib`
@@ -41,19 +41,19 @@ import("stdfaust.lib");
 process = os.osc(440);
 ```
 
-In this case, we're calling the `osc` function from `oscillator.lib`.
+In this case, we're calling the `osc` function from `miscoscillator.lib`.
 
 Alternatively, environments can be created by hand:
 
 ```
-os = library("oscillator.lib");
+os = library("miscoscillator.lib");
 process = os.osc(440);
 ```
 
 Finally, libraries can be simply imported in the Faust code (not recommended):
 
 ```
-import("oscillator.lib");
+import("miscoscillator.lib");
 process = osc(440);
 ```
 
@@ -150,7 +150,7 @@ Only the libraries that are considered to be "standard" are documented:
 * `reverb.lib`
 * `envelope.lib`
 * `miscfilter.lib`
-* `oscillator.lib`
+* `miscoscillator.lib`
 * `noise.lib`
 * `hoa.lib`
 * `miscmath.lib`
@@ -193,7 +193,7 @@ ro = library("route.lib");
 si = library("signal.lib");
 an = library("analyzer.lib");
 fi = library("miscfilter.lib");
-os = library("oscillator.lib");
+os = library("miscoscillator.lib");
 no = library("noise.lib");
 ho = library("hoa.lib");
 sp = library("spat.lib");
