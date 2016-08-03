@@ -58,9 +58,9 @@ for f in *.dsp; do
     diff $D/$f.sch.ir ../expected-responses/$f.scal.ir && echo "OK $f scheduler -vs 100 -fun mode" || echo "ERROR $f scheduler -vs 100 -fun mode"
 done
 
-echo "============================================================================="
-echo "Impulse response tests in various compilation modes and double : C backend   "
-echo "============================================================================="
+echo "==========================================================================="
+echo "Impulse response tests in various compilation modes and double : C backend "
+echo "==========================================================================="
 
 for f in *.dsp; do
     faust2impulse2 -double $f      > $D/$f.scal.ir
@@ -92,12 +92,36 @@ for f in *.dsp; do
 done
 
 
-#echo "================================================================================"
-#echo "Impulse response tests in various compilation modes and double : Interp backend "
-#echo "================================================================================"
+echo "================================================================================"
+echo "Impulse response tests in various compilation modes and double : Interp backend "
+echo "================================================================================"
 
-#for f in *.dsp; do
-#    faust2impulse3 $f      > $D/$f.scal.ir
-#    diff $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
-#done
+for f in *.dsp; do
+    faust2impulse3 $f      > $D/$f.scal.ir
+    diff $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+done
+
+echo "=============================================================================="
+echo "Impulse response tests in various compilation modes and double : LLVM backend "
+echo "=============================================================================="
+
+for f in *.dsp; do
+    faust2impulse4 $f -double    > $D/$f.scal.ir
+    diff $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+
+    faust2impulse4 $f -double -vec -lv 0 > $D/$f.vec.ir
+    diff $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 0 mode" || echo "ERROR $f vector -lv 0 mode"
+
+    faust2impulse4 $f -double -vec -lv 1 > $D/$f.vec.ir
+    diff $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 1 mode" || echo "ERROR $f vector -lv 1 mode"
+
+    faust2impulse4 $f -double -vec -lv 1 -vs 200 > $D/$f.vec.ir
+    diff $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 1 -vs 200 mode" || echo "ERROR $f vector -lv 1 -vs 200 mode"
+
+    faust2impulse4 $f -double -vec -lv 1 -g > $D/$f.vec.ir
+    diff $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 1 -g mode" || echo "ERROR $f vector -lv 1 -g mode"
+
+    faust2impulse4 $f -double -vec -lv 1 -g -fun > $D/$f.vec.ir
+    diff $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 1 -g -fun mode" || echo "ERROR $f vector -lv 1 -g -fun mode"
+done
 
