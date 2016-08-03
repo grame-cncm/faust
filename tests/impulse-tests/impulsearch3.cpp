@@ -11,6 +11,9 @@
 #include <iostream>
 #include <math.h>
 #include <algorithm>
+#include <cfenv>
+#include <cmath>
+#include <cfloat>
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT double
@@ -34,6 +37,13 @@ using namespace std;
 
 static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
 {
+    if (std::isnan(f)) {
+        std::cerr << "ERROR : isnan" << std::endl;
+        exit(-1);
+    } else if (!std::isfinite(f)) {
+        std::cerr << "ERROR : !isfinite" << std::endl;
+        exit(-1);
+    }
     return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
 }
             
