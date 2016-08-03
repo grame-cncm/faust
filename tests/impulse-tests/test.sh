@@ -12,16 +12,16 @@ D=`mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir'`
 
 cd codes-to-test
 
-echo "========================================="
-echo "Test compilation in default mode (float)"
-echo "========================================="
+#echo "========================================="
+#echo "Test compilation in default mode (float)"
+#echo "========================================="
 
-for f in *.dsp; do
-    echo "Test $f compilation in scalar float mode"
-    faust2impulse $f  > $D/$f.scal.ir
-    echo "Test $f compilation in vec float mode"
-    faust2impulse $f  -vec  > $D/$f.scal.ir
-done
+#for f in *.dsp; do
+#    echo "Test $f compilation in scalar float mode"
+#    faust2impulse $f  > $D/$f.scal.ir
+#    echo "Test $f compilation in vec float mode"
+#    faust2impulse $f  -vec  > $D/$f.scal.ir
+#done
 
 echo "==============================================================="
 echo "Impulse response tests in various compilation modes and double"
