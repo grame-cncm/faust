@@ -6,11 +6,9 @@
 #include <errno.h>
 #include <time.h>
 #include <ctype.h>
-
 #include <string>
 #include <map>
 #include <iostream>
-
 #include <math.h>
 #include <algorithm>
 
@@ -44,9 +42,9 @@ struct Meta: map < const char *, const char *>
 
 mydsp DSP;
 
-static inline float normalize(float f)
+static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
 {
-    return (fabs(f) < 0.000001) ? 0.0 : f;
+    return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
 }
 
 int main(int argc, char* argv[])
@@ -103,7 +101,7 @@ int main(int argc, char* argv[])
         for (int i = 0; i < nFrames; i++) {
             printf("%6d : ", linenum++);
             for (int c = 0; c < nouts; c++) {
-                float f = normalize(ochan.buffers()[c][i]);
+                FAUSTFLOAT f = normalize(ochan.buffers()[c][i]);
                 printf(" %8.6f", f);
             }
             printf("\n");
