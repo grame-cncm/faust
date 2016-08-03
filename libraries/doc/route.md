@@ -136,7 +136,7 @@ Create a recursion from two arbitrary processors p and q.
 #### Usage
 
 ```
-_,_ : stereoize(p,q) : _,_
+_,_ : recursivize(p,q) : _,_
 
 ```
 

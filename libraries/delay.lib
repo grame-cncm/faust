@@ -179,7 +179,7 @@ with {
 // #### Usage
 //
 // ```
-// bus(N) : prime_power_delays(N,pathmin,pathmax) : bus(N);
+// si.bus(N) : prime_power_delays(N,pathmin,pathmax) : si.bus(N);
 // ```
 //
 // Where:
@@ -291,7 +291,7 @@ fdelay5 = fdelayltv(5);
 // #### Usage 
 //
 // ```
-// fdelay[N]a(maxdelay, delay, inputsignal) 
+// _ : fdelay[N]a(maxdelay, delay, inputsignal) : _
 // ```
 //
 // (exactly like `fdelay`)

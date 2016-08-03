@@ -127,7 +127,7 @@ Delay lines interpolated using Thiran allpass interpolation.
 #### Usage 
 
 ```
-fdelay[N]a(maxdelay, delay, inputsignal) 
+_ : fdelay[N]a(maxdelay, delay, inputsignal) : _
 ```
 
 (exactly like `fdelay`)

@@ -172,7 +172,6 @@ cbrt 		= ffunction(float cbrtf|cbrt|cbrtl (float), <math.h>,"");
 // #### Usage
 //
 // ```
-// hypot(x,y) : _
 // _,_ : hypot : _
 // ```
 //-----------------------------------------------------------------------------
@@ -209,7 +208,6 @@ scalb 		= ffunction(float scalbnf|scalbn|scalbnl (float, int), <math.h>,"");
 // #### Usage
 //
 // ```
-// log1p(x) : _
 // _ : log1p : _
 // ```
 //-----------------------------------------------------------------------------

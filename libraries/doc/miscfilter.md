@@ -1,5 +1,5 @@
 
-# filter.lib 
+# miscfilter.lib 
 A library of filters and of more advanced filter-based sound processor organized 
 in 18 sections:
 
@@ -25,7 +25,7 @@ in 18 sections:
 It should be used using the `fi` environment:
 
 ```
-fi = library("filter.lib");
+fi = library("miscfilter.lib");
 process = fi.functionCall;
 ```
 
@@ -65,7 +65,7 @@ Difference equation: y(n) = x(n) + p * y(n-1).
 #### Usage
 
 ```
-_ : zero(z) : _
+_ : pole(z) : _
 ```
 
 Where:
@@ -724,6 +724,18 @@ Two-multiply lattice - each section is two multiply-adds.
 ```
 _ : allpassn(n,sv) : _
 ```
+#### Where:
+
+* `n`: the order of the filter
+* `sv`: the reflexion coefficients (-1 1)
+
+#### References
+
+* J. O. Smith and R. Michon, "Nonlinear Allpass Ladder Filters in FAUST", in 
+Proceedings of the 14th International Conference on Digital Audio Effects 
+(DAFx-11), Paris, France, September 19-23, 2011.
+
+---
 
 
 ### `allpassnn(n,tv)`

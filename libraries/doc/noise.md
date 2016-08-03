@@ -65,7 +65,7 @@ Where:
 
 
 ### `noises(n,i)`
-TODO: not sure what the point is with this one.
+TODO.
 
 ---
 

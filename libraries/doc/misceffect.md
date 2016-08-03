@@ -155,7 +155,7 @@ A simple echo effect.
 #### Usage
 
 ```
-echo(maxDuration,duration,feedback)
+_ : echo(maxDuration,duration,feedback) : _
 ```
 
 Where:

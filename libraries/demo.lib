@@ -340,7 +340,7 @@ fdnrev0_demo(n,nb,bbso) = component("fdnrev.dsp")[N = n; NB = nb; BBSO = bbso;];
 // #### Usage
 //
 // ```
-// bus(8) : zita_rev_fdn_demo : bus(8)
+// si.bus(8) : zita_rev_fdn_demo : si.bus(8)
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM

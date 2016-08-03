@@ -278,7 +278,7 @@ Based on examples/reverb/zitaRevFDN.dsp
 #### Usage
 
 ```
-bus(8) : zita_rev_fdn_demo : bus(8)
+si.bus(8) : zita_rev_fdn_demo : si.bus(8)
 ```
 
 ---

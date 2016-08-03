@@ -7,7 +7,7 @@ for p in $@; do
 	fi
 done
 
-FILES="analyzer.lib basic.lib delay.lib misceffect.lib compressor.lib vaeffect.lib phafla.lib reverb.lib envelope.lib filter.lib oscillator.lib noise.lib hoa.lib math.lib pm.lib signal.lib route.lib spat.lib synth.lib demo.lib"
+FILES="analyzer.lib basic.lib delay.lib misceffect.lib compressor.lib vaeffect.lib phafla.lib reverb.lib envelope.lib miscfilter.lib miscoscillator.lib noise.lib hoa.lib miscmath.lib pm.lib signal.lib route.lib spat.lib synth.lib demo.lib"
 
 for p in $FILES; do
 	faust2md $p > doc/${p%.lib}.md

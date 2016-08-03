@@ -47,7 +47,7 @@ Converts a duration in seconds to a number of samples.
 #### Usage
 
 ```
-ssec2samp(d) : _
+sec2samp(d) : _
 ```
 
 Where:
@@ -206,8 +206,6 @@ of the countdown the output value will remain at 0 until the next trig.
 
 ```
 countdown(n,trig) : _
-_ : countdown(n) : _
-_,_ : countdown : _
 ```
 
 Where:
@@ -227,8 +225,6 @@ of the countup the output value will remain at n until the next trig.
 
 ```
 countup(n,trig) : _
-_ : countup(n) : _
-_,_ : countup : _
 ```
 
 Where:
@@ -258,7 +254,7 @@ A simple timer that counts every samples from the beginning of the process.
 #### Usage
 
 ```
-time() : _
+time : _
 ```
 
 ---
@@ -353,7 +349,7 @@ Count the number of elements of list l.
 #### Usage
 
 ```
-count ((10,20,30,40))    -> 4
+count ((10,20,30,40)) -> 4
 ```
 
 Where:
@@ -411,8 +407,7 @@ if-then-else implemented with a select2.
 
 #### Usage
 
-*   `if(c, then, else):_`
-*   `_,_:if(c):_`
+*   `if(c, then, else) : _`
 
 Where:
 
@@ -489,7 +484,7 @@ Latch input on positive-going transition of "clock" ("sample-and-hold").
 #### Usage
 
 ```
-  _ : latch(clocksig) : _
+_ : latch(clocksig) : _
 ```
 
 Where:
@@ -521,7 +516,7 @@ Outputs current max value above zero.
 #### Usage
 
 ```
-_ : peakhold(mode,sig) : _;
+_ : peakhold(mode) : _;
 ```
 
 Where:
@@ -538,7 +533,7 @@ Tracks abs peak and holds peak for 'holdtime' samples.
 #### Usage 
 
 ```
-peakholder(holdtime, sig);
+_ : peakholder(holdtime) : _;
 ```
 
 ---

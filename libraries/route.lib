@@ -179,7 +179,7 @@ hadamard(n) = butterfly(n) : (hadamard(n/2) , hadamard(n/2));
 // #### Usage
 //
 // ```
-// _,_ : stereoize(p,q) : _,_
+// _,_ : recursivize(p,q) : _,_
 //
 // ```
 //

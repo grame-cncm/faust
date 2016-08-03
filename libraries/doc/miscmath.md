@@ -1,5 +1,5 @@
 
-# math.lib 
+# miscmath.lib 
 Mathematic library for Faust. Some functions are implemenented as Faust foreign 
 functions of `math.h` functions that are not part of Faust's primitives. Defines 
 also various constants and several utilities.
@@ -7,7 +7,7 @@ also various constants and several utilities.
 It should be used using the `fi` environment:
 
 ```
-ma = library("math.lib");
+ma = library("miscmath.lib");
 process = ma.functionCall;
 ```
 
@@ -123,7 +123,6 @@ sqrt(x*x+y*y) without undue overflow or underflow.
 #### Usage
 
 ```
-hypot(x,y) : _
 _,_ : hypot : _
 ```
 
@@ -160,7 +159,6 @@ Computes log(1 + x) without undue loss of accuracy when x is nearly zero.
 #### Usage
 
 ```
-log1p(x) : _
 _ : log1p : _
 ```
 

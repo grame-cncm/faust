@@ -160,7 +160,7 @@ Spectral level display.
 #### Usage:
 
 ```
-_ : mth_octave_spectral_level6e(M,ftop,NBands,tau,dB_offset);
+_ : mth_octave_spectral_level6e(M,ftop,NBands,tau,dB_offset) : _;
 ```
 
 Where: 
@@ -210,7 +210,7 @@ Analyzer.
 #### Usage
 
 ```
-_ : analyzer   (O,freqs) : par(i,N,_); // No delay equalizer
+_ : analyzer(O,freqs) : par(i,N,_); // No delay equalizer
 ```
 
 Where: 

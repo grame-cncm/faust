@@ -65,7 +65,7 @@ Ratios: 4 (moderate compression), 8 (severe compression),
 #### Usage
 
 ```
- _ : limiter_1176_R4_mono   : _;
+ _ : limiter_1176_R4_mono : _;
  _,_ : limiter_1176_R4_stereo : _,_;
 ```
 

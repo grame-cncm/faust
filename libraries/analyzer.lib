@@ -230,7 +230,7 @@ mth_octave_analyzer_default = mth_octave_analyzer6e; // default analyzer
 // #### Usage:
 //
 // ```
-// _ : mth_octave_spectral_level6e(M,ftop,NBands,tau,dB_offset);
+// _ : mth_octave_spectral_level6e(M,ftop,NBands,tau,dB_offset) : _;
 // ```
 //
 // Where: 
@@ -317,7 +317,7 @@ octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);
 // #### Usage
 //
 // ```
-// _ : analyzer   (O,freqs) : par(i,N,_); // No delay equalizer
+// _ : analyzer(O,freqs) : par(i,N,_); // No delay equalizer
 // ```
 //
 // Where: 

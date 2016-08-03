@@ -25,7 +25,7 @@ n parallel cables
 #### Usage
 
 ```
-bus(4) -> _,_,_,_
+bus(4) : _,_,_,_
 ```
 
 Where:
