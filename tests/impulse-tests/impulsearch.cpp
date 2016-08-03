@@ -92,9 +92,9 @@ int main(int argc, char* argv[])
     finterface.recallState(rcfilename);
     
     // print general informations
-    printf("number of inputs  : %3d\n", nins);
-    printf("number of outputs : %3d\n", nouts);
-    printf("number of frames  : %6d\n", nbsamples);
+    printf("number_of_inputs  : %3d\n", nins);
+    printf("number_of_outputs : %3d\n", nouts);
+    printf("number_of_frames  : %6d\n", nbsamples);
     
     // print audio frames
     while (nbsamples > 0) {

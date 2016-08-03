@@ -20,4 +20,5 @@ cp impulsellvm /usr/local/bin/
 
 cp impulsearch.cpp /usr/local/lib/faust/
 cp impulsearch2.cpp /usr/local/lib/faust/
+cp filesCompare /usr/local/bin/
 
