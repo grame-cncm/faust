@@ -9,8 +9,12 @@
 #include <string>
 #include <map>
 #include <iostream>
+#include <sstream>
 #include <math.h>
 #include <algorithm>
+#include <cfenv>
+#include <cmath>
+#include <cfloat>
 
 #include "faust/gui/console.h"
 #include "faust/dsp/dsp.h"
@@ -44,6 +48,13 @@ mydsp DSP;
 
 static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
 {
+    if (std::isnan(f)) {
+        std::cerr << "ERROR : isnan" << std::endl;
+        exit(-1);
+    } else if (!std::isfinite(f)) {
+        std::cerr << "ERROR : !isfinite" << std::endl;
+        exit(-1);
+    }
     return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
 }
 

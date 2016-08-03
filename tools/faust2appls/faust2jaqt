@@ -43,6 +43,7 @@ done
 OSCINC=""
 QTDEFS=""
 OSCLIB=""
+DEPLOY=""
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
@@ -64,6 +65,8 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-deploy" ]; then
+        DEPLOY="yes"
     elif [ $p = "-poly" ]; then
         POLYDEFS="DEFINES += POLY"
     elif [ $p = "-midi" ]; then
@@ -133,6 +136,13 @@ for p in $FILES; do
 	    $QMAKE $SPEC
         make
     ) > /dev/null || exit
+
+    # on Mac add the qt libraries to the bundle
+    if [[ $(uname) == Darwin ]]; then
+        if [ "$DEPLOY" = "yes" ]; then
+            macdeployqt "$TMP/${f%.dsp}$EXT" || exit
+        fi
+    fi
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
     cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
