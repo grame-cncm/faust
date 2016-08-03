@@ -1,6 +1,6 @@
-number of inputs  :   1
-number of outputs :   1
-number of frames  :  60000
+number_of_inputs  :   1
+number_of_outputs :   1
+number_of_frames  :  60000
      0 :  0.933709
      1 :  -0.122538
      2 :  -0.102719
