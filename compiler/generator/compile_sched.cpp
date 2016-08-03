@@ -110,7 +110,7 @@ void  SchedulerCompiler::dlineLoop (const string& tname, const string& dlname, i
         fClass->addDeclCode(subst("$0 \t$1[$2];", tname, pmem, dsize));
         
         // init permanent memory
-        fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i]=0;", pmem, dsize)); 
+        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i]=0;", pmem, dsize));
         
         // compute method
         
