@@ -123,6 +123,5 @@ for f in *.dsp; do
 
     faust2impulse4 $f -double -vec -lv 1 -g -fun > $D/$f.vec.ir
     filesCompare $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 1 -g -fun mode" || echo "ERROR $f vector -lv 1 -g -fun mode"
-    filesCompare $D/$f.sch.ir ../expected-responses/$f.scal.ir && echo "OK $f scheduler -vs 100 mode" || echo "ERROR $f scheduler -vs 100 mode"
 done
 
