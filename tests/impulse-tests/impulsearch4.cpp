@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
     }
     
     string error_msg;
-    dsp_factory* factory = createDSPFactoryFromFile(argv[1], argc1, argv1, "", error_msg, -1);
+    dsp_factory* factory = createDSPFactoryFromFile(argv[1], argc1, argv1, "", error_msg, 3);
     if (!factory) {
         cerr << "createDSPFactoryFromFile " << error_msg << endl;
         exit(-1);
@@ -101,6 +101,7 @@ int main(int argc, char* argv[])
     printf("number_of_frames  : %6d\n", nbsamples);
     
     // print audio frames
+    int i;
     try {
         while (nbsamples > 0) {
             if (run == 0) {
@@ -114,7 +115,7 @@ int main(int argc, char* argv[])
             int nFrames = min(kFrames, nbsamples);
             DSP->compute(nFrames, ichan.buffers(), ochan.buffers());
             run++;
-            for (int i = 0; i < nFrames; i++) {
+            for (i = 0; i < nFrames; i++) {
                 printf("%6d : ", linenum++);
                 for (int c = 0; c < nouts; c++) {
                     FAUSTFLOAT f = normalize(ochan.buffers()[c][i]);
@@ -125,7 +126,7 @@ int main(int argc, char* argv[])
             nbsamples -= nFrames;
         }
     } catch (...) {
-        cerr << "ERROR in " << argv[1] << std::endl;
+        cerr << "ERROR in " << argv[1] << " line : " << i << std::endl;
     }
     return 0;
 }
