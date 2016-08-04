@@ -17,6 +17,7 @@
 #include <cfenv>
 #include <cmath>
 #include <cfloat>
+#include <stdlib.h>
 
 #include "faust/gui/console.h"
 #include "faust/dsp/dsp.h"
@@ -26,7 +27,7 @@
 static int gResult = 0;
 static int gError = 0;
 
-void compareFiles(std::istream* in1, std::istream* in2)
+void compareFiles(std::istream* in1, std::istream* in2, float tolerance)
 {
     std::string line1, line2, dummy;
     int input1, input2, output1, output2, count1, count2;
@@ -112,7 +113,7 @@ void compareFiles(std::istream* in1, std::istream* in2)
             l1reader >> sample1;
             l2reader >> sample2;
             
-            if (fabs(sample1 - sample2) > 2e-06) {
+            if (fabs(sample1 - sample2) > tolerance) {
                 std::cerr << "line : " << i << " output : " << j << " sample1 : " << sample1 << " different from sample2 : " << sample2 << std::endl;
                 gResult = 1;
                 if (gError++ > 10) {
@@ -128,6 +129,10 @@ int main(int argc, char* argv[])
 {
     std::ifstream reader1(argv[1]);
     std::ifstream reader2(argv[2]);
-    compareFiles(&reader1, &reader2);
+    float tolerance = 2e-06;
+    if (argc == 4) {
+        tolerance = strtod(argv[3], NULL);
+    }
+    compareFiles(&reader1, &reader2, tolerance);
     exit(gResult);
 }
