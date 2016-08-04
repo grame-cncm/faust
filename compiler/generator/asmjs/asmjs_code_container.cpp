@@ -217,9 +217,15 @@ void ASMJAVAScriptCodeContainer::produceClass()
         generateGlobalDeclarations(gGlobal->gASMJSVisitor);
           
         // Manually always generated mathematical functions
+    
+        // Float versions
         tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
         tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
-           
+    
+        // Double versions
+        tab(n+1, *fOut); *fOut << "function fmod(x, y) { x = +x; y = +y; return +(x % y); }";
+        tab(n+1, *fOut); *fOut << "function log10(a) { a = +a; return +(+log(a) / +log(10.)); }";
+    
         // Fields : compute the structure size to use in 'new'
         gGlobal->gASMJSVisitor->Tab(n+1);
         generateDeclarations(gGlobal->gASMJSVisitor);

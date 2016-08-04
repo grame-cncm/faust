@@ -26,6 +26,7 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 #include <assert.h>
 
 #include "Text.hh"
@@ -129,8 +130,8 @@ string subst (const string& model, const string& a0, const string& a1, const str
 
 static string substitution (const string& model, const vector<string>& args)
 {
-    char 	c;
-    int 	i=0, ilast = (int)model.length()-1;
+    char c;
+    int i = 0, ilast = (int)model.length() - 1;
     string 	result;
 
     while (i < ilast) {
@@ -159,19 +160,13 @@ string T (long n) 	{ char c[64]; snprintf(c, 63, "%ld",n); return string(c); }
  * the textual representation of a floating point number
  * to avoid confusions with an int.
  */
-static void ensureFloat(char* c)
+static string ensureFloat(const string& c)
 {
     bool isInt = true;
-    while (*c != 0) {
-        if ((*c == '.') | (*c == 'e')) isInt = false;
-        c++;
+    for (int i = 0; i < c.size(); i++) {
+        if ((c[i] == '.') || (c[i] == 'e')) isInt = false;
     }
-
-    if (isInt) {
-        *c++ = '.';
-        *c++ = '0';
-        *c   = 0;
-    }
+    return (isInt) ? (c + ".0") : c;
 }
 
 /**
@@ -180,12 +175,9 @@ static void ensureFloat(char* c)
  */
 string T(float n)
 {
-    char c[64];
-    int p = 1;
-    
-    do { snprintf(c, 32, "%.*g", p++, n); } while (strtof(c, 0) != n);
-    ensureFloat(c);
-    return string(c)+inumix();
+    std::stringstream num;
+    num << std::setprecision(std::numeric_limits<float>::max_digits10) << n;
+    return ensureFloat(num.str()) + inumix();
 }
 
 /**
@@ -194,21 +186,9 @@ string T(float n)
  */
 string T(double n)
 {
-    char    c[64];
-    char*   endp;
-    int     p = 1;
-
-    if (gGlobal->gFloatSize == 1) {
-        float v = (float)n;
-        do { snprintf(c, 32, "%.*g", p++, v); endp=0; } while (strtof(c, &endp) != v);
-    } else if (gGlobal->gFloatSize == 2) {
-        do { snprintf(c, 32, "%.*g", p++, n); endp=0; } while (strtod(c, &endp) != n);
-    } if (gGlobal->gFloatSize == 3) {
-        long double q = n;
-        do { snprintf(c, 32, "%.*Lg", p++, q); endp=0; } while (strtold(c, &endp) != q);
-    }
-    ensureFloat(c);
-    return string(c)+inumix();
+    std::stringstream num;
+    num << std::setprecision(std::numeric_limits<double>::max_digits10) << n;
+    return ensureFloat(num.str()) + inumix();
 }
 
 /**

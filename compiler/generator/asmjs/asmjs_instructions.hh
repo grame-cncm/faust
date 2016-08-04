@@ -24,10 +24,12 @@
 
 using namespace std;
 
+#include <iomanip>
+#include <sstream>
+#include <iostream>
+
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
-
-#define NUM_SIZE 4
 
 class ASMJAVAScriptInstVisitor : public TextInstVisitor {
 
@@ -60,7 +62,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             :TextInstVisitor(out, ".", ifloat(), "", tab)
         {
             fMathLibTable["abs"] = "global.Math.abs";
-            fMathLibTable["absf"] = "global.Math.abs";
+            
+            // Float version
             fMathLibTable["fabsf"] = "global.Math.abs";
             fMathLibTable["acosf"] = "global.Math.acos";
             fMathLibTable["asinf"] = "global.Math.asin";
@@ -80,6 +83,27 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["sinf"] = "global.Math.sin";
             fMathLibTable["sqrtf"] = "global.Math.sqrt";
             fMathLibTable["tanf"] = "global.Math.tan";
+            
+            // Double version
+            fMathLibTable["fabs"] = "global.Math.abs";
+            fMathLibTable["acos"] = "global.Math.acos";
+            fMathLibTable["asin"] = "global.Math.asin";
+            fMathLibTable["atan"] = "global.Math.atan";
+            fMathLibTable["atan2"] = "global.Math.atan2";
+            fMathLibTable["ceil"] = "global.Math.ceil";
+            fMathLibTable["cos"] = "global.Math.cos";
+            fMathLibTable["exp"] = "global.Math.exp";
+            fMathLibTable["floor"] = "global.Math.floor";
+            fMathLibTable["fmod"] = "manual";      // Manually generated
+            fMathLibTable["log"] = "global.Math.log";
+            fMathLibTable["log10"] = "manual";     // Manually generated
+            fMathLibTable["max"] = "global.Math.max";
+            fMathLibTable["min"] = "global.Math.min";
+            fMathLibTable["pow"] = "global.Math.pow";
+            fMathLibTable["round"] = "global.Math.round";
+            fMathLibTable["sin"] = "global.Math.sin";
+            fMathLibTable["sqrt"] = "global.Math.sqrt";
+            fMathLibTable["tan"] = "global.Math.tan";
             
             fStructOffset = 0;
         }
@@ -107,7 +131,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 if (is_struct) {
                     // Keep pointer type
                     fFieldTable[inst->fAddress->getName()] = make_pair(fStructOffset, Typed::getPtrFromType(array_typed->fType->getType()));
-                    fStructOffset += array_typed->fSize * NUM_SIZE;
+                    fStructOffset += array_typed->fSize * fsize();
                   } else {
                     if (!inst->fValue) {
                         assert(false);
@@ -118,7 +142,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             } else {
                 if (is_struct) {
                     fFieldTable[inst->fAddress->getName()] = make_pair(fStructOffset, inst->fType->getType());
-                    fStructOffset += NUM_SIZE;
+                    fStructOffset += fsize();
                 } else {
                     *fOut << prefix << inst->fAddress->getName();
                     if (inst->fValue) {
@@ -306,11 +330,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             }
         }
     
-        inline string checkDouble1(double val)
+        static string ensureFloat(string str)
         {
-            stringstream num; num << val;
-            string str = num.str();
-            
             bool dot = false;
             int e_pos = -1;
             for (unsigned int i = 0; i < str.size(); i++) {
@@ -329,13 +350,25 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 return (dot) ? str : (str + ".");
             }
         }
+    
+        inline string checkFloat(float val)
+        {
+            std::stringstream num;
+            num << std::setprecision(std::numeric_limits<float>::max_digits10) << val;
+            return ensureFloat(num.str());
+        }
 
-        // No .f syntax for float in JS
+        inline string checkDouble(double val)
+        {
+            std::stringstream num;
+            num << std::setprecision(std::numeric_limits<double>::max_digits10) << val;
+            return ensureFloat(num.str());
+        }
+
         virtual void visit(FloatNumInst* inst)
         {
             fTypingVisitor.visit(inst);
-            // 'dot' syntax for float
-            *fOut << checkDouble1(inst->fNum);
+            *fOut << checkFloat(inst->fNum);
         }
         
         virtual void visit(IntNumInst* inst)
@@ -353,7 +386,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(DoubleNumInst* inst)
         {
             fTypingVisitor.visit(inst);
-            *fOut << checkDouble1(inst->fNum);
+            *fOut << checkDouble(inst->fNum);
         }
                  
         virtual void visit(Select2Inst* inst)

@@ -39,6 +39,8 @@ const char* icast();
 const char* xfloat();
 const char* xcast();
 
+const int fsize();
+
 void printfloatdef(std::ostream& fout, bool quad);
 
 typedef long double quad;
