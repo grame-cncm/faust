@@ -49,11 +49,11 @@ mydsp DSP;
 static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
 {
     if (std::isnan(f)) {
-        std::cerr << "ERROR : isnan" << std::endl;
-        exit(-1);
+        cerr << "ERROR : isnan" << std::endl;
+        throw -1;
     } else if (!std::isfinite(f)) {
-        std::cerr << "ERROR : !isfinite" << std::endl;
-        exit(-1);
+        cerr << "ERROR : !isfinite" << std::endl;
+        throw -1;
     }
     return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
 }
@@ -97,27 +97,32 @@ int main(int argc, char* argv[])
     printf("number_of_frames  : %6d\n", nbsamples);
     
     // print audio frames
-    while (nbsamples > 0) {
-        if (run == 0) {
-            ichan.impulse();
-            finterface.setButtons(true);
-        }
-        if (run == 1) {
-            ichan.zero();
-            finterface.setButtons(false);
-        }
-        int nFrames = min(kFrames, nbsamples);
-        DSP.compute(nFrames, ichan.buffers(), ochan.buffers());
-        run++;
-        for (int i = 0; i < nFrames; i++) {
-            printf("%6d : ", linenum++);
-            for (int c = 0; c < nouts; c++) {
-                FAUSTFLOAT f = normalize(ochan.buffers()[c][i]);
-                printf(" %8.6f", f);
+    int i;
+    try {
+        while (nbsamples > 0) {
+            if (run == 0) {
+                ichan.impulse();
+                finterface.setButtons(true);
             }
-            printf("\n");
+            if (run == 1) {
+                ichan.zero();
+                finterface.setButtons(false);
+            }
+            int nFrames = min(kFrames, nbsamples);
+            DSP.compute(nFrames, ichan.buffers(), ochan.buffers());
+            run++;
+            for (int i = 0; i < nFrames; i++) {
+                printf("%6d : ", linenum++);
+                for (int c = 0; c < nouts; c++) {
+                    FAUSTFLOAT f = normalize(ochan.buffers()[c][i]);
+                    printf(" %8.6f", f);
+                }
+                printf("\n");
+            }
+            nbsamples -= nFrames;
         }
-        nbsamples -= nFrames;
+    } catch (...) {
+        cerr << "ERROR in " << argv[1] << " line : " << i << std::endl;
     }
     return 0;
 }
