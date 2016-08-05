@@ -112,9 +112,10 @@ void compareFiles(std::istream* in1, std::istream* in2, float tolerance)
         
             l1reader >> sample1;
             l2reader >> sample2;
+            double delta = fabs(sample1 - sample2);
             
-            if (fabs(sample1 - sample2) > tolerance) {
-                std::cerr << "line : " << i << " output : " << j << " sample1 : " << sample1 << " different from sample2 : " << sample2 << std::endl;
+            if (delta > tolerance) {
+                std::cerr << "line : " << i << " output : " << j << " sample1 : " << sample1 << " different from sample2 : " << sample2 << " delta : " << delta << std::endl;
                 gResult = 1;
                 if (gError++ > 10) {
                     std::cerr << "Too much errors, stops..." << std::endl;
