@@ -559,6 +559,7 @@ int remote_dsp_aux::getNumOutputs()
 //Interesting to implement one day ! 
 void remote_dsp_aux::init(int /*samplingRate*/) {}
 void remote_dsp_aux::instanceInit(int /*samplingRate*/) {}
+void remote_dsp_aux::instanceClear() {}
 
 // Init remote dsp instance sends a POST request to a remote server
 // The URL extension used is /CreateInstance
@@ -1109,6 +1110,12 @@ EXPORT void remote_dsp::instanceInit(int samplingRate)
 {
     reinterpret_cast<remote_dsp_aux*>(this)->instanceInit(samplingRate);
 }
+
+EXPORT void remote_dsp::instanceClear()
+{
+    reinterpret_cast<remote_dsp_aux*>(this)->instanceClear();
+}
+
 
 EXPORT dsp* remote_dsp::clone()
 {

@@ -217,6 +217,8 @@ class remote_dsp_aux : public dsp, public jack_midi_handler {
         virtual void init(int samplingRate);
         virtual void instanceInit(int samplingRate);
     
+        virtual void instanceClear();
+    
         virtual dsp* clone();
         virtual int getSampleRate();
     
@@ -284,6 +286,8 @@ class EXPORT remote_dsp : public dsp {
         
         void init(int samplingFreq);
         void instanceInit(int samplingRate);
+    
+        void instanceClear();
         
         void buildUserInterface(UI* ui);
     
