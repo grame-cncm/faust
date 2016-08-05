@@ -64,7 +64,7 @@ for f in $FILES; do
     dirname=$(dirname "$f");
 
     # compile Faust to asm.js
-    faust $OPTIONS -lang ajs -cn $name -a webaudio/webaudio-asm-standalone-node-wrapper.js "$f" -o "$name.js" || exit
+    faust -double $OPTIONS -lang ajs -cn $name -a webaudio/asm-standalone-node-wrapper-double.js "$f" -o "${f%.dsp}.js" || exit
 
 	# run the binary to generate the impulse response
     cd $dirname

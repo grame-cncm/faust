@@ -130,8 +130,7 @@ echo "Impulse response tests in various compilation modes and double : asm.js ba
 echo "================================================================================"
 
 for f in *.dsp; do
-    #faust2impulse5  -double $f      > $D/$f.scal.ir
-    faust2impulse5 $f      > $D/$f.scal.ir
+    faust2impulse5  -double $f      > $D/$f.scal.ir
     filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir 1e-03 && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
 done
 

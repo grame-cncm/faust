@@ -76,10 +76,7 @@ CodeContainer* ASMJAVAScriptCodeContainer::createScalarContainer(const string& n
 CodeContainer* ASMJAVAScriptCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
     CodeContainer* container;
-
-    if (gGlobal->gFloatSize == 2) {
-        throw faustexception("ERROR : double format not supported in ASMJavaScript\n");
-    }
+  
     if (gGlobal->gFloatSize == 3) {
         throw faustexception("ERROR : quad format not supported in ASMJavaScript\n");
     }
@@ -196,8 +193,12 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut);
         
         // Memory access
-        tab(n+1, *fOut); *fOut << "var HEAP32 = new global.Int32Array(buffer);"; 
-        tab(n+1, *fOut); *fOut << "var HEAPF32 = new global.Float32Array(buffer);"; 
+        tab(n+1, *fOut); *fOut << "var HEAP32 = new global.Int32Array(buffer);";
+        if (gGlobal->gFloatSize == 1) {
+            tab(n+1, *fOut); *fOut << "var HEAPF = new global.Float32Array(buffer);";
+        } else if (gGlobal->gFloatSize == 2) {
+            tab(n+1, *fOut); *fOut << "var HEAPF = new global.Float64Array(buffer);";
+        }
     
         // Always generated mathematical functions
         tab(n+1, *fOut); 
@@ -217,14 +218,15 @@ void ASMJAVAScriptCodeContainer::produceClass()
         generateGlobalDeclarations(gGlobal->gASMJSVisitor);
           
         // Manually always generated mathematical functions
-    
-        // Float versions
-        tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
-        tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
-    
-        // Double versions
-        tab(n+1, *fOut); *fOut << "function fmod(x, y) { x = +x; y = +y; return +(x % y); }";
-        tab(n+1, *fOut); *fOut << "function log10(a) { a = +a; return +(+log(a) / +log(10.)); }";
+        if (gGlobal->gFloatSize == 1) {
+            // Float versions
+            tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
+            tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
+        } else if (gGlobal->gFloatSize == 2) {
+            // Double versions
+            tab(n+1, *fOut); *fOut << "function fmod(x, y) { x = +x; y = +y; return +(x % y); }";
+            tab(n+1, *fOut); *fOut << "function log10(a) { a = +a; return +(+log(a) / +log(10.)); }";
+        }
     
         // Fields : compute the structure size to use in 'new'
         gGlobal->gASMJSVisitor->Tab(n+1);
@@ -314,7 +316,11 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "offset = offset | 0;";
             tab(n+2, *fOut); *fOut << "value = +value;";
-            tab(n+2, *fOut); *fOut << "HEAPF32[dsp + offset >> 2] = value;"; 
+            if (gGlobal->gFloatSize == 1) {
+                tab(n+2, *fOut); *fOut << "HEAPF[dsp + offset >> 2] = value;";
+            } else if (gGlobal->gFloatSize == 2) {
+                tab(n+2, *fOut); *fOut << "HEAPF[dsp + offset >> 3] = value;";
+            }
         tab(n+1, *fOut); *fOut << "}";
     
         // getParamValue
@@ -322,7 +328,11 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "function getParamValue(dsp, offset) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "offset = offset | 0;";
-            tab(n+2, *fOut); *fOut << "return +HEAPF32[dsp + offset >> 2];";
+            if (gGlobal->gFloatSize == 1) {
+                tab(n+2, *fOut); *fOut << "return +HEAPF[dsp + offset >> 2];";
+            } else if (gGlobal->gFloatSize == 2) {
+                tab(n+2, *fOut); *fOut << "return +HEAPF[dsp + offset >> 3];";
+            }
         tab(n+1, *fOut); *fOut << "}";
     
         // Compute

@@ -62,7 +62,7 @@ faust.mydsp = function (context, buffer_size, sample_rate) {
      
     // Memory allocator
     var ptr_size = 4; 
-    var sample_size = 4;
+    var sample_size = 4;    // float
     
     function pow2limit (x)
     {
@@ -75,7 +75,7 @@ faust.mydsp = function (context, buffer_size, sample_rate) {
    
     var HEAP = new ArrayBuffer(memory_size);
     var HEAP32 = new Int32Array(HEAP);
-    var HEAPF32 = new Float32Array(HEAP);
+    var HEAPF = new Float32Array(HEAP);
   
     // bargraph
     var ouputs_timer = 5;
@@ -212,7 +212,7 @@ faust.mydsp = function (context, buffer_size, sample_rate) {
             // Prepare Ins buffer tables
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
             for (i = 0; i < numIn; i++) {
-                dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * sample_size) >> 2);
+                dspInChannnels[i] = HEAPF.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * sample_size) >> 2);
             }
         }
         
@@ -225,7 +225,7 @@ faust.mydsp = function (context, buffer_size, sample_rate) {
             // Prepare Out buffer tables
             var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptr_size) >> 2);
             for (i = 0; i < numOut; i++) {
-                dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * sample_size) >> 2);
+                dspOutChannnels[i] = HEAPF.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * sample_size) >> 2);
             }
         }
                                 

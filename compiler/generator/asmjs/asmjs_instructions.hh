@@ -131,8 +131,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 if (is_struct) {
                     // Keep pointer type
                     fFieldTable[inst->fAddress->getName()] = make_pair(fStructOffset, Typed::getPtrFromType(array_typed->fType->getType()));
-                    fStructOffset += array_typed->fSize * fsize();
-                  } else {
+                    fStructOffset += (array_typed->fSize * fsize()); // Always use biggest size so that int/real access are correctly aligned
+                } else {
                     if (!inst->fValue) {
                         assert(false);
                         string type = (array_typed->fType->getType() == Typed::kFloat) ? "Float32Array" : "Int32Array";
@@ -142,7 +142,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             } else {
                 if (is_struct) {
                     fFieldTable[inst->fAddress->getName()] = make_pair(fStructOffset, inst->fType->getType());
-                    fStructOffset += fsize();
+                    fStructOffset += fsize(); // Always use biggest size so that int/real access are correctly aligned
                 } else {
                     *fOut << prefix << inst->fAddress->getName();
                     if (inst->fValue) {
@@ -260,7 +260,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     case Typed::kFloatMacro:
                     case Typed::kFloat:
                     case Typed::kDouble:
-                        *fOut << "HEAPF32[dsp + " << tmp.first << " >> 2]";
+                        if (gGlobal->gFloatSize == 1) {
+                            *fOut << "HEAPF[dsp + " << tmp.first << " >> 2]";
+                        } else if (gGlobal->gFloatSize == 2) {
+                            *fOut << "HEAPF[dsp + " << tmp.first << " >> 3]";
+                        }
                         break;
                     case Typed::kInt:
                         *fOut << "HEAP32[dsp + " << tmp.first << " >> 2]";
@@ -289,16 +293,24 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 *fOut << " << 2) >> 2]"; 
             // HACK : completely adhoc code for input/output...
             } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
-                *fOut << "HEAPF32[" << indexed->getName() << " + (";  
+                *fOut << "HEAPF[" << indexed->getName() << " + (";  
                 indexed->fIndex->accept(this);
-                *fOut << " << 2) >> 2]"; 
+                if (gGlobal->gFloatSize == 1) {
+                    *fOut << " << 2) >> 2]";
+                } else if (gGlobal->gFloatSize == 2) {
+                    *fOut << " << 3) >> 3]";
+                }
             } else if (indexed->getAccess() & Address::kStruct || indexed->getAccess() & Address::kStaticStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
                 if (tmp.second == Typed::kFloatMacro_ptr || tmp.second == Typed::kFloat_ptr || tmp.second == Typed::kDouble_ptr) {
-                    *fOut << "HEAPF32[dsp + " << tmp.first << " + ";  
+                    *fOut << "HEAPF[dsp + " << tmp.first << " + ";  
                     *fOut << "(";
                     indexed->fIndex->accept(this);
-                    *fOut << " << 2) >> 2]"; 
+                    if (gGlobal->gFloatSize == 1) {
+                        *fOut << " << 2) >> 2]";
+                    } else if (gGlobal->gFloatSize == 2) {
+                        *fOut << " << 3) >> 3]";
+                    }
                 } else {
                     *fOut << "HEAP32[dsp + " << tmp.first << " + "; 
                     *fOut << "(";

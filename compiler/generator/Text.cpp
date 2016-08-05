@@ -164,7 +164,10 @@ static string ensureFloat(const string& c)
 {
     bool isInt = true;
     for (int i = 0; i < c.size(); i++) {
-        if ((c[i] == '.') || (c[i] == 'e')) isInt = false;
+        if ((c[i] == '.') || (c[i] == 'e')) {
+            isInt = false;
+            break;
+        }
     }
     return (isInt) ? (c + ".0") : c;
 }
