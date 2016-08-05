@@ -294,7 +294,7 @@ faust.mydsp = function (context, buffer_size) {
         {
             var values = value_table[path];
             if (values) {
-                if (factory.getParamValue(dsp, pathTable[path]) == values[0]) {
+                if (factory.getParamValue(dsp, pathTable[path]) === values[0]) {
                     values[0] = val;
                 } 
                 values[1] = val;
