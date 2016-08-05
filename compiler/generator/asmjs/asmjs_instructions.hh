@@ -227,6 +227,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 || fTypingVisitor.fCurType == Typed::kInt_ptr
                 || fTypingVisitor.fCurType == Typed::kFloat_ptr
                 || fTypingVisitor.fCurType == Typed::kFloatMacro_ptr
+                || fTypingVisitor.fCurType == Typed::kDouble_ptr
                 || fTypingVisitor.fCurType == Typed::kObj_ptr) {
                 *fOut << "(";
                 TextInstVisitor::visit(inst);
