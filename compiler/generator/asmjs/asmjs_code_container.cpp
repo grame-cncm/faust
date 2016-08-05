@@ -160,7 +160,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
     // Fill
     string counter = "count";
     tab(n+1, *fOut);
-    tab(n+1, *fOut); *fOut << "function fill" << fKlassName << subst("(dsp, $0, output) {", counter);
+        tab(n+1, *fOut); *fOut << "function fill" << fKlassName << subst("(dsp, $0, output) {", counter);
         tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
         tab(n+2, *fOut); *fOut << counter << " = " << counter << " | 0;";
         tab(n+2, *fOut); *fOut << "output = output | 0;";
@@ -172,8 +172,13 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         
         // Moves all variables declaration at the beginning of the block and possibly separate 'declaration' and 'store'
         MoveVariablesInFront2 mover2;
-        BlockInst* block2 = mover2.getCode(fComputeBlockInstructions); 
+        BlockInst* block2 = mover2.getCode(fComputeBlockInstructions);
+        // Force "output" access to be coherent with fSubContainerType (integer or real)
+        gGlobal->gASMJSVisitor->setSubContainerType(fSubContainerType);
         block2->accept(gGlobal->gASMJSVisitor);
+        // Restore default...
+        gGlobal->gASMJSVisitor->setSubContainerType(-1);
+    
     tab(n+1, *fOut); *fOut << "}";
 }
 

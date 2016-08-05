@@ -131,7 +131,7 @@ echo "==========================================================================
 
 for f in *.dsp; do
     faust2impulse5  -double $f      > $D/$f.scal.ir
-    filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir 1e-03 && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+    filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
 done
 
 

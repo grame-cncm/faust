@@ -379,9 +379,7 @@ try {
         var param = lines[line].split(' ');
         DSP.setParamValue('/'+ param[1], parseFloat(param[0]));
     }
-} catch (e) {
-    console.log("Cannot open 'mydsprc' file...");
-}
+} catch (e) {}
 
 // Write output file header
 console.log("number_of_inputs  : ", DSP.getNumInputs());

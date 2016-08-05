@@ -38,6 +38,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         TypingVisitor fTypingVisitor;
         map <string, int> fFunctionSymbolTable; 
         map <string, string> fMathLibTable;
+        int fSubContainerType;
     
         int fStructOffset;                                      // Keep the offset in bytes of the structure
         map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
@@ -106,11 +107,13 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["tan"] = "global.Math.tan";
             
             fStructOffset = 0;
+            fSubContainerType = -1;
         }
 
         virtual ~ASMJAVAScriptInstVisitor()
         {}
     
+        void setSubContainerType(int type) { fSubContainerType = type; }
         int getStructSize() { return fStructOffset; }
         map <string, pair<int, Typed::VarType> >& getFieldTable() { return fFieldTable; }
         map <string, string>& getMathLibTable() { return fMathLibTable; }
@@ -294,9 +297,17 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 *fOut << " << 2) >> 2]"; 
             // HACK : completely adhoc code for input/output...
             } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
-                *fOut << "HEAPF[" << indexed->getName() << " + (";  
+                // Force "output" access to be coherent with fSubContainerType (integer or real)
+                if (fSubContainerType == kInt) {
+                    *fOut << "HEAP32[" << indexed->getName() << " + (";
+                } else {
+                    *fOut << "HEAPF[" << indexed->getName() << " + (";
+                }
                 indexed->fIndex->accept(this);
-                if (gGlobal->gFloatSize == 1) {
+                // Force "output" access to be coherent with fSubContainerType (integer or real)
+                if (fSubContainerType == kInt) {
+                    *fOut << " << 2) >> 2]";
+                } else if (gGlobal->gFloatSize == 1) {
                     *fOut << " << 2) >> 2]";
                 } else if (gGlobal->gFloatSize == 2) {
                     *fOut << " << 3) >> 3]";

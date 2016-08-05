@@ -1809,6 +1809,7 @@ struct InstBuilder
                 || type == Typed::kInt_ptr 
                 || type == Typed::kFloat_ptr
                 || type == Typed::kFloatMacro_ptr
+                || type == Typed::kDouble_ptr
                 || type == Typed::kObj_ptr) ? genIntNumInst(0) : genRealNumInst(type, 0.);
     }
     
