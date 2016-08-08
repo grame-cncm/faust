@@ -42,11 +42,12 @@ struct dsp_factory_base {
     virtual std::string getDSPCode() = 0;
     virtual void setDSPCode(const std::string& code) = 0;
     
-    virtual void write(std::ostream* out, bool small = false) = 0;
     virtual dsp* createDSPInstance(dsp_factory* factory) = 0;
+    
     virtual void metadata(Meta* meta) = 0;
     
+    virtual void write(std::ostream* out, bool small = false) = 0;
+  
 };
-
 
 #endif

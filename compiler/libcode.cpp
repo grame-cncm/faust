@@ -988,7 +988,21 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
     InstructionsCompiler* comp = NULL;
     CodeContainer* container = NULL;
-
+    
+    ostream* dst;
+    
+    if (gGlobal->gOutputFile != "") {
+        string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
+        if (gGlobal->gOutputFile == "asmjs") {
+            dst = new stringstream(outpath.c_str());
+            gGlobal->gStringResult = dst;
+        } else {
+            dst = new ofstream(outpath.c_str());
+        }
+    } else {
+        dst = &cout;
+    }
+ 
     startTiming("generateCode");
     
 #if LLVM_BUILD
@@ -1089,7 +1103,6 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             comp = new DAGInstructionsCompiler(container);
         } else {
             comp = new InterpreterInstructionsCompiler(container);
-            //comp = new InstructionsCompiler(container);
         }
 
         if (gGlobal->gPrintXMLSwitch) comp->setDescription(new Description());
@@ -1105,26 +1118,12 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         //std::string code = flatten(dst.str());
         //cout << code;
         
-        gGlobal->gDSPFactory->write(&cerr);
+        gGlobal->gDSPFactory->write(dst);
      
     } else {
         
         gGlobal->gGenerateSelectWithIf = false;
-    
-        ostream* dst;
-
-        if (gGlobal->gOutputFile != "") {
-            string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
-            if (gGlobal->gOutputFile == "asmjs") {
-                dst = new stringstream(outpath.c_str());
-                gGlobal->gStringResult = dst;
-            } else {
-                dst = new ofstream(outpath.c_str());
-            }
-        } else {
-            dst = &cout;
-        }
-        
+     
         if (gGlobal->gOutputLang == "c") {
 
             container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
@@ -1134,19 +1133,23 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             container = CPPCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
 
         } else if (gGlobal->gOutputLang == "java") {
-
+            
+            gGlobal->gAllowForeignFunction = false; // No foreign functions
             container = JAVACodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
             
         } else if (gGlobal->gOutputLang == "js") {
-
+            
+            gGlobal->gAllowForeignFunction = false; // No foreign functions
             container = JAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
         
         } else if (gGlobal->gOutputLang == "ajs") {
-
+            
+            gGlobal->gAllowForeignFunction = false; // No foreign functions
             container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
         } else if (gGlobal->gOutputLang == "wasm") {
 
+            gGlobal->gAllowForeignFunction = false; // No foreign functions
             container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
         } else if (gGlobal->gOutputLang == "fir") {
@@ -1168,8 +1171,6 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             error << "ERROR : cannot find compiler for " << "\"" << gGlobal->gOutputLang  << "\"" << endl;
             throw faustexception(error.str());
         }
-        
-        gGlobal->gAllowForeignFunction = (gGlobal->gOutputLang != "ajs" && gGlobal->gOutputLang != "js");
         
         if (gGlobal->gVectorSwitch) {
             comp = new DAGInstructionsCompiler(container);
