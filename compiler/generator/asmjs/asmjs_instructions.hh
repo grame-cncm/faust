@@ -136,11 +136,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     fFieldTable[inst->fAddress->getName()] = make_pair(fStructOffset, Typed::getPtrFromType(array_typed->fType->getType()));
                     fStructOffset += (array_typed->fSize * fsize()); // Always use biggest size so that int/real access are correctly aligned
                 } else {
-                    if (!inst->fValue) {
-                        assert(false);
-                        string type = (array_typed->fType->getType() == Typed::kFloat) ? "Float32Array" : "Int32Array";
-                        *fOut << prefix << inst->fAddress->getName() << " = new " << type << "(" << array_typed->fSize << ")";
-                    }
+                    // Should never happen...
+                    assert(false);
                 }
             } else {
                 if (is_struct) {
