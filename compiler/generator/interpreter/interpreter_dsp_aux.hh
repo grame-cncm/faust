@@ -59,7 +59,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_base {
     std::string fSHAKey;
     std::string fExpandedDSP;
     
-    float fVersion;
+    int fVersion;
     int fNumInputs;
     int fNumOutputs;
     
@@ -82,7 +82,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_base {
     
     interpreter_dsp_factory_aux(const std::string& name,
                                 const std::string& sha_key,
-                                float version_num,
+                                int version_num,
                                 int inputs, int ouputs,
                                 int int_heap_size, int real_heap_size,
                                 int sr_offset,
@@ -232,7 +232,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_base {
         
         // Read "version" line
         std::string version;
-        float version_num;
+        int version_num;
         getline(*in, version);
         
         std::stringstream version_reader(version);
@@ -494,7 +494,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_base {
     {
         int opcode, offset1, offset2;
         int val_int;
-        float val_real;
+        T val_real;
        
         std::string dummy, line;
         *inst >> dummy;  // Read "opcode" token
@@ -989,7 +989,7 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
     
         interpreter_dsp_factory(const std::string& name,
                              const std::string& sha_key,
-                             float version_num,
+                             int version_num,
                              int inputs, int ouputs,
                              int int_heap_size, int real_heap_size,
                              int sr_offset,
@@ -1020,7 +1020,7 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
 
         interpreter_dsp_factory(const std::string& name,
                                 const std::string& sha_key,
-                                float version_num,
+                                int version_num,
                                 int inputs, int ouputs,
                                 int int_heap_size, int real_heap_size,
                                 int sr_offset,
