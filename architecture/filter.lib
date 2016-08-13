@@ -36,8 +36,8 @@ integrator = + ~ _ ;
 // pole2tau(pole) returns the time-constant, in seconds, 
 // corresponding to the given real, positive pole in (0,1).
 
-tau2pole(tau) = exp(-1.0/(tau*SR));
-pole2tau(pole) = -1.0/(log(pole)*SR);
+tau2pole(tau) = if(tau>0, exp(-1.0/(tau*SR)), 0.0);
+pole2tau(pole) = if(pole<1.0, -1.0/(log(pole)*SR), 1.0e10);
 
 //---------------------- smooth(s) --------------------------
 // Exponential smoothing by a unity-dc-gain one-pole lowpass
