@@ -28,6 +28,7 @@
 #include <sstream>
 #include <iomanip>
 #include <assert.h>
+#include <limits>
 
 #include "Text.hh"
 #include "compatibility.hh"
@@ -288,7 +289,7 @@ string indent(string const & str, int tabs)
     return outstream.str();
 }
 
-string replaceChar(string str, char ch1, char ch2) 
+string replaceChar(string str, char ch1, char ch2)
 {
     for (unsigned int i = 0; i < str.length(); ++i) {
         if (str[i] == ch1) {
