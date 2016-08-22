@@ -1316,9 +1316,9 @@ private:
     FIMainViewController*           fViewController;
     MY_Meta*                        fMetadata;
     map<float*, string>             fUnit;
-    map<float*, int>                fR;
-    map<float*, int>                fG;
-    map<float*, int>                fB;
+    map<float*, float>              fR;
+    map<float*, float>              fG;
+    map<float*, float>              fB;
     map<float*, int>                fAssignationType;
     map<float*, bool>               fHideOnGUI;
     map<float*, bool>               fLed;
