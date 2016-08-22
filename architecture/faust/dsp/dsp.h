@@ -67,6 +67,7 @@ class dsp {
         virtual int getSampleRate() = 0;
         virtual void init(int samplingRate) = 0;
         virtual void instanceInit(int samplingRate) = 0;
+        virtual void instanceClear() = 0;
         virtual dsp* clone() = 0;
         virtual void metadata(Meta* m) = 0;
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) = 0;
@@ -95,6 +96,7 @@ class decorator_dsp : public dsp {
         virtual int getSampleRate() { return fDSP->getSampleRate(); }
         virtual void init(int samplingRate) { fDSP->init(samplingRate); }
         virtual void instanceInit(int samplingRate) { fDSP->instanceInit(samplingRate); }
+        virtual void instanceClear() { fDSP->instanceClear(); }
         virtual decorator_dsp* clone() { return new decorator_dsp(fDSP->clone()); }
         virtual void metadata(Meta* m) { return fDSP->metadata(m); }
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(count, inputs, outputs); }

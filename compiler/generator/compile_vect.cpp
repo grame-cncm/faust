@@ -480,7 +480,7 @@ void  VectorCompiler::dlineLoop (const string& tname, const string& dlname, int 
         fClass->addDeclCode(subst("$0 \t$1[$2];", tname, pmem, dsize));
 
         // init permanent memory
-        fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i]=0;", pmem, dsize));
+        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i]=0;", pmem, dsize));
 
         // compute method
 
@@ -521,9 +521,9 @@ void  VectorCompiler::dlineLoop (const string& tname, const string& dlname, int 
         fClass->addDeclCode(subst("int \t$0;", idx_save));
 
         // init permanent memory
-        fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i]=0;", dlname, dsize));
-        fClass->addInitCode(subst("$0 = 0;", idx));
-        fClass->addInitCode(subst("$0 = 0;", idx_save));
+        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i]=0;", dlname, dsize));
+        fClass->addClearCode(subst("$0 = 0;", idx));
+        fClass->addClearCode(subst("$0 = 0;", idx_save));
 
         // -- update index
         fClass->addPreCode(Statement(ccs, subst("$0 = ($0+$1)&$2;", idx, idx_save, mask)));

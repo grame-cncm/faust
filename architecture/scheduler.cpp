@@ -58,7 +58,8 @@ using namespace std;
 #endif
 
 #ifdef __APPLE__
-#include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
+//#include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
+#include <MacTypes.h>
 #endif
 
 class TaskQueue;
@@ -417,8 +418,8 @@ struct TaskGraph
 
 
 #ifdef __APPLE__
-
-#include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
+//#include <CoreServices/../Frameworks/CarbonCore.framework/Headers/MacTypes.h>
+#include <MacTypes.h>
 #include <mach/thread_policy.h>
 #include <mach/thread_act.h>
 

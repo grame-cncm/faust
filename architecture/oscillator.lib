@@ -26,7 +26,7 @@ fl = library("filter.lib"); // wgr, nlf2, tf2, smooth, tau2pole, iir, ...
 lf_imptrain(freq) = lf_sawpos(freq)<:-(mem)<0; // definition below
 
 // Unit-amplitude nonnegative LF pulse train, duty cycle between 0 and 1:
-lf_pulsetrainpos(freq,duty) = float(lf_sawpos(freq) <= duty);
+lf_pulsetrainpos(freq,duty) = float(lf_sawpos(freq) < duty);
 //pulsetrainpos = lf_pulsetrainpos; // for backward compatibility
 
 // Positive LF square wave in [0,1]:

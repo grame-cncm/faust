@@ -23,30 +23,37 @@ static void setLevel(int order, const lset& T1, lset& T2, lgraph& V)
     }
 }
 
-
-static void resetOrder(Loop* l)
+static void resetOrder(Loop* l, set<Loop*>& visited)
 {
-    l->fOrder = -1;
-    for (lset::const_iterator p = l->fBackwardLoopDependencies.begin(); p!=l->fBackwardLoopDependencies.end(); p++) {
-        resetOrder(*p);
+    // Not yet visited...
+    if (visited.find(l) == visited.end()) {
+        visited.insert(l);
+        l->fOrder = -1;
+        for (lset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
+            resetOrder(*p, visited);
+        }
     }
 }
+
 /**
  * Topological sort of an acyclic graph of loops. The loops
  * are collect in an lgraph : a vector of sets of loops
  */
 void sortGraph(Loop* root, lgraph& V)
 {
-    lset            T1, T2;
-    int             level;
-    
     assert(root);
-    resetOrder(root);
-    T1.insert(root); level=0; V.clear();
+    set<Loop*> visited;
+    resetOrder(root, visited);
+    
+    lset T1, T2;
+    T1.insert(root);
+    int level = 0;
+    V.clear();
+    
     do {
         setLevel(level, T1, T2, V); 
-        T1=T2; T2.clear(); level++;
-    } while (T1.size()>0);
+        T1 = T2; T2.clear(); level++;
+    } while (T1.size() > 0);
     
     // Erase empty levels
     lgraph::iterator p = V.begin();

@@ -332,6 +332,7 @@ class APIUI : public PathBuilder, public Meta, public UI
 		FAUSTFLOAT getParamMax(int p)		{ return fMax[p]; }
 		FAUSTFLOAT getParamStep(int p)		{ return fStep[p]; }
 
+        FAUSTFLOAT* getParamZone(int p)         { return fZone[p]; }
 		FAUSTFLOAT getParamValue(int p)         { return *fZone[p]; }
 		void setParamValue(int p, FAUSTFLOAT v) { *fZone[p] = v; }
 

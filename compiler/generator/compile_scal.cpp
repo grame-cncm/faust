@@ -1077,7 +1077,7 @@ string ScalarCompiler::generateIota (Tree sig, Tree n)
 	string vperm = getFreshID("iota");
 
 	fClass->addDeclCode(subst("int \t$0;",  vperm));
-	fClass->addInitCode(subst("$0 = 0;", vperm));
+	fClass->addClearCode(subst("$0 = 0;", vperm));
 
 	if (isPowerOf2(size)) {
         fClass->addExecCode(Statement("", subst("$0 = ($0+1)&$1;", vperm, T(size-1))));
@@ -1143,7 +1143,7 @@ string ScalarCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, T
     switch (t1->variability())
     {
         case kKonst :
-            fClass->addInitCode(subst("$0[0] = $1;", var, CS(s1)));
+            fClass->addClearCode(subst("$0[0] = $1;", var, CS(s1)));
             break;
         case kBlock :
             fClass->addZone2b(subst("$0[0] = $1;", var, CS(s1)));
@@ -1156,7 +1156,7 @@ string ScalarCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, T
     switch (t2->variability())
     {
         case kKonst :
-            fClass->addInitCode(subst("$0[1] = $1;", var, CS(s2)));
+            fClass->addClearCode(subst("$0[1] = $1;", var, CS(s2)));
             break;
         case kBlock :
             fClass->addZone2b(subst("$0[1] = $1;", var, CS(s2)));
@@ -1169,7 +1169,7 @@ string ScalarCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, T
     switch (t3->variability())
     {
         case kKonst :
-            fClass->addInitCode(subst("$0[2] = $1;", var, CS(s3)));
+            fClass->addClearCode(subst("$0[2] = $1;", var, CS(s3)));
             break;
         case kBlock :
             fClass->addZone2b(subst("$0[2] = $1;", var, CS(s3)));
@@ -1351,7 +1351,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
 
         // short delay : we copy
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd+1)));
-        fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd+1)));
+        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd+1)));
         fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
 
         // generate post processing copy code to update delay values
@@ -1376,7 +1376,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
 
         // declare and init
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
-        fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
+        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
 
         // execute
         fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N-1), exp)));
@@ -1403,7 +1403,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
 
         // short delay : we copy
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(mxd+1)));
-        fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd+1)));
+        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(mxd+1)));
         fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
 
         // generate post processing copy code to update delay values
@@ -1425,7 +1425,7 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
 
         // declare and init
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
-        fClass->addInitCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
+        fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
 
         // execute
         fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N-1), exp)));
@@ -1441,7 +1441,7 @@ void ScalarCompiler::ensureIotaCode()
     if (!fHasIota) {
         fHasIota = true;
         fClass->addDeclCode("int \tIOTA;");
-        fClass->addInitCode("IOTA = 0;");
+        fClass->addClearCode("IOTA = 0;");
         fClass->addPostCode(Statement("", "IOTA = IOTA+1;"));
     }
 }

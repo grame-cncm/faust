@@ -324,25 +324,28 @@ static void computeUseCount(Loop* l)
 /**
  * Group together sequences of loops
  */
-static void groupSeqLoops(Loop* l)
+static void groupSeqLoops(Loop* l, set<Loop*>& visited)
 {
-	int n = (int)l->fBackwardLoopDependencies.size();
-	if (n==0) {
-		return;
-	} else if (n==1) {
-		Loop* f = *(l->fBackwardLoopDependencies.begin());
-		if (f->fUseCount ==  1) {
-			l->concat(f);
-			groupSeqLoops(l);
-		} else {
-			groupSeqLoops(f);
-		}
-		return;
-	} else if (n > 1) {
-		for (lset::iterator p =l->fBackwardLoopDependencies.begin(); p!=l->fBackwardLoopDependencies.end(); p++) {
-			groupSeqLoops(*p);
-		}
-	}
+    if (visited.find(l) == visited.end()) {
+        visited.insert(l);
+        int n = (int)l->fBackwardLoopDependencies.size();
+        if (n==0) {
+            return;
+        } else if (n==1) {
+            Loop* f = *(l->fBackwardLoopDependencies.begin());
+            if (f->fUseCount ==  1) {
+                l->concat(f);
+                groupSeqLoops(l, visited);
+            } else {
+                groupSeqLoops(f, visited);
+            }
+            return;
+        } else if (n > 1) {
+            for (lset::iterator p =l->fBackwardLoopDependencies.begin(); p!=l->fBackwardLoopDependencies.end(); p++) {
+                groupSeqLoops(*p, visited);
+            }
+        }
+    }
 }
 
 #define WORK_STEALING_INDEX 0
@@ -357,7 +360,8 @@ void Klass::buildTasksList()
 
     if (gGroupTaskSwitch) {
         computeUseCount(fTopLoop);
-        groupSeqLoops(fTopLoop);
+        set<Loop*> visited;
+        groupSeqLoops(fTopLoop, visited);
     }
 
     sortGraph(fTopLoop, G);
@@ -475,7 +479,8 @@ void Klass::printLoopGraphVector(int n, ostream& fout)
 {
     if (gGroupTaskSwitch) {
         computeUseCount(fTopLoop);
-        groupSeqLoops(fTopLoop);
+        set<Loop*> visited;
+        groupSeqLoops(fTopLoop, visited);
     }
 
     lgraph G;
@@ -506,7 +511,8 @@ void Klass::printLoopGraphOpenMP(int n, ostream& fout)
 {
     if (gGroupTaskSwitch) {
         computeUseCount(fTopLoop);
-        groupSeqLoops(fTopLoop);
+        set<Loop*> visited;
+        groupSeqLoops(fTopLoop, visited);
     }
 
     lgraph G;
@@ -526,7 +532,8 @@ void Klass::printLoopGraphScheduler(int n, ostream& fout)
 {
     if (gGroupTaskSwitch) {
         computeUseCount(fTopLoop);
-        groupSeqLoops(fTopLoop);
+        set<Loop*> visited;
+        groupSeqLoops(fTopLoop, visited);
     }
 
     lgraph G;
@@ -810,19 +817,24 @@ void Klass::println(int n, ostream& fout)
     tab(n+1,fout); fout << "virtual void instanceInit(int samplingFreq) {";
         tab(n+2,fout); fout << "fSamplingFreq = samplingFreq;";
         printlines (n+2, fInitCode, fout);
+        tab(n+2,fout); fout << "instanceClear();";
+    tab(n+1,fout); fout << "}";
+    
+    tab(n+1,fout); fout << "virtual void instanceClear() {";
+        printlines (n+2, fClearCode, fout);
     tab(n+1,fout); fout << "}";
 
     tab(n+1,fout); fout << "virtual void init(int samplingFreq) {";
         tab(n+2,fout); fout << "classInit(samplingFreq);";
-         tab(n+2,fout); fout << "instanceInit(samplingFreq);";
+        tab(n+2,fout); fout << "instanceInit(samplingFreq);";
     tab(n+1,fout); fout << "}";
     
     tab(n+1,fout); fout << "virtual "<< fKlassName <<"* clone() {";
-    tab(n+2,fout); fout << "return new " << fKlassName << "();";
+        tab(n+2,fout); fout << "return new " << fKlassName << "();";
     tab(n+1,fout); fout << "}";
     
     tab(n+1,fout); fout << "virtual int getSampleRate() {";
-    tab(n+2,fout); fout << "return fSamplingFreq;";
+        tab(n+2,fout); fout << "return fSamplingFreq;";
     tab(n+1,fout); fout << "}";
 
     tab(n+1,fout); fout << "virtual void buildUserInterface(UI* ui_interface) {";
@@ -1197,6 +1209,7 @@ void SigIntGenKlass::println(int n, ostream& fout)
 		tab(n+1,fout); fout << "void init(int samplingFreq) {";
 			tab(n+2,fout); fout << "fSamplingFreq = samplingFreq;";
             printlines(n+2, fInitCode, fout);
+            printlines(n+2, fClearCode, fout);
 		tab(n+1,fout); fout << "}";
 
 		tab(n+1,fout); fout << "void fill (int count, int output[]) {";
@@ -1236,6 +1249,7 @@ void SigFloatGenKlass::println(int n, ostream& fout)
 		tab(n+1,fout); fout << "void init(int samplingFreq) {";
 			tab(n+2,fout); fout << "fSamplingFreq = samplingFreq;";
 			printlines(n+2, fInitCode, fout);
+            printlines(n+2, fClearCode, fout);
 		tab(n+1,fout); fout << "}";
 
 		tab(n+1,fout); fout << subst("void fill (int count, $0 output[]) {", ifloat());
