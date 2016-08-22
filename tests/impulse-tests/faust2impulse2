@@ -50,13 +50,13 @@ for p in $@; do
 	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
-	    OPTIONS="$OPTIONS $p"        
+	    OPTIONS="$OPTIONS $p"
 	fi
 done
 
-	
+
 #-------------------------------------------------------------------
-# compile the *.dsp files 
+# compile the *.dsp files
 
 for f in $FILES; do
 
@@ -65,7 +65,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		${CXX=g++} ${CXXFLAGS=-O3} $OMP "$f.cpp" -o "${f%.dsp}"
+		${CXX=g++} ${CXXFLAGS=-O3 -std=c++11 -pthread} $OMP "$f.cpp" -o "${f%.dsp}"
 	) > /dev/null || exit
 
 	# run the resulting binary to generate the impulse response
