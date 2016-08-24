@@ -559,9 +559,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             FIRBlockInstruction<T>* branch2 = 0;
             
             // Possibly read sub-blocks
-            if (opcode == FIRInstruction::kIf
-                || opcode == FIRInstruction::kSelectReal
-                || opcode == FIRInstruction::kSelectInt) {
+            if (FIRInstruction::isChoice(FIRInstruction::Opcode(opcode))) {
                 branch1 = readCodeBlock(in);  // consume 'in'
                 branch2 = readCodeBlock(in);  // consume 'in'
             } else if (opcode == FIRInstruction::kLoop) {
