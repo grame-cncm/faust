@@ -34,8 +34,18 @@
 #include "type_manager.hh"
 #include "binop.hh"
 #include "Text.hh"
+#include "dsp_factory.hh"
 
 using namespace std;
+
+struct fir_dsp_factory : public dsp_factory_imp {
+    
+    fir_dsp_factory(const string& name, const string& sha_key, const string& dsp)
+        :dsp_factory_imp(name, sha_key, dsp)
+    {}
+    
+    virtual void write(std::ostream* out, bool small = false) {}
+};
 
 class FIRInstVisitor : public InstVisitor, public StringTypeManager {
 

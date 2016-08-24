@@ -24,8 +24,18 @@
 
 #include "code_container.hh"
 #include "java_instructions.hh"
+#include "dsp_factory.hh"
 
 using namespace std;           
+
+struct java_dsp_factory : public dsp_factory_imp {
+    
+    java_dsp_factory(const string& name, const string& sha_key, const string& dsp)
+        :dsp_factory_imp(name, sha_key, dsp)
+    {}
+    
+    virtual void write(std::ostream* out, bool small = false) {}
+};
 
 class JAVACodeContainer : public virtual CodeContainer {
 

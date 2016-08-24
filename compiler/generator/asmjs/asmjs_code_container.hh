@@ -25,8 +25,18 @@
 #include "code_container.hh"
 #include "vec_code_container.hh"
 #include "asmjs_instructions.hh"
+#include "dsp_factory.hh"
 
 using namespace std;
+
+struct asmjs_dsp_factory : public dsp_factory_imp {
+    
+    asmjs_dsp_factory(const string& name, const string& sha_key, const string& dsp)
+        :dsp_factory_imp(name, sha_key, dsp)
+    {}
+    
+    virtual void write(std::ostream* out, bool small = false) {}
+};
 
 class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
 
