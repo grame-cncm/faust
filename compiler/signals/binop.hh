@@ -33,24 +33,28 @@ bool falsePredicate(Node const & a);
 // Use in in static table so not Garbageable
 struct BinOp {
 
-    const char*	fName;
-    const char*	fNameVec;
-    const char*	fNameScal;
-    const char*	fNameLLVMInt;
-    const char*	fNameLLVMFloat;
-
+    const char* fName;
+    const char* fNameVec;
+    const char* fNameScal;
+    const char* fNameLLVMInt;
+    const char* fNameLLVMFloat;
+  
     unsigned int fLLVMIntInst;
     unsigned int fLLVMFloatInst;
+
+    const char* fNameWasmInt;
+    const char* fNameWasmFloat;
+    const char* fNameWasmDouble;
 
     FIRInstruction::Opcode fInterpIntInst;
     FIRInstruction::Opcode fInterpFloatInst;
 
-    comp 		fCompute;
-    pred		fLeftNeutral;
-    pred		fRightNeutral;
-    pred        fLeftAbsorbing;
-    pred        fRightAbsorbing;
-    int			fPriority;
+    comp fCompute;
+    pred fLeftNeutral;
+    pred fRightNeutral;
+    pred fLeftAbsorbing;
+    pred fRightAbsorbing;
+    int fPriority;
 	
     BinOp(const char* name, const char* name_vec,
             const char* name_scal,
@@ -58,6 +62,9 @@ struct BinOp {
             const char* name_llvm_float,
             unsigned int llvm_int,
             unsigned int llvm_float,
+            const char* name_wasm_int,
+            const char* name_wasm_float,
+            const char* name_wasm_double,
             FIRInstruction::Opcode interp_int,
             FIRInstruction::Opcode interp_float,
             comp f,
@@ -69,6 +76,7 @@ struct BinOp {
             :fName(name), fNameVec(name_vec), fNameScal(name_scal),
             fNameLLVMInt(name_llvm_int), fNameLLVMFloat(name_llvm_float),
             fLLVMIntInst(llvm_int), fLLVMFloatInst(llvm_float),
+            fNameWasmInt(name_wasm_int), fNameWasmFloat(name_wasm_float), fNameWasmDouble(name_wasm_double),
             fInterpIntInst(interp_int), fInterpFloatInst(interp_float),
             fCompute(f), fLeftNeutral(ln), fRightNeutral(rn),
             fLeftAbsorbing(la), fRightAbsorbing(ra), fPriority(priority)

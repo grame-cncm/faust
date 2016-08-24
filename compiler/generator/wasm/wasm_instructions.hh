@@ -69,27 +69,51 @@ class WASMInstVisitor : public TextInstVisitor {
         WASMInstVisitor(std::ostream* out, int tab = 0)
             :TextInstVisitor(out, ".", tab)
         {
-            fMathLibTable["abs"] = "global.Math.abs";
-            fMathLibTable["absf"] = "global.Math.abs";
-            fMathLibTable["fabsf"] = "global.Math.abs";
-            fMathLibTable["acosf"] = "global.Math.acos";
-            fMathLibTable["asinf"] = "global.Math.asin";
-            fMathLibTable["atanf"] = "global.Math.atan";
-            fMathLibTable["atan2f"] = "global.Math.atan2";
-            fMathLibTable["ceilf"] = "global.Math.ceil";
-            fMathLibTable["cosf"] = "global.Math.cos";
-            fMathLibTable["expf"] = "global.Math.exp";
-            fMathLibTable["floorf"] = "global.Math.floor";
+            // Float version
+            fMathLibTable["abs"] = "i32.abs";
+            fMathLibTable["absf"] = "f32.abs";
+            fMathLibTable["fabsf"] = "f32.abs";
+            fMathLibTable["acosf"] = "f32.acos";
+            fMathLibTable["asinf"] = "f32.asin";
+            fMathLibTable["atanf"] = "f32.atan";
+            fMathLibTable["atan2f"] = "f32.atan2";
+            fMathLibTable["ceilf"] = "f32.ceil";
+            fMathLibTable["cosf"] = "f32.cos";
+            fMathLibTable["expf"] = "f32.exp";
+            fMathLibTable["floorf"] = "f32.floor";
             fMathLibTable["fmodf"] = "manual";      // Manually generated
-            fMathLibTable["logf"] = "global.Math.log";
+            fMathLibTable["logf"] = "f32.log";
             fMathLibTable["log10f"] = "manual";     // Manually generated
-            fMathLibTable["max"] = "global.Math.max";
-            fMathLibTable["min"] = "global.Math.min";
-            fMathLibTable["powf"] = "global.Math.pow";
-            fMathLibTable["roundf"] = "global.Math.round";
-            fMathLibTable["sinf"] = "global.Math.sin";
-            fMathLibTable["sqrtf"] = "global.Math.sqrt";
-            fMathLibTable["tanf"] = "global.Math.tan";
+            fMathLibTable["max"] = "f32.max";
+            fMathLibTable["min"] = "f32.min";
+            fMathLibTable["powf"] = "f32.pow";
+            fMathLibTable["roundf"] = "f32.round";
+            fMathLibTable["sinf"] = "f32.sin";
+            fMathLibTable["sqrtf"] = "f32.sqrt";
+            fMathLibTable["tanf"] = "f32.tan";
+            
+            // Double version
+            fMathLibTable["abs"] = "i32.abs";
+            fMathLibTable["absf"] = "f64.abs";
+            fMathLibTable["fabsf"] = "f64.abs";
+            fMathLibTable["acosf"] = "f64.acos";
+            fMathLibTable["asinf"] = "f64.asin";
+            fMathLibTable["atanf"] = "f64.atan";
+            fMathLibTable["atan2f"] = "f64.atan2";
+            fMathLibTable["ceilf"] = "f64.ceil";
+            fMathLibTable["cosf"] = "f64.cos";
+            fMathLibTable["expf"] = "f64.exp";
+            fMathLibTable["floorf"] = "f64.floor";
+            fMathLibTable["fmodf"] = "manual";      // Manually generated
+            fMathLibTable["logf"] = "f64.log";
+            fMathLibTable["log10f"] = "manual";     // Manually generated
+            fMathLibTable["max"] = "f64.max";
+            fMathLibTable["min"] = "f64.min";
+            fMathLibTable["powf"] = "f64.pow";
+            fMathLibTable["roundf"] = "f64.round";
+            fMathLibTable["sinf"] = "f64.sin";
+            fMathLibTable["sqrtf"] = "f64.sqrt";
+            fMathLibTable["tanf"] = "f64.tan";
             
             fStructOffset = 0;
         }
