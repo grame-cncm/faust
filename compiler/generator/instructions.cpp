@@ -29,11 +29,11 @@ void BasicTyped::cleanup() { gGlobal->gTypeTable.clear(); }
 void DeclareVarInst::cleanup() { gGlobal->gVarTypeTable.clear(); }
 
 // Variable types are kept in the global num <===> type table
-DeclareVarInst::DeclareVarInst(Address* address, Typed* typed, ValueInst* value)
-    :fAddress(address), fType(typed), fValue(value)
+DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
+    :fAddress(address), fType(type), fValue(value)
 {
     if (gGlobal->gVarTypeTable.find(fAddress->getName()) == gGlobal->gVarTypeTable.end()) {
-        gGlobal->gVarTypeTable[fAddress->getName()] = typed;
+        gGlobal->gVarTypeTable[fAddress->getName()] = type;
     }
 }
 
@@ -73,6 +73,21 @@ int ArrayTyped::getSize()
     } else {
         return fType->getSize() * fSize; 
     }
+}
+
+// Function argument variable types are kept in the global num <===> type table
+NamedTyped* InstBuilder::genNamedTyped(const string& name, Typed* type)
+{
+    if (gGlobal->gVarTypeTable.find(name) == gGlobal->gVarTypeTable.end()) {
+        gGlobal->gVarTypeTable[name] = type;
+    }
+    return new NamedTyped(name, type);
+}
+
+// Function argument variable types are kept in the global num <===> type table
+NamedTyped* InstBuilder::genNamedTyped(const string& name, Typed::VarType type)
+{
+    return genNamedTyped(name, genBasicTyped(type));
 }
 
 ValueInst* InstBuilder::genCastNumFloatInst(ValueInst* inst)

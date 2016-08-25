@@ -1947,8 +1947,8 @@ struct InstBuilder
     // Types
     static BasicTyped* genBasicTyped(Typed::VarType type); // moved in instructions.cpp
  
-    static NamedTyped* genNamedTyped(const string& name, Typed* type) { return new NamedTyped(name, type); }
-    static NamedTyped* genNamedTyped(const string& name, Typed::VarType  type) { return new NamedTyped(name, new BasicTyped(type)); }
+    static NamedTyped* genNamedTyped(const string& name, Typed* type);
+    static NamedTyped* genNamedTyped(const string& name, Typed::VarType type);
 
     static FunTyped* genFunTyped(const list<NamedTyped*>& args, BasicTyped* result, FunTyped::FunAttribute attribute = FunTyped::kDefault) { return new FunTyped(args, result, attribute); }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }

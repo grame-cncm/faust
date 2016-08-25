@@ -279,6 +279,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                         *fOut << "dsp + " << tmp.first;
                         break;
                     default:
+                        // Should never happen...
                         assert(false);
                         break;
                 }
@@ -346,9 +347,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     indexed->fIndex->accept(this);
                     *fOut << " << 2) >> 2"; 
                 } else {
+                    // Should never happen...
                     assert(false);
                 }
             } else {
+                // Should never happen...
                 assert(false);
             }
         }
@@ -486,13 +489,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
                         visitAuxInt(inst);
                     } else {
-                        *fOut << "(";
-                        inst->fInst1->accept(this);
-                        *fOut << " ";
-                        *fOut << gBinOpTable[inst->fOpcode]->fName;
-                        *fOut << " ";
-                        inst->fInst2->accept(this);
-                        *fOut << ")";
+                        // Should never happen...
+                        assert(false);
                     }
                 }
             }

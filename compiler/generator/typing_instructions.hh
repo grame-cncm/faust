@@ -36,7 +36,7 @@ struct TypingVisitor : public InstVisitor {
         virtual ~TypingVisitor()
         {}
     
-        inline bool isRealType(Typed::VarType type)
+        bool isRealType(Typed::VarType type)
         {
             return (type == Typed::kFloat
                     || type == Typed::kFloatMacro
