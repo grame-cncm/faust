@@ -25,6 +25,7 @@
 using namespace std;
 
 #include "text_instructions.hh"
+#include "typing_instructions.hh"
 
 /*
 var asm2wasmImports = { // special asm2wasm imports
@@ -58,6 +59,8 @@ class WASMInstVisitor : public TextInstVisitor {
             int fSize;
             Typed::VarType fType;
         };
+    
+        TypingVisitor fTypingVisitor;
     
         map <string, int> fFunctionSymbolTable;
         map <string, string> fMathLibTable;
@@ -185,7 +188,12 @@ class WASMInstVisitor : public TextInstVisitor {
                 tab(fTab, *fOut); *fOut << ")";
             }
         }
-        
+    
+        virtual void visit(LoadVarInst* inst)
+        {
+            fTypingVisitor.visit(inst);
+        }
+    
         virtual void visit(NamedAddress* named)
         {}
   
@@ -197,32 +205,56 @@ class WASMInstVisitor : public TextInstVisitor {
                 
         virtual void visit(FloatNumInst* inst)
         {
+            fTypingVisitor.visit(inst);
             *fOut << "(f32.const " << checkFloat(inst->fNum) << ")";
         }
         
         virtual void visit(DoubleNumInst* inst)
         {
+            fTypingVisitor.visit(inst);
             *fOut << "(f64.const " << checkDouble(inst->fNum) << ")";
         }
     
         virtual void visit(IntNumInst* inst)
         {
+            fTypingVisitor.visit(inst);
             *fOut << "(i32.const " << inst->fNum << ")";
         }
     
         // Numerical computation
         virtual void visit(BinopInst* inst)
         {
+            inst->fInst1->accept(&fTypingVisitor);
+            Typed::VarType type1 = fTypingVisitor.fCurType;
+            inst->fInst2->accept(&fTypingVisitor);
+            Typed::VarType type2 = fTypingVisitor.fCurType;
+            
+            *fOut << "(";
+            if (type1 == Typed::kInt && type2 == Typed::kInt) {
+                *fOut << gBinOpTable[inst->fOpcode]->fNameWasmInt;
+                
+            } else if (type1 == Typed::kFloat) {
+                *fOut << gBinOpTable[inst->fOpcode]->fNameWasmFloat;
+            } else if (type1 == Typed::kDouble) {
+                *fOut << gBinOpTable[inst->fOpcode]->fNameWasmDouble;
+            } else {
+                // Should never happen...
+                assert(false);
+            }
+            inst->fInst1->accept(this);
+            inst->fInst2->accept(this);
+            *fOut << ")";
         }
 
         virtual void visit(CastNumInst* inst)
         {
+            fTypingVisitor.visit(inst);
         }
     
         // Conditional : select
         virtual void visit(Select2Inst* inst)
         {
-            
+            fTypingVisitor.visit(inst);
         }
         
         // Conditional : if

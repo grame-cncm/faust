@@ -377,14 +377,16 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             }
         }
     
-        inline string checkFloat(float val)
+        // Special version without termination
+        string checkFloat(float val)
         {
             std::stringstream num;
             num << std::setprecision(std::numeric_limits<float>::max_digits10) << val;
             return ensureFloat(num.str());
         }
 
-        inline string checkDouble(double val)
+        // Special version without termination 
+        string checkDouble(double val)
         {
             std::stringstream num;
             num << std::setprecision(std::numeric_limits<double>::max_digits10) << val;

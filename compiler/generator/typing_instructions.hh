@@ -97,12 +97,12 @@ struct TypingVisitor : public InstVisitor {
                 Typed::VarType type1 = fCurType;
                 
                 if (isRealType(type1)) {
-                    fCurType = Typed::kFloat;
+                    fCurType = type1;
                 } else {
                     inst->fInst2->accept(this);
                     Typed::VarType type2 = fCurType;
                     if (isRealType(type2)) {
-                        fCurType = Typed::kFloat;
+                        fCurType = type2;
                     } else if (isIntType(type1) || isIntType(type2)) {
                         fCurType = Typed::kInt;
                     } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
