@@ -80,6 +80,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["max"] = "global.Math.max";
             fMathLibTable["min"] = "global.Math.min";
             fMathLibTable["powf"] = "global.Math.pow";
+            //fMathLibTable["remainderf"] =  "manual";     // Manually generated
             fMathLibTable["roundf"] = "global.Math.round";
             fMathLibTable["sinf"] = "global.Math.sin";
             fMathLibTable["sqrtf"] = "global.Math.sqrt";
@@ -101,6 +102,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["max"] = "global.Math.max";
             fMathLibTable["min"] = "global.Math.min";
             fMathLibTable["pow"] = "global.Math.pow";
+            //fMathLibTable["remainderf"] =  "manual";     // Manually generated
             fMathLibTable["round"] = "global.Math.round";
             fMathLibTable["sin"] = "global.Math.sin";
             fMathLibTable["sqrt"] = "global.Math.sqrt";

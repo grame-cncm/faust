@@ -96,10 +96,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             gMathLibTable["expf"] = FIRInstruction::kExpf;
             gMathLibTable["floorf"] = FIRInstruction::kFloorf;
             gMathLibTable["fmodf"] = FIRInstruction::kFmodf;
-            gMathLibTable["remainderf"] =  FIRInstruction::kRemReal;
             gMathLibTable["logf"] =  FIRInstruction::kLogf;
             gMathLibTable["log10f"] =  FIRInstruction::kLog10f;
             gMathLibTable["powf"] =  FIRInstruction::kPowf;
+            gMathLibTable["remainderf"] =  FIRInstruction::kRemReal;
             gMathLibTable["roundf"] =  FIRInstruction::kRoundf;
             gMathLibTable["sinf"] = FIRInstruction::kSinf;
             gMathLibTable["sinhf"] = FIRInstruction::kSinhf;
@@ -119,10 +119,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             gMathLibTable["exp"] = FIRInstruction::kExpf;
             gMathLibTable["floor"] = FIRInstruction::kFloorf;
             gMathLibTable["fmod"] = FIRInstruction::kFmodf;
-            gMathLibTable["remainder"] =  FIRInstruction::kRemReal;
             gMathLibTable["log"] =  FIRInstruction::kLogf;
             gMathLibTable["log10"] =  FIRInstruction::kLog10f;
             gMathLibTable["pow"] =  FIRInstruction::kPowf;
+            gMathLibTable["remainder"] =  FIRInstruction::kRemReal;
             gMathLibTable["round"] =  FIRInstruction::kRoundf;
             gMathLibTable["sin"] = FIRInstruction::kSinf;
             gMathLibTable["sinh"] = FIRInstruction::kSinhf;
