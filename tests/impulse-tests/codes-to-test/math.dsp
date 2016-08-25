@@ -1,0 +1,22 @@
+// Test of all math functions
+
+process = abs(int(_*0.4)), 
+		abs(_*0.4),
+		acos(_*0.5),
+		asin(_*0.5),
+		atan(_*0.5),
+		atan2(_*0.5),
+		cos(_*0.3),
+		exp(_*0.5),
+		floor(_*0.5),
+		fmod(_*9.2, 2.0),
+		log((_+1)*0.5),
+		log10((_+1)*0.5),
+		max(_*0.5, _*0.4),
+		min(_*0.5, _*0.4),
+		pow(_*0.5, 0.3),
+		// remainder(_*9.2, 2.0),
+		// round(_*0.5),
+		sin(_*0.3),
+		sqrt(_*0.3),
+		tan(_*0.3);

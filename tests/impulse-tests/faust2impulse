@@ -65,7 +65,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		${CXX=g++} ${CXXFLAGS=-O3 -std=c++11 -pthread} $OMP "$f.cpp" -o "${f%.dsp}"
+		${CXX=g++} ${CXXFLAGS=-O3 -pthread -std=c++11} $OMP "$f.cpp" -o "${f%.dsp}"
 	) > /dev/null || exit
 
 	# run the resulting binary to generate the impulse response
