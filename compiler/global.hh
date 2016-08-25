@@ -417,7 +417,7 @@ struct global {
     // FIR 
     map<Typed::VarType, BasicTyped*> gTypeTable;    
     map<string, Typed*> gVarTypeTable;          // Types of variables or functions
-    map<Typed::VarType, int> gTypeSizeMap;      // Size in bytes on types
+    map<Typed::VarType, int> gTypeSizeMap;      // Size of types in bytes 
     
     // colorize
     map<Tree, int> gColorMap;

@@ -35,7 +35,14 @@ struct TypingVisitor : public InstVisitor {
        
         virtual ~TypingVisitor()
         {}
- 
+    
+        inline bool isRealType(Typed::VarType type)
+        {
+            return (type == Typed::kFloat
+                    || type == Typed::kFloatMacro
+                    || type == Typed::kDouble);
+        }
+    
         virtual void visit(LoadVarInst* inst)
         {
             if (gGlobal->gVarTypeTable.find(inst->getName()) != gGlobal->gVarTypeTable.end()) {
@@ -73,14 +80,7 @@ struct TypingVisitor : public InstVisitor {
         {
             fCurType = Typed::kDouble;
         }
-        
-        inline bool isRealType(Typed::VarType type) 
-        { 
-            return (type == Typed::kFloat 
-                || type == Typed::kFloatMacro 
-                || type == Typed::kDouble); 
-        }
-   
+    
         virtual void visit(BinopInst* inst)
         {
             if (isBoolOpcode(inst->fOpcode)) {

@@ -355,17 +355,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             visitStore(inst->fAddress, inst->fValue);
         }
 
-        // Addresses
-        virtual void visit(NamedAddress* named)
-        {
-            // Nothing
-        }
-        
-        virtual void visit(IndexedAddress* indexed) 
-        {   
-            indexed->fIndex->accept(this);
-        }
-    
         virtual void visit(ShiftArrayVarInst* inst)
         {
             MemoryDesc tmp = fFieldTable[inst->fAddress->getName()];
@@ -486,10 +475,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             }
         }
     
-        virtual void visit(RetInst* inst) { if (inst->fResult) {inst->fResult->accept(this);} }
-    
-        virtual void visit(DropInst* inst) { if (inst->fResult) {inst->fResult->accept(this);} }
-
         // Conditional : select
         virtual void visit(Select2Inst* inst)
         {
@@ -552,6 +537,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             fCurrentBlock = previous;
         }
     
+        // Not implemented for now (used in -sch mode)
         virtual void visit(SwitchInst* inst) {}
 
         // Loop
@@ -597,6 +583,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             fCurrentBlock = previous;
         }
     
+        // Not implemented for now
         virtual void visit(WhileLoopInst* inst) {}
 
 };

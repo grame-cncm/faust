@@ -87,6 +87,7 @@ class WASMInstVisitor : public TextInstVisitor {
             fMathLibTable["max"] = "f32.max";
             fMathLibTable["min"] = "f32.min";
             fMathLibTable["powf"] = "f32.pow";
+            // fMathLibTable["remainderf"] "manual";      // Manually generated
             fMathLibTable["roundf"] = "f32.round";
             fMathLibTable["sinf"] = "f32.sin";
             fMathLibTable["sqrtf"] = "f32.sqrt";
@@ -110,6 +111,7 @@ class WASMInstVisitor : public TextInstVisitor {
             fMathLibTable["max"] = "f64.max";
             fMathLibTable["min"] = "f64.min";
             fMathLibTable["powf"] = "f64.pow";
+            // fMathLibTable["remainderf"] "manual";      // Manually generated
             fMathLibTable["roundf"] = "f64.round";
             fMathLibTable["sinf"] = "f64.sin";
             fMathLibTable["sqrtf"] = "f64.sqrt";
