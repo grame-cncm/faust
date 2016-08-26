@@ -96,8 +96,8 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "(export \"memory\" memory)";
     
         // Imported functions
-        tab(n+1, *fOut); *fOut << "(import $log \"global.Math\" \"log\" (param f64) (result f64))";
-        tab(n+1, *fOut); *fOut << "(import $f64-rem \"asm2wasm\" \"f64-rem\" (param f64 f64) (result f64))";
+        tab(n+1, *fOut); *fOut << "(import $log \"global.Math\" \"log\" (param " << realStr << ") (result " << realStr << "))";
+        tab(n+1, *fOut); *fOut << "(import $f64-rem \"asm2wasm\" \"f64-rem\" (param " << realStr <<  " " << realStr << ") (result "<< realStr << "))";
     
         // Exported functions
         tab(n+1, *fOut); *fOut << "(export \"getNumInputs\" $getNumInputs)";
@@ -120,12 +120,12 @@ void WASMCodeContainer::produceClass()
         // Always generated mathematical functions
         tab(n+1, *fOut);
         
-        tab(n+1, *fOut); *fOut << "(func $fmodf (param $0 f64) (param $1 f64) (result f64)";
-            tab(n+2, *fOut); *fOut << "(call_import $f64-rem (get_local $0) (get_local $1))";
+        tab(n+1, *fOut); *fOut << "(func $fmodf (param $0 " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
+            tab(n+2, *fOut); *fOut << "(call_import $" << realStr << "-rem (get_local $0) (get_local $1))";
         tab(n+1, *fOut); *fOut << ")";
         
-        tab(n+1, *fOut); *fOut <<  "(func $log10f (param $0 f64) (result f64)";
-            tab(n+2, *fOut); *fOut << "(f64.div (call_import $log (get_local $0)) (call_import $log (f64.const 10)))";
+        tab(n+1, *fOut); *fOut <<  "(func $log10f (param $0 " << realStr << ") (result " << realStr << ")";
+            tab(n+2, *fOut); *fOut << "(" << realStr << ".div (call_import $log (get_local $0)) (call_import $log (" << realStr << ".const 10)))";
         tab(n+1, *fOut); *fOut << ")";
     
         // Fields : compute the structure size to use in 'new'
@@ -164,18 +164,18 @@ void WASMCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "(i32.load offset=" << gGlobal->gWASMVisitor->getFieldOffset("fSamplingFreq") << " (get_local $dsp))";
         tab(n+1, *fOut); *fOut << ")";
     
-        // setParamValue
+        // setParamValue : TO 64/32 support
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "(func $setParamValue (param $dsp i32) (param $index i32) (param $value f64)";
+        tab(n+1, *fOut); *fOut << "(func $setParamValue (param $dsp i32) (param $index i32) (param $value " << realStr << ")";
             tab(n+2, *fOut); *fOut << "(f32.store ";
                 tab(n+3, *fOut); *fOut << "(i32.add (get_local $dsp) (get_local $index))";
                 tab(n+3, *fOut); *fOut << "(f32.demote/f64 (get_local $value))";
             tab(n+2, *fOut); *fOut << ")";
         tab(n+1, *fOut); *fOut << ")";
     
-        // getParamValue
+        // getParamValue : TO 64/32 support
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "(func $getParamValue (param $dsp i32) (param $index i32) (result f64)";
+        tab(n+1, *fOut); *fOut << "(func $getParamValue (param $dsp i32) (param $index i32) (result " << realStr << ")";
             tab(n+2, *fOut); *fOut << "(f64.promote/f32 (f32.load (i32.add (get_local $dsp) (get_local $index))))";
         tab(n+1, *fOut); *fOut << ")";
 

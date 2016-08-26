@@ -41,6 +41,8 @@ var asm2wasmImports = { // special asm2wasm imports
 };
 */
 
+#define realStr ((gGlobal->gFloatSize == 1) ? "f32" : ((gGlobal->gFloatSize == 2) ? "f64" : ""))
+
 class WASMInstVisitor : public TextInstVisitor {
 
     private:
@@ -178,7 +180,7 @@ class WASMInstVisitor : public TextInstVisitor {
             // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 if (fMathLibTable[inst->fName] != "manual") {
-                    tab(fTab, *fOut); *fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << inst->fName << "\"" << " (param f64) (result f64))";
+                    tab(fTab, *fOut); *fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << inst->fName << "\"" << " (param "<< realStr << "(result " << realStr << "))";
                 }
             } else {
                 // Prototype
@@ -232,7 +234,6 @@ class WASMInstVisitor : public TextInstVisitor {
             *fOut << "(";
             if (type1 == Typed::kInt && type2 == Typed::kInt) {
                 *fOut << gBinOpTable[inst->fOpcode]->fNameWasmInt;
-                
             } else if (type1 == Typed::kFloat) {
                 *fOut << gBinOpTable[inst->fOpcode]->fNameWasmFloat;
             } else if (type1 == Typed::kDouble) {
