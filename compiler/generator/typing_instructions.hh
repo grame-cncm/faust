@@ -125,8 +125,14 @@ struct TypingVisitor : public InstVisitor {
             // Type in the one of 'then' or 'else'
             inst->fThen->accept(this);
         }
-        
-        virtual void visit(FunCallInst* inst) 
+    
+        virtual void visit(IfInst* inst)
+        {
+            // Type in the one of 'then' or 'else'
+            inst->fThen->accept(this);
+        }
+    
+        virtual void visit(FunCallInst* inst)
         { 
             if (gGlobal->gVarTypeTable.find(inst->fName) != gGlobal->gVarTypeTable.end()) {
                 fCurType = gGlobal->gVarTypeTable[inst->fName]->getType();

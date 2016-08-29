@@ -68,6 +68,19 @@ class WASMInstVisitor : public TextInstVisitor {
         map <string, string> fMathLibTable;
         map <string, MemoryDesc> fFieldTable;   // Table : field_name, { offset, size, type }
         int fStructOffset;                      // Keep the offset in bytes of the structure
+    
+    
+        bool isRealType(Typed::VarType type)
+        {
+            return (type == Typed::kFloat
+                    || type == Typed::kFloatMacro
+                    || type == Typed::kDouble);
+        }
+    
+        bool isIntType(Typed::VarType type)
+        {
+            return (type == Typed::kInt);
+        }
 
     public:
 
@@ -151,15 +164,6 @@ class WASMInstVisitor : public TextInstVisitor {
                 fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
                 fStructOffset++;
             }
-            
-            // Simulate a 'Store'
-            if (inst->fValue) {
-                visitStore(inst->fAddress, inst->fValue, inst->fType);
-            }
-        }
-    
-        virtual void visitStore(Address* address, ValueInst* value, Typed* type = NULL)
-        {
         }
     
         virtual void generateFunDefArgs(DeclareFunInst* inst)
@@ -193,7 +197,24 @@ class WASMInstVisitor : public TextInstVisitor {
     
         virtual void visit(LoadVarInst* inst)
         {
+            /*
+            *fOut << "(get_local $";
+            inst->fAddress->accept(this);
+            *fOut << ")";
+            */
+            
             fTypingVisitor.visit(inst);
+        }
+    
+        virtual void visit(StoreVarInst* inst)
+        {
+            /*
+            *fOut << "(set_local $";
+            inst->fAddress->accept(this);
+            *fOut << " ";
+            inst->fValue->accept(this);
+            *fOut << ")";
+            */
         }
     
         virtual void visit(NamedAddress* named)
@@ -224,44 +245,118 @@ class WASMInstVisitor : public TextInstVisitor {
         }
     
         // Numerical computation
-        virtual void visit(BinopInst* inst)
+        void visitAuxInt(BinopInst* inst)
         {
-            inst->fInst1->accept(&fTypingVisitor);
-            Typed::VarType type1 = fTypingVisitor.fCurType;
-            inst->fInst2->accept(&fTypingVisitor);
-            Typed::VarType type2 = fTypingVisitor.fCurType;
-            
             *fOut << "(";
-            if (type1 == Typed::kInt && type2 == Typed::kInt) {
-                *fOut << gBinOpTable[inst->fOpcode]->fNameWasmInt;
-            } else if (type1 == Typed::kFloat) {
-                *fOut << gBinOpTable[inst->fOpcode]->fNameWasmFloat;
-            } else if (type1 == Typed::kDouble) {
-                *fOut << gBinOpTable[inst->fOpcode]->fNameWasmDouble;
-            } else {
-                // Should never happen...
-                assert(false);
-            }
+            *fOut << gBinOpTable[inst->fOpcode]->fNameWasmInt;
+            *fOut << " ";
             inst->fInst1->accept(this);
+            *fOut << " ";
             inst->fInst2->accept(this);
             *fOut << ")";
+        }
+    
+        void visitAuxReal(BinopInst* inst, Typed::VarType type )
+        {
+            *fOut << "(";
+            if (type == Typed::kFloat) {
+                *fOut << gBinOpTable[inst->fOpcode]->fNameWasmFloat;
+            } else if (type == Typed::kDouble) {
+                *fOut << gBinOpTable[inst->fOpcode]->fNameWasmDouble;
+            } else {
+                assert(false);
+            }
+            *fOut << " ";
+            inst->fInst1->accept(this);
+            *fOut << " ";
+            inst->fInst2->accept(this);
+            *fOut << ")";
+        }
+    
+        virtual void visit(BinopInst* inst)
+        {
+            if (isBoolOpcode(inst->fOpcode)) {
+                *fOut << "(";
+                *fOut << gBinOpTable[inst->fOpcode]->fNameWasmInt;
+                *fOut << " ";
+                inst->fInst1->accept(this);
+                *fOut << " ";
+                inst->fInst2->accept(this);
+                *fOut << ")";
+            } else {
+                
+                inst->fInst1->accept(&fTypingVisitor);
+                Typed::VarType type1 = fTypingVisitor.fCurType;
+                
+                if (isRealType(type1)) {
+                    visitAuxReal(inst, type1);
+                } else {
+                    inst->fInst2->accept(&fTypingVisitor);
+                    Typed::VarType type2 = fTypingVisitor.fCurType;
+                    if (isRealType(type2)) {
+                        visitAuxReal(inst, type1);
+                    } else if (isIntType(type1) || isIntType(type2)) {
+                        visitAuxInt(inst);
+                    } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
+                        visitAuxInt(inst);
+                    } else {
+                        // Should never happen...
+                        assert(false);
+                    }
+                }
+            }
+            
+            fTypingVisitor.visit(inst);
         }
 
         virtual void visit(CastNumInst* inst)
         {
+            inst->fInst->accept(&fTypingVisitor);
+            Typed::VarType type = fTypingVisitor.fCurType;
+            
+            if (inst->fType->getType() == Typed::kInt) {
+                if (type == Typed::kInt) {
+                    std::cout << "CastNumInst : cast to int, but arg already int !" << std::endl;
+                } else {
+                    *fOut << "(i32.trunc_s/" << realStr;
+                    inst->fInst->accept(this);
+                    *fOut << ")";
+                }
+            } else {
+                if (isRealType(type)) {
+                    std::cout << "CastNumInst : cast to real, but arg already real !" << std::endl;
+                } else {
+                    *fOut << "(" << realStr << ".convert_s/i32 ";
+                    inst->fInst->accept(this);
+                    *fOut << ")";
+                }
+            }
+            
             fTypingVisitor.visit(inst);
         }
     
         // Conditional : select
         virtual void visit(Select2Inst* inst)
         {
+            *fOut << "(select ";
+            inst->fCond->accept(this);
+            inst->fThen->accept(this);
+            inst->fElse->accept(this);
+            *fOut << ")";
+            
             fTypingVisitor.visit(inst);
         }
         
         // Conditional : if
         virtual void visit(IfInst* inst)
         {
-
+            *fOut << "(if ";
+            inst->fCond->accept(this);
+            inst->fThen->accept(this);
+            inst->fElse->accept(this);
+            *fOut << ")";
+            
+            fTypingVisitor.visit(inst);
         }
     
         virtual void visit(FunCallInst* inst)
@@ -269,7 +364,48 @@ class WASMInstVisitor : public TextInstVisitor {
     
         virtual void visit(ForLoopInst* inst)
         {
-
+            // Don't generate empty loops...
+            if (inst->fCode->size() == 0) return;
+            
+            /*
+            DeclareVarInst* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
+            StoreVarInst* c99_init_inst = NULL;
+            
+            if (c99_declare_inst) {
+            
+                // To generate C99 compatible loops...
+                c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
+                c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(),
+                                                               InstBuilder::genBasicTyped(Typed::kInt),
+                                                               InstBuilder::genIntNumInst(0));
+                // C99 loop variable declared outside the loop
+                c99_declare_inst->accept(this);
+            }
+            
+            *fOut << "(for ";
+                if (c99_declare_inst) {
+                    // C99 loop initialized here
+                    c99_init_inst->accept(this);
+                } else {
+                    // Index already defined
+                    inst->fInit->accept(this);
+                }
+                *fOut << "; ";
+                inst->fEnd->accept(this);
+                *fOut << "; ";
+                inst->fIncrement->accept(this);
+                *fOut << ") {";
+                fTab++;
+                tab(fTab, *fOut);
+                inst->fCode->accept(this);
+                fTab--;
+                tab(fTab, *fOut);
+                *fOut << "}";
+                tab(fTab, *fOut);
+            
+            *fOut << ")";
+            tab(fTab, *fOut);
+            */
         }
 
 };

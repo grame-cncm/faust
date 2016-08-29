@@ -43,7 +43,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         int fStructOffset;                                      // Keep the offset in bytes of the structure
         map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
         
-        inline bool isRealType(Typed::VarType type) 
+        bool isRealType(Typed::VarType type)
         { 
             return (type == Typed::kFloat 
                 || type == Typed::kFloatMacro 
@@ -52,7 +52,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 || type == Typed::kDoublish); 
         }
         
-        inline bool isIntType(Typed::VarType type) 
+        bool isIntType(Typed::VarType type)
         { 
             return (type == Typed::kInt || type == Typed::kIntish); 
         }
