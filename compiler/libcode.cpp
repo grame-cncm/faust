@@ -819,33 +819,6 @@ static void printDeclareHeader(ostream& dst)
     }
 }
 
-void printHeader(ostream& dst)
-{
-    // defines the metadata we want to print as comments at the begin of in the file
-    set<Tree> selectedKeys;
-    selectedKeys.insert(tree("name"));
-    selectedKeys.insert(tree("author"));
-    selectedKeys.insert(tree("copyright"));
-    selectedKeys.insert(tree("license"));
-    selectedKeys.insert(tree("version"));
-
-    dst << "/* ------------------------------------------------------------" << endl;
-    for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        if (selectedKeys.count(i->first)) {
-            dst << *(i->first);
-            const char* sep = ": ";
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
-                dst << sep << **j;
-                sep = ", ";
-            }
-            dst << endl;
-        }
-    }
-
-    dst << "Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
-    dst << "------------------------------------------------------------ */" << endl;
-}
-
 /****************************************************************
  					 			MAIN
 *****************************************************************/
@@ -979,6 +952,15 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     return process;
 }
 
+static void includeFile(const string& file, ostream* dst)
+{
+    istream* file_include = open_arch_stream(file.c_str());
+    if (file_include) {
+        streamCopy(*file_include, *dst);
+    }
+    delete(file_include);
+}
+
 static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
 {
     // By default use "cpp" output
@@ -1109,8 +1091,6 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         if (gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
      
         comp->compileMultiSignal(signals);
-        container->produceClass();
-          
         gGlobal->gDSPFactory = container->produceFactory();
         
         //std::stringstream dst;
@@ -1214,50 +1194,24 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                     throw faustexception("");
                 }
        
-                if (gGlobal->gOutputLang != "js") {
-                    printHeader(*dst);
-                }
+                container->printHeader();
                 
-                if ((gGlobal->gOutputLang == "c") || (gGlobal->gOutputLang == "cpp")) {
-                    tab(0, *dst); *dst << "#ifndef  __" << gGlobal->gClassName << "_H__";
-                    tab(0, *dst); *dst << "#define  __" << gGlobal->gClassName << "_H__" << std::endl;
-                }
-
                 streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
                 streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
 
                 if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {
-                    istream* thread_include = open_arch_stream("thread.h");
-                    if (thread_include) {
-                        streamCopy(*thread_include, *dst);
-                    }
-                    delete(thread_include);
-                }
-
-                if ((gGlobal->gOutputLang != "java") 
-                    && (gGlobal->gOutputLang != "js") 
-                    && (gGlobal->gOutputLang != "ajs")
-                    && (gGlobal->gOutputLang != "wasm")) {
-                    printfloatdef(*dst, (gGlobal->gFloatSize == 3));
-                }
-
-                if (gGlobal->gOutputLang == "c") {
-                    *dst << "#include <stdlib.h>"<< std::endl;
+                    includeFile("thread.h", dst);
                 }
 
                 container->produceClass();
+                
                 streamCopyUntilEnd(*enrobage, *dst);
+                
                 if (gGlobal->gSchedulerSwitch) {
-                    istream* scheduler_include = open_arch_stream("scheduler.cpp");
-                    if (scheduler_include) {
-                        streamCopy(*scheduler_include, *dst);
-                    }
-                    delete(scheduler_include);
+                    includeFile("scheduler.cpp", dst);
                 }
 
-                if ((gGlobal->gOutputLang == "c") || (gGlobal->gOutputLang == "cpp")) {
-                    tab(0, *dst); *dst << "#endif"<< std::endl;
-                }
+                container->printFooter();
                 
                 // Restore current_directory
                 chdir(current_directory);
@@ -1270,19 +1224,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             }
             
         } else {
-            if (gGlobal->gOutputLang != "js") {
-                printHeader(*dst);
-            }
-            if ((gGlobal->gOutputLang != "java") 
-                && (gGlobal->gOutputLang != "js") 
-                && (gGlobal->gOutputLang != "ajs")
-                && (gGlobal->gOutputLang != "wasm")) {
-                printfloatdef(*dst, (gGlobal->gFloatSize == 3));
-            }
-            if (gGlobal->gOutputLang == "c") {
-                *dst << "#include <stdlib.h>"<< std::endl;
-            }
+            container->printHeader();
             container->produceClass();
+            container->printFooter();
         }
     }
     

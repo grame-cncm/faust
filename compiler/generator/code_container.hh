@@ -35,6 +35,7 @@
 #include "code_loop.hh"
 #include "garbageable.hh"
 #include "json_instructions.hh"
+#include "libfaust.h"
 
 class TextInstVisitor;
 
@@ -124,6 +125,33 @@ class CodeContainer : public virtual Garbageable {
         void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num, bool omp = false);
         void generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst * count, bool omp);
 
+       void printHeader(ostream& dst)
+        {
+            // defines the metadata we want to print as comments at the begin of in the file
+            set<Tree> selectedKeys;
+            selectedKeys.insert(tree("name"));
+            selectedKeys.insert(tree("author"));
+            selectedKeys.insert(tree("copyright"));
+            selectedKeys.insert(tree("license"));
+            selectedKeys.insert(tree("version"));
+            
+            dst << "/* ------------------------------------------------------------" << endl;
+            for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+                if (selectedKeys.count(i->first)) {
+                    dst << *(i->first);
+                    const char* sep = ": ";
+                    for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
+                        dst << sep << **j;
+                        sep = ", ";
+                    }
+                    dst << endl;
+                }
+            }
+            
+            dst << "Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
+            dst << "------------------------------------------------------------ */" << endl;
+        }
+    
       public:
 
         CodeContainer();
@@ -378,7 +406,10 @@ class CodeContainer : public virtual Garbageable {
         virtual CodeContainer* createScalarContainer(const string& name, int sub_container_type) = 0;
 
         virtual void produceInternal() = 0;
+    
+        virtual void printHeader() {}
         virtual void produceClass() {}
+        virtual void printFooter() {}
 
         virtual void dump() {}
         virtual void dump(ostream* dst) {}
@@ -390,7 +421,7 @@ class CodeContainer : public virtual Garbageable {
     
         // TODO: implement it for other containers than InterpreterCodeContainer...
         virtual dsp_factory_base* produceFactory() { return 0; }
- 
+    
 };
 
 inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)

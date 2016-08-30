@@ -54,6 +54,11 @@ class WASMCodeContainer : public virtual CodeContainer {
         virtual void produceClass();
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
+    
+        virtual void printHeader()
+        {
+             CodeContainer::printHeader(*fOut);
+        }
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 

@@ -63,6 +63,23 @@ class CCodeContainer : public virtual CodeContainer {
         virtual void produceClass();
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
+    
+        virtual void printHeader()
+        {
+            CodeContainer::printHeader(*fOut);
+            
+            *fOut << "#include <stdlib.h>"<< std::endl;
+            
+            tab(0, *fOut); *fOut << "#ifndef  __" << gGlobal->gClassName << "_H__";
+            tab(0, *fOut); *fOut << "#define  __" << gGlobal->gClassName << "_H__" << std::endl << std::endl;
+            
+            printfloatdef(*fOut, (gGlobal->gFloatSize == 3));
+        }
+    
+        virtual void printFooter()
+        {
+            tab(0, *fOut); *fOut << "#endif"<< std::endl;
+        }
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 

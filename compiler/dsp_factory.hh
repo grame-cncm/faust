@@ -89,9 +89,9 @@ class dsp_factory_imp : public dsp_factory_base {
         virtual dsp* createDSPInstance(dsp_factory* factory) { return nullptr; }
         
         virtual void metadata(Meta* meta) {}
-        
+    
         virtual void write(std::ostream* out, bool small = false) {}
-
+ 
 };
 
 #endif
