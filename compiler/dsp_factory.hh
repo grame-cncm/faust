@@ -94,4 +94,22 @@ class dsp_factory_imp : public dsp_factory_base {
  
 };
 
+class text_dsp_factory_aux : public dsp_factory_imp {
+    
+    protected:
+    
+        std::string fCode;
+    
+    public:
+    
+        text_dsp_factory_aux(const std::string& name, const std::string& sha_key, const std::string& dsp, const std::string& code)
+            :dsp_factory_imp(name, sha_key, dsp), fCode(code)
+        {}
+        
+        virtual void write(std::ostream* out, bool small = false)
+        {
+            *out << fCode;
+        }
+};
+
 #endif

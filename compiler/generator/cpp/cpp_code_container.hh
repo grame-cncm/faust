@@ -32,15 +32,6 @@
 
 using namespace std;
 
-struct cpp_dsp_factory : public dsp_factory_imp {
-    
-    cpp_dsp_factory(const string& name, const string& sha_key, const string& dsp)
-        :dsp_factory_imp(name, sha_key, dsp)
-    {}
-    
-    virtual void write(std::ostream* out, bool small = false) {}
-};
-
 class CPPCodeContainer : public virtual CodeContainer {
 
     protected:
@@ -68,6 +59,11 @@ class CPPCodeContainer : public virtual CodeContainer {
         virtual void generateCompute(int tab) = 0;
         virtual void produceInternal();
     
+        dsp_factory_base* produceFactory()
+        {
+            return new text_dsp_factory_aux(fKlassName, "", "", dynamic_cast<std::stringstream*>(fOut)->str());
+        }
+    
         virtual void printHeader()
         {
             CodeContainer::printHeader(*fOut);
@@ -85,7 +81,7 @@ class CPPCodeContainer : public virtual CodeContainer {
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
-        static CodeContainer* createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst);
+        static CodeContainer* createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst = new stringstream());
 
 };
 

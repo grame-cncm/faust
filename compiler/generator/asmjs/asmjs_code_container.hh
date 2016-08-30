@@ -29,15 +29,6 @@
 
 using namespace std;
 
-struct asmjs_dsp_factory : public dsp_factory_imp {
-    
-    asmjs_dsp_factory(const string& name, const string& sha_key, const string& dsp)
-        :dsp_factory_imp(name, sha_key, dsp)
-    {}
-    
-    virtual void write(std::ostream* out, bool small = false) {}
-};
-
 class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
 
     protected:
@@ -54,6 +45,11 @@ class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
     
+        dsp_factory_base* produceFactory()
+        {
+            return new text_dsp_factory_aux(fKlassName, "", "", dynamic_cast<std::stringstream*>(fOut)->str());
+        }
+    
         virtual void printHeader()
         {
             CodeContainer::printHeader(*fOut);
@@ -61,7 +57,7 @@ class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
     
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
-        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst);
+        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst = new stringstream());
 };
 
 class ASMJAVAScriptScalarCodeContainer : public ASMJAVAScriptCodeContainer {

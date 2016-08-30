@@ -411,7 +411,6 @@ class CodeContainer : public virtual Garbageable {
         virtual void produceClass() {}
         virtual void printFooter() {}
 
-        virtual void dump() {}
         virtual void dump(ostream* dst) {}
     
         virtual int getStructSize() { assert(false); return 0; }
