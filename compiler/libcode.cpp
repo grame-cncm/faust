@@ -1072,6 +1072,21 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         gGlobal->gDSPFactory = container->produceFactory();
         gGlobal->gDSPFactory->write(dst);
      
+    } else if (gGlobal->gOutputLang == "fir") {
+        
+        gGlobal->gGenerateSelectWithIf = false;
+        
+        container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, true);
+        
+        if (gGlobal->gVectorSwitch) {
+            comp = new DAGInstructionsCompiler(container);
+        } else {
+            comp = new InstructionsCompiler(container);
+        }
+        
+        comp->compileMultiSignal(signals);
+        container->produceClass();
+        
     } else {
         
         gGlobal->gGenerateSelectWithIf = false;
@@ -1104,21 +1119,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
-        } else if (gGlobal->gOutputLang == "fir") {
-       
-            container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, true);
-
-            if (gGlobal->gVectorSwitch) {
-                comp = new DAGInstructionsCompiler(container);
-            } else {
-                comp = new InstructionsCompiler(container);
-            }
-
-            comp->compileMultiSignal(signals);
-            container->dump(dst);
-            throw faustexception("");
-        }
-        if (!container) {
+        } else {
             stringstream error;
             error << "ERROR : cannot find compiler for " << "\"" << gGlobal->gOutputLang  << "\"" << endl;
             throw faustexception(error.str());

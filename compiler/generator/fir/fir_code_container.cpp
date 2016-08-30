@@ -29,21 +29,21 @@ map <string, int> FIRInstVisitor::gFunctionSymbolTable;
 
 CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new FirScalarCodeContainer(name, 0, 1, sub_container_type, false);
+    return new FirScalarCodeContainer(name, 0, 1, sub_container_type, fOut, false);
 }
 
-CodeContainer* FirCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, bool top_level)
+CodeContainer* FirCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst, bool top_level)
 {
     CodeContainer* container;
 
     if (gGlobal->gOpenMPSwitch) {
-        container = new FirOpenMPCodeContainer(name, numInputs, numOutputs, top_level);
+        container = new FirOpenMPCodeContainer(name, numInputs, numOutputs, dst, top_level);
     } else if (gGlobal->gSchedulerSwitch) {
-        container = new FirWorkStealingCodeContainer(name,numInputs, numOutputs, top_level);
+        container = new FirWorkStealingCodeContainer(name, numInputs, numOutputs, dst, top_level);
     } else if (gGlobal->gVectorSwitch) {
-        container = new FirVectorCodeContainer(name,numInputs, numOutputs, top_level);
+        container = new FirVectorCodeContainer(name, numInputs, numOutputs, dst, top_level);
     } else {
-        container = new FirScalarCodeContainer(name,numInputs, numOutputs, kInt, top_level);
+        container = new FirScalarCodeContainer(name, numInputs, numOutputs, kInt, dst, top_level);
     }
 
     return container;
@@ -190,23 +190,21 @@ void FirCodeContainer::dumpMemory(ostream* dst)
     }
 }
 
-void FirCodeContainer::dump(ostream* dst)
+void FirCodeContainer::produceClass()
 {
-    FIRInstVisitor firvisitor(dst);
-    *dst << "======= Container \"" << fKlassName << "\" ==========" << std::endl;
-    *dst << std::endl;
+    FIRInstVisitor firvisitor(fOut);
+    *fOut << "======= Container \"" << fKlassName << "\" ==========" << std::endl;
+    *fOut << std::endl;
     
     generateSR();
     
-    dumpGlobalsAndInit(firvisitor, dst);
-    dumpThread(firvisitor, dst);
-    dumpComputeBlock(firvisitor, dst);
-    dumpCompute(firvisitor, dst);
+    dumpGlobalsAndInit(firvisitor, fOut);
+    dumpThread(firvisitor, fOut);
+    dumpComputeBlock(firvisitor, fOut);
+    dumpCompute(firvisitor, fOut);
     
-    dumpFlatten(dst);
-    dumpMemory(dst);
-    
-    dst->flush();
+    dumpFlatten(fOut);
+    dumpMemory(fOut);
 }
 
 void FirScalarCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
