@@ -83,9 +83,7 @@ EXPORT bool compile_faust(int argc, const char* argv[], const char* name, const 
 
 EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg);
 
-EXPORT dsp_factory_base* compile_faust_interpreter(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg);
-
-EXPORT std::string compile_faust_asmjs(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg);
+EXPORT dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg);
 
 EXPORT std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key, std::string& error_msg);
 

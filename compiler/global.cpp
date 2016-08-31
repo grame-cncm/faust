@@ -126,8 +126,6 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     
     gInputString = 0;
     
-    gStringResult = 0;
-    
     // Backend configuration : default values
     gGenerateSelectWithIf = true;
     gAllowForeignFunction  = true;

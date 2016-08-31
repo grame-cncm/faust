@@ -148,8 +148,6 @@ struct global {
     
     const char*     gInputString;
     
-    ostream*        gStringResult;
-    
     bool			gLstDependenciesSwitch;     ///< mdoc listing management.
     bool			gLstMdocTagsSwitch;         ///< mdoc listing management.
     bool			gLstDistributedSwitch;      ///< mdoc listing management.

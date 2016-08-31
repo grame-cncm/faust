@@ -32,7 +32,6 @@ typedef class faust_smartptr<interpreter_dsp_factory> SDsp_factory;
 
 dsp_factory_table<SDsp_factory> gInterpreterFactoryTable;
 
-
 #ifdef LOADER
 static string path_to_content(const string& path)
 {
@@ -111,10 +110,10 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
             SDsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
-        } else if ((factory = new interpreter_dsp_factory(compile_faust_interpreter(argc1, argv1,
-                                                                                    name_app.c_str(),
-                                                                                    dsp_content.c_str(),
-                                                                                    error_msg))) != 0) {
+        } else if ((factory = new interpreter_dsp_factory(compile_faust_factory(argc1, argv1,
+                                                                                name_app.c_str(),
+                                                                                dsp_content.c_str(),
+                                                                                error_msg))) != 0) {
             gInterpreterFactoryTable.setFactory(factory);
             factory->setSHAKey(sha_key);
             factory->setDSPCode(expanded_dsp_content);

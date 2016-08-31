@@ -923,36 +923,40 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T> {
     
 };
 
-struct EXPORT interpreter_dsp : public dsp {
+class EXPORT interpreter_dsp : public dsp {
     
-    interpreter_dsp_base* fDSP;
-    interpreter_dsp_factory* fFactory;
+    private:
+        
+        interpreter_dsp_base* fDSP;
+        interpreter_dsp_factory* fFactory;
+ 
+    public:
     
-    interpreter_dsp(interpreter_dsp_aux<float>* dsp, interpreter_dsp_factory* factory)
+        interpreter_dsp(interpreter_dsp_aux<float>* dsp, interpreter_dsp_factory* factory)
         :fDSP(dsp), fFactory(factory)
-    {}
-    interpreter_dsp(interpreter_dsp_aux<double>* dsp, interpreter_dsp_factory* factory)
+        {}
+        interpreter_dsp(interpreter_dsp_aux<double>* dsp, interpreter_dsp_factory* factory)
         :fDSP(dsp), fFactory(factory)
-    {}
+        {}
+    
+        virtual ~interpreter_dsp();
+        
+        void metadata(Meta* meta);
+      
+        int getNumInputs();
+        int getNumOutputs();
 
-    virtual ~interpreter_dsp();
-    
-    void metadata(Meta* meta);
-  
-    int getNumInputs();
-    int getNumOutputs();
-
-    void init(int samplingRate);
-    void instanceInit(int samplingRate);
-    
-    void instanceClear();
-    
-    interpreter_dsp* clone();
-  
-    void buildUserInterface(UI* ui_interface);
-    int getSampleRate();
-    
-    void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+        void init(int samplingRate);
+        void instanceInit(int samplingRate);
+        
+        void instanceClear();
+        
+        interpreter_dsp* clone();
+      
+        void buildUserInterface(UI* ui_interface);
+        int getSampleRate();
+        
+        void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
     
 };
 

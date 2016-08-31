@@ -25,6 +25,8 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -82,6 +84,29 @@ inline bool startWithRes(const string& str, const string& prefix, string& res)
     } else {
         return false;
     }   
+}
+
+inline std::string flatten(const std::string& src)
+{
+    std::stringstream dst;
+    size_t size = src.size();
+    for (size_t i = 0; i < src.size(); i++) {
+        switch (src[i]) {
+            case '\n':
+            case '\t':
+            case '\r':
+                break;
+            case ' ':
+                if (!(i + 1 < size && src[i + 1] == ' ')) {
+                    dst << src[i];
+                }
+                break;
+            default:
+                dst << src[i];
+                break;
+        }
+    }
+    return dst.str();
 }
 
 #endif

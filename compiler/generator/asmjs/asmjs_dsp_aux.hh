@@ -25,8 +25,47 @@
 #include <string>
 #include <cstdlib>
 #include "export.hh"
+#include "faust/dsp/dsp.h"
+#include "dsp_aux.hh"
+#include "dsp_factory.hh"
 
 using namespace std;
+
+class EXPORT asmjs_dsp : public dsp {};
+
+class EXPORT asmjs_dsp_factory : public dsp_factory, public faust_smartable {
+    
+    protected:
+        
+        dsp_factory_base* fFactory;
+        
+        virtual ~asmjs_dsp_factory()
+        {
+            delete fFactory;
+        }
+        
+    public:
+        
+        asmjs_dsp_factory(dsp_factory_base* factory):fFactory(factory)
+        {}
+    
+        std::string getName() { return fFactory->getName(); }
+        
+        std::string getSHAKey() { return fFactory->getSHAKey(); }
+        void setSHAKey(std::string sha_key) { fFactory->setSHAKey(sha_key); }
+        
+        std::string getDSPCode() { return fFactory->getDSPCode(); }
+        void setDSPCode(std::string code) { return fFactory->setDSPCode(code); }
+        
+        asmjs_dsp* createDSPInstance() { return nullptr; }
+        
+        void write(std::ostream* out, bool small = false) { fFactory->write(out, small); }
+    
+};
+
+EXPORT asmjs_dsp_factory* createAsmDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], string& error_msg);
+
+EXPORT bool deleteAsmjsDSPFactory(asmjs_dsp_factory* factory);
 
 #ifdef __cplusplus
 extern "C" {

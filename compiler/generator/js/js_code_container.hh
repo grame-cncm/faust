@@ -51,7 +51,7 @@ class JAVAScriptCodeContainer : public virtual CodeContainer {
     
         dsp_factory_base* produceFactory()
         {
-            return new text_dsp_factory_aux(fKlassName, "", "", dynamic_cast<std::stringstream*>(fOut)->str());
+            return new text_dsp_factory_aux(fKlassName, "", "", (dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : "");
         }
 
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
