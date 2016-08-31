@@ -29,7 +29,6 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <openssl/sha.h>
 
 #include "global.hh"
 #include "compatibility.hh"
@@ -85,6 +84,8 @@ static ifstream* enrobage = 0;
        
 typedef void* (*compile_fun)(void* arg);
 
+string reorganizeCompilationOptions(int argc, const char* argv[]);
+
 #ifdef _WIN32 
 
 static void call_fun(compile_fun fun)
@@ -111,233 +112,6 @@ static void call_fun(compile_fun fun)
 }
 
 #endif
-
-EXPORT Module* load_module(const string& module_name, llvm::LLVMContext* context)
-{
-    // Try as a complete path
-    if (Module* module = load_single_module(module_name, context)) {
-        return module;
-    } else {
-    // Otherwise use import directories
-        list<string>::iterator it;
-        for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
-            string file_name = *it + '/' + module_name;
-            if (Module* module = load_single_module(file_name, context)) {
-                return module;
-            }
-        }
-        return 0;
-    }
-}
-
-#if LLVM_BUILD
-
-static Module* link_all_modules(llvm::LLVMContext* context, Module* dst, char* error)
-{
-    list<string>::iterator it;
-    
-    for (it = gGlobal->gLibraryList.begin(); it != gGlobal->gLibraryList.end(); it++) {
-        string module_name = *it;
-        
-        Module* src = load_module(module_name, context);
-        if (!src) {
-            sprintf(error, "cannot load module : %s", module_name.c_str());
-            return 0;
-        }
-        
-        if (!link_modules(dst, src, error)) {
-            return 0;
-        }
-    }
-        
-    return dst;
-}
-
-#endif
-
-//L ook for 'key' in 'options' and modify the parameter 'position' if found
-static bool parseKey(vector<string> options, const string& key, int& position)
-{
-    for (size_t i = 0; i < options.size(); i++) {
-        if (key == options[i]) {
-            position = i;
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-// Add 'key' if existing in 'options', otherwise add 'defaultKey' (if different from "")
-// #return true if 'key' was added
-static bool addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position)
-{
-    if (parseKey(options, key, position)) {        
-        newoptions.push_back(options[position]);
-        options.erase(options.begin()+position);
-        position--;
-        return true;
-    } else if (defaultKey != "") {
-        newoptions.push_back(defaultKey);
-    }
-    
-    return false;
-}
-
-// Add 'key' & it's associated value if existing in 'options', otherwise add 'defaultValue' (if different from "")
-static void addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue)
-{
-    int position = 0;
-    
-    if (addKeyIfExisting(options, newoptions, key, "", position)) {
-        if (position+1 < int(options.size()) && options[position+1][0] != '-') {
-            newoptions.push_back(options[position+1]);
-            options.erase(options.begin()+position+1);
-            position--;
-        } else {
-            newoptions.push_back(defaultValue);
-        }
-    }
-}
-
-/* Reorganizes the compilation options
- * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
- */
-static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
-{
-    bool vectorize = false;
-    int position = 0;
-    
-    vector<string> newoptions;
-    
-    //------STEP 1 - Single or Double ?
-    addKeyIfExisting(options, newoptions, "-double", "-single", position);
-    
-    //------STEP 2 - Options Leading to -vec inclusion
-    if (addKeyIfExisting(options, newoptions, "-sch", "", position)) {
-        vectorize = true;
-    }
-    
-    if (addKeyIfExisting(options, newoptions, "-omp", "", position)){
-        vectorize = true;
-        addKeyIfExisting(options, newoptions, "-pl", "", position);
-    }
-    
-    if (vectorize) {
-        newoptions.push_back("-vec");
-    }
-    
-    //------STEP3 - Add options depending on -vec/-scal option
-    if (vectorize || addKeyIfExisting(options, newoptions, "-vec", "", position)) {
-        addKeyIfExisting(options, newoptions, "-dfs", "", position);
-        addKeyIfExisting(options, newoptions, "-vls", "", position);
-        addKeyIfExisting(options, newoptions, "-fun", "", position);
-        addKeyIfExisting(options, newoptions, "-g", "", position);
-        addKeyValueIfExisting(options, newoptions, "-vs", "32");
-        addKeyValueIfExisting(options, newoptions, "-lv", "0");
-    } else {
-        addKeyIfExisting(options, newoptions, "-scal", "-scal", position);
-        addKeyIfExisting(options, newoptions, "-inpl", "", position);
-    }
-    
-    addKeyValueIfExisting(options, newoptions, "-mcd", "16");
-    addKeyValueIfExisting(options, newoptions, "-cn", "");
-    
-    //------STEP4 - Add other types of Faust options
-    /*
-    addKeyIfExisting(options, newoptions, "-tg", "", position);
-    addKeyIfExisting(options, newoptions, "-sg", "", position);
-    addKeyIfExisting(options, newoptions, "-ps", "", position);    
-    addKeyIfExisting(options, newoptions, "-svg", "", position);    
-    
-    if (addKeyIfExisting(options, newoptions, "-mdoc", "", position)) {
-        addKeyValueIfExisting(options, newoptions, "-mdlang", "");
-        addKeyValueIfExisting(options, newoptions, "-stripdoc", "");
-    }
-    
-    addKeyIfExisting(options, newoptions, "-sd", "", position);
-    addKeyValueIfExisting(options, newoptions, "-f", "25");
-    addKeyValueIfExisting(options, newoptions, "-mns", "40"); 
-    addKeyIfExisting(options, newoptions, "-sn", "", position);
-    addKeyIfExisting(options, newoptions, "-xml", "", position);
-    addKeyIfExisting(options, newoptions, "-blur", "", position);    
-    addKeyIfExisting(options, newoptions, "-lb", "", position);
-    addKeyIfExisting(options, newoptions, "-mb", "", position);
-    addKeyIfExisting(options, newoptions, "-rb", "", position);    
-    addKeyIfExisting(options, newoptions, "-lt", "", position);    
-    addKeyValueIfExisting(options, newoptions, "-a", "");
-    addKeyIfExisting(options, newoptions, "-i", "", position);
-    addKeyValueIfExisting(options, newoptions, "-cn", "");    
-    addKeyValueIfExisting(options, newoptions, "-t", "120");
-    addKeyIfExisting(options, newoptions, "-time", "", position);
-    addKeyValueIfExisting(options, newoptions, "-o", "");
-    addKeyValueIfExisting(options, newoptions, "-lang", "cpp");
-    addKeyIfExisting(options, newoptions, "-flist", "", position);
-    addKeyValueIfExisting(options, newoptions, "-l", "");
-    addKeyValueIfExisting(options, newoptions, "-O", "");
-    
-    //-------Add Other Options that are possibily passed to the compiler (-I, -blabla, ...)
-    while (options.size() != 0) {
-        if (options[0] != "faust") newoptions.push_back(options[0]); // "faust" first argument
-        options.erase(options.begin());
-    }
-    */
-    
-    return newoptions;
-}
-
-EXPORT string reorganize_compilation_options(int argc, const char* argv[])
-{
-    vector<string> res1;
-    for (int i = 0; i < argc; i++) {
-        res1.push_back(argv[i]);
-    }
-    
-    vector<string> res2 = reorganizeCompilationOptionsAux(res1);
-    
-    string res3;
-    string sep;
-    for (size_t i = 0; i < res2.size(); i++) {
-        res3 = res3 + sep + res2[i];
-        sep = " ";
-    }
-    
-    return "\"" + res3 + "\"";
-}
-
-EXPORT std::string extract_compilation_options(const std::string& dsp_content)
-{
-    size_t pos1 = dsp_content.find(COMPILATION_OPTIONS_KEY);
-    
-    if (pos1 != string::npos) {
-        size_t pos2 = dsp_content.find_first_of('"', pos1 + 1);
-        size_t pos3 = dsp_content.find_first_of('"', pos2 + 1);
-        if (pos2 != string::npos && pos3 != string::npos) {
-            return dsp_content.substr(pos2, (pos3 - pos2) + 1);
-         }
-    }
-    
-    return "";
-}
-
-EXPORT string generateSHA1(const string& dsp_content)
-{
-    // compute SHA1 key
-    unsigned char obuf[20];
-    SHA1((const unsigned char*)dsp_content.c_str(), dsp_content.size(), obuf);
-    
-	// convert SHA1 key into hexadecimal string
-    string sha1key;
-    for (int i = 0; i < 20; i++) {
-    	const char* H = "0123456789ABCDEF";
-    	char c1 = H[(obuf[i] >> 4)];
-    	char c2 = H[(obuf[i] & 15)];
-        sha1key += c1;
-        sha1key += c2;
-    }
-    
-    return sha1key;
-}
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
 
@@ -823,26 +597,6 @@ static string fxname(const string& filename)
     return filename.substr(p1, p2-p1);
 }
 
-string makeDrawPath()
-{
-    if (gGlobal->gOutputDir != "") {
-        return gGlobal->gOutputDir + "/" + gGlobal->gMasterName + ".dsp";
-    } else {
-        return gGlobal->gMasterDocument;
-    }
-}
-
-static string makeDrawPathNoExt()
-{
-    if (gGlobal->gOutputDir != "") {
-        return gGlobal->gOutputDir + "/" + gGlobal->gMasterName;
-    } else if (gGlobal->gMasterDocument.length() >= 4 && gGlobal->gMasterDocument.substr(gGlobal->gMasterDocument.length() - 4) == ".dsp") {
-        return gGlobal->gMasterDocument.substr(0, gGlobal->gMasterDocument.length() - 4);
-    } else {
-        return gGlobal->gMasterDocument;
-    }
-}
-
 static void initFaustDirectories()
 {
     char s[1024];
@@ -900,7 +654,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     if (gGlobal->gDetailsSwitch) { cout << "process = " << boxpp(process) << ";\n"; }
 
     if (gGlobal->gDrawPSSwitch || gGlobal->gDrawSVGSwitch) {
-        string projname = makeDrawPathNoExt();
+        string projname = gGlobal->makeDrawPathNoExt();
         if (gGlobal->gDrawPSSwitch)  { drawSchema(process, subst("$0-ps",  projname).c_str(), "ps"); }
         if (gGlobal->gDrawSVGSwitch) { drawSchema(process, subst("$0-svg", projname).c_str(), "svg"); }
     }
@@ -966,15 +720,6 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             if (!gGlobal->gLLVMResult) {
                 throw faustexception("Cannot compile C generated code to LLVM IR\n");
             }
-            gGlobal->gLLVMResult->fPathnameList = gGlobal->gReader.listSrcFiles();
-           
-            // Possibly link with additional LLVM modules
-            char error[256];
-            if (!link_all_modules(gGlobal->gLLVMResult->fContext, gGlobal->gLLVMResult->fModule, error)) {
-                stringstream llvm_error;
-                llvm_error << "ERROR : " << error << endl;
-                throw faustexception(llvm_error.str());
-            }
             
             if (gGlobal->gLLVMOut && gGlobal->gOutputFile == "") {
                 outs() << *gGlobal->gLLVMResult->fModule;
@@ -1009,15 +754,6 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             comp->compileMultiSignal(signals);
             LLVMCodeContainer* llvm_container = dynamic_cast<LLVMCodeContainer*>(container);
             gGlobal->gLLVMResult = llvm_container->produceModule(gGlobal->gOutputFile);
-            gGlobal->gLLVMResult->fPathnameList = gGlobal->gReader.listSrcFiles();
-             
-            // Possibly link with additional LLVM modules
-            char error[256];
-            if (!link_all_modules(gGlobal->gLLVMResult->fContext, gGlobal->gLLVMResult->fModule, error)) {
-                stringstream llvm_error;
-                llvm_error << "ERROR : " << error << endl;
-                throw faustexception(llvm_error.str());
-            }
             
             if (gGlobal->gLLVMOut && gGlobal->gOutputFile == "") {
                 outs() << *gGlobal->gLLVMResult->fModule;
@@ -1218,7 +954,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
   
     if (gGlobal->gPrintXMLSwitch) {
         Description* D = comp->getDescription(); assert(D);
-        ofstream xout(subst("$0.xml", makeDrawPath()).c_str());
+        ofstream xout(subst("$0.xml", gGlobal->makeDrawPath()).c_str());
       
         if (gGlobal->gMetaDataSet.count(tree("name")) > 0)          D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
         if (gGlobal->gMetaDataSet.count(tree("author")) > 0)        D->author(tree2str(*(gGlobal->gMetaDataSet[tree("author")].begin())));
@@ -1239,7 +975,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
 
     if (gGlobal->gPrintDocSwitch) {
         if (gGlobal->gLatexDocSwitch) {
-            printDoc(subst("$0-mdoc", makeDrawPathNoExt()).c_str(), "tex", FAUSTVERSION);
+            printDoc(subst("$0-mdoc", gGlobal->makeDrawPathNoExt()).c_str(), "tex", FAUSTVERSION);
         }
     }
 
@@ -1248,7 +984,7 @@ static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * con
     *****************************************************************/
 
     if (gGlobal->gGraphSwitch) {
-        ofstream dotfile(subst("$0.dot", makeDrawPath()).c_str());
+        ofstream dotfile(subst("$0.dot", gGlobal->makeDrawPath()).c_str());
         container->printGraphDotFormat(dotfile);
     }
 }
@@ -1285,7 +1021,7 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
     stringstream out;
     
     // Encode compilation options as a 'declare' : has to be located first in the string
-    out << COMPILATION_OPTIONS << reorganize_compilation_options(argc, argv) << ';' << endl;
+    out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
     
     // Encode all libraries paths as 'declare'
     vector<string> pathnames = gGlobal->gReader.listSrcFiles();
@@ -1360,10 +1096,10 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     int numOutputs = gGlobal->gNumOutputs;
     
     if (gGlobal->gExportDSP) {
-        ofstream out(subst("$0_exp.dsp", makeDrawPathNoExt()).c_str());
+        ofstream out(subst("$0_exp.dsp", gGlobal->makeDrawPathNoExt()).c_str());
         
         // Encode compilation options as a 'declare' : has to be located first in the string
-        out << COMPILATION_OPTIONS << reorganize_compilation_options(argc, argv) << ';' << endl;
+        out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
    
         // Encode all libraries paths as 'declare'
         vector<string> pathnames = gGlobal->gReader.listSrcFiles();

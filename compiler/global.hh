@@ -477,6 +477,9 @@ struct global {
     static void destroy();
     
     string getFreshID(const string& prefix);
+    
+    string makeDrawPath();
+    string makeDrawPathNoExt();
 };
 
 // Unique shared global pointer

@@ -62,6 +62,11 @@ using namespace clang::driver;
 #include "CUI_exp.h"
 //#include "scheduler_exp.h"
 
+// Helper functions
+bool linkModules(Module* dst, Module* src, char* error_msg);
+Module* loadModule(const string& module_name, llvm::LLVMContext* context);
+Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error);
+
 #define FAUST_FILENAME "/var/tmp/FaustLLVM.c"
 
 ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs)
@@ -177,11 +182,44 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
         LLVMResult* result = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
         result->fModule = Module;
         result->fContext = Act->takeLLVMContext();
+        
+        // Link LLVM modules defined in 'ffunction'
+        set<string> S;
+        set<string>::iterator f;
+        char error_msg[512];
+        
+        collectLibrary(S);
+        if (S.size() > 0) {
+            for (f = S.begin(); f != S.end(); f++) {
+                string module_name = unquote(*f);
+                if (endWith(module_name, ".bc") || endWith(module_name, ".ll")) {
+                    Module* module = loadModule(module_name, result->fContext);
+                    if (module) {
+                        bool res = linkModules(result->fModule, module, error_msg);
+                        if (!res) printf("Link LLVM modules %s\n", error_msg);
+                    }
+                }
+            }
+        }
+        
+        // Possibly link with additional LLVM modules
+        char error[256];
+        if (!linkAllModules(result->fContext, result->fModule, error)) {
+            stringstream llvm_error;
+            llvm_error << "ERROR : " << error << endl;
+            throw faustexception(llvm_error.str());
+        }
+        
+        // Keep source files pathnames
+        result->fPathnameList = gGlobal->gReader.listSrcFiles();
+        
+        // Possibly output file
         if (filename != "") {
             std::string err;
             raw_fd_ostream out(filename.c_str(), err, sysfs_binary_flag);
             WriteBitcodeToFile(result->fModule, out);
         }
+        
         return result;
     } else {
         return NULL;

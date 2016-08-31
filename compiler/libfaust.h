@@ -87,18 +87,4 @@ EXPORT dsp_factory_base* compile_faust_factory(int argc, const char* argv[], con
 
 EXPORT std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key, std::string& error_msg);
 
-EXPORT llvm::Module* load_single_module(const std::string filename, llvm::LLVMContext* context);
-
-EXPORT llvm::Module* load_module(const std::string& module_name, llvm::LLVMContext* context);
-
-EXPORT bool link_modules(llvm::Module* dst, llvm::Module* src, char* error_message);
-
-EXPORT std::string generateSHA1(const std::string& dsp_content);
-
-EXPORT std::string path_to_content(const std::string& path);
-
-EXPORT std::string reorganize_compilation_options(int argc, const char* argv[]);
-
-EXPORT std::string extract_compilation_options(const std::string& dsp_content);
-
 #endif

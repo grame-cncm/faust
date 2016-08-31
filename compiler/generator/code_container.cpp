@@ -32,8 +32,6 @@
 
 using namespace std;
 
-string makeDrawPath();
-
 void CodeContainer::initializeCodeContainer(int numInputs, int numOutputs)
 {
     fNumInputs = numInputs;
@@ -650,7 +648,7 @@ void CodeContainer::generateJSON()
       
         // Generate JSON
         generateUserInterface(&fJSON);
-        ofstream xout(subst("$0.json", makeDrawPath()).c_str());
+        ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
         xout << fJSON.JSON();
     } 
 }

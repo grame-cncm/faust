@@ -25,6 +25,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <openssl/sha.h>
 
 #ifdef _WIN32
 #include "compatibility.hh"
@@ -40,12 +41,202 @@ extern TLockAble* gDSPFactoriesLock;
 
 using namespace std;
 
-static bool start_with(const string& str, const string& key)
+static bool startWith(const string& str, const string& key)
 {
     for (size_t i = 0; i < key.size(); i++) {
         if (str[i] != key[i]) return false;
     }
     return true;
+}
+
+//L ook for 'key' in 'options' and modify the parameter 'position' if found
+static bool parseKey(vector<string> options, const string& key, int& position)
+{
+    for (size_t i = 0; i < options.size(); i++) {
+        if (key == options[i]) {
+            position = i;
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+// Add 'key' if existing in 'options', otherwise add 'defaultKey' (if different from "")
+// #return true if 'key' was added
+static bool addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position)
+{
+    if (parseKey(options, key, position)) {
+        newoptions.push_back(options[position]);
+        options.erase(options.begin()+position);
+        position--;
+        return true;
+    } else if (defaultKey != "") {
+        newoptions.push_back(defaultKey);
+    }
+    
+    return false;
+}
+
+// Add 'key' & it's associated value if existing in 'options', otherwise add 'defaultValue' (if different from "")
+static void addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultValue)
+{
+    int position = 0;
+    
+    if (addKeyIfExisting(options, newoptions, key, "", position)) {
+        if (position+1 < int(options.size()) && options[position+1][0] != '-') {
+            newoptions.push_back(options[position+1]);
+            options.erase(options.begin()+position+1);
+            position--;
+        } else {
+            newoptions.push_back(defaultValue);
+        }
+    }
+}
+
+/* Reorganizes the compilation options
+ * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
+ */
+
+static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
+{
+    bool vectorize = false;
+    int position = 0;
+    
+    vector<string> newoptions;
+    
+    //------STEP 1 - Single or Double ?
+    addKeyIfExisting(options, newoptions, "-double", "-single", position);
+    
+    //------STEP 2 - Options Leading to -vec inclusion
+    if (addKeyIfExisting(options, newoptions, "-sch", "", position)) {
+        vectorize = true;
+    }
+    
+    if (addKeyIfExisting(options, newoptions, "-omp", "", position)){
+        vectorize = true;
+        addKeyIfExisting(options, newoptions, "-pl", "", position);
+    }
+    
+    if (vectorize) {
+        newoptions.push_back("-vec");
+    }
+    
+    //------STEP3 - Add options depending on -vec/-scal option
+    if (vectorize || addKeyIfExisting(options, newoptions, "-vec", "", position)) {
+        addKeyIfExisting(options, newoptions, "-dfs", "", position);
+        addKeyIfExisting(options, newoptions, "-vls", "", position);
+        addKeyIfExisting(options, newoptions, "-fun", "", position);
+        addKeyIfExisting(options, newoptions, "-g", "", position);
+        addKeyValueIfExisting(options, newoptions, "-vs", "32");
+        addKeyValueIfExisting(options, newoptions, "-lv", "0");
+    } else {
+        addKeyIfExisting(options, newoptions, "-scal", "-scal", position);
+        addKeyIfExisting(options, newoptions, "-inpl", "", position);
+    }
+    
+    addKeyValueIfExisting(options, newoptions, "-mcd", "16");
+    addKeyValueIfExisting(options, newoptions, "-cn", "");
+    
+    //------STEP4 - Add other types of Faust options
+    /*
+     addKeyIfExisting(options, newoptions, "-tg", "", position);
+     addKeyIfExisting(options, newoptions, "-sg", "", position);
+     addKeyIfExisting(options, newoptions, "-ps", "", position);
+     addKeyIfExisting(options, newoptions, "-svg", "", position);
+     
+     if (addKeyIfExisting(options, newoptions, "-mdoc", "", position)) {
+     addKeyValueIfExisting(options, newoptions, "-mdlang", "");
+     addKeyValueIfExisting(options, newoptions, "-stripdoc", "");
+     }
+     
+     addKeyIfExisting(options, newoptions, "-sd", "", position);
+     addKeyValueIfExisting(options, newoptions, "-f", "25");
+     addKeyValueIfExisting(options, newoptions, "-mns", "40");
+     addKeyIfExisting(options, newoptions, "-sn", "", position);
+     addKeyIfExisting(options, newoptions, "-xml", "", position);
+     addKeyIfExisting(options, newoptions, "-blur", "", position);
+     addKeyIfExisting(options, newoptions, "-lb", "", position);
+     addKeyIfExisting(options, newoptions, "-mb", "", position);
+     addKeyIfExisting(options, newoptions, "-rb", "", position);
+     addKeyIfExisting(options, newoptions, "-lt", "", position);
+     addKeyValueIfExisting(options, newoptions, "-a", "");
+     addKeyIfExisting(options, newoptions, "-i", "", position);
+     addKeyValueIfExisting(options, newoptions, "-cn", "");
+     addKeyValueIfExisting(options, newoptions, "-t", "120");
+     addKeyIfExisting(options, newoptions, "-time", "", position);
+     addKeyValueIfExisting(options, newoptions, "-o", "");
+     addKeyValueIfExisting(options, newoptions, "-lang", "cpp");
+     addKeyIfExisting(options, newoptions, "-flist", "", position);
+     addKeyValueIfExisting(options, newoptions, "-l", "");
+     addKeyValueIfExisting(options, newoptions, "-O", "");
+     
+     //-------Add Other Options that are possibily passed to the compiler (-I, -blabla, ...)
+     while (options.size() != 0) {
+     if (options[0] != "faust") newoptions.push_back(options[0]); // "faust" first argument
+     options.erase(options.begin());
+     }
+     */
+    
+    return newoptions;
+}
+
+static std::string extractCompilationOptions(const std::string& dsp_content)
+{
+    size_t pos1 = dsp_content.find(COMPILATION_OPTIONS_KEY);
+    
+    if (pos1 != string::npos) {
+        size_t pos2 = dsp_content.find_first_of('"', pos1 + 1);
+        size_t pos3 = dsp_content.find_first_of('"', pos2 + 1);
+        if (pos2 != string::npos && pos3 != string::npos) {
+            return dsp_content.substr(pos2, (pos3 - pos2) + 1);
+        }
+    }
+    
+    return "";
+}
+
+string reorganizeCompilationOptions(int argc, const char* argv[])
+{
+    vector<string> res1;
+    for (int i = 0; i < argc; i++) {
+        res1.push_back(argv[i]);
+    }
+    
+    vector<string> res2 = reorganizeCompilationOptionsAux(res1);
+    
+    string res3;
+    string sep;
+    for (size_t i = 0; i < res2.size(); i++) {
+        res3 = res3 + sep + res2[i];
+        sep = " ";
+    }
+    
+    return "\"" + res3 + "\"";
+}
+
+string pathToContent(const string& path)
+{
+    ifstream file(path.c_str(), ifstream::binary);
+    
+    if (file.fail()) {
+        return "";
+    } else {
+        file.seekg(0, file.end);
+        int size = file.tellg();
+        file.seekg(0, file.beg);
+        
+        // And allocate buffer to that a single line can be read...
+        char* buffer = new char[size + 1];
+        file.read(buffer, size);
+        
+        // Terminate the string
+        buffer[size] = 0;
+        string result = buffer;
+        file.close();
+        delete [] buffer;
+        return result;
+    }
 }
 
 EXPORT string expandDSPFromFile(const string& filename, 
@@ -55,7 +246,7 @@ EXPORT string expandDSPFromFile(const string& filename,
 {
     string base = basename((char*)filename.c_str());
     size_t pos = filename.find(".dsp");
-    return expandDSPFromString(base.substr(0, pos), path_to_content(filename), argc, argv, sha_key, error_msg);
+    return expandDSPFromString(base.substr(0, pos), pathToContent(filename), argc, argv, sha_key, error_msg);
 }
 
 /*
@@ -73,14 +264,14 @@ EXPORT string expandDSPFromString(const string& name_app,
         error_msg = "Unable to read file";
         return "";
     // Already expanded version ?
-    } else if (start_with(dsp_content, COMPILATION_OPTIONS)) {
-        if (extract_compilation_options(dsp_content) == reorganize_compilation_options(argc, argv)) {
+    } else if (startWith(dsp_content, COMPILATION_OPTIONS)) {
+        if (extractCompilationOptions(dsp_content) == reorganizeCompilationOptions(argc, argv)) {
             // Same compilation options as the ones kept in the expanded version
             sha_key = generateSHA1(dsp_content);
             return dsp_content;
         } else {
             // Otherwise add a new compilation options line, consider it as the new expanded code : generate SHA key and return it
-            string new_dsp_content = COMPILATION_OPTIONS + reorganize_compilation_options(argc, argv) + ";\n" + dsp_content;
+            string new_dsp_content = COMPILATION_OPTIONS + reorganizeCompilationOptions(argc, argv) + ";\n" + dsp_content;
             sha_key = generateSHA1(new_dsp_content);
             return new_dsp_content;
         }
@@ -107,7 +298,7 @@ EXPORT bool generateAuxFilesFromFile(const string& filename, int argc, const cha
 {
     string base = basename((char*)filename.c_str());
     size_t pos = filename.find(".dsp");
-    return generateAuxFilesFromString(base.substr(0, pos), path_to_content(filename), argc, argv, error_msg);
+    return generateAuxFilesFromString(base.substr(0, pos), pathToContent(filename), argc, argv, error_msg);
 }
 
 EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], string& error_msg)
@@ -179,28 +370,23 @@ EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_co
     return res;
 }
 
-EXPORT string path_to_content(const string& path)
+EXPORT string generateSHA1(const string& dsp_content)
 {
-    ifstream file(path.c_str(), ifstream::binary);
+    // compute SHA1 key
+    unsigned char obuf[20];
+    SHA1((const unsigned char*)dsp_content.c_str(), dsp_content.size(), obuf);
     
-    if (file.fail()) {
-        return "";
-    } else {
-        file.seekg(0, file.end);
-        int size = file.tellg();
-        file.seekg(0, file.beg);
-        
-        // And allocate buffer to that a single line can be read...
-        char* buffer = new char[size + 1];
-        file.read(buffer, size);
-        
-        // Terminate the string
-        buffer[size] = 0;
-        string result = buffer;
-        file.close();
-        delete [] buffer;
-        return result;
+    // convert SHA1 key into hexadecimal string
+    string sha1key;
+    for (int i = 0; i < 20; i++) {
+        const char* H = "0123456789ABCDEF";
+        char c1 = H[(obuf[i] >> 4)];
+        char c2 = H[(obuf[i] & 15)];
+        sha1key += c1;
+        sha1key += c2;
     }
+    
+    return sha1key;
 }
 
 

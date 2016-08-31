@@ -31,6 +31,11 @@
 
 using namespace std;
 
+// Helper functions
+bool linkModules(Module* dst, Module* src, char* error_msg);
+Module* loadModule(const string& module_name, llvm::LLVMContext* context);
+Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error);
+
 list <string> LLVMInstVisitor::gMathLibTable;
 
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -718,15 +723,27 @@ LLVMResult* LLVMCodeContainer::produceModule(const string& filename)
         for (f = S.begin(); f != S.end(); f++) {
             string module_name = unquote(*f);
             if (endWith(module_name, ".bc") || endWith(module_name, ".ll")) {
-                Module* module = load_module(module_name, fResult->fContext);
+                Module* module = loadModule(module_name, fResult->fContext);
                 if (module) {
-                    bool res = link_modules(fResult->fModule, module, error_msg);
+                    bool res = linkModules(fResult->fModule, module, error_msg);
                     if (!res) printf("Link LLVM modules %s\n", error_msg);
                 }
             }
         }
     }
     
+    // Possibly link with additional LLVM modules
+    char error[256];
+    if (!linkAllModules(fResult->fContext, fResult->fModule, error)) {
+        stringstream llvm_error;
+        llvm_error << "ERROR : " << error << endl;
+        throw faustexception(llvm_error.str());
+    }
+    
+    // Keep source files pathnames
+    fResult->fPathnameList = gGlobal->gReader.listSrcFiles();
+    
+    // Possibly output file
     if (filename != "") {
         STREAM_ERROR err;
         raw_fd_ostream out(filename.c_str(), err, sysfs_binary_flag);

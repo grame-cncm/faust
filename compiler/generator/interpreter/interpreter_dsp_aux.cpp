@@ -33,7 +33,7 @@ typedef class faust_smartptr<interpreter_dsp_factory> SDsp_factory;
 dsp_factory_table<SDsp_factory> gInterpreterFactoryTable;
 
 #ifdef LOADER
-static string path_to_content(const string& path)
+static string pathToContent(const string& path)
 {
     ifstream file(path.c_str(), ifstream::binary);
     
@@ -69,7 +69,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string
     size_t pos = filename.find(".dsp");
     
     if (pos != string::npos) {
-        return createInterpreterDSPFactoryFromString(base.substr(0, pos), path_to_content(filename), argc, argv, error_msg);
+        return createInterpreterDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, error_msg);
     } else {
         error_msg = "File Extension is not the one expected (.dsp expected)";
         return 0;

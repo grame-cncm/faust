@@ -432,6 +432,26 @@ void global::destroy()
     delete gGlobal;
 }
 
+string global::makeDrawPath()
+{
+    if (gOutputDir != "") {
+        return gOutputDir + "/" + gMasterName + ".dsp";
+    } else {
+        return gMasterDocument;
+    }
+}
+
+string global::makeDrawPathNoExt()
+{
+    if (gOutputDir != "") {
+        return gOutputDir + "/" + gMasterName;
+    } else if (gMasterDocument.length() >= 4 && gMasterDocument.substr(gMasterDocument.length() - 4) == ".dsp") {
+        return gMasterDocument.substr(0, gMasterDocument.length() - 4);
+    } else {
+        return gMasterDocument;
+    }
+}
+
 /*****************************************************************************
 						getFreshID
 *****************************************************************************/

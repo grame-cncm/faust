@@ -41,6 +41,7 @@
 #include "timing.hh"
 #include "exception.hh"
 #include "rn_base64.h"
+#include "global.hh"
 
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)
     #include <system_error>
@@ -1062,46 +1063,6 @@ void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 
 EXPORT string getLibFaustVersion() { return FAUSTVERSION; }
 
-EXPORT Module* load_single_module(const string filename, LLVMContext* context)
-{
-    SMDiagnostic err;
-#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)
-    Module* module = parseIRFile(filename, err, *context).get();
-#else
-    Module* module = ParseIRFile(filename, err, *context);
-#endif
-    
-    if (module) {
-        return module;
-    } else {
-        err.print("ParseIRFile failed :", errs());
-        return NULL;
-    }
-}
-
-EXPORT bool link_modules(Module* dst, Module* src, char* error_msg)
-{
-    bool res = false;
-
-#if defined(LLVM_38)
-    if (Linker::linkModules(*dst, std::unique_ptr<Module>(src))) { // Don't know what I'm doing here. Could Linker::linkModules try to free the src pointer? -Kjetil
-        snprintf(error_msg, 256, "cannot link module");
-        
-#elif defined(LLVM_36) || defined(LLVM_37)
-    if (Linker::LinkModules(dst, src)) {
-        snprintf(error_msg, 256, "cannot link module");
-#else
-    string err;
-    if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {
-        snprintf(error_msg, 256, "cannot link module : %s", err.c_str());
-#endif
-    } else {
-        res = true;
-    }
-        
-    delete src;
-    return res;
-}
 
 EXPORT bool startMTDSPFactories()
 {
@@ -1130,7 +1091,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename,
     size_t pos = filename.find(".dsp");
     
     if (pos != string::npos) {
-        return createDSPFactoryFromString(base.substr(0, pos), path_to_content(filename), argc, argv, target, error_msg, opt_level);
+        return createDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, target, error_msg, opt_level);
     } else {
         error_msg = "File Extension is not the one expected (.dsp expected)";
         return NULL;
@@ -1867,5 +1828,87 @@ EXPORT void generateCSHA1(const char* data, char* sha_key)
     strncpy(sha_key, generateSHA1(data).c_str(), 64);
 }
 
+// Helper functions
+
+Module* loadSingleModule(const string filename, LLVMContext* context)
+{
+    SMDiagnostic err;
+#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)
+    Module* module = parseIRFile(filename, err, *context).get();
+#else
+    Module* module = ParseIRFile(filename, err, *context);
+#endif
+    
+    if (module) {
+        return module;
+    } else {
+        err.print("ParseIRFile failed :", errs());
+        return NULL;
+    }
+}
+
+Module* loadModule(const string& module_name, llvm::LLVMContext* context)
+{
+    // Try as a complete path
+    if (Module* module = loadSingleModule(module_name, context)) {
+        return module;
+    } else {
+        // Otherwise use import directories
+        list<string>::iterator it;
+        for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
+            string file_name = *it + '/' + module_name;
+            if (Module* module = loadSingleModule(file_name, context)) {
+                return module;
+            }
+        }
+        return 0;
+    }
+}
+
+bool linkModules(Module* dst, Module* src, char* error_msg)
+{
+    bool res = false;
+    
+#if defined(LLVM_38)
+    if (Linker::linkModules(*dst, std::unique_ptr<Module>(src))) { // Don't know what I'm doing here. Could Linker::linkModules try to free the src pointer? -Kjetil
+        snprintf(error_msg, 256, "cannot link module");
+        
+#elif defined(LLVM_36) || defined(LLVM_37)
+        if (Linker::LinkModules(dst, src)) {
+            snprintf(error_msg, 256, "cannot link module");
+#else
+            string err;
+            if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {
+                snprintf(error_msg, 256, "cannot link module : %s", err.c_str());
+#endif
+    } else {
+        res = true;
+    }
+    
+    delete src;
+    return res;
+}
+        
+Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error)
+{
+    list<string>::iterator it;
+    
+    for (it = gGlobal->gLibraryList.begin(); it != gGlobal->gLibraryList.end(); it++) {
+        string module_name = *it;
+        
+        Module* src = loadModule(module_name, context);
+        if (!src) {
+            sprintf(error, "cannot load module : %s", module_name.c_str());
+            return 0;
+        }
+        
+        if (!linkModules(dst, src, error)) {
+            return 0;
+        }
+    }
+    
+    return dst;
+}
+    
 #endif // LLVM_BUILD
 
