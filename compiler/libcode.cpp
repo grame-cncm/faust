@@ -724,22 +724,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
         if (generate) {
-        
-            //ClangCodeContainer* clang_container = dynamic_cast<ClangCodeContainer*>(container);
-            /*
-            gGlobal->gLLVMResult = clang_container->produceModule(signals, gGlobal->gOutputFile);
-            if (!gGlobal->gLLVMResult) {
-                throw faustexception("Cannot compile C generated code to LLVM IR\n");
-            }
-            
-            if (gGlobal->gLLVMOut && gGlobal->gOutputFile == "") {
-                outs() << *gGlobal->gLLVMResult->fModule;
-            }
-            */
-            
-            //gGlobal->gDSPFactory = llvm_container->produceFactory();
-            //gGlobal->gDSPFactory->write(&dst);
-            
+            // TO CHECK ?
         } else {
             // To trigger 'sig.dot' generation
             if (gGlobal->gVectorSwitch) {
@@ -767,18 +752,6 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
          
         if (generate) {
             comp->compileMultiSignal(signals);
-            //LLVMCodeContainer* llvm_container = dynamic_cast<LLVMCodeContainer*>(container);
-            
-            /*
-            gGlobal->gLLVMResult = llvm_container->produceModule(gGlobal->gOutputFile);
-            if (gGlobal->gLLVMOut && gGlobal->gOutputFile == "") {
-                outs() << *gGlobal->gLLVMResult->fModule;
-            }
-            */
-            
-            //gGlobal->gDSPFactory = llvm_container->produceFactory();
-           // gGlobal->gDSPFactory->write(&dst);
-            
         } else {
             // To trigger 'sig.dot' generation
             comp->prepare(signals);
@@ -809,11 +782,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             comp = new InterpreterInstructionsCompiler(container);
         }
 
-       if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
+        if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
      
         comp->compileMultiSignal(signals);
-        //gGlobal->gDSPFactory = container->produceFactory();
-        //gGlobal->gDSPFactory->write(&dst);
      
     } else if (gGlobal->gOutputLang == "fir") {
         
@@ -1164,34 +1135,6 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     *****************************************************************/
     generateOutputFiles(comp_container.first, comp_container.second);
 }
-
-#if LLVM_BUILD
-
-/*
-EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& error_msg)
-{
-    gGlobal = NULL;
-    LLVMResult* res;
-    
-    try {
-    
-        // Compile module
-        global::allocate();
-        gGlobal->gLLVMOut = false;
-        compile_faust_internal(argc, argv, name, dsp_content, true);
-        error_msg = gGlobal->gErrorMsg;
-        res = gGlobal->gLLVMResult;
-            
-    } catch (faustexception& e) {
-        error_msg = e.Message();
-        res = NULL;
-    }
-    
-    global::destroy();
-    return res;
-}
-*/
-#endif
 
 EXPORT dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& error_msg)
 {

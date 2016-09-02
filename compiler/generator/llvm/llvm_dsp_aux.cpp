@@ -170,12 +170,6 @@
     #define MEMORY_BUFFER_CREATE(stringref) (MemoryBuffer::getMemBuffer(stringref))
 #endif
 
-#if defined(LLVM_34) || defined(LLVM_35)  || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)
-    #define MAX_OPT_LEVEL 5
-#else 
-    #define MAX_OPT_LEVEL 4
-#endif
-
 using namespace llvm;
 
 // Factories instances management
@@ -332,26 +326,6 @@ void* llvm_dsp_factory_aux::loadOptimize(const string& function)
     throw faustexception(error.str());
 }
 
-/*
-LLVMResult* llvm_dsp_factory_aux::compileModule(int argc, const char* argv[], const char* input_name, const char* input, string& error_msg)
-{
-    int argc1 = argc + 3;
-    const char* argv1[32];
-
-    argv1[0] = "faust";
-    argv1[1] = "-lang";
-    //argv1[2] = "cllvm";
-    argv1[2] = "llvm";
-    for (int i = 0; i < argc; i++) {
-        argv1[i+3] = argv[i];
-    }
-    
-    argv1[argc1] = 0;  // NULL terminated argv
-
-    return compile_faust_llvm(argc1, argv1, input_name, input, error_msg);
-}
- */
-
 // Bitcode
 string llvm_dsp_factory_aux::writeDSPFactoryToBitcode()
 {
@@ -488,7 +462,7 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key,
    
     init("BitcodeDSP", "");
     fSHAKey = sha_key;
-    fOptLevel = ((opt_level == -1) || (opt_level > MAX_OPT_LEVEL)) ? MAX_OPT_LEVEL : opt_level;  // Normalize opt_level
+    setOptlevel(opt_level);
     
     fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
     fModule = module;
@@ -497,12 +471,6 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key,
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)) && !defined(_MSC_VER)
     fObjectCache = NULL;
 #endif
-    
-    /*
-    std::cout << "llvm_dsp_factory_aux::llvm_dsp_factory_aux DUMP\n";
-    fModule->dump();
-    std::cout << "llvm_dsp_factory_aux::llvm_dsp_factory_aux DUMP OK\n";
-    */
 }
 
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)
@@ -511,45 +479,6 @@ void llvm_dsp_factory_aux::LLVMFatalErrorHandler(const char* reason)
     throw faustexception(reason);
 }
 #endif
-
-/*
-llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, 
-                                            int argc,
-                                            const char* argv[],
-                                            const string& name_app,
-                                            const string& dsp_content, 
-                                            const string& expanded_dsp_content, 
-                                            const string& target, 
-                                            string& error_msg,
-                                            int opt_level)
-    :dsp_factory_imp(name_app, sha_key, expanded_dsp_content)
-{
-    if (llvm_dsp_factory_aux::gInstance++ == 0) {
-        // Install a LLVM error handler
-    #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)
-        LLVMInstallFatalErrorHandler(llvm_dsp_factory_aux::LLVMFatalErrorHandler);
-    #endif
-    #if (!defined(LLVM_35) && !defined(LLVM_36) && !defined(LLVM_37) && !defined(LLVM_38)) // In LLVM 3.5 this is gone.
-        if (!llvm_start_multithreaded()) {
-            printf("llvm_start_multithreaded error...\n");
-        }
-    #endif
-    }
-    init("SourceDSP", name_app);
-    
-    fOptLevel = ((opt_level == -1) || (opt_level > MAX_OPT_LEVEL)) ? MAX_OPT_LEVEL : opt_level;  // Normalize opt_level
-    fExpandedDSP = expanded_dsp_content;
-    fSHAKey = sha_key;
-    fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;  
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)) && !defined(_MSC_VER)
-    fObjectCache = NULL;
-#endif
-    
-    fClassName = getParam(argc, argv, "-cn", "mydsp");
-    fIsDouble = isParam(argc, argv, "-double");
-    fResult = compileModule(argc, argv, name_app.c_str(), dsp_content.c_str(), error_msg);
-}
-*/
 
 void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)
 {
@@ -642,12 +571,6 @@ static void AddOptimizationPasses(PassManagerBase &MPM, FUNCTION_PASS_MANAGER &F
 bool llvm_dsp_factory_aux::initJIT(string& error_msg)
 {
     startTiming("initJIT");
-    
-    /*
-    std::cout << "llvm_dsp_factory_aux::initJIT DUMP" << std::endl;
-    fModule->dump();
-    std::cout << "llvm_dsp_factory_aux::initJIT DUMP OK" << std::endl;
-    */
     
     // For multiple target support
     InitializeAllTargets();
@@ -1018,13 +941,6 @@ llvm_dsp_factory_aux::~llvm_dsp_factory_aux()
 
 void llvm_dsp_factory_aux::write(std::ostream* out, bool binary, bool small)
 {
-    //out << *fModule;
-    /*
-    std::cout << "llvm_dsp_factory_aux::write DUMP\n";
-    fModule->dump();
-    std::cout << "llvm_dsp_factory_aux::write DUMP OK\n";
-    */
-    
     string res;
     raw_string_ostream out_str(res);
     if (binary) {
@@ -1032,39 +948,14 @@ void llvm_dsp_factory_aux::write(std::ostream* out, bool binary, bool small)
     } else {
         out_str << *fModule;
     }
-    
     *out << out_str.str();
-    
-    /*
-    out.flush();
-    
-    
-    WriteBitcodeToFile(fModule, out);
-    out.flush();
-    return base64_encode(res);
-    
-    if (binary) {
-        STREAM_ERROR err;
-        raw_fd_ostream out1("t1.bc", err, sysfs_binary_flag);
-        out1 << *fModule;
-        out1.flush();
-    } else {
-        string str;
-        raw_string_ostream out_str(str);
-        out_str << *fModule;
-        *out << out_str.str();
-    }
-     */
 }
 
 // Instance
 
 llvm_dsp_aux::llvm_dsp_aux(llvm_dsp_factory_aux* factory, llvm_dsp_imp* dsp)
     :fFactory(factory), fDSP(dsp)
-{
-    assert(fFactory);
-    assert(fDSP);
-}
+{}
 
 EXPORT llvm_dsp::~llvm_dsp()
 {
@@ -1077,24 +968,6 @@ llvm_dsp_aux::~llvm_dsp_aux()
     TLock lock(gDSPFactoriesLock);
     fFactory->fDelete(fDSP);
 }
-
-/*
-llvm_dsp_aux::~llvm_dsp_aux()
-{   
-    TLock lock(gDSPFactoriesLock);
-    gLLVMFactoryTable.removeDSP(fFactory, this);
-    if (fDSP) {
-        fFactory->fDelete(fDSP);
-    }
-}
-*/
-
-/*
-llvm_dsp_aux* llvm_dsp_aux::clone()
-{
-    return reinterpret_cast<llvm_dsp_aux*>(fFactory->createDSPInstance());
-}
- */
 
 void llvm_dsp_aux::metadata(Meta* m)
 {
@@ -1112,6 +985,7 @@ int llvm_dsp_aux::getNumInputs()
 {
     return fFactory->fGetNumInputs(fDSP);
 }
+
 int llvm_dsp_aux::getNumOutputs()
 {
     return fFactory->fGetNumOutputs(fDSP);
@@ -1158,7 +1032,6 @@ void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 // Public C++ API
 
 EXPORT string getLibFaustVersion() { return FAUSTVERSION; }
-
 
 EXPORT bool startMTDSPFactories()
 {
@@ -1207,13 +1080,6 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
         return NULL; 
     } else {
         
-        /*
-        std::cout << "createDSPFactoryFromString\n";
-        for (int i = 0; i < argc; i++) {
-            std::cout <<  "argv[i] " << "argv[i] " << std::endl;
-        }
-        */
-        
         int argc1 = 0;
         const char* argv1[64];
         
@@ -1250,52 +1116,28 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             SDsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
-        /*
-        } else if ((factory = new llvm_dsp_factory(llvm_dsp_factory_aux::checkDSPFactory(new llvm_dsp_factory_aux(sha_key, argc1,
-                                                                                                                  argv1, name_app,
-                                                                                                                  dsp_content, expanded_dsp_content,
-                                                                                                                  target, error_msg,
-                                                                                                                  opt_level), error_msg))) != 0) {
-        */
-    
         } else {
             llvm_dsp_factory_aux* factory_aux = static_cast<llvm_dsp_factory_aux*>(compile_faust_factory(argc1, argv1,
                                                                                                         name_app.c_str(),
                                                                                                         dsp_content.c_str(),
                                                                                                         error_msg));
             
-            //std::cout << "createDSPFactoryFromString 1 \n";
             factory_aux->setTarget(target);
             factory_aux->setOptlevel(opt_level);
             factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
             factory_aux->setIsDouble(isParam(argc, argv, "-double"));
             
-            // TODO : fClassName and fIsDouble setting
-                
             if (factory_aux->initJIT(error_msg)) {
                 factory = new llvm_dsp_factory(factory_aux);
                 gLLVMFactoryTable.setFactory(factory);
                 factory->setSHAKey(sha_key);
                 factory->setDSPCode(expanded_dsp_content);
-                 //std::cout << "createDSPFactoryFromString 2 \n";
                 return factory;
             } else {
                 delete factory_aux;
                 return NULL;
             }
         }
-        
-        /*
-        } else if ((factory = new llvm_dsp_factory(factory_aux)) != 0) {
-            
-            gLLVMFactoryTable.setFactory(factory);
-            factory->setSHAKey(sha_key);
-            factory->setDSPCode(expanded_dsp_content);
-            return factory;
-        } else {
-            return NULL;
-        }
-        */
     }
     
     /*
@@ -1361,14 +1203,7 @@ EXPORT string llvm_dsp_factory_aux::getName()
     }
 }
 
-/*
-EXPORT string llvm_dsp_factory_aux::getSHAKey() { return fSHAKey; }
-
-EXPORT string llvm_dsp_factory_aux::getDSPCode() { return fExpandedDSP; }
- */
-
 EXPORT string llvm_dsp_factory_aux::getTarget() { return fTarget; }
-
     
 EXPORT string getDSPMachineTarget()
 {
@@ -1664,77 +1499,9 @@ EXPORT llvm_dsp* llvm_dsp_factory::createDSPInstance()
 
 EXPORT dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory)
 {
-    assert(fModule);
-    assert(fJIT);
-    
     llvm_dsp_imp* dsp = fNew();
     return (dsp) ? new llvm_dsp(new llvm_dsp_aux(this, dsp), dynamic_cast<llvm_dsp_factory*>(factory)) : NULL;
 }
-
-/*
-EXPORT dsp* llvm_dsp_factory_aux::createDSPInstance()
-{
-    assert(fModule);
-    assert(fJIT);
-    
-    llvm_dsp* instance = reinterpret_cast<llvm_dsp*>(new llvm_dsp_aux(this, fNew()));
-    gLLVMFactoryTable.addDSP(this, instance);
-    return instance;
-}
-*/
-
-/*
-EXPORT void llvm_dsp::metadata(Meta* m)
-{
-    reinterpret_cast<llvm_dsp_aux*>(this)->metadata(m);
-}
-
-EXPORT int llvm_dsp::getNumInputs()
-{
-    return reinterpret_cast<llvm_dsp_aux*>(this)->getNumInputs();
-}
-
-int EXPORT llvm_dsp::getNumOutputs()
-{
-    return reinterpret_cast<llvm_dsp_aux*>(this)->getNumOutputs();
-}
-
-EXPORT void llvm_dsp::init(int samplingRate)
-{
-    reinterpret_cast<llvm_dsp_aux*>(this)->init(samplingRate);
-}
-    
-EXPORT void llvm_dsp::instanceInit(int samplingRate)
-{
-    reinterpret_cast<llvm_dsp_aux*>(this)->instanceInit(samplingRate);
-}
-        
-EXPORT void llvm_dsp::instanceClear()
-{
-    reinterpret_cast<llvm_dsp_aux*>(this)->instanceClear();
-}
-        
-EXPORT int llvm_dsp::getSampleRate()
-{
-    return reinterpret_cast<llvm_dsp_aux*>(this)->getSampleRate();
-}
-
-EXPORT void llvm_dsp::buildUserInterface(UI* ui_interface)
-{
-    reinterpret_cast<llvm_dsp_aux*>(this)->buildUserInterface(ui_interface);
-}
-
-EXPORT void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
-{
-    reinterpret_cast<llvm_dsp_aux*>(this)->compute(count, input, output);
-}
-
-EXPORT llvm_dsp* llvm_dsp::clone()
-{
-    //return reinterpret_cast<llvm_dsp*>(reinterpret_cast<llvm_dsp_aux*>(this)->clone());
-    return reinterpret_cast<llvm_dsp*>(fFactory->createDSPInstance());
-}
-*/
 
 EXPORT void llvm_dsp::metadata(Meta* meta)
 {

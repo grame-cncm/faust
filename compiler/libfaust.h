@@ -41,17 +41,7 @@ namespace llvm
 
 using namespace llvm;
 
-/*
-typedef struct LLVMResult {
-
-    llvm::Module* fModule;
-    llvm::LLVMContext* fContext;
-    std::vector<std::string> fPathnameList;
-
-} LLVMResult;
-*/
-
-struct dsp_factory_base;
+class dsp_factory_base;
 
 /*
     Low level dynamic compilation interface. Better use the public API defined in llvm-dsp.h or llvm-c-dsp.h
@@ -82,8 +72,6 @@ EXPORT bool compile_faust(int argc, const char* argv[], const char* name, const 
  *
  * @return a factory on success, 0 otherwise, with an error message in error_msg.
  */
-
-//EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg);
 
 EXPORT dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg);
 

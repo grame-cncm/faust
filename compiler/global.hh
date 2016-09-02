@@ -138,12 +138,10 @@ struct global {
     bool            gGenerateSelectWithIf;
     bool            gAllowForeignFunction;
     bool            gComputeIOA;
-
-    // LLVM backend
-    LLVMResult*     gLLVMResult;
     
-    // Interpreter backend
     dsp_factory_base* gDSPFactory;
+
+    // Interpreter backend
     DispatchVisitor*  gInterpreterVisitor;
     
     const char*     gInputString;

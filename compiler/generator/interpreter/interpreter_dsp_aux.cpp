@@ -73,7 +73,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string
         return createInterpreterDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, error_msg);
     } else {
         error_msg = "File Extension is not the one expected (.dsp expected)";
-        return 0;
+        return NULL;
     } 
 }
 
@@ -83,13 +83,13 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
                                                                     string& error_msg)
 {
 #ifdef LOADER
-   return 0;
+   return NULL;
 #else
    
     string expanded_dsp_content, sha_key;
     
     if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
-        return 0;
+        return NULL;
     } else {
         
         int argc1 = 0;
@@ -123,7 +123,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
             factory->setDSPCode(expanded_dsp_content);
             return factory;
         } else {
-            return 0;
+            return NULL;
         }
     }
  #endif
@@ -220,7 +220,7 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const s
         return readInterpreterDSPFactoryFromMachineAux(&reader);
     } else {
         std::cerr << "File Extension is not the one expected (.fbc expected)" << std::endl;
-        return 0;
+        return NULL;
     }
 }
 

@@ -47,8 +47,6 @@
 using namespace std;
 using namespace llvm;
 
-//struct LLVMResult;
-
 class LLVMCodeContainer : public virtual CodeContainer {
 
     protected:
@@ -59,9 +57,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
         IRBuilder<>* fBuilder;
         IRBuilder<>* fAllocaBuilder;    // To be used for "alloca", which have to be added in the first "entry" block of the function.
         LLVMInstVisitor* fCodeProducer;
-        
-        //LLVMResult* fResult;
-    
+      
         Module* fModule;
         LLVMContext* fContext;
     

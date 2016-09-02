@@ -47,7 +47,6 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 {
     initializeCodeContainer(numInputs, numOutputs);
     fKlassName = name;
-    //fResult = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
     fContext = new LLVMContext();
     fModule = new Module(LVVM_BACKEND_NAME, getContext());
     fModule->setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128");
@@ -97,15 +96,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 }
 
 LLVMCodeContainer::~LLVMCodeContainer()
-{
-    /*
-    if (fResult) { // fResult was not returned by produceModule (possibly in case of syntax error...) so desallocate it here
-        delete fModule;
-        delete fContext;
-        free(fResult);
-    }
-    */
-}
+{}
 
 LLVMContext& LLVMCodeContainer::getContext() { return *fContext; }
 
@@ -658,8 +649,6 @@ void LLVMCodeContainer::produceInternal()
     generateFillEnd();
 }
 
-//LLVMResult* LLVMCodeContainer::produceModule(const string& filename)
-
 dsp_factory_base* LLVMCodeContainer::produceFactory()
 {
     generateSR();
@@ -745,27 +734,6 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
         llvm_error << "ERROR : " << error << endl;
         throw faustexception(llvm_error.str());
     }
-    /*
-    // Keep source files pathnames
-    fPathnameList = gGlobal->gReader.listSrcFiles();
-    
-    // Possibly output file
-    if (filename != "") {
-        STREAM_ERROR err;
-        raw_fd_ostream out(filename.c_str(), err, sysfs_binary_flag);
-        WriteBitcodeToFile(fModule, out);
-    }
-    
-    LLVMResult* result = fResult;
-    fResult = NULL; // Will be deallocated later on in the compilation chain...
-    return result;
-    */
-    
-    /*
-    std::cout << "LLVMCodeContainer::produceFactory() DUMP\n";
-    fModule->dump();
-    std::cout << "LLVMCodeContainer::produceFactory() DUMP OK\n";
-    */
     
     return new llvm_dsp_factory_aux("", gGlobal->gReader.listSrcFiles(), fModule, fContext, "", -1);
 }
@@ -782,10 +750,7 @@ LLVMScalarCodeContainer::LLVMScalarCodeContainer(const string& name, int numInpu
 }
 
 LLVMScalarCodeContainer::~LLVMScalarCodeContainer()
-{
-    // fResult will be possibly deallocated by main container..
-    //fResult = NULL;
-}
+{}
 
 void LLVMScalarCodeContainer::generateCompute()
 {

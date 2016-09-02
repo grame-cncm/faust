@@ -118,9 +118,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gDSPStruct = false;
 
     gClassName = "mydsp";
-
-    gLLVMResult = 0;
-    
+ 
     gDSPFactory = 0;
     gInterpreterVisitor = 0;
     

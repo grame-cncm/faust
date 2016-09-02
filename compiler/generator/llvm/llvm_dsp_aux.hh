@@ -40,13 +40,18 @@
 #include "dsp_factory.hh"
 #include "TMutex.h"
 
+#if defined(LLVM_34) || defined(LLVM_35)  || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)
+#define MAX_OPT_LEVEL 5
+#else
+#define MAX_OPT_LEVEL 4
+#endif
+
 using namespace std;
 
 class FaustObjectCache;
 
 class llvm_dsp_factory;
 
-//class EXPORT llvm_dsp_factory_aux : public dsp_factory, public smartable {
 class llvm_dsp_factory_aux : public dsp_factory_imp {
 
     friend class llvm_dsp_aux;
@@ -58,18 +63,14 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)) && !defined(_MSC_VER)
         FaustObjectCache* fObjectCache;
     #endif
-        //LLVMResult* fResult;
     
         llvm::Module* fModule;
         LLVMContext* fContext;
     
         int fOptLevel;
-        //string fExpandedDSP;
         string fTarget;
         string fClassName;
-        //string fSHAKey;
-        string fTypeName; 
-        //string fDSPName;
+        string fTypeName;
         bool fIsDouble;
     
         newDspFun fNew;
@@ -86,14 +87,6 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     
         void* loadOptimize(const string& function);
     
-        /*
-        LLVMResult* compileModule(int argc, 
-                                const char* argv[], 
-                                const char* input_name, 
-                                const char* input, 
-                                string& error_msg);
-        */
-    
         void init(const string& dsp_name, const string& type_name);
         
         bool crossCompile(const std::string& target);
@@ -105,15 +98,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         string writeDSPFactoryToMachineAux(const string& target);
                    
     public:
-  
-        /*
-        llvm_dsp_factory_aux(const string& sha_key, int argc, const char* argv[], 
-                        const string& name, 
-                        const string& dsp_content, const string& expendand_dsp_content,
-                        const string& target, 
-                        string& error_msg, int opt_level = -1);
-        */
-              
+    
         llvm_dsp_factory_aux(const string& sha_key, const std::vector<std::string>& pathname_list, Module* module, LLVMContext* context, const string& target, int opt_level = 0);
         
     #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)) && !defined(_MSC_VER)
@@ -151,25 +136,16 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         std::string getTarget();
         void setTarget(const string& target) { fTarget = target; }
     
-        //std::vector<std::string> getDSPFactoryLibraryList() { return fResult->fPathnameList; }
-    
         std::string getName();
     
     
         int getOptlevel();
-        void setOptlevel(int optlevel) { fOptLevel = optlevel; }
+        void setOptlevel(int opt_level) {fOptLevel = ((opt_level == -1) || (opt_level > MAX_OPT_LEVEL)) ? MAX_OPT_LEVEL : opt_level; }
     
         void setClassName(const string& class_name) { fClassName = class_name; }
+    
         void setIsDouble(bool is_double) { fIsDouble = is_double; }
-    
-    
-        //std::string getSHAKey();
-    
-        //void setSHAKey(std::string sha_key) { fSHAKey = sha_key; }
-    
-        //std::string getDSPCode();
-    
-        //dsp* createDSPInstance();
+   
         dsp* createDSPInstance(dsp_factory* factory);
     
         virtual void write(std::ostream* out, bool binary, bool small = false);
@@ -179,8 +155,6 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
 
 class llvm_dsp_aux : public dsp {
 
-    friend class llvm_dsp_factory_aux;
-   
     private:
 
         llvm_dsp_factory_aux* fFactory;
@@ -260,7 +234,7 @@ class EXPORT llvm_dsp : public dsp {
 
 class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
     
-    protected:
+    private:
         
         llvm_dsp_factory_aux* fFactory;
         
@@ -292,7 +266,6 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
         
         std::vector<std::string> getDSPFactoryLibraryList() { return fFactory->getDSPFactoryLibraryList(); }
     
-        // Bitcode
         std::string writeDSPFactoryToBitcode() { return fFactory->writeDSPFactoryToBitcode(); }
     
         void writeDSPFactoryToBitcodeFile(const string& bit_code_path) { fFactory->writeDSPFactoryToBitcodeFile(bit_code_path); }
