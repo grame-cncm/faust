@@ -186,21 +186,23 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     FIRBlockInstruction<T>* compute_dsp_block = getCurrentBlock<T>();
     
     // Then create factory
-    return new interpreter_dsp_factory_aux<T>(fKlassName, "", INTERP_FILE_VERSION,
-                                                              fNumInputs, fNumOutputs,
-                                                              getInterpreterVisitor<T>()->fIntHeapOffset,
-                                                              getInterpreterVisitor<T>()->fRealHeapOffset,
-                                                              getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
-                                                              getInterpreterVisitor<T>()->getFieldOffset("count"),
-                                                              getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
-                                                              MAX_OPT_LEVEL,
-                                                              produceMetadata(),
-                                                              getInterpreterVisitor<T>()->fUserInterfaceBlock,
-                                                              init_static_block,
-                                                              init_block,
-                                                              clear_block,
-                                                              compute_control_block,
-                                                              compute_dsp_block);
+    return new interpreter_dsp_factory_aux<T>(fKlassName, "",
+                                              gGlobal->gReader.listSrcFiles(),
+                                              INTERP_FILE_VERSION,
+                                              fNumInputs, fNumOutputs,
+                                              getInterpreterVisitor<T>()->fIntHeapOffset,
+                                              getInterpreterVisitor<T>()->fRealHeapOffset,
+                                              getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                                              getInterpreterVisitor<T>()->getFieldOffset("count"),
+                                              getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
+                                              MAX_OPT_LEVEL,
+                                              produceMetadata(),
+                                              getInterpreterVisitor<T>()->fUserInterfaceBlock,
+                                              init_static_block,
+                                              init_block,
+                                              clear_block,
+                                              compute_control_block,
+                                              compute_dsp_block);
 }
 
 template <class T>

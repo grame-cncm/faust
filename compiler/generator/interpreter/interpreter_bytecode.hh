@@ -110,7 +110,7 @@ struct FIRBasicInstruction : public FIRInstruction {
         return (branches > 0) ? branches : 1;
     }
     
-    virtual void write(std::ostream* out, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false)
     {
         if (small) {
             *out << "o " << fOpcode << " k "
@@ -129,8 +129,8 @@ struct FIRBasicInstruction : public FIRInstruction {
             << std::endl;
         }
         // If select/if/loop : write branches
-        if (getBranch1()) { fBranch1->write(out, small); }
-        if (fBranch2) { fBranch2->write(out, small); }
+        if (getBranch1()) { fBranch1->write(out, binary, small); }
+        if (fBranch2) { fBranch2->write(out, binary, small); }
     }
     
     virtual FIRBasicInstruction<T>* copy()
@@ -164,7 +164,7 @@ struct FIRBlockStoreRealInstruction : public FIRBasicInstruction<T> {
         return new FIRBlockStoreRealInstruction<T>(this->fOpcode, this->fOffset1 , this->fOffset2, this->fNumTable);
     }
     
-    virtual void write(std::ostream* out, bool small = false)
+    virtual void write(std::ostream* out, bool binary, bool small = false)
     {
         if (small) {
             *out << "o " << this->fOpcode << " k "
@@ -207,7 +207,7 @@ struct FIRBlockStoreIntInstruction : public FIRBasicInstruction<T> {
         return new FIRBlockStoreIntInstruction<T>(this->fOpcode, this->fOffset1 , this->fOffset2, this->fNumTable);
     }
     
-    virtual void write(std::ostream* out, bool small = false)
+    virtual void write(std::ostream* out, bool binary, bool small = false)
     {
         if (small) {
             *out << "o " << this->fOpcode << " k "
@@ -276,7 +276,7 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
     virtual ~FIRUserInterfaceInstruction()
     {}
     
-    virtual void write(std::ostream* out, bool small = false)
+    virtual void write(std::ostream* out, bool binary, bool small = false)
     {
         if (small) {
             *out << "o " << fOpcode << " k "
@@ -315,7 +315,7 @@ struct FIRMetaInstruction : public FIRInstruction {
     virtual ~FIRMetaInstruction()
     {}
     
-    virtual void write(std::ostream* out, bool small = false)
+    virtual void write(std::ostream* out, bool binary, bool small = false)
     {
         if (small) {
             *out << "m"
@@ -349,12 +349,12 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
      
     void push(FIRUserInterfaceInstruction<T>* inst) { fInstructions.push_back(inst); }
     
-    virtual void write(std::ostream* out, bool small = false)
+    virtual void write(std::ostream* out, bool binary, bool small = false)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         UIInstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-            (*it)->write(out, small);
+            (*it)->write(out, binary, small);
         }
     }
     
@@ -409,12 +409,12 @@ struct FIRMetaBlockInstruction : public FIRInstruction {
     
     void push(FIRMetaInstruction* inst) { fInstructions.push_back(inst); }
     
-    virtual void write(std::ostream* out, bool small = false)
+    virtual void write(std::ostream* out, bool binary, bool small = false)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         MetaInstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-            (*it)->write(out, small);
+            (*it)->write(out, binary, small);
         }
     }
     
@@ -445,12 +445,12 @@ struct FIRBlockInstruction : public FIRInstruction {
         }
     }
     
-    virtual void write(std::ostream* out, bool small = false)
+    virtual void write(std::ostream* out, bool binary, bool small = false)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         InstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-            (*it)->write(out, small);
+            (*it)->write(out, binary, small);
         }
     }
     

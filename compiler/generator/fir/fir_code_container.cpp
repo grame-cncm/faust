@@ -25,7 +25,14 @@
 
 using namespace std;
 
-map <string, int> FIRInstVisitor::gFunctionSymbolTable;      
+map <string, int> FIRInstVisitor::gFunctionSymbolTable;
+
+dsp_factory_base* FirCodeContainer::produceFactory()
+{
+    return new text_dsp_factory_aux(fKlassName, "", "",
+                                    gGlobal->gReader.listSrcFiles(),
+                                    (dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : "");
+}
 
 CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {

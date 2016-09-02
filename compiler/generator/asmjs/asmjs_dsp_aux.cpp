@@ -44,17 +44,17 @@ EXPORT asmjs_dsp_factory* createAsmDSPFactoryFromString(const string& name_app, 
         return 0;
     } else {
         
-        int argc1 = argc + 5;
+        int argc1 = 0;
         const char* argv1[64];
         
-        argv1[0] = "faust";
-        argv1[1] = "-lang";
-        argv1[2] = "ajs";
-        argv1[3] = "-o";
-        argv1[4] = "string";
+        argv1[argc1++] = "faust";
+        argv1[argc1++] = "-lang";
+        argv1[argc1++] = "ajs";
+        argv1[argc1++] = "-o";
+        argv1[argc1++] = "string";
         
         for (int i = 0; i < argc; i++) {
-            argv1[i+5] = argv[i];
+            argv1[argc1++] = argv[i];
         }
         
         argv1[argc1] = 0;  // NULL terminated argv

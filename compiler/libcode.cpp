@@ -703,7 +703,17 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
     InstructionsCompiler* comp = NULL;
     CodeContainer* container = NULL;
-    stringstream dst;
+    ostream* dst = NULL;
+    
+    // Finally output file
+    if (gGlobal->gOutputFile == "string") {
+        // Nothing
+    } else if (gGlobal->gOutputFile != "") {
+        string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
+        dst = new ofstream(outpath.c_str());
+    } else {
+        dst = &cout;
+    }
   
     startTiming("generateCode");
     
@@ -715,7 +725,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
         if (generate) {
         
-            ClangCodeContainer* clang_container = dynamic_cast<ClangCodeContainer*>(container);
+            //ClangCodeContainer* clang_container = dynamic_cast<ClangCodeContainer*>(container);
+            /*
             gGlobal->gLLVMResult = clang_container->produceModule(signals, gGlobal->gOutputFile);
             if (!gGlobal->gLLVMResult) {
                 throw faustexception("Cannot compile C generated code to LLVM IR\n");
@@ -724,6 +735,10 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             if (gGlobal->gLLVMOut && gGlobal->gOutputFile == "") {
                 outs() << *gGlobal->gLLVMResult->fModule;
             }
+            */
+            
+            //gGlobal->gDSPFactory = llvm_container->produceFactory();
+            //gGlobal->gDSPFactory->write(&dst);
             
         } else {
             // To trigger 'sig.dot' generation
@@ -752,12 +767,17 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
          
         if (generate) {
             comp->compileMultiSignal(signals);
-            LLVMCodeContainer* llvm_container = dynamic_cast<LLVMCodeContainer*>(container);
-            gGlobal->gLLVMResult = llvm_container->produceModule(gGlobal->gOutputFile);
+            //LLVMCodeContainer* llvm_container = dynamic_cast<LLVMCodeContainer*>(container);
             
+            /*
+            gGlobal->gLLVMResult = llvm_container->produceModule(gGlobal->gOutputFile);
             if (gGlobal->gLLVMOut && gGlobal->gOutputFile == "") {
                 outs() << *gGlobal->gLLVMResult->fModule;
             }
+            */
+            
+            //gGlobal->gDSPFactory = llvm_container->produceFactory();
+           // gGlobal->gDSPFactory->write(&dst);
             
         } else {
             // To trigger 'sig.dot' generation
@@ -792,14 +812,14 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
        if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
      
         comp->compileMultiSignal(signals);
-        gGlobal->gDSPFactory = container->produceFactory();
-        gGlobal->gDSPFactory->write(&dst);
+        //gGlobal->gDSPFactory = container->produceFactory();
+        //gGlobal->gDSPFactory->write(&dst);
      
     } else if (gGlobal->gOutputLang == "fir") {
         
         gGlobal->gGenerateSelectWithIf = false;
         
-        container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, &dst, true);
+        container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, true);
         
         if (gGlobal->gVectorSwitch) {
             comp = new DAGInstructionsCompiler(container);
@@ -816,31 +836,31 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
      
         if (gGlobal->gOutputLang == "c") {
 
-            container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, &dst);
+            container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
         } else if (gGlobal->gOutputLang == "cpp") {
 
-            container = CPPCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, &dst);
+            container = CPPCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
 
         } else if (gGlobal->gOutputLang == "java") {
             
             gGlobal->gAllowForeignFunction = false; // No foreign functions
-            container = JAVACodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, &dst);
+            container = JAVACodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
             
         } else if (gGlobal->gOutputLang == "js") {
             
             gGlobal->gAllowForeignFunction = false; // No foreign functions
-            container = JAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, &dst);
+            container = JAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
         
         } else if (gGlobal->gOutputLang == "ajs") {
             
             gGlobal->gAllowForeignFunction = false; // No foreign functions
-            container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, &dst);
+            container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
         } else if (gGlobal->gOutputLang == "wasm") {
 
             gGlobal->gAllowForeignFunction = false; // No foreign functions
-            container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, &dst);
+            container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
         } else {
             stringstream error;
@@ -857,96 +877,94 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
 
         comp->compileMultiSignal(signals);
+    }
 
-        /****************************************************************
-         * generate output file
-         ****************************************************************/
-         
-        if (gGlobal->gArchFile != "") {
+    /****************************************************************
+     * generate output file
+     ****************************************************************/
+     
+    if (gGlobal->gArchFile != "") {
+    
+        // Keep current directory
+        char current_directory[FAUST_PATH_MAX];
+        getcwd(current_directory, FAUST_PATH_MAX);
         
-            // Keep current directory
-            char current_directory[FAUST_PATH_MAX];
-            getcwd(current_directory, FAUST_PATH_MAX);
-            
-            if ((enrobage = open_arch_stream(gGlobal->gArchFile.c_str()))) {
-            
-                /****************************************************************
-                 1.7 - Inject code instead of compile
-                *****************************************************************/
+        if ((enrobage = open_arch_stream(gGlobal->gArchFile.c_str()))) {
+        
+            /****************************************************************
+             1.7 - Inject code instead of compile
+            *****************************************************************/
 
-                // Check if this is a code injection
-                if (gGlobal->gInjectFlag) {
-                    if (gGlobal->gArchFile == "") {
-                        stringstream error;
-                        error << "ERROR : no architecture file specified to inject \"" << gGlobal->gInjectFile << "\"" << endl;
-                        throw faustexception(error.str());
-                    } else {
-                        streamCopyUntil(*enrobage, dst, "<<includeIntrinsic>>");
-                        streamCopyUntil(*enrobage, dst, "<<includeclass>>");
-                        streamCopy(*injcode, dst);
-                        streamCopyUntilEnd(*enrobage, dst);
-                    }
-                    delete injcode;
-                    throw faustexception("");
+            // Check if this is a code injection
+            if (gGlobal->gInjectFlag) {
+                if (gGlobal->gArchFile == "") {
+                    stringstream error;
+                    error << "ERROR : no architecture file specified to inject \"" << gGlobal->gInjectFile << "\"" << endl;
+                    throw faustexception(error.str());
+                } else {
+                    streamCopyUntil(*enrobage,*dst, "<<includeIntrinsic>>");
+                    streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
+                    streamCopy(*injcode, *dst);
+                    streamCopyUntilEnd(*enrobage, *dst);
                 }
-       
-                container->printHeader();
-                
-                streamCopyUntil(*enrobage, dst, "<<includeIntrinsic>>");
-                streamCopyUntil(*enrobage, dst, "<<includeclass>>");
-
-                if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {
-                    includeFile("thread.h", &dst);
-                }
-
-                container->produceClass();
-                
-                streamCopyUntilEnd(*enrobage, dst);
-                
-                if (gGlobal->gSchedulerSwitch) {
-                    includeFile("scheduler.cpp", &dst);
-                }
-
-                container->printFooter();
-                
-                // Restore current_directory
-                chdir(current_directory);
-                delete enrobage;
-                 
-            } else {
-                stringstream error;
-                error << "ERROR : can't open architecture file " << gGlobal->gArchFile << endl;
-                throw faustexception(error.str());
+                delete injcode;
+                throw faustexception("");
             }
-            
-        } else {
+   
             container->printHeader();
+            
+            streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
+            streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
+
+            if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {
+                includeFile("thread.h", dst);
+            }
+
             container->produceClass();
+            
+            streamCopyUntilEnd(*enrobage, *dst);
+            
+            if (gGlobal->gSchedulerSwitch) {
+                includeFile("scheduler.cpp", dst);
+            }
+
             container->printFooter();
             
-            // Keep factory
-            gGlobal->gDSPFactory = container->produceFactory();
-        }
-        
-        // Finally output file
-        if (gGlobal->gOutputFile == "string") {
-            // Nothing
-        } else if (gGlobal->gOutputFile != "") {
-            string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
-            ofstream file(outpath.c_str());
-            file << dst.str();
+            // Force flush since the stream is not closed...
+            dst->flush();
+            
+            // Restore current_directory
+            chdir(current_directory);
+            delete enrobage;
+             
         } else {
-            cout << dst.str();
+            stringstream error;
+            error << "ERROR : can't open architecture file " << gGlobal->gArchFile << endl;
+            throw faustexception(error.str());
         }
         
+    } else {
+        container->printHeader();
+        container->produceClass();
+        container->printFooter();
+        
+        // Generate factory
+        gGlobal->gDSPFactory = container->produceFactory();
+        
+        // Binary mode for LLVM backend if output different of 'cout'
+        if (dst) {
+            gGlobal->gDSPFactory->write(dst, (dst != &cout), false);
+            // Force flush since the stream is not closed...
+            dst->flush();
+        }
     }
-    
+   
     endTiming("generateCode");
 
     return make_pair(comp, container);
 }
 
-static void generateOutputFiles(InstructionsCompiler * comp, CodeContainer * container)
+static void generateOutputFiles(InstructionsCompiler* comp, CodeContainer* container)
 {
     /****************************************************************
      1 - generate XML description (if required)
@@ -1149,6 +1167,7 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
 
 #if LLVM_BUILD
 
+/*
 EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& error_msg)
 {
     gGlobal = NULL;
@@ -1171,7 +1190,7 @@ EXPORT LLVMResult* compile_faust_llvm(int argc, const char* argv[], const char* 
     global::destroy();
     return res;
 }
-
+*/
 #endif
 
 EXPORT dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& error_msg)

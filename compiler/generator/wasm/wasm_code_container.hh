@@ -46,11 +46,8 @@ class WASMCodeContainer : public virtual CodeContainer {
         virtual void generateCompute(int tab) = 0;
     
         void produceInternal();
-        dsp_factory_base* produceFactory()
-        {
-            return new text_dsp_factory_aux(fKlassName, "", "", (dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : "");
-        }
-
+        dsp_factory_base* produceFactory();
+    
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
         static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst = new stringstream());

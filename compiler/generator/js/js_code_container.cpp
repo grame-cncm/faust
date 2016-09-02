@@ -28,7 +28,14 @@
 using namespace std;
 
 map <string, int> JAVAScriptInstVisitor::gFunctionSymbolTable;  
-map <string, string> JAVAScriptInstVisitor::gMathLibTable;  
+map <string, string> JAVAScriptInstVisitor::gMathLibTable;
+
+dsp_factory_base* JAVAScriptCodeContainer::produceFactory()
+{
+    return new text_dsp_factory_aux(fKlassName, "", "",
+                                    gGlobal->gReader.listSrcFiles(),
+                                    (dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : "");
+}
 
 CodeContainer* JAVAScriptCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {

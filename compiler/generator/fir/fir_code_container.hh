@@ -57,6 +57,8 @@ class FirCodeContainer : public virtual CodeContainer {
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
         void produceInternal() {}
         void produceClass();
+    
+        dsp_factory_base* produceFactory();
         
         bool fTopLevel;
 

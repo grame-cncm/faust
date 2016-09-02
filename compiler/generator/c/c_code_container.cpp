@@ -28,7 +28,14 @@
 
 using namespace std;
 
-map <string, int> CInstVisitor::gFunctionSymbolTable;      
+map <string, int> CInstVisitor::gFunctionSymbolTable;
+
+dsp_factory_base* CCodeContainer::produceFactory()
+{
+    return new text_dsp_factory_aux(fKlassName, "", "",
+                                    gGlobal->gReader.listSrcFiles(),
+                                    (dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : "");
+}
 
 CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {

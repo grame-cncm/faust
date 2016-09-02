@@ -27,6 +27,7 @@
 #include "vec_code_container.hh"
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"
+#include "llvm_dsp_aux.hh"
 
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)
     #include <llvm/Support/FileSystem.h>
@@ -46,7 +47,7 @@
 using namespace std;
 using namespace llvm;
 
-struct LLVMResult;
+//struct LLVMResult;
 
 class LLVMCodeContainer : public virtual CodeContainer {
 
@@ -59,8 +60,11 @@ class LLVMCodeContainer : public virtual CodeContainer {
         IRBuilder<>* fAllocaBuilder;    // To be used for "alloca", which have to be added in the first "entry" block of the function.
         LLVMInstVisitor* fCodeProducer;
         
-        LLVMResult* fResult;
-      
+        //LLVMResult* fResult;
+    
+        Module* fModule;
+        LLVMContext* fContext;
+    
         void generateComputeBegin(const string& counter);
         void generateComputeEnd();
         void generateComputeDouble();
@@ -137,10 +141,12 @@ class LLVMCodeContainer : public virtual CodeContainer {
     public:
 
         LLVMCodeContainer(const string& name, int numInputs, int numOutputs);
-        LLVMCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result);
+        LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, LLVMContext* context);
         virtual ~LLVMCodeContainer();
       
-        virtual LLVMResult* produceModule(const string& filename);
+        //virtual LLVMResult* produceModule(const string& filename);
+        virtual dsp_factory_base* produceFactory();
+    
         virtual void generateCompute() = 0;
         void produceInternal();
 
@@ -157,7 +163,7 @@ class LLVMScalarCodeContainer : public LLVMCodeContainer {
     public:
 
         LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs);
-        LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, LLVMResult* result, int sub_container_type);
+        LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, LLVMContext* context, int sub_container_type);
         virtual ~LLVMScalarCodeContainer();
 
         void generateCompute();

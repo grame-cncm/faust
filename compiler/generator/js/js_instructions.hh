@@ -27,15 +27,6 @@ using namespace std;
 #include "text_instructions.hh"
 #include "dsp_factory.hh"
 
-struct js_dsp_factory : public dsp_factory_imp {
-    
-    js_dsp_factory(const string& name, const string& sha_key, const string& dsp)
-        :dsp_factory_imp(name, sha_key, dsp)
-    {}
-    
-    virtual void write(std::ostream* out, bool small = false) {}
-};
-
 class JAVAScriptInstVisitor : public TextInstVisitor {
 
     private:

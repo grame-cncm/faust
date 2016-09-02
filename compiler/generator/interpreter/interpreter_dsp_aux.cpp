@@ -33,7 +33,7 @@ typedef class faust_smartptr<interpreter_dsp_factory> SDsp_factory;
 dsp_factory_table<SDsp_factory> gInterpreterFactoryTable;
 
 #ifdef LOADER
-static string pathToContent(const string& path)
+string pathToContent(const string& path)
 {
     ifstream file(path.c_str(), ifstream::binary);
     
@@ -53,6 +53,7 @@ static string pathToContent(const string& path)
     return result;
 }
 #endif
+
 
 // External API
 
@@ -91,14 +92,17 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
         return 0;
     } else {
         
-        int argc1 = argc + 3;
+        int argc1 = 0;
         const char* argv1[32];
         
-        argv1[0] = "faust";
-        argv1[1] = "-lang";
-        argv1[2] = "interp";
+        argv1[argc1++] = "faust";
+        argv1[argc1++] = "-lang";
+        argv1[argc1++] = "interp";
+        argv1[argc1++] = "-o";
+        argv1[argc1++] = "string";
+        
         for (int i = 0; i < argc; i++) {
-            argv1[i+3] = argv[i];
+            argv1[argc1++] = argv[i];
         }
         
         argv1[argc1] = 0;  // NULL terminated argv

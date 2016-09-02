@@ -59,7 +59,7 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
         
         wasm_dsp* createDSPInstance() { return nullptr; }
         
-        void write(std::ostream* out, bool small = false) { fFactory->write(out, small); }
+        void write(std::ostream* out, bool binary, bool small = false) { fFactory->write(out, binary, small); }
     
 };
 

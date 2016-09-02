@@ -276,12 +276,12 @@ EXPORT string expandDSPFromString(const string& name_app,
             return new_dsp_content;
         }
     } else {
-        int argc1 = argc + 1;
-        const char* argv1[32];
+        int argc1 = 0;
+        const char* argv1[64];
         
-        argv1[0] = "faust";
+        argv1[argc1++] = "faust";
         for (int i = 0; i < argc; i++) {
-            argv1[i+1] = argv[i];
+            argv1[argc1++] = argv[i];
         }
         
         argv1[argc1] = 0;  // NULL terminated argv
@@ -310,19 +310,20 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
         return "";
     } else {
     
-        int argc1 = 1;
+        int argc1 = 0;
         const char* argv1[64];
-        argv1[0] = "faust";
+        
+        argv1[argc1++] = "faust";
         
         // Filter arguments
         for (int i = 0; i < argc; i++) {
-            if (!(strcmp(argv[i],"-vec") == 0 ||
-                strcmp(argv[i],"-sch") == 0)) {
+            if (!(strcmp(argv[i], "-vec") == 0 || strcmp(argv[i], "-sch") == 0)) {
                 argv1[argc1++] = argv[i];
             }
         }
         
         argv1[argc1] = 0;  // NULL terminated argv
+        
         return compile_faust(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, false);
     }
 }
