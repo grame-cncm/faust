@@ -1249,7 +1249,6 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, cons
         } else {
             printf("readDSPFactoryFromBitcode failed : %s\n", error_msg.c_str());
             delete factory_aux;
-            delete module;
             return NULL;
         }
     }
@@ -1336,7 +1335,6 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
         } else {
             printf("readDSPFactoryFromBitcode failed : %s\n", error_msg.c_str());
             delete factory_aux;
-            delete module;
             return NULL;
         }
     }

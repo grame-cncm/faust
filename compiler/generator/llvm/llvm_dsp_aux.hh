@@ -41,9 +41,9 @@
 #include "TMutex.h"
 
 #if defined(LLVM_34) || defined(LLVM_35)  || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)
-#define MAX_OPT_LEVEL 5
+#define LLVM_MAX_OPT_LEVEL 5
 #else
-#define MAX_OPT_LEVEL 4
+#define LLVM_MAX_OPT_LEVEL 4
 #endif
 
 using namespace std;
@@ -140,7 +140,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     
     
         int getOptlevel();
-        void setOptlevel(int opt_level) {fOptLevel = ((opt_level == -1) || (opt_level > MAX_OPT_LEVEL)) ? MAX_OPT_LEVEL : opt_level; }
+        void setOptlevel(int opt_level) {fOptLevel = ((opt_level == -1) || (opt_level > LLVM_MAX_OPT_LEVEL)) ? LLVM_MAX_OPT_LEVEL : opt_level; }
     
         void setClassName(const string& class_name) { fClassName = class_name; }
     

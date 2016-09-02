@@ -29,7 +29,7 @@
 
 #include "interpreter_bytecode.hh"
 
-#define MAX_OPT_LEVEL 6
+#define INTER_MAX_OPT_LEVEL 6
 
 // Tables for math optimization
 

@@ -56,7 +56,7 @@
 #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get()->getMemBufferRef())
 #define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
 #define GET_CPU_NAME llvm::sys::getHostCPUName().str()
-#define MAX_OPT_LEVEL 5
+#define LLVM_MAX_OPT_LEVEL 5
 
 using namespace llvm;
 

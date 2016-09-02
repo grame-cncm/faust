@@ -67,9 +67,9 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
             sfactory->addReference();
             return sfactory;
         } else if ((factory = new wasm_dsp_factory(compile_faust_factory(argc1, argv1,
-                                                                            name_app.c_str(),
-                                                                            dsp_content.c_str(),
-                                                                            error_msg))) != 0) {
+                                                                        name_app.c_str(),
+                                                                        dsp_content.c_str(),
+                                                                        error_msg))) != 0) {
             gWasmFactoryTable.setFactory(factory);
             factory->setSHAKey(sha_key);
             factory->setDSPCode(expanded_dsp_content);

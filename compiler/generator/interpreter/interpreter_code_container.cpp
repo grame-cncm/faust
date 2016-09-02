@@ -195,7 +195,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
                                               getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
                                               getInterpreterVisitor<T>()->getFieldOffset("count"),
                                               getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
-                                              MAX_OPT_LEVEL,
+                                              INTER_MAX_OPT_LEVEL,
                                               produceMetadata(),
                                               getInterpreterVisitor<T>()->fUserInterfaceBlock,
                                               init_static_block,
