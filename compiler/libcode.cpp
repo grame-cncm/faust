@@ -707,7 +707,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     
     // Finally output file
     if (gGlobal->gOutputFile == "string") {
-        // Nothing
+        dst = new stringstream();
     } else if (gGlobal->gOutputFile != "") {
         string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
         dst = new ofstream(outpath.c_str());
@@ -923,11 +923,10 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         gGlobal->gDSPFactory = container->produceFactory();
         
         // Binary mode for LLVM backend if output different of 'cout'
-        if (dst) {
-            gGlobal->gDSPFactory->write(dst, (dst != &cout), false);
-            // Force flush since the stream is not closed...
-            dst->flush();
-        }
+        gGlobal->gDSPFactory->write(dst, (dst != &cout), false);
+        
+        // Force flush since the stream is not closed...
+        dst->flush();
     }
    
     endTiming("generateCode");

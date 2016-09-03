@@ -1319,7 +1319,6 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
     #else
         Module* module = ParseIR(buffer, err, *context);        // ParseIR takes ownership of the given buffer, so don't delete it
     #endif
-        
         if (!module) return NULL;
         
         setlocale(LC_ALL, tmp_local);
