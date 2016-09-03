@@ -125,7 +125,7 @@ class text_dsp_factory_aux : public dsp_factory_imp {
             :dsp_factory_imp(name, sha_key, dsp, pathname_list), fCode(code)
         {}
         
-        virtual void write(std::ostream* out, bool small = false)
+        virtual void write(std::ostream* out, bool binary = false, bool small = false)
         {
             *out << fCode;
         }

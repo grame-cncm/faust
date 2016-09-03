@@ -80,7 +80,7 @@ extern "C" {
      * @param argv - the array of parameters
      * @param error_msg - the error string to be filled, has to be 256 characters long
      *
-     * @return a valid DSP asm.js module and additional helpers functions as a string on success (to be deleted by the caller), otherwise a null pointer.
+     * @return a valid WASM module and additional helpers functions as a string on success (to be deleted by the caller), otherwise a null pointer.
      */ 
     EXPORT const char* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
     
