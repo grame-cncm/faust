@@ -104,7 +104,9 @@ static void call_fun(compile_fun fun)
         pthread_t thread;
         pthread_attr_t attr; 
         pthread_attr_init(&attr);
+    #ifndef EMCC
         pthread_attr_setstacksize(&attr, 524288 * 128);
+    #endif
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
         pthread_create(&thread, &attr, fun, NULL);
         pthread_join(thread, NULL);

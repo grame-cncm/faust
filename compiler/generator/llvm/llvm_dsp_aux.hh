@@ -48,6 +48,13 @@
 
 using namespace std;
 
+namespace llvm
+{
+   class LLVMContext;
+   class ExecutionEngine;
+   class Module;
+}
+
 class FaustObjectCache;
 
 class llvm_dsp_factory;
@@ -58,14 +65,14 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     
     private:
     
-        ExecutionEngine* fJIT;
+        llvm::ExecutionEngine* fJIT;
 
     #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)) && !defined(_MSC_VER)
         FaustObjectCache* fObjectCache;
     #endif
     
         llvm::Module* fModule;
-        LLVMContext* fContext;
+        llvm::LLVMContext* fContext;
     
         int fOptLevel;
         string fTarget;
@@ -99,7 +106,12 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
                    
     public:
     
-        llvm_dsp_factory_aux(const string& sha_key, const std::vector<std::string>& pathname_list, Module* module, LLVMContext* context, const string& target, int opt_level = 0);
+        llvm_dsp_factory_aux(const string& sha_key,
+                             const std::vector<std::string>& pathname_list,
+                             llvm::Module* module,
+                             llvm::LLVMContext* context,
+                             const string& target,
+                             int opt_level = 0);
         
     #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38)) && !defined(_MSC_VER)
         llvm_dsp_factory_aux(const string& sha_key, const string& machine_code, const string& target);

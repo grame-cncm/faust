@@ -31,7 +31,6 @@
 #include <sstream>
 
 using namespace std;
-using namespace llvm;
 
 struct LLVMResult;
 

@@ -30,16 +30,7 @@
 #define COMPILATION_OPTIONS_KEY "compilation_options"
 #define COMPILATION_OPTIONS "declare compilation_options    "
 
-#define FAUSTVERSION "2.0.a46"
-
-namespace llvm
-{
-    class LLVMContext;
-    class ExecutionEngine;
-    class Module;
-}
-
-using namespace llvm;
+#define FAUSTVERSION "2.0.a47"
 
 class dsp_factory_base;
 

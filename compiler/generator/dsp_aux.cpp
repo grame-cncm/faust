@@ -25,7 +25,13 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+
+#ifdef EMCC
+// Dummy SHA1 function to solve EMCC link problem
+void SHA1(const unsigned char*, int, unsigned char*) {}
+#else
 #include <openssl/sha.h>
+#endif
 
 #ifdef _WIN32
 #include "compatibility.hh"
@@ -36,8 +42,6 @@
 #include "dsp_aux.hh"
 #include "libfaust.h"
 #include "TMutex.h"
-
-extern TLockAble* gDSPFactoriesLock;
 
 using namespace std;
 
@@ -258,8 +262,6 @@ EXPORT string expandDSPFromString(const string& name_app,
                                   string& sha_key,
                                   string& error_msg)
 {
-    TLock lock(gDSPFactoriesLock);
-    
     if (dsp_content == "") {
         error_msg = "Unable to read file";
         return "";
@@ -276,6 +278,7 @@ EXPORT string expandDSPFromString(const string& name_app,
             return new_dsp_content;
         }
     } else {
+        
         int argc1 = 0;
         const char* argv1[64];
         
@@ -303,8 +306,6 @@ EXPORT bool generateAuxFilesFromFile(const string& filename, int argc, const cha
 
 EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], string& error_msg)
 {
-    TLock lock(gDSPFactoriesLock);
-    
     if (dsp_content == "") {
         error_msg = "Unable to read file";
         return "";
@@ -374,7 +375,7 @@ EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_co
 EXPORT string generateSHA1(const string& dsp_content)
 {
     // compute SHA1 key
-    unsigned char obuf[20];
+    unsigned char obuf[20] = {0};
     SHA1((const unsigned char*)dsp_content.c_str(), dsp_content.size(), obuf);
     
     // convert SHA1 key into hexadecimal string
