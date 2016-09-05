@@ -1146,7 +1146,6 @@ EXPORT dsp_factory_base* compile_faust_factory(int argc, const char* argv[], con
     
         // Compile module
         global::allocate();
-        gGlobal->gLLVMOut = true; 
         compile_faust_internal(argc, argv, name, dsp_content, true);
         error_msg = gGlobal->gErrorMsg;
         res = gGlobal->gDSPFactory;
@@ -1167,7 +1166,6 @@ EXPORT bool compile_faust(int argc, const char* argv[], const char* name, const 
     
     try {
         global::allocate();  
-        gGlobal->gLLVMOut = true;   
         compile_faust_internal(argc, argv, name, dsp_content, generate);
         error_msg = gGlobal->gErrorMsg;
         res = true;

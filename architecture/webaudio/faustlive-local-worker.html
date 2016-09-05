@@ -505,7 +505,7 @@
             // Remove the current div in ALT key was pressed
             if (intAltKey) {
                 if (DSP) {
-                     _f4u$t.hard_delete(faustsvg);
+                    _f4u$t.hard_delete(faustsvg);
                     DSP.stop();
                     if (isPoly) {
                         faust.deletePolyDSPInstance(DSP);
@@ -556,12 +556,10 @@
                 // Create a mono DSP factory from the dsp code    
                 faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], function(factory) {
                 
-                
                     var res = faust.writeDSPFactoryToMachine(factory);
                     console.log(res);
                     
                     factory = faust.readDSPFactoryFromMachine(res, 0);
-                    
                     console.log(factory);
                     
                     if (!factory) {

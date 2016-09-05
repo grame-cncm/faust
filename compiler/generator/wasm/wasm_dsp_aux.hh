@@ -92,7 +92,7 @@ extern "C" {
     EXPORT char* getCLibFaustVersion();
     
     /**
-     * The free function to be used on memory returned by createAsmCDSPFactoryFromString.
+     * The free function to be used on memory returned by createWasmCDSPFactoryFromString.
      * 
      * @param ptr - the pointer to be deleted.
      */

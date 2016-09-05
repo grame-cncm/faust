@@ -59,7 +59,7 @@ class CPPCodeContainer : public virtual CodeContainer {
         virtual void generateCompute(int tab) = 0;
         virtual void produceInternal();
     
-        dsp_factory_base* produceFactory();
+        virtual dsp_factory_base* produceFactory();
     
         virtual void printHeader()
         {

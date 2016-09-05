@@ -49,7 +49,7 @@ class JAVAScriptCodeContainer : public virtual CodeContainer {
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
     
-        dsp_factory_base* produceFactory();
+        virtual dsp_factory_base* produceFactory();
    
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 

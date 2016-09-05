@@ -58,7 +58,7 @@ class FirCodeContainer : public virtual CodeContainer {
         void produceInternal() {}
         void produceClass();
     
-        dsp_factory_base* produceFactory();
+        virtual dsp_factory_base* produceFactory();
         
         bool fTopLevel;
 

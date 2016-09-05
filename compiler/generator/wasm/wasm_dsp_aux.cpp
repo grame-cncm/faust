@@ -44,7 +44,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
         return NULL;
     } else {
         
-        int argc1 = 1;
+        int argc1 = 0;
         const char* argv1[64];
         
         argv1[argc1++] = "faust";

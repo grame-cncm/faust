@@ -453,7 +453,6 @@ struct global {
     string gInjectFile;
 
     int gTimeout;   // time out to abort compiler (in seconds)
-    bool gLLVMOut;
     
     // Globals to transfer results in thread based evaluation
     Tree gProcessTree;
