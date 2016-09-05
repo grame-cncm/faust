@@ -40,7 +40,7 @@ EXPORT asmjs_dsp_factory* createAsmDSPFactoryFromString(const string& name_app, 
 {
     string expanded_dsp_content, sha_key;
     
-    // Deativated for now since expandDSPFromString use thread based call of compiler ...
+    // Deactivated for now since expandDSPFromString use thread based call of compiler ...
     /*
     if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
         return NULL;

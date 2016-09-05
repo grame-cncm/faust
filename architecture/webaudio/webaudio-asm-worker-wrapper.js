@@ -276,15 +276,23 @@ faust.createDSPFactoryAux = function (code, argv, max_polyphony, callback) {
     var worker = new Worker("create-factory-worker.js");
     
     worker.onmessage = function(event) {
-        var factory_code = event.data.factory_code;
-        var factory = null;
-        faust.error_msg = event.data.error_msg;
-        if (factory_code) {
-            factory = faust.readDSPFactoryFromMachineAux(factory_name, factory_code, sha_key, max_polyphony);
+        if (event.data.factory_code != undefined) {
+            var factory_code = event.data.factory_code;
+            var factory = null;
+            faust.error_msg = event.data.error_msg;
+            if (factory_code) {
+                factory = faust.readDSPFactoryFromMachineAux(factory_name, factory_code, sha_key, max_polyphony);
+            }
+            if (callback) {
+                callback(factory);
+            }
         }
-        if (callback) {
-            callback(factory);
-        }
+        worker.terminate();
+    };
+    
+    worker.onerror = function (event) {
+        event.preventDefault();
+        throw new Error("createDSPFactory : worker error");
     };
     
     worker.postMessage({code: code, argv: argv, factory_name: factory_name});
