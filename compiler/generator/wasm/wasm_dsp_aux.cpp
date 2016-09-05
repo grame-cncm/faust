@@ -76,7 +76,8 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename,
 
 EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], string& error_msg)
 {
-    string expanded_dsp_content, sha_key;
+    string expanded_dsp_content = "";
+    string sha_key = "";
     
     if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
         return NULL;

@@ -989,7 +989,7 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
         void setSHAKey(std::string sha_key) { fFactory->setSHAKey(sha_key); }
         
         std::string getDSPCode() { return fFactory->getDSPCode(); }
-        void setDSPCode(std::string code) { return fFactory->setDSPCode(code); }
+        void setDSPCode(std::string code) { fFactory->setDSPCode(code); }
         
         interpreter_dsp* createDSPInstance();
         

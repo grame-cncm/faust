@@ -55,7 +55,7 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
         void setSHAKey(std::string sha_key) { fFactory->setSHAKey(sha_key); }
         
         std::string getDSPCode() { return fFactory->getDSPCode(); }
-        void setDSPCode(std::string code) { return fFactory->setDSPCode(code); }
+        void setDSPCode(std::string code) { fFactory->setDSPCode(code); }
         
         wasm_dsp* createDSPInstance() { return nullptr; }
         
@@ -79,7 +79,7 @@ extern "C" {
      * @param filename - the DSP filename
      * @param argc - the number of parameters in argv array
      * @param argv - the array of parameters
-     * @param error_msg - the error string to be filled, has to be 256 characters long
+     * @param error_msg - the error string to be filled, has to be 4096 characters long
      *
      * @return a valid WASM module and additional helpers functions as a string on success (to be deleted by the caller), otherwise a null pointer.
      */
@@ -92,7 +92,7 @@ extern "C" {
      * @param dsp_content - the Faust program as a string
      * @param argc - the number of parameters in argv array
      * @param argv - the array of parameters
-     * @param error_msg - the error string to be filled, has to be 256 characters long
+     * @param error_msg - the error string to be filled, has to be 4096 characters long
      *
      * @return a valid WASM module and additional helpers functions as a string on success (to be deleted by the caller), otherwise a null pointer.
      */ 

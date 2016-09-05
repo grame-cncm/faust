@@ -268,7 +268,7 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
         void setSHAKey(std::string sha_key) { fFactory->setSHAKey(sha_key); }
         
         std::string getDSPCode() { return fFactory->getDSPCode(); }
-        void setDSPCode(std::string code) { return fFactory->setDSPCode(code); }
+        void setDSPCode(std::string code) { fFactory->setDSPCode(code); }
     
         std::string getTarget() { return fFactory->getTarget(); }
         
