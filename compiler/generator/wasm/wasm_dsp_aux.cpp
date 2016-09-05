@@ -24,6 +24,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <libgen.h>
 
 #include "compatibility.hh"
 #include "wasm_dsp_aux.hh"
@@ -34,7 +35,44 @@ typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
 
 dsp_factory_table<SDsp_factory> gWasmFactoryTable;
 
+#ifdef LOADER
+string pathToContent(const string& path)
+{
+    ifstream file(path.c_str(), ifstream::binary);
+    
+    file.seekg(0, file.end);
+    int size = int(file.tellg());
+    file.seekg(0, file.beg);
+    
+    // And allocate buffer to that a single line can be read...
+    char* buffer = new char[size + 1];
+    file.read(buffer, size);
+    
+    // Terminate the string
+    buffer[size] = 0;
+    string result = buffer;
+    file.close();
+    delete [] buffer;
+    return result;
+}
+#endif
+
 // C++ API
+
+EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename,
+                                                      int argc, const char* argv[],
+                                                      string& error_msg)
+{
+    string base = basename((char*)filename.c_str());
+    size_t pos = filename.find(".dsp");
+    
+    if (pos != string::npos) {
+        return createWasmDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, error_msg);
+    } else {
+        error_msg = "File Extension is not the one expected (.dsp expected)";
+        return NULL;
+    }
+}
 
 EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], string& error_msg)
 {
@@ -86,6 +124,26 @@ EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory)
 }
 
 // C API
+
+EXPORT const char* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg)
+{
+    string error_msg_aux;
+    wasm_dsp_factory* factory = createWasmDSPFactoryFromFile(filename, argc, argv, error_msg_aux);
+    
+    if (factory) {
+        stringstream dst;
+        factory->write(&dst, false, false);
+        strncpy(error_msg, error_msg_aux.c_str(), 4096);
+        string str = flatten(dst.str());
+        char* cstr = (char*)malloc(str.length() + 1);
+        strcpy(cstr, str.c_str());
+        return cstr;
+        // And keep factory...
+    } else {
+        strncpy(error_msg, "libfaust.js fatal error...", 256);
+        return NULL;
+    }
+}
 
 EXPORT const char* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg)
 {

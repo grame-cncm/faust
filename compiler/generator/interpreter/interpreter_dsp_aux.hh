@@ -23,7 +23,6 @@
 #define interpreter_dsp_aux_h
 
 #include <string>
-#include <libgen.h>
 #include <iostream>
 #include <iomanip>
 #include <limits>

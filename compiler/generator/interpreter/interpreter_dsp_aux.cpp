@@ -19,6 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
+#include <libgen.h>
+
 #include "interpreter_dsp_aux.hh"
 #include "dsp_aux.hh"
 
@@ -53,7 +55,6 @@ string pathToContent(const string& path)
     return result;
 }
 #endif
-
 
 // External API
 
