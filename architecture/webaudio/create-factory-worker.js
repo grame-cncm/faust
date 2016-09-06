@@ -21,7 +21,7 @@ onmessage = function(e) {
         var getCLibFaustVersion = Module.cwrap('getCLibFaustVersion', 'number', []);
         var freeCDSP = Module.cwrap('freeCDSP', null, ['number']);
         
-        console.log("libfaustworker.js version : %s", Pointer_stringify(getCLibFaustVersion()));
+        console.log("libfaustworker.js version : " + Pointer_stringify(getCLibFaustVersion()));
         
         // Add 'cn' option with the factory name
         argv = (argv === null) ? new Array() : argv;
