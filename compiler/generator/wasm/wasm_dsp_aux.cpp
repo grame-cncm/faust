@@ -105,16 +105,18 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
             SDsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
-        } else if ((factory = new wasm_dsp_factory(compile_faust_factory(argc1, argv1,
-                                                                        name_app.c_str(),
-                                                                        dsp_content.c_str(),
-                                                                        error_msg))) != 0) {
+        } else {
+            dsp_factory_base* dsp_factory_aux = compile_faust_factory(argc1, argv1,
+                                                                    name_app.c_str(),
+                                                                    dsp_content.c_str(),
+                                                                    error_msg);
+            
+            if (!dsp_factory_aux) { return NULL; }
+            factory = new wasm_dsp_factory(dsp_factory_aux);
             gWasmFactoryTable.setFactory(factory);
             factory->setSHAKey(sha_key);
             factory->setDSPCode(expanded_dsp_content);
             return factory;
-        } else {
-            return NULL;
         }
     }
 }
@@ -130,18 +132,14 @@ EXPORT const char* createWasmCDSPFactoryFromFile(const char* filename, int argc,
 {
     string error_msg_aux;
     wasm_dsp_factory* factory = createWasmDSPFactoryFromFile(filename, argc, argv, error_msg_aux);
-    
     if (factory) {
         stringstream dst;
         factory->write(&dst, false, false);
         strncpy(error_msg, error_msg_aux.c_str(), 4096);
-        string str = flatten(dst.str());
-        char* cstr = (char*)malloc(str.length() + 1);
-        strcpy(cstr, str.c_str());
-        return cstr;
+        return strdup(flatten(dst.str()).c_str());
         // And keep factory...
     } else {
-        strncpy(error_msg, "libfaust.js fatal error...", 256);
+        strncpy(error_msg, "libfaust.js fatal error...\n", 4096);
         return NULL;
     }
 }
@@ -150,24 +148,20 @@ EXPORT const char* createWasmCDSPFactoryFromString(const char* name_app, const c
 {
     string error_msg_aux;
     wasm_dsp_factory* factory = createWasmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg_aux);
-    
     if (factory) {
         stringstream dst;
         factory->write(&dst, false, false);
         strncpy(error_msg, error_msg_aux.c_str(), 4096);
-        string str = flatten(dst.str());
-        char* cstr = (char*)malloc(str.length() + 1);
-        strcpy(cstr, str.c_str());
-        return cstr;
+        return strdup(flatten(dst.str()).c_str());
         // And keep factory...
     } else {
-        strncpy(error_msg, "libfaust.js fatal error...", 256);
+        strncpy(error_msg, "libfaust.js fatal error...\n", 4096);
         return NULL;
     }
 }
 
 /*
-EXPORT char* getCLibFaustVersion() { return (char*)FAUSTVERSION; }
+EXPORT const char* getCLibFaustVersion() { return (char*)FAUSTVERSION; }
 
 EXPORT void freeCDSP(void* ptr)
 {

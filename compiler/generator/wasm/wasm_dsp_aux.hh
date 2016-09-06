@@ -83,7 +83,7 @@ extern "C" {
      *
      * @return a valid WASM module and additional helpers functions as a string on success (to be deleted by the caller), otherwise a null pointer.
      */
-    EXPORT const char* createWasmDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
+    EXPORT const char* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
      /**
      * Create a Faust DSP WASM module and additional helpers functions from a DSP source code.
@@ -103,7 +103,7 @@ extern "C" {
      * 
      * @return the library version as a static string.
      */
-    EXPORT char* getCLibFaustVersion();
+    EXPORT const char* getCLibFaustVersion();
     
     /**
      * The free function to be used on memory returned by createWasmCDSPFactoryFromString.

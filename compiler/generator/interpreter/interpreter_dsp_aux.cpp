@@ -115,16 +115,17 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
             SDsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
-        } else if ((factory = new interpreter_dsp_factory(compile_faust_factory(argc1, argv1,
-                                                                                name_app.c_str(),
-                                                                                dsp_content.c_str(),
-                                                                                error_msg))) != 0) {
+        } else  {
+            dsp_factory_base* dsp_factory_aux = compile_faust_factory(argc1, argv1,
+                                                                    name_app.c_str(),
+                                                                    dsp_content.c_str(),
+                                                                    error_msg);
+            if (!dsp_factory_aux) { return NULL; }
+            factory = new interpreter_dsp_factory(dsp_factory_aux);
             gInterpreterFactoryTable.setFactory(factory);
             factory->setSHAKey(sha_key);
             factory->setDSPCode(expanded_dsp_content);
             return factory;
-        } else {
-            return NULL;
         }
     }
  #endif

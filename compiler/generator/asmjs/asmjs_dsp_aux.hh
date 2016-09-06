@@ -103,7 +103,7 @@ extern "C" {
      * 
      * @return the library version as a static string.
      */
-    EXPORT char* getCLibFaustVersion();
+    EXPORT const char* getCLibFaustVersion();
     
     /**
      * The free function to be used on memory returned by createAsmCDSPFactoryFromString.

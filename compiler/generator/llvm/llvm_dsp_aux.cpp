@@ -1121,12 +1121,15 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                                                                                                         name_app.c_str(),
                                                                                                         dsp_content.c_str(),
                                                                                                         error_msg));
+            if (!factory_aux) {
+                return NULL;
+            }
             
             factory_aux->setTarget(target);
             factory_aux->setOptlevel(opt_level);
             factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
             factory_aux->setIsDouble(isParam(argc, argv, "-double"));
-            
+          
             if (factory_aux->initJIT(error_msg)) {
                 factory = new llvm_dsp_factory(factory_aux);
                 gLLVMFactoryTable.setFactory(factory);

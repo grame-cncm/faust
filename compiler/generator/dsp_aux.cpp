@@ -42,16 +42,9 @@ void SHA1(const unsigned char*, int, unsigned char*) {}
 #include "dsp_aux.hh"
 #include "libfaust.h"
 #include "TMutex.h"
+#include "Text.hh"
 
 using namespace std;
-
-static bool startWith(const string& str, const string& key)
-{
-    for (size_t i = 0; i < key.size(); i++) {
-        if (str[i] != key[i]) return false;
-    }
-    return true;
-}
 
 //L ook for 'key' in 'options' and modify the parameter 'position' if found
 static bool parseKey(vector<string> options, const string& key, int& position)
@@ -281,19 +274,14 @@ EXPORT string expandDSPFromString(const string& name_app,
         
         int argc1 = 0;
         const char* argv1[64];
-        
         argv1[argc1++] = "faust";
         for (int i = 0; i < argc; i++) {
             argv1[argc1++] = argv[i];
         }
-        
         argv1[argc1] = 0;  // NULL terminated argv
         
-        const char* name = name_app.c_str();
-        const char* content = dsp_content.c_str();
-        
         // 'expand_dsp' adds the normalized compilation options in the DSP code before computing the SHA key
-        return expand_dsp(argc1, argv1, name, content, sha_key, error_msg);
+        return expand_dsp(argc1, argv1, name_app.c_str(), dsp_content.c_str(), sha_key, error_msg);
     }
 }
 
@@ -308,21 +296,18 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
 {
     if (dsp_content == "") {
         error_msg = "Unable to read file";
-        return "";
+        return false;
     } else {
     
         int argc1 = 0;
         const char* argv1[64];
-        
         argv1[argc1++] = "faust";
-        
         // Filter arguments
         for (int i = 0; i < argc; i++) {
             if (!(strcmp(argv[i], "-vec") == 0 || strcmp(argv[i], "-sch") == 0)) {
                 argv1[argc1++] = argv[i];
             }
         }
-        
         argv1[argc1] = 0;  // NULL terminated argv
         
         return compile_faust(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, false);
@@ -390,5 +375,3 @@ EXPORT string generateSHA1(const string& dsp_content)
     
     return sha1key;
 }
-
-
