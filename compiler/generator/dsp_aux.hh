@@ -281,7 +281,7 @@ EXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::s
 
 EXPORT std::string generateSHA1(const std::string& dsp_content);
 
-std::string pathToContent(const std::string& path);
+EXPORT std::string pathToContent(const std::string& path);
 
 #ifdef __cplusplus
 extern "C" {

@@ -212,7 +212,7 @@ string reorganizeCompilationOptions(int argc, const char* argv[])
     return "\"" + res3 + "\"";
 }
 
-string pathToContent(const string& path)
+EXPORT string pathToContent(const string& path)
 {
     ifstream file(path.c_str(), ifstream::binary);
     

@@ -26,9 +26,9 @@
 
 using namespace std;
 
-std::string searchIP();
+string pathToContent(const string& path); // Implemented in libfaust
 
-string pathToContent(const string& path);
+std::string searchIP();
 
 bool isInt(const char* word);
 

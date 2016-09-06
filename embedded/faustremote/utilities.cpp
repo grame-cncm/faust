@@ -28,27 +28,6 @@
 #include <iostream> 
 #include <fstream>
 
-//Returns the content of a file passed in path
-string pathToContent(const string& path)
-{
-    ifstream file(path.c_str(), std::ifstream::binary);
-    
-    file.seekg(0, file.end);
-    int size = int(file.tellg());
-    file.seekg(0, file.beg);
-    
-    // And allocate buffer to that a single line can be read...
-    char* buffer = new char[size + 1];
-    file.read(buffer, size);
-    
-    // Terminate the string
-    buffer[size] = 0;
-    string result = buffer;
-    file.close();
-    delete [] buffer;
-    return result;
-}
-
 //Verify if the word is a number
 bool isInt(const char* word)
 {
