@@ -71,6 +71,12 @@ CLANG = /opt/local/libexec/llvm-3.8/bin/clang++
 CLANGLIBS=$(CLANGLIBSLIST)
 endif
 
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.9.0))
+LLVM_VERSION  = LLVM_38
+CLANG = /opt/local/libexec/llvm-3.9/bin/clang++
+CLANGLIBS=$(CLANGLIBSLIST)
+endif
+
 ifeq ($(OSC),1)
  OSCCTRL := -DOSCCTRL -I$(FAUSTINC)/gui/
  QTDEFS  := OSCCTRL

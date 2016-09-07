@@ -22,17 +22,15 @@
 #ifndef __COMPATIBILITY__
 #define __COMPATIBILITY__
  
-#define LLVM_BUILD (LLVM_31 || LLVM_32 || LLVM_33 || LLVM_34 || LLVM_35 || LLVM_36 || LLVM_37 || LLVM_38)
+#define LLVM_BUILD (LLVM_31 || LLVM_32 || LLVM_33 || LLVM_34 || LLVM_35 || LLVM_36 || LLVM_37 || LLVM_38 || LLVM_39)
 
 unsigned faust_alarm(unsigned seconds);
-
 
 #ifdef __MINGW32__
 #define faust_mkdir(path, attribute) mkdir(path)
 #else
 #define faust_mkdir(path, attribute) mkdir(path, attribute)
 #endif
-
 
 #ifdef _WIN32
 #include <windows.h>
@@ -67,7 +65,6 @@ struct timezone
 #define snprintf _snprintf
 #endif
 
-
 extern "C" {
 #if (_MSC_VER<=1700)
     double  rint(double nr);
@@ -82,12 +79,10 @@ char* getcwd(char* str, int size);
 int isatty(int file);
 }
 
-
 void getFaustPathname(char* str, unsigned int size);
 void getFaustPathname(char* str, unsigned int size);
 char* realpath(const char* path, char resolved_path[PATH_MAX]);
 char* basename(const char* fullpath);
-
 
 #ifdef  NDEBUG
 #undef assert
@@ -102,7 +97,6 @@ char* basename(const char* fullpath);
 	double	remainder(double numerator, double denominator);
 	double rint(double nr);
 #endif
-
 	/* missing on Windows : see http://bugs.mysql.com/bug.php?id=15936 */
 	#define S_IRWXU 0
 #endif
@@ -126,7 +120,4 @@ char* basename(const char* fullpath);
 void getFaustPathname(char* str, unsigned int size);
 
 #endif // _WIN32
-
-
-
 #endif

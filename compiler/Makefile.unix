@@ -109,6 +109,11 @@ else ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.8.0))
     CLANGLIBS=$(CLANGLIBSLIST)
     CXXFLAGS += -std=gnu++11
 
+else ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.9.0))
+LLVM_VERSION = LLVM_39
+CLANGLIBS=$(CLANGLIBSLIST)
+CXXFLAGS += -std=gnu++11
+
 else
     $(error "Unknown LLVM version $(LLVM_VERSION)")
 
