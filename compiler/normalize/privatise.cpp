@@ -50,14 +50,14 @@ Tree privatise(const Tree& t)
 static Tree makePrivatisationKey(const Tree& t)
 {
 	char 	name[256];
-	snprintf(name, 256, "PRIVATISE %p : ", (CTree*)t);
+	snprintf(name, 256, "PRIVATISE %p : ", (void *)(CTree*)t);
 	return tree(unique(name));
 }
 
 static Tree makePrivatisationLabel(const Tree& t)
 {
 	char 	name[256];
-	snprintf(name, 256, "OWNER IS %p : ", (CTree*)t);
+	snprintf(name, 256, "OWNER IS %p : ", (void *)(CTree*)t);
 	return tree(unique(name));
 }
 

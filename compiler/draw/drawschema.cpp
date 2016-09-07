@@ -264,7 +264,7 @@ static char* legalFileName(Tree t, int n, char* dst)
 	dst[i] = 0;
 	if (strcmp(dst, "process") != 0) { 
 		// if it is not process add the hex address to make the name unique
-		snprintf(&dst[i], n-i, "-%p", t);
+		snprintf(&dst[i], n-i, "-%p", (void*)t);
 	}
 	return dst;
 }
