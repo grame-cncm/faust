@@ -103,6 +103,8 @@ struct FIRInstructionLoadStoreOptimizer : public FIRInstructionOptimizer<T> {
         //std::cout << "FIRInstructionLoadStoreOptimizer" << std::endl;
     }
     
+    virtual ~FIRInstructionLoadStoreOptimizer() {}
+    
     FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
         FIRBasicInstruction<T>* inst1 = *cur;
@@ -135,6 +137,8 @@ struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
     {
         //std::cout << "FIRInstructionMoveOptimizer" << std::endl;
     }
+    
+    virtual ~FIRInstructionMoveOptimizer() {}
     
     FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
@@ -180,6 +184,8 @@ struct FIRInstructionBlockMoveOptimizer : public FIRInstructionOptimizer<T> {
     {
         //std::cout << "FIRInstructionBlockMoveOptimizer" << std::endl;
     }
+    
+    virtual ~FIRInstructionBlockMoveOptimizer() {}
     
     FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
@@ -231,6 +237,8 @@ struct FIRInstructionPairMoveOptimizer : public FIRInstructionOptimizer<T> {
         //std::cout << "FIRInstructionPairMoveOptimizer" << std::endl;
     }
     
+    virtual ~FIRInstructionPairMoveOptimizer() {}
+    
     FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
         FIRBasicInstruction<T>* inst1 = *cur;
@@ -262,6 +270,8 @@ struct FIRInstructionPairMoveOptimizer : public FIRInstructionOptimizer<T> {
 // Rewrite math operations as 'heap', 'stack' or 'Value' versions
 template <class T>
 struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
+    
+    virtual ~FIRInstructionMathOptimizer() {}
     
     FIRInstructionMathOptimizer()
     {
@@ -572,6 +582,8 @@ struct FIRInstructionConstantValueMap2Heap : public FIRInstructionOptimizer<T> {
         //std::cout << "FIRInstructionConstantValueMap2Heap" << std::endl;
     }
     
+    virtual ~FIRInstructionConstantValueMap2Heap() {}
+    
     virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
         FIRBasicInstruction<T>* inst = *cur;
@@ -601,6 +613,8 @@ struct FIRInstructionConstantValueHeap2Map : public FIRInstructionOptimizer<T> {
     {
         //std::cout << "FIRInstructionConstantValueHeap2Map" << std::endl;
     }
+    
+    virtual ~FIRInstructionConstantValueHeap2Map() {}
     
     virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
@@ -635,6 +649,8 @@ struct FIRInstructionCastSpecializer : public FIRInstructionOptimizer<T> {
         //std::cout << "FIRInstructionCastSpecializer" << std::endl;
     }
     
+    virtual ~FIRInstructionCastSpecializer() {}
+    
     virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
         FIRBasicInstruction<T>* inst1 = *cur;
@@ -661,6 +677,8 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
     {
         //std::cout << "FIRInstructionMathSpecializer" << std::endl;
     }
+    
+    virtual ~FIRInstructionMathSpecializer() {}
     
     // Beware : inverted args...
     FIRBasicInstruction<T>* rewriteBinaryRealMath(FIRBasicInstruction<T>* inst1,
@@ -1151,6 +1169,8 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
 
 template <class T>
 struct FIRInstructionOptimizer {
+    
+    virtual ~FIRInstructionOptimizer() {}
     
     // Rewrite a sequence of instructions starting from 'cur' to 'end' in a new single instruction.
     // Update 'end' so that caller can move at the correct next location

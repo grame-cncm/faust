@@ -194,6 +194,8 @@ struct FIRInstruction {
         kNop,
     };
     
+    virtual ~FIRInstruction() {}
+    
     virtual int size() { return 1; }
     
     static bool isRealType(Opcode opt)

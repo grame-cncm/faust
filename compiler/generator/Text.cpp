@@ -164,7 +164,7 @@ string T (long n) 	{ char c[64]; snprintf(c, 63, "%ld",n); return string(c); }
 static string ensureFloat(const string& c)
 {
     bool isInt = true;
-    for (int i = 0; i < c.size(); i++) {
+    for (size_t i = 0; i < c.size(); i++) {
         if ((c[i] == '.') || (c[i] == 'e')) {
             isInt = false;
             break;

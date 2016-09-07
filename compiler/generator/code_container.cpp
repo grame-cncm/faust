@@ -245,7 +245,7 @@ static inline BasicTyped* getTypeASM(Typed::VarType result)
         return InstBuilder::genBasicTyped(Typed::kIntish);
     } else if ((result == Typed::kFloatMacro || result == Typed::kFloat)) {
         return InstBuilder::genBasicTyped(Typed::kFloatish);
-    } else if ((result == Typed::kDouble)) {
+    } else if (result == Typed::kDouble) {
         return InstBuilder::genBasicTyped(Typed::kDoublish);
     } else {
         return InstBuilder::genBasicTyped(result);

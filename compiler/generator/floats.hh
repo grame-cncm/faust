@@ -33,13 +33,13 @@ const char* isuffix();
 const char* inumix();
 
 const char* ifloat();
-const Typed::VarType itfloat();
+Typed::VarType itfloat();
 const char* icast();
 
 const char* xfloat();
 const char* xcast();
 
-const int fsize();
+int fsize();
 
 void printfloatdef(std::ostream& fout, bool quad);
 
