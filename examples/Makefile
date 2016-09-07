@@ -65,7 +65,7 @@ CLANG = /opt/local/libexec/llvm-3.7/bin/clang++
 CLANGLIBS=$(CLANGLIBSLIST)
 endif
 
-ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.8.0))
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.8.0 3.8.1))
 LLVM_VERSION  = LLVM_38
 CLANG = /opt/local/libexec/llvm-3.8/bin/clang++
 CLANGLIBS=$(CLANGLIBSLIST)
