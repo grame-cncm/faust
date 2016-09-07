@@ -95,6 +95,7 @@
 
 #if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
     #include <llvm/ExecutionEngine/MCJIT.h>
+    #include <llvm/ExecutionEngine/ObjectCache.h>
 #else
     #include <llvm/ExecutionEngine/JIT.h>
 #endif
@@ -1182,7 +1183,7 @@ EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory)
     }
 }
 
-EXPORT string llvm_dsp_factory_aux::getName()
+string llvm_dsp_factory_aux::getName()
 {
     struct MyMeta : public Meta
     {
@@ -1206,7 +1207,7 @@ EXPORT string llvm_dsp_factory_aux::getName()
     }
 }
 
-EXPORT string llvm_dsp_factory_aux::getTarget() { return fTarget; }
+string llvm_dsp_factory_aux::getTarget() { return fTarget; }
     
 EXPORT string getDSPMachineTarget()
 {
@@ -1497,7 +1498,7 @@ EXPORT llvm_dsp* llvm_dsp_factory::createDSPInstance()
     return reinterpret_cast<llvm_dsp*>(dsp);
 }
 
-EXPORT dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory)
+dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory)
 {
     llvm_dsp_imp* dsp = fNew();
     return (dsp) ? new llvm_dsp(new llvm_dsp_aux(this, dsp), dynamic_cast<llvm_dsp_factory*>(factory)) : NULL;

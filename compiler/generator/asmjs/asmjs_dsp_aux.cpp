@@ -19,6 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
+#if defined(_MSC_VER)
+#pragma message("libgen.h is not available on Windows. ASMJS backend will not build.")
+#else
 #include <stdio.h>
 #include <string.h>
 #include <iostream>
@@ -30,7 +33,6 @@
 #include "asmjs_dsp_aux.hh"
 #include "libfaust.h"
 #include "Text.hh"
-
 
 typedef class faust_smartptr<asmjs_dsp_factory> SDsp_factory;
 
@@ -170,4 +172,6 @@ EXPORT void freeCDSP(void* ptr)
 {
     free(ptr);
 }
+#endif
+
 

@@ -29,6 +29,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <algorithm>
 #include <sstream>
 #include <assert.h>
 #include <stdio.h>

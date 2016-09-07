@@ -59,7 +59,10 @@
 #include "wasm_code_container.hh"
 #include "clang_code_container.hh"
 
+#if !defined(_MSC_VER)
+// As of 29-09-2016 this fails to build with MSVC
 #include "interpreter_code_container.cpp"
+#endif
 
 #if LLVM_BUILD
 #include "llvm_code_container.hh"
@@ -765,7 +768,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 #endif
 
     } else if (gGlobal->gOutputLang == "interp") {
-    
+    #if !defined(_MSC_VER)
         if (gGlobal->gFloatSize == 1) {
             container = InterpreterCodeContainer<float>::createContainer(gGlobal->gClassName, numInputs, numOutputs);
         } else if (gGlobal->gFloatSize == 2) {
@@ -787,7 +790,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
      
         comp->compileMultiSignal(signals);
-     
+    #endif
     } else if (gGlobal->gOutputLang == "fir") {
         
         gGlobal->gGenerateSelectWithIf = false;

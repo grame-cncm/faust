@@ -26,7 +26,7 @@
 
 unsigned faust_alarm(unsigned seconds);
 
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER >= 1900)
 #define faust_mkdir(path, attribute) mkdir(path)
 #else
 #define faust_mkdir(path, attribute) mkdir(path, attribute)
@@ -59,8 +59,8 @@ struct timezone
 
 #define alarm(x) 0
 
-#ifndef __MINGW32__
-// mingw has these in its headers.
+#if !defined(__MINGW32__) && (_MSC_VER < 1900)
+// mingw & VS2015 have these in its headers.
 #define strdup _strdup
 #define snprintf _snprintf
 #endif
@@ -73,6 +73,7 @@ extern "C" {
 int gettimeofday(struct timeval *tv, struct timezone *tz);
 int chdir(const char* path);
 #if _MSC_VER
+  #undef small
   int mkdir(const char* path);
 #endif
 char* getcwd(char* str, int size);

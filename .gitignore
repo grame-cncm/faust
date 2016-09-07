@@ -16,6 +16,9 @@ compile.sh
 *tmp*
 *dir*
 windows/_output/
+windows/.vs/
+windows/*.*db
+windows/*.user
 *.opensdf
 *.sdf
 compiler/faust

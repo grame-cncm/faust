@@ -59,7 +59,7 @@ class FaustObjectCache;
 
 class llvm_dsp_factory;
 
-class llvm_dsp_factory_aux : public dsp_factory_imp {
+class EXPORT llvm_dsp_factory_aux : public dsp_factory_imp {
 
     friend class llvm_dsp_aux;
     
@@ -146,10 +146,9 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         bool initJIT(std::string& error_msg);
     
         std::string getTarget();
-        void setTarget(const string& target) { fTarget = target; }
+        void setTarget(const std::string& target) { fTarget = target; }
     
         std::string getName();
-    
     
         int getOptlevel();
         void setOptlevel(int opt_level) {fOptLevel = ((opt_level == -1) || (opt_level > LLVM_MAX_OPT_LEVEL)) ? LLVM_MAX_OPT_LEVEL : opt_level; }
@@ -193,7 +192,7 @@ class llvm_dsp_aux : public dsp {
     
         virtual void instanceClear();
     
-        virtual dsp* clone() { assert(false); } // to be implemented by subclass
+        virtual dsp* clone() { assert(false); return nullptr; } // to be implemented by subclass
     
         void metadata(Meta* m);
     

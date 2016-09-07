@@ -29,6 +29,7 @@
 
 #if !defined(INT) & !defined(FLOAT)
 #include <windows.h>
+#include <Winsock2.h>
 #else
 #include <io.h>
 #endif
