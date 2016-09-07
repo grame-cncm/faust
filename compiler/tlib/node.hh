@@ -159,32 +159,32 @@ inline bool isDouble (const Node& n, double* x)
 
 inline bool isZero (const Node& n)
 {
-	return (n.type() == kDoubleNode) && (n.getDouble() == 0.0)
-		|| (n.type() == kIntNode) && (n.getInt() == 0);
+	return ((n.type() == kDoubleNode) && (n.getDouble() == 0.0))
+		|| ((n.type() == kIntNode) && (n.getInt() == 0));
 }
 
 inline bool isGEZero (const Node& n)
 {
-	return (n.type() == kDoubleNode) && (n.getDouble() >= 0.0)
-		|| (n.type() == kIntNode) && (n.getInt() >= 0);
+	return ((n.type() == kDoubleNode) && (n.getDouble() >= 0.0))
+		|| ((n.type() == kIntNode) && (n.getInt() >= 0));
 }
 
 inline bool isGTZero (const Node& n)
 {
-	return (n.type() == kDoubleNode) && (n.getDouble() > 0.0)
-		|| (n.type() == kIntNode) && (n.getInt() > 0);
+	return ((n.type() == kDoubleNode) && (n.getDouble() > 0.0))
+		|| ((n.type() == kIntNode) && (n.getInt() > 0));
 }
 
 inline bool isOne (const Node& n)
 {
-	return (n.type() == kDoubleNode) && (n.getDouble() == 1.0)
-		|| (n.type() == kIntNode) && (n.getInt() == 1);
+	return ((n.type() == kDoubleNode) && (n.getDouble() == 1.0))
+		|| ((n.type() == kIntNode) && (n.getInt() == 1));
 }
 
 inline bool isMinusOne (const Node& n)
 {
-	return (n.type() == kDoubleNode) && (n.getDouble() == -1.0)
-		|| (n.type() == kIntNode) && (n.getInt() == -1);
+	return ((n.type() == kDoubleNode) && (n.getDouble() == -1.0))
+		|| ((n.type() == kIntNode) && (n.getInt() == -1));
 }
 
 
@@ -248,7 +248,7 @@ inline const Node mulNode (const Node& x, const Node& y)
 	{ return (isDouble(x)||isDouble(y)) ? Node(double(x)*double(y)) : Node(int(x)*int(y)); }
 
 inline const Node divExtendedNode (const Node& x, const Node& y)
-	{ return  (isDouble(x)||isDouble(y)) ? Node(double(x)/double(y))
+	{ return (isDouble(x)||isDouble(y)) ? Node(double(x)/double(y))
 			: (double(int(x)/int(y))==double(x)/double(y)) ? Node(int(x)/int(y))
 			: Node(double(x)/double(y)); }
 

@@ -67,7 +67,7 @@ void Occurrences::setCount(Tree t, int c)
 Tree Occurrences::specificKey(Tree root) 
 {
 	char 	keyname[256];
-	snprintf(keyname, 256, "OCCURRENCES COUNT IN %p : ", (CTree*)root);
+	snprintf(keyname, 256, "OCCURRENCES COUNT IN %p : ", (void*)(CTree*)root);
 
 	return tree(unique(keyname));	
 }	

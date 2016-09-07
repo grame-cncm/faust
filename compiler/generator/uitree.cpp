@@ -28,7 +28,7 @@ static Tree getFolder (Tree folder, Tree ilabel);
 
 static void error(const char * s, Tree t)
 {
-	fprintf(stderr, "ERROR : %s (%p)\n", s, t);
+	fprintf(stderr, "ERROR : %s (%p)\n", s, (void*)t);
 }
 
 #define ERROR(s,t) error(s,t); exit(1)
