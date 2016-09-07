@@ -64,7 +64,6 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 #endif
     
     fAllocaBuilder = new IRBuilder<>(getContext());
-    
     fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
     fNumInputs = numInputs;
     fNumOutputs = numOutputs;
@@ -76,7 +75,6 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 {
     initializeCodeContainer(numInputs, numOutputs);
     fKlassName = name;
-    //fResult = result;
     fModule = module;
     fContext = context;
     fBuilder = new IRBuilder<>(getContext());
@@ -132,7 +130,7 @@ CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInp
 void LLVMCodeContainer::generateFillBegin(const string& counter)
 {
     VECTOR_OF_TYPES llvm_fill_args;
-    llvm_fill_args.push_back(fStruct_DSP_ptr);
+    llvm_fill_args.push_back(fStructDSP);
     llvm_fill_args.push_back(fBuilder->getInt32Ty());
 
     LLVM_TYPE buffer_type;
@@ -184,7 +182,7 @@ void LLVMCodeContainer::generateFillEnd()
 void LLVMCodeContainer::generateComputeBegin(const string& counter)
 {
     VECTOR_OF_TYPES llvm_compute_args;
-    llvm_compute_args.push_back(fStruct_DSP_ptr);
+    llvm_compute_args.push_back(fStructDSP);
     llvm_compute_args.push_back(fBuilder->getInt32Ty());
 
     LLVM_TYPE buffer_type = (itfloat() == Typed::kFloat) ? fBuilder->getFloatTy() : fBuilder->getDoubleTy();
@@ -253,7 +251,7 @@ void LLVMCodeContainer::generateComputeEnd()
 void LLVMCodeContainer::generateGetSampleRate(int field_index)
 {
     VECTOR_OF_TYPES llvm_getSR_args;
-    llvm_getSR_args.push_back(fStruct_DSP_ptr);
+    llvm_getSR_args.push_back(fStructDSP);
 
     FunctionType* llvm_getSR_type = FunctionType::get(fBuilder->getInt32Ty(), MAKE_VECTOR_OF_TYPES(llvm_getSR_args), false);
 
@@ -330,7 +328,7 @@ void LLVMCodeContainer::generateClassInitEnd()
 void LLVMCodeContainer::generateInstanceInitBegin(bool internal)
 {
     VECTOR_OF_TYPES llvm_instanceInit_args;
-    llvm_instanceInit_args.push_back(fStruct_DSP_ptr);
+    llvm_instanceInit_args.push_back(fStructDSP);
     llvm_instanceInit_args.push_back(fBuilder->getInt32Ty());
     FunctionType* llvm_instanceInit_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_instanceInit_args), false);
 
@@ -352,12 +350,12 @@ void LLVMCodeContainer::generateInstanceInitEnd()
     Function* llvm_instanceInit = fModule->getFunction("instanceInit" + fKlassName);
     assert(llvm_instanceInit);
     BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_instanceInit);
-    
     Function* llvm_instanceClear = fModule->getFunction("instanceClear" + fKlassName);
+    
     if (llvm_instanceClear) {
         
         VECTOR_OF_TYPES llvm_instanceInit_args;
-        llvm_instanceInit_args.push_back(fStruct_DSP_ptr);
+        llvm_instanceInit_args.push_back(fStructDSP);
         
         Function::arg_iterator llvm_instanceInit_args_it = llvm_instanceInit->arg_begin();
         Value* dsp = GET_ITERATOR(llvm_instanceInit_args_it++);
@@ -384,7 +382,7 @@ void LLVMCodeContainer::generateInstanceInitEnd()
 void LLVMCodeContainer::generateInstanceClearBegin(bool internal)
 {
     VECTOR_OF_TYPES llvm_instanceClear_args;
-    llvm_instanceClear_args.push_back(fStruct_DSP_ptr);
+    llvm_instanceClear_args.push_back(fStructDSP);
     FunctionType* llvm_instanceClear_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_instanceClear_args), false);
     
     Function* llvm_instanceClear = Function::Create(llvm_instanceClear_type, (internal) ? Function::InternalLinkage : Function::ExternalLinkage, "instanceClear" + fKlassName, fModule);
@@ -470,7 +468,7 @@ void LLVMCodeContainer::generateAllocateEnd()
 void LLVMCodeContainer::generateInitFun()
 {
     VECTOR_OF_TYPES llvm_init_args;
-    llvm_init_args.push_back(fStruct_DSP_ptr);
+    llvm_init_args.push_back(fStructDSP);
     llvm_init_args.push_back(fBuilder->getInt32Ty());
     FunctionType* llvm_init_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_init_args), false);
 
@@ -622,9 +620,9 @@ void LLVMCodeContainer::produceInternal()
     generateDeclarations(&fTypeBuilder);
 
     // Now we can create the DSP type
-    fStruct_DSP_ptr = fTypeBuilder.getDSPType(true, false);
+    fStructDSP = fTypeBuilder.getDSPType(true, false);
 
-    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fAllocaBuilder, fTypeBuilder.getFieldNames(), fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
+    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fAllocaBuilder, fTypeBuilder.getFieldNames(), fTypeBuilder.getUIPtr(), fStructDSP, fKlassName);
     
     generateInfoFunctions(fKlassName, false);
   
@@ -663,12 +661,12 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     generateDeclarations(&fTypeBuilder);
 
     // Now we can create the DSP type
-    fStruct_DSP_ptr = fTypeBuilder.getDSPType(false);
+    fStructDSP = fTypeBuilder.getDSPType(false);
 
     std::map<string, int> fields_names = fTypeBuilder.getFieldNames();
     generateGetSampleRate(fields_names["fSamplingFreq"]);
 
-    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fAllocaBuilder, fields_names, fTypeBuilder.getUIPtr(), fStruct_DSP_ptr, fKlassName);
+    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fAllocaBuilder, fields_names, fTypeBuilder.getUIPtr(), fStructDSP, fKlassName);
     
     generateInfoFunctions(fKlassName, true);
   
@@ -997,7 +995,7 @@ LLVMWorkStealingCodeContainer::~LLVMWorkStealingCodeContainer()
 void LLVMWorkStealingCodeContainer::generateComputeThreadBegin()
 {
     VECTOR_OF_TYPES llvm_computethread_args;
-    llvm_computethread_args.push_back(fStruct_DSP_ptr);
+    llvm_computethread_args.push_back(fStructDSP);
     llvm_computethread_args.push_back(fBuilder->getInt32Ty());
 
     FunctionType* llvm_computethread_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_computethread_args), false);
@@ -1055,10 +1053,10 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
     Function* llvm_computethreadInternal = fModule->getFunction("computeThread");
     assert(llvm_computethreadInternal);
 #if defined(LLVM_37) || defined(LLVM_38)
-    Value* fun_args[] = { fBuilder->CreateBitCast(arg1, fStruct_DSP_ptr), arg2 };
+    Value* fun_args[] = { fBuilder->CreateBitCast(arg1, fStructDSP), arg2 };
     CallInst* call_inst = fBuilder->CreateCall(llvm_computethreadInternal, fun_args);
 #else
-    CallInst* call_inst = fBuilder->CreateCall2(llvm_computethreadInternal, fBuilder->CreateBitCast(arg1, fStruct_DSP_ptr), arg2);
+    CallInst* call_inst = fBuilder->CreateCall2(llvm_computethreadInternal, fBuilder->CreateBitCast(arg1, fStructDSP), arg2);
 #endif
     call_inst->setCallingConv(CallingConv::C);
     fBuilder->CreateRetVoid();

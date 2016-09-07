@@ -781,7 +781,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // UI structure creation
         LlvmValue fUIInterface_ptr;                 // Pointer on the UI
 
-        llvm::PointerType* fStruct_DSP_ptr;
+        llvm::PointerType* fStructDSP;
 
         std::map<string, int> fDSPFieldsNames;      // Computed by LLVMTypeInstVisitor, used to access struct fields
         std::map<string, LlvmValue> fDSPStackVars;  // Variables on the stack
@@ -804,7 +804,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                         fBuilder(builder),
                         fAllocaBuilder(alloca_builder),
                         fUIInterface_ptr(ui_ptr),
-                        fStruct_DSP_ptr(dsp_ptr),
+                        fStructDSP(dsp_ptr),
                         fDSPFieldsNames(field_names),
                         fCurValue(NULL),
                         fPrefix(prefix)
@@ -826,7 +826,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             fUICallTable["declare"] = genInt32(fModule, 12);
 
-            fTypeMap[Typed::kObj_ptr] = fStruct_DSP_ptr;
+            fTypeMap[Typed::kObj_ptr] = fStructDSP;
             
             initTypes(module);
             
@@ -929,7 +929,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         GlobalVariable* addStringConstant(string arg, llvm::Type*& type_def)
         {
             string str = replaceChar(unquote(arg), '@', '_');
-            
             ArrayType* array_type = ArrayType::get(fBuilder->getInt8Ty(), str.size() + 1);
             type_def = array_type;
             

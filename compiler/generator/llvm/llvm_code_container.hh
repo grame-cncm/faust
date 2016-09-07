@@ -52,7 +52,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
     protected:
 
         // UI structure creation
-        llvm::PointerType* fStruct_DSP_ptr;
+        llvm::PointerType* fStructDSP;
 
         IRBuilder<>* fBuilder;
         IRBuilder<>* fAllocaBuilder;    // To be used for "alloca", which have to be added in the first "entry" block of the function.
@@ -140,7 +140,6 @@ class LLVMCodeContainer : public virtual CodeContainer {
         LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, LLVMContext* context);
         virtual ~LLVMCodeContainer();
       
-        //virtual LLVMResult* produceModule(const string& filename);
         virtual dsp_factory_base* produceFactory();
     
         virtual void generateCompute() = 0;
