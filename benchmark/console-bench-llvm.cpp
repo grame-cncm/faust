@@ -114,34 +114,32 @@ void closeMesure()
 /**
  * return the number of RDTSC clocks per seconds
  */
-int64 rdtscpersec()
+double rdtscpersec()
 {
-	// If the environment variable CLOCKSPERSEC is defined
-	// we use it instead of our own measurement
-	char* str = getenv("CLOCKSPERSEC");
+    // If the environment variable CLOCKSPERSEC is defined
+    // we use it instead of our own measurement
+    char* str = getenv("CLOCKSPERSEC");
     if (str) {
-	    int64 cps = (int64) atoll(str);
+        int64 cps = (int64)atoll(str);
         if (cps > 1000000000) {
-		    return cps;
-	    } else {
-		    return (lastRDTSC-firstRDTSC) / (tv2.tv_sec - tv1.tv_sec) ;
-	    }
-    } else {
-        return (lastRDTSC-firstRDTSC) / (tv2.tv_sec - tv1.tv_sec) ;
-    }   
-}
+            return cps;
+        }
+    }
     
+    return double(lastRDTSC - firstRDTSC) / (((double(tv2.tv_sec) * 1000000 + double(tv2.tv_usec)) - (double(tv1.tv_sec) * 1000000 + double(tv1.tv_usec))) / 1000000);
+}
+
 /**
  * Converts a duration, expressed in RDTSC clocks, into seconds
  */
 double rdtsc2sec(uint64 clk)
 {
-	return double(clk) / double(rdtscpersec());
+    return double(clk) / rdtscpersec();
 }
 
 double rdtsc2sec(double clk)
 {
-	return clk / double(rdtscpersec());
+    return clk / rdtscpersec();
 }
 
 /**
@@ -157,7 +155,7 @@ double megapersec(int frames, int chans, uint64 clk)
 /**
  * Compute the mean value of a vector of measures
  */
-static uint64 meanValue( vector<uint64>::const_iterator a, vector<uint64>::const_iterator b)
+static uint64 meanValue(vector<uint64>::const_iterator a, vector<uint64>::const_iterator b)
 {
 	uint64 r = 0;
 	unsigned int n = 0;
@@ -209,20 +207,20 @@ void printstats(const char* applname, const char* dspname, int bsize, int ichans
 
 bool running = true;
 
-class measure_dsp : public dsp {
-
-    private:
+class measure_dsp : public decorator_dsp {
     
-        dsp* fDSP;
+    private:
+        
         float* fInputs[256];
         float* fOutputs[256];
         int fBufferSize;
-
+        
     public:
+        
         measure_dsp(dsp* dsp, int fpb, int srate)
-            :fDSP(dsp), fBufferSize(fpb)
+        :decorator_dsp(dsp), fBufferSize(fpb)
         {
-             for (int i = 0; i < fDSP->getNumInputs(); i++) {
+            for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 fInputs[i] = new float[fpb];
             }
             
@@ -231,34 +229,32 @@ class measure_dsp : public dsp {
             }
         }
         
-        virtual ~measure_dsp() {
+        virtual ~measure_dsp()
+        {
+            for (int i = 0; i < fDSP->getNumInputs(); i++) {
+                delete [] fInputs[i];
+            }
             
-           // TODO : deallocate
+            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+                delete [] fOutputs[i];
+            }
         }
-
-        int getNumInputs() 	{ return fDSP->getNumInputs(); }
         
-        int getNumOutputs() { return fDSP->getNumOutputs(); }
-        
-        void buildUserInterface(UI* interface) 	{ fDSP->buildUserInterface(interface); }
-        
-        void init(int samplingRate) { fDSP->init(samplingRate); }
-        
-        void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
-        {   
+        void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
             STARTMESURE
             fDSP->compute(len, inputs, outputs);
             STOPMESURE
             running = mesure <= (KMESURE + KSKIP);
         }
         
-        void compute_all() 
+        void compute_all()
         {
             do {
                 compute(fBufferSize, fInputs, fOutputs);
             } while (running);
         }
-
+    
 };
 
 /******************************************************************************
@@ -310,9 +306,9 @@ int main(int argc, char *argv[])
     int	fpb = lopt(argv, "--buffer", 512);
     
     string error;
-    llvm_dsp_factory* factory = createDSPFactory(argc - 1, (const char**)&argv[1], "", "", "", "", "", error, 5);
+    llvm_dsp_factory* factory = createDSPFactoryFromFile(argv[1], argc-2, (const char**)&argv[2], "", error, -1);
     assert(factory);
-    llvm_dsp* dsp = createDSPInstance(factory);
+    llvm_dsp* dsp = factory->createDSPInstance();
     assert(dsp);
  	
     dsp->init(srate);

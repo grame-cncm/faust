@@ -152,7 +152,7 @@ class FaustLLVMOptimizer {
             gettimeofday(&fTv2, &tz);
             fLastRDTSC = rdtsc();
         }
-            
+    
         /**
          * return the number of RDTSC clocks per seconds
          */
@@ -165,16 +165,12 @@ class FaustLLVMOptimizer {
                 int64 cps = (int64)atoll(str);
                 if (cps > 1000000000) {
                     return cps;
-                } 
+                }
             }
             
-            if (fTv2.tv_sec != fTv1.tv_sec) {
-                return double(fLastRDTSC - fFirstRDTSC) / double(fTv2.tv_sec - fTv1.tv_sec);
-            } else {
-                return (double(fLastRDTSC - fFirstRDTSC) / (double(fTv2.tv_usec - fTv1.tv_usec) / 1000000.));
-            }
+            return double(fLastRDTSC - fFirstRDTSC) / (((double(fTv2.tv_sec) * 1000000 + double(fTv2.tv_usec)) - (double(fTv1.tv_sec) * 1000000 + double(fTv1.tv_usec))) / 1000000);
         }
-            
+        
         /**
          * Converts a duration, expressed in RDTSC clocks, into seconds
          */
@@ -182,12 +178,12 @@ class FaustLLVMOptimizer {
         {
             return double(clk) / rdtscpersec();
         }
-
+        
         double rdtsc2sec(double clk)
         {
             return clk / rdtscpersec();
         }
-            
+    
         /**
          * Converts RDTSC clocks into Megabytes/seconds according to the
          * number of frames processed during the period, the number of channels
@@ -350,7 +346,7 @@ class FaustLLVMOptimizer {
             */
             
             // vec -lv 0
-            for (int size = 8; size <= VSIZE; size *= 2) {
+            for (int size = 4; size <= VSIZE; size *= 2) {
                 stringstream num;
                 num << size;
                 vector <string> t1;
@@ -363,7 +359,7 @@ class FaustLLVMOptimizer {
             } 
             
             // vec -lv 1
-            for (int size = 8; size <= VSIZE; size *= 2) {
+            for (int size = 4; size <= VSIZE; size *= 2) {
                 stringstream num;
                 num << size;
                 vector <string> t1;
@@ -375,9 +371,8 @@ class FaustLLVMOptimizer {
                 fOptionsTable.push_back(t1);
             } 
             
-            /*
             // vec -lv 0 -dfs
-            for (int size = 8; size <= VSIZE; size *= 2) {
+            for (int size = 4; size <= VSIZE; size *= 2) {
                 stringstream num;
                 num << size;
                 vector <string> t1;
@@ -391,7 +386,7 @@ class FaustLLVMOptimizer {
             } 
             
             // vec -lv 1 -dfs
-            for (int size = 8; size <= VSIZE; size *= 2) {
+            for (int size = 4; size <= VSIZE; size *= 2) {
                 stringstream num;
                 num << size;
                 vector <string> t1;
@@ -403,7 +398,6 @@ class FaustLLVMOptimizer {
                 t1.push_back(num.str());
                 fOptionsTable.push_back(t1);
             } 
-            */
             
             /*
             // sch
@@ -453,7 +447,7 @@ class FaustLLVMOptimizer {
             init();
         }
         
-        ~FaustLLVMOptimizer()
+        virtual ~FaustLLVMOptimizer()
         {}
         
         static bool myfunction(pair <int, double > i, pair <int, double > j) { return (i.second > j.second); }
@@ -578,7 +572,7 @@ void setStackSize(size_t size)
     int res;
     
     if ((res = pthread_attr_setstacksize(&attributes, size))) {
-         cout << "pthread_attr_setstacksize error " << res << endl;
+        cout << "pthread_attr_setstacksize error " << res << endl;
     } 
     
     cout << "setStackSize size = " << size << endl;

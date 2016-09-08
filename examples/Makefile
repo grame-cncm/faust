@@ -378,13 +378,13 @@ iphonenet :
 
 
 faust-tools: 
-	#llvm-g++ -O3 -DMAIN_LLVM ../architecture/bench-llvm.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all` -lz -lncurses -lcrypto $(CLANGLIBS) -o bench-llvm
+	llvm-g++ -O3 -DMAIN_LLVM ../architecture/bench-llvm.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lcrypto $(CLANGLIBS) -o bench-llvm
 	g++ -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
-	#llvm-g++ -O3 -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp  `llvm-config --ldflags --libs all` -lz -lncurses -lffi `pkg-config --cflags --libs jack gtk+-2.0` $(LIB)/libfaust.a $(LIB)/libHTTPDFaust.a  -lcrypto $(CLANGLIBS) -o faust-jack-gtk
-	llvm-g++ -O3 -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp  `llvm-config --ldflags --libs all` -lffi -lz -lncurses `pkg-config --cflags --libs jack gtk+-2.0` -L/usr/local/lib/faust -lfaust $(LIB)/libHTTPDFaust.a  -lcrypto $(CLANGLIBS) -o faust-jack-gtk
+	#llvm-g++ -O3 -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lffi `pkg-config --cflags --libs jack gtk+-2.0` $(LIB)/libfaust.a $(LIB)/libHTTPDFaust.a  -lcrypto $(CLANGLIBS) -o faust-jack-gtk
+	llvm-g++ -O3 -D$(LLVM_VERSION) ../architecture/faust-jack-gtk.cpp  `llvm-config --ldflags --libs all --system-libs` -lffi -lz -lncurses `pkg-config --cflags --libs jack gtk+-2.0` -L/usr/local/lib/faust -lfaust $(LIB)/libHTTPDFaust.a  -lcrypto $(CLANGLIBS) -o faust-jack-gtk
 
 
-	#llvm-g++ -O3  -D$(LLVM_VERSION) ../architecture/faust-netjack-gtk.cpp `llvm-config --ldflags --libs all` -lz -lncurses -lffi `pkg-config --cflags --libs gtk+-2.0` $(LIB)/libfaust.a  -ljacknet  -lcrypto $(CLANGLIBS) -o faust-netjack-gtk
+	#llvm-g++ -O3  -D$(LLVM_VERSION) ../architecture/faust-netjack-gtk.cpp `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lffi `pkg-config --cflags --libs gtk+-2.0` $(LIB)/libfaust.a  -ljacknet  -lcrypto $(CLANGLIBS) -o faust-netjack-gtk
 
 scheduler:
 	$(CLANG) -arch i386 -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll	

@@ -27,7 +27,7 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
 
-//#define LLVM 1
+#define LLVM 1
 
 #ifdef LLVM
 #include "faust/dsp/llvm-dsp.h"

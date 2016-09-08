@@ -171,12 +171,12 @@ galsaomp2 :
 
 # OSX 
 
-gcoreaudiollvm : 
+gcoreaudiollvm : coreaudio-gtk-llvm-bench.cpp
 	$(CXX) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
-	$(CXX) -O3 coreaudio-gtk-llvm-bench.cpp /usr/local/lib/libfaust.a  -lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0` `llvm-config --ldflags --libs all` -lcrypto -o gcoreaudiollvm
+	$(CXX) -O3 coreaudio-gtk-llvm-bench.cpp /usr/local/lib/libfaust.a  -lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0` `llvm-config --ldflags --libs all --system-libs` -lcrypto -o gcoreaudiollvm
 
-bscalllvm :
-	$(CXX) -O3 console-bench-llvm.cpp /usr/local/lib/libfaust.a `llvm-config --ldflags --libs all` -o bscalllvm
+bscalllvm : console-bench-llvm.cpp
+	$(CXX) -O3 console-bench-llvm.cpp /usr/local/lib/libfaust.a `llvm-config --ldflags --libs all --system-libs` -lcrypto -o bscalllvm
 
 bscal :
 	install -d bscaldir

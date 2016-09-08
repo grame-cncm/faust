@@ -116,34 +116,32 @@ void closeMesure()
 /**
  * return the number of RDTSC clocks per seconds
  */
-int64 rdtscpersec()
+double rdtscpersec()
 {
-	// If the environment variable CLOCKSPERSEC is defined
-	// we use it instead of our own measurement
-	char* str = getenv("CLOCKSPERSEC");
+    // If the environment variable CLOCKSPERSEC is defined
+    // we use it instead of our own measurement
+    char* str = getenv("CLOCKSPERSEC");
     if (str) {
-	    int64 cps = (int64) atoll(str);
+        int64 cps = (int64)atoll(str);
         if (cps > 1000000000) {
-		    return cps;
-	    } else {
-		    return (lastRDTSC-firstRDTSC) / (tv2.tv_sec - tv1.tv_sec) ;
-	    }
-    } else {
-        return (lastRDTSC-firstRDTSC) / (tv2.tv_sec - tv1.tv_sec) ;
-    }   
-}
+            return cps;
+        }
+    }
     
+    return double(lastRDTSC - firstRDTSC) / (((double(tv2.tv_sec) * 1000000 + double(tv2.tv_usec)) - (double(tv1.tv_sec) * 1000000 + double(tv1.tv_usec))) / 1000000);
+}
+
 /**
  * Converts a duration, expressed in RDTSC clocks, into seconds
  */
 double rdtsc2sec(uint64 clk)
 {
-	return double(clk) / double(rdtscpersec());
+    return double(clk) / rdtscpersec();
 }
 
 double rdtsc2sec(double clk)
 {
-	return clk / double(rdtscpersec());
+    return clk / rdtscpersec();
 }
 
 /**
@@ -159,7 +157,7 @@ double megapersec(int frames, int chans, uint64 clk)
 /**
  * Compute the mean value of a vector of measures
  */
-static uint64 meanValue( vector<uint64>::const_iterator a, vector<uint64>::const_iterator b)
+static uint64 meanValue(vector<uint64>::const_iterator a, vector<uint64>::const_iterator b)
 {
 	uint64 r = 0;
 	unsigned int n = 0;
@@ -209,32 +207,67 @@ void printstats(const char* applname, const char* dspname, int bsize, int ichans
 
 bool running = true;
 
-class measure_dsp : public dsp {
-
-    private:
+class measure_dsp : public decorator_dsp {
     
-        dsp* fDSP;
-
     public:
-        measure_dsp(dsp* dsp):fDSP(dsp) {}
+        
+        measure_dsp(dsp* dsp):decorator_dsp(dsp) {}
         virtual ~measure_dsp() {}
-
-        int getNumInputs() 	{ return fDSP->getNumInputs(); }
         
-        int getNumOutputs() { return fDSP->getNumOutputs(); }
-        
-        void buildUserInterface(UI* interface) 	{ fDSP->buildUserInterface(interface); }
-        
-        void init(int samplingRate) { fDSP->init(samplingRate); }
-        
-        void compute(int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
+        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             STARTMESURE
-            fDSP->compute(len, inputs, outputs);
+            fDSP->compute(count, inputs, outputs);
             STOPMESURE
             running = mesure <= (KMESURE + KSKIP);
         }
+    
+};
 
+class measure_coreaudio : public audio {
+    
+    private:
+        
+        TCoreAudioRenderer fAudioDevice;
+        int fSampleRate, fBufferSize;
+        
+    public:
+        
+        measure_coreaudio(long sample_rate, long buffer_size) : fSampleRate(sample_rate), fBufferSize(buffer_size) {}
+        virtual ~measure_coreaudio() { fAudioDevice.Close(); }
+        
+        virtual bool init(const char* /*name*/, dsp* DSP)
+        {
+            if (fAudioDevice.OpenDefault(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fBufferSize, fSampleRate) < 0) {
+                printf("Cannot open CoreAudio device\n");
+                return false;
+            }
+            fAudioDevice.set_dsp(new measure_dsp(DSP));
+            // If -1 was given, fSampleRate will be changed by OpenDefault
+            DSP->init(fSampleRate);
+            return true;
+        }
+        
+        virtual bool start()
+        {
+            if (fAudioDevice.Start() < 0) {
+                printf("Cannot start CoreAudio device\n");
+                return false;
+            }
+            return true;
+        }
+        
+        virtual void stop()
+        {
+            fAudioDevice.Stop();
+        }
+        
+        virtual int get_buffer_size() { return fAudioDevice.GetBufferSize(); }
+        virtual int get_sample_rate() { return fAudioDevice.GetSampleRate(); }
+        
+        virtual int get_num_inputs() { return fAudioDevice.GetNumInputs(); }
+        virtual int get_num_outputs() { return fAudioDevice.GetNumOutputs(); }
+    
 };
 
 list<GUI*> GUI::fGuiList;
@@ -300,9 +333,9 @@ int main(int argc, char *argv[])
     UI* interface = new GTKUI(argv[0], &argc, &argv);
     
     string error;
-    llvm_dsp_factory* factory = createDSPFactoryFromFile(argv[1], argc-2, (const char**)&argv[2], "", error, 5);
+    llvm_dsp_factory* factory = createDSPFactoryFromFile(argv[1], argc-2, (const char**)&argv[2], "", error, -1);
     assert(factory);
-    llvm_dsp* dsp = createDSPInstance(factory);
+    llvm_dsp* dsp = factory->createDSPInstance();
     assert(dsp);
  	
     dsp->init(srate);
