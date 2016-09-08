@@ -28,7 +28,6 @@
 
 using namespace std;
 
-#ifdef MAIN_LLVM
 int main(int argc, char* argv[])
 {
     int index = 1;
@@ -46,6 +45,5 @@ int main(int argc, char* argv[])
     cout << endl;
   	return 0;
 }
-#endif 
 
 

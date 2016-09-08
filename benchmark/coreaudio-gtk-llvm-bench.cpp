@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
     }
 
     dsp->closeMeasure();
-    dsp->printStats(argv[0]);
+    dsp->printStats(argv[1]);
 
     audio.stop();
     return 0;

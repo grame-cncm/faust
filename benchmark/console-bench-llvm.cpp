@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     dsp->openMeasure();
     dsp->computeAll();
     dsp->closeMeasure();
-    dsp->printStats(argv[0]);
+    dsp->printStats(argv[1]);
  
   	return 0;
 }
