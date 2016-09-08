@@ -23,204 +23,48 @@
 
  ************************************************************************/
 
-#include <stdlib.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <limits.h>
-#include <math.h>
-#include <errno.h>
-#include <time.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <pwd.h>
-#include <sys/types.h>
-#include <assert.h>
-#include <pthread.h>
-#include <sys/wait.h>
-#include <list>
-
 #include <iostream>
 #include <sstream>
+#include <sys/types.h>
+#include <pwd.h>
+#include <uuid/uuid.h>
+#include <unistd.h>
 
 #include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/dsp-bench.h"
 #include "faust/misc.h"
-
-#include <map>
-#include <vector>
-#include <sys/time.h>
-
-using namespace std;
-
-#define MEGABYTE 1048576.0
-
-// handle 32/64 bits int size issues
-
-#ifdef __x86_64__
-
-#define uint32	unsigned int
-#define uint64	unsigned long int
-
-#define int32	int
-#define int64	long int
-
-#else
-
-#define uint32	unsigned int
-#define uint64	unsigned long long int
-
-#define int32	int
-#define int64	long long int
-#endif
-
-#define KSKIP 20
-#define KMESURE 20000
 
 #include <MacTypes.h>
 #include <mach/thread_policy.h>
 #include <mach/thread_act.h>
 
+using namespace std;
+
 class FaustLLVMOptimizer {
 
     private:
         
-        #define STARTMESURE fStarts[fMeasure % KMESURE] = rdtsc();
-        #define STOPMESURE fStops[fMeasure % KMESURE] = rdtsc(); fMeasure = fMeasure + 1;
+        dsp_bench fBench;
 
-        FAUSTFLOAT* fBuffer;    // a buffer of NV*VSize samples
+        FAUSTFLOAT* fBuffer;    // a buffer of fNV * fVSize samples
 
-        unsigned int NV;        // number of vectors in BIG buffer (should exceed cache)
-        unsigned int ITER;      // number of iterations per measure
-        unsigned int VSIZE;     // size of a vector in samples
-        unsigned int IDX;       // current vector number (0 <= VIdx < NV)
+        unsigned int fNV;        // number of vectors in BIG buffer (should exceed cache)
+        unsigned int fITER;      // number of iterations per measure
+        unsigned int fVSIZE;     // size of a vector in samples
+        unsigned int fIDX;       // current vector number (0 <= VIdx < fNV)
         
         int fOptLevel;      
-        
         llvm_dsp_factory* fFactory;
         llvm_dsp* fDSP;
         
-        string fFilename;
-        string fInput;
-        
-        string fLibraryPath;
-        string fTarget;
-        
-        int fMeasure;
-        
+        std::string fFilename;
+        std::string fInput;
+        std::string fLibraryPath;
+        std::string fTarget;
         std::string fError;
         
-        vector<vector <string > > fOptionsTable;
-        
-        // these values are used to determine the number of clocks in a second
-        uint64 fFirstRDTSC;
-        uint64 fLastRDTSC;
-
-        // these tables contains the last KMESURE in clocks
-        uint64 fStarts[KMESURE];
-        uint64 fStops[KMESURE];
-
-        struct timeval fTv1;
-        struct timeval fTv2;
-   
-        /**
-         * Returns the number of clock cycles elapsed since the last reset
-         * of the processor
-         */
-        __inline__ uint64 rdtsc(void)
-        {
-            union {
-                uint32 i32[2];
-                uint64 i64;
-            } count;
-            
-            __asm__ __volatile__("rdtsc" : "=a" (count.i32[0]), "=d" (count.i32[1]));
-             return count.i64;
-        }
- 
-        void openMesure()
-        {
-            struct timezone tz;
-            gettimeofday(&fTv1, &tz);
-            fFirstRDTSC = rdtsc();
-            fMeasure = 0;
-        }
-
-        void closeMesure()
-        {
-            struct timezone tz;
-            gettimeofday(&fTv2, &tz);
-            fLastRDTSC = rdtsc();
-        }
+        std::vector<vector <std::string > > fOptionsTable;
     
-        /**
-         * return the number of RDTSC clocks per seconds
-         */
-        double rdtscpersec()
-        {
-            // If the environment variable CLOCKSPERSEC is defined
-            // we use it instead of our own measurement
-            char* str = getenv("CLOCKSPERSEC");
-            if (str) {
-                int64 cps = (int64)atoll(str);
-                if (cps > 1000000000) {
-                    return cps;
-                }
-            }
-            
-            return double(fLastRDTSC - fFirstRDTSC) / (((double(fTv2.tv_sec) * 1000000 + double(fTv2.tv_usec)) - (double(fTv1.tv_sec) * 1000000 + double(fTv1.tv_usec))) / 1000000);
-        }
-        
-        /**
-         * Converts a duration, expressed in RDTSC clocks, into seconds
-         */
-        double rdtsc2sec(uint64 clk)
-        {
-            return double(clk) / rdtscpersec();
-        }
-        
-        double rdtsc2sec(double clk)
-        {
-            return clk / rdtscpersec();
-        }
-    
-        /**
-         * Converts RDTSC clocks into Megabytes/seconds according to the
-         * number of frames processed during the period, the number of channels
-         * and 4 bytes samples.
-         */
-        double megapersec(int frames, int chans, uint64 clk)
-        {
-            return (double(frames) * double(chans) * 4) / (double(1024 * 1024) * rdtsc2sec(clk));
-        }
-
-        /**
-         * Compute the mean value of a vector of measures
-         */
-        uint64 meanValue(vector<uint64>::const_iterator a, vector<uint64>::const_iterator b)
-        {
-            uint64 r = 0;
-            unsigned int n = 0;
-            while (a != b) { r += *a++; n++; }
-            return (n > 0) ? r/n : 0;
-        }   
-
-        double getstats(int bsize, int ichans, int ochans)
-        {
-            assert(fMeasure > KMESURE);
-            vector<uint64> V(KMESURE);
-
-            for (int i = 0; i < KMESURE; i++) {
-                V[i] = fStops[i] - fStarts[i];
-            }
-
-            sort(V.begin(), V.end());
-          
-            // Mean of 10 best values (gives relatively stable results)
-            uint64 meavalx = meanValue(V.begin(), V.begin() + 10);		
-            return megapersec(bsize, ichans + ochans, meavalx);
-        }
-        
         bool setRealtimePriority()
         {
             struct passwd* pw;
@@ -244,7 +88,7 @@ class FaustLLVMOptimizer {
 
         void allocBuffers(int numOutChan, FAUSTFLOAT** outChannel)
         {
-            unsigned int BSIZE = NV * VSIZE;
+            unsigned int BSIZE = fNV * fVSIZE;
             fBuffer = (FAUSTFLOAT*)calloc(BSIZE, sizeof(FAUSTFLOAT));
             
             int R0_0 = 0;
@@ -256,7 +100,7 @@ class FaustLLVMOptimizer {
             
             // Allocate output channels (not initialized)
             for (int i = 0; i < numOutChan; i++) {
-                outChannel[i] = (FAUSTFLOAT*)calloc(VSIZE, sizeof(FAUSTFLOAT));
+                outChannel[i] = (FAUSTFLOAT*)calloc(fVSIZE, sizeof(FAUSTFLOAT));
             }
         }
 
@@ -271,46 +115,44 @@ class FaustLLVMOptimizer {
 
         FAUSTFLOAT* nextVect()
         {
-            IDX = (1 + IDX) % NV;
-            return &fBuffer[IDX * VSIZE];
+            fIDX = (1 + fIDX) % fNV;
+            return &fBuffer[fIDX * fVSIZE];
         }
         
         double bench()
         {
             int numInChan = fDSP->getNumInputs();
             int numOutChan = fDSP->getNumOutputs();
-
+            
             FAUSTFLOAT* inChannel[numInChan];
             FAUSTFLOAT* outChannel[numOutChan];
             
-            openMesure();
-
+            fBench.openMeasure();
+            
             // Allocate input buffers (initialized with white noise)
             allocBuffers(numOutChan, outChannel);
             
             // Init the dsp with a reasonable sampling rate
             fDSP->init(48000);
-       
-            AVOIDDENORMALS;
-            bool running = true;
             
-            while (running) {
+            AVOIDDENORMALS;
+            
+            while (fBench.isRunning()) {
                 // Allocate new input buffers to avoid L2 cache
                 for (int c = 0; c < numInChan; c++) { inChannel[c] = nextVect(); }
-                STARTMESURE
-                fDSP->compute(VSIZE, inChannel, outChannel);
-                STOPMESURE
-                running = fMeasure <= (KMESURE + KSKIP);	 
+                fBench.startMeasure();
+                fDSP->compute(fVSIZE, inChannel, outChannel);
+                fBench.stopMeasure();
             }
             
-            closeMesure();
-            double res = getstats(VSIZE, fDSP->getNumInputs(), fDSP->getNumOutputs());
-            cout << res << endl;
-             
+            fBench.closeMeasure();
+            double res = fBench.getStats(fVSIZE, fDSP->getNumInputs(), fDSP->getNumOutputs());
+            std::cout << res <<  std::endl;
+            
             freeBuffers(numOutChan, outChannel);
             return res;
         }
-        
+    
     public:
     
         void init()
@@ -321,8 +163,6 @@ class FaustLLVMOptimizer {
             vector <string> t0;
             t0.push_back("-scal");
             fOptionsTable.push_back(t0);
-            
-            fMeasure = 0;
             
             /*
             stringstream num;
@@ -346,7 +186,7 @@ class FaustLLVMOptimizer {
             */
             
             // vec -lv 0
-            for (int size = 4; size <= VSIZE; size *= 2) {
+            for (int size = 4; size <= fVSIZE; size *= 2) {
                 stringstream num;
                 num << size;
                 vector <string> t1;
@@ -359,7 +199,7 @@ class FaustLLVMOptimizer {
             } 
             
             // vec -lv 1
-            for (int size = 4; size <= VSIZE; size *= 2) {
+            for (int size = 4; size <= fVSIZE; size *= 2) {
                 stringstream num;
                 num << size;
                 vector <string> t1;
@@ -372,7 +212,7 @@ class FaustLLVMOptimizer {
             } 
             
             // vec -lv 0 -dfs
-            for (int size = 4; size <= VSIZE; size *= 2) {
+            for (int size = 4; size <= fVSIZE; size *= 2) {
                 stringstream num;
                 num << size;
                 vector <string> t1;
@@ -386,7 +226,7 @@ class FaustLLVMOptimizer {
             } 
             
             // vec -lv 1 -dfs
-            for (int size = 4; size <= VSIZE; size *= 2) {
+            for (int size = 4; size <= fVSIZE; size *= 2) {
                 stringstream num;
                 num << size;
                 vector <string> t1;
@@ -401,7 +241,7 @@ class FaustLLVMOptimizer {
             
             /*
             // sch
-            for (int size = 8; size <= VSIZE; size *= 2) {
+            for (int size = 8; size <= fVSIZE; size *= 2) {
                 stringstream num;
                 num << size;
                 vector <string> t1;
@@ -414,6 +254,7 @@ class FaustLLVMOptimizer {
         }
     
         FaustLLVMOptimizer(const char* filename, const string& library_path, const string& target, int size, int opt_level_max = -1)
+            :fBench(20000, 10)
         {
             fBuffer = 0;
             fFilename = filename;
@@ -422,16 +263,17 @@ class FaustLLVMOptimizer {
             fTarget = target;
             fOptLevel = opt_level_max;
             
-            NV = 4096;     // number of vectors in BIG buffer (should exceed cache)
-            ITER = 10;     // number of iterations per measure
-            VSIZE = size;  // size of a vector in samples
-            IDX = 0;       // current vector number (0 <= VIdx < NV)
+            fNV = 4096;     // number of vectors in BIG buffer (should exceed cache)
+            fITER = 10;     // number of iterations per measure
+            fVSIZE = size;  // size of a vector in samples
+            fIDX = 0;       // current vector number (0 <= VIdx < NV)
             
             init();
         }
         
         FaustLLVMOptimizer(const string& input, const string& library_path, const string& target, int size, int opt_level_max = -1)
-        {
+            :fBench(20000, 10)
+         {
             fBuffer = 0;
             fFilename = "";
             fInput = input;
@@ -439,10 +281,10 @@ class FaustLLVMOptimizer {
             fTarget = target;
             fOptLevel = opt_level_max;
            
-            NV = 4096;     // number of vectors in BIG buffer (should exceed cache)
-            ITER = 10;     // number of iterations per measure
-            VSIZE = size;  // size of a vector in samples
-            IDX = 0;       // current vector number (0 <= VIdx < NV)
+            fNV = 4096;    // number of vectors in BIG buffer (should exceed cache)
+            fITER = 10;     // number of iterations per measure
+            fVSIZE = size;  // size of a vector in samples
+            fIDX = 0;       // current vector number (0 <= VIdx < fNV)
             
             init();
         }
@@ -549,7 +391,7 @@ class FaustLLVMOptimizer {
     
 };
 
-int getStackSize()
+static int getStackSize()
 {
     pthread_attr_t attributes;
     pthread_attr_init(&attributes);
@@ -565,7 +407,7 @@ int getStackSize()
     }
 }
 
-void setStackSize(size_t size)
+static void setStackSize(size_t size)
 {
     pthread_attr_t attributes;
     pthread_attr_init(&attributes);
@@ -593,7 +435,7 @@ int main(int argc, char* argv[])
         cout << options[i] << " ";
     }
     
-    cout  << endl;
+    cout << endl;
   	return 0;
 }
 #endif 

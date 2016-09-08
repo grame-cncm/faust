@@ -190,8 +190,6 @@ bvec2:
 	install -d bvec2dir
 	$(MAKE) DEST='bvec2dir/' ARCH='console-bench.cpp' VEC='-vec -dfs -vs $(VSIZE)' LIB='' CXX=$(CXX) CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile
 
-
-
 gcoreaudioscal :
 	install -d gcoreaudioscaldir
 	$(MAKE) DEST='gcoreaudioscaldir/' ARCH='coreaudio-gtk-bench.cpp' LIB='-lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0`' CXX=$(CXX) CXXFLAGS=$(MYGCCFLAGS) -f Makefile.compile

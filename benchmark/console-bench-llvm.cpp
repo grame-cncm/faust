@@ -36,40 +36,10 @@
 
 #include "faust/audio/coreaudio-dsp.h"
 #include "faust/dsp/dsp-bench.h"
+#include "faust/dsp/llvm-dsp.h"
 #include "faust/misc.h"
-#include "faust/gui/faustgtk.h"
 
 using namespace std;
-
-// Globals
-bool running = true;
-dsp_bench bench(100000, 20);
-dsp* DSP;
-list<GUI*> GUI::fGuiList;
-
-class measure_dsp : public decorator_dsp {
-    
-    public:
-        
-        measure_dsp(dsp* dsp):decorator_dsp(dsp) {}
-        virtual ~measure_dsp() {}
-        
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
-        {
-            bench.startMeasure();
-            fDSP->compute(count, inputs, outputs);
-            bench.stopMeasure();
-            running = bench.isRunning();
-        }
-        
-        void compute_all()
-        {
-            do {
-                compute(0, fBufferSize, fInputs, fOutputs);
-            } while (running);
-        }
-    
-};
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -78,30 +48,23 @@ class measure_dsp : public decorator_dsp {
 int main(int argc, char *argv[])
 {
     char name[256];
-	char rcfilename[256];
-	char* home = getenv("HOME");
+    char rcfilename[256];
+    char* home = getenv("HOME");
     snprintf(name, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
-    
-	long srate = (long)lopt(argv, "--frequency", 44100);
+    snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
+
+    long srate = (long)lopt(argv, "--frequency", 44100);
     int	fpb = lopt(argv, "--buffer", 512);
-    
+
     string error;
     llvm_dsp_factory* factory = createDSPFactoryFromFile(argv[1], argc-2, (const char**)&argv[2], "", error, -1);
-    assert(factory);
-    llvm_dsp* dsp = factory->createDSPInstance();
-    assert(dsp);
- 	
-    dsp->init(srate);
- 	
-    bench.openMeasure();
-      
-    measure_dsp measure(dsp);
-    measure.compute_all();
+    measure_dsp* dsp = new measure_dsp(factory->createDSPInstance(), fpb, 100000, 20);
 
-    bench.closeMeasure();
-    
-    bench.printStats(argv[0], fpb, dsp->getNumInputs(), dsp->getNumOutputs());
+    dsp->init(srate);
+    dsp->openMeasure();
+    dsp->computeAll();
+    dsp->closeMeasure();
+    dsp->printStats(argv[0]);
  
   	return 0;
 }
