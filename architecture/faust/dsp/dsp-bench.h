@@ -1,36 +1,26 @@
 /************************************************************************
- IMPORTANT NOTE : this file contains two clearly delimited sections :
- the ARCHITECTURE section (in two parts) and the USER section. Each section
- is governed by its own copyright and license. Please check individually
- each section for license and copyright information.
- *************************************************************************/
+    FAUST Architecture File
+    Copyright (C) 2016 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This Architecture section is free software; you can redistribute it
+    and/or modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 3 of
+    the License, or (at your option) any later version.
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-/************************************************************************
- FAUST Architecture File
- Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
- ---------------------------------------------------------------------
- This Architecture section is free software; you can redistribute it
- and/or modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 3 of
- the License, or (at your option) any later version.
+    You should have received a copy of the GNU General Public License
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+    EXCEPTION : As a special exception, you may create a larger work
+    that contains this FAUST architecture section and distribute
+    that work under terms of your choice, so long as this FAUST
+    architecture section is not modified.
  
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with this program; If not, see <http://www.gnu.org/licenses/>.
- 
- EXCEPTION : As a special exception, you may create a larger work
- that contains this FAUST architecture section and distribute
- that work under terms of your choice, so long as this FAUST
- architecture section is not modified.
- 
- ************************************************************************
- ************************************************************************/
+************************************************************************/
 
 #ifndef __dsp_bench__
 #define __dsp_bench__
@@ -47,20 +37,20 @@
 
 // Handle 32/64 bits int size issues
 #ifdef __x86_64__
-
     #define uint32 unsigned int
     #define uint64 unsigned long int
     #define int32 int
     #define int64 long int
-
 #else
-
     #define uint32 unsigned int
     #define uint64 unsigned long long int
     #define int32 int
     #define int64 long long int
-
 #endif
+
+/*
+    A class to do do timing measurements
+*/
 
 class dsp_bench {
     
@@ -204,8 +194,7 @@ class dsp_bench {
         }
 
         /**
-         * Print the median value (in Megabytes/second) of fMeasureCount
-         * throughputs measurements
+         * Print the median value (in Megabytes/second) of fMeasureCount throughputs measurements
          */
         void printStats(const char* applname, int bsize, int ichans, int ochans)
         {
@@ -239,6 +228,10 @@ class dsp_bench {
 
 };
 
+/*
+    A class to mesure DSP CPU use.
+*/
+
 class measure_dsp : public decorator_dsp {
     
     protected:
@@ -262,6 +255,7 @@ class measure_dsp : public decorator_dsp {
                 fOutputs[i] = new FAUSTFLOAT[buffer_size];
             }
         }
+    
         virtual ~measure_dsp()
         {
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
@@ -286,6 +280,7 @@ class measure_dsp : public decorator_dsp {
         
         void computeAll()
         {
+            AVOIDDENORMALS;
             do {
                 compute(0, fBufferSize, fInputs, fOutputs);
             } while (fBench.isRunning());
@@ -296,7 +291,7 @@ class measure_dsp : public decorator_dsp {
     
         void printStats(const char* applname)
         {
-             fBench.printStats(applname, fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
+            fBench.printStats(applname, fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
         }
     
         bool isRunning() { return fBench.isRunning(); }
