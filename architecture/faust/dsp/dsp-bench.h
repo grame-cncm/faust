@@ -177,6 +177,7 @@ class dsp_bench {
             struct timezone tz;
             gettimeofday(&fTv1, &tz);
             fFirstRDTSC = rdtsc();
+            fMeasure = 0;
         }
         
         void closeMeasure()
@@ -184,6 +185,22 @@ class dsp_bench {
             struct timezone tz;
             gettimeofday(&fTv2, &tz);
             fLastRDTSC = rdtsc();
+        }
+    
+        double getStats(int bsize, int ichans, int ochans)
+        {
+            assert(fMeasure > fMeasureCount);
+            std::vector<uint64> V(fMeasureCount);
+            
+            for (int i = 0; i < fMeasureCount; i++) {
+                V[i] = fStops[i] - fStarts[i];
+            }
+            
+            sort(V.begin(), V.end());
+            
+            // Mean of 10 best values (gives relatively stable results)
+            uint64 meavalx = meanValue(V.begin(), V.begin() + 10);
+            return megapersec(bsize, ichans + ochans, meavalx);
         }
 
         /**
@@ -195,7 +212,7 @@ class dsp_bench {
             assert(fMeasure > fMeasureCount);
             std::vector<uint64> V(fMeasureCount);
             
-            for (int i = 0; i<fMeasureCount; i++) {
+            for (int i = 0; i < fMeasureCount; i++) {
                 V[i] = fStops[i] - fStarts[i];
             }
             
@@ -262,7 +279,7 @@ class measure_dsp : public decorator_dsp {
             fBench.stopMeasure();
         }
         
-        void compute_all()
+        void computeAll()
         {
             do {
                 compute(0, fBufferSize, fInputs, fOutputs);
