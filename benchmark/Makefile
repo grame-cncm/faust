@@ -6,6 +6,10 @@ LIB := $(if $(wildcard $(ck1)),/opt/local/lib,"")
 LIB := $(if $(wildcard $(ck2)),/usr/local/lib,$(LIB))
 LIB := $(if $(wildcard $(ck3)),$(FAUST_LIB_PATH),$(LIB))
 
+DESTDIR ?=
+PREFIX ?= /usr/local
+
+prefix := $(DESTDIR)$(PREFIX)
 
 system	:= $(shell uname -s)
 
@@ -257,6 +261,8 @@ iqalsaomp :
 	install -d iqalsaompdir
 	$(MAKE) DEST='iqalsaompdir/' ARCH='alsa-gtk-bench.cpp' VEC='-quad -omp -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS='-openmp '$(MYICCFLAGS) -f Makefile.compile
 
+install:
+	cp bench-llvm $(prefix)/bin
 
 clean :
 	rm -rf *dir
