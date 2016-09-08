@@ -178,37 +178,33 @@ void closeMesure()
 /**
  * return the number of RDTSC clocks per seconds
  */
-int64 rdtscpersec()
+double rdtscpersec()
 {
-	// If the environment variable CLOCKSPERSEC is defined
-	// we use it instead of our own measurement
-	char* str = getenv("CLOCKSPERSEC");
+    // If the environment variable CLOCKSPERSEC is defined
+    // we use it instead of our own measurement
+    char* str = getenv("CLOCKSPERSEC");
     if (str) {
-	    int64 cps = (int64) atoll(str);
+        int64 cps = (int64)atoll(str);
         if (cps > 1000000000) {
-		    return cps;
-	    } else {
-		    return (lastRDTSC-firstRDTSC) / (tv2.tv_sec - tv1.tv_sec) ;
-	    }
-    } else {
-        return (lastRDTSC-firstRDTSC) / (tv2.tv_sec - tv1.tv_sec) ;
-    }   
+            return cps;
+        }
+    }
+    
+    return double(lastRDTSC - firstRDTSC) / (((double(tv2.tv_sec) * 1000000 + double(tv2.tv_usec)) - (double(tv1.tv_sec) * 1000000 + double(tv1.tv_usec))) / 1000000);
 }
 
-    
 /**
  * Converts a duration, expressed in RDTSC clocks, into seconds
  */
-double rdtsc2sec( uint64 clk)
+double rdtsc2sec(uint64 clk)
 {
-	return double(clk) / double(rdtscpersec());
+    return double(clk) / rdtscpersec();
 }
 
-double rdtsc2sec( double clk)
+double rdtsc2sec(double clk)
 {
-	return clk / double(rdtscpersec());
+    return clk / rdtscpersec();
 }
-
     
 /**
  * Converts RDTSC clocks into Megabytes/seconds according to the

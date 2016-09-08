@@ -483,7 +483,7 @@ Tree tmap (Tree key, tfun f, Tree t)
 static Tree substkey(Tree t, Tree id, Tree val) 
 {
 	char 	name[256];
-	snprintf(name, 255, "SUBST<%p,%p,%p> : ", (CTree*)t, (CTree*)id, (CTree*)val);
+	snprintf(name, 255, "SUBST<%p,%p,%p> : ", (void*)(CTree*)t, (void*)(CTree*)id, (void*)(CTree*)val);
 	return tree(unique(name));
 }	
 

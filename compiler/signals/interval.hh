@@ -124,7 +124,7 @@ inline int bitmask (double x)	{
 inline interval operator&(const interval& x, const interval& y)
 {
 	if (x.valid && y.valid) {
-		if (x.lo >= 0 & y.lo >= 0) {
+		if (x.lo >= 0 && y.lo >= 0) {
 			return interval(0, bitmask(x.hi) & bitmask(y.hi));
 		} else if (y.lo >= 0) {
 			return interval(0, bitmask(y.hi));
@@ -133,9 +133,9 @@ inline interval operator&(const interval& x, const interval& y)
 		} else {
 			return interval();
 		}
-	} else if (x.valid & x.lo >= 0) {
+	} else if (x.valid && x.lo >= 0) {
 		return interval(0, bitmask(x.hi));
-	} else if (y.valid & y.lo >= 0) {
+	} else if (y.valid && y.lo >= 0) {
 		return interval(0, bitmask(y.hi));
 	} else {
 		return interval();

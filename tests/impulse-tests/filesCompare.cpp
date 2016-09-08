@@ -47,7 +47,7 @@ void compareFiles(std::istream* in1, std::istream* in2, float tolerance)
         l2reader >> input2;
         
         if (input1 != input2) {
-            std::cerr << "input1 : " << input1 << "different from : " << input2 << std::endl;
+            std::cerr << "input1 : " << input1 << " different from input2 : " << input2 << std::endl;
             gResult = 1;
             exit(gResult);
         }
@@ -68,7 +68,7 @@ void compareFiles(std::istream* in1, std::istream* in2, float tolerance)
         l2reader >> output2;
         
         if (output1 != output2) {
-            std::cerr << "output1 : " << output1 << "different from : " << output2 << std::endl;
+            std::cerr << "output1 : " << output1 << " different from output2 : " << output2 << std::endl;
             gResult = 1;
             exit(gResult);
         }
@@ -89,7 +89,7 @@ void compareFiles(std::istream* in1, std::istream* in2, float tolerance)
         l2reader >> count2;
         
         if (count1 != count2) {
-            std::cerr << "count1 : " << count1 << "different from : " << count2 << std::endl;
+            std::cerr << "count1 : " << count1 << " different from count2 : " << count2 << std::endl;
             gResult = 1;
             exit(gResult);
         }
