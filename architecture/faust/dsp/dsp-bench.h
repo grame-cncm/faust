@@ -262,6 +262,7 @@ class measure_dsp : public decorator_dsp {
                 fOutputs[i] = new FAUSTFLOAT[buffer_size];
             }
         }
+    
         virtual ~measure_dsp()
         {
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
@@ -286,6 +287,7 @@ class measure_dsp : public decorator_dsp {
         
         void computeAll()
         {
+            AVOIDDENORMALS;
             do {
                 compute(0, fBufferSize, fInputs, fOutputs);
             } while (fBench.isRunning());
@@ -296,7 +298,7 @@ class measure_dsp : public decorator_dsp {
     
         void printStats(const char* applname)
         {
-             fBench.printStats(applname, fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
+            fBench.printStats(applname, fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
         }
     
         bool isRunning() { return fBench.isRunning(); }
