@@ -59,7 +59,7 @@ class FaustObjectCache;
 
 class llvm_dsp_factory;
 
-class EXPORT llvm_dsp_factory_aux : public dsp_factory_imp {
+class llvm_dsp_factory_aux : public dsp_factory_imp {
 
     friend class llvm_dsp_aux;
     

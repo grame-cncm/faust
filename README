@@ -42,7 +42,7 @@ It's organization is the following :
 
 The faust2 development branch has dependencies to :
 
-- llvm/clang (> 3.1) (has to be installed in universal mode [32/64 bits] on OSX) 
+- llvm/clang (> 3.1) (has to be installed in universal mode [32/64 bits] on OSX), so using : sudo port install llvm-3.xx +universal)
 - openssl (has to be installed in universal mode [32/64 bits] on OSX) 
 
 

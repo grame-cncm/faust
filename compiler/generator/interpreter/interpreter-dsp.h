@@ -131,9 +131,10 @@ interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& 
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
  */ 
-interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content,
-                                                             int argc, const char* argv[], 
-                                                             std::string& error_msg);
+interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string& name_app,
+                                                            const std::string& dsp_content,
+                                                            int argc, const char* argv[],
+                                                            std::string& error_msg);
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possible really deleting the internal pointer. 
  * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted with deleteDSPInstance.
@@ -208,8 +209,6 @@ interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::str
  *
  */
 void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const std::string& machine_code_path);
-
-void deleteAllInterpreterDSPFactories();
 
 /*!
  @}

@@ -125,7 +125,7 @@ class CodeContainer : public virtual Garbageable {
         void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num, bool omp = false);
         void generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst * count, bool omp);
 
-       void printHeader(ostream& dst)
+        void printHeader(ostream& dst)
         {
             // defines the metadata we want to print as comments at the begin of in the file
             set<Tree> selectedKeys;
