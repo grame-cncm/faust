@@ -84,7 +84,7 @@ class dsp_bench {
         /**
          * Returns the number of clock cycles elapsed since the last reset of the processor
          */
-        __inline__ uint64 rdtsc(void)
+        inline uint64 rdtsc(void)
         {
             union {
                 uint32 i32[2];
@@ -255,11 +255,11 @@ class measure_dsp : public decorator_dsp {
         {
             assert(fDSP->getNumInputs() < 256);
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                fInputs[i] = new float[buffer_size];
+                fInputs[i] = new FAUSTFLOAT[buffer_size];
             }
             assert(fDSP->getNumOutputs() < 256);
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                fOutputs[i] = new float[buffer_size];
+                fOutputs[i] = new FAUSTFLOAT[buffer_size];
             }
         }
         virtual ~measure_dsp()
@@ -271,12 +271,17 @@ class measure_dsp : public decorator_dsp {
                 delete [] fOutputs[i];
             }
         }
-        
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    
+        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fBench.startMeasure();
             fDSP->compute(count, inputs, outputs);
             fBench.stopMeasure();
+        }
+    
+        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            compute(count, inputs, outputs);
         }
         
         void computeAll()
