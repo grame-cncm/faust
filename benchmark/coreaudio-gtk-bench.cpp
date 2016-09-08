@@ -47,14 +47,10 @@ using namespace std;
 <<includeclass>>
 
 // Globals
-bool running = true;
-dsp_bench bench(600, 20);
-dsp* DSP;
 list<GUI*> GUI::fGuiList;
+pthread_t gThread;
 
-pthread_t guithread;
-
-static void* run_ui(void* ptr)
+static void* runUI(void* ptr)
 {
     GUI* interface = (GUI*)ptr;
     interface->run();
@@ -62,58 +58,39 @@ static void* run_ui(void* ptr)
     return 0;
 }
 
-class measure_dsp : public decorator_dsp {
-
-    public:
-
-        measure_dsp(dsp* dsp):decorator_dsp(dsp) {}
-        virtual ~measure_dsp() {}
-
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
-        {
-            bench.startMeasure();
-            fDSP->compute(count, inputs, outputs);
-            bench.stopMeasure();
-            running = bench.isRunning();
-        }
-       
-};
-
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
 
 int main(int argc, char *argv[])
 {
-   char name[256];
-	char rcfilename[256];
-	char* home = getenv("HOME");
+    char name[256];
+    char* home = getenv("HOME");
     snprintf(name, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
-    
-	long srate = (long)lopt(argv, "--frequency", 44100);
+
+    long srate = (long)lopt(argv, "--frequency", 44100);
     int	fpb = lopt(argv, "--buffer", 512);
-    
+
     UI* interface = new GTKUI(argv[0], &argc, &argv);
-    DSP = new mydsp();
- 	
-    DSP->buildUserInterface(interface);
-    
-    pthread_create(&guithread, NULL, run_ui, interface);
-   
-    bench.openMeasure();
-    
+    measure_dsp* dsp = new measure_dsp(new mydsp(), fpb, 600, 20);
+    dsp->buildUserInterface(interface);
+
+    pthread_create(&gThread, NULL, runUI, interface);
+
+    // Measuring DSP...
+    dsp->openMeasure();
+
     coreaudio audio(srate, fpb);
-    audio.init(name, new measure_dsp(DSP));
+    audio.init(name, dsp);
     audio.start();
-    
-    while (running) {
+
+    while (dsp->isRunning()) {
         usleep(100000);
     }
-	bench.closeMeasure();
-
-    bench.printStats(argv[0], fpb, DSP->getNumInputs(), DSP->getNumOutputs());
+           
+    dsp->closeMeasure();
+    dsp->printStats(argv[0]);
 
     audio.stop();
-  	return 0;
+    return 0;
 }
