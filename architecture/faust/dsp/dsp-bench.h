@@ -41,15 +41,15 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#include <assert.h>
 
-using namespace std;
+#include "faust/dsp/dsp.h"
 
 // Handle 32/64 bits int size issues
 #ifdef __x86_64__
 
     #define uint32 unsigned int
     #define uint64 unsigned long int
-
     #define int32 int
     #define int64 long int
 
@@ -57,7 +57,6 @@ using namespace std;
 
     #define uint32 unsigned int
     #define uint64 unsigned long long int
-
     #define int32 int
     #define int64 long long int
 
@@ -142,7 +141,7 @@ class dsp_bench {
         /**
          * Compute the mean value of a vector of measures
          */
-        uint64 meanValue(vector<uint64>::const_iterator a, vector<uint64>::const_iterator b)
+        uint64 meanValue(std::vector<uint64>::const_iterator a, std::vector<uint64>::const_iterator b)
         {
             uint64 r = 0;
             unsigned int n = 0;
@@ -159,7 +158,6 @@ class dsp_bench {
             fMeasure = 0;
             fFirstRDTSC = 0;
             fLastRDTSC = 0;
-            
             fStarts = new uint64[fMeasureCount];
             fStops = new uint64[fMeasureCount];
         }
@@ -195,7 +193,7 @@ class dsp_bench {
         void printStats(const char* applname, int bsize, int ichans, int ochans)
         {
             assert(fMeasure > fMeasureCount);
-            vector<uint64> V(fMeasureCount);
+            std::vector<uint64> V(fMeasureCount);
             
             for (int i = 0; i<fMeasureCount; i++) {
                 V[i] = fStops[i] - fStarts[i];
@@ -211,17 +209,76 @@ class dsp_bench {
             uint64 meaval100 = meanValue(V.end() - 5, V.end());
             
             // Printing
-            cout << applname
+            std::cout << applname
             << '\t' << megapersec(bsize, ichans+ochans, meaval00)
             << '\t' << megapersec(bsize, ichans+ochans, meaval25)
             << '\t' << megapersec(bsize, ichans+ochans, meaval50)
             << '\t' << megapersec(bsize, ichans+ochans, meaval75)
             << '\t' << megapersec(bsize, ichans+ochans, meaval100)
-            << endl;
+            << std::endl;
         }
     
-        bool isRunning() { return fMeasure <= (fMeasureCount + fSkip); }
+        bool isRunning() { return (fMeasure <= (fMeasureCount + fSkip)); }
 
+};
+
+class measure_dsp : public decorator_dsp {
+    
+    protected:
+    
+        FAUSTFLOAT* fInputs[256];
+        FAUSTFLOAT* fOutputs[256];
+        dsp_bench fBench;
+        int fBufferSize;
+    
+    public:
+        
+        measure_dsp(dsp* dsp, int buffer_size, int count, int skip)
+        :decorator_dsp(dsp), fBench(count, skip), fBufferSize(buffer_size)
+        {
+            assert(fDSP->getNumInputs() < 256);
+            for (int i = 0; i < fDSP->getNumInputs(); i++) {
+                fInputs[i] = new float[buffer_size];
+            }
+            assert(fDSP->getNumOutputs() < 256);
+            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+                fOutputs[i] = new float[buffer_size];
+            }
+        }
+        virtual ~measure_dsp()
+        {
+            for (int i = 0; i < fDSP->getNumInputs(); i++) {
+                delete [] fInputs[i];
+            }
+            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+                delete [] fOutputs[i];
+            }
+        }
+        
+        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            fBench.startMeasure();
+            fDSP->compute(count, inputs, outputs);
+            fBench.stopMeasure();
+        }
+        
+        void compute_all()
+        {
+            do {
+                compute(0, fBufferSize, fInputs, fOutputs);
+            } while (fBench.isRunning());
+        }
+    
+        void openMeasure() { fBench.openMeasure(); }
+        void closeMeasure() { fBench.closeMeasure(); }
+    
+        void printStats(const char* applname)
+        {
+             fBench.printStats(applname, fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
+        }
+    
+        bool isRunning() { return fBench.isRunning(); }
+    
 };
 
 #endif
