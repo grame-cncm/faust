@@ -52,7 +52,7 @@
     A class to do do timing measurements
 */
 
-class dsp_bench {
+class time_bench {
     
     protected:
     
@@ -141,7 +141,7 @@ class dsp_bench {
   
     public:
     
-        dsp_bench(int count, int skip)
+        time_bench(int count, int skip)
         {
             fSkip = skip;
             fMeasureCount = count;
@@ -152,7 +152,7 @@ class dsp_bench {
             fStops = new uint64[fMeasureCount];
         }
     
-        virtual ~dsp_bench()
+        virtual ~time_bench()
         {
             delete [] fStarts;
             delete [] fStops;
@@ -177,6 +177,9 @@ class dsp_bench {
             fLastRDTSC = rdtsc();
         }
     
+        /**
+         *  Returns best estimation.
+         */
         double getStats(int bsize, int ichans, int ochans)
         {
             assert(fMeasure > fMeasureCount);
@@ -194,7 +197,7 @@ class dsp_bench {
         }
 
         /**
-         * Print the median value (in Megabytes/second) of fMeasureCount throughputs measurements
+         * Print the median value (in Megabytes/second) of fMeasureCount throughputs measurements.
          */
         void printStats(const char* applname, int bsize, int ichans, int ochans)
         {
@@ -238,21 +241,32 @@ class measure_dsp : public decorator_dsp {
     
         FAUSTFLOAT* fInputs[256];
         FAUSTFLOAT* fOutputs[256];
-        dsp_bench fBench;
+        time_bench fBench;
         int fBufferSize;
     
     public:
-        
+    
+        /**
+         * Constructor.
+         *
+         * @param dsp - the dsp to be measured.
+         * @param buffer_size - the buffer size used when calling 'computeAll'
+         * @param count - the number of cycles using in 'computeAll'
+         * @param skip - ??
+         *
+         */
         measure_dsp(dsp* dsp, int buffer_size, int count, int skip)
         :decorator_dsp(dsp), fBench(count, skip), fBufferSize(buffer_size)
         {
             assert(fDSP->getNumInputs() < 256);
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 fInputs[i] = new FAUSTFLOAT[buffer_size];
+                memset(fInputs[i], 0, sizeof(FAUSTFLOAT) * buffer_size);
             }
             assert(fDSP->getNumOutputs() < 256);
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                 fOutputs[i] = new FAUSTFLOAT[buffer_size];
+                memset(fOutputs[i], 0, sizeof(FAUSTFLOAT) * buffer_size);
             }
         }
     
@@ -266,6 +280,9 @@ class measure_dsp : public decorator_dsp {
             }
         }
     
+        /*
+            Measure the duration of the compute call.
+        */
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fBench.startMeasure();
@@ -277,7 +294,10 @@ class measure_dsp : public decorator_dsp {
         {
             compute(count, inputs, outputs);
         }
-        
+    
+        /*
+            Measure the duration of 'count' (given in constructor) call to compute.
+        */
         void computeAll()
         {
             AVOIDDENORMALS;
@@ -286,9 +306,28 @@ class measure_dsp : public decorator_dsp {
             } while (fBench.isRunning());
         }
     
+        /**
+         *  Initialize measure datas.
+         */
         void openMeasure() { fBench.openMeasure(); }
+    
+        /**
+         *  Terminate measurement.
+         */
         void closeMeasure() { fBench.closeMeasure(); }
     
+    
+        /**
+         *  Returns best estimation.
+         */
+        void getStats()
+        {
+            fBench.getStats(fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
+        }
+    
+        /**
+         * Print the median value (in Megabytes/second) of fMeasureCount throughputs measurements.
+         */
         void printStats(const char* applname)
         {
             fBench.printStats(applname, fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
