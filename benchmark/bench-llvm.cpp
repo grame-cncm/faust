@@ -30,6 +30,11 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
+    if (argc < 2) {
+        cout << "bench-llvm <foo.dsp>" << endl;
+        return 0;
+    }
+    
     int index = 1;
     if (isopt(argv, "-vec")) index += 2;
     int VSIZE = lopt(argv, "-vec", 512);

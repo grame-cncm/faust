@@ -379,7 +379,7 @@ dsp_factory* dsp_server_connection_info::crossCompileFactory(DSPServer* server, 
     #ifdef LLVM_DSP_FACTORY
         factory = createDSPFactoryFromString(fNameApp, fFaustCode, argc, argv, fTarget, error1, atoi(fOptLevel.c_str()));
     #else
-        factory = createInterpreterDSPFactoryFromString(fNameApp,fFaustCode, argc, argv, error1);
+        factory = createInterpreterDSPFactoryFromString(fNameApp, fFaustCode, argc, argv, error1);
     #endif
         
         error = error1;                                                    
