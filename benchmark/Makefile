@@ -183,6 +183,7 @@ galsaomp2 :
 # OSX 
 
 bench-llvm: bench-llvm.cpp
+	$(CXX -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
 	$(CXX) -O3 bench-llvm.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lcrypto -o bench-llvm
 
 gcoreaudiollvm : coreaudio-gtk-llvm-bench.cpp
@@ -263,9 +264,11 @@ iqalsaomp :
 
 install:
 	cp bench-llvm $(prefix)/bin
+	cp scheduler.ll $(prefix)/lib/faust
 
 clean :
 	rm -rf *dir
-	rm gcoreaudiollvm
-	rm bscalllvm
-	rm bench-llvm
+	([ -e gcoreaudiollvm ] && rm gcoreaudiollvm) || echo gcoreaudiollvm not found
+	([ -e bscalllvm ] && rm bscalllvm) || echo gcoreaudiollvm not found
+	([ -e bench-llvm ] && rm bench-llvm ) || echo bench-llvm not found
+

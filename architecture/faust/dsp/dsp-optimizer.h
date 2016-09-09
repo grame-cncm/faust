@@ -63,7 +63,7 @@ class dsp_optimizer {
         std::string fTarget;
         std::string fError;
         
-        std::vector< std::vector <std::string > > fOptionsTable;
+        std::vector<std::vector <std::string> > fOptionsTable;
     
         bool setRealtimePriority()
         {
@@ -193,12 +193,12 @@ class dsp_optimizer {
                 std::stringstream num;
                 num << size;
                 std::vector <std::string> t1;
-                t1.push_back("-dfs");
                 t1.push_back("-vec");
                 t1.push_back("-lv");
                 t1.push_back("0");
                 t1.push_back("-vs");
                 t1.push_back(num.str());
+                t1.push_back("-dfs");
                 fOptionsTable.push_back(t1);
             }
             
@@ -207,12 +207,12 @@ class dsp_optimizer {
                 std::stringstream num;
                 num << size;
                 std::vector <std::string> t1;
-                t1.push_back("-dfs");
                 t1.push_back("-vec");
                 t1.push_back("-lv");
                 t1.push_back("1");
                 t1.push_back("-vs");
                 t1.push_back(num.str());
+                t1.push_back("-dfs");
                 fOptionsTable.push_back(t1);
             }
             
@@ -238,9 +238,8 @@ class dsp_optimizer {
             std::cout << " : ";
         }
         
-        bool computeOne(int index, double& res)
+        bool computeOne(int index, const std::vector<std::string>& item, double& res)
         {
-            std::vector <std::string> item = fOptionsTable[index];
             printItem(item);
             
             if (fInput == "") {
@@ -316,7 +315,26 @@ class dsp_optimizer {
             
             std::cout << "setStackSize size = " << size <<  std::endl;
         }
-       
+    
+        std::vector<std::string> findOptimizedParametersAux(const std::vector<std::vector <std::string> >& options, double& best)
+        {
+            std::vector<std::pair<int, double > > table_res;
+            double res;
+            
+            for (int i = 0; i < options.size(); i++) {
+                if (computeOne(i, options[i], res)) {
+                    table_res.push_back(std::make_pair(i, res));
+                } else {
+                    std::cout << "computeOne error..." << std::endl;
+                }
+            }
+            
+            sort(table_res.begin(), table_res.end(), myfunction);
+            best = table_res[0].second;
+            return options[table_res[0].first];
+        }
+
+    
     public:
     
         dsp_optimizer(const char* filename,
@@ -368,28 +386,23 @@ class dsp_optimizer {
         virtual ~dsp_optimizer()
         {}
     
-        std::vector<std::string> findOptimizedParameters()
+        std::vector<std::string> findOptimizedParameters(double& best)
         {
-            std::vector<  std::pair <int, double > > table_res;
-            double res;
-             
-            for (int i = 0; i < fOptionsTable.size(); i++) {
-                if (computeOne(i, res)) {
-                    table_res.push_back(std::make_pair(i, res));
-                } else {
-                    std::cout << "computeOne error..." << std::endl;
-                }
+            std::cout << "Discover best parameters option" << std::endl;
+            std::vector<std::string> best1 = findOptimizedParametersAux(fOptionsTable, best);
+            
+            std::cout << "Refined with -mcd" << std::endl;
+            std::vector<std::vector <std::string> > options_table;
+            for (int size = 2; size <= 256; size *= 2) {
+                std::vector<std::string> best2 = best1;
+                std::stringstream num;
+                num << size;
+                best2.push_back("-mcd");
+                best2.push_back(num.str());
+                options_table.push_back(best2);
             }
             
-            sort(table_res.begin(), table_res.end(), myfunction);
-             
-            if (table_res.size() > 0) {
-                return fOptionsTable[table_res[0].first];
-            } else {
-                // Scalar...
-                std::cout << "findOptimizedParameters no options found..." << std::endl;
-                return fOptionsTable[0];
-            }
+            return findOptimizedParametersAux(options_table, best);
         }
     
         const char* getError() { return fError.c_str(); }

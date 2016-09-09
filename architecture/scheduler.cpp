@@ -642,7 +642,7 @@ static INLINE int Range(int min, int max, int val)
     }
 }
 
-#if defined(LLVM_36) || defined(LLVM_35) || defined(LLVM_34) || defined(LLVM_33) || defined(LLVM_32) || defined(LLVM_31)
+#if defined(LLVM_39) || defined(LLVM_38) || defined(LLVM_37) || defined(LLVM_36) || defined(LLVM_35) || defined(LLVM_34) || defined(LLVM_33) || defined(LLVM_32) || defined(LLVM_31)
     extern "C" void computeThreadExternal(void* dsp, int num_thread) __attribute__((weak_import));
 #else
     void computeThreadExternal(void* dsp, int num_thread);
