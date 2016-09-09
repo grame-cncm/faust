@@ -44,7 +44,7 @@ class dsp_optimizer {
 
     private:
         
-        dsp_bench fBench;
+        time_bench fBench;
 
         FAUSTFLOAT* fBuffer;    // a buffer of fNV * fVSize samples
 
@@ -319,7 +319,7 @@ class dsp_optimizer {
         std::vector<std::string> findOptimizedParametersAux(const std::vector<std::vector <std::string> >& options, double& best)
         {
             std::vector<std::pair<int, double > > table_res;
-            double res;
+            double res = 0.;
             
             for (int i = 0; i < options.size(); i++) {
                 if (computeOne(i, options[i], res)) {
@@ -329,11 +329,12 @@ class dsp_optimizer {
                 }
             }
             
-            sort(table_res.begin(), table_res.end(), myfunction);
+            sort(table_res.begin(), table_res.end(), compareFun);
             best = table_res[0].second;
             return options[table_res[0].first];
         }
 
+        static bool compareFun(std::pair<int, double> i, std::pair<int, double> j) { return (i.second > j.second); }
     
     public:
     
@@ -380,8 +381,6 @@ class dsp_optimizer {
             
             init();
         }
-    
-        static bool myfunction(std::pair <int, double > i, std::pair <int, double > j) { return (i.second > j.second); }
     
         virtual ~dsp_optimizer()
         {}
