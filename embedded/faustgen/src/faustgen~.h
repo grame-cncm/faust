@@ -58,7 +58,7 @@
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 
 #ifdef __APPLE__
-    //#include "bench-llvm.cpp"
+    #include "faust/dsp/dsp-optimizer.h"
     #define FAUST_LIBRARY_PATH "/Contents/Resources/"
     #define FAUST_DRAW_PATH "/var/tmp/"
     #define SEPARATOR '/'

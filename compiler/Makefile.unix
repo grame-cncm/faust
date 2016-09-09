@@ -110,9 +110,9 @@ else ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.8.0 3.8.1))
     CXXFLAGS += -std=gnu++11
 
 else ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.9.0))
-LLVM_VERSION = LLVM_39
-CLANGLIBS=$(CLANGLIBSLIST)
-CXXFLAGS += -std=gnu++11
+    LLVM_VERSION = LLVM_39
+    CLANGLIBS=$(CLANGLIBSLIST)
+    CXXFLAGS += -std=gnu++11
 
 else
     $(error "Unknown LLVM version $(LLVM_VERSION)")
@@ -142,7 +142,7 @@ ifneq ($(LLVMSHLIB),)
     LLVMLIBS = -l$(patsubst lib%,%,$(notdir $(basename $(LLVMSHLIB))))
 endif
 
-LLVMLIBS += $(shell $(LLVM_CONFIG) --system-libs)
+LLVMLIBS += $(shell $(LLVM_CONFIG) --libs --system-libs)
 
 all : faust libfaust.a
 

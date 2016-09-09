@@ -883,12 +883,11 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
  
         post("Start looking for optimal compilation options...");
          
-	#ifndef WIN32
-        /*
-        FaustLLVMOptimizer optimizer(string(*fSourceCode), (*fLibraryPath.begin()).c_str(), getTarget(), sys_getblksize(), 3);
-        fOptions = optimizer.findOptimize();
-        */
-	#endif
+    #ifdef __APPLE__
+        double best;
+        dsp_optimizer optimizer(string(*fSourceCode), (*fLibraryPath.begin()).c_str(), getTarget(), sys_getblksize());
+        fOptions = optimizer.findOptimizedParameters(best);
+    #endif
         
         post("Optimal compilation options found");
     }
