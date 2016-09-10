@@ -56,7 +56,7 @@ struct LLVMResult;
 class ASMJAVAScriptInstVisitor;
 class WASMInstVisitor;
 
-struct dsp_factory_base;
+class dsp_factory_base;
 
 typedef long double quad;
 
