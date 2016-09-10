@@ -38,7 +38,7 @@
 
 /*
     A class to find optimal Faust compiler parameters for a given DSP.
- */
+*/
 
 class dsp_optimizer {
 
@@ -266,7 +266,7 @@ class dsp_optimizer {
             }
             
             if (!fFactory)  {
-                std::cout << "Cannot create factory : " << fError.c_str() << std::endl;
+                std::cout << "Cannot create factory : " << fError << std::endl;
                 return false;
             }
             
@@ -285,35 +285,6 @@ class dsp_optimizer {
             fDSP = 0;
             
             return true;
-        }
-    
-        static int getStackSize()
-        {
-            pthread_attr_t attributes;
-            pthread_attr_init(&attributes);
-            size_t size;
-            int res;
-            
-            if ((res = pthread_attr_getstacksize(&attributes, &size))) {
-                std::cout << "pthread_attr_getstacksize error " << res <<  std::endl;
-                return 0;
-            } else {
-                std::cout << "getStackSize size = " << size <<  std::endl;
-                return size;
-            }
-        }
-        
-        static void setStackSize(size_t size)
-        {
-            pthread_attr_t attributes;
-            pthread_attr_init(&attributes);
-            int res;
-            
-            if ((res = pthread_attr_setstacksize(&attributes, size))) {
-                 std::cout << "pthread_attr_setstacksize error " << res <<  std::endl;
-            } 
-            
-            std::cout << "setStackSize size = " << size <<  std::endl;
         }
     
         std::vector<std::string> findOptimizedParametersAux(const std::vector<std::vector <std::string> >& options, double& best)
@@ -335,6 +306,36 @@ class dsp_optimizer {
         }
 
         static bool compareFun(std::pair<int, double> i, std::pair<int, double> j) { return (i.second > j.second); }
+    
+
+        static int getStackSize()
+        {
+            pthread_attr_t attributes;
+            pthread_attr_init(&attributes);
+            size_t size;
+            int res;
+            
+            if ((res = pthread_attr_getstacksize(&attributes, &size))) {
+                std::cout << "pthread_attr_getstacksize error " << res << std::endl;
+                return 0;
+            } else {
+                std::cout << "getStackSize size = " << size << std::endl;
+                return size;
+            }
+        }
+        
+        static void setStackSize(size_t size)
+        {
+            pthread_attr_t attributes;
+            pthread_attr_init(&attributes);
+            int res;
+            
+            if ((res = pthread_attr_setstacksize(&attributes, size))) {
+                std::cout << "pthread_attr_setstacksize error " << res << std::endl;
+            }
+            
+            std::cout << "setStackSize size = " << size << std::endl;
+        }
     
     public:
     

@@ -16,53 +16,53 @@ system	:= $(shell uname -s)
 LLVM_VERSION = $(shell llvm-config --version)
 
 ifeq ($(LLVM_VERSION), 3.1)
-LLVM_VERSION  = LLVM_31
+LLVM_VERSION = LLVM_31
 CXX = /opt/local/libexec/llvm-3.1/bin/clang++
 endif
 
 ifeq ($(LLVM_VERSION), 3.2)
-LLVM_VERSION  = LLVM_32
+LLVM_VERSION = LLVM_32
 CXX = /opt/local/libexec/llvm-3.2/bin/clang++
 endif
 
 ifeq ($(LLVM_VERSION), 3.3)
-LLVM_VERSION  = LLVM_33
+LLVM_VERSION = LLVM_33
 CXX = /opt/local/libexec/llvm-3.3/bin/clang++
 LLC = /opt/local/libexec/llvm-3.3/bin/llc
 endif
 
 ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION),3.4, 3.4.1, 3.4.2))
-LLVM_VERSION  = LLVM_34
+LLVM_VERSION = LLVM_34
 CXX = /opt/local/libexec/llvm-3.4/bin/clang++
 LLC = /opt/local/libexec/llvm-3.4/bin/llc
 endif
 
 ifeq ($(LLVM_VERSION), 3.4.2)
-LLVM_VERSION  = LLVM_34
+LLVM_VERSION = LLVM_34
 CXX = /opt/local/libexec/llvm-3.4/bin/clang++
 LLC = /opt/local/libexec/llvm-3.4/bin/llc
 endif
 
 ifeq ($(LLVM_VERSION), 3.5)
-LLVM_VERSION  = LLVM_35
+LLVM_VERSION = LLVM_35
 CXX = /opt/local/libexec/llvm-3.5/bin/clang++
 LLC = /opt/local/libexec/llvm-3.5/bin/llc
 endif
 
 ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.6.0 3.6.1 3.6.2))
-LLVM_VERSION  = LLVM_36
+LLVM_VERSION = LLVM_36
 CXX = /opt/local/libexec/llvm-3.6/bin/clang++
 LLC = /opt/local/libexec/llvm-3.6/bin/llc
 endif
 
 ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.7.0 3.7.1 3.7.2))
-LLVM_VERSION  = LLVM_37
+LLVM_VERSION = LLVM_37
 CXX = /opt/local/libexec/llvm-3.7/bin/clang++
 LLC = /opt/local/libexec/llvm-3.7/bin/llc
 endif
 
 ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.8.0 3.8.1))
-LLVM_VERSION  = LLVM_38
+LLVM_VERSION = LLVM_38
 CXX = /opt/local/libexec/llvm-3.8/bin/clang++
 LLC = /opt/local/libexec/llvm-3.8/bin/llc
 endif
@@ -182,7 +182,7 @@ galsaomp2 :
 
 # OSX 
 
-bench-llvm: bench-llvm.cpp
+bench-llvm: bench-llvm.o
 	$(CXX) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
 	$(CXX) -O3 bench-llvm.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lcrypto -o bench-llvm
 
@@ -262,9 +262,15 @@ iqalsaomp :
 	install -d iqalsaompdir
 	$(MAKE) DEST='iqalsaompdir/' ARCH='alsa-gtk-bench.cpp' VEC='-quad -omp -vs $(VSIZE)' LIB='-lpthread -lasound  `pkg-config --cflags --libs gtk+-2.0`' CXX='icc' CXXFLAGS='-openmp '$(MYICCFLAGS) -f Makefile.compile
 
+
 install:
 	cp bench-llvm $(prefix)/bin
 	cp scheduler.ll $(prefix)/lib/faust
+
+.PHONY: depend clean
+
+depend : 
+	makedepend *.cpp -w120 -Y -I $(PREFIX)/include
 
 clean :
 	rm -rf *dir
@@ -273,3 +279,29 @@ clean :
 	([ -e bench-llvm ] && rm bench-llvm ) || echo bench-llvm not found
 	([ -e scheduler.ll ] && rm scheduler.ll ) || echo scheduler.ll not found
 
+# DO NOT DELETE
+
+bench-llvm.o: /usr/local/include/faust/dsp/dsp-optimizer.h /usr/local/include/faust/dsp/llvm-dsp.h
+bench-llvm.o: /usr/local/include/faust/dsp/dsp.h /usr/local/include/faust/gui/meta.h
+bench-llvm.o: /usr/local/include/faust/dsp/dsp-bench.h /usr/local/include/faust/misc.h
+console-bench-llvm.o: /usr/local/include/faust/audio/coreaudio-dsp.h /usr/local/include/faust/audio/audio.h
+console-bench-llvm.o: /usr/local/include/faust/dsp/dsp.h /usr/local/include/faust/dsp/dsp-bench.h
+console-bench-llvm.o: /usr/local/include/faust/dsp/llvm-dsp.h /usr/local/include/faust/gui/meta.h
+console-bench-llvm.o: /usr/local/include/faust/misc.h
+console-bench.o: /usr/local/include/faust/audio/coreaudio-dsp.h /usr/local/include/faust/audio/audio.h
+console-bench.o: /usr/local/include/faust/dsp/dsp.h /usr/local/include/faust/dsp/dsp-bench.h
+console-bench.o: /usr/local/include/faust/gui/UI.h /usr/local/include/faust/dsp/llvm-dsp.h
+console-bench.o: /usr/local/include/faust/gui/meta.h /usr/local/include/faust/misc.h
+coreaudio-gtk-bench.o: /usr/local/include/faust/audio/coreaudio-dsp.h /usr/local/include/faust/audio/audio.h
+coreaudio-gtk-bench.o: /usr/local/include/faust/dsp/dsp.h /usr/local/include/faust/dsp/dsp-bench.h
+coreaudio-gtk-bench.o: /usr/local/include/faust/misc.h /usr/local/include/faust/gui/meta.h
+coreaudio-gtk-bench.o: /usr/local/include/faust/gui/faustgtk.h /usr/local/include/faust/gui/GUI.h
+coreaudio-gtk-bench.o: /usr/local/include/faust/gui/UI.h /usr/local/include/faust/gui/ring-buffer.h
+coreaudio-gtk-bench.o: /usr/local/include/faust/gui/MetaDataUI.h /usr/local/include/faust/gui/SimpleParser.h
+coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/audio/coreaudio-dsp.h /usr/local/include/faust/audio/audio.h
+coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/dsp/dsp.h /usr/local/include/faust/dsp/dsp-bench.h
+coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/dsp/llvm-dsp.h /usr/local/include/faust/gui/meta.h
+coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/misc.h /usr/local/include/faust/gui/faustgtk.h
+coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/gui/GUI.h /usr/local/include/faust/gui/UI.h
+coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/gui/ring-buffer.h /usr/local/include/faust/gui/MetaDataUI.h
+coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/gui/SimpleParser.h
