@@ -33,7 +33,6 @@
 #include "faust/gui/CUI.h"
 #include "faust/dsp/dsp.h"
 #include "export.hh"
-#include "libfaust.h"
 #include "smartpointer.h"
 #include "TMutex.h"
 

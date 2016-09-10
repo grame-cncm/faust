@@ -22,13 +22,13 @@
 #ifndef _CLANG_CODE_CONTAINER_H
 #define _CLANG_CODE_CONTAINER_H
 
-#include "libfaust.h"
-#include "dag_instructions_compiler.hh"
-#include "c_code_container.hh"
-#include "cpp_code_container.hh"
 #include <iostream>
 #include <fstream>
 #include <sstream>
+
+#include "dag_instructions_compiler.hh"
+#include "c_code_container.hh"
+#include "cpp_code_container.hh"
 
 using namespace std;
 

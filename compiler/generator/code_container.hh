@@ -35,7 +35,7 @@
 #include "code_loop.hh"
 #include "garbageable.hh"
 #include "json_instructions.hh"
-#include "libfaust.h"
+#include "dsp_factory.hh"
 
 class TextInstVisitor;
 

@@ -40,7 +40,7 @@ void SHA1(const unsigned char*, int, unsigned char*) {}
 #endif
 
 #include "dsp_aux.hh"
-#include "libfaust.h"
+#include "dsp_factory.hh"
 #include "TMutex.h"
 #include "Text.hh"
 
@@ -310,7 +310,10 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
         }
         argv1[argc1] = 0;  // NULL terminated argv
         
-        return compile_faust(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, false);
+        dsp_factory_base* factory = compile_faust_factory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, false);
+        // Factory is no more needed
+        delete factory;
+        return (factory != NULL);
     }
 }
 

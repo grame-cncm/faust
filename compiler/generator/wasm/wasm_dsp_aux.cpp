@@ -28,7 +28,6 @@
 
 #include "compatibility.hh"
 #include "wasm_dsp_aux.hh"
-#include "libfaust.h"
 #include "Text.hh"
 
 typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
@@ -109,7 +108,8 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
             dsp_factory_base* dsp_factory_aux = compile_faust_factory(argc1, argv1,
                                                                     name_app.c_str(),
                                                                     dsp_content.c_str(),
-                                                                    error_msg);
+                                                                    error_msg,
+                                                                    true);
             
             if (!dsp_factory_aux) { return NULL; }
             factory = new wasm_dsp_factory(dsp_factory_aux);

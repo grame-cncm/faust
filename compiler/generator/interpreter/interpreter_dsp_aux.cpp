@@ -24,10 +24,6 @@
 #include "interpreter_dsp_aux.hh"
 #include "dsp_aux.hh"
 
-#ifndef LOADER
-#include "libfaust.h"
-#endif
-
 using namespace std;
 
 typedef class faust_smartptr<interpreter_dsp_factory> SDsp_factory;
@@ -119,7 +115,8 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
             dsp_factory_base* dsp_factory_aux = compile_faust_factory(argc1, argv1,
                                                                     name_app.c_str(),
                                                                     dsp_content.c_str(),
-                                                                    error_msg);
+                                                                    error_msg,
+                                                                    true);
             if (!dsp_factory_aux) { return NULL; }
             factory = new interpreter_dsp_factory(dsp_factory_aux);
             gInterpreterFactoryTable.setFactory(factory);

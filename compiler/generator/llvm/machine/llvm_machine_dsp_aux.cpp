@@ -31,7 +31,6 @@
 
 #include "llvm_machine_dsp_aux.hh"
 #include "faust/gui/UIGlue.h"
-#include "libfaust.h"
 #include "exception.hh"
 #include "rn_base64.h"
 

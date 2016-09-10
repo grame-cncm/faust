@@ -36,7 +36,6 @@
 
 #include "llvm_dsp_aux.hh"
 #include "faust/gui/UIGlue.h"
-#include "libfaust.h"
 #include "dsp_aux.hh"
 #include "timing.hh"
 #include "exception.hh"
@@ -1121,7 +1120,8 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             llvm_dsp_factory_aux* factory_aux = static_cast<llvm_dsp_factory_aux*>(compile_faust_factory(argc1, argv1,
                                                                                                         name_app.c_str(),
                                                                                                         dsp_content.c_str(),
-                                                                                                        error_msg));
+                                                                                                        error_msg,
+                                                                                                        true));
             if (!factory_aux) {
                 return NULL;
             }

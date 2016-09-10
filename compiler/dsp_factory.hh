@@ -26,6 +26,12 @@
 #include <vector>
 #include <ostream>
 
+#define LVVM_BACKEND_NAME "Faust LLVM backend"
+#define COMPILATION_OPTIONS_KEY "compilation_options"
+#define COMPILATION_OPTIONS "declare compilation_options    "
+
+#define FAUSTVERSION "2.0.a48"
+
 struct Meta;
 class dsp_factory;
 class dsp;
@@ -130,5 +136,9 @@ class text_dsp_factory_aux : public dsp_factory_imp {
             *out << fCode;
         }
 };
+
+dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg, bool generate);
+
+std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key, std::string& error_msg);
 
 #endif

@@ -34,7 +34,6 @@
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
 #include "export.hh"
-#include "libfaust.h"
 #include "smartpointer.h"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"

@@ -74,7 +74,6 @@
 #include "ppsig.hh"
 #include "garbageable.hh"
 #include "exception.hh"
-#include "libfaust.h"
 #include "Text.hh"
 
 using namespace std;
@@ -1139,8 +1138,10 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
     *****************************************************************/
     generateOutputFiles(comp_container.first, comp_container.second);
 }
+    
+// External API
 
-EXPORT dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& error_msg)
+dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& error_msg, bool generate)
 {
     gGlobal = NULL;
     dsp_factory_base* res;
@@ -1149,7 +1150,7 @@ EXPORT dsp_factory_base* compile_faust_factory(int argc, const char* argv[], con
     
         // Compile module
         global::allocate();
-        compile_faust_internal(argc, argv, name, dsp_content, true);
+        compile_faust_internal(argc, argv, name, dsp_content, generate);
         error_msg = gGlobal->gErrorMsg;
         res = gGlobal->gDSPFactory;
             
@@ -1162,26 +1163,7 @@ EXPORT dsp_factory_base* compile_faust_factory(int argc, const char* argv[], con
     return res;
 }
 
-EXPORT bool compile_faust(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& error_msg, bool generate)
-{
-    gGlobal = NULL;
-    bool res;
-    
-    try {
-        global::allocate();  
-        compile_faust_internal(argc, argv, name, dsp_content, generate);
-        error_msg = gGlobal->gErrorMsg;
-        res = true;
-    } catch (faustexception& e) {
-        error_msg = e.Message();
-        res = false;
-    }
-    
-    global::destroy();
-    return res;
-}
-
-EXPORT string expand_dsp(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& sha_key, std::string& error_msg)
+string expand_dsp(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& sha_key, std::string& error_msg)
 {
     string res;
     gGlobal = NULL;
