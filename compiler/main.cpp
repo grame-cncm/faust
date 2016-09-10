@@ -19,10 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
-#include "global.hh"
-#include "export.hh"
-#include "exception.hh"
-#include "compatibility.hh"
+#include <unistd.h>
+#include <iostream>
+#include "dsp_factory.hh"
 
 // Standalone compiler uses the real 'alarm' function
 unsigned faust_alarm(unsigned seconds)
@@ -32,18 +31,13 @@ unsigned faust_alarm(unsigned seconds)
 
 int main(int argc, const char* argv[])
 {
-    gGlobal = NULL;
-
-    try {
-        global::allocate();
-        compile_faust_internal(argc, argv, 0, 0, true);
-    } catch (faustexception& e) {
-        if (e.Message().size() > 0) {
-            e.PrintMessage();
-            exit(1);
-        }
+    std::string error_msg;
+    dsp_factory_base* factory = compile_faust_factory(argc, argv, "FaustDSP", 0, error_msg, true);
+    delete factory;
+    if (error_msg == "") {
+        return 0;
+    } else {
+        std::cout << error_msg << std::endl;
+        return 1;
     }
-
-    global::destroy();
-    return 0;
 }

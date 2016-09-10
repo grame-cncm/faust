@@ -1026,7 +1026,7 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
     return out.str();
 }
 
-void compile_faust_internal(int argc, const char* argv[], const char* name, const char* dsp_content, bool generate)
+static void compile_faust_internal(int argc, const char* argv[], const char* name, const char* dsp_content, bool generate)
 {
     gGlobal->gPrintFileListSwitch = false;
   
@@ -1144,28 +1144,24 @@ void compile_faust_internal(int argc, const char* argv[], const char* name, cons
 dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& error_msg, bool generate)
 {
     gGlobal = NULL;
-    dsp_factory_base* res;
+    dsp_factory_base* factory = NULL;
     
     try {
-    
-        // Compile module
         global::allocate();
         compile_faust_internal(argc, argv, name, dsp_content, generate);
         error_msg = gGlobal->gErrorMsg;
-        res = gGlobal->gDSPFactory;
-            
+        factory = gGlobal->gDSPFactory;
     } catch (faustexception& e) {
         error_msg = e.Message();
-        res = NULL;
     }
     
     global::destroy();
-    return res;
+    return factory;
 }
 
 string expand_dsp(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& sha_key, std::string& error_msg)
 {
-    string res;
+    string res = "";
     gGlobal = NULL;
     
     try {
@@ -1175,7 +1171,6 @@ string expand_dsp(int argc, const char* argv[], const char* name, const char* ds
         error_msg = gGlobal->gErrorMsg;
     } catch (faustexception& e) {
         error_msg = e.Message();
-        res = "";
     }
     
     global::destroy();

@@ -28,6 +28,4 @@
 	#define	EXPORT __attribute__ ((visibility("default")))
 #endif
 
-void compile_faust_internal(int argc, const char* argv[], const char* name, const char* input, bool generate);
-
 #endif
