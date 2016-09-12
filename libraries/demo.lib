@@ -50,7 +50,19 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-import("stdfaust.lib");
+ma = library("math.lib");
+ba = library("basic.lib");
+de = library("delay.lib");
+si = library("signal.lib");
+an = library("analyzer.lib");
+fi = library("filter.lib");
+os = library("miscoscillator.lib");
+no = library("noise.lib");
+ef = library("misceffect.lib");
+co = library("compressor.lib");
+ve = library("vaeffect.lib");
+pf = library("phafla.lib");
+re = library("reverb.lib");
 
 //====================================Analyzers===========================================
 //========================================================================================
