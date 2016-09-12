@@ -1,22 +1,10 @@
-//############################### spectralTilt.dsp #######################################
-// A spectral tilt application.
-//
-// Author: JOS.
-//########################################################################################
-// TODO: author JOS
+declare name "Spectral Tilt";
+declare version "0.0";
+declare author "JOS, revised by RM";
+declare description "A spectral tilt application";
 
 import("stdfaust.lib");
 
-//==================================== GUI Declaration ===================================
-//========================================================================================
-
 O = 2; // filter order
-alpha = hslider("[1] Slope of Spectral Tilt across Band",-1/2,-1,1,0.001);
-f0 = hslider("[2] Band Start Frequency [unit:Hz]",100,20,10000,1);
-bw = hslider("[3] Band Width [unit:Hz]",5000,100,10000,1);
 
-
-//============================================ DSP =======================================
-//========================================================================================
-
-process = fi.spectral_tilt(O,f0,bw,alpha);
+process = dm.spectral_tilt_demo(2);

@@ -23,7 +23,7 @@
  **
  ******************************************************************************/
 
-import("stdfaust.lib");
+fi = library("filter.lib");
 
 tubestageF(tb,vplus,divider,fck,Rk,Vk0) = tube : hpf with {
     lpfk = fi.lowpass(1,fck);

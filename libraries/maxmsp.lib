@@ -26,7 +26,7 @@ declare copyright "GRAME";
 declare version "1.1";
 declare license "LGPL"; 
 
-import("stdfaust.lib");
+ma = library("math.lib");
 
 atodb = db2lin;
 

@@ -50,7 +50,7 @@
  ************************************************************************
  ************************************************************************/
 
-import("stdfaust.lib");
+si = library("signal.lib");
 
 declare name "Faust Spatialization Library";
 declare version "0.0";

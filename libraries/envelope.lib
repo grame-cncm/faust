@@ -55,7 +55,9 @@ declare author "GRAME";
 declare copyright "GRAME";
 declare license "LGPL with exception";
 
-import("stdfaust.lib");
+ma = library("math.lib");
+ba = library("basic.lib");
+si = library("signal.lib");
 
 //=============================Functions Reference========================================
 //========================================================================================

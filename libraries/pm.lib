@@ -17,7 +17,9 @@
 // ```
 //########################################################################################
 
-import("stdfaust.lib");
+ma = library("math.lib");
+de = library("delay.lib");
+ro = library("route.lib");
 
 //-------chain(A:B:...)----------
 // Creates a chain of bidirectional blocks. 

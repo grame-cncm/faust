@@ -31,8 +31,9 @@ declare copyright "Guitarix project";
 declare version   "0.28";
 declare license   "LGPL";
 
+ma = library("math.lib");
+fi = library("filter.lib");
 
-import("stdfaust.lib");
 
 /****************************************************************
  **           Equalisation 3 bandes

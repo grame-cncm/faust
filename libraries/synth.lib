@@ -52,7 +52,12 @@ closed source license or any other license if you decide so.
 declare name "Faust Synthesizer Library";
 declare version "0.0";
 
-import("stdfaust.lib");
+ma = library("math.lib");
+ba = library("basic.lib");
+en = library("envelope.lib");
+fi = library("filter.lib");
+os = library("miscoscillator.lib");
+no = library("noise.lib");
 
 //-----------------------------------`popFilterPerc`--------------------------------------
 // A simple percussion instrument based on a "poped" resonant bandpass filter.

@@ -49,7 +49,8 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-import("stdfaust.lib");
+ba = library("basic.lib");
+ro = library("route.lib");
 
 declare name "Faust Signal Routing Library";
 declare version "0.0";

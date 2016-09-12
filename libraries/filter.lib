@@ -69,7 +69,10 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-import("stdfaust.lib");
+ma = library("math.lib");
+ba = library("basic.lib");
+de = library("delay.lib");
+an = library("analyzer.lib");
 
 declare name "Faust Filter Library";
 declare version "2.0";

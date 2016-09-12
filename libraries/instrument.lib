@@ -6,7 +6,13 @@ declare copyright "Romain Michon";
 declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 
-import("stdfaust.lib");
+ma = library("math.lib");
+ba = library("basic.lib");
+de = library("delay.lib");
+si = library("signal.lib");
+fi = library("filter.lib");
+os = library("miscoscillator.lib");
+re = library("reverb.lib");
 
 //========================= ENVELOPE GENERATORS ===============================
 
