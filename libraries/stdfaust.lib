@@ -3,14 +3,14 @@
 // through a series of environment. 
 //########################################################################################
 
-ma = library("miscmath.lib");
+ma = library("math.lib");
 ba = library("basic.lib");
 de = library("delay.lib");
 en = library("envelope.lib");
 ro = library("route.lib");
 si = library("signal.lib");
 an = library("analyzer.lib");
-fi = library("miscfilter.lib");
+fi = library("filter.lib");
 os = library("miscoscillator.lib");
 no = library("noise.lib");
 ho = library("hoa.lib");

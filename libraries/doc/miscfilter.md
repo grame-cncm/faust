@@ -1,5 +1,5 @@
 
-# miscfilter.lib 
+# filter.lib 
 A library of filters and of more advanced filter-based sound processor organized 
 in 18 sections:
 
@@ -25,7 +25,7 @@ in 18 sections:
 It should be used using the `fi` environment:
 
 ```
-fi = library("miscfilter.lib");
+fi = library("filter.lib");
 process = fi.functionCall;
 ```
 

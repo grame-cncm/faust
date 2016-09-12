@@ -14,14 +14,14 @@ import("stdfaust.lib");
 
 This will give you access to all the Faust libraries through a series of environments:
 
-* `ma`: `miscmath.lib`
+* `ma`: `math.lib`
 * `ba`: `basic.lib`
 * `de`: `delay.lib`
 * `en`: `envelope.lib`
 * `ro`: `route.lib`
 * `si`: `signal.lib`
 * `an`: `analyzer.lib`
-* `fi`: `miscfilter.lib`
+* `fi`: `filter.lib`
 * `os`: `miscoscillator.lib`
 * `no`: `noise.lib`
 * `ho`: `hoa.lib`
@@ -149,11 +149,11 @@ Only the libraries that are considered to be "standard" are documented:
 * `phafla.lib`
 * `reverb.lib`
 * `envelope.lib`
-* `miscfilter.lib`
+* `filter.lib`
 * `miscoscillator.lib`
 * `noise.lib`
 * `hoa.lib`
-* `miscmath.lib`
+* `math.lib`
 * `pm.lib`
 * `route.lib`
 * `signal.lib`
@@ -185,14 +185,14 @@ In order to have a uniformized library system, we established the following conv
 To prevent cross-references between libraries we generalized the use of the `library("")` system for function calls in all the libraries. This means that everytime a function declared in another library is called, the environment corresponding to this library needs to be called too. To make things easier, a `stdfaust.lib` library was created and is imported by all the libraries:
 
 ```
-ma = library("miscmath.lib");
+ma = library("math.lib");
 ba = library("basic.lib");
 de = library("delay.lib");
 en = library("envelope.lib");
 ro = library("route.lib");
 si = library("signal.lib");
 an = library("analyzer.lib");
-fi = library("miscfilter.lib");
+fi = library("filter.lib");
 os = library("miscoscillator.lib");
 no = library("noise.lib");
 ho = library("hoa.lib");

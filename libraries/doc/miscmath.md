@@ -1,5 +1,5 @@
 
-# miscmath.lib 
+# math.lib 
 Mathematic library for Faust. Some functions are implemenented as Faust foreign 
 functions of `math.h` functions that are not part of Faust's primitives. Defines 
 also various constants and several utilities.
@@ -7,7 +7,7 @@ also various constants and several utilities.
 It should be used using the `fi` environment:
 
 ```
-ma = library("miscmath.lib");
+ma = library("math.lib");
 process = ma.functionCall;
 ```
 
