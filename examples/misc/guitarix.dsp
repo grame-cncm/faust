@@ -29,7 +29,9 @@ declare author   	"Guitarix project (http://guitarix.sourceforge.net/)";
 declare copyright 	"Guitarix project";
 declare license   	"LGPL";
 
-import("stdfaust.lib");
+ba = library("basic.lib");
+si = library("signal.lib");
+
 import("tube.lib");
 import("tonestack.lib");
 
