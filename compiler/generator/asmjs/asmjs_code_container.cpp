@@ -158,6 +158,12 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         {
             // Moves all variables declaration at the beginning of the block
             MoveVariablesInFront2 mover1;
+            BlockInst* block1 = mover1.getCode(fResetUserInterfaceInstructions);
+            block1->accept(gGlobal->gASMJSVisitor);
+        }
+        {
+            // Moves all variables declaration at the beginning of the block
+            MoveVariablesInFront2 mover1;
             BlockInst* block1 = mover1.getCode(fClearInstructions);
             block1->accept(gGlobal->gASMJSVisitor);
         }
@@ -276,7 +282,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "function instanceInit(dsp, samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "function instanceConstants(dsp, samplingFreq) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut);
@@ -290,7 +296,22 @@ void ASMJAVAScriptCodeContainer::produceClass()
                 BlockInst* block3 = mover1.getCode(block2); 
                 block3->accept(gGlobal->gASMJSVisitor);
             }
-            *fOut << "instanceClear(dsp);";
+        tab(n+1, *fOut); *fOut << "}";
+    
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "function instanceResetUserInterface(dsp) {";
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut);
+            gGlobal->gASMJSVisitor->Tab(n+2);
+            {
+                // Rename 'sig' in 'dsp' and remove 'dsp' allocation
+                DspRenamer renamer2;
+                BlockInst* block2 = renamer2.getCode(fResetUserInterfaceInstructions);
+                // Moves all variables declaration at the beginning of the block
+                MoveVariablesInFront2 mover1;
+                BlockInst* block3 = mover1.getCode(block2);
+                block3->accept(gGlobal->gASMJSVisitor);
+            }
         tab(n+1, *fOut); *fOut << "}";
     
         tab(n+1, *fOut);
@@ -315,6 +336,15 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
             tab(n+2, *fOut); *fOut << "classInit(dsp, samplingFreq);";
             tab(n+2, *fOut); *fOut << "instanceInit(dsp, samplingFreq);";
+        tab(n+1, *fOut); *fOut << "}";
+    
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "function instanceInit(dsp, samplingFreq) {";
+            tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
+            tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
+            tab(n+2, *fOut); *fOut << "instanceConstants(dsp, samplingFreq);";
+            tab(n+2, *fOut); *fOut << "instanceResetUserInterface(dsp);";
+            tab(n+2, *fOut); *fOut << "instanceClear(dsp);";
         tab(n+1, *fOut); *fOut << "}";
     
         // getSampleRate
@@ -364,6 +394,9 @@ void ASMJAVAScriptCodeContainer::produceClass()
         *fOut << "getNumOutputs : getNumOutputs, ";
         *fOut << "classInit : classInit, ";
         *fOut << "instanceInit : instanceInit, ";
+        *fOut << "instanceConstants : instanceConstants, ";
+        *fOut << "instanceResetUserInterface : instanceResetUserInterface, ";
+        *fOut << "instanceClear : instanceClear, ";
         *fOut << "init : init, ";
         *fOut << "getSampleRate : getSampleRate, ";
         *fOut << "setParamValue : setParamValue, ";

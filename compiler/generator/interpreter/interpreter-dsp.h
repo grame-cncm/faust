@@ -32,7 +32,7 @@
 #include "faust/gui/meta.h"
 
 /*!
- \addtogroup interpretercpp C++ interface for compiling Faust code.
+ \addtogroup interpretercpp C++ interface for compiling Faust code. Note that the API is not thread safe.
  @{
  */
 
@@ -54,6 +54,10 @@ class interpreter_dsp : public dsp {
         void init(int samplingRate);
         
         void instanceInit(int samplingRate);
+    
+        void instanceConstants(int samplingRate);
+    
+        void instanceResetUserInterface();
         
         void instanceClear();
         

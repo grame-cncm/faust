@@ -79,7 +79,7 @@ class dsp {
     
         /* Returns the sample rate currently used by the instance */
         virtual int getSampleRate() = 0;
-    
+
         /** Global init, calls the following methods :
          * - static class 'classInit' : static table initialisation
          * - 'instanceInit' : constants and instance table initialisation
@@ -87,13 +87,13 @@ class dsp {
          * @param samplingRate - the sampling rate in Herz
          */
         virtual void init(int samplingRate) = 0;
-    
+
         /** Init instance state
          *
          * @param samplingRate - the sampling rate in Herz
          */
         virtual void instanceInit(int samplingRate) = 0;
-    
+
         /** Init instance constant state
          *
          * @param samplingRate - the sampling rate in Herz
@@ -105,8 +105,8 @@ class dsp {
     
         /* Init instance state (delay lines...) */
         virtual void instanceClear() = 0;
-    
-        /**  
+ 
+        /**
          * Return a clone of the instance.
          *
          * @return a copy of the instance on success, otherwise a null pointer.
@@ -171,11 +171,11 @@ class decorator_dsp : public dsp {
         virtual void metadata(Meta* m) { return fDSP->metadata(m); }
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(count, inputs, outputs); }
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(date_usec, count, inputs, outputs); }
-       
+    
 };
 
 /**
- *  DSP factory class
+ * DSP factory class
  */
 
 class dsp_factory {

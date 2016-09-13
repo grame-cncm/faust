@@ -417,6 +417,10 @@ extern "C"
     
     void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate);
     
+    void instanceConstantsCDSPInstance(llvm_dsp* dsp, int samplingRate);
+    
+    void instanceResetUserInterfaceCDSPInstance(llvm_dsp* dsp);
+    
     void instanceClearCDSPInstance(llvm_dsp* dsp);
     
     llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp);

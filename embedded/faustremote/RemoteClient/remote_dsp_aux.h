@@ -209,21 +209,28 @@ class remote_dsp_aux : public dsp, public jack_midi_handler {
                 remoteDSPErrorCallback errror_callback, 
                 void* errror_callback_arg, int& error);
         
-        void metadata(Meta* m);
-        
         virtual int getNumInputs();
+    
         virtual int getNumOutputs();
+    
+        virtual void buildUserInterface(UI* ui);
+    
+        virtual int getSampleRate();
         
         virtual void init(int samplingRate);
+    
         virtual void instanceInit(int samplingRate);
+    
+        virtual void instanceConstants(int samplingRate);
+    
+        virtual void instanceResetUserInterface();
     
         virtual void instanceClear();
     
         virtual dsp* clone();
-        virtual int getSampleRate();
     
-        virtual void buildUserInterface(UI* ui);
-        
+        virtual void metadata(Meta* m);
+    
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
   
         remote_dsp_factory* getFactory() { return fFactory; }
@@ -279,19 +286,26 @@ class EXPORT remote_dsp : public dsp {
     
     public: 
         
-        void metadata(Meta* m);
-        
         int getNumInputs();
+    
         int getNumOutputs();
+    
+        void buildUserInterface(UI* ui);
         
         void init(int samplingFreq);
+    
         void instanceInit(int samplingRate);
     
+        void instanceConstants(int samplingRate);
+    
+        void instanceResetUserInterface();
+    
         void instanceClear();
-        
-        void buildUserInterface(UI* ui);
     
         dsp* clone();
+    
+        void metadata(Meta* m);
+    
         int getSampleRate();
     
         void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);

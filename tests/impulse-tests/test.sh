@@ -173,7 +173,7 @@ if [ $BACKEND = "interp" ] || [ $BACKEND = "all" ]; then
     echo "================================================================================"
 
     for f in *.dsp; do
-        faust2impulse3 $f      > $D/$f.scal.ir
+        faust2impulse3 -double  $f      > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
     done
 fi

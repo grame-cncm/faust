@@ -52,14 +52,9 @@ int main(int argc, char* argv[])
     FAUSTFLOAT fnbsamples;
     char rcfilename[256];
     
-    int argc1 = 1;
-    const char* argv1[1];
-    argv1[0] = "-double";
-    
-    string error_msg;
-    interpreter_dsp_factory* factory = createInterpreterDSPFactoryFromFile(argv[1], argc1, argv1, error_msg);
+    interpreter_dsp_factory* factory = readInterpreterDSPFactoryFromMachineFile(argv[1]);
     if (!factory) {
-        cerr << "createInterpreterDSPFactoryFromFile " << error_msg << endl;
+        cerr << "Error in readInterpreterDSPFactoryFromMachineFile" << endl;
         exit(-1);
     }
     

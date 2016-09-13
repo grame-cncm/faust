@@ -94,6 +94,7 @@ class Cdsp : public dsp {
 		deletemydsp(fDsp);
 	}
 	virtual int getNumInputs() 	{ return getNumInputsmydsp(fDsp); }
+    
 	virtual int getNumOutputs() { return getNumOutputsmydsp(fDsp); }
 
 	static void classInit(int samplingFreq)
@@ -106,6 +107,21 @@ class Cdsp : public dsp {
 		instanceInitmydsp(fDsp, samplingFreq);
 	}
     
+    virtual void instanceConstants(int samplingFreq)
+    {
+        instanceConstantsmydsp(fDsp, samplingFreq);
+    }
+    
+    virtual void instanceResetUserInterface()
+    {
+        instanceResetUserInterfacemydsp(fDsp);
+    }
+    
+    virtual void instanceClear()
+    {
+        instanceClearmydsp(fDsp);
+    }
+  
     virtual void metadata(Meta* m)
     {
         MetaGlue glue;

@@ -106,6 +106,7 @@ void JAVAScriptCodeContainer::produceInternal()
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
+            generateResetUserInterface(&fCodeProducer);
             generateClear(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
    
@@ -196,11 +197,18 @@ void JAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}";
     
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "this.instanceInit = function(samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "this.instanceConstants = function(samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
-             *fOut << "this.instanceClear();";
+            *fOut << "this.instanceClear();";
+        tab(n+1, *fOut); *fOut << "}";
+    
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "instanceResetUserInterface = function() {";
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateResetUserInterface(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
@@ -214,6 +222,13 @@ void JAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "this.init = function(samplingFreq) {";
             tab(n+2, *fOut); *fOut << "this.classInit(samplingFreq);";
             tab(n+2, *fOut); *fOut << "this.instanceInit(samplingFreq);";
+        tab(n+1, *fOut); *fOut << "}";
+    
+        tab(n+1, *fOut);
+        tab(n+1, *fOut); *fOut << "this.instanceInit = function(samplingFreq) {";
+            tab(n+2, *fOut); *fOut << "this.instanceConstants(samplingFreq);";
+            tab(n+2, *fOut); *fOut << "this.instanceResetUserInterface();";
+            tab(n+2, *fOut); *fOut << "this.instanceClear();";
         tab(n+1, *fOut); *fOut << "}";
 
         // User interface

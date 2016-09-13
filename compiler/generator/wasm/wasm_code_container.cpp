@@ -156,16 +156,37 @@ void WASMCodeContainer::produceClass()
         // TODO
         tab(n+1, *fOut); *fOut << ")";
     
-        tab(n+1, *fOut); *fOut << "(func $instanceInit (param $dsp i32) (param $samplingFreq i32)";
+        tab(n+1, *fOut); *fOut << "(func $instanceConstants (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
         // TODO
         tab(n+1, *fOut); *fOut << ")";
     
+        tab(n+1, *fOut); *fOut << "(func $instanceResetUserInterface (param $dsp i32)";
+        tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
+        // TODO
+        tab(n+1, *fOut); *fOut << ")";
+    
+        tab(n+1, *fOut); *fOut << "(func $instanceClear (param $dsp i32)";
+        tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
+        // TODO
+        tab(n+1, *fOut); *fOut << ")";
+        
+        tab(n+1, *fOut); *fOut << "(func $instanceInit (param $dsp i32) (param $samplingFreq i32)";
+        tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
+        // TODO
+        tab(n+1, *fOut); *fOut << ")";
+        
         tab(n+1, *fOut); *fOut << "(func $init (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); *fOut << "(call $classInit (get_local $dsp) (get_local $samplingFreq))";
             tab(n+2, *fOut); *fOut << "(call $instanceInit (get_local $dsp) (get_local $samplingFreq))";
         tab(n+1, *fOut); *fOut << ")";
     
+        tab(n+1, *fOut); *fOut << "(func $instanceInit (param $dsp i32) (param $samplingFreq i32)";
+            tab(n+2, *fOut); *fOut << "(call $instanceConstants (get_local $dsp) (get_local $samplingFreq))";
+            tab(n+2, *fOut); *fOut << "(call $instanceResetUserInterface (get_local $dsp))";
+            tab(n+2, *fOut); *fOut << "(call $instanceClear (get_local $dsp))";
+        tab(n+1, *fOut); *fOut << ")";
+        
         // getSampleRate
         tab(n+1, *fOut); *fOut << "(func $getSampleRate (param $dsp i32) (result i32)";
             tab(n+2, *fOut); *fOut << "(i32.load offset=" << gGlobal->gWASMVisitor->getFieldOffset("fSamplingFreq") << " (get_local $dsp))";

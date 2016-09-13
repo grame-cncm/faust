@@ -85,6 +85,7 @@ class InstructionsCompiler : public virtual Garbageable {
    
         /* wrapper functions to access code container */
         StatementInst* pushInitMethod(StatementInst* inst)              { return fContainer->pushInitMethod(inst); }
+        StatementInst* pushResetUIInstructions(StatementInst* inst)     { return fContainer->pushResetUIInstructions(inst); }
         StatementInst* pushClearMethod(StatementInst* inst)             { return fContainer->pushClearMethod(inst); }
         StatementInst* pushPostInitMethod(StatementInst* inst)          { return fContainer->pushPostInitMethod(inst); }
         StatementInst* pushFrontInitMethod(StatementInst* inst)         { return fContainer->pushFrontInitMethod(inst); }

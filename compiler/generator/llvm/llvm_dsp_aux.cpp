@@ -490,6 +490,8 @@ void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)
     fBuildUserInterface = 0;
     fInit = 0;
     fInstanceInit = 0;
+    fInstanceConstants = 0;
+    fInstanceResetUI = 0;
     fInstanceClear = 0;
     fCompute = 0;
     fClassName = "mydsp";
@@ -783,6 +785,8 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         fBuildUserInterface = (buildUserInterfaceFun)loadOptimize("buildUserInterface" + fClassName);
         fInit = (initFun)loadOptimize("init" + fClassName);
         fInstanceInit = (initFun)loadOptimize("instanceInit" + fClassName);
+        fInstanceConstants = (initFun)loadOptimize("instanceConstants" + fClassName);
+        fInstanceResetUI = (clearFun)loadOptimize("instanceResetUserInterface" + fClassName);
         fInstanceClear = (clearFun)loadOptimize("instanceClear" + fClassName);
         fGetSampleRate = (getSampleRateFun)loadOptimize("getSampleRate" + fClassName);
         fCompute = (computeFun)loadOptimize("compute" + fClassName);
@@ -902,6 +906,8 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         fBuildUserInterface = (buildUserInterfaceFun)loadOptimize("buildUserInterface" + fClassName);
         fInit = (initFun)loadOptimize("init" + fClassName);
         fInstanceInit = (initFun)loadOptimize("instanceInit" + fClassName);
+        fInstanceConstants = (initFun)loadOptimize("instanceConstants" + fClassName);
+        fInstanceResetUI = (clearFun)loadOptimize("instanceResetUserInterface" + fClassName);
         fInstanceClear = (clearFun)loadOptimize("instanceClear" + fClassName);
         fGetSampleRate = (getSampleRateFun)loadOptimize("getSampleRate" + fClassName);
         fCompute = (computeFun)loadOptimize("compute" + fClassName);
@@ -999,6 +1005,16 @@ void llvm_dsp_aux::init(int samplingRate)
 void llvm_dsp_aux::instanceInit(int samplingRate)
 {
     fFactory->fInstanceInit(fDSP, samplingRate);
+}
+
+void llvm_dsp_aux::instanceConstants(int samplingRate)
+{
+    fFactory->fInstanceConstants(fDSP, samplingRate);
+}
+
+void llvm_dsp_aux::instanceResetUserInterface()
+{
+    fFactory->fInstanceResetUI(fDSP);
 }
 
 void llvm_dsp_aux::instanceClear()
@@ -1539,6 +1555,16 @@ EXPORT void llvm_dsp::instanceInit(int samplingRate)
     fDSP->instanceInit(samplingRate);
 }
 
+EXPORT void llvm_dsp::instanceConstants(int samplingRate)
+{
+    fDSP->instanceConstants(samplingRate);
+}
+
+EXPORT void llvm_dsp::instanceResetUserInterface()
+{
+    fDSP->instanceResetUserInterface();
+}
+        
 EXPORT void llvm_dsp::instanceClear()
 {
     fDSP->instanceClear();
@@ -1793,6 +1819,20 @@ EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate)
         reinterpret_cast<llvm_dsp_aux*>(dsp)->instanceInit(samplingRate);
     }
 }
+
+EXPORT void instanceConstantsCDSPInstance(llvm_dsp* dsp, int samplingRate)
+{
+    if (dsp) {
+        reinterpret_cast<llvm_dsp_aux*>(dsp)->instanceConstants(samplingRate);
+    }
+}
+        
+EXPORT void instanceResetUserInterfaceCDSPInstance(llvm_dsp* dsp)
+{
+    if (dsp) {
+        reinterpret_cast<llvm_dsp_aux*>(dsp)->instanceResetUserInterface();
+    }
+}
         
 EXPORT void instanceClearCDSPInstance(llvm_dsp* dsp)
 {
@@ -1801,6 +1841,11 @@ EXPORT void instanceClearCDSPInstance(llvm_dsp* dsp)
     }
 }
         
+EXPORT int getSampleRateCDSPInstance(llvm_dsp* dsp)
+{
+    return (dsp) ? reinterpret_cast<llvm_dsp_aux*>(dsp)->getSampleRate() : 0;
+}
+
 EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* glue)
 {
     if (dsp) {

@@ -969,19 +969,6 @@ SWIGEXPORT jboolean JNICALL Java_com_grame_faust_FaustJNI_generateCAuxFilesFromS
 }
 
 
-SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_metadataCDSPInstance(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
-  llvm_dsp *arg1 = (llvm_dsp *) 0 ;
-  MetaGlue *arg2 = (MetaGlue *) 0 ;
-  
-  (void)jenv;
-  (void)jcls;
-  (void)jarg1_;
-  arg1 = *(llvm_dsp **)&jarg1; 
-  arg2 = *(MetaGlue **)&jarg2; 
-  metadataCDSPInstance(arg1,arg2);
-}
-
-
 SWIGEXPORT jint JNICALL Java_com_grame_faust_FaustJNI_getNumInputsCDSPInstance(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   jint jresult = 0 ;
   llvm_dsp *arg1 = (llvm_dsp *) 0 ;
@@ -1007,6 +994,34 @@ SWIGEXPORT jint JNICALL Java_com_grame_faust_FaustJNI_getNumOutputsCDSPInstance(
   (void)jarg1_;
   arg1 = *(llvm_dsp **)&jarg1; 
   result = (int)getNumOutputsCDSPInstance(arg1);
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_buildUserInterfaceCDSPInstance(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
+  llvm_dsp *arg1 = (llvm_dsp *) 0 ;
+  UIGlue *arg2 = (UIGlue *) 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(llvm_dsp **)&jarg1; 
+  arg2 = *(UIGlue **)&jarg2; 
+  buildUserInterfaceCDSPInstance(arg1,arg2);
+}
+
+
+SWIGEXPORT jint JNICALL Java_com_grame_faust_FaustJNI_getSampleRateCDSPInstance(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jint jresult = 0 ;
+  llvm_dsp *arg1 = (llvm_dsp *) 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(llvm_dsp **)&jarg1; 
+  result = (int)getSampleRateCDSPInstance(arg1);
   jresult = (jint)result; 
   return jresult;
 }
@@ -1038,16 +1053,66 @@ SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_instanceInitCDSPInstance(J
 }
 
 
-SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_buildUserInterfaceCDSPInstance(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_instanceConstantsCDSPInstance(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
   llvm_dsp *arg1 = (llvm_dsp *) 0 ;
-  UIGlue *arg2 = (UIGlue *) 0 ;
+  int arg2 ;
   
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   arg1 = *(llvm_dsp **)&jarg1; 
-  arg2 = *(UIGlue **)&jarg2; 
-  buildUserInterfaceCDSPInstance(arg1,arg2);
+  arg2 = (int)jarg2; 
+  instanceConstantsCDSPInstance(arg1,arg2);
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_instanceResetUserInterfaceCDSPInstance(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  llvm_dsp *arg1 = (llvm_dsp *) 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(llvm_dsp **)&jarg1; 
+  instanceResetUserInterfaceCDSPInstance(arg1);
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_instanceClearCDSPInstance(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  llvm_dsp *arg1 = (llvm_dsp *) 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(llvm_dsp **)&jarg1; 
+  instanceClearCDSPInstance(arg1);
+}
+
+
+SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustJNI_cloneCDSPInstance(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jlong jresult = 0 ;
+  llvm_dsp *arg1 = (llvm_dsp *) 0 ;
+  llvm_dsp *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(llvm_dsp **)&jarg1; 
+  result = (llvm_dsp *)cloneCDSPInstance(arg1);
+  *(llvm_dsp **)&jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_metadataCDSPInstance(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
+  llvm_dsp *arg1 = (llvm_dsp *) 0 ;
+  MetaGlue *arg2 = (MetaGlue *) 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(llvm_dsp **)&jarg1; 
+  arg2 = *(MetaGlue **)&jarg2; 
+  metadataCDSPInstance(arg1,arg2);
 }
 
 
@@ -1065,21 +1130,6 @@ SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_computeCDSPInstance(JNIEnv
   arg3 = *(float ***)&jarg3; 
   arg4 = *(float ***)&jarg4; 
   computeCDSPInstance(arg1,arg2,arg3,arg4);
-}
-
-
-SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustJNI_cloneCDSPInstance(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
-  jlong jresult = 0 ;
-  llvm_dsp *arg1 = (llvm_dsp *) 0 ;
-  llvm_dsp *result = 0 ;
-  
-  (void)jenv;
-  (void)jcls;
-  (void)jarg1_;
-  arg1 = *(llvm_dsp **)&jarg1; 
-  result = (llvm_dsp *)cloneCDSPInstance(arg1);
-  *(llvm_dsp **)&jresult = result; 
-  return jresult;
 }
 
 

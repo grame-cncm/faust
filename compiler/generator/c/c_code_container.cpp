@@ -106,6 +106,7 @@ void CCodeContainer::produceInternal()
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
         generateInit(&fCodeProducer);
+        generateResetUserInterface(&fCodeProducer);
         generateClear(&fCodeProducer);
     tab(n, *fOut); *fOut << "}";
  
@@ -232,34 +233,52 @@ void CCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "}";
     
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void instanceClear" << fKlassName << "(" << fKlassName << "* dsp) {";
-    {
-        tab(n+1, *fOut);
-        // Local visitor here to avoid DSP object type wrong generation
-        CInstVisitor codeproducer(fOut, "");
-        codeproducer.Tab(n+1);
-        generateClear(&codeproducer);
-    }
+    tab(n, *fOut); *fOut << "void instanceResetUserInterface" << fKlassName << "(" << fKlassName << "* dsp) {";
+        {
+            tab(n+1, *fOut);
+            // Local visitor here to avoid DSP object type wrong generation
+            CInstVisitor codeproducer(fOut, "");
+            codeproducer.Tab(n+1);
+            generateResetUserInterface(&codeproducer);
+        }
     tab(n, *fOut); *fOut << "}";
+    
+    tab(n, *fOut);
+    tab(n, *fOut); *fOut << "void instanceClear" << fKlassName << "(" << fKlassName << "* dsp) {";
+        {
+            tab(n+1, *fOut);
+            // Local visitor here to avoid DSP object type wrong generation
+            CInstVisitor codeproducer(fOut, "");
+            codeproducer.Tab(n+1);
+            generateClear(&codeproducer);
+        }
+    tab(n, *fOut); *fOut << "}";
+    
   
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void instanceInit" << fKlassName << "(" << fKlassName << "* dsp, int samplingFreq) {";
+    tab(n, *fOut); *fOut << "void instanceConstants" << fKlassName << "(" << fKlassName << "* dsp, int samplingFreq) {";
         {
             tab(n+1, *fOut);
             // Local visitor here to avoid DSP object type wrong generation
             CInstVisitor codeproducer(fOut, "");
             codeproducer.Tab(n+1);
             generateInit(&codeproducer);
-            *fOut << "instanceClear" << fKlassName << "(dsp);";
         }
     tab(n, *fOut); *fOut << "}";
    
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void init" << fKlassName << "(" << fKlassName << "* dsp, int samplingFreq) {";
-        tab(n+1, *fOut); *fOut << "classInit" << fKlassName << "(samplingFreq);";
-        tab(n+1, *fOut); *fOut << "instanceInit" << fKlassName << "(dsp, samplingFreq);";
+    tab(n, *fOut); *fOut << "void instanceInit" << fKlassName << "(" << fKlassName << "* dsp, int samplingFreq) {";
+    tab(n+1, *fOut); *fOut << "instanceConstants" << fKlassName << "(dsp, samplingFreq);";
+    tab(n+1, *fOut); *fOut << "instanceResetUserInterface" << fKlassName << "(dsp);";
+    tab(n+1, *fOut); *fOut << "instanceClear" << fKlassName << "(dsp);";
     tab(n, *fOut); *fOut << "}";
 
+    tab(n, *fOut);
+    tab(n, *fOut); *fOut << "void init" << fKlassName << "(" << fKlassName << "* dsp, int samplingFreq) {";
+    tab(n+1, *fOut); *fOut << "classInit" << fKlassName << "(samplingFreq);";
+    tab(n+1, *fOut); *fOut << "instanceInit" << fKlassName << "(dsp, samplingFreq);";
+    tab(n, *fOut); *fOut << "}";
+    
     // User interface
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "void buildUserInterface" << fKlassName << "(" << fKlassName << "* dsp, UIGlue* ui_interface) {";

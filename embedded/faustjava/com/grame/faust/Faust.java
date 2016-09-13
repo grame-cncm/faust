@@ -144,16 +144,20 @@ public class Faust {
     return FaustJNI.generateCAuxFilesFromString(name_app, dsp_content, argc, SWIGTYPE_p_p_char.getCPtr(argv), error_msg);
   }
 
-  public static void metadataCDSPInstance(llvm_dsp dsp, SWIGTYPE_p_MetaGlue meta) {
-    FaustJNI.metadataCDSPInstance(llvm_dsp.getCPtr(dsp), dsp, SWIGTYPE_p_MetaGlue.getCPtr(meta));
-  }
-
   public static int getNumInputsCDSPInstance(llvm_dsp dsp) {
     return FaustJNI.getNumInputsCDSPInstance(llvm_dsp.getCPtr(dsp), dsp);
   }
 
   public static int getNumOutputsCDSPInstance(llvm_dsp dsp) {
     return FaustJNI.getNumOutputsCDSPInstance(llvm_dsp.getCPtr(dsp), dsp);
+  }
+
+  public static void buildUserInterfaceCDSPInstance(llvm_dsp dsp, SWIGTYPE_p_UIGlue arg1) {
+    FaustJNI.buildUserInterfaceCDSPInstance(llvm_dsp.getCPtr(dsp), dsp, SWIGTYPE_p_UIGlue.getCPtr(arg1));
+  }
+
+  public static int getSampleRateCDSPInstance(llvm_dsp dsp) {
+    return FaustJNI.getSampleRateCDSPInstance(llvm_dsp.getCPtr(dsp), dsp);
   }
 
   public static void initCDSPInstance(llvm_dsp dsp, int samplingRate) {
@@ -164,17 +168,29 @@ public class Faust {
     FaustJNI.instanceInitCDSPInstance(llvm_dsp.getCPtr(dsp), dsp, samplingRate);
   }
 
-  public static void buildUserInterfaceCDSPInstance(llvm_dsp dsp, SWIGTYPE_p_UIGlue arg1) {
-    FaustJNI.buildUserInterfaceCDSPInstance(llvm_dsp.getCPtr(dsp), dsp, SWIGTYPE_p_UIGlue.getCPtr(arg1));
+  public static void instanceConstantsCDSPInstance(llvm_dsp dsp, int samplingRate) {
+    FaustJNI.instanceConstantsCDSPInstance(llvm_dsp.getCPtr(dsp), dsp, samplingRate);
   }
 
-  public static void computeCDSPInstance(llvm_dsp dsp, int count, SWIGTYPE_p_p_float input, SWIGTYPE_p_p_float output) {
-    FaustJNI.computeCDSPInstance(llvm_dsp.getCPtr(dsp), dsp, count, SWIGTYPE_p_p_float.getCPtr(input), SWIGTYPE_p_p_float.getCPtr(output));
+  public static void instanceResetUserInterfaceCDSPInstance(llvm_dsp dsp) {
+    FaustJNI.instanceResetUserInterfaceCDSPInstance(llvm_dsp.getCPtr(dsp), dsp);
+  }
+
+  public static void instanceClearCDSPInstance(llvm_dsp dsp) {
+    FaustJNI.instanceClearCDSPInstance(llvm_dsp.getCPtr(dsp), dsp);
   }
 
   public static llvm_dsp cloneCDSPInstance(llvm_dsp dsp) {
     long cPtr = FaustJNI.cloneCDSPInstance(llvm_dsp.getCPtr(dsp), dsp);
     return (cPtr == 0) ? null : new llvm_dsp(cPtr, false);
+  }
+
+  public static void metadataCDSPInstance(llvm_dsp dsp, SWIGTYPE_p_MetaGlue meta) {
+    FaustJNI.metadataCDSPInstance(llvm_dsp.getCPtr(dsp), dsp, SWIGTYPE_p_MetaGlue.getCPtr(meta));
+  }
+
+  public static void computeCDSPInstance(llvm_dsp dsp, int count, SWIGTYPE_p_p_float input, SWIGTYPE_p_p_float output) {
+    FaustJNI.computeCDSPInstance(llvm_dsp.getCPtr(dsp), dsp, count, SWIGTYPE_p_p_float.getCPtr(input), SWIGTYPE_p_p_float.getCPtr(output));
   }
 
   public static llvm_dsp createCDSPInstance(llvm_dsp_factory factory) {

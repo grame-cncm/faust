@@ -107,6 +107,12 @@ void CPPCodeContainer::produceInit(int tabs)
         tab(tabs+1, *fOut); *fOut << "classInit(samplingFreq);";
         tab(tabs+1, *fOut); *fOut << "instanceInit(samplingFreq);";
     tab(tabs, *fOut); *fOut << "}";
+    
+    tab(tabs, *fOut); *fOut << "virtual void instanceInit(int samplingFreq) {";
+    tab(tabs+1, *fOut); *fOut << "instanceConstants(samplingFreq);";
+    tab(tabs+1, *fOut); *fOut << "instanceResetUserInterface();";
+    tab(tabs+1, *fOut); *fOut << "instanceClear();";
+    tab(tabs, *fOut); *fOut << "}";
 }
 
 void CPPCodeContainer::produceInternal()
@@ -150,6 +156,7 @@ void CPPCodeContainer::produceInternal()
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
+            generateResetUserInterface(&fCodeProducer);
             generateClear(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
     
@@ -304,14 +311,20 @@ void CPPCodeContainer::produceClass()
         */
     
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "virtual void instanceInit(int samplingFreq) {";
+        tab(n+1, *fOut); *fOut << "virtual void instanceConstants(int samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
-            *fOut << "instanceClear();";
         tab(n+1, *fOut); *fOut << "}";
         tab(n+1, *fOut);
     
+        tab(n+1, *fOut); *fOut << "virtual void instanceResetUserInterface() {";
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateResetUserInterface(&fCodeProducer);
+            tab(n+1, *fOut); *fOut << "}";
+        tab(n+1, *fOut);
+
         tab(n+1, *fOut); *fOut << "virtual void instanceClear() {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);

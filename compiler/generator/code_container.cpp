@@ -48,6 +48,7 @@ CodeContainer::CodeContainer()
     fGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
     fDeclarationInstructions(InstBuilder::genBlockInst()),
     fInitInstructions(InstBuilder::genBlockInst()),
+    fResetUserInterfaceInstructions(InstBuilder::genBlockInst()),
     fClearInstructions(InstBuilder::genBlockInst()),
     fPostInitInstructions(InstBuilder::genBlockInst()),
     fAllocateInstructions(InstBuilder::genBlockInst()),

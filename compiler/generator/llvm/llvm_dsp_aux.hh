@@ -54,9 +54,9 @@ namespace llvm
    class Module;
 }
 
-class FaustObjectCache;
-
 class llvm_dsp_factory;
+
+class FaustObjectCache;
 
 class llvm_dsp_factory_aux : public dsp_factory_imp {
 
@@ -86,6 +86,8 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         buildUserInterfaceFun fBuildUserInterface;
         initFun fInit;
         initFun fInstanceInit;
+        initFun fInstanceConstants;
+        clearFun fInstanceResetUI;
         clearFun fInstanceClear;
         getSampleRateFun fGetSampleRate;
         computeFun fCompute;
@@ -189,6 +191,10 @@ class llvm_dsp_aux : public dsp {
     
         virtual void instanceInit(int samplingRate);
     
+        virtual void instanceConstants(int samplingRate);
+    
+        virtual void instanceResetUserInterface();
+    
         virtual void instanceClear();
     
         virtual dsp* clone() { assert(false); return nullptr; } // to be implemented by subclass
@@ -200,7 +206,7 @@ class llvm_dsp_aux : public dsp {
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
         
         llvm_dsp_factory_aux* getFactory() { return fFactory; }
-    
+ 
 };
 
 // Public classes
@@ -231,6 +237,10 @@ class EXPORT llvm_dsp : public dsp {
         void init(int samplingRate);
         
         void instanceInit(int samplingRate);
+    
+        void instanceConstants(int samplingRate);
+    
+        void instanceResetUserInterface();
         
         void instanceClear();
         
@@ -432,6 +442,10 @@ EXPORT int getSampleRateCDSPInstance(llvm_dsp* dsp);
 EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingRate);
     
 EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate);
+
+EXPORT void instanceConstantsCDSPInstance(llvm_dsp* dsp, int samplingRate);
+
+EXPORT void instanceResetUserInterfaceCDSPInstance(llvm_dsp* dsp);
 
 EXPORT void instanceClearCDSPInstance(llvm_dsp* dsp);
     

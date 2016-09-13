@@ -62,6 +62,10 @@ class llvm_dsp : public dsp {
         void init(int samplingRate);
        
         void instanceInit(int samplingRate);
+    
+        void instanceConstants(int samplingRate);
+    
+        void instanceResetUserInterface();
         
         void instanceClear();
         

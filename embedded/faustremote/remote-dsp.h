@@ -175,19 +175,26 @@ class remote_dsp : public dsp {
     
     public: 
         
-        void metadata(Meta* m);
-        
         int getNumInputs();
-        int getNumOutputs();
-        
-        void init(int samplingRate);
-        void instanceInit(int samplingRate);
     
-        dsp* clone();
+        int getNumOutputs();
+    
+        void buildUserInterface(UI* ui);
+    
         int getSampleRate();
         
-        void buildUserInterface(UI* ui);
-        
+        void init(int samplingRate);
+    
+        void instanceInit(int samplingRate);
+    
+        void instanceDefaultUserInterface();
+    
+        void instanceClear();
+    
+        dsp* clone();
+    
+        void metadata(Meta* m);
+    
         void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 
 };

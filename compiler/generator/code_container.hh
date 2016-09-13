@@ -59,6 +59,7 @@ class CodeContainer : public virtual Garbageable {
 
         // Init method
         BlockInst* fInitInstructions;
+        BlockInst* fResetUserInterfaceInstructions;
         BlockInst* fClearInstructions;
         BlockInst* fPostInitInstructions;
 
@@ -299,6 +300,13 @@ class CodeContainer : public virtual Garbageable {
             }
         }
     
+        void generateResetUserInterface(InstVisitor* visitor)
+        {
+            if (fResetUserInterfaceInstructions->fCode.size() > 0) {
+                fResetUserInterfaceInstructions->accept(visitor);
+            }
+        }
+    
         void generateClear(InstVisitor* visitor)
         {
             if (fClearInstructions->fCode.size() > 0) {
@@ -359,6 +367,7 @@ class CodeContainer : public virtual Garbageable {
 
         StatementInst* pushInitMethod(StatementInst* inst) { fInitInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushClearMethod(StatementInst* inst) { fClearInstructions->pushBackInst(inst); return inst; }
+        StatementInst* pushResetUIInstructions(StatementInst* inst) { fResetUserInterfaceInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushPostInitMethod(StatementInst* inst) { fPostInitInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushFrontInitMethod(StatementInst* inst) { fInitInstructions->pushFrontInst(inst); return inst; }
         StatementInst* pushAllocateMethod(StatementInst* inst) { fAllocateInstructions->pushBackInst(inst); return inst; }
