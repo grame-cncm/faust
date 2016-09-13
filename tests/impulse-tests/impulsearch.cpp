@@ -72,10 +72,10 @@ int main(int argc, char* argv[])
     
     DSP.buildUserInterface(&finterface);
  
-    // init signal processor and the user interface values:
+    // init signal processor and the user interface values
     DSP.init(44100);
 
-    // modify the UI values according to the command - line options:
+    // modify the UI values according to the command - line options
     interface->process_command();
 
     int nins = DSP.getNumInputs();
@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
     int nouts = DSP.getNumOutputs();
     channels ochan(kFrames, nouts);
 
-    int nbsamples = int (fnbsamples);
+    int nbsamples = int(fnbsamples);
     int linenum = 0;
     int run = 0;
     
