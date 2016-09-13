@@ -5,7 +5,7 @@
 #               Search where Faust is installed and defines   		#
 #				$FAUSTLIB and $FAUSTINC so that we can use			#
 #				-L$FAUSTLIB and -I$FAUSTINC where needed.			#
-#               (c) Grame, 20013                                    #
+#               (c) Grame, 2013                                    #
 #                                                                   #
 #####################################################################
 

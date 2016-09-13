@@ -178,7 +178,10 @@ struct dsp_voice : public MapUI, public decorator_dsp {
  
 };
 
-// Polyphonic DSP
+/**
+ * Polyphonic DSP : group a set of DSP to be played together or triggered by MIDI.
+ */
+
 class mydsp_poly : public dsp, public midi {
 
     private:
@@ -437,6 +440,21 @@ class mydsp_poly : public dsp, public midi {
             // Init voices
             for (int i = 0; i < fPolyphony; i++) {
                 fVoiceTable[i]->instanceInit(sample_rate);
+            }
+        }
+    
+        void instanceConstants(int sample_rate)
+        {
+            // Init voices
+            for (int i = 0; i < fPolyphony; i++) {
+                fVoiceTable[i]->instanceConstants(sample_rate);
+            }
+        }
+    
+        void instanceResetUserInterface()
+        {
+            for (int i = 0; i < fPolyphony; i++) {
+                fVoiceTable[i]->instanceResetUserInterface();
             }
         }
     

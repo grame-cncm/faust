@@ -100,6 +100,18 @@ class dsp_sequencer : public dsp {
             fDSP2->instanceInit(samplingRate);
         }
     
+        virtual void instanceConstants(int samplingRate)
+        {
+            fDSP1->instanceConstants(samplingRate);
+            fDSP2->instanceConstants(samplingRate);
+        }
+    
+        virtual void instanceResetUserInterface()
+        {
+            fDSP1->instanceResetUserInterface();
+            fDSP2->instanceResetUserInterface();
+        }
+    
         virtual void instanceClear()
         {
             fDSP1->instanceClear();
@@ -160,6 +172,18 @@ class dsp_parallelizer : public dsp {
         {
             fDSP1->instanceInit(samplingRate);
             fDSP2->instanceInit(samplingRate);
+        }
+    
+        virtual void instanceConstants(int samplingRate)
+        {
+            fDSP1->instanceConstants(samplingRate);
+            fDSP2->instanceConstants(samplingRate);
+        }
+        
+        virtual void instanceResetUserInterface()
+        {
+            fDSP1->instanceResetUserInterface();
+            fDSP2->instanceResetUserInterface();
         }
     
         virtual void instanceClear()

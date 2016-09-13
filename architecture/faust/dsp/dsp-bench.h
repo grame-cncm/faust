@@ -232,7 +232,7 @@ class time_bench {
 };
 
 /*
-    A class to mesure DSP CPU use.
+    A class to measure DSP CPU use.
 */
 
 class measure_dsp : public decorator_dsp {
@@ -296,7 +296,7 @@ class measure_dsp : public decorator_dsp {
         }
     
         /*
-            Measure the duration of 'count' (given in constructor) call to compute.
+            Measure the duration of 'count' (given in constructor) calls to compute.
         */
         void computeAll()
         {

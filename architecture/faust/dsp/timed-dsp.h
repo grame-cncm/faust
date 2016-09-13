@@ -66,10 +66,9 @@ inline double GetCurrentTimeInUsec(void)
 }
 #endif
 
-//----------------------------------------------------------------
-// ZoneUI : Faust User Interface
-// This class collect zones in a set
-//----------------------------------------------------------------
+/**
+ * ZoneUI : this class collect zones in a set.
+ */
 
 struct ZoneUI : public UI
 {
@@ -134,9 +133,11 @@ struct ZoneUI : public UI
 
 };
 
-//----------------------------------------------------------------
-//  Timed signal processor definition
-//----------------------------------------------------------------
+/**
+ * Timed signal processor that allows to handle the decorated DSP by 'slices'
+ * that is, calling the 'compute' method several times and changing control
+ * parameters between slices.
+ */
 
 class timed_dsp : public decorator_dsp {
 

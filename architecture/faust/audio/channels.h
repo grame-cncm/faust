@@ -68,6 +68,15 @@ class channels
                 }
             }
         }
+    
+        void display()
+        {
+            for (int i = 0; i < fNumChannels; i++) {
+                for (int f = 0; f < fNumFrames; f++) {
+                    std::cout << "chan = " << i << " frame = " << f << " value = " <<  fBuffers[i][f] << std::endl;
+                }
+            }
+        }
 
         virtual ~channels()
         {

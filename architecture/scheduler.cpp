@@ -312,7 +312,7 @@ static INLINE void NOP(void)
 
 static INLINE char CAS1(volatile void* addr, volatile int value, int newvalue)
 {
-     return __sync_bool_compare_and_swap((int*)addr, value, newvalue);
+    return __sync_bool_compare_and_swap((int*)addr, value, newvalue);
 }
 
 static INLINE int atomic_xadd(volatile int* atomic, int val) 
