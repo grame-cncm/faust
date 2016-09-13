@@ -80,6 +80,7 @@ protected:
 	list<string>		fStaticInitCode;		///< static init code for class constant tables
 	list<string>		fStaticFields;			///< static fields after class
     list<string>		fInitCode;
+    list<string>		fInitUICode;
     list<string>		fClearCode;
 	list<string>		fUICode;
 	list<string>		fUIMacro;
@@ -150,6 +151,7 @@ protected:
 	void addDeclCode (const string& str) 	{ fDeclCode.push_back(str); }
 
 	void addInitCode (const string& str)	{ fInitCode.push_back(str); }
+    void addInitUICode (const string& str)	{ fInitUICode.push_back(str); }
     void addClearCode (const string& str)	{ fClearCode.push_back(str); }
 
     void addStaticInitCode (const string& str)	{ fStaticInitCode.push_back(str); }
