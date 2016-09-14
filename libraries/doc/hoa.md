@@ -118,7 +118,7 @@ Where:
 
 ### `optimInPhase`
 The inPhase Optimization optimize energy vector and put all loudspeakers signals 
-n phase. It should be used for an auditory
+n phase. It should be used for an auditory.
 
 ### Usage
 

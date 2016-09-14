@@ -855,7 +855,7 @@ with{
 // _,_ : zita_rev1 : _,_
 // ```
 //
-// ### Reference
+// #### Reference
 //
 // <http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html>
 //------------------------------------------------------------
@@ -1081,7 +1081,7 @@ with{
 };
 
 
-//-------------------------- oscrs_demo ---------------------------
+//-------------------------- `oscrs_demo` ---------------------------
 // Simple application demoing filter based oscillators.
 //
 // #### Usage

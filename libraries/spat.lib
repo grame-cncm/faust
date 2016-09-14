@@ -59,7 +59,7 @@ declare version "0.0";
 //-----------------------`panner(g)`------------------------
 // A simple linear gain panner.
 //
-// ### Usage
+// #### Usage
 //
 // ```
 // _ : panner(g) : _,_
@@ -77,7 +77,7 @@ panner(g) = _ <: *(1-g), *(g);
 //-----------------------`spat(n,a,d)`------------------------
 // GMEM SPAT: n-outputs spatializer
 //
-// ### Usage
+// #### Usage
 //
 // ```
 // _ : spat(n,r,d) : _,_,...

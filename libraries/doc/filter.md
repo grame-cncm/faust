@@ -294,7 +294,7 @@ Where:
 ---
 
 
-### fir 
+### `fir` 
 FIR filter (convolution of FIR filter coefficients with a signal)
 
 #### Usage

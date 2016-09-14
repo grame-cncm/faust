@@ -348,7 +348,7 @@ allpass_fcomb1a(maxdel,N,aN) = (+ <: de.fdelay1a(maxdel,N-1),*(aN)) ~ *(-aN) : m
 // TODO: author JOS, revised by RM
 iir(bv,av) = ma.sub ~ fir(av) : fir(bv);
 
-//----------------------------- fir ---------------------------------
+//----------------------------- `fir` ---------------------------------
 // FIR filter (convolution of FIR filter coefficients with a signal)
 //
 // #### Usage

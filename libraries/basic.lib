@@ -578,7 +578,7 @@ latch(c,x) = x * s : + ~ *(1-s) with { s = ((c'<=0)&(c>0)); };
 sAndH(t) = *(t) : +~*(1-t);
 
 
-//------------------peakhold(mode,sig)---------------------------
+//------------------`peakhold(mode,sig)`---------------------------
 // Outputs current max value above zero. 
 //
 // #### Usage
@@ -596,7 +596,7 @@ sAndH(t) = *(t) : +~*(1-t);
 peakhold = (*,_:max) ~ _;
 
 
-//------------------peakholder(holdtime)---------------------------
+//------------------`peakholder(holdtime)`---------------------------
 // Tracks abs peak and holds peak for 'holdtime' samples.
 //
 // #### Usage 

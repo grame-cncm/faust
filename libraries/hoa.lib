@@ -196,7 +196,7 @@ optimMaxRe(n)	= par(i, 2*n+1, optim(i, n, _))
 
 //----------------`optimInPhase`-------------------------
 //  The inPhase Optimization optimize energy vector and put all loudspeakers signals 
-// in phase. It should be used for an auditory
+// in phase. It should be used for an auditory.
 //
 // #### Usage
 //

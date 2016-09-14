@@ -510,7 +510,7 @@ Where:
 ---
 
 
-### peakhold(mode,sig)
+### `peakhold(mode,sig)`
 Outputs current max value above zero. 
 
 #### Usage
@@ -527,7 +527,7 @@ Where:
 ---
 
 
-### peakholder(holdtime)
+### `peakholder(holdtime)`
 Tracks abs peak and holds peak for 'holdtime' samples.
 
 #### Usage 

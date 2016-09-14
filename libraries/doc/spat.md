@@ -20,7 +20,7 @@ process = sp.functionCall;
 ### `panner(g)`
 A simple linear gain panner.
 
-### Usage
+#### Usage
 
 ```
 _ : panner(g) : _,_
@@ -36,7 +36,7 @@ Where:
 ### `spat(n,a,d)`
 GMEM SPAT: n-outputs spatializer
 
-### Usage
+#### Usage
 
 ```
 _ : spat(n,r,d) : _,_,...

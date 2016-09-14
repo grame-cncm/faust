@@ -297,7 +297,7 @@ in the same way.
 _,_ : zita_rev1 : _,_
 ```
 
-### Reference
+#### Reference
 
 <http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html>
 
@@ -332,7 +332,7 @@ virtual_analog_oscillator_demo : _
 ---
 
 
-### oscrs_demo 
+### `oscrs_demo` 
 Simple application demoing filter based oscillators.
 
 #### Usage
