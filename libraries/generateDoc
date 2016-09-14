@@ -13,9 +13,13 @@ for p in $FILES; do
 	faust2md $p > doc/${p%.lib}.md
 done
 
+# Generate the raw html version of the doc
 pandoc --toc --standalone doc/*.md -o doc/index.html
 
-sed -i "" "s/<title>/<title>Faust Library Documentation/g" doc/index.html 
+# Generate the PDF doc
+pandoc --toc doc/*.md -o doc/libraries-reference.pdf
+
+sed -i "" "s/<title>/<title>Faust Libraries Documentation/g" doc/index.html 
 sed -i "" "s/<style type=\"text\/css\">code{white-space: pre;}<\/style>/<\/style><link rel=\"stylesheet\" href=\"http:\/\/maxcdn.bootstrapcdn.com\/bootstrap\/3.3.7\/css\/bootstrap.min.css\"><script src=\"https:\/\/ajax.googleapis.com\/ajax\/libs\/jquery\/1.12.4\/jquery.min.js\">\n<\/script><script src=\"http:\/\/maxcdn.bootstrapcdn.com\/bootstrap\/3.3.7\/js\/bootstrap.min.js\"><\/script>/g" doc/index.html 
 sed -i "" "s/<body>/<div class=\"container\"><div class=\"row\" style=\"height: 100vh;\">/g" doc/index.html 
 sed -i "" "s/<\/body>/<\/div><\/div><\/body>/g" doc/index.html 
