@@ -48,13 +48,9 @@ if [ $BACKEND = "valgrind" ]; then
     echo "==============================================================="
 
     for f in *.dsp; do
-    echo $f
-    faust2valgrind $f > /dev/null
-<<<<<<< HEAD
+        echo $f
+        faust2valgrind $f > /dev/null
     done
-=======
-done
->>>>>>> master
 
     grep "uninitialised" *.txt
 
@@ -63,8 +59,8 @@ done
     echo "==============================================================="
 
     for f in *.dsp; do
-    echo $f
-    faust2valgrind -vec -lv 1 $f > /dev/null
+        echo $f
+        faust2valgrind -vec -lv 1 $f > /dev/null
     done
 
     grep "uninitialised" *.txt
