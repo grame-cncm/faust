@@ -65,6 +65,7 @@ help :
 	@echo "make parser : generate the parser from the lex and yacc files"
 	@echo "make clean : remove all object files"
 	@echo "make doc : generate the documentation using doxygen"
+	@echo "make doclib : generate the documentation of the faust libraries"
 	@echo "make install : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/lib/faust $(prefix)/include/faust"
 	@echo "make uninstall : undo what install did"
 	@echo "make dist : make a Faust distribution as a .zip file"
@@ -88,6 +89,9 @@ depend :
 
 doc :
 	$(MAKE) -C compiler -f $(MAKEFILE) doc
+
+doclib :
+	./libraries/generateDoc
 
 
 install :
