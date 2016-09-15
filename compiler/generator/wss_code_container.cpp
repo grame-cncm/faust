@@ -193,26 +193,23 @@ void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>&
     pushGlobalDeclare(InstBuilder::genLabelInst("}"));
     pushGlobalDeclare(InstBuilder::genLabelInst("#endif"));
 
-    // Specific init instructions
+    // Specific allocate instructions
     list<ValueInst*> fun_args;
     fun_args.push_back(InstBuilder::genIntNumInst(loop_count));
     fun_args.push_back(InstBuilder::genIntNumInst(ready_loop.size()));
-    pushInitMethod(InstBuilder::genStoreStructVar("fScheduler", InstBuilder::genFunCallInst("createScheduler", fun_args)));
+    pushAllocateMethod(InstBuilder::genStoreStructVar("fScheduler", InstBuilder::genFunCallInst("createScheduler", fun_args)));
     
     for (unsigned int i = 0; i < ready_loop.size(); i++) {
         list<ValueInst*> fun_args;
         fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
         fun_args.push_back(InstBuilder::genIntNumInst(ready_loop[i]));
-        pushInitMethod(InstBuilder::genVoidFunCallInst("addReadyTask", fun_args));
+        pushAllocateMethod(InstBuilder::genVoidFunCallInst("addReadyTask", fun_args));
     }
-    
-    pushAllocateMethod(InstBuilder::genStoreStructVar("fScheduler", InstBuilder::genIntNumInst(0)));
-
     list<ValueInst*> fun_args2;
     fun_args2.push_back(InstBuilder::genLoadStructVar("fScheduler"));
     fun_args2.push_back(InstBuilder::genLoadFunArgsVar(fObjName));
-    pushInitMethod(InstBuilder::genVoidFunCallInst("startAll", fun_args2));
-
+    pushAllocateMethod(InstBuilder::genVoidFunCallInst("startAll", fun_args2));
+ 
     // Specific destroy instructions
     list<ValueInst*> fun_args4;
     fun_args4.push_back(InstBuilder::genLoadStructVar("fScheduler"));
