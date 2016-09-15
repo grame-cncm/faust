@@ -18,7 +18,7 @@ echo "==============================================================="
 
 for f in *.dsp; do
     echo $f
-    faust2valgrind -vec -lv 1 $f > /dev/null
+    faust2valgrind $f > /dev/null
 done
 
 grep "uninitialised" *.txt
