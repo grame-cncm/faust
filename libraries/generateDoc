@@ -13,8 +13,9 @@ done
 FILES="analyzer.lib basic.lib delay.lib misceffect.lib compressor.lib vaeffect.lib phafla.lib reverb.lib envelope.lib filter.lib miscoscillator.lib noise.lib hoa.lib math.lib signal.lib route.lib spat.lib synth.lib demo.lib"
 
 mkdir tmp
+mkdir tmp/title
 
-echo "% Faust Standard Libraries" > tmp/title.md
+echo "% Faust Standard Libraries" > tmp/title/title.md
 
 for p in $FILES; do
 	(faust2md "$LIBFOLDER/$p" > tmp/${p%.lib}.md) || exit
@@ -24,7 +25,7 @@ done
 (pandoc --toc --standalone "$LIBFOLDER/README.md" tmp/*.md -o "$DOCFOLDER/library.html") || exit
 
 # Generate the PDF doc
-(pandoc --toc tmp/title.md "$LIBFOLDER/README.md" tmp/*.md -s -o "$DOCFOLDER/library.pdf") || exit
+(pandoc --toc tmp/title/title.md "$LIBFOLDER/README.md" tmp/*.md -s -o "$DOCFOLDER/library.pdf") || exit
 
 # Reformatting the html file with the right template
 (sed -i "" "s/<title>/<title>Faust Libraries Documentation/g" "$DOCFOLDER/library.html") || exit
