@@ -58,7 +58,7 @@ declare version "0.0";
 //=============================Functions Reference========================================
 //========================================================================================
 
-//-------`noise()`----------
+//-------`noise`----------
 // White noise generator (outputs random number between -1 and 1).
 // 
 // #### Usage
@@ -74,7 +74,7 @@ with{
 	RANDMAX	= 2147483647.0; // = 2^31-1 = MAX_SIGNED_INT in 32 bits
 };
 
-//---------------------`multirandom(n)`--------------------------
+//---------------------`multirandom`--------------------------
 // Generates multiple decorrelated random numbers 
 // in parallel. 
 //
@@ -93,7 +93,7 @@ with {
 	randomize (n) 	= randomize(1) <: randomize(n-1),_;
 };
 
-//-----------------------`multinoise(n)`------------------------
+//-----------------------`multinoise`------------------------
 // Generates multiple decorrelated noises
 // in parallel.
 //
@@ -113,7 +113,7 @@ with {
 };
 
 
-//-----------------------`noises(n,i)`------------------------
+//-----------------------`noises`------------------------
 // TODO.
 //----------------------------------------------------------
 noises(N,i) = multinoise(N) : ba.selector(i,N);

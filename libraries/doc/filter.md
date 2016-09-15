@@ -39,7 +39,7 @@ process = fi.functionCall;
 
 ## Basic Filters
 
-### `zero(z)`
+### `zero`
 One zero filter. Difference equation: y(n) = x(n) - z * x(n-1).
 
 #### Usage
@@ -58,7 +58,7 @@ Where:
 ---
 
 
-### `pole(p)`
+### `pole`
 One pole filter. Could also be called a "leaky integrator". 
 Difference equation: y(n) = x(n) + p * y(n-1).
 
@@ -84,7 +84,7 @@ Same as `pole(1)` [implemented separately for block-diagram clarity].
 ---
 
 
-### `dcblockerat(fb)`
+### `dcblockerat`
 DC blocker with configurable break frequency. 
 The amplitude response is substantially flat above fb,
 and sloped at about +6 dB/octave below fb.
@@ -270,7 +270,7 @@ Same as `allpass_fcomb` but use `fdelay5` and `fdelay1a` internally
 
 ## Direct-Form Digital Filter Sections
 
-### `iir(tfN)`
+### `iir`
 Nth-order Infinite-Impulse-Response (IIR) digital filter,
 implemented in terms of the Transfer-Function (TF) coefficients.
 Such filter structures are termed "direct form".
@@ -365,7 +365,7 @@ Where:
 ---
 
 
-### `notchw(width,freq)`
+### `notchw`
 Simple notch filter based on a biquad (`tf2`).
 
 #### Usage:
@@ -474,7 +474,7 @@ where `nui` is the i'th tap coefficient,
 ---
 
 
-### `iir_lat2(bc,av)`
+### `iir_lat2`
 Two-multiply latice IIR filter or arbitrary order.
 
 #### Usage
@@ -491,7 +491,7 @@ Where:
 ---
 
 
-### `allpassnt(n,sv)`
+### `allpassnt`
 Two-multiply lattice allpass (nested order-1 direct-form-ii allpasses).
 
 #### Usage
@@ -508,7 +508,7 @@ Where:
 ---
 
 
-### `iir_kl(bc,av)`
+### `iir_kl`
 Kelly-Lochbaum ladder IIR filter or arbitrary order.
 
 #### Usage
@@ -525,7 +525,7 @@ Where:
 ---
 
 
-### `allpassnklt(n,sv)`
+### `allpassnklt`
 Kelly-Lochbaum ladder allpass.
 
 #### Usage:
@@ -542,7 +542,7 @@ Where:
 ---
 
 
-### `iir_lat1(bc,av)`
+### `iir_lat1`
 One-multiply latice IIR filter or arbitrary order.
 
 #### Usage
@@ -559,7 +559,7 @@ Where:
 ---
 
 
-### `allpassn1mt(n,sv)`
+### `allpassn1mt`
 One-multiply lattice allpass with tap lines.
 
 #### Usage
@@ -576,7 +576,7 @@ Where:
 ---
 
 
-### `iir_nl(bv,av)`
+### `iir_nl`
 Normalized ladder filter of arbitrary order.
 
 #### Usage
@@ -598,7 +598,7 @@ Where:
 ---
 
 
-### `allpassnnlt(n,sv)`
+### `allpassnnlt`
 Normalized ladder allpass filter of arbitrary order.
 
 #### Usage:
@@ -640,7 +640,7 @@ Where:
 ---
 
 
-### `wgr(f,r,x)`
+### `wgr`
 Second-order transformer-normalized digital waveguide resonator.
 
 #### Usage
@@ -683,7 +683,7 @@ Where:
 ---
 
 
-### `apnl(a1,a2)`
+### `apnl`
 Passive Nonlinear Allpass based on Pierce switching springs idea.
 Switch between allpass coefficient `a1` and `a2` at signal zero crossings.
 
@@ -716,7 +716,7 @@ They are defined here as nested allpass filters, hence the names allpassn*.
 * <https://ccrma.stanford.edu/~jos/pasp/Nested_Allpass_Filters.html>
 * Linear Prediction of Speech, Markel and Gray, Springer Verlag, 1976
 
-### `allpassn(n,sv)`
+### `allpassn`
 Two-multiply lattice - each section is two multiply-adds.
 
 #### Usage:
@@ -738,7 +738,7 @@ Proceedings of the 14th International Conference on Digital Audio Effects
 ---
 
 
-### `allpassnn(n,tv)`
+### `allpassnn`
 Normalized form - four multiplies and two adds per section,
 but coefficients can be time varying and nonlinear without
 "parametric amplification" (modulation of signal energy).
@@ -757,7 +757,7 @@ Where:
 ---
 
 
-### `allpasskl(n,sv)`
+### `allpasskl`
 Kelly-Lochbaum form - four multiplies and two adds per
 section, but all signals have an immediate physical
 interpretation as traveling pressure waves, etc.
@@ -776,7 +776,7 @@ Where:
 ---
 
 
-### `allpass1m(n,sv)`
+### `allpass1m`
 One-multiply form - one multiply and three adds per section.
 Normally the most efficient in special-purpose hardware.
 
@@ -985,7 +985,7 @@ Where:
 ---
 
 
-### `lowpass0_highpass1(s,N,fc)`
+### `lowpass0_highpass1`
 TODO
 
 ---
@@ -1010,7 +1010,7 @@ Elliptic (Cauer) Lowpass Filters
 * <http://en.wikipedia.org/wiki/Elliptic_filter
 * functions `ncauer` and `ellip` in Octave
 
-### `lowpass3e(fc)`
+### `lowpass3e`
 Third-order Elliptic (Cauer) lowpass filter.
 
 #### Usage
@@ -1036,7 +1036,7 @@ Rs = 0.2 % dB ripple in passband
 ---
 
 
-### `lowpass6e(fc)`
+### `lowpass6e`
 Sixth-order Elliptic/Cauer lowpass filter.
 
 #### Usage
@@ -1064,7 +1064,7 @@ For spectral band-slice level display (see octave_analyzer6e):
 
 ## Elliptic Highpass Filters
 
-### `highpass3e(fc)`
+### `highpass3e`
 Third-order Elliptic (Cauer) highpass filter. Inversion of `lowpass3e` wrt unit 
 circle in s plane (s <- 1/s)
 
@@ -1081,7 +1081,7 @@ Where:
 ---
 
 
-### `highpass6e(fc)`
+### `highpass6e`
 Sixth-order Elliptic/Cauer highpass filter. Inversion of lowpass3e wrt unit 
 circle in s plane (s <- 1/s)
 

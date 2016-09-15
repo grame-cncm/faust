@@ -116,7 +116,7 @@ _ : cbrt : _
 ---
 
 
-### `hypot(x,y)`
+### `hypot`
 Computes the euclidian distance of the two input signals
 sqrt(x*x+y*y) without undue overflow or underflow.
 
@@ -153,7 +153,7 @@ _,_ : scalb : _
 ---
 
 
-### `log1p(x)`
+### `log1p`
 Computes log(1 + x) without undue loss of accuracy when x is nearly zero.
 
 #### Usage
@@ -226,7 +226,7 @@ _ : acosh : _
 ---
 
 
-### `asinh(x)`
+### `asinh`
 Computes the inverse hyperbolic sine of the input signal.
 
 #### Usage
@@ -238,7 +238,7 @@ _ : asinh : _
 ---
 
 
-### `atanh(x)`
+### `atanh`
 Computes the inverse hyperbolic tangent of the input signal.
 
 #### Usage
@@ -425,7 +425,7 @@ fmin = min
 ---
 
 
-### `np2(n)`
+### `np2`
 Gives the next power of 2 of x.
 
 #### Usage
@@ -441,7 +441,7 @@ Where:
 ---
 
 
-### `frac(n)`
+### `frac`
 Gives the fractional part of n.
 
 #### Usage
@@ -457,12 +457,13 @@ Where:
 ---
 
 
-### `isnan(x)`
+### `isnan`
 Return non-zero if and only if x is a NaN.
 
 #### Usage
 
 ```
+isnan(x)
 _ : isnan : _
 ```
 
@@ -522,7 +523,7 @@ Where:
 ---
 
 
-### `diffn(x)`
+### `diffn`
 Negated first-roder difference.
 
 #### Usage

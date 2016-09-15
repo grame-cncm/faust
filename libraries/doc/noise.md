@@ -19,7 +19,7 @@ process = no.functionCall;
 
 ## Functions Reference
 
-### `noise()`
+### `noise`
 White noise generator (outputs random number between -1 and 1).
 
 #### Usage
@@ -31,7 +31,7 @@ noise : _
 ---
 
 
-### `multirandom(n)`
+### `multirandom`
 Generates multiple decorrelated random numbers 
 in parallel. 
 
@@ -47,7 +47,7 @@ Where:
 ---
 
 
-### `multinoise(n)`
+### `multinoise`
 Generates multiple decorrelated noises
 in parallel.
 
@@ -64,7 +64,7 @@ Where:
 ---
 
 
-### `noises(n,i)`
+### `noises`
 TODO.
 
 ---

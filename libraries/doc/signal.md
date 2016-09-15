@@ -19,12 +19,13 @@ process = si.functionCall;
 
 ## Functions Reference
 
-### `bus(n)`
+### `bus`
 n parallel cables
 
 #### Usage
 
 ```
+bus(n)
 bus(4) : _,_,_,_
 ```
 
@@ -35,7 +36,7 @@ Where:
 ---
 
 
-### `block(n)`
+### `block`
 Block - terminate n signals.
 
 #### Usage
@@ -51,7 +52,7 @@ Where:
 ---
 
 
-### `interpolate(i)`
+### `interpolate`
 Linear interpolation between two signals.
 
 #### Usage
@@ -67,7 +68,7 @@ Where:
 ---
 
 
-### `smooth(s)`
+### `smooth`
 Exponential smoothing by a unity-dc-gain one-pole lowpass.
 
 #### Usage: 
@@ -145,7 +146,7 @@ hslider(...) : bsmooth : _
 ---
 
 
-### `lag_ud(up, dn, signal)`
+### `lag_ud`
 Lag filter with separate times for up and down.
 
 #### Usage
@@ -157,13 +158,13 @@ _ : lag_ud(up, dn, signal) : _;
 ---
 
 
-### `dot(n)`
+### `dot`
 Dot product for two vectors of size n.
 
 #### Usage
 
 ```
-_,_,_,_,_,_ : dot(3) : _
+_,_,_,_,_,_ : dot(n) : _
 ```
 
 Where:

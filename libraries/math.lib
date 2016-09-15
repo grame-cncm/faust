@@ -165,7 +165,7 @@ inv(x)      = 1/x;
 cbrt 		= ffunction(float cbrtf|cbrt|cbrtl (float), <math.h>,"");
 
 
-//---------------------------------`hypot(x,y)`-------------------------------------
+//---------------------------------`hypot`-------------------------------------
 // Computes the euclidian distance of the two input signals
 // sqrt(x*x+y*y) without undue overflow or underflow.
 //
@@ -202,7 +202,7 @@ ldexp 		= ffunction(float ldexpf|ldexp|ldexpl (float, int), <math.h>,"");
 scalb 		= ffunction(float scalbnf|scalbn|scalbnl (float, int), <math.h>,"");
 
 
-//---------------------------------`log1p(x)`----------------------------------
+//---------------------------------`log1p`----------------------------------
 // Computes log(1 + x) without undue loss of accuracy when x is nearly zero.
 //
 // #### Usage
@@ -275,7 +275,7 @@ expm1 		= ffunction(float expm1f|expm1|expm1l (float), <math.h>,"");
 acosh		= ffunction(float acoshf|acosh|acoshl (float), <math.h>, "");
 
 
-//--------------------------------`asinh(x)`-----------------------------------
+//--------------------------------`asinh`-----------------------------------
 // Computes the inverse hyperbolic sine of the input signal.
 //
 // #### Usage
@@ -287,7 +287,7 @@ acosh		= ffunction(float acoshf|acosh|acoshl (float), <math.h>, "");
 asinh		= ffunction(float asinhf|asinh|asinhl (float), <math.h>, "");
 
 
-//--------------------------------`atanh(x)`-----------------------------------
+//--------------------------------`atanh`-----------------------------------
 // Computes the inverse hyperbolic tangent of the input signal.
 //
 // #### Usage
@@ -475,7 +475,7 @@ fabs = abs;
 fmax = max;
 fmin = min;
 
-//-------------------------------`np2(n)`--------------------------------------
+//-------------------------------`np2`--------------------------------------
 // Gives the next power of 2 of x.
 //
 // #### Usage
@@ -491,7 +491,7 @@ fmin = min;
 np2 = -(1) <: >>(1)|_ <: >>(2)|_ <: >>(4)|_ <: >>(8)|_ <: >>(16)|_ : +(1);
 
 
-//-----------------------------`frac(n)`---------------------------------------
+//-----------------------------`frac`---------------------------------------
 // Gives the fractional part of n.
 //
 // #### Usage
@@ -512,12 +512,13 @@ decimal = frac;
 // decimal(n)	= n - floor(n);
 
 
-//---------------`isnan(x)`----------------
+//---------------`isnan`----------------
 // Return non-zero if and only if x is a NaN.
 //
 // #### Usage
 // 
 // ```
+// isnan(x)
 // _ : isnan : _
 // ```
 //
@@ -585,7 +586,7 @@ chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
 	};
 
 	
-//------------------`diffn(x)`----------------------------
+//------------------`diffn`----------------------------
 // Negated first-roder difference.
 //
 // #### Usage

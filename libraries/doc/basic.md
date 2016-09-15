@@ -25,7 +25,7 @@ process = ba.functionCall;
 
 ## Conversion Tools
 
-### `samp2sec(n)`
+### `samp2sec`
 Converts a number of samples to a duration in seconds.
 
 #### Usage
@@ -41,7 +41,7 @@ Where:
 ---
 
 
-### `sec2samp(d)`
+### `sec2samp`
 Converts a duration in seconds to a number of samples.
 
 #### Usage
@@ -57,7 +57,7 @@ Where:
 ---
 
 
-### `db2linear(l)`
+### `db2linear`
 Converts a loudness in dB to a linear gain (0-1).
 
 #### Usage
@@ -73,7 +73,7 @@ Where:
 ---
 
 
-### `linear2db(g)`
+### `linear2db`
 Converts a linear gain (0-1) to a loudness in dB.
 
 #### Usage
@@ -113,7 +113,7 @@ _ : log2LinGain : _
 ---
 
 
-### `tau2pole(tau)`
+### `tau2pole`
 Returns a real pole giving exponential decay.
 Note that t60 (time to decay 60 dB) is ~6.91 time constants.
 
@@ -130,7 +130,7 @@ Where:
 ---
 
 
-### `pole2tau(pole)`
+### `pole2tau`
 Returns the time-constant, in seconds, corresponding to the given real, 
 positive pole in (0,1).
 
@@ -147,7 +147,7 @@ Where:
 ---
 
 
-### `midikey2hz(mk)`
+### `midikey2hz`
 Converts a MIDI key number to a frequency in Hz (MIDI key 69 = A440).
 
 #### Usage
@@ -163,7 +163,7 @@ Where:
 ---
 
 
-### `pianokey2hz(pk)`
+### `pianokey2hz`
 Converts a piano key number to a frequency in Hz (piano key 49 = A440).
 
 #### Usage
@@ -179,7 +179,7 @@ Where:
 ---
 
 
-### `hz2pianokey(f)`
+### `hz2pianokey`
 Converts a frequency in Hz to a piano key number (piano key 49 = A440).
 
 #### Usage
@@ -197,7 +197,7 @@ Where:
 
 ## Counters and Time/Tempo Tools
 
-### `countdown(n,trig)`
+### `countdown`
 Starts counting down from n included to 0. While trig is 1 the output is n.
 The countdown starts with the transition of trig from 1 to 0. At the end
 of the countdown the output value will remain at 0 until the next trig.
@@ -216,7 +216,7 @@ Where:
 ---
 
 
-### `countup(n,trig)`
+### `countup`
 Starts counting up from 0 to n included. While trig is 1 the output is 0.
 The countup starts with the transition of trig from 1 to 0. At the end
 of the countup the output value will remain at n until the next trig.
@@ -235,7 +235,7 @@ Where:
 ---
 
 
-### `sweep(period,run)`
+### `sweep`
 Counts from 0 to 'period' samples repeatedly, while 'run' is 1.
 Outsputs zero while 'run' is 0.
 
@@ -248,7 +248,7 @@ sweep(period,run) : _
 ---
 
 
-### `time()`
+### `time`
 A simple timer that counts every samples from the beginning of the process.
 
 #### Usage
@@ -260,7 +260,7 @@ time : _
 ---
 
 
-### `tempo(t)`
+### `tempo`
 Converts a tempo in BPM into a number of samples.
 
 #### Usage
@@ -276,7 +276,7 @@ Where:
 ---
 
 
-### `period(p)`
+### `period`
 Basic sawtooth wave of period `p`.
 
 #### Usage
@@ -292,7 +292,7 @@ Where:
 ---
 
 
-### `pulse(p)`
+### `pulse`
 Pulses (10000) generated at period `p`.
 
 #### Usage
@@ -308,7 +308,7 @@ Where:
 ---
 
 
-### `pulsen(n,p)`
+### `pulsen`
 Pulses (11110000) of length `n` generated at period `p`.
 
 #### Usage
@@ -325,7 +325,7 @@ Where:
 ---
 
 
-### `beat(t)`
+### `beat`
 Pulses at tempo `t`.
 
 #### Usage
@@ -343,12 +343,13 @@ Where:
 
 ## Array Processing/Pattern Matching
 
-### `count(l)`
+### `count`
 Count the number of elements of list l.
 
 #### Usage
 
 ```
+count(l)
 count ((10,20,30,40)) -> 4
 ```
 
@@ -359,12 +360,13 @@ Where:
 ---
 
 
-### `take(e,l)`
+### `take`
 Take an element from a list.
 
 #### Usage
 
 ```
+take(e,l)
 take(3,(10,20,30,40)) -> 30
 ```
 
@@ -376,12 +378,13 @@ Where:
 ---
 
 
-### `subseq(l, p, n)`
+### `subseq`
 Extract a part of a list.
 
 #### Usage
 
 ```
+subseq(l, p, n)
 subseq((10,20,30,40,50,60), 1, 3) -> (20,30,40)
 subseq((10,20,30,40,50,60), 4, 1) -> 50
 ```
@@ -402,12 +405,12 @@ compositions and there is no empty list
 
 ## Selectors (Conditions)
 
-### `if(c,t,e))`
+### `if`
 if-then-else implemented with a select2.
 
 #### Usage
 
-*   `if(c, then, else) : _`
+*   `if(c, t, e) : _`
 
 Where:
 
@@ -418,12 +421,13 @@ Where:
 ---
 
 
-### `selector(i,n)`
+### `selector`
 Selects the ith input among n at compile time.
 
 #### Usage
 
 ```
+selector(i,n)
 _,_,_,_ : selector(2,4) : _  // selects the 3rd input among 4
 ```
 
@@ -436,12 +440,13 @@ Where:
 ---
 
 
-### `selectn(N,i)`
+### `selectn`
 Selects the ith input among N at run time.
 
 #### Usage
 
 ```
+selectn(N,i)
 _,_,_,_ : selectn(4,2) : _  // selects the 3rd input among 4
 ```
 
@@ -460,7 +465,7 @@ process = par(n,N, (par(i,N,i) : selectn(N,n)));
 ---
 
 
-### `select2stereo(bpc)`
+### `select2stereo`
 Select between 2 stereo signals.
 
 #### Usage
@@ -478,7 +483,7 @@ Where:
 
 ## Other
 
-### `latch(c)`
+### `latch`
 Latch input on positive-going transition of "clock" ("sample-and-hold").
 
 #### Usage
@@ -510,7 +515,7 @@ Where:
 ---
 
 
-### `peakhold(mode,sig)`
+### `peakhold`
 Outputs current max value above zero. 
 
 #### Usage
@@ -527,7 +532,7 @@ Where:
 ---
 
 
-### `peakholder(holdtime)`
+### `peakholder`
 Tracks abs peak and holds peak for 'holdtime' samples.
 
 #### Usage 
@@ -602,7 +607,7 @@ and `x < x_{i+1}`
 ---
 
 
-### `bypass1(bpc,e)`
+### `bypass1`
 Takes a mono input signal, route it to `e` and bypass it if `bpc = 1`.
 
 #### Usage
@@ -619,7 +624,7 @@ Where:
 ---
 
 
-### `bypass2(bpc,e)`
+### `bypass2`
 Takes a stereo input signal, route it to `e` and bypass it if `bpc = 1`.
 
 #### Usage

@@ -19,7 +19,7 @@ process = ve.functionCall;
 
 ## Functions Reference
 
-### `moog_vcf(res,fr)`
+### `moog_vcf`
 Moog "Voltage Controlled Filter" (VCF) in "analog" form. Moog VCF 
 implemented using the same logical block diagram as the classic 
 analog circuit.  As such, it neglects the one-sample delay associated 
@@ -73,7 +73,7 @@ Where:
 ---
 
 
-### `wah4(fr)`
+### `wah4`
 Wah effect, 4th order.
 
 #### Usage
@@ -93,7 +93,7 @@ Where:
 ---
 
 
-### `autowah(level)`
+### `autowah`
 Auto-wah effect.
 
 #### Usage
@@ -109,7 +109,7 @@ Where:
 ---
 
 
-### `crybaby(wah)`
+### `crybaby`
 Digitized CryBaby wah pedal.
 
 #### Usage

@@ -80,7 +80,7 @@ declare version "2.0";
 //===============================Basic Filters============================================
 //========================================================================================
 
-//----------------------`zero(z)`--------------------------
+//----------------------`zero`--------------------------
 // One zero filter. Difference equation: y(n) = x(n) - z * x(n-1).
 //
 // #### Usage
@@ -99,7 +99,7 @@ declare version "2.0";
 // TODO: author JOS, revised by RM 
 zero(z) =  _ <: _,mem : _,*(z) : -;
 
-//------------------------`pole(p)`---------------------------
+//------------------------`pole`---------------------------
 // One pole filter. Could also be called a "leaky integrator". 
 // Difference equation: y(n) = x(n) + p * y(n-1).
 //
@@ -125,7 +125,7 @@ pole(p) = + ~ *(p);
 // TODO: author JOS, revised by RM
 integrator = + ~ _ ;
 
-//-------------------`dcblockerat(fb)`-----------------------
+//-------------------`dcblockerat`-----------------------
 // DC blocker with configurable break frequency. 
 // The amplitude response is substantially flat above fb,
 // and sloped at about +6 dB/octave below fb.
@@ -324,7 +324,7 @@ allpass_fcomb1a(maxdel,N,aN) = (+ <: de.fdelay1a(maxdel,N-1),*(aN)) ~ *(-aN) : m
 
 // Specified by transfer-function polynomials B(z)/A(z) as in matlab
 
-//----------------------------`iir(tfN)`-------------------------------
+//----------------------------`iir`-------------------------------
 // Nth-order Infinite-Impulse-Response (IIR) digital filter,
 // implemented in terms of the Transfer-Function (TF) coefficients.
 // Such filter structures are termed "direct form".
@@ -438,7 +438,7 @@ with {
 	sub(x,y)			= y-x;
 };
 
-//------------`notchw(width,freq)`--------------
+//------------`notchw`--------------
 // Simple notch filter based on a biquad (`tf2`).
 //
 // #### Usage:
@@ -599,7 +599,7 @@ bvav2nuv(bv,av) = par(m,M+1,nu(m)) with {
   sr(m) = Ari(m,M-m+1); // s_{M-1-m}
 };
 
-//--------------------`iir_lat2(bc,av)`-----------------------
+//--------------------`iir_lat2`-----------------------
 // Two-multiply latice IIR filter or arbitrary order.
 //
 // #### Usage
@@ -621,7 +621,7 @@ with {
   tg = bvav2nuv(bv,av); // tg = vector of tap gains
 };
 
-//-----------------------`allpassnt(n,sv)`--------------------------
+//-----------------------`allpassnt`--------------------------
 // Two-multiply lattice allpass (nested order-1 direct-form-ii allpasses).
 //
 // #### Usage
@@ -647,7 +647,7 @@ with {
   s = ba.take(n,sv); // reflection coefficient s = sin(theta)
 };
 
-//--------------------`iir_kl(bc,av)`-----------------------
+//--------------------`iir_kl`-----------------------
 // Kelly-Lochbaum ladder IIR filter or arbitrary order.
 //
 // #### Usage
@@ -673,7 +673,7 @@ with {
   pi(n) = pi(n-1)*(1+ba.take(M-n+1,sv)); // all sign parameters '+'
 };
 
-//-----------------------`allpassnklt(n,sv)`--------------------------
+//-----------------------`allpassnklt`--------------------------
 // Kelly-Lochbaum ladder allpass.
 //
 // #### Usage:
@@ -698,7 +698,7 @@ with {
   sumandtaps(n) = +,par(i,n,_);
 };
 
-//--------------------`iir_lat1(bc,av)`-----------------------
+//--------------------`iir_lat1`-----------------------
 // One-multiply latice IIR filter or arbitrary order.
 //
 // #### Usage
@@ -724,7 +724,7 @@ with {
   pi(n) = pi(n-1)*(1+ba.take(M-n+2,sv)); // all sign parameters '+'
 };
 
-//-----------------------`allpassn1mt(n,sv)`--------------------------
+//-----------------------`allpassn1mt`--------------------------
 // One-multiply lattice allpass with tap lines.
 //
 // #### Usage
@@ -750,7 +750,7 @@ with {
   s = ba.take(n,sv); // reflection coefficient s = sin(theta)
 };
 
-//-------------------------------`iir_nl(bv,av)`-------------------------
+//-------------------------------`iir_nl`-------------------------
 // Normalized ladder filter of arbitrary order.
 //
 // #### Usage
@@ -783,7 +783,7 @@ with {
   pi(n) = pi(n-1)*c(n);
 };
 
-//-------------------------------`allpassnnlt(n,sv)`-------------------------
+//-------------------------------`allpassnnlt`-------------------------
 // Normalized ladder allpass filter of arbitrary order.
 //
 // #### Usage:
@@ -853,7 +853,7 @@ with {
   pi(n) = pi(n-1)*c(n);
 };
 
-//-----------------------------`wgr(f,r,x)`---------------------------------
+//-----------------------------`wgr`---------------------------------
 // Second-order transformer-normalized digital waveguide resonator.
 //
 // #### Usage
@@ -910,7 +910,7 @@ with {
 };
 
 
-//------------`apnl(a1,a2)`---------------
+//------------`apnl`---------------
 // Passive Nonlinear Allpass based on Pierce switching springs idea.
 // Switch between allpass coefficient `a1` and `a2` at signal zero crossings.
 //
@@ -949,7 +949,7 @@ with{
 // * Linear Prediction of Speech, Markel and Gray, Springer Verlag, 1976
 //========================================================================================
 
-//---------------`allpassn(n,sv)`-----------------
+//---------------`allpassn`-----------------
 // Two-multiply lattice - each section is two multiply-adds.
 //
 // #### Usage:
@@ -973,7 +973,7 @@ allpassn(0,sv) = _;
 allpassn(n,sv) = _ <: ((+ <: (allpassn(n-1,sv)),*(s))~(*(-s))) : _',_ :+
 with { s = ba.take(n,sv); };
 
-//---------------`allpassnn(n,tv)`-----------------
+//---------------`allpassnn`-----------------
 // Normalized form - four multiplies and two adds per section,
 // but coefficients can be time varying and nonlinear without
 // "parametric amplification" (modulation of signal energy).
@@ -996,7 +996,7 @@ allpassnn(n,tv) = _ <: *(s), (*(c) : (+
         : allpassnn(n-1,tv))~(*(-s))) : _, mem*c : +
 with { c=cos(ba.take(n,tv));  s=sin(ba.take(n,tv)); };
 
-//---------------`allpasskl(n,sv)`-----------------
+//---------------`allpasskl`-----------------
 // Kelly-Lochbaum form - four multiplies and two adds per
 // section, but all signals have an immediate physical
 // interpretation as traveling pressure waves, etc.
@@ -1019,7 +1019,7 @@ allpassnkl(n,sv) = _ <: *(s),(*(1+s) : (+
                    : allpassnkl(n-1,sv))~(*(-s))) : _, mem*(1-s) : +
 with { s = ba.take(n,sv); };
 
-//---------------`allpass1m(n,sv)`-----------------
+//---------------`allpass1m`-----------------
 // One-multiply form - one multiply and three adds per section.
 // Normally the most efficient in special-purpose hardware.
 //
@@ -1322,7 +1322,7 @@ with {
 lowpass(N,fc) = lowpass0_highpass1(0,N,fc);
 highpass(N,fc) = lowpass0_highpass1(1,N,fc);
 
-//-------------`lowpass0_highpass1(s,N,fc)`--------------
+//-------------`lowpass0_highpass1`--------------
 // TODO
 //------------------------------
 // TODO: author JOS and Orlarey
@@ -1391,7 +1391,7 @@ highpass_minus_lowpass_odd(N,fc) = highpass(N,fc) - lowpass(N,fc);
 // * functions `ncauer` and `ellip` in Octave
 //========================================================================================
 
-//-----------------------------`lowpass3e(fc)`-----------------------------
+//-----------------------------`lowpass3e`-----------------------------
 // Third-order Elliptic (Cauer) lowpass filter.
 //
 // #### Usage
@@ -1426,7 +1426,7 @@ with {
   w1 = 2*ma.PI*fc; 
 };
 
-//-----------------------------`lowpass6e(fc)`-----------------------------
+//-----------------------------`lowpass6e`-----------------------------
 // Sixth-order Elliptic/Cauer lowpass filter.
 //
 // #### Usage
@@ -1479,7 +1479,7 @@ with {
 //=========================Elliptic Highpass Filters======================================
 //========================================================================================
 
-//-----------------------------`highpass3e(fc)`-----------------------------
+//-----------------------------`highpass3e`-----------------------------
 // Third-order Elliptic (Cauer) highpass filter. Inversion of `lowpass3e` wrt unit 
 // circle in s plane (s <- 1/s)
 //
@@ -1506,7 +1506,7 @@ with {
   w1 = 2*ma.PI*fc; 
 };
 
-//-----------------------------`highpass6e(fc)`-----------------------------
+//-----------------------------`highpass6e`-----------------------------
 // Sixth-order Elliptic/Cauer highpass filter. Inversion of lowpass3e wrt unit 
 // circle in s plane (s <- 1/s)
 //

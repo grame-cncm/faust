@@ -19,12 +19,13 @@ process = ro.functionCall;
 
 ## Functions Reference
 
-### `cross(n)`
+### `cross`
 Cross n signals: `(x1,x2,..,xn) -> (xn,..,x2,x1)`.
 
 #### Usage
 
 ```
+cross(n)
 _,_,_ : cross(3) : _,_,_
 ```
 
@@ -43,7 +44,7 @@ cross2 = _,cross(2),_;
 ---
 
 
-### `crossnn(n)`
+### `crossnn`
 Cross two `bus(n)`s.
 
 #### Usage
@@ -59,7 +60,7 @@ Where:
 ---
 
 
-### `crossn1(n)`
+### `crossn1`
 Cross bus(n) and bus(1).
 
 #### Usage
@@ -75,7 +76,7 @@ Where:
 ---
 
 
-### `interleave(row,col)`
+### `interleave`
 Interleave row*col cables from column order to row order.
 input : x(0), x(1), x(2) ..., x(row*col-1)
 output: x(0+0*row), x(0+1*row), x(0+2*row), ..., x(1+0*row), x(1+1*row), x(1+2*row), ...
@@ -83,7 +84,7 @@ output: x(0+0*row), x(0+1*row), x(0+2*row), ..., x(1+0*row), x(1+1*row), x(1+2*r
 #### Usage
 
 ```
-_,_,_,_,_,_ : interleave(3,2) : _,_,_,_,_,_
+_,_,_,_,_,_ : interleave(row,column) : _,_,_,_,_,_
 ```
 
 Where:
@@ -94,13 +95,13 @@ Where:
 ---
 
 
-### `butterfly(n)`
+### `butterfly`
 Addition (first half) then substraction (second half) of interleaved signals.
 
 #### Usage
 
 ```
-_,_,_,_ : butterfly(4) : _,_,_,_
+_,_,_,_ : butterfly(n) : _,_,_,_
 ```
 
 Where:
@@ -110,13 +111,13 @@ Where:
 ---
 
 
-### `hadamard(n)`
+### `hadamard`
 Hadamard matrix function of size `n = 2^k`.
 
 #### Usage
 
 ```
-_,_,_,_ : hadamard(4) : _,_,_,_
+_,_,_,_ : hadamard(n) : _,_,_,_
 ```
 
 Where:
@@ -130,7 +131,7 @@ Implementation contributed by Remy Muller.
 ---
 
 
-### `recursivize(p,q)`
+### `recursivize`
 Create a recursion from two arbitrary processors p and q.
 
 #### Usage

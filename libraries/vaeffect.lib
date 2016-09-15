@@ -60,7 +60,7 @@ declare version "0.0";
 //=============================Functions Reference========================================
 //========================================================================================
 
-//-------------------------`moog_vcf(res,fr)`---------------------------
+//-------------------------`moog_vcf`---------------------------
 // Moog "Voltage Controlled Filter" (VCF) in "analog" form. Moog VCF 
 // implemented using the same logical block diagram as the classic 
 // analog circuit.  As such, it neglects the one-sample delay associated 
@@ -147,7 +147,7 @@ with {
 };
 
 
-//--------------------------`wah4(fr)`-------------------------------
+//--------------------------`wah4`-------------------------------
 // Wah effect, 4th order.
 //
 // #### Usage
@@ -168,7 +168,7 @@ with {
 wah4(fr) = 4*moog_vcf((3.2/4),fr:si.smooth(0.999));
 
 
-//------------------------`autowah(level)`-----------------------------
+//------------------------`autowah`-----------------------------
 // Auto-wah effect.
 //
 // #### Usage
@@ -185,7 +185,7 @@ wah4(fr) = 4*moog_vcf((3.2/4),fr:si.smooth(0.999));
 autowah(level,x) = level * crybaby(an.amp_follower(0.1,x),x) + (1.0-level)*x;
 
 
-//--------------------------`crybaby(wah)`-----------------------------
+//--------------------------`crybaby`-----------------------------
 // Digitized CryBaby wah pedal.
 //
 // #### Usage

@@ -19,7 +19,7 @@ process = ef.functionCall;
 
 ## Dynamic
 
-### `cubicnl(drive,offset)`
+### `cubicnl`
 Cubic nonlinearity distortion.
 
 #### Usage:
@@ -76,7 +76,7 @@ Where:
 
 ## Filtering
 
-### `speakerbp(f1,f2)`
+### `speakerbp`
 Dirt-simple speaker simulator (overall bandpass eq with observed
 roll-offs above and below the passband).
 
@@ -92,18 +92,20 @@ speakerbp(130,5000);
 #### Usage
 
 ```
+speakerbp(f1,f2)
 _ : speakerbp(130,5000) : _
 ```
 
 ---
 
 
-### `piano_dispersion_filter(M,B,f0)`
+### `piano_dispersion_filter`
 Piano dispersion allpass filter in closed form.
 
 #### Usage
 
 ```
+piano_dispersion_filter(M,B,f0)
 _ : piano_dispersion_filter(1,B,f0) : +(totalDelay),_ : fdelay(maxDelay) : _
 ```
 
@@ -122,7 +124,7 @@ Where:
 * Output signal from allpass chain
 
 
-### `stereo_width(w)`
+### `stereo_width`
 Stereo Width effect using the Blumlein Shuffler technique.
 
 #### Usage
@@ -149,7 +151,7 @@ Michael A. Gerzon, JAES vol. 42, no. 6, June 1994
 
 ## Time Based
 
-### `echo(maxDuration,duration,feedback)`
+### `echo`
 A simple echo effect.
 
 #### Usage

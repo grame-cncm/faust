@@ -61,7 +61,7 @@ fi = library("filter.lib");
 //========================================================================================
 
 
-//-----------------------`sinwaveform(tablesize)`------------------------
+//-----------------------`sinwaveform`------------------------
 // Sine waveform ready to use with a `rdtable`.
 //
 // #### Usage
@@ -76,7 +76,7 @@ fi = library("filter.lib");
 //------------------------------------------------------------
 sinwaveform(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : sin;
 
-//-----------------------`coswaveform(tablesize)`------------------------
+//-----------------------`coswaveform`------------------------
 // Cosine waveform ready to use with a `rdtable`.
 //
 // #### Usage
@@ -91,7 +91,7 @@ sinwaveform(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : sin;
 //------------------------------------------------------------
 coswaveform(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : cos;
 
-//-----------------------`phasor(tablesize,freq)`------------------------
+//-----------------------`phasor`------------------------
 // A simple phasor to be used with a `rdtable`.
 //
 // #### Usage
@@ -107,7 +107,7 @@ coswaveform(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : cos;
 //------------------------------------------------------------
 phasor(tablesize,freq) = freq/float(ma.SR) : (+ : ma.decimal) ~ _ : *(float(tablesize));
 
-//-----------------------`oscsin(freq)`------------------------
+//-----------------------`oscsin`------------------------
 // Sine wave oscillator.
 //
 // #### Usage
@@ -125,7 +125,7 @@ with{
 	tablesize = 1 << 16;
 };
 
-//-----------------------`osc(freq)`------------------------
+//-----------------------`osc`------------------------
 // Default sine wave oscillator (same as `oscrs`).
 //
 // #### Usage
@@ -141,7 +141,7 @@ with{
 //osc	= oscsin;
 osc	= oscrs;
 
-//-----------------------`oscos(freq)`------------------------
+//-----------------------`oscos`------------------------
 // Cosine wave oscillator.
 //
 // #### Usage
@@ -159,7 +159,7 @@ with{
 	tablesize = 1 << 16;
 };
 
-//-----------------------`oscp(freq,p)`------------------------
+//-----------------------`oscp`------------------------
 // A sine wave generator with controllable phase.
 //
 // #### Usage
@@ -175,7 +175,7 @@ with{
 //------------------------------------------------------------
 oscp(freq,p) = oscsin(freq) * cos(p) + osccos(freq) * sin(p);
 
-//-----------------------`osci(freq)`------------------------
+//-----------------------`osci`------------------------
 // Interpolated phase sine wave oscillator.
 //
 // #### Usage

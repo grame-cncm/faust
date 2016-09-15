@@ -1,8 +1,10 @@
 # Faust Libraries
 
-WARNING: the libraries implemented in this folder are meant to replace the current Faust libraries. They are still being beta tested so it is very likely that you will encounter bugs while using them. If you find a bug, please report it at rmichon_at_ccrma_dot_stanford_dot_edu. Thanks ;)!
+NOTE: this documentation was automatically generated.
 
-This folder contains the different Faust libraries. The markdown documentation of each library can be found in the `/doc` folder. This README page provides information on how to use the Faust libraries. If you wish to add your own functions to this library collection, you can refer to the "Contributing" section at the end of this file that provides a set of coding conventions.
+This folder (`/libraries`) contains the different Faust libraries. The markdown documentation of each library can be found in the `/doc` folder. This README page provides information on how to use the Faust libraries. If you wish to add your own functions to this library collection, you can refer to the "Contributing" section at the end of this file that provides a set of coding conventions.
+
+WARNING: This libraries replace the "old" Faust libraries. They are still being beta tested so tou might encounter bugs while using them. If you find a bug, please report it at rmichon_at_ccrma_dot_stanford_dot_edu. Thanks ;)!
 
 ## Using the Faust Libraries
 

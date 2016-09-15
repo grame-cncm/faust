@@ -19,7 +19,7 @@ process = os.functionCall;
 
 ## Wave-Table-Based Oscillators
 
-### `sinwaveform(tablesize)`
+### `sinwaveform`
 Sine waveform ready to use with a `rdtable`.
 
 #### Usage
@@ -35,7 +35,7 @@ Where:
 ---
 
 
-### `coswaveform(tablesize)`
+### `coswaveform`
 Cosine waveform ready to use with a `rdtable`.
 
 #### Usage
@@ -51,7 +51,7 @@ Where:
 ---
 
 
-### `phasor(tablesize,freq)`
+### `phasor`
 A simple phasor to be used with a `rdtable`.
 
 #### Usage
@@ -68,7 +68,7 @@ Where:
 ---
 
 
-### `oscsin(freq)`
+### `oscsin`
 Sine wave oscillator.
 
 #### Usage
@@ -84,7 +84,7 @@ Where:
 ---
 
 
-### `osc(freq)`
+### `osc`
 Default sine wave oscillator (same as `oscrs`).
 
 #### Usage
@@ -100,7 +100,7 @@ Where:
 ---
 
 
-### `oscos(freq)`
+### `oscos`
 Cosine wave oscillator.
 
 #### Usage
@@ -116,7 +116,7 @@ Where:
 ---
 
 
-### `oscp(freq,p)`
+### `oscp`
 A sine wave generator with controllable phase.
 
 #### Usage
@@ -133,7 +133,7 @@ Where:
 ---
 
 
-### `osci(freq)`
+### `osci`
 Interpolated phase sine wave oscillator.
 
 #### Usage

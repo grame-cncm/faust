@@ -56,7 +56,7 @@ declare name "Faust Spatialization Library";
 declare version "0.0";
 
 
-//-----------------------`panner(g)`------------------------
+//-----------------------`panner`------------------------
 // A simple linear gain panner.
 //
 // #### Usage
@@ -74,7 +74,7 @@ panner(g) = _ <: *(1-g), *(g);
 // TODO: need demo function for panner here
 
 
-//-----------------------`spat(n,a,d)`------------------------
+//-----------------------`spat`------------------------
 // GMEM SPAT: n-outputs spatializer
 //
 // #### Usage
@@ -97,7 +97,7 @@ with {
 };
 
 
-//---------------`stereoize(p)`-------------
+//---------------`stereoize`-------------
 // Transform an arbitrary processor `p` into a stereo processor with 2 inputs
 // and 2 outputs.
 //

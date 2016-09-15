@@ -17,7 +17,7 @@ import("stdfaust.lib");
 process = sp.functionCall;
 ```
 
-### `panner(g)`
+### `panner`
 A simple linear gain panner.
 
 #### Usage
@@ -33,7 +33,7 @@ Where:
 ---
 
 
-### `spat(n,a,d)`
+### `spat`
 GMEM SPAT: n-outputs spatializer
 
 #### Usage
@@ -51,7 +51,7 @@ Where:
 ---
 
 
-### `stereoize(p)`
+### `stereoize`
 Transform an arbitrary processor `p` into a stereo processor with 2 inputs
 and 2 outputs.
 

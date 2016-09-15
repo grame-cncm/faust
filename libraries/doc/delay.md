@@ -19,7 +19,7 @@ process = de.functionCall;
 
 ## Basic Delay Functions
 
-### `delay(n,d,x)`
+### `delay`
 Simple `d` samples delay where `n` is the maximum delay length as a number of 
 samples (it needs to be a power of 2). Unlike the `@` delay operator, this
 function allows to preallocate memory which means that `d` can be changed dynamically
@@ -39,7 +39,7 @@ Where:
 ---
 
 
-### `fdelay(n,d,x)`
+### `fdelay`
 Simple `d` samples fractional delay based on 2 interpolated delay lines where `n` is 
 the maximum delay length as a number of samples (it needs to be a power of 2 - see 
 `delay()`). 
@@ -58,7 +58,7 @@ Where:
 ---
 
 
-### `sdelay(N,it,dt)`
+### `sdelay`
 s(mooth)delay: a mono delay that doesn't click and doesn't 
 transpose when the delay time is changed.
 

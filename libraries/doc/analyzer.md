@@ -72,7 +72,7 @@ Use `amp_follower_ar` below to remove this restriction.
 ---
 
 
-### `amp_follower_ar(att,rel)`
+### `amp_follower_ar`
 Envelope follower with independent attack and release times. The
 release can be shorter than the attack (unlike in `amp_follower_ud`
 above).
