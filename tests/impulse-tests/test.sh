@@ -13,7 +13,7 @@ BACKEND="all"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "test.sh [-all] [-float] [-cpp] [-c] [-llvm] [-interp] [-ajs] "
+        echo "test.sh [-all] [-float] [-cpp] [-c] [-llvm] [-interp] [-ajs] [-valgrind] "
         echo "Use '-all' to activate all control test (float compilation and 5 backend)"
         echo "Use '-float' to activate float compilation"
         echo "Use '-cpp' to check 'cpp' backend"
@@ -21,6 +21,7 @@ for p in $@; do
         echo "Use '-llvm' to check 'LLVM' backend"
         echo "Use '-interp' to check 'interpreter' backend"
         echo "Use '-ajs' to check 'asm.js' backend"
+        echo "Use '-valgrind' to activate valgrind tests"
         exit
     elif [ "$p" = -cpp ]; then
         BACKEND="cpp"
@@ -34,10 +35,36 @@ for p in $@; do
         BACKEND="ajs"
     elif [ $p = "-float" ]; then
         BACKEND="float"
+    elif [ $p = "-valgrind" ]; then
+        BACKEND="valgrind"
     fi
 done
 
 cd codes-to-test
+
+if [ $BACKEND = "valgrind" ]; then
+    echo "==============================================================="
+    echo "Valgrind test in scalar mode "
+    echo "==============================================================="
+
+    for f in *.dsp; do
+    echo $f
+    faust2valgrind $f > /dev/null
+    done
+
+    grep "uninitialised" *.txt
+
+    echo "==============================================================="
+    echo "Valgrind test in vector mode "
+    echo "==============================================================="
+
+    for f in *.dsp; do
+    echo $f
+    faust2valgrind -vec -lv 1 $f > /dev/null
+    done
+
+    grep "uninitialised" *.txt
+fi
 
 if [ $BACKEND = "float" ] || [ $BACKEND = "all" ]; then
 
