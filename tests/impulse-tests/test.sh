@@ -13,6 +13,28 @@ D=`mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir'`
 cd codes-to-test
 
 echo "==============================================================="
+echo "Valgrind test in scalar mode "
+echo "==============================================================="
+
+for f in *.dsp; do
+    echo $f
+    faust2valgrind -vec -lv 1 $f > /dev/null
+done
+
+grep "uninitialised" *.txt
+
+echo "==============================================================="
+echo "Valgrind test in vector mode "
+echo "==============================================================="
+
+for f in *.dsp; do
+    echo $f
+    faust2valgrind -vec -lv 1 $f > /dev/null
+done
+
+grep "uninitialised" *.txt
+
+echo "==============================================================="
 echo "Impulse response tests in various compilation modes and double"
 echo "==============================================================="
 

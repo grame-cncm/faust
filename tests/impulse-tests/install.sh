@@ -11,6 +11,7 @@
 g++ -O3 -std=c++11 filesCompare.cpp -o filesCompare
 
 cp faust2impulse /usr/local/bin/
+cp faust2valgrind /usr/local/bin/
 cp impulsearch.cpp /usr/local/lib/faust/
 cp filesCompare /usr/local/bin/
 
