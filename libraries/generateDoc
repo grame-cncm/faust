@@ -14,15 +14,15 @@ for p in $FILES; do
 done
 
 # Generate the raw html version of the doc
-pandoc --toc --standalone doc/*.md -o doc/index.html
+pandoc --toc --standalone README.md doc/*.md -o doc/index.html
 
 # Generate the PDF doc
-pandoc --toc doc/*.md -o doc/libraries-reference.pdf
+pandoc --toc README.md doc/*.md -o doc/libraries-reference.pdf
 
 sed -i "" "s/<title>/<title>Faust Libraries Documentation/g" doc/index.html 
 sed -i "" "s/<style type=\"text\/css\">code{white-space: pre;}<\/style>/<\/style><link rel=\"stylesheet\" href=\"http:\/\/maxcdn.bootstrapcdn.com\/bootstrap\/3.3.7\/css\/bootstrap.min.css\"><script src=\"https:\/\/ajax.googleapis.com\/ajax\/libs\/jquery\/1.12.4\/jquery.min.js\">\n<\/script><script src=\"http:\/\/maxcdn.bootstrapcdn.com\/bootstrap\/3.3.7\/js\/bootstrap.min.js\"><\/script>/g" doc/index.html 
 sed -i "" "s/<body>/<div class=\"container\"><div class=\"row\" style=\"height: 100vh;\">/g" doc/index.html 
 sed -i "" "s/<\/body>/<\/div><\/div><\/body>/g" doc/index.html 
 sed -i "" "s/<div id=\"TOC\">/<div class=\"col-sm-4\" id=\"TOC\" style=\"height: 100%;overflow: scroll;\">/g" doc/index.html 
-sed -i "" "s/<h1 id=\"analyzer.lib\">analyzer.lib<\/h1>/<div class=\"col-sm-8\" style=\"height: 100%;overflow-y: scroll\"><h1 id=\"analyzer.lib\">analyzer.lib<\/h1>/g" doc/index.html 
+sed -i "" "s/<h1 id=\"faust-libraries\">Faust Libraries<\/h1>/<div class=\"col-sm-8\" style=\"height: 100%;overflow-y: scroll\"><h1 id=\"faust-libraries\">Faust Libraries<\/h1>/g" doc/index.html 
  

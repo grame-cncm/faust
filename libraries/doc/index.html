@@ -10,6 +10,21 @@
 <div class="container"><div class="row" style="height: 100vh;">
 <div class="col-sm-4" id="TOC" style="height: 100%;overflow: scroll;">
 <ul>
+<li><a href="#faust-libraries">Faust Libraries</a><ul>
+<li><a href="#using-the-faust-libraries">Using the Faust Libraries</a></li>
+<li><a href="#contributing">Contributing</a><ul>
+<li><a href="#new-functions">New Functions</a></li>
+<li><a href="#new-libraries">New Libraries</a></li>
+</ul></li>
+<li><a href="#notes-about-the-implemenation-of-the-new-library-system-old-readme">Notes About the Implemenation of the New Library System (Old README)</a></li>
+<li><a href="#general-organization">General Organization</a></li>
+<li><a href="#coding-conventions">Coding Conventions</a><ul>
+<li><a href="#documentation">Documentation</a></li>
+<li><a href="#library-import">Library Import</a></li>
+<li><a href="#demo-functions">&quot;Demo&quot; Functions</a></li>
+</ul></li>
+<li><a href="#the-question-of-licensingauthoringcopyrigth">The question of licensing/authoring/copyrigth</a></li>
+</ul></li>
 <li><a href="#analyzer.lib">analyzer.lib</a><ul>
 <li><a href="#amplitude-tracking">Amplitude Tracking</a><ul>
 <li><a href="#amp_follower"><code>amp_follower</code></a></li>
@@ -429,7 +444,185 @@
 </ul></li>
 </ul>
 </div>
-<div class="col-sm-8" style="height: 100%;overflow-y: scroll"><h1 id="analyzer.lib">analyzer.lib</h1>
+<div class="col-sm-8" style="height: 100%;overflow-y: scroll"><h1 id="faust-libraries">Faust Libraries</h1>
+<p>WARNING: the libraries implemented in this folder are meant to replace the current Faust libraries. They are still being beta tested so it is very likely that you will encounter bugs while using them. If you find a bug, please report it at rmichon_at_ccrma_dot_stanford_dot_edu. Thanks ;)!</p>
+<p>This folder contains the different Faust libraries. The markdown documentation of each library can be found in the <code>/doc</code> folder. This README page provides information on how to use the Faust libraries. If you wish to add your own functions to this library collection, you can refer to the &quot;Contributing&quot; section at the end of this file that provides a set of coding conventions.</p>
+<h2 id="using-the-faust-libraries">Using the Faust Libraries</h2>
+<p>The easiest and most standard way to use the Faust libraries is to import <code>stdfaust.lib</code> in your Faust code:</p>
+<pre><code>import(&quot;stdfaust.lib&quot;);</code></pre>
+<p>This will give you access to all the Faust libraries through a series of environments:</p>
+<ul>
+<li><code>ma</code>: <code>math.lib</code></li>
+<li><code>ba</code>: <code>basic.lib</code></li>
+<li><code>de</code>: <code>delay.lib</code></li>
+<li><code>en</code>: <code>envelope.lib</code></li>
+<li><code>ro</code>: <code>route.lib</code></li>
+<li><code>si</code>: <code>signal.lib</code></li>
+<li><code>an</code>: <code>analyzer.lib</code></li>
+<li><code>fi</code>: <code>filter.lib</code></li>
+<li><code>os</code>: <code>miscoscillator.lib</code></li>
+<li><code>no</code>: <code>noise.lib</code></li>
+<li><code>ho</code>: <code>hoa.lib</code></li>
+<li><code>sp</code>: <code>spat.lib</code></li>
+<li><code>sy</code>: <code>synth.lib</code></li>
+<li><code>ef</code>: <code>misceffect.lib</code></li>
+<li><code>ve</code>: <code>vaeffect.lib</code></li>
+<li><code>co</code>: <code>compressor.lib</code></li>
+<li><code>pf</code>: <code>phafla.lib</code></li>
+<li><code>re</code>: <code>reverb.lib</code></li>
+<li><code>de</code>: <code>demo.lib</code></li>
+</ul>
+<p>Environments can then be used as follows in your Faust code:</p>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+process = os.osc(440);</code></pre>
+<p>In this case, we're calling the <code>osc</code> function from <code>miscoscillator.lib</code>.</p>
+<p>Alternatively, environments can be created by hand:</p>
+<pre><code>os = library(&quot;miscoscillator.lib&quot;);
+process = os.osc(440);</code></pre>
+<p>Finally, libraries can be simply imported in the Faust code (not recommended):</p>
+<pre><code>import(&quot;miscoscillator.lib&quot;);
+process = osc(440);</code></pre>
+<h2 id="contributing">Contributing</h2>
+<p>If you wish to add a function to any of these libraries or if you plan to add a new library, make sure that you follow the following conventions:</p>
+<h3 id="new-functions">New Functions</h3>
+<ul>
+<li>All functions must be preceded by a markdown documentation header respecting the following format (open the source code of any of the libraries for an example):</li>
+</ul>
+<pre><code>//-----------------functionName--------------------
+// Description
+// 
+// #### Usage
+// 
+// ```
+// Usage Example
+// ```
+//
+// Where:
+//
+// * argument1: argument 1 descirption
+//-------------------------------------------------</code></pre>
+<ul>
+<li>Every time a new function is added, the documentation should be updated simply by running <code>./generateDoc</code>.</li>
+<li>All libraries import <code>stdfaust.lib</code> so the environment system should be used when calling a function declared in another library (see the section on <em>Using the Faust Libraries</em>).</li>
+<li>Try to reuse exisiting functions as much as possible.</li>
+<li>If you have any question, send an e-mail to rmichon_at_ccrma_dot_stanford_dot_edu.</li>
+</ul>
+<h3 id="new-libraries">New Libraries</h3>
+<ul>
+<li>Any new library should be declared in <code>stdfaust.lib</code> with its own environment (2 letters - see <code>stdfaust.lib</code>).</li>
+<li>Any new library must be added to <code>generateDoc</code>.</li>
+<li>Functions must be organized by sections.</li>
+<li>Any new library should at least <code>declare</code> a <code>name</code> and a <code>version</code>.</li>
+<li>The comment based markdown documentation of each library must respect the following format (open the source code of any of the libraries for an example):</li>
+</ul>
+<pre><code>//############### libraryName ##################
+// Description
+// 
+// * Section Name 1
+// * Section Name 2
+// * ...
+//
+// It should be used using the `[...]` environment:
+//
+// ```
+// [...] = library(&quot;libraryName&quot;);
+// process = [...].functionCall;
+// ```
+//
+// Another option is to import `stdfaust.lib` which already contains the `[...]`
+// environment:
+//
+// ```
+// import(&quot;stdfaust.lib&quot;);
+// process = [...].functionCall;
+// ```
+//##############################################
+
+//================= Section Name ===============
+// Description
+//==============================================</code></pre>
+<ul>
+<li>If you have any question, send an e-mail to rmichon_at_ccrma_dot_stanford_dot_edu.</li>
+</ul>
+<h2 id="notes-about-the-implemenation-of-the-new-library-system-old-readme">Notes About the Implemenation of the New Library System (Old README)</h2>
+<p>This repository contains a fully rewritten version of the Faust libraries. The goals of this project are to:</p>
+<ul>
+<li>document the libraries using the <code>faust2md</code> system,</li>
+<li>standardize the libraries by factorizing their code, getting rid of duplicates, and establishing coding coventions,</li>
+<li>organize their different functions in a clear hierarchical manner,</li>
+<li>add missing standard functions,</li>
+<li>reorganize the <code>/examples</code> folder of the Faust repository.</li>
+</ul>
+<h2 id="general-organization">General Organization</h2>
+<p>This repository contains all the libraries (both the new libraries and the ones that were deprecated) that will need to be merged to the Faust repository. We tried to minimize the number of libraries to keep things easy for new users. Instead we created a wide range of sections in each of them.</p>
+<p>Only the libraries that are considered to be &quot;standard&quot; are documented:</p>
+<ul>
+<li><code>analyzer.lib</code></li>
+<li><code>basic.lib</code></li>
+<li><code>delay.lib</code></li>
+<li><code>misceffect.lib</code></li>
+<li><code>compressor.lib</code></li>
+<li><code>vaeffect.lib</code></li>
+<li><code>phafla.lib</code></li>
+<li><code>reverb.lib</code></li>
+<li><code>envelope.lib</code></li>
+<li><code>filter.lib</code></li>
+<li><code>miscoscillator.lib</code></li>
+<li><code>noise.lib</code></li>
+<li><code>hoa.lib</code></li>
+<li><code>math.lib</code></li>
+<li><code>pm.lib</code></li>
+<li><code>route.lib</code></li>
+<li><code>signal.lib</code></li>
+<li><code>spat.lib</code></li>
+<li><code>synth.lib</code></li>
+<li><code>demo.lib</code></li>
+<li><code>tonestack.lib</code> (not documented but example in <code>/examples/misc</code>)</li>
+<li><code>tube.lib</code> (not documented but example in <code>/examples/misc</code>)</li>
+</ul>
+<p>Other deprecated libraries such as <code>music.lib</code>, etc. are present but are not documented to not confuse new users.</p>
+<p>The markdown documentation of each library is located in <code>/doc</code> and can be automatically generated by running <code>generateDoc</code>.</p>
+<p>The <code>/examples</code> directory contains all the examples from the <code>/examples</code> folder of the Faust distribution as well as new ones. Most of them were updated to reflect the coding conventions described in the next section. Examples are organized by types in different folders. The <code>/old</code> folder contains examples that are fully deprecated, probably because they were integrated to the libraries and fully rewritten (see <code>freeverb.dsp</code> for example). Examples using deprecated libraries were integrated to the general tree but a warning comment was added at their beginning to point readers to the right library and function.</p>
+<h2 id="coding-conventions">Coding Conventions</h2>
+<p>In order to have a uniformized library system, we established the following conventions (that hopefully will be followed by others when making modifications to them :-) ).</p>
+<h3 id="documentation">Documentation</h3>
+<ul>
+<li>All the functions that we want to be &quot;public&quot; are documented.</li>
+<li>We used the <code>faust2md</code> &quot;standards&quot; for each library: <code>//###</code> for main title (library name - equivalent to <code>#</code> in markdown), <code>//===</code> for section declarations (equivalent to <code>##</code> in markdown) and <code>//---</code> for function declarations (equivalent to <code>####</code> in markdown - see <code>basic.lib</code> for an example).</li>
+<li>Sections in function documentation should be declared as <code>####</code> markdown title.</li>
+<li>Each function documentation provides a &quot;Usage&quot; section (see <code>basic.lib</code>).</li>
+</ul>
+<h3 id="library-import">Library Import</h3>
+<p>To prevent cross-references between libraries we generalized the use of the <code>library(&quot;&quot;)</code> system for function calls in all the libraries. This means that everytime a function declared in another library is called, the environment corresponding to this library needs to be called too. To make things easier, a <code>stdfaust.lib</code> library was created and is imported by all the libraries:</p>
+<pre><code>ma = library(&quot;math.lib&quot;);
+ba = library(&quot;basic.lib&quot;);
+de = library(&quot;delay.lib&quot;);
+en = library(&quot;envelope.lib&quot;);
+ro = library(&quot;route.lib&quot;);
+si = library(&quot;signal.lib&quot;);
+an = library(&quot;analyzer.lib&quot;);
+fi = library(&quot;filter.lib&quot;);
+os = library(&quot;miscoscillator.lib&quot;);
+no = library(&quot;noise.lib&quot;);
+ho = library(&quot;hoa.lib&quot;);
+sp = library(&quot;spat.lib&quot;);
+sy = library(&quot;synth.lib&quot;);
+ef = library(&quot;misceffect.lib&quot;);
+ve = library(&quot;vaeffect.lib&quot;);
+co = library(&quot;compressor.lib&quot;);
+pf = library(&quot;phafla.lib&quot;);
+re = library(&quot;reverb.lib&quot;);</code></pre>
+<p>For example, if we wanted to use the <code>smooth</code> function which is now declared in <code>signal.lib</code>, we would do the following:</p>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+
+process = si.smooth(0.999);</code></pre>
+<p>This standard is only used within the libraries: nothing prevents coders to still import <code>signal.lib</code> directly and call <code>smooth</code> without <code>ro.</code>, etc.</p>
+<h3 id="demo-functions">&quot;Demo&quot; Functions</h3>
+<p>All the functions that were present in the libraries and that contained any kind of UI elements declaration (mostly JOS &quot;<code>demo</code>&quot; functions) were turned into independant <code>.dsp</code> files that were placed in the <code>/examples</code> folder. Thus, Faust libraries now only contain &quot;pure&quot; function declarations which should make them more legible. Also, &quot;<code>demo</code>&quot; functions make great examples...</p>
+<p>For practicality, the &quot;<code>demo</code>&quot; functions are still declared and are available in <code>demo.lib</code> as &quot;components&quot; pointing at the <code>/examples</code> folder (which is why that folder will have to be installed on the system during the installation process of the Faust distribution).</p>
+<h2 id="the-question-of-licensingauthoringcopyrigth">The question of licensing/authoring/copyrigth</h2>
+<p>Now that Faust libraries are not author specific, each function will be able to have its own licence/author declaration. This means that some libraries wont have a global licence/author/copyright declaration like it used to be the case.</p>
+<h1 id="analyzer.lib">analyzer.lib</h1>
 <p>This library contains a collection of tools to analyze signals.</p>
 <p>It should be used using the <code>an</code> environment:</p>
 <pre><code>an = library(&quot;analyzer.lib&quot;);
