@@ -51,7 +51,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 39.0, 68.0, 103.0, 18.0 ],
-					"text" : "read DSP_NAME"
+					"text" : "read DSP_NAME.dsp"
 				}
 
 			}
@@ -66,8 +66,7 @@
 					"numoutlets" : 1,
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 21.0, 177.0, 60.0, 21.0 ],
-					"text" : "r mymsg",
-					"varname" : "mymsgScriptingName[1]"
+					"text" : "r mymsg"
 				}
 
 			}
@@ -82,7 +81,7 @@
 					"numoutlets" : 0,
 					"patching_rect" : [ 21.0, 156.0, 60.0, 21.0 ],
 					"text" : "s mymsg",
-					"varname" : "mymsgScriptingName"
+					"varname" : "DSP_NAME~"
 				}
 
 			}

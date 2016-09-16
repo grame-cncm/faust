@@ -127,8 +127,8 @@ int main(int argc, char *argv[])
 
     audio.stop();
     finterface->saveState(rcfilename);
-    delete(interface);
-    delete(finterface);
+    delete interface;
+    delete finterface;
     delete DSP;
 
     if (is_llvm) {
