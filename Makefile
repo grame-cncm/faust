@@ -1,4 +1,4 @@
-version := 0.9.85
+version := 0.9.90
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -65,6 +65,7 @@ help :
 	@echo "make parser : generate the parser from the lex and yacc files"
 	@echo "make clean : remove all object files"
 	@echo "make doc : generate the documentation using doxygen"
+	@echo "make doclib : generate the documentation of the faust libraries"
 	@echo "make install : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/lib/faust $(prefix)/include/faust"
 	@echo "make uninstall : undo what install did"
 	@echo "make dist : make a Faust distribution as a .zip file"
@@ -89,6 +90,9 @@ depend :
 doc :
 	$(MAKE) -C compiler -f $(MAKEFILE) doc
 
+doclib :
+	./libraries/generateDoc
+
 
 install :
 	# install faust itself
@@ -100,7 +104,15 @@ install :
 	# install architecture and faust library files
 	mkdir -p $(prefix)/lib/faust
 	cp architecture/*.cpp $(prefix)/lib/faust/
-	cp architecture/*.lib $(prefix)/lib/faust/
+	cp libraries/old/*.lib $(prefix)/lib/faust/
+	cp libraries/*.lib $(prefix)/lib/faust/
+	cp -r examples/filtering/*.dsp $(prefix)/lib/faust/
+	cp -r examples/dynamic/*.dsp $(prefix)/lib/faust/
+	cp -r examples/psychoacoustic/*.dsp $(prefix)/lib/faust/
+	cp -r examples/phasing/*.dsp $(prefix)/lib/faust/
+	cp -r examples/reverb/*.dsp $(prefix)/lib/faust/
+	cp -r examples/generator/*.dsp $(prefix)/lib/faust/
+	cp -r examples/analysis/*.dsp $(prefix)/lib/faust/
 	# This is needed by faust2lv2 -gui / lv2ui.cpp.
 	cp architecture/lv2qtgui.h $(prefix)/lib/faust/
 	# This is needed by faust2faustvst -gui / faustvst.cpp.
