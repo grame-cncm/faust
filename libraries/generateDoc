@@ -1,0 +1,38 @@
+#!/bin/bash
+
+LIBFOLDER="libraries"
+DOCFOLDER="documentation"
+
+for p in $@; do
+	if [ $p = "-help" ] || [ $p = "-h" ]; then
+		echo "Just run it! It will automatically look for all the .lib files and generate the corresponding documentation in /doc."
+		exit 1
+	fi
+done
+
+FILES="analyzer.lib basic.lib delay.lib misceffect.lib compressor.lib vaeffect.lib phafla.lib reverb.lib envelope.lib filter.lib miscoscillator.lib noise.lib hoa.lib math.lib signal.lib route.lib spat.lib synth.lib demo.lib"
+
+mkdir tmp
+mkdir tmp/title
+
+echo "% Faust Standard Libraries" > tmp/title/title.md
+
+for p in $FILES; do
+	(faust2md "$LIBFOLDER/$p" > tmp/${p%.lib}.md) || exit
+done
+
+# Generate the raw html version of the doc
+(pandoc --toc --standalone "$LIBFOLDER/README.md" tmp/*.md -o "$DOCFOLDER/library.html") || exit
+
+# Generate the PDF doc
+(pandoc --toc tmp/title/title.md "$LIBFOLDER/README.md" tmp/*.md -s -o "$DOCFOLDER/library.pdf") || exit
+
+# Reformatting the html file with the right template
+(sed -i "" "s/<title>/<title>Faust Libraries Documentation/g" "$DOCFOLDER/library.html") || exit
+(sed -i "" "s/<style type=\"text\/css\">code{white-space: pre;}<\/style>/<\/style><link rel=\"stylesheet\" href=\"http:\/\/maxcdn.bootstrapcdn.com\/bootstrap\/3.3.7\/css\/bootstrap.min.css\"><script src=\"https:\/\/ajax.googleapis.com\/ajax\/libs\/jquery\/1.12.4\/jquery.min.js\">\n<\/script><script src=\"http:\/\/maxcdn.bootstrapcdn.com\/bootstrap\/3.3.7\/js\/bootstrap.min.js\"><\/script>/g" "$DOCFOLDER/library.html") || exit 
+(sed -i "" "s/<body>/<div class=\"container\"><div class=\"row\" style=\"height: 100vh;\">/g" "$DOCFOLDER/library.html") || exit  
+(sed -i "" "s/<\/body>/<\/div><\/div><\/body>/g" "$DOCFOLDER/library.html") || exit
+(sed -i "" "s/<div id=\"TOC\">/<div class=\"col-sm-4\" id=\"TOC\" style=\"height: 100%;overflow: scroll;\">/g" "$DOCFOLDER/library.html") || exit
+(sed -i "" "s/<h1 id=\"faust-libraries\">Faust Libraries<\/h1>/<div class=\"col-sm-8\" style=\"height: 100%;overflow-y: scroll\"><h1 id=\"faust-libraries\">Faust Libraries<\/h1>/g" "$DOCFOLDER/library.html") || exit
+ 
+rm -r tmp
