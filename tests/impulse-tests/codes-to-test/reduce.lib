@@ -1,0 +1,95 @@
+/************************************************************************
+ ************************************************************************
+  	FAUST library file
+	Copyright (C) 2010-2011 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as 
+	published by the Free Software Foundation; either version 2.1 of the 
+	License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+ 	License along with the GNU C Library; if not, write to the Free
+  	Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  	02111-1307 USA. 
+ ************************************************************************
+ ************************************************************************/
+
+declare name "Reduce Library";
+declare author "Yann Orlarey (orlarey at grame.fr)";
+declare copyright "Grame";
+declare version "0.1";
+declare license "LGPL"; 
+
+
+//---------------------------------------------------------------
+// Provides various operations on block of samples
+// using a high order 'reduce(op, n)' fold-like function :
+//
+//   sumn(n) : the sum  of a block of n input samples
+//   maxn(n) : the max  of a block of n input samples
+//   minn(n) : the min  of a block of n input samples
+//   mean(n) : the mean of a block of n input samples
+//   RMS(n)  : the RMS  of a block of n input samples
+//---------------------------------------------------------------
+
+
+
+//---------------------------------------------------------------
+// reduce (op, n, x)
+//---------------------------------------------------------------
+// Fold-like high order function. Apply a binary operation <op> 
+// on a block of <n> consecutive samples of a signal <x>. 
+// For example : reduce(max,128) will compute the maximun of each
+// block of 128 samples. Please note that the resulting
+// value, while produced continuously, will be constant for 
+// the duration of a block. A new value is only produced 
+// at the end of a block. Note also that blocks should be of at
+// least one sample (n>0). 
+reduce(op, n, x) = compute ~ (_,_,_) : (!,!,_)
+    with {
+        compute (acc, count, val) =
+            if(count<n, op(acc,x), x), 		// new acc
+            if(count<n, count+1, 1),     	// new count
+            if(count<n, val, acc);      	// new val
+        if (c, then, else) = select2(c, else, then);
+    };
+
+
+//---------------------------------------------------------------
+// reducemap (op, foo, n, x)
+//---------------------------------------------------------------
+// Like reduce but a foo function is applied to the result. From
+// a mathematical point of view :
+// reducemap(op,foo,n) is equivalent to reduce(op,n):foo
+// but more efficient.
+reducemap(op, foo, n, x) = compute ~ (_,_,_) : (!,!,_)
+    with {
+        compute (acc, count, val) =
+            if(count<n, op(acc,x), x), 		// new acc
+            if(count<n, count+1, 1),     	// new count
+            if(count<n, val, foo(acc));     // new val
+        if (c, then, else) = select2(c, else, then);
+    };
+
+  
+// the sum of the amplitudes of the input signal
+sumn(n) = reduce(+,n);
+
+// the maximum amplitude of the input signal
+maxn(n) = reduce(max,n);
+
+// the minimum amplitude of the input signal
+minn(n) = reduce(min,n);
+
+// the average amplitude of the input signal
+mean(n) = reducemap(+, /(n), n);
+
+// RMS
+RMS(n) = float : ^(2) : reducemap(+, (/(n):sqrt), n);
+
