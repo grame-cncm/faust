@@ -23,22 +23,17 @@
 
  ************************************************************************
  ************************************************************************/
+
 #include <libgen.h>
+#include <iostream>
+
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
-
-#define LLVM 1
-
-#ifdef LLVM
+#include "faust/misc.h"
 #include "faust/dsp/llvm-dsp.h"
-#else
 #include "faust/dsp/interpreter-dsp.h"
-#endif
-
 #include "faust/gui/faustgtk.h"
 #include "faust/audio/jack-dsp.h"
-#include "faust/gui/jsonfaustui.h"
-
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -56,69 +51,44 @@ struct MyMeta : public Meta
 // 	FAUST generated code
 //----------------------------------------------------------------------------
 
-dsp* DSP;
-dsp* DSP1;
-
 std::list<GUI*> GUI::fGuiList;
 
 int main(int argc, char *argv[])
 {
-	char	appname[256];
-    char	filename[256];
-	char  	rcfilename[256];
-	char* 	home = getenv("HOME");
-
-#ifdef LLVM
-    llvm_dsp_factory* factory = 0;
-#else
-    interpreter_dsp_factory* factory = 0;
-#endif
-
-    if (argc < 2) {
-        printf("Usage: faust-jack-gtk args [file.dsp | file.bc]\n");
+   
+    long is_llvm = isopt(argv, "-llvm");
+    long is_interp = isopt(argv, "-interp");
+    
+    if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
+        std::cout << "dynamic-jack-gtk [-llvm] [-interp] foo.dsp" << std::endl;
         exit(1);
-    } else {
-        
-        int argc1 = 1;
-        const char* argv1[argc1];
-        argv1[0] = "-svg";
-        std::string error_msg;
-        
-        /*
-        llvm_dsp_factory* factory1 = createDSPFactory(argc1, argv1, "/Users/letz", "", "in1", "process = +,+", "", error_msg1);
-        if (factory1) {
-            llvm_dsp* imp1 = createDSPInstance(factory1);
-            deleteDSPInstance(imp1);
-            imp1 = createDSPInstance(factory1);
-            deleteDSPInstance(imp1);
-            printf("createInstance %x %s\n", imp1, error_msg1);
-            DSP = createDSPInstance(factory1);
-            deleteDSPInstance(DSP);
-            deleteDSPFactory(factory1);
-        } else {
-            printf("Cannot create factory : %s", error_msg1);
-        }
-        */
-
-        
-    #ifdef LLVM
-        factory = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg, -1);
-    #else
-        factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg);
-    #endif
-        
-        if (factory) {
-            DSP = factory->createDSPInstance();
-            assert(DSP);
-         } else {
-            printf("Cannot create factory : %s\n", error_msg.c_str());
-            return 1;
-        }
     }
     
-    DSP->instanceInit(44100);
-    //DSP->instanceClear();
+    char appname[256];
+    char filename[256];
+    char rcfilename[256];
+    char* home = getenv("HOME");
   
+    dsp_factory* factory = 0;
+    dsp* DSP = 0;
+   
+    std::string error_msg;
+    if (is_llvm) {
+        std::cout << "Using LLVM backend" << std::endl;
+        factory = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg, -1);
+    } else {
+        std::cout << "Using interpreter backend"<< std::endl;
+        factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg);
+    }
+
+    if (factory) {
+        DSP = factory->createDSPInstance();
+        assert(DSP);
+    } else {
+        std::cout << "Cannot create factory : " << error_msg << std::endl;
+        exit(1);
+    }
+
     snprintf(appname, 255, "%s", basename(argv[0]));
     snprintf(filename, 255, "%s", basename(argv[argc-1]));
     snprintf(rcfilename, 255, "%s/.%s-%src", home, appname, argv[1]);
@@ -129,15 +99,15 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(interface);
     DSP->buildUserInterface(finterface);
 
-#ifdef HTTPCTRL
-    httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
-    DSP->buildUserInterface(httpdinterface);
-#endif
+    #ifdef HTTPCTRL
+        httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
+        DSP->buildUserInterface(httpdinterface);
+    #endif
 
-#ifdef OSCCTRL
-    GUI* oscinterface = new OSCUI(filename, argc, argv);
-    DSP->buildUserInterface(oscinterface);
-#endif
+    #ifdef OSCCTRL
+        GUI* oscinterface = new OSCUI(filename, argc, argv);
+        DSP->buildUserInterface(oscinterface);
+    #endif
 
     jackaudio audio;
     if (!audio.init(filename, DSP)) {
@@ -146,13 +116,13 @@ int main(int argc, char *argv[])
     finterface->recallState(rcfilename);
     audio.start();
 
-#ifdef HTTPCTRL
-    httpdinterface->run();
-#endif
+    #ifdef HTTPCTRL
+        httpdinterface->run();
+    #endif
 
-#ifdef OSCCTRL
-    oscinterface->run();
-#endif
+    #ifdef OSCCTRL
+        oscinterface->run();
+    #endif
     interface->run();
 
     audio.stop();
@@ -161,11 +131,12 @@ int main(int argc, char *argv[])
     delete(finterface);
     delete DSP;
 
-#ifdef LLVM
-    deleteDSPFactory(factory);
-#else
-    deleteInterpreterDSPFactory(factory);
-#endif
-  	return 0;
+    if (is_llvm) {
+        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+    } else {
+        deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
+    }
+    
+    return 0;
 }
 
