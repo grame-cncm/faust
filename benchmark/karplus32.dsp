@@ -4,12 +4,13 @@ declare author 		"Grame";
 declare license 	"BSD";
 declare copyright 	"(c)GRAME 2006";
 
+
 //-----------------------------------------------
 // 				karplus-strong
 //		with 32 resonators in parallel
 //-----------------------------------------------
 
-import("music.lib");
+import("stdfaust.lib"); 
 
 
 // Excitator
@@ -33,7 +34,7 @@ dur 		= hslider("duration (samples)", 128, 2, 512, 1);
 att 		= hslider("attenuation", 0.1, 0, 1, 0.01);
 average(x)	= (x+x')/2;
 
-resonator(d, a) = (+ : delay(4096, d-1.5)) ~ (average : *(1.0-a)) ;
+resonator(d, a) = (+ : de.delay(4096, d-1.5)) ~ (average : *(1.0-a)) ;
 
 
 // Polyphony
@@ -48,7 +49,7 @@ output 		= hslider("output volume", 0.5, 0, 1, 0.1);
 
 
 process =  vgroup("karplus32",
-	 		   	vgroup("noise generator", noise * hslider("level", 0.5, 0, 1, 0.1))
+	 		   	vgroup("noise generator", no.noise * hslider("level", 0.5, 0, 1, 0.1))
 				 : vgroup("excitator", *(button("play"): trigger(size)))
 				<: vgroup("resonator x32", par(i,32, resonator(dur+i*detune, att) * (polyphony > i)))
 				:> *(output),*(output)
