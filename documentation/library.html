@@ -16,7 +16,6 @@
 <li><a href="#new-functions">New Functions</a></li>
 <li><a href="#new-libraries">New Libraries</a></li>
 </ul></li>
-<li><a href="#notes-about-the-implemenation-of-the-new-library-system-old-readme">Notes About the Implemenation of the New Library System (Old README)</a></li>
 <li><a href="#general-organization">General Organization</a></li>
 <li><a href="#coding-conventions">Coding Conventions</a><ul>
 <li><a href="#documentation">Documentation</a></li>
@@ -430,8 +429,9 @@
 </div>
 <div class="col-sm-8" style="height: 100%;overflow-y: scroll"><h1 id="faust-libraries">Faust Libraries</h1>
 <p>NOTE: this documentation was automatically generated.</p>
-<p>This folder (<code>/libraries</code>) contains the different Faust libraries. The markdown documentation of each library can be found in the <code>/doc</code> folder. This README page provides information on how to use the Faust libraries. If you wish to add your own functions to this library collection, you can refer to the &quot;Contributing&quot; section at the end of this file that provides a set of coding conventions.</p>
-<p>WARNING: This libraries replace the &quot;old&quot; Faust libraries. They are still being beta tested so tou might encounter bugs while using them. If you find a bug, please report it at rmichon_at_ccrma_dot_stanford_dot_edu. Thanks ;)!</p>
+<p>This page provides information on how to use the Faust libraries.</p>
+<p>The <code>/libraries</code> folder contains the different Faust libraries. If you wish to add your own functions to this library collection, you can refer to the &quot;Contributing&quot; section providing a set of coding conventions.</p>
+<p>WARNING: These libraries replace the &quot;old&quot; Faust libraries. They are still being beta tested so you might encounter bugs while using them. If you find a bug, please report it at rmichon_at_ccrma_dot_stanford_dot_edu. Thanks ;)!</p>
 <h2 id="using-the-faust-libraries">Using the Faust Libraries</h2>
 <p>The easiest and most standard way to use the Faust libraries is to import <code>stdfaust.lib</code> in your Faust code:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);</code></pre>
@@ -487,15 +487,15 @@ process = osc(440);</code></pre>
 // * argument1: argument 1 descirption
 //-------------------------------------------------</code></pre>
 <ul>
-<li>Every time a new function is added, the documentation should be updated simply by running <code>./generateDoc</code>.</li>
-<li>All libraries import <code>stdfaust.lib</code> so the environment system should be used when calling a function declared in another library (see the section on <em>Using the Faust Libraries</em>).</li>
+<li>Every time a new function is added, the documentation should be updated simply by running <code>make doclib</code>.</li>
+<li>The environment system (e.g. <code>os.osc</code>) should be used when calling a function declared in another library (see the section on <em>Using the Faust Libraries</em>).</li>
 <li>Try to reuse exisiting functions as much as possible.</li>
 <li>If you have any question, send an e-mail to rmichon_at_ccrma_dot_stanford_dot_edu.</li>
 </ul>
 <h3 id="new-libraries">New Libraries</h3>
 <ul>
-<li>Any new library should be declared in <code>stdfaust.lib</code> with its own environment (2 letters - see <code>stdfaust.lib</code>).</li>
-<li>Any new library must be added to <code>generateDoc</code>.</li>
+<li>Any new &quot;standard&quot; library should be declared in <code>stdfaust.lib</code> with its own environment (2 letters - see <code>stdfaust.lib</code>).</li>
+<li>Any new &quot;standard&quot; library must be added to <code>generateDoc</code>.</li>
 <li>Functions must be organized by sections.</li>
 <li>Any new library should at least <code>declare</code> a <code>name</code> and a <code>version</code>.</li>
 <li>The comment based markdown documentation of each library must respect the following format (open the source code of any of the libraries for an example):</li>
@@ -529,17 +529,7 @@ process = osc(440);</code></pre>
 <ul>
 <li>If you have any question, send an e-mail to rmichon_at_ccrma_dot_stanford_dot_edu.</li>
 </ul>
-<h2 id="notes-about-the-implemenation-of-the-new-library-system-old-readme">Notes About the Implemenation of the New Library System (Old README)</h2>
-<p>This repository contains a fully rewritten version of the Faust libraries. The goals of this project are to:</p>
-<ul>
-<li>document the libraries using the <code>faust2md</code> system,</li>
-<li>standardize the libraries by factorizing their code, getting rid of duplicates, and establishing coding coventions,</li>
-<li>organize their different functions in a clear hierarchical manner,</li>
-<li>add missing standard functions,</li>
-<li>reorganize the <code>/examples</code> folder of the Faust repository.</li>
-</ul>
 <h2 id="general-organization">General Organization</h2>
-<p>This repository contains all the libraries (both the new libraries and the ones that were deprecated) that will need to be merged to the Faust repository. We tried to minimize the number of libraries to keep things easy for new users. Instead we created a wide range of sections in each of them.</p>
 <p>Only the libraries that are considered to be &quot;standard&quot; are documented:</p>
 <ul>
 <li><code>analyzer.lib</code></li>
@@ -566,7 +556,7 @@ process = osc(440);</code></pre>
 <li><code>tube.lib</code> (not documented but example in <code>/examples/misc</code>)</li>
 </ul>
 <p>Other deprecated libraries such as <code>music.lib</code>, etc. are present but are not documented to not confuse new users.</p>
-<p>The markdown documentation of each library is located in <code>/doc</code> and can be automatically generated by running <code>generateDoc</code>.</p>
+<p>The doumentation of each library can be found in <code>/documentation/library.html</code> or in <code>/documentation/library.pdf</code>.</p>
 <p>The <code>/examples</code> directory contains all the examples from the <code>/examples</code> folder of the Faust distribution as well as new ones. Most of them were updated to reflect the coding conventions described in the next section. Examples are organized by types in different folders. The <code>/old</code> folder contains examples that are fully deprecated, probably because they were integrated to the libraries and fully rewritten (see <code>freeverb.dsp</code> for example). Examples using deprecated libraries were integrated to the general tree but a warning comment was added at their beginning to point readers to the right library and function.</p>
 <h2 id="coding-conventions">Coding Conventions</h2>
 <p>In order to have a uniformized library system, we established the following conventions (that hopefully will be followed by others when making modifications to them :-) ).</p>
@@ -1209,12 +1199,12 @@ _ : spectral_level_demo : _; // 2/3 octave</code></pre>
 <hr />
 <h2 id="filters">Filters</h2>
 <h3 id="parametric_eq_demo"><code>parametric_eq_demo</code></h3>
-<p>A parametric equalizer application. Based on examples/filtering/parametricEqualizer.dsp</p>
+<p>A parametric equalizer application.</p>
 <h4 id="usage-50">Usage:</h4>
 <pre><code>_ : parametric_eq_demo : _ ;</code></pre>
 <hr />
 <h3 id="spectral_tilt_demo"><code>spectral_tilt_demo</code></h3>
-<p>A spectral tilt application. Based on examples/filtering/parametricEqualizer.dsp</p>
+<p>A spectral tilt application.</p>
 <h4 id="usage-51">Usage</h4>
 <pre><code>_ : spectral_tilt_demo(N) : _ ;</code></pre>
 <p>Where:</p>
@@ -1224,7 +1214,7 @@ _ : spectral_level_demo : _; // 2/3 octave</code></pre>
 <p>All other parameters interactive</p>
 <hr />
 <h3 id="mth_octave_filterbank_demo-and-filterbank_demo"><code>mth_octave_filterbank_demo</code> and <code>filterbank_demo</code></h3>
-<p>Graphic Equalizer: Each filter-bank output signal routes through a fader. Based on examples/filtering/filterBank.dsp</p>
+<p>Graphic Equalizer: Each filter-bank output signal routes through a fader.</p>
 <h4 id="usage-52">Usage</h4>
 <pre><code>_ : mth_octave_filterbank_demo(M) : _
 _ : filterbank_demo : _</code></pre>
@@ -1235,22 +1225,22 @@ _ : filterbank_demo : _</code></pre>
 <hr />
 <h2 id="effects">Effects</h2>
 <h3 id="cubicnl_demo"><code>cubicnl_demo</code></h3>
-<p>Distortion demo application. Based on examples/dynamic/distortion.dsp</p>
+<p>Distortion demo application.</p>
 <h4 id="usage-53">Usage:</h4>
 <pre><code>_ : cubicnl_demo : _;</code></pre>
 <hr />
 <h3 id="gate_demo"><code>gate_demo</code></h3>
-<p>Gate demo application. Based on examples/dynamic/noiseGate.dsp</p>
+<p>Gate demo application.</p>
 <h4 id="usage-54">Usage</h4>
 <pre><code>_,_ : gate_demo : _,_;</code></pre>
 <hr />
 <h3 id="compressor_demo"><code>compressor_demo</code></h3>
-<p>Compressor demo application. Based on examples/dynamic/compressor.dsp</p>
+<p>Compressor demo application.</p>
 <h4 id="usage-55">Usage</h4>
 <pre><code>_,_ : compressor_demo : _,_;</code></pre>
 <hr />
 <h3 id="exciter"><code>exciter</code></h3>
-<p>Psychoacoustic harmonic exciter, with GUI. Based on examples/psychoacoustic/harmonicExciter.dsp</p>
+<p>Psychoacoustic harmonic exciter, with GUI.</p>
 <h4 id="usage-56">Usage</h4>
 <pre><code>_ : exciter : _</code></pre>
 <h4 id="references-3">References</h4>
@@ -1260,47 +1250,47 @@ _ : filterbank_demo : _</code></pre>
 </ul>
 <hr />
 <h3 id="moog_vcf_demo"><code>moog_vcf_demo</code></h3>
-<p>Illustrate and compare all three Moog VCF implementations above. Based on examples/filtering/moogVCF.dsp</p>
+<p>Illustrate and compare all three Moog VCF implementations above.</p>
 <h4 id="usage-57">Usage</h4>
 <pre><code>_ : moog_vcf_demo : _;</code></pre>
 <hr />
 <h3 id="wah4_demo"><code>wah4_demo</code></h3>
-<p>Wah pedal application. Based on examples/filtering/wahPedal.dsp</p>
+<p>Wah pedal application.</p>
 <h4 id="usage-58">Usage</h4>
 <pre><code>_ : wah4_demo : _;</code></pre>
 <hr />
 <h3 id="crybaby_demo"><code>crybaby_demo</code></h3>
-<p>Crybaby effect application. Based on examples/filtering/cryBaby.dsp</p>
+<p>Crybaby effect application.</p>
 <h4 id="usage-59">Usage</h4>
 <pre><code>_ : crybaby_demo : _ ;</code></pre>
 <hr />
 <h3 id="vocoder_demo"><code>vocoder_demo</code></h3>
-<p>Use example of the vocoder function where an impulse train is used as excitation. Based on examples/filtering/vocoder.dsp</p>
+<p>Use example of the vocoder function where an impulse train is used as excitation.</p>
 <h4 id="usage-60">Usage</h4>
 <pre><code>_ : vocoder_demo : _;</code></pre>
 <hr />
 <h3 id="flanger_demo"><code>flanger_demo</code></h3>
-<p>Flanger effect application. Based on examples/phasing/flanger.dsp</p>
+<p>Flanger effect application.</p>
 <h4 id="usage-61">Usage</h4>
 <pre><code>_,_ : flanger_demo : _,_;</code></pre>
 <hr />
 <h3 id="phaser2_demo"><code>phaser2_demo</code></h3>
-<p>Phaser effect demo application. Based on examples/phasing/phaser.dsp</p>
+<p>Phaser effect demo application.</p>
 <h4 id="usage-62">Usage</h4>
 <pre><code>_,_ : phaser2_demo : _,_;</code></pre>
 <hr />
 <h3 id="freeverb_demo"><code>freeverb_demo</code></h3>
-<p>Freeverb demo application Based on examples/reverb/freeverb.dsp</p>
+<p>Freeverb demo application.</p>
 <h4 id="usage-63">Usage</h4>
 <pre><code>_,_ : freeverb_demo : _,_;</code></pre>
 <hr />
 <h3 id="stereo_reverb_tester"><code>stereo_reverb_tester</code></h3>
-<p>Handy test inputs for reverberator demos below. Based on examples/reverb/reverbTester.dsp</p>
+<p>Handy test inputs for reverberator demos below.</p>
 <h4 id="usage-64">Usage</h4>
 <pre><code>_ : stereo_reverb_tester : _</code></pre>
 <hr />
 <h3 id="fdnrev0_demo"><code>fdnrev0_demo</code></h3>
-<p>A reverb application using <code>fdnrev0</code>. Based on examples/reverb/fdnrev.dsp</p>
+<p>A reverb application using <code>fdnrev0</code>.</p>
 <h4 id="usage-65">Usage</h4>
 <pre><code>_,_ : fdnrev0_demo(N,NB,BBSO) : _,_</code></pre>
 <p>Where:</p>
@@ -1311,7 +1301,7 @@ _ : filterbank_demo : _</code></pre>
 </ul>
 <hr />
 <h3 id="zita_rev_fdn_demo"><code>zita_rev_fdn_demo</code></h3>
-<p>Reverb demo application based on <code>zita_rev_fdn</code>. Based on examples/reverb/zitaRevFDN.dsp</p>
+<p>Reverb demo application based on <code>zita_rev_fdn</code>.</p>
 <h4 id="usage-66">Usage</h4>
 <pre><code>si.bus(8) : zita_rev_fdn_demo : si.bus(8)</code></pre>
 <hr />
@@ -1325,12 +1315,12 @@ _ : filterbank_demo : _</code></pre>
 <hr />
 <h2 id="generators">Generators</h2>
 <h3 id="sawtooth_demo"><code>sawtooth_demo</code></h3>
-<p>An application demonstrating the different sawtooth oscillators of Faust. Based on examples/generator/sawtoothLab.dsp</p>
+<p>An application demonstrating the different sawtooth oscillators of Faust.</p>
 <h4 id="usage-68">Usage</h4>
 <pre><code>sawtooth_demo : _</code></pre>
 <hr />
 <h3 id="virtual_analog_oscillator_demo"><code>virtual_analog_oscillator_demo</code></h3>
-<p>Virtual analog oscillator demo application. Based on examples/generator/virtualAnalog.dsp</p>
+<p>Virtual analog oscillator demo application.</p>
 <h4 id="usage-69">Usage</h4>
 <pre><code>virtual_analog_oscillator_demo : _</code></pre>
 <hr />

@@ -101,7 +101,6 @@ spectral_level_demo = mth_octave_spectral_level_demo(1.5); // 2/3 octave
 
 //--------------------------`parametric_eq_demo`------------------------------
 // A parametric equalizer application.
-// Based on examples/filtering/parametricEqualizer.dsp
 //
 // #### Usage:
 //
@@ -144,7 +143,6 @@ with{
 
 //-------------------`spectral_tilt_demo`-----------------------
 // A spectral tilt application.
-// Based on examples/filtering/parametricEqualizer.dsp
 //
 // #### Usage
 //
@@ -170,7 +168,6 @@ with{
 
 //---------`mth_octave_filterbank_demo` and `filterbank_demo`-------------
 // Graphic Equalizer: Each filter-bank output signal routes through a fader.
-// Based on examples/filtering/filterBank.dsp
 //
 // #### Usage
 //
@@ -211,7 +208,6 @@ filterbank_demo = mth_octave_filterbank_demo(1); // octave-bands = default
 
 //---------------------------`cubicnl_demo`--------------------------
 // Distortion demo application.
-// Based on examples/dynamic/distortion.dsp
 //
 // #### Usage: 
 //
@@ -235,7 +231,6 @@ with{
 
 //----------------------------`gate_demo`-------------------------
 // Gate demo application.
-// Based on examples/dynamic/noiseGate.dsp
 //
 // #### Usage
 // 
@@ -284,7 +279,6 @@ with{
 
 //----------------------------`compressor_demo`-------------------------
 // Compressor demo application.
-// Based on examples/dynamic/compressor.dsp
 //
 // #### Usage
 //
@@ -348,7 +342,6 @@ with{
 
 //-------------------------------`exciter`-------------------------------
 // Psychoacoustic harmonic exciter, with GUI.
-// Based on examples/psychoacoustic/harmonicExciter.dsp
 //
 // #### Usage
 //
@@ -441,7 +434,6 @@ with{
 
 //-------------------------`moog_vcf_demo`---------------------------
 // Illustrate and compare all three Moog VCF implementations above.
-// Based on examples/filtering/moogVCF.dsp
 //
 // #### Usage
 // 
@@ -483,7 +475,6 @@ with{
 
 //-------------------------`wah4_demo`---------------------------
 // Wah pedal application.
-// Based on examples/filtering/wahPedal.dsp
 //
 // #### Usage
 //
@@ -506,7 +497,6 @@ with{
 
 //-------------------------`crybaby_demo`---------------------------
 // Crybaby effect application.
-// Based on examples/filtering/cryBaby.dsp
 //
 // #### Usage
 //
@@ -529,7 +519,6 @@ with{
 //----------------------------`vocoder_demo`-------------------------
 // Use example of the vocoder function where an impulse train is used
 // as excitation.
-// Based on examples/filtering/vocoder.dsp
 //
 // #### Usage
 //
@@ -557,7 +546,6 @@ with{
 
 //-------------------------`flanger_demo`---------------------------
 // Flanger effect application.
-// Based on examples/phasing/flanger.dsp
 //
 // #### Usage
 //
@@ -606,7 +594,6 @@ with{
 
 //-------------------------`phaser2_demo`---------------------------
 // Phaser effect demo application.
-// Based on examples/phasing/phaser.dsp
 //
 // #### Usage
 //
@@ -660,8 +647,7 @@ with{
 
 
 //----------------------------`freeverb_demo`-------------------------
-// Freeverb demo application
-// Based on examples/reverb/freeverb.dsp
+// Freeverb demo application.
 //
 // #### Usage
 //
@@ -699,7 +685,6 @@ with{
 
 //---------------------`stereo_reverb_tester`--------------------
 // Handy test inputs for reverberator demos below.
-// Based on examples/reverb/reverbTester.dsp
 // 
 // #### Usage
 // 
@@ -736,7 +721,6 @@ with{
 
 //-------------------------`fdnrev0_demo`---------------------------
 // A reverb application using `fdnrev0`.
-// Based on examples/reverb/fdnrev.dsp
 //
 // #### Usage
 //
@@ -811,7 +795,6 @@ with{
 
 //---------------------------`zita_rev_fdn_demo`------------------------------
 // Reverb demo application based on `zita_rev_fdn`.
-// Based on examples/reverb/zitaRevFDN.dsp
 //
 // #### Usage
 //
@@ -948,7 +931,6 @@ with{
 
 //--------------------------`sawtooth_demo`---------------------------
 // An application demonstrating the different sawtooth oscillators of Faust.
-// Based on examples/generator/sawtoothLab.dsp
 //
 // #### Usage  
 //
@@ -995,7 +977,6 @@ with{
 
 //----------------------`virtual_analog_oscillator_demo`----------------------
 // Virtual analog oscillator demo application.
-// Based on examples/generator/virtualAnalog.dsp
 //
 // #### Usage
 //
