@@ -183,6 +183,8 @@ void CCodeContainer::produceClass()
             tab(n+1, *fOut);
             fDestroyInstructions->accept(&fCodeProducer);
         tab(n, *fOut);  *fOut << "}";
+        tab(n, *fOut);
+        tab(n, *fOut);
     }
     
     *fOut << fKlassName << "* new" << fKlassName << "() { ";
@@ -191,7 +193,7 @@ void CCodeContainer::produceClass()
             tab(n+1, *fOut); *fOut << "allocate" << fKlassName << "(dsp);";
         }
         tab(n+1, *fOut); *fOut << "return dsp;";
-    tab(n, *fOut);  *fOut << "}";
+    tab(n, *fOut); *fOut << "}";
 
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) { ";
@@ -199,7 +201,7 @@ void CCodeContainer::produceClass()
             tab(n+1, *fOut); *fOut << "destroy" << fKlassName << "(dsp);";
         }
         tab(n+1, *fOut); *fOut << "free(dsp);";
-    tab(n, *fOut);  *fOut << "}";
+    tab(n, *fOut); *fOut << "}";
 
     // Print metadata declaration
     tab(n, *fOut);
