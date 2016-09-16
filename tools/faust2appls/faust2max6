@@ -42,11 +42,11 @@ then
 elif [ -f /usr/local/lib/faust/music.lib ]
 then
   FAUSTLIB=/usr/local/lib/faust
-  JSFILE_PATH="\/usr\/local\/lib\/faust\/max-msp\/ui.js"
+  JSFILE_PATH="ui.js"
 elif [ -f /usr/lib/faust/music.lib ]
 then
   FAUSTLIB=/usr/lib/faust
-  JSFILE_PATH="\/usr\/lib\/faust\/max-msp\/ui.js"
+  JSFILE_PATH="ui.js"
 else
   error "$0: Cannot find Faust library dir (usually /usr/local/lib/faust)"
 fi
@@ -157,6 +157,9 @@ for p in $FILES; do
     fi
     sed -e "s/DSP_NAME/"${f%.dsp}"~/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
     sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
+
+    # copy JavaScript UI file
+    cp $FAUSTLIB/max-msp/ui.js .
     
     rm ${f%.dsp}-temp1.maxpat
     rm ${f%.dsp}-temp2.maxpat
