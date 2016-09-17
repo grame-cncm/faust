@@ -870,8 +870,4 @@ global.o: generator/omp_code_container.hh generator/wss_code_container.hh genera
 global.o: generator/cpp/cpp_instructions.hh generator/cpp/opencl_instructions.hh generator/js/js_code_container.hh
 global.o: generator/js/js_instructions.hh generator/java/java_code_container.hh generator/java/java_instructions.hh
 global.o: generator/fir/fir_code_container.hh generator/fir/fir_instructions.hh
-main.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
-main.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
-main.o: generator/interpreter/fir_opcode.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh
-main.o: signals/interval.hh generator/instructions.hh generator/Text.hh evaluate/loopDetector.hh tlib/occurrences.hh
-main.o: export.hh errors/exception.hh tlib/compatibility.hh
+main.o: dsp_factory.hh

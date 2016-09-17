@@ -496,7 +496,6 @@ void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)
     fCompute = 0;
     fClassName = "mydsp";
     fIsDouble = false;
-    //fDSPName = dsp_name;
     fName = dsp_name;
     fTypeName = type_name;
     fExpandedDSP = "";

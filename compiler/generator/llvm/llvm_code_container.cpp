@@ -518,22 +518,6 @@ void LLVMCodeContainer::generateInitFun()
     CallInst* call_inst2 = CREATE_CALL1(llvm_instanceInit, params2, "", return_block2);
     call_inst2->setCallingConv(CallingConv::C);
     
-    /*
-    vector<Value*> params3;
-    params3.push_back(arg1);
-    Function* llvm_instanceResetUserInterface = fModule->getFunction("instanceResetUserInterface" + fKlassName);
-    assert(llvm_instanceResetUserInterface);
-    CallInst* call_inst3 = CREATE_CALL1(llvm_instanceResetUserInterface, params3, "", return_block2);
-    call_inst3->setCallingConv(CallingConv::C);
-    
-    vector<Value*> params4;
-    params4.push_back(arg1);
-    Function* llvm_instanceClear = fModule->getFunction("instanceClear" + fKlassName);
-    assert(llvm_instanceClear);
-    CallInst* call_inst4 = CREATE_CALL1(llvm_instanceClear, params4, "", return_block2);
-    call_inst4->setCallingConv(CallingConv::C);
-     */
-   
     ReturnInst::Create(getContext(), return_block2);
     verifyFunction(*llvm_init);
     fBuilder->ClearInsertionPoint();
@@ -784,7 +768,6 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     // Has to be done *after* generateInstanceInitBegin/generateInstanceInitEnd
     generateInstanceInitFun();
     generateInitFun();
-   
     
     // Link LLVM modules defined in 'ffunction' 
     set<string> S;

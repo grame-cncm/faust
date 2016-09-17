@@ -169,7 +169,7 @@ void metadataRemoteDSPFactory(remote_dsp_factory* factory, Meta* m);
 std::vector<std::string> getRemoteDSPFactoryLibraryList(remote_dsp_factory* factory);
 
 /**
- * Remote DSP instance class
+ * Remote DSP instance class with methods.
  */
 class remote_dsp : public dsp {
     
@@ -187,11 +187,13 @@ class remote_dsp : public dsp {
     
         void instanceInit(int samplingRate);
     
-        void instanceDefaultUserInterface();
+        void instanceConstants(int samplingRate);
+    
+        void instanceResetUserInterface();
     
         void instanceClear();
     
-        dsp* clone();
+        remote_dsp* clone();
     
         void metadata(Meta* m);
     
