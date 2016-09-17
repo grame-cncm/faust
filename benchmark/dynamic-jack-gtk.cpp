@@ -1,11 +1,11 @@
 /************************************************************************
     FAUST Architecture File
-	Copyright (C) 2010-2012 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2016 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
-	as published by the Free Software Foundation; either version 3 of
-	the License, or (at your option) any later version.
+    as published by the Free Software Foundation; either version 3 of
+    the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -13,13 +13,12 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-	along with this program; If not, see <http://www.gnu.org/licenses/>.
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-	EXCEPTION : As a special exception, you may create a larger work
-	that contains this FAUST architecture section and distribute
-	that work under terms of your choice, so long as this FAUST
-	architecture section is not modified.
-
+    EXCEPTION : As a special exception, you may create a larger work
+    that contains this FAUST architecture section and distribute
+    that work under terms of your choice, so long as this FAUST
+    architecture section is not modified.
 
  ************************************************************************
  ************************************************************************/
@@ -35,21 +34,13 @@
 #include "faust/gui/faustgtk.h"
 #include "faust/audio/jack-dsp.h"
 
+#ifdef HTTPCTRL
+#include "faust/gui/httpdUI.h"
+#endif
+
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
 #endif
-
-struct MyMeta : public Meta
-{
-    virtual void declare(const char* key, const char* value)
-    {
-        printf("key = %s value = %s\n", key, value);
-    }
-};
-
-//----------------------------------------------------------------------------
-// 	FAUST generated code
-//----------------------------------------------------------------------------
 
 std::list<GUI*> GUI::fGuiList;
 
@@ -60,15 +51,10 @@ int main(int argc, char *argv[])
     long is_interp = isopt(argv, "-interp");
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-        std::cout << "dynamic-jack-gtk [-llvm] [-interp] foo.dsp" << std::endl;
+        std::cout << "dynamic-jack-gtk [-llvm] [-interp] <compiler-options> foo.dsp" << std::endl;
         exit(1);
     }
     
-    char appname[256];
-    char filename[256];
-    char rcfilename[256];
-    char* home = getenv("HOME");
-  
     dsp_factory* factory = 0;
     dsp* DSP = 0;
    
@@ -89,6 +75,11 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    char appname[256];
+    char filename[256];
+    char rcfilename[256];
+    char* home = getenv("HOME");
+    
     snprintf(appname, 255, "%s", basename(argv[0]));
     snprintf(filename, 255, "%s", basename(argv[argc-1]));
     snprintf(rcfilename, 255, "%s/.%s-%src", home, appname, filename);
@@ -99,15 +90,15 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(interface);
     DSP->buildUserInterface(finterface);
 
-    #ifdef HTTPCTRL
-        httpdUI* httpdinterface = new httpdUI(appname, argc, argv);
-        DSP->buildUserInterface(httpdinterface);
-    #endif
+#ifdef HTTPCTRL
+    httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+    DSP->buildUserInterface(httpdinterface);
+#endif
 
-    #ifdef OSCCTRL
-        GUI* oscinterface = new OSCUI(filename, argc, argv);
-        DSP->buildUserInterface(oscinterface);
-    #endif
+#ifdef OSCCTRL
+    GUI* oscinterface = new OSCUI(filename, argc, argv);
+    DSP->buildUserInterface(oscinterface);
+#endif
 
     jackaudio audio;
     if (!audio.init(filename, DSP)) {
@@ -116,13 +107,13 @@ int main(int argc, char *argv[])
     finterface->recallState(rcfilename);
     audio.start();
 
-    #ifdef HTTPCTRL
-        httpdinterface->run();
-    #endif
+#ifdef HTTPCTRL
+    httpdinterface->run();
+#endif
 
-    #ifdef OSCCTRL
-        oscinterface->run();
-    #endif
+#ifdef OSCCTRL
+    oscinterface->run();
+#endif
     interface->run();
 
     audio.stop();
