@@ -64,6 +64,9 @@ int main(int argc, char* argv[])
         exit(1);
     }
     
+    DSP1->init(44100);
+    DSP2->init(44100);
+    
     measure_dsp* measure1 = new measure_dsp(DSP1, 1024, 20000, 10);
     measure_dsp* measure2 = new measure_dsp(DSP2, 1024, 20000, 10);
     

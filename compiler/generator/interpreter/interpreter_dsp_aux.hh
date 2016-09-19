@@ -650,16 +650,10 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         std::map<int, int> fIntMap;
         std::map<int, T> fRealMap;
     
+    #ifdef INTERPRETER_TRACE
+        bool fInitialized;
+    #endif
     
-        void initSRFields(int samplingRate)
-        {
-            // Store samplingRate in specialization fIntMap
-            this->fIntMap[this->fSROffset] = samplingRate;
-            
-            // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
-            this->fIntHeap[this->fSROffset] = samplingRate;
-        }
-   	
     public:
     
         interpreter_dsp_aux(interpreter_dsp_factory_aux<T>* factory)
@@ -687,6 +681,9 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->fClearBlock = 0;
             this->fComputeBlock = 0;
             this->fComputeDSPBlock = 0;
+        #ifdef INTERPRETER_TRACE
+             this->fInitialized = false;
+        #endif
         }
     
         virtual ~interpreter_dsp_aux()
@@ -741,7 +738,11 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         
         virtual void instanceConstants(int samplingRate)
         {
-            initSRFields(samplingRate);
+            // Store samplingRate in specialization fIntMap
+            this->fIntMap[this->fSROffset] = samplingRate;
+            
+            // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
+            this->fIntHeap[this->fSROffset] = samplingRate;
             
             // Execute state init instructions
             this->ExecuteBlock(fFactory->fInitBlock);
@@ -761,16 +762,15 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
     
         virtual void init(int samplingRate)
         {
-            initSRFields(samplingRate);
-            
+        #ifdef INTERPRETER_TRACE
+            this->fInitialized = true;
+        #endif
             this->classInit(samplingRate);
             this->instanceInit(samplingRate);
         }
     
         virtual void instanceInit(int samplingRate)
         {
-            initSRFields(samplingRate);
-            
             this->instanceConstants(samplingRate);
             this->instanceResetUserInterface();
             this->instanceClear();
@@ -832,29 +832,36 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
     
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         {
-            //std::cout << "compute " << count << std::endl;
-            T** inputs = reinterpret_cast<T**>(input);
-            T** outputs = reinterpret_cast<T**>(output);
-            
-            // Prepare in/out buffers
-            for (int i = 0; i < this->fFactory->fNumInputs; i++) {
-                this->fInputs[i] = inputs[i];
+        #ifdef INTERPRETER_TRACE
+            if (!fInitialized) {
+                std::cout << "-------- DSP is not initialized ! --------" << std::endl;
+            } else
+        #endif
+            {
+                //std::cout << "compute " << count << std::endl;
+                T** inputs = reinterpret_cast<T**>(input);
+                T** outputs = reinterpret_cast<T**>(output);
+                
+                // Prepare in/out buffers
+                for (int i = 0; i < this->fFactory->fNumInputs; i++) {
+                    this->fInputs[i] = inputs[i];
+                }
+                for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
+                    this->fOutputs[i] = outputs[i];
+                }
+                
+                // Set count in 'count' variable at the correct offset in fIntHeap
+                this->fIntHeap[this->fCountOffset] = count;
+                
+                // Executes the 'control' block
+                this->ExecuteBlock(fFactory->fComputeBlock);
+                
+                // Executes the 'DSP' block
+                //std::cout << "fComputeDSPBlock" << std::endl;
+                this->ExecuteBlock(fFactory->fComputeDSPBlock);
+                
+                //std::cout << "sample " << outputs[0][0] << std::endl;
             }
-            for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
-                this->fOutputs[i] = outputs[i];
-            }
-            
-            // Set count in 'count' variable at the correct offset in fIntHeap
-            this->fIntHeap[this->fCountOffset] = count;
-            
-            // Executes the 'control' block
-            this->ExecuteBlock(fFactory->fComputeBlock);
-            
-            // Executes the 'DSP' block
-            //std::cout << "fComputeDSPBlock" << std::endl;
-            this->ExecuteBlock(fFactory->fComputeDSPBlock);
-            
-            //std::cout << "sample " << outputs[0][0] << std::endl;
         }
     
         /*

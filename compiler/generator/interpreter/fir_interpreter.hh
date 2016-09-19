@@ -825,6 +825,9 @@ class FIRInterpreter  {
                     {
                         int v1 = pop_int();
                         int v2 = pop_int();
+                    #ifdef INTERPRETER_TRACE
+                        check_div_zero(it, v2);
+                    #endif
                         push_int(v1 % v2);
                         dispatch_next();
                     }
