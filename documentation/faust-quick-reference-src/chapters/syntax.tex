@@ -860,10 +860,12 @@ type : 'int'|'float';
 \end{rail}
 
 \subsubsection{variables and constants} 
-External variables and constants can also be declared with a similar syntax. In the same \lstinline'"math.lib"' file we can found the definition of the sampling rate constant \lstinline'SR' and the definition of the block-size variable \lstinline'BS' :
+External variables and constants can also be declared with a similar syntax. In the same \lstinline'"math.lib"' file, the definition of the sampling rate constant \lstinline'SR' and the definition of the block-size variable \lstinline'BS' can be found :
 
 \begin{lstlisting}
-SR    = fconstant(int fSamplingFreq, <math.h>);
+SR    = min(192000.0, 
+	      max(1.0, 
+	    	fconstant(int fSamplingFreq, <math.h>)));
 BS    = fvariable(int count, <math.h>);
 \end{lstlisting}
 
@@ -1020,7 +1022,7 @@ Pattern : ident | expression;
 For example \lstinline'case{ (x:y) => y:x; (x) => x; }' contains two rules. The first one will match a sequential expression and invert the two part. The second one will match all remaining expressions and leave it untouched. Therefore the application:
 
 \begin{lstlisting}
-	case{(x:y) => y:x; (x) => x;}(freeverb:harmonizer)
+case{(x:y) => y:x; (x) => x;}(freeverb:harmonizer)
 \end{lstlisting}
 
 will produce:
@@ -1380,12 +1382,12 @@ will produce and the corresponding C++ code :
 class mydsp : public dsp {
 	...
 	virtual void buildUserInterface(UI* interface) {
-	    interface->openVerticalBox("m");
-	    interface->declare(&fslider0, "key1", "val 1");
-	    interface->declare(&fslider0, "key2", "val 2");
-	    interface->addHorizontalSlider("foo", &fslider0, 
-								0.0f, 0.0f, 1.0f, 0.1f);
-	    interface->closeBox();
+	  interface->openVerticalBox("m");
+	  interface->declare(&fslider0, "key1", "val 1");
+	  interface->declare(&fslider0, "key2", "val 2");
+	  interface->addHorizontalSlider("foo", 
+	  	&fslider0, 0.0f, 0.0f, 1.0f, 0.1f);
+	  interface->closeBox();
 	}
 ...
 };

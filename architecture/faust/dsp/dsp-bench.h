@@ -320,9 +320,9 @@ class measure_dsp : public decorator_dsp {
         /**
          *  Returns best estimation.
          */
-        void getStats()
+        double getStats()
         {
-            fBench.getStats(fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
+            return fBench.getStats(fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
         }
     
         /**
@@ -338,3 +338,4 @@ class measure_dsp : public decorator_dsp {
 };
 
 #endif
+
