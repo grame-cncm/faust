@@ -182,6 +182,10 @@ galsaomp2 :
 
 # OSX 
 
+bench-llvm-interp: bench-llvm-interp.cpp
+	$(CXX) -O3 bench-llvm-interp.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lcrypto -o bench-llvm-interp
+
+
 dynamic-jack-gtk: dynamic-jack-gtk.cpp
 	$(CXX) -O3 dynamic-jack-gtk.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lcrypto -o dynamic-jack-gtk
 
@@ -268,6 +272,7 @@ iqalsaomp :
 
 install:
 	([ -e bench-llvm ]) && cp bench-llvm $(prefix)/bin || echo bench-llvm not found
+	([ -e bench-llvm-interp ]) && cp bench-llvm-interp $(prefix)/bin || echo bench-llvm-interp not found
 	([ -e dynamic-jack-gtk ]) && cp dynamic-jack-gtk  $(prefix)/bin || echo dynamic-jack-gtk  not found
 	([ -e scheduler.ll ]) && cp scheduler.ll $(prefix)/lib/faust || echo scheduler.ll not found
 
@@ -281,6 +286,7 @@ clean :
 	([ -e gcoreaudiollvm ] && rm gcoreaudiollvm) || echo gcoreaudiollvm not found
 	([ -e bscalllvm ] && rm bscalllvm) || echo gcoreaudiollvm not found
 	([ -e bench-llvm ] && rm bench-llvm ) || echo bench-llvm not found
+	([ -e bench-llvm-interp ] && rm bench-llvm-interp ) || echo bench-llvm-interp not found
 	([ -e scheduler.ll ] && rm scheduler.ll ) || echo scheduler.ll not found
 	([ -e dynamic-jack-gtk ] && rm dynamic-jack-gtk ) || echo dynamic-jack-gtk not found
 

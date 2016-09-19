@@ -46,7 +46,6 @@ std::list<GUI*> GUI::fGuiList;
 
 int main(int argc, char *argv[])
 {
-   
     long is_llvm = isopt(argv, "-llvm");
     long is_interp = isopt(argv, "-interp");
     
