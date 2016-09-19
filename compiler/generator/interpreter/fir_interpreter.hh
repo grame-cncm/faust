@@ -817,6 +817,9 @@ class FIRInterpreter  {
                     {
                         T v1 = pop_real(it);
                         T v2 = pop_real(it);
+                    #ifdef INTERPRETER_TRACE
+                        check_div_zero(it, v2);
+                    #endif
                         push_real(it, std::remainder(v1, v2));
                         dispatch_next();
                     }
