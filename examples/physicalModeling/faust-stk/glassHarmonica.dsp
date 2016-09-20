@@ -1,4 +1,4 @@
-declare name "Glass Harmonica";
+declare name "GlassHarmonica";
 declare description "Nonlinear Banded Waveguide Modeled Glass Harmonica";
 declare author "Romain Michon";
 declare copyright "Romain Michon (rmichon@ccrma.stanford.edu)";

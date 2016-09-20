@@ -11,7 +11,6 @@ import("stdfaust.lib");
 
 process = harpe(11); 	// an 11 strings harpe
 
-
 //-----------------------------------------------
 // 		String simulation
 //-----------------------------------------------
@@ -26,7 +25,6 @@ string(freq, att, level, trig) = no.noise*level
 		decay(n,x)	= x - (x>0.0)/n;
 		freq2samples(f) = 44100.0/f;
 	};
-
 
 //-----------------------------------------------
 // 		Build a N strings harpe

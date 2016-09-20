@@ -12,8 +12,9 @@
 // 06/17/2016
 //########################################################################################
 
-import("stdfaust.lib");
+declare name "fm";
 
+import("stdfaust.lib");
 
 //========================= Smart Keyboard Configuration ================================= 
 // (1 keyboards with 1 key configured as a pad.
@@ -24,7 +25,6 @@ declare interface "SmartKeyboard{
 	'keyb0_nKeys':'1',
 	'keyb0_keybMode':'0'
 }";
-
 
 //================================ Instrument Parameters =================================
 // Creates the connection between the synth and the mobile device
@@ -39,7 +39,6 @@ gate = button("gate");
 // mode resonance duration is controlled with the x axis of the accelerometer
 modFreqRatio = hslider("res[acc: 0 0 -10 0 10]",1,0,2,0.01);
 
-
 //=================================== Parameters Mapping =================================
 //========================================================================================
 
@@ -53,7 +52,6 @@ modFreq = cFreq*modFreqRatio : si.smoo;
 
 // modulation index
 modIndex = y*100 : si.smoo;
-
 
 //============================================ DSP =======================================
 //========================================================================================

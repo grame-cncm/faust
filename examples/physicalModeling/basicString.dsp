@@ -1,5 +1,8 @@
 import("stdfaust.lib");
 
+declare name  	"basicString";
+declare author  "Grame";
+
 // UI elements
 freq = hslider("freq",440,50,1000,0.01);
 gate = button("gate");

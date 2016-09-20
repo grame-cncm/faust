@@ -13,8 +13,9 @@
 // 06/17/2016
 //########################################################################################
 
-import("stdfaust.lib");
+declare name "harp";
 
+import("stdfaust.lib");
 
 //========================= Smart Keyboard Configuration ================================= 
 // (8 keyboards with 16 keys configured as a pitch matrix.
@@ -48,7 +49,6 @@ declare interface "SmartKeyboard{
 	'keyb7_showNotesName':'0'
 }";
 
-
 //================================ Instrument Parameters =================================
 // Creates the connection between the synth and the mobile device
 //========================================================================================
@@ -60,12 +60,10 @@ freq = hslider("freq",400,50,2000,0.01);
 // Smart Keyboard gate parameter
 gate = button("gate");
 
-
 //=================================== Parameters Mapping =================================
 //========================================================================================
 
 stringFreq = freq : si.polySmooth(gate,0.999,2);
-
 
 //============================================ DSP =======================================
 //========================================================================================

@@ -1,4 +1,4 @@
-declare name "Parametric Equalizer";
+declare name "ParametricEqualizer";
 declare version "0.0";
 declare author "JOS, revised by RM";
 declare description "A parametric equalizer application.";

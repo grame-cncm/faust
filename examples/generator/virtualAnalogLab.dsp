@@ -1,3 +1,5 @@
+declare name "virtualAnalogLab";
+
 import("stdfaust.lib");
 
 process = 

@@ -1,4 +1,4 @@
-declare name "Filter OSC";
+declare name "FilterOSC";
 declare version "0.0";
 declare author "JOS, revised by RM";
 declare description "Simple application demoing filter based oscillators.";

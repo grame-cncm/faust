@@ -17,8 +17,9 @@
 // 06/17/2016
 //########################################################################################
 
-import("stdfaust.lib");
+declare name "crazyGuiro";
 
+import("stdfaust.lib");
 
 //========================= Smart Keyboard Configuration ================================= 
 // 8 keyboards, each has 16 keys, none of them display key names.
@@ -44,7 +45,6 @@ declare interface "SmartKeyboard{
 	'keyb7_showNotesName':'0'
 }";
 
-
 //================================ Instrument Parameters =================================
 // Creates the connection between the synth and the mobile device
 //========================================================================================
@@ -59,7 +59,6 @@ wet = hslider("wet[acc: 0 0 -10 0 10]",0,0,1,0.01);
 res = hslider("res[acc: 1 0 -10 0 10]",0.5,0,1,0.01);
 // smart keyboard gate parameter
 gate = button("gate");
-
 
 //=================================== Parameters Mapping =================================
 //========================================================================================

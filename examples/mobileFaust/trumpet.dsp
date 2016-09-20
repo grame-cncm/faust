@@ -15,8 +15,9 @@
 // 06/17/2016
 //########################################################################################
 
-import("stdfaust.lib");
+declare name "trumpet";
 
+import("stdfaust.lib");
 
 //========================= Smart Keyboard Configuration ================================= 
 // (2 keyboards, each has 7 keys, lowest key of top 
@@ -37,7 +38,6 @@ declare interface "SmartKeyboard{
 	'quantizationMode':'0'
 }";
 
-
 //================================ Instrument Parameters =================================
 // Creates the connection between the synth and the mobile device
 //========================================================================================
@@ -51,7 +51,6 @@ gain = hslider("gain[acc: 1 0 -2 -2 10]",0,0,1,0.01);
 // smart keyboard gate parameter
 gate = button("gate");
 
-
 //=================================== Parameters Mapping =================================
 //========================================================================================
 
@@ -61,7 +60,6 @@ vibratoAmplitude = 0.1;
 synthFreq = freq+(vibrato*freq*vibratoAmplitude) : si.polySmooth(gate,0.999,2);
 
 synthGain = gain : ba.lin2LogGain : si.smoo;
-
 
 //============================================ DSP =======================================
 //========================================================================================

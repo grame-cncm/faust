@@ -316,7 +316,6 @@ class measure_dsp : public decorator_dsp {
          */
         void closeMeasure() { fBench.closeMeasure(); }
     
-    
         /**
          *  Returns best estimation.
          */

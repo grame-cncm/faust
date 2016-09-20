@@ -1,4 +1,4 @@
-declare name 		"pitch-shifter";
+declare name 		"pitchShifter";
 declare version 	"1.0";
 declare author 		"Grame";
 declare license 	"BSD";
@@ -16,6 +16,5 @@ pitchshifter = vgroup("Pitch Shifter", ef.transpose(
 									hslider("shift (semitones) ", 0, -12, +12, 0.1)
 								  )
 				);
-
 
 process = pitchshifter;

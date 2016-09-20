@@ -1,4 +1,4 @@
-declare name "Moog VCF";
+declare name "MoogVCF";
 declare version "0.0";
 declare author "JOS, revised by RM";
 declare description "Illustrate and compare all three Moog VCF implementations above.";

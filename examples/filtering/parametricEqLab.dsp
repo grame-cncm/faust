@@ -1,3 +1,5 @@
+declare name "parametricEqLab";
+
 import("stdfaust.lib");
 
 //process = ol.sawtooth_demo : fl.parametric_eq_demo : 
