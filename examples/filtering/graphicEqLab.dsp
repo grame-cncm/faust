@@ -1,5 +1,5 @@
 
-declare name 		"graphic_eq";
+declare name "graphicEqLab";
 
 import("stdfaust.lib");
 

@@ -1,4 +1,4 @@
-declare name "Harpsichord";
+declare name "Harpsi";
 declare description "Nonlinear WaveGuide Commuted Harpsichord";
 declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare copyright "Romain Michon";

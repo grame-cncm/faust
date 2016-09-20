@@ -13,8 +13,9 @@
 // 06/17/2016
 //########################################################################################
 
-import("stdfaust.lib");
+declare name "dubDub";
 
+import("stdfaust.lib");
 
 //========================= Smart Keyboard Configuration ================================= 
 // (1 keyboards with 1 key configured as a pad.

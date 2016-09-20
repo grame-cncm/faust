@@ -1,4 +1,4 @@
-declare name "Reverb Tester";
+declare name "ReverbTester";
 declare version "0.0";
 declare author "RM";
 declare description "Handy test inputs for reverberator demos below.";

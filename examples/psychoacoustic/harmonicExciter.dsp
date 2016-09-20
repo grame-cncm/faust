@@ -1,4 +1,4 @@
-declare exciter_name "Harmonic Exciter";
+declare exciter_name "HarmonicExciter";
 declare exciter_author "Priyanka Shekar (pshekar@ccrma.stanford.edu), revised by RM";
 declare exciter_copyright "Copyright (c) 2013 Priyanka Shekar";
 declare exciter_version "1.0";

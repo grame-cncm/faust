@@ -1,6 +1,8 @@
 // WARNING: This a "legacy example based on a deprecated library". Check filter.lib
 // for more accurate examples of filter functions
 
+declare name "highShelf";
+
 import("maxmsp.lib");
 
 G = hslider("Gain [unit:dB]", 0, -10, 10, 0.1);

@@ -13,8 +13,9 @@
 // 06/17/2016
 //########################################################################################
 
-import("stdfaust.lib");
+declare name "frog";
 
+import("stdfaust.lib");
 
 //========================= Smart Keyboard Configuration ================================= 
 // (1 keyboards with 1 key configured as a pad.
@@ -25,7 +26,6 @@ declare interface "SmartKeyboard{
 	'keyb0_nKeys':'1',
 	'keyb0_keybMode':'0'
 }";
-
 
 //================================ Instrument Parameters =================================
 // Creates the connection between the synth and the mobile device
@@ -40,7 +40,6 @@ gate = button("gate");
 // the cutoff frequency of the filter is controlled with the x axis of the accelerometer
 cutoff = hslider("cutoff[acc: 0 0 -10 0 10]",2500,50,5000,0.01);
 
-
 //=================================== Parameters Mapping =================================
 //========================================================================================
 
@@ -52,7 +51,6 @@ maxQ = 40;
 minQ = 1;
 q = (1-y)*(maxQ-minQ) + minQ : si.smoo;
 filterCutoff = cutoff : si.smoo; 
-
 
 //============================================ DSP =======================================
 //========================================================================================

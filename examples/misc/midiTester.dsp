@@ -1,4 +1,4 @@
-declare name        "Faust Midi Tester";
+declare name        "midiTester";
 declare version     "1.0";
 declare author      "Vincent Rateau, GRAME";
 declare license     "GPL v3";

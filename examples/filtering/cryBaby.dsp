@@ -1,4 +1,4 @@
-declare name "Cry Baby";
+declare name "CryBaby";
 declare version "0.0";
 declare author "JOS, revised by RM";
 declare description "Crybaby effect application";

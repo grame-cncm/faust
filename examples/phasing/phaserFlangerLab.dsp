@@ -1,3 +1,5 @@
+declare name "phaserFlangerLab";
+
 import("stdfaust.lib");
 
 //process = ol.sawtooth_demo <: 

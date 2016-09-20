@@ -1,5 +1,7 @@
 import("stdfaust.lib");
 
+declare name "vcfWahLab";
+
 // process = ol.sawtooth_demo : 
 //    el.crybaby_demo : el.moog_vcf_demo : el.wah4_demo : 
 //    fl.spectral_level_demo <: _,_;

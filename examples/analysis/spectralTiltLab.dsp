@@ -1,5 +1,7 @@
 // example exercising filter.lib's spectral_tilt_demo
 
+declare name "SpectralTiltLab";
+
 import("stdfaust.lib");
 
 N = 10; // Number of pole-zero pairs to use

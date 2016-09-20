@@ -1,4 +1,4 @@
-declare name "Spectral Level";
+declare name "SpectralLevel";
 declare version "0.0";
 declare author "JOS, revised by RM";
 declare description "Demonstrates mth_octave_spectral_level in a standalone GUI.";

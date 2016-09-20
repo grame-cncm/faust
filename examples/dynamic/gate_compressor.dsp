@@ -1,4 +1,4 @@
-declare name 		"gate_compressor";
+declare name "gate_compressor";
 
 import("stdfaust.lib");
 

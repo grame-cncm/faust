@@ -13,8 +13,9 @@
 // 06/17/2016
 //########################################################################################
 
-import("stdfaust.lib");
+declare name "turenas";
 
+import("stdfaust.lib");
 
 //========================= Smart Keyboard Configuration ================================= 
 // (10 keyboards with 18 keys each configured as a pitch matrix.
@@ -54,7 +55,6 @@ declare interface "SmartKeyboard{
 	'keyb9_showNotesName':'0'
 }";
 
-
 //================================ Instrument Parameters =================================
 // Creates the connection between the synth and the mobile device
 //========================================================================================
@@ -67,7 +67,6 @@ freq = hslider("freq",400,50,2000,0.01);
 gate = button("gate");
 // mode resonance duration is controlled with the x axis of the accelerometer
 res = hslider("res[acc: 0 0 -10 0 10]",2.5,0.01,5,0.01);
-
 
 //=================================== Parameters Mapping =================================
 //========================================================================================

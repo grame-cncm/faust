@@ -22,7 +22,7 @@
 // Noise generator and demo file for the Faust math documentation
 //-----------------------------------------------------------------
 
-declare name 		"NoiseMD"; // avoid same name as in noise.dsp
+declare name 		"noisemetadata"; // avoid same name as in noise.dsp
 declare version 	"1.1";
 declare author 		"Grame";
 declare author 		"Yghe";
