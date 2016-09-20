@@ -107,7 +107,7 @@ using namespace std;
 #define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2		/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION "0.56"
+#define EXTERNAL_VERSION "0.57"
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/MidiUI.h"
