@@ -245,7 +245,7 @@ Tree SourceReader::parsefile(string fname)
     string fullpath;
  
     // We are requested to parse an URL file
-    if (strstr(yyfilename,"http://") != 0) {
+    if (strstr(yyfilename, "http://") != 0 || strstr(yyfilename, "https://") != 0) {
         char* buffer = 0;
     #ifdef EMCC
         // Call JS code to load URL
@@ -287,7 +287,7 @@ Tree SourceReader::parsefile(string fname)
         
         // Test for local url
 		if (strstr(yyfilename,"file://") != 0) {
-			yyfilename  = &yyfilename[7]; // skip 'file://'
+			yyfilename = &yyfilename[7]; // skip 'file://'
 		}
         
     #ifdef EMCC
