@@ -1,4 +1,4 @@
-declare name "Brass";
+declare name "brass";
 declare description "WaveGuide Brass instrument from STK";
 declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare copyright "Romain Michon";

@@ -4,7 +4,7 @@
 //
 //-----------------------------------------------
 
-declare name  	"Harpe";
+declare name  	"harpe";
 declare author  "Grame";
 
 import("stdfaust.lib");

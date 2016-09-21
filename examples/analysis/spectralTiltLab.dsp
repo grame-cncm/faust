@@ -1,6 +1,6 @@
 // example exercising filter.lib's spectral_tilt_demo
 
-declare name "SpectralTiltLab";
+declare name "spectralTiltLab";
 
 import("stdfaust.lib");
 

@@ -1,4 +1,4 @@
-declare name "BlowBottle";
+declare name "blowBottle";
 declare description "Blown Bottle Instrument";
 declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare copyright "Romain Michon";

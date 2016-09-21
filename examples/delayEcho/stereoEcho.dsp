@@ -1,7 +1,7 @@
 // WARNING: This a "legacy example based on a deprecated library". Check misceffect.lib
 // for more accurate examples of echo functions
 
-declare name 		"stereoecho";
+declare name 		"stereoEcho";
 declare version 	"1.0";
 declare author 		"Grame";
 declare license 	"BSD";

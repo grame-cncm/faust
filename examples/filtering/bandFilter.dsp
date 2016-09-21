@@ -1,7 +1,7 @@
 // WARNING: This a "legacy example based on a deprecated library". Check filter.lib
 // for more accurate examples of filter functions
 
-declare name 		"bandfilter";
+declare name 		"bandFilter";
 declare version 	"1.0";
 declare author 		"Grame";
 declare license 	"BSD";
@@ -28,8 +28,6 @@ filter(Q,F,G)	= fi.TF2(  (1 +  K/Q + K*K) 	/ D,
 				D = 1 + V*K/Q + K*K;
 		};
 
-
-
 //--------------- Band Filter with user interface ------------------
 // bandfilter(F)
 //  			F :	default frequency (Hz)
@@ -41,9 +39,6 @@ bandfilter(F)	= filter(	nentry("Q factor [style:knob]",50,0.1,100,0.1),
 							0 - vslider("gain [unit:dB]", 0, -50, 50, 0.1)
 						);
 
-
-
 //------------------------- Process --------------------------------
 
 process 		= vgroup("Bandfilter", bandfilter(1000));
-

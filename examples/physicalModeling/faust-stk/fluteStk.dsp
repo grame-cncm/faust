@@ -1,4 +1,4 @@
-declare name "FluteSTK";
+declare name "fluteStk";
 declare description "Nonlinear WaveGuide Flute from STK";
 declare author "Romain Michon";
 declare copyright "Romain Michon (rmichon@ccrma.stanford.edu)";

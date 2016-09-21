@@ -1,4 +1,4 @@
-declare name "FDNRev";
+declare name "fdnRev";
 declare version "0.0";
 declare author "JOS, Revised by RM";
 declare description "A feedback delay network reverb.";

@@ -7,11 +7,9 @@ declare author 		"Grame";
 declare license 	"BSD";
 declare copyright 	"(c)GRAME 2009";
 
-
 //-----------------------------------------------------------------
 // Noise generator and demo file for the Faust math documentation
 //-----------------------------------------------------------------
-
 
 <mdoc>
 \section{Presentation of the "noise.dsp" Faust program}

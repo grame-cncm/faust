@@ -1,4 +1,4 @@
-declare name "Clarinet";
+declare name "clarinet";
 declare description "Nonlinear WaveGuide Clarinet";
 declare author "Romain Michon";
 declare copyright "Romain Michon (rmichon@ccrma.stanford.edu)";

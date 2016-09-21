@@ -23,19 +23,16 @@ K(fc) 			= tan(ma.PI*fc/ma.SR);
 square(x)		= x*x;
 denom(fc)		= 1 + sqrt(2)*K(fc) + square(K(fc));
 
-lfboost(fc, g)	= fi.TF2(  (1 + sqrt(2*V0(g))*K(fc) + V0(g)*square(K(fc))) / denom(fc),
-						 2 * (V0(g)*square(K(fc)) - 1) / denom(fc),
+lfboost(fc, g)	= fi.TF2((1 + sqrt(2*V0(g))*K(fc) + V0(g)*square(K(fc))) / denom(fc),
+						2 * (V0(g)*square(K(fc)) - 1) / denom(fc),
 						(1 - sqrt(2*V0(g))*K(fc) + V0(g)*square(K(fc))) / denom(fc),
-						 2 * (square(K(fc)) - 1) / denom(fc),
-						(1 - sqrt(2)*K(fc) + square(K(fc))) / denom(fc)
-					 );
-
+						2 * (square(K(fc)) - 1) / denom(fc),
+						(1 - sqrt(2)*K(fc) + square(K(fc))) / denom(fc));
 
 //------------------------------ User Interface -----------------------------------
 
 freq 				= hslider("[1]freq [unit:Hz][style:knob]", 1000, 20, 20000, 0.1);
 gain				= hslider("[2]gain [unit:dB][style:knob]", 0, -20, 20, 0.1);
-
 
 //----------------------------------- Process -------------------------------------
 

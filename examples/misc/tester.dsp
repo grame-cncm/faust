@@ -18,7 +18,6 @@ pink	= f : (+ ~ g) with {
 	g(x) = 1.80116083982126*x - 0.80257737639225*x';
 };
 
-
 // User interface
 //----------------
 vol 			= hslider("[2] volume [unit:dB]", -96, -96, 0, 1): ba.db2linear : si.smoo;

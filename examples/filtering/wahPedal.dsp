@@ -1,4 +1,4 @@
-declare name "WahPedal";
+declare name "wahPedal";
 declare version "0.0";
 declare author "JOS, revised by RM";
 declare description "Wah pedal application.";
