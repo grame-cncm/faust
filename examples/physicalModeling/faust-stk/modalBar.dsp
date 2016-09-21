@@ -1,4 +1,4 @@
-declare name "ModalBar";
+declare name "modalBar";
 declare description "Nonlinear Modal percussive instruments";
 declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare copyright "Romain Michon";

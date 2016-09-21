@@ -1,4 +1,4 @@
-declare name "Flute";
+declare name "flute";
 declare description "Nonlinear WaveGuide Flute";
 declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare copyright "Romain Michon";

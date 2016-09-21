@@ -13,7 +13,6 @@ declare copyright 	"(c)GRAME 2006";
 
 import("stdfaust.lib");
 
-
 //------------------------------------------------------
 // EXEMPLE : une entree mono spatialisee sur 8 sorties
 //------------------------------------------------------

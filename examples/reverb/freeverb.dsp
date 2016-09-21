@@ -1,4 +1,4 @@
-declare name "Freeverb";
+declare name "freeverb";
 declare version "0.0";
 declare author "RM";
 declare description "Freeverb demo application.";

@@ -1,8 +1,8 @@
-declare name 		"FourSourcesToOcto";
-declare version 	"1.0";
-declare author 	"CICM";
-declare license 	"BSD";
-declare copyright 	"(c)CICM 2013";
+declare name "fourSourcesToOcto";
+declare version "1.0";
+declare author "CICM";
+declare license "BSD";
+declare copyright "(c)CICM 2013";
 
 import("stdfaust.lib");
 

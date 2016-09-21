@@ -23,7 +23,7 @@
  * ----------------------------------------------------------------------------
  */
 
-declare name        "Guitarix";
+declare name        "guitarix";
 declare version     "0.29";
 declare author   	"Guitarix project (http://guitarix.sourceforge.net/)";
 declare copyright 	"Guitarix project";
@@ -185,7 +185,6 @@ ts9sim = ts9nonlin : lowpassfilter : *(gain) with {
     lowpassfilter = fi.lowpass(1,fc);
     gain = vslider("level[name:Level][style:knob]", -16, -20, 4, 0.1) : ba.db2linear : smoothi(0.999);
 };
-
 
 /****************************************************************************************
 *	declare name            "cabinet";

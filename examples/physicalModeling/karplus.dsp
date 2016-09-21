@@ -11,7 +11,7 @@ declare copyright 	"(c)GRAME 2006";
 import("stdfaust.lib");
 
 // Excitator
-//--------
+//-----------
 
 upfront(x) 	= (x-x') > 0.0;
 decay(n,x)	= x - (x>0.0)/n;
@@ -21,7 +21,7 @@ trigger(n) 	= upfront : release(n) : >(0.0);
 size 		= hslider("excitation [unit:f]", 128, 2, 512, 1);
 
 // resonator
-//-----------------
+//------------
 
 dur 		= hslider("duration [unit:f]", 128, 2, 512, 1);
 att 		= hslider("attenuation", 0.1, 0, 1, 0.01);

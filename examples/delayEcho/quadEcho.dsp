@@ -1,7 +1,7 @@
 // WARNING: This a "legacy example based on a deprecated library". Check misceffect.lib
 // for more accurate examples of echo functions
 
-declare name 		"quadecho";
+declare name 		"quadEcho";
 declare version 	"1.0";
 declare author 		"Grame";
 declare license 	"BSD";
@@ -12,7 +12,6 @@ declare copyright 	"(c)GRAME 2007";
 //-----------------------------------------------
 
 import("stdfaust.lib");
-
 
 process = vgroup("stereo echo", multi(ef.echo1s, 4))
 	with{ 

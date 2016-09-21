@@ -4,10 +4,10 @@ declare author 		"Grame";
 declare license 	"BSD";
 declare copyright 	"(c)GRAME 2006";
 
- //----------------------------
+ //--------------------------------------
  // very simple real time pitch shifter
- //----------------------------
-
+ //--------------------------------------
+ 
 import("stdfaust.lib");
 
 pitchshifter = vgroup("Pitch Shifter", ef.transpose(

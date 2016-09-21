@@ -9,6 +9,6 @@ gate = button("gate");
 exPos = hslider("exPos",0.5,0,1,0.01);
 p = hslider("pole",0.9,0,1,0.01)*0.1+0.9;
 
-l = 320/freq; // coverts a length in meters into a frequency
+l = 320/freq; // converts a length in meters into a frequency
 
 process = gate : ba.impulsify : pm.idealString(l,p,exPos) <: _,_;

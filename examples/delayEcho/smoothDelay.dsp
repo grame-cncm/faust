@@ -1,9 +1,8 @@
-declare name 	"SmoothDelay";
+declare name 	"smoothDelay";
 declare author 	"Yann Orlarey";
 declare copyright "Grame";
 declare version "1.0";
 declare license "STK-4.3";
-
 
 //--------------------------process----------------------------
 //
