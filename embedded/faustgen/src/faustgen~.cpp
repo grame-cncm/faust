@@ -673,22 +673,12 @@ void faustgen_factory::display_libraries()
 {
 	// Open the libraries
 #ifdef WIN32
-	open_file("effect.lib");
-    open_file("filter.lib");
-    open_file("math.lib");
-    open_file("maxmsp.lib");
-    open_file("music.lib");
-    open_file("oscillator.lib");
-    open_file("reduce.lib");
-#else
-    display_libraries_aux("effect.lib");
-    display_libraries_aux("filter.lib");
-    display_libraries_aux("math.lib");
-    display_libraries_aux("maxmsp.lib");
-    display_libraries_aux("music.lib");
-    display_libraries_aux("oscillator.lib");
-    display_libraries_aux("reduce.lib");
-#endif
+    open_file(FAUST_PDF_LIBRARY);
+    open_file("stdfaust.lib");
+ #else
+    open_file(FAUST_PDF_LIBRARY);
+    display_libraries_aux("stdfaust.lib");
+ #endif
 }
 
 void faustgen_factory::update_sourcecode(int size, char* source_code)
