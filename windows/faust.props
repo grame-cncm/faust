@@ -10,7 +10,7 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>../compiler/tlib;../compiler/signals;../compiler/normalize;../compiler/generator;../compiler/parallelize;../compiler/propagate;../compiler/boxes;../compiler/errors;../compiler/parser;../compiler/evaluate;../compiler/documentator;../compiler/draw/schema;../compiler/draw/device;../compiler/draw;../compiler/extended;../compiler/utils;../compiler/patternmatcher;..\compiler;..\architecture;..\compiler\generator\asmjs;..\compiler\generator\cpp;..\compiler\generator\c;..\compiler\generator\fir;..\compiler\generator\java;..\compiler\generator\js;..\compiler\generator\wasm;..\compiler\generator\llvm;$(LLVM_DIR)\include;$(OPENSSL_DIR)\include;$(LLVM_BUILD_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../compiler/tlib;../compiler/signals;../compiler/normalize;../compiler/generator;../compiler/parallelize;../compiler/propagate;../compiler/boxes;../compiler/errors;../compiler/parser;../compiler/evaluate;../compiler/documentator;../compiler/draw/schema;../compiler/draw/device;../compiler/draw;../compiler/extended;../compiler/utils;../compiler/patternmatcher;..\compiler;..\architecture;..\compiler\generator\asmjs;..\compiler\generator\cpp;..\compiler\generator\c;..\compiler\generator\fir;..\compiler\generator\java;..\compiler\generator\js;..\compiler\generator\interpreter;..\compiler\generator\wasm;..\compiler\generator\llvm;$(LLVM_DIR)\include;$(OPENSSL_DIR)\include;$(LLVM_BUILD_DIR)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -1031,7 +1031,7 @@ struct IntArrayNumInst : public ArrayNumInst<int>
 
 struct BoolNumInst : public ValueInst, public SimpleValueInst, public NumValueInst
 {
-    int fNum;
+    bool fNum;
 
     BoolNumInst(bool num, int size = 1)
         :ValueInst(size), fNum(num)
