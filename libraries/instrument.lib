@@ -49,36 +49,7 @@ with {
     };
 };
 
-//----------------------- ATTACK - SUSTAIN - RELEASE ----------------------------
-// Attack - Sustain - Release envelope
-//
-// USAGE:
-//   _ : *(asr(a,s,r,t)) : _
-// where
-//   a = attack duration in seconds
-//   s = sustain as a percentage of the amplitude to be modified
-//   r = release duration in seconds
-//   t = trigger signal
 
-asr(a,s,r,t) = env ~ (_,_) : (!,_) // the 2 'state' signals are fed back
-with {
-    env (p2,y) =
-        (t>0) & (p2|(y>=1)),
-        (y + p1*u*(s/100) - p3*w*y)	// y  = envelop signal
-	*((p3==0)|(y>=eps)) // cut off tails to prevent denormals
-    with {
-	p1 = (p2==0) & (t>0) & (y<1); // p1 = attack phase
-	p3 = (t<=0) & (y>0); // p3 = release phase
-	// #samples in attack, release, must be >0
-	na = ma.SR*a+(a==0.0); nr = ma.SR*r+(r==0.0);
-	// correct zero sustain level
-	z = s+(s==0.0)*ba.db2linear(-60);
-	// attack and (-60dB) release rates
-	u = 1/na; w = 1-1/pow(z*ba.db2linear(60), 1/nr);
-	// values below this threshold are considered zero in the release phase
-	eps = ba.db2linear(-120);
-    };
-};
 
 //----------------------- ASYMPT60 ----------------------------
 // Envelope generator which asymptotically approaches a target value.
