@@ -51,6 +51,7 @@ closed source license or any other license if you decide so.
 
 ba = library("basic.lib");
 fi = library("filter.lib");
+os = library("miscoscillator.lib");
 
 declare name "Faust Noise Generator Library";
 declare version "0.0";
@@ -60,7 +61,7 @@ declare version "0.0";
 
 //-------`noise`----------
 // White noise generator (outputs random number between -1 and 1).
-// 
+//
 // #### Usage
 //
 // ```
@@ -75,8 +76,8 @@ with{
 };
 
 //---------------------`multirandom`--------------------------
-// Generates multiple decorrelated random numbers 
-// in parallel. 
+// Generates multiple decorrelated random numbers
+// in parallel.
 //
 // #### Usage
 // ```
@@ -107,9 +108,9 @@ with {
 //
 // * `n`: the number of decorrelated random numbers in parallel
 //------------------------------------------------------------
-multinoise(n) = multirandom(n) : par(i,n,/(RANDMAX)) 
-with { 
-	RANDMAX = 2147483647.0; 
+multinoise(n) = multirandom(n) : par(i,n,/(RANDMAX))
+with {
+	RANDMAX = 2147483647.0;
 };
 
 
@@ -148,13 +149,13 @@ pink_noise = noise : pink_filter;
 // pink_noise_vm(N) : _;
 // ```
 //
-// Where: 
+// Where:
 //
 // * `N`: number of latched white-noise processes to sum,
 // 	not to exceed sizeof(int) in C++ (typically 32).
 //
 // #### References
-// 
+//
 // * <http://www.dsprelated.com/showarticle/908.php>
 // * <http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney>
 //------------------------------------------------------------
@@ -175,7 +176,7 @@ with {
 // lfnoise(rate) : _;    // same as "lfnoise0(rate) : seq(i,5,lowpass(N,rate))" (no overshoot)
 // ```
 //
-// #### Example 
+// #### Example
 //
 // (view waveforms in faust2octave):
 //
