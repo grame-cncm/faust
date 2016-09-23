@@ -152,6 +152,7 @@ faustgen_factory::faustgen_factory(const string& name)
     fSourceCode = 0;
     gFaustCounter++;
     fFaustNumber = gFaustCounter;
+    fOptLevel = LLVM_OPTIMIZATION;
     
     fMidiHandler.start_midi();
     
@@ -253,7 +254,7 @@ void faustgen_factory::free_dsp_factory()
 
 llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
 {
-    return readDSPFactoryFromBitcode(*fBitCode, getTarget(), LLVM_OPTIMIZATION);
+    return readDSPFactoryFromBitcode(*fBitCode, getTarget(), fOptLevel);
     
     /*
     // Alternate model using machine code
@@ -262,7 +263,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
     
     /*
     // Alternate model using LLVM IR
-    return readDSPFactoryFromIR(*fBitCode, getTarget(), LLVM_OPTIMIZATION);
+    return readDSPFactoryFromIR(*fBitCode, getTarget(), fOptLevel);
     */
 }
 
@@ -297,10 +298,10 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     argv[fCompileOptions.size()] = "-l";
     argv[fCompileOptions.size() + 1] = "llvm_math.ll";
     argv[fCompileOptions.size() + 2] = 0;  // NULL terminated argv
-    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size() + 2, argv, getTarget(), error, LLVM_OPTIMIZATION);
+    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size() + 2, argv, getTarget(), error, fOptLevel);
 #else
     argv[fCompileOptions.size()] = 0;  // NULL terminated argv
-    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error, LLVM_OPTIMIZATION);
+    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error, fOptLevel);
 #endif
 
     if (factory) {
@@ -371,9 +372,9 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     argv[0] = "-l";
     argv[1] = "llvm_math.ll";
     argv[2] = 0;  // NULL terminated argv
-    fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, argc, argv, getTarget(), error, LLVM_OPTIMIZATION);
+    fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, argc, argv, getTarget(), error, 0);
 #else
-    fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, LLVM_OPTIMIZATION);
+    fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, 0);
 #endif
     dsp = create_dsp_instance();
     post("Allocation of default DSP succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
@@ -456,7 +457,13 @@ void faustgen_factory::default_compile_options()
     
     // All options set in the 'compileoptions' message
     for (it = fOptions.begin(); it != fOptions.end(); it++) {
-        add_compile_option(*it);
+        // '-opt v' : parsed for LLVM optimization level
+        if (*it == "-opt") {
+            it++;
+            fOptLevel = atoi((*it).c_str());
+        } else {
+            add_compile_option(*it);
+        }
     }
   
     // Vector mode by default
@@ -838,37 +845,37 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
     
     // Clear options
     fOptions.clear();
-    bool optimize = false;
     int i;
     t_atom* ap;
   
     // Increment ap each time to get to the next atom
     for (i = 0, ap = argv; i < argc; i++, ap++) {
         switch (atom_gettype(ap)) {
+                
             case A_LONG: {
                 stringstream num;
-				num << atom_getlong(ap);
-				string res = num.str();
-				fOptions.push_back(res.c_str());
-				break;
+                num << atom_getlong(ap);
+                string res = num.str();
+                fOptions.push_back(res.c_str());
+                break;
             }
+                
             case A_FLOAT:
                 post("Invalid compiler option argument - float");
                 break;
+                
             case A_SYM:
                 // Add options to default ones
-                if (strcmp("-opt", atom_getsym(ap)->s_name) == 0) {
-                    optimize = true;
-                } else {
-                    fOptions.push_back(atom_getsym(ap)->s_name);
-                }
-				break;
+                fOptions.push_back(atom_getsym(ap)->s_name);
+                break;
+                
             default:
                 post("Invalid compiler option argument - unknown");
                 break;
         }
     }
     
+    /*
     if (optimize) {
  
         post("Start looking for optimal compilation options...");
@@ -881,6 +888,7 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
         
         post("Optimal compilation options found");
     }
+    */
     
     // Delete the existing Faust module
     free_dsp_factory();

@@ -112,7 +112,9 @@ class faustgen_factory {
         t_systhread_mutex fDSPMutex;    // mutex to protect RT audio thread when recompiling DSP
      
         vector<string> fCompileOptions; // Faust compiler options
-        
+    
+        int fOptLevel;                  // the LLVM optimization level
+    
         int m_siginlets;
         int m_sigoutlets;
         
