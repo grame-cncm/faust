@@ -31,6 +31,7 @@ bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
 #endif
 
+bool sortTypeDeclarations(StatementInst* a, StatementInst* b);
 
 // Change stack access for struct access
 struct Stack2StructAnalyser : public DispatchVisitor {

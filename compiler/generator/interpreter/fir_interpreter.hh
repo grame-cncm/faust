@@ -46,8 +46,8 @@ class FIRInterpreter  {
     
     protected:
     
-        T* fRealHeap;
         int* fIntHeap;
+        T* fRealHeap;
     
         int fRealHeapSize;
         int fIntHeapSize;

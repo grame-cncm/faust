@@ -573,11 +573,20 @@ void CodeContainer::generateDAGLoop(BlockInst* block, DeclareVarInst* count)
 
 void CodeContainer::processFIR(void)
 {
+    // Possibly add "fSamplingFreq" field
+    generateSR();
+    
     if (gGlobal->gGroupTaskSwitch) {
         CodeLoop::computeUseCount(fCurLoop);
         set<CodeLoop*> visited;
         CodeLoop::groupSeqLoops(fCurLoop, visited);
     }
+    
+    // Sort fields
+#ifndef _WIN32
+    fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
+#endif
+    fDeclarationInstructions->fCode.sort(sortTypeDeclarations);
 }
 
 BlockInst* CodeContainer::flattenFIR(void)
@@ -603,15 +612,8 @@ BlockInst* CodeContainer::flattenFIR(void)
    
     // Compute method
     global_block->merge(fComputeBlockInstructions);
+    
     return global_block;
-}
-
-void CodeContainer::generateDeclarations(InstVisitor* visitor)
-{
-#ifndef _WIN32
-    fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
-#endif
-    handleDeclarations(visitor);
 }
 
 void CodeContainer::generateMetaData(JSONUI* json)

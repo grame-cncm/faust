@@ -83,27 +83,26 @@ using namespace std;
 
 */
 
-struct StackVariableSizeCounter : public DispatchVisitor {
+struct VariableSizeCounter : public DispatchVisitor {
 
     int fSizeBytes;
+    Typed::VarType fType;
+    Address::AccessType fAccess;
     
-    StackVariableSizeCounter()
+    VariableSizeCounter(Address::AccessType access, Typed::VarType type = Typed::kNoType)
     {
         fSizeBytes = 0;
+        fType = type;
+        fAccess = access;
     }
   
     virtual void visit(DeclareVarInst* inst)
     {
         DispatchVisitor::visit(inst);
-        fSizeBytes += inst->fType->getSize();
-      
-        /*
-        if (inst->fAddress->getAccess() == Address::kStack) {
+    
+        if (((fType == Typed::kNoType) || (inst->fType->getType() == fType)) && inst->fAddress->getAccess() | fAccess) {
             fSizeBytes += inst->fType->getSize();
-        } else {
-            printf("Error : variable should be a stack variable !!\n");
         }
-        */
     }
     
 };

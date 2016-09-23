@@ -140,8 +140,6 @@ void JAVACodeContainer::produceClass()
 {
     int n = 0;
 
-    generateSR();
-
     // Libraries
     printLibrary(*fOut);
    

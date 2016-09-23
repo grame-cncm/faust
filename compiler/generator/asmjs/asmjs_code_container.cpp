@@ -200,9 +200,7 @@ void ASMJAVAScriptCodeContainer::produceInternal()
 void ASMJAVAScriptCodeContainer::produceClass()
 {
     int n = 0;
-   
-    generateSR();
-
+  
     // Global declarations
     tab(n, *fOut);
     gGlobal->gASMJSVisitor->Tab(n);

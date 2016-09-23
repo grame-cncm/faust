@@ -187,19 +187,29 @@ void FirCodeContainer::dumpMemory(ostream* dst)
         list<CodeContainer*>::const_iterator it;
         
         for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            StackVariableSizeCounter heap_counter;
+            VariableSizeCounter heap_counter(Address::AccessType(Address::kStruct | Address::kStaticStruct));
             (*it)->handleDeclarations(&heap_counter);
             total_heap_size += heap_counter.fSizeBytes;
         }
         
-        StackVariableSizeCounter heap_counter;
-        handleDeclarations(&heap_counter);
+        VariableSizeCounter heap_counter1(Address::AccessType(Address::kStruct | Address::kStaticStruct), Typed::kInt);
+        handleDeclarations(&heap_counter1);
         
-        StackVariableSizeCounter stack_counter;
+        VariableSizeCounter heap_counter2(Address::AccessType(Address::kStruct | Address::kStaticStruct), Typed::kInt_ptr);
+        handleDeclarations(&heap_counter2);
+        
+        VariableSizeCounter heap_counter3(Address::AccessType(Address::kStruct | Address::kStaticStruct));
+        handleDeclarations(&heap_counter3);
+        
+        
+        VariableSizeCounter stack_counter(Address::kStack);
         handleComputeBlock(&stack_counter);
         
         *dst << "======= Object memory footprint ==========" << std::endl << std::endl;
-        *dst << "Heap size = " << heap_counter.fSizeBytes + total_heap_size << " bytes" << std::endl;
+        *dst << "Heap size int = " << heap_counter1.fSizeBytes << " bytes" << std::endl;
+        *dst << "Heap size int* = " << heap_counter2.fSizeBytes << " bytes" << std::endl;
+        *dst << "Heap size real = " << heap_counter3.fSizeBytes - (heap_counter1.fSizeBytes + heap_counter2.fSizeBytes) << " bytes" << std::endl;
+        *dst << "Heap size = " << heap_counter3.fSizeBytes + total_heap_size << " bytes" << std::endl;
         *dst << "Stack size in compute = " << stack_counter.fSizeBytes << " bytes" << "\n\n";
     }
 }
@@ -209,8 +219,6 @@ void FirCodeContainer::produceClass()
     FIRInstVisitor firvisitor(fOut);
     *fOut << "======= Container \"" << fKlassName << "\" ==========" << std::endl;
     *fOut << std::endl;
-    
-    generateSR();
     
     dumpGlobalsAndInit(firvisitor, fOut);
     dumpThread(firvisitor, fOut);
@@ -294,18 +302,18 @@ void FirWorkStealingCodeContainer::dumpMemory(ostream* dst)
         list<CodeContainer*>::const_iterator it;
         
         for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-            StackVariableSizeCounter heap_counter;
+            VariableSizeCounter heap_counter(Address::AccessType(Address::kStruct | Address::kStaticStruct));
             (*it)->handleDeclarations(&heap_counter);
             total_heap_size += heap_counter.fSizeBytes;
         }
         
-        StackVariableSizeCounter heap_counter;
+        VariableSizeCounter heap_counter(Address::AccessType(Address::kStruct | Address::kStaticStruct));
         handleDeclarations(&heap_counter);
         
-        StackVariableSizeCounter stack_counter_compute;
+        VariableSizeCounter stack_counter_compute(Address::kStack);
         handleComputeBlock(&stack_counter_compute);
         
-        StackVariableSizeCounter stack_counter_compute_thread;
+        VariableSizeCounter stack_counter_compute_thread(Address::kStack);
         fComputeThreadBlockInstructions->accept(&stack_counter_compute_thread);
         
         *dst << "======= Object memory footprint ==========" << std::endl << std::endl;

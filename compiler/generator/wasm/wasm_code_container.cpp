@@ -90,9 +90,7 @@ void WASMCodeContainer::produceInternal()
 void WASMCodeContainer::produceClass()
 {
     int n = 0;
-    
-    generateSR();
-
+  
     tab(n, *fOut);
     gGlobal->gWASMVisitor->Tab(n);
     

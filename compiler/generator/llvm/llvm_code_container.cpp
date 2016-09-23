@@ -707,8 +707,6 @@ void LLVMCodeContainer::produceInternal()
 
 dsp_factory_base* LLVMCodeContainer::produceFactory()
 {
-    generateSR();
-
     // Sub containers
     generateSubContainers();
 

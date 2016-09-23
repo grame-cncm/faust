@@ -36,7 +36,7 @@ using namespace std;
 
 <<includeclass>>
 
-mydsp DSP;
+mydsp* DSP;
 
 static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
 {
@@ -54,11 +54,13 @@ int main(int argc, char* argv[])
 {
     float fnbsamples;
     char rcfilename[256];
-   
+    
+    DSP = newmydsp();
+    
     CMDUI* interface = new CMDUI(argc, argv);
     UIGlue glue1;
     buildUIGlue(&glue1, interface, true);
-    buildUserInterfacemydsp(&DSP, &glue1);
+    buildUserInterfacemydsp(DSP, &glue1);
     interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
     
     FUI finterface;
@@ -66,20 +68,20 @@ int main(int argc, char* argv[])
     
     UIGlue glue2;
     buildUIGlue(&glue2, &finterface, true);
-    buildUserInterfacemydsp(&DSP, &glue2);
- 
+    buildUserInterfacemydsp(DSP, &glue2);
+    
     // init signal processor and the user interface values:
-    initmydsp(&DSP, 44100);
-
+    initmydsp(DSP, 44100);
+    
     // modify the UI values according to the command - line options:
     interface->process_command();
-
-    int nins = getNumInputsmydsp(&DSP);
+    
+    int nins = getNumInputsmydsp(DSP);
     channels ichan(kFrames, nins);
-
-    int nouts = getNumOutputsmydsp(&DSP);
+    
+    int nouts = getNumOutputsmydsp(DSP);
     channels ochan(kFrames, nouts);
-
+    
     int nbsamples = int(fnbsamples);
     int linenum = 0;
     int run = 0;
@@ -105,7 +107,7 @@ int main(int argc, char* argv[])
                 finterface.setButtons(false);
             }
             int nFrames = min(kFrames, nbsamples);
-            computemydsp(&DSP, nFrames, ichan.buffers(), ochan.buffers());
+            computemydsp(DSP, nFrames, ichan.buffers(), ochan.buffers());
             run++;
             for (int i = 0; i < nFrames; i++) {
                 printf("%6d : ", linenum++);

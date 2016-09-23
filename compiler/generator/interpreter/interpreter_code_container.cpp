@@ -130,11 +130,6 @@ void InterpreterCodeContainer<T>::produceInternal()
 template <class T>
 dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 {
-    // Add "fSamplingFreq" variable in HEAP
-    if (!fGeneratedSR) {
-        fDeclarationInstructions->pushBackInst(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
-    }
-    
     // "count" variable added to be set up later by 'compute'
     fDeclarationInstructions->pushBackInst(InstBuilder::genDecStructVar("count", InstBuilder::genBasicTyped(Typed::kInt)));
     

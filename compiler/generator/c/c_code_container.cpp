@@ -137,8 +137,6 @@ void CCodeContainer::produceClass()
     *fOut << "#endif" << endl;
     tab(n, *fOut); 
     
-    generateSR();
-    
     // Libraries
     printLibrary(*fOut);
     printIncludeFile(*fOut);

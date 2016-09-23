@@ -197,8 +197,6 @@ void CPPCodeContainer::produceClass()
 {
     int n = 0;
 
-    generateSR();
-
     // Libraries
     printLibrary(*fOut);
     printIncludeFile(*fOut);

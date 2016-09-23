@@ -137,8 +137,6 @@ void JAVAScriptCodeContainer::produceClass()
 {
     int n = 0;
 
-    generateSR();
-
     // Libraries
     printLibrary(*fOut);
     

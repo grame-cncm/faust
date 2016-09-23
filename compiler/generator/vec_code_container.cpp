@@ -145,7 +145,7 @@ void VectorCodeContainer::processFIR(void)
     CodeContainer::processFIR();
     
     // If stack variables take to much room, move them in struct
-    StackVariableSizeCounter counter;
+    VariableSizeCounter counter(Address::kStack);
     handleComputeBlock(&counter);
     
     if (counter.fSizeBytes > gGlobal->gMachineMaxStackSize) {

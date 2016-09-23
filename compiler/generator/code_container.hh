@@ -153,6 +153,14 @@ class CodeContainer : public virtual Garbageable {
             dst << "------------------------------------------------------------ */" << endl;
         }
     
+        virtual void generateSR()
+        {
+            if (!fGeneratedSR) {
+                pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
+            }
+            pushFrontInitMethod(InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
+        }
+    
       public:
 
         CodeContainer();
@@ -175,13 +183,6 @@ class CodeContainer : public virtual Garbageable {
         void setGeneratedSR()
         {
             fGeneratedSR = true;
-        }
-        void generateSR()
-        {
-            if (!fGeneratedSR) {
-                pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
-            }
-            pushFrontInitMethod(InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
         }
      
         void openLoop(string index_name, int size = 0);
@@ -280,8 +281,11 @@ class CodeContainer : public virtual Garbageable {
             }
         }
 
-        void generateDeclarations(InstVisitor* visitor); // Moved in .cpp
-         
+        void generateDeclarations(InstVisitor* visitor)
+        {
+            handleDeclarations(visitor);
+        }
+        
         void handleDeclarations(InstVisitor* visitor)
         {
            if (fDeclarationInstructions->fCode.size() > 0) {

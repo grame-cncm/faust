@@ -60,6 +60,13 @@ class InterpreterCodeContainer : public virtual CodeContainer {
             
             return res;
         }
+    
+        virtual void generateSR()
+        {
+            if (!fGeneratedSR) {
+                pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt)));
+            }
+        }
 
     public:
 
