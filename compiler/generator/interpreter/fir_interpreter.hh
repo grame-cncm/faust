@@ -71,18 +71,16 @@ class FIRInterpreter  {
         inline void warning_overflow(InstructionIT it)
         {
             std::cout << "-------- Interpreter 'Overflow' warning trace start --------" << std::endl;
-            traceInstruction(it);
             fTraceContext.write(&std::cout);
-            std::cout << "-------- Interpreter 'Overflow' warning trace end --------" << std::endl;
+            std::cout << "-------- Interpreter 'Overflow' warning trace end --------\n\n";
         }
     
         inline void check_div_zero(InstructionIT it, T val)
         {
             if (val == T(0)) {
                 std::cout << "-------- Interpreter 'div by zero' trace start --------" << std::endl;
-                traceInstruction(it);
                 fTraceContext.write(&std::cout);
-                std::cout << "-------- Interpreter 'div by zero' trace end --------" << std::endl;
+                std::cout << "-------- Interpreter 'div by zero' trace end ----------\n\n";
             }
         }
     
@@ -90,17 +88,13 @@ class FIRInterpreter  {
         {
             if (std::isnan(val)) {
                 std::cout << "-------- Interpreter 'Nan' trace start --------" << std::endl;
-                std::cout << "val = " << val << std::endl;
-                traceInstruction(it);
                 fTraceContext.write(&std::cout);
-                std::cout << "-------- Interpreter 'Nan' trace end --------" << std::endl;
+                std::cout << "-------- Interpreter 'Nan' trace end --------\n\n";
                 throw faustexception("");
             } else if (!std::isfinite(val)) {
                 std::cout << "-------- Interpreter 'Inf' trace start --------" << std::endl;
-                std::cout << "val = " << val << std::endl;
-                traceInstruction(it);
                 fTraceContext.write(&std::cout);
-                std::cout << "-------- Interpreter 'Inf' trace end --------" << std::endl;
+                std::cout << "-------- Interpreter 'Inf' trace end --------\n\n";
                 throw faustexception("");
             }
             return val;
@@ -109,9 +103,12 @@ class FIRInterpreter  {
         #define push_real(it, val) (real_stack[real_stack_index++] = check_real(it, val))
         #define pop_real(it) check_real(it, real_stack[--real_stack_index])
     
+        /*
+          Keeps the latest TRACE_STACK_SIZE executed instructions, to be displayed when an error occurs.
+        */
         struct InterpreterTrace {
             
-            #define TRACE_STACK_SIZE 32
+            #define TRACE_STACK_SIZE 16
             
             std::vector<std::string> fExecTrace;
             int fWriteIndex;
@@ -132,7 +129,6 @@ class FIRInterpreter  {
             
             void write(std::ostream* out)
             {
-                *out << "-----------------------------------------------" << std::endl;
                 for (int i = fWriteIndex - 1; i >= 0; i--) {
                     *out << fExecTrace[i];
                 }
@@ -157,9 +153,8 @@ class FIRInterpreter  {
             if ((index < 0) || (index >= fIntHeap[fCountOffset])) {
                 std::cout << "-------- Interpreter crash trace start --------" << std::endl;
                 std::cout << "assert_audio_buffer : count " << fIntHeap[fCountOffset]  << " index " << index << std::endl;
-                traceInstruction(it);
                 fTraceContext.write(&std::cout);
-                std::cout << "-------- Interpreter crash trace end --------" << std::endl;
+                std::cout << "-------- Interpreter crash trace end --------\n\n";
                 throw faustexception("");
             } else {
                 return index;
@@ -171,9 +166,8 @@ class FIRInterpreter  {
             if ((index < 0) || (index >= fIntHeapSize) || (size > 0 && index >= size)) {
                 std::cout << "-------- Interpreter crash trace start --------" << std::endl;
                 std::cout << "assert_int_heap : fIntHeapSize " << fIntHeapSize  << " index " << index << " size " << size << std::endl;
-                traceInstruction(it);
                 fTraceContext.write(&std::cout);
-                std::cout << "-------- Interpreter crash trace end --------" << std::endl;
+                std::cout << "-------- Interpreter crash trace end --------\n\n";
                 throw faustexception("");
             } else {
                 return index;
@@ -185,9 +179,8 @@ class FIRInterpreter  {
             if ((index < 0) || (index >= fRealHeapSize) || (size > 0 && index >= size)) {
                 std::cout << "-------- Interpreter crash trace start --------" << std::endl;
                 std::cout << "assert_real_heap : fRealHeapSize " << fRealHeapSize  << " index " << index << " size " << size << std::endl;
-                traceInstruction(it);
                 fTraceContext.write(&std::cout);
-                 std::cout << "-------- Interpreter crash trace end --------" << std::endl;
+                std::cout << "-------- Interpreter crash trace end --------\n\n";
                 throw faustexception("");
             } else {
                 return index;
