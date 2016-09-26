@@ -556,14 +556,18 @@ static void AddOptimizationPasses(PassManagerBase &MPM, FUNCTION_PASS_MANAGER &F
 #if defined(LLVM_33)   
     Builder.DisableSimplifyLibCalls = false;
 #endif
-      
+    
+    // Add auto-vectorization passes
     if (OptLevel > 3) {
         Builder.LoopVectorize = true;
         Builder.SLPVectorize = true;
     }
+    
+    /* Desactivated since this pass is definitively much too slow...
     if (OptLevel > 4) {
         Builder.BBVectorize = true;
     }
+    */
      
     Builder.populateFunctionPassManager(FPM);
     Builder.populateModulePassManager(MPM);
@@ -681,7 +685,6 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         */
         
         targetOptions.GuaranteedTailCallOpt = true;
-         
         string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
         
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM3") != string::npos)) {
@@ -870,7 +873,6 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         
         // We use '4' to activate the auto-vectorizer
         if (fOptLevel > 3) {
-        
         #if defined(LLVM_32) 
             Builder.LoopVectorize = true;
             //Builder.Vectorize = true;
