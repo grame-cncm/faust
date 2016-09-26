@@ -3,20 +3,27 @@ system		?= $(shell uname -s)
 
 ifeq ($(system), Darwin)
 subprojects := ip ip/posix osc
-sources     := $(wildcard ip/*.cpp)  $(wildcard ip/posix/*.cpp)  $(wildcard osc/*.cpp)
+sources     := $(sort $(wildcard ip/*.cpp)  $(wildcard ip/posix/*.cpp)  $(wildcard osc/*.cpp))
 ARCHFLAGS 	:=  -mmacosx-version-min=10.9
 
 else
 ifeq ($(system), Linux)
 subprojects := ip ip/posix osc
-sources     := $(wildcard ip/*.cpp)  $(wildcard ip/posix/*.cpp)  $(wildcard osc/*.cpp)
+sources     := $(sort $(wildcard ip/*.cpp)  $(wildcard ip/posix/*.cpp)  $(wildcard osc/*.cpp))
 ARCHFLAGS 	:=
 CXXFLAGS += -fPIC
 
 else
+ifeq ($(system), GNU/kFreeBSD)
+subprojects := ip ip/posix osc
+sources     := $(sort $(wildcard ip/*.cpp)  $(wildcard ip/posix/*.cpp)  $(wildcard osc/*.cpp))
+ARCHFLAGS      :=
+
+else
 subprojects := ip ip/win32 osc
-sources     := $(wildcard ip/*.cpp)  $(wildcard ip/win32/*.cpp)  $(wildcard osc/*.cpp)
+sources     := $(sort $(wildcard ip/*.cpp)  $(wildcard ip/win32/*.cpp)  $(wildcard osc/*.cpp))
 ARCHFLAGS 	:=
+endif
 endif
 endif
 

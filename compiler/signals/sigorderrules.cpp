@@ -176,7 +176,7 @@ static int infereSigOrder(Tree sig)
 	}
 	
 	// unrecognized signal here
-	fprintf(stderr, "ERROR infering signal order : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
+	fprintf(stderr, "ERROR inferring signal order : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
 	exit(1);
 	return 0;
 }

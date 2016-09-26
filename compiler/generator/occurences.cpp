@@ -63,7 +63,7 @@ int Occurences::getMaxDelay() const
 void OccMarkup::mark(Tree root)
 {
 	fRootTree = root;
-	fPropKey = tree(unique("OCCURENCES"));
+	fPropKey = tree(unique("OCCURRENCES"));
 
 	if (isList(root)) {
 		while (isList(root)) {

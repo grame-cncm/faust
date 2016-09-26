@@ -76,7 +76,6 @@ parser :
 
 clean :
 	$(MAKE) -C compiler -f $(MAKEFILE) clean
-	$(MAKE) -C examples clean
 	$(MAKE) -C architecture/osclib clean
 	$(MAKE) -C architecture/httpdlib/src clean
 	$(MAKE) -C tools/sound2faust clean

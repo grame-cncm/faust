@@ -389,7 +389,7 @@ static Type infereSigType(Tree sig, Tree env)
     else if (isList(sig))                       { return T( hd(sig),env ) * T( tl(sig),env ); }
 
 	// unrecognized signal here
-	fprintf(stderr, "ERROR infering signal type : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
+	fprintf(stderr, "ERROR inferring signal type : unrecognized signal  : "); print(sig, stderr); fprintf(stderr, "\n");
 	exit(1);
 	return 0;
 }
@@ -403,7 +403,7 @@ static Type infereProjType(Type t, int i, int vec)
 {
 	TupletType* tt = isTupletType(t);
 	if (tt == 0) {
-		cerr << "ERROR infering projection type, not a tuplet type : " << t << endl;
+		cerr << "ERROR inferring projection type, not a tuplet type : " << t << endl;
 		exit(1);
 	}
 	//return (*tt)[i]	->promoteVariability(t->variability())
@@ -428,12 +428,12 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd)
 {
 	TableType* tt = isTableType(tbl);
 	if (tt == 0) {
-		cerr << "ERROR infering write table type, wrong table type : " << tbl << endl;
+		cerr << "ERROR inferring write table type, wrong table type : " << tbl << endl;
 		exit(1);
 	}
 	SimpleType* st = isSimpleType(wi);
 	if (st == 0 || st->nature() > kInt) {
-		cerr << "ERROR infering write table type, wrong write index type : " << wi << endl;
+		cerr << "ERROR inferring write table type, wrong write index type : " << wi << endl;
 		exit(1);
 	}
 
@@ -455,12 +455,12 @@ static Type infereReadTableType(Type tbl, Type ri)
 {
 	TableType*	tt = isTableType(tbl);
 	if (tt == 0) {
-		cerr << "ERROR infering read table type, wrong table type : " << tbl << endl;
+		cerr << "ERROR inferring read table type, wrong table type : " << tbl << endl;
 		exit(1);
 	}
 	SimpleType* st = isSimpleType(ri);
 	if (st == 0 || st->nature() > kInt) {
-		cerr << "ERROR infering read table type, wrong write index type : " << ri << endl;
+		cerr << "ERROR inferring read table type, wrong write index type : " << ri << endl;
 		exit(1);
 	}
 
