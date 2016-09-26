@@ -172,6 +172,6 @@ static int infereSigOrder(Tree sig)
 	}
 	
 	// unrecognized signal here
-    throw faustexception("ERROR infering signal order : unrecognized signal\n");
+    throw faustexception("ERROR inferring signal order : unrecognized signal\n");
 }
 

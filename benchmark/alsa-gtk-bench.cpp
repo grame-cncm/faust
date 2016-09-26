@@ -575,7 +575,7 @@ class AudioInterface : public AudioParam
 			}
 			
 		} else {
-			check_error_msg(-10000, "unknow access mode");
+			check_error_msg(-10000, "unknown access mode");
 		}
 
 
@@ -663,7 +663,7 @@ class AudioInterface : public AudioParam
 			}
 			
 		} else {
-			check_error_msg(-10000, "unknow access mode");
+			check_error_msg(-10000, "unknown access mode");
 		}
 	}
 

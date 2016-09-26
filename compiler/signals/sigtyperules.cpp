@@ -369,7 +369,7 @@ static Type infereSigType(Tree sig, Tree env)
     else if (isList(sig))                       { return T( hd(sig),env ) * T( tl(sig),env ); }
 
 	// unrecognized signal here
-    throw faustexception("ERROR infering signal type : unrecognized signal\n");
+    throw faustexception("ERROR inferring signal type : unrecognized signal\n");
 	return 0;
 }
 
@@ -381,7 +381,7 @@ static Type infereProjType(Type t, int i, int vec)
 	TupletType* tt = isTupletType(t);
 	if (tt == 0) {
 	    stringstream error;
-        error << "ERROR infering projection type, not a tuplet type : " << t << endl;
+        error << "ERROR inferring projection type, not a tuplet type : " << t << endl;
         throw faustexception(error.str());
 	}
 	//return (*tt)[i]	->promoteVariability(t->variability())
@@ -405,7 +405,7 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd)
 	TableType* tt = isTableType(tbl);
 	if (tt == 0) {
         stringstream error;
-        error << "ERROR infering write table type, wrong table type : " << tbl << endl;
+        error << "ERROR inferring write table type, wrong table type : " << tbl << endl;
         throw faustexception(error.str());
 	}
 	SimpleType* st = isSimpleType(wi);
@@ -431,7 +431,7 @@ static Type infereReadTableType(Type tbl, Type ri)
 	TableType*	tt = isTableType(tbl);
 	if (tt == 0) {
         stringstream error;
-        error << "ERROR infering read table type, wrong table type : " << tbl << endl;
+        error << "ERROR inferring read table type, wrong table type : " << tbl << endl;
         throw faustexception(error.str());
 	}
 	SimpleType* st = isSimpleType(ri);

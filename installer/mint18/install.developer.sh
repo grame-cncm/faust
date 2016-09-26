@@ -70,7 +70,7 @@ function installfaust {
 
     if [ ! -d /usr/arm-linux-gnueabihf/include/xenomai ]; then
         # install xenomia (should be downloaded from an official place)
-        wget 192.168.1.3/xenomai.tgz
+        wget http://faust.grame.fr/xenomai.tgz
         tar xzf xenomai.tgz
         $SUDO mv xenomai /usr/arm-linux-gnueabihf/include/
     fi
