@@ -187,6 +187,8 @@ inline bool isMinusOne (const Node& n)
 		|| ((n.type() == kIntNode) && (n.getInt() == -1));
 }
 
+bool sameMagnitude(const Node& a, const Node& b); 
+
 
 // numbers in general
 inline bool isNum (const Node& n)
