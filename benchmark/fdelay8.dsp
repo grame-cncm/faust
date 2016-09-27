@@ -1,4 +1,6 @@
-import("filter.lib");
+import("delay.lib");
+import("signal.lib");
+import("basic.lib");
 
 line(i) =  vgroup("line %i", fdelay5(128, d) : *(g) )
     with {  g = vslider("gain (dB)", -60, -60, 4, 0.1) : db2linear : smooth(0.995);

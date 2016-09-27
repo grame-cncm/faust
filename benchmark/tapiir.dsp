@@ -11,7 +11,9 @@ declare copyright 	"(c)GRAME 2006";
 //
 //======================================================
 
-import("music.lib");
+import("signal.lib");
+import("delay.lib");
+import("math.lib");
 
 
 dsize 		= 524288;
