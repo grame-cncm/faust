@@ -32,6 +32,7 @@ install :
 	install sound2faust $(prefix)/bin/
 	install sound2file $(prefix)/bin/
 	install sound2reader $(prefix)/bin/
+	install convertSounds $(prefix)/bin/
 
 clean :
 	rm -f sound2faust$(EXE) sound2file$(EXE)
