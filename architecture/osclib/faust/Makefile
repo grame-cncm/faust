@@ -1,5 +1,5 @@
 subprojects := . src src/lib src/msg src/nodes src/osc src/threads ../..
-sources = $(wildcard src/*.cpp) $(wildcard src/*/*.cpp) 
+sources = $(sort $(wildcard src/*.cpp) $(wildcard src/*/*.cpp))
 objects = $(sources:.cpp=.o)
 
 VPATH = $(subprojects)

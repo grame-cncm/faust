@@ -1,4 +1,4 @@
-version := 0.9.80ec
+version := 0.9.91ec
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -65,6 +65,7 @@ help :
 	@echo "make parser : generate the parser from the lex and yacc files"
 	@echo "make clean : remove all object files"
 	@echo "make doc : generate the documentation using doxygen"
+	@echo "make doclib : generate the documentation of the faust libraries"
 	@echo "make install : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/lib/faust $(prefix)/include/faust"
 	@echo "make uninstall : undo what install did"
 	@echo "make dist : make a Faust distribution as a .zip file"
@@ -75,7 +76,6 @@ parser :
 
 clean :
 	$(MAKE) -C compiler -f $(MAKEFILE) clean
-	$(MAKE) -C examples clean
 	$(MAKE) -C architecture/osclib clean
 	$(MAKE) -C architecture/httpdlib/src clean
 	$(MAKE) -C tools/sound2faust clean
@@ -89,6 +89,9 @@ depend :
 doc :
 	$(MAKE) -C compiler -f $(MAKEFILE) doc
 
+doclib :
+	./libraries/generateDoc
+
 
 install :
 	# install faust itself
@@ -100,7 +103,8 @@ install :
 	# install architecture and faust library files
 	mkdir -p $(prefix)/lib/faust
 	cp architecture/*.cpp $(prefix)/lib/faust/
-	cp architecture/*.lib $(prefix)/lib/faust/
+	cp libraries/old/*.lib $(prefix)/lib/faust/
+	cp libraries/*.lib $(prefix)/lib/faust/
 	# This is needed by faust2lv2 -gui / lv2ui.cpp.
 	cp architecture/lv2qtgui.h $(prefix)/lib/faust/
 	# This is needed by faust2faustvst -gui / faustvst.cpp.

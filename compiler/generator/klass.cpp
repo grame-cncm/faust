@@ -261,7 +261,7 @@ void Klass::printAdditionalCode(ostream& fout)
  */
 void Klass::printMetadata(int n, const map<Tree, set<Tree> >& S, ostream& fout)
 {
-    tab(n,fout); fout << "virtual void metadata(Meta* m) \t{ ";
+    tab(n,fout); fout << "virtual void metadata(Meta* m) { ";
     
     // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
     for (map<Tree, set<Tree> >::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
@@ -466,7 +466,6 @@ void Klass::buildTasksList()
 
     addInitCode("fStaticNumThreads = get_max_cpu();");
     addInitCode("fDynamicNumThreads = getenv(\"OMP_NUM_THREADS\") ? atoi(getenv(\"OMP_NUM_THREADS\")) : fStaticNumThreads;");
-    addInitCode("fThreadPool = DSPThreadPool::Init();");
     addInitCode("fThreadPool->StartAll(fStaticNumThreads - 1, false);");
 
     gTaskCount = 0;
@@ -798,15 +797,18 @@ void Klass::println(int n, ostream& fout)
     printMetadata(n+1, gMetaDataSet, fout);
 
     if (gSchedulerSwitch) {
-        tab(n+1,fout); fout << "virtual ~" << fKlassName << "() \t{ "
-                            << "DSPThreadPool::Destroy()"
-                            << "; }";
+        tab(n+1,fout); fout << fKlassName << "() { "
+                            << "fThreadPool = DSPThreadPool::Init(); }";
+        
+        tab(n+1,fout); fout << "virtual ~" << fKlassName << "() { "
+                            << "DSPThreadPool::Destroy(); }";
     }
     
-    tab(n+1,fout); fout << "virtual int getNumInputs() \t{ "
+    tab(n+1,fout); fout << "virtual int getNumInputs() { "
                     << "return " << fNumInputs
                     << "; }";
-    tab(n+1,fout); fout << "virtual int getNumOutputs() \t{ "
+    
+    tab(n+1,fout); fout << "virtual int getNumOutputs() { "
                     << "return " << fNumOutputs
                     << "; }";
 
@@ -814,10 +816,13 @@ void Klass::println(int n, ostream& fout)
         printlines (n+2, fStaticInitCode, fout);
     tab(n+1,fout); fout << "}";
 
-    tab(n+1,fout); fout << "virtual void instanceInit(int samplingFreq) {";
+    tab(n+1,fout); fout << "virtual void instanceConstants(int samplingFreq) {";
         tab(n+2,fout); fout << "fSamplingFreq = samplingFreq;";
         printlines (n+2, fInitCode, fout);
-        tab(n+2,fout); fout << "instanceClear();";
+    tab(n+1,fout); fout << "}";
+    
+    tab(n+1,fout); fout << "virtual void instanceResetUserInterface() {";
+        printlines (n+2, fInitUICode, fout);
     tab(n+1,fout); fout << "}";
     
     tab(n+1,fout); fout << "virtual void instanceClear() {";
@@ -827,6 +832,12 @@ void Klass::println(int n, ostream& fout)
     tab(n+1,fout); fout << "virtual void init(int samplingFreq) {";
         tab(n+2,fout); fout << "classInit(samplingFreq);";
         tab(n+2,fout); fout << "instanceInit(samplingFreq);";
+    tab(n+1,fout); fout << "}";
+    
+    tab(n+1,fout); fout << "virtual void instanceInit(int samplingFreq) {";
+    tab(n+2,fout); fout << "instanceConstants(samplingFreq);";
+    tab(n+2,fout); fout << "instanceResetUserInterface();";
+    tab(n+2,fout); fout << "instanceClear();";
     tab(n+1,fout); fout << "}";
     
     tab(n+1,fout); fout << "virtual "<< fKlassName <<"* clone() {";
@@ -1193,7 +1204,7 @@ void SigIntGenKlass::println(int n, ostream& fout)
 	tab(n,fout); fout << "class " << fKlassName << " {";
 
 	tab(n,fout); fout << "  private:";
-		tab(n+1,fout); fout << "int \tfSamplingFreq;";
+		tab(n+1,fout); fout << "int fSamplingFreq;";
 
 		for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) 	(*k)->println(n+1, fout);
 
@@ -1201,9 +1212,9 @@ void SigIntGenKlass::println(int n, ostream& fout)
 
 	tab(n,fout); fout << "  public:";
 
-		tab(n+1,fout); fout 	<< "int getNumInputs() \t{ "
+		tab(n+1,fout); fout 	<< "int getNumInputs() { "
 						<< "return " << fNumInputs << "; }";
-		tab(n+1,fout); fout 	<< "int getNumOutputs() \t{ "
+		tab(n+1,fout); fout 	<< "int getNumOutputs() { "
 						<< "return " << fNumOutputs << "; }";
 
 		tab(n+1,fout); fout << "void init(int samplingFreq) {";
@@ -1233,7 +1244,7 @@ void SigFloatGenKlass::println(int n, ostream& fout)
 	tab(n,fout); fout << "class " << fKlassName << " {";
 
 	tab(n,fout); fout << "  private:";
-		tab(n+1,fout); fout << "int \tfSamplingFreq;";
+		tab(n+1,fout); fout << "int fSamplingFreq;";
 
 		for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) 	(*k)->println(n+1, fout);
 
@@ -1241,9 +1252,9 @@ void SigFloatGenKlass::println(int n, ostream& fout)
 
 	tab(n,fout); fout << "  public:";
 
-		tab(n+1,fout); fout 	<< "int getNumInputs() \t{ "
+		tab(n+1,fout); fout 	<< "int getNumInputs() { "
 						<< "return " << fNumInputs << "; }";
-		tab(n+1,fout); fout 	<< "int getNumOutputs() \t{ "
+		tab(n+1,fout); fout 	<< "int getNumOutputs() { "
 						<< "return " << fNumOutputs << "; }";
 
 		tab(n+1,fout); fout << "void init(int samplingFreq) {";

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2012 GRAME, Centre National de Creation Musicale
+	Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.81ec"
+#define FAUSTVERSION "0.9.91ec"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -468,7 +468,7 @@ bool process_cmdline(int argc, char* argv[])
 void printversion()
 {
 	cout << "FAUST, DSP to C++ compiler, Version " << FAUSTVERSION << "\n";
-    cout << "Copyright (C) 2002-2015, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+    cout << "Copyright (C) 2002-2016, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 

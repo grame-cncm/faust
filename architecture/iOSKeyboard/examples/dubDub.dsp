@@ -13,7 +13,7 @@
 // 06/17/2016
 //########################################################################################
 
-import("faustStd.lib");
+import("stdfaust.lib");
 
 
 //========================= Smart Keyboard Configuration ================================= 
@@ -58,7 +58,7 @@ q = 8;
 minFilterCutoff = 50;
 maxFilterCutoff = 5000;
 filterModFreq = modFreq : si.smoo;
-filterCutoff = (1-ge.lf_trianglepos(modFreq)*(1-y))*(maxFilterCutoff-minFilterCutoff)+minFilterCutoff;
+filterCutoff = (1-os.lf_trianglepos(modFreq)*(1-y))*(maxFilterCutoff-minFilterCutoff)+minFilterCutoff;
 
 // general gain of the synth
 generalGain = gain : ba.lin2LogGain : si.smoo;

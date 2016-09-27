@@ -586,6 +586,7 @@
 
 -(void)resetKeyboard{
     for(int i=0; i<[parameters[@"nKeyb"] intValue]; i++){
+        fingersOnKeyboardsCount[i] = 0;
         for(int j=0;j<[parameters[[NSString stringWithFormat:@"keyb%d_nKeys",i]] intValue];j++){
             [[[zones objectAtIndex:i] objectAtIndex:j] setStatus:0];
         }

@@ -1,36 +1,26 @@
 /************************************************************************
- IMPORTANT NOTE : this file contains two clearly delimited sections :
- the ARCHITECTURE section (in two parts) and the USER section. Each section
- is governed by its own copyright and license. Please check individually
- each section for license and copyright information.
- *************************************************************************/
+    FAUST Architecture File
+    Copyright (C) 2016 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This Architecture section is free software; you can redistribute it
+    and/or modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 3 of
+    the License, or (at your option) any later version.
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-/************************************************************************
- FAUST Architecture File
- Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
- ---------------------------------------------------------------------
- This Architecture section is free software; you can redistribute it
- and/or modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 3 of
- the License, or (at your option) any later version.
+    You should have received a copy of the GNU General Public License
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+    EXCEPTION : As a special exception, you may create a larger work
+    that contains this FAUST architecture section and distribute
+    that work under terms of your choice, so long as this FAUST
+    architecture section is not modified.
  
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with this program; If not, see <http://www.gnu.org/licenses/>.
- 
- EXCEPTION : As a special exception, you may create a larger work
- that contains this FAUST architecture section and distribute
- that work under terms of your choice, so long as this FAUST
- architecture section is not modified.
- 
- ************************************************************************
- ************************************************************************/
+************************************************************************/
 
 #ifndef __dsp_bench__
 #define __dsp_bench__
@@ -47,22 +37,22 @@
 
 // Handle 32/64 bits int size issues
 #ifdef __x86_64__
-
     #define uint32 unsigned int
     #define uint64 unsigned long int
     #define int32 int
     #define int64 long int
-
 #else
-
     #define uint32 unsigned int
     #define uint64 unsigned long long int
     #define int32 int
     #define int64 long long int
-
 #endif
 
-class dsp_bench {
+/*
+    A class to do do timing measurements
+*/
+
+class time_bench {
     
     protected:
     
@@ -151,7 +141,7 @@ class dsp_bench {
   
     public:
     
-        dsp_bench(int count, int skip)
+        time_bench(int count, int skip)
         {
             fSkip = skip;
             fMeasureCount = count;
@@ -162,7 +152,7 @@ class dsp_bench {
             fStops = new uint64[fMeasureCount];
         }
     
-        virtual ~dsp_bench()
+        virtual ~time_bench()
         {
             delete [] fStarts;
             delete [] fStops;
@@ -187,6 +177,9 @@ class dsp_bench {
             fLastRDTSC = rdtsc();
         }
     
+        /**
+         *  Returns best estimation.
+         */
         double getStats(int bsize, int ichans, int ochans)
         {
             assert(fMeasure > fMeasureCount);
@@ -204,8 +197,7 @@ class dsp_bench {
         }
 
         /**
-         * Print the median value (in Megabytes/second) of fMeasureCount
-         * throughputs measurements
+         * Print the median value (in Megabytes/second) of fMeasureCount throughputs measurements.
          */
         void printStats(const char* applname, int bsize, int ichans, int ochans)
         {
@@ -239,27 +231,42 @@ class dsp_bench {
 
 };
 
+/*
+    A class to measure DSP CPU use.
+*/
+
 class measure_dsp : public decorator_dsp {
     
     protected:
     
         FAUSTFLOAT* fInputs[256];
         FAUSTFLOAT* fOutputs[256];
-        dsp_bench fBench;
+        time_bench fBench;
         int fBufferSize;
     
     public:
-        
+    
+        /**
+         * Constructor.
+         *
+         * @param dsp - the dsp to be measured.
+         * @param buffer_size - the buffer size used when calling 'computeAll'
+         * @param count - the number of cycles using in 'computeAll'
+         * @param skip - ??
+         *
+         */
         measure_dsp(dsp* dsp, int buffer_size, int count, int skip)
         :decorator_dsp(dsp), fBench(count, skip), fBufferSize(buffer_size)
         {
             assert(fDSP->getNumInputs() < 256);
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 fInputs[i] = new FAUSTFLOAT[buffer_size];
+                memset(fInputs[i], 0, sizeof(FAUSTFLOAT) * buffer_size);
             }
             assert(fDSP->getNumOutputs() < 256);
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                 fOutputs[i] = new FAUSTFLOAT[buffer_size];
+                memset(fOutputs[i], 0, sizeof(FAUSTFLOAT) * buffer_size);
             }
         }
     
@@ -273,6 +280,9 @@ class measure_dsp : public decorator_dsp {
             }
         }
     
+        /*
+            Measure the duration of the compute call.
+        */
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fBench.startMeasure();
@@ -284,7 +294,10 @@ class measure_dsp : public decorator_dsp {
         {
             compute(count, inputs, outputs);
         }
-        
+    
+        /*
+            Measure the duration of 'count' (given in constructor) calls to compute.
+        */
         void computeAll()
         {
             AVOIDDENORMALS;
@@ -293,9 +306,27 @@ class measure_dsp : public decorator_dsp {
             } while (fBench.isRunning());
         }
     
+        /**
+         *  Initialize measure datas.
+         */
         void openMeasure() { fBench.openMeasure(); }
+    
+        /**
+         *  Terminate measurement.
+         */
         void closeMeasure() { fBench.closeMeasure(); }
     
+        /**
+         *  Returns best estimation.
+         */
+        double getStats()
+        {
+            return fBench.getStats(fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
+        }
+    
+        /**
+         * Print the median value (in Megabytes/second) of fMeasureCount throughputs measurements.
+         */
         void printStats(const char* applname)
         {
             fBench.printStats(applname, fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
@@ -306,3 +337,4 @@ class measure_dsp : public decorator_dsp {
 };
 
 #endif
+

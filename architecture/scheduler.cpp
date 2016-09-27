@@ -98,7 +98,7 @@ static INLINE void NOP(void)
 
 static INLINE char CAS1(volatile void* addr, volatile int value, int newvalue)
 {
-    register char ret;
+    char ret;
     __asm__ __volatile__ (
 						  "# CAS \n\t"
 						  LOCK "cmpxchg %2, (%1) \n\t"
@@ -112,7 +112,7 @@ static INLINE char CAS1(volatile void* addr, volatile int value, int newvalue)
 
 static INLINE int atomic_xadd(volatile int* atomic, int val) 
 { 
-    register int result;
+    int result;
     __asm__ __volatile__ ("# atomic_xadd \n\t"
                           LOCK "xaddl %0,%1 \n\t"
                           : "=r" (result), "=m" (*atomic) 
