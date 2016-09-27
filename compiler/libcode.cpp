@@ -200,7 +200,7 @@ static bool process_cmdline(int argc, const char* argv[])
 			gGlobal->gArchFile = argv[i+1];
 			i += 2;
             
-         } else if (isCmd(argv[i], "-inj", "--inject")) {
+         } else if (isCmd(argv[i], "-inj", "--inject") && (i+1 < argc)) {
             gGlobal->gInjectFlag = true;
             gGlobal->gInjectFile = argv[i+1];
             i += 2;
@@ -387,7 +387,7 @@ static bool process_cmdline(int argc, const char* argv[])
             gGlobal->gExportDSP = true;
             i += 1;
          
-        } else if (isCmd(argv[i], "-I", "--import-dir")) {
+        } else if (isCmd(argv[i], "-I", "--import-dir") && (i+1 < argc)) {
             char temp[PATH_MAX+1];
             if (strstr(argv[i+1], "http://") != 0) {
                 gGlobal->gImportDirList.push_back(argv[i+1]);
@@ -403,7 +403,7 @@ static bool process_cmdline(int argc, const char* argv[])
             gGlobal->gLibraryList.push_back(argv[i+1]);
             i += 2;
            
-        } else if (isCmd(argv[i], "-O", "--output-dir")) {
+        } else if (isCmd(argv[i], "-O", "--output-dir") && (i+1 < argc)) {
             char temp[PATH_MAX+1];
             char* path = realpath(argv[i+1], temp);
             if (path) {
