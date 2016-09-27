@@ -250,6 +250,11 @@ bool isSigVBargraph (Tree s, Tree& lbl, Tree& min, Tree& max, Tree& x)	{ return 
 Tree  sigAttach(Tree t0, Tree t1)					{ return tree(gGlobal->SIGATTACH, t0, t1); 		}
 bool  isSigAttach(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, gGlobal->SIGATTACH, t0, t1); 	}
 
+bool sameMagnitude(Tree a, Tree b)
+{
+    return sameMagnitude(a->node(), b->node());
+}
+
 Tree addNums(Tree a, Tree b)
 {
 	Tree r = tree(addNode(a->node(),b->node()));

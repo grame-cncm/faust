@@ -136,7 +136,7 @@ Tree sigFVar      (Tree type, Tree name, Tree file);
 bool isSigFVar    (Tree s);
 bool isSigFVar    (Tree s, Tree& type, Tree& name, Tree& file);
 
-// emulation des anciennes fonctions
+// emulation of all fonctions
 inline Tree sigAdd(Tree x, Tree y)	{ return sigBinOp(kAdd, x, y); }
 inline Tree sigSub(Tree x, Tree y)	{ return sigBinOp(kSub, x, y); }
 inline Tree sigMul(Tree x, Tree y)	{ return sigBinOp(kMul, x, y); }
@@ -157,13 +157,15 @@ inline Tree sigLE(Tree x, Tree y)	{ return sigBinOp(kLE, x, y); }
 inline Tree sigEQ(Tree x, Tree y)	{ return sigBinOp(kEQ, x, y); }
 inline Tree sigNE(Tree x, Tree y)	{ return sigBinOp(kNE, x, y); }
 
-// pattern matching pour les anciennes fonctions
+// pattern matching for old fonctions
 bool isSigAdd	(Tree a, Tree&x, Tree&y);
 bool isSigMul	(Tree a, Tree&x, Tree&y);
 bool isSigSub	(Tree a, Tree&x, Tree&y);
 bool isSigDiv	(Tree a, Tree&x, Tree&y);
 
-// operations pratiques sur des arbres dont on sait qu'ils sont des nombres
+// operations on tree representing numbers
+bool sameMagnitude(Tree a, Tree b);
+
 Tree addNums 	(Tree a, Tree b);
 Tree subNums 	(Tree a, Tree b);
 Tree mulNums 	(Tree a, Tree b);
@@ -171,7 +173,7 @@ Tree divExtendedNums 	(Tree a, Tree b);
 Tree minusNum	(Tree a);
 Tree inverseNum	(Tree a);
 
-// tests sur les signaux constants
+// tests on constant signals
 inline bool isNum		(Tree a)	{ assert(a); return isNum(a->node()); }
 inline bool isZero		(Tree a)	{ assert(a); return isZero(a->node()); }
 inline bool isGTZero	(Tree a)	{ assert(a); return isGTZero(a->node()); }

@@ -57,14 +57,22 @@ Tree normalizeAddTerm(Tree t)
 #endif
 	
 	aterm A(t);
-	//cerr << "ATERM IS : " << A << endl;
+#ifdef TRACE
+	cerr << "ATERM of " << A << endl;
+#endif
 	mterm D = A.greatestDivisor();
 	while (D.isNotZero() && D.complexity() > 0) {
-		//cerr << "GREAT DIV : " << D << endl;
+#ifdef TRACE
+		cerr << "*** GREAT DIV : " << D << endl;
+#endif
 		A = A.factorize(D);
 		D = A.greatestDivisor();
 	}
-	return A.normalizedTree();
+	Tree r = A.normalizedTree();
+#ifdef TRACE
+    cerr << "ATERM of " << A << " --> " << ppsig(r) << endl;
+#endif
+    return r;
 }
 
 
