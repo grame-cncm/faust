@@ -13,10 +13,10 @@ function installfaust {
 	echo "Updating packages..."
 	$SUDO apt-get -y update
 	echo "Installing Faust dependencies..."
-	$SUDO apt-get install -y build-essential pkg-config git libmicrohttpd-dev llvm-3.6 llvm-3.6-dev libssl-dev ncurses-dev libsndfile-dev libedit-dev
+	$SUDO apt-get install -y build-essential pkg-config git libmicrohttpd-dev llvm-3.6 llvm-3.6-dev libssl-dev ncurses-dev libsndfile-dev libedit-dev libcurl4-openssl-dev
 
 	# Install all the needed SDK
-	$SUDO apt-get install -y libgtk2.0-dev libasound2-dev jackd2 libjack-jackd2-dev libqrencode-dev
+	$SUDO apt-get install -y libgtk2.0-dev libasound2-dev jackd2 libjack-jackd2-dev libqrencode-dev qjackctl
 	$SUDO apt-get install -y qt4-default libcsound64-dev dssi-dev lv2-dev puredata-dev supercollider-dev wget unzip libboost-dev
 	$SUDO apt-get install -y inkscape graphviz
 
