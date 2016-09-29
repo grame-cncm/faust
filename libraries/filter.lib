@@ -1595,7 +1595,7 @@ with {
   with {
     parity = Nh % 2;
     S = (O-parity)/2; // current section number
-    a1s = -2*cos(-PI + (1-parity)*ma.PI/(2*Nh) + (S-1+parity)*ma.PI/Nh);
+    a1s = -2*cos(-1*ma.PI + (1-parity)*ma.PI/(2*Nh) + (S-1+parity)*ma.PI/Nh);
   };
 };
 
