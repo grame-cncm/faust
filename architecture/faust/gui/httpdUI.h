@@ -27,7 +27,6 @@
 #ifndef __httpdUI__
 #define __httpdUI__
 
-#include <unistd.h>
 #include <iostream>
 #include <sstream>
 
@@ -37,6 +36,7 @@
 #include "faust/misc.h"
 
 #ifndef _WIN32
+#include <unistd.h>
 #include <pthread.h>
 #endif
 
