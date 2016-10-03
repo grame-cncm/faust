@@ -78,7 +78,7 @@ function installfaust {
 
 	# Install Android development tools
 	## install java 8
-    $SUDO apt install openjdk-8-jdk
+    $SUDO apt install -y openjdk-8-jdk
 
 	## install android sdk
     if [ ! -d /opt/android ]; then
