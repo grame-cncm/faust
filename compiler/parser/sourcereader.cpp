@@ -215,14 +215,14 @@ Tree formatDefinitions(Tree rldef)
  * @return the list of definitions it contains
  */
 
-Tree SourceReader::parse(string fname)
+Tree SourceReader::parse(const char* fname)
 {
-	string	fullpath;
+    string fullpath;
     char* fileBuf = 0;
-	
-	yyerr = 0;
-	
-	yyfilename = fname.c_str();
+
+    yyerr = 0;
+    yyfilename = fname;
+    
     if (strstr(yyfilename,"http://") != 0) {
         // We are requested to parse an URL file
         int ret = http_fetch(yyfilename, &fileBuf);
@@ -298,7 +298,7 @@ bool SourceReader::cached(string fname)
  * @return the list of definitions it contains
  */
 
-Tree SourceReader::getlist(string fname)
+Tree SourceReader::getlist(const char* fname)
 {
 	if (!cached(fname)) {
 		fFileCache[fname] = parse(fname);
@@ -348,7 +348,7 @@ Tree SourceReader::expandrec(Tree ldef, set<string>& visited, Tree lresult)
 		if (isNil(d)) {
 			// skill null definitions produced by declarations
 		} else if (isImportFile(d,fname)) {
-			string f = tree2str(fname);
+			const char* f = tree2str(fname);
 			//cerr << "import(" << f << ")" << endl;
 			
 			//string f = tree2str(fname);
