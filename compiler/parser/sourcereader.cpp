@@ -237,11 +237,11 @@ Tree formatDefinitions(Tree rldef)
  * @param fname the name of the file to parse
  * @return the list of definitions it contains
  */
-Tree SourceReader::parsefile(string fname)
+Tree SourceReader::parsefile(const char* fname)
 {
     yyerr = 0;
     yylineno = 1;
-    yyfilename = fname.c_str();
+    yyfilename = fname;
     string fullpath;
  
     // We are requested to parse an URL file
@@ -295,7 +295,7 @@ Tree SourceReader::parsefile(string fname)
         Tree res = 0;
         for (list<string>::iterator i = gGlobal->gImportDirList.begin(); i != gGlobal->gImportDirList.end(); i++) {
             string url = *i + fname;
-            if ((res = parsefile(url))) return res;
+            if ((res = parsefile(url.c_str()))) return res;
         }
         stringstream error;
         error << "ERROR : unable to open file " << yyfilename << endl;
@@ -308,18 +308,18 @@ Tree SourceReader::parsefile(string fname)
             error << "ERROR : unable to open file " << yyfilename << endl;
             throw faustexception(error.str());
         }
-        Tree res = parse(fullpath);
+        Tree res = parse(fullpath.c_str());
         fclose(tmp_file);
         return res;
     #endif
     }
 }
 
-Tree SourceReader::parsestring(string fname) 
+Tree SourceReader::parsestring(const char* fname)
 {
     yyerr = 0;
     yylineno = 1;
-    yyfilename = fname.c_str();
+    yyfilename = fname;
     
     yy_scan_string(gGlobal->gInputString);
     // Clear global "inputstring" so that imported files will be correctly parsed with "parse"
@@ -327,7 +327,7 @@ Tree SourceReader::parsestring(string fname)
     return parse(fname);
 }
 
-Tree SourceReader::parse(string fname) 
+Tree SourceReader::parse(const char* fname)
 {
     int r = yyparse();
     stringstream error;
@@ -367,7 +367,7 @@ bool SourceReader::cached(string fname)
  * @return the list of definitions it contains
  */
 
-Tree SourceReader::getlist(string fname)
+Tree SourceReader::getlist(const char* fname)
 {
 	if (!cached(fname)) {
         if (gGlobal->gInputString) {
@@ -421,13 +421,9 @@ Tree SourceReader::expandrec(Tree ldef, set<string>& visited, Tree lresult)
 		if (isNil(d)) {
 			// skill null definitions produced by declarations
 		} else if (isImportFile(d,fname)) {
-			string f = tree2str(fname);
-			//cerr << "import(" << f << ")" << endl;
-			
-			//string f = tree2str(fname);
+			const char* f = tree2str(fname);
 			if (visited.find(f) == visited.end()) {
 				visited.insert(f);
-				//Tree l = getlist(f);
 				lresult = expandrec(getlist(f), visited, lresult);
 			}
 			

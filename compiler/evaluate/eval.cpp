@@ -359,17 +359,17 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 ///////////////////////////////////////////////////////////////////
 
     } else if (isBoxComponent(exp, label)) {
-        string  fname   = tree2str(label);
-        Tree    eqlst   = gGlobal->gReader.expandlist(gGlobal->gReader.getlist(fname));
-        Tree    res     = closure(boxIdent("process"), gGlobal->nil, gGlobal->nil, pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
+        const char* fname = tree2str(label);
+        Tree eqlst = gGlobal->gReader.expandlist(gGlobal->gReader.getlist(fname));
+        Tree res = closure(boxIdent("process"), gGlobal->nil, gGlobal->nil, pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
         setDefNameProperty(res, label);
         //cerr << "component is " << boxpp(res) << endl;
         return res;
 
     } else if (isBoxLibrary(exp, label)) {
-        string  fname   = tree2str(label);
-        Tree    eqlst   = gGlobal->gReader.expandlist(gGlobal->gReader.getlist(fname));
-        Tree    res     = closure(boxEnvironment(), gGlobal->nil, gGlobal->nil, pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
+        const char* fname = tree2str(label);
+        Tree eqlst = gGlobal->gReader.expandlist(gGlobal->gReader.getlist(fname));
+        Tree res = closure(boxEnvironment(), gGlobal->nil, gGlobal->nil, pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
         setDefNameProperty(res, label);
         //cerr << "component is " << boxpp(res) << endl;
         return res;
