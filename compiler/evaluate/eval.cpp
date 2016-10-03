@@ -1199,8 +1199,10 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 
 	// check that the definition exists
 	if (isNil(lenv)) {
-        cerr << "undefined symbol " << *id << endl;
-		evalerror(getDefFileProp(id), getDefLineProp(id), "undefined symbol ", id);
+        evalerror(getUseFileProp(id), getUseLineProp(id), "undefined symbol ", id);
+        if (hasDefProp(id)) {
+            cerr << *id << " is defined here : " << getDefFileProp(id) << ":" << getDefLineProp(id) << endl;
+        }
 		exit(1);
 	}
 
