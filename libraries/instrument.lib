@@ -1,4 +1,4 @@
-//instrument.lib - Faust function of various types usefull for building physical model instruments
+//instrument.lib - Faust function of various types useful for building physical model instruments
 
 declare name "Faust-STK Tools Library";
 declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
@@ -6,6 +6,9 @@ declare copyright "Romain Michon";
 declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 
+
+no = library("noise.lib"); 
+en = library("envelope.lib"); 
 ma = library("math.lib");
 ba = library("basic.lib");
 de = library("delay.lib");
