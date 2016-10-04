@@ -104,7 +104,9 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     #endif
     
         string writeDSPFactoryToMachineAux(const string& target);
-                   
+        void startLLVMLibrary();
+        void stopLLVMLibrary();
+    
     public:
     
         llvm_dsp_factory_aux(const string& sha_key,

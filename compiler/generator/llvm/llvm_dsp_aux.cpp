@@ -411,9 +411,7 @@ void llvm_dsp_factory_aux::writeDSPFactoryToMachineFile(const string& machine_co
     out.flush();
 }
 
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)) && !defined(_MSC_VER)
-llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& machine_code, const string& target)
-    :dsp_factory_imp("MachineDSP", sha_key, "")
+void llvm_dsp_factory_aux::startLLVMLibrary()
 {
     if (llvm_dsp_factory_aux::gInstance++ == 0) {
         // Install a LLVM error handler
@@ -426,6 +424,25 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& 
         }
 #endif
     }
+}
+
+void llvm_dsp_factory_aux::stopLLVMLibrary()
+{
+    if (--llvm_dsp_factory_aux::gInstance == 0) {
+    #if  (!defined(LLVM_35)) && (!defined(LLVM_36)) && (!defined(LLVM_37)) && (!defined(LLVM_38)) && (!defined(LLVM_39)) // In LLVM 3.5 this is gone.
+        llvm_stop_multithreaded();
+    #endif
+    #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
+        LLVMResetFatalErrorHandler();
+    #endif
+    }
+}
+
+#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)) && !defined(_MSC_VER)
+llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& machine_code, const string& target)
+    :dsp_factory_imp("MachineDSP", sha_key, "")
+{
+    startLLVMLibrary();
     
     init("MachineDSP", "");
     fSHAKey = sha_key;
@@ -448,23 +465,13 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key,
                                            int opt_level)
     :dsp_factory_imp("BitcodeDSP", sha_key, "", pathname_list)
 {
-    if (llvm_dsp_factory_aux::gInstance++ == 0) {
-        // Install a LLVM error handler
-    #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
-        LLVMInstallFatalErrorHandler(llvm_dsp_factory_aux::LLVMFatalErrorHandler);
-    #endif
-    #if (!defined(LLVM_35) && !defined(LLVM_36) && !defined(LLVM_37) && !defined(LLVM_38) && !defined(LLVM_39)) // In LLVM 3.5 this is gone.
-        if (!llvm_start_multithreaded()) {
-            printf("llvm_start_multithreaded error...\n");
-        }
-    #endif
-    }
-   
+    startLLVMLibrary();
+    
     init("BitcodeDSP", "");
     fSHAKey = sha_key;
+    fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
     setOptlevel(opt_level);
     
-    fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
     fModule = module;
     fContext = context;
     
@@ -933,17 +940,8 @@ llvm_dsp_factory_aux::~llvm_dsp_factory_aux()
         // fModule is kept and deleted by fJIT
         delete fJIT;
     }
-    
     delete fContext;
-    
-    if (--llvm_dsp_factory_aux::gInstance == 0) {
-#if  (!defined(LLVM_35)) && (!defined(LLVM_36)) && (!defined(LLVM_37)) && (!defined(LLVM_38)) && (!defined(LLVM_39)) // In LLVM 3.5 this is gone.
-        llvm_stop_multithreaded();
-    #endif
-    #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
-        LLVMResetFatalErrorHandler();
-    #endif
-    }
+    stopLLVMLibrary();
 }
 
 void llvm_dsp_factory_aux::write(std::ostream* out, bool binary, bool small)
