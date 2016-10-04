@@ -660,7 +660,7 @@ static double eval2double (Tree exp, Tree visited, Tree localValEnv)
     Tree diagram = a2sb(eval(exp, visited, localValEnv)); // pour getBoxType
 	int numInputs, numOutputs;
 	getBoxType(diagram, &numInputs, &numOutputs);
-	if ( (numInputs > 0) || (numOutputs != 1) ) {
+	if ((numInputs > 0) || (numOutputs != 1)) {
 		evalerror(yyfilename, yylineno, "not a constant expression of type : (0->1)", exp);
 		return 1;
 	} else {
@@ -688,7 +688,7 @@ static int eval2int (Tree exp, Tree visited, Tree localValEnv)
     Tree diagram = a2sb(eval(exp, visited, localValEnv));   // pour getBoxType()
 	int numInputs, numOutputs;
 	getBoxType(diagram, &numInputs, &numOutputs);
-	if ( (numInputs > 0) || (numOutputs != 1) ) {
+	if ((numInputs > 0) || (numOutputs != 1)) {
 		evalerror(yyfilename, yylineno, "not a constant expression of type : (0->1)", exp);
 		return 1;
 	} else {
@@ -1146,8 +1146,14 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 
 	// check that the definition exists
 	if (isNil(lenv)) {
-    	evalerror(getDefFileProp(id), getDefLineProp(id), "undefined symbol", id);
- 	}
+        if (hasDefProp(id)) {
+            stringstream error;
+            error << *id << " is defined here : " << getDefFileProp(id) << ":" << getDefLineProp(id) << endl;
+            throw faustexception(error.str());
+        } else {
+            evalerror(getUseFileProp(id), getUseLineProp(id), "undefined symbol", id);
+        }
+	}
 
     //cerr << "Id definition is " << *def << endl;
 	// check that it is not a recursive definition

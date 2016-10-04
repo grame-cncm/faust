@@ -28,13 +28,14 @@
 #include <iostream>
 using namespace std;
 
-const char* yyfilename;
+const char* yyfilename  = "????";
 
 void lexerror(const char* msg)
 {
     string fullmsg = "ERROR : " + string(msg) + '\n';
     throw faustexception(fullmsg);
 }
+
 
 void yyerror(const char* msg)
 {
@@ -79,22 +80,53 @@ void setDefProp(Tree sym, const char* filename, int lineno)
 	setProperty(sym, gGlobal->DEFLINEPROP, cons(tree(filename), tree(lineno)));
 }
 
+bool hasDefProp(Tree sym)
+{
+    Tree n;
+    return getProperty(sym, gGlobal->DEFLINEPROP, n);
+}
+
 const char* getDefFileProp(Tree sym)
 {
-	Tree n;
-	if (getProperty(sym, gGlobal->DEFLINEPROP, n)) {
-		return name(hd(n)->node().getSym());
-	} else {
-		return yyfilename;
-	}
+    Tree n;
+    if (getProperty(sym, gGlobal->DEFLINEPROP, n)) {
+        return name(hd(n)->node().getSym());
+    } else {
+        return "????";
+    }
 }
 
 int getDefLineProp(Tree sym)
 {
-	Tree n;
-	if (getProperty(sym, gGlobal->DEFLINEPROP, n)) {
-		return tl(n)->node().getInt();
-	} else {
-		return -1;
-	}
+    Tree n;
+    if (getProperty(sym, gGlobal->DEFLINEPROP, n)) {
+        return tl(n)->node().getInt();
+    } else {
+        return -1;
+    }
+}
+
+void setUseProp(Tree sym, const char* filename, int lineno)
+{
+    setProperty(sym, gGlobal->USELINEPROP, cons(tree(filename), tree(lineno)));
+}
+
+const char* getUseFileProp(Tree sym)
+{
+    Tree n;
+    if (getProperty(sym, gGlobal->USELINEPROP, n)) {
+        return name(hd(n)->node().getSym());
+    } else {
+        return "????";
+    }
+}
+
+int getUseLineProp(Tree sym)
+{
+    Tree n;
+    if (getProperty(sym, gGlobal->USELINEPROP, n)) {
+        return tl(n)->node().getInt();
+    } else {
+        return -1;
+    }
 }

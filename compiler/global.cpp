@@ -361,6 +361,7 @@ void global::init()
     BOXTYPEPROP = tree(symbol("boxTypeProp"));
     NUMERICPROPERTY = tree(symbol("NUMERICPROPERTY"));
     DEFLINEPROP = tree(symbol("DefLineProp"));
+    USELINEPROP = tree(symbol("UseLineProp"));
     SIMPLIFIED = tree(symbol("sigSimplifiedProp"));
     DOCTABLES = tree(symbol("DocTablesProp"));
     NULLENV = tree(symbol("NullRenameEnv"));

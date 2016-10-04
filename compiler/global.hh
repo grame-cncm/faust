@@ -188,6 +188,7 @@ struct global {
     Tree                    BOXTYPEPROP;
     Tree                    NUMERICPROPERTY;
     Tree                    DEFLINEPROP;
+    Tree                    USELINEPROP;
     Tree                    SIMPLIFIED;
     Tree                    DOCTABLES;
     Tree                    NULLENV;

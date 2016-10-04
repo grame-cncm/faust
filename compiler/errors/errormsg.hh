@@ -27,10 +27,17 @@
 extern int 			yylineno;
 extern const char * yyfilename;
 
-// associate and retrieve file and line properties to a symbol
+// associate and retrieve file and line properties to a symbol definition
 void 		setDefProp(Tree sym, const char* filename, int lineno);
+bool        hasDefProp(Tree sym);
+
 const char* getDefFileProp(Tree sym);
 int 		getDefLineProp(Tree sym);
+
+// associate and retrieve file and line properties to a symbol usage
+void 		setUseProp(Tree sym, const char* filename, int lineno);
+const char* getUseFileProp(Tree sym);
+int 		getUseLineProp(Tree sym);
 
 // Parsing error
 void 		lexerror(const char* msg);

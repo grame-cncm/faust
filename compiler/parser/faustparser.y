@@ -387,19 +387,19 @@ lstattrval		: LSTTRUE								{ $$ = true; }
 docmtd          : BMETADATA name EMETADATA				{ $$ = $2; }
 				;
 
-definition		: defname LPAR arglist RPAR DEF expression ENDDEF	{ $$ = cons($1,cons($3,$6)); }
-				| defname DEF expression ENDDEF		   	{ $$ = cons($1,cons(gGlobal->nil,$3)); }
+definition		: defname LPAR arglist RPAR DEF expression ENDDEF	{ $$ = cons($1,cons($3,$6)); setDefProp($1, yyfilename, yylineno); }
+				| defname DEF expression ENDDEF		   	{ $$ = cons($1,cons(gGlobal->nil,$3));  setDefProp($1, yyfilename, yylineno); }
 				| error ENDDEF				   		   	{ $$ = gGlobal->nil; yyerr++; }
 				;
 
-recinition		: recname DEF expression ENDDEF		   	{ $$ = cons($1,cons(gGlobal->nil,$3)); }
+recinition		: recname DEF expression ENDDEF		   	{ $$ = cons($1,cons(gGlobal->nil,$3)); setDefProp($1, yyfilename, yylineno); }
                 | error ENDDEF				   		   	{ $$ = gGlobal->nil; yyerr++; }
                 ;
 
-defname			: ident 								{ $$=$1; setDefProp($1, yyfilename, yylineno); }
+defname			: ident 								{ $$=$1; }
 				;
 
-recname			: DELAY1 ident 							{ $$=$2; setDefProp($2, yyfilename, yylineno); }
+recname			: DELAY1 ident 							{ $$=$2; }
                 ;
 
 params			: ident					   				{ $$ = cons($1,gGlobal->nil); }
@@ -520,7 +520,7 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 				| SELECT2 						{ $$ = boxPrim3(sigSelect2); }
 				| SELECT3						{ $$ = boxPrim4(sigSelect3); }
 
-				| ident 						{ $$ = $1; }
+				| ident 						{ $$ = $1;  setUseProp($1, yyfilename, yylineno);}
                 | SUB ident                     { $$ = boxSeq(boxPar(boxInt(0),$2),boxPrim2(sigSub)); }
 
 				| LPAR expression RPAR				{ $$ = $2; }
@@ -558,10 +558,10 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 				;
 
 
-ident			: IDENT							{ $$ = boxIdent(yytext); }
+ident			: IDENT							{ $$ = boxIdent(yytext); setUseProp($$, yyfilename, yylineno);  }
 				;
 
-name			: IDENT							{ $$ = tree(yytext); }
+name			: IDENT							{ $$ = tree(yytext); setUseProp($$, yyfilename, yylineno);  }
 				;
 
 
