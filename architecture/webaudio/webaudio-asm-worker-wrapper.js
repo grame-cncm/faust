@@ -298,6 +298,31 @@ faust.createDSPFactoryAux = function (code, argv, max_polyphony, callback) {
     worker.postMessage({code: code, argv: argv, factory_name: factory_name});
 };
 
+faust.expandDSPFromString = function (code, argv, callback) {
+    
+    // use a Worker to expand the code...
+    var worker = new Worker("expand-dsp-worker.js");
+    
+    worker.onmessage = function(event) {
+        if (event.data.expand_dsp != undefined) {
+            var expand_dsp = event.data.expand_dsp;
+            var sha_key = event.data.sha_key;
+            faust.error_msg = event.data.error_msg;
+            if (callback) {
+                callback(expand_dsp, sha_key);
+            }
+        }
+        worker.terminate();
+    };
+    
+    worker.onerror = function (event) {
+        event.preventDefault();
+        throw new Error("expandDSPFromString : worker error");
+    };
+    
+    worker.postMessage({code: code, argv: argv});
+};
+
 // Mono
 faust.createDSPFactory = function (code, argv, callback) {
     faust.createDSPFactoryAux(code, argv, 0, callback);

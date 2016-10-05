@@ -243,7 +243,8 @@ var faust = faust || {};
 // Shim AudioContext on webkit
 window.AudioContext = window.AudioContext || window.webkitAudioContext || undefined;
 
-faust.createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
+faust.createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number']);
+faust.expandCDSPFromString = Module.cwrap('expandCDSPFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
 faust.getCLibFaustVersion = Module.cwrap('getCLibFaustVersion', 'number', []);
 faust.freeCDSP = Module.cwrap('freeCDSP', null, ['number']);
 

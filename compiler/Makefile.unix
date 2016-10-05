@@ -173,7 +173,7 @@ emcc : CXXFLAGS = -DEMCC -I../architecture -O3 -Wall -Wuninitialized -Wno-overlo
 emcc : ARCHFLAGS =
 emcc : LLVM_VERSION =
 emcc : libfaust.js libfaustworker.js
-emcc : EXPORTED="['_createAsmCDSPFactoryFromString', '_getCLibFaustVersion', '_freeCDSP']"
+emcc : EXPORTED="['_createAsmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCDSP']"
 
 libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o
 	libtool $(LIBFLAGS) generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o -static -o libfaustmachine.a
