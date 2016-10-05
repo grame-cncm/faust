@@ -556,11 +556,14 @@
                 // Create a mono DSP factory from the dsp code    
                 faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], function(factory) {
                 
+                    /*
+                    // Test code 
                     var res = faust.writeDSPFactoryToMachine(factory);
                     console.log(res);
                     
                     factory = faust.readDSPFactoryFromMachine(res, 0);
                     console.log(factory);
+                    */
                     
                     if (!factory) {
                         alert(faust.getErrorMessage());
