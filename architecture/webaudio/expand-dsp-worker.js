@@ -7,6 +7,10 @@ onmessage = function(e) {
         var code = e.data.code;
         var argv = e.data.argv;
         
+        // Force "ajs" compilation
+        argv.push("-lang");
+        argv.push("ajs");
+        
         // Allocate strings on the HEAP
         var code_ptr = Module._malloc(code.length + 1);
         var name = "FaustDSP";
