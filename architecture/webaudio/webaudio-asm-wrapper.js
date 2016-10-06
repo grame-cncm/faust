@@ -292,14 +292,6 @@ faust.createDSPFactory = function (code, argv) {
     var factory_code_ptr = faust.createAsmCDSPFactoryFromString(name_ptr, code_ptr, argv.length, argv_ptr, error_msg_ptr);
     var factory_code = Pointer_stringify(factory_code_ptr);
     faust.error_msg = Pointer_stringify(error_msg_ptr);
-    if (factory_code === "") {
-        Module._free(code_ptr);
-        Module._free(name_ptr);
-        Module._free(error_msg_ptr);
-        return null;
-    }
-
-    console.log(factory_code);
     
     // Free strings
     Module._free(code_ptr);
@@ -314,8 +306,66 @@ faust.createDSPFactory = function (code, argv) {
         Module._free(argv_ptr_buffer[i]);
     }
     Module._free(argv_ptr);
-     
-    return faust.readDSPFactoryFromMachineAux(factory_name, factory_code, sha_key);
+    
+    if (factory_code === "") {
+        return null;
+    } else {
+        return faust.readDSPFactoryFromMachineAux(factory_name, factory_code, sha_key);
+    }
+};
+
+faust.expandDSP = function (code, argv) {
+   
+    console.log("libfaust.js version : " + Pointer_stringify(faust.getCLibFaustVersion()));
+    
+    // Force "ajs" compilation
+    argv.push("-lang");
+    argv.push("ajs");
+    
+    // Allocate strings on the HEAP
+    var code_ptr = Module._malloc(code.length + 1);
+    var name = "FaustDSP";
+    var name_ptr = Module._malloc(name.length + 1);
+    var sha_key_ptr = Module._malloc(64);
+    var error_msg_ptr = Module._malloc(4096);
+    
+    Module.writeStringToMemory(name, name_ptr);
+    Module.writeStringToMemory(code, code_ptr);
+    
+    // Add 'cn' option with the factory name
+    argv = (argv === undefined) ? new Array() : argv;
+    
+    // Prepare 'argv' array for C side
+    var ptr_size = 4;
+    var argv_ptr = Module._malloc(argv.length * ptr_size);  // Get buffer from emscripten.
+    var argv_ptr_buffer = new Int32Array(Module.HEAP32.buffer, argv_ptr, argv.length);  // Get a integer view on the newly allocated buffer.
+    for (var i = 0; i < argv.length; i++) {
+        var arg_ptr = Module._malloc(argv[i].length + 1);
+        Module.writeStringToMemory(argv[i], arg_ptr);
+        argv_ptr_buffer[i] = arg_ptr;
+    }
+    
+    var expand_dsp_ptr = faust.expandCDSPFromString(name_ptr, code_ptr, argv.length, argv_ptr, sha_key_ptr, error_msg_ptr);
+    var expand_dsp = Pointer_stringify(expand_dsp_ptr);
+    var sha_key = Pointer_stringify(sha_key_ptr);
+    faust.error_msg = Pointer_stringify(error_msg_ptr);
+    
+    // Free strings
+    Module._free(code_ptr);
+    Module._free(name_ptr);
+    Module._free(sha_key_ptr);
+    Module._free(error_msg_ptr);
+    
+    // Free C allocated asm.js module
+    faust.freeCDSP(expand_dsp_ptr);
+    
+    // Free 'argv' C side array
+    for (var i = 0; i < argv.length; i++) {
+        Module._free(argv_ptr_buffer[i]);
+    }
+    Module._free(argv_ptr);
+
+    return expand_dsp;
 };
 
 faust.writeDSPFactoryToMachine = function (factory)

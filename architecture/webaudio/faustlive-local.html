@@ -555,7 +555,17 @@ function UploadFile(e) {
              
             // Create a mono DSP factory from the dsp code    
             factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"]);
-            
+             
+            /*
+            // Test
+            var expand_dsp = faust.expandDSP(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"]);
+            if (!expand_dsp) {
+                alert(faust.getErrorMessage());
+                return;
+            }
+            console.log(expand_dsp);
+            */
+             
             if (!factory) {
                 alert(faust.getErrorMessage());
                 return;
