@@ -3,23 +3,23 @@
 // through a series of environment. 
 //########################################################################################
 
-ma = library("math.lib");
-ba = library("basic.lib");
-de = library("delay.lib");
-en = library("envelope.lib");
-ro = library("route.lib");
-si = library("signal.lib");
 an = library("analyzer.lib");
+ba = library("basic.lib");
+co = library("compressor.lib");
+de = library("delay.lib");
+dm = library("demo.lib");
+en = library("envelope.lib");
 fi = library("filter.lib");
+ho = library("hoa.lib");
+ma = library("math.lib");
+ef = library("misceffect.lib");
 os = library("miscoscillator.lib");
 no = library("noise.lib");
-ho = library("hoa.lib");
-sp = library("spat.lib");
-sy = library("synth.lib");
-ef = library("misceffect.lib");
-co = library("compressor.lib");
-ve = library("vaeffect.lib");
 pf = library("phafla.lib");
-re = library("reverb.lib");
 pm = library("pm.lib");
-dm = library("demo.lib");
+re = library("reverb.lib");
+ro = library("route.lib");
+sp = library("spat.lib");
+si = library("signal.lib");
+sy = library("synth.lib");
+ve = library("vaeffect.lib");

@@ -1,3 +1,3 @@
-import("effect.lib");
+import("demo.lib");
 
-process = par(i, 8, crybaby(hslider("freq", 100, 10, 1000, 1)));
+process = par(i, 8, crybaby_demo);

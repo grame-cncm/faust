@@ -56,10 +56,11 @@ inline double GetCurrentTimeInUsec()
 #endif
 
 #if _WIN32
+#include <Windows.h>
 inline double GetCurrentTimeInUsec(void)
 {
     LARGE_INTEGER time;
-    LARGE_INTEGER frequency
+    LARGE_INTEGER frequency;
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&time);
     return double(time.QuadPart) / double(frequency.QuadPart) * 1000000.0;

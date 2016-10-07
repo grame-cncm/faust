@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.91ec"
+#define FAUSTVERSION "0.9.92ec"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -215,38 +215,38 @@ static string makeDrawPathNoExt()
 
 bool process_cmdline(int argc, char* argv[])
 {
-	int	i=1; int err=0;
+    int	i=1; int err=0;
 
-	while (i<argc) {
-   
-		if (isCmd(argv[i], "-h", "--help")) {
-			gHelpSwitch = true;
-			i += 1;
+    while (i<argc) {
 
-		} else if (isCmd(argv[i], "-v", "--version")) {
-			gVersionSwitch = true;
-			i += 1;
+        if (isCmd(argv[i], "-h", "--help")) {
+            gHelpSwitch = true;
+            i += 1;
 
-		} else if (isCmd(argv[i], "-d", "--details")) {
-			gDetailsSwitch = true;
-			i += 1;
+        } else if (isCmd(argv[i], "-v", "--version")) {
+            gVersionSwitch = true;
+            i += 1;
 
-        } else if (isCmd(argv[i], "-a", "--architecture")) {
+        } else if (isCmd(argv[i], "-d", "--details")) {
+            gDetailsSwitch = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-a", "--architecture") && (i+1 < argc)) {
             gArchFile = argv[i+1];
             i += 2;
 
-        } else if (isCmd(argv[i], "-inj", "--inject")) {
+        } else if (isCmd(argv[i], "-inj", "--inject") && (i+1 < argc)) {
             gInjectFlag = true;
             gInjectFile = argv[i+1];
             i += 2;
 
-		} else if (isCmd(argv[i], "-o")) {
-			gOutputFile = argv[i+1];
-			i += 2;
+        } else if (isCmd(argv[i], "-o") && (i+1 < argc)) {
+            gOutputFile = argv[i+1];
+            i += 2;
 
-		} else if (isCmd(argv[i], "-ps", "--postscript")) {
-			gDrawPSSwitch = true;
-			i += 1;
+        } else if (isCmd(argv[i], "-ps", "--postscript")) {
+            gDrawPSSwitch = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-xml", "--xml")) {
             gPrintXMLSwitch = true;
@@ -272,45 +272,45 @@ bool process_cmdline(int argc, char* argv[])
             gScaledSVG = true;
             i += 1;
 
-		} else if (isCmd(argv[i], "-svg", "--svg")) {
-			gDrawSVGSwitch = true;
-			i += 1;
+        } else if (isCmd(argv[i], "-svg", "--svg")) {
+            gDrawSVGSwitch = true;
+            i += 1;
 
-		} else if (isCmd(argv[i], "-f", "--fold")) {
-			gFoldThreshold = atoi(argv[i+1]);
-			i += 2;
+        } else if (isCmd(argv[i], "-f", "--fold") && (i+1 < argc)) {
+            gFoldThreshold = atoi(argv[i+1]);
+            i += 2;
 
-		} else if (isCmd(argv[i], "-mns", "--max-name-size")) {
-			gMaxNameSize = atoi(argv[i+1]);
-			i += 2;
+        } else if (isCmd(argv[i], "-mns", "--max-name-size") && (i+1 < argc)) {
+            gMaxNameSize = atoi(argv[i+1]);
+            i += 2;
 
-		} else if (isCmd(argv[i], "-sn", "--simple-names")) {
-			gSimpleNames = true;
-			i += 1;
+        } else if (isCmd(argv[i], "-sn", "--simple-names")) {
+            gSimpleNames = true;
+            i += 1;
 
-		} else if (isCmd(argv[i], "-lb", "--left-balanced")) {
-			gBalancedSwitch = 0;
-			i += 1;
+        } else if (isCmd(argv[i], "-lb", "--left-balanced")) {
+            gBalancedSwitch = 0;
+            i += 1;
 
-		} else if (isCmd(argv[i], "-mb", "--mid-balanced")) {
-			gBalancedSwitch = 1;
-			i += 1;
+        } else if (isCmd(argv[i], "-mb", "--mid-balanced")) {
+            gBalancedSwitch = 1;
+            i += 1;
 
-		} else if (isCmd(argv[i], "-rb", "--right-balanced")) {
-			gBalancedSwitch = 2;
-			i += 1;
+        } else if (isCmd(argv[i], "-rb", "--right-balanced")) {
+            gBalancedSwitch = 2;
+            i += 1;
 
-		} else if (isCmd(argv[i], "-lt", "--less-temporaries")) {
-			gLessTempSwitch = true;
-			i += 1;
+        } else if (isCmd(argv[i], "-lt", "--less-temporaries")) {
+            gLessTempSwitch = true;
+            i += 1;
 
-		} else if (isCmd(argv[i], "-mcd", "--max-copy-delay")) {
-			gMaxCopyDelay = atoi(argv[i+1]);
-			i += 2;
+        } else if (isCmd(argv[i], "-mcd", "--max-copy-delay") && (i+1 < argc)) {
+            gMaxCopyDelay = atoi(argv[i+1]);
+            i += 2;
 
-		} else if (isCmd(argv[i], "-sd", "--simplify-diagrams")) {
-			gSimplifyDiagrams = true;
-			i += 1;
+        } else if (isCmd(argv[i], "-sd", "--simplify-diagrams")) {
+            gSimplifyDiagrams = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-vec", "--vectorize")) {
             gVectorSwitch = true;
@@ -320,11 +320,11 @@ bool process_cmdline(int argc, char* argv[])
             gDeepFirstSwitch = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-vs", "--vec-size")) {
+        } else if (isCmd(argv[i], "-vs", "--vec-size") && (i+1 < argc)) {
             gVecSize = atoi(argv[i+1]);
             i += 2;
 
-        } else if (isCmd(argv[i], "-lv", "--loop-variant")) {
+        } else if (isCmd(argv[i], "-lv", "--loop-variant") && (i+1 < argc)) {
             gVectorLoopVariant = atoi(argv[i+1]);
             i += 2;
 
@@ -337,18 +337,18 @@ bool process_cmdline(int argc, char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-sch", "--scheduler")) {
-			gSchedulerSwitch = true;
-			i += 1;
+            gSchedulerSwitch = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-g", "--groupTasks")) {
-			gGroupTaskSwitch = true;
-			i += 1;
+            gGroupTaskSwitch = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-uim", "--user-interface-macros")) {
-			gUIMacroSwitch = true;
-			i += 1;
+            gUIMacroSwitch = true;
+            i += 1;
 
-        } else if (isCmd(argv[i], "-t", "--timeout")) {
+        } else if (isCmd(argv[i], "-t", "--timeout") && (i+1 < argc)) {
             gTimeout = atoi(argv[i+1]);
             i += 2;
             
@@ -368,19 +368,19 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-quad", "--quad-precision-floats")) {
             gFloatSize = 3;
             i += 1;
-			
+            
         } else if (isCmd(argv[i], "-mdoc", "--mathdoc")) {
             gPrintDocSwitch = true;
             i += 1;
-			
-        } else if (isCmd(argv[i], "-mdlang", "--mathdoc-lang")) {
+            
+        } else if (isCmd(argv[i], "-mdlang", "--mathdoc-lang") && (i+1 < argc)) {
             gDocLang = argv[i+1];
             i += 2;
-			
+            
         } else if (isCmd(argv[i], "-stripmdoc", "--strip-mdoc-tags")) {
             gStripDocSwitch = true;
             i += 1;
-			
+            
         } else if (isCmd(argv[i], "-flist", "--file-list")) {
             gPrintFileListSwitch = true;
             i += 1;
@@ -389,9 +389,9 @@ bool process_cmdline(int argc, char* argv[])
             gDumpNorm = true;
             i += 1;
 
-		} else if (isCmd(argv[i], "-cn", "--class-name")) {
-			gClassName = argv[i+1];
-			i += 2;
+        } else if (isCmd(argv[i], "-cn", "--class-name") && (i+1 < argc)) {
+            gClassName = argv[i+1];
+            i += 2;
 
         } else if (isCmd(argv[i], "-i", "--inline-architecture-files")) {
             gInlineArchSwitch = true;
@@ -401,7 +401,7 @@ bool process_cmdline(int argc, char* argv[])
             gExportDSP = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-I", "--import-dir")) {
+        } else if (isCmd(argv[i], "-I", "--import-dir") && (i+1 < argc)) {
 
             char temp[PATH_MAX+1];
             char* path = realpath(argv[i+1], temp);
@@ -412,7 +412,7 @@ bool process_cmdline(int argc, char* argv[])
                 gImportDirList.push_back(path);
                 i += 2;
             }
-         } else if (isCmd(argv[i], "-O", "--output-dir")) {
+         } else if (isCmd(argv[i], "-O", "--output-dir") && (i+1 < argc)) {
         
             char temp[PATH_MAX+1];
             char* path = realpath(argv[i+1], temp);
@@ -437,24 +437,24 @@ bool process_cmdline(int argc, char* argv[])
             if (check_url(url)) {
                 gInputFiles.push_back(url);
             }
-			i++;
+            i++;
 
-		} else {
-			std::cerr << "faust: unrecognized option \"" << argv[i] <<"\"" << endl;
-			i++;
-			err++;
-		}
-	}
+        } else {
+            std::cerr << "faust: unrecognized or incorrectly defined option \"" << argv[i] <<"\"" << endl;
+            i++;
+            err++;
+        }
+    }
 
     // adjust related options
     if (gOpenMPSwitch || gSchedulerSwitch) gVectorSwitch = true;
-    
+
     if (gInPlace && gVectorSwitch) {
         std::cerr << "ERROR : 'in-place' option can only be used in scalar mode" << endl;
         exit(-1);
     }   
 
-	return err == 0;
+    return err == 0;
 }
 
 

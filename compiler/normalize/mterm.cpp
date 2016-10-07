@@ -64,10 +64,11 @@ ostream& mterm::print(ostream& dst) const
  */
 int mterm::complexity() const
 {
-	int c = isOne(fCoef) ? 0 : 1;
+    int c = isOne(fCoef) ? 0 : (isMinusOne(fCoef) ? 0 : 1);
 	for (MP::const_iterator p = fFactors.begin(); p != fFactors.end(); ++p) {
 		c += (1+getSigOrder(p->first))*abs(p->second);
 	}
+    //cerr << __LINE__ << ":" << __FUNCTION__ << "(" << *this << ") --> " << c << endl;
 	return c;
 }
 
@@ -304,7 +305,7 @@ mterm gcd (const mterm& m1, const mterm& m2)
 {
 	//cerr << "GCD of " << m1 << " and " << m2 << endl;
 
-	Tree c = (m1.fCoef == m2.fCoef) ? m1.fCoef : tree(1);		// common coefficient (real gcd not needed)
+	Tree c = (sameMagnitude(m1.fCoef, m2.fCoef)) ? m1.fCoef : tree(1);		// common coefficient (real gcd not needed)
 	mterm R(c);
 	for (MP::const_iterator p1 = m1.fFactors.begin(); p1 != m1.fFactors.end(); p1++) {
         Tree t = p1->first;
@@ -340,6 +341,10 @@ static bool contains(int a, int b)
  */
 bool mterm::hasDivisor (const mterm& n) const
 {
+    if ( n.fFactors.size() == 0 ) {
+        // n is a pure number
+        return sameMagnitude(fCoef,n.fCoef);
+    }
 	for (MP::const_iterator p1 = n.fFactors.begin(); p1 != n.fFactors.end(); p1++) {
 		// for each factor f**q of m
         Tree 	f = p1->first; 	
@@ -353,6 +358,7 @@ bool mterm::hasDivisor (const mterm& n) const
 		int u = p2->second;
 		if (! contains(u,v) ) return false;
     }
+    //cerr << __LINE__ << ":" << __func__ << *this << " is divisible by " << n << endl;
 	return true;
 }
 

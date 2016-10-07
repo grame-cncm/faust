@@ -2031,13 +2031,13 @@ yyreduce:
 
   case 43:
 #line 399 "parser/faustparser.y" /* yacc.c:1646  */
-    { (yyval.exp) = cons((yyvsp[-6].exp),cons((yyvsp[-4].exp),(yyvsp[-1].exp))); }
+    { (yyval.exp) = cons((yyvsp[-6].exp),cons((yyvsp[-4].exp),(yyvsp[-1].exp))); setDefProp((yyvsp[-6].exp), yyfilename, yylineno); }
 #line 2036 "parser/faustparser.cpp" /* yacc.c:1646  */
     break;
 
   case 44:
 #line 400 "parser/faustparser.y" /* yacc.c:1646  */
-    { (yyval.exp) = cons((yyvsp[-3].exp),cons(nil,(yyvsp[-1].exp))); }
+    { (yyval.exp) = cons((yyvsp[-3].exp),cons(nil,(yyvsp[-1].exp))); setDefProp((yyvsp[-3].exp), yyfilename, yylineno);  }
 #line 2042 "parser/faustparser.cpp" /* yacc.c:1646  */
     break;
 
@@ -2049,7 +2049,7 @@ yyreduce:
 
   case 46:
 #line 404 "parser/faustparser.y" /* yacc.c:1646  */
-    { (yyval.exp) = cons((yyvsp[-3].exp),cons(nil,(yyvsp[-1].exp))); }
+    { (yyval.exp) = cons((yyvsp[-3].exp),cons(nil,(yyvsp[-1].exp))); setDefProp((yyvsp[-3].exp), yyfilename, yylineno); }
 #line 2054 "parser/faustparser.cpp" /* yacc.c:1646  */
     break;
 
@@ -2061,13 +2061,13 @@ yyreduce:
 
   case 48:
 #line 408 "parser/faustparser.y" /* yacc.c:1646  */
-    { (yyval.exp)=(yyvsp[0].exp); setDefProp((yyvsp[0].exp), yyfilename, yylineno); }
+    { (yyval.exp)=(yyvsp[0].exp); }
 #line 2066 "parser/faustparser.cpp" /* yacc.c:1646  */
     break;
 
   case 49:
 #line 411 "parser/faustparser.y" /* yacc.c:1646  */
-    { (yyval.exp)=(yyvsp[0].exp); setDefProp((yyvsp[0].exp), yyfilename, yylineno); }
+    { (yyval.exp)=(yyvsp[0].exp); }
 #line 2072 "parser/faustparser.cpp" /* yacc.c:1646  */
     break;
 
@@ -2613,7 +2613,7 @@ yyreduce:
 
   case 140:
 #line 535 "parser/faustparser.y" /* yacc.c:1646  */
-    { (yyval.exp) = (yyvsp[0].exp); }
+    { (yyval.exp) = (yyvsp[0].exp);  setUseProp((yyvsp[0].exp), yyfilename, yylineno);}
 #line 2618 "parser/faustparser.cpp" /* yacc.c:1646  */
     break;
 
@@ -2781,13 +2781,13 @@ yyreduce:
 
   case 168:
 #line 574 "parser/faustparser.y" /* yacc.c:1646  */
-    { (yyval.exp) = boxIdent(yytext); }
+    { (yyval.exp) = boxIdent(yytext); setUseProp((yyval.exp), yyfilename, yylineno);  }
 #line 2786 "parser/faustparser.cpp" /* yacc.c:1646  */
     break;
 
   case 169:
 #line 577 "parser/faustparser.y" /* yacc.c:1646  */
-    { (yyval.exp) = tree(yytext); }
+    { (yyval.exp) = tree(yytext); setUseProp((yyval.exp), yyfilename, yylineno);  }
 #line 2792 "parser/faustparser.cpp" /* yacc.c:1646  */
     break;
 

@@ -386,17 +386,17 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 ///////////////////////////////////////////////////////////////////
 
     } else if (isBoxComponent(exp, label)) {
-        string  fname   = tree2str(label);
-        Tree    eqlst   = gReader.expandlist(gReader.getlist(fname));
-        Tree    res     = closure(boxIdent("process"), nil, nil, pushMultiClosureDefs(eqlst, nil, nil));
+        const char* fname = tree2str(label);
+        Tree eqlst = gReader.expandlist(gReader.getlist(fname));
+        Tree res = closure(boxIdent("process"), nil, nil, pushMultiClosureDefs(eqlst, nil, nil));
         setDefNameProperty(res, label);
         //cerr << "component is " << boxpp(res) << endl;
         return res;
 
     } else if (isBoxLibrary(exp, label)) {
-        string  fname   = tree2str(label);
-        Tree    eqlst   = gReader.expandlist(gReader.getlist(fname));
-        Tree    res     = closure(boxEnvironment(), nil, nil, pushMultiClosureDefs(eqlst, nil, nil));
+        const char* fname = tree2str(label);
+        Tree eqlst = gReader.expandlist(gReader.getlist(fname));
+        Tree res = closure(boxEnvironment(), nil, nil, pushMultiClosureDefs(eqlst, nil, nil));
         setDefNameProperty(res, label);
         //cerr << "component is " << boxpp(res) << endl;
         return res;
@@ -1199,8 +1199,10 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 
 	// check that the definition exists
 	if (isNil(lenv)) {
-        cerr << "undefined symbol " << *id << endl;
-		evalerror(getDefFileProp(id), getDefLineProp(id), "undefined symbol ", id);
+        evalerror(getUseFileProp(id), getUseLineProp(id), "undefined symbol ", id);
+        if (hasDefProp(id)) {
+            cerr << *id << " is defined here : " << getDefFileProp(id) << ":" << getDefLineProp(id) << endl;
+        }
 		exit(1);
 	}
 
