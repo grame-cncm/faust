@@ -7,7 +7,7 @@ declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 
 
-no = library("noise.lib"); 
+//no = library("noise.lib"); 
 en = library("envelope.lib"); 
 ma = library("math.lib");
 ba = library("basic.lib");
