@@ -681,11 +681,49 @@ void faustgen_factory::display_libraries()
 	// Open the libraries
 #ifdef WIN32
     open_file(FAUST_PDF_LIBRARY);
-    open_file("stdfaust.lib");
- #else
+    open_file("analyzer.lib");
+    open_file("basic.lib");
+    open_file("compressor.lib");
+    open_file("delay.lib");
+    open_file("demo.lib");
+    open_file("envelope.lib");
+    open_file("filter.lib");
+    open_file("hoa.lib");
+    open_file("math.lib");
+    open_file("misceffect.lib");
+    open_file("miscoscillator.lib");
+    open_file("noise.lib");
+    open_file("phafla.lib");
+    open_file("pm.lib");
+    open_file("reverb.lib");
+    open_file("route.lib");
+    open_file("spat.lib");
+    open_file("signal.lib");
+    open_file("synth.lib");
+    open_file("vaeffect.lib");
+#else
     open_file(FAUST_PDF_LIBRARY);
-    display_libraries_aux("stdfaust.lib");
- #endif
+    display_libraries_aux("analyzer.lib");
+    display_libraries_aux("basic.lib");
+    display_libraries_aux("compressor.lib");
+    display_libraries_aux("delay.lib");
+    display_libraries_aux("demo.lib");
+    display_libraries_aux("envelope.lib");
+    display_libraries_aux("filter.lib");
+    display_libraries_aux("hoa.lib");
+    display_libraries_aux("math.lib");
+    display_libraries_aux("misceffect.lib");
+    display_libraries_aux("miscoscillator.lib");
+    display_libraries_aux("noise.lib");
+    display_libraries_aux("phafla.lib");
+    display_libraries_aux("pm.lib");
+    display_libraries_aux("reverb.lib");
+    display_libraries_aux("route.lib");
+    display_libraries_aux("spat.lib");
+    display_libraries_aux("signal.lib");
+    display_libraries_aux("synth.lib");
+    display_libraries_aux("vaeffect.lib");
+#endif
 }
 
 void faustgen_factory::update_sourcecode(int size, char* source_code)
