@@ -26,6 +26,7 @@
 #include <vector>
 #include <list>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 
 using namespace std;
@@ -107,6 +108,26 @@ inline std::string flatten(const std::string& src)
         }
     }
     return dst.str();
+}
+
+inline std::string pathToContent(const std::string& path)
+{
+    std::ifstream file(path.c_str(), std::ifstream::binary);
+    
+    file.seekg(0, file.end);
+    int size = int(file.tellg());
+    file.seekg(0, file.beg);
+    
+    // And allocate buffer to that a single line can be read...
+    char* buffer = new char[size + 1];
+    file.read(buffer, size);
+    
+    // Terminate the string
+    buffer[size] = 0;
+    string result = buffer;
+    file.close();
+    delete [] buffer;
+    return result;
 }
 
 #endif

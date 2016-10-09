@@ -212,30 +212,6 @@ string reorganizeCompilationOptions(int argc, const char* argv[])
     return "\"" + res3 + "\"";
 }
 
-EXPORT string pathToContent(const string& path)
-{
-    ifstream file(path.c_str(), ifstream::binary);
-    
-    if (file.fail()) {
-        return "";
-    } else {
-        file.seekg(0, file.end);
-        int size = file.tellg();
-        file.seekg(0, file.beg);
-        
-        // And allocate buffer to that a single line can be read...
-        char* buffer = new char[size + 1];
-        file.read(buffer, size);
-        
-        // Terminate the string
-        buffer[size] = 0;
-        string result = buffer;
-        file.close();
-        delete [] buffer;
-        return result;
-    }
-}
-
 EXPORT string expandDSPFromFile(const string& filename, 
                                 int argc, const char* argv[], 
                                 string& sha_key,

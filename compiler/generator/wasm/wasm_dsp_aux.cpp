@@ -34,28 +34,6 @@ typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
 
 dsp_factory_table<SDsp_factory> gWasmFactoryTable;
 
-#ifdef LOADER
-string pathToContent(const string& path)
-{
-    ifstream file(path.c_str(), ifstream::binary);
-    
-    file.seekg(0, file.end);
-    int size = int(file.tellg());
-    file.seekg(0, file.beg);
-    
-    // And allocate buffer to that a single line can be read...
-    char* buffer = new char[size + 1];
-    file.read(buffer, size);
-    
-    // Terminate the string
-    buffer[size] = 0;
-    string result = buffer;
-    file.close();
-    delete [] buffer;
-    return result;
-}
-#endif
-
 // C++ API
 
 EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename,
