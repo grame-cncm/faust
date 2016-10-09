@@ -18,25 +18,26 @@ import("stdfaust.lib");
 
 This will give you access to all the Faust libraries through a series of environments:
 
-* `ma`: `math.lib`
-* `ba`: `basic.lib`
-* `de`: `delay.lib`
-* `en`: `envelope.lib`
-* `ro`: `route.lib`
-* `si`: `signal.lib`
 * `an`: `analyzer.lib`
+* `ba`: `basic.lib`
+* `co`: `compressor.lib`
+* `de`: `delay.lib`
+* `de`: `demo.lib`
+* `en`: `envelope.lib`
 * `fi`: `filter.lib`
+* `ho`: `hoa.lib`
+* `ma`: `math.lib`
+* `ef`: `misceffect.lib`
 * `os`: `miscoscillator.lib`
 * `no`: `noise.lib`
-* `ho`: `hoa.lib`
+* `pf`: `phafla.lib`
+* `pm`: `pm.lib`
+* `re`: `reverb.lib`
+* `ro`: `route.lib`
+* `si`: `signal.lib`
 * `sp`: `spat.lib`
 * `sy`: `synth.lib`
-* `ef`: `misceffect.lib`
 * `ve`: `vaeffect.lib`
-* `co`: `compressor.lib`
-* `pf`: `phafla.lib`
-* `re`: `reverb.lib`
-* `de`: `demo.lib`
 
 Environments can then be used as follows in your Faust code:
 
@@ -134,26 +135,26 @@ Only the libraries that are considered to be "standard" are documented:
 
 * `analyzer.lib` 
 * `basic.lib` 
-* `delay.lib`
-* `misceffect.lib`
 * `compressor.lib`
-* `vaeffect.lib`
-* `phafla.lib`
-* `reverb.lib`
+* `delay.lib`
+* `demo.lib`
 * `envelope.lib`
 * `filter.lib`
-* `miscoscillator.lib`
-* `noise.lib`
 * `hoa.lib`
 * `math.lib`
+* `misceffect.lib`
+* `miscoscillator.lib`
+* `noise.lib`
+* `phafla.lib`
 * `pm.lib`
+* `reverb.lib`
 * `route.lib`
 * `signal.lib`
 * `spat.lib`
 * `synth.lib`
-* `demo.lib`
 * `tonestack.lib` (not documented but example in `/examples/misc`)
 * `tube.lib` (not documented but example in `/examples/misc`)
+* `vaeffect.lib`
 
 Other deprecated libraries such as `music.lib`, etc. are present but are not documented to not confuse new users. 
 
@@ -177,24 +178,26 @@ In order to have a uniformized library system, we established the following conv
 To prevent cross-references between libraries we generalized the use of the `library("")` system for function calls in all the libraries. This means that everytime a function declared in another library is called, the environment corresponding to this library needs to be called too. To make things easier, a `stdfaust.lib` library was created and is imported by all the libraries:
 
 ```
-ma = library("math.lib");
-ba = library("basic.lib");
-de = library("delay.lib");
-en = library("envelope.lib");
-ro = library("route.lib");
-si = library("signal.lib");
 an = library("analyzer.lib");
+ba = library("basic.lib");
+co = library("compressor.lib");
+de = library("delay.lib");
+dm = library("demo.lib");
+en = library("envelope.lib");
 fi = library("filter.lib");
+ho = library("hoa.lib");
+ma = library("math.lib");
+ef = library("misceffect.lib");
 os = library("miscoscillator.lib");
 no = library("noise.lib");
-ho = library("hoa.lib");
-sp = library("spat.lib");
-sy = library("synth.lib");
-ef = library("misceffect.lib");
-ve = library("vaeffect.lib");
-co = library("compressor.lib");
 pf = library("phafla.lib");
+pm = library("pm.lib");
 re = library("reverb.lib");
+ro = library("route.lib");
+sp = library("spat.lib");
+si = library("signal.lib");
+sy = library("synth.lib");
+ve = library("vaeffect.lib");
 ```
 
 For example, if we wanted to use the `smooth` function which is now declared in `signal.lib`, we would do the following:

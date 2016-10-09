@@ -17,12 +17,12 @@ class SourceReader
 {
 	map<string, Tree>	fFileCache;
 	vector<string>		fFilePathnames;
-	Tree parse(string fname);
+	Tree parse(const char* fname);
 	Tree expandrec(Tree ldef, set<string>& visited, Tree lresult);
 	bool cached(string fname);
 	
 public:
-	Tree getlist(string fname);
+	Tree getlist(const char* fname);
 	Tree expandlist(Tree ldef);
 	vector<string>	listSrcFiles();
 };
