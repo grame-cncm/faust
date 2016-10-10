@@ -21,6 +21,7 @@
  
 #include "node.hh"
 #include "math.h"
+#include <stdlib.h>
 
 ostream& Node::print (ostream& fout) const 					///< print a node on a stream
 {
