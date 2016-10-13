@@ -454,7 +454,7 @@ pulse_countup_loop(n, t) =  + ~ cond(n)*t
 // #### Usage
 //
 // ```
-// _ : pulse_countup_loop(n,trig) : _
+// _ : pulse_coundown_loop(n,trig) : _
 // ```
 //
 // Where:
