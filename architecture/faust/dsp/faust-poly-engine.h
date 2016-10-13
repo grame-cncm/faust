@@ -136,15 +136,15 @@ class FaustPolyEngine {
          * Instantiates a new polyphonic voice where velocity
          * and pitch are MIDI numbers (0-127). keyOn can only
          * be used if the [style:poly] metadata is used in the
-         * Faust code. keyOn will return -1 if the object is not
+         * Faust code. keyOn will return 0 if the object is not
          * polyphonic and the allocated voice otherwise.
          */
-        int keyOn(int pitch, int velocity)
+        MapUI* keyOn(int pitch, int velocity)
         {
             if (fPolyMax > 0) {
-                return (int)fPolyDSP->keyOn(0, pitch, velocity); // MapUI* passed to Java as an integer
+                return fPolyDSP->keyOn(0, pitch, velocity); // MapUI* passed to Java as an integer
             } else {
-                return -1;
+                return 0;
             }
         }
 
