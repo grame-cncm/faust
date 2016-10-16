@@ -88,7 +88,8 @@ class dsp_sequencer : public dsp {
             ui_interface->closeBox();
         }
         
-        virtual int getSampleRate(){
+        virtual int getSampleRate()
+        {
             return fDSP1->getSampleRate();
         }
     
@@ -122,12 +123,13 @@ class dsp_sequencer : public dsp {
             fDSP2->instanceClear();
         }
         
-        virtual dsp* clone(){
-            return 0;
+        virtual dsp* clone()
+        {
+            return new dsp_sequencer(fDSP1->clone(), fDSP2->clone());
         }
     
-        virtual void metadata(Meta* m){
-        }
+        virtual void metadata(Meta* m)
+        {}
     
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
@@ -173,7 +175,8 @@ class dsp_parallelizer : public dsp {
             ui_interface->closeBox();
         }
         
-        virtual int getSampleRate(){
+        virtual int getSampleRate()
+        {
             return fDSP1->getSampleRate();
         }
     
@@ -207,12 +210,13 @@ class dsp_parallelizer : public dsp {
             fDSP2->instanceClear();
         }
         
-        virtual dsp* clone(){
-            return 0;
+        virtual dsp* clone()
+        {
+            return new dsp_parallelizer(fDSP1->clone(), fDSP2->clone());
         }
-    
-        virtual void metadata(Meta* m){
-        }
+
+        virtual void metadata(Meta* m)
+        {}
     
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
