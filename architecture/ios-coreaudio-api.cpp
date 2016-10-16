@@ -81,7 +81,7 @@ public:
     IOSEngine(int srate, int buffer_size):FaustPolyEngine()
     {
         // allocating audio driver
-        fDriver = new iosaudio(srate, bsize);
+        fDriver = new iosaudio(srate, buffer_size);
     }
     
     virtual ~IOSEngine()
