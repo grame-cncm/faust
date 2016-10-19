@@ -129,8 +129,11 @@ class dsp_sequencer : public dsp {
         }
     
         virtual void metadata(Meta* m)
-        {}
-    
+        {
+            fDSP1->metadata(m);
+            fDSP2->metadata(m);
+        }
+ 
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fDSP1->compute(count, inputs, fSeqBuffer);
@@ -216,7 +219,10 @@ class dsp_parallelizer : public dsp {
         }
 
         virtual void metadata(Meta* m)
-        {}
+        {
+            fDSP1->metadata(m);
+            fDSP2->metadata(m);
+        }
     
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
