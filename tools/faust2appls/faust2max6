@@ -9,6 +9,7 @@
 #####################################################################
 
 POLY=""
+NOPATCH="0"
 
 # path to max SDK
 
@@ -74,6 +75,7 @@ for p in $@; do
         echo "faust2max6  [-poly] [-midi] <file.dsp>"
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
         echo "Use '-midi' to activate MIDI control"
+        echo "Use '-nopatch' to deactivate patch generation"
     fi
     
     if [ "$p" = -omp ]; then
@@ -91,6 +93,8 @@ for p in $@; do
         POLY="POLY1"
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
+    elif [ $p = "-nopatch" ]; then
+        NOPATCH="1"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -150,19 +154,21 @@ for p in $FILES; do
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
     
     # create Max patch
-    if [ "$POLY" = "POLY1" ]; then 
-        cat $FAUSTLIB/max-msp/wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
-    else
-        cat $FAUSTLIB/max-msp/wrapper.maxpat > ${f%.dsp}-temp1.maxpat
-    fi
-    sed -e "s/DSP_NAME/"${f%.dsp}"~/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
-    sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
+    if [ "$NOPATCH" = "0" ]; then
+        if [ "$POLY" = "POLY1" ]; then
+            cat $FAUSTLIB/max-msp/wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
+        else
+            cat $FAUSTLIB/max-msp/wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+        fi
+        sed -e "s/DSP_NAME/"${f%.dsp}"~/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
+        sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
 
-    # copy JavaScript UI file
-    cp $FAUSTLIB/max-msp/ui.js .
-    
-    rm ${f%.dsp}-temp1.maxpat
-    rm ${f%.dsp}-temp2.maxpat
+        # copy JavaScript UI file
+        cp $FAUSTLIB/max-msp/ui.js .
+        
+        rm ${f%.dsp}-temp1.maxpat
+        rm ${f%.dsp}-temp2.maxpat
+    fi
     
 done
 
