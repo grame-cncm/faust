@@ -148,7 +148,7 @@ bool isRunning()
  */
 int keyOn(int pitch, int velocity)
 {
-    return gGlobal->keyOn(pitch, velocity);
+    return (int)gGlobal->keyOn(pitch, velocity);
 }
 
 /*
