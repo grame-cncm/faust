@@ -82,7 +82,7 @@ If you wish to add a function to any of these libraries or if you plan to add a 
 //
 // Where:
 //
-// * argument1: argument 1 descirption
+// * argument1: argument 1 description
 //-------------------------------------------------
 ```
 
