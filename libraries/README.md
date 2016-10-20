@@ -6,7 +6,7 @@ This page provides information on how to use the Faust libraries.
 
 The `/libraries` folder contains the different Faust libraries. If you wish to add your own functions to this library collection, you can refer to the "Contributing" section providing a set of coding conventions.
 
-WARNING: These libraries replace the "old" Faust libraries. They are still being beta tested so you might encounter bugs while using them. If you find a bug, please report it at rmichon_at_ccrma_dot_stanford_dot_edu. Thanks ;)!
+WARNING: These libraries replace the "old" Faust libraries. They are still being beta tested so you might encounter bugs while using them. If your codes still use the "old" Faust libraries, you might want to try to use Bart Brouns' script that automatically makes an old Faust code compatible with the new libraries: <https://github.com/magnetophon/faustCompressors/blob/master/newlib.sh>. If you find a bug, please report it at rmichon_at_ccrma_dot_stanford_dot_edu. Thanks ;)!
 
 ## Using the Faust Libraries
 
@@ -22,7 +22,7 @@ This will give you access to all the Faust libraries through a series of environ
 * `ba`: `basic.lib`
 * `co`: `compressor.lib`
 * `de`: `delay.lib`
-* `de`: `demo.lib`
+* `dm`: `demo.lib`
 * `en`: `envelope.lib`
 * `fi`: `filter.lib`
 * `ho`: `hoa.lib`

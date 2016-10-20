@@ -455,7 +455,7 @@
 <p>NOTE: this documentation was automatically generated.</p>
 <p>This page provides information on how to use the Faust libraries.</p>
 <p>The <code>/libraries</code> folder contains the different Faust libraries. If you wish to add your own functions to this library collection, you can refer to the &quot;Contributing&quot; section providing a set of coding conventions.</p>
-<p>WARNING: These libraries replace the &quot;old&quot; Faust libraries. They are still being beta tested so you might encounter bugs while using them. If you find a bug, please report it at rmichon_at_ccrma_dot_stanford_dot_edu. Thanks ;)!</p>
+<p>WARNING: These libraries replace the &quot;old&quot; Faust libraries. They are still being beta tested so you might encounter bugs while using them. If your codes still use the &quot;old&quot; Faust libraries, you might want to try to use Bart Brouns' script that automatically makes an old Faust code compatible with the new libraries: <a href="https://github.com/magnetophon/faustCompressors/blob/master/newlib.sh" class="uri">https://github.com/magnetophon/faustCompressors/blob/master/newlib.sh</a>. If you find a bug, please report it at rmichon_at_ccrma_dot_stanford_dot_edu. Thanks ;)!</p>
 <h2 id="using-the-faust-libraries">Using the Faust Libraries</h2>
 <p>The easiest and most standard way to use the Faust libraries is to import <code>stdfaust.lib</code> in your Faust code:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);</code></pre>
@@ -465,7 +465,7 @@
 <li><code>ba</code>: <code>basic.lib</code></li>
 <li><code>co</code>: <code>compressor.lib</code></li>
 <li><code>de</code>: <code>delay.lib</code></li>
-<li><code>de</code>: <code>demo.lib</code></li>
+<li><code>dm</code>: <code>demo.lib</code></li>
 <li><code>en</code>: <code>envelope.lib</code></li>
 <li><code>fi</code>: <code>filter.lib</code></li>
 <li><code>ho</code>: <code>hoa.lib</code></li>
@@ -509,7 +509,7 @@ process = osc(440);</code></pre>
 //
 // Where:
 //
-// * argument1: argument 1 descirption
+// * argument1: argument 1 description
 //-------------------------------------------------</code></pre>
 <ul>
 <li>Every time a new function is added, the documentation should be updated simply by running <code>make doclib</code>.</li>
