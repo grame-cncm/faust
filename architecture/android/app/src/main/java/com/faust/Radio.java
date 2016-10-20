@@ -36,8 +36,10 @@ class Radio{
 		radio = new RadioGroup(c);
 		radio.setLayoutParams(new ViewGroup.LayoutParams(
 				ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-		if(orientation == 0) radio.setOrientation(LinearLayout.VERTICAL);
-		else radio.setOrientation(LinearLayout.HORIZONTAL);
+        if (orientation == 0)
+            radio.setOrientation(LinearLayout.VERTICAL);
+        else
+            radio.setOrientation(LinearLayout.HORIZONTAL);
 		
 		frame = new LinearLayout(c);
 		frame.setLayoutParams(new ViewGroup.LayoutParams(
@@ -60,25 +62,26 @@ class Radio{
 		int nElements = countStringOccurrences(parsedParameters,";")+1;
 		values = new float[nElements];
 		// a menu item with a value assigned to it is created for each element of the array
-		for(int i=0; i<nElements; i++){
+		for (int i=0; i<nElements; i++) {
 			String parameterName = parsedParameters.substring(1, parsedParameters.indexOf(":") - 1);
-			if(parsedParameters.indexOf(";") != -1) values[i] = Float.valueOf(parsedParameters.substring(
-					parsedParameters.indexOf(":")+1, parsedParameters.indexOf(";")));
-			else values[i] = Float.valueOf(parsedParameters.substring(
-					parsedParameters.indexOf(":")+1));
+            if (parsedParameters.indexOf(";") != -1) {
+                values[i] = Float.valueOf(parsedParameters.substring(parsedParameters.indexOf(":")+1, parsedParameters.indexOf(";")));
+            } else {
+                values[i] = Float.valueOf(parsedParameters.substring(parsedParameters.indexOf(":")+1));
+            }
 			parsedParameters = parsedParameters.substring(parsedParameters.indexOf(";") + 1, length);
 			length = parsedParameters.length();
 			
 			RadioButton button = new RadioButton(c);
 			button.setText(parameterName);
 			button.setId(i);
-			if(init == i){ 
+			if (init == i) {
 				button.setChecked(true);
 				dsp_faust.setParamValue(address, values[i]);
 			}
 			radio.addView(button);
 		}
-		if(visibility) {
+		if (visibility) {
             localVerticalGroup.addView(textLabel);
             localVerticalGroup.addView(radio);
             frame.addView(localVerticalGroup);

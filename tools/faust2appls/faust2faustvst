@@ -39,7 +39,7 @@ sdkpaths='/usr/src/VST* /usr/src/vst* /usr/include/VST* /usr/include/vst* /opt/l
 # found, so that you can run the script from the faust-vst source
 # directory. You can also specify this explicitly by setting the FAUSTLIB
 # environment variable accordingly.
-[ -z "$FAUSTLIB" ] && FAUSTLIB=$(dirname "$((ls -f /usr/lib/faust/faustvstqt.h /usr/local/lib/faust/faustvstqt.h /opt/local/lib/faust/faustvstqt.h "$PWD/faustvstqt.h" 2>/dev/null)|tail -1)")
+[ -z "$FAUSTLIB" ] && FAUSTLIB=$(dirname "$((ls -f /usr/share/faust/faustvstqt.h /usr/local/share/faust/faustvstqt.h /opt/local/share/faust/faustvstqt.h "$PWD/faustvstqt.h" 2>/dev/null)|tail -1)")
 [ -z "$FAUSTLIB" ] && FAUSTLIB="$PWD"
 
 # defaults (these can be changed with the options listed below)

@@ -130,7 +130,7 @@ for p in $FILES; do
 	if $DEBUG; then echo $FAUST; fi
 	eval $FAUST || exit
 
-	IOSDIR=/usr/local/lib/faust/iOS
+	IOSDIR=/usr/local/share/faust/iOS
 	RSRC=$IOSDIR/*.png
 	RFILES="RSRC.files=$(echo $RSRC)"
 

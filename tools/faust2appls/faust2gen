@@ -15,16 +15,16 @@ POLY="MONO"
 if [ -f $FAUST_LIB_PATH/music.lib ]
 then
   FAUSTLIB=$FAUST_LIB_PATH
-elif [ -f /usr/local/lib/faust/music.lib ]
+elif [ -f /usr/local/share/faust/music.lib ]
 then
-  FAUSTLIB=/usr/local/lib/faust
+  FAUSTLIB=/usr/local/share/faust
   JSFILE_PATH="ui.js"
-elif [ -f /usr/lib/faust/music.lib ]
+elif [ -f /usr/share/faust/music.lib ]
 then
-  FAUSTLIB=/usr/lib/faust
+  FAUSTLIB=/usr/share/faust
   JSFILE_PATH="ui.js"
 else
-  error "$0: Cannot find Faust library dir (usually /usr/local/lib/faust)"
+  error "$0: Cannot find Faust library dir (usually /usr/local/share/faust)"
 fi
 
 #PHASE 2 : dispatch command arguments

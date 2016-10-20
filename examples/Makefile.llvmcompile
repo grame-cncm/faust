@@ -58,7 +58,7 @@ LLC = $(LLVM_PREFIX)/llc
 LINK = $(LLVM_PREFIX)/llvm-link
 
 $(DEST)% : %.dsp
-	cp /usr/local/lib/faust/$(ARCH) $(DEST)
+	cp /usr/local/share/faust/$(ARCH) $(DEST)
 	#faust -vec -lv 1  -lang llvm  -vs 64 -vls 4 $< -o $@.bc
 	#faust -vec -lv 1  -lang llvm  -vs 512 $< -o $@.bc
 	faust -sch  -lang llvm  -vs 64 $< -o $@.bc

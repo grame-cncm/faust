@@ -1,6 +1,6 @@
 # Directory containing Faust .lib and .cpp architecture files:
-ck1 := /opt/local/lib/faust/music.lib
-ck2 := /usr/local/lib/faust/music.lib
+ck1 := /opt/local/share/faust/music.lib
+ck2 := /usr/local/share/faust/music.lib
 ck3 := $(FAUST_LIB_PATH)/faust/music.lib
 LIB := $(if $(wildcard $(ck1)),/opt/local/lib,"")
 LIB := $(if $(wildcard $(ck2)),/usr/local/lib,$(LIB))

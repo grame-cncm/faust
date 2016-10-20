@@ -41,13 +41,13 @@
  On OSX:
  g++ -O3 -dynamiclib -o libfaustcsound.dylib ../Opcodes/faustcsound.cpp -g 
      -DFAUSTFLOAT=double -DUSE_DOUBLE -I<path_to_csound_headers>
-      -L/usr/local/lib/faust -lfaust 
+      -L/usr/local/lib -lfaust
       `llvm-config --ldflags --libs all`
 
  On Linux:
  g++ -O3 -shared -o libfaustcsound.so ../Opcodes/faustcsound.cpp -g 
      -DFAUSTFLOAT=double -DUSE_DOUBLE -I<path_to_csound_headers>
-      -L/usr/local/lib/faust -lfaust 
+      -L/usr/local/lib -lfaust
       `llvm-config --ldflags --libs all`
 
 */

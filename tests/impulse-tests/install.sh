@@ -22,7 +22,7 @@ cp impulseinterp /usr/local/bin/
 cp impulsellvm /usr/local/bin/
 cp filesCompare /usr/local/bin/
 
-cp impulsearch.cpp /usr/local/lib/faust/
-cp impulsearch2.cpp /usr/local/lib/faust/
+cp impulsearch.cpp /usr/local/share/faust/
+cp impulsearch2.cpp /usr/local/share/faust/
 
 

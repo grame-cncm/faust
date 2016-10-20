@@ -65,7 +65,7 @@ for p in $FILES; do
 	P=${F%.dsp}
   
 	T=$(mktemp -d faust.XXX)
-	cp -r /usr/local/lib/faust/iOS/* $T
+	cp -r /usr/local/share/faust/iOS/* $T
 	cp -r /usr/local/include/faust $T
 
 	if [ "$JACK" = "1" ]; then

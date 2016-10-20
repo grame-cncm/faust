@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
     if (isopt(argv, "-vec")) index += 2;
     int VSIZE = lopt(argv, "-vec", 512);
     
-    dsp_optimizer optimizer(argv[index], "/usr/local/lib/faust", "", VSIZE);
+    dsp_optimizer optimizer(argv[index], "/usr/local/share/faust", "", VSIZE);
     double value;
     vector<string> options = optimizer.findOptimizedParameters(value);
     

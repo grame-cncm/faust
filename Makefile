@@ -1,4 +1,4 @@
-version := 2.0.a51
+version := 2.0.a52
 
 system	?= $(shell uname -s)
 
@@ -97,7 +97,7 @@ help :
 	@echo "make clean : remove all object files"
 	@echo "make doc : generate the documentation using doxygen"
 	@echo "make doclib : generate the documentation of the faust libraries"
-	@echo "make install : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/lib/faust $(prefix)/include/faust"
+	@echo "make install : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
 	@echo "make uninstall : undo what install did"
 	@echo "make dist : make a Faust distribution as a .zip file"
 	@echo "make log : make a changelog file"
@@ -118,13 +118,11 @@ depend :
 	$(MAKE) -C architecture/osclib depend
 	$(MAKE) -C architecture/httpdlib/src depend
 
-
 doc :
 	$(MAKE) -C compiler -f $(MAKEFILE) doc
 
 doclib :
 	./libraries/generateDoc
-
 
 install :
 	# install faust itself
@@ -133,7 +131,7 @@ install :
 	mkdir -p $(prefix)/include/faust/
 	mkdir -p $(prefix)/include/faust/osc/
 	mkdir -p $(prefix)/include/faust/dsp/
-	mkdir -p $(prefix)/lib/faust
+	mkdir -p $(prefix)/share/faust
 	([ -e compiler/faust ] && install compiler/faust $(prefix)/bin/)  || echo faust not available
 	([ -e compiler/libfaust.$(LIB_EXT) ] && install compiler/libfaust.$(LIB_EXT) $(prefix)/lib/) || echo libfaust.$(LIB_EXT) not available
 	([ -e compiler/libfaust.a ] && install compiler/libfaust.a $(prefix)/lib/) || echo libfaust.a not available
@@ -144,64 +142,77 @@ install :
 	([ -e compiler/scheduler.ll ] && cp compiler/scheduler.ll $(prefix)/lib/faust) || echo scheduler.ll not available
 
 	# install architecture and faust library files
-	cp architecture/*.c $(prefix)/lib/faust/
-	cp architecture/*.cpp $(prefix)/lib/faust/
-	cp architecture/*.java $(prefix)/lib/faust/
-	cp architecture/*.js $(prefix)/lib/faust/
-	cp architecture/*.html $(prefix)/lib/faust/
-	cp libraries/old/*.lib $(prefix)/lib/faust/
-	cp libraries/*.lib $(prefix)/lib/faust/
+	cp architecture/*.c $(prefix)/share/faust/
+	cp architecture/*.cpp $(prefix)/share/faust/
+	cp architecture/*.java $(prefix)/share/faust/
+	cp architecture/*.js $(prefix)/share/faust/
+	cp architecture/*.html $(prefix)/share/faust/
+	cp libraries/old/*.lib $(prefix)/share/faust/
+	cp libraries/*.lib $(prefix)/share/faust/
+
 	# This is needed by faust2lv2 -gui / lv2ui.cpp.
-	cp architecture/lv2qtgui.h $(prefix)/lib/faust/
+	cp architecture/lv2qtgui.h $(prefix)/share/faust/
+
 	# This is needed by faust2faustvst -gui / faustvst.cpp.
-	cp architecture/faustvstqt.h $(prefix)/lib/faust/
+	cp architecture/faustvstqt.h $(prefix)/share/faust/
+
 	# install iOS
-	rm -rf $(prefix)/lib/faust/iOS
-	cp -r architecture/iOS $(prefix)/lib/faust/
-	cp -r architecture/osclib $(prefix)/lib/faust/iOS
-	rm -rf $(prefix)/lib/faust/iOS/DerivedData/
-	rm -rf $(prefix)/lib/faust/iOSKeyboard
-	cp -r architecture/iOSKeyboard $(prefix)/lib/faust/
+	rm -rf $(prefix)/share/faust/iOS
+	cp -r architecture/iOS $(prefix)/share/faust/
+	cp -r architecture/osclib $(prefix)/share/faust/iOS
+	rm -rf $(prefix)/share/faust/iOS/DerivedData/
+	rm -rf $(prefix)/share/faust/iOSKeyboard
+	cp -r architecture/iOSKeyboard $(prefix)/share/faust/
+
 	# install AU
-	rm -rf $(prefix)/lib/faust/AU/
-	cp -r architecture/AU $(prefix)/lib/faust/
-	cp -r architecture/android $(prefix)/lib/faust/
-	cp -r architecture/max-msp $(prefix)/lib/faust/
+	rm -rf $(prefix)/share/faust/AU/
+	cp -r architecture/AU $(prefix)/share/faust/
+	cp -r architecture/android $(prefix)/share/faust/
+	cp -r architecture/max-msp $(prefix)/share/faust/
 
 	# install math documentation files
-	cp architecture/mathdoctexts-*.txt $(prefix)/lib/faust/
-	cp architecture/latexheader.tex $(prefix)/lib/faust/
+	cp architecture/mathdoctexts-*.txt $(prefix)/share/faust/
+	cp architecture/latexheader.tex $(prefix)/share/faust/
+
 	# install additional binary libraries (osc, http,...)
 	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/) || echo libHTTPDFaust.a not available
 	([ -e architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) ] && cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) $(prefix)/lib/) || echo libHTTPDFaust.$(LIB_EXT) not available
 
 	([ -e architecture/osclib/libOSCFaust.a ] && cp architecture/osclib/libOSCFaust.a $(prefix)/lib/) || echo libOSCFaust.a not available
 	([ -e architecture/osclib/libOSCFaust.$(LIB_EXT) ] && cp -a architecture/osclib/libOSCFaust*.$(LIB_EXT)* $(prefix)/lib/) || echo libOSCFaust.$(LIB_EXT) not available
-
-	cp -r architecture/httpdlib/html/js $(prefix)/lib/faust/js
-	([ -e architecture/httpdlib/src/hexa/stylesheet ] && cp architecture/httpdlib/src/hexa/stylesheet $(prefix)/lib/faust/js/stylesheet.js) || echo stylesheet not available
-	([ -e architecture/httpdlib/src/hexa/jsscripts ] && cp architecture/httpdlib/src/hexa/jsscripts $(prefix)/lib/faust/js/jsscripts.js) || echo jsscripts not available
+	
+	cp -r architecture/httpdlib/html/js $(prefix)/share/faust/js
+	([ -e architecture/httpdlib/src/hexa/stylesheet ] && cp architecture/httpdlib/src/hexa/stylesheet $(prefix)/share/faust/js/stylesheet.js) || echo stylesheet not available
+	([ -e architecture/httpdlib/src/hexa/jsscripts ] && cp architecture/httpdlib/src/hexa/jsscripts $(prefix)/share/faust/js/jsscripts.js) || echo jsscripts not available
+	
 	# install includes files for architectures
 	cp -r architecture/faust $(prefix)/include/
+
 	# install additional includes files for binary libraries  (osc, http,...)
 	cp architecture/osclib/faust/faust/OSCControler.h $(prefix)/include/faust/gui/
 	cp architecture/osclib/faust/faust/osc/*.h $(prefix)/include/faust/osc/
 	cp architecture/httpdlib/src/include/*.h $(prefix)/include/faust/gui/
+
 	# install faust2xxx tools
 	make -C tools/faust2appls install
+
 	# install sound converter
 	[ -e tools/sound2faust/sound2faust ] && make -C tools/sound2faust install || echo sound2faust not compiled
+
 	# install faustremote
 	([ -e embedded/faustremote/libfaustremote.a ] &&  install embedded/faustremote/libfaustremote.a  $(prefix)/lib/) || echo remote not compiled
 	cp embedded/faustremote/remote-dsp.h  $(prefix)/include/faust/dsp/
+
 	# install webaudio
-	cp -r architecture/webaudio $(prefix)/lib/faust/
+	cp -r architecture/webaudio $(prefix)/share/faust/
+
 	# install Max/MSP
-	cp -r architecture/max-msp $(prefix)/lib/faust/
+	cp -r architecture/max-msp $(prefix)/share/faust/
 
 uninstall :
 	rm -f $(addprefix $(prefix)/lib/, libfaust.a libfaust.$(LIB_EXT) libHTTPDFaust.a libHTTPDFaust.$(LIB_EXT) libOSCFaust.a libOSCFaust*.$(LIB_EXT)* libfaustremote.a)
-	rm -rf $(prefix)/lib/faust/
+	rm -rf $(prefix)/share/faust/
+
 	rm -rf $(prefix)/include/faust/
 	rm -f $(prefix)/bin/faust$(EXE)
 	rm -f $(prefix)/bin/RemoteServer$(EXE)

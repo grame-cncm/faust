@@ -10,7 +10,7 @@
 #####################################################################
 
 #-------------------------------------------------------------------------------
-# Search where Faust is installed. Store '.../lib/faust/' in $FAUSTLIB
+# Search where Faust is installed. Store '.../share/faust/' in $FAUSTLIB
 # and '.../include/(faust)' in $FAUSTINC 
 #
 # USAGE :
@@ -21,13 +21,13 @@
 FAUSTLIB=""; FAUSTINC=""; 
 FPATH="$FAUST_INSTALL /usr/local /usr /opt /opt/local"; # <- where to search
 for f in $FPATH; do
-	if [ -e $f/lib/faust ]; 	then FAUSTLIB=$f/lib/faust;	fi
+	if [ -e $f/share/faust ]; 	then FAUSTLIB=$f/share/faust;	fi
 	if [ -e $f/include/faust ];	then FAUSTINC=$f/include/; fi
 done
 for f in $FPATH; do
-	if [ -e $f/lib/libmicrohttpd.a ]; 	then HTTPLIB=$f/lib/faust;	fi
+	if [ -e $f/lib/libmicrohttpd.a ]; 	then HTTPLIB=$f/share/faust;	fi
 done
 if [ -z "$FAUSTLIB" -o -z "$FAUSTINC" ]; then 
-	echo "ERROR : $0 cannot find Faust directories (normally /usr/local/include/faust and /usr/local/lib/faust)"; 
+	echo "ERROR : $0 cannot find Faust directories (normally /usr/local/include/faust and /usr/local/share/faust)"; 
 	exit 1;
 fi

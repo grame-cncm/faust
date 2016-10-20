@@ -87,7 +87,7 @@ if [ ! -d "$BUILDDIR" ]; then
   	echo "Creating new Android project $BUILDDIR"  > $LOG
   	
   	mkdir -p "$BUILDDIR"
-	cp -r /usr/local/lib/faust/android/*  "$BUILDDIR"
+	cp -r /usr/local/share/faust/android/*  "$BUILDDIR"
 	# Copy include files *.h if any (ignore any error here)
 	(cp *.h $JNIFOLDER 2> $LOG) || true
 	
