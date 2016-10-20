@@ -217,7 +217,7 @@
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos5.0]" = "";
 				SDKROOT = iphoneos;
-				USER_HEADER_SEARCH_PATHS = "/usr/local/lib/faust/**";
+				USER_HEADER_SEARCH_PATHS = "/usr/local/share/faust/**";
 			};
 			name = Debug;
 		};
@@ -234,7 +234,7 @@
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos5.0]" = "";
 				SDKROOT = iphoneos;
-				USER_HEADER_SEARCH_PATHS = "/usr/local/lib/faust/**";
+				USER_HEADER_SEARCH_PATHS = "/usr/local/share/faust/**";
 			};
 			name = Release;
 		};

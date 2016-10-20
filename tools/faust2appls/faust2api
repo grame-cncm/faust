@@ -41,8 +41,8 @@ if [ $ANDROID -eq 1 ]; then
 	APIFOLDER="dsp-faust"
 	rm -r "$APIFOLDER" > /dev/null || true
 	mkdir "$APIFOLDER"
-	cp -r /usr/local/lib/faust/android/app/src/main/java/com/grame/dsp_faust $APIFOLDER
-	cp -r /usr/local/lib/faust/android/app/src/main/jni $APIFOLDER
+	cp -r /usr/local/share/faust/android/app/src/main/java/com/grame/dsp_faust $APIFOLDER
+	cp -r /usr/local/share/faust/android/app/src/main/jni $APIFOLDER
 	faust -i -a android.cpp "$FILE" -o "$APIFOLDER/jni/dsp_faust.cpp" || exit
 	echo "Your faust-dsp API package for Android was created"
 elif [ $IOS -eq 1 ]; then

@@ -49,7 +49,7 @@ for p in $FILES; do
 	P=${F%.dsp}
   
 	T=$(mktemp -d faust.XXX)
-	cp -r /usr/local/lib/faust/iOSKeyboard/* $T
+	cp -r /usr/local/share/faust/iOSKeyboard/* $T
 #	cp -r /usr/local/include/faust $T
 
     echo "Compile with CoreAudio support in 64/32 bits"

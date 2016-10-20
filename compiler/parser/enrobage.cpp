@@ -247,17 +247,17 @@ ifstream* open_arch_stream(const char* filename)
         TRY_OPEN(filename);
 	}
 #ifdef INSTALL_PREFIX
-    if (chdir(INSTALL_PREFIX "/lib/faust")==0) {
+    if (chdir(INSTALL_PREFIX "/share/faust")==0) {
         TRY_OPEN(filename);
 	}
     if (chdir(INSTALL_PREFIX "/include")==0) {
         TRY_OPEN(filename);
     }
 #endif
-    if (chdir("/usr/local/lib/faust")==0) {
+    if (chdir("/usr/local/share/faust")==0) {
         TRY_OPEN(filename);
 	}
-    if (chdir("/usr/lib/faust")==0) {
+    if (chdir("/usr/share/faust")==0) {
         TRY_OPEN(filename);
     }
     if (chdir("/usr/local/include")==0) {
@@ -479,14 +479,14 @@ FILE* fopensearch(const char* filename, string& fullpath)
     	return f;
     }
 #ifdef INSTALL_PREFIX
-    if ((f = fopenat(fullpath, INSTALL_PREFIX "/lib/faust", filename))) { 
+    if ((f = fopenat(fullpath, INSTALL_PREFIX "/share/faust", filename))) { 
     	return f;
     }
 #endif
-    if ((f = fopenat(fullpath, "/usr/local/lib/faust", filename))) { 
+    if ((f = fopenat(fullpath, "/usr/local/share/faust", filename))) { 
     	return f;
     }
-    if ((f = fopenat(fullpath, "/usr/lib/faust", filename))) { 
+    if ((f = fopenat(fullpath, "/usr/share/faust", filename))) { 
     	return f;
     }
     return 0;
