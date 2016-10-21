@@ -6,17 +6,14 @@ print_usage()
     echo Usage : args of faust2graphviewer should be a \'.dsp\' file, or a list of \'.dsp\' files.
 }
 
-
-#    prepare how we are going to open .pdf files
+# prepare how we are going to open .pdf files
 if [[ $(uname) == Darwin ]]; then
     OPEN=open
 else
 	OPEN=xdg-open
 fi
 
-
-
-#    Main loop of this script :
+# Main loop of this script :
 for FILEPATH in $@ ; do
     if [ -f $FILEPATH ] ; then
 	FILENAME=`basename $FILEPATH` &&

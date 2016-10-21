@@ -91,7 +91,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		${CXX=g++} $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $SPEC -Dmydsp=$module -I/usr/local/lib/faust "$f.cpp" -o $dst
+		${CXX=g++} $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $SPEC -Dmydsp=$module -I/usr/local/share/faust "$f.cpp" -o $dst
 	) > /dev/null || exit
 	rm "$f.cpp"
 

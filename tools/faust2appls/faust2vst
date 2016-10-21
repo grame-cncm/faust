@@ -20,8 +20,6 @@ SOURCES=" $VSTSDK/public.sdk/source/vst2.x/audioeffect.cpp $VSTSDK/public.sdk/so
 
 CXXFLAGS='-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 
-
-
 createInfoPList() {
 	(
 	echo '<?xml version="1.0" encoding="UTF-8"?>' > info.plist
@@ -98,8 +96,6 @@ for p in $@; do
 	    OPTIONS="$OPTIONS $p"        
 	fi
 done
-
-
 
 #-------------------------------------------------------------------
 # compile the *.dsp files

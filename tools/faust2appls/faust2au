@@ -10,14 +10,14 @@
 PATH=$PATH:/usr/local/bin
 
 #-------------------------------------------------------------------------------
-# Search where Faust is installed. Store '.../lib/faust/' in $FLIB
+# Search where Faust is installed. Store '.../share/faust/' in $FLIB
 # and '.../include/(faust)' in $FINC
 
 FLIB=""; FINC="";
 FPATH="$FAUST_INSTALL /usr/local /usr /opt /opt/local"; # <- where to search
 for f in $FPATH; do
-	if [ -e $f/lib/faust ]; then
-		FLIB=$f/lib/faust;
+	if [ -e $f/share/faust ]; then
+		FLIB=$f/share/faust;
 	fi
 	if [ -e $f/include/faust ]; then
 		FINC=$f/include/;
@@ -29,7 +29,7 @@ if [ -z $ARCHPATH ]; then
 fi
 
 if [ -z "$FLIB" -o -z "$FINC" ]; then
-	echo "ERROR : $0 cannot find Faust directories (normally /usr/local/include/faust and /usr/local/lib/faust)";
+	echo "ERROR : $0 cannot find Faust directories (normally /usr/local/include/faust and /usr/local/share/faust)";
 	exit 1;
 fi
 

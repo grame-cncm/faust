@@ -352,7 +352,7 @@ public class UI {
                     else if (metaDataStyle.contains("radio")) {
 						radio(c,currentGroup,currentObject.getString("address"),
 								currentObject.getString("label"),
-								localScreenWidth,localBackgroundColor,metaDataStyle,0,paramVisible);
+                              localScreenWidth,localBackgroundColor,metaDataStyle,(currentObject.getString("type").equals("vslider")?0:1),paramVisible);
 					}
                     else if (currentObject.getString("type").equals("vslider")) {
 						vslider(c,currentGroup,currentObject.getString("address"),

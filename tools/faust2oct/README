@@ -4,7 +4,7 @@ README for faust2octave
 
 faust2octave is a script to create dynamically loadable functions for gnu octave
 from faust code.  You have to copy the file "octave.cpp" into the folder where
-faust looks for its architecture files (check /usr/local/lib/faust or /usr/lib/faust) and
+faust looks for its architecture files (check /usr/local/share/faust or /usr/share/faust) and
 the script "faust2octave" somewhere in your PATH.
 
 Then you can call the script with an faust ".dsp" file as argument.

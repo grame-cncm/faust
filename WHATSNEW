@@ -241,7 +241,7 @@ c1b94c3 RosUI.h updated to handle spaces in labels
 6c3e6c7 Makefile fixes (Ryan Schmidt).
 c112ae3 Add 'make world' target.
 c07701d Automatic UI generation in Max/MSP architecture files.
-cb75225 Avoid having to install liboscpack by statically linking it into libOSCFaust. Install OSC and HTTP libraries into standard ../lib path instead of ../lib/faust
+cb75225 Avoid having to install liboscpack by statically linking it into libOSCFaust. Install OSC and HTTP libraries into standard ../lib path instead of ../share/faust
 70d92c4 Faust version number set to 0.9.70
 f81b817 uses also pkg-config when building libHTTPDFaust for Linux
 4b49c76 faust2jack and faust2alsa scripts adapted (liboscpack and special path removed)
