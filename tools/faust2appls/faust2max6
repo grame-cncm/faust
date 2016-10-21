@@ -49,7 +49,7 @@ then
   FAUSTLIB=/usr/share/faust
   JSFILE_PATH="ui.js"
 else
-  error "$0: Cannot find Faust library dir (usually /usr/local/share/faust)"
+  echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
 fi
 
 

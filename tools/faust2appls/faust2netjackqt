@@ -21,8 +21,6 @@ ARCHLIB="-L/usr/local/lib -ljacknet"
 
 QMAKE=$(which qmake-qt4 || echo qmake) 
 
-
-
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -74,9 +72,6 @@ for p in $@; do
 	fi
 done
 
-
-
-
 #-------------------------------------------------------------------
 # Check darwin specifics
 #
@@ -92,7 +87,6 @@ if [[ $(uname) == Darwin ]]; then
 	fi
     EXT=".app"
 fi
-
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
