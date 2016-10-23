@@ -35,7 +35,9 @@ class android_midi_handler : public midi_handler{
 			:midi_handler(name) {}
 		virtual ~android_midi_handler() {}
 		void propagateMIDI(double time, int type, int channel, int data1, int data2){
-			handleData2(time,type,channel,data1,data2);
+			if(data2 != NULL) handleData2(time,type,channel,data1,data2);
+			else if(data1 != NULL) handleData1(time,type,channel,data1);
+			else handleSync(time,type);
 		}
 };
 
