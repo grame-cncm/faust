@@ -37,7 +37,7 @@ public class dsp_faustJNI {
   public final static native void setAccConverter(int jarg1, int jarg2, int jarg3, float jarg4, float jarg5, float jarg6);
   public final static native void propagateGyr(int jarg1, float jarg2);
   public final static native void setGyrConverter(int jarg1, int jarg2, int jarg3, float jarg4, float jarg5, float jarg6);
-  public final static native void propagateMidi(double jarg1, int jarg2, int jarg3, int jarg4, int jarg5);
+  public final static native void propagateMidi(int jarg1, double jarg2, int jarg3, int jarg4, int jarg5, int jarg6);
   public final static native float getCPULoad();
   public final static native int getScreenColor();
 }

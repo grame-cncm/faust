@@ -81,8 +81,8 @@ public class dsp_faust {
     dsp_faustJNI.setGyrConverter(p, gyr, curve, amin, amid, amax);
   }
 
-  public static void propagateMidi(double time, int type, int channel, int data1, int data2) {
-    dsp_faustJNI.propagateMidi(time, type, channel, data1, data2);
+  public static void propagateMidi(int count, double time, int type, int channel, int data1, int data2) {
+    dsp_faustJNI.propagateMidi(count, time, type, channel, data1, data2);
   }
 
   public static float getCPULoad() {
