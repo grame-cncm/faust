@@ -497,21 +497,23 @@ SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setGyrConverter(JNIEnv
 }
 
 
-SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_propagateMidi(JNIEnv *jenv, jclass jcls, jdouble jarg1, jint jarg2, jint jarg3, jint jarg4, jint jarg5) {
-  double arg1 ;
-  int arg2 ;
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_propagateMidi(JNIEnv *jenv, jclass jcls, jint jarg1, jdouble jarg2, jint jarg3, jint jarg4, jint jarg5, jint jarg6) {
+  int arg1 ;
+  double arg2 ;
   int arg3 ;
   int arg4 ;
   int arg5 ;
+  int arg6 ;
   
   (void)jenv;
   (void)jcls;
-  arg1 = (double)jarg1; 
-  arg2 = (int)jarg2; 
+  arg1 = (int)jarg1; 
+  arg2 = (double)jarg2; 
   arg3 = (int)jarg3; 
   arg4 = (int)jarg4; 
   arg5 = (int)jarg5; 
-  propagateMidi(arg1,arg2,arg3,arg4,arg5);
+  arg6 = (int)jarg6; 
+  propagateMidi(arg1,arg2,arg3,arg4,arg5,arg6);
 }
 
 

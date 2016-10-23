@@ -54,8 +54,6 @@
 // Native Faust API
 //**************************************************************
 
-#include "faust/midi/android-midi.h"
-
 #include <android/log.h>
 #include "dsp_faust.h"
 
@@ -64,29 +62,28 @@ ztimedmap GUI::gTimedZoneMap;
 
 class AndroidEngine : public FaustPolyEngine {
 
-    protected:
-		android_midi_handler midiHandler;
+protected:
+	midi_handler fMidiHandler;
+	MidiUI fMidiUI;
 
-    public:
+public:
 
-        AndroidEngine(int srate, int bsize):FaustPolyEngine()
-        {
-            // allocating audio driver
-            fDriver = new androidaudio(srate, bsize);
-			
-			// midi support
-			MidiUI fMidiUI(&midiHandler);
-			fPolyDSP->buildUserInterface(&fMidiUI);
-        }
-        
-        virtual ~AndroidEngine()
-        {}
-		
-		// Allows to retrieve MIDI events in JAVA and to propagate to the Faust object.
-		void propagateMidi(double time, int type, int channel, int data1, int data2)
-		{
-			midiHandler.propagateMIDI(time, type, channel, data1, data2);
-		}
+	AndroidEngine(int srate, int bsize):FaustPolyEngine(), fMidiUI(&fMidiHandler)
+	{
+		fDriver = new androidaudio(srate, bsize);
+		fPolyDSP->buildUserInterface(&fMidiUI);
+	}
+
+	virtual ~AndroidEngine()
+	{}
+
+	// Allows to retrieve MIDI events in JAVA and to propagate to the Faust object.
+	void propagateMidi(int count, double time, int type, int channel, int data1, int data2)
+	{
+		if(count == 3) fMidiHandler.handleData2(time,type,channel,data1,data2);
+		else if(count == 2) fMidiHandler.handleData1(time,type,channel,data1);
+		else if(count == 1)fMidiHandler.handleSync(time,type);
+	}
 };
 
 static AndroidEngine* gGlobal = NULL;
@@ -293,8 +290,8 @@ void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float am
  * propagateMidi(double time, int type, int channel, int data1, int data2)
  * Allows to retrieve MIDI events in JAVA and to propagate to the Faust object.
  */
-void propagateMidi(double time, int type, int channel, int data1, int data2){
-	gGlobal->propagateMidi(time, type, channel, data1, data2);
+void propagateMidi(int count, double time, int type, int channel, int data1, int data2){
+	gGlobal->propagateMidi(count, time, type, channel, data1, data2);
 }
 
 /*
