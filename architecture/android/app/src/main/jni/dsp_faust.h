@@ -35,5 +35,9 @@ void propagateAcc(int acc, float v);
 void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax);
 void propagateGyr(int acc, float v);
 void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax);
+<<<<<<< HEAD
+=======
+void propagateMidi(int count, double time, int type, int channel, int data1, int data2);
+>>>>>>> 4098c95... Simplifying new MIDI android support
 float getCPULoad();
 int getScreenColor();
