@@ -62,17 +62,29 @@ ztimedmap GUI::gTimedZoneMap;
 
 class AndroidEngine : public FaustPolyEngine {
 
+    protected:
+    
+        midi_handler fMidiHandler;
+        MidiUI fMidiUI;
+
     public:
 
-        AndroidEngine(int srate, int bsize):FaustPolyEngine()
+        AndroidEngine(int srate, int bsize):FaustPolyEngine(), fMidiUI(&fMidiHandler)
         {
-            // allocating audio driver
             fDriver = new androidaudio(srate, bsize);
+            fPolyDSP->buildUserInterface(&fMidiUI);
         }
-        
+
         virtual ~AndroidEngine()
         {}
-    
+
+        // Allows to retrieve MIDI events in JAVA and to propagate to the Faust object.
+        void propagateMidi(int count, double time, int type, int channel, int data1, int data2)
+        {
+            if (count == 3) fMidiHandler.handleData2(time, type, channel, data1, data2);
+            else if (count == 2) fMidiHandler.handleData1(time, type, channel, data1);
+            else if (count == 1) fMidiHandler.handleSync(time, type);
+        }
 };
 
 static AndroidEngine* gGlobal = NULL;
@@ -148,7 +160,10 @@ bool isRunning()
  */
 int keyOn(int pitch, int velocity)
 {
-    return (int)gGlobal->keyOn(pitch, velocity);
+    if(gGlobal->keyOn(pitch, velocity) != NULL){
+		return 1;
+	}
+	else return 0;
 }
 
 /*
@@ -270,6 +285,14 @@ void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float am
 {
     //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d %d %d %f %f %f", p, acc, curve, amin, amid, amax);
     gGlobal->setGyrConverter(p, gyr, curve, amin, amid, amax);
+}
+
+/*
+ * propagateMidi(double time, int type, int channel, int data1, int data2)
+ * Allows to retrieve MIDI events in JAVA and to propagate to the Faust object.
+ */
+void propagateMidi(int count, double time, int type, int channel, int data1, int data2){
+	gGlobal->propagateMidi(count, time, type, channel, data1, data2);
 }
 
 /*
