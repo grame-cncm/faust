@@ -48,7 +48,7 @@ class FaustPolyEngine {
 
         mydsp* fMonoDSP;          // the monophonic Faust object
         mydsp_poly* fPolyDSP;     // the polyphonic Faust object
-		dsp* fFinalPolyDSP;		  // the "final" dsp object submitted to the audio driver
+		dsp* fFinalDSP;		  // the "final" dsp object submitted to the audio driver
         APIUI fAPIUI;             // the UI description
     
         string fJSON;
@@ -81,29 +81,29 @@ class FaustPolyEngine {
                 fPolyDSP = new mydsp_poly(fMonoDSP, fPolyMax, true);
 
             #if POLY2
-                fFinalPolyDSP = new dsp_sequencer(fPolyDSP, new effect());
+                fFinalDSP = new dsp_sequencer(fPolyDSP, new effect());
             #else
-                fFinalPolyDSP = fPolyDSP;
+                fFinalDSP = fPolyDSP;
             #endif
 
-                fFinalPolyDSP->buildUserInterface(&fAPIUI);
+                fFinalDSP->buildUserInterface(&fAPIUI);
                 
                 // Update JSON with Poly version
                 JSONUI jsonui2(fMonoDSP->getNumInputs(), fMonoDSP->getNumOutputs());
-                fFinalPolyDSP->buildUserInterface(&jsonui2);
+                fFinalDSP->buildUserInterface(&jsonui2);
                 fJSON = jsonui2.JSON();
                 
             } else {
                 fPolyMax = 0;
                 fPolyDSP = NULL;
-                fFinalPolyDSP = fMonoDSP;
+                fFinalDSP = fMonoDSP;
             }
-            fFinalPolyDSP->buildUserInterface(&fAPIUI);
+            fFinalDSP->buildUserInterface(&fAPIUI);
          }
 
         virtual ~FaustPolyEngine()
         {
-            delete fFinalPolyDSP;
+            delete fFinalDSP;
             delete fDriver;
         }
     
@@ -113,7 +113,7 @@ class FaustPolyEngine {
          */
         bool init()
         {
-            return fDriver->init("Dummy", fFinalPolyDSP);
+            return fDriver->init("Dummy", fFinalDSP);
         }
 
         /*
