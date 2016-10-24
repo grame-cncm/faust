@@ -76,15 +76,15 @@ ztimedmap GUI::gTimedZoneMap;
 
 class IOSEngine : public FaustPolyEngine {
     
-public:
-    
-    IOSEngine(int srate, int buffer_size):FaustPolyEngine()
-    {
-        // allocating audio driver
-        fDriver = new iosaudio(srate, buffer_size);
-    }
-    
-    virtual ~IOSEngine()
-    {}
+    public:
+        
+        IOSEngine(int srate, int buffer_size):FaustPolyEngine()
+        {
+            // allocating audio driver
+            fDriver = new iosaudio(srate, buffer_size);
+        }
+        
+        virtual ~IOSEngine()
+        {}
     
 };

@@ -30,12 +30,11 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/APIUI.h"
-
-//**************************************************************
-// Polyphony
-//**************************************************************
-
 #include "faust/dsp/poly-dsp.h"
+
+//**************************************************************
+// Mono or polyphonic audio DSP engine
+//**************************************************************
 
 using namespace std;
 
@@ -175,7 +174,6 @@ class FaustPolyEngine {
         {
             return fJSON.c_str();
         }
-    
     
         /*
          * buildUserInterface(ui)

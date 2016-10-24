@@ -62,28 +62,30 @@ ztimedmap GUI::gTimedZoneMap;
 
 class AndroidEngine : public FaustPolyEngine {
 
-protected:
-	midi_handler fMidiHandler;
-	MidiUI fMidiUI;
+    protected:
+    
+        midi_handler fMidiHandler;
+        MidiUI fMidiUI;
 
-public:
+    public:
 
-	AndroidEngine(int srate, int bsize):FaustPolyEngine(), fMidiUI(&fMidiHandler)
-	{
-		fDriver = new androidaudio(srate, bsize);
-		fPolyDSP->buildUserInterface(&fMidiUI);
-	}
+        AndroidEngine(int srate, int bsize):FaustPolyEngine(), fMidiUI(&fMidiHandler)
+        {
+            fDriver = new androidaudio(srate, bsize);
+            fPolyDSP->buildUserInterface(&fMidiUI);
+        }
 
-	virtual ~AndroidEngine()
-	{}
+        virtual ~AndroidEngine()
+        {}
 
-	// Allows to retrieve MIDI events in JAVA and to propagate to the Faust object.
-	void propagateMidi(int count, double time, int type, int channel, int data1, int data2)
-	{
-		if(count == 3) fMidiHandler.handleData2(time,type,channel,data1,data2);
-		else if(count == 2) fMidiHandler.handleData1(time,type,channel,data1);
-		else if(count == 1)fMidiHandler.handleSync(time,type);
-	}
+        // Allows to retrieve MIDI events in JAVA and to propagate to the Faust object.
+        void propagateMidi(int count, double time, int type, int channel, int data1, int data2)
+        {
+            if (count == 3) fMidiHandler.handleData2(time, type, channel, data1, data2);
+            else if (count == 2) fMidiHandler.handleData1(time, type, channel, data1);
+            else if (count == 1) fMidiHandler.handleSync(time, type);
+        }
+    
 };
 
 static AndroidEngine* gGlobal = NULL;
