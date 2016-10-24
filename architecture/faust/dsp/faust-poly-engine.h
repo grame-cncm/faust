@@ -92,7 +92,6 @@ class FaustPolyEngine {
                 fPolyMax = 0;
                 fPolyDSP = NULL;
 				fFinalPolyDSP = &fMonoDSP;
-                //fMonoDSP.buildUserInterface(&fAPIUI);
             }
 			fFinalPolyDSP->buildUserInterface(&fAPIUI);
          }
