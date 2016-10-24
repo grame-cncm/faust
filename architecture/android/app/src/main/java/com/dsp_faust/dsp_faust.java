@@ -83,15 +83,7 @@ public class dsp_faust {
   }
 
   public static void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax) {
-<<<<<<< HEAD
      dsp_faustJNI.setGyrConverter(p, gyr, curve, amin, amid,  amax);
-=======
-    dsp_faustJNI.setGyrConverter(p, gyr, curve, amin, amid, amax);
-  }
-
-  public static void propagateMidi(int count, double time, int type, int channel, int data1, int data2) {
-    dsp_faustJNI.propagateMidi(count, time, type, channel, data1, data2);
->>>>>>> 4098c95... Simplifying new MIDI android support
   }
 
   public static float getCPULoad() {

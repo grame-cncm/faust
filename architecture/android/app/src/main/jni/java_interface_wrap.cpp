@@ -482,7 +482,6 @@ SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setGyrConverter(JNIEnv
   float arg5 ;
   float arg6 ;
 
-<<<<<<< HEAD
   (void)jenv;
   (void)jcls;
   arg1 = (int)jarg1;
@@ -492,37 +491,6 @@ SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setGyrConverter(JNIEnv
   arg5 = (float)jarg5;
   arg6 = (float)jarg6;
   setGyrConverter(arg1,arg2,arg3,arg4,arg5,arg6);
-=======
-SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_propagateMidi(JNIEnv *jenv, jclass jcls, jint jarg1, jdouble jarg2, jint jarg3, jint jarg4, jint jarg5, jint jarg6) {
-  int arg1 ;
-  double arg2 ;
-  int arg3 ;
-  int arg4 ;
-  int arg5 ;
-  int arg6 ;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = (int)jarg1; 
-  arg2 = (double)jarg2; 
-  arg3 = (int)jarg3; 
-  arg4 = (int)jarg4; 
-  arg5 = (int)jarg5; 
-  arg6 = (int)jarg6; 
-  propagateMidi(arg1,arg2,arg3,arg4,arg5,arg6);
-}
-
-
-SWIGEXPORT jfloat JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getCPULoad(JNIEnv *jenv, jclass jcls) {
-  jfloat jresult = 0 ;
-  float result;
-  
-  (void)jenv;
-  (void)jcls;
-  result = (float)getCPULoad();
-  jresult = (jfloat)result; 
-  return jresult;
->>>>>>> 4098c95... Simplifying new MIDI android support
 }
 
 
