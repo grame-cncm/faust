@@ -48,9 +48,9 @@ class FaustPolyEngine {
 
         mydsp* fMonoDSP;          // the monophonic Faust object
         mydsp_poly* fPolyDSP;     // the polyphonic Faust object
-		dsp* fFinalDSP;		  // the "final" dsp object submitted to the audio driver
+        dsp* fFinalDSP;           // the "final" dsp object submitted to the audio driver
         APIUI fAPIUI;             // the UI description
-    
+
         string fJSON;
         bool fRunning;
         int fPolyMax;

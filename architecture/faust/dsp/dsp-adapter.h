@@ -90,7 +90,10 @@ class dsp_adapter : public decorator_dsp {
             }
             delete [] fAdaptedOutputs;
         }
-        
+    
+        virtual int getNumInputs() { return fHardwareInputs; }
+        virtual int getNumOutputs() { return fHardwareOutputs; }
+    
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             adaptBuffers(inputs, outputs);
