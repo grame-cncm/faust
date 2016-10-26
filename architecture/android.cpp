@@ -73,7 +73,7 @@ class AndroidEngine : public FaustPolyEngine {
         AndroidEngine(int srate, int bsize):FaustPolyEngine(), fMidiUI(&fMidiHandler)
         {
             fDriver = new androidaudio(srate, bsize);
-            fPolyDSP->buildUserInterface(&fMidiUI);
+            fFinalDSP->buildUserInterface(&fMidiUI);
         }
 
         virtual ~AndroidEngine()

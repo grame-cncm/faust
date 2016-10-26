@@ -85,8 +85,6 @@ class FaustPolyEngine {
             #else
                 fFinalDSP = fPolyDSP;
             #endif
-
-                fFinalDSP->buildUserInterface(&fAPIUI);
                 
                 // Update JSON with Poly version
                 JSONUI jsonui2(fMonoDSP->getNumInputs(), fMonoDSP->getNumOutputs());
