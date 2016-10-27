@@ -85,6 +85,7 @@ class AndroidEngine : public FaustPolyEngine {
             if (count == 3) fMidiHandler.handleData2(time, type, channel, data1, data2);
             else if (count == 2) fMidiHandler.handleData1(time, type, channel, data1);
             else if (count == 1) fMidiHandler.handleSync(time, type);
+			GUI::updateAllGuis();
         }
 };
 
