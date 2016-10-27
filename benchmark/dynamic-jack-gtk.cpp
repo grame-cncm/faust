@@ -31,7 +31,9 @@
 #include "faust/misc.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/interpreter-dsp.h"
+#include "faust/dsp/poly-dsp.h"
 #include "faust/gui/faustgtk.h"
+#include "faust/gui/MidiUI.h"
 #include "faust/audio/jack-dsp.h"
 
 #ifdef HTTPCTRL
@@ -43,27 +45,40 @@
 #endif
 
 std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 int main(int argc, char *argv[])
 {
-    long is_llvm = isopt(argv, "-llvm");
-    long is_interp = isopt(argv, "-interp");
+    bool is_llvm = isopt(argv, "-llvm");
+    bool is_interp = isopt(argv, "-interp");
+    bool is_poly = isopt(argv, "-poly");
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-        std::cout << "dynamic-jack-gtk [-llvm] [-interp] <compiler-options> foo.dsp" << std::endl;
-        exit(1);
+        std::cout << "dynamic-jack-gtk [-llvm/interp] [-poly] <compiler-options> foo.dsp" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    
+    // Index of first parameter after -llvm/interp and -poly
+    int id = 0;
+    for (id = 1; id < argc; id++) {
+        if (strcmp(argv[id], "-llvm")
+            && strcmp(argv[id], "-interp")
+            && strcmp(argv[id], "-poly")) {
+            break;
+        }
     }
     
     dsp_factory* factory = 0;
     dsp* DSP = 0;
+    MidiUI* midiinterface = 0;
    
     std::string error_msg;
     if (is_llvm) {
         std::cout << "Using LLVM backend" << std::endl;
-        factory = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg, -1);
+        factory = createDSPFactoryFromFile(argv[argc-1], argc-id, (const char**)&argv[id], "", error_msg, -1);
     } else {
         std::cout << "Using interpreter backend"<< std::endl;
-        factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg);
+        factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-id, (const char**)&argv[id], error_msg);
     }
 
     if (factory) {
@@ -71,18 +86,23 @@ int main(int argc, char *argv[])
         assert(DSP);
     } else {
         std::cout << "Cannot create factory : " << error_msg << std::endl;
-        exit(1);
+        exit(EXIT_FAILURE);
+    }
+    
+    if (is_poly) {
+        std::cout << "Starting polyphonic mode" << std::endl;
+        DSP = new mydsp_poly(DSP, 8, true);
     }
 
-    char appname[256];
+    char name[256];
     char filename[256];
     char rcfilename[256];
     char* home = getenv("HOME");
     
-    snprintf(appname, 255, "%s", basename(argv[0]));
+    snprintf(name, 255, "%s", basename(argv[0]));
     snprintf(filename, 255, "%s", basename(argv[argc-1]));
-    snprintf(rcfilename, 255, "%s/.%s-%src", home, appname, filename);
- 
+    snprintf(rcfilename, 255, "%s/.%s-%src", home, name, filename);
+   
     GUI* interface 	= new GTKUI(filename, &argc, &argv);
     FUI* finterface	= new FUI();
 
@@ -90,7 +110,7 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(finterface);
 
 #ifdef HTTPCTRL
-    httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+    httpdUI* httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(httpdinterface);
 #endif
 
@@ -99,10 +119,17 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(oscinterface);
 #endif
 
-    jackaudio audio;
-    if (!audio.init(filename, DSP)) {
+    jackaudio_midi audio;
+    if (!audio.init(filename, DSP, true)) {
         return 0;
     }
+    
+    if (is_poly) {
+        midiinterface = new MidiUI(&audio);
+        DSP->buildUserInterface(midiinterface);
+        midiinterface->run();
+    }
+    
     finterface->recallState(rcfilename);
     audio.start();
 
@@ -117,10 +144,12 @@ int main(int argc, char *argv[])
 
     audio.stop();
     finterface->saveState(rcfilename);
+    
+    delete DSP;
     delete interface;
     delete finterface;
-    delete DSP;
-
+    delete midiinterface;
+  
     if (is_llvm) {
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
     } else {
