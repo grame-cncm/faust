@@ -8,6 +8,9 @@
 #                                                                   #
 #####################################################################
 
+. faustpath
+. faustoptflags
+
 # change if you want to get the log of what's happening
 LOG="/dev/null"
 
@@ -87,7 +90,7 @@ if [ ! -d "$BUILDDIR" ]; then
   	echo "Creating new Android project $BUILDDIR"  > $LOG
   	
   	mkdir -p "$BUILDDIR"
-	cp -r /usr/local/share/faust/android/*  "$BUILDDIR"
+	cp -r $FAUSTLIB/android/*  "$BUILDDIR"
 	# Copy include files *.h if any (ignore any error here)
 	(cp *.h $JNIFOLDER 2> $LOG) || true
 	
@@ -126,7 +129,7 @@ if [ ! -d "$BUILDDIR" ]; then
 	if [ $SWIG -eq 1 ]; then
 		rm -rf $APPFOLDER/java/com/dsp_faust || true
 		mkdir -p $APPFOLDER/java/com/dsp_faust
-		swig -java -package com.dsp_faust -includeall -verbose -outdir $APPFOLDER/java/com/dsp_faust -c++ -I/usr/local/include -I/System/Library/Frameworks/JavaVM.framework/Headers -I$JNIFOLDER -o $JNIFOLDER/java_interface_wrap.cpp $BUILDDIR/dsp_faust_interface.i
+		swig -java -package com.dsp_faust -includeall -verbose -outdir $APPFOLDER/java/com/dsp_faust -c++ -I$FAUSTINC -I/System/Library/Frameworks/JavaVM.framework/Headers -I$JNIFOLDER -o $JNIFOLDER/java_interface_wrap.cpp $BUILDDIR/dsp_faust_interface.i
 	fi
 else
 	echo "Reusing existing Android project $BUILDDIR" > $LOG
