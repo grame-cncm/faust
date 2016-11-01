@@ -31,7 +31,7 @@ extern "C"
 
     // Creation API
 
-    // Dynamic DSP creation using libfaust and LLLVM
+    // Dynamic DSP creation using libfaust and LLVM
     dsp* create1Dsp(const char* name_app, const char* dsp_content);
     dsp* create2Dsp(const char* name_app, const char* dsp_content, const char* argv, const char* target, int opt_level);
 

@@ -97,7 +97,7 @@ CodeContainer* InterpreterCodeContainer<T>::createContainer(const string& name, 
     if (gGlobal->gOpenMPSwitch) {
         throw faustexception("ERROR : OpenMP not supported for Interpreter\n");
     } else if (gGlobal->gSchedulerSwitch) {
-        throw faustexception("ERROR : Scheduler not supported for Interpreter\n");
+        throw faustexception("ERROR : Scheduler mode not supported for Interpreter\n");
     } else if (gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : Vector mode not supported for Interpreter\n");
     } else {
