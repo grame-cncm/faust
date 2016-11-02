@@ -9,88 +9,89 @@
 package com.dsp_faust;
 
 public class dsp_faust {
-  public static boolean init(int arg0, int arg1) {
-    return dsp_faustJNI.init(arg0, arg1);
+  public static SWIGTYPE_p_void create(int arg0, int arg1) {
+    long cPtr = dsp_faustJNI.create(arg0, arg1);
+    return (cPtr == 0) ? null : new SWIGTYPE_p_void(cPtr, false);
   }
 
-  public static boolean start() {
-    return dsp_faustJNI.start();
+  public static void destroy(SWIGTYPE_p_void arg0) {
+    dsp_faustJNI.destroy(SWIGTYPE_p_void.getCPtr(arg0));
   }
 
-  public static void stop() {
-    dsp_faustJNI.stop();
+  public static boolean start(SWIGTYPE_p_void arg0) {
+    return dsp_faustJNI.start(SWIGTYPE_p_void.getCPtr(arg0));
   }
 
-  public static void destroy() {
-    dsp_faustJNI.destroy();
+  public static void stop(SWIGTYPE_p_void arg0) {
+    dsp_faustJNI.stop(SWIGTYPE_p_void.getCPtr(arg0));
   }
 
-  public static boolean isRunning() {
-    return dsp_faustJNI.isRunning();
+  public static boolean isRunning(SWIGTYPE_p_void arg0) {
+    return dsp_faustJNI.isRunning(SWIGTYPE_p_void.getCPtr(arg0));
   }
 
-  public static int keyOn(int arg0, int arg1) {
-    return dsp_faustJNI.keyOn(arg0, arg1);
+  public static int keyOn(SWIGTYPE_p_void arg0, int arg1, int arg2) {
+    return dsp_faustJNI.keyOn(SWIGTYPE_p_void.getCPtr(arg0), arg1, arg2);
   }
 
-  public static int keyOff(int arg0) {
-    return dsp_faustJNI.keyOff(arg0);
+  public static int keyOff(SWIGTYPE_p_void arg0, int arg1) {
+    return dsp_faustJNI.keyOff(SWIGTYPE_p_void.getCPtr(arg0), arg1);
   }
 
-  public static String getJSON() {
-    return dsp_faustJNI.getJSON();
+  public static void propagateMidi(SWIGTYPE_p_void arg0, int arg1, double arg2, int arg3, int arg4, int arg5, int arg6) {
+    dsp_faustJNI.propagateMidi(SWIGTYPE_p_void.getCPtr(arg0), arg1, arg2, arg3, arg4, arg5, arg6);
   }
 
-  public static int getParamsCount() {
-    return dsp_faustJNI.getParamsCount();
+  public static String getJSON(SWIGTYPE_p_void arg0) {
+    return dsp_faustJNI.getJSON(SWIGTYPE_p_void.getCPtr(arg0));
   }
 
-  public static void setParamValue(String arg0, float arg1) {
-    dsp_faustJNI.setParamValue(arg0, arg1);
+  public static int getParamsCount(SWIGTYPE_p_void arg0) {
+    return dsp_faustJNI.getParamsCount(SWIGTYPE_p_void.getCPtr(arg0));
   }
 
-  public static float getParamValue(String arg0) {
-    return dsp_faustJNI.getParamValue(arg0);
+  public static void setParamValue(SWIGTYPE_p_void arg0, String arg1, float arg2) {
+    dsp_faustJNI.setParamValue(SWIGTYPE_p_void.getCPtr(arg0), arg1, arg2);
   }
 
-  public static void setVoiceParamValue(String arg0, int arg1, float arg2) {
-    dsp_faustJNI.setVoiceParamValue(arg0, arg1, arg2);
+  public static float getParamValue(SWIGTYPE_p_void arg0, String arg1) {
+    return dsp_faustJNI.getParamValue(SWIGTYPE_p_void.getCPtr(arg0), arg1);
   }
 
-  public static float getVoiceParamValue(String arg0, int arg1) {
-    return dsp_faustJNI.getVoiceParamValue(arg0, arg1);
+  public static void setVoiceParamValue(SWIGTYPE_p_void arg0, String arg1, int arg2, float arg3) {
+    dsp_faustJNI.setVoiceParamValue(SWIGTYPE_p_void.getCPtr(arg0), arg1, arg2, arg3);
   }
 
-  public static String getParamAddress(int arg0) {
-    return dsp_faustJNI.getParamAddress(arg0);
+  public static float getVoiceParamValue(SWIGTYPE_p_void arg0, String arg1, int arg2) {
+    return dsp_faustJNI.getVoiceParamValue(SWIGTYPE_p_void.getCPtr(arg0), arg1, arg2);
   }
 
-  public static void propagateAcc(int acc, float v) {
-    dsp_faustJNI.propagateAcc(acc, v);
+  public static String getParamAddress(SWIGTYPE_p_void arg0, int arg1) {
+    return dsp_faustJNI.getParamAddress(SWIGTYPE_p_void.getCPtr(arg0), arg1);
   }
 
-  public static void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax) {
-    dsp_faustJNI.setAccConverter(p, acc, curve, amin, amid, amax);
+  public static void propagateAcc(SWIGTYPE_p_void arg0, int arg1, float arg2) {
+    dsp_faustJNI.propagateAcc(SWIGTYPE_p_void.getCPtr(arg0), arg1, arg2);
   }
 
-  public static void propagateGyr(int acc, float v) {
-    dsp_faustJNI.propagateGyr(acc, v);
+  public static void setAccConverter(SWIGTYPE_p_void arg0, int arg1, int arg2, int arg3, float arg4, float arg5, float arg6) {
+    dsp_faustJNI.setAccConverter(SWIGTYPE_p_void.getCPtr(arg0), arg1, arg2, arg3, arg4, arg5, arg6);
   }
 
-  public static void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax) {
-    dsp_faustJNI.setGyrConverter(p, gyr, curve, amin, amid, amax);
+  public static void propagateGyr(SWIGTYPE_p_void arg0, int arg1, float arg2) {
+    dsp_faustJNI.propagateGyr(SWIGTYPE_p_void.getCPtr(arg0), arg1, arg2);
   }
 
-  public static void propagateMidi(int count, double time, int type, int channel, int data1, int data2) {
-    dsp_faustJNI.propagateMidi(count, time, type, channel, data1, data2);
+  public static void setGyrConverter(SWIGTYPE_p_void arg0, int arg1, int arg2, int arg3, float arg4, float arg5, float arg6) {
+    dsp_faustJNI.setGyrConverter(SWIGTYPE_p_void.getCPtr(arg0), arg1, arg2, arg3, arg4, arg5, arg6);
   }
 
-  public static float getCPULoad() {
-    return dsp_faustJNI.getCPULoad();
+  public static float getCPULoad(SWIGTYPE_p_void arg0) {
+    return dsp_faustJNI.getCPULoad(SWIGTYPE_p_void.getCPtr(arg0));
   }
 
-  public static int getScreenColor() {
-    return dsp_faustJNI.getScreenColor();
+  public static int getScreenColor(SWIGTYPE_p_void arg0) {
+    return dsp_faustJNI.getScreenColor(SWIGTYPE_p_void.getCPtr(arg0));
   }
 
 }

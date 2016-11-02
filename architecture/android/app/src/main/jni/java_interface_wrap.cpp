@@ -235,307 +235,349 @@ static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionC
 extern "C" {
 #endif
 
-SWIGEXPORT jboolean JNICALL Java_com_dsp_1faust_dsp_1faustJNI_init(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2) {
-  jboolean jresult = 0 ;
+SWIGEXPORT jlong JNICALL Java_com_dsp_1faust_dsp_1faustJNI_create(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2) {
+  jlong jresult = 0 ;
   int arg1 ;
   int arg2 ;
-  bool result;
+  void *result = 0 ;
   
   (void)jenv;
   (void)jcls;
   arg1 = (int)jarg1; 
   arg2 = (int)jarg2; 
-  result = (bool)init(arg1,arg2);
-  jresult = (jboolean)result; 
+  result = (void *)create(arg1,arg2);
+  *(void **)&jresult = result; 
   return jresult;
 }
 
 
-SWIGEXPORT jboolean JNICALL Java_com_dsp_1faust_dsp_1faustJNI_start(JNIEnv *jenv, jclass jcls) {
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_destroy(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+  void *arg1 = (void *) 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = *(void **)&jarg1; 
+  destroy(arg1);
+}
+
+
+SWIGEXPORT jboolean JNICALL Java_com_dsp_1faust_dsp_1faustJNI_start(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jboolean jresult = 0 ;
+  void *arg1 = (void *) 0 ;
   bool result;
   
   (void)jenv;
   (void)jcls;
-  result = (bool)start();
+  arg1 = *(void **)&jarg1; 
+  result = (bool)start(arg1);
   jresult = (jboolean)result; 
   return jresult;
 }
 
 
-SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_stop(JNIEnv *jenv, jclass jcls) {
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_stop(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+  void *arg1 = (void *) 0 ;
+  
   (void)jenv;
   (void)jcls;
-  stop();
+  arg1 = *(void **)&jarg1; 
+  stop(arg1);
 }
 
 
-SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_destroy(JNIEnv *jenv, jclass jcls) {
-  (void)jenv;
-  (void)jcls;
-  destroy();
-}
-
-
-SWIGEXPORT jboolean JNICALL Java_com_dsp_1faust_dsp_1faustJNI_isRunning(JNIEnv *jenv, jclass jcls) {
+SWIGEXPORT jboolean JNICALL Java_com_dsp_1faust_dsp_1faustJNI_isRunning(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jboolean jresult = 0 ;
+  void *arg1 = (void *) 0 ;
   bool result;
   
   (void)jenv;
   (void)jcls;
-  result = (bool)isRunning();
+  arg1 = *(void **)&jarg1; 
+  result = (bool)isRunning(arg1);
   jresult = (jboolean)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_keyOn(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2) {
+SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_keyOn(JNIEnv *jenv, jclass jcls, jlong jarg1, jint jarg2, jint jarg3) {
   jint jresult = 0 ;
-  int arg1 ;
+  void *arg1 = (void *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = *(void **)&jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (int)jarg3; 
+  result = (int)keyOn(arg1,arg2,arg3);
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_keyOff(JNIEnv *jenv, jclass jcls, jlong jarg1, jint jarg2) {
+  jint jresult = 0 ;
+  void *arg1 = (void *) 0 ;
   int arg2 ;
   int result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = (int)jarg1; 
+  arg1 = *(void **)&jarg1; 
   arg2 = (int)jarg2; 
-  result = (int)keyOn(arg1,arg2);
+  result = (int)keyOff(arg1,arg2);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_keyOff(JNIEnv *jenv, jclass jcls, jint jarg1) {
-  jint jresult = 0 ;
-  int arg1 ;
-  int result;
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_propagateMidi(JNIEnv *jenv, jclass jcls, jlong jarg1, jint jarg2, jdouble jarg3, jint jarg4, jint jarg5, jint jarg6, jint jarg7) {
+  void *arg1 = (void *) 0 ;
+  int arg2 ;
+  double arg3 ;
+  int arg4 ;
+  int arg5 ;
+  int arg6 ;
+  int arg7 ;
   
   (void)jenv;
   (void)jcls;
-  arg1 = (int)jarg1; 
-  result = (int)keyOff(arg1);
-  jresult = (jint)result; 
-  return jresult;
+  arg1 = *(void **)&jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (double)jarg3; 
+  arg4 = (int)jarg4; 
+  arg5 = (int)jarg5; 
+  arg6 = (int)jarg6; 
+  arg7 = (int)jarg7; 
+  propagateMidi(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
 }
 
 
-SWIGEXPORT jstring JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getJSON(JNIEnv *jenv, jclass jcls) {
+SWIGEXPORT jstring JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getJSON(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jstring jresult = 0 ;
+  void *arg1 = (void *) 0 ;
   char *result = 0 ;
   
   (void)jenv;
   (void)jcls;
-  result = (char *)getJSON();
+  arg1 = *(void **)&jarg1; 
+  result = (char *)getJSON(arg1);
   if (result) jresult = jenv->NewStringUTF((const char *)result);
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getParamsCount(JNIEnv *jenv, jclass jcls) {
+SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getParamsCount(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jint jresult = 0 ;
+  void *arg1 = (void *) 0 ;
   int result;
   
   (void)jenv;
   (void)jcls;
-  result = (int)getParamsCount();
+  arg1 = *(void **)&jarg1; 
+  result = (int)getParamsCount(arg1);
   jresult = (jint)result; 
   return jresult;
 }
 
 
-SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setParamValue(JNIEnv *jenv, jclass jcls, jstring jarg1, jfloat jarg2) {
-  char *arg1 = (char *) 0 ;
-  float arg2 ;
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setParamValue(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jfloat jarg3) {
+  void *arg1 = (void *) 0 ;
+  char *arg2 = (char *) 0 ;
+  float arg3 ;
   
   (void)jenv;
   (void)jcls;
-  arg1 = 0;
-  if (jarg1) {
-    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
-    if (!arg1) return ;
+  arg1 = *(void **)&jarg1; 
+  arg2 = 0;
+  if (jarg2) {
+    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
+    if (!arg2) return ;
   }
-  arg2 = (float)jarg2; 
-  setParamValue((char const *)arg1,arg2);
-  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
+  arg3 = (float)jarg3; 
+  setParamValue(arg1,(char const *)arg2,arg3);
+  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
 }
 
 
-SWIGEXPORT jfloat JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getParamValue(JNIEnv *jenv, jclass jcls, jstring jarg1) {
+SWIGEXPORT jfloat JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getParamValue(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2) {
   jfloat jresult = 0 ;
-  char *arg1 = (char *) 0 ;
+  void *arg1 = (void *) 0 ;
+  char *arg2 = (char *) 0 ;
   float result;
   
   (void)jenv;
   (void)jcls;
-  arg1 = 0;
-  if (jarg1) {
-    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
-    if (!arg1) return 0;
+  arg1 = *(void **)&jarg1; 
+  arg2 = 0;
+  if (jarg2) {
+    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
+    if (!arg2) return 0;
   }
-  result = (float)getParamValue((char const *)arg1);
+  result = (float)getParamValue(arg1,(char const *)arg2);
   jresult = (jfloat)result; 
-  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
+  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
   return jresult;
 }
 
 
-SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setVoiceParamValue(JNIEnv *jenv, jclass jcls, jstring jarg1, jint jarg2, jfloat jarg3) {
-  char *arg1 = (char *) 0 ;
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setVoiceParamValue(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jint jarg3, jfloat jarg4) {
+  void *arg1 = (void *) 0 ;
+  char *arg2 = (char *) 0 ;
+  int arg3 ;
+  float arg4 ;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = *(void **)&jarg1; 
+  arg2 = 0;
+  if (jarg2) {
+    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
+    if (!arg2) return ;
+  }
+  arg3 = (int)jarg3; 
+  arg4 = (float)jarg4; 
+  setVoiceParamValue(arg1,(char const *)arg2,arg3,arg4);
+  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
+}
+
+
+SWIGEXPORT jfloat JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getVoiceParamValue(JNIEnv *jenv, jclass jcls, jlong jarg1, jstring jarg2, jint jarg3) {
+  jfloat jresult = 0 ;
+  void *arg1 = (void *) 0 ;
+  char *arg2 = (char *) 0 ;
+  int arg3 ;
+  float result;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = *(void **)&jarg1; 
+  arg2 = 0;
+  if (jarg2) {
+    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
+    if (!arg2) return 0;
+  }
+  arg3 = (int)jarg3; 
+  result = (float)getVoiceParamValue(arg1,(char const *)arg2,arg3);
+  jresult = (jfloat)result; 
+  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
+  return jresult;
+}
+
+
+SWIGEXPORT jstring JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getParamAddress(JNIEnv *jenv, jclass jcls, jlong jarg1, jint jarg2) {
+  jstring jresult = 0 ;
+  void *arg1 = (void *) 0 ;
+  int arg2 ;
+  char *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = *(void **)&jarg1; 
+  arg2 = (int)jarg2; 
+  result = (char *)getParamAddress(arg1,arg2);
+  if (result) jresult = jenv->NewStringUTF((const char *)result);
+  return jresult;
+}
+
+
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_propagateAcc(JNIEnv *jenv, jclass jcls, jlong jarg1, jint jarg2, jfloat jarg3) {
+  void *arg1 = (void *) 0 ;
   int arg2 ;
   float arg3 ;
   
   (void)jenv;
   (void)jcls;
-  arg1 = 0;
-  if (jarg1) {
-    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
-    if (!arg1) return ;
-  }
+  arg1 = *(void **)&jarg1; 
   arg2 = (int)jarg2; 
   arg3 = (float)jarg3; 
-  setVoiceParamValue((char const *)arg1,arg2,arg3);
-  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
+  propagateAcc(arg1,arg2,arg3);
 }
 
 
-SWIGEXPORT jfloat JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getVoiceParamValue(JNIEnv *jenv, jclass jcls, jstring jarg1, jint jarg2) {
-  jfloat jresult = 0 ;
-  char *arg1 = (char *) 0 ;
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setAccConverter(JNIEnv *jenv, jclass jcls, jlong jarg1, jint jarg2, jint jarg3, jint jarg4, jfloat jarg5, jfloat jarg6, jfloat jarg7) {
+  void *arg1 = (void *) 0 ;
   int arg2 ;
-  float result;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = 0;
-  if (jarg1) {
-    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
-    if (!arg1) return 0;
-  }
-  arg2 = (int)jarg2; 
-  result = (float)getVoiceParamValue((char const *)arg1,arg2);
-  jresult = (jfloat)result; 
-  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
-  return jresult;
-}
-
-
-SWIGEXPORT jstring JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getParamAddress(JNIEnv *jenv, jclass jcls, jint jarg1) {
-  jstring jresult = 0 ;
-  int arg1 ;
-  char *result = 0 ;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = (int)jarg1; 
-  result = (char *)getParamAddress(arg1);
-  if (result) jresult = jenv->NewStringUTF((const char *)result);
-  return jresult;
-}
-
-
-SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_propagateAcc(JNIEnv *jenv, jclass jcls, jint jarg1, jfloat jarg2) {
-  int arg1 ;
-  float arg2 ;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = (int)jarg1; 
-  arg2 = (float)jarg2; 
-  propagateAcc(arg1,arg2);
-}
-
-
-SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setAccConverter(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2, jint jarg3, jfloat jarg4, jfloat jarg5, jfloat jarg6) {
-  int arg1 ;
-  int arg2 ;
-  int arg3 ;
-  float arg4 ;
-  float arg5 ;
-  float arg6 ;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = (int)jarg1; 
-  arg2 = (int)jarg2; 
-  arg3 = (int)jarg3; 
-  arg4 = (float)jarg4; 
-  arg5 = (float)jarg5; 
-  arg6 = (float)jarg6; 
-  setAccConverter(arg1,arg2,arg3,arg4,arg5,arg6);
-}
-
-
-SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_propagateGyr(JNIEnv *jenv, jclass jcls, jint jarg1, jfloat jarg2) {
-  int arg1 ;
-  float arg2 ;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = (int)jarg1; 
-  arg2 = (float)jarg2; 
-  propagateGyr(arg1,arg2);
-}
-
-
-SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setGyrConverter(JNIEnv *jenv, jclass jcls, jint jarg1, jint jarg2, jint jarg3, jfloat jarg4, jfloat jarg5, jfloat jarg6) {
-  int arg1 ;
-  int arg2 ;
-  int arg3 ;
-  float arg4 ;
-  float arg5 ;
-  float arg6 ;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = (int)jarg1; 
-  arg2 = (int)jarg2; 
-  arg3 = (int)jarg3; 
-  arg4 = (float)jarg4; 
-  arg5 = (float)jarg5; 
-  arg6 = (float)jarg6; 
-  setGyrConverter(arg1,arg2,arg3,arg4,arg5,arg6);
-}
-
-
-SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_propagateMidi(JNIEnv *jenv, jclass jcls, jint jarg1, jdouble jarg2, jint jarg3, jint jarg4, jint jarg5, jint jarg6) {
-  int arg1 ;
-  double arg2 ;
   int arg3 ;
   int arg4 ;
-  int arg5 ;
-  int arg6 ;
+  float arg5 ;
+  float arg6 ;
+  float arg7 ;
   
   (void)jenv;
   (void)jcls;
-  arg1 = (int)jarg1; 
-  arg2 = (double)jarg2; 
+  arg1 = *(void **)&jarg1; 
+  arg2 = (int)jarg2; 
   arg3 = (int)jarg3; 
   arg4 = (int)jarg4; 
-  arg5 = (int)jarg5; 
-  arg6 = (int)jarg6; 
-  propagateMidi(arg1,arg2,arg3,arg4,arg5,arg6);
+  arg5 = (float)jarg5; 
+  arg6 = (float)jarg6; 
+  arg7 = (float)jarg7; 
+  setAccConverter(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
 }
 
 
-SWIGEXPORT jfloat JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getCPULoad(JNIEnv *jenv, jclass jcls) {
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_propagateGyr(JNIEnv *jenv, jclass jcls, jlong jarg1, jint jarg2, jfloat jarg3) {
+  void *arg1 = (void *) 0 ;
+  int arg2 ;
+  float arg3 ;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = *(void **)&jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (float)jarg3; 
+  propagateGyr(arg1,arg2,arg3);
+}
+
+
+SWIGEXPORT void JNICALL Java_com_dsp_1faust_dsp_1faustJNI_setGyrConverter(JNIEnv *jenv, jclass jcls, jlong jarg1, jint jarg2, jint jarg3, jint jarg4, jfloat jarg5, jfloat jarg6, jfloat jarg7) {
+  void *arg1 = (void *) 0 ;
+  int arg2 ;
+  int arg3 ;
+  int arg4 ;
+  float arg5 ;
+  float arg6 ;
+  float arg7 ;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = *(void **)&jarg1; 
+  arg2 = (int)jarg2; 
+  arg3 = (int)jarg3; 
+  arg4 = (int)jarg4; 
+  arg5 = (float)jarg5; 
+  arg6 = (float)jarg6; 
+  arg7 = (float)jarg7; 
+  setGyrConverter(arg1,arg2,arg3,arg4,arg5,arg6,arg7);
+}
+
+
+SWIGEXPORT jfloat JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getCPULoad(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jfloat jresult = 0 ;
+  void *arg1 = (void *) 0 ;
   float result;
   
   (void)jenv;
   (void)jcls;
-  result = (float)getCPULoad();
+  arg1 = *(void **)&jarg1; 
+  result = (float)getCPULoad(arg1);
   jresult = (jfloat)result; 
   return jresult;
 }
 
 
-SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getScreenColor(JNIEnv *jenv, jclass jcls) {
+SWIGEXPORT jint JNICALL Java_com_dsp_1faust_dsp_1faustJNI_getScreenColor(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   jint jresult = 0 ;
+  void *arg1 = (void *) 0 ;
   int result;
   
   (void)jenv;
   (void)jcls;
-  result = (int)getScreenColor();
+  arg1 = *(void **)&jarg1; 
+  result = (int)getScreenColor(arg1);
   jresult = (jint)result; 
   return jresult;
 }

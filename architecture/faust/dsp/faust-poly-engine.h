@@ -104,21 +104,14 @@ class FaustPolyEngine {
             
             fFinalDSP->buildUserInterface(&fMidiUI);
             fFinalDSP->buildUserInterface(&fAPIUI);
+
+			fDriver->init("Dummy", fFinalDSP);
         }
 
         virtual ~FaustPolyEngine()
         {
             delete fFinalDSP;
             delete fDriver;
-        }
-    
-        /*
-         * init()
-         * Initialize the underlying audio driver with the DSP.
-         */
-        bool init()
-        {
-            return fDriver->init("Dummy", fFinalDSP);
         }
 
         /*
@@ -356,11 +349,11 @@ extern "C" {
     void stop(void* dsp) { reinterpret_cast<FaustPolyEngine*>(dsp)->stop(); }
     bool isRunning(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->isRunning(); }
     
-    int keyOn(void* dsp, int pitch, int velocity) { return reinterpret_cast<FaustPolyEngine*>(dsp)->keyOn(pitch, velocity); }
+    int keyOn(void* dsp, int pitch, int velocity) { return (long)reinterpret_cast<FaustPolyEngine*>(dsp)->keyOn(pitch, velocity); }
     int keyOff(void* dsp, int pitch) { return reinterpret_cast<FaustPolyEngine*>(dsp)->keyOff(pitch); }
     void propagateMidi(void* dsp, int count, double time, int type, int channel, int data1, int data2)
     {
-        reinterpret_cast<FaustPolyEngine*>(dsp)->propagateMidi(count, time, type, data1, data2);
+        reinterpret_cast<FaustPolyEngine*>(dsp)->propagateMidi(count, time, type, channel, data1, data2);
     }
     
     const char* getJSON(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getJSON(); }
@@ -383,7 +376,7 @@ extern "C" {
     void propagateGyr(void* dsp, int acc, float v)  { reinterpret_cast<FaustPolyEngine*>(dsp)->propagateGyr(acc, v); }
     void setGyrConverter(void* dsp, int p, int gyr, int curve, float amin, float amid, float amax)
     {
-        reinterpret_cast<FaustPolyEngine*>(dsp)->setGyrConverter(p, acc, curve, amin, amid, amax);
+        reinterpret_cast<FaustPolyEngine*>(dsp)->setGyrConverter(p, gyr, curve, amin, amid, amax);
     }
     
     float getCPULoad(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getCPULoad(); }
