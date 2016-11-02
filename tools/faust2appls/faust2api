@@ -69,8 +69,9 @@ if [ $ANDROID -eq 1 ]; then
 	fi
 	echo "Your dsp-faust API package for Android was created"
 elif [ $IOS -eq 1 ]; then
-	faust -i -a ios-coreaudio-api.cpp "$FILE" -o dsp-faust.h || exit
-	echo "Your dsp-faust.h C++ API for IOS was created"
+    faust -i -a ios-coreaudio-api.cpp "$FILE" -o dsp-faust.cpp || exit
+    cp  /usr/local/include/faust/dsp/faust-engine.h  dsp-faust.h
+    echo "Your dsp-faust.h and dsp-faust.cpp C++ API for IOS were created"
 else
 	echo "Please specify an architecture or a platform:"
 	echo "-android"
