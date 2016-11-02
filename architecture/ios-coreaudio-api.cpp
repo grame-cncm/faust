@@ -34,16 +34,8 @@
  ************************************************************************
  ************************************************************************/
 
-#include "faust/misc.h"
-#include "faust/gui/UI.h"
-#include "faust/dsp/dsp.h"
-#include "faust/gui/meta.h"
-#include "faust/gui/jsonfaustui.h"
-#include "faust/gui/JSONUI.h"
-#include "faust/gui/MapUI.h"
-
 //**************************************************************
-// Intrinsic
+// DSP class
 //**************************************************************
 
 <<includeIntrinsic>>
@@ -51,7 +43,7 @@
 <<includeclass>>
 
 //**************************************************************
-// Polyphony
+// Audio engine
 //**************************************************************
 
 #include "faust/dsp/faust-poly-engine.h"
@@ -66,25 +58,11 @@
 // Interface
 //**************************************************************
 
-#include <stdio.h>
-#include <string.h>
-
-using namespace std;
-
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
-class IOSEngine : public FaustPolyEngine {
-    
-    public:
-        
-        IOSEngine(int srate, int buffer_size):FaustPolyEngine()
-        {
-            // allocating audio driver
-            fDriver = new iosaudio(srate, buffer_size);
-        }
-        
-        virtual ~IOSEngine()
-        {}
-    
-};
+extern "C" void* create(int sample_rate, int buffer_size)
+{
+    return new FaustPolyEngine(new iosaudio(sample_rate, buffer_size));
+}
+

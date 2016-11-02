@@ -49,6 +49,7 @@ class FaustPolyEngine {
         mydsp* fMonoDSP;          // the monophonic Faust object
         mydsp_poly* fPolyDSP;     // the polyphonic Faust object
         dsp* fFinalDSP;           // the "final" dsp object submitted to the audio driver
+    
         APIUI fAPIUI;             // the UI description
 
         string fJSON;
@@ -56,10 +57,14 @@ class FaustPolyEngine {
         int fPolyMax;
         audio* fDriver;
     
+        midi_handler fMidiHandler;
+        MidiUI fMidiUI;
+    
     public:
 
-        FaustPolyEngine()
+        FaustPolyEngine(audio* driver = NULL):fMidiUI(&fMidiHandler)
         {
+            fDriver = driver;
             fRunning = false;
             fMonoDSP = new mydsp();
 
@@ -96,8 +101,10 @@ class FaustPolyEngine {
                 fPolyDSP = NULL;
                 fFinalDSP = fMonoDSP;
             }
+            
+            fFinalDSP->buildUserInterface(&fMidiUI);
             fFinalDSP->buildUserInterface(&fAPIUI);
-         }
+        }
 
         virtual ~FaustPolyEngine()
         {
@@ -182,6 +189,17 @@ class FaustPolyEngine {
             } else {
                 return 0;
             }
+        }
+    
+        /*
+         * Propagate MIDI data to the Faust object.
+         */
+        void propagateMidi(int count, double time, int type, int channel, int data1, int data2)
+        {
+            if (count == 3) fMidiHandler.handleData2(time, type, channel, data1, data2);
+            else if (count == 2) fMidiHandler.handleData1(time, type, channel, data1);
+            else if (count == 1) fMidiHandler.handleSync(time, type);
+            GUI::updateAllGuis();
         }
     
         /*
@@ -305,14 +323,74 @@ class FaustPolyEngine {
         {
             fAPIUI.setGyrConverter(p, gyr, curve, amin, amid, amax);
         }
-
+    
+        /*
+         * getCPULoad()
+         * Return DSP CPU load.
+         */
         float getCPULoad() { return fDriver->get_cpu_load(); }
 
+    
+        /*
+         * getScreenColor() -> c:int
+         * Get the requested screen color c :
+         * c <  0 : no screen color requested (keep regular UI)
+         * c >= 0 : requested color (no UI but a colored screen)
+         */
         int getScreenColor()
         {
             return fAPIUI.getScreenColor();
         }
 
 };
+
+// Public C API
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
+    void destroy(void* dsp) { delete reinterpret_cast<FaustPolyEngine*>(dsp); }
+    
+    bool start(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->start(); }
+    void stop(void* dsp) { reinterpret_cast<FaustPolyEngine*>(dsp)->stop(); }
+    bool isRunning(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->isRunning(); }
+    
+    int keyOn(void* dsp, int pitch, int velocity) { return reinterpret_cast<FaustPolyEngine*>(dsp)->keyOn(pitch, velocity); }
+    int keyOff(void* dsp, int pitch) { return reinterpret_cast<FaustPolyEngine*>(dsp)->keyOff(pitch); }
+    void propagateMidi(void* dsp, int count, double time, int type, int channel, int data1, int data2)
+    {
+        reinterpret_cast<FaustPolyEngine*>(dsp)->propagateMidi(count, time, type, data1, data2);
+    }
+    
+    const char* getJSON(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getJSON(); }
+    
+    int getParamsCount(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamsCount(); }
+    void setParamValue(void* dsp, const char* address, float value) { reinterpret_cast<FaustPolyEngine*>(dsp)->setParamValue(address, value); }
+    float getParamValue(void* dsp, const char* address) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamValue(address); }
+    void setVoiceParamValue(void* dsp, const char* address, int voice, float value)
+    {
+        reinterpret_cast<FaustPolyEngine*>(dsp)->setVoiceParamValue(address, voice, value);
+    }
+    float getVoiceParamValue(void* dsp, const char* address, int voice) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getVoiceParamValue(address, voice); }
+    const char* getParamAddress(void* dsp, int id) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamAddress(id); }
+    
+    void propagateAcc(void* dsp, int acc, float v)  { reinterpret_cast<FaustPolyEngine*>(dsp)->propagateAcc(acc, v); }
+    void setAccConverter(void* dsp, int p, int acc, int curve, float amin, float amid, float amax)
+    {
+        reinterpret_cast<FaustPolyEngine*>(dsp)->setAccConverter(p, acc, curve, amin, amid, amax);
+    }
+    void propagateGyr(void* dsp, int acc, float v)  { reinterpret_cast<FaustPolyEngine*>(dsp)->propagateGyr(acc, v); }
+    void setGyrConverter(void* dsp, int p, int gyr, int curve, float amin, float amid, float amax)
+    {
+        reinterpret_cast<FaustPolyEngine*>(dsp)->setGyrConverter(p, acc, curve, amin, amid, amax);
+    }
+    
+    float getCPULoad(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getCPULoad(); }
+    int getScreenColor(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getScreenColor(); }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __faust_poly_engine__

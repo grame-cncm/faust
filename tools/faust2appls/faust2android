@@ -30,7 +30,7 @@ REUSE=0
 for p in $@; do
 	if [ $p = "-swig" ]; then
 		SWIG=1
-	fi
+ 	fi
 	if [[ -f "$p" ]]; then
 	    FILE="$p"
 	elif [ $p = "-install" ]; then
@@ -127,6 +127,7 @@ if [ ! -d "$BUILDDIR" ]; then
 
 	# TODO wrong: should be checked
 	if [ $SWIG -eq 1 ]; then
+        echo "swig"
 		rm -rf $APPFOLDER/java/com/dsp_faust || true
 		mkdir -p $APPFOLDER/java/com/dsp_faust
 		swig -java -package com.dsp_faust -includeall -verbose -outdir $APPFOLDER/java/com/dsp_faust -c++ -I$FAUSTINC -I/System/Library/Frameworks/JavaVM.framework/Headers -I$JNIFOLDER -o $JNIFOLDER/java_interface_wrap.cpp $BUILDDIR/dsp_faust_interface.i
