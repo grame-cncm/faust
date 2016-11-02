@@ -57,15 +57,15 @@ if [ $ANDROID -eq 1 ]; then
 	APIFOLDER="dsp-faust"
 	rm -r "$APIFOLDER" > /dev/null || true
 	mkdir "$APIFOLDER"
-	cp -r /usr/local/share/faust/android/app/src/main/java/com/dsp_faust $APIFOLDER
+	cp -r /usr/local/share/faust/android/app/src/main/java/com/DspFaust $APIFOLDER
 	cp -r /usr/local/share/faust/android/app/src/main/jni $APIFOLDER/cpp
-	faust -i -a android.cpp "$FILE" -o "$APIFOLDER/cpp/dsp_faust.cpp" || exit
+	faust -i -a android.cpp "$FILE" -o "$APIFOLDER/cpp/DspFaust.cpp" || exit
 	if [ "$POLY2" = "1" ]; then
-		faust -i -cn effect -a minimal-effect.cpp "${FILE%.dsp}_effect.dsp" | cat - "$APIFOLDER/cpp/dsp_faust.cpp" > temp && mv temp "$APIFOLDER/cpp/dsp_faust.cpp" || exit
-		echo "#define POLY2 1" | cat - "$APIFOLDER/cpp/dsp_faust.cpp" > temp && mv temp "$APIFOLDER/cpp/dsp_faust.cpp"
+		faust -i -cn effect -a minimal-effect.cpp "${FILE%.dsp}_effect.dsp" | cat - "$APIFOLDER/cpp/DspFaust.cpp" > temp && mv temp "$APIFOLDER/cpp/DspFaust.cpp" || exit
+		echo "#define POLY2 1" | cat - "$APIFOLDER/cpp/DspFaust.cpp" > temp && mv temp "$APIFOLDER/cpp/DspFaust.cpp"
 	fi
 	if [ "$VOICES" -gt "0" ]; then
-		echo "#define POLY_VOICES $VOICES" | cat - "$APIFOLDER/cpp/dsp_faust.cpp" > temp && mv temp "$APIFOLDER/cpp/dsp_faust.cpp"
+		echo "#define POLY_VOICES $VOICES" | cat - "$APIFOLDER/cpp/DspFaust.cpp" > temp && mv temp "$APIFOLDER/cpp/DspFaust.cpp"
 	fi
 	echo "Your dsp-faust API package for Android was created"
 elif [ $IOS -eq 1 ]; then
