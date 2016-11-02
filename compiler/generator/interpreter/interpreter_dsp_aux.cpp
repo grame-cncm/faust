@@ -28,8 +28,7 @@
 using namespace std;
 
 typedef class faust_smartptr<interpreter_dsp_factory> SDsp_factory;
-
-dsp_factory_table<SDsp_factory> gInterpreterFactoryTable;
+static dsp_factory_table<SDsp_factory> gInterpreterFactoryTable;
 
 // External API
 

@@ -176,10 +176,10 @@ using namespace llvm;
 int llvm_dsp_factory_aux::gInstance = 0;
 
 typedef class faust_smartptr<llvm_dsp_factory> SDsp_factory;
-dsp_factory_table<SDsp_factory> gLLVMFactoryTable;
+static dsp_factory_table<SDsp_factory> gLLVMFactoryTable;
 
 // Global API access lock
-TLockAble* gDSPFactoriesLock = 0;
+static TLockAble* gDSPFactoriesLock = 0;
 
 static void splitTarget(const string& target, string& triple, string& cpu)
 {
@@ -420,7 +420,7 @@ void llvm_dsp_factory_aux::startLLVMLibrary()
 #endif
 #if (!defined(LLVM_35) && !defined(LLVM_36) && !defined(LLVM_37) && !defined(LLVM_38) && !defined(LLVM_39)) // In LLVM 3.5 this is gone.
         if (!llvm_start_multithreaded()) {
-            printf("llvm_start_multithreaded error...\n");
+            std::cerr << "llvm_start_multithreaded error...\n");
         }
 #endif
     }
@@ -1266,7 +1266,7 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, cons
             factory->setSHAKey(sha_key);
             return factory;
         } else {
-            printf("readDSPFactoryFromBitcode failed : %s\n", error_msg.c_str());
+            std::cerr << "readDSPFactoryFromBitcode failed : " << error_msg << std::endl;
             delete factory_aux;
             return NULL;
         }
@@ -1293,7 +1293,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_pa
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
     if (error_code ec = buffer.getError()) {
-        printf("readDSPFactoryFromBitcodeFile failed : %s\n", ec.message().c_str());
+        std::cerr << "readDSPFactoryFromBitcodeFile failed : " << ec.message() << std::endl;
         return NULL;
     } else {
         return readDSPFactoryFromBitcodeAux(MEMORY_BUFFER_GET_REF(buffer), target, opt_level);
@@ -1301,7 +1301,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_pa
 #else
     OwningPtr<MemoryBuffer> buffer;
     if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(bit_code_path.c_str(), buffer)) {
-        printf("readDSPFactoryFromBitcodeFile failed : %s\n", ec.message().c_str());
+        std::cerr << "readDSPFactoryFromBitcodeFile failed : " << ec.message() << std::endl;
         return NULL;
     } else {
         return readDSPFactoryFromBitcodeAux(buffer.get(), target, opt_level);
@@ -1351,7 +1351,7 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
             factory->setSHAKey(sha_key);
             return factory;
         } else {
-            printf("readDSPFactoryFromBitcode failed : %s\n", error_msg.c_str());
+            std::cerr << "readDSPFactoryFromBitcode failed : " << error_msg << std::endl;
             delete factory_aux;
             return NULL;
         }
@@ -1378,7 +1378,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, co
  #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(ir_code_path);
     if (error_code ec = buffer.getError()) {
-        printf("readDSPFactoryFromIRFile failed : %s\n", ec.message().c_str());
+        std::cerr << "readDSPFactoryFromIRFile failed : " << ec.message() << std::endl;
         return NULL;
     } else {
         return readDSPFactoryFromIRAux(MEMORY_BUFFER_GET_REF(buffer), target, opt_level);
@@ -1386,7 +1386,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, co
 #else
     OwningPtr<MemoryBuffer> buffer;
     if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(ir_code_path.c_str(), buffer)) {
-        printf("readDSPFactoryFromIRFile failed : %s\n", ec.message().c_str());
+        std::cerr << "readDSPFactoryFromIRFile failed : " << ec.message() << std::endl;
         return NULL;
     } else {
         return readDSPFactoryFromIRAux(buffer.get(), target, opt_level);
@@ -1425,7 +1425,7 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, cons
             factory->setSHAKey(sha_key);
             return factory;
         } else {
-            printf("readDSPFactoryFromMachine failed : %s\n", error_msg.c_str());
+            std::cerr << "readDSPFactoryFromMachine failed : " << error_msg << std::endl;
             delete factory_aux;
             return NULL;
         }
@@ -1453,7 +1453,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_cod
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
     if (error_code ec = buffer.getError()) {
-        printf("readDSPFactoryFromMachineFile failed : %s\n", ec.message().c_str());
+        std::cerr << "readDSPFactoryFromMachineFile failed : " << ec.message() << std::endl;
         return NULL;
     } else {
         return readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer), target);
@@ -1461,7 +1461,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_cod
 #else
     OwningPtr<MemoryBuffer> buffer;
     if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(machine_code_path.c_str(), buffer)) {
-        printf("readDSPFactoryFromMachineFile failed : %s\n", ec.message().c_str());
+        std::cerr << "readDSPFactoryFromMachineFile failed : " << ec.message() << std::endl;
         return NULL;
     } else {
         return readDSPFactoryFromMachineAux(buffer.get(), target);
@@ -1481,25 +1481,25 @@ EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string
 
 EXPORT llvm_dsp_factory_aux* readDSPFactoryFromMachine(const string& machine_code)
 {
-    printf("readDSPFactoryFromMachine not implemented\n");
+    std::cerr << "readDSPFactoryFromMachine not implemented" << std::endl;
     return NULL;
 }
 
 EXPORT string writeDSPFactoryToMachine(llvm_dsp_factory_aux* factory)
 {
-    printf("writeDSPFactoryToMachine not implemented\n");
+    std::cerr << "writeDSPFactoryToMachine not implemented" << std::endl;
     return "";
 }
 
 EXPORT llvm_dsp_factory_aux* readDSPFactoryFromMachineFile(const string& machine_code_path)
 {
-    printf("readDSPFactoryFromMachineFile not implemented\n");
+    std::cerr << "readDSPFactoryFromMachineFile not implemented" << std::endl;
     return NULL;
 }
 
 EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory_aux* factory, const string& machine_code_path)
 {
-    printf("writeDSPFactoryToMachineFile not implemented\n");
+    std::cerr << "writeDSPFactoryToMachineFile not implemented" << std::endl;
 }
 
 #endif
