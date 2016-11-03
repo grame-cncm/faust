@@ -72,7 +72,7 @@ bool DspFaust::isRunning(){
     return fPolyEngine->isRunning();
 }
 
-int DspFaust::keyOn(int pitch, int velocity){
+unsigned long DspFaust::keyOn(int pitch, int velocity){
     return (long) fPolyEngine->keyOn(pitch, velocity);
 }
 
@@ -100,11 +100,11 @@ float DspFaust::getParamValue(const char* address){
     return fPolyEngine->getParamValue(address);
 }
 
-void DspFaust::setVoiceParamValue(const char* address, int voice, float value){
+void DspFaust::setVoiceParamValue(const char* address, unsigned long voice, float value){
     fPolyEngine->setVoiceParamValue(address, voice, value);
 }
 
-float DspFaust::getVoiceParamValue(const char* address, int voice){
+float DspFaust::getVoiceParamValue(const char* address, unsigned long voice){
     return fPolyEngine->getVoiceParamValue(address, voice);
 }
 

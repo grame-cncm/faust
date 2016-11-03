@@ -51,7 +51,7 @@ public class DspFaust {
     return dsp_faustJNI.DspFaust_isRunning(swigCPtr, this);
   }
 
-  public int keyOn(int arg0, int arg1) {
+  public long keyOn(int arg0, int arg1) {
     return dsp_faustJNI.DspFaust_keyOn(swigCPtr, this, arg0, arg1);
   }
 
@@ -79,11 +79,11 @@ public class DspFaust {
     return dsp_faustJNI.DspFaust_getParamValue(swigCPtr, this, arg0);
   }
 
-  public void setVoiceParamValue(String arg0, int arg1, float arg2) {
+  public void setVoiceParamValue(String arg0, long arg1, float arg2) {
     dsp_faustJNI.DspFaust_setVoiceParamValue(swigCPtr, this, arg0, arg1, arg2);
   }
 
-  public float getVoiceParamValue(String arg0, int arg1) {
+  public float getVoiceParamValue(String arg0, long arg1) {
     return dsp_faustJNI.DspFaust_getVoiceParamValue(swigCPtr, this, arg0, arg1);
   }
 

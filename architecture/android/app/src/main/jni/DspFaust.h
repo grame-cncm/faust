@@ -29,7 +29,7 @@ public:
     void stop();
     bool isRunning();
 
-    int keyOn(int, int);
+    unsigned long keyOn(int, int);
     int keyOff(int);
     void propagateMidi(int, double, int, int, int, int);
 
@@ -40,8 +40,8 @@ public:
     void setParamValue(const char*, float);
     float getParamValue(const char*);
 
-    void setVoiceParamValue(const char*, int, float);
-    float getVoiceParamValue(const char*, int);
+    void setVoiceParamValue(const char*, unsigned long, float);
+    float getVoiceParamValue(const char*, unsigned long);
 
     const char* getParamAddress(int);
 
@@ -53,6 +53,7 @@ public:
 
     float getCPULoad();
     int getScreenColor();
+
 private:
 	FaustPolyEngine *fPolyEngine;
 };
