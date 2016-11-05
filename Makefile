@@ -127,6 +127,7 @@ doclib :
 install :
 	# install faust itself
 	mkdir -p $(prefix)/bin/
+	mkdir -p $(prefix)/lib/
 	mkdir -p $(prefix)/include/
 	mkdir -p $(prefix)/include/faust/
 	mkdir -p $(prefix)/include/faust/osc/

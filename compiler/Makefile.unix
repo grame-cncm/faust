@@ -46,7 +46,7 @@ else
 endif
 endif
 
-LLVM_STATIC_LIBS = $(shell $(LLVM_CONFIG) --libfiles --system-libs)
+LLVM_STATIC_LIBS = $(shell $(LLVM_CONFIG) --libs --system-libs)
 LLVM_VERSION = $(shell $(LLVM_CONFIG) --version)
 
 ## On Windows (mingw32) we must link against the socket library.
