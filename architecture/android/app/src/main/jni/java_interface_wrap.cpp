@@ -302,12 +302,12 @@ SWIGEXPORT jboolean JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1isRunning(
 }
 
 
-SWIGEXPORT jlong JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1keyOn(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2, jint jarg3) {
-  jlong jresult = 0 ;
+SWIGEXPORT jint JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1keyOn(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2, jint jarg3) {
+  jint jresult = 0 ;
   DspFaust *arg1 = (DspFaust *) 0 ;
   int arg2 ;
   int arg3 ;
-  unsigned long result;
+  int result;
   
   (void)jenv;
   (void)jcls;
@@ -315,8 +315,8 @@ SWIGEXPORT jlong JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1keyOn(JNIEnv 
   arg1 = *(DspFaust **)&jarg1; 
   arg2 = (int)jarg2; 
   arg3 = (int)jarg3; 
-  result = (unsigned long)(arg1)->keyOn(arg2,arg3);
-  jresult = (jlong)result; 
+  result = (int)(arg1)->keyOn(arg2,arg3);
+  jresult = (jint)result; 
   return jresult;
 }
 
@@ -433,10 +433,10 @@ SWIGEXPORT jfloat JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getParamValu
 }
 
 
-SWIGEXPORT void JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1setVoiceParamValue(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2, jlong jarg3, jfloat jarg4) {
+SWIGEXPORT void JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1setVoiceParamValue(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2, jint jarg3, jfloat jarg4) {
   DspFaust *arg1 = (DspFaust *) 0 ;
   char *arg2 = (char *) 0 ;
-  unsigned long arg3 ;
+  int arg3 ;
   float arg4 ;
   
   (void)jenv;
@@ -448,18 +448,18 @@ SWIGEXPORT void JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1setVoiceParamV
     arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
     if (!arg2) return ;
   }
-  arg3 = (unsigned long)jarg3; 
+  arg3 = (int)jarg3; 
   arg4 = (float)jarg4; 
   (arg1)->setVoiceParamValue((char const *)arg2,arg3,arg4);
   if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
 }
 
 
-SWIGEXPORT jfloat JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getVoiceParamValue(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2, jlong jarg3) {
+SWIGEXPORT jfloat JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getVoiceParamValue(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2, jint jarg3) {
   jfloat jresult = 0 ;
   DspFaust *arg1 = (DspFaust *) 0 ;
   char *arg2 = (char *) 0 ;
-  unsigned long arg3 ;
+  int arg3 ;
   float result;
   
   (void)jenv;
@@ -471,7 +471,7 @@ SWIGEXPORT jfloat JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getVoicePara
     arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
     if (!arg2) return 0;
   }
-  arg3 = (unsigned long)jarg3; 
+  arg3 = (int)jarg3; 
   result = (float)(arg1)->getVoiceParamValue((char const *)arg2,arg3);
   jresult = (jfloat)result; 
   if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);

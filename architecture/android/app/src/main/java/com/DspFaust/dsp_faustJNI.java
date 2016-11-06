@@ -24,15 +24,15 @@ public class dsp_faustJNI {
   public final static native boolean DspFaust_start(long jarg1, DspFaust jarg1_);
   public final static native void DspFaust_stop(long jarg1, DspFaust jarg1_);
   public final static native boolean DspFaust_isRunning(long jarg1, DspFaust jarg1_);
-  public final static native long DspFaust_keyOn(long jarg1, DspFaust jarg1_, int jarg2, int jarg3);
+  public final static native int DspFaust_keyOn(long jarg1, DspFaust jarg1_, int jarg2, int jarg3);
   public final static native int DspFaust_keyOff(long jarg1, DspFaust jarg1_, int jarg2);
   public final static native void DspFaust_propagateMidi(long jarg1, DspFaust jarg1_, int jarg2, double jarg3, int jarg4, int jarg5, int jarg6, int jarg7);
   public final static native String DspFaust_getJSON(long jarg1, DspFaust jarg1_);
   public final static native int DspFaust_getParamsCount(long jarg1, DspFaust jarg1_);
   public final static native void DspFaust_setParamValue(long jarg1, DspFaust jarg1_, String jarg2, float jarg3);
   public final static native float DspFaust_getParamValue(long jarg1, DspFaust jarg1_, String jarg2);
-  public final static native void DspFaust_setVoiceParamValue(long jarg1, DspFaust jarg1_, String jarg2, long jarg3, float jarg4);
-  public final static native float DspFaust_getVoiceParamValue(long jarg1, DspFaust jarg1_, String jarg2, long jarg3);
+  public final static native void DspFaust_setVoiceParamValue(long jarg1, DspFaust jarg1_, String jarg2, int jarg3, float jarg4);
+  public final static native float DspFaust_getVoiceParamValue(long jarg1, DspFaust jarg1_, String jarg2, int jarg3);
   public final static native String DspFaust_getParamAddress(long jarg1, DspFaust jarg1_, int jarg2);
   public final static native void DspFaust_propagateAcc(long jarg1, DspFaust jarg1_, int jarg2, float jarg3);
   public final static native void DspFaust_setAccConverter(long jarg1, DspFaust jarg1_, int jarg2, int jarg3, int jarg4, float jarg5, float jarg6, float jarg7);

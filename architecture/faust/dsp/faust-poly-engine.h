@@ -32,7 +32,6 @@
 #include "faust/gui/APIUI.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/dsp/faust-engine.h"
-#include "faust/dsp/dsp-combiner.h"
 
 //**************************************************************
 // Mono or polyphonic audio DSP engine
@@ -256,8 +255,9 @@ class FaustPolyEngine {
          * the voice. setVoiceParamValue can only be
          * used if the [style:poly] metadata is used in the Faust code.
          */
-        void setVoiceParamValue(const char* address, long voice, float value)
+        void setVoiceParamValue(const char* address, int voice, float value)
         {
+            assert(sizeof(int) == sizeof(MapUI*));
             reinterpret_cast<MapUI*>(voice)->setParamValue(address, value);
         }
     
@@ -267,8 +267,9 @@ class FaustPolyEngine {
          * getVoiceParamValue can only be used if the [style:poly] metadata
          * is used in the Faust code.
          */
-        float getVoiceParamValue(const char* address, long voice)
+        float getVoiceParamValue(const char* address, int voice)
         {
+            assert(sizeof(int) == sizeof(MapUI*));
             return reinterpret_cast<MapUI*>(voice)->getParamValue(address);
         }
     
@@ -349,7 +350,7 @@ extern "C" {
     void stop(void* dsp) { reinterpret_cast<FaustPolyEngine*>(dsp)->stop(); }
     bool isRunning(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->isRunning(); }
 
-    long keyOn(void* dsp, int pitch, int velocity) { return (long)reinterpret_cast<FaustPolyEngine*>(dsp)->keyOn(pitch, velocity); }
+    int keyOn(void* dsp, int pitch, int velocity) { return (long)reinterpret_cast<FaustPolyEngine*>(dsp)->keyOn(pitch, velocity); }
     int keyOff(void* dsp, int pitch) { return reinterpret_cast<FaustPolyEngine*>(dsp)->keyOff(pitch); }
     void propagateMidi(void* dsp, int count, double time, int type, int channel, int data1, int data2)
     {
@@ -361,11 +362,11 @@ extern "C" {
     int getParamsCount(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamsCount(); }
     void setParamValue(void* dsp, const char* address, float value) { reinterpret_cast<FaustPolyEngine*>(dsp)->setParamValue(address, value); }
     float getParamValue(void* dsp, const char* address) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamValue(address); }
-    void setVoiceParamValue(void* dsp, const char* address, long voice, float value)
+    void setVoiceParamValue(void* dsp, const char* address, int voice, float value)
     {
         reinterpret_cast<FaustPolyEngine*>(dsp)->setVoiceParamValue(address, voice, value);
     }
-    float getVoiceParamValue(void* dsp, const char* address, long voice) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getVoiceParamValue(address, voice); }
+    float getVoiceParamValue(void* dsp, const char* address, int voice) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getVoiceParamValue(address, voice); }
     const char* getParamAddress(void* dsp, int id) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamAddress(id); }
 
     void propagateAcc(void* dsp, int acc, float v)  { reinterpret_cast<FaustPolyEngine*>(dsp)->propagateAcc(acc, v); }

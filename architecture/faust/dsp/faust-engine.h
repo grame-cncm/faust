@@ -30,7 +30,7 @@ extern "C" {
     void stop(void*);
     bool isRunning(void*);
 
-    long keyOn(void*, int, int);
+    int keyOn(void*, int, int);
     int keyOff(void*, int);
     void propagateMidi(void*, int, double, int, int, int, int);
 
@@ -41,8 +41,8 @@ extern "C" {
     void setParamValue(void*, const char*, float);
     float getParamValue(void*, const char*);
 
-    void setVoiceParamValue(void*, const char*, long, float);
-    float getVoiceParamValue(void*, const char*, long);
+    void setVoiceParamValue(void*, const char*, int, float);
+    float getVoiceParamValue(void*, const char*, int);
 
     const char* getParamAddress(void*, int);
 
