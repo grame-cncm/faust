@@ -17,42 +17,42 @@
  ************************************************************************
  ************************************************************************/
 
-class FaustPolyEngine;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-class DspFaust
-{
-public:
-    DspFaust(int,int);
-	~DspFaust();
+    void* create(int, int);
+    void destroy(void*);
+    
+    bool start(void*);
+    void stop(void*);
+    bool isRunning(void*);
+    
+    int keyOn(void*, int, int);
+    int keyOff(void*, int);
+    void propagateMidi(void*, int, double, int, int, int, int);
+    
+    const char* getJSON(void*);
+    
+    int getParamsCount(void*);
+    
+    void setParamValue(void*, const char*, float);
+    float getParamValue(void*, const char*);
+    
+    void setVoiceParamValue(void*, const char*, int, float);
+    float getVoiceParamValue(void*, const char*, int);
+    
+    const char* getParamAddress(void*, int);
+    
+    void propagateAcc(void*, int, float);
+    void setAccConverter(void*, int, int, int, float, float, float);
+    
+    void propagateGyr(void*, int, float);
+    void setGyrConverter(void*, int, int, int, float, float, float);
+    
+    float getCPULoad(void*);
+    int getScreenColor(void*);
 
-    bool start();
-    void stop();
-    bool isRunning();
-
-    int keyOn(int, int);
-    int keyOff(int);
-    void propagateMidi(int, double, int, int, int, int);
-
-    const char* getJSON();
-
-    int getParamsCount();
-
-    void setParamValue(const char*, float);
-    float getParamValue(const char*);
-
-    void setVoiceParamValue(const char*, int, float);
-    float getVoiceParamValue(const char*, int);
-
-    const char* getParamAddress(int);
-
-    void propagateAcc(int, float);
-    void setAccConverter(int, int, int, float, float, float);
-
-    void propagateGyr(int, float);
-    void setGyrConverter(int, int, int, float, float, float);
-
-    float getCPULoad();
-    int getScreenColor();
-private:
-	FaustPolyEngine *fPolyEngine;
-};
+#ifdef __cplusplus
+}
+#endif

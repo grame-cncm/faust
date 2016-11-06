@@ -337,4 +337,53 @@ class FaustPolyEngine {
 
 };
 
+// Public C API
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
+    void destroy(void* dsp) { delete reinterpret_cast<FaustPolyEngine*>(dsp); }
+    
+    bool start(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->start(); }
+    void stop(void* dsp) { reinterpret_cast<FaustPolyEngine*>(dsp)->stop(); }
+    bool isRunning(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->isRunning(); }
+    
+    int keyOn(void* dsp, int pitch, int velocity) { return (long)reinterpret_cast<FaustPolyEngine*>(dsp)->keyOn(pitch, velocity); }
+    int keyOff(void* dsp, int pitch) { return reinterpret_cast<FaustPolyEngine*>(dsp)->keyOff(pitch); }
+    void propagateMidi(void* dsp, int count, double time, int type, int channel, int data1, int data2)
+    {
+        reinterpret_cast<FaustPolyEngine*>(dsp)->propagateMidi(count, time, type, channel, data1, data2);
+    }
+    
+    const char* getJSON(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getJSON(); }
+    
+    int getParamsCount(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamsCount(); }
+    void setParamValue(void* dsp, const char* address, float value) { reinterpret_cast<FaustPolyEngine*>(dsp)->setParamValue(address, value); }
+    float getParamValue(void* dsp, const char* address) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamValue(address); }
+    void setVoiceParamValue(void* dsp, const char* address, int voice, float value)
+    {
+        reinterpret_cast<FaustPolyEngine*>(dsp)->setVoiceParamValue(address, voice, value);
+    }
+    float getVoiceParamValue(void* dsp, const char* address, int voice) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getVoiceParamValue(address, voice); }
+    const char* getParamAddress(void* dsp, int id) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamAddress(id); }
+    
+    void propagateAcc(void* dsp, int acc, float v)  { reinterpret_cast<FaustPolyEngine*>(dsp)->propagateAcc(acc, v); }
+    void setAccConverter(void* dsp, int p, int acc, int curve, float amin, float amid, float amax)
+    {
+        reinterpret_cast<FaustPolyEngine*>(dsp)->setAccConverter(p, acc, curve, amin, amid, amax);
+    }
+    void propagateGyr(void* dsp, int acc, float v)  { reinterpret_cast<FaustPolyEngine*>(dsp)->propagateGyr(acc, v); }
+    void setGyrConverter(void* dsp, int p, int gyr, int curve, float amin, float amid, float amax)
+    {
+        reinterpret_cast<FaustPolyEngine*>(dsp)->setGyrConverter(p, gyr, curve, amin, amid, amax);
+    }
+    
+    float getCPULoad(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getCPULoad(); }
+    int getScreenColor(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getScreenColor(); }
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif // __faust_poly_engine__

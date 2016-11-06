@@ -1,8 +1,8 @@
 /************************************************************************
  ************************************************************************
  FAUST Architecture File for Android
- Copyright (C) 2016 GRAME, Romain Michon, CCRMA - Stanford University
- Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2013 GRAME, Romain Michon, CCRMA - Stanford University
+ Copyright (C) 2003-2013 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  
  This is sample code. This file is provided as an example of minimal
@@ -19,7 +19,7 @@
 
 %module dsp_faust
 %{
-#include "DspFaust.h"
+#include "dsp_faust.h"
 %}
 
 // Enable the JNI class to load the required native library.
@@ -34,4 +34,4 @@
   }
 %}
 
-%include "DspFaust.h"
+%include "dsp_faust.h"
