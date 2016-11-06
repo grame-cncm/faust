@@ -1,8 +1,8 @@
 /************************************************************************
  ************************************************************************
- FAUST Architecture File for audio engine
+ FAUST Architecture File for Android
  Copyright (C) 2014 GRAME, Romain Michon, CCRMA - Stanford University
- Copyright (C) 2014-2016 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
 
  This is sample code. This file is provided as an example of minimal
@@ -17,42 +17,24 @@
  ************************************************************************
  ************************************************************************/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-    void* create(int, int);
-    void destroy(void*);
-    
-    bool start(void*);
-    void stop(void*);
-    bool isRunning(void*);
-    
-    int keyOn(void*, int, int);
-    int keyOff(void*, int);
-    void propagateMidi(void*, int, double, int, int, int, int);
-    
-    const char* getJSON(void*);
-    
-    int getParamsCount(void*);
-    
-    void setParamValue(void*, const char*, float);
-    float getParamValue(void*, const char*);
-    
-    void setVoiceParamValue(void*, const char*, int, float);
-    float getVoiceParamValue(void*, const char*, int);
-    
-    const char* getParamAddress(void*, int);
-    
-    void propagateAcc(void*, int, float);
-    void setAccConverter(void*, int, int, int, float, float, float);
-    
-    void propagateGyr(void*, int, float);
-    void setGyrConverter(void*, int, int, int, float, float, float);
-    
-    float getCPULoad(void*);
-    int getScreenColor(void*);
-
-#ifdef __cplusplus
-}
-#endif
+bool init(int, int);
+bool start(void);
+void stop(void);
+void destroy(void);
+bool isRunning(void);
+int keyOn(int, int);
+int keyOff(int);
+const char* getJSON(void);
+int getParamsCount(void);
+void setParamValue(const char*, float);
+float getParamValue(const char*);
+void setVoiceParamValue(const char*, int, float);
+float getVoiceParamValue(const char*, int);
+const char* getParamAddress(int);
+void propagateAcc(int acc, float v);
+void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax);
+void propagateGyr(int acc, float v);
+void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax);
+void propagateMidi(int count, double time, int type, int channel, int data1, int data2);
+float getCPULoad();
+int getScreenColor();

@@ -17,6 +17,12 @@
  ************************************************************************
  ************************************************************************/
 
+#include <math.h>
+#include "faust/misc.h"
+#include "faust/dsp/dsp.h"
+#include "faust/gui/meta.h"
+#include "faust/gui/UI.h"
+
 //**************************************************************
 // DSP class
 //**************************************************************
@@ -25,10 +31,18 @@
 
 <<includeclass>>
 
+/*
+ * README:
+ * The file only implements the native part of faust2android applications.
+ * The native C API is documented at the end of this file in the "Native Faust
+ * API" section.
+ */
+
 //**************************************************************
-// Audio engine
+// Polyphony
 //**************************************************************
 
+#include "faust/dsp/dsp-combiner.h"
 #include "faust/dsp/faust-poly-engine.h"
 
 //**************************************************************
@@ -47,8 +61,259 @@
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
-extern "C" void* create(int sample_rate, int buffer_size)
+class AndroidEngine : public FaustPolyEngine {
+
+    protected:
+    
+        midi_handler fMidiHandler;
+        MidiUI fMidiUI;
+
+    public:
+
+        AndroidEngine(int srate, int bsize):FaustPolyEngine(), fMidiUI(&fMidiHandler)
+        {
+            fDriver = new androidaudio(srate, bsize);
+            fFinalDSP->buildUserInterface(&fMidiUI);
+        }
+
+        virtual ~AndroidEngine()
+        {}
+
+        // Allows to retrieve MIDI events in JAVA and to propagate to the Faust object.
+        void propagateMidi(int count, double time, int type, int channel, int data1, int data2)
+        {
+            if (count == 3) fMidiHandler.handleData2(time, type, channel, data1, data2);
+            else if (count == 2) fMidiHandler.handleData1(time, type, channel, data1);
+            else if (count == 1) fMidiHandler.handleSync(time, type);
+			GUI::updateAllGuis();
+        }
+};
+
+static AndroidEngine* gGlobal = NULL;
+
+/*
+ * init(samplingRate, bufferFrames)
+ * Initializes the Audio engine and the DSP code
+ * with samplingRate and bufferFrames.
+ * This method also looks for the [style:poly]
+ * metadata in the Faust code and initializes a
+ * polyphonic object or not based on that. init
+ * should be called before start.
+ */
+bool init(int sample_rate, int buffer_size)
 {
-    return new FaustPolyEngine(new androidaudio(sample_rate, buffer_size));
+    __android_log_print(ANDROID_LOG_ERROR, "Faust", "JNI init");
+    gGlobal = new AndroidEngine(sample_rate, buffer_size);
+    return gGlobal->init();
 }
 
+/*
+ * start()
+ * Begins the processing and return 1 if the connection
+ * with the audio device was successful and 0 if not.
+ * On Android it also creates the native thread where the
+ * DSP tasks will be computed.
+ */
+bool start()
+{
+    __android_log_print(ANDROID_LOG_ERROR, "Faust", "JNI start");
+    return gGlobal->start();
+}
+
+/*
+ * stop()
+ * Stops the processing.
+ */
+void stop()
+{
+    __android_log_print(ANDROID_LOG_ERROR, "Faust", "JNI stop");
+	 return gGlobal->stop();
+}
+
+/*
+ * destroy()
+ * Destroy the audio engine and related ressources.
+ * the native thread on Android.
+ */
+void destroy()
+{
+    __android_log_print(ANDROID_LOG_ERROR, "Faust", "JNI destroy");
+    delete gGlobal;
+    gGlobal = NULL;
+}
+
+/*
+ * isRunning()
+ * returns true if the DSP frames are being computed and
+ * false if not.
+ */
+bool isRunning()
+{
+	return (gGlobal != NULL);
+}
+
+/*
+ * keyOn(pitch, velocity)
+ * Instantiates a new polyphonic voice where velocity
+ * and pitch are MIDI numbers (0-127). keyOn can only
+ * be used if the [style:poly] metadata is used in the
+ * Faust code. keyOn will return 0 if the object is not
+ * polyphonic and 1 otherwise.
+ */
+int keyOn(int pitch, int velocity)
+{
+    if(gGlobal->keyOn(pitch, velocity) != NULL){
+		return 1;
+	}
+	else return 0;
+}
+
+/*
+ * keyOff(pitch)
+ * De-instantiates a polyphonic voice where pitch is the
+ * MIDI number of the note (0-127). keyOff can only be
+ * used if the [style:poly] metadata is used in the Faust
+ * code. keyOn will return 0 if the object is not polyphonic
+ * and 1 otherwise.
+ */
+int keyOff(int pitch)
+{
+	return gGlobal->keyOff(pitch);
+}
+
+/*
+ * getJSON()
+ * Returns a string containing a JSON description of the
+ * UI of the Faust object.
+ */
+const char* getJSON()
+{
+    return gGlobal->getJSON();
+}
+
+/*
+ * getParamsCount()
+ * Returns the number of control parameters of the Faust object.
+ */
+int getParamsCount()
+{
+    return gGlobal->getParamsCount();
+}
+
+/*
+ * getParam(address)
+ * Takes the address of a parameter and returns its current
+ * value.
+ */
+float getParamValue(const char* address)
+{
+    return gGlobal->getParamValue(address);
+}
+
+/*
+ * setParam(address, value)
+ * Sets the value of the parameter associated with address.
+ */
+void setParamValue(const char* address, float value)
+{
+    return gGlobal->setParamValue(address, value);
+}
+
+/*
+ * setVoiceParamValue(address, voice, value)
+ * Sets the value of the parameter associated with address for
+ * the voice. setVoiceParamValue can only be
+ * used if the [style:poly] metadata is used in the Faust code.
+ */
+void setVoiceParamValue(const char* address, int voice, float value)
+{
+    gGlobal->setVoiceParamValue(address, voice, value);
+}
+
+/*
+ * getVoiceParamValue(address, voice)
+ * Gets the parameter value associated with address for the voice.
+ * getVoiceParamValue can only be used if the [style:poly] metadata
+ * is used in the Faust code.
+ */
+float getVoiceParamValue(const char* address, int voice)
+{
+    return gGlobal->getVoiceParamValue(address, voice);
+}
+
+/*
+ * getParamAddress(id)
+ * Returns the address of a parameter in function of its "id".
+ */
+const char* getParamAddress(int id)
+{
+    return gGlobal->getParamAddress(id);
+}
+
+/*
+ * propagateAcc(int acc, float v)
+ * Propage accelerometer value to the curve conversion layer.
+ */
+void propagateAcc(int acc, float v)
+{
+    // 05/23/26 : values have to be inverted to behave as with iOS implementation
+    gGlobal->propagateAcc(acc, -v);
+}
+
+/*
+ * setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
+ * Change accelerometer curve mapping.
+ */
+void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
+{
+    //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d %d %d %f %f %f", p, acc, curve, amin, amid, amax);
+    gGlobal->setAccConverter(p, acc, curve, amin, amid, amax);
+}
+
+/*
+ * propagateGyr(int gyr, float v)
+ * Propage gyroscope value to the curve conversion layer.
+ */
+void propagateGyr(int gyr, float v)
+{
+    gGlobal->propagateGyr(gyr, v);
+}
+
+/*
+ * setGyrConverter(int p, int acc, int curve, float amin, float amid, float amax)
+ * Change gyroscope curve mapping.
+ */
+void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax)
+{
+    //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d %d %d %f %f %f", p, acc, curve, amin, amid, amax);
+    gGlobal->setGyrConverter(p, gyr, curve, amin, amid, amax);
+}
+
+/*
+ * propagateMidi(double time, int type, int channel, int data1, int data2)
+ * Allows to retrieve MIDI events in JAVA and to propagate to the Faust object.
+ */
+void propagateMidi(int count, double time, int type, int channel, int data1, int data2){
+	gGlobal->propagateMidi(count, time, type, channel, data1, data2);
+}
+
+/*
+ * getCPULoad()
+ * Return DSP CPU load.
+ */
+float getCPULoad()
+{
+    return gGlobal->getCPULoad();
+}
+
+ /*
+ * getScreenColor() -> c:int
+ * Get the requested screen color c :
+ * c <  0 : no screen color requested (keep regular UI)
+ * c >= 0 : requested color (no UI but a colored screen)
+ */
+ int getScreenColor()
+ {
+     //__android_log_print(ANDROID_LOG_ERROR, "Faust", "setAccConverter %d %d %d %f %f %f", p, acc, curve, amin, amid, amax);
+     return gGlobal->getScreenColor();
+ }
