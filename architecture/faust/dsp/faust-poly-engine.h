@@ -230,7 +230,7 @@ class FaustPolyEngine {
         }
     
         /*
-         * setParam(address, value)
+         * setParamValue(address, value)
          * Sets the value of the parameter associated with address.
          */
         void setParamValue(const char* address, float value)
@@ -248,6 +248,27 @@ class FaustPolyEngine {
         float getParamValue(const char* address)
         {
             return fAPIUI.getParamValue(fAPIUI.getParamIndex(address));
+        }
+    
+        /*
+         * setParamIndexValue(index, value)
+         * Sets the value of the parameter associated with index.
+         */
+        void setParamIndexValue(int index, float value)
+        {
+            fAPIUI.setParamValue(index, value);
+            // In POLY mode, update all voices
+            GUI::updateAllGuis();
+        }
+        
+        /*
+         * getParamValue(address)
+         * Takes the index of a parameter and returns its current
+         * value.
+         */
+        float getParamIndexValue(int index)
+        {
+            return fAPIUI.getParamValue(index);
         }
 
         /*
@@ -347,10 +368,12 @@ extern "C" {
 
     bool start(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->start(); }
     void stop(void* dsp) { reinterpret_cast<FaustPolyEngine*>(dsp)->stop(); }
+    
     bool isRunning(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->isRunning(); }
 
     long keyOn(void* dsp, int pitch, int velocity) { return (long)reinterpret_cast<FaustPolyEngine*>(dsp)->keyOn(pitch, velocity); }
     int keyOff(void* dsp, int pitch) { return reinterpret_cast<FaustPolyEngine*>(dsp)->keyOff(pitch); }
+    
     void propagateMidi(void* dsp, int count, double time, int type, int channel, int data1, int data2)
     {
         reinterpret_cast<FaustPolyEngine*>(dsp)->propagateMidi(count, time, type, channel, data1, data2);
@@ -359,13 +382,19 @@ extern "C" {
     const char* getJSON(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getJSON(); }
 
     int getParamsCount(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamsCount(); }
+    
     void setParamValue(void* dsp, const char* address, float value) { reinterpret_cast<FaustPolyEngine*>(dsp)->setParamValue(address, value); }
     float getParamValue(void* dsp, const char* address) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamValue(address); }
+   
+    void setParamIndexValue(void* dsp, int index, float value) { reinterpret_cast<FaustPolyEngine*>(dsp)->setParamIndexValue(index, value); }
+    float getParamIndexValue(void* dsp, int index) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamIndexValue(index); }
+    
     void setVoiceParamValue(void* dsp, const char* address, long voice, float value)
     {
         reinterpret_cast<FaustPolyEngine*>(dsp)->setVoiceParamValue(address, voice, value);
     }
     float getVoiceParamValue(void* dsp, const char* address, long voice) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getVoiceParamValue(address, voice); }
+    
     const char* getParamAddress(void* dsp, int id) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamAddress(id); }
 
     void propagateAcc(void* dsp, int acc, float v)  { reinterpret_cast<FaustPolyEngine*>(dsp)->propagateAcc(acc, v); }

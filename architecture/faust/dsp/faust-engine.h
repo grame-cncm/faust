@@ -28,10 +28,12 @@ extern "C" {
 
     bool start(void*);
     void stop(void*);
+    
     bool isRunning(void*);
 
     long keyOn(void*, int, int);
     int keyOff(void*, int);
+    
     void propagateMidi(void*, int, double, int, int, int, int);
 
     const char* getJSON(void*);
@@ -40,6 +42,9 @@ extern "C" {
 
     void setParamValue(void*, const char*, float);
     float getParamValue(void*, const char*);
+    
+    void setParamIndexValue(void*, int, float);
+    float getParamIndexValue(void*, int);
 
     void setVoiceParamValue(void*, const char*, long, float);
     float getVoiceParamValue(void*, const char*, long);
