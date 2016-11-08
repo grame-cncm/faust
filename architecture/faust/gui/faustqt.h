@@ -305,32 +305,7 @@ protected:
     FAUSTFLOAT      fScaleMin;
     FAUSTFLOAT      fScaleMax;
     std::vector<int>     fLevel;
-    std::vector<QBrush>  fBrush;    
-    
-    /**
-     * Convert a dB value into a scale between 0 and 1 (following IEC standard ?)
-     */
-    FAUSTFLOAT dB2Scale(FAUSTFLOAT dB) const
-    {
-        FAUSTFLOAT fScale = 1.0;
-        
-        /*if (dB < -70.0f)
-         fScale = 0.0f;
-         else*/ if (dB < -60.0)
-             fScale = (dB + 70.0) * 0.0025;
-         else if (dB < -50.0)
-             fScale = (dB + 60.0) * 0.005 + 0.025;
-         else if (dB < -40.0)
-             fScale = (dB + 50.0) * 0.0075 + 0.075;
-         else if (dB < -30.0)
-             fScale = (dB + 40.0) * 0.015 + 0.15;
-         else if (dB < -20.0)
-             fScale = (dB + 30.0) * 0.02 + 0.3;
-         else if (dB < -0.001 || dB > 0.001)  /* if (dB < 0.0) */
-             fScale = (dB + 20.0f) * 0.025 + 0.5;
-        
-        return fScale;
-    }
+    std::vector<QBrush>  fBrush;
     
     /**
      * Create the scale of colors used to paint the bargraph in relation to the levels

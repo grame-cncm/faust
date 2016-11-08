@@ -43,6 +43,31 @@ static inline bool startWith(const std::string& str, const std::string& prefix)
     return (str.substr(0, prefix.size()) == prefix);
 }
 
+/**
+ * Convert a dB value into a scale between 0 and 1 (following IEC standard ?)
+ */
+static inline FAUSTFLOAT dB2Scale(FAUSTFLOAT dB)
+{
+    FAUSTFLOAT scale = 1.0;
+    
+    /*if (dB < -70.0f)
+     scale = 0.0f;
+     else*/ if (dB < -60.0)
+         scale = (dB + 70.0) * 0.0025;
+     else if (dB < -50.0)
+         scale = (dB + 60.0) * 0.005 + 0.025;
+     else if (dB < -40.0)
+         scale = (dB + 50.0) * 0.0075 + 0.075;
+     else if (dB < -30.0)
+         scale = (dB + 40.0) * 0.015 + 0.15;
+     else if (dB < -20.0)
+         scale = (dB + 30.0) * 0.02 + 0.3;
+     else if (dB < -0.001 || dB > 0.001)  /* if (dB < 0.0) */
+         scale = (dB + 20.0f) * 0.025 + 0.5;
+    
+    return scale;
+}
+
 /*******************************************************************************
  * MetaDataUI : Common class for MetaData handling
  ******************************************************************************/
