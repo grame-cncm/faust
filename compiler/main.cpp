@@ -37,7 +37,7 @@ int main(int argc, const char* argv[])
     if (error_msg == "") {
         return 0;
     } else {
-        std::cerr << error_msg << std::endl;
+        std::cerr << error_msg;
         return 1;
     }
 }

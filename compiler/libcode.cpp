@@ -388,16 +388,20 @@ static bool process_cmdline(int argc, const char* argv[])
             i += 1;
          
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i+1 < argc)) {
-            char temp[PATH_MAX+1];
             if (strstr(argv[i+1], "http://") != 0) {
                 gGlobal->gImportDirList.push_back(argv[i+1]);
             } else {
+                char temp[PATH_MAX+1];
                 char* path = realpath(argv[i+1], temp);
-                if (path) {
+                if (path == 0) {
+                    stringstream error;
+                    error << "ERROR : invalid directory path " << argv[i+1] << std::endl;
+                    throw faustexception(error.str());
+                } else {
                     gGlobal->gImportDirList.push_back(path);
+                    i += 2;
                 }
             }
-            i += 2;
             
         } else if (isCmd(argv[i], "-l", "--library") && (i+1 < argc)) {
             gGlobal->gLibraryList.push_back(argv[i+1]);
@@ -406,7 +410,11 @@ static bool process_cmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-O", "--output-dir") && (i+1 < argc)) {
             char temp[PATH_MAX+1];
             char* path = realpath(argv[i+1], temp);
-            if (path) {
+            if (path == 0) {
+                stringstream error;
+                error << "ERROR : invalid directory path " << argv[i+1] << std::endl;
+                throw faustexception(error.str());
+            } else {
                 gGlobal->gOutputDir = path;
             }
             i += 2;
