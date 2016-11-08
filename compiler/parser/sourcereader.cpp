@@ -234,7 +234,7 @@ Tree SourceReader::parse(const char* fname)
         yylineno = 1;
         int r = yyparse();
         if (r) {
-            fprintf(stderr, "Parse error : code = %d \n", r);
+            fprintf(stderr, "Parse error : code = %d\n", r);
         }
         if (yyerr > 0) {
             //fprintf(stderr, "Erreur de parsing 2, count = %d \n", yyerr);
@@ -250,7 +250,7 @@ Tree SourceReader::parse(const char* fname)
     } else {
 		// test for local url
 		if (strstr(yyfilename,"file://") != 0) {
-			yyfilename  = &yyfilename[7]; // skip 'file://'
+			yyfilename = &yyfilename[7]; // skip 'file://'
 		}
 		
         // We are requested to parse a regular file
