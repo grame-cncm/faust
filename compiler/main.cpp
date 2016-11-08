@@ -431,9 +431,10 @@ bool process_cmdline(int argc, char* argv[])
             i++;
 
         } else {
-            std::cerr << "faust: unrecognized or incorrectly defined option \"" << argv[i] <<"\"" << endl;
+            std::cerr << "ERROR : unrecognized or incorrectly defined option \"" << argv[i] <<"\"" << endl;
             i++;
             err++;
+            exit(-1);
         }
     }
 
