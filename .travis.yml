@@ -1,0 +1,15 @@
+os: linux
+dist: xenial
+language: cpp
+compiler: gcc
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libmicrohttpd-dev
+
+branches:
+  only:
+  - master-dev
+  - master
+
+script: make && make httpd
