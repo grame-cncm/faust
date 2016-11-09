@@ -39,7 +39,7 @@ elif [ "$1" = "linux" ]; then
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
 	done
 
-    for scriptname in $OSXPOLY; do
+    for scriptname in $LINUXPOLY; do
         ($scriptname -poly -midi good.dsp &> LOG)&&(echo "OK: $scriptname -poly -midi succeeded !")||(echo "ERROR: $scriptname -poly -midi failed")
     done
 
