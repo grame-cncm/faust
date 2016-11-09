@@ -5,11 +5,12 @@ compiler: gcc
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libmicrohttpd-dev
+  - sudo apt-get install -y libmicrohttpd-dev llvm-3.6 llvm-3.6-dev libssl-dev ncurses-dev libsndfile-dev libedit-dev libcurl4-openssl-dev vim-common
 
 branches:
   only:
   - master-dev
   - master
+  - faust2
 
 script: make && make httpd
