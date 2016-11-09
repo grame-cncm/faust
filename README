@@ -1,9 +1,9 @@
-	 		FAUST : a programming language for
-	 		  audio applications and plugins
-					==============
-	 Grame, Centre National de Creation Musicale
-	 			 http://www.grame.fr
+ ==========================================
+     FAUST : a programming language for
+     audio applications and plugins
+==========================================
 
+Grame, Centre National de Creation Musicale : http://www.grame.fr
 
 1/ Introduction
 ----------------
@@ -22,9 +22,8 @@ Q, SC and VST plugins.
 
 
 2/ Organization of the distribution
------------------------------------
-The Faust distribution can be downloaded at:
-	http://sourceforge.net/projects/faudiostream
+------------------------------------
+The Faust distribution can be downloaded at: https://github.com/grame-cncm/faust
 
 It's organization is the following :
 
@@ -32,9 +31,14 @@ It's organization is the following :
 	benchmark/             : tools to measure the impact of various compiler options
 	compiler/              : sources of the Faust compiler
 	documentation/         : Faust developer's documentation
+	debian/                : files for Debian installation
 	examples/              : examples of Faust programs with makefiles for various audio targets
+	installer/             : various instalers for Linux distribution
+	libraries/             : DSP libraries
 	syntax-highlighting/   : support for syntax highlighting for several editors
-	tools/                 : Additional easy-to-use scripts to produce binaries and plugins
+	test/                  : various tests
+	tools/                 : additional easy-to-use scripts to produce binaries and plugins
+	windows/               : Windows projects
 
 
 3/ Compilation and installation
