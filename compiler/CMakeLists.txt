@@ -1,5 +1,12 @@
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-Wno-logical-op-parentheses" WNO_LOGICAL_OP_PARENTHESES_SUPPORTED)
+
 #file(GLOB SOURCES *cpp)
 file(GLOB_RECURSE SOURCES */*cpp)
+# Remove llvm/machine file 
+
+list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/generator/llvm/machine/llvm_machine_dsp_aux.cpp")
+
 file(GLOB LOKI_SOURCES ../libraries/loki/*cpp)
 
 include_directories(boxes documentator draw draw/device draw/schema errors evaluate extended generator normalize parallelize
@@ -22,7 +29,11 @@ set(LLVM_VERSION LLVM_${LLVM_VERSION_MAJOR}${LLVM_VERSION_MINOR})
 
 include_directories(${LLVM_DIR})
 
-set(FAUST2_UNIX_CXX_FLAGS "-Wall -Wuninitialized -Wno-parentheses -Wnon-virtual-dtor -Wno-logical-op-parentheses -Wno-overloaded-virtual")
+set(FAUST2_UNIX_CXX_FLAGS "-Wall -Wuninitialized -Wno-parentheses -Wnon-virtual-dtor -Wno-overloaded-virtual")
+if(WNO_LOGICAL_OP_PARENTHESES_SUPPORTED)
+    set(FAUST2_UNIX_CXX_FLAGS "${FAUST2_UNIX_CXX_FLAGS} -Wno-logical-op-parentheses")
+endif()
+
 if (${CMAKE_COMPILER_IS_GNUCXX})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FAUST2_UNIX_CXX_FLAGS}")
 endif()
@@ -46,6 +57,8 @@ target_include_directories(libfaust-static PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/generator/java
     ${CMAKE_CURRENT_SOURCE_DIR}/generator/fir
     ${CMAKE_CURRENT_SOURCE_DIR}/generator/llvm
+    ${CMAKE_CURRENT_SOURCE_DIR}/generator/interpreter
+    ${CMAKE_CURRENT_SOURCE_DIR}/generator/wasm
     ${OPENSSL_INCLUDE_DIR}
     )
 
@@ -70,13 +83,15 @@ if(BUILD_FAUST_SHARED)
         ${CMAKE_CURRENT_SOURCE_DIR}/generator/java
         ${CMAKE_CURRENT_SOURCE_DIR}/generator/fir
         ${CMAKE_CURRENT_SOURCE_DIR}/generator/llvm
+        ${CMAKE_CURRENT_SOURCE_DIR}/generator/interpreter
+        ${CMAKE_CURRENT_SOURCE_DIR}/generator/wasm
         ${OPENSSL_INCLUDE_DIR}
     )
 endif()
 
 # COMMANDLINE FAUST EXECUTABLE
 if(BUILD_FAUST_CLI)
-    add_executable(faust main.cpp libmain.cpp global.cpp)
+    add_executable(faust main.cpp libcode.cpp)
     set_property(TARGET faust
         APPEND
         PROPERTY COMPILE_DEFINITIONS INSTALL_PREFIX="/usr/local" __STDC_LIMIT_MACROS __STDC_CONSTANT_MACROS ${LLVM_VERSION} 
@@ -87,8 +102,16 @@ if(BUILD_FAUST_CLI)
     target_link_libraries(faust ${LLVM_LDFLAGS} ${LLVM_LIBS})
 
     if (CTAGS AND NOT CMAKE_GENERATOR STREQUAL Xcode)
-           add_custom_command (TARGET faust POST_BUILD COMMAND ctags ARGS -R .
-                                           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} COMMENT "Creating tags" VERBATIM)
+        find_program(CTAGS_EXE ctags)
+        if(CTAGS_EXE)
+            add_custom_command(
+                TARGET faust 
+                POST_BUILD
+                COMMAND ctags ARGS -R .
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
+                COMMENT "Creating tags" 
+                VERBATIM)
+       endif()
     endif()
 
 
