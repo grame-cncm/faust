@@ -10,5 +10,6 @@ before_install:
 branches:
   only:
   - master-dev
+  - master
 
-script: make
+script: make && make httpd
