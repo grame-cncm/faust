@@ -42,7 +42,7 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 endif()
 
 # STATIC LIBFAUST
-add_library(libfaust-static STATIC libmain.cpp ${SOURCES} ${LOKI_SOURCES} global.cpp)
+add_library(libfaust-static STATIC libmain.cpp ${SOURCES} ${LOKI_SOURCES} libcode.cpp global.cpp)
 set_target_properties(libfaust-static PROPERTIES OUTPUT_NAME faust)
 set_target_properties(libfaust-static PROPERTIES PREFIX "lib")
 set_property(TARGET libfaust-static
@@ -64,7 +64,7 @@ target_include_directories(libfaust-static PUBLIC
 
 # SHARED LIBFAUST
 if(BUILD_FAUST_SHARED)
-    add_library(libfaust SHARED libmain.cpp ${SOURCES} ${LOKI_SOURCES} global.cpp)
+    add_library(libfaust SHARED libmain.cpp ${SOURCES} ${LOKI_SOURCES} libcode.cpp global.cpp)
     set_target_properties(libfaust PROPERTIES OUTPUT_NAME faust)
     set_target_properties(libfaust PROPERTIES PREFIX "lib")
 
@@ -91,7 +91,7 @@ endif()
 
 # COMMANDLINE FAUST EXECUTABLE
 if(BUILD_FAUST_CLI)
-    add_executable(faust main.cpp libcode.cpp)
+    add_executable(faust main.cpp)
     set_property(TARGET faust
         APPEND
         PROPERTY COMPILE_DEFINITIONS INSTALL_PREFIX="/usr/local" __STDC_LIMIT_MACROS __STDC_CONSTANT_MACROS ${LLVM_VERSION} 
@@ -104,13 +104,19 @@ if(BUILD_FAUST_CLI)
     if (CTAGS AND NOT CMAKE_GENERATOR STREQUAL Xcode)
         find_program(CTAGS_EXE ctags)
         if(CTAGS_EXE)
-            add_custom_command(
-                TARGET faust 
-                POST_BUILD
-                COMMAND ctags ARGS -R .
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
-                COMMENT "Creating tags" 
-                VERBATIM)
+            # Try to run ctags on a random file with the R option
+            execute_process(COMMAND "ctags" "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt" "-R" 
+                            RESULT_VARIABLE CTAGS_RECURSIVE_SUPPORTED
+                            OUTPUT_QUIET ERROR_QUIET)
+            if(${CTAGS_RECURSIVE_SUPPORTED} EQUAL 0)
+                add_custom_command(
+                    TARGET faust 
+                    POST_BUILD
+                    COMMAND ctags ARGS -R .
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
+                    COMMENT "Creating tags" 
+                    VERBATIM)
+            endif()
        endif()
     endif()
 
