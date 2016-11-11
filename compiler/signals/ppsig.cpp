@@ -94,20 +94,20 @@ ostream& ppsig::printui (ostream& fout, const string& funame, Tree label, Tree c
 ostream& ppsig::printout (ostream& fout, int i, Tree x) const
 {
 	if (fPriority > 0) fout << "(";
-	fout << "OUT" << i << " = " << ppsig(x, fEnv, 0);	
+	fout << "OUT" << i << " := " << ppsig(x, fEnv, 0);	
 	if (fPriority > 0) fout << ")";
 	return fout;
 }
 
 ostream& ppsig::printlabel (ostream& fout, Tree pathname) const
 {
-	fout << *hd(pathname); 
+	fout << "'" << *hd(pathname);
 	pathname = tl(pathname);
 	while (!isNil(pathname)) { 
 		fout << '/' << *tl(hd(pathname)); 
 		pathname = tl(pathname);
 	}
-	return fout;
+	return fout << "'";
 }
 
 ostream& ppsig::printlist (ostream& fout, Tree largs) const
@@ -174,13 +174,39 @@ ostream& ppsig::printextended (ostream& fout, Tree sig) const
 	fout << ')';
 	return fout;
 }
-	
+
+ostream& ppsig::printwrite (ostream& fout, Tree name, Tree vsize, Tree nature, Tree exp) const
+{
+	int vs = tree2int(vsize);
+	int vn = tree2int(nature);
+	string sn = (vn==kInt) ? "int" : "real";
+
+	if (vs == 1) {
+		fout << sn << " " << tree2str(name) << " := " << ppsig(exp) << ";";
+	} else {
+		fout << sn << "[" << tree2int(vsize) << "] " << tree2str(name) << "[0] := " << ppsig(exp) << ";";
+	}
+	return fout;
+}
+
+ostream& ppsig::printread (ostream& fout, Tree name, Tree vsize, Tree nature, Tree exp) const
+{
+	int vs = tree2int(vsize);
+	if (vs == 1) {
+		assert (tree2int(exp) == 0);
+		fout << tree2str(name);
+	} else {
+		fout << tree2str(name) << "[" << ppsig(exp) << "]";
+	}
+	return fout;
+}
+
 	
 ostream& ppsig::print (ostream& fout) const
 {
 	int 	i;
 	double	r;
-    Tree 	c, sel, x, y, z, u, var, le, label, id, ff, largs, type, name, file;
+    Tree 	c, sel, x, y, z, u, var, le, label, id, ff, largs, type, name, nature, file, vsize;
 
 		  if ( isList(sig) ) 						{ printlist(fout, sig); }
 	else if ( isProj(sig, &i, x) ) 					{ fout << "proj" << i << '(' << ppsig(x, fEnv) << ')';	}
@@ -196,7 +222,10 @@ ostream& ppsig::print (ostream& fout) const
     else if ( isSigWaveform(sig) )                  { fout << "waveform{...}"; }
     else if ( isSigInput(sig, &i) ) 				{ fout << "IN[" << i << "]"; }
 	else if ( isSigOutput(sig, &i, x) ) 			{ printout(fout, i, x) ; }
-	
+
+	else if ( isSigWrite(sig, name, vsize, nature, x) ) 	{ printwrite(fout, name, vsize, nature, x); }
+	else if ( isSigRead(sig, name, vsize, nature, x) )		{ printread(fout, name, vsize, nature, x); }
+
 	else if ( isSigDelay1(sig, x) ) 				{ fout << ppsig(x, fEnv, 9) << "'"; }
 	//else if ( isSigFixDelay(sig, x, y) ) 			{ printinfix(fout, "@", 8, x, y); 	}
 	else if ( isSigFixDelay(sig, x, y) ) 			{ printFixDelay(fout, x, y); 	}
@@ -232,7 +261,7 @@ ostream& ppsig::print (ostream& fout) const
 	else if ( isSigAttach(sig, x, y) )				{ printfun(fout, "attach", x, y); }
 	
 	else {
-        cerr << "NOT A SIGNAL : " << *sig << endl;
+        cerr << __FUNCTION__ << " NOT A SIGNAL : " << *sig << endl;
         //exit(1);
 	}
 	return fout;

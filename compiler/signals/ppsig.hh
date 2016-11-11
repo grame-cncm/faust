@@ -74,6 +74,9 @@ private:
 	ostream& printui (ostream& fout, const string& funame, Tree label, Tree cur, Tree lo, Tree hi, Tree step) const;
 	ostream& printlabel (ostream& fout, Tree pathname) const;
 	ostream& printFixDelay (ostream& fout, Tree exp, Tree delay) const;
+	ostream& printwrite (ostream& fout, Tree name, Tree vsize, Tree nature, Tree exp) const;
+	ostream& printread (ostream& fout, Tree name, Tree vsize, Tree nature, Tree exp) const;
+
 
 };
 

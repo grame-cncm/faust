@@ -282,4 +282,23 @@ bool verySimple(Tree exp);
 
 
 
+/*****************************************************************************
+ statement extension : extensions of sig expressions used to facilitated
+ the compilation process
+ *****************************************************************************/
+
+// a group of related signals
+Tree sigGroup(Tree ls);
+bool isSigGroup(Tree s, Tree& ls);
+
+// write to a vector (vsize=0) or a delay line (vsize>0)
+Tree sigWrite(Tree vname, Tree vsize, Tree nature, Tree exp);
+bool isSigWrite(Tree s, Tree& vname, Tree& vsize, Tree& nature, Tree& exp);
+
+// read a vector  (vsize=0) or a delay line (vsize>0)
+Tree sigRead(Tree vname, Tree vsize, Tree nature, Tree delay);
+bool isSigRead(Tree s, Tree& vname, Tree& vsize, Tree& nature, Tree& delay);
+
+
+
 #endif

@@ -36,7 +36,7 @@ void VectorCompiler::compileMultiSignal (Tree L)
 {
     //contextor recursivness(0);
     L = prepare(L);     // optimize, share and annotate expression
-
+	
     for (int i = 0; i < fClass->inputs(); i++) {
         fClass->addZone3(subst("$1* input$0 = &input[$0][index];", T(i), xfloat()));
     }

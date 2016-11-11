@@ -86,14 +86,20 @@ void printSignal(Tree sig, FILE* out, int prec)
 {
 	int 	i;
 	double	r;
-    Tree 	 x, y, z, u, le, id;
+    Tree 	x, y, z, u, le, id;
+	Tree	vname, vsize, nature, exp;
 	    
-		 if ( isSigInt(sig, &i) ) 			{ fprintf(out, "%d", i); 	}
-	else if ( isSigReal(sig, &r) ) 			{ fprintf(out, "%f", r); 	}
-	else if ( isSigInput(sig, &i) ) 		{ fprintf(out, "IN%d", i);	}
-	else if ( isSigOutput(sig, &i, x) ) 	{ fprintf(out, "OUT%d := ", i); printSignal(x, out, 0); }
-	
-	else if ( isSigBinOp(sig, &i, x, y) )	{ 
+		 if ( isSigInt(sig, &i) )					{ fprintf(out, "%d", i); 	}
+	else if ( isSigReal(sig, &r) )					{ fprintf(out, "%f", r); 	}
+	else if ( isSigInput(sig, &i) )					{ fprintf(out, "IN%d", i);	}
+	else if ( isSigOutput(sig, &i, x) )				{ fprintf(out, "OUT%d := ", i); printSignal(x, out, 0); }
+	else if ( isSigWrite(sig, vname, vsize, nature, exp)) 	{ fprintf(out, "%s[%d] := ", tree2str(vname), tree2int(vsize));
+		printSignal(exp, out, 0); }
+	else if ( isSigRead(sig, vname, vsize, nature, exp)) 	{ fprintf(out, "%s[%d][", tree2str(vname), tree2int(vsize));
+		printSignal(exp, out, 0);
+		fprintf(out, "]"); }
+
+	else if ( isSigBinOp(sig, &i, x, y) )	{
 		if (prec > binopprec[i]) fputs("(", out); 
 		printSignal(x,out,binopprec[i]); fputs(binopname[i], out); printSignal(y, out, binopprec[i]); 
 		if (prec > binopprec[i]) fputs(")", out); 	

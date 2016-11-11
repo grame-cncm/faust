@@ -30,6 +30,7 @@
 #include "sigtyperules.hh"
 #include "occurences.hh"
 #include "property.hh"
+#include "dag.hh"
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -41,8 +42,10 @@ class ScalarCompiler : public Compiler
 {
   protected:
     property<string>            fCompileProperty;
-    property<string>            fVectorProperty;
-    property<pair<string,string> >  fStaticInitProperty;        // property added to solve 20101208 kjetil bug
+	property<string>            fVnameProperty;
+	property<string>            fVectorProperty;
+	property<pair<Tree,dag> >   fTranslateProperty;
+	property<pair<string,string> >  fStaticInitProperty;        // property added to solve 20101208 kjetil bug
     property<pair<string,string> >  fInstanceInitProperty;      // property added to solve 20101208 kjetil bug
 
 	static map<string, int>		fIDCounters;
@@ -81,7 +84,32 @@ class ScalarCompiler : public Compiler
 	void 		compilePreparedSignalList (Tree lsig);
 	Tree      	prepare(Tree L0);
 	Tree 		prepare2 (Tree L0);
-	
+
+	//-------------- new translation system ---------------
+
+	// translate a whole program and print the dag
+	void			sigToInstructions(Tree L, ofstream& fout);
+
+	// Translate the expression S
+	pair<Tree,dag>	translate (Tree A, Tree S, Tree D);
+	pair<Tree,dag>	translateReal (Tree A, Tree S, Tree D);
+
+	// propagate translation down into expressions
+	pair<Tree,dag>	translateInside (Tree A, Tree S);
+
+	// main aux functions
+	pair<Tree,dag>	readwrite (string name, int vsize, int nature, pair<Tree,dag> EG, pair<Tree,dag>  DG, bool recursive);
+	pair<Tree,dag>	readonly (string name, int vsize, int nature, pair<Tree,dag>  DG);
+
+	// other aux functions
+	string			vname(Tree E);		// a vector name unique to this expression
+	AudioType		vnature(Tree E);	// nature typeof this expression is used
+	int				vsize(Tree E);		// max delay this expression is used
+	bool			isShared(Tree E);	// true when this expression occurs several times
+	bool			isSimple(Tree E);	// True if E is a very simple expressions
+
+
+	//-----------------------------------------------------
 	
 	bool 		getCompiledExpression(Tree sig, string& name);
 	string		setCompiledExpression(Tree sig, const string& name);

@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.92"
+#define FAUSTVERSION "0.9.92xs"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -114,6 +114,7 @@ bool			gVersionSwitch 	= false;
 bool            gDetailsSwitch  = false;
 bool            gTimingSwitch   = false;
 bool            gDrawSignals    = false;
+bool			gDrawInstructions= false;
 bool            gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter
 bool            gScaledSVG      = false;	// to draw scaled SVG files
 bool            gGraphSwitch 	= false;
@@ -257,6 +258,10 @@ bool process_cmdline(int argc, char* argv[])
 
         } else if (isCmd(argv[i], "-sg", "--signal-graph")) {
             gDrawSignals = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-ig", "--instruction-graph")) {
+            gDrawInstructions = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-blur", "--shadow-blur")) {
@@ -481,6 +486,7 @@ void printhelp()
 	cout << "-d \t\tprint compilation --details\n";
     cout << "-tg \t\tprint the internal --task-graph in dot format file\n";
     cout << "-sg \t\tprint the internal --signal-graph in dot format file\n";
+    cout << "-ig \t\tprint the internal --instruction-graph in dot format file\n";
     cout << "-ps \t\tprint block-diagram --postscript file\n";
     cout << "-svg \t\tprint block-diagram --svg file\n";
     cout << "-mdoc \t\tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
@@ -629,7 +635,7 @@ int main (int argc, char* argv[])
 	if (gVersionSwitch) 	{ printversion(); exit(0); }
 
     initFaustDirectories();
-    alarm(gTimeout);
+    //alarm(gTimeout);
 
 
     /****************************************************************

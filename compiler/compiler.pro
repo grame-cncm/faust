@@ -56,6 +56,7 @@ HEADERS += boxes/boxcomplexity.h \
            generator/compile_sched.hh \
            generator/compile_vect.hh \
            generator/contextor.hh \
+           generator/dag.hh \
            generator/description.hh \
            generator/floats.hh \
            generator/klass.hh \
@@ -165,6 +166,7 @@ SOURCES += main.cpp \
            generator/compile_sched.cpp \
            generator/compile_vect.cpp \
            generator/contextor.cpp \
+           generator/dag.cpp \
            generator/description.cpp \
            generator/floats.cpp \
            generator/klass.cpp \

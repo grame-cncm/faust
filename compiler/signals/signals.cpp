@@ -430,3 +430,27 @@ bool verySimple(Tree exp)
 			||	isSigInput(exp, &i)
 			||	isSigFConst(exp, type, name, file);
 }
+
+
+
+
+
+/*****************************************************************************
+ statement extension : extensions of sig expressions used to facilitated
+ the compilation process
+ *****************************************************************************/
+Sym SIGGROUP 		= symbol ("SigGroup");
+Sym SIGWRITE        = symbol ("SigWrite");
+Sym SIGREAD         = symbol ("SigRead");
+
+// a group of related signals
+Tree sigGroup(Tree ls)                                      { return tree(SIGGROUP, ls); }
+bool isSigGroup(Tree s, Tree& ls)                           { return isTree(s, SIGGROUP, ls); }
+
+// write to a vector (vsize=0) or a delay line (vsize>0)
+Tree sigWrite(Tree vname, Tree vsize, Tree nature, Tree exp)              { return tree(SIGWRITE, vname, vsize, nature, exp); }
+bool isSigWrite(Tree s, Tree& vname, Tree& vsize, Tree& nature, Tree& exp) { return isTree(s, SIGWRITE, vname, vsize, nature, exp); }
+
+// read a vector  (vsize=0) or a delay line (vsize>0)
+Tree sigRead(Tree vname, Tree vsize, Tree nature, Tree delay)             { return tree(SIGREAD, vname, vsize, nature, delay); }
+bool isSigRead(Tree s, Tree& vname, Tree& vsize, Tree& nature, Tree& delay){ return isTree(s, SIGREAD, vname, vsize, nature, delay); }

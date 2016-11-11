@@ -50,6 +50,7 @@
 #include "compatibility.hh"
 #include "ppsig.hh"
 #include "sigToGraph.hh"
+#include "dag.hh"
 
 using namespace std;
 
@@ -57,6 +58,7 @@ extern bool     gInPlace;
 extern bool     gDrawSignals;
 extern bool     gPrintJSONSwitch;
 extern bool     gDrawSignals;
+extern bool     gDrawInstructions;
 extern int      gMaxCopyDelay;
 extern string   gClassName;
 extern string   gMasterDocument;
@@ -136,11 +138,15 @@ startTiming("ScalarCompiler::prepare");
     //annotationStatistics();
 endTiming("ScalarCompiler::prepare");
 
-    if (gDrawSignals) {
-        ofstream dotfile(subst("$0-sig.dot", makeDrawPath()).c_str());
-        sigToGraph(L3, dotfile);
-    }
-    
+	if (gDrawSignals) {
+		ofstream dotfile(subst("$0-sig.dot", makeDrawPath()).c_str());
+		sigToGraph(L3, dotfile);
+	}
+	if (gDrawInstructions) {
+		ofstream instrfile(subst("$0-ins.dot", makeDrawPath()).c_str());
+		sigToInstructions(L3, instrfile);
+	}
+
   	return L3;
 }
 
@@ -156,6 +162,259 @@ endTiming("ScalarCompiler::prepare2");
   	return L0;
 }
 
+
+/*****************************************************************************
+ precompilation phase
+ *****************************************************************************/
+
+
+
+/**
+ Generates an instruction graph from a list L of signals
+ */
+void ScalarCompiler::sigToInstructions(Tree L, ofstream& fout)
+{
+	dag g;
+	for (int i = 0; isList(L); L = tl(L), i++) {
+		Tree sig = hd(L);
+		auto r = translate(nil, sig, tree(0));
+		//cerr << "partial sig " << ppsig(r.first) << endl;
+		//cerr << "partial dag " << r.second << endl;
+		dag d(sigOutput(i, r.first), r.second, false);
+		g.add(d);
+	}
+	fout << g << endl;
+}
+
+/**
+ Translates a signal into a graph of statements. Memoized version.
+ A   : set of already visited recursions
+ sig : signal expression we want to translate
+ D   : delay expression (not 0 when inside a E@D expression)
+ */
+pair<Tree,dag> ScalarCompiler::translate (Tree A, Tree sig, Tree D)
+{
+	Tree			key = list3(A, sig , D);
+	pair<Tree,dag>	r;
+
+	if (!fTranslateProperty.get(key,r)) {
+		r = translateReal(A,sig,D);
+		fTranslateProperty.set(key, r);
+	}
+	return r;
+}
+
+
+/**
+ Translates a signal into a graph of statements. Real version.
+ A   : set of already visited recursions
+ sig : signal expression we want to translate
+ D   : delay expression (not 0 when inside a E@D expression)
+ */
+pair<Tree,dag> ScalarCompiler::translateReal (Tree A, Tree sig, Tree D)
+{
+	int		i;
+	Tree	r, var, le;
+
+	if (isProj(sig, &i, r)) {
+
+		if (! isElement(sig, A)) {
+			// CASE 1: it is recursive expression and we are not compiling it
+			if (! isRec(r, var, le)) { cerr << __FUNCTION__ << "Internal error" << endl; exit(1);}
+			return readwrite(	vname(sig),
+								vsize(sig),
+								vnature(sig).nature(),
+								translate(addElement(sig,A), nth(le,i), tree(0)),
+								translate(A, D, tree(0)),
+								true
+							 );
+		} else {
+			// CASE 2: it is recursive expression but we are already compiling it
+			return readonly(	vname(sig),
+								vsize(sig),
+								vnature(sig).nature(),
+								translate(A, D, tree(0))
+						   );
+		}
+
+	} else if (isZero(D) && (isSimple(sig) || ! isShared(sig))) {
+		// CASE 3: the expressions can be inlined (it is not delayed and not shared)
+		return translateInside(A,sig);
+
+	} else {
+		// CASE 4: the expression is shared or needs a delayline
+		return readwrite(	vname(sig),
+							vsize(sig),
+							vnature(sig).nature(),
+							translateInside(A,sig),
+							translate(A, D, tree(0)),
+							false
+						);
+	}
+}
+
+
+
+
+/**
+ * Translates the inside of a signal
+ * A   : set of already visited recursions
+ * sig : signal expression we want to translate
+ */
+pair<Tree,dag> ScalarCompiler::translateInside (Tree A, Tree sig)
+{
+	int 	i, opnum;
+	double	r;
+	Tree 	id, x, y, z;
+
+	     if ( isSigInt(sig, &i) ) 					{ return make_pair(sig, dag()); }
+	else if ( isSigReal(sig, &r) ) 					{ return make_pair(sig, dag()); }
+	else if ( isSigWaveform(sig) )                  { return make_pair(sig, dag()); }
+	else if ( isSigInput(sig, &i) ) 				{ return make_pair(sig, dag());	}
+	else if ( isSigGen(sig) )						{ return make_pair(sig, dag());	}
+
+	// User interface
+	else if ( isSigHSlider(sig) )					{ return make_pair(sig, dag());	}
+	else if ( isSigVSlider(sig) )					{ return make_pair(sig, dag());	}
+	else if ( isSigButton(sig) )					{ return make_pair(sig, dag());	}
+	else if ( isSigCheckbox(sig) )					{ return make_pair(sig, dag());	}
+	else if ( isSigNumEntry(sig) )					{ return make_pair(sig, dag());	}
+
+	// Foreign
+	else if ( isSigFConst(sig) )					{ return make_pair(sig, dag());	}
+	else if ( isSigFVar(sig) )						{ return make_pair(sig, dag());	}
+
+	// Tables
+	else if ( isSigTable(sig, id, x, y) ) 			{
+		auto rx = translate(A, x, tree(0));
+		auto ry = translate(A, y, tree(0));
+		return make_pair(sigTable(id, rx.first, ry.first), dag(rx.second,ry.second));
+	}
+	else if ( isSigWRTbl(sig, id, x, y, z) )		{
+		auto rx = translate(A, x, tree(0));
+		auto ry = translate(A, y, tree(0));
+		auto rz = translate(A, z, tree(0));
+		return make_pair(sigWRTbl(id, rx.first, ry.first, rz.first), dag(rx.second,dag(ry.second,rz.second)));
+	}
+	else if ( isSigRDTbl(sig, x, y) ) 				{
+		auto rx = translate(A, x, tree(0));
+		auto ry = translate(A, y, tree(0));
+		return make_pair(sigTable(id, rx.first, ry.first), dag(rx.second,ry.second));
+	}
+	else if ( isSigVBargraph(sig, id, x, y, z) ) 				{
+		auto rz = translate(A, z, tree(0));
+		return make_pair(sigVBargraph(id, x, y, rz.first), rz.second);
+	}
+	else if ( isSigHBargraph(sig, id, x, y, z) ) 				{
+		auto rz = translate(A, z, tree(0));
+		return make_pair(sigHBargraph(id, x, y, rz.first), rz.second);
+	}
+
+	else if ( isSigFixDelay(sig, x, y) ) 			{ return translate(A, x, y);	}
+
+	else if (isSigBinOp(sig, &opnum, x, y)) {
+		auto tx = translate(A, x, tree(0));
+		auto ty = translate(A, y, tree(0));
+		Tree z = sigBinOp(opnum, tx.first, ty.first);
+		return make_pair(z, dag(tx.second,ty.second));
+	} else {
+		// general case, we translate the branches
+		vector<Tree> br1, br2;
+		dag g2;
+		int n = getSubSignals(sig, br1);
+		if (n>0 && ! isSigGen(sig)) {
+			for (int i=0; i<n; i++) {
+				auto bg = translate(A,br1[i],tree(0));
+				br2.push_back(bg.first);
+				g2.add(bg.second);
+			}
+		}
+		Tree sig2 = tree(sig->node(), br2);
+		return make_pair(sig2, g2);
+	}
+}
+
+/**
+ * Returns the audio type of a signal
+ */
+AudioType ScalarCompiler::vnature(Tree sig)
+{
+	return *getCertifiedSigType(sig);
+}
+
+/**
+ * Returns the audio type of a signal
+ */
+int ScalarCompiler::vsize(Tree sig)
+{
+	return 1+fOccMarkup.retrieve(sig)->getMaxDelay();
+}
+
+
+/**
+ * Returns true if a signal is shared (i.e. has multiple occurences)
+ */
+bool ScalarCompiler::isShared(Tree sig)
+{
+	Occurences* occ = fOccMarkup.retrieve(sig);
+	if (occ) {
+		return occ->hasMultiOccurences();
+	} else {
+		cerr << "ERROR in isShared, property not defined for " << ppsig(sig) << endl;
+		return false;
+	}
+}
+
+
+/**
+ * Forges a vector name for a signal
+ */
+string ScalarCompiler::vname(Tree sig)
+{
+	string s;
+	if (! fVnameProperty.get(sig,s)) {
+		s = getFreshID("vname");
+		fVnameProperty.set(sig, s);
+	}
+	return s;
+}
+
+
+/**
+ * Returns true if a signal is simple and can potentially be duplicated if needed
+ */
+bool ScalarCompiler::isSimple(Tree sig)
+{
+	Tree x,y;
+	return verySimple(sig) || isSigFixDelay(sig,x,y);
+}
+
+
+/**
+ * Generate a read and a write instruction typical of a delay line or a recursion
+ */
+pair<Tree,dag>	ScalarCompiler::readwrite (string name, int vsize, int nature, pair<Tree,dag> EG, pair<Tree,dag>  DG, bool recursive)
+{
+	Tree r = sigRead(tree(name), tree(vsize), tree(nature), DG.first);
+	Tree w = sigWrite(tree(name), tree(vsize), tree(nature), EG.first);
+	dag g(w, EG.second, recursive);
+	g.add(DG.second);
+	return make_pair(r, g);
+
+}
+
+
+
+/**
+ * Generate a read instruction typical of a delay line or a recursion
+ */
+pair<Tree,dag>	ScalarCompiler::readonly (string name, int vsize, int nature, pair<Tree,dag>  DG)
+{
+	Tree r = sigRead(tree(name), tree(vsize), tree(nature), DG.first);
+	return make_pair(r, DG.second);
+}
+
+
 /*****************************************************************************
 						    compileMultiSignal
 *****************************************************************************/
@@ -164,6 +423,10 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 {
 	//contextor recursivness(0);
 	L = prepare(L);		// optimize, share and annotate expression
+
+	//printTranslation(L);
+
+	//auto pp = translate(nil, L, tree(0));	// transforms recursions, shared expressions, etc.
 
     for (int i = 0; i < fClass->inputs(); i++) {
         fClass->addZone3(subst("$1* input$0 = input[$0];", T(i), xfloat()));
