@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]
+then
+  echo "Error, this script needs one .dsp file as argument !"
+  exit 1
+fi 
+
+if [ ! -e $1 ]
+then
+    echo "Error, the file $1 doesn't exist !"
+    exit 1
+fi
+
+faust2instr $1 && open "$1-ins.pdf"
