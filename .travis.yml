@@ -5,7 +5,7 @@ compiler: gcc
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libmicrohttpd-dev llvm-3.6 llvm-3.6-dev libssl-dev ncurses-dev libsndfile-dev libedit-dev libcurl4-openssl-dev vim-common
+  - sudo apt-get install -y libmicrohttpd-dev llvm-3.5 llvm-3.5-dev libssl-dev ncurses-dev libsndfile-dev libedit-dev libcurl4-openssl-dev vim-common
 
 branches:
   only:
