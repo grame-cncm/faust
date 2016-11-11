@@ -31,6 +31,8 @@ install:
 	install faust2firefox $(dest)
 	install faust2graph $(dest)
 	install faust2graphviewer $(dest)
+	install faust2instr $(dest)
+	install faust2instrviewer $(dest)
 	install faust2ios $(dest)
 	install faust2iosKeyboard $(dest)
 	install faust2jack $(dest)
@@ -92,6 +94,8 @@ uninstall:
 	rm -f $(dest)/faust2firefox
 	rm -f $(dest)/faust2graph
 	rm -f $(dest)/faust2graphviewer
+	rm -f $(dest)/faust2instr
+	rm -f $(dest)/faust2instrviewer
 	rm -f $(dest)/faust2ios
 	rm -f $(dest)/faust2iosKeyboard
 	rm -f $(dest)/faust2jack
