@@ -177,11 +177,18 @@ class time_bench {
             fLastRDTSC = rdtsc();
         }
     
+        double measureDurationUsec()
+        {
+            return ((double(fTv2.tv_sec) * 1000000 + double(fTv2.tv_usec)) - (double(fTv1.tv_sec) * 1000000 + double(fTv1.tv_usec)));
+        }
+    
         /**
          *  Returns best estimation.
          */
         double getStats(int bsize, int ichans, int ochans)
         {
+            //std::cout << "getStats fMeasure = " << fMeasure << " fMeasureCount = " << fMeasureCount << std::endl;
+            
             assert(fMeasure > fMeasureCount);
             std::vector<uint64> V(fMeasureCount);
             
@@ -239,10 +246,24 @@ class measure_dsp : public decorator_dsp {
     
     protected:
     
-        FAUSTFLOAT* fInputs[256];
-        FAUSTFLOAT* fOutputs[256];
-        time_bench fBench;
+        FAUSTFLOAT** fInputs;
+        FAUSTFLOAT** fOutputs;
+        time_bench* fBench;
         int fBufferSize;
+    
+        void init()
+        {
+            fInputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
+            for (int i = 0; i < fDSP->getNumInputs(); i++) {
+                fInputs[i] = new FAUSTFLOAT[fBufferSize];
+                memset(fInputs[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
+            }
+            fOutputs = new FAUSTFLOAT*[fDSP->getNumOutputs()];
+            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+                fOutputs[i] = new FAUSTFLOAT[fBufferSize];
+                memset(fOutputs[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
+            }
+        }
     
     public:
     
@@ -256,18 +277,23 @@ class measure_dsp : public decorator_dsp {
          *
          */
         measure_dsp(dsp* dsp, int buffer_size, int count, int skip)
-        :decorator_dsp(dsp), fBench(count, skip), fBufferSize(buffer_size)
+            :decorator_dsp(dsp), fBufferSize(buffer_size)
         {
-            assert(fDSP->getNumInputs() < 256);
-            for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                fInputs[i] = new FAUSTFLOAT[buffer_size];
-                memset(fInputs[i], 0, sizeof(FAUSTFLOAT) * buffer_size);
-            }
-            assert(fDSP->getNumOutputs() < 256);
-            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                fOutputs[i] = new FAUSTFLOAT[buffer_size];
-                memset(fOutputs[i], 0, sizeof(FAUSTFLOAT) * buffer_size);
-            }
+            init();
+            fBench = new time_bench(count, 10);
+        }
+    
+        measure_dsp(dsp* dsp, int buffer_size, double duration_in_sec)
+            :decorator_dsp(dsp), fBufferSize(buffer_size)
+        {
+            init();
+            fBench = new time_bench(500, 10);
+            measure();
+            double duration = fBench->measureDurationUsec();
+            int cout = int (500 * (duration_in_sec * 1e6 / duration));
+            std::cout << "duration = " << duration << " count = " << cout << std::endl;
+            delete fBench;
+            fBench = new time_bench(cout, 10);
         }
     
         virtual ~measure_dsp()
@@ -275,19 +301,21 @@ class measure_dsp : public decorator_dsp {
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 delete [] fInputs[i];
             }
+            delete [] fInputs;
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                 delete [] fOutputs[i];
             }
+            delete[] fOutputs;
         }
     
         /*
-            Measure the duration of the compute call.
+            Measure the duration of the compute call
         */
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            fBench.startMeasure();
+            fBench->startMeasure();
             fDSP->compute(count, inputs, outputs);
-            fBench.stopMeasure();
+            fBench->stopMeasure();
         }
     
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -296,43 +324,56 @@ class measure_dsp : public decorator_dsp {
         }
     
         /*
-            Measure the duration of 'count' (given in constructor) calls to compute.
+            Measure the duration of 'count' (given in constructor) calls to compute
         */
         void computeAll()
         {
             AVOIDDENORMALS;
             do {
                 compute(0, fBufferSize, fInputs, fOutputs);
-            } while (fBench.isRunning());
+            } while (fBench->isRunning());
         }
     
         /**
-         *  Initialize measure datas.
+         *  Initialize measure datas
          */
-        void openMeasure() { fBench.openMeasure(); }
+        void openMeasure() { fBench->openMeasure(); }
     
         /**
-         *  Terminate measurement.
+         *  Terminate measurement
          */
-        void closeMeasure() { fBench.closeMeasure(); }
+        void closeMeasure() { fBench->closeMeasure(); }
+    
+    
+        double measureDurationUsec()
+        {
+            return fBench->measureDurationUsec();
+        }
+    
+        void measure()
+        {
+            openMeasure();
+            computeAll();
+            closeMeasure();
+        }
     
         /**
-         *  Returns best estimation.
+         *  Returns best estimation
          */
         double getStats()
         {
-            return fBench.getStats(fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
+            return fBench->getStats(fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
         }
     
         /**
-         * Print the median value (in Megabytes/second) of fMeasureCount throughputs measurements.
+         * Print the median value (in Megabytes/second) of fMeasureCount throughputs measurements
          */
         void printStats(const char* applname)
         {
-            fBench.printStats(applname, fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
+            fBench->printStats(applname, fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
         }
     
-        bool isRunning() { return fBench.isRunning(); }
+        bool isRunning() { return fBench->isRunning(); }
     
 };
 
