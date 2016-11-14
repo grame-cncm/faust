@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
   
     std::string error_msg1;
     std::string error_msg2;
-    factory1 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg1, -1);
+    factory1 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg1, 0);
     factory2 = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg2);
     
     if (!factory1) {
@@ -67,16 +67,11 @@ int main(int argc, char* argv[])
     DSP1->init(44100);
     DSP2->init(44100);
     
-    measure_dsp* measure1 = new measure_dsp(DSP1, 1024, 20000, 10);
-    measure_dsp* measure2 = new measure_dsp(DSP2, 1024, 20000, 10);
+    measure_dsp* measure1 = new measure_dsp(DSP1, 1024, 5);
+    measure_dsp* measure2 = new measure_dsp(DSP2, 1024, 5);
     
-    measure1->openMeasure();
-    measure1->computeAll();
-    measure1->closeMeasure();
-    
-    measure2->openMeasure();
-    measure2->computeAll();
-    measure2->closeMeasure();
+    measure1->measure();
+    measure2->measure();
     
     double res1 = measure1->getStats();
     double res2 = measure2->getStats();

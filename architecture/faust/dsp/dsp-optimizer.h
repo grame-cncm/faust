@@ -44,7 +44,7 @@ class dsp_optimizer {
 
     private:
         
-        time_bench fBench;
+        time_bench* fBench;
 
         FAUSTFLOAT* fBuffer;    // a buffer of fNV * fVSize samples
 
@@ -127,7 +127,7 @@ class dsp_optimizer {
             FAUSTFLOAT* inChannel[numInChan];
             FAUSTFLOAT* outChannel[numOutChan];
             
-            fBench.openMeasure();
+            fBench->openMeasure();
             
             // Allocate input buffers (initialized with white noise)
             allocBuffers(numOutChan, outChannel);
@@ -137,17 +137,17 @@ class dsp_optimizer {
             
             AVOIDDENORMALS;
             
-            while (fBench.isRunning()) {
+            while (fBench->isRunning()) {
                 // Allocate new input buffers to avoid L2 cache
                 for (int c = 0; c < numInChan; c++) { inChannel[c] = nextVect(); }
-                fBench.startMeasure();
+                fBench->startMeasure();
                 fDSP->compute(fVSIZE, inChannel, outChannel);
-                fBench.stopMeasure();
+                fBench->stopMeasure();
             }
             
-            fBench.closeMeasure();
-            double res = fBench.getStats(fVSIZE, fDSP->getNumInputs(), fDSP->getNumOutputs());
-            std::cout << res <<  std::endl;
+            fBench->closeMeasure();
+            double res = fBench->getStats(fVSIZE, fDSP->getNumInputs(), fDSP->getNumOutputs());
+            std::cout << res << std::endl;
             
             freeBuffers(numOutChan, outChannel);
             return res;
@@ -233,17 +233,16 @@ class dsp_optimizer {
         void printItem(const std::vector <std::string>& item)
         {
             for (int i = 0; i < item.size(); i++) {
-                std::cout << " " << item[i];
+                std::cout << item[i];
             }
             std::cout << " : ";
         }
         
-        bool computeOne(int index, const std::vector<std::string>& item, double& res)
+        bool computeOne(const std::vector<std::string>& item, double& res)
         {
             printItem(item);
             
             if (fInput == "") {
-                
                 int argc = item.size() + 2;
                 const char* argv[argc];
                 argv[0] = "-I";
@@ -251,28 +250,24 @@ class dsp_optimizer {
                 for (int i = 0; i < item.size(); i++) {
                     argv[i + 2] = item[i].c_str();
                 }
-                
                 fFactory = createDSPFactoryFromFile(fFilename.c_str(), argc, argv, fTarget, fError, fOptLevel);
-                
             } else {
-                
                 int argc = item.size();
                 const char* argv[argc];
                 for (int i = 0; i < item.size(); i++) {
                     argv[i] = item[i].c_str();
                 }
-                
                 fFactory = createDSPFactoryFromString("FaustDSP", fInput, argc, argv, fTarget, fError, fOptLevel);
             }
             
-            if (!fFactory)  {
+            if (!fFactory) {
                 std::cout << "Cannot create factory : " << fError << std::endl;
                 return false;
             }
             
             fDSP = fFactory->createDSPInstance();
             
-            if (!fDSP)  {
+            if (!fDSP) {
                 std::cout << "Cannot create instance..." << std::endl;
                 return false;
             }
@@ -293,7 +288,7 @@ class dsp_optimizer {
             double res = 0.;
             
             for (int i = 0; i < options.size(); i++) {
-                if (computeOne(i, options[i], res)) {
+                if (computeOne(options[i], res)) {
                     table_res.push_back(std::make_pair(i, res));
                 } else {
                     std::cout << "computeOne error..." << std::endl;
@@ -307,7 +302,6 @@ class dsp_optimizer {
 
         static bool compareFun(std::pair<int, double> i, std::pair<int, double> j) { return (i.second > j.second); }
     
-
         static int getStackSize()
         {
             pthread_attr_t attributes;
@@ -344,7 +338,6 @@ class dsp_optimizer {
                       const std::string& target,
                       int size,
                       int opt_level_max = -1)
-            :fBench(20000, 10)
         {
             fBuffer = 0;
             fFilename = filename;
@@ -359,6 +352,20 @@ class dsp_optimizer {
             fIDX = 0;       // current vector number (0 <= VIdx < NV)
             
             init();
+            
+            std::cout << "Estimate timing parameters" << std::endl;
+            double res;
+            fBench = new time_bench(500, 10);
+            if (computeOne(fOptionsTable[0], res)) {
+                double duration = fBench->measureDurationUsec();
+                int cout = int (500 * (5 * 1e6 / duration));
+                std::cout << "duration = " << duration/1e6 << " count = " << cout << std::endl;
+                delete fBench;
+                fBench = new time_bench(cout, 10);
+            } else {
+                std::cout << "Error dsp_optimizer" << std::endl;
+                throw std::bad_alloc();
+            }
         }
         
         dsp_optimizer(const std::string& input,
@@ -366,8 +373,7 @@ class dsp_optimizer {
                       const std::string& target,
                       int size,
                       int opt_level_max = -1)
-            :fBench(20000, 10)
-         {
+        {
             fBuffer = 0;
             fFilename = "";
             fInput = input;
@@ -381,6 +387,20 @@ class dsp_optimizer {
             fIDX = 0;       // current vector number (0 <= VIdx < fNV)
             
             init();
+            
+            std::cout << "Estimate timing parameters" << std::endl;
+            double res;
+            fBench = new time_bench(500, 10);
+            if (computeOne(fOptionsTable[0], res)) {
+                double duration = fBench->measureDurationUsec();
+                int cout = int (500 * (5 * 1e6 / duration));
+                std::cout << "duration = " << duration/1e6 << " count = " << cout << std::endl;
+                delete fBench;
+                fBench = new time_bench(cout, 10);
+            } else {
+                std::cout << "Error dsp_optimizer" << std::endl;
+                throw std::bad_alloc();
+            }
         }
     
         virtual ~dsp_optimizer()

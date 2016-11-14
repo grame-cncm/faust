@@ -246,29 +246,29 @@ void ObjectCache::anchor() {}
 
 class FaustObjectCache : public ObjectCache {
     
-private:
-    
-    string fMachineCode;
-    
-public:
-    
-    FaustObjectCache(const string& machine_code = "") : fMachineCode(machine_code)
-    {}
-    
-    virtual ~FaustObjectCache()
-    {}
-    
-    virtual void notifyObjectCompiled(const Module *M, MemoryBufferRef Obj)
-    {
-        fMachineCode = Obj.getBuffer().str();
-    }
-    
-    virtual unique_ptr<MemoryBuffer> getObject(const Module* M)
-    {
-        return (fMachineCode == "") ? NULL : MemoryBuffer::getMemBuffer(StringRef(fMachineCode));
-    }
-    
-    string getMachineCode() { return fMachineCode; }
+    private:
+        
+        string fMachineCode;
+        
+    public:
+        
+        FaustObjectCache(const string& machine_code = "") : fMachineCode(machine_code)
+        {}
+        
+        virtual ~FaustObjectCache()
+        {}
+        
+        virtual void notifyObjectCompiled(const Module *M, MemoryBufferRef Obj)
+        {
+            fMachineCode = Obj.getBuffer().str();
+        }
+        
+        virtual unique_ptr<MemoryBuffer> getObject(const Module* M)
+        {
+            return (fMachineCode == "") ? NULL : MemoryBuffer::getMemBuffer(StringRef(fMachineCode));
+        }
+        
+        string getMachineCode() { return fMachineCode; }
     
 };
 #endif
