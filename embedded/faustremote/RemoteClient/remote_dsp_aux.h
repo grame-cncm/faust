@@ -32,7 +32,7 @@
 #include <iostream>
 #include <fstream> 
 
-#include "faust/gui/UI.h"
+#include "faust/gui/MapUI.h"
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
 #include "faust/dsp/proxy-dsp.h"
@@ -282,7 +282,7 @@ class remote_dsp_machine_aux {
 
 //---------------------- Public C++ interface --------
 
-class EXPORT remote_dsp : public dsp {
+class EXPORT remote_dsp : public dsp, public midi {
     
     public: 
         
@@ -311,12 +311,18 @@ class EXPORT remote_dsp : public dsp {
         void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
         
         // MIDI polyphonic control
-        void keyOn(int channel, int pitch, int velocity);
+        MapUI* keyOn(int channel, int pitch, int velocity);
+    
         void keyOff(int channel, int pitch, int velocity);
+    
         void keyPress(int channel, int pitch, int press);
+    
         void chanPress(int channel, int press);
+    
         void ctrlChange(int channel, int ctrl, int value);
+    
         void pitchWheel(int channel, int wheel);
+    
         void progChange(int channel, int pgm);
         
 };

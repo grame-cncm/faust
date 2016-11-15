@@ -27,6 +27,7 @@
 #include <vector>
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/gui/meta.h"
+#include "faust/midi/midi.h"
 
 /**
  * Possible error codes
@@ -171,7 +172,7 @@ std::vector<std::string> getRemoteDSPFactoryLibraryList(remote_dsp_factory* fact
 /**
  * Remote DSP instance class with methods.
  */
-class remote_dsp : public dsp {
+class remote_dsp : public dsp, public midi {
     
     public: 
         
@@ -198,6 +199,21 @@ class remote_dsp : public dsp {
         void metadata(Meta* m);
     
         void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    
+        // MIDI polyphonic control
+        MapUI* keyOn(int channel, int pitch, int velocity);
+        
+        void keyOff(int channel, int pitch, int velocity);
+        
+        void keyPress(int channel, int pitch, int press);
+        
+        void chanPress(int channel, int press);
+        
+        void ctrlChange(int channel, int ctrl, int value);
+        
+        void pitchWheel(int channel, int wheel);
+        
+        void progChange(int channel, int pgm);
 
 };
 

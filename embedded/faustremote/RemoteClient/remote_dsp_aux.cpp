@@ -170,7 +170,6 @@ static remote_dsp_factory* crossCompile(int argc, const char *argv[],
     string url = serverURL.str() + "/CrossCompileFactory";
    
     if (sendRequest(url, finalRequest.str(), response, errorCode)) {
-        //llvm_dsp_factory* factory = readCDSPFactoryFromMachine(response.c_str(), getDSPMachineTarget().c_str());
         llvm_dsp_factory* factory = readDSPFactoryFromMachine(response, getDSPMachineTarget());
         remote_dsp_factory::gLocalFactoryDSPTable.push_back(factory);
         return reinterpret_cast<remote_dsp_factory*>(factory); 
@@ -1153,9 +1152,9 @@ EXPORT void remote_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** outp
 }
 
 // MIDI polyphonic control
-EXPORT void remote_dsp::keyOn(int channel, int pitch, int velocity)
+EXPORT MapUI* remote_dsp::keyOn(int channel, int pitch, int velocity)
 {
-    reinterpret_cast<remote_dsp_aux*>(this)->keyOn(channel, pitch, velocity);
+    return reinterpret_cast<remote_dsp_aux*>(this)->keyOn(channel, pitch, velocity);
 }
 
 EXPORT void remote_dsp::keyOff(int channel, int pitch, int velocity)

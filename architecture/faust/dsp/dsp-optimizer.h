@@ -233,7 +233,7 @@ class dsp_optimizer {
         void printItem(const std::vector <std::string>& item)
         {
             for (int i = 0; i < item.size(); i++) {
-                std::cout << item[i];
+                std::cout << " " << item[i];
             }
             std::cout << " : ";
         }

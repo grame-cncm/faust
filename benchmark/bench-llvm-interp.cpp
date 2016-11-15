@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
   
     std::string error_msg1;
     std::string error_msg2;
-    factory1 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg1, 0);
+    factory1 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg1, -1);
     factory2 = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg2);
     
     if (!factory1) {
