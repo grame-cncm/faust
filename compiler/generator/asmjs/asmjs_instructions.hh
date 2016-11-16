@@ -42,21 +42,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
     
         int fStructOffset;                                      // Keep the offset in bytes of the structure
         map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
-        
-        bool isRealType(Typed::VarType type)
-        { 
-            return (type == Typed::kFloat 
-                || type == Typed::kFloatMacro 
-                || type == Typed::kFloatish 
-                || type == Typed::kDouble
-                || type == Typed::kDoublish); 
-        }
-        
-        bool isIntType(Typed::VarType type)
-        { 
-            return (type == Typed::kInt || type == Typed::kIntish); 
-        }
-    
+      
         string ensureFloat(string str)
         {
             bool dot = false;
@@ -265,18 +251,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         {
             fTypingVisitor.visit(inst);
             
-            if (fTypingVisitor.fCurType == Typed::kInt
-                || fTypingVisitor.fCurType == Typed::kInt_ptr
-                || fTypingVisitor.fCurType == Typed::kFloat_ptr
-                || fTypingVisitor.fCurType == Typed::kFloatMacro_ptr
-                || fTypingVisitor.fCurType == Typed::kDouble_ptr
-                || fTypingVisitor.fCurType == Typed::kObj_ptr) {
+            if (isIntOrPtrType(fTypingVisitor.fCurType)) {
                 *fOut << "(";
                 TextInstVisitor::visit(inst);
                 *fOut << " | 0)";
-            } else if (fTypingVisitor.fCurType == Typed::kFloatMacro 
-                       || fTypingVisitor.fCurType == Typed::kFloat 
-                       || fTypingVisitor.fCurType == Typed::kDouble) {      
+            } else if (isRealType(fTypingVisitor.fCurType)) {
                 *fOut << "+(";
                 TextInstVisitor::visit(inst);
                 *fOut << ")";

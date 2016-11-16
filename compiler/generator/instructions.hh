@@ -165,7 +165,7 @@ struct InstVisitor : public virtual Garbageable {
 
     // Block
     virtual void visit(BlockInst* inst) {}
-
+ 
 };
 
 struct CloneVisitor : public virtual Garbageable {
@@ -2457,6 +2457,32 @@ private:
     ValueInst* fValue;
     
 };
+
+// Type checking
+
+inline bool isRealType(Typed::VarType type)
+{
+    return (type == Typed::kFloat
+            || type == Typed::kFloatMacro
+            || type == Typed::kFloatish
+            || type == Typed::kDouble
+            || type == Typed::kDoublish);
+}
+
+inline bool isIntType(Typed::VarType type)
+{
+    return (type == Typed::kInt || type == Typed::kIntish);
+}
+
+inline bool isIntOrPtrType(Typed::VarType type)
+{
+    return (type == Typed::kInt
+            || type == Typed::kInt_ptr
+            || type == Typed::kFloat_ptr
+            || type == Typed::kFloatMacro_ptr
+            || type == Typed::kDouble_ptr
+            || type == Typed::kObj_ptr);
+}
 
 #endif
 

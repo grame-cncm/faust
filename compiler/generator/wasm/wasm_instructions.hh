@@ -69,19 +69,6 @@ class WASMInstVisitor : public TextInstVisitor {
         map <string, MemoryDesc> fFieldTable;   // Table : field_name, { offset, size, type }
         int fStructOffset;                      // Keep the offset in bytes of the structure
     
-    
-        bool isRealType(Typed::VarType type)
-        {
-            return (type == Typed::kFloat
-                    || type == Typed::kFloatMacro
-                    || type == Typed::kDouble);
-        }
-    
-        bool isIntType(Typed::VarType type)
-        {
-            return (type == Typed::kInt);
-        }
-
     public:
 
         WASMInstVisitor(std::ostream* out, int tab = 0)

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,20 +35,6 @@ struct TypingVisitor : public InstVisitor {
        
         virtual ~TypingVisitor()
         {}
-    
-        bool isRealType(Typed::VarType type)
-        {
-            return (type == Typed::kFloat
-                    || type == Typed::kFloatish
-                    || type == Typed::kDouble
-                    || type == Typed::kDoublish
-                    || type == Typed::kFloatMacro);
-        }
-    
-        bool isIntType(Typed::VarType type)
-        {
-            return (type == Typed::kInt || type == Typed::kInt || type == Typed::kIntish);
-        }
     
         virtual void visit(LoadVarInst* inst)
         {
