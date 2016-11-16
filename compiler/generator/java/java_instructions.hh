@@ -41,7 +41,6 @@ class JAVAInstVisitor : public TextInstVisitor {
         TypingVisitor fTypingVisitor;
    
     public:
-    
      
         JAVAInstVisitor(std::ostream* out, int tab = 0)
           :TextInstVisitor(out, ".", ifloat(), "[]", tab)
@@ -57,72 +56,54 @@ class JAVAInstVisitor : public TextInstVisitor {
             if (gMathLibTable.size()) {
                 return;
             }
-
+            
             gMathLibTable["abs"] = "java.lang.Math.abs";
-            gMathLibTable["absf"] = "(float)java.lang.Math.abs";
-            
-            gMathLibTable["fabs"] = "java.lang.Math.abs";
-            gMathLibTable["fabsf"] = "(float)java.lang.Math.abs";
-            
-            gMathLibTable["acos"] = "java.lang.Math.acos";
-            gMathLibTable["acosf"] = "(float)java.lang.Math.acos";
-            
-            gMathLibTable["asin"] = "java.lang.Math.asin";
-            gMathLibTable["asinf"] = "(float)java.lang.Math.asin";
-            
-            gMathLibTable["atan"] = "java.lang.Math.atan";
-            gMathLibTable["atanf"] = "(float)java.lang.Math.atan";
-            
-            gMathLibTable["atan2"] = "java.lang.Math.atan2";
-            gMathLibTable["atan2f"] = "(float)java.lang.Math.atan2";
-            
-            gMathLibTable["ceil"] = "java.lang.Math.ceil";
-            gMathLibTable["ceilf"] = "(float)java.lang.Math.ceil";
-            
-            gMathLibTable["cos"] = "java.lang.Math.cos";
-            gMathLibTable["cosf"] = "(float)java.lang.Math.cos";
-            
-            gMathLibTable["cosh"] = "java.lang.Math.cosh";
-            gMathLibTable["coshf"] = "(float)java.lang.Math.cosh";
-            
-            gMathLibTable["exp"] = "java.lang.Math.exp";
-            gMathLibTable["expf"] = "(float)java.lang.Math.exp";
-            
-            gMathLibTable["floor"] = "java.lang.Math.floor";
-            gMathLibTable["floorf"] = "(float)java.lang.Math.floor";
-            
-            gMathLibTable["fmod"] = "java.lang.Math.IEEEremainder";
-            gMathLibTable["fmodf"] = "(float)java.lang.Math.IEEEremainder";
-            
-            gMathLibTable["log"] = "java.lang.Math.log";
-            gMathLibTable["logf"] = "(float)java.lang.Math.log";
-            
-            gMathLibTable["log10"] = "java.lang.Math.log10";
-            gMathLibTable["log10f"] = "(float)java.lang.Math.log10";
-            
             gMathLibTable["max"] = "java.lang.Math.max";
             gMathLibTable["min"] = "java.lang.Math.min";
             
-            gMathLibTable["pow"] = "java.lang.Math.pow";
+            // Float version
+            gMathLibTable["fabsf"] = "(float)java.lang.Math.abs";
+            gMathLibTable["acosf"] = "(float)java.lang.Math.acos";
+            gMathLibTable["asinf"] = "(float)java.lang.Math.asin";
+            gMathLibTable["atanf"] = "(float)java.lang.Math.atan";
+            gMathLibTable["atan2f"] = "(float)java.lang.Math.atan2";
+            gMathLibTable["ceilf"] = "(float)java.lang.Math.ceil";
+            gMathLibTable["cosf"] = "(float)java.lang.Math.cos";
+            gMathLibTable["coshf"] = "(float)java.lang.Math.cosh";
+            gMathLibTable["expf"] = "(float)java.lang.Math.exp";
+            gMathLibTable["floorf"] = "(float)java.lang.Math.floor";
+            gMathLibTable["fmodf"] = "(float)java.lang.Math.IEEEremainder";
+            gMathLibTable["logf"] = "(float)java.lang.Math.log";
+            gMathLibTable["log10f"] = "(float)java.lang.Math.log10";
             gMathLibTable["powf"] = "(float)java.lang.Math.pow";
-            
-            gMathLibTable["round"] = "java.lang.Math.round";
             gMathLibTable["roundf"] = "(float)java.lang.Math.round";
-             
-            gMathLibTable["sin"] = "java.lang.Math.sin";
             gMathLibTable["sinf"] = "(float)java.lang.Math.sin";
-            
-            gMathLibTable["sinh"] = "java.lang.Math.sinh";
             gMathLibTable["sinhf"] = "(float)java.lang.Math.sinh";
-             
-            gMathLibTable["sqrt"] = "java.lang.Math.sqrt";
             gMathLibTable["sqrtf"] = "(float)java.lang.Math.sqrt";
-            
-            gMathLibTable["tan"] = "java.lang.Math.tan";
             gMathLibTable["tanf"] = "(float)java.lang.Math.tan";
-            
-            gMathLibTable["tanh"] = "java.lang.Math.tanh";
             gMathLibTable["tanhf"] = "(float)java.lang.Math.tanh";
+            
+            // Double version
+            gMathLibTable["fabs"] = "java.lang.Math.abs";
+            gMathLibTable["acos"] = "java.lang.Math.acos";
+            gMathLibTable["asin"] = "java.lang.Math.asin";
+            gMathLibTable["atan"] = "java.lang.Math.atan";
+            gMathLibTable["atan2"] = "java.lang.Math.atan2";
+            gMathLibTable["ceil"] = "java.lang.Math.ceil";
+            gMathLibTable["cos"] = "java.lang.Math.cos";
+            gMathLibTable["cosh"] = "java.lang.Math.cosh";
+            gMathLibTable["exp"] = "java.lang.Math.exp";
+            gMathLibTable["floor"] = "java.lang.Math.floor";
+            gMathLibTable["fmod"] = "java.lang.Math.IEEEremainder";
+            gMathLibTable["log"] = "java.lang.Math.log";
+            gMathLibTable["log10"] = "java.lang.Math.log10";
+            gMathLibTable["pow"] = "java.lang.Math.pow";
+            gMathLibTable["round"] = "java.lang.Math.round";
+            gMathLibTable["sin"] = "java.lang.Math.sin";
+            gMathLibTable["sinh"] = "java.lang.Math.sinh";
+            gMathLibTable["sqrt"] = "java.lang.Math.sqrt";
+            gMathLibTable["tan"] = "java.lang.Math.tan";
+            gMathLibTable["tanh"] = "java.lang.Math.tanh";
         }
 
         virtual ~JAVAInstVisitor()
