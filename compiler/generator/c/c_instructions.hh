@@ -190,6 +190,7 @@ class CInstVisitor : public TextInstVisitor {
         virtual void visit(FunCallInst* inst)
         {
             *fOut << inst->fName << "(";
+            // Compile parameters
             generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             *fOut << ")";
         }

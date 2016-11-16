@@ -379,4 +379,32 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
 
 };
 
+// Mathematical functions are declared as variables, they have to be generated before any other function (like 'faustpower')
+struct sortDeclareFunctions
+{
+    map <string, string> fMathLibTable;
+    
+    sortDeclareFunctions(const map <string, string>& table) : fMathLibTable(table)
+    {}
+    
+    bool operator()(StatementInst* a, StatementInst* b)
+    {
+        DeclareFunInst* inst1 = dynamic_cast<DeclareFunInst*>(a);
+        DeclareFunInst* inst2 = dynamic_cast<DeclareFunInst*>(b);
+        
+        if (inst1) {
+            if (inst2) {
+                if (fMathLibTable.find(inst1->fName) != fMathLibTable.end()) {
+                    if (fMathLibTable.find(inst2->fName) != fMathLibTable.end()) {
+                        return inst1->fName < inst2->fName;
+                    } else {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+};
+
 #endif

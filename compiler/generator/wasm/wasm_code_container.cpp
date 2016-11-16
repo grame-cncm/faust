@@ -97,20 +97,32 @@ void WASMCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "(module";
     
         // Type definition
-        tab(n+1, *fOut); *fOut << "(type $0 (func (param f64 f64) (result f64)))";
-        tab(n+1, *fOut); *fOut << "(type $1 (func (param f64) (result i32)))";
-        tab(n+1, *fOut); *fOut << "(type $2 (func (param f64) (result f64)))";
+        tab(n+1, *fOut); *fOut << "(type $0 (func (param " << realStr << " " << realStr << ") (result " << realStr << ")))";
+        tab(n+1, *fOut); *fOut << "(type $1 (func (param " << realStr << ") (result i32)))";
+        tab(n+1, *fOut); *fOut << "(type $2 (func (param " << realStr << ") (result " << realStr << ")))";
         tab(n+1, *fOut); *fOut << "(type $3 (func (param i32) (result i32)))";
         tab(n+1, *fOut); *fOut << "(type $4 (func (param i32 i32)))";
         tab(n+1, *fOut); *fOut << "(type $5 (func (param i32)))";
-        tab(n+1, *fOut); *fOut << "(type $6 (func (param i32 i32 f64)))";
-        tab(n+1, *fOut); *fOut << "(type $7 (func (param i32 i32) (result f64)))";
+        tab(n+1, *fOut); *fOut << "(type $6 (func (param i32 i32 " << realStr << ")))";
+        tab(n+1, *fOut); *fOut << "(type $7 (func (param i32 i32) (result " << realStr << ")))";
         tab(n+1, *fOut); *fOut << "(type $8 (func (param i32 i32 i32 i32)))";
 
-        // Imported functions : TO 64/32 support
-        tab(n+1, *fOut); *fOut << "(import $log \"global.Math\" \"log\" (param " << realStr << ") (result " << realStr << "))";
-        tab(n+1, *fOut); *fOut << "(import $f64-rem \"asm2wasm\" \"f64-rem\" (param " << realStr <<  " " << realStr << ") (result "<< realStr << "))";
-        tab(n+1, *fOut); *fOut << "(import $f64-to-int \"asm2wasm\" \"f64-to-int\" (param " << realStr << ") (result i32))";
+        // Always generated mathematical functions
+        tab(n+1, *fOut); *fOut << "(import $" << realStr << "-rem \"asm2wasm\" \"" << realStr
+                               << "-rem\" (param " << realStr <<  " " << realStr << ") (result "<< realStr << "))";
+        tab(n+1, *fOut); *fOut << "(import $" << realStr << "-to-int \"asm2wasm\" \""
+                               << realStr << "-to-int\" (param " << realStr << ") (result i32))";
+    
+        // Global declarations (mathematical functions, global variables...)
+        gGlobal->gWASMVisitor->Tab(n+1);
+    
+        // Sub containers : before functions generation
+        mergeSubContainers();
+    
+        // All mathematical functions (got from math library as variables) have to be first...
+        sortDeclareFunctions sorter(gGlobal->gWASMVisitor->getMathLibTable());
+        fGlobalDeclarationInstructions->fCode.sort(sorter);
+        generateGlobalDeclarations(gGlobal->gWASMVisitor);
     
         // Memory access
         tab(n+1, *fOut); *fOut << "(import \"env\" \"memory\" (memory $0 256 256))";
@@ -129,8 +141,6 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "(export \"getParamValue\" (func $getParamValue))";
         tab(n+1, *fOut); *fOut << "(export \"compute\" (func $compute))";
     
-        // Sub containers : before functions generation
-        mergeSubContainers();
     
         // All mathematical functions (got from math library as variables) have to be first...
         gGlobal->gWASMVisitor->Tab(n+1);
@@ -139,11 +149,11 @@ void WASMCodeContainer::produceClass()
         // Always generated mathematical functions
         tab(n+1, *fOut);
         
-        tab(n+1, *fOut); *fOut << "(func (type $0) $fmodf (param $0 " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
+        tab(n+1, *fOut); *fOut << "(func $fmodf (type $0) (param $0 " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
             tab(n+2, *fOut); *fOut << "(call_import $" << realStr << "-rem (get_local $0) (get_local $1))";
         tab(n+1, *fOut); *fOut << ")";
         
-        tab(n+1, *fOut); *fOut <<  "(func (type $2) $log10f (param $0 " << realStr << ") (result " << realStr << ")";
+        tab(n+1, *fOut); *fOut <<  "(func $log10f (type $2) (param $0 " << realStr << ") (result " << realStr << ")";
             tab(n+2, *fOut); *fOut << "(" << realStr << ".div (call_import $log (get_local $0)) (call_import $log (" << realStr << ".const 10)))";
         tab(n+1, *fOut); *fOut << ")";
     
@@ -154,69 +164,64 @@ void WASMCodeContainer::produceClass()
         // After field declaration...
         generateSubContainers();
     
-        tab(n+1, *fOut); *fOut << "(func (type $3) $getNumInputs (param $dsp i32) (result i32)";
+        tab(n+1, *fOut); *fOut << "(func $getNumInputs (type $3) (param $dsp i32) (result i32)";
             tab(n+2, *fOut); *fOut << "(i32.const " << fNumInputs << ")";
         tab(n+1, *fOut); *fOut << ")";
     
-        tab(n+1, *fOut); *fOut << "(func (type $3) $getNumOutputs (param $dsp i32) (result i32)";
+        tab(n+1, *fOut); *fOut << "(func $getNumOutputs (type $3) (param $dsp i32) (result i32)";
             tab(n+2, *fOut); *fOut << "(i32.const " << fNumOutputs << ")";
         tab(n+1, *fOut); *fOut << ")";
     
         // Inits
-        tab(n+1, *fOut); *fOut << "(func (type $4) $classInit (param $dsp i32) (param $samplingFreq i32)";
+        tab(n+1, *fOut); *fOut << "(func $classInit (type $4) (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
         // TODO
         tab(n+1, *fOut); *fOut << ")";
     
-        tab(n+1, *fOut); *fOut << "(func (type $4) $instanceConstants (param $dsp i32) (param $samplingFreq i32)";
+        tab(n+1, *fOut); *fOut << "(func $instanceConstants (type $4) (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
         // TODO
         tab(n+1, *fOut); *fOut << ")";
     
-        tab(n+1, *fOut); *fOut << "(func (type $5) $instanceResetUserInterface (param $dsp i32)";
+        tab(n+1, *fOut); *fOut << "(func $instanceResetUserInterface (type $5) (param $dsp i32)";
         tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
         // TODO
         tab(n+1, *fOut); *fOut << ")";
     
-        tab(n+1, *fOut); *fOut << "(func (type $5) $instanceClear (param $dsp i32)";
+        tab(n+1, *fOut); *fOut << "(func $instanceClear (type $5) (param $dsp i32)";
         tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
         // TODO
         tab(n+1, *fOut); *fOut << ")";
-        
-        tab(n+1, *fOut); *fOut << "(func (type $4) $instanceInit (param $dsp i32) (param $samplingFreq i32)";
-        tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
-        // TODO
-        tab(n+1, *fOut); *fOut << ")";
-        
-        tab(n+1, *fOut); *fOut << "(func (type $4) $init (param $dsp i32) (param $samplingFreq i32)";
+    
+        tab(n+1, *fOut); *fOut << "(func $init (type $4) (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); *fOut << "(call $classInit (get_local $dsp) (get_local $samplingFreq))";
             tab(n+2, *fOut); *fOut << "(call $instanceInit (get_local $dsp) (get_local $samplingFreq))";
         tab(n+1, *fOut); *fOut << ")";
     
-        tab(n+1, *fOut); *fOut << "(func (type $4) $instanceInit (param $dsp i32) (param $samplingFreq i32)";
+        tab(n+1, *fOut); *fOut << "(func $instanceInit (type $4) (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); *fOut << "(call $instanceConstants (get_local $dsp) (get_local $samplingFreq))";
             tab(n+2, *fOut); *fOut << "(call $instanceResetUserInterface (get_local $dsp))";
             tab(n+2, *fOut); *fOut << "(call $instanceClear (get_local $dsp))";
         tab(n+1, *fOut); *fOut << ")";
         
         // getSampleRate
-        tab(n+1, *fOut); *fOut << "(func (type $3) $getSampleRate (param $dsp i32) (result i32)";
+        tab(n+1, *fOut); *fOut << "(func $getSampleRate (type $3) (param $dsp i32) (result i32)";
             tab(n+2, *fOut); *fOut << "(i32.load offset=" << gGlobal->gWASMVisitor->getFieldOffset("fSamplingFreq") << " (get_local $dsp))";
         tab(n+1, *fOut); *fOut << ")";
     
-        // setParamValue : TO 64/32 support
+        // setParamValue
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "(func (type $6) $setParamValue (param $dsp i32) (param $index i32) (param $value " << realStr << ")";
-            tab(n+2, *fOut); *fOut << "(f32.store ";
+        tab(n+1, *fOut); *fOut << "(func $setParamValue (type $6) (param $dsp i32) (param $index i32) (param $value " << realStr << ")";
+            tab(n+2, *fOut); *fOut << "(" << realStr << ".store ";
                 tab(n+3, *fOut); *fOut << "(i32.add (get_local $dsp) (get_local $index))";
-                tab(n+3, *fOut); *fOut << "(f32.demote/f64 (get_local $value))";
+                tab(n+3, *fOut); *fOut << "(get_local $value)";
             tab(n+2, *fOut); *fOut << ")";
         tab(n+1, *fOut); *fOut << ")";
     
-        // getParamValue : TO 64/32 support
+        // getParamValue
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "(func (type $7) $getParamValue (param $dsp i32) (param $index i32) (result " << realStr << ")";
-            tab(n+2, *fOut); *fOut << "(f64.promote/f32 (f32.load (i32.add (get_local $dsp) (get_local $index))))";
+        tab(n+1, *fOut); *fOut << "(func $getParamValue (type $7) (param $dsp i32) (param $index i32) (result " << realStr << ")";
+            tab(n+2, *fOut); *fOut << "(" << realStr << ".load (i32.add (get_local $dsp) (get_local $index)))";
         tab(n+1, *fOut); *fOut << ")";
 
         // compute
@@ -236,7 +241,7 @@ void WASMCodeContainer::produceInfoFunctions(int tabs, const string& classname, 
 
 void WASMScalarCodeContainer::generateCompute(int n)
 {
-    tab(n+1, *fOut); *fOut << "(func (type $8) $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
+    tab(n+1, *fOut); *fOut << "(func $compute (type $8) (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
     tab(n+2, *fOut);
     gGlobal->gWASMVisitor->Tab(n+2);
     

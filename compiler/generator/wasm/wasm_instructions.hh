@@ -87,9 +87,9 @@ class WASMInstVisitor : public TextInstVisitor {
         WASMInstVisitor(std::ostream* out, int tab = 0)
             :TextInstVisitor(out, ".", tab)
         {
-            // Float version
             fMathLibTable["abs"] = "i32.abs";
-            fMathLibTable["absf"] = "f32.abs";
+  
+            // Float version
             fMathLibTable["fabsf"] = "f32.abs";
             fMathLibTable["acosf"] = "f32.acos";
             fMathLibTable["asinf"] = "f32.asin";
@@ -112,28 +112,26 @@ class WASMInstVisitor : public TextInstVisitor {
             fMathLibTable["tanf"] = "f32.tan";
             
             // Double version
-            fMathLibTable["abs"] = "i32.abs";
-            fMathLibTable["absf"] = "f64.abs";
-            fMathLibTable["fabsf"] = "f64.abs";
-            fMathLibTable["acosf"] = "f64.acos";
-            fMathLibTable["asinf"] = "f64.asin";
-            fMathLibTable["atanf"] = "f64.atan";
-            fMathLibTable["atan2f"] = "f64.atan2";
-            fMathLibTable["ceilf"] = "f64.ceil";
-            fMathLibTable["cosf"] = "f64.cos";
-            fMathLibTable["expf"] = "f64.exp";
-            fMathLibTable["floorf"] = "f64.floor";
-            fMathLibTable["fmodf"] = "manual";      // Manually generated
-            fMathLibTable["logf"] = "f64.log";
-            fMathLibTable["log10f"] = "manual";     // Manually generated
+            fMathLibTable["fabs"] = "f64.abs";
+            fMathLibTable["acos"] = "f64.acos";
+            fMathLibTable["asin"] = "f64.asin";
+            fMathLibTable["atan"] = "f64.atan";
+            fMathLibTable["atan2"] = "f64.atan2";
+            fMathLibTable["ceil"] = "f64.ceil";
+            fMathLibTable["cos"] = "f64.cos";
+            fMathLibTable["exp"] = "f64.exp";
+            fMathLibTable["floor"] = "f64.floor";
+            fMathLibTable["fmod"] = "manual";      // Manually generated
+            fMathLibTable["log"] = "f64.log";
+            fMathLibTable["log10"] = "manual";     // Manually generated
             fMathLibTable["max"] = "f64.max";
             fMathLibTable["min"] = "f64.min";
-            fMathLibTable["powf"] = "f64.pow";
+            fMathLibTable["pow"] = "f64.pow";
             // fMathLibTable["remainderf"] "manual";      // Manually generated
-            fMathLibTable["roundf"] = "f64.round";
-            fMathLibTable["sinf"] = "f64.sin";
-            fMathLibTable["sqrtf"] = "f64.sqrt";
-            fMathLibTable["tanf"] = "f64.tan";
+            fMathLibTable["round"] = "f64.round";
+            fMathLibTable["sin"] = "f64.sin";
+            fMathLibTable["sqrt"] = "f64.sqrt";
+            fMathLibTable["tan"] = "f64.tan";
             
             fStructOffset = 0;
         }
@@ -147,6 +145,8 @@ class WASMInstVisitor : public TextInstVisitor {
         {
             return (fFieldTable.find(name) != fFieldTable.end()) ? fFieldTable[name].fOffset : -1;
         }
+    
+        map <string, string>& getMathLibTable() { return fMathLibTable; }
 
         virtual void visit(DeclareVarInst* inst)
         {
@@ -184,7 +184,7 @@ class WASMInstVisitor : public TextInstVisitor {
             // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 if (fMathLibTable[inst->fName] != "manual") {
-                    tab(fTab, *fOut); *fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << inst->fName << "\"" << " (param "<< realStr << "(result " << realStr << "))";
+                    tab(fTab, *fOut); *fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << inst->fName << "\"" << " (param " << realStr << ") (result " << realStr << "))";
                 }
             } else {
                 // Prototype
@@ -335,6 +335,9 @@ class WASMInstVisitor : public TextInstVisitor {
             fTypingVisitor.visit(inst);
         }
     
+        virtual void visit(FunCallInst* inst)
+        {}
+    
         // Conditional : select
         virtual void visit(Select2Inst* inst)
         {
@@ -359,8 +362,8 @@ class WASMInstVisitor : public TextInstVisitor {
             fTypingVisitor.visit(inst);
         }
     
-        virtual void visit(FunCallInst* inst)
-        {}
+        // Not implemented for now (used in -sch mode)
+        virtual void visit(SwitchInst* inst) {}
     
         virtual void visit(ForLoopInst* inst)
         {
@@ -407,6 +410,9 @@ class WASMInstVisitor : public TextInstVisitor {
             tab(fTab, *fOut);
             */
         }
+    
+        // Not implemented for now
+        virtual void visit(WhileLoopInst* inst) {}
 
 };
 

@@ -287,7 +287,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             }
         }
     
-        //virtual void visit(LoadVarAddressInst* inst) {}
+        virtual void visit(LoadVarAddressInst* inst) { assert(false); }
     
         virtual void visitStore(Address* address, ValueInst* value, Typed* type = NULL)
         {
@@ -427,7 +427,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 assert(false);
             }
         }
-        
+    
+        // Cast
         virtual void visit(CastNumInst* inst) 
         {
             inst->fInst->accept(this);
@@ -536,12 +537,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             // Restore current block
             fCurrentBlock = previous;
         }
-    
-        // Not implemented for now (used in -sch mode)
-        virtual void visit(SwitchInst* inst) {}
-
+  
         // Loop
-    
         virtual void visit(ForLoopInst* inst)
         {
             // Keep current block
@@ -582,10 +579,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             // Restore current block
             fCurrentBlock = previous;
         }
-    
-        // Not implemented for now
-        virtual void visit(WhileLoopInst* inst) {}
-
+ 
 };
 
 #endif

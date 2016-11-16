@@ -56,6 +56,43 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         { 
             return (type == Typed::kInt || type == Typed::kIntish); 
         }
+    
+        string ensureFloat(string str)
+        {
+            bool dot = false;
+            int e_pos = -1;
+            for (unsigned int i = 0; i < str.size(); i++) {
+                if (str[i] == '.') {
+                    dot = true;
+                    break;
+                } else if (str[i] == 'e') {
+                    e_pos = i;
+                    break;
+                }
+            }
+            
+            if (e_pos >= 0) {
+                return str.insert(e_pos, 1, '.');
+            } else {
+                return (dot) ? str : (str + ".");
+            }
+        }
+        
+        // Special version without termination
+        string checkFloat(float val)
+        {
+            std::stringstream num;
+            num << std::setprecision(std::numeric_limits<float>::max_digits10) << val;
+            return ensureFloat(num.str());
+        }
+        
+        // Special version without termination
+        string checkDouble(double val)
+        {
+            std::stringstream num;
+            num << std::setprecision(std::numeric_limits<double>::max_digits10) << val;
+            return ensureFloat(num.str());
+        }
   
     public:
     
@@ -116,8 +153,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         {}
     
         void setSubContainerType(int type) { fSubContainerType = type; }
+    
         int getStructSize() { return fStructOffset; }
+    
         map <string, pair<int, Typed::VarType> >& getFieldTable() { return fFieldTable; }
+    
         map <string, string>& getMathLibTable() { return fMathLibTable; }
     
         int getFieldOffset(const string& name)
@@ -356,43 +396,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             }
         }
     
-        static string ensureFloat(string str)
-        {
-            bool dot = false;
-            int e_pos = -1;
-            for (unsigned int i = 0; i < str.size(); i++) {
-                if (str[i] == '.') {
-                    dot = true;
-                    break;
-                } else if (str[i] == 'e') {
-                    e_pos = i;
-                    break;
-                }
-            }
-            
-            if (e_pos >= 0) {
-                return str.insert(e_pos, 1, '.');
-            } else {
-                return (dot) ? str : (str + ".");
-            }
-        }
-    
-        // Special version without termination
-        string checkFloat(float val)
-        {
-            std::stringstream num;
-            num << std::setprecision(std::numeric_limits<float>::max_digits10) << val;
-            return ensureFloat(num.str());
-        }
-
-        // Special version without termination 
-        string checkDouble(double val)
-        {
-            std::stringstream num;
-            num << std::setprecision(std::numeric_limits<double>::max_digits10) << val;
-            return ensureFloat(num.str());
-        }
-
         virtual void visit(FloatNumInst* inst)
         {
             fTypingVisitor.visit(inst);
@@ -679,34 +682,6 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
         return dst;
     }
     
-};
-
-// Mathematical functions are declared as variables, they have to be generated before any other function (like 'faustpower')
-struct sortDeclareFunctions
-{
-    map <string, string> fMathLibTable;
-    
-    sortDeclareFunctions(const map <string, string>& table) : fMathLibTable(table)
-    {}
-    
-    bool operator()(StatementInst* a, StatementInst* b)
-    { 
-        DeclareFunInst* inst1 = dynamic_cast<DeclareFunInst*>(a);
-        DeclareFunInst* inst2 = dynamic_cast<DeclareFunInst*>(b);
-        
-        if (inst1) {
-            if (inst2) {
-                if (fMathLibTable.find(inst1->fName) != fMathLibTable.end()) {
-                    if (fMathLibTable.find(inst2->fName) != fMathLibTable.end()) {
-                        return inst1->fName < inst2->fName;
-                    } else {
-                        return true;
-                    }
-                } 
-            }
-        }
-        return false;
-    }
 };
 
 #endif
