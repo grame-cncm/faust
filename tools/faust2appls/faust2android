@@ -67,7 +67,7 @@ done
 
 # only carry out the faust compilation 
 if [ $FAUST -eq 1 ]; then
-	faust -i -a android.cpp $OPTIONS "$FILE" -o "app/src/main/jni/dsp_faust.cpp"
+	faust -i -a android.cpp $OPTIONS "$FILE" -o "app/src/main/cpp/DspFaust.cpp"
 	exit 1
 fi
  
@@ -77,7 +77,7 @@ APPNAME=$(basename "$FILE")
 APPNAME="${APPNAME%.dsp}"
 BUILDDIR="faustandro.$APPNAME"
 APPFOLDER="$BUILDDIR/app/src/main"
-JNIFOLDER="$APPFOLDER/jni"
+JNIFOLDER="$APPFOLDER/cpp"
 
 if [ $REUSE -eq 0 ]; then
 	if [ -d "$BUILDDIR" ]; then
@@ -136,9 +136,14 @@ else
 	echo "Reusing existing Android project $BUILDDIR" > $LOG
 fi
 
+# Copying the Faust API files in the project
+cp $FAUSTLIB/api/Android.h $JNIFOLDER/DspFaust.h
+cp $FAUSTLIB/api/androidJNI/java_interface_wrap.cpp $JNIFOLDER
+mkdir $APPFOLDER/java/com/DspFaust
+cp $FAUSTLIB/api/androidJNI/*.java $APPFOLDER/java/com/DspFaust
 
 # Compile the Faust code for the NDK
-faust -i -a android.cpp $OPTIONS "$FILE" -o "$JNIFOLDER/dsp_faust.cpp" || exit
+faust -i -a api/Android.cpp $OPTIONS "$FILE" -o "$JNIFOLDER/DspFaust.cpp" || exit
 
 
 # Run Gradle

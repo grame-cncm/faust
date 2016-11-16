@@ -43,11 +43,11 @@ public class PianoKeyboard extends ViewGroup {
 		 * note: the MIDI pitch affected by this change
 		 * y: the normalized Y position (0-1)
 		 */
-		void onYChanged(int refPitch, float y);
+		void onYChanged(long refPitch, float y);
 		/*
 		 * replace refPitch by pitch (float, MIDI number)
 		 */
-		void onPitchBend(int refPitch, float pitch);
+		void onPitchBend(long refPitch, float pitch);
 	}
 	
 	// set the the pitch of the lowest key as a MIDI number,
@@ -139,7 +139,7 @@ public class PianoKeyboard extends ViewGroup {
         private PianoKeyElement keyUp, keyDown;
         private int ID = 0;         // key ID on the keyboard
         private int keyType = 0;    // key type (white left, center, right or black)
-        public int voice;           // allocated voice for the played pitch
+        public long voice;           // allocated voice for the played pitch
 
 		public PianoKey(Context context, int type, int id)
         {

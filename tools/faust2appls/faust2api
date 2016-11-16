@@ -57,9 +57,13 @@ if [ $ANDROID -eq 1 ]; then
 	APIFOLDER="dsp-faust"
 	rm -r "$APIFOLDER" > /dev/null || true
 	mkdir "$APIFOLDER"
-	cp -r /usr/local/share/faust/android/app/src/main/java/com/DspFaust $APIFOLDER
-	cp -r /usr/local/share/faust/android/app/src/main/jni $APIFOLDER/cpp
-	faust -i -a android.cpp "$FILE" -o "$APIFOLDER/cpp/DspFaust.cpp" || exit
+	mkdir $APIFOLDER/com
+	mkdir $APIFOLDER/com/DspFaust
+	mkdir $APIFOLDER/cpp
+	cp -r /usr/local/share/faust/api/androidJNI/*.java $APIFOLDER/com/DspFaust
+	cp -r /usr/local/share/faust/api/Android.h $APIFOLDER/cpp/DspFaust.h
+	cp -r /usr/local/share/faust/api/androidJNI/java_interface_wrap.cpp $APIFOLDER/cpp
+	faust -i -a api/Android.cpp "$FILE" -o "$APIFOLDER/cpp/DspFaust.cpp" || exit
 	if [ "$POLY2" = "1" ]; then
 		faust -i -cn effect -a minimal-effect.cpp "${FILE%.dsp}_effect.dsp" | cat - "$APIFOLDER/cpp/DspFaust.cpp" > temp && mv temp "$APIFOLDER/cpp/DspFaust.cpp" || exit
 		echo "#define POLY2 1" | cat - "$APIFOLDER/cpp/DspFaust.cpp" > temp && mv temp "$APIFOLDER/cpp/DspFaust.cpp"
@@ -69,7 +73,7 @@ if [ $ANDROID -eq 1 ]; then
 	fi
 	echo "Your dsp-faust API package for Android was created"
 elif [ $IOS -eq 1 ]; then
-    faust -i -a ios-coreaudio-api.cpp "$FILE" -o dsp-faust.cpp || exit
+    faust -i -a api/Ios.cpp "$FILE" -o dsp-faust.cpp || exit
     cp  /usr/local/include/faust/dsp/faust-engine.h  dsp-faust.h
     echo "Your dsp-faust.h and dsp-faust.cpp C++ API for IOS were created"
 else

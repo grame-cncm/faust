@@ -2,7 +2,6 @@ package com.faust;
 
 import com.faust.PianoKeyboard.PianoKey;
 import com.faust.PianoKeyboard.OnKeyboardChangeListener;
-import com.dsp_faust.dsp_faust;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -23,21 +22,21 @@ public class PianoActivity extends Activity {
             @Override
             public void onKeyChanged(int note, int velocity, boolean status) {
                 if (status) {
-                    keyboard.keys[note - keyboard.baseNote].voice = dsp_faust.keyOn(note,velocity);
+                    keyboard.keys[note - keyboard.baseNote].voice = FaustActivity.dspFaust.keyOn(note,velocity);
                 } else {
-                    dsp_faust.keyOff(note);
+                    FaustActivity.dspFaust.keyOff(note);
                     keyboard.keys[note - keyboard.baseNote].voice = -1;
                 }
             }
 			
             @Override
-            public void onPitchBend(int voice, float pitch) {
-                dsp_faust.setVoiceParamValue("freq", voice, (float)(440.0 * Math.pow(2.0, (pitch-69.0)/12.0)));
+            public void onPitchBend(long voice, float pitch) {
+                FaustActivity.dspFaust.setVoiceParamValue("freq", voice, (float)(440.0 * Math.pow(2.0, (pitch-69.0)/12.0)));
             }
        
             @Override
-            public void onYChanged(int voice, float y) {
-                dsp_faust.setVoiceParamValue("gain", voice, y);
+            public void onYChanged(long voice, float y) {
+                FaustActivity.dspFaust.setVoiceParamValue("gain", voice, y);
             }
         });
 	}
