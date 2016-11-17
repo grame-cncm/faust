@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -42,6 +42,14 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
         bool fFinishLine;
         string fObjectAccess;
     
+        void EndLine()
+        {
+            if (fFinishLine) {
+                *fOut << ";";
+                tab(fTab, *fOut);
+            }
+        }
+    
     public:
 
         TextInstVisitor(std::ostream* out, const string& object_access, int tab = 0)
@@ -57,21 +65,6 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
 
         void Tab(int n) { fTab = n; }
 
-        void EndLine()
-        {
-            if (fFinishLine) {
-                *fOut << ";";
-                tab(fTab, *fOut);
-            }
-        }
-
-        virtual void visit(AddMetaDeclareInst* inst) {}
-        virtual void visit(OpenboxInst* inst) {}
-        virtual void visit(CloseboxInst* inst) {}
-        virtual void visit(AddButtonInst* inst) {}
-        virtual void visit(AddSliderInst* inst) {}
-        virtual void visit(AddBargraphInst* inst) {}
-      
         virtual void visit(LabelInst* inst)
         {
             *fOut << inst->fLabel;

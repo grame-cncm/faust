@@ -116,7 +116,7 @@ extern "C" {
      * 
      * @param ptr - the pointer to be deleted.
      */
-    EXPORT void freeCDSP(void* ptr);
+    EXPORT void freeCWasmRes(void* ptr);
     
 #ifdef __cplusplus
 }

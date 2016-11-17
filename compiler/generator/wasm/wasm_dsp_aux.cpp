@@ -142,11 +142,11 @@ EXPORT WasmRes* createWasmCDSPFactoryFromString(const char* name_app, const char
     return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
 }
 
-/*
-EXPORT const char* getCLibFaustVersion() { return (char*)FAUSTVERSION; }
-
-EXPORT void freeCDSP(void* ptr)
+EXPORT void freeCWasmRes(void* ptr)
 {
+    WasmRes* tmp = reinterpret_cast<WasmRes*>(ptr);
+    free((void*)tmp->fCode);
+    free((void*)tmp->fHelpers);
     free(ptr);
 }
-*/
+

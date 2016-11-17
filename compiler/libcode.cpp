@@ -58,6 +58,7 @@
 #include "asmjs_code_container.hh"
 #include "wasm_code_container.hh"
 #include "clang_code_container.hh"
+#include "export.hh"
 
 #if !defined(_MSC_VER)
 // As of 29-09-2016 this fails to build with MSVC
@@ -1150,8 +1151,8 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
     generateOutputFiles(comp_container.first, comp_container.second);
 }
     
-// External API
-
+// Backend API
+    
 dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& error_msg, bool generate)
 {
     gGlobal = NULL;
@@ -1187,4 +1188,8 @@ string expand_dsp(int argc, const char* argv[], const char* name, const char* ds
     global::destroy();
     return res;
 }
+
+// External libfaust API
+
+EXPORT const char* getCLibFaustVersion() { return FAUSTVERSION; }
 
