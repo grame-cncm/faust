@@ -27,6 +27,14 @@
 
 using namespace std;
 
+/*
+ WASM module description :
+ 
+    1) mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), or are imported from the external Math context,
+    or implementted manually (like fmod or log10)
+
+*/
+
 dsp_factory_base* WASMCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(fKlassName, "", "",
@@ -54,6 +62,9 @@ CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInp
 {
     CodeContainer* container;
 
+    if (gGlobal->gFloatSize == 3) {
+        throw faustexception("ERROR : quad format not supported for WebAssembly\n");
+    }
     if (gGlobal->gOpenCLSwitch) {
         throw faustexception("ERROR : OpenCL not supported for WebAssembly\n");
     }
@@ -85,7 +96,11 @@ WASMScalarCodeContainer::~WASMScalarCodeContainer()
 {}
 
 void WASMCodeContainer::produceInternal()
-{}
+{
+    // Fields generation
+    generateGlobalDeclarations(gGlobal->gWASMVisitor);
+    generateDeclarations(gGlobal->gWASMVisitor);
+}
 
 void WASMCodeContainer::produceClass()
 {
@@ -106,12 +121,6 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "(type $6 (func (param i32 i32 " << realStr << ")))";
         tab(n+1, *fOut); *fOut << "(type $7 (func (param i32 i32) (result " << realStr << ")))";
         tab(n+1, *fOut); *fOut << "(type $8 (func (param i32 i32 i32 i32)))";
-
-        // Always generated mathematical functions
-        tab(n+1, *fOut); *fOut << "(import $" << realStr << "-rem \"asm2wasm\" \"" << realStr
-                               << "-rem\" (param " << realStr <<  " " << realStr << ") (result "<< realStr << "))";
-        tab(n+1, *fOut); *fOut << "(import $" << realStr << "-to-int \"asm2wasm\" \""
-                               << realStr << "-to-int\" (param " << realStr << ") (result i32))";
     
         // Global declarations (mathematical functions, global variables...)
         gGlobal->gWASMVisitor->Tab(n+1);
@@ -119,10 +128,16 @@ void WASMCodeContainer::produceClass()
         // Sub containers : before functions generation
         mergeSubContainers();
     
-        // All mathematical functions (got from math library as variables) have to be first...
+        // All mathematical functions (got from math library as variables) have to be first
         sortDeclareFunctions sorter(gGlobal->gWASMVisitor->getMathLibTable());
         fGlobalDeclarationInstructions->fCode.sort(sorter);
         generateGlobalDeclarations(gGlobal->gWASMVisitor);
+    
+        // Always generated mathematical functions
+        tab(n+1, *fOut); *fOut << "(import $" << realStr << "-rem \"asm2wasm\" \"" << realStr
+                               << "-rem\" (param " << realStr <<  " " << realStr << ") (result "<< realStr << "))";
+        tab(n+1, *fOut); *fOut << "(import $" << realStr << "-to-int \"asm2wasm\" \""
+                               << realStr << "-to-int\" (param " << realStr << ") (result i32))";
     
         // Memory access
         tab(n+1, *fOut); *fOut << "(import \"env\" \"memory\" (memory $0 256 256))";
@@ -141,19 +156,14 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "(export \"getParamValue\" (func $getParamValue))";
         tab(n+1, *fOut); *fOut << "(export \"compute\" (func $compute))";
     
-    
-        // All mathematical functions (got from math library as variables) have to be first...
-        gGlobal->gWASMVisitor->Tab(n+1);
-        generateGlobalDeclarations(gGlobal->gWASMVisitor);
-    
         // Always generated mathematical functions
         tab(n+1, *fOut);
-        
-        tab(n+1, *fOut); *fOut << "(func $fmodf (type $0) (param $0 " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
+    
+        tab(n+1, *fOut); *fOut << "(func $fmod" << isuffix() << " (type $0) (param $0 " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
             tab(n+2, *fOut); *fOut << "(call_import $" << realStr << "-rem (get_local $0) (get_local $1))";
         tab(n+1, *fOut); *fOut << ")";
         
-        tab(n+1, *fOut); *fOut <<  "(func $log10f (type $2) (param $0 " << realStr << ") (result " << realStr << ")";
+        tab(n+1, *fOut); *fOut <<  "(func $log10" << isuffix() << "f (type $2) (param $0 " << realStr << ") (result " << realStr << ")";
             tab(n+2, *fOut); *fOut << "(" << realStr << ".div (call_import $log (get_local $0)) (call_import $log (" << realStr << ".const 10)))";
         tab(n+1, *fOut); *fOut << ")";
     

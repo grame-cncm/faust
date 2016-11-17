@@ -42,7 +42,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
     
         int fStructOffset;                                      // Keep the offset in bytes of the structure
         map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
-      
+    
         string ensureFloat(string str)
         {
             bool dot = false;

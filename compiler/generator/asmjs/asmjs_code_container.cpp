@@ -85,7 +85,7 @@ CodeContainer* ASMJAVAScriptCodeContainer::createContainer(const string& name, i
     CodeContainer* container;
   
     if (gGlobal->gFloatSize == 3) {
-        throw faustexception("ERROR : quad format not supported in ASMJavaScript\n");
+        throw faustexception("ERROR : quad format not supported for ASMJavaScript\n");
     }
     if (gGlobal->gOpenCLSwitch) {
         throw faustexception("ERROR : OpenCL not supported for ASMJavaScript\n");
@@ -99,8 +99,8 @@ CodeContainer* ASMJAVAScriptCodeContainer::createContainer(const string& name, i
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("Scheduler mode not supported for ASMJavaScript\n");
     } else if (gGlobal->gVectorSwitch) {
-        //throw faustexception("Vector mode not supported for ASMJavaScript\n");
-        container = new ASMJAVAScriptVectorCodeContainer(name, numInputs, numOutputs, dst);
+        throw faustexception("Vector mode not supported for ASMJavaScript\n");
+        //container = new ASMJAVAScriptVectorCodeContainer(name, numInputs, numOutputs, dst);
     } else {
         container = new ASMJAVAScriptScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
     }
@@ -230,21 +230,14 @@ void ASMJAVAScriptCodeContainer::produceClass()
         // Sub containers : before functions generation
         mergeSubContainers();
     
-        // All mathematical functions (got from math library as variables) have to be first...
+        // All mathematical functions (got from math library as variables) have to be first
         sortDeclareFunctions sorter(gGlobal->gASMJSVisitor->getMathLibTable());
         fGlobalDeclarationInstructions->fCode.sort(sorter);
         generateGlobalDeclarations(gGlobal->gASMJSVisitor);
           
         // Manually always generated mathematical functions
-        if (gGlobal->gFloatSize == 1) {
-            // Float versions
-            tab(n+1, *fOut); *fOut << "function fmodf(x, y) { x = +x; y = +y; return +(x % y); }";
-            tab(n+1, *fOut); *fOut << "function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }";
-        } else if (gGlobal->gFloatSize == 2) {
-            // Double versions
-            tab(n+1, *fOut); *fOut << "function fmod(x, y) { x = +x; y = +y; return +(x % y); }";
-            tab(n+1, *fOut); *fOut << "function log10(a) { a = +a; return +(+log(a) / +log(10.)); }";
-        }
+        tab(n+1, *fOut); *fOut << "function fmod" << isuffix() << "(x, y) { x = +x; y = +y; return +(x % y); }";
+        tab(n+1, *fOut); *fOut << "function log10" << isuffix() << "(a) { a = +a; return +(+log(a) / +log(10.)); }";
     
         // Fields : compute the structure size to use in 'new'
         gGlobal->gASMJSVisitor->Tab(n+1);

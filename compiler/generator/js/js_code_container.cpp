@@ -45,7 +45,10 @@ CodeContainer* JAVAScriptCodeContainer::createScalarContainer(const string& name
 CodeContainer* JAVAScriptCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
     CodeContainer* container;
-
+    
+    if (gGlobal->gFloatSize == 3) {
+        throw faustexception("ERROR : quad format not supported for JavaScript\n");
+    }
     if (gGlobal->gOpenCLSwitch) {
         throw faustexception("ERROR : OpenCL not supported for JavaScript\n");
     }

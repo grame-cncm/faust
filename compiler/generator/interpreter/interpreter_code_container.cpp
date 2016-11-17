@@ -122,7 +122,7 @@ InterpreterScalarCodeContainer<T>::~InterpreterScalarCodeContainer()
 template <class T>
 void InterpreterCodeContainer<T>::produceInternal()
 {
-    /// Fields generation
+    // Fields generation
     generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
     generateDeclarations(gGlobal->gInterpreterVisitor);
 }

@@ -46,6 +46,9 @@ CodeContainer* JAVACodeContainer::createContainer(const string& name, const stri
 {
     CodeContainer* container;
 
+    if (gGlobal->gFloatSize == 3) {
+        throw faustexception("ERROR : quad format not supported for Java\n");
+    }
     if (gGlobal->gOpenCLSwitch) {
         throw faustexception("ERROR : OpenCL not supported for Java\n");
     }
