@@ -2469,9 +2469,26 @@ inline bool isRealType(Typed::VarType type)
             || type == Typed::kDoublish);
 }
 
+inline bool isRealPtrType(Typed::VarType type)
+{
+    return (type == Typed::kFloat_ptr
+            || type == Typed::kFloatMacro_ptr
+            || type == Typed::kDouble_ptr);
+}
+
 inline bool isIntType(Typed::VarType type)
 {
     return (type == Typed::kInt || type == Typed::kIntish);
+}
+
+inline bool isIntPtrType(Typed::VarType type)
+{
+    return (type == Typed::kInt_ptr);
+}
+
+inline bool isPtrType(Typed::VarType type)
+{
+    return isRealPtrType(type) || isIntPtrType(type);
 }
 
 inline bool isIntOrPtrType(Typed::VarType type)

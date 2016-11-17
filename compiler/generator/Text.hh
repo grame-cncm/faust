@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _stringFAUST_H
-#define _stringFAUST_H
+#ifndef _Text_H
+#define _Text_H
 
 #include <string>
 #include <vector>

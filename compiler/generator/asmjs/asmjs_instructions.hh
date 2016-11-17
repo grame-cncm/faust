@@ -31,6 +31,8 @@ using namespace std;
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
 
+#define offStr ((gGlobal->gFloatSize == 1) ? "2" : ((gGlobal->gFloatSize == 2) ? "3" : ""))
+
 class ASMJAVAScriptInstVisitor : public TextInstVisitor {
 
     private:
@@ -65,21 +67,14 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         }
         
         // Special version without termination
-        string checkFloat(float val)
+        template <class T>
+        string checkReal(T val)
         {
             std::stringstream num;
-            num << std::setprecision(std::numeric_limits<float>::max_digits10) << val;
+            num << std::setprecision(std::numeric_limits<T>::max_digits10) << val;
             return ensureFloat(num.str());
         }
-        
-        // Special version without termination
-        string checkDouble(double val)
-        {
-            std::stringstream num;
-            num << std::setprecision(std::numeric_limits<double>::max_digits10) << val;
-            return ensureFloat(num.str());
-        }
-  
+     
     public:
     
         ASMJAVAScriptInstVisitor(std::ostream* out, int tab = 0)
@@ -278,29 +273,14 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         {   
             if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[named->getName()];
-                switch (tmp.second) {
-                    case Typed::kFloatMacro:
-                    case Typed::kFloat:
-                    case Typed::kDouble:
-                        if (gGlobal->gFloatSize == 1) {
-                            *fOut << "HEAPF[dsp + " << tmp.first << " >> 2]";
-                        } else if (gGlobal->gFloatSize == 2) {
-                            *fOut << "HEAPF[dsp + " << tmp.first << " >> 3]";
-                        }
-                        break;
-                    case Typed::kInt:
-                        *fOut << "HEAP32[dsp + " << tmp.first << " >> 2]";
-                        break;
-                    case Typed::kFloatMacro_ptr: 
-                    case Typed::kFloat_ptr:
-                    case Typed::kDouble_ptr:
-                    case Typed::kInt_ptr:
-                        *fOut << "dsp + " << tmp.first;
-                        break;
-                    default:
-                        // Should never happen...
-                        assert(false);
-                        break;
+                if (isRealType(tmp.second)) {
+                    *fOut << "HEAPF[dsp + " << tmp.first << " >> " << offStr << "]";
+                } else if (isIntType(tmp.second)) {
+                    *fOut << "HEAP32[dsp + " << tmp.first << " >> 2]";
+                } else if (isPtrType(tmp.second)) {
+                    *fOut << "dsp + " << tmp.first;
+                } else {
+                    assert(false);
                 }
             } else {
                 *fOut << named->fName;
@@ -317,40 +297,26 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             // HACK : completely adhoc code for input/output...
             } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
                 // Force "output" access to be coherent with fSubContainerType (integer or real)
-                if (fSubContainerType == kInt) {
-                    *fOut << "HEAP32[" << indexed->getName() << " + (";
-                } else {
-                    *fOut << "HEAPF[" << indexed->getName() << " + (";
-                }
+                *fOut << ((fSubContainerType == kInt) ? "HEAP32[" : "HEAPF[") << indexed->getName() << " + (";
                 indexed->fIndex->accept(this);
                 // Force "output" access to be coherent with fSubContainerType (integer or real)
                 if (fSubContainerType == kInt) {
                     *fOut << " << 2) >> 2]";
-                } else if (gGlobal->gFloatSize == 1) {
-                    *fOut << " << 2) >> 2]";
-                } else if (gGlobal->gFloatSize == 2) {
-                    *fOut << " << 3) >> 3]";
+                } else {
+                    *fOut << " << " << offStr << ") >> " << offStr << "]";
                 }
-            } else if (indexed->getAccess() & Address::kStruct || indexed->getAccess() & Address::kStaticStruct) {
+            } else {
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
-                if (tmp.second == Typed::kFloatMacro_ptr || tmp.second == Typed::kFloat_ptr || tmp.second == Typed::kDouble_ptr) {
+                if (isRealPtrType(tmp.second)) {
                     *fOut << "HEAPF[dsp + " << tmp.first << " + ";  
                     *fOut << "(";
                     indexed->fIndex->accept(this);
-                    if (gGlobal->gFloatSize == 1) {
-                        *fOut << " << 2) >> 2]";
-                    } else if (gGlobal->gFloatSize == 2) {
-                        *fOut << " << 3) >> 3]";
-                    }
-                } else {
-                    *fOut << "HEAP32[dsp + " << tmp.first << " + "; 
-                    *fOut << "(";
+                    *fOut << " << " << offStr << ") >> " << offStr << "]";
+                 } else {
+                    *fOut << "HEAP32[dsp + " << tmp.first << " + (";
                     indexed->fIndex->accept(this);
                     *fOut << " << 2) >> 2]"; 
                 }
-            } else {
-                indexed->fAddress->accept(this);
-                *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
             }
         }
   
@@ -378,7 +344,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(FloatNumInst* inst)
         {
             fTypingVisitor.visit(inst);
-            *fOut << checkFloat(inst->fNum);
+            *fOut << checkReal<float>(inst->fNum);
         }
         
         virtual void visit(IntNumInst* inst)
@@ -396,7 +362,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(DoubleNumInst* inst)
         {
             fTypingVisitor.visit(inst);
-            *fOut << checkDouble(inst->fNum);
+            *fOut << checkReal<double>(inst->fNum);
         }
                  
         virtual void visit(Select2Inst* inst)

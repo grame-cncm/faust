@@ -268,14 +268,14 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             inst->fAddress->accept(this);
             
             NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
             MemoryDesc tmp = fFieldTable[inst->fAddress->getName()];
             
             if (named) {
                 fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt)
                                     ? FIRInstruction::kLoadInt : FIRInstruction::kLoadReal, 0, 0, tmp.fOffset, 0));
             } else {
-                // Indexed 
+                // Indexed
+                IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
                 string num;
                 if (startWithRes(indexed->getName(), "input", num)) {
                     fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInput, 0, 0, atoi(num.c_str()), 0));
@@ -329,15 +329,15 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 value->accept(this);
                 
                 NamedAddress* named = dynamic_cast<NamedAddress*>(address);
-                IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
                 MemoryDesc tmp = fFieldTable[address->getName()];
                 
                 if (named) {
                     fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt)
                                         ? FIRInstruction::kStoreInt : FIRInstruction::kStoreReal, 0, 0, tmp.fOffset, 0));
                 } else {
-                    // Compile  address
-                    address->accept(this);
+                    IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
+                    // Compile address
+                    indexed->accept(this);
                     // Indexed 
                     string num;
                     if (startWithRes(indexed->getName(), "output", num)) {
