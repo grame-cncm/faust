@@ -33,8 +33,7 @@ class WASMCodeContainer : public virtual CodeContainer {
     protected:
 
         std::ostream* fOut;
-    
-        void produceInfoFunctions(int tabs, const string& classname, bool isvirtual);
+        std::stringstream fHelper;
 
     public:
 

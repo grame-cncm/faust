@@ -937,6 +937,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         // Binary mode for LLVM backend if output different of 'cout'
         gGlobal->gDSPFactory->write(dst, (dst != &cout), false);
         
+        // Possibly helper code
+        gGlobal->gDSPFactory->writeAux(dst, (dst != &cout), false);
+        
         // Force flush since the stream is not closed...
         dst->flush();
     }

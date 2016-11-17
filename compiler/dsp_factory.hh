@@ -63,6 +63,8 @@ class dsp_factory_base {
     
         virtual void write(std::ostream* out, bool binary = false, bool small = false) = 0;
     
+        virtual void writeAux(std::ostream* out, bool binary = false, bool small = false) {}    // Helper functions
+    
         virtual std::vector<std::string> getDSPFactoryLibraryList() = 0;
     
         // Sub-classes will typically implement this method to create a factory from a stream
@@ -120,6 +122,7 @@ class text_dsp_factory_aux : public dsp_factory_imp {
     protected:
     
         std::string fCode;
+        std::string fHelper;
     
     public:
     
@@ -127,13 +130,19 @@ class text_dsp_factory_aux : public dsp_factory_imp {
                              const std::string& sha_key,
                              const std::string& dsp,
                              const std::vector<std::string>& pathname_list,
-                             const std::string& code)
-            :dsp_factory_imp(name, sha_key, dsp, pathname_list), fCode(code)
+                             const std::string& code,
+                             const std::string& helper)
+            :dsp_factory_imp(name, sha_key, dsp, pathname_list), fCode(code), fHelper(helper)
         {}
         
         virtual void write(std::ostream* out, bool binary = false, bool small = false)
         {
             *out << fCode;
+        }
+    
+        virtual void writeAux(std::ostream* out, bool binary = false, bool small = false)
+        {
+            *out << fHelper;
         }
 };
 

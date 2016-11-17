@@ -60,6 +60,7 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
         wasm_dsp* createDSPInstance() { return nullptr; }
         
         void write(std::ostream* out, bool binary, bool small = false) { fFactory->write(out, binary, small); }
+        void writeAux(std::ostream* out, bool binary, bool small = false) { fFactory->writeAux(out, binary, small); }
     
 };
 
@@ -72,21 +73,26 @@ EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory);
 #ifdef __cplusplus
 extern "C" {
 #endif
+    
+    typedef struct  {
+        const char* fCode;
+        const char* fHelpers;
+    } WasmRes;
 
     /**
-     * Create a Faust DSP asm.js module and additional helpers functions from a DSP source code as a file.
+     * Create a Faust DSP WebAssembly module and additional helper functions from a DSP source code as a file.
      *
      * @param filename - the DSP filename
      * @param argc - the number of parameters in argv array
      * @param argv - the array of parameters
      * @param error_msg - the error string to be filled, has to be 4096 characters long
      *
-     * @return a valid WASM module and additional helpers functions as a string on success (to be deleted by the caller), otherwise a null pointer.
+     * @return a valid WebAssembly module and additional helper functions as a WasmRes struct on success (to be deleted by the caller), otherwise a null pointer.
      */
-    EXPORT const char* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
+    EXPORT WasmRes* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
      /**
-     * Create a Faust DSP WASM module and additional helpers functions from a DSP source code.
+     * Create a Faust DSP WebAssembly module and additional helper functions from a DSP source code.
      * 
      * @param name_app - the name of the Faust program
      * @param dsp_content - the Faust program as a string
@@ -94,9 +100,9 @@ extern "C" {
      * @param argv - the array of parameters
      * @param error_msg - the error string to be filled, has to be 4096 characters long
      *
-     * @return a valid WASM module and additional helpers functions as a string on success (to be deleted by the caller), otherwise a null pointer.
+     * @return a valid WebAssembly module and additional helper functions as a WasmRes struct on success (to be deleted by the caller), otherwise a null pointer.
      */ 
-    EXPORT const char* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
+    EXPORT WasmRes* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
     
     /**
      * Get the library version.
@@ -106,7 +112,7 @@ extern "C" {
     EXPORT const char* getCLibFaustVersion();
     
     /**
-     * The free function to be used on memory returned by createWasmCDSPFactoryFromString.
+     * The free function to be used on memory returned by createWasmCDSPFactoryFromFile or createWasmCDSPFactoryFromString.
      * 
      * @param ptr - the pointer to be deleted.
      */

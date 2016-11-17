@@ -74,19 +74,19 @@ extern "C" {
 #endif
     
     /**
-     * Create a Faust DSP asm.js module and additional helpers functions from a DSP source code as a file.
+     * Create a Faust DSP asm.js module and additional helper functions from a DSP source code as a file.
      *
      * @param filename - the DSP filename
      * @param argc - the number of parameters in argv array
      * @param argv - the array of parameters
      * @param error_msg - the error string to be filled, has to be 4096 characters long
      *
-     * @return a valid asm.js module and additional helpers functions as a string on success (to be deleted by the caller), otherwise a null pointer.
+     * @return a valid asm.js module and additional helper functions as a string on success (to be deleted by the caller), otherwise a null pointer.
      */
     EXPORT const char* createAsmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
      /**
-     * Create a Faust DSP asm.js module and additional helpers functions from a DSP source code. 
+     * Create a Faust DSP asm.js module and additional helper functions from a DSP source code.
      * 
      * @param name_app - the name of the Faust program
      * @param dsp_content - the Faust program as a string
@@ -94,7 +94,7 @@ extern "C" {
      * @param argv - the array of parameters
      * @param error_msg - the error string to be filled, has to be 4096 characters long
      *
-     * @return a valid asm.js module and additional helpers functions as a string on success (to be deleted by the caller), otherwise a null pointer.
+     * @return a valid asm.js module and additional helper functions as a string on success (to be deleted by the caller), otherwise a null pointer.
      */ 
     EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
     
@@ -106,7 +106,7 @@ extern "C" {
     EXPORT const char* getCLibFaustVersion();
     
     /**
-     * The free function to be used on memory returned by createAsmCDSPFactoryFromString.
+     * The free function to be used on memory returned by createAsmCDSPFactoryFromFile or createAsmCDSPFactoryFromString.
      * 
      * @param ptr - the pointer to be deleted.
      */

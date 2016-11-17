@@ -61,7 +61,7 @@ dsp_factory_base* ASMJAVAScriptCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(fKlassName, "", "",
                                     gGlobal->gReader.listSrcFiles(),
-                                    (dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : "");
+                                    ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
 }
 
 ASMJAVAScriptCodeContainer::ASMJAVAScriptCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out):fOut(out)
@@ -446,7 +446,6 @@ void ASMJAVAScriptCodeContainer::produceClass()
             }
         }
     }
-    
     tab(n, *fOut); *fOut << "}" << endl << endl;
 }
 

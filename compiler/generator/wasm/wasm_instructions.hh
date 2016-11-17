@@ -44,8 +44,8 @@ var asm2wasmImports = { // special asm2wasm imports
 #define realStr ((gGlobal->gFloatSize == 1) ? "f32" : ((gGlobal->gFloatSize == 2) ? "f64" : ""))
 
 class WASMInstVisitor : public TextInstVisitor {
-
-    private:
+    
+    public:
     
         struct MemoryDesc {
             
@@ -61,6 +61,8 @@ class WASMInstVisitor : public TextInstVisitor {
             int fSize;
             Typed::VarType fType;
         };
+  
+    private:
     
         TypingVisitor fTypingVisitor;
     
@@ -128,13 +130,15 @@ class WASMInstVisitor : public TextInstVisitor {
     
         int getStructSize() { return fStructOffset; }
     
+        map <string, MemoryDesc>& getFieldTable() { return fFieldTable; }
+    
+        map <string, string>& getMathLibTable() { return fMathLibTable; }
+    
         int getFieldOffset(const string& name)
         {
             return (fFieldTable.find(name) != fFieldTable.end()) ? fFieldTable[name].fOffset : -1;
         }
-    
-        map <string, string>& getMathLibTable() { return fMathLibTable; }
-
+  
         virtual void visit(DeclareVarInst* inst)
         {
             // HACK : completely adhoc code for input/output...
@@ -358,9 +362,6 @@ class WASMInstVisitor : public TextInstVisitor {
             fTypingVisitor.visit(inst);
         }
     
-        // Not implemented for now (used in -sch mode)
-        virtual void visit(SwitchInst* inst) {}
-    
         virtual void visit(ForLoopInst* inst)
         {
             // Don't generate empty loops...
@@ -406,10 +407,7 @@ class WASMInstVisitor : public TextInstVisitor {
             tab(fTab, *fOut);
             */
         }
-    
-        // Not implemented for now
-        virtual void visit(WhileLoopInst* inst) {}
-
+ 
 };
 
 #endif

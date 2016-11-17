@@ -112,10 +112,8 @@ EXPORT bool deleteAsmjsDSPFactory(asmjs_dsp_factory* factory)
 
 // C API
 
-EXPORT const char* createAsmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg)
+static const char* createAsmCDSPFactoryAux(asmjs_dsp_factory* factory, const string& error_msg_aux, char* error_msg)
 {
-    string error_msg_aux;
-    asmjs_dsp_factory* factory = createAsmDSPFactoryFromFile(filename, argc, argv, error_msg_aux);
     if (factory) {
         stringstream dst;
         factory->write(&dst, false, false);
@@ -128,20 +126,18 @@ EXPORT const char* createAsmCDSPFactoryFromFile(const char* filename, int argc, 
     }
 }
 
+EXPORT const char* createAsmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg)
+{
+    string error_msg_aux;
+    asmjs_dsp_factory* factory = createAsmDSPFactoryFromFile(filename, argc, argv, error_msg_aux);
+    return createAsmCDSPFactoryAux(factory, error_msg_aux, error_msg);
+}
+
 EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg)
 {
     string error_msg_aux;
     asmjs_dsp_factory* factory = createAsmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg_aux);
-    if (factory) {
-        stringstream dst;
-        factory->write(&dst, false, false);
-        strncpy(error_msg, error_msg_aux.c_str(), 4096);
-        return strdup(flatten(dst.str()).c_str());
-        // And keep factory...
-    } else {
-        strncpy(error_msg, "libfaust.js fatal error...\n", 4096);
-        return NULL;
-    }
+    return createAsmCDSPFactoryAux(factory, error_msg_aux, error_msg);
 }
 
 EXPORT const char* getCLibFaustVersion() { return FAUSTVERSION; }

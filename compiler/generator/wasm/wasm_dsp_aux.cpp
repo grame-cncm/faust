@@ -106,15 +106,21 @@ EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory)
 
 // C API
 
-EXPORT const char* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg)
+static WasmRes* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const string& error_msg_aux, char* error_msg)
 {
-    string error_msg_aux;
-    wasm_dsp_factory* factory = createWasmDSPFactoryFromFile(filename, argc, argv, error_msg_aux);
     if (factory) {
-        stringstream dst;
-        factory->write(&dst, false, false);
+        WasmRes* res = static_cast<WasmRes*>(calloc(1, sizeof(WasmRes)));
+        
+        stringstream dst1;
+        factory->write(&dst1, false, false);
         strncpy(error_msg, error_msg_aux.c_str(), 4096);
-        return strdup(flatten(dst.str()).c_str());
+        res->fCode = strdup(flatten(dst1.str()).c_str());
+        
+        stringstream dst2;
+        factory->writeAux(&dst2, false, false);
+        res->fHelpers = strdup(flatten(dst2.str()).c_str());
+        
+        return res;
         // And keep factory...
     } else {
         strncpy(error_msg, "libfaust.js fatal error...\n", 4096);
@@ -122,20 +128,18 @@ EXPORT const char* createWasmCDSPFactoryFromFile(const char* filename, int argc,
     }
 }
 
-EXPORT const char* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg)
+EXPORT WasmRes* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg)
+{
+    string error_msg_aux;
+    wasm_dsp_factory* factory = createWasmDSPFactoryFromFile(filename, argc, argv, error_msg_aux);
+    return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
+}
+
+EXPORT WasmRes* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg)
 {
     string error_msg_aux;
     wasm_dsp_factory* factory = createWasmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg_aux);
-    if (factory) {
-        stringstream dst;
-        factory->write(&dst, false, false);
-        strncpy(error_msg, error_msg_aux.c_str(), 4096);
-        return strdup(flatten(dst.str()).c_str());
-        // And keep factory...
-    } else {
-        strncpy(error_msg, "libfaust.js fatal error...\n", 4096);
-        return NULL;
-    }
+    return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
 }
 
 /*

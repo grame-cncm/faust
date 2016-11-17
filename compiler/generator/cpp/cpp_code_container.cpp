@@ -35,7 +35,7 @@ dsp_factory_base* CPPCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(fKlassName, "", "",
                                     gGlobal->gReader.listSrcFiles(),
-                                    (dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : "");
+                                    ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
 }
 
 CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int sub_container_type)

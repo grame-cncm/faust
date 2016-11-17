@@ -39,7 +39,7 @@ dsp_factory_base* WASMCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(fKlassName, "", "",
                                     gGlobal->gReader.listSrcFiles(),
-                                    (dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : "");
+                                    ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), fHelper.str());
 }
 
 WASMCodeContainer::WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out):fOut(out)
@@ -244,10 +244,60 @@ void WASMCodeContainer::produceClass()
     
     tab(n, *fOut); *fOut << ")";
     tab(n, *fOut);
+    
+    // Helper code
+    
+    // User interface : prepare the JSON string...
+    JSONInstVisitor json_visitor(fNumInputs, fNumOutputs);
+    generateUserInterface(&json_visitor);
+    generateMetaData(&json_visitor);
+    
+    // Generate JSON and getDSPSize
+    tab(n, fHelper); fHelper << "function getSize" << fKlassName << "() {";
+    tab(n+1, fHelper);
+    fHelper << "return " << gGlobal->gWASMVisitor->getStructSize() << ";";
+    printlines(n+1, fUICode, fHelper);
+    tab(n, fHelper); fHelper << "}";
+    tab(n, fHelper);
+    
+    // Fields to path
+    tab(n, fHelper); fHelper << "function getPathTable" << fKlassName << "() {";
+    tab(n+1, fHelper); fHelper << "var pathTable = [];";
+    map <string, string>::iterator it;
+    map <string, WASMInstVisitor::MemoryDesc>& fieldTable = gGlobal->gWASMVisitor->getFieldTable();
+    for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
+        WASMInstVisitor::MemoryDesc tmp = fieldTable[(*it).first];
+        tab(n+1, fHelper); fHelper << "pathTable[\"" << (*it).second << "\"] = " << tmp.fOffset << ";";
+    }
+    tab(n+1, fHelper); fHelper << "return pathTable;";
+    tab(n, fHelper); fHelper << "}";
+    
+    // Generate JSON
+    tab(n, fHelper);
+    tab(n, fHelper); fHelper << "function getJSON" << fKlassName << "() {";
+    tab(n+1, fHelper);
+    fHelper << "return \""; fHelper << json_visitor.JSON(true); fHelper << "\";";
+    printlines(n+1, fUICode, fHelper);
+    tab(n, fHelper); fHelper << "}";
+    
+    // Metadata declaration
+    tab(n, fHelper);
+    tab(n, fHelper); fHelper << "function metadata" << fKlassName << "(m) {";
+    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+        if (i->first != tree("author")) {
+            tab(n+1, fHelper); fHelper << "m.declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
+        } else {
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+                if (j == i->second.begin()) {
+                    tab(n+1, fHelper); fHelper << "m.declare(\"" << *(i->first) << "\", " << **j << ");" ;
+                } else {
+                    tab(n+1, fHelper); fHelper << "m.declare(\"" << "contributor" << "\", " << **j << ");";
+                }
+            }
+        }
+    }
+    tab(n, fHelper); fHelper << "}" << endl << endl;
 }
-
-void WASMCodeContainer::produceInfoFunctions(int tabs, const string& classname, bool isvirtual)
-{}
 
 void WASMScalarCodeContainer::generateCompute(int n)
 {
