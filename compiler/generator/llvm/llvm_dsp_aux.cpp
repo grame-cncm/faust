@@ -1046,8 +1046,6 @@ void llvm_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 
 // Public C++ API
 
-EXPORT string getLibFaustVersion() { return FAUSTVERSION; }
-
 EXPORT bool startMTDSPFactories()
 {
     try {

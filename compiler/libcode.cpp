@@ -491,7 +491,7 @@ static bool process_cmdline(int argc, const char* argv[])
 
 static void printversion()
 {
-	cout << "FAUST : DSP to C, C++, JAVA, JavaScript/ASMJavaScript, WebAssembly, LLVM IR, FVM (interpreter) version " << FAUSTVERSION << "\n";
+	cout << "FAUST : DSP to C, C++, JAVA, JavaScript, ASM JavaScript, WebAssembly, LLVM IR, FVM (interpreter) version " << FAUSTVERSION << "\n";
 	cout << "Copyright (C) 2002-2016, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
@@ -531,7 +531,7 @@ static void printhelp()
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
 	cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
     cout << "-time \t\t--compilation-time, flag to display compilation phases timing information\n";
-    cout << "-o <file> \tC, C++, JAVA, JavaScript/ASMJavaScript or LLVM IR output file\n";
+    cout << "-o <file> \tC, C++, JAVA, JavaScript, ASM JavaScript, WebAssembly, LLVM IR or FVM (interpreter) output file\n";
     cout << "-scal   \t--scalar generate non-vectorized code\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vls <n>  \t--vec-loop-size size of the vector DSP loop for auto-vectorization (experimental) \n";
@@ -545,7 +545,7 @@ static void printhelp()
     cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-fun  \t\t--funTasks separate tasks code as separated functions (in -vec, -sch, or -omp mode)\n";
-    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, js, ajs, llvm, cllvm, fir, inter (default cpp)\n";
+    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, js, ajs, llvm, cllvm, fir, wasm, interp (default cpp)\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the output code\n";
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
@@ -1146,9 +1146,9 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
 
     endTiming("propagation");
 
-    /****************************************************************
-    5 - preparation of the signal tree and translate output signals into C, C++, JAVA, JavaScript/ASMJavaScript or LLVM IR
-    *****************************************************************/
+    /*************************************************************************
+    5 - preparation of the signal tree and translate output signals
+    **************************************************************************/
     pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs, generate);
 
     /****************************************************************

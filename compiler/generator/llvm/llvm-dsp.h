@@ -44,9 +44,9 @@
 /**
  * Get the library version.
  * 
- * @return the library version as a string.
+ * @return the library version as a static string.
  */
-std::string getLibFaustVersion();
+const char* getCLibFaustVersion();
 
 /**
  * DSP instance class with methods.

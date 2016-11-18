@@ -50,7 +50,7 @@ extern "C"
      * 
      * @return the library version as a static string.
      */
-    char* getCLibFaustVersion();
+    const char* getCLibFaustVersion();
       
     /**
      * Get the target (triple + CPU) of the machine.

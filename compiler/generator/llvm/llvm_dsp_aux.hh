@@ -307,8 +307,6 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
 
 // Public C++ interface
 
-EXPORT std::string getLibFaustVersion();
-
 EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
 
 EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, 
