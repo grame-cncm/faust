@@ -34,6 +34,7 @@ const char* inumix();
 
 const char* ifloat();
 Typed::VarType itfloat();
+Typed::VarType itfloatptr();
 const char* icast();
 
 const char* xfloat();

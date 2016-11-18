@@ -141,7 +141,7 @@ void LLVMCodeContainer::generateFillBegin(const string& counter)
         // real* output
         buffer_type = (itfloat() == Typed::kFloat) ? fBuilder->getFloatTy() : fBuilder->getDoubleTy();
     }
-
+    
     llvm_fill_args.push_back(PointerType::get(buffer_type, 0));
     FunctionType* llvm_fill_type = FunctionType::get(fBuilder->getVoidTy(), MAKE_VECTOR_OF_TYPES(llvm_fill_args), false);
     Function* llvm_fill = Function::Create(llvm_fill_type, GlobalValue::InternalLinkage, "fill" + fKlassName, fModule);

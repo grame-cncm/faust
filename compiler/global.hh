@@ -137,7 +137,8 @@ struct global {
     // Backend configuration
     bool            gGenerateSelectWithIf;
     bool            gAllowForeignFunction;
-    bool            gComputeIOA;
+    bool            gComputeIOTA;
+    bool            gFaustFloatToInternal;  // FAUSTFLOAT type (= kFloatMacro) forced to internal real
     
     dsp_factory_base* gDSPFactory;
 

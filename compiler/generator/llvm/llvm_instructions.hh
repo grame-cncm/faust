@@ -159,6 +159,7 @@ struct LLVMTypeHelper {
         fTypeMap[Typed::kFloatMacro_ptr] = PointerType::get(fTypeMap[Typed::kFloatMacro], 0);
 
         fTypeMap[Typed::kVoid] = llvm::Type::getVoidTy(module->getContext());
+        
         // void* must be defined as i8* type
         fTypeMap[Typed::kVoid_ptr] = PointerType::get(llvm::Type::getInt8Ty(module->getContext()), 0);
         fTypeMap[Typed::kVoid_ptr_ptr] = PointerType::get(fTypeMap[Typed::kVoid_ptr], 0);
@@ -477,7 +478,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             VECTOR_OF_TYPES FuncTy_6_args;
             FuncTy_6_args.push_back(PointerTy_0);
             FuncTy_6_args.push_back(PointerTy_0);
-            LLVM_TYPE PointerTy_7 = fTypeMap[Typed::kFloatMacro_ptr];  // For LLVM internal float is same as external
+            LLVM_TYPE PointerTy_7 = fTypeMap[itfloatptr()];  // For LLVM internal float is same as external
 
             FuncTy_6_args.push_back(PointerTy_7);
             FunctionType* FuncTy_6 = FunctionType::get(
@@ -493,10 +494,10 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             FuncTy_9_args.push_back(PointerTy_0);
             FuncTy_9_args.push_back(PointerTy_0);
             FuncTy_9_args.push_back(PointerTy_7);
-            FuncTy_9_args.push_back(fTypeMap[Typed::kFloatMacro]);  // For LLVM internal float is same as external
-            FuncTy_9_args.push_back(fTypeMap[Typed::kFloatMacro]);
-            FuncTy_9_args.push_back(fTypeMap[Typed::kFloatMacro]);
-            FuncTy_9_args.push_back(fTypeMap[Typed::kFloatMacro]);
+            FuncTy_9_args.push_back(fTypeMap[itfloat()]);  // For LLVM internal float is same as external
+            FuncTy_9_args.push_back(fTypeMap[itfloat()]);
+            FuncTy_9_args.push_back(fTypeMap[itfloat()]);
+            FuncTy_9_args.push_back(fTypeMap[itfloat()]);
             FunctionType* FuncTy_9 = FunctionType::get(
             /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
             /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_9_args),
@@ -512,8 +513,8 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             FuncTy_16_args.push_back(PointerTy_0);
             FuncTy_16_args.push_back(PointerTy_0);
             FuncTy_16_args.push_back(PointerTy_7);
-            FuncTy_16_args.push_back(fTypeMap[Typed::kFloatMacro]);  // For LLVM internal float is same as external
-            FuncTy_16_args.push_back(fTypeMap[Typed::kFloatMacro]);
+            FuncTy_16_args.push_back(fTypeMap[itfloat()]);  // For LLVM internal float is same as external
+            FuncTy_16_args.push_back(fTypeMap[itfloat()]);
             FunctionType* FuncTy_16 = FunctionType::get(
             /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
             /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_16_args),
@@ -1794,32 +1795,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             fCurValue = generateBinopAux(inst->fOpcode, res1, res2, inst->fSize);
         }
-
+    
         virtual void visit(CastNumInst* inst)
         {
             // Compile exp to cast, result in fCurValue
             inst->fInst->accept(this);
-
-            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(inst->fType);
-
-            if (basic_typed) {
-
-                switch (basic_typed->fType) {
-
-                    // Takes the type of internal real
-                    case Typed::kFloatMacro:
-                        visitAux(itfloat(), inst->fSize);
-                        break;
-
-                    default:
-                        visitAux(basic_typed->fType, inst->fSize);
-                        break;
-                }
-
-            } else {
-                // No yet
-                assert(false);
-            }
+            visitAux(inst->fType->getType(), inst->fSize);
         }
 
         void visitAux(Typed::VarType type, int size)

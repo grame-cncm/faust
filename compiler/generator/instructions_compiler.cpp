@@ -1400,7 +1400,7 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
         pushClearMethod(generateInitArray(vname, ctype, N));
 
         // Generate table use
-        if (gGlobal->gComputeIOA) {  // Ensure IOTA base fixed delays are computed once
+        if (gGlobal->gComputeIOTA) {  // Ensure IOTA base fixed delays are computed once
             if (fIOTATable.find(N) == fIOTATable.end()) {
                 string iota_name = subst("i$0", gGlobal->getFreshID("IOTA_temp"));
                 FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) & InstBuilder::genIntNumInst(N - 1);

@@ -39,8 +39,8 @@ const char* numsuffix[]  = {"", "f", "", "L"};                              // s
 const char* floatname[]  = {FLOATMACRO, "float", "double", "quad"};         // float types
 const char* castname[]   = {FLOATCASTER, "(float)", "(double)", "(quad)"};  // float castings
 
-const char* isuffix() { return mathsuffix[gGlobal->gFloatSize]; } ///< suffix for math functions
-const char* inumix()  { return numsuffix[gGlobal->gFloatSize]; } ///< suffix for numeric constants
+const char* isuffix() { return mathsuffix[gGlobal->gFloatSize]; }   ///< suffix for math functions
+const char* inumix()  { return numsuffix[gGlobal->gFloatSize]; }    ///< suffix for numeric constants
 
 Typed::VarType itfloat()
 {
@@ -53,7 +53,22 @@ Typed::VarType itfloat()
             return Typed::kQuad;
         default:
             assert(false);
-            return Typed::kFloat;
+            return Typed::kNoType;
+    }
+}
+
+Typed::VarType itfloatptr()
+{
+    switch (gGlobal->gFloatSize) {
+        case 1:
+            return Typed::kFloat_ptr;
+        case 2:
+            return Typed::kDouble_ptr;
+        case 3:
+            return Typed::kQuad_ptr;
+        default:
+            assert(false);
+            return Typed::kNoType;
     }
 }
 

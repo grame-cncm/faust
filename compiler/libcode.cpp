@@ -732,6 +732,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     
 #if LLVM_BUILD
     if (gGlobal->gOutputLang == "cllvm") {
+        
+        gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     
     #if CLANG_BUILD
         container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
@@ -754,6 +756,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
         
         gGlobal->gAllowForeignFunction = false; // No foreign functions
+        gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
 
         if (gGlobal->gVectorSwitch) {
             comp = new DAGInstructionsCompiler(container);
@@ -787,7 +790,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         
         gGlobal->gAllowForeignFunction = false; // No foreign functions
         gGlobal->gGenerateSelectWithIf = false; // No 'select with if',
-        gGlobal->gComputeIOA = true;            // Ensure IOTA base fixed delays are computed once
+        gGlobal->gComputeIOTA = true;           // Ensure IOTA base fixed delays are computed once
+        gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
        
         if (gGlobal->gVectorSwitch) {
             comp = new DAGInstructionsCompiler(container);
@@ -839,11 +843,13 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         } else if (gGlobal->gOutputLang == "ajs") {
             
             gGlobal->gAllowForeignFunction = false; // No foreign functions
+            gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
         } else if (gGlobal->gOutputLang == "wasm") {
 
             gGlobal->gAllowForeignFunction = false; // No foreign functions
+            gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
         } else {
