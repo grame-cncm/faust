@@ -256,15 +256,15 @@ void JAVAScriptScalarCodeContainer::generateCompute(int n)
 {
     tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << subst("this.compute = function($0, inputs, outputs) {", fFullCount);
-    tab(n+2, *fOut);
-    fCodeProducer.Tab(n+2);
+        tab(n+2, *fOut);
+        fCodeProducer.Tab(n+2);
 
-    // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
+        // Generates local variables declaration and setup
+        generateComputeBlock(&fCodeProducer);
 
-    // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-    loop->accept(&fCodeProducer);
+        // Generates one single scalar loop
+        ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+        loop->accept(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}";
 }

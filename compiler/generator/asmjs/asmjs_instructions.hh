@@ -40,10 +40,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         TypingVisitor fTypingVisitor;
         map <string, int> fFunctionSymbolTable; 
         map <string, string> fMathLibTable;
-        int fSubContainerType;
-    
-        int fStructOffset;                                      // Keep the offset in bytes of the structure
         map <string, pair<int, Typed::VarType> > fFieldTable;   // Table : field_name, <byte offset in structure, type>
+        int fStructOffset;                                      // Keep the offset in bytes of the structure
+        int fSubContainerType;
     
         string ensureFloat(string str)
         {
@@ -169,12 +168,9 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     *fOut << "var " << inst->fAddress->getName();
                     if (inst->fValue) {
                         *fOut << " = "; inst->fValue->accept(this);
-                    } 
+                    }
+                    EndLine();
                 }
-            }
-            
-            if (!is_struct) {
-                EndLine();
             }
         }
      
@@ -254,7 +250,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 TextInstVisitor::visit(inst);
                 *fOut << ")";
             } else {
-                // HACK : completely adhoc code for input/output/count/samplingFreq...
+                // HACK : completely adhoc code for inputs/outputs/count/samplingFreq...
                 if ((startWith(inst->getName(), "inputs") 
                     || startWith(inst->getName(), "outputs") 
                     || startWith(inst->getName(), "count")
@@ -269,7 +265,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         } 
         
         virtual void visit(NamedAddress* named)
-        {   
+        {
+            // Fields in struct are accessed using 'dsp' and an offset
             if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
                 pair<int, Typed::VarType> tmp = fFieldTable[named->getName()];
                 if (isRealType(tmp.second)) {
@@ -305,6 +302,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     *fOut << " << " << offStr << ") >> " << offStr << "]";
                 }
             } else {
+                // Fields in struct are accessed using 'dsp' and an offset
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
                 if (isRealPtrType(tmp.second)) {
                     *fOut << "HEAPF[dsp + " << tmp.first << " + ";  
@@ -324,6 +322,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             // TODO (for vector mode...)
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
             if (indexed) {
+                // Fields in struct are accessed using 'dsp' and an offset
                 if (indexed->getAccess() & Address::kStruct || indexed->getAccess() & Address::kStaticStruct) {
                     pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
                     *fOut << "dsp + " << tmp.first << " + ";  

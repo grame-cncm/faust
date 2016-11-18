@@ -347,15 +347,15 @@ void CScalarCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "void compute" << fKlassName << "(" << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
-    tab(n+1, *fOut);
-    fCodeProducer.Tab(n+1);
+        tab(n+1, *fOut);
+        fCodeProducer.Tab(n+1);
 
-    // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
+        // Generates local variables declaration and setup
+        generateComputeBlock(&fCodeProducer);
 
-    // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-    loop->accept(&fCodeProducer);
+        // Generates one single scalar loop
+        ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+        loop->accept(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "}" << endl;
 }
@@ -377,14 +377,14 @@ void CVectorCodeContainer::generateCompute(int n)
 
     // Compute declaration
     tab(n, *fOut); *fOut << "void compute" << fKlassName << "(" << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
-    tab(n+1, *fOut);
-    fCodeProducer.Tab(n+1);
+        tab(n+1, *fOut);
+        fCodeProducer.Tab(n+1);
 
-    // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
+        // Generates local variables declaration and setup
+        generateComputeBlock(&fCodeProducer);
 
-    // Generates DSP loop
-    fDAGBlock->accept(&fCodeProducer);
+        // Generates DSP loop
+        fDAGBlock->accept(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "}" << endl;
 }
@@ -403,14 +403,14 @@ void COpenMPCodeContainer::generateCompute(int n)
 
     // Compute declaration
     tab(n, *fOut); *fOut << "void compute" << fKlassName << "(" << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
-    tab(n+1, *fOut);
-    fCodeProducer.Tab(n+1);
+        tab(n+1, *fOut);
+        fCodeProducer.Tab(n+1);
 
-    // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
+        // Generates local variables declaration and setup
+        generateComputeBlock(&fCodeProducer);
 
-    // Generate it
-    fGlobalLoopBlock->accept(&fCodeProducer);
+        // Generate it
+        fGlobalLoopBlock->accept(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "}" << endl;
 }
@@ -435,21 +435,21 @@ void CWorkStealingCodeContainer::generateCompute(int n)
 
     // Generates "computeThread" code
     tab(n, *fOut); *fOut << "static void computeThread(" << fKlassName << "* dsp, int num_thread) {";
-    tab(n+1, *fOut);
-    fCodeProducer.Tab(n+1);
+        tab(n+1, *fOut);
+        fCodeProducer.Tab(n+1);
 
-    // Generate it
-    fThreadLoopBlock->accept(&fCodeProducer);
+        // Generate it
+        fThreadLoopBlock->accept(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "}" << endl;
+        tab(n, *fOut); *fOut << "}" << endl;
 
-    // Compute "compute" declaration
-    tab(n, *fOut); *fOut << "void compute" << fKlassName << "(" << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
-    tab(n+1, *fOut);
-    fCodeProducer.Tab(n+1);
+        // Compute "compute" declaration
+        tab(n, *fOut); *fOut << "void compute" << fKlassName << "(" << fKlassName << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+        tab(n+1, *fOut);
+        fCodeProducer.Tab(n+1);
 
-    // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
+        // Generates local variables declaration and setup
+        generateComputeBlock(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "}" << endl;
 

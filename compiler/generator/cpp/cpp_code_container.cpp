@@ -219,9 +219,9 @@ void CPPCodeContainer::produceClass()
         tab(n+1, *fOut);
 
         if (gGlobal->gUIMacroSwitch) {
-            tab(n, *fOut); *fOut << "  public:";
+            tab(n, *fOut); *fOut << " public:";
         } else {
-            tab(n, *fOut); *fOut << "  private:";
+            tab(n, *fOut); *fOut << " private:";
         }
         tab(n+1, *fOut);
 
@@ -248,7 +248,7 @@ void CPPCodeContainer::produceClass()
             tab(n+1, *fOut);
         }
 
-    tab(n, *fOut); *fOut << "  public:";
+    tab(n, *fOut); *fOut << " public:";
 
         // Print metadata declaration
         tab(n+1, *fOut);
@@ -420,15 +420,15 @@ void CPPScalarCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
-    tab(n+2, *fOut);
-    fCodeProducer.Tab(n+2);
+        tab(n+2, *fOut);
+        fCodeProducer.Tab(n+2);
 
-    // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
+        // Generates local variables declaration and setup
+        generateComputeBlock(&fCodeProducer);
 
-    // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-    loop->accept(&fCodeProducer);
+        // Generates one single scalar loop
+        ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+        loop->accept(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}";
 }
@@ -446,14 +446,15 @@ void CPPVectorCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
-    tab(n+2, *fOut);
-    fCodeProducer.Tab(n+2);
- 
-    // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
- 
-    // Generates DSP loop
-    fDAGBlock->accept(&fCodeProducer);
+        tab(n+2, *fOut);
+        fCodeProducer.Tab(n+2);
+     
+        // Generates local variables declaration and setup
+        generateComputeBlock(&fCodeProducer);
+     
+        // Generates DSP loop
+        fDAGBlock->accept(&fCodeProducer);
+    
     tab(n+1, *fOut); *fOut << "}";
 }
 
@@ -470,14 +471,14 @@ void CPPOpenMPCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
-    tab(n+2, *fOut);
-    fCodeProducer.Tab(n+2);
+        tab(n+2, *fOut);
+        fCodeProducer.Tab(n+2);
 
-    // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
+        // Generates local variables declaration and setup
+        generateComputeBlock(&fCodeProducer);
 
-    // Generate DSP loop
-    fGlobalLoopBlock->accept(&fCodeProducer);
+        // Generate DSP loop
+        fGlobalLoopBlock->accept(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}";
 }
@@ -507,22 +508,22 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
     // Generates "compute" declaration
     tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
-    tab(n+2, *fOut);
-    fCodeProducer.Tab(n+2);
+        tab(n+2, *fOut);
+        fCodeProducer.Tab(n+2);
 
-    // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
+        // Generates local variables declaration and setup
+        generateComputeBlock(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}" << endl;
 
     // Generates "computeThread" code
     tab(n+1, *fOut); *fOut << "void computeThread(int num_thread) {";
-    tab(n+2, *fOut);
-    fCodeProducer.Tab(n+2);
+        tab(n+2, *fOut);
+        fCodeProducer.Tab(n+2);
 
-    // Generate it
-    assert(fThreadLoopBlock);
-    fThreadLoopBlock->accept(&fCodeProducer);
+        // Generate it
+        assert(fThreadLoopBlock);
+        fThreadLoopBlock->accept(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}";
 }

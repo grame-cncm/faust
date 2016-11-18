@@ -275,15 +275,15 @@ void JAVAScalarCodeContainer::generateCompute(int n)
 {
     tab(n+1, *fOut);
     tab(n+1, *fOut); *fOut << subst("public void compute(int $0, $1[][] inputs, $1[][] outputs) {", fFullCount,  ifloat());
-    tab(n+2, *fOut);
-    fCodeProducer.Tab(n+2);
+        tab(n+2, *fOut);
+        fCodeProducer.Tab(n+2);
 
-    // Generates local variables declaration and setup
-    generateComputeBlock(&fCodeProducer);
+        // Generates local variables declaration and setup
+        generateComputeBlock(&fCodeProducer);
 
-    // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-    loop->accept(&fCodeProducer);
+        // Generates one single scalar loop
+        ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+        loop->accept(&fCodeProducer);
 
     tab(n+1, *fOut); *fOut << "}";
 }

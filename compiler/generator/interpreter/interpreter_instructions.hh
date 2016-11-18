@@ -228,7 +228,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         // Declarations
         virtual void visit(DeclareVarInst* inst) 
         {
-            // HACK : completely adhoc code for input/output...
+            // HACK : completely adhoc code for input/output using kLoadInput and kStoreOutput instructions
             if ((startWith(inst->fAddress->getName(), "input") || startWith(inst->fAddress->getName(), "output"))) {
                 return;
             }

@@ -404,22 +404,22 @@ void ASMJAVAScriptCodeContainer::produceClass()
      
     // Generate JSON and getDSPSize
     tab(n, *fOut); *fOut << "function getSize" << fKlassName << "() {";
-    tab(n+1, *fOut);
-    *fOut << "return " << gGlobal->gASMJSVisitor->getStructSize() << ";";
-    printlines(n+1, fUICode, *fOut);
+        tab(n+1, *fOut);
+        *fOut << "return " << gGlobal->gASMJSVisitor->getStructSize() << ";";
+        printlines(n+1, fUICode, *fOut);
     tab(n, *fOut); *fOut << "}";
     tab(n, *fOut);
     
     // Fields to path
     tab(n, *fOut); *fOut << "function getPathTable" << fKlassName << "() {";
-    tab(n+1, *fOut); *fOut << "var pathTable = [];"; 
-    map <string, string>::iterator it;
-    map <string, pair<int, Typed::VarType> >& fieldTable = gGlobal->gASMJSVisitor->getFieldTable();
-    for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
-        pair<int, Typed::VarType> tmp = fieldTable[(*it).first];
-        tab(n+1, *fOut); *fOut << "pathTable[\"" << (*it).second << "\"] = " << tmp.first << ";"; 
-    }
-    tab(n+1, *fOut); *fOut << "return pathTable;"; 
+        tab(n+1, *fOut); *fOut << "var pathTable = [];";
+        map <string, string>::iterator it;
+        map <string, pair<int, Typed::VarType> >& fieldTable = gGlobal->gASMJSVisitor->getFieldTable();
+        for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
+            pair<int, Typed::VarType> tmp = fieldTable[(*it).first];
+            tab(n+1, *fOut); *fOut << "pathTable[\"" << (*it).second << "\"] = " << tmp.first << ";"; 
+        }
+        tab(n+1, *fOut); *fOut << "return pathTable;"; 
     tab(n, *fOut); *fOut << "}";
     
     // Generate JSON 
@@ -493,13 +493,13 @@ void ASMJAVAScriptVectorCodeContainer::generateCompute(int n)
         tab(n+2, *fOut); *fOut << "inputs = inputs | 0;";
         tab(n+2, *fOut); *fOut << "outputs = outputs | 0;";
         tab(n+2, *fOut);
-    gGlobal->gASMJSVisitor->Tab(n+2);
-    
-    // Generates local variables declaration and setup
-    generateComputeBlock(gGlobal->gASMJSVisitor);
-    
-    // Generates DSP loop
-    fDAGBlock->accept(gGlobal->gASMJSVisitor);
+        gGlobal->gASMJSVisitor->Tab(n+2);
+        
+        // Generates local variables declaration and setup
+        generateComputeBlock(gGlobal->gASMJSVisitor);
+        
+        // Generates DSP loop
+        fDAGBlock->accept(gGlobal->gASMJSVisitor);
     
     tab(n+1, *fOut); *fOut << "}";
 }

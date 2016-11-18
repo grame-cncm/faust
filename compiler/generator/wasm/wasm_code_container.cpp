@@ -282,30 +282,30 @@ void WASMCodeContainer::produceClass()
     
     // Generate JSON and getDSPSize
     tab(n, fHelper); fHelper << "function getSize" << fKlassName << "() {";
-    tab(n+1, fHelper);
-    fHelper << "return " << gGlobal->gWASMVisitor->getStructSize() << ";";
-    printlines(n+1, fUICode, fHelper);
+        tab(n+1, fHelper);
+        fHelper << "return " << gGlobal->gWASMVisitor->getStructSize() << ";";
+        printlines(n+1, fUICode, fHelper);
     tab(n, fHelper); fHelper << "}";
     tab(n, fHelper);
     
     // Fields to path
     tab(n, fHelper); fHelper << "function getPathTable" << fKlassName << "() {";
-    tab(n+1, fHelper); fHelper << "var pathTable = [];";
-    map <string, string>::iterator it;
-    map <string, WASMInstVisitor::MemoryDesc>& fieldTable = gGlobal->gWASMVisitor->getFieldTable();
-    for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
-        WASMInstVisitor::MemoryDesc tmp = fieldTable[(*it).first];
-        tab(n+1, fHelper); fHelper << "pathTable[\"" << (*it).second << "\"] = " << tmp.fOffset << ";";
-    }
-    tab(n+1, fHelper); fHelper << "return pathTable;";
+        tab(n+1, fHelper); fHelper << "var pathTable = [];";
+        map <string, string>::iterator it;
+        map <string, WASMInstVisitor::MemoryDesc>& fieldTable = gGlobal->gWASMVisitor->getFieldTable();
+        for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
+            WASMInstVisitor::MemoryDesc tmp = fieldTable[(*it).first];
+            tab(n+1, fHelper); fHelper << "pathTable[\"" << (*it).second << "\"] = " << tmp.fOffset << ";";
+        }
+        tab(n+1, fHelper); fHelper << "return pathTable;";
     tab(n, fHelper); fHelper << "}";
     
     // Generate JSON
     tab(n, fHelper);
     tab(n, fHelper); fHelper << "function getJSON" << fKlassName << "() {";
-    tab(n+1, fHelper);
-    fHelper << "return \""; fHelper << json_visitor.JSON(true); fHelper << "\";";
-    printlines(n+1, fUICode, fHelper);
+        tab(n+1, fHelper);
+        fHelper << "return \""; fHelper << json_visitor.JSON(true); fHelper << "\";";
+        printlines(n+1, fUICode, fHelper);
     tab(n, fHelper); fHelper << "}";
     
     // Metadata declaration
@@ -330,14 +330,15 @@ void WASMCodeContainer::produceClass()
 void WASMScalarCodeContainer::generateCompute(int n)
 {
     tab(n+1, *fOut); *fOut << "(func $compute (type $8) (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
-    tab(n+2, *fOut);
-    gGlobal->gWASMVisitor->Tab(n+2);
+        tab(n+2, *fOut);
+        gGlobal->gWASMVisitor->Tab(n+2);
     
-    // Generates one single scalar loop and put is the the block
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-    fComputeBlockInstructions->pushBackInst(loop);
-    
-    loop->accept(gGlobal->gWASMVisitor);
+        // Generates local variables declaration and setup
+        generateComputeBlock(gGlobal->gWASMVisitor);
+        
+        // Generates one single scalar loop
+        ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+        loop->accept(gGlobal->gWASMVisitor);
 
     tab(n+1, *fOut); *fOut << ")";
 }
