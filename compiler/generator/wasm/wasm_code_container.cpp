@@ -24,6 +24,8 @@
 #include "floats.hh"
 #include "exception.hh"
 #include "global.hh"
+#include "json_instructions.hh"
+#include "fir_to_fir.hh"
 
 using namespace std;
 
@@ -185,22 +187,48 @@ void WASMCodeContainer::produceClass()
         // Inits
         tab(n+1, *fOut); *fOut << "(func $classInit (type $4) (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
-        // TODO
+            DspRenamer renamer1;
+            BlockInst* block0 = renamer1.getCode(fStaticInitInstructions);
+            block0->accept(gGlobal->gWASMVisitor);
         tab(n+1, *fOut); *fOut << ")";
     
         tab(n+1, *fOut); *fOut << "(func $instanceConstants (type $4) (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
-        // TODO
+            {
+                // Rename 'sig' in 'dsp' and remove 'dsp' allocation
+                DspRenamer renamer2;
+                BlockInst* block2 = renamer2.getCode(fInitInstructions);
+                // Moves all variables declaration at the beginning of the block
+                MoveVariablesInFront2 mover1;
+                BlockInst* block3 = mover1.getCode(block2);
+                block3->accept(gGlobal->gWASMVisitor);
+            }
         tab(n+1, *fOut); *fOut << ")";
     
         tab(n+1, *fOut); *fOut << "(func $instanceResetUserInterface (type $5) (param $dsp i32)";
-        tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
-        // TODO
+            tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
+            {
+                // Rename 'sig' in 'dsp' and remove 'dsp' allocation
+                DspRenamer renamer2;
+                BlockInst* block2 = renamer2.getCode(fResetUserInterfaceInstructions);
+                // Moves all variables declaration at the beginning of the block
+                MoveVariablesInFront2 mover1;
+                BlockInst* block3 = mover1.getCode(block2);
+                block3->accept(gGlobal->gWASMVisitor);
+            }
         tab(n+1, *fOut); *fOut << ")";
     
         tab(n+1, *fOut); *fOut << "(func $instanceClear (type $5) (param $dsp i32)";
-        tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
-        // TODO
+            tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
+            {
+                // Rename 'sig' in 'dsp' and remove 'dsp' allocation
+                DspRenamer renamer2;
+                BlockInst* block2 = renamer2.getCode(fClearInstructions);
+                // Moves all variables declaration at the beginning of the block
+                MoveVariablesInFront2 mover1;
+                BlockInst* block3 = mover1.getCode(block2);
+                block3->accept(gGlobal->gWASMVisitor);
+            }
         tab(n+1, *fOut); *fOut << ")";
     
         tab(n+1, *fOut); *fOut << "(func $init (type $4) (param $dsp i32) (param $samplingFreq i32)";

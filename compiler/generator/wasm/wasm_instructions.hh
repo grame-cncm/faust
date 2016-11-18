@@ -71,6 +71,26 @@ class WASMInstVisitor : public TextInstVisitor {
         map <string, MemoryDesc> fFieldTable;   // Table : field_name, { offset, size, type }
         int fStructOffset;                      // Keep the offset in bytes of the structure
     
+        string type2String(Typed::VarType type)
+        {
+            if (type == Typed::kInt) {
+                return "i32";
+            } else if (gGlobal->gFloatSize == 1) {
+                return "f32";
+            } else if (gGlobal->gFloatSize == 2) {
+                return "f64";
+            } else {
+                assert(false);
+            }
+        }
+    
+        virtual void EndLine()
+        {
+            if (fFinishLine) {
+                tab(fTab, *fOut);
+            }
+        }
+    
     public:
 
         WASMInstVisitor(std::ostream* out, int tab = 0)
@@ -141,19 +161,31 @@ class WASMInstVisitor : public TextInstVisitor {
   
         virtual void visit(DeclareVarInst* inst)
         {
-            // HACK : completely adhoc code for input/output...
-            if ((startWith(inst->fAddress->getName(), "input") || startWith(inst->fAddress->getName(), "output"))) {
-                return;
-            }
-            
+            bool is_struct = (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
             
             if (array_typed && array_typed->fSize > 1) {
-                fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
-                fStructOffset += array_typed->fSize;
+                if (is_struct) {
+                    fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
+                    fStructOffset += (array_typed->fSize * fsize()); // Always use biggest size so that int/real access are correctly aligned
+                } else {
+                    // Should never happen...
+                    assert(false);
+                }
             } else {
-                fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
-                fStructOffset++;
+                if (is_struct) {
+                    fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
+                    fStructOffset += fsize(); // Always use biggest size so that int/real access are correctly aligned
+                } else {
+                    *fOut << "(local $" << inst->fAddress->getName() << " " << type2String(inst->fType->getType()) << ")";
+                    if (inst->fValue) {
+                        tab(fTab, *fOut);
+                        *fOut << "(set_local $" << inst->fAddress->getName() << " ";
+                        inst->fValue->accept(this);
+                        *fOut << ")";
+                        EndLine();
+                    }
+                }
             }
         }
     
@@ -175,7 +207,9 @@ class WASMInstVisitor : public TextInstVisitor {
             // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 if (fMathLibTable[inst->fName] != "manual" && fMathLibTable[inst->fName] != "wasm") {
-                    tab(fTab, *fOut); *fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << fMathLibTable[inst->fName] << "\"" << " (param " << realStr << ") (result " << realStr << "))";
+                    tab(fTab, *fOut);
+                    *fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << fMathLibTable[inst->fName]
+                          << "\"" << " (param " << realStr << ") (result " << realStr << "))";
                 }
             } else {
                 // Prototype
@@ -186,30 +220,76 @@ class WASMInstVisitor : public TextInstVisitor {
             }
         }
     
+        /*
         virtual void visit(LoadVarInst* inst)
         {
-            /*
-            *fOut << "(get_local $";
-            inst->fAddress->accept(this);
-            *fOut << ")";
-            */
-            
             fTypingVisitor.visit(inst);
+            
+            if (isIntOrPtrType(fTypingVisitor.fCurType)) {
+                *fOut << "(i32.load ";
+                TextInstVisitor::visit(inst);
+                *fOut << ")";
+            } else if (isRealType(fTypingVisitor.fCurType)) {
+                *fOut << "(" << realStr;
+                TextInstVisitor::visit(inst);
+                *fOut << ")";
+            } else {
+                // HACK : completely adhoc code for input/output/count/samplingFreq...
+                if ((startWith(inst->getName(), "inputs")
+                     || startWith(inst->getName(), "outputs")
+                     || startWith(inst->getName(), "count")
+                     || startWith(inst->getName(), "samplingFreq"))) {
+                    *fOut << "(i32.load ";
+                    TextInstVisitor::visit(inst);
+                    *fOut << ")";
+                } else {
+                    TextInstVisitor::visit(inst);
+                }
+            }
         }
+        */
     
         virtual void visit(StoreVarInst* inst)
         {
-            /*
-            *fOut << "(set_local $";
+            inst->fValue->accept(&fTypingVisitor);
+            
+            if (isRealType(fTypingVisitor.fCurType)) {
+                *fOut << "(" << realStr << ".store ";
+            } else {
+                *fOut << "(i32.store ";
+            }
+            
             inst->fAddress->accept(this);
             *fOut << " ";
             inst->fValue->accept(this);
             *fOut << ")";
-            */
+            EndLine();
         }
     
         virtual void visit(NamedAddress* named)
-        {}
+        {
+            if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+                MemoryDesc tmp = fFieldTable[named->getName()];
+                /*
+                if (isRealType(tmp.second) || isIntType(tmp.second)) {
+                    *fOut << "(i32.add (get_local $dsp) (i32.const " << tmp.first << "))";
+                } else if (isPtrType(tmp.second)) {
+                    *fOut << "dsp + " << tmp.first;
+                } else {
+                    assert(false);
+                }
+                */
+                *fOut << "(i32.add (get_local $dsp) (i32.const " << tmp.fOffset << "))";
+            } else {
+                //*fOut << named->fName;
+                *fOut << "(get_local $" << named->fName << ")";
+            }
+        }
+    
+        virtual void visit(IndexedAddress* indexed)
+        {
+        
+        }
   
         virtual void visit(LoadVarAddressInst* inst)
         {
@@ -307,20 +387,28 @@ class WASMInstVisitor : public TextInstVisitor {
             
             if (inst->fType->getType() == Typed::kInt) {
                 if (type == Typed::kInt) {
-                    std::cout << "CastNumInst : cast to int, but arg already int !" << std::endl;
+                    //std::cout << "CastNumInst : cast to int, but arg already int !" << std::endl;
+                    inst->fInst->accept(this);
                 } else {
                     *fOut << "(i32.trunc_s/" << realStr;
                     inst->fInst->accept(this);
                     *fOut << ")";
                 }
             } else {
+                std::cout << "CastNumInst " << inst->fType->getType() << std::endl;
+                /*
                 if (isRealType(type)) {
-                    std::cout << "CastNumInst : cast to real, but arg already real !" << std::endl;
+                    //std::cout << "CastNumInst : cast to real, but arg already real !" << std::endl;
+                    inst->fInst->accept(this);
                 } else {
                     *fOut << "(" << realStr << ".convert_s/i32 ";
                     inst->fInst->accept(this);
                     *fOut << ")";
                 }
+                */
+                *fOut << "(" << realStr << ".convert_s/i32 ";
+                inst->fInst->accept(this);
+                *fOut << ")";
             }
             
             fTypingVisitor.visit(inst);
@@ -367,11 +455,14 @@ class WASMInstVisitor : public TextInstVisitor {
             // Don't generate empty loops...
             if (inst->fCode->size() == 0) return;
             
-            /*
             DeclareVarInst* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
             StoreVarInst* c99_init_inst = NULL;
             
             if (c99_declare_inst) {
+                
+                *fOut << "(block ";
+                fTab++;
+                tab(fTab, *fOut);
             
                 // To generate C99 compatible loops...
                 c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
@@ -394,18 +485,21 @@ class WASMInstVisitor : public TextInstVisitor {
                 inst->fEnd->accept(this);
                 *fOut << "; ";
                 inst->fIncrement->accept(this);
-                *fOut << ") {";
+                *fOut << ") (";
                 fTab++;
                 tab(fTab, *fOut);
                 inst->fCode->accept(this);
                 fTab--;
                 tab(fTab, *fOut);
-                *fOut << "}";
+                *fOut << ")";
                 tab(fTab, *fOut);
             
-            *fOut << ")";
-            tab(fTab, *fOut);
-            */
+            if (c99_declare_inst) {
+                fTab--;
+                tab(fTab, *fOut);
+                *fOut << ")";
+                tab(fTab, *fOut);
+            }
         }
  
 };

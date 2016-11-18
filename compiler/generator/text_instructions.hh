@@ -42,7 +42,7 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
         bool fFinishLine;
         string fObjectAccess;
     
-        void EndLine()
+        virtual void EndLine()
         {
             if (fFinishLine) {
                 *fOut << ";";

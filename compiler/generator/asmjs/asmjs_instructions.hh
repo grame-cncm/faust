@@ -74,7 +74,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             num << std::setprecision(std::numeric_limits<T>::max_digits10) << val;
             return ensureFloat(num.str());
         }
-     
+    
     public:
     
         ASMJAVAScriptInstVisitor(std::ostream* out, int tab = 0)
@@ -150,7 +150,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(DeclareVarInst* inst)
         {
             bool is_struct = (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct); 
-            string prefix = "var ";
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
             
             if (array_typed && array_typed->fSize > 1) {
@@ -167,7 +166,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     fFieldTable[inst->fAddress->getName()] = make_pair(fStructOffset, inst->fType->getType());
                     fStructOffset += fsize(); // Always use biggest size so that int/real access are correctly aligned
                 } else {
-                    *fOut << prefix << inst->fAddress->getName();
+                    *fOut << "var " << inst->fAddress->getName();
                     if (inst->fValue) {
                         *fOut << " = "; inst->fValue->accept(this);
                     } 
@@ -529,104 +528,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 tab(fTab, *fOut);
             }
         }
-};
-
-// Moves all variables declaration at the beginning of the block
-struct MoveVariablesInFront1 : public BasicCloneVisitor {
-    
-    list<DeclareVarInst*> fVarTable;
-    
-    virtual StatementInst* visit(DeclareVarInst* inst)
-    {
-        BasicCloneVisitor cloner;
-        fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
-        return InstBuilder::genDropInst();
-    }
-    
-    BlockInst* getCode(BlockInst* src)
-    {
-        BlockInst* dst = dynamic_cast<BlockInst*>(src->clone(this));
-        // Moved in front..
-        for (list<DeclareVarInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
-            dst->pushFrontInst(*it);
-        }
-        return dst;
-    }
-    
-};
-
-// Moves all variables declaration at the beginning of the block and rewrite them as 'declaration' followed by 'store'
-struct MoveVariablesInFront2 : public BasicCloneVisitor {
-    
-    list<StatementInst*> fVarTable;
-      
-    virtual StatementInst* visit(DeclareVarInst* inst)
-    {
-        BasicCloneVisitor cloner;
-        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        
-        if (inst->fValue) {
-            if (dynamic_cast<NumValueInst*>(inst->fValue)) {
-                fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
-                return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
-            // "In extension" array definition
-            } else if (array_typed) {
-                fVarTable.push_back(InstBuilder::genDeclareVarInst(inst->fAddress->clone(&cloner), 
-                                                                    inst->fType->clone(&cloner),
-                                                                    InstBuilder::genTypedZero(inst->fType->getType())));
-                Typed::VarType ctype = array_typed->fType->getType();
-                if (array_typed->fSize > 0) {
-                    if (ctype == Typed::kInt) {
-                        IntArrayNumInst* int_array = dynamic_cast<IntArrayNumInst*>(inst->fValue);
-                        for (int i = 0; i < array_typed->fSize; i++) {
-                            fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(inst->fAddress->getName(), 
-                                                InstBuilder::genIntNumInst(i), 
-                                                InstBuilder::genIntNumInst(int_array->getValue(i))));
-                        }
-                    } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
-                        FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(inst->fValue);
-                        for (int i = 0; i < array_typed->fSize; i++) {
-                            fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(inst->fAddress->getName(), 
-                                                InstBuilder::genIntNumInst(i), 
-                                                InstBuilder::genFloatNumInst(float_array->getValue(i))));
-                        }
-                    } else if (ctype == Typed::kDouble) {
-                        DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(inst->fValue);
-                        for (int i = 0; i < array_typed->fSize; i++) {
-                            fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(inst->fAddress->getName(), 
-                                                InstBuilder::genIntNumInst(i), 
-                                                InstBuilder::genDoubleNumInst(double_array->getValue(i))));
-                        }
-                    } else {
-                        assert(false);
-                    }
-                    return InstBuilder::genDropInst(); 
-                } else {
-                    return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
-                }
-            } else {
-                fVarTable.push_back(InstBuilder::genDeclareVarInst(inst->fAddress->clone(&cloner), 
-                                                                    inst->fType->clone(&cloner), 
-                                                                    InstBuilder::genTypedZero(inst->fType->getType())));
-                return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
-            }
-           
-        } else {
-            fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
-            return InstBuilder::genDropInst();
-        }
-    }
-    
-    BlockInst* getCode(BlockInst* src)
-    {
-        BlockInst* dst = dynamic_cast<BlockInst*>(src->clone(this));
-        // Moved in front..
-        for (list<StatementInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
-            dst->pushFrontInst(*it);
-        }
-        return dst;
-    }
-    
 };
 
 #endif

@@ -1446,7 +1446,7 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual StatementInst* visit(LabelInst* inst) { return new LabelInst(inst->fLabel); }
 
         // Typed
-        virtual Typed* visit(BasicTyped* typed); // moved in instructions.cpp
+        virtual Typed* visit(BasicTyped* typed); // Moved in instructions.cpp
         virtual Typed* visit(NamedTyped* typed) { return new NamedTyped(typed->fName, typed->fType); }
         virtual Typed* visit(FunTyped* typed)
         {

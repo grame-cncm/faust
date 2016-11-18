@@ -51,10 +51,10 @@ Typed::VarType itfloat()
             return Typed::kDouble;
         case 3:
             return Typed::kQuad;
+        default:
+            assert(false);
+            return Typed::kFloat;
     }
-
-    assert(false);
-    return Typed::kFloat;
 }
 
 int fsize()
@@ -66,10 +66,10 @@ int fsize()
             return 8;
         case 3:
             return 16;
+        default:
+            assert(false);
+            return -1;
     }
-    
-    assert(false);
-    return -1;
 }
 
 const char* ifloat() { return floatname[gGlobal->gFloatSize]; }
