@@ -227,6 +227,11 @@ faust.DSP = function (context, buffer_size) {
             return DSP_instanceConstants(ptr, sample_rate);
         },
         
+        instanceResetUserInterface : function () 
+        {
+            return DSP_instanceResetUserInterface(ptr);
+        },
+        
         instanceClear : function () 
         {
             return DSP_instanceClear(ptr);
