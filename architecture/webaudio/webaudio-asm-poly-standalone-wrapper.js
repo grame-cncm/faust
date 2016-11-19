@@ -164,6 +164,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     var dsp_voices_date = [];
     var dsp_voices_trigger = [];
     
+    var kActiveVoice = 0;
     var kFreeVoice = -1;
     var kReleaseVoice = -2;
     var kNoVoice = -3;
@@ -174,6 +175,14 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         dsp_voices_level[i] = 0;
         dsp_voices_date[i] = 0;
         dsp_voices_trigger[i] = false;
+    }
+    
+    // Always returns a voice
+    function newVoiceAux()
+    {
+        var voice = getVoice(kFreeVoice, true);
+        dsp_voices_state[voice] = kActiveVoice;
+        return voice;
     }
     
     function getVoice (note, steal)
@@ -386,6 +395,11 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     // External API
     return {
     
+        destroy : function  ()
+        {
+            // Nothing to do
+        },
+        
         getNumInputs : function () 
         {
             return getNumInputsAux();
@@ -395,10 +409,33 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         {
             return getNumOutputsAux();
         },
-    
-        destroy : function  ()
+       
+        init : function (sample_rate)
         {
-            // Nothing to do
+            for (var i = 0; i < max_polyphony; i++) {
+                factory.init(dsp_voices[i], sample_rate);
+            }
+        },
+
+        instanceInit : function (sample_rate) 
+        {
+            for (var i = 0; i < max_polyphony; i++) {
+                factory.instanceInit(dsp_voices[i], sample_rate);
+            }
+        },
+
+        instanceConstants : function (sample_rate) 
+        {
+            for (var i = 0; i < max_polyphony; i++) {
+                factory.instanceConstants(dsp_voices[i], sample_rate);
+            }
+        },
+
+        instanceClear : function () 
+        {
+            for (var i = 0; i < max_polyphony; i++) {
+                factory.instanceClear(dsp_voices[i]);
+            }
         },
     
         // Connect/disconnect to another node
@@ -427,24 +464,22 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         
         keyOn : function (channel, pitch, velocity)
         {
-            var voice = getVoice(kFreeVoice, true);
-            if (voice >= 0) {
-                //console.log("keyOn voice %d", voice);
-                factory.setParamValue(dsp_voices[voice], fFreqLabel, midiToFreq(pitch));
-                factory.setParamValue(dsp_voices[voice], fGainLabel, velocity/127.);
-                factory.setParamValue(dsp_voices[voice], fGateLabel, 1.0);
-                dsp_voices_state[voice] = pitch;
-            } else {
-                console.log("No more free voice...\n");
-            }
+            var voice = newVoiceAux();
+            //console.log("keyOn voice %d", voice);
+            factory.setParamValue(dsp_voices[voice], fFreqLabel, midiToFreq(pitch));
+            factory.setParamValue(dsp_voices[voice], fGainLabel, velocity/127.);
+            dsp_voices_state[voice] = pitch;
+            dsp_voices_trigger[voice] = true; // so that envelop is always re-initialized
         },
-
+        
         keyOff : function (channel, pitch, velocity)
         {
             var voice = getVoice(pitch, false);
-            if (voice >= 0) {
+            if (voice !== kNoVoice) {
                 //console.log("keyOff voice %d", voice);
+                // No use of velocity for now...
                 factory.setParamValue(dsp_voices[voice], fGateLabel, 0.0);
+                // Release voice
                 dsp_voices_state[voice] = kReleaseVoice;
             } else {
                 console.log("Playing voice not found...\n");

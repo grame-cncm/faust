@@ -240,7 +240,12 @@ faust.mydsp = function (context, buffer_size) {
     
     // External API
     return {
-    
+    	
+        destroy : function ()
+        {
+            // Nothing to do
+        },
+        
         getNumInputs : function () 
         {
             return getNumInputsAux();
@@ -250,10 +255,25 @@ faust.mydsp = function (context, buffer_size) {
         {
             return getNumOutputsAux();
         },
-    
-        destroy : function ()
+        
+        init : function (sample_rate) 
         {
-            // Nothing to do
+            return factory.init(dsp, sample_rate);
+        },
+        
+        instanceInit : function (sample_rate) 
+        {
+            return factory.instanceInit(dsp, sample_rate);
+        },
+        
+        instanceConstants : function (sample_rate) 
+        {
+            return factory.instanceConstants(dsp, sample_rate);
+        },
+        
+        instanceClear : function () 
+        {
+            return factory.instanceClear(dsp);
         },
         
         // Connect/disconnect to another node
