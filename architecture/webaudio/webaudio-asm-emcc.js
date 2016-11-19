@@ -214,27 +214,27 @@ faust.DSP = function (context, buffer_size) {
         
         init : function (sample_rate) 
         {
-            return DSP_init(ptr, sample_rate);
+            DSP_init(ptr, sample_rate);
         },
         
         instanceInit : function (sample_rate) 
         {
-            return DSP_instanceInit(ptr, sample_rate);
+            DSP_instanceInit(ptr, sample_rate);
         },
         
         instanceConstants : function (sample_rate) 
         {
-            return DSP_instanceConstants(ptr, sample_rate);
+            DSP_instanceConstants(ptr, sample_rate);
         },
         
         instanceResetUserInterface : function () 
         {
-            return DSP_instanceResetUserInterface(ptr);
+            DSP_instanceResetUserInterface(ptr);
         },
         
         instanceClear : function () 
         {
-            return DSP_instanceClear(ptr);
+            DSP_instanceClear(ptr);
         },
         
         // Connect/disconnect to another node
