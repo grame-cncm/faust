@@ -202,6 +202,31 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, callback) {
             return DSP_poly_getNumOutputs(ptr);
         },
         
+        init : function (sample_rate) 
+        {
+            return DSP_init(ptr, sample_rate);
+        },
+        
+        instanceInit : function (sample_rate) 
+        {
+            return DSP_poly_instanceInit(ptr, sample_rate);
+        },
+        
+        instanceConstants : function (sample_rate) 
+        {
+            return DSP_poly_instanceConstants(ptr, sample_rate);
+        },
+        
+        instanceResetUserInterface : function () 
+        {
+            return DSP_poly_instanceResetUserInterface(ptr);
+        },
+        
+        instanceClear : function () 
+        {
+            return DSP_poly_instanceClear(ptr);
+        },
+        
         keyOn : function (channel, pitch, velocity)
         {
             DSP_poly_keyOn(ptr, channel, pitch, velocity);
