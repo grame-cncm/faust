@@ -90,6 +90,11 @@ extern "C" {
         dsp->instanceConstants(sample_rate);
     }
     
+    void mydsp_poly_instanceResetUserInterface(mydsp_wrap* dsp)
+    {
+        dsp->instanceResetUserInterface();
+    }
+    
     void mydsp_poly_instanceClear(mydsp_poly_wrap* dsp)
     {
         dsp->instanceClear();

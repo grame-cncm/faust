@@ -25,6 +25,7 @@ var DSP_poly_destructor = Module.cwrap('DSP_poly_destructor', null, ['number']);
 var DSP_poly_init = Module.cwrap('DSP_poly_init', 'number', ['number','number']);
 var DSP_poly_instanceInit = Module.cwrap('DSP_poly_instanceInit', 'number', ['number','number']);
 var DSP_poly_instanceConstants = Module.cwrap('DSP_poly_instanceConstants', 'number', ['number','number']);
+var DSP_poly_instanceResetUserInterface = Module.cwrap('DSP_poly_instanceResetUserInterface', 'number', ['number']);
 var DSP_poly_instanceClear = Module.cwrap('DSP_poly_instanceClear', 'number', ['number']);
 var DSP_poly_compute = Module.cwrap('DSP_poly_compute', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_getNumInputs = Module.cwrap('DSP_poly_getNumInputs', 'number', ['number']);
