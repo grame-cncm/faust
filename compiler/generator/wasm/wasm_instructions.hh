@@ -227,11 +227,36 @@ class WASMInstVisitor : public TextInstVisitor {
         }
     
         virtual void generateFunDefArgs(DeclareFunInst* inst)
-        {}
+        {
+            // TODO
+            /*
+            list<NamedTyped*>::const_iterator it;
+            int size = inst->fType->fArgsTypes.size(), i = 0;
+            for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
+                *fOut << generateType((*it));
+                if (i < size - 1) *fOut << ", ";
+            }
+            */
+        }
     
         virtual void generateFunDefBody(DeclareFunInst* inst)
-        {}
-    
+        {
+            // TODO
+            /*
+            if (inst->fCode->fCode.size() == 0) {
+                *fOut << ")" << endl;  // Pure prototype
+            } else {
+                // Function body
+                *fOut << ")";
+                    fTab++;
+                    tab(fTab, *fOut);
+                    inst->fCode->accept(this);
+                    fTab--;
+                tab(fTab, *fOut);
+            }
+            */
+        }
+
         virtual void visit(DeclareFunInst* inst)
         {
             // Already generated

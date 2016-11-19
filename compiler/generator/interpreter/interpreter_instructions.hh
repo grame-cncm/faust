@@ -304,7 +304,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     IntArrayNumInst* int_array = dynamic_cast<IntArrayNumInst*>(value);
                     fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(FIRInstruction::kBlockStoreInt, tmp.fOffset, int_array->fNumTable.size(), int_array->fNumTable));
                 
-                } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
+                } else if (ctype == Typed::kFloat) {
                     
                     FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(value);
                     fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal,

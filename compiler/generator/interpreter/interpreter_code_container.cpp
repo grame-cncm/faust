@@ -137,7 +137,6 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     mergeSubContainers();
     
     generateGlobalDeclarations(gGlobal->gInterpreterVisitor);
-
     generateDeclarations(gGlobal->gInterpreterVisitor);
     
     // After field declaration...
@@ -145,29 +144,23 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gInterpreterVisitor);
-    
     // Keep "init_static_block"
     FIRBlockInstruction<T>* init_static_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FIRBlockInstruction<T>());
     
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gInterpreterVisitor);
-    
     // Keep "init_block"
     FIRBlockInstruction<T>* init_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FIRBlockInstruction<T>);
     
-    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
-    inlineSubcontainersFunCalls(fClearInstructions)->accept(gGlobal->gInterpreterVisitor);
-    
     // Keep "resetui_block"
+    generateResetUserInterface(gGlobal->gInterpreterVisitor);
     FIRBlockInstruction<T>* resetui_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FIRBlockInstruction<T>);
     
-    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
-    inlineSubcontainersFunCalls(fResetUserInterfaceInstructions)->accept(gGlobal->gInterpreterVisitor);
-    
     // Keep "clear_block"
+    generateClear(gGlobal->gInterpreterVisitor);
     FIRBlockInstruction<T>* clear_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FIRBlockInstruction<T>);
     
