@@ -23,6 +23,7 @@ var DSP_destructor = Module.cwrap('DSP_destructor', null, ['number']);
 var DSP_init = Module.cwrap('DSP_init', 'number', ['number','number']);
 var DSP_instanceInit = Module.cwrap('DSP_instanceInit', 'number', ['number','number']);
 var DSP_instanceConstants = Module.cwrap('DSP_instanceConstants', 'number', ['number','number']);
+var DSP_instanceResetUserInterface = Module.cwrap('DSP_instanceResetUserInterface', 'number', ['number']);
 var DSP_instanceClear = Module.cwrap('DSP_instanceClear', 'number', ['number']);
 var DSP_compute = Module.cwrap('DSP_compute', null, ['number', 'number', 'number', 'number']);
 var DSP_getNumInputs = Module.cwrap('DSP_getNumInputs', 'number', ['number']);
