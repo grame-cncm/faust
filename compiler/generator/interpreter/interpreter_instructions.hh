@@ -470,7 +470,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 std::cout << "FunCallInst " << inst->fName << std::endl;
                 stringstream error;
                 error << "ERROR : missing function : " << inst->fName << std::endl;
-                throw faustexception(error.str());
+                //throw faustexception(error.str());
             } else {
                 fCurrentBlock->push(new FIRBasicInstruction<T>(gMathLibTable[inst->fName]));
             }

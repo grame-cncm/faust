@@ -35,6 +35,8 @@ class FirCodeContainer : public virtual CodeContainer {
     private:
         
         void dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* dst);
+        void dumpUserInterface(FIRInstVisitor& firvisitor, ostream* dst);
+        void dumpSubContainers(FIRInstVisitor& firvisitor, ostream* dst);
         
         virtual void dumpThread(FIRInstVisitor& firvisitor, ostream* dst) {};
         virtual void dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst);
@@ -55,7 +57,7 @@ class FirCodeContainer : public virtual CodeContainer {
         }
         
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
-        void produceInternal() {}
+        void produceInternal();
         void produceClass();
     
         virtual dsp_factory_base* produceFactory();

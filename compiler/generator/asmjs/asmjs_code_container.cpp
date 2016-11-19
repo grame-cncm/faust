@@ -25,7 +25,6 @@
 #include "exception.hh"
 #include "global.hh"
 #include "json_instructions.hh"
-#include "fir_to_fir.hh"
 
 using namespace std;
 
@@ -149,30 +148,10 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
         tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
         tab(n+2, *fOut); gGlobal->gASMJSVisitor->Tab(n+2);
-        {
-            // Moves all variables declaration at the beginning of the block
-            MoveVariablesInFront2 mover1;
-            BlockInst* block1 = mover1.getCode(fStaticInitInstructions);
-            block1->accept(gGlobal->gASMJSVisitor);
-            
-            // Moves all variables declaration at the beginning of the block
-            MoveVariablesInFront2 mover2;
-            BlockInst* block2 = mover2.getCode(fInitInstructions);
-            block2->accept(gGlobal->gASMJSVisitor);
-        }
-        {
-            // Moves all variables declaration at the beginning of the block
-            MoveVariablesInFront2 mover;
-            BlockInst* block = mover.getCode(fResetUserInterfaceInstructions);
-            block->accept(gGlobal->gASMJSVisitor);
-        }
-        {
-            // Moves all variables declaration at the beginning of the block
-            MoveVariablesInFront2 mover;
-            BlockInst* block = mover.getCode(fClearInstructions);
-            block->accept(gGlobal->gASMJSVisitor);
-        }
-    
+        genASMBlock(fStaticInitInstructions);
+        genASMBlock(fInitInstructions);
+        genASMBlock(fResetUserInterfaceInstructions);
+        genASMBlock(fClearInstructions);
     tab(n+1, *fOut); *fOut << "}";
     
     // Fill
@@ -273,13 +252,8 @@ void ASMJAVAScriptCodeContainer::produceClass()
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
                 DspRenamer renamer;
-                BlockInst* block1 = renamer.getCode(fStaticInitInstructions);
-                // Moves all variables declaration at the beginning of the block
-                MoveVariablesInFront2 mover;
-                BlockInst* block2 = mover.getCode(block1);
-                block2->accept(gGlobal->gASMJSVisitor);
+                genASMBlock(renamer.getCode(fStaticInitInstructions));
             }
-               
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut);
@@ -291,11 +265,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
                 DspRenamer renamer;
-                BlockInst* block1 = renamer.getCode(fInitInstructions);
-                // Moves all variables declaration at the beginning of the block
-                MoveVariablesInFront2 mover;
-                BlockInst* block2 = mover.getCode(block1);
-                block2->accept(gGlobal->gASMJSVisitor);
+                genASMBlock(renamer.getCode(fInitInstructions));
             }
         tab(n+1, *fOut); *fOut << "}";
     
@@ -307,11 +277,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
                 DspRenamer renamer;
-                BlockInst* block1 = renamer.getCode(fResetUserInterfaceInstructions);
-                // Moves all variables declaration at the beginning of the block
-                MoveVariablesInFront2 mover;
-                BlockInst* block2 = mover.getCode(block1);
-                block2->accept(gGlobal->gASMJSVisitor);
+                genASMBlock(renamer.getCode(fResetUserInterfaceInstructions));
             }
         tab(n+1, *fOut); *fOut << "}";
     
@@ -323,11 +289,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
                 DspRenamer renamer;
-                BlockInst* block1 = renamer.getCode(fClearInstructions);
-                // Moves all variables declaration at the beginning of the block
-                MoveVariablesInFront2 mover;
-                BlockInst* block2 = mover.getCode(block1);
-                block2->accept(gGlobal->gASMJSVisitor);
+                genASMBlock(renamer.getCode(fClearInstructions));
             }
         tab(n+1, *fOut); *fOut << "}";
 
@@ -473,12 +435,7 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
         // Generates one single scalar loop and put is the the block
         ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
         fComputeBlockInstructions->pushBackInst(loop);
-    
-        // Moves all variables declaration at the beginning of the block and possibly separate 'declaration' and 'store'
-        MoveVariablesInFront2 mover;
-        BlockInst* block = mover.getCode(fComputeBlockInstructions); 
-        block->accept(gGlobal->gASMJSVisitor);
-           
+        genASMBlock(fComputeBlockInstructions);
     tab(n+1, *fOut); *fOut << "}";
 }
 

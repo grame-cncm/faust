@@ -56,16 +56,8 @@ CodeContainer* FirCodeContainer::createContainer(const string& name, int numInpu
     return container;
 }
 
-void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* dst)
+void FirCodeContainer::dumpUserInterface(FIRInstVisitor& firvisitor, ostream* dst)
 {
-    // Subclasses
-    list<CodeContainer*>::const_iterator it;
-    for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-        *dst << "======= Sub classes begin ==========" << std::endl << std::endl;
-        (*it)->dump(dst);
-        *dst << "======= Sub classes end ==========" << std::endl << std::endl;
-    }
-
     // User Interface
     if (fUserInterfaceInstructions->fCode.size() > 0) {
         *dst << "======= User Interface ==========" << std::endl;
@@ -73,7 +65,22 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* d
         fUserInterfaceInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
+}
 
+void FirCodeContainer::dumpSubContainers(FIRInstVisitor& firvisitor, ostream* dst)
+{
+    // Sub containers
+    list<CodeContainer*>::const_iterator it;
+    for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+        *dst << "======= Sub container begin ==========" << std::endl << std::endl;
+        (*it)->produceInternal();
+        (*it)->dump(dst);
+        *dst << "======= Sub container end ==========" << std::endl << std::endl;
+    }
+}
+
+void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* dst)
+{
     if (fExtGlobalDeclarationInstructions->fCode.size() > 0) {
         *dst << "======= Global external declarations ==========" << std::endl;
         *dst << std::endl;
@@ -121,20 +128,20 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* d
         *dst << std::endl;
     }
     
-    if (fClearInstructions->fCode.size() > 0) {
-        *dst << "======= Clear ==========" << std::endl;
-        *dst << std::endl;
-        fClearInstructions->accept(&firvisitor);
-        *dst << std::endl;
-    }
-    
-    if (fClearInstructions->fCode.size() > 0) {
+    if (fResetUserInterfaceInstructions->fCode.size() > 0) {
         *dst << "======= ResetUI ==========" << std::endl;
         *dst << std::endl;
         fResetUserInterfaceInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
 
+    if (fClearInstructions->fCode.size() > 0) {
+        *dst << "======= Clear ==========" << std::endl;
+        *dst << std::endl;
+        fClearInstructions->accept(&firvisitor);
+        *dst << std::endl;
+    }
+ 
     if (fDestroyInstructions->fCode.size() > 0) {
         *dst << "======= Destroy ==========" << std::endl;
         *dst << std::endl;
@@ -161,7 +168,7 @@ static void dumpCost(StatementInst* inst, ostream* dst)
 void FirCodeContainer::dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst)
 {
     if (fComputeBlockInstructions->fCode.size() > 0) {
-        *dst << "======= Compute Block ==========" << std::endl;
+        *dst << "======= Compute Block ==========" << std::endl << std::endl;
         // Complexity estimation
         dumpCost(fComputeBlockInstructions, dst);
         fComputeBlockInstructions->accept(&firvisitor);
@@ -214,24 +221,36 @@ void FirCodeContainer::dumpMemory(ostream* dst)
     }
 }
 
+void FirCodeContainer::produceInternal()
+{
+    FIRInstVisitor firvisitor(fOut);
+    *fOut << "======= Sub container \"" << fKlassName << "\" ==========" << std::endl;
+    *fOut << std::endl;
+    
+    dumpGlobalsAndInit(firvisitor, fOut);
+    dumpComputeBlock(firvisitor, fOut);
+    dumpCompute(firvisitor, fOut);
+}
+
 void FirCodeContainer::produceClass()
 {
     FIRInstVisitor firvisitor(fOut);
     *fOut << "======= Container \"" << fKlassName << "\" ==========" << std::endl;
     *fOut << std::endl;
     
+    dumpSubContainers(firvisitor, fOut);
+    dumpUserInterface(firvisitor, fOut);
     dumpGlobalsAndInit(firvisitor, fOut);
     dumpThread(firvisitor, fOut);
     dumpComputeBlock(firvisitor, fOut);
     dumpCompute(firvisitor, fOut);
-    
     dumpFlatten(fOut);
     dumpMemory(fOut);
 }
 
 void FirScalarCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
-    *dst << "======= Compute DSP ==========" << std::endl;
+    *dst << "======= Compute DSP ==========" << std::endl << std::endl;
     ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
     // Complexity estimation
     dumpCost(loop, dst);

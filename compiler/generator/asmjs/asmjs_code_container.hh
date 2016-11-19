@@ -26,6 +26,7 @@
 #include "vec_code_container.hh"
 #include "asmjs_instructions.hh"
 #include "dsp_factory.hh"
+#include "fir_to_fir.hh"
 
 using namespace std;
 
@@ -34,6 +35,14 @@ class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
     protected:
 
         std::ostream* fOut;
+    
+        void genASMBlock(BlockInst* instructions)
+        {
+            // Moves all variables declaration at the beginning of the block
+            MoveVariablesInFront2 mover;
+            BlockInst* block = mover.getCode(instructions);
+            block->accept(gGlobal->gASMJSVisitor);
+        }
  
     public:
 

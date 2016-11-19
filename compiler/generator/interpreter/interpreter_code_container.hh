@@ -43,22 +43,28 @@ class InterpreterCodeContainer : public virtual CodeContainer {
         {
             // Rename 'sig' in 'dsp' and remove 'dsp' allocation
             DspRenamer renamer;
-            BlockInst* res = renamer.getCode(block);
+            block = renamer.getCode(block);
             
             // Inline subcontainers 'instanceInit' and 'fill' function call
             list<CodeContainer*>::const_iterator it;
             for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+                
+                
                 // Build the function to be inlined (prototype and code)
                 DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false);
                 InlineVoidFunctionCall inliner1(inst_init_fun);
-                res = inliner1.getCode(res);
+                block = inliner1.getCode(block);
+                
+                
+                /*
                 // Build the function to be inlined (prototype and code)
                 DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false);
                 InlineVoidFunctionCall inliner2(fill_fun);
-                res = inliner2.getCode(res);
+                block = inliner2.getCode(block);
+                */
             }
             
-            return res;
+            return block;
         }
     
         virtual void generateSR()

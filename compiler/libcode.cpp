@@ -816,7 +816,6 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         }
         
         comp->compileMultiSignal(signals);
-        container->produceClass();
         
     } else {
         
