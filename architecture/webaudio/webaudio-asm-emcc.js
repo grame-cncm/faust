@@ -11,15 +11,19 @@
  Choose the license that best suits your project. The text of the MIT and GPL
  licenses are at the root directory.
  
- Additional code : GRAME 2014
+ Additional code : GRAME 2014-2016
 */
 
 'use strict';
 
 var faust = faust || {};
 
-var DSP_constructor = Module.cwrap('DSP_constructor', 'number', ['number']);
+var DSP_constructor = Module.cwrap('DSP_constructor', 'number', []);
 var DSP_destructor = Module.cwrap('DSP_destructor', null, ['number']);
+var DSP_init = Module.cwrap('DSP_init', 'number', ['number','number']);
+var DSP_instanceInit = Module.cwrap('DSP_instanceInit', 'number', ['number','number']);
+var DSP_instanceConstants = Module.cwrap('DSP_instanceConstants', 'number', ['number','number']);
+var DSP_instanceClear = Module.cwrap('DSP_instanceClear', 'number', ['number']);
 var DSP_compute = Module.cwrap('DSP_compute', null, ['number', 'number', 'number', 'number']);
 var DSP_getNumInputs = Module.cwrap('DSP_getNumInputs', 'number', ['number']);
 var DSP_getNumOutputs = Module.cwrap('DSP_getNumOutputs', 'number', ['number']);
@@ -50,7 +54,8 @@ faust.DSP = function (context, buffer_size) {
     // input items
     var inputs_items = [];
     
-    var ptr = DSP_constructor(context.sampleRate);
+    var ptr = DSP_constructor();
+    DSP_init(ptr, context.sampleRate);
     
     function update_outputs () 
     {
@@ -175,16 +180,6 @@ faust.DSP = function (context, buffer_size) {
     // External API
     return {
     
-        getNumInputs : function () 
-        {
-            return DSP_getNumInputs(ptr);
-        },
-        
-        getNumOutputs : function() 
-        {
-            return DSP_getNumOutputs(ptr);
-        },
-                
         destroy : function ()
         {
             DSP_destructor(ptr);
@@ -204,6 +199,36 @@ faust.DSP = function (context, buffer_size) {
             }
             
             Module._free(path_ptr);
+        },
+        
+        getNumInputs : function () 
+        {
+            return DSP_getNumInputs(ptr);
+        },
+        
+        getNumOutputs : function() 
+        {
+            return DSP_getNumOutputs(ptr);
+        },
+        
+        init : function (sample_rate) 
+        {
+            return DSP_init(ptr, sample_rate);
+        },
+        
+        instanceInit : function (sample_rate) 
+        {
+            return DSP_instanceInit(ptr, sample_rate);
+        },
+        
+        instanceConstants : function (sample_rate) 
+        {
+            return DSP_instanceConstants(ptr, sample_rate);
+        },
+        
+        instanceClear : function () 
+        {
+            return DSP_instanceClear(ptr);
         },
         
         // Connect/disconnect to another node

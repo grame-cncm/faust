@@ -45,11 +45,10 @@ extern "C" {
         
         std::string fJSON;
     
-        mydsp_poly_wrap(dsp* dsp, int sample_rate, int max_polyphony)
+        mydsp_poly_wrap(dsp* dsp, int max_polyphony)
             :mydsp_poly(dsp, max_polyphony, true, true)
         {
-            // Init it with sample_rate supplied...
-            init(sample_rate);
+            // Creates paths
             buildUserInterface(this);
             
             // Creates JSON
@@ -66,15 +65,34 @@ extern "C" {
     };
     
     // C like API
-    mydsp_poly_wrap* mydsp_poly_constructor(int sample_rate, int max_polyphony)
+    mydsp_poly_wrap* mydsp_poly_constructor(int max_polyphony)
     {
-        mydsp tmp_dsp;
-        return new mydsp_poly_wrap(&tmp_dsp, sample_rate, max_polyphony);
+        return new mydsp_poly_wrap(new mydsp(), max_polyphony);
     }
 
     void mydsp_poly_destructor(mydsp_poly_wrap* poly)
     {
         delete poly;
+    }
+    
+    void mydsp_poly_init(mydsp_poly_wrap* dsp, int sample_rate)
+    {
+        dsp->init(sample_rate);
+    }
+    
+    void mydsp_poly_instanceInit(mydsp_poly_wrap* dsp, int sample_rate)
+    {
+        dsp->instanceInit(sample_rate);
+    }
+    
+    void mydsp_poly_instanceConstants(mydsp_poly_wrap* dsp, int sample_rate)
+    {
+        dsp->instanceConstants(sample_rate);
+    }
+    
+    void mydsp_poly_instanceClear(mydsp_poly_wrap* dsp)
+    {
+        dsp->instanceClear();
     }
 
     const char* mydsp_poly_getJSON(mydsp_poly_wrap* poly)

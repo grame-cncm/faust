@@ -11,7 +11,7 @@
  Choose the license that best suits your project. The text of the MIT and GPL
  licenses are at the root directory.
  
- Additional code : GRAME 2014
+ Additional code : GRAME 2014-2016
 */
 
 'use strict';
@@ -20,8 +20,12 @@ var faust = faust || {};
 
 // Polyphonic DSP : has to have 'freq', 'gate', 'gain' parameters to be possibly triggered with keyOn, keyOff events.
 
-var DSP_poly_constructor = Module.cwrap('DSP_poly_constructor', 'number', ['number', 'number']);
+var DSP_poly_constructor = Module.cwrap('DSP_poly_constructor', 'number', ['number']);
 var DSP_poly_destructor = Module.cwrap('DSP_poly_destructor', null, ['number']);
+var DSP_poly_init = Module.cwrap('DSP_poly_init', 'number', ['number','number']);
+var DSP_poly_instanceInit = Module.cwrap('DSP_poly_instanceInit', 'number', ['number','number']);
+var DSP_poly_instanceConstants = Module.cwrap('DSP_poly_instanceConstants', 'number', ['number','number']);
+var DSP_poly_instanceClear = Module.cwrap('DSP_poly_instanceClear', 'number', ['number']);
 var DSP_poly_compute = Module.cwrap('DSP_poly_compute', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_getNumInputs = Module.cwrap('DSP_poly_getNumInputs', 'number', ['number']);
 var DSP_poly_getNumOutputs = Module.cwrap('DSP_poly_getNumOutputs', 'number', ['number']);
@@ -56,7 +60,8 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, callback) {
     // input items
     var inputs_items = [];
     
-    var ptr = DSP_poly_constructor(context.sampleRate, max_polyphony);
+    var ptr = DSP_poly_constructor(max_polyphony);
+    DSPP_poly_init(ptr, context.sampleRate);
      
     function update_outputs () 
     {
