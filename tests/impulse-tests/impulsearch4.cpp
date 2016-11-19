@@ -32,6 +32,58 @@ using std::min;
 using namespace std;
 
 //----------------------------------------------------------------------------
+// DSP control UI
+//----------------------------------------------------------------------------
+
+struct CheckControlUI : public UI {
+    
+    vector<FAUSTFLOAT> fControlDefault;
+    vector<FAUSTFLOAT*> fControlZone;
+    
+    virtual void openTabBox(const char* label) {}
+    virtual void openHorizontalBox(const char* label)  {}
+    virtual void openVerticalBox(const char* label)  {}
+    virtual void closeBox() {};
+    
+    virtual void addButton(const char* label, FAUSTFLOAT* zone) { fControlZone.push_back(zone); fControlDefault.push_back(FAUSTFLOAT(0)); }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { fControlZone.push_back(zone); fControlDefault.push_back(FAUSTFLOAT(0)); }
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        fControlZone.push_back(zone); fControlDefault.push_back(init);
+    }
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        fControlZone.push_back(zone); fControlDefault.push_back(init);
+    }
+    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        fControlZone.push_back(zone); fControlDefault.push_back(init);
+    }
+    
+    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    {}
+    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    {}
+    
+    virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
+    
+    bool checkDefaults()
+    {
+        for (int i= 0; i < fControlDefault.size(); i++) {
+            if (fControlDefault[i] != *fControlZone[i]) return false;
+        }
+        return true;
+    }
+    
+    void initRandom()
+    {
+        for (int i= 0; i < fControlZone.size(); i++) {
+            *fControlZone[i] = 0.123456789;
+        }
+    }
+};
+
+//----------------------------------------------------------------------------
 //FAUST generated code
 //----------------------------------------------------------------------------
 
@@ -77,9 +129,37 @@ int main(int argc, char* argv[])
     filename = filename.substr(0, filename.find ('.'));
     snprintf(rcfilename, 255, "%src", filename.c_str());
     
+    CheckControlUI controlui;
+    
     DSP->buildUserInterface(&finterface);
  
+    // Get control and then 'initRandom'
+    DSP->buildUserInterface(&controlui);
+    controlui.initRandom();
+    
     // init signal processor and the user interface values:
+    DSP->init(44100);
+    
+    // Check default after 'init'
+    if (!controlui.checkDefaults()) {
+        cerr << "ERROR in checkDefaults after 'init'" << std::endl;
+    }
+    
+    // Check default after 'instanceResetUserInterface'
+    controlui.initRandom();
+    DSP->instanceResetUserInterface();
+    if (!controlui.checkDefaults()) {
+        cerr << "ERROR in checkDefaults after 'instanceResetUserInterface'" << std::endl;
+    }
+    
+    // Check default after 'instanceInit'
+    controlui.initRandom();
+    DSP->instanceInit(44100);
+    if (!controlui.checkDefaults()) {
+        cerr << "ERROR in checkDefaults after 'instanceInit'" << std::endl;
+    }
+    
+    // Init again
     DSP->init(44100);
 
     int nins = DSP->getNumInputs();

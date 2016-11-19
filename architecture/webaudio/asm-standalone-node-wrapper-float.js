@@ -86,6 +86,9 @@ faust.mydsp = function (context, buffer_size, sample_rate) {
     
     // buttons items
     var buttons_items = [];
+    
+    // default values
+    var default_values = [];
      
     // Start of HEAP index
     var audio_heap_ptr = 0;
@@ -195,6 +198,11 @@ faust.mydsp = function (context, buffer_size, sample_rate) {
             inputs_items.push(item.address);
             if (item.type === "button") {
                 buttons_items.push(item.address);
+                default_values.push(0);
+            } else if (item.type === "checkbox") {
+                default_values.push(0);
+            } else {
+                default_values.push(parseFloat(item.init));
             }
         }
     }
@@ -243,6 +251,16 @@ faust.mydsp = function (context, buffer_size, sample_rate) {
             value_table[path] = values;
         }
     }
+    function setParamValueAux (path, val)
+    {
+        var values = value_table[path];
+        if (values) {
+            if (factory.getParamValue(dsp, pathTable[path]) === values[0]) {
+                values[0] = val;
+            } 
+            values[1] = val;
+        }
+    }
     
     init();
     
@@ -266,22 +284,27 @@ faust.mydsp = function (context, buffer_size, sample_rate) {
         
         init : function (sample_rate) 
         {
-            return factory.init(dsp, sample_rate);
+            factory.init(dsp, sample_rate);
         },
         
         instanceInit : function (sample_rate) 
         {
-            return factory.instanceInit(dsp, sample_rate);
+            factory.instanceInit(dsp, sample_rate);
         },
         
         instanceConstants : function (sample_rate) 
         {
-            return factory.instanceConstants(dsp, sample_rate);
+            factory.instanceConstants(dsp, sample_rate);
+        },
+        
+        instanceResetUserInterface : function () 
+        {
+            factory.instanceResetUserInterface(dsp);
         },
         
         instanceClear : function () 
         {
-            return factory.instanceClear(dsp);
+            factory.instanceClear(dsp);
         },
         
         setHandler : function (hd)
@@ -291,13 +314,7 @@ faust.mydsp = function (context, buffer_size, sample_rate) {
         
         setParamValue : function (path, val) 
         {
-            var values = value_table[path];
-            if (values) {
-                if (factory.getParamValue(dsp, pathTable[path]) === values[0]) {
-                    values[0] = val;
-                } 
-                values[1] = val;
-            }
+            setParamValueAux(path, val);
         },
 
         getParamValue : function (path) 
@@ -323,6 +340,21 @@ faust.mydsp = function (context, buffer_size, sample_rate) {
         compute : function (inputs, outputs)
         {
             computeAux(inputs, outputs);
+        },
+        
+        checkDefaults : function ()
+        {
+            for (var i = 0; i < default_values.length; i++) {
+                if (default_values[i] !== factory.getParamValue(dsp, pathTable[inputs_items[i]])) return false;
+            }
+            return true;
+        },
+        
+        initRandom : function ()
+        {
+            for (var i = 0; i < default_values.length; i++) {
+                factory.setParamValue(dsp, pathTable[inputs_items[i]], 0.123456789);
+            }
         }
     };
 };
@@ -405,6 +437,32 @@ try {
 console.log("number_of_inputs  : ", DSP.getNumInputs());
 console.log("number_of_outputs : ", DSP.getNumOutputs());
 console.log("number_of_frames  : ", nbsamples);
+
+// Check default after 'instanceResetUserInterface'
+DSP.initRandom();
+DSP.instanceResetUserInterface();
+if (!DSP.checkDefaults()) {
+    console.error("ERROR in checkDefaults after 'instanceResetUserInterface'");
+    process.exit(1);
+}
+
+// Check default after 'instanceInit'
+DSP.initRandom();
+DSP.instanceInit();
+if (!DSP.checkDefaults()) {
+    console.error("ERROR in checkDefaults after 'instanceInit'");
+    process.exit(1);
+}
+
+// Check default after 'init'
+DSP.initRandom();
+DSP.init(sample_rate);
+if (!DSP.checkDefaults()) {
+    console.error("ERROR in checkDefaults after 'init'");
+    process.exit(1);
+}
+
+DSP.init(sample_rate);
 
 // Compute samples and write output file
 while (nbsamples > 0) {

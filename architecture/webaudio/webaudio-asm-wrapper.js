@@ -590,22 +590,27 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
         
         init : function (sample_rate) 
         {
-            return factory.init(dsp, sample_rate);
+            factory.init(dsp, sample_rate);
         },
         
         instanceInit : function (sample_rate) 
         {
-            return factory.instanceInit(dsp, sample_rate);
+            factory.instanceInit(dsp, sample_rate);
         },
         
         instanceConstants : function (sample_rate) 
         {
-            return factory.instanceConstants(dsp, sample_rate);
+            factory.instanceConstants(dsp, sample_rate);
+        },
+        
+        instanceResetUserInterface : function () 
+        {
+            factory.instanceResetUserInterface(dsp);
         },
         
         instanceClear : function () 
         {
-            return factory.instanceClear(dsp);
+            factory.instanceClear(dsp);
         },
         
         // Connect/disconnect to another node
@@ -997,13 +1002,20 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
 				factory.instanceConstants(dsp_voices[i], sample_rate);
 			}
 		},
+		
+        instanceResetUserInterface : function ()
+        {
+            for (var i = 0; i < max_polyphony; i++) {
+                factory.instanceResetUserInterface(dsp_voices[i]);
+            }
+        },
 
-		instanceClear : function () 
-		{
-			for (var i = 0; i < max_polyphony; i++) {
-				factory.instanceClear(dsp_voices[i]);
-			}
-		},
+        instanceClear : function () 
+        {
+            for (var i = 0; i < max_polyphony; i++) {
+                factory.instanceClear(dsp_voices[i]);
+            }
+        },
 
         // Connect/disconnect to another node
         connect : function (node) 

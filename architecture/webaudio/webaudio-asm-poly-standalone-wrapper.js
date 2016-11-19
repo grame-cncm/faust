@@ -430,6 +430,13 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
                 factory.instanceConstants(dsp_voices[i], sample_rate);
             }
         },
+        
+        instanceResetUserInterface : function () 
+        {
+            for (var i = 0; i < max_polyphony; i++) {
+                factory.instanceResetUserInterface(dsp_voices[i]);
+            }
+        },
 
         instanceClear : function () 
         {

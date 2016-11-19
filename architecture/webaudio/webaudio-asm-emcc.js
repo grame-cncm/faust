@@ -23,6 +23,7 @@ var DSP_destructor = Module.cwrap('DSP_destructor', null, ['number']);
 var DSP_init = Module.cwrap('DSP_init', 'number', ['number','number']);
 var DSP_instanceInit = Module.cwrap('DSP_instanceInit', 'number', ['number','number']);
 var DSP_instanceConstants = Module.cwrap('DSP_instanceConstants', 'number', ['number','number']);
+var DSP_instanceResetUserInterface = Module.cwrap('DSP_instanceResetUserInterface', 'number', ['number']);
 var DSP_instanceClear = Module.cwrap('DSP_instanceClear', 'number', ['number']);
 var DSP_compute = Module.cwrap('DSP_compute', null, ['number', 'number', 'number', 'number']);
 var DSP_getNumInputs = Module.cwrap('DSP_getNumInputs', 'number', ['number']);
@@ -212,22 +213,27 @@ faust.DSP = function (context, buffer_size) {
         
         init : function (sample_rate) 
         {
-            return DSP_init(ptr, sample_rate);
+            DSP_init(ptr, sample_rate);
         },
         
         instanceInit : function (sample_rate) 
         {
-            return DSP_instanceInit(ptr, sample_rate);
+            DSP_instanceInit(ptr, sample_rate);
         },
         
         instanceConstants : function (sample_rate) 
         {
-            return DSP_instanceConstants(ptr, sample_rate);
+            DSP_instanceConstants(ptr, sample_rate);
+        },
+        
+        instanceResetUserInterface : function () 
+        {
+            DSP_instanceResetUserInterface(ptr);
         },
         
         instanceClear : function () 
         {
-            return DSP_instanceClear(ptr);
+            DSP_instanceClear(ptr);
         },
         
         // Connect/disconnect to another node

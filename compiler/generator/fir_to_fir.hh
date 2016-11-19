@@ -269,12 +269,13 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
     
     BlockInst* ReplaceParametersByArgs(BlockInst* code, list<NamedTyped*> args_type, list<ValueInst*> args, bool ismethod)
     {
-        //std::cout << "ReplaceParametersByArgs " << fFunction->fName << std::endl;
+        //std::cout << "ReplaceParametersByArgs " << fFunction->fName << " " << args_type.size() << " " << args.size() << std::endl;
         
         list<NamedTyped*>::iterator it1 = args_type.begin();
         list<ValueInst*>::iterator it2 = args.begin(); if (ismethod) { it2++; }
         
         for (; it1 != args_type.end(); it1++, it2++) {
+            assert(it2 != args.end());
             code = ReplaceParameterByArg(code, *it1, *it2);
         }
         
@@ -291,12 +292,14 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
             ValueInst* fArg;
             
             InlineValue(const string& name, ValueInst* arg):fName(name), fArg(arg)
-            {}
+            {
+                //std::cout << "InlineValue " << name << " " << arg << std::endl;
+            }
             
             ValueInst* visit(LoadVarInst* inst)
             {
                 BasicCloneVisitor cloner;
-                //std::cout << "ReplaceParameterByArg LoadVarInst " << fName << " " << inst->fAddress->getName()<< std::endl;
+                //std::cout << "ReplaceParameterByArg LoadVarInst " << fName << " " << inst->fAddress->getName() << std::endl;
                 
                 if (inst->fAddress->getName() == fName) {
                     return fArg->clone(&cloner);
@@ -308,7 +311,7 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
             StatementInst* visit(StoreVarInst* inst)
             {
                 BasicCloneVisitor cloner;
-                //std::cout << "ReplaceParameterByArg StoreVarInst " << fName << " " << inst->fAddress->getName()<< std::endl;
+                //std::cout << "ReplaceParameterByArg StoreVarInst " << fName << " " << inst->fAddress->getName() << std::endl;
                 
                 LoadVarInst* arg;
                 if ((inst->fAddress->getName() == fName) && (arg = dynamic_cast<LoadVarInst*>(fArg))) {
@@ -319,7 +322,6 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
                     return inst->clone(&cloner);
                 }
             }
-            
             
             BlockInst* getCode(BlockInst* src)
             {

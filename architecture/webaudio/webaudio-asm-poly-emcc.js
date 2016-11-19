@@ -25,6 +25,7 @@ var DSP_poly_destructor = Module.cwrap('DSP_poly_destructor', null, ['number']);
 var DSP_poly_init = Module.cwrap('DSP_poly_init', 'number', ['number','number']);
 var DSP_poly_instanceInit = Module.cwrap('DSP_poly_instanceInit', 'number', ['number','number']);
 var DSP_poly_instanceConstants = Module.cwrap('DSP_poly_instanceConstants', 'number', ['number','number']);
+var DSP_poly_instanceResetUserInterface = Module.cwrap('DSP_poly_instanceResetUserInterface', 'number', ['number']);
 var DSP_poly_instanceClear = Module.cwrap('DSP_poly_instanceClear', 'number', ['number']);
 var DSP_poly_compute = Module.cwrap('DSP_poly_compute', null, ['number', 'number', 'number', 'number']);
 var DSP_poly_getNumInputs = Module.cwrap('DSP_poly_getNumInputs', 'number', ['number']);
@@ -198,6 +199,31 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, callback) {
         getNumOutputs : function() 
         {
             return DSP_poly_getNumOutputs(ptr);
+        },
+        
+        init : function (sample_rate) 
+        {
+            DSP_init(ptr, sample_rate);
+        },
+        
+        instanceInit : function (sample_rate) 
+        {
+            DSP_poly_instanceInit(ptr, sample_rate);
+        },
+        
+        instanceConstants : function (sample_rate) 
+        {
+            DSP_poly_instanceConstants(ptr, sample_rate);
+        },
+        
+        instanceResetUserInterface : function () 
+        {
+            DSP_poly_instanceResetUserInterface(ptr);
+        },
+        
+        instanceClear : function () 
+        {
+            DSP_poly_instanceClear(ptr);
         },
         
         keyOn : function (channel, pitch, velocity)

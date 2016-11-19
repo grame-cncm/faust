@@ -150,6 +150,8 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gInterpreterVisitor);
+    
+    //fInitInstructions->accept(gGlobal->gInterpreterVisitor);
     // Keep "init_block"
     FIRBlockInstruction<T>* init_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FIRBlockInstruction<T>);

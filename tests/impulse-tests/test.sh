@@ -200,7 +200,7 @@ if [ $BACKEND = "interp" ] || [ $BACKEND = "all" ]; then
     echo "================================================================================"
 
     for f in *.dsp; do
-        faust2impulse3 -double  $f      > $D/$f.scal.ir
+        faust2impulse3 -double  $f > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
     done
 fi
@@ -212,7 +212,7 @@ if [ $BACKEND = "llvm" ] || [ $BACKEND = "all" ]; then
     echo "=============================================================================="
 
     for f in *.dsp; do
-        faust2impulse4 $f -double    > $D/$f.scal.ir
+        faust2impulse4 $f -double > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
     done
 
@@ -249,9 +249,13 @@ if [ $BACKEND = "ajs" ] || [ $BACKEND = "all" ]; then
     echo "================================================================================"
 
     for f in *.dsp; do
-        faust2impulse5  -double $f      > $D/$f.scal.ir
-        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
-    done
+        faust2impulse5 -double $f > $D/$f.scal.ir && RES=1 || RES=0
+        if [ $RES = "1" ]; then
+            filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+        else
+            echo "ERROR $f scalar mode in node.js"
+        fi
+   done
 fi
 
 
