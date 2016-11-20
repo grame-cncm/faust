@@ -261,7 +261,6 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> >
     
 };
 
-
 // Public C++ interface without LLVM
 
 EXPORT std::string expandDSPFromFile(const std::string& filename,

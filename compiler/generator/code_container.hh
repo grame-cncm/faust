@@ -173,12 +173,13 @@ class CodeContainer : public virtual Garbageable {
         CodeContainer* getParentContainer()              { return fParentContainer; }
         CodeContainer* getTopParentContainer()           { return (fParentContainer != 0) ? fParentContainer->getTopParentContainer() : this; }
  
+        // Returns the name of the class
         string getFullClassName()
         {
             return (fParentContainer != 0)
                     ? fParentContainer->getFullClassName() + "::" + getClassName()
                     : getClassName();
-        }    ///< Returns the name of the class
+        }
 
         void setGeneratedSR()
         {
@@ -283,16 +284,11 @@ class CodeContainer : public virtual Garbageable {
 
         void generateDeclarations(InstVisitor* visitor)
         {
-            handleDeclarations(visitor);
-        }
-        
-        void handleDeclarations(InstVisitor* visitor)
-        {
-           if (fDeclarationInstructions->fCode.size() > 0) {
+            if (fDeclarationInstructions->fCode.size() > 0) {
                 fDeclarationInstructions->accept(visitor);
-           }
+            }
         }
-
+   
         void generateInit(InstVisitor* visitor)
         {
             if (fInitInstructions->fCode.size() > 0) {
@@ -345,16 +341,11 @@ class CodeContainer : public virtual Garbageable {
 
         void generateComputeBlock(InstVisitor* visitor)
         {
-            handleComputeBlock(visitor);
-        }
-        
-        void handleComputeBlock(InstVisitor* visitor)
-        {
             if (fComputeBlockInstructions->fCode.size() > 0) {
                 fComputeBlockInstructions->accept(visitor);
             }
         }
-        
+    
         void generateAllocate(InstVisitor* visitor)
         {
             if (fAllocateInstructions->fCode.size() > 0) {

@@ -146,7 +146,7 @@ void VectorCodeContainer::processFIR(void)
     
     // If stack variables take to much room, move them in struct
     VariableSizeCounter counter(Address::kStack);
-    handleComputeBlock(&counter);
+    generateComputeBlock(&counter);
     
     if (counter.fSizeBytes > gGlobal->gMachineMaxStackSize) {
         // Transform stack array variables in struct variables

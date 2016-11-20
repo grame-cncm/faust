@@ -77,7 +77,7 @@ extern "C" {
     typedef struct  {
         const char* fCode;
         const char* fHelpers;
-    } WasmRes;
+    } WasmModule;
 
     /**
      * Create a Faust DSP WebAssembly module and additional helper functions from a DSP source code as a file.
@@ -89,7 +89,7 @@ extern "C" {
      *
      * @return a valid WebAssembly module and additional helper functions as a WasmRes struct on success (to be deleted by the caller), otherwise a null pointer.
      */
-    EXPORT WasmRes* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
+    EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
      /**
      * Create a Faust DSP WebAssembly module and additional helper functions from a DSP source code.
@@ -102,7 +102,7 @@ extern "C" {
      *
      * @return a valid WebAssembly module and additional helper functions as a WasmRes struct on success (to be deleted by the caller), otherwise a null pointer.
      */ 
-    EXPORT WasmRes* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
+    EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
     
     /**
      * Get the library version.
@@ -116,7 +116,7 @@ extern "C" {
      * 
      * @param ptr - the pointer to be deleted.
      */
-    EXPORT void freeCWasmRes(void* ptr);
+    EXPORT void freeCWasmModule(void* ptr);
     
 #ifdef __cplusplus
 }

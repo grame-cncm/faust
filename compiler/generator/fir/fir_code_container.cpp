@@ -69,7 +69,6 @@ void FirCodeContainer::dumpUserInterface(FIRInstVisitor& firvisitor, ostream* ds
 
 void FirCodeContainer::dumpSubContainers(FIRInstVisitor& firvisitor, ostream* dst)
 {
-    // Sub containers
     list<CodeContainer*>::const_iterator it;
     for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
         *dst << "======= Sub container begin ==========" << std::endl << std::endl;
@@ -168,7 +167,7 @@ static void dumpCost(StatementInst* inst, ostream* dst)
 void FirCodeContainer::dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst)
 {
     if (fComputeBlockInstructions->fCode.size() > 0) {
-        *dst << "======= Compute Block ==========" << std::endl << std::endl;
+        *dst << "======= Compute control ==========" << std::endl << std::endl;
         // Complexity estimation
         dumpCost(fComputeBlockInstructions, dst);
         fComputeBlockInstructions->accept(&firvisitor);
@@ -195,22 +194,21 @@ void FirCodeContainer::dumpMemory(ostream* dst)
         
         for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
             VariableSizeCounter heap_counter(Address::AccessType(Address::kStruct | Address::kStaticStruct));
-            (*it)->handleDeclarations(&heap_counter);
+            (*it)->generateDeclarations(&heap_counter);
             total_heap_size += heap_counter.fSizeBytes;
         }
         
         VariableSizeCounter heap_counter1(Address::AccessType(Address::kStruct | Address::kStaticStruct), Typed::kInt);
-        handleDeclarations(&heap_counter1);
+        generateDeclarations(&heap_counter1);
         
         VariableSizeCounter heap_counter2(Address::AccessType(Address::kStruct | Address::kStaticStruct), Typed::kInt_ptr);
-        handleDeclarations(&heap_counter2);
+        generateDeclarations(&heap_counter2);
         
         VariableSizeCounter heap_counter3(Address::AccessType(Address::kStruct | Address::kStaticStruct));
-        handleDeclarations(&heap_counter3);
-        
+        generateDeclarations(&heap_counter3);
         
         VariableSizeCounter stack_counter(Address::kStack);
-        handleComputeBlock(&stack_counter);
+        generateComputeBlock(&stack_counter);
         
         *dst << "======= Object memory footprint ==========" << std::endl << std::endl;
         *dst << "Heap size int = " << heap_counter1.fSizeBytes << " bytes" << std::endl;
@@ -322,15 +320,15 @@ void FirWorkStealingCodeContainer::dumpMemory(ostream* dst)
         
         for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
             VariableSizeCounter heap_counter(Address::AccessType(Address::kStruct | Address::kStaticStruct));
-            (*it)->handleDeclarations(&heap_counter);
+            (*it)->generateDeclarations(&heap_counter);
             total_heap_size += heap_counter.fSizeBytes;
         }
         
         VariableSizeCounter heap_counter(Address::AccessType(Address::kStruct | Address::kStaticStruct));
-        handleDeclarations(&heap_counter);
+        generateDeclarations(&heap_counter);
         
         VariableSizeCounter stack_counter_compute(Address::kStack);
-        handleComputeBlock(&stack_counter_compute);
+        generateComputeBlock(&stack_counter_compute);
         
         VariableSizeCounter stack_counter_compute_thread(Address::kStack);
         fComputeThreadBlockInstructions->accept(&stack_counter_compute_thread);

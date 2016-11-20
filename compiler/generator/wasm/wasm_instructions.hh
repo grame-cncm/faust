@@ -545,7 +545,7 @@ class WASMInstVisitor : public TextInstVisitor {
                 c99_declare_inst->accept(this);
             }
             
-            *fOut << "(for ";
+            *fOut << "(loop ";
                 if (c99_declare_inst) {
                     // C99 loop initialized here
                     c99_init_inst->accept(this);

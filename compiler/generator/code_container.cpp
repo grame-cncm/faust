@@ -457,6 +457,13 @@ DeclareFunInst* CodeContainer::generateStaticInitFun(const string& name, bool is
     BlockInst* static_init_block = InstBuilder::genBlockInst();
     static_init_block->pushBackInst(fStaticInitInstructions);
     static_init_block->pushBackInst(fPostStaticInitInstructions);
+    
+    //  20/11/16 : added in generateInstanceInitFun, is this needed here ? 
+    /*
+    init_block->pushBackInst(fResetUserInterfaceInstructions);
+    init_block->pushBackInst(fClearInstructions);
+    */
+    
     if (addreturn) { static_init_block->pushBackInst(InstBuilder::genRetInst()); }
     
     // Creates function
@@ -475,6 +482,8 @@ DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, bool 
     BlockInst* init_block = InstBuilder::genBlockInst();
     init_block->pushBackInst(fInitInstructions);
     init_block->pushBackInst(fPostInitInstructions);
+    init_block->pushBackInst(fResetUserInterfaceInstructions);
+    init_block->pushBackInst(fClearInstructions);
     if (addreturn) { init_block->pushBackInst(InstBuilder::genRetInst()); }
     
     // Creates function

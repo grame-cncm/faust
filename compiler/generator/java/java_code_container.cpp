@@ -130,12 +130,13 @@ void JAVACodeContainer::produceInternal()
     tab(n, *fOut); *fOut << "};" << endl;
     
      // Memory methods (as globals)
-    tab(n, *fOut); *fOut << fKlassName << " new" <<  fKlassName << "() {"
+    tab(n, *fOut);
+    *fOut << fKlassName << " new" <<  fKlassName << "() {"
                         << "return new "<< fKlassName << "()"
                         << "; }";
                         
-    tab(n, *fOut); *fOut << "void delete" << fKlassName << "(" << fKlassName <<" dsp) {}";
-    
+    tab(n, *fOut);
+    *fOut << "void delete" << fKlassName << "(" << fKlassName <<" dsp) {}";
     tab(n, *fOut);
 }
 
