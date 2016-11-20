@@ -91,6 +91,7 @@ if [ ! -d "$BUILDDIR" ]; then
   	
   	mkdir -p "$BUILDDIR"
 	cp -r $FAUSTLIB/android/*  "$BUILDDIR"
+	install -d $JNIFOLDER
 	# Copy include files *.h if any (ignore any error here)
 	(cp *.h $JNIFOLDER 2> $LOG) || true
 	
