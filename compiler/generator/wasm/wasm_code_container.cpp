@@ -166,7 +166,7 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << ")";
         
         tab(n+1, *fOut); *fOut <<  "(func $log10" << isuffix() << "f (type $2) (param $0 " << realStr << ") (result " << realStr << ")";
-            tab(n+2, *fOut); *fOut << "(" << realStr << ".div (call_import $log (get_local $0)) (call_import $log (" << realStr << ".const 10)))";
+            tab(n+2, *fOut); *fOut << "(return (" << realStr << ".div (call_import $log (get_local $0)) (call_import $log (" << realStr << ".const 10))))";
         tab(n+1, *fOut); *fOut << ")";
     
         // Fields : compute the structure size to use in 'new'
@@ -177,11 +177,11 @@ void WASMCodeContainer::produceClass()
         generateSubContainers();
     
         tab(n+1, *fOut); *fOut << "(func $getNumInputs (type $3) (param $dsp i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(i32.const " << fNumInputs << ")";
+            tab(n+2, *fOut); *fOut << "(return (i32.const " << fNumInputs << "))";
         tab(n+1, *fOut); *fOut << ")";
     
         tab(n+1, *fOut); *fOut << "(func $getNumOutputs (type $3) (param $dsp i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(i32.const " << fNumOutputs << ")";
+            tab(n+2, *fOut); *fOut << "(return (i32.const " << fNumOutputs << "))";
         tab(n+1, *fOut); *fOut << ")";
     
         // Inits
@@ -244,9 +244,7 @@ void WASMCodeContainer::produceClass()
         
         // getSampleRate
         tab(n+1, *fOut); *fOut << "(func $getSampleRate (type $3) (param $dsp i32) (result i32)";
-            // "fSamplingFreq" is at offset 0 after processFIR/sortTypeDeclarations
-            assert(gGlobal->gWASMVisitor->getFieldOffset("fSamplingFreq") == 0);
-            tab(n+2, *fOut); *fOut << "(i32.load (get_local $dsp))";
+            tab(n+2, *fOut); *fOut << "(i32.load (i32.add " << gGlobal->gWASMVisitor->getFieldOffset("fSamplingFreq") << " (get_local $dsp)))";
         tab(n+1, *fOut); *fOut << ")";
     
         // setParamValue
@@ -261,7 +259,7 @@ void WASMCodeContainer::produceClass()
         // getParamValue
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "(func $getParamValue (type $7) (param $dsp i32) (param $index i32) (result " << realStr << ")";
-            tab(n+2, *fOut); *fOut << "(" << realStr << ".load (i32.add (get_local $dsp) (get_local $index)))";
+            tab(n+2, *fOut); *fOut << "(return (" << realStr << ".load (i32.add (get_local $dsp) (get_local $index))))";
         tab(n+1, *fOut); *fOut << ")";
 
         // compute

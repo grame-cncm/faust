@@ -462,7 +462,7 @@ class WASMInstVisitor : public TextInstVisitor {
                     //std::cout << "CastNumInst : cast to int, but arg already int !" << std::endl;
                     inst->fInst->accept(this);
                 } else {
-                    *fOut << "(i32.trunc_s/" << realStr;
+                    *fOut << "(i32.trunc_s/ " << realStr;
                     inst->fInst->accept(this);
                     *fOut << ")";
                 }
@@ -527,53 +527,50 @@ class WASMInstVisitor : public TextInstVisitor {
             // Don't generate empty loops...
             if (inst->fCode->size() == 0) return;
             
-            DeclareVarInst* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
-            StoreVarInst* c99_init_inst = NULL;
+            // Local variables declaration including the loop counter have been moved outside of the loop
+            static int loopCount = 0;
             
-            if (c99_declare_inst) {
-                
-                *fOut << "(block ";
-                fTab++;
+            *fOut << "(loop $for-in" << loopCount << " ";
+            fTab++;
                 tab(fTab, *fOut);
-            
-                // To generate C99 compatible loops...
-                c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
-                c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(),
-                                                               InstBuilder::genBasicTyped(Typed::kInt),
-                                                               InstBuilder::genIntNumInst(0));
-                // C99 loop variable declared outside the loop
-                c99_declare_inst->accept(this);
-            }
-            
-            *fOut << "(loop ";
-                if (c99_declare_inst) {
-                    // C99 loop initialized here
-                    c99_init_inst->accept(this);
-                } else {
-                    // Index already defined
-                    inst->fInit->accept(this);
-                }
-                *fOut << "; ";
-                inst->fEnd->accept(this);
-                *fOut << "; ";
-                inst->fIncrement->accept(this);
-                *fOut << ") (";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fCode->accept(this);
+                *fOut << "(block $for-out" << loopCount << " ";
+                    fTab++;
+                    tab(fTab, *fOut);
+                    // Loop counter test and possibly branch out
+                    *fOut << "(if (i32.eqz ";
+                    inst->fEnd->accept(this);
+                    *fOut << ") (br $for-out" << loopCount << "))";
+                    // Loop code
+                    tab(fTab, *fOut);
+                    inst->fCode->accept(this);
+                    // Loop increment
+                    inst->fIncrement->accept(this);
+                    // Branch to loop label
+                    *fOut << "(br $for-in" << loopCount++ << ")";
+                    tab(fTab, *fOut);
                 fTab--;
                 tab(fTab, *fOut);
                 *fOut << ")";
-                tab(fTab, *fOut);
-            
-            if (c99_declare_inst) {
-                fTab--;
-                tab(fTab, *fOut);
-                *fOut << ")";
-                tab(fTab, *fOut);
-            }
+            fTab--;
+            tab(fTab, *fOut);
+            *fOut << ")";
+            tab(fTab, *fOut);
         }
- 
+    
+        // is this needed ?
+        /*
+        virtual void visit(BlockInst* inst)
+        {
+            *fOut << "(block";
+                fTab++;
+                tab(fTab, *fOut);
+                TextInstVisitor::visit(inst);
+                fTab--;
+                tab(fTab, *fOut);
+            *fOut << ")";
+        }
+        */
+
 };
 
 #endif

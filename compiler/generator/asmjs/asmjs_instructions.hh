@@ -473,60 +473,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             *fOut << ")";
         }
-        
-        virtual void visit(ForLoopInst* inst)
-        {
-            // Don't generate empty loops...
-            if (inst->fCode->size() == 0) return;
-            
-            DeclareVarInst* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
-            StoreVarInst* c99_init_inst = NULL;
-            
-            if (c99_declare_inst) {
-                InstBuilder::genLabelInst("/* C99 loop */")->accept(this);
-                *fOut << "{";
-                fTab++;
-                tab(fTab, *fOut);
-                
-                // To generate C99 compatible loops...
-                c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
-                c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(), 
-                                                                InstBuilder::genBasicTyped(Typed::kInt), 
-                                                                InstBuilder::genIntNumInst(0));
-                // C99 loop variable declared outside the loop
-                c99_declare_inst->accept(this);
-            }
-            
-            *fOut << "for (";
-                fFinishLine = false;
-                if (c99_declare_inst) {
-                    // C99 loop initialized here
-                    c99_init_inst->accept(this);
-                } else {
-                    // Index already defined
-                    inst->fInit->accept(this);
-                }
-                *fOut << "; ";
-                inst->fEnd->accept(this);
-                *fOut << "; ";
-                inst->fIncrement->accept(this);
-                fFinishLine = true;
-            *fOut << ") {";
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fCode->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-            *fOut << "}";
-            tab(fTab, *fOut);
-            
-            if (c99_declare_inst) {
-                fTab--;
-                tab(fTab, *fOut);
-                *fOut << "}";
-                tab(fTab, *fOut);
-            }
-        }
+
+        // virtual void visit(ForLoopInst* inst) : stadard model from TextInstVisitor
 };
 
 #endif

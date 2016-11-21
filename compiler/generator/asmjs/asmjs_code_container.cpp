@@ -314,9 +314,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "function getSampleRate(dsp) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-            // "fSamplingFreq" is at offset 0 after processFIR/sortTypeDeclarations
-            assert(gGlobal->gASMJSVisitor->getFieldOffset("fSamplingFreq") == 0);
-            tab(n+2, *fOut); *fOut << "return HEAP32[dsp >> 2] | 0;";
+            tab(n+2, *fOut); *fOut << "return HEAP32[dsp + " << gGlobal->gASMJSVisitor->getFieldOffset("fSamplingFreq") << " >> 2] | 0;";
         tab(n+1, *fOut); *fOut << "}";
  
         // setParamValue
