@@ -244,7 +244,9 @@ void WASMCodeContainer::produceClass()
         
         // getSampleRate
         tab(n+1, *fOut); *fOut << "(func $getSampleRate (type $3) (param $dsp i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(i32.load offset=" << gGlobal->gWASMVisitor->getFieldOffset("fSamplingFreq") << " (get_local $dsp))";
+            // "fSamplingFreq" is at offset 0 after processFIR/sortTypeDeclarations
+            assert(gGlobal->gWASMVisitor->getFieldOffset("fSamplingFreq") == 0);
+            tab(n+2, *fOut); *fOut << "(i32.load (get_local $dsp))";
         tab(n+1, *fOut); *fOut << ")";
     
         // setParamValue

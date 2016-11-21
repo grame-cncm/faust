@@ -25,7 +25,7 @@
 using namespace std;
 
 /*
- Sort arrays by size.
+ Sort arrays by size
 */
 
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
@@ -55,6 +55,10 @@ bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
         return false;
     }
 }
+
+/*
+ Sort arrays by type : integer is moved first
+ */
 
 bool sortTypeDeclarations(StatementInst* a, StatementInst* b)
 {

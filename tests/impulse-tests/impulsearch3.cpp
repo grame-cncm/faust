@@ -135,6 +135,11 @@ int main(int argc, char* argv[])
     // init signal processor and the user interface values:
     DSP->init(44100);
     
+    // Check getSampleRate
+    if (DSP->getSampleRate() != 44100) {
+        cerr << "ERROR in getSampleRate" << std::endl;
+    }
+    
     // Check default after 'init'
     if (!controlui.checkDefaults()) {
         cerr << "ERROR in checkDefaults after 'init'" << std::endl;

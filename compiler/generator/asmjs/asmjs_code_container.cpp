@@ -148,10 +148,10 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
         tab(n+2, *fOut); *fOut << "samplingFreq = samplingFreq | 0;";
         tab(n+2, *fOut); gGlobal->gASMJSVisitor->Tab(n+2);
-        genASMBlock(fStaticInitInstructions);
-        genASMBlock(fInitInstructions);
-        genASMBlock(fResetUserInterfaceInstructions);
-        genASMBlock(fClearInstructions);
+        generateASMBlock(fStaticInitInstructions);
+        generateASMBlock(fInitInstructions);
+        generateASMBlock(fResetUserInterfaceInstructions);
+        generateASMBlock(fClearInstructions);
     tab(n+1, *fOut); *fOut << "}";
     
     // Fill
@@ -252,7 +252,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
                 DspRenamer renamer;
-                genASMBlock(renamer.getCode(fStaticInitInstructions));
+                generateASMBlock(renamer.getCode(fStaticInitInstructions));
             }
         tab(n+1, *fOut); *fOut << "}";
 
@@ -265,7 +265,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
                 DspRenamer renamer;
-                genASMBlock(renamer.getCode(fInitInstructions));
+                generateASMBlock(renamer.getCode(fInitInstructions));
             }
         tab(n+1, *fOut); *fOut << "}";
     
@@ -277,7 +277,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
                 DspRenamer renamer;
-                genASMBlock(renamer.getCode(fResetUserInterfaceInstructions));
+                generateASMBlock(renamer.getCode(fResetUserInterfaceInstructions));
             }
         tab(n+1, *fOut); *fOut << "}";
     
@@ -289,7 +289,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
                 DspRenamer renamer;
-                genASMBlock(renamer.getCode(fClearInstructions));
+                generateASMBlock(renamer.getCode(fClearInstructions));
             }
         tab(n+1, *fOut); *fOut << "}";
 
@@ -314,7 +314,9 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "function getSampleRate(dsp) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
-            tab(n+2, *fOut); *fOut << "return HEAP32[dsp + " << gGlobal->gASMJSVisitor->getFieldOffset("fSamplingFreq") << " >> 2] | 0;";
+            // "fSamplingFreq" is at offset 0 after processFIR/sortTypeDeclarations
+            assert(gGlobal->gASMJSVisitor->getFieldOffset("fSamplingFreq") == 0);
+            tab(n+2, *fOut); *fOut << "return HEAP32[dsp >> 2] | 0;";
         tab(n+1, *fOut); *fOut << "}";
  
         // setParamValue
@@ -435,7 +437,7 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
         // Generates one single scalar loop and put is the the block
         ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
         fComputeBlockInstructions->pushBackInst(loop);
-        genASMBlock(fComputeBlockInstructions);
+        generateASMBlock(fComputeBlockInstructions);
     tab(n+1, *fOut); *fOut << "}";
 }
 

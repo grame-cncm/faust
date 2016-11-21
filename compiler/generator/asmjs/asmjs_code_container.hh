@@ -36,7 +36,7 @@ class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
 
         std::ostream* fOut;
     
-        void genASMBlock(BlockInst* instructions)
+        void generateASMBlock(BlockInst* instructions)
         {
             // Moves all variables declaration at the beginning of the block
             MoveVariablesInFront2 mover;

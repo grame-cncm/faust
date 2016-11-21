@@ -591,10 +591,8 @@ void CodeContainer::processFIR(void)
         CodeLoop::groupSeqLoops(fCurLoop, visited);
     }
     
-    // Sort fields
-#ifndef _WIN32
+    // Sort struct fields by size and type
     fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
-#endif
     fDeclarationInstructions->fCode.sort(sortTypeDeclarations);
 }
 

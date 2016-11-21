@@ -282,6 +282,11 @@ faust.mydsp = function (context, buffer_size, sample_rate) {
             return getNumOutputsAux();
         },
         
+        getSampleRate : function () 
+        {
+            return factory.getSampleRate(dsp);
+        },
+        
         init : function (sample_rate) 
         {
             factory.init(dsp, sample_rate);
@@ -437,6 +442,12 @@ try {
 console.log("number_of_inputs  : ", DSP.getNumInputs());
 console.log("number_of_outputs : ", DSP.getNumOutputs());
 console.log("number_of_frames  : ", nbsamples);
+
+// Check getSampleRate
+if (DSP.getSampleRate() !== sample_rate) {
+   console.error("ERROR in getSampleRate");
+	process.exit(1);
+}
 
 // Check default after 'instanceResetUserInterface'
 DSP.initRandom();
