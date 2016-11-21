@@ -22,6 +22,7 @@ var faust = faust || {};
 
 var DSP_poly_constructor = Module.cwrap('DSP_poly_constructor', 'number', ['number']);
 var DSP_poly_destructor = Module.cwrap('DSP_poly_destructor', null, ['number']);
+var DSP_poly_getSampleRate = Module.cwrap('DSP_poly_getSampleRate', 'number', ['number']);
 var DSP_poly_init = Module.cwrap('DSP_poly_init', 'number', ['number','number']);
 var DSP_poly_instanceInit = Module.cwrap('DSP_poly_instanceInit', 'number', ['number','number']);
 var DSP_poly_instanceConstants = Module.cwrap('DSP_poly_instanceConstants', 'number', ['number','number']);
@@ -200,6 +201,11 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, callback) {
         getNumOutputs : function() 
         {
             return DSP_poly_getNumOutputs(ptr);
+        },
+        
+        getSampleRate : function () 
+        {
+            return DSP_poly_getSampleRate(ptr);
         },
         
         init : function (sample_rate) 
