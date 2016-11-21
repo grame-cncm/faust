@@ -20,6 +20,7 @@ var faust = faust || {};
 
 var DSP_constructor = Module.cwrap('DSP_constructor', 'number', []);
 var DSP_destructor = Module.cwrap('DSP_destructor', null, ['number']);
+var DSP_getSampleRate = Module.cwrap('DSP_getSampleRate', 'number', ['number']);
 var DSP_init = Module.cwrap('DSP_init', 'number', ['number','number']);
 var DSP_instanceInit = Module.cwrap('DSP_instanceInit', 'number', ['number','number']);
 var DSP_instanceConstants = Module.cwrap('DSP_instanceConstants', 'number', ['number','number']);
@@ -209,6 +210,11 @@ faust.DSP = function (context, buffer_size) {
         getNumOutputs : function() 
         {
             return DSP_getNumOutputs(ptr);
+        },
+        
+        getSampleRate : function () 
+        {
+            return DSP_getSampleRate(ptr);
         },
         
         init : function (sample_rate) 
