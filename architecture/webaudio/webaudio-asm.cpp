@@ -73,6 +73,11 @@ extern "C" {
         delete dsp;
     }
     
+    int mydsp_getSampleRate(mydsp_wrap* dsp)
+    {
+        return dsp->getSampleRate();
+    }
+    
     void mydsp_init(mydsp_wrap* dsp, int sample_rate)
     {
         dsp->init(sample_rate);

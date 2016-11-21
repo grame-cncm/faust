@@ -75,6 +75,11 @@ extern "C" {
         delete poly;
     }
     
+    int mydsp_poly_getSampleRate(mydsp_wrap* dsp)
+    {
+        return dsp->getSampleRate();
+    }
+    
     void mydsp_poly_init(mydsp_poly_wrap* dsp, int sample_rate)
     {
         dsp->init(sample_rate);
