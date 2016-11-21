@@ -70,12 +70,12 @@ void FirCodeContainer::dumpUserInterface(FIRInstVisitor& firvisitor, ostream* ds
 void FirCodeContainer::dumpSubContainers(FIRInstVisitor& firvisitor, ostream* dst)
 {
     list<CodeContainer*>::const_iterator it;
+    *dst << "======= Sub container begin ==========" << std::endl << std::endl;
     for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
-        *dst << "======= Sub container begin ==========" << std::endl << std::endl;
         (*it)->produceInternal();
         (*it)->dump(dst);
-        *dst << "======= Sub container end ==========" << std::endl << std::endl;
     }
+    *dst << "======= Sub container end ==========" << std::endl << std::endl;
 }
 
 void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* dst)

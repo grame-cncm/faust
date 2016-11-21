@@ -2584,7 +2584,7 @@ TODO : gestion des indices de boucles:
 
  - dans InstructionsCompiler, generer des accès avec "LoadVar (loop-index)
 
- - Dans ForLoopInst, fName devient un "DeclareVarInst" (permet de nommer et d'initialiser l'indice), ajout d'une expression test, ajout de ValueInst fNext, calcul qui utilise fName.
+ - dans ForLoopInst, fName devient un "DeclareVarInst" (permet de nommer et d'initialiser l'indice), ajout d'une expression test, ajout de ValueInst fNext, calcul qui utilise fName.
 
  - nouveau type d'accès kLoop pour les variables de loop
 

@@ -28,7 +28,7 @@ using namespace std;
  Sort arrays by size.
 */
 
-static bool sortArrayDeclarationsAux(StatementInst* a, StatementInst* b)
+bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
 {
     DeclareVarInst* inst1 = dynamic_cast<DeclareVarInst*>(a);
     DeclareVarInst* inst2 = dynamic_cast<DeclareVarInst*>(b);
@@ -54,32 +54,7 @@ static bool sortArrayDeclarationsAux(StatementInst* a, StatementInst* b)
     } else {
         return false;
     }
-     
 }
-
-#ifdef _WIN32
-/*
-bool sortArrayDeclarations(const StatementInst*& a, const StatementInst*& b)
-{
-    return sortArrayDeclarationsAux(a, b);
-}
-*/
-bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
-{
-//#ifndef _WIN32
-    return sortArrayDeclarationsAux(a, b);
-//#else
-//	printf("return true\n");
-//	return true;
-//#endif
-}
-#else
-bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
-{
-    return sortArrayDeclarationsAux(a, b);
-}
-#endif
-
 
 bool sortTypeDeclarations(StatementInst* a, StatementInst* b)
 {

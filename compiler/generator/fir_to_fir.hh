@@ -27,20 +27,23 @@
 #include "fir_instructions.hh"
 
 // Tool to dump FIR
-inline void dump2FIR(BlockInst* block, std::ostream* out)
+inline void dump2FIR(StatementInst* inst, std::ostream* out)
 {
-    *out << "========== dump2FIR begin ==========" << std::endl;
+    *out << "========== dump2FIR statement begin ==========" << std::endl;
     FIRInstVisitor fir_visitor(out);
-    block->accept(&fir_visitor);
-    *out << "========== dump2FIR end ==========" << std::endl;
+    inst->accept(&fir_visitor);
+    *out << "========== dump2FIR statement end ==========" << std::endl;
 }
 
-#ifdef _WIN32
-bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
-#else
-bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
-#endif
+inline void dump2FIR(ValueInst* value, std::ostream* out)
+{
+    *out << "========== dump2FIR value begin ==========" << std::endl;
+    FIRInstVisitor fir_visitor(out);
+    value->accept(&fir_visitor);
+    *out << "========== dump2FIR value end ==========" << std::endl;
+}
 
+bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
 bool sortTypeDeclarations(StatementInst* a, StatementInst* b);
 
 // Change stack access for struct access
@@ -142,8 +145,7 @@ struct DspRenamer : public BasicCloneVisitor {
     DspRenamer()
     {}
     
-    
-    // change access
+    // Change access
     virtual Address* visit(NamedAddress* named)
     {
         if (startWith(named->getName(), "sig")) {
@@ -153,7 +155,7 @@ struct DspRenamer : public BasicCloneVisitor {
         }
     }
     
-    // remove allocation
+    // Remove allocation
     virtual StatementInst* visit(DeclareVarInst* inst)
     {
         if (startWith(inst->fAddress->getName(), "sig")) {
@@ -163,7 +165,6 @@ struct DspRenamer : public BasicCloneVisitor {
             return inst->clone(&cloner);
         }
     }
-    
     
     BlockInst* getCode(BlockInst* src)
     {
@@ -281,8 +282,6 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
     
     BlockInst* ReplaceParametersByArgs(BlockInst* code, list<NamedTyped*> args_type, list<ValueInst*> args, bool ismethod)
     {
-        //std::cout << "ReplaceParametersByArgs " << fFunction->fName << " " << args_type.size() << " " << args.size() << " " << code << std::endl;
-        
         list<NamedTyped*>::iterator it1 = args_type.begin();
         list<ValueInst*>::iterator it2 = args.begin(); if (ismethod) { it2++; }
         
@@ -296,31 +295,24 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
     
     BlockInst* ReplaceParameterByArg(BlockInst* code, NamedTyped* type, ValueInst* arg)
     {
-        //std::cout << "ReplaceParameterByArg " << type->fName << std::endl;
-        
         struct InlineValue : public BasicCloneVisitor {
             
             string fName;
             ValueInst* fArg;
             
             InlineValue(const string& name, ValueInst* arg):fName(name), fArg(arg)
-            {
-                //std::cout << "InlineValue " << name << " " << arg << std::endl;
-            }
+            {}
             
             ValueInst* visit(LoadVarInst* inst)
             {
                 BasicCloneVisitor cloner;
-                //std::cout << "ReplaceParameterByArg LoadVarInst " << fName << " " << inst->fAddress->getName() << std::endl;
-                
                 return (inst->fAddress->getName() == fName) ? fArg->clone(&cloner) : inst->clone(&cloner);
             }
             
             StatementInst* visit(StoreVarInst* inst)
             {
                 BasicCloneVisitor cloner;
-                //std::cout << "ReplaceParameterByArg StoreVarInst " << fName << " " << inst->fAddress->getName() << std::endl;
-                
+          
                 LoadVarInst* arg;
                 if ((inst->fAddress->getName() == fName) && (arg = dynamic_cast<LoadVarInst*>(fArg))) {
                     Address* cloned_address = inst->fAddress->clone(this);
