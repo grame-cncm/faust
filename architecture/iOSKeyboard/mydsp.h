@@ -4335,7 +4335,7 @@ class MapUI : public UI, public PathBuilder
         
         int getParamsCount() { return fPathZoneMap.size(); }
         
-        std::string getParamAdress(int index) 
+        std::string getParamAddress(int index)
         { 
             std::map<std::string, FAUSTFLOAT*>::iterator it = fPathZoneMap.begin();
             while (index-- > 0 && it++ != fPathZoneMap.end()) {}
