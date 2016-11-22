@@ -125,22 +125,6 @@ with{
 	tablesize = 1 << 16;
 };
 
-//-----------------------`osc`------------------------
-// Default sine wave oscillator (same as `oscrs`).
-//
-// #### Usage
-//
-// ```
-// osc(freq) : _
-// ```
-//
-// Where:
-//
-// * `freq`: the frequency of the wave (Hz)
-//------------------------------------------------------------
-//osc	= oscsin;
-osc	= oscrs;
-
 //-----------------------`oscos`------------------------
 // Cosine wave oscillator.
 //
@@ -524,6 +508,23 @@ oscrs(f) = impulse : fi.nlf2(f,1) : _,!; // sine
 oscrc(f) = impulse : fi.nlf2(f,1) : !,_; // cosine
 oscrp(f,p) = oscrq(f) : *(cos(p)), *(sin(p)) : + ; // p=0 for sine, p=PI/2 for cosine, etc.
 oscr = oscrs; // default = sine (starts without a pop)
+
+//-----------------------`osc`------------------------
+// Default sine wave oscillator (same as oscrs).
+// `osc` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// osc(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: the frequency of the wave (Hz)
+//------------------------------------------------------------
+//osc	= oscsin;
+osc	= oscrs;
 
 //--------------------------`oscs`--------------------------------
 // Sinusoidal oscillator based on the state variable filter

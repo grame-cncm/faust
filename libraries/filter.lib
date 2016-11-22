@@ -172,16 +172,15 @@ dcblocker = zero(1) : pole(0.995);
 //=======================================Comb Filters=====================================
 //========================================================================================
 
-//------`ff_comb` and `ff_fcomb`--------
+//------`ff_comb`--------
 // Feed-Forward Comb Filter. Note that `ff_comb` requires integer delays  
-// (uses `delay()`  internally) while `ff_fcomb` takes floating-point delays 
-// (uses `fdelay()` internally).
+// (uses `delay`  internally).
+// `ff_comb` is a standard Faust function.
 // 
 // #### Usage
 //
 // ```
 // _ : ff_comb(maxdel,intdel,b0,bM) : _
-// _ : ff_fcomb(maxdel,del,b0,bM) : _
 // ```
 //
 // Where:
@@ -198,6 +197,32 @@ dcblocker = zero(1) : pole(0.995);
 //------------------------------------------------------------
 // TODO: author JOS
 ff_comb (maxdel,M,b0,bM) = _ <: *(b0), bM *  de.delay(maxdel,M) : + ;
+
+
+//------`ff_fcomb`--------
+// Feed-Forward Comb Filter. Note that `ff_fcomb` takes floating-point delays 
+// (uses `fdelay` internally).
+// `ff_fcomb` is a standard Faust function.
+// 
+// #### Usage
+//
+// ```
+// _ : ff_fcomb(maxdel,del,b0,bM) : _
+// ```
+//
+// Where:
+//
+// * `maxdel`: maximum delay (a power of 2)
+// * `intdel`: current (integer) comb-filter delay between 0 and maxdel
+// * `del`: current (float) comb-filter delay between 0 and maxdel
+// * `b0`: gain applied to delay-line input
+// * `bM`: gain applied to delay-line output and then summed with input
+//
+// #### Reference
+//
+// <https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html>
+//------------------------------------------------------------
+// TODO: author JOS
 ff_fcomb(maxdel,M,b0,bM) = _ <: *(b0), bM * de.fdelay(maxdel,M) : + ;
 
 //-----------`ffcombfilter`-------------------
@@ -206,14 +231,14 @@ ff_fcomb(maxdel,M,b0,bM) = _ <: *(b0), bM * de.fdelay(maxdel,M) : + ;
 // TODO: author JOS, revised by RM
 ffcombfilter(maxdel,del,g) = ff_comb(maxdel,del,1,g);
 
-//-----------------------`fb_comb` and `fb_fcomb`-----------------------
-// Feed-Back Comb Filter.
+
+//-----------------------`fb_comb`-----------------------
+// Feed-Back Comb Filter (integer delay).
 //
 // #### Usage 
 //
 // ```
 // _ : fb_comb(maxdel,intdel,b0,aN) : _
-// _ : fb_fcomb(maxdel,del,b0,aN) : _
 // ```
 //
 // Where:
@@ -231,6 +256,31 @@ ffcombfilter(maxdel,del,g) = ff_comb(maxdel,del,1,g);
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
 fb_comb (maxdel,N,b0,aN) = (+ <:  de.delay(maxdel,N-1),_) ~ *(-aN) : !,*(b0):mem;
+
+
+//-----------------------`fb_fcomb`-----------------------
+// Feed-Back Comb Filter (floating point delay).
+//
+// #### Usage 
+//
+// ```
+// _ : fb_fcomb(maxdel,del,b0,aN) : _
+// ```
+//
+// Where:
+//
+// * `maxdel`: maximum delay (a power of 2)
+// * `intdel`: current (integer) comb-filter delay between 0 and maxdel
+// * `del`: current (float) comb-filter delay between 0 and maxdel
+// * `b0`: gain applied to delay-line input and forwarded to output
+// * `aN`: minus the gain applied to delay-line output before summing with the input 
+// 	and feeding to the delay line
+//
+// #### Reference
+//
+// <https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html>
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
 fb_fcomb(maxdel,N,b0,aN) = (+ <: de.fdelay(maxdel,float(N)-1.0),_) ~ *(-aN) : !,*(b0):mem;
 
 //-----------------------`rev1`-----------------------
@@ -1298,14 +1348,14 @@ with {
 //======================Butterworth Lowpass/Highpass Filters==============================
 //========================================================================================
 
-//----------------`lowpass` and `highpass`--------------------
-// Nth-order Butterworth lowpass or highpass filters.
+//----------------`lowpass`--------------------
+// Nth-order Butterworth lowpass filter.
+// `lowpass` is a standard Faust function.
 //
 // #### Usage
 //
 // ```
 // _ : lowpass(N,fc) : _
-// _ : highpass(N,fc) : _
 // ```
 //
 // Where:
@@ -1320,7 +1370,31 @@ with {
 //------------------------------
 // TODO: author JOS and Orlarey, revised by RM
 lowpass(N,fc) = lowpass0_highpass1(0,N,fc);
+
+
+//----------------`highpass`--------------------
+// Nth-order Butterworth highpass filters.
+// `highpass` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// _ : highpass(N,fc) : _
+// ```
+//
+// Where:
+//
+// * `N`: filter order (number of poles) [nonnegative constant integer]
+// * `fc`: desired cut-off frequency (-3dB frequency) in Hz
+//
+// #### References
+// 
+// * <https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html>
+// * `butter` function in Octave `("[z,p,g] = butter(N,1,'s');")`
+//------------------------------
+// TODO: author JOS and Orlarey, revised by RM
 highpass(N,fc) = lowpass0_highpass1(1,N,fc);
+
 
 //-------------`lowpass0_highpass1`--------------
 // TODO

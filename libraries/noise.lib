@@ -61,6 +61,7 @@ declare version "0.0";
 
 //-------`noise`----------
 // White noise generator (outputs random number between -1 and 1).
+// Noise is a standard Faust function.
 //
 // #### Usage
 //
