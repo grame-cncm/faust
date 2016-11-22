@@ -25,7 +25,7 @@ llvm_paths = /usr/bin /opt/local/bin /usr/local/bin
 # link a suitable llvm-config to a location somewhere on your PATH, or just
 # set LLVM_CONFIG manually.
 
-LLVM_CONFIG = $(lastword $(wildcard /usr/bin/llvm-config* /opt/local/bin/llvm-config* /usr/local/bin/llvm-config*) $(shell which llvm-config 2> /dev/null))
+LLVM_CONFIG ?= $(lastword $(wildcard /usr/bin/llvm-config* /opt/local/bin/llvm-config* /usr/local/bin/llvm-config*) $(shell which llvm-config 2> /dev/null))
 
 ## On Darwin build both 32 and 64-bits intel versions
 ifeq ($(system), Darwin)
