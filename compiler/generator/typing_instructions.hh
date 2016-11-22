@@ -38,12 +38,26 @@ struct TypingVisitor : public InstVisitor {
     
         virtual void visit(LoadVarInst* inst)
         {
+            // Local or struct variables
+            
             if (gGlobal->gVarTypeTable.find(inst->getName()) != gGlobal->gVarTypeTable.end()) {
-                fCurType = gGlobal->gVarTypeTable[inst->getName()]->getType();
                 if (dynamic_cast<IndexedAddress*>(inst->fAddress)) {
-                    fCurType = Typed::getTypeFromPtr(fCurType);
+                    fCurType = Typed::getTypeFromPtr(gGlobal->gVarTypeTable[inst->getName()]->getType());
+                    //std::cout << "TypingVisitor::LoadVarInst PTR " << inst->fAddress->getName() << " " << Typed::gTypeString[gGlobal->gVarTypeTable[inst->getName()]->getType()] << std::endl;
+                } else {
+                    fCurType = gGlobal->gVarTypeTable[inst->getName()]->getType();
+                    //std::cout << "TypingVisitor::LoadVarInst " << inst->fAddress->getName() << " " << Typed::gTypeString[gGlobal->gVarTypeTable[inst->getName()]->getType()] << std::endl;
                 }
+            // Additional specific cases for function arguments
+            } else if (startWith(inst->getName(), "inputs") || startWith(inst->getName(), "outputs")) {
+                fCurType = itfloat();
+            } else if (startWith(inst->getName(), "count") || startWith(inst->getName(), "samplingFreq")) {
+                fCurType = Typed::kInt;
+            } else if (startWith(inst->getName(), "dsp")) {
+                fCurType = Typed::kObj_ptr;
             } else {
+                std::cout << "TypingVisitor " << inst->getName() << std::endl;
+                assert(false);
                 fCurType = Typed::kNoType;
             }
         }

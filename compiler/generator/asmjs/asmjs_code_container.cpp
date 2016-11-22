@@ -431,7 +431,6 @@ void ASMJAVAScriptScalarCodeContainer::generateCompute(int n)
         tab(n+2, *fOut); *fOut << "outputs = outputs | 0;";
         tab(n+2, *fOut);
         gGlobal->gASMJSVisitor->Tab(n+2);
-    
         // Generates one single scalar loop and put is the the block
         ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
         fComputeBlockInstructions->pushBackInst(loop);

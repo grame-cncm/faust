@@ -243,26 +243,14 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             
             if (isIntOrPtrType(fTypingVisitor.fCurType)) {
                 *fOut << "(";
-                TextInstVisitor::visit(inst);
+                inst->fAddress->accept(this);
                 *fOut << " | 0)";
             } else if (isRealType(fTypingVisitor.fCurType)) {
                 *fOut << "+(";
-                TextInstVisitor::visit(inst);
+                inst->fAddress->accept(this);
                 *fOut << ")";
-            } else {
-                // HACK : completely adhoc code for inputs/outputs/count/samplingFreq...
-                if ((startWith(inst->getName(), "inputs") 
-                    || startWith(inst->getName(), "outputs") 
-                    || startWith(inst->getName(), "count")
-                    || startWith(inst->getName(), "samplingFreq"))) {
-                    *fOut << "(";
-                    TextInstVisitor::visit(inst);
-                    *fOut << " | 0)";
-                } else {
-                    TextInstVisitor::visit(inst);
-                }
             }
-        } 
+        }
         
         virtual void visit(NamedAddress* named)
         {
@@ -305,8 +293,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 // Fields in struct are accessed using 'dsp' and an offset
                 pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
                 if (isRealPtrType(tmp.second)) {
-                    *fOut << "HEAPF[dsp + " << tmp.first << " + ";  
-                    *fOut << "(";
+                    *fOut << "HEAPF[dsp + " << tmp.first << " + (";
                     indexed->fIndex->accept(this);
                     *fOut << " << " << offStr << ") >> " << offStr << "]";
                  } else {
@@ -325,8 +312,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 // Fields in struct are accessed using 'dsp' and an offset
                 if (indexed->getAccess() & Address::kStruct || indexed->getAccess() & Address::kStaticStruct) {
                     pair<int, Typed::VarType> tmp = fFieldTable[indexed->getName()];
-                    *fOut << "dsp + " << tmp.first << " + ";  
-                    *fOut << "(";
+                    *fOut << "dsp + " << tmp.first << " + (";
                     indexed->fIndex->accept(this);
                     *fOut << " << 2) >> 2"; 
                 } else {

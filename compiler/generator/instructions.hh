@@ -319,13 +319,15 @@ struct Typed : public Printable
                 kQuad, kQuad_ptr, kQuad_vec, kQuad_vec_ptr,
                 kVoid, kVoid_ptr, kVoid_ptr_ptr, kObj, kObj_ptr, kNoType };
     
+    static string gTypeString[];
+    
     static void init();
 
     Typed()
     {}
 
     virtual VarType getType() = 0;
-
+  
     // Returns the pointer type version of a primitive type
     static VarType getPtrFromType(VarType type)
     {

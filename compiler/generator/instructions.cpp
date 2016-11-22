@@ -25,6 +25,16 @@
 #include "floats.hh"
 #include "global.hh"
 
+string Typed::gTypeString[] = {
+    "kInt", "kIntish", "kInt_ptr", "kInt_vec", "kInt_vec_ptr",
+    "kBool", "kBool_ptr", "kBool_vec", "kBool_vec_ptr",
+    "kFloat", "kFloatish", "kFloat_ptr", "kFloat_vec", "kFloat_vec_ptr",
+    "kFloatMacro", "kFloatMacro_ptr",
+    "kDouble", "kDoublish", "kDouble_ptr", "kDouble_vec", "kDouble_vec_ptr",
+    "kQuad", "kQuad_ptr", "kQuad_vec", "kQuad_vec_ptr",
+    "kVoid", "kVoid_ptr", "kVoid_ptr_ptr", "kObj", "kObj_ptr", "kNoType"
+};
+
 void BasicTyped::cleanup() { gGlobal->gTypeTable.clear(); }
 void DeclareVarInst::cleanup() { gGlobal->gVarTypeTable.clear(); }
 

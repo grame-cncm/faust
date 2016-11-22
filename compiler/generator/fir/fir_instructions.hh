@@ -250,15 +250,31 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << "DeclareVarInst(";
 
             if (inst->fAddress->getAccess() & Address::kGlobal) {
-                 *fOut << "global ";
+                 *fOut << "global, ";
             }
 
             if (inst->fAddress->getAccess() & Address::kStaticStruct) {
-                 *fOut << "static ";
+                 *fOut << "static, ";
             }
 
             if (inst->fAddress->getAccess() & Address::kVolatile) {
-                 *fOut << "volatile ";
+                 *fOut << "volatile, ";
+            }
+            
+            if (inst->fAddress->getAccess() & Address::kStruct) {
+                *fOut << "struct, ";
+            }
+            
+            if (inst->fAddress->getAccess() & Address::kStack) {
+                *fOut << "stack, ";
+            }
+            
+            if (inst->fAddress->getAccess() & Address::kLoop) {
+                *fOut << "loop, ";
+            }
+            
+            if (inst->fAddress->getAccess() & Address::kFunArgs) {
+                *fOut << "kFunArgs, ";
             }
 
             *fOut << generateType(inst->fType, inst->fAddress->getName());
