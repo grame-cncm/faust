@@ -469,7 +469,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             *fOut << ")";
         }
 
-        // virtual void visit(ForLoopInst* inst) : stadard model from TextInstVisitor
+        // virtual void visit(ForLoopInst* inst) : standard version from TextInstVisitor
 };
 
 #endif

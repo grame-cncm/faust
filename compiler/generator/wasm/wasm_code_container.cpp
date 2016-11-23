@@ -25,7 +25,6 @@
 #include "exception.hh"
 #include "global.hh"
 #include "json_instructions.hh"
-#include "fir_to_fir.hh"
 
 using namespace std;
 
@@ -34,6 +33,7 @@ using namespace std;
  
     1) mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), or are imported from the external Math context,
     or implementted manually (like fmod or log10)
+    2) local variables have to be declared first on the block, before being actually initialized or set : this is the job of MoveVariablesInFront3
 
 */
 
@@ -140,6 +140,7 @@ void WASMCodeContainer::produceClass()
                                << "-rem\" (param " << realStr <<  " " << realStr << ") (result "<< realStr << "))";
         tab(n+1, *fOut); *fOut << "(import $" << realStr << "-to-int \"asm2wasm\" \""
                                << realStr << "-to-int\" (param " << realStr << ") (result i32))";
+        tab(n+1, *fOut); *fOut << "(import $log " << "\"asm2wasm\" \"log\" (param " << realStr << ") (result " << realStr << "))";
     
         // Memory access
         tab(n+1, *fOut); *fOut << "(import \"env\" \"memory\" (memory $0 256 256))";
@@ -187,21 +188,18 @@ void WASMCodeContainer::produceClass()
         // Inits
         tab(n+1, *fOut); *fOut << "(func $classInit (type $4) (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
-            DspRenamer renamer1;
-            BlockInst* block0 = renamer1.getCode(fStaticInitInstructions);
-            block0->accept(gGlobal->gWASMVisitor);
+            {
+                DspRenamer renamer;
+                generateWASMBlock(renamer.getCode(fStaticInitInstructions));
+            }
         tab(n+1, *fOut); *fOut << ")";
     
         tab(n+1, *fOut); *fOut << "(func $instanceConstants (type $4) (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-                DspRenamer renamer2;
-                BlockInst* block2 = renamer2.getCode(fInitInstructions);
-                // Moves all variables declaration at the beginning of the block
-                MoveVariablesInFront2 mover1;
-                BlockInst* block3 = mover1.getCode(block2);
-                block3->accept(gGlobal->gWASMVisitor);
+                DspRenamer renamer;
+                generateWASMBlock(renamer.getCode(fInitInstructions));
             }
         tab(n+1, *fOut); *fOut << ")";
     
@@ -209,12 +207,8 @@ void WASMCodeContainer::produceClass()
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-                DspRenamer renamer2;
-                BlockInst* block2 = renamer2.getCode(fResetUserInterfaceInstructions);
-                // Moves all variables declaration at the beginning of the block
-                MoveVariablesInFront2 mover1;
-                BlockInst* block3 = mover1.getCode(block2);
-                block3->accept(gGlobal->gWASMVisitor);
+                DspRenamer renamer;
+                generateWASMBlock(renamer.getCode(fResetUserInterfaceInstructions));
             }
         tab(n+1, *fOut); *fOut << ")";
     
@@ -222,12 +216,8 @@ void WASMCodeContainer::produceClass()
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-                DspRenamer renamer2;
-                BlockInst* block2 = renamer2.getCode(fClearInstructions);
-                // Moves all variables declaration at the beginning of the block
-                MoveVariablesInFront2 mover1;
-                BlockInst* block3 = mover1.getCode(block2);
-                block3->accept(gGlobal->gWASMVisitor);
+                DspRenamer renamer;
+                generateWASMBlock(renamer.getCode(fClearInstructions));
             }
         tab(n+1, *fOut); *fOut << ")";
     
@@ -244,7 +234,7 @@ void WASMCodeContainer::produceClass()
         
         // getSampleRate
         tab(n+1, *fOut); *fOut << "(func $getSampleRate (type $3) (param $dsp i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(i32.load (i32.add " << gGlobal->gWASMVisitor->getFieldOffset("fSamplingFreq") << " (get_local $dsp)))";
+            tab(n+2, *fOut); *fOut << "(return (i32.load (i32.add (i32.const " << gGlobal->gWASMVisitor->getFieldOffset("fSamplingFreq") << ") (get_local $dsp))))";
         tab(n+1, *fOut); *fOut << ")";
     
         // setParamValue
@@ -273,6 +263,7 @@ void WASMCodeContainer::produceClass()
     tab(n, *fOut); *fOut << ")";
     tab(n, *fOut);
     
+    /*
     // Helper code
     
     // User interface : prepare the JSON string...
@@ -325,6 +316,7 @@ void WASMCodeContainer::produceClass()
         }
     }
     tab(n, fHelper); fHelper << "}" << endl << endl;
+    */
 }
 
 void WASMScalarCodeContainer::generateCompute(int n)
@@ -333,12 +325,21 @@ void WASMScalarCodeContainer::generateCompute(int n)
         tab(n+2, *fOut);
         gGlobal->gWASMVisitor->Tab(n+2);
     
-        // Generates local variables declaration and setup
-        generateComputeBlock(gGlobal->gWASMVisitor);
+        /*
+        dump2FIR(fComputeBlockInstructions, &cout);
+
+        // Moves all variables declaration at the beginning of the block
+        MoveVariablesInFront3 mover;
+        BlockInst* block = mover.getCode(fComputeBlockInstructions);
+        block->accept(gGlobal->gWASMVisitor);
+
+        dump2FIR(block, &cout);
+        */
         
         // Generates one single scalar loop
         ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-        loop->accept(gGlobal->gWASMVisitor);
+        fComputeBlockInstructions->pushBackInst(loop);
+        generateWASMBlock(fComputeBlockInstructions);
 
     tab(n+1, *fOut); *fOut << ")";
 }

@@ -76,11 +76,13 @@ class WASMInstVisitor : public TextInstVisitor {
  
         string type2String(Typed::VarType type)
         {
-            if (type == Typed::kInt) {
+            if (type == Typed::kInt
+                || type == Typed::kFloat_ptr
+                || type == Typed::kDouble_ptr) {
                 return "i32";
-            } else if (type == Typed::kFloat || type == Typed::kFloat_ptr) {
+            } else if (type == Typed::kFloat) {
                 return "f32";
-            } else if (type == Typed::kDouble || type == Typed::kDouble_ptr) {
+            } else if (type == Typed::kDouble) {
                 return "f64";
             } else {
                 assert(false);
@@ -198,11 +200,16 @@ class WASMInstVisitor : public TextInstVisitor {
   
         virtual void visit(DeclareVarInst* inst)
         {
+            //std::cout << "DeclareVarInst " << inst->fAddress->getName() << std::endl;
+            
             bool is_struct = (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
             
             if (array_typed && array_typed->fSize > 1) {
                 if (is_struct) {
+                    
+                    //std::cout << "DeclareVarInst " << inst->fAddress->getName() << " " << array_typed->fType->getType() << std::endl;
+                    
                     fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
                     fStructOffset += (array_typed->fSize * fsize()); // Always use biggest size so that int/real access are correctly aligned
                 } else {
@@ -211,10 +218,21 @@ class WASMInstVisitor : public TextInstVisitor {
                 }
             } else {
                 if (is_struct) {
+                    
+                    //std::cout << "DeclareVarInst STRUCT " << inst->fAddress->getName() << " " << inst->fType->getType() << std::endl;
+                    
                     fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
                     fStructOffset += fsize(); // Always use biggest size so that int/real access are correctly aligned
                 } else {
+                    
+                    // Put in the table with a dummy offset
+                    fFieldTable[inst->fAddress->getName()] = MemoryDesc(-1, -1, inst->fType->getType());
+                    
                     *fOut << "(local $" << inst->fAddress->getName() << " " << type2String(inst->fType->getType()) << ")";
+                    
+                    assert(inst->fValue == nullptr);
+                    
+                    /*
                     if (inst->fValue) {
                         tab(fTab, *fOut);
                         *fOut << "(set_local $" << inst->fAddress->getName() << " ";
@@ -222,6 +240,8 @@ class WASMInstVisitor : public TextInstVisitor {
                         *fOut << ")";
                         EndLine();
                     }
+                    */
+                    EndLine();
                 }
             }
         }
@@ -311,21 +331,70 @@ class WASMInstVisitor : public TextInstVisitor {
         }
         */
     
+        virtual void visit(LoadVarInst* inst)
+        {
+            /*
+              std::cout << "LoadVarInst " << inst->fAddress->getName() << std::endl;
+              assert(fFieldTable.find(inst->fAddress->getName()) != fFieldTable.end());
+              MemoryDesc tmp = fFieldTable[inst->fAddress->getName()];
+
+              //std::cout << "LoadVarInst " << inst->fAddress->getName() << " " << tmp.fType << std::endl;
+              */
+
+            fTypingVisitor.visit(inst);
+
+            //std::cout << "LoadVarInst " << inst->fAddress->getName() << " " << Typed::gTypeString[fTypingVisitor.fCurType] << std::endl;
+
+            if (inst->fAddress->getAccess() & Address::kStruct
+                || inst->fAddress->getAccess() & Address::kStaticStruct
+                || dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+
+                if (isRealType(fTypingVisitor.fCurType) || isRealPtrType(fTypingVisitor.fCurType)) {
+                    *fOut << "(" << realStr << ".load ";
+                } else {
+                    *fOut << "(i32.load ";
+                }
+                inst->fAddress->accept(this);
+                *fOut << ")";
+            } else {
+                *fOut << "(get_local $" << inst->fAddress->getName() << ")";
+            }
+        }
+
         virtual void visit(StoreVarInst* inst)
         {
+            /*
+            assert(fFieldTable.find(inst->fAddress->getName()) != fFieldTable.end());
             MemoryDesc tmp = fFieldTable[inst->fAddress->getName()];
-            if (isRealType(tmp.fType)) {
-                *fOut << "(" << realStr << ".store ";
+            -            if (isRealType(tmp.fType)) {
+            -                *fOut << "(" << realStr << ".store ";
+                  */
+
+            inst->fValue->accept(&fTypingVisitor);
+
+            if (inst->fAddress->getAccess() & Address::kStruct
+                || inst->fAddress->getAccess() & Address::kStaticStruct
+                || dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+
+                if (isRealType(fTypingVisitor.fCurType) || isRealPtrType(fTypingVisitor.fCurType)) {
+                    *fOut << "(" << realStr << ".store ";
+                } else {
+                    *fOut << "(i32.store ";
+                }
+                inst->fAddress->accept(this);
+                *fOut << " ";
+                inst->fValue->accept(this);
+                *fOut << ")";
+
             } else {
-                *fOut << "(i32.store ";
+                *fOut << "(set_local $" << inst->fAddress->getName() << " ";
+                inst->fValue->accept(this);
+                *fOut << ")";
             }
-            inst->fAddress->accept(this);
-            *fOut << " ";
-            inst->fValue->accept(this);
-            *fOut << ")";
+
             EndLine();
         }
-    
+
         virtual void visit(NamedAddress* named)
         {
             if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
@@ -467,8 +536,6 @@ class WASMInstVisitor : public TextInstVisitor {
                     *fOut << ")";
                 }
             } else {
-                //std::cout << "CastNumInst " << inst->fType->getType() << std::endl;
-                /*
                 if (isRealType(type)) {
                     //std::cout << "CastNumInst : cast to real, but arg already real !" << std::endl;
                     inst->fInst->accept(this);
@@ -477,10 +544,6 @@ class WASMInstVisitor : public TextInstVisitor {
                     inst->fInst->accept(this);
                     *fOut << ")";
                 }
-                */
-                *fOut << "(" << realStr << ".convert_s/i32 ";
-                inst->fInst->accept(this);
-                *fOut << ")";
             }
             
             fTypingVisitor.visit(inst);

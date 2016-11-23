@@ -323,11 +323,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "offset = offset | 0;";
             tab(n+2, *fOut); *fOut << "value = +value;";
-            if (gGlobal->gFloatSize == 1) {
-                tab(n+2, *fOut); *fOut << "HEAPF[dsp + offset >> 2] = value;";
-            } else if (gGlobal->gFloatSize == 2) {
-                tab(n+2, *fOut); *fOut << "HEAPF[dsp + offset >> 3] = value;";
-            }
+            tab(n+2, *fOut); *fOut << "HEAPF[dsp + offset >> " << offStr << "] = value;";
         tab(n+1, *fOut); *fOut << "}";
     
         // getParamValue
@@ -335,11 +331,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "function getParamValue(dsp, offset) {";
             tab(n+2, *fOut); *fOut << "dsp = dsp | 0;";
             tab(n+2, *fOut); *fOut << "offset = offset | 0;";
-            if (gGlobal->gFloatSize == 1) {
-                tab(n+2, *fOut); *fOut << "return +HEAPF[dsp + offset >> 2];";
-            } else if (gGlobal->gFloatSize == 2) {
-                tab(n+2, *fOut); *fOut << "return +HEAPF[dsp + offset >> 3];";
-            }
+            tab(n+2, *fOut); *fOut << "return +(HEAPF[dsp + offset >> " << offStr << "]);";
         tab(n+1, *fOut); *fOut << "}";
     
         // Compute

@@ -91,6 +91,9 @@ struct TypingVisitor : public InstVisitor {
                 } else {
                     inst->fInst2->accept(this);
                     Typed::VarType type2 = fCurType;
+                    
+                    //std::cout << "BinopInst " << Typed::gTypeString[type1] << " " << Typed::gTypeString[type2] << std::endl;
+                    
                     if (isRealType(type2)) {
                         fCurType = type2;
                     } else if (isIntType(type1) || isIntType(type2)) {

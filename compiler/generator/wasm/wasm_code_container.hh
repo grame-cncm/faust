@@ -25,6 +25,7 @@
 #include "code_container.hh"
 #include "wasm_instructions.hh"
 #include "dsp_factory.hh"
+#include "fir_to_fir.hh"
 
 using namespace std;
 
@@ -34,6 +35,14 @@ class WASMCodeContainer : public virtual CodeContainer {
 
         std::ostream* fOut;
         std::stringstream fHelper;
+    
+        void generateWASMBlock(BlockInst* instructions)
+        {
+            // Moves all variables declaration at the beginning of the block
+            MoveVariablesInFront3 mover;
+            BlockInst* block = mover.getCode(instructions);
+            block->accept(gGlobal->gWASMVisitor);
+        }
 
     public:
 
