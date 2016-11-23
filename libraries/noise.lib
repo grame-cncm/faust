@@ -61,7 +61,7 @@ declare version "0.0";
 
 //-------`noise`----------
 // White noise generator (outputs random number between -1 and 1).
-// Noise is a standard Faust function.
+// `Noise` is a standard Faust function.
 //
 // #### Usage
 //
@@ -123,6 +123,7 @@ noises(N,i) = multinoise(N) : ba.selector(i,N);
 
 //---------------------------`pink_noise`--------------------------
 // Pink noise (1/f noise) generator (third-order approximation)
+// `pink_noise` is a standard Faust function.
 //
 // #### Usage
 //
