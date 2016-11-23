@@ -249,6 +249,15 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 *fOut << "+(";
                 inst->fAddress->accept(this);
                 *fOut << ")";
+            } else {
+                // HACK : completely adhoc code for inputs/outputs...
+                if (startWith(inst->getName(), "inputs") || startWith(inst->getName(), "outputs")) {
+                    *fOut << "(";
+                    inst->fAddress->accept(this);
+                    *fOut << " | 0)";
+                } else {
+                    inst->fAddress->accept(this);
+                }
             }
         }
         
