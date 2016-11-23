@@ -1,4 +1,4 @@
-# FAUST : a programming language for audio applications and plugins
+# FAUST - a programming language for audio applications and plugins
 ## Grame, Centre National de Creation Musicale : http://www.grame.fr
 
 ### Introduction
@@ -23,38 +23,37 @@ The Faust distribution can be downloaded at: [Faust Github Repo](https://github.
 
 It's organization is the following :
 
-	*architecture/*          : the architecture files and libraries currently supported
-	*benchmark/*             : tools to measure the impact of various compiler options
-	*compiler/*              : sources of the Faust compiler
-	*documentation/*         : Faust developer's documentation
-	*debian/*                : files for Debian installation
-	*examples/*              : examples of Faust programs with makefiles for various audio targets
-	*installer/*             : various instalers for Linux distribution
-	*libraries/*             : DSP libraries
-	*syntax-highlighting/*   : support for syntax highlighting for several editors
-	*test/*                  : various tests
-	*tools/*                 : additional easy-to-use scripts to produce binaries and plugins
-	*windows/*               : Windows projects
+	architecture/          : the architecture files and libraries currently supported
+	benchmark/             : tools to measure the impact of various compiler options
+	compiler/              : sources of the Faust compiler
+	documentation/         : Faust developer's documentation
+	debian/                : files for Debian installation
+	examples/              : examples of Faust programs with makefiles for various audio targets
+	installer/             : various instalers for Linux distribution
+	libraries/             : DSP libraries
+	syntax-highlighting/   : support for syntax highlighting for several editors
+	test/                  : various tests
+	tools/                 : additional easy-to-use scripts to produce binaries and plugins
+	windows/               : Windows projects
 
 
 ### Compilation and installation
 
 #### To compile and install the Faust compiler on Linux and MacOSX : 
-	```
+
 	make
 	su
 	make install
-	```
+
 or
-	```
+
 	sudo make install
-	```
 
 It could be also useful to install additional tools, for example :
-	```
+
 	cd tools/faust2appls/
 	sudo make install
-	```
+
 	
 #### On Windows :
 
@@ -69,13 +68,12 @@ and use the project file 'compiler.pro' in the compiler folder.
 
 
 #### Compilation of the examples
--------------------------------
+
 Several FAUST examples are provided in the example folder. To
 compile and test the examples with Jack/GTK do :
-	```
+
 	cd examples
 	make jackgtk
-	```
 
 This will create a subfolder jackgtkdir with all the jack
 applications. You can also create alsa applications (make alsagtk)
@@ -85,9 +83,9 @@ In order to compile your own applications, you can simply place you
 files in the example folder and use the existing makefiles.
 
 To list for possible audio targets :
-	```
+
 	make help
-	```
+
 
 About 20 different audio platforms are supported : 
 
@@ -136,12 +134,11 @@ Mines/ParisTech), Laurent Pottier (U. Saint-Etienne)
 
 
 ### Questions and suggestions
-----------------------------
 
 If you have questions suggestions and comments, or if you want to 
 contribute to the project, two mailing lists are available:
-https://lists.sourceforge.net/lists/listinfo/faudiostream-devel
-https://lists.sourceforge.net/lists/listinfo/faudiostream-users
+- [Development List](https://lists.sourceforge.net/lists/listinfo/faudiostream-devel)
+- [Users List](https://lists.sourceforge.net/lists/listinfo/faudiostream-users)
 
 Yann Orlarey
 
