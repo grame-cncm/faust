@@ -33,7 +33,7 @@ using namespace std;
  
     1) mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), or are imported from the external Math context,
     or implementted manually (like fmod or log10)
-    2) local variables have to be declared first on the block, before being actually initialized or set : this is the job of MoveVariablesInFront3
+    2) local variables have to be declared first on the block, before being actually initialized or set : this is done using MoveVariablesInFront3
 
 */
 
@@ -151,10 +151,12 @@ void WASMCodeContainer::produceClass()
         // Exported functions
         tab(n+1, *fOut); *fOut << "(export \"getNumInputs\" (func $getNumInputs))";
         tab(n+1, *fOut); *fOut << "(export \"getNumOutputs\" (func $getNumOutputs))";
-        tab(n+1, *fOut); *fOut << "(export \"classInit\" (func $classInit))";
-        tab(n+1, *fOut); *fOut << "(export \"instanceInit\" (func $instanceInit))";
-        tab(n+1, *fOut); *fOut << "(export \"init\" (func $init))";
         tab(n+1, *fOut); *fOut << "(export \"getSampleRate\" (func $getSampleRate))";
+        tab(n+1, *fOut); *fOut << "(export \"init\" (func $init))";
+        tab(n+1, *fOut); *fOut << "(export \"instanceInit\" (func $instanceInit))";
+        tab(n+1, *fOut); *fOut << "(export \"instanceConstants\" (func $instanceConstants))";
+        tab(n+1, *fOut); *fOut << "(export \"instanceResetUserInterface\" (func $instanceResetUserInterface))";
+        tab(n+1, *fOut); *fOut << "(export \"instanceClear\" (func $instanceClear))";
         tab(n+1, *fOut); *fOut << "(export \"setParamValue\" (func $setParamValue))";
         tab(n+1, *fOut); *fOut << "(export \"getParamValue\" (func $getParamValue))";
         tab(n+1, *fOut); *fOut << "(export \"compute\" (func $compute))";
@@ -238,7 +240,6 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << ")";
     
         // setParamValue
-        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "(func $setParamValue (type $6) (param $dsp i32) (param $index i32) (param $value " << realStr << ")";
             tab(n+2, *fOut); *fOut << "(" << realStr << ".store ";
                 tab(n+3, *fOut); *fOut << "(i32.add (get_local $dsp) (get_local $index))";
@@ -247,7 +248,6 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << ")";
     
         // getParamValue
-        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "(func $getParamValue (type $7) (param $dsp i32) (param $index i32) (result " << realStr << ")";
             tab(n+2, *fOut); *fOut << "(return (" << realStr << ".load (i32.add (get_local $dsp) (get_local $index))))";
         tab(n+1, *fOut); *fOut << ")";

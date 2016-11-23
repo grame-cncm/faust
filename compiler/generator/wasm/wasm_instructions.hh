@@ -531,7 +531,7 @@ class WASMInstVisitor : public TextInstVisitor {
                     //std::cout << "CastNumInst : cast to int, but arg already int !" << std::endl;
                     inst->fInst->accept(this);
                 } else {
-                    *fOut << "(i32.trunc_s/ " << realStr;
+                    *fOut << "(i32.trunc_s/" << realStr << " ";
                     inst->fInst->accept(this);
                     *fOut << ")";
                 }
