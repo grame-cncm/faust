@@ -357,12 +357,30 @@
 <li><a href="#oscp"><code>oscp</code></a></li>
 <li><a href="#osci"><code>osci</code></a></li>
 </ul></li>
-<li><a href="#virtual-analog-oscillators">Virtual Analog Oscillators</a><ul>
-<li><a href="#low-frequency-impulse-and-pulse-trains-square-and-triangle-waves">Low Frequency Impulse and Pulse Trains, Square and Triangle Waves</a></li>
-<li><a href="#low-frequency-sawtooths">Low Frequency Sawtooths</a></li>
-<li><a href="#bandlimited-sawtooth">Bandlimited Sawtooth</a></li>
-<li><a href="#bandlimited-pulse-square-and-impulse-trains">Bandlimited Pulse, Square, and Impulse Trains</a></li>
+<li><a href="#lfos">LFOs</a><ul>
+<li><a href="#lf_imptrain"><code>lf_imptrain</code></a></li>
+<li><a href="#lf_pulsetrainpos"><code>lf_pulsetrainpos</code></a></li>
+<li><a href="#lf_squarewavepos"><code>lf_squarewavepos</code></a></li>
+<li><a href="#lf_squarewave"><code>lf_squarewave</code></a></li>
+<li><a href="#lf_trianglepos"><code>lf_trianglepos</code></a></li>
+<li><a href="#lf_triangle"><code>lf_triangle</code></a></li>
 </ul></li>
+<li><a href="#low-frequency-sawtooths">Low Frequency Sawtooths</a><ul>
+<li><a href="#lf_rawsaw"><code>lf_rawsaw</code></a></li>
+<li><a href="#lf_sawpos"><code>lf_sawpos</code></a></li>
+<li><a href="#lf_saw"><code>lf_saw</code></a></li>
+<li><a href="#lf_sawpos_phase"><code>lf_sawpos_phase</code></a></li>
+</ul></li>
+<li><a href="#bandlimited-sawtooth">Bandlimited Sawtooth</a><ul>
+<li><a href="#sawn"><code>sawN</code></a></li>
+<li><a href="#sawnp"><code>sawNp</code></a></li>
+<li><a href="#saw2dpw"><code>saw2dpw</code></a></li>
+<li><a href="#saw3"><code>saw3</code></a></li>
+<li><a href="#sawtooth"><code>sawtooth</code></a></li>
+<li><a href="#saw2f2"><code>saw2f2</code></a></li>
+<li><a href="#saw2f4"><code>saw2f4</code></a></li>
+</ul></li>
+<li><a href="#bandlimited-pulse-square-and-impulse-trains">Bandlimited Pulse, Square, and Impulse Trains</a></li>
 <li><a href="#filter-based-oscillators">Filter-Based Oscillators</a><ul>
 <li><a href="#oscb"><code>oscb</code></a></li>
 <li><a href="#oscroscrs-and-oscs"><code>oscr</code>,<code>oscrs</code> and <code>oscs</code></a></li>
@@ -657,9 +675,49 @@ process = si.smooth(0.999);</code></pre>
 <td align="left">White noise generator</td>
 </tr>
 <tr class="even">
-<td align="left"><a href="#osc">Sine</a></td>
+<td align="left"><a href="#pink_noise">Pink Noise</a></td>
+<td align="left"><a href="#noise.lib"><code>no.</code></a><a href="#pink_noise"><code>pink_noise</code></a></td>
+<td align="left">Pink noise generator</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="#phasor">Phasor</a></td>
+<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#phasor"><code>phasor</code></a></td>
+<td align="left">Simple phasor</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="#oscsin">Sine (Table-Based)</a></td>
+<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#oscsin"><code>oscsin</code></a></td>
+<td align="left">Sine wave oscillator (table-based)</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="#osc">Sine (Filter-Based)</a></td>
 <td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#osc"><code>osc</code></a></td>
-<td align="left">Sine wave oscillator (filter based)</td>
+<td align="left">Sine wave oscillator (filter-based)</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="#lf_imptrain">LF Pulse Train</a></td>
+<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#lf_imptrain"><code>lf_imptrain</code></a></td>
+<td align="left">Low-frequency impulse train</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="#lf_squarewave">LF Square Wave</a></td>
+<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#lf_squarewave"><code>lf_squarewave</code></a></td>
+<td align="left">Low-frequency square wave</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="#lf_triangle">LF Triangle Wave</a></td>
+<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#lf_triangle"><code>lf_triangle</code></a></td>
+<td align="left">Low-frequency triangle wave</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="#lf_saw">LF Sawtooth Wave</a></td>
+<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#lf_saw"><code>lf_saw</code></a></td>
+<td align="left">Low-frequency sawtooth wave</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="#sawtooth">Sawtooth Wave</a></td>
+<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#sawtooth"><code>sawtooth</code></a></td>
+<td align="left">Alias-free sawtooth wave</td>
 </tr>
 </tbody>
 </table>
@@ -3061,7 +3119,7 @@ process = os.functionCall;</code></pre>
 </ul>
 <hr />
 <h3 id="phasor"><code>phasor</code></h3>
-<p>A simple phasor to be used with a <code>rdtable</code>.</p>
+<p>A simple phasor to be used with a <code>rdtable</code>. <code>phasor</code> is a standard Faust function.</p>
 <h4 id="usage-199">Usage</h4>
 <pre><code>phasor(tablesize,freq) : _</code></pre>
 <p>Where:</p>
@@ -3071,7 +3129,7 @@ process = os.functionCall;</code></pre>
 </ul>
 <hr />
 <h3 id="oscsin"><code>oscsin</code></h3>
-<p>Sine wave oscillator.</p>
+<p>Sine wave oscillator. <code>oscsin</code> is a standard Faust function.</p>
 <h4 id="usage-200">Usage</h4>
 <pre><code>oscsin(freq) : _</code></pre>
 <p>Where:</p>
@@ -3107,41 +3165,103 @@ process = os.functionCall;</code></pre>
 <li><code>freq</code>: the frequency of the wave (Hz)</li>
 </ul>
 <hr />
-<h2 id="virtual-analog-oscillators">Virtual Analog Oscillators</h2>
-<p>Mostly elements from old &quot;oscillator.lib&quot;.</p>
-<p>Virtual analog oscillators and filter-based oscillators.</p>
-<p>Low-frequency oscillators have prefix <code>lf_</code> (no aliasing suppression, signal-means not necessarily zero)</p>
-<h3 id="low-frequency-impulse-and-pulse-trains-square-and-triangle-waves">Low Frequency Impulse and Pulse Trains, Square and Triangle Waves</h3>
-<p>Low Frequency Impulse and Pulse Trains, Square and Triangle Waves</p>
-<p><code>lf_imptrain</code>, <code>lf_pulsetrainpos</code>, <code>lf_squarewavepos</code>, <code>lf_squarewave</code>, <code>lf_trianglepos</code></p>
+<h2 id="lfos">LFOs</h2>
+<p>Low-frequency oscillators have prefix <code>lf_</code> (no aliasing suppression, signal-means not necessarily zero).</p>
+<h3 id="lf_imptrain"><code>lf_imptrain</code></h3>
+<p>Unit-amplitude low-frequency impulse train. <code>lf_imptrain</code> is a standard Faust function.</p>
 <h4 id="usage-204">Usage</h4>
-<pre><code>lf_imptrain(freq) : _
-lf_pulsetrainpos(freq,duty) : _
-lf_squarewavepos(freq) : _
-lf_squarewave(freq) : _
-lf_trianglepos(freq) : _</code></pre>
+<pre><code>lf_imptrain(freq) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: frequency in Hz</li>
+</ul>
+<hr />
+<h3 id="lf_pulsetrainpos"><code>lf_pulsetrainpos</code></h3>
+<p>Unit-amplitude nonnegative LF pulse train, duty cycle between 0 and 1</p>
+<h4 id="usage-205">Usage</h4>
+<pre><code>lf_pulsetrainpos(freq,duty) : _</code></pre>
 <p>Where:</p>
 <ul>
 <li><code>freq</code>: frequency in Hz</li>
 <li><code>duty</code>: duty cycle between 0 and 1</li>
 </ul>
-<h4 id="notes">Notes</h4>
+<hr />
+<h3 id="lf_squarewavepos"><code>lf_squarewavepos</code></h3>
+<p>Positive LF square wave in [0,1]</p>
+<h4 id="usage-206">Usage</h4>
+<pre><code>lf_squarewavepos(freq) : _</code></pre>
+<p>Where:</p>
 <ul>
-<li>Suffix 'pos' means the function is nonnegative, otherwise ~ zero mean</li>
-<li>All impulse and pulse trains jump to 1 at time 0</li>
+<li><code>freq</code>: frequency in Hz</li>
 </ul>
 <hr />
-<h3 id="low-frequency-sawtooths">Low Frequency Sawtooths</h3>
-<p>Low Frequency Sawtooths</p>
-<p><code>lf_rawsaw</code>, <code>lf_sawpos</code>, <code>lf_sawpos_phase</code></p>
-<p>Sawtooth waveform oscillators for virtual analog synthesis et al. The 'simple' versions (<code>lf_rawsaw</code>, <code>lf_sawpos</code> and <code>saw1</code>), are mere samplings of the ideal continuous-time (&quot;analog&quot;) waveforms. While simple, the aliasing due to sampling is quite audible. The differentiated polynomial waveform family (<code>saw2</code>, <code>sawN</code>, and derived functions) do some extra processing to suppress aliasing (not audible for very low fundamental frequencies). According to Lehtonen et al. (JASA 2012), the aliasing of <code>saw2</code> should be inaudible at fundamental frequencies below 2 kHz or so, for a 44.1 kHz sampling rate and 60 dB SPL presentation level; fundamentals 415 and below required no aliasing suppression (i.e., <code>saw1</code> is ok).</p>
-<h4 id="usage-205">Usage</h4>
-<pre><code>lf_rawsaw(periodsamps) : _
-lf_sawpos(freq) : _
-lf_sawpos_phase(phase,freq) : _
-saw1(freq) : _</code></pre>
+<h3 id="lf_squarewave"><code>lf_squarewave</code></h3>
+<p>Zero-mean unit-amplitude LF square wave. <code>lf_squarewave</code> is a standard Faust function.</p>
+<h4 id="usage-207">Usage</h4>
+<pre><code>lf_squarewave(freq) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: frequency in Hz</li>
+</ul>
 <hr />
-<h3 id="bandlimited-sawtooth">Bandlimited Sawtooth</h3>
+<h3 id="lf_trianglepos"><code>lf_trianglepos</code></h3>
+<p>Positive unit-amplitude LF positive triangle wave</p>
+<h4 id="usage-208">Usage</h4>
+<pre><code>lf_trianglepos(freq) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: frequency in Hz</li>
+</ul>
+<hr />
+<h3 id="lf_triangle"><code>lf_triangle</code></h3>
+<p>Positive unit-amplitude LF triangle wave <code>lf_triangle</code> is a standard Faust function.</p>
+<h4 id="usage-209">Usage</h4>
+<pre><code>lf_triangle(freq) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: frequency in Hz</li>
+</ul>
+<hr />
+<h2 id="low-frequency-sawtooths">Low Frequency Sawtooths</h2>
+<p>Sawtooth waveform oscillators for virtual analog synthesis et al. The 'simple' versions (<code>lf_rawsaw</code>, <code>lf_sawpos</code> and <code>saw1</code>), are mere samplings of the ideal continuous-time (&quot;analog&quot;) waveforms. While simple, the aliasing due to sampling is quite audible. The differentiated polynomial waveform family (<code>saw2</code>, <code>sawN</code>, and derived functions) do some extra processing to suppress aliasing (not audible for very low fundamental frequencies). According to Lehtonen et al. (JASA 2012), the aliasing of <code>saw2</code> should be inaudible at fundamental frequencies below 2 kHz or so, for a 44.1 kHz sampling rate and 60 dB SPL presentation level; fundamentals 415 and below required no aliasing suppression (i.e., <code>saw1</code> is ok).</p>
+<h3 id="lf_rawsaw"><code>lf_rawsaw</code></h3>
+<p>Simple sawtooth waveform oscillator between 0 and period in samples.</p>
+<h4 id="usage-210">Usage</h4>
+<pre><code>lf_rawsaw(periodsamps)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>periodsamps</code>: number of periods per samples</li>
+</ul>
+<hr />
+<h3 id="lf_sawpos"><code>lf_sawpos</code></h3>
+<p>Simple sawtooth waveform oscillator between 0 and 1.</p>
+<h4 id="usage-211">Usage</h4>
+<pre><code>lf_sawpos(freq)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: frequency</li>
+</ul>
+<hr />
+<h3 id="lf_saw"><code>lf_saw</code></h3>
+<p>Simple sawtooth waveform. <code>lf_saw</code> is a standard Faust function.</p>
+<h4 id="usage-212">Usage</h4>
+<pre><code>lf_saw(freq)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: frequency</li>
+</ul>
+<hr />
+<h3 id="lf_sawpos_phase"><code>lf_sawpos_phase</code></h3>
+<p>Simple sawtooth waveform oscillator between 0 and 1 with phase control.</p>
+<h4 id="usage-213">Usage</h4>
+<pre><code>lf_sawpos_phase(freq,phase)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: frequency</li>
+<li><code>phase</code>: phase</li>
+</ul>
+<hr />
+<h2 id="bandlimited-sawtooth">Bandlimited Sawtooth</h2>
 <p>Bandlimited Sawtooth</p>
 <p><code>sawN(N,freq)</code>, <code>sawNp</code>, <code>saw2dpw(freq)</code>, <code>saw2(freq)</code>, <code>saw3(freq)</code>, <code>saw4(freq)</code>, <code>saw5(freq)</code>, <code>saw6(freq)</code>, <code>sawtooth(freq)</code>, <code>saw2f2(freq)</code> <code>saw2f4(freq)</code></p>
 <h4 id="method-1-saw2">Method 1 (<code>saw2</code>)</h4>
@@ -3158,7 +3278,7 @@ saw1(freq) : _</code></pre>
 <p>&quot;Alias-Suppressed Oscillators based on Differentiated Polynomial Waveforms&quot;, Vesa Valimaki, Juhan Nam, Julius Smith, and Jonathan Abel, IEEE Tr. Acoustics, Speech, and Language Processing (IEEE-ASLP), Vol. 18, no. 5, May 2010.</p>
 <h4 id="other-cases">Other Cases</h4>
 <p>Correction-filtered versions of <code>saw2</code>: <code>saw2f2</code>, <code>saw2f4</code> The correction filter compensates &quot;droop&quot; near half the sampling rate. See reference for sawN.</p>
-<h4 id="usage-206">Usage</h4>
+<h4 id="usage-214">Usage</h4>
 <pre><code>sawN(N,freq) : _
 sawNp(N,freq,phase) : _
 saw2dpw(freq) : _
@@ -3176,12 +3296,38 @@ saw2f4(freq) : _</code></pre>
 <li><code>freq</code>: frequency in Hz</li>
 <li><code>phase</code>: phase</li>
 </ul>
+<h3 id="sawn"><code>sawN</code></h3>
+<p>TODO: implemented but not documented. For now, you can look at the source code.</p>
 <hr />
-<h3 id="bandlimited-pulse-square-and-impulse-trains">Bandlimited Pulse, Square, and Impulse Trains</h3>
+<h3 id="sawnp"><code>sawNp</code></h3>
+<p>TODO: implemented but not documented. For now, you can look at the source code.</p>
+<hr />
+<h3 id="saw2dpw"><code>saw2dpw</code></h3>
+<p>TODO: implemented but not documented. For now, you can look at the source code.</p>
+<hr />
+<h3 id="saw3"><code>saw3</code></h3>
+<p>TODO: implemented but not documented. For now, you can look at the source code.</p>
+<hr />
+<h3 id="sawtooth"><code>sawtooth</code></h3>
+<p>Alias-free sawtooth wave. 2nd order interpolation (based on <code>saw2</code>). <code>sawtooth</code> is a standard Faust function.</p>
+<h4 id="usage-215">Usage</h4>
+<pre><code>sawtooth(freq) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: frequency</li>
+</ul>
+<hr />
+<h3 id="saw2f2"><code>saw2f2</code></h3>
+<p>TODO: implemented but not documented. For now, you can look at the source code.</p>
+<hr />
+<h3 id="saw2f4"><code>saw2f4</code></h3>
+<p>TODO: implemented but not documented. For now, you can look at the source code.</p>
+<hr />
+<h2 id="bandlimited-pulse-square-and-impulse-trains">Bandlimited Pulse, Square, and Impulse Trains</h2>
 <p>Bandlimited Pulse, Square, and Impulse Trains</p>
 <p><code>pulsetrainN</code>, <code>pulsetrain</code>, <code>squareN</code>, <code>square</code>, <code>imptrain</code>, <code>imptrainN</code>, <code>triangle</code>, <code>triangleN</code></p>
 <p>All are zero-mean and meant to oscillate in the audio frequency range. Use simpler sample-rounded lf_* versions above for LFOs.</p>
-<h4 id="usage-207">Usage</h4>
+<h4 id="usage-216">Usage</h4>
 <pre><code>pulsetrainN(N,freq,duty) : _ 
 pulsetrain(freq, duty) : _ // = pulsetrainN(2) 
 squareN(N, freq) : _
@@ -3195,10 +3341,9 @@ triangle : _ // = triangleN(2)</code></pre>
 <li><code>N</code>: polynomial order</li>
 <li><code>freq</code>: frequency in Hz</li>
 </ul>
-<hr />
 <h2 id="filter-based-oscillators">Filter-Based Oscillators</h2>
 <p>Filter-Based Oscillators</p>
-<h4 id="usage-208">Usage</h4>
+<h4 id="usage-217">Usage</h4>
 <pre><code>osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.</code></pre>
 <h4 id="references-18">References</h4>
 <ul>
@@ -3216,7 +3361,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="osc"><code>osc</code></h3>
 <p>Default sine wave oscillator (same as oscrs). <code>osc</code> is a standard Faust function.</p>
-<h4 id="usage-209">Usage</h4>
+<h4 id="usage-218">Usage</h4>
 <pre><code>osc(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3245,13 +3390,13 @@ process = no.functionCall;</code></pre>
 process = no.functionCall;</code></pre>
 <h2 id="functions-reference-3">Functions Reference</h2>
 <h3 id="noise"><code>noise</code></h3>
-<p>White noise generator (outputs random number between -1 and 1). Noise is a standard Faust function.</p>
-<h4 id="usage-210">Usage</h4>
+<p>White noise generator (outputs random number between -1 and 1). <code>Noise</code> is a standard Faust function.</p>
+<h4 id="usage-219">Usage</h4>
 <pre><code>noise : _</code></pre>
 <hr />
 <h3 id="multirandom"><code>multirandom</code></h3>
 <p>Generates multiple decorrelated random numbers in parallel.</p>
-<h4 id="usage-211">Usage</h4>
+<h4 id="usage-220">Usage</h4>
 <pre><code>multirandom(n) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3260,7 +3405,7 @@ process = no.functionCall;</code></pre>
 <hr />
 <h3 id="multinoise"><code>multinoise</code></h3>
 <p>Generates multiple decorrelated noises in parallel.</p>
-<h4 id="usage-212">Usage</h4>
+<h4 id="usage-221">Usage</h4>
 <pre><code>multinoise(n) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3271,15 +3416,15 @@ process = no.functionCall;</code></pre>
 <p>TODO.</p>
 <hr />
 <h3 id="pink_noise"><code>pink_noise</code></h3>
-<p>Pink noise (1/f noise) generator (third-order approximation)</p>
-<h4 id="usage-213">Usage</h4>
+<p>Pink noise (1/f noise) generator (third-order approximation) <code>pink_noise</code> is a standard Faust function.</p>
+<h4 id="usage-222">Usage</h4>
 <pre><code>pink_noise : _;</code></pre>
 <h4 id="reference-37">Reference:</h4>
 <p><a href="https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html" class="uri">https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html</a></p>
 <hr />
 <h3 id="pink_noise_vm"><code>pink_noise_vm</code></h3>
 <p>Multi pink noise generator.</p>
-<h4 id="usage-214">Usage</h4>
+<h4 id="usage-223">Usage</h4>
 <pre><code>pink_noise_vm(N) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -3293,7 +3438,7 @@ process = no.functionCall;</code></pre>
 <hr />
 <h3 id="lfnoise-lfnoise0-and-lfnoisen"><code>lfnoise</code>, <code>lfnoise0</code> and <code>lfnoiseN</code></h3>
 <p>Low-frequency noise generators (Butterworth-filtered downsampled white noise)</p>
-<h4 id="usage-215">Usage</h4>
+<h4 id="usage-224">Usage</h4>
 <pre><code>lfnoise0(rate) : _;   // new random number every int(SR/rate) samples or so
 lfnoiseN(N,rate) : _; // same as &quot;lfnoise0(rate) : lowpass(N,rate)&quot; [see filter.lib]
 lfnoise(rate) : _;    // same as &quot;lfnoise0(rate) : seq(i,5,lowpass(N,rate))&quot; (no overshoot)</code></pre>
@@ -3315,7 +3460,7 @@ process = pf.functionCall;</code></pre>
 <h2 id="functions-reference-4">Functions Reference</h2>
 <h3 id="flanger_mono-and-flanger_stereo"><code>flanger_mono</code> and <code>flanger_stereo</code></h3>
 <p>Flanging effect.</p>
-<h4 id="usage-216">Usage:</h4>
+<h4 id="usage-225">Usage:</h4>
 <pre><code>_ : flanger_mono(dmax,curdel,depth,fb,invert) : _;
 _,_ : flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert) : _,_;
 _,_ : flanger_demo : _,_;</code></pre>
@@ -3449,13 +3594,13 @@ process = re.functionCall;</code></pre>
 <p>These artificial reverberators take a mono signal and output stereo (<code>satrev</code>) and quad (<code>jcrev</code>). They were implemented by John Chowning in the MUS10 computer-music language (descended from Music V by Max Mathews). They are Schroeder Reverberators, well tuned for their size. Nowadays, the more expensive freeverb is more commonly used (see the Faust examples directory).</p>
 <p><code>jcrev</code> reverb below was made from a listing of &quot;RV&quot;, dated April 14, 1972, which was recovered from an old SAIL DART backup tape. John Chowning thinks this might be the one that became the well known and often copied JCREV.</p>
 <p><code>satrev</code> was made from a listing of &quot;SATREV&quot;, dated May 15, 1971, which was recovered from an old SAIL DART backup tape. John Chowning thinks this might be the one used on his often-heard brass canon sound examples, one of which can be found at <a href="https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav" class="uri">https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav</a></p>
-<h4 id="usage-217">Usage</h4>
+<h4 id="usage-226">Usage</h4>
 <pre><code>_ : jcrev : _,_,_,_
 _ : satrev : _,_</code></pre>
 <hr />
 <h3 id="mono_freeverb-and-stereo_freeverb"><code>mono_freeverb</code> and <code>stereo_freeverb</code></h3>
 <p>A simple Schroeder reverberator primarily developed by &quot;Jezar at Dreampoint&quot; that is extensively used in the free-software world. It uses four Schroeder allpasses in series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each audio channel, and is said to be especially well tuned.</p>
-<h4 id="usage-218">Usage</h4>
+<h4 id="usage-227">Usage</h4>
 <pre><code>_ : mono_freeverb(fb1, fb2, damp, spread) : _;
 _,_ : stereo_freeverb(fb1, fb2, damp, spread) : _,_;</code></pre>
 <p>Where:</p>
@@ -3468,7 +3613,7 @@ _,_ : stereo_freeverb(fb1, fb2, damp, spread) : _,_;</code></pre>
 <hr />
 <h3 id="fdnrev0"><code>fdnrev0</code></h3>
 <p>Pure Feedback Delay Network Reverberator (generalized for easy scaling).</p>
-<h4 id="usage-219">Usage</h4>
+<h4 id="usage-228">Usage</h4>
 <pre><code>&lt;1,2,4,...,N signals&gt; &lt;:
 fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl) :&gt;
 &lt;1,2,4,...,N signals&gt;</code></pre>
@@ -3493,7 +3638,7 @@ h='&#108;&#x69;&#110;&#x75;&#120;&#x61;&#x75;&#100;&#x69;&#x6f;&#46;&#x6f;&#114;
 document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\/'+'a'+'>');
 // -->
 </script><noscript>&#102;&#x6f;&#110;&#x73;&#32;&#x61;&#116;&#32;&#108;&#x69;&#110;&#x75;&#120;&#x61;&#x75;&#100;&#x69;&#x6f;&#32;&#100;&#x6f;&#116;&#32;&#x6f;&#114;&#x67;</noscript>. This is an FDN reverb with allpass comb filters in each feedback delay in addition to the damping filters.</p>
-<h4 id="usage-220">Usage</h4>
+<h4 id="usage-229">Usage</h4>
 <pre><code>bus(8) : zita_rev_fdn(f1,f2,t60dc,t60m,fsmax) : bus(8)</code></pre>
 <p>Where:</p>
 <ul>
@@ -3511,14 +3656,14 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\
 <hr />
 <h3 id="zita_rev1_stereo"><code>zita_rev1_stereo</code></h3>
 <p>Extend <code>zita_rev_fdn</code> to include <code>zita_rev1</code> input/output mapping in stereo mode.</p>
-<h4 id="usage-221">Usage</h4>
+<h4 id="usage-230">Usage</h4>
 <pre><code>_,_ : zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax) : _,_</code></pre>
 <p>Where:</p>
 <p><code>rdel</code> = delay (in ms) before reverberation begins (e.g., 0 to ~100 ms) (remaining args and refs as for <code>zita_rev_fdn</code> above)</p>
 <hr />
 <h3 id="zita_rev1_ambi"><code>zita_rev1_ambi</code></h3>
 <p>Extend zita_rev_fdn to include zita_rev1 input/output mapping in &quot;ambisonics mode&quot;, as provided in the Linux C++ version.</p>
-<h4 id="usage-222">Usage</h4>
+<h4 id="usage-231">Usage</h4>
 <pre><code>_,_ : zita_rev1_ambi(rgxyz,rdel,f1,f2,t60dc,t60m,fsmax) : _,_,_,_</code></pre>
 <p>Where:</p>
 <p><code>rgxyz</code> = relative gain of lanes 1,4,2 to lane 0 in output (e.g., -9 to 9) (remaining args and references as for zita_rev1_stereo above)</p>
@@ -3534,7 +3679,7 @@ process = ro.functionCall;</code></pre>
 <h2 id="functions-reference-6">Functions Reference</h2>
 <h3 id="cross"><code>cross</code></h3>
 <p>Cross n signals: <code>(x1,x2,..,xn) -&gt; (xn,..,x2,x1)</code>.</p>
-<h4 id="usage-223">Usage</h4>
+<h4 id="usage-232">Usage</h4>
 <pre><code>cross(n)
 _,_,_ : cross(3) : _,_,_</code></pre>
 <p>Where:</p>
@@ -3547,7 +3692,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="crossnn"><code>crossnn</code></h3>
 <p>Cross two <code>bus(n)</code>s.</p>
-<h4 id="usage-224">Usage</h4>
+<h4 id="usage-233">Usage</h4>
 <pre><code>_,_,... : crossmm(n) : _,_,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -3556,7 +3701,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="crossn1"><code>crossn1</code></h3>
 <p>Cross bus(n) and bus(1).</p>
-<h4 id="usage-225">Usage</h4>
+<h4 id="usage-234">Usage</h4>
 <pre><code>_,_,... : crossn1(n) : _,_,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -3565,7 +3710,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="interleave"><code>interleave</code></h3>
 <p>Interleave row<em>col cables from column order to row order. input : x(0), x(1), x(2) ..., x(row</em>col-1) output: x(0+0<em>row), x(0+1</em>row), x(0+2<em>row), ..., x(1+0</em>row), x(1+1<em>row), x(1+2</em>row), ...</p>
-<h4 id="usage-226">Usage</h4>
+<h4 id="usage-235">Usage</h4>
 <pre><code>_,_,_,_,_,_ : interleave(row,column) : _,_,_,_,_,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -3575,7 +3720,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="butterfly"><code>butterfly</code></h3>
 <p>Addition (first half) then substraction (second half) of interleaved signals.</p>
-<h4 id="usage-227">Usage</h4>
+<h4 id="usage-236">Usage</h4>
 <pre><code>_,_,_,_ : butterfly(n) : _,_,_,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -3584,7 +3729,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="hadamard"><code>hadamard</code></h3>
 <p>Hadamard matrix function of size <code>n = 2^k</code>.</p>
-<h4 id="usage-228">Usage</h4>
+<h4 id="usage-237">Usage</h4>
 <pre><code>_,_,_,_ : hadamard(n) : _,_,_,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -3595,7 +3740,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="recursivize"><code>recursivize</code></h3>
 <p>Create a recursion from two arbitrary processors p and q.</p>
-<h4 id="usage-229">Usage</h4>
+<h4 id="usage-238">Usage</h4>
 <pre><code>_,_ : recursivize(p,q) : _,_
 </code></pre>
 <p>Where:</p>
@@ -3615,7 +3760,7 @@ process = si.functionCall;</code></pre>
 <h2 id="functions-reference-7">Functions Reference</h2>
 <h3 id="bus"><code>bus</code></h3>
 <p>n parallel cables</p>
-<h4 id="usage-230">Usage</h4>
+<h4 id="usage-239">Usage</h4>
 <pre><code>bus(n)
 bus(4) : _,_,_,_</code></pre>
 <p>Where:</p>
@@ -3625,7 +3770,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="block"><code>block</code></h3>
 <p>Block - terminate n signals.</p>
-<h4 id="usage-231">Usage</h4>
+<h4 id="usage-240">Usage</h4>
 <pre><code>_,_,... : block(n) : _,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -3634,7 +3779,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="interpolate"><code>interpolate</code></h3>
 <p>Linear interpolation between two signals.</p>
-<h4 id="usage-232">Usage</h4>
+<h4 id="usage-241">Usage</h4>
 <pre><code>_,_ : interpolate(i) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3643,7 +3788,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="smooth"><code>smooth</code></h3>
 <p>Exponential smoothing by a unity-dc-gain one-pole lowpass.</p>
-<h4 id="usage-233">Usage:</h4>
+<h4 id="usage-242">Usage:</h4>
 <pre><code>_ : smooth(tau2pole(tau)) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3659,12 +3804,12 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="smoo"><code>smoo</code></h3>
 <p>Smoothing function based on <code>smooth</code> ideal to smooth UI signals (sliders, etc.) down.</p>
-<h4 id="usage-234">Usage</h4>
+<h4 id="usage-243">Usage</h4>
 <pre><code>hslider(...) : smoo;</code></pre>
 <hr />
 <h3 id="polysmooth"><code>polySmooth</code></h3>
 <p>A smoothing function based on <code>smooth</code> that doesn't smooth when a trigger signal is given. This is very useful when making polyphonic synthesizer to make sure that the value of the parameter is the right one when the note is started.</p>
-<h4 id="usage-235">Usage</h4>
+<h4 id="usage-244">Usage</h4>
 <pre><code>hslider(...) : polysmooth(g,s,d) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3675,17 +3820,17 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="bsmooth"><code>bsmooth</code></h3>
 <p>Block smooth linear interpolation during a block of samples.</p>
-<h4 id="usage-236">Usage</h4>
+<h4 id="usage-245">Usage</h4>
 <pre><code>hslider(...) : bsmooth : _</code></pre>
 <hr />
 <h3 id="lag_ud"><code>lag_ud</code></h3>
 <p>Lag filter with separate times for up and down.</p>
-<h4 id="usage-237">Usage</h4>
+<h4 id="usage-246">Usage</h4>
 <pre><code>_ : lag_ud(up, dn, signal) : _;</code></pre>
 <hr />
 <h3 id="dot"><code>dot</code></h3>
 <p>Dot product for two vectors of size n.</p>
-<h4 id="usage-238">Usage</h4>
+<h4 id="usage-247">Usage</h4>
 <pre><code>_,_,_,_,_,_ : dot(n) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3702,7 +3847,7 @@ process = sp.functionCall;</code></pre>
 process = sp.functionCall;</code></pre>
 <h3 id="panner"><code>panner</code></h3>
 <p>A simple linear gain panner.</p>
-<h4 id="usage-239">Usage</h4>
+<h4 id="usage-248">Usage</h4>
 <pre><code>_ : panner(g) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -3711,7 +3856,7 @@ process = sp.functionCall;</code></pre>
 <hr />
 <h3 id="spat"><code>spat</code></h3>
 <p>GMEM SPAT: n-outputs spatializer</p>
-<h4 id="usage-240">Usage</h4>
+<h4 id="usage-249">Usage</h4>
 <pre><code>_ : spat(n,r,d) : _,_,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -3722,7 +3867,7 @@ process = sp.functionCall;</code></pre>
 <hr />
 <h3 id="stereoize"><code>stereoize</code></h3>
 <p>Transform an arbitrary processor <code>p</code> into a stereo processor with 2 inputs and 2 outputs.</p>
-<h4 id="usage-241">Usage</h4>
+<h4 id="usage-250">Usage</h4>
 <pre><code>_,_ : stereoize(p) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -3739,7 +3884,7 @@ process = sy.functionCall;</code></pre>
 process = sy.functionCall;</code></pre>
 <h3 id="popfilterperc"><code>popFilterPerc</code></h3>
 <p>A simple percussion instrument based on a &quot;poped&quot; resonant bandpass filter.</p>
-<h4 id="usage-242">Usage</h4>
+<h4 id="usage-251">Usage</h4>
 <pre><code>popFilterDrum(freq,q,gate) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -3750,7 +3895,7 @@ process = sy.functionCall;</code></pre>
 <hr />
 <h3 id="dubdub"><code>dubDub</code></h3>
 <p>A simple synth based on a sawtooth wave filtered by a resonant lowpass.</p>
-<h4 id="usage-243">Usage</h4>
+<h4 id="usage-252">Usage</h4>
 <pre><code>dubDub(freq,ctFreq,q,gate) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -3762,7 +3907,7 @@ process = sy.functionCall;</code></pre>
 <hr />
 <h3 id="sawtrombone"><code>sawTrombone</code></h3>
 <p>A simple trombone based on a lowpassed sawtooth wave.</p>
-<h4 id="usage-244">Usage</h4>
+<h4 id="usage-253">Usage</h4>
 <pre><code>sawTrombone(att,freq,gain,gate) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3774,7 +3919,7 @@ process = sy.functionCall;</code></pre>
 <hr />
 <h3 id="combstring"><code>combString</code></h3>
 <p>Simplest string physical model ever based on a comb filter.</p>
-<h4 id="usage-245">Usage</h4>
+<h4 id="usage-254">Usage</h4>
 <pre><code>combString(freq,res,gate) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -3785,7 +3930,7 @@ process = sy.functionCall;</code></pre>
 <hr />
 <h3 id="additivedrum"><code>additiveDrum</code></h3>
 <p>A simple drum using additive synthesis.</p>
-<h4 id="usage-246">Usage</h4>
+<h4 id="usage-255">Usage</h4>
 <pre><code>additiveDrum(freq,freqRatio,gain,harmDec,att,rel,gate) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3800,7 +3945,7 @@ process = sy.functionCall;</code></pre>
 <hr />
 <h3 id="additivedrum-1"><code>additiveDrum</code></h3>
 <p>An FM synthesizer with an arbitrary number of modulators connected as a sequence.</p>
-<h4 id="usage-247">Usage</h4>
+<h4 id="usage-256">Usage</h4>
 <pre><code>freqs = (300,400,...);
 indices = (20,...);
 fm(freqs,indices) : _</code></pre>
@@ -3821,7 +3966,7 @@ process = ve.functionCall;</code></pre>
 <h2 id="functions-reference-8">Functions Reference</h2>
 <h3 id="moog_vcf"><code>moog_vcf</code></h3>
 <p>Moog &quot;Voltage Controlled Filter&quot; (VCF) in &quot;analog&quot; form. Moog VCF implemented using the same logical block diagram as the classic analog circuit. As such, it neglects the one-sample delay associated with the feedback path around the four one-poles. This extra delay alters the response, especially at high frequencies (see reference [1] for details). See <code>moog_vcf_2b</code> below for a more accurate implementation.</p>
-<h4 id="usage-248">Usage</h4>
+<h4 id="usage-257">Usage</h4>
 <pre><code>moog_vcf(res,fr)</code></pre>
 <p>Where:</p>
 <ul>
@@ -3836,7 +3981,7 @@ process = ve.functionCall;</code></pre>
 <hr />
 <h3 id="moog_vcf_2bn"><code>moog_vcf_2b[n]</code></h3>
 <p>Moog &quot;Voltage Controlled Filter&quot; (VCF) as two biquads. Implementation of the ideal Moog VCF transfer function factored into second-order sections. As a result, it is more accurate than <code>moog_vcf</code> above, but its coefficient formulas are more complex when one or both parameters are varied. Here, res is the fourth root of that in <code>moog_vcf</code>, so, as the sampling rate approaches infinity, <code>moog_vcf(res,fr)</code> becomes equivalent to <code>moog_vcf_2b[n](res^4,fr)</code> (when res and fr are constant). <code>moog_vcf_2b</code> uses two direct-form biquads (<code>tf2</code>). <code>moog_vcf_2bn</code> uses two protected normalized-ladder biquads (<code>tf2np</code>).</p>
-<h4 id="usage-249">Usage</h4>
+<h4 id="usage-258">Usage</h4>
 <pre><code>moog_vcf_2b(res,fr)
 moog_vcf_2bn(res,fr)</code></pre>
 <p>Where:</p>
@@ -3847,7 +3992,7 @@ moog_vcf_2bn(res,fr)</code></pre>
 <hr />
 <h3 id="wah4"><code>wah4</code></h3>
 <p>Wah effect, 4th order.</p>
-<h4 id="usage-250">Usage</h4>
+<h4 id="usage-259">Usage</h4>
 <pre><code>_ : wah4(fr) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3858,7 +4003,7 @@ moog_vcf_2bn(res,fr)</code></pre>
 <hr />
 <h3 id="autowah"><code>autowah</code></h3>
 <p>Auto-wah effect.</p>
-<h4 id="usage-251">Usage</h4>
+<h4 id="usage-260">Usage</h4>
 <pre><code>_ : autowah(level) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -3867,7 +4012,7 @@ moog_vcf_2bn(res,fr)</code></pre>
 <hr />
 <h3 id="crybaby"><code>crybaby</code></h3>
 <p>Digitized CryBaby wah pedal.</p>
-<h4 id="usage-252">Usage</h4>
+<h4 id="usage-261">Usage</h4>
 <pre><code>_ : crybaby(wah) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3878,7 +4023,7 @@ moog_vcf_2bn(res,fr)</code></pre>
 <hr />
 <h3 id="vocoder"><code>vocoder</code></h3>
 <p>A very simple vocoder where the spectrum of the modulation signal is analyzed using a filter bank.</p>
-<h4 id="usage-253">Usage</h4>
+<h4 id="usage-262">Usage</h4>
 <pre><code>_ : vocoder(nBands,att,rel,BWRatio,source,excitation) : _;</code></pre>
 <p>Where:</p>
 <ul>

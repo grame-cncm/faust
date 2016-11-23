@@ -9,7 +9,15 @@ Dozens of functions are implemented in the Faust libraries and many of them are 
 Function Type | Function Name | Description
 --- | --- | ---
 [White Noise](#noise) | [`no.`](#noise.lib)[`noise`](#noise) | White noise generator
-[Sine](#osc) | [`os.`](#miscoscillator.lib)[`osc`](#osc) | Sine wave oscillator (filter based)
+[Pink Noise](#pink_noise) | [`no.`](#noise.lib)[`pink_noise`](#pink_noise) | Pink noise generator
+[Phasor](#phasor) | [`os.`](#miscoscillator.lib)[`phasor`](#phasor) | Simple phasor
+[Sine (Table-Based)](#oscsin) | [`os.`](#miscoscillator.lib)[`oscsin`](#oscsin) | Sine wave oscillator (table-based)
+[Sine (Filter-Based)](#osc) | [`os.`](#miscoscillator.lib)[`osc`](#osc) | Sine wave oscillator (filter-based)
+[LF Pulse Train](#lf_imptrain) | [`os.`](#miscoscillator.lib)[`lf_imptrain`](#lf_imptrain) | Low-frequency impulse train
+[LF Square Wave](#lf_squarewave) | [`os.`](#miscoscillator.lib)[`lf_squarewave`](#lf_squarewave) | Low-frequency square wave
+[LF Triangle Wave](#lf_triangle) | [`os.`](#miscoscillator.lib)[`lf_triangle`](#lf_triangle) | Low-frequency triangle wave
+[LF Sawtooth Wave](#lf_saw) | [`os.`](#miscoscillator.lib)[`lf_saw`](#lf_saw) | Low-frequency sawtooth wave
+[Sawtooth Wave](#sawtooth) | [`os.`](#miscoscillator.lib)[`sawtooth`](#sawtooth) | Alias-free sawtooth wave
 
 <div class="table-end"></div>
 

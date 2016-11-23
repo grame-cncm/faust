@@ -93,6 +93,7 @@ coswaveform(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : cos;
 
 //-----------------------`phasor`------------------------
 // A simple phasor to be used with a `rdtable`.
+// `phasor` is a standard Faust function.
 //
 // #### Usage
 //
@@ -109,6 +110,7 @@ phasor(tablesize,freq) = freq/float(ma.SR) : (+ : ma.decimal) ~ _ : *(float(tabl
 
 //-----------------------`oscsin`------------------------
 // Sine wave oscillator.
+// `oscsin` is a standard Faust function.
 //
 // #### Usage
 //
@@ -182,68 +184,123 @@ with {
 };
 
 
-//===============================Virtual Analog Oscillators===============================
-// Mostly elements from old "oscillator.lib".
-//
-// Virtual analog oscillators and filter-based oscillators.
-//
+//===============================LFOs===============================
 // Low-frequency oscillators have prefix `lf_`
-// (no aliasing suppression, signal-means not necessarily zero)
-//========================================================================================
+// (no aliasing suppression, signal-means not necessarily zero).
+//==================================================================
 
 
-//-------- Low Frequency Impulse and Pulse Trains, Square and Triangle Waves ----------
-// Low Frequency Impulse and Pulse Trains, Square and Triangle Waves
-//
-// `lf_imptrain`, `lf_pulsetrainpos`, `lf_squarewavepos`, `lf_squarewave`, 
-// `lf_trianglepos`
+//--------`lf_imptrain`----------
+// Unit-amplitude low-frequency impulse train.
+// `lf_imptrain` is a standard Faust function.
 //
 // #### Usage
 //
 // ```
 // lf_imptrain(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency in Hz
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
+lf_imptrain(freq) = lf_sawpos(freq)<:-(mem)<0; // definition below
+
+
+//--------`lf_pulsetrainpos`----------
+// Unit-amplitude nonnegative LF pulse train, duty cycle between 0 and 1
+//
+//
+// #### Usage
+//
+// ```
 // lf_pulsetrainpos(freq,duty) : _
-// lf_squarewavepos(freq) : _
-// lf_squarewave(freq) : _
-// lf_trianglepos(freq) : _
 // ```
 //
 // Where:
 //
 // * `freq`: frequency in Hz
 // * `duty`: duty cycle between 0 and 1
-//
-// #### Notes
-//
-// * Suffix 'pos' means the function is nonnegative, otherwise ~ zero mean
-// * All impulse and pulse trains jump to 1 at time 0
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-
-// Unit-amplitude low-frequency impulse train:
-lf_imptrain(freq) = lf_sawpos(freq)<:-(mem)<0; // definition below
-
-// Unit-amplitude nonnegative LF pulse train, duty cycle between 0 and 1:
 lf_pulsetrainpos(freq,duty) = float(lf_sawpos(freq) <= duty);
 //pulsetrainpos = lf_pulsetrainpos; // for backward compatibility
 
-// Positive LF square wave in [0,1]:
+
+//--------`lf_squarewavepos`----------
+// Positive LF square wave in [0,1]
+//
+// #### Usage
+//
+// ```
+// lf_squarewavepos(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency in Hz
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
 lf_squarewavepos(freq) = lf_pulsetrainpos(freq,0.5);
 // squarewavepos = lf_squarewavepos; // for backward compatibility
 
-// Zero-mean unit-amplitude LF square wave:
+
+//--------`lf_squarewave`----------
+// Zero-mean unit-amplitude LF square wave.
+// `lf_squarewave` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// lf_squarewave(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency in Hz
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
 lf_squarewave(freq) = 2*lf_squarewavepos(freq) - 1;
 // squarewave = lf_squarewave; // for backward compatibility
 
-// Positive unit-amplitude LF triangle wave:
+
+//--------`lf_trianglepos`----------
+// Positive unit-amplitude LF positive triangle wave
+//
+// #### Usage
+//
+// ```
+// lf_trianglepos(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency in Hz
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
 lf_trianglepos(freq) = 1-abs(saw1(freq)); // saw1 defined below
 
 
-//------------------Low Frequency Sawtooths--------------------------
-// Low Frequency Sawtooths
+//----------`lf_triangle`----------
+// Positive unit-amplitude LF triangle wave
+// `lf_triangle` is a standard Faust function.
 //
-// `lf_rawsaw`, `lf_sawpos`, `lf_sawpos_phase`
+// #### Usage
 //
+// ```
+// lf_triangle(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency in Hz
+//------------------------------------------------------------
+// TODO: author RM
+lf_triangle(freq) = 2*lf_trianglepos(freq) - 1;
+
+
+//================== Low Frequency Sawtooths ====================
 // Sawtooth waveform oscillators for virtual analog synthesis et al.
 // The 'simple' versions (`lf_rawsaw`, `lf_sawpos` and `saw1`), are mere samplings of
 // the ideal continuous-time ("analog") waveforms.  While simple, the
@@ -255,35 +312,81 @@ lf_trianglepos(freq) = 1-abs(saw1(freq)); // saw1 defined below
 // frequencies below 2 kHz or so, for a 44.1 kHz sampling rate and 60 dB SPL
 // presentation level;  fundamentals 415 and below required no aliasing
 // suppression (i.e., `saw1` is ok).
-// 
+//=====================================================================
+
+
+//-----------------`lf_rawsaw`--------------------
+// Simple sawtooth waveform oscillator between 0 and period in samples.
+//
 // #### Usage
 //
 // ```
-// lf_rawsaw(periodsamps) : _
-// lf_sawpos(freq) : _
-// lf_sawpos_phase(phase,freq) : _
-// saw1(freq) : _
+// lf_rawsaw(periodsamps)
 // ```
-//------------------------------------------------------------
+//
+// Where:
+//
+// * `periodsamps`: number of periods per samples
+//---------------------------------------------------------
 // TODO: author JOS, revised by RM
-
-// --- lf_rawsaw ---
-// simple sawtooth waveform oscillator between 0 and period in samples:
 lf_rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
 
-// --- lf_sawpos ---
-// simple sawtooth waveform oscillator between 0 and 1
-lf_sawpos(freq) = ma.frac ~ +(freq/ma.SR); // Bart Brouns versions
+//-----------------`lf_sawpos`--------------------
+// Simple sawtooth waveform oscillator between 0 and 1.
+//
+// #### Usage
+//
+// ```
+// lf_sawpos(freq)
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+//---------------------------------------------------------
+// TODO: author Bart Brouns, revised by RM
+lf_sawpos(freq) = ma.frac ~ +(freq/ma.SR);
+
+
+//-----------------`lf_saw`--------------------
+// Simple sawtooth waveform.
+// `lf_saw` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// lf_saw(freq)
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+//---------------------------------------------------------
+// TODO: author Bart Brouns, revised by RM
+saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0;
+lf_saw(freq) = saw1(freq);
+
+
+//-----------------`lf_sawpos_phase`--------------------
+// Simple sawtooth waveform oscillator between 0 and 1
+// with phase control.
+//
+// #### Usage
+//
+// ```
+// lf_sawpos_phase(freq,phase)
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+// * `phase`: phase
+//---------------------------------------------------------
+// TODO: author JOS, revised by RM
 lf_sawpos_phase(phase,freq) = (+(phase-phase') : ma.frac ) ~ +(freq/ma.SR);
 
-// --- saw1 ---
-//
-// simple sawtooth waveform oscillator between -1 and 1
-saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0; // zero-mean in [-1,1)
-// no lf prefix because order 1 explicit called for here
 
-
-//---------------------Bandlimited Sawtooth---------------------------
+//================== Bandlimited Sawtooth ====================
 // Bandlimited Sawtooth
 //
 // `sawN(N,freq)`, `sawNp`, `saw2dpw(freq)`, `saw2(freq)`, `saw3(freq)`,
@@ -340,9 +443,14 @@ saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0; // zero-mean in [-1,1)
 // * `N`: polynomial order
 // * `freq`: frequency in Hz
 // * `phase`: phase
-//------------------------------------------------------------
+//===================================================================
 // TODO: author JOS, revised by RM
 
+//------------------`sawN`--------------------------------
+// TODO: implemented but not documented. For now, you can
+// look at the source code.
+//--------------------------------------------------------
+// TODO: author JOS, revised by RM
 // --- sawN for N = 1 to 6 ---
 //We can do 6, but 5 and 6 have noise at low fundamentals: MAX_SAW_ORDER = 6; MAX_SAW_ORDER_NEXTPOW2 = 8;
 MAX_SAW_ORDER = 4; MAX_SAW_ORDER_NEXTPOW2 = 8; // par cannot handle the case of 0 elements
@@ -368,17 +476,49 @@ with {
   gate(N) = *(1@(N)); // delayed step for blanking startup glitch
 };
 
+//------------------`sawNp`--------------------------------
+// TODO: implemented but not documented. For now, you can
+// look at the source code.
+//--------------------------------------------------------
+// TODO: author JOS, revised by RM
 // --- sawNp for N = 1 to 6 ---
 // Phase offset = delay (max 8191 samples is more than one period of audio):
 sawNp(N,freq,phase) = sawN(N,freq) : @(max(0,min(8191,int(phase*ma.SR/freq))));
 
 // Special named cases:
 
+//------------------`saw2dpw`--------------------------------
+// TODO: implemented but not documented. For now, you can
+// look at the source code.
+//--------------------------------------------------------
+// TODO: author JOS, revised by RM
 // --- sawN ---
 saw2dpw(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*ma.SR/freq); // inferior to saw2 below
+
+//------------------`saw3`--------------------------------
+// TODO: implemented but not documented. For now, you can
+// look at the source code.
+//--------------------------------------------------------
+// TODO: author JOS, revised by RM
 saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
 
 
+//------------------`sawtooth`--------------------------------
+// Alias-free sawtooth wave. 2nd order interpolation (based
+// on `saw2`).
+// `sawtooth` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// sawtooth(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+//--------------------------------------------------------
+// TODO: author JOS, revised by RM
 saw2(freq) = y with { // newer PTR version (stateless - freq can vary at any speed)
   p0 = float(ma.SR)/float(max(1.0e-7,abs(freq))); // period in samples
   t0 = 1.0/p0; // phase increment
@@ -387,19 +527,26 @@ saw2(freq) = y with { // newer PTR version (stateless - freq can vary at any spe
   selector2 = select2(<(0), (_<:_,(*(1-p0):+(1)):+), _); // for output
   y = 2*p-1;
 };
-
 // --- sawtooth ---
 sawtooth = saw2; // default choice for sawtooth signal - see also sawN
 
+//------------------`saw2f2`--------------------------------
+// TODO: implemented but not documented. For now, you can
+// look at the source code.
+//--------------------------------------------------------
 // --- Correction-filtered versions of saw2: saw2f2, saw2f4 ----
 // The correction filter compensates "droop" near half the sampling rate.
 // See reference for sawN.
-
 saw2f2 = saw2 : cf2 with {
   cf2 = fi.tf2(1.155704605878911, 0.745184288225518,0.040305967265900,
         0.823765146386639, 0.117420665547108);
 };
 
+
+//------------------`saw2f4`--------------------------------
+// TODO: implemented but not documented. For now, you can
+// look at the source code.
+//--------------------------------------------------------
 saw2f4 = saw2 : cf4 with {
   cf4 = fi.iir((1.155727435125014, 2.285861038554662,
         1.430915027294021, 0.290713280893317, 0.008306401748854),
@@ -408,7 +555,7 @@ saw2f4 = saw2 : cf4 with {
 };
 
 
-//----------Bandlimited Pulse, Square, and Impulse Trains-------------
+//=========Bandlimited Pulse, Square, and Impulse Trains============
 // Bandlimited Pulse, Square, and Impulse Trains
 //
 // `pulsetrainN`, `pulsetrain`, `squareN`, `square`, `imptrain`, `imptrainN`,
@@ -434,7 +581,7 @@ saw2f4 = saw2 : cf4 with {
 //
 // * `N`: polynomial order
 // * `freq`: frequency in Hz
-//------------------------------------------------------------
+//====================================================================
 // TODO: author JOS
 pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with {
  // non-interpolated-delay version: diffdel(x,del) = x - x@int(del+0.5);
