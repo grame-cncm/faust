@@ -322,6 +322,11 @@ faust.mydsp = function (context, buffer_size, sample_rate) {
         {
         	setParamValueAux(path, val);
         },
+        
+        setParamValue1 : function (path, val)
+        {
+            factory.setParamValue(dsp, pathTable[path], val);
+        },
 
         getParamValue : function (path) 
         {
@@ -433,7 +438,7 @@ create(DSP.getNumInputs(), DSP.getNumOutputs(), buffer_size);
 try {
     control_data = fs.readFileSync('mydsprc', 'utf8');
     var lines = control_data.split('\n');
-    for(var line = 0; line < lines.length; line++){
+    for (var line = 0; line < lines.length; line++) {
         var param = lines[line].split(' ');
         DSP.setParamValue('/'+ param[1], parseFloat(param[0]));
     }
@@ -448,6 +453,16 @@ console.log("number_of_frames  : ", nbsamples);
 if (DSP.getSampleRate() !== sample_rate) {
    console.error("ERROR in getSampleRate");
 	process.exit(1);
+}
+
+// Check setParamValue/getParamValue
+var path_table = DSP.controls();
+for (var i = 0; i < path_table.length; i++) {
+    DSP.setParamValue1(path_table[i], 0.1234);
+    if (DSP.getParamValue(path_table[i]) !== 0.1234) {
+        console.error("ERROR in setParamValue/getParamValue for " + path_table[i] + " " + DSP.getParamValue(path_table[i]));
+        process.exit(1);
+    }
 }
 
 // Check default after 'instanceResetUserInterface'
