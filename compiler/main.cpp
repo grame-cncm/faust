@@ -25,6 +25,7 @@
 #include <string.h>
 #include <assert.h>
 #include <limits.h>
+#include <libgen.h>
 
 #ifndef WIN32
 #include <unistd.h>
@@ -637,6 +638,13 @@ int main (int argc, char* argv[])
     *****************************************************************/
     if (gOutputFile != "") {
         string outpath = (gOutputDir != "") ? (gOutputDir + "/" + gOutputFile) : gOutputFile;
+        char* directory = dirname((char*)outpath.c_str());
+        char temp[PATH_MAX+1];
+        char* path = realpath(directory, temp);
+        if (path == 0) {
+            std::cerr << "ERROR : invalid directory path " << directory << std::endl;
+            exit(-1);
+        }
         dst = new ofstream(outpath.c_str());
     } else {
         dst = &cout;
