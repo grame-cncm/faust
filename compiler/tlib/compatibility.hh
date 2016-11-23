@@ -115,6 +115,8 @@ char* basename(const char* fullpath);
 #else
 
 #include <unistd.h>
+#include <libgen.h>
+
 #define DIRSEP '/'
 #define FAUST_PATH_MAX 1024
 

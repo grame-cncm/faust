@@ -33,12 +33,7 @@ void SHA1(const unsigned char*, int, unsigned char*) {}
 #include <openssl/sha.h>
 #endif
 
-#ifdef _WIN32
 #include "compatibility.hh"
-#else
-#include <libgen.h>
-#endif
-
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
 #include "TMutex.h"

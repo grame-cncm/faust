@@ -159,6 +159,7 @@ with {
 //----------------------`dcblocker`--------------------------
 // DC blocker. Default dc blocker has -3dB point near 35 Hz (at 44.1 kHz)
 // and high-frequency gain near 1.0025 (due to no scaling).
+// `dcblocker` is as standard Faust function.
 //
 // #### Usage
 //
@@ -172,16 +173,15 @@ dcblocker = zero(1) : pole(0.995);
 //=======================================Comb Filters=====================================
 //========================================================================================
 
-//------`ff_comb` and `ff_fcomb`--------
+//------`ff_comb`--------
 // Feed-Forward Comb Filter. Note that `ff_comb` requires integer delays  
-// (uses `delay()`  internally) while `ff_fcomb` takes floating-point delays 
-// (uses `fdelay()` internally).
+// (uses `delay`  internally).
+// `ff_comb` is a standard Faust function.
 // 
 // #### Usage
 //
 // ```
 // _ : ff_comb(maxdel,intdel,b0,bM) : _
-// _ : ff_fcomb(maxdel,del,b0,bM) : _
 // ```
 //
 // Where:
@@ -198,6 +198,32 @@ dcblocker = zero(1) : pole(0.995);
 //------------------------------------------------------------
 // TODO: author JOS
 ff_comb (maxdel,M,b0,bM) = _ <: *(b0), bM *  de.delay(maxdel,M) : + ;
+
+
+//------`ff_fcomb`--------
+// Feed-Forward Comb Filter. Note that `ff_fcomb` takes floating-point delays 
+// (uses `fdelay` internally).
+// `ff_fcomb` is a standard Faust function.
+// 
+// #### Usage
+//
+// ```
+// _ : ff_fcomb(maxdel,del,b0,bM) : _
+// ```
+//
+// Where:
+//
+// * `maxdel`: maximum delay (a power of 2)
+// * `intdel`: current (integer) comb-filter delay between 0 and maxdel
+// * `del`: current (float) comb-filter delay between 0 and maxdel
+// * `b0`: gain applied to delay-line input
+// * `bM`: gain applied to delay-line output and then summed with input
+//
+// #### Reference
+//
+// <https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html>
+//------------------------------------------------------------
+// TODO: author JOS
 ff_fcomb(maxdel,M,b0,bM) = _ <: *(b0), bM * de.fdelay(maxdel,M) : + ;
 
 //-----------`ffcombfilter`-------------------
@@ -206,14 +232,14 @@ ff_fcomb(maxdel,M,b0,bM) = _ <: *(b0), bM * de.fdelay(maxdel,M) : + ;
 // TODO: author JOS, revised by RM
 ffcombfilter(maxdel,del,g) = ff_comb(maxdel,del,1,g);
 
-//-----------------------`fb_comb` and `fb_fcomb`-----------------------
-// Feed-Back Comb Filter.
+
+//-----------------------`fb_comb`-----------------------
+// Feed-Back Comb Filter (integer delay).
 //
 // #### Usage 
 //
 // ```
 // _ : fb_comb(maxdel,intdel,b0,aN) : _
-// _ : fb_fcomb(maxdel,del,b0,aN) : _
 // ```
 //
 // Where:
@@ -231,6 +257,31 @@ ffcombfilter(maxdel,del,g) = ff_comb(maxdel,del,1,g);
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
 fb_comb (maxdel,N,b0,aN) = (+ <:  de.delay(maxdel,N-1),_) ~ *(-aN) : !,*(b0):mem;
+
+
+//-----------------------`fb_fcomb`-----------------------
+// Feed-Back Comb Filter (floating point delay).
+//
+// #### Usage 
+//
+// ```
+// _ : fb_fcomb(maxdel,del,b0,aN) : _
+// ```
+//
+// Where:
+//
+// * `maxdel`: maximum delay (a power of 2)
+// * `intdel`: current (integer) comb-filter delay between 0 and maxdel
+// * `del`: current (float) comb-filter delay between 0 and maxdel
+// * `b0`: gain applied to delay-line input and forwarded to output
+// * `aN`: minus the gain applied to delay-line output before summing with the input 
+// 	and feeding to the delay line
+//
+// #### Reference
+//
+// <https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html>
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
 fb_fcomb(maxdel,N,b0,aN) = (+ <: de.fdelay(maxdel,float(N)-1.0),_) ~ *(-aN) : !,*(b0):mem;
 
 //-----------------------`rev1`-----------------------
@@ -266,7 +317,8 @@ rev1(maxdel,N,g) = fb_comb (maxdel,N,1,-g);
 fbcombfilter(maxdel,intdel,g) = (+ : de.delay(maxdel,intdel)) ~ *(g);
 ffbcombfilter(maxdel,del,g) = (+ : de.fdelay(maxdel,del)) ~ *(g);
 
-//-------------------`allpass_comb` and `allpass_fcomb`-----------------
+
+//-------------------`allpass_comb`-----------------
 // Schroeder Allpass Comb Filter. Note that 
 //
 // ```
@@ -280,7 +332,6 @@ ffbcombfilter(maxdel,del,g) = (+ : de.fdelay(maxdel,del)) ~ *(g);
 //
 // ``` 
 // _ : allpass_comb (maxdel,intdel,aN) : _
-// _ : allpass_fcomb(maxdel,del,aN) : _
 // ```
 //
 // Where:
@@ -298,7 +349,43 @@ ffbcombfilter(maxdel,del,g) = (+ : de.fdelay(maxdel,del)) ~ *(g);
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
 allpass_comb(maxdel,N,aN) = (+ <: de.delay(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_ : + ;
+
+
+//-------------------`allpass_fcomb`-----------------
+// Schroeder Allpass Comb Filter. Note that 
+//
+// ```
+// allpass_comb(maxlen,len,aN) = ff_comb(maxlen,len,aN,1) : fb_comb(maxlen,len-1,1,aN);
+// ```
+//
+// which is a direct-form-1 implementation, requiring two delay lines.
+// The implementation here is direct-form-2 requiring only one delay line.
+//
+// `allpass_fcomb` is a standard Faust library.
+//
+// #### Usage
+//
+// ``` 
+// _ : allpass_comb (maxdel,intdel,aN) : _
+// _ : allpass_fcomb(maxdel,del,aN) : _
+// ```
+//
+// Where:
+//
+// * `maxdel`: maximum delay (a power of 2)
+// * `intdel`: current (float) comb-filter delay between 0 and maxdel
+// * `del`: current (float) comb-filter delay between 0 and maxdel
+// * `aN`: minus the feedback gain
+// 
+// #### References
+//
+// * <https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html>
+// * <https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html>
+// * <https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html>
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
 allpass_fcomb(maxdel,N,aN) = (+ <: de.fdelay(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_ : + ;
+
 
 //-----------------------`rev2`-----------------------
 // Special case of `allpass_comb` (`rev2(maxlen,len,g)`).
@@ -329,6 +416,8 @@ allpass_fcomb1a(maxdel,N,aN) = (+ <: de.fdelay1a(maxdel,N-1),*(aN)) ~ *(-aN) : m
 // implemented in terms of the Transfer-Function (TF) coefficients.
 // Such filter structures are termed "direct form".
 //
+// `iir` is a standard Faust function.
+//
 // #### Usage
 //
 // ```
@@ -356,6 +445,8 @@ iir(bv,av) = ma.sub ~ fir(av) : fir(bv);
 // ``` 
 // _ : fir(bv) : _
 // ```
+//
+// `fir` is standard Faust function.
 //
 // Where: 
 //
@@ -440,6 +531,7 @@ with {
 
 //------------`notchw`--------------
 // Simple notch filter based on a biquad (`tf2`).
+// `notchw` is a standard Faust function. 
 //
 // #### Usage:
 //
@@ -1253,8 +1345,9 @@ tf1sb(b1,b0,a0,w1,wc) = tf2(b0d/a0d,b1d/a0d,b2d/a0d,a1d/a0d,a2d/a0d) with {
 //==============================Simple Resonator Filters==================================
 //========================================================================================
 
-//------------------`resonlp`, `resonhp` and `resonbp`-----------------
-// Simple resonant lowpass, highpass and bandpass filters based on `tf2s`.
+//------------------`resonlp`-----------------
+// Simple resonant lowpass filter based on `tf2s` (virtual analog).
+// `resonlp` is a standard Faust function.
 //
 // #### Usage
 //
@@ -1282,8 +1375,52 @@ with {
      b1 = 0;
      b0 = gain;
 };
+
+
+//------------------`resonhp`-----------------
+// Simple resonant highpass filters based on `tf2s` (virtual analog).
+// `resonhp` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// _ : resonlp(fc,Q,gain) : _
+// _ : resonhp(fc,Q,gain) : _
+// _ : resonbp(fc,Q,gain) : _
+// 
+// ```
+//
+// Where:
+//
+// * `fc`: center frequency (Hz)
+// * `Q`: q
+// * `gain`: gain (0-1)
+//---------------------------------------------------------------------
+// TODO: author JOS, revised by RM
 // resonhp = 2nd-order highpass with corner resonance:
 resonhp(fc,Q,gain,x) = gain*x-resonlp(fc,Q,gain,x);
+
+
+//------------------`resonbp`-----------------
+// Simple resonant bandpass filters based on `tf2s` (virtual analog).
+// `resonbp` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// _ : resonlp(fc,Q,gain) : _
+// _ : resonhp(fc,Q,gain) : _
+// _ : resonbp(fc,Q,gain) : _
+// 
+// ```
+//
+// Where:
+//
+// * `fc`: center frequency (Hz)
+// * `Q`: q
+// * `gain`: gain (0-1)
+//---------------------------------------------------------------------
+// TODO: author JOS, revised by RM
 // resonbp = 2nd-order bandpass
 resonbp(fc,Q,gain) = tf2s(b2,b1,b0,a1,a0,wc) 
 with {
@@ -1298,14 +1435,14 @@ with {
 //======================Butterworth Lowpass/Highpass Filters==============================
 //========================================================================================
 
-//----------------`lowpass` and `highpass`--------------------
-// Nth-order Butterworth lowpass or highpass filters.
+//----------------`lowpass`--------------------
+// Nth-order Butterworth lowpass filter.
+// `lowpass` is a standard Faust function.
 //
 // #### Usage
 //
 // ```
 // _ : lowpass(N,fc) : _
-// _ : highpass(N,fc) : _
 // ```
 //
 // Where:
@@ -1320,7 +1457,31 @@ with {
 //------------------------------
 // TODO: author JOS and Orlarey, revised by RM
 lowpass(N,fc) = lowpass0_highpass1(0,N,fc);
+
+
+//----------------`highpass`--------------------
+// Nth-order Butterworth highpass filters.
+// `highpass` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// _ : highpass(N,fc) : _
+// ```
+//
+// Where:
+//
+// * `N`: filter order (number of poles) [nonnegative constant integer]
+// * `fc`: desired cut-off frequency (-3dB frequency) in Hz
+//
+// #### References
+// 
+// * <https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html>
+// * `butter` function in Octave `("[z,p,g] = butter(N,1,'s');")`
+//------------------------------
+// TODO: author JOS and Orlarey, revised by RM
 highpass(N,fc) = lowpass0_highpass1(1,N,fc);
+
 
 //-------------`lowpass0_highpass1`--------------
 // TODO
@@ -1550,21 +1711,48 @@ with {
 //========================Butterworth Bandpass/Bandstop Filters===========================
 //========================================================================================
 
-//--------------------`bandpass` and `bandstop`----------------
+//--------------------`bandpass`----------------
 // Order 2*Nh Butterworth bandpass filter made using the transformation
 // `s <- s + wc^2/s` on `lowpass(Nh)`, where `wc` is the desired bandpass center 
 // frequency.  The `lowpass(Nh)` cutoff `w1` is half the desired bandpass width.
-// A notch-like "bandstop" filter is similarly made from `highpass(Nh)`.
+// `bandpass` is a standard Faust function.
 //
 // #### Usage
 //
 // ```
 // _ : bandpass(Nh,fl,fu) : _
+// ```
+//
+// Where:
+// 
+// * `Nh`: HALF the desired bandpass order (which is therefore even)
+// * `fl`: lower -3dB frequency in Hz
+// * `fu`: upper -3dB frequency in Hz
+// Thus, the passband width is `fu-fl`, 
+//       and its center frequency is `(fl+fu)/2`.
+//
+// #### Reference
+//
+// <http://cnx.org/content/m16913/latest/>
+//-------------------------------------------------------------------------
+// TODO: author JOS, revised by RM
+bandpass(Nh,fl,fu) = bandpass0_bandstop1(0,Nh,fl,fu);
+
+
+//--------------------`bandstop`----------------
+// Order 2*Nh Butterworth bandstop filter made using the transformation
+// `s <- s + wc^2/s` on `highpass(Nh)`, where `wc` is the desired bandpass center 
+// frequency.  The `highpass(Nh)` cutoff `w1` is half the desired bandpass width.
+// `bandstop` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
 // _ : bandstop(Nh,fl,fu) : _
 // ```
 // Where:
 // 
-// * `Nh`: HALF the desired bandpass/bandstop order (which is therefore even)
+// * `Nh`: HALF the desired bandstop order (which is therefore even)
 // * `fl`: lower -3dB frequency in Hz
 // * `fu`: upper -3dB frequency in Hz
 // Thus, the passband (stopband) width is `fu-fl`, 
@@ -1575,7 +1763,6 @@ with {
 // <http://cnx.org/content/m16913/latest/>
 //-------------------------------------------------------------------------
 // TODO: author JOS, revised by RM
-bandpass(Nh,fl,fu) = bandpass0_bandstop1(0,Nh,fl,fu);
 bandstop(Nh,fl,fu) = bandpass0_bandstop1(1,Nh,fl,fu);
 bandpass0_bandstop1(s,Nh,fl,fu) = bpbsr(s,Nh,Nh,fl,fu) 
 with {
@@ -1679,18 +1866,20 @@ with { // octave script output:
 // * bandfilter.dsp in the faust2pd distribution 
 //========================================================================================
 
-//----------------------`low_shelf` and `lowshelf_other_freq`----------------------
+//----------------------`low_shelf`----------------------
 // First-order "low shelf" filter (gain boost|cut between dc and some frequency)
+// `low_shelf` is a standard Faust function.
 //
 // #### Usage
 //
 // ``` 
 // _ : lowshelf(N,L0,fx) : _
+// _ : low_shelf(L0,fx) : _ // default case (order 3)
 // _ : lowshelf_other_freq(N,L0,fx) : _
 // ```
 //
 // Where:
-// * `N`: filter order 1, 3, 5, ... (odd only).
+// * `N`: filter order 1, 3, 5, ... (odd only). (default should be 3)
 // * `L0`: desired level (dB) between dc and fx (boost `L0>0` or cut `L0<0`)
 // * `fx`: -3dB frequency of lowpass band (`L0>0`) or upper band (`L0<0`)
 //       (see "SHELF SHAPE" below).
@@ -1726,13 +1915,15 @@ low_shelf1(L0,fx,x) = x + (ba.db2linear(L0)-1)*lowpass(1,fx,x); // optimized
 low_shelf1_l(G0,fx,x) = x + (G0-1)*lowpass(1,fx,x); // optimized
 lowshelf_other_freq(N, L0, fx) = ba.db2linear(ba.linear2db(fx) + L0/N); // convenience
 
-//-------------`high_shelf` and `highshelf_other_freq`--------------
+//-------------`high_shelf`--------------
 // First-order "high shelf" filter (gain boost|cut above some frequency).
+// `high_shelf` is a standard Faust function.
 //
 // #### Usage
 //
 // ```
 // _ : highshelf(N,Lpi,fx) : _
+// _ : high_shelf(L0,fx) : _ // default case (order 3)
 // _ : highshelf_other_freq(N,Lpi,fx) : _
 // ```
 //
@@ -1756,9 +1947,11 @@ high_shelf1_l(Gpi,fx,x) = x + (Gpi-1)*highpass(1,fx,x); //optimized
 // shelf transitions between frequency fx and this one:
 highshelf_other_freq(N, Lpi, fx) = ba.db2linear(ba.linear2db(fx) - Lpi/N);
 
+
 //-------------------`peak_eq`------------------------------
 // Second order "peaking equalizer" section (gain boost or cut near some frequency)
 // Also called a "parametric equalizer" section.
+// `peak_eq` is a standard Faust function.
 //
 // #### Usage 
 //
@@ -1880,14 +2073,14 @@ spectral_tilt(N,f0,bw,alpha) = seq(i,N,sec(i)) with {
 };
 
 
-//----------------------`levelfilter` and `levelfilterN`----------------------
+//----------------------`levelfilter`----------------------
 // Dynamic level lowpass filter.
+// `levelfilter` is a standard Faust function.
 //
 // #### Usage
 //
 // ```
 // _ : levelfilter(L,freq) : _
-// _ : levelfilterN(N,freq,L) : _
 // ```
 //
 // Where:
@@ -1909,6 +2102,28 @@ with {
   Lpole2 = (1.0 - Lw) / (1.0 + Lw);
   lp2out = *(Lgain) : + ~ *(Lpole2);
 };
+
+
+//----------------------`levelfilterN`----------------------
+// Dynamic level lowpass filter.
+//
+// #### Usage
+//
+// ```
+// _ : levelfilterN(N,freq,L) : _
+// ```
+//
+// Where:
+//
+// * `L`: desired level (in dB) at Nyquist limit (SR/2), e.g., -60
+// * `freq`: corner frequency (-3dB point) usually set to fundamental freq
+// * `N`: Number of filters in series where L = L/N
+//
+// #### Reference
+//
+// <https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html>
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
 levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 
 
@@ -2025,6 +2240,7 @@ mth_octave_filterbank_default = mth_octave_filterbank5;
 
 //---------------`filterbank`--------------------------
 // Filter bank.
+// `filterbank` is a standard Faust function.
 //
 // #### Usage
 //

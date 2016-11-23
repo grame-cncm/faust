@@ -30,10 +30,6 @@
 #include <fstream>
 #include <sstream>
 
-#ifndef _WIN32
-    #include <libgen.h>
-#endif
-
 #include "llvm_dsp_aux.hh"
 #include "faust/gui/UIGlue.h"
 #include "dsp_aux.hh"

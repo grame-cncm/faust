@@ -723,6 +723,14 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         dst = new stringstream();
     } else if (gGlobal->gOutputFile != "") {
         string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
+        char* directory = dirname((char*)outpath.c_str());
+        char temp[PATH_MAX+1];
+        char* path = realpath(directory, temp);
+        if (path == 0) {
+            stringstream error;
+            error << "ERROR : invalid directory path " << directory << std::endl;
+            throw faustexception(error.str());
+        }
         dst = new ofstream(outpath.c_str());
     } else {
         dst = &cout;

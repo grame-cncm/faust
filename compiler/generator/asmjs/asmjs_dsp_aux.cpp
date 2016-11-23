@@ -27,7 +27,6 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <libgen.h>
 
 #include "compatibility.hh"
 #include "asmjs_dsp_aux.hh"

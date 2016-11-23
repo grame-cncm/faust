@@ -19,8 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#include <libgen.h>
-
+#include "compatibility.hh"
 #include "interpreter_dsp_aux.hh"
 #include "dsp_aux.hh"
 #include "Text.hh"

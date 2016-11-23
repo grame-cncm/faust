@@ -24,7 +24,6 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <libgen.h>
 
 #include "compatibility.hh"
 #include "wasm_dsp_aux.hh"
