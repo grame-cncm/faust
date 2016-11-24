@@ -149,6 +149,7 @@ with {
 
 //--------------------------`wah4`-------------------------------
 // Wah effect, 4th order.
+// `wah4` is a standard Faust function.
 //
 // #### Usage
 //
@@ -170,6 +171,7 @@ wah4(fr) = 4*moog_vcf((3.2/4),fr:si.smooth(0.999));
 
 //------------------------`autowah`-----------------------------
 // Auto-wah effect.
+// `autowah` is a standard Faust function.
 //
 // #### Usage
 //
@@ -187,6 +189,7 @@ autowah(level,x) = level * crybaby(an.amp_follower(0.1,x),x) + (1.0-level)*x;
 
 //--------------------------`crybaby`-----------------------------
 // Digitized CryBaby wah pedal.
+// `crybaby` is a standard Faust function.
 //
 // #### Usage
 //
@@ -229,6 +232,7 @@ with {
 //----------------------------`vocoder`-------------------------
 // A very simple vocoder where the spectrum of the modulation signal
 // is analyzed using a filter bank.
+// `vocoder` is a standard Faust function.
 //
 // #### Usage
 //

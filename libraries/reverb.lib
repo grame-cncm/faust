@@ -62,8 +62,8 @@ declare version "0.0";
 //=============================Functions Reference========================================
 //========================================================================================
 
-//------------------------------`jcrev` and `satrev`------------------------------
-// These artificial reverberators take a mono signal and output stereo
+//------------------------------`jcrev`------------------------------
+// This artificial reverberator take a mono signal and output stereo
 // (`satrev`) and quad (`jcrev`).  They were implemented by John Chowning
 // in the MUS10 computer-music language (descended from Music V by Max
 // Mathews).  They are Schroeder Reverberators, well tuned for their size.
@@ -75,17 +75,12 @@ declare version "0.0";
 // John Chowning thinks this might be the one that became the
 // well known and often copied JCREV.
 //
-// `satrev` was made from a listing of "SATREV", dated May 15, 1971,
-// which was recovered from an old SAIL DART backup tape.
-// John Chowning thinks this might be the one used on his
-// often-heard brass canon sound examples, one of which can be found at
-// <https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav>
+// `jcrev` is a standard Faust function
 //
 // #### Usage
 //
 // ```
 // _ : jcrev : _,_,_,_
-// _ : satrev : _,_
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
@@ -108,6 +103,28 @@ jcrev = *(0.06) : allpass_chain <: comb_bank : mix_mtx with {
   };
 };
 
+
+//------------------------------`satrev`------------------------------
+// This artificial reverberator take a mono signal and output stereo
+// (`satrev`) and quad (`jcrev`).  They were implemented by John Chowning
+// in the MUS10 computer-music language (descended from Music V by Max
+// Mathews).  They are Schroeder Reverberators, well tuned for their size.
+// Nowadays, the more expensive freeverb is more commonly used (see the
+// Faust examples directory).
+//
+// `satrev` was made from a listing of "SATREV", dated May 15, 1971,
+// which was recovered from an old SAIL DART backup tape.
+// John Chowning thinks this might be the one used on his
+// often-heard brass canon sound examples, one of which can be found at
+// <https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav>
+//
+// #### Usage
+//
+// ```
+// _ : satrev : _,_
+// ```
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
 satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
   rev1N = fi.rev1;
   rev11(len,g) = rev1N(1024,len,g);
@@ -125,7 +142,7 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
 };
 
 
-//----------------------------`mono_freeverb` and `stereo_freeverb`-------------------------
+//----------------------------`mono_freeverb`-------------------------
 // A simple Schroeder reverberator primarily developed by "Jezar at Dreampoint" that
 // is extensively used in the free-software world. It uses four Schroeder allpasses in
 // series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each
@@ -135,7 +152,6 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
 //
 // ```
 // _ : mono_freeverb(fb1, fb2, damp, spread) : _;
-// _,_ : stereo_freeverb(fb1, fb2, damp, spread) : _,_;
 // ```
 //
 // Where:
@@ -169,6 +185,28 @@ with{
     // https://ccrma.stanford.edu/~jos/pasp/Lowpass_Feedback_Comb_Filter.html
     lbcf(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
 };
+
+
+//----------------------------`stereo_freeverb`-------------------------
+// A simple Schroeder reverberator primarily developed by "Jezar at Dreampoint" that
+// is extensively used in the free-software world. It uses four Schroeder allpasses in
+// series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each
+// audio channel, and is said to be especially well tuned.
+//
+// #### Usage
+//
+// ```
+// _,_ : stereo_freeverb(fb1, fb2, damp, spread) : _,_;
+// ```
+//
+// Where:
+//
+// * `fb1`: coefficient of the lowpass comb filters (0-1)
+// * `fb2`: coefficient of the allpass comb filters (0-1)
+// * `damp`: damping of the lowpass comb filter (0-1)
+// * `spread`: spatial spread in number of samples (for stereo)
+//------------------------------------------------------------
+// TODO: author RM
 stereo_freeverb(fb1, fb2, damp, spread) =  + <: mono_freeverb(fb1, fb2, damp,0), mono_freeverb(fb1, fb2, damp, spread);
 
 
