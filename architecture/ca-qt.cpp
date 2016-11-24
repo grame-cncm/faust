@@ -246,33 +246,33 @@ int main(int argc, char *argv[])
     int fpb = lopt(argv, "--buffer", 512);
     
 #ifdef POLY2
-    mydsp tmp_dsp;
+    dsp* tmp_dsp = new mydsp();
     int poly = lopt(argv, "--poly", 4);
     int group = lopt(argv, "--group", 1);
 
 #if MIDICTRL
     if (hasMIDISync()) {
-        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(&tmp_dsp, poly, true, group), new effect()));
+        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(tmp_dsp, poly, true, group), new effect()));
     } else {
-        DSP = new dsp_sequencer(new mydsp_poly(&tmp_dsp, poly, true, group), new effect());
+        DSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, poly, true, group), new effect());
     }
 #else
     DSP = new dsp_sequencer(new mydsp_poly(&tmp_dsp, poly, false, group), new effect());
 #endif
 
 #elif POLY
-    mydsp tmp_dsp;
+    dsp* tmp_dsp = new mydsp();
     int poly = lopt(argv, "--poly", 4);
     int group = lopt(argv, "--group", 1);
 
 #if MIDICTRL
     if (hasMIDISync()) {
-        DSP = new timed_dsp(new mydsp_poly(&tmp_dsp, poly, true, group));
+        DSP = new timed_dsp(new mydsp_poly(tmp_dsp, poly, true, group));
     } else {
-        DSP = new mydsp_poly(&tmp_dsp, poly, true, group);
+        DSP = new mydsp_poly(tmp_dsp, poly, true, group);
     }
 #else
-    DSP = new mydsp_poly(&tmp_dsp, poly, false, group);
+    DSP = new mydsp_poly(tmp_dsp, poly, false, group);
 #endif
 
 #elif MIDICTRL
