@@ -63,6 +63,7 @@ declare version "0.0";
 // Classic analog audio envelope follower with infinitely fast rise and
 // exponential decay.  The amplitude envelope instantaneously follows
 // the absolute value going up, but then floats down exponentially.
+// `amp_follower` is a standard Faust function.
 //
 // #### Usage
 //
@@ -172,8 +173,9 @@ amp_follower_ar(att,rel) = abs : si.lag_ud(att,rel);
 //========================================================================================
 
 
-//-------------------------`mth_octave_analyzer[N]`----------------------------
+//-------------------------`mth_octave_analyzer`----------------------------
 // Octave analyzer.
+// `mth_octave_analyzer[N]` are standard Faust functions.
 //
 // #### Usage
 // ```

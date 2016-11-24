@@ -67,6 +67,7 @@ declare version "0.0";
 
 //-------`samp2sec`----------
 // Converts a number of samples to a duration in seconds.
+// `samp2sec` is a standard Faust function.
 // 
 // #### Usage
 //
@@ -83,6 +84,7 @@ samp2sec = /(ma.SR);
 
 //-------`sec2samp`----------
 // Converts a duration in seconds to a number of samples.
+// `samp2sec` is a standard Faust function.
 //
 // #### Usage
 //
@@ -99,6 +101,7 @@ sec2samp = *(ma.SR);
 
 //-------`db2linear`----------
 // Converts a loudness in dB to a linear gain (0-1).
+// `db2linear` is a standard Faust function.
 //
 // #### Usage
 //
@@ -115,6 +118,7 @@ db2linear(n) = pow(10, n/20.0);
 
 //-------`linear2db`----------
 // Converts a linear gain (0-1) to a loudness in dB.
+// `linear2db` is a standard Faust function.
 //
 // #### Usage
 //
@@ -155,6 +159,7 @@ log2LinGain = sqrt;
 //-------`tau2pole`----------
 // Returns a real pole giving exponential decay.
 // Note that t60 (time to decay 60 dB) is ~6.91 time constants.
+// `tau2pole` is a standard Faust function.
 //
 // #### Usage
 //
@@ -173,6 +178,7 @@ tau2pole(tau) = exp(-1.0/(tau*ma.SR));
 //-------`pole2tau`----------
 // Returns the time-constant, in seconds, corresponding to the given real, 
 // positive pole in (0,1).
+// `pole2tau` is a standard Faust function.
 //
 // #### Usage
 //
@@ -190,6 +196,7 @@ pole2tau(pole) = -1.0/(log(pole)*ma.SR);
 
 //-------`midikey2hz`----------
 // Converts a MIDI key number to a frequency in Hz (MIDI key 69 = A440).
+// `midikey2hz` is a standard Faust function.
 //
 // #### Usage
 //
@@ -243,6 +250,7 @@ hz2pianokey(f)  = 12*ma.log2(f/440.0) + 49.0;
 // Starts counting down from n included to 0. While trig is 1 the output is n.
 // The countdown starts with the transition of trig from 1 to 0. At the end
 // of the countdown the output value will remain at 0 until the next trig.
+// `countdown` is a standard Faust function.
 //
 // #### Usage
 //
@@ -262,6 +270,7 @@ countdown(count, trig)	= \(c).(if(trig>0, count, max(0, c-1))) ~_;
 // Starts counting up from 0 to n included. While trig is 1 the output is 0.
 // The countup starts with the transition of trig from 1 to 0. At the end
 // of the countup the output value will remain at n until the next trig.
+// `countup` is a standard Faust function.
 //
 // #### Usage
 //
@@ -293,6 +302,7 @@ sweep = %(int(*:max(1)))~+(1);
 
 //-------`time`----------
 // A simple timer that counts every samples from the beginning of the process.
+// `time` is a standard Faust function.
 //
 // #### Usage
 //
@@ -373,6 +383,7 @@ pulsen(n,p) = period(p)<n;
 
 //-------`beat`----------
 // Pulses at tempo `t`.
+// `beat` is a standard Faust function.
 //
 // #### Usage
 //
@@ -475,6 +486,7 @@ pulse_countdown_loop(n, t) =  - ~ cond(n)*t
 
 //---------------------------------`count`---------------------------------
 // Count the number of elements of list l.
+// `count` is a standard Faust function.
 //
 // #### Usage
 //
@@ -493,6 +505,7 @@ count (xx) = 1;
 
 //-------------------------------`take`-----------------------------------
 // Take an element from a list.
+// `take` is a standard Faust function.
 //
 // #### Usage
 // 
@@ -651,6 +664,7 @@ latch(c,x) = x * s : + ~ *(1-s) with { s = ((c'<=0)&(c>0)); };
 
 //--------------------------`sAndH`-------------------------------
 // Sample And Hold.
+// `sAndH` is a standard Faust function.
 //
 // #### Usage
 //
@@ -704,6 +718,7 @@ peakholder(holdtime) = peakhold2 ~ reset : (!,_) with {
 //--------------------------`impulsify`---------------------------
 // Turns the signal from a button into an impulse (1,0,0,... when
 // button turns on).
+// `impulsify` is a standard Faust function.
 //
 // #### Usage
 //
@@ -734,7 +749,7 @@ with {
 };
 
 
-//-----------------Break Point Functions-------------------
+//-----------------`bpf`-------------------
 // bpf is an environment (a group of related definitions) that can be used to 
 // create break-point functions. It contains three functions : 
 //
@@ -768,6 +783,8 @@ with {
 // * `f(x) = y_{n}` when `x > x_{n}`
 // * `f(x) = y_{i} + (y_{i+1}-y_{i})*(x-x_{i})/(x_{i+1}-x_{i})` when `x_{i} <= x` 
 // and `x < x_{i+1}`
+//
+// `bpf` is a standard Faust function.
 //--------------------------------------------------------
 bpf = environment 
 {
@@ -779,8 +796,10 @@ bpf = environment
   end  (x1,y1) = \(x0,y0,x,y).(if (x < x0, y, if (x < x1, y0 + (x-x0)*(y1-y0)/(x1-x0), y1)));
 };
 
+
 //-------------------`bypass1`-------------------------
 // Takes a mono input signal, route it to `e` and bypass it if `bpc = 1`.
+// `bypass1` is a standard Faust function.
 //
 // #### Usage
 //
@@ -799,6 +818,7 @@ bypass1(bpc,e) = _ <: select2(bpc,(inswitch:e),_)
 
 //-------------------`bypass2`-------------------------
 // Takes a stereo input signal, route it to `e` and bypass it if `bpc = 1`.
+// `bypass2` is a standard Faust function.
 //
 // #### Usage
 //
@@ -845,12 +865,12 @@ toggle = trig : loop
 //----------------------------`on_and_off`------------------------------------------
 // The first channel set the output to 1, the second channel to 0.
 //
-//
 // #### Usage
 //
 // ```
 // _ , _ : on_and_off : _
 // ```
+//
 // #### Example
 //
 // ```

@@ -65,6 +65,7 @@ declare version "2.0"; // TODO to check
 
 //---------------------`cubicnl`-----------------------
 // Cubic nonlinearity distortion.
+// `cubicnl` is a standard Faust library.
 //
 // #### Usage:
 //
@@ -96,8 +97,9 @@ with {
 cubicnl_nodc(drive,offset) = cubicnl(drive,offset) : fi.dcblocker;
 
 
-//-----------------`gate_mono` and `gate_stereo`-------------------
-// Mono and stereo signal gates.
+//-----------------`gate_mono`-------------------
+// Mono signal gate.
+// `gate_mono` is a standard Faust function.
 //
 // #### Usage
 //
@@ -105,7 +107,28 @@ cubicnl_nodc(drive,offset) = cubicnl(drive,offset) : fi.dcblocker;
 // _ : gate_mono(thresh,att,hold,rel) : _
 // ```
 //
-// or
+// Where:
+//
+// * `thresh`: dB level threshold above which gate opens (e.g., -60 dB)
+// * `att`: attack time = time constant (sec) for gate to open (e.g., 0.0001 s = 0.1 ms)
+// * `hold`: hold time = time (sec) gate stays open after signal level < thresh (e.g., 0.1 s)
+// * `rel`: release time = time constant (sec) for gate to close (e.g., 0.020 s = 20 ms)
+//
+// #### References
+//
+// * <http://en.wikipedia.org/wiki/Noise_gate>
+// * <http://www.soundonsound.com/sos/apr01/articles/advanced.asp>
+// * <http://en.wikipedia.org/wiki/Gating_(sound_engineering)>
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
+gate_mono(thresh,att,hold,rel,x) = x * gate_gain_mono(thresh,att,hold,rel,x);
+
+
+//-----------------`gate_stereo`-------------------
+// Stereo signal gates.
+// `gate_stereo` is a standard Faust function.
+//
+// #### Usage
 //
 // ```
 //  _,_ : gate_stereo(thresh,att,hold,rel) : _,_
@@ -125,8 +148,6 @@ cubicnl_nodc(drive,offset) = cubicnl(drive,offset) : fi.dcblocker;
 // * <http://en.wikipedia.org/wiki/Gating_(sound_engineering)>
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-gate_mono(thresh,att,hold,rel,x) = x * gate_gain_mono(thresh,att,hold,rel,x);
-
 gate_stereo(thresh,att,hold,rel,x,y) = ggm*x, ggm*y with {
   ggm = gate_gain_mono(thresh,att,hold,rel,abs(x)+abs(y));
 };
@@ -157,7 +178,8 @@ gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : an.amp_follower_ar
 // fourth-order Butterworth lowpass.
 //
 // Example based on measured Celestion G12 (12" speaker):
-// speakerbp(130,5000);
+//
+// `speakerbp` is a standard Faust function
 //
 // #### Usage
 // 
@@ -230,6 +252,7 @@ with {
 
 //-------------------------`stereo_width`---------------------------
 // Stereo Width effect using the Blumlein Shuffler technique.
+// `stereo_width` is a standard Faust function.
 //
 // #### Usage
 //
@@ -265,6 +288,8 @@ with {
 //----------`echo`----------
 // A simple echo effect.
 //
+// `echo` is a standard Faust function
+//
 // #### Usage
 //
 // ```
@@ -292,6 +317,7 @@ with{
 
 //--------------`transpose`----------------
 // A simple pitch shifter based on 2 delay lines.
+// `transpose` is a standard Faust function.
 // 
 // #### Usage
 //

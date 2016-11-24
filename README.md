@@ -1,7 +1,7 @@
 # FAUST - a programming language for audio applications and plugins
 ## Grame, Centre National de Creation Musicale : http://www.grame.fr
 
-
+[![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master-dev)](https://travis-ci.org/grame-cncm/faust)
 ### Introduction
 
 FAUST (Functional Audio Stream) is a functional programming
