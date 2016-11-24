@@ -717,6 +717,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     InstructionsCompiler* comp = NULL;
     CodeContainer* container = NULL;
     ostream* dst = NULL;
+    ostream* helpers = NULL;
     
     // Finally output file
     if (gGlobal->gOutputFile == "string") {
@@ -732,8 +733,10 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             throw faustexception(error.str());
         }
         dst = new ofstream(outpath.c_str());
+        helpers = new ofstream(("helpers_" + outpath).c_str());
     } else {
         dst = &cout;
+        helpers = &cout;
     }
   
     startTiming("generateCode");
@@ -952,10 +955,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         gGlobal->gDSPFactory->write(dst, (dst != &cout), false);
         
         // Possibly helper code
-        gGlobal->gDSPFactory->writeAux(dst, (dst != &cout), false);
+        gGlobal->gDSPFactory->writeAux(helpers, (helpers != &cout), false);
         
         // Force flush since the stream is not closed...
         dst->flush();
+        helpers->flush();
     }
    
     endTiming("generateCode");

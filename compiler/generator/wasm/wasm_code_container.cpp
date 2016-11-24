@@ -135,18 +135,23 @@ void WASMCodeContainer::produceClass()
         fGlobalDeclarationInstructions->fCode.sort(sorter);
         generateGlobalDeclarations(gGlobal->gWASMVisitor);
     
+        /*
         // Always generated mathematical functions
         tab(n+1, *fOut); *fOut << "(import $" << realStr << "-rem \"asm2wasm\" \"" << realStr
                                << "-rem\" (param " << realStr <<  " " << realStr << ") (result "<< realStr << "))";
         tab(n+1, *fOut); *fOut << "(import $" << realStr << "-to-int \"asm2wasm\" \""
                                << realStr << "-to-int\" (param " << realStr << ") (result i32))";
         tab(n+1, *fOut); *fOut << "(import $log " << "\"asm2wasm\" \"log\" (param " << realStr << ") (result " << realStr << "))";
+        */
     
         // Memory access
-        tab(n+1, *fOut); *fOut << "(import \"env\" \"memory\" (memory $0 256 256))";
-        tab(n+1, *fOut); *fOut << "(import \"env\" \"table\" (table 0 0 anyfunc))";
-        tab(n+1, *fOut); *fOut << "(import \"env\" \"memoryBase\" (global $memoryBase i32))";
-        tab(n+1, *fOut); *fOut << "(import \"env\" \"tableBase\" (global $tableBase i32))";
+        // TODO : setup value as the first multiple of 64 kB > DSP memory size
+        tab(n+1, *fOut); *fOut << "(memory (export \"memory\") 16)";
+        //tab(n+1, *fOut); *fOut << "(export \"memory\" (memory $0 256 256))";
+        //tab(n+1, *fOut); *fOut << "(import \"env\" \"memory\" (memory $0 256 256))";
+        //tab(n+1, *fOut); *fOut << "(import \"env\" \"table\" (table 0 0 anyfunc))";
+        //tab(n+1, *fOut); *fOut << "(import \"env\" \"memoryBase\" (global $memoryBase i32))";
+        //tab(n+1, *fOut); *fOut << "(import \"env\" \"tableBase\" (global $tableBase i32))";
     
         // Exported functions
         tab(n+1, *fOut); *fOut << "(export \"getNumInputs\" (func $getNumInputs))";
@@ -164,6 +169,7 @@ void WASMCodeContainer::produceClass()
         // Always generated mathematical functions
         tab(n+1, *fOut);
     
+        /*
         tab(n+1, *fOut); *fOut << "(func $fmod" << isuffix() << " (type $0) (param $0 " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
             tab(n+2, *fOut); *fOut << "(call_import $" << realStr << "-rem (get_local $0) (get_local $1))";
         tab(n+1, *fOut); *fOut << ")";
@@ -171,6 +177,7 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut <<  "(func $log10" << isuffix() << "f (type $2) (param $0 " << realStr << ") (result " << realStr << ")";
             tab(n+2, *fOut); *fOut << "(return (" << realStr << ".div (call_import $log (get_local $0)) (call_import $log (" << realStr << ".const 10))))";
         tab(n+1, *fOut); *fOut << ")";
+        */
     
         // Fields : compute the structure size to use in 'new'
         gGlobal->gWASMVisitor->Tab(n+1);
@@ -236,7 +243,7 @@ void WASMCodeContainer::produceClass()
         
         // getSampleRate
         tab(n+1, *fOut); *fOut << "(func $getSampleRate (type $3) (param $dsp i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(return (i32.load (i32.add (i32.const " << gGlobal->gWASMVisitor->getFieldOffset("fSamplingFreq") << ") (get_local $dsp))))";
+            tab(n+2, *fOut); *fOut << "(return (i32.load (i32.add (get_local $dsp) (i32.const " << gGlobal->gWASMVisitor->getFieldOffset("fSamplingFreq") << "))))";
         tab(n+1, *fOut); *fOut << ")";
     
         // setParamValue
@@ -263,7 +270,6 @@ void WASMCodeContainer::produceClass()
     tab(n, *fOut); *fOut << ")";
     tab(n, *fOut);
     
-    /*
     // Helper code
     
     // User interface : prepare the JSON string...
@@ -316,7 +322,6 @@ void WASMCodeContainer::produceClass()
         }
     }
     tab(n, fHelper); fHelper << "}" << endl << endl;
-    */
 }
 
 void WASMScalarCodeContainer::generateCompute(int n)

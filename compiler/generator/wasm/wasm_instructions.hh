@@ -487,34 +487,23 @@ class WASMInstVisitor : public TextInstVisitor {
     
         virtual void visit(BinopInst* inst)
         {
-            if (isBoolOpcode(inst->fOpcode)) {
-                *fOut << "(";
-                *fOut << gBinOpTable[inst->fOpcode]->fNameWasmInt;
-                *fOut << " ";
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                inst->fInst2->accept(this);
-                *fOut << ")";
+            inst->fInst1->accept(&fTypingVisitor);
+            Typed::VarType type1 = fTypingVisitor.fCurType;
+            
+            if (isRealType(type1)) {
+                visitAuxReal(inst, type1);
             } else {
-                
-                inst->fInst1->accept(&fTypingVisitor);
-                Typed::VarType type1 = fTypingVisitor.fCurType;
-                
-                if (isRealType(type1)) {
+                inst->fInst2->accept(&fTypingVisitor);
+                Typed::VarType type2 = fTypingVisitor.fCurType;
+                if (isRealType(type2)) {
                     visitAuxReal(inst, type1);
+                } else if (isIntType(type1) || isIntType(type2)) {
+                    visitAuxInt(inst);
+                } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
+                    visitAuxInt(inst);
                 } else {
-                    inst->fInst2->accept(&fTypingVisitor);
-                    Typed::VarType type2 = fTypingVisitor.fCurType;
-                    if (isRealType(type2)) {
-                        visitAuxReal(inst, type1);
-                    } else if (isIntType(type1) || isIntType(type2)) {
-                        visitAuxInt(inst);
-                    } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
-                        visitAuxInt(inst);
-                    } else {
-                        // Should never happen...
-                        assert(false);
-                    }
+                    // Should never happen...
+                    assert(false);
                 }
             }
             

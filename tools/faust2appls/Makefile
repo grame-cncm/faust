@@ -72,6 +72,7 @@ install:
 	install faust2w32vst $(dest)
 	install faust2webaudio $(dest)
 	install faust2webaudioasm $(dest)
+	install faust2webaudiowasm $(dest)
 	install faustoptflags $(dest)
 	install faustpath $(dest)
 
@@ -135,5 +136,6 @@ uninstall:
 	rm -f $(dest)/faust2w32vst
 	rm -f $(dest)/faust2webaudio
 	rm -f $(dest)/faust2webaudioasm
+	rm -f $(dest)/faust2webaudiowasm
 	rm -f $(dest)/faustoptflags
 	rm -f $(dest)/faustpath
