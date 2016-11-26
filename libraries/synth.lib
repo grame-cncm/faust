@@ -60,7 +60,8 @@ os = library("miscoscillator.lib");
 no = library("noise.lib");
 
 //-----------------------------------`popFilterPerc`--------------------------------------
-// A simple percussion instrument based on a "poped" resonant bandpass filter.
+// A simple percussion instrument based on a "popped" resonant bandpass filter.
+// `popFilterPerc` is a standard Faust function.
 //
 // #### Usage
 //
@@ -80,6 +81,7 @@ popFilterDrum(freq,q,gate) = en.ar(0.001,0.001,gate)*no.noise : fi.resonbp(freq,
 
 //---------------------------------------`dubDub`-----------------------------------------
 // A simple synth based on a sawtooth wave filtered by a resonant lowpass.
+// `dubDub` is a standard Faust function.
 // 
 // #### Usage
 // 
@@ -104,6 +106,7 @@ with{
 
 //-----------------------------------`sawTrombone`----------------------------------------
 // A simple trombone based on a lowpassed sawtooth wave.
+// `sawTrombone` is a standard Faust function.
 //
 // #### Usage
 //
@@ -129,6 +132,7 @@ with{
 
 //-----------------------------------`combString`-----------------------------------------
 // Simplest string physical model ever based on a comb filter.
+// `combString` is a standard Faust function.
 //
 // #### Usage
 //
@@ -155,6 +159,7 @@ with{
 
 //-----------------------------------`additiveDrum`---------------------------------------
 // A simple drum using additive synthesis.
+// `additiveDrum` is a standard Faust function.
 //
 // #### Usage
 //
@@ -186,8 +191,9 @@ with{
 };
 
 
-//-----------------------------------`additiveDrum`---------------------------------------
+//-----------------------------------`fm`---------------------------------------
 // An FM synthesizer with an arbitrary number of modulators connected as a sequence.
+// `fm` is a standard Faust function.
 //
 // #### Usage
 //

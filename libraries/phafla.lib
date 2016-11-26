@@ -61,15 +61,13 @@ declare version "0.0";
 //=============================Functions Reference========================================
 //========================================================================================
 
-//---------------`flanger_mono` and `flanger_stereo`-------------
-// Flanging effect.
+//---------------`flanger_mono`-------------
+// Mono flanging effect.
 //
 // #### Usage:
 //
 // ```
 // _ : flanger_mono(dmax,curdel,depth,fb,invert) : _;
-// _,_ : flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert) : _,_;
-// _,_ : flanger_demo : _,_;
 // ```
 //
 // Where:
@@ -90,20 +88,63 @@ flanger_mono(dmax,curdel,depth,fb,invert)
   *(select2(invert,depth,0-depth))
   : + : *(0.5);
 
+//---------------`flanger_stereo`-------------
+// Stereo flanging effect.
+// `flanger_stereo` is a standard Faust function.
+//
+// #### Usage:
+//
+// ```
+// _,_ : flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert) : _,_;
+// ```
+//
+// Where:
+//
+// * `dmax`: maximum delay-line length (power of 2) - 10 ms typical
+// * `curdel`: current dynamic delay (not to exceed dmax)
+// * `depth`: effect strength between 0 and 1 (1 typical)
+// * `fb`: feedback gain between 0 and 1 (0 typical)
+// * `invert`: 0 for normal, 1 to invert sign of flanging sum
+//
+// #### Reference
+//
+// <https://ccrma.stanford.edu/~jos/pasp/Flanging.html>
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
 flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert)
   =  flanger_mono(dmax,curdel1,depth,fb,invert),
      flanger_mono(dmax,curdel2,depth,fb,invert);
 
 
-//-------`phaser2_mono` and `phaser2_stereo`-------
-// Phasing effect.
+vibrato2_mono(sections,phase01,fb,width,frqmin,fratio,frqmax,speed) =
+ (+ : seq(i,sections,ap2p(R,th(i)))) ~ *(fb)
+with {
+     //tf2 = component("filter.lib").tf2;
+     // second-order resonant digital allpass given pole radius and angle:
+     ap2p(R,th) = fi.tf2(a2,a1,1,a1,a2) with {
+       a2 = R^2;
+       a1 = -2*R*cos(th);
+     };
+     R = exp(-pi*width/ma.SR);
+     cososc = os.oscrc; // oscillator.lib
+     sinosc = os.oscrs; // oscillator.lib
+     osc = cososc(speed) * phase01 + sinosc(speed) * (1-phase01);
+     lfo = (1-osc)/2; // in [0,1]
+     pi = 4*atan(1);
+     thmin = 2*pi*frqmin/ma.SR;
+     thmax = 2*pi*frqmax/ma.SR;
+     th1 = thmin + (thmax-thmin)*lfo;
+     th(i) = (fratio^(i+1))*th1;
+};
+
+
+//-------`phaser2_mono`-----------------
+// Mono phasing effect.
 //
 // #### Phaser
 //
 // ```
 // _ : phaser2_mono(Notches,phase,width,frqmin,fratio,frqmax,speed,depth,fb,invert) : _;
-// _,_ : phaser2_stereo(") : _,_;
-// _,_ : phaser2_demo : _,_;
 // ```
 //
 // Where:
@@ -129,27 +170,6 @@ flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert)
 // * CCRMA Tech. Report STAN-M-21: <https://ccrma.stanford.edu/STANM/stanms/stanm21/>
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-vibrato2_mono(sections,phase01,fb,width,frqmin,fratio,frqmax,speed) =
- (+ : seq(i,sections,ap2p(R,th(i)))) ~ *(fb)
-with {
-     //tf2 = component("filter.lib").tf2;
-     // second-order resonant digital allpass given pole radius and angle:
-     ap2p(R,th) = fi.tf2(a2,a1,1,a1,a2) with {
-       a2 = R^2;
-       a1 = -2*R*cos(th);
-     };
-     R = exp(-pi*width/ma.SR);
-     cososc = os.oscrc; // oscillator.lib
-     sinosc = os.oscrs; // oscillator.lib
-     osc = cososc(speed) * phase01 + sinosc(speed) * (1-phase01);
-     lfo = (1-osc)/2; // in [0,1]
-     pi = 4*atan(1);
-     thmin = 2*pi*frqmin/ma.SR;
-     thmax = 2*pi*frqmax/ma.SR;
-     th1 = thmin + (thmax-thmin)*lfo;
-     th(i) = (fratio^(i+1))*th1;
-};
-
 phaser2_mono(Notches,phase01,width,frqmin,fratio,frqmax,speed,depth,fb,invert) =
       _ <: *(g1) + g2mi*vibrato2_mono(Notches,phase01,fb,width,frqmin,fratio,frqmax,speed)
 with {               // depth=0 => direct-signal only
@@ -158,6 +178,40 @@ with {               // depth=0 => direct-signal only
      g2mi = select2(invert,g2,-g2); // inversion negates the allpass-chain signal
 };
 
+
+//-------`phaser2_stereo`-------
+// Stereo phasing effect.
+// `phaser2_stereo` is a standard Faust function.
+//
+// #### Phaser
+//
+// ```
+// _ : phaser2_stereo(Notches,phase,width,frqmin,fratio,frqmax,speed,depth,fb,invert) : _;
+// ```
+//
+// Where:
+//
+// * `Notches`: number of spectral notches (MACRO ARGUMENT - not a signal)
+// * `phase`: phase of the oscillator (0-1)
+// * `width`: approximate width of spectral notches in Hz
+// * `frqmin`: approximate minimum frequency of first spectral notch in Hz
+// * `fratio`: ratio of adjacent notch frequencies
+// * `frqmax`: approximate maximum frequency of first spectral notch in Hz
+// * `speed`: LFO frequency in Hz (rate of periodic notch sweep cycles)
+// * `depth`: effect strength between 0 and 1 (1 typical) (aka "intensity")
+//            when depth=2, "vibrato mode" is obtained (pure allpass chain)
+// * `fb`: feedback gain between -1 and 1 (0 typical)
+// * `invert`: 0 for normal, 1 to invert sign of flanging sum
+//
+// Reference:
+//
+// * <https://ccrma.stanford.edu/~jos/pasp/Phasing.html>
+// * <http://www.geofex.com/Article_Folders/phasers/phase.html>
+// * 'An Allpass Approach to Digital Phasing and Flanging', Julius O. Smith III,
+//		Proc. Int. Computer Music Conf. (ICMC-84), pp. 103-109, Paris, 1984.
+// * CCRMA Tech. Report STAN-M-21: <https://ccrma.stanford.edu/STANM/stanms/stanm21/>
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
 phaser2_stereo(Notches,width,frqmin,fratio,frqmax,speed,depth,fb,invert)
    = phaser2_mono(Notches,0,width,frqmin,fratio,frqmax,speed,depth,fb,invert),
      phaser2_mono(Notches,1,width,frqmin,fratio,frqmax,speed,depth,fb,invert);

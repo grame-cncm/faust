@@ -534,6 +534,7 @@ sawtooth = saw2; // default choice for sawtooth signal - see also sawN
 // TODO: implemented but not documented. For now, you can
 // look at the source code.
 //--------------------------------------------------------
+// TODO: author JOS
 // --- Correction-filtered versions of saw2: saw2f2, saw2f4 ----
 // The correction filter compensates "droop" near half the sampling rate.
 // See reference for sawN.
@@ -547,6 +548,7 @@ saw2f2 = saw2 : cf2 with {
 // TODO: implemented but not documented. For now, you can
 // look at the source code.
 //--------------------------------------------------------
+// TODO: author JOS
 saw2f4 = saw2 : cf4 with {
   cf4 = fi.iir((1.155727435125014, 2.285861038554662,
         1.430915027294021, 0.290713280893317, 0.008306401748854),
@@ -583,6 +585,13 @@ saw2f4 = saw2 : cf4 with {
 // * `freq`: frequency in Hz
 //====================================================================
 // TODO: author JOS
+
+
+//------------------`pulsetrainN`--------------------------------
+// TODO: implemented but not documented. For now, you can
+// look at the source code.
+//--------------------------------------------------------
+// TODO: author JOS
 pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with {
  // non-interpolated-delay version: diffdel(x,del) = x - x@int(del+0.5);
  // linearly interpolated delay version (sounds good to me):
@@ -598,19 +607,119 @@ pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with {
  ddel = duty * period; // desired delay
  del = max(0,min(delmax,ddel));
 };
+
+
+//------------------`pulsetrain`--------------------------------
+// Bandlimited pulse train oscillator. Based on `pulsetrainN(2)`.
+// `pulsetrain` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// pulsetrain(freq, duty) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+// * `duty`: duty cycle between 0 and 1
+//--------------------------------------------------------
+// TODO: author JOS
 pulsetrain = pulsetrainN(2);
 
+
+//------------------`squareN`--------------------------------
+// TODO: implemented but not documented. For now, you can
+// look at the source code.
+//--------------------------------------------------------
+// TODO: author JOS
 squareN(N,freq) = pulsetrainN(N,freq,0.5);
+
+
+//------------------`square`--------------------------------
+// Bandlimited square wave oscillator. Based on `squareN(2)`.
+// `square` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// square(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+//--------------------------------------------------------
+// TODO: author JOS
 square = squareN(2);
 
-impulse = 1-1'; // TODO: may be this should be moved to route.lib
+
+//------------------`impulse`--------------------------------
+// One-time impulse generated when the Faust process is started.
+// `impulse` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// impulse : _
+// ```
+//--------------------------------------------------------
+// TODO: author JOS
+impulse = 1-1';
+
+
+//------------------`imptrainN`--------------------------------
+// TODO: implemented but not documented. For now, you can
+// look at the source code.
+//--------------------------------------------------------
+// TODO: author JOS
 imptrainN(N,freq) = impulse + 0.5*ma.diffn(sawN(N,freq));
+
+
+//------------------`imptrain`--------------------------------
+// Bandlimited impulse train generator. Based on `imptrainN(2)`.
+// `imptrain` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// imptrain(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+//--------------------------------------------------------
+// TODO: author JOS
 imptrain = imptrainN(2); // default based on saw2
 
+
+//------------------`triangleN`--------------------------------
+// TODO: implemented but not documented. For now, you can
+// look at the source code.
+//--------------------------------------------------------
+// TODO: author JOS
 triangleN(N,freq) = squareN(N,freq) : fi.pole(p) : *(gain) with {
   gain = 4.0*freq/ma.SR; // for aproximate unit peak amplitude
   p = 0.999;
 };
+
+
+//------------------`triangle`--------------------------------
+// Bandlimited triangle wave oscillator. Based on `triangleN(2)`.
+// `triangle` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// triangle(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+//--------------------------------------------------------
+// TODO: author JOS
 triangle = triangleN(2); // default based on saw2
 
 
@@ -630,7 +739,17 @@ triangle = triangleN(2); // default based on saw2
 //========================================================================================
 
 //--------------------------`oscb`--------------------------------
-// Sinusoidal oscillator based on the biquad
+// Sinusoidal oscillator based on the biquad.
+//
+// #### Usage
+//
+// ```
+// oscb(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency 
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
 oscb(f) = impulse : fi.tf2(1,0,0,a1,1)
@@ -638,23 +757,78 @@ with {
   a1 = -2*cos(2*ma.PI*f/ma.SR);
 };
 
-//--------------------------`oscr`,`oscrs` and `oscs`---------------------------
-// Sinusoidal oscillator based on 2D vector rotation,
+
+//--------------------------`oscrq`---------------------------
+// Sinusoidal (sine and cosine) oscillator based on 2D vector rotation,
 //  = undamped "coupled-form" resonator
 //  = lossless 2nd-order normalized ladder filter.
 // 
-// `oscr` = `oscrs`, `oscrs` generates a sine wave and `oscs` a cosine.
+// #### Usage
 //
-// #### Reference:
+// ```
+// oscrq(freq) : _,_
+// ```
 //
-// <https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html>
+// Where:
+//
+// * `freq`: frequency
+//
+// #### Reference
+//
+// * <https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html>
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
 oscrq(f) = impulse : fi.nlf2(f,1); // sine and cosine outputs
+
+
+//--------------------------`oscrs`---------------------------
+// Sinusoidal (sine) oscillator based on 2D vector rotation,
+//  = undamped "coupled-form" resonator
+//  = lossless 2nd-order normalized ladder filter.
+// 
+// #### Usage
+//
+// ```
+// oscrs(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+//
+// #### Reference
+//
+// * <https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html>
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
 oscrs(f) = impulse : fi.nlf2(f,1) : _,!; // sine
+
+
+//--------------------------`oscrc`---------------------------
+// Sinusoidal (cosine) oscillator based on 2D vector rotation,
+//  = undamped "coupled-form" resonator
+//  = lossless 2nd-order normalized ladder filter.
+// 
+// #### Usage
+//
+// ```
+// oscrc(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+//
+// #### Reference
+//
+// * <https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html>
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
 oscrc(f) = impulse : fi.nlf2(f,1) : !,_; // cosine
+
 oscrp(f,p) = oscrq(f) : *(cos(p)), *(sin(p)) : + ; // p=0 for sine, p=PI/2 for cosine, etc.
 oscr = oscrs; // default = sine (starts without a pop)
+
 
 //-----------------------`osc`------------------------
 // Default sine wave oscillator (same as oscrs).
@@ -673,6 +847,7 @@ oscr = oscrs; // default = sine (starts without a pop)
 //osc	= oscsin;
 osc	= oscrs;
 
+
 //--------------------------`oscs`--------------------------------
 // Sinusoidal oscillator based on the state variable filter
 // = undamped "modified-coupled-form" resonator
@@ -688,25 +863,96 @@ with {
   sintp(x,y) = *(x) : +(y): + ~ _ ; // same + state input
 };
 
-//-----------------`oscw`, `oscwq`, `oscwc` and `oscws`--------------------
-// Sinusoidal oscillator based on the waveguide resonator wgr.
+
+//================ Waveguide-Resonator-Based Osccilators================
+// Sinusoidal oscillator based on the waveguide resonator `wgr`.
+//======================================================================
+
+//-----------------`oscw`--------------------
+// Sinusoidal oscillator based on the waveguide resonator `wgr`. Unit-amplitude
+// cosine oscillator.
 //
-// `oscwc` - unit-amplitude cosine oscillator
+// #### Usage
 //
-// `oscws` - unit-amplitude sine oscillator
-// 
-// `oscq`  - unit-amplitude cosine and sine (quadrature) oscillator
+// ```
+// oscwc(freq) : _
+// ```
 //
-// `oscw`  - default = `oscwc` for maximum speed
+// Where:
+//
+// * `freq`: frequency
 //
 // #### Reference
 //
-// <https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html>
+// * <https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html>
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
 oscwc(fr) = impulse : fi.wgr(fr,1) : _,!; // cosine (cheapest at 1 mpy/sample)
+
+
+//-----------------`oscws`--------------------
+// Sinusoidal oscillator based on the waveguide resonator `wgr`. Unit-amplitude
+// sine oscillator
+//
+// #### Usage
+//
+// ```
+// oscws(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+//
+// #### Reference
+//
+// * <https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html>
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
 oscws(fr) = impulse : fi.wgr(fr,1) : !,_; // sine (needs a 2nd scaling mpy)
+
+
+//-----------------`oscwq`--------------------
+// Sinusoidal oscillator based on the waveguide resonator `wgr`. 
+// Unit-amplitude cosine and sine (quadrature) oscillator.
+//
+// #### Usage
+//
+// ```
+// oscwq(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+//
+// #### Reference
+//
+// * <https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html>
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
 oscq(fr)  = impulse : fi.wgr(fr,1);       // phase quadrature outputs
+
+
+//-----------------`oscw`--------------------
+// Sinusoidal oscillator based on the waveguide resonator `wgr`.
+// Unit-amplitude cosine oscillator (default)
+//
+// #### Usage
+//
+// ```
+// oscw(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+//
+// #### Reference
+//
+// * <https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html>
+//------------------------------------------------------------
+// TODO: author JOS, revised by RM
 oscw = oscwc;
 
 
