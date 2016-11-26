@@ -13,28 +13,6 @@ D=`mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir'`
 cd codes-to-test
 
 echo "==============================================================="
-echo "Valgrind test in scalar mode "
-echo "==============================================================="
-
-for f in *.dsp; do
-    echo $f
-    faust2valgrind $f > /dev/null
-done
-
-grep "uninitialised" *.txt
-
-echo "==============================================================="
-echo "Valgrind test in vector mode "
-echo "==============================================================="
-
-for f in *.dsp; do
-    echo $f
-    faust2valgrind -vec -lv 1 $f > /dev/null
-done
-
-grep "uninitialised" *.txt
-
-echo "==============================================================="
 echo "Impulse response tests in various compilation modes and double"
 echo "==============================================================="
 
@@ -87,4 +65,26 @@ for f in *.dsp; do
     faust2impulse $f  -vec  > $D/$f.vec.ir
 	filesCompare $D/$f.vec.ir ../expected-responses/$f.scal.ir 0.001 && echo "OK $f vector -lv 0 mode" || echo "ERROR $f vector -lv 0 mode"
 done
+
+echo "==============================================================="
+echo "Valgrind test in scalar mode "
+echo "==============================================================="
+
+for f in *.dsp; do
+    echo $f
+    faust2valgrind $f > /dev/null
+done
+
+grep "uninitialised" *.txt
+
+echo "==============================================================="
+echo "Valgrind test in vector mode "
+echo "==============================================================="
+
+for f in *.dsp; do
+    echo $f
+    faust2valgrind -vec -lv 1 $f > /dev/null
+done
+
+grep "uninitialised" *.txt
 
