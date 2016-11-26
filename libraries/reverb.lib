@@ -148,6 +148,8 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
 // series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each
 // audio channel, and is said to be especially well tuned.
 //
+// `mono_freeverb` is a standard Faust function.
+//
 // #### Usage
 //
 // ```
@@ -212,6 +214,7 @@ stereo_freeverb(fb1, fb2, damp, spread) =  + <: mono_freeverb(fb1, fb2, damp,0),
 
 //--------------------------------`fdnrev0`---------------------------------
 // Pure Feedback Delay Network Reverberator (generalized for easy scaling).
+// `fdnrev0` is a standard Faust function.
 //
 // #### Usage
 //
@@ -368,6 +371,7 @@ zita_distrib2(N) = _,_ <: fanflip(N) with {
 
 //----------------------------`zita_rev1_stereo`---------------------------
 // Extend `zita_rev_fdn` to include `zita_rev1` input/output mapping in stereo mode.
+// `zita_rev1_stereo` is a standard Faust function.
 //
 // #### Usage
 //

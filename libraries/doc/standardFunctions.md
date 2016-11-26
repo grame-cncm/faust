@@ -1,6 +1,6 @@
 # Standard Functions
 
-Dozens of functions are implemented in the Faust libraries and many of them are very specialized and not useful to beginners or to people who only need to use Faust for basic applications. This section offers an index organized by categories of the "standard Faust functions" (basic filters, effects, synthesizers, etc.).
+Dozens of functions are implemented in the Faust libraries and many of them are very specialized and not useful to beginners or to people who only need to use Faust for basic applications. This section offers an index organized by categories of the "standard Faust functions" (basic filters, effects, synthesizers, etc.). This index only contains functions without a user interface (UI). Faust functions with a built-in UI can be found in [`demo.lib`](#demo.lib).
 
 
 ## Analysis Tools
@@ -71,11 +71,17 @@ Function Type | Function Name | Description
 [Distortion](#cubicnl) | [`ef.`](#misceffect.lib)[`cubicnl`](#cubicnl) | Cubic nonlinearity distortion
 [Crybaby](#crybaby) | [`ve.`](#vaeffect.lib)[`crybaby`](#crybaby) | Crybaby wah pedal
 [Echo](#echo) | [`ef.`](#misceffect.lib)[`echo`](#echo) | Simple echo
-[Flanger](#flanger_mono) | [`pf.`](#phafla.lib)[`flanger_mono`](#flanger_mono) | Flanging effect
+[Flanger](#flanger_stereo) | [`pf.`](#phafla.lib)[`flanger_stereo`](#flanger_stereo) | Flanging effect
 [Gate](#gate_mono) | [`ef.`](#misceffect.lib)[`gate_mono`](#gate_mono) | Mono signal gate
 [Limiter](#limiter_1176_R4_mono) | [`co.`](#compressor.lib)[`limiter_1176_R4_mono`](#limiter_1176_R4_mono) | Limiter
-[Phaser](#phaser2_mono) | [`pf.`](#phafla.lib)[`phaser2_mono`](#phaser2_mono) | Phaser effect
+[Phaser](#phaser2_stereo) | [`pf.`](#phafla.lib)[`phaser2_stereo`](#phaser2_stereo) | Phaser effect
+[Reverb (FDN)](#fdnrev0) | [`re.`](#reverb.lib)[`fdnrev0`](#fdnrev0) | Feedback delay network reverberator
+[Reverb (Freeverb)](#mono_freeverb) | [`re.`](#reverb.lib)[`mono_freeverb`](#mono_freeverb) | Most "famous" Schroeder reverberator
+[Reverb (Simple)](#jcrev) | [`re.`](#reverb.lib)[`jcrev`](#jcrev) | Simple Schroeder reverberator
+[Reverb (Zita)](#zita_rev1_stereo) | [`re.`](#reverb.lib)[`zita_rev1_stereo`](#zita_rev1_stereo) | High quality FDN reverberator
+[Panner](#panner) | [`sp.`](#spat.lib)[`panner`](#panner) | Linear stereo panner
 [Pitch Shift](#transpose) | [`ef.`](#misceffect.lib)[`transpose`](#transpose) | Simple pitch shifter
+[Panner](#spat) | [`sp.`](#spat.lib)[`spat`](#spat) | N outputs spatializer
 [Speaker Simulator](#speakerbp) | [`ef.`](#misceffect.lib)[`speakerbp`](#speakerbp) | Simple speaker simulator
 [Stereo Width](#stereo_width) | [`ef.`](#misceffect.lib)[`stereo_width`](#stereo_width) | Stereo width effect
 [Vocoder](#vocoder) | [`ve.`](#vaeffect.lib)[`vocoder`](#vocoder) | Simple vocoder

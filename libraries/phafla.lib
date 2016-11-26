@@ -63,7 +63,6 @@ declare version "0.0";
 
 //---------------`flanger_mono`-------------
 // Mono flanging effect.
-// `flanger_mono` is a standard Faust function.
 //
 // #### Usage:
 //
@@ -91,6 +90,7 @@ flanger_mono(dmax,curdel,depth,fb,invert)
 
 //---------------`flanger_stereo`-------------
 // Stereo flanging effect.
+// `flanger_stereo` is a standard Faust function.
 //
 // #### Usage:
 //
@@ -140,7 +140,6 @@ with {
 
 //-------`phaser2_mono`-----------------
 // Mono phasing effect.
-// `phaser2_mono` is a standard Faust function.
 //
 // #### Phaser
 //
@@ -182,6 +181,7 @@ with {               // depth=0 => direct-signal only
 
 //-------`phaser2_stereo`-------
 // Stereo phasing effect.
+// `phaser2_stereo` is a standard Faust function.
 //
 // #### Phaser
 //

@@ -22,10 +22,11 @@
 <li><a href="#documentation">Documentation</a></li>
 <li><a href="#library-import">Library Import</a></li>
 <li><a href="#demo-functions">&quot;Demo&quot; Functions</a></li>
+<li><a href="#standard-functions">&quot;Standard&quot; Functions</a></li>
 </ul></li>
 <li><a href="#the-question-of-licensingauthoringcopyrigth">The question of licensing/authoring/copyrigth</a></li>
 </ul></li>
-<li><a href="#standard-functions">Standard Functions</a><ul>
+<li><a href="#standard-functions-1">Standard Functions</a><ul>
 <li><a href="#analysis-tools">Analysis Tools</a></li>
 <li><a href="#basic-elements">Basic Elements</a></li>
 <li><a href="#conversion">Conversion</a></li>
@@ -680,12 +681,14 @@ ve = library(&quot;vaeffect.lib&quot;);</code></pre>
 process = si.smooth(0.999);</code></pre>
 <p>This standard is only used within the libraries: nothing prevents coders to still import <code>signal.lib</code> directly and call <code>smooth</code> without <code>ro.</code>, etc.</p>
 <h3 id="demo-functions">&quot;Demo&quot; Functions</h3>
-<p>All the functions that were present in the libraries and that contained any kind of UI elements declaration (mostly JOS &quot;<code>demo</code>&quot; functions) were turned into independant <code>.dsp</code> files that were placed in the <code>/examples</code> folder. Thus, Faust libraries now only contain &quot;pure&quot; function declarations which should make them more legible. Also, &quot;<code>demo</code>&quot; functions make great examples...</p>
-<p>For practicality, the &quot;<code>demo</code>&quot; functions are still declared and are available in <code>demo.lib</code> as &quot;components&quot; pointing at the <code>/examples</code> folder (which is why that folder will have to be installed on the system during the installation process of the Faust distribution).</p>
+<p>&quot;Demo&quot; functions are placed in <code>demo.lib</code> and have a built-in user interface (UI). Their name ends with the <code>_demo</code> suffix. Each of these function have a <code>.dsp</code> file associated to them in the <code>/examples</code> folder.</p>
+<p>Any function containing UI elements should be placed in this library and respect these standards.</p>
+<h3 id="standard-functions">&quot;Standard&quot; Functions</h3>
+<p>&quot;Standard&quot; functions are here to simplify the life of new (or not so new) Faust coders. They are declared in <code>/libraries/doc/standardFunctions.md</code> and allow to point programmers to preferred functions to carry out a specific task. For example, there are many different types of lowpass filters declared in <code>filter.lib</code> and only one of them is considered to be standard, etc.</p>
 <h2 id="the-question-of-licensingauthoringcopyrigth">The question of licensing/authoring/copyrigth</h2>
 <p>Now that Faust libraries are not author specific, each function will be able to have its own licence/author declaration. This means that some libraries wont have a global licence/author/copyright declaration like it used to be the case.</p>
-<h1 id="standard-functions">Standard Functions</h1>
-<p>Dozens of functions are implemented in the Faust libraries and many of them are very specialized and not useful to beginners or to people who only need to use Faust for basic applications. This section offers an index organized by categories of the &quot;standard Faust functions&quot; (basic filters, effects, synthesizers, etc.).</p>
+<h1 id="standard-functions-1">Standard Functions</h1>
+<p>Dozens of functions are implemented in the Faust libraries and many of them are very specialized and not useful to beginners or to people who only need to use Faust for basic applications. This section offers an index organized by categories of the &quot;standard Faust functions&quot; (basic filters, effects, synthesizers, etc.). This index only contains functions without a user interface (UI). Faust functions with a built-in UI can be found in <a href="#demo.lib"><code>demo.lib</code></a>.</p>
 <h2 id="analysis-tools">Analysis Tools</h2>
 <div class="table-begin">
 
@@ -914,8 +917,8 @@ process = si.smooth(0.999);</code></pre>
 <td align="left">Simple echo</td>
 </tr>
 <tr class="even">
-<td align="left"><a href="#flanger_mono">Flanger</a></td>
-<td align="left"><a href="#phafla.lib"><code>pf.</code></a><a href="#flanger_mono"><code>flanger_mono</code></a></td>
+<td align="left"><a href="#flanger_stereo">Flanger</a></td>
+<td align="left"><a href="#phafla.lib"><code>pf.</code></a><a href="#flanger_stereo"><code>flanger_stereo</code></a></td>
 <td align="left">Flanging effect</td>
 </tr>
 <tr class="odd">
@@ -929,14 +932,44 @@ process = si.smooth(0.999);</code></pre>
 <td align="left">Limiter</td>
 </tr>
 <tr class="odd">
-<td align="left"><a href="#phaser2_mono">Phaser</a></td>
-<td align="left"><a href="#phafla.lib"><code>pf.</code></a><a href="#phaser2_mono"><code>phaser2_mono</code></a></td>
+<td align="left"><a href="#phaser2_stereo">Phaser</a></td>
+<td align="left"><a href="#phafla.lib"><code>pf.</code></a><a href="#phaser2_stereo"><code>phaser2_stereo</code></a></td>
 <td align="left">Phaser effect</td>
 </tr>
 <tr class="even">
+<td align="left"><a href="#fdnrev0">Reverb (FDN)</a></td>
+<td align="left"><a href="#reverb.lib"><code>re.</code></a><a href="#fdnrev0"><code>fdnrev0</code></a></td>
+<td align="left">Feedback delay network reverberator</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="#mono_freeverb">Reverb (Freeverb)</a></td>
+<td align="left"><a href="#reverb.lib"><code>re.</code></a><a href="#mono_freeverb"><code>mono_freeverb</code></a></td>
+<td align="left">Most &quot;famous&quot; Schroeder reverberator</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="#jcrev">Reverb (Simple)</a></td>
+<td align="left"><a href="#reverb.lib"><code>re.</code></a><a href="#jcrev"><code>jcrev</code></a></td>
+<td align="left">Simple Schroeder reverberator</td>
+</tr>
+<tr class="odd">
+<td align="left"><a href="#zita_rev1_stereo">Reverb (Zita)</a></td>
+<td align="left"><a href="#reverb.lib"><code>re.</code></a><a href="#zita_rev1_stereo"><code>zita_rev1_stereo</code></a></td>
+<td align="left">High quality FDN reverberator</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="#panner">Panner</a></td>
+<td align="left"><a href="#spat.lib"><code>sp.</code></a><a href="#panner"><code>panner</code></a></td>
+<td align="left">Linear stereo panner</td>
+</tr>
+<tr class="odd">
 <td align="left"><a href="#transpose">Pitch Shift</a></td>
 <td align="left"><a href="#misceffect.lib"><code>ef.</code></a><a href="#transpose"><code>transpose</code></a></td>
 <td align="left">Simple pitch shifter</td>
+</tr>
+<tr class="even">
+<td align="left"><a href="#spat">Panner</a></td>
+<td align="left"><a href="#spat.lib"><code>sp.</code></a><a href="#spat"><code>spat</code></a></td>
+<td align="left">N outputs spatializer</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#speakerbp">Speaker Simulator</a></td>
@@ -4061,7 +4094,7 @@ process = pf.functionCall;</code></pre>
 process = pf.functionCall;</code></pre>
 <h2 id="functions-reference-4">Functions Reference</h2>
 <h3 id="flanger_mono"><code>flanger_mono</code></h3>
-<p>Mono flanging effect. <code>flanger_mono</code> is a standard Faust function.</p>
+<p>Mono flanging effect.</p>
 <h4 id="usage-241">Usage:</h4>
 <pre><code>_ : flanger_mono(dmax,curdel,depth,fb,invert) : _;</code></pre>
 <p>Where:</p>
@@ -4076,7 +4109,7 @@ process = pf.functionCall;</code></pre>
 <p><a href="https://ccrma.stanford.edu/~jos/pasp/Flanging.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Flanging.html</a></p>
 <hr />
 <h3 id="flanger_stereo"><code>flanger_stereo</code></h3>
-<p>Stereo flanging effect.</p>
+<p>Stereo flanging effect. <code>flanger_stereo</code> is a standard Faust function.</p>
 <h4 id="usage-242">Usage:</h4>
 <pre><code>_,_ : flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert) : _,_;</code></pre>
 <p>Where:</p>
@@ -4091,7 +4124,7 @@ process = pf.functionCall;</code></pre>
 <p><a href="https://ccrma.stanford.edu/~jos/pasp/Flanging.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Flanging.html</a></p>
 <hr />
 <h3 id="phaser2_mono"><code>phaser2_mono</code></h3>
-<p>Mono phasing effect. <code>phaser2_mono</code> is a standard Faust function.</p>
+<p>Mono phasing effect.</p>
 <h4 id="phaser">Phaser</h4>
 <pre><code>_ : phaser2_mono(Notches,phase,width,frqmin,fratio,frqmax,speed,depth,fb,invert) : _;</code></pre>
 <p>Where:</p>
@@ -4116,7 +4149,7 @@ process = pf.functionCall;</code></pre>
 </ul>
 <hr />
 <h3 id="phaser2_stereo"><code>phaser2_stereo</code></h3>
-<p>Stereo phasing effect.</p>
+<p>Stereo phasing effect. <code>phaser2_stereo</code> is a standard Faust function.</p>
 <h4 id="phaser-1">Phaser</h4>
 <pre><code>_ : phaser2_stereo(Notches,phase,width,frqmin,fratio,frqmax,speed,depth,fb,invert) : _;</code></pre>
 <p>Where:</p>
@@ -4243,6 +4276,7 @@ process = re.functionCall;</code></pre>
 <hr />
 <h3 id="mono_freeverb"><code>mono_freeverb</code></h3>
 <p>A simple Schroeder reverberator primarily developed by &quot;Jezar at Dreampoint&quot; that is extensively used in the free-software world. It uses four Schroeder allpasses in series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each audio channel, and is said to be especially well tuned.</p>
+<p><code>mono_freeverb</code> is a standard Faust function.</p>
 <h4 id="usage-245">Usage</h4>
 <pre><code>_ : mono_freeverb(fb1, fb2, damp, spread) : _;</code></pre>
 <p>Where:</p>
@@ -4266,7 +4300,7 @@ process = re.functionCall;</code></pre>
 </ul>
 <hr />
 <h3 id="fdnrev0"><code>fdnrev0</code></h3>
-<p>Pure Feedback Delay Network Reverberator (generalized for easy scaling).</p>
+<p>Pure Feedback Delay Network Reverberator (generalized for easy scaling). <code>fdnrev0</code> is a standard Faust function.</p>
 <h4 id="usage-247">Usage</h4>
 <pre><code>&lt;1,2,4,...,N signals&gt; &lt;:
 fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl) :&gt;
@@ -4309,7 +4343,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\
 </ul>
 <hr />
 <h3 id="zita_rev1_stereo"><code>zita_rev1_stereo</code></h3>
-<p>Extend <code>zita_rev_fdn</code> to include <code>zita_rev1</code> input/output mapping in stereo mode.</p>
+<p>Extend <code>zita_rev_fdn</code> to include <code>zita_rev1</code> input/output mapping in stereo mode. <code>zita_rev1_stereo</code> is a standard Faust function.</p>
 <h4 id="usage-249">Usage</h4>
 <pre><code>_,_ : zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax) : _,_</code></pre>
 <p>Where:</p>
@@ -4500,7 +4534,7 @@ process = sp.functionCall;</code></pre>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 process = sp.functionCall;</code></pre>
 <h3 id="panner"><code>panner</code></h3>
-<p>A simple linear gain panner.</p>
+<p>A simple linear stereo panner. <code>panner</code> is a standard Faust function.</p>
 <h4 id="usage-267">Usage</h4>
 <pre><code>_ : panner(g) : _,_</code></pre>
 <p>Where:</p>
@@ -4509,7 +4543,7 @@ process = sp.functionCall;</code></pre>
 </ul>
 <hr />
 <h3 id="spat"><code>spat</code></h3>
-<p>GMEM SPAT: n-outputs spatializer</p>
+<p>GMEM SPAT: n-outputs spatializer. <code>spat</code> is a standard Faust function.</p>
 <h4 id="usage-268">Usage</h4>
 <pre><code>_ : spat(n,r,d) : _,_,...</code></pre>
 <p>Where:</p>
