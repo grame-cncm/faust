@@ -45,6 +45,7 @@ var asm2wasmImports = { // special asm2wasm imports
 
 #define realStr ((gGlobal->gFloatSize == 1) ? "f32" : ((gGlobal->gFloatSize == 2) ? "f64" : ""))
 #define offStr ((gGlobal->gFloatSize == 1) ? "2" : ((gGlobal->gFloatSize == 2) ? "3" : ""))
+#define offStrNum ((gGlobal->gFloatSize == 1) ? 2 : ((gGlobal->gFloatSize == 2) ? 3 : 0))
 
 class WASMInstVisitor : public TextInstVisitor {
     
@@ -246,35 +247,50 @@ class WASMInstVisitor : public TextInstVisitor {
             }
         }
     
+        virtual void visit(RetInst* inst)
+        {
+            if (inst->fResult) {
+                *fOut << "(return ";
+                inst->fResult->accept(this);
+                *fOut << ")";
+            }
+            //EndLine();
+        }
+    
         virtual void generateFunDefArgs(DeclareFunInst* inst)
         {
-            // TODO
-            /*
             list<NamedTyped*>::const_iterator it;
             int size = inst->fType->fArgsTypes.size(), i = 0;
             for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
-                *fOut << generateType((*it));
-                if (i < size - 1) *fOut << ", ";
+                *fOut << "(param $" << (*it)->fName << " " << type2String((*it)->getType()) << ")";
+                if (i < size - 1) *fOut << " ";
             }
-            */
+            *fOut << " (result " << type2String(inst->fType->getType()) << ")";
         }
     
         virtual void generateFunDefBody(DeclareFunInst* inst)
         {
-            // TODO
-            /*
             if (inst->fCode->fCode.size() == 0) {
-                *fOut << ")" << endl;  // Pure prototype
+                // Pure prototype
             } else {
                 // Function body
-                *fOut << ")";
-                    fTab++;
-                    tab(fTab, *fOut);
-                    inst->fCode->accept(this);
-                    fTab--;
+                fTab++;
+                tab(fTab, *fOut);
+                inst->fCode->accept(this);
+                fTab--;
                 tab(fTab, *fOut);
             }
-            */
+        }
+    
+        virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end, int size)
+        {
+            list<ValueInst*>::const_iterator it = beg;
+            int i = 0;
+            for (it = beg; it != end; it++, i++) {
+                // Compile argument
+                (*it)->accept(this);
+                if (i < size - 1) *fOut << " ";
+            }
         }
 
         virtual void visit(DeclareFunInst* inst)
@@ -290,12 +306,19 @@ class WASMInstVisitor : public TextInstVisitor {
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 if (fMathLibTable[inst->fName] != "manual" && fMathLibTable[inst->fName] != "wasm") {
                     tab(fTab, *fOut);
-                    *fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << fMathLibTable[inst->fName]
-                          << "\"" << " (param " << realStr << ") (result " << realStr << "))";
+                    // Two arguments functions
+                    if (fMathLibTable[inst->fName] == "fmod" || fMathLibTable[inst->fName] == "pow") {
+                        *fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << fMathLibTable[inst->fName]
+                              << "\"" << " (param " << realStr << " " << realStr << ") (result " << realStr << "))";
+                    } else {
+                        // One argument
+                        *fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << fMathLibTable[inst->fName]
+                              << "\"" << " (param " << realStr << ") (result " << realStr << "))";
+                    }
                 }
             } else {
                 // Prototype
-                tab(fTab, *fOut); *fOut << "(func $" << generateFunName(inst->fName);
+                tab(fTab, *fOut); *fOut << "(func $" << generateFunName(inst->fName) << " ";
                 generateFunDefArgs(inst);
                 generateFunDefBody(inst);
                 tab(fTab, *fOut); *fOut << ")";
@@ -426,11 +449,27 @@ class WASMInstVisitor : public TextInstVisitor {
             } else {
                 // Fields in struct are accessed using 'dsp' and an offset
                 MemoryDesc tmp = fFieldTable[indexed->getName()];
+                /*
                 *fOut << "(i32.add (i32.add (get_local $dsp) (i32.const " << tmp.fOffset << ")) (i32.shl ";
                 indexed->fIndex->accept(this);
                 *fOut << " (i32.const " << offStr << ")))";
+                 
+                */
+                
+                IntNumInst* num;
+                if ((num = dynamic_cast<IntNumInst*>(indexed->fIndex))) {
+                    // Index can be computed at compile time
+                    *fOut << "(i32.add (get_local $dsp) (i32.const " << (tmp.fOffset + (num->fNum << offStrNum)) << "))";
+                } else {
+                    // Otherwise generate index computation code
+                    *fOut << "(i32.add (get_local $dsp) (i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
+                    indexed->fIndex->accept(this);
+                    *fOut << " (i32.const " << offStr << "))))";
+                }
             }
         }
+                    
+                    //(i32.add (i32.const " << tmp.fOffset << ")) (i32.shl indexed->fIndex->accept(this); (i32.const " << offStr << ")))"
   
         virtual void visit(LoadVarAddressInst* inst)
         {
@@ -544,7 +583,7 @@ class WASMInstVisitor : public TextInstVisitor {
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end() && fMathLibTable[inst->fName] == "wasm") {
                 *fOut << "(" << realStr << "." << inst->fName << " ";
             } else {
-                *fOut  << "(" << inst->fName << " ";
+                *fOut  << "(call $" << inst->fName << " ";
             }
             generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             *fOut << ")";
@@ -554,9 +593,10 @@ class WASMInstVisitor : public TextInstVisitor {
         virtual void visit(Select2Inst* inst)
         {
             *fOut << "(select ";
-            inst->fCond->accept(this);
             inst->fThen->accept(this);
             inst->fElse->accept(this);
+            // Condition is last item
+            inst->fCond->accept(this);
             *fOut << ")";
             
             fTypingVisitor.visit(inst);

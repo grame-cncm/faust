@@ -135,15 +135,9 @@ for f in $FILES; do
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
     cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
     cat $FAUSTLIB/webaudio/WebMIDIAPI.js >> $name-temp2.html
-    #sed -e "s/DSP/"$name"/g" $name-temp1.js >> $name-temp2.html
-
     sed -e "s/mydsp/"$name"/g" helpers_$name.wast >> $name-temp2.html
-    #cat  helpers_$name.wast >> $name-temp2.html
-
-    #cat $FAUSTLIB/webaudio/$CODE_WRAPPER >> $name-temp2.html
     sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER >> $name-temp2.html
-
-    echo "</script>" >> $name-temp2.html 
+    echo "</script>" >> $name-temp2.html
     echo "</head>" >> $name-temp2.html
     echo "<body>" >> $name-temp2.html
     echo $LINKS >> $name-temp2.html
@@ -155,7 +149,8 @@ for f in $FILES; do
     echo "</html>" >> $name-temp2.html
     sed -e "s/DSP/"$name"/g" $name-temp2.html > $name.html
     
-#rm $name-temp1.wast
+    #rm $name.wast
+    rm helpers_$name.wast
     rm $name-temp2.html
  
     # collect binary file name

@@ -81,12 +81,11 @@ function instantiate(bytes, imports)
 function startDSP() 
 {
     var importObject = { imports: {} }
-    console.log("START");
+    importObject["global.Math"] = window.Math;
     fetch('DSP.wasm').then(response => response.arrayBuffer())
     .then(bytes => instantiate(bytes, importObject))
     .then(module => { wasm_module = module;  console.log(module); startDSPAux(module, 1024); });
 }
-
 function startNewDSP(buffer_size)
 {
     startDSPAux(wasm_module, buffer_size);

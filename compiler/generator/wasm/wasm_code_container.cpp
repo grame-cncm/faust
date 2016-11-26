@@ -34,6 +34,7 @@ using namespace std;
     1) mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), or are imported from the external Math context,
     or implementted manually (like fmod or log10)
     2) local variables have to be declared first on the block, before being actually initialized or set : this is done using MoveVariablesInFront3
+    3) math fucntions are impoerted from JavaScript "global.Math" context, log10 is simplemtn using log
 
 */
 
@@ -170,12 +171,12 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut);
     
         /*
-        tab(n+1, *fOut); *fOut << "(func $fmod" << isuffix() << " (type $0) (param $0 " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
-            tab(n+2, *fOut); *fOut << "(call_import $" << realStr << "-rem (get_local $0) (get_local $1))";
+        tab(n+1, *fOut); *fOut << "(func $fmod" << isuffix() << " (type $0) (param $value " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
+            tab(n+2, *fOut); *fOut << "(call $" << realStr << "-rem (get_local $value) (get_local $1))";
         tab(n+1, *fOut); *fOut << ")";
         
-        tab(n+1, *fOut); *fOut <<  "(func $log10" << isuffix() << "f (type $2) (param $0 " << realStr << ") (result " << realStr << ")";
-            tab(n+2, *fOut); *fOut << "(return (" << realStr << ".div (call_import $log (get_local $0)) (call_import $log (" << realStr << ".const 10))))";
+        tab(n+1, *fOut); *fOut <<  "(func $log10" << isuffix() << "f (type $2) (param $value " << realStr << ") (result " << realStr << ")";
+            tab(n+2, *fOut); *fOut << "(return (" << realStr << ".div (call $log (get_local $value)) (call $log (" << realStr << ".const 10))))";
         tab(n+1, *fOut); *fOut << ")";
         */
     
