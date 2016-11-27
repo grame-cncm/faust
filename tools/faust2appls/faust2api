@@ -53,6 +53,10 @@ if [ -z $FILE ]; then
 	exit
 fi
 
+###################################
+# GENERATING API
+###################################
+
 if [ $ANDROID -eq 1 ]; then
 	APIFOLDER="dsp-faust"
 	rm -r "$APIFOLDER" > /dev/null || true
@@ -83,3 +87,37 @@ else
 	echo "For more informations, visit http://ccrma.stanford.edu/~rmichon/mobileFaust"
 	exit 1
 fi
+
+###################################
+# GENERATING API DOCUMENTATION
+###################################
+
+PPFILE=pPrinter.cpp
+PPBINARY=pp
+READMEFILE="$APIFOLDER/README.md"
+
+CXXFLAGS=$MYGCCFLAGS
+MYGCCFLAGS="-O3"
+CXX=g++
+CXXFLAGS=$MYGCCFLAGS
+
+faust -i -a path-printer.cpp "$FILE" -o "$PPFILE" || exit
+if [ "$POLY2" = "1" ]; then
+    faust -i -cn effect -a minimal-effect.cpp "${FILE%.dsp}_effect.dsp" | cat - "$PPFILE" > temp && mv temp "$PPFILE" || exit
+    echo "#define POLY2 1" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
+fi
+if [ "$VOICES" -gt "0" ]; then
+    echo "#define POLY_VOICES $VOICES" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
+fi
+
+# compile c++ to binary
+(
+    $CXX $CXXFLAGS "$PPFILE" -o "$PPBINARY"
+) > /dev/null || exit
+rm "$PPFILE" || exit
+
+cp /usr/local/share/faust/api/doc/Android.md "$READMEFILE" || exit
+./"$PPBINARY" | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit
+rm "$PPBINARY" || exit
+
+faust2md /usr/local/share/faust/api/Android.h | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit

@@ -112,8 +112,8 @@ class FaustPolyEngine {
 
         virtual ~FaustPolyEngine()
         {
+	    delete fDriver;
             delete fFinalDSP;
-            delete fDriver;
         }
 
         /*

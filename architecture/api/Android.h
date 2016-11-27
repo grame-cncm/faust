@@ -17,43 +17,222 @@
  ************************************************************************
  ************************************************************************/
 
+//===============API Reference==============
+//==========================================
+
 class FaustPolyEngine;
 
 class DspFaust
 {
 public:
-    DspFaust(int,int);
-	~DspFaust();
+  //--------------`DspFaust(int SR, int BS)`----------------
+  // Constructor.
+  //
+  // #### Arguments
+  //
+  // * `SR`: sampling rate
+  // * `BS`: block size
+  //--------------------------------------------------------
+  DspFaust(int,int);
+  ~DspFaust();
 
-    bool start();
-    void stop();
-    bool isRunning();
+  //---------------------`bool start()`---------------------
+  // Start the audio processing.
+  //
+  // Returns `true` if successful and `false` if not.
+  //--------------------------------------------------------
+  bool start();
+  
+  //-----------------`void stop()`--------------------------
+  // Stop the audio processing. 
+  //--------------------------------------------------------
+  void stop();
 
-    unsigned long keyOn(int, int);
-    int keyOff(int);
-    void propagateMidi(int, double, int, int, int, int);
+  //---------------------`bool isRunning()`-----------------
+  // Returns `true` if audio is running.
+  //--------------------------------------------------------
+  bool isRunning();
 
-    const char* getJSON();
+  //--------`long keyOn(int pitch, int velocity)`-----------
+  // Instantiate a new polyphonic voice. This method can
+  // only be used if the `[style:poly]` metadata is used in
+  // the Faust code or if `-polyvoices` flag has been
+  // provided before compilation.
+  //
+  // `keyOn` will return 0 if the Faust object is not
+  // polyphonic or the address to the allocated voice as
+  // a `long` otherwise. This value can be used later with
+  // [`setVoiceParamValue`](#setvoiceparamvalue) or
+  // [`getVoiceParamValue`](#getvoiceparamvalue) to access
+  // the parameters of a specific voice.
+  //
+  // #### Arguments
+  //
+  // * `pitch`: MIDI note number (0-127)
+  // * `velocity`: MIDI velocity (0-127)
+  //--------------------------------------------------------
+  unsigned long keyOn(int, int);
 
-    int getParamsCount();
+  //----------------`int keyOff(int pitch)`-----------------
+  // De-instantiate a polyphonic voice. This method can
+  // only be used if the `[style:poly]` metadata is used in
+  // the Faust code or if `-polyvoices` flag has been
+  // provided before compilation.
+  //
+  // keyOn will return 0 if the object is not polyphonic
+  // and 1 otherwise.
+  //
+  // #### Arguments
+  //
+  // * `pitch`: MIDI note number (0-127)
+  //--------------------------------------------------------
+  int keyOff(int);
 
-    void setParamValue(const char*, float);
-    float getParamValue(const char*);
+  //-------`void propagateMidi(int count, double time, int type, int channel, int data1, int data2)`--------
+  // Take a raw MIDI message and propagate it to the Faust
+  // DSP object. This method can be used concurrently with
+  // [`keyOn`](#keyOn) and [`keyOff`](#keyOff).
+  //
+  // `propagateMidi` can
+  // only be used if the `[style:poly]` metadata is used in
+  // the Faust code or if `-polyvoices` flag has been
+  // provided before compilation.
+  //
+  // #### Arguments
+  //
+  // * `count`: size of the message (1-3)
+  // * `time`: time stamp
+  // * `type`: message type (byte)
+  // * `channel`: channel number
+  // * `data1`: first data byte (should be `null` if `count<2`)
+  // * `data2`: second data byte (should be `null` if `count<3`)
+  //--------------------------------------------------------
+  void propagateMidi(int, double, int, int, int, int);
+ 
+  //-----------------`const char* getJSON()`----------------
+  // Returns the JSON description of the Faust object. 
+  //--------------------------------------------------------
+  const char* getJSON();
 
-    void setVoiceParamValue(const char*, unsigned long, float);
-    float getVoiceParamValue(const char*, unsigned long);
+  //-----------------`int getParamsCount()`-----------------
+  // Returns the number of parameters of the Faust object. 
+  //--------------------------------------------------------
+  int getParamsCount();
 
-    const char* getParamAddress(int);
+  //----`void setParamValue(const char* address, float value)`------
+  // Set the value of one of the parameters of the Faust
+  // object in function of its address (path).
+  //
+  // #### Arguments
+  //
+  // * `address`: address (path) of the parameter
+  // * `value`: value of the parameter
+  //--------------------------------------------------------
+  void setParamValue(const char*, float);
 
-    void propagateAcc(int, float);
-    void setAccConverter(int, int, int, float, float, float);
+  //----`float getParamValue(const char* address)`----------
+  // Returns the value of a parameter in function of its
+  // address (path).
+  //
+  // #### Arguments
+  //
+  // * `address`: address (path) of the parameter
+  //--------------------------------------------------------
+  float getParamValue(const char*);
 
-    void propagateGyr(int, float);
-    void setGyrConverter(int, int, int, float, float, float);
+  //----`void setVoiceParamValue(const char* address, long voice, float value)`-----
+  // Set the value of one of the parameters of the Faust
+  // object in function of its address (path) for a
+  // specific voice.
+  //
+  // #### Arguments
+  //
+  // * `address`: address (path) of the parameter
+  // * `voice`: address of the polyphonic voice (retrieved
+  // from `keyOn`
+  // * `value`: value of the parameter
+  //--------------------------------------------------------
+  void setVoiceParamValue(const char*, unsigned long, float);
 
-    float getCPULoad();
-    int getScreenColor();
+  //----`float getVoiceParamValue(const char* address, long voice)`----
+  // Returns the value of a parameter in function of its
+  // address (path) for a specific voice.
+  //
+  // #### Arguments
+  //
+  // * `address`: address (path) of the parameter
+  // * `voice`: address of the polyphonic voice (retrieved
+  // from `keyOn`)
+  //--------------------------------------------------------
+  float getVoiceParamValue(const char*, unsigned long);
+
+  //----`const char* getParamAddress(int id)`---------------
+  // Returns the address (path) of a parameter in function
+  // of its ID.
+  //
+  // #### Arguments
+  //
+  // * `id`: id of the parameter
+  //--------------------------------------------------------
+  const char* getParamAddress(int);
+
+  //----`void propagateAcc(int acc, float v)`---------------
+  // Propagate the RAW value of a specific accelerometer
+  // axis to the Faust object.
+  //
+  // #### Arguments
+  //
+  // * `acc`: the accelerometer axis (0: x, 1: y, 2: z)
+  // * `v`: the RAW acceleromter value in m/s
+  //--------------------------------------------------------
+  void propagateAcc(int, float);
+
+  //----`void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)`-----
+  // Set the conversion curve for the accelerometer.
+  //
+  // #### Arguments
+  //
+  // * `p`: 
+  // * `acc`: 
+  // * `curve`: 
+  // * `amin`: 
+  // * `amid`: 
+  // * `amaz`: 
+  //--------------------------------------------------------
+  void setAccConverter(int, int, int, float, float, float);
+
+  //----`void propagateGyr(int gyr, float v)`---------------
+  // Propagate the RAW value of a specific gyroscope
+  // axis to the Faust object.
+  //
+  // #### Arguments
+  //
+  // * `gyr`: the gyroscope axis (0: x, 1: y, 2: z)
+  // * `v`: the RAW acceleromter value in m/s
+  //--------------------------------------------------------
+  void propagateGyr(int, float);
+
+  //----`void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax)`-----
+  // Set the conversion curve for the gyroscope.
+  //
+  // #### Arguments
+  //
+  // * `p`: 
+  // * `acc`: 
+  // * `curve`: 
+  // * `amin`: 
+  // * `amid`: 
+  // * `amaz`: 
+  //--------------------------------------------------------
+  void setGyrConverter(int, int, int, float, float, float);
+
+  //------------------`float getCPULoad()`------------------
+  // Returns the CPU load.
+  //--------------------------------------------------------
+  float getCPULoad();
+
+  int getScreenColor();
 
 private:
-	FaustPolyEngine *fPolyEngine;
+  FaustPolyEngine *fPolyEngine;
 };
