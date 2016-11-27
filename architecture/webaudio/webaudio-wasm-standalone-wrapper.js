@@ -78,7 +78,11 @@ faust.mydsp = function (context, module, buffer_size) {
     var inputs_items = [];
      
     // Start of HEAP index
-    var audio_heap_ptr = 0;
+    
+    //var audio_heap_ptr = 0;
+    
+    // DSP is placed first with index 0
+    var audio_heap_ptr = pow2limit(getSizemydsp());
      
     // Setup pointers offset
     var audio_heap_ptr_inputs = audio_heap_ptr; 
@@ -92,8 +96,11 @@ faust.mydsp = function (context, module, buffer_size) {
     var dsp_start = audio_heap_outputs + (numOut * buffer_size * sample_size);
      
     // Start of DSP memory
-    var dsp = dsp_start;
- 
+    //var dsp = dsp_start;
+    
+    // DSP is placed first with index 0
+    var dsp = 0;
+     
     var pathTable = getPathTablemydsp();
     
     // Allocate table for 'setParamValue'

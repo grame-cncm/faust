@@ -74,6 +74,7 @@ class WASMInstVisitor : public TextInstVisitor {
         map <string, MemoryDesc> fFieldTable;   // Table : field_name, { offset, size, type }
         int fStructOffset;                      // Keep the offset in bytes of the structure
         int fSubContainerType;
+        bool fFastMemory;                       // Is true, assume $dsp is always 0 to simplify and speed up dsp memory access code
  
         string type2String(Typed::VarType type)
         {
@@ -181,6 +182,7 @@ class WASMInstVisitor : public TextInstVisitor {
             
             fStructOffset = 0;
             fSubContainerType = -1;
+            fFastMemory = false;
         }
 
         virtual ~WASMInstVisitor()
@@ -422,7 +424,11 @@ class WASMInstVisitor : public TextInstVisitor {
         {
             if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
                 MemoryDesc tmp = fFieldTable[named->getName()];
-                *fOut << "(i32.add (get_local $dsp) (i32.const " << tmp.fOffset << "))";
+                if (fFastMemory) {
+                    *fOut << "(i32.const " << tmp.fOffset << ")";
+                } else {
+                    *fOut << "(i32.add (get_local $dsp) (i32.const " << tmp.fOffset << "))";
+                }
             } else {
                 *fOut << "(get_local $" << named->fName << ")";
             }
@@ -459,18 +465,27 @@ class WASMInstVisitor : public TextInstVisitor {
                 IntNumInst* num;
                 if ((num = dynamic_cast<IntNumInst*>(indexed->fIndex))) {
                     // Index can be computed at compile time
-                    *fOut << "(i32.add (get_local $dsp) (i32.const " << (tmp.fOffset + (num->fNum << offStrNum)) << "))";
+                    if (fFastMemory) {
+                        *fOut << "(i32.const " << (tmp.fOffset + (num->fNum << offStrNum)) << ")";
+                    } else {
+                        *fOut << "(i32.add (get_local $dsp) (i32.const " << (tmp.fOffset + (num->fNum << offStrNum)) << "))";
+                    }
                 } else {
                     // Otherwise generate index computation code
-                    *fOut << "(i32.add (get_local $dsp) (i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
-                    indexed->fIndex->accept(this);
-                    *fOut << " (i32.const " << offStr << "))))";
+                    if (fFastMemory) {
+                        *fOut << "(i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
+                        indexed->fIndex->accept(this);
+                        *fOut << " (i32.const " << offStr << ")))";
+                    } else {
+                        *fOut << "(i32.add (get_local $dsp) (i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
+                        indexed->fIndex->accept(this);
+                        *fOut << " (i32.const " << offStr << "))))";
+                    }
+                   
                 }
             }
         }
-                    
-                    //(i32.add (i32.const " << tmp.fOffset << ")) (i32.shl indexed->fIndex->accept(this); (i32.const " << offStr << ")))"
-  
+    
         virtual void visit(LoadVarAddressInst* inst)
         {
            // Not implemented in WASM
