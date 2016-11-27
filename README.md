@@ -1,12 +1,9 @@
- ==========================================
-     FAUST : a programming language for
-     audio applications and plugins
-==========================================
+# FAUST - a programming language for audio applications and plugins
+## Grame, Centre National de Creation Musicale : http://www.grame.fr
 
-Grame, Centre National de Creation Musicale : http://www.grame.fr
+[![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master-dev)](https://travis-ci.org/grame-cncm/faust)
+### Introduction
 
-1/ Introduction
-----------------
 FAUST (Functional Audio Stream) is a functional programming
 language specifically designed for real-time signal processing and
 synthesis. A distinctive characteristic of FAUST is to be fully
@@ -21,9 +18,9 @@ JACK or ALSA applications, as well as CSOUND, LADSPA, MAX/MSP, PD,
 Q, SC and VST plugins. 
 
 
-2/ Organization of the distribution
-------------------------------------
-The Faust distribution can be downloaded at: https://github.com/grame-cncm/faust
+### Organization of the distribution
+
+The Faust distribution can be downloaded at: [Faust Github Repo](https://github.com/grame-cncm/faust)
 
 It's organization is the following :
 
@@ -41,8 +38,7 @@ It's organization is the following :
 	windows/               : Windows projects
 
 
-3.a/ Dependencies
---------------------------------
+### Organization of the distribution Dependencies
 
 The faust2 development branch has dependencies to :
 
@@ -50,14 +46,16 @@ The faust2 development branch has dependencies to :
 - openssl (has to be installed in universal mode [32/64 bits] on OSX) 
 
 
-3.b/ Compilation and installation
---------------------------------
-To compile and install the Faust compiler on Linux and MacOSX : 
+### Compilation and installation
+
+#### To compile and install the Faust compiler on Linux and MacOSX : 
 
 	make
 	su
 	make install
+
 or
+
 	sudo make install
 
 It could be also useful to install additional tools, for example :
@@ -65,20 +63,21 @@ It could be also useful to install additional tools, for example :
 	cd tools/faust2appls/
 	sudo make install
 
-On Windows :
+	
+#### On Windows :
 
 The first option is to use the Visual Studio 2008 solution
-/faust/compiler/windows/faust_vs2008.sln. Open the solution with
+`/faust/compiler/windows/faust_vs2008.sln`. Open the solution with
 the Visual Studio 2008 environment and run Build. Both
 Debug/Release targets are supported.
 
 The second solution is to download and install the QT4.6 SDK : 
-	http://qt.nokia.com/downloads/sdk-windows-cpp
+	[QT4.6 SDK](http://qt.nokia.com/downloads/sdk-windows-cpp)
 and use the project file 'compiler.pro' in the compiler folder.
 
 
-2/ Compilation of the examples
--------------------------------
+#### Compilation of the examples
+
 Several FAUST examples are provided in the example folder. To
 compile and test the examples with Jack/GTK do :
 
@@ -95,6 +94,7 @@ files in the example folder and use the existing makefiles.
 To list for possible audio targets :
 
 	make help
+
 
 About 20 different audio platforms are supported : 
 
@@ -124,8 +124,7 @@ About 20 different audio platforms are supported :
 For all these audio platforms you may have to install the related
 SDK and/or development libraries.
 
-4/ Acknowledgments
-------------------
+### Acknowledgments
 
 Many persons have been contributing to the FAUST project by
 providing code for the compiler, architecture files, libraries,
@@ -143,13 +142,11 @@ Raffaele Ciavarella (IRCAM), Pierre Jouvelot (Ecole des
 Mines/ParisTech), Laurent Pottier (U. Saint-Etienne)
 
 
-5/ Questions and suggestions
-----------------------------
+### Questions and suggestions
 
 If you have questions suggestions and comments, or if you want to 
 contribute to the project, two mailing lists are available:
-https://lists.sourceforge.net/lists/listinfo/faudiostream-devel
-https://lists.sourceforge.net/lists/listinfo/faudiostream-users
+- [Development List](https://lists.sourceforge.net/lists/listinfo/faudiostream-devel)
+- [Users List](https://lists.sourceforge.net/lists/listinfo/faudiostream-users)
 
-Yann Orlarey
-
+[Yann Orlarey](https://github.com/orlarey)

@@ -68,6 +68,10 @@ fi
 
 if [ $BACKEND = "float" ] || [ $BACKEND = "all" ]; then
 
+echo "==============================================================="
+echo "Impulse response tests in various compilation modes and double"
+echo "==============================================================="
+
     echo "========================================="
     echo "Test compilation in default mode (float)"
     echo "========================================="
@@ -257,5 +261,3 @@ if [ $BACKEND = "ajs" ] || [ $BACKEND = "all" ]; then
         fi
    done
 fi
-
-
