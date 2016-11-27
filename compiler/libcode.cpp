@@ -724,6 +724,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         dst = new stringstream();
     } else if (gGlobal->gOutputFile != "") {
         string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
+        /* desactivated for now (creates issue with faust2android on Linux)
         char* directory = dirname((char*)outpath.c_str());
         char temp[PATH_MAX+1];
         char* path = realpath(directory, temp);
@@ -732,6 +733,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             error << "ERROR : invalid directory path " << directory << std::endl;
             throw faustexception(error.str());
         }
+        */
         dst = new ofstream(outpath.c_str());
         helpers = new ofstream(("helpers_" + outpath).c_str());
     } else {
