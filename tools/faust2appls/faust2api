@@ -18,39 +18,52 @@ set -e
 ANDROID="0"
 IOS="0"
 VOICES="0"
+#PACKAGENAME="0"
 POLY2="0"
+
+echoHelp ()
+{
+    echo "$p wrong argument"
+    echo "faust2api can be used to generate faust-based dsp objects for iOS and Android."
+    echo "To generate an iOS API, run: faust2api -ios yourFaustCode.dsp"
+    echo "To generate and Android API, run: faust2api -android yourFaustCode.dsp"
+    echo "More options are available on Android only:"
+    echo "   -polyvoices N : creates a polyphonic object with N voices."
+    echo "   -poly2 : adds an effect to the polyphonic synth (this option is ignored if -polyvoices is not specified). The effect should be declared in a file called yourFaustCode_effect.dsp placed in the same folder than yourFaustCode.dsp."
+    echo "   -package : set the JAVA package name (e.g. '-package mypackage' will change the JAVA package name to 'mypackage.DspFaust'). The default package name is 'com.DspFaust.'"
+}
 
 # dispatch command arguments
 for p in $@; do
-	if [ "$VOICES" = "-1" ]; then
-	    VOICES="$p"
-	elif [[ -f "$p" ]]; then
-	    FILE="$p"
-	elif [ $p = "-android" ]; then
-		ANDROID=1
-	elif [ $p = "-ios" ]; then
-		IOS="1"
-	elif [ "$p" = "-poly2" ]; then
+    if [ $p = "-help" ]; then
+	echoHelp
+    elif [ "$VOICES" = "-1" ]; then
+	VOICES="$p"
+    elif [ "$PACKAGENAME" = "-1" ]; then
+	PACKAGENAME="$p"
+    elif [[ -f "$p" ]]; then
+	FILE="$p"
+    elif [ $p = "-android" ]; then
+	ANDROID=1
+    elif [ $p = "-ios" ]; then
+	IOS="1"
+    elif [ "$p" = "-poly2" ]; then
         POLY2="1"
-	elif [ $p = "-polyvoices" ]; then
-		VOICES="-1"
-	elif [ ${p:0:1} = "-" ]; then
+    elif [ $p = "-polyvoices" ]; then
+	VOICES="-1"
+    elif [ $p = "-package" ]; then
+	PACKAGENAME="-1"
+    elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
-	else
-		echo "$p wrong argument"
-		echo "faust2api can be used to generate faust-based dsp objects for iOS and Android."
-		echo "To generate an iOS API, run: faust2api -ios yourFaustCode.dsp"
-		echo "To generate and Android API, run: faust2api -android yourFaustCode.dsp"
-		echo "More options are available on Android only:"
-		echo "   -polyvoices N : creates a polyphonic object with N voices"
-		echo "   -poly2 : adds an effect to the polyphonic synth (this option is ignored if -polyvoices is not specified). The effect should be declared in a file called yourFaustCode_effect.dsp placed in the same folder than yourFaustCode.dsp"
-		exit
-	fi
+    else
+	echoHelp
+	exit
+    fi
 done
 
 if [ -z $FILE ]; then
-	echo "Please, provide a Faust file to process"
-	exit
+    echo "Please, provide a Faust file to process"
+    exit
 fi
 
 ###################################
@@ -58,36 +71,42 @@ fi
 ###################################
 
 APIFOLDER="dsp-faust"
+
 rm -r "$APIFOLDER" 2> /dev/null || true
 mkdir "$APIFOLDER"
 
 if [ $ANDROID -eq 1 ]; then
-    	echo "Your dsp-faust.zip API package for Android is being created"
-	mkdir $APIFOLDER/com
-	mkdir $APIFOLDER/com/DspFaust
-	mkdir $APIFOLDER/cpp
-	cp -r /usr/local/share/faust/api/androidJNI/*.java $APIFOLDER/com/DspFaust
-	cp -r /usr/local/share/faust/api/Android.h $APIFOLDER/cpp/DspFaust.h
-	cp -r /usr/local/share/faust/api/androidJNI/java_interface_wrap.cpp $APIFOLDER/cpp
-	faust -i -a api/Android.cpp "$FILE" -o "$APIFOLDER/cpp/DspFaust.cpp" || exit
-	if [ "$POLY2" = "1" ]; then
-		faust -i -cn effect -a minimal-effect.cpp "${FILE%.dsp}_effect.dsp" | cat - "$APIFOLDER/cpp/DspFaust.cpp" > temp && mv temp "$APIFOLDER/cpp/DspFaust.cpp" || exit
-		echo "#define POLY2 1" | cat - "$APIFOLDER/cpp/DspFaust.cpp" > temp && mv temp "$APIFOLDER/cpp/DspFaust.cpp"
-	fi
-	if [ "$VOICES" -gt "0" ]; then
-		echo "#define POLY_VOICES $VOICES" | cat - "$APIFOLDER/cpp/DspFaust.cpp" > temp && mv temp "$APIFOLDER/cpp/DspFaust.cpp"
-	fi
+    echo "Your dsp-faust.zip API package for Android is being created"
+    CPPFOLDER="$APIFOLDER/cpp"
+    JAVAFOLDER="$APIFOLDER/java"
+    mkdir $CPPFOLDER
+    mkdir $JAVAFOLDER
+    cp -r /usr/local/share/faust/api/android/jni/*.java $JAVAFOLDER
+    if [ -n "$PACKAGENAME" ]; then
+	PACKAGENAME="$PACKAGENAME.DspFaust"
+	sed -i "s/com.DspFaust/$PACKAGENAME/g" $JAVAFOLDER/*.java
+    fi
+    cp -r /usr/local/share/faust/api/android/DspFaust.h $CPPFOLDER
+    cp -r /usr/local/share/faust/api/android/jni/java_interface_wrap.cpp $CPPFOLDER
+    faust -i -a api/android/DspFaust.cpp "$FILE" -o "$CPPFOLDER/DspFaust.cpp" || exit
+    if [ "$POLY2" = "1" ]; then
+	faust -i -cn effect -a minimal-effect.cpp "${FILE%.dsp}_effect.dsp" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp" || exit
+	echo "#define POLY2 1" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
+    fi
+    if [ "$VOICES" -gt "0" ]; then
+	echo "#define POLY_VOICES $VOICES" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
+    fi
 # TODO: iOS support hasn't been tested for a while and should be checked
 elif [ $IOS -eq 1 ]; then
     echo "Your dsp-faust.zip API package for iOS is being created"
-    faust -i -a api/Ios.cpp "$FILE" -o "$APIFOLDER/dsp-faust.cpp" || exit
+    faust -i -a api/iOS/iOS.cpp "$FILE" -o "$APIFOLDER/dsp-faust.cpp" || exit
     cp  /usr/local/include/faust/dsp/faust-engine.h  "$APIFOLDER/dsp-faust.h" || exit
 else
-	echo "Please specify an architecture or a platform:"
-	echo "-android"
-	echo "-ios"
-	echo "For more informations, visit http://ccrma.stanford.edu/~rmichon/mobileFaust"
-	exit 1
+    echo "Please specify an architecture or a platform:"
+    echo "-android"
+    echo "-ios"
+    echo "For more informations, visit http://ccrma.stanford.edu/~rmichon/mobileFaust"
+    exit 1
 fi
 
 ###################################
