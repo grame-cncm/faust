@@ -31,7 +31,7 @@ int main(int argc, char *argv[] )
 
   std::cout << "### Independent Voices" << "\n\n";
   for(int i=0; i<idpVoice->getParamsCount(); i++){
-    std::cout << "* **" << i << "**: `" << idpVoice->getParamAdress(i) << "`" << "\n";
+    std::cout << "* **" << i << "**: `" << idpVoice->getParamAddress(i) << "`" << "\n";
   }
 
   fPolyEngine.keyOff(100); // just to be really clean...
