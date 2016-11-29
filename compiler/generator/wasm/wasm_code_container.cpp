@@ -34,9 +34,11 @@ using namespace std;
  - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), or are imported from the external Math context,
     or implemented manually (like fmod or log10)
  - local variables have to be declared first on the block, before being actually initialized or set : this is done using MoveVariablesInFront3
- - math functions are imported from JavaScript "global.Math" context or are externally implemented (log10 in JS using log, fmod in JS)
+ - math functions are imported from JS "global.Math" context or are externally implemented (log10 in JS using log, fmod in JS)
+ - integer min/max functions taken from JS "global.Math" for now... (TODO : do it in the module)
  - 'faustpower' function directly inlined in the code (see CodeContainer::pushFunction)
  - subcontainers are inlined in 'classInit' and 'instanceConstants' functions.
+ - waveform generation is 'inlined' using MoveVariablesInFront3, done in a special version of generateInstanceInitFun.
 
 */
 
@@ -100,6 +102,45 @@ WASMScalarCodeContainer::WASMScalarCodeContainer(const string& name, int numInpu
 WASMScalarCodeContainer::~WASMScalarCodeContainer()
 {}
 
+// Special version that uses MoveVariablesInFront3 to inline waveforms...
+DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn)
+{
+    //cout << "WASMCodeContainer::generateInstanceInitFun" << endl;
+    list<NamedTyped*> args;
+    if (!ismethod) {
+        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+    }
+    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
+    BlockInst* init_block = InstBuilder::genBlockInst();
+    
+    {
+        MoveVariablesInFront3 mover;
+        init_block->pushBackInst(mover.getCode(fStaticInitInstructions));
+    }
+    {
+        MoveVariablesInFront3 mover;
+        init_block->pushBackInst(mover.getCode(fInitInstructions));
+    }
+    {
+        MoveVariablesInFront3 mover;
+        init_block->pushBackInst(mover.getCode(fPostInitInstructions));
+    }
+    {
+        MoveVariablesInFront3 mover;
+        init_block->pushBackInst(mover.getCode(fResetUserInterfaceInstructions));
+    }
+    {
+        MoveVariablesInFront3 mover;
+        init_block->pushBackInst(mover.getCode(fClearInstructions));
+    }
+    
+    if (addreturn) { init_block->pushBackInst(InstBuilder::genRetInst()); }
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst(name, fun_type, init_block);
+}
+
 void WASMCodeContainer::produceInternal()
 {
     // Fields generation
@@ -136,7 +177,6 @@ void WASMCodeContainer::produceClass()
     
         // TODO : setup value as the first multiple of 64 kB > DSP memory size
         tab(n+1, *fOut); *fOut << "(memory (export \"memory\") 16)";
-    
     
         // All mathematical functions (got from math library as variables) have to be first
         generateGlobalDeclarations(gGlobal->gWASMVisitor);
@@ -212,8 +252,8 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "(func $classInit (type $4) (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
             {
-                DspRenamer renamer;
                 // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+                DspRenamer renamer;
                 BlockInst* renamed = renamer.getCode(fStaticInitInstructions);
                 BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
                 generateWASMBlock(inlined);
@@ -223,9 +263,8 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "(func $instanceConstants (type $4) (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
             {
-                // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-                DspRenamer renamer;
                 // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+                DspRenamer renamer;
                 BlockInst* renamed = renamer.getCode(fInitInstructions);
                 BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
                 generateWASMBlock(inlined);

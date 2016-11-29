@@ -232,9 +232,9 @@ class CodeContainer : public virtual Garbageable {
         DeclareFunInst* generateGetInputRate(const string& name, bool ismethod, bool isvirtual);
         DeclareFunInst* generateGetOutputRate(const string& name, bool ismethod, bool isvirtual);
     
-        DeclareFunInst* generateStaticInitFun(const string& name, bool isstatic, bool addreturn = false);
-        DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn = false);
-        DeclareFunInst* generateFillFun(const string& name, bool ismethod, bool isvirtual, bool addreturn = false);
+        virtual DeclareFunInst* generateStaticInitFun(const string& name, bool isstatic, bool addreturn = false);
+        virtual DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn = false);
+        virtual DeclareFunInst* generateFillFun(const string& name, bool ismethod, bool isvirtual, bool addreturn = false);
 
         void produceInfoFunctions(int tabs, const string& classname, bool ismethod, bool isvirtual, TextInstVisitor* producer);
     

@@ -43,6 +43,8 @@ class WASMCodeContainer : public virtual CodeContainer {
             BlockInst* block = mover.getCode(instructions);
             block->accept(gGlobal->gWASMVisitor);
         }
+    
+    DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn);
 
     public:
 

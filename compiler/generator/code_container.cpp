@@ -675,11 +675,13 @@ BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
         
         // Build the function to be inlined (prototype and code)
         DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false);
+        //dump2FIR(inst_init_fun, &cout);
         InlineVoidFunctionCall inliner1(inst_init_fun);
         block = inliner1.getCode(block);
         
         // Build the function to be inlined (prototype and code)
         DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false);
+        //dump2FIR(fill_fun, &cout);
         InlineVoidFunctionCall inliner2(fill_fun);
         block = inliner2.getCode(block);
     }
