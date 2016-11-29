@@ -189,7 +189,17 @@ class CInstVisitor : public TextInstVisitor {
         // Generate standard funcall (not 'method' like funcall...)
         virtual void visit(FunCallInst* inst)
         {
-            *fOut << inst->fName << "(";
+            // Integer and real min/max are mapped on polymorphic ones
+            string name;
+            if (startWith(inst->fName, "min")) {
+                name = "min";
+            } else if (startWith(inst->fName, "max")) {
+                name = "max";
+            } else {
+                name = inst->fName;
+            }
+            
+            *fOut << name << "(";
             // Compile parameters
             generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             *fOut << ")";

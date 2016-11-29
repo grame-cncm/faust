@@ -204,7 +204,17 @@ class CPPInstVisitor : public TextInstVisitor {
       
         virtual void visit(FunCallInst* inst)
         {
-            generateFunCall(inst, inst->fName);
+            // Integer and real min/max are mapped on polymorphic ones
+            string name;
+            if (startWith(inst->fName, "min")) {
+                name = "min";
+            } else if (startWith(inst->fName, "max")) {
+                name = "max";
+            } else {
+                name = inst->fName;
+            }
+            
+            generateFunCall(inst, name);
         }
         
         static void cleanup() { gFunctionSymbolTable.clear(); }

@@ -82,7 +82,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     
         void initMathTable()
         {
+            // Integer version
             gMathLibTable["abs"] = FIRInstruction::kAbs;
+            gMathLibTable["min_i"] = FIRInstruction::kMin;
+            gMathLibTable["max_i"] = FIRInstruction::kMax;
             
             // Float version
             gMathLibTable["fabsf"] = FIRInstruction::kAbsf;
@@ -98,6 +101,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             gMathLibTable["fmodf"] = FIRInstruction::kFmodf;
             gMathLibTable["logf"] =  FIRInstruction::kLogf;
             gMathLibTable["log10f"] =  FIRInstruction::kLog10f;
+            gMathLibTable["min_f"] =  FIRInstruction::kMinf;
+            gMathLibTable["max_f"] =  FIRInstruction::kMaxf;
             gMathLibTable["powf"] =  FIRInstruction::kPowf;
             gMathLibTable["remainderf"] =  FIRInstruction::kRemReal;
             gMathLibTable["roundf"] =  FIRInstruction::kRoundf;
@@ -121,6 +126,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             gMathLibTable["fmod"] = FIRInstruction::kFmodf;
             gMathLibTable["log"] =  FIRInstruction::kLogf;
             gMathLibTable["log10"] =  FIRInstruction::kLog10f;
+            gMathLibTable["min_"] =  FIRInstruction::kMinf;
+            gMathLibTable["max_"] =  FIRInstruction::kMaxf;
             gMathLibTable["pow"] =  FIRInstruction::kPowf;
             gMathLibTable["remainder"] =  FIRInstruction::kRemReal;
             gMathLibTable["round"] =  FIRInstruction::kRoundf;
@@ -454,20 +461,11 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         {
             // Compile args in reverse order
             list<ValueInst*>::reverse_iterator it;
-            vector<bool> arg_types;
             for (it = inst->fArgs.rbegin(); it != inst->fArgs.rend(); it++) {
                 (*it)->accept(this);
-                arg_types.push_back(fCurrentBlock->isRealInst());
             }
             
-            if (inst->fName == "min") {
-                // HACK : get type of first arg...
-                fCurrentBlock->push(new FIRBasicInstruction<T>(arg_types[0] ? FIRInstruction::kMinf : FIRInstruction::kMin));
-            } else if (inst->fName == "max") {
-                // HACK : get type of first arg...
-                fCurrentBlock->push(new FIRBasicInstruction<T>(arg_types[0] ? FIRInstruction::kMaxf : FIRInstruction::kMax));
-            } else if (gMathLibTable.find(inst->fName) == gMathLibTable.end()) {
-                std::cout << "FunCallInst " << inst->fName << std::endl;
+            if (gMathLibTable.find(inst->fName) == gMathLibTable.end()) {
                 stringstream error;
                 error << "ERROR : missing function : " << inst->fName << std::endl;
                 throw faustexception(error.str());

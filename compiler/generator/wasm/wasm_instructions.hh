@@ -150,14 +150,17 @@ class WASMInstVisitor : public TextInstVisitor {
         WASMInstVisitor(std::ostream* out, int tab = 0)
             :TextInstVisitor(out, ".", tab)
         {
+            // Integer version
             fMathLibTable["abs"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "abs", Typed::kInt, 1);
+            fMathLibTable["min_i"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "min", Typed::kInt, 2);
+            fMathLibTable["max_i"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "max", Typed::kInt, 2);
   
             // Float version
             fMathLibTable["fabsf"] = MathFunDesc(MathFunDesc::Gen::kWasm, "abs", itfloat(), 1);
             fMathLibTable["acosf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "acos", itfloat(), 1);
             fMathLibTable["asinf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "asin", itfloat(), 1);
             fMathLibTable["atanf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan", itfloat(), 1);
-            fMathLibTable["atan2f"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan2", itfloat(), 1);
+            fMathLibTable["atan2f"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan2", itfloat(), 2);
             fMathLibTable["ceilf"] = MathFunDesc(MathFunDesc::Gen::kWasm, "ceil", itfloat(), 1);
             fMathLibTable["cosf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "cos", itfloat(), 1);
             fMathLibTable["expf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "exp", itfloat(), 1);
@@ -165,8 +168,8 @@ class WASMInstVisitor : public TextInstVisitor {
             fMathLibTable["fmodf"] = MathFunDesc(MathFunDesc::Gen::kExtAsm, "fmod", itfloat(), 2);
             fMathLibTable["logf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "log", itfloat(), 1);
             fMathLibTable["log10f"] = MathFunDesc(MathFunDesc::Gen::kExtAsm, "log10", itfloat(), 1);
-            fMathLibTable["max"] = MathFunDesc(MathFunDesc::Gen::kWasm, "max", itfloat(), 1);
-            fMathLibTable["min"] = MathFunDesc(MathFunDesc::Gen::kWasm, "min", itfloat(), 1);
+            fMathLibTable["max_f"] = MathFunDesc(MathFunDesc::Gen::kWasm, "max", itfloat(), 2);
+            fMathLibTable["min_f"] = MathFunDesc(MathFunDesc::Gen::kWasm, "min", itfloat(), 2);
             fMathLibTable["powf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", itfloat(), 2);
             // fMathLibTable["remainderf"] "manual";      // Manually generated
             fMathLibTable["roundf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", itfloat(), 1);
@@ -179,7 +182,7 @@ class WASMInstVisitor : public TextInstVisitor {
             fMathLibTable["acos"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "acos", itfloat(), 1);
             fMathLibTable["asin"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "asin", itfloat(), 1);
             fMathLibTable["atan"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan", itfloat(), 1);
-            fMathLibTable["atan2"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan2", itfloat(), 1);
+            fMathLibTable["atan2"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan2", itfloat(), 2);
             fMathLibTable["ceil"] = MathFunDesc(MathFunDesc::Gen::kWasm, "ceil", itfloat(), 1);
             fMathLibTable["cos"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "cos", itfloat(), 1);
             fMathLibTable["exp"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "exp", itfloat(), 1);
@@ -187,7 +190,8 @@ class WASMInstVisitor : public TextInstVisitor {
             fMathLibTable["fmod"] = MathFunDesc(MathFunDesc::Gen::kExtAsm, "fmod", itfloat(), 2);
             fMathLibTable["log"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "log", itfloat(), 1);
             fMathLibTable["log10"] = MathFunDesc(MathFunDesc::Gen::kExtAsm, "log10", itfloat(), 1);
-            
+            fMathLibTable["max_"] = MathFunDesc(MathFunDesc::Gen::kWasm, "max", itfloat(), 2);
+            fMathLibTable["min_"] = MathFunDesc(MathFunDesc::Gen::kWasm, "min", itfloat(), 2);
             fMathLibTable["pow"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", itfloat(), 2);
             // fMathLibTable["remainderf"] "manual";      // Manually generated
             fMathLibTable["round"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", itfloat(), 1);

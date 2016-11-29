@@ -139,9 +139,6 @@ void WASMCodeContainer::produceClass()
     
     
         // All mathematical functions (got from math library as variables) have to be first
-        // sortDeclareFunctions sorter(gGlobal->gWASMVisitor->getMathLibTable());
-        // fGlobalDeclarationInstructions->fCode.sort(sorter);
-    
         generateGlobalDeclarations(gGlobal->gWASMVisitor);
     
         // Always generated mathematical functions
@@ -176,6 +173,7 @@ void WASMCodeContainer::produceClass()
         // Always generated mathematical functions
         tab(n+1, *fOut);
     
+        /*
         tab(n+1, *fOut); *fOut << "(func $min (param $v1 i32) (param $v2 i32) (result i32)";
             tab(n+2, *fOut); *fOut << "(return (select (get_local $v1) (get_local $v2) (i32.lt_s (get_local $v1) (get_local $v2))))";
         tab(n+1, *fOut); *fOut << ")";
@@ -183,6 +181,7 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "(func $max (param $v1 i32) (param $v2 i32) (result i32)";
             tab(n+2, *fOut); *fOut << "(return (select (get_local $v2) (get_local $v1) (i32.lt_s (get_local $v1) (get_local $v2))))";
         tab(n+1, *fOut); *fOut << ")";
+        */
     
         /*
         tab(n+1, *fOut); *fOut << "(func $fmod" << isuffix() << " (type $0) (param $value " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";

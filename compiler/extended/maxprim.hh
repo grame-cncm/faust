@@ -107,7 +107,7 @@ class MaxPrim : public xtended
             
             if (n1 == kReal) {
                 // both are floats, no need to cast
-                return container->pushFunction("max", result_type, arg_types, args);
+                return container->pushFunction(subst("max_$0", isuffix()), result_type, arg_types, args);
             } else {
                 assert(n1 == kInt); // second argument is not float, cast it to float
                 // prepare args values
@@ -115,7 +115,7 @@ class MaxPrim : public xtended
                 casted_args.push_back((*it2));
                 it2++;
                 casted_args.push_back(InstBuilder::genCastNumFloatInst(*it2));
-                return container->pushFunction("max", result_type, arg_types, casted_args);
+                return container->pushFunction(subst("max_$0", isuffix()), result_type, arg_types, casted_args);
             }
         } else if (n1 == kReal) {
             assert(n0 == kInt); // first not float but second is, cast first to float
@@ -129,7 +129,7 @@ class MaxPrim : public xtended
             casted_args.push_back(InstBuilder::genCastNumFloatInst(*it2));
             it2++;
             casted_args.push_back((*it2));
-            return container->pushFunction("max", result_type, arg_types, casted_args);
+            return container->pushFunction(subst("max_$0", isuffix()), result_type, arg_types, casted_args);
         } else {
             assert(n0 == kInt); assert(n1 == kInt);   // both are integers, check for booleans
             int b0 = types[0]->boolean();
@@ -142,7 +142,7 @@ class MaxPrim : public xtended
             if (b0 == kNum) {
                 if (b1 == kNum) {
                     // both are integers, no need to cast
-                    return container->pushFunction("max", result_type, arg_types, args);
+                    return container->pushFunction("max_i", result_type, arg_types, args);
                 } else {
                     assert(b1 == kBool);    // second is boolean, cast to int
                     // prepare args values
@@ -150,7 +150,7 @@ class MaxPrim : public xtended
                     casted_args.push_back((*it2));
                     it2++;
                     casted_args.push_back(InstBuilder::genCastNumIntInst(*it2));
-                    return container->pushFunction("max", result_type, arg_types, casted_args);
+                    return container->pushFunction("max_i", result_type, arg_types, casted_args);
                 }
             } else if (b1 == kNum) {
                 assert(b0 == kBool);    // first is boolean, cast to int
@@ -159,7 +159,7 @@ class MaxPrim : public xtended
                 casted_args.push_back(InstBuilder::genCastNumIntInst(*it2));
                 it2++;
                 casted_args.push_back((*it2));
-                return container->pushFunction("max", result_type, arg_types, casted_args);
+                return container->pushFunction("max_i", result_type, arg_types, casted_args);
             } else {
                 // both are booleans, theoratically no need to cast, but we still do it to be sure 'true' is actually '1'
                 // and 'false' is actually '0' (which is not the case if compiled in SSE mode)
@@ -168,7 +168,7 @@ class MaxPrim : public xtended
                 casted_args.push_back(InstBuilder::genCastNumIntInst(*it2));
                 it2++;
                 casted_args.push_back(InstBuilder::genCastNumIntInst(*it2));
-                return container->pushFunction("max", result_type, arg_types, casted_args);
+                return container->pushFunction("max_i", result_type, arg_types, casted_args);
             }
         }
     }

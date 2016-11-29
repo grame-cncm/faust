@@ -79,7 +79,10 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         ASMJAVAScriptInstVisitor(std::ostream* out, int tab = 0)
             :TextInstVisitor(out, ".", ifloat(), "", tab)
         {
+            // Integer version
             fMathLibTable["abs"] = "global.Math.abs";
+            fMathLibTable["min_i"] = "global.Math.min";
+            fMathLibTable["max_i"] = "global.Math.max";
             
             // Float version
             fMathLibTable["fabsf"] = "global.Math.abs";
@@ -94,8 +97,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["fmodf"] = "manual";      // Manually generated
             fMathLibTable["logf"] = "global.Math.log";
             fMathLibTable["log10f"] = "manual";     // Manually generated
-            fMathLibTable["max"] = "global.Math.max";
-            fMathLibTable["min"] = "global.Math.min";
+            fMathLibTable["max_f"] = "global.Math.max";
+            fMathLibTable["min_f"] = "global.Math.min";
             fMathLibTable["powf"] = "global.Math.pow";
             //fMathLibTable["remainderf"] =  "manual";     // Manually generated
             fMathLibTable["roundf"] = "global.Math.round";
@@ -116,8 +119,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["fmod"] = "manual";      // Manually generated
             fMathLibTable["log"] = "global.Math.log";
             fMathLibTable["log10"] = "manual";     // Manually generated
-            fMathLibTable["max"] = "global.Math.max";
-            fMathLibTable["min"] = "global.Math.min";
+            fMathLibTable["max_"] = "global.Math.max";
+            fMathLibTable["min_"] = "global.Math.min";
             fMathLibTable["pow"] = "global.Math.pow";
             //fMathLibTable["remainderf"] =  "manual";     // Manually generated
             fMathLibTable["round"] = "global.Math.round";

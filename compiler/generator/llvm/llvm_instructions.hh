@@ -1860,9 +1860,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 fun_args.push_back(fCurValue);
             }
 
-            if (inst->fName == "min") {
+            if (startWith(inst->fName, "min")) {
                 fCurValue = generateFunPolymorphicMinMaxAux(fun_args[0], fun_args[1], inst->fSize, kLT);
-            } else if (inst->fName == "max") {
+            } else if (startWith(inst->fName, "max")) {
                 fCurValue = generateFunPolymorphicMinMaxAux(fun_args[0], fun_args[1], inst->fSize, kGT);
             } 
         }
@@ -1876,7 +1876,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 throw faustexception(error.str());
             }
             // Special case
-            if (inst->fName == "min" || inst->fName == "max") {
+            if (startWith(inst->fName, "min") || startWith(inst->fName, "max")) {
                 generateFunPolymorphicMinMax(inst);
                 return;
             }

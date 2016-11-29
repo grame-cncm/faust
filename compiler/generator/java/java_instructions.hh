@@ -58,8 +58,8 @@ class JAVAInstVisitor : public TextInstVisitor {
             }
             
             gMathLibTable["abs"] = "java.lang.Math.abs";
-            gMathLibTable["max"] = "java.lang.Math.max";
-            gMathLibTable["min"] = "java.lang.Math.min";
+            gMathLibTable["max_i"] = "java.lang.Math.max";
+            gMathLibTable["min_i"] = "java.lang.Math.min";
             
             // Float version
             gMathLibTable["fabsf"] = "(float)java.lang.Math.abs";
@@ -75,6 +75,8 @@ class JAVAInstVisitor : public TextInstVisitor {
             gMathLibTable["fmodf"] = "(float)java.lang.Math.IEEEremainder";
             gMathLibTable["logf"] = "(float)java.lang.Math.log";
             gMathLibTable["log10f"] = "(float)java.lang.Math.log10";
+            gMathLibTable["max_f"] = "(float)java.lang.Math.max";
+            gMathLibTable["min_f"] = "(float)java.lang.Math.min";
             gMathLibTable["powf"] = "(float)java.lang.Math.pow";
             gMathLibTable["roundf"] = "(float)java.lang.Math.round";
             gMathLibTable["sinf"] = "(float)java.lang.Math.sin";
@@ -97,6 +99,8 @@ class JAVAInstVisitor : public TextInstVisitor {
             gMathLibTable["fmod"] = "java.lang.Math.IEEEremainder";
             gMathLibTable["log"] = "java.lang.Math.log";
             gMathLibTable["log10"] = "java.lang.Math.log10";
+            gMathLibTable["max_"] = "java.lang.Math.max";
+            gMathLibTable["min_"] = "java.lang.Math.min";
             gMathLibTable["pow"] = "java.lang.Math.pow";
             gMathLibTable["round"] = "java.lang.Math.round";
             gMathLibTable["sin"] = "java.lang.Math.sin";
