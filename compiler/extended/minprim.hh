@@ -131,7 +131,7 @@ class MinPrim : public xtended
             casted_args.push_back((*it2));
             return container->pushFunction("min", result_type, arg_types, casted_args);
         } else {
-            assert(n0 == kInt);  assert(n1 == kInt);   // both are integers, check for booleans
+            assert(n0 == kInt); assert(n1 == kInt);   // both are integers, check for booleans
             int b0 = types[0]->boolean();
             int b1 = types[1]->boolean();
             

@@ -161,6 +161,8 @@ class CodeContainer : public virtual Garbageable {
             pushFrontInitMethod(InstBuilder::genStoreStructVar("fSamplingFreq", InstBuilder::genLoadFunArgsVar("samplingFreq")));
         }
     
+        BlockInst* inlineSubcontainersFunCalls(BlockInst* block);
+    
       public:
 
         CodeContainer();

@@ -262,8 +262,8 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
     // Special case for "faustpower", generates sequence of multiplication
     if (name == "faustpower") {
         
-        // In interpreter backend, do not generate 'faustpower' function call but directly inline the code
-        if (gGlobal->gOutputLang == "interp") {
+        // In interpreter and wasm backend, do not generate 'faustpower' function call but directly inline the code
+        if ((gGlobal->gOutputLang == "interp") || (gGlobal->gOutputLang == "wasm")) {
             
             ValueInst* arg2 = *it; it++;
             IntNumInst* arg1 = dynamic_cast<IntNumInst*>(*it);
@@ -292,8 +292,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
      
             list<NamedTyped*> named_args;
             named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(types[0])));
-
-         
+ 
             if (arg1->fNum == 0) {
                  block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(1)));
             } else {
@@ -663,3 +662,27 @@ void CodeContainer::generateJSON()
     } 
 }
 
+
+BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
+{
+    // Rename 'sig' in 'dsp' and remove 'dsp' allocation
+    DspRenamer renamer;
+    block = renamer.getCode(block);
+    
+    // Inline subcontainers 'instanceInit' and 'fill' function call
+    list<CodeContainer*>::const_iterator it;
+    for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
+        
+        // Build the function to be inlined (prototype and code)
+        DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false);
+        InlineVoidFunctionCall inliner1(inst_init_fun);
+        block = inliner1.getCode(block);
+        
+        // Build the function to be inlined (prototype and code)
+        DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false);
+        InlineVoidFunctionCall inliner2(fill_fun);
+        block = inliner2.getCode(block);
+    }
+    
+    return block;
+}

@@ -1290,9 +1290,6 @@ struct ForLoopInst : public StatementInst
     ForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment, BlockInst* code)
         :fInit(init), fIncrement(increment), fEnd(end), fCode(code)
     {}
-    ForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment)
-        :fInit(init), fIncrement(increment), fEnd(end), fCode(new BlockInst())
-    {}
     
     virtual ~ForLoopInst()
     {}
@@ -1305,6 +1302,19 @@ struct ForLoopInst : public StatementInst
     void pushBackInst(StatementInst* inst)
     {
         fCode->pushBackInst(inst);
+    }
+    
+    string getLoopName()
+    {
+        DeclareVarInst* loop_decl1 = dynamic_cast<DeclareVarInst*>(fInit);
+        StoreVarInst* loop_decl2 = dynamic_cast<StoreVarInst*>(fInit);
+        if (loop_decl1) {
+            return loop_decl1->getName();
+        } else if (loop_decl2) {
+            return loop_decl2->getName();
+        } else {
+            assert(false);
+        }
     }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -1935,11 +1945,9 @@ struct InstBuilder
         { return new DropInst(new FunCallInst(name, args, method, size)); }
 
     // Loop
-    static ForLoopInst* genForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment, BlockInst* code)
+    static ForLoopInst* genForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment, BlockInst* code = new BlockInst())
         { return new ForLoopInst(init, end, increment, code); }
-    static ForLoopInst* genForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment)
-        { return new ForLoopInst(init, end, increment); }
-
+  
     static WhileLoopInst* genWhileLoopInst(ValueInst* cond, BlockInst* code)
         { return new WhileLoopInst(cond, code); }
 

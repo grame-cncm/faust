@@ -53,24 +53,40 @@ class WASMInstVisitor : public TextInstVisitor {
     
         struct MemoryDesc {
             
-            MemoryDesc():
-            fOffset(-1), fSize(-1), fType(Typed::kNoType)
+            MemoryDesc()
             {}
             
-            MemoryDesc(int offset, int size, Typed::VarType type):
-            fOffset(offset), fSize(size), fType(type)
+            MemoryDesc(int offset, int size, Typed::VarType type)
+            :fOffset(offset), fSize(size), fType(type)
             {}
             
             int fOffset;
             int fSize;
             Typed::VarType fType;
         };
+    
+        struct MathFunDesc {
+        
+            enum Gen { kWasm, kExtMath, kExtAsm, kManual };
+            
+            MathFunDesc()
+            {}
+            
+            MathFunDesc(Gen mode, const string& name, Typed::VarType type, int args)
+            :fMode(mode), fName(name), fType(type), fArgs(args)
+            {}
+            
+            Gen fMode;
+            string fName;
+            Typed::VarType fType;
+            int fArgs;
+        };
   
     private:
     
         TypingVisitor fTypingVisitor;
         map <string, int> fFunctionSymbolTable;
-        map <string, string> fMathLibTable;
+        map <string, MathFunDesc> fMathLibTable;
         map <string, MemoryDesc> fFieldTable;   // Table : field_name, { offset, size, type }
         int fStructOffset;                      // Keep the offset in bytes of the structure
         int fSubContainerType;
@@ -134,52 +150,50 @@ class WASMInstVisitor : public TextInstVisitor {
         WASMInstVisitor(std::ostream* out, int tab = 0)
             :TextInstVisitor(out, ".", tab)
         {
-            fMathLibTable["abs"] = "abs";
+            fMathLibTable["abs"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "abs", Typed::kInt, 1);
   
             // Float version
-            fMathLibTable["fabsf"] = "abs";
-            fMathLibTable["acosf"] = "acos";
-            fMathLibTable["asinf"] = "asin";
-            fMathLibTable["atanf"] = "atan";
-            fMathLibTable["atan2f"] = "atan2";
-            fMathLibTable["ceilf"] = "ceil";
-            fMathLibTable["cosf"] = "cos";
-            fMathLibTable["expf"] = "exp";
-            fMathLibTable["floorf"] = "floor";
-            fMathLibTable["fmodf"] = "manual";      // Manually generated
-            fMathLibTable["logf"] = "log";
-            fMathLibTable["log10f"] = "manual";     // Manually generated
-            fMathLibTable["max"] = "wasm";          // Part of WebAssembly
-            fMathLibTable["min"] = "wasm";          // Part of WebAssembly
-            fMathLibTable["powf"] = "pow";
+            fMathLibTable["fabsf"] = MathFunDesc(MathFunDesc::Gen::kWasm, "abs", itfloat(), 1);
+            fMathLibTable["acosf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "acos", itfloat(), 1);
+            fMathLibTable["asinf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "asin", itfloat(), 1);
+            fMathLibTable["atanf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan", itfloat(), 1);
+            fMathLibTable["atan2f"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan2", itfloat(), 1);
+            fMathLibTable["ceilf"] = MathFunDesc(MathFunDesc::Gen::kWasm, "ceil", itfloat(), 1);
+            fMathLibTable["cosf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "cos", itfloat(), 1);
+            fMathLibTable["expf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "exp", itfloat(), 1);
+            fMathLibTable["floorf"] = MathFunDesc(MathFunDesc::Gen::kWasm, "floor", itfloat(), 1);
+            fMathLibTable["fmodf"] = MathFunDesc(MathFunDesc::Gen::kExtAsm, "fmod", itfloat(), 2);
+            fMathLibTable["logf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "log", itfloat(), 1);
+            fMathLibTable["log10f"] = MathFunDesc(MathFunDesc::Gen::kExtAsm, "log10", itfloat(), 1);
+            fMathLibTable["max"] = MathFunDesc(MathFunDesc::Gen::kWasm, "max", itfloat(), 1);
+            fMathLibTable["min"] = MathFunDesc(MathFunDesc::Gen::kWasm, "min", itfloat(), 1);
+            fMathLibTable["powf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", itfloat(), 2);
             // fMathLibTable["remainderf"] "manual";      // Manually generated
-            fMathLibTable["roundf"] = "round";
-            fMathLibTable["sinf"] = "sin";
-            fMathLibTable["sqrtf"] = "wasm";        // Part of WebAssembly
-            fMathLibTable["tanf"] = "tan";
+            fMathLibTable["roundf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", itfloat(), 1);
+            fMathLibTable["sinf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", itfloat(), 1);
+            fMathLibTable["sqrtf"] = MathFunDesc(MathFunDesc::Gen::kWasm, "sqrt", itfloat(), 1);
+            fMathLibTable["tanf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", itfloat(), 1);
             
             // Double version
-            fMathLibTable["fabs"] = "abs";
-            fMathLibTable["acos"] = "acos";
-            fMathLibTable["asin"] = "asin";
-            fMathLibTable["atan"] = "atan";
-            fMathLibTable["atan2"] = "atan2";
-            fMathLibTable["ceil"] = "ceil";
-            fMathLibTable["cos"] = "cos";
-            fMathLibTable["exp"] = "exp";
-            fMathLibTable["floor"] = "floor";
-            fMathLibTable["fmod"] = "manual";       // Manually generated
-            fMathLibTable["log"] = "log";
-            fMathLibTable["log10"] = "manual";      // Manually generated
-            fMathLibTable["max"] = "wasm";          // Part of WebAssembly
-            fMathLibTable["min"] = "wasm";          // Part of WebAssembly
-            fMathLibTable["pow"] = "pow";
-            // fMathLibTable["remainderf"] "manual";      // Manually generated
-            fMathLibTable["round"] = "round";
-            fMathLibTable["sin"] = "sin";
-            fMathLibTable["sqrt"] = "wasm";        // Part of WebAssembly
-            fMathLibTable["tan"] = "tan";
+            fMathLibTable["fabs"] = MathFunDesc(MathFunDesc::Gen::kWasm, "abs", itfloat(), 1);
+            fMathLibTable["acos"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "acos", itfloat(), 1);
+            fMathLibTable["asin"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "asin", itfloat(), 1);
+            fMathLibTable["atan"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan", itfloat(), 1);
+            fMathLibTable["atan2"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan2", itfloat(), 1);
+            fMathLibTable["ceil"] = MathFunDesc(MathFunDesc::Gen::kWasm, "ceil", itfloat(), 1);
+            fMathLibTable["cos"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "cos", itfloat(), 1);
+            fMathLibTable["exp"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "exp", itfloat(), 1);
+            fMathLibTable["floor"] = MathFunDesc(MathFunDesc::Gen::kWasm, "floor", itfloat(), 1);
+            fMathLibTable["fmod"] = MathFunDesc(MathFunDesc::Gen::kExtAsm, "fmod", itfloat(), 2);
+            fMathLibTable["log"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "log", itfloat(), 1);
+            fMathLibTable["log10"] = MathFunDesc(MathFunDesc::Gen::kExtAsm, "log10", itfloat(), 1);
             
+            fMathLibTable["pow"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", itfloat(), 2);
+            // fMathLibTable["remainderf"] "manual";      // Manually generated
+            fMathLibTable["round"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", itfloat(), 1);
+            fMathLibTable["sin"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", itfloat(), 1);
+            fMathLibTable["sqrt"] = MathFunDesc(MathFunDesc::Gen::kWasm, "sqrt", itfloat(), 1);
+            fMathLibTable["tan"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", itfloat(), 1);
             fStructOffset = 0;
             fSubContainerType = -1;
             fFastMemory = false;
@@ -194,7 +208,7 @@ class WASMInstVisitor : public TextInstVisitor {
     
         map <string, MemoryDesc>& getFieldTable() { return fFieldTable; }
     
-        map <string, string>& getMathLibTable() { return fMathLibTable; }
+        //map <string, string>& getMathLibTable() { return fMathLibTable; }
     
         int getFieldOffset(const string& name)
         {
@@ -228,11 +242,12 @@ class WASMInstVisitor : public TextInstVisitor {
                     fStructOffset += fsize(); // Always use biggest size so that int/real access are correctly aligned
                 } else {
                     
-                    // Put in the table with a dummy offset
-                    fFieldTable[inst->fAddress->getName()] = MemoryDesc(-1, -1, inst->fType->getType());
+                    // Put in the table with a dummy offset (seems not necessary anymore...)
+                    //fFieldTable[inst->fAddress->getName()] = MemoryDesc(-1, -1, inst->fType->getType());
                     
                     *fOut << "(local $" << inst->fAddress->getName() << " " << type2String(inst->fType->getType()) << ")";
                     
+                    // Local variable declaration has been previsouly separated as 'pure declaration' first, followed by 'store' later on (done in MoveVariablesInFront3)
                     assert(inst->fValue == nullptr);
                     
                     /*
@@ -306,6 +321,25 @@ class WASMInstVisitor : public TextInstVisitor {
             
             // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
+                MathFunDesc desc = fMathLibTable[inst->fName];
+                
+                if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtAsm) {
+                    tab(fTab, *fOut);
+                    if (desc.fMode == MathFunDesc::Gen::kExtMath) {
+                        *fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << desc.fName << "\" (param ";
+                    } else if (desc.fMode == MathFunDesc::Gen::kExtAsm) {
+                        *fOut << "(import $" << inst->fName << " \"asm2wasm\" " "\"" << desc.fName << "\" (param ";
+                    } else {
+                        assert(false);
+                    }
+                    for (int i = 0; i < desc.fArgs; i++) {
+                        *fOut << (isIntType(desc.fType) ? "i32" : realStr);
+                        if (i < desc.fArgs - 1) *fOut << " ";
+                    }
+                    *fOut << ") (result " << (isIntType(desc.fType) ? "i32" : realStr) << "))";
+                }
+                
+                /*
                 if (fMathLibTable[inst->fName] != "manual" && fMathLibTable[inst->fName] != "wasm") {
                     tab(fTab, *fOut);
                     // Two arguments functions
@@ -318,6 +352,8 @@ class WASMInstVisitor : public TextInstVisitor {
                               << "\"" << " (param " << realStr << ") (result " << realStr << "))";
                     }
                 }
+                */
+                
             } else {
                 // Prototype
                 tab(fTab, *fOut); *fOut << "(func $" << generateFunName(inst->fName) << " ";
@@ -393,7 +429,7 @@ class WASMInstVisitor : public TextInstVisitor {
             MemoryDesc tmp = fFieldTable[inst->fAddress->getName()];
             -            if (isRealType(tmp.fType)) {
             -                *fOut << "(" << realStr << ".store ";
-                  */
+            */
 
             inst->fValue->accept(&fTypingVisitor);
 
@@ -481,7 +517,6 @@ class WASMInstVisitor : public TextInstVisitor {
                         indexed->fIndex->accept(this);
                         *fOut << " (i32.const " << offStr << "))))";
                     }
-                   
                 }
             }
         }
@@ -591,12 +626,49 @@ class WASMInstVisitor : public TextInstVisitor {
             
             fTypingVisitor.visit(inst);
         }
-    
+
+        // Special case for min/max
+        void generateMinMax(const list<ValueInst*>& args, const string& fun)
+        {
+            list<ValueInst*>::iterator it;
+            ValueInst* arg1 = *(args.begin());
+            arg1->accept(&fTypingVisitor);
+            if (isIntType(fTypingVisitor.fCurType)) {
+                // Using manually generated min/max
+                *fOut  << "(call $" << fun << " ";
+            } else {
+                *fOut << "(" << realStr << "." << fun << " ";
+            }
+        }
+
         // Generate standard funcall (not 'method' like funcall...)
         virtual void visit(FunCallInst* inst)
         {
-            if (fMathLibTable.find(inst->fName) != fMathLibTable.end() && fMathLibTable[inst->fName] == "wasm") {
-                *fOut << "(" << realStr << "." << inst->fName << " ";
+            if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
+                MathFunDesc desc = fMathLibTable[inst->fName];
+                if (desc.fMode == MathFunDesc::Gen::kWasm) {
+                    // Special case for min/max
+                    if (desc.fName == "min" || desc.fName == "max") {
+                        generateMinMax(inst->fArgs, desc.fName);
+                    } else {
+                        *fOut << "(" << realStr << "." << desc.fName << " ";
+                    }
+                } else {
+                    *fOut  << "(call $" << inst->fName << " ";
+                }
+                
+                /*
+                if (inst->fName == "min") {
+                    // TODO
+                    ///assert(false);
+                } else if (inst->fName == "max") {
+                    // TODO
+                    //assert(false);
+                } else {
+                    *fOut << "(" << realStr << "." << inst->fName << " ";
+                }
+                */
+                
             } else {
                 *fOut  << "(call $" << inst->fName << " ";
             }
@@ -635,25 +707,25 @@ class WASMInstVisitor : public TextInstVisitor {
             if (inst->fCode->size() == 0) return;
             
             // Local variables declaration including the loop counter have been moved outside of the loop
-            static int loopCount = 0;
+            string name = inst->getLoopName();
             
-            *fOut << "(loop $for-in" << loopCount << " ";
+            *fOut << "(loop $for-in-" << name << " ";
             fTab++;
                 tab(fTab, *fOut);
-                *fOut << "(block $for-out" << loopCount << " ";
+                *fOut << "(block $for-out-" << name << " ";
                     fTab++;
                     tab(fTab, *fOut);
                     // Loop counter test and possibly branch out
                     *fOut << "(if (i32.eqz ";
                     inst->fEnd->accept(this);
-                    *fOut << ") (br $for-out" << loopCount << "))";
+                    *fOut << ") (br $for-out-" << name << "))";
                     // Loop code
                     tab(fTab, *fOut);
                     inst->fCode->accept(this);
                     // Loop increment
                     inst->fIncrement->accept(this);
                     // Branch to loop label
-                    *fOut << "(br $for-in" << loopCount++ << ")";
+                    *fOut << "(br $for-in-" << name << ")";
                     tab(fTab, *fOut);
                 fTab--;
                 tab(fTab, *fOut);

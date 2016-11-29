@@ -31,10 +31,12 @@ using namespace std;
 /*
  WASM module description :
  
-    1) mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), or are imported from the external Math context,
-    or implementted manually (like fmod or log10)
-    2) local variables have to be declared first on the block, before being actually initialized or set : this is done using MoveVariablesInFront3
-    3) math fucntions are impoerted from JavaScript "global.Math" context, log10 is simplemtn using log
+ - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), or are imported from the external Math context,
+    or implemented manually (like fmod or log10)
+ - local variables have to be declared first on the block, before being actually initialized or set : this is done using MoveVariablesInFront3
+ - math functions are imported from JavaScript "global.Math" context or are externally implemented (log10 in JS using log, fmod in JS)
+ - 'faustpower' function directly inlined in the code (see CodeContainer::pushFunction)
+ - subcontainers are inlined in 'classInit' and 'instanceConstants' functions.
 
 */
 
@@ -123,7 +125,8 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "(type $5 (func (param i32)))";
         tab(n+1, *fOut); *fOut << "(type $6 (func (param i32 i32 " << realStr << ")))";
         tab(n+1, *fOut); *fOut << "(type $7 (func (param i32 i32) (result " << realStr << ")))";
-        tab(n+1, *fOut); *fOut << "(type $8 (func (param i32 i32 i32 i32)))";
+        tab(n+1, *fOut); *fOut << "(type $8 (func (param i32 i32 i32)))";
+        tab(n+1, *fOut); *fOut << "(type $9 (func (param i32 i32 i32 i32)))";
     
         // Global declarations (mathematical functions, global variables...)
         gGlobal->gWASMVisitor->Tab(n+1);
@@ -131,13 +134,18 @@ void WASMCodeContainer::produceClass()
         // Sub containers : before functions generation
         mergeSubContainers();
     
+        // TODO : setup value as the first multiple of 64 kB > DSP memory size
+        tab(n+1, *fOut); *fOut << "(memory (export \"memory\") 16)";
+    
+    
         // All mathematical functions (got from math library as variables) have to be first
-        sortDeclareFunctions sorter(gGlobal->gWASMVisitor->getMathLibTable());
-        fGlobalDeclarationInstructions->fCode.sort(sorter);
+        // sortDeclareFunctions sorter(gGlobal->gWASMVisitor->getMathLibTable());
+        // fGlobalDeclarationInstructions->fCode.sort(sorter);
+    
         generateGlobalDeclarations(gGlobal->gWASMVisitor);
     
-        /*
         // Always generated mathematical functions
+        /*
         tab(n+1, *fOut); *fOut << "(import $" << realStr << "-rem \"asm2wasm\" \"" << realStr
                                << "-rem\" (param " << realStr <<  " " << realStr << ") (result "<< realStr << "))";
         tab(n+1, *fOut); *fOut << "(import $" << realStr << "-to-int \"asm2wasm\" \""
@@ -146,8 +154,6 @@ void WASMCodeContainer::produceClass()
         */
     
         // Memory access
-        // TODO : setup value as the first multiple of 64 kB > DSP memory size
-        tab(n+1, *fOut); *fOut << "(memory (export \"memory\") 16)";
         //tab(n+1, *fOut); *fOut << "(export \"memory\" (memory $0 256 256))";
         //tab(n+1, *fOut); *fOut << "(import \"env\" \"memory\" (memory $0 256 256))";
         //tab(n+1, *fOut); *fOut << "(import \"env\" \"table\" (table 0 0 anyfunc))";
@@ -170,12 +176,20 @@ void WASMCodeContainer::produceClass()
         // Always generated mathematical functions
         tab(n+1, *fOut);
     
+        tab(n+1, *fOut); *fOut << "(func $min (param $v1 i32) (param $v2 i32) (result i32)";
+            tab(n+2, *fOut); *fOut << "(return (select (get_local $v1) (get_local $v2) (i32.lt_s (get_local $v1) (get_local $v2))))";
+        tab(n+1, *fOut); *fOut << ")";
+    
+        tab(n+1, *fOut); *fOut << "(func $max (param $v1 i32) (param $v2 i32) (result i32)";
+            tab(n+2, *fOut); *fOut << "(return (select (get_local $v2) (get_local $v1) (i32.lt_s (get_local $v1) (get_local $v2))))";
+        tab(n+1, *fOut); *fOut << ")";
+    
         /*
         tab(n+1, *fOut); *fOut << "(func $fmod" << isuffix() << " (type $0) (param $value " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
-            tab(n+2, *fOut); *fOut << "(call $" << realStr << "-rem (get_local $value) (get_local $1))";
+            tab(n+2, *fOut); *fOut << "(return (call $" << realStr << "-rem (get_local $value) (get_local $1)))";
         tab(n+1, *fOut); *fOut << ")";
         
-        tab(n+1, *fOut); *fOut <<  "(func $log10" << isuffix() << "f (type $2) (param $value " << realStr << ") (result " << realStr << ")";
+        tab(n+1, *fOut); *fOut <<  "(func $log10" << isuffix() << " (type $2) (param $value " << realStr << ") (result " << realStr << ")";
             tab(n+2, *fOut); *fOut << "(return (" << realStr << ".div (call $log (get_local $value)) (call $log (" << realStr << ".const 10))))";
         tab(n+1, *fOut); *fOut << ")";
         */
@@ -200,7 +214,10 @@ void WASMCodeContainer::produceClass()
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
             {
                 DspRenamer renamer;
-                generateWASMBlock(renamer.getCode(fStaticInitInstructions));
+                // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+                BlockInst* renamed = renamer.getCode(fStaticInitInstructions);
+                BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
+                generateWASMBlock(inlined);
             }
         tab(n+1, *fOut); *fOut << ")";
     
@@ -209,8 +226,11 @@ void WASMCodeContainer::produceClass()
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
                 DspRenamer renamer;
-                generateWASMBlock(renamer.getCode(fInitInstructions));
-            }
+                // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+                BlockInst* renamed = renamer.getCode(fInitInstructions);
+                BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
+                generateWASMBlock(inlined);
+          }
         tab(n+1, *fOut); *fOut << ")";
     
         tab(n+1, *fOut); *fOut << "(func $instanceResetUserInterface (type $5) (param $dsp i32)";
@@ -327,7 +347,7 @@ void WASMCodeContainer::produceClass()
 
 void WASMScalarCodeContainer::generateCompute(int n)
 {
-    tab(n+1, *fOut); *fOut << "(func $compute (type $8) (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
+    tab(n+1, *fOut); *fOut << "(func $compute (type $9) (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
         tab(n+2, *fOut);
         gGlobal->gWASMVisitor->Tab(n+2);
     

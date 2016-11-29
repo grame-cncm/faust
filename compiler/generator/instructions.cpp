@@ -56,6 +56,9 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
 {
     if (gGlobal->gVarTypeTable.find(name) == gGlobal->gVarTypeTable.end()) {
         gGlobal->gVarTypeTable[name] = type->getTyped();
+    } else if (gGlobal->gVarTypeTable[name] != type->getTyped()) {
+        cout << "DeclareFunInst " << name << endl;
+        assert(false);
     }
 }
  

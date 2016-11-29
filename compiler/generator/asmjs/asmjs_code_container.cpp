@@ -168,12 +168,12 @@ void ASMJAVAScriptCodeContainer::produceInternal()
         fComputeBlockInstructions->pushBackInst(loop);
         
         // Moves all variables declaration at the beginning of the block and possibly separate 'declaration' and 'store'
-        MoveVariablesInFront2 mover2;
-        BlockInst* block2 = mover2.getCode(fComputeBlockInstructions);
+        MoveVariablesInFront2 mover;
+        BlockInst* block = mover.getCode(fComputeBlockInstructions);
     
         // Force "output" access to be coherent with fSubContainerType (integer or real)
         gGlobal->gASMJSVisitor->setSubContainerType(fSubContainerType);
-        block2->accept(gGlobal->gASMJSVisitor);
+        block->accept(gGlobal->gASMJSVisitor);
     
         // Restore default...
         gGlobal->gASMJSVisitor->setSubContainerType(-1);
