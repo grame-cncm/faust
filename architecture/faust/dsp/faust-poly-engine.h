@@ -185,6 +185,42 @@ class FaustPolyEngine {
                 return 0;
             }
         }
+
+	/*
+         * newVoice()
+	 * Instantiate a new voice and returns the corresponding mapUI.
+         */
+	MapUI* newVoice()
+	{
+	  if (fPolyMax > 0) {
+	    return fPolyDSP->newVoice();
+	  } else {
+	    return 0;
+	  }
+	}
+
+	/*
+         * deleteVoice(MapUI* voice)
+	 * Delete a voice based on its MapUI*.
+         */
+	int deleteVoice(MapUI* voice)
+	{
+	  if (fPolyMax > 0) {
+	    fPolyDSP->deleteVoice(voice);
+	    return 1;
+	  } else {
+	    return 0;
+	  }
+	}
+
+	/*
+         * deleteVoice(long voice)
+	 * Delete a voice based on its MapUI* casted as a long.
+         */
+	int deleteVoice(long voice)
+	{
+	  return deleteVoice(reinterpret_cast<MapUI*>(voice));
+	}
     
         /*
          * Propagate MIDI data to the Faust object.
@@ -251,24 +287,24 @@ class FaustPolyEngine {
         }
     
         /*
-         * setParamIndexValue(index, value)
-         * Sets the value of the parameter associated with index.
+         * setParamValue(id, value)
+         * Sets the value of the parameter associated with id.
          */
-        void setParamIndexValue(int index, float value)
+        void setParamValue(int id, float value)
         {
-            fAPIUI.setParamValue(index, value);
+            fAPIUI.setParamValue(id, value);
             // In POLY mode, update all voices
             GUI::updateAllGuis();
         }
         
         /*
-         * getParamValue(address)
-         * Takes the index of a parameter and returns its current
+         * getParamValue(id)
+         * Takes the id of a parameter and returns its current
          * value.
          */
-        float getParamIndexValue(int index)
+        float getParamValue(int id)
         {
-            return fAPIUI.getParamValue(index);
+            return fAPIUI.getParamValue(id);
         }
 
         /*
@@ -281,6 +317,17 @@ class FaustPolyEngine {
         {
             reinterpret_cast<MapUI*>(voice)->setParamValue(address, value);
         }
+
+	/*
+         * setVoiceParamValue(id, voice, value)
+         * Sets the value of the parameter associated with the id for
+         * the voice. setVoiceParamValue can only be
+         * used if the [style:poly] metadata is used in the Faust code.
+         */
+	void setVoiceParamValue(int id, long voice, float value)
+	{
+	    reinterpret_cast<MapUI*>(voice)->setParamValue(reinterpret_cast<MapUI*>(voice)->getParamAddress(id), value);
+	}
     
         /*
          * getVoiceParamValue(address, voice)
@@ -292,6 +339,17 @@ class FaustPolyEngine {
         {
             return reinterpret_cast<MapUI*>(voice)->getParamValue(address);
         }
+
+	/*
+         * getVoiceParamValue(id, voice)
+         * Gets the parameter value associated with the id for the voice.
+         * getVoiceParamValue can only be used if the [style:poly] metadata
+         * is used in the Faust code.
+         */
+	float getVoiceParamValue(int id, long voice)
+	{
+	  return reinterpret_cast<MapUI*>(voice)->getParamValue(reinterpret_cast<MapUI*>(voice)->getParamAddress(id));
+	}
     
         /*
          * getParamAddress(id)
@@ -300,6 +358,16 @@ class FaustPolyEngine {
         const char* getParamAddress(int id)
         {
             return fAPIUI.getParamAddress(id);
+        }
+
+	/*
+         * getVoiceParamAddress(id, voice)
+         * Returns the address of a parameter for a specific voice 
+	 * in function of its "id".
+         */
+        const char* getVoiceParamAddress(int id, long voice)
+        {
+	    return reinterpret_cast<MapUI*>(voice)->getParamAddress(id).c_str();
         }
 
         /*
@@ -386,8 +454,8 @@ extern "C" {
     void setParamValue(void* dsp, const char* address, float value) { reinterpret_cast<FaustPolyEngine*>(dsp)->setParamValue(address, value); }
     float getParamValue(void* dsp, const char* address) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamValue(address); }
    
-    void setParamIndexValue(void* dsp, int index, float value) { reinterpret_cast<FaustPolyEngine*>(dsp)->setParamIndexValue(index, value); }
-    float getParamIndexValue(void* dsp, int index) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamIndexValue(index); }
+    void setParamIdValue(void* dsp, int id, float value) { reinterpret_cast<FaustPolyEngine*>(dsp)->setParamValue(id, value); }
+    float getParamIdValue(void* dsp, int id) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamValue(id); }
     
     void setVoiceParamValue(void* dsp, const char* address, long voice, float value)
     {

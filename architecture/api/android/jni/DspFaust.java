@@ -59,6 +59,14 @@ public class DspFaust {
     return dsp_faustJNI.DspFaust_keyOff(swigCPtr, this, arg0);
   }
 
+  public long newVoice() {
+    return dsp_faustJNI.DspFaust_newVoice(swigCPtr, this);
+  }
+
+  public int deleteVoice(long arg0) {
+    return dsp_faustJNI.DspFaust_deleteVoice(swigCPtr, this, arg0);
+  }
+
   public void propagateMidi(int arg0, double arg1, int arg2, int arg3, int arg4, int arg5) {
     dsp_faustJNI.DspFaust_propagateMidi(swigCPtr, this, arg0, arg1, arg2, arg3, arg4, arg5);
   }
@@ -72,23 +80,43 @@ public class DspFaust {
   }
 
   public void setParamValue(String arg0, float arg1) {
-    dsp_faustJNI.DspFaust_setParamValue(swigCPtr, this, arg0, arg1);
+    dsp_faustJNI.DspFaust_setParamValue__SWIG_0(swigCPtr, this, arg0, arg1);
+  }
+
+  public void setParamValue(int arg0, float arg1) {
+    dsp_faustJNI.DspFaust_setParamValue__SWIG_1(swigCPtr, this, arg0, arg1);
   }
 
   public float getParamValue(String arg0) {
-    return dsp_faustJNI.DspFaust_getParamValue(swigCPtr, this, arg0);
+    return dsp_faustJNI.DspFaust_getParamValue__SWIG_0(swigCPtr, this, arg0);
+  }
+
+  public float getParamValue(int arg0) {
+    return dsp_faustJNI.DspFaust_getParamValue__SWIG_1(swigCPtr, this, arg0);
   }
 
   public void setVoiceParamValue(String arg0, long arg1, float arg2) {
-    dsp_faustJNI.DspFaust_setVoiceParamValue(swigCPtr, this, arg0, arg1, arg2);
+    dsp_faustJNI.DspFaust_setVoiceParamValue__SWIG_0(swigCPtr, this, arg0, arg1, arg2);
+  }
+
+  public void setVoiceParamValue(int arg0, long arg1, float arg2) {
+    dsp_faustJNI.DspFaust_setVoiceParamValue__SWIG_1(swigCPtr, this, arg0, arg1, arg2);
   }
 
   public float getVoiceParamValue(String arg0, long arg1) {
-    return dsp_faustJNI.DspFaust_getVoiceParamValue(swigCPtr, this, arg0, arg1);
+    return dsp_faustJNI.DspFaust_getVoiceParamValue__SWIG_0(swigCPtr, this, arg0, arg1);
+  }
+
+  public float getVoiceParamValue(int arg0, long arg1) {
+    return dsp_faustJNI.DspFaust_getVoiceParamValue__SWIG_1(swigCPtr, this, arg0, arg1);
   }
 
   public String getParamAddress(int arg0) {
     return dsp_faustJNI.DspFaust_getParamAddress(swigCPtr, this, arg0);
+  }
+
+  public String getVoiceParamAddress(int arg0, long arg1) {
+    return dsp_faustJNI.DspFaust_getVoiceParamAddress(swigCPtr, this, arg0, arg1);
   }
 
   public void propagateAcc(int arg0, float arg1) {

@@ -80,6 +80,14 @@ int DspFaust::keyOff(int pitch){
     return fPolyEngine->keyOff(pitch);
 }
 
+unsigned long DspFaust::newVoice(){
+    return (long) fPolyEngine->newVoice();
+}
+
+int DspFaust::deleteVoice(unsigned long voice){
+    return fPolyEngine->deleteVoice(voice);
+}
+
 void DspFaust::propagateMidi(int count, double time, int type, int channel, int data1, int data2){
     fPolyEngine->propagateMidi(count, time, type, channel, data1, data2);
 }
@@ -96,20 +104,40 @@ void DspFaust::setParamValue(const char* address, float value){
     fPolyEngine->setParamValue(address, value);
 }
 
+void DspFaust::setParamValue(int id, float value){
+  fPolyEngine->setParamValue(id, value);
+}
+
 float DspFaust::getParamValue(const char* address){
     return fPolyEngine->getParamValue(address);
+}
+
+float DspFaust::getParamValue(int id){
+    return fPolyEngine->getParamValue(id);
 }
 
 void DspFaust::setVoiceParamValue(const char* address, unsigned long voice, float value){
     fPolyEngine->setVoiceParamValue(address, voice, value);
 }
 
+void DspFaust::setVoiceParamValue(int id, unsigned long voice, float value){
+    fPolyEngine->setVoiceParamValue(id, voice, value);
+}
+
 float DspFaust::getVoiceParamValue(const char* address, unsigned long voice){
     return fPolyEngine->getVoiceParamValue(address, voice);
 }
 
+float DspFaust::getVoiceParamValue(int id, unsigned long voice){
+    return fPolyEngine->getVoiceParamValue(id, voice);
+}
+
 const char* DspFaust::getParamAddress(int id){
     return fPolyEngine->getParamAddress(id);
+}
+
+const char* DspFaust::getVoiceParamAddress(int id, unsigned long voice){
+    return fPolyEngine->getVoiceParamAddress(id, voice);
 }
 
 void DspFaust::propagateAcc(int acc, float v){
