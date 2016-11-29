@@ -722,6 +722,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     // Finally output file
     if (gGlobal->gOutputFile == "string") {
         dst = new stringstream();
+	helpers = new stringstream();
     } else if (gGlobal->gOutputFile != "") {
         string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
         /* desactivated for now (creates issue with faust2android on Linux)
