@@ -67,6 +67,18 @@ The second solution is to download and install the QT4.6 SDK :
 	[QT4.6 SDK](http://qt.nokia.com/downloads/sdk-windows-cpp)
 and use the project file 'compiler.pro' in the compiler folder.
 
+#### Build & Use FAUST with Docker :
+
+	docker build -t faust
+	docker run faust [args...]
+
+For example to display the help:
+
+	docker run faust -h
+
+To use an additional tool, for example faust2pdf:
+
+	docker run --entrypoint faust2pdf faust [args...]
 
 #### Compilation of the examples
 
