@@ -44,6 +44,9 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
 {
     if (gGlobal->gVarTypeTable.find(fAddress->getName()) == gGlobal->gVarTypeTable.end()) {
         gGlobal->gVarTypeTable[fAddress->getName()] = type;
+    } else if (gGlobal->gVarTypeTable[fAddress->getName()] != type) {
+        //cout << "DeclareVarInst " << fAddress->getName() << endl;
+        //assert(false);
     }
 }
 
@@ -57,7 +60,7 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
     if (gGlobal->gVarTypeTable.find(name) == gGlobal->gVarTypeTable.end()) {
         gGlobal->gVarTypeTable[name] = type->getTyped();
     } else if (gGlobal->gVarTypeTable[name] != type->getTyped()) {
-        cout << "DeclareFunInst " << name << endl;
+        //cout << "DeclareFunInst " << name << endl;
         assert(false);
     }
 }

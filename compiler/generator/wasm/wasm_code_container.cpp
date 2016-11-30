@@ -174,8 +174,6 @@ void WASMCodeContainer::produceClass()
         // Sub containers : before functions generation
         mergeSubContainers();
     
-        tab(n+1, *fOut);
-    
         // All mathematical functions (got from math library as variables) have to be first
         generateGlobalDeclarations(gGlobal->gWASMVisitor);
     

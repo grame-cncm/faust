@@ -1356,9 +1356,7 @@ class BasicCloneVisitor : public CloneVisitor {
         // Declarations
         virtual StatementInst* visit(DeclareVarInst* inst)
         {
-            return (inst->fValue)
-                ? new DeclareVarInst(inst->fAddress->clone(this), inst->fType->clone(this), inst->fValue->clone(this))
-                : new DeclareVarInst(inst->fAddress->clone(this), inst->fType->clone(this), NULL);
+            return new DeclareVarInst(inst->fAddress->clone(this), inst->fType->clone(this), ((inst->fValue) ? inst->fValue->clone(this) : NULL));
         }
         virtual StatementInst* visit(DeclareFunInst* inst)
         {

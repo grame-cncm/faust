@@ -27,7 +27,7 @@
 #include "fir_instructions.hh"
 
 // Tool to dump FIR
-inline void dump2FIR(StatementInst* inst, std::ostream* out)
+inline void dump2FIR(StatementInst* inst, std::ostream* out = &cout)
 {
     *out << "========== dump2FIR statement begin ==========" << std::endl;
     FIRInstVisitor fir_visitor(out);
@@ -35,7 +35,7 @@ inline void dump2FIR(StatementInst* inst, std::ostream* out)
     *out << "========== dump2FIR statement end ==========" << std::endl;
 }
 
-inline void dump2FIR(ValueInst* value, std::ostream* out)
+inline void dump2FIR(ValueInst* value, std::ostream* out = &cout)
 {
     *out << "========== dump2FIR value begin ==========" << std::endl;
     FIRInstVisitor fir_visitor(out);
@@ -378,27 +378,51 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
             
             string fName;
             ValueInst* fArg;
-            
-            InlineValue(const string& name, ValueInst* arg):fName(name), fArg(arg)
+            string fInLoop;
+    
+            InlineValue(const string& name, ValueInst* arg):fName(name), fArg(arg), fInLoop("")
             {}
+            
+            Address* renameAddress(Address* address, const string& name)
+            {
+                Address* cloned_address = address->clone(this);
+                cloned_address->setName(name);
+                return cloned_address;
+            }
+            
+            StatementInst* visit(DeclareVarInst* inst)
+            {
+                if (inst->fAddress->getAccess() == Address::kLoop) {
+                    // Rename loop index with a fresh one
+                    fInLoop = gGlobal->getFreshID("re_i");
+                    return new DeclareVarInst(renameAddress(inst->fAddress, fInLoop), inst->fType->clone(this), (inst->fValue) ? inst->fValue->clone(this) : NULL);
+                } else {
+                    return new DeclareVarInst(inst->fAddress->clone(this), inst->fType->clone(this), (inst->fValue) ? inst->fValue->clone(this) : NULL);
+                }
+            }
             
             ValueInst* visit(LoadVarInst* inst)
             {
-                BasicCloneVisitor cloner;
-                return (inst->fAddress->getName() == fName) ? fArg->clone(&cloner) : inst->clone(&cloner);
+                if (inst->fAddress->getAccess() == Address::kLoop) {
+                    // Rename loop index
+                    return new LoadVarInst(renameAddress(inst->fAddress, fInLoop));
+                } else {
+                    BasicCloneVisitor cloner;
+                    return (inst->fAddress->getName() == fName) ? fArg->clone(&cloner) : inst->clone(&cloner);
+                }
             }
             
             StatementInst* visit(StoreVarInst* inst)
             {
-                BasicCloneVisitor cloner;
-          
                 LoadVarInst* arg;
+                
                 if ((inst->fAddress->getName() == fName) && (arg = dynamic_cast<LoadVarInst*>(fArg))) {
-                    Address* cloned_address = inst->fAddress->clone(this);
-                    cloned_address->setName(arg->fAddress->getName());
-                    return new StoreVarInst(cloned_address, inst->fValue->clone(this));
+                    return new StoreVarInst(renameAddress(inst->fAddress, arg->fAddress->getName()), inst->fValue->clone(this));
+                } else if (inst->fAddress->getAccess() == Address::kLoop) {
+                    // Rename loop index
+                    return new StoreVarInst(renameAddress(inst->fAddress, fInLoop), inst->fValue->clone(this));
                 } else {
-                    return inst->clone(&cloner);
+                    return new StoreVarInst(inst->fAddress->clone(this), inst->fValue->clone(this));
                 }
             }
             
