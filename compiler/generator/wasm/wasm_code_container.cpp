@@ -31,14 +31,13 @@ using namespace std;
 /*
  WASM module description :
  
- - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), or are imported from the external Math context,
-    or implemented manually (like fmod or log10)
+ - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), are imported from the from JS "global.Math",
+    or are externally implemented (log10 in JS using log, fmod in JS)
  - local variables have to be declared first on the block, before being actually initialized or set : this is done using MoveVariablesInFront3
- - math functions are imported from JS "global.Math" context or are externally implemented (log10 in JS using log, fmod in JS)
- - integer min/max functions taken from JS "global.Math" for now... (TODO : do it in the module)
  - 'faustpower' function directly inlined in the code (see CodeContainer::pushFunction)
  - subcontainers are inlined in 'classInit' and 'instanceConstants' functions.
  - waveform generation is 'inlined' using MoveVariablesInFront3, done in a special version of generateInstanceInitFun.
+ - integer min/max done in the module in min_i/max_i (using lt/select)
 
 */
 
@@ -175,8 +174,7 @@ void WASMCodeContainer::produceClass()
         // Sub containers : before functions generation
         mergeSubContainers();
     
-        // TODO : setup value as the first multiple of 64 kB > DSP memory size
-        tab(n+1, *fOut); *fOut << "(memory (export \"memory\") 16)";
+        tab(n+1, *fOut);
     
         // All mathematical functions (got from math library as variables) have to be first
         generateGlobalDeclarations(gGlobal->gWASMVisitor);
@@ -210,35 +208,38 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "(export \"getParamValue\" (func $getParamValue))";
         tab(n+1, *fOut); *fOut << "(export \"compute\" (func $compute))";
     
-        // Always generated mathematical functions
-        tab(n+1, *fOut);
-    
-        /*
-        tab(n+1, *fOut); *fOut << "(func $min (param $v1 i32) (param $v2 i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(return (select (get_local $v1) (get_local $v2) (i32.lt_s (get_local $v1) (get_local $v2))))";
-        tab(n+1, *fOut); *fOut << ")";
-    
-        tab(n+1, *fOut); *fOut << "(func $max (param $v1 i32) (param $v2 i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(return (select (get_local $v2) (get_local $v1) (i32.lt_s (get_local $v1) (get_local $v2))))";
-        tab(n+1, *fOut); *fOut << ")";
-        */
-    
-        /*
-        tab(n+1, *fOut); *fOut << "(func $fmod" << isuffix() << " (type $0) (param $value " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
-            tab(n+2, *fOut); *fOut << "(return (call $" << realStr << "-rem (get_local $value) (get_local $1)))";
-        tab(n+1, *fOut); *fOut << ")";
-        
-        tab(n+1, *fOut); *fOut <<  "(func $log10" << isuffix() << " (type $2) (param $value " << realStr << ") (result " << realStr << ")";
-            tab(n+2, *fOut); *fOut << "(return (" << realStr << ".div (call $log (get_local $value)) (call $log (" << realStr << ".const 10))))";
-        tab(n+1, *fOut); *fOut << ")";
-        */
-    
         // Fields : compute the structure size to use in 'new'
         gGlobal->gWASMVisitor->Tab(n+1);
         generateDeclarations(gGlobal->gWASMVisitor);
         
         // After field declaration...
         generateSubContainers();
+    
+        //*fOut << "(memory (export \"memory\") 16)";
+        tab(n+1, *fOut);
+        *fOut << "(memory (export \"memory\") "
+              << ((pow2limit(gGlobal->gWASMVisitor->getStructSize() + (fNumInputs + fNumOutputs) * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1) << ")";
+    
+        // Always generated mathematical functions
+        tab(n+1, *fOut);
+        
+        tab(n+1, *fOut); *fOut << "(func $min_i (param $v1 i32) (param $v2 i32) (result i32)";
+            tab(n+2, *fOut); *fOut << "(return (select (get_local $v1) (get_local $v2) (i32.lt_s (get_local $v1) (get_local $v2))))";
+        tab(n+1, *fOut); *fOut << ")";
+        
+        tab(n+1, *fOut); *fOut << "(func $max_i (param $v1 i32) (param $v2 i32) (result i32)";
+            tab(n+2, *fOut); *fOut << "(return (select (get_local $v2) (get_local $v1) (i32.lt_s (get_local $v1) (get_local $v2))))";
+        tab(n+1, *fOut); *fOut << ")";
+        
+        /*
+         tab(n+1, *fOut); *fOut << "(func $fmod" << isuffix() << " (type $0) (param $value " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
+         tab(n+2, *fOut); *fOut << "(return (call $" << realStr << "-rem (get_local $value) (get_local $1)))";
+         tab(n+1, *fOut); *fOut << ")";
+         
+         tab(n+1, *fOut); *fOut <<  "(func $log10" << isuffix() << " (type $2) (param $value " << realStr << ") (result " << realStr << ")";
+         tab(n+2, *fOut); *fOut << "(return (" << realStr << ".div (call $log (get_local $value)) (call $log (" << realStr << ".const 10))))";
+         tab(n+1, *fOut); *fOut << ")";
+        */
     
         tab(n+1, *fOut); *fOut << "(func $getNumInputs (type $3) (param $dsp i32) (result i32)";
             tab(n+2, *fOut); *fOut << "(return (i32.const " << fNumInputs << "))";

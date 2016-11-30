@@ -46,6 +46,8 @@ var asm2wasmImports = { // special asm2wasm imports
 #define realStr ((gGlobal->gFloatSize == 1) ? "f32" : ((gGlobal->gFloatSize == 2) ? "f64" : ""))
 #define offStr ((gGlobal->gFloatSize == 1) ? "2" : ((gGlobal->gFloatSize == 2) ? "3" : ""))
 #define offStrNum ((gGlobal->gFloatSize == 1) ? 2 : ((gGlobal->gFloatSize == 2) ? 3 : 0))
+#define audioMemSize pow(2, offStrNum)
+#define wasmMemSize pow(2, 16)
 
 class WASMInstVisitor : public TextInstVisitor {
     
@@ -152,8 +154,8 @@ class WASMInstVisitor : public TextInstVisitor {
         {
             // Integer version
             fMathLibTable["abs"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "abs", Typed::kInt, 1);
-            fMathLibTable["min_i"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "min", Typed::kInt, 2);
-            fMathLibTable["max_i"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "max", Typed::kInt, 2);
+            fMathLibTable["min_i"] = MathFunDesc(MathFunDesc::Gen::kWasm, "min_i", Typed::kInt, 2);
+            fMathLibTable["max_i"] = MathFunDesc(MathFunDesc::Gen::kWasm, "max_i", Typed::kInt, 2);
   
             // Float version
             fMathLibTable["fabsf"] = MathFunDesc(MathFunDesc::Gen::kWasm, "abs", itfloat(), 1);
@@ -652,7 +654,7 @@ class WASMInstVisitor : public TextInstVisitor {
                 MathFunDesc desc = fMathLibTable[inst->fName];
                 if (desc.fMode == MathFunDesc::Gen::kWasm) {
                     // Special case for min/max
-                    if (desc.fName == "min" || desc.fName == "max") {
+                    if (startWith(desc.fName, "min") || startWith(desc.fName, "max")) {
                         generateMinMax(inst->fArgs, desc.fName);
                     } else {
                         *fOut << "(" << realStr << "." << desc.fName << " ";

@@ -44,7 +44,14 @@ class WASMCodeContainer : public virtual CodeContainer {
             block->accept(gGlobal->gWASMVisitor);
         }
     
-    DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn);
+        DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn);
+    
+        int pow2limit(int x)
+        {
+            int n = wasmMemSize; // Minimum = 64 kB
+            while (n < x) { n = 2 * n; }
+            return n;
+        }
 
     public:
 

@@ -108,7 +108,7 @@ class InstructionsCompiler : public virtual Garbageable {
         int pow2limit(int x)
         {
             int n = 2;
-            while (n < x) { n = 2*n; }
+            while (n < x) { n = 2 * n; }
             return n;
         }
 
