@@ -123,7 +123,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
         virtual void visit(DeclareFunInst* inst)
         {
             // Defined as macro in the architecture file...
-            if (inst->fName == "min" || inst->fName == "max") {
+            if (startWith(inst->fName, "min") || startWith(inst->fName, "max")) {
                 return;
             }
 

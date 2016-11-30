@@ -89,7 +89,7 @@ function startDSP()
         }
     };
     
-    var importObject = { imports: {} }
+    var importObject = { imports: { print: arg => console.log(arg) } }
     importObject["global.Math"] = window.Math;
     importObject["asm2wasm"] = asm2wasm;
     fetch('DSP.wasm').then(response => response.arrayBuffer())

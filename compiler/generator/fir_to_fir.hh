@@ -209,7 +209,7 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
         
         if (inst->fValue) {
             if (dynamic_cast<NumValueInst*>(inst->fValue)) {
-                fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
+                fVarTable.push_back(inst->clone(&cloner));
                 return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
             // "In extension" array definition
             } else if (array_typed) {
@@ -254,18 +254,48 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
             }
             
         } else {
-            fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
+            fVarTable.push_back(inst->clone(&cloner));
             return InstBuilder::genDropInst();
         }
     }
     
-    BlockInst* getCode(BlockInst* src)
+    BlockInst* getCode(BlockInst* src, bool local = false)
     {
         BlockInst* dst = dynamic_cast<BlockInst*>(src->clone(this));
-        // Moved in front..
-        for (list<StatementInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
-            dst->pushFrontInst(*it);
+        
+        if (local) {
+            // Separate with a list of pure DeclareVarInst (with no value), followed by a list of StoreVarInst
+            BasicCloneVisitor cloner;
+            list<StatementInst*> dec;
+            list<StatementInst*> store;
+            
+            for (list<StatementInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
+                DeclareVarInst* dec_inst = dynamic_cast<DeclareVarInst*>(*it);
+                StoreVarInst* store_inst = dynamic_cast<StoreVarInst*>(*it);
+                if (dec_inst) {
+                    dec.push_back(new DeclareVarInst(dec_inst->fAddress->clone(&cloner), dec_inst->fType->clone(&cloner), NULL));
+                    store.push_back(new StoreVarInst(dec_inst->fAddress->clone(&cloner), dec_inst->fValue->clone(&cloner)));
+                } else if (store_inst) {
+                    store.push_back(new StoreVarInst(store_inst->fAddress->clone(&cloner), store_inst->fValue->clone(&cloner)));
+                } else {
+                    assert(false);
+                }
+            }
+            
+            for (list<StatementInst*>::iterator it = store.begin(); it != store.end(); ++it) {
+                dst->pushFrontInst(*it);
+            }
+            
+            for (list<StatementInst*>::iterator it = dec.begin(); it != dec.end(); ++it) {
+                dst->pushFrontInst(*it);
+            }
+        } else {
+            // Separate with a list of DeclareVarInst with a value, followed by a list of StoreVarInst
+            for (list<StatementInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
+                dst->pushFrontInst(*it);
+            }
         }
+        
         return dst;
     }
     
@@ -337,7 +367,7 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
     BlockInst* getCode(BlockInst* src)
     {
         BlockInst* dst = dynamic_cast<BlockInst*>(src->clone(this));
-        // Store all moved in front
+        // Variable store moved in front of block
         for (list<StatementInst*>::reverse_iterator it = fVarTableStore.rbegin(); it != fVarTableStore.rend(); ++it) {
             dst->pushFrontInst(*it);
         }

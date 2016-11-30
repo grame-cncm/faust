@@ -321,7 +321,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             }
             
             // Defined as macro in the architecture file...
-            if (inst->fName == "min" || inst->fName == "max") {
+            if (startWith(inst->fName, "min") || startWith(inst->fName, "max")) {
                 return;
             }
             

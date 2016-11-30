@@ -193,6 +193,11 @@ void WASMCodeContainer::produceClass()
         //tab(n+1, *fOut); *fOut << "(import \"env\" \"memoryBase\" (global $memoryBase i32))";
         //tab(n+1, *fOut); *fOut << "(import \"env\" \"tableBase\" (global $tableBase i32))";
     
+    
+        // Imported functions
+        tab(n+1, *fOut); *fOut << "(func $print-i (import \"imports\" \"print\") (param i32))";
+        tab(n+1, *fOut); *fOut << "(func $print-f (import \"imports\" \"print\") (param f32))";
+    
         // Exported functions
         tab(n+1, *fOut); *fOut << "(export \"getNumInputs\" (func $getNumInputs))";
         tab(n+1, *fOut); *fOut << "(export \"getNumOutputs\" (func $getNumOutputs))";
@@ -398,11 +403,19 @@ void WASMScalarCodeContainer::generateCompute(int n)
 
         dump2FIR(block, &cout);
         */
-        
+    
+    /*
         // Generates one single scalar loop
         ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
         fComputeBlockInstructions->pushBackInst(loop);
         generateWASMBlock(fComputeBlockInstructions);
+    */
+    
+        ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+        fComputeBlockInstructions->pushBackInst(loop);
+        MoveVariablesInFront2 mover;
+        BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
+        block->accept(gGlobal->gWASMVisitor);
 
     tab(n+1, *fOut); *fOut << ")";
 }

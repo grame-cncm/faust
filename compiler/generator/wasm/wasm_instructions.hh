@@ -202,7 +202,7 @@ class WASMInstVisitor : public TextInstVisitor {
             fMathLibTable["tan"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", itfloat(), 1);
             fStructOffset = 0;
             fSubContainerType = -1;
-            fFastMemory = false;
+            fFastMemory = true;
         }
 
         virtual ~WASMInstVisitor()
@@ -720,18 +720,29 @@ class WASMInstVisitor : public TextInstVisitor {
                 tab(fTab, *fOut);
                 *fOut << "(block $for-out-" << name << " ";
                     fTab++;
-                    tab(fTab, *fOut);
+            
                     // Loop counter test and possibly branch out
+                    tab(fTab, *fOut);
                     *fOut << "(if (i32.eqz ";
                     inst->fEnd->accept(this);
                     *fOut << ") (br $for-out-" << name << "))";
+                    
                     // Loop code
                     tab(fTab, *fOut);
                     inst->fCode->accept(this);
                     // Loop increment
                     inst->fIncrement->accept(this);
+            
+                    /*
+                    // Loop counter test and possibly branch out
+                    *fOut << "(if ";
+                    inst->fEnd->accept(this);
+                    *fOut << " (br $for-in-" << name << ") (br $for-out-" << name << "))";
+                    */
+            
                     // Branch to loop label
                     *fOut << "(br $for-in-" << name << ")";
+            
                     tab(fTab, *fOut);
                 fTab--;
                 tab(fTab, *fOut);

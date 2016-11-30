@@ -1329,7 +1329,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             if (!function) {  // Define it
 
                 // Special cases for min/max
-                if (inst->fName == "min" || inst->fName == "max") {
+                if (startWith(inst->fName, "min") || startWith(inst->fName, "max")) {
                     fCurValue = NULL;
                     return;
                 }
