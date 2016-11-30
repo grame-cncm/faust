@@ -715,35 +715,28 @@ class WASMInstVisitor : public TextInstVisitor {
             // Local variables declaration including the loop counter have been moved outside of the loop
             string name = inst->getLoopName();
             
+            // Init loop counter
+            inst->fInit->accept(this);
+            
             *fOut << "(loop $for-in-" << name << " ";
             fTab++;
                 tab(fTab, *fOut);
                 *fOut << "(block $for-out-" << name << " ";
-                    fTab++;
             
-                    // Loop counter test and possibly branch out
-                    tab(fTab, *fOut);
-                    *fOut << "(if (i32.eqz ";
-                    inst->fEnd->accept(this);
-                    *fOut << ") (br $for-out-" << name << "))";
-                    
                     // Loop code
+                    fTab++;
                     tab(fTab, *fOut);
                     inst->fCode->accept(this);
-                    // Loop increment
+            
+                    // Loop counter increment
                     inst->fIncrement->accept(this);
             
-                    /*
                     // Loop counter test and possibly branch out
                     *fOut << "(if ";
                     inst->fEnd->accept(this);
                     *fOut << " (br $for-in-" << name << ") (br $for-out-" << name << "))";
-                    */
-            
-                    // Branch to loop label
-                    *fOut << "(br $for-in-" << name << ")";
-            
                     tab(fTab, *fOut);
+            
                 fTab--;
                 tab(fTab, *fOut);
                 *fOut << ")";
