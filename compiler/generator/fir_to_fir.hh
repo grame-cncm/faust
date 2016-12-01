@@ -173,30 +173,6 @@ struct DspRenamer : public BasicCloneVisitor {
     
 };
 
-// Moves all variables declaration at the beginning of the block
-struct MoveVariablesInFront1 : public BasicCloneVisitor {
-    
-    list<DeclareVarInst*> fVarTable;
-    
-    virtual StatementInst* visit(DeclareVarInst* inst)
-    {
-        BasicCloneVisitor cloner;
-        fVarTable.push_back(dynamic_cast<DeclareVarInst*>(inst->clone(&cloner)));
-        return InstBuilder::genDropInst();
-    }
-    
-    BlockInst* getCode(BlockInst* src)
-    {
-        BlockInst* dst = dynamic_cast<BlockInst*>(src->clone(this));
-        // Moved in front..
-        for (list<DeclareVarInst*>::reverse_iterator it = fVarTable.rbegin(); it != fVarTable.rend(); ++it) {
-            dst->pushFrontInst(*it);
-        }
-        return dst;
-    }
-    
-};
-
 // Moves all variables declaration at the beginning of the block and rewrite them as 'declaration' followed by 'store'
 struct MoveVariablesInFront2 : public BasicCloneVisitor {
     
@@ -276,7 +252,7 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                     dec.push_back(new DeclareVarInst(dec_inst->fAddress->clone(&cloner), dec_inst->fType->clone(&cloner), NULL));
                     store.push_back(new StoreVarInst(dec_inst->fAddress->clone(&cloner), dec_inst->fValue->clone(&cloner)));
                 } else if (store_inst) {
-                    store.push_back(new StoreVarInst(store_inst->fAddress->clone(&cloner), store_inst->fValue->clone(&cloner)));
+                    store.push_back(store_inst->clone(&cloner));
                 } else {
                     assert(false);
                 }

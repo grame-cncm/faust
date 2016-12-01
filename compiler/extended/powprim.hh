@@ -98,8 +98,8 @@ class PowPrim : public xtended
             for (it1 = types.begin(); it1 != types.end(); it1++, it2++) {
                 casted_args.push_back(promote2real((*it1)->nature(), (*it2))); 
             }
-    
-            return container->pushFunction(subst("pow$0", isuffix()), result_type, arg_types, casted_args);
+            // result_type forced to itfloat()
+            return container->pushFunction(subst("pow$0", isuffix()), itfloat(), arg_types, casted_args);
         }
     }
 

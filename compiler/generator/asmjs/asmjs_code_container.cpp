@@ -40,7 +40,7 @@ using namespace std;
         - 'funcalls' types are not known by TypingVisitor, so the CodeContainer::pushFunction adds kIntish, kFloatish or kDoublish
         and ASMJAVAScriptInstVisitor::visit(CastNumInst* inst) interprets kIntish, kFloatish or kDoublish
         - ASMJAVAScriptInstVisitor::visit(BinopInst* inst) adds the type of result
-     5) MoveVariablesInFront1 and MoveVariablesInFront2 FIR ==> FIR passes are used to move variable declaration at the beginning of blocks.
+     5) MoveVariablesInFront2 FIR ==> FIR passes are used to move variable declaration at the beginning of blocks.
      6) 'fmodf' and 'log10f' mathematical functions are manually generated. 
      7) 'buffer' argument is the actual emscripten (or 'self-made') memory buffer and will contain the DSP object structure and 'inputs/outputs' audio buffers.
      8) subcontainer generation :
