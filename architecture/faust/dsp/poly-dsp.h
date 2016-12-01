@@ -620,7 +620,8 @@ class mydsp_poly : public dsp, public midi {
             if (checkPolyphony()) {
                 for (int i = 0; i < fPolyphony; i++) {
                     fVoiceTable[i]->setParamValue(fGateLabel, 0.0f);
-                    fVoiceTable[i]->fNote = kReleaseVoice;
+                    // Stops immediately
+                    fVoiceTable[i]->fNote = kFreeVoice;
                     fVoiceTable[i]->fTrigger = false;
                 }
             }
