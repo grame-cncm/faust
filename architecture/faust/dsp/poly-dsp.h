@@ -283,25 +283,44 @@ class mydsp_poly : public dsp, public midi {
             }
              
             if (steal) {
-                int voice = kNoVoice;
-                int date = INT_MAX;
+                int voice_release = kNoVoice;
+                int voice_playing = kNoVoice;
+                int oldest_date_release = INT_MAX;
+                int oldest_date_playing = INT_MAX;
+                
+                // Scan all voices
                 for (int i = 0; i < fPolyphony; i++) {
-                    // Try to steal a voice in kReleaseVoice mode...
                     if (fVoiceTable[i]->fNote == kReleaseVoice) {
-                        std::cout << "Steal release voice : voice_date " << fVoiceTable[i]->fDate << " cur_date = " << fDate << " voice = " << i << std::endl;
-                        fVoiceTable[i]->fDate = fDate++;
-                        fVoiceTable[i]->fTrigger = true;
-                        return i;
-                    // Otherwise steal oldest voice...
-                    } else if (fVoiceTable[i]->fDate < date) {
-                        date = fVoiceTable[i]->fDate;
-                        voice = i;
+                        // Keeps oldest release voice
+                        if (fVoiceTable[i]->fDate < oldest_date_release) {
+                            oldest_date_release = fVoiceTable[i]->fDate;
+                            voice_release = i;
+                        }
+                    } else {
+                        // Otherwise keeps oldest playing voice
+                        if (fVoiceTable[i]->fDate < oldest_date_playing) {
+                            oldest_date_playing = fVoiceTable[i]->fDate;
+                            voice_playing = i;
+                        }
                     }
                 }
-                std::cout << "Steal playing voice : voice_date " << fVoiceTable[voice]->fDate << " cur_date = " << fDate << " voice = " << voice << std::endl;
-                fVoiceTable[voice]->fDate = fDate++;
-                fVoiceTable[voice]->fTrigger = true;
-                return voice;
+                
+                // Then decide which one to steal
+                if (oldest_date_release != INT_MAX) {
+                    std::cout << "Steal release voice : voice_date " << fVoiceTable[voice_release]->fDate << " cur_date = " << fDate << " voice = " << voice_release << std::endl;
+                    fVoiceTable[voice_release]->fDate = fDate++;
+                    fVoiceTable[voice_release]->fTrigger = true;
+                    return voice_release;
+                } else if (oldest_date_playing != INT_MAX) {
+                    std::cout << "Steal playing voice : voice_date " << fVoiceTable[voice_playing]->fDate << " cur_date = " << fDate << " voice = " << voice_playing << std::endl;
+                    fVoiceTable[voice_playing]->fDate = fDate++;
+                    fVoiceTable[voice_playing]->fTrigger = true;
+                    return voice_playing;
+                } else {
+                    assert(false);
+                    return kNoVoice;
+                }
+               
             } else {
                 return kNoVoice;
             }
@@ -572,9 +591,9 @@ class mydsp_poly : public dsp, public midi {
                 fVoiceTable[voice]->fNote = pitch;
                 fVoiceTable[voice]->fTrigger = true; // so that envelop is always re-initialized
                 return fVoiceTable[voice];
+            } else {
+                return 0;
             }
-            
-            return 0;
         }
         
         void keyOff(int channel, int pitch, int velocity = 127)
