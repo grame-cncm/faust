@@ -536,19 +536,17 @@ class OCVUI : public UI
 	 *
 	 * This function creates the image processing thread
 	 */
-	void run()
-	{		
-		exit_ = false;
-		int create_thread = 1;
-	
-		create_thread = pthread_create(&loop_, NULL, ocvLoop, (void *) this);
-		
-		if (create_thread)
-		{
-			std::cout<<"Could not create thread. Thread Creation failed."<< std::endl;
-		}
+    bool run()
+    {		
+        exit_ = false;
+        if (pthread_create(&loop_, NULL, ocvLoop, (void *)this) == 0) {
+            return true;
+        } else {
+            std::cerr <<"Could not create thread. Thread Creation failed." << std::endl;
+            return false;
+        }
     }
-       	
+    
     ////////////////////////////////////////////
 	////									////
 	////		  MEMBER VARIABLES  		////

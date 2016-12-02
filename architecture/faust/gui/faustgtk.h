@@ -582,7 +582,7 @@ public:
     virtual void addTextDisplay(const char* label, FAUSTFLOAT* zone, const char* names[], FAUSTFLOAT min, FAUSTFLOAT max);
    
     virtual void show();
-    virtual void run();
+    virtual bool run();
     
 };
 
@@ -1365,7 +1365,7 @@ static gboolean callUpdateAllGuis(gpointer)
     return true;
 }
 
-void GTKUI::run() 
+bool GTKUI::run()
 {
     assert(fTop == 0);
     gtk_widget_show(fBox[0]);
