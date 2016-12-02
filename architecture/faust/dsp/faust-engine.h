@@ -23,7 +23,7 @@
 extern "C" {
 #endif
 
-    void* create(int, int);
+    void* create(int, int); // To be implemented
     void destroy(void*);
 
     bool start(void*);
@@ -43,8 +43,8 @@ extern "C" {
     void setParamValue(void*, const char*, float);
     float getParamValue(void*, const char*);
     
-    void setParamIndexValue(void*, int, float);
-    float getParamIndexValue(void*, int);
+    void setParamIdValue(void*, int, float);
+    float getParamIdValue(void*, int);
 
     void setVoiceParamValue(void*, const char*, long, float);
     float getVoiceParamValue(void*, const char*, long);
