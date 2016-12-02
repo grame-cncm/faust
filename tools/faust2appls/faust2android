@@ -138,13 +138,13 @@ else
 fi
 
 # Copying the Faust API files in the project
-cp $FAUSTLIB/api/Android.h $JNIFOLDER/DspFaust.h
-cp $FAUSTLIB/api/androidJNI/java_interface_wrap.cpp $JNIFOLDER
+cp $FAUSTLIB/api/android/DspFaust.h $JNIFOLDER
+cp $FAUSTLIB/api/android/jni/java_interface_wrap.cpp $JNIFOLDER
 mkdir $APPFOLDER/java/com/DspFaust
-cp $FAUSTLIB/api/androidJNI/*.java $APPFOLDER/java/com/DspFaust
+cp $FAUSTLIB/api/android/jni/*.java $APPFOLDER/java/com/DspFaust
 
 # Compile the Faust code for the NDK
-faust -i -a api/Android.cpp $OPTIONS "$FILE" -o "$JNIFOLDER/DspFaust.cpp" || exit
+faust -i -a api/android/DspFaust.cpp $OPTIONS "$FILE" -o "$JNIFOLDER/DspFaust.cpp" || exit
 
 
 # Run Gradle
