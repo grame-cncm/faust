@@ -190,7 +190,7 @@ class UI
     virtual void closeBox() = 0;
 
     virtual void show() {};
-    virtual void run() {};
+    virtual bool run() { return false; };
 
 	void stop()		{ fStopped = true; }
 	bool stopped() 	{ return fStopped; }

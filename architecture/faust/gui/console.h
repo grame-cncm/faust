@@ -193,14 +193,15 @@ public:
 	virtual void closeBox() 							{ fPrefix.pop(); }
 
 	virtual void show() {}
-	virtual void run()
-	{
-		char c;
-		printf("Type 'q' to quit\n");
-		while ((c = getchar()) != 'q') {
-			sleep(1);
-		}
-	}
+    virtual bool run()
+    {
+        char c;
+        printf("Type 'q' to quit\n");
+        while ((c = getchar()) != 'q') {
+            sleep(1);
+        }
+        return true;
+    }
 
 	void printhelp_command()
 	{

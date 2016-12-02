@@ -249,6 +249,7 @@ int main(int argc, char *argv[])
     dsp* tmp_dsp = new mydsp();
     int poly = lopt(argv, "--poly", 4);
     int group = lopt(argv, "--group", 1);
+    std::cout << "Started with " << poly << " voices\n";
 
 #if MIDICTRL
     if (hasMIDISync()) {
@@ -264,6 +265,7 @@ int main(int argc, char *argv[])
     dsp* tmp_dsp = new mydsp();
     int poly = lopt(argv, "--poly", 4);
     int group = lopt(argv, "--group", 1);
+    std::cout << "Started with " << poly << " voices\n";
 
 #if MIDICTRL
     if (hasMIDISync()) {

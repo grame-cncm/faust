@@ -1490,18 +1490,19 @@ public:
     }
 #endif
     
-	virtual void run()
-	{
-		if (fTimer == 0) {
-			fTimer = new QTimer(this);
-     		QObject::connect(fTimer, SIGNAL(timeout()), this, SLOT(update()));
-     		fTimer->start(100);
-		}
+    virtual bool run()
+    {
+        if (fTimer == 0) {
+            fTimer = new QTimer(this);
+            QObject::connect(fTimer, SIGNAL(timeout()), this, SLOT(update()));
+            fTimer->start(100);
+        }
 
         if (fMainWindow) {
             fMainWindow->show();
         }
-	}
+        return true;
+    }
     
     virtual void stop()
 	{

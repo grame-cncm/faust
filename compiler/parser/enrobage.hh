@@ -47,3 +47,5 @@ bool check_url(const char* filename);
 const char* filebasename(const char* name); // returns a pointer on the basename part of name
 
 string filedirname(const string& name);        // allocate a string containing the dirname of name
+
+string strip_end(const string& name, const string& ext);

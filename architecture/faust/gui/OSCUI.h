@@ -158,9 +158,10 @@ class OSCUI : public GUI
 
 	virtual void show() {}
 
-	void run()
+    bool run()
     {
-        fCtrl->run(); 
+        fCtrl->run();
+        return true;
     }
     
     void stop()

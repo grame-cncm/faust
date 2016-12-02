@@ -194,10 +194,8 @@ static string makeDrawPathNoExt()
 {
     if (gOutputDir != "") {
         return gOutputDir + "/" + gMasterName;
-    } else if (gMasterDocument.length() >= 4 && gMasterDocument.substr(gMasterDocument.length() - 4) == ".dsp") {
-        return gMasterDocument.substr(0, gMasterDocument.length() - 4);
     } else {
-        return gMasterDocument;
+        return strip_end(gMasterDocument, ".dsp");
     }
 }
 
