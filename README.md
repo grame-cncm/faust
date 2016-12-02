@@ -30,7 +30,7 @@ In the following subsections, details about the differences between these 2 vers
 
 ### `faust2` (FAUST2)
 
-`faust2` is the home of FAUST2. As mentioned previously, most of the differences between FAUST0 and FAUST2 lie in the FAUST compiler. Unlike FAUST0, FAUST2 can generate code in different languages: C, C++, JAVA, JavaScript, LLVM bit code, etc. It also implements experimental features such as multi-rate capabilities, etc. Thanks to its ability to generate LLVM bit code and to `lib-llvm`, FAUST2 is "embeddable" in any C++ program through a library called `libfaust`. Compiling FAUST2 is slightly more complex than FAUST0 since it relies on LLVM and OpenSSL. Finally, FAUST2 is needed by some sister projects of FAUST such as FaustLive, FaucK, Faust-GEM, etc.
+`faust2` is the home of FAUST2. As mentioned previously, most of the differences between FAUST0 and FAUST2 lie in the FAUST compiler. Unlike FAUST0, FAUST2 can generate code in different languages: C, C++, JAVA, JavaScript, ASM JavaScript, LLVM IR, etc. It also implements experimental features such as multi-rate capabilities, etc. Thanks to its ability to generate LLVM IR and to `lib-llvm`, FAUST2 is "embeddable" in any C++ program through a library called `libfaust`. Compiling FAUST2 is slightly more complex than FAUST0 since it relies on LLVM and OpenSSL. Finally, FAUST2 is needed by some sister projects of FAUST such as FaustLive, FaucK, faustgen~, etc.
 
 More experimental branches are also available but are not documented here.
 
