@@ -195,26 +195,41 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         }
         
         if (steal) {
-            var voice = kNoVoice;
-            var date = Number.MAX_VALUE;
-            // Steal lowest level note
+            var voice_release = kNoVoice;
+            var voice_playing = kNoVoice;
+            var oldest_date_release = Number.MAX_VALUE;
+            var oldest_date_playing = Number.MAX_VALUE;
+
+            // Scan all voices
             for (var i = 0; i < max_polyphony; i++) {
                 // Try to steal a voice in kReleaseVoice mode...
                 if (dsp_voices_state[i] === kReleaseVoice) {
-                    console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d\n",  dsp_voices_date[i], fDate, i);
-                    dsp_voices_date[i] = fDate++;
-                    dsp_voices_trigger[i] = true;
-                    return i;
-                // Otherwise steal oldest voice...
-                } else if (dsp_voices_date[i] < date) {
-                    date = dsp_voices_date[i];
-                    voice = i;
+                    // Keeps oldest release voice
+                    if (dsp_voices_date[i] < oldest_date_release) {
+                        oldest_date_release = dsp_voices_date[i];
+                        voice_release = i;
+                    }
+            } else {
+                if (dsp_voices_date[i] < oldest_date_playing) {
+                    oldest_date_playing = dsp_voices_date[i];
+                    voice_playing = i;
                 }
             }
-            console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d\n", dsp_voices_date[voice], fDate, voice);
-            dsp_voices_date[voice] = fDate++;
-            dsp_voices_trigger[voice] = true;
-            return voice;
+        }
+
+        // Then decide which one to steal
+        if (oldest_date_release != Number.MAX_VALUE) {
+            console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d\n", dsp_voices_date[voice_release], fDate, voice_release);
+            dsp_voices_date[voice_release] = fDate++;
+            dsp_voices_trigger[voice_release] = true;
+            return voice_release;
+        } else {
+            console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d\n", dsp_voices_date[voice_playing], fDate, voice_playing);
+            dsp_voices_date[voice_playing] = fDate++;
+            dsp_voices_trigger[voice_playing] = true;
+            return voice_playing;
+        }
+
         } else {
             return kNoVoice;
         }
