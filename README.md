@@ -1,4 +1,4 @@
-# FAUST - Programming Language for Audio Applications and Plugins
+# Faust - Programming Language for Audio Applications and Plugins
 
 ## Grame, Centre National de Creation Musicale: <http://www.grame.fr>
 
@@ -6,82 +6,77 @@
 
 ## Introduction
 
-FAUST (Functional Audio Stream) is a functional programming language specifically designed for real-time signal processing and synthesis. A distinctive characteristic of FAUST is to be fully compiled. 
+Faust (Functional Audio Stream) is a functional programming language specifically designed for real-time signal processing and synthesis. A distinctive characteristic of Faust is to be fully compiled. 
 
-The FAUST compiler translates DSP specifications into very efficient code for various languages (C++, C, JAVA, JavaScript, etc) that works at sample level. It targets high-performance signal processing applications, libraries and audio plug-ins for a variety of audio platforms and standards. A same FAUST specification can be used to easily generate various kinds of native standalone applications, iOS and Android apps, as well as CSOUND, LADSPA, MAX/MSP, PD, Q, SuperCollider, VST, AU plugins, etc. (see the section on [Faust Architectures](#faust-architectures) for an exhaustive list).
+The Faust compiler translates DSP specifications into very efficient code for various languages (C++, C, JAVA, JavaScript, etc.) working at sample level. It targets high-performance signal processing applications, libraries and audio plug-ins for a variety of audio platforms and standards. A same Faust specification can be used to easily generate various kinds of native standalone applications, iOS and Android apps, as well as CSOUND, LADSPA, MAX/MSP, PD, Q, SuperCollider, VST, AU plugins, etc. (see the README in the `/architecture` folder for an exhaustive list).
 
 While there are Faust contributors everywhere across the globe, Faust is mainly being developed at Grame, Centre National de Creation Musicale (<http://www.grame.fr>), its birthplace.
 
 ## Versions and Branches
 
-The FAUST distribution can be downloaded on the FAUST Github repository: <https://github.com/grame-cncm/faust>. Official releases packages are also available here: <https://sourceforge.net/projects/faudiostream/files/?source=navbar>.
+The Faust distribution can be downloaded on the Faust Github repository: <https://github.com/grame-cncm/faust>. Official releases packages are also available here: <https://sourceforge.net/projects/faudiostream/files/?source=navbar>.
 
-There are currently 2 different versions of the Faust compiler: "FAUST0" and "FAUST2". They are available in two separate branches: `master` (FAUST0) and `faust2` (FAUST2). The main difference between these 2 versions lies in the FAUST compiler. `master` and `faust2` are merged multiple times a week, so features that are not related to the FAUST compiler should be synchronized. 
+There are currently 2 different versions of the Faust compiler: "Faust0" and "Faust2". They are available in two separate branches: `master` (Faust0) and `faust2` (Faust2). The main difference between these 2 versions lies in the Faust compiler itself. `master` and `faust2` are merged multiple times a week, so features that are not related to the Faust compiler should be synchronized between these 2 branches. 
 
-In the following subsections, details about the differences between these 2 versions of FAUST are provided as well as information on other branches of the repository.
+In the following subsections, details about the differences between these 2 versions of Faust are provided as well as information on other branches of the repository.
 
-### `master` (FAUST0)
+### `master` (Faust0)
 
-`master` is the main Faust branch hosting FAUST0. FAUST0 is the "original" version of the Faust compiler. Unlike FAUST2, it can only generate C++ code and it doesn't have any dependencies, making it extremely easy to compile and install. FAUST0 will suit the needs of most users and is the recommended version of FAUST.
+`master` is the main Faust branch hosting Faust0. Faust0 is the "original" version of the Faust compiler. Unlike Faust2, it can only generate C++ code and it doesn't have any dependencies, making it extremely easy to compile and install. Faust0 will suit the needs of most users and is the recommended version of Faust.
 
-### `master-dev` (FAUST0 - Preferred Development Branch)
+### `master-dev` (Faust0 - Preferred Development Branch)
 
-`master-dev` is the development sub-branch of `master`, thus it is also based on FAUST0. It is used by FAUST developers to commit their changes and can be considered as "the main development branch." The goal is to make sure that `master` is always functional. Merges between `master-dev` and `master` are carried out multiple times a week by the GRAME team. 
+`master-dev` is the development sub-branch of `master`, thus it is also based on Faust0. It is used by Faust developers to commit their changes and can be considered as "the main development branch." The goal is to make sure that `master` is always functional. Merges between `master-dev` and `master` are carried out multiple times a week by the GRAME team. 
 
-### `faust2` (FAUST2)
+### `faust2` (Faust2)
 
-`faust2` is the home of FAUST2. As mentioned previously, most of the differences between FAUST0 and FAUST2 lie in the FAUST compiler. Unlike FAUST0, FAUST2 can generate code in different languages: C, C++, JAVA, JavaScript, ASM JavaScript, LLVM IR, etc. It also implements experimental features such as multi-rate capabilities, etc. Thanks to its ability to generate LLVM IR and to `lib-llvm`, FAUST2 is "embeddable" in any C++ program through a library called `libfaust`. Compiling FAUST2 is slightly more complex than FAUST0 since it relies on LLVM and OpenSSL. Finally, FAUST2 is needed by some sister projects of FAUST such as FaustLive, FaucK, faustgen~, etc.
+`faust2` is the home of Faust2. As mentioned previously, most of the differences between Faust0 and Faust2 lie in the Faust compiler. Unlike Faust0, Faust2 can generate code in different languages: C, C++, JAVA, JavaScript, ASM JavaScript, LLVM IR, etc. It also implements experimental features such as multi-rate capabilities, etc. Thanks to its ability to generate LLVM IR and to `lib-llvm`, Faust2 is "embeddable" in any C++ program through a library called `libfaust`. Compiling Faust2 is slightly more complex than Faust0 since it relies on LLVM and OpenSSL. Finally, Faust2 is needed by some sister projects of Faust such as FaustLive, FaucK, faustgen~, etc.
 
 More experimental branches are also available but are not documented here.
 
-## Organization of the Distribution
+## Overview of the Faust Distribution
 
-It's organization is the following :
+This is an overview of the content of the top-level folders of the Faust distribution. Most of these folders contain their own README describing their content in more details.
 
-	architecture/          : the architecture files and libraries currently supported
+	architecture/          : the architecture files currently supported
 	benchmark/             : tools to measure the impact of various compiler options
 	compiler/              : sources of the Faust compiler
-	documentation/         : Faust developer's documentation
 	debian/                : files for Debian installation
-	examples/              : examples of Faust programs with makefiles for various audio targets
+	documentation/         : Faust developer's documentation
+	examples/              : Faust programs examples organized by categories
 	installer/             : various instalers for Linux distribution
 	libraries/             : DSP libraries
 	syntax-highlighting/   : support for syntax highlighting for several editors
 	test/                  : various tests
-	tools/                 : additional easy-to-use scripts to produce binaries and plugins
+	tools/                 : additional easy-to-use scripts (faust2...) to produce binaries and plugins
 	windows/               : Windows projects
 
+## Compilation and Installation
 
-## Compilation and installation
+The build steps are the same for all the versions of Faust (Faust0 and Faust2). While Faust0 has no dependencies, the following elements are required to build Faust2:
 
-### To compile and install the Faust compiler on Linux and MacOSX : 
+* `llvm/clang` (> 3.1 / <= 3.9) (has to be installed in universal mode [32/64 bits] on OSX), so using : `sudo port install llvm-3.xx +universal`)
+* `openssl` (has to be installed in universal mode [32/64 bits] on OSX)
+
+### Linux and MacOSX 
+
+To build Faust on MacOSX or Linux, just run the following commands from the root of the distribution:
 
 	make
-	su
-	make install
-
-or
-
-	sudo make install
-
-It could be also useful to install additional tools, for example :
-
-	cd tools/faust2appls/
 	sudo make install
 
 	
-### On Windows :
+### Windows
 
-The first option is to use the Visual Studio 2008 solution
-`/faust/compiler/windows/faust_vs2008.sln`. Open the solution with
-the Visual Studio 2008 environment and run Build. Both
-Debug/Release targets are supported.
+#### Using Visual Studio
 
-The second solution is to download and install the QT4.6 SDK : 
-	[QT4.6 SDK](http://qt.nokia.com/downloads/sdk-windows-cpp)
-and use the project file 'compiler.pro' in the compiler folder.
+Open the Faust Visual Studio solution in `/faust/windows/faust_vs2012.sln` with Visual Studio 2012 ore greater and run "Build". Both Debug/Release targets are supported.
 
-### Build & Use FAUST with Docker :
+#### Using Qt
+
+The Faust compiler can be built with [Qt](https://www.qt.io/) using `/compiler/compiler.pro`.
+
+### Build & Use Faust with Docker :
 
 	docker build -t faust
 	docker run faust [args...]
@@ -94,61 +89,82 @@ To use an additional tool, for example faust2pdf:
 
 	docker run --entrypoint faust2pdf faust [args...]
 
-### Compilation of the examples
+## Using the Faust Examples
 
-Several FAUST examples are provided in the example folder. To
-compile and test the examples with Jack/GTK do :
+The `/examples` folder contains dozen of example Faust codes organized by categories. There are many options to use them.
 
-	cd examples
-	make jackgtk
+### The Faust Playground
 
-This will create a subfolder jackgtkdir with all the jack
-applications. You can also create alsa applications (make alsagtk)
-as well as other formats.
+The [Faust playground](http://faust.grame.fr/faustplayground/) is an online tool to compile and use Faust code directly in a web browser. To use a Faust example from the `/examples` folder, just drag-and-drop it in the work space and it should work right away!
 
-In order to compile your own applications, you can simply place you
-files in the example folder and use the existing makefiles.
+### FaustLive
 
-To list for possible audio targets :
+[FaustLive](https://sourceforge.net/p/faudiostream/faustlive/ci/master/tree/) is a program that was designed to facilitate the prototyping of Faust codes. It embeds the LLVM on-the-fly compiler of Faust2 allowing you to very rapidly compile Faust codes on your computer. Binaries and installation packages of FaustLive are available for [Linux, Windows and OSX](https://sourceforge.net/projects/faudiostream/files/).
 
-	make help
+### Faust Online Compiler
 
+The [Faust Online Compiler](http://faust.grame.fr/onlinecompiler/) allows to write and compile Faust codes for a wide range of targets and platforms. Unlike, the Faust playground presented above, it doesn't permit to run a Faust program in a web browser.
 
-About 20 different audio platforms are supported : 
+### `faust2...` Scripts and Programs
 
-- Action Script
-- Alsa
-- ChucK
-- CoreAudio
-- CSOUND
-- iPhone
-- Jack
-- LADSPA
-- Matlab
-- MaxMSP
-- Octave
-- OSS
-- PortAudio
-- Pure
-- PureData
-- Q
-- Sndfile
-- Snd-RT
-- SuperCollider
-- SynthFile
-- VST
-- VSTi (mono)
+The `faust2...` scripts and programs are command line tools allowing to compile Faust codes to any of the supported Faust targets ("architectures"). They are placed on your system during the Faust installation process. The fastest way to get an exhaustive list of all of them is to open a terminal window, type `faust2`, and then press the Tab key for auto-completion. For example, to compile a Faust code as a Jack application with a Qt interface, run:
 
-For all these audio platforms you may have to install the related
-SDK and/or development libraries.
+	faust2jaqt yourCode.dsp
 
-## Faust Architectures (Targets)
+The most commonly used `faust2` scripts are:
 
-TODO
+	faust2alqt              : ALSA application with Qt UI
+	faust2ladspa            : ladspa plug-in
+	faust2pdf               : pdf block diagram
+	faust2supercollider     : Super Collider external
+	faust2alsa              : alsa application with GTK UI
+	faust2faustvst          : VST plug-in 
+	faust2lv2               : LV2 plug-in
+	faust2plot              : command line program to debug DSP (sample plotting, etc.)
+	faust2svg               : SVG block diagram
+	faust2alsaconsole       : alsa command line program
+	faust2mathdoc           : automatic pdf mathematical documentation
+	faust2png               : png block diagram
+	faust2android           : Android app
+	faust2graph             : svg graph
+	faust2puredata          : PureData external
+	faust2api               : API generator
+	faust2max6              : MaxMSP external
+	faust2asmjs             : asmjs web app
+	faust2ios               : iOS app
+	faust2ros               : ros app
+	faust2au                : Audio Unit plug-in
+	faust2rosgtk            : ros app with GTK UI
+	faust2bela              : BELA program
+	faust2jack              : Jack application with GTK UI
+	faust2netjackconsolef   : Net-Jack command line program
+	aust2rpialsaconsole     : Raspberry Pi ALSA command line program
+	faust2caqt              : CoreAudio application with Qt UI
+	faust2jackconsole       : Jack command line program
+	faust2netjackqt         : Netjack application with Qt UI
+	faust2rpinetjackconsole : Raspberry Pi Jack command line program
+	faust2webaudioasm       : Webaudio web app
+	faust2caqtios           : iOS app with Qt UI
+	faust2octave            : Octave script
+	faust2csound            : CSOUND Opcode
+	faust2jackserver        : Jack server
+	faust2owl               : Owl Program 
+	faust2sig               : SVG signal
+	faust2jaqt              : Jack application with Qt UI
+	
+Obviously, the corresponding dependencies for each of them must be installed on your system for compilation to be successful. For example, if you use `faust2jaqt`, Jack and Qt libraries must be installed.
+
+## Documentation and Resources
+
+* `/documentation/faust-quick-reference.pdf` contains the most up-to-date documentation of Faust.
+* `/documentation/library.pdf` contains the documentation of the Faust DSP libraries.
+* The Faust website: <http://faust.grame.fr> contains useful resources around Faust.
+* The [Faust online course](https://ccrma.stanford.edu/~rmichon/faustWorkshops/course2015/) or the [Faust Hero in 2 Hours tutorial](https://ccrma.stanford.edu/~rmichon/faustTutorials/#faust-hero-in-2-hours) might be good starting points for beginners.
+* [Julius Smith's website](https://ccrma.stanford.edu/~jos) is an incredible resource on various topics around DSP and Faust.
 
 ## Acknowledgments
 
-Many persons have been contributing to the FAUST project by
+Many persons have been contributing to the Faust project by
 providing code for the compiler, architecture files, libraries,
 examples, documentation, scripts, bug reports, ideas, etc. 
 
