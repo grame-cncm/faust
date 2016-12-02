@@ -45,6 +45,8 @@
 #include "ppbox.hh"
 #include "exception.hh"
 #include "global.hh"
+#include "Text.hh"
+
 
 using namespace std;
 
@@ -62,6 +64,7 @@ extern int 		yyerr;
 extern int 		yydebug;
 extern FILE*	yyin;
 extern int		yylineno;
+
 extern const char* yyfilename;
 
 /**
@@ -230,6 +233,16 @@ Tree formatDefinitions(Tree rldef)
 	return ldef2;
 }
 
+void SourceReader::checkName()
+{
+    if (gGlobal->gMasterDocument == yyfilename) {
+        Tree name = tree("name");
+        if (gGlobal->gMetaDataSet.find(name) == gGlobal->gMetaDataSet.end()) {
+            gGlobal->gMetaDataSet[name].insert(tree(quote(strip_end(yyfilename, ".dsp"))));
+        }
+    }
+}
+
 /**
  * Parse a single faust source file. returns the list of
  * definitions it contains.
@@ -279,10 +292,10 @@ Tree SourceReader::parsefile(const char* fname)
         yy_scan_string(buffer);
         Tree res = parse(yyfilename);
         // 'http_fetch' result must be deallocated
+        checkName();
         free(buffer);
-    #endif
         return res;
-
+    #endif
     } else {
         
         // Test for local url
@@ -309,6 +322,7 @@ Tree SourceReader::parsefile(const char* fname)
             throw faustexception(error.str());
         }
         Tree res = parse(fullpath.c_str());
+        checkName();
         fclose(tmp_file);
         return res;
     #endif

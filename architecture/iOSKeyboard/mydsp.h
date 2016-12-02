@@ -3724,7 +3724,7 @@ class MidiUI : public GUI, public midi
             fMidiHandler->removeMidiIn(this);
         }
         
-        void run() { fMidiHandler->start_midi(); }
+        bool run() { return fMidiHandler->start_midi(); }
         void stop() { fMidiHandler->stop_midi(); }
         
         void addMidiIn(midi* midi_dsp) { fMidiHandler->addMidiIn(midi_dsp); }

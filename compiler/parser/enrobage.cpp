@@ -510,7 +510,6 @@ FILE* fopensearch(const char* filename, string& fullpath)
     return 0;
 }
 
-
 /** 
  * filebasename returns the basename of a path.
  * (adapted by kb from basename.c)
@@ -576,4 +575,13 @@ string filedirname(const string& name)
         }
     }
     return dirname;
+}
+
+string strip_end(const string& name, const string& ext)
+{
+    if (name.length() >= 4 && name.substr(name.length() - ext.length()) == ext) {
+        return name.substr(0, name.length() - ext.length());
+    } else {
+        return name;
+    }
 }

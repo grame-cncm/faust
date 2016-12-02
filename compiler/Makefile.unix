@@ -659,8 +659,8 @@ generator/wasm/wasm_code_container.o: boxes/boxes.hh evaluate/loopDetector.hh tl
 generator/wasm/wasm_code_container.o: generator/function_builder.hh parallelize/code_loop.hh
 generator/wasm/wasm_code_container.o: generator/json_instructions.hh dsp_factory.hh generator/wasm/wasm_instructions.hh
 generator/wasm/wasm_code_container.o: generator/text_instructions.hh generator/type_manager.hh
-generator/wasm/wasm_code_container.o: generator/typing_instructions.hh errors/exception.hh generator/fir_to_fir.hh
-generator/wasm/wasm_code_container.o: generator/fir/fir_instructions.hh
+generator/wasm/wasm_code_container.o: generator/typing_instructions.hh generator/fir_to_fir.hh
+generator/wasm/wasm_code_container.o: generator/fir/fir_instructions.hh errors/exception.hh
 generator/wasm/wasm_dsp_aux.o: tlib/compatibility.hh generator/wasm/wasm_dsp_aux.hh export.hh generator/dsp_aux.hh
 generator/wasm/wasm_dsp_aux.o: dsp_factory.hh generator/Text.hh
 generator/wss_code_container.o: generator/wss_code_container.hh generator/code_container.hh generator/instructions.hh

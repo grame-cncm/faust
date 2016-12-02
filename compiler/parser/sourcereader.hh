@@ -36,23 +36,25 @@ void declareDoc(Tree t);
 
 class SourceReader 
 {
-
-	map<string, Tree>	fFileCache;
-	vector<string>		fFilePathnames;
-
-	Tree parsefile(const char* fname);
-    Tree parsestring(const char* fname);
-    Tree parse(const char* fname);
-
-    Tree expandrec(Tree ldef, set<string>& visited, Tree lresult);
-	bool cached(string fname);
-	
-public:
     
-	Tree getlist(const char* fname);
-	Tree expandlist(Tree ldef);
-	vector<string>	listSrcFiles();
+    private:
     
+        map<string, Tree>	fFileCache;
+        vector<string>		fFilePathnames;
+    
+        Tree parse(const char* fname);
+        Tree expandrec(Tree ldef, set<string>& visited, Tree lresult);
+        bool cached(string fname);
+        Tree parsefile(const char* fname);
+        Tree parsestring(const char* fname);
+        void checkName();
+        
+    public:
+    
+        Tree getlist(const char* fname);
+        Tree expandlist(Tree ldef);
+        vector<string>	listSrcFiles();
+
 };
 
 #endif 

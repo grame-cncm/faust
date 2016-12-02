@@ -102,10 +102,10 @@ class GUI : public UI
         }
         void addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data);
         virtual void show() {};	
-        virtual void run() {};
-        
-        virtual void stop()		{ fStopped = true; }
-        bool stopped() 	{ return fStopped; }
+        virtual bool run() { return false; };
+    
+        virtual void stop() { fStopped = true; }
+        bool stopped() { return fStopped; }
 
         virtual void declare(FAUSTFLOAT* , const char* , const char*) {}
         
