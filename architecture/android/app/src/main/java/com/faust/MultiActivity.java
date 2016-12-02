@@ -1,7 +1,6 @@
 package com.faust;
 
 import com.faust.MultiParams.OnMultiParamsChangeListener;
-import com.dsp_faust.dsp_faust;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -17,7 +16,7 @@ public class MultiActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.multi);
         
-        int numberOfParameters = dsp_faust.getParamsCount();
+        int numberOfParameters = FaustActivity.dspFaust.getParamsCount();
         parametersInfo = new ParametersInfo();
         parametersInfo.init(numberOfParameters);
         SharedPreferences settings = getSharedPreferences("savedParameters", 0);
@@ -35,11 +34,11 @@ public class MultiActivity extends Activity {
 		for(int i=0; i<nParams; i++){
 			int currentIndex = parametersInfo.order[i];
 			if(currentIndex != -1){	
-				addresses[currentIndex] = dsp_faust.getParamAddress(i);
+				addresses[currentIndex] = FaustActivity.dspFaust.getParamAddress(i);
 				labels[currentIndex] = parametersInfo.label[i];
 				min[currentIndex] = parametersInfo.min[i];
 				max[currentIndex] = parametersInfo.max[i];
-				values[currentIndex] = dsp_faust.getParamValue(addresses[currentIndex]);
+				values[currentIndex] = FaustActivity.dspFaust.getParamValue(addresses[currentIndex]);
 			}
 		}
 		mp.setParams(labels, min, max, values);
@@ -47,7 +46,7 @@ public class MultiActivity extends Activity {
 		mp.setOnMultiParamsChangeListener(new OnMultiParamsChangeListener(){
 			@Override
 			public void onParamChange(int paramID, float value) {
-				dsp_faust.setParamValue(addresses[paramID], value);
+				FaustActivity.dspFaust.setParamValue(addresses[paramID], value);
 			}	
 		});
 	}

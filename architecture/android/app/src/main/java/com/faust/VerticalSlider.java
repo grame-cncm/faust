@@ -1,7 +1,5 @@
 package com.faust;
 
-import com.dsp_faust.dsp_faust;
-
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -170,7 +168,7 @@ class VerticalSlider {
 			}
 			public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 				parametersInfo.values[id] = (float) progress*step + min;
-				dsp_faust.setParamValue(address, parametersInfo.values[id]);
+				FaustActivity.dspFaust.setParamValue(address, parametersInfo.values[id]);
 				setDisplayedValue(parametersInfo.values[id]);
 	          }
 	    });

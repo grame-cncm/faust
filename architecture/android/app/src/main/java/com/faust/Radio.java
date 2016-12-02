@@ -1,7 +1,5 @@
 package com.faust;
 
-import com.dsp_faust.dsp_faust;
-
 import android.content.Context;
 import android.graphics.Color;
 import android.view.Gravity;
@@ -77,7 +75,7 @@ class Radio{
 			button.setId(i);
 			if (init == i) {
 				button.setChecked(true);
-				dsp_faust.setParamValue(address, values[i]);
+				FaustActivity.dspFaust.setParamValue(address, values[i]);
 			}
 			radio.addView(button);
 		}
@@ -101,7 +99,7 @@ class Radio{
 	    {
 	        public void onCheckedChanged(RadioGroup group, int checkedId) {
 	        	parametersInfo.values[ID] = (float) checkedId;
-				dsp_faust.setParamValue(address, values[checkedId]);
+				FaustActivity.dspFaust.setParamValue(address, values[checkedId]);
 	        }
 	    });
 	}

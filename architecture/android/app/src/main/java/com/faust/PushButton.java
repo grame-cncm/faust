@@ -1,7 +1,5 @@
 package com.faust;
 
-import com.dsp_faust.dsp_faust;
-
 import android.content.Context;
 import android.graphics.Color;
 import android.view.MotionEvent;
@@ -52,10 +50,10 @@ class PushButton{
             public boolean onTouch(View v, MotionEvent event) {
                 if(event.getAction() == MotionEvent.ACTION_DOWN) {
                 	parametersInfo.values[id] = 1.f;
-                	dsp_faust.setParamValue(address, parametersInfo.values[id]);
+                	FaustActivity.dspFaust.setParamValue(address, parametersInfo.values[id]);
                 } else if (event.getAction() == MotionEvent.ACTION_UP || !inViewBounds(v, event)) {
                 	parametersInfo.values[id] = 0.f;
-                	dsp_faust.setParamValue(address, parametersInfo.values[id]);
+                	FaustActivity.dspFaust.setParamValue(address, parametersInfo.values[id]);
                 }
 	          	return true;
             }
