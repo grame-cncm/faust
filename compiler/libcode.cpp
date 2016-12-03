@@ -1211,5 +1211,5 @@ string expand_dsp(int argc, const char* argv[], const char* name, const char* ds
 
 // External libfaust API
 
-EXPORT const char* getCLibFaustVersion() { return FAUSTVERSION; }
+EXPORT extern "C" const char* getCLibFaustVersion() { return FAUSTVERSION; }
 

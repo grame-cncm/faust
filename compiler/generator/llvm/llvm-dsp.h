@@ -46,7 +46,7 @@
  * 
  * @return the library version as a static string.
  */
-const char* getCLibFaustVersion();
+extern "C" const char* getCLibFaustVersion();
 
 /**
  * DSP instance class with methods.
