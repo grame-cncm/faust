@@ -114,12 +114,7 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
 
 int main(int argc, char* argv[])
 {
-    float fnbsamples;
     char rcfilename[256];
-  
-    CMDUI* interface = new CMDUI(argc, argv);
-    DSP.buildUserInterface(interface);
-    interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
     
     FUI finterface;
     snprintf(rcfilename, 255, "%src", argv[0]);
@@ -163,16 +158,13 @@ int main(int argc, char* argv[])
     // Init again
     DSP.init(44100);
  
-    // modify the UI values according to the command - line options
-    interface->process_command();
-
     int nins = DSP.getNumInputs();
     channels ichan(kFrames, nins);
 
     int nouts = DSP.getNumOutputs();
     channels ochan(kFrames, nouts);
 
-    int nbsamples = int(fnbsamples);
+    int nbsamples = 60000;
     int linenum = 0;
     int run = 0;
     
