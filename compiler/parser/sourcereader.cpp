@@ -9,7 +9,7 @@
 #include <map>
 #include <list>
 #include <string>
-
+#include <libgen.h>
 
 #include "sourcereader.hh"
 #include "sourcefetcher.hh"
@@ -27,7 +27,6 @@ extern bool gLatexDocSwitch;
 /****************************************************************
  						Parser variables
 *****************************************************************/
-
 
 int yyparse();
 void yyrestart( FILE *new_file );
@@ -60,7 +59,6 @@ static bool standardArgList(Tree args)
 	}
 	return true;
 }
-
 
 static void printPatternError(Tree symbol, Tree lhs1, Tree rhs1, Tree lhs2, Tree rhs2)
 {
@@ -205,7 +203,7 @@ void SourceReader::checkName()
     if (gMasterDocument == yyfilename) {
         Tree name = tree("name");
         if (gMetaDataSet.find(name) == gMetaDataSet.end()) {
-            gMetaDataSet[name].insert(tree(quote(strip_end(yyfilename, ".dsp"))));
+            gMetaDataSet[name].insert(tree(quote(strip_end(basename((char*)yyfilename), ".dsp"))));
         }
     }
 }
@@ -282,7 +280,6 @@ Tree SourceReader::parse(const char* fname)
     }
 }
 
-
 /**
  * Check if a file as been read and is in the "cache"
  * 
@@ -294,7 +291,6 @@ bool SourceReader::cached(string fname)
 {
 	return fFileCache.find(fname) != fFileCache.end();
 }
-
 
 /**
  * Return the list of definitions file contains. Cache the result.
@@ -312,7 +308,6 @@ Tree SourceReader::getlist(const char* fname)
     return fFileCache[fname];
 }
 
- 
 /**
  * Return a vector of pathnames representing the list 
  * of all the source files that have been required
@@ -330,7 +325,6 @@ vector<string> SourceReader::listSrcFiles()
 //	return srcfiles;	
 	return fFilePathnames;
 }
-
  
 /**
  * Return the list of definitions where all imports have been expanded.
@@ -369,7 +363,6 @@ Tree SourceReader::expandrec(Tree ldef, set<string>& visited, Tree lresult)
 	}
 	return lresult;
 }
-				
 
 void declareMetadata(Tree key, Tree value)
 {
@@ -384,7 +377,6 @@ void declareMetadata(Tree key, Tree value)
     }
     //cout << "Master " << gMasterDocument  << ", file " << yyfilename <<  " : declare " << *key << "," << *value << endl;
 }
-
 
 void declareDoc(Tree t)
 {
