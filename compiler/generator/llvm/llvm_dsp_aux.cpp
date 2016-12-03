@@ -1877,11 +1877,21 @@ EXPORT void generateCSHA1(const char* data, char* sha_key)
 
 // Helper functions
 
-Module* loadSingleModule(const string filename, LLVMContext* context)
+#if defined(LLVM_38) || defined(LLVM_39)
+#define ModulePTR std::unique_ptr<Module>
+#define MovePTR(ptr) std::move(ptr)
+#else
+#define ModulePTR Module*
+#define MovePTR(ptr) ptr
+#endif
+
+ModulePTR loadSingleModule(const string filename, LLVMContext* context)
 {
     SMDiagnostic err;
-#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
-    Module* module = parseIRFile(filename, err, *context).get();
+#if defined(LLVM_38) || defined(LLVM_39)
+    ModulePTR module = parseIRFile(filename, err, *context);
+#elif defined(LLVM_36) || defined(LLVM_37)
+    ModulePTR module = parseIRFile(filename, err, *context).get();
 #else
     Module* module = ParseIRFile(filename, err, *context);
 #endif
@@ -1894,17 +1904,17 @@ Module* loadSingleModule(const string filename, LLVMContext* context)
     }
 }
 
-Module* loadModule(const string& module_name, llvm::LLVMContext* context)
+ModulePTR loadModule(const string& module_name, llvm::LLVMContext* context)
 {
     // Try as a complete path
-    if (Module* module = loadSingleModule(module_name, context)) {
+    if (ModulePTR module = loadSingleModule(module_name, context)) {
         return module;
     } else {
         // Otherwise use import directories
         list<string>::iterator it;
         for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
             string file_name = *it + '/' + module_name;
-            if (Module* module = loadSingleModule(file_name, context)) {
+            if (ModulePTR module = loadSingleModule(file_name, context)) {
                 return module;
             }
         }
@@ -1912,27 +1922,28 @@ Module* loadModule(const string& module_name, llvm::LLVMContext* context)
     }
 }
 
-bool linkModules(Module* dst, Module* src, char* error_msg)
+bool linkModules(Module* dst, ModulePTR src, char* error_msg)
 {
     bool res = false;
     
 #if defined(LLVM_38) || defined(LLVM_39)
-    if (Linker::linkModules(*dst, std::unique_ptr<Module>(src))) { // Don't know what I'm doing here. Could Linker::linkModules try to free the src pointer? -Kjetil
+    if (Linker::linkModules(*dst, MovePTR(src))) {
         snprintf(error_msg, 256, "cannot link module");
         
 #elif defined(LLVM_36) || defined(LLVM_37)
-        if (Linker::LinkModules(dst, src)) {
-            snprintf(error_msg, 256, "cannot link module");
+    if (Linker::LinkModules(dst, MovePTR(src))) {
+        snprintf(error_msg, 256, "cannot link module");
 #else
-            string err;
-            if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {
-                snprintf(error_msg, 256, "cannot link module : %s", err.c_str());
+    string err;
+    if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {
+        snprintf(error_msg, 256, "cannot link module : %s", err.c_str());
 #endif
     } else {
         res = true;
     }
-    
+#if defined(LLVM_34) || defined(LLVM_35)
     delete src;
+#endif
     return res;
 }
         
@@ -1942,12 +1953,12 @@ Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error)
     
     for (it = gGlobal->gLibraryList.begin(); it != gGlobal->gLibraryList.end(); it++) {
         string module_name = *it;
-        Module* src = loadModule(module_name, context);
+        ModulePTR src = loadModule(module_name, context);
         if (!src) {
             sprintf(error, "cannot load module : %s", module_name.c_str());
             return NULL;
         }
-        if (!linkModules(dst, src, error)) {
+        if (!linkModules(dst, MovePTR(src), error)) {
             return NULL;
         }
     }

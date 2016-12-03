@@ -1373,6 +1373,7 @@ bool GTKUI::run()
     gtk_timeout_add(40, callUpdateAllGuis, 0);
     gtk_main();
     stop();
+    return true;
 }
 
 #endif

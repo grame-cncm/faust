@@ -30,9 +30,17 @@
 
 using namespace std;
 
+#if defined(LLVM_38) || defined(LLVM_39)
+#define ModulePTR std::unique_ptr<Module>
+#define MovePTR(ptr) std::move(ptr)
+#else
+#define ModulePTR Module*
+#define MovePTR(ptr) ptr
+#endif
+
 // Helper functions
-bool linkModules(Module* dst, Module* src, char* error_msg);
-Module* loadModule(const string& module_name, llvm::LLVMContext* context);
+bool linkModules(Module* dst, ModulePTR src, char* error_msg);
+ModulePTR loadModule(const string& module_name, llvm::LLVMContext* context);
 Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error);
 
 list <string> LLVMInstVisitor::gMathLibTable;
@@ -48,7 +56,6 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fKlassName = name;
     fContext = new LLVMContext();
     fModule = new Module(LVVM_BACKEND_NAME, getContext());
-    fModule->setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128");
     fBuilder = new IRBuilder<>(getContext());
     
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39))
@@ -777,9 +784,9 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
         for (f = S.begin(); f != S.end(); f++) {
             string module_name = unquote(*f);
             if (endWith(module_name, ".bc") || endWith(module_name, ".ll")) {
-                Module* module = loadModule(module_name, fContext);
+                ModulePTR module = loadModule(module_name, fContext);
                 if (module) {
-                    bool res = linkModules(fModule, module, error_msg);
+                    bool res = linkModules(fModule, MovePTR(module), error_msg);
                     if (!res) printf("Link LLVM modules %s\n", error_msg);
                 }
             }
