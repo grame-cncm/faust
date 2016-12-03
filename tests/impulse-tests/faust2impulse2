@@ -69,7 +69,7 @@ for f in $FILES; do
 	) > /dev/null || exit
 
 	# run the resulting binary to generate the impulse response
-	./"${f%.dsp}" -n 60000
+	./"${f%.dsp}"
 
 	# cleanup
     rm "${f%.dsp}" "$f.cpp"

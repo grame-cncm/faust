@@ -98,29 +98,18 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
     }
     return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
 }
-            
-int main(int argc, char* argv[])
+
+static void runFactory(dsp_factory* factory, const string& file)
 {
-    FAUSTFLOAT fnbsamples;
     char rcfilename[256];
-    
-    interpreter_dsp_factory* factory = readInterpreterDSPFactoryFromMachineFile(argv[1]);
-    if (!factory) {
-        cerr << "Error in readInterpreterDSPFactoryFromMachineFile" << endl;
-        exit(-1);
-    }
     
     dsp* DSP = factory->createDSPInstance();
     if (!DSP) {
         exit(-1);
     }
-  
-    CMDUI* interface = new CMDUI(argc, argv);
-    DSP->buildUserInterface(interface);
-    interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
     
     FUI finterface;
-    string filename = argv[1];
+    string filename = file;
     filename = filename.substr(0, filename.find ('.'));
     snprintf(rcfilename, 255, "%src", filename.c_str());
     
@@ -131,7 +120,7 @@ int main(int argc, char* argv[])
     // Get control and then 'initRandom'
     DSP->buildUserInterface(&controlui);
     controlui.initRandom();
- 
+    
     // init signal processor and the user interface values:
     DSP->init(44100);
     
@@ -158,20 +147,17 @@ int main(int argc, char* argv[])
     if (!controlui.checkDefaults()) {
         cerr << "ERROR in checkDefaults after 'instanceInit'" << std::endl;
     }
-
+    
     // Init again
     DSP->init(44100);
-
-    // modify the UI values according to the command - line options:
-    interface->process_command();
-
+    
     int nins = DSP->getNumInputs();
     channels ichan(kFrames, nins);
-
+    
     int nouts = DSP->getNumOutputs();
     channels ochan(kFrames, nouts);
-
-    int nbsamples = int(fnbsamples);
+    
+    int nbsamples = 60000;
     int linenum = 0;
     int run = 0;
     
@@ -198,7 +184,7 @@ int main(int argc, char* argv[])
             int nFrames = min(kFrames, nbsamples);
             DSP->compute(nFrames, ichan.buffers(), ochan.buffers());
             run++;
-            for (int i = 0; i < nFrames; i++) {
+            for (i = 0; i < nFrames; i++) {
                 printf("%6d : ", linenum++);
                 for (int c = 0; c < nouts; c++) {
                     FAUSTFLOAT f = normalize(ochan.buffers()[c][i]);
@@ -209,7 +195,72 @@ int main(int argc, char* argv[])
             nbsamples -= nFrames;
         }
     } catch (...) {
-        cerr << "ERROR in " << argv[1] << " line : " << i << std::endl;
+        cerr << "ERROR in " << file << " line : " << i << std::endl;
     }
+}
+
+inline bool endsWith(std::string const& value, std::string const& ending)
+{
+    if (ending.size() > value.size()) return false;
+    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
+
+int main(int argc, char* argv[])
+{
+    string factory_str;
+    interpreter_dsp_factory* factory = NULL;
+    
+    if (endsWith(argv[1], ".dsp")) {
+        
+        {
+            int argc1 = argc - 2;
+            const char* argv1[argc1];
+            for (int i = 0; i < argc - 2;  i++) {
+                argv1[i] = argv[i + 2];
+            }
+            
+            // Test factory generated from compilation
+            string error_msg;
+            factory = createInterpreterDSPFactoryFromFile(argv[1], argc1, argv1, error_msg);
+            if (!factory) {
+                cerr << "Error in createInterpreterDSPFactory" << endl;
+                exit(-1);
+            }
+            runFactory(factory, argv[1]);
+        }
+        
+        {
+            // Test writeInterpreterDSPFactoryToMachineFile/readInterpreterDSPFactoryFromMachineFile
+            writeInterpreterDSPFactoryToMachineFile(factory, "/var/tmp/interp-factory.fbc");
+            factory = readInterpreterDSPFactoryFromMachineFile("/var/tmp/interp-factory.fbc");
+            if (!factory) {
+                cerr << "Error in readInterpreterDSPFactoryFromMachineFile" << endl;
+                exit(-1);
+            }
+            runFactory(factory, argv[1]);
+        }
+        
+        {
+            // Test writeInterpreterDSPFactoryToMachine/readInterpreterDSPFactoryFromMachine
+            factory_str = writeInterpreterDSPFactoryToMachine(factory);
+            factory = readInterpreterDSPFactoryFromMachine(factory_str);
+            if (!factory) {
+                cerr << "Error in readInterpreterDSPFactoryFromMachine" << endl;
+                exit(-1);
+            }
+            runFactory(factory, argv[1]);
+        }
+      
+    } else {
+        
+        // Test factory generated from file
+        factory = readInterpreterDSPFactoryFromMachineFile(argv[1]);
+        if (!factory) {
+            cerr << "Error in readInterpreterDSPFactoryFromMachineFile" << endl;
+            exit(-1);
+        }
+        runFactory(factory, argv[1]);
+    }
+  
     return 0;
 }

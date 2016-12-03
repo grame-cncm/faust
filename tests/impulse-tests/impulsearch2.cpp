@@ -104,16 +104,9 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
 
 int main(int argc, char* argv[])
 {
-    float fnbsamples;
     char rcfilename[256];
     
     DSP = newmydsp();
-    
-    CMDUI* interface = new CMDUI(argc, argv);
-    UIGlue glue1;
-    buildUIGlue(&glue1, interface, true);
-    buildUserInterfacemydsp(DSP, &glue1);
-    interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
     
     FUI finterface;
     snprintf(rcfilename, 255, "%src", argv[0]);
@@ -159,9 +152,6 @@ int main(int argc, char* argv[])
     
     // Init again
     initmydsp(DSP, 44100);
-  
-    // modify the UI values according to the command - line options:
-    interface->process_command();
     
     int nins = getNumInputsmydsp(DSP);
     channels ichan(kFrames, nins);
@@ -169,7 +159,7 @@ int main(int argc, char* argv[])
     int nouts = getNumOutputsmydsp(DSP);
     channels ochan(kFrames, nouts);
     
-    int nbsamples = int(fnbsamples);
+    int nbsamples = 60000;
     int linenum = 0;
     int run = 0;
     

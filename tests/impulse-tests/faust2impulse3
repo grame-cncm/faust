@@ -60,11 +60,14 @@ done
 
 for f in $FILES; do
 
-    # compile Faust to interpreter
+    # compile the file and generate the impulse response
+    impulseinterp "$f" -$OPTIONS
+
+    # compile Faust to interpreter file
     faust $OPTIONS -lang interp "$f" -o "$f.fbc" || exit
 
-	# run the binary to generate the impulse response
-    impulseinterp "$f.fbc"  -n 60000
+    # read the interpreter file to generate the impulse response
+    impulseinterp "$f.fbc"
 
     # cleanup
     rm "$f.fbc"
