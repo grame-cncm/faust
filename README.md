@@ -114,41 +114,41 @@ The `faust2...` scripts and programs are command line tools allowing to compile 
 The most commonly used `faust2` scripts are:
 
 	faust2alqt              : ALSA application with Qt UI
-	faust2ladspa            : ladspa plug-in
+	faust2ladspa            : LADSPA plug-in
 	faust2pdf               : pdf block diagram
-	faust2supercollider     : Super Collider external
-	faust2alsa              : alsa application with GTK UI
+	faust2supercollider     : SuperCollider external
+	faust2alsa              : ALSA application with GTK UI
 	faust2faustvst          : VST plug-in 
 	faust2lv2               : LV2 plug-in
 	faust2plot              : command line program to debug DSP (sample plotting, etc.)
 	faust2svg               : SVG block diagram
-	faust2alsaconsole       : alsa command line program
+	faust2alsaconsole       : ALSA command line program
 	faust2mathdoc           : automatic pdf mathematical documentation
 	faust2png               : png block diagram
 	faust2android           : Android app
 	faust2graph             : svg graph
 	faust2puredata          : PureData external
 	faust2api               : API generator
-	faust2max6              : MaxMSP external
-	faust2asmjs             : asmjs web app
+       faust2msp               : MaxMSP 5 external and patch
+	faust2max6              : MaxMSP 6 (and later) external and patch
+	faust2asmjs             : asmjs WebAudio code
 	faust2ios               : iOS app
-	faust2ros               : ros app
-	faust2au                : Audio Unit plug-in
-	faust2rosgtk            : ros app with GTK UI
+	faust2ros               : ROS app
+	faust2au                : Audio Unit plugin
+	faust2rosgtk            : ROS app with GTK UI
 	faust2bela              : BELA program
 	faust2jack              : Jack application with GTK UI
-	faust2netjackconsolef   : Net-Jack command line program
+	faust2netjackconsole    : NetJack command line program
 	aust2rpialsaconsole     : Raspberry Pi ALSA command line program
 	faust2caqt              : CoreAudio application with Qt UI
 	faust2jackconsole       : Jack command line program
-	faust2netjackqt         : Netjack application with Qt UI
+	faust2netjackqt         : NetJack application with Qt UI
 	faust2rpinetjackconsole : Raspberry Pi Jack command line program
-	faust2webaudioasm       : Webaudio web app
+	faust2webaudioasm       : WebAudio web HTML app
 	faust2caqtios           : iOS app with Qt UI
 	faust2octave            : Octave script
 	faust2csound            : CSOUND Opcode
-	faust2jackserver        : Jack server
-	faust2owl               : Owl Program 
+	faust2owl               : OWL Program 
 	faust2sig               : SVG signal
 	faust2jaqt              : Jack application with Qt UI
 	
