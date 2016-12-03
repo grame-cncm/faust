@@ -98,41 +98,26 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
     }
     return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
 }
-            
-int main(int argc, char* argv[])
+
+static void runFactory(dsp_factory* factory, const string& file)
 {
-    FAUSTFLOAT fnbsamples;
+    FAUSTFLOAT fnbsamples = 60000;
     char rcfilename[256];
-    
-    int argc1 = argc - 2;
-    const char* argv1[argc1];
-    for (int i = 0; i < argc - 2;  i++) {
-        argv1[i] = argv[i + 2];
-    }
-    
-    string error_msg;
-    dsp_factory* factory = createDSPFactoryFromFile(argv[1], argc1, argv1, "", error_msg, 3);
-    if (!factory) {
-        cerr << "createDSPFactoryFromFile " << error_msg << endl;
-        exit(-1);
-    }
     
     dsp* DSP = factory->createDSPInstance();
     if (!DSP) {
         exit(-1);
     }
-  
-    fnbsamples = 60000;
-    
+   
     FUI finterface;
-    string filename = argv[1];
+    string filename = file;
     filename = filename.substr(0, filename.find ('.'));
     snprintf(rcfilename, 255, "%src", filename.c_str());
     
     CheckControlUI controlui;
     
     DSP->buildUserInterface(&finterface);
- 
+    
     // Get control and then 'initRandom'
     DSP->buildUserInterface(&controlui);
     controlui.initRandom();
@@ -166,13 +151,13 @@ int main(int argc, char* argv[])
     
     // Init again
     DSP->init(44100);
-
+    
     int nins = DSP->getNumInputs();
     channels ichan(kFrames, nins);
-
+    
     int nouts = DSP->getNumOutputs();
     channels ochan(kFrames, nouts);
-
+    
     int nbsamples = int(fnbsamples);
     int linenum = 0;
     int run = 0;
@@ -211,7 +196,121 @@ int main(int argc, char* argv[])
             nbsamples -= nFrames;
         }
     } catch (...) {
-        cerr << "ERROR in " << argv[1] << " line : " << i << std::endl;
+        cerr << "ERROR in " << file << " line : " << i << std::endl;
     }
+}
+            
+int main(int argc, char* argv[])
+{
+    int argc1 = argc - 2;
+    const char* argv1[argc1];
+    for (int i = 0; i < argc - 2;  i++) {
+        argv1[i] = argv[i + 2];
+    }
+    
+    string factory_str;
+    llvm_dsp_factory* factory = NULL;
+    
+    {
+        // Test factory generated from compilation
+        string error_msg;
+        factory = createDSPFactoryFromFile(argv[1], argc1, argv1, "", error_msg, 3);
+        if (!factory) {
+            cerr << "createDSPFactoryFromFile " << error_msg << endl;
+            exit(-1);
+        }
+        runFactory(factory, argv[1]);
+    }
+    
+    {
+        // Test writeDSPFactoryToBitcodeFile/readDSPFactoryFromBitcodeFile
+        cout << "writeDSPFactoryToBitcodeFile " << argv[1] << endl;
+        writeDSPFactoryToBitcodeFile(factory, "llvm-factory.bc");
+        
+        cout << "readDSPFactoryFromBitcodeFile " << argv[1] << endl;
+        factory = readDSPFactoryFromBitcodeFile("llvm-factory.bc", "");
+        
+        if (!factory) {
+            cerr << " ERROR in readDSPFactoryFromBitcodeFile " << endl;
+            exit(-1);
+        }
+        runFactory(factory, argv[1]);
+    }
+    
+    {
+        // Test writeDSPFactoryToBitcode/readDSPFactoryFromBitcode
+        cout << "writeDSPFactoryToBitcode " << argv[1] << endl;
+        factory_str = writeDSPFactoryToBitcode(factory);
+        
+        cout << "readDSPFactoryFromBitcode " << argv[1] << endl;
+        factory = readDSPFactoryFromBitcode(factory_str, "");
+        
+        if (!factory) {
+            cerr << " ERROR in readDSPFactoryFromBitcode " << endl;
+            exit(-1);
+        }
+        runFactory(factory, argv[1]);
+    }
+   
+    {
+        // Test writeDSPFactoryToIRFile/readDSPFactoryFromIRFile
+        cout << "writeDSPFactoryToIRFile " << argv[1] << endl;
+        writeDSPFactoryToIRFile(factory, "llvm-factory.ll");
+        
+        cout << "readDSPFactoryFromIRFile " << argv[1] << endl;
+        factory = readDSPFactoryFromIRFile("llvm-factory.ll", "");
+        
+        if (!factory) {
+            cerr << " ERROR in readDSPFactoryFromIRFile " << endl;
+            exit(-1);
+        }
+        runFactory(factory, argv[1]);
+    }
+    
+    {
+        // Test writeDSPFactoryToIR/readDSPFactoryFromIR
+        cout << "writeDSPFactoryToIR " << argv[1] << endl;
+        factory_str = writeDSPFactoryToIR(factory);
+        
+        cout << "readDSPFactoryFromIR " << argv[1] << endl;
+        factory = readDSPFactoryFromIR(factory_str, "");
+        
+        if (!factory) {
+            cerr << " ERROR in readDSPFactoryFromIRFile " << endl;
+            exit(-1);
+        }
+        runFactory(factory, argv[1]);
+    }
+    
+    {
+        // Test writeDSPFactoryToMachineFile/readDSPFactoryFromMachineFile
+        cout << "writeDSPFactoryToMachineFile " << argv[1] << endl;
+        writeDSPFactoryToMachineFile(factory, "llvm-factory-machine", "");
+        
+        cout << "readDSPFactoryFromMachineFile " << argv[1] << endl;
+        factory = readDSPFactoryFromMachineFile("llvm-factory-machine", "");
+        
+        if (!factory) {
+            cerr << " ERROR in readDSPFactoryFromMachineFile " << endl;
+            exit(-1);
+        }
+        runFactory(factory, argv[1]);
+    }
+    
+    {
+        // Test writeDSPFactoryToMachine/readDSPFactoryFromMachine
+        cout << "writeDSPFactoryToMachine " << argv[1] << endl;
+        factory_str = writeDSPFactoryToMachine(factory, "");
+        
+        cout << "readDSPFactoryFromMachineFile " << argv[1] << endl;
+        factory = readDSPFactoryFromMachine(factory_str, "");
+        
+        if (!factory) {
+            cerr << " ERROR in readDSPFactoryFromMachine " << endl;
+            exit(-1);
+        }
+        runFactory(factory, argv[1]);
+    }
+    
     return 0;
 }

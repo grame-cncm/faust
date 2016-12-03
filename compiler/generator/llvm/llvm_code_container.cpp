@@ -31,11 +31,11 @@
 using namespace std;
 
 #if defined(LLVM_38) || defined(LLVM_39)
-#define ModulePTR std::unique_ptr<Module>
-#define MovePTR(ptr) std::move(ptr)
+    #define ModulePTR std::unique_ptr<Module>
+    #define MovePTR(ptr) std::move(ptr)
 #else
-#define ModulePTR Module*
-#define MovePTR(ptr) ptr
+    #define ModulePTR Module*
+    #define MovePTR(ptr) ptr
 #endif
 
 // Helper functions
@@ -787,7 +787,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
                 ModulePTR module = loadModule(module_name, fContext);
                 if (module) {
                     bool res = linkModules(fModule, MovePTR(module), error_msg);
-                    if (!res) printf("Link LLVM modules %s\n", error_msg);
+                    if (!res) cout << "Link LLVM modules " << error_msg << endl;
                 }
             }
         }

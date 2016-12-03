@@ -166,6 +166,15 @@
     #define MEMORY_BUFFER_CREATE(stringref) (MemoryBuffer::getMemBuffer(stringref))
 #endif
 
+
+#if defined(LLVM_38) || defined(LLVM_39)
+    #define ModulePTR std::unique_ptr<Module>
+    #define MovePTR(ptr) std::move(ptr)
+#else
+    #define ModulePTR Module*
+    #define MovePTR(ptr) ptr
+#endif
+
 using namespace llvm;
 
 // Factories instances management
@@ -474,6 +483,20 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key,
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)) && !defined(_MSC_VER)
     fObjectCache = NULL;
 #endif
+}
+
+llvm_dsp_factory_aux::~llvm_dsp_factory_aux()
+{
+#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)) && !defined(_MSC_VER)
+    delete fObjectCache;
+#endif
+    if (fJIT) {
+        fJIT->runStaticConstructorsDestructors(true);
+        // fModule is kept and deleted by fJIT
+        delete fJIT;
+    }
+    delete fContext;
+    stopLLVMLibrary();
 }
 
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
@@ -926,20 +949,6 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
 
 #endif
 
-llvm_dsp_factory_aux::~llvm_dsp_factory_aux()
-{
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)) && !defined(_MSC_VER)
-    delete fObjectCache;
-#endif
-    if (fJIT) {
-        fJIT->runStaticConstructorsDestructors(true);
-        // fModule is kept and deleted by fJIT
-        delete fJIT;
-    }
-    delete fContext;
-    stopLLVMLibrary();
-}
-
 void llvm_dsp_factory_aux::write(std::ostream* out, bool binary, bool small)
 {
     string res;
@@ -1328,7 +1337,7 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
         LLVMContext* context = new LLVMContext();
         SMDiagnostic err;
     #if defined(LLVM_36) || defined(LLVM_37) ||defined(LLVM_38) || defined(LLVM_39)
-        Module* module = parseIR(buffer, err, *context).get();  // ParseIR takes ownership of the given buffer, so don't delete it
+        Module* module = parseIR(buffer, err, *context).release();  // parseIR takes ownership of the given buffer, so don't delete it
     #else
         Module* module = ParseIR(buffer, err, *context);        // ParseIR takes ownership of the given buffer, so don't delete it
     #endif
@@ -1877,21 +1886,13 @@ EXPORT void generateCSHA1(const char* data, char* sha_key)
 
 // Helper functions
 
-#if defined(LLVM_38) || defined(LLVM_39)
-#define ModulePTR std::unique_ptr<Module>
-#define MovePTR(ptr) std::move(ptr)
-#else
-#define ModulePTR Module*
-#define MovePTR(ptr) ptr
-#endif
-
 ModulePTR loadSingleModule(const string filename, LLVMContext* context)
 {
     SMDiagnostic err;
 #if defined(LLVM_38) || defined(LLVM_39)
     ModulePTR module = parseIRFile(filename, err, *context);
 #elif defined(LLVM_36) || defined(LLVM_37)
-    ModulePTR module = parseIRFile(filename, err, *context).get();
+    ModulePTR module = parseIRFile(filename, err, *context).release();
 #else
     Module* module = ParseIRFile(filename, err, *context);
 #endif
