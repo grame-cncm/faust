@@ -84,7 +84,8 @@ public:
   //
   // #### Arguments
   //
-  // * `pitch`: MIDI note number (0-127)
+  // * `pitch`: MIDI note number (0-127), should be the same
+  // as the one used for `keyOn`
   //--------------------------------------------------------
   int keyOff(int);
 
