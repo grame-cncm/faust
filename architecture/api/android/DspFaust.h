@@ -56,7 +56,7 @@ public:
   //--------`long keyOn(int pitch, int velocity)`-----------
   // Instantiate a new polyphonic voice. This method can
   // only be used if the `[style:poly]` metadata is used in
-  // the Faust code or if `-polyvoices` flag has been
+  // the Faust code or if the `-polyvoices` flag has been
   // provided before compilation.
   //
   // `keyOn` will return 0 if the Faust object is not
@@ -76,7 +76,7 @@ public:
   //----------------`int keyOff(int pitch)`-----------------
   // De-instantiate a polyphonic voice. This method can
   // only be used if the `[style:poly]` metadata is used in
-  // the Faust code or if `-polyvoices` flag has been
+  // the Faust code or if the `-polyvoices` flag has been
   // provided before compilation.
   //
   // `keyOff` will return 0 if the object is not polyphonic
@@ -84,7 +84,8 @@ public:
   //
   // #### Arguments
   //
-  // * `pitch`: MIDI note number (0-127)
+  // * `pitch`: MIDI note number (0-127), should be the same
+  // as the one used for `keyOn`
   //--------------------------------------------------------
   int keyOff(int);
 
@@ -115,7 +116,7 @@ public:
   // #### Arguments
   //
   // * `voice`: the address of the voice given by `newVoice`
-  //--------------------------------------------------------  
+  //--------------------------------------------------------
   int deleteVoice(unsigned long);
 
   //-------`void propagateMidi(int count, double time, int type, int channel, int data1, int data2)`--------
@@ -271,7 +272,7 @@ public:
   //
   // #### Arguments
   //
-  // * `acc`: the accelerometer axis (0: x, 1: y, 2: z)
+  // * `acc`: the accelerometer axis (**0**: x, **1**: y, **2**: z)
   // * `v`: the RAW acceleromter value in m/s
   //--------------------------------------------------------
   void propagateAcc(int, float);
@@ -281,13 +282,14 @@ public:
   //
   // #### Arguments
   //
-  // * `p`: 
-  // * `acc`: 
-  // * `curve`: 
-  // * `amin`: 
-  // * `amid`: 
-  // * `amaz`: 
+  // * `p`: the UI parameter id
+  // * `acc`: the accelerometer axis (**0**: x, **1**: y, **2**: z)
+  // * `curve`: the curve (**0**: up, **1**: down, **2**: up and down)
+  // * `amin`: mapping min point
+  // * `amid`: mapping middle point
+  // * `amax`: mapping max point
   //--------------------------------------------------------
+  // TODO: eventually should add a link to tutorials on this in the doc
   void setAccConverter(int, int, int, float, float, float);
 
   //----`void propagateGyr(int gyr, float v)`---------------
@@ -296,7 +298,7 @@ public:
   //
   // #### Arguments
   //
-  // * `gyr`: the gyroscope axis (0: x, 1: y, 2: z)
+  // * `gyr`: the gyroscope axis (**0**: x, **1**: y, **2**: z)
   // * `v`: the RAW acceleromter value in m/s
   //--------------------------------------------------------
   void propagateGyr(int, float);
@@ -306,13 +308,14 @@ public:
   //
   // #### Arguments
   //
-  // * `p`: 
-  // * `acc`: 
-  // * `curve`: 
-  // * `amin`: 
-  // * `amid`: 
-  // * `amaz`: 
+  // * `p`: the UI parameter id
+  // * `acc`: the accelerometer axis (**0**: x, **1**: y, **2**: z)
+  // * `curve`: the curve (**0**: up, **1**: down, **2**: up and down)
+  // * `amin`: mapping min point
+  // * `amid`: mapping middle point
+  // * `amax`: mapping max point
   //--------------------------------------------------------
+  // TODO: eventually should add a link to tutorials on this in the doc
   void setGyrConverter(int, int, int, float, float, float);
 
   //------------------`float getCPULoad()`------------------
