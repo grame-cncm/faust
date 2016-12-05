@@ -1,36 +1,19 @@
 /************************************************************************
-
-    IMPORTANT NOTE : this file contains two clearly delimited sections :
-    the ARCHITECTURE section (in two parts) and the USER section. Each section
-    is governed by its own copyright and license. Please check individually
-    each section for license and copyright information.
- *************************************************************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
-/************************************************************************
- FAUST Architecture File
-	Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
+ ************************************************************************
+ FAUST API Architecture File 
+ Copyright (C) 2016 GRAME, Romain Michon, CCRMA - Stanford University
+ Copyright (C) 2014-2016 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This is sample code. This file is provided as an example of minimal
+ FAUST architecture file. Redistribution and use in source and binary
+ forms, with or without modification, in part or in full are permitted.
+ In particular you can create a derived work of this FAUST architecture
+ and distribute that work under terms of your choice.
 
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work
-    that contains this FAUST architecture section and distribute
-    that work under terms of your choice, so long as this FAUST
-    architecture section is not modified.
- 
- 
+ This sample code is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  ************************************************************************
  ************************************************************************/
 
@@ -100,7 +83,7 @@ bool DspFaust::isRunning(){
     return fPolyEngine->isRunning();
 }
 
-unsigned long DspFaust::keyOn(int pitch, int velocity){
+long DspFaust::keyOn(int pitch, int velocity){
     return (long) fPolyEngine->keyOn(pitch, velocity);
 }
 
@@ -108,11 +91,11 @@ int DspFaust::keyOff(int pitch){
     return fPolyEngine->keyOff(pitch);
 }
 
-unsigned long DspFaust::newVoice(){
+long DspFaust::newVoice(){
     return (long) fPolyEngine->newVoice();
 }
 
-int DspFaust::deleteVoice(unsigned long voice){
+int DspFaust::deleteVoice(long voice){
     return fPolyEngine->deleteVoice(voice);
 }
 
@@ -140,19 +123,19 @@ float DspFaust::getParamValue(int id){
     return fPolyEngine->getParamValue(id);
 }
 
-void DspFaust::setVoiceParamValue(const char* address, unsigned long voice, float value){
+void DspFaust::setVoiceParamValue(const char* address, long voice, float value){
     fPolyEngine->setVoiceParamValue(address, voice, value);
 }
 
-void DspFaust::setVoiceParamValue(int id, unsigned long voice, float value){
+void DspFaust::setVoiceParamValue(int id, long voice, float value){
     fPolyEngine->setVoiceParamValue(id, voice, value);
 }
 
-float DspFaust::getVoiceParamValue(const char* address, unsigned long voice){
+float DspFaust::getVoiceParamValue(const char* address, long voice){
     return fPolyEngine->getVoiceParamValue(address, voice);
 }
 
-float DspFaust::getVoiceParamValue(int id, unsigned long voice){
+float DspFaust::getVoiceParamValue(int id, long voice){
     return fPolyEngine->getVoiceParamValue(id, voice);
 }
 
@@ -160,7 +143,7 @@ const char* DspFaust::getParamAddress(int id){
     return fPolyEngine->getParamAddress(id);
 }
 
-const char* DspFaust::getVoiceParamAddress(int id, unsigned long voice){
+const char* DspFaust::getVoiceParamAddress(int id, long voice){
     return fPolyEngine->getVoiceParamAddress(id, voice);
 }
 

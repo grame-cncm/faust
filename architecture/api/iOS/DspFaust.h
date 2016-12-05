@@ -74,7 +74,7 @@ public:
   // * `pitch`: MIDI note number (0-127)
   // * `velocity`: MIDI velocity (0-127)
   //--------------------------------------------------------
-  unsigned long keyOn(int, int);
+  long keyOn(int, int);
 
   //----------------`int keyOff(int pitch)`-----------------
   // De-instantiate a polyphonic voice. This method can
@@ -105,7 +105,7 @@ public:
   // `deleteVoice` to access the parameters of a specific
   // voice.
   //--------------------------------------------------------
-  unsigned long newVoice();
+  long newVoice();
 
   //---------`int deleteVoice(long voice)`------------------
   // De-instantiate a polyphonic voice. This method can
@@ -120,7 +120,7 @@ public:
   //
   // * `voice`: the address of the voice given by `newVoice`
   //--------------------------------------------------------
-  int deleteVoice(unsigned long);
+  int deleteVoice(long);
  
   //-----------------`const char* getJSON()`----------------
   // Returns the JSON description of the Faust object. 
@@ -186,7 +186,7 @@ public:
   // from `keyOn`
   // * `value`: value of the parameter
   //--------------------------------------------------------
-  void setVoiceParamValue(const char*, unsigned long, float);
+  void setVoiceParamValue(const char*, long, float);
 
   //----`void setVoiceValue(int id, long voice, float value)`-----
   // Set the value of one of the parameters of the Faust
@@ -200,7 +200,7 @@ public:
   // from `keyOn`
   // * `value`: value of the parameter
   //--------------------------------------------------------
-  void setVoiceParamValue(int, unsigned long, float);
+  void setVoiceParamValue(int, long, float);
 
   //----`float getVoiceParamValue(const char* address, long voice)`----
   // Returns the value of a parameter in function of its
@@ -212,7 +212,7 @@ public:
   // * `voice`: address of the polyphonic voice (retrieved
   // from `keyOn`)
   //--------------------------------------------------------
-  float getVoiceParamValue(const char*, unsigned long);
+  float getVoiceParamValue(const char*, long);
 
   //----`float getVoiceParamValue(int id, long voice)`----
   // Returns the value of a parameter in function of its
@@ -224,7 +224,7 @@ public:
   // * `voice`: address of the polyphonic voice (retrieved
   // from `keyOn`)
   //--------------------------------------------------------
-  float getVoiceParamValue(int, unsigned long);
+  float getVoiceParamValue(int, long);
   
   //----`const char* getParamAddress(int id)`---------------
   // Returns the address (path) of a parameter in function
@@ -246,7 +246,7 @@ public:
   // * `voice`: address of the polyphonic voice (retrieved
   // from `keyOn`)
   //--------------------------------------------------------
-  const char* getVoiceParamAddress(int, unsigned long);
+  const char* getVoiceParamAddress(int, long);
 
   //----`void propagateAcc(int acc, float v)`---------------
   // Propagate the RAW value of a specific accelerometer
