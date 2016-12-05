@@ -15,6 +15,7 @@
 #include "sourcefetcher.hh"
 #include "enrobage.hh"
 #include "ppbox.hh"
+#include "Text.hh"
 
 using namespace std;
 
@@ -40,9 +41,6 @@ extern const char * yyfilename;
 
 extern Tree 	gResult;
 extern Tree 	gResult2;
-
- 
-
 
 /**
  * Checks an argument list for containing only 
@@ -121,7 +119,6 @@ static void printRedefinitionError(Tree symbol, list<Tree>& variants)
     }
 }
 
-
 /**
  * Transforms a list of variants (arglist.body)
  * into an abstraction or a boxCase.
@@ -165,8 +162,6 @@ static Tree makeDefinition(Tree symbol, list<Tree>& variants)
 	}
 }
 
-
-
 /**
  * Formats a list of raw definitions represented by triplets
  * <name,arglist,body> into abstractions or pattern 
@@ -203,9 +198,17 @@ Tree formatDefinitions(Tree rldef)
 	
 	//cout << "list of definitions : " << *ldef2 << endl;
 	return ldef2;
-		
 }
 
+void SourceReader::checkName()
+{
+    if (gMasterDocument == yyfilename) {
+        Tree name = tree("name");
+        if (gMetaDataSet.find(name) == gMetaDataSet.end()) {
+            gMetaDataSet[name].insert(tree(quote(strip_end(yyfilename, ".dsp"))));
+        }
+    }
+}
 
 /**
  * Parse a single faust source file. returns the list of
@@ -234,7 +237,7 @@ Tree SourceReader::parse(const char* fname)
         yylineno = 1;
         int r = yyparse();
         if (r) {
-            fprintf(stderr, "Parse error : code = %d \n", r);
+            fprintf(stderr, "Parse error : code = %d\n", r);
         }
         if (yyerr > 0) {
             //fprintf(stderr, "Erreur de parsing 2, count = %d \n", yyerr);
@@ -245,12 +248,13 @@ Tree SourceReader::parse(const char* fname)
         fFilePathnames.push_back(fullpath);
         // 'http_fetch' result must be deallocated
         free(fileBuf);
+        checkName();
         return gResult;
 
     } else {
 		// test for local url
 		if (strstr(yyfilename,"file://") != 0) {
-			yyfilename  = &yyfilename[7]; // skip 'file://'
+			yyfilename = &yyfilename[7]; // skip 'file://'
 		}
 		
         // We are requested to parse a regular file
@@ -273,6 +277,7 @@ Tree SourceReader::parse(const char* fname)
         // we have parsed a valid file
         fFilePathnames.push_back(fullpath);
         fclose(tmp_file);
+        checkName();
         return gResult;
     }
 }

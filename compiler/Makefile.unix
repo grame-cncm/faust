@@ -54,17 +54,6 @@ doc: $(wildcard *.cpp) $(wildcard */*.cpp)  $(wildcard */*.h) $(wildcard */*.hh)
 
 # DO NOT DELETE
 
-main.o: tlib/compatibility.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
-main.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
-main.o: signals/sigtyperules.hh signals/sigprint.hh normalize/simplify.hh normalize/privatise.hh
-main.o: generator/compile_scal.hh generator/compile.hh generator/klass.hh generator/uitree.hh tlib/property.hh
-main.o: parallelize/loop.hh generator/statement.hh parallelize/graphSorting.hh generator/Text.hh
-main.o: generator/description.hh ../architecture/faust/gui/JSONUI.h ../architecture/faust/gui/UI.h
-main.o: ../architecture/faust/gui/PathBuilder.h ../architecture/faust/gui/meta.h generator/occurences.hh tlib/dcond.hh
-main.o: generator/compile_vect.hh generator/compile_sched.hh propagate/propagate.hh boxes/boxes.hh errors/errormsg.hh
-main.o: boxes/ppbox.hh parser/enrobage.hh evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh
-main.o: generator/floats.hh documentator/doc.hh draw/schema/schema.h draw/device/device.h draw/drawschema.hh
-main.o: errors/timing.hh signals/ppsig.hh
 boxes/boxcomplexity.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 boxes/boxcomplexity.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 boxes/boxcomplexity.o: generator/klass.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
@@ -122,6 +111,8 @@ documentator/doc_sharing.o: signals/binop.hh signals/sigtype.hh tlib/smartpointe
 documentator/doc_sharing.o: generator/occurences.hh tlib/property.hh documentator/lateq.hh generator/Text.hh
 documentator/doc_sharing.o: documentator/doc_Text.hh generator/description.hh generator/uitree.hh signals/sigprint.hh
 documentator/lateq.o: documentator/lateq.hh generator/Text.hh
+draw/device/PSDev.o: tlib/compatibility.hh draw/device/PSDev.h draw/device/device.h
+draw/device/SVGDev.o: draw/device/SVGDev.h draw/device/device.h
 draw/drawschema.o: boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 draw/drawschema.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh signals/prim2.hh
 draw/drawschema.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh draw/device/devLib.h
@@ -130,6 +121,21 @@ draw/drawschema.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh gene
 draw/drawschema.o: parallelize/graphSorting.hh signals/sigvisitor.hh documentator/lateq.hh tlib/occurrences.hh
 draw/drawschema.o: boxes/boxcomplexity.h draw/schema/schema.h draw/drawschema.hh tlib/compatibility.hh utils/names.hh
 draw/drawschema.o: propagate/propagate.hh generator/description.hh utils/files.hh
+draw/schema/blockSchema.o: draw/schema/blockSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/cableSchema.o: draw/schema/cableSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/collector.o: draw/schema/schema.h draw/device/device.h
+draw/schema/connectorSchema.o: draw/schema/connectorSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/cutSchema.o: draw/schema/cutSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/decorateSchema.o: draw/schema/decorateSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/enlargedSchema.o: draw/schema/enlargedSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/inverterSchema.o: draw/schema/inverterSchema.h draw/schema/blockSchema.h draw/schema/schema.h
+draw/schema/inverterSchema.o: draw/device/device.h
+draw/schema/mergeSchema.o: draw/schema/mergeSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/parSchema.o: draw/schema/parSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/recSchema.o: draw/schema/recSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/seqSchema.o: draw/schema/seqSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/splitSchema.o: draw/schema/splitSchema.h draw/schema/schema.h draw/device/device.h
+draw/schema/topSchema.o: draw/schema/topSchema.h draw/schema/schema.h draw/device/device.h
 draw/sigToGraph.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 draw/sigToGraph.o: tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 draw/sigToGraph.o: signals/sigtyperules.hh extended/xtended.hh generator/klass.hh generator/uitree.hh tlib/property.hh
@@ -317,6 +323,17 @@ generator/sharing.o: generator/occurences.hh tlib/dcond.hh signals/sigprint.hh s
 generator/statement.o: generator/statement.hh
 generator/uitree.o: generator/uitree.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/uitree.o: tlib/shlysis.hh
+main.o: tlib/compatibility.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
+main.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
+main.o: signals/sigtyperules.hh signals/sigprint.hh normalize/simplify.hh normalize/privatise.hh
+main.o: generator/compile_scal.hh generator/compile.hh generator/klass.hh generator/uitree.hh tlib/property.hh
+main.o: parallelize/loop.hh generator/statement.hh parallelize/graphSorting.hh generator/Text.hh
+main.o: generator/description.hh ../architecture/faust/gui/JSONUI.h ../architecture/faust/gui/UI.h
+main.o: ../architecture/faust/gui/PathBuilder.h ../architecture/faust/gui/meta.h generator/occurences.hh tlib/dcond.hh
+main.o: generator/compile_vect.hh generator/compile_sched.hh propagate/propagate.hh boxes/boxes.hh errors/errormsg.hh
+main.o: boxes/ppbox.hh parser/enrobage.hh evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh
+main.o: generator/floats.hh documentator/doc.hh draw/schema/schema.h draw/device/device.h draw/drawschema.hh
+main.o: errors/timing.hh signals/ppsig.hh
 normalize/aterm.o: normalize/aterm.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 normalize/aterm.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh signals/sigprint.hh normalize/simplify.hh
 normalize/aterm.o: normalize/normalize.hh signals/sigorderrules.hh normalize/mterm.hh signals/ppsig.hh
@@ -357,7 +374,7 @@ parser/faustparser.o: boxes/ppbox.hh
 parser/sourcefetcher.o: tlib/compatibility.hh parser/sourcefetcher.hh
 parser/sourcereader.o: parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh
 parser/sourcereader.o: tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
-parser/sourcereader.o: parser/sourcefetcher.hh parser/enrobage.hh boxes/ppbox.hh
+parser/sourcereader.o: parser/sourcefetcher.hh parser/enrobage.hh boxes/ppbox.hh generator/Text.hh
 patternmatcher/patternmatcher.o: tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 patternmatcher/patternmatcher.o: tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh boxes/ppbox.hh
 patternmatcher/patternmatcher.o: evaluate/eval.hh parser/sourcereader.hh evaluate/environment.hh
@@ -421,20 +438,3 @@ utils/files.o: utils/files.hh tlib/compatibility.hh
 utils/names.o: signals/ppsig.hh signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 utils/names.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh utils/names.hh propagate/propagate.hh boxes/boxes.hh
 utils/names.o: tlib/property.hh documentator/doc_Text.hh generator/Text.hh
-draw/device/PSDev.o: tlib/compatibility.hh draw/device/PSDev.h draw/device/device.h
-draw/device/SVGDev.o: draw/device/SVGDev.h draw/device/device.h
-draw/schema/blockSchema.o: draw/schema/blockSchema.h draw/schema/schema.h draw/device/device.h
-draw/schema/cableSchema.o: draw/schema/cableSchema.h draw/schema/schema.h draw/device/device.h
-draw/schema/collector.o: draw/schema/schema.h draw/device/device.h
-draw/schema/connectorSchema.o: draw/schema/connectorSchema.h draw/schema/schema.h draw/device/device.h
-draw/schema/cutSchema.o: draw/schema/cutSchema.h draw/schema/schema.h draw/device/device.h
-draw/schema/decorateSchema.o: draw/schema/decorateSchema.h draw/schema/schema.h draw/device/device.h
-draw/schema/enlargedSchema.o: draw/schema/enlargedSchema.h draw/schema/schema.h draw/device/device.h
-draw/schema/inverterSchema.o: draw/schema/inverterSchema.h draw/schema/blockSchema.h draw/schema/schema.h
-draw/schema/inverterSchema.o: draw/device/device.h
-draw/schema/mergeSchema.o: draw/schema/mergeSchema.h draw/schema/schema.h draw/device/device.h
-draw/schema/parSchema.o: draw/schema/parSchema.h draw/schema/schema.h draw/device/device.h
-draw/schema/recSchema.o: draw/schema/recSchema.h draw/schema/schema.h draw/device/device.h
-draw/schema/seqSchema.o: draw/schema/seqSchema.h draw/schema/schema.h draw/device/device.h
-draw/schema/splitSchema.o: draw/schema/splitSchema.h draw/schema/schema.h draw/device/device.h
-draw/schema/topSchema.o: draw/schema/topSchema.h draw/schema/schema.h draw/device/device.h

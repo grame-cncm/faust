@@ -619,10 +619,15 @@ struct VSTPlugin {
   static void init_meta()
   {
     if (!meta) {
-      meta = new Meta;
-      mydsp tmp_dsp;
-      tmp_dsp.metadata(meta);
-    }
+        meta = new Meta;
+        mydsp* tmp_dsp = new mydsp();
+        if ((meta==0) || (tmp_dsp == 0)) {
+            fprintf(stderr, "Failed to allocate Faust dsp object\n");
+            exit(-1);
+        }
+        tmp_dsp->metadata(meta);
+        delete tmp_dsp;
+    }  
   }
 
   static const char *pluginName()
@@ -717,9 +722,18 @@ struct VSTPlugin {
   static int numControls()
   {
     const int num_voices = numVoices();
-    mydsp dsp;
+   
+    // Allocate temporary dsp object on the heap
+    mydsp* tmp_dsp = new mydsp();
+    if (tmp_dsp == 0) {
+        fprintf(stderr, "Failed to allocate Faust dsp object\n");
+        exit(1);
+    }
+
     VSTUI ui(num_voices);
-    dsp.buildUserInterface(&ui);
+    tmp_dsp->buildUserInterface(&ui);
+    delete tmp_dsp;
+    
     // reserve one extra port for the polyphony control (instruments only)
     int num_extra = (num_voices>0);
 #if FAUST_MTS

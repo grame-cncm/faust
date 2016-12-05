@@ -44,10 +44,9 @@ extern "C" {
     {
         std::string fJSON;
         
-        mydsp_wrap(int sample_rate) 
+        mydsp_wrap()
         {
-            // Init it with sample_rate supplied...
-            init(sample_rate);
+            // Creates paths
             buildUserInterface(this);
             
             // Creates JSON
@@ -63,16 +62,45 @@ extern "C" {
         }
     };
     
-    
     // C like API
-    mydsp_wrap* mydsp_constructor(int sample_rate) 
+    mydsp_wrap* mydsp_constructor()
     {
-        return new mydsp_wrap(sample_rate);
+        return new mydsp_wrap();
     }
     
     void mydsp_destructor(mydsp_wrap* dsp)
     {
         delete dsp;
+    }
+    
+    int mydsp_getSampleRate(mydsp_wrap* dsp)
+    {
+        return dsp->getSampleRate();
+    }
+    
+    void mydsp_init(mydsp_wrap* dsp, int sample_rate)
+    {
+        dsp->init(sample_rate);
+    }
+    
+    void mydsp_instanceInit(mydsp_wrap* dsp, int sample_rate)
+    {
+        dsp->instanceInit(sample_rate);
+    }
+    
+    void mydsp_instanceConstants(mydsp_wrap* dsp, int sample_rate)
+    {
+        dsp->instanceConstants(sample_rate);
+    }
+    
+    void mydsp_instanceResetUserInterface(mydsp_wrap* dsp)
+    {
+        dsp->instanceResetUserInterface();
+    }
+    
+    void mydsp_instanceClear(mydsp_wrap* dsp)
+    {
+        dsp->instanceClear();
     }
 
     void mydsp_compute(mydsp_wrap* dsp, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 

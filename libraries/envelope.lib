@@ -64,6 +64,7 @@ si = library("signal.lib");
 
 //------------------------`smoothEnvelope`------------------------
 // An envelope with an exponential attack and release.
+// `smoothEnvelope` is a standard Faust function.
 //
 // #### Usage
 //
@@ -78,6 +79,7 @@ smoothEnvelope(ar,t) = t : si.smooth(ba.tau2pole(ar));
 
 //-----------------------`ar`--------------------------
 // AR (Attack, Release) envelope generator (useful to create percussion envelopes).
+// `ar` is a standard Faust function.
 //
 // #### Usage
 // 
@@ -102,6 +104,7 @@ with{
 
 //------------------------`asr`----------------------
 // ASR (Attack, Sustain, Release) envelope generator.
+// `asr` is a standard Faust function.
 //
 // #### Usage
 //
@@ -130,6 +133,7 @@ with{
 
 //------------------------`adsr`----------------------
 // ADSR (Attack, Decay, Sustain, Release) envelope generator.
+// `adsr` is a standard Faust function.
 //
 // #### Usage
 //

@@ -212,9 +212,13 @@ This standard is only used within the libraries: nothing prevents coders to stil
 
 ### "Demo" Functions
 
-All the functions that were present in the libraries and that contained any kind of UI elements declaration (mostly JOS "`demo`" functions) were turned into independant `.dsp` files that were placed in the `/examples` folder. Thus, Faust libraries now only contain "pure" function declarations which should make them more legible. Also, "`demo`" functions make great examples... 
+"Demo" functions are placed in `demo.lib` and have a built-in user interface (UI). Their name ends with the `_demo` suffix. Each of these function have a `.dsp` file associated to them in the `/examples` folder. 
 
-For practicality, the "`demo`" functions are still declared and are available in `demo.lib` as "components" pointing at the `/examples` folder (which is why that folder will have to be installed on the system during the installation process of the Faust distribution).
+Any function containing UI elements should be placed in this library and respect these standards.
+
+### "Standard" Functions
+
+"Standard" functions are here to simplify the life of new (or not so new) Faust coders. They are declared in `/libraries/doc/standardFunctions.md` and allow to point programmers to preferred functions to carry out a specific task. For example, there are many different types of lowpass filters declared in `filter.lib` and only one of them is considered to be standard, etc.
 
 ## The question of licensing/authoring/copyrigth
 

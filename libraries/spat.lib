@@ -57,7 +57,8 @@ declare version "0.0";
 
 
 //-----------------------`panner`------------------------
-// A simple linear gain panner.
+// A simple linear stereo panner.
+// `panner` is a standard Faust function.
 //
 // #### Usage
 //
@@ -75,7 +76,8 @@ panner(g) = _ <: *(1-g), *(g);
 
 
 //-----------------------`spat`------------------------
-// GMEM SPAT: n-outputs spatializer
+// GMEM SPAT: n-outputs spatializer.
+// `spat` is a standard Faust function. 
 //
 // #### Usage
 //

@@ -355,7 +355,6 @@ static FILE* fopenat(string& fullpath, const char* dir, const char* filename)
     return 0;
 }
 
-
 /**
  * Try to open the file '<dir>/<filename>'. If it succeed, it stores the full pathname
  * of the file into <fullpath>
@@ -492,7 +491,6 @@ FILE* fopensearch(const char* filename, string& fullpath)
     return 0;
 }
 
-
 /** 
  * filebasename returns the basename of a path.
  * (adapted by kb from basename.c)
@@ -542,7 +540,6 @@ const char* filebasename(const char* name)
 	return base;
 }
 
-
 /**
  * returns a string containing the dirname of name
  * If no dirname, returns "."
@@ -565,4 +562,13 @@ string filedirname(const string& name)
         }
     }
     return dirname;
+}
+
+string strip_end(const string& name, const string& ext)
+{
+    if (name.length() >= 4 && name.substr(name.length() - ext.length()) == ext) {
+        return name.substr(0, name.length() - ext.length());
+    } else {
+        return name;
+    }
 }

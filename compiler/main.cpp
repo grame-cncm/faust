@@ -199,10 +199,8 @@ static string makeDrawPathNoExt()
 {
     if (gOutputDir != "") {
         return gOutputDir + "/" + gMasterName;
-    } else if (gMasterDocument.length() >= 4 && gMasterDocument.substr(gMasterDocument.length() - 4) == ".dsp") {
-        return gMasterDocument.substr(0, gMasterDocument.length() - 4);
     } else {
-        return gMasterDocument;
+        return strip_end(gMasterDocument, ".dsp");
     }
 }
 
@@ -402,21 +400,24 @@ bool process_cmdline(int argc, char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i+1 < argc)) {
-
+            if (strstr(argv[i+1], "http://") != 0) {
+                gImportDirList.push_back(argv[i+1]);
+            } else {
+                char temp[PATH_MAX+1];
+                char* path = realpath(argv[i+1], temp);
+                if (path == 0) {
+                    std::cerr << "ERROR : invalid directory path " << argv[i+1] << std::endl;
+                    exit(-1);
+                } else {
+                    gImportDirList.push_back(path);
+                    i += 2;
+                }
+            }
+            
+         } else if (isCmd(argv[i], "-O", "--output-dir") && (i+1 < argc)) {
             char temp[PATH_MAX+1];
             char* path = realpath(argv[i+1], temp);
             if (path == 0) {
-                std::cerr << "ERROR : invalid directory path " << argv[i+1] << std::endl;
-                exit(-1);
-            } else {
-                gImportDirList.push_back(path);
-                i += 2;
-            }
-         } else if (isCmd(argv[i], "-O", "--output-dir") && (i+1 < argc)) {
-        
-            char temp[PATH_MAX+1];
-            char* path = realpath(argv[i+1], temp);
-             if (path == 0) {
                 std::cerr << "ERROR : invalid directory path " << argv[i+1] << std::endl;
                 exit(-1);
             } else {
@@ -440,9 +441,10 @@ bool process_cmdline(int argc, char* argv[])
             i++;
 
         } else {
-            std::cerr << "faust: unrecognized or incorrectly defined option \"" << argv[i] <<"\"" << endl;
+            std::cerr << "ERROR : unrecognized or incorrectly defined option \"" << argv[i] <<"\"" << endl;
             i++;
             err++;
+            exit(-1);
         }
     }
 

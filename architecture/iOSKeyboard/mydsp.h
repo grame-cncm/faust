@@ -3724,7 +3724,7 @@ class MidiUI : public GUI, public midi
             fMidiHandler->removeMidiIn(this);
         }
         
-        void run() { fMidiHandler->start_midi(); }
+        bool run() { return fMidiHandler->start_midi(); }
         void stop() { fMidiHandler->stop_midi(); }
         
         void addMidiIn(midi* midi_dsp) { fMidiHandler->addMidiIn(midi_dsp); }
@@ -4335,7 +4335,7 @@ class MapUI : public UI, public PathBuilder
         
         int getParamsCount() { return fPathZoneMap.size(); }
         
-        std::string getParamAdress(int index) 
+        std::string getParamAddress(int index)
         { 
             std::map<std::string, FAUSTFLOAT*>::iterator it = fPathZoneMap.begin();
             while (index-- > 0 && it++ != fPathZoneMap.end()) {}

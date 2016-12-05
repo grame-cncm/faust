@@ -42,6 +42,7 @@
 // Polyphony
 //**************************************************************
 
+#include "faust/dsp/dsp-combiner.h"
 #include "faust/dsp/faust-poly-engine.h"
 
 //**************************************************************
@@ -72,7 +73,7 @@ class AndroidEngine : public FaustPolyEngine {
         AndroidEngine(int srate, int bsize):FaustPolyEngine(), fMidiUI(&fMidiHandler)
         {
             fDriver = new androidaudio(srate, bsize);
-            fPolyDSP->buildUserInterface(&fMidiUI);
+            fFinalDSP->buildUserInterface(&fMidiUI);
         }
 
         virtual ~AndroidEngine()
@@ -84,6 +85,7 @@ class AndroidEngine : public FaustPolyEngine {
             if (count == 3) fMidiHandler.handleData2(time, type, channel, data1, data2);
             else if (count == 2) fMidiHandler.handleData1(time, type, channel, data1);
             else if (count == 1) fMidiHandler.handleSync(time, type);
+			GUI::updateAllGuis();
         }
 };
 

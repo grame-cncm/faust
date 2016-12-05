@@ -1,3 +1,4 @@
+
 //#################################### delay.lib #########################################
 // This library contains a collection of delay functions.
 //
@@ -66,6 +67,7 @@ declare version "0.0";
 // samples (it needs to be a power of 2). Unlike the `@` delay operator, this
 // function allows to preallocate memory which means that `d` can be changed dynamically
 // at run time as long as it remains smaller than `n`.
+// `delay` is a standard Faust function.
 //
 // #### Usage
 //
@@ -85,7 +87,8 @@ delay(n,d,x) = x@(int(d)&(n-1));
 //-------`fdelay`----------
 // Simple `d` samples fractional delay based on 2 interpolated delay lines where `n` is 
 // the maximum delay length as a number of samples (it needs to be a power of 2 - see 
-// `delay()`). 
+// `delay()`).
+// `fdelay` is a standard Faust function.
 // 
 // #### Usage
 //
