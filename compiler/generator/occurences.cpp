@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ using namespace std;
 /**
  * Extended Variability with recursiveness indication
  */
-static int xVariability (int v, int r)
+static int xVariability(int v, int r)
 {
 	//cerr << "xVariability (" << v << ", " <<  r << ")" << endl;
 	//assert (v < 3);				// kKonst=0, kBlock=1, kSamp=2
@@ -47,7 +47,8 @@ static int xVariability (int v, int r)
 //	Occurences methods
 //-------------------------------------------------
 
-Occurences::Occurences(int v, int r) : fXVariability(xVariability(v,r)) {
+Occurences::Occurences(int v, int r) : fXVariability(xVariability(v,r))
+{
 	for (int i=0; i<4; i++) fOccurences[i]=0;
 	fMultiOcc = false;
 	fMaxDelay = 0;
@@ -56,7 +57,8 @@ Occurences::Occurences(int v, int r) : fXVariability(xVariability(v,r)) {
     fMaxDelay = 0;
 }
 
-Occurences* Occurences::incOccurences(int v, int r, int d) {
+Occurences* Occurences::incOccurences(int v, int r, int d)
+{
 	int ctxt = xVariability(v,r);
 	//assert (ctxt >= fXVariability);
 	fOccurences[ctxt] += 1;

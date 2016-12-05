@@ -2108,7 +2108,6 @@ class FIRInterpreter  {
                         dispatch_next();
                     }
                     
-                    
                     //-------------------------------------
                     // Extended binary math (heap version)
                     //-------------------------------------

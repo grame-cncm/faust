@@ -513,7 +513,7 @@ static void printhelp()
     cout << "-svg \t\tprint block-diagram --svg file\n";
     cout << "-mdoc \t\tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
     cout << "-mdlang <l>\tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
-    cout << "-stripdoc \tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
+    cout << "-stripmdoc \tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
     cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
@@ -718,13 +718,14 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     CodeContainer* container = NULL;
     ostream* dst = NULL;
     ostream* helpers = NULL;
+    string outpath = "";
     
     // Finally output file
     if (gGlobal->gOutputFile == "string") {
         dst = new stringstream();
         helpers = new stringstream();
     } else if (gGlobal->gOutputFile != "") {
-        string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
+        outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
         /* desactivated for now (creates issue with faust2android on Linux)
         char* directory = dirname((char*)outpath.c_str());
         char temp[PATH_MAX+1];
@@ -736,10 +737,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         }
         */
         dst = new ofstream(outpath.c_str());
-        helpers = new ofstream(("helpers_" + outpath).c_str());
     } else {
         dst = &cout;
-        helpers = &cout;
     }
   
     startTiming("generateCode");
@@ -864,6 +863,13 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
+            
+            // Additional file with JS code
+            if (gGlobal->gOutputFile != "") {
+                helpers = new ofstream(("helpers_" + outpath).c_str());
+            } else {
+                helpers = &cout;
+            }
 
         } else {
             stringstream error;
@@ -957,12 +963,15 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         // Binary mode for LLVM backend if output different of 'cout'
         gGlobal->gDSPFactory->write(dst, (dst != &cout), false);
         
-        // Possibly helper code
-        gGlobal->gDSPFactory->writeAux(helpers, (helpers != &cout), false);
-        
         // Force flush since the stream is not closed...
         dst->flush();
-        helpers->flush();
+        
+        if (helpers) {
+            // Possibly helper code
+            gGlobal->gDSPFactory->writeAux(helpers, (helpers != &cout), false);
+            // Force flush since the stream is not closed...
+            helpers->flush();
+        }
     }
    
     endTiming("generateCode");
