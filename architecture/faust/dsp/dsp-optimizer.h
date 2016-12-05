@@ -30,7 +30,6 @@
 #include <sstream>
 #include <sys/types.h>
 #include <pwd.h>
-#include <uuid/uuid.h>
 #include <unistd.h>
 
 #include "faust/dsp/llvm-dsp.h"
