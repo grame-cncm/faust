@@ -1,6 +1,6 @@
 /************************************************************************
  ************************************************************************
- FAUST API Architecture File
+ FAUST API Architecture File 
  Copyright (C) 2016 GRAME, Romain Michon, CCRMA - Stanford University
  Copyright (C) 2014-2016 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
@@ -16,6 +16,9 @@
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  ************************************************************************
  ************************************************************************/
+
+#ifndef __ios_api__
+#define __ios_api__
 
 //===============API Reference==============
 //==========================================
@@ -118,27 +121,6 @@ public:
   // * `voice`: the address of the voice given by `newVoice`
   //--------------------------------------------------------
   int deleteVoice(unsigned long);
-
-  //-------`void propagateMidi(int count, double time, int type, int channel, int data1, int data2)`--------
-  // Take a raw MIDI message and propagate it to the Faust
-  // DSP object. This method can be used concurrently with
-  // [`keyOn`](#keyOn) and [`keyOff`](#keyOff).
-  //
-  // `propagateMidi` can
-  // only be used if the `[style:poly]` metadata is used in
-  // the Faust code or if `-polyvoices` flag has been
-  // provided before compilation.
-  //
-  // #### Arguments
-  //
-  // * `count`: size of the message (1-3)
-  // * `time`: time stamp
-  // * `type`: message type (byte)
-  // * `channel`: channel number
-  // * `data1`: first data byte (should be `null` if `count<2`)
-  // * `data2`: second data byte (should be `null` if `count<3`)
-  //--------------------------------------------------------
-  void propagateMidi(int, double, int, int, int, int);
  
   //-----------------`const char* getJSON()`----------------
   // Returns the JSON description of the Faust object. 
@@ -326,5 +308,7 @@ public:
   int getScreenColor();
 
 private:
-  FaustPolyEngine *fPolyEngine;
+    FaustPolyEngine *fPolyEngine;
 };
+
+#endif

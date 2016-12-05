@@ -25,7 +25,7 @@ int main(int argc, char *argv[] )
   }
   std::cout << "\n";
 
-  #if POLY2
+  #if POLY_VOICES
   // kind of funny, but it's the fastest way
   MapUI *idpVoice = fPolyEngine.keyOn(100,100);
 
