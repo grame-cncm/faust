@@ -37,7 +37,7 @@ class InterpreterCodeContainer : public virtual CodeContainer {
 
         static InterpreterInstVisitor<T>* gInterpreterVisitor;
     
-        FIRMetaBlockInstruction* produceMetadata();
+        FIRMetaBlockInstruction* produceMetadata(string& name);
     
         virtual void generateSR()
         {

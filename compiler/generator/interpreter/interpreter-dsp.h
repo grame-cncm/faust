@@ -79,13 +79,18 @@ class interpreter_dsp_factory : public dsp_factory {
     
         virtual ~interpreter_dsp_factory();
     
-        /* Return Factory name */
+        /**
+         *  Returns factory name :
+         *  either the name declared in DSP with [declare name "foo"] syntax
+         *  or 'filename' (if createDSPFactoryFromFile is used)
+         *  or 'name_app' (if createDSPFactoryFromString is used)
+         */
         std::string getName();
         
-        /* Return Factory SHA key */
+        /* Return factory SHA key */
         std::string getSHAKey();
   
-        /* Return Factory expanded DSP code */
+        /* Return factory expanded DSP code */
         std::string getDSPCode();
     
         /* Creates a new dsp instance, to be deleted with C++ 'delete' before the DSP factory is itself deleted */

@@ -70,14 +70,14 @@ extern "C" {
     double  rint(double nr);
 #endif
 
-int gettimeofday(struct timeval *tv, struct timezone *tz);
-int chdir(const char* path);
-#if _MSC_VER
-  #undef small
-  int mkdir(const char* path);
-#endif
-char* getcwd(char* str, int size);
-int isatty(int file);
+    int gettimeofday(struct timeval *tv, struct timezone *tz);
+    int chdir(const char* path);
+    #if _MSC_VER
+      #undef small
+      int mkdir(const char* path);
+    #endif
+    char* getcwd(char* str, int size);
+    int isatty(int file);
 }
 
 void getFaustPathname(char* str, unsigned int size);

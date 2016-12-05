@@ -729,12 +729,12 @@ parser/faustparser.o: evaluate/loopDetector.hh tlib/occurrences.hh extended/xten
 parser/faustparser.o: documentator/lateq.hh signals/prim2.hh errors/errormsg.hh documentator/doc.hh evaluate/eval.hh
 parser/faustparser.o: evaluate/environment.hh boxes/ppbox.hh
 parser/sourcefetcher.o: tlib/compatibility.hh parser/sourcefetcher.hh
-parser/sourcereader.o: parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh
-parser/sourcereader.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh signals/binop.hh
-parser/sourcereader.o: generator/interpreter/fir_opcode.hh parser/sourcefetcher.hh parser/enrobage.hh boxes/ppbox.hh
-parser/sourcereader.o: errors/exception.hh global.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh
-parser/sourcereader.o: signals/interval.hh generator/instructions.hh generator/Text.hh evaluate/loopDetector.hh
-parser/sourcereader.o: tlib/occurrences.hh
+parser/sourcereader.o: tlib/compatibility.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh
+parser/sourcereader.o: garbageable.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
+parser/sourcereader.o: signals/signals.hh signals/binop.hh generator/interpreter/fir_opcode.hh parser/sourcefetcher.hh
+parser/sourcereader.o: parser/enrobage.hh boxes/ppbox.hh errors/exception.hh global.hh tlib/property.hh
+parser/sourcereader.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
+parser/sourcereader.o: generator/Text.hh evaluate/loopDetector.hh tlib/occurrences.hh
 patternmatcher/patternmatcher.o: tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 patternmatcher/patternmatcher.o: tlib/list.hh tlib/shlysis.hh boxes/boxes.hh signals/signals.hh signals/binop.hh
 patternmatcher/patternmatcher.o: generator/interpreter/fir_opcode.hh boxes/ppbox.hh evaluate/eval.hh

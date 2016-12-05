@@ -151,8 +151,6 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         std::string getTarget();
         void setTarget(const std::string& target) { fTarget = target; }
     
-        std::string getName();
-    
         int getOptlevel();
         void setOptlevel(int opt_level) { fOptLevel = ((opt_level == -1) || (opt_level > LLVM_MAX_OPT_LEVEL)) ? LLVM_MAX_OPT_LEVEL : opt_level; }
     

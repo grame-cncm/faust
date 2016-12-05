@@ -123,8 +123,10 @@ extern "C"
     bool deleteCDSPFactory(llvm_dsp_factory* factory);
     
     /**
-     * Get the name of the DSP factory : will be the name declared in the DSP source file or string, or if not available,
-     * the DSP 'filename' given in createDSPFactoryFromFile or the DSP 'name_app' given in createDSPFactoryFromString.
+     *  Returns factory name :
+     *  either the name declared in DSP with [declare name "foo"] syntax
+     *  or 'filename' (if createDSPFactoryFromFile is used)
+     *  or 'name_app' (if createDSPFactoryFromString is used)
      *
      * @param factory - the DSP factory.
      * 

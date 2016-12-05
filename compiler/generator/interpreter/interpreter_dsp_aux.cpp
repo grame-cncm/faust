@@ -75,8 +75,11 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
         argv1[argc1++] = "-o";
         argv1[argc1++] = "string";
         
+        // Remove actual filename if present by keeping only -xxx type of element
         for (int i = 0; i < argc; i++) {
-            argv1[argc1++] = argv[i];
+            if (argv[i][0] == '-') {
+                argv1[argc1++] = argv[i];
+            }
         }
         
         argv1[argc1] = 0;  // NULL terminated argv
@@ -95,6 +98,9 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
                                                                     error_msg,
                                                                     true);
             if (!dsp_factory_aux) { return NULL; }
+            
+            dsp_factory_aux->setName(name_app);
+            
             factory = new interpreter_dsp_factory(dsp_factory_aux);
             gInterpreterFactoryTable.setFactory(factory);
             factory->setSHAKey(sha_key);

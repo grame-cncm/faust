@@ -25,6 +25,8 @@
 
 #include <libgen.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
@@ -46,6 +48,26 @@
 
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
+
+inline std::string pathToContent(const std::string& path)
+{
+    std::ifstream file(path.c_str(), std::ifstream::binary);
+    
+    file.seekg(0, file.end);
+    int size = int(file.tellg());
+    file.seekg(0, file.beg);
+    
+    // And allocate buffer to that a single line can be read...
+    char* buffer = new char[size + 1];
+    file.read(buffer, size);
+    
+    // Terminate the string
+    buffer[size] = 0;
+    string result = buffer;
+    file.close();
+    delete [] buffer;
+    return result;
+}
 
 int main(int argc, char *argv[])
 {
@@ -75,11 +97,15 @@ int main(int argc, char *argv[])
     std::string error_msg;
     if (is_llvm) {
         std::cout << "Using LLVM backend" << std::endl;
-        factory = createDSPFactoryFromFile(argv[argc-1], argc-id, (const char**)&argv[id], "", error_msg, -1);
+        //factory = createDSPFactoryFromFile(argv[argc-1], argc-id, (const char**)&argv[id], "", error_msg, -1);
+        factory = createDSPFactoryFromString("TOTO", pathToContent(argv[argc-1]), argc-id, (const char**)&argv[id], "", error_msg, -1);
     } else {
-        std::cout << "Using interpreter backend"<< std::endl;
-        factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-id, (const char**)&argv[id], error_msg);
+        std::cout << "Using interpreter backend" << std::endl;
+        //factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-id, (const char**)&argv[id], error_msg);
+        factory = createInterpreterDSPFactoryFromString("TITI", pathToContent(argv[argc-1]), argc-id, (const char**)&argv[id], error_msg);
     }
+    
+    cout << "getName " << factory->getName() << endl;
 
     if (factory) {
         DSP = factory->createDSPInstance();

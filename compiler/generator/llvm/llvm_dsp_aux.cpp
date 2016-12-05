@@ -1108,9 +1108,10 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
         argv1[argc1++] = "-o";
         argv1[argc1++] = "string";
         
-        // Filter arguments
+        // Filter arguments (and remove actual filename if present by keeping only -xxx type of element)
         for (int i = 0; i < argc; i++) {
-            if (!(strcmp(argv[i],"-tg") == 0 ||
+            if (argv[i][0] == '-' &&
+                !(strcmp(argv[i],"-tg") == 0 ||
                   strcmp(argv[i],"-sg") == 0 ||
                   strcmp(argv[i],"-ps") == 0 ||
                   strcmp(argv[i],"-svg") == 0 ||
@@ -1140,13 +1141,12 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                                                                                                         dsp_content.c_str(),
                                                                                                         error_msg,
                                                                                                         true));
-            if (!factory_aux) {
-                return NULL;
-            }
+            if (!factory_aux) { return NULL; }
             
             factory_aux->setTarget(target);
             factory_aux->setOptlevel(opt_level);
             factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
+            factory_aux->setName(name_app);
             factory_aux->setIsDouble(isParam(argc, argv, "-double"));
           
             if (factory_aux->initJIT(error_msg)) {
@@ -1198,30 +1198,6 @@ EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory)
         return gLLVMFactoryTable.deleteDSPFactory(factory);
     } else {
         return false;
-    }
-}
-
-string llvm_dsp_factory_aux::getName()
-{
-    struct MyMeta : public Meta
-    {
-        string name;
-        virtual void declare(const char* key, const char* value)
-        {
-            if (strcmp(key, "name") == 0) {
-                name = value;
-            }
-        }
-    };
-    
-    if (fName == "") {
-        MyMeta metadata;
-        MetaGlue glue;
-        buildMetaGlue(&glue, &metadata);
-        fMetadata(&glue);
-        return fTypeName + "_" + metadata.name;
-    } else {
-        return fTypeName + "_" + fName;
     }
 }
 

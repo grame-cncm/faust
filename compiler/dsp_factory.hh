@@ -26,13 +26,14 @@
 #include <vector>
 #include <ostream>
 
+#include "faust/gui/meta.h"
+
 #define LVVM_BACKEND_NAME       "Faust LLVM backend"
 #define COMPILATION_OPTIONS_KEY "compilation_options"
 #define COMPILATION_OPTIONS     "declare compilation_options    "
 
 #define FAUSTVERSION "2.0.a53"
 
-struct Meta;
 class dsp_factory;
 class dsp;
 
@@ -50,6 +51,7 @@ class dsp_factory_base {
         {}
         
         virtual std::string getName() = 0;
+        virtual void setName(const std::string& name) = 0;
         
         virtual std::string getSHAKey() = 0;
         virtual void setSHAKey(const std::string& sha_key) = 0;
@@ -99,7 +101,23 @@ class dsp_factory_imp : public dsp_factory_base {
         virtual ~dsp_factory_imp()
         {}
     
-        std::string getName() { return fName; }
+        std::string getName()
+        {
+            struct MyMeta : public Meta
+            {
+                std::string name;
+                virtual void declare(const char* key, const char* value)
+                {
+                    if (strcmp(key, "name") == 0) name = value;
+                }
+            };
+            
+            MyMeta meta_data;
+            metadata(&meta_data);
+            return (meta_data.name != "") ? meta_data.name : fName;
+        }
+
+        void setName(const std::string& name) { fName = name; }
         
         std::string getSHAKey() { return fSHAKey; }
         void setSHAKey(const std::string& sha_key) { fSHAKey = sha_key; }

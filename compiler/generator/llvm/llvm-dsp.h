@@ -90,16 +90,21 @@ class llvm_dsp_factory : public dsp_factory {
     
         virtual ~llvm_dsp_factory();
         
-        /* Returns Factory name */
+        /**
+        *  Returns factory name :
+        *  either the name declared in DSP with [declare name "foo"] syntax
+        *  or 'filename' (if createDSPFactoryFromFile is used)
+        *  or 'name_app' (if createDSPFactoryFromString is used)
+        */
         std::string getName();
         
-        /* Returns Factory LLVM target */
+        /* Returns factory LLVM target */
         std::string getTarget();
         
-        /* Returns Factory SHA key */
+        /* Returns factory SHA key */
         std::string getSHAKey();
   
-        /* Returns Factory expanded DSP code */
+        /* Returns factory expanded DSP code */
         std::string getDSPCode();
     
         /* Creates a new dsp instance, to be deleted with C++ 'delete' before the DSP factory is itself deleted */

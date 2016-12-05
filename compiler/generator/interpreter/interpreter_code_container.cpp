@@ -179,8 +179,12 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     loop->accept(gGlobal->gInterpreterVisitor);
     FIRBlockInstruction<T>* compute_dsp_block = getCurrentBlock<T>();
     
+    // Generate metadata block and name
+    string name;
+    FIRMetaBlockInstruction* metadata_block = produceMetadata(name);
+    
     // Then create factory
-    return new interpreter_dsp_factory_aux<T>(fKlassName, "",
+    return new interpreter_dsp_factory_aux<T>(name, "",
                                               gGlobal->gReader.listSrcFiles(),
                                               INTERP_FILE_VERSION,
                                               fNumInputs, fNumOutputs,
@@ -190,7 +194,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
                                               getInterpreterVisitor<T>()->getFieldOffset("count"),
                                               getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
                                               INTER_MAX_OPT_LEVEL,
-                                              produceMetadata(),
+                                              metadata_block,
                                               getInterpreterVisitor<T>()->fUserInterfaceBlock,
                                               init_static_block,
                                               init_block,
@@ -201,7 +205,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 }
 
 template <class T>
-FIRMetaBlockInstruction* InterpreterCodeContainer<T>::produceMetadata()
+FIRMetaBlockInstruction* InterpreterCodeContainer<T>::produceMetadata(string& name)
 {
     FIRMetaBlockInstruction* block = new FIRMetaBlockInstruction();
     
@@ -211,6 +215,7 @@ FIRMetaBlockInstruction* InterpreterCodeContainer<T>::produceMetadata()
             stringstream str1, str2;
             str1 << *(i->first);
             str2 << **(i->second.begin());
+            if (str1.str() == "name") name = unquote(str2.str());
             block->push(new FIRMetaInstruction(str1.str(), unquote(str2.str())));
         } else {
             for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
@@ -218,6 +223,7 @@ FIRMetaBlockInstruction* InterpreterCodeContainer<T>::produceMetadata()
                     stringstream str1, str2;
                     str1 << *(i->first);
                     str2 << **j;
+                    if (str1.str() == "name") name = unquote(str2.str());
                     block->push(new FIRMetaInstruction(str1.str(), unquote(str2.str())));
                 } else {
                     stringstream str2;
