@@ -67,7 +67,7 @@ done
 
 # only carry out the faust compilation 
 if [ $FAUST -eq 1 ]; then
-	faust -i -a android.cpp $OPTIONS "$FILE" -o "app/src/main/cpp/DspFaust.cpp"
+	faust -i -a api/android/DspFaust.cpp $OPTIONS "$FILE" -o "app/src/main/cpp/DspFaust.cpp"
 	exit 1
 fi
  
