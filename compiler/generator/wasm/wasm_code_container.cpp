@@ -156,6 +156,7 @@ void WASMCodeContainer::produceClass()
     
     tab(n, *fOut); *fOut << "(module";
     
+        /*
         // Type definition
         tab(n+1, *fOut); *fOut << "(type $0 (func (param " << realStr << " " << realStr << ") (result " << realStr << ")))";
         tab(n+1, *fOut); *fOut << "(type $1 (func (param " << realStr << ") (result i32)))";
@@ -167,6 +168,7 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "(type $7 (func (param i32 i32) (result " << realStr << ")))";
         tab(n+1, *fOut); *fOut << "(type $8 (func (param i32 i32 i32)))";
         tab(n+1, *fOut); *fOut << "(type $9 (func (param i32 i32 i32 i32)))";
+        */
     
         // Global declarations (mathematical functions, global variables...)
         gGlobal->gWASMVisitor->Tab(n+1);
@@ -244,16 +246,16 @@ void WASMCodeContainer::produceClass()
          tab(n+1, *fOut); *fOut << ")";
         */
     
-        tab(n+1, *fOut); *fOut << "(func $getNumInputs (type $3) (param $dsp i32) (result i32)";
+        tab(n+1, *fOut); *fOut << "(func $getNumInputs (param $dsp i32) (result i32)";
             tab(n+2, *fOut); *fOut << "(return (i32.const " << fNumInputs << "))";
         tab(n+1, *fOut); *fOut << ")";
     
-        tab(n+1, *fOut); *fOut << "(func $getNumOutputs (type $3) (param $dsp i32) (result i32)";
+        tab(n+1, *fOut); *fOut << "(func $getNumOutputs (param $dsp i32) (result i32)";
             tab(n+2, *fOut); *fOut << "(return (i32.const " << fNumOutputs << "))";
         tab(n+1, *fOut); *fOut << ")";
     
         // Inits
-        tab(n+1, *fOut); *fOut << "(func $classInit (type $4) (param $dsp i32) (param $samplingFreq i32)";
+        tab(n+1, *fOut); *fOut << "(func $classInit (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
@@ -264,7 +266,7 @@ void WASMCodeContainer::produceClass()
             }
         tab(n+1, *fOut); *fOut << ")";
     
-        tab(n+1, *fOut); *fOut << "(func $instanceConstants (type $4) (param $dsp i32) (param $samplingFreq i32)";
+        tab(n+1, *fOut); *fOut << "(func $instanceConstants (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
@@ -275,7 +277,7 @@ void WASMCodeContainer::produceClass()
           }
         tab(n+1, *fOut); *fOut << ")";
     
-        tab(n+1, *fOut); *fOut << "(func $instanceResetUserInterface (type $5) (param $dsp i32)";
+        tab(n+1, *fOut); *fOut << "(func $instanceResetUserInterface (param $dsp i32)";
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
@@ -284,7 +286,7 @@ void WASMCodeContainer::produceClass()
             }
         tab(n+1, *fOut); *fOut << ")";
     
-        tab(n+1, *fOut); *fOut << "(func $instanceClear (type $5) (param $dsp i32)";
+        tab(n+1, *fOut); *fOut << "(func $instanceClear (param $dsp i32)";
             tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
@@ -293,24 +295,24 @@ void WASMCodeContainer::produceClass()
             }
         tab(n+1, *fOut); *fOut << ")";
     
-        tab(n+1, *fOut); *fOut << "(func $init (type $4) (param $dsp i32) (param $samplingFreq i32)";
+        tab(n+1, *fOut); *fOut << "(func $init (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); *fOut << "(call $classInit (get_local $dsp) (get_local $samplingFreq))";
             tab(n+2, *fOut); *fOut << "(call $instanceInit (get_local $dsp) (get_local $samplingFreq))";
         tab(n+1, *fOut); *fOut << ")";
     
-        tab(n+1, *fOut); *fOut << "(func $instanceInit (type $4) (param $dsp i32) (param $samplingFreq i32)";
+        tab(n+1, *fOut); *fOut << "(func $instanceInit (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, *fOut); *fOut << "(call $instanceConstants (get_local $dsp) (get_local $samplingFreq))";
             tab(n+2, *fOut); *fOut << "(call $instanceResetUserInterface (get_local $dsp))";
             tab(n+2, *fOut); *fOut << "(call $instanceClear (get_local $dsp))";
         tab(n+1, *fOut); *fOut << ")";
         
         // getSampleRate
-        tab(n+1, *fOut); *fOut << "(func $getSampleRate (type $3) (param $dsp i32) (result i32)";
+        tab(n+1, *fOut); *fOut << "(func $getSampleRate (param $dsp i32) (result i32)";
             tab(n+2, *fOut); *fOut << "(return (i32.load (i32.add (get_local $dsp) (i32.const " << gGlobal->gWASMVisitor->getFieldOffset("fSamplingFreq") << "))))";
         tab(n+1, *fOut); *fOut << ")";
     
         // setParamValue
-        tab(n+1, *fOut); *fOut << "(func $setParamValue (type $6) (param $dsp i32) (param $index i32) (param $value " << realStr << ")";
+        tab(n+1, *fOut); *fOut << "(func $setParamValue (param $dsp i32) (param $index i32) (param $value " << realStr << ")";
             tab(n+2, *fOut); *fOut << "(" << realStr << ".store ";
                 tab(n+3, *fOut); *fOut << "(i32.add (get_local $dsp) (get_local $index))";
                 tab(n+3, *fOut); *fOut << "(get_local $value)";
@@ -318,7 +320,7 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << ")";
     
         // getParamValue
-        tab(n+1, *fOut); *fOut << "(func $getParamValue (type $7) (param $dsp i32) (param $index i32) (result " << realStr << ")";
+        tab(n+1, *fOut); *fOut << "(func $getParamValue (param $dsp i32) (param $index i32) (result " << realStr << ")";
             tab(n+2, *fOut); *fOut << "(return (" << realStr << ".load (i32.add (get_local $dsp) (get_local $index))))";
         tab(n+1, *fOut); *fOut << ")";
 
@@ -389,7 +391,7 @@ void WASMCodeContainer::produceClass()
 
 void WASMScalarCodeContainer::generateCompute(int n)
 {
-    tab(n+1, *fOut); *fOut << "(func $compute (type $9) (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
+    tab(n+1, *fOut); *fOut << "(func $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
         tab(n+2, *fOut);
         gGlobal->gWASMVisitor->Tab(n+2);
     
@@ -404,12 +406,12 @@ void WASMScalarCodeContainer::generateCompute(int n)
         dump2FIR(block, &cout);
         */
     
-    /*
+        /*
         // Generates one single scalar loop
         ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
         fComputeBlockInstructions->pushBackInst(loop);
         generateWASMBlock(fComputeBlockInstructions);
-    */
+         */
     
         ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
         fComputeBlockInstructions->pushBackInst(loop);
