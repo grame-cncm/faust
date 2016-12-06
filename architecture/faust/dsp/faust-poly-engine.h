@@ -377,6 +377,7 @@ class FaustPolyEngine {
         void propagateAcc(int acc, float v)
         {
             fAPIUI.propagateAcc(acc, v);
+            GUI::updateAllGuis();
         }
 
         /*
@@ -395,6 +396,7 @@ class FaustPolyEngine {
         void propagateGyr(int gyr, float v)
         {
             fAPIUI.propagateGyr(gyr, v);
+            GUI::updateAllGuis();
         }
 
         /*
