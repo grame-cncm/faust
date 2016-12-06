@@ -47,8 +47,6 @@ for p in $@; do
 		LOG="/dev/stdout"
     elif [ "$p" = "-noagc" ]; then
         NOAGC="1"
-    elif [ ${p:0:1} = "-" ]; then
-        OPTIONS="$OPTIONS $p"
 	elif [ $p = "-h" ]; then
 		echo "Usage: faust2android faustFile.dsp"
 		echo "OPTIONS:"
@@ -60,6 +58,8 @@ for p in $@; do
 		echo "-reuse: keep build directory and reuse it to speedup compilation."
 		echo "-debug: verbose output."
 		exit 1
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
 	else
 	    OPTIONS="$OPTIONS $p"        
 	fi
