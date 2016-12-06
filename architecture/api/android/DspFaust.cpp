@@ -21,7 +21,7 @@
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
-
+#include <cmath>
 //**************************************************************
 // DSP class
 //**************************************************************
