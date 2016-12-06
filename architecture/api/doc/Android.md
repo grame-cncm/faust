@@ -76,3 +76,5 @@ Finally, note that new voices don't necessarily have to be created using `keyOn`
 
 This is particularly useful when making apps where each finger of the user is an independent sound that doesn't necessarily has a pitch.
 
+In case you would like to use the the built-in accelerometer or gyroscope of your device to control some of the parameters of your Faust object, all you have to do is to send the raw accelerometer data to it by using the `propagateAcc` or `propagateGyr` for the gyroscope. After that, mappings can be configured directly from the Faust code using [this technique](#using-built-in-sensors-to-control-parameters) or using the `setAccConverter` and `setGyrConverter` method.
+
