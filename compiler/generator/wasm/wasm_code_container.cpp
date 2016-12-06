@@ -156,20 +156,6 @@ void WASMCodeContainer::produceClass()
     
     tab(n, *fOut); *fOut << "(module";
     
-        /*
-        // Type definition
-        tab(n+1, *fOut); *fOut << "(type $0 (func (param " << realStr << " " << realStr << ") (result " << realStr << ")))";
-        tab(n+1, *fOut); *fOut << "(type $1 (func (param " << realStr << ") (result i32)))";
-        tab(n+1, *fOut); *fOut << "(type $2 (func (param " << realStr << ") (result " << realStr << ")))";
-        tab(n+1, *fOut); *fOut << "(type $3 (func (param i32) (result i32)))";
-        tab(n+1, *fOut); *fOut << "(type $4 (func (param i32 i32)))";
-        tab(n+1, *fOut); *fOut << "(type $5 (func (param i32)))";
-        tab(n+1, *fOut); *fOut << "(type $6 (func (param i32 i32 " << realStr << ")))";
-        tab(n+1, *fOut); *fOut << "(type $7 (func (param i32 i32) (result " << realStr << ")))";
-        tab(n+1, *fOut); *fOut << "(type $8 (func (param i32 i32 i32)))";
-        tab(n+1, *fOut); *fOut << "(type $9 (func (param i32 i32 i32 i32)))";
-        */
-    
         // Global declarations (mathematical functions, global variables...)
         gGlobal->gWASMVisitor->Tab(n+1);
     
@@ -178,23 +164,6 @@ void WASMCodeContainer::produceClass()
     
         // All mathematical functions (got from math library as variables) have to be first
         generateGlobalDeclarations(gGlobal->gWASMVisitor);
-    
-        // Always generated mathematical functions
-        /*
-        tab(n+1, *fOut); *fOut << "(import $" << realStr << "-rem \"asm2wasm\" \"" << realStr
-                               << "-rem\" (param " << realStr <<  " " << realStr << ") (result "<< realStr << "))";
-        tab(n+1, *fOut); *fOut << "(import $" << realStr << "-to-int \"asm2wasm\" \""
-                               << realStr << "-to-int\" (param " << realStr << ") (result i32))";
-        tab(n+1, *fOut); *fOut << "(import $log " << "\"asm2wasm\" \"log\" (param " << realStr << ") (result " << realStr << "))";
-        */
-    
-        // Memory access
-        //tab(n+1, *fOut); *fOut << "(export \"memory\" (memory $0 256 256))";
-        //tab(n+1, *fOut); *fOut << "(import \"env\" \"memory\" (memory $0 256 256))";
-        //tab(n+1, *fOut); *fOut << "(import \"env\" \"table\" (table 0 0 anyfunc))";
-        //tab(n+1, *fOut); *fOut << "(import \"env\" \"memoryBase\" (global $memoryBase i32))";
-        //tab(n+1, *fOut); *fOut << "(import \"env\" \"tableBase\" (global $tableBase i32))";
-    
     
         // Imported functions
         tab(n+1, *fOut); *fOut << "(func $print-i (import \"imports\" \"print\") (param i32))";
@@ -394,30 +363,10 @@ void WASMScalarCodeContainer::generateCompute(int n)
     tab(n+1, *fOut); *fOut << "(func $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
         tab(n+2, *fOut);
         gGlobal->gWASMVisitor->Tab(n+2);
-    
-        /*
-        dump2FIR(fComputeBlockInstructions, &cout);
-
-        // Moves all variables declaration at the beginning of the block
-        MoveVariablesInFront3 mover;
-        BlockInst* block = mover.getCode(fComputeBlockInstructions);
-        block->accept(gGlobal->gWASMVisitor);
-
-        dump2FIR(block, &cout);
-        */
-    
-        /*
-        // Generates one single scalar loop
-        ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-        fComputeBlockInstructions->pushBackInst(loop);
-        generateWASMBlock(fComputeBlockInstructions);
-         */
-    
         ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
         fComputeBlockInstructions->pushBackInst(loop);
         MoveVariablesInFront2 mover;
         BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
         block->accept(gGlobal->gWASMVisitor);
-
     tab(n+1, *fOut); *fOut << ")";
 }
