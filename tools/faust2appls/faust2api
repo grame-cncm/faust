@@ -20,17 +20,25 @@ IOS="0"
 VOICES="0"
 #PACKAGENAME="0"
 POLY2="0"
+MIDI="0"
 
 echoHelp ()
 {
     echo "$p wrong argument"
+    echo ""
     echo "faust2api can be used to generate faust-based dsp objects for iOS and Android."
     echo "To generate an iOS API, run: faust2api -ios yourFaustCode.dsp"
     echo "To generate and Android API, run: faust2api -android yourFaustCode.dsp"
-    echo "More options are available on Android only:"
+    echo ""
+    echo "GLOBAL OPTIONS:"
     echo "   -polyvoices N : creates a polyphonic object with N voices."
     echo "   -poly2 : adds an effect to the polyphonic synth (this option is ignored if -polyvoices is not specified). The effect should be declared in a file called yourFaustCode_effect.dsp placed in the same folder than yourFaustCode.dsp."
+    echo ""
+    echo "ANDROID-SPECIFIC OPTIONS:"
     echo "   -package : set the JAVA package name (e.g. '-package mypackage' will change the JAVA package name to 'mypackage.DspFaust'). The default package name is 'com.DspFaust.'"
+    echo ""
+    echo "IOS-SPECIFIC OPTIONS "
+    echo "   -midi : add built-in RtMidi support to the API."
 }
 
 # dispatch command arguments
@@ -49,6 +57,8 @@ for p in $@; do
 	IOS="1"
     elif [ "$p" = "-poly2" ]; then
         POLY2="1"
+    elif [ "$p" = "-midi" ]; then
+        MIDI="1"
     elif [ $p = "-polyvoices" ]; then
 	VOICES="-1"
     elif [ $p = "-package" ]; then
@@ -96,16 +106,22 @@ if [ $ANDROID -eq 1 ]; then
     if [ "$VOICES" -gt "0" ]; then
 	echo "#define POLY_VOICES $VOICES" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
     fi
-# TODO: iOS support hasn't been tested for a while and should be checked
 elif [ $IOS -eq 1 ]; then
     echo "Your dsp-faust.zip API package for iOS is being created"
-    faust -i -a api/iOS/iOS.cpp "$FILE" -o "$APIFOLDER/dsp-faust.cpp" || exit
-    cp  /usr/local/include/faust/dsp/faust-engine.h  "$APIFOLDER/dsp-faust.h" || exit
+    cp -r /usr/local/share/faust/api/iOS/DspFaust.h $APIFOLDER
+    faust -i -a api/iOS/DspFaust.cpp "$FILE" -o "$APIFOLDER/DspFaust.cpp" || exit
+    if [ "$POLY2" = "1" ]; then
+	faust -i -cn effect -a minimal-effect.cpp "${FILE%.dsp}_effect.dsp" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp" || exit
+	echo "#define POLY2 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+    fi
+    if [ "$VOICES" -gt "0" ]; then
+	echo "#define POLY_VOICES $VOICES" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+    fi
+    if [ "$MIDI" = "1" ]; then
+	echo "#define IOS_MIDI_SUPPORT 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+    fi
 else
-    echo "Please specify an architecture or a platform:"
-    echo "-android"
-    echo "-ios"
-    echo "For more informations, visit http://ccrma.stanford.edu/~rmichon/mobileFaust"
+    echoHelp
     exit 1
 fi
 
@@ -113,38 +129,43 @@ fi
 # GENERATING API DOCUMENTATION
 ###################################
 
-# Automatic documentation is only supported on Android for now
 if [ $ANDROID -eq 1 ]; then
-    PPFILE=pPrinter.cpp
-    PPBINARY=pp
-    READMEFILE="$APIFOLDER/README.md"
-
-    CXXFLAGS=$MYGCCFLAGS
-    MYGCCFLAGS="-O3"
-    CXX=g++
-    CXXFLAGS=$MYGCCFLAGS
-
-    faust -i -a path-printer.cpp "$FILE" -o "$PPFILE" || exit
-    if [ "$POLY2" = "1" ]; then
-	faust -i -cn effect -a minimal-effect.cpp "${FILE%.dsp}_effect.dsp" | cat - "$PPFILE" > temp && mv temp "$PPFILE" || exit
-	echo "#define POLY2 1" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
-    fi
-    if [ "$VOICES" -gt "0" ]; then
-	echo "#define POLY_VOICES $VOICES" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
-    fi
-
-    # compile c++ to binary
-    (
-	$CXX $CXXFLAGS "$PPFILE" -o "$PPBINARY"
-    ) > /dev/null || exit
-    rm "$PPFILE" || exit
-
-    cp /usr/local/share/faust/api/doc/Android.md "$READMEFILE" || exit
-    ./"$PPBINARY" | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit
-    rm "$PPBINARY" || exit
-
-    faust2md /usr/local/share/faust/api/android/DspFaust.h | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit
+	DOCHEADERFILE="/usr/local/share/faust/api/doc/Android.md"
+	APIHEADERFILE="/usr/local/share/faust/api/android/DspFaust.h"
+elif [ $IOS -eq 1 ]; then
+	DOCHEADERFILE="/usr/local/share/faust/api/doc/iOS.md"
+	APIHEADERFILE="/usr/local/share/faust/api/iOS/DspFaust.h"
 fi
+    
+PPFILE=pPrinter.cpp
+PPBINARY=pp
+READMEFILE="$APIFOLDER/README.md"
+
+CXXFLAGS=$MYGCCFLAGS
+MYGCCFLAGS="-O3"
+CXX=g++
+CXXFLAGS=$MYGCCFLAGS
+
+faust -i -a path-printer.cpp "$FILE" -o "$PPFILE" || exit
+if [ "$POLY2" = "1" ]; then
+faust -i -cn effect -a minimal-effect.cpp "${FILE%.dsp}_effect.dsp" | cat - "$PPFILE" > temp && mv temp "$PPFILE" || exit
+echo "#define POLY2 1" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
+fi
+if [ "$VOICES" -gt "0" ]; then
+echo "#define POLY_VOICES $VOICES" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
+fi
+
+# compile c++ to binary
+(
+$CXX $CXXFLAGS "$PPFILE" -o "$PPBINARY"
+) > /dev/null || exit
+rm "$PPFILE" || exit
+
+cp "$DOCHEADERFILE"  "$READMEFILE" || exit
+./"$PPBINARY" | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit
+rm "$PPBINARY" || exit
+
+faust2md "$APIHEADERFILE"  | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit
 
 ###################################
 # POST PROCESSING

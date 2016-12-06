@@ -1,6 +1,6 @@
 /************************************************************************
  ************************************************************************
- FAUST API Architecture File
+ FAUST API Architecture File 
  Copyright (C) 2016 GRAME, Romain Michon, CCRMA - Stanford University
  Copyright (C) 2014-2016 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
@@ -16,6 +16,9 @@
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  ************************************************************************
  ************************************************************************/
+
+#ifndef __ios_api__
+#define __ios_api__
 
 //===============API Reference==============
 //==========================================
@@ -71,7 +74,7 @@ public:
   // * `pitch`: MIDI note number (0-127)
   // * `velocity`: MIDI velocity (0-127)
   //--------------------------------------------------------
-  unsigned long keyOn(int, int);
+  long keyOn(int, int);
 
   //----------------`int keyOff(int pitch)`-----------------
   // De-instantiate a polyphonic voice. This method can
@@ -102,7 +105,7 @@ public:
   // `deleteVoice` to access the parameters of a specific
   // voice.
   //--------------------------------------------------------
-  unsigned long newVoice();
+  long newVoice();
 
   //---------`int deleteVoice(long voice)`------------------
   // De-instantiate a polyphonic voice. This method can
@@ -117,28 +120,7 @@ public:
   //
   // * `voice`: the address of the voice given by `newVoice`
   //--------------------------------------------------------
-  int deleteVoice(unsigned long);
-
-  //-------`void propagateMidi(int count, double time, int type, int channel, int data1, int data2)`--------
-  // Take a raw MIDI message and propagate it to the Faust
-  // DSP object. This method can be used concurrently with
-  // [`keyOn`](#keyOn) and [`keyOff`](#keyOff).
-  //
-  // `propagateMidi` can
-  // only be used if the `[style:poly]` metadata is used in
-  // the Faust code or if `-polyvoices` flag has been
-  // provided before compilation.
-  //
-  // #### Arguments
-  //
-  // * `count`: size of the message (1-3)
-  // * `time`: time stamp
-  // * `type`: message type (byte)
-  // * `channel`: channel number
-  // * `data1`: first data byte (should be `null` if `count<2`)
-  // * `data2`: second data byte (should be `null` if `count<3`)
-  //--------------------------------------------------------
-  void propagateMidi(int, double, int, int, int, int);
+  int deleteVoice(long);
  
   //-----------------`const char* getJSON()`----------------
   // Returns the JSON description of the Faust object. 
@@ -204,7 +186,7 @@ public:
   // from `keyOn`
   // * `value`: value of the parameter
   //--------------------------------------------------------
-  void setVoiceParamValue(const char*, unsigned long, float);
+  void setVoiceParamValue(const char*, long, float);
 
   //----`void setVoiceValue(int id, long voice, float value)`-----
   // Set the value of one of the parameters of the Faust
@@ -218,7 +200,7 @@ public:
   // from `keyOn`
   // * `value`: value of the parameter
   //--------------------------------------------------------
-  void setVoiceParamValue(int, unsigned long, float);
+  void setVoiceParamValue(int, long, float);
 
   //----`float getVoiceParamValue(const char* address, long voice)`----
   // Returns the value of a parameter in function of its
@@ -230,7 +212,7 @@ public:
   // * `voice`: address of the polyphonic voice (retrieved
   // from `keyOn`)
   //--------------------------------------------------------
-  float getVoiceParamValue(const char*, unsigned long);
+  float getVoiceParamValue(const char*, long);
 
   //----`float getVoiceParamValue(int id, long voice)`----
   // Returns the value of a parameter in function of its
@@ -242,7 +224,7 @@ public:
   // * `voice`: address of the polyphonic voice (retrieved
   // from `keyOn`)
   //--------------------------------------------------------
-  float getVoiceParamValue(int, unsigned long);
+  float getVoiceParamValue(int, long);
   
   //----`const char* getParamAddress(int id)`---------------
   // Returns the address (path) of a parameter in function
@@ -264,7 +246,7 @@ public:
   // * `voice`: address of the polyphonic voice (retrieved
   // from `keyOn`)
   //--------------------------------------------------------
-  const char* getVoiceParamAddress(int, unsigned long);
+  const char* getVoiceParamAddress(int, long);
 
   //----`void propagateAcc(int acc, float v)`---------------
   // Propagate the RAW value of a specific accelerometer
@@ -326,5 +308,7 @@ public:
   int getScreenColor();
 
 private:
-  FaustPolyEngine *fPolyEngine;
+    FaustPolyEngine *fPolyEngine;
 };
+
+#endif
