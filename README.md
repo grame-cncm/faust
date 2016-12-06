@@ -113,44 +113,44 @@ The `faust2...` scripts and programs are command line tools allowing to compile 
 
 The most commonly used `faust2` scripts are:
 
-	faust2alqt              : ALSA application with Qt UI
-	faust2ladspa            : LADSPA plug-in
-	faust2pdf               : pdf block diagram
-	faust2supercollider     : SuperCollider external
-	faust2alsa              : ALSA application with GTK UI
-	faust2faustvst          : VST plug-in 
-	faust2lv2               : LV2 plug-in
-	faust2plot              : command line program to debug DSP (sample plotting, etc.)
-	faust2svg               : SVG block diagram
-	faust2alsaconsole       : ALSA command line program
-	faust2mathdoc           : automatic pdf mathematical documentation
-	faust2png               : png block diagram
-	faust2android           : Android app
-	faust2graph             : svg graph
-	faust2puredata          : PureData external
-	faust2api               : API generator
-       faust2msp               : MaxMSP 5 external and patch
-	faust2max6              : MaxMSP 6 (and later) external and patch
-	faust2asmjs             : asmjs WebAudio code
-	faust2ios               : iOS app
-	faust2ros               : ROS app
-	faust2au                : Audio Unit plugin
-	faust2rosgtk            : ROS app with GTK UI
-	faust2bela              : BELA program
-	faust2jack              : Jack application with GTK UI
-	faust2netjackconsole    : NetJack command line program
-	aust2rpialsaconsole     : Raspberry Pi ALSA command line program
-	faust2caqt              : CoreAudio application with Qt UI
-	faust2jackconsole       : Jack command line program
-	faust2netjackqt         : NetJack application with Qt UI
-	faust2rpinetjackconsole : Raspberry Pi Jack command line program
-	faust2webaudioasm       : WebAudio web HTML app
-	faust2caqtios           : iOS app with Qt UI
-	faust2octave            : Octave script
-	faust2csound            : CSOUND Opcode
-	faust2owl               : OWL Program 
-	faust2sig               : SVG signal
-	faust2jaqt              : Jack application with Qt UI
+    faust2alqt              : ALSA application with Qt UI
+    faust2ladspa            : LADSPA plug-in
+    faust2pdf               : pdf block diagram
+    faust2supercollider     : SuperCollider external
+    faust2alsa              : ALSA application with GTK UI
+    faust2faustvst          : VST plug-in 
+    faust2lv2               : LV2 plug-in
+    faust2plot              : command line program to debug DSP (sample plotting, etc.)
+    faust2svg               : SVG block diagram
+    faust2alsaconsole       : ALSA command line program
+    faust2mathdoc           : automatic pdf mathematical documentation
+    faust2png               : png block diagram
+    faust2android           : Android app
+    faust2graph             : svg graph
+    faust2puredata          : PureData external
+    faust2api               : API generator
+    faust2msp               : MaxMSP 5 external and patch
+    faust2max6              : MaxMSP 6 (and later) external and patch
+    faust2asmjs             : asmjs WebAudio code
+    faust2ios               : iOS app
+    faust2ros               : ROS app
+    faust2au                : Audio Unit plugin
+    faust2rosgtk            : ROS app with GTK UI
+    faust2bela              : BELA program
+    faust2jack              : Jack application with GTK UI
+    faust2netjackconsole    : NetJack command line program
+    faust2rpialsaconsole    : Raspberry Pi ALSA command line program
+    faust2caqt              : CoreAudio application with Qt UI
+    faust2jackconsole       : Jack command line program
+    faust2netjackqt         : NetJack application with Qt UI
+    faust2rpinetjackconsole : Raspberry Pi Jack command line program
+    faust2webaudioasm       : WebAudio web HTML app
+    faust2caqtios           : iOS app with Qt UI
+    faust2octave            : Octave script
+    faust2csound            : CSOUND Opcode
+    faust2owl               : OWL Program 
+    faust2sig               : SVG signal
+    faust2jaqt              : Jack application with Qt UI
 	
 Obviously, the corresponding dependencies for each of them must be installed on your system for compilation to be successful. For example, if you use `faust2jaqt`, Jack and Qt libraries must be installed.
 
