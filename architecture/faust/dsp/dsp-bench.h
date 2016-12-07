@@ -32,6 +32,7 @@
 #include <vector>
 #include <algorithm>
 #include <assert.h>
+#include <string.h>
 
 #include "faust/dsp/dsp.h"
 

@@ -78,7 +78,7 @@ class dsp_sequencer : public dsp {
     
         virtual void buildUserInterface(UI* ui_interface)
         {
-            ui_interface->openTabBox("DSP sequencer");
+            ui_interface->openTabBox("Sequencer");
             ui_interface->openVerticalBox("DSP1");
             fDSP1->buildUserInterface(ui_interface);
             ui_interface->closeBox();
@@ -168,7 +168,7 @@ class dsp_parallelizer : public dsp {
     
         virtual void buildUserInterface(UI* ui_interface)
         {
-            ui_interface->openTabBox("DSP parallelizer");
+            ui_interface->openTabBox("Parallelizer");
             ui_interface->openVerticalBox("DSP1");
             fDSP1->buildUserInterface(ui_interface);
             ui_interface->closeBox();

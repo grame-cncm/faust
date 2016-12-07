@@ -1,7 +1,5 @@
 package com.faust;
 
-import com.dsp_faust.dsp_faust;
-
 import android.content.Context;
 import android.graphics.Color;
 import android.text.Editable;
@@ -141,7 +139,7 @@ class Nentry{
                     
                     if (numValue >= min && numValue <= max){
                         parametersInfo.values[id] = numValue;
-                        dsp_faust.setParamValue(address, parametersInfo.values[id]);
+                        FaustActivity.dspFaust.setParamValue(address, parametersInfo.values[id]);
                     } else if(numValue < min) {
                         lastvalue = Float.MAX_VALUE;
                         setValue(min);

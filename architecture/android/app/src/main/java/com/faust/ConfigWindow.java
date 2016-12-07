@@ -1,7 +1,5 @@
 package com.faust;
 
-import com.dsp_faust.dsp_faust;
-
 import android.content.Context;
 import android.graphics.Point;
 import android.view.Display;
@@ -143,10 +141,10 @@ public class ConfigWindow{
         */
         
         if (parametersInfo.accgyrType[index] == 0) {
-            dsp_faust.setAccConverter(index, -1, 0, 0, 0, 0); // -1 means no mapping
-            dsp_faust.setGyrConverter(index, -1, 0, 0, 0, 0); // -1 means no mapping
+            FaustActivity.dspFaust.setAccConverter(index, -1, 0, 0, 0, 0); // -1 means no mapping
+            FaustActivity.dspFaust.setGyrConverter(index, -1, 0, 0, 0, 0); // -1 means no mapping
         } else if (parametersInfo.accgyrType[index] <= 3) {
-            dsp_faust.setAccConverter(index,
+            FaustActivity.dspFaust.setAccConverter(index,
                                       parametersInfo.accgyrType[index] - 1,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
                                       parametersInfo.accgyrCurve[index],
                                       parametersInfo.accgyrMin[index],
@@ -154,7 +152,7 @@ public class ConfigWindow{
                                       parametersInfo.accgyrMax[index]);
         
         } else {
-            dsp_faust.setGyrConverter(index,
+            FaustActivity.dspFaust.setGyrConverter(index,
                                       parametersInfo.accgyrType[index] - 4,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
                                       parametersInfo.accgyrCurve[index],
                                       parametersInfo.accgyrMin[index],

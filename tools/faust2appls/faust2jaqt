@@ -8,6 +8,7 @@
 #####################################################################
 
 . faustpath
+. faustoptflags
 
 ARCHFILE="jack-qt.cpp"
 ARCHLIB="-L/usr/local/lib -ljack"
@@ -93,6 +94,7 @@ done
 #
 if [[ $(uname) == Darwin ]]; then
     ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio"
+    HTTPLIBS="-L/opt/local/lib $HTTPLIBS"
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
 	if [ $SYS_VERSION -ge 13 ]
 	then

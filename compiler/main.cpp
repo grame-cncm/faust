@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#define FAUSTVERSION "0.9.92"
+#define FAUSTVERSION "0.9.94"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -483,7 +483,7 @@ void printhelp()
     cout << "-svg \t\tprint block-diagram --svg file\n";
     cout << "-mdoc \t\tprint --mathdoc of a Faust program in LaTeX format in a -mdoc directory\n";
     cout << "-mdlang <l> \tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
-    cout << "-stripdoc  \tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
+    cout << "-stripmdoc  \tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
     cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
 	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
 	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
