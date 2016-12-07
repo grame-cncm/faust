@@ -25,6 +25,7 @@
 #include <string>
 #include <vector>
 #include <ostream>
+#include <string.h>
 
 #include "faust/gui/meta.h"
 
