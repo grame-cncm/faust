@@ -2,7 +2,9 @@
 
 ## Grame, Centre National de Creation Musicale: <http://www.grame.fr>
 
-[![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master-dev)](https://travis-ci.org/grame-cncm/faust)
+MASTER : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master)](https://travis-ci.org/grame-cncm/faust) 
+MASTER-DEV : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master-dev)](https://travis-ci.org/grame-cncm/faust) 
+FAUST2 : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=faust2)](https://travis-ci.org/grame-cncm/faust)
 
 ## Introduction
 
