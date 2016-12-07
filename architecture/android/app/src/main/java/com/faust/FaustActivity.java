@@ -37,13 +37,8 @@ package com.faust;
  * - use index instead of adresses in JNI to access parameters
  */
 
-import com.dsp_faust.dsp_faust;
-import com.illposed.osc.OSCListener;
-import com.illposed.osc.OSCMessage;
-import com.illposed.osc.OSCPort;
-import com.illposed.osc.OSCPortIn;
+import com.DspFaust.DspFaust;
 
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -59,11 +54,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
@@ -71,7 +63,6 @@ import android.widget.LinearLayout;
 import android.util.Log;
 import android.net.wifi.WifiManager;
 
-import java.net.SocketException;
 import android.media.AudioManager;
 
 public class FaustActivity extends Activity {
@@ -83,6 +74,7 @@ public class FaustActivity extends Activity {
     private WifiManager.MulticastLock lock;
     private boolean fBuildUI;
     private MonochromeView fMonoView;
+    public static DspFaust dspFaust;
 
     /**
      * Detects and toggles immersive mode (also known as "hidey bar" mode).
@@ -133,7 +125,7 @@ public class FaustActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Log.d("FaustJava", "onCreate");
-        if (!dsp_faust.isRunning()) {
+        if (dspFaust == null) {
 
             WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);
             if (wifi != null) {
@@ -155,12 +147,14 @@ public class FaustActivity extends Activity {
             Log.d("FaustJava", "Size :" + size + " Rate: " + rate);
             dsp_faust.init(Integer.parseInt(rate), Integer.parseInt(size));
             */
-            
-            dsp_faust.init(44100, 512);
+
+            // TODO: sr and buffer length should change in function of the device for best latency perfs
+            dspFaust = new DspFaust(44100,512);
+
             Osc.startListening();
         }
 
-        fBuildUI = (dsp_faust.getScreenColor() < 0);
+        fBuildUI = (dspFaust.getScreenColor() < 0);
         if (!fBuildUI) {
             requestWindowFeature(Window.FEATURE_NO_TITLE);
 			getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -173,7 +167,7 @@ public class FaustActivity extends Activity {
             setContentView(fMonoView);
         }
 
-        numberOfParameters = dsp_faust.getParamsCount();
+        numberOfParameters = dspFaust.getParamsCount();
 
         Log.d("FaustJava", "onCreate : numberOfParameters " + numberOfParameters);
 
@@ -213,19 +207,19 @@ public class FaustActivity extends Activity {
 
             if (se.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
                 // Update mapping at sensor rate
-                dsp_faust.propagateAcc(0, se.values[0]);
-                dsp_faust.propagateAcc(1, se.values[1]);
-                dsp_faust.propagateAcc(2, se.values[2]);
+                dspFaust.propagateAcc(0, se.values[0]);
+                dspFaust.propagateAcc(1, se.values[1]);
+                dspFaust.propagateAcc(2, se.values[2]);
                 if (!fBuildUI) {
-					fMonoView.setColor(dsp_faust.getScreenColor());
+					fMonoView.setColor(dspFaust.getScreenColor());
 				}
             }
 
             if (se.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
                 // Update mapping at sensor rate
-                dsp_faust.propagateGyr(0, se.values[0]);
-                dsp_faust.propagateGyr(1, se.values[1]);
-                dsp_faust.propagateGyr(2, se.values[2]);
+                dspFaust.propagateGyr(0, se.values[0]);
+                dspFaust.propagateGyr(1, se.values[1]);
+                dspFaust.propagateGyr(2, se.values[2]);
             }
 
             // Update UI less often
@@ -333,7 +327,7 @@ public class FaustActivity extends Activity {
         Log.d("FaustJava", "onStart");
         super.onStart();
         if (!isChangingConfigurations()) {
-            dsp_faust.start();
+            dspFaust.start();
         }
         ui.updateUIstate();
     }
@@ -363,7 +357,8 @@ public class FaustActivity extends Activity {
     	// only stops audio when the user press the return button (and not when the screen is rotated)
     	if (!isChangingConfigurations()) {
             Osc.stopListening();
-    		dsp_faust.destroy();
+            dspFaust.stop(); // TODO: not sure if needed
+    		dspFaust.delete();
         }
         SharedPreferences settings = getSharedPreferences("savedParameters", 0);
         parametersInfo.saveParameters(settings);

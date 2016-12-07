@@ -15,7 +15,6 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.dsp_faust.dsp_faust;
 import com.illposed.osc.OSCListener;
 import com.illposed.osc.OSCMessage;
 
@@ -89,10 +88,10 @@ public class UI {
          */
         
         if (parametersInfo.accgyrType[index] == 0) {
-            dsp_faust.setAccConverter(index, -1, 0, 0, 0, 0); // -1 means no mapping
-            dsp_faust.setGyrConverter(index, -1, 0, 0, 0, 0); // -1 means no mapping
+            FaustActivity.dspFaust.setAccConverter(index, -1, 0, 0, 0, 0); // -1 means no mapping
+            FaustActivity.dspFaust.setGyrConverter(index, -1, 0, 0, 0, 0); // -1 means no mapping
         } else if (parametersInfo.accgyrType[index] <= 3) {
-            dsp_faust.setAccConverter(index,
+            FaustActivity.dspFaust.setAccConverter(index,
                                       parametersInfo.accgyrType[index] - 1,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
                                       parametersInfo.accgyrCurve[index],
                                       parametersInfo.accgyrMin[index],
@@ -100,7 +99,7 @@ public class UI {
                                       parametersInfo.accgyrMax[index]);
             
         } else {
-            dsp_faust.setGyrConverter(index,
+            FaustActivity.dspFaust.setGyrConverter(index,
                                       parametersInfo.accgyrType[index] - 4,  // Java : from 0 to 3 (0 means no mapping), C : -1 to 2 (-1 means no mapping)
                                       parametersInfo.accgyrCurve[index],
                                       parametersInfo.accgyrMin[index],
@@ -117,10 +116,10 @@ public class UI {
 		parametersWindow = new ConfigWindow();
 		
 		// get the JSON description from the native code
-		JSONparameters = dsp_faust.getJSON();
+		JSONparameters = FaustActivity.dspFaust.getJSON();
 		
 		// get the total number of parameters
-		int numberOfParameters = dsp_faust.getParamsCount();
+		int numberOfParameters = FaustActivity.dspFaust.getParamsCount();
 		
 		// get the number of each UI elements
 		int numberOfVsliders = countStringOccurrences(JSONparameters,"vslider");
@@ -139,7 +138,7 @@ public class UI {
 		
 		// the addresses of each param in the tree are retrieved from the native code
 		for(int i = 0; i < numberOfParameters; i++){
-			parametersInfo.address[i] = dsp_faust.getParamAddress(i);
+			parametersInfo.address[i] = FaustActivity.dspFaust.getParamAddress(i);
 		}
 		
 		// the saved parameters of each UI element are retrieved
@@ -415,23 +414,23 @@ public class UI {
 		}
 		for (int i = 0; i < parameterNumber; i++) {
 			if (parametersInfo.parameterType[i] == 0) {       //0: hslider
-				hsliders[parametersCounters[0]].setValue(dsp_faust.getParamValue(hsliders[parametersCounters[0]].address));
+				hsliders[parametersCounters[0]].setValue(FaustActivity.dspFaust.getParamValue(hsliders[parametersCounters[0]].address));
 				parametersCounters[0]++;
 			}
 			else if (parametersInfo.parameterType[i] == 1) {  //1: vslider
-				vsliders[parametersCounters[1]].setValue(dsp_faust.getParamValue(vsliders[parametersCounters[1]].address));
+				vsliders[parametersCounters[1]].setValue(FaustActivity.dspFaust.getParamValue(vsliders[parametersCounters[1]].address));
 				parametersCounters[1]++;
 			}
 			else if (parametersInfo.parameterType[i] == 2) {  //2 : knob
-				knobs[parametersCounters[2]].setValue(dsp_faust.getParamValue(knobs[parametersCounters[2]].address));
+				knobs[parametersCounters[2]].setValue(FaustActivity.dspFaust.getParamValue(knobs[parametersCounters[2]].address));
 				parametersCounters[2]++;
 			}
 			else if (parametersInfo.parameterType[i] == 3) {  //3 : nentry
-				nentries[parametersCounters[3]].setValue(dsp_faust.getParamValue(nentries[parametersCounters[3]].address));
+				nentries[parametersCounters[3]].setValue(FaustActivity.dspFaust.getParamValue(nentries[parametersCounters[3]].address));
 				parametersCounters[3]++;
 			}
             else if (parametersInfo.parameterType[i] == 9) {  //9 : hbargraph
-                bargraphs[parametersCounters[9]].setValue(dsp_faust.getParamValue(bargraphs[parametersCounters[9]].address));
+                bargraphs[parametersCounters[9]].setValue(FaustActivity.dspFaust.getParamValue(bargraphs[parametersCounters[9]].address));
                 parametersCounters[9]++;
                 
                 //Log.d("FaustJava", "updateUIstate bargraphs");
@@ -482,7 +481,7 @@ public class UI {
         menus[parametersCounters[4]].linkTo(parametersInfo);
 	    menus[parametersCounters[4]].addTo(currentGroup);
         
-        //dsp_faust.setParamValue(address, init);
+        //FaustActivity.dspFaust.setParamValue(address, init);
 	    
 	    parametersInfo.parameterType[parameterNumber] = 4;
 	    parametersInfo.localId[parameterNumber] = parametersCounters[4];
@@ -516,7 +515,7 @@ public class UI {
         radios[parametersCounters[5]].linkTo(parametersInfo);
 	    radios[parametersCounters[5]].addTo(currentGroup);
         
-        //dsp_faust.setParamValue(address, init);
+        //FaustActivity.dspFaust.setParamValue(address, init);
 	    
 	    parametersInfo.parameterType[parameterNumber] = 5;
 	    parametersInfo.localId[parameterNumber] = parametersCounters[5];
@@ -554,7 +553,7 @@ public class UI {
         
         // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
         updateAccGyr(parametersInfo, parameterNumber);
-        dsp_faust.setParamValue(address, init);
+        FaustActivity.dspFaust.setParamValue(address, init);
       
         // OSC listener
         final int parameterId = parametersCounters[0];
@@ -608,7 +607,7 @@ public class UI {
         
         // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
         updateAccGyr(parametersInfo, parameterNumber);
-        dsp_faust.setParamValue(address, init);
+        FaustActivity.dspFaust.setParamValue(address, init);
 
         // OSC listener
         final int parameterId = parametersCounters[1];
@@ -662,7 +661,7 @@ public class UI {
         
         // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
         updateAccGyr(parametersInfo, parameterNumber);
-        dsp_faust.setParamValue(address, init);
+        FaustActivity.dspFaust.setParamValue(address, init);
        
         // OSC listener
         final int parameterId = parametersCounters[2];
@@ -715,7 +714,7 @@ public class UI {
         
         // Accelerometer mappings restored before so that we are sure they are allocated on C side before restoring the actual values...
         updateAccGyr(parametersInfo, parameterNumber);
-        dsp_faust.setParamValue(address, init);
+        FaustActivity.dspFaust.setParamValue(address, init);
     
         // OSC listener
         final int parameterId = parametersCounters[3];
@@ -783,7 +782,7 @@ public class UI {
 		checkboxes[parametersCounters[7]].setStatus(init);
 	    checkboxes[parametersCounters[7]].linkTo(parametersInfo);
 	    if(visibility) checkboxes[parametersCounters[7]].addTo(currentGroup);
-        dsp_faust.setParamValue(address, init);
+        FaustActivity.dspFaust.setParamValue(address, init);
 
         // OSC listener
         final int parameterId = parametersCounters[7];

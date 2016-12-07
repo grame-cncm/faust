@@ -1,4 +1,4 @@
-version := 0.9.93ec
+version := 0.9.94ec
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -120,6 +120,7 @@ install :
 	rm -rf $(prefix)/share/faust/AU/
 	cp -r architecture/AU $(prefix)/share/faust/
 	cp -r architecture/android $(prefix)/share/faust/
+	cp -r architecture/api $(prefix)/share/faust/
 	cp -r architecture/max-msp $(prefix)/share/faust/
 
 	# install math documentation files

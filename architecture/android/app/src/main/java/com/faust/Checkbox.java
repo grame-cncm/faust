@@ -1,7 +1,5 @@
 package com.faust;
 
-import com.dsp_faust.dsp_faust;
-
 import android.content.Context;
 import android.graphics.Color;
 import android.view.Gravity;
@@ -84,7 +82,7 @@ class Checkbox{
         	public void onCheckedChanged(CompoundButton buttonView,boolean isChecked) {
         		if (isChecked) parametersInfo.values[id] = 1.f;
         		else parametersInfo.values[id] = 0.f;
-        		dsp_faust.setParamValue(address, parametersInfo.values[id]);
+        		FaustActivity.dspFaust.setParamValue(address, parametersInfo.values[id]);
         	}
         });
 	}
