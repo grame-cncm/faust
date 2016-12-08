@@ -106,7 +106,7 @@ for f in $FILES; do
     if [ $EMCC = emcc ] ; then
         faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
-        faust -lang wasm $SVG $OPTIONS $f -o $name.wast || exit
+        faust -lang wast $SVG $OPTIONS $f -o $name.wast || exit
         #wasm-opt $name.wast -O3 -o $name.wast
         wasm-as $name.wast -o $name.wasm
     fi

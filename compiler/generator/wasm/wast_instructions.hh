@@ -19,14 +19,14 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _WASM_INSTRUCTIONS_H
-#define _WASM_INSTRUCTIONS_H
+#ifndef _WAST_INSTRUCTIONS_H
+#define _WAST_INSTRUCTIONS_H
 
 #include "was_instructions.hh"
 
 using namespace std;
 
-class WASMInstVisitor : public TextInstVisitor,  public WASInst {
+class WASTInstVisitor : public TextInstVisitor,  public WASInst {
     
      private:
     
@@ -85,11 +85,11 @@ class WASMInstVisitor : public TextInstVisitor,  public WASInst {
     
     public:
 
-        WASMInstVisitor(std::ostream* out, int tab = 0)
+        WASTInstVisitor(std::ostream* out, int tab = 0)
             :TextInstVisitor(out, ".", tab), WASInst()
         {}
 
-        virtual ~WASMInstVisitor()
+        virtual ~WASTInstVisitor()
         {}
     
         virtual void visit(DeclareVarInst* inst)

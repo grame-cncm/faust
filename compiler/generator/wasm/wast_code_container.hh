@@ -19,37 +19,37 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _WASM_CODE_CONTAINER_H
-#define _WASM_CODE_CONTAINER_H
+#ifndef _WAST_CODE_CONTAINER_H
+#define _WAST_CODE_CONTAINER_H
 
 #include "code_container.hh"
-#include "wasm_instructions.hh"
+#include "wast_instructions.hh"
 #include "dsp_factory.hh"
 #include "fir_to_fir.hh"
 
 using namespace std;
 
-class WASMCodeContainer : public virtual CodeContainer {
+class WASTCodeContainer : public virtual CodeContainer {
 
     protected:
 
         std::ostream* fOut;
         std::stringstream fHelper;
     
-        void generateWASMBlock(BlockInst* instructions)
+        void generateWASTBlock(BlockInst* instructions)
         {
             // Moves all variables declaration at the beginning of the block
             MoveVariablesInFront3 mover;
             BlockInst* block = mover.getCode(instructions);
-            block->accept(gGlobal->gWASMVisitor);
+            block->accept(gGlobal->gWASTVisitor);
         }
     
         DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn);
   
     public:
 
-        WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
-        virtual ~WASMCodeContainer()
+        WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
+        virtual ~WASTCodeContainer()
         {}
 
         virtual void produceClass();
@@ -63,14 +63,14 @@ class WASMCodeContainer : public virtual CodeContainer {
         static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst = new stringstream());
 };
 
-class WASMScalarCodeContainer : public WASMCodeContainer {
+class WASTScalarCodeContainer : public WASTCodeContainer {
 
     protected:
 
     public:
 
-        WASMScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
-        virtual ~WASMScalarCodeContainer();
+        WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
+        virtual ~WASTScalarCodeContainer();
 
         void generateCompute(int tab);
 

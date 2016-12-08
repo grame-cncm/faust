@@ -54,6 +54,7 @@ class Garbageable;
 struct LLVMResult;
 
 class ASMJAVAScriptInstVisitor;
+class WASTInstVisitor;
 class WASMInstVisitor;
 
 class dsp_factory_base;
@@ -437,6 +438,7 @@ struct global {
     
     // One single global visitor for WebAssembly, so that sub-containers and main class use the same heap
     WASMInstVisitor* gWASMVisitor;
+    WASTInstVisitor* gWASTVisitor;
     
     bool gHelpSwitch;
     bool gVersionSwitch;

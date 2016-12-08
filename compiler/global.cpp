@@ -297,6 +297,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gASMJSVisitor = 0;  // Will be (possibly) allocated in ASMJS backend
     
     gWASMVisitor = 0;   // Will be (possibly) allocated in WebAssembly backend
+    gWASTVisitor = 0;   // Will be (possibly) allocated in WebAssembly backend
     
     gHelpSwitch = false;
     gVersionSwitch = false;
