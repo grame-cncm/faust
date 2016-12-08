@@ -522,6 +522,7 @@
 <pre><code>import(&quot;stdfaust.lib&quot;);</code></pre>
 <p>This will give you access to all the Faust libraries through a series of environments:</p>
 <ul>
+<li><code>sf</code>: <code>all.lib</code></li>
 <li><code>an</code>: <code>analyzer.lib</code></li>
 <li><code>ba</code>: <code>basic.lib</code></li>
 <li><code>co</code>: <code>compressor.lib</code></li>
@@ -547,6 +548,9 @@
 <pre><code>import(&quot;stdfaust.lib&quot;);
 process = os.osc(440);</code></pre>
 <p>In this case, we're calling the <code>osc</code> function from <code>miscoscillator.lib</code>.</p>
+<p>You can also access all the functions of all the libraries directly using the <code>sf</code> environment:</p>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+process = sf.osc(440);</code></pre>
 <p>Alternatively, environments can be created by hand:</p>
 <pre><code>os = library(&quot;miscoscillator.lib&quot;);
 process = os.osc(440);</code></pre>
