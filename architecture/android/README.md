@@ -1,4 +1,4 @@
-# Faust2android
+# `faust2android` Documentation
 
 <img src="img/faust2android.png" width="80%" class="center-block">
 
@@ -28,7 +28,7 @@ Now you should be able to run Android Studio from your terminal simply by callin
 	
 In Android Studio, in `Tools/Android/SDK Manager`, make sure that you have the latest SDK installed (Android 7.1.1 as of Dec. 8, 2016). Next click on the "SDK Tools" tab and install `CMake` and the `NDK`. Android Studio should automatically create an `/Sdk` folder in your `/Android` folder (`/Android/Sdk`)
 
-Create dynamic links to `/Android/Sdk/ndk-bundle` and `/Android/Sdk` as follow:
+Create dynamic links to `/Android/Sdk/ndk-bundle` and `/Android/Sdk` as follows:
 
 	ln -s ~/Android/Sdk/ndk-bundle ndk
 	ln -s ~/Android/Sdk sdk
@@ -51,11 +51,11 @@ Finally, make sure that the `JAVA_HOME` environment variable is properly configu
 
 ## Generating an App
 
-`faust2android` can simply be called from the command line as follow:
+`faust2android` can simply be called from the command line:
 
 	faust2android faustFile.dsp
 	
-Where `faustFile.dsp` is a Faust program. This will generate a `.apk` file ready to be installed on any Android device!
+where `faustFile.dsp` is a Faust program. This will generate a `.apk` file ready to be installed on any Android device!
 
 The following options are available:
 
@@ -92,7 +92,7 @@ When used in the top group of a Faust code, `[style:keyboard]` assigns a polypho
 
 	import("stdfaust.lib");
 	freqMod = hslider("h:Modulator/Frequency", 777, 20, 15000, 1) : si.smoo;
-	modIndex = hslider("h:Modulator/Modulation Index", 1000, 0, 10000, 1) : si.smoo);
+	modIndex = hslider("h:Modulator/Modulation Index", 1000, 0, 10000, 1) : si.smoo;
 	freq = hslider("h:General Parameters/freq", 440, 20, 8000, 1) : si.smoo;
 	gain = hslider("gain", 1, 0, 1, 0.01) : si.smoo;
 	gate = button("gate") : si.smoo;
