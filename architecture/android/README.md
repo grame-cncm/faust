@@ -73,3 +73,70 @@ For example:
 	faust2android -install faustFile.dsp	
 
 will both create an app and install it on any device connected to your computer.
+
+## Features
+
+Any standard Faust code can be used with `faust2android` and all the usual user interface elements are available (groups, hsliders, vsliders, knobs, buttons, check boxes, drop down menus, bar graphs, radio buttons, numerical entries, etc.). In addition to that, a set of meta data specific to `faust2android` can be used. 
+
+### Accelerometer Assignment
+
+All the continuous user interface elements of faust2android apps can be controlled using the built-in accelerometers of the device either by assigning them manually through the app interface or from the Faust code using meta data (check [this tutorial](https://ccrma.stanford.edu/~rmichon/faustTutorials/#using-built-in-sensors-to-control-parameters) to learn how to do that).
+
+From the app interface, make sure that the lock at the top right corner is unlocked and hold the name of the parameter you want to control for more than two seconds and the following interface should show up:
+
+<img src="img/accel.png" width="40%" class="center-block">
+
+### Keyboard Interface
+
+When used in the top group of a Faust code, `[style:keyboard]` assigns a polyphonic piano keyboard to the `freq`, `gain` and `gate` parameters of the object. For example, the following code:
+
+	import("stdfaust.lib");
+	freqMod = hslider("h:Modulator/Frequency", 777, 20, 15000, 1) : si.smoo;
+	modIndex = hslider("h:Modulator/Modulation Index", 1000, 0, 10000, 1) : si.smoo);
+	freq = hslider("h:General Parameters/freq", 440, 20, 8000, 1) : si.smoo;
+	gain = hslider("gain", 1, 0, 1, 0.01) : si.smoo;
+	gate = button("gate") : si.smoo;
+	process = vgroup("FMsynth [style:keyboard]",os.osc(freqMod)*modIndex + freq : os.osc*gate*gain <: _,_);
+
+will generate an app with the following interface:
+
+<img src="img/keyb.png" width="65%" class="center-block">
+
+Notice that the `freq`, `gain` and `gate` parameters were automatically removed from the main interface.
+
+### "Multi" Interface 
+
+Similarly to `[style:keyboard]`, `[style:multi]` should be placed in the top group of a Faust object. This will create a 2 dimensional interface where parameters are represented by dots. One dot can control 2 parameters (X and Y axis). Parameters in the Faust code should be linked to the interface using the `[multi:x]` meta data where "x" is the parameter number in the interface. For example, adapting the Faust code presented previously:
+
+	import("stdfaust.lib");
+	freqMod = hslider("h:Modulator/Frequency [multi:0]", 777, 20, 15000, 1) : si.smoo;
+	modIndex = hslider("h:Modulator/Modulation Index [multi:1]", 1000, 0, 10000, 1) : si.smoo;
+	freq = hslider("h:General Parameters/freq [multi:2]", 440, 20, 8000, 1) : si.smoo;
+	gain = hslider("gain [multi:3]", 1, 0, 1, 0.01) : si.smoo;
+	gate = checkbox("gate") : si.smoo;
+	process = vgroup("FMsynth [style:multi]",os.osc(freqMod)*modIndex + freq : os.osc*gate*gain <: *_,_);
+	
+will generate an app with the following interface:
+
+<img src="img/multi.png" width="65%" class="center-block">
+
+`[multi:0]` assigns the parameter to the X axis of the first dot. `[multi:1]` assigns the parameter to the Y axis of the second dot. `[multi:2]` assigns the parameter to the X axis of the second dot and so on. If `[multi:x]` is not used anywhere, the interface will be empty.
+
+### "Multi-Keyboard" Interface
+
+Combines the `multi` and the `keyboard` interfaces. For example, the following code:
+
+	import("stdfaust.lib");
+	freqMod = hslider("h:Modulator/Frequency [multi:0]", 777, 20, 15000, 1) : si.smoo;
+	modIndex = hslider("h:Modulator/Modulation Index [multi:1]", 1000, 0, 10000, 1) : si.smoo;
+	freq = hslider("h:General Parameters/freq", 440, 20, 8000, 1) : si.smoo);
+	gain = hslider("gain", 1, 0, 1, 0.01) : si.smoo;
+	gate = button("gate") : si.smoo;
+	process = vgroup("FMsynth [style:multikeyboard]",os.osc(freqMod)*modIndex + freq : os.osc*gate*gain <: _,_);
+	
+will generate an app with the following interface:
+
+<img src="img/multiKeyb.png" width="65%" class="center-block">
+
+A similar tool exists for iOS (`faust2ios`) and is part of the distribution too. While it works in a similar way than `faust2android`, it is unfortunately not documented.
+
