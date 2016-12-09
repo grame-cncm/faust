@@ -187,6 +187,34 @@ class dsp_optimizer {
                 fOptionsTable.push_back(t1);
             }
             
+            // vec -lv 0 -g
+            for (int size = 4; size <= fVSIZE; size *= 2) {
+                std::stringstream num;
+                num << size;
+                std::vector <std::string> t1;
+                t1.push_back("-vec");
+                t1.push_back("-lv");
+                t1.push_back("0");
+                t1.push_back("-vs");
+                t1.push_back(num.str());
+                t1.push_back("-g");
+                fOptionsTable.push_back(t1);
+            }
+            
+            // vec -lv 1 -g
+            for (int size = 4; size <= fVSIZE; size *= 2) {
+                std::stringstream num;
+                num << size;
+                std::vector <std::string> t1;
+                t1.push_back("-vec");
+                t1.push_back("-lv");
+                t1.push_back("1");
+                t1.push_back("-vs");
+                t1.push_back(num.str());
+                t1.push_back("-g");
+                fOptionsTable.push_back(t1);
+            }
+       
             // vec -lv 0 -dfs
             for (int size = 4; size <= fVSIZE; size *= 2) {
                 std::stringstream num;
