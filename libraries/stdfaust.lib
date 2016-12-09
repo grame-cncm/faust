@@ -23,3 +23,4 @@ sp = library("spat.lib");
 si = library("signal.lib");
 sy = library("synth.lib");
 ve = library("vaeffect.lib");
+sf = library("all.lib");
