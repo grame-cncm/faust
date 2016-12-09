@@ -290,9 +290,12 @@ class FaustPolyEngine {
          */
         void setParamValue(const char* address, float value)
         {
-            fAPIUI.setParamValue(fAPIUI.getParamIndex(address), value);
-            // In POLY mode, update all voices
-            GUI::updateAllGuis();
+            int id = fAPIUI.getParamIndex(address);
+            if (id >= 0) {
+                fAPIUI.setParamValue(id, value);
+                // In POLY mode, update all voices
+                GUI::updateAllGuis();
+            }
         }
 
         /*
@@ -302,7 +305,8 @@ class FaustPolyEngine {
          */
         float getParamValue(const char* address)
         {
-            return fAPIUI.getParamValue(fAPIUI.getParamIndex(address));
+            int id = fAPIUI.getParamIndex(address);
+            return (id >= 0) ? fAPIUI.getParamValue(id) : 0.f;
         }
     
         /*
