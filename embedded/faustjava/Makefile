@@ -1,6 +1,6 @@
 all : libFaustEngine.jnilib libFaust.jnilib TestFaust.class TestFaustEngine.class 
 
-libFaustEngine.jnilib : ../../architecture/faust/dsp/faust-engine.cpp ../../architecture/faust/dsp/faust-engine.h FaustEngine.i
+libFaustEngine.jnilib : ../../architecture/faust/dsp/faust-dynamic-engine.cpp ../../architecture/faust/dsp/faust-dynamic-engine.h FaustEngine.i
 	./faust2engine 
 
 libFaust.jnilib : libfaust_ext.cpp libfaust_ext.h Faust.i
