@@ -22,11 +22,10 @@
 
 /*
  sourcereader : Faust source file reader
- 
- This component is in charge of mapping filenames to 
+ This component is in charge of mapping filenames to
  the list of faust definitions they contain.
- 
- */
+*/
+
 #include <iostream>
 #include <map>
 #include <list>
@@ -48,7 +47,6 @@
 #include "global.hh"
 #include "Text.hh"
 
-
 using namespace std;
 
 int yylex_destroy(void);
@@ -61,10 +59,10 @@ void yyrestart(FILE *new_file);
 int yyparse();
 struct yy_buffer_state* yy_scan_string (const char *yy_str); // In principle YY_BUFFER_STATE
 
-extern int 		yyerr;
-extern int 		yydebug;
-extern FILE*	yyin;
-extern int		yylineno;
+extern int      yyerr;
+extern int      yydebug;
+extern FILE*    yyin;
+extern int      yylineno;
 
 extern const char* yyfilename;
 

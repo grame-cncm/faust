@@ -87,7 +87,7 @@ static void addLayerDef(Tree id, Tree def, Tree lenv)
     Tree olddef;
     if (getProperty(lenv, id, olddef)) {
         if (def == olddef) {
-            evalwarning(getDefFileProp(id), getDefLineProp(id), "equivalent re-definitions of", id);
+            //evalwarning(getDefFileProp(id), getDefLineProp(id), "equivalent re-definitions of", id);
         } else {
             stringstream error;
             error << getDefFileProp(id) << ':' << getDefLineProp(id) << " ERROR: redefinition of symbols are not allowed : " << boxpp(id) << endl;
