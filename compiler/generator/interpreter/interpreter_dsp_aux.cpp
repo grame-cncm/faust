@@ -75,11 +75,8 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
         argv1[argc1++] = "-o";
         argv1[argc1++] = "string";
         
-        // Remove actual filename if present by keeping only -xxx type of element
         for (int i = 0; i < argc; i++) {
-            if (argv[i][0] == '-') {
-                argv1[argc1++] = argv[i];
-            }
+            argv1[argc1++] = argv[i];
         }
         
         argv1[argc1] = 0;  // NULL terminated argv

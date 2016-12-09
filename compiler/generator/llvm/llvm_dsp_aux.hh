@@ -160,7 +160,11 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
    
         dsp* createDSPInstance(dsp_factory* factory);
     
-        virtual void write(std::ostream* out, bool binary, bool small = false);
+        void write(std::ostream* out, bool binary, bool small = false);
+    
+        void metadata(Meta* m);
+    
+        void metadata(MetaGlue* glue);
    
         static int gInstance;
 };
@@ -199,9 +203,9 @@ class llvm_dsp_aux : public dsp {
     
         virtual dsp* clone() { assert(false); return nullptr; } // to be implemented by subclass
     
-        void metadata(Meta* m);
+        virtual void metadata(Meta* m);
     
-        void metadata(MetaGlue* glue);
+        virtual void metadata(MetaGlue* glue);
     
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
         

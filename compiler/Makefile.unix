@@ -658,8 +658,9 @@ generator/wasm/wasm_code_container.o: signals/signals.hh generator/uitree.hh glo
 generator/wasm/wasm_code_container.o: boxes/boxes.hh evaluate/loopDetector.hh tlib/occurrences.hh generator/floats.hh
 generator/wasm/wasm_code_container.o: generator/function_builder.hh parallelize/code_loop.hh
 generator/wasm/wasm_code_container.o: generator/json_instructions.hh dsp_factory.hh generator/wasm/wasm_instructions.hh
-generator/wasm/wasm_code_container.o: generator/fir_to_fir.hh generator/fir/fir_instructions.hh
-generator/wasm/wasm_code_container.o: generator/type_manager.hh errors/exception.hh
+generator/wasm/wasm_code_container.o: generator/wasm/was_instructions.hh generator/text_instructions.hh
+generator/wasm/wasm_code_container.o: generator/type_manager.hh generator/typing_instructions.hh
+generator/wasm/wasm_code_container.o: generator/fir_to_fir.hh generator/fir/fir_instructions.hh errors/exception.hh
 generator/wasm/wasm_dsp_aux.o: tlib/compatibility.hh generator/wasm/wasm_dsp_aux.hh export.hh generator/dsp_aux.hh
 generator/wasm/wasm_dsp_aux.o: dsp_factory.hh generator/Text.hh
 generator/wasm/wast_code_container.o: generator/wasm/wast_code_container.hh generator/code_container.hh
@@ -671,8 +672,9 @@ generator/wasm/wast_code_container.o: signals/signals.hh generator/uitree.hh glo
 generator/wasm/wast_code_container.o: boxes/boxes.hh evaluate/loopDetector.hh tlib/occurrences.hh generator/floats.hh
 generator/wasm/wast_code_container.o: generator/function_builder.hh parallelize/code_loop.hh
 generator/wasm/wast_code_container.o: generator/json_instructions.hh dsp_factory.hh generator/wasm/wast_instructions.hh
-generator/wasm/wast_code_container.o: generator/fir_to_fir.hh generator/fir/fir_instructions.hh
-generator/wasm/wast_code_container.o: generator/type_manager.hh errors/exception.hh
+generator/wasm/wast_code_container.o: generator/wasm/was_instructions.hh generator/text_instructions.hh
+generator/wasm/wast_code_container.o: generator/type_manager.hh generator/typing_instructions.hh
+generator/wasm/wast_code_container.o: generator/fir_to_fir.hh generator/fir/fir_instructions.hh errors/exception.hh
 generator/wss_code_container.o: generator/wss_code_container.hh generator/code_container.hh generator/instructions.hh
 generator/wss_code_container.o: signals/binop.hh tlib/node.hh tlib/symbol.hh garbageable.hh
 generator/wss_code_container.o: generator/interpreter/fir_opcode.hh tlib/property.hh tlib/tree.hh generator/Text.hh
@@ -863,7 +865,8 @@ libcode.o: generator/cpp/cpp_gpu_code_container.hh generator/java/java_code_cont
 libcode.o: generator/java/java_instructions.hh generator/typing_instructions.hh generator/js/js_code_container.hh
 libcode.o: generator/js/js_instructions.hh generator/asmjs/asmjs_code_container.hh
 libcode.o: generator/asmjs/asmjs_instructions.hh generator/fir_to_fir.hh generator/fir/fir_instructions.hh
-libcode.o: generator/wasm/wasm_code_container.hh generator/wasm/wasm_instructions.hh
+libcode.o: generator/wasm/wasm_code_container.hh generator/wasm/wasm_instructions.hh generator/wasm/was_instructions.hh
+libcode.o: generator/wasm/wast_code_container.hh generator/wasm/wast_instructions.hh
 libcode.o: generator/llvm/clang_code_container.hh export.hh generator/interpreter/interpreter_code_container.cpp
 libcode.o: errors/exception.hh generator/interpreter/interpreter_code_container.hh
 libcode.o: generator/interpreter/interpreter_dsp_aux.hh generator/interpreter/fir_interpreter.hh

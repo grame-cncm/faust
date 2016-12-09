@@ -260,14 +260,14 @@ class dsp_optimizer {
             }
             
             if (!fFactory) {
-                std::cout << "Cannot create factory : " << fError << std::endl;
+                std::cerr << "Cannot create factory : " << fError << std::endl;
                 return false;
             }
             
             fDSP = fFactory->createDSPInstance();
             
             if (!fDSP) {
-                std::cout << "Cannot create instance..." << std::endl;
+                std::cerr << "Cannot create instance..." << std::endl;
                 return false;
             }
             
@@ -290,7 +290,7 @@ class dsp_optimizer {
                 if (computeOne(options[i], res)) {
                     table_res.push_back(std::make_pair(i, res));
                 } else {
-                    std::cout << "computeOne error..." << std::endl;
+                    std::cerr << "computeOne error..." << std::endl;
                 }
             }
             
@@ -309,10 +309,10 @@ class dsp_optimizer {
             int res;
             
             if ((res = pthread_attr_getstacksize(&attributes, &size))) {
-                std::cout << "pthread_attr_getstacksize error " << res << std::endl;
+                std::cerr << "pthread_attr_getstacksize error " << res << std::endl;
                 return 0;
             } else {
-                std::cout << "getStackSize size = " << size << std::endl;
+                std::cerr << "getStackSize size = " << size << std::endl;
                 return size;
             }
         }
@@ -324,7 +324,7 @@ class dsp_optimizer {
             int res;
             
             if ((res = pthread_attr_setstacksize(&attributes, size))) {
-                std::cout << "pthread_attr_setstacksize error " << res << std::endl;
+                std::cerr << "pthread_attr_setstacksize error " << res << std::endl;
             }
             
             std::cout << "setStackSize size = " << size << std::endl;
@@ -362,7 +362,7 @@ class dsp_optimizer {
                 delete fBench;
                 fBench = new time_bench(cout, 10);
             } else {
-                std::cout << "Error dsp_optimizer" << std::endl;
+                std::cerr << "Error in dsp_optimizer constructor" << std::endl;
                 throw std::bad_alloc();
             }
         }
@@ -397,7 +397,7 @@ class dsp_optimizer {
                 delete fBench;
                 fBench = new time_bench(cout, 10);
             } else {
-                std::cout << "Error dsp_optimizer" << std::endl;
+                std::cerr << "Error dsp_optimizer constructor" << std::endl;
                 throw std::bad_alloc();
             }
         }

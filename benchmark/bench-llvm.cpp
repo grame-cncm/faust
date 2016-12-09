@@ -39,15 +39,17 @@ int main(int argc, char* argv[])
     if (isopt(argv, "-vec")) index += 2;
     int VSIZE = lopt(argv, "-vec", 512);
     
-    dsp_optimizer optimizer(argv[index], "/usr/local/share/faust", "", VSIZE);
-    double value;
-    vector<string> options = optimizer.findOptimizedParameters(value);
-    
-    cout << "Best compilation parameters for '" << argv[1] << "' are : ";
-    for (int i = 0; i < options.size(); i++) {
-        cout << options[i] << " ";
-    }
-    cout << "value = " << value;
-    cout << endl;
+    try {
+        dsp_optimizer optimizer(argv[index], "/usr/local/share/faust", "", VSIZE);
+        double value;
+        vector<string> options = optimizer.findOptimizedParameters(value);
+        
+        cout << "Best compilation parameters for '" << argv[1] << "' are : ";
+        for (int i = 0; i < options.size(); i++) {
+            cout << options[i] << " ";
+        }
+        cout << "value = " << value;
+        cout << endl;
+    } catch (...) {}
   	return 0;
 }

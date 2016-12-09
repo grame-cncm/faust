@@ -961,6 +961,18 @@ void llvm_dsp_factory_aux::write(std::ostream* out, bool binary, bool small)
     *out << out_str.str();
 }
 
+void llvm_dsp_factory_aux::metadata(Meta* m)
+{
+    MetaGlue glue;
+    buildMetaGlue(&glue, m);
+    fMetadata(&glue);
+}
+
+void llvm_dsp_factory_aux::metadata(MetaGlue* glue)
+{
+    return fMetadata(glue);
+}
+
 // Instance
 
 llvm_dsp_aux::llvm_dsp_aux(llvm_dsp_factory_aux* factory, llvm_dsp_imp* dsp)
@@ -981,14 +993,12 @@ llvm_dsp_aux::~llvm_dsp_aux()
 
 void llvm_dsp_aux::metadata(Meta* m)
 {
-    MetaGlue glue;
-    buildMetaGlue(&glue, m);
-    return fFactory->fMetadata(&glue);
+    return fFactory->metadata(m);
 }
 
 void llvm_dsp_aux::metadata(MetaGlue* glue)
 {
-    return fFactory->fMetadata(glue);
+    return fFactory->metadata(glue);
 }
 
 int llvm_dsp_aux::getNumInputs()
@@ -1108,10 +1118,9 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
         argv1[argc1++] = "-o";
         argv1[argc1++] = "string";
         
-        // Filter arguments (and remove actual filename if present by keeping only -xxx type of element)
+        // Filter arguments
         for (int i = 0; i < argc; i++) {
-            if (argv[i][0] == '-' &&
-                !(strcmp(argv[i],"-tg") == 0 ||
+            if (!(strcmp(argv[i],"-tg") == 0 ||
                   strcmp(argv[i],"-sg") == 0 ||
                   strcmp(argv[i],"-ps") == 0 ||
                   strcmp(argv[i],"-svg") == 0 ||

@@ -291,7 +291,6 @@ Tree SourceReader::parsefile(const char* fname)
         yy_scan_string(buffer);
         Tree res = parse(yyfilename);
         // 'http_fetch' result must be deallocated
-        checkName();
         free(buffer);
         return res;
     #endif
@@ -321,7 +320,6 @@ Tree SourceReader::parsefile(const char* fname)
             throw faustexception(error.str());
         }
         Tree res = parse(fullpath.c_str());
-        checkName();
         fclose(tmp_file);
         return res;
     #endif
@@ -344,21 +342,22 @@ Tree SourceReader::parse(const char* fname)
 {
     int r = yyparse();
     stringstream error;
-    
- 	if (r) { 
+
+    if (r) { 
         error << "Parse error : code = " << r << endl;
         throw faustexception(error.str());
-	}
-	if (yyerr > 0) {
+    }
+    if (yyerr > 0) {
         error << "ERROR : parse, code = " << yyerr << endl;
         throw faustexception(error.str());
-	}
-    
+    }
+
     yylex_destroy();
-    
-	// we have parsed a valid file
-	fFilePathnames.push_back(fname);
-	return gGlobal->gResult;
+
+    // We have parsed a valid file
+    checkName();
+    fFilePathnames.push_back(fname);
+    return gGlobal->gResult;
 }
 
 /**

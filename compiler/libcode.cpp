@@ -397,7 +397,7 @@ static bool process_cmdline(int argc, const char* argv[])
                 char* path = realpath(argv[i+1], temp);
                 if (path == 0) {
                     stringstream error;
-                    error << "ERROR : invalid directory path " << argv[i+1] << std::endl;
+                    error << "ERROR : invalid directory path " << argv[i+1] << endl;
                     throw faustexception(error.str());
                 } else {
                     gGlobal->gImportDirList.push_back(path);
@@ -414,7 +414,7 @@ static bool process_cmdline(int argc, const char* argv[])
             char* path = realpath(argv[i+1], temp);
             if (path == 0) {
                 stringstream error;
-                error << "ERROR : invalid directory path " << argv[i+1] << std::endl;
+                error << "ERROR : invalid directory path " << argv[i+1] << endl;
                 throw faustexception(error.str());
             } else {
                 gGlobal->gOutputDir = path;
@@ -691,7 +691,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
         cout << "---------------------------\n";
         // print the pathnames of the files used to evaluate process
         vector<string> pathnames = gGlobal->gReader.listSrcFiles();
-        for (unsigned int i = 0; i< pathnames.size(); i++) cout << pathnames[i] << std::endl;
+        for (unsigned int i = 0; i< pathnames.size(); i++) cout << pathnames[i] << endl;
         cout << "---------------------------\n";
         cout << endl;
     }
@@ -733,7 +733,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         char* path = realpath(directory, temp);
         if (path == 0) {
             stringstream error;
-            error << "ERROR : invalid directory path " << directory << std::endl;
+            error << "ERROR : invalid directory path " << directory << endl;
             throw faustexception(error.str());
         }
         */
@@ -1195,7 +1195,7 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
     
 // Backend API
     
-dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& error_msg, bool generate)
+dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char* name, const char* dsp_content, string& error_msg, bool generate)
 {
     gGlobal = NULL;
     dsp_factory_base* factory = NULL;
@@ -1213,7 +1213,7 @@ dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char
     return factory;
 }
 
-string expand_dsp(int argc, const char* argv[], const char* name, const char* dsp_content, std::string& sha_key, std::string& error_msg)
+string expand_dsp(int argc, const char* argv[], const char* name, const char* dsp_content, string& sha_key, string& error_msg)
 {
     string res = "";
     gGlobal = NULL;

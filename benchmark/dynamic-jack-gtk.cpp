@@ -97,12 +97,14 @@ int main(int argc, char *argv[])
     std::string error_msg;
     if (is_llvm) {
         std::cout << "Using LLVM backend" << std::endl;
-        //factory = createDSPFactoryFromFile(argv[argc-1], argc-id, (const char**)&argv[id], "", error_msg, -1);
-        factory = createDSPFactoryFromString("TOTO", pathToContent(argv[argc-1]), argc-id, (const char**)&argv[id], "", error_msg, -1);
+        // argc : without the filename (last element);
+        factory = createDSPFactoryFromFile(argv[argc-1], argc-id-1, (const char**)&argv[id], "", error_msg, -1);
+        //factory = createDSPFactoryFromString("FaustLLVM", pathToContent(argv[argc-1]), argc-id-1, (const char**)&argv[id], "", error_msg, -1);
     } else {
         std::cout << "Using interpreter backend" << std::endl;
-        //factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-id, (const char**)&argv[id], error_msg);
-        factory = createInterpreterDSPFactoryFromString("TITI", pathToContent(argv[argc-1]), argc-id, (const char**)&argv[id], error_msg);
+        // argc : without the filename (last element);
+        factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-id-1, (const char**)&argv[id], error_msg);
+        //factory = createInterpreterDSPFactoryFromString("FaustInterp", pathToContent(argv[argc-1]), argc-id-1, (const char**)&argv[id], error_msg);
     }
     
     cout << "getName " << factory->getName() << endl;
