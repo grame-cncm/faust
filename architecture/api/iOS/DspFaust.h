@@ -24,6 +24,7 @@
 //==========================================
 
 class FaustPolyEngine;
+class MidiUI;
 
 class DspFaust
 {
@@ -314,6 +315,7 @@ public:
 	
 private:
     FaustPolyEngine *fPolyEngine;
+    MidiUI *fMidiUI;
 };
 
 #endif

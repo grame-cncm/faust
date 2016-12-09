@@ -63,19 +63,29 @@ DspFaust::DspFaust(int sample_rate, int buffer_size){
 	fPolyEngine = new FaustPolyEngine(new iosaudio(sample_rate, buffer_size));
 
 #if IOS_MIDI_SUPPORT
-	fPolyEngine->buildUserInterface(new MidiUI(new rt_midi()));
+    fMidiUI = new MidiUI(new rt_midi());
+	fPolyEngine->buildUserInterface(fMidiUI);
 #endif
 }
 
 DspFaust::~DspFaust(){
 	delete fPolyEngine;
+#if IOS_MIDI_SUPPORT
+    delete fMidiUI;
+#endif
 }
 
 bool DspFaust::start(){
+#if IOS_MIDI_SUPPORT
+    fMidiUI->run();
+#endif
 	return fPolyEngine->start();
 }
 
 void DspFaust::stop(){
+#if IOS_MIDI_SUPPORT
+    fMidiUI->stop();
+#endif
 	fPolyEngine->stop();
 }
 
