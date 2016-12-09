@@ -249,8 +249,8 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                 DeclareVarInst* dec_inst = dynamic_cast<DeclareVarInst*>(*it);
                 StoreVarInst* store_inst = dynamic_cast<StoreVarInst*>(*it);
                 if (dec_inst) {
-                    dec.push_back(new DeclareVarInst(dec_inst->fAddress->clone(&cloner), dec_inst->fType->clone(&cloner), NULL));
-                    store.push_back(new StoreVarInst(dec_inst->fAddress->clone(&cloner), dec_inst->fValue->clone(&cloner)));
+                    dec.push_back(InstBuilder::genDeclareVarInst(dec_inst->fAddress->clone(&cloner), dec_inst->fType->clone(&cloner)));
+                    store.push_back(InstBuilder::genStoreVarInst(dec_inst->fAddress->clone(&cloner), dec_inst->fValue->clone(&cloner)));
                 } else if (store_inst) {
                     store.push_back(store_inst->clone(&cloner));
                 } else {
@@ -401,9 +401,9 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
                 if (inst->fAddress->getAccess() == Address::kLoop) {
                     // Rename loop index with a fresh one
                     fInLoop = gGlobal->getFreshID("re_i");
-                    return new DeclareVarInst(renameAddress(inst->fAddress, fInLoop), inst->fType->clone(this), (inst->fValue) ? inst->fValue->clone(this) : NULL);
+                    return InstBuilder::genDeclareVarInst(renameAddress(inst->fAddress, fInLoop), inst->fType->clone(this), (inst->fValue) ? inst->fValue->clone(this) : NULL);
                 } else {
-                    return new DeclareVarInst(inst->fAddress->clone(this), inst->fType->clone(this), (inst->fValue) ? inst->fValue->clone(this) : NULL);
+                    return InstBuilder::genDeclareVarInst(inst->fAddress->clone(this), inst->fType->clone(this), (inst->fValue) ? inst->fValue->clone(this) : NULL);
                 }
             }
             
@@ -411,7 +411,7 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
             {
                 if (inst->fAddress->getAccess() == Address::kLoop) {
                     // Rename loop index
-                    return new LoadVarInst(renameAddress(inst->fAddress, fInLoop));
+                    return InstBuilder::genLoadVarInst(renameAddress(inst->fAddress, fInLoop));
                 } else {
                     BasicCloneVisitor cloner;
                     return (inst->fAddress->getName() == fName) ? fArg->clone(&cloner) : inst->clone(&cloner);
@@ -423,12 +423,12 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
                 LoadVarInst* arg;
                 
                 if ((inst->fAddress->getName() == fName) && (arg = dynamic_cast<LoadVarInst*>(fArg))) {
-                    return new StoreVarInst(renameAddress(inst->fAddress, arg->fAddress->getName()), inst->fValue->clone(this));
+                    return InstBuilder::genStoreVarInst(renameAddress(inst->fAddress, arg->fAddress->getName()), inst->fValue->clone(this));
                 } else if (inst->fAddress->getAccess() == Address::kLoop) {
                     // Rename loop index
-                    return new StoreVarInst(renameAddress(inst->fAddress, fInLoop), inst->fValue->clone(this));
+                    return InstBuilder::genStoreVarInst(renameAddress(inst->fAddress, fInLoop), inst->fValue->clone(this));
                 } else {
-                    return new StoreVarInst(inst->fAddress->clone(this), inst->fValue->clone(this));
+                    return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), inst->fValue->clone(this));
                 }
             }
             

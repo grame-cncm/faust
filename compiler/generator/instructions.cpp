@@ -124,6 +124,7 @@ ValueInst* InstBuilder::genCastNumIntInst(ValueInst* inst)
     return InstBuilder::genCastNumInst(inst, InstBuilder::genBasicTyped(Typed::kInt));
 }
 
+// BasicTyped are not cloned, but actually point on the same underlying type
 Typed* BasicCloneVisitor::visit(BasicTyped* typed) { return gGlobal->gTypeTable[typed->fType]; }
 
 void Typed::init()
