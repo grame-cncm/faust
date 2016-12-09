@@ -393,7 +393,7 @@ SWIGEXPORT void JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1propagateMidi(
 }
 
 
-SWIGEXPORT jstring JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getJSON(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+SWIGEXPORT jstring JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getJSONUI(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   jstring jresult = 0 ;
   DspFaust *arg1 = (DspFaust *) 0 ;
   char *result = 0 ;
@@ -402,7 +402,22 @@ SWIGEXPORT jstring JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getJSON(JNI
   (void)jcls;
   (void)jarg1_;
   arg1 = *(DspFaust **)&jarg1; 
-  result = (char *)(arg1)->getJSON();
+  result = (char *)(arg1)->getJSONUI();
+  if (result) jresult = jenv->NewStringUTF((const char *)result);
+  return jresult;
+}
+
+
+SWIGEXPORT jstring JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getJSONMeta(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jstring jresult = 0 ;
+  DspFaust *arg1 = (DspFaust *) 0 ;
+  char *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(DspFaust **)&jarg1; 
+  result = (char *)(arg1)->getJSONMeta();
   if (result) jresult = jenv->NewStringUTF((const char *)result);
   return jresult;
 }

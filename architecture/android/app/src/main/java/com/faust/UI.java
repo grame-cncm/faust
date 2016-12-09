@@ -116,7 +116,7 @@ public class UI {
 		parametersWindow = new ConfigWindow();
 		
 		// get the JSON description from the native code
-		JSONparameters = FaustActivity.dspFaust.getJSON();
+		JSONparameters = FaustActivity.dspFaust.getJSONUI();
 		
 		// get the total number of parameters
 		int numberOfParameters = FaustActivity.dspFaust.getParamsCount();
