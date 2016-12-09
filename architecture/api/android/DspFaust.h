@@ -140,10 +140,15 @@ public:
 	//--------------------------------------------------------
 	void propagateMidi(int, double, int, int, int, int);
 	
-	//-----------------`const char* getJSON()`----------------
-	// Returns the JSON description of the Faust object. 
+	//-----------------`const char* getJSONUI()`----------------
+	// Returns the JSON description of the UI of the Faust object. 
 	//--------------------------------------------------------
-	const char* getJSON();
+	const char* getJSONUI();
+
+	//-----------------`const char* getJSONMeta()`----------------
+	// Returns the JSON description of the metadata of the Faust object. 
+	//--------------------------------------------------------
+	const char* getJSONMeta();
 	
 	//-----------------`int getParamsCount()`-----------------
 	// Returns the number of parameters of the Faust object. 

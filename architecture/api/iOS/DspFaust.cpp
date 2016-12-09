@@ -99,8 +99,12 @@ int DspFaust::deleteVoice(long voice){
 	return fPolyEngine->deleteVoice(voice);
 }
 
-const char* DspFaust::getJSON(){
-	return fPolyEngine->getJSON();
+const char* DspFaust::getJSONUI(){
+	return fPolyEngine->getJSONUI();
+}
+
+const char* DspFaust::getJSONMeta(){
+	return fPolyEngine->getJSONMeta();
 }
 
 int DspFaust::getParamsCount(){

@@ -92,8 +92,12 @@ void DspFaust::propagateMidi(int count, double time, int type, int channel, int 
 	fPolyEngine->propagateMidi(count, time, type, channel, data1, data2);
 }
 
-const char* DspFaust::getJSON(){
-	return fPolyEngine->getJSON();
+const char* DspFaust::getJSONUI(){
+	return fPolyEngine->getJSONUI();
+}
+
+const char* DspFaust::getJSONMeta(){
+	return fPolyEngine->getJSONMeta();
 }
 
 int DspFaust::getParamsCount(){

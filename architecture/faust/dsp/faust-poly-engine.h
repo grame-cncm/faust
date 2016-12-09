@@ -54,7 +54,8 @@ class FaustPolyEngine {
     
         APIUI fAPIUI;             // the UI description
 
-        string fJSON;
+        string fJSONUI;
+        string fJSONMeta;
         bool fRunning;
         int fPolyMax;
         audio* fDriver;
@@ -70,13 +71,18 @@ class FaustPolyEngine {
             fRunning = false;
             fMonoDSP = new mydsp();
 
-            // Configuring the UI
+            // Getting the UI JSON
             JSONUI jsonui1(fMonoDSP->getNumInputs(), fMonoDSP->getNumOutputs());
             fMonoDSP->buildUserInterface(&jsonui1);
-            fJSON = jsonui1.JSON();
+            fJSONUI = jsonui1.JSON();
+            
+            // Getting the metadata JSON
+            JSONUI jsonui1M(fMonoDSP->getNumInputs(), fMonoDSP->getNumOutputs());
+            fMonoDSP->metadata(&jsonui1M);
+            fJSONMeta = jsonui1M.JSON();
 
-            if (fJSON.find("keyboard") != std::string::npos
-                || fJSON.find("poly") != std::string::npos
+            if (fJSONUI.find("keyboard") != std::string::npos
+                || fJSONUI.find("poly") != std::string::npos
                 || POLY_VOICES != 0) {
                 
                 if (POLY_VOICES != 0) {
@@ -93,10 +99,13 @@ class FaustPolyEngine {
                 fFinalDSP = fPolyDSP;
             #endif
                 
-                // Update JSON with Poly version
+                // Update JSONs with Poly version
                 JSONUI jsonui2(fMonoDSP->getNumInputs(), fMonoDSP->getNumOutputs());
                 fFinalDSP->buildUserInterface(&jsonui2);
-                fJSON = jsonui2.JSON();
+                fJSONUI = jsonui2.JSON();
+                JSONUI jsonui2M(fMonoDSP->getNumInputs(), fMonoDSP->getNumOutputs());
+                fFinalDSP->metadata(&jsonui2M);
+                fJSONMeta = jsonui2M.JSON();
                 
             } else {
                 fPolyMax = 0;
@@ -234,13 +243,23 @@ class FaustPolyEngine {
         }
     
         /*
-         * getJSON()
+         * getJSONUI()
          * Returns a string containing a JSON description of the
          * UI of the Faust object.
          */
-        const char* getJSON()
+        const char* getJSONUI()
         {
-            return fJSON.c_str();
+            return fJSONUI.c_str();
+        }
+        
+        /*
+         * getJSONMeta()
+         * Returns a string containing a JSON description of the
+         * metadata of the Faust object.
+         */
+        const char* getJSONMeta()
+        {
+            return fJSONMeta.c_str();
         }
     
         /*
@@ -448,7 +467,8 @@ extern "C" {
         reinterpret_cast<FaustPolyEngine*>(dsp)->propagateMidi(count, time, type, channel, data1, data2);
     }
 
-    const char* getJSON(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getJSON(); }
+    const char* getJSONUI(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getJSONUI(); }
+    const char* getJSONMeta(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getJSONMeta(); }
 
     int getParamsCount(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamsCount(); }
     
