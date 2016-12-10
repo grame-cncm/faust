@@ -91,8 +91,9 @@ all : icc gcc
 icc : ialsascal ialsavec ialsavec2 ialsavec4 ialsaomp2 ialsasch ialsasch2
 gcc : galsascal galsavec galsavec2 galsavec4 galsaomp2 galsasch galsasch2
 #osx : gcoreaudioscal gcoreaudiovec1 gcoreaudiovec2 gcoreaudiovec3 gcoreaudiovec4 gcoreaudiosch gcoreaudiosch2
-osx : gcoreaudioscal gcoreaudiovec1 gcoreaudiovec2 gcoreaudiosch gcoreaudiollvm  bscal bvec1 bvec2 bscalllvm bench-llvm
+osx : gcoreaudioscal gcoreaudiovec1 gcoreaudiovec2 gcoreaudiosch gcoreaudiollvm  bscal bvec1 bvec2 bscalllvm
 #osx : bscal bvec1 bvec2 bscalllvm
+tools: bench-llvm-interp bench-llvm dynamic-jack-gtk
 
 
 ### intel-compiler single-precision x {scalar, vector and openMP}
@@ -185,14 +186,13 @@ galsaomp2 :
 bench-llvm-interp: bench-llvm-interp.cpp
 	$(CXX) -O3 bench-llvm-interp.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lcrypto -o bench-llvm-interp
 
-
-dynamic-jack-gtk: dynamic-jack-gtk.cpp
-	$(CXX) -O3 dynamic-jack-gtk.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lcrypto -o dynamic-jack-gtk
-
 bench-llvm: bench-llvm.o
 	$(CXX) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
 	$(CXX) -O3 bench-llvm.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lcrypto -o bench-llvm
 
+dynamic-jack-gtk: dynamic-jack-gtk.cpp
+	$(CXX) -O3 dynamic-jack-gtk.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lcrypto -o dynamic-jack-gtk
+	
 gcoreaudiollvm : coreaudio-gtk-llvm-bench.cpp
 	$(CXX) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
 	$(CXX) -O3 coreaudio-gtk-llvm-bench.cpp /usr/local/lib/libfaust.a  -lpthread -framework CoreAudio -framework AudioUnit -framework CoreServices `pkg-config --cflags --libs gtk+-2.0` `llvm-config --ldflags --libs all --system-libs` -lcrypto -o gcoreaudiollvm
@@ -292,6 +292,9 @@ clean :
 
 # DO NOT DELETE
 
+bench-llvm-interp.o: /usr/local/include/faust/dsp/dsp-bench.h /usr/local/include/faust/dsp/dsp.h
+bench-llvm-interp.o: /usr/local/include/faust/misc.h /usr/local/include/faust/gui/meta.h
+bench-llvm-interp.o: /usr/local/include/faust/dsp/llvm-dsp.h /usr/local/include/faust/dsp/interpreter-dsp.h
 bench-llvm.o: /usr/local/include/faust/dsp/dsp-optimizer.h /usr/local/include/faust/dsp/llvm-dsp.h
 bench-llvm.o: /usr/local/include/faust/dsp/dsp.h /usr/local/include/faust/gui/meta.h
 bench-llvm.o: /usr/local/include/faust/dsp/dsp-bench.h /usr/local/include/faust/misc.h
@@ -316,3 +319,18 @@ coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/misc.h /usr/local/include/f
 coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/gui/GUI.h /usr/local/include/faust/gui/UI.h
 coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/gui/ring-buffer.h /usr/local/include/faust/gui/MetaDataUI.h
 coreaudio-gtk-llvm-bench.o: /usr/local/include/faust/gui/SimpleParser.h
+dynamic-jack-gtk.o: /usr/local/include/faust/gui/meta.h /usr/local/include/faust/gui/FUI.h
+dynamic-jack-gtk.o: /usr/local/include/faust/gui/UI.h /usr/local/include/faust/misc.h
+dynamic-jack-gtk.o: /usr/local/include/faust/dsp/llvm-dsp.h /usr/local/include/faust/dsp/dsp.h
+dynamic-jack-gtk.o: /usr/local/include/faust/dsp/interpreter-dsp.h /usr/local/include/faust/dsp/poly-dsp.h
+dynamic-jack-gtk.o: /usr/local/include/faust/gui/MidiUI.h /usr/local/include/faust/gui/GUI.h
+dynamic-jack-gtk.o: /usr/local/include/faust/gui/ring-buffer.h /usr/local/include/faust/midi/midi.h
+dynamic-jack-gtk.o: /usr/local/include/faust/gui/ValueConverter.h /usr/local/include/faust/gui/JSONUI.h
+dynamic-jack-gtk.o: /usr/local/include/faust/gui/PathBuilder.h /usr/local/include/faust/gui/MapUI.h
+dynamic-jack-gtk.o: /usr/local/include/faust/dsp/proxy-dsp.h /usr/local/include/faust/gui/SimpleParser.h
+dynamic-jack-gtk.o: /usr/local/include/faust/gui/faustgtk.h /usr/local/include/faust/gui/MetaDataUI.h
+dynamic-jack-gtk.o: /usr/local/include/faust/audio/jack-dsp.h /usr/local/include/jack/jack.h
+dynamic-jack-gtk.o: /usr/local/include/jack/systemdeps.h /usr/local/include/jack/types.h
+dynamic-jack-gtk.o: /usr/local/include/jack/transport.h /usr/local/include/jack/weakmacros.h
+dynamic-jack-gtk.o: /usr/local/include/jack/midiport.h /usr/local/include/faust/audio/audio.h
+dynamic-jack-gtk.o: /usr/local/include/faust/midi/jack-midi.h
