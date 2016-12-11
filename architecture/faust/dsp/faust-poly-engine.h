@@ -230,6 +230,14 @@ class FaustPolyEngine {
         {
           return deleteVoice(reinterpret_cast<MapUI*>(voice));
         }
+        
+        /*
+         * allNotesOff()
+         * Gently terminates all the active voices.
+         */
+        void allNotesOff(){
+            fPolyDSP->allNotesOff();
+        }
     
         /*
          * Propagate MIDI data to the Faust object.
