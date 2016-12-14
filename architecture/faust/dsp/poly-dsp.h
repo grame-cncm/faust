@@ -386,7 +386,7 @@ class mydsp_poly : public dsp, public midi {
         static void panic(FAUSTFLOAT val, void* arg)
         {
             if (val == FAUSTFLOAT(1)) {
-                static_cast<mydsp_poly*>(arg)->allNotesOff();
+                static_cast<mydsp_poly*>(arg)->hardAllNotesOff();
             }
         }
         
@@ -633,7 +633,7 @@ class mydsp_poly : public dsp, public midi {
         void ctrlChange14bits(int channel, int ctrl, int value)
         {}
  
-        // gently terminates all the active voice
+        // Gently terminates all the active voice
         void allNotesOff()
         {
             if (checkPolyphony()) {
@@ -644,7 +644,7 @@ class mydsp_poly : public dsp, public midi {
             }
         }
         
-        // kill immediately all the active voices
+        // Kill immediately all the active voices
         void hardAllNotesOff()
         {
             if (checkPolyphony()) {
