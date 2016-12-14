@@ -633,8 +633,19 @@ class mydsp_poly : public dsp, public midi {
         void ctrlChange14bits(int channel, int ctrl, int value)
         {}
  
-        // Additional API
+        // gently terminates all the active voice
         void allNotesOff()
+        {
+            if (checkPolyphony()) {
+                for (int i = 0; i < fPolyphony; i++) {
+                    fVoiceTable[i]->setParamValue(fGateLabel, 0.0f);
+                    fVoiceTable[i]->fNote = kReleaseVoice;
+                }
+            }
+        }
+        
+        // kill immediately all the active voices
+        void hardAllNotesOff()
         {
             if (checkPolyphony()) {
                 for (int i = 0; i < fPolyphony; i++) {

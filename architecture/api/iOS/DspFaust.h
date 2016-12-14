@@ -122,6 +122,11 @@ public:
 	// * `voice`: the address of the voice given by `newVoice`
 	//--------------------------------------------------------
 	int deleteVoice(long);
+
+	//-----------------`void allNotesOff()`----------------
+	// Gently terminates all the active voices. 
+	//--------------------------------------------------------
+	void allNotesOff();
 	
 	//-----------------`const char* getJSONUI()`----------------
 	// Returns the JSON description of the UI of the Faust object. 

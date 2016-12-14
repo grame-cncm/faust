@@ -109,6 +109,10 @@ int DspFaust::deleteVoice(long voice){
 	return fPolyEngine->deleteVoice(voice);
 }
 
+void DspFaust::allNotesOff(){
+    return fPolyEngine->allNotesOff();
+}
+
 const char* DspFaust::getJSONUI(){
 	return fPolyEngine->getJSONUI();
 }
