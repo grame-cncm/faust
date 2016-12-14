@@ -1,0 +1,124 @@
+#! /bin/bash -e
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to core Juce                #
+#               (c) Grame, 2016                                     #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+CXXFLAGS=$MYGCCFLAGS
+
+ARCHFILE="juce.cpp"
+ARCHLIB="-L/usr/local/lib -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
+PATH=$PATH:/usr/local/bin
+DEBUG=false
+
+#-------------------------------------------------------------------
+# Analyze command arguments :
+# faust options                 -> OPTIONS
+# if -omp : -openmp or -fopenmp -> OPENMP
+# existing *.dsp files          -> FILES
+#
+
+# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
+# without having to configure CXX and CXXFLAGS
+for p in $@; do
+	if [ "$p" = -icc ]; then
+		# we ignore -icc when compiling for QT
+		TOTO=""
+		#CXX=icpc
+		#CXXFLAGS='-Wfatal-errors -O3 -xT -ftz -fno-alias -fp-model fast=2'
+    fi
+done
+
+#PHASE 2 : dispatch command arguments
+
+OSCINC=""
+QTDEFS=""
+OSCLIB=""
+POLY="POLY"
+DEPLOY=""
+DEF=""
+
+for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2juce [-httpd] [-qrcode] [-poly] [-poly2] [-midi] [-osc] [-debug] <file.dsp>"
+        echo "TODO :"
+        echo "Use '-httpd' to activate HTTP control"
+        echo "Use '-qrcode' to activate QR code generation"
+        echo "Use '-poly' to produce a polyphonic self-contained DSP, ready to be used with MIDI events"
+        echo "Use '-poly2' to produce a polyphonic DSP connected to the effect part, ready to be used with MIDI events"
+        echo "Use '-midi' to activate MIDI control"
+        echo "Use '-osc' to activate OSC control"
+        echo "Use '-debug' to print all the build steps"
+    fi
+    #Only -poly, -midi and -osc available for now
+    if [ "$p" = -omp ]; then
+        if [[ $CXX == "icpc" ]]; then
+            OMP="-openmp"
+        else
+            OMP="-fopenmp"
+        fi
+    fi
+  
+    if [ "$p" = -debug ]; then
+    	DEBUG=true
+    elif [ $p = "-deploy" ]; then
+        DEPLOY="yes"
+    elif [ "$p" = -icc ]; then
+    	ignore=" "
+    elif [ $p = "-poly" ]; then
+        DEF+="POLY "
+        POLY="POLY1"
+    elif [ $p = "-poly2" ]; then
+	    DEF+="POLY2 "
+        POLY="POLY2"
+    elif [ $p = "-midi" ]; then
+        DEF+="MIDICTRL "
+    elif [ $p = "-osc" ]; then
+		 DEF+="OSCCTRL "
+		 OSCLIBS="-lOSCFaust"
+	elif [ "$p" = "-httpd" ]; then
+		DEF+="HTTPCTRL "
+		HTTPLIBS="-lHTTPDFaust -lmicrohttpd -lqrencode"
+	elif [ "$p" = "-qrcode" ]; then # requires -httpd
+		DEF+="QRCODECTRL "
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -f "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#
+for p in $FILES; do
+
+    CUR=$(pwd)
+    f=$(basename "$p")
+	SRCDIR=$(dirname "$p")
+
+    # creates the dir 
+    dspName="${f%.dsp}"
+    cp -r "/usr/local/share/faust/template_jucer" "$SRCDIR/$dspName"
+    
+    # setting project name to match de the dsp
+    sed -e "s/ProjectTitle/$dspName/g" "$dspName/templateJucer.jucer" >> "$dspName/$dspName-temp.jucer"
+    rm "$dspName/templateJucer.jucer"
+    
+    # setting the preprocessing definitions
+    sed -e "s/PreProcDef/$DEF/g" "$dspName/$dspName-temp.jucer" >> "$dspName/$dspName.jucer"
+    rm "$dspName/$dspName-temp.jucer"
+    
+    faust -i -a $ARCHFILE $OPTION "$SRCDIR/$f" -o "$dspName/Source/MainComponent.h"
+    
+    
+done
+
+

@@ -38,6 +38,7 @@ install:
 	install faust2jackinternal $(dest)
 	install faust2jackserver $(dest)
 	install faust2jaqt $(dest)
+	install faust2juce $(dest)
 	install faust2ladspa $(dest)
 	install faust2lv2 $(dest)
 	install faust2mathdoc $(dest)
@@ -99,6 +100,7 @@ uninstall:
 	rm -f $(dest)/faust2jackinternal
 	rm -f $(dest)/faust2jackserver
 	rm -f $(dest)/faust2jaqt
+	rm -f $(dest)/faust2juce
 	rm -f $(dest)/faust2ladspa
 	rm -f $(dest)/faust2lv2
 	rm -f $(dest)/faust2mathdoc
