@@ -368,6 +368,10 @@ void Faust_Ctor(Faust* unit)  // module constructor
 {
     // allocate dsp
     unit->mDSP = new(RTAlloc(unit->mWorld, sizeof(FAUSTCLASS))) FAUSTCLASS();
+    if (!unit->mDSP) {
+        Print("Faust_Ctor: RT memory allocation failed for unit->mDSP\n");
+        return;
+    }
     
     // init dsp
     unit->mDSP->instanceInit((int)SAMPLERATE);
@@ -398,12 +402,24 @@ void Faust_Ctor(Faust* unit)  // module constructor
             SETCALC(Faust_next);
         } else {
             unit->mInBufCopy = (float**)RTAlloc(unit->mWorld, unit->getNumAudioInputs()*sizeof(float*));
+            if (!unit->mInBufCopy) {
+                Print("Faust_Ctor: RT memory allocation failed for unit->mInBufCopy\n");
+                return;
+            }
             // Allocate memory for input buffer copies (numInputs * bufLength)
             // and linear interpolation state (numInputs)
             // = numInputs * (bufLength + 1)
             unit->mInBufValue = (float*)RTAlloc(unit->mWorld, unit->getNumAudioInputs()*sizeof(float));
+            if (!unit->mInBufValue) {
+                Print("Faust_Ctor: RT memory allocation failed for unit->mInBufValue\n");
+                return;
+            }
             // Aquire memory for interpolator state.
             float* mem = (float*)RTAlloc(unit->mWorld, unit->getNumAudioInputs()*BUFLENGTH*sizeof(float));
+            if (mem) {
+                Print("Faust_Ctor: RT memory allocation failed for mem\n");
+                return;
+            }
             for (int i=0; i < unit->getNumAudioInputs(); ++i) {
                 // Initialize interpolator.
                 unit->mInBufValue[i] = IN0(i);
@@ -431,6 +447,9 @@ void Faust_Ctor(Faust* unit)  // module constructor
         Print("    Generating silence ...\n");
         SETCALC(Faust_next_clear);
     }
+    
+    // Fix for https://github.com/grame-cncm/faust/issues/13
+    ClearUnitOutputs(unit, 1);
 }
 
 void Faust_Dtor(Faust* unit)  // module destructor
