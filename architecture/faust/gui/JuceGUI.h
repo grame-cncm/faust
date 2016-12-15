@@ -27,8 +27,8 @@
 #define FAUSTFLOAT float
 #endif
 
-#define kKnobWidth 150
-#define kKnobHeight 150
+#define kKnobWidth 100
+#define kKnobHeight 100
 
 #define kVSliderWidth 80
 #define kVSliderHeight 250
@@ -262,7 +262,7 @@ struct CustomLookAndFeel    : public LookAndFeel_V3
     void drawRotarySlider (Graphics& g, int x, int y, int width, int height, float sliderPos,
                            float rotaryStartAngle, float rotaryEndAngle, Slider& slider) override
     {
-        const float radius = jmin (width / 2, height / 2) - 2.0f;
+        const float radius = jmin (width / 2, height / 2) - 4.0f;
         const float centreX = x + width * 0.5f;
         const float centreY = y + height * 0.5f;
         const float rx = centreX - radius;
@@ -270,24 +270,47 @@ struct CustomLookAndFeel    : public LookAndFeel_V3
         const float rw = radius * 2.0f;
         const float angle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
         const bool isMouseOver = slider.isMouseOverOrDragging() && slider.isEnabled();
-
-        if (slider.isEnabled()) {
+        
+        //Background
+        {
+            g.setColour(Colours::lightgrey.withAlpha (isMouseOver ? 1.0f : 0.7f));
+            Path intFilledArc;
+            intFilledArc.addPieSegment(rx, ry, rw, rw, rotaryStartAngle, rotaryEndAngle, 0.8);
+            g.fillPath(intFilledArc);
+        }
+        
+        if (slider.isEnabled())
             g.setColour (slider.findColour (Slider::rotarySliderFillColourId).withAlpha (isMouseOver ? 1.0f : 0.7f));
-        } else {
+        else
             g.setColour (Colour (0x80808080));
-        }
-
+        
+        //Render knob value
         {
-            Path filledArc;
-            filledArc.addPieSegment (rx, ry, rw, rw, rotaryStartAngle, angle, 0.0);
-            g.fillPath (filledArc);
-        }
-
-        {
-            const float lineThickness = jmin (15.0f, jmin (width, height) * 0.45f) * 0.1f;
-            Path outlineArc;
-            outlineArc.addPieSegment (rx, ry, rw, rw, rotaryStartAngle, rotaryEndAngle, 0.0);
-            g.strokePath (outlineArc, PathStrokeType (lineThickness));
+            Path pathArc;
+            pathArc.addPieSegment(rx, ry, rw, rw, rotaryStartAngle, angle, 0.8);
+            g.fillPath(pathArc);
+            
+            Path cursor, cursorShadow;
+            float rectWidth = radius*0.4;
+            float rectHeight = rectWidth/2;
+            float rectX = centreX + radius*0.9 - rectHeight/2;
+            float rectY = centreY - rectWidth/2;
+            
+            cursor.addRectangle      (rectX,   rectY,   rectWidth,   rectHeight);
+            cursorShadow.addRectangle(rectX-1, rectY-1, rectWidth+2, rectHeight+2);
+            
+            AffineTransform t = AffineTransform::translation(-rectWidth + 2, rectHeight/2);
+            t = t.rotated((angle - float_Pi/2), centreX, centreY);
+            
+            cursor.applyTransform(t);
+            cursorShadow.applyTransform(t);
+            
+            
+            g.setColour(Colours::black);
+            g.fillPath(cursor);
+            
+            g.setColour(Colours::black .withAlpha(0.15f));
+            g.fillPath(cursorShadow);
         }
     }
 };
@@ -467,9 +490,14 @@ public:
         } else if(fType == NumEntry) {
             width = kNumEntryWidth-10; height = kNumEntryHeight-15;
             x = (getLocalBounds().reduced(3).getWidth()-width)/2; y = (getLocalBounds().reduced(3).getHeight()-height)/2;
-        } else {
+        } else if(fType == VSlider) {
             x = getLocalBounds().reduced(3).getX(); y = getLocalBounds().reduced(3).getY()+11;
             height = getLocalBounds().reduced(3).getHeight()-12; width = getLocalBounds().reduced(3).getWidth();
+        } else if(fType == Knob){
+            width = jmin(getLocalBounds().reduced(3).getWidth(), kKnobWidth-6);
+            height = jmin(getLocalBounds().reduced(3).getHeight()-12, kKnobHeight-6);
+            x = jmax((getLocalBounds().getWidth() - width)/2, getLocalBounds().reduced(3).getX());
+            y = jmax((getLocalBounds().getHeight() - height)/2, y = getLocalBounds().reduced(3).getY()+11);
         }
         fSlider.setBounds(x, y, width, height);
     }

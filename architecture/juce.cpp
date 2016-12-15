@@ -42,7 +42,7 @@
 #include "faust/gui/APIUI.h"
 #include "faust/audio/dummy-audio.h"
 #include "faust/dsp/dsp-adapter.h"
-#include "faust/gui/Juce_GUI.h"
+#include "faust/gui/JuceGUI.h"
 #include "faust/gui/MidiUI.h"
 
 #include <math.h>
