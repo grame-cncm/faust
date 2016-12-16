@@ -46,11 +46,11 @@ class jack_midi_handler : public midi_handler {
                 size_t res;
                 // Write size of message
                 if ((res = ringbuffer_write(fOutBuffer, (const char*)&size, sizeof(size_t))) != sizeof(size_t)) {
-                    fprintf(stderr, "writeMessage size : error size = %lu res = %lu\n", size, res);
+                    std::cerr << "writeMessage size : error size = " << size << " res = " << res << std::endl;
                 }
                 // Write message content
                 if ((res = ringbuffer_write(fOutBuffer, (const char*)buffer, size)) != size) {
-                    fprintf(stderr, "writeMessage message : error size = %lu res = %lu\n", size, res);
+                    std::cerr << "writeMessage size : error size = " << size << " res = " << res << std::endl;
                 }
             }
         }
@@ -96,10 +96,10 @@ class jack_midi_handler : public midi_handler {
                 if (data) {
                     // Write its content
                     if ((res = ringbuffer_read(fOutBuffer, (char*)data, message_size)) != message_size) {
-                        fprintf(stderr, "processMidiOut incorrect message : res =  %lu\n", res);
+                        std::cerr << "processMidiOut incorrect message : res = " << res << std::endl;
                     }
                 } else {
-                    fprintf(stderr, "jack_midi_event_reserve error\n");
+                    std::cerr << "jack_midi_event_reserve error" << std::endl;
                 }
             }
         }
