@@ -95,9 +95,9 @@ docker run --entrypoint faust2pdf faust [args...]
 
 The `/examples` folder contains dozen of example Faust codes organized by categories. There are many options to use them.
 
-### The Faust Playground
+### FaustPlayground
 
-The [Faust playground](http://faust.grame.fr/faustplayground/) is an online tool to compile and use Faust code directly in a web browser. To use a Faust example from the `/examples` folder, just drag-and-drop it in the work space and it should work right away!
+[FaustPlayground](http://faust.grame.fr/faustplayground/) is an online tool to compile and use Faust code directly in a web browser. To use a Faust example from the `/examples` folder, just drag-and-drop it in the work space and it should work right away!
 
 ### FaustLive
 

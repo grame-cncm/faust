@@ -29,7 +29,8 @@ public class dsp_faustJNI {
   public final static native long DspFaust_newVoice(long jarg1, DspFaust jarg1_);
   public final static native int DspFaust_deleteVoice(long jarg1, DspFaust jarg1_, long jarg2);
   public final static native void DspFaust_propagateMidi(long jarg1, DspFaust jarg1_, int jarg2, double jarg3, int jarg4, int jarg5, int jarg6, int jarg7);
-  public final static native String DspFaust_getJSON(long jarg1, DspFaust jarg1_);
+  public final static native String DspFaust_getJSONUI(long jarg1, DspFaust jarg1_);
+  public final static native String DspFaust_getJSONMeta(long jarg1, DspFaust jarg1_);
   public final static native int DspFaust_getParamsCount(long jarg1, DspFaust jarg1_);
   public final static native void DspFaust_setParamValue__SWIG_0(long jarg1, DspFaust jarg1_, String jarg2, float jarg3);
   public final static native void DspFaust_setParamValue__SWIG_1(long jarg1, DspFaust jarg1_, int jarg2, float jarg3);

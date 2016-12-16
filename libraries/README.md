@@ -18,6 +18,7 @@ import("stdfaust.lib");
 
 This will give you access to all the Faust libraries through a series of environments:
 
+* `sf`: `all.lib`
 * `an`: `analyzer.lib`
 * `ba`: `basic.lib`
 * `co`: `compressor.lib`
@@ -47,6 +48,13 @@ process = os.osc(440);
 ```
 
 In this case, we're calling the `osc` function from `miscoscillator.lib`.
+
+You can also access all the functions of all the libraries directly using the `sf` environment:
+
+```
+import("stdfaust.lib");
+process = sf.osc(440);
+```
 
 Alternatively, environments can be created by hand:
 

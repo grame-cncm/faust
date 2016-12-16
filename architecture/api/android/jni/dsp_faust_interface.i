@@ -19,7 +19,7 @@
 
 %module dsp_faust
 %{
-#include "dsp_faust.h"
+#include "DspFaust.h"
 %}
 
 // Enable the JNI class to load the required native library.
@@ -34,4 +34,4 @@
   }
 %}
 
-%include "dsp_faust.h"
+%include "DspFaust.h"

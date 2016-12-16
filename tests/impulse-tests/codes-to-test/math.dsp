@@ -1,6 +1,7 @@
 // Test of all math functions
 
-process = int(_*3.5) & int(_*2.4),
+process = int(_*10.5) % 3,
+		int(_*3.5) & int(_*2.4),
 		int(_*3.5) | int(_*2.4),
 		xor(int(_*3.5), int(_*2.4)),
 		int(_*3.5) ^ int(_*2.4),
