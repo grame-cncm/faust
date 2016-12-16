@@ -369,85 +369,86 @@ void Faust_Ctor(Faust* unit)  // module constructor
     // allocate dsp
     unit->mDSP = new(RTAlloc(unit->mWorld, sizeof(FAUSTCLASS))) FAUSTCLASS();
     if (!unit->mDSP) {
-        Print("Faust_Ctor: RT memory allocation failed for unit->mDSP\n");
-        return;
+        Print("Faust[%s]: RT memory allocation failed, try increasing the real-time memory size in the server options\n", g_unitName);
+        goto end;
     }
-    
-    // init dsp
-    unit->mDSP->instanceInit((int)SAMPLERATE);
- 
-    // allocate controls
-    unit->mNumControls = g_numControls;
-    ControlAllocator ca(unit->mControls);
-    unit->mDSP->buildUserInterface(&ca);
-    unit->mInBufCopy  = 0;
-    unit->mInBufValue = 0;
- 
-    // check input/output channel configuration
-    const size_t numInputs  = unit->mDSP->getNumInputs() + unit->mNumControls;
-    const size_t numOutputs = unit->mDSP->getNumOutputs();
+    {
+        // init dsp
+        unit->mDSP->instanceInit((int)SAMPLERATE);
+     
+        // allocate controls
+        unit->mNumControls = g_numControls;
+        ControlAllocator ca(unit->mControls);
+        unit->mDSP->buildUserInterface(&ca);
+        unit->mInBufCopy  = 0;
+        unit->mInBufValue = 0;
+     
+        // check input/output channel configuration
+        const size_t numInputs = unit->mDSP->getNumInputs() + unit->mNumControls;
+        const size_t numOutputs = unit->mDSP->getNumOutputs();
 
-    bool channelsValid =   (numInputs  == unit->mNumInputs)
-                        && (numOutputs == unit->mNumOutputs);
+        bool channelsValid = (numInputs == unit->mNumInputs) && (numOutputs == unit->mNumOutputs);
 
-    if (channelsValid) {
-        bool rateValid = true;
-        for (int i = 0; i < unit->getNumAudioInputs(); ++i) {
-            if (INRATE(i) != calc_FullRate) {
-                rateValid = false;
-                break;
+        if (channelsValid) {
+            bool rateValid = true;
+            for (int i = 0; i < unit->getNumAudioInputs(); ++i) {
+                if (INRATE(i) != calc_FullRate) {
+                    rateValid = false;
+                    break;
+                }
             }
-        }
-        if (rateValid) {
-            SETCALC(Faust_next);
+            if (rateValid) {
+                SETCALC(Faust_next);
+            } else {
+                unit->mInBufCopy = (float**)RTAlloc(unit->mWorld, unit->getNumAudioInputs()*sizeof(float*));
+                if (!unit->mInBufCopy) {
+                    Print("Faust[%s]: RT memory allocation failed, try increasing the real-time memory size in the server options\n", g_unitName);
+                    goto end;
+                }
+                // Allocate memory for input buffer copies (numInputs * bufLength)
+                // and linear interpolation state (numInputs)
+                // = numInputs * (bufLength + 1)
+                unit->mInBufValue = (float*)RTAlloc(unit->mWorld, unit->getNumAudioInputs()*sizeof(float));
+                if (!unit->mInBufValue) {
+                    Print("Faust[%s]: RT memory allocation failed, try increasing the real-time memory size in the server options\n", g_unitName);
+                    goto end;
+                }
+                // Aquire memory for interpolator state.
+                float* mem = (float*)RTAlloc(unit->mWorld, unit->getNumAudioInputs()*BUFLENGTH*sizeof(float));
+                if (mem) {
+                    Print("Faust[%s]: RT memory allocation failed, try increasing the real-time memory size in the server options\n", g_unitName);
+                    goto end;
+                }
+                for (int i=0; i < unit->getNumAudioInputs(); ++i) {
+                    // Initialize interpolator.
+                    unit->mInBufValue[i] = IN0(i);
+                    // Aquire buffer memory.
+                    unit->mInBufCopy[i] = mem;
+                    mem += BUFLENGTH;
+                }
+                SETCALC(Faust_next_copy);
+            }
+    #if !defined(NDEBUG)
+            Print("Faust[%s]:\n", g_unitName);
+            Print("    Inputs:   %d\n"
+                  "    Outputs:  %d\n"
+                  "    Callback: %s\n",
+                  numInputs, numOutputs,
+                  unit->mCalcFunc == (UnitCalcFunc)Faust_next ? "zero-copy" : "copy");
+    #endif
         } else {
-            unit->mInBufCopy = (float**)RTAlloc(unit->mWorld, unit->getNumAudioInputs()*sizeof(float*));
-            if (!unit->mInBufCopy) {
-                Print("Faust_Ctor: RT memory allocation failed for unit->mInBufCopy\n");
-                return;
-            }
-            // Allocate memory for input buffer copies (numInputs * bufLength)
-            // and linear interpolation state (numInputs)
-            // = numInputs * (bufLength + 1)
-            unit->mInBufValue = (float*)RTAlloc(unit->mWorld, unit->getNumAudioInputs()*sizeof(float));
-            if (!unit->mInBufValue) {
-                Print("Faust_Ctor: RT memory allocation failed for unit->mInBufValue\n");
-                return;
-            }
-            // Aquire memory for interpolator state.
-            float* mem = (float*)RTAlloc(unit->mWorld, unit->getNumAudioInputs()*BUFLENGTH*sizeof(float));
-            if (mem) {
-                Print("Faust_Ctor: RT memory allocation failed for mem\n");
-                return;
-            }
-            for (int i=0; i < unit->getNumAudioInputs(); ++i) {
-                // Initialize interpolator.
-                unit->mInBufValue[i] = IN0(i);
-                // Aquire buffer memory.
-                unit->mInBufCopy[i] = mem;
-                mem += BUFLENGTH;
-            }
-            SETCALC(Faust_next_copy);
+            Print("Faust[%s]:\n", g_unitName);
+            Print("    Input/Output channel mismatch\n"
+                  "        Inputs:  faust %d, unit %d\n"
+                  "        Outputs: faust %d, unit %d\n",
+                  numInputs, unit->mNumInputs,
+                  numOutputs, unit->mNumOutputs);
+            Print("    Generating silence ...\n");
+            SETCALC(Faust_next_clear);
         }
-#if !defined(NDEBUG)
-        Print("Faust[%s]:\n", g_unitName);
-        Print("    Inputs:   %d\n"
-              "    Outputs:  %d\n"
-              "    Callback: %s\n",
-              numInputs, numOutputs,
-              unit->mCalcFunc == (UnitCalcFunc)Faust_next ? "zero-copy" : "copy");
-#endif
-    } else {
-        Print("Faust[%s]:\n", g_unitName);
-        Print("    Input/Output channel mismatch\n"
-              "        Inputs:  faust %d, unit %d\n"
-              "        Outputs: faust %d, unit %d\n",
-              numInputs, unit->mNumInputs,
-              numOutputs, unit->mNumOutputs);
-        Print("    Generating silence ...\n");
-        SETCALC(Faust_next_clear);
     }
     
+end:
     // Fix for https://github.com/grame-cncm/faust/issues/13
     ClearUnitOutputs(unit, 1);
 }

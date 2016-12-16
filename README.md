@@ -109,7 +109,7 @@ The [Faust Online Compiler](http://faust.grame.fr/onlinecompiler/) allows to wri
 
 ### `faust2...` Scripts and Programs
 
-The `faust2...` scripts and programs are command line tools allowing to compile Faust codes to any of the supported Faust targets ("architectures"). They are placed on your system during the Faust installation process. The fastest way to get an exhaustive list of all of them is to open a terminal window, type `faust2`, and then press the Tab key for auto-completion. For example, to compile a Faust code as a Jack application with a Qt interface, run:
+The `faust2...` scripts and programs are command line tools allowing to compile Faust codes to any of the supported Faust targets ("architectures"). They are placed on your system during the Faust installation process. The fastest way to get an exhaustive list of all of them is to open a terminal window, type `faust2`, and then press the Tab key for auto-completion. For example, to compile a Faust code as a JACK application with a Qt interface, run:
 
 	faust2jaqt yourCode.dsp
 
@@ -139,22 +139,22 @@ The most commonly used `faust2` scripts are:
     faust2au                : Audio Unit plugin
     faust2rosgtk            : ROS app with GTK UI
     faust2bela              : BELA program
-    faust2jack              : Jack application with GTK UI
+    faust2jack              : JACK application with GTK UI
     faust2netjackconsole    : NetJack command line program
     faust2rpialsaconsole    : Raspberry Pi ALSA command line program
     faust2caqt              : CoreAudio application with Qt UI
-    faust2jackconsole       : Jack command line program
+    faust2jackconsole       : JACK command line program
     faust2netjackqt         : NetJack application with Qt UI
-    faust2rpinetjackconsole : Raspberry Pi Jack command line program
+    faust2rpinetjackconsole : Raspberry Pi JACK command line program
     faust2webaudioasm       : WebAudio web HTML app
     faust2caqtios           : iOS app with Qt UI
     faust2octave            : Octave script
     faust2csound            : CSOUND Opcode
     faust2owl               : OWL Program 
     faust2sig               : SVG signal
-    faust2jaqt              : Jack application with Qt UI
+    faust2jaqt              : JACK application with Qt UI
 	
-Obviously, the corresponding dependencies for each of them must be installed on your system for compilation to be successful. For example, if you use `faust2jaqt`, Jack and Qt libraries must be installed.
+Obviously, the corresponding dependencies for each of them must be installed on your system for compilation to be successful. For example, if you use `faust2jaqt`, JACK and Qt libraries must be installed.
 
 ## Documentation and Resources
 
