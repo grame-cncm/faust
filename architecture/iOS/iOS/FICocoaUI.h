@@ -2559,8 +2559,10 @@ public:
     
     virtual void show()
     {}
-    virtual void run()
-    {}
+    virtual bool run()
+    {
+        return false;
+    }
     
     virtual void declare(float* zone, const char* key, const char* value)
     {

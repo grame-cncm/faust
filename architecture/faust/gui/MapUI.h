@@ -121,7 +121,7 @@ class MapUI : public UI, public PathBuilder
         {}
         
         // set/get
-        void setParamValue(const std::string& path, float value)
+        void setParamValue(const std::string& path, FAUSTFLOAT value)
         {
             if (fPathZoneMap.find(path) != fPathZoneMap.end()) {
                 *fPathZoneMap[path] = value;
@@ -130,14 +130,14 @@ class MapUI : public UI, public PathBuilder
             }
         }
         
-        float getParamValue(const std::string& path)
+        FAUSTFLOAT getParamValue(const std::string& path)
         {
             if (fPathZoneMap.find(path) != fPathZoneMap.end()) {
                 return *fPathZoneMap[path];
             } else if (fLabelZoneMap.find(path) != fLabelZoneMap.end()) {
                 return *fLabelZoneMap[path];
             } else {
-                return 0.;
+                return FAUSTFLOAT(0);
             }
         }
     

@@ -36,7 +36,8 @@ extern "C" {
     
     void propagateMidi(void*, int, double, int, int, int, int);
 
-    const char* getJSON(void*);
+    const char* getJSONUI(void*);
+    const char* getJSONMeta(void*);
 
     int getParamsCount(void*);
 

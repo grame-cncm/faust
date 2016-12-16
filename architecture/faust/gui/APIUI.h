@@ -43,9 +43,10 @@ class APIUI : public PathBuilder, public Meta, public UI
 {
     protected:
 
-        int	fNumParameters;
+        int fNumParameters;
         std::vector<std::string>        fName;
-        std::map<std::string, int>      fMap;
+        std::map<std::string, int>      fPathMap;
+        std::map<std::string, int>      fLabelMap;
         std::vector<ValueConverter*>    fConversion;
         std::vector<FAUSTFLOAT*>        fZone;
         std::vector<FAUSTFLOAT>         fInit;
@@ -78,10 +79,9 @@ class APIUI : public PathBuilder, public Meta, public UI
                                 FAUSTFLOAT max,
                                 FAUSTFLOAT step)
         {
-            std::string name = buildPath(label);
-
-            fMap[name] = fNumParameters++;
-            fName.push_back(name);
+            std::string path = buildPath(label);
+            fPathMap[path] = fLabelMap[label] = fNumParameters++;
+            fName.push_back(path);
             fZone.push_back(zone);
             fInit.push_back(init);
             fMin.push_back(min);
@@ -325,7 +325,16 @@ class APIUI : public PathBuilder, public Meta, public UI
 		// Simple API part
 		//-------------------------------------------------------------------------------
 		int getParamsCount()				{ return fNumParameters; }
-		int getParamIndex(const char* n) 	{ return (fMap.count(n) > 0) ? fMap[n] : -1; }
+        int getParamIndex(const char* path)
+        {
+            if (fPathMap.find(path) != fPathMap.end()) {
+                return fPathMap[path];
+            } else if (fLabelMap.find(path) != fLabelMap.end()) {
+                return fLabelMap[path];
+            } else {
+                return -1;
+            }
+        }
 		const char* getParamAddress(int p)	{ return fName[p].c_str(); }
 		const char* getParamUnit(int p)		{ return fUnit[p].c_str(); }
 		FAUSTFLOAT getParamMin(int p)		{ return fMin[p]; }

@@ -71,8 +71,12 @@ public class DspFaust {
     dsp_faustJNI.DspFaust_propagateMidi(swigCPtr, this, arg0, arg1, arg2, arg3, arg4, arg5);
   }
 
-  public String getJSON() {
-    return dsp_faustJNI.DspFaust_getJSON(swigCPtr, this);
+  public String getJSONUI() {
+    return dsp_faustJNI.DspFaust_getJSONUI(swigCPtr, this);
+  }
+
+  public String getJSONMeta() {
+    return dsp_faustJNI.DspFaust_getJSONMeta(swigCPtr, this);
   }
 
   public int getParamsCount() {

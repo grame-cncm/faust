@@ -204,7 +204,7 @@ private:
 struct Faust : public Unit
 {
     // Faust dsp instance
-    FAUSTCLASS  mDSP;
+    FAUSTCLASS*  mDSP;
     // Buffers for control to audio rate conversion
     float**     mInBufCopy;
     float*      mInBufValue;
@@ -216,7 +216,7 @@ struct Faust : public Unit
     // of controls.
     Control     mControls[0];
 
-    int getNumAudioInputs() { return mDSP.getNumInputs(); }
+    int getNumAudioInputs() { return mDSP->getNumInputs(); }
 };
 
 // Global state
@@ -322,7 +322,7 @@ inline static void Faust_updateControls(Faust* unit)
 {
     Control* controls = unit->mControls;
     int numControls   = unit->mNumControls;
-    int curControl    = unit->mDSP.getNumInputs();
+    int curControl    = unit->mDSP->getNumInputs();
     for (int i=0; i < numControls; ++i) {
         float value = IN0(curControl);
         (controls++)->update(value);
@@ -335,7 +335,7 @@ void Faust_next(Faust* unit, int inNumSamples)
     // update controls
     Faust_updateControls(unit);
     // dsp computation
-    unit->mDSP.compute(inNumSamples, unit->mInBuf, unit->mOutBuf);
+    unit->mDSP->compute(inNumSamples, unit->mInBuf, unit->mOutBuf);
 }
 
 void Faust_next_copy(Faust* unit, int inNumSamples)
@@ -356,7 +356,7 @@ void Faust_next_copy(Faust* unit, int inNumSamples)
         }
     }
     // dsp computation
-    unit->mDSP.compute(inNumSamples, unit->mInBufCopy, unit->mOutBuf);
+    unit->mDSP->compute(inNumSamples, unit->mInBufCopy, unit->mOutBuf);
 }
 
 void Faust_next_clear(Faust* unit, int inNumSamples)
@@ -366,19 +366,26 @@ void Faust_next_clear(Faust* unit, int inNumSamples)
 
 void Faust_Ctor(Faust* unit)  // module constructor
 {
+    // allocate dsp
+    unit->mDSP = new(RTAlloc(unit->mWorld, sizeof(FAUSTCLASS))) FAUSTCLASS();
+    if (!unit->mDSP) {
+        Print("Faust_Ctor: RT memory allocation failed for unit->mDSP\n");
+        return;
+    }
+    
     // init dsp
-    unit->mDSP.instanceInit((int)SAMPLERATE);
-
+    unit->mDSP->instanceInit((int)SAMPLERATE);
+ 
     // allocate controls
     unit->mNumControls = g_numControls;
     ControlAllocator ca(unit->mControls);
-    unit->mDSP.buildUserInterface(&ca);
+    unit->mDSP->buildUserInterface(&ca);
     unit->mInBufCopy  = 0;
     unit->mInBufValue = 0;
-
+ 
     // check input/output channel configuration
-    const size_t numInputs  = unit->mDSP.getNumInputs() + unit->mNumControls;
-    const size_t numOutputs = unit->mDSP.getNumOutputs();
+    const size_t numInputs  = unit->mDSP->getNumInputs() + unit->mNumControls;
+    const size_t numOutputs = unit->mDSP->getNumOutputs();
 
     bool channelsValid =   (numInputs  == unit->mNumInputs)
                         && (numOutputs == unit->mNumOutputs);
@@ -395,12 +402,24 @@ void Faust_Ctor(Faust* unit)  // module constructor
             SETCALC(Faust_next);
         } else {
             unit->mInBufCopy = (float**)RTAlloc(unit->mWorld, unit->getNumAudioInputs()*sizeof(float*));
+            if (!unit->mInBufCopy) {
+                Print("Faust_Ctor: RT memory allocation failed for unit->mInBufCopy\n");
+                return;
+            }
             // Allocate memory for input buffer copies (numInputs * bufLength)
             // and linear interpolation state (numInputs)
             // = numInputs * (bufLength + 1)
             unit->mInBufValue = (float*)RTAlloc(unit->mWorld, unit->getNumAudioInputs()*sizeof(float));
+            if (!unit->mInBufValue) {
+                Print("Faust_Ctor: RT memory allocation failed for unit->mInBufValue\n");
+                return;
+            }
             // Aquire memory for interpolator state.
             float* mem = (float*)RTAlloc(unit->mWorld, unit->getNumAudioInputs()*BUFLENGTH*sizeof(float));
+            if (mem) {
+                Print("Faust_Ctor: RT memory allocation failed for mem\n");
+                return;
+            }
             for (int i=0; i < unit->getNumAudioInputs(); ++i) {
                 // Initialize interpolator.
                 unit->mInBufValue[i] = IN0(i);
@@ -428,6 +447,9 @@ void Faust_Ctor(Faust* unit)  // module constructor
         Print("    Generating silence ...\n");
         SETCALC(Faust_next_clear);
     }
+    
+    // Fix for https://github.com/grame-cncm/faust/issues/13
+    ClearUnitOutputs(unit, 1);
 }
 
 void Faust_Dtor(Faust* unit)  // module destructor
@@ -441,6 +463,10 @@ void Faust_Dtor(Faust* unit)  // module destructor
         }
         RTFree(unit->mWorld, unit->mInBufCopy);
     }
+    
+    // delete dsp
+    unit->mDSP->~FAUSTCLASS();
+    RTFree(unit->mWorld, unit->mDSP);
 }
 
 #ifdef SC_API_EXPORT
@@ -475,8 +501,8 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
         return;
     }
 
-    if (strncmp(name.c_str(),SC_FAUST_PREFIX,strlen(SC_FAUST_PREFIX))!=0){
-      name = SC_FAUST_PREFIX + name;
+    if (strncmp(name.c_str(),SC_FAUST_PREFIX,strlen(SC_FAUST_PREFIX))!=0) {
+        name = SC_FAUST_PREFIX + name;
     }
 
     // Initialize global data
