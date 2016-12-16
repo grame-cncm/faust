@@ -55,7 +55,7 @@ WASMCodeContainer::WASMCodeContainer(const string& name, int numInputs, int numO
     
     // Allocate one static visitor
     if (!gGlobal->gWASMVisitor) {
-        gGlobal->gWASMVisitor = new WASMInstVisitor(fOut);
+        gGlobal->gWASMVisitor = new WASMInstVisitor(&fBinaryOut);
     }
 }
 
@@ -149,6 +149,45 @@ void WASMCodeContainer::produceInternal()
 
 void WASMCodeContainer::produceClass()
 {
+    // Module definition
+    fBinaryOut << int32_t(BinaryConsts::Magic) << int32_t(BinaryConsts::Version);
+    
+    // Sub containers : before functions generation
+    mergeSubContainers();
+    
+    // Types
+    int32_t types_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Type);
+    
+    
+    gGlobal->gWASMVisitor->finishSection(types_start);
+    
+    
+    // All mathematical functions (got from math library as variables) have to be first
+    generateGlobalDeclarations(gGlobal->gWASMVisitor);
+    
+    // Imported functions
+    int32_t imports_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Import);
+    
+    
+    gGlobal->gWASMVisitor->finishSection(imports_start);
+    
+    // Functions signature
+    int32_t functions_types_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Function);
+    
+    
+    gGlobal->gWASMVisitor->finishSection(functions_types_start);
+    
+    // Memory
+    int32_t memory_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Memory);
+    
+    
+    gGlobal->gWASMVisitor->finishSection(memory_start);
+    
+    
+    // Functions
+    int32_t functions_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Code);
+    
+    /*
     int n = 0;
   
     tab(n, *fOut);
@@ -205,15 +244,15 @@ void WASMCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "(return (select (get_local $v2) (get_local $v1) (i32.lt_s (get_local $v1) (get_local $v2))))";
         tab(n+1, *fOut); *fOut << ")";
         
-        /*
-         tab(n+1, *fOut); *fOut << "(func $fmod" << isuffix() << " (type $0) (param $value " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
-         tab(n+2, *fOut); *fOut << "(return (call $" << realStr << "-rem (get_local $value) (get_local $1)))";
-         tab(n+1, *fOut); *fOut << ")";
+    
+        // tab(n+1, *fOut); *fOut << "(func $fmod" << isuffix() << " (type $0) (param $value " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
+        // tab(n+2, *fOut); *fOut << "(return (call $" << realStr << "-rem (get_local $value) (get_local $1)))";
+        // tab(n+1, *fOut); *fOut << ")";
          
-         tab(n+1, *fOut); *fOut <<  "(func $log10" << isuffix() << " (type $2) (param $value " << realStr << ") (result " << realStr << ")";
-         tab(n+2, *fOut); *fOut << "(return (" << realStr << ".div (call $log (get_local $value)) (call $log (" << realStr << ".const 10))))";
-         tab(n+1, *fOut); *fOut << ")";
-        */
+        // tab(n+1, *fOut); *fOut <<  "(func $log10" << isuffix() << " (type $2) (param $value " << realStr << ") (result " << realStr << ")";
+        // tab(n+2, *fOut); *fOut << "(return (" << realStr << ".div (call $log (get_local $value)) (call $log (" << realStr << ".const 10))))";
+        // tab(n+1, *fOut); *fOut << ")";
+    
     
         tab(n+1, *fOut); *fOut << "(func $getNumInputs (param $dsp i32) (result i32)";
             tab(n+2, *fOut); *fOut << "(return (i32.const " << fNumInputs << "))";
@@ -356,10 +395,16 @@ void WASMCodeContainer::produceClass()
         }
     }
     tab(n, fHelper); fHelper << "}" << endl << endl;
+    */
+    
+    gGlobal->gWASMVisitor->finishSection(functions_start);
+    
+    fBinaryOut.writeTo(*fOut);
 }
 
 void WASMScalarCodeContainer::generateCompute(int n)
 {
+    /*
     tab(n+1, *fOut); *fOut << "(func $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
         tab(n+2, *fOut);
         gGlobal->gWASMVisitor->Tab(n+2);
@@ -369,4 +414,5 @@ void WASMScalarCodeContainer::generateCompute(int n)
         BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
         block->accept(gGlobal->gWASMVisitor);
     tab(n+1, *fOut); *fOut << ")";
+    */
 }

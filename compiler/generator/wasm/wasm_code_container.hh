@@ -34,6 +34,7 @@ class WASMCodeContainer : public virtual CodeContainer {
     protected:
 
         std::ostream* fOut;
+        BufferWithRandomAccess fBinaryOut;
         std::stringstream fHelper;
     
         void generateWASMBlock(BlockInst* instructions)

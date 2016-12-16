@@ -331,7 +331,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
         void visitAuxInt(BinopInst* inst)
         {
             *fOut << "(";
-            *fOut << gBinOpTable[inst->fOpcode]->fNameWasmInt;
+            *fOut << gBinOpTable[inst->fOpcode]->fNameWastInt;
             *fOut << " ";
             inst->fInst1->accept(this);
             *fOut << " ";
@@ -339,13 +339,13 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
             *fOut << ")";
         }
     
-        void visitAuxReal(BinopInst* inst, Typed::VarType type )
+        void visitAuxReal(BinopInst* inst, Typed::VarType type)
         {
             *fOut << "(";
             if (type == Typed::kFloat) {
-                *fOut << gBinOpTable[inst->fOpcode]->fNameWasmFloat;
+                *fOut << gBinOpTable[inst->fOpcode]->fNameWastFloat;
             } else if (type == Typed::kDouble) {
-                *fOut << gBinOpTable[inst->fOpcode]->fNameWasmDouble;
+                *fOut << gBinOpTable[inst->fOpcode]->fNameWastDouble;
             } else {
                 assert(false);
             }

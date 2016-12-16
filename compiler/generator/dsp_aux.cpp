@@ -41,7 +41,7 @@ void SHA1(const unsigned char*, int, unsigned char*) {}
 
 using namespace std;
 
-//L ook for 'key' in 'options' and modify the parameter 'position' if found
+//Look for 'key' in 'options' and modify the parameter 'position' if found
 static bool parseKey(vector<string> options, const string& key, int& position)
 {
     for (size_t i = 0; i < options.size(); i++) {

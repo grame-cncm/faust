@@ -26,6 +26,7 @@ using namespace std;
 
 #include <iomanip>
 
+#include "binop.hh"
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
 
@@ -66,12 +67,17 @@ struct WASInst {
         MathFunDesc()
         {}
         
+        MathFunDesc(Gen mode, const string& name, WasmOp op, Typed::VarType type, int args)
+        :fMode(mode), fName(name), fWasmOp(op), fType(type), fArgs(args)
+        {}
+        
         MathFunDesc(Gen mode, const string& name, Typed::VarType type, int args)
-        :fMode(mode), fName(name), fType(type), fArgs(args)
+        :fMode(mode), fName(name), fWasmOp(WasmOp::Dummy), fType(type), fArgs(args)
         {}
         
         Gen fMode;
         string fName;
+        WasmOp fWasmOp;
         Typed::VarType fType;
         int fArgs;
     };
@@ -93,48 +99,49 @@ struct WASInst {
         fMathLibTable["max_i"] = MathFunDesc(MathFunDesc::Gen::kWAS, "max_i", Typed::kInt, 2);
         
         // Float version
-        fMathLibTable["fabsf"] = MathFunDesc(MathFunDesc::Gen::kWAS, "abs", itfloat(), 1);
-        fMathLibTable["acosf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "acos", itfloat(), 1);
-        fMathLibTable["asinf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "asin", itfloat(), 1);
-        fMathLibTable["atanf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan", itfloat(), 1);
-        fMathLibTable["atan2f"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan2", itfloat(), 2);
-        fMathLibTable["ceilf"] = MathFunDesc(MathFunDesc::Gen::kWAS, "ceil", itfloat(), 1);
-        fMathLibTable["cosf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "cos", itfloat(), 1);
-        fMathLibTable["expf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "exp", itfloat(), 1);
-        fMathLibTable["floorf"] = MathFunDesc(MathFunDesc::Gen::kWAS, "floor", itfloat(), 1);
-        fMathLibTable["fmodf"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "fmod", itfloat(), 2);
-        fMathLibTable["logf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "log", itfloat(), 1);
-        fMathLibTable["log10f"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "log10", itfloat(), 1);
-        fMathLibTable["max_f"] = MathFunDesc(MathFunDesc::Gen::kWAS, "max", itfloat(), 2);
-        fMathLibTable["min_f"] = MathFunDesc(MathFunDesc::Gen::kWAS, "min", itfloat(), 2);
-        fMathLibTable["powf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", itfloat(), 2);
+        fMathLibTable["fabsf"] = MathFunDesc(MathFunDesc::Gen::kWAS, "abs", WasmOp::F32Abs, Typed::kFloat, 1);
+        fMathLibTable["acosf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "acos", Typed::kFloat, 1);
+        fMathLibTable["asinf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "asin", Typed::kFloat, 1);
+        fMathLibTable["atanf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan", Typed::kFloat, 1);
+        fMathLibTable["atan2f"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan2", Typed::kFloat, 2);
+        fMathLibTable["ceilf"] = MathFunDesc(MathFunDesc::Gen::kWAS, "ceil", WasmOp::F32Ceil, Typed::kFloat, 1);
+        fMathLibTable["cosf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "cos", Typed::kFloat, 1);
+        fMathLibTable["expf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "exp", Typed::kFloat, 1);
+        fMathLibTable["floorf"] = MathFunDesc(MathFunDesc::Gen::kWAS, "floor", WasmOp::F32Floor, Typed::kFloat, 1);
+        fMathLibTable["fmodf"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "fmod", Typed::kFloat, 2);
+        fMathLibTable["logf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "log", Typed::kFloat, 1);
+        fMathLibTable["log10f"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "log10", Typed::kFloat, 1);
+        fMathLibTable["max_f"] = MathFunDesc(MathFunDesc::Gen::kWAS, "max", WasmOp::F32Max, Typed::kFloat, 2);
+        fMathLibTable["min_f"] = MathFunDesc(MathFunDesc::Gen::kWAS, "min", WasmOp::F32Min, Typed::kFloat, 2);
+        fMathLibTable["powf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", Typed::kFloat, 2);
         // fMathLibTable["remainderf"] "manual";      // Manually generated
-        fMathLibTable["roundf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", itfloat(), 1);
-        fMathLibTable["sinf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", itfloat(), 1);
-        fMathLibTable["sqrtf"] = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", itfloat(), 1);
-        fMathLibTable["tanf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", itfloat(), 1);
+        fMathLibTable["roundf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", Typed::kFloat, 1);
+        fMathLibTable["sinf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kFloat, 1);
+        fMathLibTable["sqrtf"] = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F32Sqrt, Typed::kFloat, 1);
+        fMathLibTable["tanf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kFloat, 1);
         
         // Double version
-        fMathLibTable["fabs"] = MathFunDesc(MathFunDesc::Gen::kWAS, "abs", itfloat(), 1);
-        fMathLibTable["acos"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "acos", itfloat(), 1);
-        fMathLibTable["asin"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "asin", itfloat(), 1);
-        fMathLibTable["atan"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan", itfloat(), 1);
-        fMathLibTable["atan2"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan2", itfloat(), 2);
-        fMathLibTable["ceil"] = MathFunDesc(MathFunDesc::Gen::kWAS, "ceil", itfloat(), 1);
-        fMathLibTable["cos"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "cos", itfloat(), 1);
-        fMathLibTable["exp"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "exp", itfloat(), 1);
-        fMathLibTable["floor"] = MathFunDesc(MathFunDesc::Gen::kWAS, "floor", itfloat(), 1);
-        fMathLibTable["fmod"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "fmod", itfloat(), 2);
-        fMathLibTable["log"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "log", itfloat(), 1);
-        fMathLibTable["log10"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "log10", itfloat(), 1);
-        fMathLibTable["max_"] = MathFunDesc(MathFunDesc::Gen::kWAS, "max", itfloat(), 2);
-        fMathLibTable["min_"] = MathFunDesc(MathFunDesc::Gen::kWAS, "min", itfloat(), 2);
-        fMathLibTable["pow"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", itfloat(), 2);
+        fMathLibTable["fabs"] = MathFunDesc(MathFunDesc::Gen::kWAS, "abs", WasmOp::F64Abs, Typed::kDouble, 1);
+        fMathLibTable["acos"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "acos", Typed::kDouble, 1);
+        fMathLibTable["asin"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "asin", Typed::kDouble, 1);
+        fMathLibTable["atan"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan", Typed::kDouble, 1);
+        fMathLibTable["atan2"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "atan2", Typed::kDouble, 2);
+        fMathLibTable["ceil"] = MathFunDesc(MathFunDesc::Gen::kWAS, "ceil", WasmOp::F64Ceil, Typed::kDouble, 1);
+        fMathLibTable["cos"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "cos", Typed::kDouble, 1);
+        fMathLibTable["exp"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "exp", Typed::kDouble, 1);
+        fMathLibTable["floor"] = MathFunDesc(MathFunDesc::Gen::kWAS, "floor", WasmOp::F64Floor, Typed::kDouble, 1);
+        fMathLibTable["fmod"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "fmod", Typed::kDouble, 2);
+        fMathLibTable["log"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "log", Typed::kDouble, 1);
+        fMathLibTable["log10"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "log10", Typed::kDouble, 1);
+        fMathLibTable["max_"] = MathFunDesc(MathFunDesc::Gen::kWAS, "max", WasmOp::F64Max, Typed::kDouble, 2);
+        fMathLibTable["min_"] = MathFunDesc(MathFunDesc::Gen::kWAS, "min", WasmOp::F64Min, Typed::kDouble, 2);
+        fMathLibTable["pow"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", Typed::kDouble, 2);
         // fMathLibTable["remainderf"] "manual";      // Manually generated
-        fMathLibTable["round"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", itfloat(), 1);
-        fMathLibTable["sin"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", itfloat(), 1);
-        fMathLibTable["sqrt"] = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", itfloat(), 1);
-        fMathLibTable["tan"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", itfloat(), 1);
+        fMathLibTable["round"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", Typed::kDouble, 1);
+        fMathLibTable["sin"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kDouble, 1);
+        fMathLibTable["sqrt"] = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F64Sqrt, Typed::kDouble, 1);
+        fMathLibTable["tan"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kDouble, 1);
+        
         fStructOffset = 0;
         fSubContainerType = -1;
         fFastMemory = true;
