@@ -142,6 +142,8 @@ public:
 
     void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override
     {
+        AVOIDDENORMALS;
+        
         const float* inputs[fDSP->getNumInputs()];
         for (int i = 0; i < fDSP->getNumInputs(); i++) {
             inputs[i] = bufferToFill.buffer->getReadPointer(i, bufferToFill.startSample);
