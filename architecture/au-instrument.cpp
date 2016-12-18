@@ -108,7 +108,7 @@ struct FaustAUInstrumentNote : public SynthNote
    
     auUI* dspUI = NULL;
     mydsp* dsp = NULL;
-    bool fInit = false;
+    double fSampleRate = -1;
 
 };
 
@@ -179,9 +179,10 @@ bool FaustAUInstrumentNote::Attack(const MusicDeviceNoteParams& inParams)
     amp = inParams.mVelocity / 127.;
     if (synth->gateParameterID != -1)
     {
-        if (!fInit) {
-            dsp->init(int(SampleRate()));
-            fInit = true;
+        double sr = SampleRate();
+        if (fSampleRate != sr) {
+            dsp->init(int(sr));
+            fSampleRate = sr;
         }
         auUIObject* gate = (auUIObject*) dspUI->fUITable[synth->gateParameterID];
         if (gate) {
