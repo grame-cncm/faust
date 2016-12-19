@@ -24,6 +24,7 @@
 
 #include <vector>
 #include <cmath>
+#include <string.h>
 
 #include "was_instructions.hh"
 
@@ -34,9 +35,6 @@ using namespace std;
 template <class Destination, class Source>
 inline Destination bit_cast(const Source& source)
 {
-    static_assert(sizeof(Destination) == sizeof(Source), "bit_cast needs to be between types of the same size");
-    static_assert(std::is_pod<Destination>::value, "non-POD bit_cast undefined");
-    static_assert(std::is_pod<Source>::value, "non-POD bit_cast undefined");
     Destination destination;
     std::memcpy(&destination, &source, sizeof(destination));
     return destination;
@@ -44,8 +42,7 @@ inline Destination bit_cast(const Source& source)
 
 template<typename T, typename MiniT>
 struct LEB {
-    static_assert(sizeof(MiniT) == 1, "MiniT must be a byte");
-    
+
     T value;
     
     LEB() {}
@@ -237,14 +234,12 @@ class BufferWithRandomAccess : public std::vector<uint8_t> {
         BufferWithRandomAccess& operator<<(float x)
         {
             if (debug) std::cerr << "writeFloat32: " << x << " (at " << size() << ")" << std::endl;
-            //return *this << Literal(x).reinterpreti32();
             return *this << bit_cast<int32_t>(x);
         }
     
         BufferWithRandomAccess& operator<<(double x)
         {
             if (debug) std::cerr << "writeFloat64: " << x << " (at " << size() << ")" << std::endl;
-            //return *this << Literal(x).reinterpreti64();
             return *this << bit_cast<int64_t>(x);
         }
     
@@ -912,7 +907,7 @@ class WASMInstVisitor : public InstVisitor, public WASInst {
                 (*it)->accept(this);
             }
             
-            // Them compile funcall
+            // Then compile funcall
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 MathFunDesc desc = fMathLibTable[inst->fName];
                 if (desc.fMode == MathFunDesc::Gen::kWAS) {

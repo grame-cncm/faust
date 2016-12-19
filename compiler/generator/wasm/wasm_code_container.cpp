@@ -158,31 +158,25 @@ void WASMCodeContainer::produceClass()
     // Types
     int32_t types_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Type);
     
-    
     gGlobal->gWASMVisitor->finishSection(types_start);
-    
     
     // All mathematical functions (got from math library as variables) have to be first
     generateGlobalDeclarations(gGlobal->gWASMVisitor);
     
     // Imported functions
     int32_t imports_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Import);
-    
-    
+
     gGlobal->gWASMVisitor->finishSection(imports_start);
     
     // Functions signature
     int32_t functions_types_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Function);
-    
     
     gGlobal->gWASMVisitor->finishSection(functions_types_start);
     
     // Memory
     int32_t memory_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Memory);
     
-    
     gGlobal->gWASMVisitor->finishSection(memory_start);
-    
     
     // Functions
     int32_t functions_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Code);
@@ -333,7 +327,7 @@ void WASMCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << ")";
 
         // compute
-        generateCompute(n);
+        generateCompute();
         
         // Possibly generate separated functions
         gGlobal->gWASMVisitor->Tab(n+1);
@@ -402,7 +396,7 @@ void WASMCodeContainer::produceClass()
     fBinaryOut.writeTo(*fOut);
 }
 
-void WASMScalarCodeContainer::generateCompute(int n)
+void WASMScalarCodeContainer::generateCompute()
 {
     /*
     tab(n+1, *fOut); *fOut << "(func $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";

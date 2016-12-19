@@ -54,7 +54,7 @@ class WASMCodeContainer : public virtual CodeContainer {
         {}
 
         virtual void produceClass();
-        virtual void generateCompute(int tab) = 0;
+        virtual void generateCompute() = 0;
     
         void produceInternal();
         virtual dsp_factory_base* produceFactory();
@@ -73,7 +73,7 @@ class WASMScalarCodeContainer : public WASMCodeContainer {
         WASMScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
         virtual ~WASMScalarCodeContainer();
 
-        void generateCompute(int tab);
+        void generateCompute();
 
 };
 
