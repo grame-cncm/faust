@@ -36,7 +36,7 @@ template <class Destination, class Source>
 inline Destination bit_cast(const Source& source)
 {
     Destination destination;
-    std::memcpy(&destination, &source, sizeof(destination));
+    memcpy(&destination, &source, sizeof(destination));
     return destination;
 }
 
