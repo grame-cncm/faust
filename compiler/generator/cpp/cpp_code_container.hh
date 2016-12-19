@@ -67,9 +67,9 @@ class CPPCodeContainer : public virtual CodeContainer {
             
             tab(0, *fOut); *fOut << "#ifndef  __" << gGlobal->gClassName << "_H__";
             tab(0, *fOut); *fOut << "#define  __" << gGlobal->gClassName << "_H__" << std::endl << std::endl;
-            
-            printfloatdef(*fOut, (gGlobal->gFloatSize == 3));
         }
+    
+        virtual void printFloatDef() { printfloatdef(*fOut, (gGlobal->gFloatSize == 3)); }
         
         virtual void printFooter()
         {

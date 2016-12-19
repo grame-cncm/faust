@@ -941,7 +941,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {
                 includeFile("thread.h", dst);
             }
-
+            
+            container->printFloatDef();
             container->produceClass();
             
             streamCopyUntilEnd(*enrobage, *dst);
@@ -967,6 +968,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         
     } else {
         container->printHeader();
+        container->printFloatDef();
         container->produceClass();
         container->printFooter();
         
