@@ -247,7 +247,7 @@ audio_dsp::audio_dsp(dsp_factory* factory, bool poly, int voices, bool group,
     if (poly) {
         fDSP = new mydsp_poly(dsp, voices, true, group);
     } else {
-        fDSP = factory->createDSPInstance();
+        fDSP = dsp;
     }
     
 #ifdef OSCCTRL
@@ -321,9 +321,7 @@ void dsp_server_connection_info::getJson(dsp_factory* factory)
     dsp* tmp_dsp;
     
     if (atoi(fPoly.c_str())) {
-        dsp* tmp_dsp1 = factory->createDSPInstance();
-        tmp_dsp = new mydsp_poly(tmp_dsp1, atoi(fVoices.c_str()), true, atoi(fGroup.c_str()));
-        delete tmp_dsp1;
+        tmp_dsp = new mydsp_poly(factory->createDSPInstance(), atoi(fVoices.c_str()), true, atoi(fGroup.c_str()));
     } else {
         tmp_dsp = factory->createDSPInstance();
     }
