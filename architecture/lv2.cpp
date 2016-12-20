@@ -654,41 +654,48 @@ struct LV2Plugin {
   static Meta *meta;
   static void init_meta()
   {
-    if (!meta) {
-      meta = new Meta;
-      mydsp tmp_dsp;
-      tmp_dsp.metadata(meta);
+    if (!meta && (meta = new Meta)) {
+      // We allocate the temporary dsp object on the heap here, to prevent
+      // large dsp objects from running out of stack in environments where
+      // stack space is precious (e.g., Reaper). Note that if any of these
+      // allocations fail then no meta data will be available, but at least we
+      // won't make the host crash and burn.
+      mydsp* tmp_dsp = new mydsp();
+      if (tmp_dsp) {
+	tmp_dsp->metadata(meta);
+	delete tmp_dsp;
+      }
     }
+  }
+  static const char *meta_get(const char *key, const char *deflt)
+  {
+    init_meta();
+    return meta?meta->get(key, deflt):deflt;
   }
 
   static const char *pluginName()
   {
-    init_meta();
-    return meta->get("name", "mydsp");
+    return meta_get("name", "mydsp");
   }
 
   static const char *pluginAuthor()
   {
-    init_meta();
-    return meta->get("author", "");
+    return meta_get("author", "");
   }
 
   static const char *pluginDescription()
   {
-    init_meta();
-    return meta->get("description", "");
+    return meta_get("description", "");
   }
 
   static const char *pluginLicense()
   {
-    init_meta();
-    return meta->get("license", "");
+    return meta_get("license", "");
   }
 
   static const char *pluginVersion()
   {
-    init_meta();
-    return meta->get("version", "");
+    return meta_get("version", "");
   }
 
   // Load a collection of sysex files with MTS tunings in ~/.faust/tuning.
@@ -744,8 +751,7 @@ struct LV2Plugin {
 #ifdef NVOICES
     return NVOICES;
 #else
-    init_meta();
-    const char *numVoices = meta->get("nvoices", "0");
+    const char *numVoices = meta_get("nvoices", "0");
     int nvoices = atoi(numVoices);
     if (nvoices < 0 ) nvoices = 0;
     return nvoices;

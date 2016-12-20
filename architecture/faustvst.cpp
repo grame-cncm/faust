@@ -618,40 +618,43 @@ struct VSTPlugin {
   static Meta *meta;
   static void init_meta()
   {
-    if (!meta) {
-        meta = new Meta;
-        mydsp* tmp_dsp = new mydsp();
-        if ((meta==0) || (tmp_dsp == 0)) {
-            fprintf(stderr, "Failed to allocate Faust dsp object\n");
-            exit(-1);
-        }
-        tmp_dsp->metadata(meta);
-        delete tmp_dsp;
-    }  
+    if (!meta && (meta = new Meta)) {
+      // We allocate the temporary dsp object on the heap here, to prevent
+      // large dsp objects from running out of stack in environments where
+      // stack space is precious (e.g., Reaper). Note that if any of these
+      // allocations fail then no meta data will be available, but at least we
+      // won't make the host crash and burn.
+      mydsp* tmp_dsp = new mydsp();
+      if (tmp_dsp) {
+	tmp_dsp->metadata(meta);
+	delete tmp_dsp;
+      }
+    }
+  }
+  static const char *meta_get(const char *key, const char *deflt)
+  {
+    init_meta();
+    return meta?meta->get(key, deflt):deflt;
   }
 
   static const char *pluginName()
   {
-    init_meta();
-    return meta->get("name", "mydsp");
+    return meta_get("name", "mydsp");
   }
 
   static const char *pluginAuthor()
   {
-    init_meta();
-    return meta->get("author", "");
+    return meta_get("author", "");
   }
 
   static const char *pluginDescription()
   {
-    init_meta();
-    return meta->get("description", "");
+    return meta_get("description", "");
   }
 
   static const char *pluginVersion()
   {
-    init_meta();
-    return meta->get("version", "0.0");
+    return meta_get("version", "0.0");
   }
 
   // Load a collection of sysex files with MTS tunings in ~/.faust/tuning.
@@ -707,8 +710,7 @@ struct VSTPlugin {
 #ifdef NVOICES
     return NVOICES;
 #else
-    init_meta();
-    const char *numVoices = meta->get("nvoices", "0");
+    const char *numVoices = meta_get("nvoices", "0");
     int nvoices = atoi(numVoices);
     if (nvoices < 0 ) nvoices = 0;
     return nvoices;
@@ -722,18 +724,13 @@ struct VSTPlugin {
   static int numControls()
   {
     const int num_voices = numVoices();
-   
-    // Allocate temporary dsp object on the heap
-    mydsp* tmp_dsp = new mydsp();
-    if (tmp_dsp == 0) {
-        fprintf(stderr, "Failed to allocate Faust dsp object\n");
-        exit(1);
-    }
-
+    // Allocate temporary dsp object on the heap (see comments under init_meta
+    // for explanation).
+    mydsp *dsp = new mydsp();
+    if (!dsp) return 0;
     VSTUI ui(num_voices);
-    tmp_dsp->buildUserInterface(&ui);
-    delete tmp_dsp;
-    
+    dsp->buildUserInterface(&ui);
+    delete dsp;
     // reserve one extra port for the polyphony control (instruments only)
     int num_extra = (num_voices>0);
 #if FAUST_MTS
