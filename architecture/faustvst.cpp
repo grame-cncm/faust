@@ -34,20 +34,11 @@
 #include <map>
 #include <set>
 
-using namespace std;
+// generic Faust dsp and UI classes
+#include <faust/dsp/dsp.h>
+#include <faust/gui/UI.h>
 
-// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
-// flags to avoid costly denormals
-#ifdef __SSE__
-    #include <xmmintrin.h>
-    #ifdef __SSE2__
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
-    #else
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
-    #endif
-#else
-  #define AVOIDDENORMALS
-#endif
+using namespace std;
 
 typedef pair<const char*,const char*> strpair;
 
@@ -75,16 +66,6 @@ struct Meta : std::map<const char*, const char*>
 *******************************************************************************/
 
 <<includeIntrinsic>>
-
-/******************************************************************************
-*******************************************************************************
-
-            ABSTRACT USER INTERFACE
-
-*******************************************************************************
-*******************************************************************************/
-
-#include <faust/gui/UI.h>
 
 /***************************************************************************
    VST UI interface
@@ -291,33 +272,6 @@ void VSTUI::closeBox()
 
 void VSTUI::run() {}
 
-/******************************************************************************
-*******************************************************************************
-
-                FAUST DSP
-
-*******************************************************************************
-*******************************************************************************/
-
-//----------------------------------------------------------------
-//  abstract definition of a signal processor
-//----------------------------------------------------------------
-
-class dsp {
- protected:
-  int fSamplingFreq;
- public:
-  // internal freelist for custom voice allocation
-  dsp *prev, *next;
-  dsp() {}
-  virtual ~dsp() {}
-  virtual int getNumInputs() = 0;
-  virtual int getNumOutputs() = 0;
-  virtual void buildUserInterface(UI* interface) = 0;
-  virtual void init(int samplingRate) = 0;
-  virtual void compute(int len, float** inputs, float** outputs) = 0;
-};
-
 //----------------------------------------------------------------------------
 //  FAUST generated signal processor
 //----------------------------------------------------------------------------
@@ -328,7 +282,7 @@ class dsp {
 //  VST interface
 //----------------------------------------------------------------------------
 
-#line 332 "faustvst.cpp"
+#line 286 "faustvst.cpp"
 
 #include <assert.h>
 #include <stdio.h>
