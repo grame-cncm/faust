@@ -71,10 +71,8 @@ bool SynthNote::AttackNote(
 	mPitch = inParams.mPitch;
 	mVelocity = inParams.mVelocity;
 	
-	
 	return Attack(inParams);
 }
-
 
 void SynthNote::Reset()
 {
