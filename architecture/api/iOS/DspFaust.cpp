@@ -24,6 +24,8 @@
 #include "faust/gui/jsonfaustui.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
+#include <math.h>
+#include <cmath>
 
 //**************************************************************
 // Intrinsic

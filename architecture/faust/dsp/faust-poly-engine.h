@@ -48,7 +48,6 @@ class FaustPolyEngine {
         
     protected:
 
-        mydsp* fMonoDSP;          // the monophonic Faust object
         mydsp_poly* fPolyDSP;     // the polyphonic Faust object
         dsp* fFinalDSP;           // the "final" dsp object submitted to the audio driver
     
@@ -57,7 +56,6 @@ class FaustPolyEngine {
         string fJSONUI;
         string fJSONMeta;
         bool fRunning;
-        int fPolyMax;
         audio* fDriver;
     
         midi_handler fMidiHandler;
@@ -69,29 +67,24 @@ class FaustPolyEngine {
         {
             fDriver = driver;
             fRunning = false;
-            fMonoDSP = new mydsp();
-
+            mydsp* mono_dsp = new mydsp();
+         
             // Getting the UI JSON
-            JSONUI jsonui1(fMonoDSP->getNumInputs(), fMonoDSP->getNumOutputs());
-            fMonoDSP->buildUserInterface(&jsonui1);
+            JSONUI jsonui1(mono_dsp->getNumInputs(), mono_dsp->getNumOutputs());
+            mono_dsp->buildUserInterface(&jsonui1);
             fJSONUI = jsonui1.JSON();
             
             // Getting the metadata JSON
-            JSONUI jsonui1M(fMonoDSP->getNumInputs(), fMonoDSP->getNumOutputs());
-            fMonoDSP->metadata(&jsonui1M);
+            JSONUI jsonui1M(mono_dsp->getNumInputs(), mono_dsp->getNumOutputs());
+            mono_dsp->metadata(&jsonui1M);
             fJSONMeta = jsonui1M.JSON();
 
             if (fJSONUI.find("keyboard") != std::string::npos
                 || fJSONUI.find("poly") != std::string::npos
                 || POLY_VOICES != 0) {
                 
-                if (POLY_VOICES != 0) {
-                    fPolyMax = POLY_VOICES;
-                } else {
-                    fPolyMax = 10; // default number of poly voices
-                }
-
-                fPolyDSP = new mydsp_poly(fMonoDSP, fPolyMax, true);
+                int poly_max = (POLY_VOICES != 0) ? POLY_VOICES : 10; // default number of poly voices
+                fPolyDSP = new mydsp_poly(mono_dsp, poly_max, true);
 
             #if POLY2
                 fFinalDSP = new dsp_sequencer(fPolyDSP, new effect());
@@ -100,17 +93,16 @@ class FaustPolyEngine {
             #endif
                 
                 // Update JSONs with Poly version
-                JSONUI jsonui2(fMonoDSP->getNumInputs(), fMonoDSP->getNumOutputs());
+                JSONUI jsonui2(mono_dsp->getNumInputs(), mono_dsp->getNumOutputs());
                 fFinalDSP->buildUserInterface(&jsonui2);
                 fJSONUI = jsonui2.JSON();
-                JSONUI jsonui2M(fMonoDSP->getNumInputs(), fMonoDSP->getNumOutputs());
+                JSONUI jsonui2M(mono_dsp->getNumInputs(), mono_dsp->getNumOutputs());
                 fFinalDSP->metadata(&jsonui2M);
                 fJSONMeta = jsonui2M.JSON();
                 
             } else {
-                fPolyMax = 0;
                 fPolyDSP = NULL;
-                fFinalDSP = fMonoDSP;
+                fFinalDSP = mono_dsp;
             }
             
             fFinalDSP->buildUserInterface(&fMidiUI);
@@ -170,7 +162,7 @@ class FaustPolyEngine {
          */
         MapUI* keyOn(int pitch, int velocity)
         {
-            if (fPolyMax > 0) {
+            if (fPolyDSP) {
                 return fPolyDSP->keyOn(0, pitch, velocity); // MapUI* passed to Java as an integer
             } else {
                 return 0;
@@ -187,7 +179,7 @@ class FaustPolyEngine {
          */
         int keyOff(int pitch, int velocity = 127)
         {
-            if (fPolyMax > 0) {
+            if (fPolyDSP) {
                 fPolyDSP->keyOff(0, pitch, velocity);
                 return 1;
             } else {
@@ -201,7 +193,7 @@ class FaustPolyEngine {
          */
         MapUI* newVoice()
         {
-            if (fPolyMax > 0) {
+            if (fPolyDSP) {
                 return fPolyDSP->newVoice();
             } else {
                 return 0;
@@ -214,7 +206,7 @@ class FaustPolyEngine {
          */
         int deleteVoice(MapUI* voice)
         {
-            if (fPolyMax > 0) {
+            if (fPolyDSP) {
                 fPolyDSP->deleteVoice(voice);
                 return 1;
             } else {
@@ -228,15 +220,18 @@ class FaustPolyEngine {
          */
         int deleteVoice(long voice)
         {
-          return deleteVoice(reinterpret_cast<MapUI*>(voice));
+            return deleteVoice(reinterpret_cast<MapUI*>(voice));
         }
         
         /*
          * allNotesOff()
          * Gently terminates all the active voices.
          */
-        void allNotesOff(){
-            fPolyDSP->allNotesOff();
+        void allNotesOff()
+        {
+            if (fPolyDSP) {
+                fPolyDSP->allNotesOff();
+            }
         }
     
         /*
@@ -276,11 +271,7 @@ class FaustPolyEngine {
          */
         void buildUserInterface(UI* ui_interface)
         {
-            if (fPolyMax > 0) {
-                fPolyDSP->buildUserInterface(ui_interface);
-            } else {
-                fMonoDSP->buildUserInterface(ui_interface);
-            }
+            fFinalDSP->buildUserInterface(ui_interface);
         }
 
         /*

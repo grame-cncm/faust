@@ -40,18 +40,18 @@ More experimental branches are also available but are not documented here.
 
 This is an overview of the content of the top-level folders of the Faust distribution. Most of these folders contain their own README describing their content in more details.
 
-architecture/          : the architecture files currently supported
-benchmark/             : tools to measure the impact of various compiler options
-compiler/              : sources of the Faust compiler
-debian/                : files for Debian installation
-documentation/         : Faust developer's documentation
-examples/              : Faust programs examples organized by categories
-installer/             : various instalers for Linux distribution
-libraries/             : DSP libraries
-syntax-highlighting/   : support for syntax highlighting for several editors
-test/                  : various tests
-tools/                 : additional easy-to-use scripts (faust2...) to produce binaries and plugins
-windows/               : Windows projects
+	architecture/          : the architecture files currently supported
+	benchmark/             : tools to measure the impact of various compiler options
+	compiler/              : sources of the Faust compiler
+	debian/                : files for Debian installation
+	documentation/         : Faust developer's documentation
+	examples/              : Faust programs examples organized by categories
+	installer/             : various instalers for Linux distribution
+	libraries/             : DSP libraries
+	syntax-highlighting/   : support for syntax highlighting for several editors
+	test/                  : various tests
+	tools/                 : additional easy-to-use scripts (faust2...) to produce binaries and plugins
+	windows/               : Windows projects
 
 ## Compilation and Installation
 
@@ -64,10 +64,10 @@ The build steps are the same for all the versions of Faust (Faust0 and Faust2). 
 
 To build Faust on MacOSX or Linux, just run the following commands from the root of the distribution:
 
-make
-sudo make install
+	make
+	sudo make install
 
-
+	
 ### Windows
 
 #### Using Visual Studio
@@ -80,16 +80,16 @@ The Faust compiler can be built with [Qt](https://www.qt.io/) using `/compiler/c
 
 ### Build & Use Faust with Docker :
 
-docker build -t faust
-docker run faust [args...]
+	docker build -t faust
+	docker run faust [args...]
 
 For example to display the help:
 
-docker run faust -h
+	docker run faust -h
 
 To use an additional tool, for example faust2pdf:
 
-docker run --entrypoint faust2pdf faust [args...]
+	docker run --entrypoint faust2pdf faust [args...]
 
 ## Using the Faust Examples
 
@@ -109,52 +109,52 @@ The [Faust Online Compiler](http://faust.grame.fr/onlinecompiler/) allows to wri
 
 ### `faust2...` Scripts and Programs
 
-The `faust2...` scripts and programs are command line tools allowing to compile Faust codes to any of the supported Faust targets ("architectures"). They are placed on your system during the Faust installation process. The fastest way to get an exhaustive list of all of them is to open a terminal window, type `faust2`, and then press the Tab key for auto-completion. For example, to compile a Faust code as a Jack application with a Qt interface, run:
+The `faust2...` scripts and programs are command line tools allowing to compile Faust codes to any of the supported Faust targets ("architectures"). They are placed on your system during the Faust installation process. The fastest way to get an exhaustive list of all of them is to open a terminal window, type `faust2`, and then press the Tab key for auto-completion. For example, to compile a Faust code as a JACK application with a Qt interface, run:
 
-faust2jaqt yourCode.dsp
+	faust2jaqt yourCode.dsp
 
 The most commonly used `faust2` scripts are:
 
-faust2alqt              : ALSA application with Qt UI
-faust2ladspa            : LADSPA plug-in
-faust2pdf               : pdf block diagram
-faust2supercollider     : SuperCollider external
-faust2alsa              : ALSA application with GTK UI
-faust2faustvst          : VST plug-in 
-faust2lv2               : LV2 plug-in
-faust2plot              : command line program to debug DSP (sample plotting, etc.)
-faust2svg               : SVG block diagram
-faust2alsaconsole       : ALSA command line program
-faust2mathdoc           : automatic pdf mathematical documentation
-faust2png               : png block diagram
-faust2android           : Android app
-faust2graph             : svg graph
-faust2puredata          : PureData external
-faust2api               : API generator
-faust2msp               : MaxMSP 5 external and patch
-faust2max6              : MaxMSP 6 (and later) external and patch
-faust2asmjs             : asmjs WebAudio code
-faust2ios               : iOS app
-faust2ros               : ROS app
-faust2au                : Audio Unit plugin
-faust2rosgtk            : ROS app with GTK UI
-faust2bela              : BELA program
-faust2jack              : Jack application with GTK UI
-faust2netjackconsole    : NetJack command line program
-faust2rpialsaconsole    : Raspberry Pi ALSA command line program
-faust2caqt              : CoreAudio application with Qt UI
-faust2jackconsole       : Jack command line program
-faust2netjackqt         : NetJack application with Qt UI
-faust2rpinetjackconsole : Raspberry Pi Jack command line program
-faust2webaudioasm       : WebAudio web HTML app
-faust2caqtios           : iOS app with Qt UI
-faust2octave            : Octave script
-faust2csound            : CSOUND Opcode
-faust2owl               : OWL Program 
-faust2sig               : SVG signal
-faust2jaqt              : Jack application with Qt UI
-
-Obviously, the corresponding dependencies for each of them must be installed on your system for compilation to be successful. For example, if you use `faust2jaqt`, Jack and Qt libraries must be installed.
+    faust2alqt              : ALSA application with Qt UI
+    faust2ladspa            : LADSPA plug-in
+    faust2pdf               : pdf block diagram
+    faust2supercollider     : SuperCollider external
+    faust2alsa              : ALSA application with GTK UI
+    faust2faustvst          : VST plug-in 
+    faust2lv2               : LV2 plug-in
+    faust2plot              : command line program to debug DSP (sample plotting, etc.)
+    faust2svg               : SVG block diagram
+    faust2alsaconsole       : ALSA command line program
+    faust2mathdoc           : automatic pdf mathematical documentation
+    faust2png               : png block diagram
+    faust2android           : Android app
+    faust2graph             : svg graph
+    faust2puredata          : PureData external
+    faust2api               : API generator
+    faust2msp               : MaxMSP 5 external and patch
+    faust2max6              : MaxMSP 6 (and later) external and patch
+    faust2asmjs             : asmjs WebAudio code
+    faust2ios               : iOS app
+    faust2ros               : ROS app
+    faust2au                : Audio Unit plugin
+    faust2rosgtk            : ROS app with GTK UI
+    faust2bela              : BELA program
+    faust2jack              : JACK application with GTK UI
+    faust2netjackconsole    : NetJack command line program
+    faust2rpialsaconsole    : Raspberry Pi ALSA command line program
+    faust2caqt              : CoreAudio application with Qt UI
+    faust2jackconsole       : JACK command line program
+    faust2netjackqt         : NetJack application with Qt UI
+    faust2rpinetjackconsole : Raspberry Pi JACK command line program
+    faust2webaudioasm       : WebAudio web HTML app
+    faust2caqtios           : iOS app with Qt UI
+    faust2octave            : Octave script
+    faust2csound            : CSOUND Opcode
+    faust2owl               : OWL Program 
+    faust2sig               : SVG signal
+    faust2jaqt              : JACK application with Qt UI
+	
+Obviously, the corresponding dependencies for each of them must be installed on your system for compilation to be successful. For example, if you use `faust2jaqt`, JACK and Qt libraries must be installed.
 
 ## Documentation and Resources
 

@@ -30,6 +30,10 @@
 #include <map>
 #include <set>
 
+// generic Faust dsp and UI classes
+#include <faust/dsp/dsp.h>
+#include <faust/gui/UI.h>
+
 using namespace std;
 
 typedef pair<const char*,const char*> strpair;
@@ -58,16 +62,6 @@ struct Meta : std::map<const char*, const char*>
 *******************************************************************************/
 
 <<includeIntrinsic>>
-
-/******************************************************************************
-*******************************************************************************
-
-			ABSTRACT USER INTERFACE
-
-*******************************************************************************
-*******************************************************************************/
-
-#include <faust/gui/UI.h>
 
 /***************************************************************************
    LV2 UI interface
@@ -274,33 +268,6 @@ void LV2UI::closeBox()
 
 void LV2UI::run() {}
 
-/******************************************************************************
-*******************************************************************************
-
-			    FAUST DSP
-
-*******************************************************************************
-*******************************************************************************/
-
-//----------------------------------------------------------------
-//  abstract definition of a signal processor
-//----------------------------------------------------------------
-
-class dsp {
- protected:
-  int fSamplingFreq;
- public:
-  // internal freelist for custom voice allocation
-  dsp *prev, *next;
-  dsp() {}
-  virtual ~dsp() {}
-  virtual int getNumInputs() = 0;
-  virtual int getNumOutputs() = 0;
-  virtual void buildUserInterface(UI* interface) = 0;
-  virtual void init(int samplingRate) = 0;
-  virtual void compute(int len, float** inputs, float** outputs) = 0;
-};
-
 //----------------------------------------------------------------------------
 //  FAUST generated signal processor
 //----------------------------------------------------------------------------
@@ -311,7 +278,7 @@ class dsp {
 //  LV2 UI interface
 //----------------------------------------------------------------------------
 
-#line 315 "lv2ui.cpp"
+#line 282 "lv2ui.cpp"
 
 #include <assert.h>
 #include <stdio.h>
