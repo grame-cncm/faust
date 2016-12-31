@@ -25,9 +25,9 @@ This will give you access to all the Faust libraries through a series of environ
 * `de`: `delay.lib`
 * `dm`: `demo.lib`
 * `en`: `envelope.lib`
-* `fi`: `filter.lib`
+* `fi`: `miscfilter.lib`
 * `ho`: `hoa.lib`
-* `ma`: `math.lib`
+* `ma`: `miscmath.lib`
 * `ef`: `misceffect.lib`
 * `os`: `miscoscillator.lib`
 * `no`: `noise.lib`
@@ -147,9 +147,9 @@ Only the libraries that are considered to be "standard" are documented:
 * `delay.lib`
 * `demo.lib`
 * `envelope.lib`
-* `filter.lib`
+* `miscfilter.lib`
 * `hoa.lib`
-* `math.lib`
+* `miscmath.lib`
 * `misceffect.lib`
 * `miscoscillator.lib`
 * `noise.lib`
@@ -192,9 +192,9 @@ co = library("compressor.lib");
 de = library("delay.lib");
 dm = library("demo.lib");
 en = library("envelope.lib");
-fi = library("filter.lib");
+fi = library("miscfilter.lib");
 ho = library("hoa.lib");
-ma = library("math.lib");
+ma = library("miscmath.lib");
 ef = library("misceffect.lib");
 os = library("miscoscillator.lib");
 no = library("noise.lib");
@@ -226,7 +226,7 @@ Any function containing UI elements should be placed in this library and respect
 
 ### "Standard" Functions
 
-"Standard" functions are here to simplify the life of new (or not so new) Faust coders. They are declared in `/libraries/doc/standardFunctions.md` and allow to point programmers to preferred functions to carry out a specific task. For example, there are many different types of lowpass filters declared in `filter.lib` and only one of them is considered to be standard, etc.
+"Standard" functions are here to simplify the life of new (or not so new) Faust coders. They are declared in `/libraries/doc/standardFunctions.md` and allow to point programmers to preferred functions to carry out a specific task. For example, there are many different types of lowpass filters declared in `miscfilter.lib` and only one of them is considered to be standard, etc.
 
 ## The question of licensing/authoring/copyrigth
 

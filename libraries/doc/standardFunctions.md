@@ -110,26 +110,26 @@ Function Type | Function Name | Description
 
 Function Type | Function Name | Description
 --- | --- | ---
-[Bandpass (Butterworth)](#bandpass) | [`fi.`](#filter.lib)[`bandpass`](#bandpass) | Generic butterworth bandpass
-[Bandpass (Resonant)](#resonbp) | [`fi.`](#filter.lib)[`resonbp`](#resonbp) | Virtual analog resonant bandpass
-[Bandstop (Butterworth)](#bandstop) | [`fi.`](#filter.lib)[`bandstop`](#bandstop) | Generic butterworth bandstop
-[Biquad](#tf2) | [`fi.`](#filter.lib)[`tf2`](#tf2) | "Standard" biquad filter
-[Comb (Allpass)](#allpass_fcomb) | [`fi.`](#filter.lib)[`allpass_fcomb`](#allpass_fcomb) | Schroeder allpass comb filter
-[Comb (Feedback)](#fb_fcomb) | [`fi.`](#filter.lib)[`fb_fcomb`](#fb_fcomb) | Feedback comb filter
-[Comb (Feedforward)](#ff_fcomb) | [`fi.`](#filter.lib)[`ff_fcomb`](#ff_fcomb) | Feed-forward comb filter.
-[DC Blocker](#dcblocker) | [`fi.`](#filter.lib)[`dcblocker`](#dcblocker) | Default dc blocker
-[Filterbank](#filterbank) | [`fi.`](#filter.lib)[`filterbank`](#filterbank) | Generic filter bank
-[FIR (Arbitrary Order)](#fir) | [`fi.`](#filter.lib)[`fir`](#fir) | Nth-order FIR filter
-[High Shelf](#high_shelf) | [`fi.`](#filter.lib)[`high_shelf`](#high_shelf) | High shelf
-[Highpass (Butterworth)](#highpass) | [`fi.`](#filter.lib)[`highpass`](#highpass) | Nth-order Butterworth highpass
-[Highpass (Resonant)](#resonhp) | [`fi.`](#filter.lib)[`resonhp`](#resonhp) | Virtual analog resonant highpass
-[IIR (Arbitrary Order)](#iir) | [`fi.`](#filter.lib)[`iir`](#iir) | Nth-order IIR filter
-[Level Filter](#levelfilter) | [`fi.`](#filter.lib)[`levelfilter`](#levelfilter) | Dynamic level lowpass
-[Low Shelf](#low_shelf) | [`fi.`](#filter.lib)[`low_shelf`](#low_shelf) | Low shelf
-[Lowpass (Butterworth)](#lowpass) | [`fi.`](#filter.lib)[`lowpass`](#lowpass) | Nth-order Butterworth lowpass
-[Lowpass (Resonant)](#resonlp) | [`fi.`](#filter.lib)[`resonlp`](#resonlp) | Virtual analog resonant lowpass
-[Notch Filter](#notchw) | [`fi.`](#filter.lib)[`notchw`](#notchw) | Simple notch filter
-[Peak Equalizer](#peak_eq) | [`fi.`](#filter.lib)[`peak_eq`](#peak_eq) | Peaking equalizer section
+[Bandpass (Butterworth)](#bandpass) | [`fi.`](#miscfilter.lib)[`bandpass`](#bandpass) | Generic butterworth bandpass
+[Bandpass (Resonant)](#resonbp) | [`fi.`](#miscfilter.lib)[`resonbp`](#resonbp) | Virtual analog resonant bandpass
+[Bandstop (Butterworth)](#bandstop) | [`fi.`](#miscfilter.lib)[`bandstop`](#bandstop) | Generic butterworth bandstop
+[Biquad](#tf2) | [`fi.`](#miscfilter.lib)[`tf2`](#tf2) | "Standard" biquad filter
+[Comb (Allpass)](#allpass_fcomb) | [`fi.`](#miscfilter.lib)[`allpass_fcomb`](#allpass_fcomb) | Schroeder allpass comb filter
+[Comb (Feedback)](#fb_fcomb) | [`fi.`](#miscfilter.lib)[`fb_fcomb`](#fb_fcomb) | Feedback comb filter
+[Comb (Feedforward)](#ff_fcomb) | [`fi.`](#miscfilter.lib)[`ff_fcomb`](#ff_fcomb) | Feed-forward comb filter.
+[DC Blocker](#dcblocker) | [`fi.`](#miscfilter.lib)[`dcblocker`](#dcblocker) | Default dc blocker
+[Filterbank](#filterbank) | [`fi.`](#miscfilter.lib)[`filterbank`](#filterbank) | Generic filter bank
+[FIR (Arbitrary Order)](#fir) | [`fi.`](#miscfilter.lib)[`fir`](#fir) | Nth-order FIR filter
+[High Shelf](#high_shelf) | [`fi.`](#miscfilter.lib)[`high_shelf`](#high_shelf) | High shelf
+[Highpass (Butterworth)](#highpass) | [`fi.`](#miscfilter.lib)[`highpass`](#highpass) | Nth-order Butterworth highpass
+[Highpass (Resonant)](#resonhp) | [`fi.`](#miscfilter.lib)[`resonhp`](#resonhp) | Virtual analog resonant highpass
+[IIR (Arbitrary Order)](#iir) | [`fi.`](#miscfilter.lib)[`iir`](#iir) | Nth-order IIR filter
+[Level Filter](#levelfilter) | [`fi.`](#miscfilter.lib)[`levelfilter`](#levelfilter) | Dynamic level lowpass
+[Low Shelf](#low_shelf) | [`fi.`](#miscfilter.lib)[`low_shelf`](#low_shelf) | Low shelf
+[Lowpass (Butterworth)](#lowpass) | [`fi.`](#miscfilter.lib)[`lowpass`](#lowpass) | Nth-order Butterworth lowpass
+[Lowpass (Resonant)](#resonlp) | [`fi.`](#miscfilter.lib)[`resonlp`](#resonlp) | Virtual analog resonant lowpass
+[Notch Filter](#notchw) | [`fi.`](#miscfilter.lib)[`notchw`](#notchw) | Simple notch filter
+[Peak Equalizer](#peak_eq) | [`fi.`](#miscfilter.lib)[`peak_eq`](#peak_eq) | Peaking equalizer section
 
 <div class="table-end"></div>
 

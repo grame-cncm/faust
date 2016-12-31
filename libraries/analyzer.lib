@@ -51,7 +51,7 @@ closed source license or any other license if you decide so.
 
 ba = library("basic.lib");
 si = library("signal.lib");
-fi = library("filter.lib");
+fi = library("miscfilter.lib");
 
 declare name "Faust Analyzer Library";
 declare version "0.0";

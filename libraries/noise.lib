@@ -50,7 +50,7 @@ closed source license or any other license if you decide so.
 ************************************************************************/
 
 ba = library("basic.lib");
-fi = library("filter.lib");
+fi = library("miscfilter.lib");
 os = library("miscoscillator.lib");
 
 declare name "Faust Noise Generator Library";

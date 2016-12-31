@@ -24,7 +24,7 @@
  ******************************************************************************/
 
 tubestageF(tb,vplus,divider,fck,Rk,Vk0) = tube : hpf with {
-    lpfk = library("filter.lib").lowpass(1,fck);
+    lpfk = library("miscfilter.lib").lowpass(1,fck);
     Rp = 100.0e3;
     VkC = Vk0 * (Rp/Rk);
 
@@ -35,7 +35,7 @@ tubestageF(tb,vplus,divider,fck,Rk,Vk0) = tube : hpf with {
     size = 2001;
 
     tube = (+ : -(Vk0) : tubeF(tb, low, high, step, size) : +(VkC-vplus)) ~ (*(Rk/Rp) : lpfk) : /(divider);
-    hpf = library("filter.lib").highpass(1,31.0);
+    hpf = library("miscfilter.lib").highpass(1,31.0);
 };
 
 tubestage(tb,fck,Rk,Vk0)       = tubestageF(tb,250.0,40.0,fck,Rk,Vk0);

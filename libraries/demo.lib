@@ -50,12 +50,12 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ma = library("math.lib");
+ma = library("miscmath.lib");
 ba = library("basic.lib");
 de = library("delay.lib");
 si = library("signal.lib");
 an = library("analyzer.lib");
-fi = library("filter.lib");
+fi = library("miscfilter.lib");
 os = library("miscoscillator.lib");
 no = library("noise.lib");
 ef = library("misceffect.lib");

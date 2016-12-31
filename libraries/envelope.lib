@@ -55,7 +55,7 @@ declare author "GRAME";
 declare copyright "GRAME";
 declare license "LGPL with exception";
 
-ma = library("math.lib");
+ma = library("miscmath.lib");
 ba = library("basic.lib");
 si = library("signal.lib");
 

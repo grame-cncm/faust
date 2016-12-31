@@ -31,8 +31,8 @@ declare copyright "Guitarix project";
 declare version   "0.28";
 declare license   "LGPL";
 
-ma = library("math.lib");
-fi = library("filter.lib");
+ma = library("miscmath.lib");
+fi = library("miscfilter.lib");
 
 
 /****************************************************************

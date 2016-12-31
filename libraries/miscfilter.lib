@@ -1,4 +1,4 @@
-//################################ filter.lib ########################################
+//################################ miscfilter.lib ########################################
 // A library of filters and of more advanced filter-based sound processor organized 
 // in 18 sections:
 //
@@ -24,7 +24,7 @@
 // It should be used using the `fi` environment:
 //
 // ```
-// fi = library("filter.lib");
+// fi = library("miscfilter.lib");
 // process = fi.functionCall;
 // ```
 //
@@ -69,7 +69,7 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ma = library("math.lib");
+ma = library("miscmath.lib");
 ba = library("basic.lib");
 de = library("delay.lib");
 an = library("analyzer.lib");

@@ -55,7 +55,7 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ma = library("math.lib");
+ma = library("miscmath.lib");
 ro = library("route.lib");
 
 declare name "Faust Basic Element Library";

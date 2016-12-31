@@ -52,9 +52,9 @@ closed source license or any other license if you decide so.
 declare name "Faust Oscillator Library";
 declare version "0.0";
 
-ma = library("math.lib");
+ma = library("miscmath.lib");
 ba = library("basic.lib");
-fi = library("filter.lib");
+fi = library("miscfilter.lib");
 
 
 //=========================Wave-Table-Based Oscillators===================================

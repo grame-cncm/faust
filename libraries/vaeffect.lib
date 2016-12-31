@@ -49,10 +49,10 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ma = library("math.lib");
+ma = library("miscmath.lib");
 si = library("signal.lib");
 an = library("analyzer.lib");
-fi = library("filter.lib");
+fi = library("miscfilter.lib");
 
 declare name "Faust Virtual Analog Filter Effect Library";
 declare version "0.0";
@@ -225,7 +225,7 @@ with {
   a2s = a2 : si.smooth(s);
   gs =  g  : si.smooth(s);
 
-  //tf2 = component("filter.lib").tf2;
+  //tf2 = component("miscfilter.lib").tf2;
 };
 
 

@@ -9,7 +9,7 @@ declare copyright "Julius O. Smith III";
 declare version "1.33";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare deprecated "This library is deprecated and is not maintained anymore. It might
-be removed in future released.";
+be removed in future releases.";
 
 import("filter.lib"); // dcblocker*, lowpass, filterbank, ...
 

@@ -9,11 +9,11 @@ declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 
 //no = library("noise.lib"); 
 en = library("envelope.lib"); 
-ma = library("math.lib");
+ma = library("miscmath.lib");
 ba = library("basic.lib");
 de = library("delay.lib");
 si = library("signal.lib");
-fi = library("filter.lib");
+fi = library("miscfilter.lib");
 os = library("miscoscillator.lib");
 re = library("reverb.lib");
 

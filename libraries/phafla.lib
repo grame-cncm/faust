@@ -49,9 +49,9 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ma = library("math.lib");
+ma = library("miscmath.lib");
 de = library("delay.lib");
-fi = library("filter.lib");
+fi = library("miscfilter.lib");
 os = library("miscoscillator.lib");
 
 
@@ -119,7 +119,7 @@ flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert)
 vibrato2_mono(sections,phase01,fb,width,frqmin,fratio,frqmax,speed) =
  (+ : seq(i,sections,ap2p(R,th(i)))) ~ *(fb)
 with {
-     //tf2 = component("filter.lib").tf2;
+     //tf2 = component("miscfilter.lib").tf2;
      // second-order resonant digital allpass given pole radius and angle:
      ap2p(R,th) = fi.tf2(a2,a1,1,a1,a2) with {
        a2 = R^2;

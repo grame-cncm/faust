@@ -49,12 +49,12 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ma = library("math.lib");
+ma = library("miscmath.lib");
 ba = library("basic.lib");
 de = library("delay.lib");
 ro = library("route.lib");
 si = library("signal.lib");
-fi = library("filter.lib");
+fi = library("miscfilter.lib");
 
 declare name "Faust Reverb Library";
 declare version "0.0";

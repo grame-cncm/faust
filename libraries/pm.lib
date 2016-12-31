@@ -17,7 +17,7 @@
 // ```
 //########################################################################################
 
-ma = library("math.lib");
+ma = library("miscmath.lib");
 de = library("delay.lib");
 ro = library("route.lib");
 
