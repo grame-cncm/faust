@@ -53,7 +53,7 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 //==================== SIGNAL PROCESSING ================
 
 //----------------------- Nonlinear filter ----------------------------
-//nonlinearities are created by the nonlinear passive allpass ladder filter declared in filter.lib
+//nonlinearities are created by the nonlinear passive allpass ladder filter declared in miscfilter.lib
 
 //nonlinear filter order
 nlfOrder = 6; 
@@ -61,7 +61,7 @@ nlfOrder = 6;
 //attack - sustain - release envelope for nonlinearity (declared in instrument.lib)
 envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from filter.lib 
+//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
 NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
      typeModulation,(frequencyMod : si.smoo),nlfOrder);
@@ -111,3 +111,4 @@ process =
 	(delay1 : NLFM) : !,
 	//Scaling Output and stereo
 	*(gain) : stereo : instrReverb;
+

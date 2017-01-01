@@ -174,7 +174,7 @@ with {
 //
 // ```
 // lfnoise0(rate) : _;   // new random number every int(SR/rate) samples or so
-// lfnoiseN(N,rate) : _; // same as "lfnoise0(rate) : lowpass(N,rate)" [see filter.lib]
+// lfnoiseN(N,rate) : _; // same as "lfnoise0(rate) : lowpass(N,rate)" [see miscfilter.lib]
 // lfnoise(rate) : _;    // same as "lfnoise0(rate) : seq(i,5,lowpass(N,rate))" (no overshoot)
 // ```
 //

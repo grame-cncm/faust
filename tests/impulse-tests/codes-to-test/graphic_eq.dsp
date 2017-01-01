@@ -1,8 +1,8 @@
 
-declare name 		"graphic_eq";
+declare name "graphic_eq";
 
-ol = library("oscillator.lib");
-fl = library("filter.lib");
+ol = library("miscoscillator.lib");
+fl = library("miscfilter.lib");
 
 process = 
 // ol.sawtooth_demo : fl.filterbank_demo : fl.spectral_level_demo <: _,_;

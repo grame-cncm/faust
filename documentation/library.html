@@ -1349,7 +1349,7 @@ process = an.functionCall;</code></pre>
 <pre><code>_ : amp_follower_ar(att,rel) : _;</code></pre>
 <hr />
 <h2 id="spectrum-analyzers">Spectrum-Analyzers</h2>
-<p>Spectrum-analyzers split the input signal into a bank of parallel signals, one for each spectral band. They are related to the Mth-Octave Filter-Banks in <code>filter.lib</code>. The documentation of this library contains more details about the implementation. The parameters are:</p>
+<p>Spectrum-analyzers split the input signal into a bank of parallel signals, one for each spectral band. They are related to the Mth-Octave Filter-Banks in <code>miscfilter.lib</code>. The documentation of this library contains more details about the implementation. The parameters are:</p>
 <ul>
 <li><code>M</code>: number of band-slices per octave (&gt;1)</li>
 <li><code>N</code>: total number of bands (&gt;2)</li>
@@ -4079,7 +4079,7 @@ process = no.functionCall;</code></pre>
 <p>Low-frequency noise generators (Butterworth-filtered downsampled white noise)</p>
 <h4 id="usage-240">Usage</h4>
 <pre><code>lfnoise0(rate) : _;   // new random number every int(SR/rate) samples or so
-lfnoiseN(N,rate) : _; // same as &quot;lfnoise0(rate) : lowpass(N,rate)&quot; [see filter.lib]
+lfnoiseN(N,rate) : _; // same as &quot;lfnoise0(rate) : lowpass(N,rate)&quot; [see miscfilter.lib]
 lfnoise(rate) : _;    // same as &quot;lfnoise0(rate) : seq(i,5,lowpass(N,rate))&quot; (no overshoot)</code></pre>
 <h4 id="example-6">Example</h4>
 <p>(view waveforms in faust2octave):</p>
@@ -4193,7 +4193,7 @@ with{
      B = _,_,_;
 };</code></pre>
 <h3 id="requires">Requires</h3>
-<p><code>filter.lib</code> (<code>crossnn</code>)</p>
+<p><code>route.lib</code> (<code>crossnn</code>)</p>
 <hr />
 <h3 id="inputx">input(x)</h3>
 <p>Adds a waveguide input anywhere between 2 blocks in a chain of blocks (see <code>chain()</code>). ### Usage</p>
@@ -4213,7 +4213,7 @@ with{
      c = *(-1); // right termination
 };</code></pre>
 <h3 id="requires-1">Requires</h3>
-<p><code>filter.lib</code> (<code>crossnn</code>)</p>
+<p><code>route.lib</code> (<code>crossnn</code>)</p>
 <hr />
 <h3 id="fullterminationsabc">fullTerminations(a,b,c)</h3>
 <p>Same as <code>terminations()</code> but closes the inputs and outputs of the bidirectional chain (only the mixed output remains). ### Usage</p>
@@ -4224,7 +4224,7 @@ with{
      c = *(-1); // right termination
 };</code></pre>
 <h3 id="requires-2">Requires</h3>
-<p><code>filter.lib</code> (<code>crossnn</code>)</p>
+<p><code>route.lib</code> (<code>crossnn</code>)</p>
 <hr />
 <h3 id="leftterminationab">leftTermination(a,b)</h3>
 <p>Creates a termination on the left side of a <code>chain()</code> without closing the inputs and outputs of the bidirectional signals chain. This function adds a 1 sample delay near the termination. ### Usage</p>
@@ -4234,7 +4234,7 @@ with{
      b = chain(D:E:F); // bidirectional chain of blocks (D, E, F, etc.)
 };</code></pre>
 <h3 id="requires-3">Requires</h3>
-<p><code>filter.lib</code> (<code>crossnn</code>)</p>
+<p><code>route.lib</code> (<code>crossnn</code>)</p>
 <hr />
 <h3 id="rightterminationbc">rightTermination(b,c)</h3>
 <p>Creates a termination on the right side of a <code>chain()</code> without closing the inputs and outputs of the bidirectional signals chain. This function adds a 1 sample delay near the termination. ### Usage</p>
@@ -4244,17 +4244,17 @@ with{
      c = *(-1); // right termination
 };</code></pre>
 <h3 id="requires-4">Requires</h3>
-<p><code>filter.lib</code> (<code>crossnn</code>)</p>
+<p><code>route.lib</code> (<code>crossnn</code>)</p>
 <hr />
 <h3 id="waveguidenmaxn">waveguide(nMax,n)</h3>
 <p>A simple waveguide block based on a 4th order fractional delay. ### Usage</p>
 <pre><code>rightGoingWaves,leftGoingWaves,mixedOutput : waveguide(nMax,n) : rightGoingWaves,leftGoingWaves,mixedOutput</code></pre>
-<p>With: * <code>nMax</code>: the maximum length of the waveguide in samples * <code>n</code> the length of the waveguide in samples. ### Requires <code>filter.lib</code> (<code>fdelay4</code>)</p>
+<p>With: * <code>nMax</code>: the maximum length of the waveguide in samples * <code>n</code> the length of the waveguide in samples. ### Requires <code>delay.lib</code> (<code>fdelay4</code>)</p>
 <hr />
 <h3 id="idealstringlengthreflexionxpositionx">idealString(length,reflexion,xPosition,x)</h3>
 <p>An ideal string with rigid terminations and where the plucking position and the pick-up position are the same. ### Usage</p>
 <pre><code>1-1&#39; : idealString(length,reflexion,xPosition,x)</code></pre>
-<p>With: * <code>length</code>: the length of the string in meters * <code>reflexion</code>: the coefficient of reflexion (0-0.99999999) * <code>pluckPosition</code>: the plucking position (0.001-0.999) * <code>x</code>: the input signal for the excitation ### Requires <code>filter.lib</code> (<code>fdelay4</code>,<code>crossnn</code>)</p>
+<p>With: * <code>length</code>: the length of the string in meters * <code>reflexion</code>: the coefficient of reflexion (0-0.99999999) * <code>pluckPosition</code>: the plucking position (0.001-0.999) * <code>x</code>: the input signal for the excitation ### Requires <code>delay.lib</code> (<code>fdelay4</code>,<code>crossnn</code>)</p>
 <hr />
 <h1 id="reverb.lib">reverb.lib</h1>
 <p>A library of reverb effects.</p>

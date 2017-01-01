@@ -1,8 +1,8 @@
-declare name 		"gate_compressor";
+declare name "gate_compressor";
 
-ol = library("oscillator.lib");
-el = library("effect.lib");
-fl = library("filter.lib");
+ol = library("miscoscillator.lib");
+el = library("misceffect.lib");
+fl = library("miscfilter.lib");
 
 process = 
 // ol.sawtooth_demo <: 

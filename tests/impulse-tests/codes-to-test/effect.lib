@@ -4,7 +4,7 @@ declare copyright "Julius O. Smith III";
 declare version "1.33";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 
-import("filter.lib"); // dcblocker*, lowpass, filterbank, ...
+import("miscfilter.lib"); // dcblocker*, lowpass, filterbank, ...
 
 // The following utilities (or equivalents) could go in music.lib:
 
@@ -61,7 +61,7 @@ levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 // Example based on measured Celestion G12 (12" speaker):
 // speakerbp(130,5000);
 //
-// Requires filter.lib
+// Requires miscfilter.lib
 //
 speakerbp(f1,f2) = dcblockerat(f1) : dcblockerat(f1) : lowpass(4,f2);
 
@@ -164,7 +164,7 @@ exciter = _ <: (highpass : compressor : pregain : harmonicCreator : postgain), _
   fc = ex_group(hslider("[0] Cutoff Frequency [unit:Hz] [style:knob] [scale:log]
                         [tooltip: Cutoff frequency for highpassed components to be excited]",
                         5000, 1000, 10000, 100));
-  highpass = component("filter.lib").highpass(2, fc);
+  highpass = component("miscfilter.lib").highpass(2, fc);
   
   //Pre-distortion gain - selectable percentage of harmonics
   ph = ex_group(hslider("[1] Harmonics [unit:percent] [style:knob] [tooltip: Percentage of harmonics generated]", 20, 0, 200, 1)) / 100;
@@ -193,7 +193,7 @@ exciter = _ <: (highpass : compressor : pregain : harmonicCreator : postgain), _
 //   res  = Normalized amount of corner-resonance between 0 and 1
 //        (0 is no resonance, 1 is maximum)
 //
-// REQUIRES: filter.lib
+// REQUIRES: miscfilter.lib
 //
 // DESCRIPTION: Moog VCF implemented using the same logical block diagram
 //   as the classic analog circuit.  As such, it neglects the one-sample
@@ -235,7 +235,7 @@ with {
 //   moog_vcf_2b  uses two direct-form biquads (tf2)
 //   moog_vcf_2bn uses two protected normalized-ladder biquads (tf2np)
 //
-// REQUIRES: filter.lib
+// REQUIRES: miscfilter.lib
 //
 moog_vcf_2b(res,fr) = tf2s(0,0,b0,a11,a01,w1) : tf2s(0,0,b0,a12,a02,w1)
 with {
@@ -354,7 +354,7 @@ with {
   a2s = a2 : smooth(s);
   gs =  g  : smooth(s);
 
-  tf2 = component("filter.lib").tf2;
+  tf2 = component("miscfilter.lib").tf2;
 };
 
 //------------------------- crybaby_demo ---------------------------
@@ -529,7 +529,7 @@ flanger_demo = bypass2(fbp,flanger_stereo_demo) with {
 vibrato2_mono(sections,phase01,fb,width,frqmin,fratio,frqmax,speed) =
  (+ : seq(i,sections,ap2p(R,th(i)))) ~ *(fb)
 with {
-     tf2 = component("filter.lib").tf2;
+     tf2 = component("miscfilter.lib").tf2;
      // second-order resonant digital allpass given pole radius and angle:
      ap2p(R,th) = tf2(a2,a1,1,a1,a2) with {
        a2 = R^2;
@@ -971,7 +971,7 @@ limiter_1176_R4_stereo = compressor_stereo(4,-6,0.0008,0.5);
 
 jcrev = *(0.06) : allpass_chain <: comb_bank : mix_mtx with {
 
-  rev1N = component("filter.lib").rev1;
+  rev1N = component("miscfilter.lib").rev1;
 
   rev12(len,g) = rev1N(2048,len,g);
   rev14(len,g) = rev1N(4096,len,g);
@@ -1001,7 +1001,7 @@ jcrev = *(0.06) : allpass_chain <: comb_bank : mix_mtx with {
 
 satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
 
-  rev1N = component("filter.lib").rev1;
+  rev1N = component("miscfilter.lib").rev1;
 
   rev11(len,g) = rev1N(1024,len,g);
   rev12(len,g) = rev1N(2048,len,g);
@@ -1012,7 +1012,7 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
     rev11(1011,.783),
     rev12(1123,.764);
 
-  rev2N = component("filter.lib").rev2;
+  rev2N = component("miscfilter.lib").rev2;
 
   allpass_chain =
     rev2N(128,125,0.7) :
@@ -1104,7 +1104,7 @@ freeverb_demo = _,_ <: (*(g)*fixedgain,*(g)*fixedgain : stereo_freeverb(combfeed
 // REFERENCE:
 //   https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberation.html
 //
-// DEPENDENCIES: filter.lib (filterbank)
+// DEPENDENCIES: miscfilter.lib (filterbank)
 
 fdnrev0(MAXDELAY, delays, BBSO, freqs, durs, loopgainmax, nonl)
   = (bus(2*N) :> bus(N) : delaylines(N)) ~
@@ -1129,7 +1129,7 @@ with {
   // Experimental nonlinearities:
   // nonlinallpass = apnl(nonl,-nonl);
   // s = nonl*PI;
-  // nonlinallpass(x) = allpassnn(3,(s*x,s*x*x,s*x*x*x)); // filter.lib
+  // nonlinallpass(x) = allpassnn(3,(s*x,s*x*x,s*x*x*x)); // miscfilter.lib
      nonlinallpass = _; // disabled by default (rather expensive)
 
   filter(i,freqs,durs) = filterbank(BBSO,freqs) : par(j,NB,*(g(j,i)))
@@ -1288,7 +1288,7 @@ with {
 //   https://ccrma.stanford.edu/~jos/pasp/Zita_Rev1.html
 //
 // DEPENDENCIES:
-//   filter.lib (allpass_comb, lowpass, smooth)
+//   miscfilter.lib (allpass_comb, lowpass, smooth)
 //   math.lib (hadamard, take, etc.)
 
 zita_rev_fdn(f1,f2,t60dc,t60m,fsmax) =
@@ -1316,7 +1316,7 @@ with {
 
   apcoeff(i) = select2(i&1,0.6,-0.6);  // allpass comb-filter coefficient
   allpass_combs(N) =
-    par(i,N,(allpass_comb(maxapdelay(i),apdelay(i),apcoeff(i)))); // filter.lib
+    par(i,N,(allpass_comb(maxapdelay(i),apdelay(i),apcoeff(i)))); // miscfilter.lib
   fbdelaylines(N) = par(i,N,(delay(maxfbdelay(i),(fbdelay(i)))));
   freqs = (f1,f2); durs = (t60dc,t60m);
   delayfilters(N,freqs,durs) = par(i,N,filter(i,freqs,durs));
@@ -1335,7 +1335,7 @@ with {
   filter(i,freqs,durs) = lowshelf_lowpass(i)/sqrt(float(N))+staynormal
   with {
     lowshelf_lowpass(i) = gM*low_shelf1_l(g0/gM,f(1)):special_lowpass(gM,f(2));
-    low_shelf1_l(G0,fx,x) = x + (G0-1)*lowpass(1,fx,x); // filter.lib
+    low_shelf1_l(G0,fx,x) = x + (G0-1)*lowpass(1,fx,x); // miscfilter.lib
     g0 = g(0,i);
     gM = g(1,i);
     f(k) = take(k,freqs);
@@ -1443,7 +1443,7 @@ with {
 //   http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html
 //
 // DEPENDENCIES:
-//   filter.lib (peak_eq_rm)
+//   miscfilter.lib (peak_eq_rm)
 
 zita_rev1(x,y) = zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax,x,y)
           : out_eq : dry_wet(x,y) : out_level
@@ -1479,9 +1479,9 @@ with {
        6000, 1500, 0.49*fsmax, 1));
 
   out_eq = pareq_stereo(eq1f,eq1l,eq1q) : pareq_stereo(eq2f,eq2l,eq2q);
-// Zolzer style peaking eq (not used in zita-rev1) (filter.lib):
+// Zolzer style peaking eq (not used in zita-rev1) (miscfilter.lib):
 // pareq_stereo(eqf,eql,Q) = peak_eq(eql,eqf,eqf/Q), peak_eq(eql,eqf,eqf/Q);
-// Regalia-Mitra peaking eq with "Q" hard-wired near sqrt(g)/2 (filter.lib):
+// Regalia-Mitra peaking eq with "Q" hard-wired near sqrt(g)/2 (miscfilter.lib):
   pareq_stereo(eqf,eql,Q) = peak_eq_rm(eql,eqf,tpbt), peak_eq_rm(eql,eqf,tpbt)
   with {
     tpbt = wcT/sqrt(max(0,g)); // tan(PI*B/SR), B bw in Hz (Q^2 ~ g/4)

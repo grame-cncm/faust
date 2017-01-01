@@ -111,7 +111,7 @@ spectral_level_demo = mth_octave_spectral_level_demo(1.5); // 2/3 octave
 // TODO: author JOS, revised by RM
 parametric_eq_demo = fi.low_shelf(LL,FL) : fi.peak_eq(LP,FP,BP) : fi.high_shelf(LH,FH)
 with{
-	eq_group(x) = hgroup("[0] PARAMETRIC EQ SECTIONS [tooltip: See Faust's filter.lib 
+	eq_group(x) = hgroup("[0] PARAMETRIC EQ SECTIONS [tooltip: See Faust's miscfilter.lib 
 		for info and pointers]",x);
 	ls_group(x) = eq_group(vgroup("[1] Low Shelf",x));
 
@@ -121,7 +121,7 @@ with{
 		[tooltip: Transition-frequency from boost (cut) to unity gain]",200,1,5000,1));
 
 	pq_group(x) = eq_group(vgroup("[2] Peaking Equalizer[tooltip: Parametric Equalizer 
-		sections from filter.lib]",x));
+		sections from miscfilter.lib]",x));
 	LP = pq_group(hslider("[0] Peak Boost|Cut [unit:dB] [style:knob][tooltip: Amount of 
 		local boost or cut in decibels]",0,-40,40,0.1));
 	FP = pq_group(hslider("[1] Peak Frequency [unit:PK] [style:knob] [tooltip: Peak 
@@ -186,7 +186,7 @@ with{
 	M = O;
 	bp1 = ba.bypass1;
 	mofb_group(x) = vgroup("CONSTANT-Q FILTER BANK (Butterworth dyadic tree)
-		[tooltip: See Faust's filter.lib for documentation and references]", x);
+		[tooltip: See Faust's miscfilter.lib for documentation and references]", x);
 	bypass_group(x) = mofb_group(hgroup("[0]", x));
 	slider_group(x)  = mofb_group(hgroup("[1]", x));
 
@@ -875,9 +875,9 @@ with{
     	6000, 1500, 0.49*fsmax, 1));
 
 	out_eq = pareq_stereo(eq1f,eq1l,eq1q) : pareq_stereo(eq2f,eq2l,eq2q);
-	// Zolzer style peaking eq (not used in zita-rev1) (filter.lib):
+	// Zolzer style peaking eq (not used in zita-rev1) (miscfilter.lib):
 	// pareq_stereo(eqf,eql,Q) = peak_eq(eql,eqf,eqf/Q), peak_eq(eql,eqf,eqf/Q);
-	// Regalia-Mitra peaking eq with "Q" hard-wired near sqrt(g)/2 (filter.lib):
+	// Regalia-Mitra peaking eq with "Q" hard-wired near sqrt(g)/2 (miscfilter.lib):
 	pareq_stereo(eqf,eql,Q) = fi.peak_eq_rm(eql,eqf,tpbt), fi.peak_eq_rm(eql,eqf,tpbt)
 	with {
     	tpbt = wcT/sqrt(max(0,g)); // tan(PI*B/SR), B bw in Hz (Q^2 ~ g/4)

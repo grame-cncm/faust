@@ -122,3 +122,4 @@ process = voiced : oneZeroFilter : onePoleFilter :
 		 +(frica) <: filter0,filter1,filter2,filter3 :> + : stereo : 
 		 instrReverb;
 
+
