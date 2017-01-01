@@ -1,12 +1,10 @@
 
 declare name "graphic_eq";
 
-ol = library("miscoscillator.lib");
-fl = library("miscfilter.lib");
+dm = library("demo.lib");
 
 process = 
-// ol.sawtooth_demo : fl.filterbank_demo : fl.spectral_level_demo <: _,_;
- vgroup("[1]",ol.sawtooth_demo) : 
- vgroup("[2]",fl.filterbank_demo) : 
- vgroup("[3]",fl.spectral_level_demo) <:
+ vgroup("[1]",dm.sawtooth_demo) :
+ vgroup("[2]",dm.filterbank_demo) :
+ vgroup("[3]",dm.spectral_level_demo) <:
   _,_;

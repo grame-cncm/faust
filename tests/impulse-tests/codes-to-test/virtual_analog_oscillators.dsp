@@ -1,9 +1,7 @@
-ol = library("oscillator.lib");
-fl = library("filter.lib");
-el = library("effect.lib");
+dm = library("demo.lib");
 
-process = 
- vgroup("[1]", ol.virtual_analog_oscillator_demo) : 
- vgroup("[2]", el.moog_vcf_demo) : 
- vgroup("[3]", fl.spectral_level_demo) <:
+process =
+ vgroup("[1]", dm.virtual_analog_oscillator_demo) :
+ vgroup("[2]", dm.moog_vcf_demo) :
+ vgroup("[3]", dm.spectral_level_demo) <:
   _,_;
