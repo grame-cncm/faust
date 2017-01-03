@@ -12,7 +12,7 @@ declare copyright 	"(c)GRAME 2006";
 
 import("stdfaust.lib");
 
-// TODO: this should be rewritten with the pink noise function of noise.lib
+// TODO: this should be rewritten with the pink noise function of noises.lib
 pink	= f : (+ ~ g) with {
 	f(x) = 0.04957526213389*x - 0.06305581334498*x' + 0.01483220320740*x'';
 	g(x) = 1.80116083982126*x - 0.80257737639225*x';
