@@ -2,7 +2,7 @@
 
 ## exclusion list for faust and C++ errors
 XLIST1="faust2md faust2gen"
-XLIST2="faust2md faust2eps faust2firefox faust2gen faust2graph faust2graphviewer faust2mathdoc faust2mathviewer faust2sig faust2sigviewer faust2svg"
+XLIST2="faust2md faust2eps faust2firefox faust2gen faust2graph faust2graphviewer faust2mathdoc faust2mathviewer faust2sig faust2sigviewer faust2svg faust2juce"
 
 ## test exclusion : notinlist "toto" "a b c d e" -> true
 notinlist() {
