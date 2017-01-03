@@ -3,13 +3,8 @@
 %:
 	dh $@
 
-override_dh_clean:
-	dh_clean
-	rm -f compiler/scheduler.ll
-
 override_dh_auto_build:
 	dh_auto_build -- prefix=/usr world
-	(cd compiler && make -f Makefile.unix scheduler.ll)
 
 override_dh_auto_install:
 	dh_auto_install -- prefix=$(CURDIR)/debian/faust2/usr
