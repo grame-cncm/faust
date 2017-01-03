@@ -182,11 +182,6 @@ public:
     }
 
 private:
-    Juce_GUI juceGUI;
-
-    ScopedPointer<dsp> fDSP;
-    APIUI fAPIUI;
-    
     #if defined(MIDICTRL)
     	ScopedPointer<juce_midi> fMIDIHandler;
     	ScopedPointer<MidiUI> fMIDIUI;
@@ -195,6 +190,11 @@ private:
     #if defined(OSCCTRL)
         ScopedPointer<JuceOSCUI> fOSCUI;
     #endif
+    
+    Juce_GUI juceGUI;
+    
+    ScopedPointer<dsp> fDSP;
+    APIUI fAPIUI;
 	
     Rectangle<int> recommendedSize;
     Rectangle<int> r = Desktop::getInstance().getDisplays().getMainDisplay().userArea;
