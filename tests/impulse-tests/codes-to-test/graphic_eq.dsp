@@ -1,10 +1,12 @@
 
-declare name "graphic_eq";
+declare name 		"graphic_eq";
 
-dm = library("demo.lib");
+ol = library("oscillator.lib");
+fl = library("filter.lib");
 
 process = 
- vgroup("[1]",dm.sawtooth_demo) :
- vgroup("[2]",dm.filterbank_demo) :
- vgroup("[3]",dm.spectral_level_demo) <:
+// ol.sawtooth_demo : fl.filterbank_demo : fl.spectral_level_demo <: _,_;
+ vgroup("[1]",ol.sawtooth_demo) : 
+ vgroup("[2]",fl.filterbank_demo) : 
+ vgroup("[3]",fl.spectral_level_demo) <:
   _,_;

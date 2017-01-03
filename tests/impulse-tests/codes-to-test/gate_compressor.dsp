@@ -1,10 +1,14 @@
-declare name "gate_compressor";
+declare name 		"gate_compressor";
 
-dm = library("demo.lib");
+ol = library("oscillator.lib");
+el = library("effect.lib");
+fl = library("filter.lib");
 
 process = 
-   vgroup("[1]", dm.sawtooth_demo) <:
-   vgroup("[2]", dm.gate_demo) :
-   vgroup("[3]", dm.compressor_demo) :>
-   vgroup("[4]", dm.spectral_level_demo) <:
+// ol.sawtooth_demo <: 
+//      el.gate_demo : el.compressor_demo :> fl.spectral_level_demo <: _,_;
+   vgroup("[1]", ol.sawtooth_demo) <:
+   vgroup("[2]", el.gate_demo) : 
+   vgroup("[3]", el.compressor_demo) :>
+   vgroup("[4]", fl.spectral_level_demo) <:
     _,_;

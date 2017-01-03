@@ -41,8 +41,7 @@ declare author "GRAME";
 declare copyright "GRAME";
 declare version "1.0";
 declare license "LGPL with exception";
-declare deprecated "This library is deprecated and is not maintained anymore. It might
-be removed in future releases."; 
+declare deprecated "This library is deprecated and is not maintained anymore. It will be removed in August 2017."; 
 
 import("math.lib");
 

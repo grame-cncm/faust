@@ -1,4 +1,4 @@
-//################################## basic.lib ###########################################
+//################################## basics.lib ###########################################
 // A library of basic elements for Faust organized in 5 sections: 
 //
 // * Conversion Tools
@@ -10,7 +10,7 @@
 // It should be used using the `ba` environment:
 //
 // ```
-// ba = library("basic.lib");
+// ba = library("basics.lib");
 // process = ba.functionCall;
 // ```
 //
@@ -55,8 +55,8 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ma = library("miscmath.lib");
-ro = library("route.lib");
+ma = library("maths.lib");
+ro = library("routes.lib");
 
 declare name "Faust Basic Element Library";
 declare version "0.0";

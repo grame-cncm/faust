@@ -11,8 +11,7 @@ declare copyright "Julius O. Smith III";
 declare version "1.29";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
 declare reference "https://ccrma.stanford.edu/~jos/filters/";
-declare deprecated "This library is deprecated and is not maintained anymore. It might
-be removed in future releases."; 
+declare deprecated "This library is deprecated and is not maintained anymore. It will be removed in August 2017."; 
 
 import("music.lib"); // delay, frac and, from math.lib, SR and PI
 

@@ -1,10 +1,10 @@
-//#################################### signal.lib ########################################
+//#################################### signals.lib ########################################
 // A library of basic elements to handle signals in Faust.
 //
 // It should be used using the `si` environment:
 //
 // ```
-// si = library("signal.lib");
+// si = library("signals.lib");
 // process = si.functionCall;
 // ```
 //
@@ -49,8 +49,8 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ba = library("basic.lib");
-ro = library("route.lib");
+ba = library("basics.lib");
+ro = library("routes.lib");
 
 declare name "Faust Signal Routing Library";
 declare version "0.0";
