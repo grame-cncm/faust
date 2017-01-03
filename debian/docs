@@ -1,4 +1,3 @@
-README
-documentation/additional*
+README.md
 documentation/*.pdf
-documentation/*.txt
+documentation/*.html
