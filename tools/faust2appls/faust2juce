@@ -116,9 +116,8 @@ for p in $FILES; do
     sed -e "s/PreProcDef/$DEF/g" "$dspName/$dspName-temp.jucer" >> "$dspName/$dspName.jucer"
     rm "$dspName/$dspName-temp.jucer"
     
-    faust -i -a $ARCHFILE $OPTION "$SRCDIR/$f" -o "$dspName/Source/MainComponent.h"
-    
-    
+    faust -i -a $ARCHFILE $OPTION "$SRCDIR/$f" -o "$dspName/Source/MainComponent.h" || exit
+
 done
 
 

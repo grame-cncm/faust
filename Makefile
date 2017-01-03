@@ -1,4 +1,4 @@
-version := 0.9.94ec
+version := 0.9.95ec
 
 DESTDIR ?= 
 PREFIX ?= /usr/local

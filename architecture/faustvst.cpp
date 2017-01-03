@@ -1657,7 +1657,7 @@ MTSTunings *VSTPlugin::mts = 0;
    comment out the following define to enable the GUI in all hosts for testing
    purposes. Note that in any case the VST plugins *will* run in the
    blacklisted hosts, just without a custom GUI. */
-#define HOST_BLACKLIST { "Ardour", NULL }
+#define HOST_BLACKLIST { "Ardour", "REAPER", NULL }
 //#define HOST_BLACKLIST { "Ardour", "Tracktion", NULL }
 
 class VSTWrapper : public AudioEffectX
@@ -1835,6 +1835,7 @@ VSTWrapper::VSTWrapper(audioMasterCallback audioMaster)
 #ifdef HOST_BLACKLIST
     char *blacklist[] = HOST_BLACKLIST, **b = blacklist;
     while (*b && strcmp(host, *b)) ++b;
+    //fprintf(stderr, "host '%s' is %s blacklist\n", host, *b?"on":"not on");
     if (!*b)
 #endif
     setEditor(new VSTQtGUI(this));
