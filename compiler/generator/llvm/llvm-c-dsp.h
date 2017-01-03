@@ -37,7 +37,7 @@ extern "C"
     /* Opaque types */
 	
     /*!
-     \addtogroup llvmc C interface for compiling Faust code. Note that the API is not thread safe : use 'startMTCDSPFactories/stopMTCDSPFactories' to use it in a multi-thread context.
+     \addtogroup llvm C interface for compiling Faust code. Note that the API is not thread safe : use 'startMTCDSPFactories/stopMTCDSPFactories' to use it in a multi-thread context.
     @{
      */
     

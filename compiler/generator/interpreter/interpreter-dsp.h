@@ -82,8 +82,8 @@ class interpreter_dsp_factory : public dsp_factory {
         /**
          *  Returns factory name :
          *  either the name declared in DSP with [declare name "foo"] syntax
-         *  or 'filename' (if createDSPFactoryFromFile is used)
-         *  or 'name_app' (if createDSPFactoryFromString is used)
+         *  or 'filename' (if createInterpreterDSPFactoryFromFile is used)
+         *  or 'name_app' (if createInterpreterDSPFactoryFromString is used)
          */
         std::string getName();
         
