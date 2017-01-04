@@ -45,3 +45,4 @@ filter = oneZero1(b0,b1)
 
 process = (*(loopGain) : filter + (envelope*no.noise*amGain))~delayLine : *(8) : 
 stereo : instrReverb;
+

@@ -1,4 +1,4 @@
-// WARNING: This a "legacy example based on a deprecated library". Check filter.lib
+// WARNING: This a "legacy example based on a deprecated library". Check filters.lib
 // for more accurate examples of filter functions
 
 declare name "lowShelf";

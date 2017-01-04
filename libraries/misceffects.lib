@@ -1,10 +1,10 @@
-//################################## misceffect.lib ##########################################
+//################################## misceffects.lib ##########################################
 // This library contains a collection of audio effects.
 //
 // It should be used using the `ef` environment:
 //
 // ```
-// ef = library("misceffect.lib");
+// ef = library("misceffects.lib");
 // process = ef.functionCall;
 // ```
 //
@@ -49,12 +49,12 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ma = library("math.lib");
-ba = library("basic.lib");
-de = library("delay.lib");
-si = library("signal.lib");
-an = library("analyzer.lib");
-fi = library("filter.lib");
+ma = library("maths.lib");
+ba = library("basics.lib");
+de = library("delays.lib");
+si = library("signals.lib");
+an = library("analyzers.lib");
+fi = library("filters.lib");
 
 
 declare name "Faust Math Library";
@@ -189,7 +189,7 @@ gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : an.amp_follower_ar
 // ```
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-// TODO: perhaps this should be moved to pm.lib
+// TODO: perhaps this should be moved to physmodels.lib
 speakerbp(f1,f2) = fi.dcblockerat(f1) : fi.dcblockerat(f1) : fi.lowpass(4,f2);
 
 
@@ -226,7 +226,7 @@ speakerbp(f1,f2) = fi.dcblockerat(f1) : fi.dcblockerat(f1) : fi.lowpass(4,f2);
 // * <http://www.acoustics.hut.fi/research/asp/piano/>
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-// TODO: perhaps this should be moved to pm.lib?
+// TODO: perhaps this should be moved to physmodels.lib?
 piano_dispersion_filter(M,B,f0) = -Df0*M,seq(i,M,fi.tf1(a1,1,a1))
 with {
  a1 = (1-D)/(1+D); // By Eq. 3, have D >= 0, hence a1 >= 0 also
@@ -344,7 +344,7 @@ with {
 //========================================================================================
 
 
-// TODO: the following should be in pm.lib when it will be operational
+// TODO: the following should be in physmodels.lib when it will be operational
 //----------------------------------`mesh_square`------------------------------
 // Square Rectangular Digital Waveguide Mesh.
 //

@@ -2,21 +2,21 @@
  **  Guitar(ix) tube amp emulations
  **  
  **  
- **  this tube library provide the following tube models:
+ **  this tubes.library provide the following tube models:
  **  T1_12AX7, T2_12AX7, T3_12AX7, T1_12AT7, T2_12AT7, T3_12AT7, 
  **  T1_12AU7, T2_12AU7, T3_12AU7, T1_6V6, T2_6V6, T3_6V6, 
  **  T1_6DJ8, T2_6DJ8, T3_6DJ8, T1_6C16, T2_6C16, T3_6C16 
  **
  **  
  **  USAGE:
- **        _:component("tube.lib").model:_
+ **        _:component("tubes.lib").model:_
  **  where
  **       model is on of the models above.
  ** 
  **  EXAMPLE 2 STAGE TUBE PREAMP:
- **    process = component("tube.lib").T1_12AX7 : *(preamp):
- **      lowpass(1,6531.0) : component("tube.lib").T2_12AX7 : *(preamp): 
- **      lowpass(1,6531.0) : component("tube.lib").T3_12AX7 : *(gain) with {
+ **    process = component("tubes.lib").T1_12AX7 : *(preamp):
+ **      lowpass(1,6531.0) : component("tubes.lib").T2_12AX7 : *(preamp): 
+ **      lowpass(1,6531.0) : component("tubes.lib").T3_12AX7 : *(gain) with {
  **      preamp = vslider("Pregain",-6,-20,20,0.1) : db2linear : smooth(0.999);
  **      gain  = vslider("Gain", -6, -20.0, 20.0, 0.1) : db2linear : smooth(0.999);
  **    };  
@@ -24,7 +24,7 @@
  ******************************************************************************/
 
 tubestageF(tb,vplus,divider,fck,Rk,Vk0) = tube : hpf with {
-    lpfk = library("filter.lib").lowpass(1,fck);
+    lpfk = library("filters.lib").lowpass(1,fck);
     Rp = 100.0e3;
     VkC = Vk0 * (Rp/Rk);
 
@@ -35,7 +35,7 @@ tubestageF(tb,vplus,divider,fck,Rk,Vk0) = tube : hpf with {
     size = 2001;
 
     tube = (+ : -(Vk0) : tubeF(tb, low, high, step, size) : +(VkC-vplus)) ~ (*(Rk/Rp) : lpfk) : /(divider);
-    hpf = library("filter.lib").highpass(1,31.0);
+    hpf = library("filters.lib").highpass(1,31.0);
 };
 
 tubestage(tb,fck,Rk,Vk0)       = tubestageF(tb,250.0,40.0,fck,Rk,Vk0);

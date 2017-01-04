@@ -1,10 +1,10 @@
-//##################################### noise.lib ########################################
+//##################################### noises.lib ########################################
 // A library of noise generators.
 //
 // It should be used using the `no` environment:
 //
 // ```
-// no = library("noise.lib");
+// no = library("noises.lib");
 // process = no.functionCall;
 // ```
 //
@@ -49,9 +49,9 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ba = library("basic.lib");
-fi = library("filter.lib");
-os = library("miscoscillator.lib");
+ba = library("basics.lib");
+fi = library("filters.lib");
+os = library("oscillators.lib");
 
 declare name "Faust Noise Generator Library";
 declare version "0.0";
@@ -174,7 +174,7 @@ with {
 //
 // ```
 // lfnoise0(rate) : _;   // new random number every int(SR/rate) samples or so
-// lfnoiseN(N,rate) : _; // same as "lfnoise0(rate) : lowpass(N,rate)" [see filter.lib]
+// lfnoiseN(N,rate) : _; // same as "lfnoise0(rate) : lowpass(N,rate)" [see filters.lib]
 // lfnoise(rate) : _;    // same as "lfnoise0(rate) : seq(i,5,lowpass(N,rate))" (no overshoot)
 // ```
 //

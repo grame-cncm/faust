@@ -1,10 +1,10 @@
-//#################################### phafla.lib ########################################
+//#################################### phaflangers.lib ########################################
 // A library of compressor effects.
 //
 // It should be used using the `pf` environment:
 //
 // ```
-// pf = library("phafla.lib");
+// pf = library("phaflangers.lib");
 // process = pf.functionCall;
 // ```
 //
@@ -49,10 +49,10 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ma = library("math.lib");
-de = library("delay.lib");
-fi = library("filter.lib");
-os = library("miscoscillator.lib");
+ma = library("maths.lib");
+de = library("delays.lib");
+fi = library("filters.lib");
+os = library("oscillators.lib");
 
 
 declare name "Faust Phaser and Flanger Library";
@@ -119,15 +119,15 @@ flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert)
 vibrato2_mono(sections,phase01,fb,width,frqmin,fratio,frqmax,speed) =
  (+ : seq(i,sections,ap2p(R,th(i)))) ~ *(fb)
 with {
-     //tf2 = component("filter.lib").tf2;
+     //tf2 = component("filters.lib").tf2;
      // second-order resonant digital allpass given pole radius and angle:
      ap2p(R,th) = fi.tf2(a2,a1,1,a1,a2) with {
        a2 = R^2;
        a1 = -2*R*cos(th);
      };
      R = exp(-pi*width/ma.SR);
-     cososc = os.oscrc; // oscillator.lib
-     sinosc = os.oscrs; // oscillator.lib
+     cososc = os.oscrc; // oscillators.lib
+     sinosc = os.oscrs; // oscillators.lib
      osc = cososc(speed) * phase01 + sinosc(speed) * (1-phase01);
      lfo = (1-osc)/2; // in [0,1]
      pi = 4*atan(1);

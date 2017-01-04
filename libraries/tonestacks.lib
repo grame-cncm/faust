@@ -2,14 +2,14 @@
  **  Guitar tone stacks (based on the work from D.T. Yeh)
  **  some values are taken from CAPS plugin tonestack 
  ** 
- **  this tonestack library provide the following tonestack models:
+ **  this tonestacks.library provide the following tonestack models:
  **  bassman, mesa, twin, princeton, jcm800, jcm2000, jtm45, mlead,
  **  m2199, ac30, ac15, soldano, sovtek, peavey, ibanez, roland, 
  **  ampeg, ampeg_rev, bogner, groove, crunch, fender_blues,
  **  fender_default, fender_deville, gibsen
  **  
  **  USAGE :
- **        _:component("tonestack.lib").model(t,m,l):_
+ **        _:component("tonestacks.lib").model(t,m,l):_
  **  WHERE :
  **       model is on of the models above.
  **       t is treble freq control in range of (0.0 - 1.0)
@@ -17,7 +17,7 @@
  **       l is low freq control in range of (0.0 - 1.0)
  ** 
  **  EXAMPLE :
- **       process = component("tonestack.lib").jcm2000(t,m,l) 
+ **       process = component("tonestacks.lib").jcm2000(t,m,l) 
  **       with {
  **         t = vslider("Treble ", 0.5, 0, 1, 0.01);
  **         m = vslider("Middle ", 0.5, 0, 1, 0.01);
@@ -31,8 +31,8 @@ declare copyright "Guitarix project";
 declare version   "0.28";
 declare license   "LGPL";
 
-ma = library("math.lib");
-fi = library("filter.lib");
+ma = library("maths.lib");
+fi = library("filters.lib");
 
 
 /****************************************************************

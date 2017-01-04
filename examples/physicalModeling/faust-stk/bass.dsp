@@ -28,12 +28,12 @@ frequencyMod = hslider("v:Nonlinear_Filter_Parameters/Modulation_Frequency
 //==================== SIGNAL PROCESSING ======================
 
 //----------------------- Nonlinear filter ----------------------------
-//nonlinearities are created by the nonlinear passive allpass ladder filter declared in filter.lib
+//nonlinearities are created by the nonlinear passive allpass ladder filter declared in miscfilter.lib
 
 //nonlinear filter order
 nlfOrder = 6; 
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from filter.lib 
+//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
 NLFM =  nonLinearModulator((nonLinearity : si.smoo),1,freq,
      typeModulation,(frequencyMod : si.smoo),nlfOrder);
@@ -81,3 +81,4 @@ resonanceGain = gate + (gate < 1 <: *(asympT60(1,0.9,0.05)));
 process = excitation : 
 	(+)~(delayLine : NLFM : reflexionFilter*resonanceGain) <: 
 	bodyFilter*1.5 + *(0.5) : *(4) : stereo : instrReverb;
+

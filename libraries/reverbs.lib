@@ -1,10 +1,10 @@
-//#################################### reverb.lib ########################################
+//#################################### reverbs.lib ########################################
 // A library of reverb effects.
 //
 // It should be used using the `re` environment:
 //
 // ```
-// re = library("reverb.lib");
+// re = library("reverbs.lib");
 // process = re.functionCall;
 // ```
 //
@@ -49,12 +49,12 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ma = library("math.lib");
-ba = library("basic.lib");
-de = library("delay.lib");
-ro = library("route.lib");
-si = library("signal.lib");
-fi = library("filter.lib");
+ma = library("maths.lib");
+ba = library("basics.lib");
+de = library("delays.lib");
+ro = library("routes.lib");
+si = library("signals.lib");
+fi = library("filters.lib");
 
 declare name "Faust Reverb Library";
 declare version "0.0";
@@ -263,7 +263,7 @@ with {
   // Experimental nonlinearities:
   // nonlinallpass = apnl(nonl,-nonl);
   // s = nonl*PI;
-  // nonlinallpass(x) = allpassnn(3,(s*x,s*x*x,s*x*x*x)); // filter.lib
+  // nonlinallpass(x) = allpassnn(3,(s*x,s*x*x,s*x*x*x)); // filters.lib
      nonlinallpass = _; // disabled by default (rather expensive)
 
   filter(i,freqs,durs) = fi.filterbank(BBSO,freqs) : par(j,NB,*(g(j,i)))
@@ -328,7 +328,7 @@ with {
 
   apcoeff(i) = select2(i&1,0.6,-0.6);  // allpass comb-filter coefficient
   allpass_combs(N) =
-    par(i,N,(fi.allpass_comb(maxapdelay(i),apdelay(i),apcoeff(i)))); // filter.lib
+    par(i,N,(fi.allpass_comb(maxapdelay(i),apdelay(i),apcoeff(i)))); // filters.lib
   fbdelaylines(N) = par(i,N,(de.delay(maxfbdelay(i),(fbdelay(i)))));
   freqs = (f1,f2); durs = (t60dc,t60m);
   delayfilters(N,freqs,durs) = par(i,N,filter(i,freqs,durs));
@@ -347,7 +347,7 @@ with {
   filter(i,freqs,durs) = lowshelf_lowpass(i)/sqrt(float(N))+staynormal
   with {
     lowshelf_lowpass(i) = gM*low_shelf1_l(g0/gM,f(1)):special_lowpass(gM,f(2));
-    low_shelf1_l(G0,fx,x) = x + (G0-1)*fi.lowpass(1,fx,x); // filter.lib
+    low_shelf1_l(G0,fx,x) = x + (G0-1)*fi.lowpass(1,fx,x); // filters.lib
     g0 = g(0,i);
     gM = g(1,i);
     f(k) = ba.take(k,freqs);
