@@ -1,4 +1,4 @@
-//instrument.lib - Faust function of various types useful for building physical model instruments
+//instruments.lib - Faust function of various types useful for building physical model instruments
 
 declare name "Faust-STK Tools Library";
 declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
@@ -7,15 +7,15 @@ declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 
 
-//no = library("noise.lib"); 
-en = library("envelope.lib"); 
-ma = library("math.lib");
-ba = library("basic.lib");
-de = library("delay.lib");
-si = library("signal.lib");
-fi = library("filter.lib");
-os = library("miscoscillator.lib");
-re = library("reverb.lib");
+//no = library("noises.lib"); 
+en = library("envelopes.lib"); 
+ma = library("maths.lib");
+ba = library("basics.lib");
+de = library("delays.lib");
+si = library("signals.lib");
+fi = library("filters.lib");
+os = library("oscillators.lib");
+re = library("reverbs.lib");
 
 //========================= ENVELOPE GENERATORS ===============================
 
@@ -246,7 +246,7 @@ stereoizer(periodDuration) = _ <: _,widthdelay : stereopanner
 	   };
 
 //----------------------- INSTRREVERB ----------------------------
-// GUI for zita_rev1_stereo from reverb.lib
+// GUI for zita_rev1_stereo from reverbs.lib
 //
 // USAGE:
 //  _,_ : instrRerveb

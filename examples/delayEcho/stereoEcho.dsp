@@ -1,4 +1,4 @@
-// WARNING: This a "legacy example based on a deprecated library". Check misceffect.lib
+// WARNING: This a "legacy example based on a deprecated library". Check misceffects.lib
 // for more accurate examples of echo functions
 
 declare name 		"stereoEcho";

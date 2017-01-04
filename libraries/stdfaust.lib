@@ -3,24 +3,24 @@
 // through a series of environment. 
 //########################################################################################
 
-an = library("analyzer.lib");
-ba = library("basic.lib");
-co = library("compressor.lib");
-de = library("delay.lib");
-dm = library("demo.lib");
-en = library("envelope.lib");
-fi = library("filter.lib");
+an = library("analyzers.lib");
+ba = library("basics.lib");
+co = library("compressors.lib");
+de = library("delays.lib");
+dm = library("demos.lib");
+en = library("envelopes.lib");
+fi = library("filters.lib");
 ho = library("hoa.lib");
-ma = library("math.lib");
-ef = library("misceffect.lib");
-os = library("miscoscillator.lib");
-no = library("noise.lib");
-pf = library("phafla.lib");
-pm = library("pm.lib");
-re = library("reverb.lib");
-ro = library("route.lib");
-sp = library("spat.lib");
-si = library("signal.lib");
-sy = library("synth.lib");
-ve = library("vaeffect.lib");
+ma = library("maths.lib");
+ef = library("misceffects.lib");
+os = library("oscillators.lib");
+no = library("noises.lib");
+pf = library("phaflangers.lib");
+pm = library("physmodels.lib");
+re = library("reverbs.lib");
+ro = library("routes.lib");
+sp = library("spats.lib");
+si = library("signals.lib");
+sy = library("synths.lib");
+ve = library("vaeffects.lib");
 sf = library("all.lib");

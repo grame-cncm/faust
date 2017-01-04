@@ -1,10 +1,10 @@
-//################################### synth.lib ##########################################
+//################################### synths.lib ##########################################
 // This library contains a collection of envelope generators.
 //
 // It should be used using the `sy` environment:
 //
 // ```
-// sy = library("synth.lib");
+// sy = library("synths.lib");
 // process = sy.functionCall;
 // ```
 //
@@ -52,12 +52,12 @@ closed source license or any other license if you decide so.
 declare name "Faust Synthesizer Library";
 declare version "0.0";
 
-ma = library("math.lib");
-ba = library("basic.lib");
-en = library("envelope.lib");
-fi = library("filter.lib");
-os = library("miscoscillator.lib");
-no = library("noise.lib");
+ma = library("maths.lib");
+ba = library("basics.lib");
+en = library("envelopes.lib");
+fi = library("filters.lib");
+os = library("oscillators.lib");
+no = library("noises.lib");
 
 //-----------------------------------`popFilterPerc`--------------------------------------
 // A simple percussion instrument based on a "popped" resonant bandpass filter.

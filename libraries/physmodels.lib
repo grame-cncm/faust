@@ -1,10 +1,10 @@
-//##################################### pm.lib ###########################################
+//##################################### physmodels.lib ###########################################
 // Faust physical modeling library.
 //
 // It should be used using the `fi` environment:
 //
 // ```
-// pm = library("pm.lib");
+// pm = library("physmodels.lib");
 // process = pm.functionCall;
 // ```
 //
@@ -17,9 +17,9 @@
 // ```
 //########################################################################################
 
-ma = library("math.lib");
-de = library("delay.lib");
-ro = library("route.lib");
+ma = library("maths.lib");
+de = library("delays.lib");
+ro = library("routes.lib");
 
 //-------chain(A:B:...)----------
 // Creates a chain of bidirectional blocks. 
@@ -37,7 +37,7 @@ ro = library("route.lib");
 // };
 // ```
 // ### Requires
-// `filter.lib` (`crossnn`)
+// `routes.lib` (`crossnn`)
 //-----------------------------
 chain(A:As) = (ro.crossnn(1),_',_ : _,A : ro.crossnn(1),_,_ : _,chain(As) : ro.crossnn(1),_,_) ~ _ : !,_,_,_;
 chain(A) = A;
@@ -76,7 +76,7 @@ output(x,y,s) = x,y,x+y+s;
 // };
 // ```  
 // ### Requires
-// `filter.lib` (`crossnn`)
+// `routes.lib` (`crossnn`)
 //----------------------------------------
 terminations(a,b,c) = (_,ro.crossnn(1),_,_ : +,+,_ : b) ~ (c,a : ro.crossnn(1)); // adds 2 samples to the loop!
 
@@ -93,7 +93,7 @@ terminations(a,b,c) = (_,ro.crossnn(1),_,_ : +,+,_ : b) ~ (c,a : ro.crossnn(1));
 // };
 // ```  
 // ### Requires
-// `filter.lib` (`crossnn`)
+// `routes.lib` (`crossnn`)
 //----------------------------------------
 fullTerminations(a,b,c) = 0,0,0 : terminations(a,b,c) : !,!,_;
 
@@ -110,7 +110,7 @@ fullTerminations(a,b,c) = 0,0,0 : terminations(a,b,c) : !,!,_;
 // };
 // ```  
 // ### Requires
-// `filter.lib` (`crossnn`)
+// `routes.lib` (`crossnn`)
 //----------------------------------------
 leftTermination(a,b) = 0,0,0 : terminations(a,b,*(0));
 
@@ -127,7 +127,7 @@ leftTermination(a,b) = 0,0,0 : terminations(a,b,*(0));
 // };
 // ```  
 // ### Requires
-// `filter.lib` (`crossnn`)
+// `routes.lib` (`crossnn`)
 //----------------------------------------
 rightTermination(b,c) = terminations(*(0),b,c) : !,!,_;
 
@@ -141,7 +141,7 @@ rightTermination(b,c) = terminations(*(0),b,c) : !,!,_;
 // * `nMax`: the maximum length of the waveguide in samples
 // * `n` the length of the waveguide in samples. 
 // ### Requires
-// `filter.lib` (`fdelay4`)
+// `delays.lib` (`fdelay4`)
 //----------------------------------
 waveguide(nMax,n) = de.fdelay4(nMax,n),de.fdelay4(nMax,n),_;
 
@@ -158,7 +158,8 @@ waveguide(nMax,n) = de.fdelay4(nMax,n),de.fdelay4(nMax,n),_;
 // * `pluckPosition`: the plucking position (0.001-0.999)
 // * `x`: the input signal for the excitation
 // ### Requires
-// `filter.lib` (`fdelay4`,`crossnn`)
+// `routes.lib` (`crossnn`)
+// `delays.lib` (`fdelay4`)
 //----------------------------------------------------------
 idealString(length,reflexion,pluckPosition,x) = fullTerminations(term,wg,term)
 with{

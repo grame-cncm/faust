@@ -5,8 +5,7 @@
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
   <title>Faust Libraries Documentation</title>
-  </style><link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"><script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js">
-</script><script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  </style><link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"><script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js">n</script><script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
 <div class="container"><div class="row" style="height: 100vh;">
 <div class="col-sm-4" id="TOC" style="height: 100%;overflow: scroll;">
@@ -36,7 +35,7 @@
 <li><a href="#oscillatorssound-generators">Oscillators/Sound Generators</a></li>
 <li><a href="#synths">Synths</a></li>
 </ul></li>
-<li><a href="#analyzer.lib">analyzer.lib</a><ul>
+<li><a href="#analyzers.lib">analyzers.lib</a><ul>
 <li><a href="#amplitude-tracking">Amplitude Tracking</a><ul>
 <li><a href="#amp_follower"><code>amp_follower</code></a></li>
 <li><a href="#amp_follower_ud"><code>amp_follower_ud</code></a></li>
@@ -53,7 +52,7 @@
 <li><a href="#analyzer"><code>analyzer</code></a></li>
 </ul></li>
 </ul></li>
-<li><a href="#basic.lib">basic.lib</a><ul>
+<li><a href="#basics.lib">basics.lib</a><ul>
 <li><a href="#conversion-tools">Conversion Tools</a><ul>
 <li><a href="#samp2sec"><code>samp2sec</code></a></li>
 <li><a href="#sec2samp"><code>sec2samp</code></a></li>
@@ -108,7 +107,7 @@
 <li><a href="#selectoutn"><code>selectoutn</code></a></li>
 </ul></li>
 </ul></li>
-<li><a href="#compressor.lib">compressor.lib</a><ul>
+<li><a href="#compressors.lib">compressors.lib</a><ul>
 <li><a href="#functions-reference">Functions Reference</a><ul>
 <li><a href="#compressor_mono"><code>compressor_mono</code></a></li>
 <li><a href="#compressor_stereo"><code>compressor_stereo</code></a></li>
@@ -116,7 +115,7 @@
 <li><a href="#limiter_1176_r4_stereo"><code>limiter_1176_R4_stereo</code></a></li>
 </ul></li>
 </ul></li>
-<li><a href="#delay.lib">delay.lib</a><ul>
+<li><a href="#delays.lib">delays.lib</a><ul>
 <li><a href="#basic-delay-functions">Basic Delay Functions</a><ul>
 <li><a href="#delay"><code>delay</code></a></li>
 <li><a href="#fdelay"><code>fdelay</code></a></li>
@@ -130,7 +129,7 @@
 <li><a href="#fdelayna"><code>fdelay[n]a</code></a></li>
 </ul></li>
 </ul></li>
-<li><a href="#demo.lib">demo.lib</a><ul>
+<li><a href="#demos.lib">demos.lib</a><ul>
 <li><a href="#analyzers">Analyzers</a><ul>
 <li><a href="#mth_octave_spectral_level_demo"><code>mth_octave_spectral_level_demo</code></a></li>
 </ul></li>
@@ -162,7 +161,7 @@
 <li><a href="#oscrs_demo"><code>oscrs_demo</code></a></li>
 </ul></li>
 </ul></li>
-<li><a href="#envelope.lib">envelope.lib</a><ul>
+<li><a href="#envelopes.lib">envelopes.lib</a><ul>
 <li><a href="#functions-reference-1">Functions Reference</a><ul>
 <li><a href="#smoothenvelope"><code>smoothEnvelope</code></a></li>
 <li><a href="#ar"><code>ar</code></a></li>
@@ -170,7 +169,7 @@
 <li><a href="#adsr"><code>adsr</code></a></li>
 </ul></li>
 </ul></li>
-<li><a href="#filter.lib">filter.lib</a><ul>
+<li><a href="#filters.lib">filters.lib</a><ul>
 <li><a href="#basic-filters">Basic Filters</a><ul>
 <li><a href="#zero"><code>zero</code></a></li>
 <li><a href="#pole"><code>pole</code></a></li>
@@ -293,7 +292,7 @@
 <li><a href="#rotate"><code>rotate</code></a></li>
 </ul></li>
 </ul></li>
-<li><a href="#math.lib">math.lib</a><ul>
+<li><a href="#maths.lib">maths.lib</a><ul>
 <li><a href="#functions-reference-2">Functions Reference</a><ul>
 <li><a href="#sr"><code>SR</code></a></li>
 <li><a href="#bs"><code>BS</code></a></li>
@@ -336,7 +335,7 @@
 <li><a href="#diffn"><code>diffn</code></a></li>
 </ul></li>
 </ul></li>
-<li><a href="#misceffect.lib">misceffect.lib</a><ul>
+<li><a href="#misceffects.lib">misceffects.lib</a><ul>
 <li><a href="#dynamic">Dynamic</a><ul>
 <li><a href="#cubicnl"><code>cubicnl</code></a></li>
 <li><a href="#gate_mono"><code>gate_mono</code></a></li>
@@ -357,13 +356,24 @@
 <li><a href="#mesh_square"><code>mesh_square</code></a></li>
 </ul></li>
 </ul></li>
-<li><a href="#miscoscillator.lib">miscoscillator.lib</a><ul>
+<li><a href="#noises.lib">noises.lib</a><ul>
+<li><a href="#functions-reference-3">Functions Reference</a><ul>
+<li><a href="#noise"><code>noise</code></a></li>
+<li><a href="#multirandom"><code>multirandom</code></a></li>
+<li><a href="#multinoise"><code>multinoise</code></a></li>
+<li><a href="#noises"><code>noises</code></a></li>
+<li><a href="#pink_noise"><code>pink_noise</code></a></li>
+<li><a href="#pink_noise_vm"><code>pink_noise_vm</code></a></li>
+<li><a href="#lfnoise-lfnoise0-and-lfnoisen"><code>lfnoise</code>, <code>lfnoise0</code> and <code>lfnoiseN</code></a></li>
+</ul></li>
+</ul></li>
+<li><a href="#oscillators.lib">oscillators.lib</a><ul>
 <li><a href="#wave-table-based-oscillators">Wave-Table-Based Oscillators</a><ul>
 <li><a href="#sinwaveform"><code>sinwaveform</code></a></li>
 <li><a href="#coswaveform"><code>coswaveform</code></a></li>
 <li><a href="#phasor"><code>phasor</code></a></li>
 <li><a href="#oscsin"><code>oscsin</code></a></li>
-<li><a href="#oscos"><code>oscos</code></a></li>
+<li><a href="#osccos"><code>osccos</code></a></li>
 <li><a href="#oscp"><code>oscp</code></a></li>
 <li><a href="#osci"><code>osci</code></a></li>
 </ul></li>
@@ -416,18 +426,7 @@
 <li><a href="#oscw-1"><code>oscw</code></a></li>
 </ul></li>
 </ul></li>
-<li><a href="#noise.lib">noise.lib</a><ul>
-<li><a href="#functions-reference-3">Functions Reference</a><ul>
-<li><a href="#noise"><code>noise</code></a></li>
-<li><a href="#multirandom"><code>multirandom</code></a></li>
-<li><a href="#multinoise"><code>multinoise</code></a></li>
-<li><a href="#noises"><code>noises</code></a></li>
-<li><a href="#pink_noise"><code>pink_noise</code></a></li>
-<li><a href="#pink_noise_vm"><code>pink_noise_vm</code></a></li>
-<li><a href="#lfnoise-lfnoise0-and-lfnoisen"><code>lfnoise</code>, <code>lfnoise0</code> and <code>lfnoiseN</code></a></li>
-</ul></li>
-</ul></li>
-<li><a href="#phafla.lib">phafla.lib</a><ul>
+<li><a href="#phaflangers.lib">phaflangers.lib</a><ul>
 <li><a href="#functions-reference-4">Functions Reference</a><ul>
 <li><a href="#flanger_mono"><code>flanger_mono</code></a></li>
 <li><a href="#flanger_stereo"><code>flanger_stereo</code></a></li>
@@ -435,7 +434,7 @@
 <li><a href="#phaser2_stereo"><code>phaser2_stereo</code></a></li>
 </ul></li>
 </ul></li>
-<li><a href="#pm.lib">pm.lib</a><ul>
+<li><a href="#physmodels.lib">physmodels.lib</a><ul>
 <li><a href="#chainab...">chain(A:B:...)</a></li>
 <li><a href="#requires">Requires</a></li>
 <li><a href="#inputx">input(x)</a></li>
@@ -451,7 +450,7 @@
 <li><a href="#waveguidenmaxn">waveguide(nMax,n)</a></li>
 <li><a href="#idealstringlengthreflexionxpositionx">idealString(length,reflexion,xPosition,x)</a></li>
 </ul></li>
-<li><a href="#reverb.lib">reverb.lib</a><ul>
+<li><a href="#reverbs.lib">reverbs.lib</a><ul>
 <li><a href="#functions-reference-5">Functions Reference</a><ul>
 <li><a href="#jcrev"><code>jcrev</code></a></li>
 <li><a href="#satrev"><code>satrev</code></a></li>
@@ -463,7 +462,7 @@
 <li><a href="#zita_rev1_ambi"><code>zita_rev1_ambi</code></a></li>
 </ul></li>
 </ul></li>
-<li><a href="#route.lib">route.lib</a><ul>
+<li><a href="#routes.lib">routes.lib</a><ul>
 <li><a href="#functions-reference-6">Functions Reference</a><ul>
 <li><a href="#cross"><code>cross</code></a></li>
 <li><a href="#crossnn"><code>crossnn</code></a></li>
@@ -474,7 +473,7 @@
 <li><a href="#recursivize"><code>recursivize</code></a></li>
 </ul></li>
 </ul></li>
-<li><a href="#signal.lib">signal.lib</a><ul>
+<li><a href="#signals.lib">signals.lib</a><ul>
 <li><a href="#functions-reference-7">Functions Reference</a><ul>
 <li><a href="#bus"><code>bus</code></a></li>
 <li><a href="#block"><code>block</code></a></li>
@@ -487,12 +486,12 @@
 <li><a href="#dot"><code>dot</code></a></li>
 </ul></li>
 </ul></li>
-<li><a href="#spat.lib">spat.lib</a><ul>
+<li><a href="#spats.lib">spats.lib</a><ul>
 <li><a href="#panner"><code>panner</code></a></li>
 <li><a href="#spat"><code>spat</code></a></li>
 <li><a href="#stereoize"><code>stereoize</code></a></li>
 </ul></li>
-<li><a href="#synth.lib">synth.lib</a><ul>
+<li><a href="#synths.lib">synths.lib</a><ul>
 <li><a href="#popfilterperc"><code>popFilterPerc</code></a></li>
 <li><a href="#dubdub"><code>dubDub</code></a></li>
 <li><a href="#sawtrombone"><code>sawTrombone</code></a></li>
@@ -500,7 +499,7 @@
 <li><a href="#additivedrum"><code>additiveDrum</code></a></li>
 <li><a href="#fm"><code>fm</code></a></li>
 </ul></li>
-<li><a href="#vaeffect.lib">vaeffect.lib</a><ul>
+<li><a href="#vaeffects.lib">vaeffects.lib</a><ul>
 <li><a href="#functions-reference-8">Functions Reference</a><ul>
 <li><a href="#moog_vcf"><code>moog_vcf</code></a></li>
 <li><a href="#moog_vcf_2bn"><code>moog_vcf_2b[n]</code></a></li>
@@ -516,46 +515,46 @@
 <p>NOTE: this documentation was automatically generated.</p>
 <p>This page provides information on how to use the Faust libraries.</p>
 <p>The <code>/libraries</code> folder contains the different Faust libraries. If you wish to add your own functions to this library collection, you can refer to the &quot;Contributing&quot; section providing a set of coding conventions.</p>
-<p>WARNING: These libraries replace the &quot;old&quot; Faust libraries. They are still being beta tested so you might encounter bugs while using them. If your codes still use the &quot;old&quot; Faust libraries, you might want to try to use Bart Brouns' script that automatically makes an old Faust code compatible with the new libraries: <a href="https://github.com/magnetophon/faustCompressors/blob/master/newlib.sh" class="uri">https://github.com/magnetophon/faustCompressors/blob/master/newlib.sh</a>. If you find a bug, please report it at rmichon_at_ccrma_dot_stanford_dot_edu. Thanks ;)!</p>
+<p>WARNING: These libraries replace the &quot;old&quot; Faust libraries. They are still being beta tested so you might encounter bugs while using them. If your codes still use the &quot;old&quot; Faust libraries, you might want to try to use Bart Brouns' script that automatically makes an old Faust code compatible with the new libraries: <a href="https://github.com/magnetophon/faustCompressors/blob/master/newlib.sh">https://github.com/magnetophon/faustCompressors/blob/master/newlib.sh</a>. If you find a bug, please report it at rmichon_at_ccrma_dot_stanford_dot_edu. Thanks ;)!</p>
 <h2 id="using-the-faust-libraries">Using the Faust Libraries</h2>
 <p>The easiest and most standard way to use the Faust libraries is to import <code>stdfaust.lib</code> in your Faust code:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);</code></pre>
 <p>This will give you access to all the Faust libraries through a series of environments:</p>
 <ul>
 <li><code>sf</code>: <code>all.lib</code></li>
-<li><code>an</code>: <code>analyzer.lib</code></li>
-<li><code>ba</code>: <code>basic.lib</code></li>
-<li><code>co</code>: <code>compressor.lib</code></li>
-<li><code>de</code>: <code>delay.lib</code></li>
-<li><code>dm</code>: <code>demo.lib</code></li>
-<li><code>en</code>: <code>envelope.lib</code></li>
-<li><code>fi</code>: <code>filter.lib</code></li>
+<li><code>an</code>: <code>analyzers.lib</code></li>
+<li><code>ba</code>: <code>basics.lib</code></li>
+<li><code>co</code>: <code>compressors.lib</code></li>
+<li><code>de</code>: <code>delays.lib</code></li>
+<li><code>dm</code>: <code>demos.lib</code></li>
+<li><code>en</code>: <code>envelopes.lib</code></li>
+<li><code>fi</code>: <code>filters.lib</code></li>
 <li><code>ho</code>: <code>hoa.lib</code></li>
-<li><code>ma</code>: <code>math.lib</code></li>
-<li><code>ef</code>: <code>misceffect.lib</code></li>
-<li><code>os</code>: <code>miscoscillator.lib</code></li>
-<li><code>no</code>: <code>noise.lib</code></li>
-<li><code>pf</code>: <code>phafla.lib</code></li>
-<li><code>pm</code>: <code>pm.lib</code></li>
-<li><code>re</code>: <code>reverb.lib</code></li>
-<li><code>ro</code>: <code>route.lib</code></li>
-<li><code>si</code>: <code>signal.lib</code></li>
-<li><code>sp</code>: <code>spat.lib</code></li>
-<li><code>sy</code>: <code>synth.lib</code></li>
-<li><code>ve</code>: <code>vaeffect.lib</code></li>
+<li><code>ma</code>: <code>maths.lib</code></li>
+<li><code>ef</code>: <code>misceffects.lib</code></li>
+<li><code>os</code>: <code>oscillators.lib</code></li>
+<li><code>no</code>: <code>noises.lib</code></li>
+<li><code>pf</code>: <code>phaflangers.lib</code></li>
+<li><code>pm</code>: <code>physmodels.lib</code></li>
+<li><code>re</code>: <code>reverbs.lib</code></li>
+<li><code>ro</code>: <code>routes.lib</code></li>
+<li><code>si</code>: <code>signals.lib</code></li>
+<li><code>sp</code>: <code>spats.lib</code></li>
+<li><code>sy</code>: <code>synths.lib</code></li>
+<li><code>ve</code>: <code>vaeffects.lib</code></li>
 </ul>
 <p>Environments can then be used as follows in your Faust code:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 process = os.osc(440);</code></pre>
-<p>In this case, we're calling the <code>osc</code> function from <code>miscoscillator.lib</code>.</p>
+<p>In this case, we're calling the <code>osc</code> function from <code>oscillators.lib</code>.</p>
 <p>You can also access all the functions of all the libraries directly using the <code>sf</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 process = sf.osc(440);</code></pre>
 <p>Alternatively, environments can be created by hand:</p>
-<pre><code>os = library(&quot;miscoscillator.lib&quot;);
+<pre><code>os = library(&quot;oscillators.lib&quot;);
 process = os.osc(440);</code></pre>
 <p>Finally, libraries can be simply imported in the Faust code (not recommended):</p>
-<pre><code>import(&quot;miscoscillator.lib&quot;);
+<pre><code>import(&quot;oscillators.lib&quot;);
 process = osc(440);</code></pre>
 <h2 id="contributing">Contributing</h2>
 <p>If you wish to add a function to any of these libraries or if you plan to add a new library, make sure that you follow the following conventions:</p>
@@ -622,28 +621,28 @@ process = osc(440);</code></pre>
 <h2 id="general-organization">General Organization</h2>
 <p>Only the libraries that are considered to be &quot;standard&quot; are documented:</p>
 <ul>
-<li><code>analyzer.lib</code></li>
-<li><code>basic.lib</code></li>
-<li><code>compressor.lib</code></li>
-<li><code>delay.lib</code></li>
-<li><code>demo.lib</code></li>
-<li><code>envelope.lib</code></li>
-<li><code>filter.lib</code></li>
+<li><code>analyzers.lib</code></li>
+<li><code>basics.lib</code></li>
+<li><code>compressors.lib</code></li>
+<li><code>delays.lib</code></li>
+<li><code>demos.lib</code></li>
+<li><code>envelopes.lib</code></li>
+<li><code>filters.lib</code></li>
 <li><code>hoa.lib</code></li>
-<li><code>math.lib</code></li>
-<li><code>misceffect.lib</code></li>
-<li><code>miscoscillator.lib</code></li>
-<li><code>noise.lib</code></li>
-<li><code>phafla.lib</code></li>
-<li><code>pm.lib</code></li>
-<li><code>reverb.lib</code></li>
-<li><code>route.lib</code></li>
-<li><code>signal.lib</code></li>
-<li><code>spat.lib</code></li>
-<li><code>synth.lib</code></li>
-<li><code>tonestack.lib</code> (not documented but example in <code>/examples/misc</code>)</li>
-<li><code>tube.lib</code> (not documented but example in <code>/examples/misc</code>)</li>
-<li><code>vaeffect.lib</code></li>
+<li><code>maths.lib</code></li>
+<li><code>misceffects.lib</code></li>
+<li><code>oscillators.lib</code></li>
+<li><code>noises.lib</code></li>
+<li><code>phaflangers.lib</code></li>
+<li><code>physmodels.lib</code></li>
+<li><code>reverbs.lib</code></li>
+<li><code>routes.lib</code></li>
+<li><code>signals.lib</code></li>
+<li><code>spats.lib</code></li>
+<li><code>synths.lib</code></li>
+<li><code>tonestacks.lib</code> (not documented but example in <code>/examples/misc</code>)</li>
+<li><code>tubes.lib</code> (not documented but example in <code>/examples/misc</code>)</li>
+<li><code>vaeffects.lib</code></li>
 </ul>
 <p>Other deprecated libraries such as <code>music.lib</code>, etc. are present but are not documented to not confuse new users.</p>
 <p>The doumentation of each library can be found in <code>/documentation/library.html</code> or in <code>/documentation/library.pdf</code>.</p>
@@ -653,46 +652,46 @@ process = osc(440);</code></pre>
 <h3 id="documentation">Documentation</h3>
 <ul>
 <li>All the functions that we want to be &quot;public&quot; are documented.</li>
-<li>We used the <code>faust2md</code> &quot;standards&quot; for each library: <code>//###</code> for main title (library name - equivalent to <code>#</code> in markdown), <code>//===</code> for section declarations (equivalent to <code>##</code> in markdown) and <code>//---</code> for function declarations (equivalent to <code>####</code> in markdown - see <code>basic.lib</code> for an example).</li>
+<li>We used the <code>faust2md</code> &quot;standards&quot; for each library: <code>//###</code> for main title (library name - equivalent to <code>#</code> in markdown), <code>//===</code> for section declarations (equivalent to <code>##</code> in markdown) and <code>//---</code> for function declarations (equivalent to <code>####</code> in markdown - see <code>basics.lib</code> for an example).</li>
 <li>Sections in function documentation should be declared as <code>####</code> markdown title.</li>
-<li>Each function documentation provides a &quot;Usage&quot; section (see <code>basic.lib</code>).</li>
+<li>Each function documentation provides a &quot;Usage&quot; section (see <code>basics.lib</code>).</li>
 </ul>
 <h3 id="library-import">Library Import</h3>
 <p>To prevent cross-references between libraries we generalized the use of the <code>library(&quot;&quot;)</code> system for function calls in all the libraries. This means that everytime a function declared in another library is called, the environment corresponding to this library needs to be called too. To make things easier, a <code>stdfaust.lib</code> library was created and is imported by all the libraries:</p>
-<pre><code>an = library(&quot;analyzer.lib&quot;);
-ba = library(&quot;basic.lib&quot;);
-co = library(&quot;compressor.lib&quot;);
-de = library(&quot;delay.lib&quot;);
-dm = library(&quot;demo.lib&quot;);
-en = library(&quot;envelope.lib&quot;);
-fi = library(&quot;filter.lib&quot;);
+<pre><code>an = library(&quot;analyzers.lib&quot;);
+ba = library(&quot;basics.lib&quot;);
+co = library(&quot;compressors.lib&quot;);
+de = library(&quot;delays.lib&quot;);
+dm = library(&quot;demos.lib&quot;);
+en = library(&quot;envelopes.lib&quot;);
+fi = library(&quot;filters.lib&quot;);
 ho = library(&quot;hoa.lib&quot;);
-ma = library(&quot;math.lib&quot;);
-ef = library(&quot;misceffect.lib&quot;);
-os = library(&quot;miscoscillator.lib&quot;);
-no = library(&quot;noise.lib&quot;);
-pf = library(&quot;phafla.lib&quot;);
-pm = library(&quot;pm.lib&quot;);
-re = library(&quot;reverb.lib&quot;);
-ro = library(&quot;route.lib&quot;);
-sp = library(&quot;spat.lib&quot;);
-si = library(&quot;signal.lib&quot;);
-sy = library(&quot;synth.lib&quot;);
-ve = library(&quot;vaeffect.lib&quot;);</code></pre>
-<p>For example, if we wanted to use the <code>smooth</code> function which is now declared in <code>signal.lib</code>, we would do the following:</p>
+ma = library(&quot;maths.lib&quot;);
+ef = library(&quot;misceffects.lib&quot;);
+os = library(&quot;oscillators.lib&quot;);
+no = library(&quot;noises.lib&quot;);
+pf = library(&quot;phaflangers.lib&quot;);
+pm = library(&quot;physmodels.lib&quot;);
+re = library(&quot;reverbs.lib&quot;);
+ro = library(&quot;routes.lib&quot;);
+sp = library(&quot;spats.lib&quot;);
+si = library(&quot;signals.lib&quot;);
+sy = library(&quot;synths.lib&quot;);
+ve = library(&quot;vaeffects.lib&quot;);</code></pre>
+<p>For example, if we wanted to use the <code>smooth</code> function which is now declared in <code>signals.lib</code>, we would do the following:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 
 process = si.smooth(0.999);</code></pre>
-<p>This standard is only used within the libraries: nothing prevents coders to still import <code>signal.lib</code> directly and call <code>smooth</code> without <code>ro.</code>, etc.</p>
+<p>This standard is only used within the libraries: nothing prevents coders to still import <code>signals.lib</code> directly and call <code>smooth</code> without <code>ro.</code>, etc.</p>
 <h3 id="demo-functions">&quot;Demo&quot; Functions</h3>
-<p>&quot;Demo&quot; functions are placed in <code>demo.lib</code> and have a built-in user interface (UI). Their name ends with the <code>_demo</code> suffix. Each of these function have a <code>.dsp</code> file associated to them in the <code>/examples</code> folder.</p>
+<p>&quot;Demo&quot; functions are placed in <code>demos.lib</code> and have a built-in user interface (UI). Their name ends with the <code>_demo</code> suffix. Each of these function have a <code>.dsp</code> file associated to them in the <code>/examples</code> folder.</p>
 <p>Any function containing UI elements should be placed in this library and respect these standards.</p>
 <h3 id="standard-functions">&quot;Standard&quot; Functions</h3>
-<p>&quot;Standard&quot; functions are here to simplify the life of new (or not so new) Faust coders. They are declared in <code>/libraries/doc/standardFunctions.md</code> and allow to point programmers to preferred functions to carry out a specific task. For example, there are many different types of lowpass filters declared in <code>filter.lib</code> and only one of them is considered to be standard, etc.</p>
+<p>&quot;Standard&quot; functions are here to simplify the life of new (or not so new) Faust coders. They are declared in <code>/libraries/doc/standardFunctions.md</code> and allow to point programmers to preferred functions to carry out a specific task. For example, there are many different types of lowpass filters declared in <code>filters.lib</code> and only one of them is considered to be standard, etc.</p>
 <h2 id="the-question-of-licensingauthoringcopyrigth">The question of licensing/authoring/copyrigth</h2>
 <p>Now that Faust libraries are not author specific, each function will be able to have its own licence/author declaration. This means that some libraries wont have a global licence/author/copyright declaration like it used to be the case.</p>
 <h1 id="standard-functions-1">Standard Functions</h1>
-<p>Dozens of functions are implemented in the Faust libraries and many of them are very specialized and not useful to beginners or to people who only need to use Faust for basic applications. This section offers an index organized by categories of the &quot;standard Faust functions&quot; (basic filters, effects, synthesizers, etc.). This index only contains functions without a user interface (UI). Faust functions with a built-in UI can be found in <a href="#demo.lib"><code>demo.lib</code></a>.</p>
+<p>Dozens of functions are implemented in the Faust libraries and many of them are very specialized and not useful to beginners or to people who only need to use Faust for basic applications. This section offers an index organized by categories of the &quot;standard Faust functions&quot; (basic filters, effects, synthesizers, etc.). This index only contains functions without a user interface (UI). Faust functions with a built-in UI can be found in <a href="#demos.lib"><code>demos.lib</code></a>.</p>
 <h2 id="analysis-tools">Analysis Tools</h2>
 <div class="table-begin">
 
@@ -736,92 +735,92 @@ process = si.smooth(0.999);</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left"><a href="#beat">Beats</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#beat"><code>beat</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#beat"><code>beat</code></a></td>
 <td align="left">Pulses at a specific tempo</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#block">Block</a></td>
-<td align="left"><a href="#signal.lib"><code>si.</code></a><a href="#block"><code>block</code></a></td>
+<td align="left"><a href="#signals.lib"><code>si.</code></a><a href="#block"><code>block</code></a></td>
 <td align="left">Terminate n signals</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#bpf">Break Point Function</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#bpf"><code>bpf</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#bpf"><code>bpf</code></a></td>
 <td align="left">Beak Point Function (BPF)</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#bus">Bus</a></td>
-<td align="left"><a href="#signal.lib"><code>si.</code></a><a href="#bus"><code>bus</code></a></td>
+<td align="left"><a href="#signals.lib"><code>si.</code></a><a href="#bus"><code>bus</code></a></td>
 <td align="left">Bus of n signals</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#bypass1">Bypass (Mono)</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#bypass1"><code>bypass1</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#bypass1"><code>bypass1</code></a></td>
 <td align="left">Mono bypass</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#bypass2">Bypass (Stereo)</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#bypass2"><code>bypass2</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#bypass2"><code>bypass2</code></a></td>
 <td align="left">Stereo bypass</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#count">Count Elements</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#count"><code>count</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#count"><code>count</code></a></td>
 <td align="left">Count elements in a list</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#countdown">Count Down</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#countdown"><code>countdown</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#countdown"><code>countdown</code></a></td>
 <td align="left">Samples count down</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#countup">Count Up</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#countup"><code>countup</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#countup"><code>countup</code></a></td>
 <td align="left">Samples count up</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#delay">Delay (Integer)</a></td>
-<td align="left"><a href="#delay.lib"><code>de.</code></a><a href="#delay"><code>delay</code></a></td>
+<td align="left"><a href="#delays.lib"><code>de.</code></a><a href="#delay"><code>delay</code></a></td>
 <td align="left">Integer delay</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#fdelay">Delay (Float)</a></td>
-<td align="left"><a href="#delay.lib"><code>de.</code></a><a href="#fdelay"><code>fdelay</code></a></td>
+<td align="left"><a href="#delays.lib"><code>de.</code></a><a href="#fdelay"><code>fdelay</code></a></td>
 <td align="left">Fractional delay</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#impulsify">Impulsify</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#impulsify"><code>impulsify</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#impulsify"><code>impulsify</code></a></td>
 <td align="left">Turns a signal into an impulse</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#sandh">Sample and Hold</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#sandh"><code>sAndH</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#sandh"><code>sAndH</code></a></td>
 <td align="left">Sample and hold</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#cross">Signal Crossing</a></td>
-<td align="left"><a href="#route.lib"><code>ro.</code></a><a href="#cross"><code>cross</code></a></td>
+<td align="left"><a href="#routes.lib"><code>ro.</code></a><a href="#cross"><code>cross</code></a></td>
 <td align="left">Cross n signals</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#smoo">Smoother (Default)</a></td>
-<td align="left"><a href="#signal.lib"><code>si.</code></a><a href="#smoo"><code>smoo</code></a></td>
+<td align="left"><a href="#signals.lib"><code>si.</code></a><a href="#smoo"><code>smoo</code></a></td>
 <td align="left">Exponential smoothing</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#smooth">Smoother</a></td>
-<td align="left"><a href="#signal.lib"><code>si.</code></a><a href="#smooth"><code>smooth</code></a></td>
+<td align="left"><a href="#signals.lib"><code>si.</code></a><a href="#smooth"><code>smooth</code></a></td>
 <td align="left">Exponential smoothing with controllable pole</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#take">Take Element</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#take"><code>take</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#take"><code>take</code></a></td>
 <td align="left">Take en element from a list</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#time">Time</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#time"><code>time</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#time"><code>time</code></a></td>
 <td align="left">A simple timer</td>
 </tr>
 </tbody>
@@ -844,37 +843,37 @@ process = si.smooth(0.999);</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left"><a href="#db2linear">dB to Linear</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#db2linear"><code>db2linear</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#db2linear"><code>db2linear</code></a></td>
 <td align="left">Converts dB to linear values</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#linear2db">Linear to dB</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#linear2db"><code>linear2db</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#linear2db"><code>linear2db</code></a></td>
 <td align="left">Converts linear values to dB</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#midikey2hz">MIDI Key to Hz</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#midikey2hz"><code>midikey2hz</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#midikey2hz"><code>midikey2hz</code></a></td>
 <td align="left">Converts a MIDI key number into a frequency</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#pole2tau">Pole to T60</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#pole2tau"><code>pole2tau</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#pole2tau"><code>pole2tau</code></a></td>
 <td align="left">Converts a pole into a time constant (t60)</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#samp2sec">Samples to Seconds</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#samp2sec"><code>samp2sec</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#samp2sec"><code>samp2sec</code></a></td>
 <td align="left">Converts samples to seconds</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#sec2samp">Seconds to Samples</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#sec2samp"><code>sec2samp</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#sec2samp"><code>sec2samp</code></a></td>
 <td align="left">Converts seconds to samples</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#tau2pole">T60 to Pole</a></td>
-<td align="left"><a href="#basic.lib"><code>ba.</code></a><a href="#tau2pole"><code>tau2pole</code></a></td>
+<td align="left"><a href="#basics.lib"><code>ba.</code></a><a href="#tau2pole"><code>tau2pole</code></a></td>
 <td align="left">Converts a time constant (t60) into a pole</td>
 </tr>
 </tbody>
@@ -897,102 +896,102 @@ process = si.smooth(0.999);</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left"><a href="#autowah">Auto Wah</a></td>
-<td align="left"><a href="#vaeffect.lib"><code>ve.</code></a><a href="#autowah"><code>autowah</code></a></td>
+<td align="left"><a href="#vaeffects.lib"><code>ve.</code></a><a href="#autowah"><code>autowah</code></a></td>
 <td align="left">Auto-Wah effect</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#compressor_mono">Compressor</a></td>
-<td align="left"><a href="#compressor.lib"><code>co.</code></a><a href="#compressor_mono"><code>compressor_mono</code></a></td>
+<td align="left"><a href="#compressors.lib"><code>co.</code></a><a href="#compressor_mono"><code>compressor_mono</code></a></td>
 <td align="left">Dynamic range compressor</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#cubicnl">Distortion</a></td>
-<td align="left"><a href="#misceffect.lib"><code>ef.</code></a><a href="#cubicnl"><code>cubicnl</code></a></td>
+<td align="left"><a href="#misceffects.lib"><code>ef.</code></a><a href="#cubicnl"><code>cubicnl</code></a></td>
 <td align="left">Cubic nonlinearity distortion</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#crybaby">Crybaby</a></td>
-<td align="left"><a href="#vaeffect.lib"><code>ve.</code></a><a href="#crybaby"><code>crybaby</code></a></td>
+<td align="left"><a href="#vaeffects.lib"><code>ve.</code></a><a href="#crybaby"><code>crybaby</code></a></td>
 <td align="left">Crybaby wah pedal</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#echo">Echo</a></td>
-<td align="left"><a href="#misceffect.lib"><code>ef.</code></a><a href="#echo"><code>echo</code></a></td>
+<td align="left"><a href="#misceffects.lib"><code>ef.</code></a><a href="#echo"><code>echo</code></a></td>
 <td align="left">Simple echo</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#flanger_stereo">Flanger</a></td>
-<td align="left"><a href="#phafla.lib"><code>pf.</code></a><a href="#flanger_stereo"><code>flanger_stereo</code></a></td>
+<td align="left"><a href="#phaflangers.lib"><code>pf.</code></a><a href="#flanger_stereo"><code>flanger_stereo</code></a></td>
 <td align="left">Flanging effect</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#gate_mono">Gate</a></td>
-<td align="left"><a href="#misceffect.lib"><code>ef.</code></a><a href="#gate_mono"><code>gate_mono</code></a></td>
+<td align="left"><a href="#misceffects.lib"><code>ef.</code></a><a href="#gate_mono"><code>gate_mono</code></a></td>
 <td align="left">Mono signal gate</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#limiter_1176_R4_mono">Limiter</a></td>
-<td align="left"><a href="#compressor.lib"><code>co.</code></a><a href="#limiter_1176_R4_mono"><code>limiter_1176_R4_mono</code></a></td>
+<td align="left"><a href="#compressors.lib"><code>co.</code></a><a href="#limiter_1176_R4_mono"><code>limiter_1176_R4_mono</code></a></td>
 <td align="left">Limiter</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#phaser2_stereo">Phaser</a></td>
-<td align="left"><a href="#phafla.lib"><code>pf.</code></a><a href="#phaser2_stereo"><code>phaser2_stereo</code></a></td>
+<td align="left"><a href="#phaflangers.lib"><code>pf.</code></a><a href="#phaser2_stereo"><code>phaser2_stereo</code></a></td>
 <td align="left">Phaser effect</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#fdnrev0">Reverb (FDN)</a></td>
-<td align="left"><a href="#reverb.lib"><code>re.</code></a><a href="#fdnrev0"><code>fdnrev0</code></a></td>
+<td align="left"><a href="#reverbs.lib"><code>re.</code></a><a href="#fdnrev0"><code>fdnrev0</code></a></td>
 <td align="left">Feedback delay network reverberator</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#mono_freeverb">Reverb (Freeverb)</a></td>
-<td align="left"><a href="#reverb.lib"><code>re.</code></a><a href="#mono_freeverb"><code>mono_freeverb</code></a></td>
+<td align="left"><a href="#reverbs.lib"><code>re.</code></a><a href="#mono_freeverb"><code>mono_freeverb</code></a></td>
 <td align="left">Most &quot;famous&quot; Schroeder reverberator</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#jcrev">Reverb (Simple)</a></td>
-<td align="left"><a href="#reverb.lib"><code>re.</code></a><a href="#jcrev"><code>jcrev</code></a></td>
+<td align="left"><a href="#reverbs.lib"><code>re.</code></a><a href="#jcrev"><code>jcrev</code></a></td>
 <td align="left">Simple Schroeder reverberator</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#zita_rev1_stereo">Reverb (Zita)</a></td>
-<td align="left"><a href="#reverb.lib"><code>re.</code></a><a href="#zita_rev1_stereo"><code>zita_rev1_stereo</code></a></td>
+<td align="left"><a href="#reverbs.lib"><code>re.</code></a><a href="#zita_rev1_stereo"><code>zita_rev1_stereo</code></a></td>
 <td align="left">High quality FDN reverberator</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#panner">Panner</a></td>
-<td align="left"><a href="#spat.lib"><code>sp.</code></a><a href="#panner"><code>panner</code></a></td>
+<td align="left"><a href="#spats.lib"><code>sp.</code></a><a href="#panner"><code>panner</code></a></td>
 <td align="left">Linear stereo panner</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#transpose">Pitch Shift</a></td>
-<td align="left"><a href="#misceffect.lib"><code>ef.</code></a><a href="#transpose"><code>transpose</code></a></td>
+<td align="left"><a href="#misceffects.lib"><code>ef.</code></a><a href="#transpose"><code>transpose</code></a></td>
 <td align="left">Simple pitch shifter</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#spat">Panner</a></td>
-<td align="left"><a href="#spat.lib"><code>sp.</code></a><a href="#spat"><code>spat</code></a></td>
+<td align="left"><a href="#spats.lib"><code>sp.</code></a><a href="#spat"><code>spat</code></a></td>
 <td align="left">N outputs spatializer</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#speakerbp">Speaker Simulator</a></td>
-<td align="left"><a href="#misceffect.lib"><code>ef.</code></a><a href="#speakerbp"><code>speakerbp</code></a></td>
+<td align="left"><a href="#misceffects.lib"><code>ef.</code></a><a href="#speakerbp"><code>speakerbp</code></a></td>
 <td align="left">Simple speaker simulator</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#stereo_width">Stereo Width</a></td>
-<td align="left"><a href="#misceffect.lib"><code>ef.</code></a><a href="#stereo_width"><code>stereo_width</code></a></td>
+<td align="left"><a href="#misceffects.lib"><code>ef.</code></a><a href="#stereo_width"><code>stereo_width</code></a></td>
 <td align="left">Stereo width effect</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#vocoder">Vocoder</a></td>
-<td align="left"><a href="#vaeffect.lib"><code>ve.</code></a><a href="#vocoder"><code>vocoder</code></a></td>
+<td align="left"><a href="#vaeffects.lib"><code>ve.</code></a><a href="#vocoder"><code>vocoder</code></a></td>
 <td align="left">Simple vocoder</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#wah4">Wah</a></td>
-<td align="left"><a href="#vaeffect.lib"><code>ve.</code></a><a href="#wah4"><code>wah4</code></a></td>
+<td align="left"><a href="#vaeffects.lib"><code>ve.</code></a><a href="#wah4"><code>wah4</code></a></td>
 <td align="left">Wah effect</td>
 </tr>
 </tbody>
@@ -1015,22 +1014,22 @@ process = si.smooth(0.999);</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left"><a href="#asr">ADSR</a></td>
-<td align="left"><a href="#envelope.lib"><code>en.</code></a><a href="#adsr"><code>adsr</code></a></td>
+<td align="left"><a href="#envelopes.lib"><code>en.</code></a><a href="#adsr"><code>adsr</code></a></td>
 <td align="left">Attack/Decay/Sustain/Release envelope generator</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#ar">AR</a></td>
-<td align="left"><a href="#envelope.lib"><code>en.</code></a><a href="#ar"><code>ar</code></a></td>
+<td align="left"><a href="#envelopes.lib"><code>en.</code></a><a href="#ar"><code>ar</code></a></td>
 <td align="left">Attack/Release envelope generator</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#asr">ASR</a></td>
-<td align="left"><a href="#envelope.lib"><code>en.</code></a><a href="#asr"><code>asr</code></a></td>
+<td align="left"><a href="#envelopes.lib"><code>en.</code></a><a href="#asr"><code>asr</code></a></td>
 <td align="left">Attack/Sustain/Release envelope generator</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#smoothEvelope">Exponential</a></td>
-<td align="left"><a href="#envelope.lib"><code>en.</code></a><a href="#smoothEnvelope"><code>smoothEnvelope</code></a></td>
+<td align="left"><a href="#envelopes.lib"><code>en.</code></a><a href="#smoothEnvelope"><code>smoothEnvelope</code></a></td>
 <td align="left">Exponential envelope generator</td>
 </tr>
 </tbody>
@@ -1053,102 +1052,102 @@ process = si.smooth(0.999);</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left"><a href="#bandpass">Bandpass (Butterworth)</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#bandpass"><code>bandpass</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#bandpass"><code>bandpass</code></a></td>
 <td align="left">Generic butterworth bandpass</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#resonbp">Bandpass (Resonant)</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#resonbp"><code>resonbp</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#resonbp"><code>resonbp</code></a></td>
 <td align="left">Virtual analog resonant bandpass</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#bandstop">Bandstop (Butterworth)</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#bandstop"><code>bandstop</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#bandstop"><code>bandstop</code></a></td>
 <td align="left">Generic butterworth bandstop</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#tf2">Biquad</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#tf2"><code>tf2</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#tf2"><code>tf2</code></a></td>
 <td align="left">&quot;Standard&quot; biquad filter</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#allpass_fcomb">Comb (Allpass)</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#allpass_fcomb"><code>allpass_fcomb</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#allpass_fcomb"><code>allpass_fcomb</code></a></td>
 <td align="left">Schroeder allpass comb filter</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#fb_fcomb">Comb (Feedback)</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#fb_fcomb"><code>fb_fcomb</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#fb_fcomb"><code>fb_fcomb</code></a></td>
 <td align="left">Feedback comb filter</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#ff_fcomb">Comb (Feedforward)</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#ff_fcomb"><code>ff_fcomb</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#ff_fcomb"><code>ff_fcomb</code></a></td>
 <td align="left">Feed-forward comb filter.</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#dcblocker">DC Blocker</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#dcblocker"><code>dcblocker</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#dcblocker"><code>dcblocker</code></a></td>
 <td align="left">Default dc blocker</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#filterbank">Filterbank</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#filterbank"><code>filterbank</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#filterbank"><code>filterbank</code></a></td>
 <td align="left">Generic filter bank</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#fir">FIR (Arbitrary Order)</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#fir"><code>fir</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#fir"><code>fir</code></a></td>
 <td align="left">Nth-order FIR filter</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#high_shelf">High Shelf</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#high_shelf"><code>high_shelf</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#high_shelf"><code>high_shelf</code></a></td>
 <td align="left">High shelf</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#highpass">Highpass (Butterworth)</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#highpass"><code>highpass</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#highpass"><code>highpass</code></a></td>
 <td align="left">Nth-order Butterworth highpass</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#resonhp">Highpass (Resonant)</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#resonhp"><code>resonhp</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#resonhp"><code>resonhp</code></a></td>
 <td align="left">Virtual analog resonant highpass</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#iir">IIR (Arbitrary Order)</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#iir"><code>iir</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#iir"><code>iir</code></a></td>
 <td align="left">Nth-order IIR filter</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#levelfilter">Level Filter</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#levelfilter"><code>levelfilter</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#levelfilter"><code>levelfilter</code></a></td>
 <td align="left">Dynamic level lowpass</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#low_shelf">Low Shelf</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#low_shelf"><code>low_shelf</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#low_shelf"><code>low_shelf</code></a></td>
 <td align="left">Low shelf</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#lowpass">Lowpass (Butterworth)</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#lowpass"><code>lowpass</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#lowpass"><code>lowpass</code></a></td>
 <td align="left">Nth-order Butterworth lowpass</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#resonlp">Lowpass (Resonant)</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#resonlp"><code>resonlp</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#resonlp"><code>resonlp</code></a></td>
 <td align="left">Virtual analog resonant lowpass</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#notchw">Notch Filter</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#notchw"><code>notchw</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#notchw"><code>notchw</code></a></td>
 <td align="left">Simple notch filter</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#peak_eq">Peak Equalizer</a></td>
-<td align="left"><a href="#filter.lib"><code>fi.</code></a><a href="#peak_eq"><code>peak_eq</code></a></td>
+<td align="left"><a href="#filters.lib"><code>fi.</code></a><a href="#peak_eq"><code>peak_eq</code></a></td>
 <td align="left">Peaking equalizer section</td>
 </tr>
 </tbody>
@@ -1171,77 +1170,77 @@ process = si.smooth(0.999);</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left"><a href="#impulse">Impulse</a></td>
-<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#impulse"><code>impulse</code></a></td>
+<td align="left"><a href="#oscillators.lib"><code>os.</code></a><a href="#impulse"><code>impulse</code></a></td>
 <td align="left">Generate an impulse on start-up</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#imptrain">Impulse Train</a></td>
-<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#imptrain"><code>imptrain</code></a></td>
+<td align="left"><a href="#oscillators.lib"><code>os.</code></a><a href="#imptrain"><code>imptrain</code></a></td>
 <td align="left">Band-limited impulse train</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#phasor">Phasor</a></td>
-<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#phasor"><code>phasor</code></a></td>
+<td align="left"><a href="#oscillators.lib"><code>os.</code></a><a href="#phasor"><code>phasor</code></a></td>
 <td align="left">Simple phasor</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#pink_noise">Pink Noise</a></td>
-<td align="left"><a href="#noise.lib"><code>no.</code></a><a href="#pink_noise"><code>pink_noise</code></a></td>
+<td align="left"><a href="#noises.lib"><code>no.</code></a><a href="#pink_noise"><code>pink_noise</code></a></td>
 <td align="left">Pink noise generator</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#pulsetrain">Pulse Train</a></td>
-<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#pulsetrain"><code>pulsetrain</code></a></td>
+<td align="left"><a href="#oscillators.lib"><code>os.</code></a><a href="#pulsetrain"><code>pulsetrain</code></a></td>
 <td align="left">Band-limited pulse train</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#lf_imptrain">Pulse Train (Low Frequency)</a></td>
-<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#lf_imptrain"><code>lf_imptrain</code></a></td>
+<td align="left"><a href="#oscillators.lib"><code>os.</code></a><a href="#lf_imptrain"><code>lf_imptrain</code></a></td>
 <td align="left">Low-frequency pulse train</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#sawtooth">Sawtooth</a></td>
-<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#sawtooth"><code>sawtooth</code></a></td>
+<td align="left"><a href="#oscillators.lib"><code>os.</code></a><a href="#sawtooth"><code>sawtooth</code></a></td>
 <td align="left">Band-limited sawtooth wave</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#lf_saw">Sawtooth (Low Frequency)</a></td>
-<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#lf_saw"><code>lf_saw</code></a></td>
+<td align="left"><a href="#oscillators.lib"><code>os.</code></a><a href="#lf_saw"><code>lf_saw</code></a></td>
 <td align="left">Low-frequency sawtooth wave</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#osc">Sine (Filter-Based)</a></td>
-<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#osc"><code>osc</code></a></td>
+<td align="left"><a href="#oscillators.lib"><code>os.</code></a><a href="#osc"><code>osc</code></a></td>
 <td align="left">Sine oscillator (filter-based)</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#oscsin">Sine (Table-Based)</a></td>
-<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#oscsin"><code>oscsin</code></a></td>
+<td align="left"><a href="#oscillators.lib"><code>os.</code></a><a href="#oscsin"><code>oscsin</code></a></td>
 <td align="left">Sine oscillator (table-based)</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#square">Square</a></td>
-<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#square"><code>square</code></a></td>
+<td align="left"><a href="#oscillators.lib"><code>os.</code></a><a href="#square"><code>square</code></a></td>
 <td align="left">Band-limited square wave</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#lf_squarewave">Square (Low Frequency)</a></td>
-<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#lf_squarewave"><code>lf_squarewave</code></a></td>
+<td align="left"><a href="#oscillators.lib"><code>os.</code></a><a href="#lf_squarewave"><code>lf_squarewave</code></a></td>
 <td align="left">Low-frequency square wave</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#triangle">Triangle</a></td>
-<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#triangle"><code>triangle</code></a></td>
+<td align="left"><a href="#oscillators.lib"><code>os.</code></a><a href="#triangle"><code>triangle</code></a></td>
 <td align="left">Band-limited triangle wave</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#lf_triangle">Triangle (Low Frequency)</a></td>
-<td align="left"><a href="#miscoscillator.lib"><code>os.</code></a><a href="#lf_triangle"><code>lf_triangle</code></a></td>
+<td align="left"><a href="#oscillators.lib"><code>os.</code></a><a href="#lf_triangle"><code>lf_triangle</code></a></td>
 <td align="left">Low-frequency triangle wave</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#noise">White Noise</a></td>
-<td align="left"><a href="#noise.lib"><code>no.</code></a><a href="#noise"><code>noise</code></a></td>
+<td align="left"><a href="#noises.lib"><code>no.</code></a><a href="#noise"><code>noise</code></a></td>
 <td align="left">White noise generator</td>
 </tr>
 </tbody>
@@ -1264,32 +1263,32 @@ process = si.smooth(0.999);</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left"><a href="#additivedrum">Additive Drum</a></td>
-<td align="left"><a href="#synth.lib"><code>sy.</code></a><a href="#additivedrum"><code>additiveDrum</code></a></td>
+<td align="left"><a href="#synths.lib"><code>sy.</code></a><a href="#additivedrum"><code>additiveDrum</code></a></td>
 <td align="left">Additive synthesis drum</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#dubdub">Bandpassed Sawtooth</a></td>
-<td align="left"><a href="#synth.lib"><code>sy.</code></a><a href="#dubdub"><code>dubDub</code></a></td>
+<td align="left"><a href="#synths.lib"><code>sy.</code></a><a href="#dubdub"><code>dubDub</code></a></td>
 <td align="left">Sawtooth through resonant bandpass</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#combstring">Comb String</a></td>
-<td align="left"><a href="#synth.lib"><code>sy.</code></a><a href="#combstring"><code>combString</code></a></td>
+<td align="left"><a href="#synths.lib"><code>sy.</code></a><a href="#combstring"><code>combString</code></a></td>
 <td align="left">String model based on a comb filter</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#fm">FM</a></td>
-<td align="left"><a href="#synth.lib"><code>sy.</code></a><a href="#fm"><code>fm</code></a></td>
+<td align="left"><a href="#synths.lib"><code>sy.</code></a><a href="#fm"><code>fm</code></a></td>
 <td align="left">Frequency modulation synthesizer</td>
 </tr>
 <tr class="odd">
 <td align="left"><a href="#sawtrombone">Lowpassed Sawtooth</a></td>
-<td align="left"><a href="#synth.lib"><code>sy.</code></a><a href="#sawtrombone"><code>sawTrombone</code></a></td>
+<td align="left"><a href="#synths.lib"><code>sy.</code></a><a href="#sawtrombone"><code>sawTrombone</code></a></td>
 <td align="left">&quot;Trombone&quot; based on a filtered sawtooth</td>
 </tr>
 <tr class="even">
 <td align="left"><a href="#popfilterperc">Popping Filter</a></td>
-<td align="left"><a href="#synth.lib"><code>sy.</code></a><a href="#popfilterperc"><code>popFilterPerc</code></a></td>
+<td align="left"><a href="#synths.lib"><code>sy.</code></a><a href="#popfilterperc"><code>popFilterPerc</code></a></td>
 <td align="left">Popping filter percussion instrument</td>
 </tr>
 </tbody>
@@ -1298,17 +1297,21 @@ process = si.smooth(0.999);</code></pre>
 
 </div>
 <!--
-TODO: potentially say something about demo.lib and demo functions here. Also, not sure what to do with math.lib.
+TODO: potentially say something about demos.lib and demo functions here. Also, not sure what to do with math.lib.
 -->
+
 <script type="text/javascript">
 (function() {
     $('div.table-begin').nextUntil('div.table-end', 'table').addClass('table table-bordered');
     })();
 </script>
-<h1 id="analyzer.lib">analyzer.lib</h1>
+    
+
+
+<h1 id="analyzers.lib">analyzers.lib</h1>
 <p>This library contains a collection of tools to analyze signals.</p>
 <p>It should be used using the <code>an</code> environment:</p>
-<pre><code>an = library(&quot;analyzer.lib&quot;);
+<pre><code>an = library(&quot;analyzers.lib&quot;);
 process = an.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>an</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -1340,7 +1343,7 @@ process = an.functionCall;</code></pre>
 <p>We assume rel &gt;&gt; att. Otherwise, consider rel ~ max(rel,att). For audio, att is normally faster (smaller) than rel (e.g., 0.001 and 0.01). Use <code>amp_follower_ar</code> below to remove this restriction.</p>
 <h4 id="reference-1">Reference</h4>
 <ul>
-<li>&quot;Digital Dynamic Range Compressor Design --- A Tutorial and Analysis&quot;, by Dimitrios Giannoulis, Michael Massberg, and Joshua D. Reiss <a href="http://www.eecs.qmul.ac.uk/~josh/documents/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf" class="uri">http://www.eecs.qmul.ac.uk/~josh/documents/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf</a></li>
+<li>&quot;Digital Dynamic Range Compressor Design --- A Tutorial and Analysis&quot;, by Dimitrios Giannoulis, Michael Massberg, and Joshua D. Reiss <a href="http://www.eecs.qmul.ac.uk/~josh/documents/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf">http://www.eecs.qmul.ac.uk/~josh/documents/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf</a></li>
 </ul>
 <hr />
 <h3 id="amp_follower_ar"><code>amp_follower_ar</code></h3>
@@ -1349,7 +1352,7 @@ process = an.functionCall;</code></pre>
 <pre><code>_ : amp_follower_ar(att,rel) : _;</code></pre>
 <hr />
 <h2 id="spectrum-analyzers">Spectrum-Analyzers</h2>
-<p>Spectrum-analyzers split the input signal into a bank of parallel signals, one for each spectral band. They are related to the Mth-Octave Filter-Banks in <code>filter.lib</code>. The documentation of this library contains more details about the implementation. The parameters are:</p>
+<p>Spectrum-analyzers split the input signal into a bank of parallel signals, one for each spectral band. They are related to the Mth-Octave Filter-Banks in <code>filters.lib</code>. The documentation of this library contains more details about the implementation. The parameters are:</p>
 <ul>
 <li><code>M</code>: number of band-slices per octave (&gt;1)</li>
 <li><code>N</code>: total number of bands (&gt;2)</li>
@@ -1426,7 +1429,7 @@ octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);</code></pre>
 <p>If frequencies are listed explicitly as arguments, enclose them in parens:</p>
 <pre><code>_ : analyzer(3,(fc1,fc2)) : _,_,_</code></pre>
 <hr />
-<h1 id="basic.lib">basic.lib</h1>
+<h1 id="basics.lib">basics.lib</h1>
 <p>A library of basic elements for Faust organized in 5 sections:</p>
 <ul>
 <li>Conversion Tools</li>
@@ -1436,7 +1439,7 @@ octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);</code></pre>
 <li>Other Tools (Misc)</li>
 </ul>
 <p>It should be used using the <code>ba</code> environment:</p>
-<pre><code>ba = library(&quot;basic.lib&quot;);
+<pre><code>ba = library(&quot;basics.lib&quot;);
 process = ba.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>ba</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -1844,10 +1847,10 @@ process = par(n,N, (par(i,N,i) : selectn(N,n)));</code></pre>
 sel = hslider(&quot;volume&quot;,0,0,2,1) : int;
 bar = vbargraph(&quot;v.bargraph&quot;, 0, 1);</code></pre>
 <hr />
-<h1 id="compressor.lib">compressor.lib</h1>
+<h1 id="compressors.lib">compressors.lib</h1>
 <p>A library of compressor effects.</p>
 <p>It should be used using the <code>co</code> environment:</p>
-<pre><code>co = library(&quot;compressor.lib&quot;);
+<pre><code>co = library(&quot;compressors.lib&quot;);
 process = co.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>co</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -1866,10 +1869,10 @@ process = co.functionCall;</code></pre>
 </ul>
 <h4 id="references-1">References</h4>
 <ul>
-<li><a href="http://en.wikipedia.org/wiki/Dynamic_range_compression" class="uri">http://en.wikipedia.org/wiki/Dynamic_range_compression</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Dynamic_range_compression">http://en.wikipedia.org/wiki/Dynamic_range_compression</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html">https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html</a></li>
 <li>Albert Graef's &quot;faust2pd&quot;/examples/synth/compressor_.dsp</li>
-<li>More features: <a href="https://github.com/magnetophon/faustCompressors" class="uri">https://github.com/magnetophon/faustCompressors</a></li>
+<li>More features: <a href="https://github.com/magnetophon/faustCompressors">https://github.com/magnetophon/faustCompressors</a></li>
 </ul>
 <hr />
 <h3 id="compressor_stereo"><code>compressor_stereo</code></h3>
@@ -1885,10 +1888,10 @@ process = co.functionCall;</code></pre>
 </ul>
 <h4 id="references-2">References</h4>
 <ul>
-<li><a href="http://en.wikipedia.org/wiki/Dynamic_range_compression" class="uri">http://en.wikipedia.org/wiki/Dynamic_range_compression</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Dynamic_range_compression">http://en.wikipedia.org/wiki/Dynamic_range_compression</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html">https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html</a></li>
 <li>Albert Graef's &quot;faust2pd&quot;/examples/synth/compressor_.dsp</li>
-<li>More features: <a href="https://github.com/magnetophon/faustCompressors" class="uri">https://github.com/magnetophon/faustCompressors</a></li>
+<li>More features: <a href="https://github.com/magnetophon/faustCompressors">https://github.com/magnetophon/faustCompressors</a></li>
 </ul>
 <hr />
 <h3 id="limiter_1176_r4_mono"><code>limiter_1176_R4_mono</code></h3>
@@ -1896,19 +1899,19 @@ process = co.functionCall;</code></pre>
 <h4 id="usage-51">Usage</h4>
 <pre><code> _ : limiter_1176_R4_mono : _;</code></pre>
 <h4 id="reference-2">Reference:</h4>
-<p><a href="http://en.wikipedia.org/wiki/1176_Peak_Limiter" class="uri">http://en.wikipedia.org/wiki/1176_Peak_Limiter</a></p>
+<p><a href="http://en.wikipedia.org/wiki/1176_Peak_Limiter">http://en.wikipedia.org/wiki/1176_Peak_Limiter</a></p>
 <hr />
 <h3 id="limiter_1176_r4_stereo"><code>limiter_1176_R4_stereo</code></h3>
 <p>A limiter guards against hard-clipping. It can be can be implemented as a compressor having a high threshold (near the clipping level), fast attack and release, and high ratio. Since the ratio is so high, some knee smoothing is desirable (&quot;soft limiting&quot;). This example is intended to get you started using compressor_* as a limiter, so all parameters are hardwired to nominal values here. Ratios: 4 (moderate compression), 8 (severe compression), 12 (mild limiting), or 20 to 1 (hard limiting) Att: 20-800 MICROseconds (Note: scaled by ratio in the 1176) Rel: 50-1100 ms (Note: scaled by ratio in the 1176) Mike Shipley likes 4:1 (Grammy-winning mixer for Queen, Tom Petty, etc.) Faster attack gives &quot;more bite&quot; (e.g. on vocals) He hears a bright, clear eq effect as well (not implemented here)</p>
 <h4 id="usage-52">Usage</h4>
 <pre><code> _,_ : limiter_1176_R4_stereo : _,_;</code></pre>
 <h4 id="reference-3">Reference:</h4>
-<p><a href="http://en.wikipedia.org/wiki/1176_Peak_Limiter" class="uri">http://en.wikipedia.org/wiki/1176_Peak_Limiter</a></p>
+<p><a href="http://en.wikipedia.org/wiki/1176_Peak_Limiter">http://en.wikipedia.org/wiki/1176_Peak_Limiter</a></p>
 <hr />
-<h1 id="delay.lib">delay.lib</h1>
+<h1 id="delays.lib">delays.lib</h1>
 <p>This library contains a collection of delay functions.</p>
 <p>It should be used using the <code>de</code> environment:</p>
-<pre><code>de = library(&quot;delay.lib&quot;);
+<pre><code>de = library(&quot;delays.lib&quot;);
 process = de.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>de</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -1955,7 +1958,7 @@ process = de.functionCall;</code></pre>
 <p>NOTE: The requested delay should not be less than <code>(N-1)/2</code>.</p>
 <h4 id="references-3">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html">https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html</a></li>
 <li>Timo I. Laakso et al., &quot;Splitting the Unit Delay - Tools for Fractional Delay Filter Design&quot;, IEEE Signal Processing Magazine, vol. 13, no. 1, pp. 30-60, Jan 1996.</li>
 <li>Philippe Depalle and Stephan Tassart, &quot;Fractional Delay Lines using Lagrange Interpolators&quot;, ICMC Proceedings, pp. 341-343, 1996.</li>
 </ul>
@@ -1966,7 +1969,7 @@ process = de.functionCall;</code></pre>
 <h2 id="thiran-allpass-interpolation">Thiran Allpass Interpolation</h2>
 <p>Thiran Allpass Interpolation</p>
 <h4 id="reference-4">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html">https://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html</a></p>
 <h3 id="fdelayna"><code>fdelay[n]a</code></h3>
 <p>Delay lines interpolated using Thiran allpass interpolation.</p>
 <h4 id="usage-57">Usage</h4>
@@ -1982,10 +1985,10 @@ process = de.functionCall;</code></pre>
 <p>Because allpass interpolation is recursive, it is not as robust as Lagrange interpolation under time-varying conditions. (You may hear clicks when changing the delay rapidly.)</p>
 <p>First-order allpass interpolation, delay d in [0.5,1.5]</p>
 <hr />
-<h1 id="demo.lib">demo.lib</h1>
+<h1 id="demos.lib">demos.lib</h1>
 <p>This library contains a set of demo functions based on examples located in the <code>/examples</code> folder.</p>
 <p>It should be used using the <code>dm</code> environment:</p>
-<pre><code>dm = library(&quot;demo.lib&quot;);
+<pre><code>dm = library(&quot;demos.lib&quot;);
 process = dm.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>dm</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -2045,8 +2048,8 @@ _ : filterbank_demo : _</code></pre>
 <pre><code>_ : exciter : _</code></pre>
 <h4 id="references-4">References</h4>
 <ul>
-<li><a href="https://secure.aes.org/forum/pubs/ebriefs/?elib=16939" class="uri">https://secure.aes.org/forum/pubs/ebriefs/?elib=16939</a></li>
-<li><a href="https://www.researchgate.net/publication/258333577_Modeling_the_Harmonic_Exciter" class="uri">https://www.researchgate.net/publication/258333577_Modeling_the_Harmonic_Exciter</a></li>
+<li><a href="https://secure.aes.org/forum/pubs/ebriefs/?elib=16939">https://secure.aes.org/forum/pubs/ebriefs/?elib=16939</a></li>
+<li><a href="https://www.researchgate.net/publication/258333577_Modeling_the_Harmonic_Exciter">https://www.researchgate.net/publication/258333577_Modeling_the_Harmonic_Exciter</a></li>
 </ul>
 <hr />
 <h3 id="moog_vcf_demo"><code>moog_vcf_demo</code></h3>
@@ -2111,7 +2114,7 @@ _ : filterbank_demo : _</code></pre>
 <h4 id="usage-76">Usage</h4>
 <pre><code>_,_ : zita_rev1 : _,_</code></pre>
 <h4 id="reference-5">Reference</h4>
-<p><a href="http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html" class="uri">http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html</a></p>
+<p><a href="http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html">http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html</a></p>
 <hr />
 <h2 id="generators">Generators</h2>
 <h3 id="sawtooth_demo"><code>sawtooth_demo</code></h3>
@@ -2129,10 +2132,10 @@ _ : filterbank_demo : _</code></pre>
 <h4 id="usage-79">Usage</h4>
 <pre><code>oscrs_demo : _</code></pre>
 <hr />
-<h1 id="envelope.lib">envelope.lib</h1>
+<h1 id="envelopes.lib">envelopes.lib</h1>
 <p>This library contains a collection of envelope generators.</p>
 <p>It should be used using the <code>en</code> environment:</p>
-<pre><code>en = library(&quot;envelope.lib&quot;);
+<pre><code>en = library(&quot;envelopes.lib&quot;);
 process = en.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>en</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -2178,7 +2181,7 @@ process = en.functionCall;</code></pre>
 <li><code>t</code>: trigger signal ( &gt;0 for attack, then release is when t back to 0)</li>
 </ul>
 <hr />
-<h1 id="filter.lib">filter.lib</h1>
+<h1 id="filters.lib">filters.lib</h1>
 <p>A library of filters and of more advanced filter-based sound processor organized in 18 sections:</p>
 <ul>
 <li>Basic Filters</li>
@@ -2201,7 +2204,7 @@ process = en.functionCall;</code></pre>
 <li>Arbritary-Crossover Filter-Banks and Spectrum Analyzers</li>
 </ul>
 <p>It should be used using the <code>fi</code> environment:</p>
-<pre><code>fi = library(&quot;filter.lib&quot;);
+<pre><code>fi = library(&quot;filters.lib&quot;);
 process = fi.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>fi</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -2216,7 +2219,7 @@ process = fi.functionCall;</code></pre>
 <li><code>z</code>: location of zero along real axis in z-plane</li>
 </ul>
 <h4 id="reference-6">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/filters/One_Zero.html" class="uri">https://ccrma.stanford.edu/~jos/filters/One_Zero.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/filters/One_Zero.html">https://ccrma.stanford.edu/~jos/filters/One_Zero.html</a></p>
 <hr />
 <h3 id="pole"><code>pole</code></h3>
 <p>One pole filter. Could also be called a &quot;leaky integrator&quot;. Difference equation: y(n) = x(n) + p * y(n-1).</p>
@@ -2227,7 +2230,7 @@ process = fi.functionCall;</code></pre>
 <li><code>p</code>: pole location = feedback coefficient</li>
 </ul>
 <h4 id="reference-7">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/filters/One_Pole.html" class="uri">https://ccrma.stanford.edu/~jos/filters/One_Pole.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/filters/One_Pole.html">https://ccrma.stanford.edu/~jos/filters/One_Pole.html</a></p>
 <hr />
 <h3 id="integrator"><code>integrator</code></h3>
 <p>Same as <code>pole(1)</code> [implemented separately for block-diagram clarity].</p>
@@ -2241,7 +2244,7 @@ process = fi.functionCall;</code></pre>
 <li><code>fb</code>: &quot;break frequency&quot; in Hz, i.e., -3 dB gain frequency.</li>
 </ul>
 <h4 id="reference-8">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html">https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html</a></p>
 <hr />
 <h3 id="dcblocker"><code>dcblocker</code></h3>
 <p>DC blocker. Default dc blocker has -3dB point near 35 Hz (at 44.1 kHz) and high-frequency gain near 1.0025 (due to no scaling). <code>dcblocker</code> is as standard Faust function.</p>
@@ -2250,8 +2253,7 @@ process = fi.functionCall;</code></pre>
 <hr />
 <h2 id="comb-filters">Comb Filters</h2>
 <h3 id="ff_comb"><code>ff_comb</code></h3>
-<p>Feed-Forward Comb Filter. Note that <code>ff_comb</code> requires integer delays<br />
-(uses <code>delay</code> internally). <code>ff_comb</code> is a standard Faust function.</p>
+<p>Feed-Forward Comb Filter. Note that <code>ff_comb</code> requires integer delays<br />(uses <code>delay</code> internally). <code>ff_comb</code> is a standard Faust function.</p>
 <h4 id="usage-88">Usage</h4>
 <pre><code>_ : ff_comb(maxdel,intdel,b0,bM) : _</code></pre>
 <p>Where:</p>
@@ -2263,7 +2265,7 @@ process = fi.functionCall;</code></pre>
 <li><code>bM</code>: gain applied to delay-line output and then summed with input</li>
 </ul>
 <h4 id="reference-9">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html</a></p>
 <hr />
 <h3 id="ff_fcomb"><code>ff_fcomb</code></h3>
 <p>Feed-Forward Comb Filter. Note that <code>ff_fcomb</code> takes floating-point delays (uses <code>fdelay</code> internally). <code>ff_fcomb</code> is a standard Faust function.</p>
@@ -2278,7 +2280,7 @@ process = fi.functionCall;</code></pre>
 <li><code>bM</code>: gain applied to delay-line output and then summed with input</li>
 </ul>
 <h4 id="reference-10">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html</a></p>
 <hr />
 <h3 id="ffcombfilter"><code>ffcombfilter</code></h3>
 <p>Typical special case of <code>ff_comb()</code> where: <code>b0 = 1</code>.</p>
@@ -2296,7 +2298,7 @@ process = fi.functionCall;</code></pre>
 <li><code>aN</code>: minus the gain applied to delay-line output before summing with the input and feeding to the delay line</li>
 </ul>
 <h4 id="reference-11">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html</a></p>
 <hr />
 <h3 id="fb_fcomb"><code>fb_fcomb</code></h3>
 <p>Feed-Back Comb Filter (floating point delay).</p>
@@ -2311,10 +2313,10 @@ process = fi.functionCall;</code></pre>
 <li><code>aN</code>: minus the gain applied to delay-line output before summing with the input and feeding to the delay line</li>
 </ul>
 <h4 id="reference-12">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html</a></p>
 <hr />
 <h3 id="rev1"><code>rev1</code></h3>
-<p>Special case of <code>fb_comb</code> (<code>rev1(maxdel,N,g)</code>). The &quot;rev1 section&quot; dates back to the 1960s in computer-music reverberation. See the <code>jcrev</code> and <code>brassrev</code> in <code>reverb.lib</code> for usage examples.</p>
+<p>Special case of <code>fb_comb</code> (<code>rev1(maxdel,N,g)</code>). The &quot;rev1 section&quot; dates back to the 1960s in computer-music reverberation. See the <code>jcrev</code> and <code>brassrev</code> in <code>reverbs.lib</code> for usage examples.</p>
 <hr />
 <h3 id="fbcombfilter-and-ffbcombfilter"><code>fbcombfilter</code> and <code>ffbcombfilter</code></h3>
 <p>Other special cases of Feed-Back Comb Filter.</p>
@@ -2329,7 +2331,7 @@ _ : ffbcombfilter(maxdel,del,g) : _</code></pre>
 <li><code>g</code>: feedback gain</li>
 </ul>
 <h4 id="reference-13">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html</a></p>
 <hr />
 <h3 id="allpass_comb"><code>allpass_comb</code></h3>
 <p>Schroeder Allpass Comb Filter. Note that</p>
@@ -2346,9 +2348,9 @@ _ : ffbcombfilter(maxdel,del,g) : _</code></pre>
 </ul>
 <h4 id="references-5">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html">https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html">https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></li>
 </ul>
 <hr />
 <h3 id="allpass_fcomb"><code>allpass_fcomb</code></h3>
@@ -2368,13 +2370,13 @@ _ : allpass_fcomb(maxdel,del,aN) : _</code></pre>
 </ul>
 <h4 id="references-6">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html">https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html">https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></li>
 </ul>
 <hr />
 <h3 id="rev2"><code>rev2</code></h3>
-<p>Special case of <code>allpass_comb</code> (<code>rev2(maxlen,len,g)</code>). The &quot;rev2 section&quot; dates back to the 1960s in computer-music reverberation. See the <code>jcrev</code> and <code>brassrev</code> in <code>reverb.lib</code> for usage examples.</p>
+<p>Special case of <code>allpass_comb</code> (<code>rev2(maxlen,len,g)</code>). The &quot;rev2 section&quot; dates back to the 1960s in computer-music reverberation. See the <code>jcrev</code> and <code>brassrev</code> in <code>reverbs.lib</code> for usage examples.</p>
 <hr />
 <h3 id="allpass_fcomb5-and-allpass_fcomb1a"><code>allpass_fcomb5</code> and <code>allpass_fcomb1a</code></h3>
 <p>Same as <code>allpass_fcomb</code> but use <code>fdelay5</code> and <code>fdelay1a</code> internally (Interpolation helps - look at an fft of faust2octave on</p>
@@ -2393,7 +2395,7 @@ _ : allpass_fcomb(maxdel,del,aN) : _</code></pre>
 <li><code>acoeffs</code>: (a1,...,a_order) = TF denominator coeffs (a0=1)</li>
 </ul>
 <h4 id="reference-14">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></p>
 <hr />
 <h3 id="fir"><code>fir</code></h3>
 <p>FIR filter (convolution of FIR filter coefficients with a signal)</p>
@@ -2431,7 +2433,7 @@ _ : tf3(b0,b1,b2,b3,a1,a2,a3) : _</code></pre>
 <li><code>b</code>: the zeros</li>
 </ul>
 <h4 id="reference-15">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html" class="uri">https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html">https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html</a></p>
 <hr />
 <h3 id="notchw"><code>notchw</code></h3>
 <p>Simple notch filter based on a biquad (<code>tf2</code>). <code>notchw</code> is a standard Faust function.</p>
@@ -2443,12 +2445,12 @@ _ : tf3(b0,b1,b2,b3,a1,a2,a3) : _</code></pre>
 <li><code>freq</code>: &quot;notch frequency&quot; in Hz</li>
 </ul>
 <h4 id="reference-16">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Phasing_2nd_Order_Allpass_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Phasing_2nd_Order_Allpass_Filters.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Phasing_2nd_Order_Allpass_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Phasing_2nd_Order_Allpass_Filters.html</a></p>
 <hr />
 <h2 id="direct-form-second-order-biquad-sections">Direct-Form Second-Order Biquad Sections</h2>
 <p>Direct-Form Second-Order Biquad Sections</p>
 <h4 id="reference-17">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></p>
 <h3 id="tf21-tf22-tf22t-and-tf21t"><code>tf21</code>, <code>tf22</code>, <code>tf22t</code> and <code>tf21t</code></h3>
 <p>tfN = N'th-order direct-form digital filter where:</p>
 <ul>
@@ -2468,7 +2470,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <li><code>b</code>: the zeros</li>
 </ul>
 <h4 id="reference-18">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html" class="uri">https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html">https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html</a></p>
 <hr />
 <h2 id="ladderlattice-digital-filters">Ladder/Lattice Digital Filters</h2>
 <p>Ladder and lattice digital filters generally have superior numerical properties relative to direct-form digital filters. They can be derived from digital waveguide filters, which gives them a physical interpretation.</p>
@@ -2483,7 +2485,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 </ul>
 <p>where <code>ro = ith</code> reflection coefficient, and <code>ai</code> = coefficient of <code>z^(-i)</code> in the filter transfer-function denominator <code>A(z)</code>.</p>
 <h4 id="reference-19">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/filters/Step_Down_Procedure.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Step_Down_Procedure.html</a> (where reflection coefficients are denoted by k rather than s).</p>
+<p><a href="https://ccrma.stanford.edu/~jos/filters/Step_Down_Procedure.html">https://ccrma.stanford.edu/~jos/filters/Step_Down_Procedure.html</a> (where reflection coefficients are denoted by k rather than s).</p>
 <hr />
 <h3 id="bvav2nuv"><code>bvav2nuv</code></h3>
 <p>Compute lattice tap coefficients from transfer-function coefficients.</p>
@@ -2569,7 +2571,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <h4 id="references-7">References</h4>
 <ul>
 <li>J. D. Markel and A. H. Gray, Linear Prediction of Speech, New York: Springer Verlag, 1976.</li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
 </ul>
 <hr />
 <h3 id="allpassnnlt"><code>allpassnnlt</code></h3>
@@ -2584,7 +2586,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <h4 id="references-8">References</h4>
 <ul>
 <li>J. D. Markel and A. H. Gray, Linear Prediction of Speech, New York: Springer Verlag, 1976.</li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
 </ul>
 <hr />
 <h2 id="useful-special-cases">Useful Special Cases</h2>
@@ -2609,8 +2611,8 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 </ul>
 <h4 id="references-9">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
 </ul>
 <hr />
 <h3 id="nlf2"><code>nlf2</code></h3>
@@ -2623,7 +2625,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <li><code>r</code>: loss factor for exponential decay (set to 1 to make a sinusoidal oscillator)</li>
 </ul>
 <h4 id="reference-20">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html</a></p>
 <hr />
 <h3 id="apnl"><code>apnl</code></h3>
 <p>Passive Nonlinear Allpass based on Pierce switching springs idea. Switch between allpass coefficient <code>a1</code> and <code>a2</code> at signal zero crossings.</p>
@@ -2642,8 +2644,8 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <p>An allpass filter has gain 1 at every frequency, but variable phase. Ladder/lattice allpass filters are specified by reflection coefficients. They are defined here as nested allpass filters, hence the names allpassn*.</p>
 <h4 id="references-10">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Conventional_Ladder_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Conventional_Ladder_Filters.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Nested_Allpass_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Nested_Allpass_Filters.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Conventional_Ladder_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Conventional_Ladder_Filters.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Nested_Allpass_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Nested_Allpass_Filters.html</a></li>
 <li>Linear Prediction of Speech, Markel and Gray, Springer Verlag, 1976</li>
 </ul>
 <h3 id="allpassn"><code>allpassn</code></h3>
@@ -2709,7 +2711,7 @@ H(s) = -----------------
 <h4 id="method">Method</h4>
 <p>Bilinear transform scaled for exact mapping of w1.</p>
 <h4 id="reference-22">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html">https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html</a></p>
 <hr />
 <h3 id="tf3slf"><code>tf3slf</code></h3>
 <p>Analogous to tf2s above, but third order, and using the typical low-frequency-matching bilinear-transform constant 2/T (&quot;lf&quot; series) instead of the specific-frequency-matching value used in tf2s and tf1s. Note the lack of a &quot;w1&quot; argument.</p>
@@ -2733,7 +2735,7 @@ H(s) = -----------------
 <h4 id="method-1">Method</h4>
 <p>Bilinear transform scaled for exact mapping of w1.</p>
 <h4 id="reference-23">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html">https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html</a></p>
 <hr />
 <h3 id="tf2sb"><code>tf2sb</code></h3>
 <p>Bandpass mapping of <code>tf2s</code>: In addition to a frequency-scaling parameter <code>w1</code> (set to HALF the desired passband width in rad/sec), there is a desired center-frequency parameter wc (also in rad/s). Thus, <code>tf2sb</code> implements a fourth-order digital bandpass filter section specified by the coefficients of a second-order analog lowpass prototpe section. Such sections can be combined in series for higher orders. The order of mappings is (1) frequency scaling (to set lowpass cutoff w1), (2) bandpass mapping to wc, then (3) the bilinear transform, with the usual scale parameter <code>2*SR</code>. Algebra carried out in maxima and pasted here.</p>
@@ -2800,7 +2802,7 @@ _ : resonbp(fc,Q,gain) : _
 </ul>
 <h4 id="references-12">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html">https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html</a></li>
 <li><code>butter</code> function in Octave <code>(&quot;[z,p,g] = butter(N,1,'s');&quot;)</code></li>
 </ul>
 <hr />
@@ -2815,7 +2817,7 @@ _ : resonbp(fc,Q,gain) : _
 </ul>
 <h4 id="references-13">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html">https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html</a></li>
 <li><code>butter</code> function in Octave <code>(&quot;[z,p,g] = butter(N,1,'s');&quot;)</code></li>
 </ul>
 <hr />
@@ -2893,7 +2895,7 @@ Rs = 0.2 % dB ripple in passband</code></pre>
 <li><code>fu</code>: upper -3dB frequency in Hz Thus, the passband width is <code>fu-fl</code>, and its center frequency is <code>(fl+fu)/2</code>.</li>
 </ul>
 <h4 id="reference-24">Reference</h4>
-<p><a href="http://cnx.org/content/m16913/latest/" class="uri">http://cnx.org/content/m16913/latest/</a></p>
+<p><a href="http://cnx.org/content/m16913/latest/">http://cnx.org/content/m16913/latest/</a></p>
 <hr />
 <h3 id="bandstop"><code>bandstop</code></h3>
 <p>Order 2*Nh Butterworth bandstop filter made using the transformation <code>s &lt;- s + wc^2/s</code> on <code>highpass(Nh)</code>, where <code>wc</code> is the desired bandpass center frequency. The <code>highpass(Nh)</code> cutoff <code>w1</code> is half the desired bandpass width. <code>bandstop</code> is a standard Faust function.</p>
@@ -2906,7 +2908,7 @@ Rs = 0.2 % dB ripple in passband</code></pre>
 <li><code>fu</code>: upper -3dB frequency in Hz Thus, the passband (stopband) width is <code>fu-fl</code>, and its center frequency is <code>(fl+fu)/2</code>.</li>
 </ul>
 <h4 id="reference-25">Reference</h4>
-<p><a href="http://cnx.org/content/m16913/latest/" class="uri">http://cnx.org/content/m16913/latest/</a></p>
+<p><a href="http://cnx.org/content/m16913/latest/">http://cnx.org/content/m16913/latest/</a></p>
 <hr />
 <h2 id="elliptic-bandpass-filters">Elliptic Bandpass Filters</h2>
 <h3 id="bandpass6e"><code>bandpass6e</code></h3>
@@ -2919,8 +2921,8 @@ Rs = 0.2 % dB ripple in passband</code></pre>
 <p>Parametric Equalizers (Shelf, Peaking)</p>
 <h4 id="references-15">References</h4>
 <ul>
-<li><a href="http://en.wikipedia.org/wiki/Equalization" class="uri">http://en.wikipedia.org/wiki/Equalization</a></li>
-<li><a href="http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt" class="uri">http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Equalization">http://en.wikipedia.org/wiki/Equalization</a></li>
+<li><a href="http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt">http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt</a></li>
 <li>Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999, p. 124</li>
 <li>https://ccrma.stanford.edu/~jos/filters/Low_High_Shelving_Filters.html&gt;</li>
 <li>https://ccrma.stanford.edu/~jos/filters/Peaking_Equalizers.html&gt;</li>
@@ -3027,7 +3029,7 @@ _ : highshelf_other_freq(N,Lpi,fx) : _</code></pre>
 <li><code>N</code>: Number of filters in series where L = L/N</li>
 </ul>
 <h4 id="reference-28">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html" class="uri">https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html</a></p>
+<p><a href="https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html">https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html</a></p>
 <hr />
 <h3 id="levelfiltern"><code>levelfilterN</code></h3>
 <p>Dynamic level lowpass filter.</p>
@@ -3040,7 +3042,7 @@ _ : highshelf_other_freq(N,Lpi,fx) : _</code></pre>
 <li><code>N</code>: Number of filters in series where L = L/N</li>
 </ul>
 <h4 id="reference-29">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html" class="uri">https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html</a></p>
+<p><a href="https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html">https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html</a></p>
 <hr />
 <h2 id="mth-octave-filter-banks">Mth-Octave Filter-Banks</h2>
 <p>Mth-octave filter-banks split the input signal into a bank of parallel signals, one for each spectral band. They are related to the Mth-Octave Spectrum-Analyzers in <code>analysis.lib</code>. The documentation of this library contains more details about the implementation. The parameters are:</p>
@@ -3166,11 +3168,7 @@ process = ho.functionCall;</code></pre>
 <h3 id="optiminphase"><code>optimInPhase</code></h3>
 <p>The inPhase Optimization optimize energy vector and put all loudspeakers signals n phase. It should be used for an auditory.</p>
 <h3 id="usage-150">Usage</h3>
-<dl>
-<dt>``</dt>
-<dd>optimInPhase(n) : _ ``
-</dd>
-</dl>
+<p><code>: optimInPhase(n) : _</code></p>
 <p>here:</p>
 <p><code>n</code>: the order</p>
 <hr />
@@ -3206,10 +3204,10 @@ process = ho.functionCall;</code></pre>
 <li><code>a</code>: the angle in radian</li>
 </ul>
 <hr />
-<h1 id="math.lib">math.lib</h1>
+<h1 id="maths.lib">maths.lib</h1>
 <p>Mathematic library for Faust. Some functions are implemenented as Faust foreign functions of <code>math.h</code> functions that are not part of Faust's primitives. Defines also various constants and several utilities.</p>
 <p>It should be used using the <code>fi</code> environment:</p>
-<pre><code>ma = library(&quot;math.lib&quot;);
+<pre><code>ma = library(&quot;maths.lib&quot;);
 process = ma.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>ma</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -3234,7 +3232,7 @@ process = ma.functionCall;</code></pre>
 <p>Flush to zero: force samples under the &quot;maximum subnormal number&quot; to be zero. Usually not needed in C++ because the architecture file take care of this, but can be useful in javascript for instance.</p>
 <h4 id="usage-157">Usage</h4>
 <pre><code>_ : ftz : _</code></pre>
-<p>See : <a href="http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html" class="uri">http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html</a></p>
+<p>See : <a href="http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html">http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html</a></p>
 <hr />
 <h3 id="neg"><code>neg</code></h3>
 <p>Invert the sign (-x) of a signal.</p>
@@ -3421,7 +3419,7 @@ _ : isnan : _</code></pre>
 T[1](x) = x,
 T[n](x) = 2x*T[n-1](x) - T[n-2](x)</code></pre>
 <h4 id="reference-30">Reference</h4>
-<p><a href="http://en.wikipedia.org/wiki/Chebyshev_polynomial" class="uri">http://en.wikipedia.org/wiki/Chebyshev_polynomial</a></p>
+<p><a href="http://en.wikipedia.org/wiki/Chebyshev_polynomial">http://en.wikipedia.org/wiki/Chebyshev_polynomial</a></p>
 <hr />
 <h3 id="chebychevpoly"><code>chebychevpoly</code></h3>
 <p>Linear combination of the first Chebyshev polynomials.</p>
@@ -3432,17 +3430,17 @@ T[n](x) = 2x*T[n-1](x) - T[n-2](x)</code></pre>
 <li><code>cn</code>: the different Chebychevs polynomials such that: chebychevpoly((c0,c1,...,cn)) = Sum of chebychev(i)*ci</li>
 </ul>
 <h4 id="reference-31">Reference</h4>
-<p><a href="http://www.csounds.com/manual/html/chebyshevpoly.html" class="uri">http://www.csounds.com/manual/html/chebyshevpoly.html</a></p>
+<p><a href="http://www.csounds.com/manual/html/chebyshevpoly.html">http://www.csounds.com/manual/html/chebyshevpoly.html</a></p>
 <hr />
 <h3 id="diffn"><code>diffn</code></h3>
 <p>Negated first-roder difference.</p>
 <h4 id="usage-190">Usage</h4>
 <pre><code>_ : diffn : _</code></pre>
 <hr />
-<h1 id="misceffect.lib">misceffect.lib</h1>
+<h1 id="misceffects.lib">misceffects.lib</h1>
 <p>This library contains a collection of audio effects.</p>
 <p>It should be used using the <code>ef</code> environment:</p>
-<pre><code>ef = library(&quot;misceffect.lib&quot;);
+<pre><code>ef = library(&quot;misceffects.lib&quot;);
 process = ef.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>ef</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -3460,8 +3458,8 @@ _ : cubicnl_nodc(drive,offset) : _</code></pre>
 </ul>
 <h4 id="references-17">References:</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html">https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html">https://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html</a></li>
 </ul>
 <hr />
 <h3 id="gate_mono"><code>gate_mono</code></h3>
@@ -3477,9 +3475,9 @@ _ : cubicnl_nodc(drive,offset) : _</code></pre>
 </ul>
 <h4 id="references-18">References</h4>
 <ul>
-<li><a href="http://en.wikipedia.org/wiki/Noise_gate" class="uri">http://en.wikipedia.org/wiki/Noise_gate</a></li>
-<li><a href="http://www.soundonsound.com/sos/apr01/articles/advanced.asp" class="uri">http://www.soundonsound.com/sos/apr01/articles/advanced.asp</a></li>
-<li><a href="http://en.wikipedia.org/wiki/Gating_(sound_engineering)" class="uri">http://en.wikipedia.org/wiki/Gating_(sound_engineering)</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Noise_gate">http://en.wikipedia.org/wiki/Noise_gate</a></li>
+<li><a href="http://www.soundonsound.com/sos/apr01/articles/advanced.asp">http://www.soundonsound.com/sos/apr01/articles/advanced.asp</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Gating_(sound_engineering)">http://en.wikipedia.org/wiki/Gating_(sound_engineering)</a></li>
 </ul>
 <hr />
 <h3 id="gate_stereo"><code>gate_stereo</code></h3>
@@ -3495,9 +3493,9 @@ _ : cubicnl_nodc(drive,offset) : _</code></pre>
 </ul>
 <h4 id="references-19">References</h4>
 <ul>
-<li><a href="http://en.wikipedia.org/wiki/Noise_gate" class="uri">http://en.wikipedia.org/wiki/Noise_gate</a></li>
-<li><a href="http://www.soundonsound.com/sos/apr01/articles/advanced.asp" class="uri">http://www.soundonsound.com/sos/apr01/articles/advanced.asp</a></li>
-<li><a href="http://en.wikipedia.org/wiki/Gating_(sound_engineering)" class="uri">http://en.wikipedia.org/wiki/Gating_(sound_engineering)</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Noise_gate">http://en.wikipedia.org/wiki/Noise_gate</a></li>
+<li><a href="http://www.soundonsound.com/sos/apr01/articles/advanced.asp">http://www.soundonsound.com/sos/apr01/articles/advanced.asp</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Gating_(sound_engineering)">http://en.wikipedia.org/wiki/Gating_(sound_engineering)</a></li>
 </ul>
 <hr />
 <h2 id="filtering">Filtering</h2>
@@ -3576,7 +3574,7 @@ _ : piano_dispersion_filter(1,B,f0) : +(totalDelay),_ : fdelay(maxDelay) : _</co
 <li><code>N</code>: number of nodes along each edge - a power of two (1,2,4,8,...)</li>
 </ul>
 <h4 id="reference-33">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Mesh.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Mesh.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Mesh.html">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Mesh.html</a></p>
 <h4 id="signal-order-in-and-out">Signal Order In and Out</h4>
 <p>The mesh is constructed recursively using 2x2 embeddings. Thus, the top level of <code>mesh_square(M)</code> is a block 2x2 mesh, where each block is a <code>mesh(M/2)</code>. Let these blocks be numbered 1,2,3,4 in the geometry NW,NE,SW,SE, i.e., as 1 2 3 4 Each block has four vector inputs and four vector outputs, where the length of each vector is <code>M/2</code>. Label the input vectors as Ni,Ei,Wi,Si, i.e., as the inputs from the North, East South, and West, and similarly for the outputs. Then, for example, the upper left input block of M/2 signals is labeled 1Ni. Most of the connections are internal, such as 1Eo -&gt; 2Wi. The <code>8*(M/2)</code> input signals are grouped in the order 1Ni 2Ni 3Si 4Si 1Wi 3Wi 2Ei 4Ei and the output signals are 1No 1Wo 2No 2Eo 3So 3Wo 4So 4Eo or</p>
 <p>In: 1No 1Wo 2No 2Eo 3So 3Wo 4So 4Eo</p>
@@ -3592,10 +3590,79 @@ process = 1-1&#39; : mesh_square_test(4); // all modes excited forever</code></p
 <p>3So -&gt; 1Wi, 3Wo -&gt; 3Wi, 4So -&gt; 2Ei, 4Eo -&gt; 4Ei</p>
 <p>A routing matrix can be used to obtain other connection geometries.</p>
 <hr />
-<h1 id="miscoscillator.lib">miscoscillator.lib</h1>
+<h1 id="noises.lib">noises.lib</h1>
+<p>A library of noise generators.</p>
+<p>It should be used using the <code>no</code> environment:</p>
+<pre><code>no = library(&quot;noises.lib&quot;);
+process = no.functionCall;</code></pre>
+<p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>no</code> environment:</p>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+process = no.functionCall;</code></pre>
+<h2 id="functions-reference-3">Functions Reference</h2>
+<h3 id="noise"><code>noise</code></h3>
+<p>White noise generator (outputs random number between -1 and 1). <code>Noise</code> is a standard Faust function.</p>
+<h4 id="usage-200">Usage</h4>
+<pre><code>noise : _</code></pre>
+<hr />
+<h3 id="multirandom"><code>multirandom</code></h3>
+<p>Generates multiple decorrelated random numbers in parallel.</p>
+<h4 id="usage-201">Usage</h4>
+<pre><code>multirandom(n) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>n</code>: the number of decorrelated random numbers in parallel</li>
+</ul>
+<hr />
+<h3 id="multinoise"><code>multinoise</code></h3>
+<p>Generates multiple decorrelated noises in parallel.</p>
+<h4 id="usage-202">Usage</h4>
+<pre><code>multinoise(n) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>n</code>: the number of decorrelated random numbers in parallel</li>
+</ul>
+<hr />
+<h3 id="noises"><code>noises</code></h3>
+<p>TODO.</p>
+<hr />
+<h3 id="pink_noise"><code>pink_noise</code></h3>
+<p>Pink noise (1/f noise) generator (third-order approximation) <code>pink_noise</code> is a standard Faust function.</p>
+<h4 id="usage-203">Usage</h4>
+<pre><code>pink_noise : _;</code></pre>
+<h4 id="reference-34">Reference:</h4>
+<p><a href="https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html">https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html</a></p>
+<hr />
+<h3 id="pink_noise_vm"><code>pink_noise_vm</code></h3>
+<p>Multi pink noise generator.</p>
+<h4 id="usage-204">Usage</h4>
+<pre><code>pink_noise_vm(N) : _;</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>N</code>: number of latched white-noise processes to sum, not to exceed sizeof(int) in C++ (typically 32).</li>
+</ul>
+<h4 id="references-20">References</h4>
+<ul>
+<li><a href="http://www.dsprelated.com/showarticle/908.php">http://www.dsprelated.com/showarticle/908.php</a></li>
+<li><a href="http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney">http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney</a></li>
+</ul>
+<hr />
+<h3 id="lfnoise-lfnoise0-and-lfnoisen"><code>lfnoise</code>, <code>lfnoise0</code> and <code>lfnoiseN</code></h3>
+<p>Low-frequency noise generators (Butterworth-filtered downsampled white noise)</p>
+<h4 id="usage-205">Usage</h4>
+<pre><code>lfnoise0(rate) : _;   // new random number every int(SR/rate) samples or so
+lfnoiseN(N,rate) : _; // same as &quot;lfnoise0(rate) : lowpass(N,rate)&quot; [see filters.lib]
+lfnoise(rate) : _;    // same as &quot;lfnoise0(rate) : seq(i,5,lowpass(N,rate))&quot; (no overshoot)</code></pre>
+<h4 id="example-6">Example</h4>
+<p>(view waveforms in faust2octave):</p>
+<pre><code>rate = SR/100.0; // new random value every 100 samples (SR from music.lib)
+process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
+          lfnoiseN(3,rate), // lfnoise0 smoothed by 3rd order Butterworth LPF
+          lfnoise(rate);    // lfnoise0 smoothed with no overshoot</code></pre>
+<hr />
+<h1 id="oscillators.lib">oscillators.lib</h1>
 <p>This library contains a collection of sound generators.</p>
 <p>It should be used using the <code>os</code> environment:</p>
-<pre><code>os = library(&quot;miscoscillator.lib&quot;);
+<pre><code>os = library(&quot;oscillators.lib&quot;);
 process = os.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>os</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -3603,7 +3670,7 @@ process = os.functionCall;</code></pre>
 <h2 id="wave-table-based-oscillators">Wave-Table-Based Oscillators</h2>
 <h3 id="sinwaveform"><code>sinwaveform</code></h3>
 <p>Sine waveform ready to use with a <code>rdtable</code>.</p>
-<h4 id="usage-200">Usage</h4>
+<h4 id="usage-206">Usage</h4>
 <pre><code>sinwaveform(tablesize) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3612,7 +3679,7 @@ process = os.functionCall;</code></pre>
 <hr />
 <h3 id="coswaveform"><code>coswaveform</code></h3>
 <p>Cosine waveform ready to use with a <code>rdtable</code>.</p>
-<h4 id="usage-201">Usage</h4>
+<h4 id="usage-207">Usage</h4>
 <pre><code>coswaveform(tablesize) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3621,7 +3688,7 @@ process = os.functionCall;</code></pre>
 <hr />
 <h3 id="phasor"><code>phasor</code></h3>
 <p>A simple phasor to be used with a <code>rdtable</code>. <code>phasor</code> is a standard Faust function.</p>
-<h4 id="usage-202">Usage</h4>
+<h4 id="usage-208">Usage</h4>
 <pre><code>phasor(tablesize,freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3631,16 +3698,16 @@ process = os.functionCall;</code></pre>
 <hr />
 <h3 id="oscsin"><code>oscsin</code></h3>
 <p>Sine wave oscillator. <code>oscsin</code> is a standard Faust function.</p>
-<h4 id="usage-203">Usage</h4>
+<h4 id="usage-209">Usage</h4>
 <pre><code>oscsin(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
 <li><code>freq</code>: the frequency of the wave (Hz)</li>
 </ul>
 <hr />
-<h3 id="oscos"><code>oscos</code></h3>
+<h3 id="osccos"><code>osccos</code></h3>
 <p>Cosine wave oscillator.</p>
-<h4 id="usage-204">Usage</h4>
+<h4 id="usage-210">Usage</h4>
 <pre><code>osccos(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3649,7 +3716,7 @@ process = os.functionCall;</code></pre>
 <hr />
 <h3 id="oscp"><code>oscp</code></h3>
 <p>A sine wave generator with controllable phase.</p>
-<h4 id="usage-205">Usage</h4>
+<h4 id="usage-211">Usage</h4>
 <pre><code>oscp(freq,p) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3659,7 +3726,7 @@ process = os.functionCall;</code></pre>
 <hr />
 <h3 id="osci"><code>osci</code></h3>
 <p>Interpolated phase sine wave oscillator.</p>
-<h4 id="usage-206">Usage</h4>
+<h4 id="usage-212">Usage</h4>
 <pre><code>osci(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3670,7 +3737,7 @@ process = os.functionCall;</code></pre>
 <p>Low-frequency oscillators have prefix <code>lf_</code> (no aliasing suppression, signal-means not necessarily zero).</p>
 <h3 id="lf_imptrain"><code>lf_imptrain</code></h3>
 <p>Unit-amplitude low-frequency impulse train. <code>lf_imptrain</code> is a standard Faust function.</p>
-<h4 id="usage-207">Usage</h4>
+<h4 id="usage-213">Usage</h4>
 <pre><code>lf_imptrain(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3679,7 +3746,7 @@ process = os.functionCall;</code></pre>
 <hr />
 <h3 id="lf_pulsetrainpos"><code>lf_pulsetrainpos</code></h3>
 <p>Unit-amplitude nonnegative LF pulse train, duty cycle between 0 and 1</p>
-<h4 id="usage-208">Usage</h4>
+<h4 id="usage-214">Usage</h4>
 <pre><code>lf_pulsetrainpos(freq,duty) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3689,7 +3756,7 @@ process = os.functionCall;</code></pre>
 <hr />
 <h3 id="lf_squarewavepos"><code>lf_squarewavepos</code></h3>
 <p>Positive LF square wave in [0,1]</p>
-<h4 id="usage-209">Usage</h4>
+<h4 id="usage-215">Usage</h4>
 <pre><code>lf_squarewavepos(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3698,7 +3765,7 @@ process = os.functionCall;</code></pre>
 <hr />
 <h3 id="lf_squarewave"><code>lf_squarewave</code></h3>
 <p>Zero-mean unit-amplitude LF square wave. <code>lf_squarewave</code> is a standard Faust function.</p>
-<h4 id="usage-210">Usage</h4>
+<h4 id="usage-216">Usage</h4>
 <pre><code>lf_squarewave(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3707,7 +3774,7 @@ process = os.functionCall;</code></pre>
 <hr />
 <h3 id="lf_trianglepos"><code>lf_trianglepos</code></h3>
 <p>Positive unit-amplitude LF positive triangle wave</p>
-<h4 id="usage-211">Usage</h4>
+<h4 id="usage-217">Usage</h4>
 <pre><code>lf_trianglepos(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3716,7 +3783,7 @@ process = os.functionCall;</code></pre>
 <hr />
 <h3 id="lf_triangle"><code>lf_triangle</code></h3>
 <p>Positive unit-amplitude LF triangle wave <code>lf_triangle</code> is a standard Faust function.</p>
-<h4 id="usage-212">Usage</h4>
+<h4 id="usage-218">Usage</h4>
 <pre><code>lf_triangle(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3727,7 +3794,7 @@ process = os.functionCall;</code></pre>
 <p>Sawtooth waveform oscillators for virtual analog synthesis et al. The 'simple' versions (<code>lf_rawsaw</code>, <code>lf_sawpos</code> and <code>saw1</code>), are mere samplings of the ideal continuous-time (&quot;analog&quot;) waveforms. While simple, the aliasing due to sampling is quite audible. The differentiated polynomial waveform family (<code>saw2</code>, <code>sawN</code>, and derived functions) do some extra processing to suppress aliasing (not audible for very low fundamental frequencies). According to Lehtonen et al. (JASA 2012), the aliasing of <code>saw2</code> should be inaudible at fundamental frequencies below 2 kHz or so, for a 44.1 kHz sampling rate and 60 dB SPL presentation level; fundamentals 415 and below required no aliasing suppression (i.e., <code>saw1</code> is ok).</p>
 <h3 id="lf_rawsaw"><code>lf_rawsaw</code></h3>
 <p>Simple sawtooth waveform oscillator between 0 and period in samples.</p>
-<h4 id="usage-213">Usage</h4>
+<h4 id="usage-219">Usage</h4>
 <pre><code>lf_rawsaw(periodsamps)</code></pre>
 <p>Where:</p>
 <ul>
@@ -3736,7 +3803,7 @@ process = os.functionCall;</code></pre>
 <hr />
 <h3 id="lf_sawpos"><code>lf_sawpos</code></h3>
 <p>Simple sawtooth waveform oscillator between 0 and 1.</p>
-<h4 id="usage-214">Usage</h4>
+<h4 id="usage-220">Usage</h4>
 <pre><code>lf_sawpos(freq)</code></pre>
 <p>Where:</p>
 <ul>
@@ -3745,7 +3812,7 @@ process = os.functionCall;</code></pre>
 <hr />
 <h3 id="lf_saw"><code>lf_saw</code></h3>
 <p>Simple sawtooth waveform. <code>lf_saw</code> is a standard Faust function.</p>
-<h4 id="usage-215">Usage</h4>
+<h4 id="usage-221">Usage</h4>
 <pre><code>lf_saw(freq)</code></pre>
 <p>Where:</p>
 <ul>
@@ -3754,7 +3821,7 @@ process = os.functionCall;</code></pre>
 <hr />
 <h3 id="lf_sawpos_phase"><code>lf_sawpos_phase</code></h3>
 <p>Simple sawtooth waveform oscillator between 0 and 1 with phase control.</p>
-<h4 id="usage-216">Usage</h4>
+<h4 id="usage-222">Usage</h4>
 <pre><code>lf_sawpos_phase(freq,phase)</code></pre>
 <p>Where:</p>
 <ul>
@@ -3767,19 +3834,19 @@ process = os.functionCall;</code></pre>
 <p><code>sawN(N,freq)</code>, <code>sawNp</code>, <code>saw2dpw(freq)</code>, <code>saw2(freq)</code>, <code>saw3(freq)</code>, <code>saw4(freq)</code>, <code>saw5(freq)</code>, <code>saw6(freq)</code>, <code>sawtooth(freq)</code>, <code>saw2f2(freq)</code> <code>saw2f4(freq)</code></p>
 <h4 id="method-1-saw2">Method 1 (<code>saw2</code>)</h4>
 <p>Polynomial Transition Regions (PTR) (for aliasing suppression)</p>
-<h5 id="reference-34">Reference</h5>
+<h5 id="reference-35">Reference</h5>
 <ul>
 <li>Kleimola, J.; Valimaki, V., &quot;Reducing Aliasing from Synthetic Audio Signals Using Polynomial Transition Regions,&quot; in Signal Processing Letters, IEEE , vol.19, no.2, pp.67-70, Feb. 2012</li>
-<li><a href="https://aaltodoc.aalto.fi/bitstream/handle/123456789/7747/publication6.pdf?sequence=9" class="uri">https://aaltodoc.aalto.fi/bitstream/handle/123456789/7747/publication6.pdf?sequence=9</a></li>
-<li><a href="http://research.spa.aalto.fi/publications/papers/spl-ptr/" class="uri">http://research.spa.aalto.fi/publications/papers/spl-ptr/</a></li>
+<li><a href="https://aaltodoc.aalto.fi/bitstream/handle/123456789/7747/publication6.pdf?sequence=9">https://aaltodoc.aalto.fi/bitstream/handle/123456789/7747/publication6.pdf?sequence=9</a></li>
+<li><a href="http://research.spa.aalto.fi/publications/papers/spl-ptr/">http://research.spa.aalto.fi/publications/papers/spl-ptr/</a></li>
 </ul>
 <h4 id="method-2-sawn">Method 2 (<code>sawN</code>)</h4>
 <p>Differentiated Polynomial Waves (DPW) (for aliasing suppression)</p>
-<h5 id="reference-35">Reference</h5>
+<h5 id="reference-36">Reference</h5>
 <p>&quot;Alias-Suppressed Oscillators based on Differentiated Polynomial Waveforms&quot;, Vesa Valimaki, Juhan Nam, Julius Smith, and Jonathan Abel, IEEE Tr. Acoustics, Speech, and Language Processing (IEEE-ASLP), Vol. 18, no. 5, May 2010.</p>
 <h4 id="other-cases">Other Cases</h4>
 <p>Correction-filtered versions of <code>saw2</code>: <code>saw2f2</code>, <code>saw2f4</code> The correction filter compensates &quot;droop&quot; near half the sampling rate. See reference for sawN.</p>
-<h4 id="usage-217">Usage</h4>
+<h4 id="usage-223">Usage</h4>
 <pre><code>sawN(N,freq) : _
 sawNp(N,freq,phase) : _
 saw2dpw(freq) : _
@@ -3811,7 +3878,7 @@ saw2f4(freq) : _</code></pre>
 <hr />
 <h3 id="sawtooth"><code>sawtooth</code></h3>
 <p>Alias-free sawtooth wave. 2nd order interpolation (based on <code>saw2</code>). <code>sawtooth</code> is a standard Faust function.</p>
-<h4 id="usage-218">Usage</h4>
+<h4 id="usage-224">Usage</h4>
 <pre><code>sawtooth(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3828,7 +3895,7 @@ saw2f4(freq) : _</code></pre>
 <p>Bandlimited Pulse, Square, and Impulse Trains</p>
 <p><code>pulsetrainN</code>, <code>pulsetrain</code>, <code>squareN</code>, <code>square</code>, <code>imptrain</code>, <code>imptrainN</code>, <code>triangle</code>, <code>triangleN</code></p>
 <p>All are zero-mean and meant to oscillate in the audio frequency range. Use simpler sample-rounded lf_* versions above for LFOs.</p>
-<h4 id="usage-219">Usage</h4>
+<h4 id="usage-225">Usage</h4>
 <pre><code>pulsetrainN(N,freq,duty) : _ 
 pulsetrain(freq, duty) : _ // = pulsetrainN(2) 
 squareN(N, freq) : _
@@ -3847,7 +3914,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="pulsetrain"><code>pulsetrain</code></h3>
 <p>Bandlimited pulse train oscillator. Based on <code>pulsetrainN(2)</code>. <code>pulsetrain</code> is a standard Faust function.</p>
-<h4 id="usage-220">Usage</h4>
+<h4 id="usage-226">Usage</h4>
 <pre><code>pulsetrain(freq, duty) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3860,7 +3927,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="square"><code>square</code></h3>
 <p>Bandlimited square wave oscillator. Based on <code>squareN(2)</code>. <code>square</code> is a standard Faust function.</p>
-<h4 id="usage-221">Usage</h4>
+<h4 id="usage-227">Usage</h4>
 <pre><code>square(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3869,7 +3936,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="impulse"><code>impulse</code></h3>
 <p>One-time impulse generated when the Faust process is started. <code>impulse</code> is a standard Faust function.</p>
-<h4 id="usage-222">Usage</h4>
+<h4 id="usage-228">Usage</h4>
 <pre><code>impulse : _</code></pre>
 <hr />
 <h3 id="imptrainn"><code>imptrainN</code></h3>
@@ -3877,7 +3944,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="imptrain"><code>imptrain</code></h3>
 <p>Bandlimited impulse train generator. Based on <code>imptrainN(2)</code>. <code>imptrain</code> is a standard Faust function.</p>
-<h4 id="usage-223">Usage</h4>
+<h4 id="usage-229">Usage</h4>
 <pre><code>imptrain(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3889,7 +3956,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="triangle"><code>triangle</code></h3>
 <p>Bandlimited triangle wave oscillator. Based on <code>triangleN(2)</code>. <code>triangle</code> is a standard Faust function.</p>
-<h4 id="usage-224">Usage</h4>
+<h4 id="usage-230">Usage</h4>
 <pre><code>triangle(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3898,16 +3965,16 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h2 id="filter-based-oscillators">Filter-Based Oscillators</h2>
 <p>Filter-Based Oscillators</p>
-<h4 id="usage-225">Usage</h4>
+<h4 id="usage-231">Usage</h4>
 <pre><code>osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.</code></pre>
-<h4 id="references-20">References</h4>
+<h4 id="references-21">References</h4>
 <ul>
-<li><a href="http://lac.linuxaudio.org/2012/download/lac12-slides-jos.pdf" class="uri">http://lac.linuxaudio.org/2012/download/lac12-slides-jos.pdf</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pdf/lac12-paper-jos.pdf" class="uri">https://ccrma.stanford.edu/~jos/pdf/lac12-paper-jos.pdf</a></li>
+<li><a href="http://lac.linuxaudio.org/2012/download/lac12-slides-jos.pdf">http://lac.linuxaudio.org/2012/download/lac12-slides-jos.pdf</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pdf/lac12-paper-jos.pdf">https://ccrma.stanford.edu/~jos/pdf/lac12-paper-jos.pdf</a></li>
 </ul>
 <h3 id="oscb"><code>oscb</code></h3>
 <p>Sinusoidal oscillator based on the biquad.</p>
-<h4 id="usage-226">Usage</h4>
+<h4 id="usage-232">Usage</h4>
 <pre><code>oscb(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3916,46 +3983,46 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="oscrq"><code>oscrq</code></h3>
 <p>Sinusoidal (sine and cosine) oscillator based on 2D vector rotation, = undamped &quot;coupled-form&quot; resonator = lossless 2nd-order normalized ladder filter.</p>
-<h4 id="usage-227">Usage</h4>
+<h4 id="usage-233">Usage</h4>
 <pre><code>oscrq(freq) : _,_</code></pre>
-<p>Where:</p>
-<ul>
-<li><code>freq</code>: frequency</li>
-</ul>
-<h4 id="reference-36">Reference</h4>
-<ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
-</ul>
-<hr />
-<h3 id="oscrs"><code>oscrs</code></h3>
-<p>Sinusoidal (sine) oscillator based on 2D vector rotation, = undamped &quot;coupled-form&quot; resonator = lossless 2nd-order normalized ladder filter.</p>
-<h4 id="usage-228">Usage</h4>
-<pre><code>oscrs(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
 <li><code>freq</code>: frequency</li>
 </ul>
 <h4 id="reference-37">Reference</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
 </ul>
 <hr />
-<h3 id="oscrc"><code>oscrc</code></h3>
-<p>Sinusoidal (cosine) oscillator based on 2D vector rotation, = undamped &quot;coupled-form&quot; resonator = lossless 2nd-order normalized ladder filter.</p>
-<h4 id="usage-229">Usage</h4>
-<pre><code>oscrc(freq) : _</code></pre>
+<h3 id="oscrs"><code>oscrs</code></h3>
+<p>Sinusoidal (sine) oscillator based on 2D vector rotation, = undamped &quot;coupled-form&quot; resonator = lossless 2nd-order normalized ladder filter.</p>
+<h4 id="usage-234">Usage</h4>
+<pre><code>oscrs(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
 <li><code>freq</code>: frequency</li>
 </ul>
 <h4 id="reference-38">Reference</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
+</ul>
+<hr />
+<h3 id="oscrc"><code>oscrc</code></h3>
+<p>Sinusoidal (cosine) oscillator based on 2D vector rotation, = undamped &quot;coupled-form&quot; resonator = lossless 2nd-order normalized ladder filter.</p>
+<h4 id="usage-235">Usage</h4>
+<pre><code>oscrc(freq) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: frequency</li>
+</ul>
+<h4 id="reference-39">Reference</h4>
+<ul>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
 </ul>
 <hr />
 <h3 id="osc"><code>osc</code></h3>
 <p>Default sine wave oscillator (same as oscrs). <code>osc</code> is a standard Faust function.</p>
-<h4 id="usage-230">Usage</h4>
+<h4 id="usage-236">Usage</h4>
 <pre><code>osc(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3969,129 +4036,60 @@ triangle : _ // = triangleN(2)</code></pre>
 <p>Sinusoidal oscillator based on the waveguide resonator <code>wgr</code>.</p>
 <h3 id="oscw"><code>oscw</code></h3>
 <p>Sinusoidal oscillator based on the waveguide resonator <code>wgr</code>. Unit-amplitude cosine oscillator.</p>
-<h4 id="usage-231">Usage</h4>
+<h4 id="usage-237">Usage</h4>
 <pre><code>oscwc(freq) : _</code></pre>
-<p>Where:</p>
-<ul>
-<li><code>freq</code>: frequency</li>
-</ul>
-<h4 id="reference-39">Reference</h4>
-<ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
-</ul>
-<hr />
-<h3 id="oscws"><code>oscws</code></h3>
-<p>Sinusoidal oscillator based on the waveguide resonator <code>wgr</code>. Unit-amplitude sine oscillator</p>
-<h4 id="usage-232">Usage</h4>
-<pre><code>oscws(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
 <li><code>freq</code>: frequency</li>
 </ul>
 <h4 id="reference-40">Reference</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
 </ul>
 <hr />
-<h3 id="oscwq"><code>oscwq</code></h3>
-<p>Sinusoidal oscillator based on the waveguide resonator <code>wgr</code>. Unit-amplitude cosine and sine (quadrature) oscillator.</p>
-<h4 id="usage-233">Usage</h4>
-<pre><code>oscwq(freq) : _</code></pre>
+<h3 id="oscws"><code>oscws</code></h3>
+<p>Sinusoidal oscillator based on the waveguide resonator <code>wgr</code>. Unit-amplitude sine oscillator</p>
+<h4 id="usage-238">Usage</h4>
+<pre><code>oscws(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
 <li><code>freq</code>: frequency</li>
 </ul>
 <h4 id="reference-41">Reference</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
 </ul>
 <hr />
-<h3 id="oscw-1"><code>oscw</code></h3>
-<p>Sinusoidal oscillator based on the waveguide resonator <code>wgr</code>. Unit-amplitude cosine oscillator (default)</p>
-<h4 id="usage-234">Usage</h4>
-<pre><code>oscw(freq) : _</code></pre>
+<h3 id="oscwq"><code>oscwq</code></h3>
+<p>Sinusoidal oscillator based on the waveguide resonator <code>wgr</code>. Unit-amplitude cosine and sine (quadrature) oscillator.</p>
+<h4 id="usage-239">Usage</h4>
+<pre><code>oscwq(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
 <li><code>freq</code>: frequency</li>
 </ul>
 <h4 id="reference-42">Reference</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
 </ul>
 <hr />
-<h1 id="noise.lib">noise.lib</h1>
-<p>A library of noise generators.</p>
-<p>It should be used using the <code>no</code> environment:</p>
-<pre><code>no = library(&quot;noise.lib&quot;);
-process = no.functionCall;</code></pre>
-<p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>no</code> environment:</p>
-<pre><code>import(&quot;stdfaust.lib&quot;);
-process = no.functionCall;</code></pre>
-<h2 id="functions-reference-3">Functions Reference</h2>
-<h3 id="noise"><code>noise</code></h3>
-<p>White noise generator (outputs random number between -1 and 1). <code>Noise</code> is a standard Faust function.</p>
-<h4 id="usage-235">Usage</h4>
-<pre><code>noise : _</code></pre>
-<hr />
-<h3 id="multirandom"><code>multirandom</code></h3>
-<p>Generates multiple decorrelated random numbers in parallel.</p>
-<h4 id="usage-236">Usage</h4>
-<pre><code>multirandom(n) : _</code></pre>
-<p>Where:</p>
-<ul>
-<li><code>n</code>: the number of decorrelated random numbers in parallel</li>
-</ul>
-<hr />
-<h3 id="multinoise"><code>multinoise</code></h3>
-<p>Generates multiple decorrelated noises in parallel.</p>
-<h4 id="usage-237">Usage</h4>
-<pre><code>multinoise(n) : _</code></pre>
-<p>Where:</p>
-<ul>
-<li><code>n</code>: the number of decorrelated random numbers in parallel</li>
-</ul>
-<hr />
-<h3 id="noises"><code>noises</code></h3>
-<p>TODO.</p>
-<hr />
-<h3 id="pink_noise"><code>pink_noise</code></h3>
-<p>Pink noise (1/f noise) generator (third-order approximation) <code>pink_noise</code> is a standard Faust function.</p>
-<h4 id="usage-238">Usage</h4>
-<pre><code>pink_noise : _;</code></pre>
-<h4 id="reference-43">Reference:</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html" class="uri">https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html</a></p>
-<hr />
-<h3 id="pink_noise_vm"><code>pink_noise_vm</code></h3>
-<p>Multi pink noise generator.</p>
-<h4 id="usage-239">Usage</h4>
-<pre><code>pink_noise_vm(N) : _;</code></pre>
-<p>Where:</p>
-<ul>
-<li><code>N</code>: number of latched white-noise processes to sum, not to exceed sizeof(int) in C++ (typically 32).</li>
-</ul>
-<h4 id="references-21">References</h4>
-<ul>
-<li><a href="http://www.dsprelated.com/showarticle/908.php" class="uri">http://www.dsprelated.com/showarticle/908.php</a></li>
-<li><a href="http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney" class="uri">http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney</a></li>
-</ul>
-<hr />
-<h3 id="lfnoise-lfnoise0-and-lfnoisen"><code>lfnoise</code>, <code>lfnoise0</code> and <code>lfnoiseN</code></h3>
-<p>Low-frequency noise generators (Butterworth-filtered downsampled white noise)</p>
+<h3 id="oscw-1"><code>oscw</code></h3>
+<p>Sinusoidal oscillator based on the waveguide resonator <code>wgr</code>. Unit-amplitude cosine oscillator (default)</p>
 <h4 id="usage-240">Usage</h4>
-<pre><code>lfnoise0(rate) : _;   // new random number every int(SR/rate) samples or so
-lfnoiseN(N,rate) : _; // same as &quot;lfnoise0(rate) : lowpass(N,rate)&quot; [see filter.lib]
-lfnoise(rate) : _;    // same as &quot;lfnoise0(rate) : seq(i,5,lowpass(N,rate))&quot; (no overshoot)</code></pre>
-<h4 id="example-6">Example</h4>
-<p>(view waveforms in faust2octave):</p>
-<pre><code>rate = SR/100.0; // new random value every 100 samples (SR from music.lib)
-process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
-          lfnoiseN(3,rate), // lfnoise0 smoothed by 3rd order Butterworth LPF
-          lfnoise(rate);    // lfnoise0 smoothed with no overshoot</code></pre>
+<pre><code>oscw(freq) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: frequency</li>
+</ul>
+<h4 id="reference-43">Reference</h4>
+<ul>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
+</ul>
 <hr />
-<h1 id="phafla.lib">phafla.lib</h1>
+<h1 id="phaflangers.lib">phaflangers.lib</h1>
 <p>A library of compressor effects.</p>
 <p>It should be used using the <code>pf</code> environment:</p>
-<pre><code>pf = library(&quot;phafla.lib&quot;);
+<pre><code>pf = library(&quot;phaflangers.lib&quot;);
 process = pf.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>pf</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -4110,7 +4108,7 @@ process = pf.functionCall;</code></pre>
 <li><code>invert</code>: 0 for normal, 1 to invert sign of flanging sum</li>
 </ul>
 <h4 id="reference-44">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Flanging.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Flanging.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Flanging.html">https://ccrma.stanford.edu/~jos/pasp/Flanging.html</a></p>
 <hr />
 <h3 id="flanger_stereo"><code>flanger_stereo</code></h3>
 <p>Stereo flanging effect. <code>flanger_stereo</code> is a standard Faust function.</p>
@@ -4125,7 +4123,7 @@ process = pf.functionCall;</code></pre>
 <li><code>invert</code>: 0 for normal, 1 to invert sign of flanging sum</li>
 </ul>
 <h4 id="reference-45">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Flanging.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Flanging.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Flanging.html">https://ccrma.stanford.edu/~jos/pasp/Flanging.html</a></p>
 <hr />
 <h3 id="phaser2_mono"><code>phaser2_mono</code></h3>
 <p>Mono phasing effect.</p>
@@ -4146,10 +4144,10 @@ process = pf.functionCall;</code></pre>
 </ul>
 <p>Reference:</p>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Phasing.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Phasing.html</a></li>
-<li><a href="http://www.geofex.com/Article_Folders/phasers/phase.html" class="uri">http://www.geofex.com/Article_Folders/phasers/phase.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Phasing.html">https://ccrma.stanford.edu/~jos/pasp/Phasing.html</a></li>
+<li><a href="http://www.geofex.com/Article_Folders/phasers/phase.html">http://www.geofex.com/Article_Folders/phasers/phase.html</a></li>
 <li>'An Allpass Approach to Digital Phasing and Flanging', Julius O. Smith III, Proc. Int. Computer Music Conf. (ICMC-84), pp. 103-109, Paris, 1984.</li>
-<li>CCRMA Tech. Report STAN-M-21: <a href="https://ccrma.stanford.edu/STANM/stanms/stanm21/" class="uri">https://ccrma.stanford.edu/STANM/stanms/stanm21/</a></li>
+<li>CCRMA Tech. Report STAN-M-21: <a href="https://ccrma.stanford.edu/STANM/stanms/stanm21/">https://ccrma.stanford.edu/STANM/stanms/stanm21/</a></li>
 </ul>
 <hr />
 <h3 id="phaser2_stereo"><code>phaser2_stereo</code></h3>
@@ -4171,16 +4169,16 @@ process = pf.functionCall;</code></pre>
 </ul>
 <p>Reference:</p>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Phasing.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Phasing.html</a></li>
-<li><a href="http://www.geofex.com/Article_Folders/phasers/phase.html" class="uri">http://www.geofex.com/Article_Folders/phasers/phase.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Phasing.html">https://ccrma.stanford.edu/~jos/pasp/Phasing.html</a></li>
+<li><a href="http://www.geofex.com/Article_Folders/phasers/phase.html">http://www.geofex.com/Article_Folders/phasers/phase.html</a></li>
 <li>'An Allpass Approach to Digital Phasing and Flanging', Julius O. Smith III, Proc. Int. Computer Music Conf. (ICMC-84), pp. 103-109, Paris, 1984.</li>
-<li>CCRMA Tech. Report STAN-M-21: <a href="https://ccrma.stanford.edu/STANM/stanms/stanm21/" class="uri">https://ccrma.stanford.edu/STANM/stanms/stanm21/</a></li>
+<li>CCRMA Tech. Report STAN-M-21: <a href="https://ccrma.stanford.edu/STANM/stanms/stanm21/">https://ccrma.stanford.edu/STANM/stanms/stanm21/</a></li>
 </ul>
 <hr />
-<h1 id="pm.lib">pm.lib</h1>
+<h1 id="physmodels.lib">physmodels.lib</h1>
 <p>Faust physical modeling library.</p>
 <p>It should be used using the <code>fi</code> environment:</p>
-<pre><code>pm = library(&quot;pm.lib&quot;);
+<pre><code>pm = library(&quot;physmodels.lib&quot;);
 process = pm.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>pm</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -4193,7 +4191,7 @@ with{
      B = _,_,_;
 };</code></pre>
 <h3 id="requires">Requires</h3>
-<p><code>filter.lib</code> (<code>crossnn</code>)</p>
+<p><code>routes.lib</code> (<code>crossnn</code>)</p>
 <hr />
 <h3 id="inputx">input(x)</h3>
 <p>Adds a waveguide input anywhere between 2 blocks in a chain of blocks (see <code>chain()</code>). ### Usage</p>
@@ -4213,7 +4211,7 @@ with{
      c = *(-1); // right termination
 };</code></pre>
 <h3 id="requires-1">Requires</h3>
-<p><code>filter.lib</code> (<code>crossnn</code>)</p>
+<p><code>routes.lib</code> (<code>crossnn</code>)</p>
 <hr />
 <h3 id="fullterminationsabc">fullTerminations(a,b,c)</h3>
 <p>Same as <code>terminations()</code> but closes the inputs and outputs of the bidirectional chain (only the mixed output remains). ### Usage</p>
@@ -4224,7 +4222,7 @@ with{
      c = *(-1); // right termination
 };</code></pre>
 <h3 id="requires-2">Requires</h3>
-<p><code>filter.lib</code> (<code>crossnn</code>)</p>
+<p><code>routes.lib</code> (<code>crossnn</code>)</p>
 <hr />
 <h3 id="leftterminationab">leftTermination(a,b)</h3>
 <p>Creates a termination on the left side of a <code>chain()</code> without closing the inputs and outputs of the bidirectional signals chain. This function adds a 1 sample delay near the termination. ### Usage</p>
@@ -4234,7 +4232,7 @@ with{
      b = chain(D:E:F); // bidirectional chain of blocks (D, E, F, etc.)
 };</code></pre>
 <h3 id="requires-3">Requires</h3>
-<p><code>filter.lib</code> (<code>crossnn</code>)</p>
+<p><code>routes.lib</code> (<code>crossnn</code>)</p>
 <hr />
 <h3 id="rightterminationbc">rightTermination(b,c)</h3>
 <p>Creates a termination on the right side of a <code>chain()</code> without closing the inputs and outputs of the bidirectional signals chain. This function adds a 1 sample delay near the termination. ### Usage</p>
@@ -4244,22 +4242,22 @@ with{
      c = *(-1); // right termination
 };</code></pre>
 <h3 id="requires-4">Requires</h3>
-<p><code>filter.lib</code> (<code>crossnn</code>)</p>
+<p><code>routes.lib</code> (<code>crossnn</code>)</p>
 <hr />
 <h3 id="waveguidenmaxn">waveguide(nMax,n)</h3>
 <p>A simple waveguide block based on a 4th order fractional delay. ### Usage</p>
 <pre><code>rightGoingWaves,leftGoingWaves,mixedOutput : waveguide(nMax,n) : rightGoingWaves,leftGoingWaves,mixedOutput</code></pre>
-<p>With: * <code>nMax</code>: the maximum length of the waveguide in samples * <code>n</code> the length of the waveguide in samples. ### Requires <code>filter.lib</code> (<code>fdelay4</code>)</p>
+<p>With: * <code>nMax</code>: the maximum length of the waveguide in samples * <code>n</code> the length of the waveguide in samples. ### Requires <code>delays.lib</code> (<code>fdelay4</code>)</p>
 <hr />
 <h3 id="idealstringlengthreflexionxpositionx">idealString(length,reflexion,xPosition,x)</h3>
 <p>An ideal string with rigid terminations and where the plucking position and the pick-up position are the same. ### Usage</p>
 <pre><code>1-1&#39; : idealString(length,reflexion,xPosition,x)</code></pre>
-<p>With: * <code>length</code>: the length of the string in meters * <code>reflexion</code>: the coefficient of reflexion (0-0.99999999) * <code>pluckPosition</code>: the plucking position (0.001-0.999) * <code>x</code>: the input signal for the excitation ### Requires <code>filter.lib</code> (<code>fdelay4</code>,<code>crossnn</code>)</p>
+<p>With: * <code>length</code>: the length of the string in meters * <code>reflexion</code>: the coefficient of reflexion (0-0.99999999) * <code>pluckPosition</code>: the plucking position (0.001-0.999) * <code>x</code>: the input signal for the excitation ### Requires <code>routes.lib</code> (<code>crossnn</code>) <code>delays.lib</code> (<code>fdelay4</code>)</p>
 <hr />
-<h1 id="reverb.lib">reverb.lib</h1>
+<h1 id="reverbs.lib">reverbs.lib</h1>
 <p>A library of reverb effects.</p>
 <p>It should be used using the <code>re</code> environment:</p>
-<pre><code>re = library(&quot;reverb.lib&quot;);
+<pre><code>re = library(&quot;reverbs.lib&quot;);
 process = re.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>re</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -4274,7 +4272,7 @@ process = re.functionCall;</code></pre>
 <hr />
 <h3 id="satrev"><code>satrev</code></h3>
 <p>This artificial reverberator take a mono signal and output stereo (<code>satrev</code>) and quad (<code>jcrev</code>). They were implemented by John Chowning in the MUS10 computer-music language (descended from Music V by Max Mathews). They are Schroeder Reverberators, well tuned for their size. Nowadays, the more expensive freeverb is more commonly used (see the Faust examples directory).</p>
-<p><code>satrev</code> was made from a listing of &quot;SATREV&quot;, dated May 15, 1971, which was recovered from an old SAIL DART backup tape. John Chowning thinks this might be the one used on his often-heard brass canon sound examples, one of which can be found at <a href="https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav" class="uri">https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav</a></p>
+<p><code>satrev</code> was made from a listing of &quot;SATREV&quot;, dated May 15, 1971, which was recovered from an old SAIL DART backup tape. John Chowning thinks this might be the one used on his often-heard brass canon sound examples, one of which can be found at <a href="https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav">https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav</a></p>
 <h4 id="usage-244">Usage</h4>
 <pre><code>_ : satrev : _,_</code></pre>
 <hr />
@@ -4321,13 +4319,13 @@ fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl) :&gt;
 <li><code>nonl</code>: nonlinearity (0 to 0.999..., 0 being linear)</li>
 </ul>
 <h4 id="reference-46">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberation.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberation.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberation.html">https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberation.html</a></p>
 <hr />
 <h3 id="zita_rev_fdn"><code>zita_rev_fdn</code></h3>
 <p>Internal 8x8 late-reverberation FDN used in the FOSS Linux reverb zita-rev1 by Fons Adriaensen <script type="text/javascript">
 <!--
 h='&#108;&#x69;&#110;&#x75;&#120;&#x61;&#x75;&#100;&#x69;&#x6f;&#46;&#x6f;&#114;&#x67;';a='&#64;';n='&#102;&#x6f;&#110;&#x73;';e=n+a+h;
-document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\/'+'a'+'>');
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
 // -->
 </script><noscript>&#102;&#x6f;&#110;&#x73;&#32;&#x61;&#116;&#32;&#108;&#x69;&#110;&#x75;&#120;&#x61;&#x75;&#100;&#x69;&#x6f;&#32;&#100;&#x6f;&#116;&#32;&#x6f;&#114;&#x67;</noscript>. This is an FDN reverb with allpass comb filters in each feedback delay in addition to the damping filters.</p>
 <h4 id="usage-248">Usage</h4>
@@ -4342,8 +4340,8 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\
 </ul>
 <h4 id="reference-47">Reference</h4>
 <ul>
-<li><a href="http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html" class="uri">http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Zita_Rev1.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Zita_Rev1.html</a></li>
+<li><a href="http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html">http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Zita_Rev1.html">https://ccrma.stanford.edu/~jos/pasp/Zita_Rev1.html</a></li>
 </ul>
 <hr />
 <h3 id="zita_rev1_stereo"><code>zita_rev1_stereo</code></h3>
@@ -4360,10 +4358,10 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\
 <p>Where:</p>
 <p><code>rgxyz</code> = relative gain of lanes 1,4,2 to lane 0 in output (e.g., -9 to 9) (remaining args and references as for zita_rev1_stereo above)</p>
 <hr />
-<h1 id="route.lib">route.lib</h1>
+<h1 id="routes.lib">routes.lib</h1>
 <p>A library of basic elements to handle signal routing in Faust.</p>
 <p>It should be used using the <code>si</code> environment:</p>
-<pre><code>ro = library(&quot;route.lib&quot;);
+<pre><code>ro = library(&quot;routes.lib&quot;);
 process = ro.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>si</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -4441,10 +4439,10 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <li><code>q</code>: the feedback arbitrary processor</li>
 </ul>
 <hr />
-<h1 id="signal.lib">signal.lib</h1>
+<h1 id="signals.lib">signals.lib</h1>
 <p>A library of basic elements to handle signals in Faust.</p>
 <p>It should be used using the <code>si</code> environment:</p>
-<pre><code>si = library(&quot;signal.lib&quot;);
+<pre><code>si = library(&quot;signals.lib&quot;);
 process = si.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>si</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -4492,7 +4490,7 @@ bus(4) : _,_,_,_</code></pre>
 <li><code>s</code>: smoothness between 0 and 1. s=0 for no smoothing, s=0.999 is &quot;very smooth&quot;, s&gt;1 is unstable, and s=1 yields the zero signal for all inputs. The exponential time-constant is approximately 1/(1-s) samples, when s is close to (but less than) 1.</li>
 </ul>
 <h4 id="reference-48">Reference:</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html" class="uri">https://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html">https://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html</a></p>
 <hr />
 <h3 id="smoo"><code>smoo</code></h3>
 <p>Smoothing function based on <code>smooth</code> ideal to smooth UI signals (sliders, etc.) down. <code>smoo</code> is a standard Faust function.</p>
@@ -4529,10 +4527,10 @@ bus(4) : _,_,_,_</code></pre>
 <li><code>n</code>: size of the vectors (int, must be known at compile time)</li>
 </ul>
 <hr />
-<h1 id="spat.lib">spat.lib</h1>
+<h1 id="spats.lib">spats.lib</h1>
 <p>This library contains a collection of tools for sound spatialization.</p>
 <p>It should be used using the <code>sp</code> environment:</p>
-<pre><code>sp = library(&quot;spat.lib&quot;);
+<pre><code>sp = library(&quot;spats.lib&quot;);
 process = sp.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>sp</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -4566,10 +4564,10 @@ process = sp.functionCall;</code></pre>
 <li><code>p</code>: the arbitrary processor</li>
 </ul>
 <hr />
-<h1 id="synth.lib">synth.lib</h1>
+<h1 id="synths.lib">synths.lib</h1>
 <p>This library contains a collection of envelope generators.</p>
 <p>It should be used using the <code>sy</code> environment:</p>
-<pre><code>sy = library(&quot;synth.lib&quot;);
+<pre><code>sy = library(&quot;synths.lib&quot;);
 process = sy.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>sy</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -4647,10 +4645,10 @@ fm(freqs,indices) : _</code></pre>
 <li><code>indices</code>: the indices of modulation (Nfreqs-1)</li>
 </ul>
 <hr />
-<h1 id="vaeffect.lib">vaeffect.lib</h1>
+<h1 id="vaeffects.lib">vaeffects.lib</h1>
 <p>A library of virtual analog filter effects.</p>
 <p>It should be used using the <code>ve</code> environment:</p>
-<pre><code>ve = library(&quot;vaeffect.lib&quot;);
+<pre><code>ve = library(&quot;vaeffects.lib&quot;);
 process = ve.functionCall;</code></pre>
 <p>Another option is to import <code>stdfaust.lib</code> which already contains the <code>ve</code> environment:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -4667,8 +4665,8 @@ process = ve.functionCall;</code></pre>
 </ul>
 <h4 id="references-22">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf" class="uri">https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/vegf.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/vegf.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf">https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/vegf.html">https://ccrma.stanford.edu/~jos/pasp/vegf.html</a></li>
 </ul>
 <hr />
 <h3 id="moog_vcf_2bn"><code>moog_vcf_2b[n]</code></h3>
@@ -4691,7 +4689,7 @@ moog_vcf_2bn(res,fr)</code></pre>
 <li><code>fr</code>: resonance frequency in Hz</li>
 </ul>
 <h4 id="reference-49">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/vegf.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/vegf.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/vegf.html">https://ccrma.stanford.edu/~jos/pasp/vegf.html</a></p>
 <hr />
 <h3 id="autowah"><code>autowah</code></h3>
 <p>Auto-wah effect. <code>autowah</code> is a standard Faust function.</p>
@@ -4711,7 +4709,7 @@ moog_vcf_2bn(res,fr)</code></pre>
 <li><code>wah</code>: &quot;pedal angle&quot; from 0 to 1</li>
 </ul>
 <h4 id="reference-50">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/vegf.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/vegf.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/vegf.html">https://ccrma.stanford.edu/~jos/pasp/vegf.html</a></p>
 <hr />
 <h3 id="vocoder"><code>vocoder</code></h3>
 <p>A very simple vocoder where the spectrum of the modulation signal is analyzed using a filter bank. <code>vocoder</code> is a standard Faust function.</p>

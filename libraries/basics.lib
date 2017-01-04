@@ -1,4 +1,4 @@
-//################################## basic.lib ###########################################
+//################################## basics.lib ###########################################
 // A library of basic elements for Faust organized in 5 sections: 
 //
 // * Conversion Tools
@@ -10,7 +10,7 @@
 // It should be used using the `ba` environment:
 //
 // ```
-// ba = library("basic.lib");
+// ba = library("basics.lib");
 // process = ba.functionCall;
 // ```
 //
@@ -55,8 +55,8 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ma = library("math.lib");
-ro = library("route.lib");
+ma = library("maths.lib");
+ro = library("routes.lib");
 
 declare name "Faust Basic Element Library";
 declare version "0.0";
@@ -342,7 +342,7 @@ tempo(t) = (60*ma.SR)/t;
 //
 // * `p`: period as a number of samples
 //------------------------
-// NOTE: may be this should go in oscillator.lib
+// NOTE: may be this should go in oscillators.lib
 period(p) = %(int(p))~+(1);
 
 
@@ -359,7 +359,7 @@ period(p) = %(int(p))~+(1);
 //
 // * `p`: period as a number of samples
 //------------------------
-// NOTE: may be this should go in oscillator.lib 
+// NOTE: may be this should go in oscillators.lib 
 pulse(p) = period(p)==0;
 
 
@@ -377,7 +377,7 @@ pulse(p) = period(p)==0;
 // * `n`: the length of the pulse as a number of samples
 // * `p`: period as a number of samples
 //------------------------
-// NOTE: may be this should go in oscillator.lib
+// NOTE: may be this should go in oscillators.lib
 pulsen(n,p) = period(p)<n;
 
 

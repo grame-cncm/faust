@@ -1,10 +1,10 @@
-//#################################### route.lib ########################################
+//#################################### routes.lib ########################################
 // A library of basic elements to handle signal routing in Faust.
 //
 // It should be used using the `si` environment:
 //
 // ```
-// ro = library("route.lib");
+// ro = library("routes.lib");
 // process = ro.functionCall;
 // ```
 //
@@ -49,9 +49,9 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ba = library("basic.lib");
-si = library("signal.lib");
-sp = library("spat.lib");
+ba = library("basics.lib");
+si = library("signals.lib");
+sp = library("spats.lib");
 
 declare name "Faust Signal Routing Library";
 declare version "0.0";
@@ -84,7 +84,7 @@ declare version "0.0";
 //-----------------------------------------------------------------------------
 // cross n cables : (x1,x2,..,xn) -> (xn,..,x2,x1)
 cross(n) = si.bus(n) <: par(i,n,ba.selector(n-i-1,n));
-cross2 = _,cross(2),_; // for compatibility with some old misceffect.lib functions
+cross2 = _,cross(2),_; // for compatibility with some old misceffects.lib functions
 
 
 //--------------`crossnn`--------------

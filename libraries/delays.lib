@@ -1,11 +1,11 @@
 
-//#################################### delay.lib #########################################
+//#################################### delays.lib #########################################
 // This library contains a collection of delay functions.
 //
 // It should be used using the `de` environment:
 //
 // ```
-// de = library("delay.lib");
+// de = library("delays.lib");
 // process = de.functionCall;
 // ```
 //
@@ -50,10 +50,10 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ma = library("math.lib");
-ba = library("basic.lib");
-si = library("signal.lib");
-fi = library("filter.lib");
+ma = library("maths.lib");
+ba = library("basics.lib");
+si = library("signals.lib");
+fi = library("filters.lib");
 
 
 declare name "Faust Delay Library";

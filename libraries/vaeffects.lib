@@ -1,10 +1,10 @@
-//#################################### vaeffect.lib ########################################
+//#################################### vaeffects.lib ########################################
 // A library of virtual analog filter effects.
 //
 // It should be used using the `ve` environment:
 //
 // ```
-// ve = library("vaeffect.lib");
+// ve = library("vaeffects.lib");
 // process = ve.functionCall;
 // ```
 //
@@ -49,10 +49,10 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ma = library("math.lib");
-si = library("signal.lib");
-an = library("analyzer.lib");
-fi = library("filter.lib");
+ma = library("maths.lib");
+si = library("signals.lib");
+an = library("analyzers.lib");
+fi = library("filters.lib");
 
 declare name "Faust Virtual Analog Filter Effect Library";
 declare version "0.0";
@@ -225,7 +225,7 @@ with {
   a2s = a2 : si.smooth(s);
   gs =  g  : si.smooth(s);
 
-  //tf2 = component("filter.lib").tf2;
+  //tf2 = component("filters.lib").tf2;
 };
 
 

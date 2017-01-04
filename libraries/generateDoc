@@ -11,7 +11,7 @@ for p in $@; do
 	fi
 done
 
-FILES="analyzer.lib basic.lib compressor.lib delay.lib demo.lib envelope.lib filter.lib hoa.lib math.lib misceffect.lib   miscoscillator.lib noise.lib phafla.lib pm.lib reverb.lib route.lib signal.lib spat.lib synth.lib vaeffect.lib"
+FILES="analyzers.lib basics.lib compressors.lib delays.lib demos.lib envelopes.lib filters.lib hoa.lib maths.lib misceffects.lib oscillators.lib noises.lib phaflangers.lib physmodels.lib reverbs.lib routes.lib signals.lib spats.lib synths.lib vaeffects.lib"
 
 mkdir tmp
 mkdir tmp/title

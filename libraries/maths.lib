@@ -1,4 +1,4 @@
-//################################ math.lib ##########################################
+//################################ maths.lib ##########################################
 // Mathematic library for Faust. Some functions are implemenented as Faust foreign 
 // functions of `math.h` functions that are not part of Faust's primitives. Defines 
 // also various constants and several utilities.
@@ -6,7 +6,7 @@
 // It should be used using the `fi` environment:
 //
 // ```
-// ma = library("math.lib");
+// ma = library("maths.lib");
 // process = ma.functionCall;
 // ```
 //
@@ -507,7 +507,7 @@ np2 = -(1) <: >>(1)|_ <: >>(2)|_ <: >>(4)|_ <: >>(8)|_ <: >>(16)|_ : +(1);
 frac(n) = n - floor(n);
 decimal = frac; 
 // NOTE: decimal does the same thing as frac but using floor instead. JOS uses frac a lot
-// in filter.lib so we decided to keep that one... decimal is declared though for
+// in filters.lib so we decided to keep that one... decimal is declared though for
 // backward compatibility.  
 // decimal(n)	= n - floor(n);
 
