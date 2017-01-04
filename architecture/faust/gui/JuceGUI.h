@@ -1475,15 +1475,11 @@ public:
         for(int i = 0; i<getNumChildComponents(); i++) {
             layoutComponent* tempComp = dynamic_cast<layoutComponent*>(getChildComponent(i));
             if(isVertical) {
-                int heightToRemove = getSpaceToRemove(tempComp->getVRatio());
-                tempComp->setLayoutComponentSize(rect.removeFromTop(heightToRemove) .reduced(2, 0)
-                                                 .translated(0, margin + 2*margin*i)
-                                                );
+                int heightToRemove = getSpaceToRemove(tempComp->getVRatio()) + 2*margin;
+                tempComp->setLayoutComponentSize(rect.removeFromTop(heightToRemove).reduced(margin, 0));
             } else {
-                int widthToRemove = getSpaceToRemove(tempComp->getHRatio());
-                tempComp->setLayoutComponentSize(rect.removeFromLeft(widthToRemove) .reduced(0, 2)
-                                                 .translated(margin + 2*margin*i, 0)
-                                                );
+                int widthToRemove = getSpaceToRemove(tempComp->getHRatio()) + 2*margin;
+                tempComp->setLayoutComponentSize(rect.removeFromLeft(widthToRemove).reduced(0, margin));
             }
         }
     }

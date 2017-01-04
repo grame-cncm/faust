@@ -13,10 +13,10 @@ In order for it to be ready to use, without changing the Juce modules path, you 
 
 There are those options available at this moment for faust2juce : 
 
-`-poly` 	: Produce a polyphonic self-contained DSP, ready to be used with MIDI events
-`-midi`	: Activate MIDI control
-`-osc`   	: Activate OSC control
-`-help` 	: Show the different options available
+ - `-poly` 	: Produce a polyphonic self-contained DSP, ready to be used with MIDI events 
+ - `-midi`     : Activate MIDI control
+ - `-osc`   	:    Activate OSC control
+ - `-help` 	: Show the different options available
 
 Some others options will be added later, still in development...
 
