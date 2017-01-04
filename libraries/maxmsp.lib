@@ -26,8 +26,8 @@ declare copyright "GRAME";
 declare version "1.1";
 declare license "LGPL";
 
-ba = library("basic.lib");
-ma = library("math.lib");
+ba = library("basics.lib");
+ma = library("maths.lib");
 
 atodb = db2lin;
 

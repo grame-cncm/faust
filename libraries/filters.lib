@@ -1,4 +1,4 @@
-//################################ filter.lib ########################################
+//################################ filters.lib ########################################
 // A library of filters and of more advanced filter-based sound processor organized 
 // in 18 sections:
 //
@@ -24,7 +24,7 @@
 // It should be used using the `fi` environment:
 //
 // ```
-// fi = library("filter.lib");
+// fi = library("filters.lib");
 // process = fi.functionCall;
 // ```
 //
@@ -69,10 +69,10 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ma = library("math.lib");
-ba = library("basic.lib");
-de = library("delay.lib");
-an = library("analyzer.lib");
+ma = library("maths.lib");
+ba = library("basics.lib");
+de = library("delays.lib");
+an = library("analyzers.lib");
 
 declare name "Faust Filter Library";
 declare version "2.0";
@@ -287,7 +287,7 @@ fb_fcomb(maxdel,N,b0,aN) = (+ <: de.fdelay(maxdel,float(N)-1.0),_) ~ *(-aN) : !,
 //-----------------------`rev1`-----------------------
 // Special case of `fb_comb` (`rev1(maxdel,N,g)`).
 // The "rev1 section" dates back to the 1960s in computer-music reverberation.
-// See the `jcrev` and `brassrev` in `reverb.lib` for usage examples.
+// See the `jcrev` and `brassrev` in `reverbs.lib` for usage examples.
 //------------------------------------------------------------
 // TODO: author JOS
 rev1(maxdel,N,g) = fb_comb (maxdel,N,1,-g);
@@ -390,7 +390,7 @@ allpass_fcomb(maxdel,N,aN) = (+ <: de.fdelay(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_
 //-----------------------`rev2`-----------------------
 // Special case of `allpass_comb` (`rev2(maxlen,len,g)`).
 // The "rev2 section" dates back to the 1960s in computer-music reverberation.
-// See the `jcrev` and `brassrev` in `reverb.lib` for usage examples.
+// See the `jcrev` and `brassrev` in `reverbs.lib` for usage examples.
 //------------------------------------------------------------
 rev2(maxlen,len,g) = allpass_comb(maxlen,len,-g);
 

@@ -8,8 +8,7 @@ declare author "Julius O. Smith (jos at ccrma.stanford.edu)";
 declare copyright "Julius O. Smith III";
 declare version "1.33";
 declare license "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license)
-declare deprecated "This library is deprecated and is not maintained anymore. It might
-be removed in future released.";
+declare deprecated "This library is deprecated and is not maintained anymore. It will be removed in August 2017.";
 
 import("filter.lib"); // dcblocker*, lowpass, filterbank, ...
 

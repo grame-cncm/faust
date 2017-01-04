@@ -88,3 +88,4 @@ stereo = stereoizer(P);
 stringloop = (+ : de.fdelay4(Pmax, P-2)) ~ (loopfilter : NLFM);
 
 process = filtered_excitation : stringloop : stereo : instrReverb;
+

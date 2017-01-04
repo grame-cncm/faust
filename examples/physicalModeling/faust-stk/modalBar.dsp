@@ -53,12 +53,12 @@ vibratoGain = hslider("h:Envelopes_and_Vibrato/v:Vibrato_Parameters/Vibrato_Gain
 //==================== SIGNAL PROCESSING ================
 
 //----------------------- Nonlinear filter ----------------------------
-//nonlinearities are created by the nonlinear passive allpass ladder filter declared in filter.lib
+//nonlinearities are created by the nonlinear passive allpass ladder filter declared in miscfilter.lib
 
 //nonlinear filter order
 nlfOrder = 6;
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from filter.lib
+//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib
 //for using it with waveguide instruments
 NLFM =  nonLinearModulator((nonLinearity : si.smoo),1,freq,
      typeModulation,(frequencyMod : si.smoo),nlfOrder);
@@ -120,3 +120,4 @@ process = excitation : sourceFilter : *(gain) <:
 	(biquadBank <: -(*(directGain))) + (directGain*_) :
 	//vibrato for the vibraphone
 	*(vibrato) : NLFM*0.6 : stereo : instrReverb;
+

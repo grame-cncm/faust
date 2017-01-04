@@ -1,11 +1,11 @@
-//#################################### demo.lib ##########################################
+//#################################### demos.lib ##########################################
 // This library contains a set of demo functions based on examples located in the
 // `/examples` folder.
 // 
 // It should be used using the `dm` environment:
 //
 // ```
-// dm = library("demo.lib");
+// dm = library("demos.lib");
 // process = dm.functionCall;
 // ```
 //
@@ -50,19 +50,19 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ma = library("math.lib");
-ba = library("basic.lib");
-de = library("delay.lib");
-si = library("signal.lib");
-an = library("analyzer.lib");
-fi = library("filter.lib");
-os = library("miscoscillator.lib");
-no = library("noise.lib");
-ef = library("misceffect.lib");
-co = library("compressor.lib");
-ve = library("vaeffect.lib");
-pf = library("phafla.lib");
-re = library("reverb.lib");
+ma = library("maths.lib");
+ba = library("basics.lib");
+de = library("delays.lib");
+si = library("signals.lib");
+an = library("analyzers.lib");
+fi = library("filters.lib");
+os = library("oscillators.lib");
+no = library("noises.lib");
+ef = library("misceffects.lib");
+co = library("compressors.lib");
+ve = library("vaeffects.lib");
+pf = library("phaflangers.lib");
+re = library("reverbs.lib");
 
 //====================================Analyzers===========================================
 //========================================================================================
@@ -111,7 +111,7 @@ spectral_level_demo = mth_octave_spectral_level_demo(1.5); // 2/3 octave
 // TODO: author JOS, revised by RM
 parametric_eq_demo = fi.low_shelf(LL,FL) : fi.peak_eq(LP,FP,BP) : fi.high_shelf(LH,FH)
 with{
-	eq_group(x) = hgroup("[0] PARAMETRIC EQ SECTIONS [tooltip: See Faust's filter.lib 
+	eq_group(x) = hgroup("[0] PARAMETRIC EQ SECTIONS [tooltip: See Faust's filters.lib 
 		for info and pointers]",x);
 	ls_group(x) = eq_group(vgroup("[1] Low Shelf",x));
 
@@ -121,7 +121,7 @@ with{
 		[tooltip: Transition-frequency from boost (cut) to unity gain]",200,1,5000,1));
 
 	pq_group(x) = eq_group(vgroup("[2] Peaking Equalizer[tooltip: Parametric Equalizer 
-		sections from filter.lib]",x));
+		sections from filters.lib]",x));
 	LP = pq_group(hslider("[0] Peak Boost|Cut [unit:dB] [style:knob][tooltip: Amount of 
 		local boost or cut in decibels]",0,-40,40,0.1));
 	FP = pq_group(hslider("[1] Peak Frequency [unit:PK] [style:knob] [tooltip: Peak 
@@ -186,7 +186,7 @@ with{
 	M = O;
 	bp1 = ba.bypass1;
 	mofb_group(x) = vgroup("CONSTANT-Q FILTER BANK (Butterworth dyadic tree)
-		[tooltip: See Faust's filter.lib for documentation and references]", x);
+		[tooltip: See Faust's filters.lib for documentation and references]", x);
 	bypass_group(x) = mofb_group(hgroup("[0]", x));
 	slider_group(x)  = mofb_group(hgroup("[1]", x));
 
@@ -358,7 +358,7 @@ with{
 exciter = _ <: (fi.highpass(2, fc) : compressor : pregain : harmonicCreator : 
 	postgain), _ : balance
 with{
-	// TODO: not really sure why this doesn't use the standard compressor from compressor.lib:
+	// TODO: not really sure why this doesn't use the standard compressor from compressors.lib:
 	// needs to be investigated
 	compressor = ba.bypass1(cbp,compressorMono) 
 	with{
@@ -445,7 +445,7 @@ with{
 moog_vcf_demo = ba.bypass1(bp,vcf)
 with{
 	mvcf_group(x) = hgroup("MOOG VCF (Voltage Controlled Filter) [tooltip: See Faust's 
-		vaeffect.lib for info and references]",x);
+		vaeffects.lib for info and references]",x);
 	cb_group(x) = mvcf_group(hgroup("[0]",x));
 
 	bp = cb_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF 
@@ -749,7 +749,7 @@ with{
 	deflens = (56.3,63.0); // 2 default min and max path lengths
 
 	fdn_group(x)  = vgroup("FEEDBACK DELAY NETWORK (FDN) REVERBERATOR, ORDER 16
-    	[tooltip: See Faust's reverb.lib for documentation and references]", x);
+    	[tooltip: See Faust's reverbs.lib for documentation and references]", x);
 
 	freq_group(x)  = fdn_group(vgroup("[1] Band Crossover Frequencies", x));
 	t60_group(x)  = fdn_group(hgroup("[2] Band Decay Times (T60)", x));
@@ -808,7 +808,7 @@ with{
 	fsmax = 48000.0;
 	fdn_group(x) = hgroup("Zita_Rev Internal FDN Reverb [tooltip: ~ Zita_Rev's internal 
 		8x8 Feedback Delay Network (FDN) & Schroeder allpass-comb reverberator.  See 
-		Faust's reverb.lib for documentation and references]",x);
+		Faust's reverbs.lib for documentation and references]",x);
 	t60dc = fdn_group(vslider("[1] Low RT60 [unit:s] [style:knob][style:knob]
     	[tooltip: T60 = time (in seconds) to decay 60dB in low-frequency band]",
     	3, 1, 8, 0.1));
@@ -850,7 +850,7 @@ with{
 
 	fdn_group(x) = hgroup(
     	"[0] Zita_Rev1 [tooltip: ~ ZITA REV1 FEEDBACK DELAY NETWORK (FDN) & SCHROEDER 
-    	ALLPASS-COMB REVERBERATOR (8x8). See Faust's reverb.lib for documentation and 
+    	ALLPASS-COMB REVERBERATOR (8x8). See Faust's reverbs.lib for documentation and 
     	references]", x);
 
 	in_group(x) = fdn_group(hgroup("[1] Input", x));
@@ -875,9 +875,9 @@ with{
     	6000, 1500, 0.49*fsmax, 1));
 
 	out_eq = pareq_stereo(eq1f,eq1l,eq1q) : pareq_stereo(eq2f,eq2l,eq2q);
-	// Zolzer style peaking eq (not used in zita-rev1) (filter.lib):
+	// Zolzer style peaking eq (not used in zita-rev1) (filters.lib):
 	// pareq_stereo(eqf,eql,Q) = peak_eq(eql,eqf,eqf/Q), peak_eq(eql,eqf,eqf/Q);
-	// Regalia-Mitra peaking eq with "Q" hard-wired near sqrt(g)/2 (filter.lib):
+	// Regalia-Mitra peaking eq with "Q" hard-wired near sqrt(g)/2 (filters.lib):
 	pareq_stereo(eqf,eql,Q) = fi.peak_eq_rm(eql,eqf,tpbt), fi.peak_eq_rm(eql,eqf,tpbt)
 	with {
     	tpbt = wcT/sqrt(max(0,g)); // tan(PI*B/SR), B bw in Hz (Q^2 ~ g/4)
@@ -941,7 +941,7 @@ with{
 // TODO: author JOS, revised by RM
 sawtooth_demo = signal
 with{
-	osc_group(x) = vgroup("[0] SAWTOOTH OSCILLATOR [tooltip: See Faust's oscillator.lib 
+	osc_group(x) = vgroup("[0] SAWTOOTH OSCILLATOR [tooltip: See Faust's oscillators.lib 
 		for documentation and references]",x);
 	knob_group(x)  = osc_group(hgroup("[1]", x));
 	ampdb  = knob_group(vslider("[1] Amplitude [unit:dB] [style:knob] [tooltip: Sawtooth 
@@ -988,7 +988,7 @@ with{
 virtual_analog_oscillator_demo = signal
 with{
 	osc_group(x) = vgroup("[0] VIRTUAL ANALOG OSCILLATORS
-		[tooltip: See Faust's oscillator.lib for documentation and references]",x);
+		[tooltip: See Faust's oscillators.lib for documentation and references]",x);
 
 	// Signals
 	sawchoice = _ <:

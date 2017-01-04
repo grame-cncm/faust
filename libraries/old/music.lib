@@ -41,15 +41,14 @@ declare author "GRAME";
 declare copyright "GRAME";
 declare version "1.0";
 declare license "LGPL with exception";
-declare deprecated "This library is deprecated and is not maintained anymore. It might
-be removed in future released."; 
+declare deprecated "This library is deprecated and is not maintained anymore. It will be removed in August 2017."; 
 
 import("math.lib");
 
 //-----------------------------------------------
 // 					DELAY LINE
 //-----------------------------------------------
-// frac(n)                 = n-int(n); // Redefined in math.lib
+frac(n)                 = n-int(n);
 index(n)                = &(n-1) ~ +(1);                // n = 2**i
 //delay(n,d,x)  = rwtable(n, 0.0, index(n), x, (index(n)-int(d)) & (n-1));
 delay(n,d,x)    = x@(int(d)&(n-1));
@@ -249,7 +248,7 @@ time 		= (+(1)~_ ) - 1; 			// 0,1,2,3,...
 sinwaveform 	= float(time)*(2.0*PI)/float(tablesize) : sin;
 coswaveform 	= float(time)*(2.0*PI)/float(tablesize) : cos;
 
-// decimal(x)	= x - floor(x); // redefined in math.lib
+decimal(x)	= x - floor(x);
 phase(freq) 	= freq/float(samplingfreq) : (+ : decimal) ~ _ : *(float(tablesize));
 oscsin(freq)	= rdtable(tablesize, sinwaveform, int(phase(freq)) );
 osccos(freq)	= rdtable(tablesize, coswaveform, int(phase(freq)) );
@@ -472,12 +471,11 @@ bsmooth(c) = +(i) ~ _
 //
 //	see : http://en.wikipedia.org/wiki/Chebyshev_polynomial
 //-------------------------------------------------------------------------
-// Redefined in math.lib
-/*
+
 chebychev(0) = !:1;
 chebychev(1) = _;
 chebychev(n) = _ <: *(2)*chebychev(n-1)-chebychev(n-2);
-*/
+
 
 
 //--------------------------------chebychevpoly-------------------------------
@@ -489,11 +487,10 @@ chebychev(n) = _ <: *(2)*chebychev(n-1)-chebychev(n-2);
 // 	chebychevpoly((c0,c1,...,cn)) = Sum of chebychev(i)*ci
 //  see : http://www.csounds.com/manual/html/chebyshevpoly.html
 //-------------------------------------------------------------------------
-// Redefined in math.lib
-/*
+
 chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
 	with {
 		L(n,(c,cs)) = chebychev(n)*c, L(n+1,cs);
 		L(n,c)      = chebychev(n)*c;
 	};
-*/
+

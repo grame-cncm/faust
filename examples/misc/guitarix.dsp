@@ -29,11 +29,11 @@ declare author   	"Guitarix project (http://guitarix.sourceforge.net/)";
 declare copyright 	"Guitarix project";
 declare license   	"LGPL";
 
-ba = library("basic.lib");
-si = library("signal.lib");
+ba = library("basics.lib");
+si = library("signals.lib");
 
-import("tube.lib");
-import("tonestack.lib");
+import("tubes.lib");
+import("tonestacks.lib");
 
 process = preamp; 
 
