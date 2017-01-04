@@ -1,10 +1,10 @@
-//#################################### compressor.lib ####################################
+//#################################### compressors.lib ####################################
 // A library of compressor effects.
 //
 // It should be used using the `co` environment:
 //
 // ```
-// co = library("compressor.lib");
+// co = library("compressors.lib");
 // process = co.functionCall;
 // ```
 //
@@ -49,9 +49,9 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ba = library("basic.lib");
-si = library("signal.lib");
-an = library("analyzer.lib");
+ba = library("basics.lib");
+si = library("signals.lib");
+an = library("analyzers.lib");
 
 
 declare name "Faust Compressor Effect Library";

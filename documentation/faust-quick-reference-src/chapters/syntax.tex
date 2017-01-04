@@ -750,13 +750,13 @@ The \lstinline'library' construct allows to create an environment by reading the
 library :    'library' '(' filename ')';
 \end{rail}
 
-For example \lstinline'library("filter.lib")' represents the environment 
-obtained by reading the file "filter.lib". It works like \lstinline'import("filter.lib")' but all the read definitions are stored in a new separate lexical environment. Individual definitions can be accessed as described in the previous paragraph. For example \lstinline'library("filter.lib").lowpass' denotes the function \lstinline'lowpass' as defined in the file \lstinline'"filter.lib"'.
+For example \lstinline'library("miscfilter.lib")' represents the environment 
+obtained by reading the file "miscfilter.lib". It works like \lstinline'import("miscfilter.lib")' but all the read definitions are stored in a new separate lexical environment. Individual definitions can be accessed as described in the previous paragraph. For example \lstinline'library("miscfilter.lib").lowpass' denotes the function \lstinline'lowpass' as defined in the file \lstinline'"miscfilter.lib"'.
 
 To avoid name conflicts when importing libraries it is recommended to prefer \lstinline'library' to \lstinline'import'. So instead of :
 
 \begin{lstlisting}
-import("filter.lib");
+import("miscfilter.lib");
   ...
 ...lowpass....
 	...
@@ -764,7 +764,7 @@ import("filter.lib");
 \end{lstlisting}
 the following will ensure an absence of conflicts : 
 \begin{lstlisting}
-fl = library("filter.lib");
+fl = library("miscfilter.lib");
   ...
 ...fl.lowpass....
 	...

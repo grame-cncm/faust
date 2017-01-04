@@ -1,4 +1,4 @@
-// WARNING: freeverb has been reimplemented in reverb.lib: this version is deprecated
+// WARNING: freeverb has been reimplemented in reverbs.lib: this version is deprecated
 
 declare name        "freeverb";
 declare version     "1.0";

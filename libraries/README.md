@@ -19,26 +19,26 @@ import("stdfaust.lib");
 This will give you access to all the Faust libraries through a series of environments:
 
 * `sf`: `all.lib`
-* `an`: `analyzer.lib`
-* `ba`: `basic.lib`
-* `co`: `compressor.lib`
-* `de`: `delay.lib`
-* `dm`: `demo.lib`
-* `en`: `envelope.lib`
-* `fi`: `filter.lib`
+* `an`: `analyzers.lib`
+* `ba`: `basics.lib`
+* `co`: `compressors.lib`
+* `de`: `delays.lib`
+* `dm`: `demos.lib`
+* `en`: `envelopes.lib`
+* `fi`: `filters.lib`
 * `ho`: `hoa.lib`
-* `ma`: `math.lib`
-* `ef`: `misceffect.lib`
-* `os`: `miscoscillator.lib`
-* `no`: `noise.lib`
-* `pf`: `phafla.lib`
-* `pm`: `pm.lib`
-* `re`: `reverb.lib`
-* `ro`: `route.lib`
-* `si`: `signal.lib`
-* `sp`: `spat.lib`
-* `sy`: `synth.lib`
-* `ve`: `vaeffect.lib`
+* `ma`: `maths.lib`
+* `ef`: `misceffects.lib`
+* `os`: `oscillators.lib`
+* `no`: `noises.lib`
+* `pf`: `phaflangers.lib`
+* `pm`: `physmodels.lib`
+* `re`: `reverbs.lib`
+* `ro`: `routes.lib`
+* `si`: `signals.lib`
+* `sp`: `spats.lib`
+* `sy`: `synths.lib`
+* `ve`: `vaeffects.lib`
 
 Environments can then be used as follows in your Faust code:
 
@@ -47,7 +47,7 @@ import("stdfaust.lib");
 process = os.osc(440);
 ```
 
-In this case, we're calling the `osc` function from `miscoscillator.lib`.
+In this case, we're calling the `osc` function from `oscillators.lib`.
 
 You can also access all the functions of all the libraries directly using the `sf` environment:
 
@@ -59,14 +59,14 @@ process = sf.osc(440);
 Alternatively, environments can be created by hand:
 
 ```
-os = library("miscoscillator.lib");
+os = library("oscillators.lib");
 process = os.osc(440);
 ```
 
 Finally, libraries can be simply imported in the Faust code (not recommended):
 
 ```
-import("miscoscillator.lib");
+import("oscillators.lib");
 process = osc(440);
 ```
 
@@ -141,28 +141,28 @@ If you wish to add a function to any of these libraries or if you plan to add a 
 
 Only the libraries that are considered to be "standard" are documented:
 
-* `analyzer.lib` 
-* `basic.lib` 
-* `compressor.lib`
-* `delay.lib`
-* `demo.lib`
-* `envelope.lib`
-* `filter.lib`
+* `analyzers.lib` 
+* `basics.lib` 
+* `compressors.lib`
+* `delays.lib`
+* `demos.lib`
+* `envelopes.lib`
+* `filters.lib`
 * `hoa.lib`
-* `math.lib`
-* `misceffect.lib`
-* `miscoscillator.lib`
-* `noise.lib`
-* `phafla.lib`
-* `pm.lib`
-* `reverb.lib`
-* `route.lib`
-* `signal.lib`
-* `spat.lib`
-* `synth.lib`
-* `tonestack.lib` (not documented but example in `/examples/misc`)
-* `tube.lib` (not documented but example in `/examples/misc`)
-* `vaeffect.lib`
+* `maths.lib`
+* `misceffects.lib`
+* `oscillators.lib`
+* `noises.lib`
+* `phaflangers.lib`
+* `physmodels.lib`
+* `reverbs.lib`
+* `routes.lib`
+* `signals.lib`
+* `spats.lib`
+* `synths.lib`
+* `tonestacks.lib` (not documented but example in `/examples/misc`)
+* `tubes.lib` (not documented but example in `/examples/misc`)
+* `vaeffects.lib`
 
 Other deprecated libraries such as `music.lib`, etc. are present but are not documented to not confuse new users. 
 
@@ -177,38 +177,38 @@ In order to have a uniformized library system, we established the following conv
 ### Documentation
 
 * All the functions that we want to be "public" are documented.
-* We used the `faust2md` "standards" for each library: `//###` for main title (library name - equivalent to `#` in markdown), `//===` for section declarations (equivalent to `##` in markdown) and `//---` for function declarations (equivalent to `####` in markdown - see `basic.lib` for an example).
+* We used the `faust2md` "standards" for each library: `//###` for main title (library name - equivalent to `#` in markdown), `//===` for section declarations (equivalent to `##` in markdown) and `//---` for function declarations (equivalent to `####` in markdown - see `basics.lib` for an example).
 * Sections in function documentation should be declared as `####` markdown title.
-* Each function documentation provides a "Usage" section (see `basic.lib`). 
+* Each function documentation provides a "Usage" section (see `basics.lib`). 
 
 ### Library Import
 
 To prevent cross-references between libraries we generalized the use of the `library("")` system for function calls in all the libraries. This means that everytime a function declared in another library is called, the environment corresponding to this library needs to be called too. To make things easier, a `stdfaust.lib` library was created and is imported by all the libraries:
 
 ```
-an = library("analyzer.lib");
-ba = library("basic.lib");
-co = library("compressor.lib");
-de = library("delay.lib");
-dm = library("demo.lib");
-en = library("envelope.lib");
-fi = library("filter.lib");
+an = library("analyzers.lib");
+ba = library("basics.lib");
+co = library("compressors.lib");
+de = library("delays.lib");
+dm = library("demos.lib");
+en = library("envelopes.lib");
+fi = library("filters.lib");
 ho = library("hoa.lib");
-ma = library("math.lib");
-ef = library("misceffect.lib");
-os = library("miscoscillator.lib");
-no = library("noise.lib");
-pf = library("phafla.lib");
-pm = library("pm.lib");
-re = library("reverb.lib");
-ro = library("route.lib");
-sp = library("spat.lib");
-si = library("signal.lib");
-sy = library("synth.lib");
-ve = library("vaeffect.lib");
+ma = library("maths.lib");
+ef = library("misceffects.lib");
+os = library("oscillators.lib");
+no = library("noises.lib");
+pf = library("phaflangers.lib");
+pm = library("physmodels.lib");
+re = library("reverbs.lib");
+ro = library("routes.lib");
+sp = library("spats.lib");
+si = library("signals.lib");
+sy = library("synths.lib");
+ve = library("vaeffects.lib");
 ```
 
-For example, if we wanted to use the `smooth` function which is now declared in `signal.lib`, we would do the following:
+For example, if we wanted to use the `smooth` function which is now declared in `signals.lib`, we would do the following:
 
 ```
 import("stdfaust.lib");
@@ -216,17 +216,17 @@ import("stdfaust.lib");
 process = si.smooth(0.999);
 ```
 
-This standard is only used within the libraries: nothing prevents coders to still import `signal.lib` directly and call `smooth` without `ro.`, etc.
+This standard is only used within the libraries: nothing prevents coders to still import `signals.lib` directly and call `smooth` without `ro.`, etc.
 
 ### "Demo" Functions
 
-"Demo" functions are placed in `demo.lib` and have a built-in user interface (UI). Their name ends with the `_demo` suffix. Each of these function have a `.dsp` file associated to them in the `/examples` folder. 
+"Demo" functions are placed in `demos.lib` and have a built-in user interface (UI). Their name ends with the `_demo` suffix. Each of these function have a `.dsp` file associated to them in the `/examples` folder. 
 
 Any function containing UI elements should be placed in this library and respect these standards.
 
 ### "Standard" Functions
 
-"Standard" functions are here to simplify the life of new (or not so new) Faust coders. They are declared in `/libraries/doc/standardFunctions.md` and allow to point programmers to preferred functions to carry out a specific task. For example, there are many different types of lowpass filters declared in `filter.lib` and only one of them is considered to be standard, etc.
+"Standard" functions are here to simplify the life of new (or not so new) Faust coders. They are declared in `/libraries/doc/standardFunctions.md` and allow to point programmers to preferred functions to carry out a specific task. For example, there are many different types of lowpass filters declared in `filters.lib` and only one of them is considered to be standard, etc.
 
 ## The question of licensing/authoring/copyrigth
 

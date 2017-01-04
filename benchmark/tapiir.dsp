@@ -11,8 +11,8 @@ declare copyright 	"(c)GRAME 2006";
 //
 //======================================================
 
-sig = library("signal.lib");
-dl = library("delay.lib");
+sig = library("signals.lib");
+dl = library("delays.lib");
 mat = library("math.lib");
 
 

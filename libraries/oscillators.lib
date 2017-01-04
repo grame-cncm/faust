@@ -1,10 +1,10 @@
-//############################## miscoscillator.lib ######################################
+//############################## oscillators.lib ######################################
 // This library contains a collection of sound generators.
 //
 // It should be used using the `os` environment:
 //
 // ```
-// os = library("miscoscillator.lib");
+// os = library("oscillators.lib");
 // process = os.functionCall;
 // ```
 //
@@ -52,9 +52,9 @@ closed source license or any other license if you decide so.
 declare name "Faust Oscillator Library";
 declare version "0.0";
 
-ma = library("math.lib");
-ba = library("basic.lib");
-fi = library("filter.lib");
+ma = library("maths.lib");
+ba = library("basics.lib");
+fi = library("filters.lib");
 
 
 //=========================Wave-Table-Based Oscillators===================================
@@ -596,7 +596,7 @@ pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with {
  // non-interpolated-delay version: diffdel(x,del) = x - x@int(del+0.5);
  // linearly interpolated delay version (sounds good to me):
     diffdel(x,del) = x-x@int(del)*(1-ma.frac(del))-x@(int(del)+1)*ma.frac(del);
- // Third-order Lagrange interpolated-delay version (see filter.lib):
+ // Third-order Lagrange interpolated-delay version (see filters.lib):
  // diffdel(x,del) = x - fdelay3(DELPWR2,max(1,min(DELPWR2-2,ddel)));
  DELPWR2 = 2048; // Needs to be a power of 2 when fdelay*() used above.
  delmax = DELPWR2-1; // arbitrary upper limit on diff delay (duty=0.5)

@@ -1,10 +1,10 @@
-//################################ analyzer.lib ##########################################
+//################################ analyzers.lib ##########################################
 // This library contains a collection of tools to analyze signals.
 // 
 // It should be used using the `an` environment:
 //
 // ```
-// an = library("analyzer.lib");
+// an = library("analyzers.lib");
 // process = an.functionCall;
 // ```
 //
@@ -49,9 +49,9 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ba = library("basic.lib");
-si = library("signal.lib");
-fi = library("filter.lib");
+ba = library("basics.lib");
+si = library("signals.lib");
+fi = library("filters.lib");
 
 declare name "Faust Analyzer Library";
 declare version "0.0";
@@ -135,7 +135,7 @@ amp_follower_ar(att,rel) = abs : si.lag_ud(att,rel);
 
 //=============================Spectrum-Analyzers=========================================
 // Spectrum-analyzers split the input signal into a bank of parallel signals, one for 
-// each spectral band. They are related to the Mth-Octave Filter-Banks in `filter.lib`.
+// each spectral band. They are related to the Mth-Octave Filter-Banks in `filters.lib`.
 // The documentation of this library contains more details about the implementation. 
 // The parameters are:
 //
@@ -265,7 +265,7 @@ mth_octave_spectral_level6e(M,ftop,N,tau,dB_offset) = _<:
   O = int(((N-2)/M)+0.4999);
   speclevel_group(x)  = hgroup("[0] CONSTANT-Q SPECTRUM ANALYZER (6E), %N bands spanning 
   	LP, %O octaves below %ftop Hz, HP
-     [tooltip: See Faust's filter.lib for documentation and references]", x);
+     [tooltip: See Faust's filters.lib for documentation and references]", x);
 };
 
 mth_octave_spectral_level_default = mth_octave_spectral_level6e;
