@@ -56,7 +56,7 @@ ma = library("maths.lib");
 ba = library("basics.lib");
 en = library("envelopes.lib");
 fi = library("filters.lib");
-os = library("miscoscillators.lib");
+os = library("oscillators.lib");
 no = library("noises.lib");
 
 //-----------------------------------`popFilterPerc`--------------------------------------

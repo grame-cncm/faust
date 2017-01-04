@@ -56,7 +56,7 @@ de = library("delays.lib");
 si = library("signals.lib");
 an = library("analyzers.lib");
 fi = library("filters.lib");
-os = library("miscoscillators.lib");
+os = library("oscillators.lib");
 no = library("noises.lib");
 ef = library("misceffects.lib");
 co = library("compressors.lib");
@@ -941,7 +941,7 @@ with{
 // TODO: author JOS, revised by RM
 sawtooth_demo = signal
 with{
-	osc_group(x) = vgroup("[0] SAWTOOTH OSCILLATOR [tooltip: See Faust's oscillator.lib 
+	osc_group(x) = vgroup("[0] SAWTOOTH OSCILLATOR [tooltip: See Faust's oscillators.lib 
 		for documentation and references]",x);
 	knob_group(x)  = osc_group(hgroup("[1]", x));
 	ampdb  = knob_group(vslider("[1] Amplitude [unit:dB] [style:knob] [tooltip: Sawtooth 
@@ -988,7 +988,7 @@ with{
 virtual_analog_oscillator_demo = signal
 with{
 	osc_group(x) = vgroup("[0] VIRTUAL ANALOG OSCILLATORS
-		[tooltip: See Faust's oscillator.lib for documentation and references]",x);
+		[tooltip: See Faust's oscillators.lib for documentation and references]",x);
 
 	// Signals
 	sawchoice = _ <:

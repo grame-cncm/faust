@@ -13,7 +13,7 @@ import("filters.lib");
 import("hoa.lib");
 import("maths.lib");
 import("misceffects.lib");
-import("miscoscillators.lib");
+import("oscillators.lib");
 import("noises.lib");
 import("phaflangers.lib");
 import("physmodels.lib");

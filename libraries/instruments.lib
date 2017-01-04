@@ -14,7 +14,7 @@ ba = library("basics.lib");
 de = library("delays.lib");
 si = library("signals.lib");
 fi = library("filters.lib");
-os = library("miscoscillators.lib");
+os = library("oscillators.lib");
 re = library("reverbs.lib");
 
 //========================= ENVELOPE GENERATORS ===============================

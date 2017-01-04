@@ -1,10 +1,10 @@
-//############################## miscoscillators.lib ######################################
+//############################## oscillators.lib ######################################
 // This library contains a collection of sound generators.
 //
 // It should be used using the `os` environment:
 //
 // ```
-// os = library("miscoscillators.lib");
+// os = library("oscillators.lib");
 // process = os.functionCall;
 // ```
 //

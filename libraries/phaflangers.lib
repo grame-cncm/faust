@@ -52,7 +52,7 @@ closed source license or any other license if you decide so.
 ma = library("maths.lib");
 de = library("delays.lib");
 fi = library("filters.lib");
-os = library("miscoscillators.lib");
+os = library("oscillators.lib");
 
 
 declare name "Faust Phaser and Flanger Library";
@@ -126,8 +126,8 @@ with {
        a1 = -2*R*cos(th);
      };
      R = exp(-pi*width/ma.SR);
-     cososc = os.oscrc; // oscillator.lib
-     sinosc = os.oscrs; // oscillator.lib
+     cososc = os.oscrc; // oscillators.lib
+     sinosc = os.oscrs; // oscillators.lib
      osc = cososc(speed) * phase01 + sinosc(speed) * (1-phase01);
      lfo = (1-osc)/2; // in [0,1]
      pi = 4*atan(1);

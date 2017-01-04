@@ -29,7 +29,7 @@ This will give you access to all the Faust libraries through a series of environ
 * `ho`: `hoa.lib`
 * `ma`: `maths.lib`
 * `ef`: `misceffects.lib`
-* `os`: `miscoscillators.lib`
+* `os`: `oscillators.lib`
 * `no`: `noises.lib`
 * `pf`: `phaflangers.lib`
 * `pm`: `physmodels.lib`
@@ -47,7 +47,7 @@ import("stdfaust.lib");
 process = os.osc(440);
 ```
 
-In this case, we're calling the `osc` function from `miscoscillators.lib`.
+In this case, we're calling the `osc` function from `oscillators.lib`.
 
 You can also access all the functions of all the libraries directly using the `sf` environment:
 
@@ -59,14 +59,14 @@ process = sf.osc(440);
 Alternatively, environments can be created by hand:
 
 ```
-os = library("miscoscillators.lib");
+os = library("oscillators.lib");
 process = os.osc(440);
 ```
 
 Finally, libraries can be simply imported in the Faust code (not recommended):
 
 ```
-import("miscoscillators.lib");
+import("oscillators.lib");
 process = osc(440);
 ```
 
@@ -151,7 +151,7 @@ Only the libraries that are considered to be "standard" are documented:
 * `hoa.lib`
 * `maths.lib`
 * `misceffects.lib`
-* `miscoscillators.lib`
+* `oscillators.lib`
 * `noises.lib`
 * `phaflangers.lib`
 * `physmodels.lib`
@@ -196,7 +196,7 @@ fi = library("filters.lib");
 ho = library("hoa.lib");
 ma = library("maths.lib");
 ef = library("misceffects.lib");
-os = library("miscoscillators.lib");
+os = library("oscillators.lib");
 no = library("noises.lib");
 pf = library("phaflangers.lib");
 pm = library("physmodels.lib");

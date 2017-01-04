@@ -140,20 +140,20 @@ Function Type | Function Name | Description
 
 Function Type | Function Name | Description
 --- | --- | ---
-[Impulse](#impulse) | [`os.`](#miscoscillators.lib)[`impulse`](#impulse) | Generate an impulse on start-up
-[Impulse Train](#imptrain) | [`os.`](#miscoscillators.lib)[`imptrain`](#imptrain) | Band-limited impulse train
-[Phasor](#phasor) | [`os.`](#miscoscillators.lib)[`phasor`](#phasor) | Simple phasor
+[Impulse](#impulse) | [`os.`](#oscillators.lib)[`impulse`](#impulse) | Generate an impulse on start-up
+[Impulse Train](#imptrain) | [`os.`](#oscillators.lib)[`imptrain`](#imptrain) | Band-limited impulse train
+[Phasor](#phasor) | [`os.`](#oscillators.lib)[`phasor`](#phasor) | Simple phasor
 [Pink Noise](#pink_noise) | [`no.`](#noises.lib)[`pink_noise`](#pink_noise) | Pink noise generator
-[Pulse Train](#pulsetrain) | [`os.`](#miscoscillators.lib)[`pulsetrain`](#pulsetrain) | Band-limited pulse train
-[Pulse Train (Low Frequency)](#lf_imptrain) | [`os.`](#miscoscillators.lib)[`lf_imptrain`](#lf_imptrain) | Low-frequency pulse train
-[Sawtooth](#sawtooth) | [`os.`](#miscoscillators.lib)[`sawtooth`](#sawtooth) | Band-limited sawtooth wave
-[Sawtooth (Low Frequency)](#lf_saw) | [`os.`](#miscoscillators.lib)[`lf_saw`](#lf_saw) | Low-frequency sawtooth wave
-[Sine (Filter-Based)](#osc) | [`os.`](#miscoscillators.lib)[`osc`](#osc) | Sine oscillator (filter-based)
-[Sine (Table-Based)](#oscsin) | [`os.`](#miscoscillators.lib)[`oscsin`](#oscsin) | Sine oscillator (table-based)
-[Square](#square) | [`os.`](#miscoscillators.lib)[`square`](#square) | Band-limited square wave
-[Square (Low Frequency)](#lf_squarewave) | [`os.`](#miscoscillators.lib)[`lf_squarewave`](#lf_squarewave) | Low-frequency square wave
-[Triangle](#triangle) | [`os.`](#miscoscillators.lib)[`triangle`](#triangle) | Band-limited triangle wave
-[Triangle (Low Frequency)](#lf_triangle) | [`os.`](#miscoscillators.lib)[`lf_triangle`](#lf_triangle) | Low-frequency triangle wave
+[Pulse Train](#pulsetrain) | [`os.`](#oscillators.lib)[`pulsetrain`](#pulsetrain) | Band-limited pulse train
+[Pulse Train (Low Frequency)](#lf_imptrain) | [`os.`](#oscillators.lib)[`lf_imptrain`](#lf_imptrain) | Low-frequency pulse train
+[Sawtooth](#sawtooth) | [`os.`](#oscillators.lib)[`sawtooth`](#sawtooth) | Band-limited sawtooth wave
+[Sawtooth (Low Frequency)](#lf_saw) | [`os.`](#oscillators.lib)[`lf_saw`](#lf_saw) | Low-frequency sawtooth wave
+[Sine (Filter-Based)](#osc) | [`os.`](#oscillators.lib)[`osc`](#osc) | Sine oscillator (filter-based)
+[Sine (Table-Based)](#oscsin) | [`os.`](#oscillators.lib)[`oscsin`](#oscsin) | Sine oscillator (table-based)
+[Square](#square) | [`os.`](#oscillators.lib)[`square`](#square) | Band-limited square wave
+[Square (Low Frequency)](#lf_squarewave) | [`os.`](#oscillators.lib)[`lf_squarewave`](#lf_squarewave) | Low-frequency square wave
+[Triangle](#triangle) | [`os.`](#oscillators.lib)[`triangle`](#triangle) | Band-limited triangle wave
+[Triangle (Low Frequency)](#lf_triangle) | [`os.`](#oscillators.lib)[`lf_triangle`](#lf_triangle) | Low-frequency triangle wave
 [White Noise](#noise) | [`no.`](#noises.lib)[`noise`](#noise) | White noise generator
 
 <div class="table-end"></div>
