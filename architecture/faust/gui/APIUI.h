@@ -54,6 +54,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         std::vector<FAUSTFLOAT>         fMax;
         std::vector<FAUSTFLOAT>         fStep;
         std::vector<std::string>	fUnit;
+        std::vector<std::string>	fTooltip;
         std::vector<ZoneControl*>	fAcc[3];
         std::vector<ZoneControl*>	fGyr[3];
 
@@ -70,6 +71,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         std::string fCurrentAcc;
         std::string fCurrentGyr;
         std::string fCurrentColor;
+        std::string fCurrentTooltip;
 
         // Add a generic parameter
         virtual void addParameter(const char* label,
@@ -91,6 +93,10 @@ class APIUI : public PathBuilder, public Meta, public UI
             //handle unit metadata
             fUnit.push_back(fCurrentUnit);
             fCurrentUnit = "";
+            
+            //handle tooltip metadata
+            fTooltip.push_back(fCurrentTooltip);
+            fCurrentTooltip = "";
 
             //handle scale metadata
             switch (fCurrentScale) {
@@ -315,6 +321,8 @@ class APIUI : public PathBuilder, public Meta, public UI
 				fCurrentGyr = val;
 			} else if (strcmp(key, "screencolor") == 0) {
                 fCurrentColor = val; // val = "red", "green" or "blue"
+            } else if (strcmp(key, "tooltip") == 0) {
+                fCurrentTooltip = val;
             }
         }
 
@@ -337,9 +345,11 @@ class APIUI : public PathBuilder, public Meta, public UI
         }
 		const char* getParamAddress(int p)	{ return fName[p].c_str(); }
 		const char* getParamUnit(int p)		{ return fUnit[p].c_str(); }
+		const char* getParamTooltip(int p)	{ return fTooltip[p].c_str(); }
 		FAUSTFLOAT getParamMin(int p)		{ return fMin[p]; }
 		FAUSTFLOAT getParamMax(int p)		{ return fMax[p]; }
 		FAUSTFLOAT getParamStep(int p)		{ return fStep[p]; }
+		FAUSTFLOAT getParamInit(int p)		{ return fInit[p]; }
 
         FAUSTFLOAT* getParamZone(int p)         { return fZone[p]; }
 		FAUSTFLOAT getParamValue(int p)         { return *fZone[p]; }
