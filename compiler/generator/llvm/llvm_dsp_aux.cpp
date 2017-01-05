@@ -425,7 +425,7 @@ void llvm_dsp_factory_aux::startLLVMLibrary()
 #endif
 #if (!defined(LLVM_35) && !defined(LLVM_36) && !defined(LLVM_37) && !defined(LLVM_38) && !defined(LLVM_39)) // In LLVM 3.5 this is gone.
         if (!llvm_start_multithreaded()) {
-            std::cerr << "llvm_start_multithreaded error...\n");
+            std::cerr << "llvm_start_multithreaded error...\n";
         }
 #endif
     }
