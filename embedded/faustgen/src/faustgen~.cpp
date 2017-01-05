@@ -1586,7 +1586,7 @@ extern "C" void ext_main(void* r)
     faustgen::makeMaxClass("faustgen~");
     post("faustgen~ v%s (sample = 64 bits code = %s)", FAUSTGEN_VERSION, getCodeSize());
     post("LLVM powered Faust embedded compiler v%s", getCLibFaustVersion());
-    post("Copyright (c) 2012-2016 Grame");
+    post("Copyright (c) 2012-2017 Grame");
     
     // Start 'libfaust' in multi-thread safe mode
     startMTDSPFactories();
