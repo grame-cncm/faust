@@ -34,7 +34,8 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
         {
             if (type == Typed::kInt
                 || type == Typed::kFloat_ptr
-                || type == Typed::kDouble_ptr) {
+                || type == Typed::kDouble_ptr
+                || type == Typed::kObj_ptr) {
                 return "i32";
             } else if (type == Typed::kFloat) {
                 return "f32";
@@ -135,21 +136,17 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
                 *fOut << "(param $" << (*it)->fName << " " << type2String((*it)->getType()) << ")";
                 if (i < size - 1) *fOut << " ";
             }
-            *fOut << " (result " << type2String(inst->fType->getType()) << ")";
+            if (inst->fType->getType() != Typed::kVoid) {
+                *fOut << " (result " << type2String(inst->fType->getType()) << ")";
+            }
         }
     
         virtual void generateFunDefBody(DeclareFunInst* inst)
         {
-            if (inst->fCode->fCode.size() == 0) {
-                // Pure prototype
-            } else {
-                // Function body
-                fTab++;
-                tab(fTab, *fOut);
-                inst->fCode->accept(this);
-                fTab--;
-                tab(fTab, *fOut);
-            }
+            fTab++;
+            tab(fTab, *fOut);
+            inst->fCode->accept(this);
+            fTab--;
         }
     
         virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end, int size)
@@ -189,9 +186,12 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
                         if (i < desc.fArgs - 1) *fOut << " ";
                     }
                     *fOut << ") (result " << (isIntType(desc.fType) ? "i32" : realStr) << "))";
+                    return;
                 }
-            } else {
-                // Prototype
+            }
+                
+            // Complete function
+            if (inst->fCode->fCode.size() != 0) {
                 tab(fTab, *fOut); *fOut << "(func $" << generateFunName(inst->fName) << " ";
                 generateFunDefArgs(inst);
                 generateFunDefBody(inst);
@@ -450,7 +450,9 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
         {
             *fOut << "(select ";
             inst->fThen->accept(this);
+            *fOut << " ";
             inst->fElse->accept(this);
+            *fOut << " ";
             // Condition is last item
             inst->fCond->accept(this);
             *fOut << ")";
@@ -463,7 +465,9 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
         {
             *fOut << "(if ";
             inst->fCond->accept(this);
+            *fOut << " ";
             inst->fThen->accept(this);
+            *fOut << " ";
             inst->fElse->accept(this);
             *fOut << ")";
             

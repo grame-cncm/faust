@@ -275,7 +275,15 @@ class BufferWithRandomAccess : public std::vector<uint8_t> {
             if (debug) std::cerr << "backpatchU32LEB: " << x.value << " (at " << i << ")" << std::endl;
             x.writeAt(this, i, 5); // fill all 5 bytes, we have to do this when backpatching
         }
-        
+    
+        int32_t writeU32LEBPlaceholder()
+        {
+            int32_t ret = size();
+            *this << int32_t(0);
+            *this << int8_t(0);
+            return ret;
+        }
+   
         template <typename T>
         void writeTo(T& o)
         {
@@ -423,6 +431,17 @@ namespace BinaryConsts {
     
 } // namespace BinaryConsts
 
+inline int32_t startSectionAux(BufferWithRandomAccess* out, BinaryConsts::Section code)
+{
+    *out << U32LEB(code);
+    return out->writeU32LEBPlaceholder(); // section size to be filled in later
+}
+
+inline void finishSectionAux(BufferWithRandomAccess* out, int32_t start)
+{
+    int32_t size = out->size() - start - 5; // section size does not include the 5 bytes of the size field itself
+    out->writeAt(start, U32LEB(size));
+}
 
 // Local variable counter with their types
 
@@ -440,12 +459,12 @@ struct LocalVarDesc {
     
 };
 
-// TO REMOVE ?
 inline S32LEB type2Binary(Typed::VarType type)
 {
     if (type == Typed::kInt
         || type == Typed::kFloat_ptr
-        || type == Typed::kDouble_ptr) {
+        || type == Typed::kDouble_ptr
+        || type == Typed::kObj_ptr) {
         return S32LEB(BinaryConsts::EncodedType::i32);
     } else if (type == Typed::kFloat) {
         return S32LEB(BinaryConsts::EncodedType::f32);
@@ -457,7 +476,7 @@ inline S32LEB type2Binary(Typed::VarType type)
     }
 }
 
-// Count local variables with their types
+// Count local variables with their types : to be used at the begining of each block
 
 struct LocalVariableCounter : public InstVisitor {
     
@@ -491,7 +510,7 @@ struct LocalVariableCounter : public InstVisitor {
         }
     }
     
-    void generateLocals(BufferWithRandomAccess* out)
+    void generate(BufferWithRandomAccess* out)
     {
         *out << U32LEB((fIn32Type ? 1 : 0) + (fF32Type ? 1 : 0) + (fF64Type ? 1 : 0));
         if (fIn32Type) *out << U32LEB(fIn32Type) << S32LEB(BinaryConsts::EncodedType::i32);
@@ -505,43 +524,12 @@ struct LocalVariableCounter : public InstVisitor {
 
 struct FunAndTypeCounter : public InstVisitor , public WASInst {
     
+    std::map<string, FunTyped*> fFunTypes;
+    
     FunAndTypeCounter():WASInst()
-    {}
-    
-    virtual void generateFunDefArgs(DeclareFunInst* inst)
     {
-        list<NamedTyped*>::const_iterator it;
-        int size = inst->fType->fArgsTypes.size(), i = 0;
-        for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
-            //*fOut << "(param $" << (*it)->fName << " " << type2String((*it)->getType()) << ")";
-            //if (i < size - 1) *fOut << " ";
-        }
-        //*fOut << " (result " << type2String(inst->fType->getType()) << ")";
-    }
+        // TODO : add exported functions types
     
-    virtual void generateFunDefBody(DeclareFunInst* inst)
-    {
-        if (inst->fCode->fCode.size() == 0) {
-            // Pure prototype
-        } else {
-            // Function body
-            //fTab++;
-            //tab(fTab, *fOut);
-            inst->fCode->accept(this);
-            //fTab--;
-            //tab(fTab, *fOut);
-        }
-    }
-    
-    virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end, int size)
-    {
-        list<ValueInst*>::const_iterator it = beg;
-        int i = 0;
-        for (it = beg; it != end; it++, i++) {
-            // Compile argument
-            (*it)->accept(this);
-            //if (i < size - 1) *fOut << " ";
-        }
     }
     
     virtual void visit(DeclareFunInst* inst)
@@ -557,20 +545,52 @@ struct FunAndTypeCounter : public InstVisitor , public WASInst {
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
             MathFunDesc desc = fMathLibTable[inst->fName];
             if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
-                //tab(fTab, *fOut);
+                
                 if (desc.fMode == MathFunDesc::Gen::kExtMath) {
-                    //*fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << desc.fName << "\" (param ";
+                    
                 } else if (desc.fMode == MathFunDesc::Gen::kExtWAS) {
-                    //*fOut << "(import $" << inst->fName << " \"asm2wasm\" " "\"" << desc.fName << "\" (param ";
+                    
                 } else {
                     assert(false);
                 }
             }
         } else {
             // Prototype
-            generateFunDefArgs(inst);
-            generateFunDefBody(inst);
+            fFunTypes[inst->fName] = inst->fType;
         }
+    }
+    
+    int32_t getFunctionTypeIndex(const string& name)
+    {
+        int i = 0;
+        for (auto& type : fFunTypes) {
+            if (type.first == name) return i;
+            i++;
+        }
+        return -1;
+    }
+   
+    // Generate list of functions types
+    void generate(BufferWithRandomAccess* out)
+    {
+        int32_t start = startSectionAux(out, BinaryConsts::Section::Type);
+        *out << U32LEB(fFunTypes.size());
+        
+        for (auto& type : fFunTypes) {
+            *out << S32LEB(BinaryConsts::EncodedType::Func);
+            *out << U32LEB(type.second->fArgsTypes.size());
+            for (auto param : type.second->fArgsTypes) {
+                *out << type2Binary(param->getType());
+            }
+            if (type.second->fResult->getType() == Typed::kVoid) {
+                *out << U32LEB(0);
+            } else {
+                *out << U32LEB(1);
+                *out << type2Binary(type.second->fResult->getType());
+            }
+        }
+        
+        finishSectionAux(out, start);
     }
     
 };
@@ -582,14 +602,6 @@ class WASMInstVisitor : public InstVisitor, public WASInst {
         map<string, LocalVarDesc> fLocalVarTable;
         map<string, int> fFunctionsOffset;
         BufferWithRandomAccess* fOut;
-    
-        int32_t writeU32LEBPlaceholder()
-        {
-            int32_t ret = fOut->size();
-            *fOut << int32_t(0);
-            *fOut << int8_t(0);
-            return ret;
-        }
     
         void emitMemoryAccess()
         {
@@ -610,14 +622,12 @@ class WASMInstVisitor : public InstVisitor, public WASInst {
     
         int32_t startSection(BinaryConsts::Section code)
         {
-            *fOut << U32LEB(code);
-            return writeU32LEBPlaceholder(); // section size to be filled in later
+            return startSectionAux(fOut, code);
         }
     
         void finishSection(int32_t start)
         {
-            int32_t size = fOut->size() - start - 5; // section size does not include the 5 bytes of the size field itself
-            fOut->writeAt(start, U32LEB(size));
+            return finishSectionAux(fOut, start);
         }
  
         virtual void visit(DeclareVarInst* inst)
@@ -652,7 +662,7 @@ class WASMInstVisitor : public InstVisitor, public WASInst {
             }
         }
     
-        // Already handled using FunAndTypeCounter
+        // Function type definition is done first with FunAndTypeCounter, then the function body is generated here
         virtual void visit(DeclareFunInst* inst)
         {
             // Already generated
@@ -662,20 +672,41 @@ class WASMInstVisitor : public InstVisitor, public WASInst {
                 fFunctionSymbolTable[inst->fName] = 1;
             }
             
-            // If not math function, generate it
-            if (fMathLibTable.find(inst->fName) == fMathLibTable.end()) {
-                
-                // Generate locals
-                LocalVariableCounter local_counter;
-                inst->fCode->accept(&local_counter);
-                local_counter.generateLocals(fOut);
-                
-                // Generate body
-                setLocalVarTable(local_counter.fLocalVarTable);
-                inst->fCode->accept(this);
+            // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
+            if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
+                MathFunDesc desc = fMathLibTable[inst->fName];
+                if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
+                    return;
+                }
+            }
+            
+            // Complete function
+            if (inst->fCode->fCode.size() != 0) {
+                generateFunDefBody(inst->fCode);
             }
         }
     
+        virtual void generateFunDefBody(BlockInst* block)
+        {
+            // Body size
+            size_t size_pos = fOut->writeU32LEBPlaceholder();
+            size_t start = fOut->size();
+            
+            // Generate locals
+            LocalVariableCounter local_counter;
+            block->accept(&local_counter);
+            local_counter.generate(fOut);
+            
+            // Generate body
+            setLocalVarTable(local_counter.fLocalVarTable);
+            block->accept(this);
+            
+            // Generate end
+            *fOut << int8_t(BinaryConsts::End);
+            size_t size = fOut->size() - start;
+            fOut->writeAt(size_pos, U32LEB(size));
+        }
+
         virtual void visit(LoadVarInst* inst)
         {
             fTypingVisitor.visit(inst);

@@ -414,7 +414,7 @@ struct Typed : public Printable
                 return kVoid_ptr;
             default:
                 // Not supposed to happen
-                cerr << "getTypeFromPtr " << type << endl;
+                cerr << "getTypeFromPtr " << Typed::gTypeString[type] << endl;
                 assert(false);
                 return kVoid;
         }
@@ -434,7 +434,7 @@ struct Typed : public Printable
                 return kBool;
             default:
                 // Not supposed to happen
-                cerr << "getTypeFromVec " << type << endl;
+                cerr << "getTypeFromVec " << Typed::gTypeString[type] << endl;
                 assert(false);
                 return kVoid;
         }

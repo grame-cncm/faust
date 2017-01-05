@@ -144,7 +144,9 @@ struct WASInst {
         
         fStructOffset = 0;
         fSubContainerType = -1;
-        fFastMemory = true;
+        //fFastMemory = true;
+        
+        fFastMemory = false;
     }
     
     void setSubContainerType(int type) { fSubContainerType = type; }
@@ -158,6 +160,14 @@ struct WASInst {
     {
         return (fFieldTable.find(name) != fFieldTable.end()) ? fFieldTable[name].fOffset : -1;
     }
+    
+    static DeclareFunInst* generateIntMin();
+    static DeclareFunInst* generateIntMax();
+    
+    static DeclareFunInst* generateInit();
+    static DeclareFunInst* generateInstanceInit();
+    
+    static DeclareFunInst* generateGetSampleRate();
     
 };
 

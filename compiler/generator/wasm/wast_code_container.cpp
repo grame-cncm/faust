@@ -104,7 +104,6 @@ WASTScalarCodeContainer::~WASTScalarCodeContainer()
 // Special version that uses MoveVariablesInFront3 to inline waveforms...
 DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn)
 {
-    //cout << "WASTCodeContainer::generateInstanceInitFun" << endl;
     list<NamedTyped*> args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
@@ -189,21 +188,14 @@ void WASTCodeContainer::produceClass()
         // After field declaration...
         generateSubContainers();
     
-        //*fOut << "(memory (export \"memory\") 16)";
         tab(n+1, *fOut);
         *fOut << "(memory (export \"memory\") "
               << ((pow2limit(gGlobal->gWASTVisitor->getStructSize() + (fNumInputs + fNumOutputs) * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1) << ")";
     
         // Always generated mathematical functions
         tab(n+1, *fOut);
-        
-        tab(n+1, *fOut); *fOut << "(func $min_i (param $v1 i32) (param $v2 i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(return (select (get_local $v1) (get_local $v2) (i32.lt_s (get_local $v1) (get_local $v2))))";
-        tab(n+1, *fOut); *fOut << ")";
-        
-        tab(n+1, *fOut); *fOut << "(func $max_i (param $v1 i32) (param $v2 i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(return (select (get_local $v2) (get_local $v1) (i32.lt_s (get_local $v1) (get_local $v2))))";
-        tab(n+1, *fOut); *fOut << ")";
+        WASInst::generateIntMin()->accept(gGlobal->gWASTVisitor);
+        WASInst::generateIntMax()->accept(gGlobal->gWASTVisitor);
         
         /*
          tab(n+1, *fOut); *fOut << "(func $fmod" << isuffix() << " (type $0) (param $value " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
@@ -215,13 +207,9 @@ void WASTCodeContainer::produceClass()
          tab(n+1, *fOut); *fOut << ")";
         */
     
-        tab(n+1, *fOut); *fOut << "(func $getNumInputs (param $dsp i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(return (i32.const " << fNumInputs << "))";
-        tab(n+1, *fOut); *fOut << ")";
-    
-        tab(n+1, *fOut); *fOut << "(func $getNumOutputs (param $dsp i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(return (i32.const " << fNumOutputs << "))";
-        tab(n+1, *fOut); *fOut << ")";
+        // getNumInputs/getNumOutputs
+        generateGetInputs("getNumInputs", false, false)->accept(gGlobal->gWASTVisitor);
+        generateGetOutputs("getNumOutputs", false, false)->accept(gGlobal->gWASTVisitor);
     
         // Inits
         tab(n+1, *fOut); *fOut << "(func $classInit (param $dsp i32) (param $samplingFreq i32)";
@@ -243,7 +231,7 @@ void WASTCodeContainer::produceClass()
                 BlockInst* renamed = renamer.getCode(fInitInstructions);
                 BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
                 generateWASTBlock(inlined);
-          }
+            }
         tab(n+1, *fOut); *fOut << ")";
     
         tab(n+1, *fOut); *fOut << "(func $instanceResetUserInterface (param $dsp i32)";
@@ -264,21 +252,16 @@ void WASTCodeContainer::produceClass()
             }
         tab(n+1, *fOut); *fOut << ")";
     
-        tab(n+1, *fOut); *fOut << "(func $init (param $dsp i32) (param $samplingFreq i32)";
-            tab(n+2, *fOut); *fOut << "(call $classInit (get_local $dsp) (get_local $samplingFreq))";
-            tab(n+2, *fOut); *fOut << "(call $instanceInit (get_local $dsp) (get_local $samplingFreq))";
-        tab(n+1, *fOut); *fOut << ")";
+        gGlobal->gWASTVisitor->Tab(n+1);
     
-        tab(n+1, *fOut); *fOut << "(func $instanceInit (param $dsp i32) (param $samplingFreq i32)";
-            tab(n+2, *fOut); *fOut << "(call $instanceConstants (get_local $dsp) (get_local $samplingFreq))";
-            tab(n+2, *fOut); *fOut << "(call $instanceResetUserInterface (get_local $dsp))";
-            tab(n+2, *fOut); *fOut << "(call $instanceClear (get_local $dsp))";
-        tab(n+1, *fOut); *fOut << ")";
-        
+        // init
+        WASInst::generateInit()->accept(gGlobal->gWASTVisitor);
+    
+        // instanceInit
+        WASInst::generateInstanceInit()->accept(gGlobal->gWASTVisitor);
+    
         // getSampleRate
-        tab(n+1, *fOut); *fOut << "(func $getSampleRate (param $dsp i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(return (i32.load (i32.add (get_local $dsp) (i32.const " << gGlobal->gWASTVisitor->getFieldOffset("fSamplingFreq") << "))))";
-        tab(n+1, *fOut); *fOut << ")";
+        WASInst::generateGetSampleRate()->accept(gGlobal->gWASTVisitor);
     
         // setParamValue
         tab(n+1, *fOut); *fOut << "(func $setParamValue (param $dsp i32) (param $index i32) (param $value " << realStr << ")";
@@ -292,7 +275,7 @@ void WASTCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "(func $getParamValue (param $dsp i32) (param $index i32) (result " << realStr << ")";
             tab(n+2, *fOut); *fOut << "(return (" << realStr << ".load (i32.add (get_local $dsp) (get_local $index))))";
         tab(n+1, *fOut); *fOut << ")";
-
+    
         // compute
         generateCompute(n);
         
@@ -370,3 +353,110 @@ void WASTScalarCodeContainer::generateCompute(int n)
         block->accept(gGlobal->gWASTVisitor);
     tab(n+1, *fOut); *fOut << ")";
 }
+
+DeclareFunInst* WASInst::generateIntMin()
+{
+    list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped("v1", Typed::kInt));
+    args.push_back(InstBuilder::genNamedTyped("v2", Typed::kInt));
+    
+    BlockInst* block = InstBuilder::genBlockInst();
+    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genSelect2Inst(InstBuilder::genLessThan(InstBuilder::genLoadFunArgsVar("v1"),
+                                                                                                     InstBuilder::genLoadFunArgsVar("v2")),
+                                                                            InstBuilder::genLoadFunArgsVar("v1"),
+                                                                            InstBuilder::genLoadFunArgsVar("v2"))));
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst("min_i", fun_type, block);
+}
+
+DeclareFunInst* WASInst::generateIntMax()
+{
+    list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped("v1", Typed::kInt));
+    args.push_back(InstBuilder::genNamedTyped("v2", Typed::kInt));
+    
+    BlockInst* block = InstBuilder::genBlockInst();
+    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genSelect2Inst(InstBuilder::genLessThan(InstBuilder::genLoadFunArgsVar("v1"),
+                                                                                                     InstBuilder::genLoadFunArgsVar("v2")),
+                                                                            InstBuilder::genLoadFunArgsVar("v2"),
+                                                                            InstBuilder::genLoadFunArgsVar("v1"))));
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst("max_i", fun_type, block);
+}
+
+DeclareFunInst* WASInst::generateInit()
+{
+    list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
+    
+    BlockInst* block = InstBuilder::genBlockInst();
+    {
+        list<ValueInst*> args;
+        args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+        args.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
+        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("classInit", args)));
+    }
+    
+    {
+        list<ValueInst*> args;
+        args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+        args.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
+        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceInit", args)));
+    }
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst("init", fun_type, block);
+ }
+
+DeclareFunInst* WASInst::generateInstanceInit()
+{
+    list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
+    
+    BlockInst* block = InstBuilder::genBlockInst();
+    {
+        list<ValueInst*> args;
+        args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+        args.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
+        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceConstants", args)));
+    }
+    
+    {
+        list<ValueInst*> args;
+        args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceResetUserInterface", args)));
+    }
+    
+    {
+        list<ValueInst*> args;
+        args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceClear", args)));
+    }
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst("instanceInit", fun_type, block);
+}
+
+DeclareFunInst* WASInst::generateGetSampleRate()
+{
+    list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+    
+    BlockInst* block = InstBuilder::genBlockInst();
+    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genLoadStructVar("fSamplingFreq")));
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst("getSampleRate", fun_type, block);
+}
+
+
+
