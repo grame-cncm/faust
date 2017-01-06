@@ -5,7 +5,7 @@ declare copyright "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 
-import("instrument.lib");
+import("instruments.lib");
 
 //==================== GUI SPECIFICATION ================
 

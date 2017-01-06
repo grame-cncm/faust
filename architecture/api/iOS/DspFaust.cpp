@@ -167,6 +167,38 @@ const char* DspFaust::getVoiceParamAddress(int id, long voice){
 	return fPolyEngine->getVoiceParamAddress(id, voice);
 }
 
+float DspFaust::getParamMin(const char* address){
+    return fPolyEngine->getParamMin(address);
+}
+      
+float DspFaust::getParamMin(int id){
+    return fPolyEngine->getParamMin(id);
+}
+      
+float DspFaust::getParamMax(const char* address){
+    return fPolyEngine->getParamMax(address);
+}
+      
+float DspFaust::getParamMax(int id){
+    return fPolyEngine->getParamMax(id);
+}
+      
+float DspFaust::getParamInit(const char* address){
+    return fPolyEngine->getParamInit(address);
+}
+      
+float DspFaust::getParamInit(int id){
+    return fPolyEngine->getParamInit(id);
+}
+      
+const char* DspFaust::getParamTooltip(const char* address){
+    return fPolyEngine->getParamTooltip(address);
+}
+      
+const char* DspFaust::getParamTooltip(int id){
+    return fPolyEngine->getParamTooltip(id);
+}
+
 void DspFaust::propagateAcc(int acc, float v){
 	fPolyEngine->propagateAcc(acc, v);
 }

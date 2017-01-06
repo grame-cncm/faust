@@ -7,7 +7,7 @@ declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "A simple flute physical model, as discussed by Karjalainen, Smith, Waryznyk, etc.  The jet model uses a polynomial, a la Cook.";
 declare reference "https://ccrma.stanford.edu/~jos/pasp/Flutes_Recorders_Pipe_Organs.html"; 
 
-import("instrument.lib");
+import("instruments.lib");
 
 //==================== GUI SPECIFICATION ================
 

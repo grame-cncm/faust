@@ -6,7 +6,7 @@ declare copyright "Julius Smith";
 declare reference "http://ccrma.stanford.edu/~jos/pasp/vegf.html";
 // -> Virtual\_Electric\_Guitars\_Faust.html";
 
-import("instrument.lib");
+import("instruments.lib");
 
 //==================== GUI SPECIFICATION ================
 

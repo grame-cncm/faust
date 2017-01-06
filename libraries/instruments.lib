@@ -6,9 +6,8 @@ declare copyright "Romain Michon";
 declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 
-
-//no = library("noises.lib"); 
-en = library("envelopes.lib"); 
+no = library("noises.lib");
+en = library("envelopes.lib");
 ma = library("maths.lib");
 ba = library("basics.lib");
 de = library("delays.lib");
@@ -32,27 +31,25 @@ re = library("reverbs.lib");
 //   t = trigger signal
 
 envVibrato(b,a,s,r,t) = env ~ (_,_,_) : (!,!,_) // the 3 'state' signals are fed back
-with {
-    env (p2,cnt,y) =
-        (t>0) & (p2|(y>=1)),
-		(cnt + 1)*(t>0), // counter for the first step "b"
-        (y + p1*p3*u*(s/100) - p4*w*y)*((p4==0)|(y>=eps))	// y  = envelop signal
-		//*(y>=eps) // cut off tails to prevent denormals
     with {
-	p1 = (p2==0) & (t>0) & (y<1) & (cnt>(b*ma.SR)); // p1 = attack phase
-	p3 = 1-(cnt<(nb)); // p3 = beginning phase
-	p4 = (t<=0) & (y>0);  // p4 = release phase
-	// #samples in attack, release, must be >0
-	nb = ma.SR*b+(b==0.0) ; na = ma.SR*a+(a==0.0); nr = ma.SR*r+(r==0.0);
-	// attack and (-60dB) release rates
-	z = s+(s==0.0)*ba.db2linear(-60);
-	u = 1/na; w = 1-1/pow(z*ba.db2linear(60), 1/nr);
-	// values below this threshold are considered zero in the release phase
-	eps = ba.db2linear(-120);
+        env (p2,cnt,y) =
+            (t>0) & (p2|(y>=1)),
+            (cnt + 1)*(t>0), // counter for the first step "b"
+            (y + p1*p3*u*(s/100) - p4*w*y)*((p4==0)|(y>=eps))	// y  = envelop signal
+            //*(y>=eps) // cut off tails to prevent denormals
+        with {
+        p1 = (p2==0) & (t>0) & (y<1) & (cnt>(b*ma.SR)); // p1 = attack phase
+        p3 = 1-(cnt<(nb)); // p3 = beginning phase
+        p4 = (t<=0) & (y>0);  // p4 = release phase
+        // #samples in attack, release, must be >0
+        nb = ma.SR*b+(b==0.0) ; na = ma.SR*a+(a==0.0); nr = ma.SR*r+(r==0.0);
+        // attack and (-60dB) release rates
+        z = s+(s==0.0)*ba.db2linear(-60);
+        u = 1/na; w = 1-1/pow(z*ba.db2linear(60), 1/nr);
+        // values below this threshold are considered zero in the release phase
+        eps = ba.db2linear(-120);
+        };
     };
-};
-
-
 
 //----------------------- ASYMPT60 ----------------------------
 // Envelope generator which asymptotically approaches a target value.
@@ -66,17 +63,17 @@ with {
 //   trig = trigger signal
 
 asympT60(value,trgt,T60,trig) = (_*factor + constant)~_
-	with{
-		cntSample = *(trig) + 1~_ : -(1);
-		attDur = float(2);
-		cndFirst = ((cntSample < attDur) & (trig > 0));
-		target = value*cndFirst + trgt*(cndFirst < 1);
-		factorAtt = exp(-7/attDur);
-		factorT60 = exp(-7/(T60*float(ma.SR)));
-		factor = factorAtt*((cntSample < attDur) & (trig > 0)) +
-		       ((cntSample >= attDur) | (trig < 1))*factorT60;
-		constant = (1 - factor)*target;
-	};
+    with {
+        cntSample = *(trig) + 1~_ : -(1);
+        attDur = float(2);
+        cndFirst = ((cntSample < attDur) & (trig > 0));
+        target = value*cndFirst + trgt*(cndFirst < 1);
+        factorAtt = exp(-7/attDur);
+        factorT60 = exp(-7/(T60*float(ma.SR)));
+        factor = factorAtt*((cntSample < attDur) & (trig > 0)) +
+               ((cntSample >= attDur) | (trig < 1))*factorT60;
+        constant = (1 - factor)*target;
+    };
 
 //========================= TABLES ===============================
 
@@ -100,9 +97,9 @@ saturationNeg(x) = x <: (_<-1),(_>=-1 : *(x)) :> *(-1) + _;
 //   0 <= index <= 1
 
 bow(offset,slope) = pow(abs(sample) + 0.75, -4) : saturationPos
-	with{
-	sample(y) = (y + offset)*slope;
-	};
+    with {
+        sample(y) = (y + offset)*slope;
+    };
 
 //----------------------- REED TABLE ----------------------------
 // Simple reed table to be used with waveguide models of clanrinet, saxophone, etc.
@@ -116,9 +113,9 @@ bow(offset,slope) = pow(abs(sample) + 0.75, -4) : saturationPos
 //   https://ccrma.stanford.edu/~jos/pasp/View_Single_Reed_Oscillation.html
 
 reed(offset,slope) = reedTable : saturationPos : saturationNeg
-	with{
-	reedTable = offset + (slope*_);
-	};
+    with {
+        reedTable = offset + (slope*_);
+    };
 
 //========================= FILTERS ===============================
 
@@ -149,7 +146,7 @@ oneZero1(b0,b1,x) = (x'*b1 + x*b0);
 //----------------------- BANDPASS FILTER WITH CONSTANT UNITY PEAK GAIN BASED ON A BIQUAD ----------------------------
 
 bandPass(resonance,radius) = fi.TF2(b0,b1,b2,a1,a2)
-	with{
+	with {
 		a2 = radius*radius;
 		a1 = -2*radius*cos(ma.PI*2*resonance/ma.SR);
 		b0 = 0.5-0.5*a2;
@@ -167,7 +164,7 @@ bandPass(resonance,radius) = fi.TF2(b0,b1,b2,a1,a2)
 //   radius = radius
 
 bandPassH(resonance,radius) = fi.TF2(b0,b1,b2,a1,a2)
-	with{
+	with {
 		a2 = radius*radius;
 		a1 = -2*radius*cos(ma.PI*2*resonance/ma.SR);
 		b0 = 1;
@@ -203,7 +200,7 @@ nonLinearModulator(nonlinearity,env,freq,typeMod,freqMod,order) =
 	//theta is modulated by the incoming signal
 	     (_ <: nonLinearFilterSig*nonlinearity,_*(1 - nonlinearity) :> +)*(typeMod < 3)
 	:> +
-	with{
+	with {
 		//which frequency to use for the sine wave oscillator?
 		freqOscMod = (typeMod == 4)*freq + (typeMod != 4)*freqMod;
 
@@ -238,12 +235,12 @@ nonLinearModulator(nonlinearity,env,freq,typeMod,freqMod,order) =
 //   Formulation initiated by Julius O. Smith in https://ccrma.stanford.edu/realsimple/faust_strings/
 
 stereoizer(periodDuration) = _ <: _,widthdelay : stereopanner
-	   with{
-		W = hslider("v:Spat/spatial width", 0.5, 0, 1, 0.01);
-		A = hslider("v:Spat/pan angle", 0.6, 0, 1, 0.01);
-		widthdelay = de.delay(4096,W*periodDuration/2);
-		stereopanner = _,_ : *(1.0-A), *(A);
-	   };
+    with {
+        W = hslider("v:Spat/spatial width", 0.5, 0, 1, 0.01);
+        A = hslider("v:Spat/pan angle", 0.6, 0, 1, 0.01);
+        widthdelay = de.delay(4096,W*periodDuration/2);
+        stereopanner = _,_ : *(1.0-A), *(A);
+    };
 
 //----------------------- INSTRREVERB ----------------------------
 // GUI for zita_rev1_stereo from reverbs.lib
@@ -253,13 +250,13 @@ stereoizer(periodDuration) = _ <: _,widthdelay : stereopanner
 
 instrReverb = _,_ <: *(reverbGain),*(reverbGain),*(1 - reverbGain),*(1 - reverbGain) :
 re.zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ <: _,!,_,!,!,_,!,_ : +,+
-       with{
-       reverbGain = hslider("v:Reverb/reverbGain",0.137,0,1,0.01) : si.smoo;
-       roomSize = hslider("v:Reverb/roomSize",0.72,0.01,2,0.01);
-       rdel = 20;
-       f1 = 200;
-       f2 = 6000;
-       t60dc = roomSize*3;
-       t60m = roomSize*2;
-       fsmax = 48000;
-       };
+    with {
+        reverbGain = hslider("v:Reverb/reverbGain",0.137,0,1,0.01) : si.smoo;
+        roomSize = hslider("v:Reverb/roomSize",0.72,0.01,2,0.01);
+        rdel = 20;
+        f1 = 200;
+        f2 = 6000;
+        t60dc = roomSize*3;
+        t60m = roomSize*2;
+        fsmax = 48000;
+    };
