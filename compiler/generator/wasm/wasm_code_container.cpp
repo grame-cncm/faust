@@ -167,6 +167,12 @@ void WASMCodeContainer::produceClass()
     // Functions signature
     gGlobal->gWASMVisitor->generateFuncSignatures();
     
+    // Fields : compute the structure size to use in 'new'
+    generateDeclarations(gGlobal->gWASMVisitor);
+    
+    // After field declaration...
+    generateSubContainers();
+    
     /*
     ; section "MEMORY" (5)
     000006a: 05                                        ; section code
@@ -209,12 +215,6 @@ void WASMCodeContainer::produceClass()
     }
     gGlobal->gWASMVisitor->finishSection(exports_start);
     
-    // Fields : compute the structure size to use in 'new'
-    generateDeclarations(gGlobal->gWASMVisitor);
-    
-    // After field declaration...
-    generateSubContainers();
-    
     // Functions
     int32_t functions_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Code);
     fBinaryOut << U32LEB(14); // num functions
@@ -223,8 +223,8 @@ void WASMCodeContainer::produceClass()
     
     // Inits
     
-    std::cout << "classInit" << std::endl;
     // classInit
+    std::cout << "classInit" << std::endl;
     {
         // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
         DspRenamer renamer;
@@ -233,9 +233,8 @@ void WASMCodeContainer::produceClass()
         generateWASMBody(inlined);
     }
     
-    std::cout << "compute" << std::endl;
-    
     // compute
+    std::cout << "compute" << std::endl;
     generateCompute();
     
     // getNumInputs/getNumOutputs

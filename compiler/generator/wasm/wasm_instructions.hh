@@ -534,7 +534,7 @@ struct LocalVariableCounter : public InstVisitor {
 
 };
 
-// Counter of functions with their types
+// Counter of functions with their types (TODO : shared equivalent types)
 
 struct FunAndTypeCounter : public InstVisitor , public WASInst {
     
@@ -693,7 +693,7 @@ struct FunAndTypeCounter : public InstVisitor , public WASInst {
         return -1;
     }
    
-    // Generate list of functions types
+    // Generate list of function types
     void generateFunTypes(BufferWithRandomAccess* out)
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Type);
@@ -716,7 +716,7 @@ struct FunAndTypeCounter : public InstVisitor , public WASInst {
         finishSectionAux(out, start);
     }
     
-    // Generate list of functions types
+    // Generate list of inports
     void generateImports(BufferWithRandomAccess* out)
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Import);
@@ -726,7 +726,7 @@ struct FunAndTypeCounter : public InstVisitor , public WASInst {
         finishSectionAux(out, start);
     }
     
-    // Generate list of functions types
+    // Generate list of function signatures
     void generateFuncSignatures(BufferWithRandomAccess* out)
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Function);
@@ -741,7 +741,7 @@ struct FunAndTypeCounter : public InstVisitor , public WASInst {
     
 };
 
-class WASMInstVisitor : public InstVisitor, public WASInst {
+class WASMInstVisitor : public DispatchVisitor, public WASInst {
     
      private:
     
@@ -841,6 +841,8 @@ class WASMInstVisitor : public InstVisitor, public WASInst {
                     return;
                 }
             }
+            
+            std::cout << "visit(DeclareFunInst* inst) " << inst->fName << std::endl;
             
             // Complete function
             if (inst->fCode->size() != 0) {
@@ -1181,15 +1183,17 @@ class WASMInstVisitor : public InstVisitor, public WASInst {
             *fOut << int8_t(BinaryConsts::End);
         }
     
-        /*
+    
         virtual void visit(BlockInst* inst)
         {
-            for (auto& statement : inst->fCode) {
-                statement->accept(this);
-            }
+            std::cout << "visit(BlockInst* inst)" << std::endl;
+            //assert(false);
+            
+            //for (auto& statement : inst->fCode) {
+            //    statement->accept(this);
+            //}
         }
-        */
-    
+      
 };
 
 #endif
