@@ -69,6 +69,8 @@
 #include "faust/gui/MetaDataUI.h"
 #include "faust/gui/ValueConverter.h"
 
+// 
+
 struct CustomLookAndFeel    : public LookAndFeel_V3
 {
     void drawRoundThumb (Graphics& g, const float x, const float y,
@@ -332,17 +334,41 @@ enum VUMeterType {
 class layoutComponent: public Component
 {
 public:
-    layoutComponent() {}
+    
+    float hRatio, vRatio;
+    int recommendedWidth, recommendedHeight;
+    String fName;
+    
+    layoutComponent(int recomWidth, int recomHeight, String name) : recommendedWidth(recomWidth), recommendedHeight(recomHeight), fName(name) {}
 
-    virtual int getRecommendedHeight() = 0;
-    virtual int getRecommendedWidth() = 0;
+    virtual int getRecommendedHeight() {
+        return recommendedHeight;
+    }
+    
+    virtual int getRecommendedWidth() {
+        return recommendedWidth;
+    }
 
-    virtual void setRatio() = 0;
+    virtual void setRatio() {
+        setVRatio();
+        setHRatio();
+    }
+    
+    virtual float getHRatio() {
+        return hRatio;
+    }
+    
+    virtual float getVRatio() {
+        return vRatio;
+    }
+    
+    virtual String getName() {
+        return fName;
+    }
+    
     virtual void setVRatio() = 0;
     virtual void setHRatio() = 0;
-    virtual float getHRatio() = 0;
-    virtual float getVRatio() = 0;
-
+    
     virtual void setLayoutComponentSize(Rectangle<int> r) = 0;
 
     virtual void setCompLookAndFeel(LookAndFeel* laf) = 0;
@@ -351,50 +377,31 @@ public:
 class uiComponent: public layoutComponent, public uiItem, public SettableTooltipClient
 {
 public:
-
-    float vRatio, hRatio;
-    int recomWidth, recomHeight;
     String fTooltipText;
 
-    uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip): layoutComponent(), uiItem(gui,zone), recomWidth(w), recomHeight(h), fTooltipText(tooltip) { }
+    uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip, String name): layoutComponent(w, h, name), uiItem(gui,zone), fTooltipText(tooltip) { }
 
 
     void setLayoutComponentSize(Rectangle<int> r) override {
         // Debug Output
         std::cout<<"New bounds of Component : {"<<r.toString()<<"}";
         std::cout<<", for parent : "<<getParentComponent()<<", "<<getParentComponent()->getBounds().toString()<<std::endl;
-        std::cout<<"Ratios : "<<hRatio<<" "<<vRatio<<", Recommended Size : "<<recomWidth<<"x"<<recomHeight<<std::endl;
+        std::cout<<"Ratios : "<<hRatio<<" "<<vRatio<<", Recommended Size : "<<recommendedWidth<<"x"<<recommendedHeight<<std::endl;
         Component::setSize(r.getWidth(), r.getHeight());
         setTopLeftPosition(r.getX() - getParentComponent()->getX(), r.getY() - getParentComponent()->getY());
     }
 
-    float getHRatio() override {
-        return hRatio;
-    }
-
-    float getVRatio() override {
-        return vRatio;
-    }
-
-    int getRecommendedHeight() override {
-        return recomHeight;
-    }
-
-    int getRecommendedWidth() override {
-        return recomWidth;
-    }
-
-    void setRatio() override {
-        setVRatio();
-        setHRatio();
-    }
-
     void setVRatio() override {
-        vRatio = (float)recomHeight/(float)findParentComponentOfClass<layoutComponent>()->getRecommendedHeight();
+        layoutComponent* tempBox = findParentComponentOfClass<layoutComponent>();
+        if(!(tempBox->getName().startsWith("0x")) && tempBox->getName().isNotEmpty()) {
+            vRatio = (float)recommendedHeight / (float)(tempBox->getRecommendedHeight()-12);
+        } else {
+            vRatio = (float)recommendedHeight / (float)tempBox->getRecommendedHeight();
+        }
     }
 
     void setHRatio() override {
-        hRatio = (float)recomWidth/(float)findParentComponentOfClass<layoutComponent>()->getRecommendedWidth();
+        hRatio = (float)recommendedWidth/(float)findParentComponentOfClass<layoutComponent>()->getRecommendedWidth();
     }
 };
 
@@ -404,14 +411,13 @@ class uiSlider: public uiComponent,
 private:
     Slider::SliderStyle fStyle;
     Label fLabel;
-    String fName;
     ScopedPointer<ValueConverter> fConverter;
     int x, y, width, height;
     SliderType fType;
     Slider fSlider;
 
 public:
-    uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT cur, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType type) : uiComponent(gui, zone, w, h, tooltip), fName(name), fType(type)
+    uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT cur, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType type) : uiComponent(gui, zone, w, h, tooltip, name), fType(type)
     {
         if (scale == MetaDataUI::kLog) {
             fConverter = new LogValueConverter(min, max, min, max);
@@ -525,12 +531,11 @@ class uiButton: public uiComponent,
     private juce::Button::Listener
 {
 private:
-    String fName;
     int x, y, width, height;
     TextButton fButton;
 
 public:
-    uiButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) :  uiComponent(gui, zone, w, h, tooltip), fName(label), width(w), height(h)
+    uiButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) :  uiComponent(gui, zone, w, h, tooltip, label), width(w), height(h)
     {
         x = getLocalBounds().getX()+10;
         width = kCheckButtonWidth;
@@ -571,7 +576,9 @@ public:
         fButton.setLookAndFeel(laf);
     }
 
-    virtual void paint(Graphics& g) override { }
+    virtual void paint(Graphics& g) override {
+        //g.fillRect(getLocalBounds());
+    }
 
     virtual void resized() override
     {
@@ -587,16 +594,15 @@ class uiCheckButton: public uiComponent,
     private juce::Button::Listener
 {
 private:
-    String fName;
     int x, y, width, height;
     ToggleButton fCheckButton;
 
 public:
-    uiCheckButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) : uiComponent(gui, zone, w, h, tooltip), fName(label), width(w), height(h)
+    uiCheckButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) : uiComponent(gui, zone, w, h, tooltip, label), width(w), height(h)
     {
         x = getLocalBounds().getX() + 10;
         y = (getLocalBounds().getHeight()-height)/2;
-
+        
         if(fTooltipText.isNotEmpty()) {
             setTooltip(fTooltipText);
         }
@@ -643,13 +649,12 @@ class uiMenu: public uiComponent,
 {
 private:
     ComboBox fComboBox;
-    String fName;
     int x, y, width, height;
     int nbItem;
     vector<double> fValues;
 
 public:
-    uiMenu(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, String tooltip, const char* mdescr) : uiComponent(gui, zone, w, h, tooltip), fName(label), width(w), height(h)
+    uiMenu(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, String tooltip, const char* mdescr) : uiComponent(gui, zone, w, h, tooltip, label), width(w), height(h)
     {
         //Init ComboBox parameters
         fComboBox.setEditableText(false);
@@ -735,7 +740,6 @@ class uiRadioButton: public uiComponent,
     private juce::Button::Listener
 {
 private:
-    String name;
     int x, y, width, height;
     int nbButtons;
     bool isVertical;
@@ -743,7 +747,7 @@ private:
     vector<double> fValues;
 
 public:
-    uiRadioButton(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, vector<string>& names, vector<double>& values, String tooltip, const char* mdescr, int radioGroupID) : uiComponent(gui, zone, w, h, tooltip), name(label), width(w), height(h), isVertical(vert)
+    uiRadioButton(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, vector<string>& names, vector<double>& values, String tooltip, const char* mdescr, int radioGroupID) : uiComponent(gui, zone, w, h, tooltip, label), width(w), height(h), isVertical(vert)
     {
         x = getLocalBounds().getX() + 10;
         y = (getLocalBounds().getHeight()-kCheckButtonHeight)/2;
@@ -845,13 +849,13 @@ public:
     }
     virtual void paint(Graphics& g) {
         g.setColour(Colours::black);
-        g.drawText(name, getLocalBounds().withHeight(25), Justification::centredTop);
+        g.drawText(fName, getLocalBounds().withHeight(25), Justification::centredTop);
     }
 
     void buttonClicked(Button* button)
     {
         ToggleButton* checkButton = dynamic_cast<ToggleButton*>(button);
-        std::cout<<name<<" : "<<fButtons.indexOf(checkButton)<<std::endl;
+        std::cout<<fName<<" : "<<fButtons.indexOf(checkButton)<<std::endl;
 
         modifyZone(fButtons.indexOf(checkButton));
     }
@@ -861,9 +865,9 @@ class uiVUMeter  : public uiComponent, public Timer
 {
 public:
     uiVUMeter (GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, FAUSTFLOAT mini, FAUSTFLOAT maxi, String unit, String tooltip, VUMeterType style, bool vert)
-        : uiComponent(gui, zone, w, h, tooltip), fMin(mini), fMax(maxi), fStyle(style), fName(label)
+        : uiComponent(gui, zone, w, h, tooltip, label), fMin(mini), fMax(maxi), fStyle(style)
     {
-        setOpaque(true);
+        //setOpaque(true);
         fLevel = 0;
         startTimer (50);
         this->fUnit = unit;
@@ -939,19 +943,16 @@ public:
     void paint (Graphics& g) override
     {
         g.setColour(Colours::darkgrey);
-        g.fillRect(getLocalBounds());
+        //g.fillRect(getLocalBounds());
 
         if     (fStyle == Led)       {
-            drawLed       (g, kLedWidth/2,        kLedHeight/2,        fLevel);
-        }
-        else if(fStyle == NumDisplay) {
-            drawNumDisplay(g, kNumDisplayWidth,   kNumDisplayHeight/2, fLevel);
-        }
-        else if(fStyle == VVUMeter)  {
-            drawVBargraph (g, kVBargraphWidth/2 , getHeight(),         fLevel, db);
-        }
-        else if(fStyle == HVUMeter)  {
-            drawHBargraph (g, getWidth(),         kHBargraphHeight/2,  fLevel, db);
+            drawLed       (g, kLedWidth/2,       kLedHeight/2,        fLevel);
+        } else if(fStyle == NumDisplay) {
+            drawNumDisplay(g, kNumDisplayWidth,  kNumDisplayHeight/2, fLevel);
+        } else if(fStyle == VVUMeter)  {
+            drawVBargraph (g, kVBargraphWidth/2, getHeight(),         fLevel, db);
+        } else if(fStyle == HVUMeter)  {
+            drawHBargraph (g, getWidth(),        kHBargraphHeight/2,  fLevel, db);
         }
     }
 
@@ -973,7 +974,6 @@ private:
     VUMeterType fStyle;
     String fUnit;
     Label fLabel;
-    String fName;
     bool isBargraphNameShown;
     bool forceRepaint;
 
@@ -1330,14 +1330,12 @@ private:
 
 
 
-class faustBox : public layoutComponent
+class uiBox : public layoutComponent
 {
 public:
 
-    faustBox(bool vert, String boxName, int boxOrder, bool tab): layoutComponent(), fOrder(boxOrder), fName(boxName), isVertical(vert), tabLayout(tab)
+    uiBox(bool vert, String boxName, int boxOrder, bool tab): layoutComponent(0, 0, boxName), fOrder(boxOrder), isVertical(vert), tabLayout(tab)
     {
-        recommendedHeight = 0;
-        recommendedWidth = 0;
         if(fOrder == 0) {
             hRatio = 1;
             vRatio = 1;
@@ -1350,136 +1348,82 @@ public:
         }
     }
 
-    int getRecommendedWidth() override {
-        return recommendedWidth;
-    }
-    int getRecommendedHeight() override {
-        return recommendedHeight;
-    }
-
-    float getHRatio() override {
-        return hRatio;
-    }
-    float getVRatio() override {
-        return vRatio;
-    }
-
     void setHRatio() override {
-        if(findParentComponentOfClass<faustBox>() != nullptr) {
-            hRatio = (float)recommendedWidth / (float)findParentComponentOfClass<faustBox>()->getRecommendedWidth();
+        if(findParentComponentOfClass<uiBox>() != nullptr) {
+            hRatio = (float)recommendedWidth / (float)findParentComponentOfClass<uiBox>()->getRecommendedWidth();
         }
-        /*
-        faustBox* tempBox = findParentComponentOfClass<faustBox>();
-        if(tempBox != nullptr){
-
-            float tempBoxWidth, curBoxWidth;
-
-            if(tempBox->isVertical){
-                tempBoxWidth = tempBox->recommendedHeight - 4;
-            } else {
-                tempBoxWidth = tempBox->recommendedHeight - 4*getNumChildComponents();
-            }
-
-            if(isVertical){
-                curBoxWidth = recommendedWidth - 4;
-            } else {
-                curBoxWidth = recommendedHeight - 4*getNumChildComponents();
-            }
-
-            hRatio = curBoxWidth / tempBoxWidth;
-        }
-        */
     }
 
     void setVRatio() override {
-        if(findParentComponentOfClass<faustBox>() != nullptr) {
-            /*
-            float tempBoxHeight, curBoxHeight;
-
-            if(tempBox->isVertical){
-                if(!(tempBox->fName.startsWith("0x")) && tempBox->fName.isNotEmpty()) {
-                    tempBoxHeight = tempBox->recommendedHeight - (12 + 4*tempBox->getNumChildComponents());
-                } else {
-                    tempBoxHeight = tempBox->recommendedHeight - 4*tempBox->getNumChildComponents();
-                }
+        uiBox* tempBox = findParentComponentOfClass<uiBox>();
+        if(tempBox != nullptr) {
+            if(!(tempBox->fName.startsWith("0x")) && tempBox->fName.isNotEmpty()) {
+                vRatio = (float)recommendedHeight / (float)(findParentComponentOfClass<uiBox>()->getRecommendedHeight()-12);
             } else {
-                if(!(tempBox->fName.startsWith("0x")) && tempBox->fName.isNotEmpty()) {
-                    tempBoxHeight = tempBox->recommendedHeight - (12+4);
-                } else {
-                    tempBoxHeight = tempBox->recommendedHeight - 4;
-                }
+                vRatio = (float)recommendedHeight / (float)findParentComponentOfClass<uiBox>()->getRecommendedHeight();
             }
-            if(isVertical){
-                if(!(fName.startsWith("0x")) && fName.isNotEmpty()) {
-                    curBoxHeight = recommendedHeight - (12 + 4*getNumChildComponents());
-                } else {
-                    curBoxHeight = recommendedHeight - 4*getNumChildComponents();
-                }
-            } else {
-                if(!(fName.startsWith("0x")) && fName.isNotEmpty()) {
-                    curBoxHeight = recommendedHeight - (12+4);
-                } else {
-                    curBoxHeight = recommendedHeight - 4;
-                }
-            }
-            */
-
-            vRatio = (float)recommendedHeight / (float)findParentComponentOfClass<faustBox>()->getRecommendedHeight();
         }
     }
 
     void setLayoutComponentSize(Rectangle<int> r) override {
 
-        rect.setSize(r.getWidth(), r.getHeight());
         Component::setSize(r.getWidth(), r.getHeight());
 
-        if(findParentComponentOfClass<faustBox>() != nullptr) {
-            rect.setPosition(r.getX() - getParentComponent()->getX(), r.getY() - getParentComponent()->getY());
+        if(findParentComponentOfClass<uiBox>() != nullptr) {
             setTopLeftPosition(r.getX() - getParentComponent()->getX(), r.getY() - getParentComponent()->getY());
         } else {
             if(tabLayout) {
-                rect.setPosition(r.getX()+1, r.getY()+30);
                 setTopLeftPosition(r.getX()+1, r.getY()+30);
             } else {
-                rect.setPosition(r.getX(), r.getY());
                 setTopLeftPosition(r.getX(), r.getY());
             }
         }
     }
 
-    void layoutComponents()
+    void arrangeComponents(Rectangle<int> functionRect)
     {
+        // Deleting space for the box name if it needs to be shown
         if(!(fName.startsWith("0x")) && fName.isNotEmpty()) {
-            rect.removeFromTop(12);
+            functionRect.removeFromTop(12);
         }
-        /*
+        
+        
+        // Calculating space left to adjust the margin
         float sumRatio = 0;
         for(int i = 0; i<getNumChildComponents(); i++){
             if(isVertical) {
+                std::cout<<"sumRatio = "<<sumRatio<<std::endl;
                 sumRatio += dynamic_cast<layoutComponent*>(getChildComponent(i))->getVRatio();
             } else {
                 sumRatio += dynamic_cast<layoutComponent*>(getChildComponent(i))->getHRatio();
             }
         }
+        
+        std::cout<<"sumRatio = "<<sumRatio<<std::endl;
 
         float marginBetweenChildComponent;
         if(isVertical){
-            marginBetweenChildComponent = (getBounds().getHeight() * (1-sumRatio)) / (getNumChildComponents()*2);
+            marginBetweenChildComponent = (functionRect.getHeight() * (1-sumRatio)) / (getNumChildComponents()*2);
         } else {
-            marginBetweenChildComponent = (getBounds().getWidth() * (1-sumRatio)) / (getNumChildComponents()*2);
+            marginBetweenChildComponent = (functionRect.getWidth() * (1-sumRatio)) / (getNumChildComponents()*2);
         }
-
-        float margin = marginBetweenChildComponent; */
-        float margin = 2;
+        float margin = marginBetweenChildComponent; 
+        
+        //float margin = 2;
+        std::cout<<"Box "<<fName<<" got margin of : "<<margin<<" for "<<getNumChildComponents()<<std::endl;
 
         for(int i = 0; i<getNumChildComponents(); i++) {
+            float margins = margin;
             layoutComponent* tempComp = dynamic_cast<layoutComponent*>(getChildComponent(i));
+            if(i>0){
+                margins = 2*margin;
+            }
             if(isVertical) {
-                int heightToRemove = getSpaceToRemove(tempComp->getVRatio()) + 2*margin;
-                tempComp->setLayoutComponentSize(rect.removeFromTop(heightToRemove).reduced(margin, 0));
+                int heightToRemove = getSpaceToRemove(tempComp->getVRatio());
+                tempComp->setLayoutComponentSize(functionRect.removeFromTop(heightToRemove).reduced(2, 0).translated(0, margins));
             } else {
-                int widthToRemove = getSpaceToRemove(tempComp->getHRatio()) + 2*margin;
-                tempComp->setLayoutComponentSize(rect.removeFromLeft(widthToRemove).reduced(0, margin));
+                int widthToRemove = getSpaceToRemove(tempComp->getHRatio());
+                tempComp->setLayoutComponentSize(functionRect.removeFromLeft(widthToRemove).reduced(0, 2).translated(margins, 0));
             }
         }
     }
@@ -1488,7 +1432,6 @@ public:
     void writeBox() {
         std::cout<<fName<<" : "<<this<<std::endl;
         std::cout<<"order : "<<fOrder<<", itemCount : "<<getNumChildComponents()<<", parentIndex : "<<getParentComponent()<<std::endl;
-        std::cout<<"Rect : {"<<rect.toString()<<"}"<<std::endl;
         std::cout<<"CompBounds : {"<<getBounds().toString()<<"}"<<std::endl;
         std::cout<<"Recommended size : "<<recommendedWidth<<"x"<<recommendedHeight<<std::endl;
         std::cout<<"Ratios : "<<vRatio<<", "<<hRatio<<std::endl;
@@ -1508,7 +1451,7 @@ public:
         }
     }
 
-    void addChildBox(faustBox* box) {
+    void addChildBox(uiBox* box) {
         addAndMakeVisible(box);
     }
 
@@ -1542,23 +1485,21 @@ public:
     }
 
     void setRatio() override {
-        setHRatio();
-        setVRatio();
+        layoutComponent::setRatio();
         for(int i = 0; i<getNumChildComponents(); i++) {
             dynamic_cast<layoutComponent*>(getChildComponent(i))->setRatio();
         }
     }
 
     void resized() override {
-        setLayoutComponentSize(getLocalBounds());
-        layoutComponents();
+        arrangeComponents(getBounds());
         writeBox();
     }
 
     void paint(Graphics& g) override
     {
 
-        Colour col = Colours::darkgrey;
+        Colour col = Colours::black.withAlpha(0.2f);
         // Debug coloring for boxes
         /*
         if      (fOrder == 3){ col = Colours::white;}
@@ -1571,35 +1512,23 @@ public:
 
         g.setColour(Colours::black);
         if(!fName.startsWith("0x")) {
-            g.drawText(fName, getLocalBounds() .withHeight(10), Justification::centred);
+            g.drawText(fName, getLocalBounds() .withHeight(12), Justification::centred);
         }
     }
 
-    ~faustBox() {
+    ~uiBox() {
         int numChild = getNumChildComponents();
         std::cout<<"order : "<<fOrder<<", numChilds : "<<numChild<<std::endl;
         for(int i = numChild-1; i>=0; i--) {
-            if(dynamic_cast<faustBox*> (getChildComponent(i)) != nullptr) {
-                delete dynamic_cast<faustBox*> (getChildComponent(i));
+            if(dynamic_cast<uiBox*> (getChildComponent(i)) != nullptr) {
+                delete dynamic_cast<uiBox*> (getChildComponent(i));
             }
         }
     }
 
-    void checkVisible() {
-        std::cout<<"Checking visible box : "<<std::endl;
-        for(int i = 0; i<getNumChildComponents(); i++) {
-            if(dynamic_cast<faustBox*>(getChildComponent(i)) != nullptr)
-                std::cout<<dynamic_cast<faustBox*>(getChildComponent(i))->fName<<" : isVisble ? "<<getChildComponent(i)->isVisible()<<std::endl;
-        }
-    }
-
-    float hRatio, vRatio;
-    int recommendedWidth, recommendedHeight;
-    int fOrder;
-    String fName;
+    int fOrder; // mainly for debug usage
     bool isVertical;
     bool tabLayout;
-    Rectangle<int> rect;
 };
 
 
@@ -1616,22 +1545,18 @@ public:
 
     void init() {
         for(int i = 0; i < getNumTabs(); i++) {
-            dynamic_cast<faustBox*>(getTabContentComponent(i))->setRatio();
-            dynamic_cast<faustBox*>(getTabContentComponent(i))->setCompLookAndFeel(laf);
-            recommendedHeight = jmax(recommendedHeight, dynamic_cast<faustBox*>(getTabContentComponent(i))->recommendedHeight);
-            recommendedWidth = jmax(recommendedWidth, dynamic_cast<faustBox*>(getTabContentComponent(i))->recommendedWidth);
+            layoutComponent* tempComp = dynamic_cast<layoutComponent*>(getTabContentComponent(i));
+            tempComp->setRatio();
+            tempComp->setCompLookAndFeel(laf);
+            recommendedHeight = jmax(recommendedHeight, tempComp->recommendedHeight);
+            recommendedWidth = jmax(recommendedWidth, tempComp->recommendedWidth);
         }
     }
 
-    static Colour getRandomTabBackgroundColour()
-    {
-        return Colour (Random::getSystemRandom().nextFloat(), 0.1f, 0.97f, 1.0f);
-    }
-
     void addTabs(String label, Component* comp) {
-        TabbedComponent::addTab(label, Colours::darkgrey, comp, true);
+        TabbedComponent::addTab(label, Colours::white, comp, true);
         for(int i = 0; i<getNumChildComponents(); i++) {
-            faustBox* box = dynamic_cast<faustBox*>(getChildComponent(i));
+            uiBox* box = dynamic_cast<uiBox*>(getChildComponent(i));
             if(box !=0) {
                 std::cout<<"childs : "<<box->fName<<", ";
             }
@@ -1658,7 +1583,7 @@ public:
 
     Rectangle<int> getSize() {
         if(!tabLayout) {
-            return Rectangle<int>(0, 0, dynamic_cast<faustBox*>(getChildComponent(0))->recommendedWidth, dynamic_cast<faustBox*>(getChildComponent(0))->recommendedHeight);
+            return Rectangle<int>(0, 0, dynamic_cast<uiBox*>(getChildComponent(0))->recommendedWidth, dynamic_cast<uiBox*>(getChildComponent(0))->recommendedHeight);
         } else {
             return Rectangle<int>(0, 0, dynamic_cast<Faust_tabs*>(getChildComponent(0))->recommendedWidth, dynamic_cast<Faust_tabs*>(getChildComponent(0))->recommendedHeight+30);
         }
@@ -1674,14 +1599,14 @@ public:
                 tabName = String(label);
                 label = nullptr;
             }
-            currentBox = new faustBox(true, String(label), order, tabLayout);
+            currentBox = new uiBox(true, String(label), order, tabLayout);
             parentBox = nullptr;
             if(!tabLayout) {
                 addAndMakeVisible(currentBox);
             }
         } else {
             parentBox = currentBox;
-            currentBox = new faustBox(true, String(label), order, tabLayout);
+            currentBox = new uiBox(true, String(label), order, tabLayout);
             parentBox->addChildBox(currentBox);
         }
 
@@ -1694,14 +1619,14 @@ public:
                 tabName = String(label);
                 label = nullptr;
             }
-            currentBox = new faustBox(false, String(label), order, tabLayout);
+            currentBox = new uiBox(false, String(label), order, tabLayout);
             parentBox = nullptr;
             if(!tabLayout) {
                 addAndMakeVisible(currentBox);
             }
         } else {
             parentBox = currentBox;
-            currentBox = new faustBox(false, String(label), order, tabLayout);
+            currentBox = new uiBox(false, String(label), order, tabLayout);
             parentBox->addChildBox(currentBox);
         }
 
@@ -1713,9 +1638,9 @@ public:
         order--;
         currentBox->calculRecommendedSize();
 
-        if(dynamic_cast<faustBox*>(currentBox->getParentComponent()) != 0) {
+        if(dynamic_cast<uiBox*>(currentBox->getParentComponent()) != 0) {
             currentBox = parentBox;
-            parentBox = currentBox->findParentComponentOfClass<faustBox>(); // Return comp parent of type 'faustBox'
+            parentBox = currentBox->findParentComponentOfClass<uiBox>(); // Return comp parent of type 'uiBox'
         }
 
         if(tabLayout && order == 0) {
@@ -1947,9 +1872,10 @@ public:
         if(tabLayout) {
             tabs.init();
         } else {
-            dynamic_cast<faustBox*> (getChildComponent(0))->setRatio();
-            dynamic_cast<faustBox*> (getChildComponent(0))->setLayoutComponentSize(getLocalBounds());
-            dynamic_cast<faustBox*> (getChildComponent(0))->setCompLookAndFeel(laf);
+            layoutComponent* tempComp = dynamic_cast<uiBox*> (getChildComponent(0));
+            tempComp->setRatio();
+            tempComp->setLayoutComponentSize(getLocalBounds());
+            tempComp->setCompLookAndFeel(laf);
         }
     }
 
@@ -1957,7 +1883,7 @@ public:
         if(tabLayout) {
             tabs.setBounds(getLocalBounds());
         } else {
-            dynamic_cast<faustBox*> (getChildComponent(0))->setLayoutComponentSize(getLocalBounds());
+            dynamic_cast<uiBox*> (getChildComponent(0))->setLayoutComponentSize(getLocalBounds());
         }
     }
 
@@ -1970,8 +1896,8 @@ public:
 
     int order;
     int radioGroup;
-    faustBox* currentBox;
-    faustBox* parentBox;
+    uiBox* currentBox;
+    uiBox* parentBox;
     bool tabLayout = false;
     Faust_tabs tabs;
     String tabName;
