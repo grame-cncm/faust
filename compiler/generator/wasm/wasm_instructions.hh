@@ -510,6 +510,20 @@ struct LocalVariableCounter : public InstVisitor {
         }
     }
     
+    void incInt()
+    {
+        fIn32Type++;
+    }
+    
+    void incReal()
+    {
+        if (gGlobal->gFloatSize == 1) {
+            fF32Type++;
+        } else {
+            fF64Type++;
+        }
+    }
+    
     void generate(BufferWithRandomAccess* out)
     {
         *out << U32LEB((fIn32Type ? 1 : 0) + (fF32Type ? 1 : 0) + (fF64Type ? 1 : 0));
@@ -528,8 +542,115 @@ struct FunAndTypeCounter : public InstVisitor , public WASInst {
     
     FunAndTypeCounter():WASInst()
     {
-        // TODO : add exported functions types
-    
+        // Math functions types
+        
+        // Integer
+        
+        /*
+        {
+            list<NamedTyped*> args;
+            args.push_back(InstBuilder::genNamedTyped("arg1", Typed::kInt));
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kDefault);
+            fFunTypes["funInt1"] = fun_type;
+        }
+        */
+        
+        {
+            list<NamedTyped*> args;
+            args.push_back(InstBuilder::genNamedTyped("arg1", Typed::kInt));
+            args.push_back(InstBuilder::genNamedTyped("arg2", Typed::kInt));
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kDefault);
+            fFunTypes["min_i"] = fun_type;
+            fFunTypes["max_i"] = fun_type;
+        }
+        
+        /*
+        // Real
+        {
+            list<NamedTyped*> args;
+            args.push_back(InstBuilder::genNamedTyped("arg1", itfloat()));
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(itfloat()), FunTyped::kDefault);
+            fFunTypes["funReal1"] = fun_type;
+        }
+        
+        {
+            list<NamedTyped*> args;
+            args.push_back(InstBuilder::genNamedTyped("arg1", itfloat()));
+            args.push_back(InstBuilder::genNamedTyped("arg2", itfloat()));
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(itfloat()), FunTyped::kDefault);
+            fFunTypes["funReal2"] = fun_type;
+        }
+        */
+        
+        // DSP API
+        
+        // getNumInputs/getNumOutputs
+        {
+            list<NamedTyped*> args;
+            args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kInt));
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kDefault);
+            fFunTypes["getNumInputs"] = fun_type;
+            fFunTypes["getNumOutputs"] = fun_type;
+        }
+        
+        // getSampleRate
+        {
+            list<NamedTyped*> args;
+            args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kInt));
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(itfloat()), FunTyped::kDefault);
+            fFunTypes["getSampleRate"] = fun_type;
+        }
+        
+        // init/instanceConstants/instanceInit
+        {
+            list<NamedTyped*> args;
+            args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kInt));
+            args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+            fFunTypes["init"] = fun_type;
+            fFunTypes["classInit"] = fun_type;
+            fFunTypes["instanceConstants"] = fun_type;
+            fFunTypes["instanceInit"] = fun_type;
+        }
+        
+        // instanceClear/instanceResetUserInterface
+        {
+            list<NamedTyped*> args;
+            args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kInt));
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+            fFunTypes["instanceClear"] = fun_type;
+            fFunTypes["instanceResetUserInterface"] = fun_type;
+        }
+        
+        // setParamValue
+        {
+            list<NamedTyped*> args;
+            args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kInt));
+            args.push_back(InstBuilder::genNamedTyped("index", Typed::kInt));
+            args.push_back(InstBuilder::genNamedTyped("value", itfloat()));
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+            fFunTypes["setParamValue"] = fun_type;
+        }
+        
+        // getParamValue
+        {
+            list<NamedTyped*> args;
+            args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kInt));
+            args.push_back(InstBuilder::genNamedTyped("index", Typed::kInt));
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(itfloat()), FunTyped::kDefault);
+            fFunTypes["getParamValue"] = fun_type;
+        }
+        
+        // compute
+        {
+            list<NamedTyped*> args;
+            args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kInt));
+            args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt));
+            args.push_back(InstBuilder::genNamedTyped("inputs", Typed::kInt));
+            args.push_back(InstBuilder::genNamedTyped("outputs", Typed::kInt));
+            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+            fFunTypes["compute"] = fun_type;
+        }
     }
     
     virtual void visit(DeclareFunInst* inst)
@@ -567,11 +688,13 @@ struct FunAndTypeCounter : public InstVisitor , public WASInst {
             if (type.first == name) return i;
             i++;
         }
+        std::cerr << "getFunctionTypeIndex " << name << std::endl;
+        assert(false);
         return -1;
     }
    
     // Generate list of functions types
-    void generate(BufferWithRandomAccess* out)
+    void generateFunTypes(BufferWithRandomAccess* out)
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Type);
         *out << U32LEB(fFunTypes.size());
@@ -593,6 +716,29 @@ struct FunAndTypeCounter : public InstVisitor , public WASInst {
         finishSectionAux(out, start);
     }
     
+    // Generate list of functions types
+    void generateImports(BufferWithRandomAccess* out)
+    {
+        int32_t start = startSectionAux(out, BinaryConsts::Section::Import);
+        *out << U32LEB(0);
+        // TODO
+        
+        finishSectionAux(out, start);
+    }
+    
+    // Generate list of functions types
+    void generateFuncSignatures(BufferWithRandomAccess* out)
+    {
+        int32_t start = startSectionAux(out, BinaryConsts::Section::Function);
+        *out << U32LEB(fFunTypes.size());
+        
+        for (auto& type : fFunTypes) {
+            *out << U32LEB(getFunctionTypeIndex(type.first));
+        }
+        
+        finishSectionAux(out, start);
+    }
+    
 };
 
 class WASMInstVisitor : public InstVisitor, public WASInst {
@@ -602,12 +748,7 @@ class WASMInstVisitor : public InstVisitor, public WASInst {
         map<string, LocalVarDesc> fLocalVarTable;
         map<string, int> fFunctionsOffset;
         BufferWithRandomAccess* fOut;
-    
-        void emitMemoryAccess()
-        {
-            *fOut << U32LEB(offStrNum);
-            *fOut << U32LEB(0); // TO CHECK : assuming offset is always 0
-        }
+        FunAndTypeCounter fFunAndTypeCounter;
    
     public:
 
@@ -620,6 +761,12 @@ class WASMInstVisitor : public InstVisitor, public WASInst {
     
         void setLocalVarTable(const map<string, LocalVarDesc>& table) { fLocalVarTable = table; }
     
+        void emitMemoryAccess()
+        {
+            *fOut << U32LEB(offStrNum);
+            *fOut << U32LEB(0); // TO CHECK : assuming offset is always 0
+        }
+    
         int32_t startSection(BinaryConsts::Section code)
         {
             return startSectionAux(fOut, code);
@@ -629,7 +776,22 @@ class WASMInstVisitor : public InstVisitor, public WASInst {
         {
             return finishSectionAux(fOut, start);
         }
- 
+    
+        void generateFunTypes()
+        {
+            fFunAndTypeCounter.generateFunTypes(fOut);
+        }
+    
+        void generateImports()
+        {
+            fFunAndTypeCounter.generateImports(fOut);
+        }
+    
+        void generateFuncSignatures()
+        {
+            fFunAndTypeCounter.generateFuncSignatures(fOut);
+        }
+    
         virtual void visit(DeclareVarInst* inst)
         {
             bool is_struct = (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
@@ -681,7 +843,7 @@ class WASMInstVisitor : public InstVisitor, public WASInst {
             }
             
             // Complete function
-            if (inst->fCode->fCode.size() != 0) {
+            if (inst->fCode->size() != 0) {
                 generateFunDefBody(inst->fCode);
             }
         }
@@ -736,8 +898,8 @@ class WASMInstVisitor : public InstVisitor, public WASInst {
                 || inst->fAddress->getAccess() & Address::kStaticStruct
                 || dynamic_cast<IndexedAddress*>(inst->fAddress)) {
 
-                inst->fValue->accept(this);
                 inst->fAddress->accept(this);
+                inst->fValue->accept(this);
                 if (isRealType(fTypingVisitor.fCurType) || isRealPtrType(fTypingVisitor.fCurType)) {
                     *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32StoreMem) : int8_t(BinaryConsts::F64StoreMem));
                 } else {
@@ -1018,6 +1180,15 @@ class WASMInstVisitor : public InstVisitor, public WASInst {
             // End of loop block
             *fOut << int8_t(BinaryConsts::End);
         }
+    
+        /*
+        virtual void visit(BlockInst* inst)
+        {
+            for (auto& statement : inst->fCode) {
+                statement->accept(this);
+            }
+        }
+        */
     
 };
 

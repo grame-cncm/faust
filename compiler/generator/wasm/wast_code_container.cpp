@@ -165,8 +165,10 @@ void WASTCodeContainer::produceClass()
         generateGlobalDeclarations(gGlobal->gWASTVisitor);
     
         // Imported functions
+        /*
         tab(n+1, *fOut); *fOut << "(func $print-i (import \"imports\" \"print\") (param i32))";
         tab(n+1, *fOut); *fOut << "(func $print-f (import \"imports\" \"print\") (param f32))";
+        */
     
         // Exported functions
         tab(n+1, *fOut); *fOut << "(export \"getNumInputs\" (func $getNumInputs))";

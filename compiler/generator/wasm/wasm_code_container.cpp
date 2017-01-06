@@ -155,23 +155,17 @@ void WASMCodeContainer::produceClass()
     // Sub containers : before functions generation
     mergeSubContainers();
     
-    // Functions types
-    int32_t types_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Type);
-    
-    gGlobal->gWASMVisitor->finishSection(types_start);
-    
     // All mathematical functions (got from math library as variables) have to be first
     generateGlobalDeclarations(gGlobal->gWASMVisitor);
     
+    // Functions types
+    gGlobal->gWASMVisitor->generateFunTypes();
+    
     // Imported functions
-    int32_t imports_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Import);
-
-    gGlobal->gWASMVisitor->finishSection(imports_start);
+    gGlobal->gWASMVisitor->generateImports();
     
     // Functions signature
-    int32_t functions_types_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Function);
-    
-    gGlobal->gWASMVisitor->finishSection(functions_types_start);
+    gGlobal->gWASMVisitor->generateFuncSignatures();
     
     /*
     ; section "MEMORY" (5)
@@ -193,27 +187,26 @@ void WASMCodeContainer::produceClass()
     
     // Exports
     int32_t exports_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Export);
-    fBinaryOut << U32LEB(12); // num export = 11 function + 1 memory
+    fBinaryOut << U32LEB(12); // num export = 11 functions + 1 memory
     {
-        // Functions
+        // Functions in alphabetical order
+        exportFunction("compute");
         exportFunction("getNumInputs");
         exportFunction("getNumOutputs");
+        exportFunction("getParamValue");
         exportFunction("getSampleRate");
         exportFunction("init");
-        exportFunction("instanceInit");
-        exportFunction("instanceConstants");
-        exportFunction("instanceResetUserInterface");
         exportFunction("instanceClear");
+        exportFunction("instanceConstants");
+        exportFunction("instanceInit");
+        exportFunction("instanceResetUserInterface");
         exportFunction("setParamValue");
-        exportFunction("getParamValue");
-        exportFunction("compute");
         
         // Memory
         fBinaryOut << "memory";
         fBinaryOut << U32LEB(2);  // Memory kind
         fBinaryOut << U32LEB(0);  // Memory index
     }
-    
     gGlobal->gWASMVisitor->finishSection(exports_start);
     
     // Fields : compute the structure size to use in 'new'
@@ -226,16 +219,11 @@ void WASMCodeContainer::produceClass()
     int32_t functions_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Code);
     fBinaryOut << U32LEB(14); // num functions
     
-    // Always generated mathematical functions
-    WASInst::generateIntMin()->accept(gGlobal->gWASMVisitor);
-    WASInst::generateIntMax()->accept(gGlobal->gWASMVisitor);
-    
-    // getNumInputs/getNumOutputs
-    generateGetInputs("getNumInputs", false, false)->accept(gGlobal->gWASMVisitor);
-    generateGetOutputs("getNumOutputs", false, false)->accept(gGlobal->gWASMVisitor);
+    // Functions in alphabetical order
     
     // Inits
     
+    std::cout << "classInit" << std::endl;
     // classInit
     {
         // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
@@ -244,79 +232,33 @@ void WASMCodeContainer::produceClass()
         BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
         generateWASMBody(inlined);
     }
-   
-    // instanceConstants
-    {
-        // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
-        DspRenamer renamer;
-        BlockInst* renamed = renamer.getCode(fInitInstructions);
-        BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
-        generateWASMBody(inlined);
-    }
     
-    // instanceResetUserInterface
-    {
-        // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-        DspRenamer renamer;
-        generateWASMBody(renamer.getCode(fResetUserInterfaceInstructions));
-    }
+    std::cout << "compute" << std::endl;
     
-    // instanceClear
-    {
-        // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-        DspRenamer renamer;
-        generateWASMBody(renamer.getCode(fClearInstructions));
-    }
+    // compute
+    generateCompute();
     
-    // init
-    WASInst::generateInit()->accept(gGlobal->gWASMVisitor);
-    
-    // instanceInit
-    WASInst::generateInstanceInit()->accept(gGlobal->gWASMVisitor);
-    
-    // getSampleRate
-    WASInst::generateGetSampleRate()->accept(gGlobal->gWASMVisitor);
-    
-    // setParamValue (adhoc generation since FIR cannot be generated)
-    {
-        size_t size_pos = fBinaryOut.writeU32LEBPlaceholder();
-        size_t start = fBinaryOut.size();
-        
-        LocalVariableCounter local_counter;
-        local_counter.generate(&fBinaryOut);
-        
-        // Value
-        fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(2);  // 2 = value
-        
-        // Index in the dsp
-        fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(1);  // 1 = index
-        fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // 0 = dsp
-        fBinaryOut << int8_t(gBinOpTable[kAdd]->fWasmFloat);
-        
-        // Store value at index
-        fBinaryOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32StoreMem) : int8_t(BinaryConsts::F64StoreMem));
-    
-        // Generate end
-        fBinaryOut << int8_t(BinaryConsts::End);
-        size_t size = fBinaryOut.size() - start;
-        fBinaryOut.writeAt(size_pos, U32LEB(size));
-    }
+    // getNumInputs/getNumOutputs
+    generateGetInputs("getNumInputs", false, false)->accept(gGlobal->gWASMVisitor);
+    generateGetOutputs("getNumOutputs", false, false)->accept(gGlobal->gWASMVisitor);
     
     // getParamValue (adhoc generation since FIR cannot be generated)
     {
         size_t size_pos = fBinaryOut.writeU32LEBPlaceholder();
         size_t start = fBinaryOut.size();
         
+        // Describe function argument types
         LocalVariableCounter local_counter;
         local_counter.generate(&fBinaryOut);
         
         // Index in the dsp
-        fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(1);  // 1 = index
         fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // 0 = dsp
+        fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(1);  // 1 = index
         fBinaryOut << int8_t(gBinOpTable[kAdd]->fWasmFloat);
-        
+         
         // Load value from index
         fBinaryOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32LoadMem) : int8_t(BinaryConsts::F64LoadMem));
+        gGlobal->gWASMVisitor->emitMemoryAccess();
         
         // Return value
         fBinaryOut << int8_t(BinaryConsts::Return);
@@ -326,9 +268,69 @@ void WASMCodeContainer::produceClass()
         size_t size = fBinaryOut.size() - start;
         fBinaryOut.writeAt(size_pos, U32LEB(size));
     }
-
-    // compute
-    generateCompute();
+   
+    // getSampleRate
+    WASInst::generateGetSampleRate()->accept(gGlobal->gWASMVisitor);
+    
+    // init
+    WASInst::generateInit()->accept(gGlobal->gWASMVisitor);
+    
+    // instanceClear
+    {
+        // Rename 'sig' in 'dsp' and remove 'dsp' allocation
+        DspRenamer renamer;
+        generateWASMBody(renamer.getCode(fClearInstructions));
+    }
+    
+    // instanceConstants
+    {
+        // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+        DspRenamer renamer;
+        BlockInst* renamed = renamer.getCode(fInitInstructions);
+        BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
+        generateWASMBody(inlined);
+    }
+    
+    // instanceInit
+    WASInst::generateInstanceInit()->accept(gGlobal->gWASMVisitor);
+    
+    // instanceResetUserInterface
+    {
+        // Rename 'sig' in 'dsp' and remove 'dsp' allocation
+        DspRenamer renamer;
+        generateWASMBody(renamer.getCode(fResetUserInterfaceInstructions));
+    }
+    
+    // Always generated mathematical functions
+    WASInst::generateIntMax()->accept(gGlobal->gWASMVisitor);
+    WASInst::generateIntMin()->accept(gGlobal->gWASMVisitor);
+    
+    // setParamValue (adhoc generation since FIR cannot be generated)
+    {
+        size_t size_pos = fBinaryOut.writeU32LEBPlaceholder();
+        size_t start = fBinaryOut.size();
+        
+        // Describe function argument types
+        LocalVariableCounter local_counter;
+        local_counter.generate(&fBinaryOut);
+        
+        // Index in the dsp
+        fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // 0 = dsp
+        fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(1);  // 1 = index
+        fBinaryOut << int8_t(gBinOpTable[kAdd]->fWasmFloat);
+        
+        // Value
+        fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(2);  // 2 = value
+        
+        // Store value at index
+        fBinaryOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32StoreMem) : int8_t(BinaryConsts::F64StoreMem));
+        gGlobal->gWASMVisitor->emitMemoryAccess();
+        
+        // Generate end
+        fBinaryOut << int8_t(BinaryConsts::End);
+        size_t size = fBinaryOut.size() - start;
+        fBinaryOut.writeAt(size_pos, U32LEB(size));
+    }
     
     // Possibly generate separated functions
     generateComputeFunctions(gGlobal->gWASMVisitor);
@@ -569,5 +571,4 @@ void WASMScalarCodeContainer::generateCompute()
     MoveVariablesInFront2 mover;
     BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
     gGlobal->gWASMVisitor->generateFunDefBody(block);
-
 }
