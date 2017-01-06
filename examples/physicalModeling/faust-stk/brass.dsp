@@ -7,7 +7,7 @@ declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "A simple brass instrument waveguide model, a la Cook (TBone, HosePlayer).";
 declare reference "https://ccrma.stanford.edu/~jos/pasp/Brasses.html"; 
 
-import("instrument.lib");
+import("instruments.lib");
 
 //==================== GUI SPECIFICATION ================
 
