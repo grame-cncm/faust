@@ -391,6 +391,82 @@ class FaustPolyEngine {
         {
             return reinterpret_cast<MapUI*>(voice)->getParamAddress(id).c_str();
         }
+        
+        /*
+         * getParamMin(address)
+         * Returns the minimum value of a parameter.
+         */
+        float getParamMin(const char* address)
+        {
+            int id = fAPIUI.getParamIndex(address);
+            return (id >= 0) ? fAPIUI.getParamMin(id) : 0.f;
+        }
+    
+        /*
+         * getParamMin(id)
+         * Returns the minimum value of a parameter.
+         */
+        float getParamMin(int id)
+        {
+            return fAPIUI.getParamMin(id);
+        }
+    
+        /*
+         * getParamMax(address)
+         * Returns the maximum value of a parameter.
+         */
+        float getParamMax(const char* address)
+        {
+            int id = fAPIUI.getParamIndex(address);
+            return (id >= 0) ? fAPIUI.getParamMax(id) : 0.f;
+        }
+    
+        /*
+         * getParamMax(id)
+         * Returns the maximum value of a parameter.
+         */
+        float getParamMax(int id)
+        {
+            return fAPIUI.getParamMax(id);
+        }
+    
+        /*
+         * getParamInit(address)
+         * Returns the default value of a parameter.
+         */
+        float getParamInit(const char* address)
+        {
+            int id = fAPIUI.getParamIndex(address);
+            return (id >= 0) ? fAPIUI.getParamInit(id) : 0.f;
+        }
+    
+        /*
+         * getParamInit(id)
+         * Returns the default value of a parameter.
+         */
+        float getParamInit(int id)
+        {
+            return fAPIUI.getParamInit(id);
+        }
+    
+        /*
+         * getParamTooltip(address)
+         * Returns the tooltip of a parameter.
+         */
+        const char* getParamTooltip(const char* address)
+        {
+            int id = fAPIUI.getParamIndex(address);
+            return (id >= 0) ? fAPIUI.getParamTooltip(id) : "";
+        }
+    
+        /*
+         * getParamTooltip(id)
+         * Returns the tooltip of a parameter.
+         */
+        const char* getParamTooltip(int id)
+        {
+            return fAPIUI.getParamTooltip(id);
+        }
 
         /*
          * propagateAcc(int acc, float v)

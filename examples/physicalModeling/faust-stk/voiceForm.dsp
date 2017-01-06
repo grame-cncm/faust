@@ -6,7 +6,7 @@ declare version "1.0";
 declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
 declare description "This instrument contains an excitation singing wavetable (looping wave with random and periodic vibrato, smoothing on frequency, etc.), excitation noise, and four sweepable complex resonances. Phoneme preset numbers: 0->eee (beet), 1->ihh (bit), 2->ehh (bet), 3->aaa (bat), 4->ahh (father), 5->aww (bought), 6->ohh (bone), 7->uhh (but), 8->uuu (foot), 9->ooo (boot), 10->rrr (bird), 11->lll (lull), 12->mmm (mom), 13->nnn (nun), 14->nng (sang), 15->ngg (bong), 16->fff, 17->sss, 18->thh, 19->shh, 20->xxx, 21->hee (beet), 22->hoo (boot), 23->hah (father), 24->bbb, 25->ddd, 26->jjj, 27->ggg, 28->vvv, 29->zzz, 30->thz, 31->zhh";
 
-import("instrument.lib");
+import("instruments.lib");
 
 //==================== GUI SPECIFICATION ================
 

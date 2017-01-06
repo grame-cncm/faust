@@ -4,7 +4,7 @@ declare author "Romain Michon";
 declare copyright "Romain Michon (rmichon@ccrma.stanford.edu)";
 declare version "1.0";
 
-import("instrument.lib");
+import("instruments.lib");
 
 //==================== GUI SPECIFICATION ================
 
