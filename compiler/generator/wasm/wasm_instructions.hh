@@ -475,7 +475,8 @@ inline S32LEB type2Binary(Typed::VarType type)
     }
 }
 
-// Count local variables (stack, loop, funargs) with their types : to be used at the begining of each block
+// Count local variables (stack/loop) with their types : to be used at the begining of each block
+// Funargs variables are indexed first
 
 struct LocalVariableCounter : public DispatchVisitor {
     
@@ -534,7 +535,7 @@ struct LocalVariableCounter : public DispatchVisitor {
             if (var.second.fAccess != Address::kFunArgs) {
                 if (isIntOrPtrType(var.second.fType)) {
                     var.second.fIndex = var.second.fIndex + fFunArgIndex;
-                }else if (var.second.fType == Typed::kFloat) {
+                } else if (var.second.fType == Typed::kFloat) {
                     var.second.fIndex = var.second.fIndex + fFunArgIndex + fIn32Type;
                 } else if (var.second.fType == Typed::kDouble) {
                     var.second.fIndex = var.second.fIndex + fFunArgIndex + fIn32Type + fF32Type;
@@ -561,7 +562,7 @@ struct LocalVariableCounter : public DispatchVisitor {
 
 };
 
-// Counter of functions with their types (TODO : shared equivalent types)
+// Counter of functions with their types (TODO : share equivalent types ?)
 
 struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     
@@ -748,9 +749,9 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     void generateImports(BufferWithRandomAccess* out)
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Import);
-        *out << U32LEB(0);
         
-        // TODO
+        // 0 for now : TODO
+        *out << U32LEB(0);
         
         finishSectionAux(out, start);
     }
@@ -795,7 +796,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     
         void setLocalVarTable(const map<string, LocalVarDesc>& table) { fLocalVarTable = table; }
     
-        void emitMemoryAccess()
+        void generateMemoryAccess()
         {
             *fOut << U32LEB(offStrNum);
             *fOut << U32LEB(0); // TO CHECK : assuming offset is always 0
@@ -952,7 +953,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 } else {
                     *fOut << int8_t(BinaryConsts::I32LoadMem);
                 }
-                emitMemoryAccess();
+                generateMemoryAccess();
                 
             } else {
                 
@@ -981,7 +982,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 } else {
                     *fOut << int8_t(BinaryConsts::I32StoreMem);
                 }
-                emitMemoryAccess();
+                generateMemoryAccess();
      
             } else {
                 
@@ -1278,20 +1279,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             // End of loop block
             *fOut << int8_t(BinaryConsts::End);
         }
-    
-    
-        virtual void visit(BlockInst* inst)
-        {
-            std::cout << "=====> visit(BlockInst* inst)" << std::endl;
-            //assert(false);
-            
-            dump2FIR(inst);
-            
-            for (auto& statement : inst->fCode) {
-                statement->accept(this);
-            }
-        }
-    
+        
 };
 
 #endif

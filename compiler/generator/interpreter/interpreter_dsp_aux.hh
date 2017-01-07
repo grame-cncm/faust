@@ -149,7 +149,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         
         if (small) {
             *out << "i " << ((sizeof(T) == 8) ? "double" : "float") << std::endl;
-            *out << "v " << INTERP_FILE_VERSION << std::endl;
+            *out << "v " << FAUSTVERSION << std::endl;
+            *out << "f " << INTERP_FILE_VERSION << std::endl;
             *out << "n " << fName << std::endl;
             *out << "s " << fSHAKey << std::endl;
             *out << "o " << fOptLevel << std::endl;
@@ -185,7 +186,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             fComputeDSPBlock->write(out, small);
         } else {
             *out << "interpreter_dsp_factory " << ((sizeof(T) == 8) ? "double" : "float") << std::endl;
-            *out << "version " << INTERP_FILE_VERSION << std::endl;
+            *out << "version " << FAUSTVERSION << std::endl;
+            *out << "file " << INTERP_FILE_VERSION << std::endl;
             *out << "name " << fName << std::endl;
             *out << "sha_key " << fSHAKey << std::endl;
             *out << "opt_level " << fOptLevel << std::endl;
@@ -229,15 +231,19 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         
         // Read "version" line
         std::string version;
-        int version_num;
         getline(*in, version);
         
-        std::stringstream version_reader(version);
-        version_reader >> dummy;   // Read "version" token
-        version_reader >> version_num;
+        // Read "file" line
+        std::string file;
+        int file_num;
+        getline(*in, file);
         
-        if (INTERP_FILE_VERSION != version_num) {
-            std::cerr << "Interpreter file format version '" << version_num
+        std::stringstream version_reader(file);
+        version_reader >> dummy;   // Read "version" token
+        version_reader >> file_num;
+        
+        if (INTERP_FILE_VERSION != file_num) {
+            std::cerr << "Interpreter file format version '" << file_num
             << "' different from compiled one '" << INTERP_FILE_VERSION << "'" << std::endl;
             return 0;
         }
@@ -338,7 +344,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         return new interpreter_dsp_factory_aux(factory_name,
                                                sha_key,
                                                dummy_list,
-                                               version_num,
+                                               file_num,
                                                inputs, outputs,
                                                int_heap_size,
                                                real_heap_size,

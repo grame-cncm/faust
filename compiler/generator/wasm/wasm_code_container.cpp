@@ -293,7 +293,7 @@ void WASMCodeContainer::produceClass()
          
         // Load value from index
         fBinaryOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32LoadMem) : int8_t(BinaryConsts::F64LoadMem));
-        gGlobal->gWASMVisitor->emitMemoryAccess();
+        gGlobal->gWASMVisitor->generateMemoryAccess();
         
         // Return value
         fBinaryOut << int8_t(BinaryConsts::Return);
@@ -348,7 +348,7 @@ void WASMCodeContainer::produceClass()
         
         // Store value at index
         fBinaryOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32StoreMem) : int8_t(BinaryConsts::F64StoreMem));
-        gGlobal->gWASMVisitor->emitMemoryAccess();
+        gGlobal->gWASMVisitor->generateMemoryAccess();
         
         // Generate end
         fBinaryOut << int8_t(BinaryConsts::End);
