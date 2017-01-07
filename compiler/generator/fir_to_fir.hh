@@ -40,7 +40,7 @@ inline void dump2FIR(ValueInst* value, std::ostream* out = &cout)
     *out << "========== dump2FIR value begin ==========" << std::endl;
     FIRInstVisitor fir_visitor(out);
     value->accept(&fir_visitor);
-    *out << "========== dump2FIR value end ==========" << std::endl;
+    *out << "\n========== dump2FIR value end ==========" << std::endl;
 }
 
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b);

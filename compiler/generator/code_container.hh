@@ -232,17 +232,26 @@ class CodeContainer : public virtual Garbageable {
         DeclareFunInst* generateGetInputRate(const string& name, bool ismethod, bool isvirtual);
         DeclareFunInst* generateGetOutputRate(const string& name, bool ismethod, bool isvirtual);
     
+        virtual DeclareFunInst* generateClassInit(const string& name, bool ismethod, bool isvirtual) { assert(false); return nullptr; }
+        virtual DeclareFunInst* generateInstanceClear(const string& name, bool ismethod, bool isvirtual) { assert(false); return nullptr; }
+        virtual DeclareFunInst* generateInstanceConstants(const string& name, bool ismethod, bool isvirtual) { assert(false); return nullptr; }
+        virtual DeclareFunInst* generateInstanceResetUserInterface(const string& name, bool ismethod, bool isvirtual) { assert(false); return nullptr; }
+    
         virtual DeclareFunInst* generateStaticInitFun(const string& name, bool isstatic, bool addreturn = false);
         virtual DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn = false);
         virtual DeclareFunInst* generateFillFun(const string& name, bool ismethod, bool isvirtual, bool addreturn = false);
-
+    
+        DeclareFunInst* generateInit(bool ismethod, bool isvirtual);
+        DeclareFunInst* generateInstanceInit(bool ismethod, bool isvirtual);
+        DeclareFunInst* generateGetSampleRate(bool ismethod, bool isvirtual);
+   
         void produceInfoFunctions(int tabs, const string& classname, bool ismethod, bool isvirtual, TextInstVisitor* producer);
     
         void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);
         
         void generateJSON();
         void generateMetaData(JSONUI* json);
-
+    
         /* can be overridden by subclasses to reorder the FIR before the actual code generation */
         virtual void processFIR(void);
         

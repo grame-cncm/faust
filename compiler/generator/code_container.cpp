@@ -510,6 +510,92 @@ DeclareFunInst* CodeContainer::generateFillFun(const string& name, bool ismethod
     return InstBuilder::genDeclareFunInst(name, fun_type, fill_block);
 }
 
+DeclareFunInst* CodeContainer::generateInit(bool ismethod, bool isvirtual)
+{
+    list<NamedTyped*> args;
+    if (!ismethod) {
+        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+    }
+    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
+    
+    BlockInst* block = InstBuilder::genBlockInst();
+    {
+        list<ValueInst*> args;
+        if (!ismethod) {
+            args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+        }
+        args.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
+        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("classInit", args)));
+    }
+    
+    {
+        list<ValueInst*> args;
+        if (!ismethod) {
+            args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+        }
+        args.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
+        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceInit", args)));
+    }
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst("init", fun_type, block);
+}
+
+DeclareFunInst* CodeContainer::generateInstanceInit(bool ismethod, bool isvirtual)
+{
+    list<NamedTyped*> args;
+    if (!ismethod) {
+        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+    }
+    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
+    
+    BlockInst* block = InstBuilder::genBlockInst();
+    {
+        list<ValueInst*> args;
+        if (!ismethod) {
+            args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+        }
+        args.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
+        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceConstants", args)));
+    }
+    
+    {
+        list<ValueInst*> args;
+        if (!ismethod) {
+            args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+        }
+        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceResetUserInterface", args)));
+    }
+    
+    {
+        list<ValueInst*> args;
+        if (!ismethod) {
+            args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+        }
+        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceClear", args)));
+    }
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst("instanceInit", fun_type, block);
+}
+
+DeclareFunInst* CodeContainer::generateGetSampleRate(bool ismethod, bool isvirtual)
+{
+    list<NamedTyped*> args;
+    if (!ismethod) {
+        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+    }
+    
+    BlockInst* block = InstBuilder::genBlockInst();
+    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genLoadStructVar("fSamplingFreq")));
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst("getSampleRate", fun_type, block);
+}
+
 // Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
 void CodeContainer::produceInfoFunctions(int tabs, const string& classname, bool ismethod, bool isvirtual, TextInstVisitor* producer)
 {
@@ -662,7 +748,6 @@ void CodeContainer::generateJSON()
     } 
 }
 
-
 BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
 {
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
@@ -690,3 +775,4 @@ BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
     
     return block;
 }
+

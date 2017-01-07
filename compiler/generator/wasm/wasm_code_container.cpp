@@ -91,6 +91,86 @@ CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInp
     return container;
 }
 
+DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name, bool ismethod, bool isvirtual)
+{
+    list<NamedTyped*> args;
+    if (!ismethod) {
+        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+    }
+    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
+    
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    DspRenamer renamer;
+    BlockInst* renamed = renamer.getCode(fStaticInitInstructions);
+    BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
+    
+    MoveVariablesInFront3 mover;
+    BlockInst* block = mover.getCode(inlined);
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst(name, fun_type, block);
+}
+
+DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, bool ismethod, bool isvirtual)
+{
+    list<NamedTyped*> args;
+    if (!ismethod) {
+        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+    }
+    
+    // Rename 'sig' in 'dsp' and remove 'dsp' allocation
+    DspRenamer renamer;
+    BlockInst* renamed = renamer.getCode(fClearInstructions);
+    
+    MoveVariablesInFront3 mover;
+    BlockInst* block = mover.getCode(renamed);
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst(name, fun_type, block);
+}
+
+DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name, bool ismethod, bool isvirtual)
+{
+    list<NamedTyped*> args;
+    if (!ismethod) {
+        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+    }
+    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
+    
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    DspRenamer renamer;
+    BlockInst* renamed = renamer.getCode(fInitInstructions);
+    BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
+    
+    MoveVariablesInFront3 mover;
+    BlockInst* block = mover.getCode(inlined);
+  
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst(name, fun_type, block);
+}
+
+DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const string& name, bool ismethod, bool isvirtual)
+{
+    list<NamedTyped*> args;
+    if (!ismethod) {
+        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+    }
+    
+    // Rename 'sig' in 'dsp' and remove 'dsp' allocation
+    DspRenamer renamer;
+    BlockInst* renamed = renamer.getCode(fResetUserInterfaceInstructions);
+    
+    MoveVariablesInFront3 mover;
+    BlockInst* block = mover.getCode(renamed);
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    return InstBuilder::genDeclareFunInst(name, fun_type, block);
+}
+
 // Scalar
 WASMScalarCodeContainer::WASMScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
     :WASMCodeContainer(name, numInputs, numOutputs, out)
@@ -224,6 +304,7 @@ void WASMCodeContainer::produceClass()
     // Inits
     
     // classInit
+    /*
     std::cout << "classInit" << std::endl;
     {
         // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
@@ -232,28 +313,37 @@ void WASMCodeContainer::produceClass()
         BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
         generateWASMBody(inlined);
     }
+    */
+    
+    // 1)
+    generateClassInit("classInit", false, false)->accept(gGlobal->gWASMVisitor);
     
     // compute
     std::cout << "compute" << std::endl;
+    // 2)
     generateCompute();
     
     // getNumInputs/getNumOutputs
+    // 3)
     generateGetInputs("getNumInputs", false, false)->accept(gGlobal->gWASMVisitor);
+    
+    // 4)
     generateGetOutputs("getNumOutputs", false, false)->accept(gGlobal->gWASMVisitor);
     
-    // getParamValue (adhoc generation since FIR cannot be generated)
+    // getParamValue (adhoc generation since currently FIR cannot be generated to handle this case)
+    // 5)
     {
         size_t size_pos = fBinaryOut.writeU32LEBPlaceholder();
         size_t start = fBinaryOut.size();
         
-        // Describe function argument types
+        // Local variables
         LocalVariableCounter local_counter;
-        local_counter.generate(&fBinaryOut);
+        local_counter.generateStackMap(&fBinaryOut);
         
         // Index in the dsp
         fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // 0 = dsp
         fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(1);  // 1 = index
-        fBinaryOut << int8_t(gBinOpTable[kAdd]->fWasmFloat);
+        fBinaryOut << int8_t(gBinOpTable[kAdd]->fWasmInt);
          
         // Load value from index
         fBinaryOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32LoadMem) : int8_t(BinaryConsts::F64LoadMem));
@@ -269,19 +359,26 @@ void WASMCodeContainer::produceClass()
     }
    
     // getSampleRate
-    WASInst::generateGetSampleRate()->accept(gGlobal->gWASMVisitor);
+    // 6)
+    generateGetSampleRate(false, false)->accept(gGlobal->gWASMVisitor);
     
     // init
-    WASInst::generateInit()->accept(gGlobal->gWASMVisitor);
+    // 7)
+    generateInit(false, false)->accept(gGlobal->gWASMVisitor);
     
     // instanceClear
+    /*
     {
         // Rename 'sig' in 'dsp' and remove 'dsp' allocation
         DspRenamer renamer;
         generateWASMBody(renamer.getCode(fClearInstructions));
     }
+    */
+    // 8)
+    generateInstanceClear("instanceClear", false, false)->accept(gGlobal->gWASMVisitor);
     
     // instanceConstants
+    /*
     {
         // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
         DspRenamer renamer;
@@ -289,34 +386,45 @@ void WASMCodeContainer::produceClass()
         BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
         generateWASMBody(inlined);
     }
+    */
+    // 9)
+    generateInstanceConstants("instanceConstants", false, false)->accept(gGlobal->gWASMVisitor);
     
     // instanceInit
-    WASInst::generateInstanceInit()->accept(gGlobal->gWASMVisitor);
+    // 10)
+    generateInstanceInit(false, false)->accept(gGlobal->gWASMVisitor);
     
     // instanceResetUserInterface
+    /*
     {
         // Rename 'sig' in 'dsp' and remove 'dsp' allocation
         DspRenamer renamer;
         generateWASMBody(renamer.getCode(fResetUserInterfaceInstructions));
     }
+    */
+    // 11)
+    generateInstanceResetUserInterface("instanceResetUserInterface", false, false)->accept(gGlobal->gWASMVisitor);
     
     // Always generated mathematical functions
+    // 12)
     WASInst::generateIntMax()->accept(gGlobal->gWASMVisitor);
+    // 13)
     WASInst::generateIntMin()->accept(gGlobal->gWASMVisitor);
     
-    // setParamValue (adhoc generation since FIR cannot be generated)
+    // setParamValue (adhoc generation since currently FIR cannot be generated to handle this case)
+    // 14)
     {
         size_t size_pos = fBinaryOut.writeU32LEBPlaceholder();
         size_t start = fBinaryOut.size();
         
-        // Describe function argument types
+        // Local variables
         LocalVariableCounter local_counter;
-        local_counter.generate(&fBinaryOut);
+        local_counter.generateStackMap(&fBinaryOut);
         
         // Index in the dsp
         fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // 0 = dsp
         fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(1);  // 1 = index
-        fBinaryOut << int8_t(gBinOpTable[kAdd]->fWasmFloat);
+        fBinaryOut << int8_t(gBinOpTable[kAdd]->fWasmInt);
         
         // Value
         fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(2);  // 2 = value
@@ -338,163 +446,6 @@ void WASMCodeContainer::produceClass()
    
     // Finally produce output stream
     fBinaryOut.writeTo(*fOut);
-    
-    /*
-    int n = 0;
-  
-    tab(n, *fOut);
-    gGlobal->gWASMVisitor->Tab(n);
-    
-    tab(n, *fOut); *fOut << "(module";
-    
-        // Global declarations (mathematical functions, global variables...)
-        gGlobal->gWASMVisitor->Tab(n+1);
-    
-        // Sub containers : before functions generation
-        mergeSubContainers();
-    
-        // All mathematical functions (got from math library as variables) have to be first
-        generateGlobalDeclarations(gGlobal->gWASMVisitor);
-    
-        // Imported functions
-        tab(n+1, *fOut); *fOut << "(func $print-i (import \"imports\" \"print\") (param i32))";
-        tab(n+1, *fOut); *fOut << "(func $print-f (import \"imports\" \"print\") (param f32))";
-    
-        // Exported functions
-        tab(n+1, *fOut); *fOut << "(export \"getNumInputs\" (func $getNumInputs))";
-        tab(n+1, *fOut); *fOut << "(export \"getNumOutputs\" (func $getNumOutputs))";
-        tab(n+1, *fOut); *fOut << "(export \"getSampleRate\" (func $getSampleRate))";
-        tab(n+1, *fOut); *fOut << "(export \"init\" (func $init))";
-        tab(n+1, *fOut); *fOut << "(export \"instanceInit\" (func $instanceInit))";
-        tab(n+1, *fOut); *fOut << "(export \"instanceConstants\" (func $instanceConstants))";
-        tab(n+1, *fOut); *fOut << "(export \"instanceResetUserInterface\" (func $instanceResetUserInterface))";
-        tab(n+1, *fOut); *fOut << "(export \"instanceClear\" (func $instanceClear))";
-        tab(n+1, *fOut); *fOut << "(export \"setParamValue\" (func $setParamValue))";
-        tab(n+1, *fOut); *fOut << "(export \"getParamValue\" (func $getParamValue))";
-        tab(n+1, *fOut); *fOut << "(export \"compute\" (func $compute))";
-    
-        // Fields : compute the structure size to use in 'new'
-        gGlobal->gWASMVisitor->Tab(n+1);
-        generateDeclarations(gGlobal->gWASMVisitor);
-        
-        // After field declaration...
-        generateSubContainers();
-    
-        //*fOut << "(memory (export \"memory\") 16)";
-        tab(n+1, *fOut);
-        *fOut << "(memory (export \"memory\") "
-              << ((pow2limit(gGlobal->gWASMVisitor->getStructSize() + (fNumInputs + fNumOutputs) * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1) << ")";
-    
-        // Always generated mathematical functions
-        tab(n+1, *fOut);
-        
-        tab(n+1, *fOut); *fOut << "(func $min_i (param $v1 i32) (param $v2 i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(return (select (get_local $v1) (get_local $v2) (i32.lt_s (get_local $v1) (get_local $v2))))";
-        tab(n+1, *fOut); *fOut << ")";
-        
-        tab(n+1, *fOut); *fOut << "(func $max_i (param $v1 i32) (param $v2 i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(return (select (get_local $v2) (get_local $v1) (i32.lt_s (get_local $v1) (get_local $v2))))";
-        tab(n+1, *fOut); *fOut << ")";
-        
-    
-        // tab(n+1, *fOut); *fOut << "(func $fmod" << isuffix() << " (type $0) (param $value " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
-        // tab(n+2, *fOut); *fOut << "(return (call $" << realStr << "-rem (get_local $value) (get_local $1)))";
-        // tab(n+1, *fOut); *fOut << ")";
-         
-        // tab(n+1, *fOut); *fOut <<  "(func $log10" << isuffix() << " (type $2) (param $value " << realStr << ") (result " << realStr << ")";
-        // tab(n+2, *fOut); *fOut << "(return (" << realStr << ".div (call $log (get_local $value)) (call $log (" << realStr << ".const 10))))";
-        // tab(n+1, *fOut); *fOut << ")";
-    
-    
-        tab(n+1, *fOut); *fOut << "(func $getNumInputs (param $dsp i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(return (i32.const " << fNumInputs << "))";
-        tab(n+1, *fOut); *fOut << ")";
-    
-        tab(n+1, *fOut); *fOut << "(func $getNumOutputs (param $dsp i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(return (i32.const " << fNumOutputs << "))";
-        tab(n+1, *fOut); *fOut << ")";
-    
-        // Inits
-        tab(n+1, *fOut); *fOut << "(func $classInit (param $dsp i32) (param $samplingFreq i32)";
-            tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
-            {
-                // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
-                DspRenamer renamer;
-                BlockInst* renamed = renamer.getCode(fStaticInitInstructions);
-                BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
-                generateWASMBlock(inlined);
-            }
-        tab(n+1, *fOut); *fOut << ")";
-    
-        tab(n+1, *fOut); *fOut << "(func $instanceConstants (param $dsp i32) (param $samplingFreq i32)";
-            tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
-            {
-                // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
-                DspRenamer renamer;
-                BlockInst* renamed = renamer.getCode(fInitInstructions);
-                BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
-                generateWASMBlock(inlined);
-          }
-        tab(n+1, *fOut); *fOut << ")";
-    
-        tab(n+1, *fOut); *fOut << "(func $instanceResetUserInterface (param $dsp i32)";
-            tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
-            {
-                // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-                DspRenamer renamer;
-                generateWASMBlock(renamer.getCode(fResetUserInterfaceInstructions));
-            }
-        tab(n+1, *fOut); *fOut << ")";
-    
-        tab(n+1, *fOut); *fOut << "(func $instanceClear (param $dsp i32)";
-            tab(n+2, *fOut); gGlobal->gWASMVisitor->Tab(n+2);
-            {
-                // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-                DspRenamer renamer;
-                generateWASMBlock(renamer.getCode(fClearInstructions));
-            }
-        tab(n+1, *fOut); *fOut << ")";
-    
-        tab(n+1, *fOut); *fOut << "(func $init (param $dsp i32) (param $samplingFreq i32)";
-            tab(n+2, *fOut); *fOut << "(call $classInit (get_local $dsp) (get_local $samplingFreq))";
-            tab(n+2, *fOut); *fOut << "(call $instanceInit (get_local $dsp) (get_local $samplingFreq))";
-        tab(n+1, *fOut); *fOut << ")";
-    
-        tab(n+1, *fOut); *fOut << "(func $instanceInit (param $dsp i32) (param $samplingFreq i32)";
-            tab(n+2, *fOut); *fOut << "(call $instanceConstants (get_local $dsp) (get_local $samplingFreq))";
-            tab(n+2, *fOut); *fOut << "(call $instanceResetUserInterface (get_local $dsp))";
-            tab(n+2, *fOut); *fOut << "(call $instanceClear (get_local $dsp))";
-        tab(n+1, *fOut); *fOut << ")";
-        
-        // getSampleRate
-        tab(n+1, *fOut); *fOut << "(func $getSampleRate (param $dsp i32) (result i32)";
-            tab(n+2, *fOut); *fOut << "(return (i32.load (i32.add (get_local $dsp) (i32.const " << gGlobal->gWASMVisitor->getFieldOffset("fSamplingFreq") << "))))";
-        tab(n+1, *fOut); *fOut << ")";
-    
-        // setParamValue
-        tab(n+1, *fOut); *fOut << "(func $setParamValue (param $dsp i32) (param $index i32) (param $value " << realStr << ")";
-            tab(n+2, *fOut); *fOut << "(" << realStr << ".store ";
-                tab(n+3, *fOut); *fOut << "(i32.add (get_local $dsp) (get_local $index))";
-                tab(n+3, *fOut); *fOut << "(get_local $value)";
-            tab(n+2, *fOut); *fOut << ")";
-        tab(n+1, *fOut); *fOut << ")";
-    
-        // getParamValue
-        tab(n+1, *fOut); *fOut << "(func $getParamValue (param $dsp i32) (param $index i32) (result " << realStr << ")";
-            tab(n+2, *fOut); *fOut << "(return (" << realStr << ".load (i32.add (get_local $dsp) (get_local $index))))";
-        tab(n+1, *fOut); *fOut << ")";
-
-        // compute
-        generateCompute();
-        
-        // Possibly generate separated functions
-        gGlobal->gWASMVisitor->Tab(n+1);
-        tab(n+1, *fOut);
-        generateComputeFunctions(gGlobal->gWASMVisitor);
-    
-    tab(n, *fOut); *fOut << ")";
-    tab(n, *fOut);
-    */
     
     // Helper code
     int n = 0;
@@ -553,21 +504,22 @@ void WASMCodeContainer::produceClass()
 
 void WASMScalarCodeContainer::generateCompute()
 {
-    /*
-    tab(n+1, *fOut); *fOut << "(func $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
-        tab(n+2, *fOut);
-        gGlobal->gWASMVisitor->Tab(n+2);
-        ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-        fComputeBlockInstructions->pushBackInst(loop);
-        MoveVariablesInFront2 mover;
-        BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
-        block->accept(gGlobal->gWASMVisitor);
-    tab(n+1, *fOut); *fOut << ")";
-    */
+    list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+    args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt));
+    args.push_back(InstBuilder::genNamedTyped("inputs", Typed::kVoid_ptr));
+    args.push_back(InstBuilder::genNamedTyped("outputs", Typed::kVoid_ptr));
     
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     fComputeBlockInstructions->pushBackInst(loop);
     MoveVariablesInFront2 mover;
     BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
-    gGlobal->gWASMVisitor->generateFunDefBody(block);
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
+    InstBuilder::genDeclareFunInst("compute", fun_type, block)->accept(gGlobal->gWASMVisitor);
+    
+    //gGlobal->gWASMVisitor->generateFunDefBody(block);
 }
+
+

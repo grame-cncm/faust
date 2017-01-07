@@ -106,9 +106,16 @@ for f in $FILES; do
     if [ $EMCC = emcc ] ; then
         faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
-        faust -lang wast $SVG $OPTIONS $f -o $name.wast || exit
+
+#se-expression version
+
+#faust -lang wast $SVG $OPTIONS $f -o $name.wast || exit
         #wasm-opt $name.wast -O3 -o $name.wast
-        wasm-as $name.wast -o $name.wasm
+#wasm-as $name.wast -o $name.wasm
+
+#binary version
+        faust -lang wasm $SVG $OPTIONS $f -o $name.wasm || exit
+
     fi
      
     if [ $EMCC = emcc ] ; then
@@ -136,7 +143,10 @@ for f in $FILES; do
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
     cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
     cat $FAUSTLIB/webaudio/WebMIDIAPI.js >> $name-temp2.html
-    sed -e "s/mydsp/"$name"/g" helpers_$name.wast >> $name-temp2.html
+#sed -e "s/mydsp/"$name"/g" helpers_$name.wast >> $name-temp2.html
+
+    sed -e "s/mydsp/"$name"/g" helpers_$name.wasm >> $name-temp2.html
+
     sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER >> $name-temp2.html
     echo "</script>" >> $name-temp2.html
     echo "</head>" >> $name-temp2.html
@@ -151,7 +161,8 @@ for f in $FILES; do
     sed -e "s/DSP/"$name"/g" $name-temp2.html > $name.html
     
     #rm $name.wast
-    rm helpers_$name.wast
+#rm helpers_$name.wast
+rm helpers_$name.wasm
     rm $name-temp2.html
  
     # collect binary file name

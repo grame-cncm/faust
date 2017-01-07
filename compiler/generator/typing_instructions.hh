@@ -25,6 +25,7 @@
 using namespace std;
 
 #include "instructions.hh"
+#include "fir_to_fir.hh"
 
 struct TypingVisitor : public InstVisitor {
 
@@ -38,7 +39,9 @@ struct TypingVisitor : public InstVisitor {
     
         virtual void visit(LoadVarInst* inst)
         {
-            // Local or struct variables
+            //dump2FIR(inst);
+            
+            // Stack or struct variables
             if (gGlobal->gVarTypeTable.find(inst->getName()) != gGlobal->gVarTypeTable.end()) {
                 fCurType = gGlobal->gVarTypeTable[inst->getName()]->getType();
                 if (dynamic_cast<IndexedAddress*>(inst->fAddress)) {

@@ -2507,7 +2507,8 @@ inline bool isIntOrPtrType(Typed::VarType type)
             || type == Typed::kFloat_ptr
             || type == Typed::kFloatMacro_ptr
             || type == Typed::kDouble_ptr
-            || type == Typed::kObj_ptr);
+            || type == Typed::kObj_ptr
+            || type == Typed::kVoid_ptr);
 }
 
 #endif

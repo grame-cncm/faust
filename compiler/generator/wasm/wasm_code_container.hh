@@ -62,6 +62,11 @@ class WASMCodeContainer : public virtual CodeContainer {
         }
     
         DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn);
+    
+        DeclareFunInst* generateClassInit(const string& name, bool ismethod, bool isvirtual);
+        DeclareFunInst* generateInstanceClear(const string& name, bool ismethod, bool isvirtual);
+        DeclareFunInst* generateInstanceConstants(const string& name, bool ismethod, bool isvirtual);
+        DeclareFunInst* generateInstanceResetUserInterface(const string& name, bool ismethod, bool isvirtual);
   
     public:
 

@@ -257,13 +257,13 @@ void WASTCodeContainer::produceClass()
         gGlobal->gWASTVisitor->Tab(n+1);
     
         // init
-        WASInst::generateInit()->accept(gGlobal->gWASTVisitor);
+        generateInit(false, false)->accept(gGlobal->gWASTVisitor);
     
         // instanceInit
-        WASInst::generateInstanceInit()->accept(gGlobal->gWASTVisitor);
+        generateInstanceInit(false, false)->accept(gGlobal->gWASTVisitor);
     
         // getSampleRate
-        WASInst::generateGetSampleRate()->accept(gGlobal->gWASTVisitor);
+        generateGetSampleRate(false, false)->accept(gGlobal->gWASTVisitor);
     
         // setParamValue
         tab(n+1, *fOut); *fOut << "(func $setParamValue (param $dsp i32) (param $index i32) (param $value " << realStr << ")";
@@ -390,75 +390,6 @@ DeclareFunInst* WASInst::generateIntMax()
     return InstBuilder::genDeclareFunInst("max_i", fun_type, block);
 }
 
-DeclareFunInst* WASInst::generateInit()
-{
-    list<NamedTyped*> args;
-    args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
-    
-    BlockInst* block = InstBuilder::genBlockInst();
-    {
-        list<ValueInst*> args;
-        args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
-        args.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
-        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("classInit", args)));
-    }
-    
-    {
-        list<ValueInst*> args;
-        args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
-        args.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
-        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceInit", args)));
-    }
-    
-    // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst("init", fun_type, block);
- }
-
-DeclareFunInst* WASInst::generateInstanceInit()
-{
-    list<NamedTyped*> args;
-    args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
-    
-    BlockInst* block = InstBuilder::genBlockInst();
-    {
-        list<ValueInst*> args;
-        args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
-        args.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
-        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceConstants", args)));
-    }
-    
-    {
-        list<ValueInst*> args;
-        args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
-        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceResetUserInterface", args)));
-    }
-    
-    {
-        list<ValueInst*> args;
-        args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
-        block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceClear", args)));
-    }
-    
-    // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst("instanceInit", fun_type, block);
-}
-
-DeclareFunInst* WASInst::generateGetSampleRate()
-{
-    list<NamedTyped*> args;
-    args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-    
-    BlockInst* block = InstBuilder::genBlockInst();
-    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genLoadStructVar("fSamplingFreq")));
-    
-    // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kDefault);
-    return InstBuilder::genDeclareFunInst("getSampleRate", fun_type, block);
-}
 
 
 
