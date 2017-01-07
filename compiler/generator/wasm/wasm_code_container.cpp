@@ -253,85 +253,31 @@ void WASMCodeContainer::produceClass()
     // After field declaration...
     generateSubContainers();
     
-    /*
-    ; section "MEMORY" (5)
-    000006a: 05                                        ; section code
-    000006b: 00                                        ; section size (guess)
-    000006c: 01                                        ; num memories
-    ; memory 0
-    000006d: 00                                        ; memory flags
-    000006e: 02                                        ; memory initial pages
-    000006b: 03                                        ; FIXUP section size
-    */
-    
     // Memory
-    int32_t memory_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Memory);
-    fBinaryOut << U32LEB(1); // num memories
-    fBinaryOut << U32LEB(0); // memory flags
-    fBinaryOut << U32LEB((pow2limit(gGlobal->gWASMVisitor->getStructSize() + (fNumInputs + fNumOutputs) * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1); // memory initial pages
-    gGlobal->gWASMVisitor->finishSection(memory_start);
+    gGlobal->gWASMVisitor->generateMemory(fNumInputs + fNumOutputs);
     
     // Exports
-    int32_t exports_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Export);
-    fBinaryOut << U32LEB(12); // num export = 11 functions + 1 memory
-    {
-        // Functions in alphabetical order
-        exportFunction("compute");
-        exportFunction("getNumInputs");
-        exportFunction("getNumOutputs");
-        exportFunction("getParamValue");
-        exportFunction("getSampleRate");
-        exportFunction("init");
-        exportFunction("instanceClear");
-        exportFunction("instanceConstants");
-        exportFunction("instanceInit");
-        exportFunction("instanceResetUserInterface");
-        exportFunction("setParamValue");
-        
-        // Memory
-        fBinaryOut << "memory";
-        fBinaryOut << U32LEB(2);  // Memory kind
-        fBinaryOut << U32LEB(0);  // Memory index
-    }
-    gGlobal->gWASMVisitor->finishSection(exports_start);
-    
+    gGlobal->gWASMVisitor->generateExports();
+ 
     // Functions
     int32_t functions_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Code);
     fBinaryOut << U32LEB(14); // num functions
     
     // Functions in alphabetical order
     
-    // Inits
-    
-    // classInit
-    /*
-    std::cout << "classInit" << std::endl;
-    {
-        // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
-        DspRenamer renamer;
-        BlockInst* renamed = renamer.getCode(fStaticInitInstructions);
-        BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
-        generateWASMBody(inlined);
-    }
-    */
-    
-    // 1)
+    // 1) classInit
     generateClassInit("classInit", false, false)->accept(gGlobal->gWASMVisitor);
     
-    // compute
-    std::cout << "compute" << std::endl;
-    // 2)
+    // 2) compute
     generateCompute();
     
-    // getNumInputs/getNumOutputs
-    // 3)
+    // 3) getNumInputs
     generateGetInputs("getNumInputs", false, false)->accept(gGlobal->gWASMVisitor);
     
-    // 4)
+    // 4) getNumOutputs
     generateGetOutputs("getNumOutputs", false, false)->accept(gGlobal->gWASMVisitor);
     
-    // getParamValue (adhoc generation since currently FIR cannot be generated to handle this case)
-    // 5)
+    // 5) getParamValue (adhoc generation since currently FIR cannot be generated to handle this case)
     {
         size_t size_pos = fBinaryOut.writeU32LEBPlaceholder();
         size_t start = fBinaryOut.size();
@@ -358,61 +304,32 @@ void WASMCodeContainer::produceClass()
         fBinaryOut.writeAt(size_pos, U32LEB(size));
     }
    
-    // getSampleRate
-    // 6)
+    // 6) getSampleRate
     generateGetSampleRate(false, false)->accept(gGlobal->gWASMVisitor);
     
-    // init
-    // 7)
+    // 7) init
     generateInit(false, false)->accept(gGlobal->gWASMVisitor);
     
-    // instanceClear
-    /*
-    {
-        // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-        DspRenamer renamer;
-        generateWASMBody(renamer.getCode(fClearInstructions));
-    }
-    */
-    // 8)
+    // 8) instanceClear
     generateInstanceClear("instanceClear", false, false)->accept(gGlobal->gWASMVisitor);
     
-    // instanceConstants
-    /*
-    {
-        // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
-        DspRenamer renamer;
-        BlockInst* renamed = renamer.getCode(fInitInstructions);
-        BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
-        generateWASMBody(inlined);
-    }
-    */
-    // 9)
+    // 9) instanceConstants
     generateInstanceConstants("instanceConstants", false, false)->accept(gGlobal->gWASMVisitor);
     
-    // instanceInit
-    // 10)
-    generateInstanceInit(false, false)->accept(gGlobal->gWASMVisitor);
+    // 10) instanceInit
+     generateInstanceInit(false, false)->accept(gGlobal->gWASMVisitor);
     
-    // instanceResetUserInterface
-    /*
-    {
-        // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-        DspRenamer renamer;
-        generateWASMBody(renamer.getCode(fResetUserInterfaceInstructions));
-    }
-    */
-    // 11)
+    // 11) instanceResetUserInterface
     generateInstanceResetUserInterface("instanceResetUserInterface", false, false)->accept(gGlobal->gWASMVisitor);
     
     // Always generated mathematical functions
-    // 12)
+    
+    // 12) max_i
     WASInst::generateIntMax()->accept(gGlobal->gWASMVisitor);
-    // 13)
+    // 13) min_i
     WASInst::generateIntMin()->accept(gGlobal->gWASMVisitor);
     
-    // setParamValue (adhoc generation since currently FIR cannot be generated to handle this case)
-    // 14)
+    // 14) setParamValue (adhoc generation since currently FIR cannot be generated to handle this case)
     {
         size_t size_pos = fBinaryOut.writeU32LEBPlaceholder();
         size_t start = fBinaryOut.size();
@@ -518,8 +435,6 @@ void WASMScalarCodeContainer::generateCompute()
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
     InstBuilder::genDeclareFunInst("compute", fun_type, block)->accept(gGlobal->gWASMVisitor);
-    
-    //gGlobal->gWASMVisitor->generateFunDefBody(block);
 }
 
 

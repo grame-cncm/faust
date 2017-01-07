@@ -463,11 +463,7 @@ struct LocalVarDesc {
 
 inline S32LEB type2Binary(Typed::VarType type)
 {
-    if (type == Typed::kInt
-        || type == Typed::kFloat_ptr
-        || type == Typed::kDouble_ptr
-        || type == Typed::kObj_ptr
-        || type == Typed::kVoid_ptr) {
+    if (isIntOrPtrType(type)) {
         return S32LEB(BinaryConsts::EncodedType::i32);
     } else if (type == Typed::kFloat) {
         return S32LEB(BinaryConsts::EncodedType::f32);
@@ -573,9 +569,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     
     FunAndTypeCounter():WASInst()
     {
-        // Math functions types
-        
-        // Integer
+        // Integer math function
         
         /*
         {
@@ -596,7 +590,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
         }
         
         /*
-        // Real
+        // Real math functions
         {
             list<NamedTyped*> args;
             args.push_back(InstBuilder::genNamedTyped("arg1", itfloat()));
@@ -761,15 +755,12 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
         finishSectionAux(out, start);
     }
     
-    // Generate list of exports
-    void generateExports(BufferWithRandomAccess* out)
+    // Generate function export
+    void generateExport(BufferWithRandomAccess* out, const string& name)
     {
-        int32_t start = startSectionAux(out, BinaryConsts::Section::Export);
+        *out << name;
         *out << U32LEB(0);
-        
-        // TODO
-        
-        finishSectionAux(out, start);
+        *out << U32LEB(getFunctionTypeIndex(name));
     }
     
     // Generate list of function signatures
@@ -777,11 +768,9 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Function);
         *out << U32LEB(fFunTypes.size());
-        
         for (auto& type : fFunTypes) {
             *out << U32LEB(getFunctionTypeIndex(type.first));
         }
-        
         finishSectionAux(out, start);
     }
     
@@ -792,7 +781,6 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
      private:
     
         map<string, LocalVarDesc> fLocalVarTable;
-        //map<string, int> fFunctionsOffset;
         BufferWithRandomAccess* fOut;
         FunAndTypeCounter fFunAndTypeCounter;
    
@@ -831,6 +819,40 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         void generateImports()
         {
             fFunAndTypeCounter.generateImports(fOut);
+        }
+    
+        void generateExports()
+        {
+            int32_t start = startSection(BinaryConsts::Section::Export);
+            *fOut << U32LEB(12); // num export = 11 functions + 1 memory
+            
+            fFunAndTypeCounter.generateExport(fOut, "compute");
+            fFunAndTypeCounter.generateExport(fOut, "getNumInputs");
+            fFunAndTypeCounter.generateExport(fOut, "getNumOutputs");
+            fFunAndTypeCounter.generateExport(fOut, "getParamValue");
+            fFunAndTypeCounter.generateExport(fOut, "getSampleRate");
+            fFunAndTypeCounter.generateExport(fOut, "init");
+            fFunAndTypeCounter.generateExport(fOut, "instanceClear");
+            fFunAndTypeCounter.generateExport(fOut, "instanceConstants");
+            fFunAndTypeCounter.generateExport(fOut, "instanceInit");
+            fFunAndTypeCounter.generateExport(fOut, "instanceResetUserInterface");
+            fFunAndTypeCounter.generateExport(fOut, "setParamValue");
+            
+            // Memory
+            *fOut << "memory";
+            *fOut << U32LEB(2);  // Memory kind
+            *fOut << U32LEB(0);  // Memory index
+            
+            finishSection(start);
+        }
+    
+        void generateMemory(int channels)
+        {
+            int32_t start = startSection(BinaryConsts::Section::Memory);
+            *fOut << U32LEB(1); // num memories
+            *fOut << U32LEB(0); // memory flags
+            *fOut << U32LEB((pow2limit(getStructSize() + channels * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1); // memory initial pages
+            finishSection(start);
         }
     
         void generateFuncSignatures()
@@ -893,60 +915,32 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             std::cout << "=====> visit(DeclareFunInst* inst) " << inst->fName << std::endl;
             
             // Generate function body
-            //if (inst->fCode->size() != 0) {
-            
-                // Body size
-                size_t size_pos = fOut->writeU32LEBPlaceholder();
-                size_t start = fOut->size();
-            
-                // Generate locals
-                LocalVariableCounter local_counter;
-                inst->accept(&local_counter);
-                local_counter.generateStackMap(fOut);
-                local_counter.dump();
-                setLocalVarTable(local_counter.fLocalVarTable);
-            
-                inst->fCode->accept(this);
-                
-                // Generate end
-                *fOut << int8_t(BinaryConsts::End);
-                size_t size = fOut->size() - start;
-                fOut->writeAt(size_pos, U32LEB(size));
-                
-                std::cout << "=====> DeclareFunInst SIZE " << inst->fName << " " << size << std::endl;
-            //}
-        }
-    
-        virtual void generateFunDefBody(BlockInst* block)
-        {
-            // Body size
             size_t size_pos = fOut->writeU32LEBPlaceholder();
             size_t start = fOut->size();
-            
+        
             // Generate locals
             LocalVariableCounter local_counter;
-            block->accept(&local_counter);
+            inst->accept(&local_counter);
             local_counter.generateStackMap(fOut);
             local_counter.dump();
             setLocalVarTable(local_counter.fLocalVarTable);
-            
-            block->accept(this);
+        
+            inst->fCode->accept(this);
             
             // Generate end
             *fOut << int8_t(BinaryConsts::End);
             size_t size = fOut->size() - start;
             fOut->writeAt(size_pos, U32LEB(size));
             
-            std::cout << "=====> generateFunDefBody SIZE " << size << std::endl;
+            std::cout << "=====> DeclareFunInst SIZE " << inst->fName << " " << size << std::endl;
         }
-
+    
         virtual void visit(LoadVarInst* inst)
         {
             fTypingVisitor.visit(inst);
             Typed::VarType type = fTypingVisitor.fCurType;
             
             std::cout << "=====> visit(LoadVarInst* inst) " << inst->fAddress->getName() << " " << Typed::gTypeString[fTypingVisitor.fCurType] << std::endl;
-            
             
             if (inst->fAddress->getAccess() & Address::kStruct
                 || inst->fAddress->getAccess() & Address::kStaticStruct

@@ -38,29 +38,6 @@ class WASMCodeContainer : public virtual CodeContainer {
         std::stringstream fHelper;
         FunAndTypeCounter fFunctionType;
     
-        void generateWASMBlock(BlockInst* instructions)
-        {
-            // Moves all variables declaration at the beginning of the block
-            MoveVariablesInFront3 mover;
-            BlockInst* block = mover.getCode(instructions);
-            block->accept(gGlobal->gWASMVisitor);
-        }
-    
-        void generateWASMBody(BlockInst* instructions)
-        {
-            // Moves all variables declaration at the beginning of the block
-            MoveVariablesInFront3 mover;
-            BlockInst* block = mover.getCode(instructions);
-            gGlobal->gWASMVisitor->generateFunDefBody(block);
-        }
-    
-        void exportFunction(const string& name)
-        {
-            fBinaryOut << name;
-            fBinaryOut << U32LEB(0);  // Function kind
-            fBinaryOut << U32LEB(fFunctionType.getFunctionTypeIndex(name));
-        }
-    
         DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn);
     
         DeclareFunInst* generateClassInit(const string& name, bool ismethod, bool isvirtual);

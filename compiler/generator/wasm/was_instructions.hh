@@ -145,7 +145,6 @@ struct WASInst {
         fStructOffset = 0;
         fSubContainerType = -1;
         //fFastMemory = true;
-        
         fFastMemory = false;
     }
     
