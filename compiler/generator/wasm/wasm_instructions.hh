@@ -293,6 +293,13 @@ class BufferWithRandomAccess : public std::vector<uint8_t> {
     
 };
 
+enum class ExternalKind {
+    Function = 0,
+    Table = 1,
+    Memory = 2,
+    Global = 3
+};
+
 namespace BinaryConsts {
     
     enum Meta {
@@ -530,6 +537,8 @@ struct LocalVariableCounter : public DispatchVisitor {
     
     void generateStackMap(BufferWithRandomAccess* out)
     {
+        std::cout << "LocalVariableCounter::generateStackMap" << std::endl;
+        
         // Update stack variable index depending of 1) number of stack variables of different type 2) funarg variables number
         for (auto& var : fLocalVarTable) {
             if (var.second.fAccess != Address::kFunArgs) {
@@ -566,7 +575,8 @@ struct LocalVariableCounter : public DispatchVisitor {
 
 struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     
-    std::map<string, FunTyped*> fFunTypes;
+    std::map<string, FunTyped*> fFunTypes;               // function name, function type
+    std::map<string, pair<string, string>> fFunImports;  // function name, [module, base]
     
     FunAndTypeCounter():WASInst()
     {
@@ -693,18 +703,65 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
             MathFunDesc desc = fMathLibTable[inst->fName];
             if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
                 
-                if (desc.fMode == MathFunDesc::Gen::kExtMath) {
-                    
-                } else if (desc.fMode == MathFunDesc::Gen::kExtWAS) {
-                    
+                // Build function type (args type same as return type)
+                list<NamedTyped*> args;
+                if (desc.fArgs == 1) {
+                    args.push_back(InstBuilder::genNamedTyped("v1", desc.fType));
+                } else if (desc.fArgs == 2) {
+                    args.push_back(InstBuilder::genNamedTyped("v1", desc.fType));
+                    args.push_back(InstBuilder::genNamedTyped("v2", desc.fType));
                 } else {
                     assert(false);
                 }
+                // Args type same as return type
+                FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(desc.fType), FunTyped::kDefault);
+                fFunTypes[inst->fName] = fun_type;
+                
+                // Build function import
+                if (desc.fMode == MathFunDesc::Gen::kExtMath) {
+                    fFunImports[inst->fName] = std::make_pair("global.Math", desc.fName);
+                } else if (desc.fMode == MathFunDesc::Gen::kExtWAS) {
+                    fFunImports[inst->fName] = std::make_pair("asm2wasm", desc.fName);
+                } else {
+                    assert(false);
+                }
+                
             }
         } else {
             // Prototype
             fFunTypes[inst->fName] = inst->fType;
         }
+    }
+    
+    int32_t getFunctionIndex(const string& name)
+    {
+        // If imported function
+        if (fFunImports.find(name) != fFunImports.end()) {
+            int i = 0;
+            for (auto& import : fFunImports) {
+                if (import.first == name) {
+                    std::cout << "getFunctionTypeIndex IMPORTED " << name << " " << i << std::endl;
+                    return i;
+                }
+                i++;
+            }
+        // Otherwise defined function
+        } else {
+            int i = 0;
+            for (auto& type : fFunTypes) {
+                if (fFunImports.find(type.first) == fFunImports.end()) {
+                    if (type.first == name) {
+                        std::cout << "getFunctionTypeIndex DEFINED " << name << " " << i << std::endl;
+                        return i + fFunImports.size();
+                    }
+                    i++;
+                }
+            }
+        }
+        
+        std::cerr << "getFunctionIndex " << name << std::endl;
+        assert(false);
+        return -1;
     }
     
     int32_t getFunctionTypeIndex(const string& name)
@@ -721,25 +778,30 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
         assert(false);
         return -1;
     }
-   
-    // Generate list of function types
+    
+    void generateFunType(BufferWithRandomAccess* out, FunTyped* type)
+    {
+        *out << S32LEB(BinaryConsts::EncodedType::Func);
+        *out << U32LEB(type->fArgsTypes.size());
+        for (auto param : type->fArgsTypes) {
+            *out << type2Binary(param->getType());
+        }
+        if (type->fResult->getType() == Typed::kVoid) {
+            *out << U32LEB(0);
+        } else {
+            *out << U32LEB(1);
+            *out << type2Binary(type->fResult->getType());
+        }
+    }
+    
     void generateFunTypes(BufferWithRandomAccess* out)
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Type);
         *out << U32LEB(fFunTypes.size());
+        std::cout << "generateFunTypes " << fFunTypes.size() << std::endl;
         
         for (auto& type : fFunTypes) {
-            *out << S32LEB(BinaryConsts::EncodedType::Func);
-            *out << U32LEB(type.second->fArgsTypes.size());
-            for (auto param : type.second->fArgsTypes) {
-                *out << type2Binary(param->getType());
-            }
-            if (type.second->fResult->getType() == Typed::kVoid) {
-                *out << U32LEB(0);
-            } else {
-                *out << U32LEB(1);
-                *out << type2Binary(type.second->fResult->getType());
-            }
+            generateFunType(out, type.second);
         }
         
         finishSectionAux(out, start);
@@ -749,9 +811,15 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     void generateImports(BufferWithRandomAccess* out)
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Import);
+        *out << U32LEB(fFunImports.size());
+        std::cout << "generateImports " << fFunImports.size() << std::endl;
         
-        // 0 for now : TODO
-        *out << U32LEB(0);
+        for (auto& import : fFunImports) {
+            *out << import.second.first;    // module
+            *out << import.second.second;   // base
+            *out << U32LEB(int32_t(ExternalKind::Function));
+            *out << U32LEB(getFunctionTypeIndex(import.first)); // function type index
+        }
         
         finishSectionAux(out, start);
     }
@@ -760,7 +828,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     void generateExport(BufferWithRandomAccess* out, const string& name)
     {
         *out << name;
-        *out << U32LEB(0);
+        *out << U32LEB(int32_t(ExternalKind::Function));
         *out << U32LEB(getFunctionTypeIndex(name));
     }
     
@@ -768,9 +836,14 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     void generateFuncSignatures(BufferWithRandomAccess* out)
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Function);
-        *out << U32LEB(fFunTypes.size());
+        *out << U32LEB(fFunTypes.size() - fFunImports.size());
+        std::cout << "generateFuncSignatures " << (fFunTypes.size() - fFunImports.size()) << std::endl;
+        
+        // Then module internal functions (those not in FunImports)
         for (auto& type : fFunTypes) {
-            *out << U32LEB(getFunctionTypeIndex(type.first));
+            if (fFunImports.find(type.first) == fFunImports.end()) {
+                *out << U32LEB(getFunctionTypeIndex(type.first));
+            }
         }
         finishSectionAux(out, start);
     }
@@ -907,6 +980,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 MathFunDesc desc = fMathLibTable[inst->fName];
                 if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
+                    // Build external function import
+                    fFunAndTypeCounter.visit(inst);
                     return;
                 }
             }
@@ -1181,16 +1256,19 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             arg1->accept(&fTypingVisitor);
             if (isIntType(fTypingVisitor.fCurType)) {
                 // Using manually generated min/max
-                *fOut << int8_t(BinaryConsts::CallFunction) << U32LEB(fFunAndTypeCounter.getFunctionTypeIndex(name));
+                *fOut << int8_t(BinaryConsts::CallFunction) << U32LEB(fFunAndTypeCounter.getFunctionIndex(name));
+                
             } else {
                 MathFunDesc desc = fMathLibTable[name];
-                *fOut << desc.fWasmOp;
+                *fOut << int8_t(desc.fWasmOp);
             }
         }
 
         // Generate standard funcall (not 'method' like funcall...)
         virtual void visit(FunCallInst* inst)
         {
+            std::cout << "visit(FunCallInst* inst) " << inst->fName << std::endl;
+            
             // Compile args first
             list<ValueInst*>::const_iterator it;
             for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
@@ -1205,13 +1283,13 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     if (startWith(desc.fName, "min") || startWith(desc.fName, "max")) {
                         generateMinMax(inst->fArgs, desc.fName);
                     } else {
-                        *fOut << desc.fWasmOp;
+                        *fOut << int8_t(desc.fWasmOp);
                     }
                 } else {
-                    *fOut << int8_t(BinaryConsts::CallFunction) << U32LEB(fFunAndTypeCounter.getFunctionTypeIndex(inst->fName));
+                    *fOut << int8_t(BinaryConsts::CallFunction) << U32LEB(fFunAndTypeCounter.getFunctionIndex(inst->fName));
                 }
             } else {
-                *fOut << int8_t(BinaryConsts::CallFunction) << U32LEB(fFunAndTypeCounter.getFunctionTypeIndex(inst->fName));
+                *fOut << int8_t(BinaryConsts::CallFunction) << U32LEB(fFunAndTypeCounter.getFunctionIndex(inst->fName));
             }
         }
     
@@ -1279,7 +1357,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             // End of loop block
             *fOut << int8_t(BinaryConsts::End);
         }
-        
+
 };
 
 #endif

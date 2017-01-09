@@ -32,10 +32,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
     
         string type2String(Typed::VarType type)
         {
-            if (type == Typed::kInt
-                || type == Typed::kFloat_ptr
-                || type == Typed::kDouble_ptr
-                || type == Typed::kObj_ptr) {
+            if (isIntOrPtrType(type)) {
                 return "i32";
             } else if (type == Typed::kFloat) {
                 return "f32";

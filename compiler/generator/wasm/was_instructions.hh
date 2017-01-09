@@ -62,7 +62,7 @@ struct WASInst {
     
     struct MathFunDesc {
         
-        enum Gen { kWAS, kExtMath, kExtWAS, kManual };
+        enum Gen { kWAS, kExtMath, kIntWAS, kExtWAS, kManual };
         
         MathFunDesc()
         {}
@@ -95,8 +95,8 @@ struct WASInst {
     {
         // Integer version
         fMathLibTable["abs"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "abs", Typed::kInt, 1);
-        fMathLibTable["min_i"] = MathFunDesc(MathFunDesc::Gen::kWAS, "min_i", Typed::kInt, 2);
-        fMathLibTable["max_i"] = MathFunDesc(MathFunDesc::Gen::kWAS, "max_i", Typed::kInt, 2);
+        fMathLibTable["min_i"] = MathFunDesc(MathFunDesc::Gen::kIntWAS, "min_i", Typed::kInt, 2);
+        fMathLibTable["max_i"] = MathFunDesc(MathFunDesc::Gen::kIntWAS, "max_i", Typed::kInt, 2);
         
         // Float version
         fMathLibTable["fabsf"] = MathFunDesc(MathFunDesc::Gen::kWAS, "abs", WasmOp::F32Abs, Typed::kFloat, 1);
