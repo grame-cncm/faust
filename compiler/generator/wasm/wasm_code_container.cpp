@@ -235,8 +235,10 @@ void WASMCodeContainer::produceClass()
     // Sub containers : before functions generation
     mergeSubContainers();
     
+    cout << "generateGlobalDeclarations" << endl;
     // All mathematical functions (got from math library as variables) have to be first
     generateGlobalDeclarations(gGlobal->gWASMVisitor);
+    cout << "generateGlobalDeclarations OK " << endl;
     
     // Functions types
     gGlobal->gWASMVisitor->generateFunTypes();
@@ -277,7 +279,7 @@ void WASMCodeContainer::produceClass()
     // 4) getNumOutputs
     generateGetOutputs("getNumOutputs", false, false)->accept(gGlobal->gWASMVisitor);
     
-    // 5) getParamValue (adhoc generation since currently FIR cannot be generated to handle this case)
+    // 5) getParamValue (adhoc generation for now since currently FIR cannot be generated to handle this case)
     {
         size_t size_pos = fBinaryOut.writeU32LEBPlaceholder();
         size_t start = fBinaryOut.size();
@@ -329,7 +331,7 @@ void WASMCodeContainer::produceClass()
     // 13) min_i
     WASInst::generateIntMin()->accept(gGlobal->gWASMVisitor);
     
-    // 14) setParamValue (adhoc generation since currently FIR cannot be generated to handle this case)
+    // 14) setParamValue (adhoc generation for now since currently FIR cannot be generated to handle this case)
     {
         size_t size_pos = fBinaryOut.writeU32LEBPlaceholder();
         size_t start = fBinaryOut.size();

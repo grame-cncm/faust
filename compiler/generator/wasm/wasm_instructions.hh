@@ -580,17 +580,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     
     FunAndTypeCounter():WASInst()
     {
-        // Integer math function
-        
-        /*
-        {
-            list<NamedTyped*> args;
-            args.push_back(InstBuilder::genNamedTyped("arg1", Typed::kInt));
-            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kDefault);
-            fFunTypes["funInt1"] = fun_type;
-        }
-        */
-        
+        // Additional functions defined in the module module
         {
             list<NamedTyped*> args;
             args.push_back(InstBuilder::genNamedTyped("arg1", Typed::kInt));
@@ -599,24 +589,6 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
             fFunTypes["min_i"] = fun_type;
             fFunTypes["max_i"] = fun_type;
         }
-        
-        /*
-        // Real math functions
-        {
-            list<NamedTyped*> args;
-            args.push_back(InstBuilder::genNamedTyped("arg1", itfloat()));
-            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(itfloat()), FunTyped::kDefault);
-            fFunTypes["funReal1"] = fun_type;
-        }
-        
-        {
-            list<NamedTyped*> args;
-            args.push_back(InstBuilder::genNamedTyped("arg1", itfloat()));
-            args.push_back(InstBuilder::genNamedTyped("arg2", itfloat()));
-            FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(itfloat()), FunTyped::kDefault);
-            fFunTypes["funReal2"] = fun_type;
-        }
-        */
         
         // DSP API
         
@@ -740,21 +712,21 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
             int i = 0;
             for (auto& import : fFunImports) {
                 if (import.first == name) {
-                    std::cout << "getFunctionTypeIndex IMPORTED " << name << " " << i << std::endl;
+                    std::cout << "getFunctionIndex imported " << name << " " << i << std::endl;
                     return i;
                 }
                 i++;
             }
         // Otherwise defined function
         } else {
-            int i = 0;
+            int i = fFunImports.size();
             for (auto& type : fFunTypes) {
                 if (fFunImports.find(type.first) == fFunImports.end()) {
                     if (type.first == name) {
-                        std::cout << "getFunctionTypeIndex DEFINED " << name << " " << i << std::endl;
-                        return i + fFunImports.size();
+                        std::cout << "getFunctionIndex defined " << name << " " << i << std::endl;
+                        return i;
                     }
-                    i++;
+                    i++; // count only defined function
                 }
             }
         }
@@ -979,7 +951,9 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 MathFunDesc desc = fMathLibTable[inst->fName];
-                if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
+                if (desc.fMode == MathFunDesc::Gen::kExtMath
+                    || desc.fMode == MathFunDesc::Gen::kExtWAS
+                    || desc.fMode == MathFunDesc::Gen::kWAS) {
                     // Build external function import
                     fFunAndTypeCounter.visit(inst);
                     return;
@@ -987,7 +961,6 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             }
             
             dump2FIR(inst);
-            
             std::cout << "=====> visit(DeclareFunInst* inst) " << inst->fName << std::endl;
             
             // Generate function body
@@ -1251,6 +1224,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         // Special case for min/max
         void generateMinMax(const list<ValueInst*>& args, const string& name)
         {
+            std::cout << "generateMinMax " << name << std::endl;
+            
             list<ValueInst*>::iterator it;
             ValueInst* arg1 = *(args.begin());
             arg1->accept(&fTypingVisitor);
@@ -1259,6 +1234,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 *fOut << int8_t(BinaryConsts::CallFunction) << U32LEB(fFunAndTypeCounter.getFunctionIndex(name));
                 
             } else {
+                assert(fMathLibTable.find(name) != fMathLibTable.end());
                 MathFunDesc desc = fMathLibTable[name];
                 *fOut << int8_t(desc.fWasmOp);
             }
@@ -1281,7 +1257,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 if (desc.fMode == MathFunDesc::Gen::kWAS) {
                     // Special case for min/max
                     if (startWith(desc.fName, "min") || startWith(desc.fName, "max")) {
-                        generateMinMax(inst->fArgs, desc.fName);
+                        generateMinMax(inst->fArgs, inst->fName);
                     } else {
                         *fOut << int8_t(desc.fWasmOp);
                     }

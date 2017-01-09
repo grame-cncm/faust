@@ -320,11 +320,6 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                 gFunctionSymbolTable[inst->fName] = 1;
             }
             
-            // Defined as macro in the architecture file...
-            if (startWith(inst->fName, "min") || startWith(inst->fName, "max")) {
-                return;
-            }
-            
             // If function is actually a method (that is "xx::name"), then keep "xx::name" in gSymbolGlobalsTable but print "name"
             string fun_name = inst->fName;
             size_t pos;
