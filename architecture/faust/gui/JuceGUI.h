@@ -577,7 +577,7 @@ public:
     }
 
     virtual void paint(Graphics& g) override {
-        //g.fillRect(getLocalBounds());
+        // g.fillRect(getLocalBounds());
     }
 
     virtual void resized() override
@@ -1358,9 +1358,9 @@ public:
         uiBox* tempBox = findParentComponentOfClass<uiBox>();
         if(tempBox != nullptr) {
             if(!(tempBox->fName.startsWith("0x")) && tempBox->fName.isNotEmpty()) {
-                vRatio = (float)recommendedHeight / (float)(findParentComponentOfClass<uiBox>()->getRecommendedHeight()-12);
+                vRatio = (float)recommendedHeight / (float)(tempBox->getRecommendedHeight()-12);
             } else {
-                vRatio = (float)recommendedHeight / (float)findParentComponentOfClass<uiBox>()->getRecommendedHeight();
+                vRatio = (float)recommendedHeight / (float)tempBox->getRecommendedHeight();
             }
         }
     }
@@ -1398,32 +1398,26 @@ public:
                 sumRatio += dynamic_cast<layoutComponent*>(getChildComponent(i))->getHRatio();
             }
         }
-        
-        std::cout<<"sumRatio = "<<sumRatio<<std::endl;
 
+        // Adjust the remaining amount of space depending on the number of child
         float marginBetweenChildComponent;
         if(isVertical){
             marginBetweenChildComponent = (functionRect.getHeight() * (1-sumRatio)) / (getNumChildComponents()*2);
         } else {
             marginBetweenChildComponent = (functionRect.getWidth() * (1-sumRatio)) / (getNumChildComponents()*2);
         }
-        float margin = marginBetweenChildComponent; 
-        
-        //float margin = 2;
-        std::cout<<"Box "<<fName<<" got margin of : "<<margin<<" for "<<getNumChildComponents()<<std::endl;
+        float margin = marginBetweenChildComponent;
 
+        // Give child components an adapt size depending on its ratio and this box size
         for(int i = 0; i<getNumChildComponents(); i++) {
-            float margins = margin;
             layoutComponent* tempComp = dynamic_cast<layoutComponent*>(getChildComponent(i));
-            if(i>0){
-                margins = 2*margin;
-            }
+            
             if(isVertical) {
                 int heightToRemove = getSpaceToRemove(tempComp->getVRatio());
-                tempComp->setLayoutComponentSize(functionRect.removeFromTop(heightToRemove).reduced(2, 0).translated(0, margins));
+                tempComp->setLayoutComponentSize(functionRect.removeFromTop(heightToRemove).reduced(2, 0).translated(0, margin*(1+2*i)));
             } else {
                 int widthToRemove = getSpaceToRemove(tempComp->getHRatio());
-                tempComp->setLayoutComponentSize(functionRect.removeFromLeft(widthToRemove).reduced(0, 2).translated(margins, 0));
+                tempComp->setLayoutComponentSize(functionRect.removeFromLeft(widthToRemove).reduced(0, 2).translated(margin*(1+2*i), 0));
             }
         }
     }
@@ -1445,9 +1439,15 @@ public:
 
     int getSpaceToRemove(float ratio) {
         if(isVertical) {
-            return floor((float)getBounds().getHeight()*ratio);
+            //Checking if the name is displayed, to give to good amount space for child components
+            if(!(fName.startsWith("0x")) && fName.isNotEmpty()) {
+                return (float)(getBounds().getHeight()-12)*ratio;
+            } else {
+                return (float)getBounds().getHeight()*ratio;
+            }
         } else {
-            return floor((float)getBounds().getWidth()*ratio);
+            //Don't need to check for an horizontal box, as we don't care about its height
+            return (float)getBounds().getWidth()*ratio;
         }
     }
 
@@ -1511,7 +1511,7 @@ public:
         g.fillRect(getLocalBounds());
 
         g.setColour(Colours::black);
-        if(!fName.startsWith("0x")) {
+        if(!(fName.startsWith("0x")) && fName.isNotEmpty()) {
             g.drawText(fName, getLocalBounds() .withHeight(12), Justification::centred);
         }
     }
