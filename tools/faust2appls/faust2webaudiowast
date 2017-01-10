@@ -78,7 +78,7 @@ if [ $POLY = "true" ]; then
         CODE_WRAPPER=webaudio-asm-poly.cpp
         JS_WRAPPER=webaudio-asm-poly-emcc.js
     else
-        echo "Compiled with 'wasm' backend in polyphonic mode"
+        echo "Compiled with 'wast' backend in polyphonic mode"
         CODE_WRAPPER=webaudio-wasm-poly-standalone-wrapper.js
     fi
 else
@@ -88,7 +88,7 @@ else
         CODE_WRAPPER=webaudio-asm.cpp
         JS_WRAPPER=webaudio-asm-emcc.js
     else
-        echo "Compiled with 'wasm' backend"
+        echo "Compiled with 'wast' backend"
         CODE_WRAPPER=webaudio-wasm-standalone-wrapper.js
     fi
 fi
@@ -106,7 +106,9 @@ for f in $FILES; do
     if [ $EMCC = emcc ] ; then
         faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
-      faust -lang wasm $SVG $OPTIONS $f -o $name.wasm || exit
+       faust -lang wast $SVG $OPTIONS $f -o $name.wast || exit
+        #wasm-opt $name.wast -O3 -o $name.wast
+        wasm-as $name.wast -o $name.wasm
     fi
      
     if [ $EMCC = emcc ] ; then
@@ -134,7 +136,7 @@ for f in $FILES; do
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
     cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
     cat $FAUSTLIB/webaudio/WebMIDIAPI.js >> $name-temp2.html
-    sed -e "s/mydsp/"$name"/g" helpers_$name.wasm >> $name-temp2.html
+    sed -e "s/mydsp/"$name"/g" helpers_$name.wast >> $name-temp2.html
     sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER >> $name-temp2.html
     echo "</script>" >> $name-temp2.html
     echo "</head>" >> $name-temp2.html
@@ -148,7 +150,7 @@ for f in $FILES; do
     echo "</html>" >> $name-temp2.html
     sed -e "s/DSP/"$name"/g" $name-temp2.html > $name.html
     
-    rm helpers_$name.wasm
+    rm helpers_$name.wast
     rm $name-temp2.html
  
     # collect binary file name
