@@ -801,7 +801,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     {
         *out << name;
         *out << U32LEB(int32_t(ExternalKind::Function));
-        *out << U32LEB(getFunctionTypeIndex(name));
+        *out << U32LEB(getFunctionIndex(name));
     }
     
     // Generate list of function signatures
