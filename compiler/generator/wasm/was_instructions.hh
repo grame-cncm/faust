@@ -43,7 +43,7 @@ inline int pow2limit(int x)
     return n;
 }
 
-// Base class for textual and binary wasm visitors
+// Base class for textual 'wast' and binary 'wasm' visitors
 struct WASInst {
     
     struct MemoryDesc {

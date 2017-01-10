@@ -45,12 +45,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
         int fTab;
         std::ostream* fOut;
         bool fFinishLine;
-    
-        /*
-         Global functions names table as a static variable in the visitor
-         so that each function prototye is generated as most once in the module.
-         */
-        static map <string, int> gFunctionSymbolTable;      
+        map <string, int> gFunctionSymbolTable;
    
     public:
 
@@ -626,8 +621,6 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << "EndSWitch";
             tab(fTab, *fOut);
         }
-        
-        static void cleanup() { gFunctionSymbolTable.clear(); }
 
 };
 

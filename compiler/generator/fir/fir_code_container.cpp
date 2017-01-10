@@ -25,8 +25,6 @@
 
 using namespace std;
 
-map <string, int> FIRInstVisitor::gFunctionSymbolTable;
-
 dsp_factory_base* FirCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(fKlassName, "", "",

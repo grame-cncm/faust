@@ -160,10 +160,12 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
         virtual void visit(DeclareFunInst* inst)
         {
             // Already generated
-            if (fFunctionSymbolTable.find(inst->fName) != fFunctionSymbolTable.end()) {
-                return;
-            } else {
-                fFunctionSymbolTable[inst->fName] = 1;
+            if (inst->fName != "min_i" && inst->fName != "max_i") {  // adhoc code for now otherwise min_i/max_i are not always correctly generated...
+                if (fFunctionSymbolTable.find(inst->fName) != fFunctionSymbolTable.end()) {
+                    return;
+                } else {
+                    fFunctionSymbolTable[inst->fName] = 1;
+                }
             }
             
             // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated

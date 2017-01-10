@@ -38,6 +38,8 @@ using namespace std;
  - subcontainers are inlined in 'classInit' and 'instanceConstants' functions.
  - waveform generation is 'inlined' using MoveVariablesInFront3, done in a special version of generateInstanceInitFun.
  - integer min/max done in the module in min_i/max_i (using lt/select)
+ - LocalVariableCounter visitor allows to count and create local variables of each types
+ - FunAndTypeCounter visitor allows to count and create function types
 
 */
 
@@ -235,13 +237,8 @@ void WASMCodeContainer::produceClass()
     // Sub containers : before functions generation
     mergeSubContainers();
     
-    //cout << "generateGlobalDeclarations TYPE" << endl;
     // All mathematical functions (got from math library as variables) have to be first
-    
-    //generateGlobalDeclarations(gGlobal->gWASMVisitor);
     generateGlobalDeclarations(gGlobal->gWASMVisitor->getFunAndTypeCounter());
-    
-    //cout << "generateGlobalDeclarations OK " << endl;
     
     // Functions types
     gGlobal->gWASMVisitor->generateFunTypes();
@@ -268,7 +265,7 @@ void WASMCodeContainer::produceClass()
     int32_t functions_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Code);
     fBinaryOut << U32LEB(14); // num functions
     
-    // Functions in alphabetical order
+    // Internal functions in alphabetical order
     
     // 1) classInit
     generateClassInit("classInit", false, false)->accept(gGlobal->gWASMVisitor);
@@ -437,7 +434,7 @@ void WASMScalarCodeContainer::generateCompute()
     MoveVariablesInFront2 mover;
     BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
     
-    // Creates function
+    // Creates function and visit it
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
     InstBuilder::genDeclareFunInst("compute", fun_type, block)->accept(gGlobal->gWASMVisitor);
 }

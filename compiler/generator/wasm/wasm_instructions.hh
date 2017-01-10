@@ -498,8 +498,6 @@ struct LocalVariableCounter : public DispatchVisitor {
     
     virtual void visit(DeclareVarInst* inst)
     {
-        //std::cout << "LocalVariableCounter::visit(DeclareVarInst* inst) " << std::endl;
-        
         string name = inst->fAddress->getName();
         Typed::VarType type = inst->fType->getType();
         
@@ -521,8 +519,6 @@ struct LocalVariableCounter : public DispatchVisitor {
     
     virtual void visit(DeclareFunInst* inst)
     {
-        //std::cout << "LocalVariableCounter::visit(DeclareFunInst* inst) " << std::endl;
-        
         // funarg variable accessed by [var_num, type] pairs
         for (auto& argType : inst->fType->fArgsTypes) {
             fLocalVarTable[argType->fName] = LocalVarDesc(fFunArgIndex++, argType->fType->getType(), Address::kFunArgs);
@@ -535,8 +531,6 @@ struct LocalVariableCounter : public DispatchVisitor {
     
     void generateStackMap(BufferWithRandomAccess* out)
     {
-        //std::cout << "LocalVariableCounter::generateStackMap" << std::endl;
-        
         // Update stack variable index depending of 1) number of stack variables of different type 2) funarg variables number
         for (auto& var : fLocalVarTable) {
             if (var.second.fAccess != Address::kFunArgs) {
@@ -666,9 +660,6 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
         } else {
             fFunctionSymbolTable[inst->fName] = 1;
         }
-        
-        //dump2FIR(inst);
-        //std::cout << "=====> visit(DeclareFunInst* inst) " << inst->fName << std::endl;
    
         // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
@@ -715,7 +706,6 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
             int i = 0;
             for (auto& import : fFunImports) {
                 if (import.first == name) {
-                    //std::cout << "getFunctionIndex imported " << name << " " << i << std::endl;
                     return i;
                 }
                 i++;
@@ -726,7 +716,6 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
             for (auto& type : fFunTypes) {
                 if (fFunImports.find(type.first) == fFunImports.end()) {
                     if (type.first == name) {
-                        //std::cout << "getFunctionIndex defined " << name << " " << i << std::endl;
                         return i;
                     }
                     i++; // only count module defined functions
@@ -745,7 +734,6 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
         int i = 0;
         for (auto& type : fFunTypes) {
             if (type.first == name) {
-                //std::cout << "getFunctionTypeIndex " << name << " " << i << std::endl;
                 return i;
             }
             i++;
@@ -755,29 +743,24 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
         return -1;
     }
     
-    void generateFunType(BufferWithRandomAccess* out, FunTyped* type)
-    {
-        *out << S32LEB(BinaryConsts::EncodedType::Func);
-        *out << U32LEB(type->fArgsTypes.size());
-        for (auto param : type->fArgsTypes) {
-            *out << type2Binary(param->getType());
-        }
-        if (type->fResult->getType() == Typed::kVoid) {
-            *out << U32LEB(0);
-        } else {
-            *out << U32LEB(1);
-            *out << type2Binary(type->fResult->getType());
-        }
-    }
-    
     void generateFunTypes(BufferWithRandomAccess* out)
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Type);
         *out << U32LEB(fFunTypes.size());
-        //std::cout << "generateFunTypes " << fFunTypes.size() << std::endl;
         
-        for (auto& type : fFunTypes) {
-            generateFunType(out, type.second);
+        for (auto& type_int : fFunTypes) {
+            FunTyped* type = type_int.second;
+            *out << S32LEB(BinaryConsts::EncodedType::Func);
+            *out << U32LEB(type->fArgsTypes.size());
+            for (auto param : type->fArgsTypes) {
+                *out << type2Binary(param->getType());
+            }
+            if (type->fResult->getType() == Typed::kVoid) {
+                *out << U32LEB(0);
+            } else {
+                *out << U32LEB(1);
+                *out << type2Binary(type->fResult->getType());
+            }
         }
         
         finishSectionAux(out, start);
@@ -788,7 +771,6 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Import);
         *out << U32LEB(fFunImports.size());
-        //std::cout << "generateImports " << fFunImports.size() << std::endl;
         
         for (auto& import : fFunImports) {
             *out << import.second.first;    // module
@@ -800,7 +782,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
         finishSectionAux(out, start);
     }
     
-    // Generate function export
+    // Generate internal function export
     void generateExport(BufferWithRandomAccess* out, const string& name)
     {
         *out << name;
@@ -813,7 +795,6 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Function);
         *out << U32LEB(fFunTypes.size() - fFunImports.size());
-        //std::cout << "generateFuncSignatures " << (fFunTypes.size() - fFunImports.size()) << std::endl;
         
         // Module internally defined functions (those not in FunImports)
         for (auto& type : fFunTypes) {
@@ -953,9 +934,6 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             } else {
                 fFunctionSymbolTable[inst->fName] = 1;
             }
-            
-            //dump2FIR(inst);
-            //std::cout << "=====> visit(DeclareFunInst* inst) " << inst->fName << std::endl;
        
             // Generate function body
             size_t size_pos = fOut->writeU32LEBPlaceholder();
@@ -974,16 +952,12 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             *fOut << int8_t(BinaryConsts::End);
             size_t size = fOut->size() - start;
             fOut->writeAt(size_pos, U32LEB(size));
-            
-            //std::cout << "=====> DeclareFunInst SIZE " << inst->fName << " " << size << std::endl;
         }
     
         virtual void visit(LoadVarInst* inst)
         {
             fTypingVisitor.visit(inst);
             Typed::VarType type = fTypingVisitor.fCurType;
-            
-            //std::cout << "=====> visit(LoadVarInst* inst) " << inst->fAddress->getName() << " " << Typed::gTypeString[fTypingVisitor.fCurType] << std::endl;
             
             if (inst->fAddress->getAccess() & Address::kStruct
                 || inst->fAddress->getAccess() & Address::kStaticStruct
@@ -998,10 +972,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 generateMemoryAccess();
                 
             } else {
-                
-               // std::cout << "visit(LoadVarInst* inst) " << inst->fAddress->getName() << std::endl;
                 assert(fLocalVarTable.find(inst->fAddress->getName()) != fLocalVarTable.end());
-       
                 LocalVarDesc local = fLocalVarTable[inst->fAddress->getName()];
                 *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
             }
@@ -1009,7 +980,6 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     
         virtual void visit(StoreVarInst* inst)
         {
-            //dump2FIR(inst);
             inst->fValue->accept(&fTypingVisitor);
             Typed::VarType type = fTypingVisitor.fCurType;
 
@@ -1027,10 +997,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 generateMemoryAccess();
      
             } else {
-                
-                //std::cout << "visit(StoreVarInst* inst) " << inst->fAddress->getName() << std::endl;
                 assert(fLocalVarTable.find(inst->fAddress->getName()) != fLocalVarTable.end());
-                
                 LocalVarDesc local = fLocalVarTable[inst->fAddress->getName()];
                 inst->fValue->accept(this);
                 *fOut << int8_t(BinaryConsts::SetLocal) << U32LEB(local.fIndex);
@@ -1049,10 +1016,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     *fOut << int8_t(WasmOp::I32Add);
                 }
             } else {
-                
-                //std::cout << "visit(NamedAddress* named) " << named->fName << std::endl;
                 assert(fLocalVarTable.find(named->fName) != fLocalVarTable.end());
-                
                 LocalVarDesc local = fLocalVarTable[named->fName];
                 *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
             }
@@ -1070,9 +1034,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                  // HACK : completely adhoc code for input/output...
             } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
                 
-                //std::cout << "visit(IndexedAddress* named) " << indexed->getName() << std::endl;
                 assert(fLocalVarTable.find(indexed->getName()) != fLocalVarTable.end());
-                
                 LocalVarDesc local = fLocalVarTable[indexed->getName()];
                 *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
                
@@ -1218,8 +1180,6 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         // Special case for min/max
         void generateMinMax(const list<ValueInst*>& args, const string& name)
         {
-            //std::cout << "generateMinMax " << name << std::endl;
-            
             list<ValueInst*>::iterator it;
             ValueInst* arg1 = *(args.begin());
             arg1->accept(&fTypingVisitor);
@@ -1237,8 +1197,6 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         // Generate standard funcall (not 'method' like funcall...)
         virtual void visit(FunCallInst* inst)
         {
-            //std::cout << "visit(FunCallInst* inst) " << inst->fName << std::endl;
-            
             // Compile args first
             list<ValueInst*>::const_iterator it;
             for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
@@ -1291,8 +1249,6 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     
         virtual void visit(ForLoopInst* inst)
         {
-            //return;
-            
             // Don't generate empty loops...
             if (inst->fCode->size() == 0) return;
             
