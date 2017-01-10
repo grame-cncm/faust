@@ -80,7 +80,13 @@ class PowPrim : public xtended
         it++;
         IntNumInst* arg1 = dynamic_cast<IntNumInst*>(*it);
 
-        if ((types[1]->nature() == kInt) && (types[1]->variability() == kKonst) && (types[1]->computability() == kComp) && arg1) {
+        if ((types[1]->nature() == kInt)
+            && (types[1]->variability() == kKonst)
+            && (types[1]->computability() == kComp)
+            && arg1
+            && (gGlobal->gOutputLang != "interp")
+            && (gGlobal->gOutputLang != "wast")
+            && (gGlobal->gOutputLang != "wasm")) { // In 'interpreter' and 'wast/wasm' backends, do not generate 'faustpower' function call, fallback to 'pow'
 
             arg_types[0] = (types[0]->nature() == kInt) ? Typed::kInt : itfloat();
             arg_types[1] = Typed::kInt;
