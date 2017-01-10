@@ -235,9 +235,12 @@ void WASMCodeContainer::produceClass()
     // Sub containers : before functions generation
     mergeSubContainers();
     
-    cout << "generateGlobalDeclarations" << endl;
+    cout << "generateGlobalDeclarations TYPE" << endl;
     // All mathematical functions (got from math library as variables) have to be first
-    generateGlobalDeclarations(gGlobal->gWASMVisitor);
+    
+    //generateGlobalDeclarations(gGlobal->gWASMVisitor);
+    generateGlobalDeclarations(gGlobal->gWASMVisitor->getFunAndTypeCounter());
+    
     cout << "generateGlobalDeclarations OK " << endl;
     
     // Functions types

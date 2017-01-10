@@ -667,9 +667,13 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
             fFunctionSymbolTable[inst->fName] = 1;
         }
         
+        dump2FIR(inst);
+        std::cout << "=====> visit(DeclareFunInst* inst) " << inst->fName << std::endl;
+   
         // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
             MathFunDesc desc = fMathLibTable[inst->fName];
+            
             if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
                 
                 // Build function type (args type same as return type)
@@ -682,10 +686,11 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
                 } else {
                     assert(false);
                 }
+                
                 // Args type same as return type
                 FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(desc.fType), FunTyped::kDefault);
                 fFunTypes[inst->fName] = fun_type;
-                
+            
                 // Build function import
                 if (desc.fMode == MathFunDesc::Gen::kExtMath) {
                     fFunImports[inst->fName] = std::make_pair("global.Math", desc.fName);
@@ -694,8 +699,8 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
                 } else {
                     assert(false);
                 }
-                
             }
+        
         } else {
             // Prototype
             fFunTypes[inst->fName] = inst->fType;
@@ -830,7 +835,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         FunAndTypeCounter fFunAndTypeCounter;
    
     public:
-
+    
         WASMInstVisitor(BufferWithRandomAccess* out, int tab = 0)
             :WASInst(), fOut(out)
         {}
@@ -840,6 +845,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     
         void setLocalVarTable(const map<string, LocalVarDesc>& table) { fLocalVarTable = table; }
     
+        FunAndTypeCounter* getFunAndTypeCounter() { return &fFunAndTypeCounter; }
+   
         void generateMemoryAccess()
         {
             *fOut << U32LEB(offStrNum);
@@ -947,6 +954,10 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 fFunctionSymbolTable[inst->fName] = 1;
             }
             
+            dump2FIR(inst);
+            std::cout << "=====> visit(DeclareFunInst* inst) " << inst->fName << std::endl;
+   
+            /*
             // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 MathFunDesc desc = fMathLibTable[inst->fName];
@@ -958,9 +969,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     return;
                 }
             }
-            
-            dump2FIR(inst);
-            std::cout << "=====> visit(DeclareFunInst* inst) " << inst->fName << std::endl;
+            */
             
             // Generate function body
             size_t size_pos = fOut->writeU32LEBPlaceholder();
