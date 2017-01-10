@@ -164,7 +164,7 @@ public:
 
     void paint (Graphics& g) override
     {
-        g.fillAll (Colour (Colours::darkgrey));
+        g.fillAll (Colour (Colours::white));
     }
 
     void resized() override
