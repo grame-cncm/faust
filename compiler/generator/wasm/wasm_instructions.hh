@@ -452,7 +452,6 @@ inline void finishSectionAux(BufferWithRandomAccess* out, int32_t start)
 }
 
 // Local variable counter with their types
-
 struct LocalVarDesc {
     
     LocalVarDesc()
@@ -484,7 +483,6 @@ inline S32LEB type2Binary(Typed::VarType type)
 
 // Count local variables (stack/loop) with their types : to be used at the begining of each block
 // Funargs variables are indexed first
-
 struct LocalVariableCounter : public DispatchVisitor {
     
     int fIn32Type;
@@ -571,8 +569,7 @@ struct LocalVariableCounter : public DispatchVisitor {
 
 };
 
-// Counter of functions with their types (TODO : share equivalent types ?)
-
+// Counter of functions with their types
 struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     
     std::map<string, FunTyped*> fFunTypes;               // function name, function type
@@ -580,7 +577,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     
     FunAndTypeCounter():WASInst()
     {
-        // Additional functions defined in the module module
+        // Additional functions defined in the module
         {
             list<NamedTyped*> args;
             args.push_back(InstBuilder::genNamedTyped("arg1", Typed::kInt));
@@ -678,10 +675,10 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
                 // Build function type (args type same as return type)
                 list<NamedTyped*> args;
                 if (desc.fArgs == 1) {
-                    args.push_back(InstBuilder::genNamedTyped("v1", desc.fType));
+                    args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v1"), desc.fType));
                 } else if (desc.fArgs == 2) {
-                    args.push_back(InstBuilder::genNamedTyped("v1", desc.fType));
-                    args.push_back(InstBuilder::genNamedTyped("v2", desc.fType));
+                    args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v1"), desc.fType));
+                    args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v2"), desc.fType));
                 } else {
                     assert(false);
                 }
@@ -705,6 +702,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
         }
     }
     
+    // Get the function index : imported functions are first followed by all module internally defined ones
     int32_t getFunctionIndex(const string& name)
     {
         // If imported function
@@ -717,7 +715,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
                 }
                 i++;
             }
-        // Otherwise defined function
+        // Otherwise module defined function
         } else {
             int i = fFunImports.size();
             for (auto& type : fFunTypes) {
@@ -726,7 +724,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
                         std::cout << "getFunctionIndex defined " << name << " " << i << std::endl;
                         return i;
                     }
-                    i++; // count only defined function
+                    i++; // only count module defined functions
                 }
             }
         }
@@ -736,6 +734,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
         return -1;
     }
     
+    // Get the function type index
     int32_t getFunctionTypeIndex(const string& name)
     {
         int i = 0;
@@ -801,7 +800,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     {
         *out << name;
         *out << U32LEB(int32_t(ExternalKind::Function));
-        *out << U32LEB(getFunctionIndex(name));
+        *out << U32LEB(getFunctionIndex(name)); // function index
     }
     
     // Generate list of function signatures
@@ -811,7 +810,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
         *out << U32LEB(fFunTypes.size() - fFunImports.size());
         std::cout << "generateFuncSignatures " << (fFunTypes.size() - fFunImports.size()) << std::endl;
         
-        // Then module internal functions (those not in FunImports)
+        // Module internally defined functions (those not in FunImports)
         for (auto& type : fFunTypes) {
             if (fFunImports.find(type.first) == fFunImports.end()) {
                 *out << U32LEB(getFunctionTypeIndex(type.first));
@@ -886,7 +885,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             
             // Memory
             *fOut << "memory";
-            *fOut << U32LEB(2);  // Memory kind
+            *fOut << U32LEB(int32_t(ExternalKind::Memory));  // Memory kind
             *fOut << U32LEB(0);  // Memory index
             
             finishSection(start);
