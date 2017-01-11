@@ -335,18 +335,22 @@ class layoutComponent: public Component
 {
 public:
     
-    float hRatio, vRatio;
-    int recommendedWidth, recommendedHeight;
+    float fHRatio, fVRatio;
+    int fTotalWidth, fTotalHeight;
+    int fDisplayRectHeight, fDisplayRectWidth;
     String fName;
     
-    layoutComponent(int recomWidth, int recomHeight, String name) : recommendedWidth(recomWidth), recommendedHeight(recomHeight), fName(name) {}
+    layoutComponent(int totWidth, int totHeight, String name) : fTotalWidth(totWidth), fTotalHeight(totHeight), fName(name) {
+        fDisplayRectHeight = totHeight;
+        fDisplayRectWidth  = totWidth;
+    }
 
-    virtual int getRecommendedHeight() {
-        return recommendedHeight;
+    virtual int getTotalHeight() {
+        return fTotalHeight;
     }
     
-    virtual int getRecommendedWidth() {
-        return recommendedWidth;
+    virtual int getTotalWidth() {
+        return fTotalWidth;
     }
 
     virtual void setRatio() {
@@ -355,22 +359,43 @@ public:
     }
     
     virtual float getHRatio() {
-        return hRatio;
+        return fHRatio;
     }
     
     virtual float getVRatio() {
-        return vRatio;
+        return fVRatio;
     }
     
     virtual String getName() {
         return fName;
     }
     
-    virtual void setVRatio() = 0;
-    virtual void setHRatio() = 0;
+    void setHRatio() {
+        layoutComponent* tempParentBox = findParentComponentOfClass<layoutComponent>();
+        if(tempParentBox != nullptr) {
+            fHRatio = (float)fTotalWidth / (float)tempParentBox->fDisplayRectWidth;
+        }
+    }
     
-    virtual void setLayoutComponentSize(Rectangle<int> r) = 0;
+    void setVRatio() {
+        layoutComponent* tempParentBox = findParentComponentOfClass<layoutComponent>();
+        if(tempParentBox != nullptr) {
+            fVRatio = (float)fTotalHeight / (float)tempParentBox->fDisplayRectHeight;
+        }
+    }
+    
+    void setLayoutComponentSize(Rectangle<int> r) {
+        setBounds(r.getX() - getParentComponent()->getX(),
+                  r.getY() - getParentComponent()->getY(),
+                  r.getWidth(),
+                  r.getHeight());
+    }
+    
+    void mouseDoubleClick(const MouseEvent &event) override {
+        writeDebug();
+    }
 
+    virtual void writeDebug() = 0;
     virtual void setCompLookAndFeel(LookAndFeel* laf) = 0;
 };
 
@@ -381,27 +406,12 @@ public:
 
     uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip, String name): layoutComponent(w, h, name), uiItem(gui,zone), fTooltipText(tooltip) { }
 
-
-    void setLayoutComponentSize(Rectangle<int> r) override {
-        // Debug Output
-        std::cout<<"New bounds of Component : {"<<r.toString()<<"}";
-        std::cout<<", for parent : "<<getParentComponent()<<", "<<getParentComponent()->getBounds().toString()<<std::endl;
-        std::cout<<"Ratios : "<<hRatio<<" "<<vRatio<<", Recommended Size : "<<recommendedWidth<<"x"<<recommendedHeight<<std::endl;
-        Component::setSize(r.getWidth(), r.getHeight());
-        setTopLeftPosition(r.getX() - getParentComponent()->getX(), r.getY() - getParentComponent()->getY());
-    }
-
-    void setVRatio() override {
-        layoutComponent* tempBox = findParentComponentOfClass<layoutComponent>();
-        if(!(tempBox->getName().startsWith("0x")) && tempBox->getName().isNotEmpty()) {
-            vRatio = (float)recommendedHeight / (float)(tempBox->getRecommendedHeight()-12);
-        } else {
-            vRatio = (float)recommendedHeight / (float)tempBox->getRecommendedHeight();
-        }
-    }
-
-    void setHRatio() override {
-        hRatio = (float)recommendedWidth/(float)findParentComponentOfClass<layoutComponent>()->getRecommendedWidth();
+    virtual void writeDebug() override {
+        std::cout<<std::endl<<"Bounds of Component : {"<<getLocalBounds().toString()<<"}";
+        std::cout<<", for parent : "<<findParentComponentOfClass<layoutComponent>()->fName<<", ";
+        std::cout<<getParentComponent()->getBounds().toString()<<std::endl;
+        std::cout<<"Ratios : "<<fHRatio<<" "<<fVRatio<<", Recommended Size : "<<fTotalWidth<<"x"<<fTotalHeight<<std::endl;
+        std::cout<<"fDisplayRectHeight : "<<fDisplayRectHeight<<", fDisplayRectWidth : "<<fDisplayRectWidth<<std::endl;
     }
 };
 
@@ -474,8 +484,6 @@ public:
     }
 
     virtual void paint(Graphics& g) override {
-        // g.setColour(Colours::white);
-        // g.fillRect(getLocalBounds());
         if(fType == VSlider || fType == Knob) {
             g.setColour (Colours::black);
             g.drawText(fName, getLocalBounds(), Justification::centredTop);
@@ -501,7 +509,6 @@ public:
     }
 
     virtual void resized() override {
-        std::cout<<fName<<", ";
         if(fType == HSlider) {
             x = getLocalBounds().reduced(3).getX() + 60;
             y = getLocalBounds().reduced(3).getY();
@@ -576,9 +583,7 @@ public:
         fButton.setLookAndFeel(laf);
     }
 
-    virtual void paint(Graphics& g) override {
-        // g.fillRect(getLocalBounds());
-    }
+    virtual void paint(Graphics& g) override { }
 
     virtual void resized() override
     {
@@ -637,7 +642,6 @@ public:
 
     virtual void resized() override
     {
-        std::cout<<"RESIZING CHECKBUTTON"<<std::endl;
         x = getLocalBounds().getX();
         y = getLocalBounds().getY();
         fCheckButton.setBounds(x, y, jmin(getLocalBounds().getWidth(), width), jmin(getLocalBounds().getHeight(), height));
@@ -791,20 +795,20 @@ public:
     void setVRatio(float ratio)
     {
         if(isVertical) {
-            vRatio = ratio * nbButtons;
+            fVRatio = ratio * nbButtons;
         }
         else {
-            vRatio = ratio;
+            fVRatio = ratio;
         }
     }
 
     void setHRatio(float ratio)
     {
         if(!isVertical) {
-            hRatio = ratio * nbButtons;
+            fHRatio = ratio * nbButtons;
         }
         else {
-            hRatio = ratio;
+            fHRatio = ratio;
         }
     }
 
@@ -1333,12 +1337,13 @@ private:
 class uiBox : public layoutComponent
 {
 public:
-
     uiBox(bool vert, String boxName, int boxOrder, bool tab): layoutComponent(0, 0, boxName), fOrder(boxOrder), isVertical(vert), tabLayout(tab)
     {
+        isNameDisplayed = (!(fName.startsWith("0x")) && fName.isNotEmpty());
+         
         if(fOrder == 0) {
-            hRatio = 1;
-            vRatio = 1;
+            fHRatio = 1;
+            fVRatio = 1;
         }
     }
 
@@ -1348,105 +1353,57 @@ public:
         }
     }
 
-    void setHRatio() override {
-        if(findParentComponentOfClass<uiBox>() != nullptr) {
-            hRatio = (float)recommendedWidth / (float)findParentComponentOfClass<uiBox>()->getRecommendedWidth();
-        }
-    }
-
-    void setVRatio() override {
-        uiBox* tempBox = findParentComponentOfClass<uiBox>();
-        if(tempBox != nullptr) {
-            if(!(tempBox->fName.startsWith("0x")) && tempBox->fName.isNotEmpty()) {
-                vRatio = (float)recommendedHeight / (float)(tempBox->getRecommendedHeight()-12);
-            } else {
-                vRatio = (float)recommendedHeight / (float)tempBox->getRecommendedHeight();
-            }
-        }
-    }
-
-    void setLayoutComponentSize(Rectangle<int> r) override {
-
-        Component::setSize(r.getWidth(), r.getHeight());
-
-        if(findParentComponentOfClass<uiBox>() != nullptr) {
-            setTopLeftPosition(r.getX() - getParentComponent()->getX(), r.getY() - getParentComponent()->getY());
-        } else {
-            if(tabLayout) {
-                setTopLeftPosition(r.getX()+1, r.getY()+30);
-            } else {
-                setTopLeftPosition(r.getX(), r.getY());
-            }
-        }
-    }
-
     void arrangeComponents(Rectangle<int> functionRect)
     {
         // Deleting space for the box name if it needs to be shown
-        if(!(fName.startsWith("0x")) && fName.isNotEmpty()) {
+        if(isNameDisplayed) {
             functionRect.removeFromTop(12);
         }
         
+        // Putting the margins
+        functionRect.reduce(2, 2);
         
-        // Calculating space left to adjust the margin
-        float sumRatio = 0;
-        for(int i = 0; i<getNumChildComponents(); i++){
-            if(isVertical) {
-                std::cout<<"sumRatio = "<<sumRatio<<std::endl;
-                sumRatio += dynamic_cast<layoutComponent*>(getChildComponent(i))->getVRatio();
-            } else {
-                sumRatio += dynamic_cast<layoutComponent*>(getChildComponent(i))->getHRatio();
-            }
-        }
-
-        // Adjust the remaining amount of space depending on the number of child
-        float marginBetweenChildComponent;
-        if(isVertical){
-            marginBetweenChildComponent = (functionRect.getHeight() * (1-sumRatio)) / (getNumChildComponents()*2);
-        } else {
-            marginBetweenChildComponent = (functionRect.getWidth() * (1-sumRatio)) / (getNumChildComponents()*2);
-        }
-        float margin = marginBetweenChildComponent;
-
-        // Give child components an adapt size depending on its ratio and this box size
+        // Give child components an adapt size depending on its ratio and the current box size
         for(int i = 0; i<getNumChildComponents(); i++) {
             layoutComponent* tempComp = dynamic_cast<layoutComponent*>(getChildComponent(i));
             
             if(isVertical) {
                 int heightToRemove = getSpaceToRemove(tempComp->getVRatio());
-                tempComp->setLayoutComponentSize(functionRect.removeFromTop(heightToRemove).reduced(2, 0).translated(0, margin*(1+2*i)));
+                tempComp->setLayoutComponentSize(functionRect.removeFromTop(heightToRemove));
             } else {
                 int widthToRemove = getSpaceToRemove(tempComp->getHRatio());
-                tempComp->setLayoutComponentSize(functionRect.removeFromLeft(widthToRemove).reduced(0, 2).translated(margin*(1+2*i), 0));
+                tempComp->setLayoutComponentSize(functionRect.removeFromLeft(widthToRemove));
             }
         }
     }
 
     // Debug Output
-    void writeBox() {
-        std::cout<<fName<<" : "<<this<<std::endl;
-        std::cout<<"order : "<<fOrder<<", itemCount : "<<getNumChildComponents()<<", parentIndex : "<<getParentComponent()<<std::endl;
+    void writeDebug() override {
+        std::cout<<std::endl<<fName<<" : "<<std::endl;
+        std::cout<<"order : "<<fOrder<<", itemCount : "<<getNumChildComponents();
+        std::cout<<", parent : "<<findParentComponentOfClass<layoutComponent>()->fName<<std::endl;
         std::cout<<"CompBounds : {"<<getBounds().toString()<<"}"<<std::endl;
-        std::cout<<"Recommended size : "<<recommendedWidth<<"x"<<recommendedHeight<<std::endl;
-        std::cout<<"Ratios : "<<vRatio<<", "<<hRatio<<std::endl;
+        std::cout<<"Recommended size : "<<fTotalWidth<<"x"<<fTotalHeight<<std::endl;
+        std::cout<<"Ratios : "<<fVRatio<<", "<<fHRatio<<std::endl;
+        std::cout<<"fDisplayRectHeight : "<<fDisplayRectHeight<<", fDisplayRectWidth : "<<fDisplayRectWidth<<std::endl;
         std::cout<<"isVisible ? "<<isVisible()<<std::endl;
         std::cout<<"Childs : ";
         for(int j = 0; j<getNumChildComponents(); j++) {
-            std::cout<<getChildComponent(j)<<", ";
+            std::cout<<dynamic_cast<layoutComponent*>(getChildComponent(j))->fName<<", ";
         }
-        std::cout<<std::endl<<std::endl;
+        std::cout<<std::endl;
     }
 
     int getSpaceToRemove(float ratio) {
         if(isVertical) {
-            //Checking if the name is displayed, to give to good amount space for child components
-            if(!(fName.startsWith("0x")) && fName.isNotEmpty()) {
+            // Checking if the name is displayed, to give to good amount space for child components
+            if(isNameDisplayed) {
                 return (float)(getBounds().getHeight()-12)*ratio;
             } else {
                 return (float)getBounds().getHeight()*ratio;
             }
         } else {
-            //Don't need to check for an horizontal box, as we don't care about its height
+            // Don't need to check for an horizontal box, as we don't care about its height
             return (float)getBounds().getWidth()*ratio;
         }
     }
@@ -1462,26 +1419,29 @@ public:
     void calculRecommendedSize() {
         for(int j = 0; j<getNumChildComponents(); j++) {
             if(isVertical) {
-                recommendedHeight += (getChildComponent(j)->Component::getHeight());
-                recommendedWidth   = jmax(recommendedWidth, getChildComponent(j)->Component::getWidth());
+                fDisplayRectHeight += (dynamic_cast<layoutComponent*>(getChildComponent(j))->getTotalHeight());
+                fDisplayRectWidth   = jmax((int)fDisplayRectWidth, dynamic_cast<layoutComponent*>(getChildComponent(j))->getTotalWidth());
             } else {
-                recommendedWidth += (getChildComponent(j)->Component::getWidth());
-                recommendedHeight = jmax(recommendedHeight, getChildComponent(j)->Component::getHeight());
+                fDisplayRectWidth += (dynamic_cast<layoutComponent*>(getChildComponent(j))->getTotalWidth());
+                fDisplayRectHeight = jmax((int)fDisplayRectHeight, dynamic_cast<layoutComponent*>(getChildComponent(j))->getTotalHeight());
             }
         }
+        
+        fTotalHeight = fDisplayRectHeight;
+        fTotalWidth = fDisplayRectWidth;
+        
         if(isVertical) {
-            recommendedHeight += 4 * getNumChildComponents();
-            recommendedWidth  += 4;
+            fTotalHeight += 4 * getNumChildComponents();
+            fTotalWidth  += 4;
         } else {
-            recommendedWidth  += 4 * getNumChildComponents();
-            recommendedHeight += 4;
+            fTotalWidth  += 4 * getNumChildComponents();
+            fTotalHeight += 4;
         }
 
-        if(!(fName.startsWith("0x")) && fName.isNotEmpty()) {
-            recommendedHeight += 12;
+        if(isNameDisplayed) {
+            fTotalHeight += 12;
         }
-
-        Component::setSize(recommendedWidth, recommendedHeight);
+        Component::setSize(fTotalWidth, fTotalHeight);
     }
 
     void setRatio() override {
@@ -1493,40 +1453,34 @@ public:
 
     void resized() override {
         arrangeComponents(getBounds());
-        writeBox();
+        // Debug option
+        // writeDebug();
     }
 
     void paint(Graphics& g) override
     {
-
-        Colour col = Colours::black.withAlpha(0.2f);
-        // Debug coloring for boxes
-        /*
-        if      (fOrder == 3){ col = Colours::white;}
-        else if (fOrder == 2){ col = Colours::lightgrey;}
-        else if (fOrder == 1){ col = Colours::grey; }
-        else if (fOrder == 0){ col = Colours::darkgrey; }
-        */
-        g.setColour(col);
+        // Fill the box background in gray shades
+        g.setColour(Colours::black.withAlpha(0.2f));
         g.fillRect(getLocalBounds());
 
-        g.setColour(Colours::black);
-        if(!(fName.startsWith("0x")) && fName.isNotEmpty()) {
-            g.drawText(fName, getLocalBounds() .withHeight(12), Justification::centred);
+        // Display the name if it's needed
+        if(isNameDisplayed) {
+            g.setColour(Colours::black);
+            g.drawText(fName, getLocalBounds().withHeight(12), Justification::centred);
         }
     }
 
     ~uiBox() {
+        // Deleting boxes, from leaves to root
         int numChild = getNumChildComponents();
         std::cout<<"order : "<<fOrder<<", numChilds : "<<numChild<<std::endl;
         for(int i = numChild-1; i>=0; i--) {
-            if(dynamic_cast<uiBox*> (getChildComponent(i)) != nullptr) {
-                delete dynamic_cast<uiBox*> (getChildComponent(i));
-            }
+            delete dynamic_cast<uiBox*> (getChildComponent(i));
         }
     }
 
     int fOrder; // mainly for debug usage
+    bool isNameDisplayed;
     bool isVertical;
     bool tabLayout;
 };
@@ -1539,8 +1493,8 @@ public:
     Faust_tabs()
         : TabbedComponent (TabbedButtonBar::TabsAtTop)
     {
-        recommendedHeight = 0;
-        recommendedWidth = 0;
+        fTabTotalHeight = 0;
+        fTabTotalWidth = 0;
     }
 
     void init() {
@@ -1548,8 +1502,8 @@ public:
             layoutComponent* tempComp = dynamic_cast<layoutComponent*>(getTabContentComponent(i));
             tempComp->setRatio();
             tempComp->setCompLookAndFeel(laf);
-            recommendedHeight = jmax(recommendedHeight, tempComp->recommendedHeight);
-            recommendedWidth = jmax(recommendedWidth, tempComp->recommendedWidth);
+            fTabTotalHeight = jmax(fTabTotalHeight, tempComp->fTotalHeight);
+            fTabTotalWidth = jmax(fTabTotalWidth, tempComp->fTotalWidth);
         }
     }
 
@@ -1564,7 +1518,7 @@ public:
         std::cout<<std::endl;
     }
 
-    int recommendedWidth, recommendedHeight;
+    int fTabTotalWidth, fTabTotalHeight;
     ScopedPointer<LookAndFeel> laf = new CustomLookAndFeel();
 };
 
@@ -1583,9 +1537,9 @@ public:
 
     Rectangle<int> getSize() {
         if(!tabLayout) {
-            return Rectangle<int>(0, 0, dynamic_cast<uiBox*>(getChildComponent(0))->recommendedWidth, dynamic_cast<uiBox*>(getChildComponent(0))->recommendedHeight);
+            return Rectangle<int>(0, 0, dynamic_cast<uiBox*>(getChildComponent(0))->fTotalWidth, dynamic_cast<uiBox*>(getChildComponent(0))->fTotalHeight);
         } else {
-            return Rectangle<int>(0, 0, dynamic_cast<Faust_tabs*>(getChildComponent(0))->recommendedWidth, dynamic_cast<Faust_tabs*>(getChildComponent(0))->recommendedHeight+30);
+            return Rectangle<int>(0, 0, dynamic_cast<Faust_tabs*>(getChildComponent(0))->fTabTotalWidth, dynamic_cast<Faust_tabs*>(getChildComponent(0))->fTabTotalHeight+30);
         }
     }
 
@@ -1636,7 +1590,9 @@ public:
 
     virtual void closeBox() {
         order--;
-        currentBox->calculRecommendedSize();
+        if(order > -1) { // Avoid to calculate that both in case of a tablayout
+            currentBox->calculRecommendedSize();
+        }
 
         if(dynamic_cast<uiBox*>(currentBox->getParentComponent()) != 0) {
             currentBox = parentBox;
@@ -1644,7 +1600,7 @@ public:
         }
 
         if(tabLayout && order == 0) {
-            std::cout<<"Adding Box "<<currentBox->fName<<" to tab "<<tabName<<std::endl;
+            std::cout<<"Adding Box "<<tabName<<" to tab list"<<std::endl;
             tabs.addTabs(tabName, currentBox);
             tabName.clear();
             addAndMakeVisible(tabs);
@@ -1666,11 +1622,11 @@ public:
             addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
         } else {
             if(currentBox->isVertical) {
-                currentBox->recommendedHeight   += kHSliderHeight;
-                currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kHSliderWidth);
+                currentBox->fTotalHeight   += kHSliderHeight;
+                currentBox->fTotalWidth    = jmax(currentBox->fTotalWidth, kHSliderWidth);
             } else {
-                currentBox->recommendedWidth    += kHSliderWidth;
-                currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kHSliderHeight);
+                currentBox->fTotalWidth    += kHSliderWidth;
+                currentBox->fTotalHeight   = jmax(currentBox->fTotalHeight, kHSliderHeight);
             }
 
             currentBox->addChildUiComponent(new uiSlider(this, zone, kHSliderWidth, kHSliderHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), HSlider));
@@ -1686,11 +1642,11 @@ public:
             addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
         } else {
             if(currentBox->isVertical) {
-                currentBox->recommendedHeight   += kVSliderHeight;
-                currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kVSliderWidth);
+                currentBox->fTotalHeight   += kVSliderHeight;
+                currentBox->fTotalWidth    = jmax(currentBox->fTotalWidth, kVSliderWidth);
             } else {
-                currentBox->recommendedWidth    += kVSliderWidth;
-                currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kVSliderHeight);
+                currentBox->fTotalWidth    += kVSliderWidth;
+                currentBox->fTotalHeight   = jmax(currentBox->fTotalHeight, kVSliderHeight);
             }
 
             currentBox->addChildUiComponent(new uiSlider(this, zone, kVSliderWidth, kVSliderHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), VSlider));
@@ -1700,11 +1656,11 @@ public:
 
     void addMenu(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr) {
         if(currentBox->isVertical) {
-            currentBox->recommendedHeight   += kMenuHeight;
-            currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kMenuWidth);
+            currentBox->fTotalHeight   += kMenuHeight;
+            currentBox->fTotalWidth    = jmax(currentBox->fTotalWidth, kMenuWidth);
         } else {
-            currentBox->recommendedWidth    += kMenuWidth;
-            currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kMenuHeight);
+            currentBox->fTotalWidth    += kMenuWidth;
+            currentBox->fTotalHeight   = jmax(currentBox->fTotalHeight, kMenuHeight);
         }
 
         currentBox->addChildUiComponent(new uiMenu(this, zone, String(label), kMenuWidth, kMenuHeight, init, min, max, String(fTooltip[zone]), mdescr));
@@ -1723,19 +1679,19 @@ public:
         }
         if(currentBox->isVertical) {
             if(vert) {
-                currentBox->recommendedHeight   += nbButtons * (kRadioButtonHeight - 25) + 25;
-                currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, checkButtonWidth);
+                currentBox->fTotalHeight   += nbButtons * (kRadioButtonHeight - 25) + 25;
+                currentBox->fTotalWidth    = jmax(currentBox->fTotalWidth, checkButtonWidth);
             } else {
-                currentBox->recommendedHeight   += kRadioButtonHeight;
-                currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, nbButtons * checkButtonWidth);
+                currentBox->fTotalHeight   += kRadioButtonHeight;
+                currentBox->fTotalWidth    = jmax(currentBox->fTotalWidth, nbButtons * checkButtonWidth);
             }
         } else {
             if(vert) {
-                currentBox->recommendedWidth    += checkButtonWidth;
-                currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, nbButtons * (kRadioButtonHeight - 25) + 25);
+                currentBox->fTotalWidth    += checkButtonWidth;
+                currentBox->fTotalHeight   = jmax(currentBox->fTotalHeight, nbButtons * (kRadioButtonHeight - 25) + 25);
             } else {
-                currentBox->recommendedWidth    += nbButtons * checkButtonWidth;
-                currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kRadioButtonHeight);
+                currentBox->fTotalWidth    += nbButtons * checkButtonWidth;
+                currentBox->fTotalHeight   = jmax(currentBox->fTotalHeight, kRadioButtonHeight);
             }
         }
 
@@ -1748,11 +1704,11 @@ public:
 
     void addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {
         if(currentBox->isVertical) {
-            currentBox->recommendedHeight   += kKnobHeight;
-            currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kKnobWidth);
+            currentBox->fTotalHeight   += kKnobHeight;
+            currentBox->fTotalWidth    = jmax(currentBox->fTotalWidth, kKnobWidth);
         } else {
-            currentBox->recommendedWidth    += kKnobWidth;
-            currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kKnobHeight);
+            currentBox->fTotalWidth    += kKnobWidth;
+            currentBox->fTotalHeight   = jmax(currentBox->fTotalHeight, kKnobHeight);
         }
 
         currentBox->addChildUiComponent(new uiSlider(this, zone, kKnobWidth, kKnobHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), Knob));
@@ -1761,11 +1717,11 @@ public:
 
     virtual void addButton(const char* label, FAUSTFLOAT* zone) {
         if(currentBox->isVertical) {
-            currentBox->recommendedHeight   += kButtonHeight;
-            currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kButtonWidth);
+            currentBox->fTotalHeight   += kButtonHeight;
+            currentBox->fTotalWidth    = jmax(currentBox->fTotalWidth, kButtonWidth);
         } else {
-            currentBox->recommendedWidth    += kButtonWidth;
-            currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kButtonHeight);
+            currentBox->fTotalWidth    += kButtonWidth;
+            currentBox->fTotalHeight   = jmax(currentBox->fTotalHeight, kButtonHeight);
         }
 
         currentBox->addChildUiComponent(new uiButton(this, zone, kButtonWidth, kButtonHeight, String(label), String(fTooltip[zone])));
@@ -1776,11 +1732,11 @@ public:
         int checkButtonWidth = Font().getStringWidth(String(label)) + 15;
 
         if(currentBox->isVertical) {
-            currentBox->recommendedHeight   += kCheckButtonHeight;
-            currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, checkButtonWidth);
+            currentBox->fTotalHeight   += kCheckButtonHeight;
+            currentBox->fTotalWidth    = jmax(currentBox->fTotalWidth, checkButtonWidth);
         } else {
-            currentBox->recommendedWidth    += checkButtonWidth;
-            currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kCheckButtonHeight);
+            currentBox->fTotalWidth    += checkButtonWidth;
+            currentBox->fTotalHeight   = jmax(currentBox->fTotalHeight, kCheckButtonHeight);
         }
 
         currentBox->addChildUiComponent(new uiCheckButton(this, zone, checkButtonWidth, kCheckButtonHeight, String(label), String(fTooltip[zone])));
@@ -1789,11 +1745,11 @@ public:
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         if(currentBox->isVertical) {
-            currentBox->recommendedHeight   += kNumEntryHeight;
-            currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kNumEntryWidth);
+            currentBox->fTotalHeight   += kNumEntryHeight;
+            currentBox->fTotalWidth    = jmax(currentBox->fTotalWidth, kNumEntryWidth);
         } else {
-            currentBox->recommendedWidth    += kNumEntryWidth;
-            currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kNumEntryHeight);
+            currentBox->fTotalWidth    += kNumEntryWidth;
+            currentBox->fTotalHeight   = jmax(currentBox->fTotalHeight, kNumEntryHeight);
         }
 
         currentBox->addChildUiComponent(new uiSlider(this, zone, kNumEntryWidth, kNumEntryHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), NumEntry));
@@ -1808,11 +1764,11 @@ public:
             addNumericalDisplay(String(label), zone, min, max);
         } else {
             if(currentBox->isVertical) {
-                currentBox->recommendedHeight   += kHBargraphHeight;
-                currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kHBargraphWidth);
+                currentBox->fTotalHeight   += kHBargraphHeight;
+                currentBox->fTotalWidth    = jmax(currentBox->fTotalWidth, kHBargraphWidth);
             } else {
-                currentBox->recommendedWidth    += kHBargraphWidth;
-                currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kHBargraphHeight);
+                currentBox->fTotalWidth    += kHBargraphWidth;
+                currentBox->fTotalHeight   = jmax(currentBox->fTotalHeight, kHBargraphHeight);
             }
 
             currentBox->addChildUiComponent(new uiVUMeter (this, zone, kHBargraphWidth, kHBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), HVUMeter, false));
@@ -1827,11 +1783,11 @@ public:
             addNumericalDisplay(String(label), zone, min, max);
         } else {
             if(currentBox->isVertical) {
-                currentBox->recommendedHeight   += kVBargraphHeight;
-                currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kVBargraphWidth);
+                currentBox->fTotalHeight   += kVBargraphHeight;
+                currentBox->fTotalWidth    = jmax(currentBox->fTotalWidth, kVBargraphWidth);
             } else {
-                currentBox->recommendedWidth    += kVBargraphWidth;
-                currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kVBargraphHeight);
+                currentBox->fTotalWidth    += kVBargraphWidth;
+                currentBox->fTotalHeight   = jmax(currentBox->fTotalHeight, kVBargraphHeight);
             }
 
             currentBox->addChildUiComponent(new uiVUMeter (this, zone, kVBargraphWidth, kVBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), VVUMeter, true));
@@ -1840,11 +1796,11 @@ public:
 
     void addLed (String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {
         if(currentBox->isVertical) {
-            currentBox->recommendedHeight   += kLedHeight;
-            currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kLedWidth);
+            currentBox->fTotalHeight   += kLedHeight;
+            currentBox->fTotalWidth    = jmax(currentBox->fTotalWidth, kLedWidth);
         } else {
-            currentBox->recommendedWidth    += kLedWidth;
-            currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kLedHeight);
+            currentBox->fTotalWidth    += kLedWidth;
+            currentBox->fTotalHeight   = jmax(currentBox->fTotalHeight, kLedHeight);
         }
 
         currentBox->addChildUiComponent(new uiVUMeter (this, zone, kLedWidth, kLedHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), Led, false));
@@ -1852,11 +1808,11 @@ public:
 
     void addNumericalDisplay(String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {
         if(currentBox->isVertical) {
-            currentBox->recommendedHeight   += kNumDisplayHeight;
-            currentBox->recommendedWidth    = jmax(currentBox->recommendedWidth, kNumDisplayWidth);
+            currentBox->fTotalHeight   += kNumDisplayHeight;
+            currentBox->fTotalWidth    = jmax(currentBox->fTotalWidth, kNumDisplayWidth);
         } else {
-            currentBox->recommendedWidth    += kNumDisplayWidth;
-            currentBox->recommendedHeight   = jmax(currentBox->recommendedHeight, kNumDisplayHeight);
+            currentBox->fTotalWidth    += kNumDisplayWidth;
+            currentBox->fTotalHeight   = jmax(currentBox->fTotalHeight, kNumDisplayHeight);
         }
 
         currentBox->addChildUiComponent(new uiVUMeter (this, zone, kNumDisplayWidth, kNumDisplayHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), NumDisplay, false));
@@ -1888,14 +1844,12 @@ public:
     }
 
     ~Juce_GUI() {
-        std::cout<<std::endl<<"Destructing boxes"<<std::endl;
-
         delete currentBox;
         delete parentBox;
     }
 
     int order;
-    int radioGroup;
+    int radioGroup; // In case of radio buttons
     uiBox* currentBox;
     uiBox* parentBox;
     bool tabLayout = false;
