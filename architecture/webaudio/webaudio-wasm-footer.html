@@ -8,7 +8,6 @@ var audio_input = null;
 var DSP = null;
 var wasm_module = null;
 var faustsvg = null;
-var dsp_code = null;
 
 function changeBufferSize(buffer_size)
 {
@@ -94,8 +93,9 @@ function startDSP()
     importObject["asm2wasm"] = asm2wasm;
     fetch('DSP.wasm').then(response => response.arrayBuffer())
     .then(bytes => instantiate(bytes, importObject))
-    .then(module => { wasm_module = module;  console.log(module); startDSPAux(module, 1024); });
+    .then(module => { wasm_module = module; console.log(module); startDSPAux(module, 1024); });
 }
+
 function startNewDSP(buffer_size)
 {
     startDSPAux(wasm_module, buffer_size);
