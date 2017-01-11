@@ -232,7 +232,7 @@ void WASMCodeContainer::produceInternal()
 void WASMCodeContainer::produceClass()
 {
     // Module definition
-    fBinaryOut << int32_t(BinaryConsts::Magic) << int32_t(BinaryConsts::Version);
+    gGlobal->gWASMVisitor->generateModuleHeader();
     
     // Sub containers : before functions generation
     mergeSubContainers();
@@ -280,31 +280,7 @@ void WASMCodeContainer::produceClass()
     generateGetOutputs("getNumOutputs", false, false)->accept(gGlobal->gWASMVisitor);
     
     // 5) getParamValue (adhoc generation for now since currently FIR cannot be generated to handle this case)
-    {
-        size_t size_pos = fBinaryOut.writeU32LEBPlaceholder();
-        size_t start = fBinaryOut.size();
-        
-        // Local variables
-        LocalVariableCounter local_counter;
-        local_counter.generateStackMap(&fBinaryOut);
-        
-        // Index in the dsp
-        fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // 0 = dsp
-        fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(1);  // 1 = index
-        fBinaryOut << int8_t(gBinOpTable[kAdd]->fWasmInt);
-         
-        // Load value from index
-        fBinaryOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32LoadMem) : int8_t(BinaryConsts::F64LoadMem));
-        gGlobal->gWASMVisitor->generateMemoryAccess();
-        
-        // Return value
-        fBinaryOut << int8_t(BinaryConsts::Return);
-        
-        // Generate end
-        fBinaryOut << int8_t(BinaryConsts::End);
-        size_t size = fBinaryOut.size() - start;
-        fBinaryOut.writeAt(size_pos, U32LEB(size));
-    }
+    gGlobal->gWASMVisitor->generateGetParamValue();
    
     // 6) getSampleRate
     generateGetSampleRate(false, false)->accept(gGlobal->gWASMVisitor);
@@ -332,33 +308,9 @@ void WASMCodeContainer::produceClass()
     WASInst::generateIntMin()->accept(gGlobal->gWASMVisitor);
     
     // 14) setParamValue (adhoc generation for now since currently FIR cannot be generated to handle this case)
-    {
-        size_t size_pos = fBinaryOut.writeU32LEBPlaceholder();
-        size_t start = fBinaryOut.size();
-        
-        // Local variables
-        LocalVariableCounter local_counter;
-        local_counter.generateStackMap(&fBinaryOut);
-        
-        // Index in the dsp
-        fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // 0 = dsp
-        fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(1);  // 1 = index
-        fBinaryOut << int8_t(gBinOpTable[kAdd]->fWasmInt);
-        
-        // Value
-        fBinaryOut << int8_t(BinaryConsts::GetLocal) << U32LEB(2);  // 2 = value
-        
-        // Store value at index
-        fBinaryOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32StoreMem) : int8_t(BinaryConsts::F64StoreMem));
-        gGlobal->gWASMVisitor->generateMemoryAccess();
-        
-        // Generate end
-        fBinaryOut << int8_t(BinaryConsts::End);
-        size_t size = fBinaryOut.size() - start;
-        fBinaryOut.writeAt(size_pos, U32LEB(size));
-    }
+    gGlobal->gWASMVisitor->generateSetParamValue();
     
-    // Possibly generate separated functions
+    // Possibly generate separated functions : TO REMOVE ?
     generateComputeFunctions(gGlobal->gWASMVisitor);
     
     gGlobal->gWASMVisitor->finishSection(functions_start);
@@ -429,8 +381,7 @@ void WASMScalarCodeContainer::generateCompute()
     args.push_back(InstBuilder::genNamedTyped("inputs", Typed::kVoid_ptr));
     args.push_back(InstBuilder::genNamedTyped("outputs", Typed::kVoid_ptr));
     
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-    fComputeBlockInstructions->pushBackInst(loop);
+    fComputeBlockInstructions->pushBackInst(fCurLoop->generateScalarLoop(fFullCount));
     MoveVariablesInFront2 mover;
     BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
     

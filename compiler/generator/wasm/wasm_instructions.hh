@@ -814,11 +814,16 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         map<string, LocalVarDesc> fLocalVarTable;
         BufferWithRandomAccess* fOut;
         FunAndTypeCounter fFunAndTypeCounter;
+    
+        void generateMemoryAccess()
+        {
+            *fOut << U32LEB(offStrNum);
+            *fOut << U32LEB(0); // TO CHECK : assuming offset is always 0
+        }
    
     public:
     
-        WASMInstVisitor(BufferWithRandomAccess* out, int tab = 0)
-            :WASInst(), fOut(out)
+        WASMInstVisitor(BufferWithRandomAccess* out):WASInst(), fOut(out)
         {}
 
         virtual ~WASMInstVisitor()
@@ -828,11 +833,6 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     
         FunAndTypeCounter* getFunAndTypeCounter() { return &fFunAndTypeCounter; }
    
-        void generateMemoryAccess()
-        {
-            *fOut << U32LEB(offStrNum);
-            *fOut << U32LEB(0); // TO CHECK : assuming offset is always 0
-        }
     
         int32_t startSection(BinaryConsts::Section code)
         {
@@ -891,6 +891,67 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         void generateFuncSignatures()
         {
             fFunAndTypeCounter.generateFuncSignatures(fOut);
+        }
+    
+        void generateModuleHeader()
+        {
+            *fOut << int32_t(BinaryConsts::Magic) << int32_t(BinaryConsts::Version);
+        }
+    
+        // (adhoc generation for now since currently FIR cannot be generated to handle this case)
+        void generateSetParamValue()
+        {
+            size_t size_pos = fOut->writeU32LEBPlaceholder();
+            size_t start = fOut->size();
+            
+            // Local variables
+            LocalVariableCounter local_counter;
+            local_counter.generateStackMap(fOut);
+            
+            // Index in the dsp
+            *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // 0 = dsp
+            *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(1);  // 1 = index
+            *fOut << int8_t(gBinOpTable[kAdd]->fWasmInt);
+            
+            // Value
+            *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(2);  // 2 = value
+            
+            // Store value at index
+            *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32StoreMem) : int8_t(BinaryConsts::F64StoreMem));
+            generateMemoryAccess();
+            
+            // Generate end
+            *fOut << int8_t(BinaryConsts::End);
+            size_t size = fOut->size() - start;
+            fOut->writeAt(size_pos, U32LEB(size));
+        }
+    
+        // (adhoc generation for now since currently FIR cannot be generated to handle this case)
+        void generateGetParamValue()
+        {
+            size_t size_pos = fOut->writeU32LEBPlaceholder();
+            size_t start = fOut->size();
+            
+            // Local variables
+            LocalVariableCounter local_counter;
+            local_counter.generateStackMap(fOut);
+            
+            // Index in the dsp
+            *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // 0 = dsp
+            *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(1);  // 1 = index
+            *fOut << int8_t(gBinOpTable[kAdd]->fWasmInt);
+            
+            // Load value from index
+            *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32LoadMem) : int8_t(BinaryConsts::F64LoadMem));
+            generateMemoryAccess();
+            
+            // Return value
+            *fOut << int8_t(BinaryConsts::Return);
+            
+            // Generate end
+            *fOut << int8_t(BinaryConsts::End);
+            size_t size = fOut->size() - start;
+            fOut->writeAt(size_pos, U32LEB(size));
         }
     
         virtual void visit(DeclareVarInst* inst)

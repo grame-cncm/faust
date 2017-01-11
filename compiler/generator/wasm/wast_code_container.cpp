@@ -200,13 +200,13 @@ void WASTCodeContainer::produceClass()
         WASInst::generateIntMax()->accept(gGlobal->gWASTVisitor);
         
         /*
-         tab(n+1, *fOut); *fOut << "(func $fmod" << isuffix() << " (type $0) (param $value " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
-         tab(n+2, *fOut); *fOut << "(return (call $" << realStr << "-rem (get_local $value) (get_local $1)))";
-         tab(n+1, *fOut); *fOut << ")";
+        tab(n+1, *fOut); *fOut << "(func $fmod" << isuffix() << " (type $0) (param $value " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
+        tab(n+2, *fOut); *fOut << "(return (call $" << realStr << "-rem (get_local $value) (get_local $1)))";
+        tab(n+1, *fOut); *fOut << ")";
          
-         tab(n+1, *fOut); *fOut <<  "(func $log10" << isuffix() << " (type $2) (param $value " << realStr << ") (result " << realStr << ")";
-         tab(n+2, *fOut); *fOut << "(return (" << realStr << ".div (call $log (get_local $value)) (call $log (" << realStr << ".const 10))))";
-         tab(n+1, *fOut); *fOut << ")";
+        tab(n+1, *fOut); *fOut <<  "(func $log10" << isuffix() << " (type $2) (param $value " << realStr << ") (result " << realStr << ")";
+        tab(n+2, *fOut); *fOut << "(return (" << realStr << ".div (call $log (get_local $value)) (call $log (" << realStr << ".const 10))))";
+        tab(n+1, *fOut); *fOut << ")";
         */
     
         // getNumInputs/getNumOutputs
@@ -348,8 +348,7 @@ void WASTScalarCodeContainer::generateCompute(int n)
     tab(n+1, *fOut); *fOut << "(func $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
         tab(n+2, *fOut);
         gGlobal->gWASTVisitor->Tab(n+2);
-        ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-        fComputeBlockInstructions->pushBackInst(loop);
+        fComputeBlockInstructions->pushBackInst(fCurLoop->generateScalarLoop(fFullCount));
         MoveVariablesInFront2 mover;
         BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
         block->accept(gGlobal->gWASTVisitor);
