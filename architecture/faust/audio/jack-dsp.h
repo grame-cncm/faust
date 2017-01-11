@@ -129,34 +129,40 @@ class jackaudio : public audio {
         }
 
         // Save client connections
-        virtual void save_connections()
+        virtual bool save_connections()
         {
-            fConnections.clear();
+            if (fClient) {
+                fConnections.clear();
 
-             for (int i = 0; i < fInputPorts.size(); i++) {
-                const char** connected_port = jack_port_get_all_connections(fClient, fInputPorts[i]);
-                if (connected_port != NULL) {
-                    for (int port = 0; connected_port[port]; port++) {
-                        fConnections.push_back(std::make_pair(connected_port[port], jack_port_name(fInputPorts[i])));
-//                        printf("INPUT %s ==> %s\n", connected_port[port], jack_port_name(fInputPorts[i]));
+                for (int i = 0; i < fInputPorts.size(); i++) {
+                    const char** connected_port = jack_port_get_all_connections(fClient, fInputPorts[i]);
+                    if (connected_port != NULL) {
+                        for (int port = 0; connected_port[port]; port++) {
+                            fConnections.push_back(std::make_pair(connected_port[port], jack_port_name(fInputPorts[i])));
+                            // printf("INPUT %s ==> %s\n", connected_port[port], jack_port_name(fInputPorts[i]));
+                        }
+                        jack_free(connected_port);
                     }
-                    jack_free(connected_port);
                 }
-            }
 
-            for (int i = 0; i < fOutputPorts.size(); i++) {
-                const char** connected_port = jack_port_get_all_connections(fClient, fOutputPorts[i]);
-                if (connected_port != NULL) {
-                    for (int port = 0; connected_port[port]; port++) {
-                        fConnections.push_back(std::make_pair(jack_port_name(fOutputPorts[i]), connected_port[port]));
-//                        printf("OUTPUT %s ==> %s\n", jack_port_name(fOutputPorts[i]), connected_port[port]);
+                for (int i = 0; i < fOutputPorts.size(); i++) {
+                    const char** connected_port = jack_port_get_all_connections(fClient, fOutputPorts[i]);
+                    if (connected_port != NULL) {
+                        for (int port = 0; connected_port[port]; port++) {
+                            fConnections.push_back(std::make_pair(jack_port_name(fOutputPorts[i]), connected_port[port]));
+                            // printf("OUTPUT %s ==> %s\n", jack_port_name(fOutputPorts[i]), connected_port[port]);
+                        }
+                        jack_free(connected_port);
                     }
-                    jack_free(connected_port);
                 }
+                return true;
+            } else {
+                fprintf(stdout, "Client no more running...\n");
+                return false;
             }
         }
 
-        // Load previous client connections
+        // Load client connections
         void load_connections()
         {
             std::list<std::pair<std::string, std::string> >::const_iterator it;
@@ -466,30 +472,35 @@ class jackaudio_midi : public jackaudio, public jack_midi_handler {
         jack_port_t* fInputMidiPort;       // JACK input MIDI port
         jack_port_t* fOutputMidiPort;      // JACK output MIDI port
 
-        virtual void save_connections()
+        virtual bool save_connections()
         {
-            jackaudio::save_connections();
-
-            if (fInputMidiPort) {
-                const char** connected_port = jack_port_get_all_connections(fClient, fInputMidiPort);
-                if (connected_port != NULL) {
-                    for (int port = 0; connected_port[port]; port++) {
-                        fConnections.push_back(std::make_pair(connected_port[port], jack_port_name(fInputMidiPort)));
-                        // printf("INPUT %s ==> %s\n", connected_port[port], jack_port_name(fInputPorts[i]));
+            if (jackaudio::save_connections()) { // Audio connections can be saved, so try MIDI
+                
+                if (fInputMidiPort) {
+                    const char** connected_port = jack_port_get_all_connections(fClient, fInputMidiPort);
+                    if (connected_port != NULL) {
+                        for (int port = 0; connected_port[port]; port++) {
+                            fConnections.push_back(std::make_pair(connected_port[port], jack_port_name(fInputMidiPort)));
+                            // printf("INPUT %s ==> %s\n", connected_port[port], jack_port_name(fInputPorts[i]));
+                        }
+                        jack_free(connected_port);
                     }
-                    jack_free(connected_port);
                 }
-            }
 
-            if (fOutputMidiPort) {
-                const char** connected_port = jack_port_get_all_connections(fClient, fOutputMidiPort);
-                if (connected_port != NULL) {
-                    for (int port = 0; connected_port[port]; port++) {
-                        fConnections.push_back(std::make_pair(jack_port_name(fOutputMidiPort), connected_port[port]));
-                        // printf("OUTPUT %s ==> %s\n", jack_port_name(fOutputPorts[i]), connected_port[port]);
+                if (fOutputMidiPort) {
+                    const char** connected_port = jack_port_get_all_connections(fClient, fOutputMidiPort);
+                    if (connected_port != NULL) {
+                        for (int port = 0; connected_port[port]; port++) {
+                            fConnections.push_back(std::make_pair(jack_port_name(fOutputMidiPort), connected_port[port]));
+                            // printf("OUTPUT %s ==> %s\n", jack_port_name(fOutputPorts[i]), connected_port[port]);
+                        }
+                        jack_free(connected_port);
                     }
-                    jack_free(connected_port);
                 }
+                return true;
+                
+            } else {
+                return false;
             }
         }
 
