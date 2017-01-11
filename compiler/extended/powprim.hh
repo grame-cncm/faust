@@ -32,9 +32,7 @@ class PowPrim : public xtended
  public:
 
  	PowPrim() : xtended("pow") {}
-    
-    static inline ValueInst* promote2real(int type, ValueInst* val) { return (type == kReal) ? val : InstBuilder::genCastNumFloatInst(val); }
-
+   
 	virtual unsigned int arity () { return 2; }
 
 	virtual bool needCache() { return true; }
@@ -104,8 +102,8 @@ class PowPrim : public xtended
             for (it1 = types.begin(); it1 != types.end(); it1++, it2++) {
                 casted_args.push_back(promote2real((*it1)->nature(), (*it2))); 
             }
-            // result_type forced to itfloat()
-            return container->pushFunction(subst("pow$0", isuffix()), itfloat(), arg_types, casted_args);
+            
+            return cast2int(result->nature(), container->pushFunction(subst("pow$0", isuffix()), itfloat(), arg_types, casted_args));
         }
     }
 

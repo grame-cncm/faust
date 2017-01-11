@@ -451,6 +451,20 @@ inline void finishSectionAux(BufferWithRandomAccess* out, int32_t start)
     out->writeAt(start, U32LEB(size));
 }
 
+inline S32LEB type2Binary(Typed::VarType type)
+{
+    if (isIntOrPtrType(type)) {
+        return S32LEB(BinaryConsts::EncodedType::i32);
+    } else if (type == Typed::kFloat) {
+        return S32LEB(BinaryConsts::EncodedType::f32);
+    } else if (type == Typed::kDouble) {
+        return S32LEB(BinaryConsts::EncodedType::f64);
+    } else {
+        assert(false);
+        return S32LEB(BinaryConsts::EncodedType::Empty);
+    }
+}
+
 // Local variable counter with their types
 struct LocalVarDesc {
     
@@ -466,20 +480,6 @@ struct LocalVarDesc {
     Address::AccessType fAccess;
     
 };
-
-inline S32LEB type2Binary(Typed::VarType type)
-{
-    if (isIntOrPtrType(type)) {
-        return S32LEB(BinaryConsts::EncodedType::i32);
-    } else if (type == Typed::kFloat) {
-        return S32LEB(BinaryConsts::EncodedType::f32);
-    } else if (type == Typed::kDouble) {
-        return S32LEB(BinaryConsts::EncodedType::f64);
-    } else {
-        assert(false);
-        return S32LEB(BinaryConsts::EncodedType::Empty);
-    }
-}
 
 // Count local variables (stack/loop) with their types : to be used at the begining of each block
 // Funargs variables are indexed first

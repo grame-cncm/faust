@@ -26,6 +26,9 @@
 
 using namespace std;
 
+#define realStr ((gGlobal->gFloatSize == 1) ? "f32" : ((gGlobal->gFloatSize == 2) ? "f64" : ""))
+#define offStr ((gGlobal->gFloatSize == 1) ? "2" : ((gGlobal->gFloatSize == 2) ? "3" : ""))
+
 class WASTInstVisitor : public TextInstVisitor,  public WASInst {
     
      private:

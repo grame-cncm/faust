@@ -30,9 +30,8 @@ using namespace std;
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
 
-#define realStr ((gGlobal->gFloatSize == 1) ? "f32" : ((gGlobal->gFloatSize == 2) ? "f64" : ""))
-#define offStr ((gGlobal->gFloatSize == 1) ? "2" : ((gGlobal->gFloatSize == 2) ? "3" : ""))
 #define offStrNum ((gGlobal->gFloatSize == 1) ? 2 : ((gGlobal->gFloatSize == 2) ? 3 : 0))
+
 #define audioMemSize pow(2, offStrNum)
 #define wasmMemSize pow(2, 16)
 
@@ -144,8 +143,8 @@ struct WASInst {
         
         fStructOffset = 0;
         fSubContainerType = -1;
-        //fFastMemory = true;
-        fFastMemory = false;
+        fFastMemory = true;
+        //fFastMemory = false;
     }
     
     void setSubContainerType(int type) { fSubContainerType = type; }

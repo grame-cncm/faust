@@ -21,8 +21,6 @@
 
 #include "xtended.hh"
 #include "floats.hh"
-
-static inline ValueInst* promote2real(int type, ValueInst* val) { return (type == kReal) ? val : InstBuilder::genCastNumFloatInst(val); }
     
 void xtended::prepareTypeArgsResult(::Type result, 
                                     const list<ValueInst*>& args, 
