@@ -767,10 +767,19 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     }
     
     // Generate list of imports
-    void generateImports(BufferWithRandomAccess* out)
+    void generateImports(BufferWithRandomAccess* out, int channels, bool internal_memory)
     {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Import);
-        *out << U32LEB(fFunImports.size());
+        *out << U32LEB(fFunImports.size() + ((internal_memory) ? 0 : 1));
+        
+        if (!internal_memory) {
+            // Memory
+            *out << "env";
+            *out << "memory";
+            *out << U32LEB(int32_t(ExternalKind::Memory));  // Memory kind
+            *out << U32LEB(0); // memory flags
+            *out << U32LEB((pow2limit(getStructSize() + channels * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1); // memory initial pages
+        }
         
         for (auto& import : fFunImports) {
             *out << import.second.first;    // module
@@ -823,7 +832,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
    
     public:
     
-        WASMInstVisitor(BufferWithRandomAccess* out):WASInst(), fOut(out)
+        WASMInstVisitor(BufferWithRandomAccess* out, bool fast_memory):WASInst(fast_memory), fOut(out)
         {}
 
         virtual ~WASMInstVisitor()
@@ -849,15 +858,15 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             fFunAndTypeCounter.generateFunTypes(fOut);
         }
     
-        void generateImports()
+        void generateImports(int channels, bool internal_memory)
         {
-            fFunAndTypeCounter.generateImports(fOut);
+            fFunAndTypeCounter.generateImports(fOut, channels, internal_memory);
         }
     
-        void generateExports()
+        void generateExports(bool internal_memory)
         {
             int32_t start = startSection(BinaryConsts::Section::Export);
-            *fOut << U32LEB(12); // num export = 11 functions + 1 memory
+            *fOut << U32LEB(11 + ((internal_memory) ? 1 : 0)); // num export = 11 functions (+ memory)
             
             fFunAndTypeCounter.generateExport(fOut, "compute");
             fFunAndTypeCounter.generateExport(fOut, "getNumInputs");
@@ -871,10 +880,12 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             fFunAndTypeCounter.generateExport(fOut, "instanceResetUserInterface");
             fFunAndTypeCounter.generateExport(fOut, "setParamValue");
             
-            // Memory
-            *fOut << "memory";
-            *fOut << U32LEB(int32_t(ExternalKind::Memory));  // Memory kind
-            *fOut << U32LEB(0);  // Memory index
+            if (internal_memory) {
+                // Memory
+                *fOut << "memory";
+                *fOut << U32LEB(int32_t(ExternalKind::Memory));  // Memory kind
+                *fOut << U32LEB(0);  // Memory index
+            }
             
             finishSection(start);
         }

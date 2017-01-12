@@ -35,6 +35,7 @@ class WASTCodeContainer : public virtual CodeContainer {
 
         std::ostream* fOut;
         std::stringstream fHelper;
+        int fInternalMemory;
     
         void generateWASTBlock(BlockInst* instructions)
         {
@@ -48,7 +49,7 @@ class WASTCodeContainer : public virtual CodeContainer {
   
     public:
 
-        WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
+        WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
         virtual ~WASTCodeContainer()
         {}
 
@@ -59,8 +60,9 @@ class WASTCodeContainer : public virtual CodeContainer {
         virtual dsp_factory_base* produceFactory();
     
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+        CodeContainer* createScalarContainer(const string& name, int sub_container_type, bool internal_memory = true);
 
-        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst = new stringstream());
+        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst, bool internal_memory);
 };
 
 class WASTScalarCodeContainer : public WASTCodeContainer {
@@ -69,7 +71,7 @@ class WASTScalarCodeContainer : public WASTCodeContainer {
 
     public:
 
-        WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
+        WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type, bool internal_memory);
         virtual ~WASTScalarCodeContainer();
 
         void generateCompute(int tab);

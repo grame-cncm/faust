@@ -90,7 +90,7 @@ struct WASInst {
     bool fFastMemory;                       // Is true, assume $dsp is always 0 to simplify and speed up dsp memory access code
     
     
-    WASInst()
+    WASInst(bool fast_memory = false)
     {
         // Integer version
         fMathLibTable["abs"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "abs", Typed::kInt, 1);
@@ -143,8 +143,7 @@ struct WASInst {
         
         fStructOffset = 0;
         fSubContainerType = -1;
-        fFastMemory = true;
-        //fFastMemory = false;
+        fFastMemory = fast_memory;
     }
     
     void setSubContainerType(int type) { fSubContainerType = type; }

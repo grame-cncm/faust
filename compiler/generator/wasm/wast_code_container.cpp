@@ -48,23 +48,29 @@ dsp_factory_base* WASTCodeContainer::produceFactory()
                                     ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), fHelper.str());
 }
 
-WASTCodeContainer::WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out):fOut(out)
+WASTCodeContainer::WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory):fOut(out)
 {
     initializeCodeContainer(numInputs, numOutputs);
     fKlassName = name;
+    fInternalMemory = internal_memory;
     
     // Allocate one static visitor
     if (!gGlobal->gWASTVisitor) {
-        gGlobal->gWASTVisitor = new WASTInstVisitor(fOut);
+        gGlobal->gWASTVisitor = new WASTInstVisitor(fOut, fInternalMemory);
     }
 }
 
 CodeContainer* WASTCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new WASTScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
+    return new WASTScalarCodeContainer(name, 0, 1, fOut, sub_container_type, true);
 }
 
-CodeContainer* WASTCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
+CodeContainer* WASTCodeContainer::createScalarContainer(const string& name, int sub_container_type, bool internal_memory)
+{
+    return new WASTScalarCodeContainer(name, 0, 1, fOut, sub_container_type, internal_memory);
+}
+
+CodeContainer* WASTCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst, bool internal_memory)
 {
     CodeContainer* container;
 
@@ -85,15 +91,15 @@ CodeContainer* WASTCodeContainer::createContainer(const string& name, int numInp
     } else if (gGlobal->gVectorSwitch) {
         throw faustexception("Vector mode not supported for WebAssembly\n");
     } else {
-        container = new WASTScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
+        container = new WASTScalarCodeContainer(name, numInputs, numOutputs, dst, kInt, internal_memory);
     }
 
     return container;
 }
 
 // Scalar
-WASTScalarCodeContainer::WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
-    :WASTCodeContainer(name, numInputs, numOutputs, out)
+WASTScalarCodeContainer::WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type, bool internal_memory)
+    :WASTCodeContainer(name, numInputs, numOutputs, out, internal_memory)
 {
      fSubContainerType = sub_container_type;
 }
@@ -191,8 +197,13 @@ void WASTCodeContainer::produceClass()
         generateSubContainers();
     
         tab(n+1, *fOut);
-        *fOut << "(memory (export \"memory\") "
-              << ((pow2limit(gGlobal->gWASTVisitor->getStructSize() + (fNumInputs + fNumOutputs) * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1) << ")";
+        if (fInternalMemory) {
+            *fOut << "(memory (export \"memory\") ";
+            *fOut << ((pow2limit(gGlobal->gWASTVisitor->getStructSize() + (fNumInputs + fNumOutputs) * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1) << ")";
+        } else {
+            *fOut << "(import \"env\" \"memory\" (memory $0 ";
+            *fOut << ((pow2limit(gGlobal->gWASTVisitor->getStructSize() + (fNumInputs + fNumOutputs) * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1) << "))";
+        }
     
         // Always generated mathematical functions
         tab(n+1, *fOut);

@@ -86,8 +86,8 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
     
     public:
 
-        WASTInstVisitor(std::ostream* out, int tab = 0)
-            :TextInstVisitor(out, ".", tab), WASInst()
+        WASTInstVisitor(std::ostream* out, bool fast_memory, int tab = 0)
+            :TextInstVisitor(out, ".", tab), WASInst(fast_memory)
         {}
 
         virtual ~WASTInstVisitor()

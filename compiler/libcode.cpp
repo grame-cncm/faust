@@ -546,7 +546,7 @@ static void printhelp()
     cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-fun  \t\t--funTasks separate tasks code as separated functions (in -vec, -sch, or -omp mode)\n";
-    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, js, ajs, llvm, cllvm, fir, wast, wasm, interp (default cpp)\n";
+    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, js, ajs, llvm, cllvm, fir, wast/wasm, interp (default cpp)\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the output code\n";
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
@@ -859,11 +859,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
-        } else if (gGlobal->gOutputLang == "wast") {
+        } else if (startWith(gGlobal->gOutputLang, "wast")) {
 
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            container = WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
+            container = WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, ((gGlobal->gOutputLang == "wast") || (gGlobal->gOutputLang == "wast-i")));
             
             // Additional file with JS code
             if (gGlobal->gOutputFile != "") {
@@ -871,11 +871,12 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             } else {
                 helpers = &cout;
             }
-        } else if (gGlobal->gOutputLang == "wasm") {
+            
+        } else if (startWith(gGlobal->gOutputLang, "wasm")) {
             
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
+            container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i")));
             
             // Additional file with JS code
             if (gGlobal->gOutputFile != "") {

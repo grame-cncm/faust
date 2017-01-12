@@ -37,6 +37,7 @@ class WASMCodeContainer : public virtual CodeContainer {
         BufferWithRandomAccess fBinaryOut;
         std::stringstream fHelper;
         FunAndTypeCounter fFunctionType;
+        int fInternalMemory;
     
         DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn);
     
@@ -47,7 +48,7 @@ class WASMCodeContainer : public virtual CodeContainer {
   
     public:
 
-        WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
+        WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory = true);
         virtual ~WASMCodeContainer()
         {}
 
@@ -58,8 +59,9 @@ class WASMCodeContainer : public virtual CodeContainer {
         virtual dsp_factory_base* produceFactory();
     
         CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+        CodeContainer* createScalarContainer(const string& name, int sub_container_type, bool internal_memory = true);
 
-        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst = new stringstream());
+        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst, bool internal_memory);
 };
 
 class WASMScalarCodeContainer : public WASMCodeContainer {
@@ -68,7 +70,7 @@ class WASMScalarCodeContainer : public WASMCodeContainer {
 
     public:
 
-        WASMScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
+        WASMScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type, bool internal_memory);
         virtual ~WASMScalarCodeContainer();
 
         void generateCompute();

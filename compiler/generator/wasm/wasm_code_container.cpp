@@ -50,23 +50,29 @@ dsp_factory_base* WASMCodeContainer::produceFactory()
                                     ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), fHelper.str());
 }
 
-WASMCodeContainer::WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out):fOut(out)
+WASMCodeContainer::WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory):fOut(out)
 {
     initializeCodeContainer(numInputs, numOutputs);
     fKlassName = name;
+    fInternalMemory = internal_memory;
     
     // Allocate one static visitor
     if (!gGlobal->gWASMVisitor) {
-        gGlobal->gWASMVisitor = new WASMInstVisitor(&fBinaryOut);
+        gGlobal->gWASMVisitor = new WASMInstVisitor(&fBinaryOut, internal_memory);
     }
 }
 
 CodeContainer* WASMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new WASMScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
+    return new WASMScalarCodeContainer(name, 0, 1, fOut, sub_container_type, true);
 }
 
-CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
+CodeContainer* WASMCodeContainer::createScalarContainer(const string& name, int sub_container_type, bool internal_memory)
+{
+    return new WASMScalarCodeContainer(name, 0, 1, fOut, sub_container_type, internal_memory);
+}
+
+CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst, bool internal_memory)
 {
     CodeContainer* container;
 
@@ -87,7 +93,7 @@ CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInp
     } else if (gGlobal->gVectorSwitch) {
         throw faustexception("Vector mode not supported for WebAssembly\n");
     } else {
-        container = new WASMScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
+        container = new WASMScalarCodeContainer(name, numInputs, numOutputs, dst, kInt, internal_memory);
     }
 
     return container;
@@ -174,8 +180,8 @@ DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const stri
 }
 
 // Scalar
-WASMScalarCodeContainer::WASMScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
-    :WASMCodeContainer(name, numInputs, numOutputs, out)
+WASMScalarCodeContainer::WASMScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type, bool internal_memory)
+    :WASMCodeContainer(name, numInputs, numOutputs, out, internal_memory)
 {
      fSubContainerType = sub_container_type;
 }
@@ -244,7 +250,7 @@ void WASMCodeContainer::produceClass()
     gGlobal->gWASMVisitor->generateFunTypes();
     
     // Imported functions
-    gGlobal->gWASMVisitor->generateImports();
+    gGlobal->gWASMVisitor->generateImports(fNumInputs + fNumOutputs, fInternalMemory);
     
     // Functions signature
     gGlobal->gWASMVisitor->generateFuncSignatures();
@@ -256,10 +262,12 @@ void WASMCodeContainer::produceClass()
     generateSubContainers();
     
     // Memory
-    gGlobal->gWASMVisitor->generateMemory(fNumInputs + fNumOutputs);
+    if (fInternalMemory) {
+        gGlobal->gWASMVisitor->generateMemory(fNumInputs + fNumOutputs);
+    }
     
     // Exports
-    gGlobal->gWASMVisitor->generateExports();
+    gGlobal->gWASMVisitor->generateExports(fInternalMemory);
  
     // Functions
     int32_t functions_start = gGlobal->gWASMVisitor->startSection(BinaryConsts::Section::Code);
