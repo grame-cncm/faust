@@ -774,7 +774,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
         
         if (!internal_memory) {
             // Memory
-            *out << "env";
+            *out << "memory";
             *out << "memory";
             *out << U32LEB(int32_t(ExternalKind::Memory));  // Memory kind
             *out << U32LEB(0); // memory flags

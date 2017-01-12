@@ -201,7 +201,7 @@ void WASTCodeContainer::produceClass()
             *fOut << "(memory (export \"memory\") ";
             *fOut << ((pow2limit(gGlobal->gWASTVisitor->getStructSize() + (fNumInputs + fNumOutputs) * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1) << ")";
         } else {
-            *fOut << "(import \"env\" \"memory\" (memory $0 ";
+            *fOut << "(import \"memory\" \"memory\" (memory $0 ";
             *fOut << ((pow2limit(gGlobal->gWASTVisitor->getStructSize() + (fNumInputs + fNumOutputs) * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1) << "))";
         }
     

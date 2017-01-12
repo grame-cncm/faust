@@ -72,7 +72,7 @@ done
 #
 
 if [ $POLY = "true" ]; then
-    HTML_FOOTER=webaudio-asm-poly-footer.html
+    HTML_FOOTER=webaudio-wasm-poly-footer.html
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc' in polyphonic mode"
         CODE_WRAPPER=webaudio-asm-poly.cpp
@@ -106,11 +106,17 @@ for f in $FILES; do
     if [ $EMCC = emcc ] ; then
         faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
-       faust -lang wast $SVG $OPTIONS $f -o $name.wast || exit
-        #wasm-opt $name.wast -O3 -o $name.wast
-        wasm-as $name.wast -o $name.wasm
+        if [ $POLY = "true" ]; then
+            faust -lang wast-e $SVG $OPTIONS $f -o $name.wast || exit
+            #wasm-opt $name.wast -O3 -o $name.wast
+            wasm-as $name.wast -o $name.wasm
+        else
+            faust -lang wast $SVG $OPTIONS $f -o $name.wast || exit
+            #wasm-opt $name.wast -O3 -o $name.wast
+            wasm-as $name.wast -o $name.wasm
+        fi
     fi
-     
+
     if [ $EMCC = emcc ] ; then
         # prepare emcc compilation files
         if [ $POLY = "false" ]; then    EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_init','_"$name"_getSampleRate','_"$name"_instanceInit','_"$name"_instanceConstants','_"$name"_instanceClear','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setParamValue','_"$name"_getParamValue','_"$name"_getJSON']"
