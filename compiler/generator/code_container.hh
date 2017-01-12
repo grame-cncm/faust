@@ -429,8 +429,6 @@ class CodeContainer : public virtual Garbageable {
     
         virtual void dump(ostream* dst) {}
     
-        virtual int getStructSize() { assert(false); return 0; }
-    
         void incUIActiveCount()    { fNumActives++; }
         void incUIPassiveCount()   { fNumPassives++; }
     

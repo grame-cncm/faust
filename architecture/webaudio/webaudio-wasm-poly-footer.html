@@ -166,7 +166,7 @@ function instantiate(bytes, imports)
 
 function startDSP() 
 {
-    var memory = genMemory(max_polyphony, 1024);
+    var memory = createMemory(max_polyphony, 1024);
     
     var asm2wasm = { // special asm2wasm imports
         "fmod": function(x, y) {
@@ -189,7 +189,7 @@ function startDSP()
 
 function startNewDSP(buffer_size) 
 {
-    startDSPAux(wasm_module, genMemory(max_polyphony, buffer_size), buffer_size);
+    startDSPAux(wasm_module, createMemory(max_polyphony, buffer_size), buffer_size);
 }
 
 // To activate audio on iOS

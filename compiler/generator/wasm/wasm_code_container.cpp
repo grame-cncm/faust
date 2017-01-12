@@ -39,7 +39,7 @@ using namespace std;
  - waveform generation is 'inlined' using MoveVariablesInFront3, done in a special version of generateInstanceInitFun.
  - integer min/max done in the module in min_i/max_i (using lt/select)
  - LocalVariableCounter visitor allows to count and create local variables of each types
- - FunAndTypeCounter visitor allows to count and create function types
+ - FunAndTypeCounter visitor allows to count and create function types and global variable offset
 
 */
 
@@ -243,8 +243,14 @@ void WASMCodeContainer::produceClass()
     // Sub containers : before functions generation
     mergeSubContainers();
     
+    // After field declaration...
+    generateSubContainers();
+    
     // All mathematical functions (got from math library as variables) have to be first
     generateGlobalDeclarations(gGlobal->gWASMVisitor->getFunAndTypeCounter());
+    
+    // Update struct offset to take account of global variables defined in 'generateGlobalDeclarations'
+    gGlobal->gWASMVisitor->updateStructOffset();
     
     // Functions types
     gGlobal->gWASMVisitor->generateFunTypes();
@@ -257,9 +263,6 @@ void WASMCodeContainer::produceClass()
     
     // Fields : compute the structure size to use in 'new'
     generateDeclarations(gGlobal->gWASMVisitor);
-    
-    // After field declaration...
-    generateSubContainers();
     
     // Memory
     if (fInternalMemory) {

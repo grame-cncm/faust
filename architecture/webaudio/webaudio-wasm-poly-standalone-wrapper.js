@@ -66,7 +66,7 @@ function mydspMixer(global, foreign, buffer) {
     return { mixVoice: mixVoice, clearOutput: clearOutput};
 }
 
-function genMemory(max_polyphony, buffer_size) {
+function createMemory(max_polyphony, buffer_size) {
     
     // Memory allocator
     var ptr_size = 4;

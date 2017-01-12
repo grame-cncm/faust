@@ -563,7 +563,7 @@ struct LocalVariableCounter : public DispatchVisitor {
 
 };
 
-// Counter of functions with their types
+// Counter of functions with their types and global variable offset
 struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     
     std::map<string, FunTyped*> fFunTypes;               // function name, function type
@@ -649,6 +649,28 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
             args.push_back(InstBuilder::genNamedTyped("outputs", Typed::kVoid_ptr));    // so that fun type is correcty generated
             FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
             fFunTypes["compute"] = fun_type;
+        }
+    }
+    
+    virtual void visit(DeclareVarInst* inst)
+    {
+        bool is_struct = (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        
+        if (array_typed && array_typed->fSize > 1) {
+            if (is_struct) {
+                fStructOffset += (array_typed->fSize * fsize()); // Always use biggest size so that int/real access are correctly aligned
+            } else {
+                // Should never happen...
+                assert(false);
+            }
+        } else {
+            if (is_struct) {
+                fStructOffset += fsize(); // Always use biggest size so that int/real access are correctly aligned
+            } else {
+                // Local variables declared by [var_num, type] pairs
+                assert(inst->fValue == nullptr);
+            }
         }
     }
     
@@ -841,7 +863,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         void setLocalVarTable(const map<string, LocalVarDesc>& table) { fLocalVarTable = table; }
     
         FunAndTypeCounter* getFunAndTypeCounter() { return &fFunAndTypeCounter; }
-   
+    
+        void updateStructOffset() { fStructOffset = fFunAndTypeCounter.fStructOffset;}
     
         int32_t startSection(BinaryConsts::Section code)
         {

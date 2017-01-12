@@ -1718,11 +1718,11 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         assert(false);
     }
     
-    // In 'asmjs' or 'wasm' waveforms are allocated in the DSP object memory,
+    // In 'asmjs' or 'wast/wasm' waveforms are allocated in the DSP object memory,
     // which is allocated in the global heap. Initialisation is moved in "classinit" method
     if ((gGlobal->gOutputLang == "ajs")
-        || (gGlobal->gOutputLang == "wast")
-        || (gGlobal->gOutputLang == "wasm")) {
+        || (startWith(gGlobal->gOutputLang, "wast"))
+        || (startWith(gGlobal->gOutputLang, "wasm"))) {
         pushStaticInitMethod(InstBuilder::genDecStaticStructVar(vname, type, num_array));
     // In 'interp' waveforms are allocated in the DSP object memory,
     // which is allocated in the global heap. Initialisation is moved in "init" method
