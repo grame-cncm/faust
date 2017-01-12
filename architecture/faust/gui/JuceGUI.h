@@ -407,7 +407,7 @@ public:
     uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip, String name): layoutComponent(w, h, name), uiItem(gui,zone), fTooltipText(tooltip) { }
 
     virtual void writeDebug() override {
-        std::cout<<std::endl<<"Bounds of Component : {"<<getLocalBounds().toString()<<"}";
+        std::cout<<std::endl<<"Bounds of Component : {"<<getBounds().toString()<<"}";
         std::cout<<", for parent : "<<findParentComponentOfClass<layoutComponent>()->fName<<", ";
         std::cout<<getParentComponent()->getBounds().toString()<<std::endl;
         std::cout<<"Ratios : "<<fHRatio<<" "<<fVRatio<<", Recommended Size : "<<fTotalWidth<<"x"<<fTotalHeight<<std::endl;
@@ -1369,10 +1369,10 @@ public:
             
             if(isVertical) {
                 int heightToRemove = getSpaceToRemove(tempComp->getVRatio());
-                tempComp->setLayoutComponentSize(functionRect.removeFromTop(heightToRemove));
+                tempComp->setLayoutComponentSize(functionRect.removeFromTop(heightToRemove).translated(0, 4*i));
             } else {
                 int widthToRemove = getSpaceToRemove(tempComp->getHRatio());
-                tempComp->setLayoutComponentSize(functionRect.removeFromLeft(widthToRemove));
+                tempComp->setLayoutComponentSize(functionRect.removeFromLeft(widthToRemove).translated(4*i, 0));
             }
         }
     }
@@ -1381,7 +1381,11 @@ public:
     void writeDebug() override {
         std::cout<<std::endl<<fName<<" : "<<std::endl;
         std::cout<<"order : "<<fOrder<<", itemCount : "<<getNumChildComponents();
-        std::cout<<", parent : "<<findParentComponentOfClass<layoutComponent>()->fName<<std::endl;
+        if(fOrder > 0) {
+            std::cout<<", parent : "<<findParentComponentOfClass<layoutComponent>()->fName<<std::endl;
+        } else {
+            std::cout<<"no parent, main box"<<std::endl;
+        }
         std::cout<<"CompBounds : {"<<getBounds().toString()<<"}"<<std::endl;
         std::cout<<"Recommended size : "<<fTotalWidth<<"x"<<fTotalHeight<<std::endl;
         std::cout<<"Ratios : "<<fVRatio<<", "<<fHRatio<<std::endl;
@@ -1398,13 +1402,13 @@ public:
         if(isVertical) {
             // Checking if the name is displayed, to give to good amount space for child components
             if(isNameDisplayed) {
-                return (float)(getBounds().getHeight()-12)*ratio;
+                return (float)(getBounds().getHeight() - 12 - 4*getNumChildComponents())*ratio;
             } else {
-                return (float)getBounds().getHeight()*ratio;
+                return (float)(getBounds().getHeight() - 4*getNumChildComponents())*ratio;
             }
         } else {
             // Don't need to check for an horizontal box, as we don't care about its height
-            return (float)getBounds().getWidth()*ratio;
+            return (float)(getBounds().getWidth() - 4*getNumChildComponents())*ratio;
         }
     }
 
