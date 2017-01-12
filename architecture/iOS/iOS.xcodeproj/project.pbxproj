@@ -1449,7 +1449,7 @@
 					../,
 				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/osclib/faust",
@@ -1479,7 +1479,7 @@
 					../,
 				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/osclib/faust",
@@ -1510,7 +1510,7 @@
 					osclib/faust,
 				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/osclib/faust",
 					"$(PROJECT_DIR)/osclib",
@@ -1541,7 +1541,7 @@
 					osclib/faust,
 				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/osclib/faust",
 					"$(PROJECT_DIR)/osclib",
@@ -1572,7 +1572,7 @@
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = "";
 				MACH_O_TYPE = mh_execute;
 				OTHER_CFLAGS = "";
@@ -1602,7 +1602,7 @@
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = "";
 				MACH_O_TYPE = mh_execute;
 				OTHER_CFLAGS = "";
@@ -1633,7 +1633,7 @@
 					osclib/faust,
 				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/osclib/faust",
 					"$(PROJECT_DIR)/osclib",
@@ -1663,7 +1663,7 @@
 					osclib/faust,
 				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.0;
 				LIBRARY_SEARCH_PATHS = (
 					"$(PROJECT_DIR)/osclib/faust",
 					"$(PROJECT_DIR)/osclib",
