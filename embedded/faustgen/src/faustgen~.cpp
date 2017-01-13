@@ -367,12 +367,22 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
 
     // Otherwise creates default DSP keeping the same input/output number
 #ifdef WIN32
-    int argc = 2;
-    const char* argv[3];
-    argv[0] = "-l";
-    argv[1] = "llvm_math.ll";
-    argv[2] = 0;  // NULL terminated argv
-    fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, argc, argv, getTarget(), error, 0);
+    // Prepare compile options
+    string error;
+    const char* argv[64];
+    
+    assert(fCompileOptions.size() < 64);
+    StringVectorIt it;
+    int i = 0;
+    for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++) {
+        argv[i++] = (char*)(*it).c_str();
+    }
+    
+    argv[fCompileOptions.size()] = "-l";
+    argv[fCompileOptions.size() + 1] = "llvm_math.ll";
+    argv[fCompileOptions.size() + 2] = 0;  // NULL terminated argv
+    
+    fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, fCompileOptions.size() + 2, argv, getTarget(), error, 0);
 #else
     fDSPfactory = createDSPFactoryFromString("default", DEFAULT_CODE, 0, 0, getTarget(), error, 0);
 #endif
