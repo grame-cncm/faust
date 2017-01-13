@@ -867,7 +867,15 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             
             // Additional file with JS code
             if (gGlobal->gOutputFile != "") {
-                helpers = new ofstream(("helpers_" + outpath).c_str());
+                string outpath_js;
+                bool res = replaceExtension(outpath, ".js", outpath_js);
+                if (res) {
+                    helpers = new ofstream(outpath_js.c_str());
+                } else {
+                    stringstream error;
+                    error << "ERROR : cannot generate helper JS file, outpath is incorrect : " << "\"" << outpath  << "\"" << endl;
+                    throw faustexception(error.str());
+                }
             } else {
                 helpers = &cout;
             }
@@ -880,7 +888,15 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             
             // Additional file with JS code
             if (gGlobal->gOutputFile != "") {
-                helpers = new ofstream(("helpers_" + outpath).c_str());
+                string outpath_js;
+                bool res = replaceExtension(outpath, ".js", outpath_js);
+                if (res) {
+                    helpers = new ofstream(outpath_js.c_str());
+                } else {
+                    stringstream error;
+                    error << "ERROR : cannot generate helper JS file, outpath is incorrect : " << "\"" << outpath  << "\"" << endl;
+                    throw faustexception(error.str());
+                }
             } else {
                 helpers = &cout;
             }

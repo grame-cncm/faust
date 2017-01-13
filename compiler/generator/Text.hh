@@ -87,6 +87,18 @@ inline bool startWithRes(const string& str, const string& prefix, string& res)
     }   
 }
 
+inline bool replaceExtension(const string& str, const string& term, string& res)
+{
+    size_t pos = str.rfind('.');
+    if (pos != string::npos) {
+        res = str.substr(0, pos) + term;
+        return true;
+    } else {
+        res = str;
+        return false;
+    }
+}
+
 inline std::string flatten(const std::string& src)
 {
     std::stringstream dst;
