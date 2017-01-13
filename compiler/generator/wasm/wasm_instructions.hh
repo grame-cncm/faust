@@ -659,6 +659,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
         
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
+                fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
                 fStructOffset += (array_typed->fSize * fsize()); // Always use biggest size so that int/real access are correctly aligned
             } else {
                 // Should never happen...
@@ -666,6 +667,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
             }
         } else {
             if (is_struct) {
+                fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
                 fStructOffset += fsize(); // Always use biggest size so that int/real access are correctly aligned
             } else {
                 // Local variables declared by [var_num, type] pairs
@@ -864,7 +866,11 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     
         FunAndTypeCounter* getFunAndTypeCounter() { return &fFunAndTypeCounter; }
     
-        void updateStructOffset() { fStructOffset = fFunAndTypeCounter.fStructOffset;}
+        void updateStructOffsetAndFieldTable()
+        {
+            fStructOffset = fFunAndTypeCounter.fStructOffset;
+            fFieldTable = fFunAndTypeCounter.fFieldTable;
+        }
     
         int32_t startSection(BinaryConsts::Section code)
         {
@@ -1102,6 +1108,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         virtual void visit(NamedAddress* named)
         {
             if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+                assert(fFieldTable.find(named->getName()) != fFieldTable.end());
                 MemoryDesc tmp = fFieldTable[named->getName()];
                 if (fFastMemory) {
                     *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
@@ -1144,6 +1151,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 *fOut << int8_t(WasmOp::I32Add);
             } else {
                 // Fields in struct are accessed using 'dsp' and an offset
+                assert(fFieldTable.find(indexed->getName()) != fFieldTable.end());
                 MemoryDesc tmp = fFieldTable[indexed->getName()];
                 IntNumInst* num;
                 if ((num = dynamic_cast<IntNumInst*>(indexed->fIndex))) {

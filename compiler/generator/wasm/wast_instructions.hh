@@ -250,6 +250,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
         virtual void visit(NamedAddress* named)
         {
             if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+                assert(fFieldTable.find(named->getName()) != fFieldTable.end());
                 MemoryDesc tmp = fFieldTable[named->getName()];
                 if (fFastMemory) {
                     *fOut << "(i32.const " << tmp.fOffset << ")";
@@ -281,6 +282,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
                 }
             } else {
                 // Fields in struct are accessed using 'dsp' and an offset
+                assert(fFieldTable.find(indexed->getName()) != fFieldTable.end());
                 MemoryDesc tmp = fFieldTable[indexed->getName()];
                 IntNumInst* num;
                 if ((num = dynamic_cast<IntNumInst*>(indexed->fIndex))) {

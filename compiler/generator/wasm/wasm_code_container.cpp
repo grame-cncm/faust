@@ -32,14 +32,15 @@ using namespace std;
  WASM module description :
  
  - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), are imported from the from JS "global.Math",
-    or are externally implemented (log10 in JS using log, fmod in JS)
+   or are externally implemented (log10 in JS using log, fmod in JS)
  - local variables have to be declared first on the block, before being actually initialized or set : this is done using MoveVariablesInFront3
- - 'faustpower' function directly inlined in the code (see CodeContainer::pushFunction)
+ - 'faustpower' function actualy fallback to regular 'pow' (see powprim.h)
  - subcontainers are inlined in 'classInit' and 'instanceConstants' functions.
  - waveform generation is 'inlined' using MoveVariablesInFront3, done in a special version of generateInstanceInitFun.
- - integer min/max done in the module in min_i/max_i (using lt/select)
+ - integer 'min/max' done in the module in 'min_i/max_i' (using lt/select)
  - LocalVariableCounter visitor allows to count and create local variables of each types
  - FunAndTypeCounter visitor allows to count and create function types and global variable offset
+ - memory can be allocated internally in the module and exported, or externally in JS and imported
 
 */
 
@@ -56,7 +57,7 @@ WASMCodeContainer::WASMCodeContainer(const string& name, int numInputs, int numO
     fKlassName = name;
     fInternalMemory = internal_memory;
     
-    // Allocate one static visitor
+    // Allocate one static visitor to be shared by main and sub containers
     if (!gGlobal->gWASMVisitor) {
         gGlobal->gWASMVisitor = new WASMInstVisitor(&fBinaryOut, internal_memory);
     }
@@ -192,7 +193,6 @@ WASMScalarCodeContainer::~WASMScalarCodeContainer()
 // Special version that uses MoveVariablesInFront3 to inline waveforms...
 DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn)
 {
-    //cout << "WASMCodeContainer::generateInstanceInitFun" << endl;
     list<NamedTyped*> args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
@@ -246,11 +246,11 @@ void WASMCodeContainer::produceClass()
     // After field declaration...
     generateSubContainers();
     
-    // All mathematical functions (got from math library as variables) have to be first
+    // Mthematical functions and global variables are handled in a separated visitor that creates functions types and global variable offset
     generateGlobalDeclarations(gGlobal->gWASMVisitor->getFunAndTypeCounter());
     
-    // Update struct offset to take account of global variables defined in 'generateGlobalDeclarations'
-    gGlobal->gWASMVisitor->updateStructOffset();
+    // Update struct offset to take account of global variables defined in 'generateGlobalDeclarations' in the separated visitor
+    gGlobal->gWASMVisitor->updateStructOffsetAndFieldTable();
     
     // Functions types
     gGlobal->gWASMVisitor->generateFunTypes();

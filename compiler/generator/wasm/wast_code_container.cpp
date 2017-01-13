@@ -32,12 +32,13 @@ using namespace std;
  WAST module description :
  
  - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), are imported from the from JS "global.Math",
-    or are externally implemented (log10 in JS using log, fmod in JS)
+   or are externally implemented (log10 in JS using log, fmod in JS)
  - local variables have to be declared first on the block, before being actually initialized or set : this is done using MoveVariablesInFront3
- - 'faustpower' function directly inlined in the code (see CodeContainer::pushFunction)
+ - 'faustpower' function actualy fallback to regular 'pow' (see powprim.h)
  - subcontainers are inlined in 'classInit' and 'instanceConstants' functions.
  - waveform generation is 'inlined' using MoveVariablesInFront3, done in a special version of generateInstanceInitFun.
- - integer min/max done in the module in min_i/max_i (using lt/select)
+ - integer 'min/max' done in the module in 'min_i/max_i' (using lt/select)
+ - memory can be allocated internally in the module and exported, or externally in JS and imported
 
 */
 
@@ -54,7 +55,7 @@ WASTCodeContainer::WASTCodeContainer(const string& name, int numInputs, int numO
     fKlassName = name;
     fInternalMemory = internal_memory;
     
-    // Allocate one static visitor
+    // Allocate one static visitor to be shared by main and sub containers
     if (!gGlobal->gWASTVisitor) {
         gGlobal->gWASTVisitor = new WASTInstVisitor(fOut, fInternalMemory);
     }
@@ -399,7 +400,6 @@ DeclareFunInst* WASInst::generateIntMax()
                                                                                                      InstBuilder::genLoadFunArgsVar(v2)),
                                                                             InstBuilder::genLoadFunArgsVar(v2),
                                                                             InstBuilder::genLoadFunArgsVar(v1))));
-    
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst("max_i", fun_type, block);
