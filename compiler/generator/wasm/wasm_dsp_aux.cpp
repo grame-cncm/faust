@@ -122,7 +122,7 @@ static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const str
         return res;
         // And keep factory...
     } else {
-        strncpy(error_msg, "libfaust.js fatal error...\n", 4096);
+        strncpy(error_msg, "libfaust.wasm fatal error...\n", 4096);
         return NULL;
     }
 }

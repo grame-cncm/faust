@@ -567,7 +567,7 @@ struct LocalVariableCounter : public DispatchVisitor {
 struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
     
     std::map<string, FunTyped*> fFunTypes;               // function name, function type
-    std::map<string, pair<string, string>> fFunImports;  // function name, [module, base]
+    std::map<string, pair<string, string> > fFunImports;  // function name, [module, base]
     
     FunAndTypeCounter():WASInst()
     {

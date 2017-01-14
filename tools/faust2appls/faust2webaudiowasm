@@ -40,7 +40,7 @@ for p in $@; do
         echo "faust2webaudiowasm [-poly] [-links] [-emcc] <file.dsp>"
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
         echo "Use '-links' to add links to source code and SVG diagrams in the generated HTML file"
-        echo "Use '-emcc' to compile C++ generated code to wasm with Emcripten, otherwise the internal wasm backend is used"
+        echo "Use '-emcc' to compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
     elif [ $p = "-links" ]; then
         SVG="-svg"
         LINKS="<div style=\"text-align:center;height:20px\"> 

@@ -13,14 +13,16 @@ BACKEND="all"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "test.sh [-all] [-float] [-cpp] [-c] [-llvm] [-interp] [-ajs] [-valgrind] "
-        echo "Use '-all' to activate all control test (float compilation and 5 backend)"
+        echo "test.sh [-all] [-float] [-cpp] [-c] [-llvm] [-interp] [-ajs] [-wast] [-wasm] [-valgrind] "
+        echo "Use '-all' to activate all control test (float compilation and 7 backends)"
         echo "Use '-float' to activate float compilation"
         echo "Use '-cpp' to check 'cpp' backend"
         echo "Use '-c' to check 'c' backend"
         echo "Use '-llvm' to check 'LLVM' backend"
         echo "Use '-interp' to check 'interpreter' backend"
         echo "Use '-ajs' to check 'asm.js' backend"
+        echo "Use '-wast' to check 'wasm' backend"
+        echo "Use '-wasm' to check 'wasm' backend"
         echo "Use '-valgrind' to activate valgrind tests"
         exit
     elif [ "$p" = -cpp ]; then
@@ -33,6 +35,10 @@ for p in $@; do
         BACKEND="interp"
     elif [ $p = "-ajs" ]; then
         BACKEND="ajs"
+    elif [ $p = "-wast" ]; then
+        BACKEND="wast"
+    elif [ $p = "-wasm" ]; then
+        BACKEND="wasm"
     elif [ $p = "-float" ]; then
         BACKEND="float"
     elif [ $p = "-valgrind" ]; then
@@ -261,3 +267,36 @@ if [ $BACKEND = "ajs" ] || [ $BACKEND = "all" ]; then
         fi
    done
 fi
+
+if [ $BACKEND = "wast" ] || [ $BACKEND = "all" ]; then
+
+    echo "================================================================================"
+    echo "Impulse response tests in various compilation modes and double : wast backend "
+    echo "================================================================================"
+
+    for f in *.dsp; do
+        faust2impulse7 -double $f > $D/$f.scal.ir && RES=1 || RES=0
+    if [ $RES = "1" ]; then
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+    else
+        echo "ERROR $f scalar mode in node.js"
+    fi
+    done
+fi
+
+if [ $BACKEND = "wasm" ] || [ $BACKEND = "all" ]; then
+
+    echo "================================================================================"
+    echo "Impulse response tests in various compilation modes and double : wasm backend "
+    echo "================================================================================"
+
+    for f in *.dsp; do
+        faust2impulse6 -double $f > $D/$f.scal.ir && RES=1 || RES=0
+    if [ $RES = "1" ]; then
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+    else
+        echo "ERROR $f scalar mode in node.js"
+    fi
+    done
+fi
+

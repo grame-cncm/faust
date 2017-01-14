@@ -7,6 +7,7 @@
 #                                                                   #
 #####################################################################
 
+
 #-------------------------------------------------------------------
 # Set Faust include path
 
@@ -18,9 +19,9 @@ elif [ -f /usr/local/share/faust/all.lib ]
     FAUSTLIB=/usr/local/share/faust/
 elif [ -f /usr/share/faust/all.lib ]
     then
-    FAUSTLIB=/usr/share/faust/
-else
-    echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
+FAUSTLIB=/usr/share/faust/
+    else
+echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
 fi
 
 #-------------------------------------------------------------------
@@ -78,15 +79,23 @@ for f in $FILES; do
     name=$(basename "$f" .dsp)
     dirname=$(dirname "$f");
 
-    # compile Faust to asm.js
-    faust -double $OPTIONS -lang ajs -cn $name -a $FAUSTLIB/webaudio/asm-standalone-node-wrapper-double.js "$f" -o "${f%.dsp}.js" || exit
+    # compile Faust to wasm
+    faust -double $OPTIONS -lang wasm-i  "$f" -o "${f%.dsp}.wasm" || exit
+
+    # create the nodejs ready file
+    cd $dirname
+    sed -e "s/mydsp/"$name"/g" "$name.js"  >> "$name-tmp1.js"
+    sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/wasm-standalone-node-wrapper-double.js >> "$name-tmp1.js"
+    sed -e "s/DSP/"$name"/g" "$name-tmp1.js"  >> "$name-tmp2.js"
 
 	# run the binary to generate the impulse response
-    cd $dirname
-    node "$name.js" || exit
+    node --expose-wasm $name-tmp2.js || exit
 
     # cleanup
-    rm "$name.js"
+    rm $name-tmp1.js
+    rm $name-tmp2.js
+    rm $name.js
+    rm $name.wasm
 
 done
 

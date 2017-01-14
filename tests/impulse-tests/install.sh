@@ -18,6 +18,8 @@ cp faust2impulse2 /usr/local/bin/
 cp faust2impulse3 /usr/local/bin/
 cp faust2impulse4 /usr/local/bin/
 cp faust2impulse5 /usr/local/bin/
+cp faust2impulse6 /usr/local/bin/
+cp faust2impulse7 /usr/local/bin/
 cp impulseinterp /usr/local/bin/
 cp impulsellvm /usr/local/bin/
 cp filesCompare /usr/local/bin/
