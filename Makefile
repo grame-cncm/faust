@@ -38,7 +38,7 @@ mfiles := $(wildcard examples/Makefile.*)
 vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
 zname := faust-$(version)
 
-.PHONY: all world dynamic httpd remote win32 ios ios-llvm emcc sound2faust
+.PHONY: all world dynamic httpd remote win32 ios ios-llvm emcc wasm sound2faust
 
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
@@ -78,6 +78,9 @@ ios-llvm :
 
 emcc :
 	$(MAKE) -C compiler emcc -f $(MAKEFILE) prefix=$(prefix)
+
+wasm :
+	$(MAKE) -C compiler wasm -f $(MAKEFILE) prefix=$(prefix)
 
 sound2faust:
 

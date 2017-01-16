@@ -183,6 +183,15 @@ emcc : LLVM_VERSION =
 emcc : libfaust.js libfaustworker.js
 emcc : EXPORTED="['_createAsmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCDSP']"
 
+## For the Web, do not compile LLVM part
+wasm : CC = emcc
+wasm : CXX = emcc
+wasm : CXXFLAGS = -DEMCC -s WASM=1 -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+wasm : ARCHFLAGS =
+wasm : LLVM_VERSION =
+wasm : libfaust.wasm libfaustworker.wasm
+wasm : EXPORTED="['_createAsmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCDSP']"
+
 libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o
 	libtool $(LIBFLAGS) generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o -static -o libfaustmachine.a
 
@@ -199,6 +208,15 @@ libfaust.js : $(objects) libcode.o libmain.o global.o
 libfaustworker.js : $(objects) libcode.o libmain.o global.o
 	$(CXX) -O3 --memory-init-file 0 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaustworker.js
 	cp libfaustworker.js ../architecture/webaudio
+
+libfaust.wasm : $(objects) libcode.o libmain.o global.o
+	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaust.js
+	cp libfaust.wasm ../architecture/webaudio
+
+libfaustworker.wasm : $(objects) libcode.o libmain.o global.o
+	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaustworker.js
+	cp libfaustworker.wasm ../architecture/webaudio
+
 
 libcode.o : libcode.cpp
 	$(CXX) $(CXXFLAGS) libcode.cpp -c -o libcode.o

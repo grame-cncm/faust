@@ -368,7 +368,6 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     // Otherwise creates default DSP keeping the same input/output number
 #ifdef WIN32
     // Prepare compile options
-    string error;
     const char* argv[64];
     
     assert(fCompileOptions.size() < 64);
