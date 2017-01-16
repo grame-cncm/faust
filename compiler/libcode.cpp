@@ -56,14 +56,14 @@
 #include "java_code_container.hh"
 #include "js_code_container.hh"
 #include "asmjs_code_container.hh"
-#include "wasm_code_container.hh"
-#include "wast_code_container.hh"
 #include "clang_code_container.hh"
 #include "export.hh"
 
 #if !defined(_MSC_VER)
 // As of 29-09-2016 this fails to build with MSVC
 #include "interpreter_code_container.cpp"
+#include "wasm_code_container.hh"
+#include "wast_code_container.hh"
 #endif
 
 #if LLVM_BUILD
@@ -860,7 +860,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 
         } else if (startWith(gGlobal->gOutputLang, "wast")) {
-
+        #if !defined(_MSC_VER)
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             container = WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, ((gGlobal->gOutputLang == "wast") || (gGlobal->gOutputLang == "wast-i")));
@@ -879,9 +879,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             } else {
                 helpers = &cout;
             }
-            
+        #endif
         } else if (startWith(gGlobal->gOutputLang, "wasm")) {
-            
+        #if !defined(_MSC_VER)
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i")));
@@ -900,7 +900,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             } else {
                 helpers = &cout;
             }
-            
+        #endif
         } else {
             stringstream error;
             error << "ERROR : cannot find compiler for " << "\"" << gGlobal->gOutputLang  << "\"" << endl;

@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#include <unistd.h>
 #include <iostream>
+#include "compatibility.hh"
 #include "dsp_factory.hh"
 
 // Standalone compiler uses the real 'alarm' function

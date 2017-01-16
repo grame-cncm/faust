@@ -18,7 +18,6 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-#include "compatibility.hh"
 
 // 'libfaust' compiler uses an empty 'alarm' function
 unsigned faust_alarm(unsigned seconds)
