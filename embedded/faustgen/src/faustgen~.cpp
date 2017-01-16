@@ -1035,10 +1035,11 @@ faustgen::~faustgen()
         object_free(fEditor);
         fEditor = 0;
     }
+    
+    // Has to be done *before* remove_instance that may free fDSPfactory and thus fDSPfactory->fMidiHandler
+    delete fMidiUI;
      
     fDSPfactory->remove_instance(this);
-    
-    delete fMidiUI;
 }
 
 void faustgen::free_dsp()
