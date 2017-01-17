@@ -169,7 +169,6 @@ public:
 
     void resized() override
     {
-        std::cout<<std::endl<<"RESIZING"<<std::endl<<std::endl;
         juceGUI.setBounds(getLocalBounds());
     }
 
