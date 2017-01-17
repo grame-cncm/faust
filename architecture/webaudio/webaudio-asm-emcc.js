@@ -64,7 +64,7 @@ faust.DSP = function (context, buffer_size) {
         if (ouputs_items.length > 0 && handler && ouputs_timer-- === 0) {
             ouputs_timer = 5;
             for (var i = 0; i < ouputs_items.length; i++) {
-                Module.writeStringToMemory(ouputs_items[i], path_ptr);
+                Module.stringToUTF8(ouputs_items[i], path_ptr, lengthBytesUTF8(ouputs_items[i]) + 1);
                 handler(ouputs_items[i], DSP_getParamValue(ptr, path_ptr));
             }
         }
@@ -278,13 +278,13 @@ faust.DSP = function (context, buffer_size) {
         
         setParamValue : function (path, val) 
         {
-            Module.writeStringToMemory(path, path_ptr);
+            Module.stringToUTF8(path, path_ptr, lengthBytesUTF8(path) + 1);
             DSP_setParamValue(ptr, path_ptr, val);
         },
         
         getParamValue : function (path) 
         {
-            Module.writeStringToMemory(path, path_ptr);
+            Module.stringToUTF8(path, path_ptr, lengthBytesUTF8(path) + 1);
             return DSP_getParamValue(ptr, path_ptr);
         },
          

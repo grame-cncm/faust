@@ -18,8 +18,8 @@ onmessage = function(e) {
         var sha_key_ptr = Module._malloc(64);
         var error_msg_ptr = Module._malloc(4096);
         
-        Module.writeStringToMemory(name, name_ptr);
-        Module.writeStringToMemory(code, code_ptr);
+        Module.stringToUTF8(name, name_ptr, lengthBytesUTF8(name) + 1);
+        Module.stringToUTF8(code, code_ptr, lengthBytesUTF8(code) + 1);
         
         var expandCDSPFromString = Module.cwrap('expandCDSPFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
         var getCLibFaustVersion = Module.cwrap('getCLibFaustVersion', 'number', []);
@@ -36,7 +36,7 @@ onmessage = function(e) {
         var argv_ptr_buffer = new Int32Array(Module.HEAP32.buffer, argv_ptr, argv.length);  // Get a integer view on the newly allocated buffer.
         for (var i = 0; i < argv.length; i++) {
             var arg_ptr = Module._malloc(argv[i].length + 1);
-            Module.writeStringToMemory(argv[i], arg_ptr);
+            Module.stringToUTF8(argv[i], arg_ptr, lengthBytesUTF8(argv[i]) + 1);
             argv_ptr_buffer[i] = arg_ptr; 
         }
         
