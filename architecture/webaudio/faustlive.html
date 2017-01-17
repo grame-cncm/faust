@@ -519,7 +519,8 @@ function UploadFile(e) {
             console.log("Poly DSP");
             
             // Create a poly DSP factory from the dsp code    
-            factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"]);
+            //factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"]);
+            factory = faust.createDSPFactory(dsp_code, ["-I", "http://127.0.0.1:8000/libraries/"]);
             
             if (!factory) {
                 alert(faust.getErrorMessage());
@@ -550,7 +551,8 @@ function UploadFile(e) {
             console.log("Mono DSP");
              
             // Create a mono DSP factory from the dsp code    
-            factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"]);
+            //factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"]);
+            factory = faust.createDSPFactory(dsp_code, ["-I", "http://127.0.0.1:8000/libraries/"]);
             
             if (!factory) {
                 alert(faust.getErrorMessage());
