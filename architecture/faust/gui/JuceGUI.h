@@ -345,11 +345,11 @@ public:
         fDisplayRectWidth  = totWidth;
     }
 
-    virtual int getTotalHeight() {
+    int getTotalHeight() {
         return fTotalHeight;
     }
     
-    virtual int getTotalWidth() {
+    int getTotalWidth() {
         return fTotalWidth;
     }
 
@@ -358,15 +358,15 @@ public:
         setHRatio();
     }
     
-    virtual float getHRatio() {
+    float getHRatio() {
         return fHRatio;
     }
     
-    virtual float getVRatio() {
+    float getVRatio() {
         return fVRatio;
     }
     
-    virtual String getName() {
+    String getName() {
         return fName;
     }
     
