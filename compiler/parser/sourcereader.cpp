@@ -292,8 +292,9 @@ Tree SourceReader::parsefile(const char* fname)
         Tree res = parse(yyfilename);
         // 'http_fetch' result must be deallocated
         free(buffer);
-        return res;
     #endif
+        return res;
+        
     } else {
         
         // Test for local url
