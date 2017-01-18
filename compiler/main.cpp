@@ -397,6 +397,7 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i+1 < argc)) {
             if (strstr(argv[i+1], "http://") != 0) {
                 gImportDirList.push_back(argv[i+1]);
+                i += 2;
             } else {
                 char temp[PATH_MAX+1];
                 char* path = realpath(argv[i+1], temp);
