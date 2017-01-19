@@ -331,7 +331,7 @@ enum VUMeterType {
     NumDisplay
 };
 
-class uiBasComponent: public Component
+class uiBaseComponent: public Component
 {
 public:
     
@@ -340,7 +340,7 @@ public:
     int fDisplayRectHeight, fDisplayRectWidth;
     String fName;
     
-    uiBasComponent(int totWidth, int totHeight, String name) : fTotalWidth(totWidth), fTotalHeight(totHeight), fName(name) {
+    uiBaseComponent(int totWidth, int totHeight, String name) : fTotalWidth(totWidth), fTotalHeight(totHeight), fName(name) {
         fDisplayRectHeight = totHeight;
         fDisplayRectWidth  = totWidth;
     }
@@ -371,20 +371,20 @@ public:
     }
     
     void setHRatio() {
-        uiBasComponent* tempParentBox = findParentComponentOfClass<uiBasComponent>();
+        uiBaseComponent* tempParentBox = findParentComponentOfClass<uiBaseComponent>();
         if(tempParentBox != nullptr) {
             fHRatio = (float)fTotalWidth / (float)tempParentBox->fDisplayRectWidth;
         }
     }
     
     void setVRatio() {
-        uiBasComponent* tempParentBox = findParentComponentOfClass<uiBasComponent>();
+        uiBaseComponent* tempParentBox = findParentComponentOfClass<uiBaseComponent>();
         if(tempParentBox != nullptr) {
             fVRatio = (float)fTotalHeight / (float)tempParentBox->fDisplayRectHeight;
         }
     }
     
-    void setBasComponentSize(Rectangle<int> r) {
+    void setBaseComponentSize(Rectangle<int> r) {
         setBounds(r.getX() - getParentComponent()->getX(),
                   r.getY() - getParentComponent()->getY(),
                   r.getWidth(),
@@ -399,16 +399,16 @@ public:
     virtual void setCompLookAndFeel(LookAndFeel* laf) = 0;
 };
 
-class uiComponent: public uiBasComponent, public uiItem, public SettableTooltipClient
+class uiComponent: public uiBaseComponent, public uiItem, public SettableTooltipClient
 {
 public:
     String fTooltipText;
 
-    uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip, String name): uiBasComponent(w, h, name), uiItem(gui,zone), fTooltipText(tooltip) { }
+    uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip, String name): uiBaseComponent(w, h, name), uiItem(gui,zone), fTooltipText(tooltip) { }
 
     virtual void writeDebug() override {
         std::cout<<std::endl<<"Bounds of Component : {"<<getBounds().toString()<<"}";
-        std::cout<<", for parent : "<<findParentComponentOfClass<uiBasComponent>()->fName<<", ";
+        std::cout<<", for parent : "<<findParentComponentOfClass<uiBaseComponent>()->fName<<", ";
         std::cout<<getParentComponent()->getBounds().toString()<<std::endl;
         std::cout<<"Ratios : "<<fHRatio<<" "<<fVRatio<<", Recommended Size : "<<fTotalWidth<<"x"<<fTotalHeight<<std::endl;
         std::cout<<"fDisplayRectHeight : "<<fDisplayRectHeight<<", fDisplayRectWidth : "<<fDisplayRectWidth<<std::endl;
@@ -1334,10 +1334,10 @@ private:
 
 
 
-class uiBox : public uiBasComponent
+class uiBox : public uiBaseComponent
 {
 public:
-    uiBox(bool vert, String boxName, int boxOrder, bool tab): uiBasComponent(0, 0, boxName), fOrder(boxOrder), isVertical(vert), tabLayout(tab)
+    uiBox(bool vert, String boxName, int boxOrder, bool tab): uiBaseComponent(0, 0, boxName), fOrder(boxOrder), isVertical(vert), tabLayout(tab)
     {
         isNameDisplayed = (!(fName.startsWith("0x")) && fName.isNotEmpty());
          
@@ -1349,7 +1349,7 @@ public:
 
     void setCompLookAndFeel(LookAndFeel* laf) override {
         for(int i = 0; i<getNumChildComponents(); i++) {
-            dynamic_cast<uiBasComponent*> (getChildComponent(i))->setCompLookAndFeel(laf);
+            dynamic_cast<uiBaseComponent*> (getChildComponent(i))->setCompLookAndFeel(laf);
         }
     }
 
@@ -1365,14 +1365,14 @@ public:
         
         // Give child components an adapt size depending on its ratio and the current box size
         for(int i = 0; i<getNumChildComponents(); i++) {
-            uiBasComponent* tempComp = dynamic_cast<uiBasComponent*>(getChildComponent(i));
+            uiBaseComponent* tempComp = dynamic_cast<uiBaseComponent*>(getChildComponent(i));
             
             if(isVertical) {
                 int heightToRemove = getSpaceToRemove(tempComp->getVRatio());
-                tempComp->setBasComponentSize(functionRect.removeFromTop(heightToRemove).translated(0, 4*i));
+                tempComp->setBaseComponentSize(functionRect.removeFromTop(heightToRemove).translated(0, 4*i));
             } else {
                 int widthToRemove = getSpaceToRemove(tempComp->getHRatio());
-                tempComp->setBasComponentSize(functionRect.removeFromLeft(widthToRemove).translated(4*i, 0));
+                tempComp->setBaseComponentSize(functionRect.removeFromLeft(widthToRemove).translated(4*i, 0));
             }
         }
     }
@@ -1382,7 +1382,7 @@ public:
         std::cout<<std::endl<<fName<<" : "<<std::endl;
         std::cout<<"order : "<<fOrder<<", itemCount : "<<getNumChildComponents();
         if(fOrder > 0) {
-            std::cout<<", parent : "<<findParentComponentOfClass<uiBasComponent>()->fName<<std::endl;
+            std::cout<<", parent : "<<findParentComponentOfClass<uiBaseComponent>()->fName<<std::endl;
         } else {
             std::cout<<"no parent, main box"<<std::endl;
         }
@@ -1393,7 +1393,7 @@ public:
         std::cout<<"isVisible ? "<<isVisible()<<std::endl;
         std::cout<<"Childs : ";
         for(int j = 0; j<getNumChildComponents(); j++) {
-            std::cout<<dynamic_cast<uiBasComponent*>(getChildComponent(j))->fName<<", ";
+            std::cout<<dynamic_cast<uiBaseComponent*>(getChildComponent(j))->fName<<", ";
         }
         std::cout<<std::endl;
     }
@@ -1423,11 +1423,11 @@ public:
     void calculRecommendedSize() {
         for(int j = 0; j<getNumChildComponents(); j++) {
             if(isVertical) {
-                fDisplayRectHeight += (dynamic_cast<uiBasComponent*>(getChildComponent(j))->getTotalHeight());
-                fDisplayRectWidth   = jmax((int)fDisplayRectWidth, dynamic_cast<uiBasComponent*>(getChildComponent(j))->getTotalWidth());
+                fDisplayRectHeight += (dynamic_cast<uiBaseComponent*>(getChildComponent(j))->getTotalHeight());
+                fDisplayRectWidth   = jmax((int)fDisplayRectWidth, dynamic_cast<uiBaseComponent*>(getChildComponent(j))->getTotalWidth());
             } else {
-                fDisplayRectWidth += (dynamic_cast<uiBasComponent*>(getChildComponent(j))->getTotalWidth());
-                fDisplayRectHeight = jmax((int)fDisplayRectHeight, dynamic_cast<uiBasComponent*>(getChildComponent(j))->getTotalHeight());
+                fDisplayRectWidth += (dynamic_cast<uiBaseComponent*>(getChildComponent(j))->getTotalWidth());
+                fDisplayRectHeight = jmax((int)fDisplayRectHeight, dynamic_cast<uiBaseComponent*>(getChildComponent(j))->getTotalHeight());
             }
         }
         
@@ -1449,9 +1449,9 @@ public:
     }
 
     void setRatio() override {
-        uiBasComponent::setRatio();
+        uiBaseComponent::setRatio();
         for(int i = 0; i<getNumChildComponents(); i++) {
-            dynamic_cast<uiBasComponent*>(getChildComponent(i))->setRatio();
+            dynamic_cast<uiBaseComponent*>(getChildComponent(i))->setRatio();
         }
     }
 
@@ -1503,7 +1503,7 @@ public:
 
     void init() {
         for(int i = 0; i < getNumTabs(); i++) {
-            uiBasComponent* tempComp = dynamic_cast<uiBasComponent*>(getTabContentComponent(i));
+            uiBaseComponent* tempComp = dynamic_cast<uiBaseComponent*>(getTabContentComponent(i));
             tempComp->setRatio();
             tempComp->setCompLookAndFeel(laf);
             fTabTotalHeight = jmax(fTabTotalHeight, tempComp->fTotalHeight);
@@ -1530,10 +1530,10 @@ public:
 
 
 
-class Juce_GUI: public GUI, public MetaDataUI, public Component
+class JuceGUI: public GUI, public MetaDataUI, public Component
 {
 public:
-    Juce_GUI()
+    JuceGUI()
     {
         order = 0;
         radioGroup = 0;
@@ -1594,7 +1594,7 @@ public:
 
     virtual void closeBox() {
         order--;
-        if(order > -1) { // Avoid to calculate that both in case of a tablayout
+        if(order > -1) { // Avoid to calculate that two times in case of a tabLayout
             currentBox->calculRecommendedSize();
         }
 
@@ -1832,9 +1832,9 @@ public:
         if(tabLayout) {
             tabs.init();
         } else {
-            uiBasComponent* tempComp = dynamic_cast<uiBox*> (getChildComponent(0));
+            uiBaseComponent* tempComp = dynamic_cast<uiBox*> (getChildComponent(0));
             tempComp->setRatio();
-            tempComp->setBasComponentSize(getLocalBounds());
+            tempComp->setBaseComponentSize(getLocalBounds());
             tempComp->setCompLookAndFeel(laf);
         }
     }
@@ -1843,11 +1843,11 @@ public:
         if(tabLayout) {
             tabs.setBounds(getLocalBounds());
         } else {
-            dynamic_cast<uiBox*> (getChildComponent(0))->setBasComponentSize(getLocalBounds());
+            dynamic_cast<uiBox*> (getChildComponent(0))->setBaseComponentSize(getLocalBounds());
         }
     }
 
-    ~Juce_GUI() {
+    ~JuceGUI() {
         delete currentBox;
         delete parentBox;
     }

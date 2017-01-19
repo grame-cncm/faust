@@ -190,7 +190,7 @@ private:
         ScopedPointer<JuceOSCUI> fOSCUI;
     #endif
     
-    Juce_GUI juceGUI;
+    JuceGUI juceGUI;
     
     ScopedPointer<dsp> fDSP;
     APIUI fAPIUI;
