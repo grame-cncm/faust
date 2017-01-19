@@ -1,8 +1,6 @@
 
 'use strict';
 
-var faust = faust || {};
-
 // Build global context
 var window = {};
 window.Math = {};
@@ -36,7 +34,9 @@ window.Math.tan = global.Math.tan;
 
 // Standard Faust DSP
 
-faust.mydsp = function (context, buffer_size, sample_rate) {
+var faust = faust || {};
+
+faust.mydsp = function (buffer_size, sample_rate) {
 
     var handler = null;
     var ins, outs;
@@ -422,7 +422,7 @@ var run = 0;
 var control_data;
 
 // Creates DSP and buffers
-var DSP = faust.mydsp(null, buffer_size, sample_rate);
+var DSP = faust.mydsp(buffer_size, sample_rate);
 create(DSP.getNumInputs(), DSP.getNumOutputs(), buffer_size);
 
 //console.log(DSP);

@@ -1,8 +1,6 @@
 
 'use strict';
 
-var faust = faust || {};
-
 // Build global context
 var window = {};
 window.Math = {};
@@ -36,7 +34,9 @@ window.Math.tan = global.Math.tan;
 
 // Standard Faust DSP
 
-faust.mydsp = function (context, buffer_size, sample_rate) {
+var faust = faust || {};
+
+faust.mydsp = function (buffer_size, sample_rate) {
 
     var handler = null;
     var ins, outs;
@@ -62,7 +62,7 @@ faust.mydsp = function (context, buffer_size, sample_rate) {
      
     // Memory allocator
     var ptr_size = 8;
-    var sample_size = 8;  // double
+    var sample_size = 8;    // double
     
     function pow2limit (x)
     {
@@ -215,7 +215,7 @@ faust.mydsp = function (context, buffer_size, sample_rate) {
             ins = audio_heap_ptr_inputs; 
             for (i = 0; i < numIn; i++) { 
                 HEAP32[(ins >> 2) + i] = audio_heap_inputs + ((buffer_size * sample_size) * i);
-           }
+            }
      
             // Prepare Ins buffer tables
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
@@ -423,7 +423,7 @@ var run = 0;
 var control_data;
 
 // Creates DSP and buffers
-var DSP = faust.mydsp(null, buffer_size, sample_rate);
+var DSP = faust.mydsp(buffer_size, sample_rate);
 create(DSP.getNumInputs(), DSP.getNumOutputs(), buffer_size);
 
 //console.log(DSP);

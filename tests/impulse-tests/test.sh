@@ -13,13 +13,14 @@ BACKEND="all"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "test.sh [-all] [-float] [-cpp] [-c] [-llvm] [-interp] [-ajs] [-wast] [-wasm] [-valgrind] "
+        echo "test.sh [-all] [-float] [-cpp] [-c] [-llvm] [-interp] [-ajs] [-lf-ajs] [-wast] [-wasm] [-valgrind] "
         echo "Use '-all' to activate all control test (float compilation and 7 backends)"
         echo "Use '-float' to activate float compilation"
         echo "Use '-cpp' to check 'cpp' backend"
         echo "Use '-c' to check 'c' backend"
         echo "Use '-llvm' to check 'LLVM' backend"
         echo "Use '-interp' to check 'interpreter' backend"
+        echo "Use '-lf-ajs' to check 'libfaust.js + asm.js' backend"
         echo "Use '-ajs' to check 'asm.js' backend"
         echo "Use '-wast' to check 'wasm' backend"
         echo "Use '-wasm' to check 'wasm' backend"
@@ -35,6 +36,8 @@ for p in $@; do
         BACKEND="interp"
     elif [ $p = "-ajs" ]; then
         BACKEND="ajs"
+    elif [ $p = "-lf-ajs" ]; then
+        BACKEND="lf-ajs"
     elif [ $p = "-wast" ]; then
         BACKEND="wast"
     elif [ $p = "-wasm" ]; then
@@ -266,6 +269,22 @@ if [ $BACKEND = "ajs" ] || [ $BACKEND = "all" ]; then
             echo "ERROR $f scalar mode in node.js"
         fi
    done
+fi
+
+if [ $BACKEND = "lf-ajs" ] || [ $BACKEND = "all" ]; then
+
+    echo "=============================================================================================="
+    echo "Impulse response tests in various compilation modes and double : libfaust.js + asm.js backend "
+    echo "=============================================================================================="
+
+    for f in *.dsp; do
+        faust2impulse5bis -double $f > $D/$f.scal.ir && RES=1 || RES=0
+        if [ $RES = "1" ]; then
+            filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+        else
+            echo "ERROR $f scalar mode in node.js"
+        fi
+    done
 fi
 
 if [ $BACKEND = "wast" ] || [ $BACKEND = "all" ]; then
