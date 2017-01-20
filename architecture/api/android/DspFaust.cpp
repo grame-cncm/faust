@@ -90,6 +90,10 @@ int DspFaust::deleteVoice(unsigned long voice){
 	return fPolyEngine->deleteVoice(voice);
 }
 
+void DspFaust::allNotesOff(){
+    return fPolyEngine->allNotesOff();
+}
+
 void DspFaust::propagateMidi(int count, double time, int type, int channel, int data1, int data2){
 	fPolyEngine->propagateMidi(count, time, type, channel, data1, data2);
 }
@@ -144,6 +148,38 @@ const char* DspFaust::getParamAddress(int id){
 
 const char* DspFaust::getVoiceParamAddress(int id, unsigned long voice){
 	return fPolyEngine->getVoiceParamAddress(id, voice);
+}
+
+float DspFaust::getParamMin(const char* address){
+    return fPolyEngine->getParamMin(address);
+}
+      
+float DspFaust::getParamMin(int id){
+    return fPolyEngine->getParamMin(id);
+}
+      
+float DspFaust::getParamMax(const char* address){
+    return fPolyEngine->getParamMax(address);
+}
+      
+float DspFaust::getParamMax(int id){
+    return fPolyEngine->getParamMax(id);
+}
+      
+float DspFaust::getParamInit(const char* address){
+    return fPolyEngine->getParamInit(address);
+}
+      
+float DspFaust::getParamInit(int id){
+    return fPolyEngine->getParamInit(id);
+}
+      
+const char* DspFaust::getParamTooltip(const char* address){
+    return fPolyEngine->getParamTooltip(address);
+}
+      
+const char* DspFaust::getParamTooltip(int id){
+    return fPolyEngine->getParamTooltip(id);
 }
 
 void DspFaust::propagateAcc(int acc, float v){

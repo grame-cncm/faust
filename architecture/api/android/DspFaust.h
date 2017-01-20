@@ -119,6 +119,11 @@ public:
 	//--------------------------------------------------------
 	int deleteVoice(unsigned long);
 
+	//-----------------`void allNotesOff()`----------------
+	// Gently terminates all the active voices. 
+	//--------------------------------------------------------
+	void allNotesOff();
+
 	//-------`void propagateMidi(int count, double time, int type, int channel, int data1, int data2)`--------
 	// Take a raw MIDI message and propagate it to the Faust
 	// DSP object. This method can be used concurrently with
@@ -270,6 +275,86 @@ public:
 	// from `keyOn`)
 	//--------------------------------------------------------
 	const char* getVoiceParamAddress(int, unsigned long);
+
+	    //-------`float getParamMin(const char* address)`---------
+    // Returns the minimum value of a parameter in function of
+    // its address (path).
+    //
+    // #### Arguments
+    //
+    // * `address`: address (path) of the parameter
+    //--------------------------------------------------------
+    float getParamMin(const char*);
+    
+    //--------------`float getParamMin(int id)`---------------
+    // Returns the minimum value of a parameter in function
+    // of its ID.
+    //
+    // #### Arguments
+    //
+    // * `id`: id of the parameter
+    //--------------------------------------------------------
+    float getParamMin(int);
+    
+    //-------`float getParamMax(const char* address)`---------
+    // Returns the maximum value of a parameter in function of
+    // its address (path).
+    //
+    // #### Arguments
+    //
+    // * `address`: address (path) of the parameter
+    //--------------------------------------------------------
+    float getParamMax(const char*);
+    
+    //--------------`float getParamMax(int id)`---------------
+    // Returns the maximum value of a parameter in function
+    // of its ID.
+    //
+    // #### Arguments
+    //
+    // * `id`: id of the parameter
+    //--------------------------------------------------------
+    float getParamMax(int);
+    
+    //-------`float getParamInit(const char* address)`---------
+    // Returns the default value of a parameter in function of
+    // its address (path).
+    //
+    // #### Arguments
+    //
+    // * `address`: address (path) of the parameter
+    //--------------------------------------------------------
+    float getParamInit(const char*);
+    
+    //--------------`float getParamInit(int id)`---------------
+    // Returns the default value of a parameter in function
+    // of its ID.
+    //
+    // #### Arguments
+    //
+    // * `id`: id of the parameter
+    //--------------------------------------------------------
+    float getParamInit(int);
+    
+    //-----`const char* getParamTooltip(const char* address)`-----
+    // Returns the tooltip (description) of a parameter in function of
+    // its address (path).
+    //
+    // #### Arguments
+    //
+    // * `address`: address (path) of the parameter
+    //--------------------------------------------------------
+    const char* getParamTooltip(const char*);
+    
+    //----`const char* getParamTooltip(int id)`---------------
+    // Returns the tooltip (description) of a parameter in function
+    // of its ID.
+    //
+    // #### Arguments
+    //
+    // * `id`: id of the parameter
+    //--------------------------------------------------------
+    const char* getParamTooltip(int);
 	
 	//----`void propagateAcc(int acc, float v)`---------------
 	// Propagate the RAW value of a specific accelerometer

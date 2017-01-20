@@ -370,6 +370,17 @@ SWIGEXPORT jint JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1deleteVoice(JN
 }
 
 
+SWIGEXPORT void JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1allNotesOff(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  DspFaust *arg1 = (DspFaust *) 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(DspFaust **)&jarg1; 
+  (arg1)->allNotesOff();
+}
+
+
 SWIGEXPORT void JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1propagateMidi(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2, jdouble jarg3, jint jarg4, jint jarg5, jint jarg6, jint jarg7) {
   DspFaust *arg1 = (DspFaust *) 0 ;
   int arg2 ;
@@ -625,6 +636,162 @@ SWIGEXPORT jstring JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getVoicePar
   arg2 = (int)jarg2; 
   arg3 = (unsigned long)jarg3; 
   result = (char *)(arg1)->getVoiceParamAddress(arg2,arg3);
+  if (result) jresult = jenv->NewStringUTF((const char *)result);
+  return jresult;
+}
+
+
+SWIGEXPORT jfloat JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getParamMin_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
+  jfloat jresult = 0 ;
+  DspFaust *arg1 = (DspFaust *) 0 ;
+  char *arg2 = (char *) 0 ;
+  float result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(DspFaust **)&jarg1; 
+  arg2 = 0;
+  if (jarg2) {
+    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
+    if (!arg2) return 0;
+  }
+  result = (float)(arg1)->getParamMin((char const *)arg2);
+  jresult = (jfloat)result; 
+  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
+  return jresult;
+}
+
+
+SWIGEXPORT jfloat JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getParamMin_1_1SWIG_11(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
+  jfloat jresult = 0 ;
+  DspFaust *arg1 = (DspFaust *) 0 ;
+  int arg2 ;
+  float result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(DspFaust **)&jarg1; 
+  arg2 = (int)jarg2; 
+  result = (float)(arg1)->getParamMin(arg2);
+  jresult = (jfloat)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jfloat JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getParamMax_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
+  jfloat jresult = 0 ;
+  DspFaust *arg1 = (DspFaust *) 0 ;
+  char *arg2 = (char *) 0 ;
+  float result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(DspFaust **)&jarg1; 
+  arg2 = 0;
+  if (jarg2) {
+    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
+    if (!arg2) return 0;
+  }
+  result = (float)(arg1)->getParamMax((char const *)arg2);
+  jresult = (jfloat)result; 
+  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
+  return jresult;
+}
+
+
+SWIGEXPORT jfloat JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getParamMax_1_1SWIG_11(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
+  jfloat jresult = 0 ;
+  DspFaust *arg1 = (DspFaust *) 0 ;
+  int arg2 ;
+  float result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(DspFaust **)&jarg1; 
+  arg2 = (int)jarg2; 
+  result = (float)(arg1)->getParamMax(arg2);
+  jresult = (jfloat)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jfloat JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getParamInit_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
+  jfloat jresult = 0 ;
+  DspFaust *arg1 = (DspFaust *) 0 ;
+  char *arg2 = (char *) 0 ;
+  float result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(DspFaust **)&jarg1; 
+  arg2 = 0;
+  if (jarg2) {
+    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
+    if (!arg2) return 0;
+  }
+  result = (float)(arg1)->getParamInit((char const *)arg2);
+  jresult = (jfloat)result; 
+  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
+  return jresult;
+}
+
+
+SWIGEXPORT jfloat JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getParamInit_1_1SWIG_11(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
+  jfloat jresult = 0 ;
+  DspFaust *arg1 = (DspFaust *) 0 ;
+  int arg2 ;
+  float result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(DspFaust **)&jarg1; 
+  arg2 = (int)jarg2; 
+  result = (float)(arg1)->getParamInit(arg2);
+  jresult = (jfloat)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jstring JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getParamTooltip_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
+  jstring jresult = 0 ;
+  DspFaust *arg1 = (DspFaust *) 0 ;
+  char *arg2 = (char *) 0 ;
+  char *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(DspFaust **)&jarg1; 
+  arg2 = 0;
+  if (jarg2) {
+    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
+    if (!arg2) return 0;
+  }
+  result = (char *)(arg1)->getParamTooltip((char const *)arg2);
+  if (result) jresult = jenv->NewStringUTF((const char *)result);
+  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
+  return jresult;
+}
+
+
+SWIGEXPORT jstring JNICALL Java_com_DspFaust_dsp_1faustJNI_DspFaust_1getParamTooltip_1_1SWIG_11(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
+  jstring jresult = 0 ;
+  DspFaust *arg1 = (DspFaust *) 0 ;
+  int arg2 ;
+  char *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(DspFaust **)&jarg1; 
+  arg2 = (int)jarg2; 
+  result = (char *)(arg1)->getParamTooltip(arg2);
   if (result) jresult = jenv->NewStringUTF((const char *)result);
   return jresult;
 }

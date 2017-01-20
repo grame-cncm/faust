@@ -28,6 +28,7 @@ public class dsp_faustJNI {
   public final static native int DspFaust_keyOff(long jarg1, DspFaust jarg1_, int jarg2);
   public final static native long DspFaust_newVoice(long jarg1, DspFaust jarg1_);
   public final static native int DspFaust_deleteVoice(long jarg1, DspFaust jarg1_, long jarg2);
+  public final static native void DspFaust_allNotesOff(long jarg1, DspFaust jarg1_);
   public final static native void DspFaust_propagateMidi(long jarg1, DspFaust jarg1_, int jarg2, double jarg3, int jarg4, int jarg5, int jarg6, int jarg7);
   public final static native String DspFaust_getJSONUI(long jarg1, DspFaust jarg1_);
   public final static native String DspFaust_getJSONMeta(long jarg1, DspFaust jarg1_);
@@ -42,6 +43,14 @@ public class dsp_faustJNI {
   public final static native float DspFaust_getVoiceParamValue__SWIG_1(long jarg1, DspFaust jarg1_, int jarg2, long jarg3);
   public final static native String DspFaust_getParamAddress(long jarg1, DspFaust jarg1_, int jarg2);
   public final static native String DspFaust_getVoiceParamAddress(long jarg1, DspFaust jarg1_, int jarg2, long jarg3);
+  public final static native float DspFaust_getParamMin__SWIG_0(long jarg1, DspFaust jarg1_, String jarg2);
+  public final static native float DspFaust_getParamMin__SWIG_1(long jarg1, DspFaust jarg1_, int jarg2);
+  public final static native float DspFaust_getParamMax__SWIG_0(long jarg1, DspFaust jarg1_, String jarg2);
+  public final static native float DspFaust_getParamMax__SWIG_1(long jarg1, DspFaust jarg1_, int jarg2);
+  public final static native float DspFaust_getParamInit__SWIG_0(long jarg1, DspFaust jarg1_, String jarg2);
+  public final static native float DspFaust_getParamInit__SWIG_1(long jarg1, DspFaust jarg1_, int jarg2);
+  public final static native String DspFaust_getParamTooltip__SWIG_0(long jarg1, DspFaust jarg1_, String jarg2);
+  public final static native String DspFaust_getParamTooltip__SWIG_1(long jarg1, DspFaust jarg1_, int jarg2);
   public final static native void DspFaust_propagateAcc(long jarg1, DspFaust jarg1_, int jarg2, float jarg3);
   public final static native void DspFaust_setAccConverter(long jarg1, DspFaust jarg1_, int jarg2, int jarg3, int jarg4, float jarg5, float jarg6, float jarg7);
   public final static native void DspFaust_propagateGyr(long jarg1, DspFaust jarg1_, int jarg2, float jarg3);

@@ -19,7 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#define FAUSTVERSION "0.9.95ec"
+#define FAUSTVERSION "0.9.96ec"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -403,6 +403,7 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i+1 < argc)) {
             if (strstr(argv[i+1], "http://") != 0) {
                 gImportDirList.push_back(argv[i+1]);
+                i += 2;
             } else {
                 char temp[PATH_MAX+1];
                 char* path = realpath(argv[i+1], temp);
@@ -471,7 +472,7 @@ bool process_cmdline(int argc, char* argv[])
 void printversion()
 {
 	cout << "FAUST, DSP to C++ compiler, Version " << FAUSTVERSION << "\n";
-    cout << "Copyright (C) 2002-2016, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
+    cout << "Copyright (C) 2002-2017, GRAME - Centre National de Creation Musicale. All rights reserved. \n\n";
 }
 
 
