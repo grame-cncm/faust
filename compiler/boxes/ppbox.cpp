@@ -52,7 +52,7 @@ const char * prim2name(CTree *(*ptr) (CTree *, CTree *))
 
     if (ptr == sigAND) return "&";
     if (ptr == sigOR ) return "|";
-    if (ptr == sigXOR) return "^";
+    if (ptr == sigXOR) return "xor";
 
     if (ptr == sigLeftShift ) return "<<";
     if (ptr == sigRightShift) return ">>";

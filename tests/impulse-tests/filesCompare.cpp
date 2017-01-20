@@ -29,7 +29,7 @@ static int gError = 0;
 
 using namespace std;
 
-bool compareFiles(istream* in1, istream* in2, float tolerance)
+bool compareFiles(istream* in1, istream* in2, double tolerance)
 {
     string line1, line2, dummy;
     int input1, input2, output1, output2, count1, count2;
@@ -135,7 +135,7 @@ bool compareFiles(istream* in1, istream* in2, float tolerance)
 
 int main(int argc, char* argv[])
 {
-    float tolerance = 2e-06;
+    double tolerance = 2e-06;
     if (argc == 4) {
         tolerance = strtod(argv[3], NULL);
     }

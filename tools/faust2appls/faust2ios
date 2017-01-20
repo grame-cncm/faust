@@ -14,14 +14,15 @@ POLY="0"
 POLY2="0"
 OSCCTRL="0"
 MIDICTRL="0"
+ALL="1"
 
 #PHASE 1 : collects files and options from the command line
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2ios [-xcode] [-all] [-noagc] [-poly] [-poly2] [-midi] [-osc] <file.dsp>"
+        echo "faust2ios [-xcode] [-32bits] [-noagc] [-poly] [-poly2] [-midi] [-osc] <file.dsp>"
         echo "Use '-xcode' to keep the intermediate Xcode project"
-        echo "Use '-all' to compile 64/32 bits binary"
+        echo "Use '-32bits' to compile 32 bits only binary"
         echo "Use '-noagc' to deactivate audio automatic gain control"
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
         echo "Use '-poly2' to produce a polyphonic DSP connected to the effect part, ready to be used with MIDI events"
@@ -43,8 +44,8 @@ for p in $@; do
         POLY2="1"
     elif [ "$p" = "-midi" ]; then
         MIDICTRL="1"
-    elif [ "$p" = "-all" ]; then
-        ALL="1"
+    elif [ "$p" = "-32bits" ]; then
+        ALL="0"
     elif [ "$p" = "-noagc" ]; then
         NOAGC="1"
     elif [ ${p:0:1} = "-" ]; then

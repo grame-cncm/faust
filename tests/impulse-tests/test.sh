@@ -111,8 +111,13 @@ if [ $BACKEND = "cpp" ] || [ $BACKEND = "all" ]; then
     echo "============================================================================="
 
     for f in *.dsp; do
-        faust2impulse -double $f      > $D/$f.scal.ir
+        faust2impulse -double $f > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+    done
+
+    for f in *.dsp; do
+        faust2impulsebis -double $f > $D/$f.scal.ir
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar expanded mode" || echo "ERROR $f scalar mode"
     done
 
     for f in *.dsp; do
@@ -122,16 +127,11 @@ if [ $BACKEND = "cpp" ] || [ $BACKEND = "all" ]; then
 
     for f in *.dsp; do
         faust2impulsebis -double -vec -lv 0 $f > $D/$f.vec.ir
-        filesCompare $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 0 mode" || echo "ERROR $f vector -lv 0 mode"
+        filesCompare $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 0 expanded mode" || echo "ERROR $f vector -lv 0 mode"
     done
 
     for f in *.dsp; do
         faust2impulse -double -vec -lv 1 $f > $D/$f.vec.ir
-        filesCompare $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 1 mode" || echo "ERROR $f vector -lv 1 mode"
-    done
-
-    for f in *.dsp; do
-        faust2impulsebis -double -vec -lv 1 $f > $D/$f.vec.ir
         filesCompare $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 1 mode" || echo "ERROR $f vector -lv 1 mode"
     done
 

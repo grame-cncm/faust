@@ -67,6 +67,10 @@ public class DspFaust {
     return dsp_faustJNI.DspFaust_deleteVoice(swigCPtr, this, arg0);
   }
 
+  public void allNotesOff() {
+    dsp_faustJNI.DspFaust_allNotesOff(swigCPtr, this);
+  }
+
   public void propagateMidi(int arg0, double arg1, int arg2, int arg3, int arg4, int arg5) {
     dsp_faustJNI.DspFaust_propagateMidi(swigCPtr, this, arg0, arg1, arg2, arg3, arg4, arg5);
   }
@@ -121,6 +125,38 @@ public class DspFaust {
 
   public String getVoiceParamAddress(int arg0, long arg1) {
     return dsp_faustJNI.DspFaust_getVoiceParamAddress(swigCPtr, this, arg0, arg1);
+  }
+
+  public float getParamMin(String arg0) {
+    return dsp_faustJNI.DspFaust_getParamMin__SWIG_0(swigCPtr, this, arg0);
+  }
+
+  public float getParamMin(int arg0) {
+    return dsp_faustJNI.DspFaust_getParamMin__SWIG_1(swigCPtr, this, arg0);
+  }
+
+  public float getParamMax(String arg0) {
+    return dsp_faustJNI.DspFaust_getParamMax__SWIG_0(swigCPtr, this, arg0);
+  }
+
+  public float getParamMax(int arg0) {
+    return dsp_faustJNI.DspFaust_getParamMax__SWIG_1(swigCPtr, this, arg0);
+  }
+
+  public float getParamInit(String arg0) {
+    return dsp_faustJNI.DspFaust_getParamInit__SWIG_0(swigCPtr, this, arg0);
+  }
+
+  public float getParamInit(int arg0) {
+    return dsp_faustJNI.DspFaust_getParamInit__SWIG_1(swigCPtr, this, arg0);
+  }
+
+  public String getParamTooltip(String arg0) {
+    return dsp_faustJNI.DspFaust_getParamTooltip__SWIG_0(swigCPtr, this, arg0);
+  }
+
+  public String getParamTooltip(int arg0) {
+    return dsp_faustJNI.DspFaust_getParamTooltip__SWIG_1(swigCPtr, this, arg0);
   }
 
   public void propagateAcc(int arg0, float arg1) {
