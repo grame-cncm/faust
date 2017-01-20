@@ -169,7 +169,6 @@ public:
 
     void resized() override
     {
-        std::cout<<std::endl<<"RESIZING"<<std::endl<<std::endl;
         juceGUI.setBounds(getLocalBounds());
     }
 
@@ -191,7 +190,7 @@ private:
         ScopedPointer<JuceOSCUI> fOSCUI;
     #endif
     
-    Juce_GUI juceGUI;
+    JuceGUI juceGUI;
     
     ScopedPointer<dsp> fDSP;
     APIUI fAPIUI;

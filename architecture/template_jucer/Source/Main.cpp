@@ -68,7 +68,6 @@ public:
         }
         
         virtual void resized() override{
-            std::cout<<"ViewPort resized "<<++j<<std::endl;
             Viewport::resized();
             getBounds().getWidth() < minWidth ? ((minWidth < recommendedWidth) ? width = minWidth
                                                                                : width = recommendedWidth)
