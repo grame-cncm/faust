@@ -74,6 +74,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
 
             if (basic_typed) {
+                assert(fTypeDirectTable.find(basic_typed->fType) != fTypeDirectTable.end());
                 return "\"" + fTypeDirectTable[basic_typed->fType] + "\"";
             } else if (named_typed) {
                 return generateType(named_typed->fType) + ", " + named_typed->fName;
@@ -91,6 +92,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
                         ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\""
                         : "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]" + "\"";
                     */
+                    assert(fTypeDirectTable.find(basic_typed1->fType) != fTypeDirectTable.end());
                     return (array_typed->fSize == 0)
                         ? fTypeDirectTable[basic_typed1->fType]
                         : fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]";
@@ -105,6 +107,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
             } else if (vector_typed) {
                 std::ostringstream num_str;
                 num_str << vector_typed->fSize;
+                assert(fTypeDirectTable.find(vector_typed->fType->fType) != fTypeDirectTable.end());
                 return (vector_typed->fSize == 0)
                     ? "Type<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
                     : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")";

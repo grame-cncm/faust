@@ -92,10 +92,7 @@ for f in $FILES; do
     node --expose-wasm $name-tmp2.js || exit
 
     # cleanup
-    rm $name-tmp1.js
-    rm $name-tmp2.js
-    rm $name.js
-    rm $name.wasm
+    rm $name-tmp1.js $name-tmp2.js $name.js $name.wasm
 
 done
 

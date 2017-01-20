@@ -248,9 +248,10 @@ faust.mydsp = function (context, module, buffer_size, sample_rate) {
 	{
 		var values = value_table[path];
 		if (values) {
-			if (factory.getParamValue(dsp, pathTable[path]) === values[0]) {
+			// relaxing the test
+			//if (factory.getParamValue(dsp, pathTable[path]) === values[0]) {
 				values[0] = val;
-			} 
+			//} 
 			values[1] = val;
 		}
 	}
@@ -428,16 +429,6 @@ function startDSP(module, buffer_size)
     //console.log(control_data);
     //console.log(DSP.controls());
 
-    // Read control parameters
-    try {
-        control_data = fs.readFileSync('mydsprc', 'utf8');
-        var lines = control_data.split('\n');
-        for (var line = 0; line < lines.length; line++) {
-            var param = lines[line].split(' ');
-            DSP.setParamValue('/'+ param[1], parseFloat(param[0]));
-        }
-    } catch (e) {}
-
     // Write output file header
     console.log("number_of_inputs  : ", DSP.getNumInputs());
     console.log("number_of_outputs : ", DSP.getNumOutputs());
@@ -484,6 +475,16 @@ function startDSP(module, buffer_size)
     }
 
     DSP.init(sample_rate);
+    
+    // Read control parameters
+    try {
+        control_data = fs.readFileSync('mydsprc', 'utf8');
+        var lines = control_data.split('\n');
+        for (var line = 0; line < lines.length; line++) {
+            var param = lines[line].split(' ');
+            DSP.setParamValue('/'+ param[1], parseFloat(param[0]));
+        }
+    } catch (e) {}
 
     // Compute samples and write output file
     while (nbsamples > 0) {

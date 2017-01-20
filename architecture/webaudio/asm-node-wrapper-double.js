@@ -359,6 +359,8 @@ faust.readDSPFactoryFromMachine = function (machine)
 
 faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, sha_key)
 {
+    //console.log(factory_code);
+    
     // 'libfaust.js' asm.js backend generates the ASM module + UI method, then we compile the code
     eval(factory_code);
     
@@ -559,9 +561,10 @@ faust.createDSPInstance = function (factory, buffer_size, sample_rate) {
     {
         var values = value_table[path];
         if (values) {
-            if (factory.getParamValue(dsp, factory.pathTable[path]) == values[0]) {
+        	// relaxing the test
+        	//if (factory.getParamValue(dsp, factory.pathTable[path]) == values[0]) {
                 values[0] = val;
-            }
+            //}
             values[1] = val;
         }
     }
@@ -741,15 +744,7 @@ var dsp_code;
 
 try {
     dsp_code = fs.readFileSync('SOURCE_FILE.dsp', 'utf8');
-    //console.log("CODE " + dsp_code);
     factory = faust.createDSPFactory(dsp_code, ["-double"]);
-    /*
-    console.log("FACTORY " + factory);
-    if (!factory) {
-        console.error("Cannot allocate factory " + faust.getErrorMessage());
-        process.exit(1);
-    }
-    */
 } catch (e) {
     console.error("Cannot allocate factory " + faust.getErrorMessage());
     process.exit(1);
@@ -766,16 +761,6 @@ create(DSP.getNumInputs(), DSP.getNumOutputs(), buffer_size);
 //console.log(DSP.buttons());
 //console.log(control_data);
 //console.log(DSP.controls());
-
-// Read control parameters
-try {
-    control_data = fs.readFileSync('mydsprc', 'utf8');
-    var lines = control_data.split('\n');
-    for (var line = 0; line < lines.length; line++) {
-        var param = lines[line].split(' ');
-        DSP.setParamValue('/'+ param[1], parseFloat(param[0]));
-    }
-} catch (e) {}
 
 // Write output file header
 console.log("number_of_inputs  : ", DSP.getNumInputs());
@@ -825,6 +810,16 @@ if (!DSP.checkDefaults()) {
 }
 
 DSP.init(sample_rate);
+
+// Read control parameters
+try {
+    control_data = fs.readFileSync('DSP_NAMErc', 'utf8');
+    var lines = control_data.split('\n');
+    for (var line = 0; line < lines.length; line++) {
+        var param = lines[line].split(' ');
+        DSP.setParamValue('/'+ param[1], parseFloat(param[0]));
+    }
+} catch (e) {}
 
 // Compute samples and write output file
 while (nbsamples > 0) {

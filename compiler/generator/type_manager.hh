@@ -54,14 +54,17 @@ class StringTypeManager {
             fTypeDirectTable[Typed::kFloatMacro_ptr] = float_macro_name_ptr;
 
             fTypeDirectTable[Typed::kFloat] = "float";
+            fTypeDirectTable[Typed::kFloatish] = "floatish";
             fTypeDirectTable[Typed::kFloat_ptr] = "float" + fPtrPosfix;
             fTypeDirectTable[Typed::kFloat_vec] = "vector<float>";
 
             fTypeDirectTable[Typed::kInt] = "int";
+            fTypeDirectTable[Typed::kIntish] = "intish";
             fTypeDirectTable[Typed::kInt_ptr] = "int" + fPtrPosfix;
             fTypeDirectTable[Typed::kInt_vec] = "vector<int>";
 
             fTypeDirectTable[Typed::kDouble] = "double";
+            fTypeDirectTable[Typed::kDoublish] = "doublish";
             fTypeDirectTable[Typed::kDouble_ptr] = "double" + fPtrPosfix;
             fTypeDirectTable[Typed::kDouble_vec] = "vector<double>";
 

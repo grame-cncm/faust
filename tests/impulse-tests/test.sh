@@ -13,15 +13,16 @@ BACKEND="all"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "test.sh [-all] [-float] [-cpp] [-c] [-llvm] [-interp] [-ajs] [-lf-ajs] [-wast] [-wasm] [-valgrind] "
+        echo "test.sh [-all] [-float] [-cpp] [-c] [-llvm] [-interp] [-ajs] [-ajs-e] [-lf-ajs] [-wast] [-wasm] [-valgrind] "
         echo "Use '-all' to activate all control test (float compilation and 7 backends)"
         echo "Use '-float' to activate float compilation"
         echo "Use '-cpp' to check 'cpp' backend"
         echo "Use '-c' to check 'c' backend"
         echo "Use '-llvm' to check 'LLVM' backend"
         echo "Use '-interp' to check 'interpreter' backend"
-        echo "Use '-lf-ajs' to check 'libfaust.js + asm.js' backend"
         echo "Use '-ajs' to check 'asm.js' backend"
+        echo "Use '-ajs-e' to check 'asm.js' backend on expanded code"
+        echo "Use '-lf-ajs' to check 'libfaust.js + asm.js' backend on expanded code"
         echo "Use '-wast' to check 'wasm' backend"
         echo "Use '-wasm' to check 'wasm' backend"
         echo "Use '-valgrind' to activate valgrind tests"
@@ -36,6 +37,8 @@ for p in $@; do
         BACKEND="interp"
     elif [ $p = "-ajs" ]; then
         BACKEND="ajs"
+    elif [ $p = "-ajs-e" ]; then
+        BACKEND="ajs-e"
     elif [ $p = "-lf-ajs" ]; then
         BACKEND="lf-ajs"
     elif [ $p = "-wast" ]; then
@@ -113,13 +116,22 @@ if [ $BACKEND = "cpp" ] || [ $BACKEND = "all" ]; then
     done
 
     for f in *.dsp; do
-
         faust2impulse -double -vec -lv 0 $f > $D/$f.vec.ir
         filesCompare $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 0 mode" || echo "ERROR $f vector -lv 0 mode"
     done
 
     for f in *.dsp; do
+        faust2impulsebis -double -vec -lv 0 $f > $D/$f.vec.ir
+        filesCompare $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 0 mode" || echo "ERROR $f vector -lv 0 mode"
+    done
+
+    for f in *.dsp; do
         faust2impulse -double -vec -lv 1 $f > $D/$f.vec.ir
+        filesCompare $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 1 mode" || echo "ERROR $f vector -lv 1 mode"
+    done
+
+    for f in *.dsp; do
+        faust2impulsebis -double -vec -lv 1 $f > $D/$f.vec.ir
         filesCompare $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 1 mode" || echo "ERROR $f vector -lv 1 mode"
     done
 
@@ -271,11 +283,11 @@ if [ $BACKEND = "ajs" ] || [ $BACKEND = "all" ]; then
    done
 fi
 
-if [ $BACKEND = "lf-ajs" ] || [ $BACKEND = "all" ]; then
+if [ $BACKEND = "ajs-e" ] || [ $BACKEND = "all" ]; then
 
-    echo "=============================================================================================="
-    echo "Impulse response tests in various compilation modes and double : libfaust.js + asm.js backend "
-    echo "=============================================================================================="
+    echo "================================================================================================="
+    echo "Impulse response tests in various compilation modes and double : asm.js backend on expanded code "
+    echo "================================================================================================="
 
     for f in *.dsp; do
         faust2impulse5bis -double $f > $D/$f.scal.ir && RES=1 || RES=0
@@ -287,10 +299,26 @@ if [ $BACKEND = "lf-ajs" ] || [ $BACKEND = "all" ]; then
     done
 fi
 
+if [ $BACKEND = "lf-ajs" ] || [ $BACKEND = "all" ]; then
+
+    echo "==============================================================================================================="
+    echo "Impulse response tests in various compilation modes and double : libfaust.js + asm.js backend on expanded code "
+    echo "==============================================================================================================="
+
+    for f in *.dsp; do
+        faust2impulse5ter -double $f > $D/$f.scal.ir && RES=1 || RES=0
+        if [ $RES = "1" ]; then
+            filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+        else
+            echo "ERROR $f scalar mode in node.js"
+        fi
+    done
+fi
+
 if [ $BACKEND = "wast" ] || [ $BACKEND = "all" ]; then
 
     echo "================================================================================"
-    echo "Impulse response tests in various compilation modes and double : wast backend "
+    echo "Impulse response tests in various compilation modes and double : wast backend   "
     echo "================================================================================"
 
     for f in *.dsp; do
@@ -306,7 +334,7 @@ fi
 if [ $BACKEND = "wasm" ] || [ $BACKEND = "all" ]; then
 
     echo "================================================================================"
-    echo "Impulse response tests in various compilation modes and double : wasm backend "
+    echo "Impulse response tests in various compilation modes and double : wasm backend   "
     echo "================================================================================"
 
     for f in *.dsp; do

@@ -573,17 +573,16 @@ static void printDeclareHeader(ostream& dst)
             dst << "declare ";
             stringstream key; key << *(i->first);
             dst << replaceChar(replaceChar(key.str(), '.', '_'), '/', '_');
-            dst << " " << **(i->second.begin());
+            dst << " " << **(i->second.begin()) << ";" << endl;
         } else {
             for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
                 if (j == i->second.begin()) {
-                    dst << "declare " << *(i->first) << " " << **j;
+                    dst << "declare " << *(i->first) << " " << **j << ";" << endl;
                 } else {
-                    dst << "declare contributor " << **j;
+                    dst << "declare contributor " << **j << ";" << endl;
                 }
             }
         }
-        dst << ";" << endl;
     }
 }
 
@@ -1166,14 +1165,15 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
         
         // Encode compilation options as a 'declare' : has to be located first in the string
         out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
-   
+    
         // Encode all libraries paths as 'declare'
         vector<string> pathnames = gGlobal->gReader.listSrcFiles();
         for (vector<string>::iterator it = pathnames.begin(); it != pathnames.end(); it++) {
             out << "declare " << "library_path " << '"' << *it << "\";" << endl;
         }
-        
+
         printDeclareHeader(out);
+        
         out << "process = " << boxpp(process) << ';' << endl;
         return;
     }

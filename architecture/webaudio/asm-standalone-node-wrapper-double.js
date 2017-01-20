@@ -256,9 +256,10 @@ faust.mydsp = function (buffer_size, sample_rate) {
 	{
 		var values = value_table[path];
 		if (values) {
-			if (factory.getParamValue(dsp, pathTable[path]) === values[0]) {
+			// relaxing the test
+			//if (factory.getParamValue(dsp, pathTable[path]) === values[0]) {
 				values[0] = val;
-			} 
+			//} 
 			values[1] = val;
 		}
 	}
@@ -434,16 +435,6 @@ create(DSP.getNumInputs(), DSP.getNumOutputs(), buffer_size);
 //console.log(control_data);
 //console.log(DSP.controls());
 
-// Read control parameters
-try {
-    control_data = fs.readFileSync('mydsprc', 'utf8');
-    var lines = control_data.split('\n');
-    for (var line = 0; line < lines.length; line++) {
-        var param = lines[line].split(' ');
-        DSP.setParamValue('/'+ param[1], parseFloat(param[0]));
-    }
-} catch (e) {}
-
 // Write output file header
 console.log("number_of_inputs  : ", DSP.getNumInputs());
 console.log("number_of_outputs : ", DSP.getNumOutputs());
@@ -451,14 +442,14 @@ console.log("number_of_frames  : ", nbsamples);
 
 // Check getSampleRate
 if (DSP.getSampleRate() !== sample_rate) {
-   console.error("ERROR in getSampleRate");
+   	console.error("ERROR in getSampleRate");
 	process.exit(1);
 }
 
 // Check setParamValue/getParamValue
 var path_table = DSP.controls();
 for (var i = 0; i < path_table.length; i++) {
-    DSP.setParamValue1(path_table[i], 0.1234);
+   	DSP.setParamValue1(path_table[i], 0.1234);
     if (DSP.getParamValue(path_table[i]) !== 0.1234) {
         console.error("ERROR in setParamValue/getParamValue for " + path_table[i] + " " + DSP.getParamValue(path_table[i]));
         process.exit(1);
@@ -490,6 +481,16 @@ if (!DSP.checkDefaults()) {
 }
 
 DSP.init(sample_rate);
+
+// Read control parameters
+try {
+    control_data = fs.readFileSync('mydsprc', 'utf8');
+    var lines = control_data.split('\n');
+    for (var line = 0; line < lines.length; line++) {
+        var param = lines[line].split(' ');
+        DSP.setParamValue('/'+ param[1], parseFloat(param[0]));
+    }
+} catch (e) {}
 
 // Compute samples and write output file
 while (nbsamples > 0) {
