@@ -91,7 +91,7 @@ int DspFaust::deleteVoice(unsigned long voice){
 }
 
 void DspFaust::allNotesOff(){
-    return fPolyEngine->allNotesOff();
+    fPolyEngine->allNotesOff();
 }
 
 void DspFaust::propagateMidi(int count, double time, int type, int channel, int data1, int data2){
