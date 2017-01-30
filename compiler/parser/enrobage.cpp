@@ -39,6 +39,7 @@ extern string       gMasterDirectory;
 extern string       gClassName;
 extern bool         gInlineArchSwitch;
 extern list<string> gImportDirList;                 // path to search for imports, components and libraries
+extern list<string> gArchitectureDirList;           // path to search for architecture files
 
 //----------------------------------------------------------------
 
@@ -227,46 +228,11 @@ ifstream* open_arch_stream(const char* filename)
 	int		err;
 
     TRY_OPEN(filename);
-    
-    char *envpath = getenv("FAUST_LIB_PATH");
-    if (envpath!=NULL) {
-		if ((err = chdir(envpath))==0) {
-			TRY_OPEN(filename);
-		}
+    for (string dirname : gArchitectureDirList) {
+        if ((err = chdir(dirname.c_str()))==0) {
+            TRY_OPEN(filename);
+	    }
     }
-    if ( (chdir(gFaustDirectory.c_str())==0) && (chdir("architecture")==0) ) {
-		//cout << "enrobage.cpp : 'architecture' directory found in gFaustDirectory" << endl;
-        TRY_OPEN(filename);
-	}
-    if ((chdir(gFaustSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
-        //cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperDirectory" << endl;
-        TRY_OPEN(filename);
-    }
-    if ((chdir(gFaustSuperSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
-        //cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperSuperDirectory" << endl;
-        TRY_OPEN(filename);
-	}
-#ifdef INSTALL_PREFIX
-    if (chdir(INSTALL_PREFIX "/share/faust")==0) {
-        TRY_OPEN(filename);
-	}
-    if (chdir(INSTALL_PREFIX "/include")==0) {
-        TRY_OPEN(filename);
-    }
-#endif
-    if (chdir("/usr/local/share/faust")==0) {
-        TRY_OPEN(filename);
-	}
-    if (chdir("/usr/share/faust")==0) {
-        TRY_OPEN(filename);
-    }
-    if (chdir("/usr/local/include")==0) {
-        TRY_OPEN(filename);
-    }
-    if (chdir("/usr/include")==0) {
-        TRY_OPEN(filename);
-    }
-
 	return 0;
 }
 
@@ -364,37 +330,7 @@ static FILE* fopenat(string& fullpath, const string& dir, const char* filename)
     return fopenat(fullpath, dir.c_str(), filename);
 }
 
-/**
- * Try to open the file '<dir>/<path>/<filename>'. If it succeed, it stores the full pathname
- * of the file into <fullpath>
- */
-static FILE* fopenat(string& fullpath, const string& dir, const char* path, const char* filename)
-{
-    int	err;
-    char olddirbuffer[FAUST_PATH_MAX];
-    char newdirbuffer[FAUST_PATH_MAX];
-    
-    char* olddir = getcwd(olddirbuffer, FAUST_PATH_MAX);
-    
-    if (chdir(dir.c_str()) == 0) {
-        if (chdir(path) == 0) {            
-            FILE* f = fopen(filename, "r");
-			char* newdir = getcwd(newdirbuffer, FAUST_PATH_MAX);
-            if (!newdir) {
-                cerr << "ERROR : getcwd '" << strerror(errno) << endl;
-                return 0;
-            }
-            fullpath = newdir;
-			fullpath += '/';
-			fullpath += filename;
-            err = chdir(olddir);
-            return f;
-        }
-    }
-    err = chdir(olddir);
-    if (err != 0) cerr << "ERROR : cannot change back directory to '" << olddir << "' : " <<  strerror(errno) << endl;
-    return 0;
-}
+
 
 /**
  * Test absolute pathname.
@@ -440,53 +376,17 @@ static void buildFullPathname(string& fullpath, const char* filename)
 FILE* fopensearch(const char* filename, string& fullpath)
 {   
     FILE* f;
-    char* envpath;
-
-
-    // search in current directory
-
+ 
     if ((f = fopen(filename, "r"))) { 
     	buildFullPathname(fullpath, filename); 
     	return f;
     }
 
     // search file in user supplied directory path
-
-    for (list< string >::iterator i = gImportDirList.begin(); i != gImportDirList.end(); i++) {
-        if ((f = fopenat(fullpath, *i, filename))) {
-            //std::cerr << "found file : " << fullpath << std::endl;
+    for (string dirname : gImportDirList) {
+        if ((f = fopenat(fullpath, dirname, filename))) {
             return f;
         }
-    }
-
-
-    // search in default directories
-
-    if ((f = fopenat(fullpath, gMasterDirectory, filename))) { 
-    	return f;
-    }
-    if ((envpath = getenv("FAUST_LIB_PATH")) && (f = fopenat(fullpath, envpath, filename))) {
-		return f;
-    }
-    if ((f = fopenat(fullpath, gFaustDirectory, "architecture", filename))) { 
-    	return f;
-    }
-    if ((f = fopenat(fullpath, gFaustSuperDirectory, "architecture", filename))) { 
-    	return f;
-    }
-    if ((f = fopenat(fullpath, gFaustSuperSuperDirectory, "architecture", filename))) { 
-    	return f;
-    }
-#ifdef INSTALL_PREFIX
-    if ((f = fopenat(fullpath, INSTALL_PREFIX "/share/faust", filename))) { 
-    	return f;
-    }
-#endif
-    if ((f = fopenat(fullpath, "/usr/local/share/faust", filename))) { 
-    	return f;
-    }
-    if ((f = fopenat(fullpath, "/usr/share/faust", filename))) { 
-    	return f;
     }
     return 0;
 }

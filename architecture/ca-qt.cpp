@@ -214,9 +214,10 @@ void Sensors::start()
 static bool hasMIDISync()
 {
     JSONUI jsonui;
-    mydsp tmp_dsp;
-    tmp_dsp.buildUserInterface(&jsonui);
+    mydsp* tmp_dsp = new mydsp();
+    tmp_dsp->buildUserInterface(&jsonui);
     std::string json = jsonui.JSON();
+    delete tmp_dsp;
     
     return ((json.find("midi") != std::string::npos) &&
             ((json.find("start") != std::string::npos) ||
