@@ -162,6 +162,7 @@ string			gClassName		= "mydsp";
 bool            gExportDSP      = false;
 
 list<string>    gImportDirList;                 // dir list enrobage.cpp/fopensearch() searches for imports, etc.
+list<string>    gArchitectureDirList;           // dir list enrobage.cpp/fopensearch() searches for architecture files
 string          gOutputDir;                     // output directory for additionnal generated ressources : -SVG, XML...etc...
 bool            gInPlace        = false;        // add cache to input for correct in-place computations
 
@@ -410,6 +411,22 @@ bool process_cmdline(int argc, char* argv[])
                     i += 2;
                 }
             }
+
+        } else if (isCmd(argv[i], "-A", "--architecture-dir") && (i+1 < argc)) {
+            if (strstr(argv[i+1], "http://") != 0) {
+                gArchitectureDirList.push_back(argv[i+1]);
+                i += 2;
+            } else {
+                char temp[PATH_MAX+1];
+                char* path = realpath(argv[i+1], temp);
+                if (path == 0) {
+                    std::cerr << "ERROR : invalid directory path " << argv[i+1] << std::endl;
+                    exit(-1);
+                } else {
+                    gArchitectureDirList.push_back(path);
+                    i += 2;
+                }
+            }
             
          } else if (isCmd(argv[i], "-O", "--output-dir") && (i+1 < argc)) {
             char temp[PATH_MAX+1];
@@ -518,6 +535,7 @@ void printhelp()
     cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
     cout << "-flist \t\tuse --file-list used to eval process\n";
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
+    cout << "-A <dir> \t--architecture-dir <dir> add the directory <dir> to the architecture search path\n";
     cout << "-I <dir> \t--import-dir <dir> add the directory <dir> to the import search path\n";
     cout << "-O <dir> \t--output-dir <dir> specify the relative directory of the generated C++ output, and the output directory of additional generated files (SVG, XML...)\n";
     cout << "-e       \t--export-dsp export expanded DSP (all included libraries) \n";
@@ -608,6 +626,36 @@ static void initFaustDirectories()
 		gMasterName = fxname(gMasterDocument);
 		gDocName = fxname(gMasterDocument);
     }
+
+    //-------------------------------------------------------------------------------------
+    // init gImportDirList : a list of path where to search .lib files
+    //-------------------------------------------------------------------------------------
+
+    gImportDirList.push_back(gMasterDirectory);
+    if (char* envpath = getenv("FAUST_LIB_PATH")) { gImportDirList.push_back(envpath); }
+    #ifdef INSTALL_PREFIX
+    gImportDirList.push_back(INSTALL_PREFIX "/share/faust");
+    #endif
+    gImportDirList.push_back("/usr/local/share/faust");
+    gImportDirList.push_back("/usr/share/faust");
+
+    //-------------------------------------------------------------------------------------
+    // init gArchitectureDirList : a list of path where to search architectures files
+    //-------------------------------------------------------------------------------------
+
+    gArchitectureDirList.push_back(gMasterDirectory);
+    if (char* envpath = getenv("FAUST_ARCH_PATH")) { gImportDirList.push_back(envpath); }
+    gArchitectureDirList.push_back(gFaustDirectory+"/architecture");
+    gArchitectureDirList.push_back(gFaustSuperDirectory+"/architecture");
+    gArchitectureDirList.push_back(gFaustSuperSuperDirectory+"/architecture");
+    #ifdef INSTALL_PREFIX
+    gArchitectureDirList.push_back(INSTALL_PREFIX "/share/faust");
+    #endif
+    gArchitectureDirList.push_back("/usr/local/share/faust");
+    gArchitectureDirList.push_back("/usr/share/faust");
+    gArchitectureDirList.push_back("/usr/local/include");
+    gArchitectureDirList.push_back("/usr/include");
+
 }
 
 

@@ -1,14 +1,14 @@
 //#################################### routes.lib ########################################
 // A library of basic elements to handle signal routing in Faust.
 //
-// It should be used using the `si` environment:
+// It should be used using the `ro` environment:
 //
 // ```
 // ro = library("routes.lib");
 // process = ro.functionCall;
 // ```
 //
-// Another option is to import `stdfaust.lib` which already contains the `si`
+// Another option is to import `stdfaust.lib` which already contains the `ro`
 // environment:
 //
 // ```
