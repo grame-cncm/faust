@@ -406,6 +406,23 @@ static bool process_cmdline(int argc, const char* argv[])
                 }
             }
             
+        } else if (isCmd(argv[i], "-A", "--architecture-dir") && (i+1 < argc)) {
+            if (strstr(argv[i+1], "http://") != 0) {
+                gGlobal->gArchitectureDirList.push_back(argv[i+1]);
+                i += 2;
+            } else {
+                char temp[PATH_MAX+1];
+                char* path = realpath(argv[i+1], temp);
+                if (path == 0) {
+                    stringstream error;
+                    error << "ERROR : invalid directory path " << argv[i+1] << endl;
+                    throw faustexception(error.str());
+                } else {
+                    gGlobal->gArchitectureDirList.push_back(path);
+                    i += 2;
+                }
+            }
+            
         } else if (isCmd(argv[i], "-l", "--library") && (i+1 < argc)) {
             gGlobal->gLibraryList.push_back(argv[i+1]);
             i += 2;
@@ -554,6 +571,7 @@ static void printhelp()
     cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
     cout << "-flist \t\tuse --file-list used to eval process\n";
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
+    cout << "-A <dir> \t--architecture-dir <dir> add the directory <dir> to the architecture search path\n";
     cout << "-I <dir> \t--import-dir <dir> add the directory <dir> to the import search path\n";
     cout << "-l <file> \t--library <file> link with the LLVM module <file>\n";
     cout << "-O <dir> \t--output-dir <dir> specify the relative directory of the generated output code, and the output directory of additional generated files (SVG, XML...)\n";
@@ -630,6 +648,35 @@ static void initFaustDirectories()
 		gGlobal->gMasterName = fxname(gGlobal->gMasterDocument);
 		gGlobal->gDocName = fxname(gGlobal->gMasterDocument);
     }
+    
+    //-------------------------------------------------------------------------------------
+    // init gImportDirList : a list of path where to search .lib files
+    //-------------------------------------------------------------------------------------
+    
+    gGlobal->gImportDirList.push_back(gGlobal->gMasterDirectory);
+    if (char* envpath = getenv("FAUST_LIB_PATH")) { gGlobal->gImportDirList.push_back(envpath); }
+#ifdef INSTALL_PREFIX
+    gGlobal->gImportDirList.push_back(INSTALL_PREFIX "/share/faust");
+#endif
+    gGlobal->gImportDirList.push_back("/usr/local/share/faust");
+    gGlobal->gImportDirList.push_back("/usr/share/faust");
+    
+    //-------------------------------------------------------------------------------------
+    // init gArchitectureDirList : a list of path where to search architectures files
+    //-------------------------------------------------------------------------------------
+    
+    gGlobal->gArchitectureDirList.push_back(gGlobal->gMasterDirectory);
+    if (char* envpath = getenv("FAUST_ARCH_PATH")) { gGlobal->gArchitectureDirList.push_back(envpath); }
+    gGlobal->gArchitectureDirList.push_back(gGlobal->gFaustDirectory+"/architecture");
+    gGlobal->gArchitectureDirList.push_back(gGlobal->gFaustSuperDirectory+"/architecture");
+    gGlobal->gArchitectureDirList.push_back(gGlobal->gFaustSuperSuperDirectory+"/architecture");
+#ifdef INSTALL_PREFIX
+    gGlobal->gArchitectureDirList.push_back(INSTALL_PREFIX "/share/faust");
+#endif
+    gGlobal->gArchitectureDirList.push_back("/usr/local/share/faust");
+    gGlobal->gArchitectureDirList.push_back("/usr/share/faust");
+    gGlobal->gArchitectureDirList.push_back("/usr/local/include");
+    gGlobal->gArchitectureDirList.push_back("/usr/include");
 }
 
 static void parseSourceFiles()
@@ -1064,13 +1111,14 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
     /****************************************************************
      2 - parse source files
     *****************************************************************/
+    
+    initFaustDirectories();
+    
     if (dsp_content) {
         gGlobal->gInputString = dsp_content;
         gGlobal->gInputFiles.push_back(name);
     }
     parseSourceFiles();
-    
-    initFaustDirectories();
 
     /****************************************************************
      3 - evaluate 'process' definition
@@ -1137,14 +1185,15 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
     /****************************************************************
      2 - parse source files
     *****************************************************************/
+    
+    initFaustDirectories();
+    
     if (dsp_content) {
         gGlobal->gInputString = dsp_content;
         gGlobal->gInputFiles.push_back(name);
     }
     parseSourceFiles();
-    
-    initFaustDirectories();
-
+  
     /****************************************************************
      3 - evaluate 'process' definition
     *****************************************************************/

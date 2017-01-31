@@ -10,21 +10,21 @@ MIDI control messages are described as metadata in UI elements. They are decoded
 
 \section{Description of the possible standard MIDI messages}
 
-A special \lstinline'[midi:xxx yyy...]' metadata needs to be added in the UI  element description. The more usual MIDI messages can be used as described here : 
+A special \lstinline'[midi:xxx yyy...]' metadata needs to be added in the UI  element description. The more usual MIDI messages can be used as described here:
 
-- \lstinline'[midi:ctrl num]' in a slider of bargraph will map the UI element value to (0, 127) range. When used with a button or checkbox, 1 will be mapped to 127, 0 will be mapped to 0,
+- \lstinline'[midi:ctrl num]' in a slider or bargraph will map the UI element value to (0, 127) range. When used with a button or checkbox, 1 will be mapped to 127, 0 will be mapped to 0,
 
-- \lstinline'[midi:keyon pitch]' in a slider of bargraph will map the UI element value to note-on velocity in the (0, 127) range. When used with a button or checkbox, 1 will be mapped to 127, 0 will be mapped to 0,
+- \lstinline'[midi:keyon pitch]' in a slider or bargraph will map the UI element value to note-on velocity in the (0, 127) range. When used with a button or checkbox, 1 will be mapped to 127, 0 will be mapped to 0,
 
-- \lstinline'[midi:keyoff pitch]' in a slider of bargraph will map the UI element value to note-off velocity in the (0, 127) range. When used with a button or checkbox, 1 will be mapped to 127, 0 will be mapped to 0,
+- \lstinline'[midi:keyoff pitch]' in a slider or bargraph will map the UI element value to note-off velocity in the (0, 127) range. When used with a button or checkbox, 1 will be mapped to 127, 0 will be mapped to 0,
 
-- \lstinline'[midi:keypress key]' in a slider of bargraph will map the UI element value to keypress value in the (0, 127) range. When used with a button or checkbox, 1 will be mapped to 127, 0 will be mapped to 0,
+- \lstinline'[midi:keypress key]' in a slider or bargraph will map the UI element value to keypress value in the (0, 127) range. When used with a button or checkbox, 1 will be mapped to 127, 0 will be mapped to 0,
 
-- \lstinline'[midi:pgm num]' in a slider of bargraph will map the UI element value to the progchange value, so \emph{progchange} message with the same \emph{num} value will be sent. When used with a button or checkbox, 1 will send the \emph{progchange} message with \emph{num} value, 0 will send nothing,
+- \lstinline'[midi:pgm num]' in a slider or bargraph will map the UI element value to the progchange value, so \emph{progchange} message with the same \emph{num} value will be sent. When used with a button or checkbox, 1 will send the \emph{progchange} message with \emph{num} value, 0 will send nothing,
 
-- \lstinline'[midi:chanpress num]' in a slider of bargraph will map the UI element value to the chanpress value, so \emph{chanpress} message with the same \emph{num} value will be sent. When used with a button or checkbox, 1 will send the \emph{chanpress} message with \emph{num} value, 0 will send nothing,
+- \lstinline'[midi:chanpress num]' in a slider or bargraph will map the UI element value to the chanpress value, so \emph{chanpress} message with the same \emph{num} value will be sent. When used with a button or checkbox, 1 will send the \emph{chanpress} message with \emph{num} value, 0 will send nothing,
 
-- \lstinline'[midi:pitchwheel]' in a slider of bargraph will map the UI element value to (0,16383) range. When used with a button or checkbox, 1 will be mapped to 16383, 0 will be mapped to 0.
+- \lstinline'[midi:pitchwheel]' in a slider or bargraph will map the UI element value to (0,16383) range. When used with a button or checkbox, 1 will be mapped to 16383, 0 will be mapped to 0.
 
 \section{A simple example}
 
@@ -92,7 +92,7 @@ MIDI clock based synchronization can be used to slave a given Faust program. The
 
 - \lstinline'[midi:clock]' in a button or checkbox will trigger a stream of 1 and 0 each time a \emph{clock} MIDI message is received, thus delivering a square command signal.
 
-A typical Faust program will then use the MIDI clock stream to possibly compute the BPM information, or for any synchronization need it may have.  Here is a simple example of a sinus generated which a frequency controlled by the MIDI clock stream, and starting/stopping when receiving the MIDI start/stop messages :
+A typical Faust program will then use the MIDI clock stream to possibly compute the BPM information, or for any synchronization need it may have.  Here is a simple example of a sinus generated which a frequency controlled by the MIDI clock stream, and starting/stopping when receiving the MIDI start/stop messages:
 
 \begin{lstlisting}
 import("music.lib");

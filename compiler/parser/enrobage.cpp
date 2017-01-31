@@ -1,21 +1,21 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
+ FAUST compiler
 	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
 
@@ -42,7 +42,7 @@
 /**
  * Returns true is a line is blank (contains only white caracters)
  */
-static bool isBlank(const string& s) 
+static bool isBlank(const string& s)
 {
     for (size_t i = 0; i < s.size(); i++) {
         if (s[i] != ' ' && s[i] != '\t') return false;
@@ -58,7 +58,7 @@ static string& replaceOccurences(string& str, const string& oldstr, const string
 {
     string::size_type l1 = oldstr.length();
     string::size_type l2 = newstr.length();
-
+    
     string::size_type pos = str.find(oldstr);
     while (pos != string::npos) {
         str.replace(pos, l1, newstr);
@@ -79,29 +79,29 @@ static string& replaceClassName(string& str)
 /**
  * Copy or remove license header. Architecture files can contain a header specifying
  * the license. If this header contains an exception tag (for example "FAUST COMPILER EXCEPTION")
- * it is an indication for the compiler to remove the license header from the resulting code. 
+ * it is an indication for the compiler to remove the license header from the resulting code.
  * A header is the first non blank line that begins a comment.
  */
 void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
 {
     string          s;
     vector<string>	H;
-
+    
     // skip blank lines
     while (getline(src,s) && isBlank(s)) dst << s << endl;
-
+    
     // first non blank should start a comment
     if (s.find("/*") == string::npos) { dst << s << endl; return; }
-
+    
     // copy the header into H
     bool remove = false;
     H.push_back(s);
-
+    
     while (getline(src,s) && s.find("*/") == string::npos) {
         H.push_back(s);
         if (s.find(exceptiontag) != string::npos) remove=true;
     }
-
+    
     // copy the header unless explicitely granted to remove it
     if (!remove) {
         // copy the header
@@ -114,34 +114,34 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
 
 /**
  * A minimalistic parser used to recognize '#include <faust/...>' patterns when copying
- * architecture files 
+ * architecture files
  */
 class myparser : public virtual Garbageable
 {
-
-    private:
-        string  str;
-        size_t  N;
-        size_t  p;
-        
-    public:
-        myparser(const string& s) : str(s), N(s.length()), p(0) {}
-        bool skip()                 { while (p < N && isspace(str[p])) p++; return true; }
-        bool parse(const string& s) { bool f; if ((f = (p == str.find(s, p)))) p += s.length(); return f; }
-        bool filename(string& fname) {
-            size_t saved = p;
-            if (p<N) {
-                char c = str[p++];
-                if (c == '<' | c == '"') {
-                    fname = "";
-                    while (p<N && (str[p] != '>') && (str[p] != '"')) fname += str[p++];
-                    p++;
-                    return true;
-                }
+    
+private:
+    string  str;
+    size_t  N;
+    size_t  p;
+    
+public:
+    myparser(const string& s) : str(s), N(s.length()), p(0) {}
+    bool skip()                 { while (p < N && isspace(str[p])) p++; return true; }
+    bool parse(const string& s) { bool f; if ((f = (p == str.find(s, p)))) p += s.length(); return f; }
+    bool filename(string& fname) {
+        size_t saved = p;
+        if (p<N) {
+            char c = str[p++];
+            if (c == '<' | c == '"') {
+                fname = "";
+                while (p<N && (str[p] != '>') && (str[p] != '"')) fname += str[p++];
+                p++;
+                return true;
             }
-            p = saved;
-            return false;
         }
+        p = saved;
+        return false;
+    }
 };
 
 /**
@@ -159,7 +159,7 @@ static bool isFaustInclude(const string& s, string& fname)
 }
 
 /**
- * Inject file fname into dst ostream 
+ * Inject file fname into dst ostream
  */
 static void inject(ostream& dst, const string& fname)
 {
@@ -197,7 +197,7 @@ void streamCopyUntil(istream& src, ostream& dst, const string& until)
  * Copy src to dst.
  */
 void streamCopy(istream& src, ostream& dst)
-{ 
+{
     streamCopyUntil(src, dst, "<<<FORBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
 
@@ -205,70 +205,33 @@ void streamCopy(istream& src, ostream& dst)
  * Copy src to dst until end
  */
 void streamCopyUntilEnd(istream& src, ostream& dst)
-{ 
+{
     streamCopyUntil(src, dst, "<<<FORBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }
 
 #define TRY_OPEN(filename)                      \
-    ifstream* f = new ifstream();               \
-    f->open(filename, ifstream::in);            \
-    err = chdir(old);                           \
-    if (f->is_open()) return f; else delete f;  \
+ifstream* f = new ifstream();               \
+f->open(filename, ifstream::in);            \
+err = chdir(old);                           \
+if (f->is_open()) return f; else delete f;  \
 
 /**
  * Try to open an architecture file searching in various directories
  */
 ifstream* open_arch_stream(const char* filename)
 {
-	char	buffer[FAUST_PATH_MAX];
+    char	buffer[FAUST_PATH_MAX];
     char*	old = getcwd(buffer, FAUST_PATH_MAX);
-	int		err;
-
-    TRY_OPEN(filename);
+    int		err;
     
-    char *envpath = getenv("FAUST_LIB_PATH");
-    if (envpath!=NULL) {
-		if ((err = chdir(envpath))==0) {
-			TRY_OPEN(filename);
-		}
+    TRY_OPEN(filename);
+    for (string dirname : gGlobal->gArchitectureDirList) {
+        if ((err = chdir(dirname.c_str()))==0) {
+            TRY_OPEN(filename);
+        }
     }
-	err = chdir(old);
-	if ( (chdir(gGlobal->gFaustDirectory.c_str())==0) && (chdir("architecture")==0) ) {
-		//cout << "enrobage.cpp : 'architecture' directory found in gFaustDirectory" << endl;
-        TRY_OPEN(filename);
-	}
-    err = chdir(old);
-    if ((chdir(gGlobal->gFaustSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
-        //cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperDirectory" << endl;
-        TRY_OPEN(filename);
-    }
-    err = chdir(old);
-	if ((chdir(gGlobal->gFaustSuperSuperDirectory.c_str())==0) && (chdir("architecture")==0) ) {
-        //cout << "enrobage.cpp : 'architecture' directory found in gFaustSuperSuperDirectory" << endl;
-        TRY_OPEN(filename);
-	}
-#ifdef INSTALL_PREFIX
-    if (chdir(INSTALL_PREFIX "/share/faust")==0) {
-        TRY_OPEN(filename);
-	}
-    if (chdir(INSTALL_PREFIX "/include")==0) {
-        TRY_OPEN(filename);
-    }
-#endif
-    if (chdir("/usr/local/share/faust")==0) {
-        TRY_OPEN(filename);
-	}
-    if (chdir("/usr/share/faust")==0) {
-        TRY_OPEN(filename);
-    }
-    if (chdir("/usr/local/include")==0) {
-        TRY_OPEN(filename);
-    }
-    if (chdir("/usr/include")==0) {
-        TRY_OPEN(filename);
-    }
-
-	return 0;
+    
+    return 0;
 }
 
 /*---------------------------------------------*/
@@ -279,7 +242,7 @@ const char* strip_start(const char* filename)
 #ifdef _WIN32
     start = "file:///";
 #else
-	start = "file://";
+    start = "file://";
 #endif
     if (strstr(filename, start)) {
         return &filename[strlen(start)];
@@ -290,9 +253,9 @@ const char* strip_start(const char* filename)
 
 /**
  * Check if an URL exists.
- * @return true if the URL exist, throw on exception otherwise 
+ * @return true if the URL exist, throw on exception otherwise
  */
-		
+
 bool check_url(const char* filename)
 {
     char* fileBuf = 0;
@@ -338,23 +301,23 @@ bool check_url(const char* filename)
  */
 static FILE* fopenat(string& fullpath, const char* dir, const char* filename)
 {
-	int err; 
+    int err;
     char olddirbuffer[FAUST_PATH_MAX];
     char newdirbuffer[FAUST_PATH_MAX];
-    
+
     char* olddir = getcwd(olddirbuffer, FAUST_PATH_MAX);
 
-    if (chdir(dir) == 0) {           
+    if (chdir(dir) == 0) {
         FILE* f = fopen(filename, "r");
-	    char* newdir = getcwd(newdirbuffer, FAUST_PATH_MAX);
+        char* newdir = getcwd(newdirbuffer, FAUST_PATH_MAX);
         if (!newdir) {
             stringstream error;
             error << "ERROR : getcwd '" << strerror(errno) << endl;
             throw faustexception(error.str());
         }
-		fullpath = newdir;
-		fullpath += '/';
-		fullpath += filename;
+        fullpath = newdir;
+        fullpath += '/';
+        fullpath += filename;
         err = chdir(olddir);
         if (err != 0) {
             stringstream error;
@@ -382,54 +345,17 @@ static FILE* fopenat(string& fullpath, const string& dir, const char* filename)
 }
 
 /**
- * Try to open the file '<dir>/<path>/<filename>'. If it succeed, it stores the full pathname
- * of the file into <fullpath>
- */
-static FILE* fopenat(string& fullpath, const string& dir, const char* path, const char* filename)
-{
-    int	err;
-    char olddirbuffer[FAUST_PATH_MAX];
-    char newdirbuffer[FAUST_PATH_MAX];
-    
-    char* olddir = getcwd(olddirbuffer, FAUST_PATH_MAX);
-    
-    if (chdir(dir.c_str()) == 0) {
-        if (chdir(path) == 0) {            
-            FILE* f = fopen(filename, "r");
-            char* newdir = getcwd(newdirbuffer, FAUST_PATH_MAX);
-            if (!newdir) {
-                stringstream error;
-                error << "ERROR : getcwd '" << strerror(errno) << endl;
-                throw faustexception(error.str());
-            }
-            fullpath = newdir;
-			fullpath += '/';
-			fullpath += filename;
-            err = chdir(olddir);
-            return f;
-        }
-    }
-    err = chdir(olddir);
-    if (err != 0) {
-        stringstream error;
-        error << "ERROR : cannot change back directory to '" << olddir << "' : " <<  strerror(errno) << endl;
-        throw faustexception(error.str());
-    }
-    return 0;
-}
-
-/**
  * Test absolute pathname.
  */
 static bool isAbsolutePathname(const string& filename)
 {
-	//test windows absolute pathname "x:xxxxxx"
-	if (filename.size() > 1 && filename[1] == ':') return true;
-
-	// test unix absolute pathname "/xxxxxx"
-	if (filename.size() > 0 && filename[0] == '/') return true;
-
-	return false;
+    //test windows absolute pathname "x:xxxxxx"
+    if (filename.size() > 1 && filename[1] == ':') return true;
+    
+    // test unix absolute pathname "/xxxxxx"
+    if (filename.size() > 0 && filename[0] == '/') return true;
+    
+    return false;
 }
 
 /**
@@ -438,11 +364,11 @@ static bool isAbsolutePathname(const string& filename)
  */
 static void buildFullPathname(string& fullpath, const char* filename)
 {
-	char old[FAUST_PATH_MAX];
-
-	if (isAbsolutePathname(filename)) {
-		fullpath = filename;
-	} else {
+    char old[FAUST_PATH_MAX];
+    
+    if (isAbsolutePathname(filename)) {
+        fullpath = filename;
+    } else {
         char* newdir = getcwd(old, FAUST_PATH_MAX);
         if (!newdir) {
             stringstream error;
@@ -450,9 +376,9 @@ static void buildFullPathname(string& fullpath, const char* filename)
             throw faustexception(error.str());
         }
         fullpath = newdir;
-    	fullpath += '/';
-		fullpath += filename;
-	}
+        fullpath += '/';
+        fullpath += filename;
+    }
 }
 
 /**
@@ -460,57 +386,24 @@ static void buildFullPathname(string& fullpath, const char* filename)
  *  place its full pathname in the string <fullpath>
  */
 FILE* fopensearch(const char* filename, string& fullpath)
-{   
+{
     FILE* f;
-    char* envpath;
-
-    // search in current directory
-
-    if ((f = fopen(filename, "r"))) { 
-    	buildFullPathname(fullpath, filename); 
-    	return f;
+    
+    if ((f = fopen(filename, "r"))) {
+        buildFullPathname(fullpath, filename);
+        return f;
     }
-
+    
     // search file in user supplied directory path
-
-    for (list< string >::iterator i = gGlobal->gImportDirList.begin(); i != gGlobal->gImportDirList.end(); i++) {
-        if ((f = fopenat(fullpath, *i, filename))) {
+    for (string dirname : gGlobal->gImportDirList) {
+        if ((f = fopenat(fullpath, dirname, filename))) {
             return f;
         }
-    }
-
-    // search in default directories
-
-    if ((f = fopenat(fullpath, gGlobal->gMasterDirectory, filename))) {
-    	return f;
-    }
-    if ((envpath = getenv("FAUST_LIB_PATH")) && (f = fopenat(fullpath, envpath, filename))) {
-		return f;
-    }
-    if ((f = fopenat(fullpath, gGlobal->gFaustDirectory, "architecture", filename))) { 
-    	return f;
-    }
-    if ((f = fopenat(fullpath, gGlobal->gFaustSuperDirectory, "architecture", filename))) { 
-    	return f;
-    }
-    if ((f = fopenat(fullpath, gGlobal->gFaustSuperSuperDirectory, "architecture", filename))) { 
-    	return f;
-    }
-#ifdef INSTALL_PREFIX
-    if ((f = fopenat(fullpath, INSTALL_PREFIX "/share/faust", filename))) { 
-    	return f;
-    }
-#endif
-    if ((f = fopenat(fullpath, "/usr/local/share/faust", filename))) { 
-    	return f;
-    }
-    if ((f = fopenat(fullpath, "/usr/share/faust", filename))) { 
-    	return f;
     }
     return 0;
 }
 
-/** 
+/**
  * filebasename returns the basename of a path.
  * (adapted by kb from basename.c)
  *
@@ -523,7 +416,7 @@ FILE* fopensearch(const char* filename, string& fullpath)
 
 #ifdef _WIN32
 #define HAVE_DOS_BASED_FILE_SYSTEM
-#ifndef DIR_SEPARATOR_2 
+#ifndef DIR_SEPARATOR_2
 #define DIR_SEPARATOR_2 '\\'
 #endif
 #endif
@@ -542,17 +435,17 @@ FILE* fopensearch(const char* filename, string& fullpath)
 const char* filebasename(const char* name)
 {
 #if defined (HAVE_DOS_BASED_FILE_SYSTEM)
-	/* Skip over the disk name in MSDOS pathnames. */
-	if (isalpha(name[0]) && name[1] == ':') 
-		name += 2;
+    /* Skip over the disk name in MSDOS pathnames. */
+    if (isalpha(name[0]) && name[1] == ':')
+        name += 2;
 #endif
-	const char* base;
-	for (base = name; *name; name++) {
-		if (IS_DIR_SEPARATOR(*name)) {
-			base = name + 1;
-		}
+    const char* base;
+    for (base = name; *name; name++) {
+        if (IS_DIR_SEPARATOR(*name)) {
+            base = name + 1;
+        }
     }
-	return base;
+    return base;
 }
 
 /**
@@ -564,7 +457,7 @@ string filedirname(const string& name)
     const char*         base = filebasename(name.c_str());
     const unsigned int  size = (const unsigned int)(base-name.c_str());
     string              dirname;
-
+    
     if (size == 0) {
         dirname += '.';
     } else if (size == 1) {

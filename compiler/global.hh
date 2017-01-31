@@ -90,7 +90,8 @@ struct global {
     string          gMasterDirectory;
     string          gMasterName;
     string          gDocName;
-    list<string>    gImportDirList;
+    list<string>    gImportDirList;         //dir list enrobage.cpp/fopensearch() searches for imports, etc.
+    list<string>    gArchitectureDirList;   //dir list enrobage.cpp/fopensearch() searches for architecture files
     list<string>    gLibraryList;
     string          gOutputDir;
     Tree            gExpandedDefList;
