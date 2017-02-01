@@ -41,14 +41,18 @@ QTDEFS=""
 OSCLIB=""
 POLY="POLY"
 DEPLOY=""
+EFFECT=""
 
-for p in $@; do
+while [ $1 ]
+do
+    p=$1
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2caqt [-httpd] [-qrcode] [-poly] [-poly2] [-midi] [-osc] [-debug] <file.dsp>"
+        echo "faust2caqt [-httpd] [-qrcode] [-poly] [-effect <effect.dsp>] [-midi] [-osc] [-debug] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
-        echo "Use '-poly' to produce a polyphonic self-contained DSP, ready to be used with MIDI events"
-        echo "Use '-poly2' to produce a polyphonic DSP connected to the effect part, ready to be used with MIDI events"
+        echo "Use '-poly' to produce a polyphonic self-contained DSP, ready to be used with MIDI or OSC"
+        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
         echo "Use '-debug' to print all the build steps"
@@ -71,9 +75,11 @@ for p in $@; do
     elif [ $p = "-poly" ]; then
         POLYDEFS="DEFINES += POLY"
         POLY="POLY1"
-    elif [ $p = "-poly2" ]; then
+    elif [ $p = "-effect" ]; then
         POLYDEFS="DEFINES += POLY2"
         POLY="POLY2"
+        shift
+        EFFECT=$1
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
     elif [ $p = "-osc" ]; then
@@ -91,8 +97,10 @@ for p in $@; do
 	else
 	    OPTIONS="$OPTIONS $p"        
 	fi
-done
 
+shift
+
+done
 
 
 #-------------------------------------------------------------------
@@ -129,7 +137,7 @@ for p in $FILES; do
     
     if [ $POLY = "POLY2" ]; then
         faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_voice.cpp" || exit
-        faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/${f%.dsp}_effect.dsp" -o "$TMP/effect.cpp" || exit
+        faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
     else
         faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     fi

@@ -15,17 +15,21 @@ POLY2="0"
 OSCCTRL="0"
 MIDICTRL="0"
 ALL="1"
+EFFECT=""
 
 #PHASE 1 : collects files and options from the command line
 
-for p in $@; do
+while [ $1 ]
+do
+    p=$1
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2ios [-xcode] [-32bits] [-noagc] [-poly] [-poly2] [-midi] [-osc] <file.dsp>"
+        echo "faust2ios [-xcode] [-32bits] [-noagc] [-poly] [-effect <effect.dsp>] [-midi] [-osc] <file.dsp>"
         echo "Use '-xcode' to keep the intermediate Xcode project"
         echo "Use '-32bits' to compile 32 bits only binary"
         echo "Use '-noagc' to deactivate audio automatic gain control"
-        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
-        echo "Use '-poly2' to produce a polyphonic DSP connected to the effect part, ready to be used with MIDI events"
+        echo "Use '-poly' to produce a polyphonic self-contained DSP, ready to be used with MIDI or OSC"
+        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
     fi
@@ -40,8 +44,10 @@ for p in $@; do
         XCODE="1"
     elif [ "$p" = "-poly" ]; then
         POLY="1"
-     elif [ "$p" = "-poly2" ]; then
+     elif [ "$p" = "-effect" ]; then
         POLY2="1"
+        shift
+        EFFECT=$1
     elif [ "$p" = "-midi" ]; then
         MIDICTRL="1"
     elif [ "$p" = "-32bits" ]; then
@@ -55,8 +61,10 @@ for p in $@; do
     else
         OPTIONS="$OPTIONS $p"
     fi
-done
 
+shift
+
+done
 
 #PHASE 2 : compile all files
 
@@ -80,7 +88,7 @@ for p in $FILES; do
         echo "Compile with CoreAudio support in 64/32 bits"
         faust -i $OPTIONS -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h" || exit
         if [ "$POLY2" = "1" ]; then
-            faust -i -cn effect -a minimal-effect.cpp "${F%.dsp}_effect.dsp" -o "$T/effect.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp $EFFECT -o "$T/effect.cpp" || exit
         fi
         (
             xcodebuild GCC_PREPROCESSOR_DEFINITIONS="${inherited} NOAGC=$NOAGC POLY=$POLY POLY2=$POLY2 MIDICTRL=$MIDICTRL OSCCTRL=$OSCCTRL" -project "$T/iOS.xcodeproj" -target Template_CoreAudio PRODUCT_NAME=$P
@@ -90,7 +98,7 @@ for p in $FILES; do
         echo "Compile with CoreAudio support in 32 bits"
         faust -i $OPTIONS -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h" || exit
         if [ "$POLY2" = "1" ]; then
-            faust -i -cn effect -a minimal-effect.cpp "${F%.dsp}_effect.dsp" -o "$T/effect.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp $EFFECT -o "$T/effect.cpp" || exit
         fi
         (
             xcodebuild GCC_PREPROCESSOR_DEFINITIONS="${inherited} NOAGC=$NOAGC POLY=$POLY POLY2=$POLY2 MIDICTRL=$MIDICTRL OSCCTRL=$OSCCTRL" -project "$T/iOS.xcodeproj" -target Template_CoreAudio_32bits PRODUCT_NAME=$P

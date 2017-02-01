@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
         DSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, poly, true, group), new effect());
     }
 #else
-    DSP = new dsp_sequencer(new mydsp_poly(&tmp_dsp, poly, false, group), new effect());
+    DSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, poly, false, group), new effect());
 #endif
 
 #elif POLY
