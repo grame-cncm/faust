@@ -22,6 +22,7 @@ VOICES="0"
 POLY2="0"
 MIDI="0"
 NODOC="0"
+EFFECT=""
 
 echoHelp ()
 {
@@ -33,7 +34,7 @@ echoHelp ()
     echo ""
     echo "GLOBAL OPTIONS:"
     echo "   -polyvoices N : creates a polyphonic object with N voices."
-    echo "   -poly2 : adds an effect to the polyphonic synth (this option is ignored if -polyvoices is not specified). The effect should be declared in a file called yourFaustCode_effect.dsp placed in the same folder than yourFaustCode.dsp."
+    echo "   -effect <effect.dsp>: adds an effect to the polyphonic synth (this option is ignored if -polyvoices is not specified)."
 	echo "   -nodoc : prevents documentation from being generated."
     echo ""
     echo "ANDROID-SPECIFIC OPTIONS:"
@@ -44,11 +45,12 @@ echoHelp ()
 }
 
 # dispatch command arguments
-for p in $@; do
+while [ $1 ]
+do
+	p=$1
+	
     if [ $p = "-help" ]; then
 	echoHelp
-    elif [ "$VOICES" = "-1" ]; then
-	VOICES="$p"
     elif [ "$PACKAGENAME" = "-1" ]; then
 	PACKAGENAME="$p"
     elif [[ -f "$p" ]]; then
@@ -57,14 +59,17 @@ for p in $@; do
 	ANDROID=1
     elif [ $p = "-ios" ]; then
 	IOS="1"
-    elif [ "$p" = "-poly2" ]; then
+    elif [ "$p" = "-effect" ]; then
         POLY2="1"
+		shift
+		EFFECT=$1
     elif [ "$p" = "-midi" ]; then
         MIDI="1"
 	elif [ "$p" = "-nodoc" ]; then
-        NODOC="1"
+		NODOC="1"
     elif [ $p = "-polyvoices" ]; then
-	VOICES="-1"
+		shift
+		VOICES=$1
     elif [ $p = "-package" ]; then
 	PACKAGENAME="-1"
     elif [ ${p:0:1} = "-" ]; then
@@ -73,6 +78,9 @@ for p in $@; do
 	echoHelp
 	exit
     fi
+
+shift
+	
 done
 
 if [ -z $FILE ]; then
@@ -104,7 +112,7 @@ if [ $ANDROID -eq 1 ]; then
     cp -r /usr/local/share/faust/api/android/jni/java_interface_wrap.cpp $CPPFOLDER
     faust -i -a api/android/DspFaust.cpp "$FILE" -o "$CPPFOLDER/DspFaust.cpp" || exit
     if [ "$POLY2" = "1" ]; then
-	faust -i -cn effect -a minimal-effect.cpp "${FILE%.dsp}_effect.dsp" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp" || exit
+	faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp" || exit
 	echo "#define POLY2 1" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
     fi
     if [ "$VOICES" -gt "0" ]; then
@@ -115,7 +123,7 @@ elif [ $IOS -eq 1 ]; then
     cp -r /usr/local/share/faust/api/iOS/DspFaust.h $APIFOLDER
     faust -i -a api/iOS/DspFaust.cpp "$FILE" -o "$APIFOLDER/DspFaust.cpp" || exit
     if [ "$POLY2" = "1" ]; then
-	faust -i -cn effect -a minimal-effect.cpp "${FILE%.dsp}_effect.dsp" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp" || exit
+	faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp" || exit
 	echo "#define POLY2 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
     if [ "$VOICES" -gt "0" ]; then
