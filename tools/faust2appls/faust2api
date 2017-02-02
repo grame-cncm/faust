@@ -161,7 +161,7 @@ if [ $NODOC -eq 0 ]; then
 
 	faust -i -a path-printer.cpp "$FILE" -o "$PPFILE" || exit
 	if [ "$POLY2" = "1" ]; then
-		faust -i -cn effect -a minimal-effect.cpp "${FILE%.dsp}_effect.dsp" | cat - "$PPFILE" > temp && mv temp "$PPFILE" || exit
+		faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$PPFILE" > temp && mv temp "$PPFILE" || exit
 		echo "#define POLY2 1" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
 	fi
 	if [ "$VOICES" -gt "0" ]; then
