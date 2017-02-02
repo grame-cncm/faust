@@ -33,8 +33,8 @@ echoHelp ()
     echo "To generate and Android API, run: faust2api -android yourFaustCode.dsp"
     echo ""
     echo "GLOBAL OPTIONS:"
-    echo "   -polyvoices N : creates a polyphonic object with N voices."
-    echo "   -effect <effect.dsp>: adds an effect to the polyphonic synth (this option is ignored if -polyvoices is not specified)."
+    echo "   -nvoices N : creates a polyphonic object with N voices."
+    echo "   -effect <effect.dsp>: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified)."
 	echo "   -nodoc : prevents documentation from being generated."
     echo ""
     echo "ANDROID-SPECIFIC OPTIONS:"
@@ -52,13 +52,13 @@ do
     if [ $p = "-help" ]; then
 	echoHelp
     elif [ "$PACKAGENAME" = "-1" ]; then
-	PACKAGENAME="$p"
+		PACKAGENAME="$p"
     elif [[ -f "$p" ]]; then
-	FILE="$p"
+		FILE="$p"
     elif [ $p = "-android" ]; then
-	ANDROID=1
+		ANDROID=1
     elif [ $p = "-ios" ]; then
-	IOS="1"
+		IOS="1"
     elif [ "$p" = "-effect" ]; then
         POLY2="1"
 		shift
@@ -67,7 +67,7 @@ do
         MIDI="1"
 	elif [ "$p" = "-nodoc" ]; then
 		NODOC="1"
-    elif [ $p = "-polyvoices" ]; then
+    elif [ $p = "-nvoices" ]; then
 		shift
 		VOICES=$1
     elif [ $p = "-package" ]; then
@@ -161,7 +161,7 @@ if [ $NODOC -eq 0 ]; then
 
 	faust -i -a path-printer.cpp "$FILE" -o "$PPFILE" || exit
 	if [ "$POLY2" = "1" ]; then
-		faust -i -cn effect -a minimal-effect.cpp "${FILE%.dsp}_effect.dsp" | cat - "$PPFILE" > temp && mv temp "$PPFILE" || exit
+		faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$PPFILE" > temp && mv temp "$PPFILE" || exit
 		echo "#define POLY2 1" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
 	fi
 	if [ "$VOICES" -gt "0" ]; then
