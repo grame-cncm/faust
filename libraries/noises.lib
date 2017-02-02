@@ -20,8 +20,11 @@
 /************************************************************************
 ************************************************************************
 FAUST library file
-Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
+Except where noted otherwise, Copyright (C) 2003-2016 GRAME,
+Centre National de Creation Musicale.
 ----------------------------------------------------------------------
+GRAME LICENSE
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as
 published by the Free Software Foundation; either version 2.1 of the
@@ -52,6 +55,8 @@ closed source license or any other license if you decide so.
 ba = library("basics.lib");
 fi = library("filters.lib");
 os = library("oscillators.lib");
+no(x) = x; // so functions in this file can use the 'no' prefix
+           // (for compatible copy/paste out of this file)
 
 declare name "Faust Noise Generator Library";
 declare version "0.0";
@@ -69,10 +74,10 @@ declare version "0.0";
 // noise : _
 // ```
 //------------------------
-// TODO: add mask for 32 bits
 noise = random / RANDMAX
 with{
-	random = +(12345) ~ *(1103515245); // "linear congruential"
+	mask = 4294967295; // 2^32-1
+	random = +(12345) ~ *(1103515245) & mask; // "linear congruential"
 	RANDMAX	= 2147483647.0; // = 2^31-1 = MAX_SIGNED_INT in 32 bits
 };
 
@@ -135,7 +140,7 @@ noises(N,i) = multinoise(N) : ba.selector(i,N);
 //
 // <https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html>
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
+// TODO: author JOS, license STK-4.3; MarkDown by RM, license ?
 
 pink_filter = fi.iir((0.049922035, -0.095993537, 0.050612699, -0.004408786),
                     (-2.494956002, 2.017265875, -0.522189400));
@@ -161,7 +166,7 @@ pink_noise = noise : pink_filter;
 // * <http://www.dsprelated.com/showarticle/908.php>
 // * <http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney>
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
+// TODO: author JOS, license STK-4.3; MarkDown by RM, license ?
 pink_noise_vm(N) = noise <: _,par(i,N,ba.latch(clock(i))) :> _
 with {
   clock(i) = (ba.time>>i)&1; // i'th latch clock signal
@@ -189,7 +194,42 @@ with {
 //           lfnoise(rate);    // lfnoise0 smoothed with no overshoot
 // ```
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
+// TODO: author JOS, license STK-4.3; MarkDown by RM, license ?
 lfnoise0(freq) = noise : ba.latch(os.oscrs(freq));
 lfnoiseN(N,freq) = lfnoise0(freq) : fi.lowpass(N,freq); // Nth-order Butterworth lowpass
 lfnoise(freq) = lfnoise0(freq) : seq(i,5,fi.lowpass(1,freq)); // non-overshooting lowpass
+
+//-------------------------`velvet_noise_vm`-------------------
+// velvet noise generator.
+//
+// #### Usage
+//
+// ```
+// velvet_noise(amp,f0) : _;
+// ```
+//
+// Where:
+//
+// * `amp`: amplitude of noise impulses (positive and negative)
+// * ` f0`: average frequency of noise impulses per second
+//
+// #### Reference
+//
+// * Matti Karjalainen and Hanna Järvelä̈inen,
+//   "Reverberation Modeling Using Velvet Noise",
+//   in Proc. 30th Int. Conf. Intelligent Audio Environments (AES07),
+//   March 2007.
+//
+//------------------------------------------------------------
+// TODO: author JOS, license STK-4.3
+velvet_noise(amp,f0) = vn
+with {
+  saw = os.lf_sawpos(f0);
+  sawdiff = saw - saw';
+  e = no.noise;
+  noiseHeld = e : ba.latch(sawdiff);
+  noiseHeldPos = 0.5 + 0.5 * noiseHeld;
+  crossed = (saw >= noiseHeldPos) * (saw' < noiseHeldPos);
+  signedamp = select2(e>0, -amp, amp);
+  vn = signedamp * crossed;
+};
