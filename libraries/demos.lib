@@ -1094,6 +1094,24 @@ with{
 oscr_demo = oscrs_demo; // synonym
 
 
+//-------------------------- `velvet_noise_demo` ---------------------------
+// Listen to velvet_noise!
+//
+// #### Usage
+//
+// ```
+// velvet_noise_demo : _
+// ```
+//-------------------------------------------------------------------
+
+velvet_noise_demo = vn
+with{
+	amp = hslider("Amp [unit:dB]",-10,-70,10,0.1) : ba.db2linear;
+	f0 = 10.0, hslider("Freq [unit:log10(Hz)]",3,0,4,0.001) : pow;
+	vn = no.velvet_noise(amp,f0);
+};
+
+
 //-------------------------- `latch_demo` ---------------------------
 // Illustrate latch operation
 //
