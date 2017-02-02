@@ -20,7 +20,7 @@
 /************************************************************************
 ************************************************************************
 FAUST library file
-Except where noted otherwise, Copyright (C) 2003-2016 GRAME,
+Except where noted otherwise, Copyright (C) 2003-2016 by GRAME,
 Centre National de Creation Musicale.
 ----------------------------------------------------------------------
 GRAME LICENSE
@@ -139,9 +139,12 @@ noises(N,i) = multinoise(N) : ba.selector(i,N);
 // #### Reference:
 //
 // <https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html>
+//
+// #### License
+// * Copyright (C) 2010-2017 by [jos](http://ccrma.stanford.edu/~jos/)
+// * License: [STK-4.3](stk4p3-license.md)
+// * Markdown by [rrm](http://ccrma.stanford.edu/~rmichon/)
 //------------------------------------------------------------
-// TODO: author JOS, license STK-4.3; MarkDown by RM, license ?
-
 pink_filter = fi.iir((0.049922035, -0.095993537, 0.050612699, -0.004408786),
                     (-2.494956002, 2.017265875, -0.522189400));
 
@@ -165,8 +168,12 @@ pink_noise = noise : pink_filter;
 //
 // * <http://www.dsprelated.com/showarticle/908.php>
 // * <http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney>
+//
+// #### License
+// * Copyright (C) 2016-2017 by [jos](http://ccrma.stanford.edu/~jos/)
+// * License: [STK-4.3](stk4p3-license.md)
+// * Markdown by [rrm](http://ccrma.stanford.edu/~rmichon/)
 //------------------------------------------------------------
-// TODO: author JOS, license STK-4.3; MarkDown by RM, license ?
 pink_noise_vm(N) = noise <: _,par(i,N,ba.latch(clock(i))) :> _
 with {
   clock(i) = (ba.time>>i)&1; // i'th latch clock signal
@@ -193,8 +200,12 @@ with {
 //           lfnoiseN(3,rate), // lfnoise0 smoothed by 3rd order Butterworth LPF
 //           lfnoise(rate);    // lfnoise0 smoothed with no overshoot
 // ```
+//
+// #### License
+// * Copyright (C) 2013-2017 by [jos](http://ccrma.stanford.edu/~jos/)
+// * License: [STK-4.3](stk4p3-license.md)
+// * Markdown by [rrm](http://ccrma.stanford.edu/~rmichon/)
 //------------------------------------------------------------
-// TODO: author JOS, license STK-4.3; MarkDown by RM, license ?
 lfnoise0(freq) = noise : ba.latch(os.oscrs(freq));
 lfnoiseN(N,freq) = lfnoise0(freq) : fi.lowpass(N,freq); // Nth-order Butterworth lowpass
 lfnoise(freq) = lfnoise0(freq) : seq(i,5,fi.lowpass(1,freq)); // non-overshooting lowpass
@@ -220,8 +231,11 @@ lfnoise(freq) = lfnoise0(freq) : seq(i,5,fi.lowpass(1,freq)); // non-overshootin
 //   in Proc. 30th Int. Conf. Intelligent Audio Environments (AES07),
 //   March 2007.
 //
+// #### License
+// * Copyright (C) 2017 by [jos](http://ccrma.stanford.edu/~jos/)
+// * License: [STK-4.3](stk4p3-license.md)
+// * Markdown by [rrm](http://ccrma.stanford.edu/~rmichon/)
 //------------------------------------------------------------
-// TODO: author JOS, license STK-4.3
 velvet_noise(amp,f0) = vn
 with {
   saw = os.lf_sawpos(f0);

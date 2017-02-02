@@ -657,8 +657,6 @@ select2stereo(bpc) = ro.cross2 : select2(bpc), select2(bpc) : _,_;
 // * `clocksig`: hold trigger (0 for hold, 1 for bypass)
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
-// TODO: not sure how this function works: doesn't seem to work the way
-// it described which is why sAndH was implemented below.
 latch(c,x) = x * s : + ~ *(1-s) with { s = ((c'<=0)&(c>0)); };
 
 
