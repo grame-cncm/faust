@@ -170,6 +170,7 @@ pink_noise = noise : pink_filter;
 // * <http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney>
 //
 // #### License
+//
 // * Copyright (C) 2016-2017 by [jos](http://ccrma.stanford.edu/~jos/)
 // * License: [STK-4.3](stk4p3-license.md)
 // * Markdown by [rrm](http://ccrma.stanford.edu/~rmichon/)
@@ -202,6 +203,7 @@ with {
 // ```
 //
 // #### License
+//
 // * Copyright (C) 2013-2017 by [jos](http://ccrma.stanford.edu/~jos/)
 // * License: [STK-4.3](stk4p3-license.md)
 // * Markdown by [rrm](http://ccrma.stanford.edu/~rmichon/)
@@ -226,15 +228,12 @@ lfnoise(freq) = lfnoise0(freq) : seq(i,5,fi.lowpass(1,freq)); // non-overshootin
 //
 // #### Reference
 //
-// * Matti Karjalainen and Hanna Järvelä̈inen,
+// * Matti Karjalainen and Hanna Jarvelainen,
 //   "Reverberation Modeling Using Velvet Noise",
 //   in Proc. 30th Int. Conf. Intelligent Audio Environments (AES07),
 //   March 2007.
 //
-// #### License
-// * Copyright (C) 2017 by [jos](http://ccrma.stanford.edu/~jos/)
-// * License: [STK-4.3](stk4p3-license.md)
-// * Markdown by [rrm](http://ccrma.stanford.edu/~rmichon/)
+// License: [STK-4.3](#stk-4.3-license) — Copyright (C) 2017 by [jos](http://ccrma.stanford.edu/~jos/) (code) and [rm](http://ccrma.stanford.edu/~rmichon/) (markdown)
 //------------------------------------------------------------
 velvet_noise(amp,f0) = vn
 with {
