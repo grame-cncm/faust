@@ -1070,7 +1070,7 @@ with{
 // ```
 // oscrs_demo : _
 // ```
-//------------------------------------------------------------
+//-------------------------------------------------------------------
 // TODO: author JOS, revised by RM
 oscrs_demo = signal
 with{
@@ -1094,5 +1094,21 @@ with{
 oscr_demo = oscrs_demo; // synonym
 
 
-
-
+//-------------------------- `latch_demo` ---------------------------
+// Illustrate latch operation
+//
+// #### Usage
+//
+// ```
+// echo "dm = library("demos.lib");" > latch_demo.dsp
+// echo "process = dm.latch_demo;" >> latch_demo.dsp
+// faust2octave latch_demo.dsp
+// Octave:1> plot(faustout);
+// ```
+//-------------------------------------------------------------------
+latch_demo = x, c, ba.latch(c,x) // plot(faustout) after faust2octave
+with{
+	f = float(ma.SR)/1000.0;
+	x = os.oscr(f);
+	c = 0.5 * os.oscrs(5*f); // sample 5 times per period
+};
