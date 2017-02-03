@@ -42,16 +42,17 @@ OSCLIB=""
 POLY="POLY"
 DEPLOY=""
 EFFECT=""
+NVOICES=-1
 
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2caqt [-httpd] [-qrcode] [-poly] [-effect <effect.dsp>] [-midi] [-osc] [-debug] <file.dsp>"
+        echo "faust2caqt [-httpd] [-qrcode] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-debug] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
-        echo "Use '-poly' to produce a polyphonic self-contained DSP, ready to be used with MIDI or OSC"
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
@@ -72,9 +73,14 @@ do
         DEPLOY="yes"
     elif [ "$p" = -icc ]; then
     	ignore=" "
-    elif [ $p = "-poly" ]; then
+    elif [ $p = "-nvoices" ]; then
         POLYDEFS="DEFINES += POLY"
         POLY="POLY1"
+        shift
+        NVOICES=$1
+        if [ $NVOICES -ge 0 ]; then
+            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        fi
     elif [ $p = "-effect" ]; then
         POLYDEFS="DEFINES += POLY2"
         POLY="POLY2"

@@ -84,12 +84,10 @@
 
 <<includeclass>>
 
-#if defined(POLY) || defined(POLY2)
 #include "faust/dsp/poly-dsp.h"
-#include "faust/dsp/dsp-combiner.h"
-#endif
 
-#if defined(POLY2)
+#ifdef POLY2
+#include "faust/dsp/dsp-combiner.h"
 #include "effect.cpp"
 #endif
 
@@ -211,18 +209,45 @@ void Sensors::start()
 *******************************************************************************
 *******************************************************************************/
 
-static bool hasMIDISync()
+struct MyMeta : public Meta, public std::map<const char*, const char*>
 {
-    JSONUI jsonui;
+    void declare(const char* key, const char* value)
+    {
+        (*this)[key] = value;
+    }
+    const char* get(const char* key, const char* def)
+    {
+        if (this->find(key) != this->end()) {
+            return (*this)[key];
+        } else {
+            return def;
+        }
+    }
+};
+
+static void analyseMeta(bool& midi_sync, int& nvoices)
+{
     mydsp* tmp_dsp = new mydsp();
+    
+    JSONUI jsonui;
     tmp_dsp->buildUserInterface(&jsonui);
     std::string json = jsonui.JSON();
-    delete tmp_dsp;
+    midi_sync = ((json.find("midi") != std::string::npos) &&
+                  ((json.find("start") != std::string::npos) ||
+                   (json.find("stop") != std::string::npos) ||
+                   (json.find("clock") != std::string::npos)));
     
-    return ((json.find("midi") != std::string::npos) &&
-            ((json.find("start") != std::string::npos) ||
-            (json.find("stop") != std::string::npos) ||
-            (json.find("clock") != std::string::npos)));
+#ifdef NVOICES
+    nvoices = NVOICES;
+#else
+    MyMeta meta;
+    tmp_dsp->metadata(&meta);
+    const char* numVoices = meta.get("nvoices", "0");
+    nvoices = atoi(numVoices);
+    if (nvoices < 0) nvoices = 0;
+#endif
+    
+    delete tmp_dsp;
 }
 
 #ifdef IOS
@@ -235,6 +260,11 @@ int main(int argc, char *argv[])
 	char name[256];
 	char rcfilename[256];
 	char* home = getenv("HOME");
+    bool midi_sync = false;
+    int nvoices = 1;
+    
+    analyseMeta(midi_sync, nvoices);
+    
 #ifdef IOS
     APIUI apiui;
     Sensors sensors(&apiui);
@@ -248,44 +278,48 @@ int main(int argc, char *argv[])
     
 #ifdef POLY2
     dsp* tmp_dsp = new mydsp();
-    int poly = lopt(argv, "--poly", 4);
+    nvoices = lopt(argv, "--nvoices", nvoices);
     int group = lopt(argv, "--group", 1);
-    std::cout << "Started with " << poly << " voices\n";
+    std::cout << "Started with " << nvoices << " voices\n";
 
 #if MIDICTRL
-    if (hasMIDISync()) {
-        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(tmp_dsp, poly, true, group), new effect()));
+    if (midi_sync) {
+        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new effect()));
     } else {
-        DSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, poly, true, group), new effect());
+        DSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new effect());
     }
 #else
-    DSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, poly, false, group), new effect());
+    DSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, false, group), new effect());
 #endif
 
-#elif POLY
+#else
     dsp* tmp_dsp = new mydsp();
-    int poly = lopt(argv, "--poly", 4);
+    nvoices = lopt(argv, "--nvoices", nvoices);
     int group = lopt(argv, "--group", 1);
-    std::cout << "Started with " << poly << " voices\n";
-
-#if MIDICTRL
-    if (hasMIDISync()) {
-        DSP = new timed_dsp(new mydsp_poly(tmp_dsp, poly, true, group));
+    
+    if (nvoices > 1) {
+        std::cout << "Started with " << nvoices << " voices\n";
+    #if MIDICTRL
+        if (midi_sync) {
+            DSP = new timed_dsp(new mydsp_poly(tmp_dsp, nvoices, true, group));
+        } else {
+            DSP = new mydsp_poly(tmp_dsp, nvoices, true, group);
+        }
+    #else
+        DSP = new mydsp_poly(tmp_dsp, nvoices, false, group);
+    #endif
     } else {
-        DSP = new mydsp_poly(tmp_dsp, poly, true, group);
-    }
-#else
-    DSP = new mydsp_poly(tmp_dsp, poly, false, group);
-#endif
-
-#elif MIDICTRL
-    if (hasMIDISync()) {
-        DSP = new timed_dsp(new mydsp());
-    } else {
+    #if MIDICTRL
+        if (midi_sync) {
+            DSP = new timed_dsp(new mydsp());
+        } else {
+            DSP = new mydsp();
+        }
+    #else
         DSP = new mydsp();
+    #endif
     }
-#else
-    DSP = new mydsp();
+    
 #endif
     
     if (DSP == 0) {

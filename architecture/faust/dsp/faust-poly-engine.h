@@ -38,8 +38,8 @@
 // Mono or polyphonic audio DSP engine
 //**************************************************************
 
-#ifndef POLY_VOICES
-#define POLY_VOICES 0 	// default is no polyphony (mono)
+#ifndef NVOICES
+#define NVOICES 0 	// default is no polyphony (mono)
 #endif
 
 using namespace std;
@@ -81,10 +81,10 @@ class FaustPolyEngine {
 
             if (fJSONUI.find("keyboard") != std::string::npos
                 || fJSONUI.find("poly") != std::string::npos
-                || POLY_VOICES != 0) {
+                || NVOICES != 0) {
                 
-                int poly_max = (POLY_VOICES != 0) ? POLY_VOICES : 10; // default number of poly voices
-                fPolyDSP = new mydsp_poly(mono_dsp, poly_max, true);
+                int nvoices = (NVOICES != 0) ? NVOICES : 10; // default number of poly voices
+                fPolyDSP = new mydsp_poly(mono_dsp, nvoices, true);
 
             #if POLY2
                 fFinalDSP = new dsp_sequencer(fPolyDSP, new effect());
