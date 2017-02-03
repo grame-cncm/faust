@@ -1588,7 +1588,7 @@ private:
 
         if(fStyle == VVUMeter) {
             r = Rectangle<int>((getWidth()-(kVBargraphWidth/2))/2 + 1,  // Left side of the VU-Meter.
-                               dB2y(num);                               // Vertically centred with 20 height.
+                               dB2y(num),                               // Vertically centred with 20 height.
                                (kVBargraphWidth/2)-2,                   // VU-Meter width with margin.
                                20);                                     // 20 height.
             g.drawText(String(num), r, Justification::centredRight, false);
@@ -1941,7 +1941,7 @@ public:
                 label = nullptr; // label is the box name, shouldn't be displayed
                                  // both (tab name and box name)
             }
-            currentBox = new uiBox(true, String(label), order, tabLayout); // Create a new box
+            currentBox = new uiBox(true, String(label), order); // Create a new box
             parentBox = nullptr; // Its parent is not another uiBox, so null
             if(!tabLayout) {
                 // Doesn't need to be done if it's a tab layout, addTabs function is already
@@ -1950,7 +1950,7 @@ public:
             }
         } else { // Not the first box
             parentBox = currentBox; // parent box is now set properly
-            currentBox = new uiBox(true, String(label), order, tabLayout); // Create a new box
+            currentBox = new uiBox(true, String(label), order); // Create a new box
             parentBox->addChildBox(currentBox);
         }
 
@@ -1965,7 +1965,7 @@ public:
                 label = nullptr; // label is the box name, shouldn't be displayed
                                  // both (tab name and box name)
             }
-            currentBox = new uiBox(false, String(label), order, tabLayout); // Create a new box
+            currentBox = new uiBox(false, String(label), order); // Create a new box
             parentBox = nullptr; // Its parent is not another uiBox, so null
             if(!tabLayout) {
                 // Doesn't need to be done if it's a tab layout, addTabs function is already
@@ -1974,7 +1974,7 @@ public:
             }
         } else { // Not the first box
             parentBox = currentBox; // parent box is now set properly
-            currentBox = new uiBox(false, String(label), order, tabLayout); // Create a new box
+            currentBox = new uiBox(false, String(label), order); // Create a new box
             parentBox->addChildBox(currentBox);
         }
 
@@ -2055,9 +2055,9 @@ public:
         }
         
         if(vert) {
-            currentBox->addChildUiComponent(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, nbButtons * (kRadioButtonHeight - 25) + 25, init, min, max, true, names, values, String(fTooltip[zone]), mdescr, radioGroup));
+            currentBox->addChildUiComponent(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, nbButtons * (kRadioButtonHeight - 25) + 25, init, min, max, true, names, values, String(fTooltip[zone]), radioGroup));
         } else {
-            currentBox->addChildUiComponent(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, kRadioButtonHeight, init, min, max, false, names, values, String(fTooltip[zone]), mdescr, radioGroup));
+            currentBox->addChildUiComponent(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, kRadioButtonHeight, init, min, max, false, names, values, String(fTooltip[zone]), radioGroup));
         }
     }
     
