@@ -76,7 +76,7 @@
  * \details     Define the appearance of all the JUCE widgets.
  */
 
-struct CustomLookAndFeel    : public LookAndFeel_V3
+struct CustomLookAndFeel : public LookAndFeel_V3
 {
     void drawRoundThumb (Graphics& g, const float x, const float y,
                          const float diameter, const Colour& colour, float outlineThickness)
@@ -342,7 +342,6 @@ enum VUMeterType {
     Led,        /*!< LED VU-meter           */
     NumDisplay  /*!< Text Box VU_meter      */
 };
-
 
 /**
  * \brief   Intern class for all FAUST widgets.
@@ -704,7 +703,6 @@ public:
     }
 };
 
-    
 /** Intern class for checkButton */
 class uiCheckButton: public uiComponent,
     private juce::Button::Listener
@@ -1628,7 +1626,6 @@ private:
         fLabel.setText(String((int)rawLevel)+fUnit, dontSendNotification);
     }
 };
-
 
 /**
  * \brief   Intern class for box widgets

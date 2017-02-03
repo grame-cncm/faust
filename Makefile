@@ -118,8 +118,8 @@ install :
 	rm -rf $(prefix)/share/faust/iOSKeyboard
 	cp -r architecture/iOSKeyboard $(prefix)/share/faust/
 	# install Juce
-	rm -rf $(prefix)/share/faust/template_jucer
-	cp -r architecture/template_jucer $(prefix)/share/faust/
+	rm -rf $(prefix)/share/faust/jucer
+	cp -r architecture/jucer $(prefix)/share/faust/
 	# install AU
 	rm -rf $(prefix)/share/faust/AU/
 	cp -r architecture/AU $(prefix)/share/faust/

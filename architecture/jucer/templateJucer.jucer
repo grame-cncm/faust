@@ -10,7 +10,7 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" extraCompilerFlags="-I /usr/local/include/"
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES"
                extraDefs="PreProcDef">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="Rectangle AudioApp"
@@ -36,7 +36,7 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" iosScreenOrientation="portraitlandscape"
-                  extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/">
+                  extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="Rectangle AudioApp"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="Rectangle AudioApp"/>
@@ -130,7 +130,8 @@
         <MODULEPATH id="juce_audio_utils" path="../../modules"/>
       </MODULEPATHS>
     </VS2012>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraDefs="PreProcDef">
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile"
+        extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="Rectangle AudioApp"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="Rectangle AudioApp"/>
