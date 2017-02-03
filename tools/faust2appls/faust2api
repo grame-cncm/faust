@@ -17,7 +17,7 @@ set -e
 # global option variables
 ANDROID="0"
 IOS="0"
-VOICES="0"
+NVOICES="0"
 #PACKAGENAME="0"
 POLY2="0"
 MIDI="0"
@@ -69,7 +69,7 @@ do
 		NODOC="1"
     elif [ $p = "-nvoices" ]; then
 		shift
-		VOICES=$1
+		NVOICES=$1
     elif [ $p = "-package" ]; then
 	PACKAGENAME="-1"
     elif [ ${p:0:1} = "-" ]; then
@@ -116,7 +116,7 @@ if [ $ANDROID -eq 1 ]; then
 	echo "#define POLY2 1" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
     fi
     if [ "$VOICES" -gt "0" ]; then
-	echo "#define POLY_VOICES $VOICES" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
+	echo "#define NVOICES $NVOICES" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
     fi
 elif [ $IOS -eq 1 ]; then
     echo "Your dsp-faust.zip API package for iOS is being created"
@@ -127,7 +127,7 @@ elif [ $IOS -eq 1 ]; then
 	echo "#define POLY2 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
     if [ "$VOICES" -gt "0" ]; then
-	echo "#define POLY_VOICES $VOICES" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+	echo "#define NVOICES $NVOICES" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
     if [ "$MIDI" = "1" ]; then
 	echo "#define IOS_MIDI_SUPPORT 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"

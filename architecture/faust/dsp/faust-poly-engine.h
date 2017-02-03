@@ -38,11 +38,48 @@
 // Mono or polyphonic audio DSP engine
 //**************************************************************
 
-#ifndef NVOICES
-#define NVOICES 0 	// default is no polyphony (mono)
-#endif
-
 using namespace std;
+
+struct MyMeta : public Meta, public std::map<const char*, const char*>
+{
+    void declare(const char* key, const char* value)
+    {
+        (*this)[key] = value;
+    }
+    const char* get(const char* key, const char* def)
+    {
+        if (this->find(key) != this->end()) {
+            return (*this)[key];
+        } else {
+            return def;
+        }
+    }
+};
+
+static void analyseMeta(bool& midi_sync, int& nvoices)
+{
+    mydsp* tmp_dsp = new mydsp();
+    
+    JSONUI jsonui;
+    tmp_dsp->buildUserInterface(&jsonui);
+    std::string json = jsonui.JSON();
+    midi_sync = ((json.find("midi") != std::string::npos) &&
+                 ((json.find("start") != std::string::npos) ||
+                  (json.find("stop") != std::string::npos) ||
+                  (json.find("clock") != std::string::npos)));
+    
+#ifdef NVOICES
+    nvoices = NVOICES;
+#else
+    MyMeta meta;
+    tmp_dsp->metadata(&meta);
+    const char* numVoices = meta.get("nvoices", "0");
+    nvoices = atoi(numVoices);
+    if (nvoices < 0) nvoices = 0;
+#endif
+    
+    delete tmp_dsp;
+}
 
 class FaustPolyEngine {
         
@@ -65,9 +102,14 @@ class FaustPolyEngine {
 
         FaustPolyEngine(audio* driver = NULL):fMidiUI(&fMidiHandler)
         {
+            bool midi_sync = false;
+            int nvoices = 1;
+            
             fDriver = driver;
             fRunning = false;
             mydsp* mono_dsp = new mydsp();
+            
+            analyseMeta(midi_sync, nvoices);
          
             // Getting the UI JSON
             JSONUI jsonui1(mono_dsp->getNumInputs(), mono_dsp->getNumOutputs());
@@ -81,9 +123,8 @@ class FaustPolyEngine {
 
             if (fJSONUI.find("keyboard") != std::string::npos
                 || fJSONUI.find("poly") != std::string::npos
-                || NVOICES != 0) {
+                || NVOICES > 1) {
                 
-                int nvoices = (NVOICES != 0) ? NVOICES : 10; // default number of poly voices
                 fPolyDSP = new mydsp_poly(mono_dsp, nvoices, true);
 
             #if POLY2

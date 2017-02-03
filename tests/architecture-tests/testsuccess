@@ -39,15 +39,15 @@ if [ "$1" = "osx" ]; then
     done
 
     for scriptname in $OSXPOLY; do
-        ($scriptname -poly good.dsp &> LOG)&&(echo "OK: $scriptname -poly succeeded !")||(echo "ERROR: $scriptname -poly failed")
+        ($scriptname -nvoices 8 good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 succeeded !")||(echo "ERROR: $scriptname -nvoices 8 failed")
     done
 
     for scriptname in $OSXPOLYMIDI; do
-        ($scriptname -poly -midi good.dsp &> LOG)&&(echo "OK: $scriptname -poly -midi succeeded !")||(echo "ERROR: $scriptname -poly -midi failed")
+        ($scriptname -nvoices 8 -midi good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -midi failed")
     done
 
     for scriptname in $OSXPOLY2MIDI; do
-        ($scriptname -poly -effect good.dsp -midi good.dsp &> LOG)&&(echo "OK: $scriptname -poly -effect good.dsp -midi succeeded !")||(echo "ERROR: $scriptname -poly -effect good.dsp -midi failed")
+        ($scriptname -nvoices 8 -effect good.dsp -midi good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -effect good.dsp -midi failed")
     done
 
     for scriptname in $OSXOSCHTTPD; do
@@ -58,9 +58,9 @@ if [ "$1" = "osx" ]; then
 
     (faust2api -ios -midi good.dsp &> LOG)&&(echo "OK: faust2api -ios -midi succeeded !")||(echo "ERROR: faust2api -ios -midi failed")
 
-    (faust2api -ios -midi -poly good.dsp &> LOG)&&(echo "OK: faust2api -ios -midi -poly succeeded !")||(echo "ERROR: faust2api -ios -midi -poly failed")
+    (faust2api -ios -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2api -ios -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -ios -midi -nvoices 8 failed")
 
-    (faust2api -ios -poly -effect good.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -ios -poly -effect good.dsp -midi succeeded !")||(echo "ERROR: faust2api -ios -poly -effect good.dsp -midi failed")
+    (faust2api -ios -nvoices 8 -effect good.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -ios -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: faust2api -ios -nvoices 8 -effect good.dsp -midi failed")
 
 elif [ "$1" = "linux" ]; then
 	echo
