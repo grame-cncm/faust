@@ -165,7 +165,7 @@ if [ $NODOC -eq 0 ]; then
 		echo "#define POLY2 1" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
 	fi
 	if [ "$NVOICES" -gt "0" ]; then
-		echo "#define POLY_VOICES $NVOICES" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
+		echo "#define NVOICES $NVOICES" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
 	fi
 
 	# compile c++ to binary

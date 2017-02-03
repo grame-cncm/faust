@@ -74,8 +74,6 @@ do
     elif [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-nvoices" ]; then
-        POLYDEFS="DEFINES += POLY"
-        POLY="POLY1"
         shift
         NVOICES=$1
         if [ $NVOICES -ge 0 ]; then

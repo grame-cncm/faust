@@ -123,7 +123,7 @@ class FaustPolyEngine {
 
             if (fJSONUI.find("keyboard") != std::string::npos
                 || fJSONUI.find("poly") != std::string::npos
-                || NVOICES > 1) {
+                || nvoices > 1) {
                 
                 fPolyDSP = new mydsp_poly(mono_dsp, nvoices, true);
 
