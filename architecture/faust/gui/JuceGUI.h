@@ -1045,7 +1045,7 @@ public:
         
         // No text editor for LEDs
         if(fStyle != Led) {
-            setupTextEditor();
+            setupLabel();
         }
     }
 
@@ -1137,9 +1137,9 @@ public:
         }
     }
 
-    /** Set the TextBox position whenever the layout size changes. */
+    /** Set the Label position whenever the layout size changes. */
     void resized() override {
-        setTextEditorPos();
+        setLabelPos();
     }
 
     void reflectZone() override
@@ -1159,8 +1159,8 @@ private:
     bool isBargraphNameShown;   // Is the VU-meter name displayable.
     bool forceRepaint;          // Only needed at the initialization.
 
-    /** Give the right coordinates and size to the text of TextBox depending on the VU-meter style */
-    void setTextEditorPos() {
+    /** Give the right coordinates and size to the text of Label depending on the VU-meter style */
+    void setLabelPos() {
         if     (fStyle == VVUMeter)   {
             // -22 on the height because of the text box.
             fLabel.setBounds((getWidth()-50)/2, getHeight()-22, 50, 20);
@@ -1177,9 +1177,9 @@ private:
         }
     }
 
-    /** Contain all the initialization need for our TextBox */
-    void setupTextEditor() {
-        setTextEditorPos();
+    /** Contain all the initialization need for our Label */
+    void setupLabel() {
+        setLabelPos();
         fLabel.setEditable(false, false, false);
         fLabel.setJustificationType(Justification::centred);
         fLabel.setText(String((int)*fZone) + fUnit, dontSendNotification);
@@ -1499,7 +1499,7 @@ private:
         g.setColour(Colours::white.withAlpha(0.8f));
         g.fillRect(x+1, y+1, width-2, height-2);
     
-        // Text is handled by the setTextEditorPos() function
+        // Text is handled by the setLabelPos() function
     }
     
     float dB2Scale(float dB)
