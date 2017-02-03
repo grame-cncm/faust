@@ -115,7 +115,7 @@ if [ $ANDROID -eq 1 ]; then
 	faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp" || exit
 	echo "#define POLY2 1" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
     fi
-    if [ "$VOICES" -gt "0" ]; then
+    if [ "$NVOICES" -gt "0" ]; then
 	echo "#define NVOICES $NVOICES" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
     fi
 elif [ $IOS -eq 1 ]; then
@@ -126,7 +126,7 @@ elif [ $IOS -eq 1 ]; then
 	faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp" || exit
 	echo "#define POLY2 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
-    if [ "$VOICES" -gt "0" ]; then
+    if [ "$NVOICES" -gt "0" ]; then
 	echo "#define NVOICES $NVOICES" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
     if [ "$MIDI" = "1" ]; then
@@ -164,8 +164,8 @@ if [ $NODOC -eq 0 ]; then
 		faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$PPFILE" > temp && mv temp "$PPFILE" || exit
 		echo "#define POLY2 1" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
 	fi
-	if [ "$VOICES" -gt "0" ]; then
-		echo "#define POLY_VOICES $VOICES" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
+	if [ "$NVOICES" -gt "0" ]; then
+		echo "#define POLY_VOICES $NVOICES" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
 	fi
 
 	# compile c++ to binary
