@@ -807,6 +807,7 @@ public:
                 double v = values[i];
                 if ( (v >= lo) && (v <= hi) ) {
                     // It is a valid value : add corresponding menu item
+                    // +1 because index 0 is reserved for a non-defined item.
                     fComboBox.addItem(String(names[i].c_str()), v+1);
                     fValues.push_back(v);
 
@@ -831,6 +832,7 @@ public:
     void comboBoxChanged (ComboBox* cb) override
     {
         std::cout<<fName<<" : "<<cb->getSelectedId() - 1<<std::endl;
+        // -1 because of the +1 at the initialization
         modifyZone(cb->getSelectedId() - 1);
     }
 
