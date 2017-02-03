@@ -228,6 +228,7 @@ Any function containing UI elements should be placed in this library and respect
 
 "Standard" functions are here to simplify the life of new (or not so new) Faust coders. They are declared in `/libraries/doc/standardFunctions.md` and allow to point programmers to preferred functions to carry out a specific task. For example, there are many different types of lowpass filters declared in `filters.lib` and only one of them is considered to be standard, etc.
 
-## The question of licensing/authoring/copyrigth
+## Copyright / License
 
-Now that Faust libraries are not author specific, each function will be able to have its own licence/author declaration. This means that some libraries wont have a global licence/author/copyright declaration like it used to be the case.
+Now that Faust libraries are less author specific, each function will normally have its own copyright-and-license line. If not, then the global copyright/license may be assumed, when present.  If there is no local or global notice, try git blame!
+
