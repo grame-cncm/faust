@@ -807,6 +807,7 @@ public:
                 double v = values[i];
                 if ( (v >= lo) && (v <= hi) ) {
                     // It is a valid value : add corresponding menu item
+                    // +1 because index 0 is reserved for a non-defined item.
                     fComboBox.addItem(String(names[i].c_str()), v+1);
                     fValues.push_back(v);
 
@@ -831,6 +832,7 @@ public:
     void comboBoxChanged (ComboBox* cb) override
     {
         std::cout<<fName<<" : "<<cb->getSelectedId() - 1<<std::endl;
+        // -1 because of the +1 at the initialization
         modifyZone(cb->getSelectedId() - 1);
     }
 
@@ -1043,7 +1045,7 @@ public:
         
         // No text editor for LEDs
         if(fStyle != Led) {
-            setupTextEditor();
+            setupLabel();
         }
     }
 
@@ -1135,9 +1137,9 @@ public:
         }
     }
 
-    /** Set the TextBox position whenever the layout size changes. */
+    /** Set the Label position whenever the layout size changes. */
     void resized() override {
-        setTextEditorPos();
+        setLabelPos();
     }
 
     void reflectZone() override
@@ -1157,8 +1159,8 @@ private:
     bool isBargraphNameShown;   // Is the VU-meter name displayable.
     bool forceRepaint;          // Only needed at the initialization.
 
-    /** Give the right coordinates and size to the text of TextBox depending on the VU-meter style */
-    void setTextEditorPos() {
+    /** Give the right coordinates and size to the text of Label depending on the VU-meter style */
+    void setLabelPos() {
         if     (fStyle == VVUMeter)   {
             // -22 on the height because of the text box.
             fLabel.setBounds((getWidth()-50)/2, getHeight()-22, 50, 20);
@@ -1175,9 +1177,9 @@ private:
         }
     }
 
-    /** Contain all the initialization need for our TextBox */
-    void setupTextEditor() {
-        setTextEditorPos();
+    /** Contain all the initialization need for our Label */
+    void setupLabel() {
+        setLabelPos();
         fLabel.setEditable(false, false, false);
         fLabel.setJustificationType(Justification::centred);
         fLabel.setText(String((int)*fZone) + fUnit, dontSendNotification);
@@ -1497,7 +1499,7 @@ private:
         g.setColour(Colours::white.withAlpha(0.8f));
         g.fillRect(x+1, y+1, width-2, height-2);
     
-        // Text is handled by the setTextEditorPos() function
+        // Text is handled by the setLabelPos() function
     }
     
     float dB2Scale(float dB)
@@ -1588,7 +1590,7 @@ private:
 
         if(fStyle == VVUMeter) {
             r = Rectangle<int>((getWidth()-(kVBargraphWidth/2))/2 + 1,  // Left side of the VU-Meter.
-                               dB2y(num);                               // Vertically centred with 20 height.
+                               dB2y(num),                               // Vertically centred with 20 height.
                                (kVBargraphWidth/2)-2,                   // VU-Meter width with margin.
                                20);                                     // 20 height.
             g.drawText(String(num), r, Justification::centredRight, false);
@@ -1941,7 +1943,7 @@ public:
                 label = nullptr; // label is the box name, shouldn't be displayed
                                  // both (tab name and box name)
             }
-            currentBox = new uiBox(true, String(label), order, tabLayout); // Create a new box
+            currentBox = new uiBox(true, String(label), order); // Create a new box
             parentBox = nullptr; // Its parent is not another uiBox, so null
             if(!tabLayout) {
                 // Doesn't need to be done if it's a tab layout, addTabs function is already
@@ -1950,7 +1952,7 @@ public:
             }
         } else { // Not the first box
             parentBox = currentBox; // parent box is now set properly
-            currentBox = new uiBox(true, String(label), order, tabLayout); // Create a new box
+            currentBox = new uiBox(true, String(label), order); // Create a new box
             parentBox->addChildBox(currentBox);
         }
 
@@ -1965,7 +1967,7 @@ public:
                 label = nullptr; // label is the box name, shouldn't be displayed
                                  // both (tab name and box name)
             }
-            currentBox = new uiBox(false, String(label), order, tabLayout); // Create a new box
+            currentBox = new uiBox(false, String(label), order); // Create a new box
             parentBox = nullptr; // Its parent is not another uiBox, so null
             if(!tabLayout) {
                 // Doesn't need to be done if it's a tab layout, addTabs function is already
@@ -1974,7 +1976,7 @@ public:
             }
         } else { // Not the first box
             parentBox = currentBox; // parent box is now set properly
-            currentBox = new uiBox(false, String(label), order, tabLayout); // Create a new box
+            currentBox = new uiBox(false, String(label), order); // Create a new box
             parentBox->addChildBox(currentBox);
         }
 
@@ -2055,9 +2057,9 @@ public:
         }
         
         if(vert) {
-            currentBox->addChildUiComponent(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, nbButtons * (kRadioButtonHeight - 25) + 25, init, min, max, true, names, values, String(fTooltip[zone]), mdescr, radioGroup));
+            currentBox->addChildUiComponent(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, nbButtons * (kRadioButtonHeight - 25) + 25, init, min, max, true, names, values, String(fTooltip[zone]), radioGroup));
         } else {
-            currentBox->addChildUiComponent(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, kRadioButtonHeight, init, min, max, false, names, values, String(fTooltip[zone]), mdescr, radioGroup));
+            currentBox->addChildUiComponent(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, kRadioButtonHeight, init, min, max, false, names, values, String(fTooltip[zone]), radioGroup));
         }
     }
     
