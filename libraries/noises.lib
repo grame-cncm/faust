@@ -20,7 +20,7 @@
 /************************************************************************
 ************************************************************************
 FAUST library file
-Except where noted otherwise, Copyright (C) 2003-2016 by GRAME,
+Except where noted otherwise, Copyright (C) 2003-2017 by GRAME,
 Centre National de Creation Musicale.
 ----------------------------------------------------------------------
 GRAME LICENSE
@@ -55,8 +55,7 @@ closed source license or any other license if you decide so.
 ba = library("basics.lib");
 fi = library("filters.lib");
 os = library("oscillators.lib");
-no = library("noises.lib"); // so functions in this file can use the 'no' prefix
-     // (for compatible copy/paste out of this file)
+no = library("noises.lib"); // for compatible copy/paste out of this file
 
 declare name "Faust Noise Generator Library";
 declare version "0.0";
@@ -119,12 +118,25 @@ with {
 	RANDMAX = 2147483647.0;
 };
 
-
 //-----------------------`noises`------------------------
 // TODO.
 //----------------------------------------------------------
 noises(N,i) = multinoise(N) : ba.selector(i,N);
 
+//########################################################################################
+/************************************************************************
+FAUST library file, jos section
+
+Except where noted otherwise, The Faust functions below are Copyright
+(C) 2003-2017 by Julius O. Smith III
+([jos](http://ccrma.stanford.edu/~jos/)), and released under the
+(MIT-style) [STK-4.3](#stk-4.3-license) license.
+
+All MarkDown in the comments below is Copyright 2016-2017 by Romain
+Michon and Julius O. Smith III, and is released under the
+[CCA4I](https://creativecommons.org/licenses/by/4.0/) license.
+
+************************************************************************/
 
 //---------------------------`pink_noise`--------------------------
 // Pink noise (1/f noise) generator (third-order approximation)
@@ -139,11 +151,6 @@ noises(N,i) = multinoise(N) : ba.selector(i,N);
 // #### Reference:
 //
 // <https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html>
-//
-// #### License
-// * Copyright (C) 2010-2017 by [jos](http://ccrma.stanford.edu/~jos/)
-// * License: [STK-4.3](stk4p3-license.md)
-// * Markdown by [rrm](http://ccrma.stanford.edu/~rmichon/)
 //------------------------------------------------------------
 pink_filter = fi.iir((0.049922035, -0.095993537, 0.050612699, -0.004408786),
                     (-2.494956002, 2.017265875, -0.522189400));
@@ -168,12 +175,6 @@ pink_noise = noise : pink_filter;
 //
 // * <http://www.dsprelated.com/showarticle/908.php>
 // * <http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney>
-//
-// #### License
-//
-// * Copyright (C) 2016-2017 by [jos](http://ccrma.stanford.edu/~jos/)
-// * License: [STK-4.3](stk4p3-license.md)
-// * Markdown by [rrm](http://ccrma.stanford.edu/~rmichon/)
 //------------------------------------------------------------
 pink_noise_vm(N) = noise <: _,par(i,N,ba.latch(clock(i))) :> _
 with {
@@ -201,12 +202,6 @@ with {
 //           lfnoiseN(3,rate), // lfnoise0 smoothed by 3rd order Butterworth LPF
 //           lfnoise(rate);    // lfnoise0 smoothed with no overshoot
 // ```
-//
-// #### License
-//
-// * Copyright (C) 2013-2017 by [jos](http://ccrma.stanford.edu/~jos/)
-// * License: [STK-4.3](stk4p3-license.md)
-// * Markdown by [rrm](http://ccrma.stanford.edu/~rmichon/)
 //------------------------------------------------------------
 lfnoise0(freq) = noise : ba.latch(os.oscrs(freq));
 lfnoiseN(N,freq) = lfnoise0(freq) : fi.lowpass(N,freq); // Nth-order Butterworth lowpass
@@ -233,7 +228,6 @@ lfnoise(freq) = lfnoise0(freq) : seq(i,5,fi.lowpass(1,freq)); // non-overshootin
 //   in Proc. 30th Int. Conf. Intelligent Audio Environments (AES07),
 //   March 2007.
 //
-// License: [STK-4.3](#stk-4.3-license) — Copyright (C) 2017 by [jos](http://ccrma.stanford.edu/~jos/) (code) and [rm](http://ccrma.stanford.edu/~rmichon/) (markdown)
 //------------------------------------------------------------
 velvet_noise(amp,f0) = vn
 with {
@@ -246,3 +240,14 @@ with {
   signedamp = select2(e>0, -amp, amp);
   vn = signedamp * crossed;
 };
+
+//########################################################################################
+/************************************************************************
+FAUST library file, further contributions section
+
+All contributions below should indicate both the contributor and terms
+of license.  If no such indication is found, "git blame" will say who
+last edited each line, and that person can be emailed to inquire about
+license disposition.  It is expected that all software will be
+released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
+************************************************************************/
