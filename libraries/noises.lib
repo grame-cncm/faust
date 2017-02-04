@@ -55,8 +55,8 @@ closed source license or any other license if you decide so.
 ba = library("basics.lib");
 fi = library("filters.lib");
 os = library("oscillators.lib");
-no(x) = x; // so functions in this file can use the 'no' prefix
-           // (for compatible copy/paste out of this file)
+no = library("noises.lib"); // so functions in this file can use the 'no' prefix
+     // (for compatible copy/paste out of this file)
 
 declare name "Faust Noise Generator Library";
 declare version "0.0";
