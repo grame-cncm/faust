@@ -420,10 +420,10 @@ lf_sawpos_phase(phase,freq) = (+(phase-phase') : ma.frac ) ~ +(freq/ma.SR);
 //
 // Correction-filtered versions of `saw2`: `saw2f2`, `saw2f4`
 // The correction filter compensates "droop" near half the sampling rate.
-// See reference for sawN. 
+// See reference for sawN.
 //
 // #### Usage
-// 
+//
 // ```
 // sawN(N,freq) : _
 // sawNp(N,freq,phase) : _
@@ -569,8 +569,8 @@ saw2f4 = saw2 : cf4 with {
 // #### Usage
 //
 // ```
-// pulsetrainN(N,freq,duty) : _ 
-// pulsetrain(freq, duty) : _ // = pulsetrainN(2) 
+// pulsetrainN(N,freq,duty) : _
+// pulsetrain(freq, duty) : _ // = pulsetrainN(2)
 // squareN(N, freq) : _
 // square : _ // = squareN(2)
 // imptrainN(N,freq) : _
@@ -726,7 +726,7 @@ triangle = triangleN(2); // default based on saw2
 //===============================Filter-Based Oscillators=================================
 // Filter-Based Oscillators
 //
-// #### Usage 
+// #### Usage
 //
 // ```
 // osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.
@@ -749,7 +749,7 @@ triangle = triangleN(2); // default based on saw2
 //
 // Where:
 //
-// * `freq`: frequency 
+// * `freq`: frequency
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
 oscb(f) = impulse : fi.tf2(1,0,0,a1,1)
@@ -762,7 +762,7 @@ with {
 // Sinusoidal (sine and cosine) oscillator based on 2D vector rotation,
 //  = undamped "coupled-form" resonator
 //  = lossless 2nd-order normalized ladder filter.
-// 
+//
 // #### Usage
 //
 // ```
@@ -785,7 +785,7 @@ oscrq(f) = impulse : fi.nlf2(f,1); // sine and cosine outputs
 // Sinusoidal (sine) oscillator based on 2D vector rotation,
 //  = undamped "coupled-form" resonator
 //  = lossless 2nd-order normalized ladder filter.
-// 
+//
 // #### Usage
 //
 // ```
@@ -808,7 +808,7 @@ oscrs(f) = impulse : fi.nlf2(f,1) : _,!; // sine
 // Sinusoidal (cosine) oscillator based on 2D vector rotation,
 //  = undamped "coupled-form" resonator
 //  = lossless 2nd-order normalized ladder filter.
-// 
+//
 // #### Usage
 //
 // ```
@@ -913,7 +913,7 @@ oscws(fr) = impulse : fi.wgr(fr,1) : !,_; // sine (needs a 2nd scaling mpy)
 
 
 //-----------------`oscwq`--------------------
-// Sinusoidal oscillator based on the waveguide resonator `wgr`. 
+// Sinusoidal oscillator based on the waveguide resonator `wgr`.
 // Unit-amplitude cosine and sine (quadrature) oscillator.
 //
 // #### Usage
@@ -954,7 +954,3 @@ oscq(fr)  = impulse : fi.wgr(fr,1);       // phase quadrature outputs
 //------------------------------------------------------------
 // TODO: author JOS, revised by RM
 oscw = oscwc;
-
-
-
-

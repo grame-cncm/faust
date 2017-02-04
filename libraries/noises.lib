@@ -1,7 +1,5 @@
 //##################################### noises.lib ########################################
-// A library of noise generators.
-//
-// It should be used using the `no` environment:
+// Faust Noise Generator Library, official prefix `no`
 //
 // ```
 // no = library("noises.lib");
@@ -17,9 +15,21 @@
 // ```
 //########################################################################################
 
+ba = library("basics.lib");
+fi = library("filters.lib");
+os = library("oscillators.lib");
+no = library("noises.lib"); // for compatible copy/paste out of this file
+
+declare name "Faust Noise Generator Library";
+declare version "0.0";
+
+//=============================Functions Reference========================================
+//========================================================================================
+
 /************************************************************************
 ************************************************************************
-FAUST library file
+FAUST library file, GRAME section
+
 Except where noted otherwise, Copyright (C) 2003-2017 by GRAME,
 Centre National de Creation Musicale.
 ----------------------------------------------------------------------
@@ -51,17 +61,6 @@ to be LGPL or GPL. For example you are free to choose a commercial or
 closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
-
-ba = library("basics.lib");
-fi = library("filters.lib");
-os = library("oscillators.lib");
-no = library("noises.lib"); // for compatible copy/paste out of this file
-
-declare name "Faust Noise Generator Library";
-declare version "0.0";
-
-//=============================Functions Reference========================================
-//========================================================================================
 
 //-------`noise`----------
 // White noise generator (outputs random number between -1 and 1).
@@ -127,14 +126,15 @@ noises(N,i) = multinoise(N) : ba.selector(i,N);
 /************************************************************************
 FAUST library file, jos section
 
-Except where noted otherwise, The Faust functions below are Copyright
-(C) 2003-2017 by Julius O. Smith III
+Except where noted otherwise, The Faust functions below in this
+section Copyright (C) 2003-2017 by Julius O. Smith III
 ([jos](http://ccrma.stanford.edu/~jos/)), and released under the
 (MIT-style) [STK-4.3](#stk-4.3-license) license.
 
-All MarkDown in the comments below is Copyright 2016-2017 by Romain
+All MarkDown comments in this section is Copyright 2016-2017 by Romain
 Michon and Julius O. Smith III, and is released under the
-[CCA4I](https://creativecommons.org/licenses/by/4.0/) license.
+[CCA4I](https://creativecommons.org/licenses/by/4.0/) license (if/when
+Romain agrees!)
 
 ************************************************************************/
 
