@@ -41,7 +41,6 @@
 #include "faust/misc.h"
 
 #include "faust/gui/APIUI.h"
-#include "faust/audio/dummy-audio.h"
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/JuceGUI.h"
 #include "faust/gui/MidiUI.h"
@@ -177,13 +176,17 @@ class MainContentComponent : public AudioAppComponent, private Timer
                 fMIDIHandler = new juce_midi();
                 fMIDIUI = new MidiUI(fMIDIHandler);
                 fDSP->buildUserInterface(fMIDIUI);
-                fMIDIUI->run();
+                if (!fMIDIUI->run()) {
+                    std::cerr << "JUCE MIDI handler cannot be started..." << std::endl;
+                }
             #endif
             
             #if defined(OSCCTRL)
                 fOSCUI = new JuceOSCUI("127.0.0.1", 5510, 5511);
                 fDSP->buildUserInterface(fOSCUI);
-                fOSCUI->run();
+                if (!fOSCUI->run()) {
+                    std::cerr << "JUCE OSC handler cannot be started..." << std::endl;
+                }
             #endif
             
             recommendedSize = juceGUI.getSize();

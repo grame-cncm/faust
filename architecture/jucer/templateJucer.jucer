@@ -13,9 +13,9 @@
     <XCODE_MAC targetFolder="Builds/MacOSX" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES"
                extraDefs="PreProcDef">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="Rectangle AudioApp"
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"
                        osxSDK="default" osxCompatibility="default"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="Rectangle AudioApp"
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"
                        osxSDK="default" osxCompatibility="default"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
@@ -32,14 +32,15 @@
         <MODULEPATH id="juce_audio_devices" path="../../modules"/>
         <MODULEPATH id="juce_audio_formats" path="../../modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../modules"/>
+        <MODULEPATH id="juce_osc" path="../../modules"/>
         <MODULEPATH id="juce_audio_utils" path="../../modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" iosScreenOrientation="portraitlandscape"
                   extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="Rectangle AudioApp"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="Rectangle AudioApp"/>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../modules"/>
@@ -55,15 +56,16 @@
         <MODULEPATH id="juce_audio_devices" path="../../modules"/>
         <MODULEPATH id="juce_audio_formats" path="../../modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../modules"/>
+        <MODULEPATH id="juce_osc" path="../../modules"/>
         <MODULEPATH id="juce_audio_utils" path="../../modules"/>
       </MODULEPATHS>
     </XCODE_IPHONE>
     <VS2015 targetFolder="Builds/VisualStudio2015" extraDefs="PreProcDef">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
-                       isDebug="1" optimisation="1" targetName="Rectangle AudioApp"/>
+                       isDebug="1" optimisation="1" targetName="APPL_NAME"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
-                       isDebug="0" optimisation="3" targetName="Rectangle AudioApp"/>
+                       isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../modules"/>
@@ -79,15 +81,16 @@
         <MODULEPATH id="juce_audio_devices" path="../../modules"/>
         <MODULEPATH id="juce_audio_formats" path="../../modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../modules"/>
+        <MODULEPATH id="juce_osc" path="../../modules"/>
         <MODULEPATH id="juce_audio_utils" path="../../modules"/>
       </MODULEPATHS>
     </VS2015>
     <VS2013 targetFolder="Builds/VisualStudio2013" extraDefs="PreProcDef">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
-                       isDebug="1" optimisation="1" targetName="Rectangle AudioApp"/>
+                       isDebug="1" optimisation="1" targetName="APPL_NAME"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
-                       isDebug="0" optimisation="3" targetName="Rectangle AudioApp"/>
+                       isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../modules"/>
@@ -103,15 +106,16 @@
         <MODULEPATH id="juce_audio_devices" path="../../modules"/>
         <MODULEPATH id="juce_audio_formats" path="../../modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../modules"/>
+        <MODULEPATH id="juce_osc" path="../../modules"/>
         <MODULEPATH id="juce_audio_utils" path="../../modules"/>
       </MODULEPATHS>
     </VS2013>
     <VS2012 targetFolder="Builds/VisualStudio2012" extraDefs="PreProcDef">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
-                       isDebug="1" optimisation="1" targetName="Rectangle AudioApp"/>
+                       isDebug="1" optimisation="1" targetName="APPL_NAME"/>
         <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
-                       isDebug="0" optimisation="3" targetName="Rectangle AudioApp"/>
+                       isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../modules"/>
@@ -127,14 +131,15 @@
         <MODULEPATH id="juce_audio_devices" path="../../modules"/>
         <MODULEPATH id="juce_audio_formats" path="../../modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../modules"/>
+        <MODULEPATH id="juce_osc" path="../../modules"/>
         <MODULEPATH id="juce_audio_utils" path="../../modules"/>
       </MODULEPATHS>
     </VS2012>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile"
         extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="Rectangle AudioApp"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="Rectangle AudioApp"/>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../modules"/>
@@ -150,15 +155,16 @@
         <MODULEPATH id="juce_audio_devices" path="../../modules"/>
         <MODULEPATH id="juce_audio_formats" path="../../modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../modules"/>
+        <MODULEPATH id="juce_osc" path="../../modules"/>
         <MODULEPATH id="juce_audio_utils" path="../../modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
     <ANDROIDSTUDIO targetFolder="Builds/AndroidStudio">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" androidArchitectures="armeabi armeabi-v7a x86" isDebug="1"
-                       optimisation="1" targetName="Rectangle AudioApp"/>
+                       optimisation="1" targetName="APPL_NAME"/>
         <CONFIGURATION name="Release" androidArchitectures="armeabi armeabi-v7a x86"
-                       isDebug="0" optimisation="3" targetName="Rectangle AudioApp"/>
+                       isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../modules"/>
@@ -174,15 +180,16 @@
         <MODULEPATH id="juce_audio_devices" path="../../modules"/>
         <MODULEPATH id="juce_audio_formats" path="../../modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../modules"/>
+        <MODULEPATH id="juce_osc" path="../../modules"/>
         <MODULEPATH id="juce_audio_utils" path="../../modules"/>
       </MODULEPATHS>
     </ANDROIDSTUDIO>
     <ANDROID targetFolder="Builds/Android">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" androidArchitectures="armeabi armeabi-v7a x86" isDebug="1"
-                       optimisation="1" targetName="Rectangle AudioApp"/>
+                       optimisation="1" targetName="APPL_NAME"/>
         <CONFIGURATION name="Release" androidArchitectures="armeabi armeabi-v7a x86"
-                       isDebug="0" optimisation="3" targetName="Rectangle AudioApp"/>
+                       isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../modules"/>
@@ -198,13 +205,14 @@
         <MODULEPATH id="juce_audio_devices" path="../../modules"/>
         <MODULEPATH id="juce_audio_formats" path="../../modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../modules"/>
+        <MODULEPATH id="juce_osc" path="../../modules"/>
         <MODULEPATH id="juce_audio_utils" path="../../modules"/>
       </MODULEPATHS>
     </ANDROID>
     <CODEBLOCKS_WINDOWS targetFolder="Builds/CodeBlocksWindows">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="Rectangle AudioApp"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="Rectangle AudioApp"/>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../modules"/>
@@ -220,13 +228,14 @@
         <MODULEPATH id="juce_audio_devices" path="../../modules"/>
         <MODULEPATH id="juce_audio_formats" path="../../modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../modules"/>
+        <MODULEPATH id="juce_osc" path="../../modules"/>
         <MODULEPATH id="juce_audio_utils" path="../../modules"/>
       </MODULEPATHS>
     </CODEBLOCKS_WINDOWS>
     <CODEBLOCKS_LINUX targetFolder="Builds/CodeBlocksLinux">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="Rectangle AudioApp"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="Rectangle AudioApp"/>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../modules"/>
@@ -242,6 +251,7 @@
         <MODULEPATH id="juce_audio_devices" path="../../modules"/>
         <MODULEPATH id="juce_audio_formats" path="../../modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../modules"/>
+        <MODULEPATH id="juce_osc" path="../../modules"/>
         <MODULEPATH id="juce_audio_utils" path="../../modules"/>
       </MODULEPATHS>
     </CODEBLOCKS_LINUX>
@@ -261,6 +271,7 @@
     <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_video" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_osc" showAllCode="1" useLocalCopy="0"/>
   </MODULES>
   <JUCEOPTIONS/>
   <LIVE_SETTINGS>

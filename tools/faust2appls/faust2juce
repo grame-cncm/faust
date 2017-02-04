@@ -122,11 +122,13 @@ for p in $FILES; do
 
     # setting the preprocessing definitions
     sed -e "s/PreProcDef/$DEF/g" "$dspName/$dspName-temp.jucer" >> "$dspName/$dspName-temp1.jucer"
-    sed -e "s/NUM_VOICES/$NVOICES/g" "$dspName/$dspName-temp1.jucer" >> "$dspName/$dspName.jucer"
+    sed -e "s/APPL_NAME/$dspName/g" "$dspName/$dspName-temp1.jucer" >> "$dspName/$dspName-temp2.jucer"
+    sed -e "s/NUM_VOICES/$NVOICES/g" "$dspName/$dspName-temp2.jucer" >> "$dspName/$dspName.jucer"
 
     rm "$dspName/templateJucer.jucer"
     rm "$dspName/$dspName-temp.jucer"
     rm "$dspName/$dspName-temp1.jucer"
+    rm "$dspName/$dspName-temp2.jucer"
 
     if [ $POLY = "POLY2" ]; then
         faust -i -a $ARCHFILE $OPTION "$SRCDIR/$f" -o "$dspName/Source/MainComponent.h" || exit
