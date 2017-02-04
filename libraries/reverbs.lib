@@ -1,20 +1,5 @@
 //#################################### reverbs.lib ########################################
-// A library of reverb effects.
-//
-// It should be used using the `re` environment:
-//
-// ```
-// re = library("reverbs.lib");
-// process = re.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `re`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = re.functionCall;
-// ```
+// A library of reverb effects. Its official prefix is `re`.
 //########################################################################################
 
 /************************************************************************

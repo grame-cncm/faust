@@ -1,20 +1,5 @@
 //#################################### compressors.lib ####################################
-// A library of compressor effects.
-//
-// It should be used using the `co` environment:
-//
-// ```
-// co = library("compressors.lib");
-// process = co.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `co`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = co.functionCall;
-// ```
+// A library of compressor effects. Its official prefix is `co`.
 //########################################################################################
 
 /************************************************************************

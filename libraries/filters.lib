@@ -1,18 +1,5 @@
 //##################################### filters.lib ########################################
-// Faust Filters library, official prefix `fi`
-//
-// ```
-// fi = library("filters.lib");
-// process = fi.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `fi`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = fi.functionCall;
-// ```
+// Faust Filters library; Its official prefix is `fi`.
 //
 // The Filters library is organized into 18 sections:
 //
@@ -2124,7 +2111,7 @@ mth_octave_filterbank(O,M,ftop,N) =
 };
 
 // dc-inverted version.  This reduces the delay-equalizer order for odd O.
-// Negating the input signal makes the dc band noninverting
+   // Negating the input signal makes the dc band noninverting
 //   and all higher bands sign-inverted (if preferred).
 mth_octave_filterbank_alt(O,M,ftop,N) =
     an.mth_octave_analyzer(O,M,ftop,N) : delayeqi(O,N) with {

@@ -1,20 +1,5 @@
 //################################ envelopes.lib ##########################################
-// This library contains a collection of envelope generators.
-//
-// It should be used using the `en` environment:
-//
-// ```
-// en = library("envelopes.lib");
-// process = en.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `en`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = en.functionCall;
-// ```
+// This library contains a collection of envelope generators. Its official prefix is `en`.
 //########################################################################################
 
 /************************************************************************

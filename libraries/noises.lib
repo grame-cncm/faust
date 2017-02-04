@@ -1,18 +1,5 @@
 //##################################### noises.lib ########################################
-// Faust Noise Generator Library, official prefix `no`
-//
-// ```
-// no = library("noises.lib");
-// process = no.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `no`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = no.functionCall;
-// ```
+// Faust Noise Generator Library. Its official prefix is `no`.
 //########################################################################################
 
 ba = library("basics.lib");

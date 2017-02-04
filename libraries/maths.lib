@@ -3,20 +3,7 @@
 // functions of `math.h` functions that are not part of Faust's primitives. Defines 
 // also various constants and several utilities.
 //
-// It should be used using the `fi` environment:
-//
-// ```
-// ma = library("maths.lib");
-// process = ma.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `ma`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = ma.functionCall;
-// ```
+// The official prefix of this library is `ma`.
 //########################################################################################
 
 // ## History

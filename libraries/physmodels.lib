@@ -1,20 +1,5 @@
 //##################################### physmodels.lib ###########################################
-// Faust physical modeling library.
-//
-// It should be used using the `fi` environment:
-//
-// ```
-// pm = library("physmodels.lib");
-// process = pm.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `pm`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = pm.functionCall;
-// ```
+// Faust physical modeling library. Its official prefix is `pm`.
 //########################################################################################
 
 ma = library("maths.lib");

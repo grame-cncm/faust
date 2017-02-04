@@ -1,20 +1,5 @@
 //#################################### vaeffects.lib ########################################
-// A library of virtual analog filter effects.
-//
-// It should be used using the `ve` environment:
-//
-// ```
-// ve = library("vaeffects.lib");
-// process = ve.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `ve`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = ve.functionCall;
-// ```
+// A library of virtual analog filter effects. Its official prefix is `ve`.
 //########################################################################################
 
 /************************************************************************

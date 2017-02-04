@@ -1,20 +1,5 @@
 //################################### hoa.lib ############################################
-// Faust library for high order ambisonic.
-//
-// It should be used using the `ho` environment:
-//
-// ```
-// ho = library("ho.lib");
-// process = ho.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `ho`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = ho.functionCall;
-// ```
+// Faust library for high order ambisonic. Its official prefix is `ho`.
 //########################################################################################
 
 /************************************************************************

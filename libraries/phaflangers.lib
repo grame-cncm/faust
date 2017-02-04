@@ -1,20 +1,5 @@
 //#################################### phaflangers.lib ########################################
-// A library of compressor effects.
-//
-// It should be used using the `pf` environment:
-//
-// ```
-// pf = library("phaflangers.lib");
-// process = pf.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `pf`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = pf.functionCall;
-// ```
+// A library of phasor and flanger effects. Its official prefix is `pf`.
 //########################################################################################
 
 /************************************************************************

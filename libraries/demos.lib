@@ -1,21 +1,6 @@
 //#################################### demos.lib ##########################################
 // This library contains a set of demo functions based on examples located in the
-// `/examples` folder.
-// 
-// It should be used using the `dm` environment:
-//
-// ```
-// dm = library("demos.lib");
-// process = dm.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `dm`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = dm.functionCall;
-// ```
+// `/examples` folder. Its official prefix is `dm`.
 //########################################################################################
 
 /************************************************************************

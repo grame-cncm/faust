@@ -1,20 +1,5 @@
 //############################## oscillators.lib ######################################
-// This library contains a collection of sound generators.
-//
-// It should be used using the `os` environment:
-//
-// ```
-// os = library("oscillators.lib");
-// process = os.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `os`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = os.functionCall;
-// ```
+// This library contains a collection of sound generators. Its official prefix is `os`.
 //########################################################################################
 
 /************************************************************************

@@ -7,20 +7,7 @@
 // * Selectors (Conditions)
 // * Other Tools (Misc)
 //
-// It should be used using the `ba` environment:
-//
-// ```
-// ba = library("basics.lib");
-// process = ba.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `ba`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = ba.functionCall;
-// ```
+// The official prefix of this library is `ba`.
 //########################################################################################
 
 /************************************************************************

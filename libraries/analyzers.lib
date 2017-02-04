@@ -1,18 +1,6 @@
 //################################ analyzers.lib ##########################################
-// Faust Analyzers library, official prefix `an`
-//
-// ```
-// an = library("analyzers.lib");
-// process = an.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `an`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = an.functionCall;
-// ```
+// Faust Analyzers library. Its official prefix is `an`.
+//########################################################################################
 
 ba = library("basics.lib");
 si = library("signals.lib");
@@ -22,7 +10,6 @@ an = library("analyzers.lib"); // for compatible copy/paste out of this file
 declare name "Faust Analyzer Library";
 declare version "0.0";
 
-//########################################################################################
 /************************************************************************
 FAUST library file, jos section
 

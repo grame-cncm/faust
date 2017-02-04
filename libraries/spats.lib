@@ -1,20 +1,6 @@
 //#################################### spats.lib ##########################################
 // This library contains a collection of tools for sound spatialization.
-//
-// It should be used using the `sp` environment:
-//
-// ```
-// sp = library("spats.lib");
-// process = sp.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `sp`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = sp.functionCall;
-// ```
+// Its official prefix is `sp`.
 //########################################################################################
 
 /************************************************************************
