@@ -876,7 +876,8 @@ FAUST library file, further contributions section
 All contributions below should indicate both the contributor and terms
 of license.  If no such indication is found, "git blame" will say who
 last edited each line, and that person can be emailed to inquire about
-license disposition.  It is expected that all software will be
+license disposition, if their license choice is not already indicated
+elsewhere among the libraries.  It is expected that all software will be
 released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
 

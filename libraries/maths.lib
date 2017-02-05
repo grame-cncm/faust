@@ -574,7 +574,7 @@ chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
 
 	
 //------------------`diffn`----------------------------
-// Negated first-roder difference.
+// Negated first-order difference.
 //
 // #### Usage
 //
@@ -582,7 +582,16 @@ chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
 // _ : diffn : _
 // ```
 //--------------------------------------------------------
-// TODO: author JOS, revised by RM
 diffn(x) = x' - x; // negated first-order difference
 
-
+//------------------`signum`----------------------------
+// The signum function signum(x) is defined as
+// -1 for x<0, 0 for x==0, and 1 for x>0;
+//
+// #### Usage
+//
+// ```
+// _ : signum : _
+// ```
+//--------------------------------------------------------
+signum(x) = (x>0)-(x<0);

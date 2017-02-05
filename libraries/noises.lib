@@ -2,6 +2,7 @@
 // Faust Noise Generator Library. Its official prefix is `no`.
 //########################################################################################
 
+ma = library("maths.lib");
 ba = library("basics.lib");
 fi = library("filters.lib");
 os = library("oscillators.lib");
@@ -194,6 +195,37 @@ lfnoise0(freq) = noise : ba.latch(os.oscrs(freq));
 lfnoiseN(N,freq) = lfnoise0(freq) : fi.lowpass(N,freq); // Nth-order Butterworth lowpass
 lfnoise(freq) = lfnoise0(freq) : seq(i,5,fi.lowpass(1,freq)); // non-overshooting lowpass
 
+//-------------------------`sparse_noise_vm`-------------------
+// sparse noise generator.
+//
+// #### Usage
+//
+// ```
+// sparse_noise(f0) : _;
+// ```
+//
+// Where:
+//
+// * ` f0`: average frequency of noise impulses per second
+//
+// Random impulses in the amplitude range -1 to 1 are generated
+// at an average rate of f0 impulses per second.
+//
+// #### Reference
+//
+// * See velvet_noise
+//------------------------------------------------------------
+sparse_noise(f0) = sn
+with {
+  saw = os.lf_sawpos(f0);
+  sawdiff = saw - saw';
+  e = float(no.noise); // float() keeps 4.656613e-10f scaling here instead of later
+  eHeld = e : ba.latch(sawdiff);
+  eHeldPos = 0.5 + 0.5 * eHeld;
+  crossed = (saw >= eHeldPos) * (saw' < eHeldPos);
+  sn = e' * float(crossed);
+};
+
 //-------------------------`velvet_noise_vm`-------------------
 // velvet noise generator.
 //
@@ -218,14 +250,8 @@ lfnoise(freq) = lfnoise0(freq) : seq(i,5,fi.lowpass(1,freq)); // non-overshootin
 //------------------------------------------------------------
 velvet_noise(amp,f0) = vn
 with {
-  saw = os.lf_sawpos(f0);
-  sawdiff = saw - saw';
-  e = no.noise;
-  noiseHeld = e : ba.latch(sawdiff);
-  noiseHeldPos = 0.5 + 0.5 * noiseHeld;
-  crossed = (saw >= noiseHeldPos) * (saw' < noiseHeldPos);
-  signedamp = select2(e>0, -amp, amp);
-  vn = signedamp * crossed;
+  sn = no.sparse_noise(f0);
+  vn = amp * ma.signum(sn);
 };
 
 //########################################################################################
@@ -235,6 +261,7 @@ FAUST library file, further contributions section
 All contributions below should indicate both the contributor and terms
 of license.  If no such indication is found, "git blame" will say who
 last edited each line, and that person can be emailed to inquire about
-license disposition.  It is expected that all software will be
+license disposition, if their license choice is not already indicated
+elsewhere among the libraries.  It is expected that all software will be
 released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
