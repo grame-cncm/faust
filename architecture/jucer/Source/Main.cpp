@@ -67,7 +67,7 @@ public:
             addAndMakeVisible(tooltipWindow);
         }
         
-        virtual void resized() override{
+        virtual void resized() override {
             Viewport::resized();
             getBounds().getWidth() < minWidth ? ((minWidth < recommendedWidth) ? width = minWidth
                                                                                : width = recommendedWidth)
@@ -76,12 +76,11 @@ public:
                                                                                    : height = recommendedHeight)
                                                 : height = getBounds().getHeight();
             
-            
-            #if JUCE_IOS || JUCE_ANDROID
-                currentAreaChanged(width, height);
-            #else
-                getViewedComponent()->setBounds(Rectangle<int>(0, 0, width, height));
-            #endif
+        #if JUCE_IOS || JUCE_ANDROID
+            currentAreaChanged(width, height);
+        #else
+            getViewedComponent()->setBounds(Rectangle<int>(0, 0, width, height));
+        #endif
         }
         
         void currentAreaChanged (int w, int h) {
@@ -97,10 +96,10 @@ public:
         int j = 0;
     };
     
-    class MainWindow    : public DocumentWindow
+    class MainWindow : public DocumentWindow
     {
     public:
-        MainWindow (String name)  : DocumentWindow (name,
+        MainWindow (String name) : DocumentWindow (name,
                                                     Colours::lightgrey,
                                                     DocumentWindow::allButtons)
         {

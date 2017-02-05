@@ -10,7 +10,7 @@
 
 /************************************************************************
     FAUST Architecture File
-	Copyright (C) 2011 Michael J. Wilson
+    Copyright (C) 2011 Michael J. Wilson
 
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute
