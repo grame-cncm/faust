@@ -28,7 +28,7 @@ Similarly, `stop()` can be called to stop the audio computing and can be placed 
 
 It is possible to interact with the different parameters of the Faust object by using the `setParamValue` method. Two versions of this method exist: one where the parameter can be selected by its address and one where it can be selected using its ID. The [Parameters List](#parameters-list) section gives a list of the addresses and corresponding IDs of the current Faust object.
 
-If your Faust object is polyphonic (e.g. if you used the `-polyvoices` option when generating this API), then you can use the MIDI polyphony methods like `keyOn`, `keyOff`, etc.
+If your Faust object is polyphonic (e.g. if you used the `-nvoices` option when generating this API), then you can use the MIDI polyphony methods like `keyOn`, `keyOff`, etc.
 
 It is possible to change the parameters of polyphonic voices independently using the `setVoiceParamValue` method. This method takes as one of its arguments the address to the voice returned by `keyOn` or `newVoice` when it is called. E.g:
 

@@ -1,20 +1,5 @@
 //#################################### signals.lib ########################################
-// A library of basic elements to handle signals in Faust.
-//
-// It should be used using the `si` environment:
-//
-// ```
-// si = library("signals.lib");
-// process = si.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `si`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = si.functionCall;
-// ```
+// A library of basic elements to handle signals in Faust. Its official prefix is `si`.
 //########################################################################################
 
 /************************************************************************

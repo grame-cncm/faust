@@ -32,7 +32,6 @@ install:
 	install faust2graph $(dest)
 	install faust2graphviewer $(dest)
 	install faust2ios $(dest)
-	install faust2iosKeyboard $(dest)
 	install faust2jack $(dest)
 	install faust2jackconsole $(dest)
 	install faust2jackinternal $(dest)
@@ -45,6 +44,7 @@ install:
 	install faust2mathviewer $(dest)
 	install faust2max6 $(dest)
 	install faust2md $(dest)
+	install faust2multikeyb $(dest)
 	install faust2msp $(dest)
 	install faust2netjackconsole $(dest)
 	install faust2netjackqt $(dest)
@@ -94,7 +94,6 @@ uninstall:
 	rm -f $(dest)/faust2graph
 	rm -f $(dest)/faust2graphviewer
 	rm -f $(dest)/faust2ios
-	rm -f $(dest)/faust2iosKeyboard
 	rm -f $(dest)/faust2jack
 	rm -f $(dest)/faust2jackconsole
 	rm -f $(dest)/faust2jackinternal
@@ -107,6 +106,7 @@ uninstall:
 	rm -f $(dest)/faust2mathviewer
 	rm -f $(dest)/faust2max6
 	rm -f $(dest)/faust2md
+	rm -f $(dest)/faust2multikeyb
 	rm -f $(dest)/faust2msp
 	rm -f $(dest)/faust2netjackconsole
 	rm -f $(dest)/faust2netjackqt

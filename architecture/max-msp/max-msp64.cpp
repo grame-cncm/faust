@@ -107,14 +107,11 @@ using namespace std;
 #define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2		/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION "0.57"
+#define EXTERNAL_VERSION "0.58"
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/MidiUI.h"
-
-#ifdef POLY
 #include "faust/dsp/poly-dsp.h"
-#endif
 
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
@@ -152,6 +149,46 @@ struct Max_Meta2 : Meta
     }
 };
 
+struct MyMeta : public Meta, public std::map<const char*, const char*>
+{
+    void declare(const char* key, const char* value)
+    {
+        (*this)[key] = value;
+    }
+    const char* get(const char* key, const char* def)
+    {
+        if (this->find(key) != this->end()) {
+            return (*this)[key];
+        } else {
+            return def;
+        }
+    }
+};
+
+static void analyseMeta(bool& midi_sync, int& nvoices)
+{
+    mydsp* tmp_dsp = new mydsp();
+    
+    JSONUI jsonui;
+    tmp_dsp->buildUserInterface(&jsonui);
+    std::string json = jsonui.JSON();
+    midi_sync = ((json.find("midi") != std::string::npos) &&
+                 ((json.find("start") != std::string::npos) ||
+                  (json.find("stop") != std::string::npos) ||
+                  (json.find("clock") != std::string::npos)));
+    
+#ifdef NVOICES
+    nvoices = NVOICES;
+#else
+    MyMeta meta;
+    tmp_dsp->metadata(&meta);
+    const char* numVoices = meta.get("nvoices", "0");
+    nvoices = atoi(numVoices);
+    if (nvoices < 0) nvoices = 0;
+#endif
+    
+    delete tmp_dsp;
+}
 
 /*--------------------------------------------------------------------------*/
 typedef struct faust
@@ -600,7 +637,6 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 }
 
 /*--------------------------------------------------------------------------*/
-#ifdef POLY
 void faust_polyphony(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 {
     if (systhread_mutex_lock(obj->m_mutex) == MAX_ERR_NONE) {
@@ -609,8 +645,7 @@ void faust_polyphony(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         obj->m_dspUI->clear();
         // Allocate new one
         if (av[0].a_w.w_long > 0) {
-            dsp* tmp_dsp = new mydsp();
-            obj->m_dsp = new mydsp_poly(tmp_dsp, av[0].a_w.w_long, true, true);
+            obj->m_dsp = new mydsp_poly(new mydsp(), av[0].a_w.w_long, true, true);
         } else {
             obj->m_dsp = new mydsp();
         }
@@ -633,7 +668,6 @@ void faust_polyphony(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         post("Mutex lock cannot be taken...");
     }
 }
-#endif
 
 /*--------------------------------------------------------------------------*/
 #ifdef MIDICTRL
@@ -713,11 +747,24 @@ void faust_make_json(t_faust* x)
 /*--------------------------------------------------------------------------*/
 void* faust_new(t_symbol* s, short ac, t_atom* av)
 {
+    bool midi_sync = false;
+    int nvoices = 1;
+    
+    analyseMeta(midi_sync, nvoices);
+    
     t_faust* x = (t_faust*)newobject(faust_class);
 
     x->m_json = 0;
     x->m_mute = false;
-    x->m_dsp = new mydsp();
+    
+    if (nvoices > 1) {
+        post("polyphonic object voices = %d", nvoices);
+        x->m_dsp = new mydsp_poly(new mydsp(), nvoices, true, true);
+    } else {
+        post("monophonic object");
+        x->m_dsp = new mydsp();
+    }
+    
     x->m_Inputs = x->m_dsp->getNumInputs();
     x->m_Outputs = x->m_dsp->getNumOutputs();
    
@@ -868,9 +915,7 @@ extern "C" int main(void)
 
     // 03/11/14 : use 'anything' to handle all parameter changes
     addmess((method)faust_anything, (char*)"anything", A_GIMME, 0);
-#ifdef POLY
     addmess((method)faust_polyphony, (char*)"polyphony", A_GIMME, 0);
-#endif
 #ifdef MIDICTRL
     addmess((method)faust_midievent, (char*)"midievent", A_GIMME, 0);
 #endif
@@ -881,7 +926,7 @@ extern "C" int main(void)
     dsp_initclass();
 
     post((char*)"Faust DSP object v%s (sample = 64 bits code = %s)", EXTERNAL_VERSION, getCodeSize());
-    post((char*)"Copyright (c) 2012-2016 Grame");
+    post((char*)"Copyright (c) 2012-2017 Grame");
     Max_Meta1 meta1;
     tmp_dsp->metadata(&meta1);
     if (meta1.fCount > 0) {

@@ -1,27 +1,16 @@
 //############################## oscillators.lib ######################################
-// This library contains a collection of sound generators.
-//
-// It should be used using the `os` environment:
-//
-// ```
-// os = library("oscillators.lib");
-// process = os.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `os`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = os.functionCall;
-// ```
+// This library contains a collection of sound generators. Its official prefix is `os`.
 //########################################################################################
 
 /************************************************************************
 ************************************************************************
-FAUST library file
-Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
+FAUST library file, GRAME section
+
+Except where noted otherwise, Copyright (C) 2003-2017 by GRAME,
+Centre National de Creation Musicale.
 ----------------------------------------------------------------------
+GRAME LICENSE
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as
 published by the Free Software Foundation; either version 2.1 of the
@@ -183,6 +172,22 @@ with {
 	s2 = rdtable(tablesize+1,sinwaveform(tablesize),i+1);
 };
 
+//########################################################################################
+/************************************************************************
+FAUST library file, jos section
+
+Except where noted otherwise, The Faust functions below in this
+section Copyright (C) 2003-2017 by Julius O. Smith III
+([jos](http://ccrma.stanford.edu/~jos/)), and released under the
+(MIT-style) [STK-4.3](#stk-4.3-license) license.
+
+All MarkDown comments in this section is Copyright 2016-2017 by Romain
+Michon and Julius O. Smith III, and is released under the
+[CCA4I](https://creativecommons.org/licenses/by/4.0/) license (if/when
+Romain agrees!)
+
+************************************************************************/
+
 
 //===============================LFOs===============================
 // Low-frequency oscillators have prefix `lf_`
@@ -204,7 +209,6 @@ with {
 //
 // * `freq`: frequency in Hz
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 lf_imptrain(freq) = lf_sawpos(freq)<:-(mem)<0; // definition below
 
 
@@ -223,7 +227,6 @@ lf_imptrain(freq) = lf_sawpos(freq)<:-(mem)<0; // definition below
 // * `freq`: frequency in Hz
 // * `duty`: duty cycle between 0 and 1
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 lf_pulsetrainpos(freq,duty) = float(lf_sawpos(freq) <= duty);
 //pulsetrainpos = lf_pulsetrainpos; // for backward compatibility
 
@@ -241,7 +244,6 @@ lf_pulsetrainpos(freq,duty) = float(lf_sawpos(freq) <= duty);
 //
 // * `freq`: frequency in Hz
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 lf_squarewavepos(freq) = lf_pulsetrainpos(freq,0.5);
 // squarewavepos = lf_squarewavepos; // for backward compatibility
 
@@ -260,7 +262,6 @@ lf_squarewavepos(freq) = lf_pulsetrainpos(freq,0.5);
 //
 // * `freq`: frequency in Hz
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 lf_squarewave(freq) = 2*lf_squarewavepos(freq) - 1;
 // squarewave = lf_squarewave; // for backward compatibility
 
@@ -278,27 +279,7 @@ lf_squarewave(freq) = 2*lf_squarewavepos(freq) - 1;
 //
 // * `freq`: frequency in Hz
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 lf_trianglepos(freq) = 1-abs(saw1(freq)); // saw1 defined below
-
-
-//----------`lf_triangle`----------
-// Positive unit-amplitude LF triangle wave
-// `lf_triangle` is a standard Faust function.
-//
-// #### Usage
-//
-// ```
-// lf_triangle(freq) : _
-// ```
-//
-// Where:
-//
-// * `freq`: frequency in Hz
-//------------------------------------------------------------
-// TODO: author RM
-lf_triangle(freq) = 2*lf_trianglepos(freq) - 1;
-
 
 //================== Low Frequency Sawtooths ====================
 // Sawtooth waveform oscillators for virtual analog synthesis et al.
@@ -328,44 +309,7 @@ lf_triangle(freq) = 2*lf_trianglepos(freq) - 1;
 //
 // * `periodsamps`: number of periods per samples
 //---------------------------------------------------------
-// TODO: author JOS, revised by RM
 lf_rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
-
-//-----------------`lf_sawpos`--------------------
-// Simple sawtooth waveform oscillator between 0 and 1.
-//
-// #### Usage
-//
-// ```
-// lf_sawpos(freq)
-// ```
-//
-// Where:
-//
-// * `freq`: frequency
-//---------------------------------------------------------
-// TODO: author Bart Brouns, revised by RM
-lf_sawpos(freq) = ma.frac ~ +(freq/ma.SR);
-
-
-//-----------------`lf_saw`--------------------
-// Simple sawtooth waveform.
-// `lf_saw` is a standard Faust function.
-//
-// #### Usage
-//
-// ```
-// lf_saw(freq)
-// ```
-//
-// Where:
-//
-// * `freq`: frequency
-//---------------------------------------------------------
-// TODO: author Bart Brouns, revised by RM
-saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0;
-lf_saw(freq) = saw1(freq);
-
 
 //-----------------`lf_sawpos_phase`--------------------
 // Simple sawtooth waveform oscillator between 0 and 1
@@ -382,9 +326,7 @@ lf_saw(freq) = saw1(freq);
 // * `freq`: frequency
 // * `phase`: phase
 //---------------------------------------------------------
-// TODO: author JOS, revised by RM
 lf_sawpos_phase(phase,freq) = (+(phase-phase') : ma.frac ) ~ +(freq/ma.SR);
-
 
 //================== Bandlimited Sawtooth ====================
 // Bandlimited Sawtooth
@@ -420,10 +362,10 @@ lf_sawpos_phase(phase,freq) = (+(phase-phase') : ma.frac ) ~ +(freq/ma.SR);
 //
 // Correction-filtered versions of `saw2`: `saw2f2`, `saw2f4`
 // The correction filter compensates "droop" near half the sampling rate.
-// See reference for sawN. 
+// See reference for sawN.
 //
 // #### Usage
-// 
+//
 // ```
 // sawN(N,freq) : _
 // sawNp(N,freq,phase) : _
@@ -444,13 +386,11 @@ lf_sawpos_phase(phase,freq) = (+(phase-phase') : ma.frac ) ~ +(freq/ma.SR);
 // * `freq`: frequency in Hz
 // * `phase`: phase
 //===================================================================
-// TODO: author JOS, revised by RM
 
 //------------------`sawN`--------------------------------
 // TODO: implemented but not documented. For now, you can
 // look at the source code.
 //--------------------------------------------------------
-// TODO: author JOS, revised by RM
 // --- sawN for N = 1 to 6 ---
 //We can do 6, but 5 and 6 have noise at low fundamentals: MAX_SAW_ORDER = 6; MAX_SAW_ORDER_NEXTPOW2 = 8;
 MAX_SAW_ORDER = 4; MAX_SAW_ORDER_NEXTPOW2 = 8; // par cannot handle the case of 0 elements
@@ -480,7 +420,6 @@ with {
 // TODO: implemented but not documented. For now, you can
 // look at the source code.
 //--------------------------------------------------------
-// TODO: author JOS, revised by RM
 // --- sawNp for N = 1 to 6 ---
 // Phase offset = delay (max 8191 samples is more than one period of audio):
 sawNp(N,freq,phase) = sawN(N,freq) : @(max(0,min(8191,int(phase*ma.SR/freq))));
@@ -491,7 +430,6 @@ sawNp(N,freq,phase) = sawN(N,freq) : @(max(0,min(8191,int(phase*ma.SR/freq))));
 // TODO: implemented but not documented. For now, you can
 // look at the source code.
 //--------------------------------------------------------
-// TODO: author JOS, revised by RM
 // --- sawN ---
 saw2dpw(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*ma.SR/freq); // inferior to saw2 below
 
@@ -499,7 +437,6 @@ saw2dpw(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*ma.SR/freq); // inferior to 
 // TODO: implemented but not documented. For now, you can
 // look at the source code.
 //--------------------------------------------------------
-// TODO: author JOS, revised by RM
 saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
 
 
@@ -518,7 +455,6 @@ saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
 //
 // * `freq`: frequency
 //--------------------------------------------------------
-// TODO: author JOS, revised by RM
 saw2(freq) = y with { // newer PTR version (stateless - freq can vary at any speed)
   p0 = float(ma.SR)/float(max(1.0e-7,abs(freq))); // period in samples
   t0 = 1.0/p0; // phase increment
@@ -534,7 +470,6 @@ sawtooth = saw2; // default choice for sawtooth signal - see also sawN
 // TODO: implemented but not documented. For now, you can
 // look at the source code.
 //--------------------------------------------------------
-// TODO: author JOS
 // --- Correction-filtered versions of saw2: saw2f2, saw2f4 ----
 // The correction filter compensates "droop" near half the sampling rate.
 // See reference for sawN.
@@ -548,7 +483,6 @@ saw2f2 = saw2 : cf2 with {
 // TODO: implemented but not documented. For now, you can
 // look at the source code.
 //--------------------------------------------------------
-// TODO: author JOS
 saw2f4 = saw2 : cf4 with {
   cf4 = fi.iir((1.155727435125014, 2.285861038554662,
         1.430915027294021, 0.290713280893317, 0.008306401748854),
@@ -569,8 +503,8 @@ saw2f4 = saw2 : cf4 with {
 // #### Usage
 //
 // ```
-// pulsetrainN(N,freq,duty) : _ 
-// pulsetrain(freq, duty) : _ // = pulsetrainN(2) 
+// pulsetrainN(N,freq,duty) : _
+// pulsetrain(freq, duty) : _ // = pulsetrainN(2)
 // squareN(N, freq) : _
 // square : _ // = squareN(2)
 // imptrainN(N,freq) : _
@@ -584,14 +518,11 @@ saw2f4 = saw2 : cf4 with {
 // * `N`: polynomial order
 // * `freq`: frequency in Hz
 //====================================================================
-// TODO: author JOS
-
 
 //------------------`pulsetrainN`--------------------------------
 // TODO: implemented but not documented. For now, you can
 // look at the source code.
 //--------------------------------------------------------
-// TODO: author JOS
 pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with {
  // non-interpolated-delay version: diffdel(x,del) = x - x@int(del+0.5);
  // linearly interpolated delay version (sounds good to me):
@@ -624,7 +555,6 @@ pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with {
 // * `freq`: frequency
 // * `duty`: duty cycle between 0 and 1
 //--------------------------------------------------------
-// TODO: author JOS
 pulsetrain = pulsetrainN(2);
 
 
@@ -632,7 +562,6 @@ pulsetrain = pulsetrainN(2);
 // TODO: implemented but not documented. For now, you can
 // look at the source code.
 //--------------------------------------------------------
-// TODO: author JOS
 squareN(N,freq) = pulsetrainN(N,freq,0.5);
 
 
@@ -650,7 +579,6 @@ squareN(N,freq) = pulsetrainN(N,freq,0.5);
 //
 // * `freq`: frequency
 //--------------------------------------------------------
-// TODO: author JOS
 square = squareN(2);
 
 
@@ -664,7 +592,6 @@ square = squareN(2);
 // impulse : _
 // ```
 //--------------------------------------------------------
-// TODO: author JOS
 impulse = 1-1';
 
 
@@ -672,7 +599,6 @@ impulse = 1-1';
 // TODO: implemented but not documented. For now, you can
 // look at the source code.
 //--------------------------------------------------------
-// TODO: author JOS
 imptrainN(N,freq) = impulse + 0.5*ma.diffn(sawN(N,freq));
 
 
@@ -690,7 +616,6 @@ imptrainN(N,freq) = impulse + 0.5*ma.diffn(sawN(N,freq));
 //
 // * `freq`: frequency
 //--------------------------------------------------------
-// TODO: author JOS
 imptrain = imptrainN(2); // default based on saw2
 
 
@@ -698,7 +623,6 @@ imptrain = imptrainN(2); // default based on saw2
 // TODO: implemented but not documented. For now, you can
 // look at the source code.
 //--------------------------------------------------------
-// TODO: author JOS
 triangleN(N,freq) = squareN(N,freq) : fi.pole(p) : *(gain) with {
   gain = 4.0*freq/ma.SR; // for aproximate unit peak amplitude
   p = 0.999;
@@ -719,14 +643,13 @@ triangleN(N,freq) = squareN(N,freq) : fi.pole(p) : *(gain) with {
 //
 // * `freq`: frequency
 //--------------------------------------------------------
-// TODO: author JOS
 triangle = triangleN(2); // default based on saw2
 
 
 //===============================Filter-Based Oscillators=================================
 // Filter-Based Oscillators
 //
-// #### Usage 
+// #### Usage
 //
 // ```
 // osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.
@@ -749,9 +672,8 @@ triangle = triangleN(2); // default based on saw2
 //
 // Where:
 //
-// * `freq`: frequency 
+// * `freq`: frequency
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 oscb(f) = impulse : fi.tf2(1,0,0,a1,1)
 with {
   a1 = -2*cos(2*ma.PI*f/ma.SR);
@@ -762,7 +684,7 @@ with {
 // Sinusoidal (sine and cosine) oscillator based on 2D vector rotation,
 //  = undamped "coupled-form" resonator
 //  = lossless 2nd-order normalized ladder filter.
-// 
+//
 // #### Usage
 //
 // ```
@@ -777,7 +699,6 @@ with {
 //
 // * <https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html>
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 oscrq(f) = impulse : fi.nlf2(f,1); // sine and cosine outputs
 
 
@@ -785,7 +706,7 @@ oscrq(f) = impulse : fi.nlf2(f,1); // sine and cosine outputs
 // Sinusoidal (sine) oscillator based on 2D vector rotation,
 //  = undamped "coupled-form" resonator
 //  = lossless 2nd-order normalized ladder filter.
-// 
+//
 // #### Usage
 //
 // ```
@@ -800,7 +721,6 @@ oscrq(f) = impulse : fi.nlf2(f,1); // sine and cosine outputs
 //
 // * <https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html>
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 oscrs(f) = impulse : fi.nlf2(f,1) : _,!; // sine
 
 
@@ -808,7 +728,7 @@ oscrs(f) = impulse : fi.nlf2(f,1) : _,!; // sine
 // Sinusoidal (cosine) oscillator based on 2D vector rotation,
 //  = undamped "coupled-form" resonator
 //  = lossless 2nd-order normalized ladder filter.
-// 
+//
 // #### Usage
 //
 // ```
@@ -823,7 +743,6 @@ oscrs(f) = impulse : fi.nlf2(f,1) : _,!; // sine
 //
 // * <https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html>
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 oscrc(f) = impulse : fi.nlf2(f,1) : !,_; // cosine
 
 oscrp(f,p) = oscrq(f) : *(cos(p)), *(sin(p)) : + ; // p=0 for sine, p=PI/2 for cosine, etc.
@@ -853,7 +772,6 @@ osc	= oscrs;
 // = undamped "modified-coupled-form" resonator
 // = "magic circle" algorithm used in graphics
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 oscs(f) =  (*(-1) : sint(wn) : sintp(wn,impulse)) ~ _
 with {
   wn = 2*ma.PI*f/ma.SR; // approximate
@@ -886,7 +804,6 @@ with {
 //
 // * <https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html>
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 oscwc(fr) = impulse : fi.wgr(fr,1) : _,!; // cosine (cheapest at 1 mpy/sample)
 
 
@@ -908,12 +825,11 @@ oscwc(fr) = impulse : fi.wgr(fr,1) : _,!; // cosine (cheapest at 1 mpy/sample)
 //
 // * <https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html>
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 oscws(fr) = impulse : fi.wgr(fr,1) : !,_; // sine (needs a 2nd scaling mpy)
 
 
 //-----------------`oscwq`--------------------
-// Sinusoidal oscillator based on the waveguide resonator `wgr`. 
+// Sinusoidal oscillator based on the waveguide resonator `wgr`.
 // Unit-amplitude cosine and sine (quadrature) oscillator.
 //
 // #### Usage
@@ -930,7 +846,6 @@ oscws(fr) = impulse : fi.wgr(fr,1) : !,_; // sine (needs a 2nd scaling mpy)
 //
 // * <https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html>
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 oscq(fr)  = impulse : fi.wgr(fr,1);       // phase quadrature outputs
 
 
@@ -952,9 +867,68 @@ oscq(fr)  = impulse : fi.wgr(fr,1);       // phase quadrature outputs
 //
 // * <https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html>
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 oscw = oscwc;
 
+//########################################################################################
+/************************************************************************
+FAUST library file, further contributions section
 
+All contributions below should indicate both the contributor and terms
+of license.  If no such indication is found, "git blame" will say who
+last edited each line, and that person can be emailed to inquire about
+license disposition, if their license choice is not already indicated
+elsewhere among the libraries.  It is expected that all software will be
+released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
+************************************************************************/
 
+//-----------------`lf_sawpos`--------------------
+// Simple sawtooth waveform oscillator between 0 and 1.
+//
+// #### Usage
+//
+// ```
+// lf_sawpos(freq)
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+//
+// Author: Bart Brouns (MarkDown by RM)
+//---------------------------------------------------------
+lf_sawpos(freq) = ma.frac ~ +(freq/ma.SR);
 
+//-----------------`lf_saw`--------------------
+// Simple sawtooth waveform.
+// `lf_saw` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// lf_saw(freq)
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+//---------------------------------------------------------
+// TODO: author Bart Brouns, revised by RM
+saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0;
+lf_saw(freq) = saw1(freq);
+
+//----------`lf_triangle`----------
+// Positive unit-amplitude LF triangle wave
+// `lf_triangle` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// lf_triangle(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency in Hz
+//------------------------------------------------------------
+// TODO: author RM
+lf_triangle(freq) = 2*lf_trianglepos(freq) - 1;

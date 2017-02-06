@@ -34,6 +34,8 @@
 #include <float.h>
 #include <assert.h>
 
+namespace {
+    
 #if __APPLE__
 #if TARGET_OS_IPHONE
     //inline double GetCurrentTimeInUsec() { return double(CAHostTimeBase::GetCurrentTimeInNanos()) / 1000.; }
@@ -66,6 +68,8 @@ inline double GetCurrentTimeInUsec(void)
     return double(time.QuadPart) / double(frequency.QuadPart) * 1000000.0;
 }
 #endif
+    
+}
 
 /**
  * ZoneUI : this class collect zones in a set.
@@ -254,7 +258,7 @@ class timed_dsp : public decorator_dsp {
         // Default method take a timestamp at 'compute' call time
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            compute(GetCurrentTimeInUsec(), count, inputs, outputs);
+            compute(::GetCurrentTimeInUsec(), count, inputs, outputs);
         }    
         
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -265,7 +269,7 @@ class timed_dsp : public decorator_dsp {
             } else {
                 // Save the timestamp offset in the first callback
                 if (fFirstCallback) {
-                    fOffsetUsec = GetCurrentTimeInUsec() - date_usec;
+                    fOffsetUsec = ::GetCurrentTimeInUsec() - date_usec;
                     fDateUsec = date_usec + fOffsetUsec;
                     fFirstCallback = false;
                 }

@@ -10,12 +10,12 @@
 
 /************************************************************************
     FAUST Architecture File
-	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it 
     and/or modify it under the terms of the GNU General Public License 
-	as published by the Free Software Foundation; either version 3 of 
-	the License, or (at your option) any later version.
+    as published by the Free Software Foundation; either version 3 of 
+    the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,13 +23,12 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License 
-	along with this program; If not, see <http://www.gnu.org/licenses/>.
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-	EXCEPTION : As a special exception, you may create a larger work 
-	that contains this FAUST architecture section and distribute  
-	that work under terms of your choice, so long as this FAUST 
-	architecture section is not modified. 
-
+    EXCEPTION : As a special exception, you may create a larger work 
+    that contains this FAUST architecture section and distribute  
+    that work under terms of your choice, so long as this FAUST 
+    architecture section is not modified. 
 
  ************************************************************************
  ************************************************************************/
@@ -77,8 +76,11 @@
 
 <<includeclass>>
 
-#ifdef POLY
 #include "faust/dsp/poly-dsp.h"
+
+#ifdef POLY2
+#include "faust/dsp/dsp-combiner.h"
+#include "effect.cpp"
 #endif
 
 dsp* DSP;
@@ -98,56 +100,103 @@ ztimedmap GUI::gTimedZoneMap;
 *******************************************************************************
 *******************************************************************************/
 
-static bool hasMIDISync()
+struct MyMeta : public Meta, public std::map<const char*, const char*>
 {
-    JSONUI jsonui;
+    void declare(const char* key, const char* value)
+    {
+        (*this)[key] = value;
+    }
+    const char* get(const char* key, const char* def)
+    {
+        if (this->find(key) != this->end()) {
+            return (*this)[key];
+        } else {
+            return def;
+        }
+    }
+};
+
+static void analyseMeta(bool& midi_sync, int& nvoices)
+{
     mydsp* tmp_dsp = new mydsp();
+    
+    JSONUI jsonui;
     tmp_dsp->buildUserInterface(&jsonui);
     std::string json = jsonui.JSON();
-    delete tmp_dsp;
+    midi_sync = ((json.find("midi") != std::string::npos) &&
+                 ((json.find("start") != std::string::npos) ||
+                  (json.find("stop") != std::string::npos) ||
+                  (json.find("clock") != std::string::npos)));
     
-    return ((json.find("midi") != std::string::npos) &&
-            ((json.find("start") != std::string::npos) ||
-            (json.find("stop") != std::string::npos) ||
-            (json.find("clock") != std::string::npos)));
+#ifdef NVOICES
+    nvoices = NVOICES;
+#else
+    MyMeta meta;
+    tmp_dsp->metadata(&meta);
+    const char* numVoices = meta.get("nvoices", "0");
+    nvoices = atoi(numVoices);
+    if (nvoices < 0) nvoices = 0;
+#endif
+    
+    delete tmp_dsp;
 }
 
 int main(int argc, char *argv[])
 {
- 	char name[256];
-	char rcfilename[256];
-	char* home = getenv("HOME");
+    char name[256];
+    char rcfilename[256];
+    char* home = getenv("HOME");
+    bool midi_sync = false;
+    int nvoices = 1;
+    
+    analyseMeta(midi_sync, nvoices);
 
-	snprintf(name, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, name);
+    snprintf(name, 255, "%s", basename(argv[0]));
+    snprintf(rcfilename, 255, "%s/.%src", home, name);
    
-#ifdef POLY
+#ifdef POLY2
     dsp* tmp_dsp = new mydsp();
-    int poly = lopt(argv, "--poly", 4);
+    nvoices = lopt(argv, "--nvoices", nvoices);
     int group = lopt(argv, "--group", 1);
-    std::cout << "Started with " << poly << " voices\n";
- 
+    std::cout << "Started with " << nvoices << " voices\n";
+    
 #if MIDICTRL
-    if (hasMIDISync()) {
-        DSP = new timed_dsp(new mydsp_poly(tmp_dsp, poly, true, group));
+    if (midi_sync) {
+        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new effect()));
     } else {
-        DSP = new mydsp_poly(tmp_dsp, poly, true, group);
+        DSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new effect());
     }
 #else
-    DSP = new mydsp_poly(tmp_dsp, poly, false, group);
+    DSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, false, group), new effect());
 #endif
-
+    
 #else
-
+    dsp* tmp_dsp = new mydsp();
+    nvoices = lopt(argv, "--nvoices", nvoices);
+    int group = lopt(argv, "--group", 1);
+    
+    if (nvoices > 1) {
+        std::cout << "Started with " << nvoices << " voices\n";
 #if MIDICTRL
-    if (hasMIDISync()) {
-        DSP = new timed_dsp(new mydsp());
+        if (midi_sync) {
+            DSP = new timed_dsp(new mydsp_poly(tmp_dsp, nvoices, true, group));
+        } else {
+            DSP = new mydsp_poly(tmp_dsp, nvoices, true, group);
+        }
+#else
+        DSP = new mydsp_poly(tmp_dsp, nvoices, false, group);
+#endif
     } else {
+#if MIDICTRL
+        if (midi_sync) {
+            DSP = new timed_dsp(new mydsp());
+        } else {
+            DSP = new mydsp();
+        }
+#else
         DSP = new mydsp();
-    }
-#else
-    DSP = new mydsp();
 #endif
+    }
     
 #endif
     

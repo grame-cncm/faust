@@ -15,7 +15,6 @@
   www.olilarkin.co.uk
   Based on owl.cpp
 
-
   FAUST Architecture File
   Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
   ---------------------------------------------------------------------
@@ -36,7 +35,6 @@
   that contains this FAUST architecture section and distribute
   that work under terms of your choice, so long as this FAUST
   architecture section is not modified.
-
 
  ************************************************************************
  ************************************************************************/

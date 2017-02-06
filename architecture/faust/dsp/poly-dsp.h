@@ -426,7 +426,7 @@ class mydsp_poly : public dsp, public midi {
         mydsp_poly(dsp* dsp,
                 int max_polyphony,
                 bool control = false,   
-                bool group = true):fGroups(&fPanic, panic, this)
+                bool group = true): fPanic(FAUSTFLOAT(0)), fGroups(&fPanic, panic, this)
         {
             init(dsp, max_polyphony, control, group);
         }

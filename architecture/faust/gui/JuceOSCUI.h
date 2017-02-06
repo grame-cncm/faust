@@ -57,7 +57,6 @@ class oscItem : public uiItem {
 
 class JuceOSCUI : private OSCReceiver, private OSCReceiver::Listener<OSCReceiver::RealtimeCallback>, public GUI {
     
-    
     private:
     
         OSCSender fSender;
@@ -101,7 +100,7 @@ class JuceOSCUI : private OSCReceiver, private OSCReceiver::Listener<OSCReceiver
             }
         }
     
-        void run() override
+        bool run() override
         {
             // Keep all zones for update when OSC messages are received
             if (fOSCItems.size() == 0) {
@@ -112,12 +111,15 @@ class JuceOSCUI : private OSCReceiver, private OSCReceiver::Listener<OSCReceiver
             
             if (!fSender.connect(fIP, fOutputPort)) {
                 std::cerr << "Error: could not connect to UDP port " << fInputPort << std::endl;
+                return false;
             }
             
             if (!connect(fInputPort)) {
                 std::cerr << "Error: could not connect to UDP port " << fOutputPort << std::endl;
+                return false;
             }
             addListener(this);
+            return true;
         }
     
         void stop() override
@@ -157,7 +159,6 @@ class JuceOSCUI : private OSCReceiver, private OSCReceiver::Listener<OSCReceiver
         void declare(FAUSTFLOAT* zone, const char* key, const char* val) override { fAPIUI.declare(zone, key, val); }
     
 };
-
 
 #endif // __juce_osc__
 
