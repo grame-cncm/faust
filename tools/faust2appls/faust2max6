@@ -10,6 +10,7 @@
 
 POLY=""
 NOPATCH="0"
+NVOICES=-1
 
 # path to max SDK
 
@@ -69,15 +70,20 @@ for p in $@; do
     fi
 done
 
+
 #PHASE 2 : dispatch command arguments
-for p in $@; do
+while [ $1 ]
+do
+    p=$1
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2max6  [-poly] [-midi] <file.dsp>"
-        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "faust2max6 [-nvoices <num>] [-midi] [-nopatch] <file.dsp>"
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-nopatch' to deactivate patch generation"
+        exit
     fi
-    
+
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
             OMP="-openmp"
@@ -88,9 +94,13 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
-    elif [ $p = "-poly" ]; then
-        POLYDEFS="-DPOLY"
+    elif [ $p = "-nvoices" ]; then
         POLY="POLY1"
+        shift
+        NVOICES=$1
+        if [ $NVOICES -ge 0 ]; then
+            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        fi
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
     elif [ $p = "-nopatch" ]; then
@@ -102,7 +112,14 @@ for p in $@; do
 	else
 	    OPTIONS="$OPTIONS $p"        
 	fi
+
+shift
+
 done
+
+#look for polyphonic "nvoices" metadata in the DSP file
+
+grep "declare nvoices" $FILES && POLY="POLY1" 2>/dev/null
 
 #-------------------------------------------------------------------
 # Check darwin specifics
@@ -138,7 +155,7 @@ for p in $FILES; do
 	cd "$TMP"
 	install -d "${f%.dsp}$EXT/Contents/MacOS"
 
-	$CC -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -arch x86_64  -Wl,-U,_object_new_imp -Wl,-U,_object_method_imp -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+	$CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -arch x86_64  -Wl,-U,_object_new_imp -Wl,-U,_object_method_imp -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
     ) > /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"

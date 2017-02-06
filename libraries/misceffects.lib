@@ -1,20 +1,5 @@
 //################################## misceffects.lib ##########################################
-// This library contains a collection of audio effects.
-//
-// It should be used using the `ef` environment:
-//
-// ```
-// ef = library("misceffects.lib");
-// process = ef.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `ef`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = ef.functionCall;
-// ```
+// This library contains a collection of audio effects. Its official prefix is `ef`.
 //########################################################################################
 
 /************************************************************************

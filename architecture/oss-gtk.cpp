@@ -10,12 +10,12 @@
 
 /************************************************************************
     FAUST Architecture File
-	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it 
     and/or modify it under the terms of the GNU General Public License 
-	as published by the Free Software Foundation; either version 3 of 
-	the License, or (at your option) any later version.
+    as published by the Free Software Foundation; either version 3 of 
+    the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,17 +23,15 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License 
-	along with this program; If not, see <http://www.gnu.org/licenses/>.
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-	EXCEPTION : As a special exception, you may create a larger work 
-	that contains this FAUST architecture section and distribute  
-	that work under terms of your choice, so long as this FAUST 
-	architecture section is not modified. 
-
+    EXCEPTION : As a special exception, you may create a larger work 
+    that contains this FAUST architecture section and distribute  
+    that work under terms of your choice, so long as this FAUST 
+    architecture section is not modified. 
 
  ************************************************************************
  ************************************************************************/
-
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -59,7 +57,6 @@
 
 #include <iostream>
 #include <fstream>
-
 
 using namespace std;
 
@@ -87,8 +84,6 @@ struct Meta : map<const char*, const char*>
 
 //#define BENCHMARKMODE
 
-	
-
 inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
 inline int int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
@@ -115,8 +110,6 @@ void setRealtimePriority ()
         
 }
 
-
-
 /******************************************************************************
 *******************************************************************************
 
@@ -127,7 +120,6 @@ void setRealtimePriority ()
 
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
-
 
 <<includeIntrinsic>>
 
@@ -183,7 +175,6 @@ void printstats()
 
 #endif
 
-
 /******************************************************************************
 *******************************************************************************
 
@@ -220,7 +211,7 @@ struct AudioParam
 
 class AudioInterface 
 {
- private :
+ private:
 	AudioParam	fParam;
 	int			fOutputDevice ;		
 	int			fInputDevice ;			
@@ -232,7 +223,7 @@ class AudioInterface
 	short*		fOutputBuffer;
 	
 
- public :
+ public:
  
 	const char*	getDeviceName()				{ return fParam.fDeviceName;  	}
  	int		getSamplingFrequency()			{ return fParam.fSamplingFrequency; 	}
@@ -258,7 +249,6 @@ class AudioInterface
 		fOutputBuffer			= 0;
 	}
 
-
 	void openInputAudioDev ()
 	{
 		assert( (fInputDevice = ::open(fParam.fDeviceName, O_RDONLY, 0)) 		> 0); 
@@ -275,7 +265,6 @@ class AudioInterface
 
 		fInputBuffer = (short*) calloc(fInputBufferSize, 1);
 	}
-
 
 	void openOutputAudioDev ()
 	{
@@ -294,21 +283,17 @@ class AudioInterface
 		fOutputBuffer = (short*)calloc(fOutputBufferSize, 1);
 	}
 
-
 	void open()
 	{
 		if (fParam.fRWMode & kRead) openInputAudioDev();
 		if (fParam.fRWMode & kWrite) openOutputAudioDev();
 	}
 
-
 	void close()
 	{
 		if (fParam.fRWMode & kRead) ::close(fOutputDevice);
 		if (fParam.fRWMode & kWrite) ::close(fInputDevice);
 	}
-
-
 	
 	//----------------------------------------------------------------
 	//  allocChanGroup() : allocate a group of audio buffers
@@ -323,7 +308,6 @@ class AudioInterface
 			chan[c] = (float*) calloc (len, sizeof(float));
 		}
 	}
-
 	
 	//----------------------------------------------------------------
 	//  info() : print information on the audio device
@@ -355,8 +339,7 @@ class AudioInterface
 			if (cap &  DSP_CAP_BIND) 	printf(" DSP_CAP_BIND");
 			printf("\n");
 			printf("Output block size = %d\n", fOutputBufferSize);
-		}	
-
+		}
 		
 		if (getRWMode() & kRead) {
 			assert( ioctl(fInputDevice, SNDCTL_DSP_GETISPACE, &info) != -1);
@@ -380,7 +363,6 @@ class AudioInterface
 		}
 	}
 
-
 	//----------------------------------------------------------------
 	//  read() : read 
 	//----------------------------------------------------------------
@@ -397,8 +379,7 @@ class AudioInterface
 			}
 		}
 		return bytes == count;
-	}	
-
+	}
 
 	bool write(int frames, float* channel[])
 	{
@@ -416,12 +397,8 @@ class AudioInterface
 
 		return bytes == count;
 	} 
-
-
 	
 };
-
-
 
 /******************************************************************************
 *******************************************************************************
@@ -436,7 +413,6 @@ class AudioInterface
 #include <list>
 
 using namespace std;
-
 
 struct uiItem;
 typedef void (*uiCallback)(float val, void* data);
@@ -547,7 +523,6 @@ class UI
     virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
-
 /**
  * User Interface Item: abstract definition
  */
@@ -582,7 +557,6 @@ class uiItem
 	virtual void 	reflectZone() 	= 0;	
 };
 
-
 /**
  * Callback Item
  */
@@ -616,7 +590,6 @@ inline void UI::updateZone(float* z)
 		if ((*c)->cache() != v) (*c)->reflectZone();
 	}
 }
-
 
 /**
  * Update all user items not up to date
@@ -674,7 +647,6 @@ static string rmWhiteSpaces(const string& s)
         return "";
     }
 }
-
 
 /**
  * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
@@ -773,7 +745,6 @@ static void extractMetadata(const string& fulllabel, string& label, map<string, 
     label = rmWhiteSpaces(label);
 }
 
-
 class GTKUI : public UI
 {
  private :
@@ -845,8 +816,6 @@ class GTKUI : public UI
     
 };
 
-
-
 /******************************************************************************
 *******************************************************************************
 
@@ -864,8 +833,6 @@ bool                        GTKUI::fInitialized = false;
 map<float*, float>          GTKUI::fGuiSize;
 map<float*, string>         GTKUI::fTooltip;
 
-
-
 static gint delete_event( GtkWidget *widget, GdkEvent *event, gpointer data )
 {
     return FALSE; 
@@ -876,7 +843,6 @@ static void destroy_event( GtkWidget *widget, gpointer data )
     gtk_main_quit ();
 }
 
-         
 GTKUI::GTKUI(char * name, int* pargc, char*** pargv) 
 {
     if (!fInitialized) {
@@ -907,7 +873,6 @@ void GTKUI::pushBox(int mode, GtkWidget* w)
     fBox[fTop]      = w;
 }
 
-
 /**
  * Remove n levels from the stack S before the top level
  * adjustStack(n): S -> S' with S' = S(0),S(n+1),S(n+2),...
@@ -929,7 +894,6 @@ void GTKUI::closeBox()
     assert(fTop >= 0);
 }
 
-
 /**
  * Analyses the widget zone metadata declarations and takes
  * appropriate actions 
@@ -943,8 +907,6 @@ void GTKUI::declare(float* zone, const char* key, const char* value)
         fTooltip[zone] = value ;
     }
 }
-        
-        
 
 /**
  * Analyses a full label and activates the relevant options. returns a simplified
@@ -979,7 +941,6 @@ void GTKUI::checkForTooltip(float* zone, GtkWidget* widget)
     }
 }
 
-
 // les differentes boites
 
 void GTKUI::openFrameBox(const char* label)
@@ -989,7 +950,6 @@ void GTKUI::openFrameBox(const char* label)
             
     pushBox(kSingleMode, addWidget(label, box));
 }
-
 
 void GTKUI::openTabBox(const char* fullLabel)
 {
@@ -1003,7 +963,6 @@ void GTKUI::openTabBox(const char* fullLabel)
     // adjust stack because otherwise Handlebox will remain open
     adjustStack(adjust);
 }
-
 
 void GTKUI::openHorizontalBox(const char* fullLabel)
 {   
@@ -1026,7 +985,6 @@ void GTKUI::openHorizontalBox(const char* fullLabel)
     adjustStack(adjust);
 }
 
-
 void GTKUI::openVerticalBox(const char* fullLabel)
 {
     string  label;
@@ -1048,7 +1006,6 @@ void GTKUI::openVerticalBox(const char* fullLabel)
     adjustStack(adjust);
 }
 
-
 void GTKUI::openHandleBox(const char* label)
 {
     GtkWidget * box = gtk_hbox_new (homogene, 4);
@@ -1066,7 +1023,6 @@ void GTKUI::openHandleBox(const char* label)
     }
 }
 
-
 void GTKUI::openEventBox(const char* label)
 {
     GtkWidget * box = gtk_hbox_new (homogene, 4);
@@ -1083,7 +1039,6 @@ void GTKUI::openEventBox(const char* label)
         pushBox(kBoxMode, addWidget(label, box));
     }
 }
-
 
 struct uiExpanderBox : public uiItem
 {
@@ -1127,8 +1082,6 @@ void GTKUI::openExpanderBox(const char* label, float* zone)
         pushBox(kBoxMode, addWidget(label, box));
     }
 }
-
-
 
 GtkWidget* GTKUI::addWidget(const char* label, GtkWidget* w)
 { 
@@ -1217,8 +1170,6 @@ void GTKUI::addToggleButton(const char* label, float* zone)
     checkForTooltip(zone, button);
 }
 
-
-
 void show_dialog(GtkWidget *widget, gpointer data)
 {
     if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON(widget)) == TRUE)
@@ -1265,9 +1216,6 @@ void GTKUI::openDialogBox(const char* label, float* zone)
     pushBox(kBoxMode, box);
 }
 
-
-
-
 // ---------------------------  Check Button ---------------------------
 
 struct uiCheckButton : public uiItem
@@ -1301,7 +1249,6 @@ void GTKUI::addCheckButton(const char* label, float* zone)
 
     checkForTooltip(zone, button);
 }
-
 
 // ---------------------------  Adjustmenty based widgets ---------------------------
 
@@ -1388,7 +1335,6 @@ void GTKUI::addHorizontalSlider(const char* label, float* zone, float init, floa
     checkForTooltip(zone, slider);
 }
 
-
 // ------------------------------ Num Entry -----------------------------------
 
 void GTKUI::addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
@@ -1410,9 +1356,7 @@ void GTKUI::addNumEntry(const char* label, float* zone, float init, float min, f
     checkForTooltip(zone, spinner);
 }
 
-
 // ==========================   passive widgets ===============================
-
 
 // ------------------------------ Progress Bar -----------------------------------
 
@@ -1435,8 +1379,6 @@ struct uiBargraph : public uiItem
     }
 };
 
-    
-
 void GTKUI::addVerticalBargraph(const char* label, float* zone, float lo, float hi)
 {
     GtkWidget* pb = gtk_progress_bar_new();
@@ -1449,7 +1391,6 @@ void GTKUI::addVerticalBargraph(const char* label, float* zone, float lo, float 
 
     checkForTooltip(zone, pb);
 }
-    
 
 void GTKUI::addHorizontalBargraph(const char* label, float* zone, float lo, float hi)
 {
@@ -1463,7 +1404,6 @@ void GTKUI::addHorizontalBargraph(const char* label, float* zone, float lo, floa
 
     checkForTooltip(zone, pb);
 }
-
 
 // ------------------------------ Num Display -----------------------------------
 
@@ -1504,7 +1444,6 @@ void GTKUI::addNumDisplay(const char* label, float* zone, int precision )
     checkForTooltip(zone, lw);
 }
 
-
 // ------------------------------ Text Display -----------------------------------
 
 struct uiTextDisplay : public uiItem
@@ -1514,7 +1453,6 @@ struct uiTextDisplay : public uiItem
     float           fMin;
     float           fMax;
     int             fNum;
-    
     
     uiTextDisplay (UI* ui, float* zone, GtkLabel* label, const char* names[], float lo, float hi)
                     : uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)
@@ -1536,7 +1474,6 @@ struct uiTextDisplay : public uiItem
         gtk_label_set_text(fLabel, fNames[idx]); 
     }
 };
-    
 
 void GTKUI::addTextDisplay(const char* label, float* zone, const char* names[], float lo, float hi )
 {
@@ -1549,15 +1486,12 @@ void GTKUI::addTextDisplay(const char* label, float* zone, const char* names[], 
     checkForTooltip(zone, lw);
 }
 
-
-
 void GTKUI::show() 
 {
     assert(fTop == 0);
     gtk_widget_show  (fBox[0]);
     gtk_widget_show  (fWindow);
 }
-
 
 /**
  * Update all user items reflecting zone z
@@ -1568,8 +1502,6 @@ static gboolean callUpdateAllGuis(gpointer)
     UI::updateAllGuis(); 
     return TRUE;
 }
-
-
 void GTKUI::run() 
 {
     assert(fTop == 0);
@@ -1580,9 +1512,6 @@ void GTKUI::run()
     stop();
 }
 
-
-
-
 /******************************************************************************
 *******************************************************************************
 
@@ -1590,7 +1519,6 @@ void GTKUI::run()
 
 *******************************************************************************
 *******************************************************************************/
-
 
 //---------------------------------------------------
 // tableaux de buffers initialis� par allocChannels
@@ -1621,8 +1549,6 @@ void allocChannels (int size, int numInChan, int numOutChan)
 	}
 }
 
-
-
 //----------------------------------------------------------------
 //  d�inition du processeur de signal
 //----------------------------------------------------------------
@@ -1640,9 +1566,7 @@ class dsp {
 	virtual void init(int samplingRate) 								= 0;
  	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
 };
-		
-			
-		
+
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
 /**************************BEGIN USER SECTION **************************/
@@ -1652,12 +1576,8 @@ class dsp {
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-					
-						
-mydsp	DSP;
 
-
-
+mydsp DSP;
 
 /******************************************************************************
 *******************************************************************************
@@ -1676,7 +1596,6 @@ long lopt (char *argv[], const char *name, long def)
 	return def;
 }
 	
-
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------

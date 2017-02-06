@@ -1,27 +1,28 @@
 //##################################### noises.lib ########################################
-// A library of noise generators.
-//
-// It should be used using the `no` environment:
-//
-// ```
-// no = library("noises.lib");
-// process = no.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `no`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = no.functionCall;
-// ```
+// Faust Noise Generator Library. Its official prefix is `no`.
 //########################################################################################
+
+ma = library("maths.lib");
+ba = library("basics.lib");
+fi = library("filters.lib");
+os = library("oscillators.lib");
+no = library("noises.lib"); // for compatible copy/paste out of this file
+
+declare name "Faust Noise Generator Library";
+declare version "0.0";
+
+//=============================Functions Reference========================================
+//========================================================================================
 
 /************************************************************************
 ************************************************************************
-FAUST library file
-Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
+FAUST library file, GRAME section
+
+Except where noted otherwise, Copyright (C) 2003-2017 by GRAME,
+Centre National de Creation Musicale.
 ----------------------------------------------------------------------
+GRAME LICENSE
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as
 published by the Free Software Foundation; either version 2.1 of the
@@ -49,16 +50,6 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-ba = library("basics.lib");
-fi = library("filters.lib");
-os = library("oscillators.lib");
-
-declare name "Faust Noise Generator Library";
-declare version "0.0";
-
-//=============================Functions Reference========================================
-//========================================================================================
-
 //-------`noise`----------
 // White noise generator (outputs random number between -1 and 1).
 // `Noise` is a standard Faust function.
@@ -69,10 +60,10 @@ declare version "0.0";
 // noise : _
 // ```
 //------------------------
-// TODO: add mask for 32 bits
 noise = random / RANDMAX
 with{
-	random = +(12345) ~ *(1103515245); // "linear congruential"
+	mask = 4294967295; // 2^32-1
+	random = +(12345) ~ *(1103515245) & mask; // "linear congruential"
 	RANDMAX	= 2147483647.0; // = 2^31-1 = MAX_SIGNED_INT in 32 bits
 };
 
@@ -114,12 +105,26 @@ with {
 	RANDMAX = 2147483647.0;
 };
 
-
 //-----------------------`noises`------------------------
 // TODO.
 //----------------------------------------------------------
 noises(N,i) = multinoise(N) : ba.selector(i,N);
 
+//########################################################################################
+/************************************************************************
+FAUST library file, jos section
+
+Except where noted otherwise, The Faust functions below in this
+section Copyright (C) 2003-2017 by Julius O. Smith III
+([jos](http://ccrma.stanford.edu/~jos/)), and released under the
+(MIT-style) [STK-4.3](#stk-4.3-license) license.
+
+All MarkDown comments in this section is Copyright 2016-2017 by Romain
+Michon and Julius O. Smith III, and is released under the
+[CCA4I](https://creativecommons.org/licenses/by/4.0/) license (if/when
+Romain agrees!)
+
+************************************************************************/
 
 //---------------------------`pink_noise`--------------------------
 // Pink noise (1/f noise) generator (third-order approximation)
@@ -135,8 +140,6 @@ noises(N,i) = multinoise(N) : ba.selector(i,N);
 //
 // <https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html>
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
-
 pink_filter = fi.iir((0.049922035, -0.095993537, 0.050612699, -0.004408786),
                     (-2.494956002, 2.017265875, -0.522189400));
 
@@ -161,7 +164,6 @@ pink_noise = noise : pink_filter;
 // * <http://www.dsprelated.com/showarticle/908.php>
 // * <http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney>
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 pink_noise_vm(N) = noise <: _,par(i,N,ba.latch(clock(i))) :> _
 with {
   clock(i) = (ba.time>>i)&1; // i'th latch clock signal
@@ -189,7 +191,77 @@ with {
 //           lfnoise(rate);    // lfnoise0 smoothed with no overshoot
 // ```
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
 lfnoise0(freq) = noise : ba.latch(os.oscrs(freq));
 lfnoiseN(N,freq) = lfnoise0(freq) : fi.lowpass(N,freq); // Nth-order Butterworth lowpass
 lfnoise(freq) = lfnoise0(freq) : seq(i,5,fi.lowpass(1,freq)); // non-overshooting lowpass
+
+//-------------------------`sparse_noise_vm`-------------------
+// sparse noise generator.
+//
+// #### Usage
+//
+// ```
+// sparse_noise(f0) : _;
+// ```
+//
+// Where:
+//
+// * ` f0`: average frequency of noise impulses per second
+//
+// Random impulses in the amplitude range -1 to 1 are generated
+// at an average rate of f0 impulses per second.
+//
+// #### Reference
+//
+// * See velvet_noise
+//------------------------------------------------------------
+sparse_noise(f0) = sn
+with {
+  saw = os.lf_sawpos(f0);
+  sawdiff = saw - saw';
+  e = float(no.noise); // float() keeps 4.656613e-10f scaling here instead of later
+  eHeld = e : ba.latch(sawdiff);
+  eHeldPos = 0.5 + 0.5 * eHeld;
+  crossed = (saw >= eHeldPos) * (saw' < eHeldPos);
+  sn = e' * float(crossed);
+};
+
+//-------------------------`velvet_noise_vm`-------------------
+// velvet noise generator.
+//
+// #### Usage
+//
+// ```
+// velvet_noise(amp,f0) : _;
+// ```
+//
+// Where:
+//
+// * `amp`: amplitude of noise impulses (positive and negative)
+// * ` f0`: average frequency of noise impulses per second
+//
+// #### Reference
+//
+// * Matti Karjalainen and Hanna Jarvelainen,
+//   "Reverberation Modeling Using Velvet Noise",
+//   in Proc. 30th Int. Conf. Intelligent Audio Environments (AES07),
+//   March 2007.
+//
+//------------------------------------------------------------
+velvet_noise(amp,f0) = vn
+with {
+  sn = no.sparse_noise(f0);
+  vn = amp * ma.signum(sn);
+};
+
+//########################################################################################
+/************************************************************************
+FAUST library file, further contributions section
+
+All contributions below should indicate both the contributor and terms
+of license.  If no such indication is found, "git blame" will say who
+last edited each line, and that person can be emailed to inquire about
+license disposition, if their license choice is not already indicated
+elsewhere among the libraries.  It is expected that all software will be
+released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
+************************************************************************/

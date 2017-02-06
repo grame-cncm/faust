@@ -7,20 +7,7 @@
 // * Selectors (Conditions)
 // * Other Tools (Misc)
 //
-// It should be used using the `ba` environment:
-//
-// ```
-// ba = library("basics.lib");
-// process = ba.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `ba`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = ba.functionCall;
-// ```
+// The official prefix of this library is `ba`.
 //########################################################################################
 
 /************************************************************************
@@ -171,8 +158,7 @@ log2LinGain = sqrt;
 //
 // * `tau`: time-constant in seconds
 //-----------------------------
-// TODO: author JOS, revised by RM
-tau2pole(tau) = exp(-1.0/(tau*ma.SR));
+  tau2pole(tau) = exp(-1.0/(tau*ma.SR));
 
 
 //-------`pole2tau`----------
@@ -190,8 +176,7 @@ tau2pole(tau) = exp(-1.0/(tau*ma.SR));
 //
 // * `pole`: the pole
 //-----------------------------
-// TODO: author JOS, revised by RM
-pole2tau(pole) = -1.0/(log(pole)*ma.SR);
+  pole2tau(pole) = -1.0/(log(pole)*ma.SR);
 
 
 //-------`midikey2hz`----------
@@ -208,7 +193,7 @@ pole2tau(pole) = -1.0/(log(pole)*ma.SR);
 //
 // * `mk`: the MIDI key number
 //-----------------------------
-midikey2hz(mk)  = 440.0*pow(2.0, (mk-69.0)/12);
+  midikey2hz(mk)  = 440.0*pow(2.0, (mk-69.0)/12);
 
 
 //-------`pianokey2hz`----------
@@ -224,7 +209,7 @@ midikey2hz(mk)  = 440.0*pow(2.0, (mk-69.0)/12);
 //
 // * `pk`: the piano key number
 //-----------------------------
-pianokey2hz(pk) = 440.0*pow(2.0, (pk-49.0)/12);
+  pianokey2hz(pk) = 440.0*pow(2.0, (pk-49.0)/12);
 
 
 //-------`hz2pianokey`----------
@@ -240,7 +225,7 @@ pianokey2hz(pk) = 440.0*pow(2.0, (pk-49.0)/12);
 //
 // * `f`: frequency in Hz
 //-----------------------------
-hz2pianokey(f)  = 12*ma.log2(f/440.0) + 49.0;
+  hz2pianokey(f)  = 12*ma.log2(f/440.0) + 49.0;
 
 
 //==============================Counters and Time/Tempo Tools=============================
@@ -296,7 +281,7 @@ countup(count, trig)	= \(c).(if(trig>0, 0, min(count, c+1))) ~_;
 // sweep(period,run) : _
 // ```
 //-----------------------------------------------------------------
-// TODO: author Jonatan Liljedahl, revised by RM
+// Author: Jonatan Liljedahl, markdown by RM
 sweep = %(int(*:max(1)))~+(1);
 
 
@@ -636,8 +621,7 @@ selectn(N,i) = S(N,0)
 // 
 // * `bpc`: the selector switch (0/1)
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM    
-select2stereo(bpc) = ro.cross2 : select2(bpc), select2(bpc) : _,_;
+  select2stereo(bpc) = ro.cross2 : select2(bpc), select2(bpc) : _,_;
 
 
 //=====================================Other==============================================
@@ -656,10 +640,7 @@ select2stereo(bpc) = ro.cross2 : select2(bpc), select2(bpc) : _,_;
 //
 // * `clocksig`: hold trigger (0 for hold, 1 for bypass)
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
-// TODO: not sure how this function works: doesn't seem to work the way
-// it described which is why sAndH was implemented below.
-latch(c,x) = x * s : + ~ *(1-s) with { s = ((c'<=0)&(c>0)); };
+  latch(c,x) = x * s : + ~ *(1-s) with { s = ((c'<=0)&(c>0)); };
 
 
 //--------------------------`sAndH`-------------------------------
@@ -812,9 +793,8 @@ bpf = environment
 // * `bpc`: bypass switch (0/1)
 // * `e`: a mono effect
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM
-bypass1(bpc,e) = _ <: select2(bpc,(inswitch:e),_)
-                 with {inswitch = select2(bpc,_,0);};
+  bypass1(bpc,e) = _ <: select2(bpc,(inswitch:e),_)
+                   with {inswitch = select2(bpc,_,0);};
 
 //-------------------`bypass2`-------------------------
 // Takes a stereo input signal, route it to `e` and bypass it if `bpc = 1`.
@@ -831,10 +811,9 @@ bypass1(bpc,e) = _ <: select2(bpc,(inswitch:e),_)
 // * `bpc`: bypass switch (0/1)
 // * `e`: a stereo effect
 //------------------------------------------------------------
-// TODO: author JOS, revised by RM 
-bypass2(bpc,e) = _,_ <: ((inswitch:e),_,_) : select2stereo(bpc) with {
-  inswitch = _,_ : (select2(bpc,_,0), select2(bpc,_,0)) : _,_;
-};
+  bypass2(bpc,e) = _,_ <: ((inswitch:e),_,_) : select2stereo(bpc) with {
+    inswitch = _,_ : (select2(bpc,_,0), select2(bpc,_,0)) : _,_;
+  };
 
 
 //----------------------------`toggle`------------------------------------------

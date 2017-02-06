@@ -1,20 +1,6 @@
 //################################### synths.lib ##########################################
-// This library contains a collection of envelope generators.
-//
-// It should be used using the `sy` environment:
-//
-// ```
-// sy = library("synths.lib");
-// process = sy.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `sy`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = sy.functionCall;
-// ```
+// This library contains a collection of envelope generators. Its official
+// prefix is `sy`.
 //########################################################################################
 
 /************************************************************************
