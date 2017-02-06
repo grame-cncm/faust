@@ -115,9 +115,9 @@ install :
 	cp -r architecture/iOS $(prefix)/share/faust/
 	cp -r architecture/osclib $(prefix)/share/faust/iOS
 	rm -rf $(prefix)/share/faust/iOS/DerivedData/
-	# install multiKeyboard
-	rm -rf $(prefix)/share/faust/multiKeyboard
-	cp -r architecture/multiKeyboard $(prefix)/share/faust/
+	# install smartKeyboard
+	rm -rf $(prefix)/share/faust/smartKeyboard
+	cp -r architecture/smartKeyboard $(prefix)/share/faust/
 	# install Juce
 	rm -rf $(prefix)/share/faust/jucer
 	cp -r architecture/jucer $(prefix)/share/faust/
