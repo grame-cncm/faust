@@ -33,7 +33,6 @@
 #include <iostream>
 #include <oct.h>
 
-
 using namespace std;
 
 // TODO: find out what to do with this Meta thing
@@ -42,11 +41,8 @@ struct Meta : map<const char*, const char*>
     void declare (const char* key, const char* value) { (*this)[key]=value; }
 };
 
-
-
 // abs is now predefined
 //template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
-
 
 inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
@@ -61,7 +57,6 @@ inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
-
 <<includeIntrinsic>>
 
 /******************************************************************************
@@ -71,7 +66,6 @@ inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
 *******************************************************************************
 *******************************************************************************/
-
 
 class UI
 {
@@ -114,7 +108,6 @@ public:
     virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
-
 struct param {
 	string fName; float *fVals; float* fZone; float fMin; float fMax;
 	param(string name, float* z, float init, float a, float b) : fName(name), fVals(NULL), fZone(z), fMin(a), fMax(b) { *z = init; }
@@ -125,7 +118,6 @@ class FNUI : public UI
 {
 	vector<param>	fParam;
 	int numOptions;
-
 
 public:
 	FNUI() : UI() { numOptions=0; }
@@ -198,8 +190,6 @@ public:
 
 };
 
-
-
 /******************************************************************************
 *******************************************************************************
 
@@ -207,8 +197,6 @@ public:
 
 *******************************************************************************
 *******************************************************************************/
-
-
 
 //----------------------------------------------------------------
 //  abstract definition of a signal processor
@@ -228,14 +216,11 @@ class dsp {
  	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
 };
 
-
 //----------------------------------------------------------------------------
 //  FAUST generated signal processor
 //----------------------------------------------------------------------------
 
-
 <<includeclass>>
-
 
 //----------------------------------------------------------------------------
 //  Octave interface
@@ -284,8 +269,6 @@ interpolate_ctrlin (float *vals, NDArray in, int n)
 	  vals[i] = in(nin-1);
   }
 }
-
-
 
 DEFUN_DLD (FAUST_FUNC_NAME, args, nargout,
 	   "type " QUOTEME(FAUST_FUNC_NAME) "() to see the arguments.\n")

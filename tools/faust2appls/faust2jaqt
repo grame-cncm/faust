@@ -45,13 +45,17 @@ OSCINC=""
 QTDEFS=""
 OSCLIB=""
 DEPLOY=""
+NVOICES=-1
 
-for p in $@; do
+while [ $1 ]
+do
+    p=$1
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2jaqt [-httpd] [-qrcode] [-poly] [-midi] [-osc] <file.dsp>"
+        echo "faust2jaqt [-httpd] [-qrcode] [-nvoices <num>] [-midi] [-osc] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
-        echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
     fi
@@ -68,8 +72,13 @@ for p in $@; do
     	ignore=" "
     elif [ $p = "-deploy" ]; then
         DEPLOY="yes"
-    elif [ $p = "-poly" ]; then
+    elif [ $p = "-nvoices" ]; then
         POLYDEFS="DEFINES += POLY"
+        shift
+        NVOICES=$1
+        if [ $NVOICES -ge 0 ]; then
+            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        fi
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
     elif [ $p = "-osc" ]; then
@@ -87,6 +96,9 @@ for p in $@; do
     else
 	    OPTIONS="$OPTIONS $p"        
 	fi
+
+shift
+
 done
 
 #-------------------------------------------------------------------

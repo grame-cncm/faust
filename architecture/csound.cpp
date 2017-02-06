@@ -30,7 +30,6 @@
  that work under terms of your choice, so long as this FAUST 
  architecture section is not modified. 
  
- 
  ************************************************************************
  ************************************************************************/
 

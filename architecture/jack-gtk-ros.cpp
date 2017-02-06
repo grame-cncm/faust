@@ -10,12 +10,12 @@
 
 /************************************************************************
     FAUST Architecture File
-	Copyright (C) 2014-2015 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2014-2015 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it 
     and/or modify it under the terms of the GNU General Public License 
-	as published by the Free Software Foundation; either version 3 of 
-	the License, or (at your option) any later version.
+    as published by the Free Software Foundation; either version 3 of 
+    the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,13 +23,12 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License 
-	along with this program; If not, see <http://www.gnu.org/licenses/>.
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-	EXCEPTION : As a special exception, you may create a larger work 
-	that contains this FAUST architecture section and distribute  
-	that work under terms of your choice, so long as this FAUST 
-	architecture section is not modified. 
-
+    EXCEPTION : As a special exception, you may create a larger work 
+    that contains this FAUST architecture section and distribute  
+    that work under terms of your choice, so long as this FAUST 
+    architecture section is not modified. 
 
  ************************************************************************
  ************************************************************************/
@@ -80,8 +79,7 @@ ztimedmap GUI::gTimedZoneMap;
 //-------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-    
-	char	appname[256];
+ 	char	appname[256];
 	char* 	home = getenv("HOME");
 	
 	snprintf(appname, 255, "%s", basename(argv[0]));
@@ -110,8 +108,7 @@ int main(int argc, char *argv[])
 
 	if (meta) // If there is any, then we subscribe to the specific subscriber(s)
 	{
-		RosCallbacks* subscriber = new RosCallbacks(n); 
-	
+		RosCallbacks* subscriber = new RosCallbacks(n);
 		std::vector<FAUSTFLOAT*> my_zones = rosinterface->getZones();
 		subscriber->subscribe(my_zones);
 	}
@@ -121,7 +118,6 @@ int main(int argc, char *argv[])
 	audio.init(appname, DSP);
 	
 	audio.start();
-
 
 	// ROS Callbacks are called by AsyncSpinner spinner
 	ros::AsyncSpinner spinner(rosinterface->getParamsCount());
@@ -135,16 +131,11 @@ int main(int argc, char *argv[])
     
 	audio.stop();
 	
-    
     // desallocation
     delete interface;
     delete rosinterface;
-    
-
-
   	return 0;
 }
-
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

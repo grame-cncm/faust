@@ -654,7 +654,7 @@ static void initFaustDirectories()
     //-------------------------------------------------------------------------------------
 
     gArchitectureDirList.push_back(gMasterDirectory);
-    if (char* envpath = getenv("FAUST_ARCH_PATH")) { gImportDirList.push_back(envpath); }
+    if (char* envpath = getenv("FAUST_ARCH_PATH")) { gArchitectureDirList.push_back(envpath); }
     gArchitectureDirList.push_back(gFaustDirectory+"/architecture");
     gArchitectureDirList.push_back(gFaustSuperDirectory+"/architecture");
     gArchitectureDirList.push_back(gFaustSuperSuperDirectory+"/architecture");

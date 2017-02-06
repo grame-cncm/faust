@@ -10,12 +10,12 @@
 
 /************************************************************************
     FAUST Architecture File
-	Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it 
     and/or modify it under the terms of the GNU General Public License 
-	as published by the Free Software Foundation; either version 3 of 
-	the License, or (at your option) any later version.
+    as published by the Free Software Foundation; either version 3 of 
+    the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,13 +23,12 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License 
-	along with this program; If not, see <http://www.gnu.org/licenses/>.
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-	EXCEPTION : As a special exception, you may create a larger work 
-	that contains this FAUST architecture section and distribute  
-	that work under terms of your choice, so long as this FAUST 
-	architecture section is not modified. 
-
+    EXCEPTION : As a special exception, you may create a larger work 
+    that contains this FAUST architecture section and distribute  
+    that work under terms of your choice, so long as this FAUST 
+    architecture section is not modified. 
 
  ************************************************************************
  ************************************************************************/
@@ -60,7 +59,6 @@
 #include <libgen.h>
 #include <jack/jack.h>
 
-
 using namespace std;
 
 //inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
@@ -68,18 +66,12 @@ using namespace std;
 
 // g++ -O3 -lm -ljack `gtk-config --cflags --libs` ex2.cpp
  
-	
-
-
-
 // abs is now predefined
 //template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
-
 
 inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
 inline int 		int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
-
 
 
 /******************************************************************************
@@ -92,13 +84,7 @@ inline int 		int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
 
 //inline void *alloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
 
-
 <<includeIntrinsic>>
-
-
-
-
-
 
 /******************************************************************************
 *******************************************************************************
@@ -228,7 +214,6 @@ class UI
     virtual void declare(float* zone, const char* key, const char* value) {}
 };
 
-
 /**
  * User Interface Item: abstract definition
  */
@@ -263,7 +248,6 @@ class uiItem
 	virtual void 	reflectZone() 	= 0;	
 };
 
-
 /**
  * Callback Item
  */
@@ -297,7 +281,6 @@ inline void UI::updateZone(float* z)
 		if ((*c)->cache() != v) (*c)->reflectZone();
 	}
 }
-
 
 /**
  * Update all user items not up to date
@@ -335,7 +318,6 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
             ...
 *******************************************************************************
 *******************************************************************************/
-
 
 #include <MidiShare.h>
 
@@ -408,9 +390,6 @@ class MidiShareUI : public UI
     }
 };
 
-
-
-
 /******************************************************************************
 *******************************************************************************
 
@@ -430,14 +409,13 @@ class MidiShareUI : public UI
 #define kBoxMode 1
 #define kTabMode 2
 
-
 class GTKUI : public UI
 {
  private :
  	static bool			fInitialized;
  	static list<UI*>	fGuiList;
 	
- protected :
+ protected:
 	GtkWidget* 	fWindow;
 	int			fTop;
 	GtkWidget* 	fBox[stackSize];
@@ -447,8 +425,7 @@ class GTKUI : public UI
 	GtkWidget* addWidget(const char* label, GtkWidget* w);
 	virtual void pushBox(int mode, GtkWidget* w);
 
-		
- public :
+ public:
 	
  	static const gboolean expand = TRUE;
 	static const gboolean fill = TRUE;
@@ -486,8 +463,6 @@ class GTKUI : public UI
 		
 };
 
-
-
 /******************************************************************************
 *******************************************************************************
 
@@ -502,8 +477,6 @@ class GTKUI : public UI
 bool		GTKUI::fInitialized = false;
 list<UI*>	UI::fGuiList;
 
-
-
 static gint delete_event( GtkWidget *widget, GdkEvent *event, gpointer data )
 {
     return FALSE; 
@@ -514,7 +487,6 @@ static void destroy_event( GtkWidget *widget, gpointer data )
     gtk_main_quit ();
 }
 
-		 
 GTKUI::GTKUI(char * name, int* pargc, char*** pargv) 
 {
 	if (!fInitialized) {
@@ -550,7 +522,6 @@ void GTKUI::closeBox()
 	--fTop;
 	assert(fTop >= 0);
 }
-
 
 // les differentes boites
 
@@ -646,7 +617,6 @@ void GTKUI::addButton(const char* label, float* zone)
 	
 	gtk_signal_connect (GTK_OBJECT (button), "pressed", GTK_SIGNAL_FUNC (uiButton::pressed), (gpointer) c);
 	gtk_signal_connect (GTK_OBJECT (button), "released", GTK_SIGNAL_FUNC (uiButton::released), (gpointer) c);
-
 }
 
 // ---------------------------	Toggle Buttons ---------------------------
@@ -681,7 +651,6 @@ void GTKUI::addToggleButton(const char* label, float* zone)
 	gtk_signal_connect (GTK_OBJECT (button), "toggled", GTK_SIGNAL_FUNC (uiToggleButton::toggled), (gpointer) c);
 }
 
-
 // ---------------------------	Check Button ---------------------------
 
 struct uiCheckButton : public uiItem
@@ -713,7 +682,6 @@ void GTKUI::addCheckButton(const char* label, float* zone)
 	uiCheckButton* c = new uiCheckButton(this, zone, GTK_TOGGLE_BUTTON(button));
 	gtk_signal_connect (GTK_OBJECT (button), "toggled", GTK_SIGNAL_FUNC(uiCheckButton::toggled), (gpointer) c);
 }
-
 
 // ---------------------------	Adjustmenty based widgets ---------------------------
 
@@ -786,7 +754,6 @@ void GTKUI::addHorizontalSlider(const char* label, float* zone, float init, floa
 	closeBox();
 }
 
-
 // ------------------------------ Num Entry -----------------------------------
 
 void GTKUI::addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
@@ -806,9 +773,7 @@ void GTKUI::addNumEntry(const char* label, float* zone, float init, float min, f
 	closeBox();
 }
 
-
 // ==========================	passive widgets ===============================
-
 
 // ------------------------------ Progress Bar -----------------------------------
 
@@ -831,7 +796,6 @@ struct uiBargraph : public uiItem
 	}
 };
 
-	
 
 void GTKUI::addVerticalBargraph(const char* label, float* zone, float lo, float hi)
 {
@@ -843,7 +807,6 @@ void GTKUI::addVerticalBargraph(const char* label, float* zone, float lo, float 
 	addWidget(label, pb);
 	closeBox();
 }
-	
 
 void GTKUI::addHorizontalBargraph(const char* label, float* zone, float lo, float hi)
 {
@@ -855,7 +818,6 @@ void GTKUI::addHorizontalBargraph(const char* label, float* zone, float lo, floa
 	addWidget(label, pb);
 	closeBox();
 }
-
 
 // ------------------------------ Num Display -----------------------------------
 
@@ -883,7 +845,6 @@ struct uiNumDisplay : public uiItem
 		gtk_label_set_text(fLabel, s);
 	}
 };
-	
 
 void GTKUI::addNumDisplay(const char* label, float* zone, int precision )
 {
@@ -894,7 +855,6 @@ void GTKUI::addNumDisplay(const char* label, float* zone, int precision )
 	closeBox();
 }
 
-
 // ------------------------------ Text Display -----------------------------------
 
 struct uiTextDisplay : public uiItem
@@ -904,8 +864,7 @@ struct uiTextDisplay : public uiItem
 	float		fMin;
 	float		fMax;
 	int			fNum;
-	
-	
+		
 	uiTextDisplay (UI* ui, float* zone, GtkLabel* label, const char* names[], float lo, float hi) 
 			: uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)  
 	{
@@ -926,7 +885,6 @@ struct uiTextDisplay : public uiItem
 		gtk_label_set_text(fLabel, fNames[idx]); 
 	}
 };
-	
 
 void GTKUI::addTextDisplay(const char* label, float* zone, const char* names[], float lo, float hi )
 {
@@ -937,15 +895,12 @@ void GTKUI::addTextDisplay(const char* label, float* zone, const char* names[], 
 	closeBox();
 }
 
-
-
 void GTKUI::show() 
 {
 	assert(fTop == 0);
 	gtk_widget_show  (fBox[0]);
 	gtk_widget_show  (fWindow);
 }
-
 
 /**
  * Update all user items reflecting zone z
@@ -957,7 +912,6 @@ static gboolean callUpdateAllGuis(gpointer)
 	return TRUE;
 }
 
-
 void GTKUI::run() 
 {
 	assert(fTop == 0);
@@ -968,7 +922,6 @@ void GTKUI::run()
 	stop();
 }
 
-
 /******************************************************************************
 *******************************************************************************
 
@@ -976,10 +929,6 @@ void GTKUI::run()
 
 *******************************************************************************
 *******************************************************************************/
-
-
-
-
 
 //----------------------------------------------------------------
 //  définition du processeur de signal
@@ -1009,11 +958,7 @@ class dsp {
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 				
-mydsp	DSP;
-
-
-
-
+mydsp DSP;
 
 /******************************************************************************
 *******************************************************************************
@@ -1023,15 +968,12 @@ mydsp	DSP;
 *******************************************************************************
 *******************************************************************************/
 
-
-
 //----------------------------------------------------------------------------
 // 	number of input and output channels
 //----------------------------------------------------------------------------
 
 int		gNumInChans;
 int		gNumOutChans;
-
 
 //----------------------------------------------------------------------------
 // Jack ports
@@ -1074,7 +1016,6 @@ int process (jack_nframes_t nframes, void *arg)
 	return 0;
 }
 
-
 /******************************************************************************
 *******************************************************************************
 
@@ -1082,7 +1023,6 @@ int process (jack_nframes_t nframes, void *arg)
 
 *******************************************************************************
 *******************************************************************************/
-	
 	
 //-------------------------------------------------------------------------
 // 									MAIN

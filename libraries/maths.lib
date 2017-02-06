@@ -3,20 +3,7 @@
 // functions of `math.h` functions that are not part of Faust's primitives. Defines 
 // also various constants and several utilities.
 //
-// It should be used using the `fi` environment:
-//
-// ```
-// ma = library("maths.lib");
-// process = ma.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `ma`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = ma.functionCall;
-// ```
+// The official prefix of this library is `ma`.
 //########################################################################################
 
 // ## History
@@ -587,7 +574,7 @@ chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
 
 	
 //------------------`diffn`----------------------------
-// Negated first-roder difference.
+// Negated first-order difference.
 //
 // #### Usage
 //
@@ -595,7 +582,16 @@ chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
 // _ : diffn : _
 // ```
 //--------------------------------------------------------
-// TODO: author JOS, revised by RM
 diffn(x) = x' - x; // negated first-order difference
 
-
+//------------------`signum`----------------------------
+// The signum function signum(x) is defined as
+// -1 for x<0, 0 for x==0, and 1 for x>0;
+//
+// #### Usage
+//
+// ```
+// _ : signum : _
+// ```
+//--------------------------------------------------------
+signum(x) = (x>0)-(x<0);

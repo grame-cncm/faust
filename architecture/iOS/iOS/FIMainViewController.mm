@@ -53,13 +53,9 @@
 #define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
 #define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
 
-#if POLY
 #include "faust/dsp/poly-dsp.h"
-#include "faust/dsp/dsp-combiner.h"
-#endif
 
 #if POLY2
-#include "faust/dsp/poly-dsp.h"
 #include "faust/dsp/dsp-combiner.h"
 #include "effect.cpp"
 #endif
@@ -116,20 +112,45 @@ static void jack_shutdown_callback(const char* message, void* arg)
 
 #endif
 
-bool hasMIDISync()
+struct MyMeta : public Meta, public std::map<const char*, const char*>
 {
-    JSONUI* jsonui = new JSONUI();
-    mydsp* tmp_dsp = new mydsp();
-    tmp_dsp->buildUserInterface(jsonui);
-    std::string json = jsonui->JSON();
+    void declare(const char* key, const char* value)
+    {
+        (*this)[key] = value;
+    }
+    const char* get(const char* key, const char* def)
+    {
+        if (this->find(key) != this->end()) {
+            return (*this)[key];
+        } else {
+            return def;
+        }
+    }
+};
     
-    bool res = ((json.find("midi") != std::string::npos) &&
-                ((json.find("start") != std::string::npos) ||
-                 (json.find("stop") != std::string::npos) ||
-                 (json.find("clock") != std::string::npos)));
+static void analyseMeta(bool& midi_sync, int& nvoices)
+{
+    mydsp* tmp_dsp = new mydsp();
+    
+    JSONUI jsonui;
+    tmp_dsp->buildUserInterface(&jsonui);
+    std::string json = jsonui.JSON();
+    midi_sync = ((json.find("midi") != std::string::npos) &&
+                 ((json.find("start") != std::string::npos) ||
+                  (json.find("stop") != std::string::npos) ||
+                  (json.find("clock") != std::string::npos)));
+    
+#if NVOICES
+    nvoices = NVOICES;
+#else
+    MyMeta meta;
+    tmp_dsp->metadata(&meta);
+    const char* numVoices = meta.get("nvoices", "0");
+    nvoices = atoi(numVoices);
+    if (nvoices < 0) nvoices = 0;
+#endif
+    
     delete tmp_dsp;
-    delete jsonui;
-    return res;
 }
 
 - (void)viewDidLoad
@@ -143,38 +164,55 @@ bool hasMIDISync()
     ((FIAppDelegate*)[UIApplication sharedApplication].delegate).mainViewController = self;
     _openPanelChanged = YES;
     
+    bool midi_sync = false;
+    int nvoices = 1;
+    
+    analyseMeta(midi_sync, nvoices);
+    
 #if POLY2
-    mydsp tmp_dsp;
-#if MIDICTRL
-    if (hasMIDISync()) {
-        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(&tmp_dsp, 4, true, true), new effect()));
-    } else {
-        DSP = new dsp_sequencer(new mydsp_poly(&tmp_dsp, 4, true, true), new effect());
-    }
-#else
-    DSP = new dsp_sequencer(new mydsp_poly(&tmp_dsp, 4, false, true), new effect());
-#endif
     
-#elif POLY
-    mydsp tmp_dsp;
-#if MIDICTRL
-    if (hasMIDISync()) {
-        DSP = new timed_dsp(new mydsp_poly(&tmp_dsp, 4, true, true));
-    } else {
-        DSP = new mydsp_poly(&tmp_dsp, 4, true, true);
-    }
-#else
-    DSP = new mydsp_poly(&tmp_dsp, 4, false, true);
-#endif
+    dsp* tmp_dsp = new mydsp();
+    bool group = true;
+    std::cout << "Started with " << nvoices << " voices\n";
     
-#elif MIDICTRL
-    if (hasMIDISync()) {
-        DSP = new timed_dsp(new mydsp());
+    #if MIDICTRL
+    if (midi_sync) {
+        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new effect()));
     } else {
+        DSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new effect());
+    }
+    #else
+        DSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, false, group), new effect());
+    #endif
+    
+#else
+    
+    dsp* tmp_dsp = new mydsp();
+    bool group = true;
+    
+    if (nvoices > 1) {
+        std::cout << "Started with " << nvoices << " voices\n";
+    #if MIDICTRL
+        if (midi_sync) {
+            DSP = new timed_dsp(new mydsp_poly(tmp_dsp, nvoices, true, group));
+        } else {
+            DSP = new mydsp_poly(tmp_dsp, nvoices, true, group);
+        }
+    #else
+        DSP = new mydsp_poly(tmp_dsp, nvoices, false, group);
+    #endif
+    } else {
+    #if MIDICTRL
+        if (midi_sync) {
+            DSP = new timed_dsp(new mydsp());
+        } else {
+            DSP = new mydsp();
+        }
+    #else
         DSP = new mydsp();
+    #endif
     }
-#else
-    DSP = new mydsp();
+    
 #endif
     
     // Faust initialization

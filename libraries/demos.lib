@@ -1,21 +1,6 @@
 //#################################### demos.lib ##########################################
 // This library contains a set of demo functions based on examples located in the
-// `/examples` folder.
-// 
-// It should be used using the `dm` environment:
-//
-// ```
-// dm = library("demos.lib");
-// process = dm.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `dm`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = dm.functionCall;
-// ```
+// `/examples` folder. Its official prefix is `dm`.
 //########################################################################################
 
 /************************************************************************
@@ -1070,7 +1055,7 @@ with{
 // ```
 // oscrs_demo : _
 // ```
-//------------------------------------------------------------
+//-------------------------------------------------------------------
 // TODO: author JOS, revised by RM
 oscrs_demo = signal
 with{
@@ -1094,5 +1079,39 @@ with{
 oscr_demo = oscrs_demo; // synonym
 
 
+//-------------------------- `velvet_noise_demo` ---------------------------
+// Listen to velvet_noise!
+//
+// #### Usage
+//
+// ```
+// velvet_noise_demo : _
+// ```
+//-------------------------------------------------------------------
+
+velvet_noise_demo = vn
+with{
+	amp = hslider("Amp [unit:dB]",-10,-70,10,0.1) : ba.db2linear;
+	f0 = 10.0, hslider("Freq [unit:log10(Hz)]",3,0,4,0.001) : pow;
+	vn = no.velvet_noise(amp,f0);
+};
 
 
+//-------------------------- `latch_demo` ---------------------------
+// Illustrate latch operation
+//
+// #### Usage
+//
+// ```
+// echo "dm = library("demos.lib");" > latch_demo.dsp
+// echo "process = dm.latch_demo;" >> latch_demo.dsp
+// faust2octave latch_demo.dsp
+// Octave:1> plot(faustout);
+// ```
+//-------------------------------------------------------------------
+latch_demo = x, c, ba.latch(c,x) // plot(faustout) after faust2octave
+with{
+	f = float(ma.SR)/1000.0;
+	x = os.oscr(f);
+	c = 0.5 * os.oscrs(5*f); // sample 5 times per period
+};

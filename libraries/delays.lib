@@ -1,21 +1,6 @@
 
 //#################################### delays.lib #########################################
-// This library contains a collection of delay functions.
-//
-// It should be used using the `de` environment:
-//
-// ```
-// de = library("delays.lib");
-// process = de.functionCall;
-// ```
-//
-// Another option is to import `stdfaust.lib` which already contains the `de`
-// environment:
-//
-// ```
-// import("stdfaust.lib");
-// process = de.functionCall;
-// ```
+// This library contains a collection of delay functions. Its official prefix is `de`.
 //########################################################################################
 
 /************************************************************************

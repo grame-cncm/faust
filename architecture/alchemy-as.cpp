@@ -10,12 +10,12 @@
 
 /************************************************************************
     FAUST Architecture File
-	Copyright (C) 2010-2011 Travis Skare
+    Copyright (C) 2010-2011 Travis Skare
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it 
     and/or modify it under the terms of the GNU General Public License 
-	as published by the Free Software Foundation; either version 3 of 
-	the License, or (at your option) any later version.
+    as published by the Free Software Foundation; either version 3 of 
+    the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,13 +23,12 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License 
-	along with this program; If not, see <http://www.gnu.org/licenses/>.
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-	EXCEPTION : As a special exception, you may create a larger work that 
-	contains this FAUST architecture section and distribute  
-	that work under terms of your choice, so long as that this FAUST 
-	architecture section is not modified. 
-
+    EXCEPTION : As a special exception, you may create a larger work that 
+    contains this FAUST architecture section and distribute  
+    that work under terms of your choice, so long as that this FAUST 
+    architecture section is not modified. 
 
  ************************************************************************
  ************************************************************************/
@@ -41,9 +40,7 @@
 // otherwise we have to hand-edit c++.
 #include "math.h" 
 
-
 #ifdef __GNUC__
-
 
 // abs is now predefined
 //template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
@@ -275,9 +272,7 @@ class dsp {
 //----------------------------------------------------------------------------
 //  FAUST generated signal processor
 //----------------------------------------------------------------------------
-		
 
-		
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
 /**************************BEGIN USER SECTION **************************/
@@ -287,9 +282,6 @@ class dsp {
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-
-
-
 
 /// Alchemy DSP
 class Faust {
