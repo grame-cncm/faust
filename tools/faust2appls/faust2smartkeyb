@@ -126,7 +126,7 @@ if [ $REUSE -eq 0 ] || [ ! -d "$BUILDDIR" ]; then
 			
 			if [ $PLATFORM = "Darwin" ]; then
 				sed -i '' 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $BUILDDIR/app/build.gradle
-				sed -i '' 's,com.ccrma.faust,com.ccrma'$APPNAME',g' $APPFOLDER/java/com/ccrma/faust/*
+				sed -i '' 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/java/com/ccrma/faust/*
 				sed -i '' 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
 				sed -i '' 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/res/layout/activity_main.xml
 				sed -i '' 's,Faust,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
