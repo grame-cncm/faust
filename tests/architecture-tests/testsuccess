@@ -75,11 +75,11 @@ elif [ "$1" = "linux" ]; then
     done
 
     for scriptname in $LINUXPOLY; do
-        ($scriptname -poly good.dsp &> LOG)&&(echo "OK: $scriptname -poly succeeded !")||(echo "ERROR: $scriptname -poly failed")
+        ($scriptname -nvoices 8 good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 succeeded !")||(echo "ERROR: $scriptname -nvoices 8 failed")
     done
 
     for scriptname in $LINUXPOLYMIDI; do
-        ($scriptname -poly -midi good.dsp &> LOG)&&(echo "OK: $scriptname -poly -midi succeeded !")||(echo "ERROR: $scriptname -poly -midi failed")
+        ($scriptname -nvoices 8 -midi good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -midi failed")
     done
 
     for scriptname in $LINUXOSCHTTPD; do
@@ -90,9 +90,9 @@ elif [ "$1" = "linux" ]; then
 
     (faust2api -android -midi good.dsp &> LOG)&&(echo "OK: faust2api -android -midi succeeded !")||(echo "ERROR: faust2api -android -midi failed")
 
-    (faust2api -android -midi -poly good.dsp &> LOG)&&(echo "OK: faust2api -android -midi -poly succeeded !")||(echo "ERROR: faust2api -android -midi -poly failed")
+    (faust2api -android -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2api -android -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -android -midi -nvoices 8 failed")
 
-    (faust2api -android -poly -effect good.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -android -poly -effect good.dsp -midi succeeded !")||(echo "ERROR: faust2api -android -poly -effect good.dsp -midi failed")
+    (faust2api -android -nvoices 8 -effect good.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -android -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: faust2api -android -nvoices 8 -effect good.dsp -midi failed")
 
 else
 	echo
