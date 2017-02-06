@@ -6,8 +6,8 @@ faust2juce is used with the following command :
 
 `faust2juce [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] file.dsp` 
 
-It will create a folder named with the dsp file name, containing a .jucer file and a Source folder, with the Main.cpp and the MainComponent.h that JUCE uses
-In order for it to be ready to use, without changing the JUCE modules path, you should put it into the "examples" folder of the JUCE git folder.
+It will create a folder named with the dsp file name, containing a .jucer file and a Source folder, with the Main.cpp and the MainComponent.h files to be used by JUCE.
+The resulting folder has to be moved on the "examples" folder of your JUCE installation, the .jucer file has to be opened, and projects for specific native platforms can then be generated. 
 
 ## Options
 
