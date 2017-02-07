@@ -90,8 +90,6 @@
                                                                      @"Inter-Keyboard Slide":[NSNumber numberWithInt:1],
                                                                      @"Send Current Key":[NSNumber numberWithInt:1],
                                                                      @"Send Current Keyboard":[NSNumber numberWithInt:1],
-                                                                     @"Send X":[NSNumber numberWithInt:1],
-                                                                     @"Send Y":[NSNumber numberWithInt:1],
                                                                      @"Send Sensors":[NSNumber numberWithInt:1],
                                                                      @"Rounding Update Speed":[NSNumber numberWithFloat:0.06],
                                                                      @"Rounding Pole":[NSNumber numberWithFloat:0.9],
@@ -175,7 +173,13 @@
             keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Orientation",i]] = [NSNumber numberWithInt:0];
         }
         if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Mode",i]] == nil){
-            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Mode",i]] = [NSNumber numberWithInt:1];
+            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Mode",i]] = [NSNumber numberWithInt:0];
+        }
+        if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Send X",i]] == nil){
+            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",i]] = [NSNumber numberWithInt:1];
+        }
+        if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Send Y",i]] == nil){
+            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",i]] = [NSNumber numberWithInt:1];
         }
     }
     
@@ -219,7 +223,7 @@
     for(int i=0; i<[keyboardParameters[@"Number of Keyboards"] intValue]; i++){
         // if no poly mode, then no keyboard mode is automatically activated
         if([keyboardParameters[@"Max Keyboard Polyphony"] intValue] <= 0){
-            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Mode",i]] = [NSNumber numberWithInt:0];
+            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Mode",i]] = [NSNumber numberWithInt:1];
         }
         // initializing the zones (keys) of the different keyboards
         [zones insertObject:[[NSMutableArray alloc] init] atIndex:i];
@@ -229,9 +233,9 @@
         for(int j=0;j<[keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Number of Keys",i]] intValue];j++){
             // Zones have 1 pt on each side but touch detection happens on the entire screen. With this strategy we lose 1 pt on the 2 extermities of the interface but it makes things much easier
             [[zones objectAtIndex:i] insertObject:[[Zone alloc] initWithFrame:CGRectMake(zoneWidths[i]*j+1, zoneHeight*i+1, zoneWidths[i]-2, zoneHeight-2)] atIndex:j];
-            [[[zones objectAtIndex:i] objectAtIndex:j] setKeyboardMode:[keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Mode",i]] boolValue]];
+            [[[zones objectAtIndex:i] objectAtIndex:j] setKeyboardMode:[keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Mode",i]] intValue] == 0];
             // set/display note name in the key only in keyboard mode and when scale is chromatic
-            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Mode",i]] boolValue] &&
+            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Mode",i]] intValue] == 0 &&
                [keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Scale",i]] intValue]<1 &&
                [keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Show Notes",i]] intValue]>0){
                 if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Orientation",i]] boolValue]){
@@ -360,7 +364,7 @@
         }
         
         // no poly mode
-        if([keyboardParameters[@"Max Keyboard Polyphony"] intValue] <= 0){
+        if([keyboardParameters[@"Max Keyboard Polyphony"] intValue] <= 0 || [keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Mode",currentKeyboard]] intValue] == 2){
             [self sendSynthControlAction:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
         }
         // poly mode
@@ -559,13 +563,16 @@
  ***************************************************************************/
 
 -(void)sendSynthControlAction:(int)keyboardId withKeyId:(int)keyId withFingerId:(int)fingerId{
-    // TODO: continuous x and y values are always sent: this should be optimized
-    // TODO: might need a mechanism to check if voice is on before message gets sent
-    
     if([keyboardParameters[@"Send Current Keyboard"] intValue]) faustDsp->setParamValue("keyboard", keyboardId);
     if([keyboardParameters[@"Send Current Key"] intValue]) faustDsp->setParamValue("key", keyId);
-    if([keyboardParameters[@"Send X"] intValue]) faustDsp->setParamValue(("x" + std::to_string(fingerId)).c_str(), fmod(currentContinuousKey,1));
-    if([keyboardParameters[@"Send Y"] intValue]) faustDsp->setParamValue(("y" + std::to_string(fingerId)).c_str(), currentKeyboardY);
+    if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Mode",keyboardId]] intValue] == 2){
+        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",keyboardId]] intValue] == 1) faustDsp->setParamValue("x", fmod(currentContinuousKey,1));
+        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",keyboardId]] intValue] == 1) faustDsp->setParamValue("y", currentKeyboardY);
+    }
+    else{
+        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",keyboardId]] intValue] == 1) faustDsp->setParamValue(("x" + std::to_string(fingerId-1)).c_str(), fmod(currentContinuousKey,1));
+        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",keyboardId]] intValue] == 1) faustDsp->setParamValue(("y" + std::to_string(fingerId-1)).c_str(), currentKeyboardY);
+    }
 }
 
 /***************************************************************************
@@ -680,8 +687,8 @@
     if(voices[fingerId] != -1){
         if([keyboardParameters[@"Send Current Keyboard"] intValue]) faustDsp->setVoiceParamValue("keyboard", voices[fingerId], keyboardId);
         if([keyboardParameters[@"Send Current Key"] intValue]) faustDsp->setVoiceParamValue("key", voices[fingerId], keyId);
-        if([keyboardParameters[@"Send X"] intValue]) faustDsp->setVoiceParamValue("x", voices[fingerId], fmod(currentContinuousKey,1));
-        if([keyboardParameters[@"Send Y"] intValue]) faustDsp->setVoiceParamValue("y", voices[fingerId], currentKeyboardY);
+        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",keyboardId]] intValue] == 1) faustDsp->setVoiceParamValue("x", voices[fingerId], fmod(currentContinuousKey,1));
+        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",keyboardId]] intValue] == 1) faustDsp->setVoiceParamValue("y", voices[fingerId], currentKeyboardY);
     }
 }
 

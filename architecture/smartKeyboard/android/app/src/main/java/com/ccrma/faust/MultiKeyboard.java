@@ -89,8 +89,6 @@ public class MultiKeyboard extends ViewGroup {
             keyboardParameters.put("Inter-Keyboard Slide", 1);
             keyboardParameters.put("Send Current Key", 1);
             keyboardParameters.put("Send Current Keyboard", 1);
-            keyboardParameters.put("Send X", 1);
-            keyboardParameters.put("Send Y", 1);
             keyboardParameters.put("Send Sensors", 1);
             keyboardParameters.put("Rounding Update Speed", (float) 0.06);
             keyboardParameters.put("Rounding Smooth", (float) 0.9);
@@ -184,7 +182,13 @@ public class MultiKeyboard extends ViewGroup {
                 keyboardParameters.put(String.format("Keyboard %d - Orientation", i), 0);
             }
             if(keyboardParameters.get(String.format("Keyboard %d - Mode",i)) == null) {
-                keyboardParameters.put(String.format("Keyboard %d - Mode", i), 1);
+                keyboardParameters.put(String.format("Keyboard %d - Mode", i), 0);
+            }
+            if(keyboardParameters.get(String.format("Keyboard %d - Send X",i)) == null) {
+                keyboardParameters.put(String.format("Keyboard %d - Send X", i), 1);
+            }
+            if(keyboardParameters.get(String.format("Keyboard %d - Send Y",i)) == null) {
+                keyboardParameters.put(String.format("Keyboard %d - Send Y", i), 1);
             }
         }
 
@@ -222,15 +226,15 @@ public class MultiKeyboard extends ViewGroup {
         for(int i=0; i<(int)keyboardParameters.get("Number of Keyboards") ; i++) {
             // if no poly mode, then no keyboard mode is automatically activated
             if((int)keyboardParameters.get("Max Keyboard Polyphony") <= 0) {
-                keyboardParameters.put(String.format("Keyboard %d - Mode", i), 0);
+                keyboardParameters.put(String.format("Keyboard %d - Mode", i), 1);
             }
             zones.add(new ArrayList<Zone>());
             fingersOnKeyboardsCount[i] = 0;
             monoMode_previousActiveFinger[i] = 0;
             for(int j=0; j<(int)keyboardParameters.get(String.format("Keyboard %d - Number of Keys",i)); j++) {
                 zones.get(i).add(new Zone(context));
-                zones.get(i).get(j).setKeyboardMode((int)keyboardParameters.get(String.format("Keyboard %d - Mode", i)) == 1);
-                if (((int)keyboardParameters.get(String.format("Keyboard %d - Mode", i)) == 1) &&
+                zones.get(i).get(j).setKeyboardMode((int)keyboardParameters.get(String.format("Keyboard %d - Mode", i)) == 0);
+                if (((int)keyboardParameters.get(String.format("Keyboard %d - Mode", i)) == 0) &&
                         ((int) keyboardParameters.get(String.format("Keyboard %d - Scale", i)) < 1) &&
                         ((int) keyboardParameters.get(String.format("Keyboard %d - Show Notes", i)) > 0)) {
                     if ((int)keyboardParameters.get(String.format("Keyboard %d - Orientation", i)) == 1) {
@@ -341,7 +345,8 @@ public class MultiKeyboard extends ViewGroup {
             }
 
             // no poly mode
-            if((int)keyboardParameters.get("Max Keyboard Polyphony") <= 0){
+            if((int)keyboardParameters.get("Max Keyboard Polyphony") <= 0 ||
+                    (int)keyboardParameters.get(String.format("Keyboard %d - Mode",currentKeyboard)) == 2){
                 sendSynthControlAction(currentKeyboard, currentKeyIdInRow, fingerId);
             }
             // poly mode
@@ -534,12 +539,20 @@ public class MultiKeyboard extends ViewGroup {
     }
 
     private void sendSynthControlAction(int keyboardId, int keyId, int fingerId){
-        // TODO: continuous x and y values are always sent: this should be optimized
-        // TODO: might need a mechanism to check if voice is on before message gets sent
         if((int)keyboardParameters.get("Send Current Keyboard") == 1) dspFaust.setParamValue("keyboard", keyboardId);
         if((int)keyboardParameters.get("Send Current Key") == 1) dspFaust.setParamValue("key", keyId);
-        if((int)keyboardParameters.get("Send X") == 1) dspFaust.setParamValue(String.format("x%d",fingerId+1), (currentContinuousKey%1f));
-        if((int)keyboardParameters.get("Send Y") == 1) dspFaust.setParamValue(String.format("y%d",fingerId+1), currentKeyboardY);
+        if((int)keyboardParameters.get(String.format("Keyboard %d - Mode", keyboardId)) == 2){
+            if((int)keyboardParameters.get(String.format("Keyboard %d - Send X", keyboardId)) == 1)
+                dspFaust.setParamValue("x", (currentContinuousKey % 1f));
+            if((int)keyboardParameters.get(String.format("Keyboard %d - Send Y", keyboardId)) == 1)
+                dspFaust.setParamValue("y", currentKeyboardY);
+        }
+        else {
+            if ((int) keyboardParameters.get(String.format("Keyboard %d - Send X", keyboardId)) == 1)
+                dspFaust.setParamValue(String.format("x%d", fingerId), (currentContinuousKey % 1f));
+            if ((int) keyboardParameters.get(String.format("Keyboard %d - Send Y", keyboardId)) == 1)
+                dspFaust.setParamValue(String.format("y%d", fingerId), currentKeyboardY);
+        }
     }
 
     private void sendPolySynthControlAction(int eventType, int keyboardId, int keyId, int fingerId){
@@ -659,8 +672,8 @@ public class MultiKeyboard extends ViewGroup {
         if(voices[fingerId] != -1){
             if((int)keyboardParameters.get("Send Current Keyboard") == 1) dspFaust.setVoiceParamValue("keyboard", voices[fingerId], keyboardId);
             if((int)keyboardParameters.get("Send Current Key") == 1) dspFaust.setVoiceParamValue("key", voices[fingerId], keyId);
-            if((int)keyboardParameters.get("Send X") == 1) dspFaust.setVoiceParamValue("x", voices[fingerId], (float)currentContinuousKey%1f);
-            if((int)keyboardParameters.get("Send Y") == 1) dspFaust.setVoiceParamValue("y", voices[fingerId], currentKeyboardY);
+            if((int)keyboardParameters.get(String.format("Keyboard %d - Send X", keyboardId)) == 1) dspFaust.setVoiceParamValue("x", voices[fingerId], (float)currentContinuousKey%1f);
+            if((int)keyboardParameters.get(String.format("Keyboard %d - Send Y", keyboardId)) == 1) dspFaust.setVoiceParamValue("y", voices[fingerId], currentKeyboardY);
         }
     }
 

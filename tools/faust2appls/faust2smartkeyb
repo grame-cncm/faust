@@ -2,7 +2,7 @@
 
 #####################################################################
 #                                                                   #
-#    Generates an API for Android or iOS based on a Faust object    #
+#          SmartKeyboard App Generator for iOS and Android          #
 #               (c) Romain Michon CCRMA and Grame, 2016             #
 #                                                                   #
 #####################################################################
@@ -28,9 +28,27 @@ INSTALL=0
 
 echoHelp ()
 {
-	echo "faust2smartkeyb - Musical Mobile App Generator"
+	echo "FAUST2SMARTKEYB - MUSICAL MOBILE APP GENERATOR"
 	echo ""
-	echo "faust2smartkeyb takes a Faust code as its main argument and convert it to a ready-to-use app for Android or iOS."
+	echo "faust2smartkeyb takes a Faust code as its main argument and convert it into a ready-to-use app for Android or iOS. The only two required arguments of faust2smartkeyb are a Faust file and the target platform (-android or -ios):"
+	echo ""
+	echo "faust2smartkeyb -ios mySynth.dsp"
+	echo "or"
+	echo "faust2smartkeyb -android mySynth.dsp"
+	echo ""
+	echo "OPTIONS:"
+	echo ""
+	echo "-android: generate an Android app"
+	echo "-ios: generate an iOS app"
+	echo "-debug: activate debug mode"
+	echo "-effect: allow to specify an effect Faust file (e.g., -effect myEffect.dsp)"
+	echo "-help: dispay this help page"
+	echo "-install: install the app on the connected device (Android only)"
+	echo "-nvoices: specify the max number of voices"
+	echo "-reuse: reuse the same project source"
+	echo "-source: only generate the source (no compilation)"
+	echo ""
+	echo "More information and tutorials at: https://ccrma.stanford.edu/~rmichon/smartKeyboard"
 }
 
 ###########################
@@ -43,6 +61,7 @@ do
 	
     if [ $p = "-help" ]; then
 		echoHelp
+		exit
     elif [[ -f "$p" ]]; then
 		FILE="$p"
     elif [ $p = "-android" ]; then
