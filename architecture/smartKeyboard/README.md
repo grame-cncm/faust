@@ -51,11 +51,12 @@ The following code is similar to the one presented in the [`faust2api` documenta
 
 ```
 import("stdfaust.lib");
-freq = nentry("freq",200,40,2000,0.01) : si.polySmooth(gate,0.999,2);
-gain = nentry("gain",1,0,1,0.01) : si.polySmooth(gate,0.999,2);
-gate = button("gate") : si.smoo; 
-cutoff = nentry("cutoff",1000,40,2000,0.01) : si.polySmooth(gate,0.999,2);
-process = os.sawtooth(freq)*gain*gate : fi.lowpass(3,cutoff) <: _,_;
+freq = nentry("freq",200,40,2000,0.01);
+gain = nentry("gain",1,0,1,0.01);
+gate = button("gate"); 
+cutoff = nentry("cutoff",1000,40,2000,0.01) : si.smoo;
+envelope = gate*gate : si.smoo;
+process = os.sawtooth(freq)*envelope : fi.lowpass(3,cutoff) <: _,_;
 ```
 
 It implements a simple synthesizer based on a filtered sawtooth wave and it is polyphony-compatible thanks to its `freq`, `gain`, and `gate` parameters.
@@ -85,13 +86,13 @@ will create an interface with 2 keyboards of 13 keys each. The lowest note of th
 A `SmartKeyboard` interface can stream a set of [standard Faust parameters](#smartkeyboard-standard-parameters) to control the given Faust DSP. For example, the cutoff frequency of the lowpass filter of the previous Faust code can be controlled with the Y position of the finger on the key simply by declaring the standard `y` parameter:
 
 ```
-cutoff = nentry("cutoff",1000,40,2000,0.01) : si.polySmooth(gate,0.999,2);
+cutoff = nentry("cutoff",1000,40,2000,0.01) : si.smoo;
 ```
 
 becomes:
 
 ```
-y = nentry("y",0.5,0,1,0.01) : si.polySmooth(gate,0.999,2);
+y = nentry("y",0.5,0,1,0.01) : si.smoo;
 cutoff = y*1960+40
 ```
 
@@ -250,14 +251,14 @@ With:
 
 ### `Rounding Mode`
 
-Configures the way the `freq` parameter associated with the current finger is quantized.
+Configures the way the [`bend`](#bend) parameter associated with the current finger is quantized.
 
 Default value: 0.
 
 With:
 
-* `Rounding Mode = 0`: keys are rounded to the nearest integer (no slide or vibrato possible).
-* `Rounding Mode = 1`: `freq` is continuous (new notes might sound out of tune).
+* `Rounding Mode = 0`: keys are rounded to the nearest integer: [`bend`](#bend) is always equal to zero.
+* `Rounding Mode = 1`: [`bend`](#bend) is continuous (new notes might sound out of tune).
 * `Rounding Mode = 2`: keys are rounded to the nearest integer when the finger is not moving or when a new note is started but become continuous when fast movement are happening. The behavior of thus system can be fine-tuned using the [Rounding Update Speed](#rounding-update-speed), [`Rounding Smooth`](#rounding-smooth), [`Rounding Threshold`](#rounding-threshold) and [`Rounding Cycles`](#rounding-cycles) parameters.
 
 ---
@@ -332,7 +333,13 @@ This section presents the different standard Faust parameters that can be used w
 
 ### `freq`
 
-The frequency in Hz of the current event. The value of this parameter heavily relies [`Rounding Mode`](#rounding-mode).
+The reference frequency in Hz of the current event. This value is provided at the same time than [`gate`](#gate) and only once. To implement continuous pitch control such as slides, vibrato, etc. use the [`bend`](#bend) parameter.
+
+---
+
+### `bend`
+
+The frequency differential to bend [`freq`](#freq) in Hz. This parameter can be used to implement vibrato, slides, etc. It heavily relies on [`Rounding Mode`](#rounding-mode).
 
 ---
 
