@@ -73,6 +73,11 @@
 #include "faust/dsp/dsp.h"
 #include "faust/misc.h"
 
+#ifdef POLY2
+#include "faust/dsp/dsp-combiner.h"
+#include "effect.cpp"
+#endif
+
 using namespace std;
 
 /******************************************************************************
@@ -106,7 +111,7 @@ using namespace std;
 #define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2		/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION "0.58"
+#define EXTERNAL_VERSION "0.59"
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/MidiUI.h"
@@ -606,9 +611,15 @@ void faust_polyphony(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         obj->m_dspUI->clear();
         // Allocate new one
         if (av[0].a_w.w_long > 0) {
+        #ifdef POLY2
+            obj->m_dsp = new dsp_sequencer(new mydsp_poly(new mydsp(), av[0].a_w.w_long, true, true), new effect());
+        #else
             obj->m_dsp = new mydsp_poly(new mydsp(), av[0].a_w.w_long, true, true);
+        #endif
+            post("polyphonic DSP voices = %d", av[0].a_w.w_long);
         } else {
             obj->m_dsp = new mydsp();
+            post("monophonic DSP");
         }
         // Initialize User Interface (here connnection with controls)
         obj->m_dsp->buildUserInterface(obj->m_dspUI);
@@ -662,7 +673,6 @@ void faust_create_jsui(t_faust* x)
             t_atom json;
             atom_setsym(&json, gensym(x->m_json));
             object_method_typed(obj, gensym("anything"), 1, &json, 0);
-            post("Generate UI from JSON...");
         }
     }
         
@@ -718,11 +728,24 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_json = 0;
     x->m_mute = false;
     
+#ifdef MIDICTRL
+    x->m_midiHandler = new midi_handler();
+    x->m_midiUI = new MidiUI(x->m_midiHandler);
+#endif
+
     if (nvoices > 1) {
-        post("polyphonic object voices = %d", nvoices);
+        post("polyphonic DSP voices = %d", nvoices);
+    #ifdef POLY2
+        x->m_dsp = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, true), new effect());
+    #else
         x->m_dsp = new mydsp_poly(new mydsp(), nvoices, true, true);
+    #endif
+        
+    #ifdef MIDICTRL
+        x->m_dsp->buildUserInterface(x->m_midiUI);
+    #endif
     } else {
-        post("monophonic object");
+        post("monophonic DSP");
         x->m_dsp = new mydsp();
     }
 
@@ -738,11 +761,6 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     if (err != MAX_ERR_NONE) {
         post("Cannot allocate mutex...");
     }
-    
-#ifdef MIDICTRL
-    x->m_midiHandler = new midi_handler();
-    x->m_midiUI = new MidiUI(x->m_midiHandler);
-#endif
     
     // Prepare JSON
     faust_make_json(x);
