@@ -54,7 +54,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "process=_,_;"
-#define FAUSTGEN_VERSION "1.12"
+#define FAUSTGEN_VERSION "1.13"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -170,7 +170,7 @@ class faustgen_factory {
         void display_pdf();
         void display_libraries();
         
-        ::dsp* create_dsp_instance(int poly = 0);
+        ::dsp* create_dsp_instance(int nvoices = 0);
         void add_instance(faustgen* dsp) { fInstances.insert(dsp); }
         void remove_instance(faustgen* dsp)  
         { 

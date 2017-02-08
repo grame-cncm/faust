@@ -8,6 +8,7 @@
 #####################################################################
 
 POLY="MONO"
+NVOICES=-1
 
 #-------------------------------------------------------------------
 # Set Faust include path
@@ -28,20 +29,35 @@ else
 fi
 
 #PHASE 2 : dispatch command arguments
-for p in $@; do
+while [ $1 ]
+do
+    p=$1
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2gen [-poly] <file.dsp>"
-        echo "Use '-poly' to produce a polyphonic patch ready to be used with MIDI events"
+        echo "faust2gen [-nvoices <num>] <file.dsp>"
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
     fi
     
     if [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
-    elif [ $p = "-poly" ]; then
+    elif [ $p = "-nvoices" ]; then
         POLY="POLY1"
+        shift
+        NVOICES=$1
+        if [ $NVOICES -ge 0 ]; then
+            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        fi
 	else
-	    OPTIONS="$OPTIONS $p"        
+	    OPTIONS="$OPTIONS $p"
 	fi
+
+shift
+
 done
+
+#look for polyphonic "nvoices" metadata in the DSP file
+
+grep "declare nvoices" $FILES && POLY="POLY1" 2>/dev/null
 
 #-------------------------------------------------------------------
 # compile the *.dsp files

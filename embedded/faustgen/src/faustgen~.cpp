@@ -44,6 +44,22 @@ ztimedmap GUI::gTimedZoneMap;
 // Faust DSP Factory
 //===================
 
+struct MyMeta : public Meta, public std::map<std::string, std::string>
+{
+    void declare(const char* key, const char* value)
+    {
+        (*this)[key] = value;
+    }
+    const std::string get(const char* key, const char* def)
+    {
+        if (this->find(key) != this->end()) {
+            return (*this)[key];
+        } else {
+            return def;
+        }
+    }
+};
+
 static const char* getCodeSize()
 {
     int tmp;
@@ -315,18 +331,28 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
         if (fInstances.begin() != fInstances.end()) {
             (*fInstances.begin())->hilight_error(error);
         }
-        
-		post("Invalid Faust code or compile options : %s", error.c_str());
+        post("Invalid Faust code or compile options : %s", error.c_str());
         return 0;
     }
 }
 
-::dsp* faustgen_factory::create_dsp_instance(int poly)
+::dsp* faustgen_factory::create_dsp_instance(int nvoices)
 {
-    if (poly > 0) {
-        return new mydsp_poly(fDSPfactory->createDSPInstance(), poly, true);
+    ::dsp* mono = fDSPfactory->createDSPInstance();
+    
+    // Check 'nvoices' metadata
+    if (nvoices == 0) {
+        MyMeta meta;
+        mono->metadata(&meta);
+        std::string numVoices = meta.get("nvoices", "0");
+        nvoices = atoi(numVoices.c_str());
+        if (nvoices < 0) nvoices = 0;
+    }
+    
+    if (nvoices > 0) {
+        return new mydsp_poly(mono, nvoices, true);
     } else {
-        return fDSPfactory->createDSPInstance();
+        return mono;
     }
 }
 
@@ -1449,6 +1475,7 @@ void faustgen::create_dsp(bool init)
         
         // Initialize User Interface (here connnection with controls)
         fDSP->buildUserInterface(&fDSPUI);
+        fDSP->buildUserInterface(fMidiUI);
         
         // Initialize at the system's sampling rate
         fDSP->init(sys_getsr());
@@ -1519,7 +1546,6 @@ void faustgen::create_jsui()
             t_atom json;
             atom_setsym(&json, gensym(fDSPfactory->get_json()));
             object_method_typed(obj, gensym("anything"), 1, &json, 0);
-            post("Generate UI from JSON...");
         }
     }
         
