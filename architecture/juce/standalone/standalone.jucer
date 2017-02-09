@@ -5,8 +5,8 @@
               jucerVersion="4.3.0" companyName="Grame" companyWebsite="faust.grame.fr">
   <MAINGROUP id="QPZtN1" name="ProjectTitle">
     <GROUP id="{9BA54E73-8A9C-DD5D-C876-2C85CD9C7B4F}" name="Source">
-      <FILE id="XpPQjo" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
-      <FILE id="IFCXRB" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="XpPQjo" name="MainComponent.h" compile="0" resource="0" file="MainComponent.h"/>
+      <FILE id="IFCXRB" name="Main.cpp" compile="1" resource="0" file="Main.cpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

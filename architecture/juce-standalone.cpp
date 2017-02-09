@@ -33,7 +33,7 @@
  *******************************************************************************
  *******************************************************************************/
  
-#include "../JuceLibraryCode/JuceHeader.h"
+#include "JuceLibraryCode/JuceHeader.h"
 
 #include "faust/dsp/timed-dsp.h"
 #include "faust/gui/MapUI.h"

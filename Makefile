@@ -119,8 +119,8 @@ install :
 	rm -rf $(prefix)/share/faust/smartKeyboard
 	cp -r architecture/smartKeyboard $(prefix)/share/faust/
 	# install Juce
-	rm -rf $(prefix)/share/faust/jucer
-	cp -r architecture/jucer $(prefix)/share/faust/
+	rm -rf $(prefix)/share/faust/juce
+	cp -r architecture/juce $(prefix)/share/faust/
 	# install AU
 	rm -rf $(prefix)/share/faust/AU/
 	cp -r architecture/AU $(prefix)/share/faust/
