@@ -95,8 +95,9 @@ if [[ $(uname) == Darwin ]]; then
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
 	if [ $SYS_VERSION -gt 12 ]
 	then
-	    SPEC="-spec macx-clang"
-	    CLANGOPT="CONFIG+=c++11"
+	    SPEC=""
+	    CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
+	    CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
 	else
 	    SPEC="-spec macx-g++"
 	    CLANGOPT=""
