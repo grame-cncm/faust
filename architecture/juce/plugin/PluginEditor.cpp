@@ -37,7 +37,7 @@ FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAud
     
     p.fDSP->buildUserInterface(&juceGUI);
     
-    recommendedSize = juceGUI.getSize();
+    Rectangle<int> recommendedSize = juceGUI.getSize();
     setSize (recommendedSize.getWidth(), recommendedSize.getHeight());
 }
 
