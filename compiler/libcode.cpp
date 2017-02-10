@@ -1112,12 +1112,13 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
      2 - parse source files
     *****************************************************************/
     
-    initFaustDirectories();
-    
     if (dsp_content) {
         gGlobal->gInputString = dsp_content;
         gGlobal->gInputFiles.push_back(name);
     }
+    
+    initFaustDirectories();
+    
     parseSourceFiles();
 
     /****************************************************************
@@ -1186,12 +1187,13 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
      2 - parse source files
     *****************************************************************/
     
-    initFaustDirectories();
-    
     if (dsp_content) {
         gGlobal->gInputString = dsp_content;
         gGlobal->gInputFiles.push_back(name);
     }
+    
+    initFaustDirectories();
+    
     parseSourceFiles();
   
     /****************************************************************
