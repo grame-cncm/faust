@@ -196,8 +196,10 @@ void FaustPlugInAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuf
     AVOIDDENORMALS;
     
 #if defined(MIDICTRL)
+    // Read MIDI input events from midiMessages
     fMIDIHandler->decodeBuffer(midiMessages);
-    midiMessages.clear();
+    // Then write MIDI output events to midiMessages
+    fMIDIHandler->encodeBuffer(midiMessages);
 #endif
        
     fDSP->compute(buffer.getNumSamples(),
