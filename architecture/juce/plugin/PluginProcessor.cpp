@@ -86,9 +86,10 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor() : AudioProcessor()
 FaustPlugInAudioProcessor::~FaustPlugInAudioProcessor()
 {
     delete fDSP;
+    
 #if defined(MIDICTRL)
-    delete fMIDIHandler;
     delete fMIDIUI;
+    delete fMIDIHandler;
 #endif
 #if defined(OSCCTRL)
     delete fOSCUI;
