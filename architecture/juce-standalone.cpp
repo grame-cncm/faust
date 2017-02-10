@@ -23,16 +23,6 @@
  ************************************************************************
  ************************************************************************/
 
-/**************************BEGIN USER SECTION **************************/
-
-/******************************************************************************
- *******************************************************************************
- 
- VECTOR INTRINSICS
- 
- *******************************************************************************
- *******************************************************************************/
- 
 #include "JuceLibraryCode/JuceHeader.h"
 
 #include "faust/dsp/timed-dsp.h"
@@ -100,7 +90,7 @@ static void analyseMeta(bool& midi_sync, int& nvoices)
                   (json.find("stop") != std::string::npos) ||
                   (json.find("clock") != std::string::npos)));
     
-#ifdef NVOICES
+#if defined(NVOICES) && NVOICES!=NUM_VOICES
     nvoices = NVOICES;
 #else
     MyMeta meta;
@@ -116,7 +106,7 @@ static void analyseMeta(bool& midi_sync, int& nvoices)
 class MainContentComponent : public AudioAppComponent, private Timer
 {
     public:
-        //==============================================================================
+   
         MainContentComponent()
         {
             bool midi_sync = false;
@@ -169,24 +159,23 @@ class MainContentComponent : public AudioAppComponent, private Timer
             addAndMakeVisible(juceGUI);
             
             fDSP->buildUserInterface(&juceGUI);
-            fDSP->buildUserInterface(&fAPIUI);
             
-            #if defined(MIDICTRL)
-                fMIDIHandler = new juce_midi();
-                fMIDIUI = new MidiUI(fMIDIHandler);
-                fDSP->buildUserInterface(fMIDIUI);
-                if (!fMIDIUI->run()) {
-                    std::cerr << "JUCE MIDI handler cannot be started..." << std::endl;
-                }
-            #endif
-            
-            #if defined(OSCCTRL)
-                fOSCUI = new JuceOSCUI("127.0.0.1", 5510, 5511);
-                fDSP->buildUserInterface(fOSCUI);
-                if (!fOSCUI->run()) {
-                    std::cerr << "JUCE OSC handler cannot be started..." << std::endl;
-                }
-            #endif
+        #if defined(MIDICTRL)
+            fMIDIHandler = new juce_midi();
+            fMIDIUI = new MidiUI(fMIDIHandler);
+            fDSP->buildUserInterface(fMIDIUI);
+            if (!fMIDIUI->run()) {
+                std::cerr << "JUCE MIDI handler cannot be started..." << std::endl;
+            }
+        #endif
+        
+        #if defined(OSCCTRL)
+            fOSCUI = new JuceOSCUI("127.0.0.1", 5510, 5511);
+            fDSP->buildUserInterface(fOSCUI);
+            if (!fOSCUI->run()) {
+                std::cerr << "JUCE OSC handler cannot be started..." << std::endl;
+            }
+        #endif
             
             recommendedSize = juceGUI.getSize();
             setSize (recommendedSize.getWidth(), recommendedSize.getHeight());
@@ -264,20 +253,20 @@ class MainContentComponent : public AudioAppComponent, private Timer
         }
 
     private:
-        #if defined(MIDICTRL)
-            ScopedPointer<juce_midi> fMIDIHandler;
-            ScopedPointer<MidiUI> fMIDIUI;
-        #endif
-        
-        #if defined(OSCCTRL)
-            ScopedPointer<JuceOSCUI> fOSCUI;
-        #endif
+    
+    #if defined(MIDICTRL)
+        ScopedPointer<juce_midi> fMIDIHandler;
+        ScopedPointer<MidiUI> fMIDIUI;
+    #endif
+    
+    #if defined(OSCCTRL)
+        ScopedPointer<JuceOSCUI> fOSCUI;
+    #endif
         
         JuceGUI juceGUI;
         
         ScopedPointer<dsp> fDSP;
-        APIUI fAPIUI;
-        
+    
         Rectangle<int> recommendedSize;
         Rectangle<int> r = Desktop::getInstance().getDisplays().getMainDisplay().userArea;
         int screenWidth  = r.getWidth();

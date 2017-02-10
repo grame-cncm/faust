@@ -11,8 +11,9 @@
 . faustoptflags
 CXXFLAGS=$MYGCCFLAGS
 
-ARCHFILE="juce-standalone.cpp"
-ARCHLIB="-L/usr/local/lib -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
+ARCHFILESTANDALONE="juce-standalone.cpp"
+ARCHFILEPLUGIN="juce-plugin.cpp"
+
 PATH=$PATH:/usr/local/bin
 DEBUG=false
 
@@ -46,17 +47,22 @@ DEF=""
 EFFECT=""
 NVOICES=-1
 CPPFLAGS=""
+PLUGIN="0"
+IS_SYNTH="0"
+IS_MIDI="0"
 
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2juce [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] <file.dsp>"
+        echo "faust2juce [-plugin] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] <file.dsp>"
+        echo "Use '-plugin' to produce a PlugIn, otherwise a standalone application is generated"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
+        exit
     fi
     # Only -poly, -midi and -osc available for now
     if [ "$p" = -omp ]; then
@@ -76,6 +82,8 @@ do
     elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
+    elif [ $p = "-plugin" ]; then
+        PLUGIN="1"
     elif [ $p = "-effect" ]; then
         DEF+="POLY2 "
         POLY="POLY2"
@@ -83,6 +91,7 @@ do
         EFFECT=$1
     elif [ $p = "-midi" ]; then
         DEF+="MIDICTRL "
+        IS_MIDI="1"
     elif [ $p = "-osc" ]; then
 		 DEF+="OSCCTRL "
 		 OSCLIBS="-lOSCFaust"
@@ -103,6 +112,11 @@ shift
 
 done
 
+#look for polyphonic "nvoices" metadata in the DSP file
+
+grep "declare nvoices" $FILES && IS_SYNTH="1" 2>/dev/null
+
+
 #-------------------------------------------------------------------
 # compile the *.dsp files
 #
@@ -114,27 +128,57 @@ for p in $FILES; do
 
     # creates the dir 
     dspName="${f%.dsp}"
+    SUB_TYPE=$(echo ${dspName:0:4} | tr [[:upper:]] [[:lower:]])
     rm -rf "$SRCDIR/$dspName"
-    cp -r "/usr/local/share/faust/juce/standalone" "$SRCDIR/$dspName/"
 
-    # setting project name to match de the dsp
-    sed -e "s/ProjectTitle/$dspName/g" "$dspName/standalone.jucer" >> "$dspName/$dspName-temp.jucer"
+    if [ $PLUGIN = "1" ]; then
+        cp -r "/usr/local/share/faust/juce/plugin" "$SRCDIR/$dspName/"
+        # setting pluginCode name to match the dsp
+        sed -e "s/SUB_TYPE/$SUB_TYPE/g" "$dspName/plugin.jucer" >> "$dspName/$dspName-temp.jucer"
+    else
+        cp -r "/usr/local/share/faust/juce/standalone" "$SRCDIR/$dspName/"
+        # setting project name to match the dsp
+        sed -e "s/ProjectTitle/$dspName/g" "$dspName/standalone.jucer" >> "$dspName/$dspName-temp.jucer"
+    fi
 
     # setting the preprocessing definitions
     sed -e "s/PreProcDef/$DEF/g" "$dspName/$dspName-temp.jucer" >> "$dspName/$dspName-temp1.jucer"
     sed -e "s/APPL_NAME/$dspName/g" "$dspName/$dspName-temp1.jucer" >> "$dspName/$dspName-temp2.jucer"
-    sed -e "s/NUM_VOICES/$NVOICES/g" "$dspName/$dspName-temp2.jucer" >> "$dspName/$dspName.jucer"
 
-    rm "$dspName/standalone.jucer"
-    rm "$dspName/$dspName-temp.jucer"
-    rm "$dspName/$dspName-temp1.jucer"
-    rm "$dspName/$dspName-temp2.jucer"
+    # MIDI
+    sed -e "s/IS_MIDI/$IS_MIDI/g" "$dspName/$dspName-temp2.jucer" >> "$dspName/$dspName-temp3.jucer"
 
-    if [ $POLY = "POLY2" ]; then
-        faust -i -a $ARCHFILE $OPTION "$SRCDIR/$f" -o "$dspName/MainComponent.h" || exit
-        faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$dspName/Source/dsp_effect.cpp" || exit
+    # SYNTH
+    sed -e "s/IS_SYNTH/$IS_SYNTH/g" "$dspName/$dspName-temp3.jucer" >> "$dspName/$dspName-temp4.jucer"
+
+    if [ $NVOICES -ge 0 ]; then
+        sed -e "s/NUM_VOICES/$NVOICES/g" "$dspName/$dspName-temp4.jucer" >> "$dspName/$dspName.jucer"
     else
-        faust -i -a $ARCHFILE $OPTION "$SRCDIR/$f" -o "$dspName/MainComponent.h" || exit
+        cp  "$dspName/$dspName-temp4.jucer" "$dspName/$dspName.jucer"
+    fi
+
+    if [ $PLUGIN = "1" ]; then
+        rm "$dspName/plugin.jucer"
+    else
+        rm "$dspName/standalone.jucer"
+    fi
+    rm "$dspName/$dspName-temp.jucer" "$dspName/$dspName-temp1.jucer"  "$dspName/$dspName-temp2.jucer"
+    rm "$dspName/$dspName-temp3.jucer" "$dspName/$dspName-temp4.jucer"
+
+    if [ $PLUGIN = "1" ]; then
+        if [ $POLY = "POLY2" ]; then
+            faust -i -a $ARCHFILEPLUGIN $OPTION "$SRCDIR/$f" -o "$dspName/PluginEditor.h" || exit
+            faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$dspName/dsp_effect.cpp" || exit
+        else
+            faust -i -a $ARCHFILEPLUGIN $OPTION "$SRCDIR/$f" -o "$dspName/PluginEditor.h" || exit
+        fi
+    else
+        if [ $POLY = "POLY2" ]; then
+            faust -i -a $ARCHFILESTANDALONE $OPTION "$SRCDIR/$f" -o "$dspName/MainComponent.h" || exit
+            faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$dspName/dsp_effect.cpp" || exit
+        else
+            faust -i -a $ARCHFILESTANDALONE $OPTION "$SRCDIR/$f" -o "$dspName/MainComponent.h" || exit
+        fi
     fi
 
 done

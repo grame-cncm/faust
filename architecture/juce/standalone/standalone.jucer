@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="RhW0aI" name="ProjectTitle" projectType="guiapp" version="1.0.0"
               bundleIdentifier="com.grame.ProjectTitle" includeBinaryInAppConfig="1"
-              jucerVersion="4.3.0" companyName="Grame" companyWebsite="faust.grame.fr">
+              jucerVersion="4.3.1" companyName="Grame" companyWebsite="faust.grame.fr">
   <MAINGROUP id="QPZtN1" name="ProjectTitle">
     <GROUP id="{9BA54E73-8A9C-DD5D-C876-2C85CD9C7B4F}" name="Source">
       <FILE id="XpPQjo" name="MainComponent.h" compile="0" resource="0" file="MainComponent.h"/>
