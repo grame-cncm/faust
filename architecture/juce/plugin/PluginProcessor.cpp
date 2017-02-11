@@ -26,14 +26,27 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#ifdef JUCE_POLY
+#include "FaustSynthesiser.h"
+#endif
+
 FaustPlugInAudioProcessor::FaustPlugInAudioProcessor() : AudioProcessor()
 {
     bool midi_sync = false;
     int nvoices = 1;
-    bool group = true;
     
     analyseMeta(midi_sync, nvoices);
     
+#ifdef JUCE_POLY
+    fSynth = new FaustSynthesiser(panic, this);
+    for (int i = 0; i < nvoices; i++) {
+        fSynth->addVoice(new FaustVoice(new mydsp()));
+    }
+    fSynth->init();
+    fSynth->addSound(new FaustSound());
+#else
+    
+    bool group = true;
 #ifdef POLY2
     dsp* tmp_dsp = new mydsp();
     std::cout << "Started with " << nvoices << " voices\n";
@@ -84,27 +97,46 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor() : AudioProcessor()
     }
 #endif
     
+#endif
+    
 #if defined(OSCCTRL)
     fOSCUI = new JuceOSCUI("127.0.0.1", 5510, 5511);
+#ifdef JUCE_POLY
+    fSynth->buildUserInterface(fOSCUI);
+#else
     fDSP->buildUserInterface(fOSCUI);
+#endif
     if (!fOSCUI->run()) {
         std::cerr << "JUCE OSC handler cannot be started..." << std::endl;
     }
 #endif
-       
+    
     startTimerHz(25);
 }
 
 FaustPlugInAudioProcessor::~FaustPlugInAudioProcessor()
 {
+#ifdef JUCE_POLY
+    delete fSynth;
+#else
     delete fDSP;
-    
 #if defined(MIDICTRL)
     delete fMIDIUI;
     delete fMIDIHandler;
 #endif
+#endif
+    
 #if defined(OSCCTRL)
     delete fOSCUI;
+#endif
+}
+
+void FaustPlugInAudioProcessor::panic(float val, void* arg)
+{
+#ifdef JUCE_POLY
+    if (val == 1) {
+        static_cast<FaustSynthesiser*>(arg)->allNotesOff(0, false); // 0 stops all voices
+    }
 #endif
 }
 
@@ -172,7 +204,11 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     
+#ifdef JUCE_POLY
+    fSynth->setCurrentPlaybackSampleRate (sampleRate);
+#else
     fDSP->init(int(sampleRate));
+#endif
 }
 
 void FaustPlugInAudioProcessor::releaseResources()
@@ -183,11 +219,17 @@ void FaustPlugInAudioProcessor::releaseResources()
 
 bool FaustPlugInAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
+#ifdef JUCE_POLY
+    return true;
+#else
+    
 #if JucePlugin_IsSynth
     return (layouts.getMainOutputChannelSet().size() == fDSP->getNumOutputs());
 #else
     return (layouts.getMainInputChannelSet().size() == fDSP->getNumInputs())
     && (layouts.getMainOutputChannelSet().size() == fDSP->getNumOutputs());
+#endif
+    
 #endif
 }
 
@@ -195,22 +237,25 @@ void FaustPlugInAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuf
 {
     AVOIDDENORMALS;
     
+#ifdef JUCE_POLY
+    fSynth->renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
+#else
 #if defined(MIDICTRL)
     // Read MIDI input events from midiMessages
     fMIDIHandler->decodeBuffer(midiMessages);
     // Then write MIDI output events to midiMessages
     fMIDIHandler->encodeBuffer(midiMessages);
 #endif
-       
     fDSP->compute(buffer.getNumSamples(),
                   (FAUSTFLOAT**)buffer.getArrayOfReadPointers(),
                   (FAUSTFLOAT**)buffer.getArrayOfWritePointers());
+#endif
 }
 
 //==============================================================================
 bool FaustPlugInAudioProcessor::hasEditor() const
 {
-    return true; // (change this to false if you choose to not supply an editor)
+    return true;
 }
 
 AudioProcessorEditor* FaustPlugInAudioProcessor::createEditor()

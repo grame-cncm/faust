@@ -32,6 +32,7 @@ class dsp;
 class juce_midi_handler;
 class MidiUI;
 class JuceOSCUI;
+class FaustSynthesiser;
 
 class FaustPlugInAudioProcessor  : public AudioProcessor , private Timer
 {
@@ -68,17 +69,22 @@ class FaustPlugInAudioProcessor  : public AudioProcessor , private Timer
     
         void timerCallback() override;
     
-        dsp* fDSP;
+        static void panic(float val, void* arg);
     
+    #ifdef JUCE_POLY
+        FaustSynthesiser* fSynth;
+    #else
     #if defined(MIDICTRL)
         juce_midi_handler* fMIDIHandler;
         MidiUI* fMIDIUI;
+    #endif
+        dsp* fDSP;
     #endif
     
     #if defined(OSCCTRL)
         JuceOSCUI* fOSCUI;
     #endif
-  
+    
     private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessor)
    

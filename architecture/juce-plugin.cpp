@@ -42,11 +42,11 @@ using std::max;
 using std::min;
 
 #if defined(OSCCTRL)
-	#include "faust/gui/JuceOSCUI.h"
+#include "faust/gui/JuceOSCUI.h"
 #endif //OSCCTRL
 
 #if defined(MIDICTRL)
-	#include "faust/midi/juce-midi.h"
+#include "faust/midi/juce-midi.h"
 #endif //MIDICTRL
 
 #include "faust/dsp/poly-dsp.h"

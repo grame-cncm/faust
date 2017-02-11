@@ -26,6 +26,10 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#ifdef JUCE_POLY
+#include "FaustSynthesiser.h"
+#endif
+
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
@@ -35,15 +39,18 @@ FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAud
 {
     addAndMakeVisible(juceGUI);
     
+#ifdef JUCE_POLY
+    p.fSynth->buildUserInterface(&juceGUI);
+#else
     p.fDSP->buildUserInterface(&juceGUI);
+#endif
     
     Rectangle<int> recommendedSize = juceGUI.getSize();
     setSize (recommendedSize.getWidth(), recommendedSize.getHeight());
 }
 
 FaustPlugInAudioProcessorEditor::~FaustPlugInAudioProcessorEditor()
-{
-}
+{}
 
 //==============================================================================
 void FaustPlugInAudioProcessorEditor::paint (Graphics& g)
@@ -53,8 +60,5 @@ void FaustPlugInAudioProcessorEditor::paint (Graphics& g)
 
 void FaustPlugInAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
-    
     juceGUI.setBounds(getLocalBounds());
 }
