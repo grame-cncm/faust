@@ -26,7 +26,7 @@ POLY="POLY"
 DEF=""
 EFFECT=""
 NVOICES=-1
-PLUGIN="0"
+STANDALONE="0"
 IS_SYNTH="0"
 IS_MIDI="0"
 
@@ -35,8 +35,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2juce [-plugin] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] <file.dsp>"
-        echo "Use '-plugin' to produce a PlugIn, otherwise a standalone application is generated"
+        echo "faust2juce [-standalone] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] <file.dsp>"
+        echo "Use '-standalone' to produce a standalone project, otherwise a plugin project is generated"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
@@ -49,8 +49,8 @@ do
     elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
-    elif [ $p = "-plugin" ]; then
-        PLUGIN="1"
+    elif [ $p = "-standalone" ]; then
+        STANDALONE="1"
     elif [ $p = "-effect" ]; then
         DEF+="POLY2 "
         POLY="POLY2"
@@ -98,7 +98,7 @@ for p in $FILES; do
     SUB_TYPE=$(echo ${dspName:0:4} | tr [[:upper:]] [[:lower:]])
     rm -rf "$SRCDIR/$dspName"
 
-    if [ $PLUGIN = "1" ]; then
+    if [ $STANDALONE = "0" ]; then
         cp -r "/usr/local/share/faust/juce/plugin" "$SRCDIR/$dspName/"
         # setting plugin name to match the dsp
         sed -e "s/SUB_TYPE/$SUB_TYPE/g" "$dspName/plugin.jucer" >> "$dspName/$dspName-temp.jucer"
@@ -126,7 +126,7 @@ for p in $FILES; do
     fi
 
     # standalone of plugin mode
-    if [ $PLUGIN = "1" ]; then
+    if [ $STANDALONE = "0" ]; then
         rm "$dspName/plugin.jucer"
     else
         rm "$dspName/standalone.jucer"
@@ -136,7 +136,7 @@ for p in $FILES; do
     rm "$dspName/$dspName-temp3.jucer" "$dspName/$dspName-temp4.jucer"
 
     # standalone of plugin mode
-    if [ $PLUGIN = "1" ]; then
+    if [ $STANDALONE = "0" ]; then
         faust -i -a $ARCHFILEPLUGIN $OPTION "$SRCDIR/$f" -o "$dspName/PluginEditor.h" || exit
         if [ $POLY = "POLY2" ]; then
             faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$dspName/dsp_effect.cpp" || exit
