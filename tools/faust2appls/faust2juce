@@ -2,8 +2,8 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to core Juce                #
-#               (c) Grame, 2016                                     #
+#           Compiles Faust programs to JUCE standalone or plugin    #
+#           (c) Grame, 2016-2017                                    #
 #                                                                   #
 #####################################################################
 
@@ -17,36 +17,15 @@ ARCHFILEPLUGIN="juce-plugin.cpp"
 PATH=$PATH:/usr/local/bin
 DEBUG=false
 
-
 #-------------------------------------------------------------------
-# Analyze command arguments :
-# faust options                 -> OPTIONS
-# if -omp : -openmp or -fopenmp -> OPENMP
-# existing *.dsp files          -> FILES
-#
+#PHASE 1 : dispatch command arguments
+#-------------------------------------------------------------------
 
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		# we ignore -icc when compiling for QT
-		TOTO=""
-		#CXX=icpc
-		#CXXFLAGS='-Wfatal-errors -O3 -xT -ftz -fno-alias -fp-model fast=2'
-    fi
-done
-
-#PHASE 2 : dispatch command arguments
-
-OSCINC=""
-QTDEFS=""
 OSCLIB=""
 POLY="POLY"
-DEPLOY=""
 DEF=""
 EFFECT=""
 NVOICES=-1
-CPPFLAGS=""
 PLUGIN="0"
 IS_SYNTH="0"
 IS_MIDI="0"
@@ -64,21 +43,9 @@ do
         echo "Use '-osc' to activate OSC control"
         exit
     fi
-    # Only -poly, -midi and -osc available for now
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
-  
+
     if [ "$p" = -debug ]; then
     	DEBUG=true
-    elif [ $p = "-deploy" ]; then
-        DEPLOY="yes"
-    elif [ "$p" = -icc ]; then
-    	ignore=" "
     elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
@@ -116,10 +83,10 @@ done
 
 grep "declare nvoices" $FILES && IS_SYNTH="1" 2>/dev/null
 
-
 #-------------------------------------------------------------------
 # compile the *.dsp files
-#
+#-------------------------------------------------------------------
+
 for p in $FILES; do
 
     CUR=$(pwd)
@@ -133,7 +100,7 @@ for p in $FILES; do
 
     if [ $PLUGIN = "1" ]; then
         cp -r "/usr/local/share/faust/juce/plugin" "$SRCDIR/$dspName/"
-        # setting pluginCode name to match the dsp
+        # setting plugin name to match the dsp
         sed -e "s/SUB_TYPE/$SUB_TYPE/g" "$dspName/plugin.jucer" >> "$dspName/$dspName-temp.jucer"
     else
         cp -r "/usr/local/share/faust/juce/standalone" "$SRCDIR/$dspName/"
@@ -151,33 +118,33 @@ for p in $FILES; do
     # SYNTH
     sed -e "s/IS_SYNTH/$IS_SYNTH/g" "$dspName/$dspName-temp3.jucer" >> "$dspName/$dspName-temp4.jucer"
 
+    # possibly set NVOICES value
     if [ $NVOICES -ge 0 ]; then
         sed -e "s/NUM_VOICES/$NVOICES/g" "$dspName/$dspName-temp4.jucer" >> "$dspName/$dspName.jucer"
     else
         cp  "$dspName/$dspName-temp4.jucer" "$dspName/$dspName.jucer"
     fi
 
+    # standalone of plugin mode
     if [ $PLUGIN = "1" ]; then
         rm "$dspName/plugin.jucer"
     else
         rm "$dspName/standalone.jucer"
     fi
+
     rm "$dspName/$dspName-temp.jucer" "$dspName/$dspName-temp1.jucer"  "$dspName/$dspName-temp2.jucer"
     rm "$dspName/$dspName-temp3.jucer" "$dspName/$dspName-temp4.jucer"
 
+    # standalone of plugin mode
     if [ $PLUGIN = "1" ]; then
+        faust -i -a $ARCHFILEPLUGIN $OPTION "$SRCDIR/$f" -o "$dspName/PluginEditor.h" || exit
         if [ $POLY = "POLY2" ]; then
-            faust -i -a $ARCHFILEPLUGIN $OPTION "$SRCDIR/$f" -o "$dspName/PluginEditor.h" || exit
             faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$dspName/dsp_effect.cpp" || exit
-        else
-            faust -i -a $ARCHFILEPLUGIN $OPTION "$SRCDIR/$f" -o "$dspName/PluginEditor.h" || exit
         fi
     else
+        faust -i -a $ARCHFILESTANDALONE $OPTION "$SRCDIR/$f" -o "$dspName/MainComponent.h" || exit
         if [ $POLY = "POLY2" ]; then
-            faust -i -a $ARCHFILESTANDALONE $OPTION "$SRCDIR/$f" -o "$dspName/MainComponent.h" || exit
             faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$dspName/dsp_effect.cpp" || exit
-        else
-            faust -i -a $ARCHFILESTANDALONE $OPTION "$SRCDIR/$f" -o "$dspName/MainComponent.h" || exit
         fi
     fi
 

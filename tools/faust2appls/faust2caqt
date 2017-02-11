@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to core audio-qt            #
-#               (c) Grame, 2012                                     #
+#               (c) Grame, 2012-2017                                #
 #                                                                   #
 #####################################################################
 
@@ -17,27 +17,9 @@ PATH=$PATH:/usr/local/bin
 DEBUG=false
 
 #-------------------------------------------------------------------
-# Analyze command arguments :
-# faust options                 -> OPTIONS
-# if -omp : -openmp or -fopenmp -> OPENMP
-# existing *.dsp files          -> FILES
-#
+#PHASE 1 : dispatch command arguments
+#-------------------------------------------------------------------
 
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		# we ignore -icc when compiling for QT
-		TOTO=""
-		#CXX=icpc
-		#CXXFLAGS='-Wfatal-errors -O3 -xT -ftz -fno-alias -fp-model fast=2'
-    fi
-done
-
-#PHASE 2 : dispatch command arguments
-
-OSCINC=""
-QTDEFS=""
 OSCLIB=""
 POLY="POLY"
 DEPLOY=""
@@ -58,15 +40,7 @@ do
         echo "Use '-osc' to activate OSC control"
         echo "Use '-debug' to print all the build steps"
     fi
-    
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
-  
+
     if [ "$p" = -debug ]; then
     	DEBUG=true
     elif [ $p = "-deploy" ]; then
@@ -108,7 +82,8 @@ done
 
 #-------------------------------------------------------------------
 # Check darwin specifics
-#
+#-------------------------------------------------------------------
+
 if [[ $(uname) == Darwin ]]; then
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
     if [ $SYS_VERSION -ge 13 ]
@@ -125,7 +100,8 @@ fi
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
-#
+#-------------------------------------------------------------------
+
 for p in $FILES; do
 
     CUR=$(pwd)
