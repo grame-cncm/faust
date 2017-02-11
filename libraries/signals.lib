@@ -163,6 +163,24 @@ smoo = smooth(0.999);
 //-------------------------------------------------------------------
 polySmooth(g,s,d) = smooth(s*((g==(g@d)) | (g == 0)));
 
+//-----------------------`smoothAndH`--------------------------------
+// A smoothing function based on `smooth` that holds its output
+// signal when a trigger is sent to it. This feature is convenient
+// when implementing polyphonic instruments to prevent some
+// smoothed parameter to change when a note-off event is sent.
+//
+// #### Usage
+//
+// ```
+// hslider(...) : smoothAndH(g,s) : _
+// ```
+//
+// Where:
+//
+// * `g`: the hold signal (0 for hold, 1 for bypass)
+// * `s`: the smoothness (see `smooth`)
+//-------------------------------------------------------------------
+smoothAndH(t,s) = smooth(s*t) : ba.sAndH(t);
 
 //-----------------------------`bsmooth`------------------------------
 // Block smooth linear interpolation during a block of samples.

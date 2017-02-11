@@ -148,7 +148,7 @@ class midi_handler : public midi {
             }
         }
 
-        virtual bool start_midi() { return false; }
+        virtual bool start_midi() { return true; }
         virtual void stop_midi() {}
         
         void handleSync(double time, int type)

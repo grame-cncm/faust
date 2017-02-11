@@ -114,7 +114,8 @@ if [[ $(uname) == Darwin ]]; then
     if [ $SYS_VERSION -ge 13 ]
 	then
 	    SPEC=""
-	    CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"   # works with El Capitan + QT 5.6 (macport)
+	    CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
+	    CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
 	else
 	    SPEC="-spec macx-g++"
 	    CLANGOPT=""
