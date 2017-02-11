@@ -100,13 +100,13 @@ ztimedmap GUI::gTimedZoneMap;
 *******************************************************************************
 *******************************************************************************/
 
-struct MyMeta : public Meta, public std::map<const char*, const char*>
+struct MyMeta : public Meta, public std::map<std::string, std::string>
 {
     void declare(const char* key, const char* value)
     {
         (*this)[key] = value;
     }
-    const char* get(const char* key, const char* def)
+    const std::string get(const char* key, const char* def)
     {
         if (this->find(key) != this->end()) {
             return (*this)[key];
@@ -133,8 +133,8 @@ static void analyseMeta(bool& midi_sync, int& nvoices)
 #else
     MyMeta meta;
     tmp_dsp->metadata(&meta);
-    const char* numVoices = meta.get("nvoices", "0");
-    nvoices = atoi(numVoices);
+    std::string numVoices = meta.get("nvoices", "0");
+    nvoices = atoi(numVoices.c_str());
     if (nvoices < 0) nvoices = 0;
 #endif
     
