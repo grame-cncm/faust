@@ -41,6 +41,8 @@
 using std::max;
 using std::min;
 
+#include "faust/gui/JuceStateUI.h"
+
 #if defined(OSCCTRL)
 #include "faust/gui/JuceOSCUI.h"
 #endif //OSCCTRL
@@ -233,6 +235,7 @@ static void analyseMeta(bool& midi_sync, int& nvoices)
 
 class FaustPlugInAudioProcessorEditor : public AudioProcessorEditor
 {
+    
     public:
     
         FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor&);

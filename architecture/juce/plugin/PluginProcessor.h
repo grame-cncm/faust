@@ -32,9 +32,12 @@ class dsp;
 class juce_midi_handler;
 class MidiUI;
 class JuceOSCUI;
+class JuceStateUI;
+#ifdef JUCE_POLY
 class FaustSynthesiser;
+#endif
 
-class FaustPlugInAudioProcessor  : public AudioProcessor , private Timer
+class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
 {
     public:
         FaustPlugInAudioProcessor();
@@ -43,10 +46,8 @@ class FaustPlugInAudioProcessor  : public AudioProcessor , private Timer
         void prepareToPlay (double sampleRate, int samplesPerBlock) override;
         void releaseResources() override;
 
-       //#ifndef JucePlugin_PreferredChannelConfigurations
         bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
-       //#endif
-
+    
         void processBlock (AudioSampleBuffer&, MidiBuffer&) override;
 
         AudioProcessorEditor* createEditor() override;
@@ -85,10 +86,11 @@ class FaustPlugInAudioProcessor  : public AudioProcessor , private Timer
         JuceOSCUI* fOSCUI;
     #endif
     
-    private:
+        JuceStateUI* fStateUI;
+    
+private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessor)
    
 };
-
 
 #endif  // PLUGINPROCESSOR_H_INCLUDED

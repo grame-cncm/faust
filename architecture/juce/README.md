@@ -2,7 +2,7 @@
 
 faust2juce transforms a Faust DSP program into a fully working JUCE standalone application or plugin, which can possibly be controlled with MIDI or OSC messages. Polyphonic instruments are automatically created from polyphonic aware Faust DSP code, which contains interface parameters with the following `freq`, `gain` and `gate` names. The metadata **declare nvoices "8";** kind of line with a desired value of voices can be added in the source code. See [Creating polyphonic instruments] (http://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html). 
 
-Polyphonic synthesiser can be created using JUCE Synthesiser model or Faust own polyphonic archiecture file (using the 'mydsp_poly' class'). The `-jsynth` parameter has to be used to choose the JUCE model.
+Polyphonic synthesiser can be created using JUCE Synthesiser model or Faust own polyphonic architecture file (using the 'mydsp_poly' class). The `-jsynth` parameter has to be used to choose the JUCE model.
 
 ## How to use
 
@@ -26,7 +26,7 @@ The following options are available:
  - `-jsynth`                : to use JUCE polyphonic Synthesizer instead of Faust polyphonic code
  - `-midi`                  : activates MIDI control
  - `-osc`                   : activates OSC control
- - `-help or h`             : shows the different options 
+ - `-help or -h`            : shows the different options 
 
 Some others options will be added later, still in development...
 
