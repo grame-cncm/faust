@@ -60,6 +60,136 @@ using std::min;
 
 <<includeclass>>
 
+#if defined(JUCE_POLY)
+
+struct FaustSound : public SynthesiserSound {
+    
+    bool appliesToNote (int /*midiNoteNumber*/) override        { return true; }
+    bool appliesToChannel (int /*midiChannel*/) override        { return true; }
+};
+
+// An hybrid JUCE and Faust voice
+
+class FaustVoice : public SynthesiserVoice, public dsp_voice {
+    
+    private:
+        
+        ScopedPointer<AudioBuffer<FAUSTFLOAT>> fBuffer;
+        
+    public:
+        
+        FaustVoice(dsp* dsp):dsp_voice(dsp)
+        {
+            // Allocate buffer for mixing
+            fBuffer = new AudioBuffer<FAUSTFLOAT>(dsp->getNumOutputs(), 8192);
+            fDSP->init(SynthesiserVoice::getSampleRate());
+        }
+        
+        bool canPlaySound (SynthesiserSound* sound) override
+        {
+            return dynamic_cast<FaustSound*> (sound) != nullptr;
+        }
+        
+        void startNote (int midiNoteNumber,
+                        float velocity,
+                        SynthesiserSound* s,
+                        int currentPitchWheelPosition) override
+        {
+            keyOn(midiNoteNumber, velocity);
+        }
+        
+        void stopNote (float velocity, bool allowTailOff) override
+        {
+            keyOff(!allowTailOff);
+            clearCurrentNote();
+        }
+        
+        void pitchWheelMoved (int newPitchWheelValue) override
+        {
+            // not implemented for now
+        }
+        
+        void controllerMoved (int controllerNumber, int newControllerValue) override
+        {
+            // not implemented for now
+        }
+        
+        void renderNextBlock (AudioBuffer<FAUSTFLOAT>& outputBuffer,
+                              int startSample,
+                              int numSamples) override
+        {
+            // Play the voice
+            play(numSamples, nullptr, (FAUSTFLOAT**)fBuffer->getArrayOfReadPointers());
+            
+            // Mix it in outputs
+            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+                outputBuffer.addFrom(i, startSample, *fBuffer, i, 0, numSamples);
+            }
+        }
+    
+};
+
+// Decorates the JUCE Synthesiser and adds Faust polyphonic code for GUI handling
+
+class FaustSynthesiser : public Synthesiser, public dsp_voice_group {
+    
+    private:
+        
+        Synthesiser* fSynth;
+        
+    public:
+        
+        FaustSynthesiser(uiCallback cb, void* arg):dsp_voice_group(cb, arg, true, true), fSynth(new Synthesiser())
+        {}
+        
+        virtual ~FaustSynthesiser()
+        {
+            // Voices will be deallocated by fSynth
+            dsp_voice_group::clearVoices();
+            delete fSynth;
+        }
+        
+        void addVoice(FaustVoice* voice)
+        {
+            fSynth->addVoice(voice);
+            dsp_voice_group::addVoice(voice);
+        }
+        
+        void addSound(SynthesiserSound* sound)
+        {
+            fSynth->addSound(sound);
+        }
+        
+        void allNotesOff(int midiChannel, bool allowTailOff)
+        {
+            fSynth->allNotesOff(midiChannel, allowTailOff);
+        }
+        
+        void setCurrentPlaybackSampleRate (double newRate)
+        {
+            fSynth->setCurrentPlaybackSampleRate(newRate);
+        }
+        
+        void renderNextBlock (AudioBuffer<float>& outputAudio,
+                              const MidiBuffer& inputMidi,
+                              int startSample,
+                              int numSamples)
+        {
+            fSynth->renderNextBlock(outputAudio, inputMidi, startSample, numSamples);
+        }
+        
+        void renderNextBlock (AudioBuffer<double>& outputAudio,
+                              const MidiBuffer& inputMidi,
+                              int startSample,
+                              int numSamples)
+        {
+            fSynth->renderNextBlock(outputAudio, inputMidi, startSample, numSamples);
+        }
+    
+};
+
+#endif
+
 struct MyMeta : public Meta, public std::map<std::string, std::string>
 {
     void declare(const char* key, const char* value)

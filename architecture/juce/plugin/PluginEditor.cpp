@@ -26,10 +26,6 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-#ifdef JUCE_POLY
-#include "FaustSynthesiser.h"
-#endif
-
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 

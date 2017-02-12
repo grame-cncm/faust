@@ -88,6 +88,12 @@ if [ $STANDALONE = "1" ] && [ $JUCE_POLY = "1" ]; then
     echo "Cannot use -standalone with -jsynth"
     exit
 fi
+
+if [ $POLY = "POLY2" ] && [ $JUCE_POLY = "1" ]; then
+    echo "Cannot use -effect with -jsynth"
+    exit
+fi
+
 #look for polyphonic "nvoices" metadata in the DSP file
 
 grep "declare nvoices" $FILES && IS_SYNTH="1" 2>/dev/null
@@ -115,10 +121,6 @@ for p in $FILES; do
         cp -r "/usr/local/share/faust/juce/standalone" "$SRCDIR/$dspName/"
         # setting project name to match the dsp
         sed -e "s/ProjectTitle/$dspName/g" "$dspName/standalone.jucer" >> "$dspName/$dspName-temp.jucer"
-    fi
-
-    if [ $JUCE_POLY = "1" ]; then
-        cp "/usr/local/share/faust/juce/FaustSynthesiser.h" "$SRCDIR/$dspName/"
     fi
 
     # setting the preprocessing definitions

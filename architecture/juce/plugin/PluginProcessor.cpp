@@ -26,11 +26,14 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-#ifdef JUCE_POLY
-#include "FaustSynthesiser.h"
-#endif
-
-FaustPlugInAudioProcessor::FaustPlugInAudioProcessor() : AudioProcessor()
+FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
+: AudioProcessor (BusesProperties()
+    #if ! JucePlugin_IsMidiEffect
+    #if ! JucePlugin_IsSynth
+        .withInput("Input", AudioChannelSet::stereo(), true)
+    #endif
+        .withOutput("Output",AudioChannelSet::stereo(), true))
+    #endif
 {
     bool midi_sync = false;
     int nvoices = 1;
