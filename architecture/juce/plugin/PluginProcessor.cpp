@@ -24,7 +24,10 @@
  ************************************************************************/
 
 #include "PluginProcessor.h"
-#include "PluginEditor.h"
+
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+
 
 FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
 : AudioProcessor (BusesProperties()
@@ -51,42 +54,45 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     
     bool group = true;
 #ifdef POLY2
-    dsp* tmp_dsp = new mydsp();
+    nvoices = lopt(argv, "--nvoices", nvoices);
+    int group = lopt(argv, "--group", 1);
     std::cout << "Started with " << nvoices << " voices\n";
     
 #if MIDICTRL
     if (midi_sync) {
-        fDSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new dsp_effect()));
+        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new effect()));
     } else {
-        fDSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new dsp_effect());
+        DSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new effect());
     }
 #else
-    fDSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, false, group), new dsp_effect());
+    DSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, false, group), new effect());
 #endif
     
 #else
-    dsp* tmp_dsp = new mydsp();
+    nvoices = lopt(argv, "--nvoices", nvoices);
+    int group = lopt(argv, "--group", 1);
+    
     if (nvoices > 1) {
         std::cout << "Started with " << nvoices << " voices\n";
-#if MIDICTRL
+    #if MIDICTRL
         if (midi_sync) {
-            fDSP = new timed_dsp(new mydsp_poly(tmp_dsp, nvoices, true, group));
+            DSP = new timed_dsp(new mydsp_poly(new mydsp(), nvoices, true, group));
         } else {
-            fDSP = new mydsp_poly(tmp_dsp, nvoices, true, group);
+            DSP = new mydsp_poly(new mydsp(), nvoices, true, group);
         }
-#else
-        fDSP = new mydsp_poly(tmp_dsp, nvoices, false, group);
-#endif
+    #else
+        DSP = new mydsp_poly(new mydsp(), nvoices, false, group);
+    #endif
     } else {
-#if MIDICTRL
+    #if MIDICTRL
         if (midi_sync) {
-            fDSP = new timed_dsp(new mydsp());
+            DSP = new timed_dsp(new mydsp());
         } else {
-            fDSP = new mydsp();
+            DSP = new mydsp();
         }
-#else
-        fDSP = new mydsp();
-#endif
+    #else
+        DSP = new mydsp();
+    #endif
     }
     
 #endif
@@ -126,23 +132,7 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
 }
 
 FaustPlugInAudioProcessor::~FaustPlugInAudioProcessor()
-{
-#ifdef JUCE_POLY
-    delete fSynth;
-#else
-    delete fDSP;
-#if defined(MIDICTRL)
-    delete fMIDIUI;
-    delete fMIDIHandler;
-#endif
-#endif
-    
-#if defined(OSCCTRL)
-    delete fOSCUI;
-#endif
-    
-    delete fStateUI;
-}
+{}
 
 void FaustPlugInAudioProcessor::panic(float val, void* arg)
 {
@@ -299,4 +289,34 @@ void FaustPlugInAudioProcessor::setStateInformation (const void* data, int sizeI
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new FaustPlugInAudioProcessor();
+}
+
+//==============================================================================
+FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor& p)
+: AudioProcessorEditor (&p), processor (p)
+{
+    addAndMakeVisible(juceGUI);
+    
+#ifdef JUCE_POLY
+    p.fSynth->buildUserInterface(&juceGUI);
+#else
+    p.fDSP->buildUserInterface(&juceGUI);
+#endif
+    
+    Rectangle<int> recommendedSize = juceGUI.getSize();
+    setSize (recommendedSize.getWidth(), recommendedSize.getHeight());
+}
+
+FaustPlugInAudioProcessorEditor::~FaustPlugInAudioProcessorEditor()
+{}
+
+//==============================================================================
+void FaustPlugInAudioProcessorEditor::paint (Graphics& g)
+{
+    g.fillAll (Colours::white);
+}
+
+void FaustPlugInAudioProcessorEditor::resized()
+{
+    juceGUI.setBounds(getLocalBounds());
 }

@@ -16,9 +16,6 @@
             file="PluginProcessor.cpp"/>
       <FILE id="QOoigF" name="PluginProcessor.h" compile="0" resource="0"
             file="PluginProcessor.h"/>
-      <FILE id="WvvR7J" name="PluginEditor.cpp" compile="1" resource="0"
-            file="PluginEditor.cpp"/>
-      <FILE id="CWiPZ6" name="PluginEditor.h" compile="0" resource="0" file="PluginEditor.h"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

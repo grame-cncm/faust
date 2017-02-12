@@ -23,8 +23,11 @@
  ************************************************************************
  ************************************************************************/
 
+#ifndef PLUGINPROCESSOR_H_INCLUDED
+#define PLUGINPROCESSOR_H_INCLUDED
+
 #include "JuceLibraryCode/JuceHeader.h"
-#include "PluginProcessor.h"
+//#include "PluginProcessor.h"
 
 #include "faust/dsp/timed-dsp.h"
 #include "faust/gui/MapUI.h"
@@ -74,60 +77,60 @@ struct FaustSound : public SynthesiserSound {
 
 class FaustVoice : public SynthesiserVoice, public dsp_voice {
     
-    private:
+private:
+    
+    ScopedPointer<AudioBuffer<FAUSTFLOAT>> fBuffer;
+    
+public:
+    
+    FaustVoice(dsp* dsp):dsp_voice(dsp)
+    {
+        // Allocate buffer for mixing
+        fBuffer = new AudioBuffer<FAUSTFLOAT>(dsp->getNumOutputs(), 8192);
+        fDSP->init(SynthesiserVoice::getSampleRate());
+    }
+    
+    bool canPlaySound (SynthesiserSound* sound) override
+    {
+        return dynamic_cast<FaustSound*> (sound) != nullptr;
+    }
+    
+    void startNote (int midiNoteNumber,
+                    float velocity,
+                    SynthesiserSound* s,
+                    int currentPitchWheelPosition) override
+    {
+        keyOn(midiNoteNumber, velocity);
+    }
+    
+    void stopNote (float velocity, bool allowTailOff) override
+    {
+        keyOff(!allowTailOff);
+        clearCurrentNote();
+    }
+    
+    void pitchWheelMoved (int newPitchWheelValue) override
+    {
+        // not implemented for now
+    }
+    
+    void controllerMoved (int controllerNumber, int newControllerValue) override
+    {
+        // not implemented for now
+    }
+    
+    void renderNextBlock (AudioBuffer<FAUSTFLOAT>& outputBuffer,
+                          int startSample,
+                          int numSamples) override
+    {
+        // Play the voice
+        play(numSamples, nullptr, (FAUSTFLOAT**)fBuffer->getArrayOfReadPointers());
         
-        ScopedPointer<AudioBuffer<FAUSTFLOAT>> fBuffer;
-        
-    public:
-        
-        FaustVoice(dsp* dsp):dsp_voice(dsp)
-        {
-            // Allocate buffer for mixing
-            fBuffer = new AudioBuffer<FAUSTFLOAT>(dsp->getNumOutputs(), 8192);
-            fDSP->init(SynthesiserVoice::getSampleRate());
+        // Mix it in outputs
+        for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+            outputBuffer.addFrom(i, startSample, *fBuffer, i, 0, numSamples);
         }
-        
-        bool canPlaySound (SynthesiserSound* sound) override
-        {
-            return dynamic_cast<FaustSound*> (sound) != nullptr;
-        }
-        
-        void startNote (int midiNoteNumber,
-                        float velocity,
-                        SynthesiserSound* s,
-                        int currentPitchWheelPosition) override
-        {
-            keyOn(midiNoteNumber, velocity);
-        }
-        
-        void stopNote (float velocity, bool allowTailOff) override
-        {
-            keyOff(!allowTailOff);
-            clearCurrentNote();
-        }
-        
-        void pitchWheelMoved (int newPitchWheelValue) override
-        {
-            // not implemented for now
-        }
-        
-        void controllerMoved (int controllerNumber, int newControllerValue) override
-        {
-            // not implemented for now
-        }
-        
-        void renderNextBlock (AudioBuffer<FAUSTFLOAT>& outputBuffer,
-                              int startSample,
-                              int numSamples) override
-        {
-            // Play the voice
-            play(numSamples, nullptr, (FAUSTFLOAT**)fBuffer->getArrayOfReadPointers());
-            
-            // Mix it in outputs
-            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                outputBuffer.addFrom(i, startSample, *fBuffer, i, 0, numSamples);
-            }
-        }
+    }
     
 };
 
@@ -135,58 +138,58 @@ class FaustVoice : public SynthesiserVoice, public dsp_voice {
 
 class FaustSynthesiser : public Synthesiser, public dsp_voice_group {
     
-    private:
-        
-        Synthesiser* fSynth;
-        
-    public:
-        
-        FaustSynthesiser(uiCallback cb, void* arg):dsp_voice_group(cb, arg, true, true), fSynth(new Synthesiser())
-        {}
-        
-        virtual ~FaustSynthesiser()
-        {
-            // Voices will be deallocated by fSynth
-            dsp_voice_group::clearVoices();
-            delete fSynth;
-        }
-        
-        void addVoice(FaustVoice* voice)
-        {
-            fSynth->addVoice(voice);
-            dsp_voice_group::addVoice(voice);
-        }
-        
-        void addSound(SynthesiserSound* sound)
-        {
-            fSynth->addSound(sound);
-        }
-        
-        void allNotesOff(int midiChannel, bool allowTailOff)
-        {
-            fSynth->allNotesOff(midiChannel, allowTailOff);
-        }
-        
-        void setCurrentPlaybackSampleRate (double newRate)
-        {
-            fSynth->setCurrentPlaybackSampleRate(newRate);
-        }
-        
-        void renderNextBlock (AudioBuffer<float>& outputAudio,
-                              const MidiBuffer& inputMidi,
-                              int startSample,
-                              int numSamples)
-        {
-            fSynth->renderNextBlock(outputAudio, inputMidi, startSample, numSamples);
-        }
-        
-        void renderNextBlock (AudioBuffer<double>& outputAudio,
-                              const MidiBuffer& inputMidi,
-                              int startSample,
-                              int numSamples)
-        {
-            fSynth->renderNextBlock(outputAudio, inputMidi, startSample, numSamples);
-        }
+private:
+    
+    Synthesiser* fSynth;
+    
+public:
+    
+    FaustSynthesiser(uiCallback cb, void* arg):dsp_voice_group(cb, arg, true, true), fSynth(new Synthesiser())
+    {}
+    
+    virtual ~FaustSynthesiser()
+    {
+        // Voices will be deallocated by fSynth
+        dsp_voice_group::clearVoices();
+        delete fSynth;
+    }
+    
+    void addVoice(FaustVoice* voice)
+    {
+        fSynth->addVoice(voice);
+        dsp_voice_group::addVoice(voice);
+    }
+    
+    void addSound(SynthesiserSound* sound)
+    {
+        fSynth->addSound(sound);
+    }
+    
+    void allNotesOff(int midiChannel, bool allowTailOff)
+    {
+        fSynth->allNotesOff(midiChannel, allowTailOff);
+    }
+    
+    void setCurrentPlaybackSampleRate (double newRate)
+    {
+        fSynth->setCurrentPlaybackSampleRate(newRate);
+    }
+    
+    void renderNextBlock (AudioBuffer<float>& outputAudio,
+                          const MidiBuffer& inputMidi,
+                          int startSample,
+                          int numSamples)
+    {
+        fSynth->renderNextBlock(outputAudio, inputMidi, startSample, numSamples);
+    }
+    
+    void renderNextBlock (AudioBuffer<double>& outputAudio,
+                          const MidiBuffer& inputMidi,
+                          int startSample,
+                          int numSamples)
+    {
+        fSynth->renderNextBlock(outputAudio, inputMidi, startSample, numSamples);
+    }
     
 };
 
@@ -233,26 +236,85 @@ static void analyseMeta(bool& midi_sync, int& nvoices)
     delete tmp_dsp;
 }
 
+class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
+{
+public:
+    FaustPlugInAudioProcessor();
+    ~FaustPlugInAudioProcessor();
+    
+    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+    void releaseResources() override;
+    
+    bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
+    
+    void processBlock (AudioSampleBuffer&, MidiBuffer&) override;
+    
+    AudioProcessorEditor* createEditor() override;
+    bool hasEditor() const override;
+    
+    const String getName() const override;
+    
+    bool acceptsMidi() const override;
+    bool producesMidi() const override;
+    double getTailLengthSeconds() const override;
+    
+    int getNumPrograms() override;
+    int getCurrentProgram() override;
+    void setCurrentProgram (int index) override;
+    const String getProgramName (int index) override;
+    void changeProgramName (int index, const String& newName) override;
+    
+    void getStateInformation (MemoryBlock& destData) override;
+    void setStateInformation (const void* data, int sizeInBytes) override;
+    
+    void timerCallback() override;
+    
+    static void panic(float val, void* arg);
+    
+#ifdef JUCE_POLY
+    ScopedPointer<FaustSynthesiser> fSynth;
+#else
+#if defined(MIDICTRL)
+    ScopedPointer<juce_midi_handler> fMIDIHandler;
+    ScopedPointer<MidiUI> fMIDIUI;
+#endif
+    ScopedPointer<dsp> fDSP;
+#endif
+    
+#if defined(OSCCTRL)
+    ScopedPointer<JuceOSCUI> fOSCUI;
+#endif
+    
+    ScopedPointer<JuceStateUI> fStateUI;
+    
+private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessor)
+    
+};
+
 class FaustPlugInAudioProcessorEditor : public AudioProcessorEditor
 {
     
-    public:
+public:
     
-        FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor&);
-        ~FaustPlugInAudioProcessorEditor();
-        
-        void paint (Graphics&) override;
-        void resized() override;
-        
-    private:
+    FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor&);
+    ~FaustPlugInAudioProcessorEditor();
     
-        // This reference is provided as a quick way for your editor to
-        // access the processor object that created it.
-        FaustPlugInAudioProcessor& processor;
-        
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessorEditor)
-       
-        JuceGUI juceGUI;
-  
+    void paint (Graphics&) override;
+    void resized() override;
+    
+private:
+    
+    // This reference is provided as a quick way for your editor to
+    // access the processor object that created it.
+    FaustPlugInAudioProcessor& processor;
+    
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessorEditor)
+    
+    JuceGUI juceGUI;
+    
 };
 
+
+
+#endif  // PLUGINPROCESSOR_H_INCLUDED

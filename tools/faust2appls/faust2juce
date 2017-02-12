@@ -152,7 +152,7 @@ for p in $FILES; do
 
     # standalone of plugin mode
     if [ $STANDALONE = "0" ]; then
-        faust -i -a $ARCHFILEPLUGIN $OPTION "$SRCDIR/$f" -o "$dspName/PluginEditor.h" || exit
+        faust -i -a $ARCHFILEPLUGIN $OPTION "$SRCDIR/$f" -o "$dspName/PluginProcessor.h" || exit
         if [ $POLY = "POLY2" ]; then
             faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$dspName/dsp_effect.cpp" || exit
         fi

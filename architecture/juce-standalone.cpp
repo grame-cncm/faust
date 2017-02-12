@@ -116,31 +116,29 @@ class MainContentComponent : public AudioAppComponent, private Timer
             analyseMeta(midi_sync, nvoices);
             
         #ifdef POLY2
-            dsp* tmp_dsp = new mydsp();
             std::cout << "Started with " << nvoices << " voices\n";
                 
         #if MIDICTRL
             if (midi_sync) {
-                fDSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new dsp_effect()));
+                fDSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new dsp_effect()));
             } else {
-                fDSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new dsp_effect());
+                fDSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new dsp_effect());
             }
         #else
-            fDSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, false, group), new dsp_effect());
+            fDSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, false, group), new dsp_effect());
         #endif
                 
         #else
-            dsp* tmp_dsp = new mydsp();
             if (nvoices > 1) {
                 std::cout << "Started with " << nvoices << " voices\n";
         #if MIDICTRL
                 if (midi_sync) {
-                    fDSP = new timed_dsp(new mydsp_poly(tmp_dsp, nvoices, true, group));
+                    fDSP = new timed_dsp(new mydsp_poly(new mydsp(), nvoices, true, group));
                 } else {
-                    fDSP = new mydsp_poly(tmp_dsp, nvoices, true, group);
+                    fDSP = new mydsp_poly(new mydsp(), nvoices, true, group);
                 }
         #else
-                fDSP = new mydsp_poly(tmp_dsp, nvoices, false, group);
+                fDSP = new mydsp_poly(new mydsp(), nvoices, false, group);
         #endif
             } else {
         #if MIDICTRL
