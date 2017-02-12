@@ -269,7 +269,7 @@ class MainContentComponent : public AudioAppComponent, private Timer
     
         Rectangle<int> recommendedSize;
         Rectangle<int> r = Desktop::getInstance().getDisplays().getMainDisplay().userArea;
-        int screenWidth  = r.getWidth();
+        int screenWidth = r.getWidth();
         int screenHeight = r.getHeight();
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)

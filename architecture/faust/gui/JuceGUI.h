@@ -349,13 +349,14 @@ enum VUMeterType {
  */
 class uiBaseComponent: public Component
 {
+
 public:
     float fHRatio, fVRatio;
     int fTotalWidth, fTotalHeight; // Size with margins included (for a uiBox)
-    int fDisplayRectHeight, fDisplayRectWidth;  // Size without margin, just the child dimensions
+    int fDisplayRectWidth, fDisplayRectHeight;  // Size without margin, just the child dimensions
                                                 // Sum on one dimension, max on the other
     String fName;
-    
+  
     /**
      * \brief   Constructor.
      * \details Initialize a uiBaseComponent with its name, and all its sizes.
@@ -364,10 +365,9 @@ public:
      * \param   totHeight   Minimal total Height.
      * \param   name        Name.
      */
-    uiBaseComponent(int totWidth, int totHeight, String name) : fTotalWidth(totWidth), fTotalHeight(totHeight), fName(name) {
-        fDisplayRectHeight = totHeight;
-        fDisplayRectWidth  = totWidth;
-    }
+    uiBaseComponent(int totWidth, int totHeight, String name)
+        : fTotalWidth(totWidth), fTotalHeight(totHeight), fDisplayRectWidth(totWidth), fDisplayRectHeight(totHeight), fName(name)
+    {}
     
     /** Return the total height in pixels. */
     int getTotalHeight() {
@@ -400,6 +400,12 @@ public:
         return fName;
     }
     
+    /** Return the size. */
+    Rectangle<int> getSize()
+    {
+        return Rectangle<int>(0, 0, fTotalWidth, fTotalHeight);
+    }
+   
     /** Initialize the horizontal ratio. */
     void setHRatio() {
         // Avoid to set ratio for the "main box", which has no uiBaseComponent parent
@@ -426,7 +432,7 @@ public:
      * \param r The absolute bounds.
      *
      */
-    void setBaseComponentSize(Rectangle<int> r) {
+    void setBaseComponentSize(const Rectangle<int>& r) {
         setBounds(r.getX() - getParentComponent()->getX(),
                   r.getY() - getParentComponent()->getY(),
                   r.getWidth(),
@@ -437,11 +443,16 @@ public:
     void mouseDoubleClick(const MouseEvent &event) override {
         writeDebug();
     }
+    
+    void init(LookAndFeel* laf) {
+        setRatio();
+        setBaseComponentSize(getLocalBounds());
+        setLookAndFeel(laf);
+    }
 
     /** Debug console output */
     virtual void writeDebug() = 0;
-    /** Apply the LookAndFeel on the JUCE widget. */
-    virtual void setCompLookAndFeel(LookAndFeel* laf) = 0;
+
 };
 
 /**
@@ -464,7 +475,7 @@ public:
      * \param   tooltip Tooltip text.
      * \param   name    Name of the widget.
      */
-    uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip, String name): uiBaseComponent(w, h, name), uiItem(gui,zone), fTooltipText(tooltip) { }
+    uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip, String name): uiBaseComponent(w, h, name), uiItem(gui, zone), fTooltipText(tooltip) { }
 
     /** Write some debug informations in the console, such as bounds, parent box, etc. */
     virtual void writeDebug() override {
@@ -555,7 +566,7 @@ public:
         // Label settings, only happens for a horizontal of numerical entry slider
         // because the method attachToComponent only give the choice to place the
         // slider name on centered top, which is what we want. It's done manually
-        // the paint method.
+        // in the paint method.
         if (fType == HSlider || fType == NumEntry) {
             fLabel.setText(fName, dontSendNotification);
             fLabel.attachToComponent(&fSlider, true);
@@ -590,17 +601,12 @@ public:
         modifyZone(value);
     }
 
-    /** Apply the LookAndFeel to the juce::Slider widget. */
-    virtual void setCompLookAndFeel(LookAndFeel* laf) override {
-        fSlider.setLookAndFeel(laf);
-    }
-
     /** 
      * Set the good coordinates and size for the juce::Slider object depending 
      * on its SliderType, whenever the layout size changes.
      */
     virtual void resized() override {
-        if       (fType == HSlider) {
+        if (fType == HSlider) {
             x = getLocalBounds().getX() + 60;
             y = getLocalBounds().getY();
             width = getLocalBounds().getWidth()-60;
@@ -642,7 +648,7 @@ public:
      * \brief   Constructor.
      * \details Initialize all uiComponent variables and juce::TextButton parameters.
      *
-     * \param   gui, zone, w, h, tooltip, label     uiComponent variable.
+     * \param   gui, zone, w, h, tooltip, label uiComponent variable.
      */
     uiButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) :  uiComponent(gui, zone, w, h, tooltip, label), width(w), height(h)
     {
@@ -667,8 +673,7 @@ public:
      * \see buttonStateChanged
      */
     void buttonClicked (Button* button) override
-    {
-    }
+    {}
 
     /** Indicate to the FAUST module when the button is pressed and released. */
     void buttonStateChanged (Button* button) override
@@ -685,11 +690,6 @@ public:
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
-    }
-
-    /** Apply the LookAndFeel to the juce::TextButton widget. */
-    virtual void setCompLookAndFeel(LookAndFeel* laf) override {
-        fButton.setLookAndFeel(laf);
     }
 
     /** Set the good coordinates and size to the juce::TextButton widget whenever the layout size changes. */
@@ -747,11 +747,6 @@ public:
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
-    }
-
-    /** Apply the LookAndFeel to the juce::ToggleButton widget. */
-    virtual void setCompLookAndFeel(LookAndFeel* laf) override {
-        fCheckButton.setLookAndFeel(laf);
     }
 
     /** Set the good coordinates and size to the juce::ToggleButton widget, whenever the layout size changes. */
@@ -855,11 +850,6 @@ public:
         }
     }
 
-    /** Apply the LookAndFeel to the juce::ComboBox widget. */
-    virtual void setCompLookAndFeel(LookAndFeel* laf) override {
-        fComboBox.setLookAndFeel(laf);
-    }
-
     /** Set the good coordinates and size to the juce::ComboBox widget whenever the layout get reiszed */
     virtual void resized() override {
         fComboBox.setBounds(0, getLocalBounds().getY() + kMenuHeight/2, getWidth(), kMenuHeight/2);
@@ -943,11 +933,11 @@ public:
             }
         }
     }
-
-    /** Apply the LookAndFeel to all the CheckButtons widgets. */
-    virtual void setCompLookAndFeel(LookAndFeel* laf) {
-        for (int i = 0; i<nbButtons; i++)
+  
+    virtual void setLookAndFeel(LookAndFeel* laf) {
+        for (int i = 0; i<nbButtons; i++) {
             fButtons[i]->setLookAndFeel(laf);
+        }
     }
 
     virtual void reflectZone()
@@ -1109,13 +1099,7 @@ public:
         }
     }
 
-    /** 
-     * Has to be defined because its purely virtual in uiBaseComponent, 
-     * but as its not a JUCE widget, there is no LookAndFeel submethod associated.
-     */
-    virtual void setCompLookAndFeel(LookAndFeel* laf) override {}
-
-    /** 
+    /**
      * Call the appropriate drawing method according to the VU-meter style 
      * \see drawLed
      * \see drawNumDisplay
@@ -1124,14 +1108,14 @@ public:
      */
     void paint (Graphics& g) override
     {
-        if     (fStyle == Led)       {
-            drawLed       (g, kLedWidth,       kLedHeight,        fLevel);
+        if (fStyle == Led)       {
+            drawLed (g, kLedWidth, kLedHeight, fLevel);
         } else if (fStyle == NumDisplay) {
             drawNumDisplay(g, kNumDisplayWidth,  kNumDisplayHeight/2, fLevel);
-        } else if (fStyle == VVUMeter)  {
-            drawVBargraph (g, kVBargraphWidth/2, getHeight(),         fLevel, db);
-        } else if (fStyle == HVUMeter)  {
-            drawHBargraph (g, getWidth(),        kHBargraphHeight/2,  fLevel, db);
+        } else if (fStyle == VVUMeter) {
+            drawVBargraph (g, kVBargraphWidth/2, getHeight(), fLevel, db);
+        } else if (fStyle == HVUMeter) {
+            drawHBargraph (g, getWidth(), kHBargraphHeight/2, fLevel, db);
         }
     }
 
@@ -1159,11 +1143,11 @@ private:
 
     /** Give the right coordinates and size to the text of Label depending on the VU-meter style */
     void setLabelPos() {
-        if     (fStyle == VVUMeter)   {
+        if (fStyle == VVUMeter) {
             // -22 on the height because of the text box.
             fLabel.setBounds((getWidth()-50)/2, getHeight()-22, 50, 20);
         }
-        else if (fStyle == HVUMeter)   {
+        else if (fStyle == HVUMeter) {
             isBargraphNameShown ? fLabel.setBounds(63, (getHeight()-20)/2, 50, 20)
                                 : fLabel.setBounds(3,  (getHeight()-20)/2, 50, 20);
         }
@@ -1504,7 +1488,7 @@ private:
     {
         float fScale = 1.0;
 
-        if      (dB < -60.0)
+        if (dB < -60.0)
             fScale = (dB + 70.0) * 0.0025;
         else if (dB < -50.0)
             fScale = (dB + 60.0) * 0.005 + 0.025;
@@ -1655,49 +1639,6 @@ public:
         }
     }
 
-    /** Call the setLookAndFeel method for all its child, by going through the uiBaseComponent tree */
-    void setCompLookAndFeel(LookAndFeel* laf) override {
-        for (int i = 0; i<getNumChildComponents(); i++) {
-            dynamic_cast<uiBaseComponent*> (getChildComponent(i))->setCompLookAndFeel(laf);
-        }
-    }
-
-    /**
-     * \brief   Main layout function.
-     * \details Allow to place all uiBaseComponent child correctly according to their ratios
-     *          and the current box size.
-     *
-     * \param   functionRect    Absolute raw bounds of the current box (with margins 
-     *                          and space for the title).
-     */
-    void arrangeComponents(Rectangle<int> functionRect)
-    {
-        // Deleting space for the box name if it needs to be shown
-        if (isNameDisplayed) {
-            functionRect.removeFromTop(12);
-        }
-        
-        // Putting the margins
-        functionRect.reduce(2, 2);
-        
-        // Give child components an adapt size depending on its ratio and the current box size
-        for (int i = 0; i<getNumChildComponents(); i++) {
-            uiBaseComponent* tempComp = dynamic_cast<uiBaseComponent*>(getChildComponent(i));
-            
-            if (isVertical) {
-                int heightToRemove = getSpaceToRemove(tempComp->getVRatio());
-                // Remove the space needed from the functionRect, and translate it
-                // to show the margins
-                tempComp->setBaseComponentSize(functionRect.removeFromTop(heightToRemove).translated(0, 4*i));
-            } else {
-                int widthToRemove = getSpaceToRemove(tempComp->getHRatio());
-                // Remove the space needed from the functionRect, and translate it
-                // to show the margins
-                tempComp->setBaseComponentSize(functionRect.removeFromLeft(widthToRemove).translated(4*i, 0));
-            }
-        }
-    }
-
     /** uiBox caracteristics debug output */
     void writeDebug() override {
         std::cout<<std::endl<<fName<<" : "<<std::endl;
@@ -1757,7 +1698,7 @@ public:
      * \details Calculate the correct size for each box, depending on its child
      *          sizes.
      */
-    void calculRecommendedSize() {
+    void computeRecommendedSize() {
         // Display rectangle size is the sum of a dimension on a side, and the max of the other one
         // on the other side, depending on its orientation (horizontal/vertical).
         // Using child's totalSize, because the display rectangle size need to be as big as
@@ -1765,7 +1706,7 @@ public:
         for (int j = 0; j<getNumChildComponents(); j++) {
             if (isVertical) {
                 fDisplayRectHeight += (dynamic_cast<uiBaseComponent*>(getChildComponent(j))->getTotalHeight());
-                fDisplayRectWidth   = jmax((int)fDisplayRectWidth, dynamic_cast<uiBaseComponent*>(getChildComponent(j))->getTotalWidth());
+                fDisplayRectWidth = jmax((int)fDisplayRectWidth, dynamic_cast<uiBaseComponent*>(getChildComponent(j))->getTotalWidth());
             } else {
                 fDisplayRectWidth += (dynamic_cast<uiBaseComponent*>(getChildComponent(j))->getTotalWidth());
                 fDisplayRectHeight = jmax((int)fDisplayRectHeight, dynamic_cast<uiBaseComponent*>(getChildComponent(j))->getTotalHeight());
@@ -1779,9 +1720,9 @@ public:
         // the other one, depending on its orientation
         if (isVertical) {
             fTotalHeight += 4 * getNumChildComponents();
-            fTotalWidth  += 4;
+            fTotalWidth += 4;
         } else {
-            fTotalWidth  += 4 * getNumChildComponents();
+            fTotalWidth += 4 * getNumChildComponents();
             fTotalHeight += 4;
         }
 
@@ -1802,14 +1743,43 @@ public:
         }
     }
 
-    /** 
-     * Call the dynamic layout method arrangeComponents.
-     * \see arrangeComponents
+    /**
+     * \brief   Main layout function.
+     * \details Allow to place all uiBaseComponent child correctly according to their ratios
+     *          and the current box size.
+     *
+     * \param   displayRect    Absolute raw bounds of the current box (with margins
+     *                          and space for the title).
      */
     void resized() override {
-        arrangeComponents(getBounds());
+        Rectangle<int> displayRect = getBounds();
         // Debug option
         // writeDebug();
+        
+        // Deleting space for the box name if it needs to be shown
+        if (isNameDisplayed) {
+            displayRect.removeFromTop(12);
+        }
+        
+        // Putting the margins
+        displayRect.reduce(2, 2);
+        
+        // Give child components an adapt size depending on its ratio and the current box size
+        for (int i = 0; i<getNumChildComponents(); i++) {
+            uiBaseComponent* comp = dynamic_cast<uiBaseComponent*>(getChildComponent(i));
+            
+            if (isVertical) {
+                int heightToRemove = getSpaceToRemove(comp->getVRatio());
+                // Remove the space needed from the displayRect, and translate it
+                // to show the margins
+                comp->setBaseComponentSize(displayRect.removeFromTop(heightToRemove).translated(0, 4*i));
+            } else {
+                int widthToRemove = getSpaceToRemove(comp->getHRatio());
+                // Remove the space needed from the displayRect, and translate it
+                // to show the margins
+                comp->setBaseComponentSize(displayRect.removeFromLeft(widthToRemove).translated(4*i, 0));
+            }
+        }
     }
 
     /** 
@@ -1858,8 +1828,8 @@ public:
      */
     uiTabs():TabbedComponent(TabbedButtonBar::TabsAtTop)
     {
-        fTabTotalHeight = 0;
-        fTabTotalWidth = 0;
+        fTotalHeight = 0;
+        fTotalWidth = 0;
     }
 
     /** 
@@ -1868,13 +1838,13 @@ public:
      */
     void init(LookAndFeel* laf) {
         for (int i = 0; i < getNumTabs(); i++) {
-            uiBaseComponent* tempComp = dynamic_cast<uiBaseComponent*>(getTabContentComponent(i));
-            tempComp->setRatio();
-            tempComp->setCompLookAndFeel(laf);
+            uiBaseComponent* comp = dynamic_cast<uiBaseComponent*>(getTabContentComponent(i));
+            comp->setRatio();
+            comp->setLookAndFeel(laf);
             
             // The TabbedComponent size should be as big as its bigger child's dimension, done here
-            fTabTotalHeight = jmax(fTabTotalHeight, tempComp->fTotalHeight);
-            fTabTotalWidth = jmax(fTabTotalWidth, tempComp->fTotalWidth);
+            fTotalHeight = jmax(fTotalHeight, comp->fTotalHeight);
+            fTotalWidth = jmax(fTotalWidth, comp->fTotalWidth);
         }
     }
 
@@ -1889,8 +1859,13 @@ public:
         }
         std::cout<<std::endl;
     }
+    
+    Rectangle<int> getSize()
+    {
+        return Rectangle<int>(0, 0, fTotalWidth, fTotalHeight+30); // 30 height for the TabBar.
+    }
 
-    int fTabTotalWidth, fTabTotalHeight;
+    int fTotalWidth, fTotalHeight;
     
 };
 
@@ -1910,16 +1885,10 @@ public:
 
     /** Return the size of the FAUST program */
     Rectangle<int> getSize() {
-        if (!tabLayout) {
-            return Rectangle<int>(0,
-                                  0,
-                                  dynamic_cast<uiBox*>(getChildComponent(0))->fTotalWidth,
-                                  dynamic_cast<uiBox*>(getChildComponent(0))->fTotalHeight);
+        if (tabLayout) {
+            return dynamic_cast<uiTabs*>(getChildComponent(0))->getSize();
         } else {
-            return Rectangle<int>(0,
-                                  0,
-                                  dynamic_cast<uiTabs*>(getChildComponent(0))->fTabTotalWidth,
-                                  dynamic_cast<uiTabs*>(getChildComponent(0))->fTabTotalHeight+30); // 30 height for the TabBar.
+            return dynamic_cast<uiBox*>(getChildComponent(0))->getSize();
         }
     }
 
@@ -1967,7 +1936,7 @@ public:
     virtual void closeBox() {
         order--; // Decrementing to keep track of where we are in the buildUserInterface
         if (order > -1) { // Avoid to calculate that two times in case of a tabLayout
-            currentBox->calculRecommendedSize();
+            currentBox->computeRecommendedSize();
         }
 
         if (dynamic_cast<uiBox*>(currentBox->getParentComponent()) != 0) { // Not doing that for the main box
@@ -1989,7 +1958,7 @@ public:
     }
     
     /** Add a slider to the user interface. */
-    void addHSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, int kWidth, int kHeight, SliderType type)
+    void addSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, int kWidth, int kHeight, SliderType type)
     {
         if (isKnob(zone)) {
             addKnob(label, zone, init, min, max, step);
@@ -2005,13 +1974,13 @@ public:
     /** Add an horizontal slider to the user interface. */
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        addHSlider(label, zone, init, min, max, step, kHSliderWidth, kHSliderHeight, HSlider);
+        addSlider(label, zone, init, min, max, step, kHSliderWidth, kHSliderHeight, HSlider);
     }
     
     /** Add a vertical slider to the user interface. */
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        addHSlider(label, zone, init, min, max, step, kVSliderWidth, kVSliderHeight, VSlider);
+        addSlider(label, zone, init, min, max, step, kVSliderWidth, kVSliderHeight, VSlider);
     }
     
     /** Add a menu to the user interface. */
@@ -2064,7 +2033,6 @@ public:
         // 5 pixels margin between the slider and his name
         int newWidth = int(ceil(Font().getStringWidth(String(label)) + kNumEntryWidth)) + 5;
         currentBox->addChildUiComponent(new uiSlider(this, zone, newWidth, kNumEntryHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]), getScale(zone), NumEntry));
-
     }
     
     /** Add a bargraph to the user interface. */
@@ -2112,10 +2080,7 @@ public:
         if (tabLayout) {
             tabs.init(laf);
         } else {
-            uiBaseComponent* tempComp = dynamic_cast<uiBox*> (getChildComponent(0)); // This is our main box
-            tempComp->setRatio();
-            tempComp->setBaseComponentSize(getLocalBounds());
-            tempComp->setCompLookAndFeel(laf);
+            dynamic_cast<uiBox*> (getChildComponent(0))->init(laf); // This is our main box
         }
     }
 
@@ -2144,5 +2109,6 @@ public:
     bool tabLayout = false;
     uiTabs tabs;        
     String tabName;
-    ScopedPointer<LookAndFeel> laf = new CustomLookAndFeel();
+    //ScopedPointer<LookAndFeel> laf = new CustomLookAndFeel();
+    ScopedPointer<LookAndFeel> laf = new LookAndFeel_V3();
 };
