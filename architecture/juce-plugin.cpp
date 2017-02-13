@@ -29,7 +29,6 @@
 #include "faust/gui/MapUI.h"
 #include "faust/misc.h"
 
-#include "faust/gui/APIUI.h"
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/JuceGUI.h"
 #include "faust/gui/MidiUI.h"
@@ -489,6 +488,12 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 #ifdef JUCE_POLY
     fSynth->setCurrentPlaybackSampleRate (sampleRate);
 #else
+    
+    // Possibly adapt DSP : TODO real multichannel support
+    if (fDSP->getNumInputs() > getTotalNumInputChannels() || fDSP->getNumOutputs() > getTotalNumInputChannels()) {
+        fDSP = new dsp_adapter(fDSP.release(), getTotalNumInputChannels(), getTotalNumInputChannels(), 4096);
+    }
+    
     fDSP->init(int(sampleRate));
 #endif
 }

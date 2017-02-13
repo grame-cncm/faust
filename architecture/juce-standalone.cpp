@@ -29,7 +29,6 @@
 #include "faust/gui/MapUI.h"
 #include "faust/misc.h"
 
-#include "faust/gui/APIUI.h"
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/JuceGUI.h"
 #include "faust/gui/MidiUI.h"
