@@ -12,10 +12,8 @@
               jucerVersion="4.3.1">
   <MAINGROUP id="DIThxi" name="APPL_NAME">
     <GROUP id="{3EA8B881-7A5A-9E29-6E83-82528C15E424}" name="Source">
-      <FILE id="BecAMR" name="PluginProcessor.cpp" compile="1" resource="0"
-            file="PluginProcessor.cpp"/>
-      <FILE id="QOoigF" name="PluginProcessor.h" compile="0" resource="0"
-            file="PluginProcessor.h"/>
+      <FILE id="BecAMR" name="FaustPluginProcessor.cpp" compile="1" resource="0"
+            file="FaustPluginProcessor.cpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
