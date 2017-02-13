@@ -11,7 +11,7 @@
 @interface Zone : UIView{
     @public
     int status; // the status of the zone (0:off, 1:on)
-    bool keyboardMode;
+    bool staticMode;
 }
 
 - (void)setText:(NSString*)label;
@@ -20,6 +20,7 @@
 - (void)setNote:(int)note;
 - (void)drawBackground;
 - (int)getStatus;
-- (void)setKeyboardMode:(bool)mode;
+- (void)showLabels:(bool)show;
+- (void)setStaticMode:(bool)mode;
 
 @end

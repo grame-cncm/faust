@@ -24,7 +24,7 @@ public class Zone extends ViewGroup {
 
     private int keyNote;
     public int status;
-    public boolean keyboardMode;
+    public boolean staticMode;
 
     private int measuredTextHeight;
 
@@ -34,7 +34,8 @@ public class Zone extends ViewGroup {
 
         // setting defaults
         context = c;
-        keyboardMode = true;
+        staticMode = false;
+        keyNote = 0;
         status = 0;
         setBackgroundColor(Color.GRAY);
 
@@ -82,12 +83,11 @@ public class Zone extends ViewGroup {
     }
 
     public void drawBackground(){
-        if(keyboardMode &&
-                (keyNote == 1 ||
-                        keyNote == 3 ||
-                        keyNote == 6 ||
-                        keyNote == 8 ||
-                        keyNote == 10)){
+        if(keyNote == 1 ||
+                keyNote == 3 ||
+                keyNote == 6 ||
+                keyNote == 8 ||
+                keyNote == 10){
             layerOn.setBackground(ContextCompat.getDrawable(context, R.drawable.key_down_dark));
             setBackground(ContextCompat.getDrawable(context, R.drawable.key_up_dark));
         }
@@ -99,7 +99,7 @@ public class Zone extends ViewGroup {
 
     public void setStatus(int s){
         status = s;
-        if(keyboardMode){
+        if(!staticMode){
             if(status == 1){
                 layerOn.setVisibility(VISIBLE);
             }
@@ -109,8 +109,17 @@ public class Zone extends ViewGroup {
         }
     }
 
-    public void setKeyboardMode(boolean mode){
-        keyboardMode = mode;
+    public void showLabels(boolean show){
+        if(show) {
+            text.setVisibility(VISIBLE);
+        }
+        else {
+            text.setVisibility(INVISIBLE);
+        }
+    }
+
+    public void setStaticMode(boolean mode){
+        staticMode = mode;
     }
 
     public int getStatus(){

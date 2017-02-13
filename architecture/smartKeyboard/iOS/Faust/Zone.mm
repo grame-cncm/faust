@@ -27,7 +27,8 @@
 		// setting defaults
 		notes = @[@"C",@"C#",@"D",@"Eb",@"E",@"F",@"F#",@"G",@"G#",@"A",@"Bb",@"B"];
         status = 0;
-        keyboardMode = true;
+        staticMode = true;
+        keyNote = 0;
         darkImageOn = [UIImage imageNamed:@"keyDownDark.png"];
         darkImageOff = [UIImage imageNamed:@"keyUpDark.png"];
         brightImageOn = [UIImage imageNamed:@"keyDownBright.png"];
@@ -65,7 +66,7 @@
 }
 
 - (void)drawBackground{
-    if(keyboardMode && (keyNote == 1 || keyNote == 3 || keyNote == 6 || keyNote == 8 || keyNote == 10)){
+    if(keyNote == 1 || keyNote == 3 || keyNote == 6 || keyNote == 8 || keyNote == 10){
         UIGraphicsBeginImageContext(self.frame.size);
         [darkImageOn drawInRect:self.bounds];
         UIImage *picOn = UIGraphicsGetImageFromCurrentImageContext();
@@ -95,7 +96,7 @@
 
 - (void)setStatus:(int)s{
     status = s;
-    if(keyboardMode){
+    if(!staticMode){
         if(status == 1){
             [layerOn setHidden:false];
         }
@@ -105,8 +106,17 @@
     }
 }
 
-- (void)setKeyboardMode:(bool)mode{
-    keyboardMode = mode;
+- (void)showLabels:(bool)show{
+    if(show){
+        [text setHidden:false];
+    }
+    else{
+        [text setHidden:true];
+    }
+}
+
+- (void)setStaticMode:(bool)mode{
+    staticMode = mode;
 }
 
 - (int)getStatus{
