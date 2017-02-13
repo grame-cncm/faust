@@ -446,11 +446,11 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
         
         inline bool checkPolyphony() 
         {
-            if (fVoiceTable[0]->fFreqLabel == "") {
+            if (fVoiceTable.size() > 1) {
+                return true;
+            } else {
                 std::cout << "DSP is not polyphonic...\n";
                 return false;
-            } else {
-                return true;;
             }
         }
     
@@ -667,10 +667,8 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
         // Terminate all active voices, gently or immediately (depending of 'hard' value)
         void allNotesOff(bool hard = false)
         {
-            if (checkPolyphony()) {
-                for (int i = 0; i < fVoiceTable.size(); i++) {
-                    fVoiceTable[i]->keyOff(hard);
-                }
+            for (int i = 0; i < fVoiceTable.size(); i++) {
+                fVoiceTable[i]->keyOff(hard);
             }
         }
     
