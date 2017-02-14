@@ -219,7 +219,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     void keyOff(bool hard = false)
     {
         // No use of velocity for now...
-        setParamValue(fGateLabel, 0.0f);
+        setParamValue(fGateLabel, FAUSTFLOAT(0));
         if (hard) {
             // Stops immediately
             fNote = kFreeVoice;
@@ -243,9 +243,9 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     
     void trigger(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
-        setParamValue(fGateLabel, 0.0f);
+        setParamValue(fGateLabel, FAUSTFLOAT(0));
         computeSlice(0, 1, inputs, outputs);
-        setParamValue(fGateLabel, 1.0f);
+        setParamValue(fGateLabel, FAUSTFLOAT(1));
         computeSlice(1, count - 1, inputs, outputs);
         fTrigger = false;
     }
