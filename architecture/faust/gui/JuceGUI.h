@@ -558,7 +558,7 @@ public:
         fSlider.setValue(fConverter->faust2ui(cur));
         fSlider.addListener(this);
         fSlider.setSliderStyle(fStyle);
-        fSlider.setTextValueSuffix(unit);
+        fSlider.setTextValueSuffix(" " + unit);
         if (fTooltipText.isNotEmpty()) {
             fSlider.setTooltip(fTooltipText);
         }
@@ -1154,7 +1154,7 @@ private:
         setLabelPos();
         fLabel.setEditable(false, false, false);
         fLabel.setJustificationType(Justification::centred);
-        fLabel.setText(String((int)*fZone) + fUnit, dontSendNotification);
+        fLabel.setText(String((int)*fZone) + " " + fUnit, dontSendNotification);
         if (fTooltipText.isNotEmpty()) {
             fLabel.setTooltip(fTooltipText);
         }
@@ -1575,7 +1575,7 @@ private:
             }
         }
 
-        fLabel.setText(String((int)rawLevel)+fUnit, dontSendNotification);
+        fLabel.setText(String((int)rawLevel) + " " + fUnit, dontSendNotification);
     }
 };
 
