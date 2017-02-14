@@ -583,7 +583,6 @@ public class MultiKeyboard extends ViewGroup {
             refPitch[fingerId] = -1;
             dspFaust.setVoiceParamValue("gate", voices[fingerId], 0);
             if ((int) keyboardParameters.get("Max Keyboard Polyphony") > 0) {
-                dspFaust.setVoiceParamValue("bend", voices[fingerId], 1);
                 dspFaust.deleteVoice(voices[fingerId]);
                 voices[fingerId] = -1;
             }
@@ -603,6 +602,7 @@ public class MultiKeyboard extends ViewGroup {
                 voices[fingerId] = voices[0];
             }
             if (voices[fingerId] != -1) {
+                dspFaust.setVoiceParamValue("bend", voices[fingerId], 1);
                 dspFaust.setVoiceParamValue("gate", voices[fingerId], 1);
             } else {
                 return;
