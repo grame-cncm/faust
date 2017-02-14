@@ -930,7 +930,7 @@ public:
         }
     }
 
-    virtual void reflectZone()
+    virtual void reflectZone() override
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
@@ -968,18 +968,20 @@ public:
     }
     
     /** Display the RadioButton name */
-    virtual void paint(Graphics& g) {
+    virtual void paint(Graphics& g) override
+    {
         g.setColour(Colours::black);
         g.drawText(fName, getLocalBounds().withHeight(12), Justification::centredTop);
     }
 
     /** Check which button is checked, and give its "value" to the FAUST module */
-    void buttonClicked(Button* button)
+    void buttonClicked(Button* button) override
     {
         ToggleButton* checkButton = dynamic_cast<ToggleButton*>(button);
         std::cout<<fName<<" : "<<fButtons.indexOf(checkButton)<<std::endl;
         modifyZone(fButtons.indexOf(checkButton));
     }
+    
 };
 
 /** 

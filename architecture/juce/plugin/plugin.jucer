@@ -17,7 +17,7 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES"
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES -DFAUSTFLOAT=FAUST_FLOAT"
                extraDefs="PreProcDef">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"/>
@@ -40,7 +40,7 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" iosScreenOrientation="portraitlandscape"
-                  extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES">
+                  extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES -DFAUSTFLOAT=FAUST_FLOAT">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"/>
@@ -86,7 +86,7 @@
         <MODULEPATH id="juce_osc" path="../../modules"/>
       </MODULEPATHS>
     </VS2015>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES">
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES -DFAUSTFLOAT=FAUST_FLOAT">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"/>
@@ -108,7 +108,7 @@
         <MODULEPATH id="juce_osc" path="../../modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
-    <ANDROIDSTUDIO targetFolder="Builds/Android">
+    <ANDROIDSTUDIO targetFolder="Builds/Android" extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES -DFAUSTFLOAT=FAUST_FLOAT">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" androidArchitectures="armeabi x86" isDebug="1" optimisation="1"
                        targetName="APPL_NAME"/>

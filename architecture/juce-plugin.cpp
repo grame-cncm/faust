@@ -244,8 +244,19 @@ class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
         
         bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
         
-        void processBlock (AudioSampleBuffer&, MidiBuffer&) override;
+        void processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages) override
+        {
+            jassert (! isUsingDoublePrecision());
+            process (buffer, midiMessages);
+        }
         
+        void processBlock (AudioBuffer<double>& buffer, MidiBuffer& midiMessages) override
+        {
+            jassert (isUsingDoublePrecision());
+            process (buffer, midiMessages);
+        }
+
+    
         AudioProcessorEditor* createEditor() override;
         bool hasEditor() const override;
         
@@ -267,6 +278,7 @@ class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
         void timerCallback() override;
     
         AudioProcessor::BusesProperties getBusesProperties();
+        bool supportsDoublePrecisionProcessing() const override;
     
         static void panic(float val, void* arg);
         
@@ -287,6 +299,10 @@ class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
         ScopedPointer<JuceStateUI> fStateUI;
         
     private:
+    
+        template <typename FloatType>
+        void process (AudioBuffer<FloatType>& buffer, MidiBuffer& midiMessages);
+    
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessor)
     
 };
@@ -498,6 +514,11 @@ void FaustPlugInAudioProcessor::changeProgramName (int index, const String& newN
 {
 }
 
+bool FaustPlugInAudioProcessor::supportsDoublePrecisionProcessing() const
+{
+    return sizeof(FAUSTFLOAT) == 8;
+}
+
 //==============================================================================
 void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
@@ -543,7 +564,9 @@ bool FaustPlugInAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
 #endif
 }
 
-void FaustPlugInAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
+
+template <typename FloatType>
+void FaustPlugInAudioProcessor::process (AudioBuffer<FloatType>& buffer, MidiBuffer& midiMessages)
 {
     AVOIDDENORMALS;
     

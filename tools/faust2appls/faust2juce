@@ -30,6 +30,7 @@ STANDALONE="0"
 IS_SYNTH="0"
 IS_MIDI="0"
 JUCE_POLY="0"
+FAUSTFLOAT="float"
 
 while [ $1 ]
 do
@@ -73,6 +74,9 @@ do
 	elif [ "$p" = "-qrcode" ]; then # requires -httpd
 		DEF+="QRCODECTRL "
     elif [ ${p:0:1} = "-" ]; then
+        if [ $p = "-double" ]; then
+            FAUSTFLOAT="double"
+        fi
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
@@ -134,11 +138,14 @@ for p in $FILES; do
     # SYNTH
     sed -e "s/IS_SYNTH/$IS_SYNTH/g" "$dspName/$dspName-temp3.jucer" >> "$dspName/$dspName-temp4.jucer"
 
+    # FAUSTFLOAT
+    sed -e "s/FAUST_FLOAT/$FAUSTFLOAT/g" "$dspName/$dspName-temp4.jucer" >> "$dspName/$dspName-temp5.jucer"
+
     # possibly set NVOICES value
     if [ $NVOICES -ge 0 ]; then
-        sed -e "s/NUM_VOICES/$NVOICES/g" "$dspName/$dspName-temp4.jucer" >> "$dspName/$dspName.jucer"
+        sed -e "s/NUM_VOICES/$NVOICES/g" "$dspName/$dspName-temp5.jucer" >> "$dspName/$dspName.jucer"
     else
-        cp  "$dspName/$dspName-temp4.jucer" "$dspName/$dspName.jucer"
+        cp  "$dspName/$dspName-temp5.jucer" "$dspName/$dspName.jucer"
     fi
 
     # standalone of plugin mode
@@ -149,16 +156,16 @@ for p in $FILES; do
     fi
 
     rm "$dspName/$dspName-temp.jucer" "$dspName/$dspName-temp1.jucer"  "$dspName/$dspName-temp2.jucer"
-    rm "$dspName/$dspName-temp3.jucer" "$dspName/$dspName-temp4.jucer"
+    rm "$dspName/$dspName-temp3.jucer" "$dspName/$dspName-temp4.jucer" "$dspName/$dspName-temp5.jucer"
 
     # standalone of plugin mode
     if [ $STANDALONE = "0" ]; then
-        faust -i -a $ARCHFILEPLUGIN $OPTION "$SRCDIR/$f" -o "$dspName/FaustPluginProcessor.cpp" || exit
+        faust -i -a $ARCHFILEPLUGIN $OPTIONS "$SRCDIR/$f" -o "$dspName/FaustPluginProcessor.cpp" || exit
         if [ $POLY = "POLY2" ]; then
             faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$dspName/dsp_effect.cpp" || exit
         fi
     else
-        faust -i -a $ARCHFILESTANDALONE $OPTION "$SRCDIR/$f" -o "$dspName/FaustAudioApplication.cpp" || exit
+        faust -i -a $ARCHFILESTANDALONE $OPTIONS "$SRCDIR/$f" -o "$dspName/FaustAudioApplication.cpp" || exit
         if [ $POLY = "POLY2" ]; then
             faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$dspName/dsp_effect.cpp" || exit
         fi
