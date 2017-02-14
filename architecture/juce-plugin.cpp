@@ -265,7 +265,9 @@ class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
         void setStateInformation (const void* data, int sizeInBytes) override;
         
         void timerCallback() override;
-        
+    
+        AudioProcessor::BusesProperties getBusesProperties();
+    
         static void panic(float val, void* arg);
         
     #ifdef JUCE_POLY
@@ -312,14 +314,10 @@ class FaustPlugInAudioProcessorEditor : public AudioProcessorEditor
     
 };
 
+static mydsp gDSP;
+
 FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
-: AudioProcessor (BusesProperties()
-#if ! JucePlugin_IsMidiEffect
-#if ! JucePlugin_IsSynth
-                  .withInput("Input", AudioChannelSet::stereo(), true)
-#endif
-                  .withOutput("Output",AudioChannelSet::stereo(), true))
-#endif
+: AudioProcessor (getBusesProperties())
 {
     bool midi_sync = false;
     int nvoices = 1;
@@ -421,6 +419,27 @@ void FaustPlugInAudioProcessor::panic(float val, void* arg)
 #endif
 }
 
+AudioProcessor::BusesProperties FaustPlugInAudioProcessor::getBusesProperties()
+{
+    if (PluginHostType::getPluginLoadedAs() == wrapperType_Standalone) {
+        if (gDSP.getNumInputs() == 0) {
+            return BusesProperties().withOutput("Output", AudioChannelSet::discreteChannels(std::min(2, gDSP.getNumOutputs())), true);
+        } else {
+            return BusesProperties()
+            .withInput("Input", AudioChannelSet::discreteChannels(std::min(2, gDSP.getNumInputs())), true)
+            .withOutput("Output", AudioChannelSet::discreteChannels(std::min(2, gDSP.getNumOutputs())), true);
+        }
+    } else {
+        if (gDSP.getNumInputs() == 0) {
+            return BusesProperties().withOutput("Output", AudioChannelSet::discreteChannels(gDSP.getNumOutputs()), true);
+        } else {
+            return BusesProperties()
+            .withInput("Input", AudioChannelSet::discreteChannels(gDSP.getNumInputs()), true)
+            .withOutput("Output", AudioChannelSet::discreteChannels(gDSP.getNumOutputs()), true);
+        }
+    }
+}
+
 void FaustPlugInAudioProcessor::timerCallback()
 {
     GUI::updateAllGuis();
@@ -489,11 +508,11 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     fSynth->setCurrentPlaybackSampleRate (sampleRate);
 #else
     
-    // Possibly adapt DSP : TODO real multichannel support
-    if (fDSP->getNumInputs() > getTotalNumInputChannels() || fDSP->getNumOutputs() > getTotalNumInputChannels()) {
-        fDSP = new dsp_adapter(fDSP.release(), getTotalNumInputChannels(), getTotalNumInputChannels(), 4096);
+    // Possibly adapt DSP
+    if (fDSP->getNumInputs() > getTotalNumInputChannels() || fDSP->getNumOutputs() > getTotalNumOutputChannels()) {
+        fDSP = new dsp_adapter(fDSP.release(), getTotalNumInputChannels(), getTotalNumOutputChannels(), 4096);
     }
-    
+   
     fDSP->init(int(sampleRate));
 #endif
 }
@@ -511,10 +530,14 @@ bool FaustPlugInAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
 #else
     
 #if JucePlugin_IsSynth
-    return (layouts.getMainOutputChannelSet().size() == fDSP->getNumOutputs());
+    // Stereo is supported
+    return (layouts.getMainOutputChannelSet().size() == 2) || (layouts.getMainOutputChannelSet().size() == fDSP->getNumOutputs());
 #else
-    return (layouts.getMainInputChannelSet().size() == fDSP->getNumInputs())
-    && (layouts.getMainOutputChannelSet().size() == fDSP->getNumOutputs());
+    // Stereo is supported
+    return
+    ((layouts.getMainInputChannelSet().size() == 2) && (layouts.getMainOutputChannelSet().size() == 2))
+    ||
+    ((layouts.getMainInputChannelSet().size() == fDSP->getNumInputs()) && (layouts.getMainOutputChannelSet().size() == fDSP->getNumOutputs()));
 #endif
     
 #endif

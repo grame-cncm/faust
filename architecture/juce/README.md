@@ -10,9 +10,9 @@ faust2juce is used with the following command:
 
 `faust2juce [-standalone] [-nvoices <num>] [-effect <effect.dsp>] [-jsynth]  [-midi] [-osc] file.dsp` 
 
-By default it will create a plugin project, with a folder named with the dsp file name, containing a .jucer project with PluginProcessor.h,cpp files to be used by JUCE.
+By default it will create a plugin project, with a folder named with the dsp file name, containing a .jucer project with a FaustPluginProcessor.cpp file to be used by JUCE.
 
-When using `-standalone` mode, it will create a standalone project, with a folder named with the dsp file name, containing a .jucer project with Main.cpp and a MainComponent.h files to be used by JUCE.
+When using `-standalone` mode, it will create a standalone project, with a folder named with the dsp file name, containing a .jucer project with a FaustAudioApplication.cpp file to be used by JUCE.
 
 The resulting folder has to be moved on the "examples" folder of your JUCE installation, the .jucer file has to be opened, and projects for specific native platforms can be generated. 
 

@@ -110,7 +110,8 @@ for p in $FILES; do
 
     # creates the dir 
     dspName="${f%.dsp}"
-    SUB_TYPE=$(echo ${dspName:0:4} | tr [[:upper:]] [[:lower:]])
+    SUB_TYPE=$(basename $(mktemp -t N -u))
+    SUB_TYPE=${SUB_TYPE:2:4}
     rm -rf "$SRCDIR/$dspName"
 
     if [ $STANDALONE = "0" ]; then
