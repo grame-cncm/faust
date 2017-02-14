@@ -602,7 +602,6 @@
         refPitch[fingerId] = -1;
         faustDsp->setVoiceParamValue("gate", voices[fingerId], 0);
         if([keyboardParameters[@"Max Keyboard Polyphony"] intValue] > 0){
-            faustDsp->setVoiceParamValue("bend", voices[fingerId], 1);
             faustDsp->deleteVoice(voices[fingerId]);
             voices[fingerId] = -1;
         }
@@ -621,6 +620,7 @@
             voices[fingerId] = voices[0];
         }
         if(voices[fingerId] != -1){
+            faustDsp->setVoiceParamValue("bend", voices[fingerId], 1);
             faustDsp->setVoiceParamValue("gate", voices[fingerId], 1);
         }
         else{
