@@ -136,6 +136,7 @@ if [ $REUSE -eq 0 ] || [ ! -d "$BUILDDIR" ]; then
 	# copying new template app if no reuse
 	if [ ! -d "$BUILDDIR" ]; then
 		mkdir -p "$BUILDDIR"
+		cp -r $FAUSTLIB/smartKeyboard/LICENCE.md "$BUILDDIR"
 		if [ $ANDROID -eq 1 ]; then
 			echo "Creating a new Android project in $BUILDDIR" > $LOG
 			cp -r $FAUSTLIB/smartKeyboard/android/* "$BUILDDIR"

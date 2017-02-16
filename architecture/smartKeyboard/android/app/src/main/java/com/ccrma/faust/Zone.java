@@ -1,15 +1,8 @@
 package com.ccrma.faust;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
-import android.util.AttributeSet;
-import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -30,7 +23,6 @@ public class Zone extends ViewGroup {
 
     public Zone(Context c) {
         super(c);
-        // TODO: something here was required for multitouch on iOS
 
         // setting defaults
         context = c;
@@ -41,7 +33,6 @@ public class Zone extends ViewGroup {
 
         // Status "on" layer
         layerOn = new View(context);
-        // TODO: something about making this multitouch here too
         layerOn.setBackgroundColor(Color.WHITE); // default key color when on
         layerOn.setVisibility(INVISIBLE);
         addView(layerOn);

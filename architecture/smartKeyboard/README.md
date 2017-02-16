@@ -1,16 +1,20 @@
 # SmartKeyboard Mobile App Generator Documentation
 
-`faust2smartkeyb` is a tool to generate ready-to-use musical Android and iOS applications using the [Faust programming language](http://faust.grame.fr). Unlike [`faust2android`](https://ccrma.stanford.edu/~rmichon/faust2android/) and `faust2ios`, `faust2smartkeyb` ignores the standard user interface (UI) declared in the Faust code (e.g., `hslider`s, `button`, etc.), and replaces it by a `SmartKeyboard` UI. 
+`faust2smartkeyb` is a tool to generate ready-to-use musical Android and iOS applications using the [Faust programming language](http://faust.grame.fr). Unlike [`faust2android`](https://ccrma.stanford.edu/~rmichon/faust2android/) and `faust2ios`, `faust2smartkeyb` ignores the standard user interface (UI) declared in the Faust code (e.g., `hslider`, `button`, etc.), and replaces it by a `SmartKeyboard` UI. 
 
 The `SmartKeyboard` UI allows to implement a wide range of controllers (basic keyboards, isomorphic keyboards, pads, X/Y controllers, etc.) on a touch-screen and can be configured directly in the Faust code using the `SmartKeyboard` metadata.
 
 This documentation demonstrates how to use `faust2smartkeyb` and provides [a series of links to tutorials on how to turn mobile devices into musical instruments](#additional-resources).
 
+`faust2smartkeyb` is part of the [Faust distribution](https://github.com/grame-cncm/faust) and will be automatically installed on your system with the latest version of Faust.
+
+WARNING: this tool is still being beta tested and there are probably a few bugs. If you find a bug, please report it to rmichon_at_ccrma_dot_stanford_dot_edu.
+
 ## Compatibility
 
-Apps generated with `faust2smartkeyb` should work on any iOS device running a "reasonably recent" version of iOS (we'd say less than 4 years old, but that's just a guess...). Things are a bit more restrictive on Android and the device you will use must run at least on *Jelly Bean* (version 4.1). However, for optimal performances (especially regarding latency), we recommend you to be at least on *KitKat* (5.0).
+Apps generated with `faust2smartkeyb` should work on any iOS device running a "reasonably recent" version of iOS (less than 4 years old). Things are a bit more restrictive on Android and target devices must run at least on *Jelly Bean* (version 4.1). However, for optimal performances (especially regarding latency), we recommend you to be at least on *KitKat* (5.0). Interested readers might want to read [this page on Android audio latency](https://source.android.com/devices/audio/latency_measurements.html) to learn more about this topic.
 
-## Setting-Up Your System
+## Setting Up Your System
 
 This section shows how to configure your system to use the various features of `faust2smartkeyb`.
 
@@ -20,15 +24,15 @@ Aaaaah iOS... This OS has been (and still is, even though Android is catching up
 
 In any case, to use `faust2smartkeyb` (as well as `faust2ios`) or to do any kind of iOS development in general, you will either need a "pro" Apple developer account or a free one. This documentation doesn't show how to take care of that. For more information about this, visit the [Apple website](https://developer.apple.com/). Good luck!
 
-Once you took care of this, make sure that Xcode is properly installed on your system (using the Apple Store, not some weird technique) and that it is UP-TO-DATE. A little bit more Apple c[...]p: if the iOS device you're using is running the latest version of iOS, then you will need to have the latest version of the iOS SDK installed on your system. Unfortunately, the only way to do that is to also have the latest version Xcode which will require the latest version of OSX! Good luck! 
+Once you took care of this, make sure that Xcode is properly installed on your system (using the Apple Store, not some weird technique) and that it is UP-TO-DATE. A little bit more Apple c[...]p: if the iOS device you're using is running the latest version of iOS, then you will need to have the latest version of the iOS SDK installed on your system. Unfortunately, the only way to do that is to also have the latest version Xcode which will require the latest version of OSX! Once again, good luck! 
 
 After all these steps, you should be ready to go.
 
 ### Android
 
-Android apps can be developed on all major platforms (Windows, OSX and Linux). Unlike Apple (see previous section), Google provides a lot more flexibility to app developers and it is not required to sign up for any developer account in order to install apps on your device. On the other hand, the installation of the Android development tool chain is a little bit more complex than on iOS. It should be quite similar on Linux and OSX and we describe it below. We don't provide information for Windows since `faust2smartkeyb` will probably not work at all on this platform.
+Android apps can be developed on all major platforms (Windows, OSX and Linux). Unlike Apple (see previous section), Google provides a lot more flexibility to app developers and it is not required to sign up for any developer account in order to install apps on your device. On the other hand, the installation of the Android development tool chain is a little bit more complex than on iOS. It should be quite similar on Linux and OSX and we describe it below. We don't provide information for Windows since `faust2smartkeyb` will probably not work at all on this platform (sorry).
 
-First, install [Android studio](https://developer.android.com/studio/index.html). When you run it for the first time, we advise you to choose the option where you don't import previous settings (unless you know what you're doing, of course). Then, during the configuration process, choose a "Standard" setup. The sdk installation path should be prompted to you after that. Take note of it as we'll need it later (should be `~/Library/Android/sdk` on OSX). Once Android studio finished setting up, click on "Configure" and then "SDK Manager" (you might have to go in "Tools/Android/SDK Manager" on Linux). In the `SDK Tools` tab, install the NDK (Native Development Kit) which is necessary to compile apps generated by `faust2smartkeyb` (`faust2smartkeyb` uses `faust2api` internally, if you want to get more details about why you need to do all that, have a look at the [`faust2api` documentation](https://ccrma.stanford.edu/~rmichon/faust2api/)). 
+First, install [Android studio](https://developer.android.com/studio/index.html). When you run it for the first time, we advise you to choose the option where you don't import previous settings (unless you know what you're doing, of course). Then, during the configuration process, choose a "Standard" setup. The sdk installation path should be prompted to you after that. Take note of it as we'll need it later (should be `~/Library/Android/sdk` on OSX). Once Android studio finished setting up, click on "Configure" and then "SDK Manager" (you might have to go in "Tools/Android/SDK Manager" on Linux). In the `SDK Tools` tab, install the [NDK (Native Development Kit)](https://developer.android.com/ndk/index.html) which is necessary to compile apps generated by `faust2smartkeyb` (`faust2smartkeyb` uses `faust2api` internally, if you want to get more details about why you need to do all that, have a look at the [`faust2api` documentation](https://ccrma.stanford.edu/~rmichon/faust2api/)). 
 
 In order to be able to compile Android apps in your terminal, you must configure the `ANDROID_HOME` and `ANDROID_NDK_HOME` environment variables so that they point to where the `sdk` and the `ndk` are installed. To do this, add the following line to `~/.bashrc` on Linux or `~/.bash_profile` on OSX (if this file doesn't exist, create it):
 
@@ -85,13 +89,13 @@ declare interface "SmartKeyboard{
 }";
 ```
 
-will create an interface with 2 keyboards of 13 keys each. The lowest note of the top keyboard will MIDI note 72 (C4), and the lowest note of the other keyboard will be 60 (C3).
+will create an interface with 2 keyboards of 13 keys each. The lowest note of the top keyboard will be MIDI note 72 (C4), and the lowest note of the other keyboard will be 60 (C3).
 
 A `SmartKeyboard` interface can stream a set of [standard Faust parameters](#smartkeyboard-standard-parameters) to control the given Faust DSP. For example, the cutoff frequency of the lowpass filter of the previous Faust code can be controlled with the Y position of the finger on the key simply by declaring the standard `y` parameter:
 
 ```
-y = nentry("y",0.5,0,1,0.01) : si.smoo; // y is always normalized between 0 and 1
-cutoff = y*1960+40; // mapping
+fingerY = nentry("y",0.5,0,1,0.01) : si.smoo; // y is always normalized between 0 and 1
+cutoff = fingerY*1960+40; // mapping
 ```
 
 The two following sections give an overview of the different [configuration keys](#smartkeyboard-configuration-keys) and [standard parameters](#smartkeyboard-standard-parameters) that can be used with `SmartKeyboard` interfaces. Also, the [Additional Resources](#additional-resources) section provides links to tutorials on how to design various kinds of instruments using this system. We recommend you to check these resources since complex mappings (that are not presented here) can be created by combining different interface configurations with specific uses of standard parameters. [Example codes](#TODO) can be found in the `/examples/smartKeyboard` folder of the Faust distribution. Finally, the [Compilation](#compilation) section demonstrates how to compile Faust codes such as the one presented above using `faust2smartkeyb`.
@@ -125,6 +129,8 @@ Allows to set the text inside a key on a specific keyboard. The corresponding va
 Default value: null
 
 This is a keyboard and key specific parameter.
+
+---
 
 ### `Keyboard N - Lowest Key`
 
@@ -185,11 +191,13 @@ This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`
 
 ### `Keyboard N - Send Freq`
 
-When 1, the [`freq`](#freq) and [`bend`](#bend) parameters are computed and send the Faust DSP object. Indeed, even when [`Max Keyboard Polyphony`](#max-keyboard-poly) is set to 0, these 2 parameters keep being sent and they might not be necessary in some cases.
+When 1, the [`freq`](#freq) and [`bend`](#bend) parameters are computed and sent to the Faust DSP object. Indeed, even when [`Max Keyboard Polyphony`](#max-keyboard-poly) is set to 0, these 2 parameters keep being sent and they might not be necessary in some cases.
 
 Default value: 1
 
 This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface that can be configured independently with the `Keyboard 0 - Send Freq` and the `Keyboard 1 - Send Freq` keys.
+
+---
 
 ### `Keyboard N - Send X`
 
@@ -280,7 +288,7 @@ With:
 
 The number of cycles before rounding is activated.
 
-Default: 5
+Default value: 5
 
 ---
 
@@ -288,7 +296,7 @@ Default: 5
 
 Configures the way the [`bend`](#bend) parameter associated with the current finger is quantized.
 
-Default value: 0.
+Default value: 0
 
 With:
 
@@ -302,7 +310,7 @@ With:
 
 The pole of the integrators used for smoothing movements during rounding. 
 
-Default: 0.9
+Default value: 0.9
 
 ---
 
@@ -310,7 +318,7 @@ Default: 0.9
 
 Rounding is deactivated when the output of the smoothers (see [`Rounding Threshold`](#rounding-threshold)) goes above this value.
 
-Default: 3
+Default value: 3
 
 ---
 
@@ -318,7 +326,7 @@ Default: 3
 
 Speed in seconds at which the rounding loop is updated.
 
-Default: 0.06
+Default value: 0.06
 
 ---
 
@@ -348,7 +356,7 @@ Default value: 1
 
 ## SmartKeyboard Standard Parameters
 
-This section presents the different standard Faust parameters that can be used with `SmartKeyboard` interfaces.For practical use cases, check the [Additional Resources](#additional-resources) section. Additionally, [example codes](#TODO) can be found in the `/examples/smartKeyboard` folder of the Faust distribution.
+This section presents the different standard Faust parameters that can be used with `SmartKeyboard` interfaces. For practical use cases, check the [Additional Resources](#additional-resources) section. Also, example codes can be found in the `/examples/smartKeyboard` folder of [the Faust distribution](https://github.com/grame-cncm/faust).
 
 ### `freq`
 
@@ -358,7 +366,7 @@ The reference frequency in Hz of the current event. This value is provided at th
 
 ### `bend`
 
-A coefficient to multiply to `freq` to bend it (`bend = 1` corresponds to no bend). This parameter can be used to implement vibrato, slides, etc. It heavily relies on [`Rounding Mode`](#rounding-mode).
+A coefficient to multiply to `freq` to bend it (`bend = 1` corresponds to no bend so `continuousFreq = freq*bend`). This parameter can be used to implement vibrato, slides, etc. It heavily relies on [`Rounding Mode`](#rounding-mode).
 
 ---
 
@@ -418,7 +426,7 @@ However, in practice, you'll rarely want to compile directly your Faust code int
 faust2smartkeyb -android -source -reuse mySynth.dsp
 ```
 
-In that case, `faust2smartkeyb` will not compile `mySynth.dsp` to an app but will create a folder called `faustsmartkeyb.mySynth` in the current folder containing an Android Studio project. Every time the previous command will be run, the portion of the app source code corresponding to the `mySynth.dsp` will be updated (if we only used `-source` without `-reuse` then `faustsmartkeyb.mySynth` would be erased and re-created). The same steps can be followed when using `-ios`. 
+In that case, `faust2smartkeyb` will not compile `mySynth.dsp` to an app but will create a folder called `faustsmartkeyb.mySynth` in the current folder containing an Android Studio project. Every time the previous command will be run, the portion of the app source code corresponding to `mySynth.dsp` will be updated (if we only used `-source` without `-reuse` then `faustsmartkeyb.mySynth` would be erased and re-created). The same steps can be followed when using `-ios`. 
 
 The app can be easily installed on your device from Xcode or Android Studio. On iOS, bundle identifier issues can be fixed directly in the Xcode project contained in `faustsmartkeyb.mySynth` which is more convenient than doing it in the Faust source code. 
 
@@ -490,5 +498,10 @@ Asks `faust2smartkeyb` to only generate the source of the app and to not compile
 
 * [What Is Faust?](https://ccrma.stanford.edu/~rmichon/faustTutorials/#what-is-faust)
 * [Faust Hero in 2 Hours](https://ccrma.stanford.edu/~rmichon/faustTutorials/#faust-hero-in-2-hours)
+* [Making Faust-Based Smartphone Musical Instruments (`faust2smartkeyb` Tutorials)](https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-faust-based-smartphone-musical-instruments)
 
-<!-- TODO: add missing links -->
+## Version/Licence
+
+Version 0.0. 
+
+See `LICENCE.md` in the `SmartKeyboard` source code (`faust/architecture/smartKeyboard`).
