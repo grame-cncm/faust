@@ -181,8 +181,8 @@ section Copyright (C) 2003-2017 by Julius O. Smith III
 ([jos](http://ccrma.stanford.edu/~jos/)), and released under the
 (MIT-style) [STK-4.3](#stk-4.3-license) license.
 
-All MarkDown comments in this section is Copyright 2016-2017 by Romain
-Michon and Julius O. Smith III, and is released under the
+The MarkDown comments in this section are Copyright 2016-2017 by Romain
+Michon and Julius O. Smith III, and are released under the
 [CCA4I](https://creativecommons.org/licenses/by/4.0/) license (TODO: if/when Romain agrees)
 
 ************************************************************************/
@@ -931,3 +931,15 @@ lf_saw(freq) = saw1(freq);
 //------------------------------------------------------------
 // TODO: author RM
 lf_triangle(freq) = 2*lf_trianglepos(freq) - 1;
+
+//########################################################################################
+/************************************************************************
+FAUST library file, further contributions section
+
+All contributions below should indicate both the contributor and terms
+of license.  If no such indication is found, "git blame" will say who
+last edited each line, and that person can be emailed to inquire about
+license disposition, if their license choice is not already indicated
+elsewhere among the libraries.  It is expected that all software will be
+released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
+************************************************************************/
