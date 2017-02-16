@@ -115,7 +115,7 @@ noises(N,i) = multinoise(N) : ba.selector(i,N);
 FAUST library file, jos section
 
 Except where noted otherwise, The Faust functions below in this
-section Copyright (C) 2003-2017 by Julius O. Smith III
+section are Copyright (C) 2003-2017 by Julius O. Smith III
 ([jos](http://ccrma.stanford.edu/~jos/)), and released under the
 (MIT-style) [STK-4.3](#stk-4.3-license) license.
 
@@ -254,7 +254,7 @@ with {
 };
 
 //----------------------------`gnoise`------------------------
-// approximate Gaussian white noise generator
+// approximate zero-mean, unit-variance Gaussian white noise generator
 //
 // #### Usage
 //
@@ -274,9 +274,9 @@ with {
 gnoise(N) = uvgwn
 with {
   uwn = no.multinoise(N); // uniform white noise in [-1,1] on N channels
-  sigma = sqrt(N/3.0); // rms of each channel of uwn
-  gwn = uwn :> _; // sum of uniform approaches Gaussian by centeral limit thm
-  uvgwn = gwn / sigma; // should approach zero-mean, unit variance Gaussian white noise
+  gwn = uwn :> _;         // sum of uniform approaches Gaussian by centeral limit thm
+  sigma = sqrt(N/3.0);    // rms of each uwn channel
+  uvgwn = gwn / sigma; // approaches zero-mean, unit-variance Gaussian white noise, for large N
 };
 
 /*** END jos section ***/
