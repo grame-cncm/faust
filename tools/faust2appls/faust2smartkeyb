@@ -215,7 +215,12 @@ if [ $SOURCE -eq 0 ]; then
 		echo "An Android app \"$APPNAME.apk\" was created in the current folder"
 	elif [ $IOS -eq 1 ]; then
 		echo "Starting iOS compilation" > $LOG
-		# TODO
+		(
+			xcodebuild -project "$BUILDDIR/Faust.xcodeproj" -target Faust PRODUCT_NAME=$APPNAME 
+			cd "$BUILDDIR" && xcodebuild -scheme Faust PRODUCT_NAME=$APPNAME
+		)  > $LOG || exit
+		rm -rf "$APPNAME.app"
+    	mv "$BUILDDIR/build/Release-iphoneos/$APPNAME.app" .
 		echo "An iOS app \"$APPNAME.app\" was created in the current folder"
 	fi
 fi
