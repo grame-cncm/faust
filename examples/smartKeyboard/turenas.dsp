@@ -9,8 +9,22 @@
 // large number of keys here (180), lots of sounds are generated when sliding a 
 // finger across the keyboard.
 //
-// Author: Romain Michon (rmichon_at_ccrma_dot_stanford_dot_edu)
-// 06/17/2016
+//
+// ## Compilation Instructions
+//
+// This Faust code will compile fine with any of the standard Faust targets. However
+// it was specifically designed to be used with `faust2smartkeyb`. For best results,
+// we recommend to use the following parameters to compile it:
+//
+// ```
+// faust2smartkeyb [-ios/-android] turenas.dsp
+// ```
+//
+// ## Version/Licence
+//
+// Version 0.0, Feb. 2017
+// Copyright Romain Michon CCRMA (Stanford University)/GRAME 2017
+// MIT Licence: https://opensource.org/licenses/MIT
 //########################################################################################
 
 declare name "turenas";
@@ -22,37 +36,37 @@ import("stdfaust.lib");
 //========================================================================================
 
 declare interface "SmartKeyboard{
-	'nKeyb':'10',
-	'keyb0_nKeys':'18',
-	'keyb1_nKeys':'18',
-	'keyb2_nKeys':'18',
-	'keyb3_nKeys':'18',
-	'keyb4_nKeys':'18',
-	'keyb5_nKeys':'18',
-	'keyb6_nKeys':'18',
-	'keyb7_nKeys':'18',
-	'keyb8_nKeys':'18',
-	'keyb9_nKeys':'18',
-	'keyb0_lowestKey':'50',
-	'keyb1_lowestKey':'55',
-	'keyb2_lowestKey':'60',
-	'keyb3_lowestKey':'65',
-	'keyb4_lowestKey':'70',
-	'keyb5_lowestKey':'75',
-	'keyb6_lowestKey':'80',
-	'keyb7_lowestKey':'85',
-	'keyb8_lowestKey':'90',
-	'keyb9_lowestKey':'95',
-	'keyb0_showNotesName':'0',
-	'keyb1_showNotesName':'0',
-	'keyb2_showNotesName':'0',
-	'keyb3_showNotesName':'0',
-	'keyb4_showNotesName':'0',
-	'keyb5_showNotesName':'0',
-	'keyb6_showNotesName':'0',
-	'keyb7_showNotesName':'0',
-	'keyb8_showNotesName':'0',
-	'keyb9_showNotesName':'0'
+	'Number of Keyboards':'10',
+	'Keyboard 0 - Number of Keys':'18',
+	'Keyboard 1 - Number of Keys':'18',
+	'Keyboard 2 - Number of Keys':'18',
+	'Keyboard 3 - Number of Keys':'18',
+	'Keyboard 4 - Number of Keys':'18',
+	'Keyboard 5 - Number of Keys':'18',
+	'Keyboard 6 - Number of Keys':'18',
+	'Keyboard 7 - Number of Keys':'18',
+	'Keyboard 8 - Number of Keys':'18',
+	'Keyboard 9 - Number of Keys':'18',
+	'Keyboard 0 - Lowest Key':'50',
+	'Keyboard 1 - Lowest Key':'55',
+	'Keyboard 2 - Lowest Key':'60',
+	'Keyboard 3 - Lowest Key':'65',
+	'Keyboard 4 - Lowest Key':'70',
+	'Keyboard 5 - Lowest Key':'75',
+	'Keyboard 6 - Lowest Key':'80',
+	'Keyboard 7 - Lowest Key':'85',
+	'Keyboard 8 - Lowest Key':'90',
+	'Keyboard 9 - Lowest Key':'95',
+	'Keyboard 0 - Piano Keyboard':'0',
+	'Keyboard 1 - Piano Keyboard':'0',
+	'Keyboard 2 - Piano Keyboard':'0',
+	'Keyboard 3 - Piano Keyboard':'0',
+	'Keyboard 4 - Piano Keyboard':'0',
+	'Keyboard 5 - Piano Keyboard':'0',
+	'Keyboard 6 - Piano Keyboard':'0',
+	'Keyboard 7 - Piano Keyboard':'0',
+	'Keyboard 8 - Piano Keyboard':'0',
+	'Keyboard 9 - Piano Keyboard':'0'
 }";
 
 //================================ Instrument Parameters =================================
@@ -87,7 +101,7 @@ modeRes = res : si.smoo;
 //============================================ DSP =======================================
 //========================================================================================
 
-process = sy.additiveDrum(freq,modeFreqRatios,modeGains,0.8,0.001,modeRes,gate)*0.5;
+process = sy.additiveDrum(freq,modeFreqRatios,modeGains,0.8,0.001,modeRes,gate)*0.05;
 
 
 
