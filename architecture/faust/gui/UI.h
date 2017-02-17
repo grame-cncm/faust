@@ -114,4 +114,38 @@ class DecoratorUI : public UI
 
 };
 
+//----------------------------------------------------------------
+//  BaseUI with empty methods
+//----------------------------------------------------------------
+
+class BaseUI : public UI
+{
+    
+    public:
+        
+        // -- widget's layouts
+        
+        virtual void openTabBox(const char* label) {};
+        virtual void openHorizontalBox(const char* label) {}
+        virtual void openVerticalBox(const char* label) {}
+        virtual void closeBox() {}
+        
+        // -- active widgets
+        
+        virtual void addButton(const char* label, FAUSTFLOAT* zone) = 0;
+        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) = 0;
+        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {}
+        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {}
+        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {}
+        
+        // -- passive widgets
+        
+        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
+        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
+        
+        // -- metadata declarations
+        
+        virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
+};
+
 #endif

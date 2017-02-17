@@ -47,4 +47,4 @@ add lines
 to file /etc/nanorc
 
 8) ATOM
-Place the directory 'language-faust/' into '~/.atom/packages/'. 
+Place the directory 'language-faust/' into '~/.atom/packages/'. For specific instructions read atom/language-faust/README.md 

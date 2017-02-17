@@ -171,35 +171,33 @@ static void analyseMeta(bool& midi_sync, int& nvoices)
     
 #if POLY2
     
-    dsp* tmp_dsp = new mydsp();
     bool group = true;
     std::cout << "Started with " << nvoices << " voices\n";
     
     #if MIDICTRL
     if (midi_sync) {
-        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new effect()));
+        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new effect()));
     } else {
-        DSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new effect());
+        DSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new effect());
     }
     #else
-        DSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, false, group), new effect());
+        DSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, false, group), new effect());
     #endif
     
 #else
     
-    dsp* tmp_dsp = new mydsp();
     bool group = true;
     
     if (nvoices > 1) {
         std::cout << "Started with " << nvoices << " voices\n";
     #if MIDICTRL
         if (midi_sync) {
-            DSP = new timed_dsp(new mydsp_poly(tmp_dsp, nvoices, true, group));
+            DSP = new timed_dsp(new mydsp_poly(new mydsp(), nvoices, true, group));
         } else {
-            DSP = new mydsp_poly(tmp_dsp, nvoices, true, group);
+            DSP = new mydsp_poly(new mydsp(), nvoices, true, group);
         }
     #else
-        DSP = new mydsp_poly(tmp_dsp, nvoices, false, group);
+        DSP = new mydsp_poly(new mydsp(), nvoices, false, group);
     #endif
     } else {
     #if MIDICTRL

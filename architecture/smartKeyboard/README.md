@@ -1,32 +1,40 @@
 # SmartKeyboard Mobile App Generator Documentation
 
-`faust2smartkeyb` is a tool to generate ready-to-use musical Android and iOS applications using the [Faust programming language](http://faust.grame.fr). Unlike [`faust2android`](https://ccrma.stanford.edu/~rmichon/faust2android/) and `faust2ios`, `faust2smartkeyb` ignores the standard user interface (UI) declared in the Faust code (e.g., `hslider`s, `button`, etc.), and replaces it by a "SmartKeyboard" UI. 
+`faust2smartkeyb` is a tool to generate ready-to-use musical Android and iOS applications using the [Faust programming language](http://faust.grame.fr). Unlike [`faust2android`](https://ccrma.stanford.edu/~rmichon/faust2android/) and `faust2ios`, `faust2smartkeyb` ignores the standard user interface (UI) declared in the Faust code (e.g., `hslider`, `button`, etc.), and replaces it by a `SmartKeyboard` UI. 
 
-The "SmartKeyboard" UI allows to implement a wide range of controllers (basic keyboards, isomorphic keyboards, pads, X/Y controllers, etc.) on a touch-screen and can be configured directly in the Faust code using the `SmartKeyboard` metadata.
+The `SmartKeyboard` UI allows to implement a wide range of controllers (basic keyboards, isomorphic keyboards, pads, X/Y controllers, etc.) on a touch-screen and can be configured directly in the Faust code using the `SmartKeyboard` metadata.
 
-This documentation demonstrates how to use `faust2smartkeyb`.
+This documentation demonstrates how to use `faust2smartkeyb` and provides [a series of links to tutorials on how to turn mobile devices into musical instruments](#additional-resources).
 
-## Setting-Up Your System
+`faust2smartkeyb` is part of the [Faust distribution](https://github.com/grame-cncm/faust) and will be automatically installed on your system with the latest version of Faust.
+
+WARNING: this tool is still being beta tested and there are probably a few bugs. If you find a bug, please report it to rmichon_at_ccrma_dot_stanford_dot_edu.
+
+## Compatibility
+
+Apps generated with `faust2smartkeyb` should work on any iOS device running a "reasonably recent" version of iOS (less than 4 years old). Things are a bit more restrictive on Android and target devices must run at least on *Jelly Bean* (version 4.1). However, for optimal performances (especially regarding latency), we recommend you to be at least on *KitKat* (5.0). Interested readers might want to read [this page on Android audio latency](https://source.android.com/devices/audio/latency_measurements.html) to learn more about this topic.
+
+## Setting Up Your System
 
 This section shows how to configure your system to use the various features of `faust2smartkeyb`.
 
 ### iOS
 
-Aaaaah iOS... This OS has been (and still is, even though Android is catching up fast) by far the best one to make musical apps involving real-time audio DSP. However, Apple likes to make the life of developers hard, and in order to develop apps for this platform, you used to need to have an Apple developer account ($100/year). Things changed since then, and it is now possible to develop iOS apps and upload them on your device for free! However, the number of apps you can install using this technique is very limited (5, if I remember correctly). Oh, and needless to say that YOU WILL NEED A MAC to generate iOS apps with `faust2smartkeyb`.
+Aaaaah iOS... This OS has been (and still is, even though Android is catching up fast) by far the best one to make musical apps involving real-time audio DSP. However, Apple likes to make the life of developers hard, and in order to develop apps for this platform, you used to need to have an Apple developer account ($100/year, yes). Things changed since then, and it is now possible to develop iOS apps and upload them on your device for free! However, the number of apps you can install using this technique is very limited (5, if I remember correctly). Oh, and needless to say that YOU WILL NEED A MAC to generate iOS apps with `faust2smartkeyb`.
 
-In any case, to use `faust2smartkeyb` (as well as `faust2ios`) or to make any kind of iOS development, you will either need a "pro" Apple developer account or a free one. This documentation doesn't show how to take care of that. For more information about this, visit the relevant Apple website <https://developer.apple.com/>. Good luck!
+In any case, to use `faust2smartkeyb` (as well as `faust2ios`) or to do any kind of iOS development in general, you will either need a "pro" Apple developer account or a free one. This documentation doesn't show how to take care of that. For more information about this, visit the [Apple website](https://developer.apple.com/). Good luck!
 
-Once you took care of this, make sure that Xcode is properly installed on your system (using the Apple Store, not some weird technique) and that it is UP-TO-DATE. A little bit more Apple c[...]p: if the iOS device you're using is running the latest version of iOS, then you will need to have the latest version of the iOS SDK installed on your system. Unfortunately, the only way to do that is to also have the latest version Xcode which will require the latest version of OSX! Good luck! 
+Once you took care of this, make sure that Xcode is properly installed on your system (using the Apple Store, not some weird technique) and that it is UP-TO-DATE. A little bit more Apple c[...]p: if the iOS device you're using is running the latest version of iOS, then you will need to have the latest version of the iOS SDK installed on your system. Unfortunately, the only way to do that is to also have the latest version Xcode which will require the latest version of OSX! Once again, good luck! 
 
-After all these steps, you should be good to go.
+After all these steps, you should be ready to go.
 
 ### Android
 
-Android apps can be developed on all major platforms (Windows, OSX and Linux). Unlike Apple (see previous section), Google provides a lot more flexibility to app developers and it is not required to sign up for any developer account in order to install apps on your device. On the other hand, the installation of the Android development tool chain is a little bit more complex than on iOS. It should be quite similar on Linux and OSX and we describe it below. We don't provide information for Windows since `faust2smartkeyb` will probably not work at all on this platform.
+Android apps can be developed on all major platforms (Windows, OSX and Linux). Unlike Apple (see previous section), Google provides a lot more flexibility to app developers and it is not required to sign up for any developer account in order to install apps on your device. On the other hand, the installation of the Android development tool chain is a little bit more complex than on iOS. It should be quite similar on Linux and OSX and we describe it below. We don't provide information for Windows since `faust2smartkeyb` will probably not work at all on this platform (sorry).
 
-First, install [Android studio](https://developer.android.com/studio/index.html). When you run it for the first time, we advise you to choose the option where you don't import previous settings (unless you know what you're doing, of course). Then, during the configuration process, choose a "Standard" setup. The sdk installation path should be prompted to you after that. Take note of it as we'll need it later (should be `~/Library/Android/sdk` on OSX). Once Android studio finished the setting up, click on "Configure" and then SDK Manager (you might have to go in Tools/Android/SDK Manager on Linux). In the `SDK Tools` tab, install the NDK (Native Development Kit) which is necessary to compile apps generated by `faust2smartkeyb`.
+First, install [Android studio](https://developer.android.com/studio/index.html). When you run it for the first time, we advise you to choose the option where you don't import previous settings (unless you know what you're doing, of course). Then, during the configuration process, choose a "Standard" setup. The sdk installation path should be prompted to you after that. Take note of it as we'll need it later (should be `~/Library/Android/sdk` on OSX). Once Android studio finished setting up, click on "Configure" and then "SDK Manager" (you might have to go in "Tools/Android/SDK Manager" on Linux). In the `SDK Tools` tab, install the [NDK (Native Development Kit)](https://developer.android.com/ndk/index.html) which is necessary to compile apps generated by `faust2smartkeyb` (`faust2smartkeyb` uses `faust2api` internally, if you want to get more details about why you need to do all that, have a look at the [`faust2api` documentation](https://ccrma.stanford.edu/~rmichon/faust2api/)). 
 
-In order to be able to compile Android apps in your terminal, you must configure the `ANDROID_HOME` and `ANDROID_NDK_HOME` environment variables so that they point to where the sdk and the ndk are installed. To do this, add the following line to `~/.bashrc` on Linux or `~/.bash_profile` on OSX (if this file doesn't exist, create it):
+In order to be able to compile Android apps in your terminal, you must configure the `ANDROID_HOME` and `ANDROID_NDK_HOME` environment variables so that they point to where the `sdk` and the `ndk` are installed. To do this, add the following line to `~/.bashrc` on Linux or `~/.bash_profile` on OSX (if this file doesn't exist, create it):
 
 ```
 export ANDROID_HOME=/home/r/Android/Sdk
@@ -47,21 +55,21 @@ Say something about the first time you run it and gradle doing its shit
 
 `faust2smartkeyb` uses `faust2api` internally. Thus, Faust codes provided to `faust2smartkeyb` must respect the same standards as for `faust2api` (check the [`faust2api` documentation](https://ccrma.stanford.edu/~rmichon/faust2api/) for more information about this).
 
-The following code is similar to the one presented in the [`faust2api` documentation](https://ccrma.stanford.edu/~rmichon/faust2api/) in the [MIDI Enabled Polyphonic Object](https://ccrma.stanford.edu/~rmichon/faust2api/#midi-enabled-polyphonic-object) section:
+The following code is similar to the one presented in the [`faust2api` documentation](https://ccrma.stanford.edu/~rmichon/faust2api/) in the [MIDI Enabled Polyphonic Object](https://ccrma.stanford.edu/~rmichon/faust2api/#midi-enabled-polyphonic-object) section and can be downloaded [here](misc/ex1.dsp):
 
 ```
 import("stdfaust.lib");
 freq = nentry("freq",200,40,2000,0.01);
 gain = nentry("gain",1,0,1,0.01);
-gate = button("gate"); 
-cutoff = nentry("cutoff",1000,40,2000,0.01) : si.smoo;
+gate = button("gate");
+cutoff = 1000;
 envelope = gate*gate : si.smoo;
 process = os.sawtooth(freq)*envelope : fi.lowpass(3,cutoff) <: _,_;
 ```
 
 It implements a simple synthesizer based on a filtered sawtooth wave and it is polyphony-compatible thanks to its `freq`, `gain`, and `gate` parameters.
 
-If this code is provided as such to `faust2smartkeyb`, its UI declaration will be ignored and replaced by the default SmartKeyboard interface. This interface can be configured at the beginning of the Faust code using the `SmartKeyboard` metadata:
+If this code is provided as such to `faust2smartkeyb`, its UI declaration will be ignored and replaced by the default `SmartKeyboard` interface. This interface can be configured at the beginning of the Faust code using the `SmartKeyboard` metadata:
 
 ```
 declare interface "SmartKeyboard{
@@ -81,42 +89,46 @@ declare interface "SmartKeyboard{
 }";
 ```
 
-will create an interface with 2 keyboards of 13 keys each. The lowest note of the top most keyboard will MIDI note 72 (C4), and the lowest note of the other keyboard will be 60 (C3).
+will create an interface with 2 keyboards of 13 keys each. The lowest note of the top keyboard will be MIDI note 72 (C4), and the lowest note of the other keyboard will be 60 (C3).
 
 A `SmartKeyboard` interface can stream a set of [standard Faust parameters](#smartkeyboard-standard-parameters) to control the given Faust DSP. For example, the cutoff frequency of the lowpass filter of the previous Faust code can be controlled with the Y position of the finger on the key simply by declaring the standard `y` parameter:
 
 ```
-cutoff = nentry("cutoff",1000,40,2000,0.01) : si.smoo;
+fingerY = nentry("y",0.5,0,1,0.01) : si.smoo; // y is always normalized between 0 and 1
+cutoff = fingerY*1960+40; // mapping
 ```
 
-becomes:
-
-```
-y = nentry("y",0.5,0,1,0.01) : si.smoo;
-cutoff = y*1960+40
-```
-
-The two following sections give an overview of the different [configuration keys](#smartkeyboard-configuration-keys) and [standard parameters](#smartkeyboard-standard-parameters) that can be used with `SmartKeyboard` interfaces. Also, the [Additional Resources](#additional-resources) provides links to tutorials on how to design various kinds of instruments using this system. We recommend you to check these resources since complex mappings (that are not presented here) can be created by combining different interface configurations with specific uses of standard parameters. [Example codes](#TODO) can be found in the `/examples/smartKeyboard` folder of the Faust distribution. Finally, the [Compilation](#compilation) section demonstrates how to compile Faust codes such as the one presented above using `faust2smartkeyb`.
+The two following sections give an overview of the different [configuration keys](#smartkeyboard-configuration-keys) and [standard parameters](#smartkeyboard-standard-parameters) that can be used with `SmartKeyboard` interfaces. Also, the [Additional Resources](#additional-resources) section provides links to tutorials on how to design various kinds of instruments using this system. We recommend you to check these resources since complex mappings (that are not presented here) can be created by combining different interface configurations with specific uses of standard parameters. Example codes can be found in the `/examples/smartKeyboard` folder of the Faust distribution. Finally, the [Compilation](#compilation) section demonstrates how to compile Faust codes such as the one presented above using `faust2smartkeyb`.
 
 ## SmartKeyboard Configuration Keys
 
-This section presents the different configurations keys of `SmartKeyboard` and their function. For practical use cases, check the [Additional Resources](#additional-resources) section. Additionally, [example codes](#TODO) can be found in the `/examples/smartKeyboard` folder of the Faust distribution.
+This section presents the different configurations keys of `SmartKeyboard` and their function. For practical use cases, check the [Additional Resources](#additional-resources) section. 
 
-### `Number of Keyboards`
+### `Inter-Keyboard Slide`
 
-Defines the number of keyboards in the interface. 
+When 1, fingers can slide between keyboards.
 
-Default value: 4
+Default value: 1
 
 ---
 
-### `Keyboard N - Number of Keys`
+### `Keyboard N - Count Fingers`
 
-Defines the number of keys of a specific keyboard in the interface.
+When 0, the [`x`](#x) and [`y`](y) parameters are numbered from 0 to N by fingers in order of touches (finger 0: `x0` and `y0`, etc.).
 
-Default value: 7
+Default value: 0
 
-This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface and that can be configured independently with the `Keyboard 0 - Number of Keys` and the `Keyboard 1 - Number of Keys` keys.
+This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface that can be configured independently with the `Keyboard 0 - Count Fingers` and the `Keyboard 1 - Count Fingers` keys.
+
+---
+
+### `Keyboard N - Key M - Label`
+
+Allows to set the text inside a key on a specific keyboard. The corresponding value should be a string.
+
+Default value: null
+
+This is a keyboard and key specific parameter.
 
 ---
 
@@ -126,7 +138,37 @@ Defines the MIDI note number of the lowest key on a specific keyboard.
 
 Default value: 48
 
-This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface and that can be configured independently with the `Keyboard 0 - Lowest Key` and the `Keyboard 1 - Lowest Key` keys.
+This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface that can be configured independently with the `Keyboard 0 - Lowest Key` and the `Keyboard 1 - Lowest Key` keys.
+
+---
+
+### `Keyboard N - Number of Keys`
+
+Defines the number of keys of a specific keyboard in the interface.
+
+Default value: 7
+
+This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface that can be configured independently with the `Keyboard 0 - Number of Keys` and the `Keyboard 1 - Number of Keys` keys.
+
+---
+
+### `Keyboard N - Orientation`
+
+Defines the orientation of a specific keyboard: left to right when 0 and right to left when 1.
+
+Default value: 0
+
+This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface that can be configured independently with the `Keyboard 0 - Orientation` and the `Keyboard 1 - Orientation` keys.
+
+---
+
+### `Keyboard N - Root Position`
+
+Position of the root (as a key number starting from 0) on a specific keyboard. This parameter is very useful when dealing with specific scales.
+
+Default value: 0
+
+This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface that can be configured independently with the `Keyboard 0 - Root Position` and the `Keyboard 1 - Root Position` keys.
 
 ---
 
@@ -143,53 +185,17 @@ With:
 * `Keyboard N - Scale = 2`: Major scale, note names are not displayed
 * `Keyboard N - Scale = 3`: Harmonic minor scale, note names are not displayed
 
-This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface and that can be configured independently with the `Keyboard 0 - Scale` and the `Keyboard 1 - Lowest Scale` keys.
+This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface that can be configured independently with the `Keyboard 0 - Scale` and the `Keyboard 1 - Lowest Scale` keys.
 
 ---
 
-### `Keyboard N - Show Notes`
+### `Keyboard N - Send Freq`
 
-When 1, shows note names on a specific keyboard.
+When 1, the [`freq`](#freq) and [`bend`](#bend) parameters are computed and sent to the Faust DSP object. Indeed, even when [`Max Keyboard Polyphony`](#max-keyboard-poly) is set to 0, these 2 parameters keep being sent and they might not be necessary in some cases.
 
 Default value: 1
 
-This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface and that can be configured independently with the `Keyboard 0 - Show Notes` and the `Keyboard 1 - Show Notes` keys.
-
----
-
-### `Keyboard N - Root Position`
-
-Position of the root (as a key number starting from 0) on a specific keyboard. This parameter is very useful when dealing with specific scales.
-
-Default value: 0
-
-This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface and that can be configured independently with the `Keyboard 0 - Root Position` and the `Keyboard 1 - Root Position` keys.
-
----
-
-### `Keyboard N - Orientation`
-
-Defines the orientation of a specific keyboard: left to right when 0 and right to left when 1.
-
-Default value: 0
-
-This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface and that can be configured independently with the `Keyboard 0 - Orientation` and the `Keyboard 1 - Orientation` keys.
-
----
-
-### `Keyboard N - Mode`
-
-Activates of deactivates the keyboard mode of a specific keyboard. When 0, note names are not displayed (overrides [`Keyboard N - Show Notes`](#keyboard-n-show-notes)) and keys don't change color when they are pressed. This can be useful when using a keyboard as a control interface or a drum pad, etc.
-
-Default value: 0
-
-With:
-
-* `Keyboard N - Mode = 0`: Notes names are displayed (overrides [`Keyboard N - Show Notes`](#keyboard-n-show-notes)) and keys change color when they are pressed.
-* `Keyboard N - Mode = 1`: Notes names are not displayed (overrides [`Keyboard N - Show Notes`](#keyboard-n-show-notes)) and keys don't change color when they are pressed.
-* `Keyboard N - Mode = 2`: Same as `Keyboard N - Mode = 1`, but new voices are not allocated when touched. This is convenient to create a control surface while having one or several keyboards in the same interface.
-
-This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface and that can be configured independently with the `Keyboard 0 - Mode` and the `Keyboard 1 - Mode` keys.
+This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface that can be configured independently with the `Keyboard 0 - Send Freq` and the `Keyboard 1 - Send Freq` keys.
 
 ---
 
@@ -199,7 +205,7 @@ When 1, send the normalized x position of the finger in the current key (associa
 
 Default value: 1
 
-This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface and that can be configured independently with the `Keyboard 0 - Send X` and the `Keyboard 1 - Send X` keys.
+This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface that can be configured independently with the `Keyboard 0 - Send X` and the `Keyboard 1 - Send X` keys.
 
 ---
 
@@ -209,27 +215,56 @@ When 1, send the normalized y position of the finger in the current key (associa
 
 Default value: 1
 
-This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface and that can be configured independently with the `Keyboard 0 - Send Y` and the `Keyboard 1 - Send Y` keys.
+This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface that can be configured independently with the `Keyboard 0 - Send Y` and the `Keyboard 1 - Send Y` keys.
+
+---
+
+### `Keyboard N - Show Labels`
+
+When 1, shows note names on a specific keyboard. This parameter is overridden if [`Keyboard N - Piano Keyboard`](#keyboard-n---piano-keyboard) is defined.
+
+Default value: 1
+
+This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface that can be configured independently with the `Keyboard 0 - Show Labels` and the `Keyboard 1 - Show Labels` keys.
+
+---
+
+### `Keyboard N - Static Mode`
+
+When 1, keys don't change color when touched.
+
+Default value: 0
+
+This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface that can be configured independently with the `Keyboard 0 - Show Labels` and the `Keyboard 1 - Show Labels` keys.
+
+---
+
+### `Number of Keyboards`
+
+Defines the number of keyboards in the interface. 
+
+Default value: 4
 
 ---
 
 ### `Max Fingers`
 
-Defines the maximum number of fingers allowed on the touch-screen. This parameter is independent from the number of polyphony voices of the DSP object. Default value: 10.
+Defines the maximum number of fingers allowed on the touch-screen. This parameter is independent from the number of polyphony voices of the DSP object. 
+
+Default value: 10.
 
 ---
 
 ### `Max Keyboard Polyphony`
 
-Defines the number of polyphony voices of each keyboard. 
+Defines the number of polyphony voices of each keyboard (and more, see below). 
 
 Default value: 10
 
 This parameter has some special cases:
 
-* `Max Keyboard Polyphony = 1`: in that case, keyboards are monophonic. Monophonic mode can be configured using the `Mono Mode` key (see below).
-* `Max Keyboard Polyphony = 0`: the first voice of the DSP object is activated. This is very convenient to create an app generating a continuous sound. Additionally, the `x` and `y` standard parameters start to be numbered by finger (e.g., finger 0: `x0` and `y0`, finger 1: `x1` and `y1`, etc.).
-* `Max Keyboard Polyphony = -1`: similar to `Max Keyboard Polyphony=0` except that no voice is started by default. This mode is convenient to build continuous control interface working with a MIDI keyboard for example. In that case, notes are created and handled by the keyboard and the touch-screen can be used to control specific params of the synthesizer using the numbered `x` and `y` parameters.
+* `Max Keyboard Polyphony = 1`: in that case, keyboards are monophonic. Monophonic mode can be configured using the [`Mono Mode`](#mono-mode) key.
+* `Max Keyboard Polyphony = 0`: the first voice of the DSP object is activated. This is very convenient to create an app generating a continuous sound. The voice allocation system is deactivated in that case. Interesting behavior can be created use the [`x`](#x) and [`y`](#y) or their numbered version (see [`Keyboard N - Count Fingers`](#keyboard-n---count-fingers)).
 
 ---
 
@@ -241,7 +276,7 @@ Default value: 1
 
 With:
 
-* `Mono Mode = 0`: the finger currently on the keyboard keeps priority: all other fingers are ignored
+* `Mono Mode = 0`: the finger currently on the keyboard keeps priority: all other fingers are ignored.
 * `Mono Mode = 1`: priority goes to any new finger on the keyboard. When the finger holding the note leaves the keyboard, the note is transferred to the closest finger on the same keyboard. This mode is probably the most natural one to implement a guitar interface, for example.
 * `Mono Mode = 2`: priority goes to any new finger on the keyboard. When the finger holding the note leaves the keyboard, the note is terminated.
 * `Mono Mode = 3`: same as `Mono Mode = 1`, but priority is given to new fingers only if they are at higher pitch than the current note.
@@ -249,25 +284,49 @@ With:
 
 ---
 
+### `Rounding Cycles`
+
+The number of cycles before rounding is activated.
+
+Default value: 5
+
+---
+
 ### `Rounding Mode`
 
 Configures the way the [`bend`](#bend) parameter associated with the current finger is quantized.
 
-Default value: 0.
+Default value: 0
 
 With:
 
 * `Rounding Mode = 0`: keys are rounded to the nearest integer: [`bend`](#bend) is always equal to zero.
 * `Rounding Mode = 1`: [`bend`](#bend) is continuous (new notes might sound out of tune).
-* `Rounding Mode = 2`: keys are rounded to the nearest integer when the finger is not moving or when a new note is started but become continuous when fast movement are happening. The behavior of thus system can be fine-tuned using the [Rounding Update Speed](#rounding-update-speed), [`Rounding Smooth`](#rounding-smooth), [`Rounding Threshold`](#rounding-threshold) and [`Rounding Cycles`](#rounding-cycles) parameters.
+* `Rounding Mode = 2`: keys are rounded to the nearest integer when the finger is not moving or when a new note is started but become continuous when fast movement are happening. The behavior of this system can be fine-tuned using the [`Rounding Update Speed`](#rounding-update-speed), [`Rounding Smooth`](#rounding-smooth), [`Rounding Threshold`](#rounding-threshold) and [`Rounding Cycles`](#rounding-cycles) parameters.
 
 ---
 
-### `Inter-Keyboard Slide`
+### `Rounding Smooth`
 
-When 1, fingers can slide between keyboards.
+The pole of the integrators used for smoothing movements during rounding. 
 
-Default value: 1
+Default value: 0.9
+
+---
+
+### `Rounding Threshold`
+
+Rounding is deactivated when the output of the smoothers (see [`Rounding Threshold`](#rounding-threshold)) goes above this value.
+
+Default value: 3
+
+---
+
+### `Rounding Update Speed`
+
+Speed in seconds at which the rounding loop is updated.
+
+Default value: 0.06
 
 ---
 
@@ -295,41 +354,9 @@ Default value: 1
 
 ---
 
-### `Rounding Update Speed`
-
-Speed in ms at which the rounding loop is updated.
-
-Default: 0.06
-
----
-
-### `Rounding Smooth`
-
-The pole of the integrators used for smoothing movements during rounding detection. 
-
-Default: 0.9
-
----
-
-### `Rounding Threshold`
-
-Rounding is deactivated when the output of the smoothers (see [`Rounding Threshold`](#rounding-threshold)) goes above this value.
-
-Default: 3
-
----
-
-### `Rounding Cycles`
-
-The number of cycles before rounding is activated.
-
-Default: 5
-
----
-
 ## SmartKeyboard Standard Parameters
 
-This section presents the different standard Faust parameters that can be used with `SmartKeyboard` interfaces.For practical use cases, check the [Additional Resources](#additional-resources) section. Additionally, [example codes](#TODO) can be found in the `/examples/smartKeyboard` folder of the Faust distribution.
+This section presents the different standard Faust parameters that can be used with `SmartKeyboard` interfaces. For practical use cases, check the [Additional Resources](#additional-resources) section. Also, example codes can be found in the `/examples/smartKeyboard` folder of [the Faust distribution](https://github.com/grame-cncm/faust).
 
 ### `freq`
 
@@ -339,7 +366,7 @@ The reference frequency in Hz of the current event. This value is provided at th
 
 ### `bend`
 
-The frequency differential to bend [`freq`](#freq) in Hz. This parameter can be used to implement vibrato, slides, etc. It heavily relies on [`Rounding Mode`](#rounding-mode).
+A coefficient to multiply to `freq` to bend it (`bend = 1` corresponds to no bend so `continuousFreq = freq*bend`). This parameter can be used to implement vibrato, slides, etc. It heavily relies on [`Rounding Mode`](#rounding-mode).
 
 ---
 
@@ -393,17 +420,15 @@ will do the same for Android (`mySynth.apk`).
 
 While this should be very smooth on Android if your followed the steps in [Setting-Up Your System](#setting-up-your-system), this will probably not work on iOS. Why? Because the bundle identifier associated with the template app used to compile a `SmartKeyboard` app for iOS is not yours. So unless you change it directly in the source code of the Faust distribution (`/architecture/smartKeyboard/iOS/Faust.xcodeproj`) and re-install Faust, it will not work (yes, we know, we know... :( ).
 
-However, in practice, you'll rarely want to compile directly your Faust code into an app package. Instead, you might prefer to create an Android Studio on an Xcode project associated to your Faust code and update it when necessary. This is a much better solution because compiling an app from scratch every time (especially on Android) takes a lot of time (>1 minute in most cases). To do this, you can use the [`-source`](#TODO) option in combination with [`-reuse`](#TODO):
+However, in practice, you'll rarely want to compile directly your Faust code into an app package. Instead, you might prefer to create an Android Studio on an Xcode project associated to your Faust code and update it when necessary. This is a much better solution because compiling an app from scratch every time (especially on Android) takes a lot of time (>1 minute in most cases). To do this, you can use the [`-source`](#source) option in combination with [`-reuse`](#reuse):
 
 ```
 faust2smartkeyb -android -source -reuse mySynth.dsp
 ```
 
-In that case, `faust2smartkeyb` will not compile `mySynth.dsp` to an app but will create a folder called `faustsmartkeyb.mySynth` in the current folder containing an Android Studio project. Every time the previous command will be ran, the portion of the app source code corresponding to the `mySynth.dsp` will be updated (if we only used `-source` without `-reuse` then `faustsmartkeyb.mySynth` would be erased and re-created). The same steps can be followed when using `-ios`. 
+In that case, `faust2smartkeyb` will not compile `mySynth.dsp` to an app but will create a folder called `faustsmartkeyb.mySynth` in the current folder containing an Android Studio project. Every time the previous command will be run, the portion of the app source code corresponding to `mySynth.dsp` will be updated (if we only used `-source` without `-reuse` then `faustsmartkeyb.mySynth` would be erased and re-created). The same steps can be followed when using `-ios`. 
 
 The app can be easily installed on your device from Xcode or Android Studio. On iOS, bundle identifier issues can be fixed directly in the Xcode project contained in `faustsmartkeyb.mySynth` which is more convenient than doing it in the Faust source code. 
-
-<!-- TODO might put a link to corresponding tutorial here -->
 
 The end of this section gives an overview of the different options that can be used with `faust2smartkeyb`.
 
@@ -457,7 +482,7 @@ Allows to specify the maximum number of voices of polyphony of the generated syn
 
 ### `-reuse`
 
-Asks `faust2smartkeyb` to reuse the same project and to only update its portion corresponding to the provided Faust code. This option will not prevent compilation from happening. Instead, use [`source`](#TODO) for that.
+Asks `faust2smartkeyb` to reuse the same project and to only update its portion corresponding to the provided Faust code. This option will not prevent compilation from happening. Instead, use [`-source`](#source) for that.
 
 ---
 
@@ -471,5 +496,10 @@ Asks `faust2smartkeyb` to only generate the source of the app and to not compile
 
 * [What Is Faust?](https://ccrma.stanford.edu/~rmichon/faustTutorials/#what-is-faust)
 * [Faust Hero in 2 Hours](https://ccrma.stanford.edu/~rmichon/faustTutorials/#faust-hero-in-2-hours)
+* [Making Faust-Based Smartphone Musical Instruments (`faust2smartkeyb` Tutorials)](https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-faust-based-smartphone-musical-instruments)
 
-<!-- TODO: add missing links -->
+## Version/Licence
+
+Version 0.0. 
+
+See `LICENCE.md` in the `SmartKeyboard` source code (`faust/architecture/smartKeyboard`).

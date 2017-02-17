@@ -38,19 +38,19 @@ class oscItem : public uiItem {
         
         OSCSender* fSender;
         String fPath;
-    
+        
     public:
         
         oscItem(OSCSender* sender, GUI* ui, const String& path, FAUSTFLOAT* zone)
-            :uiItem(ui, zone), fSender(sender), fPath(path) {}
+        :uiItem(ui, zone), fSender(sender), fPath(path) {}
         virtual ~oscItem()
         {}
-    
+        
         virtual void reflectZone()
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fSender->send(fPath, v);
+            fSender->send(fPath, float(v));
         }
     
 };
@@ -58,37 +58,37 @@ class oscItem : public uiItem {
 class JuceOSCUI : private OSCReceiver, private OSCReceiver::Listener<OSCReceiver::RealtimeCallback>, public GUI {
     
     private:
-    
+        
         OSCSender fSender;
         String fIP;
         int fInputPort, fOutputPort;
         APIUI fAPIUI;
         Array<oscItem*> fOSCItems;  // Pointers are kept and desallocated by the GUI class
-    
+        
     public:
-    
+        
         JuceOSCUI(const std::string& ip, int in_port, int out_port)
-            :fIP(ip), fInputPort(in_port), fOutputPort(out_port)
+        :fIP(ip), fInputPort(in_port), fOutputPort(out_port)
         {}
-    
+        
         virtual ~JuceOSCUI()
         {}
-    
+        
         void oscMessageReceived(const OSCMessage& message) override
         {
             String address = message.getAddressPattern().toString();
             
             for (int i = 0; i < message.size(); ++i) {
                 if (message[i].isFloat32()) {
-                    fAPIUI.setParamValue(fAPIUI.getParamIndex(address.toStdString().c_str()), message[i].getFloat32());
-                // "get" message with correct address
+                    fAPIUI.setParamValue(fAPIUI.getParamIndex(address.toStdString().c_str()), FAUSTFLOAT(message[i].getFloat32()));
+                    // "get" message with correct address
                 } else if (message[i].isString()
                            && message[i].getString().equalsIgnoreCase("get")
                            && String(fAPIUI.getParamAddress(0)).startsWith(address)) {
                     for (int p = 0; p < fAPIUI.getParamsCount(); ++p) {
-                        fSender.send(fAPIUI.getParamAddress(p), fAPIUI.getParamValue(p), fAPIUI.getParamMin(p), fAPIUI.getParamMax(p));
+                        fSender.send(fAPIUI.getParamAddress(p), float(fAPIUI.getParamValue(p)), float(fAPIUI.getParamMin(p)), float(fAPIUI.getParamMax(p)));
                     }
-                // "hello" message
+                    // "hello" message
                 } else if (message[i].isString()
                            && address.equalsIgnoreCase("/*")
                            && message[i].getString().equalsIgnoreCase("hello")) {
@@ -99,7 +99,7 @@ class JuceOSCUI : private OSCReceiver, private OSCReceiver::Listener<OSCReceiver
                 }
             }
         }
-    
+        
         bool run() override
         {
             // Keep all zones for update when OSC messages are received
@@ -121,14 +121,14 @@ class JuceOSCUI : private OSCReceiver, private OSCReceiver::Listener<OSCReceiver
             addListener(this);
             return true;
         }
-    
+        
         void stop() override
         {
             fSender.disconnect();
             disconnect();
             removeListener(this);
         }
-    
+        
         // -- widget's layouts
         
         void openTabBox(const char* label) override { fAPIUI.openTabBox(label); }

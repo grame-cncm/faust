@@ -15,11 +15,8 @@ import android.view.ViewGroup;
 import com.DspFaust.DspFaust;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,7 +49,7 @@ public class MultiKeyboard extends ViewGroup {
     private Smooth smooth[]; // integrators for rounding detection
     private int moveCount[]; // counts the number of movements outside the threshold for each touch
     private long roundingUpdateSpeed; // the speed at which the rounding thread is updated
-    private float refFreq[];
+    private float refPitch[];
 
     // FAUST
     private DspFaust dspFaust;
@@ -74,7 +71,7 @@ public class MultiKeyboard extends ViewGroup {
         context = c;
         dspFaust = dsp;
         currentPresetName = presetName;
-        borderSize = 2; // TODO this parameter should be updated in function of screen width as well as the fonts
+        borderSize = 2; // this parameter should theoretically be updated in function of screen width
         setBackgroundColor(Color.BLACK);
 
         documentsDirectory = context.getFilesDir().toString();
@@ -98,11 +95,11 @@ public class MultiKeyboard extends ViewGroup {
 
 
             String JSONInterface = dspFaust.getJSONMeta();
-            if (JSONInterface.indexOf("SmartKeyboard{") != -1) {
+            if (JSONInterface.contains("SmartKeyboard{")) {
                 String JSONSmartKeyboard = JSONInterface.substring(JSONInterface.indexOf("SmartKeyboard{") + 14);
                 JSONSmartKeyboard = JSONSmartKeyboard.substring(0, JSONSmartKeyboard.indexOf("}"));
 
-                while (JSONSmartKeyboard.indexOf("'") != -1) {
+                while (JSONSmartKeyboard.contains("'")) {
                     JSONSmartKeyboard = JSONSmartKeyboard.substring(JSONSmartKeyboard.indexOf("'") + 1);
                     String currentKey = JSONSmartKeyboard.substring(0, JSONSmartKeyboard.indexOf("'"));
                     JSONSmartKeyboard = JSONSmartKeyboard.substring(JSONSmartKeyboard.indexOf("'") + 1);
@@ -110,8 +107,16 @@ public class MultiKeyboard extends ViewGroup {
                     String currentValue = JSONSmartKeyboard.substring(0, JSONSmartKeyboard.indexOf("'"));
                     JSONSmartKeyboard = JSONSmartKeyboard.substring(JSONSmartKeyboard.indexOf("'") + 1);
 
-                    // TODO: currently only saves to int
-                    keyboardParameters.put(currentKey, Integer.parseInt(currentValue));
+                    // this is soooooo dirty...
+                    try {
+                        keyboardParameters.put(currentKey, Integer.parseInt(currentValue));
+                    } catch (RuntimeException e){
+                        try{
+                            keyboardParameters.put(currentKey, Float.parseFloat(currentValue));
+                        } catch (RuntimeException ee){
+                            keyboardParameters.put(currentKey, currentValue);
+                        }
+                    }
                 }
             } else {
                 Log.e("Faust MultiKeyboard", "No valid SmartKeyboard description in Faust code");
@@ -127,8 +132,6 @@ public class MultiKeyboard extends ViewGroup {
                 e.printStackTrace();
             }
         }
-
-        // TODO: missing cancelOnce
 
         mActivePointers = new SparseArray<PointF>();
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -154,7 +157,6 @@ public class MultiKeyboard extends ViewGroup {
     }
 
     public void buildInterface(){
-        //cleanInterface();
         UIon = true;
 
         if((int)keyboardParameters.get("Send Sensors") == 1){
@@ -173,8 +175,14 @@ public class MultiKeyboard extends ViewGroup {
             if(keyboardParameters.get(String.format("Keyboard %d - Scale",i)) == null) {
                 keyboardParameters.put(String.format("Keyboard %d - Scale", i), 0);
             }
-            if(keyboardParameters.get(String.format("Keyboard %d - Show Notes",i)) == null) {
-                keyboardParameters.put(String.format("Keyboard %d - Show Notes", i), 1);
+            if(keyboardParameters.get(String.format("Keyboard %d - Show Labels",i)) == null) {
+                keyboardParameters.put(String.format("Keyboard %d - Show Labels", i), 1);
+            }
+            if(keyboardParameters.get(String.format("Keyboard %d - Static Mode",i)) == null) {
+                keyboardParameters.put(String.format("Keyboard %d - Static Mode", i), 0);
+            }
+            if(keyboardParameters.get(String.format("Keyboard %d - Piano Keyboard",i)) == null) {
+                keyboardParameters.put(String.format("Keyboard %d - Piano Keyboard", i), 1);
             }
             if(keyboardParameters.get(String.format("Keyboard %d - Root Position",i)) == null) {
                 keyboardParameters.put(String.format("Keyboard %d - Root Position", i), 0);
@@ -182,14 +190,17 @@ public class MultiKeyboard extends ViewGroup {
             if(keyboardParameters.get(String.format("Keyboard %d - Orientation",i)) == null) {
                 keyboardParameters.put(String.format("Keyboard %d - Orientation", i), 0);
             }
-            if(keyboardParameters.get(String.format("Keyboard %d - Mode",i)) == null) {
-                keyboardParameters.put(String.format("Keyboard %d - Mode", i), 0);
-            }
             if(keyboardParameters.get(String.format("Keyboard %d - Send X",i)) == null) {
                 keyboardParameters.put(String.format("Keyboard %d - Send X", i), 1);
             }
             if(keyboardParameters.get(String.format("Keyboard %d - Send Y",i)) == null) {
                 keyboardParameters.put(String.format("Keyboard %d - Send Y", i), 1);
+            }
+            if(keyboardParameters.get(String.format("Keyboard %d - Send Freq",i)) == null) {
+                keyboardParameters.put(String.format("Keyboard %d - Send Freq", i), 1);
+            }
+            if(keyboardParameters.get(String.format("Keyboard %d - Count Fingers",i)) == null) {
+                keyboardParameters.put(String.format("Keyboard %d - Count Fingers", i), 0);
             }
         }
 
@@ -200,7 +211,7 @@ public class MultiKeyboard extends ViewGroup {
         previousTouchedKeyboards = new int[(int)keyboardParameters.get("Max Fingers")];
         smooth = new Smooth[(int)keyboardParameters.get("Max Fingers")];
         voices = new long[(int)keyboardParameters.get("Max Fingers")];
-        refFreq = new float[(int)keyboardParameters.get("Max Fingers")];
+        refPitch = new float[(int)keyboardParameters.get("Max Fingers")];
 
         for(int i=0; i<(int)keyboardParameters.get("Max Fingers"); i++){
             touchDiff[i] = 0;
@@ -211,7 +222,7 @@ public class MultiKeyboard extends ViewGroup {
             smooth[i].setSmooth((float)keyboardParameters.get("Rounding Smooth"));
             rounding[i] = true;
             voices[i] = -1;
-            refFreq[i] = 0;
+            refPitch[i] = 0;
         }
 
         fingersOnScreenCount = 0;
@@ -222,24 +233,18 @@ public class MultiKeyboard extends ViewGroup {
         fingersOnKeyboardsCount = new int[(int)keyboardParameters.get("Number of Keyboards")];
         monoMode_previousActiveFinger = new int[(int)keyboardParameters.get("Number of Keyboards")];
 
-        // TODO: skipping a big block here
-
         // initializing the different keyboards
         zones = new ArrayList<>();
         for(int i=0; i<(int)keyboardParameters.get("Number of Keyboards") ; i++) {
-            // if no poly mode, then no keyboard mode is automatically activated
-            if((int)keyboardParameters.get("Max Keyboard Polyphony") <= 0) {
-                keyboardParameters.put(String.format("Keyboard %d - Mode", i), 1);
-            }
             zones.add(new ArrayList<Zone>());
             fingersOnKeyboardsCount[i] = 0;
             monoMode_previousActiveFinger[i] = 0;
             for(int j=0; j<(int)keyboardParameters.get(String.format("Keyboard %d - Number of Keys",i)); j++) {
                 zones.get(i).add(new Zone(context));
-                zones.get(i).get(j).setKeyboardMode((int)keyboardParameters.get(String.format("Keyboard %d - Mode", i)) == 0);
-                if (((int)keyboardParameters.get(String.format("Keyboard %d - Mode", i)) == 0) &&
-                        ((int) keyboardParameters.get(String.format("Keyboard %d - Scale", i)) < 1) &&
-                        ((int) keyboardParameters.get(String.format("Keyboard %d - Show Notes", i)) > 0)) {
+                zones.get(i).get(j).setStaticMode((int)keyboardParameters.get(String.format("Keyboard %d - Static Mode", i)) == 1);
+                zones.get(i).get(j).showLabels((int)keyboardParameters.get(String.format("Keyboard %d - Show Labels", i)) == 1);
+                if (((int)keyboardParameters.get(String.format("Keyboard %d - Piano Keyboard", i)) == 1) &&
+                        ((int) keyboardParameters.get(String.format("Keyboard %d - Scale", i)) < 1) ) {
                     if ((int)keyboardParameters.get(String.format("Keyboard %d - Orientation", i)) == 1) {
                         zones.get(i).get(j).setNote((int) applyScale((int) keyboardParameters
                                 .get(String.format("Keyboard %d - Lowest Key", i)) + (int) keyboardParameters.get(String.format("Keyboard %d - Number of Keys", i)) - j - 1, i));
@@ -248,6 +253,9 @@ public class MultiKeyboard extends ViewGroup {
                                 keyboardParameters.get
                                 (String.format("Keyboard %d - Lowest Key", i)), i));
                     }
+                }
+                    if (keyboardParameters.get(String.format("Keyboard %d - Key %d - Label",i,j)) != null){
+                    zones.get(i).get(j).setText((String) keyboardParameters.get(String.format("Keyboard %d - Key %d - Label",i,j)));
                 }
                 zones.get(i).get(j).drawBackground();
                 addView(zones.get(i).get(j));
@@ -284,7 +292,7 @@ public class MultiKeyboard extends ViewGroup {
                 point.x = event.getX(pointerIndex);
                 point.y = event.getY(pointerIndex);
                 mActivePointers.put(pointerId, point);
-                touchDiff[pointerId] = 0; // TODO: note sure about this
+                touchDiff[pointerId] = 0;
                 processTouchEvent(1,point,pointerId,event);
                 break;
             }
@@ -348,13 +356,12 @@ public class MultiKeyboard extends ViewGroup {
             }
 
             // no poly mode
-            if((int)keyboardParameters.get("Max Keyboard Polyphony") <= 0 ||
-                    (int)keyboardParameters.get(String.format("Keyboard %d - Mode",currentKeyboard)) == 2){
+            if((int)keyboardParameters.get(String.format("Keyboard %d - Send Freq",currentKeyboard)) == 0){
                 sendSynthControlAction(currentKeyboard, currentKeyIdInRow, fingerId);
             }
             // poly mode
             else{
-                // deffault mode if poly keyboards
+                // default mode if poly keyboards
                 if((int)keyboardParameters.get("Mono Mode") == 0 || (int)keyboardParameters.get("Max Keyboard Polyphony")>1){
                     // if touch up
                     if(eventType == 0){
@@ -541,10 +548,11 @@ public class MultiKeyboard extends ViewGroup {
         if(eventType == 0 && fingersOnScreenCount == 1) resetKeyboard(); // TODO: this is kind of a terrible fix but it does the job for now
     }
 
+    // This method is only used if keyboard mode is deactivated
     private void sendSynthControlAction(int keyboardId, int keyId, int fingerId){
         if((int)keyboardParameters.get("Send Current Keyboard") == 1) dspFaust.setParamValue("keyboard", keyboardId);
         if((int)keyboardParameters.get("Send Current Key") == 1) dspFaust.setParamValue("key", keyId);
-        if((int)keyboardParameters.get(String.format("Keyboard %d - Mode", keyboardId)) == 2){
+        if((int)keyboardParameters.get(String.format("Keyboard %d - Count Fingers", keyboardId)) == 0){
             if((int)keyboardParameters.get(String.format("Keyboard %d - Send X", keyboardId)) == 1)
                 dspFaust.setParamValue("x", (currentContinuousKey % 1f));
             if((int)keyboardParameters.get(String.format("Keyboard %d - Send Y", keyboardId)) == 1)
@@ -564,22 +572,31 @@ public class MultiKeyboard extends ViewGroup {
         if((eventType == 0 || (eventType == 3 &&
                 (int)keyboardParameters.get("Rounding Mode") == 0)) && voices[fingerId] != -1){
             pitch = -1;
-            refFreq[fingerId] = 0;
+            refPitch[fingerId] = -1;
             dspFaust.setVoiceParamValue("gate", voices[fingerId], 0);
-            dspFaust.setVoiceParamValue("bend", voices[fingerId], refFreq[fingerId]);
-            dspFaust.deleteVoice(voices[fingerId]);
-            voices[fingerId] = -1;
+            if ((int) keyboardParameters.get("Max Keyboard Polyphony") > 0) {
+                dspFaust.deleteVoice(voices[fingerId]);
+                voices[fingerId] = -1;
+            }
+            else if(fingerId != 0){
+                voices[fingerId] = -1;
+            }
             smooth[fingerId].reset();
         }
         // new (note on)
         else if (eventType == 1 ||
                 (eventType == 4 && (int)keyboardParameters.get("Rounding Mode") == 0)){
-            // allocating new voice to finger
-            voices[fingerId] = dspFaust.newVoice();
-            if(voices[fingerId] != -1){
-                dspFaust.setVoiceParamValue("gate", voices[fingerId], 1);
+            if ((int) keyboardParameters.get("Max Keyboard Polyphony") > 0) {
+                // allocating new voice to finger
+                voices[fingerId] = dspFaust.newVoice();
             }
             else{
+                voices[fingerId] = voices[0];
+            }
+            if (voices[fingerId] != -1) {
+                dspFaust.setVoiceParamValue("bend", voices[fingerId], 1);
+                dspFaust.setVoiceParamValue("gate", voices[fingerId], 1);
+            } else {
                 return;
             }
 
@@ -618,13 +635,12 @@ public class MultiKeyboard extends ViewGroup {
             }
             if(voices[fingerId] != -1){
                 if((int)keyboardParameters.get("Rounding Mode") == 1){
-                    refFreq[fingerId] = mtof(pitch);
-                    dspFaust.setVoiceParamValue("freq", voices[fingerId], refFreq[fingerId]);
+                    refPitch[fingerId] = pitch;
                 }
                 else{
-                    refFreq[fingerId] = mtof((float)Math.floor(pitch));
-                     dspFaust.setVoiceParamValue("freq", voices[fingerId], refFreq[fingerId]);
+                    refPitch[fingerId] = (float)Math.floor(pitch);
                 }
+                dspFaust.setVoiceParamValue("freq", voices[fingerId], mtof(refPitch[fingerId]));
             }
         }
         // update
@@ -661,16 +677,16 @@ public class MultiKeyboard extends ViewGroup {
             }
 
             // sending pitch to faust
-            if(voices[fingerId] != -1){
+            if(voices[fingerId] != -1 && pitch != -1){
                 if((int)keyboardParameters.get("Rounding Mode") == 1){
-                    dspFaust.setVoiceParamValue("bend", voices[fingerId], -(refFreq[fingerId]-mtof(pitch)));
+                    dspFaust.setVoiceParamValue("bend", voices[fingerId], (float)Math.pow(2,(pitch-refPitch[fingerId])/12));
                 }
                 else if((int)keyboardParameters.get("Rounding Mode") == 2){
                     if(rounding[fingerId]){ // if rounding is activated, pitch is quantized to the nearest integer
-                        dspFaust.setVoiceParamValue("bend", voices[fingerId], -(refFreq[fingerId]-mtof((float)Math.floor(pitch))));
+                        dspFaust.setVoiceParamValue("bend", voices[fingerId], (float)Math.pow(2,(Math.floor(pitch)-refPitch[fingerId])/12));
                     }
                     else{
-                        dspFaust.setVoiceParamValue("bend", voices[fingerId], -(refFreq[fingerId]-mtof(pitch-0.5f)));
+                        dspFaust.setVoiceParamValue("bend", voices[fingerId], (float)Math.pow(2,(pitch-0.5-refPitch[fingerId])/12));
                     }
                 }
             }
@@ -679,8 +695,18 @@ public class MultiKeyboard extends ViewGroup {
         if(voices[fingerId] != -1){
             if((int)keyboardParameters.get("Send Current Keyboard") == 1) dspFaust.setVoiceParamValue("keyboard", voices[fingerId], keyboardId);
             if((int)keyboardParameters.get("Send Current Key") == 1) dspFaust.setVoiceParamValue("key", voices[fingerId], keyId);
-            if((int)keyboardParameters.get(String.format("Keyboard %d - Send X", keyboardId)) == 1) dspFaust.setVoiceParamValue("x", voices[fingerId], (float)currentContinuousKey%1f);
-            if((int)keyboardParameters.get(String.format("Keyboard %d - Send Y", keyboardId)) == 1) dspFaust.setVoiceParamValue("y", voices[fingerId], currentKeyboardY);
+            if((int)keyboardParameters.get(String.format("Keyboard %d - Count Fingers", keyboardId)) == 0) {
+                if ((int) keyboardParameters.get(String.format("Keyboard %d - Send X", keyboardId)) == 1)
+                    dspFaust.setVoiceParamValue("x", voices[fingerId], currentContinuousKey % 1f);
+                if ((int) keyboardParameters.get(String.format("Keyboard %d - Send Y", keyboardId)) == 1)
+                    dspFaust.setVoiceParamValue("y", voices[fingerId], currentKeyboardY);
+            }
+            else {
+                if ((int) keyboardParameters.get(String.format("Keyboard %d - Send X", keyboardId)) == 1)
+                    dspFaust.setVoiceParamValue(String.format("x%d", fingerId), voices[fingerId], currentContinuousKey % 1f);
+                if ((int) keyboardParameters.get(String.format("Keyboard %d - Send Y", keyboardId)) == 1)
+                    dspFaust.setVoiceParamValue(String.format("x%d", fingerId), voices[fingerId], currentKeyboardY);
+            }
         }
     }
 
@@ -731,7 +757,7 @@ public class MultiKeyboard extends ViewGroup {
     }
 
     private void resetKeyboard(){
-        dspFaust.allNotesOff();
+        if ((int) keyboardParameters.get("Max Keyboard Polyphony") > 0) dspFaust.allNotesOff();
         for(int i=0; i<(int)keyboardParameters.get("Number of Keyboards"); i++){
             fingersOnKeyboardsCount[i] = 0;
             for(int j=0;j<(int)keyboardParameters.get(String.format("Keyboard %d - Number of Keys",i));j++){
@@ -739,7 +765,7 @@ public class MultiKeyboard extends ViewGroup {
             }
         }
         for(int i=0; i<(int)keyboardParameters.get("Max Fingers"); i++){
-            voices[i] = -1;
+            if ((int) keyboardParameters.get("Max Keyboard Polyphony") > 0) voices[i] = -1;
             previousTouchedKeys[i] = -1;
             previousTouchedKeyboards[i] = -1;
             moveCount[i] = 0;
@@ -768,7 +794,7 @@ public class MultiKeyboard extends ViewGroup {
                     }
                 }
                 try {
-                    Thread.sleep(60); // TODO: fix that and see where to put things at the right place
+                    Thread.sleep(roundingUpdateSpeed);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -778,12 +804,11 @@ public class MultiKeyboard extends ViewGroup {
 
     private final SensorEventListener mSensorListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent se) {
-            // TODO: not sure if this is the same mapping as on iOS...
             if (se.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
                 // Update mapping at sensor rate
-                dspFaust.propagateAcc(0, se.values[0]);
-                dspFaust.propagateAcc(1, se.values[1]);
-                dspFaust.propagateAcc(2, se.values[2]);
+                dspFaust.propagateAcc(0, -se.values[0]);
+                dspFaust.propagateAcc(1, -se.values[1]);
+                dspFaust.propagateAcc(2, -se.values[2]);
             }
 
             if (se.sensor.getType() == Sensor.TYPE_GYROSCOPE) {

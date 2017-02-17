@@ -3,26 +3,22 @@
 <JUCERPROJECT id="L9dULy" name="APPL_NAME" projectType="audioplug" version="1.0.0"
               bundleIdentifier="com.grame.APPL_NAME" includeBinaryInAppConfig="1"
               buildVST="1" buildVST3="0" buildAU="1" buildAUv3="0" buildRTAS="0"
-              buildAAX="0" buildStandalone="0" pluginName="APPL_NAME" pluginDesc="APPL_NAME"
+              buildAAX="0" buildStandalone="1" pluginName="APPL_NAME" pluginDesc="APPL_NAME"
               pluginManufacturer="GRAME" pluginManufacturerCode="Manu" pluginCode="SUB_TYPE"
               pluginChannelConfigs="" pluginIsSynth="IS_SYNTH" pluginWantsMidiIn="IS_MIDI"
-              pluginProducesMidiOut="IS_MIDI" pluginIsMidiEffectPlugin="0" pluginEditorRequiresKeys="0"
-              pluginAUExportPrefix="APPL_NAMEAU" pluginRTASCategory="" aaxIdentifier="com.grame.APPL_NAME"
-              pluginAAXCategory="AAX_ePlugInCategory_Dynamics" jucerVersion="4.3.1">
+              pluginProducesMidiOut="IS_MIDI" pluginIsMidiEffectPlugin="0"
+              pluginEditorRequiresKeys="0" pluginAUExportPrefix="APPL_NAMEAU"
+              pluginRTASCategory="" aaxIdentifier="com.grame.APPL_NAME" pluginAAXCategory="AAX_ePlugInCategory_Dynamics"
+              jucerVersion="4.3.1">
   <MAINGROUP id="DIThxi" name="APPL_NAME">
     <GROUP id="{3EA8B881-7A5A-9E29-6E83-82528C15E424}" name="Source">
-      <FILE id="BecAMR" name="PluginProcessor.cpp" compile="1" resource="0"
-            file="PluginProcessor.cpp"/>
-      <FILE id="QOoigF" name="PluginProcessor.h" compile="0" resource="0"
-            file="PluginProcessor.h"/>
-      <FILE id="WvvR7J" name="PluginEditor.cpp" compile="1" resource="0"
-            file="PluginEditor.cpp"/>
-      <FILE id="CWiPZ6" name="PluginEditor.h" compile="0" resource="0" file="PluginEditor.h"/>
+      <FILE id="BecAMR" name="FaustPluginProcessor.cpp" compile="1" resource="0"
+            file="FaustPluginProcessor.cpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES"
-            extraDefs="PreProcDef">
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES -DFAUSTFLOAT=FAUST_FLOAT"
+               extraDefs="PreProcDef">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"/>
@@ -34,8 +30,6 @@
         <MODULEPATH id="juce_data_structures" path="../../modules"/>
         <MODULEPATH id="juce_gui_basics" path="../../modules"/>
         <MODULEPATH id="juce_gui_extra" path="../../modules"/>
-        <MODULEPATH id="juce_cryptography" path="../../modules"/>
-        <MODULEPATH id="juce_video" path="../../modules"/>
         <MODULEPATH id="juce_opengl" path="../../modules"/>
         <MODULEPATH id="juce_audio_basics" path="../../modules"/>
         <MODULEPATH id="juce_audio_devices" path="../../modules"/>
@@ -46,20 +40,19 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <XCODE_IPHONE targetFolder="Builds/iOS" iosScreenOrientation="portraitlandscape"
-        extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES">
+                  extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES -DFAUSTFLOAT=FAUST_FLOAT">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_video" path="../../modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../modules"/>
         <MODULEPATH id="juce_opengl" path="../../modules"/>
         <MODULEPATH id="juce_gui_extra" path="../../modules"/>
         <MODULEPATH id="juce_gui_basics" path="../../modules"/>
         <MODULEPATH id="juce_graphics" path="../../modules"/>
         <MODULEPATH id="juce_events" path="../../modules"/>
         <MODULEPATH id="juce_data_structures" path="../../modules"/>
-        <MODULEPATH id="juce_cryptography" path="../../modules"/>
         <MODULEPATH id="juce_core" path="../../modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../modules"/>
         <MODULEPATH id="juce_audio_plugin_client" path="../../modules"/>
@@ -77,14 +70,13 @@
                        isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_video" path="../../modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../modules"/>
         <MODULEPATH id="juce_opengl" path="../../modules"/>
         <MODULEPATH id="juce_gui_extra" path="../../modules"/>
         <MODULEPATH id="juce_gui_basics" path="../../modules"/>
         <MODULEPATH id="juce_graphics" path="../../modules"/>
         <MODULEPATH id="juce_events" path="../../modules"/>
         <MODULEPATH id="juce_data_structures" path="../../modules"/>
-        <MODULEPATH id="juce_cryptography" path="../../modules"/>
         <MODULEPATH id="juce_core" path="../../modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../modules"/>
         <MODULEPATH id="juce_audio_plugin_client" path="../../modules"/>
@@ -94,21 +86,19 @@
         <MODULEPATH id="juce_osc" path="../../modules"/>
       </MODULEPATHS>
     </VS2015>
-    <LINUX_MAKE targetFolder="Builds/LinuxMakefile"
-        extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES">
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES -DFAUSTFLOAT=FAUST_FLOAT">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"/>
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_video" path="../../modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../modules"/>
         <MODULEPATH id="juce_opengl" path="../../modules"/>
         <MODULEPATH id="juce_gui_extra" path="../../modules"/>
         <MODULEPATH id="juce_gui_basics" path="../../modules"/>
         <MODULEPATH id="juce_graphics" path="../../modules"/>
         <MODULEPATH id="juce_events" path="../../modules"/>
         <MODULEPATH id="juce_data_structures" path="../../modules"/>
-        <MODULEPATH id="juce_cryptography" path="../../modules"/>
         <MODULEPATH id="juce_core" path="../../modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../modules"/>
         <MODULEPATH id="juce_audio_plugin_client" path="../../modules"/>
@@ -118,7 +108,7 @@
         <MODULEPATH id="juce_osc" path="../../modules"/>
       </MODULEPATHS>
     </LINUX_MAKE>
-    <ANDROIDSTUDIO targetFolder="Builds/Android">
+    <ANDROIDSTUDIO targetFolder="Builds/Android" extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES -DFAUSTFLOAT=FAUST_FLOAT">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" androidArchitectures="armeabi x86" isDebug="1" optimisation="1"
                        targetName="APPL_NAME"/>
@@ -126,14 +116,13 @@
                        targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_video" path="../../modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../modules"/>
         <MODULEPATH id="juce_opengl" path="../../modules"/>
         <MODULEPATH id="juce_gui_extra" path="../../modules"/>
         <MODULEPATH id="juce_gui_basics" path="../../modules"/>
         <MODULEPATH id="juce_graphics" path="../../modules"/>
         <MODULEPATH id="juce_events" path="../../modules"/>
         <MODULEPATH id="juce_data_structures" path="../../modules"/>
-        <MODULEPATH id="juce_cryptography" path="../../modules"/>
         <MODULEPATH id="juce_core" path="../../modules"/>
         <MODULEPATH id="juce_audio_processors" path="../../modules"/>
         <MODULEPATH id="juce_audio_plugin_client" path="../../modules"/>
@@ -150,15 +139,14 @@
     <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0"/>
-    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0"/>
-    <MODULE id="juce_video" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="juce_osc" showAllCode="1" useLocalCopy="0"/>
   </MODULES>
   <JUCEOPTIONS JUCE_QUICKTIME="disabled"/>

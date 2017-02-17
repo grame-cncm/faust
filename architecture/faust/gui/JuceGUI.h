@@ -349,13 +349,14 @@ enum VUMeterType {
  */
 class uiBaseComponent: public Component
 {
+
 public:
     float fHRatio, fVRatio;
     int fTotalWidth, fTotalHeight; // Size with margins included (for a uiBox)
-    int fDisplayRectHeight, fDisplayRectWidth;  // Size without margin, just the child dimensions
+    int fDisplayRectWidth, fDisplayRectHeight;  // Size without margin, just the child dimensions
                                                 // Sum on one dimension, max on the other
     String fName;
-    
+  
     /**
      * \brief   Constructor.
      * \details Initialize a uiBaseComponent with its name, and all its sizes.
@@ -364,10 +365,9 @@ public:
      * \param   totHeight   Minimal total Height.
      * \param   name        Name.
      */
-    uiBaseComponent(int totWidth, int totHeight, String name) : fTotalWidth(totWidth), fTotalHeight(totHeight), fName(name) {
-        fDisplayRectHeight = totHeight;
-        fDisplayRectWidth  = totWidth;
-    }
+    uiBaseComponent(int totWidth, int totHeight, String name)
+        : fTotalWidth(totWidth), fTotalHeight(totHeight), fDisplayRectWidth(totWidth), fDisplayRectHeight(totHeight), fName(name)
+    {}
     
     /** Return the total height in pixels. */
     int getTotalHeight() {
@@ -400,11 +400,17 @@ public:
         return fName;
     }
     
+    /** Return the size. */
+    Rectangle<int> getSize()
+    {
+        return Rectangle<int>(0, 0, fTotalWidth, fTotalHeight);
+    }
+   
     /** Initialize the horizontal ratio. */
     void setHRatio() {
         // Avoid to set ratio for the "main box", which has no uiBaseComponent parent
         uiBaseComponent* tempParentBox = findParentComponentOfClass<uiBaseComponent>();
-        if(tempParentBox != nullptr) {
+        if (tempParentBox != nullptr) {
             fHRatio = (float)fTotalWidth / (float)tempParentBox->fDisplayRectWidth;
         }
     }
@@ -413,7 +419,7 @@ public:
     void setVRatio() {
         // Avoid to set ratio for the "main box", which has no uiBaseComponent parent
         uiBaseComponent* tempParentBox = findParentComponentOfClass<uiBaseComponent>();
-        if(tempParentBox != nullptr) {
+        if (tempParentBox != nullptr) {
             fVRatio = (float)fTotalHeight / (float)tempParentBox->fDisplayRectHeight;
         }
     }
@@ -426,7 +432,7 @@ public:
      * \param r The absolute bounds.
      *
      */
-    void setBaseComponentSize(Rectangle<int> r) {
+    void setBaseComponentSize(const Rectangle<int>& r) {
         setBounds(r.getX() - getParentComponent()->getX(),
                   r.getY() - getParentComponent()->getY(),
                   r.getWidth(),
@@ -437,18 +443,23 @@ public:
     void mouseDoubleClick(const MouseEvent &event) override {
         writeDebug();
     }
+    
+    void init(LookAndFeel* laf) {
+        setRatio();
+        setBaseComponentSize(getLocalBounds());
+        setLookAndFeel(laf);
+    }
 
     /** Debug console output */
     virtual void writeDebug() = 0;
-    /** Apply the LookAndFeel on the JUCE widget. */
-    virtual void setCompLookAndFeel(LookAndFeel* laf) = 0;
+
 };
 
 /**
  * \brief   Intern class for all FAUST active or passive widgets.
  * \details Every activ or passive widgets derive from this class.
  */
-class uiComponent: public uiBaseComponent, public uiItem, public SettableTooltipClient
+class uiComponent : public uiBaseComponent, public uiItem, public SettableTooltipClient
 {
 public:
     String fTooltipText;
@@ -464,7 +475,8 @@ public:
      * \param   tooltip Tooltip text.
      * \param   name    Name of the widget.
      */
-    uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip, String name): uiBaseComponent(w, h, name), uiItem(gui,zone), fTooltipText(tooltip) { }
+    uiComponent(GUI* gui, FAUSTFLOAT* zone, int w, int h, String tooltip, String name): uiBaseComponent(w, h, name), uiItem(gui, zone), fTooltipText(tooltip)
+    {}
 
     /** Write some debug informations in the console, such as bounds, parent box, etc. */
     virtual void writeDebug() override {
@@ -480,14 +492,13 @@ public:
  * \brief   Intern class for all kind of sliders.
  * \see     SliderType
  */
-class uiSlider: public uiComponent,
+class uiSlider : public uiComponent,
     private juce::Slider::Listener
 {
 private:
     Slider::SliderStyle fStyle;
     Label fLabel;
     ScopedPointer<ValueConverter> fConverter;
-    int x, y, width, height;
     SliderType fType;
     Slider fSlider;
 
@@ -547,20 +558,20 @@ public:
         fSlider.setValue(fConverter->faust2ui(cur));
         fSlider.addListener(this);
         fSlider.setSliderStyle(fStyle);
-        fSlider.setTextValueSuffix(unit);
-        if(fTooltipText.isNotEmpty()) {
+        fSlider.setTextValueSuffix(" " + unit);
+        if (fTooltipText.isNotEmpty()) {
             fSlider.setTooltip(fTooltipText);
         }
 
         // Label settings, only happens for a horizontal of numerical entry slider
         // because the method attachToComponent only give the choice to place the
         // slider name on centered top, which is what we want. It's done manually
-        // the paint method.
-        if(fType == HSlider || fType == NumEntry) {
+        // in the paint method.
+        if (fType == HSlider || fType == NumEntry) {
             fLabel.setText(fName, dontSendNotification);
             fLabel.attachToComponent(&fSlider, true);
             addAndMakeVisible (fLabel);
-            if(fTooltipText.isNotEmpty()) {
+            if (fTooltipText.isNotEmpty()) {
                 fLabel.setTooltip(fTooltipText);
             }
         }
@@ -568,7 +579,7 @@ public:
 
     /** Draw the name of a vertical or circular slider. */
     virtual void paint(Graphics& g) override {
-        if(fType == VSlider || fType == Knob) {
+        if (fType == VSlider || fType == Knob) {
             g.setColour (Colours::black);
             g.drawText(fName, getLocalBounds(), Justification::centredTop);
         }
@@ -590,34 +601,30 @@ public:
         modifyZone(value);
     }
 
-    /** Apply the LookAndFeel to the juce::Slider widget. */
-    virtual void setCompLookAndFeel(LookAndFeel* laf) override {
-        fSlider.setLookAndFeel(laf);
-    }
-
     /** 
      * Set the good coordinates and size for the juce::Slider object depending 
      * on its SliderType, whenever the layout size changes.
      */
     virtual void resized() override {
-        if       (fType == HSlider) {
+        int x, y, width, height;
+        if (fType == HSlider) {
             x = getLocalBounds().getX() + 60;
             y = getLocalBounds().getY();
             width = getLocalBounds().getWidth()-60;
             height = getLocalBounds().getHeight();
-        } else if(fType == NumEntry) {
+        } else if (fType == NumEntry) {
             width = kNumEntryWidth;
             height = kNumEntryHeight;
             // x position is the top left corner horizontal position of the box
             // and not the top left of the NumEntry label, so we have to do that
             x = (getLocalBounds().getWidth()-width)/2 + (Font().getStringWidth(fName)+5)/2;
             y = (getLocalBounds().getHeight()-height)/2;
-        } else if(fType == VSlider) {
+        } else if (fType == VSlider) {
             x = getLocalBounds().getX();
             y = getLocalBounds().getY()+12; // 12 pixels for the name
             height = getLocalBounds().getHeight()-12;
             width = getLocalBounds().getWidth();
-        } else if(fType == Knob) {
+        } else if (fType == Knob) {
             // The knob name needs to be displayed, 12 pixels
             height = jmin(getLocalBounds().getHeight()-12, kKnobHeight);
             width = height;
@@ -630,11 +637,10 @@ public:
 };
 
 /** Intern class for button */
-class uiButton: public uiComponent,
+class uiButton : public uiComponent,
     private juce::Button::Listener
 {
 private:
-    int x, y, width, height;
     TextButton fButton;
 
 public:
@@ -642,19 +648,17 @@ public:
      * \brief   Constructor.
      * \details Initialize all uiComponent variables and juce::TextButton parameters.
      *
-     * \param   gui, zone, w, h, tooltip, label     uiComponent variable.
+     * \param   gui, zone, w, h, tooltip, label uiComponent variable.
      */
-    uiButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) :  uiComponent(gui, zone, w, h, tooltip, label), width(w), height(h)
+    uiButton(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, String label, String tooltip) :  uiComponent(gui, zone, w, h, tooltip, label)
     {
-        width = kButtonWidth;
-        height = kButtonHeight;
-        x = getLocalBounds().getX();
-        y = (getLocalBounds().getHeight()-height)/2;
+        int x = getLocalBounds().getX();
+        int y = (getLocalBounds().getHeight()-kButtonHeight)/2;
 
         fButton.setButtonText(label);
-        fButton.setBounds(x, y, width, height);
+        fButton.setBounds(x, y, kButtonWidth, kButtonHeight);
         fButton.addListener(this);
-        if(fTooltipText.isNotEmpty()) {
+        if (fTooltipText.isNotEmpty()) {
             fButton.setTooltip(fTooltipText);
         }
 
@@ -667,16 +671,14 @@ public:
      * \see buttonStateChanged
      */
     void buttonClicked (Button* button) override
-    {
-    }
+    {}
 
     /** Indicate to the FAUST module when the button is pressed and released. */
     void buttonStateChanged (Button* button) override
     {
-        if(button->isDown()) {
+        if (button->isDown()) {
             modifyZone(1.0);
-        }
-        else {
+        } else {
             modifyZone(0.0);
         }
     }
@@ -687,24 +689,19 @@ public:
         fCache = v;
     }
 
-    /** Apply the LookAndFeel to the juce::TextButton widget. */
-    virtual void setCompLookAndFeel(LookAndFeel* laf) override {
-        fButton.setLookAndFeel(laf);
-    }
-
     /** Set the good coordinates and size to the juce::TextButton widget whenever the layout size changes. */
     virtual void resized() override
     {
-        x = getLocalBounds().getX();
-        width = getLocalBounds().getWidth();
-        height = jmin(getLocalBounds().getHeight(), kButtonHeight);
-        y = (getLocalBounds().getHeight()-height)/2;
+        int x = getLocalBounds().getX();
+        int width = getLocalBounds().getWidth();
+        int height = jmin(getLocalBounds().getHeight(), kButtonHeight);
+        int y = (getLocalBounds().getHeight()-height)/2;
         fButton.setBounds(x, y, width, height);
     }
 };
 
 /** Intern class for checkButton */
-class uiCheckButton: public uiComponent,
+class uiCheckButton : public uiComponent,
     private juce::Button::Listener
 {
 private:
@@ -722,14 +719,14 @@ public:
         int x = getLocalBounds().getX();
         int y = (getLocalBounds().getHeight()-h)/2;
         
-        if(fTooltipText.isNotEmpty()) {
+        if (fTooltipText.isNotEmpty()) {
             setTooltip(fTooltipText);
         }
 
         fCheckButton.setButtonText(label);
         fCheckButton.setBounds(x, y, w, h);
         fCheckButton.addListener(this);
-        if(fTooltipText.isNotEmpty()) {
+        if (fTooltipText.isNotEmpty()) {
             fCheckButton.setTooltip(fTooltipText);
         }
 
@@ -749,11 +746,6 @@ public:
         fCache = v;
     }
 
-    /** Apply the LookAndFeel to the juce::ToggleButton widget. */
-    virtual void setCompLookAndFeel(LookAndFeel* laf) override {
-        fCheckButton.setLookAndFeel(laf);
-    }
-
     /** Set the good coordinates and size to the juce::ToggleButton widget, whenever the layout size changes. */
     virtual void resized() override
     {
@@ -762,12 +754,11 @@ public:
 };
 
 /** Intern class for Menu */
-class uiMenu: public uiComponent,
+class uiMenu : public uiComponent,
     private juce::ComboBox::Listener
 {
 private:
     ComboBox fComboBox;
-    int nbItem;
     vector<double> fValues;
 
 public:
@@ -855,11 +846,6 @@ public:
         }
     }
 
-    /** Apply the LookAndFeel to the juce::ComboBox widget. */
-    virtual void setCompLookAndFeel(LookAndFeel* laf) override {
-        fComboBox.setLookAndFeel(laf);
-    }
-
     /** Set the good coordinates and size to the juce::ComboBox widget whenever the layout get reiszed */
     virtual void resized() override {
         fComboBox.setBounds(0, getLocalBounds().getY() + kMenuHeight/2, getWidth(), kMenuHeight/2);
@@ -873,11 +859,11 @@ public:
 };
 
 /** Intern class for RadioButton */
-class uiRadioButton: public uiComponent,
+class uiRadioButton : public uiComponent,
     private juce::Button::Listener
 {
 private:
-    int x, y, width, height;
+    //int x, y, width, height;
     int nbButtons;
     bool isVertical;
     OwnedArray<ToggleButton> fButtons;
@@ -900,57 +886,51 @@ public:
      * \param   vert                        True if vertical, false if horizontal.
      * \param   names                       Contain the names of the different items.
      * \param   values                      Contain the "values" of the different items.
-     * \param   radioGroupID                RadioButton being multiple CheckButton in JUCE, 
+     * \param   radioGroupID                RadioButton being multiple CheckButton in JUCE,
      *                                      we need an ID to know which are linked together.
      */
-    uiRadioButton(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, vector<string>& names, vector<double>& values, String tooltip, int radioGroupID) : uiComponent(gui, zone, w, h, tooltip, label), width(w), height(h), isVertical(vert)
+    uiRadioButton(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, vector<string>& names, vector<double>& values, String tooltip, int radioGroupID) : uiComponent(gui, zone, w, h, tooltip, label), isVertical(vert)
     {
-        x = getLocalBounds().getX();
-        y = (getLocalBounds().getHeight()-kCheckButtonHeight)/2;
+        ToggleButton*   defaultbutton = 0;
+        double          mindelta = FLT_MAX;
 
-        {
-            ToggleButton*   defaultbutton = 0;
-            double          mindelta = FLT_MAX;
+        nbButtons = names.size();
+        for (int i = 0; i < nbButtons; i++) {
+            double v = values[i];
+            if ((v >= lo) && (v <= hi)) {
 
-            nbButtons = names.size();
-            for(int i = 0; i < nbButtons; i++) {
-                double v = values[i];
+                // It is a valid value included in slider's range
+                ToggleButton* tb = new ToggleButton(names[i]);
+                addAndMakeVisible(tb);
+                tb->setRadioGroupId (radioGroupID);
+                tb->addListener(this);
+                fValues.push_back(v);
+                fButtons.add(tb);
 
-                if ((v >= lo) && (v <= hi)) {
-
-                    // It is a valid value included in slider's range
-                    ToggleButton* tb = new ToggleButton(names[i]);
-                    addAndMakeVisible(tb);
-                    tb->setRadioGroupId (radioGroupID);
-                    tb->addListener(this);
-                    fValues.push_back(v);
-                    fButtons.add(tb);
-
-                    if(fTooltipText.isNotEmpty()) {
-                        tb->setTooltip(fTooltipText);
-                    }
-                    // Check if this item is a good candidate to represent the current value
-                    double delta = fabs(cur-v);
-                    if (delta < mindelta) {
-                        mindelta = delta;
-                        defaultbutton = tb;
-                    }
+                if (fTooltipText.isNotEmpty()) {
+                    tb->setTooltip(fTooltipText);
+                }
+                // Check if this item is a good candidate to represent the current value
+                double delta = fabs(cur-v);
+                if (delta < mindelta) {
+                    mindelta = delta;
+                    defaultbutton = tb;
                 }
             }
-            // check the best candidate to represent the current value
-            if (defaultbutton) {
-                defaultbutton->setToggleState (true, dontSendNotification);
-            }
+        }
+        // check the best candidate to represent the current value
+        if (defaultbutton) {
+            defaultbutton->setToggleState (true, dontSendNotification);
+        }
+    }
+  
+    virtual void setLookAndFeel(LookAndFeel* laf) {
+        for (int i = 0; i<nbButtons; i++) {
+            fButtons[i]->setLookAndFeel(laf);
         }
     }
 
-    /** Apply the LookAndFeel to all the CheckButtons widgets. */
-    virtual void setCompLookAndFeel(LookAndFeel* laf) {
-        for(int i = 0; i<nbButtons; i++)
-            fButtons[i]->setLookAndFeel(laf);
-    }
-
-    virtual void reflectZone()
+    virtual void reflectZone() override
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
@@ -972,15 +952,15 @@ public:
     }
 
     /** Handle the placement of each juce::ToggleButton everytime the layout size is changed. */
-    virtual void resized() {
+    virtual void resized() override {
+        int width, height;
         isVertical ? height = (getLocalBounds().getHeight()-12) / nbButtons
                               : width = getLocalBounds().getWidth() / nbButtons;
 
-        for(int i = 0; i < nbButtons; i++) {
-            if(isVertical) {
+        for (int i = 0; i < nbButtons; i++) {
+            if (isVertical) {
                 fButtons.operator[](i)->setBounds(0, i * height + 12, getLocalBounds().getWidth(), height);
-            }
-            else {
+            } else {
                 // 12 pixels offset for the title
                 fButtons.operator[](i)->setBounds(i * width, 12, width, getLocalBounds().getHeight()-12);
             }
@@ -988,26 +968,27 @@ public:
     }
     
     /** Display the RadioButton name */
-    virtual void paint(Graphics& g) {
+    virtual void paint(Graphics& g) override
+    {
         g.setColour(Colours::black);
         g.drawText(fName, getLocalBounds().withHeight(12), Justification::centredTop);
     }
 
     /** Check which button is checked, and give its "value" to the FAUST module */
-    void buttonClicked(Button* button)
+    void buttonClicked(Button* button) override
     {
         ToggleButton* checkButton = dynamic_cast<ToggleButton*>(button);
         std::cout<<fName<<" : "<<fButtons.indexOf(checkButton)<<std::endl;
-
         modifyZone(fButtons.indexOf(checkButton));
     }
+    
 };
 
 /** 
  * \brief   Intern class for VU-meter
  * \details There is no JUCE widgets for VU-meter, so its fully designed in this class.
  */
-class uiVUMeter  : public uiComponent, public Timer
+class uiVUMeter : public uiComponent, public Timer
 {
 public:
     /**
@@ -1027,9 +1008,9 @@ public:
         fLevel = 0;         // Initialization of the level
         startTimer (50);    // Launch a timer that trigger a callback every 50ms
         this->fUnit = unit;
-        (unit == "dB") ? db = true : db = false;
+        db = (unit == "dB");
         
-        if(db) {
+        if (db) {
             // Conversion in dB of the range
             fScaleMin = dB2Scale(fMin);
             fScaleMax = dB2Scale(fMax);
@@ -1037,12 +1018,12 @@ public:
         
         isBargraphNameShown = (!(fName.startsWith("0x")) && fName.isNotEmpty());
         
-        if(fTooltipText.isNotEmpty()) {
+        if (fTooltipText.isNotEmpty()) {
             setTooltip(fTooltipText);
         }
         
         // No text editor for LEDs
-        if(fStyle != Led) {
+        if (fStyle != Led) {
             setupLabel();
         }
     }
@@ -1051,10 +1032,9 @@ public:
     void timerCallback() override
     {
         if (isShowing()) {
-            if(fLevel == 0) {
+            if (fLevel == 0) {
                 forceRepaint = true;    //Force painting at the initialisation
-            }
-            else {
+            } else {
                 forceRepaint = false;
             }
 
@@ -1066,39 +1046,39 @@ public:
             // and if the curent level is included in the VUMeter range. It improves
             // performances a lot in IDLE. It's the same for the other style of VUMeter
             
-            if(db) {
-                if(fStyle == VVUMeter) {
+            if (db) {
+                if (fStyle == VVUMeter) {
                     if (((int)dB2y(lastLevel) != (int)dB2y(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
                         repaint();
                     }
-                } else if(fStyle == HVUMeter) {
+                } else if (fStyle == HVUMeter) {
                     if (((int)dB2x(lastLevel) != (int)dB2x(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
                         repaint();
                     }
-                } else if(fStyle == NumDisplay) {
+                } else if (fStyle == NumDisplay) {
                     if (((int)lastLevel != (int)fLevel && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
                         repaint();
                     }
-                } else if(fStyle == Led) {
-                    if((dB2Scale(lastLevel) != dB2Scale(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
+                } else if (fStyle == Led) {
+                    if ((dB2Scale(lastLevel) != dB2Scale(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
                         repaint();
                     }
                 }
 
             } else {
-                if(fStyle == VVUMeter) {
+                if (fStyle == VVUMeter) {
                     if (((int)lin2y(lastLevel) != (int)lin2y(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
                         repaint();
                     }
-                } else if(fStyle == HVUMeter) {
+                } else if (fStyle == HVUMeter) {
                     if ((std::abs(lastLevel-fLevel)>0.01 && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
                         repaint();
                     }
-                } else if(fStyle == Led) {
+                } else if (fStyle == Led) {
                     if ((std::abs(lastLevel-fLevel)>0.01 && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
                         repaint();
                     }
-                } else if(fStyle == NumDisplay) {
+                } else if (fStyle == NumDisplay) {
                     if (((int)lastLevel != (int)fLevel && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
                         repaint();
                     }
@@ -1109,13 +1089,7 @@ public:
         }
     }
 
-    /** 
-     * Has to be defined because its purely virtual in uiBaseComponent, 
-     * but as its not a JUCE widget, there is no LookAndFeel submethod associated.
-     */
-    virtual void setCompLookAndFeel(LookAndFeel* laf) override { }
-
-    /** 
+    /**
      * Call the appropriate drawing method according to the VU-meter style 
      * \see drawLed
      * \see drawNumDisplay
@@ -1124,14 +1098,14 @@ public:
      */
     void paint (Graphics& g) override
     {
-        if     (fStyle == Led)       {
-            drawLed       (g, kLedWidth,       kLedHeight,        fLevel);
-        } else if(fStyle == NumDisplay) {
+        if (fStyle == Led)       {
+            drawLed (g, kLedWidth, kLedHeight, fLevel);
+        } else if (fStyle == NumDisplay) {
             drawNumDisplay(g, kNumDisplayWidth,  kNumDisplayHeight/2, fLevel);
-        } else if(fStyle == VVUMeter)  {
-            drawVBargraph (g, kVBargraphWidth/2, getHeight(),         fLevel, db);
-        } else if(fStyle == HVUMeter)  {
-            drawHBargraph (g, getWidth(),        kHBargraphHeight/2,  fLevel, db);
+        } else if (fStyle == VVUMeter) {
+            drawVBargraph (g, kVBargraphWidth/2, getHeight(), fLevel, db);
+        } else if (fStyle == HVUMeter) {
+            drawHBargraph (g, getWidth(), kHBargraphHeight/2, fLevel, db);
         }
     }
 
@@ -1159,15 +1133,15 @@ private:
 
     /** Give the right coordinates and size to the text of Label depending on the VU-meter style */
     void setLabelPos() {
-        if     (fStyle == VVUMeter)   {
+        if (fStyle == VVUMeter) {
             // -22 on the height because of the text box.
             fLabel.setBounds((getWidth()-50)/2, getHeight()-22, 50, 20);
         }
-        else if(fStyle == HVUMeter)   {
+        else if (fStyle == HVUMeter) {
             isBargraphNameShown ? fLabel.setBounds(63, (getHeight()-20)/2, 50, 20)
                                 : fLabel.setBounds(3,  (getHeight()-20)/2, 50, 20);
         }
-        else if(fStyle == NumDisplay) {
+        else if (fStyle == NumDisplay) {
             fLabel.setBounds((getLocalBounds().getWidth()-kNumDisplayWidth)/2,
                             (getLocalBounds().getHeight()-kNumDisplayHeight/2)/2,
                             kNumDisplayWidth,
@@ -1180,8 +1154,8 @@ private:
         setLabelPos();
         fLabel.setEditable(false, false, false);
         fLabel.setJustificationType(Justification::centred);
-        fLabel.setText(String((int)*fZone) + fUnit, dontSendNotification);
-        if(fTooltipText.isNotEmpty()) {
+        fLabel.setText(String((int)*fZone) + " " + fUnit, dontSendNotification);
+        if (fTooltipText.isNotEmpty()) {
             fLabel.setTooltip(fTooltipText);
         }
 
@@ -1204,7 +1178,7 @@ private:
     void drawHBargraph(Graphics& g, int width, int height, float level, bool dB) {
         float x;
         float y = (float)(getHeight()-height)/2;
-        if(isBargraphNameShown) {
+        if (isBargraphNameShown) {
             x = 120;
             width -= x;
 
@@ -1246,10 +1220,10 @@ private:
         // Drawing Scale
         g.setFont(9.0f);
         g.setColour(Colours::white);
-        for(int i = -10; i > fMin; i -= 10) {
+        for (int i = -10; i > fMin; i -= 10) {
             paintScale(g, i);
         }
-        for(int i = -6; i < fMax; i += 3)  {
+        for (int i = -6; i < fMax; i += 3)  {
             paintScale(g, i);
         }
 
@@ -1263,22 +1237,22 @@ private:
         g.fillRect(dB2x(fMin), y+1.0f, jmin(dB2x(level)-dB2x(fMin), dB2x(-10)-dB2x(fMin)), (float) height-2);
 
         // Drawing from -10dB to the current level, or -6dB.
-        if(dB2Scale(level) > dB2Scale(-10)) {
+        if (dB2Scale(level) > dB2Scale(-10)) {
             g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
             g.fillRect(dB2x(-10), y+1.0f, jmin(dB2x(level)-dB2x(-10), dB2x(-6)-dB2x(-10)), (float) height-2);
         }
         // Drawing from -6dB to the current level, or -3dB.
-        if(dB2Scale(level) > dB2Scale(-6)) {
+        if (dB2Scale(level) > dB2Scale(-6)) {
             g.setColour(Colour((uint8)220, (uint8)220, (uint8)20, (uint8)alpha));
             g.fillRect(dB2x(-6), y+1.0f, jmin(dB2x(level)-dB2x(-6), dB2x(-3)-dB2x(-6)), (float) height-2);
         }
         // Drawing from -3dB to the current level, or 0dB.
-        if(dB2Scale(level) > dB2Scale(-3)) {
+        if (dB2Scale(level) > dB2Scale(-3)) {
             g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha));
             g.fillRect(dB2x(-3), y+1.0f, jmin(dB2x(level)-dB2x(-3), dB2x(0)-dB2x(-3)), (float) height-2);
         }
         // Drawing from 0dB to the current level, or the max range.
-        if(dB2Scale(level) > dB2Scale(0)) {
+        if (dB2Scale(level) > dB2Scale(0)) {
             g.setColour(Colour((uint8)240,  (uint8)0, (uint8)20, (uint8)alpha));
             g.fillRect(dB2x(0), y+1.0f, jmin(dB2x(level)-dB2x(0), dB2x(fMax)-dB2x(0)), (float) height-2);
         }
@@ -1303,12 +1277,12 @@ private:
         g.setColour(c.brighter());
         g.fillRect(x+1.0f, y+1.0f, jmin(level*(width-2), 0.2f*(width-2)), (float) height-2);
         // Drawing from 20% of the VU-meter to the current level, or 90% of the VU-meter
-        if(level > 0.2f) {
+        if (level > 0.2f) {
             g.setColour(c);
             g.fillRect(x+1.0f + 0.2f*(width-2), y+1.0f, jmin((level-0.2f) * (width-2), (0.9f-0.2f) * (width-2)), (float) height-2);
         }
         // Drawing from 90% of the VU-meter to the current level, or the maximal range of the VU-meter
-        if(level > 0.9f) {
+        if (level > 0.9f) {
             g.setColour(c.darker());
             g.fillRect(x+1.0f + 0.9f*(width-2), y+1.0f, jmin((level-0.9f) * (width-2), (1.0f-0.9f) * (width-2)), (float) height-2);
         }
@@ -1329,7 +1303,7 @@ private:
     void drawVBargraph(Graphics& g, int width, int height, float level, bool dB) {
         float x = (float)(getLocalBounds().getWidth()-width)/2;
         float y;
-        if(isBargraphNameShown) {
+        if (isBargraphNameShown) {
             y = (float) getLocalBounds().getHeight()-height+15;
             height -= 40;
 
@@ -1370,10 +1344,10 @@ private:
         // Drawing Scale
         g.setFont(9.0f);
         g.setColour(Colours::white);
-        for(int i = -10; i > fMin; i -= 10) {
+        for (int i = -10; i > fMin; i -= 10) {
             paintScale(g, i);
         }
-        for(int i = -6; i < fMax; i += 3)  {
+        for (int i = -6; i < fMax; i += 3)  {
             paintScale(g, i);
         }
 
@@ -1387,22 +1361,22 @@ private:
         g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(-10)), (float) width-2, dB2y(fMin)-jmax(dB2y(level), dB2y(-10)));
         
         // Drawing from -10dB to the current level, or -6dB.
-        if(dB2Scale(level) > dB2Scale(-10)) {
+        if (dB2Scale(level) > dB2Scale(-10)) {
             g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
             g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(-6)), (float) width-2, dB2y(-10)-jmax(dB2y(level), dB2y(-6)));
         }
         // Drawing from -6dB to the current level, or -3dB.
-        if(dB2Scale(level) > dB2Scale(-6)) {
+        if (dB2Scale(level) > dB2Scale(-6)) {
             g.setColour(Colour((uint8)220, (uint8)220, (uint8)20, (uint8)alpha));
             g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(-3)), (float) width-2, dB2y(-6)-jmax(dB2y(level), dB2y(-3)));
         }
         // Drawing from -3dB to the current level, or 0dB.
-        if(dB2Scale(level) > dB2Scale(-3)) {
+        if (dB2Scale(level) > dB2Scale(-3)) {
             g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha));
             g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(0)), (float) width-2, dB2y(-3)-jmax(dB2y(level), dB2y(0)));
         }
         // Drawing from 0dB to the current level, or the maximum range.
-        if(dB2Scale(level) > dB2Scale(0)) {
+        if (dB2Scale(level) > dB2Scale(0)) {
             g.setColour(Colour((uint8)240,  (uint8)0, (uint8)20, (uint8)alpha));
             g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(fMax)), (float) width-2, dB2y(0)-jmax(dB2y(level), dB2y(fMax)));
         }
@@ -1426,13 +1400,13 @@ private:
         g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(0.2f)), (float) width-2, lin2y(fMin)-jmax(lin2y(level), lin2y(0.2f)));
         
         // Drawing from 20% of the VU-meter to the current level, or 90% of the VU-meter.
-        if(level > 0.2f) {
+        if (level > 0.2f) {
             g.setColour(c);
             g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(0.9f)), (float) width-2, lin2y(0.2f)-jmax(lin2y(level), lin2y(0.9f)));
         }
         
         // Drawing from 90% of the VU-meter to the current level, or the maximum range.
-        if(level > 0.9f) {
+        if (level > 0.9f) {
             g.setColour(c.darker());
             g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(fMax)), (float) width-2, lin2y(0.9)-jmax(lin2y(level), lin2y(fMax)));
         }
@@ -1452,21 +1426,21 @@ private:
         g.setColour(Colours::black);
         g.fillEllipse(x, y, width, height);
 
-        if(db) {
+        if (db) {
             int alpha = 200;
             
             // Adjust the color depending on the current level
             g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
-            if(dB2Scale(level) > dB2Scale(-10)) {
+            if (dB2Scale(level) > dB2Scale(-10)) {
                 g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
             }
-            if(dB2Scale(level) > dB2Scale(-6)) {
+            if (dB2Scale(level) > dB2Scale(-6)) {
                 g.setColour(Colour((uint8)220, (uint8)220, (uint8)20, (uint8)alpha));
             }
-            if(dB2Scale(level) > dB2Scale(-3)) {
+            if (dB2Scale(level) > dB2Scale(-3)) {
                 g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha));
             }
-            if(dB2Scale(level) > dB2Scale(0))  {
+            if (dB2Scale(level) > dB2Scale(0))  {
                 g.setColour(Colour((uint8)240, (uint8)0,   (uint8)20, (uint8)alpha));
             }
 
@@ -1499,27 +1473,7 @@ private:
     
         // Text is handled by the setLabelPos() function
     }
-    
-    float dB2Scale(float dB)
-    {
-        float fScale = 1.0;
-
-        if      (dB < -60.0)
-            fScale = (dB + 70.0) * 0.0025;
-        else if (dB < -50.0)
-            fScale = (dB + 60.0) * 0.005 + 0.025;
-        else if (dB < -40.0)
-            fScale = (dB + 50.0) * 0.0075 + 0.075;
-        else if (dB < -30.0)
-            fScale = (dB + 40.0) * 0.015 + 0.15;
-        else if (dB < -20.0)
-            fScale = (dB + 30.0) * 0.02 + 0.3;
-        else if (dB < -0.001 || dB > 0.001)  /* if (dB < 0.0) */
-            fScale = (dB + 20.0f) * 0.025 + 0.5;
-
-        return fScale;
-    }
-
+   
     /** Convert a dB level to a y coordinate, for easier draw methods. */
     float dB2y(float dB)
     {
@@ -1530,7 +1484,7 @@ private:
         int h;
         int treshold;   // Value depend if the name is displayed
 
-        if(isBargraphNameShown) {
+        if (isBargraphNameShown) {
             h = getHeight()-42; // 15 pixels for the VU-Meter name,
                                 // 25 for the textBox, 2 pixels margin.
             treshold = 16;      // 15 pixels for the VU-Meter name.
@@ -1547,7 +1501,7 @@ private:
         int h;
         int treshold;
 
-        if(isBargraphNameShown) {
+        if (isBargraphNameShown) {
             h = getHeight()-42; // 15 pixels for the VU-Meter name,
                                 // 25 for the textBox, 2 pixels margin.
             treshold = 16;      // 15 pixels for the VU-Meter name.
@@ -1569,7 +1523,7 @@ private:
         int w;
         int treshold;
 
-        if(isBargraphNameShown) {
+        if (isBargraphNameShown) {
             w = getWidth()-122; // 60 pixels for the VU-Meter name,
                                 // 60 for the TextBox, 2 pixels margin.
             treshold = 121;     // 60 pixels for the VU-Meter name,
@@ -1586,7 +1540,7 @@ private:
     void paintScale(Graphics& g, float num) {
         Rectangle<int> r;
 
-        if(fStyle == VVUMeter) {
+        if (fStyle == VVUMeter) {
             r = Rectangle<int>((getWidth()-(kVBargraphWidth/2))/2 + 1,  // Left side of the VU-Meter.
                                dB2y(num),                               // Vertically centred with 20 height.
                                (kVBargraphWidth/2)-2,                   // VU-Meter width with margin.
@@ -1594,7 +1548,7 @@ private:
             g.drawText(String(num), r, Justification::centredRight, false);
         } else {
             r = Rectangle<int>(dB2x(num)-10,                            // Horizontally centred with 20 width.
-                               (getHeight()-kHBargraphHeight/2)/2 +1,   // Top side of the VU-Meter.
+                               (getHeight()-kHBargraphHeight/2)/2 + 1,  // Top side of the VU-Meter.
                                20,                                      // 20 width.
                                (kHBargraphHeight/2)-2);                 // VU-Meter height with margin
             g.drawText(String(num), r, Justification::centredTop, false);
@@ -1605,25 +1559,23 @@ private:
     void setLevel() {
         float rawLevel = *fZone;
 
-        if(db) {
+        if (db) {
             fLevel = rawLevel;
-            if     (fLevel > fMax) {
+            if (fLevel > fMax) {
                 fLevel = fMax;
-            }
-            else if(fLevel < fMin) {
+            } else if (fLevel < fMin) {
                 fLevel = fMin;
             }
         } else {
             fLevel = (rawLevel-fMin)/(fMax-fMin);
-            if     (fLevel > 1)  {
+            if (fLevel > 1)  {
                 fLevel = 1;
-            }
-            else if(fLevel < 0)  {
+            } else if (fLevel < 0)  {
                 fLevel = 0;
             }
         }
 
-        fLabel.setText(String((int)rawLevel)+fUnit, dontSendNotification);
+        fLabel.setText(String((int)rawLevel) + " " + fUnit, dontSendNotification);
     }
 };
 
@@ -1649,52 +1601,9 @@ public:
         
         // The ratios being calculated depending on the uiBaseComponent parent size, and
         // the order 0 box not having one, we initialize them here.
-        if(fOrder == 0) {
+        if (fOrder == 0) {
             fHRatio = 1;
             fVRatio = 1;
-        }
-    }
-
-    /** Call the setLookAndFeel method for all its child, by going through the uiBaseComponent tree */
-    void setCompLookAndFeel(LookAndFeel* laf) override {
-        for(int i = 0; i<getNumChildComponents(); i++) {
-            dynamic_cast<uiBaseComponent*> (getChildComponent(i))->setCompLookAndFeel(laf);
-        }
-    }
-
-    /**
-     * \brief   Main layout function.
-     * \details Allow to place all uiBaseComponent child correctly according to their ratios
-     *          and the current box size.
-     *
-     * \param   functionRect    Absolute raw bounds of the current box (with margins 
-     *                          and space for the title).
-     */
-    void arrangeComponents(Rectangle<int> functionRect)
-    {
-        // Deleting space for the box name if it needs to be shown
-        if(isNameDisplayed) {
-            functionRect.removeFromTop(12);
-        }
-        
-        // Putting the margins
-        functionRect.reduce(2, 2);
-        
-        // Give child components an adapt size depending on its ratio and the current box size
-        for(int i = 0; i<getNumChildComponents(); i++) {
-            uiBaseComponent* tempComp = dynamic_cast<uiBaseComponent*>(getChildComponent(i));
-            
-            if(isVertical) {
-                int heightToRemove = getSpaceToRemove(tempComp->getVRatio());
-                // Remove the space needed from the functionRect, and translate it
-                // to show the margins
-                tempComp->setBaseComponentSize(functionRect.removeFromTop(heightToRemove).translated(0, 4*i));
-            } else {
-                int widthToRemove = getSpaceToRemove(tempComp->getHRatio());
-                // Remove the space needed from the functionRect, and translate it
-                // to show the margins
-                tempComp->setBaseComponentSize(functionRect.removeFromLeft(widthToRemove).translated(4*i, 0));
-            }
         }
     }
 
@@ -1702,7 +1611,7 @@ public:
     void writeDebug() override {
         std::cout<<std::endl<<fName<<" : "<<std::endl;
         std::cout<<"order : "<<fOrder<<", itemCount : "<<getNumChildComponents();
-        if(fOrder > 0) {
+        if (fOrder > 0) {
             std::cout<<", parent : "<<findParentComponentOfClass<uiBaseComponent>()->fName<<std::endl;
         } else {
             std::cout<<"no parent, main box"<<std::endl;
@@ -1713,59 +1622,50 @@ public:
         std::cout<<"fDisplayRectHeight : "<<fDisplayRectHeight<<", fDisplayRectWidth : "<<fDisplayRectWidth<<std::endl;
         std::cout<<"isVisible ? "<<isVisible()<<std::endl;
         std::cout<<"Childs : ";
-        for(int j = 0; j<getNumChildComponents(); j++) {
+        for (int j = 0; j<getNumChildComponents(); j++) {
             std::cout<<dynamic_cast<uiBaseComponent*>(getChildComponent(j))->fName<<", ";
         }
         std::cout<<std::endl;
     }
 
     /** 
-     * \brief   Return the dimension size for a child to be displayed in.
-     * \details Depending on the horizontal or vertical aspect of the uiBox, 
-     *          the horizontal or vertical child ratio is given as argument, 
-     *          and a width or a height value is returned.
+     * \brief   Return the vertical dimension size for a child to be displayed in.
      *
-     * \param   ratio   Horizontal or Vertical ratio of the child component, depending on the uiBox.
      */
-    int getSpaceToRemove(float ratio) {
-        if(isVertical) {
-            // Checking if the name is displayed, to give to good amount space for child components
-            // 12 pixels is the bix name, 4 pixel per child components for the margins
-            if(isNameDisplayed) {
-                return (float)(getBounds().getHeight() - 12 - 4*getNumChildComponents())*ratio;
-            } else {
-                return (float)(getBounds().getHeight() - 4*getNumChildComponents())*ratio;
-            }
+    int getVSpaceToRemove()
+    {
+        // Checking if the name is displayed, to give to good amount space for child components
+        // 12 pixels is the bix name, 4 pixel per child components for the margins
+        if (isNameDisplayed) {
+            return (getBounds().getHeight() - 12 - 4*getNumChildComponents());
         } else {
-            // Don't need to check for an horizontal box, as it height doesn't matter
-            return (float)(getBounds().getWidth() - 4*getNumChildComponents())*ratio;
+            return (getBounds().getHeight() - 4*getNumChildComponents());
         }
     }
-
-    /** Add a uiBox as child of the current uiBox in the tree */
-    void addChildBox(uiBox* box) {
-        addAndMakeVisible(box);
-    }
-    
-    /** Add a uiComponent as child of the current uiBox in the tree */
-    void addChildUiComponent(uiComponent* comp) {
-        addAndMakeVisible(comp);
+        
+    /**
+     * \brief   Return the vertical dimension size for a child to be displayed in.
+     *
+     */
+    int getHSpaceToRemove()
+    {
+        // Don't need to check for an horizontal box, as it height doesn't matter
+        return (getBounds().getWidth() - 4*getNumChildComponents());
     }
 
     /**
      * \brief   Initialization of the DisplayRect and Total size.
-     * \details Calculate the correct size for each box, depending on its child
-     *          sizes.
+     * \details Calculate the correct size for each box, depending on its child sizes.
      */
-    void calculRecommendedSize() {
+    void computeRecommendedSize() {
         // Display rectangle size is the sum of a dimension on a side, and the max of the other one
         // on the other side, depending on its orientation (horizontal/vertical).
         // Using child's totalSize, because the display rectangle size need to be as big as
         // all of its child components with their margins included.
-        for(int j = 0; j<getNumChildComponents(); j++) {
-            if(isVertical) {
+        for (int j = 0; j<getNumChildComponents(); j++) {
+            if (isVertical) {
                 fDisplayRectHeight += (dynamic_cast<uiBaseComponent*>(getChildComponent(j))->getTotalHeight());
-                fDisplayRectWidth   = jmax((int)fDisplayRectWidth, dynamic_cast<uiBaseComponent*>(getChildComponent(j))->getTotalWidth());
+                fDisplayRectWidth = jmax((int)fDisplayRectWidth, dynamic_cast<uiBaseComponent*>(getChildComponent(j))->getTotalWidth());
             } else {
                 fDisplayRectWidth += (dynamic_cast<uiBaseComponent*>(getChildComponent(j))->getTotalWidth());
                 fDisplayRectHeight = jmax((int)fDisplayRectHeight, dynamic_cast<uiBaseComponent*>(getChildComponent(j))->getTotalHeight());
@@ -1777,16 +1677,16 @@ public:
         
         // Adding 4 pixels of margins per child component on a dimension, and just 4 on
         // the other one, depending on its orientation
-        if(isVertical) {
+        if (isVertical) {
             fTotalHeight += 4 * getNumChildComponents();
-            fTotalWidth  += 4;
+            fTotalWidth += 4;
         } else {
-            fTotalWidth  += 4 * getNumChildComponents();
+            fTotalWidth += 4 * getNumChildComponents();
             fTotalHeight += 4;
         }
 
         // Adding 12 pixels on its height to allow the name to be displayed
-        if(isNameDisplayed) {
+        if (isNameDisplayed) {
             fTotalHeight += 12;
         }
         Component::setSize(fTotalWidth, fTotalHeight);
@@ -1797,19 +1697,46 @@ public:
         uiBaseComponent::setRatio();
         
         // Going through the Component tree recursively
-        for(int i = 0; i<getNumChildComponents(); i++) {
+        for (int i = 0; i<getNumChildComponents(); i++) {
             dynamic_cast<uiBaseComponent*>(getChildComponent(i))->setRatio();
         }
     }
 
-    /** 
-     * Call the dynamic layout method arrangeComponents.
-     * \see arrangeComponents
+    /**
+     * \brief   Main layout function.
+     * \details Allow to place all uiBaseComponent child correctly according to their ratios
+     *          and the current box size.
+     *
+     * \param   displayRect    Absolute raw bounds of the current box (with margins
+     *                          and space for the title).
      */
     void resized() override {
-        arrangeComponents(getBounds());
+        Rectangle<int> displayRect = getBounds();
         // Debug option
         // writeDebug();
+        
+        // Deleting space for the box name if it needs to be shown
+        if (isNameDisplayed) {
+            displayRect.removeFromTop(12);
+        }
+        
+        // Putting the margins
+        displayRect.reduce(2, 2);
+        
+        // Give child components an adapt size depending on its ratio and the current box size
+        for (int i = 0; i<getNumChildComponents(); i++) {
+            uiBaseComponent* comp = dynamic_cast<uiBaseComponent*>(getChildComponent(i));
+            
+            if (isVertical) {
+                int heightToRemove = getVSpaceToRemove() * comp->getVRatio();
+                // Remove the space needed from the displayRect, and translate it to show the margins
+                comp->setBaseComponentSize(displayRect.removeFromTop(heightToRemove).translated(0, 4*i));
+            } else {
+                int widthToRemove = getHSpaceToRemove() * comp->getHRatio();
+                // Remove the space needed from the displayRect, and translate it to show the margins
+                comp->setBaseComponentSize(displayRect.removeFromLeft(widthToRemove).translated(4*i, 0));
+            }
+        }
     }
 
     /** 
@@ -1823,7 +1750,7 @@ public:
         g.fillRect(getLocalBounds());
 
         // Display the name if it's needed
-        if(isNameDisplayed) {
+        if (isNameDisplayed) {
             g.setColour(Colours::black);
             g.drawText(fName, getLocalBounds().withHeight(12), Justification::centred);
         }
@@ -1838,7 +1765,7 @@ public:
         // Deleting boxes, from leaves to root
         int numChild = getNumChildComponents();
         std::cout<<"order : "<<fOrder<<", numChilds : "<<numChild<<std::endl;
-        for(int i = numChild-1; i>=0; i--) {
+        for (int i = numChild-1; i>=0; i--) {
             delete dynamic_cast<uiBox*> (getChildComponent(i));
         }
     }
@@ -1848,57 +1775,59 @@ public:
     bool isVertical;
 };
 
-
 /** Intern class for tab widget */
-class uiTabs  : public TabbedComponent
+class uiTabs : public TabbedComponent
 {
 public:
     /**
      * \brief   Constructor.
      * \details Initalize the juce::TabbedComponent tabs to be at top, and the uiTabs size at 0 
      */
-    uiTabs()
-        : TabbedComponent (TabbedButtonBar::TabsAtTop)
+    uiTabs():TabbedComponent(TabbedButtonBar::TabsAtTop)
     {
-        fTabTotalHeight = 0;
-        fTabTotalWidth = 0;
+        fTotalHeight = 0;
+        fTotalWidth = 0;
     }
 
     /** 
      * Initialize all his child ratios (1 uiBox per tabs), the LookAndFeel
      * and the uiTabs size to fit the biggest of its child.
      */
-    void init() {
-        for(int i = 0; i < getNumTabs(); i++) {
-            uiBaseComponent* tempComp = dynamic_cast<uiBaseComponent*>(getTabContentComponent(i));
-            tempComp->setRatio();
-            tempComp->setCompLookAndFeel(laf);
+    void init(LookAndFeel* laf) {
+        for (int i = 0; i < getNumTabs(); i++) {
+            uiBaseComponent* comp = dynamic_cast<uiBaseComponent*>(getTabContentComponent(i));
+            comp->setRatio();
+            comp->setLookAndFeel(laf);
             
             // The TabbedComponent size should be as big as its bigger child's dimension, done here
-            fTabTotalHeight = jmax(fTabTotalHeight, tempComp->fTotalHeight);
-            fTabTotalWidth = jmax(fTabTotalWidth, tempComp->fTotalWidth);
+            fTotalHeight = jmax(fTotalHeight, comp->fTotalHeight);
+            fTotalWidth = jmax(fTotalWidth, comp->fTotalWidth);
         }
     }
 
     /** Add a uiBox as child of the uiTabs, and a new tab. */
     void addTabs(String label, Component* comp) {
         TabbedComponent::addTab(label, Colours::white, comp, true);
-        for(int i = 0; i<getNumChildComponents(); i++) {
+        for (int i = 0; i<getNumChildComponents(); i++) {
             uiBox* box = dynamic_cast<uiBox*>(getChildComponent(i));
-            if(box !=0) {
+            if (box !=0) {
                 std::cout<<"childs : "<<box->fName<<", ";
             }
         }
         std::cout<<std::endl;
     }
+    
+    Rectangle<int> getSize()
+    {
+        return Rectangle<int>(0, 0, fTotalWidth, fTotalHeight+30); // 30 height for the TabBar.
+    }
 
-    int fTabTotalWidth, fTabTotalHeight;
-    ScopedPointer<LookAndFeel> laf = new CustomLookAndFeel();
+    int fTotalWidth, fTotalHeight;
+    
 };
 
-
 /** Class in charge of doing the glue between FAUST and JUCE */
-class JuceGUI: public GUI, public MetaDataUI, public Component
+class JuceGUI : public GUI, public MetaDataUI, public Component
 {
 public:
     /**
@@ -1907,22 +1836,16 @@ public:
      */
     JuceGUI()
     {
-        order = 0;      // Keep track of the progress in the buildUserInterface.
-        radioGroup = 0; // Just needed in case of radioButtons.
+        order = 0;          // Keep track of the progress in the buildUserInterface.
+        radioGroupID = 0;   // Just needed in case of radioButtons.
     }
 
     /** Return the size of the FAUST program */
     Rectangle<int> getSize() {
-        if(!tabLayout) {
-            return Rectangle<int>(0,
-                                  0,
-                                  dynamic_cast<uiBox*>(getChildComponent(0))->fTotalWidth,
-                                  dynamic_cast<uiBox*>(getChildComponent(0))->fTotalHeight);
+        if (tabLayout) {
+            return dynamic_cast<uiTabs*>(getChildComponent(0))->getSize();
         } else {
-            return Rectangle<int>(0,
-                                  0,
-                                  dynamic_cast<uiTabs*>(getChildComponent(0))->fTabTotalWidth,
-                                  dynamic_cast<uiTabs*>(getChildComponent(0))->fTabTotalHeight+30); // 30 height for the TabBar.
+            return dynamic_cast<uiBox*>(getChildComponent(0))->getSize();
         }
     }
 
@@ -1932,110 +1855,94 @@ public:
         addAndMakeVisible(tabs);
     }
 
-    /** Add a new vertical box to the user interface. */
-    virtual void openVerticalBox(const char* label) {
-        if(order == 0) { // First box that we open (excepted tabBox)
-            if(tabLayout) {
+    /** Add generic box to the user interface. */
+    void openBox(const char* label, bool vert) {
+        if (order == 0) { // First box that we open (excepted tabBox)
+            if (tabLayout) {
                 tabName = String(label);
                 label = nullptr; // label is the box name, shouldn't be displayed
                                  // both (tab name and box name)
             }
-            currentBox = new uiBox(true, String(label), order); // Create a new box
+            currentBox = new uiBox(vert, String(label), order); // Create a new box
             parentBox = nullptr; // Its parent is not another uiBox, so null
-            if(!tabLayout) {
+            if (!tabLayout) {
                 // Doesn't need to be done if it's a tab layout, addTabs function is already
                 // doing it
                 addAndMakeVisible(currentBox);
             }
         } else { // Not the first box
             parentBox = currentBox; // parent box is now set properly
-            currentBox = new uiBox(true, String(label), order); // Create a new box
-            parentBox->addChildBox(currentBox);
+            currentBox = new uiBox(vert, String(label), order); // Create a new box
+            parentBox->addAndMakeVisible(currentBox);
         }
 
         order++; // Keep track of "order" of the box, 0 being the main box, 1 being the main box child, etc...
     }
+    
+    /** Add a new vertical box to the user interface. */
+    virtual void openVerticalBox(const char* label) {
+        openBox(label, true);
+    }
 
     /** Add a new horizontal box to the user interface. */
     virtual void openHorizontalBox(const char* label) {
-        if(order == 0) { // First box that we open (excepted tabBox)
-            if(tabLayout) {
-                tabName = String(label);
-                label = nullptr; // label is the box name, shouldn't be displayed
-                                 // both (tab name and box name)
-            }
-            currentBox = new uiBox(false, String(label), order); // Create a new box
-            parentBox = nullptr; // Its parent is not another uiBox, so null
-            if(!tabLayout) {
-                // Doesn't need to be done if it's a tab layout, addTabs function is already
-                // doing it
-                addAndMakeVisible(currentBox);
-            }
-        } else { // Not the first box
-            parentBox = currentBox; // parent box is now set properly
-            currentBox = new uiBox(false, String(label), order); // Create a new box
-            parentBox->addChildBox(currentBox);
-        }
-
-        order++; // Keep track of "order" of the box, 0 being the main box, 1 being the main box child, etc...
+        openBox(label, false);
     }
 
     /** Close the current box. */
     virtual void closeBox() {
         order--; // Decrementing to keep track of where we are in the buildUserInterface
-        if(order > -1) { // Avoid to calculate that two times in case of a tabLayout
-            currentBox->calculRecommendedSize();
+        if (order > -1) { // Avoid to calculate that two times in case of a tabLayout
+            currentBox->computeRecommendedSize();
         }
 
-        if(dynamic_cast<uiBox*>(currentBox->getParentComponent()) != 0) { // Not doing that for the main box
+        if (dynamic_cast<uiBox*>(currentBox->getParentComponent()) != 0) { // Not doing that for the main box
             // Going backward in the tree, to the previous branch
             currentBox = parentBox;
             parentBox = currentBox->findParentComponentOfClass<uiBox>(); // Return comp parent of type 'uiBox'
         }
 
-        if(tabLayout && order == 0) { // Closing a tab
+        if (tabLayout && order == 0) { // Closing a tab
             std::cout<<"Adding Box "<<tabName<<" to tab list"<<std::endl;
             tabs.addTabs(tabName, currentBox); // Adding the current main box to a new tab
             tabName.clear();
-        } else if(tabLayout && order == -1) { // End of buildUserInterface
+        } else if (tabLayout && order == -1) { // End of buildUserInterface
             std::cout<<"Init tab"<<std::endl;
             init(); // So our user interface. need to be initiated
-        } else if(!tabLayout && order == 0) { // End of buildUserInterface
+        } else if (!tabLayout && order == 0) { // End of buildUserInterface
             init(); // So our user interface. need to be initiated
+        }
+    }
+    
+    /** Add a slider to the user interface. */
+    void addSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, int kWidth, int kHeight, SliderType type)
+    {
+        if (isKnob(zone)) {
+            addKnob(label, zone, init, min, max, step);
+        } else if (isRadio(zone)) {
+            addRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str(), false);
+        } else if (isMenu(zone)) {
+            addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
+        } else {
+            currentBox->addAndMakeVisible(new uiSlider(this, zone, kWidth, kHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), type));
         }
     }
 
     /** Add an horizontal slider to the user interface. */
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        if(isKnob(zone)) {
-            addKnob(label, zone, init, min, max, step);
-        } else if(isRadio(zone)) {
-            addRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str(), false);
-        } else if(isMenu(zone)) {
-            addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
-        } else {
-            currentBox->addChildUiComponent(new uiSlider(this, zone, kHSliderWidth, kHSliderHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), HSlider));
-        }
+        addSlider(label, zone, init, min, max, step, kHSliderWidth, kHSliderHeight, HSlider);
     }
     
     /** Add a vertical slider to the user interface. */
-    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {
-        if(isKnob(zone)) {
-            addKnob(label, zone, init, min, max, step);
-        } else if(isRadio(zone)) {
-            addRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str(), true);
-        } else if(isMenu(zone)) {
-            addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
-        } else {
-            currentBox->addChildUiComponent(new uiSlider(this, zone, kVSliderWidth, kVSliderHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), VSlider));
-
-        }
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        addSlider(label, zone, init, min, max, step, kVSliderWidth, kVSliderHeight, VSlider);
     }
     
     /** Add a menu to the user interface. */
     void addMenu(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr) {
-        currentBox->addChildUiComponent(new uiMenu(this, zone, String(label), kMenuWidth, kMenuHeight, init, min, max, String(fTooltip[zone]), mdescr));
+        currentBox->addAndMakeVisible(new uiMenu(this, zone, String(label), kMenuWidth, kMenuHeight, init, min, max, String(fTooltip[zone]), mdescr));
     }
     
     /** Add a radio buttons to the user interface. */
@@ -2044,37 +1951,37 @@ public:
         vector<double> values;
         parseMenuList(mdescr, names, values); // Set names and values vectors
         int nbButtons = names.size();
-        radioGroup++; // This is the variable that set the radio buttons to be radio buttons,
-                      // and not just n checkButtons.
+        radioGroupID++; // This is the variable that set the radio buttons to be radio buttons,
+                        // and not just n checkButtons.
         int checkButtonWidth = 0;
 
-        for(int i = 0; i < nbButtons; i++) {
+        for (int i = 0; i < nbButtons; i++) {
             // Checking the maximum of horizontal space needed to display the radio buttons
             checkButtonWidth = jmax(Font().getStringWidth(String(names[i])) + 15, checkButtonWidth);
         }
         
-        if(vert) {
-            currentBox->addChildUiComponent(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, nbButtons * (kRadioButtonHeight - 25) + 25, init, min, max, true, names, values, String(fTooltip[zone]), radioGroup));
+        if (vert) {
+            currentBox->addAndMakeVisible(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, nbButtons * (kRadioButtonHeight - 25) + 25, init, min, max, true, names, values, String(fTooltip[zone]), radioGroupID));
         } else {
-            currentBox->addChildUiComponent(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, kRadioButtonHeight, init, min, max, false, names, values, String(fTooltip[zone]), radioGroup));
+            currentBox->addAndMakeVisible(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, kRadioButtonHeight, init, min, max, false, names, values, String(fTooltip[zone]), radioGroupID));
         }
     }
     
     /** Add a ciruclar slider to the user interface. */
     void addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {
-        currentBox->addChildUiComponent(new uiSlider(this, zone, kKnobWidth, kKnobHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), Knob));
+        currentBox->addAndMakeVisible(new uiSlider(this, zone, kKnobWidth, kKnobHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), Knob));
     }
     
     /** Add a button to the user interface. */
     virtual void addButton(const char* label, FAUSTFLOAT* zone) {
-        currentBox->addChildUiComponent(new uiButton(this, zone, kButtonWidth, kButtonHeight, String(label), String(fTooltip[zone])));
+        currentBox->addAndMakeVisible(new uiButton(this, zone, kButtonWidth, kButtonHeight, String(label), String(fTooltip[zone])));
     }
     
     /** Add a check button to the user interface. */
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) {
         // CheckButtonWidth is his text size, plus the check box size
         int checkButtonWidth = Font().getStringWidth(String(label)) + 15;
-        currentBox->addChildUiComponent(new uiCheckButton(this, zone, checkButtonWidth, kCheckButtonHeight, String(label), String(fTooltip[zone])));
+        currentBox->addAndMakeVisible(new uiCheckButton(this, zone, checkButtonWidth, kCheckButtonHeight, String(label), String(fTooltip[zone])));
     }
     
     /** Add a numerical entry to the user interface. */
@@ -2082,42 +1989,41 @@ public:
     {
         // 5 pixels margin between the slider and his name
         int newWidth = int(ceil(Font().getStringWidth(String(label)) + kNumEntryWidth)) + 5;
-        currentBox->addChildUiComponent(new uiSlider(this, zone, newWidth, kNumEntryHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]), getScale(zone), NumEntry));
-
+        currentBox->addAndMakeVisible(new uiSlider(this, zone, newWidth, kNumEntryHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]), getScale(zone), NumEntry));
     }
     
-    /** Add an horizontal bargraph to the user interface. */
-    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    /** Add a bargraph to the user interface. */
+    void addBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, int kWidth, int kHeight, VUMeterType type)
     {
-        if(isLed(zone)) {
+        if (isLed(zone)) {
             addLed(String(label), zone, min, max);
-        } else if(isNumerical(zone)) {
+        } else if (isNumerical(zone)) {
             addNumericalDisplay(String(label), zone, min, max);
         } else {
-            currentBox->addChildUiComponent(new uiVUMeter (this, zone, kHBargraphWidth, kHBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), HVUMeter, false));
+            currentBox->addAndMakeVisible(new uiVUMeter (this, zone, kWidth, kHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), type, false));
         }
     }
     
     /** Add a vertical bargraph to the user interface. */
     virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
-        if(isLed(zone)) {
-            addLed(String(label), zone, min, max);
-        } else if(isNumerical(zone)) {
-            addNumericalDisplay(String(label), zone, min, max);
-        } else {
-            currentBox->addChildUiComponent(new uiVUMeter (this, zone, kVBargraphWidth, kVBargraphHeight, String(label), min, max, String(fUnit[zone]), String(fTooltip[zone]), VVUMeter, true));
-        }
+        addBargraph(label, zone, min, max, kVBargraphWidth, kVBargraphHeight, VVUMeter);
     }
     
+    /** Add a vertical bargraph to the user interface. */
+    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+    {
+        addBargraph(label, zone, min, max, kHBargraphWidth, kHBargraphHeight, HVUMeter);
+    }
+  
     /** Add a LED to the user interface. */
     void addLed (String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {
-        currentBox->addChildUiComponent(new uiVUMeter (this, zone, kLedWidth, kLedHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), Led, false));
+        currentBox->addAndMakeVisible(new uiVUMeter (this, zone, kLedWidth, kLedHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), Led, false));
     }
     
     /** Add a numerical display to the user interface. */
     void addNumericalDisplay(String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {
-        currentBox->addChildUiComponent(new uiVUMeter (this, zone, kNumDisplayWidth, kNumDisplayHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), NumDisplay, false));
+        currentBox->addAndMakeVisible(new uiVUMeter (this, zone, kNumDisplayWidth, kNumDisplayHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), NumDisplay, false));
     }
     
     /** Declare a metadata. */
@@ -2126,21 +2032,20 @@ public:
         MetaDataUI::declare(zone, key, value);
     }
 
-    /** Initialize the user interface, once buildUserINterface is done. */
+    /** Initialize the user interface, once buildUserInterface is done. */
     void init() {
-        if(tabLayout) {
-            tabs.init();
+        if (tabLayout) {
+            tabs.init(laf);
         } else {
-            uiBaseComponent* tempComp = dynamic_cast<uiBox*> (getChildComponent(0)); // This is our main box
-            tempComp->setRatio();
-            tempComp->setBaseComponentSize(getLocalBounds());
-            tempComp->setCompLookAndFeel(laf);
+            dynamic_cast<uiBox*> (getChildComponent(0))->init(laf); // This is our main box
         }
+        // Hack to force correct draw...
+        resized();
     }
 
     /** Resize its child to match the new bounds */
     void resized() {
-        if(tabLayout) {
+        if (tabLayout) {
             tabs.setBounds(getLocalBounds());
         } else {
             dynamic_cast<uiBox*> (getChildComponent(0))->setBaseComponentSize(getLocalBounds());
@@ -2157,11 +2062,12 @@ public:
     }
 
     int order;          // Keep track of the progress in the buildUserInterface method.
-    int radioGroup;     // In case of radio buttons.
+    int radioGroupID;   // In case of radio buttons.
     uiBox* currentBox;  // Current box used in buildUserInterface logic.
     uiBox* parentBox;   // Parent of the current box in the builduser interface logic.
     bool tabLayout = false;
     uiTabs tabs;        
     String tabName;
-    ScopedPointer<LookAndFeel> laf = new CustomLookAndFeel();
+    //ScopedPointer<LookAndFeel> laf = new CustomLookAndFeel();
+    ScopedPointer<LookAndFeel> laf = new LookAndFeel_V3();
 };
