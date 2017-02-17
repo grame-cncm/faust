@@ -98,11 +98,11 @@ fingerY = nentry("y",0.5,0,1,0.01) : si.smoo; // y is always normalized between 
 cutoff = fingerY*1960+40; // mapping
 ```
 
-The two following sections give an overview of the different [configuration keys](#smartkeyboard-configuration-keys) and [standard parameters](#smartkeyboard-standard-parameters) that can be used with `SmartKeyboard` interfaces. Also, the [Additional Resources](#additional-resources) section provides links to tutorials on how to design various kinds of instruments using this system. We recommend you to check these resources since complex mappings (that are not presented here) can be created by combining different interface configurations with specific uses of standard parameters. [Example codes](#TODO) can be found in the `/examples/smartKeyboard` folder of the Faust distribution. Finally, the [Compilation](#compilation) section demonstrates how to compile Faust codes such as the one presented above using `faust2smartkeyb`.
+The two following sections give an overview of the different [configuration keys](#smartkeyboard-configuration-keys) and [standard parameters](#smartkeyboard-standard-parameters) that can be used with `SmartKeyboard` interfaces. Also, the [Additional Resources](#additional-resources) section provides links to tutorials on how to design various kinds of instruments using this system. We recommend you to check these resources since complex mappings (that are not presented here) can be created by combining different interface configurations with specific uses of standard parameters. Example codes can be found in the `/examples/smartKeyboard` folder of the Faust distribution. Finally, the [Compilation](#compilation) section demonstrates how to compile Faust codes such as the one presented above using `faust2smartkeyb`.
 
 ## SmartKeyboard Configuration Keys
 
-This section presents the different configurations keys of `SmartKeyboard` and their function. For practical use cases, check the [Additional Resources](#additional-resources) section. Additionally, [example codes](#TODO) can be found in the `/examples/smartKeyboard` folder of the Faust distribution.
+This section presents the different configurations keys of `SmartKeyboard` and their function. For practical use cases, check the [Additional Resources](#additional-resources) section. 
 
 ### `Inter-Keyboard Slide`
 
@@ -420,7 +420,7 @@ will do the same for Android (`mySynth.apk`).
 
 While this should be very smooth on Android if your followed the steps in [Setting-Up Your System](#setting-up-your-system), this will probably not work on iOS. Why? Because the bundle identifier associated with the template app used to compile a `SmartKeyboard` app for iOS is not yours. So unless you change it directly in the source code of the Faust distribution (`/architecture/smartKeyboard/iOS/Faust.xcodeproj`) and re-install Faust, it will not work (yes, we know, we know... :( ).
 
-However, in practice, you'll rarely want to compile directly your Faust code into an app package. Instead, you might prefer to create an Android Studio on an Xcode project associated to your Faust code and update it when necessary. This is a much better solution because compiling an app from scratch every time (especially on Android) takes a lot of time (>1 minute in most cases). To do this, you can use the [`-source`](#TODO) option in combination with [`-reuse`](#TODO):
+However, in practice, you'll rarely want to compile directly your Faust code into an app package. Instead, you might prefer to create an Android Studio on an Xcode project associated to your Faust code and update it when necessary. This is a much better solution because compiling an app from scratch every time (especially on Android) takes a lot of time (>1 minute in most cases). To do this, you can use the [`-source`](#source) option in combination with [`-reuse`](#reuse):
 
 ```
 faust2smartkeyb -android -source -reuse mySynth.dsp
@@ -429,8 +429,6 @@ faust2smartkeyb -android -source -reuse mySynth.dsp
 In that case, `faust2smartkeyb` will not compile `mySynth.dsp` to an app but will create a folder called `faustsmartkeyb.mySynth` in the current folder containing an Android Studio project. Every time the previous command will be run, the portion of the app source code corresponding to `mySynth.dsp` will be updated (if we only used `-source` without `-reuse` then `faustsmartkeyb.mySynth` would be erased and re-created). The same steps can be followed when using `-ios`. 
 
 The app can be easily installed on your device from Xcode or Android Studio. On iOS, bundle identifier issues can be fixed directly in the Xcode project contained in `faustsmartkeyb.mySynth` which is more convenient than doing it in the Faust source code. 
-
-<!-- TODO might put a link to corresponding tutorial here -->
 
 The end of this section gives an overview of the different options that can be used with `faust2smartkeyb`.
 
@@ -484,7 +482,7 @@ Allows to specify the maximum number of voices of polyphony of the generated syn
 
 ### `-reuse`
 
-Asks `faust2smartkeyb` to reuse the same project and to only update its portion corresponding to the provided Faust code. This option will not prevent compilation from happening. Instead, use [`source`](#TODO) for that.
+Asks `faust2smartkeyb` to reuse the same project and to only update its portion corresponding to the provided Faust code. This option will not prevent compilation from happening. Instead, use [`-source`](#source) for that.
 
 ---
 
