@@ -2,6 +2,12 @@
   'import':
     'prefix': 'import'
     'body': 'import("${1:filter}.lib");'
+  'import stdfaust.lib':
+    'prefix': 'import stdfaust.lib'
+    'body': 'import("stdfaust.lib");'
+  'import all.lib':
+    'prefix': 'import all.lib'
+    'body': 'import("all.lib");'
   'library':
     'prefix': 'library'
     'body': 'library("${1:filter}.lib")'

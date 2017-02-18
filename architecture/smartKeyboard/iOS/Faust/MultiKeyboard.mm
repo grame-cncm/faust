@@ -299,7 +299,7 @@
             CGPoint systemPreviousTouchPoint = [touch previousLocationInView: self];
             for(int i=0; i<[keyboardParameters[@"Max Fingers"] intValue]; i++){
                 if(previousTouchPoints[0][i].x == systemPreviousTouchPoint.x && previousTouchPoints[0][i].y == systemPreviousTouchPoint.y){
-                    touchDiff[i] = abs(touchPoint.x - previousTouchPoints[0][i].x);
+                    touchDiff[i] = fabs(touchPoint.x - previousTouchPoints[0][i].x);
                     [self processTouchEvent:2 withTouchPoint:[touch locationInView: self] withFingerId:i];
                     //cout << abs(currentTouchPoints[i].x - previousTouchPoints[0][i].x) << "\n";
                     // updating the finger tracking system
@@ -737,9 +737,9 @@
 }
 
 -(float)applyScale:(float)pitch withKeyboardId:(int)keyboardId{
-    int refPitch = [keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Lowest Key",keyboardId]] intValue];
+    int keybRefPitch = [keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Lowest Key",keyboardId]] intValue];
     int currentScale = [keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Scale",keyboardId]] intValue] - 1;
-    float keyboardPitch = (pitch-refPitch); // float pitch on keyboard (from 0)
+    float keyboardPitch = (pitch-keybRefPitch); // float pitch on keyboard (from 0)
     float scaledPitch = 0; // the final scaled pitch
     
     int scalesCoeff[3][7] = {
@@ -769,7 +769,7 @@
             }
         }
     
-        scaledPitch = refPitch+scaleAdd+
+        scaledPitch = keybRefPitch+scaleAdd+
             (keyboardPitch*scalesCoeff[currentScale][(int)keyboardPitch%7]);
     }
     else{

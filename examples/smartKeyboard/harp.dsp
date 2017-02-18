@@ -9,8 +9,21 @@
 // large number of keys here (128), lots of sounds are generated when sliding a 
 // finger across the keyboard.
 //
-// Author: Romain Michon (rmichon_at_ccrma_dot_stanford_dot_edu)
-// 06/17/2016
+// ## Compilation Instructions
+//
+// This Faust code will compile fine with any of the standard Faust targets. However
+// it was specifically designed to be used with `faust2smartkeyb`. For best results,
+// we recommend to use the following parameters to compile it:
+//
+// ```
+// faust2smartkeyb [-ios/-android] harp.dsp
+// ```
+//
+// ## Version/Licence
+//
+// Version 0.0, Feb. 2017
+// Copyright Romain Michon CCRMA (Stanford University)/GRAME 2017
+// MIT Licence: https://opensource.org/licenses/MIT
 //########################################################################################
 
 declare name "harp";
@@ -22,31 +35,31 @@ import("stdfaust.lib");
 //========================================================================================
 
 declare interface "SmartKeyboard{
-	'nKeyb':'8',
-	'keyb0_nKeys':'16',
-	'keyb1_nKeys':'16',
-	'keyb2_nKeys':'16',
-	'keyb3_nKeys':'16',
-	'keyb4_nKeys':'16',
-	'keyb5_nKeys':'16',
-	'keyb6_nKeys':'16',
-	'keyb7_nKeys':'16',
-	'keyb0_lowestKey':'40',
-	'keyb1_lowestKey':'45',
-	'keyb2_lowestKey':'50',
-	'keyb3_lowestKey':'55',
-	'keyb4_lowestKey':'60',
-	'keyb5_lowestKey':'65',
-	'keyb6_lowestKey':'70',
-	'keyb7_lowestKey':'75',
-	'keyb0_showNotesName':'0',
-	'keyb1_showNotesName':'0',
-	'keyb2_showNotesName':'0',
-	'keyb3_showNotesName':'0',
-	'keyb4_showNotesName':'0',
-	'keyb5_showNotesName':'0',
-	'keyb6_showNotesName':'0',
-	'keyb7_showNotesName':'0'
+	'Number of Keyboards':'8',
+	'Keyboard 0 - Number of Keys':'16',
+	'Keyboard 1 - Number of Keys':'16',
+	'Keyboard 2 - Number of Keys':'16',
+	'Keyboard 3 - Number of Keys':'16',
+	'Keyboard 4 - Number of Keys':'16',
+	'Keyboard 5 - Number of Keys':'16',
+	'Keyboard 6 - Number of Keys':'16',
+	'Keyboard 7 - Number of Keys':'16',
+	'Keyboard 0 - Lowest Key':'40',
+	'Keyboard 1 - Lowest Key':'45',
+	'Keyboard 2 - Lowest Key':'50',
+	'Keyboard 3 - Lowest Key':'55',
+	'Keyboard 4 - Lowest Key':'60',
+	'Keyboard 5 - Lowest Key':'65',
+	'Keyboard 6 - Lowest Key':'70',
+	'Keyboard 7 - Lowest Key':'75',
+	'Keyboard 0 - Piano Keyboard':'0',
+	'Keyboard 1 - Piano Keyboard':'0',
+	'Keyboard 2 - Piano Keyboard':'0',
+	'Keyboard 3 - Piano Keyboard':'0',
+	'Keyboard 4 - Piano Keyboard':'0',
+	'Keyboard 5 - Piano Keyboard':'0',
+	'Keyboard 6 - Piano Keyboard':'0',
+	'Keyboard 7 - Piano Keyboard':'0'
 }";
 
 //================================ Instrument Parameters =================================
@@ -63,7 +76,7 @@ gate = button("gate");
 //=================================== Parameters Mapping =================================
 //========================================================================================
 
-stringFreq = freq : si.polySmooth(gate,0.999,2);
+stringFreq = freq;
 
 //============================================ DSP =======================================
 //========================================================================================

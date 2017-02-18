@@ -1,0 +1,906 @@
+'.source.faust':
+	'amp_follower':
+		'prefix': 'amp_follower'
+		'body': 'an.amp_follower'
+	'amp_follower_ud':
+		'prefix': 'amp_follower_ud'
+		'body': 'an.amp_follower_ud'
+	'mth_octave_analyzer':
+		'prefix': 'mth_octave_analyzer'
+		'body': 'an.mth_octave_analyzer'
+	'mth_octave_spectral_level6e':
+		'prefix': 'mth_octave_spectral_level6e'
+		'body': 'an.mth_octave_spectral_level6e'
+	'third_octave_analyzer':
+		'prefix': 'third_octave_analyzer'
+		'body': 'an.third_octave_analyzer'
+	'half_octave_analyzer':
+		'prefix': 'half_octave_analyzer'
+		'body': 'an.half_octave_analyzer'
+	'third_octave_filterbank':
+		'prefix': 'third_octave_filterbank'
+		'body': 'an.third_octave_filterbank'
+	'half_octave_filterbank':
+		'prefix': 'half_octave_filterbank'
+		'body': 'an.half_octave_filterbank'
+	'analyzer':
+		'prefix': 'analyzer'
+		'body': 'an.analyzer'
+	'amp_follower_ar':
+		'prefix': 'amp_follower_ar'
+		'body': 'an.amp_follower_ar'
+	'samp2sec':
+		'prefix': 'samp2sec'
+		'body': 'an.samp2sec'
+	'sec2samp':
+		'prefix': 'sec2samp'
+		'body': 'an.sec2samp'
+	'db2linear':
+		'prefix': 'db2linear'
+		'body': 'an.db2linear'
+	'linear2db':
+		'prefix': 'linear2db'
+		'body': 'an.linear2db'
+	'lin2LogGain':
+		'prefix': 'lin2LogGain'
+		'body': 'an.lin2LogGain'
+	'log2LinGain':
+		'prefix': 'log2LinGain'
+		'body': 'an.log2LinGain'
+	'tau2pole':
+		'prefix': 'tau2pole'
+		'body': 'an.tau2pole'
+	'pole2tau':
+		'prefix': 'pole2tau'
+		'body': 'an.pole2tau'
+	'midikey2hz':
+		'prefix': 'midikey2hz'
+		'body': 'an.midikey2hz'
+	'pianokey2hz':
+		'prefix': 'pianokey2hz'
+		'body': 'an.pianokey2hz'
+	'hz2pianokey':
+		'prefix': 'hz2pianokey'
+		'body': 'an.hz2pianokey'
+	'countdown':
+		'prefix': 'countdown'
+		'body': 'an.countdown'
+	'countup':
+		'prefix': 'countup'
+		'body': 'an.countup'
+	'sweep':
+		'prefix': 'sweep'
+		'body': 'an.sweep'
+	'time':
+		'prefix': 'time'
+		'body': 'an.time'
+	'tempo':
+		'prefix': 'tempo'
+		'body': 'an.tempo'
+	'period':
+		'prefix': 'period'
+		'body': 'an.period'
+	'pulse':
+		'prefix': 'pulse'
+		'body': 'an.pulse'
+	'pulsen':
+		'prefix': 'pulsen'
+		'body': 'an.pulsen'
+	'beat':
+		'prefix': 'beat'
+		'body': 'an.beat'
+	'pulse_countup':
+		'prefix': 'pulse_countup'
+		'body': 'an.pulse_countup'
+	'pulse_countdown':
+		'prefix': 'pulse_countdown'
+		'body': 'an.pulse_countdown'
+	'pulse_countup_loop':
+		'prefix': 'pulse_countup_loop'
+		'body': 'an.pulse_countup_loop'
+	'pulse_countdown_loop':
+		'prefix': 'pulse_countdown_loop'
+		'body': 'an.pulse_countdown_loop'
+	'count':
+		'prefix': 'count'
+		'body': 'an.count'
+	'take':
+		'prefix': 'take'
+		'body': 'an.take'
+	'subseq':
+		'prefix': 'subseq'
+		'body': 'an.subseq'
+	'if':
+		'prefix': 'if'
+		'body': 'an.if'
+	'selector':
+		'prefix': 'selector'
+		'body': 'an.selector'
+	'selectn':
+		'prefix': 'selectn'
+		'body': 'an.selectn'
+	'select2stereo':
+		'prefix': 'select2stereo'
+		'body': 'an.select2stereo'
+	'latch':
+		'prefix': 'latch'
+		'body': 'an.latch'
+	'sAndH':
+		'prefix': 'sAndH'
+		'body': 'an.sAndH'
+	'peakhold':
+		'prefix': 'peakhold'
+		'body': 'an.peakhold'
+	'peakholder':
+		'prefix': 'peakholder'
+		'body': 'an.peakholder'
+	'impulsify':
+		'prefix': 'impulsify'
+		'body': 'an.impulsify'
+	'automat':
+		'prefix': 'automat'
+		'body': 'an.automat'
+	'bpf':
+		'prefix': 'bpf'
+		'body': 'an.bpf'
+	'bypass1':
+		'prefix': 'bypass1'
+		'body': 'an.bypass1'
+	'bypass2':
+		'prefix': 'bypass2'
+		'body': 'an.bypass2'
+	'toggle':
+		'prefix': 'toggle'
+		'body': 'an.toggle'
+	'on_and_off':
+		'prefix': 'on_and_off'
+		'body': 'an.on_and_off'
+	'selectoutn':
+		'prefix': 'selectoutn'
+		'body': 'an.selectoutn'
+	'compressor_mono':
+		'prefix': 'compressor_mono'
+		'body': 'co.compressor_mono'
+	'compressor_stereo':
+		'prefix': 'compressor_stereo'
+		'body': 'co.compressor_stereo'
+	'limiter_1176_R4_mono':
+		'prefix': 'limiter_1176_R4_mono'
+		'body': 'co.limiter_1176_R4_mono'
+	'limiter_1176_R4_stereo':
+		'prefix': 'limiter_1176_R4_stereo'
+		'body': 'co.limiter_1176_R4_stereo'
+	'delay':
+		'prefix': 'delay'
+		'body': 'de.delay'
+	'fdelay':
+		'prefix': 'fdelay'
+		'body': 'de.fdelay'
+	'sdelay':
+		'prefix': 'sdelay'
+		'body': 'de.sdelay'
+	'fdelay[n]':
+		'prefix': 'fdelay[n]'
+		'body': 'de.fdelay[n]'
+	'fdelay[n]a':
+		'prefix': 'fdelay[n]a'
+		'body': 'de.fdelay[n]a'
+	'mth_octave_spectral_level_demo':
+		'prefix': 'mth_octave_spectral_level_demo'
+		'body': 'dm.mth_octave_spectral_level_demo'
+	'parametric_eq_demo':
+		'prefix': 'parametric_eq_demo'
+		'body': 'dm.parametric_eq_demo'
+	'spectral_tilt_demo':
+		'prefix': 'spectral_tilt_demo'
+		'body': 'dm.spectral_tilt_demo'
+	'cubicnl_demo':
+		'prefix': 'cubicnl_demo'
+		'body': 'dm.cubicnl_demo'
+	'gate_demo':
+		'prefix': 'gate_demo'
+		'body': 'dm.gate_demo'
+	'compressor_demo':
+		'prefix': 'compressor_demo'
+		'body': 'dm.compressor_demo'
+	'exciter':
+		'prefix': 'exciter'
+		'body': 'dm.exciter'
+	'moog_vcf_demo':
+		'prefix': 'moog_vcf_demo'
+		'body': 'dm.moog_vcf_demo'
+	'wah4_demo':
+		'prefix': 'wah4_demo'
+		'body': 'dm.wah4_demo'
+	'crybaby_demo':
+		'prefix': 'crybaby_demo'
+		'body': 'dm.crybaby_demo'
+	'vocoder_demo':
+		'prefix': 'vocoder_demo'
+		'body': 'dm.vocoder_demo'
+	'flanger_demo':
+		'prefix': 'flanger_demo'
+		'body': 'dm.flanger_demo'
+	'phaser2_demo':
+		'prefix': 'phaser2_demo'
+		'body': 'dm.phaser2_demo'
+	'freeverb_demo':
+		'prefix': 'freeverb_demo'
+		'body': 'dm.freeverb_demo'
+	'stereo_reverb_tester':
+		'prefix': 'stereo_reverb_tester'
+		'body': 'dm.stereo_reverb_tester'
+	'fdnrev0_demo':
+		'prefix': 'fdnrev0_demo'
+		'body': 'dm.fdnrev0_demo'
+	'zita_rev_fdn_demo':
+		'prefix': 'zita_rev_fdn_demo'
+		'body': 'dm.zita_rev_fdn_demo'
+	'zita_rev1':
+		'prefix': 'zita_rev1'
+		'body': 'dm.zita_rev1'
+	'sawtooth_demo':
+		'prefix': 'sawtooth_demo'
+		'body': 'dm.sawtooth_demo'
+	'virtual_analog_oscillator_demo':
+		'prefix': 'virtual_analog_oscillator_demo'
+		'body': 'dm.virtual_analog_oscillator_demo'
+	'smoothEnvelope':
+		'prefix': 'smoothEnvelope'
+		'body': 'en.smoothEnvelope'
+	'ar':
+		'prefix': 'ar'
+		'body': 'en.ar'
+	'asr':
+		'prefix': 'asr'
+		'body': 'en.asr'
+	'adsr':
+		'prefix': 'adsr'
+		'body': 'en.adsr'
+	'zero':
+		'prefix': 'zero'
+		'body': 'fi.zero'
+	'pole':
+		'prefix': 'pole'
+		'body': 'fi.pole'
+	'integrator':
+		'prefix': 'integrator'
+		'body': 'fi.integrator'
+	'dcblockerat':
+		'prefix': 'dcblockerat'
+		'body': 'fi.dcblockerat'
+	'dcblocker':
+		'prefix': 'dcblocker'
+		'body': 'fi.dcblocker'
+	'ff_comb':
+		'prefix': 'ff_comb'
+		'body': 'fi.ff_comb'
+	'ff_fcomb':
+		'prefix': 'ff_fcomb'
+		'body': 'fi.ff_fcomb'
+	'ffcombfilter':
+		'prefix': 'ffcombfilter'
+		'body': 'fi.ffcombfilter'
+	'fb_comb':
+		'prefix': 'fb_comb'
+		'body': 'fi.fb_comb'
+	'fb_fcomb':
+		'prefix': 'fb_fcomb'
+		'body': 'fi.fb_fcomb'
+	'rev1':
+		'prefix': 'rev1'
+		'body': 'fi.rev1'
+	'allpass_comb':
+		'prefix': 'allpass_comb'
+		'body': 'fi.allpass_comb'
+	'allpass_fcomb':
+		'prefix': 'allpass_fcomb'
+		'body': 'fi.allpass_fcomb'
+	'rev2':
+		'prefix': 'rev2'
+		'body': 'fi.rev2'
+	'iir':
+		'prefix': 'iir'
+		'body': 'fi.iir'
+	'notchw':
+		'prefix': 'notchw'
+		'body': 'fi.notchw'
+	'av2sv':
+		'prefix': 'av2sv'
+		'body': 'fi.av2sv'
+	'bvav2nuv':
+		'prefix': 'bvav2nuv'
+		'body': 'fi.bvav2nuv'
+	'iir_lat2':
+		'prefix': 'iir_lat2'
+		'body': 'fi.iir_lat2'
+	'allpassnt':
+		'prefix': 'allpassnt'
+		'body': 'fi.allpassnt'
+	'iir_kl':
+		'prefix': 'iir_kl'
+		'body': 'fi.iir_kl'
+	'allpassnklt':
+		'prefix': 'allpassnklt'
+		'body': 'fi.allpassnklt'
+	'iir_lat1':
+		'prefix': 'iir_lat1'
+		'body': 'fi.iir_lat1'
+	'allpassn1mt':
+		'prefix': 'allpassn1mt'
+		'body': 'fi.allpassn1mt'
+	'iir_nl':
+		'prefix': 'iir_nl'
+		'body': 'fi.iir_nl'
+	'allpassnnlt':
+		'prefix': 'allpassnnlt'
+		'body': 'fi.allpassnnlt'
+	'tf2np':
+		'prefix': 'tf2np'
+		'body': 'fi.tf2np'
+	'wgr':
+		'prefix': 'wgr'
+		'body': 'fi.wgr'
+	'nlf2':
+		'prefix': 'nlf2'
+		'body': 'fi.nlf2'
+	'apnl':
+		'prefix': 'apnl'
+		'body': 'fi.apnl'
+	'allpassn':
+		'prefix': 'allpassn'
+		'body': 'fi.allpassn'
+	'allpassnn':
+		'prefix': 'allpassnn'
+		'body': 'fi.allpassnn'
+	'allpasskl':
+		'prefix': 'allpasskl'
+		'body': 'fi.allpasskl'
+	'allpass1m':
+		'prefix': 'allpass1m'
+		'body': 'fi.allpass1m'
+	'tf3slf':
+		'prefix': 'tf3slf'
+		'body': 'fi.tf3slf'
+	'tf1s':
+		'prefix': 'tf1s'
+		'body': 'fi.tf1s'
+	'tf2sb':
+		'prefix': 'tf2sb'
+		'body': 'fi.tf2sb'
+	'tf1sb':
+		'prefix': 'tf1sb'
+		'body': 'fi.tf1sb'
+	'resonlp':
+		'prefix': 'resonlp'
+		'body': 'fi.resonlp'
+	'resonhp':
+		'prefix': 'resonhp'
+		'body': 'fi.resonhp'
+	'resonbp':
+		'prefix': 'resonbp'
+		'body': 'fi.resonbp'
+	'lowpass':
+		'prefix': 'lowpass'
+		'body': 'fi.lowpass'
+	'highpass':
+		'prefix': 'highpass'
+		'body': 'fi.highpass'
+	'lowpass0_highpass1':
+		'prefix': 'lowpass0_highpass1'
+		'body': 'fi.lowpass0_highpass1'
+
+	'lowpass3e':
+		'prefix': 'lowpass3e'
+		'body': 'fi.lowpass3e'
+	'lowpass6e':
+		'prefix': 'lowpass6e'
+		'body': 'fi.lowpass6e'
+	'highpass3e':
+		'prefix': 'highpass3e'
+		'body': 'fi.highpass3e'
+	'highpass6e':
+		'prefix': 'highpass6e'
+		'body': 'fi.highpass6e'
+	'bandpass':
+		'prefix': 'bandpass'
+		'body': 'fi.bandpass'
+	'bandstop':
+		'prefix': 'bandstop'
+		'body': 'fi.bandstop'
+	'bandpass6e':
+		'prefix': 'bandpass6e'
+		'body': 'fi.bandpass6e'
+	'bandpass12e':
+		'prefix': 'bandpass12e'
+		'body': 'fi.bandpass12e'
+	'low_shelf':
+		'prefix': 'low_shelf'
+		'body': 'fi.low_shelf'
+	'high_shelf':
+		'prefix': 'high_shelf'
+		'body': 'fi.high_shelf'
+	'peak_eq':
+		'prefix': 'peak_eq'
+		'body': 'fi.peak_eq'
+	'peak_eq_cq':
+		'prefix': 'peak_eq_cq'
+		'body': 'fi.peak_eq_cq'
+	'peak_eq_rm':
+		'prefix': 'peak_eq_rm'
+		'body': 'fi.peak_eq_rm'
+	'spectral_tilt':
+		'prefix': 'spectral_tilt'
+		'body': 'fi.spectral_tilt'
+	'levelfilter':
+		'prefix': 'levelfilter'
+		'body': 'fi.levelfilter'
+	'levelfilterN':
+		'prefix': 'levelfilterN'
+		'body': 'fi.levelfilterN'
+	'mth_octave_filterbank[n]':
+		'prefix': 'mth_octave_filterbank[n]'
+		'body': 'fi.mth_octave_filterbank[n]'
+	'filterbank':
+		'prefix': 'filterbank'
+		'body': 'fi.filterbank'
+	'filterbanki':
+		'prefix': 'filterbanki'
+		'body': 'fi.filterbanki'
+	'encoder':
+		'prefix': 'encoder'
+		'body': 'ho.encoder'
+	'decoder':
+		'prefix': 'decoder'
+		'body': 'ho.decoder'
+	'decoderStereo':
+		'prefix': 'decoderStereo'
+		'body': 'ho.decoderStereo'
+	'optimBasic':
+		'prefix': 'optimBasic'
+		'body': 'ho.optimBasic'
+	'optimMaxRe':
+		'prefix': 'optimMaxRe'
+		'body': 'ho.optimMaxRe'
+	'optimInPhase':
+		'prefix': 'optimInPhase'
+		'body': 'ho.optimInPhase'
+	'wider':
+		'prefix': 'wider'
+		'body': 'ho.wider'
+	'map':
+		'prefix': 'map'
+		'body': 'ho.map'
+	'rotate':
+		'prefix': 'rotate'
+		'body': 'ho.rotate'
+	'SR':
+		'prefix': 'SR'
+		'body': 'ho.SR'
+	'BS':
+		'prefix': 'BS'
+		'body': 'ho.BS'
+	'PI':
+		'prefix': 'PI'
+		'body': 'ho.PI'
+	'FTZ':
+		'prefix': 'FTZ'
+		'body': 'ho.FTZ'
+	'neg':
+		'prefix': 'neg'
+		'body': 'ho.neg'
+	'sub(x,y)':
+		'prefix': 'sub(x,y)'
+		'body': 'ho.sub(x,y)'
+	'inv':
+		'prefix': 'inv'
+		'body': 'ho.inv'
+	'cbrt':
+		'prefix': 'cbrt'
+		'body': 'ho.cbrt'
+	'hypot':
+		'prefix': 'hypot'
+		'body': 'ho.hypot'
+	'ldexp':
+		'prefix': 'ldexp'
+		'body': 'ho.ldexp'
+	'scalb':
+		'prefix': 'scalb'
+		'body': 'ho.scalb'
+	'log1p':
+		'prefix': 'log1p'
+		'body': 'ho.log1p'
+	'logb':
+		'prefix': 'logb'
+		'body': 'ho.logb'
+	'ilogb':
+		'prefix': 'ilogb'
+		'body': 'ho.ilogb'
+	'log2':
+		'prefix': 'log2'
+		'body': 'ho.log2'
+	'expm1':
+		'prefix': 'expm1'
+		'body': 'ho.expm1'
+	'acosh':
+		'prefix': 'acosh'
+		'body': 'ho.acosh'
+	'asinh':
+		'prefix': 'asinh'
+		'body': 'ho.asinh'
+	'atanh':
+		'prefix': 'atanh'
+		'body': 'ho.atanh'
+	'sinh':
+		'prefix': 'sinh'
+		'body': 'ho.sinh'
+	'cosh':
+		'prefix': 'cosh'
+		'body': 'ho.cosh'
+	'tanh':
+		'prefix': 'tanh'
+		'body': 'ho.tanh'
+	'erf':
+		'prefix': 'erf'
+		'body': 'ho.erf'
+	'erfc':
+		'prefix': 'erfc'
+		'body': 'ho.erfc'
+	'gamma':
+		'prefix': 'gamma'
+		'body': 'ho.gamma'
+	'lgamma':
+		'prefix': 'lgamma'
+		'body': 'ho.lgamma'
+	'J0':
+		'prefix': 'J0'
+		'body': 'ho.J0'
+	'J1':
+		'prefix': 'J1'
+		'body': 'ho.J1'
+	'Jn':
+		'prefix': 'Jn'
+		'body': 'ho.Jn'
+	'Y0':
+		'prefix': 'Y0'
+		'body': 'ho.Y0'
+	'Y1':
+		'prefix': 'Y1'
+		'body': 'ho.Y1'
+	'Yn':
+		'prefix': 'Yn'
+		'body': 'ho.Yn'
+	'np2':
+		'prefix': 'np2'
+		'body': 'ho.np2'
+	'frac':
+		'prefix': 'frac'
+		'body': 'ho.frac'
+	'isnan':
+		'prefix': 'isnan'
+		'body': 'ho.isnan'
+	'chebychev':
+		'prefix': 'chebychev'
+		'body': 'ho.chebychev'
+	'chebychevpoly':
+		'prefix': 'chebychevpoly'
+		'body': 'ho.chebychevpoly'
+	'diffn':
+		'prefix': 'diffn'
+		'body': 'ho.diffn'
+	'signum':
+		'prefix': 'signum'
+		'body': 'ho.signum'
+	'cubicnl':
+		'prefix': 'cubicnl'
+		'body': 'ef.cubicnl'
+	'gate_mono':
+		'prefix': 'gate_mono'
+		'body': 'ef.gate_mono'
+	'gate_stereo':
+		'prefix': 'gate_stereo'
+		'body': 'ef.gate_stereo'
+	'speakerbp':
+		'prefix': 'speakerbp'
+		'body': 'ef.speakerbp'
+	'piano_dispersion_filter':
+		'prefix': 'piano_dispersion_filter'
+		'body': 'ef.piano_dispersion_filter'
+
+	'stereo_width':
+		'prefix': 'stereo_width'
+		'body': 'ef.stereo_width'
+	'echo':
+		'prefix': 'echo'
+		'body': 'ef.echo'
+	'transpose':
+		'prefix': 'transpose'
+		'body': 'ef.transpose'
+	'mesh_square':
+		'prefix': 'mesh_square'
+		'body': 'ef.mesh_square'
+	'noise':
+		'prefix': 'noise'
+		'body': 'no.noise'
+	'multirandom':
+		'prefix': 'multirandom'
+		'body': 'no.multirandom'
+	'multinoise':
+		'prefix': 'multinoise'
+		'body': 'no.multinoise'
+	'noises':
+		'prefix': 'noises'
+		'body': 'no.noises'
+	'pink_noise':
+		'prefix': 'pink_noise'
+		'body': 'no.pink_noise'
+	'pink_noise_vm':
+		'prefix': 'pink_noise_vm'
+		'body': 'no.pink_noise_vm'
+	'sparse_noise_vm':
+		'prefix': 'sparse_noise_vm'
+		'body': 'no.sparse_noise_vm'
+	'velvet_noise_vm':
+		'prefix': 'velvet_noise_vm'
+		'body': 'no.velvet_noise_vm'
+	'sinwaveform':
+		'prefix': 'sinwaveform'
+		'body': 'os.sinwaveform'
+	'coswaveform':
+		'prefix': 'coswaveform'
+		'body': 'os.coswaveform'
+	'phasor':
+		'prefix': 'phasor'
+		'body': 'os.phasor'
+	'oscsin':
+		'prefix': 'oscsin'
+		'body': 'os.oscsin'
+	'osccos':
+		'prefix': 'osccos'
+		'body': 'os.osccos'
+	'oscp':
+		'prefix': 'oscp'
+		'body': 'os.oscp'
+	'osci':
+		'prefix': 'osci'
+		'body': 'os.osci'
+	'lf_imptrain':
+		'prefix': 'lf_imptrain'
+		'body': 'os.lf_imptrain'
+	'lf_pulsetrainpos':
+		'prefix': 'lf_pulsetrainpos'
+		'body': 'os.lf_pulsetrainpos'
+	'lf_squarewavepos':
+		'prefix': 'lf_squarewavepos'
+		'body': 'os.lf_squarewavepos'
+	'lf_squarewave':
+		'prefix': 'lf_squarewave'
+		'body': 'os.lf_squarewave'
+	'lf_trianglepos':
+		'prefix': 'lf_trianglepos'
+		'body': 'os.lf_trianglepos'
+	'lf_rawsaw':
+		'prefix': 'lf_rawsaw'
+		'body': 'os.lf_rawsaw'
+	'lf_sawpos_phase':
+		'prefix': 'lf_sawpos_phase'
+		'body': 'os.lf_sawpos_phase'
+	'sawN':
+		'prefix': 'sawN'
+		'body': 'os.sawN'
+	'sawNp':
+		'prefix': 'sawNp'
+		'body': 'os.sawNp'
+	'saw2dpw':
+		'prefix': 'saw2dpw'
+		'body': 'os.saw2dpw'
+	'saw3':
+		'prefix': 'saw3'
+		'body': 'os.saw3'
+	'sawtooth':
+		'prefix': 'sawtooth'
+		'body': 'os.sawtooth'
+	'saw2f2':
+		'prefix': 'saw2f2'
+		'body': 'os.saw2f2'
+	'saw2f4':
+		'prefix': 'saw2f4'
+		'body': 'os.saw2f4'
+	'pulsetrainN':
+		'prefix': 'pulsetrainN'
+		'body': 'os.pulsetrainN'
+	'pulsetrain':
+		'prefix': 'pulsetrain'
+		'body': 'os.pulsetrain'
+	'squareN':
+		'prefix': 'squareN'
+		'body': 'os.squareN'
+	'square':
+		'prefix': 'square'
+		'body': 'os.square'
+	'impulse':
+		'prefix': 'impulse'
+		'body': 'os.impulse'
+	'imptrainN':
+		'prefix': 'imptrainN'
+		'body': 'os.imptrainN'
+	'imptrain':
+		'prefix': 'imptrain'
+		'body': 'os.imptrain'
+	'triangleN':
+		'prefix': 'triangleN'
+		'body': 'os.triangleN'
+	'triangle':
+		'prefix': 'triangle'
+		'body': 'os.triangle'
+	'oscb':
+		'prefix': 'oscb'
+		'body': 'os.oscb'
+	'oscrq':
+		'prefix': 'oscrq'
+		'body': 'os.oscrq'
+	'oscrs':
+		'prefix': 'oscrs'
+		'body': 'os.oscrs'
+	'oscrc':
+		'prefix': 'oscrc'
+		'body': 'os.oscrc'
+	'osc':
+		'prefix': 'osc'
+		'body': 'os.osc'
+	'oscs':
+		'prefix': 'oscs'
+		'body': 'os.oscs'
+	'oscw':
+		'prefix': 'oscw'
+		'body': 'os.oscw'
+	'oscws':
+		'prefix': 'oscws'
+		'body': 'os.oscws'
+	'oscwq':
+		'prefix': 'oscwq'
+		'body': 'os.oscwq'
+	'oscw':
+		'prefix': 'oscw'
+		'body': 'os.oscw'
+	'lf_sawpos':
+		'prefix': 'lf_sawpos'
+		'body': 'os.lf_sawpos'
+	'lf_saw':
+		'prefix': 'lf_saw'
+		'body': 'os.lf_saw'
+	'lf_triangle':
+		'prefix': 'lf_triangle'
+		'body': 'os.lf_triangle'
+	'flanger_mono':
+		'prefix': 'flanger_mono'
+		'body': 'pf.flanger_mono'
+	'flanger_stereo':
+		'prefix': 'flanger_stereo'
+		'body': 'pf.flanger_stereo'
+	'phaser2_mono':
+		'prefix': 'phaser2_mono'
+		'body': 'pf.phaser2_mono'
+	'phaser2_stereo':
+		'prefix': 'phaser2_stereo'
+		'body': 'pf.phaser2_stereo'
+	'jcrev':
+		'prefix': 'jcrev'
+		'body': 're.jcrev'
+	'satrev':
+		'prefix': 'satrev'
+		'body': 're.satrev'
+	'mono_freeverb':
+		'prefix': 'mono_freeverb'
+		'body': 're.mono_freeverb'
+	'stereo_freeverb':
+		'prefix': 'stereo_freeverb'
+		'body': 're.stereo_freeverb'
+	'fdnrev0':
+		'prefix': 'fdnrev0'
+		'body': 're.fdnrev0'
+	'zita_rev_fdn':
+		'prefix': 'zita_rev_fdn'
+		'body': 're.zita_rev_fdn'
+	'zita_rev1_stereo':
+		'prefix': 'zita_rev1_stereo'
+		'body': 're.zita_rev1_stereo'
+	'zita_rev1_ambi':
+		'prefix': 'zita_rev1_ambi'
+		'body': 're.zita_rev1_ambi'
+	'cross':
+		'prefix': 'cross'
+		'body': 'ro.cross'
+	'crossnn':
+		'prefix': 'crossnn'
+		'body': 'ro.crossnn'
+	'crossn1':
+		'prefix': 'crossn1'
+		'body': 'ro.crossn1'
+	'interleave':
+		'prefix': 'interleave'
+		'body': 'ro.interleave'
+	'butterfly':
+		'prefix': 'butterfly'
+		'body': 'ro.butterfly'
+	'hadamard':
+		'prefix': 'hadamard'
+		'body': 'ro.hadamard'
+	'recursivize':
+		'prefix': 'recursivize'
+		'body': 'ro.recursivize'
+	'bus':
+		'prefix': 'bus'
+		'body': 'si.bus'
+	'block':
+		'prefix': 'block'
+		'body': 'si.block'
+	'interpolate':
+		'prefix': 'interpolate'
+		'body': 'si.interpolate'
+	'smooth':
+		'prefix': 'smooth'
+		'body': 'si.smooth'
+	'smoo':
+		'prefix': 'smoo'
+		'body': 'si.smoo'
+	'polySmooth':
+		'prefix': 'polySmooth'
+		'body': 'si.polySmooth'
+	'smoothAndH':
+		'prefix': 'smoothAndH'
+		'body': 'si.smoothAndH'
+	'bsmooth':
+		'prefix': 'bsmooth'
+		'body': 'si.bsmooth'
+	'lag_ud':
+		'prefix': 'lag_ud'
+		'body': 'si.lag_ud'
+	'dot':
+		'prefix': 'dot'
+		'body': 'si.dot'
+	'panner':
+		'prefix': 'panner'
+		'body': 'sp.panner'
+	'spat':
+		'prefix': 'spat'
+		'body': 'sp.spat'
+	'stereoize':
+		'prefix': 'stereoize'
+		'body': 'sp.stereoize'
+	'popFilterPerc':
+		'prefix': 'popFilterPerc'
+		'body': 'sy.popFilterPerc'
+	'dubDub':
+		'prefix': 'dubDub'
+		'body': 'sy.dubDub'
+	'sawTrombone':
+		'prefix': 'sawTrombone'
+		'body': 'sy.sawTrombone'
+	'combString':
+		'prefix': 'combString'
+		'body': 'sy.combString'
+	'additiveDrum':
+		'prefix': 'additiveDrum'
+		'body': 'sy.additiveDrum'
+	'fm':
+		'prefix': 'fm'
+		'body': 'sy.fm'
+	'moog_vcf':
+		'prefix': 'moog_vcf'
+		'body': 've.moog_vcf'
+	'moog_vcf_2b[n]':
+		'prefix': 'moog_vcf_2b[n]'
+		'body': 've.moog_vcf_2b[n]'
+	'wah4':
+		'prefix': 'wah4'
+		'body': 've.wah4'
+	'autowah':
+		'prefix': 'autowah'
+		'body': 've.autowah'
+	'crybaby':
+		'prefix': 'crybaby'
+		'body': 've.crybaby'
+	'vocoder':
+		'prefix': 'vocoder'
+		'body': 've.vocoder'
