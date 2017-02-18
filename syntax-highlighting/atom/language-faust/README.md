@@ -1,14 +1,21 @@
 # Faust language support in Atom
 
-1) First add _syntax highlighting_ and _snippets_ for `.dsp` and `.lib` files:
+1) Add _syntax highlighting_ and _snippets_ for `.dsp` and `.lib`
+files by copying the folder `../language-faust` into
+`~/.atom/packages/`.
 
-- copy the folder `language-faust/` into `~/.atom/packages/`
+2) Select the Atom menu-item `Packages / Settings View / Install
+Packages/Themes` and install the package `process-palette`.
 
-2) Then add a palette of Faust-related commands:
- 
-- install the package `process-palette`
-- copy the file `process-palette.json` into `~/.atom/` (don't forget to remove the plateform extension `.osx` or `.linux`)
+3) Add a palette of Faust-related commands by copying the _renamed_
+file `./process-palette.json` into `~/.atom/` (i.e., rename by
+removing the platform extension `.osx` or `.linux`).
 
-Once this is done you can start coding in Faust with snippets for all functions defined in the standard libraries. For example from the prefix `lowp` you will get `fi.lowpass`. Then by selecting `lowpass` and pressing `ctrl-alt-cmd-d` you will get the documentation of the function `lowpass`.
+Once this is done you can start coding in Faust using _snippets_ for
+all functions defined in the standard libraries. For example, the
+prefix `lowp` expands to `fi.lowpass`. Next, selecting `lowpass` and
+pressing `ctrl-alt-cmd-d` brings up the documentation of the function
+`lowpass` in a browser window.
 
-You can get the svg block-diagram by pressing `ctrl-alt-cmd-g` and the C++ code by pressing `ctrl-alt-cmd-c`.
+You can open the svg block-diagram by pressing `ctrl-alt-cmd-g` and
+the C++ code by pressing `ctrl-alt-cmd-c`.
