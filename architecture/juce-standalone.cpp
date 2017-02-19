@@ -28,7 +28,6 @@
 #include "faust/dsp/timed-dsp.h"
 #include "faust/gui/MapUI.h"
 #include "faust/misc.h"
-
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/JuceGUI.h"
 #include "faust/gui/MidiUI.h"
@@ -221,11 +220,6 @@ class FaustComponent : public AudioAppComponent, private Timer
             }
             
             fDSP->compute(bufferToFill.numSamples, (float**)inputs, outputs);
-        }
-
-        void releaseResources() override
-        {
-            
         }
 
         void paint (Graphics& g) override

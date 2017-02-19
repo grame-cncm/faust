@@ -202,8 +202,6 @@ class uiGroupItem : public uiItem
 
 };
 
-// en cours d'installation de callback : a finir!!!!!
-
 /**
  * Update all user items reflecting zone z
  */

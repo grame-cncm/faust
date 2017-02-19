@@ -344,7 +344,7 @@ enum VUMeterType {
     HVUMeter,   /*!< Horizontal VU-meter    */
     VVUMeter,   /*!< Vertical VU-meter      */
     Led,        /*!< LED VU-meter           */
-    NumDisplay  /*!< Text Box VU_meter      */
+    NumDisplay  /*!< TextBox VU-meter       */
 };
 
 /**
@@ -364,11 +364,10 @@ class uiBase
         
         /**
          * \brief   Constructor.
-         * \details Initialize a uiBase with its name, and all its sizes.
+         * \details Initialize a uiBase with all its sizes.
          *
          * \param   totWidth    Minimal total width.
          * \param   totHeight   Minimal total Height.
-         * \param   name        Name.
          */
         uiBase(int totWidth = 0, int totHeight = 0):
             fTotalWidth(totWidth), fTotalHeight(totHeight),
@@ -547,7 +546,7 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
                 fLabel.setText(getName(), dontSendNotification);
                 fLabel.attachToComponent(&fSlider, true);
                 fLabel.setTooltip(tooltip);
-                addAndMakeVisible (fLabel);
+                addAndMakeVisible(fLabel);
             }
         }
 
@@ -555,7 +554,7 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
         virtual void paint(Graphics& g) override
         {
             if (fType == VSlider || fType == Knob) {
-                g.setColour (Colours::black);
+                g.setColour(Colours::black);
                 g.drawText(getName(), getLocalBounds(), Justification::centredTop);
             }
         }
@@ -1445,7 +1444,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             : uiComponent(gui, zone, w, h, label), fMin(mini), fMax(maxi), fStyle(style)
         {
             fLevel = 0;         // Initialization of the level
-            startTimer (50);    // Launch a timer that trigger a callback every 50ms
+            startTimer(50);     // Launch a timer that trigger a callback every 50ms
             this->fUnit = unit;
             fDB = (unit == "dB");
             
@@ -1601,8 +1600,6 @@ class uiBox : public uiBase, public Component
          *
          * \param   vert        True if it's a vertical box, false otherwise.
          * \param   boxName     Name of the uiBox.
-         * \param   boxOrder    "Order" of the box, 0 being the box at the tree root, 
-                                and the higher it is, the closer to the tree leaves.
          */
         uiBox(bool vert, String boxName): uiBase(0,0), Component(boxName), fIsVertical(vert)
         {}

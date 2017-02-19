@@ -28,7 +28,6 @@
 #include "faust/dsp/timed-dsp.h"
 #include "faust/gui/MapUI.h"
 #include "faust/misc.h"
-
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/JuceGUI.h"
 #include "faust/gui/MidiUI.h"
@@ -240,8 +239,7 @@ class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
         ~FaustPlugInAudioProcessor();
         
         void prepareToPlay (double sampleRate, int samplesPerBlock) override;
-        void releaseResources() override;
-        
+    
         bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
         
         void processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages) override
@@ -502,8 +500,7 @@ int FaustPlugInAudioProcessor::getCurrentProgram()
 }
 
 void FaustPlugInAudioProcessor::setCurrentProgram (int index)
-{
-}
+{}
 
 const String FaustPlugInAudioProcessor::getProgramName (int index)
 {
@@ -511,8 +508,7 @@ const String FaustPlugInAudioProcessor::getProgramName (int index)
 }
 
 void FaustPlugInAudioProcessor::changeProgramName (int index, const String& newName)
-{
-}
+{}
 
 bool FaustPlugInAudioProcessor::supportsDoublePrecisionProcessing() const
 {
@@ -538,12 +534,6 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 #endif
 }
 
-void FaustPlugInAudioProcessor::releaseResources()
-{
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
-}
-
 bool FaustPlugInAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
 #ifdef JUCE_POLY
@@ -563,7 +553,6 @@ bool FaustPlugInAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
     
 #endif
 }
-
 
 template <typename FloatType>
 void FaustPlugInAudioProcessor::process (AudioBuffer<FloatType>& buffer, MidiBuffer& midiMessages)
