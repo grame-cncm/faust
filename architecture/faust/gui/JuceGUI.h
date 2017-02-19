@@ -27,6 +27,12 @@
 #define FAUSTFLOAT float
 #endif
 
+#include "../JuceLibraryCode/JuceHeader.h"
+#include <stack>
+#include "faust/gui/GUI.h"
+#include "faust/gui/MetaDataUI.h"
+#include "faust/gui/ValueConverter.h"
+
 // Definition of the standard size of the different elements
 
 #define kKnobWidth 100
@@ -68,12 +74,6 @@
 #define kNameHeight 14
 
 #define kMargin 4
-
-#include "../JuceLibraryCode/JuceHeader.h"
-#include <stack>
-#include "faust/gui/GUI.h"
-#include "faust/gui/MetaDataUI.h"
-#include "faust/gui/ValueConverter.h"
 
 /**
  * \brief       Custom LookAndFeel class.

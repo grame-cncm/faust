@@ -272,6 +272,9 @@ class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
         
         void getStateInformation (MemoryBlock& destData) override;
         void setStateInformation (const void* data, int sizeInBytes) override;
+    
+        void releaseResources() override
+        {}
         
         void timerCallback() override;
     

@@ -204,6 +204,9 @@ class FaustComponent : public AudioAppComponent, private Timer
             
             fDSP->init(int(sampleRate));
         }
+    
+        void releaseResources() override
+        {}
 
         void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override
         {
