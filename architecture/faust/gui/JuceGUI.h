@@ -424,9 +424,10 @@ class uiBase
                             r.getHeight());
         }
     
-        virtual void init(Component* comp)
+        virtual void init(Component* comp = nullptr)
         {
             /** Initialize both vertical and horizontal ratios. */
+            assert(comp);
             uiBase* parentBox = comp->findParentComponentOfClass<uiBase>();
             if (parentBox != nullptr) {
                 fHRatio = (float)fTotalWidth / (float)parentBox->fDisplayRectWidth;
@@ -1625,12 +1626,13 @@ class uiBox : public uiBase, public Component
             // Using child's totalSize, because the display rectangle size need to be as big as
             // all of its child components with their margins included.
             for (int j = 0; j < getNumChildComponents(); j++) {
+                uiBase* base_comp = dynamic_cast<uiBase*>(getChildComponent(j));
                 if (fIsVertical) {
-                    fDisplayRectWidth = jmax(fDisplayRectWidth, dynamic_cast<uiBase*>(getChildComponent(j))->getTotalWidth());
-                    fDisplayRectHeight += (dynamic_cast<uiBase*>(getChildComponent(j))->getTotalHeight());
+                    fDisplayRectWidth = jmax(fDisplayRectWidth, base_comp->getTotalWidth());
+                    fDisplayRectHeight += base_comp->getTotalHeight();
                 } else {
-                    fDisplayRectWidth += (dynamic_cast<uiBase*>(getChildComponent(j))->getTotalWidth());
-                    fDisplayRectHeight = jmax(fDisplayRectHeight, dynamic_cast<uiBase*>(getChildComponent(j))->getTotalHeight());
+                    fDisplayRectWidth += base_comp->getTotalWidth();
+                    fDisplayRectHeight = jmax(fDisplayRectHeight, base_comp->getTotalHeight());
                 }
             }
             
@@ -1655,15 +1657,15 @@ class uiBox : public uiBase, public Component
         }
 
         /** Initiate the current box ratio, and its child's ones recursively. */
-        void init(Component* comp) override
+        void init(Component* comp = nullptr) override
         {
-            uiBase::init(comp);
+            uiBase::init(this);
             
             // Going through the Component tree recursively
-            for (int i = 0; i < comp->getNumChildComponents(); i++) {
-                Component* comp1 = comp->getChildComponent(i);
-                uiBase* base_comp1 = dynamic_cast<uiBase*>(comp1);
-                base_comp1->init(comp1);
+            for (int i = 0; i < getNumChildComponents(); i++) {
+                Component* comp = getChildComponent(i);
+                uiBase* base_comp = dynamic_cast<uiBase*>(comp);
+                base_comp->init(comp);
             }
         }
 
@@ -1744,16 +1746,16 @@ class uiTabBox : public uiBase, public TabbedComponent
          * Initialize all his child ratios (1 uiBox per tabs), the LookAndFeel
          * and the uiTabBox size to fit the biggest of its child.
          */
-        void init(Component* comp) override
+        void init(Component* comp = nullptr) override
         {
             for (int i = 0; i < getNumTabs(); i++) {
-                Component* comp1 = getTabContentComponent(i);
-                uiBase* base_comp1 = dynamic_cast<uiBase*>(comp1);
-                base_comp1->init(comp1);
+                Component* comp = getTabContentComponent(i);
+                uiBase* base_comp = dynamic_cast<uiBase*>(comp);
+                base_comp->init(comp);
                 
                 // The TabbedComponent size should be as big as its bigger child's dimension, done here
-                fTotalWidth = jmax(fTotalWidth, base_comp1->getTotalWidth());
-                fTotalHeight = jmax(fTotalHeight, base_comp1->getTotalHeight());
+                fTotalWidth = jmax(fTotalWidth, base_comp->getTotalWidth());
+                fTotalHeight = jmax(fTotalHeight, base_comp->getTotalHeight());
             }
             
             fTotalHeight += 30;  // 30 height for the TabBar.
@@ -1928,9 +1930,8 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
             
             if (fBoxStack.empty()) {
                 // Add root box in JuceGUI component
-                Component* comp = dynamic_cast<Component*>(fCurrentBox);
-                addAndMakeVisible(comp);
-                fCurrentBox->init(comp);
+                addAndMakeVisible(dynamic_cast<Component*>(fCurrentBox));
+                fCurrentBox->init();
                 // Force correct draw
                 resized();
             } else {
