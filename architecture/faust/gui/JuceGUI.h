@@ -572,7 +572,7 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
         void sliderValueChanged(Slider* slider) override
         {
             float value = slider->getValue();
-            std::cout << getName() << " : " << value << std::endl;
+            //std::cout << getName() << " : " << value << std::endl;
             modifyZone(value);
         }
 
@@ -676,6 +676,7 @@ class uiButton : public uiComponent, private juce::Button::Listener
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
+            fButton.triggerClick();
         }
 
         /** Set the good coordinates and size to the juce::TextButton widget whenever the layout size changes. */
@@ -720,7 +721,7 @@ class uiCheckButton : public uiComponent, private juce::Button::Listener
         /** Indicate to the FAUST module when the button is toggled or not. */
         void buttonClicked(Button* button) override
         {
-            std::cout << getName() << " : " << button->getToggleState() << std::endl;
+            //std::cout << getName() << " : " << button->getToggleState() << std::endl;
             modifyZone(button->getToggleState());
         }
 
@@ -728,6 +729,7 @@ class uiCheckButton : public uiComponent, private juce::Button::Listener
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
+            fCheckButton.triggerClick();
         }
 
         /** Set the good coordinates and size to the juce::ToggleButton widget, whenever the layout size changes. */
@@ -806,7 +808,7 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
         /** Indicate to the FAUST module when the selected items is changed. */
         void comboBoxChanged (ComboBox* cb) override
         {
-            std::cout << getName( )<< " : " << cb->getSelectedId() - 1 << std::endl;
+            //std::cout << getName( )<< " : " << cb->getSelectedId() - 1 << std::endl;
             // -1 because of the +1 at the initialization
             modifyZone(cb->getSelectedId() - 1);
         }
@@ -957,7 +959,7 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
         void buttonClicked(Button* button) override
         {
             ToggleButton* checkButton = dynamic_cast<ToggleButton*>(button);
-            std::cout << getName() << " : " << fButtons.indexOf(checkButton) << std::endl;
+            //std::cout << getName() << " : " << fButtons.indexOf(checkButton) << std::endl;
             modifyZone(fButtons.indexOf(checkButton));
         }
     

@@ -573,7 +573,8 @@ void FaustPlugInAudioProcessor::process (AudioBuffer<FloatType>& buffer, MidiBuf
     // Then write MIDI output events to midiMessages
     fMIDIHandler->encodeBuffer(midiMessages);
 #endif
-    fDSP->compute(buffer.getNumSamples(),
+    // MIDI timestamp is expressed in frames
+    fDSP->compute(-1, buffer.getNumSamples(),
                   (FAUSTFLOAT**)buffer.getArrayOfReadPointers(),
                   (FAUSTFLOAT**)buffer.getArrayOfWritePointers());
 #endif

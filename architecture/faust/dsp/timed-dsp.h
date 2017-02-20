@@ -233,7 +233,7 @@ class timed_dsp : public decorator_dsp {
 
     public:
 
-        timed_dsp(dsp* dsp):decorator_dsp(dsp), fDateUsec(0),fOffsetUsec(0), fFirstCallback(true)
+        timed_dsp(dsp* dsp):decorator_dsp(dsp), fDateUsec(0), fOffsetUsec(0), fFirstCallback(true)
         {}
         virtual ~timed_dsp() 
         {}
@@ -264,7 +264,7 @@ class timed_dsp : public decorator_dsp {
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             if (date_usec == -1) {
-                // JACK mode : timestamp is already in frames
+                // Timestamp is expressed in frames
                 computeAux(count, inputs, outputs, false);
             } else {
                 // Save the timestamp offset in the first callback

@@ -222,7 +222,8 @@ class FaustComponent : public AudioAppComponent, private Timer
                 outputs[i] = bufferToFill.buffer->getWritePointer(i, bufferToFill.startSample);
             }
             
-            fDSP->compute(bufferToFill.numSamples, (float**)inputs, outputs);
+            // MIDI timestamp is expressed in frames
+            fDSP->compute(-1, bufferToFill.numSamples, (float**)inputs, outputs);
         }
 
         void paint (Graphics& g) override

@@ -51,7 +51,7 @@ struct FaustPlugInAudioParameterBool : public AudioParameterBool, public uiOwned
     
 };
 
-// Link AudioParameterFloat with range paramaters
+// Link AudioParameterFloat with range parameters
 
 struct FaustPlugInAudioParameterFloat : public AudioParameterFloat, public uiOwnedItem {
     
@@ -72,6 +72,7 @@ struct FaustPlugInAudioParameterFloat : public AudioParameterFloat, public uiOwn
     }
     
 };
+
 // A class to create AudioProcessorParameter objects for each zone
 
 class JuceParameterUI : public GUI {
