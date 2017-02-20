@@ -9,8 +9,21 @@
 // key using the `x` and `y` standard parameters. Keyboard mode is deactivated so that
 // the color of the pad doesn't change when it is pressed.
 //
-// Author: Romain Michon (rmichon_at_ccrma_dot_stanford_dot_edu)
-// 06/17/2016
+// ## Compilation Instructions
+//
+// This Faust code will compile fine with any of the standard Faust targets. However
+// it was specifically designed to be used with `faust2smartkeyb`. For best results,
+// we recommend to use the following parameters to compile it:
+//
+// ```
+// faust2smartkeyb [-ios/-android] dubDub.dsp
+// ```
+//
+// ## Version/Licence
+//
+// Version 0.0, Feb. 2017
+// Copyright Romain Michon CCRMA (Stanford University)/GRAME 2017
+// MIT Licence: https://opensource.org/licenses/MIT
 //########################################################################################
 
 declare name "dubDub";
@@ -22,9 +35,10 @@ import("stdfaust.lib");
 //========================================================================================
 
 declare interface "SmartKeyboard{
-	'nKeyb':'1',
-	'keyb0_nKeys':'1',
-	'keyb0_keybMode':'0'
+	'Number of Keyboards':'1',
+	'Keyboard 0 - Number of Keys':'1',
+	'Keyboard 0 - Piano Keyboard':'0',
+	'Keyboard 0 - Static Mode':'1'
 }";
 
 

@@ -1,45 +1,51 @@
 '.source.faust':
   'import':
     'prefix': 'import'
-    'body': 'import("${1:filter}.lib");'
+    'body': 'import("${1:name}.lib");$0'
+  'import stdfaust.lib':
+    'prefix': 'import stdfaust.lib'
+    'body': 'import("stdfaust.lib");$0'
+  'import all.lib':
+    'prefix': 'import all.lib'
+    'body': 'import("all.lib");$0'
   'library':
     'prefix': 'library'
-    'body': 'library("${1:filter}.lib")'
+    'body': 'library("${1:name}.lib")$0'
   'component':
     'prefix': 'component'
-    'body': 'component("${1:filter}.lib")'
+    'body': 'component("${1:name}.lib")$0'
   'process':
     'prefix': 'process'
-    'body': "process = ${1:expression};$2"
+    'body': "process = ${1:expression};$0"
   'definition':
     'prefix': 'def'
-    'body': "${1:name} = ${2:expression};$3"
+    'body': "${1:name} = ${2:expression};$0"
   'hslider':
     'prefix': 'hslider'
-    'body': 'hslider("${1:volume}",0,0,1,0.01)'
+    'body': 'hslider("${1:title}",${2:default},${3:min},${4:max},${5:step})$0'
   'vslider':
     'prefix': 'vslider'
-    'body': 'vslider("${1:volume}",0,0,1,0.01)'
+    'body': 'vslider("${1:title}",${2:default},${3:min},${4:max},${5:step})$0'
   'button':
     'prefix': 'button'
-    'body': 'button("${1:play}")'
+    'body': 'button("${1:title}")$0'
   'checkbox':
     'prefix': 'checkbox'
-    'body': 'checkbox("${1:mute}")'
+    'body': 'checkbox("${1:title}")$0'
   'hbargraph':
     'prefix': 'hbargraph'
-    'body': 'hbargraph("${1:vumeter}",0,1)'
+    'body': 'hbargraph("${1:title}",${2:min},${3:max})$0'
   'vbargraph':
     'prefix': 'vbargraph'
-    'body': 'vbargraph("${1:vumeter}",0,1)'
+    'body': 'vbargraph("${1:title}",${2:min},${3:max})$0'
   'environment':
     'prefix': 'environment'
-    'body': 'environment {${1:definition};}'
+    'body': 'environment {${1:definitions};}$0'
   'with':
     'prefix': 'with'
     'body': """
     	with {
-    		${1:name} = ${2:definition};$3
+    		${1:name} = ${2:definition};$0
     	}
     """
   'doc':

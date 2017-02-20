@@ -28,8 +28,6 @@
 #include "faust/dsp/timed-dsp.h"
 #include "faust/gui/MapUI.h"
 #include "faust/misc.h"
-
-#include "faust/gui/APIUI.h"
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/JuceGUI.h"
 #include "faust/gui/MidiUI.h"
@@ -41,11 +39,11 @@ using std::max;
 using std::min;
 
 #if defined(OSCCTRL)
-	#include "faust/gui/JuceOSCUI.h"
+#include "faust/gui/JuceOSCUI.h"
 #endif //OSCCTRL
 
 #if defined(MIDICTRL)
-	#include "faust/midi/juce-midi.h"
+#include "faust/midi/juce-midi.h"
 #endif //MIDICTRL
 
 #include "faust/dsp/poly-dsp.h"
@@ -58,9 +56,6 @@ using std::min;
 <<includeIntrinsic>>
 
 <<includeclass>>
-
-std::list<GUI*> GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
 
 struct MyMeta : public Meta, public std::map<std::string, std::string>
 {
@@ -103,11 +98,11 @@ static void analyseMeta(bool& midi_sync, int& nvoices)
     delete tmp_dsp;
 }
 
-class MainContentComponent : public AudioAppComponent, private Timer
+class FaustComponent : public AudioAppComponent, private Timer
 {
     public:
    
-        MainContentComponent()
+        FaustComponent()
         {
             bool midi_sync = false;
             int nvoices = 1;
@@ -116,31 +111,29 @@ class MainContentComponent : public AudioAppComponent, private Timer
             analyseMeta(midi_sync, nvoices);
             
         #ifdef POLY2
-            dsp* tmp_dsp = new mydsp();
             std::cout << "Started with " << nvoices << " voices\n";
                 
         #if MIDICTRL
             if (midi_sync) {
-                fDSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new dsp_effect()));
+                fDSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new dsp_effect()));
             } else {
-                fDSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new dsp_effect());
+                fDSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new dsp_effect());
             }
         #else
-            fDSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, false, group), new dsp_effect());
+            fDSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, false, group), new dsp_effect());
         #endif
                 
         #else
-            dsp* tmp_dsp = new mydsp();
             if (nvoices > 1) {
                 std::cout << "Started with " << nvoices << " voices\n";
         #if MIDICTRL
                 if (midi_sync) {
-                    fDSP = new timed_dsp(new mydsp_poly(tmp_dsp, nvoices, true, group));
+                    fDSP = new timed_dsp(new mydsp_poly(new mydsp(), nvoices, true, group));
                 } else {
-                    fDSP = new mydsp_poly(tmp_dsp, nvoices, true, group);
+                    fDSP = new mydsp_poly(new mydsp(), nvoices, true, group);
                 }
         #else
-                fDSP = new mydsp_poly(tmp_dsp, nvoices, false, group);
+                fDSP = new mydsp_poly(new mydsp(), nvoices, false, group);
         #endif
             } else {
         #if MIDICTRL
@@ -185,7 +178,7 @@ class MainContentComponent : public AudioAppComponent, private Timer
             startTimerHz(25); 
         }
 
-        ~MainContentComponent()
+        ~FaustComponent()
         {
             shutdownAudio();
         }
@@ -211,6 +204,9 @@ class MainContentComponent : public AudioAppComponent, private Timer
             
             fDSP->init(int(sampleRate));
         }
+    
+        void releaseResources() override
+        {}
 
         void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override
         {
@@ -226,12 +222,8 @@ class MainContentComponent : public AudioAppComponent, private Timer
                 outputs[i] = bufferToFill.buffer->getWritePointer(i, bufferToFill.startSample);
             }
             
-            fDSP->compute(bufferToFill.numSamples, (float**)inputs, outputs);
-        }
-
-        void releaseResources() override
-        {
-            
+            // MIDI timestamp is expressed in frames
+            fDSP->compute(-1, bufferToFill.numSamples, (float**)inputs, outputs);
         }
 
         void paint (Graphics& g) override
@@ -269,11 +261,157 @@ class MainContentComponent : public AudioAppComponent, private Timer
     
         Rectangle<int> recommendedSize;
         Rectangle<int> r = Desktop::getInstance().getDisplays().getMainDisplay().userArea;
-        int screenWidth  = r.getWidth();
+        int screenWidth = r.getWidth();
         int screenHeight = r.getHeight();
 
-        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustComponent)
 };
 
 // (This function is called by the app startup code to create our main component)
-MainContentComponent* createMainContentComponent()     { return new MainContentComponent(); }
+FaustComponent* createFaustComponent()     { return new FaustComponent(); }
+
+//==============================================================================
+class FaustAudioApplication : public JUCEApplication
+{
+    
+    public:
+        //==============================================================================
+        FaustAudioApplication() {}
+        
+        const String getApplicationName() override       { return ProjectInfo::projectName; }
+        const String getApplicationVersion() override    { return ProjectInfo::versionString; }
+        bool moreThanOneInstanceAllowed() override       { return true; }
+        
+        //==============================================================================
+        void initialise (const String& commandLine) override
+        {
+            // This method is where you should put your application's initialisation code..
+            mainWindow = new MainWindow (getApplicationName());
+        }
+        
+        void shutdown() override
+        {
+            // Add your application's shutdown code here..
+            
+            mainWindow = nullptr; // (deletes our window)
+        }
+        
+        //==============================================================================
+        void systemRequestedQuit() override
+        {
+            // This is called when the app is being asked to quit: you can ignore this
+            // request and let the app carry on running, or call quit() to allow the app to close.
+            quit();
+        }
+        
+        void anotherInstanceStarted (const String& commandLine) override
+        {
+            // When another instance of the app is launched while this one is running,
+            // this method is invoked, and the commandLine parameter tells you what
+            // the other instance's command-line arguments were.
+        }
+        
+        //==============================================================================
+        /*
+         This class implements the desktop window that contains an instance of
+         our FaustComponent class.
+         */
+        
+        class myViewport : public Viewport
+        {
+        public:
+            myViewport(String name, int w, int h, int rW, int rH): Viewport(name), minWidth(w), minHeight(h), recommendedWidth(rW), recommendedHeight(rH)
+            {
+                addAndMakeVisible(tooltipWindow);
+            }
+            
+            virtual void resized() override {
+                Viewport::resized();
+                getBounds().getWidth() < minWidth ? ((minWidth < recommendedWidth) ? width = minWidth
+                                                     : width = recommendedWidth)
+                : width = getBounds().getWidth();
+                getBounds().getHeight() < minHeight ? ((minHeight < recommendedHeight) ? height = minHeight
+                                                       : height = recommendedHeight)
+                : height = getBounds().getHeight();
+                
+            #if JUCE_IOS || JUCE_ANDROID
+                currentAreaChanged(width, height);
+            #else
+                getViewedComponent()->setBounds(Rectangle<int>(0, 0, width, height));
+            #endif
+            }
+            
+            void currentAreaChanged (int w, int h) {
+                getViewedComponent()->setBounds(0, 0, jmax(getParentWidth(), w), jmax(getParentHeight(), h));
+                setSize(getParentWidth(), getParentHeight());
+            }
+            
+        private:
+            int minWidth, minHeight;
+            int recommendedWidth, recommendedHeight;
+            int width, height;
+            TooltipWindow tooltipWindow;
+            int j = 0;
+        };
+        
+        class MainWindow : public DocumentWindow
+        {
+        public:
+            MainWindow (String name) : DocumentWindow (name,
+                                                       Colours::lightgrey,
+                                                       DocumentWindow::allButtons)
+            {
+                setUsingNativeTitleBar (true);
+                
+            #if JUCE_IOS || JUCE_ANDROID
+                setFullScreen(true);
+            #endif
+                
+                FaustComponent* fWindow = createFaustComponent();
+                int minWidth  = fWindow->getMinSize().getWidth();
+                int minHeight = fWindow->getMinSize().getHeight();
+                int recomWidth = fWindow->getRecommendedSize().getWidth();
+                int recomHeight = fWindow->getRecommendedSize().getHeight();
+                
+                fViewport = new myViewport(name, minWidth, minHeight, recomWidth, recomHeight);
+                fViewport->setViewedComponent(fWindow);
+                fViewport->setSize(minWidth, minHeight);
+                
+                setContentOwned(fViewport, true);
+                centreWithSize (getWidth(), getHeight());
+                setResizable (true, false);
+                setVisible(true);
+            }
+            
+            void closeButtonPressed() override
+            {
+                // This is called when the user tries to close this window. Here, we'll just
+                // ask the app to quit when this happens, but you can change this to do
+                // whatever you need.
+                JUCEApplication::getInstance()->systemRequestedQuit();
+            }
+            
+            /* Note: Be careful if you override any DocumentWindow methods - the base
+             class uses a lot of them, so by overriding you might break its functionality.
+             It's best to do all your work in your content component instead, but if
+             you really have to override any DocumentWindow methods, make sure your
+             subclass also calls the superclass's method.
+             */
+            
+        private:
+            ScopedPointer<myViewport> fViewport;
+            JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
+        };
+        
+    private:
+        ScopedPointer<MainWindow> mainWindow;
+};
+
+//==============================================================================
+// This macro generates the main() routine that launches the app.
+START_JUCE_APPLICATION (FaustAudioApplication)
+
+// Globals
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+
