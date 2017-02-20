@@ -39,14 +39,13 @@ declare version "0.0";
 FAUST library file, jos section
 
 Except where noted otherwise, The Faust functions below in this
-section Copyright (C) 2003-2017 by Julius O. Smith III
+section Copyright (C) 2003-2017 by Julius O. Smith III <jos@ccrma.stanford.edu>
 ([jos](http://ccrma.stanford.edu/~jos/)), and released under the
 (MIT-style) [STK-4.3](#stk-4.3-license) license.
 
-All MarkDown comments in this section is Copyright 2016-2017 by Romain
-Michon and Julius O. Smith III, and is released under the
-[CCA4I](https://creativecommons.org/licenses/by/4.0/) license (if/when
-Romain agrees!)
+All MarkDown comments in this section are Copyright 2016-2017 by Romain
+Michon and Julius O. Smith III, and are released under the
+[CCA4I](https://creativecommons.org/licenses/by/4.0/) license (TODO: if/when Romain agrees!)
 
 ************************************************************************/
 
@@ -2206,6 +2205,7 @@ filterbanki(O,lfreqs) = _ <: bsplit(nb) with
    delayeq(i) =  ap(i) : delayeq(i-1);
 };
 
+// end jos section
 /************************************************************************
 ************************************************************************
 FAUST library file, GRAME section
@@ -2255,3 +2255,5 @@ license disposition, if their license choice is not already indicated
 elsewhere among the libraries.  It is expected that all software will be
 released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
+
+// end further further contributions section

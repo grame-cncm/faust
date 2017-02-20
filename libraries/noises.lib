@@ -115,7 +115,7 @@ noises(N,i) = multinoise(N) : ba.selector(i,N);
 FAUST library file, jos section
 
 Except where noted otherwise, The Faust functions below in this
-section are Copyright (C) 2003-2017 by Julius O. Smith III
+section are Copyright (C) 2003-2017 by Julius O. Smith III <jos@ccrma.stanford.edu>
 ([jos](http://ccrma.stanford.edu/~jos/)), and released under the
 (MIT-style) [STK-4.3](#stk-4.3-license) license.
 
