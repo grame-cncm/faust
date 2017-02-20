@@ -100,13 +100,13 @@ ztimedmap GUI::gTimedZoneMap;
 *******************************************************************************
 *******************************************************************************/
 
-struct MyMeta : public Meta, public std::map<const char*, const char*>
+struct MyMeta : public Meta, public std::map<std::string, std::string>
 {
     void declare(const char* key, const char* value)
     {
         (*this)[key] = value;
     }
-    const char* get(const char* key, const char* def)
+    const std::string get(const char* key, const char* def)
     {
         if (this->find(key) != this->end()) {
             return (*this)[key];
@@ -133,8 +133,8 @@ static void analyseMeta(bool& midi_sync, int& nvoices)
 #else
     MyMeta meta;
     tmp_dsp->metadata(&meta);
-    const char* numVoices = meta.get("nvoices", "0");
-    nvoices = atoi(numVoices);
+    std::string numVoices = meta.get("nvoices", "0");
+    nvoices = atoi(numVoices.c_str());
     if (nvoices < 0) nvoices = 0;
 #endif
     
@@ -155,23 +155,21 @@ int main(int argc, char *argv[])
     snprintf(rcfilename, 255, "%s/.%src", home, name);
    
 #ifdef POLY2
-    dsp* tmp_dsp = new mydsp();
     nvoices = lopt(argv, "--nvoices", nvoices);
     int group = lopt(argv, "--group", 1);
     std::cout << "Started with " << nvoices << " voices\n";
     
 #if MIDICTRL
     if (midi_sync) {
-        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new effect()));
+        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new effect()));
     } else {
-        DSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, true, group), new effect());
+        DSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new effect());
     }
 #else
-    DSP = new dsp_sequencer(new mydsp_poly(tmp_dsp, nvoices, false, group), new effect());
+    DSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, false, group), new effect());
 #endif
     
 #else
-    dsp* tmp_dsp = new mydsp();
     nvoices = lopt(argv, "--nvoices", nvoices);
     int group = lopt(argv, "--group", 1);
     
@@ -179,12 +177,12 @@ int main(int argc, char *argv[])
         std::cout << "Started with " << nvoices << " voices\n";
 #if MIDICTRL
         if (midi_sync) {
-            DSP = new timed_dsp(new mydsp_poly(tmp_dsp, nvoices, true, group));
+            DSP = new timed_dsp(new mydsp_poly(new mydsp(), nvoices, true, group));
         } else {
-            DSP = new mydsp_poly(tmp_dsp, nvoices, true, group);
+            DSP = new mydsp_poly(new mydsp(), nvoices, true, group);
         }
 #else
-        DSP = new mydsp_poly(tmp_dsp, nvoices, false, group);
+        DSP = new mydsp_poly(new mydsp(), nvoices, false, group);
 #endif
     } else {
 #if MIDICTRL

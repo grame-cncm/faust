@@ -8,6 +8,9 @@
 #                                                                   #
 #####################################################################
 
+NVOICES=-1
+EFFECT=""
+
 # path to max SDK
 
 SDK=/usr/local/include/c74support/
@@ -71,8 +74,9 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2msp [-nvoices <num>] [-midi] <file.dsp>"
+        echo "faust2msp [-nvoices <num>] [-effect <effect.dsp>] [-midi] <file.dsp>"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
+        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-midi' to activate MIDI control"
         exit
     fi
@@ -93,6 +97,10 @@ do
         if [ $NVOICES -ge 0 ]; then
             CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
         fi
+    elif [ $p = "-effect" ]; then
+        POLYDEFS="-DPOLY2"
+        shift
+    EFFECT=$1
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
     elif [ ${p:0:1} = "-" ]; then
@@ -133,14 +141,19 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -a $FAUSTLIB/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    if [ "$EFFECT" = "" ]; then
+        faust -i -a $FAUSTLIB/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    else
+        faust -i -a $FAUSTLIB/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -cn effect -a $FAUSTLIB/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
+    fi
 
     # compile c++ to binary
     (
 	cd "$TMP"
 	install -d "${f%.dsp}$EXT/Contents/MacOS"
  
-	$CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+	$CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
     ) >/dev/null  || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"

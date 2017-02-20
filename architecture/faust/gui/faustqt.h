@@ -1598,7 +1598,8 @@ public:
         QDoubleSpinBox*     w = new QDoubleSpinBox();
         uiNumEntry*         c = new uiNumEntry(this, zone, w, init, min, max, step);
         insert(label, w);
-        w->setSuffix(fUnit[zone].c_str());
+        std::string suffix = " " + fUnit[zone];
+        w->setSuffix(suffix.c_str());
         QObject::connect(w, SIGNAL(valueChanged(double)), c, SLOT(setValue(double)));
         if (label && label[0]) closeBox();
         checkForTooltip(zone, w);
@@ -1624,7 +1625,8 @@ public:
         uiNumEntry* c = new uiNumEntry(this, zone, w, init, min, max, step);
         insert(label, w);
         w->setButtonSymbols(QAbstractSpinBox::NoButtons);
-        w->setSuffix(fUnit[zone].c_str());
+        std::string suffix = " " + fUnit[zone];
+        w->setSuffix(suffix.c_str());
         QObject::connect(w, SIGNAL(valueChanged(double)), c, SLOT(setValue(double)));
         if (label && label[0]) closeBox();
         checkForTooltip(zone, w);

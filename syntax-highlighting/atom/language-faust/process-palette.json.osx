@@ -1,0 +1,100 @@
+{
+  "patterns": {
+    "P1": {
+      "expression": "(path):(line)"
+    },
+    "P2": {
+      "expression": "(path)\\s+(line)",
+      "path": "(?:\\/[\\w\\.\\-]+)+"
+    }
+  },
+  "commands": [
+    {
+      "namespace": "faust",
+      "action": "Documentation",
+      "command": "open http://faust.grame.fr/libraries.html#{selection}",
+      "arguments": [],
+      "cwd": null,
+      "inputDialogs": [],
+      "env": {},
+      "keystroke": "ctrl-alt-cmd-d",
+      "stream": false,
+      "outputTarget": "panel",
+      "outputBufferSize": 80000,
+      "maxCompleted": 3,
+      "autoShowOutput": true,
+      "autoHideOutput": false,
+      "scrollLockEnabled": false,
+      "singular": false,
+      "promptToSave": true,
+      "saveOption": "none",
+      "patterns": [
+        "default"
+      ],
+      "successOutput": "{stdout}",
+      "errorOutput": "{stdout}\n{stderr}",
+      "fatalOutput": "Failed to execute : {fullCommand}\n{stdout}\n{stderr}",
+      "successMessage": "Executed : {fullCommand}",
+      "errorMessage": "Executed : {fullCommand}\nReturned with code {exitStatus}\n{stderr}",
+      "fatalMessage": "Failed to execute : {fullCommand}\n{stdout}\n{stderr}"
+    },
+    {
+      "namespace": "faust",
+      "action": "C++ code",
+      "command": "faust {filePath}",
+      "arguments": [],
+      "cwd": "{fileDirAbsPath}",
+      "inputDialogs": [],
+      "env": {},
+      "keystroke": "ctrl-alt-cmd-c",
+      "stream": true,
+      "outputTarget": "file",
+      "outputBufferSize": 80000,
+      "maxCompleted": 3,
+      "autoShowOutput": true,
+      "autoHideOutput": false,
+      "scrollLockEnabled": false,
+      "singular": true,
+      "promptToSave": true,
+      "saveOption": "none",
+      "patterns": [
+        "default"
+      ],
+      "successOutput": "{stdout}",
+      "errorOutput": "{stdout}\n{stderr}",
+      "fatalOutput": "Failed to execute : {fullCommand}\n{stdout}\n{stderr}",
+      "successMessage": "Executed : {fullCommand}",
+      "errorMessage": "Executed : {fullCommand}\nReturned with code {exitStatus}\n{stderr}",
+      "fatalMessage": "Failed to execute : {fullCommand}\n{stdout}\n{stderr}"
+    },
+    {
+      "namespace": "faust",
+      "action": "block-diagram",
+      "command": "faust2firefox {filePath}",
+      "arguments": [],
+      "cwd": "{fileDirAbsPath}",
+      "inputDialogs": [],
+      "env": {},
+      "keystroke": "ctrl-alt-cmd-g",
+      "stream": true,
+      "outputTarget": "panel",
+      "outputBufferSize": 80000,
+      "maxCompleted": 1,
+      "autoShowOutput": false,
+      "autoHideOutput": false,
+      "scrollLockEnabled": false,
+      "singular": true,
+      "promptToSave": false,
+      "saveOption": "all",
+      "patterns": [
+        "default"
+      ],
+      "successOutput": "{stdout}",
+      "errorOutput": "{stdout}\n{stderr}",
+      "fatalOutput": "Failed to execute : {fullCommand}\n{stdout}\n{stderr}",
+      "successMessage": "Executed : {fullCommand}",
+      "errorMessage": "Executed : {fullCommand}\nReturned with code {exitStatus}\n{stderr}",
+      "fatalMessage": "Failed to execute : {fullCommand}\n{stdout}\n{stderr}"
+    }
+  ]
+}

@@ -11,6 +11,7 @@
 POLY=""
 NOPATCH="0"
 NVOICES=-1
+EFFECT=""
 
 # path to max SDK
 
@@ -77,8 +78,9 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2max6 [-nvoices <num>] [-midi] [-nopatch] <file.dsp>"
+        echo "faust2max6 [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-nopatch] <file.dsp>"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
+        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-nopatch' to deactivate patch generation"
         exit
@@ -101,6 +103,10 @@ do
         if [ $NVOICES -ge 0 ]; then
             CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
         fi
+    elif [ $p = "-effect" ]; then
+        POLYDEFS="-DPOLY2"
+        shift
+        EFFECT=$1
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
     elif [ $p = "-nopatch" ]; then
@@ -148,14 +154,19 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -double -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    if [ "$EFFECT" = "" ]; then
+        faust -i -double -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    else
+        faust -i -double -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -double -cn effect -a $FAUSTLIB/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
+    fi
 
     # compile c++ to binary
     (
 	cd "$TMP"
 	install -d "${f%.dsp}$EXT/Contents/MacOS"
 
-	$CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -arch x86_64  -Wl,-U,_object_new_imp -Wl,-U,_object_method_imp -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+	$CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -arch x86_64  -Wl,-U,_object_new_imp -Wl,-U,_object_method_imp -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
     ) > /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
@@ -169,7 +180,7 @@ for p in $FILES; do
 
     # collect binary file name for FaustGIDE
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
-    
+
     # create Max patch
     if [ "$NOPATCH" = "0" ]; then
         if [ "$POLY" = "POLY1" ]; then

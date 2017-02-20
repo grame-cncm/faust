@@ -20,6 +20,7 @@ install:
 	install faust2android $(dest)
 	install faust2api $(dest)
 	install faust2asmjs $(dest)
+	install faust2atomsnippets $(dest)
 	install faust2au $(dest)
 	install faust2caqt $(dest)
 	install faust2bela $(dest)
@@ -45,7 +46,6 @@ install:
 	install faust2mathviewer $(dest)
 	install faust2max6 $(dest)
 	install faust2md $(dest)
-	install faust2multikeyb $(dest)
 	install faust2msp $(dest)
 	install faust2netjackconsole $(dest)
 	install faust2netjackqt $(dest)
@@ -63,6 +63,7 @@ install:
 	install faust2rpinetjackconsole $(dest)
 	install faust2sig $(dest)
 	install faust2sigviewer $(dest)
+	install faust2smartkeyb $(dest)
 	install faust2supercollider $(dest)
 	install faust2svg $(dest)
 	install faust2vst $(dest)
@@ -86,6 +87,7 @@ uninstall:
 	rm -f $(dest)/faust2android
 	rm -f $(dest)/faust2api
 	rm -f $(dest)/faust2asmjs
+	rm -f $(dest)/faust2atomsnippets
 	rm -f $(dest)/faust2au
 	rm -f $(dest)/faust2bela
 	rm -f $(dest)/faust2caqt
@@ -111,7 +113,6 @@ uninstall:
 	rm -f $(dest)/faust2mathviewer
 	rm -f $(dest)/faust2max6
 	rm -f $(dest)/faust2md
-	rm -f $(dest)/faust2multikeyb
 	rm -f $(dest)/faust2msp
 	rm -f $(dest)/faust2netjackconsole
 	rm -f $(dest)/faust2netjackqt
@@ -129,6 +130,7 @@ uninstall:
 	rm -f $(dest)/faust2rpinetjackconsole
 	rm -f $(dest)/faust2sig
 	rm -f $(dest)/faust2sigviewer
+	rm -f $(dest)/faust2smartkeyb
 	rm -f $(dest)/faust2supercollider
 	rm -f $(dest)/faust2svg
 	rm -f $(dest)/faust2vst

@@ -263,13 +263,20 @@ class uiMidiPitchWheel : public uiMidiItem
 {
 
     private:
-    
-        LinearValueConverter fConverter;
+    	
+		// currently, the range is of pitchwheel if fixed (-2/2 semitones)
+		FAUSTFLOAT wheel2bend(float v){
+			return pow(2.0,(v/16383.0*4-2)/12);
+		}
+
+		int bend2wheel(float v){
+			return (int)((12*log(v)/log(2)+2)/4*16383);
+		}
  
     public:
     
-        uiMidiPitchWheel(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
-            :uiMidiItem(midi_out, ui, zone, input), fConverter(0., 16383, double(min), double(max))
+        uiMidiPitchWheel(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true)
+            :uiMidiItem(midi_out, ui, zone, input)
         {}
         virtual ~uiMidiPitchWheel()
         {}
@@ -278,13 +285,13 @@ class uiMidiPitchWheel : public uiMidiItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->pitchWheel(0, fConverter.faust2ui(v));
+            fMidiOut->pitchWheel(0, bend2wheel(v));
         }
         
         void modifyZone(int v) 	
         { 
             if (fInputCtrl) {
-                uiItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
+                uiItem::modifyZone(wheel2bend(v));
             }
         }
  
@@ -429,7 +436,7 @@ class MidiUI : public GUI, public midi
                             fChanPressTable[num].push_back(new uiMidiChanPress(fMidiHandler, num, this, zone, input));
                         } else if (strcmp(fMetaAux[i].second.c_str(), "pitchwheel") == 0 
                             || strcmp(fMetaAux[i].second.c_str(), "pitchbend") == 0) {
-                            fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiHandler, this, zone, min, max, input));
+                            fPitchWheelTable.push_back(new uiMidiPitchWheel(fMidiHandler, this, zone, input));
                         // MIDI sync
                         } else if (strcmp(fMetaAux[i].second.c_str(), "start") == 0) {
                             fStartTable.push_back(new uiMidiStart(fMidiHandler, this, zone, input));
