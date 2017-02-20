@@ -1302,7 +1302,7 @@ StatementInst* InstructionsCompiler::generateInitArray(const string& vname, Type
 {
     ValueInst* init = InstBuilder::genTypedZero(ctype);
     BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
-    string index = gGlobal->getFreshID("i");
+    string index = gGlobal->getFreshID("l");
 
     // Generates table declaration
     pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genArrayTyped(typed, delay)));
