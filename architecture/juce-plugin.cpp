@@ -30,6 +30,7 @@
 #include "faust/misc.h"
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/JuceGUI.h"
+#include "faust/gui/JuceParameterUI.h"
 #include "faust/gui/MidiUI.h"
 
 #include <math.h>
@@ -297,7 +298,8 @@ class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
         ScopedPointer<JuceOSCUI> fOSCUI;
     #endif
         
-        ScopedPointer<JuceStateUI> fStateUI;
+        JuceStateUI fStateUI;
+        JuceParameterUI fParameterUI;
         
     private:
     
@@ -334,7 +336,7 @@ class FaustPlugInAudioProcessorEditor : public AudioProcessorEditor
 static mydsp gDSP;
 
 FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
-: AudioProcessor (getBusesProperties())
+: AudioProcessor (getBusesProperties()), fParameterUI(this)
 {
     bool midi_sync = false;
     int nvoices = 1;
@@ -413,12 +415,12 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     }
 #endif
     
-    fStateUI = new JuceStateUI();
-    
 #ifdef JUCE_POLY
-    fSynth->buildUserInterface(fStateUI);
+    fSynth->buildUserInterface(&fStateUI);
+    fSynth->buildUserInterface(&fParameterUI);
 #else
-    fDSP->buildUserInterface(fStateUI);
+    fDSP->buildUserInterface(&fStateUI);
+    fDSP->buildUserInterface(&fParameterUI);
 #endif
     
     startTimerHz(25);
@@ -595,7 +597,7 @@ void FaustPlugInAudioProcessor::getStateInformation (MemoryBlock& destData)
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
     
-    fStateUI->getStateInformation(destData);
+    fStateUI.getStateInformation(destData);
 }
 
 void FaustPlugInAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
@@ -603,7 +605,7 @@ void FaustPlugInAudioProcessor::setStateInformation (const void* data, int sizeI
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
     
-    fStateUI->setStateInformation(data, sizeInBytes);
+    fStateUI.setStateInformation(data, sizeInBytes);
 }
 
 //==============================================================================
