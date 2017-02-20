@@ -75,7 +75,7 @@ struct MyMeta : public Meta, public std::map<std::string, std::string>
 
 static void analyseMeta(bool& midi_sync, int& nvoices)
 {
-    mydsp* tmp_dsp = new mydsp();
+    ScopedPointer<mydsp> tmp_dsp = new mydsp();
     
     JSONUI jsonui;
     tmp_dsp->buildUserInterface(&jsonui);
@@ -94,8 +94,6 @@ static void analyseMeta(bool& midi_sync, int& nvoices)
     nvoices = atoi(numVoices.c_str());
     if (nvoices < 0) nvoices = 0;
 #endif
-    
-    delete tmp_dsp;
 }
 
 class FaustComponent : public AudioAppComponent, private Timer
