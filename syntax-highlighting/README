@@ -41,10 +41,10 @@ An EMACS Faust mode is provided by Juan Gabriel Alzate Romero at https://github.
 7) NANO
 copy file faust.nanorc into folder /usr/share/nano/
 
-add lines 
+add lines
 	set tabsize 4
 	include "/usr/share/nano/faust.nanorc"
 to file /etc/nanorc
 
 8) ATOM
-Place the directory 'language-faust/' into '~/.atom/packages/'. For specific instructions read atom/language-faust/README.md 
+Copy the directory 'atom/language-faust' into '~/.atom/packages/' and follow the instructions in atom/language-faust/README.md

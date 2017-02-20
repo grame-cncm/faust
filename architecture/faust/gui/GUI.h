@@ -87,7 +87,7 @@ class GUI : public UI
         {
             if (fZoneMap.find(z) == fZoneMap.end()) fZoneMap[z] = new clist();
             fZoneMap[z]->push_back(c);
-        } 	
+        }
 
         void updateAllZones();
         
@@ -126,7 +126,7 @@ class uiItem
         FAUSTFLOAT*     fZone;
         FAUSTFLOAT      fCache;
 
-        uiItem(GUI* ui, FAUSTFLOAT* zone) : fGUI(ui), fZone(zone), fCache(FAUSTFLOAT(-123456.654321)) 
+        uiItem(GUI* ui, FAUSTFLOAT* zone):fGUI(ui), fZone(zone), fCache(FAUSTFLOAT(-123456.654321))
         { 
             ui->registerZone(zone, this); 
         }
@@ -147,6 +147,25 @@ class uiItem
                 
         FAUSTFLOAT		cache()	{ return fCache; }
         virtual void 	reflectZone() = 0;	
+};
+
+/**
+ * User Interface item owned (and so deleted) by external code
+ */
+
+class uiOwnedItem : public uiItem {
+    
+    protected:
+    
+        uiOwnedItem(GUI* ui, FAUSTFLOAT* zone):uiItem(ui, zone)
+        {}
+    
+     public:
+    
+        virtual ~uiOwnedItem()
+        {}
+    
+        virtual void reflectZone() {}
 };
 
 /**
@@ -202,8 +221,6 @@ class uiGroupItem : public uiItem
 
 };
 
-// en cours d'installation de callback : a finir!!!!!
-
 /**
  * Update all user items reflecting zone z
  */
@@ -244,7 +261,11 @@ inline clist::~clist()
 {
     std::list<uiItem*>::iterator it;
     for (it = begin(); it != end(); it++) {
-        delete (*it);
+        uiOwnedItem* owned = dynamic_cast<uiOwnedItem*>(*it);
+        // owned items are deleted by external code
+        if (!owned) {
+            delete (*it);
+        }
     }
 }
 

@@ -28,7 +28,6 @@
 #include "faust/dsp/timed-dsp.h"
 #include "faust/gui/MapUI.h"
 #include "faust/misc.h"
-
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/JuceGUI.h"
 #include "faust/gui/MidiUI.h"
@@ -205,6 +204,9 @@ class FaustComponent : public AudioAppComponent, private Timer
             
             fDSP->init(int(sampleRate));
         }
+    
+        void releaseResources() override
+        {}
 
         void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override
         {
@@ -220,12 +222,8 @@ class FaustComponent : public AudioAppComponent, private Timer
                 outputs[i] = bufferToFill.buffer->getWritePointer(i, bufferToFill.startSample);
             }
             
-            fDSP->compute(bufferToFill.numSamples, (float**)inputs, outputs);
-        }
-
-        void releaseResources() override
-        {
-            
+            // MIDI timestamp is expressed in frames
+            fDSP->compute(-1, bufferToFill.numSamples, (float**)inputs, outputs);
         }
 
         void paint (Graphics& g) override
