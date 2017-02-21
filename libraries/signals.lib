@@ -4,9 +4,14 @@
 
 /************************************************************************
 ************************************************************************
-FAUST library file
-Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
+FAUST library file, GRAME section
+
+Except where noted otherwise, Copyright (C) 2003-2017 by GRAME,
+Centre National de Creation Musicale.
+
 ----------------------------------------------------------------------
+GRAME LICENSE
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as
 published by the Free Software Foundation; either version 2.1 of the
@@ -36,6 +41,7 @@ closed source license or any other license if you decide so.
 
 ba = library("basics.lib");
 ro = library("routes.lib");
+si = library("signals.lib");
 
 declare name "Faust Signal Routing Library";
 declare version "0.0";
@@ -94,43 +100,9 @@ block(n) = par(i,n,!);
 //-----------------------------------------------------------------------------
 interpolate(i) = *(1.0-i),*(i) : +;
 
-
-//-------------------`smooth`-----------------------------------
-// Exponential smoothing by a unity-dc-gain one-pole lowpass.
-// `smooth` is a standard Faust function.
-//
-// #### Usage: 
-//
-// ```
-// _ : smooth(tau2pole(tau)) : _
-// ```
-//
-// Where: 
-//
-// * `tau`: desired smoothing time constant in seconds, or
-//
-// ```
-// hslider(...) : smooth(s) : _ 
-// ```
-//
-// Where: 
-//
-// * `s`: smoothness between 0 and 1. s=0 for no smoothing, s=0.999 is "very smooth",
-// s>1 is unstable, and s=1 yields the zero signal for all inputs.
-// The exponential time-constant is approximately 1/(1-s) samples, when s is close to 
-// (but less than) 1.
-//
-// #### Reference: 
-//
-// <https://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html>
-//-------------------------------------------------------------
-// TODO: author: JOS, revised by RM
-smooth(s) = *(1.0 - s) : + ~ *(s);
-
-
 //------------------------`smoo`---------------------------------------
-// Smoothing function based on `smooth` ideal to smooth UI signals 
-// (sliders, etc.) down. 
+// Smoothing function based on `smooth` ideal to smooth UI signals
+// (sliders, etc.) down.
 // `smoo` is a standard Faust function.
 //
 // #### Usage
@@ -139,12 +111,12 @@ smooth(s) = *(1.0 - s) : + ~ *(s);
 // hslider(...) : smoo;
 // ```
 //---------------------------------------------------------------------
-smoo = smooth(0.999);
+smoo = si.smooth(0.999);
 
 
 //-----------------------`polySmooth`--------------------------------
 // A smoothing function based on `smooth` that doesn't smooth when a
-// trigger signal is given. This is very useful when making 
+// trigger signal is given. This is very useful when making
 // polyphonic synthesizer to make sure that the value of the parameter
 // is the right one when the note is started.
 //
@@ -192,24 +164,10 @@ smoothAndH(t,s) = smooth(s*t) : ba.sAndH(t);
 // ```
 //-----------------------------------------------------------------------
 bsmooth(c) = +(i) ~ _
-with { 
+with {
 	i = (c-c@n)/n;
 	n = min(4096, max(1, fvariable(int count, <math.h>)));
 };
-
-
-//-------------`lag_ud`---------------
-// Lag filter with separate times for up and down.
-//
-// #### Usage
-//
-// ```
-// _ : lag_ud(up, dn, signal) : _;
-// ```
-//----------------------------------------------------
-// TODO: author Jonatan Liljedahl, revised by RM
-lag_ud(up,dn) = _ <: ((>,ba.tau2pole(up),ba.tau2pole(dn):select2),_:smooth) ~ _;
-
 
 //-------------------------------`dot`--------------------------------------
 // Dot product for two vectors of size n.
@@ -226,3 +184,75 @@ lag_ud(up,dn) = _ <: ((>,ba.tau2pole(up),ba.tau2pole(dn):select2),_:smooth) ~ _;
 //-----------------------------------------------------------------------------
 dot(n) = ro.interleave(n,2) : par(i,n,*) :> _;
 
+// end GRAME section
+//########################################################################################
+/************************************************************************
+FAUST library file, jos section
+
+Except where noted otherwise, The Faust functions below in this
+section Copyright (C) 2003-2017 by Julius O. Smith III <jos@ccrma.stanford.edu>
+([jos](http://ccrma.stanford.edu/~jos/)), and released under the
+(MIT-style) [STK-4.3](#stk-4.3-license) license.
+
+All MarkDown comments in this section are Copyright 2016-2017 by Romain
+Michon and Julius O. Smith III, and are released under the
+[CCA4I](https://creativecommons.org/licenses/by/4.0/) license (TODO: if/when Romain agrees!)
+
+************************************************************************/
+//-------------------`smooth`-----------------------------------
+// Exponential smoothing by a unity-dc-gain one-pole lowpass.
+// `smooth` is a standard Faust function.
+//
+// #### Usage:
+//
+// ```
+// _ : smooth(tau2pole(tau)) : _
+// ```
+//
+// Where:
+//
+// * `tau`: desired smoothing time constant in seconds, or
+//
+// ```
+// hslider(...) : smooth(s) : _
+// ```
+//
+// Where:
+//
+// * `s`: smoothness between 0 and 1. s=0 for no smoothing, s=0.999 is "very smooth",
+// s>1 is unstable, and s=1 yields the zero signal for all inputs.
+// The exponential time-constant is approximately 1/(1-s) samples, when s is close to
+// (but less than) 1.
+//
+// #### Reference:
+//
+// <https://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html>
+//-------------------------------------------------------------
+smooth(s) = *(1.0 - s) : + ~ *(s);
+
+// end jos section
+/************************************************************************
+FAUST library file, further contributions section
+All contributions below should indicate both the contributor and terms
+of license.  If no such indication is found, "git blame" will say who
+last edited each line, and that person can be emailed to inquire about
+license disposition, if their license choice is not already indicated
+elsewhere among the libraries.  It is expected that all software will be
+released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
+************************************************************************/
+
+//-------------`lag_ud`---------------
+// Lag filter with separate times for up and down.
+//
+// #### Usage
+//
+// ```
+// _ : lag_ud(up, dn, signal) : _;
+// ```
+//----------------------------------------------------
+// Author: Jonatan Liljedahl
+// Licens: STK-4.3
+// MarkDown: Romain Michon
+lag_ud(up,dn) = _ <: ((>,ba.tau2pole(up),ba.tau2pole(dn):select2),_:si.smooth) ~ _;
+
+// end further further contributions section

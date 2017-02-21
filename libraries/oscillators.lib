@@ -172,12 +172,13 @@ with {
 	s2 = rdtable(tablesize+1,sinwaveform(tablesize),i+1);
 };
 
+// end GRAME section
 //########################################################################################
 /************************************************************************
 FAUST library file, jos section
 
 Except where noted otherwise, The Faust functions below in this
-section Copyright (C) 2003-2017 by Julius O. Smith III
+section Copyright (C) 2003-2017 by Julius O. Smith III <jos@ccrma.stanford.edu>
 ([jos](http://ccrma.stanford.edu/~jos/)), and released under the
 (MIT-style) [STK-4.3](#stk-4.3-license) license.
 
@@ -387,8 +388,7 @@ lf_sawpos_phase(phase,freq) = (+(phase-phase') : ma.frac ) ~ +(freq/ma.SR);
 //===================================================================
 
 //------------------`sawN`--------------------------------
-// TODO: implemented but not documented. For now, you can
-// look at the source code.
+// TODO: MarkDown doc in comments
 //--------------------------------------------------------
 // --- sawN for N = 1 to 6 ---
 //We can do 6, but 5 and 6 have noise at low fundamentals: MAX_SAW_ORDER = 6; MAX_SAW_ORDER_NEXTPOW2 = 8;
@@ -416,8 +416,7 @@ with {
 };
 
 //------------------`sawNp`--------------------------------
-// TODO: implemented but not documented. For now, you can
-// look at the source code.
+// TODO: MarkDown doc in comments
 //--------------------------------------------------------
 // --- sawNp for N = 1 to 6 ---
 // Phase offset = delay (max 8191 samples is more than one period of audio):
@@ -426,15 +425,13 @@ sawNp(N,freq,phase) = sawN(N,freq) : @(max(0,min(8191,int(phase*ma.SR/freq))));
 // Special named cases:
 
 //------------------`saw2dpw`--------------------------------
-// TODO: implemented but not documented. For now, you can
-// look at the source code.
+// TODO: MarkDown doc in comments
 //--------------------------------------------------------
 // --- sawN ---
 saw2dpw(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*ma.SR/freq); // inferior to saw2 below
 
 //------------------`saw3`--------------------------------
-// TODO: implemented but not documented. For now, you can
-// look at the source code.
+// TODO: MarkDown doc in comments
 //--------------------------------------------------------
 saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
 
@@ -466,8 +463,7 @@ saw2(freq) = y with { // newer PTR version (stateless - freq can vary at any spe
 sawtooth = saw2; // default choice for sawtooth signal - see also sawN
 
 //------------------`saw2f2`--------------------------------
-// TODO: implemented but not documented. For now, you can
-// look at the source code.
+// TODO: MarkDown doc in comments
 //--------------------------------------------------------
 // --- Correction-filtered versions of saw2: saw2f2, saw2f4 ----
 // The correction filter compensates "droop" near half the sampling rate.
@@ -479,8 +475,7 @@ saw2f2 = saw2 : cf2 with {
 
 
 //------------------`saw2f4`--------------------------------
-// TODO: implemented but not documented. For now, you can
-// look at the source code.
+// TODO: MarkDown doc in comments
 //--------------------------------------------------------
 saw2f4 = saw2 : cf4 with {
   cf4 = fi.iir((1.155727435125014, 2.285861038554662,
@@ -519,8 +514,7 @@ saw2f4 = saw2 : cf4 with {
 //====================================================================
 
 //------------------`pulsetrainN`--------------------------------
-// TODO: implemented but not documented. For now, you can
-// look at the source code.
+// TODO: MarkDown doc in comments
 //--------------------------------------------------------
 pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with {
  // non-interpolated-delay version: diffdel(x,del) = x - x@int(del+0.5);
@@ -558,8 +552,7 @@ pulsetrain = pulsetrainN(2);
 
 
 //------------------`squareN`--------------------------------
-// TODO: implemented but not documented. For now, you can
-// look at the source code.
+// TODO: MarkDown doc in comments
 //--------------------------------------------------------
 squareN(N,freq) = pulsetrainN(N,freq,0.5);
 
@@ -595,8 +588,7 @@ impulse = 1-1';
 
 
 //------------------`imptrainN`--------------------------------
-// TODO: implemented but not documented. For now, you can
-// look at the source code.
+// TODO: MarkDown doc in comments
 //--------------------------------------------------------
 imptrainN(N,freq) = impulse + 0.5*ma.diffn(sawN(N,freq));
 
@@ -619,8 +611,7 @@ imptrain = imptrainN(2); // default based on saw2
 
 
 //------------------`triangleN`--------------------------------
-// TODO: implemented but not documented. For now, you can
-// look at the source code.
+// TODO: MarkDown doc in comments
 //--------------------------------------------------------
 triangleN(N,freq) = squareN(N,freq) : fi.pole(p) : *(gain) with {
   gain = 4.0*freq/ma.SR; // for aproximate unit peak amplitude
@@ -868,6 +859,7 @@ oscq(fr)  = impulse : fi.wgr(fr,1);       // phase quadrature outputs
 //------------------------------------------------------------
 oscw = oscwc;
 
+// end jos section
 //########################################################################################
 /************************************************************************
 FAUST library file, further contributions section
@@ -911,7 +903,9 @@ lf_sawpos(freq) = ma.frac ~ +(freq/ma.SR);
 //
 // * `freq`: frequency
 //---------------------------------------------------------
-// TODO: author Bart Brouns, revised by RM
+// Author: Bart Brouns
+// License: STK-4.3
+// MarkDown: Romain Michon
 saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0;
 lf_saw(freq) = saw1(freq);
 
@@ -929,17 +923,10 @@ lf_saw(freq) = saw1(freq);
 //
 // * `freq`: frequency in Hz
 //------------------------------------------------------------
-// TODO: author RM
+// Author: Bart Brouns
+// License: STK-4.3
+// MarkDown: Romain Michon
 lf_triangle(freq) = 2*lf_trianglepos(freq) - 1;
 
+// end further contributions section
 //########################################################################################
-/************************************************************************
-FAUST library file, further contributions section
-
-All contributions below should indicate both the contributor and terms
-of license.  If no such indication is found, "git blame" will say who
-last edited each line, and that person can be emailed to inquire about
-license disposition, if their license choice is not already indicated
-elsewhere among the libraries.  It is expected that all software will be
-released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
-************************************************************************/

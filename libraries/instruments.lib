@@ -231,8 +231,8 @@ nonLinearModulator(nonlinearity,env,freq,typeMod,freqMod,order) =
 //   _ : stereo(periodDuration) : _,_
 // where
 //   periodDuration = period duration of the tone being played in number of samples
-// ACKNOWLEDGMENT
-//   Formulation initiated by Julius O. Smith in https://ccrma.stanford.edu/realsimple/faust_strings/
+// REFERENCE:
+//   https://ccrma.stanford.edu/realsimple/faust_strings/
 
 stereoizer(periodDuration) = _ <: _,widthdelay : stereopanner
     with {
