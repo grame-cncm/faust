@@ -27,8 +27,13 @@ notinlist() {
 }
 
 if [ "$1" = "osx" ]; then
-	echo
-	echo "Test $OSX"
+    echo
+    echo "Test $OSX"
+    echo "Test -midi $OSXMIDI"
+    echo "Test -nvoices 8 $OSXPOLY"
+    echo "Test -nvoices 8 -midi $OSXPOLYMIDI"
+    echo "Test -nvoices 8 -effect <foo.dsp> -midi  $OSXPOLY2MIDI"
+    echo "Test -osc -httpd $OSXOSCHTTPD"
 
 	for scriptname in $OSX; do
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
@@ -63,8 +68,12 @@ if [ "$1" = "osx" ]; then
     (faust2api -ios -nvoices 8 -effect good.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -ios -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: faust2api -ios -nvoices 8 -effect good.dsp -midi failed")
 
 elif [ "$1" = "linux" ]; then
-	echo
-	echo "Test $LINUX"
+    echo
+    echo "Test $LINUX"
+    echo "Test -midi $LINUXMIDI"
+    echo "Test -nvoices 8 $LINUXPOLY"
+    echo "Test -nvoices 8 -midi $LINUXPOLYMIDI"
+    echo "Test -osc -httpd $LINUXOSCHTTPD"
 
 	for scriptname in $LINUX; do
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
