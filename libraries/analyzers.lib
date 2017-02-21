@@ -14,8 +14,8 @@ declare version "0.0";
 FAUST library file, jos section
 
 Except where noted otherwise, The Faust functions below in this
-section are Copyright (C) 2003-2017 by Julius O. Smith III
-([jos](http://ccrma.stanford.edu/~jos/)) and released under the
+section are Copyright (C) 2003-2017 by Julius O. Smith III <jos@ccrma.stanford.edu>
+([jos](http://ccrma.stanford.edu/~jos/)), and released under the
 (MIT-style) [STK-4.3](#stk-4.3-license) license.
 
 All MarkDown comments in this section is Copyright 2016-2017 by Romain
@@ -294,6 +294,7 @@ analyzer(O,lfreqs) = _ <: bsplit(nb) with
    bsplit(i) = hp(i), (lp(i) <: bsplit(i-1));
 };
 
+// end jos section
 /************************************************************************
 ************************************************************************
 FAUST library file, GRAME section

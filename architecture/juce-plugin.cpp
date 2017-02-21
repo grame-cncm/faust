@@ -135,7 +135,7 @@ class FaustSynthesiser : public Synthesiser, public dsp_voice_group {
     
     private:
         
-        Synthesiser* fSynth;
+        ScopedPointer<Synthesiser> fSynth;
         
     public:
         
@@ -146,7 +146,6 @@ class FaustSynthesiser : public Synthesiser, public dsp_voice_group {
         {
             // Voices will be deallocated by fSynth
             dsp_voice_group::clearVoices();
-            delete fSynth;
         }
         
         void addVoice(FaustVoice* voice)
@@ -208,7 +207,7 @@ struct MyMeta : public Meta, public std::map<std::string, std::string>
 
 static void analyseMeta(bool& midi_sync, int& nvoices)
 {
-    mydsp* tmp_dsp = new mydsp();
+    ScopedPointer<mydsp> tmp_dsp = new mydsp();
     
     JSONUI jsonui;
     tmp_dsp->buildUserInterface(&jsonui);
@@ -227,8 +226,6 @@ static void analyseMeta(bool& midi_sync, int& nvoices)
     nvoices = atoi(numVoices.c_str());
     if (nvoices < 0) nvoices = 0;
 #endif
-    
-    delete tmp_dsp;
 }
 
 class FaustPlugInAudioProcessor : public AudioProcessor, private Timer

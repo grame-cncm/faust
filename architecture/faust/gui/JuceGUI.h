@@ -525,7 +525,6 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
                     fStyle = Slider::SliderStyle::Rotary;
                     fSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20);
                     break;
-
                 default:
                     break;
             }
@@ -573,7 +572,7 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
         {
             float value = slider->getValue();
             //std::cout << getName() << " : " << value << std::endl;
-            modifyZone(value);
+            modifyZone(FAUSTFLOAT(value));
         }
 
         /** 
@@ -776,16 +775,17 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
 
             if (parseMenuList(mdescr, names, values)) {
 
-                int     defaultitem = -1;
-                double  mindelta = FLT_MAX;
+                int defaultitem = -1;
+                double mindelta = FLT_MAX;
+                int item = 1;
 
                 // Go through all the Menu's items.
                 for (int i = 0; i < names.size(); i++) {
                     double v = values[i];
-                    if ( (v >= lo) && (v <= hi) ) {
+                    if ((v >= lo) && (v <= hi)) {
                         // It is a valid value : add corresponding menu item
-                        // +1 because index 0 is reserved for a non-defined item.
-                        fComboBox.addItem(String(names[i].c_str()), v+1);
+                        // item astrating at 1 because index 0 is reserved for a non-defined item.
+                        fComboBox.addItem(String(names[i].c_str()), item++);
                         fValues.push_back(v);
 
                         // Check if this item is a good candidate to represent the current value
@@ -809,8 +809,8 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
         void comboBoxChanged (ComboBox* cb) override
         {
             //std::cout << getName( )<< " : " << cb->getSelectedId() - 1 << std::endl;
-            // -1 because of the +1 at the initialization
-            modifyZone(cb->getSelectedId() - 1);
+            // -1 because of the starting item  at 1 at the initialization
+            modifyZone(fValues[cb->getSelectedId() - 1]);
         }
 
         virtual void reflectZone() override
@@ -965,7 +965,7 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
     
 };
 
-/** 
+/**
  * \brief   Intern class for VU-meter
  * \details There is no JUCE widgets for VU-meter, so its fully designed in this class.
  */
@@ -973,32 +973,30 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
 {
     
     private:
-        
-        float fLevel;               // Current level of the VU-meter.
-        float fMin, fMax;           // Linear range of the VU-meter.
-        float fScaleMin, fScaleMax; // Range in dB if needed.
-        bool fDB;                   // True if it's a dB VU-meter, false otherwise.
+    
+        FAUSTFLOAT fLevel;               // Current level of the VU-meter.
+        FAUSTFLOAT fMin, fMax;           // Linear range of the VU-meter.
+        FAUSTFLOAT fScaleMin, fScaleMax; // Range in dB if needed.
+        bool fDB;                        // True if it's a dB VU-meter, false otherwise.
         VUMeterType fStyle;
         String fUnit;
         Label fLabel;               // Name of the VU-meter.
-        bool forceRepaint;          // Only needed at the initialization.
     
         bool isNameDisplayed()
         {
             return (!(getName().startsWith("0x")) && getName().isNotEmpty());
         }
-    
+        
         /** Give the right coordinates and size to the text of Label depending on the VU-meter style */
-        void setLabelPos() {
+        void setLabelPos()
+        {
             if (fStyle == VVUMeter) {
                 // -22 on the height because of the text box.
                 fLabel.setBounds((getWidth()-50)/2, getHeight()-22, 50, 20);
-            }
-            else if (fStyle == HVUMeter) {
+            } else if (fStyle == HVUMeter) {
                 isNameDisplayed() ? fLabel.setBounds(63, (getHeight()-20)/2, 50, 20)
                 : fLabel.setBounds(3, (getHeight()-20)/2, 50, 20);
-            }
-            else if (fStyle == NumDisplay) {
+            } else if (fStyle == NumDisplay) {
                 fLabel.setBounds((getWidth()-kNumDisplayWidth)/2,
                                  (getHeight()-kNumDisplayHeight/2)/2,
                                  kNumDisplayWidth,
@@ -1030,7 +1028,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   level   Current level that needs to be displayed.
          * \param   dB      True if it's a db level, false otherwise.
          */
-        void drawHBargraph(Graphics& g, int width, int height, float level, bool dB)
+        void drawHBargraph(Graphics& g, int width, int height)
         {
             float x;
             float y = (float)(getHeight()-height)/2;
@@ -1059,8 +1057,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             g.fillRect((int)x-57, (getHeight()-20)/2, 50, 20);
             
             // Call the appropriate drawing method for the level.
-            fDB ? drawHBargraphDB (g, y, height, level)
-            : drawHBargraphLin(g, x, y, width, height, level);
+            fDB ? drawHBargraphDB (g, y, height) : drawHBargraphLin(g, x, y, width, height);
         }
         
         /**
@@ -1071,7 +1068,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   height  Height of the VU-meter.
          * \param   level   Current level of the VU-meter, in dB.
          */
-        void drawHBargraphDB(Graphics& g, int y, int height, float level)
+        void drawHBargraphDB(Graphics& g, int y, int height)
         {
             // Drawing Scale
             g.setFont(9.0f);
@@ -1084,33 +1081,34 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             }
             
             int alpha = 200;
+            FAUSTFLOAT dblevel = dB2Scale(fLevel);
             
             // We need to test here every color changing levels, to avoid to mix colors because of the alpha,
             // and so to start the new color rectangle at the end of the previous one.
             
             // Drawing from the minimal range to the current level, or -10dB.
             g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
-            g.fillRect(dB2x(fMin), y+1.0f, jmin(dB2x(level)-dB2x(fMin), dB2x(-10)-dB2x(fMin)), (float) height-2);
+            g.fillRect(dB2x(fMin), y+1.0f, jmin(dB2x(fLevel)-dB2x(fMin), dB2x(-10)-dB2x(fMin)), (float) height-2);
             
             // Drawing from -10dB to the current level, or -6dB.
-            if (dB2Scale(level) > dB2Scale(-10)) {
+            if (dblevel > dB2Scale(-10)) {
                 g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
-                g.fillRect(dB2x(-10), y+1.0f, jmin(dB2x(level)-dB2x(-10), dB2x(-6)-dB2x(-10)), (float) height-2);
+                g.fillRect(dB2x(-10), y+1.0f, jmin(dB2x(fLevel)-dB2x(-10), dB2x(-6)-dB2x(-10)), (float) height-2);
             }
             // Drawing from -6dB to the current level, or -3dB.
-            if (dB2Scale(level) > dB2Scale(-6)) {
+            if (dblevel > dB2Scale(-6)) {
                 g.setColour(Colour((uint8)220, (uint8)220, (uint8)20, (uint8)alpha));
-                g.fillRect(dB2x(-6), y+1.0f, jmin(dB2x(level)-dB2x(-6), dB2x(-3)-dB2x(-6)), (float) height-2);
+                g.fillRect(dB2x(-6), y+1.0f, jmin(dB2x(fLevel)-dB2x(-6), dB2x(-3)-dB2x(-6)), (float) height-2);
             }
             // Drawing from -3dB to the current level, or 0dB.
-            if (dB2Scale(level) > dB2Scale(-3)) {
+            if (dblevel > dB2Scale(-3)) {
                 g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha));
-                g.fillRect(dB2x(-3), y+1.0f, jmin(dB2x(level)-dB2x(-3), dB2x(0)-dB2x(-3)), (float) height-2);
+                g.fillRect(dB2x(-3), y+1.0f, jmin(dB2x(fLevel)-dB2x(-3), dB2x(0)-dB2x(-3)), (float) height-2);
             }
             // Drawing from 0dB to the current level, or the max range.
-            if (dB2Scale(level) > dB2Scale(0)) {
+            if (dblevel > dB2Scale(0)) {
                 g.setColour(Colour((uint8)240,  (uint8)0, (uint8)20, (uint8)alpha));
-                g.fillRect(dB2x(0), y+1.0f, jmin(dB2x(level)-dB2x(0), dB2x(fMax)-dB2x(0)), (float) height-2);
+                g.fillRect(dB2x(0), y+1.0f, jmin(dB2x(fLevel)-dB2x(0), dB2x(fMax)-dB2x(0)), (float) height-2);
             }
         }
         
@@ -1124,23 +1122,23 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   width   Width of the VU-meter.
          * \param   level   Current level of the VU-meter, in linear logic.
          */
-        void drawHBargraphLin(Graphics& g, int x, int y, int width, int height, float level)
+        void drawHBargraphLin(Graphics& g, int x, int y, int width, int height)
         {
             int alpha = 200;
             Colour c = juce::Colour((uint8)255, (uint8)165, (uint8)0, (uint8)alpha);
             
             // Drawing from the minimal range to the current level, or 20% of the VU-meter
             g.setColour(c.brighter());
-            g.fillRect(x+1.0f, y+1.0f, jmin(level*(width-2), 0.2f*(width-2)), (float) height-2);
+            g.fillRect(x+1.0f, y+1.0f, jmin(fLevel*(width-2), 0.2f*(width-2)), (float) height-2);
             // Drawing from 20% of the VU-meter to the current level, or 90% of the VU-meter
-            if (level > 0.2f) {
+            if (fLevel > 0.2f) {
                 g.setColour(c);
-                g.fillRect(x+1.0f + 0.2f*(width-2), y+1.0f, jmin((level-0.2f) * (width-2), (0.9f-0.2f) * (width-2)), (float) height-2);
+                g.fillRect(x+1.0f + 0.2f*(width-2), y+1.0f, jmin((fLevel-0.2f) * (width-2), (0.9f-0.2f) * (width-2)), (float) height-2);
             }
             // Drawing from 90% of the VU-meter to the current level, or the maximal range of the VU-meter
-            if (level > 0.9f) {
+            if (fLevel > 0.9f) {
                 g.setColour(c.darker());
-                g.fillRect(x+1.0f + 0.9f*(width-2), y+1.0f, jmin((level-0.9f) * (width-2), (1.0f-0.9f) * (width-2)), (float) height-2);
+                g.fillRect(x+1.0f + 0.9f*(width-2), y+1.0f, jmin((fLevel-0.9f) * (width-2), (1.0f-0.9f) * (width-2)), (float) height-2);
             }
         }
         /**
@@ -1156,7 +1154,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   level   Current level that needs to be displayed.
          * \param   dB      True if it's a db level, false otherwise.
          */
-        void drawVBargraph(Graphics& g, int width, int height, float level, bool dB)
+        void drawVBargraph(Graphics& g, int width, int height)
         {
             float x = (float)(getWidth()-width)/2;
             float y;
@@ -1184,7 +1182,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             g.setColour(Colours::white.withAlpha(0.8f));
             g.fillRect(jmax((getWidth()-48)/2, 1), getHeight()-22, jmin(getWidth()-2, 48), 20);
             
-            fDB ? drawVBargraphDB (g, x, width, level) : drawVBargraphLin(g, x, width, level);
+            fDB ? drawVBargraphDB (g, x, width) : drawVBargraphLin(g, x, width);
         }
         
         /**
@@ -1195,7 +1193,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   width   Width of the VU-meter.
          * \param   level   Current level of the VU-meter, in dB.
          */
-        void drawVBargraphDB(Graphics& g, int x, int width, float level)
+        void drawVBargraphDB(Graphics& g, int x, int width)
         {
             // Drawing Scale
             g.setFont(9.0f);
@@ -1208,33 +1206,34 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             }
             
             int alpha = 200;
+            FAUSTFLOAT dblevel = dB2Scale(fLevel);
             
             // We need to test here every color changing levels, to avoid to mix colors because of the alpha,
             // and so to start the new color rectangle at the end of the previous one.
             
             // Drawing from the minimal range to the current level, or -10dB.
             g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
-            g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(-10)), (float) width-2, dB2y(fMin)-jmax(dB2y(level), dB2y(-10)));
+            g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(-10)), (float) width-2, dB2y(fMin)-jmax(dB2y(fLevel), dB2y(-10)));
             
             // Drawing from -10dB to the current level, or -6dB.
-            if (dB2Scale(level) > dB2Scale(-10)) {
+            if (dblevel > dB2Scale(-10)) {
                 g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
-                g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(-6)), (float) width-2, dB2y(-10)-jmax(dB2y(level), dB2y(-6)));
+                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(-6)), (float) width-2, dB2y(-10)-jmax(dB2y(fLevel), dB2y(-6)));
             }
             // Drawing from -6dB to the current level, or -3dB.
-            if (dB2Scale(level) > dB2Scale(-6)) {
+            if (dblevel > dB2Scale(-6)) {
                 g.setColour(Colour((uint8)220, (uint8)220, (uint8)20, (uint8)alpha));
-                g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(-3)), (float) width-2, dB2y(-6)-jmax(dB2y(level), dB2y(-3)));
+                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(-3)), (float) width-2, dB2y(-6)-jmax(dB2y(fLevel), dB2y(-3)));
             }
             // Drawing from -3dB to the current level, or 0dB.
-            if (dB2Scale(level) > dB2Scale(-3)) {
+            if (dblevel > dB2Scale(-3)) {
                 g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha));
-                g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(0)), (float) width-2, dB2y(-3)-jmax(dB2y(level), dB2y(0)));
+                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(0)), (float) width-2, dB2y(-3)-jmax(dB2y(fLevel), dB2y(0)));
             }
             // Drawing from 0dB to the current level, or the maximum range.
-            if (dB2Scale(level) > dB2Scale(0)) {
+            if (dblevel > dB2Scale(0)) {
                 g.setColour(Colour((uint8)240,  (uint8)0, (uint8)20, (uint8)alpha));
-                g.fillRect(x+1.0f, jmax(dB2y(level), dB2y(fMax)), (float) width-2, dB2y(0)-jmax(dB2y(level), dB2y(fMax)));
+                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(fMax)), (float) width-2, dB2y(0)-jmax(dB2y(fLevel), dB2y(fMax)));
             }
         }
         
@@ -1246,25 +1245,25 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   width   Width of the VU-meter.
          * \param   level   Current level of the VU-meter, in linear logic.
          */
-        void drawVBargraphLin(Graphics& g, int x, int width, float level)
+        void drawVBargraphLin(Graphics& g, int x, int width)
         {
             int alpha = 200;
             Colour c = juce::Colour((uint8)255, (uint8)165, (uint8)0, (uint8)alpha);
             
             // Drawing from the minimal range to the current level, or 20% of the VU-meter.
             g.setColour(c.brighter());
-            g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(0.2f)), (float) width-2, lin2y(fMin)-jmax(lin2y(level), lin2y(0.2f)));
+            g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.2f)), (float) width-2, lin2y(fMin)-jmax(lin2y(fLevel), lin2y(0.2f)));
             
             // Drawing from 20% of the VU-meter to the current level, or 90% of the VU-meter.
-            if (level > 0.2f) {
+            if (fLevel > 0.2f) {
                 g.setColour(c);
-                g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(0.9f)), (float) width-2, lin2y(0.2f)-jmax(lin2y(level), lin2y(0.9f)));
+                g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.9f)), (float) width-2, lin2y(0.2f)-jmax(lin2y(fLevel), lin2y(0.9f)));
             }
             
             // Drawing from 90% of the VU-meter to the current level, or the maximum range.
-            if (level > 0.9f) {
+            if (fLevel > 0.9f) {
                 g.setColour(c.darker());
-                g.fillRect(x+1.0f, jmax(lin2y(level), lin2y(fMax)), (float) width-2, lin2y(0.9)-jmax(lin2y(level), lin2y(fMax)));
+                g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(fMax)), (float) width-2, lin2y(0.9)-jmax(lin2y(fLevel), lin2y(fMax)));
             }
         }
         
@@ -1276,7 +1275,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   height  Height of the LED.
          * \param   level   Current level of the VU-meter, dB or not.
          */
-        void drawLed(Graphics& g, int width, int height, float level)
+        void drawLed(Graphics& g, int width, int height)
         {
             float x = (float)(getWidth() - width)/2;
             float y = (float)(getHeight() - height)/2;
@@ -1285,26 +1284,27 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             
             if (fDB) {
                 int alpha = 200;
+                FAUSTFLOAT dblevel = dB2Scale(fLevel);
                 
                 // Adjust the color depending on the current level
                 g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
-                if (dB2Scale(level) > dB2Scale(-10)) {
+                if (dblevel > dB2Scale(-10)) {
                     g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
                 }
-                if (dB2Scale(level) > dB2Scale(-6)) {
+                if (dblevel > dB2Scale(-6)) {
                     g.setColour(Colour((uint8)220, (uint8)220, (uint8)20, (uint8)alpha));
                 }
-                if (dB2Scale(level) > dB2Scale(-3)) {
+                if (dblevel > dB2Scale(-3)) {
                     g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha));
                 }
-                if (dB2Scale(level) > dB2Scale(0))  {
+                if (dblevel > dB2Scale(0))  {
                     g.setColour(Colour((uint8)240, (uint8)0,   (uint8)20, (uint8)alpha));
                 }
                 
                 g.fillEllipse(x+1, y+1, width-2, height-2);
             } else {
                 // The alpha depend on the level, from 0 to 1
-                g.setColour(Colours::red.withAlpha((float)level));
+                g.setColour(Colours::red.withAlpha((float)fLevel));
                 g.fillEllipse(x+1, y+1, width-2, height-2);
             }
         }
@@ -1317,7 +1317,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          * \param   height  Height of the Numerical Display.
          * \param   level   Current level of the VU-meter.
          */
-        void drawNumDisplay(Graphics& g, int width, int height, float level)
+        void drawNumDisplay(Graphics& g, int width, int height)
         {
             // Centering it
             int x = (getWidth()-width) / 2;
@@ -1333,7 +1333,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
         }
         
         /** Convert a dB level to a y coordinate, for easier draw methods. */
-        float dB2y(float dB)
+        FAUSTFLOAT dB2y(FAUSTFLOAT dB)
         {
             FAUSTFLOAT s0 = fScaleMin;      // Minimal range.
             FAUSTFLOAT s1 = fScaleMax;      // Maximum range.
@@ -1355,7 +1355,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
         }
         
         /** Convert a linear level to a y coordinate, for easier draw methods. */
-        float lin2y(float level)
+        FAUSTFLOAT lin2y(FAUSTFLOAT level)
         {
             int h;
             int treshold;
@@ -1373,7 +1373,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
         }
         
         /** Convert a dB level to a x coordinate, for easier draw methods. */
-        float dB2x(float dB)
+        FAUSTFLOAT dB2x(FAUSTFLOAT dB)
         {
             FAUSTFLOAT s0 = fScaleMin;      // Minimal range.
             FAUSTFLOAT s1 = fScaleMax;      // Maximal range.
@@ -1418,20 +1418,19 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
         /** Set the level, keep it in the range of the VU-Meter, and set the TextBox text. */
         void setLevel()
         {
-            float rawLevel = *fZone;
-            
+            FAUSTFLOAT rawLevel = *fZone;
             if (fDB) {
                 fLevel = range(rawLevel);
             } else {
                 fLevel = range((rawLevel-fMin)/(fMax-fMin));
             }
-            
             fLabel.setText(String((int)rawLevel) + " " + fUnit, dontSendNotification);
         }
         
-        int range(float level) { return (level > fMax) ? fMax : ((level < fMin) ? fMin : level); }
-        
+        FAUSTFLOAT range(FAUSTFLOAT level) { return (level > fMax) ? fMax : ((level < fMin) ? fMin : level); }
+    
     public:
+    
         /**
          * \brief   Constructor.
          * \details Initialize the uiComponent variables and the VU-meter specific ones.
@@ -1463,14 +1462,14 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
                 setupLabel(tooltip);
             }
         }
-
+        
         /** Method called by the timer every 50ms, to refresh the VU-meter if it needs to */
         void timerCallback() override
         {
             if (isShowing()) {
                 //Force painting at the initialisation
-                forceRepaint = (fLevel == 0);
-                float lastLevel = fLevel;   //t-1
+                bool forceRepaint = (fLevel == 0);
+                FAUSTFLOAT lastLevel = fLevel;   //t-1
                 setLevel(); //t
                 
                 // Following condition means that we're repainting our VUMeter only if
@@ -1479,50 +1478,63 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
                 // performances a lot in IDLE. It's the same for the other style of VUMeter
                 
                 if (fDB) {
-                    if (fStyle == VVUMeter) {
-                        if (((int)dB2y(lastLevel) != (int)dB2y(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
-                            repaint();
-                        }
-                    } else if (fStyle == HVUMeter) {
-                        if (((int)dB2x(lastLevel) != (int)dB2x(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
-                            repaint();
-                        }
-                    } else if (fStyle == NumDisplay) {
-                        if (((int)lastLevel != (int)fLevel && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
-                            repaint();
-                        }
-                    } else if (fStyle == Led) {
-                        if ((dB2Scale(lastLevel) != dB2Scale(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
-                            repaint();
-                        }
+                    switch (fStyle) {
+                        case VVUMeter:
+                            if (((int)dB2y(lastLevel) != (int)dB2y(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
+                                repaint();
+                            }
+                            break;
+                        case HVUMeter:
+                            if (((int)dB2x(lastLevel) != (int)dB2x(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
+                                repaint();
+                            }
+                            break;
+                        case NumDisplay:
+                            if (((int)lastLevel != (int)fLevel && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
+                                repaint();
+                            }
+                            break;
+                        case Led:
+                            if ((dB2Scale(lastLevel) != dB2Scale(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
+                                repaint();
+                            }
+                            break;
+                        default:
+                            break;
                     }
-
                 } else {
-                    if (fStyle == VVUMeter) {
-                        if (((int)lin2y(lastLevel) != (int)lin2y(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
-                            repaint();
-                        }
-                    } else if (fStyle == HVUMeter) {
-                        if ((std::abs(lastLevel-fLevel)>0.01 && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
-                            repaint();
-                        }
-                    } else if (fStyle == Led) {
-                        if ((std::abs(lastLevel-fLevel)>0.01 && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
-                            repaint();
-                        }
-                    } else if (fStyle == NumDisplay) {
-                        if (((int)lastLevel != (int)fLevel && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
-                            repaint();
-                        }
+                    switch (fStyle) {
+                        case VVUMeter:
+                            if (((int)lin2y(lastLevel) != (int)lin2y(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
+                                repaint();
+                            }
+                            break;
+                        case HVUMeter:
+                            if ((std::abs(lastLevel-fLevel)>0.01 && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
+                                repaint();
+                            }
+                            break;
+                        case NumDisplay:
+                            if ((std::abs(lastLevel-fLevel)>0.01 && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
+                                repaint();
+                            }
+                            break;
+                        case Led:
+                            if (((int)lastLevel != (int)fLevel && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
+                                repaint();
+                            }
+                            break;
+                        default:
+                            break;
                     }
                 }
             } else {
                 fLevel = 0;
             }
         }
-
+        
         /**
-         * Call the appropriate drawing method according to the VU-meter style 
+         * Call the appropriate drawing method according to the VU-meter style
          * \see drawLed
          * \see drawNumDisplay
          * \see drawVBargraph
@@ -1530,29 +1542,36 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
          */
         void paint(Graphics& g) override
         {
-            if (fStyle == Led) {
-                drawLed (g, kLedWidth, kLedHeight, fLevel);
-            } else if (fStyle == NumDisplay) {
-                drawNumDisplay(g, kNumDisplayWidth,  kNumDisplayHeight/2, fLevel);
-            } else if (fStyle == VVUMeter) {
-                drawVBargraph (g, kVBargraphWidth/2, getHeight(), fLevel, fDB);
-            } else if (fStyle == HVUMeter) {
-                drawHBargraph (g, getWidth(), kHBargraphHeight/2, fLevel, fDB);
+            switch (fStyle) {
+                case Led:
+                    drawLed(g, kLedWidth, kLedHeight);
+                    break;
+                case NumDisplay:
+                    drawNumDisplay(g, kNumDisplayWidth,  kNumDisplayHeight/2);
+                    break;
+                case VVUMeter:
+                    drawVBargraph(g, kVBargraphWidth/2, getHeight());
+                    break;
+                case HVUMeter:
+                    drawHBargraph(g, getWidth(), kHBargraphHeight/2);
+                    break;
+                default:
+                    break;
             }
         }
-
+        
         /** Set the Label position whenever the layout size changes. */
         void resized() override
         {
             setLabelPos();
         }
-
+        
         void reflectZone() override
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
         }
-
+    
 };
 
 /**
@@ -1563,14 +1582,14 @@ class uiBox : public uiBase, public Component
 {
   
     private:
-        
+    
         bool fIsVertical;
     
         bool isNameDisplayed()
         {
             return (!(getName().startsWith("0x")) && getName().isNotEmpty());
         }
-        
+    
         /**
          * \brief   Return the vertical dimension size for a child to be displayed in.
          *
@@ -1585,7 +1604,7 @@ class uiBox : public uiBase, public Component
                 return (getHeight() - kMargin * getNumChildComponents());
             }
         }
-        
+    
         /**
          * \brief   Return the vertical dimension size for a child to be displayed in.
          *
@@ -1595,7 +1614,7 @@ class uiBox : public uiBase, public Component
             // Don't need to check for an horizontal box, as it height doesn't matter
             return (getWidth() - kMargin * getNumChildComponents());
         }
-        
+    
     public:
         /**
          * \brief   Constructor.
@@ -1606,7 +1625,7 @@ class uiBox : public uiBase, public Component
          */
         uiBox(bool vert, String boxName): uiBase(0,0), Component(boxName), fIsVertical(vert)
         {}
-        
+    
         /**
          * \brief   Destructor.
          * \details Delete all uiBox recusively, but not the uiComponent,
@@ -1902,9 +1921,13 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         Rectangle<int> getSize()
         {
             // Mininum size in case of empty GUI
-            Rectangle<int> res = fCurrentBox->getSize();
-            res.setSize(std::max(1, res.getWidth()), std::max(1, res.getHeight()));
-            return res;
+            if (fCurrentBox) {
+                Rectangle<int> res = fCurrentBox->getSize();
+                res.setSize(std::max(1, res.getWidth()), std::max(1, res.getHeight()));
+                return res;
+            } else {
+                return Rectangle<int>(0, 0, 1, 1);
+            }
         }
 
         /** Initialize the uiTabBox component to be visible. */
@@ -2008,7 +2031,9 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         /** Resize its child to match the new bounds */
         void resized() override
         {
-            dynamic_cast<Component*>(fCurrentBox)->setBounds(getLocalBounds());
+            if (fCurrentBox) {
+                dynamic_cast<Component*>(fCurrentBox)->setBounds(getLocalBounds());
+            }
         }
     
 };

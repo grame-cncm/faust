@@ -12,8 +12,8 @@ OSXOSCHTTPD="faust2caqt faust2jaqt"
 
 LINUX="faust2alqt faust2alsa faust2alsaconsole faust2android faust2asmjs faust2bela   faust2csound faust2dssi faust2eps faust2faustvst faust2firefox faust2graph faust2graphviewer  faust2jack faust2jackconsole faust2jackinternal faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc  faust2md  faust2netjackconsole faust2netjackqt faust2octave faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2raqt faust2ros faust2rosgtk faust2rpialsaconsole faust2rpinetjackconsole faust2sig faust2sigviewer faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2webaudioasm"
 LINUXMIDI="faust2jaqt"
-LINUXPOLY="faust2jaqt"
-LINUXPOLYMIDI="faust2jaqt"
+LINUXPOLY="faust2jaqt faust2juce"
+LINUXPOLYMIDI="faust2jaqt faust2juce"
 LINUXOSCHTTPD="faust2jaqt"
 
 ## test exclusion : notinlist "toto" "a b c d e"
@@ -27,8 +27,13 @@ notinlist() {
 }
 
 if [ "$1" = "osx" ]; then
-	echo
-	echo "Test $OSX"
+    echo
+    echo "Test $OSX"
+    echo "Test -midi $OSXMIDI"
+    echo "Test -nvoices 8 $OSXPOLY"
+    echo "Test -nvoices 8 -midi $OSXPOLYMIDI"
+    echo "Test -nvoices 8 -effect <foo.dsp> -midi  $OSXPOLY2MIDI"
+    echo "Test -osc -httpd $OSXOSCHTTPD"
 
 	for scriptname in $OSX; do
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
@@ -63,8 +68,12 @@ if [ "$1" = "osx" ]; then
     (faust2api -ios -nvoices 8 -effect good.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -ios -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: faust2api -ios -nvoices 8 -effect good.dsp -midi failed")
 
 elif [ "$1" = "linux" ]; then
-	echo
-	echo "Test $LINUX"
+    echo
+    echo "Test $LINUX"
+    echo "Test -midi $LINUXMIDI"
+    echo "Test -nvoices 8 $LINUXPOLY"
+    echo "Test -nvoices 8 -midi $LINUXPOLYMIDI"
+    echo "Test -osc -httpd $LINUXOSCHTTPD"
 
 	for scriptname in $LINUX; do
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
