@@ -64,10 +64,10 @@ gain = nentry("gain",1,0,1,0.01);
 gate = button("gate");
 cutoff = 1000;
 envelope = gate*gate : si.smoo;
-process = os.sawtooth(freq)*envelope : fi.lowpass(3,cutoff) <: _,_;
+process = os.sawtooth(freq)*envelope : fi.lowpass(3,cutoff) : *(0.25) <: _,_;
 ```
 
-It implements a simple synthesizer based on a filtered sawtooth wave and it is polyphony-compatible thanks to its `freq`, `gain`, and `gate` parameters.
+It implements a simple synthesizer based on a filtered sawtooth wave and it is polyphony-compatible thanks to its `freq`, `gain`, and `gate` parameters. Note, that the gain of the synth is scaled. This is done to prevent clicking if several polyphony voices are played at the same time. When using an effect with a synth, it's better practice to carry out this type of gain scaling in the effect section to save up computation (see [`effect`](#effect)).
 
 If this code is provided as such to `faust2smartkeyb`, its UI declaration will be ignored and replaced by the default `SmartKeyboard` interface. This interface can be configured at the beginning of the Faust code using the `SmartKeyboard` metadata:
 
