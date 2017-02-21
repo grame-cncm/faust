@@ -114,8 +114,8 @@ for p in $FILES; do
 
     # creates the dir 
     dspName="${f%.dsp}"
-    SUB_TYPE=$(basename $(mktemp -t N -u))
-    SUB_TYPE=${SUB_TYPE:2:4}
+    SUB_TYPE=$(shasum $p)
+    SUB_TYPE=${SUB_TYPE:0:4}
     rm -rf "$SRCDIR/$dspName"
 
     if [ $STANDALONE = "0" ]; then
