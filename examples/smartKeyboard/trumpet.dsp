@@ -1,5 +1,5 @@
 //################################### trumpet.dsp #####################################
-// A simple trumpte app... (for large screens).
+// A simple trumpet app... (for large screens).
 //
 // ## Compilation Instructions
 //
