@@ -1921,9 +1921,13 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         Rectangle<int> getSize()
         {
             // Mininum size in case of empty GUI
-            Rectangle<int> res = fCurrentBox->getSize();
-            res.setSize(std::max(1, res.getWidth()), std::max(1, res.getHeight()));
-            return res;
+            if (fCurrentBox) {
+                Rectangle<int> res = fCurrentBox->getSize();
+                res.setSize(std::max(1, res.getWidth()), std::max(1, res.getHeight()));
+                return res;
+            } else {
+                return Rectangle<int>(0, 0, 1, 1);
+            }
         }
 
         /** Initialize the uiTabBox component to be visible. */
@@ -2027,7 +2031,9 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         /** Resize its child to match the new bounds */
         void resized() override
         {
-            dynamic_cast<Component*>(fCurrentBox)->setBounds(getLocalBounds());
+            if (fCurrentBox) {
+                dynamic_cast<Component*>(fCurrentBox)->setBounds(getLocalBounds());
+            }
         }
     
 };

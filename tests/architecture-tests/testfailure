@@ -1,8 +1,8 @@
 #!/bin/bash
 
 ## exclusion list for faust and C++ errors
-XLIST1="faust2md"
-XLIST2="faust2md faust2eps faust2firefox faust2graph faust2graphviewer faust2mathdoc faust2mathviewer faust2sig faust2sigviewer faust2svg faust2juce"
+XLIST1="faust2md faust2atomsnippets"
+XLIST2="faust2md faust2atomsnippets faust2eps faust2firefox faust2graph faust2graphviewer faust2mathdoc faust2mathviewer faust2sig faust2sigviewer faust2svg faust2juce"
 
 ## test exclusion : notinlist "toto" "a b c d e" -> true
 notinlist() {
