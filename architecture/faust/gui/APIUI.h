@@ -37,26 +37,26 @@
 #include <iostream>
 #include <map>
 
-enum { kLin = 0, kLog = 1, kExp = 2 };
-
 class APIUI : public PathBuilder, public Meta, public UI
 {
     protected:
-
+    
+        enum { kLin = 0, kLog = 1, kExp = 2 };
+    
         int fNumParameters;
-        std::vector<std::string>        fName;
-        std::map<std::string, int>      fPathMap;
-        std::map<std::string, int>      fLabelMap;
-        std::vector<ValueConverter*>    fConversion;
-        std::vector<FAUSTFLOAT*>        fZone;
-        std::vector<FAUSTFLOAT>         fInit;
-        std::vector<FAUSTFLOAT>         fMin;
-        std::vector<FAUSTFLOAT>         fMax;
-        std::vector<FAUSTFLOAT>         fStep;
-        std::vector<std::string>	fUnit;
-        std::vector<std::string>	fTooltip;
-        std::vector<ZoneControl*>	fAcc[3];
-        std::vector<ZoneControl*>	fGyr[3];
+        std::vector<std::string> fName;
+        std::map<std::string, int> fPathMap;
+        std::map<std::string, int> fLabelMap;
+        std::vector<ValueConverter*> fConversion;
+        std::vector<FAUSTFLOAT*> fZone;
+        std::vector<FAUSTFLOAT> fInit;
+        std::vector<FAUSTFLOAT> fMin;
+        std::vector<FAUSTFLOAT> fMax;
+        std::vector<FAUSTFLOAT> fStep;
+        std::vector<std::string> fUnit;
+        std::vector<std::string> fTooltip;
+        std::vector<ZoneControl*> fAcc[3];
+        std::vector<ZoneControl*> fGyr[3];
 
         // Screen color control
         // "...[screencolor:red]..." etc.
@@ -105,6 +105,10 @@ class APIUI : public PathBuilder, public Meta, public UI
                 case kExp : fConversion.push_back(new ExpValueConverter(0,1, min, max)); break;
             }
             fCurrentScale = kLin;
+            
+            if (fCurrentAcc.size() > 0 && fCurrentGyr.size() > 0) {
+                std::cerr << "warning : 'acc' and 'gyr' metadata used for the same " << label << " parameter !!\n";
+            }
 
             // handle acc metadata "...[acc : <axe> <curve> <amin> <amid> <amax>]..."
             if (fCurrentAcc.size() > 0) {
@@ -121,9 +125,9 @@ class APIUI : public PathBuilder, public Meta, public UI
                 } else {
                     std::cerr << "incorrect acc metadata : " << fCurrentAcc << std::endl;
                 }
+                fCurrentAcc = "";
             }
-            fCurrentAcc = "";
-
+       
             // handle gyr metadata "...[gyr : <axe> <curve> <amin> <amid> <amax>]..."
             if (fCurrentGyr.size() > 0) {
                 std::istringstream iss(fCurrentGyr);
@@ -139,9 +143,9 @@ class APIUI : public PathBuilder, public Meta, public UI
                 } else {
                     std::cerr << "incorrect gyr metadata : " << fCurrentGyr << std::endl;
                 }
+                fCurrentGyr = "";
             }
-            fCurrentGyr = "";
-
+        
             // handle screencolor metadata "...[screencolor:red|green|blue]..."
             if (fCurrentColor.size() > 0) {
                 if ((fCurrentColor == "red") && (fRedReader == 0)) {
@@ -209,15 +213,15 @@ class APIUI : public PathBuilder, public Meta, public UI
             
             if (id1 != -1) {
                 val = 0;
-                curve = fAcc[val][id1]->getCurve();
+                curve = table[val][id1]->getCurve();
                 table[val][id1]->getMappingValues(amin, amid, amax);
             } else if (id2 != -1) {
                 val = 1;
-                curve = fAcc[val][id2]->getCurve();
+                curve = table[val][id2]->getCurve();
                 table[val][id2]->getMappingValues(amin, amid, amax);
             } else if (id3 != -1) {
                 val = 2;
-                curve = fAcc[val][id3]->getCurve();
+                curve = table[val][id3]->getCurve();
                 table[val][id3]->getMappingValues(amin, amid, amax);
             } else {
                 val = -1; // No mapping
@@ -229,6 +233,8 @@ class APIUI : public PathBuilder, public Meta, public UI
         }
 
      public:
+    
+        enum Type { kAcc = 0, kGyr = 1, kNoType };
 
         APIUI() : fNumParameters(0), fHasScreenControl(false), fRedReader(0), fGreenReader(0), fBlueReader(0)
         {}
@@ -254,7 +260,7 @@ class APIUI : public PathBuilder, public Meta, public UI
             delete fGreenReader;
             delete fBlueReader;
         }
-
+    
         // -- widget's layouts
 
         virtual void openTabBox(const char* label)          { fControlsLevel.push_back(label); }
@@ -360,7 +366,29 @@ class APIUI : public PathBuilder, public Meta, public UI
 
 		double value2ratio(int p, double r)	{ return fConversion[p]->faust2ui(r); }
 		double ratio2value(int p, double r)	{ return fConversion[p]->ui2faust(r); }
-
+    
+        /**
+         * Return the control type (kAcc, kGyr, or -1) for a given paramater
+         *
+         * @param p - the UI parameter index
+         *
+         * @return the type
+         */
+        Type getParamType(int p)
+        {
+            if (getZoneIndex(fAcc, p, 0) != -1
+                || getZoneIndex(fAcc, p, 1) != -1
+                || getZoneIndex(fAcc, p, 2) != -1) {
+                return kAcc;
+            } else if (getZoneIndex(fGyr, p, 0) != -1
+                       || getZoneIndex(fGyr, p, 1) != -1
+                       || getZoneIndex(fGyr, p, 2) != -1) {
+                return kGyr;
+            } else {
+                return kNoType;
+            }
+        }
+   
         /**
          * Set a new value coming from an accelerometer, propagate it to all relevant float* zones.
          *
