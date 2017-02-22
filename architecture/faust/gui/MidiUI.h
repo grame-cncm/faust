@@ -470,17 +470,6 @@ class MidiUI : public GUI, public midi
         void addMidiIn(midi* midi_dsp) { fMidiHandler->addMidiIn(midi_dsp); }
         void removeMidiIn(midi* midi_dsp) { fMidiHandler->removeMidiIn(midi_dsp); }
       
-        // -- widget's layouts
-
-        virtual void openTabBox(const char* label)
-        {}
-        virtual void openHorizontalBox(const char* label)
-        {}
-        virtual void openVerticalBox(const char* label)
-        {}
-        virtual void closeBox()
-        {}
-
         // -- active widgets
         
         virtual void addButton(const char* label, FAUSTFLOAT* zone)
