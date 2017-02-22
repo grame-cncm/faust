@@ -1459,7 +1459,6 @@ static inline const char* transmit_value(int num)
                                    _selectedWidget->getCurveMin(),
                                    _selectedWidget->getCurveMid(),
                                    _selectedWidget->getCurveMax());
-        
     }
    
     // Save parameters in user defaults
@@ -1578,20 +1577,41 @@ static inline const char* transmit_value(int num)
             float min, mid, max;
             
             // Get current state
-            uiinterface->getAccConverter(index, type, curve, min, mid, max);
-            
-            // Keep default state
-            (*i)->setInitAssignationType(type + 1);
-            (*i)->setInitAssignationCurve(curve);
-            (*i)->setInitCurve(min, mid, max);
-            
-            // Sensor assignation
-            key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:(*i)]];
-            intValue = [[NSUserDefaults standardUserDefaults] integerForKey:key];
-            if (intValue != 0) {
-                (*i)->setAssignationType(intValue - 1000);
-            } else {
-                (*i)->setAssignationType(type + 1); // kAssignationAccelX starting from 1, type from 0
+            if (uiinterface->getParamType(index) == APIUI::Type::kAcc) {
+                
+                uiinterface->getAccConverter(index, type, curve, min, mid, max);
+                
+                // Keep default state
+                (*i)->setInitAssignationType(type + 1); // kAssignationAccelX starting from 1, type from 0
+                (*i)->setInitAssignationCurve(curve);
+                (*i)->setInitCurve(min, mid, max);
+                
+                // Sensor assignation
+                key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:(*i)]];
+                intValue = [[NSUserDefaults standardUserDefaults] integerForKey:key];
+                if (intValue != 0) {
+                    (*i)->setAssignationType(intValue - 1000);
+                } else {
+                    (*i)->setAssignationType(type + 1); // kAssignationAccelX starting from 1, type from 0
+                }
+                
+            } else if (uiinterface->getParamType(index) == APIUI::Type::kGyr) {
+                
+                uiinterface->getGyrConverter(index, type, curve, min, mid, max);
+                
+                // Keep default state
+                (*i)->setInitAssignationType(type + 4);  // kAssignationGyroX starting at 4
+                (*i)->setInitAssignationCurve(curve);
+                (*i)->setInitCurve(min, mid, max);
+                
+                // Sensor assignation
+                key = [NSString stringWithFormat:@"%@-assignation-type", [self urlForWidget:(*i)]];
+                intValue = [[NSUserDefaults standardUserDefaults] integerForKey:key];
+                if (intValue != 0) {
+                    (*i)->setAssignationType(intValue - 1000);
+                } else {
+                    (*i)->setAssignationType(type + 4); // kAssignationGyroX starting from 4, type from 0
+                }
             }
             
             key = [NSString stringWithFormat:@"%@-assignation-curve", [self urlForWidget:(*i)]];
@@ -1713,9 +1733,7 @@ static inline const char* transmit_value(int num)
                             _motionManager.gyroData.rotationRate.y,
                             _motionManager.gyroData.rotationRate.z);
     
-    
     uiinterface->updateScreenCorlor();
-    
 }
 
 - (NSString*)urlForWidget:(uiCocoaItem*)widget

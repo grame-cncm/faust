@@ -1828,7 +1828,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         uiBase* fCurrentBox = nullptr;   // Current box used in buildUserInterface logic.
         
         int fRadioGroupID;               // In case of radio buttons.
-        //ScopedPointer<LookAndFeel> laf = new CustomLookAndFeel();
+        //ScopedPointer<LookAndFeel> fLaf = new CustomLookAndFeel();
         ScopedPointer<LookAndFeel> fLaf = new LookAndFeel_V3();
         
         /** Add generic box to the user interface. */
