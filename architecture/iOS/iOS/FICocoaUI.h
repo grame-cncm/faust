@@ -1663,7 +1663,12 @@ public:
     }
     
     bool isScreenUI() { return !fBuildUI; }
-     
+    
+    APIUI::Type getParamType(int index)
+    {
+        return fAPIUI.getParamType(index);
+    }
+    
     void setAccValues(float x, float y, float z)
     {
         fAPIUI.propagateAcc(0, x);
@@ -1696,6 +1701,7 @@ public:
     
     void setGyrConverter(int index, int type, int curve, float min, float mid, float max)
     {
+        printf("setGyrConverter %d %d %d %f %f %f\n", index, type, curve, min, mid, max);
         fAPIUI.setGyrConverter(index, type, curve, min, mid, max);
     }
     
@@ -1706,6 +1712,7 @@ public:
         min = dmin;
         mid = dmid;
         max = dmax;
+        printf("getGyrConverter %d %d %d %f %f %f\n", index, type, curve, min, mid, max);
     }
     
     // Abstract layout : layout computed regardless screen dimensions
