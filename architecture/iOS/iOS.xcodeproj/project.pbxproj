@@ -1503,9 +1503,9 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
-					/usr/local/include,
-					../,
 					.,
+					../,
+					/usr/local/include,
 					osclib/oscpack,
 					osclib/faust,
 				);
@@ -1534,9 +1534,9 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
-					/usr/local/include,
-					../,
 					.,
+					../,
+					/usr/local/include,
 					osclib/oscpack,
 					osclib/faust,
 				);
@@ -1626,9 +1626,9 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
-					/usr/local/include,
-					../,
 					.,
+					../,
+					/usr/local/include,
 					osclib/oscpack,
 					osclib/faust,
 				);
@@ -1656,9 +1656,9 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "iOS/iOS-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
-					/usr/local/include,
-					../,
 					.,
+					../,
+					/usr/local/include,
 					osclib/oscpack,
 					osclib/faust,
 				);

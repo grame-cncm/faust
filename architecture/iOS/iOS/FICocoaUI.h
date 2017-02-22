@@ -1669,6 +1669,17 @@ public:
         return fAPIUI.getParamType(index);
     }
     
+    bool getParamType(APIUI::Type type)
+    {
+        list<uiCocoaItem*>::iterator i;
+        for (i = fWidgetList.begin(); i != fWidgetList.end(); i++) {
+            if (getParamType((*i)->getItemCount()) == type) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     void setAccValues(float x, float y, float z)
     {
         fAPIUI.propagateAcc(0, x);

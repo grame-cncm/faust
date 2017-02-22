@@ -376,17 +376,18 @@ class APIUI : public PathBuilder, public Meta, public UI
          */
         Type getParamType(int p)
         {
-            if (getZoneIndex(fAcc, p, 0) != -1
-                || getZoneIndex(fAcc, p, 1) != -1
-                || getZoneIndex(fAcc, p, 2) != -1) {
-                return kAcc;
-            } else if (getZoneIndex(fGyr, p, 0) != -1
-                       || getZoneIndex(fGyr, p, 1) != -1
-                       || getZoneIndex(fGyr, p, 2) != -1) {
-                return kGyr;
-            } else {
-                return kNoType;
+            if (p >= 0) {
+                if (getZoneIndex(fAcc, p, 0) != -1
+                    || getZoneIndex(fAcc, p, 1) != -1
+                    || getZoneIndex(fAcc, p, 2) != -1) {
+                    return kAcc;
+                } else if (getZoneIndex(fGyr, p, 0) != -1
+                           || getZoneIndex(fGyr, p, 1) != -1
+                           || getZoneIndex(fGyr, p, 2) != -1) {
+                    return kGyr;
+                }
             }
+            return kNoType;
         }
    
         /**
