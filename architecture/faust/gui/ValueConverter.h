@@ -73,6 +73,7 @@ ZoneReader(zone, valueConverter) : a zone with a data converter
 #include <algorithm>    // std::max
 #include <cmath>
 #include <vector>
+#include <assert.h>
 
 //--------------------------------------------------------------------------------------
 // Interpolator(lo,hi,v1,v2)
@@ -463,6 +464,7 @@ class CurveZoneControl : public ZoneControl
 
         CurveZoneControl(FAUSTFLOAT* zone, int curve, double amin, double amid, double amax, double min, double init, double max) : ZoneControl(zone), fCurve(0)
         {
+            assert(curve >= 0 && curve <= 3);
             fValueConverters.push_back(new AccUpConverter(amin, amid, amax, min, init, max));
             fValueConverters.push_back(new AccDownConverter(amin, amid, amax, min, init, max));
             fValueConverters.push_back(new AccUpDownConverter(amin, amid, amax, min, init, max));
