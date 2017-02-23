@@ -1,6 +1,6 @@
 //
 //  ViewController.m
-//  faustbench-ios
+//  faustbench
 //
 //  Created by Stéphane LETZ on 23/02/2017.
 //  Copyright © 2017 Stéphane LETZ. All rights reserved.
@@ -19,7 +19,7 @@ int bench_all(const char* name);
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
-    bench_all("iOS test");
+    bench_all("Test iOS");
 }
 
 

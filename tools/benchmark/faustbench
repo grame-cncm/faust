@@ -33,42 +33,51 @@ for p in $FILES; do
     SRCDIR=$(dirname "$p")
     dspName="${f%.dsp}"
 
+    # creates a temporary dir
+    TDR=$(mktemp -d faust.XXX)
+    TMP="$TDR/${f%.dsp}"
+    mkdir "$TMP"
+
     # create and compile mult DPP baench tool
-    faust -cn dsp_scal "$SRCDIR/$f" -o dsp_scal.h
+    faust -cn dsp_scal "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
 
-    faust -cn dsp_vec0_4 -vec -lv 0 -vs 4 "$SRCDIR/$f" -o dsp_vec0_4.h
-    faust -cn dsp_vec0_8 -vec -lv 0 -vs 8 "$SRCDIR/$f" -o dsp_vec0_8.h
-    faust -cn dsp_vec0_16 -vec -lv 0 -vs 16 "$SRCDIR/$f" -o dsp_vec0_16.h
-    faust -cn dsp_vec0_32 -vec -lv 0 -vs 32 "$SRCDIR/$f" -o dsp_vec0_32.h
-    faust -cn dsp_vec0_64 -vec -lv 0 -vs 64 "$SRCDIR/$f" -o dsp_vec0_64.h
-    faust -cn dsp_vec0_128 -vec -lv 0 -vs 128 "$SRCDIR/$f" -o dsp_vec0_128.h
-    faust -cn dsp_vec0_256 -vec -lv 0 -vs 256 "$SRCDIR/$f" -o dsp_vec0_256.h
-    faust -cn dsp_vec0_512 -vec -lv 0 -vs 512 "$SRCDIR/$f" -o dsp_vec0_512.h
+    faust -cn dsp_vec0_4 -vec -lv 0 -vs 4 "$SRCDIR/$f" -o "$TMP/dsp_vec0_4.h"
+    faust -cn dsp_vec0_8 -vec -lv 0 -vs 8 "$SRCDIR/$f" -o "$TMP/dsp_vec0_8.h"
+    faust -cn dsp_vec0_16 -vec -lv 0 -vs 16 "$SRCDIR/$f" -o "$TMP/dsp_vec0_16.h"
+    faust -cn dsp_vec0_32 -vec -lv 0 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec0_32.h"
+    faust -cn dsp_vec0_64 -vec -lv 0 -vs 64 "$SRCDIR/$f" -o "$TMP/dsp_vec0_64.h"
+    faust -cn dsp_vec0_128 -vec -lv 0 -vs 128 "$SRCDIR/$f" -o "$TMP/dsp_vec0_128.h"
+    faust -cn dsp_vec0_256 -vec -lv 0 -vs 256 "$SRCDIR/$f" -o "$TMP/dsp_vec0_256.h"
+    faust -cn dsp_vec0_512 -vec -lv 0 -vs 512 "$SRCDIR/$f" -o "$TMP/dsp_vec0_512.h"
 
-    faust -cn dsp_vec1_4 -vec -lv 1 -vs 4 "$SRCDIR/$f" -o dsp_vec1_4.h
-    faust -cn dsp_vec1_8 -vec -lv 1 -vs 8 "$SRCDIR/$f" -o dsp_vec1_8.h
-    faust -cn dsp_vec1_16 -vec -lv 1 -vs 16 "$SRCDIR/$f" -o dsp_vec1_16.h
-    faust -cn dsp_vec1_32 -vec -lv 1 -vs 32 "$SRCDIR/$f" -o dsp_vec1_32.h
-    faust -cn dsp_vec1_64 -vec -lv 1 -vs 64 "$SRCDIR/$f" -o dsp_vec1_64.h
-    faust -cn dsp_vec1_128 -vec -lv 1 -vs 128 "$SRCDIR/$f" -o dsp_vec1_128.h
-    faust -cn dsp_vec1_256 -vec -lv 1 -vs 256 "$SRCDIR/$f" -o dsp_vec1_256.h
-    faust -cn dsp_vec1_512 -vec -lv 1 -vs 512 "$SRCDIR/$f" -o dsp_vec1_512.h
+    faust -cn dsp_vec1_4 -vec -lv 1 -vs 4 "$SRCDIR/$f" -o "$TMP/dsp_vec1_4.h"
+    faust -cn dsp_vec1_8 -vec -lv 1 -vs 8 "$SRCDIR/$f" -o "$TMP/dsp_vec1_8.h"
+    faust -cn dsp_vec1_16 -vec -lv 1 -vs 16 "$SRCDIR/$f" -o "$TMP/dsp_vec1_16.h"
+    faust -cn dsp_vec1_32 -vec -lv 1 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec1_32.h"
+    faust -cn dsp_vec1_64 -vec -lv 1 -vs 64 "$SRCDIR/$f" -o "$TMP/dsp_vec1_64.h"
+    faust -cn dsp_vec1_128 -vec -lv 1 -vs 128 "$SRCDIR/$f" -o "$TMP/dsp_vec1_128.h"
+    faust -cn dsp_vec1_256 -vec -lv 1 -vs 256 "$SRCDIR/$f" -o "$TMP/dsp_vec1_256.h"
+    faust -cn dsp_vec1_512 -vec -lv 1 -vs 512 "$SRCDIR/$f" -o "$TMP/dsp_vec1_512.h"
 
     if [ $IOS == "1" ] ; then
-        echo "Files generated for iOS project"
+        echo "Files generated for iOS project in $TMP"
+        cp $FAUSTLIB/faustbench.cpp $TMP
+        cp -r $FAUSTLIB/bench-iOS/* $TMP
         exit
     fi
 
-    c++ -O3 -ffast-math $FAUSTLIB/faustbench.cpp -o $dspName
+    cd "$TMP"
+
+    c++ -O3  -ffast-math $FAUSTLIB/faustbench.cpp -o $dspName
 
     # run bench
    ./$dspName
 
     # cleanup
-    rm $dspName
-    rm dsp_scal.h
-    rm dsp_vec0_4.h dsp_vec0_8.h dsp_vec0_16.h dsp_vec0_32.h dsp_vec0_64.h dsp_vec0_128.h dsp_vec0_256.h dsp_vec0_512.h
-    rm dsp_vec1_4.h dsp_vec1_8.h dsp_vec1_16.h dsp_vec1_32.h dsp_vec1_64.h dsp_vec1_128.h dsp_vec1_256.h dsp_vec1_512.h
+    cd ../../
+    rm -rf "$TDR"
+
+
 
 done
 
