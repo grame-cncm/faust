@@ -155,7 +155,9 @@ install :
 	cp -r architecture/webaudio $(prefix)/share/faust/
 	# install Max/MSP
 	cp -r architecture/max-msp $(prefix)/share/faust/
-        
+	# install benchmark tools
+	cp tools/benchmark/faustbench.cpp  $(prefix)/share/faust/ 
+	install tools/benchmark/faustbench $(prefix)/bin/
 
 
 uninstall :

@@ -1,0 +1,74 @@
+#!/bin/bash
+
+. faustpath
+. faustoptflags
+
+FILES=""
+IOS="0"
+
+while [ $1 ]
+do
+    p=$1
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faustbench [-ios] <file.dsp>"
+        echo "Use '-ios' to only generate files for iOS project"
+        exit
+    fi
+
+    if [ "$p" = "-ios" ]; then
+        IOS="1"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    fi
+
+shift
+
+done
+
+for p in $FILES; do
+
+    CUR=$(pwd)
+    f=$(basename "$p")
+    SRCDIR=$(dirname "$p")
+    dspName="${f%.dsp}"
+
+    # create and compile mult DPP baench tool
+    faust -cn dsp_scal "$SRCDIR/$f" -o dsp_scal.h
+
+    faust -cn dsp_vec0_4 -vec -lv 0 -vs 4 "$SRCDIR/$f" -o dsp_vec0_4.h
+    faust -cn dsp_vec0_8 -vec -lv 0 -vs 8 "$SRCDIR/$f" -o dsp_vec0_8.h
+    faust -cn dsp_vec0_16 -vec -lv 0 -vs 16 "$SRCDIR/$f" -o dsp_vec0_16.h
+    faust -cn dsp_vec0_32 -vec -lv 0 -vs 32 "$SRCDIR/$f" -o dsp_vec0_32.h
+    faust -cn dsp_vec0_64 -vec -lv 0 -vs 64 "$SRCDIR/$f" -o dsp_vec0_64.h
+    faust -cn dsp_vec0_128 -vec -lv 0 -vs 128 "$SRCDIR/$f" -o dsp_vec0_128.h
+    faust -cn dsp_vec0_256 -vec -lv 0 -vs 256 "$SRCDIR/$f" -o dsp_vec0_256.h
+    faust -cn dsp_vec0_512 -vec -lv 0 -vs 512 "$SRCDIR/$f" -o dsp_vec0_512.h
+
+    faust -cn dsp_vec1_4 -vec -lv 1 -vs 4 "$SRCDIR/$f" -o dsp_vec1_4.h
+    faust -cn dsp_vec1_8 -vec -lv 1 -vs 8 "$SRCDIR/$f" -o dsp_vec1_8.h
+    faust -cn dsp_vec1_16 -vec -lv 1 -vs 16 "$SRCDIR/$f" -o dsp_vec1_16.h
+    faust -cn dsp_vec1_32 -vec -lv 1 -vs 32 "$SRCDIR/$f" -o dsp_vec1_32.h
+    faust -cn dsp_vec1_64 -vec -lv 1 -vs 64 "$SRCDIR/$f" -o dsp_vec1_64.h
+    faust -cn dsp_vec1_128 -vec -lv 1 -vs 128 "$SRCDIR/$f" -o dsp_vec1_128.h
+    faust -cn dsp_vec1_256 -vec -lv 1 -vs 256 "$SRCDIR/$f" -o dsp_vec1_256.h
+    faust -cn dsp_vec1_512 -vec -lv 1 -vs 512 "$SRCDIR/$f" -o dsp_vec1_512.h
+
+    if [ $IOS == "1" ] ; then
+        echo "Files generated for iOS project"
+        exit
+    fi
+
+    c++ -O3 -ffast-math $FAUSTLIB/faustbench.cpp -o $dspName
+
+    # run bench
+   ./$dspName
+
+    # cleanup
+    rm $dspName
+    rm dsp_scal.h
+    rm dsp_vec0_4.h dsp_vec0_8.h dsp_vec0_16.h dsp_vec0_32.h dsp_vec0_64.h dsp_vec0_128.h dsp_vec0_256.h dsp_vec0_512.h
+    rm dsp_vec1_4.h dsp_vec1_8.h dsp_vec1_16.h dsp_vec1_32.h dsp_vec1_64.h dsp_vec1_128.h dsp_vec1_256.h dsp_vec1_512.h
+
+done
+
