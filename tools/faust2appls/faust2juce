@@ -119,11 +119,11 @@ for p in $FILES; do
     rm -rf "$SRCDIR/$dspName"
 
     if [ $STANDALONE = "0" ]; then
-        cp -r " $FAUSTLIB/juce/plugin" "$SRCDIR/$dspName/"
+        cp -r "$FAUSTLIB/juce/plugin" "$SRCDIR/$dspName/"
         # setting plugin name to match the dsp
         sed -e "s/SUB_TYPE/$SUB_TYPE/g" "$dspName/plugin.jucer" >> "$dspName/$dspName-temp.jucer"
     else
-        cp -r " $FAUSTLIB/juce/standalone" "$SRCDIR/$dspName/"
+        cp -r "$FAUSTLIB/juce/standalone" "$SRCDIR/$dspName/"
         # setting project name to match the dsp
         sed -e "s/ProjectTitle/$dspName/g" "$dspName/standalone.jucer" >> "$dspName/$dspName-temp.jucer"
     fi
