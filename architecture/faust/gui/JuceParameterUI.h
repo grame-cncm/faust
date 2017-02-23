@@ -86,13 +86,6 @@ class JuceParameterUI : public GUI {
         JuceParameterUI(AudioProcessor* processor):fProcessor(processor)
         {}
         
-        // -- widget's layouts
-        
-        virtual void openTabBox(const char* label) {};
-        virtual void openHorizontalBox(const char* label) {}
-        virtual void openVerticalBox(const char* label) {}
-        virtual void closeBox() {}
-        
         // -- active widgets
         
         virtual void addButton(const char* label, FAUSTFLOAT* zone)
@@ -130,10 +123,6 @@ class JuceParameterUI : public GUI {
         {
             fProcessor->addParameter(new FaustPlugInAudioParameterFloat(this, zone, label, 0, min, max, 0));
         }
-        
-        // -- metadata declarations
-        
-        virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
     
 };
 
