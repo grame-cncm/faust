@@ -100,9 +100,9 @@ class APIUI : public PathBuilder, public Meta, public UI
 
             //handle scale metadata
             switch (fCurrentScale) {
-                case kLin : fConversion.push_back(new LinearValueConverter(0,1, min, max)); break;
-                case kLog : fConversion.push_back(new LogValueConverter(0,1, min, max)); break;
-                case kExp : fConversion.push_back(new ExpValueConverter(0,1, min, max)); break;
+                case kLin : fConversion.push_back(new LinearValueConverter(0, 1, min, max)); break;
+                case kLog : fConversion.push_back(new LogValueConverter(0, 1, min, max)); break;
+                case kExp : fConversion.push_back(new ExpValueConverter(0, 1, min, max)); break;
             }
             fCurrentScale = kLin;
             
@@ -376,17 +376,18 @@ class APIUI : public PathBuilder, public Meta, public UI
          */
         Type getParamType(int p)
         {
-            if (getZoneIndex(fAcc, p, 0) != -1
-                || getZoneIndex(fAcc, p, 1) != -1
-                || getZoneIndex(fAcc, p, 2) != -1) {
-                return kAcc;
-            } else if (getZoneIndex(fGyr, p, 0) != -1
-                       || getZoneIndex(fGyr, p, 1) != -1
-                       || getZoneIndex(fGyr, p, 2) != -1) {
-                return kGyr;
-            } else {
-                return kNoType;
+            if (p >= 0) {
+                if (getZoneIndex(fAcc, p, 0) != -1
+                    || getZoneIndex(fAcc, p, 1) != -1
+                    || getZoneIndex(fAcc, p, 2) != -1) {
+                    return kAcc;
+                } else if (getZoneIndex(fGyr, p, 0) != -1
+                           || getZoneIndex(fGyr, p, 1) != -1
+                           || getZoneIndex(fGyr, p, 2) != -1) {
+                    return kGyr;
+                }
             }
+            return kNoType;
         }
    
         /**

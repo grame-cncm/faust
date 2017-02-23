@@ -57,7 +57,9 @@ class uiBox;
     uiCocoaItem*                        _selectedWidget;                // Contains label of the widget
     list <uiCocoaItem*>                 _assignatedWidgets;
     CMMotionManager*                    _motionManager;
-    NSTimer*                            _motionTimer;
+    
+    BOOL                                _hasAcc;
+    BOOL                                _hasGyr;
     
     IBOutlet UILabel*                   _colorLabel;
     IBOutlet UILabel*                   _rLabel;

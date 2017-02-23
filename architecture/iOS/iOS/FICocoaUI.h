@@ -220,23 +220,30 @@ public:
         fLabel = nil;
         fHidden = false;
         fParent = NULL;
+        
         fx = 0.f;
         fy = 0.f;
         fw = 0.f;
         fh = 0.f;
+        
         fAbstractX = 0.f;
         fAbstractY = 0.f;
         fAbstractW = 0.f;
         fAbstractH = 0.f;
+        
         fSelected = false;
+        
         fInitAssignationType = kAssignationNone;
+        fInitAssignationCurve = kAssignationNone;
         
         fInitR = 0.f;
         fInitG = 0.f;
         fInitB = 1.f;
+        
         fInitMinCurve = -100.f;
         fInitMidCurve = 0.f;
         fInitMaxCurve = 100.f;
+        
         fHideOnGUI = false;
         fInit = 0.f;
         if (zone) {
@@ -1667,6 +1674,17 @@ public:
     APIUI::Type getParamType(int index)
     {
         return fAPIUI.getParamType(index);
+    }
+    
+    bool getParamType(APIUI::Type type)
+    {
+        list<uiCocoaItem*>::iterator i;
+        for (i = fWidgetList.begin(); i != fWidgetList.end(); i++) {
+            if (getParamType((*i)->getItemCount()) == type) {
+                return true;
+            }
+        }
+        return false;
     }
     
     void setAccValues(float x, float y, float z)

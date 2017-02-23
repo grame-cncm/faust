@@ -88,6 +88,14 @@ int buffer_size = 0;
 BOOL openWidgetPanel = YES;
 int uiCocoaItem::gItemCount = 0;
 
+
+// Audio control callback
+void updateMotionCallback(void* arg)
+{
+    FIMainViewController* interface = static_cast<FIMainViewController*>(arg);
+    [interface updateMotion];
+}
+
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -424,14 +432,14 @@ error:
 - (BOOL)openCoreAudio:(int)bufferSize :(int)sampleRate
 {
     if (!audio_device) {
-        audio_device = new iosaudio(sampleRate, bufferSize);
+        audio_device = new iosaudio(sampleRate, bufferSize, updateMotionCallback, self);
         
         if (!audio_device->init((_name) ? _name : "Faust", DSP)) {
             printf("Cannot init iOS audio device\n");
             goto error;
         }
         
-        if (audio_device->start() < 0) {
+        if (!audio_device->start()) {
             printf("Cannot start iOS audio device\n");
             goto error;
         }
@@ -1573,8 +1581,11 @@ static inline const char* transmit_value(int num)
             
             // Get current values
             int index = (*i)->getItemCount();
-            int type, curve;
-            float min, mid, max;
+            int type = kAssignationNone;
+            int curve = kAssignationNone;
+            float min = -10.f;
+            float mid = 0.f;
+            float max = 10.f;
             
             // Get current state
             if (uiinterface->getParamType(index) == APIUI::Type::kAcc) {
@@ -1692,19 +1703,23 @@ static inline const char* transmit_value(int num)
 }
 
 // Start updating sensors
+
 - (void)startMotion
 {
     // Motion
-    if (_motionManager == nil)
-    {
+    if (_motionManager == nil) {
         _motionManager = [[CMMotionManager alloc] init];
-        [_motionManager startAccelerometerUpdates];
-        [_motionManager startGyroUpdates];
-        _motionTimer = [NSTimer scheduledTimerWithTimeInterval:1./kMotionUpdateRate
-                                                        target:self 
-                                                      selector:@selector(updateMotion)
-                                                      userInfo:nil 
-                                                       repeats:YES];
+    }
+    
+    if (_motionManager != nil) {
+        if ((_hasAcc = uiinterface->getParamType(APIUI::Type::kAcc))) {
+            [_motionManager startAccelerometerUpdates];
+            printf("startAccelerometerUpdates\n");
+        }
+        if ((_hasGyr = uiinterface->getParamType(APIUI::Type::kGyr))) {
+            [_motionManager startGyroUpdates];
+            printf("startGyroUpdates\n");
+        }
     }
 }
 
@@ -1712,26 +1727,44 @@ static inline const char* transmit_value(int num)
 - (void)stopMotion
 {
     // Motion
-    if (_motionManager != nil)
-    {
-        [_motionManager stopAccelerometerUpdates];
-        [_motionManager stopGyroUpdates];
+    if (_motionManager != nil) {
+        if (_hasAcc) {
+            [_motionManager stopAccelerometerUpdates];
+            printf("stopAccelerometerUpdates\n");
+        }
+        if (_hasGyr) {
+            [_motionManager stopGyroUpdates];
+            printf("stopGyroUpdates\n");
+        }
         [_motionManager release];
         _motionManager = nil;
-        [_motionTimer invalidate];
     }
 }
 
 // The function periodically called to refresh motion sensors
 - (void)updateMotion
 {
-    uiinterface->setAccValues(_motionManager.accelerometerData.acceleration.x * ONE_G,
-                            _motionManager.accelerometerData.acceleration.y * ONE_G,
-                            _motionManager.accelerometerData.acceleration.z * ONE_G);
+    if (_hasAcc) {
+        /*
+        std::cout << "acceleration.x " << _motionManager.accelerometerData.acceleration.x << "\n";
+        std::cout << "acceleration.y " << _motionManager.accelerometerData.acceleration.y << "\n";
+        std::cout << "acceleration.z " << _motionManager.accelerometerData.acceleration.z << "\n";
+        */
+        uiinterface->setAccValues(_motionManager.accelerometerData.acceleration.x * ONE_G,
+                                  _motionManager.accelerometerData.acceleration.y * ONE_G,
+                                  _motionManager.accelerometerData.acceleration.z * ONE_G);
+    }
     
-    uiinterface->setGyrValues(_motionManager.gyroData.rotationRate.x,
-                            _motionManager.gyroData.rotationRate.y,
-                            _motionManager.gyroData.rotationRate.z);
+    if (_hasGyr) {
+        /*
+        std::cout << "gyro.x " << _motionManager.gyroData.rotationRate.x << "\n";
+        std::cout << "gyro.y " << _motionManager.gyroData.rotationRate.y << "\n";
+        std::cout << "gyro.z " << _motionManager.gyroData.rotationRate.z << "\n";
+        */
+        uiinterface->setGyrValues(_motionManager.gyroData.rotationRate.x,
+                                  _motionManager.gyroData.rotationRate.y,
+                                  _motionManager.gyroData.rotationRate.z);
+    }
     
     uiinterface->updateScreenCorlor();
 }

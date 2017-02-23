@@ -153,10 +153,6 @@ class GroupUI : public GUI, public PathBuilder
         {
             insertMap(buildPath(label), zone);
         }
-        
-        // -- metadata declarations
-        void declare(FAUSTFLOAT* zone, const char* key, const char* val)
-        {}
             
 };
 

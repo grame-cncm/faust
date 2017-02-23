@@ -176,7 +176,7 @@ struct CustomLookAndFeel : public LookAndFeel_V3
                                 float sliderPos, float minSliderPos, float maxSliderPos,
                                 const Slider::SliderStyle style, Slider& slider) override
     {
-        const float sliderRadius = (float) (getSliderThumbRadius (slider) - 2);
+        const float sliderRadius = (float)(getSliderThumbRadius (slider) - 2);
 
         bool isDownOrDragging = slider.isEnabled() && (slider.isMouseOverOrDragging() || slider.isMouseButtonDown());
         Colour knobColour (slider.findColour (Slider::thumbColourId).withMultipliedSaturation ((slider.hasKeyboardFocus (false) || isDownOrDragging) ? 1.3f : 0.9f)
@@ -213,7 +213,7 @@ struct CustomLookAndFeel : public LookAndFeel_V3
         g.fillAll (slider.findColour (Slider::backgroundColourId));
 
         if (style == Slider::LinearBar || style == Slider::LinearBarVertical) {
-            const float fx = (float) x, fy = (float) y, fw = (float) width, fh = (float) height;
+            const float fx = (float)x, fy = (float)y, fw = (float)width, fh = (float)height;
 
             Path p;
 
@@ -250,14 +250,14 @@ struct CustomLookAndFeel : public LookAndFeel_V3
         if (slider.isHorizontal()) {
             const float iy = y + height * 0.5f - sliderRadius * 0.5f;
             Rectangle<float> r (x - sliderRadius * 0.5f, iy, width + sliderRadius, sliderRadius);
-            const float onW = r.getWidth() * ((float) slider.valueToProportionOfLength (slider.getValue()));
+            const float onW = r.getWidth() * ((float)slider.valueToProportionOfLength (slider.getValue()));
 
             on.addRectangle (r.removeFromLeft (onW));
             off.addRectangle (r);
         } else {
             const float ix = x + width * 0.5f - sliderRadius * 0.5f;
             Rectangle<float> r (ix, y - sliderRadius * 0.5f, sliderRadius, height + sliderRadius);
-            const float onH = r.getHeight() * ((float) slider.valueToProportionOfLength (slider.getValue()));
+            const float onH = r.getHeight() * ((float)slider.valueToProportionOfLength (slider.getValue()));
 
             on.addRectangle (r.removeFromBottom (onH));
             off.addRectangle (r);
@@ -585,12 +585,14 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
             
             switch (fType) {
                     
-                case HSlider:
-                    x = 60;
+                case HSlider: {
+                    int nameWidth = Font().getStringWidth(getName()) + kMargin;
+                    x = nameWidth;
                     y = 0;
-                    width = getWidth() - 60;
+                    width = getWidth() - nameWidth;
                     height = getHeight();
                     break;
+                }
                     
                 case VSlider:
                     x = 0;
@@ -604,8 +606,8 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
                     height = kNumEntryHeight;
                     // x position is the top left corner horizontal position of the box
                     // and not the top left of the NumEntry label, so we have to do that
-                    x = (getWidth()-width)/2 + (Font().getStringWidth(getName())+5)/2;
-                    y = (getHeight()-height)/2;
+                    x = (getWidth() - width)/2 + (Font().getStringWidth(getName()) + kMargin)/2;
+                    y = (getHeight() - height)/2;
                     break;
                     
                 case Knob:
@@ -1035,7 +1037,6 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             if (isNameDisplayed()) {
                 x = 120;
                 width -= x;
-                
                 // VUMeter Name
                 g.setColour(Colours::black);
                 g.drawText(getName(), 0, y, 60, height, Justification::centredRight);
@@ -1046,9 +1047,9 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             
             // VUMeter Background
             g.setColour(Colours::lightgrey);
-            g.fillRect(x, y, (float) width, (float) height);
+            g.fillRect(x, y, (float)width, (float)height);
             g.setColour(Colours::black);
-            g.fillRect(x+1.0f, y+1.0f, (float) width-2, (float) height-2);
+            g.fillRect(x+1.0f, y+1.0f, (float)width-2, (float)height-2);
             
             // Label Window
             g.setColour(Colours::darkgrey);
@@ -1088,27 +1089,27 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             
             // Drawing from the minimal range to the current level, or -10dB.
             g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
-            g.fillRect(dB2x(fMin), y+1.0f, jmin(dB2x(fLevel)-dB2x(fMin), dB2x(-10)-dB2x(fMin)), (float) height-2);
+            g.fillRect(dB2x(fMin), y+1.0f, jmin(dB2x(fLevel)-dB2x(fMin), dB2x(-10)-dB2x(fMin)), (float)height-2);
             
             // Drawing from -10dB to the current level, or -6dB.
             if (dblevel > dB2Scale(-10)) {
                 g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
-                g.fillRect(dB2x(-10), y+1.0f, jmin(dB2x(fLevel)-dB2x(-10), dB2x(-6)-dB2x(-10)), (float) height-2);
+                g.fillRect(dB2x(-10), y+1.0f, jmin(dB2x(fLevel)-dB2x(-10), dB2x(-6)-dB2x(-10)), (float)height-2);
             }
             // Drawing from -6dB to the current level, or -3dB.
             if (dblevel > dB2Scale(-6)) {
                 g.setColour(Colour((uint8)220, (uint8)220, (uint8)20, (uint8)alpha));
-                g.fillRect(dB2x(-6), y+1.0f, jmin(dB2x(fLevel)-dB2x(-6), dB2x(-3)-dB2x(-6)), (float) height-2);
+                g.fillRect(dB2x(-6), y+1.0f, jmin(dB2x(fLevel)-dB2x(-6), dB2x(-3)-dB2x(-6)), (float)height-2);
             }
             // Drawing from -3dB to the current level, or 0dB.
             if (dblevel > dB2Scale(-3)) {
                 g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha));
-                g.fillRect(dB2x(-3), y+1.0f, jmin(dB2x(fLevel)-dB2x(-3), dB2x(0)-dB2x(-3)), (float) height-2);
+                g.fillRect(dB2x(-3), y+1.0f, jmin(dB2x(fLevel)-dB2x(-3), dB2x(0)-dB2x(-3)), (float)height-2);
             }
             // Drawing from 0dB to the current level, or the max range.
             if (dblevel > dB2Scale(0)) {
                 g.setColour(Colour((uint8)240,  (uint8)0, (uint8)20, (uint8)alpha));
-                g.fillRect(dB2x(0), y+1.0f, jmin(dB2x(fLevel)-dB2x(0), dB2x(fMax)-dB2x(0)), (float) height-2);
+                g.fillRect(dB2x(0), y+1.0f, jmin(dB2x(fLevel)-dB2x(0), dB2x(fMax)-dB2x(0)), (float)height-2);
             }
         }
         
@@ -1129,16 +1130,16 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             
             // Drawing from the minimal range to the current level, or 20% of the VU-meter
             g.setColour(c.brighter());
-            g.fillRect(x+1.0f, y+1.0f, jmin(fLevel*(width-2), 0.2f*(width-2)), (float) height-2);
+            g.fillRect(x+1.0f, y+1.0f, jmin(fLevel*(width-2), 0.2f*(width-2)), (float)height-2);
             // Drawing from 20% of the VU-meter to the current level, or 90% of the VU-meter
             if (fLevel > 0.2f) {
                 g.setColour(c);
-                g.fillRect(x+1.0f + 0.2f*(width-2), y+1.0f, jmin((fLevel-0.2f) * (width-2), (0.9f-0.2f) * (width-2)), (float) height-2);
+                g.fillRect(x+1.0f + 0.2f*(width-2), y+1.0f, jmin((fLevel-0.2f) * (width-2), (0.9f-0.2f) * (width-2)), (float)height-2);
             }
             // Drawing from 90% of the VU-meter to the current level, or the maximal range of the VU-meter
             if (fLevel > 0.9f) {
                 g.setColour(c.darker());
-                g.fillRect(x+1.0f + 0.9f*(width-2), y+1.0f, jmin((fLevel-0.9f) * (width-2), (1.0f-0.9f) * (width-2)), (float) height-2);
+                g.fillRect(x+1.0f + 0.9f*(width-2), y+1.0f, jmin((fLevel-0.9f) * (width-2), (1.0f-0.9f) * (width-2)), (float)height-2);
             }
         }
         /**
@@ -1159,22 +1160,22 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             float x = (float)(getWidth()-width)/2;
             float y;
             if (isNameDisplayed()) {
-                y = (float) getHeight()-height+15;
+                y = (float)getHeight()-height+15;
                 height -= 40;
                 
                 // VUMeter Name
                 g.setColour(Colours::black);
                 g.drawText(getName(), getLocalBounds(), Justification::centredTop);
             } else {
-                y = (float) getHeight()-height;
+                y = (float)getHeight()-height;
                 height -= 25;
             }
             
             // VUMeter Background
             g.setColour(Colours::lightgrey);
-            g.fillRect(x, y, (float) width, (float) height);
+            g.fillRect(x, y, (float)width, (float)height);
             g.setColour(Colours::black);
-            g.fillRect(x+1.0f, y+1.0f, (float) width-2, (float) height-2);
+            g.fillRect(x+1.0f, y+1.0f, (float)width-2, (float)height-2);
             
             // Label window
             g.setColour(Colours::darkgrey);
@@ -1213,27 +1214,27 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             
             // Drawing from the minimal range to the current level, or -10dB.
             g.setColour(Colour((uint8)40, (uint8)160, (uint8)40, (uint8)alpha));
-            g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(-10)), (float) width-2, dB2y(fMin)-jmax(dB2y(fLevel), dB2y(-10)));
+            g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(-10)), (float)width-2, dB2y(fMin)-jmax(dB2y(fLevel), dB2y(-10)));
             
             // Drawing from -10dB to the current level, or -6dB.
             if (dblevel > dB2Scale(-10)) {
                 g.setColour(Colour((uint8)160, (uint8)220, (uint8)20, (uint8)alpha));
-                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(-6)), (float) width-2, dB2y(-10)-jmax(dB2y(fLevel), dB2y(-6)));
+                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(-6)), (float)width-2, dB2y(-10)-jmax(dB2y(fLevel), dB2y(-6)));
             }
             // Drawing from -6dB to the current level, or -3dB.
             if (dblevel > dB2Scale(-6)) {
                 g.setColour(Colour((uint8)220, (uint8)220, (uint8)20, (uint8)alpha));
-                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(-3)), (float) width-2, dB2y(-6)-jmax(dB2y(fLevel), dB2y(-3)));
+                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(-3)), (float)width-2, dB2y(-6)-jmax(dB2y(fLevel), dB2y(-3)));
             }
             // Drawing from -3dB to the current level, or 0dB.
             if (dblevel > dB2Scale(-3)) {
                 g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha));
-                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(0)), (float) width-2, dB2y(-3)-jmax(dB2y(fLevel), dB2y(0)));
+                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(0)), (float)width-2, dB2y(-3)-jmax(dB2y(fLevel), dB2y(0)));
             }
             // Drawing from 0dB to the current level, or the maximum range.
             if (dblevel > dB2Scale(0)) {
                 g.setColour(Colour((uint8)240,  (uint8)0, (uint8)20, (uint8)alpha));
-                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(fMax)), (float) width-2, dB2y(0)-jmax(dB2y(fLevel), dB2y(fMax)));
+                g.fillRect(x+1.0f, jmax(dB2y(fLevel), dB2y(fMax)), (float)width-2, dB2y(0)-jmax(dB2y(fLevel), dB2y(fMax)));
             }
         }
         
@@ -1252,18 +1253,18 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             
             // Drawing from the minimal range to the current level, or 20% of the VU-meter.
             g.setColour(c.brighter());
-            g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.2f)), (float) width-2, lin2y(fMin)-jmax(lin2y(fLevel), lin2y(0.2f)));
+            g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.2f)), (float)width-2, lin2y(fMin)-jmax(lin2y(fLevel), lin2y(0.2f)));
             
             // Drawing from 20% of the VU-meter to the current level, or 90% of the VU-meter.
             if (fLevel > 0.2f) {
                 g.setColour(c);
-                g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.9f)), (float) width-2, lin2y(0.2f)-jmax(lin2y(fLevel), lin2y(0.9f)));
+                g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.9f)), (float)width-2, lin2y(0.2f)-jmax(lin2y(fLevel), lin2y(0.9f)));
             }
             
             // Drawing from 90% of the VU-meter to the current level, or the maximum range.
             if (fLevel > 0.9f) {
                 g.setColour(c.darker());
-                g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(fMax)), (float) width-2, lin2y(0.9)-jmax(lin2y(fLevel), lin2y(fMax)));
+                g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(fMax)), (float)width-2, lin2y(0.9)-jmax(lin2y(fLevel), lin2y(fMax)));
             }
         }
         
@@ -1974,7 +1975,8 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         /** Add a vertical slider to the user interface. */
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
         {
-            addSlider(label, zone, init, min, max, step, kVSliderWidth, kVSliderHeight, VSlider);
+            int newWidth = jmax(Font().getStringWidth(String(label)), kVSliderWidth) + kMargin;
+            addSlider(label, zone, init, min, max, step, newWidth, kVSliderHeight, VSlider);
         }
         
         /** Add a button to the user interface. */
@@ -1986,16 +1988,16 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         /** Add a check button to the user interface. */
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) override
         {
-            // CheckButtonWidth is his text size, plus the check box size
-            int checkButtonWidth = Font().getStringWidth(String(label)) + 15;
-            fCurrentBox->add(new uiCheckButton(this, zone, checkButtonWidth, kCheckButtonHeight, String(label), String(fTooltip[zone])));
+            // newWidth is his text size, plus the check box size
+            int newWidth = Font().getStringWidth(String(label)) + kCheckButtonWidth;
+            fCurrentBox->add(new uiCheckButton(this, zone, newWidth, kCheckButtonHeight, String(label), String(fTooltip[zone])));
         }
         
         /** Add a numerical entry to the user interface. */
         virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
         {
-            // 5 pixels margin between the slider and his name
-            int newWidth = int(ceil(Font().getStringWidth(String(label)) + kNumEntryWidth)) + 5;
+            // kMargin pixels between the slider and his name
+            int newWidth = Font().getStringWidth(String(label)) + kNumEntryWidth + kMargin;
             fCurrentBox->add(new uiSlider(this, zone, newWidth, kNumEntryHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]), getScale(zone), NumEntry));
         }
         
@@ -2012,14 +2014,14 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         }
       
         /** Add a LED to the user interface. */
-        void addLed (String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        void addLed(String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            fCurrentBox->add(new uiVUMeter (this, zone, kLedWidth, kLedHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), Led, false));
+            fCurrentBox->add(new uiVUMeter(this, zone, kLedWidth, kLedHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), Led, false));
         }
         
         /** Add a numerical display to the user interface. */
         void addNumericalDisplay(String label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {
-            fCurrentBox->add(new uiVUMeter (this, zone, kNumDisplayWidth, kNumDisplayHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), NumDisplay, false));
+            fCurrentBox->add(new uiVUMeter(this, zone, kNumDisplayWidth, kNumDisplayHeight, label, min, max, String(fUnit[zone]), String(fTooltip[zone]), NumDisplay, false));
         }
         
         /** Declare a metadata. */

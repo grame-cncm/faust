@@ -1776,25 +1776,24 @@ public:
     virtual void addHorizontalBargraph(const char* label , FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
         openVerticalBox(label);
-        bool db = (fUnit[zone] == "dB");
-        
         if (isNumerical(zone)) {
 			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
         } else {
-            AbstractDisplay*  bargraph;
+            AbstractDisplay* bargraph;
+            bool db = (fUnit[zone] == "dB");
             if (isLed(zone)) {
-				if (db) {
-					bargraph = new dbLED(min, max);
-				} else {
-					bargraph = new LED(min,max);
-				}
-			} else {
-				if (db) {
-					bargraph = new dbHorizontalBargraph(min, max);
-				} else {
-					bargraph = new linHorizontalBargraph(min, max);
-				}
-			}
+                if (db) {
+                    bargraph = new dbLED(min, max);
+                } else {
+                    bargraph = new LED(min, max);
+                }
+            } else {
+                if (db) {
+                    bargraph = new dbHorizontalBargraph(min, max);
+                } else {
+                    bargraph = new linHorizontalBargraph(min, max);
+                }
+            }
             
             new uiBargraph(this, zone, bargraph, min, max);
 			insert(label, bargraph);
@@ -1806,26 +1805,25 @@ public:
     
     virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
-        AbstractDisplay*  bargraph;
         openVerticalBox(label);
-        bool db = (fUnit[zone] == "dB");
-        
         if (isNumerical(zone)) {
 			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
         } else {
-			if (isLed(zone)) {
-				if (db) {
-					bargraph = new dbLED(min, max);
-				} else {
+            AbstractDisplay* bargraph;
+            bool db = (fUnit[zone] == "dB");
+            if (isLed(zone)) {
+                if (db) {
+                    bargraph = new dbLED(min, max);
+                } else {
                     bargraph = new LED(min, max);
-				}
-			} else {
-				if (db) {
-					bargraph = new dbVerticalBargraph(min, max);
-				} else {
-					bargraph = new linVerticalBargraph(min, max);
-				}
-			}
+                }
+            } else {
+                if (db) {
+                    bargraph = new dbVerticalBargraph(min, max);
+                } else {
+                    bargraph = new linVerticalBargraph(min, max);
+                }
+            }
             new uiBargraph(this, zone, bargraph, min, max);
 			insert(label, bargraph);
 			addNumDisplay(0, zone, min, min, max, (max-min)/100.0);
