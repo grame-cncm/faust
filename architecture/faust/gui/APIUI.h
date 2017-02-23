@@ -100,9 +100,9 @@ class APIUI : public PathBuilder, public Meta, public UI
 
             //handle scale metadata
             switch (fCurrentScale) {
-                case kLin : fConversion.push_back(new LinearValueConverter(0,1, min, max)); break;
-                case kLog : fConversion.push_back(new LogValueConverter(0,1, min, max)); break;
-                case kExp : fConversion.push_back(new ExpValueConverter(0,1, min, max)); break;
+                case kLin : fConversion.push_back(new LinearValueConverter(0, 1, min, max)); break;
+                case kLog : fConversion.push_back(new LogValueConverter(0, 1, min, max)); break;
+                case kExp : fConversion.push_back(new ExpValueConverter(0, 1, min, max)); break;
             }
             fCurrentScale = kLin;
             

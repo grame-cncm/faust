@@ -1581,8 +1581,11 @@ static inline const char* transmit_value(int num)
             
             // Get current values
             int index = (*i)->getItemCount();
-            int type, curve;
-            float min, mid, max;
+            int type = kAssignationNone;
+            int curve = kAssignationNone;
+            float min = -10.f;
+            float mid = 0.f;
+            float max = 10.f;
             
             // Get current state
             if (uiinterface->getParamType(index) == APIUI::Type::kAcc) {
@@ -1704,14 +1707,18 @@ static inline const char* transmit_value(int num)
 - (void)startMotion
 {
     // Motion
-    if (_motionManager == nil)
-    {
+    if (_motionManager == nil) {
         _motionManager = [[CMMotionManager alloc] init];
+    }
+    
+    if (_motionManager != nil) {
         if ((_hasAcc = uiinterface->getParamType(APIUI::Type::kAcc))) {
             [_motionManager startAccelerometerUpdates];
+            printf("startAccelerometerUpdates\n");
         }
         if ((_hasGyr = uiinterface->getParamType(APIUI::Type::kGyr))) {
             [_motionManager startGyroUpdates];
+            printf("startGyroUpdates\n");
         }
     }
 }
@@ -1720,13 +1727,14 @@ static inline const char* transmit_value(int num)
 - (void)stopMotion
 {
     // Motion
-    if (_motionManager != nil)
-    {
+    if (_motionManager != nil) {
         if (_hasAcc) {
             [_motionManager stopAccelerometerUpdates];
+            printf("stopAccelerometerUpdates\n");
         }
         if (_hasGyr) {
             [_motionManager stopGyroUpdates];
+            printf("stopGyroUpdates\n");
         }
         [_motionManager release];
         _motionManager = nil;
