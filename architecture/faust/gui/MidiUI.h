@@ -39,6 +39,12 @@
 #include "faust/midi/midi.h"
 #include "faust/gui/ValueConverter.h"
 
+#ifdef _MSC_VER
+#define gsscanf sscanf_s
+#else
+#define gsscanf sscanf
+#endif
+
 /*******************************************************************************
  * MidiUI : Faust User Interface
  * This class decodes MIDI meta data and maps incoming MIDI messages to them.
@@ -422,17 +428,17 @@ class MidiUI : public GUI, public midi
                 for (size_t i = 0; i < fMetaAux.size(); i++) {
                     unsigned num;
                     if (fMetaAux[i].first == "midi") {
-                        if (sscanf(fMetaAux[i].second.c_str(), "ctrl %u", &num) == 1) {
+                        if (gsscanf(fMetaAux[i].second.c_str(), "ctrl %u", &num) == 1) {
                             fCtrlChangeTable[num].push_back(new uiMidiCtrlChange(fMidiHandler, num, this, zone, min, max, input));
-                        } else if (sscanf(fMetaAux[i].second.c_str(), "keyon %u", &num) == 1) {
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "keyon %u", &num) == 1) {
                             fKeyOnTable[num].push_back(new uiMidiKeyOn(fMidiHandler, num, this, zone, min, max, input));
-                        } else if (sscanf(fMetaAux[i].second.c_str(), "keyoff %u", &num) == 1) {
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "keyoff %u", &num) == 1) {
                             fKeyOffTable[num].push_back(new uiMidiKeyOff(fMidiHandler, num, this, zone, min, max, input));
-                        } else if (sscanf(fMetaAux[i].second.c_str(), "keypress %u", &num) == 1) {
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "keypress %u", &num) == 1) {
                             fKeyPressTable[num].push_back(new uiMidiKeyPress(fMidiHandler, num, this, zone, min, max, input));
-                        } else if (sscanf(fMetaAux[i].second.c_str(), "pgm %u", &num) == 1) {
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "pgm %u", &num) == 1) {
                             fProgChangeTable[num].push_back(new uiMidiProgChange(fMidiHandler, num, this, zone, input));
-                        } else if (sscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num) == 1) {
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num) == 1) {
                             fChanPressTable[num].push_back(new uiMidiChanPress(fMidiHandler, num, this, zone, input));
                         } else if (strcmp(fMetaAux[i].second.c_str(), "pitchwheel") == 0 
                             || strcmp(fMetaAux[i].second.c_str(), "pitchbend") == 0) {

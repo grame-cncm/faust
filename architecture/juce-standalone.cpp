@@ -35,9 +35,6 @@
 #include <math.h>
 #include <algorithm>
 
-using std::max;
-using std::min;
-
 #if defined(OSCCTRL)
 #include "faust/gui/JuceOSCUI.h"
 #endif //OSCCTRL
