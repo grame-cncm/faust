@@ -53,9 +53,10 @@ using namespace std;
 
 static double bench(dsp* dsp, const string& name)
 {
+    dsp->init(48000);
     measure_dsp mes(dsp, 1024, 5);
     mes.measure();
-    cout << name << " = " << mes.getStats() << endl;
+    cout << name << " : " << mes.getStats() << endl;
     return mes.getStats();
 }
 
@@ -64,7 +65,7 @@ extern "C" int bench_all(const char* name)
     vector<double> measures;
     vector<string> options;
     
-    cout << "DSP bench of " << name << endl;
+    cout << "DSP bench of " << name << " compiled in C++" << endl;
     
     options.push_back("-scal");
     
@@ -86,8 +87,10 @@ extern "C" int bench_all(const char* name)
     options.push_back("-vec -lv 1 -vs 256");
     options.push_back("-vec -lv 1 -vs 512");
     
+    // Scalar
     measures.push_back(bench(new dsp_scal(), options[0]));
     
+    // Vector -lv 0
     measures.push_back(bench(new dsp_vec1_4(), options[1]));
     measures.push_back(bench(new dsp_vec0_8(), options[2]));
     measures.push_back(bench(new dsp_vec0_16(), options[3]));
@@ -97,6 +100,7 @@ extern "C" int bench_all(const char* name)
     measures.push_back(bench(new dsp_vec0_256(), options[7]));
     measures.push_back(bench(new dsp_vec0_512(), options[8]));
     
+    // Vector -lv 1
     measures.push_back(bench(new dsp_vec1_4(), options[9]));
     measures.push_back(bench(new dsp_vec1_8(), options[10]));
     measures.push_back(bench(new dsp_vec1_16(), options[11]));

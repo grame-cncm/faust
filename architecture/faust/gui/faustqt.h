@@ -1256,13 +1256,9 @@ protected:
             
             box->setLayout(layout);
             fGeneralLayout->addWidget(box);
-
-            /*if (metadata.count("tooltip")) {
-             box->setToolTip(metadata["tooltip"].c_str());
-             }*/
-            if (gGroupTooltip != std::string()) {
-                box->setToolTip(gGroupTooltip.c_str());
-                gGroupTooltip = std::string();
+            if (fGroupTooltip != "") {
+                box->setToolTip(fGroupTooltip.c_str());
+                fGroupTooltip = "";
             }
         } else {
             if (isTabContext()) {
@@ -1284,12 +1280,9 @@ protected:
             }
             
             box->setLayout(layout);
-            /*        if (metadata.count("tooltip")) {
-             box->setToolTip(metadata["tooltip"].c_str());
-             }*/
-            if (gGroupTooltip != std::string()) {
-                box->setToolTip(gGroupTooltip.c_str());
-                gGroupTooltip = std::string();
+            if (fGroupTooltip != "") {
+                box->setToolTip(fGroupTooltip.c_str());
+                fGroupTooltip = "";
             }
         }
         insert(label.c_str(), box);

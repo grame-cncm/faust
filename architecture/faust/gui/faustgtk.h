@@ -687,9 +687,9 @@ int GTKUI::checkLabelOptions(GtkWidget* widget, const std::string& fullLabel, st
     }
 
 	//---------------------
-	if (gGroupTooltip != std::string()) {
-		gtk_tooltips_set_tip (gtk_tooltips_new (), widget, gGroupTooltip.c_str(), NULL);
-		gGroupTooltip = std::string();
+	if (fGroupTooltip != "") {
+		gtk_tooltips_set_tip (gtk_tooltips_new (), widget, fGroupTooltip.c_str(), NULL);
+		fGroupTooltip = "";
 	}
 	
 	//----------------------
