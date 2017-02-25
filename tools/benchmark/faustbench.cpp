@@ -28,6 +28,7 @@
 #include "faust/misc.h"
 #include <vector>
 #include <iostream>
+#include <math.h>
 
 #include "dsp_scal.h"
 
