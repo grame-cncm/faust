@@ -156,8 +156,8 @@ install :
 	# install Max/MSP
 	cp -r architecture/max-msp $(prefix)/share/faust/
 	# install benchmark tools
-	rm -rf $(prefix)/share/faust/bench-iOS
-	cp -r tools/benchmark/bench-iOS $(prefix)/share/faust/ 
+	rm -rf $(prefix)/share/faust/iOS-bench
+	cp -r tools/benchmark/iOS-bench $(prefix)/share/faust/ 
 	cp tools/benchmark/faustbench.cpp  $(prefix)/share/faust/
 	install tools/benchmark/faustbench $(prefix)/bin/
 

@@ -31,8 +31,6 @@ shift
 
 done
 
-echo $OPTIONS
-
 for p in $FILES; do
 
     CUR=$(pwd)
@@ -73,7 +71,7 @@ for p in $FILES; do
     if [ $IOS == "1" ] ; then
         echo "Files generated for iOS project in $TMP"
         cp $FAUSTLIB/faustbench.cpp $TMP
-        cp -r $FAUSTLIB/bench-iOS/* $TMP
+        cp -r $FAUSTLIB/iOS-bench/* $TMP
         exit
     fi
 
