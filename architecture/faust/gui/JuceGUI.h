@@ -120,7 +120,7 @@ struct CustomLookAndFeel : public LookAndFeel_V3
 
         if (width > 0 && height > 0)
         {
-            const float cornerSize = jmin (15.0f, jmin (width, height) * 0.45f);
+            const float cornerSize = jmin(15.0f, jmin(width, height) * 0.45f);
             const float lineThickness = cornerSize * 0.1f;
             const float halfThickness = lineThickness * 0.5f;
 
@@ -230,7 +230,7 @@ struct CustomLookAndFeel : public LookAndFeel_V3
             g.setColour (baseColour);
             g.fillPath (p);
 
-            const float lineThickness = jmin (15.0f, jmin (width, height) * 0.45f) * 0.1f;
+            const float lineThickness = jmin(15.0f, jmin(width, height) * 0.45f) * 0.1f;
             g.drawRect (slider.getLocalBounds().toFloat(), lineThickness);
         } else {
             drawLinearSliderBackground (g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
@@ -273,7 +273,7 @@ struct CustomLookAndFeel : public LookAndFeel_V3
     void drawRotarySlider (Graphics& g, int x, int y, int width, int height, float sliderPos,
                            float rotaryStartAngle, float rotaryEndAngle, Slider& slider) override
     {
-        const float radius = jmin (width / 2, height / 2) - 4.0f;
+        const float radius = jmin(width / 2, height / 2) - 4.0f;
         const float centreX = x + width * 0.5f;
         const float centreY = y + height * 0.5f;
         const float rx = centreX - radius;
@@ -1130,16 +1130,16 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             
             // Drawing from the minimal range to the current level, or 20% of the VU-meter
             g.setColour(c.brighter());
-            g.fillRect(x+1.0f, y+1.0f, jmin(fLevel*(width-2), 0.2f*(width-2)), (float)height-2);
+            g.fillRect(x+1.0f, y+1.0f, jmin<float>(fLevel*(width-2), 0.2f*(width-2)), (float)height-2);
             // Drawing from 20% of the VU-meter to the current level, or 90% of the VU-meter
             if (fLevel > 0.2f) {
                 g.setColour(c);
-                g.fillRect(x+1.0f + 0.2f*(width-2), y+1.0f, jmin((fLevel-0.2f) * (width-2), (0.9f-0.2f) * (width-2)), (float)height-2);
+                g.fillRect(x+1.0f + 0.2f*(width-2), y+1.0f, jmin<float>((fLevel-0.2f) * (width-2), (0.9f-0.2f) * (width-2)), (float)height-2);
             }
             // Drawing from 90% of the VU-meter to the current level, or the maximal range of the VU-meter
             if (fLevel > 0.9f) {
                 g.setColour(c.darker());
-                g.fillRect(x+1.0f + 0.9f*(width-2), y+1.0f, jmin((fLevel-0.9f) * (width-2), (1.0f-0.9f) * (width-2)), (float)height-2);
+                g.fillRect(x+1.0f + 0.9f*(width-2), y+1.0f, jmin<float>((fLevel-0.9f) * (width-2), (1.0f-0.9f) * (width-2)), (float)height-2);
             }
         }
         /**
@@ -1253,12 +1253,12 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             
             // Drawing from the minimal range to the current level, or 20% of the VU-meter.
             g.setColour(c.brighter());
-            g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.2f)), (float)width-2, lin2y(fMin)-jmax(lin2y(fLevel), lin2y(0.2f)));
+            g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.2)), (float)width-2, lin2y(fMin)-jmax(lin2y(fLevel), lin2y(0.2)));
             
             // Drawing from 20% of the VU-meter to the current level, or 90% of the VU-meter.
             if (fLevel > 0.2f) {
                 g.setColour(c);
-                g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.9f)), (float)width-2, lin2y(0.2f)-jmax(lin2y(fLevel), lin2y(0.9f)));
+                g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.9)), (float)width-2, lin2y(0.2)-jmax(lin2y(fLevel), lin2y(0.9)));
             }
             
             // Drawing from 90% of the VU-meter to the current level, or the maximum range.
