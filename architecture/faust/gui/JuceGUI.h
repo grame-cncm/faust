@@ -1575,6 +1575,60 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
     
 };
 
+/** Intern class for tab widget */
+class uiTabBox : public uiBase, public TabbedComponent
+{
+    
+public:
+    /**
+     * \brief   Constructor.
+     * \details Initalize the juce::TabbedComponent tabs to be at top, and the uiTabBox size at 0
+     */
+    uiTabBox():uiBase(),TabbedComponent(TabbedButtonBar::TabsAtTop)
+    {}
+    
+    /**
+     * Initialize all his child ratios (1 uiBox per tabs), the LookAndFeel
+     * and the uiTabBox size to fit the biggest of its child.
+     */
+    void init(Component* comp = nullptr) override
+    {
+        for (int i = 0; i < getNumTabs(); i++) {
+            Component* comp = getTabContentComponent(i);
+            uiBase* base_comp = dynamic_cast<uiBase*>(comp);
+            base_comp->init(comp);
+            
+            // The TabbedComponent size should be as big as its bigger child's dimension, done here
+            fTotalWidth = jmax(fTotalWidth, base_comp->getTotalWidth());
+            fTotalHeight = jmax(fTotalHeight, base_comp->getTotalHeight());
+        }
+        
+        fTotalHeight += 30;  // 30 height for the TabBar.
+    }
+    
+    void setRecommendedSize() override
+    {
+        for (int i = 0; i < getNumTabs(); i++) {
+            uiBase* comp = dynamic_cast<uiBase*>(getTabContentComponent(i));
+            comp->setRecommendedSize();
+            
+            // The TabbedComponent size should be as big as its bigger child's dimension, done here
+            fTotalWidth = jmax(fTotalWidth, comp->getTotalWidth());
+            fTotalHeight = jmax(fTotalHeight, comp->getTotalHeight());
+        }
+        
+        fTotalHeight += 30;  // 30 height for the TabBar
+    }
+    
+    void add(Component* comp) override
+    {
+        // Name of the component is moved in Tab (so removed from component)
+        TabbedComponent::addTab(comp->getName(), Colours::white, comp, true);
+        comp->setName("");
+    }
+    
+};
+
 /**
  * \brief   Intern class for box widgets
  * \details That's the class where the whole layout is calculated.
@@ -1632,8 +1686,19 @@ class uiBox : public uiBase, public Component
          * \details Delete all uiBox recusively, but not the uiComponent,
          *          because it's handled by the uiItem FAUST objects.
          */
-        virtual ~uiBox();
-    
+        virtual ~uiBox()
+        {
+            /*
+             Deleting boxes, from leaves to root:
+             - leaves (uiComponent) are deleted by the uiItem mechanism
+             - containers (uiBox and uiTabBox) have to be explicitly deleted
+             */
+            for (int i = getNumChildComponents()-1; i >= 0; i--) {
+                delete dynamic_cast<uiBox*>(getChildComponent(i));
+                delete dynamic_cast<uiTabBox*>(getChildComponent(i));
+            }
+        }
+
         /**
          * \brief   Initialization of the DisplayRect and Total size.
          * \details Calculate the correct size for each box, depending on its child sizes.
@@ -1751,73 +1816,6 @@ class uiBox : public uiBase, public Component
         }
     
 };
-
-/** Intern class for tab widget */
-class uiTabBox : public uiBase, public TabbedComponent
-{
-
-    public:
-        /**
-         * \brief   Constructor.
-         * \details Initalize the juce::TabbedComponent tabs to be at top, and the uiTabBox size at 0 
-         */
-        uiTabBox():uiBase(),TabbedComponent(TabbedButtonBar::TabsAtTop)
-        {}
-
-        /** 
-         * Initialize all his child ratios (1 uiBox per tabs), the LookAndFeel
-         * and the uiTabBox size to fit the biggest of its child.
-         */
-        void init(Component* comp = nullptr) override
-        {
-            for (int i = 0; i < getNumTabs(); i++) {
-                Component* comp = getTabContentComponent(i);
-                uiBase* base_comp = dynamic_cast<uiBase*>(comp);
-                base_comp->init(comp);
-                
-                // The TabbedComponent size should be as big as its bigger child's dimension, done here
-                fTotalWidth = jmax(fTotalWidth, base_comp->getTotalWidth());
-                fTotalHeight = jmax(fTotalHeight, base_comp->getTotalHeight());
-            }
-            
-            fTotalHeight += 30;  // 30 height for the TabBar.
-        }
-      
-        void setRecommendedSize() override
-        {
-            for (int i = 0; i < getNumTabs(); i++) {
-                uiBase* comp = dynamic_cast<uiBase*>(getTabContentComponent(i));
-                comp->setRecommendedSize();
-                
-                // The TabbedComponent size should be as big as its bigger child's dimension, done here
-                fTotalWidth = jmax(fTotalWidth, comp->getTotalWidth());
-                fTotalHeight = jmax(fTotalHeight, comp->getTotalHeight());
-            }
-            
-            fTotalHeight += 30;  // 30 height for the TabBar
-        }
-    
-        void add(Component* comp) override
-        {
-            // Name of the component is moved in Tab (so removed from component)
-            TabbedComponent::addTab(comp->getName(), Colours::white, comp, true);
-            comp->setName("");
-        }
-    
-};
-
-uiBox::~uiBox()
-{
-    /*
-        Deleting boxes, from leaves to root:
-        - leaves (uiComponent) are deleted by the uiItem mechanism
-        - containers (uiBox and uiTabBox) have to be explicitly deleted
-    */
-    for (int i = getNumChildComponents()-1; i >= 0; i--) {
-        delete dynamic_cast<uiBox*>(getChildComponent(i));
-        delete dynamic_cast<uiTabBox*>(getChildComponent(i));
-    }
-}
 
 /** Class in charge of doing the glue between FAUST and JUCE */
 class JuceGUI : public GUI, public MetaDataUI, public Component
