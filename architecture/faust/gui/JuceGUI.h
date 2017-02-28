@@ -85,7 +85,7 @@ struct CustomLookAndFeel : public LookAndFeel_V3
     void drawRoundThumb (Graphics& g, const float x, const float y,
                          const float diameter, const Colour& colour, float outlineThickness)
     {
-        const Rectangle<float> a (x, y, diameter, diameter);
+        const juce::Rectangle<float> a (x, y, diameter, diameter);
         const float halfThickness = outlineThickness * 0.5f;
 
         Path p;
@@ -249,14 +249,14 @@ struct CustomLookAndFeel : public LookAndFeel_V3
 
         if (slider.isHorizontal()) {
             const float iy = y + height * 0.5f - sliderRadius * 0.5f;
-            Rectangle<float> r (x - sliderRadius * 0.5f, iy, width + sliderRadius, sliderRadius);
+            juce::Rectangle<float> r (x - sliderRadius * 0.5f, iy, width + sliderRadius, sliderRadius);
             const float onW = r.getWidth() * ((float)slider.valueToProportionOfLength (slider.getValue()));
 
             on.addRectangle (r.removeFromLeft (onW));
             off.addRectangle (r);
         } else {
             const float ix = x + width * 0.5f - sliderRadius * 0.5f;
-            Rectangle<float> r (ix, y - sliderRadius * 0.5f, sliderRadius, height + sliderRadius);
+            juce::Rectangle<float> r (ix, y - sliderRadius * 0.5f, sliderRadius, height + sliderRadius);
             const float onH = r.getHeight() * ((float)slider.valueToProportionOfLength (slider.getValue()));
 
             on.addRectangle (r.removeFromBottom (onH));
@@ -379,9 +379,9 @@ class uiBase
         {}
         
         /** Return the size. */
-        Rectangle<int> getSize()
+        juce::Rectangle<int> getSize()
         {
-            return Rectangle<int>(0, 0, fTotalWidth, fTotalHeight);
+            return juce::Rectangle<int>(0, 0, fTotalWidth, fTotalHeight);
         }
         
         /** Return the total height in pixels. */
@@ -416,7 +416,7 @@ class uiBase
          * \param r The absolute bounds.
          *
          */
-        void setRelativeSize(Component* comp, const Rectangle<int>& r)
+        void setRelativeSize(Component* comp, const juce::Rectangle<int>& r)
         {
             comp->setBounds(r.getX() - comp->getParentComponent()->getX(),
                             r.getY() - comp->getParentComponent()->getY(),
@@ -1399,19 +1399,19 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
         /** Write the different level included in the VU-Meter range. */
         void paintScale(Graphics& g, float num)
         {
-            Rectangle<int> r;
+            juce::Rectangle<int> r;
             
             if (fStyle == VVUMeter) {
-                r = Rectangle<int>((getWidth()-(kVBargraphWidth/2))/2 + 1,  // Left side of the VU-Meter.
-                                   dB2y(num),                               // Vertically centred with 20 height.
-                                   (kVBargraphWidth/2)-2,                   // VU-Meter width with margin.
-                                   20);                                     // 20 height.
+                r = juce::Rectangle<int>((getWidth()-(kVBargraphWidth/2))/2 + 1,  // Left side of the VU-Meter.
+                                         dB2y(num),                               // Vertically centred with 20 height.
+                                         (kVBargraphWidth/2)-2,                   // VU-Meter width with margin.
+                                         20);                                     // 20 height.
                 g.drawText(String(num), r, Justification::centredRight, false);
             } else {
-                r = Rectangle<int>(dB2x(num)-10,                            // Horizontally centred with 20 width.
-                                   (getHeight()-kHBargraphHeight/2)/2 + 1,  // Top side of the VU-Meter.
-                                   20,                                      // 20 width.
-                                   (kHBargraphHeight/2)-2);                 // VU-Meter height with margin
+                r = juce::Rectangle<int>(dB2x(num)-10,                            // Horizontally centred with 20 width.
+                                        (getHeight()-kHBargraphHeight/2)/2 + 1,  // Top side of the VU-Meter.
+                                        20,                                      // 20 width.
+                                        (kHBargraphHeight/2)-2);                 // VU-Meter height with margin
                 g.drawText(String(num), r, Justification::centredTop, false);
             }
         }
@@ -1766,7 +1766,7 @@ class uiBox : public uiBase, public Component
          */
         void resized() override
         {
-            Rectangle<int> displayRect = getBounds();
+            juce::Rectangle<int> displayRect = getBounds();
             
             // Deleting space for the box name if it needs to be shown
             if (isNameDisplayed()) {
@@ -1917,15 +1917,15 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         }
 
         /** Return the size of the FAUST program */
-        Rectangle<int> getSize()
+        juce::Rectangle<int> getSize()
         {
             // Mininum size in case of empty GUI
             if (fCurrentBox) {
-                Rectangle<int> res = fCurrentBox->getSize();
+                juce::Rectangle<int> res = fCurrentBox->getSize();
                 res.setSize(std::max(1, res.getWidth()), std::max(1, res.getHeight()));
                 return res;
             } else {
-                return Rectangle<int>(0, 0, 1, 1);
+                return juce::Rectangle<int>(0, 0, 1, 1);
             }
         }
 
