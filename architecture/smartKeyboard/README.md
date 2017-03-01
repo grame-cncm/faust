@@ -219,6 +219,16 @@ This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`
 
 ---
 
+### `Keyboard N - Piano Keyboard`
+
+When 1, note names are displayed and black and white keys are differentiated (if 0, all keys are white).
+
+Default value: 1
+
+This is a keyboard-specific parameter. For example, if `Number of Keyboards = 2`, then there are 2 keyboards in the interface that can be configured independently with the `Keyboard 0 - Piano Keyboard` and the `Keyboard 1 - Piano Keyboard` keys.
+
+---
+
 ### `Keyboard N - Show Labels`
 
 When 1, shows note names on a specific keyboard. This parameter is overridden if [`Keyboard N - Piano Keyboard`](#keyboard-n---piano-keyboard) is defined.
