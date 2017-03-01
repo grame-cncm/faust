@@ -85,7 +85,7 @@ struct CustomLookAndFeel : public LookAndFeel_V3
     void drawRoundThumb (Graphics& g, const float x, const float y,
                          const float diameter, const Colour& colour, float outlineThickness)
     {
-        const Rectangle<float> a (x, y, diameter, diameter);
+        const juce::Rectangle<float> a (x, y, diameter, diameter);
         const float halfThickness = outlineThickness * 0.5f;
 
         Path p;
@@ -120,7 +120,7 @@ struct CustomLookAndFeel : public LookAndFeel_V3
 
         if (width > 0 && height > 0)
         {
-            const float cornerSize = jmin (15.0f, jmin (width, height) * 0.45f);
+            const float cornerSize = jmin(15.0f, jmin(width, height) * 0.45f);
             const float lineThickness = cornerSize * 0.1f;
             const float halfThickness = lineThickness * 0.5f;
 
@@ -230,7 +230,7 @@ struct CustomLookAndFeel : public LookAndFeel_V3
             g.setColour (baseColour);
             g.fillPath (p);
 
-            const float lineThickness = jmin (15.0f, jmin (width, height) * 0.45f) * 0.1f;
+            const float lineThickness = jmin(15.0f, jmin(width, height) * 0.45f) * 0.1f;
             g.drawRect (slider.getLocalBounds().toFloat(), lineThickness);
         } else {
             drawLinearSliderBackground (g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
@@ -249,14 +249,14 @@ struct CustomLookAndFeel : public LookAndFeel_V3
 
         if (slider.isHorizontal()) {
             const float iy = y + height * 0.5f - sliderRadius * 0.5f;
-            Rectangle<float> r (x - sliderRadius * 0.5f, iy, width + sliderRadius, sliderRadius);
+            juce::Rectangle<float> r (x - sliderRadius * 0.5f, iy, width + sliderRadius, sliderRadius);
             const float onW = r.getWidth() * ((float)slider.valueToProportionOfLength (slider.getValue()));
 
             on.addRectangle (r.removeFromLeft (onW));
             off.addRectangle (r);
         } else {
             const float ix = x + width * 0.5f - sliderRadius * 0.5f;
-            Rectangle<float> r (ix, y - sliderRadius * 0.5f, sliderRadius, height + sliderRadius);
+            juce::Rectangle<float> r (ix, y - sliderRadius * 0.5f, sliderRadius, height + sliderRadius);
             const float onH = r.getHeight() * ((float)slider.valueToProportionOfLength (slider.getValue()));
 
             on.addRectangle (r.removeFromBottom (onH));
@@ -273,7 +273,7 @@ struct CustomLookAndFeel : public LookAndFeel_V3
     void drawRotarySlider (Graphics& g, int x, int y, int width, int height, float sliderPos,
                            float rotaryStartAngle, float rotaryEndAngle, Slider& slider) override
     {
-        const float radius = jmin (width / 2, height / 2) - 4.0f;
+        const float radius = jmin(width / 2, height / 2) - 4.0f;
         const float centreX = x + width * 0.5f;
         const float centreY = y + height * 0.5f;
         const float rx = centreX - radius;
@@ -379,9 +379,9 @@ class uiBase
         {}
         
         /** Return the size. */
-        Rectangle<int> getSize()
+        juce::Rectangle<int> getSize()
         {
-            return Rectangle<int>(0, 0, fTotalWidth, fTotalHeight);
+            return juce::Rectangle<int>(0, 0, fTotalWidth, fTotalHeight);
         }
         
         /** Return the total height in pixels. */
@@ -416,7 +416,7 @@ class uiBase
          * \param r The absolute bounds.
          *
          */
-        void setRelativeSize(Component* comp, const Rectangle<int>& r)
+        void setRelativeSize(Component* comp, const juce::Rectangle<int>& r)
         {
             comp->setBounds(r.getX() - comp->getParentComponent()->getX(),
                             r.getY() - comp->getParentComponent()->getY(),
@@ -1130,16 +1130,16 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             
             // Drawing from the minimal range to the current level, or 20% of the VU-meter
             g.setColour(c.brighter());
-            g.fillRect(x+1.0f, y+1.0f, jmin(fLevel*(width-2), 0.2f*(width-2)), (float)height-2);
+            g.fillRect(x+1.0f, y+1.0f, jmin<float>(fLevel*(width-2), 0.2f*(width-2)), (float)height-2);
             // Drawing from 20% of the VU-meter to the current level, or 90% of the VU-meter
             if (fLevel > 0.2f) {
                 g.setColour(c);
-                g.fillRect(x+1.0f + 0.2f*(width-2), y+1.0f, jmin((fLevel-0.2f) * (width-2), (0.9f-0.2f) * (width-2)), (float)height-2);
+                g.fillRect(x+1.0f + 0.2f*(width-2), y+1.0f, jmin<float>((fLevel-0.2f) * (width-2), (0.9f-0.2f) * (width-2)), (float)height-2);
             }
             // Drawing from 90% of the VU-meter to the current level, or the maximal range of the VU-meter
             if (fLevel > 0.9f) {
                 g.setColour(c.darker());
-                g.fillRect(x+1.0f + 0.9f*(width-2), y+1.0f, jmin((fLevel-0.9f) * (width-2), (1.0f-0.9f) * (width-2)), (float)height-2);
+                g.fillRect(x+1.0f + 0.9f*(width-2), y+1.0f, jmin<float>((fLevel-0.9f) * (width-2), (1.0f-0.9f) * (width-2)), (float)height-2);
             }
         }
         /**
@@ -1253,12 +1253,12 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             
             // Drawing from the minimal range to the current level, or 20% of the VU-meter.
             g.setColour(c.brighter());
-            g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.2f)), (float)width-2, lin2y(fMin)-jmax(lin2y(fLevel), lin2y(0.2f)));
+            g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.2)), (float)width-2, lin2y(fMin)-jmax(lin2y(fLevel), lin2y(0.2)));
             
             // Drawing from 20% of the VU-meter to the current level, or 90% of the VU-meter.
             if (fLevel > 0.2f) {
                 g.setColour(c);
-                g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.9f)), (float)width-2, lin2y(0.2f)-jmax(lin2y(fLevel), lin2y(0.9f)));
+                g.fillRect(x+1.0f, jmax(lin2y(fLevel), lin2y(0.9)), (float)width-2, lin2y(0.2)-jmax(lin2y(fLevel), lin2y(0.9)));
             }
             
             // Drawing from 90% of the VU-meter to the current level, or the maximum range.
@@ -1399,19 +1399,19 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
         /** Write the different level included in the VU-Meter range. */
         void paintScale(Graphics& g, float num)
         {
-            Rectangle<int> r;
+            juce::Rectangle<int> r;
             
             if (fStyle == VVUMeter) {
-                r = Rectangle<int>((getWidth()-(kVBargraphWidth/2))/2 + 1,  // Left side of the VU-Meter.
-                                   dB2y(num),                               // Vertically centred with 20 height.
-                                   (kVBargraphWidth/2)-2,                   // VU-Meter width with margin.
-                                   20);                                     // 20 height.
+                r = juce::Rectangle<int>((getWidth()-(kVBargraphWidth/2))/2 + 1,  // Left side of the VU-Meter.
+                                         dB2y(num),                               // Vertically centred with 20 height.
+                                         (kVBargraphWidth/2)-2,                   // VU-Meter width with margin.
+                                         20);                                     // 20 height.
                 g.drawText(String(num), r, Justification::centredRight, false);
             } else {
-                r = Rectangle<int>(dB2x(num)-10,                            // Horizontally centred with 20 width.
-                                   (getHeight()-kHBargraphHeight/2)/2 + 1,  // Top side of the VU-Meter.
-                                   20,                                      // 20 width.
-                                   (kHBargraphHeight/2)-2);                 // VU-Meter height with margin
+                r = juce::Rectangle<int>(dB2x(num)-10,                            // Horizontally centred with 20 width.
+                                        (getHeight()-kHBargraphHeight/2)/2 + 1,  // Top side of the VU-Meter.
+                                        20,                                      // 20 width.
+                                        (kHBargraphHeight/2)-2);                 // VU-Meter height with margin
                 g.drawText(String(num), r, Justification::centredTop, false);
             }
         }
@@ -1575,6 +1575,60 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
     
 };
 
+/** Intern class for tab widget */
+class uiTabBox : public uiBase, public TabbedComponent
+{
+    
+public:
+    /**
+     * \brief   Constructor.
+     * \details Initalize the juce::TabbedComponent tabs to be at top, and the uiTabBox size at 0
+     */
+    uiTabBox():uiBase(),TabbedComponent(TabbedButtonBar::TabsAtTop)
+    {}
+    
+    /**
+     * Initialize all his child ratios (1 uiBox per tabs), the LookAndFeel
+     * and the uiTabBox size to fit the biggest of its child.
+     */
+    void init(Component* comp = nullptr) override
+    {
+        for (int i = 0; i < getNumTabs(); i++) {
+            Component* comp = getTabContentComponent(i);
+            uiBase* base_comp = dynamic_cast<uiBase*>(comp);
+            base_comp->init(comp);
+            
+            // The TabbedComponent size should be as big as its bigger child's dimension, done here
+            fTotalWidth = jmax(fTotalWidth, base_comp->getTotalWidth());
+            fTotalHeight = jmax(fTotalHeight, base_comp->getTotalHeight());
+        }
+        
+        fTotalHeight += 30;  // 30 height for the TabBar.
+    }
+    
+    void setRecommendedSize() override
+    {
+        for (int i = 0; i < getNumTabs(); i++) {
+            uiBase* comp = dynamic_cast<uiBase*>(getTabContentComponent(i));
+            comp->setRecommendedSize();
+            
+            // The TabbedComponent size should be as big as its bigger child's dimension, done here
+            fTotalWidth = jmax(fTotalWidth, comp->getTotalWidth());
+            fTotalHeight = jmax(fTotalHeight, comp->getTotalHeight());
+        }
+        
+        fTotalHeight += 30;  // 30 height for the TabBar
+    }
+    
+    void add(Component* comp) override
+    {
+        // Name of the component is moved in Tab (so removed from component)
+        TabbedComponent::addTab(comp->getName(), Colours::white, comp, true);
+        comp->setName("");
+    }
+    
+};
+
 /**
  * \brief   Intern class for box widgets
  * \details That's the class where the whole layout is calculated.
@@ -1632,8 +1686,19 @@ class uiBox : public uiBase, public Component
          * \details Delete all uiBox recusively, but not the uiComponent,
          *          because it's handled by the uiItem FAUST objects.
          */
-        virtual ~uiBox();
-    
+        virtual ~uiBox()
+        {
+            /*
+             Deleting boxes, from leaves to root:
+             - leaves (uiComponent) are deleted by the uiItem mechanism
+             - containers (uiBox and uiTabBox) have to be explicitly deleted
+             */
+            for (int i = getNumChildComponents()-1; i >= 0; i--) {
+                delete dynamic_cast<uiBox*>(getChildComponent(i));
+                delete dynamic_cast<uiTabBox*>(getChildComponent(i));
+            }
+        }
+
         /**
          * \brief   Initialization of the DisplayRect and Total size.
          * \details Calculate the correct size for each box, depending on its child sizes.
@@ -1701,7 +1766,7 @@ class uiBox : public uiBase, public Component
          */
         void resized() override
         {
-            Rectangle<int> displayRect = getBounds();
+            juce::Rectangle<int> displayRect = getBounds();
             
             // Deleting space for the box name if it needs to be shown
             if (isNameDisplayed()) {
@@ -1751,73 +1816,6 @@ class uiBox : public uiBase, public Component
         }
     
 };
-
-/** Intern class for tab widget */
-class uiTabBox : public uiBase, public TabbedComponent
-{
-
-    public:
-        /**
-         * \brief   Constructor.
-         * \details Initalize the juce::TabbedComponent tabs to be at top, and the uiTabBox size at 0 
-         */
-        uiTabBox():uiBase(),TabbedComponent(TabbedButtonBar::TabsAtTop)
-        {}
-
-        /** 
-         * Initialize all his child ratios (1 uiBox per tabs), the LookAndFeel
-         * and the uiTabBox size to fit the biggest of its child.
-         */
-        void init(Component* comp = nullptr) override
-        {
-            for (int i = 0; i < getNumTabs(); i++) {
-                Component* comp = getTabContentComponent(i);
-                uiBase* base_comp = dynamic_cast<uiBase*>(comp);
-                base_comp->init(comp);
-                
-                // The TabbedComponent size should be as big as its bigger child's dimension, done here
-                fTotalWidth = jmax(fTotalWidth, base_comp->getTotalWidth());
-                fTotalHeight = jmax(fTotalHeight, base_comp->getTotalHeight());
-            }
-            
-            fTotalHeight += 30;  // 30 height for the TabBar.
-        }
-      
-        void setRecommendedSize() override
-        {
-            for (int i = 0; i < getNumTabs(); i++) {
-                uiBase* comp = dynamic_cast<uiBase*>(getTabContentComponent(i));
-                comp->setRecommendedSize();
-                
-                // The TabbedComponent size should be as big as its bigger child's dimension, done here
-                fTotalWidth = jmax(fTotalWidth, comp->getTotalWidth());
-                fTotalHeight = jmax(fTotalHeight, comp->getTotalHeight());
-            }
-            
-            fTotalHeight += 30;  // 30 height for the TabBar
-        }
-    
-        void add(Component* comp) override
-        {
-            // Name of the component is moved in Tab (so removed from component)
-            TabbedComponent::addTab(comp->getName(), Colours::white, comp, true);
-            comp->setName("");
-        }
-    
-};
-
-uiBox::~uiBox()
-{
-    /*
-        Deleting boxes, from leaves to root:
-        - leaves (uiComponent) are deleted by the uiItem mechanism
-        - containers (uiBox and uiTabBox) have to be explicitly deleted
-    */
-    for (int i = getNumChildComponents()-1; i >= 0; i--) {
-        delete dynamic_cast<uiBox*>(getChildComponent(i));
-        delete dynamic_cast<uiTabBox*>(getChildComponent(i));
-    }
-}
 
 /** Class in charge of doing the glue between FAUST and JUCE */
 class JuceGUI : public GUI, public MetaDataUI, public Component
@@ -1919,15 +1917,15 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         }
 
         /** Return the size of the FAUST program */
-        Rectangle<int> getSize()
+        juce::Rectangle<int> getSize()
         {
             // Mininum size in case of empty GUI
             if (fCurrentBox) {
-                Rectangle<int> res = fCurrentBox->getSize();
+                juce::Rectangle<int> res = fCurrentBox->getSize();
                 res.setSize(std::max(1, res.getWidth()), std::max(1, res.getHeight()));
                 return res;
             } else {
-                return Rectangle<int>(0, 0, 1, 1);
+                return juce::Rectangle<int>(0, 0, 1, 1);
             }
         }
 
