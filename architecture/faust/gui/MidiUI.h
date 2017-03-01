@@ -77,7 +77,7 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string>
                       (json.find("stop") != std::string::npos) ||
                       (json.find("clock") != std::string::npos)));
     
-    #ifdef NVOICES
+    #if defined(NVOICES) && NVOICES!=NUM_VOICES
         nvoices = NVOICES;
     #else
         MidiMeta meta;
@@ -316,13 +316,15 @@ class uiMidiPitchWheel : public uiMidiItem
     private:
     	
 		// currently, the range is of pitchwheel if fixed (-2/2 semitones)
-		FAUSTFLOAT wheel2bend(float v){
-			return pow(2.0,(v/16383.0*4-2)/12);
-		}
+        FAUSTFLOAT wheel2bend(float v)
+        {
+            return pow(2.0,(v/16383.0*4-2)/12);
+        }
 
-		int bend2wheel(float v){
-			return (int)((12*log(v)/log(2)+2)/4*16383);
-		}
+        int bend2wheel(float v)
+        {
+            return (int)((12*log(v)/log(2)+2)/4*16383);
+        }
  
     public:
     
