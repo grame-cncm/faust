@@ -154,47 +154,6 @@ struct Max_Meta2 : Meta
     }
 };
 
-struct MyMeta : public Meta, public std::map<std::string, std::string>
-{
-    void declare(const char* key, const char* value)
-    {
-        (*this)[key] = value;
-    }
-    const std::string get(const char* key, const char* def)
-    {
-        if (this->find(key) != this->end()) {
-            return (*this)[key];
-        } else {
-            return def;
-        }
-    }
-};
-
-static void analyseMeta(bool& midi_sync, int& nvoices)
-{
-    mydsp* tmp_dsp = new mydsp();
-    
-    JSONUI jsonui;
-    tmp_dsp->buildUserInterface(&jsonui);
-    std::string json = jsonui.JSON();
-    midi_sync = ((json.find("midi") != std::string::npos) &&
-                 ((json.find("start") != std::string::npos) ||
-                  (json.find("stop") != std::string::npos) ||
-                  (json.find("clock") != std::string::npos)));
-    
-#ifdef NVOICES
-    nvoices = NVOICES;
-#else
-    MyMeta meta;
-    tmp_dsp->metadata(&meta);
-    std::string numVoices = meta.get("nvoices", "0");
-    nvoices = atoi(numVoices.c_str());
-    if (nvoices < 0) nvoices = 0;
-#endif
-    
-    delete tmp_dsp;
-}
-
 /*--------------------------------------------------------------------------*/
 typedef struct faust
 {
@@ -760,7 +719,9 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     bool midi_sync = false;
     int nvoices = 1;
     
-    analyseMeta(midi_sync, nvoices);
+    mydsp* tmp_dsp = new mydsp();
+    MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
+    delete tmp_dsp;
     
     t_faust* x = (t_faust*)newobject(faust_class);
 

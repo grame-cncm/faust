@@ -319,7 +319,6 @@ public:
                 }
             }
             else if (strcmp(key,"style") == 0) {
-                // else if ((strcmp(key,"style") == 0) || (strcmp(key,"type") == 0)) {
                 if (strcmp(value,"knob") == 0) {
                     fKnobSet.insert(zone);
                 } else if (strcmp(value,"led") == 0) {

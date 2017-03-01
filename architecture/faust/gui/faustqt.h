@@ -1138,9 +1138,10 @@ public:
 	}
     
     public slots :
-	void setValue(double v)		{
-		modifyZone(FAUSTFLOAT(v));
-	}
+    void setValue(double v)
+    {
+        modifyZone(FAUSTFLOAT(v));
+    }
 };
 
 /******************************************************************************
@@ -1193,7 +1194,7 @@ protected:
 	}
     
     /**
-     * Analyses a full label and activates the relevant options. returns a simplified
+     * Analyses a full label and activates the relevant options. Returns a simplified
      * label (without options) and an amount of stack adjustement (in case additional
      * containers were pushed on the stack).
      */

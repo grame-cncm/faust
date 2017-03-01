@@ -1086,7 +1086,7 @@ void GTKUI::addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTF
 	gtk_container_add (GTK_CONTAINER(rei), re);
 	if (fGuiSize[zone]) {
 		FAUSTFLOAT size = 30 * fGuiSize[zone];
-		gtk_widget_set_size_request(rei, size, size );
+		gtk_widget_set_size_request(rei, size, size);
 		gtk_box_pack_start (GTK_BOX(slider), fil, true, true, 0);
 		gtk_box_pack_start (GTK_BOX(slider), rei, FALSE, FALSE, 0);
 	} else {
@@ -1126,7 +1126,7 @@ void GTKUI::addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT in
 	GtkWidget* slider = gtk_vscale_new (GTK_ADJUSTMENT(adj));
 	gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
 	FAUSTFLOAT size = 160;
-	if(fGuiSize[zone]) {
+	if (fGuiSize[zone]) {
 		size = 160 * fGuiSize[zone];
 	}
 	gtk_widget_set_size_request(slider, -1, size);
@@ -1163,7 +1163,7 @@ void GTKUI::addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT 
     GtkWidget* slider = gtk_hscale_new (GTK_ADJUSTMENT(adj));
 	gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
 	FAUSTFLOAT size = 160;
-	if(fGuiSize[zone]) {
+	if (fGuiSize[zone]) {
 		size = 160 * fGuiSize[zone];
 	}
 	gtk_widget_set_size_request(slider, size, -1);
