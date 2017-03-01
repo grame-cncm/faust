@@ -36,9 +36,6 @@
 #include <math.h>
 #include <algorithm>
 
-using std::max;
-using std::min;
-
 #include "faust/gui/JuceStateUI.h"
 
 #if defined(OSCCTRL)
@@ -189,45 +186,6 @@ class FaustSynthesiser : public Synthesiser, public dsp_voice_group {
 
 #endif
 
-struct MyMeta : public Meta, public std::map<std::string, std::string>
-{
-    void declare(const char* key, const char* value)
-    {
-        (*this)[key] = value;
-    }
-    const std::string get(const char* key, const char* def)
-    {
-        if (this->find(key) != this->end()) {
-            return (*this)[key];
-        } else {
-            return def;
-        }
-    }
-};
-
-static void analyseMeta(bool& midi_sync, int& nvoices)
-{
-    ScopedPointer<mydsp> tmp_dsp = new mydsp();
-    
-    JSONUI jsonui;
-    tmp_dsp->buildUserInterface(&jsonui);
-    std::string json = jsonui.JSON();
-    midi_sync = ((json.find("midi") != std::string::npos) &&
-                 ((json.find("start") != std::string::npos) ||
-                  (json.find("stop") != std::string::npos) ||
-                  (json.find("clock") != std::string::npos)));
-    
-#if defined(NVOICES) && NVOICES!=NUM_VOICES
-    nvoices = NVOICES;
-#else
-    MyMeta meta;
-    tmp_dsp->metadata(&meta);
-    std::string numVoices = meta.get("nvoices", "0");
-    nvoices = atoi(numVoices.c_str());
-    if (nvoices < 0) nvoices = 0;
-#endif
-}
-
 class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
 {
 
@@ -338,7 +296,9 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     bool midi_sync = false;
     int nvoices = 1;
     
-    analyseMeta(midi_sync, nvoices);
+    mydsp* tmp_dsp = new mydsp();
+    MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
+    delete tmp_dsp;;
     
 #ifdef JUCE_POLY
     fSynth = new FaustSynthesiser(panic, this);

@@ -81,7 +81,7 @@ class MetaDataUI {
     
 protected:
     
-    std::string                         gGroupTooltip;
+    std::string                         fGroupTooltip;
     std::map<FAUSTFLOAT*, FAUSTFLOAT>   fGuiSize;            // map widget zone with widget size coef
     std::map<FAUSTFLOAT*, std::string>  fTooltip;            // map widget zone with tooltip strings
     std::map<FAUSTFLOAT*, std::string>  fUnit;               // map widget zone to unit string (i.e. "dB")
@@ -299,7 +299,7 @@ public:
             // special zone 0 means group metadata
             if (strcmp(key,"tooltip") == 0) {
                 // only group tooltip are currently implemented
-                gGroupTooltip = formatTooltip(30, value);
+                fGroupTooltip = formatTooltip(30, value);
             }
         } else {
             if (strcmp(key,"size") == 0) {
@@ -319,7 +319,6 @@ public:
                 }
             }
             else if (strcmp(key,"style") == 0) {
-                // else if ((strcmp(key,"style") == 0) || (strcmp(key,"type") == 0)) {
                 if (strcmp(value,"knob") == 0) {
                     fKnobSet.insert(zone);
                 } else if (strcmp(value,"led") == 0) {

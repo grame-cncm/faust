@@ -51,8 +51,9 @@
 
 #define FLOAT_MAX(a, b) (((a) < (b)) ? (b) : (a))
 
-// ends_with(<str>,<end>) : returns true if <str> ends with <end>
-static inline bool ends_with(std::string const& str, std::string const& end)
+// endsWith(<str>,<end>) : returns true if <str> ends with <end>
+
+static inline bool endsWith(std::string const& str, std::string const& end)
 {
     size_t l1 = str.length();
     size_t l2 = end.length();
@@ -69,6 +70,10 @@ static inline unsigned int isPowerOfTwo(unsigned int n)
     return !(n & (n - 1));
 }
 
+/**
+ * Allows to control zones in a grouped manner.
+ */
+
 class GroupUI : public GUI, public PathBuilder
 {
     
@@ -78,9 +83,9 @@ class GroupUI : public GUI, public PathBuilder
         
         void insertMap(std::string label, FAUSTFLOAT* zone)
         {   
-            if (!ends_with(label, "/gate") 
-                && !ends_with(label, "/freq") 
-                && !ends_with(label, "/gain")) {
+            if (!endsWith(label, "/gate") 
+                && !endsWith(label, "/freq") 
+                && !endsWith(label, "/gain")) {
                 
                 // Groups all controller except 'freq', 'gate', and 'gain'
                 if (fLabelZoneMap.find(label) != fLabelZoneMap.end()) {
@@ -164,11 +169,11 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     
     int fNote;              // Playing note actual pitch
     int fDate;              // KeyOn date
-    bool fTrigger;          // True if stolen note and need for envelop re-trigger
+    bool fTrigger;          // True if stolen note and need for envelop trigger
     FAUSTFLOAT fLevel;      // Last audio block level
-    std::string fGateLabel;
-    std::string fGainLabel;
-    std::string fFreqLabel;
+    std::string fGatePath;  // Path of 'gate' control
+    std::string fGainPath;  // Path of 'gain' control
+    std::string fFreqPath;  // Path of 'freq' control
 
     dsp_voice(dsp* dsp):decorator_dsp(dsp)
     {
@@ -177,37 +182,39 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         fLevel = FAUSTFLOAT(0);
         fDate = 0;
         fTrigger = false;
-        extractLabels(fGateLabel, fFreqLabel, fGainLabel);
+        extractPaths(fGatePath, fFreqPath, fGainPath);
     }
     
-    void extractLabels(std::string& gate, std::string& freq, std::string& gain)
+    void extractPaths(std::string& gate, std::string& freq, std::string& gain)
     {
         // Keep gain, freq and gate labels
         std::map<std::string, FAUSTFLOAT*>::iterator it;
         for (it = getMap().begin(); it != getMap().end(); it++) {
-            std::string label = (*it).first;
-            if (ends_with(label, "/gate")) {
-                gate = label;
-            } else if (ends_with(label, "/freq")) {
-                freq = label;
-            } else if (ends_with(label, "/gain")) {
-                gain = label;
+            std::string path = (*it).first;
+            if (endsWith(path, "/gate")) {
+                gate = path;
+            } else if (endsWith(path, "/freq")) {
+                freq = path;
+            } else if (endsWith(path, "/gain")) {
+                gain = path;
             }
         }
     }
     
+    // MIDI velocity [0..127]
     void keyOn(int pitch, int velocity)
     {
-        setParamValue(fFreqLabel, midiToFreq(pitch));
-        setParamValue(fGainLabel, float(velocity)/127.f);
+        setParamValue(fFreqPath, midiToFreq(pitch));
+        setParamValue(fGainPath, float(velocity)/127.f);
         fNote = pitch;
         fTrigger = true; // so that envelop is always re-initialized
     }
     
+    // Normalized MIDI velocity [0..1]
     void keyOn(int pitch, float velocity)
     {
-        setParamValue(fFreqLabel, midiToFreq(pitch));
-        setParamValue(fGainLabel, velocity);
+        setParamValue(fFreqPath, midiToFreq(pitch));
+        setParamValue(fGainPath, velocity);
         fNote = pitch;
         fTrigger = true; // so that envelop is always re-initialized
     }
@@ -215,9 +222,9 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     void keyOff(bool hard = false)
     {
         // No use of velocity for now...
-        setParamValue(fGateLabel, FAUSTFLOAT(0));
+        setParamValue(fGatePath, FAUSTFLOAT(0));
         if (hard) {
-            // Stops immediately
+            // Stop immediately
             fNote = kFreeVoice;
             fTrigger = false;
         } else {
@@ -229,7 +236,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     void play(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
         if (fTrigger) {
-            // New note, so re-trigger
+            // New note, so trigger it
             trigger(count, inputs, outputs);
         } else {
             // Compute the voice
@@ -239,9 +246,9 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     
     void trigger(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
-        setParamValue(fGateLabel, FAUSTFLOAT(0));
+        setParamValue(fGatePath, FAUSTFLOAT(0));
         computeSlice(0, 1, inputs, outputs);
-        setParamValue(fGateLabel, FAUSTFLOAT(1));
+        setParamValue(fGatePath, FAUSTFLOAT(1));
         computeSlice(1, count - 1, inputs, outputs);
         fTrigger = false;
     }

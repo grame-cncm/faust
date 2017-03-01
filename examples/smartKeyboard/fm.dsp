@@ -36,7 +36,6 @@ import("stdfaust.lib");
 declare interface "SmartKeyboard{
 	'Number of Keyboards':'1',
 	'Keyboard 0 - Number of Keys':'1',
-	'keyb0_keybMode':'0',
 	'Keyboard 0 - Piano Keyboard':'0',
 	'Keyboard 0 - Static Mode':'1'
 }";

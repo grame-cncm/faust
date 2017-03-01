@@ -49,6 +49,10 @@
     #define int64 long long int
 #endif
 
+#ifdef TARGET_OS_IPHONE
+#include <mach/mach_time.h>
+#endif
+
 /*
     A class to do do timing measurements
 */
@@ -56,6 +60,10 @@
 class time_bench {
     
     protected:
+    
+    #ifdef TARGET_OS_IPHONE
+        mach_timebase_info_data_t fTimeInfo;
+    #endif
     
         int fMeasure;
         int fMeasureCount;
@@ -77,6 +85,9 @@ class time_bench {
          */
         inline uint64 rdtsc(void)
         {
+        #ifdef TARGET_OS_IPHONE
+            return (uint64)(mach_absolute_time() * (double)fTimeInfo.numer / (double)fTimeInfo.denom);
+        #else  
             union {
                 uint32 i32[2];
                 uint64 i64;
@@ -84,6 +95,7 @@ class time_bench {
             
             __asm__ __volatile__("rdtsc" : "=a" (count.i32[0]), "=d" (count.i32[1]));
             return count.i64;
+        #endif
         }
 
         /**
@@ -151,6 +163,9 @@ class time_bench {
             fLastRDTSC = 0;
             fStarts = new uint64[fMeasureCount];
             fStops = new uint64[fMeasureCount];
+        #ifdef TARGET_OS_IPHONE
+            mach_timebase_info(&fTimeInfo);
+        #endif
         }
     
         virtual ~time_bench()
@@ -292,7 +307,7 @@ class measure_dsp : public decorator_dsp {
             measure();
             double duration = fBench->measureDurationUsec();
             int cout = int (500 * (duration_in_sec * 1e6 / duration));
-            std::cout << "duration = " << duration << " count = " << cout << std::endl;
+            //std::cout << "duration = " << duration << " count = " << cout << std::endl;
             delete fBench;
             fBench = new time_bench(cout, 10);
         }

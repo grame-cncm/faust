@@ -800,7 +800,7 @@ static const char * evalLabel (const char* src, Tree visited, Tree localValEnv)
  * Iterate a parallel construction such that :
  * par(i,10,E) --> E(i<-0),(E(i<-1),...,E(i<-9))
  * @param id the formal parameter of the iteration
- * @param num the number of iterartions
+ * @param num the number of iterations
  * @param body the body expression of the iteration
  * @param globalDefEnv the global environment
  * @param visited list of visited definition to detect recursive definitions
@@ -825,7 +825,7 @@ static Tree iteratePar (Tree id, int num, Tree body, Tree visited, Tree localVal
  * Iterate a sequential construction such that :
  * seq(i,10,E) --> E(i<-0):(E(i<-1):...:E(i<-9))
  * @param id the formal parameter of the iteration
- * @param num the number of iterartions
+ * @param num the number of iterations
  * @param body the body expression of the iteration
  * @param globalDefEnv the global environment
  * @param visited list of visited definition to detect recursive definitions
@@ -849,7 +849,7 @@ static Tree iterateSeq (Tree id, int num, Tree body, Tree visited, Tree localVal
  * Iterate an addition construction such that :
  * par(i,10,E) --> E(i<-0)+E(i<-1)+...+E(i<-9)
  * @param id the formal parameter of the iteration
- * @param num the number of iterartions
+ * @param num the number of iterations
  * @param body the body expression of the iteration
  * @param globalDefEnv the global environment
  * @param visited list of visited definition to detect recursive definitions
@@ -875,7 +875,7 @@ static Tree iterateSum (Tree id, int num, Tree body, Tree visited, Tree localVal
  * Iterate a product construction such that :
  * par(i,10,E) --> E(i<-0)*E(i<-1)*...*E(i<-9)
  * @param id the formal parameter of the iteration
- * @param num the number of iterartions
+ * @param num the number of iterations
  * @param body the body expression of the iteration
  * @param globalDefEnv the global environment
  * @param visited list of visited definition to detect recursive definitions

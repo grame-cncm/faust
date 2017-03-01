@@ -35,14 +35,65 @@
 #include <utility>
 #include <iostream>
 
+#include "faust/gui/meta.h"
 #include "faust/gui/GUI.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/midi/midi.h"
 #include "faust/gui/ValueConverter.h"
+
+#ifdef _MSC_VER
+#define gsscanf sscanf_s
+#else
+#define gsscanf sscanf
+#endif
+
+/*****************************************************************************
+* Helper code for MIDI meta and polyphonic 'nvoices' parsing
+******************************************************************************/
+
+struct MidiMeta : public Meta, public std::map<std::string, std::string>
+{
+    void declare(const char* key, const char* value)
+    {
+        (*this)[key] = value;
+    }
+    
+    const std::string get(const char* key, const char* def)
+    {
+        if (this->find(key) != this->end()) {
+            return (*this)[key];
+        } else {
+            return def;
+        }
+    }
+    
+    static void analyse(dsp* tmp_dsp, bool& midi_sync, int& nvoices)
+    {
+        JSONUI jsonui;
+        tmp_dsp->buildUserInterface(&jsonui);
+        std::string json = jsonui.JSON();
+        midi_sync = ((json.find("midi") != std::string::npos) &&
+                     ((json.find("start") != std::string::npos) ||
+                      (json.find("stop") != std::string::npos) ||
+                      (json.find("clock") != std::string::npos)));
+    
+    #if defined(NVOICES) && NVOICES!=NUM_VOICES
+        nvoices = NVOICES;
+    #else
+        MidiMeta meta;
+        tmp_dsp->metadata(&meta);
+        std::string numVoices = meta.get("nvoices", "0");
+        nvoices = atoi(numVoices.c_str());
+        if (nvoices < 0) nvoices = 0;
+    #endif
+    }
+};
 
 /*******************************************************************************
  * MidiUI : Faust User Interface
  * This class decodes MIDI meta data and maps incoming MIDI messages to them.
- * Currently "ctrl, keyon, keypress, pgm, chanpress, pitchwheel/pitchbend meta data is handled.
+ * Currently ctrl, keyon/keyoff, keypress, pgm, chanpress, pitchwheel/pitchbend 
+ * start/stop/clock meta data is handled.
  ******************************************************************************/
  
 class uiMidiItem : public uiItem {
@@ -93,7 +144,7 @@ class uiMidiTimedItem : public uiMidiItem
             size_t res;
             DatedControl dated_val(date, v);
             if ((res = ringbuffer_write(GUI::gTimedZoneMap[fZone], (const char*)&dated_val, sizeof(DatedControl))) != sizeof(DatedControl)) {
-                std::cout << "ringbuffer_write error DatedControl" << std::endl;
+                std::cerr << "ringbuffer_write error DatedControl" << std::endl;
             }
         }
         
@@ -265,13 +316,15 @@ class uiMidiPitchWheel : public uiMidiItem
     private:
     	
 		// currently, the range is of pitchwheel if fixed (-2/2 semitones)
-		FAUSTFLOAT wheel2bend(float v){
-			return pow(2.0,(v/16383.0*4-2)/12);
-		}
+        FAUSTFLOAT wheel2bend(float v)
+        {
+            return pow(2.0,(v/16383.0*4-2)/12);
+        }
 
-		int bend2wheel(float v){
-			return (int)((12*log(v)/log(2)+2)/4*16383);
-		}
+        int bend2wheel(float v)
+        {
+            return (int)((12*log(v)/log(2)+2)/4*16383);
+        }
  
     public:
     
@@ -422,17 +475,17 @@ class MidiUI : public GUI, public midi
                 for (size_t i = 0; i < fMetaAux.size(); i++) {
                     unsigned num;
                     if (fMetaAux[i].first == "midi") {
-                        if (sscanf(fMetaAux[i].second.c_str(), "ctrl %u", &num) == 1) {
+                        if (gsscanf(fMetaAux[i].second.c_str(), "ctrl %u", &num) == 1) {
                             fCtrlChangeTable[num].push_back(new uiMidiCtrlChange(fMidiHandler, num, this, zone, min, max, input));
-                        } else if (sscanf(fMetaAux[i].second.c_str(), "keyon %u", &num) == 1) {
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "keyon %u", &num) == 1) {
                             fKeyOnTable[num].push_back(new uiMidiKeyOn(fMidiHandler, num, this, zone, min, max, input));
-                        } else if (sscanf(fMetaAux[i].second.c_str(), "keyoff %u", &num) == 1) {
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "keyoff %u", &num) == 1) {
                             fKeyOffTable[num].push_back(new uiMidiKeyOff(fMidiHandler, num, this, zone, min, max, input));
-                        } else if (sscanf(fMetaAux[i].second.c_str(), "keypress %u", &num) == 1) {
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "keypress %u", &num) == 1) {
                             fKeyPressTable[num].push_back(new uiMidiKeyPress(fMidiHandler, num, this, zone, min, max, input));
-                        } else if (sscanf(fMetaAux[i].second.c_str(), "pgm %u", &num) == 1) {
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "pgm %u", &num) == 1) {
                             fProgChangeTable[num].push_back(new uiMidiProgChange(fMidiHandler, num, this, zone, input));
-                        } else if (sscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num) == 1) {
+                        } else if (gsscanf(fMetaAux[i].second.c_str(), "chanpress %u", &num) == 1) {
                             fChanPressTable[num].push_back(new uiMidiChanPress(fMidiHandler, num, this, zone, input));
                         } else if (strcmp(fMetaAux[i].second.c_str(), "pitchwheel") == 0 
                             || strcmp(fMetaAux[i].second.c_str(), "pitchbend") == 0) {
