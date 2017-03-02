@@ -172,7 +172,7 @@ class timed_dsp : public decorator_dsp {
         
         double convertUsecToSample(double usec)
         {
-            return std::max(0., (double(getSampleRate()) * (usec - fDateUsec)) / 1000000.);
+            return std::max<double>(0., (double(getSampleRate()) * (usec - fDateUsec)) / 1000000.);
         }
         
         ztimedmap::iterator getNextControl(DatedControl& res, bool convert_ts)

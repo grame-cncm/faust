@@ -1922,7 +1922,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
             // Mininum size in case of empty GUI
             if (fCurrentBox) {
                 juce::Rectangle<int> res = fCurrentBox->getSize();
-                res.setSize(std::max(1, res.getWidth()), std::max(1, res.getHeight()));
+                res.setSize(std::max<int>(1, res.getWidth()), std::max<int>(1, res.getHeight()));
                 return res;
             } else {
                 return juce::Rectangle<int>(0, 0, 1, 1);
