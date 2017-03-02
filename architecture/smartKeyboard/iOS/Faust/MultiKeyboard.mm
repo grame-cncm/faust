@@ -713,12 +713,12 @@
         if([keyboardParameters[@"Send Current Keyboard"] intValue]) faustDsp->setVoiceParamValue("keyboard", voices[fingerId], keyboardId);
         if([keyboardParameters[@"Send Current Key"] intValue]) faustDsp->setVoiceParamValue("key", voices[fingerId], keyId);
         if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Count Fingers",keyboardId]] intValue] == 0){
-            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",keyboardId]] intValue] == 1) faustDsp->setParamValue("x", fmod(currentContinuousKey,1));
-            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",keyboardId]] intValue] == 1) faustDsp->setParamValue("y", currentKeyboardY);
+            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",keyboardId]] intValue] == 1) faustDsp->setVoiceParamValue("x", voices[fingerId], fmod(currentContinuousKey,1));
+            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",keyboardId]] intValue] == 1) faustDsp->setVoiceParamValue("y", voices[fingerId], currentKeyboardY);
         }
         else{
-            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",keyboardId]] intValue] == 1) faustDsp->setParamValue(("x" + std::to_string(fingerId)).c_str(), fmod(currentContinuousKey,1));
-            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",keyboardId]] intValue] == 1) faustDsp->setParamValue(("y" + std::to_string(fingerId)).c_str(), currentKeyboardY);
+            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",keyboardId]] intValue] == 1) faustDsp->setVoiceParamValue(("x" + std::to_string(fingerId)).c_str(), voices[fingerId], fmod(currentContinuousKey,1));
+            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",keyboardId]] intValue] == 1) faustDsp->setVoiceParamValue(("y" + std::to_string(fingerId)).c_str(), voices[fingerId], currentKeyboardY);
         }
     }
 }
