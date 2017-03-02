@@ -535,7 +535,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
             return boxInt(ins);
         } else {
             cerr << "ERROR : can't evaluate ' : " << *exp << endl;
-            assert(false);
+            exit(1);
         }
 
     } else if (isBoxOutputs(exp, body)) {
@@ -545,17 +545,14 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
             return boxInt(outs);
         } else {
             cerr << "ERROR : can't evaluate ' : " << *exp << endl;
-            assert(false);
+            exit(1);
         }
-
 
 	} else if (isBoxSlot(exp)) 		{ 
 		return exp; 
 	
 	} else if (isBoxSymbolic(exp)) 	{
-	 
 	 	return exp;
-	
 
 	// Pattern matching extension
 	//---------------------------
@@ -572,7 +569,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
 	} else {
 		cerr << "ERROR : EVAL don't intercept : " << *exp << endl;
-		assert(false);
+		exit(1);
 	}
 	return NULL;
 }
@@ -847,8 +844,11 @@ static const char * evalLabel (const char* src, Tree visited, Tree localValEnv)
  */
 static Tree iteratePar (Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
-    assert (num>0);
-
+    if (num == 0) {
+        evalerror(yyfilename, -1, "iteratePar called with 0 iterations", id);
+        exit(1);
+    }
+   
     Tree res = eval(body, visited, pushValueDef(id, tree(num-1), localValEnv));
     for (int i = num-2; i >= 0; i--) {
         res = boxPar(eval(body, visited, pushValueDef(id, tree(i), localValEnv)), res);
@@ -873,7 +873,10 @@ static Tree iteratePar (Tree id, int num, Tree body, Tree visited, Tree localVal
  */
 static Tree iterateSeq (Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
-	assert (num>0);
+    if (num == 0) {
+        evalerror(yyfilename, -1, "iterateSeq called with 0 iterations", id);
+        exit(1);
+    }
 
     Tree res = eval(body, visited, pushValueDef(id, tree(num-1), localValEnv));
     for (int i = num-2; i >= 0; i--) {
@@ -900,7 +903,10 @@ static Tree iterateSeq (Tree id, int num, Tree body, Tree visited, Tree localVal
  */
 static Tree iterateSum (Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
-	assert (num>0);
+    if (num == 0) {
+        evalerror(yyfilename, -1, "iterateSum called with 0 iterations", id);
+        exit(1);
+    }
 
 	Tree res = eval(body, visited, pushValueDef(id, tree(0), localValEnv));
 
@@ -928,7 +934,10 @@ static Tree iterateSum (Tree id, int num, Tree body, Tree visited, Tree localVal
  */
 static Tree iterateProd (Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
-	assert (num>0);
+    if (num == 0) {
+        evalerror(yyfilename, -1, "iterateProd called with 0 iterations", id);
+        exit(1);
+    }
 
 	Tree res = eval(body, visited, pushValueDef(id, tree(0), localValEnv));
 
@@ -1085,13 +1094,12 @@ static Tree applyList (Tree fun, Tree larg)
 			cerr << "too much arguments : " << outs << ", instead of : " << ins << endl;
             cerr << "when applying : " << boxpp(fun) << endl
                  << "           to : " << boxpp(larg) << endl;
-			assert(false);
+			exit(1);
 		}
 		
-        if (    (outs == 1)
-            &&
-                (  ( isBoxPrim2(fun, &p2) && (p2 != sigPrefix) )
-                || ( getUserData(fun) && ((xtended*)getUserData(fun))->isSpecialInfix() ) ) ) {
+        if ((outs == 1) &&
+            ((isBoxPrim2(fun, &p2) && (p2 != sigPrefix))
+            ||(getUserData(fun) && ((xtended*)getUserData(fun))->isSpecialInfix()))) {
             // special case : /(3) ==> _,3 : /
             Tree larg2 = concat(nwires(ins-outs), larg);
             return boxSeq(larg2par(larg2), fun);
@@ -1300,8 +1308,8 @@ static Tree	evalPatternList(Tree patterns, Tree env)
 	if (isNil(patterns)) {
 		return nil;
 	} else {
-		return cons(	evalPattern(hd(patterns), env), 
-						evalPatternList(tl(patterns), env)  );
+		return  cons(evalPattern(hd(patterns), env),
+                     evalPatternList(tl(patterns), env));
 	}
 }
 
