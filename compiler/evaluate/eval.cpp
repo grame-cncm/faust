@@ -546,7 +546,8 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
         error << "ERROR : EVAL doesn't intercept : " << *exp << endl;
         throw faustexception(error.str());
     }
-	return NULL;
+
+    return NULL;
 }
 
 /* Deconstruct a (BDA) op pattern (YO). */
@@ -724,7 +725,7 @@ static void writeIdentValue(std::string& dst, const std::string& format, const s
 /**
  * evallabel replace "...%2i..." occurences in label with value of i
  */
-static const char * evalLabel (const char* src, Tree visited, Tree localValEnv)
+static const char* evalLabel (const char* src, Tree visited, Tree localValEnv)
 {
     //std::cerr << "Eval Label : " << src;
 
@@ -809,8 +810,10 @@ static const char * evalLabel (const char* src, Tree visited, Tree localValEnv)
  */
 static Tree iteratePar (Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
-    assert (num>0);
-
+    if (num == 0) {
+        evalerror(yyfilename, -1, "iteratePar called with 0 iterations", id);
+    }
+   
     Tree res = eval(body, visited, pushValueDef(id, tree(num-1), localValEnv));
     for (int i = num-2; i >= 0; i--) {
         res = boxPar(eval(body, visited, pushValueDef(id, tree(i), localValEnv)), res);
@@ -833,7 +836,9 @@ static Tree iteratePar (Tree id, int num, Tree body, Tree visited, Tree localVal
  */
 static Tree iterateSeq (Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
-	assert (num>0);
+    if (num == 0) {
+        evalerror(yyfilename, -1, "iterateSeq called with 0 iterations", id);
+    }
 
     Tree res = eval(body, visited, pushValueDef(id, tree(num-1), localValEnv));
     for (int i = num-2; i >= 0; i--) {
@@ -858,7 +863,9 @@ static Tree iterateSeq (Tree id, int num, Tree body, Tree visited, Tree localVal
  */
 static Tree iterateSum (Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
-	assert (num>0);
+    if (num == 0) {
+        evalerror(yyfilename, -1, "iterateSum called with 0 iterations", id);
+    }
 
 	Tree res = eval(body, visited, pushValueDef(id, tree(0), localValEnv));
 
@@ -884,7 +891,9 @@ static Tree iterateSum (Tree id, int num, Tree body, Tree visited, Tree localVal
  */
 static Tree iterateProd (Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
-	assert (num>0);
+    if (num == 0) {
+        evalerror(yyfilename, -1, "iterateProd called with 0 iterations", id);
+    }
 
 	Tree res = eval(body, visited, pushValueDef(id, tree(0), localValEnv));
 
@@ -1045,9 +1054,9 @@ static Tree applyList (Tree fun, Tree larg)
             throw faustexception(error.str());
 		}
 		
-        if ((outs == 1)
-            && (( isBoxPrim2(fun, &p2) && (p2 != sigPrefix))
-            || (getUserData(fun) && ((xtended*)getUserData(fun))->isSpecialInfix()))) {
+        if ((outs == 1) &&
+            ((isBoxPrim2(fun, &p2) && (p2 != sigPrefix))
+            ||(getUserData(fun) && ((xtended*)getUserData(fun))->isSpecialInfix()))) {
             // special case : /(3) ==> _,3 : /
             Tree larg2 = concat(nwires(ins-outs), larg);
             return boxSeq(larg2par(larg2), fun);
@@ -1244,7 +1253,7 @@ static Tree	evalPatternList(Tree patterns, Tree env)
 	if (isNil(patterns)) {
 		return gGlobal->nil;
 	} else {
-		return cons(evalPattern(hd(patterns), env), 
+		return cons(evalPattern(hd(patterns), env),
                     evalPatternList(tl(patterns), env));
 	}
 }

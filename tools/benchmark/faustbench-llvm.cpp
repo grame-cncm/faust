@@ -31,7 +31,7 @@ using namespace std;
 int main(int argc, char* argv[])
 {
     if (argc < 2) {
-        cout << "bench-llvm <foo.dsp>" << endl;
+        cout << "faustbench-llvm <foo.dsp>" << endl;
         return 0;
     }
     
