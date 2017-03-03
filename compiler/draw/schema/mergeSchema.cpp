@@ -19,14 +19,13 @@
  ************************************************************************
  ************************************************************************/
 
-
-#include "mergeSchema.h"
 #include <iostream>
-#include <assert.h>
 #include <algorithm>
 
-using namespace std;
+#include "mergeSchema.h"
+#include "exception.hh"
 
+using namespace std;
 
 /**
  * Creates a new merge schema. Cables are enlarged to dWire.
@@ -42,7 +41,6 @@ schema* makeMergeSchema (schema* s1, schema* s2)
 	return new mergeSchema(a,b,hgap);
 }
 
-
 /**
  * Constructor for a merge schema s1 :> s2 where the outputs
  * of s1 are merged to the inputs of s2. The constructor is
@@ -56,9 +54,7 @@ mergeSchema::mergeSchema (schema* s1, schema* s2, double hgap)
 		fSchema1(s1),
 		fSchema2(s2),
 		fHorzGap(hgap)
-{
-}
-
+{}
 
 /**
  * Places the two subschema horizontaly, centered, with enough gap for
@@ -81,7 +77,6 @@ void mergeSchema::place(double ox, double oy, int orientation)
 	endPlace();
 }
 
-
 /**
  * The inputs of s1 :> s2 are the inputs of s1
  */
@@ -89,7 +84,6 @@ point mergeSchema::inputPoint(unsigned int i) const
 {
 	return fSchema1->inputPoint(i);
 }
-
 
 /**
  * The outputs of s1 :> s2 are the outputs of s2
@@ -99,13 +93,12 @@ point mergeSchema::outputPoint(unsigned int i) const
 	return fSchema2->outputPoint(i);
 }
 
-
 /**
  * Draw the two sub schema and the connections between them
  */
 void mergeSchema::draw(device& dev)
 {
-    assert(placed());
+    faustassert(placed());
 
     // draw the two subdiagrams
     fSchema1->draw(dev);
@@ -113,7 +106,7 @@ void mergeSchema::draw(device& dev)
 
 #if 0
     unsigned int r = fSchema2->inputs();
-    assert(r>0);
+    faustassert(r>0);
 
     // draw the connections between them
     for (unsigned int i=0; i<fSchema1->outputs(); i++) {
@@ -124,20 +117,19 @@ void mergeSchema::draw(device& dev)
 #endif
 }
 
-
 /**
  * Draw the two sub schema and the connections between them
  */
 void mergeSchema::collectTraits(collector& c)
 {
-    assert(placed());
+    faustassert(placed());
 
     // draw the two subdiagrams
     fSchema1->collectTraits(c);
     fSchema2->collectTraits(c);
 
     unsigned int r = fSchema2->inputs();
-    assert(r>0);
+    faustassert(r>0);
 
     // draw the connections between them
     for (unsigned int i=0; i<fSchema1->outputs(); i++) {
@@ -146,5 +138,3 @@ void mergeSchema::collectTraits(collector& c)
         c.addTrait(trait(p,q));
     }
 }
-
-

@@ -460,7 +460,7 @@ inline S32LEB type2Binary(Typed::VarType type)
     } else if (type == Typed::kDouble) {
         return S32LEB(BinaryConsts::EncodedType::f64);
     } else {
-        assert(false);
+        faustassert(false);
         return S32LEB(BinaryConsts::EncodedType::Empty);
     }
 }
@@ -510,10 +510,10 @@ struct LocalVariableCounter : public DispatchVisitor {
             } else if (type == Typed::kDouble) {
                 fLocalVarTable[name] = LocalVarDesc(fF64Type++, type, inst->fAddress->getAccess());
             } else {
-                assert(false);
+                faustassert(false);
             }
             
-            assert(inst->fValue == nullptr);
+            faustassert(inst->fValue == nullptr);
         }
     }
     
@@ -541,7 +541,7 @@ struct LocalVariableCounter : public DispatchVisitor {
                 } else if (var.second.fType == Typed::kDouble) {
                     var.second.fIndex = var.second.fIndex + fFunArgIndex + fIn32Type + fF32Type;
                 } else {
-                    assert(false);
+                    faustassert(false);
                 }
             }
         }
@@ -663,7 +663,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
                 fStructOffset += (array_typed->fSize * fsize()); // Always use biggest size so that int/real access are correctly aligned
             } else {
                 // Should never happen...
-                assert(false);
+                faustassert(false);
             }
         } else {
             if (is_struct) {
@@ -671,7 +671,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
                 fStructOffset += fsize(); // Always use biggest size so that int/real access are correctly aligned
             } else {
                 // Local variables declared by [var_num, type] pairs
-                assert(inst->fValue == nullptr);
+                faustassert(inst->fValue == nullptr);
             }
         }
     }
@@ -699,7 +699,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
                     args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v1"), desc.fType));
                     args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v2"), desc.fType));
                 } else {
-                    assert(false);
+                    faustassert(false);
                 }
                 
                 // Args type same as return type
@@ -712,7 +712,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
                 } else if (desc.fMode == MathFunDesc::Gen::kExtWAS) {
                     fFunImports[inst->fName] = std::make_pair("asm2wasm", desc.fName);
                 } else {
-                    assert(false);
+                    faustassert(false);
                 }
             }
         
@@ -748,7 +748,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
         }
         
         std::cerr << "getFunctionIndex " << name << std::endl;
-        assert(false);
+        faustassert(false);
         return -1;
     }
     
@@ -763,7 +763,7 @@ struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
             i++;
         }
         std::cerr << "getFunctionTypeIndex " << name << std::endl;
-        assert(false);
+        faustassert(false);
         return -1;
     }
     
@@ -1005,7 +1005,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     fStructOffset += (array_typed->fSize * fsize()); // Always use biggest size so that int/real access are correctly aligned
                 } else {
                     // Should never happen...
-                    assert(false);
+                    faustassert(false);
                 }
             } else {
                 if (is_struct) {
@@ -1013,7 +1013,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     fStructOffset += fsize(); // Always use biggest size so that int/real access are correctly aligned
                 } else {
                     // Local variables declared by [var_num, type] pairs
-                    assert(inst->fValue == nullptr);
+                    faustassert(inst->fValue == nullptr);
                 }
             }
         }
@@ -1073,7 +1073,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 generateMemoryAccess();
                 
             } else {
-                assert(fLocalVarTable.find(inst->fAddress->getName()) != fLocalVarTable.end());
+                faustassert(fLocalVarTable.find(inst->fAddress->getName()) != fLocalVarTable.end());
                 LocalVarDesc local = fLocalVarTable[inst->fAddress->getName()];
                 *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
             }
@@ -1098,7 +1098,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 generateMemoryAccess();
      
             } else {
-                assert(fLocalVarTable.find(inst->fAddress->getName()) != fLocalVarTable.end());
+                faustassert(fLocalVarTable.find(inst->fAddress->getName()) != fLocalVarTable.end());
                 LocalVarDesc local = fLocalVarTable[inst->fAddress->getName()];
                 inst->fValue->accept(this);
                 *fOut << int8_t(BinaryConsts::SetLocal) << U32LEB(local.fIndex);
@@ -1108,7 +1108,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         virtual void visit(NamedAddress* named)
         {
             if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
-                assert(fFieldTable.find(named->getName()) != fFieldTable.end());
+                faustassert(fFieldTable.find(named->getName()) != fFieldTable.end());
                 MemoryDesc tmp = fFieldTable[named->getName()];
                 if (fFastMemory) {
                     *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
@@ -1118,7 +1118,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     *fOut << int8_t(WasmOp::I32Add);
                 }
             } else {
-                assert(fLocalVarTable.find(named->fName) != fLocalVarTable.end());
+                faustassert(fLocalVarTable.find(named->fName) != fLocalVarTable.end());
                 LocalVarDesc local = fLocalVarTable[named->fName];
                 *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
             }
@@ -1136,7 +1136,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                  // HACK : completely adhoc code for input/output...
             } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
                 
-                assert(fLocalVarTable.find(indexed->getName()) != fLocalVarTable.end());
+                faustassert(fLocalVarTable.find(indexed->getName()) != fLocalVarTable.end());
                 LocalVarDesc local = fLocalVarTable[indexed->getName()];
                 *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
                
@@ -1151,7 +1151,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 *fOut << int8_t(WasmOp::I32Add);
             } else {
                 // Fields in struct are accessed using 'dsp' and an offset
-                assert(fFieldTable.find(indexed->getName()) != fFieldTable.end());
+                faustassert(fFieldTable.find(indexed->getName()) != fFieldTable.end());
                 MemoryDesc tmp = fFieldTable[indexed->getName()];
                 IntNumInst* num;
                 if ((num = dynamic_cast<IntNumInst*>(indexed->fIndex))) {
@@ -1187,7 +1187,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         virtual void visit(LoadVarAddressInst* inst)
         {
            // Not implemented in WASM
-            assert(false);
+            faustassert(false);
         }
          
         virtual void visit(FloatNumInst* inst)
@@ -1225,7 +1225,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             } else if (type == Typed::kDouble) {
                 *fOut << int8_t(gBinOpTable[inst->fOpcode]->fWasmDouble);
             } else {
-                assert(false);
+                faustassert(false);
             }
         }
     
@@ -1247,7 +1247,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     visitAuxInt(inst);
                 } else {
                     // Should never happen...
-                    assert(false);
+                    faustassert(false);
                 }
             }
             
@@ -1291,7 +1291,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 *fOut << int8_t(BinaryConsts::CallFunction) << U32LEB(fFunAndTypeCounter.getFunctionIndex(name));
                 
             } else {
-                assert(fMathLibTable.find(name) != fMathLibTable.end());
+                faustassert(fMathLibTable.find(name) != fMathLibTable.end());
                 MathFunDesc desc = fMathLibTable[name];
                 *fOut << int8_t(desc.fWasmOp);
             }

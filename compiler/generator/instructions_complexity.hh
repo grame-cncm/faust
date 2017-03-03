@@ -29,12 +29,11 @@ using namespace std;
 #include <set>
 #include <map>
 #include <vector>
-
 #include <iostream>
 #include <sstream>
-#include <assert.h>
 
 #include "instructions.hh"
+#include "exception.hh"
 
 class InstComplexityVisitor : public DispatchVisitor {
 

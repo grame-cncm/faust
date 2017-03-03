@@ -40,7 +40,7 @@ class AbsPrim : public xtended
 
 	virtual ::Type 	infereSigType (const vector< ::Type>& types)
 	{
-		assert (types.size() == arity());
+		faustassert(types.size() == arity());
 		Type t = types[0];
 		return castInterval(t, abs(t->getInterval()));
 		return t;
@@ -50,7 +50,7 @@ class AbsPrim : public xtended
 
 	virtual int infereSigOrder (const vector<int>& args)
 	{
-		assert (args.size() == arity());
+		faustassert(args.size() == arity());
 		return args[0];
 	}
 
@@ -58,7 +58,7 @@ class AbsPrim : public xtended
 	{
 		double f; int i;
 
-		assert (args.size() == arity());
+		faustassert(args.size() == arity());
 
 		if (isDouble(args[0]->node(),&f)) {
 			return tree(fabs(f));
@@ -73,8 +73,8 @@ class AbsPrim : public xtended
     
     virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const & types)
     {
-        assert(args.size() == arity());
-        assert(types.size() == arity());
+        faustassert(args.size() == arity());
+        faustassert(types.size() == arity());
         
         Typed::VarType result_type;
         vector<Typed::VarType> arg_types;
@@ -94,8 +94,8 @@ class AbsPrim : public xtended
 
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{
-		assert (args.size() == arity());
-		assert (types.size() == arity());
+		faustassert(args.size() == arity());
+		faustassert(types.size() == arity());
 
 		::Type t = infereSigType(types);
 		return subst("\\left\\lvert{$0}\\right\\rvert", args[0]);

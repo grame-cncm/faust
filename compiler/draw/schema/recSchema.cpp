@@ -19,11 +19,11 @@
  ************************************************************************
  ************************************************************************/
 
-
-#include "recSchema.h"
 #include <iostream>
-#include <assert.h>
 #include <algorithm>
+
+#include "exception.hh"
+#include "recSchema.h"
 
 using namespace std;
 
@@ -55,9 +55,9 @@ recSchema::recSchema (schema* s1, schema* s2, double width)
 		fSchema2(s2)
 {
 	// this version only accepts legal expressions of same width
-	assert(s1->inputs() >= s2->outputs());
-	assert(s1->outputs() >= s2->inputs());
-	assert(s1->width() >= s2->width());
+	faustassert(s1->inputs() >= s2->outputs());
+	faustassert(s1->outputs() >= s2->inputs());
+	faustassert(s1->width() >= s2->width());
 
 	// create the input and output points
     for (unsigned int i=0; i<inputs(); i++) 	fInputPoint.push_back(point(0,0));
@@ -129,7 +129,7 @@ point recSchema::outputPoint(unsigned int i) const
  */
 void recSchema::draw(device& dev)
 {
-    assert(placed());
+    faustassert(placed());
 
     // draw the two subdiagrams
     fSchema1->draw(dev);
@@ -162,7 +162,7 @@ void recSchema::drawDelaySign(device& dev, double x, double y, double size)
  */
 void recSchema::collectTraits(collector& c)
 {
-    assert(placed());
+    faustassert(placed());
 
     // draw the two subdiagrams
     fSchema1->collectTraits(c);

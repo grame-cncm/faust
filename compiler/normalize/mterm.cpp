@@ -18,17 +18,13 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
 #include "mterm.hh"
 #include "signals.hh"
 #include "ppsig.hh"
 #include "xtended.hh"
 #include "exception.hh"
 #include "global.hh"
-
-#include <assert.h>
-
-//static void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag=false);
 
 #undef TRACE
 
@@ -131,7 +127,7 @@ const mterm& mterm::operator *= (Tree t)
 	int		op, n;
 	Tree	x,y;
 
-	assert(t!=0);
+	faustassert(t!=0);
 
 	if (isNum(t)) {
 		fCoef = mulNums(fCoef,t);
@@ -164,7 +160,7 @@ const mterm& mterm::operator /= (Tree t)
 	int		op,n;
 	Tree	x,y;
 
-	assert(t!=0);
+	faustassert(t!=0);
 
 	if (isNum(t)) {
         if (isZero(t)) {
@@ -234,7 +230,7 @@ const mterm& mterm::operator += (const mterm& m)
 		fFactors = m.fFactors;
 	} else {
 		// only add mterms of same signature
-		assert(signatureTree() == m.signatureTree());
+		faustassert(signatureTree() == m.signatureTree());
 		fCoef = addNums(fCoef, m.fCoef);
 	}
 	cleanup();
@@ -255,7 +251,7 @@ const mterm& mterm::operator -= (const mterm& m)
 		fFactors = m.fFactors;
 	} else {
 		// only add mterms of same signature
-		assert(signatureTree() == m.signatureTree());
+		faustassert(signatureTree() == m.signatureTree());
 		fCoef = subNums(fCoef, m.fCoef);
 	}
 	cleanup();
@@ -322,7 +318,6 @@ static int common(int a, int b)
         return 0;
     }
 }
-
 
 /**
  * return a mterm that is the greatest common divisor of two mterms
@@ -397,8 +392,8 @@ bool mterm::hasDivisor (const mterm& n) const
  */
 static Tree buildPowTerm(Tree f, int q)
 {
-	assert(f);
-	assert(q>0);
+	faustassert(f);
+	faustassert(q>0);
 	if (q>1) {
 		return sigPow(f, q);
 	} else {
@@ -435,7 +430,7 @@ static void combineMulDiv(Tree& M, Tree& D, Tree f, int q)
 	cerr << "combineMulDiv (" << M << "/"  << D << "*" << ppsig(f)<< "**" << q << endl;
 	#endif
 	if (f) {
-        assert(q != 0);
+        faustassert(q != 0);
 		if (q > 0) {
 			combineMulLeft(M, buildPowTerm(f,q));
 		} else if (q < 0) {
@@ -444,7 +439,6 @@ static void combineMulDiv(Tree& M, Tree& D, Tree f, int q)
 	}
 }	
 	
-			
 /**
  * returns a normalized (canonical) tree expression of structure :
  * 		((v1/v2)*(c1/c2))*(s1/s2)
@@ -486,8 +480,8 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 		if (A[0] != 0) cerr << "A[0] == " << *A[0] << endl; 
 		if (B[0] != 0) cerr << "B[0] == " << *B[0] << endl; 
 		// en principe ici l'order zero est vide car il correspond au coef numerique
-		assert(A[0] == 0);
-		assert(B[0] == 0);
+		faustassert(A[0] == 0);
+		faustassert(B[0] == 0);
 		
 		// we only use a coeficient if it differes from 1 and if we are not in signature mode
 		if (! (signatureMode | isOne(fCoef))) {
@@ -513,7 +507,7 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 		}
 		if (RR == 0) RR = tree(1); // a verifier *******************
 			
-		assert(RR);
+		faustassert(RR);
         //cerr << "Normalized Tree of " << *this << " is " << ppsig(RR) << endl;
 		return RR;
 	}

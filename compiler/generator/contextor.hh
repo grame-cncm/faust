@@ -24,14 +24,15 @@
 	22/01/05 : corrected bug on bool signals cached in float variables
 *****************************************************************************/
 
+#ifndef __CONTEXTOR__
+#define __CONTEXTOR__
+
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include <assert.h>
 
-#ifndef __CONTEXTOR__
-#define __CONTEXTOR__
+#include "exception.hh"
 
 /**
  *	An automatic stack of contexts
@@ -46,7 +47,7 @@ class contextor
 	contextor(int n)	{ top = 0; pile[top] = n; }	// contructor to be called only once at the
                                                     // top level to initialize the stack
 
-	contextor() 		{ assert(top >= 0 && top < 1023); int n = pile[top++]; pile[top] = n; }
+	contextor() 		{ faustassert(top >= 0 && top < 1023); int n = pile[top++]; pile[top] = n; }
 	~contextor() 		{ top--; }
 
 	void set(int n)	{ pile[top] = n; }

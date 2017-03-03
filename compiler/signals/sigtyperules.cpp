@@ -20,7 +20,6 @@
  ************************************************************************/
 
 #include <stdio.h>
-#include <assert.h>
 #include <iostream>
 #include <fstream>
 #include <time.h>
@@ -85,7 +84,7 @@ void typeAnnotation(Tree sig)
     //cerr << "Symlist " << *sl << endl;
     for (Tree l=sl; isList(l); l=tl(l)) {
         Tree    id, body;
-		assert(isRec(hd(l), id, body));
+		faustassert(isRec(hd(l), id, body));
 		if (!isRec(hd(l), id, body)) {
 			continue;
 		}
@@ -99,9 +98,9 @@ void typeAnnotation(Tree sig)
         vtype.push_back(initialRecType(vdef[i]));
     }
 
-    assert (int(vrec.size())==n);
-    assert (int(vdef.size())==n);
-    assert (int(vtype.size())==n);
+    faustassert(int(vrec.size())==n);
+    faustassert(int(vdef.size())==n);
+    faustassert(int(vtype.size())==n);
 
     // find least fixpoint
     for (bool finished = false; !finished; ) {
@@ -146,7 +145,7 @@ void annotationStatistics()
 ::Type getCertifiedSigType(Tree sig)
 {
     Type ty = getSigType(sig);
-    assert(ty);
+    faustassert(ty);
     return ty;
 }
 
@@ -486,7 +485,7 @@ static Type infereDocAccessTblType(Type tbl, Type ridx)
  */
 static Type initialRecType(Tree t)
 {
-    assert (isList(t));
+    faustassert(isList(t));
 
     vector<Type> v;
     while (isList(t)) { v.push_back(gGlobal->TREC); t = tl(t); };
@@ -499,7 +498,7 @@ static Type initialRecType(Tree t)
  */
 static Type infereRecType (Tree sig, Tree body, Tree env)
 {
-    assert(false); // we should not come here
+    faustassert(false); // we should not come here
     return 0;
 }
 

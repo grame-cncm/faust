@@ -92,7 +92,7 @@ void CodeContainer::setLoopProperty(Tree sig, CodeLoop* l)
  */
 bool CodeContainer::getLoopProperty(Tree sig, CodeLoop*& l)
 {
-    assert(sig);
+    faustassert(sig);
     return fLoopProperty.get(sig, l);
 }
 
@@ -121,10 +121,10 @@ void CodeContainer::openLoop(Tree recsymbol, string index_name, int size)
  */
 void CodeContainer::closeLoop(Tree sig)
 {
-    assert(fCurLoop);
+    faustassert(fCurLoop);
     CodeLoop* l = fCurLoop;
     fCurLoop = l->fEnclosingLoop;
-    assert(fCurLoop);
+    faustassert(fCurLoop);
 
     Tree S = symlist(sig);
     if (l->isEmpty() || fCurLoop->hasRecDependencyIn(S)) {

@@ -301,7 +301,7 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
             fCurValue = inst->fAddress->getName();
             //cerr << "inst->fAddress->getName " << inst->fAddress->getName() << std::endl;
             // Keep type
-            assert(gGlobal->gVarTypeTable.find(inst->fAddress->getName()) != gGlobal->gVarTypeTable.end());
+            faustassert(gGlobal->gVarTypeTable.find(inst->fAddress->getName()) != gGlobal->gVarTypeTable.end());
             fCurType = gGlobal->gVarTypeTable[inst->fAddress->getName()]->getType();
         }
 
@@ -383,7 +383,7 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
 
                         case Typed::kFloat:
                             // No supposed to happen
-                            assert(false);
+                            faustassert(false);
                             break;
 
                          case Typed::kDouble:
@@ -393,7 +393,7 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
                          default:
                             // No supposed to happen
                             cerr << "CurType " << fTypeDirectTable[fCurType] << endl;
-                            assert(false);
+                            faustassert(false);
                             break;
                     }
                     fCurType = Typed::kFloat;
@@ -408,7 +408,7 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
 
                         case Typed::kInt:
                             // No supposed to happen
-                            assert(false);
+                            faustassert(false);
                             break;
 
                         case Typed::kFloat:
@@ -421,7 +421,7 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
 
                          default:
                             // No supposed to happen
-                            assert(false);
+                            faustassert(false);
                             break;
                     }
                     fCurType = Typed::kInt;
@@ -446,12 +446,12 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
 
                          case Typed::kDouble:
                             // No supposed to happen
-                            assert(false);
+                            faustassert(false);
                             break;
 
                          default:
                             // No supposed to happen
-                            assert(false);
+                            faustassert(false);
                             break;
                     }
                     fCurType = Typed::kDouble;
@@ -461,12 +461,12 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
 
                 case Typed::kQuad:
                     // No supposed to happen
-                    assert(false);
+                    faustassert(false);
                     break;
 
                 default:
                     // No supposed to happen
-                    assert(false);
+                    faustassert(false);
                     break;
 
             }
@@ -553,7 +553,7 @@ class MRCPPInstVisitor : public CPPInstVisitor {
         void visitStructAddress(StructTyped* struct_type, IndexedAddress* indexed)
         {
             ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(struct_type->fType);
-            assert(array_type);
+            faustassert(array_type);
             StructTyped* struct_type1 = dynamic_cast<StructTyped*>(array_type->fType);
             BasicTyped* basic_type1 = dynamic_cast<BasicTyped*>(array_type->fType);
             IndexedAddress* indexed1 = dynamic_cast<IndexedAddress*>(indexed->fAddress);
@@ -587,7 +587,7 @@ class MRCPPInstVisitor : public CPPInstVisitor {
             if (gGlobal->gVarTypeTable.find(indexed->getName()) != gGlobal->gVarTypeTable.end()) {
                 Typed* var_type = gGlobal->gVarTypeTable[indexed->getName()];
                 ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(var_type);
-                assert(array_type);
+                faustassert(array_type);
                 StructTyped* struct_type = dynamic_cast<StructTyped*>(array_type->fType);
                 if (struct_type) {
                     visitStructAddress(struct_type, indexed);

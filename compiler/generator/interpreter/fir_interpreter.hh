@@ -25,7 +25,6 @@
 #include <string.h>
 #include <string>
 #include <cmath>
-#include <assert.h>
 #include <iostream>
 #include <sstream>
 
@@ -434,7 +433,7 @@ class FIRInterpreter  {
             //#define dispatch_first() { goto *fDispatchTable[(*it)->fOpcode]; }
             //#define dispatch_next() { (*it)->write(&std::cout); std::cout << "int_stack_index " << int_stack_index << " real_stack_index " << real_stack_index << std::endl; \
             //max_real_stack = std::max(max_real_stack, real_stack_index); max_int_stack = std::max(max_int_stack, int_stack_index); \
-            //assert(real_stack_index >= 0 && int_stack_index >= 0); \
+            //faustassert(real_stack_index >= 0 && int_stack_index >= 0); \
             //it++; goto *fDispatchTable[(*it)->fOpcode]; }
      
             
@@ -458,7 +457,7 @@ class FIRInterpreter  {
             
             // Check block coherency
             InstructionIT it1 = block->fInstructions.end(); it1--;
-            assert((*it1)->fOpcode == FIRInstruction::kReturn);
+            faustassert((*it1)->fOpcode == FIRInstruction::kReturn);
             
             try {
                 
@@ -587,7 +586,7 @@ class FIRInterpreter  {
                     do_kBlockStoreReal:
                     {
                         FIRBlockStoreRealInstruction<T>* inst = dynamic_cast<FIRBlockStoreRealInstruction<T>*>(*it);
-                        assert(inst);
+                        faustassert(inst);
                         for (int i = 0; i < inst->fOffset2; i++) {
                             fRealHeap[inst->fOffset1 + i] = inst->fNumTable[i];
                         }
@@ -597,7 +596,7 @@ class FIRInterpreter  {
                     do_kBlockStoreInt:
                     {
                         FIRBlockStoreIntInstruction<T>* inst = dynamic_cast<FIRBlockStoreIntInstruction<T>*>(*it);
-                        assert(inst);
+                        faustassert(inst);
                         for (int i = 0; i < inst->fOffset2; i++) {
                             fIntHeap[inst->fOffset1 + i] = inst->fNumTable[i];
                         }
@@ -2349,12 +2348,12 @@ class FIRInterpreter  {
                         
                         if (pop_int()) {
                             // Execute new block
-                            assert((*it)->fBranch1);
+                            faustassert((*it)->fBranch1);
                             dispatch_branch1();
                             // No value (If)
                         } else {
                             // Execute new block
-                            assert((*it)->fBranch2);
+                            faustassert((*it)->fBranch2);
                             dispatch_branch2();
                             // No value (If)
                         }
@@ -2367,12 +2366,12 @@ class FIRInterpreter  {
                         
                         if (pop_int()) {
                             // Execute new block
-                            assert((*it)->fBranch1);
+                            faustassert((*it)->fBranch1);
                             dispatch_branch1();
                             // Real value
                         } else {
                             // Execute new block
-                            assert((*it)->fBranch2);
+                            faustassert((*it)->fBranch2);
                             dispatch_branch2();
                             // Real value
                         }
@@ -2385,12 +2384,12 @@ class FIRInterpreter  {
                         
                         if (pop_int()) {
                             // Execute new block
-                            assert((*it)->fBranch1);
+                            faustassert((*it)->fBranch1);
                             dispatch_branch1();
                             // Int value
                         } else {
                             // Execute new block
-                            assert((*it)->fBranch2);
+                            faustassert((*it)->fBranch2);
                             dispatch_branch2();
                             // Int value
                         }
@@ -2400,7 +2399,7 @@ class FIRInterpreter  {
                     {
                         // If condition is true, just branch back on the block beginning
                         if (pop_int()) {
-                            assert((*it)->fBranch1);
+                            faustassert((*it)->fBranch1);
                             dispatch_branch1();
                         } else {
                             // Just continue after 'loop block'
@@ -2414,11 +2413,11 @@ class FIRInterpreter  {
                         save_return();
                         
                         // Push branch2 (loop content)
-                        assert((*it)->fBranch2);
+                        faustassert((*it)->fBranch2);
                         push_branch2();
                         
                         // And start branch1 loop variable declaration block
-                        assert((*it)->fBranch1);
+                        faustassert((*it)->fBranch1);
                         dispatch_branch1();
                     }
                 }
@@ -2426,7 +2425,7 @@ class FIRInterpreter  {
                 //printf("END real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
                 
                 // Check stack coherency
-                assert(real_stack_index == 0 && int_stack_index == 0);
+                faustassert(real_stack_index == 0 && int_stack_index == 0);
                 
             } catch (faustexception& e) {
                 std::cout << e.Message();

@@ -73,13 +73,13 @@
 #ifndef __TREE__
 #define __TREE__
 
+#include <vector>
+#include <map>
+
 #include "symbol.hh"
 #include "node.hh"
 #include "garbageable.hh"
-
-#include <vector>
-#include <map>
-#include <assert.h>
+#include "exception.hh"
 
 //---------------------------------API---------------------------------------
 
@@ -162,7 +162,7 @@ class CTree : public virtual Garbageable
     // Keep track of visited trees (WARNING : non reentrant)
     static void     startNewVisit()                 { ++gVisitTime; }
     bool            isAlreadyVisited()              { return fVisitTime==gVisitTime; }
-    void            setVisited()                    { /*assert(fVisitTime!=gVisitTime);*/ fVisitTime=gVisitTime; }
+    void            setVisited()                    { /*faustassert(fVisitTime!=gVisitTime);*/ fVisitTime=gVisitTime; }
 
 
 	// Property list of a tree
@@ -257,7 +257,7 @@ class Tabber
   public:
     Tabber(int n=0) : fIndent(n), fPostInc(0)	{}
     Tabber& operator++() 			{ fPostInc++; return *this;}
-	Tabber& operator--() 			{ assert(fIndent > 0); fIndent--; return *this; }
+	Tabber& operator--() 			{ faustassert(fIndent > 0); fIndent--; return *this; }
 
 	ostream& print (ostream& fout)
                         { for (int i=0; i<fIndent; i++) fout << '\t';  fIndent+=fPostInc; fPostInc=0; return fout; }

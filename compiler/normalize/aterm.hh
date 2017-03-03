@@ -23,18 +23,18 @@
 #define __ATERM__
 
 #include <stdio.h>
-#include <assert.h>
+#include <map>
+#include <list>
+
 #include "tlib.hh"
 #include "signals.hh"
 #include "sigprint.hh"
 #include "simplify.hh"
 #include "normalize.hh"
 #include "sigorderrules.hh"
-#include <map>
-#include <list>
-
 #include "mterm.hh"
 #include "garbageable.hh"
+#include "exception.hh"
 
 using namespace std;
 

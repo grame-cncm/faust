@@ -22,11 +22,12 @@
 #include    <stdlib.h>
 #include    <stdio.h>
 #include    <string.h>
-#include    "symbol.hh"
-#include    "compatibility.hh"
 #include    <iostream>
 #include    <cstring>
-#include    <assert.h>
+
+#include    "exception.hh"
+#include    "symbol.hh"
+#include    "compatibility.hh"
 
 using namespace std;
 
@@ -107,7 +108,7 @@ Symbol* Symbol::prefix (const char* str)
 		snprintf(name, 256, "%s%d", str, gPrefixCounters[str]++);
 		if (isnew(name)) return get(name);
 	}
-	assert(false);
+	faustassert(false);
 	return get("UNIQUEOVERFLOW");
 }	
 

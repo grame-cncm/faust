@@ -42,7 +42,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
             } else if (type == Typed::kDouble) {
                 return "f64";
             } else {
-                assert(false);
+                faustassert(false);
                 return "";
             }
         }
@@ -104,7 +104,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
                     fStructOffset += (array_typed->fSize * fsize()); // Always use biggest size so that int/real access are correctly aligned
                 } else {
                     // Should never happen...
-                    assert(false);
+                    faustassert(false);
                 }
             } else {
                 if (is_struct) {
@@ -113,7 +113,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
                 } else {
                     *fOut << "(local $" << inst->fAddress->getName() << " " << type2String(inst->fType->getType()) << ")";
                     // Local variable declaration has been previsouly separated as 'pure declaration' first, followed by 'store' later on (done in MoveVariablesInFront3)
-                    assert(inst->fValue == nullptr);
+                    faustassert(inst->fValue == nullptr);
                     EndLine();
                 }
             }
@@ -181,7 +181,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
                     } else if (desc.fMode == MathFunDesc::Gen::kExtWAS) {
                         *fOut << "(import $" << inst->fName << " \"asm2wasm\" " "\"" << desc.fName << "\" (param ";
                     } else {
-                        assert(false);
+                        faustassert(false);
                     }
                     for (int i = 0; i < desc.fArgs; i++) {
                         *fOut << (isIntType(desc.fType) ? "i32" : realStr);
@@ -250,7 +250,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
         virtual void visit(NamedAddress* named)
         {
             if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
-                assert(fFieldTable.find(named->getName()) != fFieldTable.end());
+                faustassert(fFieldTable.find(named->getName()) != fFieldTable.end());
                 MemoryDesc tmp = fFieldTable[named->getName()];
                 if (fFastMemory) {
                     *fOut << "(i32.const " << tmp.fOffset << ")";
@@ -282,7 +282,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
                 }
             } else {
                 // Fields in struct are accessed using 'dsp' and an offset
-                assert(fFieldTable.find(indexed->getName()) != fFieldTable.end());
+                faustassert(fFieldTable.find(indexed->getName()) != fFieldTable.end());
                 MemoryDesc tmp = fFieldTable[indexed->getName()];
                 IntNumInst* num;
                 if ((num = dynamic_cast<IntNumInst*>(indexed->fIndex))) {
@@ -310,7 +310,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
         virtual void visit(LoadVarAddressInst* inst)
         {
            // Not implemented in WASM
-            assert(false);
+            faustassert(false);
         }
                 
         virtual void visit(FloatNumInst* inst)
@@ -351,7 +351,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
             } else if (type == Typed::kDouble) {
                 *fOut << gBinOpTable[inst->fOpcode]->fNameWastDouble;
             } else {
-                assert(false);
+                faustassert(false);
             }
             *fOut << " ";
             inst->fInst1->accept(this);
@@ -378,7 +378,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
                     visitAuxInt(inst);
                 } else {
                     // Should never happen...
-                    assert(false);
+                    faustassert(false);
                 }
             }
             

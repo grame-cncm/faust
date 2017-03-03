@@ -19,12 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
-
 #include "schema.h"
-#include <assert.h>
 
 using namespace std;
-
 
 void collector::computeVisibleTraits()
 {

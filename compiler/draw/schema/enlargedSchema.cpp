@@ -19,9 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
-#include "enlargedSchema.h"
-#include <assert.h>
 #include <iostream>
+
+#include "enlargedSchema.h"
+#include "exception.hh"
 
 using namespace std;
 
@@ -49,7 +50,6 @@ enlargedSchema::enlargedSchema( schema* s, double width )
     for (unsigned int i=0; i<inputs(); i++) 	fInputPoint.push_back(point(0,0));
     for (unsigned int i=0; i<outputs(); i++) 	fOutputPoint.push_back(point(0,0));
 }
-
 
 /**
  * Define the graphic position of the schema. Computes the graphic
@@ -85,8 +85,8 @@ void enlargedSchema::place(double ox, double oy, int orientation)
  */
 point enlargedSchema::inputPoint(unsigned int i)	const
 {
-	assert (placed());
-	assert (i < inputs());
+	faustassert(placed());
+	faustassert(i < inputs());
 	return fInputPoint[i];
 }
 
@@ -95,8 +95,8 @@ point enlargedSchema::inputPoint(unsigned int i)	const
  */
 point enlargedSchema::outputPoint(unsigned int i)	const
 {
-	assert (placed());
-	assert (i < outputs());
+	faustassert(placed());
+	faustassert(i < outputs());
 	return fOutputPoint[i];
 }
 
@@ -106,7 +106,7 @@ point enlargedSchema::outputPoint(unsigned int i)	const
  */
 void enlargedSchema::draw(device& dev)
 {
-    assert(placed());
+    faustassert(placed());
 
     fSchema->draw(dev);
 #if 0
@@ -132,7 +132,7 @@ void enlargedSchema::draw(device& dev)
  */
 void enlargedSchema::collectTraits(collector& c)
 {
-    assert(placed());
+    faustassert(placed());
 
     fSchema->collectTraits(c);
 

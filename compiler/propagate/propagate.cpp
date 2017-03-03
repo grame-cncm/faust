@@ -18,10 +18,9 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
 #include "propagate.hh"
 #include "prim2.hh"
-#include <assert.h>
 #include "ppbox.hh"
 #include "xtended.hh"
 #include "labels.hh"
@@ -257,48 +256,48 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	// Extended Primitives
 	
 	if (xt)	{
-		assert(lsig.size() == xt->arity());
+		faustassert(lsig.size() == xt->arity());
 		return makeList(xt->computeSigOutput(lsig));
 	}
 		
 	// Numbers and Constants
 	
 	else if (isBoxInt(box, &i)) 	{ 
-		assert(lsig.size()==0); 
+		faustassert(lsig.size()==0); 
 		return makeList(sigInt(i)); 
 	}
 	else if (isBoxReal(box, &r)) 	{ 
-		assert(lsig.size()==0); 
+		faustassert(lsig.size()==0); 
 		return makeList(sigReal(r)); 
 	}
 
     // A Waveform has two outputs it size and a period signal representing its content
 
     else if (isBoxWaveform(box)) 	{
-        assert(lsig.size()==0);
+        faustassert(lsig.size()==0);
         const tvec br = box->branches();
         return listConcat(makeList(sigInt(br.size())), makeList(sigWaveform(br)));
     }
 
     else if (isBoxFConst(box, type, name, file))    { 
-        assert(lsig.size()==0); 
+        faustassert(lsig.size()==0); 
         return makeList(sigFConst(type, name, file)); 
     }
     
     else if (isBoxFVar(box, type, name, file))    { 
-        assert(lsig.size()==0); 
+        faustassert(lsig.size()==0); 
         return makeList(sigFVar(type, name, file)); 
     }
 	
 	// Wire and Cut
 	
 	else if (isBoxCut(box)) 				{ 
-		assert(lsig.size()==1); 
+		faustassert(lsig.size()==1); 
 		return siglist(); 
 	}
 	
 	else if (isBoxWire(box)) 				{ 
-		assert(lsig.size()==1); 
+		faustassert(lsig.size()==1); 
 		return lsig;  
 	}
 	
@@ -306,7 +305,7 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	
 	else if (isBoxSlot(box)) 				{ 
 		Tree sig;
-		assert(lsig.size()==0); 
+		faustassert(lsig.size()==0); 
 		if (!searchEnv(box,sig,slotenv)) {
 			// test YO simplification des diagrames
 			//fprintf(stderr, "propagate : internal error (slot undefined)\n");
@@ -316,83 +315,83 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	}
 	
 	else if (isBoxSymbolic(box, slot, body)) 				{ 
-		assert(lsig.size()>0); 
+		faustassert(lsig.size()>0); 
 		return propagate(pushEnv(slot,lsig[0],slotenv), path, body, listRange(lsig, 1, (int)lsig.size()));
 	}
 	
 	// Primitives
 	
 	else if (isBoxPrim0(box, &p0)) 			{ 
-		assert(lsig.size()==0); 
+		faustassert(lsig.size()==0); 
 		return makeList( p0() );  
 	}
 	
 	else if (isBoxPrim1(box, &p1)) 				{ 
-		assert(lsig.size()==1); 
+		faustassert(lsig.size()==1); 
 		return makeList( p1(lsig[0]) );  
 	}
 	
 	else if (isBoxPrim2(box, &p2)) 				{ 
 //		printf("prim2 recoit : "); print(lsig); printf("\n");
-		assert(lsig.size()==2); 
+		faustassert(lsig.size()==2); 
 		return makeList( p2(lsig[0],lsig[1]) );  
 	}
 	
 	else if (isBoxPrim3(box, &p3)) 				{ 
-		assert(lsig.size()==3); 
+		faustassert(lsig.size()==3); 
 		return makeList( p3(lsig[0],lsig[1],lsig[2]) );  
 	}
 	
 	else if (isBoxPrim4(box, &p4)) 				{ 
-		assert(lsig.size()==4); 
+		faustassert(lsig.size()==4); 
 		return makeList( p4(lsig[0],lsig[1],lsig[2],lsig[3]) );  
 	}
 	
 	else if (isBoxPrim5(box, &p5)) 				{ 
-		assert(lsig.size()==5); 
+		faustassert(lsig.size()==5); 
 		return makeList( p5(lsig[0],lsig[1],lsig[2],lsig[3],lsig[4]) );  
 	}
 	
 	else if (isBoxFFun(box, ff)) 				{ 
 		//cerr << "propagate en boxFFun of arity " << ffarity(ff) << endl;
-		assert(int(lsig.size())==ffarity(ff)); 
+		faustassert(int(lsig.size())==ffarity(ff)); 
 		return makeList(sigFFun(ff, listConvert(lsig)));  
 	}
 	
 	// User Interface Widgets
 	
 	else if (isBoxButton(box, label)) 	{ 
-		assert(lsig.size()==0); 
+		faustassert(lsig.size()==0); 
 		return makeList(sigButton(normalizePath(cons(label, path)))); 
 	}
 	
 	else if (isBoxCheckbox(box, label)) 	{ 
-		assert(lsig.size()==0); 
+		faustassert(lsig.size()==0); 
 		return makeList(sigCheckbox(normalizePath(cons(label, path)))); 
 	}
 	
 	else if (isBoxVSlider(box, label, cur, min, max, step)) 	{ 
-		assert(lsig.size()==0); 
+		faustassert(lsig.size()==0); 
 		return makeList(sigVSlider(normalizePath(cons(label, path)), cur, min, max, step)); 
 	}
 	
 	else if (isBoxHSlider(box, label, cur, min, max, step)) 	{ 
-		assert(lsig.size()==0); 
+		faustassert(lsig.size()==0); 
 		return makeList(sigHSlider(normalizePath(cons(label, path)), cur, min, max, step)); 
 	}
 
 	else if (isBoxNumEntry(box, label, cur, min, max, step)) 	{ 
-		assert(lsig.size()==0); 
+		faustassert(lsig.size()==0); 
 		return makeList(sigNumEntry(normalizePath(cons(label, path)), cur, min, max, step)); 
 	}
 	
 	else if (isBoxVBargraph(box, label, min, max)) 	{ 
-		assert(lsig.size()==1); 
+		faustassert(lsig.size()==1); 
 		return makeList(sigVBargraph(normalizePath(cons(label, path)), min, max, lsig[0])); 
 	}
 	
 	else if (isBoxHBargraph(box, label, min, max)) 	{ 
-		assert(lsig.size()==1); 
+		faustassert(lsig.size()==1); 
 		return makeList(sigHBargraph(normalizePath(cons(label, path)), min, max, lsig[0])); 
 	}
 	
@@ -417,7 +416,7 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		getBoxType(t1, &in1, &out1);
 		getBoxType(t2, &in2, &out2);
 
-        assert(out1==in2);
+        faustassert(out1==in2);
 
 		if (out1 == in2) {
 			return propagate(slotenv, path, t2, propagate(slotenv, path,t1,lsig));

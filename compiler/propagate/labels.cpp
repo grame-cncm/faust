@@ -129,7 +129,7 @@ static Tree concatPath(Tree relpath, Tree abspath)
 			return concatPath(tl(relpath), cons(head,abspath));
 		}
 	} else {
-		assert(isNil(relpath));
+		faustassert(isNil(relpath));
 		return abspath;
 	}
 }
@@ -144,7 +144,7 @@ static Tree normalizeLabel(Tree label, Tree path)
 	} else {
         Sym s;
         bool is_sym = isSym(label->node(),&s);
-        assert(is_sym);
+        faustassert(is_sym);
         return concatPath(label2path(name(s)),path);
 	}
 }

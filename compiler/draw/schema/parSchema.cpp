@@ -19,9 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
-#include "parSchema.h"
-#include <assert.h>
 #include <iostream>
+
+#include "parSchema.h"
+#include "exception.hh"
 
 using namespace std;
 
@@ -31,7 +32,6 @@ schema* makeParSchema(schema* s1, schema* s2)
 	return new parSchema( 	makeEnlargedSchema(s1, s2->width()),
 							makeEnlargedSchema(s2, s1->width()) );
 }
-
 
 parSchema::parSchema (schema* s1, schema* s2)
 	: 	schema(	s1->inputs()+s2->inputs(),
@@ -43,9 +43,8 @@ parSchema::parSchema (schema* s1, schema* s2)
 		fInputFrontier(s1->inputs()),
 		fOutputFrontier(s1->outputs())
 {
-	assert (s1->width() == s2->width());
+	faustassert(s1->width() == s2->width());
 }
-
 
 void parSchema::place(double ox, double oy, int orientation)
 {

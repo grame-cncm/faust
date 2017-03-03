@@ -213,7 +213,7 @@ static void writeSchemaFile(Tree bd)
 
 	bool hasname = getDefNameProperty(bd, id); 
 
-	//assert(hasname);
+	//faustassert(hasname);
 	if (!hasname) {
 		// create an arbitrary name 
 		id = tree(Node(unique("diagram_")));
@@ -547,7 +547,7 @@ static schema* generateBargraphSchema(Tree t)
  */
 static schema* generateInputSlotSchema(Tree a)
 {
-	Tree id; assert(getDefNameProperty(a, id));
+	Tree id; faustassert(getDefNameProperty(a, id));
 	stringstream s; s << tree2str(id);
 	return makeBlockSchema(1, 0, s.str(), slotcolor, "");
 }
@@ -559,7 +559,7 @@ static schema* generateInputSlotSchema(Tree a)
  */
 static schema* generateOutputSlotSchema(Tree a)
 {
-	Tree id; assert(getDefNameProperty(a, id));
+	Tree id; faustassert(getDefNameProperty(a, id));
 	stringstream s; s << tree2str(id);
 	return makeBlockSchema(0, 1, s.str(), slotcolor, "");
 }

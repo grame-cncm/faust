@@ -38,7 +38,7 @@ class Atan2Prim : public xtended
 
 	virtual ::Type infereSigType (const vector< ::Type>& args)
 	{
-		assert (args.size() == 2);
+		faustassert(args.size() == 2);
 		return floatCast(args[0]|args[1]);
 	}
 
@@ -50,7 +50,7 @@ class Atan2Prim : public xtended
 
 	virtual Tree computeSigOutput (const vector<Tree>& args)
 	{
-		assert (args.size() == 2);
+		faustassert(args.size() == 2);
 		num n,m;
 		if (isNum(args[0],n) && isNum(args[1],m)) {
 			return tree(atan2(double(n), double(m)));
@@ -61,8 +61,8 @@ class Atan2Prim : public xtended
 
     virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const & types)
     {
-        assert(args.size() == arity());
-		assert(types.size() == arity());
+        faustassert(args.size() == arity());
+		faustassert(types.size() == arity());
         
         Typed::VarType result_type;
         vector<Typed::VarType> arg_types;
@@ -74,8 +74,8 @@ class Atan2Prim : public xtended
 
 	virtual string generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{
-		assert (args.size() == arity());
-		assert (types.size() == arity());
+		faustassert(args.size() == arity());
+		faustassert(types.size() == arity());
 
         return subst("\\arctan\\frac{$0}{$1}", args[0], args[1]);
 	}

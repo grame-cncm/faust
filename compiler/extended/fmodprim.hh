@@ -38,7 +38,7 @@ class FmodPrim : public xtended
 
 	virtual ::Type infereSigType (const vector< ::Type>& args)
 	{
-		assert (args.size() == arity());
+		faustassert(args.size() == arity());
         interval i = args[0]->getInterval();
         interval j = args[1]->getInterval();
 
@@ -53,13 +53,13 @@ class FmodPrim : public xtended
 	virtual void sigVisit (Tree sig, sigvisitor* visitor) {}
 
 	virtual int infereSigOrder (const vector<int>& args) {
-		assert (args.size() == arity());
+		faustassert(args.size() == arity());
 		return max(args[0], args[1]);
 	}
 
 	virtual Tree computeSigOutput (const vector<Tree>& args) {
 		num n,m;
-		assert (args.size() == arity());
+		faustassert(args.size() == arity());
 		if (isNum(args[0],n) & isNum(args[1],m)) {
 			return tree(fmod(double(n), double(m)));
 		} else {
@@ -69,8 +69,8 @@ class FmodPrim : public xtended
 
     virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const& types)
     {
-        assert(args.size() == arity());
-		assert(types.size() == arity());
+        faustassert(args.size() == arity());
+		faustassert(types.size() == arity());
         
         Typed::VarType result_type;
         vector<Typed::VarType> arg_types;
@@ -82,8 +82,8 @@ class FmodPrim : public xtended
 
 	virtual string generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{
-		assert (args.size() == arity());
-		assert (types.size() == arity());
+		faustassert(args.size() == arity());
+		faustassert(types.size() == arity());
 
 		return subst("$0\\pmod{$1}", args[0], args[1]);
 	}

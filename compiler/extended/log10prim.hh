@@ -38,7 +38,7 @@ class Log10Prim : public xtended
 
 	virtual ::Type infereSigType (const vector< ::Type>& args)
 	{
-		assert (args.size() == arity());
+		faustassert(args.size() == arity());
 		interval i = args[0]->getInterval();
 		if (i.valid && (i.lo > 0)) {
 			return castInterval(floatCast(args[0]), interval(log10(i.lo), log10(i.hi)));
@@ -50,13 +50,13 @@ class Log10Prim : public xtended
 	virtual void sigVisit (Tree sig, sigvisitor* visitor) {}
 
 	virtual int infereSigOrder (const vector<int>& args) {
-		assert (args.size() == arity());
+		faustassert(args.size() == arity());
 		return args[0];
 	}
 
 	virtual Tree computeSigOutput (const vector<Tree>& args) {
 		num n;
-		assert (args.size() == arity());
+		faustassert(args.size() == arity());
 		if (isNum(args[0],n)) {
 			return tree(log10(double(n)));
 		} else {
@@ -66,8 +66,8 @@ class Log10Prim : public xtended
 
     virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const & types)
     {
-        assert(args.size() == arity());
-		assert(types.size() == arity());
+        faustassert(args.size() == arity());
+		faustassert(types.size() == arity());
         
         Typed::VarType result_type;
         vector<Typed::VarType> arg_types;
@@ -79,8 +79,8 @@ class Log10Prim : public xtended
 
 	virtual string generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{
-		assert (args.size() == arity());
-		assert (types.size() == arity());
+		faustassert(args.size() == arity());
+		faustassert(types.size() == arity());
 
 		return subst("\\log_{10}\\left( $0 \\right)", args[0]);
 	}

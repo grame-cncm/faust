@@ -27,7 +27,6 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
-#include <assert.h>
 #include <limits>
 
 #include "Text.hh"

@@ -19,10 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-
 #include "splitSchema.h"
 #include <iostream>
-#include <assert.h>
 #include <algorithm>
 
 using namespace std;
@@ -107,14 +105,14 @@ point splitSchema::outputPoint(unsigned int i) const
  */
 void splitSchema::draw(device& dev)
 {
-    assert(placed());
+    faustassert(placed());
 
     // draw the two subdiagrams
     fSchema1->draw(dev);
     fSchema2->draw(dev);
 
     unsigned int r = fSchema1->outputs();
-    assert(r>0);
+    faustassert(r>0);
 #if 0
     // draw the connections between them
     for (unsigned int i=0; i<fSchema2->inputs(); i++) {
@@ -133,14 +131,14 @@ void splitSchema::draw(device& dev)
  */
 void splitSchema::collectTraits(collector& c)
 {
-    assert(placed());
+    faustassert(placed());
 
     // draw the two subdiagrams
     fSchema1->collectTraits(c);
     fSchema2->collectTraits(c);
 
     unsigned int r = fSchema1->outputs();
-    assert(r>0);
+    faustassert(r>0);
 
     // draw the connections between them
     for (unsigned int i=0; i<fSchema2->inputs(); i++) {

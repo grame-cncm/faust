@@ -227,7 +227,7 @@ ValueInst* DAGInstructionsCompiler::generateLoopCode(Tree sig)
     CodeLoop*   l;
 
     l = fContainer->getCurLoop();
-    assert(l);
+    faustassert(l);
     //cerr << "VectorCompiler::OLDgenerateCode " << ppsig(sig) << endl;
     if (needSeparateLoop(sig)) {
         // we need a separate loop unless it's an old recursion

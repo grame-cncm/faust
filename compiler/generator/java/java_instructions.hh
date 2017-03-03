@@ -260,7 +260,7 @@ class JAVAInstVisitor : public TextInstVisitor {
         virtual void visit(LoadVarAddressInst* inst)
         {   
             // Not implemented in JAVA
-            assert(false);
+            faustassert(false);
         }
    
         virtual void visit(FloatNumInst* inst)
@@ -408,7 +408,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                         break;
                     default:
                         printf("visitor.fCurType %d\n", fTypingVisitor.fCurType);
-                        assert(false);
+                        faustassert(false);
                         break;
                 }
             } else {
@@ -426,7 +426,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                         break;
                     default:
                         printf("visitor.fCurType %d\n", fTypingVisitor.fCurType);
-                        assert(false);
+                        faustassert(false);
                         break;
                 }
             }
@@ -456,7 +456,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                     *fOut << "(("; inst->fCond->accept(this); *fOut << ")";
                     break;
                 default:
-                    assert(false);
+                    faustassert(false);
                     break;
             }
      

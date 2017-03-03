@@ -27,9 +27,10 @@
  * A strict lambda-calculus evaluator for block diagram expressions.
  *
  **/
- 
-#include "eval.hh"
+
 #include <stdio.h>
+
+#include "eval.hh"
 #include "errormsg.hh"
 #include "ppbox.hh"
 #include "simplify.hh"
@@ -42,7 +43,6 @@
 #include "compatibility.hh"
 #include "exception.hh"
 #include "global.hh"
-#include <assert.h>
 
 // History
 // 23/05/2005 : New environment management
@@ -1168,7 +1168,7 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 	// check that it is not a recursive definition
 	Tree p = cons(id,lenv);
 	// set the definition name property
-    assert(def);
+    faustassert(def);
 	if (!getDefNameProperty(def, name)) {
 		// if the definition has no name use the identifier
 		stringstream s; s << boxpp(id);

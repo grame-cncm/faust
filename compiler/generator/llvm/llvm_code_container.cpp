@@ -26,6 +26,7 @@
 #include "llvm_code_container.hh"
 #include "llvm_instructions.hh"
 #include "exception.hh"
+
 #include "global.hh"
 
 using namespace std;
@@ -174,7 +175,7 @@ void LLVMCodeContainer::generateFillBegin(const string& counter)
 void LLVMCodeContainer::generateFillEnd()
 {
     Function* llvm_fill = fModule->getFunction("fill" + fKlassName);
-    assert(llvm_fill);
+    faustassert(llvm_fill);
     BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_fill);
     ReturnInst::Create(getContext(), return_block);
 
@@ -242,7 +243,7 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
 void LLVMCodeContainer::generateComputeEnd()
 {
     Function* llvm_compute = fModule->getFunction("compute" + fKlassName);
-    assert(llvm_compute);
+    faustassert(llvm_compute);
     BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_compute);
     ReturnInst::Create(getContext(), return_block);
 
@@ -320,7 +321,7 @@ void LLVMCodeContainer::generateClassInitBegin()
 void LLVMCodeContainer::generateClassInitEnd()
 {
     Function* llvm_classInit = fModule->getFunction("classInit" + fKlassName);
-    assert(llvm_classInit);
+    faustassert(llvm_classInit);
     BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_classInit);
     ReturnInst::Create(getContext(), return_block);
 
@@ -357,7 +358,7 @@ void LLVMCodeContainer::generateInstanceInitBegin(const string& funname, bool in
 void LLVMCodeContainer::generateInstanceInitEnd(const string& funname)
 {
     Function* llvm_instanceInit = fModule->getFunction(funname + fKlassName);
-    assert(llvm_instanceInit);
+    faustassert(llvm_instanceInit);
     BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_instanceInit);
     ReturnInst::Create(getContext(), return_block);
 
@@ -391,7 +392,7 @@ void LLVMCodeContainer::generateInstanceClearBegin(bool internal)
 void LLVMCodeContainer::generateInstanceClearEnd()
 {
     Function* llvm_instanceClear = fModule->getFunction("instanceClear" + fKlassName);
-    assert(llvm_instanceClear);
+    faustassert(llvm_instanceClear);
     BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_instanceClear);
     ReturnInst::Create(getContext(), return_block);
     
@@ -427,7 +428,7 @@ void LLVMCodeContainer::generateInstanceResetUserInterfaceBegin(bool internal)
 void LLVMCodeContainer::generateInstanceResetUserInterfaceEnd()
 {
     Function* llvm_instanceResetUserInterface = fModule->getFunction("instanceResetUserInterface" + fKlassName);
-    assert(llvm_instanceResetUserInterface);
+    faustassert(llvm_instanceResetUserInterface);
     BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_instanceResetUserInterface);
     ReturnInst::Create(getContext(), return_block);
     
@@ -444,7 +445,7 @@ void LLVMCodeContainer::generateInstanceResetUserInterfaceEnd()
 void LLVMCodeContainer::generateDestroyBegin()
 {
     Function* llvm_destroy = fModule->getFunction("destroy" + fKlassName);
-    assert(llvm_destroy);
+    faustassert(llvm_destroy);
 
     // Add a first block
     fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry_block", llvm_destroy));
@@ -453,7 +454,7 @@ void LLVMCodeContainer::generateDestroyBegin()
 void LLVMCodeContainer::generateDestroyEnd()
 {
     Function* llvm_destroy = fModule->getFunction("destroy" + fKlassName);
-    assert(llvm_destroy);
+    faustassert(llvm_destroy);
     BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_destroy);
     ReturnInst::Create(getContext(), return_block);
 
@@ -470,7 +471,7 @@ void LLVMCodeContainer::generateDestroyEnd()
 void LLVMCodeContainer::generateAllocateBegin()
 {
     Function* llvm_allocate = fModule->getFunction("allocate" + fKlassName);
-    assert(llvm_allocate);
+    faustassert(llvm_allocate);
 
     // Add a first block
     fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry_block", llvm_allocate));
@@ -479,7 +480,7 @@ void LLVMCodeContainer::generateAllocateBegin()
 void LLVMCodeContainer::generateAllocateEnd()
 {
     Function* llvm_allocate = fModule->getFunction("allocate" + fKlassName);
-    assert(llvm_allocate);
+    faustassert(llvm_allocate);
     BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_allocate);
     ReturnInst::Create(getContext(), return_block);
 
@@ -515,7 +516,7 @@ void LLVMCodeContainer::generateInitFun()
     params1.push_back(arg2);
 
     Function* llvm_classInit = fModule->getFunction("classInit" + fKlassName);
-    assert(llvm_classInit);
+    faustassert(llvm_classInit);
     CallInst* call_inst1 = CREATE_CALL1(llvm_classInit, params1, "", return_block2);
     call_inst1->setCallingConv(CallingConv::C);
   
@@ -524,7 +525,7 @@ void LLVMCodeContainer::generateInitFun()
     params2.push_back(arg2);
 
     Function* llvm_instanceInit = fModule->getFunction("instanceInit" + fKlassName);
-    assert(llvm_instanceInit);
+    faustassert(llvm_instanceInit);
     CallInst* call_inst2 = CREATE_CALL1(llvm_instanceInit, params2, "", return_block2);
     call_inst2->setCallingConv(CallingConv::C);
     
@@ -559,21 +560,21 @@ void LLVMCodeContainer::generateInstanceInitFun()
     params2.push_back(arg2);
     
     Function* llvm_instanceInit = fModule->getFunction("instanceConstants" + fKlassName);
-    assert(llvm_instanceInit);
+    faustassert(llvm_instanceInit);
     CallInst* call_inst2 = CREATE_CALL1(llvm_instanceInit, params2, "", return_block2);
     call_inst2->setCallingConv(CallingConv::C);
     
     vector<Value*> params3;
     params3.push_back(arg1);
     Function* llvm_instanceResetUserInterface = fModule->getFunction("instanceResetUserInterface" + fKlassName);
-    assert(llvm_instanceResetUserInterface);
+    faustassert(llvm_instanceResetUserInterface);
     CallInst* call_inst3 = CREATE_CALL1(llvm_instanceResetUserInterface, params3, "", return_block2);
     call_inst3->setCallingConv(CallingConv::C);
     
     vector<Value*> params4;
     params4.push_back(arg1);
     Function* llvm_instanceClear = fModule->getFunction("instanceClear" + fKlassName);
-    assert(llvm_instanceClear);
+    faustassert(llvm_instanceClear);
     CallInst* call_inst4 = CREATE_CALL1(llvm_instanceClear, params4, "", return_block2);
     call_inst4->setCallingConv(CallingConv::C);
     
@@ -630,8 +631,8 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
                 }
             }
         }
-        assert(llvm_label1);
-        assert(llvm_label2);
+        faustassert(llvm_label1);
+        faustassert(llvm_label2);
 
         Value* idx2[3];
         idx2[0] = load_meta_ptr;
@@ -719,7 +720,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 {
     // Sub containers
     generateSubContainers();
-
+  
     // Creates DSP structure
     LLVMTypeInstVisitor1 fTypeBuilder(fModule, fKlassName);
 
@@ -1087,7 +1088,7 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadBegin()
 void LLVMWorkStealingCodeContainer::generateComputeThreadEnd()
 {
     Function* llvm_computethread = fModule->getFunction("computeThread");
-    assert(llvm_computethread);
+    faustassert(llvm_computethread);
     BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_computethread);
     ReturnInst::Create(getContext(), return_block);
 
@@ -1122,7 +1123,7 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
     fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry_block", llvm_computethread));
 
     Function* llvm_computethreadInternal = fModule->getFunction("computeThread");
-    assert(llvm_computethreadInternal);
+    faustassert(llvm_computethreadInternal);
 #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
     Value* fun_args[] = { fBuilder->CreateBitCast(arg1, fStructDSP), arg2 };
     CallInst* call_inst = fBuilder->CreateCall(llvm_computethreadInternal, fun_args);
@@ -1241,7 +1242,7 @@ ExecutionEngine* fJIT;
 std::string ErrorMessage;
 fJIT = EngineBuilder(fModule).setErrorStr(&ErrorMessage).create();
 cout << ErrorMessage;
-assert(fJIT);
+faustassert(fJIT);
 
 getNumInputsFun fGetNumInputs = (getNumInputsFun)(intptr_t)fJIT->getPointerToFunction(fModule->getFunction("getNumInputs_llvm"));
 printf("function %x\n", fGetNumInputs);

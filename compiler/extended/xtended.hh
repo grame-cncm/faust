@@ -52,7 +52,7 @@ class xtended : public virtual Garbageable {
 
 	Tree			box () {
 						Tree b = tree(fSymbol);
-						assert(getUserData(b) != 0);
+						faustassert(getUserData(b) != 0);
 						return b;
 					}
 

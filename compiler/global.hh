@@ -24,7 +24,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 #include <set>
 #include <map>
 #include <list>
@@ -39,6 +38,7 @@
 #include "loopDetector.hh"
 #include "occurrences.hh"
 #include "instructions.hh"
+#include "exception.hh"
 
 class CTree;
 typedef CTree* Tree;

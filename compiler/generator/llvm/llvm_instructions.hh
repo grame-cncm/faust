@@ -261,7 +261,7 @@ struct LLVMTypeHelper {
         } else if (named_typed) {
             // Used for internal structures (RWTable... etc...)
             LLVM_TYPE type = module->getTypeByName("struct.dsp" + named_typed->fName);
-            assert(type);
+            faustassert(type);
             return PointerType::get(type, 0);
         } else if (array_typed) {
             // Arrays of 0 size are actually pointers on the type
@@ -274,7 +274,7 @@ struct LLVMTypeHelper {
             return VectorType::get(fTypeMap[vector_typed->fType->fType], vector_typed->fSize);
         }
         
-        assert(false);
+        faustassert(false);
         return NULL;
     }
 
@@ -601,7 +601,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         virtual void visit(DeclareVarInst* inst)
         {
             // Not supposed to declare var with value here
-            assert(inst->fValue == NULL);
+            faustassert(inst->fValue == NULL);
             fDSPFields.push_back(convertFIRType(fModule, inst->fType));
             fDSPFieldsNames[inst->fAddress->getName()] = fDSPFieldsCounter++;
         }
@@ -1244,10 +1244,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             
             if (inst->fAddress->getAccess() & Address::kStruct) {
                 // Not supposed to happen
-                assert(false);
+                faustassert(false);
             } else if (inst->fAddress->getAccess() & Address::kFunArgs) {
                 // Not supposed to happen
-                assert(false);
+                faustassert(false);
                 // Direct access Declare/Store ==> Load
             } else if (inst->fAddress->getAccess() & Address::kLink) {
                 if (inst->fValue) {
@@ -1335,7 +1335,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 }
 
                 // Return type
-                assert(fTypeMap.find(inst->fType->fResult->getType()) != fTypeMap.end());
+                faustassert(fTypeMap.find(inst->fType->fResult->getType()) != fTypeMap.end());
                 LLVM_TYPE return_type = fTypeMap[inst->fType->fResult->getType()];
 
                 // Prepare vector of LLVM types for args
@@ -1343,7 +1343,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 list<NamedTyped*>::const_iterator it;
                 for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++) {
                     //cerr << "DeclareFunInst " << (*it)->getType() << endl;
-                    assert(fTypeMap.find((*it)->getType()) != fTypeMap.end());
+                    faustassert(fTypeMap.find((*it)->getType()) != fTypeMap.end());
                     fun_args_type.push_back(fTypeMap[(*it)->getType()]);
                 }
 
@@ -1465,7 +1465,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     break;
                 }
             } while (function_args_it != function->arg_end());
-            assert(found);
+            faustassert(found);
             return arg;
         }
          
@@ -1488,7 +1488,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
                 return fModule->getGlobalVariable(named_address->fName, true);
             } else {
-                assert(false);
+                faustassert(false);
                 return NULL;
             }
         }
@@ -1516,7 +1516,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         Value* visitIndexedAddressAux(IndexedAddress* indexed_address)
         {
             NamedAddress* named_address =  dynamic_cast<NamedAddress*>(indexed_address->fAddress);
-            assert(named_address); // One level indexation for now
+            faustassert(named_address); // One level indexation for now
             
             // Compute index, result is in fCurValue
             indexed_address->fIndex->accept(this);
@@ -1539,11 +1539,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 res_load_ptr = LoadArrayAsPointer(fDSPStackVars[named_address->fName]);
             } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
                 // We want to see array like [256 x float] as a float*
-                assert(fModule->getGlobalVariable(named_address->fName, true));
+                faustassert(fModule->getGlobalVariable(named_address->fName, true));
                 res_load_ptr = LoadArrayAsPointer(fModule->getGlobalVariable(named_address->fName, true));
             } else {
                 // Default
-                assert(false);
+                faustassert(false);
                 return NULL;
             }
             
@@ -1553,7 +1553,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         void visitIndexedAddress(LoadVarInst* inst, IndexedAddress* indexed_address)
         {
             NamedAddress* named_address =  dynamic_cast<NamedAddress*>(indexed_address->fAddress);
-            assert(named_address); // One level indexation for now
+            faustassert(named_address); // One level indexation for now
             
             Value* load_ptr = visitIndexedAddressAux(indexed_address);
             fCurValue = genPointer2VectorLoad(load_ptr, fBuilder->CreateLoad(load_ptr), inst->fSize, false);
@@ -1569,7 +1569,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             } else if (indexed_address) {
                 visitIndexedAddress(inst, indexed_address);
             } else {
-                assert(false);
+                faustassert(false);
             }
         }
 
@@ -1581,10 +1581,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 fCurValue = load_ptr;
             } else if (named_address->fAccess & Address::kFunArgs) {
                 // Not supported
-                assert(false);
+                faustassert(false);
             } else if (named_address->fAccess & Address::kLink) {
                 // Not supported
-                assert(false);
+                faustassert(false);
             } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
                 fCurValue = load_ptr;
             } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
@@ -1607,7 +1607,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             } else if (indexed_address) {
                 visitIndexedAddress(inst, indexed_address);
             } else {
-                assert(false);
+                faustassert(false);
             }
         }
 
@@ -1658,10 +1658,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             } else if (named_address->fAccess & Address::kLink) {
                 fDSPStackVars[named_address->fName] = fCurValue;
             } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
-                assert(fDSPStackVars.find(named_address->fName) != fDSPStackVars.end());
+                faustassert(fDSPStackVars.find(named_address->fName) != fDSPStackVars.end());
                 genVectorStore(fDSPStackVars[named_address->fName], fCurValue, inst->fValue->fSize, inst->fAddress->getAccess() & Address::kVolatile, false);
             } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
-                assert(fModule->getGlobalVariable(named_address->fName, true));
+                faustassert(fModule->getGlobalVariable(named_address->fName, true));
                 genVectorStore(fModule->getGlobalVariable(named_address->fName, true), fCurValue, inst->fValue->fSize, inst->fAddress->getAccess() & Address::kVolatile, false);
             }
         }
@@ -1669,7 +1669,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         void visitIndexedAddress(StoreVarInst* inst, IndexedAddress* indexed_address)
         {
             NamedAddress* named_address =  dynamic_cast<NamedAddress*>(indexed_address->fAddress);
-            assert(named_address); // One level indexation for now
+            faustassert(named_address); // One level indexation for now
             
             // Compute index, result is in fCurValue
             indexed_address->fIndex->accept(this);
@@ -1690,18 +1690,18 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             } else if (named_address->fAccess & Address::kFunArgs) {
                 store_ptr = fBuilder->CreateInBoundsGEP(getDSPArg(named_address->fName), fCurValue);
             } else if (named_address->fAccess & Address::kStack || named_address->fAccess & Address::kLoop) {
-                assert(fDSPStackVars.find(named_address->fName) != fDSPStackVars.end());
+                faustassert(fDSPStackVars.find(named_address->fName) != fDSPStackVars.end());
                 // We want to see array like [256 x float] as a float*
                 Value* store_ptr1 = LoadArrayAsPointer(fDSPStackVars[named_address->fName]);
                 store_ptr = fBuilder->CreateInBoundsGEP(store_ptr1, fCurValue);
             } else if (named_address->fAccess & Address::kGlobal || named_address->fAccess & Address::kStaticStruct) {
-                assert(fModule->getGlobalVariable(named_address->fName, true));
+                faustassert(fModule->getGlobalVariable(named_address->fName, true));
                 // We want to see array like [256 x float] as a float*
                 Value* store_ptr1 = LoadArrayAsPointer(fModule->getGlobalVariable(named_address->fName, true));
                 store_ptr = fBuilder->CreateInBoundsGEP(store_ptr1, fCurValue);
             } else {
                 // default
-                assert(false);
+                faustassert(false);
                 return;
             }
             
@@ -1720,7 +1720,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             } else if (indexed_address) {
                 visitIndexedAddress(inst, indexed_address);
             } else {
-                assert(false);
+                faustassert(false);
             }
 
             // No result in fCurValue
@@ -1839,12 +1839,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 case Typed::kQuad:
                     // No supposed to happen
-                    assert(false);
+                    faustassert(false);
                     break;
 
                 default:
                     // No supposed to happen
-                    assert(false);
+                    faustassert(false);
                     break;
             }
         }
@@ -1887,7 +1887,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             Function* function = fModule->getFunction(inst->fName);
             //cerr << "FunCallInst " << inst->fName << endl;
-            assert(function);
+            faustassert(function);
 
             //cout << "FunCallInst " << inst->fName << endl;
             Function::arg_iterator args = function->arg_begin();
@@ -2023,7 +2023,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             
             string loop_counter_name;
             Function* function = fBuilder->GetInsertBlock()->getParent();
-            assert(function);
+            faustassert(function);
 
             // Prepare init_block
             BasicBlock* init_block = BasicBlock::Create(fModule->getContext(), "init_block", function);
@@ -2058,10 +2058,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     loop_counter_name = store_inst->getName();
                 } else {
                     cerr << "Error in ForLoopInst "<< endl;
-                    assert(false);
+                    faustassert(false);
                 }
 
-                assert(fDSPStackVars.find(loop_counter_name) != fDSPStackVars.end());
+                faustassert(fDSPStackVars.find(loop_counter_name) != fDSPStackVars.end());
              
                 // Link init_block and exec_block
                 fBuilder->CreateBr(exec_block);
@@ -2102,7 +2102,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             {
                 // Compute next index, result in fCurValue
                 StoreVarInst* store_inst1 = dynamic_cast<StoreVarInst*>(inst->fIncrement);
-                assert(store_inst1);
+                faustassert(store_inst1);
                 store_inst1->fValue->accept(this);
                 Value* next_index = fCurValue;
                 next_index->setName("next_index");
@@ -2127,7 +2127,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         virtual void visit(WhileLoopInst* inst)
         {
             Function* function = fBuilder->GetInsertBlock()->getParent();
-            assert(function);
+            faustassert(function);
 
             // Prepare cond_block block
             BasicBlock* cond_block = BasicBlock::Create(fModule->getContext(), "cond_block", function);
@@ -2173,7 +2173,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             if (fBuilder->GetInsertBlock()) {
                 Function* function = fBuilder->GetInsertBlock()->getParent();
-                assert(function);
+                faustassert(function);
 
                 // Prepare code_block block
                 BasicBlock* code_block = BasicBlock::Create(fModule->getContext(), "code_block", function);
@@ -2198,7 +2198,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         virtual void visit(::SwitchInst* inst)
         {
             Function* function = fBuilder->GetInsertBlock()->getParent();
-            assert(function);
+            faustassert(function);
 
             // Prepare init_code block
             BasicBlock* init_block = BasicBlock::Create(fModule->getContext(), "init_block", function);
@@ -2326,8 +2326,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         LlvmValue generateBinopAux(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
         {
-            assert(arg1);
-            assert(arg2);
+            faustassert(arg1);
+            faustassert(arg2);
             
             /*
             cerr << "generateBinopAux ARGS" << endl;
@@ -2338,7 +2338,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             */
 
             // Arguments are casted if needed in InstructionsCompiler::generateBinOp
-            assert(arg1->getType() == arg2->getType());
+            faustassert(arg1->getType() == arg2->getType());
 
             if (arg1->getType() == getFloatTy(fModule, size) || arg1->getType() == getDoubleTy(fModule, size)){
                 return generateBinOpReal(opcode, arg1, arg2, size);
@@ -2347,7 +2347,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             } else {
                 // Should not happen
                 cerr << "generateBinopAux" << endl;
-                assert(false);
+                faustassert(false);
                 return NULL;
             }
         }
@@ -2414,7 +2414,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             } else {
                 // Should not happen
                 cerr << "generateFunPolymorphicMinMaxAux" << endl;
-                assert(false);
+                faustassert(false);
                 return NULL;
             }
         }

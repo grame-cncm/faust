@@ -120,7 +120,7 @@ CTree::~CTree ()
 			p = t;
 			t = t->fNext;
 		}
-        assert(p);
+        faustassert(p);
 		p->fNext = fNext;
 	}
 }

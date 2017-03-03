@@ -164,7 +164,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     opcode = FIRInstruction::kOpenTabBox;
                     break;
                 default:
-                    assert(false);
+                    faustassert(false);
                     break;
             }
             
@@ -203,7 +203,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     opcode = FIRInstruction::kAddNumEntry;
                     break;
                 default:
-                    assert(false);
+                    faustassert(false);
                     break;
             }
         
@@ -222,7 +222,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     opcode = FIRInstruction::kAddVerticalBargraph;
                     break;
                 default:
-                    assert(false);
+                    faustassert(false);
                     break;
             }
             
@@ -294,7 +294,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             }
         }
     
-        virtual void visit(LoadVarAddressInst* inst) { assert(false); }
+        virtual void visit(LoadVarAddressInst* inst) { faustassert(false); }
     
         virtual void visitStore(Address* address, ValueInst* value, Typed* type = NULL)
         {
@@ -326,7 +326,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                                                                             reinterpret_cast<const std::vector<T>&>(double_array->fNumTable)));
                      
                 } else {
-                    assert(false);
+                    faustassert(false);
                 }
             
             // Standard store
@@ -431,7 +431,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             } else if (!real_t1 || !real_t2) {
                 fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpIntInst));
             } else {
-                assert(false);
+                faustassert(false);
             }
         }
     

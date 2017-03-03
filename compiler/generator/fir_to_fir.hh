@@ -216,7 +216,7 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                                                                                           InstBuilder::genDoubleNumInst(double_array->getValue(i))));
                         }
                     } else {
-                        assert(false);
+                        faustassert(false);
                     }
                     return InstBuilder::genDropInst();
                 } else {
@@ -254,7 +254,7 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                 } else if (store_inst) {
                     store.push_back(store_inst->clone(&cloner));
                 } else {
-                    assert(false);
+                    faustassert(false);
                 }
             }
             
@@ -321,7 +321,7 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
                                                                                           InstBuilder::genDoubleNumInst(double_array->getValue(i))));
                         }
                     } else {
-                        assert(false);
+                        faustassert(false);
                     }
                     return InstBuilder::genDropInst();
                 } else {
@@ -371,7 +371,7 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
         list<ValueInst*>::iterator it2 = args.begin(); if (ismethod) { it2++; }
         
         for (; it1 != args_type.end(); it1++, it2++) {
-            assert(it2 != args.end());
+            faustassert(it2 != args.end());
             code = ReplaceParameterByArg(code, *it1, *it2);
         }
         

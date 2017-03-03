@@ -19,18 +19,17 @@
  ************************************************************************
  ************************************************************************/
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <set>
+
 #include "recursivness.hh"
 #include "property.hh"
 #include "exception.hh"
 #include "global.hh"
-
 #include "signals.hh"
 #include "ppsig.hh"
-#include "set"
 
 using namespace std;
 

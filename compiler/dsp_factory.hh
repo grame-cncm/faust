@@ -26,9 +26,9 @@
 #include <vector>
 #include <ostream>
 #include <string.h>
-#include <assert.h>
 
 #include "faust/gui/meta.h"
+#include "exception.hh"
 
 #define LVVM_BACKEND_NAME       "Faust LLVM backend"
 #define COMPILATION_OPTIONS_KEY "compilation_options"
@@ -129,7 +129,7 @@ class dsp_factory_imp : public dsp_factory_base {
         
         virtual dsp* createDSPInstance(dsp_factory* factory) { return nullptr; }
         
-        virtual void metadata(Meta* meta) { assert(false); }
+        virtual void metadata(Meta* meta) { faustassert(false); }
     
         virtual void write(std::ostream* out, bool binary = false, bool small = false) {}
     

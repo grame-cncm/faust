@@ -168,7 +168,7 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(std::ist
     } else if (type == "double") {
         factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<double>::read(in));
     } else {
-        assert(false);
+        faustassert(false);
     }
     
     gInterpreterFactoryTable.setFactory(factory);

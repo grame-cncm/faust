@@ -71,7 +71,7 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
             tab(fTab, *fOut);
         }
 
-        virtual void visit(DeclareVarInst* inst) { assert(false); }
+        virtual void visit(DeclareVarInst* inst) { faustassert(false); }
         
         virtual void visit(RetInst* inst)
         {
@@ -92,7 +92,7 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
             }
         }
 
-        virtual void visit(DeclareFunInst* inst) { assert(false); }
+        virtual void visit(DeclareFunInst* inst) { faustassert(false); }
            
         virtual void visit(NamedAddress* named)
         {
@@ -110,7 +110,7 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
             inst->fAddress->accept(this);
         }
      
-        virtual void visit(LoadVarAddressInst* inst) { assert(false); }
+        virtual void visit(LoadVarAddressInst* inst) { faustassert(false); }
        
         virtual void visit(StoreVarInst* inst)
         {
@@ -181,7 +181,7 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << ")";
         }
 
-        virtual void visit(CastNumInst* inst) { assert(false); }
+        virtual void visit(CastNumInst* inst) { faustassert(false); }
         
         virtual string generateFunName(const string& name)
         {   
@@ -250,7 +250,7 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
             *fOut << ")";
         }
 
-        virtual void visit(FunCallInst* inst) { assert(false); }
+        virtual void visit(FunCallInst* inst) { faustassert(false); }
            
         virtual void visit(Select2Inst* inst)
         {

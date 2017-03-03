@@ -58,7 +58,7 @@ struct TypingVisitor : public InstVisitor {
         virtual void visit(LoadVarAddressInst* inst)
         {
             // Not implemented
-            assert(false);
+            faustassert(false);
         }
    
         virtual void visit(FloatNumInst* inst)
@@ -105,7 +105,7 @@ struct TypingVisitor : public InstVisitor {
                         fCurType = Typed::kBool;
                     } else {
                         // Should never happen...
-                        assert(false);
+                        faustassert(false);
                     }
                 }
             }
@@ -134,7 +134,7 @@ struct TypingVisitor : public InstVisitor {
                 fCurType = gGlobal->gVarTypeTable[inst->fName]->getType();
             } else {
                 // Should never happen...
-                assert(false);
+                faustassert(false);
             }
         }
         

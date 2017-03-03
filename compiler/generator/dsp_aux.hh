@@ -30,6 +30,7 @@
 
 #include "faust/dsp/dsp.h"
 #include "export.hh"
+#include "exception.hh"
 
 /*!
  \brief the base class for smart pointers implementation
@@ -48,7 +49,7 @@ class faust_smartable {
         //! gives the reference count of the object
         unsigned refs() const         { return refCount; }
         //! addReference increments the ref count and checks for refCount overflow
-        void addReference()           { refCount++; assert(refCount != 0); }
+        void addReference()           { refCount++; faustassert(refCount != 0); }
         //! removeReference delete the object when refCount is zero
         void removeReference()		  { if (--refCount == 0) delete this; }
         
@@ -56,7 +57,7 @@ class faust_smartable {
         faust_smartable() : refCount(0) {}
         faust_smartable(const faust_smartable&): refCount(0) {}
         //! destructor checks for non-zero refCount
-        virtual ~faust_smartable()    { assert (refCount == 0); }
+        virtual ~faust_smartable()    { faustassert(refCount == 0); }
         faust_smartable& operator=(const faust_smartable&) { return *this; }
 };
 
@@ -98,14 +99,14 @@ template<class T> class faust_smartptr {
         //! '*' operator to access the actual class pointer
         T& operator*() const {
             // checks for null dereference
-            assert (fSmartPtr != 0);
+            faustassert(fSmartPtr != 0);
             return *fSmartPtr;
         }
         
         //! operator -> overloading to access the actual class pointer
         T* operator->() const	{
             // checks for null dereference
-            assert (fSmartPtr != 0);
+            faustassert(fSmartPtr != 0);
             return fSmartPtr;
         }
         
@@ -187,7 +188,7 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> >
     {
         // Remove 'dsp' from its factory
         factory_iterator it = this->find(factory);
-        assert(it != this->end());
+        faustassert(it != this->end());
         
         if (it != this->end()) {
             (*it).second.remove(dsp);

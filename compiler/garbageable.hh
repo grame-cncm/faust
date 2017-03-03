@@ -23,8 +23,9 @@
 #define __FAUST_GARBAGE__
 
 #include <stdio.h>
-#include <assert.h>
 #include <new>
+
+#include "exception.hh"
 
 class Garbageable {
 

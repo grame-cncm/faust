@@ -289,7 +289,7 @@ bool CodeLoop::hasRecDependencyIn(Tree S)
 void CodeLoop::absorb(CodeLoop* l)
 {
     // the loops must have the same number of iterations
-    assert(fSize == l->fSize);
+    faustassert(fSize == l->fSize);
     fRecSymbolSet = setUnion(fRecSymbolSet, l->fRecSymbolSet);
 
     // update loop dependencies by adding those from the absorbed loop
@@ -306,9 +306,9 @@ void CodeLoop::absorb(CodeLoop* l)
 
 void CodeLoop::concat(CodeLoop* l)
 {
-	//assert(l->fUseCount == 1);
-	assert(fBackwardLoopDependencies.size() == 1);
-	assert((*fBackwardLoopDependencies.begin()) == l);
+	//faustassert(l->fUseCount == 1);
+	faustassert(fBackwardLoopDependencies.size() == 1);
+	faustassert((*fBackwardLoopDependencies.begin()) == l);
 
 	fExtraLoops.push_front(l);
 	fBackwardLoopDependencies = l->fBackwardLoopDependencies;
@@ -318,7 +318,7 @@ void CodeLoop::concat(CodeLoop* l)
 
 void CodeLoop::setOrder(CodeLoop* l, int order, lclgraph& V)
 {
-    assert(l);
+    faustassert(l);
     V.resize(order + 1);
     if (l->fOrder >= 0) { V[l->fOrder].erase(l); }
     l->fOrder = order; V[order].insert(l);
@@ -346,7 +346,7 @@ void CodeLoop::resetOrder(CodeLoop* l, set<CodeLoop*>& visited)
 
 void CodeLoop::sortGraph(CodeLoop* root, lclgraph& V)
 {
-    assert(root);
+    faustassert(root);
     set<CodeLoop*> visited;
     resetOrder(root, visited);
     

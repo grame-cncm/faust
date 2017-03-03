@@ -19,10 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+
 #include "tlib.hh"
 #include "exception.hh"
 #include "global.hh"
@@ -53,7 +53,7 @@ bool isRec(Tree t, Tree& body)
 
 Tree ref(int level)
 {
-	assert(level > 0);
+	faustassert(level > 0);
 	return tree(gGlobal->DEBRUIJNREF, tree(level));	// reference to enclosing recursive tree starting from 1
 }
 
@@ -110,7 +110,7 @@ int CTree::calcTreeAperture( const Node& n, const tvec& br )
  	int x;
 	if (n == gGlobal->DEBRUIJNREF) {
     
-        assert(br[0]);
+        faustassert(br[0]);
 		if (isInt(br[0]->node(), &x)) {
 			return x;
 		} else {
@@ -119,7 +119,7 @@ int CTree::calcTreeAperture( const Node& n, const tvec& br )
 
 	} else if (n == gGlobal->DEBRUIJN) {
  
-        assert(br[0]);
+        faustassert(br[0]);
 		return br[0]->fAperture - 1;
 
 	} else {
@@ -209,7 +209,7 @@ static Tree calcliftn(Tree t, int threshold)
 
 Tree deBruijn2Sym (Tree t)
 {
-	assert(isClosed(t));
+	faustassert(isClosed(t));
 	Tree t2 = t->getProperty(gGlobal->DEBRUIJN2SYM);
 
 	if (!t2) {

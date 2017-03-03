@@ -30,15 +30,14 @@ using namespace std;
 #include <map>
 #include <vector>
 #include <stack>
-
 #include <iostream>
 #include <sstream>
 #include <algorithm>
-#include <assert.h>
 #include <string.h>
 
 #include "instructions.hh"
 #include "global.hh"
+#include "exception.hh"
 
 /*
     void compute(int count, float** inputs, float** ouputs)
@@ -134,7 +133,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                             // Be sure variable is defined
                             //cerr << "createParameter kStack " << name << endl;
-                            assert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
+                            faustassert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
 
                             // Local in the enclosing context, becomes a fun parameter
                             BasicCloneVisitor cloner;
@@ -159,7 +158,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                         // Be sure variable is defined
                         cout << "createParameter kFunArgs " << name << endl;
-                        assert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
+                        faustassert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
 
                         // Parameter in the enclosing function, becomes a fun parameter
                         BasicCloneVisitor cloner;
@@ -289,7 +288,7 @@ struct LoadStoreCloneVisitor : public BasicCloneVisitor {
     {
         if (inst->fAddress->getAccess() == Address::kLink) {
             string name = inst->fAddress->getName();
-            assert(fLinkTable.find(name) != fLinkTable.end());
+            faustassert(fLinkTable.find(name) != fLinkTable.end());
             return fLinkTable[name]->clone(this);
         } else {
             return BasicCloneVisitor::visit(inst);
@@ -525,12 +524,12 @@ struct SeqLoopBuilder : public DispatchVisitor {
         fResultLoop = dynamic_cast<ForLoopInst*>(loop1->clone(&remover));
         ForLoopInst* loop3 = dynamic_cast<ForLoopInst*>(loop2->clone(&remover));
 
-        assert(fResultLoop);
-        assert(loop3);
+        faustassert(fResultLoop);
+        faustassert(loop3);
 
         // Insert code of second loop into first one
         // TODO
-        assert(false);
+        faustassert(false);
         /*
         list<StatementInst*>::const_iterator it;
         for (it = loop3->fCode.begin(); it != loop3->fCode.end(); it++) {
@@ -601,7 +600,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
             }
 
         } else if (int1 && int2) {
-            assert(false);
+            faustassert(false);
             return 0;
             //return new IntNumInst(inst->fOpcode(int1->fNum, int2->fNum));
         } else {
@@ -620,7 +619,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         } else if (inst->fType->getType() == Typed::kInt) {
             return (int1) ? int1 : InstBuilder::genIntNumInst(int(float1->fNum));
         } else {
-            assert(false);
+            faustassert(false);
             return 0;
         }
     }
@@ -1030,7 +1029,7 @@ struct ControlSpecializer : public DispatchVisitor {
         {
             string name = inst->fAddress->getName();
             if (inst->fAddress->getAccess() == Address::kLink) {
-                assert(fSpecializedValueTable.find(name) != fSpecializedValueTable.end());
+                faustassert(fSpecializedValueTable.find(name) != fSpecializedValueTable.end());
                 return fSpecializedValueTable[name]->clone(this);
             } else {
                 return BasicCloneVisitor::visit(inst);
@@ -1041,7 +1040,7 @@ struct ControlSpecializer : public DispatchVisitor {
         StatementInst* visit(StoreVarInst* inst)
         {
             if (inst->fAddress->getAccess() == Address::kLink) {
-                assert(fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end());
+                faustassert(fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end());
                 return InstBuilder::genDropInst();
             } else {
                 return BasicCloneVisitor::visit(inst);

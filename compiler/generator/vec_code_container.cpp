@@ -168,7 +168,7 @@ void VectorCodeContainer::processFIR(void)
         fDAGBlock = NULL;
     }
     
-    assert(fDAGBlock);
+    faustassert(fDAGBlock);
     
     // Verify code
     /*

@@ -230,7 +230,7 @@ string	DocCompiler::generateCode (Tree sig, int priority)
         error << "Error in d signal, unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());
 	}
-    assert(0);
+    faustassert(0);
 	return "error in generate code";
 }
 
@@ -599,7 +599,7 @@ string DocCompiler::generateVariableStore(Tree sig, const string& exp)
 			}
 			
 		default:
-			assert(0);
+			faustassert(0);
 			return "";
     }
 }
@@ -883,11 +883,11 @@ string DocCompiler::generateRecProj(Tree sig, Tree r, int i, int priority)
 	//cerr << "*** generateRecProj sig : \"" << ppsig(sig) << "\"" << endl;            
 
     if ( ! getVectorNameProperty(sig, vname)) {
-        assert(isRec(r, var, le));
+        faustassert(isRec(r, var, le));
 		//cerr << "    generateRecProj has NOT YET a vname : " << endl;            
 		//cerr << "--> generateRecProj calls generateRec on \"" << ppsig(sig) << "\"" << endl;            
         generateRec(r, var, le, priority);
-        assert(getVectorNameProperty(sig, vname));
+        faustassert(getVectorNameProperty(sig, vname));
 		//cerr << "<-- generateRecProj vname : \"" << subst("$0(t)", vname) << "\"" << endl;            
     } else {
 		//cerr << "(generateRecProj has already a vname : \"" << subst("$0(t)", vname) << "\")" << endl;            
@@ -960,7 +960,7 @@ string DocCompiler::generatePrefix (Tree sig, Tree x, Tree e, int priority)
 
 	if (! getVectorNameProperty(e, vecname)) {
 		cerr << "No vector name for : " << ppsig(e) << endl;
-		assert(0);
+		faustassert(0);
 	}
 	
 	string ltqPrefixDef;
@@ -1151,7 +1151,7 @@ string DocCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay, int priori
 	
 	if (! getVectorNameProperty(exp, vecname)) {
 		cerr << "No vector name for : " << ppsig(exp) << endl;
-		assert(0);
+		faustassert(0);
 	}
 	
 	if (isSigInt(delay, &d) && (d == 0)) {
@@ -1184,7 +1184,7 @@ string DocCompiler::generateDelayVec(Tree sig, const string& exp, const string& 
  */
 string DocCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
 {
-    assert(mxd > 0);
+    faustassert(mxd > 0);
 
 	//cerr << "  entering generateDelayVecNoTemp" << endl;
 	
@@ -1206,7 +1206,7 @@ string DocCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const st
  */
 void DocCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp)
 {
-    //assert(mxd > 0);
+    //faustassert(mxd > 0);
     if (mxd == 0) {
         fLateq->addRecurSigFormula(subst("$0(t) = $1", vname, exp));
     } else {

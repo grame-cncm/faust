@@ -30,8 +30,6 @@
 #include <pthread.h>
 #endif
 
-#include<assert.h>
-
 class TMutex 
 {
 	

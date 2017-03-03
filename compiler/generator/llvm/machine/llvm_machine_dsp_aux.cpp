@@ -173,8 +173,8 @@ llvm_dsp_factory::llvm_dsp_factory(const string& sha_key, const string& machine_
 
 llvm_dsp_aux* llvm_dsp_factory::createDSPInstance()
 {
-    assert(fResult->fModule);
-    assert(fJIT);
+    faustassert(fResult->fModule);
+    faustassert(fJIT);
     return new llvm_dsp_aux(this, fNew());
 }
 
@@ -262,8 +262,8 @@ void llvm_dsp_factory::metadataDSPFactory(MetaGlue* glue)
 llvm_dsp_aux::llvm_dsp_aux(llvm_dsp_factory* factory, llvm_dsp_imp* dsp)
     :fDSPFactory(factory), fDSP(dsp)
 {
-    assert(fDSPFactory);
-    assert(fDSP);
+    faustassert(fDSPFactory);
+    faustassert(fDSP);
 }
         
 llvm_dsp_aux::~llvm_dsp_aux()
@@ -531,7 +531,7 @@ EXPORT void deleteDSPInstance(llvm_dsp* dsp)
         llvm_dsp_factory* factory = dsp_aux->getFactory();
         
         it = llvm_dsp_factory::gFactoryTable.find(factory);
-        assert(it != llvm_dsp_factory::gFactoryTable.end());
+        faustassert(it != llvm_dsp_factory::gFactoryTable.end());
         (*it).second.remove(dsp_aux);
          
         delete dsp_aux; 

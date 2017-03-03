@@ -32,9 +32,9 @@ bool loopDetector::detect(Tree t)
         // time to check for a cycle
         for (int i=1; i<fBuffersize; i++) {
             int r = w-i; if (r < 0) { r += fBuffersize; }
-            assert(r>=0);
-            assert(r<fBuffersize);
-            assert(r != w);
+            faustassert(r>=0);
+            faustassert(r<fBuffersize);
+            faustassert(r != w);
             if (fBuffer[r] == t) {
                 stringstream error;
                 error << "ERROR : after "

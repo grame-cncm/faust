@@ -42,7 +42,7 @@ class TanPrim : public xtended
 
 	virtual ::Type 	infereSigType (const vector< ::Type>& args)
 	{
-		assert (args.size() == 1);
+		faustassert(args.size() == 1);
         interval srcInterval = args[0]->getInterval();
         const double halfpi = M_PI/2;
         interval resultInterval;
@@ -72,8 +72,8 @@ class TanPrim : public xtended
 
     virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const & types)
     {
-        assert(args.size() == arity());
-		assert(types.size() == arity());
+        faustassert(args.size() == arity());
+		faustassert(types.size() == arity());
         
         Typed::VarType result_type;
         vector<Typed::VarType> arg_types;
@@ -85,8 +85,8 @@ class TanPrim : public xtended
 
 	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{
-		assert (args.size() == arity());
-		assert (types.size() == arity());
+		faustassert(args.size() == arity());
+		faustassert(types.size() == arity());
 
         return subst("\\tan\\left($0\\right)", args[0]);
 	}

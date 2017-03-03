@@ -201,7 +201,7 @@ class llvm_dsp_aux : public dsp {
     
         virtual void instanceClear();
     
-        virtual dsp* clone() { assert(false); return nullptr; } // to be implemented by subclass
+        virtual dsp* clone() { faustassert(false); return nullptr; } // to be implemented by subclass
     
         virtual void metadata(Meta* m);
     

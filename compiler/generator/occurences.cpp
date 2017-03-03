@@ -19,15 +19,15 @@
  ************************************************************************
  ************************************************************************/
 
-#include <assert.h>
 #include <stdlib.h>
+#include <iostream>
+
 #include "recursivness.hh"
 #include "occurences.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
 #include "global.hh"
-
-#include <iostream>
+#include "exception.hh"
 
 using namespace std;
 
@@ -37,8 +37,8 @@ using namespace std;
 static int xVariability(int v, int r)
 {
 	//cerr << "xVariability (" << v << ", " <<  r << ")" << endl;
-	//assert (v < 3);				// kKonst=0, kBlock=1, kSamp=2
-	//assert(r==0 | v==2);
+	//faustassert(v < 3);				// kKonst=0, kBlock=1, kSamp=2
+	//faustassert(r==0 | v==2);
 	if (r>1) r=1;
 	return min(3, v + r);
 }
@@ -60,7 +60,7 @@ Occurences::Occurences(int v, int r) : fXVariability(xVariability(v,r))
 Occurences* Occurences::incOccurences(int v, int r, int d)
 {
 	int ctxt = xVariability(v,r);
-	//assert (ctxt >= fXVariability);
+	//faustassert(ctxt >= fXVariability);
 	fOccurences[ctxt] += 1;
 	fMultiOcc = fMultiOcc | (ctxt > fXVariability) | (fOccurences[ctxt] > 1);
 	if (d == 0) {
@@ -138,7 +138,7 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree t)
 		if (isSigFixDelay(t,x,y)) {
 			Type g2 = getCertifiedSigType(y);
 			int d2 = checkDelayInterval(g2);
-			assert(d2>=0);
+			faustassert(d2>=0);
 			incOcc(env, v0, r0, d2, x);
 			incOcc(env, v0, r0, 0, y);
         } else if (isSigPrefix(t,y,x)) {

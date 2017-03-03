@@ -21,7 +21,6 @@
  
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 #include <limits.h>
 #include <string>
 #include <vector>
@@ -1065,7 +1064,7 @@ static void generateOutputFiles(InstructionsCompiler* comp, CodeContainer* conta
     *****************************************************************/
   
     if (gGlobal->gPrintXMLSwitch) {
-        Description* D = comp->getDescription(); assert(D);
+        Description* D = comp->getDescription(); faustassert(D);
         ofstream xout(subst("$0.xml", gGlobal->makeDrawPath()).c_str());
       
         if (gGlobal->gMetaDataSet.count(tree("name")) > 0)          D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));

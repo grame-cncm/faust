@@ -32,12 +32,10 @@
 #include "doc_Text.hh"
 #include "Text.hh"
 #include "global.hh"
-
-#include <assert.h>
+#include "exception.hh"
 
 // History
 // 2009/09/08 : get/setDefNameProperty
-
 
 /**
  * Definition name property : a property to keep track of the definition name
@@ -125,7 +123,7 @@ bool getSigNickname(Tree t, Tree& id)
  */
 void setSigListNickName (Tree  lsig, const string& nickname)
 {
-	assert(isList(lsig));
+	faustassert(isList(lsig));
 	
 	if (isNil(tl(lsig))) {
 		setSigNickname(hd(lsig), nickname);

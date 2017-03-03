@@ -161,7 +161,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     fStructOffset += (array_typed->fSize * fsize()); // Always use biggest size so that int/real access are correctly aligned
                 } else {
                     // Should never happen...
-                    assert(false);
+                    faustassert(false);
                 }
             } else {
                 if (is_struct) {
@@ -276,7 +276,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 } else if (isPtrType(tmp.second)) {
                     *fOut << "dsp + " << tmp.first;
                 } else {
-                    assert(false);
+                    faustassert(false);
                 }
             } else {
                 *fOut << named->fName;
@@ -329,11 +329,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                     *fOut << " << 2) >> 2"; 
                 } else {
                     // Should never happen...
-                    assert(false);
+                    faustassert(false);
                 }
             } else {
                 // Should never happen...
-                assert(false);
+                faustassert(false);
             }
         }
     
@@ -436,7 +436,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                         visitAuxInt(inst);
                     } else {
                         // Should never happen...
-                        assert(false);
+                        faustassert(false);
                     }
                 }
             }
@@ -459,7 +459,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 inst->fInst->accept(this);
                 *fOut << ")";
             } else {
-                assert(false);
+                faustassert(false);
             }
             fTypingVisitor.visit(inst);
         }

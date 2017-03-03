@@ -19,10 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
-#include "sigvisitor.hh"
 #include <iostream>
-#include <assert.h>
-//#include "xtended.hh"
+
+#include "exception.hh"
+#include "sigvisitor.hh"
 
 using namespace std;
 
@@ -39,7 +39,7 @@ void sigvisitor::visit(Tree sig)
 	double 		r;
     Tree		sel, s1, s2, s3, s4, ff, id, ls, l, var, body, type, name, file, cur, min, max, step;
 	
-	assert(sig);
+	faustassert(sig);
 	
 		 if (isSigInt(sig, &i))					visitInt (sig, i);
 		

@@ -53,8 +53,8 @@ aterm::aterm (Tree t)
  */
 static Tree simplifyingAdd(Tree t1, Tree t2)
 {
-	assert(t1!=0);
-	assert(t2!=0);
+	faustassert(t1!=0);
+	faustassert(t2!=0);
 
 	if (isNum(t1) && isNum(t2)) {
 		return addNums(t1,t2);
@@ -184,7 +184,7 @@ const aterm& aterm::operator += (Tree t)
 	int		op;
 	Tree	x,y;
 
-	assert(t!=0);
+	faustassert(t!=0);
 
 	if (isSigBinOp(t, &op, x, y) && (op == kAdd)) {
 		*this += x;
@@ -211,7 +211,7 @@ const aterm& aterm::operator -= (Tree t)
 	int		op;
 	Tree	x,y;
 
-	assert(t!=0);
+	faustassert(t!=0);
 
 	if (isSigBinOp(t, &op, x, y) && (op == kAdd)) {
 		*this -= x;

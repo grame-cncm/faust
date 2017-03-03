@@ -31,13 +31,14 @@
 #include <iostream>
 #include <algorithm>
 #include <sstream>
-#include <assert.h>
+//#include <assert.h>
 #include <stdio.h>
 
 #include "binop.hh"
 #include "property.hh"
 #include "Text.hh"
 #include "garbageable.hh"
+#include "exception.hh"
 
 // ============================
 // Generic instruction visitor
@@ -359,7 +360,7 @@ struct Typed : public Printable
             default:
                 // Not supposed to happen
                 cerr << "getPtrFromType " << type << endl;
-                assert(false);
+                faustassert(false);
                 return kVoid;
         }
     }
@@ -379,7 +380,7 @@ struct Typed : public Printable
             default:
                 // Not supposed to happen
                 cerr << "getVecFromType " << type << endl;
-                assert(false);
+                faustassert(false);
                 return kVoid;
         }
     }
@@ -415,7 +416,7 @@ struct Typed : public Printable
             default:
                 // Not supposed to happen
                 cerr << "getTypeFromPtr " << Typed::gTypeString[type] << endl;
-                assert(false);
+                faustassert(false);
                 return kVoid;
         }
     }
@@ -435,7 +436,7 @@ struct Typed : public Printable
             default:
                 // Not supposed to happen
                 cerr << "getTypeFromVec " << Typed::gTypeString[type] << endl;
-                assert(false);
+                faustassert(false);
                 return kVoid;
         }
     }
@@ -1313,8 +1314,9 @@ struct ForLoopInst : public StatementInst
         } else if (loop_decl2) {
             return loop_decl2->getName();
         } else {
-            assert(false);
+            faustassert(false);
         }
+        return "";
     }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -1836,7 +1838,7 @@ struct InstBuilder
         } else if (ctype == Typed::kQuad) {
             return new DoubleNumInst(num);
         } else {
-            assert(false);
+            faustassert(false);
         }
         return NULL;
     }
@@ -1850,7 +1852,7 @@ struct InstBuilder
         } else if (ctype == Typed::kDouble) {
             return new DoubleArrayNumInst(size);
         } else {
-            assert(false);
+            faustassert(false);
         }
         return NULL;
     }

@@ -23,11 +23,11 @@
 #define _FIR_INTERPRETER_OPTIMIZER_H
 
 #include <string>
-#include <assert.h>
 #include <iostream>
 #include <map>
 
 #include "interpreter_bytecode.hh"
+#include "exception.hh"
 
 #define INTER_MAX_OPT_LEVEL 6
 
@@ -392,17 +392,17 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
         FIRBasicInstruction<T>* inst2 = *(cur + 1);
         FIRBasicInstruction<T>* inst3 = *(cur + 2);
         
-        assert(gFIRMath2Heap.size() > 0);
-        assert(gFIRMath2Stack.size() > 0);
-        assert(gFIRMath2StackValue.size() > 0);
-        assert(gFIRMath2Value.size() > 0);
-        assert(gFIRMath2ValueInvert.size() > 0);
+        faustassert(gFIRMath2Heap.size() > 0);
+        faustassert(gFIRMath2Stack.size() > 0);
+        faustassert(gFIRMath2StackValue.size() > 0);
+        faustassert(gFIRMath2Value.size() > 0);
+        faustassert(gFIRMath2ValueInvert.size() > 0);
         
-        assert(gFIRExtendedMath2Heap.size() > 0);
-        assert(gFIRExtendedMath2Stack.size() > 0);
-        assert(gFIRExtendedMath2StackValue.size() > 0);
-        assert(gFIRExtendedMath2Value.size() > 0);
-        assert(gFIRExtendedMath2ValueInvert.size() > 0);
+        faustassert(gFIRExtendedMath2Heap.size() > 0);
+        faustassert(gFIRExtendedMath2Stack.size() > 0);
+        faustassert(gFIRExtendedMath2StackValue.size() > 0);
+        faustassert(gFIRExtendedMath2Value.size() > 0);
+        faustassert(gFIRExtendedMath2ValueInvert.size() > 0);
         
         //======
         // HEAP
@@ -700,7 +700,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst2->fRealValue / inst1->fRealValue);
                 
             case FIRInstruction::kRemReal:
-                assert(false);
+                faustassert(false);
                 
             case FIRInstruction::kGTReal:
                 return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue > inst1->fRealValue, 0);
@@ -721,7 +721,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue != inst1->fRealValue, 0);
                 
             default:
-                assert(false);
+                faustassert(false);
                 break;
         }
     }
@@ -849,7 +849,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue ^ inst1->fIntValue, 0);
                 
             default:
-                assert(false);
+                faustassert(false);
                 break;
         }
     }
@@ -955,7 +955,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::min(inst2->fRealValue, inst1->fRealValue));
         
             default:
-                assert(false);
+                faustassert(false);
                 break;
         }
     }
@@ -973,7 +973,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, std::min(inst2->fIntValue, inst1->fIntValue), 0);
                 
             default:
-                assert(false);
+                faustassert(false);
                 break;
         }
     }
@@ -1035,7 +1035,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::tanh(inst1->fRealValue));
                 
             default:
-                assert(false);
+                faustassert(false);
                 break;
         }
     }
@@ -1049,7 +1049,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, std::abs(inst1->fIntValue), 0);
                 
             default:
-                assert(false);
+                faustassert(false);
                 break;
         }
     }
@@ -1182,7 +1182,7 @@ struct FIRInstructionOptimizer {
     // Return an optimized block by traversing it (including sub-blocks) with an 'optimizer'
     static FIRBlockInstruction<T>* optimize_aux(FIRBlockInstruction<T>* cur_block, FIRInstructionOptimizer<T>& optimizer)
     {
-        assert(cur_block);
+        faustassert(cur_block);
         
         // Block should have at least 2 instructions...
         if (cur_block->size() < 2) {
@@ -1204,7 +1204,7 @@ struct FIRInstructionOptimizer {
                     } else if (inst1->fIntValue == 0) {
                         new_block->merge(optimize_aux(inst2->fBranch2, optimizer));
                     } else {
-                        assert(false);
+                        faustassert(false);
                     }
                     cur+=2;
                     

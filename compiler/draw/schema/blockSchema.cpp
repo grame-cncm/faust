@@ -19,10 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
+#include <algorithm>
 
 #include "blockSchema.h"
-#include <assert.h>
-#include <algorithm>
+#include "exception.hh"
 
 using namespace std;
 
@@ -39,11 +39,11 @@ static double quantize(int n)
  * Computes the size of the box according to the length of the text
  * and the maximum number of ports.
  */
-schema* makeBlockSchema (	unsigned int inputs,
-                            unsigned int outputs,
-                            const string& text,
-                            const string& color,
-                            const string& link )
+schema* makeBlockSchema (unsigned int inputs,
+                        unsigned int outputs,
+                        const string& text,
+                        const string& color,
+                        const string& link)
 {
     // determine the optimal size of the box
     double minimal = 3*dWire;
@@ -53,20 +53,19 @@ schema* makeBlockSchema (	unsigned int inputs,
     return new blockSchema(inputs, outputs, w, h, text, color, link);
 }
 
-
 /**
  * Build a simple colored blockSchema with a certain number of
  * inputs and outputs, a text to be displayed, and an optional link.
  * The length of the text as well as th number of inputs and outputs
  * are used to compute the size of the blockSchema
  */
-blockSchema::blockSchema (	unsigned int inputs,
-							unsigned int outputs,
-							double width,
-							double height,
-							const string& text,
-							const string& color,
-                            const string& link)
+blockSchema::blockSchema (unsigned int inputs,
+                        unsigned int outputs,
+                        double width,
+                        double height,
+                        const string& text,
+                        const string& color,
+                        const string& link)
 
 	: 	schema( inputs, outputs, width, height ),
 	  	fText(text),
@@ -76,7 +75,6 @@ blockSchema::blockSchema (	unsigned int inputs,
     for (unsigned int i=0; i<inputs; i++) 	fInputPoint.push_back(point(0,0));
     for (unsigned int i=0; i<outputs; i++) 	fOutputPoint.push_back(point(0,0));
 }
-
 
 /**
  * Define the graphic position of the blockSchema. Computes the graphic
@@ -93,28 +91,25 @@ void blockSchema::place(double x, double y, int orientation)
 	endPlace();
 }
 
-
 /**
  * Returns an input point
  */
 point blockSchema::inputPoint(unsigned int i) const
 {
-	assert (placed());
-	assert (i < inputs());
+	faustassert(placed());
+	faustassert(i < inputs());
 	return fInputPoint[i];
 }
-
 
 /**
  * Returns an output point
  */
 point blockSchema::outputPoint(unsigned int i) const
 {
-	assert (placed());
-	assert (i < outputs());
+	faustassert(placed());
+	faustassert(i < outputs());
 	return fOutputPoint[i];
 }
-
 
 /**
  * Computes the input points according to the position and the
@@ -122,7 +117,7 @@ point blockSchema::outputPoint(unsigned int i) const
  */
 void blockSchema::placeInputPoints()
 {
-	int		N = inputs();
+	int N = inputs();
 
 	if (orientation() == kLeftRight) {
 
@@ -143,7 +138,6 @@ void blockSchema::placeInputPoints()
 		}
 	}
 }
-
 
 /**
  * Computes the output points according to the position and the
@@ -173,14 +167,13 @@ void blockSchema::placeOutputPoints()
 	}
 }
 
-
 /**
  * Draw the blockSchema on the device. This methos can only
  * be called after the blockSchema have been placed
  */
 void blockSchema::draw(device& dev)
 {
-	assert(placed());
+	faustassert(placed());
 
 	drawRectangle(dev);
 	drawText(dev);
@@ -202,7 +195,6 @@ void blockSchema::drawRectangle(device& dev)
 			);
 }
 
-
 /**
  * Draw the text centered on the box
  */
@@ -214,7 +206,6 @@ void blockSchema::drawText(device& dev)
                 fLink.c_str()
 			);
 }
-
 
 /**
  * Draw the orientation mark, a small point that indicates
@@ -234,6 +225,7 @@ void blockSchema::drawOrientationMark(device& dev)
 
 	dev.markSens( px, py, orientation() );
 }
+
 /**
  * Draw horizontal arrows from the input points to the
  * blockSchema rectangle
@@ -247,7 +239,6 @@ void blockSchema::drawInputArrows(device& dev)
         dev.fleche(p.x+dx, p.y, 0, orientation());
     }
 }
-
 
 /**
  * Draw horizontal arrows from the input points to the

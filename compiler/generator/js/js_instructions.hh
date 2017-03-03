@@ -213,7 +213,7 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
         virtual void visit(LoadVarAddressInst* inst)
         {
            // Not implemented in JavaScript
-            assert(false);
+            faustassert(false);
         }
                 
         // No .f syntax for float in JS

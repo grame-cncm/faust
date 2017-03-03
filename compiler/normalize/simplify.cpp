@@ -20,7 +20,9 @@
  ************************************************************************/
 
 #include <stdio.h>
-#include <assert.h>
+#include <map>
+
+#include "exception.hh"
 #include "list.hh"
 #include "signals.hh"
 #include "sigtype.hh"
@@ -36,8 +38,6 @@
 #include "normalize.hh"
 #include "global.hh"
 
-#include <map>
-
 #undef TRACE
 
 // declarations
@@ -47,7 +47,7 @@ static Tree sigMap (Tree key, tfun f, Tree t);
 
 static Tree traced_simplification(Tree sig)
 {
-	assert(sig);
+	faustassert(sig);
 #ifdef TRACE
     cerr << ++gGlobal->TABBER << "Start simplification of : " << ppsig(sig) << endl;
 	/*
@@ -57,7 +57,7 @@ static Tree traced_simplification(Tree sig)
 	*/
 #endif
 	Tree r = simplification(sig);
-	assert(r != 0);
+	faustassert(r != 0);
 #ifdef TRACE
     cerr << --gGlobal->TABBER << "Simplification of : " << ppsig(sig) << " Returns : " << ppsig(r) << endl;
 	/*
@@ -81,7 +81,7 @@ Tree simplify (Tree sig)
 
 static Tree simplification (Tree sig)
 {
-	assert(sig);
+	faustassert(sig);
 	int		opnum;
 	Tree	t1, t2, t3, t4;
 
@@ -236,7 +236,7 @@ static Tree sigMapRename (Tree key, Tree env, tfun f, Tree t)
 
     } else if (isRec(t, id, body)) {
 
-        assert(isRef(t,id)); // controle temporaire
+        faustassert(isRef(t,id)); // controle temporaire
 
         Tree id2;
         if (searchEnv(id, id2, env)) {
@@ -282,7 +282,7 @@ static void eraseProperties (Tree key, Tree t)
 	} else if (isRec(t, id, body)) {
 		t->clearProperties();
         Tree r=rec(id, body);
-        assert(r==t);
+        faustassert(r==t);
 		setProperty(t, key, gGlobal->nil);	// avoid infinite loop
 		eraseProperties(key, body);
 
@@ -326,13 +326,13 @@ static Tree docTableConverter (Tree sig)
         // we are in a table to convert
         if (isSigTable(tbl, id, size, igen)) {
             // it's a read only table
-            assert(isSigGen(igen, isig));
+            faustassert(isSigGen(igen, isig));
             return sigDocAccessTbl(sigDocConstantTbl(size,isig),ridx);
         } else {
             // it's a read write table
-            assert(isSigWRTbl(tbl,id,tbl2,widx,wsig));
-            assert(isSigTable(tbl2, id2, size, igen));
-            assert(isSigGen(igen, isig));
+            faustassert(isSigWRTbl(tbl,id,tbl2,widx,wsig));
+            faustassert(isSigTable(tbl2, id2, size, igen));
+            faustassert(isSigGen(igen, isig));
 
             return sigDocAccessTbl(sigDocWriteTbl(size,isig,widx,wsig),ridx);
         }

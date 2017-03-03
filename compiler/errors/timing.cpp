@@ -59,7 +59,7 @@ void startTiming(const char* msg)
     }
     
     if (gTimingSwitch) {
-        assert(gTimingIndex < 1023);
+        faustassert(gTimingIndex < 1023);
         if (gTimingLog) {
             tab(gTimingIndex, *gTimingLog);
             *gTimingLog << "start " << msg << endl;
@@ -74,7 +74,7 @@ void startTiming(const char* msg)
 void endTiming(const char* msg)
 {
     if (gTimingSwitch) {
-        assert(gTimingIndex > 0);
+        faustassert(gTimingIndex > 0);
         gEndTime[--gTimingIndex] = mysecond();
         if (gTimingLog) {
             *gTimingLog << msg << "\t" << gEndTime[gTimingIndex] - gStartTime[gTimingIndex] << endl;

@@ -19,13 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
-
 #include "cutSchema.h"
-#include <assert.h>
+#include "exception.hh"
 
 using namespace std;
-
-
 
 /**
  * Creates a new Cut schema.
@@ -35,7 +32,6 @@ schema* makeCutSchema ()
 	return new cutSchema();
 }
 
-
 /**
  * A Cut is represented by a small black dot. It has 1 input
  * and no outputs. It has a 0 width and a 1 wire height. The
@@ -43,9 +39,8 @@ schema* makeCutSchema ()
  * makeCutSchema.
  */
 cutSchema::cutSchema ()
-    : 	schema (1, 0, 0, dWire/100.0), fPoint(0,0)
+    : schema (1, 0, 0, dWire/100.0), fPoint(0,0)
 {}
-
 
 /**
  * The input point is placed in the middle
@@ -56,7 +51,6 @@ void cutSchema::place(double ox, double oy, int orientation)
     fPoint = point(ox, oy + height()*0.5); //, -1);
 	endPlace();
 }
-
 
 /**
  * A cut is represented by a small black dot
@@ -74,7 +68,7 @@ void cutSchema::collectTraits(collector& c)
  */
 point cutSchema::inputPoint(unsigned int i) const
 {
-	assert(i==0);
+	faustassert(i==0);
 	return fPoint;
 }
 
@@ -83,8 +77,6 @@ point cutSchema::inputPoint(unsigned int i) const
  */
 point cutSchema::outputPoint(unsigned int) const
 {
-	assert(false);
+	faustassert(false);
     return point(-1,-1);
 }
-
-

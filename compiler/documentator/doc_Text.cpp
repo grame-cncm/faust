@@ -21,17 +21,17 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "doc_Text.hh"
-#include "compatibility.hh"
 #include <string>
 #include <vector>
 #include <iostream>
 #include <sstream>
-#include <assert.h>
 #include <cmath>
 #include <stdlib.h>
 
 #include "floats.hh"
+#include "doc_Text.hh"
+#include "compatibility.hh"
+#include "exception.hh"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -137,7 +137,7 @@ static bool AlmostEqual(double A, double B)
  */
 bool isPiPower (double n, string& s)
 {
-    assert(n>0);
+    faustassert(n>0);
     stringstream ss (stringstream::out|stringstream::in);
     int k = (int)floor(log(n)/log(M_PI));
     if ( AlmostEqual(n, exp(k * log(M_PI))) && (k!=0) && (abs(k)<5.0) ) {
@@ -157,7 +157,7 @@ bool isPiPower (double n, string& s)
  */
 bool isExpPower (double n, string& s)
 {
-    assert(n>0);
+    faustassert(n>0);
     stringstream ss (stringstream::out|stringstream::in);
     int k = (int)floor(log(n));
     if ( AlmostEqual(n, exp(float(k))) && (k!=0) && (abs(k)<5.0) ) {
@@ -177,7 +177,7 @@ bool isExpPower (double n, string& s)
  */
 bool isSymbolicPower (double n, string& s)
 {
-    assert(n>0);
+    faustassert(n>0);
     if (isPiPower(n,s)) {
         return true;
     } else if (isExpPower(n,s)) {
@@ -214,7 +214,7 @@ const string addFraction (int num, int denom, const string& exp)
 const string positiveSymbolicNumber (double n)
 {
     string s;
-    assert(n>0);
+    faustassert(n>0);
 
     // Try to find a symbolic representation
 

@@ -19,11 +19,13 @@
  ************************************************************************
  ************************************************************************/
  
- #ifndef __MTERM__
+#ifndef __MTERM__
 #define __MTERM__
 
 #include <stdio.h>
-#include <assert.h>
+#include <map>
+#include <list>
+
 #include "tlib.hh"
 #include "signals.hh"
 #include "sigprint.hh"
@@ -31,9 +33,7 @@
 #include "normalize.hh"
 #include "sigorderrules.hh"
 #include "garbageable.hh"
-
-#include <map>
-#include <list>
+#include "exception.hh"
 
 using namespace std;
 

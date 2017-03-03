@@ -116,7 +116,7 @@ void uncolorize(Tree exp)
  */
 void listMultiColoredExp(Tree exp, set<Tree>& lst)
 {
-	assert(colorsCount(exp) > 0);
+	faustassert(colorsCount(exp) > 0);
 	if (colorsCount(exp) > 1) {
 		// we have found a multicolored expression
 		lst.insert(exp);

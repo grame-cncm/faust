@@ -19,11 +19,11 @@
  ************************************************************************
  ************************************************************************/
 
-
 #include "seqSchema.h"
 #include <iostream>
-#include <assert.h>
 #include <algorithm>
+
+#include "exception.hh"
 
 using namespace std;
 
@@ -31,7 +31,6 @@ enum {kHorDir, kUpDir, kDownDir}; ///< directions of connections
 
 static double computeHorzGap(schema* a, schema* b);
 static int direction(const point& a, const point& b);
-
 
 //----------------------------INTERFACE--------------------------------
 
@@ -41,7 +40,7 @@ static int direction(const point& a, const point& b);
  * Compute an horizontal gap based on the number of upward and
  * downward connections.
  */
-schema * makeSeqSchema (schema* s1, schema* s2)
+schema* makeSeqSchema (schema* s1, schema* s2)
 {
 	unsigned int o = s1->outputs();
 	unsigned int i = s2->inputs();
@@ -51,8 +50,6 @@ schema * makeSeqSchema (schema* s1, schema* s2)
 
 	return new seqSchema(a, b, computeHorzGap(a,b));
 }
-
-
 
 //-----------------------IMPLEMENTATION------------------------------
 
@@ -69,9 +66,8 @@ seqSchema::seqSchema (schema* s1, schema* s2, double hgap)
 		fSchema2(s2),
 		fHorzGap(hgap)
 {
-	assert(s1->outputs() == s2->inputs());
+	faustassert(s1->outputs() == s2->inputs());
 }
-
 
 //-----------------------placement------------------------------
 
@@ -97,7 +93,6 @@ void seqSchema::place(double ox, double oy, int orientation)
 	endPlace();
 }
 
-
 /**
  * The input points are the input points of the first component
  */
@@ -105,7 +100,6 @@ point seqSchema::inputPoint(unsigned int i) const
 {
 	return fSchema1->inputPoint(i);
 }
-
 
 /**
  * The output points are the output points of the second component
@@ -115,18 +109,14 @@ point seqSchema::outputPoint(unsigned int i) const
 	return fSchema2->outputPoint(i);
 }
 
-
-
 //--------------------------drawing------------------------------
-
-
 /**
  * Draw the two components as well as the internal wires
  */
 void seqSchema::draw(device& dev)
 {
-    assert(placed());
-    assert(fSchema1->outputs() == fSchema2->inputs());
+    faustassert(placed());
+    faustassert(fSchema1->outputs() == fSchema2->inputs());
 
     fSchema1->draw(dev);
     fSchema2->draw(dev);
@@ -138,14 +128,13 @@ void seqSchema::draw(device& dev)
  */
 void seqSchema::collectTraits(collector& c)
 {
-    assert(placed());
-    assert(fSchema1->outputs() == fSchema2->inputs());
+    faustassert(placed());
+    faustassert(fSchema1->outputs() == fSchema2->inputs());
 
     fSchema1->collectTraits(c);
     fSchema2->collectTraits(c);
     collectInternalWires(c);
 }
-
 
 /**
  * Draw the internal wires aligning the vertical segments in
@@ -154,7 +143,7 @@ void seqSchema::collectTraits(collector& c)
 
 void seqSchema::drawInternalWires(device& dev)
 {
-	assert (fSchema1->outputs() == fSchema2->inputs());
+	faustassert(fSchema1->outputs() == fSchema2->inputs());
 
 	const int 	N 	= fSchema1->outputs();
 	double 		dx 	= 0;
@@ -224,8 +213,6 @@ void seqSchema::drawInternalWires(device& dev)
 	}
 }
 
-
-
 /**
  * Draw the internal wires aligning the vertical segments in
  * a symetric way when possible.
@@ -233,7 +220,7 @@ void seqSchema::drawInternalWires(device& dev)
 
 void seqSchema::collectInternalWires(collector& c)
 {
-    assert (fSchema1->outputs() == fSchema2->inputs());
+    faustassert(fSchema1->outputs() == fSchema2->inputs());
 
     const int 	N 	= fSchema1->outputs();
     double 		dx 	= 0;
@@ -304,9 +291,6 @@ void seqSchema::collectInternalWires(collector& c)
 }
 
 //--------------------------helpers------------------------------
-
-
-
 /**
  * Compute the direction of a connection. Note that
  * Y axis goes from top to bottom
@@ -325,7 +309,7 @@ static int direction(const point& a, const point& b)
  */
 static double computeHorzGap(schema* a, schema* b)
 {
-	assert(a->outputs() == b->inputs());
+	faustassert(a->outputs() == b->inputs());
 
 	if (a->outputs() == 0) {
 		return 0;

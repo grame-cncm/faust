@@ -22,11 +22,11 @@
 #ifndef _SIGNALS_
 #define _SIGNALS_
 
+#include <vector>
+
+#include "exception.hh"
 #include "tlib.hh"
 #include "binop.hh"
-
-#include <assert.h>
-#include <vector>
 
 using namespace std;
 
@@ -174,12 +174,12 @@ Tree minusNum	(Tree a);
 Tree inverseNum	(Tree a);
 
 // tests on constant signals
-inline bool isNum		(Tree a)	{ assert(a); return isNum(a->node()); }
-inline bool isZero		(Tree a)	{ assert(a); return isZero(a->node()); }
-inline bool isGTZero	(Tree a)	{ assert(a); return isGTZero(a->node()); }
-inline bool isGEZero	(Tree a)	{ assert(a); return isGEZero(a->node()); }
-inline bool isOne		(Tree a)	{ assert(a); return isOne(a->node()); }
-inline bool isMinusOne	(Tree a)	{ assert(a); return isMinusOne(a->node()); }
+inline bool isNum		(Tree a)	{ faustassert(a); return isNum(a->node()); }
+inline bool isZero		(Tree a)	{ faustassert(a); return isZero(a->node()); }
+inline bool isGTZero	(Tree a)	{ faustassert(a); return isGTZero(a->node()); }
+inline bool isGEZero	(Tree a)	{ faustassert(a); return isGEZero(a->node()); }
+inline bool isOne		(Tree a)	{ faustassert(a); return isOne(a->node()); }
+inline bool isMinusOne	(Tree a)	{ faustassert(a); return isMinusOne(a->node()); }
 
 //projection for recursive groups
 Tree sigProj (int i, Tree rgroup);

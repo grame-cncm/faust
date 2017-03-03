@@ -20,15 +20,12 @@
  ************************************************************************
  ************************************************************************/
 
-
-#include "inverterSchema.h"
-#include <assert.h>
 #include <iostream>
 
+#include "inverterSchema.h"
+#include "exception.hh"
+
 using namespace std;
-
-//#define invcolor "#f44444"
-
 
 /**
  * Build n cables in parallel
@@ -38,15 +35,12 @@ schema* makeInverterSchema (const string& color)
     return new inverterSchema(color);
 }
 
-
 /**
  * Build n cables in parallel
  */
 inverterSchema::inverterSchema(const string& color)
     : 	blockSchema (1, 1, 2.5*dWire, dWire, "-1", color, "")
-{
-}
-
+{}
 
 /**
  * Nothing to draw. Actual drawing will take place when the wires

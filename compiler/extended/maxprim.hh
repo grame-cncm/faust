@@ -39,7 +39,7 @@ class MaxPrim : public xtended
 
 	virtual ::Type infereSigType(const vector< ::Type>& types)
 	{
-		assert (types.size() == arity());
+		faustassert(types.size() == arity());
 		interval i = types[0]->getInterval();
 		interval j = types[1]->getInterval();
 		return castInterval(types[0]|types[1], max(i,j));
@@ -49,7 +49,7 @@ class MaxPrim : public xtended
 
 	virtual int infereSigOrder(const vector<int>& args)
 	{
-		assert (args.size() == arity());
+		faustassert(args.size() == arity());
 		return max(args[0], args[1]);
 	}
 
@@ -57,7 +57,7 @@ class MaxPrim : public xtended
 	{
 		double f,g; int i,j;
 
-		assert (args.size() == arity());
+		faustassert(args.size() == arity());
 
 		if (isDouble(args[0]->node(), &f)) {
 
@@ -87,8 +87,8 @@ class MaxPrim : public xtended
 
     virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const &types)
     {
-        assert(args.size() == arity());
-		assert(types.size() == arity());
+        faustassert(args.size() == arity());
+		faustassert(types.size() == arity());
         
         Typed::VarType result_type;
         vector<Typed::VarType> arg_types;
@@ -109,7 +109,7 @@ class MaxPrim : public xtended
                 // both are floats, no need to cast
                 return container->pushFunction(subst("max_$0", isuffix()), result_type, arg_types, args);
             } else {
-                assert(n1 == kInt); // second argument is not float, cast it to float
+                faustassert(n1 == kInt); // second argument is not float, cast it to float
                 // prepare args values
                 list<ValueInst*>::const_iterator it2 = args.begin();
                 casted_args.push_back((*it2));
@@ -118,7 +118,7 @@ class MaxPrim : public xtended
                 return container->pushFunction(subst("max_$0", isuffix()), result_type, arg_types, casted_args);
             }
         } else if (n1 == kReal) {
-            assert(n0 == kInt); // first not float but second is, cast first to float
+            faustassert(n0 == kInt); // first not float but second is, cast first to float
             
             // prepare args types
             arg_types.push_back(itfloat());
@@ -131,7 +131,7 @@ class MaxPrim : public xtended
             casted_args.push_back((*it2));
             return container->pushFunction(subst("max_$0", isuffix()), result_type, arg_types, casted_args);
         } else {
-            assert(n0 == kInt); assert(n1 == kInt);   // both are integers, check for booleans
+            faustassert(n0 == kInt); faustassert(n1 == kInt);   // both are integers, check for booleans
             int b0 = types[0]->boolean();
             int b1 = types[1]->boolean();
             
@@ -144,7 +144,7 @@ class MaxPrim : public xtended
                     // both are integers, no need to cast
                     return container->pushFunction("max_i", result_type, arg_types, args);
                 } else {
-                    assert(b1 == kBool);    // second is boolean, cast to int
+                    faustassert(b1 == kBool);    // second is boolean, cast to int
                     // prepare args values
                     list<ValueInst*>::const_iterator it2 = args.begin();
                     casted_args.push_back((*it2));
@@ -153,7 +153,7 @@ class MaxPrim : public xtended
                     return container->pushFunction("max_i", result_type, arg_types, casted_args);
                 }
             } else if (b1 == kNum) {
-                assert(b0 == kBool);    // first is boolean, cast to int
+                faustassert(b0 == kBool);    // first is boolean, cast to int
                 // prepare args values
                 list<ValueInst*>::const_iterator it2 = args.begin();
                 casted_args.push_back(InstBuilder::genCastNumIntInst(*it2));
@@ -163,7 +163,7 @@ class MaxPrim : public xtended
             } else {
                 // both are booleans, theoratically no need to cast, but we still do it to be sure 'true' is actually '1'
                 // and 'false' is actually '0' (which is not the case if compiled in SSE mode)
-                assert(b0 == kBool); assert(b1 == kBool);   // both are booleans, cast both
+                faustassert(b0 == kBool); faustassert(b1 == kBool);   // both are booleans, cast both
                 list<ValueInst*>::const_iterator it2 = args.begin();
                 casted_args.push_back(InstBuilder::genCastNumIntInst(*it2));
                 it2++;
@@ -175,8 +175,8 @@ class MaxPrim : public xtended
   	
 	virtual string generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
 	{
-		assert (args.size() == arity());
-		assert (types.size() == arity());
+		faustassert(args.size() == arity());
+		faustassert(types.size() == arity());
 
 		::Type t = infereSigType(types);
 		return subst("\\max\\left( $0, $1 \\right)", args[0], args[1]);

@@ -232,10 +232,10 @@ class CodeContainer : public virtual Garbageable {
         DeclareFunInst* generateGetInputRate(const string& name, bool ismethod, bool isvirtual);
         DeclareFunInst* generateGetOutputRate(const string& name, bool ismethod, bool isvirtual);
     
-        virtual DeclareFunInst* generateClassInit(const string& name, bool ismethod, bool isvirtual) { assert(false); return nullptr; }
-        virtual DeclareFunInst* generateInstanceClear(const string& name, bool ismethod, bool isvirtual) { assert(false); return nullptr; }
-        virtual DeclareFunInst* generateInstanceConstants(const string& name, bool ismethod, bool isvirtual) { assert(false); return nullptr; }
-        virtual DeclareFunInst* generateInstanceResetUserInterface(const string& name, bool ismethod, bool isvirtual) { assert(false); return nullptr; }
+        virtual DeclareFunInst* generateClassInit(const string& name, bool ismethod, bool isvirtual) { faustassert(false); return nullptr; }
+        virtual DeclareFunInst* generateInstanceClear(const string& name, bool ismethod, bool isvirtual) { faustassert(false); return nullptr; }
+        virtual DeclareFunInst* generateInstanceConstants(const string& name, bool ismethod, bool isvirtual) { faustassert(false); return nullptr; }
+        virtual DeclareFunInst* generateInstanceResetUserInterface(const string& name, bool ismethod, bool isvirtual) { faustassert(false); return nullptr; }
     
         virtual DeclareFunInst* generateStaticInitFun(const string& name, bool isstatic, bool addreturn = false);
         virtual DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn = false);
@@ -433,7 +433,7 @@ class CodeContainer : public virtual Garbageable {
         void incUIActiveCount()    { fNumActives++; }
         void incUIPassiveCount()   { fNumPassives++; }
     
-        virtual dsp_factory_base* produceFactory() { assert(false); return 0; }
+        virtual dsp_factory_base* produceFactory() { faustassert(false); return 0; }
     
 };
 

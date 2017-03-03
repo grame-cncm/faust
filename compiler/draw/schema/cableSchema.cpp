@@ -19,10 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
+#include <iostream>
 
 #include "cableSchema.h"
-#include <assert.h>
-#include <iostream>
+#include "exception.hh"
 
 using namespace std;
 
@@ -31,10 +31,9 @@ using namespace std;
  */
 schema* makeCableSchema (unsigned int n)
 {
-	assert(n>0);
+	faustassert(n>0);
 	return new cableSchema(n);
 }
-
 
 /**
  * Build n cables in parallel
@@ -44,7 +43,6 @@ cableSchema::cableSchema (unsigned int n)
 {
     for (unsigned int i=0; i<n; i++) 	fPoint.push_back(point(0,0));
 }
-
 
 /**
  * Place the communication points vertically spaced by dWire
@@ -64,32 +62,26 @@ void cableSchema::place(double ox, double oy, int orientation)
 	endPlace();
 }
 
-
-
 /**
  * Nothing to draw. Actual drawing will take place when the wires
  * are enlargered
  */
 void cableSchema::draw(device& dev)
-{
-}
-
-
+{}
 
 /**
  * Nothing to collect. Actual collect will take place when the wires
  * are enlargered
  */
 void cableSchema::collectTraits(collector& c)
-{
-}
+{}
 
 /**
  *input and output points are the same as the width is 0
  */
 point cableSchema::inputPoint(unsigned int i) const
 {
-	assert(i<inputs());
+	faustassert(i<inputs());
 	return fPoint[i];
 }
 
@@ -98,6 +90,6 @@ point cableSchema::inputPoint(unsigned int i) const
  */
 point cableSchema::outputPoint(unsigned int i) const
 {
-	assert(i<outputs());
+	faustassert(i<outputs());
 	return fPoint[i];
 }

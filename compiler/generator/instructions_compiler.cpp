@@ -239,7 +239,7 @@ InstType InstructionsCompiler::setCompiledExpression(Tree sig, const InstType& c
  */
 void InstructionsCompiler::setVectorNameProperty(Tree sig, const string& vname)
 {
-    assert(vname.size() > 0);
+    faustassert(vname.size() > 0);
     fVectorProperty.set(sig, vname);
 }
 
@@ -258,7 +258,7 @@ bool InstructionsCompiler::getVectorNameProperty(Tree sig, string& vname)
 
 void InstructionsCompiler::setTableNameProperty(Tree sig, const string& name)
 {
-    assert(name.size() > 0);
+    faustassert(name.size() > 0);
     fTableProperty.set(sig, name);
 }
 
@@ -750,12 +750,12 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
 	int 		size;
 
     // already compiled but check if we need to add declarations
-    assert(isSigGen(content, g));
+    faustassert(isSigGen(content, g));
     pair<string, string> kvnames;
     if (!fInstanceInitProperty.get(g, kvnames)) {
         // not declared here, we add a declaration
         bool b = fStaticInitProperty.get(g, kvnames);
-        assert(b);
+        faustassert(b);
         const list<ValueInst*> args;
         ValueInst* obj = InstBuilder::genFunCallInst("new" + kvnames.first, args);
         pushInitMethod(InstBuilder::genDecStackVar(kvnames.second, InstBuilder::genNamedTyped(kvnames.first, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
@@ -819,7 +819,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
         if (!fStaticInitProperty.get(g, kvnames)) {
             // not declared here, we add a declaration
             bool b = fInstanceInitProperty.get(g, kvnames);
-            assert(b);
+            faustassert(b);
             const list<ValueInst*> args;
             ValueInst* obj = InstBuilder::genFunCallInst("new" + kvnames.first, args);
             pushInitMethod(InstBuilder::genDecStackVar(kvnames.second, InstBuilder::genNamedTyped(kvnames.first, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
@@ -876,7 +876,7 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
 {
     ValueInst* tblname = CS(tbl);
     LoadVarInst* load_value = dynamic_cast<LoadVarInst*>(tblname);
-    assert(load_value);
+    faustassert(load_value);
     
     // Check types and possibly cast written value
     int table_type = getCertifiedSigType(tbl)->nature();
@@ -912,7 +912,7 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 	}
 
     LoadVarInst* load_value1 = dynamic_cast<LoadVarInst*>(tblname);
-    assert(load_value1);
+    faustassert(load_value1);
 
     LoadVarInst* load_value2 = InstBuilder::genLoadArrayVar(load_value1->fAddress->getName(), access, CS(idx));
     return generateCacheCode(sig, load_value2);
@@ -1035,7 +1035,7 @@ ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, Typed::VarType 
 ValueInst* InstructionsCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
 {
     // Done at signal level
-    assert(false);
+    faustassert(false);
     return InstBuilder::genNullInst();
 }
 
@@ -1715,7 +1715,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
             }
         }
     } else {
-        assert(false);
+        faustassert(false);
     }
     
     // In 'asmjs' or 'wast/wasm' waveforms are allocated in the DSP object memory,

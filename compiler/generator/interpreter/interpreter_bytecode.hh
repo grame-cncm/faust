@@ -25,10 +25,10 @@
 #include <vector>
 #include <string>
 #include <math.h>
-#include <assert.h>
 #include <iostream>
 
 #include "fir_opcode.hh"
+#include "exception.hh"
 
 static inline std::string quote1(std::string str)
 {
@@ -464,7 +464,7 @@ struct FIRBlockInstruction : public FIRInstruction {
             (*it)->stackMove(tmp_int_index, tmp_real_index);
             (*it)->write(&std::cout);
             std::cout << "int_stack_index " << tmp_int_index << " real_stack_index " << tmp_real_index << std::endl;
-            assert(tmp_int_index >= 0 && tmp_real_index >= 0);
+            faustassert(tmp_int_index >= 0 && tmp_real_index >= 0);
             int_index = std::max(int_index, tmp_int_index);
             real_index = std::max(real_index, tmp_real_index);
         }

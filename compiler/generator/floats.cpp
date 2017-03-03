@@ -52,7 +52,7 @@ Typed::VarType itfloat()
         case 3:
             return Typed::kQuad;
         default:
-            assert(false);
+            faustassert(false);
             return Typed::kNoType;
     }
 }
@@ -67,7 +67,7 @@ Typed::VarType itfloatptr()
         case 3:
             return Typed::kQuad_ptr;
         default:
-            assert(false);
+            faustassert(false);
             return Typed::kNoType;
     }
 }
@@ -82,7 +82,7 @@ int fsize()
         case 3:
             return 16;
         default:
-            assert(false);
+            faustassert(false);
             return -1;
     }
 }

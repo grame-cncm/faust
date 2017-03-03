@@ -48,7 +48,7 @@ void extractMetadata(const string& fulllabel, string& label, map<string, set<str
         char c = fulllabel[i];
         switch (state) {
             case kLabel :
-                assert (deep == 0);
+                faustassert(deep == 0);
                 switch (c) {
                     case '\\' : state = kEscape1; break;
                     case '[' : state = kKey; deep++; break;
@@ -72,7 +72,7 @@ void extractMetadata(const string& fulllabel, string& label, map<string, set<str
                 break;
 
             case kKey :
-                assert (deep > 0);
+                faustassert(deep > 0);
                 switch (c) {
                     case '\\' :  state = kEscape2;
                                 break;
@@ -102,7 +102,7 @@ void extractMetadata(const string& fulllabel, string& label, map<string, set<str
                 break;
 
             case kValue :
-                assert (deep > 0);
+                faustassert(deep > 0);
                 switch (c) {
                     case '\\' : state = kEscape3;
                                 break;
@@ -140,12 +140,11 @@ void extractMetadata(const string& fulllabel, string& label, map<string, set<str
 string extractName(Tree fulllabel)
 {
     string name;
-    map<string, set<string> >   metadata;
+    map<string, set<string> > metadata;
 
     extractMetadata(tree2str(fulllabel), name, metadata);
     return name;
 }
-
 
 /**
  * removes enclosing quotes and transforms '<', '>' and '&' characters
@@ -357,6 +356,4 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 
 	return fWidgetID;
 }
-
-
 

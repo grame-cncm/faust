@@ -20,7 +20,9 @@
  ************************************************************************/
  
 #include <stdio.h>
-#include <assert.h>
+#include <map>
+#include <list>
+
 #include "tlib.hh"
 #include "signals.hh"
 #include "sigprint.hh"
@@ -28,11 +30,9 @@
 #include "simplify.hh"
 #include "normalize.hh"
 #include "sigorderrules.hh"
-#include <map>
-#include <list>
-
 #include "mterm.hh"
 #include "aterm.hh"
+#include "exception.hh"
 
 #if 0
 static void countAddTerm (map<Tree,Tree>& M, Tree t, bool invflag);

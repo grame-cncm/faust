@@ -85,7 +85,7 @@ void getFaustPathname(char* str, unsigned int size);
 char* realpath(const char* path, char resolved_path[PATH_MAX]);
 char* basename(const char* fullpath);
 
-#ifdef  NDEBUG
+#ifdef NDEBUG
 #undef assert
 #define assert(_Expression) do { bool bTest = (_Expression) != 0; } while (0)
 #endif

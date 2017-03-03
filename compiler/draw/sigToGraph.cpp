@@ -92,7 +92,7 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout )
             if (n > 0) {
                 if (n==1 && isList(subsig[0])) {
 					Tree id, body;
-                    assert(isRec(sig,id,body));
+                    faustassert(isRec(sig,id,body));
 					if (!isRec(sig,id,body)) {
 					}
                     // special recursion case, recreate a vector of subsignals instead of the

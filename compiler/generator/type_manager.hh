@@ -26,8 +26,8 @@
 #include <list>
 #include <set>
 #include <map>
-#include <assert.h>
 
+#include "exception.hh"
 #include "instructions.hh"
 
 using namespace std;
@@ -120,7 +120,7 @@ class StringTypeManager {
             } else if (array_typed) {
                 return fTypeDirectTable[array_typed->getType()];
             } else {
-                assert(false);
+                faustassert(false);
                 return "";
             }
         }
@@ -142,7 +142,7 @@ class StringTypeManager {
                     ? generateType(array_typed->fType) + fPtrPosfix + " " + name
                     : generateType(array_typed->fType) + " " + name + "[" + num_str.str() + "]";
             } else {
-                assert(false);
+                faustassert(false);
                 return "";
             }
         }

@@ -29,11 +29,11 @@ class faustexception : public std::runtime_error {
 
     public:
 
-        faustexception(const std::string& msg) : std::runtime_error(msg)
+        faustexception(const std::string& msg):std::runtime_error(msg)
         {}
-        faustexception(char* msg) : std::runtime_error(msg)
+        faustexception(char* msg):std::runtime_error(msg)
         {}
-        faustexception(const char* msg) : std::runtime_error(msg)
+        faustexception(const char* msg):std::runtime_error(msg)
         {}
 
         std::string Message()
@@ -46,5 +46,12 @@ class faustexception : public std::runtime_error {
             std::cerr << what();
         }
 };
+
+inline void faustassert(bool cond)
+{
+    if (!cond) {
+        throw faustexception("assert: please report the failing DSP file to Faust developers.\n");
+    }
+}
 
 #endif

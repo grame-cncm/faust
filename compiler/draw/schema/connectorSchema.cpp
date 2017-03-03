@@ -19,18 +19,16 @@
  ************************************************************************
  ************************************************************************/
 
-
 #include "connectorSchema.h"
-#include <assert.h>
+#include "exception.hh"
 
 using namespace std;
-
 
 /**
  * Connectors are used to ensure unused inputs and outputs
  * are drawn
  */
-schema* makeConnectorSchema (	)
+schema* makeConnectorSchema()
 {
     return new connectorSchema();
 }
@@ -39,7 +37,7 @@ schema* makeConnectorSchema (	)
  * A connector is an invisible square fo dWire size
  * with 1 input and 1 output
  */
-connectorSchema::connectorSchema () : schema(1, 1, dWire, dWire)
+connectorSchema::connectorSchema() : schema(1, 1, dWire, dWire)
 {
     fInputPoint.push_back(point(0,0));
     fOutputPoint.push_back(point(0,0));
@@ -65,8 +63,8 @@ void connectorSchema::place(double x, double y, int orientation)
  */
 point connectorSchema::inputPoint(unsigned int i) const
 {
-    assert (placed());
-    assert (i < inputs());
+    faustassert(placed());
+    faustassert(i < inputs());
     return fInputPoint[i];
 }
 
@@ -75,8 +73,8 @@ point connectorSchema::inputPoint(unsigned int i) const
  */
 point connectorSchema::outputPoint(unsigned int i) const
 {
-    assert (placed());
-    assert (i < outputs());
+    faustassert(placed());
+    faustassert(i < outputs());
     return fOutputPoint[i];
 }
 
@@ -86,7 +84,7 @@ point connectorSchema::outputPoint(unsigned int i) const
  */
 void connectorSchema::placeInputPoints()
 {
-    int		N = inputs();
+    int N = inputs();
 
     if (orientation() == kLeftRight) {
 
@@ -107,7 +105,6 @@ void connectorSchema::placeInputPoints()
         }
     }
 }
-
 
 /**
  * Computes the output points according to the position and the
@@ -137,14 +134,13 @@ void connectorSchema::placeOutputPoints()
     }
 }
 
-
 /**
  * Draw the connectorSchema on the device. This methos can only
  * be called after the connectorSchema have been placed
  */
 void connectorSchema::draw(device& dev)
 {
-    assert(placed());
+    faustassert(placed());
     // nothing to do
 }
 
@@ -157,7 +153,6 @@ void connectorSchema::collectTraits(collector& c)
     collectInputWires(c);
     collectOutputWires(c);
 }
-
 
 /**
  * Draw horizontal arrows from the input points to the
@@ -174,7 +169,6 @@ void connectorSchema::collectInputWires(collector& c)
     }
 }
 
-
 /**
  * Draw horizontal line from the connectorSchema rectangle to the
  * output points
@@ -189,5 +183,3 @@ void connectorSchema::collectOutputWires(collector& c)
         c.addOutput(point(p.x-dx, p.y));
     }
 }
-
-

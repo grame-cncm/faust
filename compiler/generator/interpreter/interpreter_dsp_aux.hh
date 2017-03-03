@@ -714,7 +714,12 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             return this->fIntMap[this->fSROffset];
         }
     
-        virtual dsp* clone() { assert(false); } // to be implemented by subclass
+        // to be implemented by subclass
+        virtual dsp* clone()
+        {
+            faustassert(false);
+            return nullptr;
+        }
     
         virtual int getNumInputs()
         {
@@ -891,12 +896,12 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             
             // Executes the 'control' block
             //this->ExecuteBlock(this->fFactory->fComputeBlock);
-            assert(this->fComputeBlock);
+            faustassert(this->fComputeBlock);
             this->ExecuteBlock(this->fComputeBlock);
             
             // Executes the 'DSP' block
             //std::cout << "fComputeDSPBlock" << std::endl;
-            assert(this->fComputeDSPBlock);
+            faustassert(this->fComputeDSPBlock);
             this->ExecuteBlock(this->fComputeDSPBlock);
         }
         */

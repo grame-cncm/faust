@@ -1316,7 +1316,7 @@ void CPPCUDACodeContainer::produceClass()
         // User interface
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "virtual void buildUserInterface(UI* interface) {";
-            tab(n+2, *fOut); *fOut << "assert(fHostControl);";
+            tab(n+2, *fOut); *fOut << "faustassert(fHostControl);";
             if (fUserInterfaceInstructions->fCode.size() > 0) {
                 tab(n+2, *fOut);
                 fCodeProducer.Tab(n+2);

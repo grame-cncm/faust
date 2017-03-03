@@ -47,7 +47,7 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
         //cout << "DeclareVarInst " << fAddress->getName() << " " << Typed::gTypeString[type->getType()] << endl;
     } else if (gGlobal->gVarTypeTable[fAddress->getName()] != type) {
         //cout << "DeclareVarInst " << fAddress->getName() << endl;
-        //assert(false);
+        //faustassert(false);
     }
 }
 
@@ -63,7 +63,7 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
         //cout << "DeclareFunInst " << name << " " << Typed::gTypeString[type->getType()] << endl;
     } else if (gGlobal->gVarTypeTable[name] != type->getTyped()) {
         //cout << "DeclareFunInst " << name << endl;
-        assert(false);
+        faustassert(false);
     }
 }
  
@@ -308,12 +308,12 @@ static Tree signalTypeToSharedType(AudioType* type)
         } else if (type->nature() == kReal) {
             return typeFloat();
         } else {
-            assert(false);
+            faustassert(false);
         }
     } else if (FaustVectorType* vec = isVectorType(type)) {
         return typeArray(vec->size(), signalTypeToSharedType(vec->dereferenceType()));
     } else {
-        assert(false);
+        faustassert(false);
     }
 }
 
@@ -333,14 +333,14 @@ DeclareTypeInst* InstBuilder::genType(AudioType* type)
                 printf("FaustVectorType floatType \n");
                 dec_type = genDeclareTypeInst(InstBuilder::genBasicTyped(Typed::kFloat));
             } else {
-                assert(false);
+                faustassert(false);
             }
         } else if (FaustVectorType* vec = isVectorType(type)) {
             printf("FaustVectorType size %d\n", vec->size());
             DeclareTypeInst* sub_type = genType(vec->dereferenceType());
             dec_type = genDeclareTypeInst(genStructTyped(getFreshID("vecType"), InstBuilder::genArrayTyped(sub_type->fType, vec->size())));
         } else {
-            assert(false);
+            faustassert(false);
         }
     }
 
@@ -380,7 +380,7 @@ static Typed* sharedTypeToFirType(Tree t)
         printf("sharedTypeToFirType isTypeArray size %d\n", size);
         return InstBuilder::genArrayTyped(sharedTypeToFirType(subtree), size);
     } else {
-        assert(false);
+        faustassert(false);
         return NULL;
     }
 }
