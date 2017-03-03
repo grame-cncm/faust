@@ -17,5 +17,5 @@ Currently the following tools are available :
   * several 'waveforms' for separated mono channels
   * a resulting 'processor' that simply output all mono 'waveforms' 
 * `faustbench` allows to test CPU use of DSP programs compiled with different compiler parameters:
-  * faustbench <file.dsp> runs the test for the given file.dsp
-  * faustbench -ios <file.dsp> produces an iOS project to be launched in Xcode 
+  * `faustbench <file.dsp>` runs the test for the given file.dsp
+  * `faustbench -ios <file.dsp>` produces an iOS project to be launched in Xcode 
