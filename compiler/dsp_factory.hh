@@ -34,7 +34,7 @@
 #define COMPILATION_OPTIONS_KEY "compilation_options"
 #define COMPILATION_OPTIONS     "declare compilation_options    "
 
-#define FAUSTVERSION "2.0.a56"
+#define FAUSTVERSION "2.0.a57"
 
 class dsp_factory;
 class dsp;

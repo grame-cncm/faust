@@ -413,6 +413,7 @@ class CodeContainer : public virtual Garbageable {
         int getSubContainers() { return fSubContainers.size(); }
 
         const string& getClassName() { return fKlassName; }
+        string getFaustPowerName() { return fKlassName + "_faustpower"; }
 
         // UI construction
         void addUIMacro(const string& str)  { fUIMacro.push_back(str); }

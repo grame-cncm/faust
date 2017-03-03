@@ -260,7 +260,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
     list<ValueInst*>::const_iterator it = args.begin();
 
     // Special case for "faustpower", generates sequence of multiplication
-    if (name == "faustpower") {
+    if (name == getFaustPowerName()) {
         
         // Expand the pow depending of the exposant argument
         BlockInst* block = InstBuilder::genBlockInst();

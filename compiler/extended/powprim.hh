@@ -88,7 +88,7 @@ class PowPrim : public xtended
 
             arg_types[0] = (types[0]->nature() == kInt) ? Typed::kInt : itfloat();
             arg_types[1] = Typed::kInt;
-            return container->pushFunction("faustpower", result_type, arg_types, args);
+            return container->pushFunction(container->getFaustPowerName(), result_type, arg_types, args);
 
         } else {
 
