@@ -59,6 +59,15 @@ for p in $FILES; do
     faust -cn dsp_vec0_256 $OPTIONS -vec -lv 0 -vs 256 "$SRCDIR/$f" -o "$TMP/dsp_vec0_256.h"
     faust -cn dsp_vec0_512 $OPTIONS -vec -lv 0 -vs 512 "$SRCDIR/$f" -o "$TMP/dsp_vec0_512.h"
 
+    faust -cn dsp_vec0g_4 $OPTIONS -vec -lv 0 -vs 4 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_4.h"
+    faust -cn dsp_vec0g_8 $OPTIONS -vec -lv 0 -vs 8 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_8.h"
+    faust -cn dsp_vec0g_16 $OPTIONS -vec -lv 0 -vs 16 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_16.h"
+    faust -cn dsp_vec0g_32 $OPTIONS -vec -lv 0 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_32.h"
+    faust -cn dsp_vec0g_64 $OPTIONS -vec -lv 0 -vs 64 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_64.h"
+    faust -cn dsp_vec0g_128 $OPTIONS -vec -lv 0 -vs 128 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_128.h"
+    faust -cn dsp_vec0g_256 $OPTIONS -vec -lv 0 -vs 256 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_256.h"
+    faust -cn dsp_vec0g_512 $OPTIONS -vec -lv 0 -vs 512 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_512.h"
+
     faust -cn dsp_vec1_4 $OPTIONS -vec -lv 1 -vs 4 "$SRCDIR/$f" -o "$TMP/dsp_vec1_4.h"
     faust -cn dsp_vec1_8 $OPTIONS -vec -lv 1 -vs 8 "$SRCDIR/$f" -o "$TMP/dsp_vec1_8.h"
     faust -cn dsp_vec1_16 $OPTIONS -vec -lv 1 -vs 16 "$SRCDIR/$f" -o "$TMP/dsp_vec1_16.h"
@@ -67,6 +76,15 @@ for p in $FILES; do
     faust -cn dsp_vec1_128 $OPTIONS -vec -lv 1 -vs 128 "$SRCDIR/$f" -o "$TMP/dsp_vec1_128.h"
     faust -cn dsp_vec1_256 $OPTIONS -vec -lv 1 -vs 256 "$SRCDIR/$f" -o "$TMP/dsp_vec1_256.h"
     faust -cn dsp_vec1_512 $OPTIONS -vec -lv 1 -vs 512 "$SRCDIR/$f" -o "$TMP/dsp_vec1_512.h"
+
+    faust -cn dsp_vec1g_4 $OPTIONS -vec -lv 1 -vs 4 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_4.h"
+    faust -cn dsp_vec1g_8 $OPTIONS -vec -lv 1 -vs 8 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_8.h"
+    faust -cn dsp_vec1g_16 $OPTIONS -vec -lv 1 -vs 16 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_16.h"
+    faust -cn dsp_vec1g_32 $OPTIONS -vec -lv 1 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_32.h"
+    faust -cn dsp_vec1g_64 $OPTIONS -vec -lv 1 -vs 64 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_64.h"
+    faust -cn dsp_vec1g_128 $OPTIONS -vec -lv 1 -vs 128 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_128.h"
+    faust -cn dsp_vec1g_256 $OPTIONS -vec -lv 1 -vs 256 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_256.h"
+    faust -cn dsp_vec1g_512 $OPTIONS -vec -lv 1 -vs 512 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_512.h"
 
     if [ $IOS == "1" ] ; then
         echo "Files generated for iOS project in $TMP"
