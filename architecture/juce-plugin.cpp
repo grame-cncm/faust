@@ -399,11 +399,11 @@ AudioProcessor::BusesProperties FaustPlugInAudioProcessor::getBusesProperties()
 {
     if (PluginHostType::getPluginLoadedAs() == wrapperType_Standalone) {
         if (gDSP.getNumInputs() == 0) {
-            return BusesProperties().withOutput("Output", AudioChannelSet::discreteChannels(std::min(2, gDSP.getNumOutputs())), true);
+            return BusesProperties().withOutput("Output", AudioChannelSet::discreteChannels(std::min<int>(2, gDSP.getNumOutputs())), true);
         } else {
             return BusesProperties()
-            .withInput("Input", AudioChannelSet::discreteChannels(std::min(2, gDSP.getNumInputs())), true)
-            .withOutput("Output", AudioChannelSet::discreteChannels(std::min(2, gDSP.getNumOutputs())), true);
+            .withInput("Input", AudioChannelSet::discreteChannels(std::min<int>(2, gDSP.getNumInputs())), true)
+            .withOutput("Output", AudioChannelSet::discreteChannels(std::min<int>(2, gDSP.getNumOutputs())), true);
         }
     } else {
         if (gDSP.getNumInputs() == 0) {
@@ -585,7 +585,7 @@ FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAud
     p.fDSP->buildUserInterface(&juceGUI);
 #endif
     
-    Rectangle<int> recommendedSize = juceGUI.getSize();
+    juce::Rectangle<int> recommendedSize = juceGUI.getSize();
     setSize (recommendedSize.getWidth(), recommendedSize.getHeight());
 }
 

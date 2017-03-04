@@ -22,13 +22,14 @@
 
  ************************************************************************/
 
+#include <vector>
+#include <iostream>
+#include <math.h>
+
 #include "faust/gui/UI.h"
 #include "faust/dsp/dsp.h"
 #include "faust/dsp/dsp-bench.h"
 #include "faust/misc.h"
-#include <vector>
-#include <iostream>
-#include <math.h>
 
 #include "dsp_scal.h"
 

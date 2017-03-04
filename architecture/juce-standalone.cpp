@@ -194,11 +194,13 @@ class FaustComponent : public AudioAppComponent, private Timer
             juceGUI.setBounds(getLocalBounds());
         }
 
-        Rectangle<int> getMinSize(){
-            return Rectangle<int>(0, 0, jmin(recommendedSize.getWidth(), screenWidth), jmin(recommendedSize.getHeight(), screenHeight));
+        juce::Rectangle<int> getMinSize()
+        {
+            return juce::Rectangle<int>(0, 0, jmin(recommendedSize.getWidth(), screenWidth), jmin(recommendedSize.getHeight(), screenHeight));
         }
 
-        Rectangle<int> getRecommendedSize(){
+        juce::Rectangle<int> getRecommendedSize()
+        {
             return recommendedSize;
         }
 
@@ -217,8 +219,8 @@ class FaustComponent : public AudioAppComponent, private Timer
         
         ScopedPointer<dsp> fDSP;
     
-        Rectangle<int> recommendedSize;
-        Rectangle<int> r = Desktop::getInstance().getDisplays().getMainDisplay().userArea;
+        juce::Rectangle<int> recommendedSize;
+        juce::Rectangle<int> r = Desktop::getInstance().getDisplays().getMainDisplay().userArea;
         int screenWidth = r.getWidth();
         int screenHeight = r.getHeight();
 
@@ -277,91 +279,98 @@ class FaustAudioApplication : public JUCEApplication
         
         class myViewport : public Viewport
         {
-        public:
-            myViewport(String name, int w, int h, int rW, int rH): Viewport(name), minWidth(w), minHeight(h), recommendedWidth(rW), recommendedHeight(rH)
-            {
-                addAndMakeVisible(tooltipWindow);
-            }
             
-            virtual void resized() override {
-                Viewport::resized();
-                getBounds().getWidth() < minWidth ? ((minWidth < recommendedWidth) ? width = minWidth
-                                                     : width = recommendedWidth)
-                : width = getBounds().getWidth();
-                getBounds().getHeight() < minHeight ? ((minHeight < recommendedHeight) ? height = minHeight
-                                                       : height = recommendedHeight)
-                : height = getBounds().getHeight();
+            public:
+            
+                myViewport(String name, int w, int h, int rW, int rH): Viewport(name), minWidth(w), minHeight(h), recommendedWidth(rW), recommendedHeight(rH)
+                {
+                    addAndMakeVisible(tooltipWindow);
+                }
                 
-            #if JUCE_IOS || JUCE_ANDROID
-                currentAreaChanged(width, height);
-            #else
-                getViewedComponent()->setBounds(Rectangle<int>(0, 0, width, height));
-            #endif
-            }
+                virtual void resized() override {
+                    Viewport::resized();
+                    getBounds().getWidth() < minWidth ? ((minWidth < recommendedWidth) ? width = minWidth
+                                                         : width = recommendedWidth)
+                    : width = getBounds().getWidth();
+                    getBounds().getHeight() < minHeight ? ((minHeight < recommendedHeight) ? height = minHeight
+                                                           : height = recommendedHeight)
+                    : height = getBounds().getHeight();
+                    
+                #if JUCE_IOS || JUCE_ANDROID
+                    currentAreaChanged(width, height);
+                #else
+                    getViewedComponent()->setBounds(juce::Rectangle<int>(0, 0, width, height));
+                #endif
+                }
+                
+                void currentAreaChanged (int w, int h) {
+                    getViewedComponent()->setBounds(0, 0, jmax(getParentWidth(), w), jmax(getParentHeight(), h));
+                    setSize(getParentWidth(), getParentHeight());
+                }
+                
+            private:
             
-            void currentAreaChanged (int w, int h) {
-                getViewedComponent()->setBounds(0, 0, jmax(getParentWidth(), w), jmax(getParentHeight(), h));
-                setSize(getParentWidth(), getParentHeight());
-            }
-            
-        private:
-            int minWidth, minHeight;
-            int recommendedWidth, recommendedHeight;
-            int width, height;
-            TooltipWindow tooltipWindow;
-            int j = 0;
+                int minWidth, minHeight;
+                int recommendedWidth, recommendedHeight;
+                int width, height;
+                TooltipWindow tooltipWindow;
+                int j = 0;
         };
         
         class MainWindow : public DocumentWindow
         {
-        public:
-            MainWindow (String name) : DocumentWindow (name,
-                                                       Colours::lightgrey,
-                                                       DocumentWindow::allButtons)
-            {
-                setUsingNativeTitleBar (true);
-                
-            #if JUCE_IOS || JUCE_ANDROID
-                setFullScreen(true);
-            #endif
-                
-                FaustComponent* fWindow = createFaustComponent();
-                int minWidth  = fWindow->getMinSize().getWidth();
-                int minHeight = fWindow->getMinSize().getHeight();
-                int recomWidth = fWindow->getRecommendedSize().getWidth();
-                int recomHeight = fWindow->getRecommendedSize().getHeight();
-                
-                fViewport = new myViewport(name, minWidth, minHeight, recomWidth, recomHeight);
-                fViewport->setViewedComponent(fWindow);
-                fViewport->setSize(minWidth, minHeight);
-                
-                setContentOwned(fViewport, true);
-                centreWithSize (getWidth(), getHeight());
-                setResizable (true, false);
-                setVisible(true);
-            }
             
-            void closeButtonPressed() override
-            {
-                // This is called when the user tries to close this window. Here, we'll just
-                // ask the app to quit when this happens, but you can change this to do
-                // whatever you need.
-                JUCEApplication::getInstance()->systemRequestedQuit();
-            }
+            public:
             
-            /* Note: Be careful if you override any DocumentWindow methods - the base
-             class uses a lot of them, so by overriding you might break its functionality.
-             It's best to do all your work in your content component instead, but if
-             you really have to override any DocumentWindow methods, make sure your
-             subclass also calls the superclass's method.
-             */
+                MainWindow (String name) : DocumentWindow (name,
+                                                           Colours::lightgrey,
+                                                           DocumentWindow::allButtons)
+                {
+                    setUsingNativeTitleBar (true);
+                    
+                #if JUCE_IOS || JUCE_ANDROID
+                    setFullScreen(true);
+                #endif
+                    
+                    FaustComponent* fWindow = createFaustComponent();
+                    int minWidth  = fWindow->getMinSize().getWidth();
+                    int minHeight = fWindow->getMinSize().getHeight();
+                    int recomWidth = fWindow->getRecommendedSize().getWidth();
+                    int recomHeight = fWindow->getRecommendedSize().getHeight();
+                    
+                    fViewport = new myViewport(name, minWidth, minHeight, recomWidth, recomHeight);
+                    fViewport->setViewedComponent(fWindow);
+                    fViewport->setSize(minWidth, minHeight);
+                    
+                    setContentOwned(fViewport, true);
+                    centreWithSize (getWidth(), getHeight());
+                    setResizable (true, false);
+                    setVisible(true);
+                }
+                
+                void closeButtonPressed() override
+                {
+                    // This is called when the user tries to close this window. Here, we'll just
+                    // ask the app to quit when this happens, but you can change this to do
+                    // whatever you need.
+                    JUCEApplication::getInstance()->systemRequestedQuit();
+                }
+                
+                /* Note: Be careful if you override any DocumentWindow methods - the base
+                 class uses a lot of them, so by overriding you might break its functionality.
+                 It's best to do all your work in your content component instead, but if
+                 you really have to override any DocumentWindow methods, make sure your
+                 subclass also calls the superclass's method.
+                 */
+                
+            private:
             
-        private:
-            ScopedPointer<myViewport> fViewport;
-            JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
+                ScopedPointer<myViewport> fViewport;
+                JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
         };
         
     private:
+    
         ScopedPointer<MainWindow> mainWindow;
 };
 
