@@ -382,6 +382,12 @@ closed source license or any other license if you decide so.
 // * `fb2`: coefficient of the allpass comb filters (0-1)
 // * `damp`: damping of the lowpass comb filter (0-1)
 // * `spread`: spatial spread in number of samples (for stereo)
+//
+// #### License
+// While this version is licensed LGPL along with other GRAME library functions,
+// the file freeverb.dsp in the examples directory of older Faust distributions,
+// such as faust-0.9.85, was released under the BSD license, which is less
+// restrictive.
 //------------------------------------------------------------
 // TODO: author RM
 mono_freeverb(fb1, fb2, damp, spread) = _ <: par(i,8,lbcf(combtuningL(i)+spread,fb1,damp)) 
