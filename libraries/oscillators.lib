@@ -329,6 +329,7 @@ lf_rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
 lf_sawpos_phase(phase,freq) = (+(phase-phase') : ma.frac ) ~ +(freq/ma.SR);
 
 //================== Bandlimited Sawtooth ====================
+//------------------`sawN`--------------------------------
 // Bandlimited Sawtooth
 //
 // `sawN(N,freq)`, `sawNp`, `saw2dpw(freq)`, `saw2(freq)`, `saw3(freq)`,
@@ -386,10 +387,6 @@ lf_sawpos_phase(phase,freq) = (+(phase-phase') : ma.frac ) ~ +(freq/ma.SR);
 // * `freq`: frequency in Hz
 // * `phase`: phase
 //===================================================================
-
-//------------------`sawN`--------------------------------
-// TODO: MarkDown doc in comments
-//--------------------------------------------------------
 // --- sawN for N = 1 to 6 ---
 //We can do 6, but 5 and 6 have noise at low fundamentals: MAX_SAW_ORDER = 6; MAX_SAW_ORDER_NEXTPOW2 = 8;
 MAX_SAW_ORDER = 4; MAX_SAW_ORDER_NEXTPOW2 = 8; // par cannot handle the case of 0 elements
@@ -885,8 +882,10 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 //
 // * `freq`: frequency
 //
-// Author: Bart Brouns (MarkDown by RM)
 //---------------------------------------------------------
+// Author: Bart Brouns
+// License: STK-4.3
+// MarkDown: Romain Michon
 lf_sawpos(freq) = ma.frac ~ +(freq/ma.SR);
 
 //-----------------`lf_saw`--------------------
