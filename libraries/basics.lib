@@ -12,9 +12,13 @@
 
 /************************************************************************
 ************************************************************************
-FAUST library file
-Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
+FAUST library file, GRAME section
+
+Except where noted otherwise, Copyright (C) 2003-2017 by GRAME,
+Centre National de Creation Musicale.
 ----------------------------------------------------------------------
+GRAME LICENSE
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as
 published by the Free Software Foundation; either version 2.1 of the
@@ -143,6 +147,22 @@ lin2LogGain = _ <: _*_;
 //---------------------------------------------
 log2LinGain = sqrt;
 
+// end GRAME section
+//########################################################################################
+/************************************************************************
+FAUST library file, jos section
+
+Except where noted otherwise, The Faust functions below in this
+section are Copyright (C) 2003-2017 by Julius O. Smith III <jos@ccrma.stanford.edu>
+([jos](http://ccrma.stanford.edu/~jos/)), and released under the
+(MIT-style) [STK-4.3](#stk-4.3-license) license.
+
+The MarkDown comments in this section are Copyright 2016-2017 by Romain
+Michon and Julius O. Smith III, and are released under the
+[CCA4I](https://creativecommons.org/licenses/by/4.0/) license (TODO: if/when Romain agrees)
+
+************************************************************************/
+
 //-------`tau2pole`----------
 // Returns a real pole giving exponential decay.
 // Note that t60 (time to decay 60 dB) is ~6.91 time constants.
@@ -227,6 +247,10 @@ log2LinGain = sqrt;
 //-----------------------------
   hz2pianokey(f)  = 12*ma.log2(f/440.0) + 49.0;
 
+// end jos section
+//########################################################################################
+/************************************************************************
+FAUST library file, GRAME section 2
 
 //==============================Counters and Time/Tempo Tools=============================
 //========================================================================================
@@ -793,6 +817,8 @@ bpf = environment
 // * `bpc`: bypass switch (0/1)
 // * `e`: a mono effect
 //------------------------------------------------------------
+// Author: JOS
+// License: STK-4.3
   bypass1(bpc,e) = _ <: select2(bpc,(inswitch:e),_)
                    with {inswitch = select2(bpc,_,0);};
 
@@ -811,10 +837,11 @@ bpf = environment
 // * `bpc`: bypass switch (0/1)
 // * `e`: a stereo effect
 //------------------------------------------------------------
+// Author: JOS
+// License: STK-4.3
   bypass2(bpc,e) = _,_ <: ((inswitch:e),_,_) : select2stereo(bpc) with {
     inswitch = _,_ : (select2(bpc,_,0), select2(bpc,_,0)) : _,_;
   };
-
 
 //----------------------------`toggle`------------------------------------------
 // Triggered by the change of 0 to 1, it toggles the output value
