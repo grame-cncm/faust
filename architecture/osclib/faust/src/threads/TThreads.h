@@ -28,7 +28,7 @@
 #ifdef WIN32
 
 	#include <windows.h>
-	#define ThreadAPI(proc, arg)	DWORD  WINAPI proc (LPVOID arg)
+	#define ThreadAPI(proc, arg) DWORD WINAPI proc(LPVOID arg)
 
 	typedef LPTHREAD_START_ROUTINE ThreadProcPtr;
 	typedef HANDLE	ThreadHandle;
@@ -36,9 +36,9 @@
 #else
 
 	#include <pthread.h>
-	#define ThreadAPI(proc, arg)	void * proc (void * arg)
+	#define ThreadAPI(proc, arg) void* proc (void* arg)
 	
-	typedef void * ( * ThreadProcPtr) (void * ptr);
+	typedef void* (* ThreadProcPtr) (void* ptr);
 	typedef	pthread_t	ThreadHandle;
 
 #endif
@@ -52,25 +52,27 @@
 */
 class TThreads
 {
-	public:
-		enum { kNormalPriority=0 };
+    public:
+    
+        enum { kNormalPriority = 0 };
 
-		 	 TThreads ();
-	virtual ~TThreads ()	{ quit (); }
-	
-	virtual void	run() = 0;
+        TThreads();
+        virtual ~TThreads()	{ quit (); }
 
-		bool	start (int priority = kNormalPriority);
-		bool	isRunning () const		{ return fRunning; }
-		void	quit();
+        virtual void	run() = 0;
 
-		void	running (bool state)	{ fRunning = state; }
+        bool start(int priority = kNormalPriority);
+        bool isRunning() const	{ return fRunning; }
+        void quit();
 
-	private:
-		int		SetPriority (int priority);
+        void running(bool state)	{ fRunning = state; }
 
-		bool	fRunning;
-		ThreadHandle fThread;	// the thread handler
+    private:
+    
+        int SetPriority(int priority);
+
+        bool fRunning;
+        ThreadHandle fThread;	// the thread handler
 };
 
 #endif

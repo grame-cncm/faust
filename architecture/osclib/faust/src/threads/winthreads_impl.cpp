@@ -23,9 +23,7 @@
 #ifdef WIN32
 
 #include <windows.h>
-
 #include "TThreads.h"
-
 
 //_____________________________________________________________________
 static DWORD WINAPI  baseThreadProc (LPVOID  ptr)

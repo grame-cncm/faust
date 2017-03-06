@@ -39,7 +39,7 @@ declare version "0.0";
 FAUST library file, jos section
 
 Except where noted otherwise, The Faust functions below in this
-section Copyright (C) 2003-2017 by Julius O. Smith III <jos@ccrma.stanford.edu>
+section are Copyright (C) 2003-2017 by Julius O. Smith III <jos@ccrma.stanford.edu>
 ([jos](http://ccrma.stanford.edu/~jos/)), and released under the
 (MIT-style) [STK-4.3](#stk-4.3-license) license.
 
@@ -114,7 +114,6 @@ integrator = + ~ _ ;
 // * `fb`: "break frequency" in Hz, i.e., -3 dB gain frequency.
 //
 // #### Reference
-//
 // <https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html>
 //------------------------------------------------------------
 dcblockerat(fb) = *(b0) : zero(1) : pole(p)
@@ -160,7 +159,6 @@ dcblocker = zero(1) : pole(0.995);
 // * `bM`: gain applied to delay-line output and then summed with input
 //
 // #### Reference
-//
 // <https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html>
 //------------------------------------------------------------
 ff_comb (maxdel,M,b0,bM) = _ <: *(b0), bM *  de.delay(maxdel,M) : + ;
@@ -185,7 +183,6 @@ ff_comb (maxdel,M,b0,bM) = _ <: *(b0), bM *  de.delay(maxdel,M) : + ;
 // * `bM`: gain applied to delay-line output and then summed with input
 //
 // #### Reference
-//
 // <https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html>
 //------------------------------------------------------------
 ff_fcomb(maxdel,M,b0,bM) = _ <: *(b0), bM * de.fdelay(maxdel,M) : + ;
@@ -215,7 +212,6 @@ ffcombfilter(maxdel,del,g) = ff_comb(maxdel,del,1,g);
 // 	and feeding to the delay line
 //
 // #### Reference
-//
 // <https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html>
 //------------------------------------------------------------
 fb_comb (maxdel,N,b0,aN) = (+ <:  de.delay(maxdel,N-1),_) ~ *(-aN) : !,*(b0):mem;
@@ -240,7 +236,6 @@ fb_comb (maxdel,N,b0,aN) = (+ <:  de.delay(maxdel,N-1),_) ~ *(-aN) : !,*(b0):mem
 // 	and feeding to the delay line
 //
 // #### Reference
-//
 // <https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html>
 //------------------------------------------------------------
 fb_fcomb(maxdel,N,b0,aN) = (+ <: de.fdelay(maxdel,float(N)-1.0),_) ~ *(-aN) : !,*(b0):mem;
@@ -270,7 +265,6 @@ rev1(maxdel,N,g) = fb_comb (maxdel,N,1,-g);
 // * `g`: feedback gain
 //
 // #### Reference
-//
 // <https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html>
 //------------------------------------------------------------
 fbcombfilter(maxdel,intdel,g) = (+ : de.delay(maxdel,intdel)) ~ *(g);
@@ -301,7 +295,6 @@ ffbcombfilter(maxdel,del,g) = (+ : de.fdelay(maxdel,del)) ~ *(g);
 // * `aN`: minus the feedback gain
 //
 // #### References
-//
 // * <https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html>
 // * <https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html>
 // * <https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html>
@@ -336,7 +329,6 @@ allpass_comb(maxdel,N,aN) = (+ <: de.delay(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_ :
 // * `aN`: minus the feedback gain
 //
 // #### References
-//
 // * <https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html>
 // * <https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html>
 // * <https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html>
@@ -387,7 +379,6 @@ allpass_fcomb1a(maxdel,N,aN) = (+ <: de.fdelay1a(maxdel,N-1),*(aN)) ~ *(-aN) : m
 // * `acoeffs`: (a1,...,a_order) = TF denominator coeffs (a0=1)
 //
 // #### Reference
-//
 // <https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html>
 //------------------------------------------------------------
 iir(bv,av) = ma.sub ~ fir(av) : fir(bv);
@@ -519,7 +510,6 @@ with {
 // Direct-Form Second-Order Biquad Sections
 //
 // #### Reference
-//
 // <https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html>
 //========================================================================================
 
@@ -566,7 +556,6 @@ tf21t(b0,b1,b2,a1,a2) = // tf2, direct-form 1 transposed:
 // from digital waveguide filters, which gives them a physical interpretation.
 
 // #### Reference
-//
 // * F. Itakura and S. Saito: "Digital Filtering Techniques for Speech Analysis and Synthesis",
 //     7th Int. Cong. Acoustics, Budapest, 25 C 1, 1971.
 // * J. D. Markel and A. H. Gray: Linear Prediction of Speech, New York: Springer Verlag, 1976.
@@ -592,7 +581,6 @@ tf21t(b0,b1,b2,a1,a2) = // tf2, direct-form 1 transposed:
 //          transfer-function denominator `A(z)`.
 //
 // #### Reference
-//
 //   <https://ccrma.stanford.edu/~jos/filters/Step_Down_Procedure.html>
 //   (where reflection coefficients are denoted by k rather than s).
 //------------------------------------------------------------
@@ -799,7 +787,6 @@ with {
 // * av: poles as a bank of parallel signals
 //
 // #### References
-//
 // * J. D. Markel and A. H. Gray, Linear Prediction of Speech, New York: Springer Verlag, 1976.
 // * <https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html>
 //------------------------------------------------------------
@@ -831,7 +818,6 @@ with {
 // * `sv`: the reflexion coefficients (-1,1)
 //
 // #### References
-//
 // * J. D. Markel and A. H. Gray, Linear Prediction of Speech, New York: Springer Verlag, 1976.
 // * <https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html>
 //------------------------------------------------------------
@@ -899,7 +885,6 @@ with {
 // * `r`: loss factor for exponential decay (set to 1 to make a numerically stable oscillator)
 //
 // #### References
-//
 // * <https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html>
 // * <https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html>
 //------------------------------------------------------------
@@ -926,7 +911,6 @@ with {
 // * `r`: loss factor for exponential decay (set to 1 to make a sinusoidal oscillator)
 //
 // #### Reference
-//
 // <https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html>
 //------------------------------------------------------------
 nlf2(f,r,x) = ((_<:_,_),(_<:_,_) : (*(s),*(c),*(c),*(0-s)) :>
@@ -954,7 +938,6 @@ with {
 // * `a1` and `a2`: allpass coefficients
 //
 // #### Reference
-//
 // * "A Passive Nonlinear Digital Filter Design ..." by John R. Pierce and Scott
 // A. Van Duyne, JASA, vol. 101, no. 2, pp. 1120-1126, 1997
 //------------------------------------------------------------
@@ -971,7 +954,6 @@ with{
 // They are defined here as nested allpass filters, hence the names allpassn*.
 //
 // #### References
-//
 // * <https://ccrma.stanford.edu/~jos/pasp/Conventional_Ladder_Filters.html>
 // * <https://ccrma.stanford.edu/~jos/pasp/Nested_Allpass_Filters.html>
 // * Linear Prediction of Speech, Markel and Gray, Springer Verlag, 1976
@@ -991,7 +973,6 @@ with{
 // * `sv`: the reflexion coefficients (-1 1)
 //
 // #### References
-//
 // * J. O. Smith and R. Michon, "Nonlinear Allpass Ladder Filters in FAUST", in
 // Proceedings of the 14th International Conference on Digital Audio Effects
 // (DAFx-11), Paris, France, September 19-23, 2011.
@@ -1110,7 +1091,6 @@ with {s = ba.take(n,sv); cross = _,_ <: !,_,_,!; };
 // Bilinear transform scaled for exact mapping of w1.
 //
 // #### Reference
-//
 // <https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html>
 //----------------------------------------------
 tf2s(b2,b1,b0,a1,a0,w1) = tf2(b0d,b1d,b2d,a1d,a2d)
@@ -1375,7 +1355,6 @@ with {
 // * `fc`: desired cut-off frequency (-3dB frequency) in Hz
 //
 // #### References
-//
 // * <https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html>
 // * `butter` function in Octave `("[z,p,g] = butter(N,1,'s');")`
 //------------------------------
@@ -1398,7 +1377,6 @@ lowpass(N,fc) = lowpass0_highpass1(0,N,fc);
 // * `fc`: desired cut-off frequency (-3dB frequency) in Hz
 //
 // #### References
-//
 // * <https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html>
 // * `butter` function in Octave `("[z,p,g] = butter(N,1,'s');")`
 //------------------------------
@@ -1463,7 +1441,6 @@ highpass_minus_lowpass_odd(N,fc) = highpass(N,fc) - lowpass(N,fc);
 // Elliptic (Cauer) Lowpass Filters
 //
 // #### References
-//
 // * <http://en.wikipedia.org/wiki/Elliptic_filter
 // * functions `ncauer` and `ellip` in Octave
 //========================================================================================
@@ -1644,7 +1621,6 @@ with {
 //       and its center frequency is `(fl+fu)/2`.
 //
 // #### Reference
-//
 // <http://cnx.org/content/m16913/latest/>
 //-------------------------------------------------------------------------
 bandpass(Nh,fl,fu) = bandpass0_bandstop1(0,Nh,fl,fu);
@@ -1670,7 +1646,6 @@ bandpass(Nh,fl,fu) = bandpass0_bandstop1(0,Nh,fl,fu);
 //       and its center frequency is `(fl+fu)/2`.
 //
 // #### Reference
-//
 // <http://cnx.org/content/m16913/latest/>
 //-------------------------------------------------------------------------
 bandstop(Nh,fl,fu) = bandpass0_bandstop1(1,Nh,fl,fu);
@@ -1764,7 +1739,6 @@ with { // octave script output:
 // Parametric Equalizers (Shelf, Peaking)
 //
 // #### References
-//
 // * <http://en.wikipedia.org/wiki/Equalization>
 // * <http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt>
 // * Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999, p. 124
@@ -1916,7 +1890,6 @@ peak_eq_cq(Lfx,fx,Q) = peak_eq(Lfx,fx,fx/Q);
 //         ~ PI*B/SR for narrow bandwidths B
 //
 // #### Reference
-//
 // P.A. Regalia, S.K. Mitra, and P.P. Vaidyanathan,
 // "The Digital All-Pass Filter: A Versatile Signal Processing Building Block"
 // Proceedings of the IEEE, 76(1):19-37, Jan. 1988.  (See pp. 29-30.)
@@ -1955,7 +1928,10 @@ peak_eq_rm(Lfx,fx,tanPiBT) = _ <: _,A,_ : +,- : *(0.5),*(K/2.0) : + with {
 // See `spectral_tilt_demo`.
 //
 // #### Reference
-// Link to appear here when write up is done
+// J.O. Smith and H.F. Smith,
+// "Closed Form Fractional Integration and Differentiation via Real Exponentially Spaced Pole-Zero Pairs",
+// arXiv.org publication arXiv:1606.06154 [cs.CE], June 7, 2016,
+// http://arxiv.org/abs/1606.06154
 //------------------------------------------------------------
 spectral_tilt(N,f0,bw,alpha) = seq(i,N,sec(i)) with {
   sec(i) = g * tf1s(b1,b0,a0,1) with {
@@ -1992,7 +1968,6 @@ spectral_tilt(N,f0,bw,alpha) = seq(i,N,sec(i)) with {
 // * `N`: Number of filters in series where L = L/N
 //
 // #### Reference
-//
 // <https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html>
 //------------------------------------------------------------
 levelfilter(L,freq,x) = (L * L0 * x) + ((1.0-L) * lp2out(x))
@@ -2021,7 +1996,6 @@ with {
 // * `N`: Number of filters in series where L = L/N
 //
 // #### Reference
-//
 // <https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html>
 //------------------------------------------------------------
 levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
@@ -2067,7 +2041,6 @@ levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 // filter-banks using elliptic or Chebyshev prototype filters.
 //
 // #### References
-//
 // * "Tree-structured complementary filter banks using all-pass sections",
 //   Regalia et al., IEEE Trans. Circuits & Systems, CAS-34:1470-1484, Dec. 1987
 // * "Multirate Systems and Filter Banks", P. Vaidyanathan, Prentice-Hall, 1993
