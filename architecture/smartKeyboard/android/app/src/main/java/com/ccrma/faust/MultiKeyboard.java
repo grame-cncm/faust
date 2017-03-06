@@ -79,7 +79,7 @@ public class MultiKeyboard extends ViewGroup {
         keyboardParameters = new HashMap<String,Object>();
 
         if(currentPresetName == null) {
-            keyboardParameters.put("Number of Keyboards", 4);
+            keyboardParameters.put("Number of Keyboards", 1);
             keyboardParameters.put("Max Fingers", 10);
             keyboardParameters.put("Max Keyboard Polyphony", 16);
             keyboardParameters.put("Mono Mode", 1);
@@ -167,10 +167,10 @@ public class MultiKeyboard extends ViewGroup {
         // keyboard dependent default parameters
         for(int i=0; i<(int)keyboardParameters.get("Number of Keyboards") ; i++){
             if(keyboardParameters.get(String.format("Keyboard %d - Number of Keys",i)) == null) {
-                keyboardParameters.put(String.format("Keyboard %d - Number of Keys", i), 7);
+                keyboardParameters.put(String.format("Keyboard %d - Number of Keys", i), 13);
             }
             if(keyboardParameters.get(String.format("Keyboard %d - Lowest Key",i)) == null) {
-                keyboardParameters.put(String.format("Keyboard %d - Lowest Key", i), (48 + i * 12) % 127);
+                keyboardParameters.put(String.format("Keyboard %d - Lowest Key", i), (60 + i * 12) % 127);
             }
             if(keyboardParameters.get(String.format("Keyboard %d - Scale",i)) == null) {
                 keyboardParameters.put(String.format("Keyboard %d - Scale", i), 0);
