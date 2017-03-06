@@ -98,13 +98,13 @@ with{
 // #### Usage
 //
 // ```
-// asr(a,s,r,t) : _
+// asr(a,s,r,g) : _
 // ```
 //
 // Where:
 //
-// * `a`, `s`, `r`: attack (sec), sustain (percentage of t), release (sec)
-// * `t`: trigger signal ( >0 for attack, then release is when t back to 0)
+// * `a`, `s`, `r`: attack (sec), sustain (fraction of g), release (sec)
+// * `g`: trigger signal ( >0 for attack, then release is when g back to 0)
 //-----------------------------------------------------
 // TODO: author RM
 asr(a,s,r,t) = on*(as) : ba.sAndH(on) : rel
