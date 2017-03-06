@@ -58,7 +58,7 @@ inline double GetCurrentTimeInUsec()
 #endif
 
 #if _WIN32
-#include <Windows.h>
+#include <windows.h>
 inline double GetCurrentTimeInUsec(void)
 {
     LARGE_INTEGER time;

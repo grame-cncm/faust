@@ -222,7 +222,6 @@ struct CustomLookAndFeel : public LookAndFeel_V3
             else
                 p.addRectangle (fx, fy, sliderPos - fx, fh);
 
-
             Colour baseColour (slider.findColour (Slider::rotarySliderFillColourId)
                                .withMultipliedSaturation (slider.isEnabled() ? 1.0f : 0.5f)
                                .withMultipliedAlpha (0.8f));
@@ -290,10 +289,11 @@ struct CustomLookAndFeel : public LookAndFeel_V3
             g.fillPath(intFilledArc);
         }
 
-        if (slider.isEnabled())
-            g.setColour (slider.findColour (Slider::rotarySliderFillColourId).withAlpha (isMouseOver ? 1.0f : 0.7f));
-        else
-            g.setColour (Colour (0x80808080));
+        if (slider.isEnabled()) {
+            g.setColour(slider.findColour (Slider::rotarySliderFillColourId).withAlpha (isMouseOver ? 1.0f : 0.7f));
+        } else {
+            g.setColour(Colour (0x80808080));
+        }
 
         //Render knob value
         {
@@ -307,7 +307,7 @@ struct CustomLookAndFeel : public LookAndFeel_V3
             float rectX = centreX + radius*0.9 - rectHeight/2;
             float rectY = centreY - rectWidth/2;
 
-            cursor.addRectangle      (rectX,   rectY,   rectWidth,   rectHeight);
+            cursor.addRectangle(rectX, rectY, rectWidth, rectHeight);
             cursorShadow.addRectangle(rectX-1, rectY-1, rectWidth+2, rectHeight+2);
 
             AffineTransform t = AffineTransform::translation(-rectWidth + 2, rectHeight/2);
@@ -315,7 +315,6 @@ struct CustomLookAndFeel : public LookAndFeel_V3
 
             cursor.applyTransform(t);
             cursorShadow.applyTransform(t);
-
 
             g.setColour(Colours::black);
             g.fillPath(cursor);
@@ -1162,7 +1161,6 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
             if (isNameDisplayed()) {
                 y = (float)getHeight()-height+15;
                 height -= 40;
-                
                 // VUMeter Name
                 g.setColour(Colours::black);
                 g.drawText(getName(), getLocalBounds(), Justification::centredTop);
@@ -1299,7 +1297,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
                     g.setColour(Colour((uint8)240, (uint8)160, (uint8)20, (uint8)alpha));
                 }
                 if (dblevel > dB2Scale(0))  {
-                    g.setColour(Colour((uint8)240, (uint8)0,   (uint8)20, (uint8)alpha));
+                    g.setColour(Colour((uint8)240, (uint8)0, (uint8)20, (uint8)alpha));
                 }
                 
                 g.fillEllipse(x+1, y+1, width-2, height-2);
@@ -1511,12 +1509,12 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
                             }
                             break;
                         case HVUMeter:
-                            if ((std::abs(lastLevel-fLevel)>0.01 && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
+                            if ((std::abs(lastLevel-fLevel) > 0.01 && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
                                 repaint();
                             }
                             break;
                         case NumDisplay:
-                            if ((std::abs(lastLevel-fLevel)>0.01 && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
+                            if ((std::abs(lastLevel-fLevel) > 0.01 && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
                                 repaint();
                             }
                             break;
@@ -1548,7 +1546,7 @@ class uiVUMeter : public uiComponent, public SettableTooltipClient, public Timer
                     drawLed(g, kLedWidth, kLedHeight);
                     break;
                 case NumDisplay:
-                    drawNumDisplay(g, kNumDisplayWidth,  kNumDisplayHeight/2);
+                    drawNumDisplay(g, kNumDisplayWidth, kNumDisplayHeight/2);
                     break;
                 case VVUMeter:
                     drawVBargraph(g, kVBargraphWidth/2, getHeight());
