@@ -4,41 +4,11 @@ faust2 (2.0.a34+git20150520+5963-1) trusty; urgency=low
 
  -- Albert Graef <aggraef@gmail.com>  Wed, 20 May 2015 17:19:41 +0200
 
-faust2 (2.0.a34+git20150513+5962-1) trusty; urgency=low
-
-  * Build from latest upstream source.
-
- -- Albert Graef <aggraef@gmail.com>  Wed, 20 May 2015 17:07:14 +0200
-
 faust2 (2.0.a30+git20141124+5346-1) trusty; urgency=low
 
   * Build from latest upstream source.
 
  -- Albert Graef <aggraef@gmail.com>  Mon, 24 Nov 2014 16:20:47 +0100
-
-faust2 (2.0.a30+git20141105+5312-1) trusty; urgency=low
-
-  * Build from latest upstream source.
-
- -- Albert Graef <aggraef@gmail.com>  Thu, 06 Nov 2014 04:40:41 +0100
-
-faust2 (2.0.a30+git20141101+5294-1) trusty; urgency=low
-
-  * Build from latest upstream source.
-
- -- Albert Graef <aggraef@gmail.com>  Sat, 01 Nov 2014 17:39:26 +0100
-
-faust2 (2.0.a30+git20141031+5293-1) trusty; urgency=low
-
-  * Build from latest upstream source.
-
- -- Albert Graef <aggraef@gmail.com>  Fri, 31 Oct 2014 23:28:11 +0100
-
-faust2 (2.0.a30+git20141031+5291-1) trusty; urgency=low
-
-  * Build from latest upstream source.
-
- -- Albert Graef <aggraef@gmail.com>  Fri, 31 Oct 2014 12:45:12 +0100
 
 faust2 (2.0.a29+git20141018+5243-1) trusty; urgency=low
 
@@ -46,59 +16,11 @@ faust2 (2.0.a29+git20141018+5243-1) trusty; urgency=low
 
  -- Albert Graef <aggraef@gmail.com>  Sat, 18 Oct 2014 23:31:56 +0200
 
-faust2 (2.0.a29+git20141011+5212-1) trusty; urgency=low
-
-  * Build from latest upstream source.
-
- -- Albert Graef <aggraef@gmail.com>  Sat, 11 Oct 2014 09:28:23 +0200
-
 faust2 (2.0.a28+git20141008+5170-0) trusty; urgency=low
 
   * Build from latest upstream source.
 
  -- Albert Graef <aggraef@gmail.com>  Thu, 09 Oct 2014 19:44:53 +0200
-
-faust2 (2.0.a28+git20141008-1) trusty; urgency=low
-
-  * Latest upstream source from git
-
- -- Albert Graef <aggraef@gmail.com>  Thu, 09 Oct 2014 15:32:20 +0200
-
-faust2 (2.0.a28+git20141008-1) trusty; urgency=low
-
-  * Latest upstream
-
- -- Albert Graef <aggraef@gmail.com>  Thu, 09 Oct 2014 12:41:50 +0200
-
-faust2 (2.0.a28+git20141002-1) trusty; urgency=low
-
-  * New upstream release
-
- -- Albert Graef <aggraef@gmail.com>  Thu, 02 Oct 2014 00:36:01 +0200
-
-faust2 (2.0.a28+git20140918-3) trusty; urgency=low
-
-  * Add missing build dependencies
-
- -- Albert Graef <aggraef@gmail.com>  Wed, 17 Sep 2014 23:24:25 +0200
-
-faust2 (2.0.a28+git20140918-2) trusty; urgency=low
-
-  * Add missing build dependencies
-
- -- Albert Graef <aggraef@gmail.com>  Wed, 17 Sep 2014 23:06:28 +0200
-
-faust2 (2.0.a28+git20140918-1) trusty; urgency=low
-
-  * Add optional httpd and sound2faust components
-
- -- Albert Graef <aggraef@gmail.com>  Wed, 17 Sep 2014 22:37:09 +0200
-
-faust2 (2.0.a28+git20140917-1) trusty; urgency=low
-
-  * Latest upstream revision from git
-
- -- Albert Graef <aggraef@gmail.com>  Wed, 17 Sep 2014 20:21:54 +0200
 
 faust2 (2.0.a9+git20130826-1) saucy; urgency=low
 
@@ -112,18 +34,6 @@ faust2 (2.0.a5+git20130115-1) precise; urgency=low
   * Fix code generation for C, Java, JavaScript, LLVM
 
  -- Albert Graef <Dr.Graef@t-online.de>  Tue, 15 Jan 2013 16:21:53 +0100
-
-faust2 (2.0.a5+git20121209-1) natty; urgency=low
-
-  * Latest upstream revision from git
-
- -- Albert Graef <Dr.Graef@t-online.de>  Sun, 09 Dec 2012 03:56:59 +0100
-
-faust2 (2.0.a3+git20120529-2) natty; urgency=low
-
-  * Fixes for Lucid compatibility
-
- -- Albert Graef <Dr.Graef@t-online.de>  Sat, 09 Jun 2012 08:39:46 +0200
 
 faust2 (2.0.a3+git20120529-1) natty; urgency=low
 
