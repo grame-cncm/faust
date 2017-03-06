@@ -384,13 +384,13 @@ closed source license or any other license if you decide so.
 // * `spread`: spatial spread in number of samples (for stereo)
 //
 // #### License
-// While this version is licensed LGPL along with other GRAME library functions,
-// the file freeverb.dsp in the examples directory of older Faust distributions,
-// such as faust-0.9.85, was released under the BSD license, which is less
-// restrictive.
+// While this version is licensed LGPL (with exception) along with other GRAME
+// library functions, the file freeverb.dsp in the examples directory of older
+// Faust distributions, such as faust-0.9.85, was released under the BSD license,
+// which is less restrictive.
 //------------------------------------------------------------
 // TODO: author RM
-mono_freeverb(fb1, fb2, damp, spread) = _ <: par(i,8,lbcf(combtuningL(i)+spread,fb1,damp)) 
+mono_freeverb(fb1, fb2, damp, spread) = _ <: par(i,8,lbcf(combtuningL(i)+spread,fb1,damp))
 	:> seq(i,4,fi.allpass_comb(1024, allpasstuningL(i)+spread, -fb2))
 with{
     origSR = 44100;
