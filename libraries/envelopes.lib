@@ -207,11 +207,11 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 // Author: JOS
 // License: STK-4.3
 adsre(attT60,decT60,susLvl,relT60,gate) = envelope with {
-  ugate = gate>0; // make sure 0 or 1
-  samps = ugate : +~(*(ugate)); // time ramp
+  ugate = gate>0;
+  samps = ugate : +~(*(ugate)); // time ramp in samples
   attSamps = attT60 * ma.SR;
-  target = select2(gate, 0.0, select2(samps<attSamps, susLvl*gate, gate));
-  t60 = select2(gate, relT60, select2(samps<attSamps, decT60, attT60));
+  target = select2(ugate, 0.0, select2(samps<attSamps, susLvl*gate, gate));
+  t60 = select2(ugate, relT60, select2(samps<attSamps, decT60, attT60));
   pole = ba.tau2pole(t60/6.91);
   envelope = target : si.smooth(pole);
 };
