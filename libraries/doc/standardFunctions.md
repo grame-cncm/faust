@@ -32,6 +32,7 @@ Function Type | Function Name | Description
 [Count Up](#countup) | [`ba.`](#basics.lib)[`countup`](#countup) | Samples count up
 [Delay (Integer)](#delay) | [`de.`](#delays.lib)[`delay`](#delay) | Integer delay
 [Delay (Float)](#fdelay) | [`de.`](#delays.lib)[`fdelay`](#fdelay) | Fractional delay
+[Down Sample](#downsample) | [`ba.`](#basics.lib)[`downSample`](#downsample) | Down sample a signal
 [Impulsify](#impulsify) | [`ba.`](#basics.lib)[`impulsify`](#impulsify) | Turns a signal into an impulse
 [Sample and Hold](#sandh) | [`ba.`](#basics.lib)[`sAndH`](#sandh) | Sample and hold
 [Signal Crossing](#cross) | [`ro.`](#routes.lib)[`cross`](#cross) | Cross n signals
@@ -184,4 +185,3 @@ TODO: potentially say something about demos.lib and demo functions here. Also, n
     $('div.table-begin').nextUntil('div.table-end', 'table').addClass('table table-bordered');
 	})();
 </script>
-	
