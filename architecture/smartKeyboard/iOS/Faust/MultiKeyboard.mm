@@ -83,7 +83,7 @@
         if(currentPresetName == nil){
             // Declaring default parameters
             keyboardParameters = [NSMutableDictionary dictionaryWithDictionary:@{
-                                                                     @"Number of Keyboards":[NSNumber numberWithInt:4],
+                                                                     @"Number of Keyboards":[NSNumber numberWithInt:1],
                                                                      @"Max Fingers":[NSNumber numberWithInt:10],
                                                                      @"Max Keyboard Polyphony":[NSNumber numberWithInt:16],
                                                                      @"Mono Mode":[NSNumber numberWithInt:1],
@@ -157,10 +157,10 @@
     // keyboard dependent default parameters
     for(int i=0; i<[keyboardParameters[@"Number of Keyboards"] intValue]; i++){
         if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Number of Keys",i]] == nil){
-            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Number of Keys",i]] = [NSNumber numberWithInt:7];
+            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Number of Keys",i]] = [NSNumber numberWithInt:13];
         }
         if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Lowest Key",i]] == nil){
-            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Lowest Key",i]] = [NSNumber numberWithInt:(48 + i*12)%127];
+            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Lowest Key",i]] = [NSNumber numberWithInt:(60 + i*12)%127];
         }
         if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Scale",i]] == nil){
             keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Scale",i]] = [NSNumber numberWithInt:0];

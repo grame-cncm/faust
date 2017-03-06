@@ -122,7 +122,7 @@ static void knob_expose(GtkWidget* widget, int knob_x, int knob_y, GdkEventExpos
 	if(widget->allocation.width > widget->allocation.height) {
 		grow = widget->allocation.height;
 	} else {
-		grow =  widget->allocation.width;
+		grow = widget->allocation.width;
 	}
 	knob_x = grow-4;
 	knob_y = grow-4;
@@ -130,22 +130,22 @@ static void knob_expose(GtkWidget* widget, int knob_x, int knob_y, GdkEventExpos
 	GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(widget));
 	int knobx = (widget->allocation.x+2 + (widget->allocation.width-4 - knob_x) * 0.5);
 	int knoby = (widget->allocation.y+2 + (widget->allocation.height-4 - knob_y) * 0.5);
-	int knobx1 = (widget->allocation.x+2 + (widget->allocation.width-4)* 0.5);
+	int knobx1 = (widget->allocation.x+2 + (widget->allocation.width-4) * 0.5);
 	int knoby1 = (widget->allocation.y+2 + (widget->allocation.height-4) * 0.5);
 	double knobstate = (adj->value - adj->lower) / (adj->upper - adj->lower);
 	double angle = scale_zero + knobstate * 2 * (M_PI - scale_zero);
 	double knobstate1 = (0. - adj->lower) / (adj->upper - adj->lower);
 	double pointer_off = knob_x/6;
-	double radius = std::min(knob_x-pointer_off, knob_y-pointer_off) / 2;
+	double radius = std::min<double>(knob_x-pointer_off, knob_y-pointer_off) / 2;
 	double lengh_x = (knobx+radius+pointer_off/2) - radius * sin(angle);
 	double lengh_y = (knoby+radius+pointer_off/2) + radius * cos(angle);
-	double radius1 = std::min(knob_x, knob_y) / 2 ;
+	double radius1 = std::min<double>(knob_x, knob_y) / 2;
 
 	/** get widget forground color convert to cairo **/
 	GtkStyle *style = gtk_widget_get_style (widget);
-	double r = std::min(0.6,style->fg[gtk_widget_get_state(widget)].red/65535.0),
-		   g = std::min(0.6,style->fg[gtk_widget_get_state(widget)].green/65535.0),
-		   b = std::min(0.6,style->fg[gtk_widget_get_state(widget)].blue/65535.0);
+	double r = std::min<double>(0.6, style->fg[gtk_widget_get_state(widget)].red/65535.0),
+		   g = std::min<double>(0.6, style->fg[gtk_widget_get_state(widget)].green/65535.0),
+		   b = std::min<double>(0.6, style->fg[gtk_widget_get_state(widget)].blue/65535.0);
 
 	/** paint focus **/
 	if (GTK_WIDGET_HAS_FOCUS(widget)) {
@@ -155,47 +155,47 @@ static void knob_expose(GtkWidget* widget, int knob_x, int knob_y, GdkEventExpos
 	/** create clowing knobs with cairo **/
 	cairo_t *cr = gdk_cairo_create(GDK_DRAWABLE(widget->window));
 	GdkRegion *region;
-	region = gdk_region_rectangle (&widget->allocation);
-	gdk_region_intersect (region, event->region);
-	gdk_cairo_region (cr, region);
-	cairo_clip (cr);
+	region = gdk_region_rectangle(&widget->allocation);
+	gdk_region_intersect(region, event->region);
+	gdk_cairo_region(cr, region);
+	cairo_clip(cr);
 	
 	cairo_arc(cr,knobx1+arc_offset, knoby1+arc_offset, knob_x/2.1, 0, 2 * M_PI );
 	cairo_pattern_t*pat =
 		cairo_pattern_create_radial (knobx1+arc_offset-knob_x/6,knoby1+arc_offset-knob_x/6, 1,knobx1+arc_offset,knoby1+arc_offset,knob_x/2.1 );
 	if (adj->lower<0 && adj->value>0.) {
-		cairo_pattern_add_color_stop_rgb (pat, 0, r+0.4, g+0.4 + knobstate-knobstate1, b+0.4);
-		cairo_pattern_add_color_stop_rgb (pat, 0.7, r+0.15, g+0.15 + (knobstate-knobstate1)*0.5, b+0.15);
-		cairo_pattern_add_color_stop_rgb (pat, 1, r, g, b);
+		cairo_pattern_add_color_stop_rgb(pat, 0, r+0.4, g+0.4 + knobstate-knobstate1, b+0.4);
+		cairo_pattern_add_color_stop_rgb(pat, 0.7, r+0.15, g+0.15 + (knobstate-knobstate1)*0.5, b+0.15);
+		cairo_pattern_add_color_stop_rgb(pat, 1, r, g, b);
 	} else if(adj->lower<0 && adj->value<=0.) {
-		cairo_pattern_add_color_stop_rgb (pat, 0, r+0.4 +knobstate1- knobstate, g+0.4, b+0.4);
-		cairo_pattern_add_color_stop_rgb (pat, 0.7, r+0.15 +(knobstate1- knobstate)*0.5, g+0.15, b+0.15);
-		cairo_pattern_add_color_stop_rgb (pat, 1, r, g, b);
+		cairo_pattern_add_color_stop_rgb(pat, 0, r+0.4 +knobstate1- knobstate, g+0.4, b+0.4);
+		cairo_pattern_add_color_stop_rgb(pat, 0.7, r+0.15 +(knobstate1- knobstate)*0.5, g+0.15, b+0.15);
+		cairo_pattern_add_color_stop_rgb(pat, 1, r, g, b);
 	} else {
-		cairo_pattern_add_color_stop_rgb (pat, 0, r+0.4, g+0.4 +knobstate, b+0.4);
-		cairo_pattern_add_color_stop_rgb (pat, 0.7, r+0.15, g+0.15 + knobstate*0.5, b+0.15);
-		cairo_pattern_add_color_stop_rgb (pat, 1, r, g, b);
+		cairo_pattern_add_color_stop_rgb(pat, 0, r+0.4, g+0.4 +knobstate, b+0.4);
+		cairo_pattern_add_color_stop_rgb(pat, 0.7, r+0.15, g+0.15 + knobstate*0.5, b+0.15);
+		cairo_pattern_add_color_stop_rgb(pat, 1, r, g, b);
 	}
-	cairo_set_source (cr, pat);
-	cairo_fill_preserve (cr);
+	cairo_set_source(cr, pat);
+	cairo_fill_preserve(cr);
 	gdk_cairo_set_source_color(cr, gtk_widget_get_style (widget)->fg);
 	cairo_set_line_width(cr, 2.0);
 	cairo_stroke(cr);
 
 	/** create a rotating pointer on the kob**/
-	cairo_set_source_rgb(cr,  0.1, 0.1, 0.1);
-	cairo_set_line_width(cr,std::max(3, std::min(7, knob_x/15)));
+	cairo_set_source_rgb(cr, 0.1, 0.1, 0.1);
+	cairo_set_line_width(cr, std::max<double>(3, std::min<double>(7, knob_x/15)));
 	cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND); 
 	cairo_set_line_join(cr, CAIRO_LINE_JOIN_BEVEL);
 	cairo_move_to(cr, knobx+radius1, knoby+radius1);
-	cairo_line_to(cr,lengh_x,lengh_y);
+	cairo_line_to(cr, lengh_x,lengh_y);
 	cairo_stroke(cr);
-	cairo_set_source_rgb(cr,  0.9, 0.9, 0.9);
-	cairo_set_line_width(cr,std::min(5, std::max(1,knob_x/30)));
+	cairo_set_source_rgb(cr, 0.9, 0.9, 0.9);
+	cairo_set_line_width(cr, std::min<double>(5, std::max<double>(1, knob_x/30)));
 	cairo_move_to(cr, knobx+radius1, knoby+radius1);
-	cairo_line_to(cr,lengh_x,lengh_y);
+	cairo_line_to(cr,lengh_x, lengh_y);
 	cairo_stroke(cr);
-	cairo_pattern_destroy (pat);
+	cairo_pattern_destroy(pat);
 	gdk_region_destroy (region);
 	cairo_destroy(cr);
 }
@@ -208,7 +208,7 @@ static void knob_expose(GtkWidget* widget, int knob_x, int knob_y, GdkEventExpos
 static gboolean gtk_knob_expose(GtkWidget* widget, GdkEventExpose *event)
 {
 	g_assert(GTK_IS_KNOB(widget));
-	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
+	GtkKnobClass *klass = GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
 	knob_expose(widget, klass->knob_x, klass->knob_y, event, 0);
 	return true;
 }
@@ -220,7 +220,7 @@ static gboolean gtk_knob_expose(GtkWidget* widget, GdkEventExpose *event)
 static void gtk_knob_size_request(GtkWidget* widget, GtkRequisition *requisition)
 {
 	g_assert(GTK_IS_KNOB(widget));
-	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
+	GtkKnobClass *klass = GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
 	requisition->width = klass->knob_x;
 	requisition->height = klass->knob_y;
 }
@@ -291,9 +291,9 @@ static void knob_pointer_event(GtkWidget* widget, gdouble x, gdouble y, int knob
 	static double last_y = 2e20;
 	GtkKnob *knob = GTK_KNOB(widget);
 	GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(widget));
-	double radius =  std::min(knob_x, knob_y) / 2;
-	int  knobx = (widget->allocation.width - knob_x) / 2;
-	int  knoby = (widget->allocation.height - knob_y) / 2;
+	double radius = std::min<double>(knob_x, knob_y) / 2;
+	int knobx = (widget->allocation.width - knob_x) / 2;
+	int knoby = (widget->allocation.height - knob_y) / 2;
 	double posx = (knobx + radius) - x; // x axis right -> left
 	double posy = (knoby + radius) - y; // y axis top -> bottom
 	double value;
@@ -393,9 +393,9 @@ static gboolean gtk_knob_button_release(GtkWidget* widget, GdkEventButton *event
 static gboolean gtk_knob_pointer_motion(GtkWidget* widget, GdkEventMotion *event)
 {
 	g_assert(GTK_IS_KNOB(widget));
-	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
+	GtkKnobClass *klass = GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
 	
-	gdk_event_request_motions (event);
+	gdk_event_request_motions(event);
 	
 	if (GTK_WIDGET_HAS_GRAB(widget)) {
 		knob_pointer_event(widget, event->x, event->y, klass->knob_x, klass->knob_y,
@@ -450,10 +450,10 @@ static void gtk_knob_class_init(GtkKnobClass *klass)
 static void gtk_knob_init(GtkKnob *knob)
 {
 	GtkWidget* widget = GTK_WIDGET(knob);
-	GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
+	GtkKnobClass *klass = GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
 
-	GTK_WIDGET_SET_FLAGS (GTK_WIDGET(knob), GTK_CAN_FOCUS);
-	GTK_WIDGET_SET_FLAGS (GTK_WIDGET(knob), GTK_CAN_DEFAULT);
+	GTK_WIDGET_SET_FLAGS(GTK_WIDGET(knob), GTK_CAN_FOCUS);
+	GTK_WIDGET_SET_FLAGS(GTK_WIDGET(knob), GTK_CAN_DEFAULT);
 
 	widget->requisition.width = klass->knob_x;
 	widget->requisition.height = klass->knob_y;
@@ -476,7 +476,7 @@ static gboolean gtk_knob_value_changed(gpointer obj)
 
 GtkWidget* GtkKnob::gtk_knob_new_with_adjustment(GtkAdjustment *_adjustment)
 {
-	GtkWidget* widget = GTK_WIDGET( g_object_new (GTK_TYPE_KNOB, NULL ));
+	GtkWidget* widget = GTK_WIDGET(g_object_new (GTK_TYPE_KNOB, NULL));
 	GtkKnob *knob = GTK_KNOB(widget);
 	knob->last_quadrant = 0;
 	if (widget) {
@@ -617,14 +617,14 @@ GTKUI::GTKUI(char * name, int* pargc, char*** pargv)
     
     fWindow = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     //gtk_container_set_border_width (GTK_CONTAINER (fWindow), 10);
-    gtk_window_set_title (GTK_WINDOW (fWindow), name);
-    gtk_signal_connect (GTK_OBJECT (fWindow), "delete_event", GTK_SIGNAL_FUNC (delete_event), NULL);
-    gtk_signal_connect (GTK_OBJECT (fWindow), "destroy", GTK_SIGNAL_FUNC (destroy_event), NULL);
+    gtk_window_set_title(GTK_WINDOW (fWindow), name);
+    gtk_signal_connect(GTK_OBJECT (fWindow), "delete_event", GTK_SIGNAL_FUNC (delete_event), NULL);
+    gtk_signal_connect(GTK_OBJECT (fWindow), "destroy", GTK_SIGNAL_FUNC (destroy_event), NULL);
 
     fTop = 0;
     fBox[fTop] = gtk_vbox_new (homogene, 4);
     fMode[fTop] = kBoxMode;
-    gtk_container_add (GTK_CONTAINER (fWindow), fBox[fTop]);
+    gtk_container_add(GTK_CONTAINER (fWindow), fBox[fTop]);
     fStopped = false;
 }
 
@@ -703,7 +703,7 @@ int GTKUI::checkLabelOptions(GtkWidget* widget, const std::string& fullLabel, st
 void GTKUI::checkForTooltip(FAUSTFLOAT* zone, GtkWidget* widget)
 {
     if (fTooltip.count(zone)) {
-        gtk_tooltips_set_tip (gtk_tooltips_new (), widget, fTooltip[zone].c_str(), NULL);
+        gtk_tooltips_set_tip(gtk_tooltips_new (), widget, fTooltip[zone].c_str(), NULL);
     }
 }
 
@@ -781,7 +781,7 @@ void GTKUI::openHandleBox(const char* label)
     label = startWith(label, "0x") ? "" : label;
     if (fMode[fTop] != kTabMode && label[0] != 0) {
         GtkWidget* frame = addWidget(label, gtk_handle_box_new ());
-        gtk_container_add (GTK_CONTAINER(frame), box);
+        gtk_container_add(GTK_CONTAINER(frame), box);
         gtk_widget_show(box);
         pushBox(kBoxMode, box);
     } else {
@@ -906,7 +906,7 @@ struct uiToggleButton : public uiItem
     
     uiToggleButton(GUI* ui, FAUSTFLOAT* zone, GtkToggleButton* b) : uiItem(ui, zone), fButton(b) {}
     
-    static void toggled (GtkWidget* widget, gpointer data)
+    static void toggled(GtkWidget* widget, gpointer data)
     {
         FAUSTFLOAT v = (GTK_TOGGLE_BUTTON (widget)->active) ? 1.0 : 0.0; 
         ((uiItem*)data)->modifyZone(v);
@@ -934,10 +934,10 @@ void GTKUI::addToggleButton(const char* label, FAUSTFLOAT* zone)
 
 void show_dialog(GtkWidget* widget, gpointer data)
 {
-    if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON(widget))) {
+    if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget))) {
         gtk_widget_show(GTK_WIDGET(data));
         gint root_x, root_y;
-        gtk_window_get_position (GTK_WINDOW(data), &root_x, &root_y);
+        gtk_window_get_position(GTK_WINDOW(data), &root_x, &root_y);
         root_y -= 120;
         gtk_window_move(GTK_WINDOW(data), root_x, root_y);
     }
@@ -958,21 +958,21 @@ void GTKUI::openDialogBox(const char* label, FAUSTFLOAT* zone)
     gtk_window_set_resizable(GTK_WINDOW(dialog), FALSE);
     gtk_window_set_gravity(GTK_WINDOW(dialog), GDK_GRAVITY_SOUTH);
     gtk_window_set_transient_for (GTK_WINDOW(dialog), GTK_WINDOW(fWindow));
-    gtk_window_set_position (GTK_WINDOW(dialog), GTK_WIN_POS_MOUSE);
-    gtk_window_set_keep_below (GTK_WINDOW(dialog), FALSE);
-    gtk_window_set_title (GTK_WINDOW (dialog), label);
-    g_signal_connect (G_OBJECT (dialog), "delete_event", G_CALLBACK (deleteevent), NULL); 
+    gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_MOUSE);
+    gtk_window_set_keep_below(GTK_WINDOW(dialog), FALSE);
+    gtk_window_set_title(GTK_WINDOW (dialog), label);
+    g_signal_connect(G_OBJECT (dialog), "delete_event", G_CALLBACK (deleteevent), NULL);
     gtk_window_set_destroy_with_parent(GTK_WINDOW(dialog), true);
 
     GtkWidget* box = gtk_hbox_new (homogene, 4);
  
     *zone = 0.0;
     GtkWidget* button = gtk_toggle_button_new ();
-    gtk_signal_connect (GTK_OBJECT (button), "toggled", GTK_SIGNAL_FUNC (show_dialog), (gpointer) dialog);
+    gtk_signal_connect(GTK_OBJECT (button), "toggled", GTK_SIGNAL_FUNC (show_dialog), (gpointer) dialog);
  
-    gtk_container_add (GTK_CONTAINER(fBox[fTop]), button);
-    gtk_container_add (GTK_CONTAINER(dialog), box);
-    gtk_widget_show (button);
+    gtk_container_add(GTK_CONTAINER(fBox[fTop]), button);
+    gtk_container_add(GTK_CONTAINER(dialog), box);
+    gtk_widget_show(button);
     gtk_widget_show(box);
     pushBox(kBoxMode, box);
 }
@@ -985,7 +985,7 @@ struct uiCheckButton : public uiItem
     
     uiCheckButton(GUI* ui, FAUSTFLOAT* zone, GtkToggleButton* b) : uiItem(ui, zone), fButton(b) {}
     
-    static void toggled (GtkWidget* widget, gpointer data)
+    static void toggled(GtkWidget* widget, gpointer data)
     {
         FAUSTFLOAT v = (GTK_TOGGLE_BUTTON (widget)->active) ? 1.0 : 0.0; 
         ((uiItem*)data)->modifyZone(v);
@@ -1019,7 +1019,7 @@ struct uiAdjustment : public uiItem
     
     uiAdjustment(GUI* ui, FAUSTFLOAT* zone, GtkAdjustment* adj) : uiItem(ui, zone), fAdj(adj) {}
     
-    static void changed (GtkWidget* widget, gpointer data)
+    static void changed(GtkWidget* widget, gpointer data)
     {
         FAUSTFLOAT v = GTK_ADJUSTMENT (widget)->value; 
         ((uiItem*)data)->modifyZone(v);
@@ -1160,7 +1160,7 @@ void GTKUI::addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT 
 
     gtk_signal_connect (GTK_OBJECT (adj), "value-changed", GTK_SIGNAL_FUNC (uiAdjustment::changed), (gpointer) c);
     
-    GtkWidget* slider = gtk_hscale_new (GTK_ADJUSTMENT(adj));
+    GtkWidget* slider = gtk_hscale_new(GTK_ADJUSTMENT(adj));
 	gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
 	FAUSTFLOAT size = 160;
 	if (fGuiSize[zone]) {
@@ -1220,7 +1220,7 @@ struct uiBargraph : public uiItem
     uiBargraph(GUI* ui, FAUSTFLOAT* zone, GtkProgressBar* pbar, FAUSTFLOAT lo, FAUSTFLOAT hi) 
             : uiItem(ui, zone), fProgressBar(pbar), fMin(lo), fMax(hi) {}
 
-    FAUSTFLOAT scale(FAUSTFLOAT v)        { return (v-fMin)/(fMax-fMin); }
+    FAUSTFLOAT scale(FAUSTFLOAT v) { return (v-fMin)/(fMax-fMin); }
     
     virtual void reflectZone()  
     { 
@@ -1316,7 +1316,7 @@ struct uiTextDisplay : public uiItem
     FAUSTFLOAT      fMax;
     int             fNum;
     
-    uiTextDisplay (GUI* ui, FAUSTFLOAT* zone, GtkLabel* label, const char* names[], FAUSTFLOAT lo, FAUSTFLOAT hi)
+    uiTextDisplay(GUI* ui, FAUSTFLOAT* zone, GtkLabel* label, const char* names[], FAUSTFLOAT lo, FAUSTFLOAT hi)
                     : uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)
     {
         fNum = 0;
@@ -1340,7 +1340,7 @@ struct uiTextDisplay : public uiItem
 void GTKUI::addTextDisplay(const char* label, FAUSTFLOAT* zone, const char* names[], FAUSTFLOAT lo, FAUSTFLOAT hi)
 {
     GtkWidget* lw = gtk_label_new("");
-    new uiTextDisplay (this, zone, GTK_LABEL(lw), names, lo, hi);
+    new uiTextDisplay(this, zone, GTK_LABEL(lw), names, lo, hi);
     openFrameBox(label);
     addWidget(label, lw);
     closeBox();

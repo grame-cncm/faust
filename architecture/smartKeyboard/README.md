@@ -508,7 +508,7 @@ Asks `faust2smartkeyb` to only generate the source of the app and to not compile
 * [Faust Hero in 2 Hours](https://ccrma.stanford.edu/~rmichon/faustTutorials/#faust-hero-in-2-hours)
 * [Making Faust-Based Smartphone Musical Instruments (`faust2smartkeyb` Tutorials)](https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-faust-based-smartphone-musical-instruments)
 
-## Version/Licence
+## Version/License
 
 Version 0.0. 
 

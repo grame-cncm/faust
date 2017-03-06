@@ -22,13 +22,14 @@
 
  ************************************************************************/
 
+#include <vector>
+#include <iostream>
+#include <math.h>
+
 #include "faust/gui/UI.h"
 #include "faust/dsp/dsp.h"
 #include "faust/dsp/dsp-bench.h"
 #include "faust/misc.h"
-#include <vector>
-#include <iostream>
-#include <math.h>
 
 #include "dsp_scal.h"
 
@@ -49,6 +50,24 @@
 #include "dsp_vec1_128.h"
 #include "dsp_vec1_256.h"
 #include "dsp_vec1_512.h"
+
+#include "dsp_vec0g_4.h"
+#include "dsp_vec0g_8.h"
+#include "dsp_vec0g_16.h"
+#include "dsp_vec0g_32.h"
+#include "dsp_vec0g_64.h"
+#include "dsp_vec0g_128.h"
+#include "dsp_vec0g_256.h"
+#include "dsp_vec0g_512.h"
+
+#include "dsp_vec1g_4.h"
+#include "dsp_vec1g_8.h"
+#include "dsp_vec1g_16.h"
+#include "dsp_vec1g_32.h"
+#include "dsp_vec1g_64.h"
+#include "dsp_vec1g_128.h"
+#include "dsp_vec1g_256.h"
+#include "dsp_vec1g_512.h"
 
 using namespace std;
 
@@ -79,6 +98,15 @@ extern "C" int bench_all(const char* name)
     options.push_back("-vec -lv 0 -vs 256");
     options.push_back("-vec -lv 0 -vs 512");
     
+    options.push_back("-vec -lv 0 -vs 4 -g");
+    options.push_back("-vec -lv 0 -vs 8 -g");
+    options.push_back("-vec -lv 0 -vs 16 -g");
+    options.push_back("-vec -lv 0 -vs 32 -g");
+    options.push_back("-vec -lv 0 -vs 64 -g");
+    options.push_back("-vec -lv 0 -vs 128 -g");
+    options.push_back("-vec -lv 0 -vs 256 -g");
+    options.push_back("-vec -lv 0 -vs 512 -g");
+    
     options.push_back("-vec -lv 1 -vs 4");
     options.push_back("-vec -lv 1 -vs 8");
     options.push_back("-vec -lv 1 -vs 16");
@@ -88,28 +116,57 @@ extern "C" int bench_all(const char* name)
     options.push_back("-vec -lv 1 -vs 256");
     options.push_back("-vec -lv 1 -vs 512");
     
+    options.push_back("-vec -lv 1 -vs 4 -g");
+    options.push_back("-vec -lv 1 -vs 8 -g");
+    options.push_back("-vec -lv 1 -vs 16 -g");
+    options.push_back("-vec -lv 1 -vs 32 -g");
+    options.push_back("-vec -lv 1 -vs 64 -g");
+    options.push_back("-vec -lv 1 -vs 128 -g");
+    options.push_back("-vec -lv 1 -vs 256 -g");
+    options.push_back("-vec -lv 1 -vs 512 -g");
+    
+    int ind = 0;
+    
     // Scalar
-    measures.push_back(bench(new dsp_scal(), options[0]));
+    measures.push_back(bench(new dsp_scal(), options[ind++]));
     
     // Vector -lv 0
-    measures.push_back(bench(new dsp_vec1_4(), options[1]));
-    measures.push_back(bench(new dsp_vec0_8(), options[2]));
-    measures.push_back(bench(new dsp_vec0_16(), options[3]));
-    measures.push_back(bench(new dsp_vec0_32(), options[4]));
-    measures.push_back(bench(new dsp_vec0_64(), options[5]));
-    measures.push_back(bench(new dsp_vec0_128(), options[6]));
-    measures.push_back(bench(new dsp_vec0_256(), options[7]));
-    measures.push_back(bench(new dsp_vec0_512(), options[8]));
+    measures.push_back(bench(new dsp_vec1_4(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0_8(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0_16(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0_32(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0_64(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0_128(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0_256(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0_512(), options[ind++]));
+    
+    measures.push_back(bench(new dsp_vec1_4(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0g_8(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0g_16(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0g_32(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0g_64(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0g_128(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0g_256(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0g_512(), options[ind++]));
     
     // Vector -lv 1
-    measures.push_back(bench(new dsp_vec1_4(), options[9]));
-    measures.push_back(bench(new dsp_vec1_8(), options[10]));
-    measures.push_back(bench(new dsp_vec1_16(), options[11]));
-    measures.push_back(bench(new dsp_vec1_32(), options[12]));
-    measures.push_back(bench(new dsp_vec1_64(), options[13]));
-    measures.push_back(bench(new dsp_vec1_128(), options[14]));
-    measures.push_back(bench(new dsp_vec1_256(), options[15]));
-    measures.push_back(bench(new dsp_vec1_512(), options[16]));
+    measures.push_back(bench(new dsp_vec1_4(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1_8(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1_16(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1_32(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1_64(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1_128(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1_256(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1_512(), options[ind++]));
+    
+    measures.push_back(bench(new dsp_vec1g_4(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1g_8(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1g_16(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1g_32(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1g_64(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1g_128(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1g_256(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1g_512(), options[ind++]));
     
     vector<double> measures1 = measures;
     sort(measures1.begin(), measures1.end());

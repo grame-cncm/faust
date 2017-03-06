@@ -4,9 +4,13 @@
 
 /************************************************************************
 ************************************************************************
-FAUST library file
-Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
+FAUST library file, GRAME section
+
+Except where noted otherwise, Copyright (C) 2003-2017 by GRAME,
+Centre National de Creation Musicale.
 ----------------------------------------------------------------------
+GRAME LICENSE
+
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as
 published by the Free Software Foundation; either version 2.1 of the
@@ -94,13 +98,13 @@ with{
 // #### Usage
 //
 // ```
-// asr(a,s,r,t) : _
+// asr(a,s,r,g) : _
 // ```
 //
 // Where:
 //
-// * `a`, `s`, `r`: attack (sec), sustain (percentage of t), release (sec)
-// * `t`: trigger signal ( >0 for attack, then release is when t back to 0)
+// * `a`, `s`, `r`: attack (sec), sustain (fraction of g), release (sec)
+// * `g`: trigger signal ( >0 for attack, then release is when g back to 0)
 //-----------------------------------------------------
 // TODO: author RM
 asr(a,s,r,t) = on*(as) : ba.sAndH(on) : rel
@@ -115,7 +119,6 @@ with{
 	rel = _,ba.countup(relTime,on) : ba.bpf.start(0) : ba.bpf.end(relTime,0);
 };
 
-
 //------------------------`adsr`----------------------
 // ADSR (Attack, Decay, Sustain, Release) envelope generator.
 // `adsr` is a standard Faust function.
@@ -123,13 +126,13 @@ with{
 // #### Usage
 //
 // ```
-// adsr(a,d,s,r,t) : _
+// adsr(a,d,s,r,g) : _
 // ```
 //
 // Where:
 //
-// * `a`, `d`, `s`, `r`: attack (sec), decay (sec), sustain (percentage of t), release (sec)
-// * `t`: trigger signal ( >0 for attack, then release is when t back to 0)
+// * `a`, `d`, `s`, `r`: attack (sec), decay (sec), sustain (fraction of g), release (sec)
+// * `g`: gate signal ( >0 for attack, then release is when g back to 0)
 //-----------------------------------------------------
 // TODO: author RM
 adsr(a,d,s,r,t) = on*(ads) : ba.sAndH(on) : rel
@@ -145,6 +148,7 @@ with{
 	rel = _,ba.countup(relTime,on) : ba.bpf.start(0) : ba.bpf.end(relTime,0);
 };
 
+//-----------------------------------------------------
 // Old version of ADSR (originally from music.lib)...
 /*
 adsr(a,d,s,r,t) = env ~ (_,_) : (!,_) // the 2 'state' signals are fed back
@@ -171,3 +175,45 @@ with {
 ////////////////////////////////////////////////////////
 // UNDOCUMENTED/DISMISSED ELEMENTS 
 ////////////////////////////////////////////////////////
+
+// end GRAME section
+//########################################################################################
+/************************************************************************
+FAUST library file, further contributions section
+
+All contributions below should indicate both the contributor and terms
+of license.  If no such indication is found, "git blame" will say who
+last edited each line, and that person can be emailed to inquire about
+license disposition, if their license choice is not already indicated
+elsewhere among the libraries.  It is expected that all software will be
+released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
+************************************************************************/
+
+//------------------------`adsre`----------------------
+// ADSRE (Attack, Decay, Sustain, Release) envelope generator with Exponential segments.
+// `adsre` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// adsre(a,d,s,r,g) : _
+// ```
+//
+// Where:
+//
+// * `a`, `d`, `s`, `r`: attack (sec), decay (sec), sustain (fraction of g), release (sec)
+// * `g`: gate signal ( >0 for attack, then release is when g back to 0)
+//-----------------------------------------------------
+// Author: JOS
+// License: STK-4.3
+adsre(attT60,decT60,susLvl,relT60,gate) = envelope with {
+  ugate = gate>0; // make sure 0 or 1
+  samps = ugate : +~(*(ugate)); // time ramp
+  attSamps = attT60 * ma.SR;
+  target = select2(gate, 0.0, select2(samps<attSamps, susLvl*gate, gate));
+  t60 = select2(gate, relT60, select2(samps<attSamps, decT60, attT60));
+  pole = ba.tau2pole(t60/6.91);
+  envelope = target : si.smooth(pole);
+};
+
+// end further further contributions section
