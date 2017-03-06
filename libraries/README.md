@@ -230,5 +230,8 @@ Any function containing UI elements should be placed in this library and respect
 
 ## Copyright / License
 
-Now that Faust libraries are less author specific, each function will normally have its own copyright-and-license line. If not, then the global copyright/license may be assumed, when present.  If there is no local or global notice, try git blame!
+Now that Faust libraries are less author specific, each function will normally have its own copyright-and-license line in the library source (the `.lib` file, such as `analyzers.lib`). If not, see if the function is defined within a section of the `.lib` file stating the license in source-code comments.  If not, then the copyright and license given at the beginning of the `.lib` file may be assumed, when present.  If not, run `git blame` on the `.lib` file and ask the person who last edited the function!
 
+Note that it is presently possible for a library function released under one license to utilize another library function having some different license.  There is presently no indication of this situation in the Faust compiler output, but such notice is planned.  For now, library contributors should strive to use only library functions having compatible licenses, and concerned end-users must manually determine the union of licenses applicable to the library functions they are using.
+
+[//]: # Yann says: "I agree, we need to have metadata local to a single definition or a group of definition. This will allow the compiler to be more selective when including metadata in the generated code."

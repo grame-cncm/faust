@@ -817,7 +817,8 @@ bpf = environment
 // * `bpc`: bypass switch (0/1)
 // * `e`: a mono effect
 //------------------------------------------------------------
-// TODO: author JOS
+// Author: JOS
+// License: STK-4.3
   bypass1(bpc,e) = _ <: select2(bpc,(inswitch:e),_)
                    with {inswitch = select2(bpc,_,0);};
 
@@ -836,7 +837,8 @@ bpf = environment
 // * `bpc`: bypass switch (0/1)
 // * `e`: a stereo effect
 //------------------------------------------------------------
-// TODO: author JOS
+// Author: JOS
+// License: STK-4.3
   bypass2(bpc,e) = _,_ <: ((inswitch:e),_,_) : select2stereo(bpc) with {
     inswitch = _,_ : (select2(bpc,_,0), select2(bpc,_,0)) : _,_;
   };
