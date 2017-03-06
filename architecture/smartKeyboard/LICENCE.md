@@ -1,4 +1,4 @@
-# faust2smartkeyb Licence and Copyright
+# faust2smartkeyb License and Copyright
 
 Copyright 2017 Romain Michon - CCRMA, Stanford Univeristy (USA) / GRAME, Lyon (France): https://ccrma.stanford.edu/~rmichon
 
