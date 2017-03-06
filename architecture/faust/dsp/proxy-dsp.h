@@ -43,9 +43,7 @@
 #include "faust/gui/JSONUI.h"
 
 #ifdef _WIN32
-#ifndef JUCE_WINDOWS  // When compiling in JUCE context, windows.h is already included 
-    #include <windows.h>
-#endif
+#include <windows.h>
 #define snprintf _snprintf
 #endif
 

@@ -58,9 +58,7 @@ inline double GetCurrentTimeInUsec()
 #endif
 
 #if _WIN32
-#ifndef JUCE_WINDOWS   // When compiling in JUCE context, windows.h is already included
-    #include <windows.h>
-#endif
+#include <windows.h>
 inline double GetCurrentTimeInUsec(void)
 {
     LARGE_INTEGER time;
