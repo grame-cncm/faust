@@ -35,11 +35,11 @@ fi
 # Need SuperCollider 'plugin_interface' include path to compile UGens:
 
 SC0=$SUPERCOLLIDER_HEADERS
-SC1="/usr/local/include/SuperCollider"
+SC1="/usr/local/include/SuperCollider/include"
 SC2="/usr/local/include/supercollider"
 SC3="/usr/include/SuperCollider"
 SC4="/usr/include/supercollider"
-SC5="/usr/local/include/SuperCollider/include"
+SC5="/usr/local/include/SuperCollider/"
 
 # check if directory exists
 
