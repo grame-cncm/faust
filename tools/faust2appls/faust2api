@@ -48,7 +48,7 @@ echoHelp ()
 while [ $1 ]
 do
 	p=$1
-	
+
     if [ $p = "-help" ]; then
 	echoHelp
     elif [ "$PACKAGENAME" = "-1" ]; then
@@ -76,16 +76,16 @@ do
         OPTIONS="$OPTIONS $p"
     else
 	echoHelp
-	exit
+	exit 1
     fi
 
 shift
-	
+
 done
 
 if [ -z $FILE ]; then
     echo "Please, provide a Faust file to process"
-    exit
+    exit 1
 fi
 
 ###################################
@@ -110,9 +110,9 @@ if [ $ANDROID -eq 1 ]; then
     fi
     cp -r /usr/local/share/faust/api/android/DspFaust.h $CPPFOLDER
     cp -r /usr/local/share/faust/api/android/jni/java_interface_wrap.cpp $CPPFOLDER
-    faust -i -a api/android/DspFaust.cpp "$FILE" -o "$CPPFOLDER/DspFaust.cpp" || exit
+    faust -i -a api/android/DspFaust.cpp "$FILE" -o "$CPPFOLDER/DspFaust.cpp" || exit 1
     if [ "$POLY2" = "1" ]; then
-	faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp" || exit
+	faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp" || exit 1
 	echo "#define POLY2 1" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
     fi
     if [ "$NVOICES" -gt "0" ]; then
@@ -121,9 +121,9 @@ if [ $ANDROID -eq 1 ]; then
 elif [ $IOS -eq 1 ]; then
     echo "Your dsp-faust.zip API package for iOS is being created"
     cp -r /usr/local/share/faust/api/iOS/DspFaust.h $APIFOLDER
-    faust -i -a api/iOS/DspFaust.cpp "$FILE" -o "$APIFOLDER/DspFaust.cpp" || exit
+    faust -i -a api/iOS/DspFaust.cpp "$FILE" -o "$APIFOLDER/DspFaust.cpp" || exit 1
     if [ "$POLY2" = "1" ]; then
-	faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp" || exit
+	faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp" || exit 1
 	echo "#define POLY2 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
     if [ "$NVOICES" -gt "0" ]; then
@@ -149,19 +149,19 @@ if [ $NODOC -eq 0 ]; then
 		DOCHEADERFILE="/usr/local/share/faust/api/doc/iOS.md"
 		APIHEADERFILE="/usr/local/share/faust/api/iOS/DspFaust.h"
 	fi
-    
+
 	PPFILE=pPrinter.cpp
 	PPBINARY=pp
 	READMEFILE="$APIFOLDER/README.md"
-	
+
 	CXXFLAGS=$MYGCCFLAGS
 	MYGCCFLAGS="-O3"
 	CXX=g++
 	CXXFLAGS=$MYGCCFLAGS
 
-	faust -i -a path-printer.cpp "$FILE" -o "$PPFILE" || exit
+	faust -i -a path-printer.cpp "$FILE" -o "$PPFILE" || exit 1
 	if [ "$POLY2" = "1" ]; then
-		faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$PPFILE" > temp && mv temp "$PPFILE" || exit
+		faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$PPFILE" > temp && mv temp "$PPFILE" || exit 1
 		echo "#define POLY2 1" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
 	fi
 	if [ "$NVOICES" -gt "0" ]; then
@@ -171,14 +171,14 @@ if [ $NODOC -eq 0 ]; then
 	# compile c++ to binary
 	(
 		$CXX $CXXFLAGS "$PPFILE" -o "$PPBINARY"
-	) > /dev/null || exit
-	rm "$PPFILE" || exit
-	
-	cp "$DOCHEADERFILE"  "$READMEFILE" || exit
-	./"$PPBINARY" | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit
-	rm "$PPBINARY" || exit
-	
-	faust2md "$APIHEADERFILE"  | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit
+	) > /dev/null || exit 1
+	rm "$PPFILE" || exit 1
+
+	cp "$DOCHEADERFILE"  "$READMEFILE" || exit 1
+	./"$PPBINARY" | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit 1
+	rm "$PPBINARY" || exit 1
+
+	faust2md "$APIHEADERFILE"  | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit 1
 fi
 
 ###################################
@@ -188,5 +188,5 @@ fi
 ZIPOUT="$APIFOLDER.zip"
 
 rm $ZIPOUT 2> /dev/null || true
-zip -r $ZIPOUT $APIFOLDER > /dev/null || exit
-rm -r $APIFOLDER || exit
+zip -r $ZIPOUT $APIFOLDER > /dev/null || exit 1
+rm -r $APIFOLDER || exit 1
