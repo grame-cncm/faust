@@ -39,6 +39,7 @@ SC1="/usr/local/include/SuperCollider"
 SC2="/usr/local/include/supercollider"
 SC3="/usr/include/SuperCollider"
 SC4="/usr/include/supercollider"
+SC5="/usr/local/include/SuperCollider/include"
 
 # check if directory exists
 
@@ -52,6 +53,8 @@ elif [ -d $SC3 ]; then
 	SC=$SC3
 elif [ -d $SC4 ]; then
 	SC=$SC4
+elif [ -d $SC5 ]; then
+    SC=$SC5
 else 
 	echo "Can't find SuperCollider headers"
 	exit 1
@@ -62,7 +65,7 @@ INCLUDE="-I$SC/plugin_interface/ -I$SC/common/ -I$SC/server/ -I$FAUSTLIB"
 
 if [ $# = 0 ]; then
     echo USAGE:
-    echo "$0 [-d[ebug]] [-icc] [-omp] [-sd] file1.dsp [file2.dsp ...]"
+    echo "$0 [-d[ebug]] [-dm] [-icc] [-omp] [-sd] file1.dsp [file2.dsp ...]"
     exit 1
 fi
 
@@ -71,6 +74,7 @@ fi
 # faust options                 -> OPTIONS
 # if -omp : -openmp or -fopenmp -> OPENMP
 # if -d or -debug               -> F2SC_DEBUG
+# if -dm                        -> F2SC_DEBUG_MES
 # if -sd or -synthdef           -> SYNTHDEF
 # existing *.dsp files          -> FILES
 #
@@ -86,7 +90,9 @@ done
 
 #PHASE 2 : dispatch command arguments
 F2SC_DEBUG=0
+F2SC_DEBUG_MES=0
 SYNTHDEF=""
+
 for p in $@; do
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
@@ -97,9 +103,11 @@ for p in $@; do
     fi
 
     if [ "$p" = -debug ] || [ "$p" = -d ]; then
-	F2SC_DEBUG=1
+        F2SC_DEBUG=1
+    elif [ "$p" = -dm ]; then
+        F2SC_DEBUG_MES=1
     elif [ "$p" = -sd ] || [ "$p" = -synthdef ]; then
-	SYNTHDEF="--synthdef"
+        SYNTHDEF="--synthdef"
     elif [ "$p" = -icc ]; then
     	ignore=" "
     elif [ ${p:0:1} = "-" ]; then
@@ -113,15 +121,20 @@ done
 
 if [ $F2SC_DEBUG = 1 ]; then
     OUTDEV=/dev/tty
-    DNDEBUG=""
-else       
+else
     OUTDEV=/dev/null
+fi
+
+if [ $F2SC_DEBUG_MES = 1 ]; then
+    echo "Activate debug messages in the generated plugin"
+    DNDEBUG=""
+else
     DNDEBUG="-DNDEBUG"
 fi
 
 if [ "$FILES" = "" ]; then
     echo USAGE:
-    echo "$0 [-d[ebug]] [-icc] [-omp] file1.dsp [file2.dsp ...]"
+    echo "$0 [-d[ebug]] [-dm] [-icc] [-omp] file1.dsp [file2.dsp ...]"
     exit 1
 fi
 
@@ -130,7 +143,7 @@ fi
 #
 if [[ $(uname) == Darwin ]]; then
     EXT="scx"
-	SCFLAGS="-DNO_LIBSNDFILE -DSC_DARWIN $DNDEBUG -bundle "
+	SCFLAGS="-DNO_LIBSNDFILE -DSC_DARWIN $DNDEBUG -bundle"
 elif [[ $(uname) == Linux ]]; then
     EXT="so"
 	SCFLAGS="-DNO_LIBSNDFILE -DSC_LINUX $DNDEBUG -shared -fPIC"
@@ -169,12 +182,11 @@ for p in $FILES; do
     cp "$TMP/${f%.dsp}.$EXT" "$SRCDIR/${f%.dsp}.$EXT"
     cp "$TMP/${f%.dsp}.sc" "$SRCDIR/${f%.dsp}.sc"
 
-
     if [ $F2SC_DEBUG = 1 ]; then
-	echo "Retaining intermediate products directory '$TDR'"
-	OUTDEV=/dev/tty
+        echo "Retaining intermediate products directory '$TDR'"
+        OUTDEV=/dev/tty
     else       
-	rm -rf "$TDR"
+        rm -rf "$TDR"
     fi
 
     # collects all the files produced
