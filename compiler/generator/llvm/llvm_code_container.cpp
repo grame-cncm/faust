@@ -31,7 +31,7 @@
 
 using namespace std;
 
-#if defined(LLVM_38) || defined(LLVM_39)
+#if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
     #define ModulePTR std::unique_ptr<Module>
     #define MovePTR(ptr) std::move(ptr)
 #else
@@ -62,11 +62,11 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 #endif
     fBuilder = new IRBuilder<>(getContext());
     
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39))
+#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40))
     // Set "-fast-math"
     FastMathFlags FMF;
     FMF.setUnsafeAlgebra();
-#if (defined(LLVM_38) || defined(LLVM_39))
+#if (defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40))
     fBuilder->setFastMathFlags(FMF);
 #else
     fBuilder->SetFastMathFlags(FMF);
@@ -89,11 +89,11 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fContext = context;
     fBuilder = new IRBuilder<>(getContext());
     
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39))
+#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40))
     // Set "-fast-math"
     FastMathFlags FMF;
     FMF.setUnsafeAlgebra();
-#if (defined(LLVM_38) || defined(LLVM_39))
+#if (defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40))
     fBuilder->setFastMathFlags(FMF);
 #else
     fBuilder->SetFastMathFlags(FMF);
@@ -204,7 +204,7 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
     Function* llvm_compute = Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fKlassName, fModule);
     llvm_compute->setCallingConv(CallingConv::C);
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
     llvm_compute->setDoesNotAlias(3U);
     llvm_compute->setDoesNotAlias(4U);
 #elif defined(LLVM_32) 
@@ -274,7 +274,7 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
 
     BasicBlock* block = BasicBlock::Create(getContext(), "entry_block", sr_fun);
     fBuilder->SetInsertPoint(block);
-#if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
+#if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
     Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
 #else
     Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
@@ -636,7 +636,7 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
 
         Value* idx2[3];
         idx2[0] = load_meta_ptr;
-    #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
+    #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
         idx2[1] = fBuilder->CreateConstGEP2_32(type_def1, llvm_label1, 0, 0);
         idx2[2] = fBuilder->CreateConstGEP2_32(type_def2, llvm_label2, 0, 0);
     #else
@@ -1124,7 +1124,7 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
 
     Function* llvm_computethreadInternal = fModule->getFunction("computeThread");
     faustassert(llvm_computethreadInternal);
-#if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
+#if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
     Value* fun_args[] = { fBuilder->CreateBitCast(arg1, fStructDSP), arg2 };
     CallInst* call_inst = fBuilder->CreateCall(llvm_computethreadInternal, fun_args);
 #else

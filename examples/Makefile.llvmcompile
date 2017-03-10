@@ -52,6 +52,11 @@ LLVM_VERSION  = LLVM_39
 LLVM_PREFIX = /opt/local/libexec/llvm-3.9/bin
 endif
 
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 4.0.0))
+LLVM_VERSION  = LLVM_40
+LLVM_PREFIX = /opt/local/libexec/llvm-4.0/bin
+endif
+
 CLANG = $(LLVM_PREFIX)/clang++
 OPT = $(LLVM_PREFIX)/opt
 LLC = $(LLVM_PREFIX)/llc
