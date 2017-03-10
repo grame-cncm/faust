@@ -25,7 +25,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
 #include "faust/midi/midi.h"
 
@@ -351,13 +351,13 @@ bool getRemoteDSPFactories(const std::string& ip_server, int port_server, std::v
  */
  
 /* Called each time a new DSP factory is created */
-typedef bool (*createFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
+typedef bool (*createFactoryDSPCallback) (dsp_factory* factory, void* arg);
 
 /* Called each time a DSP factory is deleted */
 typedef bool (*createInstanceDSPCallback) (dsp* dsp, void* arg);
 
 /* Called each time a new DSP instance is created */
-typedef bool (*deleteFactoryDSPCallback) (llvm_dsp_factory* factory, void* arg);
+typedef bool (*deleteFactoryDSPCallback) (dsp_factory* factory, void* arg);
 
 /* Called each time a DSP instance is deleted */
 typedef bool (*deleteInstanceDSPCallback) (dsp* dsp, void* arg);
@@ -382,7 +382,7 @@ class remote_dsp_server {
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters 
  *
- * @@return the DSP server or NULL if allocation error.
+ * @return the DSP server or NULL if allocation error.
  */ 
 remote_dsp_server* createRemoteDSPServer(int argc, const char* argv[]);
 
