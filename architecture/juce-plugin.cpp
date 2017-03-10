@@ -23,19 +23,22 @@
  ************************************************************************
  ************************************************************************/
 
-#include "JuceLibraryCode/JuceHeader.h"
-
-#include "faust/dsp/timed-dsp.h"
-#include "faust/gui/MapUI.h"
-#include "faust/misc.h"
-#include "faust/dsp/dsp-adapter.h"
-#include "faust/gui/JuceGUI.h"
-#include "faust/gui/JuceParameterUI.h"
-#include "faust/gui/MidiUI.h"
-
 #include <math.h>
 #include <algorithm>
 
+#define JUCE_CORE_INCLUDE_NATIVE_HEADERS 1
+#include "JuceLibraryCode/JuceHeader.h"
+
+#include "faust/gui/MapUI.h"
+#include "faust/misc.h"
+#include "faust/dsp/dsp-adapter.h"
+#include "faust/gui/MidiUI.h"
+
+#include "faust/dsp/timed-dsp.h"
+#include "faust/dsp/poly-dsp.h"
+
+#include "faust/gui/JuceGUI.h"
+#include "faust/gui/JuceParameterUI.h"
 #include "faust/gui/JuceStateUI.h"
 
 #if defined(OSCCTRL)
@@ -45,8 +48,6 @@
 #if defined(MIDICTRL)
 #include "faust/midi/juce-midi.h"
 #endif //MIDICTRL
-
-#include "faust/dsp/poly-dsp.h"
 
 #if defined(POLY2)
 #include "faust/dsp/dsp-combiner.h"

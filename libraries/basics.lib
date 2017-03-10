@@ -1,5 +1,5 @@
 //################################## basics.lib ###########################################
-// A library of basic elements for Faust organized in 5 sections: 
+// A library of basic elements for Faust organized in 5 sections:
 //
 // * Conversion Tools
 // * Counters and Time/Tempo Tools
@@ -59,7 +59,7 @@ declare version "0.0";
 //-------`samp2sec`----------
 // Converts a number of samples to a duration in seconds.
 // `samp2sec` is a standard Faust function.
-// 
+//
 // #### Usage
 //
 // ```
@@ -182,7 +182,7 @@ Michon and Julius O. Smith III, and are released under the
 
 
 //-------`pole2tau`----------
-// Returns the time-constant, in seconds, corresponding to the given real, 
+// Returns the time-constant, in seconds, corresponding to the given real,
 // positive pole in (0,1).
 // `pole2tau` is a standard Faust function.
 //
@@ -251,6 +251,7 @@ Michon and Julius O. Smith III, and are released under the
 //########################################################################################
 /************************************************************************
 FAUST library file, GRAME section 2
+************************************************************************/
 
 //==============================Counters and Time/Tempo Tools=============================
 //========================================================================================
@@ -319,7 +320,7 @@ sweep = %(int(*:max(1)))~+(1);
 // time : _
 // ```
 //------------------------
-time = (+(1)~_ ) - 1; 
+time = (+(1)~_ ) - 1;
 
 
 //-------`tempo`----------
@@ -368,7 +369,7 @@ period(p) = %(int(p))~+(1);
 //
 // * `p`: period as a number of samples
 //------------------------
-// NOTE: may be this should go in oscillators.lib 
+// NOTE: may be this should go in oscillators.lib
 pulse(p) = period(p)==0;
 
 
@@ -517,7 +518,7 @@ count (xx) = 1;
 // `take` is a standard Faust function.
 //
 // #### Usage
-// 
+//
 // ```
 // take(e,l)
 // take(3,(10,20,30,40)) -> 30
@@ -617,7 +618,7 @@ selector(i,n) = par(j, n, S(i, j))    with { S(i,i) = _; S(i,j) = !; };
 // #### Example test program
 //
 // ```
-// N=64; 
+// N=64;
 // process = par(n,N, (par(i,N,i) : selectn(N,n)));
 // ```
 //-----------------------------------------------------------------------------
@@ -642,7 +643,7 @@ selectn(N,i) = S(N,0)
 // ```
 //
 // Where:
-// 
+//
 // * `bpc`: the selector switch (0/1)
 //------------------------------------------------------------
   select2stereo(bpc) = ro.cross2 : select2(bpc), select2(bpc) : _,_;
@@ -659,7 +660,7 @@ selectn(N,i) = S(N,0)
 // ```
 // _ : latch(clocksig) : _
 // ```
-// 
+//
 // Where:
 //
 // * `clocksig`: hold trigger (0 for hold, 1 for bypass)
@@ -675,18 +676,40 @@ selectn(N,i) = S(N,0)
 //
 // ```
 // _ : sAndH(t) : _
-// ``` 
+// ```
 //
 // Where:
 //
 // * `t`: hold trigger (0 for hold, 1 for bypass)
 //----------------------------------------------------------------
-// TODO: author RM
+// Author: RM
 sAndH(t) = *(t) : +~*(1-t);
 
 
+//--------------------------`downSample`-------------------------------
+// Down sample a signal. WARNING: this function doesn't change the
+// rate of a signal, it just holds samples...
+// `downSample` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// _ : downSample(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: new rate in Hz
+//----------------------------------------------------------------
+// Author: RM
+downSample(freq) = sAndH(hold)
+with{
+  hold = time%int(ma.SR/freq) == 0;
+};
+
+
 //------------------`peakhold`---------------------------
-// Outputs current max value above zero. 
+// Outputs current max value above zero.
 //
 // #### Usage
 //
@@ -706,7 +729,7 @@ peakhold = (*,_:max) ~ _;
 //------------------`peakholder`---------------------------
 // Tracks abs peak and holds peak for 'holdtime' samples.
 //
-// #### Usage 
+// #### Usage
 //
 // ```
 // _ : peakholder(holdtime) : _;
@@ -738,7 +761,7 @@ impulsify = _ <: _,mem : - : >(0);
 // Record and replay to the values the input signal in a loop.
 //
 // #### Usage
-// 
+//
 // ```
 // hslider(...) : automat(bps, size, init) : _
 // ```
@@ -748,15 +771,15 @@ with {
 	clock 	= beat(bps);
 	rindex 	= int(clock) : (+ : %(size)) ~ _;		// each clock read the next entry of the table
 	windex 	= if (timeToRenew, rindex, size);		// we ignore input unless it is time to renew
-	timeToRenew 	= int(clock) & (inputHasMoved | (input <= init));	
+	timeToRenew 	= int(clock) & (inputHasMoved | (input <= init));
 	inputHasMoved 	= abs(input-input') : countfrom(int(clock)') : >(0);
 	countfrom(reset) = (+ : if(reset, 0, _)) ~ _;
 };
 
 
 //-----------------`bpf`-------------------
-// bpf is an environment (a group of related definitions) that can be used to 
-// create break-point functions. It contains three functions : 
+// bpf is an environment (a group of related definitions) that can be used to
+// create break-point functions. It contains three functions :
 //
 // * `start(x,y)` to start a break-point function
 // * `end(x,y)` to end a break-point function
@@ -768,7 +791,7 @@ with {
 // f = bpf.start(x0,y0) : bpf.end(x1,y1);
 // ```
 //
-// A more involved break-point function can contains any number of intermediate 
+// A more involved break-point function can contains any number of intermediate
 // points:
 //
 // ```
@@ -786,12 +809,12 @@ with {
 //
 // * `f(x) = y_{0}` when `x < x_{0}`
 // * `f(x) = y_{n}` when `x > x_{n}`
-// * `f(x) = y_{i} + (y_{i+1}-y_{i})*(x-x_{i})/(x_{i+1}-x_{i})` when `x_{i} <= x` 
+// * `f(x) = y_{i} + (y_{i+1}-y_{i})*(x-x_{i})/(x_{i+1}-x_{i})` when `x_{i} <= x`
 // and `x < x_{i+1}`
 //
 // `bpf` is a standard Faust function.
 //--------------------------------------------------------
-bpf = environment 
+bpf = environment
 {
   // Start a break-point function
   start(x0,y0) = \(x).(x0,y0,x,y0);

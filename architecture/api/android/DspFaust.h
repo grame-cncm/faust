@@ -56,7 +56,7 @@ public:
 	//--------`long keyOn(int pitch, int velocity)`-----------
 	// Instantiate a new polyphonic voice. This method can
 	// only be used if the `[style:poly]` metadata is used in
-	// the Faust code or if the `-polyvoices` flag has been
+	// the Faust code or if the `-nvoices` flag has been
 	// provided before compilation.
 	//
 	// `keyOn` will return 0 if the Faust object is not
@@ -76,7 +76,7 @@ public:
 	//----------------`int keyOff(int pitch)`-----------------
 	// De-instantiate a polyphonic voice. This method can
 	// only be used if the `[style:poly]` metadata is used in
-	// the Faust code or if the `-polyvoices` flag has been
+	// the Faust code or if the `-nvoices` flag has been
 	// provided before compilation.
 	//
 	// `keyOff` will return 0 if the object is not polyphonic
@@ -95,7 +95,7 @@ public:
 	// the Faust code or if `-polyvoices` flag has been
 	// provided before compilation.
 	//
-	// `keyOn` will return 0 if the Faust object is not
+	// `newVoice` will return 0 if the Faust object is not
 	// polyphonic or the address to the allocated voice as
 	// a `long` otherwise. This value can be used later with
 	// `setVoiceParamValue`, `getVoiceParamValue` or

@@ -58,10 +58,10 @@ echoHelp ()
 while [ $1 ]
 do
 	p=$1
-	
+
     if [ $p = "-help" ]; then
 		echoHelp
-		exit
+		exit 0
     elif [[ -f "$p" ]]; then
 		FILE="$p"
     elif [ $p = "-android" ]; then
@@ -84,7 +84,7 @@ do
 		else
 			echo "No file specified after -effect"
 			echoHelp
-			exit
+			exit 1
 		fi
     elif [ $p = "-nvoices" ]; then
 		shift
@@ -94,14 +94,14 @@ do
     else
 		echo "$p wrong argument"
 		echoHelp
-		exit
+		exit 1
     fi
 	shift
 done
 
 if [ -z $FILE ]; then
     echo "Please, provide a Faust file to process"
-    exit
+    exit 1
 fi
 
 ###################################
@@ -140,10 +140,10 @@ if [ $REUSE -eq 0 ] || [ ! -d "$BUILDDIR" ]; then
 		if [ $ANDROID -eq 1 ]; then
 			echo "Creating a new Android project in $BUILDDIR" > $LOG
 			cp -r $FAUSTLIB/smartKeyboard/android/* "$BUILDDIR"
-			
+
 			# change 'faust' with real *APPNAME
 			PLATFORM=$(uname)
-			
+
 			if [ $PLATFORM = "Darwin" ]; then
 				sed -i '' 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $BUILDDIR/app/build.gradle
 				sed -i '' 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/java/com/ccrma/faust/*
@@ -161,7 +161,7 @@ if [ $REUSE -eq 0 ] || [ ! -d "$BUILDDIR" ]; then
 		elif [ $IOS -eq 1 ]; then
 			echo "Creating a new iOS project in $BUILDDIR" > $LOG
 			cp -r $FAUSTLIB/smartKeyboard/iOS/* "$BUILDDIR"
-			
+
 			sed -i '' 's,$(TARGET_NAME),'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
 			sed -i '' 's,ccrma.Faust,ccrma.'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
 		fi
@@ -210,15 +210,15 @@ if [ $SOURCE -eq 0 ]; then
 		echo "Starting Android compilation" > $LOG
 		cd $BUILDDIR
 		./gradlew assembleRelease > $LOG
-		cd ..		
+		cd ..
 		cp -r $BUILDDIR/app/build/outputs/apk/app-release.apk $APPNAME.apk > $LOG
 		echo "An Android app \"$APPNAME.apk\" was created in the current folder"
 	elif [ $IOS -eq 1 ]; then
 		echo "Starting iOS compilation" > $LOG
 		(
-			xcodebuild -project "$BUILDDIR/Faust.xcodeproj" -target Faust PRODUCT_NAME=$APPNAME 
+			xcodebuild -project "$BUILDDIR/Faust.xcodeproj" -target Faust PRODUCT_NAME=$APPNAME
 			cd "$BUILDDIR" && xcodebuild -scheme Faust PRODUCT_NAME=$APPNAME
-		)  > $LOG || exit
+		)  > $LOG || exit 1
 		rm -rf "$APPNAME.app"
     	mv "$BUILDDIR/build/Release-iphoneos/$APPNAME.app" .
 		echo "An iOS app \"$APPNAME.app\" was created in the current folder"
