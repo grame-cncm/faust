@@ -26,7 +26,10 @@
 #include <math.h>
 #include <algorithm>
 
+#if JUCE_WINDOWS
 #define JUCE_CORE_INCLUDE_NATIVE_HEADERS 1
+#endif
+
 #include "JuceLibraryCode/JuceHeader.h"
 
 #include "faust/gui/MapUI.h"
