@@ -25,16 +25,18 @@ POLY="POLY"
 DEPLOY=""
 EFFECT=""
 NVOICES=-1
+SOUNDFILE=""
 
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2caqt [-httpd] [-qrcode] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-debug] <file.dsp>"
+        echo "faust2caqt [-httpd] [-qrcode] [-soundfile <path>] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-debug] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
+        echo "Use '-soundfile <path>' to activate soundfile Player connected to DSP"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
@@ -52,6 +54,13 @@ do
         NVOICES=$1
         if [ $NVOICES -ge 0 ]; then
             CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        fi
+    elif [ $p = "-soundfile" ]; then
+        shift
+        SOUNDFILE=$1
+        if [ $SOUNDFILE != "" ]; then
+            ARCHLIB="$ARCHLIB `pkg-config --cflags --static --libs sndfile`"
+            CXXFLAGS="$CXXFLAGS -DSOUND_FILE=$SOUNDFILE"
         fi
     elif [ $p = "-effect" ]; then
         POLYDEFS="DEFINES += POLY2"
