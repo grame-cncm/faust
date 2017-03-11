@@ -37,6 +37,7 @@
 #include <string.h>
 #include <stdlib.h> 
 #include <string> 
+#include <iostream>
 
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/APIUI.h"
@@ -148,7 +149,7 @@ struct dsp_aux {
             fDSP = fFactory->createDSPInstance();
             createJSON(name_app);
         } else {
-            throw -1;
+            throw std::bad_alloc();
         }
     }
 #else
@@ -358,7 +359,7 @@ extern "C"
         try {
             return reinterpret_cast<dsp*>(new dsp_aux(name_app, dsp_content, argv, target, opt_level));
         } catch (...) {
-            printf("Cannot create DSP\n");
+            cerr << "Cannot create DSP\n";
         }
     #endif
         return 0;

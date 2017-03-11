@@ -31,7 +31,6 @@
 #include <iostream>
 #include <algorithm>
 #include <sstream>
-//#include <assert.h>
 #include <stdio.h>
 
 #include "binop.hh"

@@ -74,6 +74,9 @@ int main(int argc, char *argv[])
     bool is_interp = isopt(argv, "-interp");
     bool is_poly = isopt(argv, "-poly");
     
+    bool midi_sync = false;
+    int nvoices = 8;
+    
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
         std::cout << "dynamic-jack-gtk [-llvm/interp] [-poly] <compiler-options> foo.dsp" << std::endl;
         exit(EXIT_FAILURE);
@@ -117,8 +120,9 @@ int main(int argc, char *argv[])
     }
     
     if (is_poly) {
-        std::cout << "Starting polyphonic mode" << std::endl;
-        DSP = new mydsp_poly(DSP, 8, true);
+        MidiMeta::analyse(DSP, midi_sync, nvoices);
+        std::cout << "Starting polyphonic mode nvoices : " << nvoices << std::endl;
+        DSP = new mydsp_poly(DSP, nvoices, true);
     }
 
     char name[256];

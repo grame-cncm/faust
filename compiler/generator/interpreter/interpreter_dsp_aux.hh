@@ -688,7 +688,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->fComputeBlock = 0;
             this->fComputeDSPBlock = 0;
         #ifdef INTERPRETER_TRACE
-             this->fInitialized = false;
+            this->fInitialized = false;
         #endif
         }
     
