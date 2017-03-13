@@ -98,7 +98,7 @@ excitation(0,11) = 57.063034 / 10;
 //nonlinear filter order
 nlfOrder = 6; 
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib 
+//nonLinearModultor is declared in instruments.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
 NLFM =  nonLinearModulator((nonLinearity : si.smoo),1,freq,
 typeModulation,(frequencyMod : si.smoo),nlfOrder);
@@ -120,7 +120,7 @@ delayLength(x) = delayLengthBase/modes(preset,x);
 //delay lines
 delayLine(x) = de.delay(4096,delayLength(x));
 
-//Filter bank: bandpass filters (declared in instrument.lib)
+//Filter bank: bandpass filters (declared in instruments.lib)
 radius = 1 - ma.PI*32/ma.SR;
 bandPassFilter(x) = bandPass(freq*modes(preset,x),radius);
 
@@ -133,13 +133,13 @@ velocityInput = velocityInputApp + _*baseGainApp,par(i,(nModes-1),(_*baseGainApp
 maxVelocity = 0.03 + 0.1*gain;
 bowVelocity = maxVelocity*en.adsr(0.02,0.005,100,0.01,gate);
 
-//stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
+//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(delayLengthBase);
 
 //----------------------- Algorithm implementation ----------------------------
 
-//Bow table lookup (bow is decalred in instrument.lib)
+//Bow table lookup (bow is decalred in instruments.lib)
 bowing = bowVelocity - velocityInput <: *(bow(tableOffset,tableSlope)) : /(nModes);
 
 //One resonance

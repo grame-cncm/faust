@@ -33,7 +33,7 @@ frequencyMod = hslider("v:Nonlinear_Filter_Parameters/Modulation_Frequency
 //nonlinear filter order
 nlfOrder = 6; 
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib 
+//nonLinearModultor is declared in instruments.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
 NLFM =  nonLinearModulator((nonLinearity : si.smoo),1,freq,
      typeModulation,(frequencyMod : si.smoo),nlfOrder);
@@ -43,7 +43,7 @@ NLFM =  nonLinearModulator((nonLinearity : si.smoo),1,freq,
 //delay length in number of samples
 delayLength = float(ma.SR)/freq;
 
-//stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
+//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(delayLength);
 
@@ -51,14 +51,14 @@ stereo = stereoizer(delayLength);
 excitation = asympT60(-0.5,-0.985,0.02,gate),no.noise*asympT60(gain,0,touchLength,gate) : 
 	   onePoleSwep : excitationFilter : excitationFilter
 	   with{
-		//the exitation filter is a one pole filter (declared in instrument.lib)
+		//the exitation filter is a one pole filter (declared in instruments.lib)
 		excitationFilter = onePole(0.035,-0.965);
 	   };
 
-//the bodyfilter is a bandpass filter (declared in instrument.lib)
+//the bodyfilter is a bandpass filter (declared in instruments.lib)
 bodyFilter = bandPass(108,0.997);
 
-//the reflexion filter is pole zero filter (declared in instrument.lib) whose coefficients are 
+//the reflexion filter is pole zero filter (declared in instruments.lib) whose coefficients are 
 //modulated in function of the tone being played
 reflexionFilter = poleZero(b0,b1,a1)
 	   with{

@@ -42,11 +42,11 @@ noiseEnvelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/No
 
 //----------------------- Synthesis parameters computing and functions declaration ----------------------------
 
-//stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
+//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(ma.SR/freq);
 
-//exitation filters (declared in instrument.lib)
+//exitation filters (declared in instruments.lib)
 onePoleFilter = onePole(b0,a1)
 	with{
 		pole = 0.97 - (gain*0.2);
@@ -105,7 +105,7 @@ filter3 = formSwep(ffreq3,frad3,fgain3);
 
 //----------------------- Algorithm implementation ----------------------------
 
-//envelopes (declared in instrument.lib) and vibrato
+//envelopes (declared in instruments.lib) and vibrato
 vibratoEnvelope = envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate);
 voicedEnvelope = en.asr(voicedEnvelopeAttack,100,voicedEnvelopeRelease,gate);
 noiseEnvelope = en.asr(noiseEnvelopeAttack,100,noiseEnvelopeRelease,gate);
