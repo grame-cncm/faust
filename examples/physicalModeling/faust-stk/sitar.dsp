@@ -19,7 +19,7 @@ resonance = hslider("v:Physical_Parameters/Resonance
 
 //==================== SIGNAL PROCESSING ================
 
-//stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
+//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(ma.SR/freq);
 
@@ -35,7 +35,7 @@ delayLine = de.delay(4096,delayLength);
 loopGain = 0.895 + resonance + (freq*0.0000005);
 amGain = 0.1*gain;
 
-//feedback filter is a one zero (declared in instrument.lib)
+//feedback filter is a one zero (declared in instruments.lib)
 filter = oneZero1(b0,b1)
 	with{
 		zero = 0.01;

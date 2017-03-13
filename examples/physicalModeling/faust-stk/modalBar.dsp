@@ -57,14 +57,14 @@ vibratoGain = hslider("h:Envelopes_and_Vibrato/v:Vibrato_Parameters/Vibrato_Gain
 //nonlinear filter order
 nlfOrder = 6;
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib
+//nonLinearModultor is declared in instruments.lib, it adapts allpassnn from miscfilter.lib
 //for using it with waveguide instruments
 NLFM =  nonLinearModulator((nonLinearity : si.smoo),1,freq,
      typeModulation,(frequencyMod : si.smoo),nlfOrder);
 
 //----------------------- Synthesis parameters computing and functions declaration ----------------------------
 
-//stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of
+//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of
 //the frequency period in number of samples
 stereo = stereoizer(ma.SR/freq);
 
@@ -92,7 +92,7 @@ biquadBank = _ <: sum(i, 4, oneFilter(i))
 						y*(loadPreset(presetNumber,2,j) : si.smoo) : bandPassH;
 	};
 
-//one pole filter with pole set at 0.9 for pre-filtering, onePole is declared in instrument.lib
+//one pole filter with pole set at 0.9 for pre-filtering, onePole is declared in instruments.lib
 sourceFilter = onePole(b0,a1)
 	with{
 		b0 = 1 - 0.9;
@@ -102,7 +102,7 @@ sourceFilter = onePole(b0,a1)
 //excitation signal
 excitation = counterSamples < (marmstk1TableSize*rate) : *(marmstk1Wave*gate)
 	   with{
-		//readMarmstk1 and marmstk1TableSize are both declared in instrument.lib
+		//readMarmstk1 and marmstk1TableSize are both declared in instruments.lib
 		marmstk1 = ba.time%marmstk1TableSize : int : readMarmstk1;
 
 		dataRate(readRate) = readRate : (+ : ma.decimal) ~ _ : *(float(marmstk1TableSize));

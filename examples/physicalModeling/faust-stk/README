@@ -70,7 +70,7 @@ OTHER
 3/ Organisation of the distribution and remarks
 -----------------------------------------------
 
-Most of the instruments implemented in the FAUST-STK use functions declared in instrument.lib so
+Most of the instruments implemented in the FAUST-STK use functions declared in instruments.lib so
 this file is required for compilation. Also, a few instruments use datas that are stored in external
 C++ functions (.h).
 
