@@ -63,10 +63,10 @@ env2Release = hslider("h:Envelopes_and_Vibrato/v:Global_Envelope_Parameters/Glob
 //nonlinear filter order
 nlfOrder = 6; 
 
-//attack - sustain - release envelope for nonlinearity (declared in instrument.lib)
+//attack - sustain - release envelope for nonlinearity (declared in instruments.lib)
 envelopeMod = en.asr(nonLinAttack,100,0.1,gate);
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib 
+//nonLinearModultor is declared in instruments.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
 NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
      typeModulation,(frequencyMod : si.smoo),nlfOrder);
@@ -89,7 +89,7 @@ poly = _ <: _ - _*_*_;
 //jet filter is a lowpass filter (declared in miscfilter.lib)
 reflexionFilter = fi.lowpass(1,2000);
 
-//stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
+//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(ma.SR/freq);
 
@@ -110,7 +110,7 @@ breath = no.noise*env1;
 
 flow = env1 + breath*breathAmp + vibrato;
 
-//instrReverb is declared in instrument.lib
+//instrReverb is declared in instruments.lib
 process = (_ <: (flow + *(feedBack1) : embouchureDelay : poly) + *(feedBack2) : reflexionFilter)~(boreDelay : NLFM) : *(env2)*gain : 
 stereo : instrReverb;
 

@@ -31,7 +31,7 @@ frequencyMod = hslider("h:Physical_and_Nonlinearity/v:Nonlinear_Filter_Parameter
 //nonlinear filter order
 nlfOrder = 6; 
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib 
+//nonLinearModultor is declared in instruments.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
 NLFM =  nonLinearModulator((nonLinearity : si.smoo),1,freq,
      typeModulation,(frequencyMod : si.smoo),nlfOrder);
@@ -70,7 +70,7 @@ loopFilter = fi.TF2(b0,b1,b2,a1,a2)
 //delay length as a number of samples
 delayLength = ma.SR/freq;
 
-//stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
+//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(delayLength);
 

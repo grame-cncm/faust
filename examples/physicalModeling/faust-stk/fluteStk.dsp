@@ -59,10 +59,10 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 //nonlinear filter order
 nlfOrder = 6; 
 
-//attack - sustain - release envelope for nonlinearity (declared in instrument.lib)
+//attack - sustain - release envelope for nonlinearity (declared in instruments.lib)
 envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib 
+//nonLinearModultor is declared in instruments.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
 NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
      typeModulation,(frequencyMod : si.smoo),nlfOrder);
@@ -81,7 +81,7 @@ boreDelayLength = ma.SR/(freq*2)-2; //original function for bore delay length
 //boreDelayLength = SR/(freq)-2; //corrected function for bore delay length
 filterPole = 0.7 - (0.1*22050/ma.SR);
 
-//One Pole Filter (declared in instrument.lib)
+//One Pole Filter (declared in instruments.lib)
 onePoleFilter = _*gain : onePole(b0,a1)
 	with{
 		gain = -1;
@@ -90,13 +90,13 @@ onePoleFilter = _*gain : onePole(b0,a1)
 		a1 = -pole;
 	};
 
-//stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
+//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(ma.SR/freq);
 
 //----------------------- Algorithm implementation ----------------------------
 
-//the vibrato amplitude is controled by an envelope generator (declared in instrument.lib)
+//the vibrato amplitude is controled by an envelope generator (declared in instruments.lib)
 vibrato = vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*os.osc(vibratoFreq);
 
 //Breath pressure is controlled by an Attack / Decay / Sustain / Release envelope

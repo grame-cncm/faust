@@ -79,10 +79,10 @@ loopfilter = dampingfilter2; // or dampingfilter1
 filtered_excitation = excitation : si.smooth(pickangle) 
 		    : pickposfilter;// : levelfilter(L,freq);
 
-//nonlinear allpass filter (nonLinearModulator is declared in instrument.lib)
+//nonlinear allpass filter (nonLinearModulator is declared in instruments.lib)
 NLFM =  nonLinearModulator(nonLinearity,1,freq,typeModulation,frequencyMod,nlfOrder);
 
-//declared in instrument.lib
+//declared in instruments.lib
 stereo = stereoizer(P);
 
 stringloop = (+ : de.fdelay4(Pmax, P-2)) ~ (loopfilter : NLFM);

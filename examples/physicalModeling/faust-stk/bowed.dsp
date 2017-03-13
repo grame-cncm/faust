@@ -57,12 +57,12 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 //nonlinear filter order
 nlfOrder = 6; 
 
-//attack - sustain - release envelope for nonlinearity (declared in instrument.lib)
+//attack - sustain - release envelope for nonlinearity (declared in instruments.lib)
 envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib 
+//nonLinearModultor is declared in instruments.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
-NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
+NLFM = nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
      typeModulation,(frequencyMod : si.smoo),nlfOrder);
 
 //----------------------- Synthesis parameters computing and functions declaration ----------------------------
@@ -71,7 +71,7 @@ NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
 tableOffset =  0;
 tableSlope = 5 - (4*bowPressure);
 
-//the bow table is declared in instrument.lib
+//the bow table is declared in instruments.lib
 bowTable = bow(tableOffset,tableSlope);
 
 //a attack - decay - sustain - release envelope is used 
@@ -87,10 +87,10 @@ neckDelay = de.fdelay(4096,vibrato);
 fdelbridge = (ma.SR/freq - 4)*betaRatio;
 bridgeDelay = de.delay(4096,fdelbridge);
 
-//Body Filter: a biquad filter with a normalized pick gain (declared in instrument.lib)
+//Body Filter: a biquad filter with a normalized pick gain (declared in instruments.lib)
 bodyFilter = bandPass(500,0.85);
 
-//String Filter: a lowpass filter (declared in instrument.lib)
+//String Filter: a lowpass filter (declared in instruments.lib)
 stringFilter = *(0.95) : -onePole(b0,a1)
 	with{
 		pole = 0.6 - (0.1*22050/ma.SR);
@@ -99,7 +99,7 @@ stringFilter = *(0.95) : -onePole(b0,a1)
 		a1 = -pole;	
 	};
 
-//stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
+//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(ma.SR/freq);
 

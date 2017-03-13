@@ -57,10 +57,10 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 //nonlinear filter order
 nlfOrder = 6; 
 
-//attack - sustain - release envelope for nonlinearity (declared in instrument.lib)
+//attack - sustain - release envelope for nonlinearity (declared in instruments.lib)
 envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib 
+//nonLinearModultor is declared in instruments.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
 NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
      typeModulation,(frequencyMod : si.smoo),nlfOrder);
@@ -71,7 +71,7 @@ NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
 reedTableOffset = 0.7;
 reedTableSlope = -0.44 + (0.26*reedStiffness);
 
-//the reed function is declared in instrument.lib
+//the reed function is declared in instruments.lib
 reedTable = reed(reedTableOffset,reedTableSlope);
 
 //delay line with a length adapted in function of the order of nonlinear filter
@@ -81,7 +81,7 @@ delayLine = de.fdelay(4096,delayLength);
 //one zero filter used as a allpass: pole is set to -1
 filter = oneZero0(0.5,0.5);
 
-//stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
+//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(ma.SR/freq);
 
