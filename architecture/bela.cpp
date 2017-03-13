@@ -120,11 +120,6 @@ enum EInputPin
   kNumInputPins
  };
 
-struct Meta
-{
-  virtual void declare(const char* key, const char* value) = 0;
-};
-
 /**************************************************************************************
 
   BelaWidget : object used by BelaUI to ensures the connection between an Bela parameter
