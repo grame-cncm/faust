@@ -1,8 +1,8 @@
 // Forward Deep Neural Net (DNN), any number of layers of any size each
 
-declare name 		"DNN";
-declare author 		"JOS";
-declare license 	"STK-4.3";
+declare name    "DNN";
+declare author  "JOS";
+declare license "STK-4.3";
 
 import("stdfaust.lib");
 

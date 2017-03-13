@@ -1,7 +1,5 @@
 declare name "wahPedal";
-declare version "0.0";
-declare author "JOS, revised by RM";
-declare description "Wah pedal application.";
+declare description "Demonstrate the Fourth-Order Wah pedal (similar to the Moog VCF)";
 
 import("stdfaust.lib");
 
