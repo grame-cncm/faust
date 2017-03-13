@@ -127,8 +127,8 @@ class dummy_audio : public audio {
             }
         }
 
-        virtual int get_buffer_size() { return 0; }
-        virtual int get_sample_rate() { return 0; }
+        virtual int get_buffer_size() { return fBufferSize; }
+        virtual int get_sample_rate() { return fSampleRate; }
     
 };
 					

@@ -1,5 +1,5 @@
-
 declare name "graphicEqLab";
+declare description "Signal generators through a filter bank with spectrum analysis display"
 
 import("stdfaust.lib");
 
