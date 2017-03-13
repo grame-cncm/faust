@@ -59,21 +59,21 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 //nonlinear filter order
 nlfOrder = 6; 
 
-//attack - sustain - release envelope for nonlinearity (declared in instrument.lib)
+//attack - sustain - release envelope for nonlinearity (declared in instruments.lib)
 envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib 
+//nonLinearModultor is declared in instruments.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
 NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
      typeModulation,(frequencyMod : si.smoo),nlfOrder);
 
 //----------------------- Synthesis parameters computing and functions declaration ----------------------------
 
-//lips are simulated by a biquad filter whose output is squared and hard-clipped, bandPassH and saturationPos are declared in instrument.lib
+//lips are simulated by a biquad filter whose output is squared and hard-clipped, bandPassH and saturationPos are declared in instruments.lib
 lipFilterFrequency = freq*pow(4,(2*lipTension)-1);
 lipFilter = *(0.03) : bandPassH(lipFilterFrequency,0.997) <: * : saturationPos;
 
-//stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
+//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(ma.SR/freq);
 

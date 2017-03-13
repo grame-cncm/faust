@@ -45,21 +45,21 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 //nonlinear filter order
 nlfOrder = 3; 
 
-//attack - sustain - release envelope for nonlinearity (declared in instrument.lib)
+//attack - sustain - release envelope for nonlinearity (declared in instruments.lib)
 envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib 
+//nonLinearModultor is declared in instruments.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
 NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
      typeModulation,(frequencyMod : si.smoo),nlfOrder);
 
 //----------------------- Algorithm implementation ----------------------------
 
-//stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
+//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(ma.SR/freq);
 
-//vibrato gain is controled by envVibrato (declared in instrument.LIB)
+//vibrato gain is controled by envVibrato (declared in instruments.lib)
 vibrato = os.osc(vibratoFreq)*vibratoGain*envVibrato(0.1*2*vibratoAttack,0.9*2*vibratoAttack,100,vibratoRelease,gate);
 
 //output gain is controled by an adsr envelope

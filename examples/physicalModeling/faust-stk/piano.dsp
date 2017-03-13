@@ -75,7 +75,7 @@ soundBoard = dryTapAmp*no.noise + pedalEnv*no.noise : *(0.5)
 //To model the exitation hammer, we filter the sound from the soundboard with a serie of 4 one pole filters
 //connected in serie  
 
-//onePole is declared in instrument.lib
+//onePole is declared in instruments.lib
 calcHammer = onePole((1-hammerPole)*hammerGain,-hammerPole)
 	with{
 		//filter gains and coefficients are stored in external C++ files
@@ -240,7 +240,7 @@ coupledStrings = (parallelStrings <: (_,(_+_ <: _,_),_ : _,_,(_ : couplingFilter
 		adder(w,x,y,z) = (y <: +(w),+(z)),x ;	
 	};
 
-//stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
+//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(ma.SR/freq);
 

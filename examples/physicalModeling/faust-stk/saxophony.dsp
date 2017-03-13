@@ -58,17 +58,17 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 //nonlinear filter order
 nlfOrder = 6; 
 
-//attack - sustain - release envelope for nonlinearity (declared in instrument.lib)
+//attack - sustain - release envelope for nonlinearity (declared in instruments.lib)
 envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
 
-//nonLinearModultor is declared in instrument.lib, it adapts allpassnn from miscfilter.lib 
+//nonLinearModultor is declared in instruments.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
 NLFM =  nonLinearModulator((nonLinearity : si.smoo),envelopeMod,freq,
      typeModulation,(frequencyMod : si.smoo),nlfOrder);
 
 //----------------------- Synthesis parameters computing and functions declaration ----------------------------
 
-//stereoizer is declared in instrument.lib and implement a stereo spacialisation in function of 
+//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(ma.SR/freq);
 
@@ -76,7 +76,7 @@ stereo = stereoizer(ma.SR/freq);
 reedTableOffset = 0.7;
 reedTableSlope = 0.1 + (0.4*reedStiffness);
 
-//the reed function is declared in instrument.lib
+//the reed function is declared in instruments.lib
 reedTable = reed(reedTableOffset,reedTableSlope);
 
 //Delay lines length in number of samples
@@ -87,15 +87,15 @@ fdel2 = (ma.SR/freq - 3)*blowPosition +1 ;
 delay1 = de.fdelay(4096,fdel1);
 delay2 = de.fdelay(4096,fdel2);
 
-//Breath pressure is controlled by an attack / sustain / release envelope (asr is declared in instrument.lib)
+//Breath pressure is controlled by an attack / sustain / release envelope (asr is declared in instruments.lib)
 envelope = (0.55+pressure*0.3)*en.asr(pressure*envelopeAttack,100,pressure*envelopeRelease,gate);
 breath = envelope + envelope*noiseGain*no.noise;
 
-//envVibrato is decalred in instrument.lib
+//envVibrato is decalred in instruments.lib
 vibrato = vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*osc(vibratoFreq);
 breathPressure = breath + breath*vibratoGain*os.osc(vibratoFreq);
 
-//Body filter is a one zero filter (declared in instrument.lib)
+//Body filter is a one zero filter (declared in instruments.lib)
 bodyFilter = *(gain) : oneZero1(b0,b1)
 	with{
 		gain = -0.95;
