@@ -1,7 +1,5 @@
 declare name "spectralTilt";
-declare version "0.0";
-declare author "JOS, revised by RM";
-declare description "A spectral tilt application";
+declare description "Demonstrate the Spectral Tilt effect on test signals";
 
 import("stdfaust.lib");
 

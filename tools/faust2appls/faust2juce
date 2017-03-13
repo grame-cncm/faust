@@ -121,56 +121,54 @@ for p in $FILES; do
     if [ $STANDALONE = "0" ]; then
         cp -r "$FAUSTLIB/juce/plugin" "$SRCDIR/$dspName/"
         # setting plugin name to match the dsp
-        sed -e "s/SUB_TYPE/$SUB_TYPE/g" "$dspName/plugin.jucer" >> "$dspName/$dspName-temp.jucer"
+        sed -e "s/SUB_TYPE/$SUB_TYPE/g" "$SRCDIR/$dspName/plugin.jucer" >> "$SRCDIR/$dspName/$dspName-temp.jucer"
     else
         cp -r "$FAUSTLIB/juce/standalone" "$SRCDIR/$dspName/"
         # setting project name to match the dsp
-        sed -e "s/ProjectTitle/$dspName/g" "$dspName/standalone.jucer" >> "$dspName/$dspName-temp.jucer"
+        sed -e "s/ProjectTitle/$dspName/g" "$SRCDIR/$dspName/standalone.jucer" >> "$SRCDIR/$dspName/$dspName-temp.jucer"
     fi
 
     # setting the preprocessing definitions
-    sed -e "s/PreProcDef/$DEF/g" "$dspName/$dspName-temp.jucer" >> "$dspName/$dspName-temp1.jucer"
-    sed -e "s/APPL_NAME/$dspName/g" "$dspName/$dspName-temp1.jucer" >> "$dspName/$dspName-temp2.jucer"
+    sed -e "s/PreProcDef/$DEF/g" "$SRCDIR/$dspName/$dspName-temp.jucer" >> "$SRCDIR/$dspName/$dspName-temp1.jucer"
+    sed -e "s/APPL_NAME/$dspName/g" "$SRCDIR/$dspName/$dspName-temp1.jucer" >> "$SRCDIR/$dspName/$dspName-temp2.jucer"
 
     # MIDI
-    sed -e "s/IS_MIDI/$IS_MIDI/g" "$dspName/$dspName-temp2.jucer" >> "$dspName/$dspName-temp3.jucer"
+    sed -e "s/IS_MIDI/$IS_MIDI/g" "$SRCDIR/$dspName/$dspName-temp2.jucer" >> "$SRCDIR/$dspName/$dspName-temp3.jucer"
 
     # SYNTH
-    sed -e "s/IS_SYNTH/$IS_SYNTH/g" "$dspName/$dspName-temp3.jucer" >> "$dspName/$dspName-temp4.jucer"
+    sed -e "s/IS_SYNTH/$IS_SYNTH/g" "$SRCDIR/$dspName/$dspName-temp3.jucer" >> "$SRCDIR/$dspName/$dspName-temp4.jucer"
 
     # FAUSTFLOAT
-    sed -e "s/FAUST_FLOAT/$FAUSTFLOAT/g" "$dspName/$dspName-temp4.jucer" >> "$dspName/$dspName-temp5.jucer"
+    sed -e "s/FAUST_FLOAT/$FAUSTFLOAT/g" "$SRCDIR/$dspName/$dspName-temp4.jucer" >> "$SRCDIR/$dspName/$dspName-temp5.jucer"
 
     # possibly set NVOICES value
     if [ $NVOICES -ge 0 ]; then
-        sed -e "s/NUM_VOICES/$NVOICES/g" "$dspName/$dspName-temp5.jucer" >> "$dspName/$dspName.jucer"
+        sed -e "s/NUM_VOICES/$NVOICES/g" "$SRCDIR/$dspName/$dspName-temp5.jucer" >> "$SRCDIR/$dspName/$dspName.jucer"
     else
-        cp  "$dspName/$dspName-temp5.jucer" "$dspName/$dspName.jucer"
+        cp  "$SRCDIR/$dspName/$dspName-temp5.jucer" "$SRCDIR/$dspName/$dspName.jucer"
     fi
 
     # standalone of plugin mode
     if [ $STANDALONE = "0" ]; then
-        rm "$dspName/plugin.jucer"
+        rm "$SRCDIR/$dspName/plugin.jucer"
     else
-        rm "$dspName/standalone.jucer"
+        rm "$SRCDIR/$dspName/standalone.jucer"
     fi
 
-    rm "$dspName/$dspName-temp.jucer" "$dspName/$dspName-temp1.jucer"  "$dspName/$dspName-temp2.jucer"
-    rm "$dspName/$dspName-temp3.jucer" "$dspName/$dspName-temp4.jucer" "$dspName/$dspName-temp5.jucer"
+    rm "$SRCDIR/$dspName/$dspName-temp.jucer" "$SRCDIR/$dspName/$dspName-temp1.jucer"  "$SRCDIR/$dspName/$dspName-temp2.jucer"
+    rm "$SRCDIR/$dspName/$dspName-temp3.jucer" "$SRCDIR/$dspName/$dspName-temp4.jucer" "$SRCDIR/$dspName/$dspName-temp5.jucer"
 
     # standalone of plugin mode
     if [ $STANDALONE = "0" ]; then
-        faust -i -a $ARCHFILEPLUGIN $OPTIONS "$SRCDIR/$f" -o "$dspName/FaustPluginProcessor.cpp" || exit
+        faust -i -a $ARCHFILEPLUGIN $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
         if [ $POLY = "POLY2" ]; then
-            faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$dspName/dsp_effect.cpp" || exit
+            faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$SRCDIR/$dspName/dsp_effect.cpp" || exit
         fi
     else
-        faust -i -a $ARCHFILESTANDALONE $OPTIONS "$SRCDIR/$f" -o "$dspName/FaustAudioApplication.cpp" || exit
+        faust -i -a $ARCHFILESTANDALONE $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
         if [ $POLY = "POLY2" ]; then
-            faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$dspName/dsp_effect.cpp" || exit
+            faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$SRCDIR/$dspName/dsp_effect.cpp" || exit
         fi
     fi
 
 done
-
-
