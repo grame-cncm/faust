@@ -1,4 +1,5 @@
 declare name "parametricEqLab";
+declare description "Demonstrate the Parametric Equalizer sections on test signals with spectrum analysis display"
 
 import("stdfaust.lib");
 
