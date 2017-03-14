@@ -16,8 +16,8 @@ process = seq(m, M-1, layer(m))
 // look at weights:
 // process = par(m,M,par(n,N(m),par(k,N(m),w(m,n,k))))
 with {
-  layer(m) = weights(m) :> nonlinearities(m+1);
-  nonlinearities(m) = bus(N(m-1)*N(m)) :> par(n,N(m),nl(n));
+  layer(m) = weights(m) :> nonlinearities(m);
+  nonlinearities(m) = bus(N(m)*N(m+1)) :> par(n,N(m+1),nl(n));
   weights(m) = bus(N(m)) <: par(n,N(m),(bus(N(m+1))<:wts(m,n)));
   wts(m,n) = bus(N(m+1)) : par(k,N(m+1),*(w(m,n,k)));
   nl(n,x) = x * (x>0); // ReLU
