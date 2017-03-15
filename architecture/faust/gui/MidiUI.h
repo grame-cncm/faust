@@ -83,7 +83,7 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string>
     #else
         MidiMeta meta;
         tmp_dsp->metadata(&meta);
-        std::string numVoices = meta.get("nvoices", "0");
+        std::string numVoices = meta.get("nvoices", "1");
         nvoices = atoi(numVoices.c_str());
         if (nvoices < 0) nvoices = 0;
     #endif
