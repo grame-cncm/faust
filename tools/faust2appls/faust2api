@@ -71,12 +71,13 @@ do
 		shift
 		NVOICES=$1
     elif [ $p = "-package" ]; then
-	PACKAGENAME="-1"
+        PACKAGENAME="-1"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
     else
-	echoHelp
-	exit 1
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -105,32 +106,32 @@ if [ $ANDROID -eq 1 ]; then
     mkdir $JAVAFOLDER
     cp -r /usr/local/share/faust/api/android/jni/*.java $JAVAFOLDER
     if [ -n "$PACKAGENAME" ]; then
-	PACKAGENAME="$PACKAGENAME.DspFaust"
-	sed -i "s/com.DspFaust/$PACKAGENAME/g" $JAVAFOLDER/*.java
+        PACKAGENAME="$PACKAGENAME.DspFaust"
+        sed -i "s/com.DspFaust/$PACKAGENAME/g" $JAVAFOLDER/*.java
     fi
     cp -r /usr/local/share/faust/api/android/DspFaust.h $CPPFOLDER
     cp -r /usr/local/share/faust/api/android/jni/java_interface_wrap.cpp $CPPFOLDER
-    faust -i -a api/android/DspFaust.cpp "$FILE" -o "$CPPFOLDER/DspFaust.cpp" || exit 1
+    faust -i -a api/android/DspFaust.cpp $OPTIONS "$FILE" -o "$CPPFOLDER/DspFaust.cpp" || exit 1
     if [ "$POLY2" = "1" ]; then
-	faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp" || exit 1
-	echo "#define POLY2 1" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
+        faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp" || exit 1
+        echo "#define POLY2 1" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
     fi
     if [ "$NVOICES" -gt "0" ]; then
-	echo "#define NVOICES $NVOICES" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
+        echo "#define NVOICES $NVOICES" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
     fi
 elif [ $IOS -eq 1 ]; then
     echo "Your dsp-faust.zip API package for iOS is being created"
     cp -r /usr/local/share/faust/api/iOS/DspFaust.h $APIFOLDER
-    faust -i -a api/iOS/DspFaust.cpp "$FILE" -o "$APIFOLDER/DspFaust.cpp" || exit 1
+    faust -i -a api/iOS/DspFaust.cpp $OPTIONS "$FILE" -o "$APIFOLDER/DspFaust.cpp" || exit 1
     if [ "$POLY2" = "1" ]; then
-	faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp" || exit 1
-	echo "#define POLY2 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+        faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp" || exit 1
+        echo "#define POLY2 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
     if [ "$NVOICES" -gt "0" ]; then
-	echo "#define NVOICES $NVOICES" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+        echo "#define NVOICES $NVOICES" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
     if [ "$MIDI" = "1" ]; then
-	echo "#define IOS_MIDI_SUPPORT 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+        echo "#define IOS_MIDI_SUPPORT 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
 else
     echoHelp
