@@ -71,7 +71,7 @@ smoothEnvelope(ar,t) = t : si.smooth(ba.tau2pole(ar));
 // `ar` is a standard Faust function.
 //
 // #### Usage
-// 
+//
 // ```
 // ar(a,r,t) : _
 // ```
@@ -82,7 +82,7 @@ smoothEnvelope(ar,t) = t : si.smooth(ba.tau2pole(ar));
 // * `r`: release (sec)
 // * `t`: trigger signal (0 or 1)
 //-----------------------------------------------------
-ar(a,r,t) = ba.countup(attTime+relTime,on) : ba.bpf.start(0,0) : 
+ar(a,r,t) = ba.countup(attTime+relTime,on) : ba.bpf.start(0,0) :
 	ba.bpf.point(attTime,1) : ba.bpf.end(attTime+relTime,0)
 with{
 	on = (t-t')==1;
@@ -103,7 +103,7 @@ with{
 //
 // Where:
 //
-// * `a`, `s`, `r`: attack (sec), sustain (fraction of g), release (sec)
+// * `a`, `s`, `r`: attack (sec), sustain (percentage of g), release (sec)
 // * `g`: trigger signal ( >0 for attack, then release is when g back to 0)
 //-----------------------------------------------------
 // TODO: author RM
@@ -114,7 +114,7 @@ with{
 	attTime = ma.SR*a;
 	relTime = ma.SR*r;
 	sustainGain = t*s*0.01;
-	as = ba.countup(attTime,off) : ba.bpf.start(0,0) : 
+	as = ba.countup(attTime,off) : ba.bpf.start(0,0) :
 		ba.bpf.end(attTime,sustainGain);
 	rel = _,ba.countup(relTime,on) : ba.bpf.start(0) : ba.bpf.end(relTime,0);
 };
@@ -131,7 +131,7 @@ with{
 //
 // Where:
 //
-// * `a`, `d`, `s`, `r`: attack (sec), decay (sec), sustain (fraction of g), release (sec)
+// * `a`, `d`, `s`, `r`: attack (sec), decay (sec), sustain (percentage of g), release (sec)
 // * `g`: gate signal ( >0 for attack, then release is when g back to 0)
 //-----------------------------------------------------
 // TODO: author RM
@@ -143,7 +143,7 @@ with{
 	decTime = ma.SR*d;
 	relTime = ma.SR*r;
 	sustainGain = t*s*0.01;
-	ads = ba.countup(attTime+decTime,off) : ba.bpf.start(0,0) : 
+	ads = ba.countup(attTime+decTime,off) : ba.bpf.start(0,0) :
 		ba.bpf.point(attTime,1) : ba.bpf.end(attTime+decTime,sustainGain);
 	rel = _,ba.countup(relTime,on) : ba.bpf.start(0) : ba.bpf.end(relTime,0);
 };
@@ -173,7 +173,7 @@ with {
 */
 
 ////////////////////////////////////////////////////////
-// UNDOCUMENTED/DISMISSED ELEMENTS 
+// UNDOCUMENTED/DISMISSED ELEMENTS
 ////////////////////////////////////////////////////////
 
 // end GRAME section
@@ -201,17 +201,18 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 //
 // Where:
 //
-// * `a`, `d`, `s`, `r`: attack (sec), decay (sec), sustain (fraction of g), release (sec)
+// * `a`, `d`, `s`, `r`: attack (sec), decay (sec), sustain (percentage of g), release (sec)
 // * `g`: gate signal ( >0 for attack, then release is when g back to 0)
 //-----------------------------------------------------
 // Author: JOS
 // License: STK-4.3
 adsre(attT60,decT60,susLvl,relT60,gate) = envelope with {
-  ugate = gate>0; // make sure 0 or 1
-  samps = ugate : +~(*(ugate)); // time ramp
+  ugate = gate>0;
+  samps = ugate : +~(*(ugate)); // time ramp in samples
   attSamps = attT60 * ma.SR;
-  target = select2(gate, 0.0, select2(samps<attSamps, susLvl*gate, gate));
-  t60 = select2(gate, relT60, select2(samps<attSamps, decT60, attT60));
+  target = select2(ugate, 0.0,
+           select2(samps<attSamps, (0.01*susLvl)*float(ugate), ugate));
+  t60 = select2(ugate, relT60, select2(samps<attSamps, decT60, attT60));
   pole = ba.tau2pole(t60/6.91);
   envelope = target : si.smooth(pole);
 };
