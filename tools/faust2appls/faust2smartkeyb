@@ -91,12 +91,14 @@ do
 		NVOICES=$1
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
     else
-		echo "$p wrong argument"
-		echoHelp
-		exit 1
+        OPTIONS="$OPTIONS $p"
     fi
-	shift
+
+shift
+
 done
 
 if [ -z $FILE ]; then
@@ -175,10 +177,10 @@ fi
 if [ $ANDROID -eq 1 ]; then
 	if [ -z "$EFFECT" ]; then # no effect
 		echo "Adding DSP with no effect chain to the app" > $LOG
-		faust2api -android -nvoices "$NVOICES" -nodoc "$FILE" > $LOG
+		faust2api -android -nvoices "$NVOICES" -nodoc $OPTIONS "$FILE" > $LOG
 	else
 		echo "Adding DSP with effect chain to the app" > $LOG
-		faust2api -android -nvoices "$NVOICES" -effect "$EFFECT" -nodoc "$FILE" > $LOG
+		faust2api -android -nvoices "$NVOICES" -effect "$EFFECT" -nodoc $OPTIONS "$FILE" > $LOG
 	fi
 	unzip "dsp-faust.zip" > $LOG
 	mv "dsp-faust" "$BUILDDIR"
@@ -189,10 +191,10 @@ if [ $ANDROID -eq 1 ]; then
 elif [ $IOS -eq 1 ]; then
 	if [ -z "$EFFECT" ]; then # no effect
 		echo "Adding DSP with no effect chain to the app" > $LOG
-		faust2api -ios -midi -nvoices "$NVOICES" -nodoc "$FILE" > $LOG
+		faust2api -ios -midi -nvoices "$NVOICES" -nodoc $OPTIONS "$FILE" > $LOG
 	else
 		echo "Adding DSP with effect chain to the app" > $LOG
-		faust2api -ios -midi -nvoices "$NVOICES" -effect "$EFFECT" -nodoc "$FILE" > $LOG
+		faust2api -ios -midi -nvoices "$NVOICES" -effect "$EFFECT" -nodoc $OPTIONS "$FILE" > $LOG
 	fi
 	unzip "dsp-faust.zip" > $LOG
 	mv "dsp-faust" "$BUILDDIR"
