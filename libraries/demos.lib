@@ -52,6 +52,7 @@ co = library("compressors.lib");
 ve = library("vaeffects.lib");
 pf = library("phaflangers.lib");
 re = library("reverbs.lib");
+en = library("envelopes.lib");
 
 //########################################################################################
 /************************************************************************
@@ -956,23 +957,27 @@ with{
 	c = 0.5 * os.oscrs(5*f); // sample 5 times per period
 };
 
-//-------------------------- `adsr_demo` ---------------------------
-// Illustrate ADSR envelopes
+
+//-------------------------- `envelopes_demo` ---------------------------
+// Illustrate various envelopes overlaid
 //
 // #### Usage
 //
 // ```
-// echo 'import("stdfaust.lib");' > adsr_demo.dsp
-// echo 'process = dm.adsr_demo;' >> adsr_demo.dsp
-// faust2octave adsr_demo.dsp
+// echo 'import("stdfaust.lib");' > envelopes_demo.dsp
+// echo 'process = dm.envelopes_demo;' >> envelopes_demo.dsp
+// faust2octave envelopes_demo.dsp
 // Octave:1> plot(faustout);
 // ```
 //-------------------------------------------------------------------
-adsr_demo = gate <: _,env1,env2 // plot(faustout) after faust2octave
+envelopes_demo = gate <: _,envSE,envAR,envASR,envADSR,envADSRE
 with{
-	gate = (1-(1@500)) + (1@1000-(1@1500)); // retrigger
-	env1 = en.adsr(attSec,decT60,susLvl,relT60);
-	env2 = en.adsre(attSec,decT60,susLvl,relT60);
+	gate = (1-(1@500)) + 0.5*(1@750-(1@1700)); // retrigger at 1/2 amp
+	envSE    = en.smoothEnvelope(attSec);
+	envAR    = en.ar(attSec,relT60);
+	envASR   = en.asr(attSec,susLvl,relT60);
+	envADSR  = en.adsr(attSec,decT60,susLvl,relT60);
+	envADSRE = en.adsre(attSec,decT60,susLvl,relT60);
 	attSec=0.002; //  2 ms attack time
 	decT60=0.010; // 10 ms decay-to-sustain time
 	susLvl=80.0;  // Sustain level = 0.8
