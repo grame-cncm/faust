@@ -209,7 +209,7 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 adsre(attT60,decT60,susLvl,relT60,gate) = envelope with {
   ugate = gate>0;
   samps = ugate : +~(*(ugate)); // time ramp in samples
-  attSamps = attT60 * ma.SR;
+  attSamps = int(attT60 * ma.SR);
   target = select2(ugate, 0.0,
            select2(samps<attSamps, (0.01*susLvl)*float(ugate), ugate));
   t60 = select2(ugate, relT60, select2(samps<attSamps, decT60, attT60));
