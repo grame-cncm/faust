@@ -131,7 +131,7 @@ with{
 //
 // Where:
 //
-// * `a`, `d`, `s`, `r`: attack (sec), decay (sec), sustain (percentage of g), release (sec)
+// * `a`, `d`, `s`, `r`: attack (sec), decay (sec), sustain level (percentage of max), release (sec)
 // * `g`: gate signal ( >0 for attack, then release is when g back to 0)
 //-----------------------------------------------------
 // TODO: author RM
@@ -201,7 +201,7 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 //
 // Where:
 //
-// * `a`, `d`, `s`, `r`: attack (sec), decay (sec), sustain (percentage of g), release (sec)
+// * `a`, `d`, `s`, `r`: attack (sec), decay (sec), sustain level (percentage of max), release (sec)
 // * `g`: gate signal ( >0 for attack, then release is when g back to 0)
 //-----------------------------------------------------
 // Author: JOS
