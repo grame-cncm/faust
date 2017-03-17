@@ -108,7 +108,7 @@ faust.mydsp = function (buffer_size, sample_rate) {
     var dsp = dsp_start;
  
     // ASM module
-    var factory = mydspModule(window, null, HEAP);
+    var factory = mydspModule(window, window.Math, HEAP);
     //console.log(factory);
  
     var pathTable = getPathTablemydsp();

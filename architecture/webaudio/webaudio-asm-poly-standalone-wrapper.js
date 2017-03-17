@@ -153,7 +153,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     var dsp_start = audio_heap_mixing + (getNumOutputsAux() * buffer_size * sample_size);
     
     // ASM module
-    var factory = mydspModule(window, null, HEAP);
+    var factory = mydspModule(window, window.Math, HEAP);
     var mixer = mydspMixer(window, null, HEAP);
     console.log(factory);
     

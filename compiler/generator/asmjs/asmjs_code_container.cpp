@@ -53,6 +53,7 @@ using namespace std;
      10) waveforms are also allocated in the DSP object heap. Array definition is not done in 'global' part but in 'inits' methods 
      (see InstructionsCompiler::declareWaveform()). Since 'in extention' array definition is not possible, the FIR code is first rewritten to 
      a list of 'store' instructions (MoveVariablesInFront2), then the actual code is generated.
+     11) 'faustpower' function actualy fallback to regular 'pow' (see powprim.h), otherwise incorrectly typed 'faustpower' is generated.
  
 */
 
@@ -204,8 +205,9 @@ void ASMJAVAScriptCodeContainer::produceClass()
     
         // Always generated mathematical functions
         tab(n+1, *fOut); 
-        tab(n+1, *fOut); *fOut << "var imul = global.Math.imul;";
-        tab(n+1, *fOut); *fOut << "var log = global.Math.log;";
+        tab(n+1, *fOut); *fOut << "var imul = foreign.imul;";
+        tab(n+1, *fOut); *fOut << "var log = foreign.log;";
+        tab(n+1, *fOut); *fOut << "var round = foreign.round;";
     
         // Global declarations (mathematical functions, global variables...)
         tab(n+1, *fOut);
@@ -222,6 +224,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
         // Manually always generated mathematical functions
         tab(n+1, *fOut); *fOut << "function fmod" << isuffix() << "(x, y) { x = +x; y = +y; return +(x % y); }";
         tab(n+1, *fOut); *fOut << "function log10" << isuffix() << "(a) { a = +a; return +(+log(a) / +log(10.)); }";
+        tab(n+1, *fOut); *fOut << "function remainder" << isuffix() << "(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }";
     
         // Fields : compute the structure size to use in 'new'
         gGlobal->gASMJSVisitor->Tab(n+1);

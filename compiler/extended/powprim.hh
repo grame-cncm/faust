@@ -83,6 +83,7 @@ class PowPrim : public xtended
             && (types[1]->computability() == kComp)
             && arg1
             && (gGlobal->gOutputLang != "interp")
+            && (gGlobal->gOutputLang != "ajs")
             && !(startWith(gGlobal->gOutputLang, "wast"))
             && !(startWith(gGlobal->gOutputLang, "wasm"))) { // In 'interpreter' and 'wast/wasm' backends, do not generate 'faustpower' function call, fallback to 'pow'
 

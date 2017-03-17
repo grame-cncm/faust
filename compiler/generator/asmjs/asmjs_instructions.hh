@@ -80,53 +80,53 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             :TextInstVisitor(out, ".", ifloat(), "", tab)
         {
             // Integer version
-            fMathLibTable["abs"] = "global.Math.abs";
-            fMathLibTable["min_i"] = "global.Math.min";
-            fMathLibTable["max_i"] = "global.Math.max";
+            fMathLibTable["abs"] = "foreign.abs";
+            fMathLibTable["min_i"] = "foreign.min";
+            fMathLibTable["max_i"] = "foreign.max";
             
             // Float version
-            fMathLibTable["fabsf"] = "global.Math.abs";
-            fMathLibTable["acosf"] = "global.Math.acos";
-            fMathLibTable["asinf"] = "global.Math.asin";
-            fMathLibTable["atanf"] = "global.Math.atan";
-            fMathLibTable["atan2f"] = "global.Math.atan2";
-            fMathLibTable["ceilf"] = "global.Math.ceil";
-            fMathLibTable["cosf"] = "global.Math.cos";
-            fMathLibTable["expf"] = "global.Math.exp";
-            fMathLibTable["floorf"] = "global.Math.floor";
+            fMathLibTable["fabsf"] = "foreign.abs";
+            fMathLibTable["acosf"] = "foreign.acos";
+            fMathLibTable["asinf"] = "foreign.asin";
+            fMathLibTable["atanf"] = "foreign.atan";
+            fMathLibTable["atan2f"] = "foreign.atan2";
+            fMathLibTable["ceilf"] = "foreign.ceil";
+            fMathLibTable["cosf"] = "foreign.cos";
+            fMathLibTable["expf"] = "foreign.exp";
+            fMathLibTable["floorf"] = "foreign.floor";
             fMathLibTable["fmodf"] = "manual";      // Manually generated
-            fMathLibTable["logf"] = "global.Math.log";
+            fMathLibTable["logf"] = "foreign.log";
             fMathLibTable["log10f"] = "manual";     // Manually generated
-            fMathLibTable["max_f"] = "global.Math.max";
-            fMathLibTable["min_f"] = "global.Math.min";
-            fMathLibTable["powf"] = "global.Math.pow";
-            //fMathLibTable["remainderf"] =  "manual";     // Manually generated
-            fMathLibTable["roundf"] = "global.Math.round";
-            fMathLibTable["sinf"] = "global.Math.sin";
-            fMathLibTable["sqrtf"] = "global.Math.sqrt";
-            fMathLibTable["tanf"] = "global.Math.tan";
+            fMathLibTable["max_f"] = "foreign.max";
+            fMathLibTable["min_f"] = "foreign.min";
+            fMathLibTable["powf"] = "foreign.pow";
+            fMathLibTable["remainderf"] =  "manual";     // Manually generated
+            fMathLibTable["roundf"] = "foreign.round";
+            fMathLibTable["sinf"] = "foreign.sin";
+            fMathLibTable["sqrtf"] = "foreign.sqrt";
+            fMathLibTable["tanf"] = "foreign.tan";
             
             // Double version
-            fMathLibTable["fabs"] = "global.Math.abs";
-            fMathLibTable["acos"] = "global.Math.acos";
-            fMathLibTable["asin"] = "global.Math.asin";
-            fMathLibTable["atan"] = "global.Math.atan";
-            fMathLibTable["atan2"] = "global.Math.atan2";
-            fMathLibTable["ceil"] = "global.Math.ceil";
-            fMathLibTable["cos"] = "global.Math.cos";
-            fMathLibTable["exp"] = "global.Math.exp";
-            fMathLibTable["floor"] = "global.Math.floor";
+            fMathLibTable["fabs"] = "foreign.abs";
+            fMathLibTable["acos"] = "foreign.acos";
+            fMathLibTable["asin"] = "foreign.asin";
+            fMathLibTable["atan"] = "foreign.atan";
+            fMathLibTable["atan2"] = "foreign.atan2";
+            fMathLibTable["ceil"] = "foreign.ceil";
+            fMathLibTable["cos"] = "foreign.cos";
+            fMathLibTable["exp"] = "foreign.exp";
+            fMathLibTable["floor"] = "foreign.floor";
             fMathLibTable["fmod"] = "manual";      // Manually generated
-            fMathLibTable["log"] = "global.Math.log";
+            fMathLibTable["log"] = "foreign.log";
             fMathLibTable["log10"] = "manual";     // Manually generated
-            fMathLibTable["max_"] = "global.Math.max";
-            fMathLibTable["min_"] = "global.Math.min";
-            fMathLibTable["pow"] = "global.Math.pow";
-            //fMathLibTable["remainderf"] =  "manual";     // Manually generated
-            fMathLibTable["round"] = "global.Math.round";
-            fMathLibTable["sin"] = "global.Math.sin";
-            fMathLibTable["sqrt"] = "global.Math.sqrt";
-            fMathLibTable["tan"] = "global.Math.tan";
+            fMathLibTable["max_"] = "foreign.max";
+            fMathLibTable["min_"] = "foreign.min";
+            fMathLibTable["pow"] = "foreign.pow";
+            fMathLibTable["remainder"] =  "manual";     // Manually generated
+            fMathLibTable["round"] = "foreign.round";
+            fMathLibTable["sin"] = "foreign.sin";
+            fMathLibTable["sqrt"] = "foreign.sqrt";
+            fMathLibTable["tan"] = "foreign.tan";
             
             fStructOffset = 0;
             fSubContainerType = -1;
