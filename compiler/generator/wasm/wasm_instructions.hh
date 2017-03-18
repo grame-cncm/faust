@@ -564,7 +564,7 @@ struct LocalVariableCounter : public DispatchVisitor {
 };
 
 // Counter of functions with their types and global variable offset
-struct FunAndTypeCounter : public DispatchVisitor , public WASInst {
+struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
     
     std::map<string, FunTyped*> fFunTypes;               // function name, function type
     std::map<string, pair<string, string> > fFunImports;  // function name, [module, base]

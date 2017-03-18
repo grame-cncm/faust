@@ -1,6 +1,6 @@
 subprojects := . boxes errors evaluate  normalize parser propagate parallelize signals tlib \
                 draw draw/device draw/schema extended patternmatcher documentator utils ../libraries \
-                generator generator/asmjs generator/c generator/cpp  \
+                generator generator/asmjs generator/c generator/cpp \
                 generator/java generator/js generator/llvm generator/fir generator/wasm generator/interpreter
 
 sources = $(sort $(wildcard */*.cpp) $(wildcard draw/*/*.cpp) $(wildcard generator/*/*.cpp) $(wildcard ../libraries/loki/*cpp))
@@ -39,29 +39,30 @@ ifeq ($(system), Darwin)
 else
     ARCHFLAGS 	:=
     LIBFLAGS	:= --mode=link --tag=CXX
-ifneq ($(findstring MINGW32, $(system)),)
-    LIB_EXT     = dll
-else
-    LIB_EXT     = so
-endif
+    ifneq ($(findstring MINGW32, $(system)),)
+        LIB_EXT = dll
+    else
+        LIB_EXT = so
+    endif
 endif
 
-LLVM_STATIC_LIBS = $(shell $(LLVM_CONFIG) --libs) $(LLVM_SYS_LIBS)
 LLVM_VERSION = $(shell $(LLVM_CONFIG) --version)
 
 ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 3.1 3.2 3.3 3.4 3.4.1 3.4.2))
 # Legacy LLVM versions <= 3.4 don't have the llvm-config --system-libs flag,
 # so we use a reasonable default set of libs instead. The following seems to
 # work with LLVM 3.4 on the Mac at least.
-LLVM_SYS_LIBS = -lz -lm
+    LLVM_SYS_LIBS = -lz -lm
 else
-LLVM_SYS_LIBS = $(shell $(LLVM_CONFIG) --system-libs)
+    LLVM_SYS_LIBS = $(shell $(LLVM_CONFIG) --system-libs)
 endif
+
+LLVM_STATIC_LIBS = $(shell $(LLVM_CONFIG) --libs) $(LLVM_SYS_LIBS)
 
 ## On Windows (mingw32) we must link against the socket library.
 ifneq ($(findstring MINGW32, $(system)),)
-LIBS = -lshell32 -lpsapi -limagehlp -lwsock32 `pkg-config --libs libcrypto` -lz
-EXE = .exe
+    LIBS = -lshell32 -lpsapi -limagehlp -lwsock32 `pkg-config --libs libcrypto` -lz
+    EXE = .exe
 endif
 
 AR ?= ar
@@ -126,23 +127,22 @@ else ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 4.0.0))
     LLVM_VERSION = LLVM_40
     CLANGLIBS=$(CLANGLIBSLIST)
     CXXFLAGS += -std=gnu++11
-
+    
 else
     $(error "Unknown LLVM version $(LLVM_VERSION)")
 
 endif
 
-
 ifeq ($(system), Darwin)
-#CXXFLAGS += -g
+    #CXXFLAGS += -g
     CXXFLAGS += -O3
     CXXFLAGS += -stdlib=libc++
 else
-ifneq ($(findstring MINGW32, $(system)),)
-	CXXFLAGS += -O1 -I/usr/include
-else
-	CXXFLAGS += -O1 -fPIC -D__USE_MINGW_ANSI_STDIO
-endif
+    ifneq ($(findstring MINGW32, $(system)),)
+        CXXFLAGS += -O1 -I/usr/include
+    else
+        CXXFLAGS += -O1 -fPIC -D__USE_MINGW_ANSI_STDIO
+    endif
 endif
 
 CXXFLAGS += -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
@@ -161,7 +161,6 @@ all : faust libfaust.a
 
 dynamic : faust libfaust.$(LIB_EXT)
 
-
 ## On iOS, do not compile LLVM part
 ios : IPHONEOS_DEPLOYMENT_TARGET=5.0
 ios : CXX = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang
@@ -175,7 +174,7 @@ ios-llvm : CXX = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefa
 ios-llvm : CXXFLAGS = -arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS8.0.sdk
 ios-llvm : CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 ios-llvm : CXXFLAGS += -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
-ios-llvm : CXXFLAGS += -stdlib=libc++  -std=c++11
+ios-llvm : CXXFLAGS += -stdlib=libc++ -std=c++11
 ios-llvm : CXXFLAGS += -I/Users/letz/llvm-ios/include
 ios-llvm : libfaust.a libfaustmachine.a
 
@@ -200,7 +199,6 @@ wasm : EXPORTED="['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '
 libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o
 	libtool $(LIBFLAGS) generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o -static -o libfaustmachine.a
 
-
 libfaust.js : $(objects) libcode.o libmain.o global.o
 	$(CXX) -O3 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaust.js
 	cp libfaust.js ../architecture/webaudio
@@ -216,7 +214,6 @@ libfaust.wasm : $(objects) libcode.o libmain.o global.o
 libfaustworker.wasm : $(objects) libcode.o libmain.o global.o
 	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaustworker.js
 	cp libfaustworker.js libfaustworker.wasm ../architecture/webaudio
-
 
 libcode.o : libcode.cpp
 	$(CXX) $(CXXFLAGS) libcode.cpp -c -o libcode.o
@@ -239,12 +236,11 @@ CUI_exp.h : ../architecture/faust/gui/CUI.h
 scheduler_exp.h : ../architecture/scheduler.cpp
 	xxd -i ../architecture/scheduler.cpp generator/llvm/scheduler_exp.h
 
-
 faust : $(objects) main.o libcode.o global.o
 ifneq ($(findstring MINGW32, $(system)),)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread -o faust
 else
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) -lcrypto -o faust
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) `pkg-config --libs libcrypto` -o faust
 endif
 
 ifeq ($(system), Darwin)
@@ -253,7 +249,7 @@ ifeq ($(system), Darwin)
 	libtool $(LIBFLAGS) $(objects) libcode.o libmain.o global.o -static -o $@
 
     libfaust.dylib : $(objects) libcode.o libmain.o global.o
-	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(LDFLAGS) $(objects) libcode.o libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -lcrypto -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
+	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(LDFLAGS) $(objects) libcode.o libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) `pkg-config --libs libcrypto` -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
 else
 ifneq ($(findstring MINGW32, $(system)),)
     libfaust.a : $(objects) libcode.o libmain.o global.o
@@ -270,7 +266,7 @@ else
 	$(RANLIB) $@
 
     libfaust.so : $(objects) libcode.o libmain.o global.o
-	$(CXX) -shared -fPIC $(LDFLAGS) $(objects) libcode.o libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -lcrypto -lstdc++
+	$(CXX) -shared -fPIC $(LDFLAGS) $(objects) libcode.o libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) `pkg-config --libs libcrypto` -lstdc++
 endif
 endif
 
