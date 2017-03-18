@@ -529,6 +529,9 @@ var asm2wasm = { // special asm2wasm imports
     },
     "log10": function(x) {
         return window.Math.log(x) / window.Math.log(10);
+    },
+    "remainder": function(x, y) {
+        return x - window.Math.round(x/y) * y;
     }
 };
 
