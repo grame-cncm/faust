@@ -171,7 +171,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
                 }
             }
             
-            // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
+            // Math library functions are part of the 'global' module, 'fmod', 'log10s' and 'remainder' will be manually generated
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 MathFunDesc desc = fMathLibTable[inst->fName];
                 if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {

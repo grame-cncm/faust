@@ -45,6 +45,7 @@ inline int pow2limit(int x)
 // Base class for textual 'wast' and binary 'wasm' visitors
 struct WASInst {
     
+    // Description of field layout in memory block
     struct MemoryDesc {
         
         MemoryDesc()
@@ -59,9 +60,13 @@ struct WASInst {
         Typed::VarType fType;
     };
     
+    // Description math functions
     struct MathFunDesc {
         
-        enum Gen { kWAS, kExtMath, kIntWAS, kExtWAS, kManual };
+        enum Gen { kWAS,    // Implemented in wasm definition
+            kExtMath,       // Implemented in JS Math
+            kIntWAS,        // Manually implemented in wast/wasm backends
+            kExtWAS };      // Manually implemented in JS
         
         MathFunDesc()
         {}
@@ -83,12 +88,11 @@ struct WASInst {
 
     TypingVisitor fTypingVisitor;
     map <string, int> fFunctionSymbolTable;
-    map <string, MathFunDesc> fMathLibTable;
-    map <string, MemoryDesc> fFieldTable;   // Table : field_name, { offset, size, type }
-    int fStructOffset;                      // Keep the offset in bytes of the structure
+    map <string, MathFunDesc> fMathLibTable;    // Table : field_name, math description
+    map <string, MemoryDesc> fFieldTable;       // Table : field_name, { offset, size, type }
+    int fStructOffset;                          // Keep the offset in bytes of the structure
     int fSubContainerType;
-    bool fFastMemory;                       // Is true, assume $dsp is always 0 to simplify and speed up dsp memory access code
-    
+    bool fFastMemory;                           // Is true, assume $dsp is always 0 to simplify and speed up dsp memory access code
     
     WASInst(bool fast_memory = false)
     {

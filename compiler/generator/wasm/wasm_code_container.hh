@@ -36,11 +36,9 @@ class WASMCodeContainer : public virtual CodeContainer {
         std::ostream* fOut;
         BufferWithRandomAccess fBinaryOut;
         std::stringstream fHelper;
-        FunAndTypeCounter fFunctionType;
-        int fInternalMemory;
+        int fInternalMemory; // Whether memory is allocated inside wams module of JS
     
         DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn);
-    
         DeclareFunInst* generateClassInit(const string& name, bool ismethod, bool isvirtual);
         DeclareFunInst* generateInstanceClear(const string& name, bool ismethod, bool isvirtual);
         DeclareFunInst* generateInstanceConstants(const string& name, bool ismethod, bool isvirtual);

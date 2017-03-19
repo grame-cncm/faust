@@ -566,8 +566,8 @@ struct LocalVariableCounter : public DispatchVisitor {
 // Counter of functions with their types and global variable offset
 struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
     
-    std::map<string, FunTyped*> fFunTypes;               // function name, function type
-    std::map<string, pair<string, string> > fFunImports;  // function name, [module, base]
+    std::map<string, FunTyped*> fFunTypes;                  // function name, function type
+    std::map<string, pair<string, string> > fFunImports;    // function name, [module, base]
     
     FunAndTypeCounter():WASInst()
     {
@@ -685,7 +685,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             fFunctionSymbolTable[inst->fName] = 1;
         }
    
-        // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
+        // Math library functions are part of the 'global' module, 'fmod', 'log10' and 'remainder' will be manually generated
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
             MathFunDesc desc = fMathLibTable[inst->fName];
             
