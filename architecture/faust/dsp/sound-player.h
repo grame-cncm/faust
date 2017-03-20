@@ -207,3 +207,6 @@ class sound_player : public dsp {
         }
 
 };
+
+
+#endif
