@@ -1677,7 +1677,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
    // computes C type and unique name for the waveform
 
     Typed::VarType ctype;
-    getTypedNames(getCertifiedSigType(sig), "Wave", ctype, vname);
+    getTypedNames(getCertifiedSigType(sig), fContainer->getClassName() + "Wave", ctype, vname);
     size = sig->arity();
     
     // Declares the Waveform
