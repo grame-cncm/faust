@@ -670,7 +670,9 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->fInputs = new T*[fFactory->fNumInputs];
             this->fOutputs = new T*[fFactory->fNumOutputs];
             
+            // Comment to allow specialization...
             fFactory->optimize();
+            
             /*
             fFactory->fStaticInitBlock->write(&std::cout);
             fFactory->fInitBlock->write(&std::cout);
@@ -771,6 +773,13 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->ExecuteBlock(fFactory->fClearBlock);
         }
     
+        virtual void instanceInit(int samplingRate)
+        {
+            this->instanceConstants(samplingRate);
+            this->instanceResetUserInterface();
+            this->instanceClear();
+        }
+    
         virtual void init(int samplingRate)
         {
         #ifdef INTERPRETER_TRACE
@@ -778,13 +787,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         #endif
             this->classInit(samplingRate);
             this->instanceInit(samplingRate);
-        }
-    
-        virtual void instanceInit(int samplingRate)
-        {
-            this->instanceConstants(samplingRate);
-            this->instanceResetUserInterface();
-            this->instanceClear();
         }
     
         /*
@@ -810,8 +812,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             }
             
             // Keep control ON
-            //fFactory->fUserInterfaceBlock->unFreezeDefaultValues(fRealMap, FIRInstruction::kAddButton);
-            fFactory->fUserInterfaceBlock->unFreezeDefaultValues(fRealMap);
+            fFactory->fUserInterfaceBlock->unFreezeDefaultValues(fRealMap, FIRInstruction::kAddButton);
+            //fFactory->fUserInterfaceBlock->unFreezeDefaultValues(fRealMap);
             
             // Specialization
             //this->fComputeBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeBlock->copy(), 4);
@@ -826,12 +828,12 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             
             std::cout << "INIT" << std::endl;
             
-            this->fStaticInitBlock->write(&std::cout);
-            this->fInitBlock->write(&std::cout);
-            this->fResetUIBlock->write(&std::cout);
-            this->fClearBlock->write(&std::cout);
-            this->fComputeBlock->write(&std::cout);
-            this->fComputeDSPBlock->write(&std::cout);
+            this->fStaticInitBlock->write(&std::cout, false);
+            this->fInitBlock->write(&std::cout, false);
+            this->fResetUIBlock->write(&std::cout, false);
+            this->fClearBlock->write(&std::cout, false);
+            this->fComputeBlock->write(&std::cout, false);
+            this->fComputeDSPBlock->write(&std::cout, false);
         }
         */
     
@@ -868,43 +870,45 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
                 this->ExecuteBlock(fFactory->fComputeBlock);
                 
                 // Executes the 'DSP' block
-                //std::cout << "fComputeDSPBlock" << std::endl;
                 this->ExecuteBlock(fFactory->fComputeDSPBlock);
-                
-                //std::cout << "sample " << outputs[0][0] << std::endl;
             }
         }
     
         /*
+        // Version with specialization
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         {
-            //std::cout << "compute " << count << std::endl;
-            
-            T** inputs = reinterpret_cast<T**>(input);
-            T** outputs = reinterpret_cast<T**>(output);
-         
-            // Prepare in/out buffers
-            for (int i = 0; i < this->fFactory->fNumInputs; i++) {
-                this->fInputs[i] = inputs[i];
+        #ifdef INTERPRETER_TRACE
+            if (!fInitialized) {
+                std::cout << "-------- DSP is not initialized ! --------" << std::endl;
+            } else
+        #endif
+            {
+                //std::cout << "compute " << count << std::endl;
+                
+                T** inputs = reinterpret_cast<T**>(input);
+                T** outputs = reinterpret_cast<T**>(output);
+             
+                // Prepare in/out buffers
+                for (int i = 0; i < this->fFactory->fNumInputs; i++) {
+                    this->fInputs[i] = inputs[i];
+                }
+                for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
+                    this->fOutputs[i] = outputs[i];
+                }
+                
+                // Set count in 'count' variable at the correct offset in fIntHeap
+                this->fIntHeap[this->fCountOffset] = count;
+                
+                // Executes the 'control' block
+                this->ExecuteBlock(this->fComputeBlock);
+                
+                // Executes the 'DSP' block
+                this->ExecuteBlock(this->fComputeDSPBlock);
             }
-            for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
-                this->fOutputs[i] = outputs[i];
-            }
-            
-            // Set count in 'count' variable at the correct offset in fIntHeap
-            this->fIntHeap[this->fCountOffset] = count;
-            
-            // Executes the 'control' block
-            //this->ExecuteBlock(this->fFactory->fComputeBlock);
-            faustassert(this->fComputeBlock);
-            this->ExecuteBlock(this->fComputeBlock);
-            
-            // Executes the 'DSP' block
-            //std::cout << "fComputeDSPBlock" << std::endl;
-            faustassert(this->fComputeDSPBlock);
-            this->ExecuteBlock(this->fComputeDSPBlock);
         }
         */
+    
 };
 
 /*

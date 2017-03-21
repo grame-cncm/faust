@@ -685,44 +685,44 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                                                   FIRBasicInstruction<T>* inst2,
                                                   FIRBasicInstruction<T>* inst3)
     {
-         switch (inst3->fOpcode) {
-                
+        switch (inst3->fOpcode) {
+                        
             case FIRInstruction::kAddReal:
                 return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst2->fRealValue + inst1->fRealValue);
-                
+
             case FIRInstruction::kSubReal:
                 return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst2->fRealValue - inst1->fRealValue);
-                
+
             case FIRInstruction::kMultReal:
                 return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst2->fRealValue * inst1->fRealValue);
-                
+
             case FIRInstruction::kDivReal:
                 return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst2->fRealValue / inst1->fRealValue);
-                
+
             case FIRInstruction::kRemReal:
-                faustassert(false);
-                
+                return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::remainder(inst2->fRealValue, inst1->fRealValue));
+
             case FIRInstruction::kGTReal:
                 return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue > inst1->fRealValue, 0);
-                
+
             case FIRInstruction::kLTReal:
                 return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue < inst1->fRealValue, 0);
-                
+
             case FIRInstruction::kGEReal:
                 return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue >= inst1->fRealValue, 0);
-                
+
             case FIRInstruction::kLEReal:
                 return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue <= inst1->fRealValue, 0);
-                
+
             case FIRInstruction::kEQReal:
                 return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue == inst1->fRealValue, 0);
-                
+
             case FIRInstruction::kNEReal:
                 return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue != inst1->fRealValue, 0);
-                
+
             default:
                 faustassert(false);
-                break;
+                return nullptr;
         }
     }
     
@@ -739,12 +739,12 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
             case FIRInstruction::kAddReal:
                 return (inst1->fRealValue == T(0))
                     ? new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0)
-                    : 0;
+                    : nullptr;
                 
             case FIRInstruction::kSubReal:
                 return (inst1->fRealValue == T(0))
                     ? new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0)
-                    : 0;
+                    : nullptr;
                 
             case FIRInstruction::kMultReal: {
                 if (inst1->fRealValue == T(1)) {        // neutral
@@ -752,17 +752,17 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 } else if (inst1->fRealValue == T(0)) { // absorbant
                     return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, T(0));
                 } else {
-                    return 0;
+                    return nullptr;
                 }
             }
 
             case FIRInstruction::kDivReal:
                 return (inst1->fRealValue == T(1))
                     ? new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0)
-                    : 0;
+                    : nullptr;
     
             default:
-                return 0;
+                return nullptr;
                
         }
     }
@@ -778,7 +778,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
             case FIRInstruction::kAddReal:
                 return (inst2->fRealValue == T(0))
                 ? new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, inst1->fOffset1, 0)
-                : 0;
+                : nullptr;
                 
             case FIRInstruction::kMultReal:
                 if (inst2->fRealValue == T(1)) {        // neutral
@@ -786,11 +786,11 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 } else if (inst2->fRealValue == T(0)) { // absorbant
                     return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, T(0));
                 } else {
-                    return 0;
+                    return nullptr;
                 }
                 
             default:
-                return 0;
+                return nullptr;
         }
     }
   
@@ -850,7 +850,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 
             default:
                 faustassert(false);
-                break;
+                return nullptr;
         }
     }
     
@@ -866,12 +866,12 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
             case FIRInstruction::kAddInt:
                 return (inst1->fIntValue == 0)
                 ? new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0)
-                : 0;
+                : nullptr;
                 
             case FIRInstruction::kSubInt:
                 return (inst1->fIntValue == 0)
                 ? new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0)
-                : 0;
+                : nullptr;
                 
             case FIRInstruction::kMultInt:
                 if (inst1->fIntValue == 1) {        // neutral
@@ -879,13 +879,13 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 } else if (inst1->fIntValue == 0) { // absorbant
                     new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, 0);
                 } else {
-                    return 0;
+                    return nullptr;
                 }
                 
             case FIRInstruction::kDivInt:
                 return (inst1->fIntValue == 1)
                 ? new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0)
-                : 0;
+                : nullptr;
                 
             case FIRInstruction::kANDInt:
                 if (inst1->fIntValue == 1) {        // neutral
@@ -893,7 +893,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 } else if (inst1->fIntValue == 0) { // absorbant
                     new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, 0);
                 } else {
-                    return 0;
+                    return nullptr;
                 }
                 
             case FIRInstruction::kORInt:
@@ -902,11 +902,11 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 } else if (inst1->fIntValue == 0) { // neutral
                     new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0);
                 } else {
-                    return 0;
+                    return nullptr;
                 }
          
             default:
-                return 0;
+                return nullptr;
         }
     }
     
@@ -921,15 +921,15 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
             case FIRInstruction::kAddInt:
                 return (inst2->fIntValue == T(0))
                 ? new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst1->fOffset1, 0)
-                : 0;
+                : nullptr;
                 
             case FIRInstruction::kMultInt:
                 return (inst2->fIntValue == T(1))
                 ? new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst1->fOffset1, 0)
-                : 0;
+                : nullptr;
                 
             default:
-                return 0;
+                return nullptr;
         }
     }
     
@@ -956,7 +956,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
         
             default:
                 faustassert(false);
-                break;
+                return nullptr;
         }
     }
     
@@ -974,7 +974,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 
             default:
                 faustassert(false);
-                break;
+                return nullptr;
         }
     }
     
@@ -1036,7 +1036,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 
             default:
                 faustassert(false);
-                break;
+                return nullptr;
         }
     }
     
@@ -1050,7 +1050,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 
             default:
                 faustassert(false);
-                break;
+                return nullptr;
         }
     }
     
@@ -1074,7 +1074,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                    && inst2->fOpcode == FIRInstruction::kLoadReal
                    && FIRInstruction::isMath(inst3->fOpcode)) {
            
-            // Utilise les elements neutres et absorbants (0 pour + et - et 1 pour * et /)
+            // Uses neutral and absorbent elements (0 for + et - and 1 for * et /)
             res = rewriteBinaryRealMath2(inst1, inst2, inst3);
             if (res) {
                 end = cur + 3;
@@ -1088,7 +1088,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                    && inst2->fOpcode == FIRInstruction::kRealValue
                    && FIRInstruction::isMath(inst3->fOpcode)) {
             
-            // Utilise les elements neutres et absorbants (0 pour + et - et 1 pour * et /)
+            // Uses neutral and absorbent elements (0 for + et - and 1 for * et /)
             res = rewriteBinaryRealMath3(inst1, inst2, inst3);
             if (res) {
                 end = cur + 3;
@@ -1110,7 +1110,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                    && inst2->fOpcode == FIRInstruction::kLoadInt
                    && FIRInstruction::isMath(inst3->fOpcode)) {
             
-            // Utilise les elements absorbants (0 pour + et - et 1 pour * et /)
+            // Uses neutral and absorbent elements (0 for + et - and 1 for * et /)
             res = rewriteBinaryIntMath2(inst1, inst2, inst3);
             if (res) {
                 end = cur + 3;
@@ -1124,7 +1124,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                    && inst2->fOpcode == FIRInstruction::kIntValue
                    && FIRInstruction::isMath(inst3->fOpcode)) {
             
-            // Utilise les elements absorbants (0 pour + et - et 1 pour * et /)
+            // Uses neutral and absorbent elements (0 for + et - and 1 for * et /)
             res = rewriteBinaryIntMath3(inst1, inst2, inst3);
             if (res) {
                 end = cur + 3;
@@ -1176,7 +1176,7 @@ struct FIRInstructionOptimizer {
     // Update 'end' so that caller can move at the correct next location
     virtual FIRBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
     {
-        return 0;
+        return nullptr;
     }
     
     // Return an optimized block by traversing it (including sub-blocks) with an 'optimizer'
@@ -1199,14 +1199,14 @@ struct FIRInstructionOptimizer {
             // Specialization
             if (inst1->fOpcode == FIRInstruction::kIntValue && FIRInstruction::isChoice(inst2->fOpcode)) {
                 
-                    if (inst1->fIntValue == 1) {
-                        new_block->merge(optimize_aux(inst2->fBranch1, optimizer));
-                    } else if (inst1->fIntValue == 0) {
-                        new_block->merge(optimize_aux(inst2->fBranch2, optimizer));
-                    } else {
-                        faustassert(false);
-                    }
-                    cur+=2;
+                if (inst1->fIntValue == 1) {
+                    new_block->merge(optimize_aux(inst2->fBranch1, optimizer));
+                } else if (inst1->fIntValue == 0) {
+                    new_block->merge(optimize_aux(inst2->fBranch2, optimizer));
+                } else {
+                    faustassert(false);
+                }
+                cur += 2;
                     
             } else  if (inst1->fOpcode == FIRInstruction::kLoop) {
                 new_block->push(new FIRBasicInstruction<T>(inst1->fOpcode,
