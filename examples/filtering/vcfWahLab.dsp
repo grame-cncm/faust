@@ -1,5 +1,5 @@
 import("stdfaust.lib");
-declare description "Demonstrate competing variable-lowpass-filter effects on test signals with spectrum analysis display"
+declare description "Demonstrate competing variable-lowpass-filter effects on test signals with spectrum analysis display";
 
 declare name "vcfWahLab";
 

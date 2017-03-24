@@ -585,7 +585,7 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
             switch (fType) {
                     
                 case HSlider: {
-                    int nameWidth = Font().getStringWidth(getName()) + kMargin;
+                    int nameWidth = Font().getStringWidth(getName()) + kMargin * 2;
                     x = nameWidth;
                     y = 0;
                     width = getWidth() - nameWidth;
@@ -682,8 +682,8 @@ class uiButton : public uiComponent, private juce::Button::Listener
         /** Set the good coordinates and size to the juce::TextButton widget whenever the layout size changes. */
         virtual void resized() override
         {
-            int x = 0;
-            int width = getWidth();
+            int x = kMargin;
+            int width = getWidth() - 2 * kMargin;
             int height = jmin(getHeight(), kButtonHeight);
             int y = (getHeight()-height)/2;
             fButton.setBounds(x, y, width, height);

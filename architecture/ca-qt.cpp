@@ -74,6 +74,7 @@
 #include "faust/dsp/sound-player.h"
 
 #define stringify_literal(x) #x
+#define stringify_expanded(x) stringify_literal(x)
 
 /**************************BEGIN USER SECTION **************************/
 
@@ -281,7 +282,7 @@ int main(int argc, char *argv[])
     #else
         // We possibly have a file... 
         try {
-            DSP = new dsp_sequencer(new sound_player(stringify_literal(SOUND_FILE)), new mydsp());
+            DSP = new dsp_sequencer(new sound_player(stringify_expanded(SOUND_FILE)), new mydsp());
         } catch (...) {
             DSP = new mydsp();
         }
