@@ -28,6 +28,7 @@
 
 #include <sndfile.h>
 #include <string>
+#include <iostream>
 
 #include "faust/dsp/dsp.h"
 
@@ -83,7 +84,10 @@ class sound_player : public dsp {
             fSamplingFreq = -1;
             
             fFile = sf_open(fFileName.c_str(), SFM_READ, &fInfo);
-            if (!fFile) throw std::bad_alloc();
+            if (!fFile) {
+                std::cerr << sf_strerror(fFile) << std::endl;
+                throw std::bad_alloc();
+            }
             
             fBuffer = new FAUSTFLOAT*[fInfo.channels];
             for (int chan = 0; chan < fInfo.channels; chan++) {

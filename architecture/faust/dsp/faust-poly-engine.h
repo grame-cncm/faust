@@ -59,13 +59,17 @@ class FaustPolyEngine {
         MidiUI fMidiUI;
     
     public:
-
+    
         FaustPolyEngine(audio* driver = NULL):fMidiUI(&fMidiHandler)
+        {
+            FaustPolyEngine(new mydsp(), driver);
+        }
+
+        FaustPolyEngine(dsp* mono_dsp, audio* driver):fMidiUI(&fMidiHandler)
         {
             bool midi_sync = false;
             int nvoices = 1;
             
-            mydsp* mono_dsp = new mydsp();
             MidiMeta::analyse(mono_dsp, midi_sync, nvoices);
             
             fDriver = driver;
