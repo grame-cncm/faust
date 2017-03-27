@@ -1,0 +1,126 @@
+#! /bin/bash -e
+
+#####################################################################
+#                                                                   #
+#  Compiles Faust programs to Unity audio plugins (OSX)	            #
+#                                                                   #
+#  (see https://docs.unity3d.com/Manual/Audio.html					#
+#  and https://bitbucket.org/Unity-Technologies/nativeaudioplugins)	#
+#                                                                   #
+#  (c) Grame, 2017                                                  #
+#                                                                   #
+#####################################################################
+#
+# Structure of a plugin for OSX
+#--------------------------------
+# AudioPluginFoo.bundle/
+#	Contents/
+#		MacOS/
+#			AudioPluginFoo
+#		Info.plist
+#
+
+CXXFLAGS="-I. -O2 -fPIC -arch i386 -arch x86_64"
+LDFLAGS="-bundle"
+CXX="c++"
+
+
+createInfoPList() {
+cat > "$2" << DELIM
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>BuildMachineOSBuild</key>
+	<string>16D32</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>$1</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.yourcompany.$1</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$1</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleSupportedPlatforms</key>
+	<array>
+		<string>MacOSX</string>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>CFPlugInDynamicRegisterFunction</key>
+	<string></string>
+	<key>CFPlugInDynamicRegistration</key>
+	<string>NO</string>
+	<key>CFPlugInFactories</key>
+	<dict>
+		<key>00000000-0000-0000-0000-000000000000</key>
+		<string>MyFactoryFunction</string>
+	</dict>
+	<key>CFPlugInTypes</key>
+	<dict>
+		<key>00000000-0000-0000-0000-000000000000</key>
+		<array>
+			<string>00000000-0000-0000-0000-000000000000</string>
+		</array>
+	</dict>
+	<key>CFPlugInUnloadFunction</key>
+	<string></string>
+	<key>DTCompiler</key>
+	<string>com.apple.compilers.llvm.clang.1_0</string>
+	<key>DTPlatformBuild</key>
+	<string>8C1002</string>
+	<key>DTPlatformVersion</key>
+	<string>GM</string>
+	<key>DTSDKBuild</key>
+	<string>16C58</string>
+	<key>DTSDKName</key>
+	<string>macosx10.12</string>
+	<key>DTXcode</key>
+	<string>0821</string>
+	<key>DTXcodeBuild</key>
+	<string>8C1002</string>
+</dict>
+</plist>
+DELIM
+}
+
+CUR=$(pwd)
+
+for F in $@; do
+	SRCDIR=$(dirname "$F")
+    FNAME=$(basename "$F")
+	NAME=${FNAME%.dsp}
+	BNAME=AudioPlugin${NAME}	# should be capitalize 		
+
+	 # creates a temporary dir 
+    TDR=$(mktemp -d faust.XXX)
+
+	# creates the bundle inside
+	BNDL="$TDR/$BNAME.bundle"
+	MOS="$BNDL/Contents/MacOS/"
+	mkdir -p "$MOS"
+
+	# temporaire pour tests
+	#cp AudioThru.cpp "$MOS/$NAME.cpp" || exit
+	faust -i -a ./unity.cpp "$SRCDIR/$NAME.dsp" -o "$MOS/$NAME.cpp" || exit
+	
+	$CXX $CXXFLAGS $LDFLAGS -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/$BNAME" || exit
+	rm "$MOS/$NAME.cpp"
+	createInfoPList "$BNAME" "$BNDL/Contents/Info.plist" || exit
+
+	rm -rf "$SRCDIR/$BNAME.bundle"
+	mv "$BNDL" "$SRCDIR/"
+	rm -rf $TDR
+
+	echo "$SRCDIR/$BNAME.bundle;"
+
+
+done
