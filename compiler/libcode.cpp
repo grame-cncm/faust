@@ -987,7 +987,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
                     error << "ERROR : no architecture file specified to inject \"" << gGlobal->gInjectFile << "\"" << endl;
                     throw faustexception(error.str());
                 } else {
-                    streamCopyUntil(*enrobage,*dst, "<<includeIntrinsic>>");
+                    streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
                     streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
                     streamCopy(*injcode, *dst);
                     streamCopyUntilEnd(*enrobage, *dst);

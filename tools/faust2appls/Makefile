@@ -68,6 +68,7 @@ install:
 	install faust2svg $(dest)
 	install faust2vst $(dest)
 	install faust2vsti $(dest)
+	install faust2wasm $(dest)
 	install faust2w32max6 $(dest)
 	install faust2w32msp $(dest)
 	install faust2w32puredata $(dest)
@@ -135,6 +136,7 @@ uninstall:
 	rm -f $(dest)/faust2svg
 	rm -f $(dest)/faust2vst
 	rm -f $(dest)/faust2vsti
+	rm -f $(dest)/faust2wasm
 	rm -f $(dest)/faust2w32max6
 	rm -f $(dest)/faust2w32msp
 	rm -f $(dest)/faust2w32puredata
