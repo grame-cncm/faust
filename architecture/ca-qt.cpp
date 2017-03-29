@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
 	char rcfilename[256];
 	char* home = getenv("HOME");
     bool midi_sync = false;
-    int nvoices = 1;
+    int nvoices = 0;
     
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
@@ -261,7 +261,7 @@ int main(int argc, char *argv[])
     nvoices = lopt(argv, "--nvoices", nvoices);
     int group = lopt(argv, "--group", 1);
     
-    if (nvoices > 1) {
+    if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
     #if MIDICTRL
         if (midi_sync) {
