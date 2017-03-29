@@ -360,7 +360,6 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
 
     private:
 
-        std::vector<MidiUI*> fMidiUIList;
         FAUSTFLOAT** fMixBuffer;
         int fDate;
 
@@ -507,23 +506,12 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
                 delete[] fMixBuffer[i];
             }
             delete[] fMixBuffer;
-
-            // Remove object from all MidiUI interfaces that handle it
-            for (int i = 0; i < fMidiUIList.size(); i++) {
-                fMidiUIList[i]->removeMidiIn(this);
-            }
         }
 
         // DSP API
+    
         void buildUserInterface(UI* ui_interface)
         {
-            // Add itself to the MidiUI object
-            MidiUI* midi_ui = dynamic_cast<MidiUI*>(ui_interface);
-            if (midi_ui) {
-                fMidiUIList.push_back(midi_ui);
-                midi_ui->addMidiIn(this);
-            }
-
             dsp_voice_group::buildUserInterface(ui_interface);
         }
 

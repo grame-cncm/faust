@@ -299,10 +299,12 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
 {
     bool midi_sync = false;
     int nvoices = 0;
+    bool group = true;
+    mydsp_poly* dsp_poly = nullptr;
     
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
-    delete tmp_dsp;;
+    delete tmp_dsp;
     
 #ifdef JUCE_POLY
     fSynth = new FaustSynthesiser(panic, this);
@@ -313,31 +315,33 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     fSynth->addSound(new FaustSound());
 #else
     
-    bool group = true;
 #ifdef POLY2
     std::cout << "Started with " << nvoices << " voices\n";
+    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
     
 #if MIDICTRL
     if (midi_sync) {
-        fDSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new dsp_effect()));
+        fDSP = new timed_dsp(new dsp_sequencer(dsp_poly, new dsp_effect()));
     } else {
-        fDSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new dsp_effect());
+        fDSP = new dsp_sequencer(dsp_poly, new dsp_effect());
     }
 #else
-    fDSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, false, group), new dsp_effect());
+    fDSP = new dsp_sequencer(dsp_poly, new dsp_effect());
 #endif
     
 #else
     if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
+        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+        
 #if MIDICTRL
         if (midi_sync) {
-            fDSP = new timed_dsp(new mydsp_poly(new mydsp(), nvoices, true, group));
+            fDSP = new timed_dsp(dsp_poly);
         } else {
-            fDSP = new mydsp_poly(new mydsp(), nvoices, true, group);
+            fDSP = dsp_poly;
         }
 #else
-        fDSP = new mydsp_poly(new mydsp(), nvoices, false, group);
+        fDSP = dsp_poly;
 #endif
     } else {
 #if MIDICTRL
@@ -355,6 +359,7 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     
 #if defined(MIDICTRL)
     fMIDIHandler = new juce_midi_handler();
+    fMIDIHandler->addMidiIn(dsp_poly);
     fMIDIUI = new MidiUI(fMIDIHandler);
     fDSP->buildUserInterface(fMIDIUI);
     if (!fMIDIUI->run()) {

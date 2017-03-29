@@ -90,6 +90,7 @@ class FaustPolyEngine {
                 || nvoices > 0) {
                 
                 fPolyDSP = new mydsp_poly(mono_dsp, nvoices, true);
+                fMidiHandler.addMidiIn(fPolyDSP);
 
             #if POLY2
                 fFinalDSP = new dsp_sequencer(fPolyDSP, new effect());

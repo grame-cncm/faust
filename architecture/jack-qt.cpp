@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
     char* home = getenv("HOME");
     bool midi_sync = false;
     int nvoices = 0;
+    mydsp_poly* dsp_poly = NULL;
     
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
@@ -119,15 +120,16 @@ int main(int argc, char *argv[])
     nvoices = lopt(argv, "--nvoices", nvoices);
     int group = lopt(argv, "--group", 1);
     std::cout << "Started with " << nvoices << " voices\n";
+    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
     
 #if MIDICTRL
     if (midi_sync) {
-        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new effect()));
+        DSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
     } else {
-        DSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new effect());
+        DSP = new dsp_sequencer(dsp_poly, new effect());
     }
 #else
-    DSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, false, group), new effect());
+    DSP = new dsp_sequencer(dsp_poly, new effect());
 #endif
     
 #else
@@ -136,14 +138,16 @@ int main(int argc, char *argv[])
     
     if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
+        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+        
 #if MIDICTRL
         if (midi_sync) {
-            DSP = new timed_dsp(new mydsp_poly(new mydsp(), nvoices, true, group));
+            DSP = new timed_dsp(dsp_poly);
         } else {
-            DSP = new mydsp_poly(new mydsp(), nvoices, true, group);
+            DSP = dsp_poly;
         }
 #else
-        DSP = new mydsp_poly(new mydsp(), nvoices, false, group);
+        DSP = dsp_poly;
 #endif
     } else {
 #if MIDICTRL
@@ -196,10 +200,12 @@ int main(int argc, char *argv[])
     MidiUI* midiinterface;
     if (rtmidi) {
         rt_midi midi_handler(name);
+        midi_handler.addMidiIn(dsp_poly);
         midiinterface = new MidiUI(&midi_handler);
         printf("RtMidi is used\n");
     } else {
         midiinterface = new MidiUI(&audio);
+        audio.addMidiIn(dsp_poly);
         printf("JACK MIDI is used\n");
     }
    

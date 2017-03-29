@@ -568,14 +568,16 @@ void faust_polyphony(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         // Delete old
         delete obj->m_dsp;
         obj->m_dspUI->clear();
+        mydsp_poly* dsp_poly = NULL;
         // Allocate new one
         if (av[0].a_w.w_long > 0) {
-        #ifdef POLY2
-            obj->m_dsp = new dsp_sequencer(new mydsp_poly(new mydsp(), av[0].a_w.w_long, true, true), new effect());
-        #else
-            obj->m_dsp = new mydsp_poly(new mydsp(), av[0].a_w.w_long, true, true);
-        #endif
             post("polyphonic DSP voices = %d", av[0].a_w.w_long);
+            dsp_poly = new mydsp_poly(new mydsp(), av[0].a_w.w_long, true, true);
+        #ifdef POLY2
+            obj->m_dsp = new dsp_sequencer(dsp_poly, new effect());
+        #else
+            obj->m_dsp = dsp_poly;
+        #endif
         } else {
             obj->m_dsp = new mydsp();
             post("monophonic DSP");
@@ -583,6 +585,7 @@ void faust_polyphony(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         // Initialize User Interface (here connnection with controls)
         obj->m_dsp->buildUserInterface(obj->m_dspUI);
     #ifdef MIDICTRL
+        obj->m_midiHandler->addMidiIn(dsp_poly);
         obj->m_dsp->buildUserInterface(obj->m_midiUI);
     #endif
         // Initialize at the system's sampling rate
@@ -679,6 +682,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 {
     bool midi_sync = false;
     int nvoices = 0;
+    mydsp_poly* dsp_poly = NULL;
     
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
@@ -696,13 +700,15 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 
     if (nvoices > 0) {
         post("polyphonic DSP voices = %d", nvoices);
+        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
     #ifdef POLY2
-        x->m_dsp = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, true), new effect());
+        x->m_dsp = new dsp_sequencer(dsp_poly, new effect());
     #else
-        x->m_dsp = new mydsp_poly(new mydsp(), nvoices, true, true);
+        x->m_dsp = dsp_poly;
     #endif
         
     #ifdef MIDICTRL
+        x->m_midiHandler->addMidiIn(dsp_poly);
         x->m_dsp->buildUserInterface(x->m_midiUI);
     #endif
     } else {
