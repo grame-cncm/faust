@@ -298,7 +298,7 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
 : AudioProcessor (getBusesProperties()), fParameterUI(this)
 {
     bool midi_sync = false;
-    int nvoices = 1;
+    int nvoices = 0;
     
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
@@ -328,7 +328,7 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
 #endif
     
 #else
-    if (nvoices > 1) {
+    if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
 #if MIDICTRL
         if (midi_sync) {

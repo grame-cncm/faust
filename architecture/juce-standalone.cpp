@@ -66,7 +66,7 @@ class FaustComponent : public AudioAppComponent, private Timer
         FaustComponent()
         {
             bool midi_sync = false;
-            int nvoices = 1;
+            int nvoices = 0;
             bool group = true;
             
             mydsp* tmp_dsp = new mydsp();
@@ -87,7 +87,7 @@ class FaustComponent : public AudioAppComponent, private Timer
         #endif
                 
         #else
-            if (nvoices > 1) {
+            if (nvoices > 0) {
                 std::cout << "Started with " << nvoices << " voices\n";
         #if MIDICTRL
                 if (midi_sync) {

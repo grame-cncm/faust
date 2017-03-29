@@ -717,7 +717,7 @@ void faust_make_json(t_faust* x)
 void* faust_new(t_symbol* s, short ac, t_atom* av)
 {
     bool midi_sync = false;
-    int nvoices = 1;
+    int nvoices = 0;
     
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
@@ -733,7 +733,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_midiUI = new MidiUI(x->m_midiHandler);
 #endif
     
-    if (nvoices > 1) {
+    if (nvoices > 0) {
         post("polyphonic DSP voices = %d", nvoices);
     #ifdef POLY2
         x->m_dsp = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, true), new effect());
