@@ -11,13 +11,13 @@
  Choose the license that best suits your project. The text of the MIT and GPL
  licenses are at the root directory.
  
- Additional code : GRAME 2014-2015
+ Additional code : GRAME 2014-2017
  
 */
 
 'use strict';
 
-function createMemory(max_polyphony, buffer_size) {
+function createMemory(buffer_size, max_polyphony) {
     
     // Memory allocator
     var ptr_size = 4;
@@ -47,9 +47,15 @@ function createMemory(max_polyphony, buffer_size) {
     return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
 }
 
-function loadWasm(filename, cb, max_polyphony, buffer_size)
+// The is the main entry point.
+// - filename : the wasm filename
+// - callback : a callback taking the allocated wasm module as parameter
+// - buffer_size : the buffer size in frames
+// - max_polyphony : the number of polyphonic voices
+
+function createmydsp(filename, callback, buffer_size, max_polyphony)
 {
-    var memory = createMemory(max_polyphony, buffer_size);
+    var memory = createMemory(buffer_size, max_polyphony);
     
     var asm2wasm = { // special asm2wasm imports
         "fmod": function(x, y) {
@@ -72,7 +78,7 @@ function loadWasm(filename, cb, max_polyphony, buffer_size)
     fetch(filename)
     .then(response => response.arrayBuffer())
     .then(bytes => WebAssembly.instantiate(bytes, importObject))
-    .then(result => { cb(result.instance, memory, buffer_size); });
+    .then(result => { callback(result.instance, memory, buffer_size); });
 }
 
 // asm.js mixer
@@ -125,6 +131,15 @@ function mydspMixer(global, foreign, buffer) {
 var faust = faust || {};
 
 // Polyphonic Faust DSP
+
+// Constructor.
+// - context : the WebAudio context
+// - module : the wasm module
+// - memory : the wasm memory
+// - buffer_size : the buffer size in frames
+// - max_polyphony : the number of polyphonic voices
+// - callback : externally given callback (for instance to play a MIDIFile...)
+
 faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony, callback) {
 
     var handler = null;

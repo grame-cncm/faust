@@ -74,7 +74,7 @@ function startDSPAux(module, buffer_size)
 
 function startDSP() 
 {
-    loadWasm('DSP.wasm',
+    createDSP('DSP.wasm',
              function(module) {
                 wasm_module = module; console.log(module); startDSPAux(module, 1024);
              });

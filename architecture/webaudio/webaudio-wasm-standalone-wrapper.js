@@ -11,13 +11,17 @@
  Choose the license that best suits your project. The text of the MIT and GPL
  licenses are at the root directory.
  
- Additional code : GRAME 2014-2016
+ Additional code : GRAME 2014-2017
  
  */
  
 'use strict';
 
-function loadWasm(filename, cb)
+// The is the main entry point.
+// - filename : the wasm filename
+// - callback : a callback taking the allocated wasm module as parameter
+
+function createmydsp(filename, callback)
 {
     var asm2wasm = { // special asm2wasm imports
         "fmod": function(x, y) {
@@ -39,12 +43,18 @@ function loadWasm(filename, cb)
     fetch(filename)
     .then(response => response.arrayBuffer())
     .then(bytes => WebAssembly.instantiate(bytes, importObject))
-    .then(result => { cb(result.instance); });
+    .then(result => { callback(result.instance); });
 }
 
 var faust = faust || {};
 
-// Standard Faust DSP
+// Monophonic Faust DSP
+
+// Constructor.
+// - context : the WebAudio context
+// - module : the wasm module
+// - buffer_size : the buffer size in frames
+
 faust.mydsp = function (context, module, buffer_size) {
 
     var handler = null;

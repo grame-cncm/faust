@@ -161,17 +161,17 @@ function startDSPAux(module, memory, buffer_size)
 
 function startDSP()
 {
-    loadWasm('DSP.wasm',
-             function(module, memory, bs) {
-                wasm_module = module; console.log(module); startDSPAux(module, memory, bs);
+    createDSP('DSP.wasm',
+             function(module, memory, buffer_size) {
+                wasm_module = module; console.log(module); startDSPAux(module, memory, buffer_size);
              },
-             max_polyphony,
-             1024);
+             1024,
+             max_polyphony);
 }
 
 function startNewDSP(buffer_size) 
 {
-    startDSPAux(wasm_module, createMemory(max_polyphony, buffer_size), buffer_size);
+    startDSPAux(wasm_module, createMemory(buffer_size, max_polyphony), buffer_size);
 }
 
 // To activate audio on iOS
