@@ -17,55 +17,6 @@
 
 'use strict';
 
-var faust = faust || {};
-
-// asm.js mixer
-function mydspMixer(global, foreign, buffer) {
-	
-	'use asm';
-	
-    var HEAP32 = new global.Int32Array(buffer);
-    var HEAPF32 = new global.Float32Array(buffer);
-
-    var max = global.Math.max;
-    var abs = global.Math.abs;
-    var sqrt = global.Math.sqrt;
-
-    function clearOutput(count, channels, outputs) {
-        count = count | 0;
-        channels = channels | 0;
-        outputs = outputs | 0;
-        var i = 0;
-        var j = 0;
-        for (i = 0; ((i | 0) < (channels | 0) | 0); i = ((i | 0) + 1 | 0)) {
-            for (j = 0; ((j | 0) < (count | 0) | 0); j = ((j | 0) + 1 | 0)) {
-               HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2] = 0.;
-            }
-        }
-    }
-
-    function mixVoice(count, channels, inputs, outputs) {
-        count = count | 0;
-        channels = channels | 0;
-        inputs = inputs | 0;
-        outputs = outputs | 0;
-        var i = 0;
-        var j = 0;
-        var level = 0.;
-        for (i = 0; ((i | 0) < (channels | 0) | 0); i = ((i | 0) + 1 | 0)) {
-            for (j = 0; ((j | 0) < (count | 0) | 0); j = ((j | 0) + 1 | 0)) {
-                level = max(+level, +(abs(+(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]))));
-                HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2] 
-                    = +(HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]) + 
-                      +(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]);
-            }
-        }
-        return +level;
-    }
-
-    return { mixVoice: mixVoice, clearOutput: clearOutput};
-}
-
 function createMemory(max_polyphony, buffer_size) {
     
     // Memory allocator
@@ -94,7 +45,84 @@ function createMemory(max_polyphony, buffer_size) {
     
     var memory_size = pow2limit(getSizemydsp() * max_polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
     return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
- }
+}
+
+function loadWasm(filename, cb, max_polyphony, buffer_size)
+{
+    var memory = createMemory(max_polyphony, buffer_size);
+    
+    var asm2wasm = { // special asm2wasm imports
+        "fmod": function(x, y) {
+            return x % y;
+        },
+        "log10": function(x) {
+            return window.Math.log(x) / window.Math.log(10);
+        },
+        "remainder": function(x, y) {
+            return x - window.Math.round(x/y) * y;
+        }
+    };
+    
+    var importObject = { imports: { print: arg => console.log(arg) } }
+    
+    importObject["global.Math"] = window.Math;
+    importObject["asm2wasm"] = asm2wasm;
+    importObject["memory"] = { "memory": memory};
+    
+    fetch(filename)
+    .then(response => response.arrayBuffer())
+    .then(bytes => WebAssembly.instantiate(bytes, importObject))
+    .then(result => { cb(result.instance, memory, buffer_size); });
+}
+
+// asm.js mixer
+function mydspMixer(global, foreign, buffer) {
+    
+    'use asm';
+    
+    var HEAP32 = new global.Int32Array(buffer);
+    var HEAPF32 = new global.Float32Array(buffer);
+    
+    var max = global.Math.max;
+    var abs = global.Math.abs;
+    var sqrt = global.Math.sqrt;
+    
+    function clearOutput(count, channels, outputs) {
+        count = count | 0;
+        channels = channels | 0;
+        outputs = outputs | 0;
+        var i = 0;
+        var j = 0;
+        for (i = 0; ((i | 0) < (channels | 0) | 0); i = ((i | 0) + 1 | 0)) {
+            for (j = 0; ((j | 0) < (count | 0) | 0); j = ((j | 0) + 1 | 0)) {
+                HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2] = 0.;
+            }
+        }
+    }
+    
+    function mixVoice(count, channels, inputs, outputs) {
+        count = count | 0;
+        channels = channels | 0;
+        inputs = inputs | 0;
+        outputs = outputs | 0;
+        var i = 0;
+        var j = 0;
+        var level = 0.;
+        for (i = 0; ((i | 0) < (channels | 0) | 0); i = ((i | 0) + 1 | 0)) {
+            for (j = 0; ((j | 0) < (count | 0) | 0); j = ((j | 0) + 1 | 0)) {
+                level = max(+level, +(abs(+(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]))));
+                HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]
+                = +(HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]) +
+                +(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]);
+            }
+        }
+        return +level;
+    }
+    
+    return { mixVoice: mixVoice, clearOutput: clearOutput};
+}
+
+var faust = faust || {};
 
 // Polyphonic Faust DSP
 faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony, callback) {
@@ -117,21 +145,21 @@ faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony
     // Keep JSON parsed object
     var jon_object = JSON.parse(getJSONmydsp());
     
-    function getNumInputsAux () 
+    function getNumInputsAux ()
     {
         return (jon_object.inputs !== undefined) ? parseInt(jon_object.inputs) : 0;
     }
     
-    function getNumOutputsAux () 
+    function getNumOutputsAux ()
     {
         return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
     }
-      
+    
     var numIn = getNumInputsAux();
     var numOut = getNumOutputsAux();
  
     // Memory allocator
-    var ptr_size = 4; 
+    var ptr_size = 4;
     var sample_size = 4;
   
     console.log(getNumInputsAux());
@@ -141,7 +169,7 @@ faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony
     var HEAP = memory.buffer;
     var HEAP32 = new Int32Array(HEAP);
     var HEAPF32 = new Float32Array(HEAP);
-     
+    
     console.log(HEAP);
     console.log(HEAP32);
     console.log(HEAPF32);
@@ -149,18 +177,18 @@ faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony
     // bargraph
     var ouputs_timer = 5;
     var ouputs_items = [];
-     
+    
     // input items
     var inputs_items = [];
-     
+    
     // Start of HEAP index
     var audio_heap_ptr = 0;
-     
+    
     // Setup pointers offset
-    var audio_heap_ptr_inputs = audio_heap_ptr; 
+    var audio_heap_ptr_inputs = audio_heap_ptr;
     var audio_heap_ptr_outputs = audio_heap_ptr_inputs + (getNumInputsAux() * ptr_size);
     var audio_heap_ptr_mixing = audio_heap_ptr_outputs + (getNumOutputsAux() * ptr_size);
-     
+    
     // Setup buffer offset
     var audio_heap_inputs = audio_heap_ptr_mixing + (getNumOutputsAux() * ptr_size);
     var audio_heap_outputs = audio_heap_inputs + (getNumInputsAux() * buffer_size * sample_size);
@@ -169,8 +197,6 @@ faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony
     // Setup DSP voices offset
     var dsp_start = audio_heap_mixing + (getNumOutputsAux() * buffer_size * sample_size);
     
-    // ASM module
-    //var factory = mydspModule(window, null, HEAP);
     var mixer = mydspMixer(window, null, HEAP);
     console.log(factory);
     
@@ -253,8 +279,8 @@ faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony
     }
    
     var pathTable = getPathTablemydsp();
-     
-    function update_outputs () 
+    
+    function update_outputs ()
     {
         if (ouputs_items.length > 0 && handler && ouputs_timer-- === 0) {
             ouputs_timer = 5;
@@ -264,7 +290,7 @@ faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony
         }
     }
     
-    function compute (e) 
+    function compute (e)
     {
         var i, j;
         
@@ -322,34 +348,34 @@ faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony
         }
     }
     
-    function midiToFreq (note) 
+    function midiToFreq (note)
     {
         return 440.0 * Math.pow(2.0, (note - 69.0) / 12.0);
     }
-     
+    
     // JSON parsing
-    function parse_ui (ui) 
+    function parse_ui (ui)
     {
         for (var i = 0; i < ui.length; i++) {
             parse_group(ui[i]);
         }
     }
     
-   function parse_group (group) 
+   function parse_group (group)
     {
         if (group.items) {
             parse_items(group.items);
         }
     }
     
-    function parse_items (items) 
+    function parse_items (items)
     {
         for (var i = 0; i < items.length; i++) {
             parse_item(items[i]);
         }
     }
     
-    function parse_item (item) 
+    function parse_item (item)
     {
         if (item.type === "vgroup" || item.type === "hgroup" || item.type === "tgroup") {
             parse_items(item.items);
@@ -361,7 +387,7 @@ faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony
             inputs_items.push(item.address);
         }
     }
-      
+    
     function init ()
     {
         var i;
@@ -373,8 +399,8 @@ faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony
         
         if (numIn > 0) {
             // allocate memory for input arrays
-            ins = audio_heap_ptr_inputs; 
-            for (i = 0; i < numIn; i++) { 
+            ins = audio_heap_ptr_inputs;
+            for (i = 0; i < numIn; i++) {
                 HEAP32[(ins >> 2) + i] = audio_heap_inputs + ((buffer_size * sample_size) * i);
             }
      
@@ -386,9 +412,9 @@ faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony
         
         if (numOut > 0) {
             // allocate memory for output and mixing arrays
-            outs = audio_heap_ptr_outputs; 
-            mixing = audio_heap_ptr_mixing; 
-            for (i = 0; i < numOut; i++) { 
+            outs = audio_heap_ptr_outputs;
+            mixing = audio_heap_ptr_mixing;
+            for (i = 0; i < numOut; i++) {
                 HEAP32[(outs >> 2) + i] = audio_heap_outputs + ((buffer_size * sample_size) * i);
                 HEAP32[(mixing >> 2) + i] = audio_heap_mixing + ((buffer_size * sample_size) * i);
             }
@@ -432,12 +458,12 @@ faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony
             // Nothing to do
         },
         
-        getNumInputs : function () 
+        getNumInputs : function ()
         {
             return getNumInputsAux();
         },
         
-        getNumOutputs : function() 
+        getNumOutputs : function()
         {
             return getNumOutputsAux();
         },
@@ -449,28 +475,28 @@ faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony
             }
         },
 
-        instanceInit : function (sample_rate) 
+        instanceInit : function (sample_rate)
         {
             for (var i = 0; i < max_polyphony; i++) {
                 factory.instanceInit(dsp_voices[i], sample_rate);
             }
         },
 
-        instanceConstants : function (sample_rate) 
+        instanceConstants : function (sample_rate)
         {
             for (var i = 0; i < max_polyphony; i++) {
                 factory.instanceConstants(dsp_voices[i], sample_rate);
             }
         },
         
-        instanceResetUserInterface : function () 
+        instanceResetUserInterface : function ()
         {
             for (var i = 0; i < max_polyphony; i++) {
                 factory.instanceResetUserInterface(dsp_voices[i]);
             }
         },
 
-        instanceClear : function () 
+        instanceClear : function ()
         {
             for (var i = 0; i < max_polyphony; i++) {
                 factory.instanceClear(dsp_voices[i]);
@@ -478,7 +504,7 @@ faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony
         },
     
         // Connect/disconnect to another node
-        connect : function (node) 
+        connect : function (node)
         {
             if (node.getProcessor !== undefined) {
                 scriptProcessor.connect(node.getProcessor());
@@ -487,7 +513,7 @@ faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony
             }
         },
 
-        disconnect : function (node) 
+        disconnect : function (node)
         {
             if (node.getProcessor !== undefined) {
                 scriptProcessor.disconnect(node.getProcessor());

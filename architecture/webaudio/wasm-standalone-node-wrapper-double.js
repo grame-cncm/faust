@@ -517,9 +517,7 @@ function startDSP(module, buffer_size)
 function instantiate(bytes, imports)
 {
     try {
-        //var promise = WebAssembly.compile(bytes);
-        //console.log(promise);
-        return WebAssembly.compile(bytes).then(m => new WebAssembly.Instance(m, imports));
+        return WebAssembly.instantiate(bytes, imports).then(result => result.instance);
     } catch (e) {}
 }
 

@@ -72,31 +72,12 @@ function startDSPAux(module, buffer_size)
     DSP.setHandler(handler);
 }
 
-function instantiate(bytes, imports)
-{
-    return WebAssembly.compile(bytes).then(m => new WebAssembly.Instance(m, imports));
-}
-
 function startDSP() 
 {
-    var asm2wasm = { // special asm2wasm imports
-        "fmod": function(x, y) {
-            return x % y;
-        },
-        "log10": function(x) {
-            return window.Math.log(x) / window.Math.log(10);
-        },
-        "remainder": function(x, y) {
-            return x - window.Math.round(x/y) * y;
-        }
-    };
-    
-    var importObject = { imports: { print: arg => console.log(arg) } }
-    importObject["global.Math"] = window.Math;
-    importObject["asm2wasm"] = asm2wasm;
-    fetch('DSP.wasm').then(response => response.arrayBuffer())
-    .then(bytes => instantiate(bytes, importObject))
-    .then(module => { wasm_module = module; console.log(module); startDSPAux(module, 1024); });
+    loadWasm('DSP.wasm',
+             function(module) {
+                wasm_module = module; console.log(module); startDSPAux(module, 1024);
+             });
 }
 
 function startNewDSP(buffer_size)
