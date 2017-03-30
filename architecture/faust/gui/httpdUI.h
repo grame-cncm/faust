@@ -50,8 +50,8 @@
 
 class httpdUIAux
 {
-    public: 
-    
+    public:
+
         virtual bool run()              = 0;
         virtual void stop()             = 0;
         virtual int getTCPPort()        = 0;
@@ -79,8 +79,8 @@ class httpdServerUI : public UI, public httpdUIAux
 {
     private:
 
-        httpdfaust::HTTPDControler*	fCtrl;	
-          
+        httpdfaust::HTTPDControler*	fCtrl;
+
         const char* tr(const char* label) const
         {
             static char buffer[1024];
@@ -90,14 +90,14 @@ class httpdServerUI : public UI, public httpdUIAux
                     case ' ': case '	':
                         *ptr++ = '_';
                         break;
-                    case ';': case '/': case '?': case ':': case '@': 
+                    case ';': case '/': case '?': case ':': case '@':
                     case '&': case '=': case '+': case '$': case ',':
-                    case '<': case '>': case '#': case '%': case '"': 
-                    case '{': case '}': case '|': case '\\': case '^': 
+                    case '<': case '>': case '#': case '%': case '"':
+                    case '{': case '}': case '|': case '\\': case '^':
                     case '[': case ']': case '`':
                         *ptr++ = '_';
                         break;
-                    default: 
+                    default:
                         *ptr++ = *label;
                 }
                 label++;
@@ -107,16 +107,16 @@ class httpdServerUI : public UI, public httpdUIAux
         }
 
     public:
-        
-        httpdServerUI(const char* applicationname, int inputs, int outputs, int argc, char* argv[], bool init = true) 
-        { 
-            fCtrl = new httpdfaust::HTTPDControler(argc, argv, applicationname, init); 
+
+        httpdServerUI(const char* applicationname, int inputs, int outputs, int argc, char* argv[], bool init = true)
+        {
+            fCtrl = new httpdfaust::HTTPDControler(argc, argv, applicationname, init);
             fCtrl->setInputs(inputs);
             fCtrl->setOutputs(outputs);
         }
 
         virtual ~httpdServerUI() { delete fCtrl; }
-            
+
         // -- widget's layouts
         virtual void openTabBox(const char* label) 			{ fCtrl->opengroup("tgroup", tr(label)); }
         virtual void openHorizontalBox(const char* label) 	{ fCtrl->opengroup("hgroup", tr(label)); }
@@ -128,13 +128,13 @@ class httpdServerUI : public UI, public httpdUIAux
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)	{ fCtrl->addnode("checkbox", tr(label), zone); }
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
                                         { fCtrl->addnode("vslider", tr(label), zone, init, min, max, step); }
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) 	
+        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
                                         { fCtrl->addnode("hslider", tr(label), zone, init, min, max, step); }
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) 			
+        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
                                         { fCtrl->addnode("nentry", tr(label), zone, init, min, max, step); }
 
-        // -- passive widgets	
-        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
+        // -- passive widgets
+        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
                                         { fCtrl->addnode("hbargraph", tr(label), zone, min, max); }
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
                                         { fCtrl->addnode("vbargraph", tr(label), zone, min, max); }
@@ -162,22 +162,22 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
 {
 
     private:
-    
+
         class uiUrlValue : public uiItem
         {
 
             private:
-            
+
                 std::string fPathURL;
-                 
+
             public:
-            
+
                 uiUrlValue(const std::string& path_url, GUI* ui, FAUSTFLOAT* zone)
                     :uiItem(ui, zone),fPathURL(path_url)
                 {}
                 virtual ~uiUrlValue()
                 {}
-                
+
                 virtual void reflectZone()
                 {
                     FAUSTFLOAT v = *fZone;
@@ -187,21 +187,21 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
                     std::string path = str.str();
                     http_fetch(path.c_str(), NULL);
                 }
-            
+
         };
-        
+
         std::string fServerURL;
         std::string fJSON;
         std::map<std::string, FAUSTFLOAT*> fZoneMap;
         pthread_t fThread;
         int fTCPPort;
         bool fRunning;
-        
+
         void insertMap(std::string label, FAUSTFLOAT* zone)
         {
             fZoneMap[label] = zone;
         }
-      
+
         static void* UpdateUI(void* arg)
         {
             httpdClientUI* ui = static_cast<httpdClientUI*>(arg);
@@ -220,16 +220,16 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
             }
 			return 0;
         }
-     
-        virtual void addGeneric(const char* label, FAUSTFLOAT* zone)			
-        { 
-            std::string url = fServerURL + buildPath(label); 
-            insertMap(url, zone); 
-            new uiUrlValue(url, this, zone); 
+
+        virtual void addGeneric(const char* label, FAUSTFLOAT* zone)
+        {
+            std::string url = fServerURL + buildPath(label);
+            insertMap(url, zone);
+            new uiUrlValue(url, this, zone);
         }
-            
+
     public:
-            
+
         httpdClientUI(const std::string& server_url):fServerURL(server_url), fRunning(false)
         {
             char* json_buffer = 0;
@@ -246,12 +246,12 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
                 fTCPPort = -1;
             }
         }
-        
-        virtual ~httpdClientUI() 
+
+        virtual ~httpdClientUI()
         {
             stop();
         }
-            
+
         // -- widget's layouts
         void openTabBox(const char* label)
         {
@@ -269,46 +269,46 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         {
             fControlsLevel.pop_back();
         }
-        
+
         // -- active widgets
-        virtual void addButton(const char* label, FAUSTFLOAT* zone)			
-        { 
+        virtual void addButton(const char* label, FAUSTFLOAT* zone)
+        {
             // addGeneric(label, zone);
             // Do not update button state with received messages (otherwise on/off messages may be lost...)
-            std::string url = fServerURL + buildPath(label); 
-            new uiUrlValue(url, this, zone); 
+            std::string url = fServerURL + buildPath(label);
+            new uiUrlValue(url, this, zone);
         }
-        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 
-        { 
-            addGeneric(label, zone); 
-        }        
+        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
+        {
+            addGeneric(label, zone);
+        }
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-        { 
+        {
             addGeneric(label, zone);
-        }  
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) 	
-        { 
+        }
+        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
             addGeneric(label, zone);
-        } 
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) 			
-        { 
-            addGeneric(label, zone); 
-        } 
-        
-        // -- passive widgets	
-        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
-        { 
-            addGeneric(label, zone); 
-        } 
+        }
+        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            addGeneric(label, zone);
+        }
+
+        // -- passive widgets
+        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        {
+            addGeneric(label, zone);
+        }
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-        { 
+        {
             addGeneric(label, zone);
-        } 
-        
+        }
+
         virtual void declare(FAUSTFLOAT*, const char* key, const char* val) {}
-        
+
         bool run()
-        { 
+        {
             if (fTCPPort > 0) {
                 fRunning = true;
                 return (pthread_create(&fThread, NULL, UpdateUI, this) == 0);
@@ -316,18 +316,18 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
                 return false;
             }
         }
-        
+
         void stop()
-        { 
+        {
             if (fRunning) {
                 fRunning = false;
                 pthread_join(fThread, NULL);
             }
         }
-        
-        int getTCPPort() 
-        { 
-            return fTCPPort; 
+
+        int getTCPPort()
+        {
+            return fTCPPort;
         }
 
         std::string getJSON() { return fJSON; }
@@ -339,13 +339,56 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
 Creates a httpdServerUI or httpdClientUI depending of the presence of '-server URL' parameter.
 */
 
+//----------------------------------------------------------------
+//  Generic decorator
+//----------------------------------------------------------------
+
+class DecoratorUI : public UI
+{
+    protected:
+
+        UI* fUI;
+
+    public:
+
+        DecoratorUI(UI* ui = 0):fUI(ui)
+        {}
+
+        virtual ~DecoratorUI() { delete fUI; }
+
+        // -- widget's layouts
+        virtual void openTabBox(const char* label)          { fUI->openTabBox(label); }
+        virtual void openHorizontalBox(const char* label)   { fUI->openHorizontalBox(label); }
+        virtual void openVerticalBox(const char* label)     { fUI->openVerticalBox(label); }
+        virtual void closeBox()                             { fUI->closeBox(); }
+
+        // -- active widgets
+        virtual void addButton(const char* label, FAUSTFLOAT* zone)         { fUI->addButton(label, zone); }
+        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)    { fUI->addCheckButton(label, zone); }
+        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+            { fUI->addVerticalSlider(label, zone, init, min, max, step); }
+        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+            { fUI->addHorizontalSlider(label, zone, init, min, max, step); }
+        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+            { fUI->addNumEntry(label, zone, init, min, max, step); }
+
+        // -- passive widgets
+        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+            { fUI->addHorizontalBargraph(label, zone, min, max); }
+        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+            { fUI->addVerticalBargraph(label, zone, min, max); }
+
+        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val) { fUI->declare(zone, key, val); }
+
+};
+
 class httpdUI : public DecoratorUI
 {
-   
+
     public:
-    
+
         httpdUI(const char* applicationname, int inputs, int outputs, int argc, char* argv[], bool init = true)
-        { 
+        {
             if (argv && isopt(argv, "-server")) {
             #ifndef _WIN32
                 fUI = new httpdClientUI(lopts(argv, "-server", "http://localhost:5510"));

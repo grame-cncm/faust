@@ -68,7 +68,7 @@ class FaustPolyEngine {
         FaustPolyEngine(dsp* mono_dsp, audio* driver):fMidiUI(&fMidiHandler)
         {
             bool midi_sync = false;
-            int nvoices = 1;
+            int nvoices = 0;
             
             MidiMeta::analyse(mono_dsp, midi_sync, nvoices);
             
@@ -87,9 +87,10 @@ class FaustPolyEngine {
 
             if (fJSONUI.find("keyboard") != std::string::npos
                 || fJSONUI.find("poly") != std::string::npos
-                || nvoices > 1) {
+                || nvoices > 0) {
                 
                 fPolyDSP = new mydsp_poly(mono_dsp, nvoices, true);
+                fMidiHandler.addMidiIn(fPolyDSP);
 
             #if POLY2
                 fFinalDSP = new dsp_sequencer(fPolyDSP, new effect());

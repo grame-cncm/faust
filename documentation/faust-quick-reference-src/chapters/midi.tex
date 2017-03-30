@@ -90,7 +90,7 @@ MIDI clock based synchronization can be used to slave a given Faust program. The
 
 - \lstinline'[midi:stop]' in a button or checkbox will trigger a value of 0 when a \emph{stop} MIDI message is received
 
-- \lstinline'[midi:clock]' in a button or checkbox will trigger a stream of 1 and 0 each time a \emph{clock} MIDI message is received, thus delivering a square command signal.
+- \lstinline'[midi:clock]' in a button or checkbox will deliver a sequence of successive 1 and 0 values each time a  \emph{clock} MIDI message is received, seen by \faust code as a square command signal, to be used to compute higher level information.
 
 A typical Faust program will then use the MIDI clock stream to possibly compute the BPM information, or for any synchronization need it may have.  Here is a simple example of a sinus generated which a frequency controlled by the MIDI clock stream, and starting/stopping when receiving the MIDI start/stop messages:
 
