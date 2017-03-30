@@ -1850,9 +1850,11 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
   if (plugin_author && *plugin_author)
     fprintf(fp, "\
        doap:maintainer [ foaf:name \"%s\" ] ;\n", plugin_author);
+  // doap:description just seems to be ignored by all LV2 hosts anyway, so we
+  // rather use rdfs:comment now which works with Ardour at least.
   if (plugin_descr && *plugin_descr)
     fprintf(fp, "\
-       doap:description \"%s\" ;\n", plugin_descr);
+       rdfs:comment \"%s\" ;\n", plugin_descr);
   if (plugin_version && *plugin_version)
     fprintf(fp, "\
        doap:revision \"%s\" ;\n", plugin_version);
@@ -1950,6 +1952,10 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
 	if (!strcmp(val, "integer"))
 	  fprintf(fp, "\
 	lv2:portProperty lv2:integer ;\n");
+	else if (!strcmp(val, "reportsLatency"))
+	  fprintf(fp, "\
+	lv2:portProperty lv2:reportsLatency ;\n\
+	lv2:designation lv2:latency ;\n");
 	else if (!strcmp(val, "hidden") || !strcmp(val, "notOnGUI"))
 	  fprintf(fp, "\
 	lv2:portProperty epp:notOnGUI ;\n");
