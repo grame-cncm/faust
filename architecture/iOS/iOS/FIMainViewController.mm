@@ -23,11 +23,13 @@
 #import <QuartzCore/QuartzCore.h>
 #import "FIMainViewController.h"
 #import "ios-faust.h"
-#include "faust/dsp/timed-dsp.h"
-#include "faust/gui/JSONUI.h"
 #import "FIFlipsideViewController.h"
 #import "FIAppDelegate.h"
+
+#include "faust/dsp/timed-dsp.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/audio/coreaudio-ios-dsp.h"
+
 #if OSCCTRL
 #include "faust/gui/OSCUI.h"
 #endif

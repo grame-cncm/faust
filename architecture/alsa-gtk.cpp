@@ -76,10 +76,7 @@
 
 <<includeclass>>
 
-#ifdef POLY
 #include "faust/dsp/poly-dsp.h"
-#endif
-
 
 /***************************END USER SECTION ***************************/
 
