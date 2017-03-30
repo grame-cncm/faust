@@ -66,6 +66,7 @@ install:
 	install faust2smartkeyb $(dest)
 	install faust2supercollider $(dest)
 	install faust2svg $(dest)
+	install faust2unity $(dest)
 	install faust2vst $(dest)
 	install faust2vsti $(dest)
 	install faust2wasm $(dest)
@@ -134,6 +135,7 @@ uninstall:
 	rm -f $(dest)/faust2smartkeyb
 	rm -f $(dest)/faust2supercollider
 	rm -f $(dest)/faust2svg
+	rm -f $(dest)/faust2unity
 	rm -f $(dest)/faust2vst
 	rm -f $(dest)/faust2vsti
 	rm -f $(dest)/faust2wasm

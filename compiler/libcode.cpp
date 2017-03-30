@@ -671,6 +671,7 @@ static void initFaustDirectories()
     gGlobal->gArchitectureDirList.push_back(gGlobal->gFaustSuperSuperDirectory+"/architecture");
 #ifdef INSTALL_PREFIX
     gGlobal->gArchitectureDirList.push_back(INSTALL_PREFIX "/share/faust");
+    gGlobal->gArchitectureDirList.push_back(INSTALL_PREFIX "/include");
 #endif
     gGlobal->gArchitectureDirList.push_back("/usr/local/share/faust");
     gGlobal->gArchitectureDirList.push_back("/usr/share/faust");
