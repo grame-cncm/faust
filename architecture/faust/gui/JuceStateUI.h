@@ -22,7 +22,7 @@
 
  ************************************************************************
  ************************************************************************/
- 
+
 #ifndef JuceStateUI_H
 #define JuceStateUI_H
 
@@ -32,18 +32,18 @@
 
 // A class to save/restore DSP state using JUCE
 
-class JuceStateUI : public BaseUI {
-    
+class JuceStateUI : public UI {
+
     private:
-    
+
         std::vector<FAUSTFLOAT*> fZones;
-    
+
     public:
-    
+
         void getStateInformation (MemoryBlock& destData)
         {
             MemoryOutputStream stream (destData, true);
-            
+
             if (sizeof(FAUSTFLOAT) == sizeof(float)) {
                 for (int i = 0; i < fZones.size(); i++) {
                     stream.writeFloat(*fZones[i]);
@@ -54,11 +54,11 @@ class JuceStateUI : public BaseUI {
                 }
             }
         }
-        
+
         void setStateInformation (const void* data, int sizeInBytes)
         {
             MemoryInputStream stream (data, static_cast<size_t> (sizeInBytes), false);
-            
+
             if (sizeof(FAUSTFLOAT) == sizeof(float)) {
                 for (int i = 0; i < sizeInBytes / sizeof(float); i++) {
                     *fZones[i] = stream.readFloat();
@@ -69,15 +69,32 @@ class JuceStateUI : public BaseUI {
                 }
             }
         }
-        
+
+        // -- widget's layouts
+
+        virtual void openTabBox(const char* label) {};
+        virtual void openHorizontalBox(const char* label) {}
+        virtual void openVerticalBox(const char* label) {}
+        virtual void closeBox() {}
+
         // -- active widgets
-        
+
         virtual void addButton(const char* label, FAUSTFLOAT* zone) { fZones.push_back(zone); }
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { fZones.push_back(zone); }
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fZones.push_back(zone); }
         virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fZones.push_back(zone); }
         virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fZones.push_back(zone); };
-    
+        
+        // -- passive widgets
+
+        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
+        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
+
+        // -- metadata declarations
+
+        virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
+
+
 };
 
 #endif
