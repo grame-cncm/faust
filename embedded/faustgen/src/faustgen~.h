@@ -238,7 +238,10 @@ class faustgen : public MspCpp5<faustgen> {
         bool allocate_factory(const string& effect_name);
         
         t_dictionary* json_reader(const char* jsontext);
-       
+    
+        void add_midihandler();
+        void remove_midihandler();
+    
     public:
         
         faustgen() 

@@ -1069,6 +1069,7 @@ faustgen::~faustgen()
 
 void faustgen::free_dsp()
 {
+    remove_midihandler();
     delete fDSP;
     fDSP = 0;
     fDSPUI.clear();
@@ -1240,6 +1241,8 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
         
         // Initialize User Interface (here connnection with controls)
         fDSP->buildUserInterface(&fDSPUI);
+        
+        add_midihandler();
         fDSP->buildUserInterface(fMidiUI);
         
         // Prepare JSON
@@ -1466,7 +1469,25 @@ void faustgen::hilight_error(const string& error)
 {
     object_error_obtrusive((t_object*)&m_ob, (char*)error.c_str());
 }
-  
+
+void faustgen::add_midihandler()
+{
+    // Polyphonic DSP is controlled by MIDI
+    mydsp_poly* poly = dynamic_cast<mydsp_poly*>(fDSP);
+    if (poly) {
+        fDSPfactory->fMidiHandler.addMidiIn(poly);
+    }
+}
+
+void faustgen::remove_midihandler()
+{
+    // Polyphonic DSP is controlled by MIDI
+    mydsp_poly* poly = dynamic_cast<mydsp_poly*>(fDSP);
+    if (poly) {
+        fDSPfactory->fMidiHandler.removeMidiIn(poly);
+    }
+}
+
 void faustgen::create_dsp(bool init)
 {
     if (fDSPfactory->lock()) {
@@ -1475,6 +1496,8 @@ void faustgen::create_dsp(bool init)
         
         // Initialize User Interface (here connnection with controls)
         fDSP->buildUserInterface(&fDSPUI);
+        
+        add_midihandler();
         fDSP->buildUserInterface(fMidiUI);
         
         // Initialize at the system's sampling rate

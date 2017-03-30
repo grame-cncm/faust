@@ -180,7 +180,9 @@ bool netjack_dsp::init(int u1, int u2)
     
     // If Polyphonic DSP, setup a MIDI interface
 #ifdef MIDICTRL
-    if (dynamic_cast<mydsp_poly*>(fDSP)) {
+    mydsp_poly* poly = dynamic_cast<mydsp_poly*>(fDSP);
+    if (poly) {
+        netjack_slave->addMidiIn(poly);
         fMidiUI = new MidiUI(netjack_slave);
         fDSP->buildUserInterface(fMidiUI);
         fMidiUI->run();
