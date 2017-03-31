@@ -1710,6 +1710,26 @@ public:
   virtual VstInt32 getNumMidiOutputChannels()  { return 0; }
 
 #if FAUST_UI
+  // AG: Note that we have to map the GUI parameter numbers to the actual
+  // Faust control indices here. This extra level of indirection is necessary
+  // because in some cases Qt may enumerate the child widgets in a different
+  // order than what we have in the Faust program. The mapping is computed in
+  // the QTGUIWrapper class below, please see the comments there for details.
+
+  int n_params;		// number of param mapping entries
+  int *param_no;	// map Qt -> Faust control numbers
+  int *control_no;	// map Faust -> Qt control numbers
+
+  int map_param(int i)
+  {
+    return (i < 0 || i >= n_params) ? i : param_no[i];
+  }
+
+  int map_control(int i)
+  {
+    return (i < 0 || i >= n_params) ? i : control_no[i];
+  }
+
   // GUI-specific methods
   float getMinimum(VstInt32 index);
   float getMaximum(VstInt32 index);
@@ -1719,6 +1739,10 @@ public:
   int getNumTunings();
   int getNumControls();
   const char *getHostName();
+#else
+  // Dummy versions to be used if the GUI is not included.
+  int map_param(int i) { return i; }
+  int map_control(int i) { return i; }
 #endif
 
 private:
@@ -1820,6 +1844,10 @@ VSTWrapper::VSTWrapper(audioMasterCallback audioMaster)
   // Some hosts like Ardour properly report the product string even though
   // getHostProductString() returns false, so we just ignore the return value.
   getHostProductString(host);
+  // Map of GUI parameter numbers to the actual control indices. This is
+  // initialized later by VSTQtGUI::open() below.
+  n_params = 0;
+  param_no = control_no = 0;
 #endif
   // VST-specific initialization:
   if (audioMaster) {
@@ -1869,6 +1897,10 @@ VSTWrapper::~VSTWrapper()
 {
   delete plugin;
   if (progdata) free(progdata);
+#if FAUST_UI
+  if (param_no) delete[] param_no;
+  if (control_no) delete[] control_no;
+#endif
 }
 
 // plugin activation and deactivation
@@ -1973,6 +2005,7 @@ VstInt32 VSTWrapper::setChunk(void* data, VstInt32 byteSize, bool isPreset)
 
 void VSTWrapper::getParameterName(VstInt32 index, char *label)
 {
+  index = map_param(index);
   int k = plugin->ui[0]->nports;
   strcpy(label, "");
   if (index < k) {
@@ -1995,6 +2028,7 @@ void VSTWrapper::getParameterName(VstInt32 index, char *label)
 
 void VSTWrapper::getParameterLabel(VstInt32 index, char *label)
 {
+  index = map_param(index);
   int k = plugin->ui[0]->nports;
   strcpy(label, "");
   if (index < k) {
@@ -2028,6 +2062,7 @@ static double quantize(double x, double d)
 
 void VSTWrapper::getParameterDisplay(VstInt32 index, char *text)
 {
+  index = map_param(index);
   int k = plugin->ui[0]->nports;
   strcpy(text, "");
   if (index < k) {
@@ -2059,6 +2094,7 @@ static inline float clamp(float min, float max, float val)
 
 float VSTWrapper::getParameter(VstInt32 index)
 {
+  index = map_param(index);
   int k = plugin->ui[0]->nports;
   if (index >= 0 && index < k) {
     int j = plugin->ctrls[index];
@@ -2083,6 +2119,7 @@ float VSTWrapper::getParameter(VstInt32 index)
 
 void VSTWrapper::setParameter(VstInt32 index, float value)
 {
+  index = map_param(index);
   const double eps = 1e-5;
   int k = plugin->ui[0]->nports;
   if (index >= 0 && index < k) {
@@ -2283,6 +2320,7 @@ VstInt32 VSTWrapper::processEvents(VstEvents* events)
 
 float VSTWrapper::getMinimum(VstInt32 index)
 {
+  index = map_param(index);
   int k = plugin->ui[0]->nports;
   if (index < 0)
     return 0.0f;
@@ -2303,6 +2341,7 @@ float VSTWrapper::getMinimum(VstInt32 index)
 
 float VSTWrapper::getMaximum(VstInt32 index)
 {
+  index = map_param(index);
   int k = plugin->ui[0]->nports;
   if (index < 0)
     return 0.0f;
@@ -2323,6 +2362,7 @@ float VSTWrapper::getMaximum(VstInt32 index)
 
 float VSTWrapper::getStep(VstInt32 index)
 {
+  index = map_param(index);
   int k = plugin->ui[0]->nports;
   if (index < 0)
     return 0.0f;
@@ -2343,6 +2383,7 @@ float VSTWrapper::getStep(VstInt32 index)
 
 int VSTWrapper::isPassiveControl(VstInt32 index)
 {
+  index = map_param(index);
   int k = plugin->ui[0]->nports;
   if (index >= 0 && index < k) {
     int j = plugin->ctrls[index];
@@ -2398,6 +2439,8 @@ const char *VSTWrapper::getHostName()
 #endif
 
 #include <QWidget>
+#include <QList>
+#include <QtAlgorithms>
 #include <QX11Info>
 #include <X11/Xlib.h>
 
@@ -2471,13 +2514,45 @@ VSTQtGUI::~VSTQtGUI()
 // This is a little wrapper class around QTGUI which takes care of eliminating
 // the freq/gain/gate controls of instruments in the user interface when
 // running the dsp's buildUserInterface method. It also adds polyphony and
-// tuning controls to instruments as needed. -ag
+// tuning controls to instruments as needed, and does some other extra
+// bookkeeping and on-the-fly modifications that we need. -ag
+
+// AG XXXFIXME: This is more complicated than we'd like it to be, since for
+// some unknown reason, the children of a tab widget are listed in reverse
+// order (https://bitbucket.org/agraef/faust-lv2/issues/10). Since the GUI
+// code assumes that the widgets are in the same order as the Faust control
+// elements, we need to construct a mapping that translates between the two.
+
+struct QTGUIElem {
+  int i;
+  QList<int> p;
+  const char *label;
+  QTGUIElem(int _i, QList<int> _p, const char *_label) :
+    i(_i), p(_p), label(_label)
+  {}
+};
+
+bool qtguielem_less(const QTGUIElem &x, const QTGUIElem &y)
+{
+  // Qt4 doesn't define operator< on QLists, so we need to do the
+  // lexicographic comparison manually.
+  QList<int>::const_iterator i = x.p.begin(), j = y.p.begin();
+  for (; i != x.p.end() && j != y.p.end(); ++i, ++j) {
+    if (*i < *j)
+      return true;
+    else if (*i > *j)
+      return false;
+  }
+  return j != y.p.end();
+}
 
 class QTGUIWrapper : public UI
 {
 protected:
   bool is_instr;
   QTGUI *ui;
+  QList<int> path;
+  QList<QTGUIElem> elems;
   int level, maxvoices, numtunings;
   float *voices_zone, *tuning_zone;
   bool have_freq, have_gain, have_gate;
@@ -2495,71 +2570,144 @@ protected:
       return false;
   }
 public:
+  int *elem_no;
+  int nelems;
   QTGUIWrapper(QTGUI *_ui, int _maxvoices, int _numtunings,
 	       float *_voices_zone, float *_tuning_zone) :
     is_instr(_maxvoices>0), ui(_ui), level(0),
     maxvoices(_maxvoices), numtunings(_numtunings),
     voices_zone(_voices_zone), tuning_zone(_tuning_zone),
-    have_freq(false), have_gain(false), have_gate(false)
+    have_freq(false), have_gain(false), have_gate(false),
+    elem_no(0), nelems(0)
   {}
   virtual ~QTGUIWrapper() {}
 
   // -- widget's layouts
   virtual void openTabBox(const char* label)
-  { ui->openTabBox(label); level++; }
+  { ui->openTabBox(label); level++; path.append(-1); }
   virtual void openHorizontalBox(const char* label)
-  { ui->openHorizontalBox(label); level++; }
+  { ui->openHorizontalBox(label); level++; path.append(0); }
   virtual void openVerticalBox(const char* label)
-  { ui->openVerticalBox(label); level++; }
+  { ui->openVerticalBox(label); level++; path.append(0); }
   virtual void closeBox()
   {
-    if (--level == 0 && is_instr) {
+    if (--level == 0) {
 #if VOICE_CTRLS
-      // Add polyphony and tuning controls (experimental).
-      ui->addHorizontalSlider("polyphony", voices_zone,
-			      maxvoices/2, 0, maxvoices, 1);
+      if (is_instr) {
+	// Add polyphony and tuning controls (experimental).
+	ui->addHorizontalSlider("polyphony", voices_zone,
+				maxvoices/2, 0, maxvoices, 1);
+	addElem("Polyphony");
 #if FAUST_MTS
-      if (numtunings>0)
-	ui->addHorizontalSlider("tuning", tuning_zone, 0, 0, numtunings, 1);
+	if (numtunings>0)
+	  ui->addHorizontalSlider("tuning", tuning_zone, 0, 0, numtunings, 1);
+	addElem("Tuning");
 #endif
+      }
 #endif
+      // AG: Create an index of all the GUI elements in the right order.
+      // XXXFIXME: This may need to be revisited if Qt or Faust changes the
+      // order for some reason.
+      qSort(elems.begin(), elems.end(), qtguielem_less);
+      elem_no = new int[nelems];
+      nelems = 0;
+      for (QList<QTGUIElem>::iterator x = elems.begin(); x != elems.end();
+	   ++x, ++nelems) {
+	elem_no[nelems] = x->i;
+#if 0
+	fprintf(stderr, "%s (#%d):", x->label, x->i);
+	for (QList<int>::iterator i = x->p.begin(); i != x->p.end(); ++i) {
+	  fprintf(stderr, " %d", *i);
+	}
+	fprintf(stderr, "\n");
+#endif
+      }
+    }
+    path.pop_back();
+    if (!path.empty()) {
+      if (path.last() < 0)
+	path.last()--;
+      else
+	path.last()++;
     }
     ui->closeBox();
   }
 
+  void addElem(const char *label)
+  {
+    elems.append(QTGUIElem(nelems++, path, label));
+    assert(!path.empty());
+    if (path.last() < 0)
+      path.last()--;
+    else
+      path.last()++;
+  }
+
   // -- active widgets
   virtual void addButton(const char* label, FAUSTFLOAT* zone)
-  { if (!is_voice_ctrl(label))
-      ui->addButton(label, zone); }
+  {
+    if (!is_voice_ctrl(label)) {
+      ui->addButton(label, zone);
+      addElem(label);
+    }
+  }
   virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
-  { if (!is_voice_ctrl(label))
-      ui->addCheckButton(label, zone); }
+  {
+    if (!is_voice_ctrl(label)) {
+      ui->addCheckButton(label, zone);
+      addElem(label);
+    }
+  }
   virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone,
 				 FAUSTFLOAT init, FAUSTFLOAT min,
 				 FAUSTFLOAT max, FAUSTFLOAT step)
-  { if (!is_voice_ctrl(label))
-      ui->addVerticalSlider(label, zone, init, min, max, step); }
+  {
+    if (!is_voice_ctrl(label)) {
+      ui->addVerticalSlider(label, zone, init, min, max, step);
+      addElem(label);
+    }
+  }
   virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone,
 				   FAUSTFLOAT init, FAUSTFLOAT min,
 				   FAUSTFLOAT max, FAUSTFLOAT step)
-  { if (!is_voice_ctrl(label))
-      ui->addHorizontalSlider(label, zone, init, min, max, step); }
+  {
+    if (!is_voice_ctrl(label)) {
+      ui->addHorizontalSlider(label, zone, init, min, max, step);
+      addElem(label);
+    }
+  }
   virtual void addNumEntry(const char* label, FAUSTFLOAT* zone,
 			   FAUSTFLOAT init, FAUSTFLOAT min,
 			   FAUSTFLOAT max, FAUSTFLOAT step)
-  { if (!is_voice_ctrl(label))
-      ui->addNumEntry(label, zone, init, min, max, step); }
+  {
+    if (!is_voice_ctrl(label)) {
+      ui->addNumEntry(label, zone, init, min, max, step);
+      addElem(label);
+    }
+  }
 
   // -- passive widgets
   virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone,
 				     FAUSTFLOAT min, FAUSTFLOAT max)
-  { ui->addHorizontalBargraph(label, zone, min, max); }
+  {
+    ui->addHorizontalBargraph(label, zone, min, max);
+    addElem(label);
+  }
   virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone,
 				   FAUSTFLOAT min, FAUSTFLOAT max)
-  { ui->addVerticalBargraph(label, zone, min, max); }
+  {
+    ui->addVerticalBargraph(label, zone, min, max);
+    addElem(label);
+  }
 
   virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
-  { ui->declare(zone, key, val); }
+  {
+    // XXXFIXME: Faust's Qt GUI implementation handles [scale:log] and similar
+    // meta data affecting the scaling of slider data, but this isn't
+    // supported in the current faust-vst implementation, so we just ignore
+    // this meta data for now.
+    if (strcmp(key, "scale")) ui->declare(zone, key, val);
+  }
 
 };
 
@@ -2597,6 +2745,20 @@ bool VSTQtGUI::open(void *ptr)
 			 effect->getMaxVoices(), effect->getNumTunings(),
 			 &voices_zone, &tuning_zone);
   dsp->buildUserInterface(&qtwrapper);
+
+  // AG: Initialize the Qt GUI -> Faust UI mapping (see the explanation under
+  // QTGUIWrapper above).
+  effect->n_params = qtwrapper.nelems;
+  effect->param_no = qtwrapper.elem_no;
+  effect->control_no = new int[qtwrapper.nelems];
+  for (int i = 0; i < qtwrapper.nelems; i++)
+    effect->control_no[effect->param_no[i]] = i;
+#if 0
+  for (int i = 0; i < effect->n_params; i++)
+    fprintf(stderr, "QT->LV2 %d -> %d\n", i, effect->param_no[i]);
+  for (int i = 0; i < effect->n_params; i++)
+    fprintf(stderr, "LV2->QT %d -> %d\n", i, effect->control_no[i]);
+#endif
 
   // HTTPD and OSC support (experimental)
 #ifdef HTTPCTRL
@@ -2762,7 +2924,8 @@ bool VSTQtGUI::open(void *ptr)
 
         // the corresponding display of the vBargraphs is now set
         vBargraphChecked = true;
-      } else if(effect->isPassiveControl(vstParamCount)==2
+      } else if(vstParamCount < effect->n_params &&
+		effect->isPassiveControl(vstParamCount)==2
                 && vBargraphChecked) {
         QAbstractSlider* sliderOrKnob =
 	  qobject_cast<QAbstractSlider*>(lastObject);
@@ -3097,6 +3260,8 @@ void VSTQtGUI::updateQTGUI(QObject* object, float value, bool init)
     valueChar = "value";
 
 #if FAUSTQT_DEBUG>1
+  int vstParam = object->property("vstParam").toInt();
+  qDebug() << "QTGUI: vstParam: " << vstParam;
   qDebug() << "QTGUI: VST value: " << value;
   qDebug() << "QTGUI: old Qt value: "
 	   << object->property(valueChar).toDouble();
