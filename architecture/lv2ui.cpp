@@ -304,7 +304,7 @@ void LV2UI::run() {}
 #endif
 
 #ifndef URI_PREFIX
-#define URI_PREFIX "http://faustlv2.bitbucket.org"
+#define URI_PREFIX "https://faustlv2.bitbucket.io"
 #endif
 
 #ifndef PLUGIN_URI
