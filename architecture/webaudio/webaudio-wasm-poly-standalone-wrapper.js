@@ -49,7 +49,7 @@ function createMemory(buffer_size, max_polyphony) {
 
 // The is the main entry point.
 // - filename : the wasm filename
-// - callback : a callback taking the allocated wasm module as parameter
+// - callback : a callback taking the allocated wasm instance as parameter
 // - buffer_size : the buffer size in frames
 // - max_polyphony : the number of polyphonic voices
 
@@ -134,13 +134,13 @@ var faust = faust || {};
 
 // Constructor.
 // - context : the WebAudio context
-// - module : the wasm module
+// - instance : the wasm instance
 // - memory : the wasm memory
 // - buffer_size : the buffer size in frames
 // - max_polyphony : the number of polyphonic voices
 // - callback : externally given callback (for instance to play a MIDIFile...)
 
-faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony, callback) {
+faust.mydsp_poly = function (context, instance, memory, buffer_size, max_polyphony, callback) {
 
     var handler = null;
     var ins, outs;
@@ -180,7 +180,7 @@ faust.mydsp_poly = function (context, module, memory, buffer_size, max_polyphony
     console.log(getNumInputsAux());
     console.log(getNumOutputsAux());
     
-    var factory = module.exports;
+    var factory = instance.exports;
     var HEAP = memory.buffer;
     var HEAP32 = new Int32Array(HEAP);
     var HEAPF32 = new Float32Array(HEAP);

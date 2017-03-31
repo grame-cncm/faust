@@ -33,7 +33,7 @@ window.Math.tan = global.Math.tan;
 
 // Standard Faust DSP
 
-faust.mydsp = function (context, module, buffer_size, sample_rate) {
+faust.mydsp = function (context, instance, buffer_size, sample_rate) {
 
     var handler = null;
     var ins, outs;
@@ -70,9 +70,9 @@ faust.mydsp = function (context, module, buffer_size, sample_rate) {
      
     var memory_size = pow2limit(getSizemydsp() + (numIn + numOut) * (ptr_size + (buffer_size * sample_size)));
    
-    var factory = module.exports;
+    var factory = instance.exports;
     
-    var HEAP = module.exports.memory.buffer;
+    var HEAP = instance.exports.memory.buffer;
     var HEAP32 = new Int32Array(HEAP);
     var HEAPF = new Float64Array(HEAP);
   
@@ -415,7 +415,7 @@ var linenum = 0;
 var run = 0;
 var control_data;
 
-function startDSP(module, buffer_size)
+function startDSP(instance, buffer_size)
 {
   // Creates DSP and buffers
     var DSP = faust.mydsp(null, buffer_size, buffer_size, sample_rate);
@@ -541,5 +541,5 @@ var response = fs.readFileSync('DSP.wasm');
 var bytes = response.buffer;
 //console.log("bytes " + bytes);
 
-var res = instantiate(response.buffer, importObject).then(module => { console.log(module); startDSP(module, buffer_size); });
+var res = instantiate(response.buffer, importObject).then(instance => { console.log(instance); startDSP(instance, buffer_size); });
 

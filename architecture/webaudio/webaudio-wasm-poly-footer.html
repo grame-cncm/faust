@@ -11,7 +11,7 @@ var max_polyphony = 16;
 var audio_input = null;
 var midi_input = [];
 var DSP_poly = null;
-var wasm_module = null;
+var wasm_instance = null;
 var faustsvg = null;
 
 function changeBufferSize(buffer_size)
@@ -136,7 +136,7 @@ function getDevice(device)
     audio_input.connect(DSP_poly.getProcessor());
 }
 
-function startDSPAux(module, memory, buffer_size)
+function startDSPAux(instance, memory, buffer_size)
 {
     activateMIDIInput();
     if (DSP_poly) {
@@ -147,7 +147,7 @@ function startDSPAux(module, memory, buffer_size)
         DSP_poly.stop();
         DSP_poly.destroy();
     }
-    DSP_poly = faust.DSP_poly(audio_context, module, memory, buffer_size, max_polyphony);
+    DSP_poly = faust.DSP_poly(audio_context, instance, memory, buffer_size, max_polyphony);
     DSP_poly.start();
     
     console.log(DSP_poly.json());
@@ -164,8 +164,8 @@ function startDSPAux(module, memory, buffer_size)
 function startDSP()
 {
     createDSP('DSP.wasm',
-             function(module, memory, buffer_size) {
-                wasm_module = module; console.log(module); startDSPAux(module, memory, buffer_size);
+             function(instance, memory, buffer_size) {
+                wasm_instance = instance; console.log(instance); startDSPAux(instance, memory, buffer_size);
              },
              1024,
              max_polyphony);
@@ -173,7 +173,7 @@ function startDSP()
 
 function startNewDSP(buffer_size) 
 {
-    startDSPAux(wasm_module, createMemory(buffer_size, max_polyphony), buffer_size);
+    startDSPAux(wasm_instance, createMemory(buffer_size, max_polyphony), buffer_size);
 }
 
 // To activate audio on iOS

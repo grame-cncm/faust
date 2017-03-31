@@ -8,7 +8,7 @@ var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
 var audio_input = null;
 var DSP = null;
-var wasm_module = null;
+var wasm_instance = null;
 var faustsvg = null;
 
 function changeBufferSize(buffer_size)
@@ -45,10 +45,10 @@ function getDevice(device)
     audio_input.connect(DSP.getProcessor());
 }
 
-function startDSPAux(module, buffer_size)
+function startDSPAux(instance, buffer_size)
 {
     console.log("startDSP" + buffer_size);
-    console.log(module);
+    console.log(instance);
     if (DSP) {
         if (audio_input) {
             audio_input.disconnect(DSP.getProcessor());
@@ -57,7 +57,7 @@ function startDSPAux(module, buffer_size)
         DSP.stop();
         DSP.destroy();
     }
-    DSP = faust.DSP(audio_context, module, buffer_size);
+    DSP = faust.DSP(audio_context, instance, buffer_size);
     if (DSP.getNumInputs() > 0) {
         activateAudioInput();
     }
@@ -77,14 +77,14 @@ function startDSPAux(module, buffer_size)
 function startDSP() 
 {
     createDSP('DSP.wasm',
-             function(module) {
-                wasm_module = module; console.log(module); startDSPAux(module, 1024);
+             function(instance) {
+                wasm_instance = instance; console.log(instance); startDSPAux(instance, 1024);
              });
 }
 
 function startNewDSP(buffer_size)
 {
-    startDSPAux(wasm_module, buffer_size);
+    startDSPAux(wasm_instance, buffer_size);
 }
 
 // To activate audio on iOS
