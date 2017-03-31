@@ -280,6 +280,8 @@
 <script src="WebMIDIAPI.js"></script>
         
 <script type="text/javascript">
+    
+'use strict';
 
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();

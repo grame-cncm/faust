@@ -31,6 +31,8 @@
     <body>
         <script src = "DSP.js"></script>
         <script>
+            
+        'use strict';
         
         var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
         var context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
