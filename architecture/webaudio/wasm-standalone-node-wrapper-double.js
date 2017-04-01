@@ -517,8 +517,9 @@ function startDSP(instance, buffer_size)
 function instantiate(bytes, imports)
 {
     try {
-        return WebAssembly.instantiate(bytes, imports).then(result => result.instance);
-    } catch (e) {}
+    	//return WebAssembly.instantiate(bytes, imports).then(result => result.instance);
+       	return WebAssembly.compile(bytes).then(m => new WebAssembly.Instance(m, imports));
+   } catch (e) {}
 }
 
 var asm2wasm = { // special asm2wasm imports
