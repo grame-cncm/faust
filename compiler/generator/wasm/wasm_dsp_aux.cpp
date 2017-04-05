@@ -105,7 +105,7 @@ EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory)
 
 // C API
 
-static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const string& error_msg_aux, char* error_msg)
+static void* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const string& error_msg_aux, char* error_msg)
 {
     if (factory) {
         WasmModule* res = static_cast<WasmModule*>(calloc(1, sizeof(WasmModule)));
@@ -127,18 +127,30 @@ static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const str
     }
 }
 
-EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg)
+EXPORT void* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg)
 {
     string error_msg_aux;
     wasm_dsp_factory* factory = createWasmDSPFactoryFromFile(filename, argc, argv, error_msg_aux);
     return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
 }
 
-EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg)
+EXPORT void* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg)
 {
     string error_msg_aux;
     wasm_dsp_factory* factory = createWasmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg_aux);
     return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
+}
+
+EXPORT const char* getWasmCModule(void* ptr)
+{
+    WasmModule* module = reinterpret_cast<WasmModule*>(ptr);
+    return module->fCode;
+}
+
+EXPORT const char* getWasmCHelpers(void* ptr)
+{
+    WasmModule* module = reinterpret_cast<WasmModule*>(ptr);
+    return module->fHelpers;
 }
 
 EXPORT void freeCWasmModule(void* ptr)

@@ -89,7 +89,7 @@ extern "C" {
      *
      * @return a valid WebAssembly module and additional helper functions as a WasmRes struct on success (to be deleted by the caller), otherwise a null pointer.
      */
-    EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
+    EXPORT void* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
      /**
      * Create a Faust DSP WebAssembly module and additional helper functions from a DSP source code.
@@ -102,7 +102,21 @@ extern "C" {
      *
      * @return a valid WebAssembly module and additional helper functions as a WasmRes struct on success (to be deleted by the caller), otherwise a null pointer.
      */ 
-    EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
+    EXPORT void* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
+    
+    /**
+     * Get the WebAssembly module from the WasmRes structure.
+     *
+     * @return the WebAssembly module as an array of bytes.
+     */
+    EXPORT const char* getWasmCModule(void* module);
+    
+    /**
+     * Get the additional helper functions module from the WasmRes structure.
+     *
+     * @return the additional helper functions as a string.
+     */
+    EXPORT const char* getWasmCHelpers(void* module);
     
     /**
      * Get the library version.
@@ -114,7 +128,7 @@ extern "C" {
     /**
      * The free function to be used on memory returned by createWasmCDSPFactoryFromFile or createWasmCDSPFactoryFromString.
      * 
-     * @param ptr - the pointer to be deleted.
+     * @param ptr - the WasmRes structure to be deleted.
      */
     EXPORT void freeCWasmModule(void* ptr);
     
