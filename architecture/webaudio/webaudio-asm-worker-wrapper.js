@@ -386,7 +386,7 @@ faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, sha_k
     }
   
     // Compile the ASM module itself : 'buffer' is the emscripten global memory context
-    var factory = eval(factory_name + "Module(window, null, HEAP)");
+    var factory = eval(factory_name + "Module(window, window.math, HEAP)");
     
     factory.dsp_memory_size = dsp_memory_size;
     factory.HEAP = HEAP;
