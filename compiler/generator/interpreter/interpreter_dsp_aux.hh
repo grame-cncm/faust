@@ -673,7 +673,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             // Comment to allow specialization...
             fFactory->optimize();
             
-            
+            /*
             fFactory->fStaticInitBlock->write(&std::cout, false);
             fFactory->fInitBlock->write(&std::cout, false);
             fFactory->fResetUIBlock->write(&std::cout, false);
@@ -681,7 +681,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             fFactory->fComputeBlock->write(&std::cout, false);
             fFactory->fComputeDSPBlock->write(&std::cout, false);
             std::cout << "size " << fFactory->fComputeDSPBlock->size() << std::endl;
-            
+            */
          
             this->fStaticInitBlock = 0;
             this->fInitBlock = 0;

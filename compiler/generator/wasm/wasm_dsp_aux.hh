@@ -62,6 +62,8 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
         void write(std::ostream* out, bool binary, bool small = false) { fFactory->write(out, binary, small); }
         void writeAux(std::ostream* out, bool binary, bool small = false) { fFactory->writeAux(out, binary, small); }
     
+        const std::string& getCode() { return fFactory->getCode(); }
+    
 };
 
 EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename, int argc, const char* argv[], string& error_msg);
@@ -75,7 +77,8 @@ extern "C" {
 #endif
     
     typedef struct  {
-        const char* fCode;
+        char* fCode;
+        int fCodeSize;
         const char* fHelpers;
     } WasmModule;
 
@@ -110,6 +113,13 @@ extern "C" {
      * @return the WebAssembly module as an array of bytes.
      */
     EXPORT const char* getWasmCModule(void* module);
+    
+    /**
+     * Get the WebAssembly module size
+     *
+     * @return the WebAssembly module size.
+     */
+    EXPORT int getWasmCModuleSize(void* module);
     
     /**
      * Get the additional helper functions module from the WasmRes structure.

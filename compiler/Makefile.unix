@@ -194,7 +194,7 @@ wasm : CXXFLAGS = -DEMCC -I../architecture -O3 -Wall -Wuninitialized -Wno-overlo
 wasm : ARCHFLAGS =
 wasm : LLVM_VERSION =
 wasm : libfaust.wasm libfaustworker.wasm
-wasm : EXPORTED="['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCDSP']"
+wasm : EXPORTED="['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeCWasmModule']"
 
 libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o
 	libtool $(LIBFLAGS) generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o -static -o libfaustmachine.a

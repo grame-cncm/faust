@@ -34,7 +34,7 @@
 #define COMPILATION_OPTIONS_KEY "compilation_options"
 #define COMPILATION_OPTIONS     "declare compilation_options    "
 
-#define FAUSTVERSION "2.0.a61"
+#define FAUSTVERSION "2.0.a62"
 
 class dsp_factory;
 class dsp;
@@ -68,6 +68,8 @@ class dsp_factory_base {
         virtual void write(std::ostream* out, bool binary = false, bool small = false) = 0;
     
         virtual void writeAux(std::ostream* out, bool binary = false, bool small = false) {}    // Helper functions
+    
+        virtual const std::string& getCode() {}
     
         virtual std::vector<std::string> getDSPFactoryLibraryList() = 0;
     
@@ -142,7 +144,7 @@ class text_dsp_factory_aux : public dsp_factory_imp {
     protected:
     
         std::string fCode;
-        std::string fHelper;
+        std::string fHelpers;
     
     public:
     
@@ -151,8 +153,8 @@ class text_dsp_factory_aux : public dsp_factory_imp {
                              const std::string& dsp,
                              const std::vector<std::string>& pathname_list,
                              const std::string& code,
-                             const std::string& helper)
-            :dsp_factory_imp(name, sha_key, dsp, pathname_list), fCode(code), fHelper(helper)
+                             const std::string& helpers)
+            :dsp_factory_imp(name, sha_key, dsp, pathname_list), fCode(code), fHelpers(helpers)
         {}
         
         virtual void write(std::ostream* out, bool binary = false, bool small = false)
@@ -162,8 +164,11 @@ class text_dsp_factory_aux : public dsp_factory_imp {
     
         virtual void writeAux(std::ostream* out, bool binary = false, bool small = false)
         {
-            *out << fHelper;
+            *out << fHelpers;
         }
+    
+        virtual const std::string& getCode() { return fCode; }
+    
 };
 
 dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg, bool generate);

@@ -55,10 +55,13 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
     string expanded_dsp_content = "";
     string sha_key = "";
     
+    // Deactivated for now since expandDSPFromString use thread based call of compiler ...
+    /*
     if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
         return NULL;
     } else {
-        
+    */
+    {
         int argc1 = 0;
         const char* argv1[64];
         
@@ -66,7 +69,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
         argv1[argc1++] = "-lang";
         argv1[argc1++] = "wasm";
         argv1[argc1++] = "-o";
-        argv1[argc1++] = "string";
+        argv1[argc1++] = "binary";
         
         for (int i = 0; i < argc; i++) {
             argv1[argc1++] = argv[i];
@@ -87,7 +90,6 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
                                                                     dsp_content.c_str(),
                                                                     error_msg,
                                                                     true);
-            
             if (!dsp_factory_aux) { return NULL; }
             factory = new wasm_dsp_factory(dsp_factory_aux);
             gWasmFactoryTable.setFactory(factory);
@@ -110,10 +112,11 @@ static void* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const string& e
     if (factory) {
         WasmModule* res = static_cast<WasmModule*>(calloc(1, sizeof(WasmModule)));
         
-        stringstream dst1;
-        factory->write(&dst1, false, false);
-        strncpy(error_msg, error_msg_aux.c_str(), 4096);
-        res->fCode = strdup(flatten(dst1.str()).c_str());
+        // 'Binary' string, so directly copy its content
+        const string& code = factory->getCode();
+        res->fCodeSize = code.size();
+        res->fCode = (char*)malloc(res->fCodeSize);
+        memcpy(res->fCode, code.c_str(), res->fCodeSize);
         
         stringstream dst2;
         factory->writeAux(&dst2, false, false);
@@ -145,6 +148,12 @@ EXPORT const char* getWasmCModule(void* ptr)
 {
     WasmModule* module = reinterpret_cast<WasmModule*>(ptr);
     return module->fCode;
+}
+
+EXPORT int getWasmCModuleSize(void* ptr)
+{
+    WasmModule* module = reinterpret_cast<WasmModule*>(ptr);
+    return module->fCodeSize;
 }
 
 EXPORT const char* getWasmCHelpers(void* ptr)

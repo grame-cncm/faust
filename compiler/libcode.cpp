@@ -100,8 +100,10 @@ static void call_fun(compile_fun fun)
 
 static void call_fun(compile_fun fun)
 {
-    if (gGlobal->gOutputLang == "ajs") {
-        // No thread support in asm.js
+    if (gGlobal->gOutputLang == "ajs"
+        || startWith(gGlobal->gOutputLang, "wast")
+        || startWith(gGlobal->gOutputLang, "wasm")) {
+        // No thread support in asm.js and wast/wasm
         fun(NULL);
     } else {
         pthread_t thread;
@@ -771,7 +773,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
     // Finally output file
     if (gGlobal->gOutputFile == "string") {
         dst = new stringstream();
-        helpers = new stringstream();
+    } else if (gGlobal->gOutputFile == "binary") {
+        dst = new stringstream(stringstream::out |stringstream::binary);
     } else if (gGlobal->gOutputFile != "") {
         outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
         /* desactivated for now (creates issue with faust2android on Linux)
@@ -913,7 +916,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             container = WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, ((gGlobal->gOutputLang == "wast") || (gGlobal->gOutputLang == "wast-i")));
             
             // Additional file with JS code
-            if (gGlobal->gOutputFile != "") {
+            if (gGlobal->gOutputFile == "binary") {
+                // Nothing
+            } else if (gGlobal->gOutputFile != "") {
                 string outpath_js;
                 bool res = replaceExtension(outpath, ".js", outpath_js);
                 if (res) {
@@ -934,7 +939,9 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i")));
             
             // Additional file with JS code
-            if (gGlobal->gOutputFile != "") {
+            if (gGlobal->gOutputFile == "binary") {
+                // Nothing
+            } else if (gGlobal->gOutputFile != "") {
                 string outpath_js;
                 bool res = replaceExtension(outpath, ".js", outpath_js);
                 if (res) {
@@ -1050,6 +1057,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             gGlobal->gDSPFactory->writeAux(helpers, (helpers != &cout), false);
             // Force flush since the stream is not closed...
             helpers->flush();
+            
+            if (helpers != &cout) delete helpers;
         }
     }
    
@@ -1228,7 +1237,7 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
         out << "process = " << boxpp(process) << ';' << endl;
         return;
     }
-
+  
     /****************************************************************
      4 - compute output signals of 'process'
     *****************************************************************/
@@ -1252,12 +1261,12 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
     }
 
     endTiming("propagation");
-
+ 
     /*************************************************************************
     5 - preparation of the signal tree and translate output signals
     **************************************************************************/
     pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs, generate);
-
+ 
     /****************************************************************
      6 - generate xml description, documentation or dot files
     *****************************************************************/
