@@ -80,11 +80,14 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
         dsp_factory_table<SDsp_factory>::factory_iterator it;
         wasm_dsp_factory* factory = 0;
         
+        // sha_key and library table is handled on JS side. Compilation is done each time here.
+        /*
         if (gWasmFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
         } else {
+        */
             dsp_factory_base* dsp_factory_aux = compile_faust_factory(argc1, argv1,
                                                                     name_app.c_str(),
                                                                     dsp_content.c_str(),
@@ -96,7 +99,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
             factory->setSHAKey(sha_key);
             factory->setDSPCode(expanded_dsp_content);
             return factory;
-        }
+       // }
     }
 }
 

@@ -502,7 +502,7 @@ function UploadFile(e) {
     uploadOn(e, function() {
                
         // Remove the current div in ALT key was pressed
-        if (intAltKey) {
+        //if (intAltKey) {
             if (DSP) {
                  _f4u$t.hard_delete(faustsvg);
                 DSP.stop();
@@ -513,7 +513,7 @@ function UploadFile(e) {
                 }
                 DSP = null;
             }
-        } 
+        //}
         
         if (intShiftKey) {
         
@@ -571,7 +571,7 @@ function UploadFile(e) {
                                         if (DSP.getNumInputs() > 0) {
                                             activateAudioInput();
                                         }
-                                        
+                              
                                         // Setup UI
                                         _f4u$t.main_loop = function() {}
                                         
