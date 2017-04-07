@@ -90,14 +90,6 @@ int buffer_size = 0;
 BOOL openWidgetPanel = YES;
 int uiCocoaItem::gItemCount = 0;
 
-
-// Audio control callback
-void updateMotionCallback(void* arg)
-{
-    FIMainViewController* interface = static_cast<FIMainViewController*>(arg);
-    [interface updateMotion];
-}
-
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -400,7 +392,7 @@ error:
 - (BOOL)openCoreAudio:(int)bufferSize :(int)sampleRate
 {
     if (!audio_device) {
-        audio_device = new iosaudio(sampleRate, bufferSize, updateMotionCallback, self);
+        audio_device = new iosaudio(sampleRate, bufferSize);
         
         if (!audio_device->init((_name) ? _name : "Faust", DSP)) {
             printf("Cannot init iOS audio device\n");
@@ -1688,6 +1680,14 @@ static inline const char* transmit_value(int num)
             [_motionManager startGyroUpdates];
             printf("startGyroUpdates\n");
         }
+        
+        if (_hasAcc || _hasGyr) {
+            _motionTimer = [NSTimer scheduledTimerWithTimeInterval:1./kMotionUpdateRate
+                                                            target:self
+                                                          selector:@selector(updateMotion)
+                                                          userInfo:nil
+                                                           repeats:YES];
+        }
     }
 }
 
@@ -1706,6 +1706,10 @@ static inline const char* transmit_value(int num)
         }
         [_motionManager release];
         _motionManager = nil;
+        
+        if (_hasAcc || _hasGyr) {
+            [_motionTimer invalidate];
+        }
     }
 }
 

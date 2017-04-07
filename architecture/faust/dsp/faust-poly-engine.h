@@ -58,14 +58,7 @@ class FaustPolyEngine {
         midi_handler fMidiHandler;
         MidiUI fMidiUI;
     
-    public:
-    
-        FaustPolyEngine(audio* driver = NULL):fMidiUI(&fMidiHandler)
-        {
-            FaustPolyEngine(new mydsp(), driver);
-        }
-
-        FaustPolyEngine(dsp* mono_dsp, audio* driver):fMidiUI(&fMidiHandler)
+        void init(dsp* mono_dsp, audio* driver)
         {
             bool midi_sync = false;
             int nvoices = 0;
@@ -74,7 +67,7 @@ class FaustPolyEngine {
             
             fDriver = driver;
             fRunning = false;
-         
+            
             // Getting the UI JSON
             JSONUI jsonui1(mono_dsp->getNumInputs(), mono_dsp->getNumOutputs());
             mono_dsp->buildUserInterface(&jsonui1);
@@ -84,14 +77,14 @@ class FaustPolyEngine {
             JSONUI jsonui1M(mono_dsp->getNumInputs(), mono_dsp->getNumOutputs());
             mono_dsp->metadata(&jsonui1M);
             fJSONMeta = jsonui1M.JSON();
-
+            
             if (fJSONUI.find("keyboard") != std::string::npos
                 || fJSONUI.find("poly") != std::string::npos
                 || nvoices > 0) {
                 
                 fPolyDSP = new mydsp_poly(mono_dsp, nvoices, true);
                 fMidiHandler.addMidiIn(fPolyDSP);
-
+                
             #if POLY2
                 fFinalDSP = new dsp_sequencer(fPolyDSP, new effect());
             #else
@@ -113,8 +106,20 @@ class FaustPolyEngine {
             
             fFinalDSP->buildUserInterface(&fMidiUI);
             fFinalDSP->buildUserInterface(&fAPIUI);
-
-			fDriver->init("Dummy", fFinalDSP);
+            
+            fDriver->init("Dummy", fFinalDSP);
+        }
+    
+    public:
+    
+        FaustPolyEngine(audio* driver = NULL):fMidiUI(&fMidiHandler)
+        {
+            init(new mydsp(), driver);
+        }
+    
+        FaustPolyEngine(dsp* mono_dsp, audio* driver):fMidiUI(&fMidiHandler)
+        {
+            init(mono_dsp, driver);
         }
 
         virtual ~FaustPolyEngine()
