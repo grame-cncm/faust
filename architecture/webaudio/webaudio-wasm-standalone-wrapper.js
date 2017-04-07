@@ -17,35 +17,6 @@
  
 'use strict';
 
-// The is the main entry point.
-// - filename : the wasm filename
-// - callback : a callback taking the allocated wasm instance as parameter
-
-function createmydsp(filename, buffer_size, callback)
-{
-    var asm2wasm = { // special asm2wasm imports
-        "fmod": function(x, y) {
-            return x % y;
-        },
-        "log10": function(x) {
-            return window.Math.log(x) / window.Math.log(10);
-        },
-        "remainder": function(x, y) {
-            return x - window.Math.round(x/y) * y;
-        }
-    };
-    
-    var importObject = { imports: { print: arg => console.log(arg) } }
-    
-    importObject["global.Math"] = window.Math;
-    importObject["asm2wasm"] = asm2wasm;
-    
-    fetch(filename)
-    .then(response => response.arrayBuffer())
-    .then(bytes => WebAssembly.instantiate(bytes, importObject))
-    .then(result => { callback(result.instance, buffer_size); });
-}
-
 var faust = faust || {};
 
 // Monophonic Faust DSP
@@ -55,7 +26,7 @@ var faust = faust || {};
 // - instance : the wasm instance
 // - buffer_size : the buffer size in frames
 
-faust.mydsp = function (context, instance, buffer_size) {
+faust.mydsp = function (instance, context, buffer_size) {
 
     var handler = null;
     var ins, outs;
@@ -372,4 +343,38 @@ faust.mydsp = function (context, instance, buffer_size) {
         }
     };
 };
+
+/** 
+* Create a dsp from a wasm filename
+*
+* @param filename - the wasm filename
+* @param context - the audio context
+* @param buffer_size - the buffer_size in frames
+* @param callback - a callback taking the allocated dsp as parameter
+*/
+ 
+faust.createmydsp = function(filename, context, buffer_size, callback)
+{
+    var asm2wasm = { // special asm2wasm imports
+        "fmod": function(x, y) {
+            return x % y;
+        },
+        "log10": function(x) {
+            return window.Math.log(x) / window.Math.log(10);
+        },
+        "remainder": function(x, y) {
+            return x - window.Math.round(x/y) * y;
+        }
+    };
+    
+    var importObject = { imports: { print: arg => console.log(arg) } }
+    
+    importObject["global.Math"] = window.Math;
+    importObject["asm2wasm"] = asm2wasm;
+    
+    fetch(filename)
+    .then(response => response.arrayBuffer())
+    .then(bytes => WebAssembly.instantiate(bytes, importObject))
+    .then(result => { callback(faust.mydsp(result.instance, context, buffer_size)); });
+}
 

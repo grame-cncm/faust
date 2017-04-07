@@ -17,70 +17,6 @@
 
 'use strict';
 
-function createMemory(buffer_size, max_polyphony) {
-    
-    // Memory allocator
-    var ptr_size = 4;
-    var sample_size = 4;
-    
-    function pow2limit(x)
-    {
-        var n = 2;
-        while (n < x) { n = 2 * n; }
-        return (n < 65536) ? 65536 : n; // Minimum = 64 kB
-    }
-    
-    // Keep JSON parsed object
-    var jon_object = JSON.parse(getJSONmydsp());
-    
-    function getNumInputsAux ()
-    {
-        return (jon_object.inputs !== undefined) ? parseInt(jon_object.inputs) : 0;
-    }
-    
-    function getNumOutputsAux ()
-    {
-        return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
-    }
-    
-    var memory_size = pow2limit(getSizemydsp() * max_polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
-    return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
-}
-
-// The is the main entry point.
-// - filename : the wasm filename
-// - callback : a callback taking the allocated wasm instance as parameter
-// - buffer_size : the buffer size in frames
-// - max_polyphony : the number of polyphonic voices
-
-function createmydsp(filename, buffer_size, max_polyphony, callback)
-{
-    var memory = createMemory(buffer_size, max_polyphony);
-    
-    var asm2wasm = { // special asm2wasm imports
-        "fmod": function(x, y) {
-            return x % y;
-        },
-        "log10": function(x) {
-            return window.Math.log(x) / window.Math.log(10);
-        },
-        "remainder": function(x, y) {
-            return x - window.Math.round(x/y) * y;
-        }
-    };
-    
-    var importObject = { imports: { print: arg => console.log(arg) } }
-    
-    importObject["global.Math"] = window.Math;
-    importObject["asm2wasm"] = asm2wasm;
-    importObject["memory"] = { "memory": memory};
-    
-    fetch(filename)
-    .then(response => response.arrayBuffer())
-    .then(bytes => WebAssembly.instantiate(bytes, importObject))
-    .then(result => { callback(result.instance, memory, buffer_size); });
-}
-
 // asm.js mixer
 function mydspMixer(global, foreign, buffer) {
     
@@ -140,7 +76,7 @@ var faust = faust || {};
 // - max_polyphony : the number of polyphonic voices
 // - callback : externally given callback (for instance to play a MIDIFile...)
 
-faust.mydsp_poly = function (context, instance, memory, buffer_size, max_polyphony, callback) {
+faust.mydsp_poly = function (instance, memory, context, buffer_size, max_polyphony, callback) {
 
     var handler = null;
     var ins, outs;
@@ -641,3 +577,70 @@ faust.mydsp_poly = function (context, instance, memory, buffer_size, max_polypho
     };
 };
 
+faust.createMemory = function (buffer_size, max_polyphony) {
+    
+    // Memory allocator
+    var ptr_size = 4;
+    var sample_size = 4;
+    
+    function pow2limit(x)
+    {
+        var n = 2;
+        while (n < x) { n = 2 * n; }
+        return (n < 65536) ? 65536 : n; // Minimum = 64 kB
+    }
+    
+    // Keep JSON parsed object
+    var jon_object = JSON.parse(getJSONmydsp());
+    
+    function getNumInputsAux ()
+    {
+        return (jon_object.inputs !== undefined) ? parseInt(jon_object.inputs) : 0;
+    }
+    
+    function getNumOutputsAux ()
+    {
+        return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
+    }
+    
+    var memory_size = pow2limit(getSizemydsp() * max_polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
+    return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
+}
+
+/**
+ * Create a dsp from a wasm filename
+ *
+ * @param filename - the wasm filename
+ * @param context - the audio context
+ * @param buffer_size - the buffer_size in frames
+ * @param max_polyphony - the number of polyphonic voices
+ * @param callback - a callback taking the allocated dsp as parameter
+ */
+
+faust.createmydsp = function(filename, context, buffer_size, max_polyphony, callback)
+{
+    var memory = faust.createMemory(buffer_size, max_polyphony);
+    
+    var asm2wasm = { // special asm2wasm imports
+        "fmod": function(x, y) {
+            return x % y;
+        },
+        "log10": function(x) {
+            return window.Math.log(x) / window.Math.log(10);
+        },
+        "remainder": function(x, y) {
+            return x - window.Math.round(x/y) * y;
+        }
+    };
+    
+    var importObject = { imports: { print: arg => console.log(arg) } }
+    
+    importObject["global.Math"] = window.Math;
+    importObject["asm2wasm"] = asm2wasm;
+    importObject["memory"] = { "memory": memory};
+    
+    fetch(filename)
+    .then(response => response.arrayBuffer())
+    .then(bytes => WebAssembly.instantiate(bytes, importObject))
+    .then(result => { callback(faust.mydsp_poly(result.instance, memory, context, buffer_size, max_polyphony)); });
+}
