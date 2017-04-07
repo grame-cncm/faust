@@ -110,7 +110,7 @@ EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory)
 
 // C API
 
-static void* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const string& error_msg_aux, char* error_msg)
+static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const string& error_msg_aux, char* error_msg)
 {
     if (factory) {
         WasmModule* res = static_cast<WasmModule*>(calloc(1, sizeof(WasmModule)));
@@ -133,43 +133,39 @@ static void* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const string& e
     }
 }
 
-EXPORT void* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg)
+EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg)
 {
     string error_msg_aux;
     wasm_dsp_factory* factory = createWasmDSPFactoryFromFile(filename, argc, argv, error_msg_aux);
     return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
 }
 
-EXPORT void* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg)
+EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg)
 {
     string error_msg_aux;
     wasm_dsp_factory* factory = createWasmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg_aux);
     return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
 }
 
-EXPORT const char* getWasmCModule(void* ptr)
+EXPORT const char* getWasmCModule(WasmModule* module)
 {
-    WasmModule* module = reinterpret_cast<WasmModule*>(ptr);
     return module->fCode;
 }
 
-EXPORT int getWasmCModuleSize(void* ptr)
+EXPORT int getWasmCModuleSize(WasmModule* module)
 {
-    WasmModule* module = reinterpret_cast<WasmModule*>(ptr);
     return module->fCodeSize;
 }
 
-EXPORT const char* getWasmCHelpers(void* ptr)
+EXPORT const char* getWasmCHelpers(WasmModule* module)
 {
-    WasmModule* module = reinterpret_cast<WasmModule*>(ptr);
     return module->fHelpers;
 }
 
-EXPORT void freeCWasmModule(void* ptr)
+EXPORT void freeCWasmModule(WasmModule* module)
 {
-    WasmModule* tmp = reinterpret_cast<WasmModule*>(ptr);
-    free((void*)tmp->fCode);
-    free((void*)tmp->fHelpers);
-    free(ptr);
+    free((void*)module->fCode);
+    free((void*)module->fHelpers);
+    free(module);
 }
 
