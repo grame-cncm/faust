@@ -567,23 +567,30 @@ function UploadFile(e) {
                                             return;
                                         }
                                        
-                                        DSP = faust.createDSPInstance(factory, audio_context, buffer_size);
-                                        if (DSP.getNumInputs() > 0) {
-                                            activateAudioInput();
-                                        }
-                              
-                                        // Setup UI
-                                        _f4u$t.main_loop = function() {}
-                                        
-                                        faustsvg = $('<div />');
-                                        $('body').append(faustsvg);
-                                        var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setParamValue);
-                                        DSP.setHandler(handler);
+                                        faust.createDSPInstance(factory,
+                                                              audio_context,
+                                                              buffer_size,
+                                                              function (dsp) {
+                                                              
+                                                                DSP = dsp;
+                                                                if (DSP.getNumInputs() > 0) {
+                                                                    activateAudioInput();
+                                                                }
                                                       
-                                        console.log(DSP.getNumInputs());
-                                        console.log(DSP.getNumOutputs());
-                                        
-                                        DSP.start();
+                                                                // Setup UI
+                                                                _f4u$t.main_loop = function() {}
+                                                                
+                                                                faustsvg = $('<div />');
+                                                                $('body').append(faustsvg);
+                                                                var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setParamValue);
+                                                                DSP.setHandler(handler);
+                                                                              
+                                                                console.log(DSP.getNumInputs());
+                                                                console.log(DSP.getNumOutputs());
+                                                                
+                                                                DSP.start();
+                                                              
+                                                            });
                                   });
         }
     });

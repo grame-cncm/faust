@@ -404,6 +404,39 @@ faust.readDSPFactoryFromMachine = function (machine, callback)
 
 faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, helpers_code, sha_key, callback)
 {
+    WebAssembly.compile(factory_code)
+    .then(module => {
+          
+      var factory = {};
+      
+      factory.code = factory_code;
+      factory.helpers = helpers_code;
+      factory.module = module;
+      
+      // 'libfaust.js' wasm backend generates UI methods, then we compile the code
+      eval(helpers_code);
+ 
+      var path_table_function = eval("getPathTable" + factory_name);
+      factory.pathTable = path_table_function();
+          
+      factory.getJSON = eval("getJSON" + factory_name);
+      factory.metadata = eval("metadata" + factory_name);
+      factory.getSize = eval("getSize" + factory_name);
+          
+      factory.name = factory_name;
+      factory.sha_key = sha_key;
+      
+      faust.factory_table[sha_key] = factory;
+ 
+      callback(factory);
+    });
+}
+
+faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; };
+
+// 'mono' DSP
+faust.createDSPInstance = function (factory, context, buffer_size, callback) {
+    
     var asm2wasm = { // special asm2wasm imports
         "fmod": function(x, y) {
             return x % y;
@@ -421,50 +454,9 @@ faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, helpe
     importObject["global.Math"] = window.Math;
     importObject["asm2wasm"] = asm2wasm;
     
-    WebAssembly.instantiate(factory_code, importObject)
-    .then(result => {
-          
-          // 'libfaust.js' wasm backend generates UI methods, then we compile the code
-          eval(helpers_code);
-          
-          var factory = {};
-          
-          factory.compute = result.instance.exports.compute;
-          factory.getNumInputs = result.instance.exports.getNumInputs;
-          factory.getNumOutputs = result.instance.exports.getNumOutputs;
-          factory.getParamValue = result.instance.exports.getParamValue;
-          factory.getSampleRate = result.instance.exports.getSampleRate;
-          factory.init = result.instance.exports.init;
-          factory.instanceClear = result.instance.exports.instanceClear;
-          factory.instanceConstants = result.instance.exports.instanceConstants;
-          factory.instanceInit = result.instance.exports.instanceInit;
-          factory.instanceResetUserInterface = result.instance.exports.instanceResetUserInterface;
-          factory.memory = result.instance.exports.memory;
-          factory.setParamValue = result.instance.exports.setParamValue;
-          
-          var path_table_function = eval("getPathTable" + factory_name);
-          factory.pathTable = path_table_function();
-              
-          factory.getJSON = eval("getJSON" + factory_name);
-          factory.metadata = eval("metadata" + factory_name);
-          factory.getSize = eval("getSize" + factory_name);
-              
-          factory.name = factory_name;
-          factory.sha_key = sha_key;
-          factory.code = factory_code;
-          factory.helpers = helpers_code;
-              
-          faust.factory_table[sha_key] = factory;
-     
-          callback(factory);
-    });
-}
-
-faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; };
-
-// 'mono' DSP
-faust.createDSPInstance = function (factory, context, buffer_size) {
-    
+    WebAssembly.instantiate(factory.module, importObject)
+    .then(instance => {
+        
     var handler = null;
     var ins, outs;
     
@@ -490,14 +482,14 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
     // Start of DSP memory : DSP is placed first with index 0
     var dsp = 0;
     
-    var HEAP = factory.memory.buffer;
+    var HEAP = instance.exports.memory.buffer;
     var HEAP32 = new Int32Array(HEAP);
     var HEAPF32 = new Float32Array(HEAP);
     
     // Start of HEAP index
     
-    var numIn = factory.getNumInputs(dsp);
-    var numOut = factory.getNumOutputs(dsp);
+    var numIn = instance.exports.getNumInputs(dsp);
+    var numOut = instance.exports.getNumOutputs(dsp);
     
     // DSP is placed first with index 0. Audio buffer start at the end od DSP.
     var audio_heap_ptr = factory.getSize();
@@ -515,7 +507,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
         if (ouputs_items.length > 0 && handler && ouputs_timer-- === 0) {
             ouputs_timer = 5;
             for (var i = 0; i < ouputs_items.length; i++) {
-                handler(ouputs_items[i], factory.getParamValue(dsp, factory.pathTable[ouputs_items[i]]));
+                handler(ouputs_items[i], instance.exports.getParamValue(dsp, factory.pathTable[ouputs_items[i]]));
             }
         }
     }
@@ -537,12 +529,12 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
         for (i = 0; i < inputs_items.length; i++) {
             var path = inputs_items[i];
             var values = value_table[path];
-            factory.setParamValue(dsp, factory.pathTable[path], values[0]);
+            instance.exports.setParamValue(dsp, factory.pathTable[path], values[0]);
             values[0] = values[1];
         }
 
         // Compute
-        factory.compute(dsp, buffer_size, ins, outs);
+        instance.exports.compute(dsp, buffer_size, ins, outs);
        
         // Update bargraph
         update_outputs();
@@ -634,13 +626,13 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
         parse_ui(JSON.parse(factory.getJSON()).ui);
 
         // Init DSP
-        factory.init(dsp, context.sampleRate);
+        instance.exports.init(dsp, context.sampleRate);
         
          // Init 'value' table
         for (var i = 0; i < inputs_items.length; i++) {
             var path = inputs_items[i];
             var values = new Float32Array(2);
-            values[0] = values[1] = factory.getParamValue(dsp, factory.pathTable[path]);
+            values[0] = values[1] = instance.exports.getParamValue(dsp, factory.pathTable[path]);
             value_table[path] = values;
         }
     }
@@ -648,130 +640,112 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
     init();
     
     // External API
-    return {
+    callback({
     
-        getNumInputs : function () 
-        {
-            return factory.getNumInputs(dsp);
-        },
-        
-        getNumOutputs : function () 
-        {
-            return factory.getNumOutputs(dsp);
-        },
-        
-        init : function (sample_rate) 
-        {
-            factory.init(dsp, sample_rate);
-        },
-        
-        instanceInit : function (sample_rate) 
-        {
-            factory.instanceInit(dsp, sample_rate);
-        },
-        
-        instanceConstants : function (sample_rate) 
-        {
-            factory.instanceConstants(dsp, sample_rate);
-        },
-        
-        instanceResetUserInterface : function () 
-        {
-            factory.instanceResetUserInterface(dsp);
-        },
-        
-        instanceClear : function () 
-        {
-            factory.instanceClear(dsp);
-        },
-        
-        // Connect/disconnect to another node
-        connect : function (node) 
-        {
-            if (node.getProcessor !== undefined) {
-                scriptProcessor.connect(node.getProcessor());
-            } else {
-                scriptProcessor.connect(node);
-            }
-        },
+            getNumInputs : function ()
+            {
+                return instance.exports.getNumInputs(dsp);
+            },
+            
+            getNumOutputs : function () 
+            {
+                return instance.exports.getNumOutputs(dsp);
+            },
+            
+            init : function (sample_rate) 
+            {
+                instance.exports.init(dsp, sample_rate);
+            },
+            
+            instanceInit : function (sample_rate) 
+            {
+                instance.exports.instanceInit(dsp, sample_rate);
+            },
+            
+            instanceConstants : function (sample_rate) 
+            {
+                instance.exports.instanceConstants(dsp, sample_rate);
+            },
+            
+            instanceResetUserInterface : function () 
+            {
+                instance.exports.instanceResetUserInterface(dsp);
+            },
+            
+            instanceClear : function () 
+            {
+                instance.exports.instanceClear(dsp);
+            },
+            
+            // Connect/disconnect to another node
+            connect : function (node) 
+            {
+                if (node.getProcessor !== undefined) {
+                    scriptProcessor.connect(node.getProcessor());
+                } else {
+                    scriptProcessor.connect(node);
+                }
+            },
 
-        disconnect : function (node) 
-        {
-            if (node.getProcessor !== undefined) {
-                scriptProcessor.disconnect(node.getProcessor());
-            } else {
-                scriptProcessor.disconnect(node);
-            }
-        },
+            disconnect : function (node) 
+            {
+                if (node.getProcessor !== undefined) {
+                    scriptProcessor.disconnect(node.getProcessor());
+                } else {
+                    scriptProcessor.disconnect(node);
+                }
+            },
 
-        setHandler : function (hd)
-        {
-            handler = hd;
-        },
-        
-        start : function () 
-        {
-            scriptProcessor.connect(context.destination);
-        },
+            setHandler : function (hd)
+            {
+                handler = hd;
+            },
+            
+            start : function () 
+            {
+                scriptProcessor.connect(context.destination);
+            },
 
-        stop : function () 
-        {
-            scriptProcessor.disconnect(context.destination);
-        },
-        
-        setParamValue : function (path, val) 
-        {
-            var values = value_table[path];
-            if (values) {
-                if (factory.getParamValue(dsp, factory.pathTable[path]) == values[0]) {
-                    values[0] = val;
-                } 
-                values[1] = val;
+            stop : function () 
+            {
+                scriptProcessor.disconnect(context.destination);
+            },
+            
+            setParamValue : function (path, val) 
+            {
+                var values = value_table[path];
+                if (values) {
+                    if (instance.exports.getParamValue(dsp, factory.pathTable[path]) == values[0]) {
+                        values[0] = val;
+                    } 
+                    values[1] = val;
+                }
+            },
+            
+            getParamValue : function (path) 
+            {
+                return instance.exports.getParamValue(dsp, factory.pathTable[path]);
+            },
+            
+            controls : function()
+            {
+                return inputs_items;
+            },
+            
+            json : function ()
+            {
+                return factory.getJSON();
+            },
+            
+            getProcessor : function ()
+            {
+                return scriptProcessor;
             }
-        },
-        
-        getParamValue : function (path) 
-        {
-            return factory.getParamValue(dsp, factory.pathTable[path]);
-        },
-        
-        controls : function()
-        {
-            return inputs_items;
-        },
-        
-        json : function ()
-        {
-            return factory.getJSON();
-        },
-        
-        getProcessor : function ()
-        {
-            return scriptProcessor;
-        }
-    }
+    }); });
 }
 
 faust.deleteDSPInstance = function (dsp) {
     dsp.stop();
-    
-    /*
-    if (dsp.numIn > 0) {
-        for (var i = 0; i < dsp.numIn; i++) { 
-            Module._free(HEAP32[(dsp.ins >> 2) + i]); 
-        }
-        Module._free(dsp.ins);
-    }
-     
-    if (dsp.numOut > 0) {
-        for (var i = 0; i < dsp.numOut; i++) { 
-            Module._free(HEAP32[(dsp.outs >> 2) + i]);
-        }
-        Module._free(dsp.outs);
-    }
-  
-    Module._free(dsp.dsp);
-    */
 }
 
 // 'poly' DSP
