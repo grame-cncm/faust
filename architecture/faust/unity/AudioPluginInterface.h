@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __UNITYAUDIOPLUGININTERFACE__
+#define __UNITYAUDIOPLUGININTERFACE__
 
 #define UNITY_AUDIO_PLUGIN_API_VERSION 0x010300
 
@@ -272,3 +273,4 @@ struct UnityAudioEffectDefinition
 
 // This function fills in N pointers for the N effects contained in the library and returns N.
 extern "C" UNITY_AUDIODSP_EXPORT_API int UnityGetAudioEffectDefinitions(UnityAudioEffectDefinition*** descptr);
+#endif
