@@ -21,7 +21,7 @@
 // - filename : the wasm filename
 // - callback : a callback taking the allocated wasm instance as parameter
 
-function createmydsp(filename, callback)
+function createmydsp(filename, buffer_size, callback)
 {
     var asm2wasm = { // special asm2wasm imports
         "fmod": function(x, y) {
@@ -43,7 +43,7 @@ function createmydsp(filename, callback)
     fetch(filename)
     .then(response => response.arrayBuffer())
     .then(bytes => WebAssembly.instantiate(bytes, importObject))
-    .then(result => { callback(result.instance); });
+    .then(result => { callback(result.instance, buffer_size); });
 }
 
 var faust = faust || {};

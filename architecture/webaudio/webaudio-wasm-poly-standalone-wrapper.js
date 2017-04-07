@@ -53,7 +53,7 @@ function createMemory(buffer_size, max_polyphony) {
 // - buffer_size : the buffer size in frames
 // - max_polyphony : the number of polyphonic voices
 
-function createmydsp(filename, callback, buffer_size, max_polyphony)
+function createmydsp(filename, buffer_size, max_polyphony, callback)
 {
     var memory = createMemory(buffer_size, max_polyphony);
     

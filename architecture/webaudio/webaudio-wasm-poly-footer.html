@@ -164,11 +164,11 @@ function startDSPAux(instance, memory, buffer_size)
 function startDSP()
 {
     createDSP('DSP.wasm',
-             function(instance, memory, buffer_size) {
+              1024,
+              max_polyphony,
+              function(instance, memory, buffer_size) {
                 wasm_instance = instance; console.log(instance); startDSPAux(instance, memory, buffer_size);
-             },
-             1024,
-             max_polyphony);
+              });
 }
 
 function startNewDSP(buffer_size) 

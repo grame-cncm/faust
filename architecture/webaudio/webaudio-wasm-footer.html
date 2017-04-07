@@ -77,9 +77,10 @@ function startDSPAux(instance, buffer_size)
 function startDSP() 
 {
     createDSP('DSP.wasm',
-             function(instance) {
-                wasm_instance = instance; console.log(instance); startDSPAux(instance, 1024);
-             });
+              1024,
+              function(instance, buffer_size) {
+                wasm_instance = instance; console.log(instance); startDSPAux(instance, buffer_size);
+              });
 }
 
 function startNewDSP(buffer_size)
