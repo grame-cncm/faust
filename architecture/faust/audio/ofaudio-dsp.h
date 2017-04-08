@@ -50,7 +50,7 @@ class ofaudio : public audio, public ofBaseSoundInput, public ofBaseSoundOutput 
     
     public:
     
-        ofaudio():fInBuffer(nullptr), fSampleRate(44100), fBufferSize(512) {}
+        ofaudio(int srate, int bsize):fInBuffer(nullptr), fSampleRate(srate), fBufferSize(bsize) {}
         virtual ~ofaudio()
         {
             fStream.stop();
