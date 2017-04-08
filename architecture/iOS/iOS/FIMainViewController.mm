@@ -23,11 +23,13 @@
 #import <QuartzCore/QuartzCore.h>
 #import "FIMainViewController.h"
 #import "ios-faust.h"
-#include "faust/dsp/timed-dsp.h"
-#include "faust/gui/JSONUI.h"
 #import "FIFlipsideViewController.h"
 #import "FIAppDelegate.h"
+
+#include "faust/dsp/timed-dsp.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/audio/coreaudio-ios-dsp.h"
+
 #if OSCCTRL
 #include "faust/gui/OSCUI.h"
 #endif
@@ -88,14 +90,6 @@ int buffer_size = 0;
 BOOL openWidgetPanel = YES;
 int uiCocoaItem::gItemCount = 0;
 
-
-// Audio control callback
-void updateMotionCallback(void* arg)
-{
-    FIMainViewController* interface = static_cast<FIMainViewController*>(arg);
-    [interface updateMotion];
-}
-
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
@@ -133,6 +127,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     
     bool midi_sync = false;
     int nvoices = 1;
+    mydsp_poly* dsp_poly = NULL;
     
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
@@ -142,15 +137,16 @@ static void jack_shutdown_callback(const char* message, void* arg)
     
     bool group = true;
     std::cout << "Started with " << nvoices << " voices\n";
+    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
     
     #if MIDICTRL
     if (midi_sync) {
-        DSP = new timed_dsp(new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new effect()));
+        DSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
     } else {
-        DSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, true, group), new effect());
+        DSP = new dsp_sequencer(dsp_poly, new effect());
     }
     #else
-        DSP = new dsp_sequencer(new mydsp_poly(new mydsp(), nvoices, false, group), new effect());
+        DSP = new dsp_sequencer(dsp_poly, new effect());
     #endif
     
 #else
@@ -159,14 +155,16 @@ static void jack_shutdown_callback(const char* message, void* arg)
     
     if (nvoices > 1) {
         std::cout << "Started with " << nvoices << " voices\n";
+        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+        
     #if MIDICTRL
         if (midi_sync) {
-            DSP = new timed_dsp(new mydsp_poly(new mydsp(), nvoices, true, group));
+            DSP = new timed_dsp(dsp_poly);
         } else {
-            DSP = new mydsp_poly(new mydsp(), nvoices, true, group);
+            DSP = dsp_poly;
         }
     #else
-        DSP = new mydsp_poly(new mydsp(), nvoices, false, group);
+        DSP = dsp_poly;
     #endif
     } else {
     #if MIDICTRL
@@ -201,6 +199,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     finterface = new FUI();
 #if MIDICTRL
     midi_handler = new rt_midi(_name);
+    midi_handler->addMidiIn(dsp_poly);
     midiinterface = new MidiUI(midi_handler);
 #endif
       
@@ -236,7 +235,9 @@ static void jack_shutdown_callback(const char* message, void* arg)
     [self displayTitle];
 
 #if MIDICTRL
-    midiinterface->run();
+    if (!midiinterface->run()) {
+        std::cerr << "MidiUI run error\n";
+    }
 #endif
     
     uiinterface->setHidden(true);
@@ -393,7 +394,7 @@ error:
 - (BOOL)openCoreAudio:(int)bufferSize :(int)sampleRate
 {
     if (!audio_device) {
-        audio_device = new iosaudio(sampleRate, bufferSize, updateMotionCallback, self);
+        audio_device = new iosaudio(sampleRate, bufferSize);
         
         if (!audio_device->init((_name) ? _name : "Faust", DSP)) {
             printf("Cannot init iOS audio device\n");
@@ -1681,6 +1682,14 @@ static inline const char* transmit_value(int num)
             [_motionManager startGyroUpdates];
             printf("startGyroUpdates\n");
         }
+        
+        if (_hasAcc || _hasGyr) {
+            _motionTimer = [NSTimer scheduledTimerWithTimeInterval:1./kMotionUpdateRate
+                                                            target:self
+                                                          selector:@selector(updateMotion)
+                                                          userInfo:nil
+                                                           repeats:YES];
+        }
     }
 }
 
@@ -1699,6 +1708,10 @@ static inline const char* transmit_value(int num)
         }
         [_motionManager release];
         _motionManager = nil;
+        
+        if (_hasAcc || _hasGyr) {
+            [_motionTimer invalidate];
+        }
     }
 }
 

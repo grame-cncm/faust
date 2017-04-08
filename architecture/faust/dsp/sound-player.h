@@ -28,6 +28,7 @@
 
 #include <sndfile.h>
 #include <string>
+#include <iostream>
 
 
 #ifdef FAUSTFLOAT
@@ -84,8 +85,16 @@ class sound_player : public dsp {
             fSamplingFreq = -1;
 
             fFile = sf_open(fFileName.c_str(), SFM_READ, &fInfo);
+<<<<<<< HEAD
             if (!fFile) throw std::bad_alloc();
 
+=======
+            if (!fFile) {
+                std::cerr << sf_strerror(fFile) << std::endl;
+                throw std::bad_alloc();
+            }
+            
+>>>>>>> grame-cncm/master-dev
             fBuffer = new FAUSTFLOAT*[fInfo.channels];
             for (int chan = 0; chan < fInfo.channels; chan++) {
                 fBuffer[chan] = new FAUSTFLOAT[fInfo.frames];
