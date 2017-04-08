@@ -185,7 +185,9 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef MIDICTRL
-	midiinterface.run();
+    if (!midiinterface.run()) {
+        std::cerr << "MidiUI run error\n";
+    }
 #endif
 	interface->run();
 	
