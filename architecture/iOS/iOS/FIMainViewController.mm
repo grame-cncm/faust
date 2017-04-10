@@ -235,7 +235,9 @@ static void jack_shutdown_callback(const char* message, void* arg)
     [self displayTitle];
 
 #if MIDICTRL
-    midiinterface->run();
+    if (!midiinterface->run()) {
+        std::cerr << "MidiUI run error\n";
+    }
 #endif
     
     uiinterface->setHidden(true);
