@@ -284,6 +284,7 @@
 'use strict';
 
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
+var isWasm = (typeof (WebAssembly) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
 var buffer_size = 1024;
 var audio_input = null;
@@ -423,8 +424,13 @@ function FileSelectHandler(e) {
 }
 
 function uploadOn(e, callback) {
-     
-    // CASE 1 : THE DROPPED OBJECT IS A URL TO SOME FAUST CODE   
+    
+    if (!isWasm) {
+        alert("WebAssembly is not supported in this browser !")
+        return;
+    }
+    
+    // CASE 1 : THE DROPPED OBJECT IS A URL TO SOME FAUST CODE
     if (e.dataTransfer.getData('URL') && e.dataTransfer.getData('URL').split(':').shift() != "file") {
     	var url = e.dataTransfer.getData('URL');
 		var filename = url.toString().split( '/' ).pop();
@@ -448,7 +454,7 @@ function uploadOn(e, callback) {
 	
         // CASE 2 : THE DROPPED OBJECT IS SOME FAUST CODE
 		if (dsp_code) {
-	    	dsp_code ="process = vgroup(\"" + "TEXT" + "\", environment{" + dsp_code + "}.process);";
+	    	dsp_code = "process = vgroup(\"" + "TEXT" + "\", environment{" + dsp_code + "}.process);";
             callback();
         }
         // CASE 3 : THE DROPPED OBJECT IS A FILE CONTAINING SOME FAUST CODE		

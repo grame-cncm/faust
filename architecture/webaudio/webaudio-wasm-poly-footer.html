@@ -6,6 +6,7 @@
 // Faust part
 
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
+var isWasm = (typeof (WebAssembly) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
 var max_polyphony = 16;
 var audio_input = null;
@@ -167,7 +168,11 @@ function startDSP()
 
 function startNewDSP(buffer_size) 
 {
-    faust.createDSP('DSP.wasm', audio_context, buffer_size, max_polyphony, startDSPAux);
+    if (isWasm) {
+        faust.createDSP('DSP.wasm', audio_context, buffer_size, max_polyphony, startDSPAux);
+    }  else {
+        alert("WebAssembly is not supported in this browser !")
+    }
 }
 
 // To activate audio on iOS
