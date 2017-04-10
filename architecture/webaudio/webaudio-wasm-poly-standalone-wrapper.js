@@ -27,7 +27,6 @@ function mydspMixer(global, foreign, buffer) {
     
     var max = global.Math.max;
     var abs = global.Math.abs;
-    var sqrt = global.Math.sqrt;
     
     function clearOutput(count, channels, outputs) {
         count = count | 0;
@@ -68,13 +67,17 @@ var faust = faust || {};
 
 // Polyphonic Faust DSP
 
-// Constructor.
-// - context : the WebAudio context
-// - instance : the wasm instance
-// - memory : the wasm memory
-// - buffer_size : the buffer size in frames
-// - max_polyphony : the number of polyphonic voices
-// - callback : externally given callback (for instance to play a MIDIFile...)
+/**
+ * Constructor
+ *
+ * @param instance - the wasm instance
+ * @param memory - the wasm memory
+ * @param context - the audio context
+ * @param buffer_size - the buffer_size in frames
+ * @param max_polyphony - the number of polyphonic voices
+ *
+ * @return a valid dsp object or null
+ */
 
 faust.mydsp_poly = function (instance, memory, context, buffer_size, max_polyphony, callback) {
 
@@ -404,11 +407,6 @@ faust.mydsp_poly = function (instance, memory, context, buffer_size, max_polypho
     // External API
     return {
     
-        destroy : function  ()
-        {
-            // Nothing to do
-        },
-        
         getNumInputs : function ()
         {
             return getNumInputsAux();
@@ -608,7 +606,7 @@ faust.createMemory = function (buffer_size, max_polyphony) {
 }
 
 /**
- * Create a dsp from a wasm filename
+ * Create a mydsp object from a wasm filename
  *
  * @param filename - the wasm filename
  * @param context - the audio context

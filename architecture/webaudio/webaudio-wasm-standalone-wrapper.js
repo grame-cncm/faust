@@ -21,10 +21,15 @@ var faust = faust || {};
 
 // Monophonic Faust DSP
 
-// Constructor.
-// - context : the WebAudio context
-// - instance : the wasm instance
-// - buffer_size : the buffer size in frames
+/** 
+* Constructor
+*
+* @param instance - the wasm instance
+* @param context - the audio context
+* @param buffer_size - the buffer_size in frames
+* 
+* @return a valid dsp object or null 
+*/
 
 faust.mydsp = function (instance, context, buffer_size) {
 
@@ -237,11 +242,6 @@ faust.mydsp = function (instance, context, buffer_size) {
     // External API
     return {
     	
-        destroy : function ()
-        {
-            // Nothing to do
-        },
-        
         getNumInputs : function () 
         {
             return getNumInputsAux();
@@ -345,7 +345,7 @@ faust.mydsp = function (instance, context, buffer_size) {
 };
 
 /** 
-* Create a dsp from a wasm filename
+* Create a mydsp object from a wasm filename
 *
 * @param filename - the wasm filename
 * @param context - the audio context

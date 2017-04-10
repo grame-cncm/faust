@@ -201,7 +201,6 @@ function mydspMixer(global, foreign, buffer) {
 
     var max = global.Math.max;
     var abs = global.Math.abs;
-    var sqrt = global.Math.sqrt;
 
     function clearOutput(count, channels, outputs) {
         count = count | 0;
