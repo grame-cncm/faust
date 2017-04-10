@@ -48,6 +48,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <iostream>
+#include <iomanip>
 			
 #include "faust/dsp/dsp.h"
 #include "faust/audio/audio.h"
@@ -124,19 +125,19 @@ class dummy_audio : public audio {
             if (fDSP->getNumInputs() > 0) {
                 if (fIsSample) {
                     for (int frame = 0; frame < fBufferSize; frame++) {
-                        std::cout << "sample in " << fInChannel[0][frame] << std::endl;
+                        std::cout << std::setprecision(6) << "sample in " << fInChannel[0][frame] << std::endl;
                     }
                 } else {
-                    std::cout << "sample in " << fInChannel[0][0] << std::endl;
+                    std::cout << std::setprecision(6) << "sample in " << fInChannel[0][0] << std::endl;
                 }
             }
             if (fDSP->getNumOutputs() > 0) {
                 if (fIsSample) {
                     for (int frame = 0; frame < fBufferSize; frame++) {
-                        std::cout << "sample out " << fOutChannel[0][frame] << std::endl;
+                        std::cout << std::fixed << std::setprecision(6) << "sample out " << fOutChannel[0][frame] << std::endl;
                     }
                 } else {
-                    std::cout << "sample out " << fOutChannel[0][0] << std::endl;
+                    std::cout << std::fixed << std::setprecision(6) << "sample out " << fOutChannel[0][0] << std::endl;
                 }
             }
         }
