@@ -62,7 +62,7 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
         void write(std::ostream* out, bool binary, bool small = false) { fFactory->write(out, binary, small); }
         void writeAux(std::ostream* out, bool binary, bool small = false) { fFactory->writeAux(out, binary, small); }
     
-        const std::string& getCode() { return fFactory->getCode(); }
+        std::string getCode() { return fFactory->getCode(); }
     
 };
 

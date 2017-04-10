@@ -69,7 +69,7 @@ class dsp_factory_base {
     
         virtual void writeAux(std::ostream* out, bool binary = false, bool small = false) {}    // Helper functions
     
-        virtual const std::string& getCode() {}
+        virtual std::string getCode() = 0;
     
         virtual std::vector<std::string> getDSPFactoryLibraryList() = 0;
     
@@ -135,6 +135,8 @@ class dsp_factory_imp : public dsp_factory_base {
     
         virtual void write(std::ostream* out, bool binary = false, bool small = false) {}
     
+        virtual std::string getCode() { return ""; }
+
         virtual std::vector<std::string> getDSPFactoryLibraryList() { return fPathnameList; }
  
 };
@@ -167,7 +169,7 @@ class text_dsp_factory_aux : public dsp_factory_imp {
             *out << fHelpers;
         }
     
-        virtual const std::string& getCode() { return fCode; }
+        virtual std::string getCode() { return fCode; }
     
 };
 
