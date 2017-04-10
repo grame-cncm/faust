@@ -47,6 +47,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <iostream>
 			
 #include "faust/dsp/dsp.h"
 #include "faust/audio/audio.h"
@@ -66,13 +67,14 @@ class dummy_audio : public audio {
         FAUSTFLOAT** fOutChannel;  
 
         int fCount;
+        bool fIsSample;
 
     public:
 
+        dummy_audio(int sr, int bs, int count = 10, bool sample = false)
+            :fSampleRate(sr), fBufferSize(bs), fCount(count), fIsSample(sample) {}
         dummy_audio(int count = 10)
             :fSampleRate(48000), fBufferSize(512), fCount(count) {}
-        dummy_audio(int srate, int bsize, int count = 10)
-            :fSampleRate(srate), fBufferSize(bsize), fCount(count) {}
     
         virtual ~dummy_audio() 
         {
@@ -120,10 +122,22 @@ class dummy_audio : public audio {
         {
             fDSP->compute(fBufferSize, fInChannel, fOutChannel);
             if (fDSP->getNumInputs() > 0) {
-                printf("First in = %f \n", fInChannel[0][0]);
+                if (fIsSample) {
+                    for (int frame = 0; frame < fBufferSize; frame++) {
+                        std::cout << "sample in " << fInChannel[0][frame] << std::endl;
+                    }
+                } else {
+                    std::cout << "sample in " << fInChannel[0][0] << std::endl;
+                }
             }
             if (fDSP->getNumOutputs() > 0) {
-                printf("First out = %f \n", fOutChannel[0][0]);
+                if (fIsSample) {
+                    for (int frame = 0; frame < fBufferSize; frame++) {
+                        std::cout << "sample out " << fOutChannel[0][frame] << std::endl;
+                    }
+                } else {
+                    std::cout << "sample out " << fOutChannel[0][0] << std::endl;
+                }
             }
         }
 

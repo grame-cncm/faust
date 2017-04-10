@@ -57,7 +57,7 @@ mydsp DSP;
 
 #define kFrames 512
 
-int main(int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
     float fStartAtSample;
     float fnbsamples;
@@ -106,9 +106,8 @@ int main(int argc, char *argv[] )
     int nbsamples = int(fnbsamples);
 
     while (nbsamples > kFrames) {
-
         DSP.compute(kFrames, inchan.buffers(), outchan.buffers());
-                inchan.zero();
+        inchan.zero();
         for (int i = 0; i < kFrames; i++) {
             for (int c = 0; c < nouts; c++) {
                 printf(" %g", outchan.buffers()[c][i]);
@@ -123,9 +122,8 @@ int main(int argc, char *argv[] )
     }
 
     if (nbsamples) { // Write out partial-chunk buffer:
-
         DSP.compute(nbsamples, inchan.buffers(), outchan.buffers());
-                inchan.zero();
+        inchan.zero();
         for (int i = 0; i < nbsamples; i++) {
             for (int c = 0; c < nouts; c++) {
                 printf(" %g", outchan.buffers()[c][i]);

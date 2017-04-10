@@ -35,6 +35,22 @@ if [ "$1" = "osx" ]; then
     echo "Test -nvoices 8 -effect <foo.dsp> -midi  $OSXPOLY2MIDI"
     echo "Test -osc -httpd $OSXOSCHTTPD"
 
+    faust2dummy good.dsp > /dev/null
+    ./good > good.txt
+    diff good.txt good_ref.txt && echo "OK: faust2dummy good.dsp succeeded !" || echo "ERROR: faust2dummy good.dsp failed"
+
+    faust2dummy -midi good.dsp > /dev/null
+    ./good > good.txt
+    diff good.txt good_ref.txt && echo "OK: faust2dummy -midi good.dsp succeeded !" || echo "ERROR: faust2dummy -midi good.dsp failed"
+
+    faust2dummy -midi -nvoices 2 organ.dsp > /dev/null
+    ./organ > organ.txt
+    diff organ.txt organ_2voices_ref.txt && echo "OK: faust2dummy -midi -nvoices 2 organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi -nvoices 2 organ.dsp failed"
+
+    faust2dummy -midi organ.dsp > /dev/null
+    ./organ > organ.txt
+    diff organ.txt organ_8voices_ref.txt && echo "OK: faust2dummy -midi organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi organ.dsp failed"
+
 	for scriptname in $OSX; do
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
 	done
@@ -74,6 +90,22 @@ elif [ "$1" = "linux" ]; then
     echo "Test -nvoices 8 $LINUXPOLY"
     echo "Test -nvoices 8 -midi $LINUXPOLYMIDI"
     echo "Test -osc -httpd $LINUXOSCHTTPD"
+
+    faust2dummy good.dsp > /dev/null
+    ./good > good.txt
+    diff good.txt good_ref.txt && echo "OK: faust2dummy good.dsp succeeded !" || echo "ERROR: faust2dummy good.dsp failed"
+
+    faust2dummy -midi good.dsp > /dev/null
+    ./good > good.txt
+    diff good.txt good_ref.txt && echo "OK: faust2dummy -midi good.dsp succeeded !" || echo "ERROR: faust2dummy -midi good.dsp failed"
+
+    faust2dummy -midi -nvoices 2 organ.dsp > /dev/null
+    ./organ > organ.txt
+    diff organ.txt organ_2voices_ref.txt && echo "OK: faust2dummy -midi -nvoices 2 organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi -nvoices 2 organ.dsp failed"
+
+    faust2dummy -midi organ.dsp > /dev/null
+    ./organ > organ.txt
+    diff organ.txt organ_8voices_ref.txt && echo "OK: faust2dummy -midi organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi organ.dsp failed"
 
 	for scriptname in $LINUX; do
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
