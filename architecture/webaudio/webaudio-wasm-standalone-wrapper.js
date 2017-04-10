@@ -373,8 +373,8 @@ faust.createmydsp = function(filename, context, buffer_size, callback)
     importObject["asm2wasm"] = asm2wasm;
     
     fetch(filename)
-    .then(response => response.arrayBuffer())
-    .then(bytes => WebAssembly.instantiate(bytes, importObject))
-    .then(result => { callback(faust.mydsp(result.instance, context, buffer_size)); });
+    .then(dsp_file => dsp_file.arrayBuffer())
+    .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
+    .then(dsp_module => { callback(faust.mydsp(dsp_module.instance, context, buffer_size)); });
 }
 

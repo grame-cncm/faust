@@ -17,52 +17,6 @@
 
 'use strict';
 
-// asm.js mixer
-function mydspMixer(global, foreign, buffer) {
-    
-    'use asm';
-    
-    var HEAP32 = new global.Int32Array(buffer);
-    var HEAPF32 = new global.Float32Array(buffer);
-    
-    var max = global.Math.max;
-    var abs = global.Math.abs;
-    
-    function clearOutput(count, channels, outputs) {
-        count = count | 0;
-        channels = channels | 0;
-        outputs = outputs | 0;
-        var i = 0;
-        var j = 0;
-        for (i = 0; ((i | 0) < (channels | 0) | 0); i = ((i | 0) + 1 | 0)) {
-            for (j = 0; ((j | 0) < (count | 0) | 0); j = ((j | 0) + 1 | 0)) {
-                HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2] = 0.;
-            }
-        }
-    }
-    
-    function mixVoice(count, channels, inputs, outputs) {
-        count = count | 0;
-        channels = channels | 0;
-        inputs = inputs | 0;
-        outputs = outputs | 0;
-        var i = 0;
-        var j = 0;
-        var level = 0.;
-        for (i = 0; ((i | 0) < (channels | 0) | 0); i = ((i | 0) + 1 | 0)) {
-            for (j = 0; ((j | 0) < (count | 0) | 0); j = ((j | 0) + 1 | 0)) {
-                level = max(+level, +(abs(+(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]))));
-                HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]
-                = +(HEAPF32[(HEAP32[outputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]) +
-                +(HEAPF32[(HEAP32[inputs + ((i | 0) << 2) >> 2] | 0) + ((j | 0) << 2) >> 2]);
-            }
-        }
-        return +level;
-    }
-    
-    return { mixVoice: mixVoice, clearOutput: clearOutput};
-}
-
 var faust = faust || {};
 
 // Polyphonic Faust DSP
@@ -79,7 +33,7 @@ var faust = faust || {};
  * @return a valid dsp object or null
  */
 
-faust.mydsp_poly = function (instance, memory, context, buffer_size, max_polyphony, callback) {
+faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buffer_size, max_polyphony, callback) {
 
     var handler = null;
     var ins, outs;
@@ -119,7 +73,7 @@ faust.mydsp_poly = function (instance, memory, context, buffer_size, max_polypho
     console.log(getNumInputsAux());
     console.log(getNumOutputsAux());
     
-    var factory = instance.exports;
+    var factory = dsp_instance.exports;
     var HEAP = memory.buffer;
     var HEAP32 = new Int32Array(HEAP);
     var HEAPF32 = new Float32Array(HEAP);
@@ -151,7 +105,9 @@ faust.mydsp_poly = function (instance, memory, context, buffer_size, max_polypho
     // Setup DSP voices offset
     var dsp_start = audio_heap_mixing + (getNumOutputsAux() * buffer_size * sample_size);
     
-    var mixer = mydspMixer(window, null, HEAP);
+    var mixer = mixer_instance.exports;
+    
+    console.log(mixer);
     console.log(factory);
     
     // Start of DSP memory ('polyphony' DSP voices)
@@ -631,14 +587,21 @@ faust.createmydsp = function(filename, context, buffer_size, max_polyphony, call
         }
     };
     
+    var mixObject = { imports: { print: arg => console.log(arg) } }
+    mixObject["memory"] = { "memory": memory};
+    
     var importObject = { imports: { print: arg => console.log(arg) } }
     
     importObject["global.Math"] = window.Math;
     importObject["asm2wasm"] = asm2wasm;
     importObject["memory"] = { "memory": memory};
     
-    fetch(filename)
-    .then(response => response.arrayBuffer())
-    .then(bytes => WebAssembly.instantiate(bytes, importObject))
-    .then(result => { callback(faust.mydsp_poly(result.instance, memory, context, buffer_size, max_polyphony)); });
+    fetch('mixer32.wasm')
+    .then(mix_res => mix_res.arrayBuffer())
+    .then(mix_bytes => WebAssembly.instantiate(mix_bytes, mixObject))
+    .then(mix_module =>
+          fetch(filename)
+          .then(dsp_file => dsp_file.arrayBuffer())
+          .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
+          .then(dsp_module => { callback(faust.mydsp_poly(mix_module.instance, dsp_module.instance, memory, context, buffer_size, max_polyphony)); }));
 }
