@@ -526,48 +526,45 @@ function UploadFile(e) {
         
         if (intShiftKey) {
         
-            isPoly = true;
-            console.log("Poly DSP");
+             isPoly = true;
+             console.log("Poly DSP");
             
-            // Create a poly DSP factory from the dsp code
-            faust.createPolyDSPFactory(dsp_code,
+             // Create a poly DSP factory from the dsp code
+             //factory = createPolyDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/libraries"]);
+             faust.createPolyDSPFactory(dsp_code,
                                        ["-I", "http://127.0.0.1:8000/libraries/"],
                                        function (factory) {
-                                   
-                                       console.log(factory);
-                                       
-                                         if (!factory) {
-                                            alert(faust.getErrorMessage());
-                                            return;
-                                         }
-      
-                                        faust.createPolyDSPInstance(factory,
-                                                                    audio_context,
-                                                                    buffer_size,
-                                                                    16,
-                                                                    function (dsp) {
-                                                                    
-                                                                        console.log("POLY DSP OK");
-                                                                        console.log(dsp);
-                                                                    
-                                                                        DSP = dsp;
-                                                                        if (DSP.getNumInputs() > 0) {
-                                                                            activateAudioInput();
-                                                                        }
-                                                                    
-                                                                        // Setup UI
-                                                                        _f4u$t.main_loop = function() {}
-                                                                    
-                                                                        faustsvg = $('<div />');
-                                                                        $('body').append(faustsvg);
-                                                                        var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setParamValue);
-                                                                        DSP.setHandler(handler);
-                                                                    
-                                                                        console.log(DSP.getNumInputs());
-                                                                        console.log(DSP.getNumOutputs());
-                                                                    
-                                                                        DSP.connect(audio_context.destination);
-                                                                    });
+
+                                            if (!factory) {
+                                                alert(faust.getErrorMessage());
+                                                return;
+                                            }
+
+                                            faust.createPolyDSPInstance(factory,
+                                                                audio_context,
+                                                                buffer_size,
+                                                                16,
+                                                                function (dsp) {
+                                                                
+                                                                    DSP = dsp;
+                                                                    if (DSP.getNumInputs() > 0) {
+                                                                        activateAudioInput();
+                                                                    }
+                                                                
+                                                                    // Setup UI
+                                                                    _f4u$t.main_loop = function() {}
+                                                                
+                                                                    faustsvg = $('<div />');
+                                                                    $('body').append(faustsvg);
+                                                                    var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setParamValue);
+                                                                    DSP.setHandler(handler);
+                                                                
+                                                                    console.log(DSP.getNumInputs());
+                                                                    console.log(DSP.getNumOutputs());
+                                                                
+                                                                    DSP.connect(audio_context.destination);
+                                                                        
+                                                                });
              
             
                                    });
@@ -578,7 +575,7 @@ function UploadFile(e) {
             console.log("Mono DSP");
              
             // Create a mono DSP factory from the dsp code    
-            //factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"]);
+            //factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/libraries"]);
             faust.createDSPFactory(dsp_code,
                                   ["-I", "http://127.0.0.1:8000/libraries/"],
                                   function (factory) {
@@ -589,27 +586,27 @@ function UploadFile(e) {
                                         }
                                        
                                         faust.createDSPInstance(factory,
-                                                              audio_context,
-                                                              buffer_size,
-                                                              function (dsp) {
+                                                                audio_context,
+                                                                buffer_size,
+                                                                function (dsp) {
                                                                 
-                                                                DSP = dsp;
-                                                                if (DSP.getNumInputs() > 0) {
-                                                                    activateAudioInput();
-                                                                }
-                                                      
-                                                                // Setup UI
-                                                                _f4u$t.main_loop = function() {}
-                                                                
-                                                                faustsvg = $('<div />');
-                                                                $('body').append(faustsvg);
-                                                                var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setParamValue);
-                                                                DSP.setHandler(handler);
-                                                                              
-                                                                console.log(DSP.getNumInputs());
-                                                                console.log(DSP.getNumOutputs());
-                                                                
-                                                                DSP.connect(audio_context.destination);
+                                                                    DSP = dsp;
+                                                                    if (DSP.getNumInputs() > 0) {
+                                                                        activateAudioInput();
+                                                                    }
+                                                          
+                                                                    // Setup UI
+                                                                    _f4u$t.main_loop = function() {}
+                                                                    
+                                                                    faustsvg = $('<div />');
+                                                                    $('body').append(faustsvg);
+                                                                    var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setParamValue);
+                                                                    DSP.setHandler(handler);
+                                                                                  
+                                                                    console.log(DSP.getNumInputs());
+                                                                    console.log(DSP.getNumOutputs());
+                                                                    
+                                                                    DSP.connect(audio_context.destination);
                                                               
                                                             });
                                   });

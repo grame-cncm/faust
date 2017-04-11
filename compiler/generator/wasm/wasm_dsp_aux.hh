@@ -89,6 +89,7 @@ extern "C" {
      * @param argc - the number of parameters in argv array
      * @param argv - the array of parameters
      * @param error_msg - the error string to be filled, has to be 4096 characters long
+     * @param internal_memory - whether the memory is allocated inside the module (= faster DSP fields access) or from the JS context
      *
      * @return a valid WebAssembly module and additional helper functions as a WasmRes struct on success (to be deleted by the caller), otherwise a null pointer.
      */
@@ -102,6 +103,7 @@ extern "C" {
      * @param argc - the number of parameters in argv array
      * @param argv - the array of parameters
      * @param error_msg - the error string to be filled, has to be 4096 characters long
+     * @param internal_memory - whether the memory is allocated inside the module (= faster DSP fields access) or from the JS context
      *
      * @return a valid WebAssembly module and additional helper functions as a WasmRes struct on success (to be deleted by the caller), otherwise a null pointer.
      */ 

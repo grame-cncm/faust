@@ -108,12 +108,14 @@ for f in $FILES; do
     else
         if [ $POLY = "true" ]; then
             faust -lang wast-e $SVG $OPTIONS $f -o $name.wast || exit
-            #wasm-opt $name.wast -O3 -o $name.wast
-            wasm-as $name.wast -o $name.wasm
+            wasm-as $name.wast -o $name-tmp.wasm
+            # wasm ==> wasm optimizations
+            wasm-opt $name-tmp.wasm -O3 -o $name.wasm
         else
             faust -lang wast $SVG $OPTIONS $f -o $name.wast || exit
-            #wasm-opt $name.wast -O3 -o $name.wast
-            wasm-as $name.wast -o $name.wasm
+            wasm-as $name.wast -o $name-tmp.wasm
+            # wasm ==> wasm optimizations
+            wasm-opt $name-tmp.wasm -O3 -o $name.wasm
         fi
     fi
 
