@@ -215,8 +215,10 @@ faust.createDSPFactoryAux = function (code, argv, callback, internal_memory) {
     var sha_key = Sha1.hash(code, true);
     var factory = faust.factory_table[sha_key];
     if (factory) {
+        console.log("Existing library : " + factory.name);
         // Existing factory, do not create it...
         callback(factory);
+        return;
     }
     
     console.log("libfaust.js version : " + Pointer_stringify(faust.getCLibFaustVersion()));
@@ -385,7 +387,6 @@ faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, helpe
           
       factory.name = factory_name;
       factory.sha_key = sha_key;
-      
       faust.factory_table[sha_key] = factory;
  
       callback(factory);
@@ -916,8 +917,8 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             }
             */
 
-              // First clear the outputs
-              sp.mixer.clearOutput(buffer_size, sp.numOut, sp.outs);
+            // First clear the outputs
+            sp.mixer.clearOutput(buffer_size, sp.numOut, sp.outs);
 
             // Compute all running voices
             for (i = 0; i < max_polyphony; i++) {
