@@ -66,9 +66,9 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     
 };
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename, int argc, const char* argv[], string& error_msg);
+EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename, int argc, const char* argv[], string& error_msg, bool internal_memory);
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], string& error_msg);
+EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], string& error_msg, bool internal_memory);
 
 EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory);
 
@@ -92,7 +92,7 @@ extern "C" {
      *
      * @return a valid WebAssembly module and additional helper functions as a WasmRes struct on success (to be deleted by the caller), otherwise a null pointer.
      */
-    EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
+    EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg, bool internal_memory);
 
      /**
      * Create a Faust DSP WebAssembly module and additional helper functions from a DSP source code.
@@ -105,7 +105,7 @@ extern "C" {
      *
      * @return a valid WebAssembly module and additional helper functions as a WasmRes struct on success (to be deleted by the caller), otherwise a null pointer.
      */ 
-    EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
+    EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg, bool internal_memory);
     
     /**
      * Get the WebAssembly module from the WasmRes structure.

@@ -141,13 +141,14 @@ function startDSPAux(dsp)
     activateMIDIInput();
     if (DSP_poly) {
         if (audio_input) {
-            audio_input.disconnect(DSP_poly.getProcessor());
+            audio_input.disconnect(DSP_poly);
         }
+         DSP.disconnect(audio_context.destination);
         _f4u$t.hard_delete(faustsvg);
-        DSP_poly.stop();
     }
+    
     DSP_poly = dsp;
-    DSP_poly.start();
+    DSP_poly.connect(audio_context.destination);
     
     console.log(DSP_poly.json());
     console.log(DSP_poly.controls());

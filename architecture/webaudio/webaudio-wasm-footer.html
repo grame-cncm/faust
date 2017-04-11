@@ -42,23 +42,24 @@ function getDevice(device)
     audio_input = audio_context.createMediaStreamSource(device);
     
     // Connect it to the destination.
-    audio_input.connect(DSP.getProcessor());
+    audio_input.connect(DSP);
 }
 
 function startDSPAux(dsp)
 {
     if (DSP) {
         if (audio_input) {
-            audio_input.disconnect(DSP.getProcessor());
+            audio_input.disconnect(DSP);
         }
+        DSP.disconnect(audio_context.destination);
         _f4u$t.hard_delete(faustsvg);
-        DSP.stop();
     }
+    
     DSP = dsp;
     if (DSP.getNumInputs() > 0) {
         activateAudioInput();
     }
-    DSP.start();
+    DSP.connect(audio_context.destination);
     
     console.log(DSP.json());
     console.log(DSP.controls());

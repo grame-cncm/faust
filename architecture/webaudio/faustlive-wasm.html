@@ -407,7 +407,7 @@ function getDevice(device)
     audio_input = audio_context.createMediaStreamSource(device);
     
     // Connect it to the destination.
-    audio_input.connect(DSP.getProcessor());
+    audio_input.connect(DSP);
 }
 
 function FileDragHover(e) {
@@ -502,7 +502,7 @@ function UploadFile(e) {
 
     var intAltKey = e.altKey;
     var intShiftKey = e.shiftKey;
-
+ 
     FileDragHover(e);
     
     uploadOn(e, function() {
@@ -510,14 +510,17 @@ function UploadFile(e) {
         // Remove the current div in ALT key was pressed
         //if (intAltKey) {
             if (DSP) {
-                 _f4u$t.hard_delete(faustsvg);
-                DSP.stop();
+                if (audio_input) {
+                    audio_input.disconnect(DSP);
+                }
+                DSP.disconnect(audio_context.destination);
                 if (isPoly) {
                     faust.deletePolyDSPInstance(DSP);
                 } else {
                     faust.deleteDSPInstance(DSP);
                 }
                 DSP = null;
+                _f4u$t.hard_delete(faustsvg);
             }
         //}
         
@@ -526,37 +529,49 @@ function UploadFile(e) {
             isPoly = true;
             console.log("Poly DSP");
             
-            /*
+            // Create a poly DSP factory from the dsp code
+            faust.createPolyDSPFactory(dsp_code,
+                                       ["-I", "http://127.0.0.1:8000/libraries/"],
+                                       function (factory) {
+                                   
+                                       console.log(factory);
+                                       
+                                         if (!factory) {
+                                            alert(faust.getErrorMessage());
+                                            return;
+                                         }
+      
+                                        faust.createPolyDSPInstance(factory,
+                                                                    audio_context,
+                                                                    buffer_size,
+                                                                    16,
+                                                                    function (dsp) {
+                                                                    
+                                                                        console.log("POLY DSP OK");
+                                                                        console.log(dsp);
+                                                                    
+                                                                        DSP = dsp;
+                                                                        if (DSP.getNumInputs() > 0) {
+                                                                            activateAudioInput();
+                                                                        }
+                                                                    
+                                                                        // Setup UI
+                                                                        _f4u$t.main_loop = function() {}
+                                                                    
+                                                                        faustsvg = $('<div />');
+                                                                        $('body').append(faustsvg);
+                                                                        var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setParamValue);
+                                                                        DSP.setHandler(handler);
+                                                                    
+                                                                        console.log(DSP.getNumInputs());
+                                                                        console.log(DSP.getNumOutputs());
+                                                                    
+                                                                        DSP.connect(audio_context.destination);
+                                                                    });
              
-            // Create a poly DSP factory from the dsp code    
-            //factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"]);
-            factory = faust.createDSPFactory(dsp_code, ["-I", "http://127.0.0.1:8000/libraries/"]);
             
-            if (!factory) {
-                alert(faust.getErrorMessage());
-                return;
-            }
-            
-            DSP = faust.createPolyDSPInstance(factory, audio_context, buffer_size, 16);
-            if (DSP.getNumInputs() > 0) {
-                activateAudioInput();
-            }
-            
-            // Setup UI
-            _f4u$t.main_loop = function() {}
-            
-            faustsvg = $('<div />');
-            $('body').append(faustsvg);
-            var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setParamValue);
-            DSP.setHandler(handler);
-                          
-            console.log(DSP.getNumInputs());
-            console.log(DSP.getNumOutputs());
-            
-            DSP.start();
-             
-            */
-        
+                                   });
+
         } else {
         
             isPoly = false;
@@ -577,7 +592,7 @@ function UploadFile(e) {
                                                               audio_context,
                                                               buffer_size,
                                                               function (dsp) {
-                                                              
+                                                                
                                                                 DSP = dsp;
                                                                 if (DSP.getNumInputs() > 0) {
                                                                     activateAudioInput();
@@ -594,7 +609,7 @@ function UploadFile(e) {
                                                                 console.log(DSP.getNumInputs());
                                                                 console.log(DSP.getNumOutputs());
                                                                 
-                                                                DSP.start();
+                                                                DSP.connect(audio_context.destination);
                                                               
                                                             });
                                   });

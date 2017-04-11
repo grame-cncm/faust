@@ -37,20 +37,25 @@ dsp_factory_table<SDsp_factory> gWasmFactoryTable;
 
 EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename,
                                                       int argc, const char* argv[],
-                                                      string& error_msg)
+                                                      string& error_msg,
+                                                      bool internal_memory)
 {
     string base = basename((char*)filename.c_str());
     size_t pos = filename.find(".dsp");
     
     if (pos != string::npos) {
-        return createWasmDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, error_msg);
+        return createWasmDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, error_msg, internal_memory);
     } else {
         error_msg = "File Extension is not the one expected (.dsp expected)";
         return NULL;
     }
 }
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], string& error_msg)
+EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app,
+                                                        const string& dsp_content,
+                                                        int argc, const char* argv[],
+                                                        string& error_msg,
+                                                        bool internal_memory)
 {
     string expanded_dsp_content = "";
     string sha_key = "";
@@ -67,7 +72,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
         
         argv1[argc1++] = "faust";
         argv1[argc1++] = "-lang";
-        argv1[argc1++] = "wasm";
+        argv1[argc1++] = (internal_memory) ? "wasm-i" : "wasm-e";
         argv1[argc1++] = "-o";
         argv1[argc1++] = "binary";
         
@@ -133,17 +138,17 @@ static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const str
     }
 }
 
-EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg)
+EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg, bool internal_memory)
 {
     string error_msg_aux;
-    wasm_dsp_factory* factory = createWasmDSPFactoryFromFile(filename, argc, argv, error_msg_aux);
+    wasm_dsp_factory* factory = createWasmDSPFactoryFromFile(filename, argc, argv, error_msg_aux, internal_memory);
     return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
 }
 
-EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg)
+EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg, bool internal_memory)
 {
     string error_msg_aux;
-    wasm_dsp_factory* factory = createWasmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg_aux);
+    wasm_dsp_factory* factory = createWasmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg_aux, internal_memory);
     return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
 }
 
