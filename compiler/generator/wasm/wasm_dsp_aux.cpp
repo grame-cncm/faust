@@ -117,6 +117,7 @@ EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory)
 
 static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const string& error_msg_aux, char* error_msg)
 {
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
     if (factory) {
         WasmModule* res = static_cast<WasmModule*>(calloc(1, sizeof(WasmModule)));
         
@@ -133,7 +134,6 @@ static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const str
         return res;
         // And keep factory...
     } else {
-        strncpy(error_msg, "libfaust.wasm fatal error...\n", 4096);
         return NULL;
     }
 }

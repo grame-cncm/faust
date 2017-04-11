@@ -246,8 +246,9 @@ faust.createDSPFactoryAux = function (code, argv, callback, internal_memory) {
     }
      
     var module_code_ptr = faust.createWasmCDSPFactoryFromString(name_ptr, code_ptr, argv.length, argv_ptr, error_msg_ptr, internal_memory);
+    faust.error_msg = Pointer_stringify(error_msg_ptr);
     
-    if (module_code_ptr === null) {
+    if (module_code_ptr === 0) {
         callback(null);
     } else {
         
@@ -263,8 +264,6 @@ faust.createDSPFactoryAux = function (code, argv, callback, internal_memory) {
         
         var helpers_code_ptr = faust.getWasmCHelpers(module_code_ptr);
         var helpers_code = Pointer_stringify(helpers_code_ptr);
-        
-        faust.error_msg = Pointer_stringify(error_msg_ptr);
         
         // Free strings
         Module._free(code_ptr);

@@ -116,14 +116,13 @@ EXPORT bool deleteAsmjsDSPFactory(asmjs_dsp_factory* factory)
 
 static const char* createAsmCDSPFactoryAux(asmjs_dsp_factory* factory, const string& error_msg_aux, char* error_msg)
 {
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
     if (factory) {
         stringstream dst;
         factory->write(&dst, false, false);
-        strncpy(error_msg, error_msg_aux.c_str(), 4096);
         return strdup(flatten(dst.str()).c_str());
         // And keep factory...
     } else {
-        strncpy(error_msg, "libfaust.js fatal error...\n", 4096);
         return NULL;
     }
 }
