@@ -15,9 +15,9 @@ function getTargets(exportUrl, callback, errCallback)
 	var getrequest = new XMLHttpRequest();
 				
 	getrequest.onreadystatechange = function() {
-		if (getrequest.readyState == 4 && getrequest.status == 200)				    		
+		if (getrequest.readyState === 4 && getrequest.status === 200)
 			callback(getrequest.responseText);
-		else if (getrequest.readyState == 4 && getrequest.status == 400)				    		
+		else if (getrequest.readyState === 4 && getrequest.status === 400)
 			errCallback(getrequest.responseText);
 	}
 				
@@ -34,7 +34,7 @@ function getTargets(exportUrl, callback, errCallback)
 // 				- @param : the sha key corresponding to source_code
 function getSHAKey(exportUrl, name, source_code, callback, errCallback)
 {
-	var filename = name+".dsp";
+	var filename = name + ".dsp";
 	var file = new File([source_code], filename);
 	var newRequest = new XMLHttpRequest();
 
@@ -44,9 +44,9 @@ function getSHAKey(exportUrl, name, source_code, callback, errCallback)
 	newRequest.open("POST", urlToTarget, true);
 
 	newRequest.onreadystatechange = function() {
-		if (newRequest.readyState == 4 && newRequest.status == 200)
+		if (newRequest.readyState === 4 && newRequest.status === 200)
 			callback(newRequest.responseText);
-		else if (newRequest.readyState == 4 && newRequest.status == 400)
+		else if (newRequest.readyState === 4 && newRequest.status === 400)
 			errCallback(newRequest.responseText);
 	}
 				
@@ -64,7 +64,7 @@ function sendPrecompileRequest(exportUrl, sha, platform, architecture, callback)
 	var getrequest = new XMLHttpRequest();
 				
 	getrequest.onreadystatechange = function() {
-		if (getrequest.readyState == 4) {
+		if (getrequest.readyState === 4) {
 			callback(sha);
         }
 	}

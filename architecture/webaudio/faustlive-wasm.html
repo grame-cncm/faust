@@ -437,9 +437,9 @@ function uploadOn(e, callback) {
 		filename = filename.toString().split('.').shift();
 	    var xmlhttp = new XMLHttpRequest();
 
-	    xmlhttp.onreadystatechange=function(){
-	    	if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-	    	    dsp_code ="process = vgroup(\"" + filename + "\", environment{" + xmlhttp.responseText + "}.process);";
+	    xmlhttp.onreadystatechange = function() {
+	    	if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+	    	    dsp_code = "process = vgroup(\"" + filename + "\", environment{" + xmlhttp.responseText + "}.process);";
                 callback();
         	}
     	}
@@ -804,15 +804,15 @@ function getFaustSource()
 {
 	document.getElementById("loader").style.visibility = "visible";
     
-    if (dsp_code == null) {
+    if (dsp_code === null) {
 
         var url = window.location.href.split('.html').shift() + ".dsp";
         var filename = url.toString().split( '/' ).pop();
         filename = filename.toString().split('.').shift();
         var xmlhttp = new XMLHttpRequest();
 
-        xmlhttp.onreadystatechange=function(){
-            if (xmlhttp.readyState==4 && xmlhttp.status==200){
+        xmlhttp.onreadystatechange = function() {
+            if (xmlhttp.readyState === 4 && xmlhttp.status === 200){
                 var dsp_code = xmlhttp.responseText;
                 getSHAKey(document.getElementById("exportUrl").value, filename, dsp_code, updateQrCode, cancelLoader);
             }
