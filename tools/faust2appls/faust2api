@@ -21,6 +21,7 @@ NVOICES="0"
 #PACKAGENAME="0"
 POLY2="0"
 MIDI="0"
+OSC="0"
 NODOC="0"
 EFFECT=""
 
@@ -61,6 +62,7 @@ echoHelp ()
     echo ""
     echo "iOS specific options "
     echo "   -midi : add built-in RtMidi support to the API."
+    echo "   -osc : add built-in OSC support to the API."
     echo ""
     echo "CoreAudio specific options "
     echo "   -midi : add built-in RtMidi support to the API."
@@ -124,6 +126,8 @@ do
 		EFFECT=$1
     elif [ "$p" = "-midi" ]; then
         MIDI="1"
+    elif [ "$p" = "-osc" ]; then
+        OSC="1"
 	elif [ "$p" = "-nodoc" ]; then
 		NODOC="1"
     elif [ $p = "-nvoices" ]; then
@@ -191,6 +195,9 @@ elif [ $IOS -eq 1 ]; then
     fi
     if [ "$MIDI" = "1" ]; then
         echo "#define MIDI_SUPPORT 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+    fi
+    if [ "$OSC" = "1" ]; then
+        echo "#define OSCCTRL 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
 elif [ $COREAUDIO_DRIVER -eq 1 ]; then
     echo "Your dsp-faust.zip API package for CoreAudio is being created"

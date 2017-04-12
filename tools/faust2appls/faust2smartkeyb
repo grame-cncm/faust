@@ -21,6 +21,7 @@ IOS="0"
 NVOICES="12"
 POLY2="0"
 MIDI="0"
+OSC=""
 EFFECT=""
 SOURCE=0
 REUSE=0
@@ -47,6 +48,7 @@ echoHelp ()
 	echo "-nvoices: specify the max number of voices"
 	echo "-reuse: reuse the same project source"
 	echo "-source: only generate the source (no compilation)"
+	echo "-osc: adds OSC support to the app"
 	echo ""
 	echo "More information and tutorials at: https://ccrma.stanford.edu/~rmichon/smartKeyboard"
 }
@@ -76,6 +78,8 @@ do
 		LOG="/dev/stdout"
 	elif [ $p = "-install" ]; then
 		INSTALL=1
+	elif [ $p = "-osc" ]; then
+		OSC="-osc"
     elif [ "$p" = "-effect" ]; then
         POLY2="1"
 		shift
@@ -100,6 +104,12 @@ do
 shift
 
 done
+
+# Options post processing
+#if [ -z "$OSC" ]; then
+#	echo "No osc"
+#	OSC=""
+#fi
 
 if [ -z $FILE ]; then
     echo "Please, provide a Faust file to process"
@@ -166,6 +176,9 @@ if [ $REUSE -eq 0 ] || [ ! -d "$BUILDDIR" ]; then
 
 			sed -i '' 's,$(TARGET_NAME),'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
 			sed -i '' 's,ccrma.Faust,ccrma.'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
+			if [ -n "$OSC" ]; then
+				cp -r $FAUSTLIB/iOS/osclib "$BUILDDIR"/Faust
+			fi
 		fi
 	fi
 fi
@@ -191,10 +204,10 @@ if [ $ANDROID -eq 1 ]; then
 elif [ $IOS -eq 1 ]; then
 	if [ -z "$EFFECT" ]; then # no effect
 		echo "Adding DSP with no effect chain to the app" > $LOG
-		faust2api -ios -midi -nvoices "$NVOICES" -nodoc $OPTIONS "$FILE" > $LOG
+		faust2api -ios $OSC -midi -nvoices "$NVOICES" -nodoc $OPTIONS "$FILE" > $LOG
 	else
 		echo "Adding DSP with effect chain to the app" > $LOG
-		faust2api -ios -midi -nvoices "$NVOICES" -effect "$EFFECT" -nodoc $OPTIONS "$FILE" > $LOG
+		faust2api -ios $OSC -midi -nvoices "$NVOICES" -effect "$EFFECT" -nodoc $OPTIONS "$FILE" > $LOG
 	fi
 	unzip "dsp-faust.zip" > $LOG
 	mv "dsp-faust" "$BUILDDIR"

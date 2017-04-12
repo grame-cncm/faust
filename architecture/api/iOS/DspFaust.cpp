@@ -48,6 +48,10 @@
 // Interface
 //**************************************************************
 
+#if OSCCTRL
+#include "faust/gui/OSCUI.h"
+#endif
+
 #if MIDI_SUPPORT
 #include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
@@ -61,6 +65,22 @@ ztimedmap GUI::gTimedZoneMap;
 DspFaust::DspFaust(int sample_rate, int buffer_size){
 	fPolyEngine = new FaustPolyEngine(new iosaudio(sample_rate, buffer_size));
 
+#if OSCCTRL
+    const char* argv[9];
+    argv[0] = "Faust"; // TODO may be should retrieve the actual name
+    argv[1] = "-xmit";
+    argv[2] = "1"; // TODO retrieve that from command line or somewhere
+    argv[3] = "-desthost";
+    argv[4] = "192.168.1.1"; // TODO same
+    argv[5] = "-port";
+    argv[6] = "5510"; // TODO same
+    argv[7] = "-outport";
+    argv[8] = "5511"; // TODO same
+    oscinterface = new OSCUI("Faust", 9, (char**)argv); // TODO fix name
+    fPolyEngine->buildUserInterface(oscinterface);
+    oscinterface->run();
+#endif
+
 #if MIDI_SUPPORT
     fMidiUI = new MidiUI(new rt_midi());
 	fPolyEngine->buildUserInterface(fMidiUI);
@@ -69,6 +89,9 @@ DspFaust::DspFaust(int sample_rate, int buffer_size){
 
 DspFaust::~DspFaust(){
 	delete fPolyEngine;
+#if OSCCTRL
+    delete oscinterface;
+#endif
 #if MIDI_SUPPORT
     delete fMidiUI;
 #endif
