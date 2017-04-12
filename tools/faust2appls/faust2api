@@ -24,24 +24,68 @@ MIDI="0"
 NODOC="0"
 EFFECT=""
 
+COREAUDIO_DRIVER="0"
+ALSA_DRIVER="0"
+JACK_DRIVER="0"
+PORTAUDIO_DRIVER="0"
+COREAUDIO_DRIVER="0"
+RTAUDIO_DRIVER="0"
+OPEN_FRAMEWORK_DRIVER="0"
+DUMMY_DRIVER="0"
+
 echoHelp ()
 {
-    echo "$p wrong argument"
+    if [ $p != "-help" ] && [ $p != "-h" ]; then
+        echo "$p wrong argument"
+        echo ""
+    fi
+    echo "faust2api can be used to generate faust-based dsp objects for various platforms:"
     echo ""
-    echo "faust2api can be used to generate faust-based dsp objects for iOS and Android."
     echo "To generate an iOS API, run: faust2api -ios yourFaustCode.dsp"
-    echo "To generate and Android API, run: faust2api -android yourFaustCode.dsp"
+    echo "To generate an Android API, run: faust2api -android yourFaustCode.dsp"
+    echo "To generate a CoreAudio API, run: faust2api -coreaudio yourFaustCode.dsp"
+    echo "To generate an ALSA API, run: faust2api -alsa yourFaustCode.dsp"
+    echo "To generate a JACK API, run: faust2api -jack yourFaustCode.dsp"
+    echo "To generate a PortAudio API, run: faust2api -portaudio yourFaustCode.dsp"
+    echo "To generate a RTAudio API, run: faust2api -rtaudio yourFaustCode.dsp"
+    echo "To generate a OpenFramework API, run: faust2api -of yourFaustCode.dsp"
+    echo "To generate a dummy audio API, run: faust2api -dummy yourFaustCode.dsp"
     echo ""
-    echo "GLOBAL OPTIONS:"
+    echo "Global options:"
     echo "   -nvoices N : creates a polyphonic object with N voices."
     echo "   -effect <effect.dsp>: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified)."
 	echo "   -nodoc : prevents documentation from being generated."
     echo ""
-    echo "ANDROID-SPECIFIC OPTIONS:"
+    echo "Android specific options:"
     echo "   -package : set the JAVA package name (e.g. '-package mypackage' will change the JAVA package name to 'mypackage.DspFaust'). The default package name is 'com.DspFaust.'"
     echo ""
-    echo "IOS-SPECIFIC OPTIONS "
+    echo "iOS specific options "
     echo "   -midi : add built-in RtMidi support to the API."
+    echo ""
+    echo "CoreAudio specific options "
+    echo "   -midi : add built-in RtMidi support to the API."
+    echo ""
+    echo "ALSA specific options "
+    echo "   -midi : add built-in RtMidi support to the API."
+    echo ""
+    echo "PortAudio specific options "
+    echo "   -midi : add built-in RtMidi support to the API."
+}
+
+createAPI ()
+{
+    cp -r /usr/local/share/faust/api/DspFaust.h $APIFOLDER
+    faust -i -a api/DspFaust.cpp $OPTIONS "$FILE" -o "$APIFOLDER/DspFaust.cpp" || exit 1
+    if [ "$POLY2" = "1" ]; then
+        faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp" || exit 1
+        echo "#define POLY2 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+    fi
+    if [ "$NVOICES" -gt "0" ]; then
+        echo "#define NVOICES $NVOICES" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+    fi
+    if [ "$MIDI" = "1" ]; then
+        echo "#define MIDI_SUPPORT 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+    fi
 }
 
 # dispatch command arguments
@@ -49,8 +93,9 @@ while [ $1 ]
 do
 	p=$1
 
-    if [ $p = "-help" ]; then
-	echoHelp
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echoHelp
+        exit
     elif [ "$PACKAGENAME" = "-1" ]; then
 		PACKAGENAME="$p"
     elif [[ -f "$p" ]]; then
@@ -59,6 +104,20 @@ do
 		ANDROID=1
     elif [ $p = "-ios" ]; then
 		IOS="1"
+    elif [ $p = "-coreaudio" ]; then
+        COREAUDIO_DRIVER=1
+    elif [ $p = "-alsa" ]; then
+        ALSA_DRIVER=1
+    elif [ $p = "-jack" ]; then
+        JACK_DRIVER=1
+    elif [ $p = "-portaudio" ]; then
+        PORTAUDIO_DRIVER=1
+    elif [ $p = "-rtaudio" ]; then
+        RTAUDIO_DRIVER=1
+    elif [ $p = "-of" ]; then
+        OPEN_FRAMEWORK_DRIVER=1
+    elif [ $p = "-dummy" ]; then
+        DUMMY_DRIVER=1
     elif [ "$p" = "-effect" ]; then
         POLY2="1"
 		shift
@@ -131,8 +190,36 @@ elif [ $IOS -eq 1 ]; then
         echo "#define NVOICES $NVOICES" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
     if [ "$MIDI" = "1" ]; then
-        echo "#define IOS_MIDI_SUPPORT 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+        echo "#define MIDI_SUPPORT 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
+elif [ $COREAUDIO_DRIVER -eq 1 ]; then
+    echo "Your dsp-faust.zip API package for CoreAudio is being created"
+    createAPI
+    echo "#define COREAUDIO_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+elif [ $ALSA_DRIVER -eq 1 ]; then
+    echo "Your dsp-faust.zip API package for ALSA is being created"
+    createAPI
+    echo "#define ALSA_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+elif [ $JACK_DRIVER -eq 1 ]; then
+    echo "Your dsp-faust.zip API package for JACK is being created"
+    createAPI
+    echo "#define JACK_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+elif [ $PORTAUDIO_DRIVER -eq 1 ]; then
+    echo "Your dsp-faust.zip API package for PortAudio is being created"
+    createAPI
+    echo "#define PORTAUDIO_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+elif [ $RTAUDIO_DRIVER -eq 1 ]; then
+    echo "Your dsp-faust.zip API package for RTAudio is being created"
+    createAPI
+    echo "#define RTAUDIO_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+elif [ $OPEN_FRAMEWORK_DRIVER -eq 1 ]; then
+    echo "Your dsp-faust.zip API package for OpenFramework is being created"
+    createAPI
+    echo "#define OPEN_FRAMEWORK_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+elif [ $DUMMY_DRIVER -eq 1 ]; then
+    echo "Your dsp-faust.zip API package for dummy audio is being created"
+    createAPI
+    echo "#define DUMMY_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
 else
     echoHelp
     exit 1
@@ -149,6 +236,9 @@ if [ $NODOC -eq 0 ]; then
 	elif [ $IOS -eq 1 ]; then
 		DOCHEADERFILE="/usr/local/share/faust/api/doc/iOS.md"
 		APIHEADERFILE="/usr/local/share/faust/api/iOS/DspFaust.h"
+    else
+        DOCHEADERFILE="/usr/local/share/faust/api/doc/Generic.md"
+        APIHEADERFILE="/usr/local/share/faust/api/DspFaust.h"
 	fi
 
 	PPFILE=pPrinter.cpp
@@ -179,7 +269,7 @@ if [ $NODOC -eq 0 ]; then
 	./"$PPBINARY" | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit 1
 	rm "$PPBINARY" || exit 1
 
-	faust2md "$APIHEADERFILE"  | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit 1
+	faust2md "$APIHEADERFILE" | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit 1
 fi
 
 ###################################

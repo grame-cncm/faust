@@ -1,8 +1,8 @@
 /************************************************************************
  ************************************************************************
- FAUST Architecture File for Android
+ FAUST API Architecture File 
  Copyright (C) 2016 GRAME, Romain Michon, CCRMA - Stanford University
- Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2014-2016 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
 
  This is sample code. This file is provided as an example of minimal
@@ -25,7 +25,7 @@
 #include <cmath>
 
 //**************************************************************
-// DSP class
+// Intrinsic
 //**************************************************************
 
 <<includeIntrinsic>>
@@ -39,34 +39,94 @@
 #include "faust/dsp/faust-poly-engine.h"
 
 //**************************************************************
-// Android Audio
+// Audio driver
 //**************************************************************
 
-#include "faust/audio/android-dsp.h"
+#if COREAUDIO_DRIVER
+    #include "faust/audio/coreaudio-dsp.h"
+#elif IOS_DRIVER
+    #include "faust/audio/coreaudio-ios-dsp.h"
+#elif ANDROID_DRIVER
+    #include "faust/audio/android-dsp.h"
+#elif ALSA_DRIVER
+    #include "faust/audio/alsa-dsp.h"
+#elif JACK_DRIVER
+    #include "faust/audio/jack-dsp.h"
+#elif PORTAUDIO_DRIVER
+    #include "faust/audio/portaudio-dsp.h"
+#elif RTAUDIO_DRIVER
+    #include "faust/audio/rtaudio-dsp.h"
+#elif OPEN_FRAMEWORK_DRIVER
+    #include "faust/audio/ofaudio-dsp.h"
+#elif DUMMY_DRIVER
+    #include "faust/audio/dummy-audio.h"
+#endif
 
 //**************************************************************
-// Native Faust API
+// Interface
 //**************************************************************
 
-#include <android/log.h>
+#if MIDI_SUPPORT
+#include "faust/midi/rt-midi.h"
+#include "faust/midi/RtMidi.cpp"
+
+#endif
+
 #include "DspFaust.h"
 
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
 DspFaust::DspFaust(int sample_rate, int buffer_size){
-	fPolyEngine = new FaustPolyEngine(new androidaudio(sample_rate, buffer_size));
+    
+#if COREAUDIO_DRIVER
+    audio* driver = coreaudio(sample_rate, buffer_size);
+#elif IOS_DRIVER
+    audio* driver = iosaudio(sample_rate, buffer_size);
+#elif ANDROID_DRIVER
+    audio* driver = androidaudio(sample_rate, buffer_size);
+#elif ALSA_DRIVER
+    audio* driver = alsaaudio(sample_rate, buffer_size);
+#elif JACK_DRIVER
+    audio* driver = jackaudio(sample_rate, buffer_size);
+#elif PORTAUDIO_DRIVER
+    audio* driver = portaudio(sample_rate, buffer_size);
+#elif RTAUDIO_DRIVER
+    audio* driver = rtaudio(sample_rate, buffer_size);
+#elif OPEN_FRAMEWORK_DRIVER
+    audio* driver = ofaudio(sample_rate, buffer_size);
+#elif DUMMY_DRIVER
+    audio* driver = dummyaudio(sample_rate, buffer_size);
+#endif
+    
+	fPolyEngine = new FaustPolyEngine(driver);
+
+#if MIDI_SUPPORT
+    fMidiUI = new MidiUI(new rt_midi());
+	fPolyEngine->buildUserInterface(fMidiUI);
+#endif
 }
 
 DspFaust::~DspFaust(){
 	delete fPolyEngine;
+#if MIDI_SUPPORT
+    delete fMidiUI;
+#endif
 }
 
 bool DspFaust::start(){
+#if MIDI_SUPPORT
+    if (!fMidiUI->run()) {
+        std::cerr << "MIDI run error...\n";
+    }
+#endif
 	return fPolyEngine->start();
 }
 
 void DspFaust::stop(){
+#if MIDI_SUPPORT
+    fMidiUI->stop();
+#endif
 	fPolyEngine->stop();
 }
 
@@ -74,7 +134,7 @@ bool DspFaust::isRunning(){
 	return fPolyEngine->isRunning();
 }
 
-unsigned long DspFaust::keyOn(int pitch, int velocity){
+long DspFaust::keyOn(int pitch, int velocity){
 	return (long) fPolyEngine->keyOn(pitch, velocity);
 }
 
@@ -82,20 +142,16 @@ int DspFaust::keyOff(int pitch){
 	return fPolyEngine->keyOff(pitch);
 }
 
-unsigned long DspFaust::newVoice(){
+long DspFaust::newVoice(){
 	return (long) fPolyEngine->newVoice();
 }
 
-int DspFaust::deleteVoice(unsigned long voice){
+int DspFaust::deleteVoice(long voice){
 	return fPolyEngine->deleteVoice(voice);
 }
 
 void DspFaust::allNotesOff(){
     fPolyEngine->allNotesOff();
-}
-
-void DspFaust::propagateMidi(int count, double time, int type, int channel, int data1, int data2){
-	fPolyEngine->propagateMidi(count, time, type, channel, data1, data2);
 }
 
 const char* DspFaust::getJSONUI(){
@@ -126,19 +182,19 @@ float DspFaust::getParamValue(int id){
 	return fPolyEngine->getParamValue(id);
 }
 
-void DspFaust::setVoiceParamValue(const char* address, unsigned long voice, float value){
+void DspFaust::setVoiceParamValue(const char* address, long voice, float value){
 	fPolyEngine->setVoiceParamValue(address, voice, value);
 }
 
-void DspFaust::setVoiceParamValue(int id, unsigned long voice, float value){
+void DspFaust::setVoiceParamValue(int id, long voice, float value){
 	fPolyEngine->setVoiceParamValue(id, voice, value);
 }
 
-float DspFaust::getVoiceParamValue(const char* address, unsigned long voice){
+float DspFaust::getVoiceParamValue(const char* address, long voice){
 	return fPolyEngine->getVoiceParamValue(address, voice);
 }
 
-float DspFaust::getVoiceParamValue(int id, unsigned long voice){
+float DspFaust::getVoiceParamValue(int id, long voice){
 	return fPolyEngine->getVoiceParamValue(id, voice);
 }
 
@@ -146,7 +202,7 @@ const char* DspFaust::getParamAddress(int id){
 	return fPolyEngine->getParamAddress(id);
 }
 
-const char* DspFaust::getVoiceParamAddress(int id, unsigned long voice){
+const char* DspFaust::getVoiceParamAddress(int id, long voice){
 	return fPolyEngine->getVoiceParamAddress(id, voice);
 }
 

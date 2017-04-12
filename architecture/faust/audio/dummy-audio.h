@@ -55,7 +55,7 @@
 
 #define BUFFER_TO_RENDER 10
 
-class dummy_audio : public audio {
+class dummyaudio : public audio {
 
     private:
 
@@ -72,12 +72,12 @@ class dummy_audio : public audio {
 
     public:
 
-        dummy_audio(int sr, int bs, int count = 10, bool sample = false)
+        dummyaudio(int sr, int bs, int count = 10, bool sample = false)
             :fSampleRate(sr), fBufferSize(bs), fCount(count), fIsSample(sample) {}
-        dummy_audio(int count = 10)
+        dummyaudio(int count = 10)
             :fSampleRate(48000), fBufferSize(512), fCount(count) {}
     
-        virtual ~dummy_audio() 
+        virtual ~dummyaudio() 
         {
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 delete[] fInChannel[i];

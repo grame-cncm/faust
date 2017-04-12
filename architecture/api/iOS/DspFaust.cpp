@@ -21,9 +21,6 @@
 #include "faust/gui/UI.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
-#include "faust/gui/jsonfaustui.h"
-#include "faust/gui/JSONUI.h"
-#include "faust/gui/MapUI.h"
 #include <math.h>
 #include <cmath>
 
@@ -51,7 +48,7 @@
 // Interface
 //**************************************************************
 
-#if IOS_MIDI_SUPPORT
+#if MIDI_SUPPORT
 #include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
 #endif
@@ -64,7 +61,7 @@ ztimedmap GUI::gTimedZoneMap;
 DspFaust::DspFaust(int sample_rate, int buffer_size){
 	fPolyEngine = new FaustPolyEngine(new iosaudio(sample_rate, buffer_size));
 
-#if IOS_MIDI_SUPPORT
+#if MIDI_SUPPORT
     fMidiUI = new MidiUI(new rt_midi());
 	fPolyEngine->buildUserInterface(fMidiUI);
 #endif
@@ -72,20 +69,22 @@ DspFaust::DspFaust(int sample_rate, int buffer_size){
 
 DspFaust::~DspFaust(){
 	delete fPolyEngine;
-#if IOS_MIDI_SUPPORT
+#if MIDI_SUPPORT
     delete fMidiUI;
 #endif
 }
 
 bool DspFaust::start(){
-#if IOS_MIDI_SUPPORT
-    fMidiUI->run();
+#if MIDI_SUPPORT
+    if (!fMidiUI->run()) {
+        std::cerr << "MIDI run error...\n";
+    }
 #endif
 	return fPolyEngine->start();
 }
 
 void DspFaust::stop(){
-#if IOS_MIDI_SUPPORT
+#if MIDI_SUPPORT
     fMidiUI->stop();
 #endif
 	fPolyEngine->stop();

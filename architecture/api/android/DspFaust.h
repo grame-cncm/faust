@@ -71,7 +71,7 @@ public:
 	// * `pitch`: MIDI note number (0-127)
 	// * `velocity`: MIDI velocity (0-127)
 	//--------------------------------------------------------
-	unsigned long keyOn(int, int);
+	long keyOn(int, int);
 
 	//----------------`int keyOff(int pitch)`-----------------
 	// De-instantiate a polyphonic voice. This method can
@@ -102,7 +102,7 @@ public:
 	// `deleteVoice` to access the parameters of a specific
 	// voice.
 	//--------------------------------------------------------
-	unsigned long newVoice();
+	long newVoice();
 
 	//---------`int deleteVoice(long voice)`------------------
 	// De-instantiate a polyphonic voice. This method can
