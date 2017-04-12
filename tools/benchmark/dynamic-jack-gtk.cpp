@@ -109,8 +109,6 @@ int main(int argc, char *argv[])
         //factory = createInterpreterDSPFactoryFromString("FaustInterp", pathToContent(argv[argc-1]), argc-id-1, (const char**)&argv[id], error_msg);
     }
     
-    cout << "getName " << factory->getName() << endl;
-
     if (factory) {
         DSP = factory->createDSPInstance();
         assert(DSP);
@@ -119,6 +117,8 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
     
+    cout << "getName " << factory->getName() << endl;
+  
     if (is_poly) {
         MidiMeta::analyse(DSP, midi_sync, nvoices);
         std::cout << "Starting polyphonic mode nvoices : " << nvoices << std::endl;

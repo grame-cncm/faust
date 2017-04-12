@@ -39,43 +39,44 @@
 int main(int argc, char *argv[])
 {
     char jackname[256];
-	snprintf(jackname, 255, "%s", basename(argv[0]));
+    snprintf(jackname, 255, "%s", basename(argv[0]));
     std::string error_msg;
-    
+
     if (argc < 2) {
         printf("faust-llvm 'foo.dsp'\n");
         exit(-1);
     }
-    
+
     // Error check to add....
     // llvm_dsp_factory* factory = createDSPFactoryFromFile(argv[1], argc-2, (const char**)&argv[2], "", error_msg, -1);
-    
+
     // Another possibility by directly giving the Faust program as a string
-    
+
     // Additional parameters given to the compiler
     int argc1 = 3;
     const char* argv1[argc];
     argv1[0] = "-vec";
     argv1[1] = "-lv";
     argv1[2] = " 1";
-    
+
     // Faust program
     std::string faust_program = "process = 1;";
-    
-    llvm_dsp_factory* factory = createDSPFactoryFromString("test", faust_program, argc1, argv1, "", error_msg, -1);
-    
-    dsp* DSP = createDSPInstance(factory);
-  
-	PrintUI interface;
-	DSP->buildUserInterface(&interface);
 
-	dummy_audio audio(BUFFER_TO_RENDER);
-	audio.init(jackname, DSP);
-	audio.start();
+    llvm_dsp_factory* factory = createDSPFactoryFromString("test", faust_program, argc1, argv1, "", error_msg, -1);
+
+    dsp* DSP = createDSPInstance(factory);
+
+    PrintUI interface;
+    DSP->buildUserInterface(&interface);
+
+    dummyaudio audio(BUFFER_TO_RENDER);
+    audio.init(jackname, DSP);
+    audio.start();
+    
     // Render BUFFER_TO_RENDER buffers...
-	audio.stop();
-	return 0;
-} 
+    audio.stop();
+    return 0;
+}
 
 #endif
 
