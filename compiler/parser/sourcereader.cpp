@@ -262,13 +262,15 @@ Tree SourceReader::parsefile(const char* fname)
     #ifdef EMCC
         // Call JS code to load URL
         buffer = (char*)EM_ASM_INT({
-            var xmlhttp = new XMLHttpRequest();
             var dsp_code = "";
-            xmlhttp.open("GET", Module.Pointer_stringify($0), false);
-            xmlhttp.send();
-            if (xmlhttp.status == 200) {
-                dsp_code = xmlhttp.responseText;
-            } 
+            try {
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.open("GET", Module.Pointer_stringify($0), false);
+                xmlhttp.send();
+                if (xmlhttp.status == 200) {
+                    dsp_code = xmlhttp.responseText;
+                }
+            } catch(e) {}
             return allocate(intArrayFromString(dsp_code), 'i8', ALLOC_STACK);
         }, yyfilename);
         
