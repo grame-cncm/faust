@@ -1,6 +1,6 @@
 /************************************************************************
  ************************************************************************
- FAUST API Architecture File 
+ FAUST API Architecture File
  Copyright (C) 2016 GRAME, Romain Michon, CCRMA - Stanford University
  Copyright (C) 2014-2016 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
@@ -88,13 +88,13 @@ DspFaust::DspFaust(int sample_rate, int buffer_size){
 }
 
 DspFaust::~DspFaust(){
-	delete fPolyEngine;
 #if OSCCTRL
     delete oscinterface;
 #endif
 #if MIDI_SUPPORT
     delete fMidiUI;
 #endif
+	delete fPolyEngine;
 }
 
 bool DspFaust::start(){
@@ -192,31 +192,31 @@ const char* DspFaust::getVoiceParamAddress(int id, long voice){
 float DspFaust::getParamMin(const char* address){
     return fPolyEngine->getParamMin(address);
 }
-      
+
 float DspFaust::getParamMin(int id){
     return fPolyEngine->getParamMin(id);
 }
-      
+
 float DspFaust::getParamMax(const char* address){
     return fPolyEngine->getParamMax(address);
 }
-      
+
 float DspFaust::getParamMax(int id){
     return fPolyEngine->getParamMax(id);
 }
-      
+
 float DspFaust::getParamInit(const char* address){
     return fPolyEngine->getParamInit(address);
 }
-      
+
 float DspFaust::getParamInit(int id){
     return fPolyEngine->getParamInit(id);
 }
-      
+
 const char* DspFaust::getParamTooltip(const char* address){
     return fPolyEngine->getParamTooltip(address);
 }
-      
+
 const char* DspFaust::getParamTooltip(int id){
     return fPolyEngine->getParamTooltip(id);
 }
@@ -244,4 +244,3 @@ float DspFaust::getCPULoad(){
 int DspFaust::getScreenColor(){
 	return fPolyEngine->getScreenColor();
 }
-
