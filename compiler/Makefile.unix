@@ -208,12 +208,12 @@ libfaustworker.js : $(objects) libcode.o libmain.o global.o
 	cp libfaustworker.js ../architecture/webaudio
 
 libfaust.wasm : $(objects) libcode.o libmain.o global.o
-	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaust.js
-	cp libfaust.js libfaust.wasm ../architecture/webaudio
+	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaust-wasm.js
+	cp libfaust-wasm.js libfaust-wasm.wasm ../architecture/webaudio
 
 libfaustworker.wasm : $(objects) libcode.o libmain.o global.o
-	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaustworker.js
-	cp libfaustworker.js libfaustworker.wasm ../architecture/webaudio
+	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaustworker-wasm.js
+	cp libfaustworker-wasm.js libfaustworker-wasm.wasm ../architecture/webaudio
 
 libcode.o : libcode.cpp
 	$(CXX) $(CXXFLAGS) libcode.cpp -c -o libcode.o

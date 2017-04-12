@@ -741,7 +741,6 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
            
         // Keep JSON parsed object
         var jon_object = JSON.parse(factory.getJSON());
-              
           
         function getNumInputsAux ()
         {
@@ -923,12 +922,12 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             for (i = 0; i < max_polyphony; i++) {
                 if (sp.dsp_voices_state[i] != sp.kFreeVoice) {
                     if (sp.dsp_voices_trigger[i]) {
-                        sp.dsp_voices_trigger[i] = false;
                         // FIXME : properly cut the buffer in 2 slices...
                         sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel, 0.0);
                         sp.factory.compute(sp.dsp_voices[i], 1, sp.ins, sp.mixing);
                         sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel, 1.0);
                         sp.factory.compute(sp.dsp_voices[i], buffer_size, sp.ins, sp.mixing);
+                        sp.dsp_voices_trigger[i] = false;
                     } else {
                         // Compute regular voice
                         sp.factory.compute(sp.dsp_voices[i], buffer_size, sp.ins, sp.mixing);
@@ -1141,10 +1140,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         sp.ctrlChange = function (channel, ctrl, value)
         {
             if (ctrl === 123 || ctrl === 120) {
-                for (var i = 0; i < max_polyphony; i++) {
-                    sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel, 0.0);
-                    sp.dsp_voices_state[i] = sp.kReleaseVoice;
-                }
+                sp.allNotesOff();
             }
         }
 

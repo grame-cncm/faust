@@ -232,7 +232,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
                     sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel, 0.0);
                     sp.factory.compute(sp.dsp_voices[i], 1, sp.ins, sp.mixing);
                     sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel, 1.0);
-                    sp.factory.compute(sp.dsp_voices[i], buffer_size, sp.ins,sp.mixing);
+                    sp.factory.compute(sp.dsp_voices[i], buffer_size, sp.ins, sp.mixing);
                     sp.dsp_voices_trigger[i] = false;
                 } else {
                     // Compute regular voice
@@ -445,10 +445,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     sp.ctrlChange = function (channel, ctrl, value)
     {
         if (ctrl === 123 || ctrl === 120) {
-            for (var i = 0; i < max_polyphony; i++) {
-                sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel, 0.0);
-                sp.dsp_voices_state[i] = sp.kReleaseVoice;
-            }
+            sp.allNotesOff();
         }
     }
     
