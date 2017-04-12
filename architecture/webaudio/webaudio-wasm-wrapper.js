@@ -760,6 +760,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         sp.ins = null;
         sp.outs = null
         sp.mixing = null;
+        sp.compute_callback = null;
               
         sp.dspInChannnels = [];
         sp.dspOutChannnels = [];
@@ -910,13 +911,11 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
                 }
             }
 
-            /*
             // Possibly call an externally given callback (for instance to play a MIDIFile...)
-            if (compute_callback) {
-                compute_callback(buffer_size);
+            if (sp.compute_callback) {
+                sp.compute_callback(buffer_size);
             }
-            */
-
+        
             // First clear the outputs
             sp.mixer.clearOutput(buffer_size, sp.numOut, sp.outs);
 
@@ -1179,18 +1178,16 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             return context.sampleRate;
         }
     
-        /*
-        setComputeCallback : function (callback) 
+        sp.setComputeCallback = function (callback)
         {
-            compute_callback = callback;
+            sp.compute_callback = callback;
         }
         
-        getComputeCallback : function () 
+        sp.getComputeCallback = function ()
         {
-            return compute_callback;
+            return sp.compute_callback;
         }
-        */
-      
+       
         // Init resulting DSP
         sp.initAux();
       

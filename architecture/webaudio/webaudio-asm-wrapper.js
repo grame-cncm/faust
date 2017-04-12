@@ -424,8 +424,8 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
     var dspOutChannnels = [];
 
     // bargraph
-    var ouputs_timer = 5;
-    var ouputs_items = [];
+    var outputs_timer = 5;
+    var outputs_items = [];
      
     // input items
     var inputs_items = [];
@@ -435,10 +435,10 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
     
     function update_outputs () 
     {
-        if (ouputs_items.length > 0 && handler && ouputs_timer-- === 0) {
-            ouputs_timer = 5;
-            for (var i = 0; i < ouputs_items.length; i++) {
-                handler(ouputs_items[i], factory.getParamValue(dsp, factory.pathTable[ouputs_items[i]]));
+        if (outputs_items.length > 0 && handler && outputs_timer-- === 0) {
+            outputs_timer = 5;
+            for (var i = 0; i < outputs_items.length; i++) {
+                handler(outputs_items[i], factory.getParamValue(dsp, factory.pathTable[outputs_items[i]]));
             }
         }
     }
@@ -508,7 +508,7 @@ faust.createDSPInstance = function (factory, context, buffer_size) {
             parse_items(item.items);
         } else if (item.type === "hbargraph" || item.type === "vbargraph") {
             // Keep bargraph adresses
-            ouputs_items.push(item.address);
+            outputs_items.push(item.address);
         } else if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
             // Keep inputs adresses
             inputs_items.push(item.address);
@@ -713,8 +713,8 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
     var dspOutChannnels = [];
   
     // bargraph
-    var ouputs_timer = 5;
-    var ouputs_items = [];
+    var outputs_timer = 5;
+    var outputs_items = [];
      
     // input items
     var inputs_items = [];
@@ -807,10 +807,10 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
        
     function update_outputs () 
     {
-        if (ouputs_items.length > 0 && handler && ouputs_timer-- === 0) {
-            ouputs_timer = 5;
-            for (var i = 0; i < ouputs_items.length; i++) {
-                handler(ouputs_items[i], factory.getParamValue(dsp_voices[0], factory.pathTable[ouputs_items[i]]));
+        if (outputs_items.length > 0 && handler && outputs_timer-- === 0) {
+            outputs_timer = 5;
+            for (var i = 0; i < outputs_items.length; i++) {
+                handler(outputs_items[i], factory.getParamValue(dsp_voices[0], factory.pathTable[outputs_items[i]]));
             }
         }
     }
@@ -906,7 +906,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             parse_items(item.items);
         } else if (item.type === "hbargraph" || item.type === "vbargraph") {
             // Keep bargraph adresses
-            ouputs_items.push(item.address);
+            outputs_items.push(item.address);
         } else if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
             // Keep inputs adresses
             inputs_items.push(item.address);

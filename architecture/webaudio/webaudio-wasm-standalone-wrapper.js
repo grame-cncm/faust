@@ -72,8 +72,8 @@ faust.mydsp = function (instance, context, buffer_size) {
     console.log(sp.HEAPF32);
  
     // bargraph
-    sp.ouputs_timer = 5;
-    sp.ouputs_items = [];
+    sp.outputs_timer = 5;
+    sp.outputs_items = [];
      
     // input items
     sp.inputs_items = [];
@@ -101,10 +101,10 @@ faust.mydsp = function (instance, context, buffer_size) {
         
     sp.update_outputs = function ()
     {
-        if (sp.ouputs_items.length > 0 && sp.handler && sp.ouputs_timer-- === 0) {
-            sp.ouputs_timer = 5;
-            for (var i = 0; i < sp.ouputs_items.length; i++) {
-                sp.handler(ouputs_items[i], sp.factory.getParamValue(sp.dsp, sp.pathTable[sp.ouputs_items[i]]));
+        if (sp.outputs_items.length > 0 && sp.handler && sp.outputs_timer-- === 0) {
+            sp.outputs_timer = 5;
+            for (var i = 0; i < sp.outputs_items.length; i++) {
+                sp.handler(outputs_items[i], sp.factory.getParamValue(sp.dsp, sp.pathTable[sp.outputs_items[i]]));
             }
         }
     }
@@ -175,7 +175,7 @@ faust.mydsp = function (instance, context, buffer_size) {
             sp.parse_items(item.items);
         } else if (item.type === "hbargraph" || item.type === "vbargraph") {
             // Keep bargraph adresses
-            sp.ouputs_items.push(item.address);
+            sp.outputs_items.push(item.address);
         } else if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
             // Keep inputs adresses
             sp.inputs_items.push(item.address);

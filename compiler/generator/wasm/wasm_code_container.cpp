@@ -338,6 +338,7 @@ void WASMCodeContainer::produceClass()
     generateMetaData(&json_visitor);
     
     // Generate JSON and getDSPSize
+    tab(n, fHelper); fHelper << "/* Helper code generated with FAUST version " << FAUSTVERSION << " */\n";
     tab(n, fHelper); fHelper << "function getSize" << fKlassName << "() {";
         tab(n+1, fHelper);
         fHelper << "return " << gGlobal->gWASMVisitor->getStructSize() << ";";

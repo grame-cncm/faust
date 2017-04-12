@@ -85,8 +85,8 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     console.log(sp.HEAPF32);
     
     // bargraph
-    sp.ouputs_timer = 5;
-    sp.ouputs_items = [];
+    sp.outputs_timer = 5;
+    sp.outputs_items = [];
     
     // input items
     sp.inputs_items = [];
@@ -195,10 +195,10 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     
     sp.update_outputs = function ()
     {
-        if (sp.ouputs_items.length > 0 && sp.handler && sp.ouputs_timer-- === 0) {
-            sp.ouputs_timer = 5;
-            for (var i = 0; i < sp.ouputs_items.length; i++) {
-                sp.handler(sp.ouputs_items[i], sp.factory.getParamValue(sp.dsp_voices[0], sp.pathTable[sp.ouputs_items[i]]));
+        if (sp.outputs_items.length > 0 && sp.handler && sp.outputs_timer-- === 0) {
+            sp.outputs_timer = 5;
+            for (var i = 0; i < sp.outputs_items.length; i++) {
+                sp.handler(sp.outputs_items[i], sp.factory.getParamValue(sp.dsp_voices[0], sp.pathTable[sp.outputs_items[i]]));
             }
         }
     }
@@ -293,7 +293,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
             sp.parse_items(item.items);
         } else if (item.type === "hbargraph" || item.type === "vbargraph") {
             // Keep bargraph adresses
-            sp.ouputs_items.push(item.address);
+            sp.outputs_items.push(item.address);
         } else if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
             // Keep inputs adresses
             sp.inputs_items.push(item.address);
