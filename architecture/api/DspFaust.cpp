@@ -72,6 +72,10 @@
 #include "faust/midi/RtMidi.cpp"
 #endif
 
+#if OSCCTRL
+#include "faust/gui/OSCUI.h"
+#endif
+
 #include "DspFaust.h"
 
 std::list<GUI*> GUI::fGuiList;
@@ -152,6 +156,23 @@ void DspFaust::stop(){
     fMidiUI->stop();
 #endif
 	fPolyEngine->stop();
+}
+
+bool DspFaust::configureOSC(bool xmit, int inport, int outport, int errport, const char* address){
+#if OSCCTRL
+    if (isRunning()) {
+        return false;
+    } else {
+        oscfaust::OSCControler::gXmit = xmit;
+        oscinterface->setUDPPort(inport);
+        oscinterface->setUDPOut(outport);
+        oscinterface->setUDPErr(errport);
+        oscinterface->setDestAddress(address);
+        return true;
+    }
+#else
+    return false;
+#endif
 }
 
 bool DspFaust::isRunning(){

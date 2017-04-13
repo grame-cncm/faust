@@ -170,10 +170,17 @@ class OSCUI : public GUI
     }
     
 	const char* getRootName()		{ return fCtrl->getRootName(); }
+    
     int getUDPPort()                { return fCtrl->getUDPPort(); }
     int	getUDPOut()                 { return fCtrl->getUDPOut(); }
     int	getUDPErr()                 { return fCtrl->getUDPErr(); }
     const char* getDestAddress()    { return fCtrl->getDestAddress(); }
+    
+    void setUDPPort(int port)       { fCtrl->setUDPPort(port); }
+    void setUDPOut(int port)        { fCtrl->setUDPOut(port); }
+    void setUDPErr(int port)        { fCtrl->setUDPErr(port); }
+    void setDestAddress(const char* address)    { return fCtrl->setDestAddress(address); }
+
 };
 
 #endif // __OSCUI__

@@ -25,7 +25,7 @@
 
 class FaustPolyEngine;
 class MidiUI;
-class GUI;
+class OSCUI;
 
 class DspFaust
 {
@@ -398,12 +398,14 @@ public:
 	float getCPULoad();
 	
 	int getScreenColor();
+    
+    bool configureOSC(bool xmit, int inport, int outport, int errport, const char* address);
 	
 private:
-    FaustPolyEngine *fPolyEngine;
+    FaustPolyEngine* fPolyEngine;
     
 #if OSCCTRL
-    GUI* oscinterface;
+    OSCUI* oscinterface;
 #endif
     
 #if MIDICTRL
