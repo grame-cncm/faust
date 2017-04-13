@@ -182,10 +182,11 @@ if [ $ANDROID_DRIVER -eq 1 ]; then
         PACKAGENAME="$PACKAGENAME.DspFaust"
         sed -i "s/com.DspFaust/$PACKAGENAME/g" $JAVAFOLDER/*.java
     fi
-    cp -r $FAUSTLIB/api/DspFaust.h $CPPFOLDER
     cp -r $FAUSTLIB/api/android/jni/java_interface_wrap.cpp $CPPFOLDER
     createAPI
-    echo "#define ANDROID_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+    mv $APIFOLDER/DspFaust.h $CPPFOLDER
+    mv $APIFOLDER/DspFaust.cpp $CPPFOLDER
+    echo "#define ANDROID_DRIVER 1" | cat - "$CPPFOLDER/DspFaust.cpp" > temp && mv temp "$CPPFOLDER/DspFaust.cpp"
 elif [ $IOS_DRIVER -eq 1 ]; then
     echo "Your dsp-faust.zip API package for iOS is being created"
     createAPI
