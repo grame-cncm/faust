@@ -67,7 +67,7 @@
 // Interface
 //**************************************************************
 
-#if MIDI_SUPPORT
+#if MIDICTRL
 #include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
 #endif
@@ -101,21 +101,42 @@ DspFaust::DspFaust(int sample_rate, int buffer_size){
     
 	fPolyEngine = new FaustPolyEngine(driver);
 
-#if MIDI_SUPPORT
+#if OSCCTRL
+    const char* argv[9];
+    argv[0] = "Faust"; // TODO may be should retrieve the actual name
+    argv[1] = "-xmit";
+    argv[2] = "1"; // TODO retrieve that from command line or somewhere
+    argv[3] = "-desthost";
+    argv[4] = "192.168.1.1"; // TODO same
+    argv[5] = "-port";
+    argv[6] = "5510"; // TODO same
+    argv[7] = "-outport";
+    argv[8] = "5511"; // TODO same
+    oscinterface = new OSCUI("Faust", 9, (char**)argv); // TODO fix name
+    fPolyEngine->buildUserInterface(oscinterface);
+#endif
+
+#if MIDICTRL
     fMidiUI = new MidiUI(new rt_midi());
 	fPolyEngine->buildUserInterface(fMidiUI);
 #endif
 }
 
 DspFaust::~DspFaust(){
-	delete fPolyEngine;
-#if MIDI_SUPPORT
+#if OSCCTRL
+    delete oscinterface;
+#endif
+#if MIDICTRL
     delete fMidiUI;
 #endif
+    delete fPolyEngine;
 }
 
 bool DspFaust::start(){
-#if MIDI_SUPPORT
+#if OSCCTRL
+    oscinterface->run();
+#endif
+#if MIDICTRL
     if (!fMidiUI->run()) {
         std::cerr << "MIDI run error...\n";
     }
@@ -124,7 +145,10 @@ bool DspFaust::start(){
 }
 
 void DspFaust::stop(){
-#if MIDI_SUPPORT
+#if OSCCTRL
+    oscinterface->stop();
+#endif
+#if MIDICTRL
     fMidiUI->stop();
 #endif
 	fPolyEngine->stop();

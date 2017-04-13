@@ -25,6 +25,7 @@
 
 class FaustPolyEngine;
 class MidiUI;
+class GUI;
 
 class DspFaust
 {
@@ -401,8 +402,12 @@ public:
 private:
     FaustPolyEngine *fPolyEngine;
     
-#if MIDI_SUPPORT
-    MidiUI *fMidiUI;
+#if OSCCTRL
+    GUI* oscinterface;
+#endif
+    
+#if MIDICTRL
+    MidiUI* fMidiUI;
 #endif
 };
 
