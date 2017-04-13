@@ -59,6 +59,8 @@
     #include "faust/audio/rtaudio-dsp.h"
 #elif OPEN_FRAMEWORK_DRIVER
     #include "faust/audio/ofaudio-dsp.h"
+#elif JUCE_DRIVER
+    #include "faust/audio/juce-dsp.h"
 #elif DUMMY_DRIVER
     #include "faust/audio/dummy-audio.h"
 #endif
@@ -99,6 +101,8 @@ DspFaust::DspFaust(int sample_rate, int buffer_size){
     audio* driver = new rtaudio(sample_rate, buffer_size);
 #elif OPEN_FRAMEWORK_DRIVER
     audio* driver = new ofaudio(sample_rate, buffer_size);
+#elif JUCE_DRIVER
+    audio* driver = new juceaudio(sample_rate, buffer_size);
 #elif DUMMY_DRIVER
     audio* driver = new dummyaudio(sample_rate, buffer_size);
 #endif
