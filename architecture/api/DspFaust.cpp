@@ -2,7 +2,7 @@
  ************************************************************************
  FAUST API Architecture File 
  Copyright (C) 2016 GRAME, Romain Michon, CCRMA - Stanford University
- Copyright (C) 2014-2016 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2014-2017 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
 
  This is sample code. This file is provided as an example of minimal
@@ -47,6 +47,7 @@
 #elif IOS_DRIVER
     #include "faust/audio/coreaudio-ios-dsp.h"
 #elif ANDROID_DRIVER
+    #include <android/log.h>
     #include "faust/audio/android-dsp.h"
 #elif ALSA_DRIVER
     #include "faust/audio/alsa-dsp.h"
@@ -69,7 +70,6 @@
 #if MIDI_SUPPORT
 #include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
-
 #endif
 
 #include "DspFaust.h"
@@ -80,23 +80,23 @@ ztimedmap GUI::gTimedZoneMap;
 DspFaust::DspFaust(int sample_rate, int buffer_size){
     
 #if COREAUDIO_DRIVER
-    audio* driver = coreaudio(sample_rate, buffer_size);
+    audio* driver = new coreaudio(sample_rate, buffer_size);
 #elif IOS_DRIVER
-    audio* driver = iosaudio(sample_rate, buffer_size);
+    audio* driver = new iosaudio(sample_rate, buffer_size);
 #elif ANDROID_DRIVER
-    audio* driver = androidaudio(sample_rate, buffer_size);
+    audio* driver = new androidaudio(sample_rate, buffer_size);
 #elif ALSA_DRIVER
-    audio* driver = alsaaudio(sample_rate, buffer_size);
+    audio* driver = new alsaaudio(sample_rate, buffer_size);
 #elif JACK_DRIVER
-    audio* driver = jackaudio(sample_rate, buffer_size);
+    audio* driver = new jackaudio(sample_rate, buffer_size);
 #elif PORTAUDIO_DRIVER
-    audio* driver = portaudio(sample_rate, buffer_size);
+    audio* driver = new portaudio(sample_rate, buffer_size);
 #elif RTAUDIO_DRIVER
-    audio* driver = rtaudio(sample_rate, buffer_size);
+    audio* driver = new rtaudio(sample_rate, buffer_size);
 #elif OPEN_FRAMEWORK_DRIVER
-    audio* driver = ofaudio(sample_rate, buffer_size);
+    audio* driver = new ofaudio(sample_rate, buffer_size);
 #elif DUMMY_DRIVER
-    audio* driver = dummyaudio(sample_rate, buffer_size);
+    audio* driver = new dummyaudio(sample_rate, buffer_size);
 #endif
     
 	fPolyEngine = new FaustPolyEngine(driver);
@@ -134,16 +134,16 @@ bool DspFaust::isRunning(){
 	return fPolyEngine->isRunning();
 }
 
-long DspFaust::keyOn(int pitch, int velocity){
-	return (long) fPolyEngine->keyOn(pitch, velocity);
+unsigned long DspFaust::keyOn(int pitch, int velocity){
+	return (unsigned long)fPolyEngine->keyOn(pitch, velocity);
 }
 
 int DspFaust::keyOff(int pitch){
 	return fPolyEngine->keyOff(pitch);
 }
 
-long DspFaust::newVoice(){
-	return (long) fPolyEngine->newVoice();
+unsigned long DspFaust::newVoice(){
+	return (unsigned long)fPolyEngine->newVoice();
 }
 
 int DspFaust::deleteVoice(long voice){

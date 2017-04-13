@@ -75,7 +75,7 @@ bool DspFaust::isRunning(){
 }
 
 unsigned long DspFaust::keyOn(int pitch, int velocity){
-	return (long) fPolyEngine->keyOn(pitch, velocity);
+	return (unsigned long)fPolyEngine->keyOn(pitch, velocity);
 }
 
 int DspFaust::keyOff(int pitch){
@@ -83,7 +83,7 @@ int DspFaust::keyOff(int pitch){
 }
 
 unsigned long DspFaust::newVoice(){
-	return (long) fPolyEngine->newVoice();
+	return (unsigned long)fPolyEngine->newVoice();
 }
 
 int DspFaust::deleteVoice(unsigned long voice){
