@@ -19,9 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-#include "compatibility.hh"
-
-#if LLVM_BUILD
 
 #include <stdio.h>
 #include <string.h>
@@ -30,6 +27,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "compatibility.hh"
 #include "llvm_dsp_aux.hh"
 #include "faust/gui/UIGlue.h"
 #include "dsp_aux.hh"
@@ -1957,6 +1955,4 @@ Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error)
     
     return dst;
 }
-    
-#endif // LLVM_BUILD
 

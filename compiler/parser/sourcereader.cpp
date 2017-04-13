@@ -277,7 +277,7 @@ Tree SourceReader::parsefile(const char* fname)
         Tree res = 0;
         if (strlen(buffer) == 0) {
             stringstream error;
-            error << "ERROR : unable to access URL '" << fname << "' : " << endl;
+            error << "ERROR : unable to access URL '" << fname << "'" << endl;
             throw faustexception(error.str());
         } else {
             yy_scan_string(buffer);

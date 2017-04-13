@@ -1,11 +1,31 @@
-subprojects := . boxes errors evaluate  normalize parser propagate parallelize signals tlib \
+subprojects := . boxes errors evaluate normalize parser propagate parallelize signals tlib \
                 draw draw/device draw/schema extended patternmatcher documentator utils ../libraries \
                 generator generator/asmjs generator/c generator/cpp \
                 generator/java generator/js generator/llvm generator/fir generator/wasm generator/interpreter
 
-sources = $(sort $(wildcard */*.cpp) $(wildcard draw/*/*.cpp) $(wildcard generator/*/*.cpp) $(wildcard ../libraries/loki/*cpp))
+sources = $(sort $(wildcard */*.cpp) $(wildcard draw/*/*.cpp) $(wildcard generator/*.cpp) $(wildcard ../libraries/loki/*.cpp))
+
+# Backends
+
+ba_asmjs = $(wildcard generator/asmjs/*.cpp)
+ba_c = $(wildcard generator/c/*.cpp)
+ba_cpp = $(wildcard generator/cpp/*.cpp)
+ba_fir = $(wildcard generator/fir/*.cpp)
+ba_interpreter = $(wildcard generator/interpreter/*.cpp)
+ba_java = $(wildcard generator/java/*.cpp)
+ba_js = $(wildcard generator/js/*.cpp)
+ba_llvm = $(wildcard generator/llvm/*.cpp)
+ba_wasm = $(wildcard generator/wasm/*.cpp)
 
 objects = $(sources:.cpp=.o)
+objects_backend = $(ba_asmjs:.cpp=.o) $(ba_c:.cpp=.o) $(ba_cpp:.cpp=.o)\
+                $(ba_fir:.cpp=.o) $(ba_interpreter:.cpp=.o) $(ba_java:.cpp=.o) \
+                $(ba_js:.cpp=.o) $(ba_llvm:.cpp=.o) $(ba_wasm:.cpp=.o)
+
+# For Web compilation
+object_ba_asmjs = $(ba_asmjs:.cpp=.o)
+object_ba_wasm = $(ba_wasm:.cpp=.o)
+
 os 	:= $(shell uname)
 
 VPATH = $(subprojects)
@@ -149,6 +169,9 @@ CXXFLAGS += -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-virtual -W
 CXXFLAGS += -I`$(LLVM_CONFIG) --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 CXXFLAGS += $(ARCHFLAGS)
 
+# Build all backends
+CXXFLAGS += -DASMJS_BUILD -DC_BUILD -DCPP_BUILD -DFIR_BUILD -DINTERP_BUILD -DJAVA_BUILD -DJS_BUILD -DLLVM_BUILD -DWASM_BUILD
+
 LLVMSHLIB = $(wildcard $(shell $(LLVM_CONFIG) --libdir)/libLLVM-$(shell $(LLVM_CONFIG) --version).$(LIB_EXT))
 
 ifneq ($(LLVMSHLIB),)
@@ -178,19 +201,19 @@ ios-llvm : CXXFLAGS += -stdlib=libc++ -std=c++11
 ios-llvm : CXXFLAGS += -I/Users/letz/llvm-ios/include
 ios-llvm : libfaust.a libfaustmachine.a
 
-## For the Web, do not compile LLVM part
+## For the Web/ASMJS, compile only the ASMJS backend
 emcc : CC = emcc
 emcc : CXX = emcc
-emcc : CXXFLAGS = -DEMCC -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+emcc : CXXFLAGS = -DEMCC -DASMJS_BUILD -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 emcc : ARCHFLAGS =
 emcc : LLVM_VERSION =
 emcc : libfaust.js libfaustworker.js
 emcc : EXPORTED="['_createAsmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCDSP']"
 
-## For the Web, do not compile LLVM part
+## For the Web/WASM, compile only the WASM backend
 wasm : CC = emcc
 wasm : CXX = emcc
-wasm : CXXFLAGS = -DEMCC -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+wasm : CXXFLAGS = -DEMCC -DWASM_BUILD -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 wasm : ARCHFLAGS =
 wasm : LLVM_VERSION =
 wasm : libfaust.wasm libfaustworker.wasm
@@ -199,20 +222,24 @@ wasm : EXPORTED="['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '
 libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o
 	libtool $(LIBFLAGS) generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o -static -o libfaustmachine.a
 
-libfaust.js : $(objects) libcode.o libmain.o global.o
-	$(CXX) -O3 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaust.js
+libfaust.js : $(objects) $(object_ba_asmjs) libcode.o libmain.o global.o
+	$(CXX) -O3 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
+            $(objects) $(object_ba_asmjs) libcode.o libmain.o global.o -o libfaust.js
 	cp libfaust.js ../architecture/webaudio
 
-libfaustworker.js : $(objects) libcode.o libmain.o global.o
-	$(CXX) -O3 --memory-init-file 0 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaustworker.js
+libfaustworker.js : $(objects) $(object_ba_asmjs) libcode.o libmain.o global.o
+	$(CXX) -O3 --memory-init-file 0 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
+            $(objects) $(object_ba_asmjs) libcode.o libmain.o global.o -o libfaustworker.js
 	cp libfaustworker.js ../architecture/webaudio
 
-libfaust.wasm : $(objects) libcode.o libmain.o global.o
-	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaust-wasm.js
+libfaust.wasm : $(objects) $(object_ba_wasm) libcode.o libmain.o global.o
+	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
+            $(objects) $(object_ba_wasm) libcode.o libmain.o global.o -o libfaust-wasm.js
 	cp libfaust-wasm.js libfaust-wasm.wasm ../architecture/webaudio
 
-libfaustworker.wasm : $(objects) libcode.o libmain.o global.o
-	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) $(objects) libcode.o libmain.o global.o -o libfaustworker-wasm.js
+libfaustworker.wasm : $(objects) $(object_ba_wasm) libcode.o libmain.o global.o
+	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
+            $(objects) $(object_ba_wasm) libcode.o libmain.o global.o -o libfaustworker-wasm.js
 	cp libfaustworker-wasm.js libfaustworker-wasm.wasm ../architecture/webaudio
 
 libcode.o : libcode.cpp
@@ -236,37 +263,37 @@ CUI_exp.h : ../architecture/faust/gui/CUI.h
 scheduler_exp.h : ../architecture/scheduler.cpp
 	xxd -i ../architecture/scheduler.cpp generator/llvm/scheduler_exp.h
 
-faust : $(objects) main.o libcode.o global.o
+faust : $(objects) $(objects_backend) main.o libcode.o global.o
 ifneq ($(findstring MINGW32, $(system)),)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread -o faust
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(objects) $(objects_backend) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread -o faust
 else
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(objects) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) `pkg-config --libs libcrypto` -o faust
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(objects) $(objects_backend) main.o libcode.o global.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) `pkg-config --libs libcrypto` -o faust
 endif
 
 ifeq ($(system), Darwin)
 
-    libfaust.a : $(objects) libcode.o libmain.o global.o
-	libtool $(LIBFLAGS) $(objects) libcode.o libmain.o global.o -static -o $@
+    libfaust.a : $(objects) $(objects_backend) libcode.o libmain.o global.o
+	libtool $(LIBFLAGS) $(objects) $(objects_backend) libcode.o libmain.o global.o -static -o $@
 
-    libfaust.dylib : $(objects) libcode.o libmain.o global.o
-	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(LDFLAGS) $(objects) libcode.o libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) `pkg-config --libs libcrypto` -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
+    libfaust.dylib : $(objects) $(objects_backend) libcode.o libmain.o global.o
+	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(LDFLAGS) $(objects) $(objects_backend) libcode.o libmain.o global.o  `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) `pkg-config --libs libcrypto` -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
 else
 ifneq ($(findstring MINGW32, $(system)),)
-    libfaust.a : $(objects) libcode.o libmain.o global.o
+    libfaust.a : $(objects) $(objects_backend) libcode.o libmain.o global.o
 	rm -f $@
-	$(AR) cq $@ $(objects) libcode.o libmain.o global.o
+	$(AR) cq $@ $(objects) $(objects_backend) libcode.o libmain.o global.o
 	$(RANLIB) $@
 
-    libfaust.dll : $(objects) libcode.o libmain.o global.o
-	$(CXX) -shared $(LDFLAGS) $(objects) libcode.o libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread
+    libfaust.dll : $(objects) $(objects_backend) libcode.o libmain.o global.o
+	$(CXX) -shared $(LDFLAGS) $(objects) $(objects_backend) libcode.o libmain.o global.o -o libfaust.dll `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread
 else
-    libfaust.a : $(objects) libcode.o libmain.o global.o
+    libfaust.a : $(objects) $(objects_backend) libcode.o libmain.o global.o
 	rm -f $@
-	$(AR) cq $@ $(objects) libcode.o libmain.o global.o
+	$(AR) cq $@ $(objects) $(objects_backend) libcode.o libmain.o global.o
 	$(RANLIB) $@
 
-    libfaust.so : $(objects) libcode.o libmain.o global.o
-	$(CXX) -shared -fPIC $(LDFLAGS) $(objects) libcode.o libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) `pkg-config --libs libcrypto` -lstdc++
+    libfaust.so : $(objects) $(objects_backend) libcode.o libmain.o global.o
+	$(CXX) -shared -fPIC $(LDFLAGS) $(objects) $(objects_backend) libcode.o libmain.o global.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) `pkg-config --libs libcrypto` -lstdc++
 endif
 endif
 
@@ -278,7 +305,7 @@ parser :
 	flex -I -oparser/faustlexer.cpp parser/faustlexer.l
 
 clean :
-	rm -f $(objects) main.o libcode.o libmain.o global.o faust$(EXE) libfaust.a libfaust.js libfaustworker.js libfaust.$(LIB_EXT) *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
+	rm -f $(objects) $(objects_backend) main.o libcode.o libmain.o global.o faust$(EXE) libfaust.a libfaust.js libfaustworker.js libfaust.$(LIB_EXT) *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
 	rm -rf doc
 
 depend :

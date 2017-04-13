@@ -49,26 +49,47 @@
 #include "sourcereader.hh"
 #include "instructions_compiler.hh"
 #include "dag_instructions_compiler.hh"
+
+#if ASMJS_BUILD
+#include "asmjs_code_container.hh"
+#endif
+
+#if C_BUILD
 #include "c_code_container.hh"
+#endif
+
+#if CPP_BUILD
 #include "cpp_code_container.hh"
 #include "cpp_gpu_code_container.hh"
-#include "java_code_container.hh"
-#include "js_code_container.hh"
-#include "asmjs_code_container.hh"
-#include "clang_code_container.hh"
-#include "export.hh"
+#endif
 
-#if !defined(_MSC_VER)
-// As of 29-09-2016 this fails to build with MSVC
+#if FIR_BUILD
+#include "fir_code_container.hh"
+#endif
+
+#if INTERP_BUILD
 #include "interpreter_code_container.cpp"
-#include "wasm_code_container.hh"
-#include "wast_code_container.hh"
+#endif
+
+#if JAVA_BUILD
+#include "java_code_container.hh"
+#endif
+
+#if JS_BUILD
+#include "js_code_container.hh"
 #endif
 
 #if LLVM_BUILD
 #include "llvm_code_container.hh"
+#include "clang_code_container.hh"
 #endif
-#include "fir_code_container.hh"
+
+#if WASM_BUILD
+#include "wasm_code_container.hh"
+#include "wast_code_container.hh"
+#endif
+
+#include "export.hh"
 #include "schema.h"
 #include "drawschema.hh"
 #include "timing.hh"
@@ -89,15 +110,14 @@ typedef void* (*compile_fun)(void* arg);
 
 string reorganizeCompilationOptions(int argc, const char* argv[]);
 
-#ifdef _WIN32 
+std::string generateSHA1(const std::string& dsp_content);
 
+#ifdef _WIN32
 static void call_fun(compile_fun fun)
 {
     fun(NULL);
 }
-
 #else
-
 static void call_fun(compile_fun fun)
 {
     if (gGlobal->gOutputLang == "ajs"
@@ -117,7 +137,6 @@ static void call_fun(compile_fun fun)
         pthread_join(thread, NULL);
     }
 }
-
 #endif
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
@@ -843,7 +862,7 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 #endif
 
     } else if (gGlobal->gOutputLang == "interp") {
-    #if !defined(_MSC_VER)
+    #if INTERP_BUILD
         if (gGlobal->gFloatSize == 1) {
             container = InterpreterCodeContainer<float>::createContainer(gGlobal->gClassName, numInputs, numOutputs);
         } else if (gGlobal->gFloatSize == 2) {
@@ -866,9 +885,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
      
         comp->compileMultiSignal(signals);
+    #else
+        throw faustexception("ERROR : -lang interp not supported since Interpreter backend is not built\n");
     #endif
     } else if (gGlobal->gOutputLang == "fir") {
-        
+    #if FIR_BUILD
         gGlobal->gGenerateSelectWithIf = false;
         
         container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, true);
@@ -880,37 +901,59 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         }
         
         comp->compileMultiSignal(signals);
-        
+    #else
+        throw faustexception("ERROR : -lang fir not supported since FIR backend is not built\n");
+    #endif
     } else {
         
         gGlobal->gGenerateSelectWithIf = false;
      
         if (gGlobal->gOutputLang == "c") {
 
+        #if C_BUILD
             container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
+        #else
+            throw faustexception("ERROR : -lang c not supported since C backend is not built\n");
+        #endif
 
         } else if (gGlobal->gOutputLang == "cpp") {
 
+        #if C_BUILD
             container = CPPCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
+        #else
+            throw faustexception("ERROR : -lang cpp not supported since CPP backend is not built\n");
+        #endif
 
         } else if (gGlobal->gOutputLang == "java") {
             
+        #if JAVA_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             container = JAVACodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
+        #else
+            throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
+        #endif
             
         } else if (gGlobal->gOutputLang == "js") {
             
+        #if JS_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             container = JAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
+        #else
+            throw faustexception("ERROR : -lang js not supported since JS backend is not built\n");
+        #endif
         
         } else if (gGlobal->gOutputLang == "ajs") {
             
+        #if ASMJS_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
+        #else
+            throw faustexception("ERROR : -lang ajs not supported since ASMJS backend is not built\n");
+        #endif
 
         } else if (startWith(gGlobal->gOutputLang, "wast")) {
-        #if !defined(_MSC_VER)
+        #if WASM_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             container = WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, ((gGlobal->gOutputLang == "wast") || (gGlobal->gOutputLang == "wast-i")));
@@ -931,9 +974,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             } else {
                 helpers = &cout;
             }
+        #else
+            throw faustexception("ERROR : -lang wast not supported since WAST backend is not built\n");
         #endif
         } else if (startWith(gGlobal->gOutputLang, "wasm")) {
-        #if !defined(_MSC_VER)
+        #if WASM_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i")));
@@ -954,6 +999,8 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             } else {
                 helpers = &cout;
             }
+        #else
+            throw faustexception("ERROR : -lang wasm not supported since WASM backend is not built\n");
         #endif
         } else {
             stringstream error;

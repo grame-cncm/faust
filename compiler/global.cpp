@@ -294,10 +294,14 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gInPlace = false;
     gOutputLang = "";
     
+#if ASMJS_BUILD
     gASMJSVisitor = 0;  // Will be (possibly) allocated in ASMJS backend
+#endif
     
+#if WASM_BUILD
     gWASMVisitor = 0;   // Will be (possibly) allocated in WebAssembly backend
     gWASTVisitor = 0;   // Will be (possibly) allocated in WebAssembly backend
+#endif
     
     gHelpSwitch = false;
     gVersionSwitch = false;
@@ -414,11 +418,21 @@ global::~global()
     free(gCurrentLocal);
     
     // Cleanup
+#if JAVA_BUILD
     CInstVisitor::cleanup();
+#endif
+#if CPP_BUILD
     CPPInstVisitor::cleanup();
-    JAVAScriptInstVisitor::cleanup();
-    JAVAInstVisitor::cleanup();
+#endif
+#if FIJ_BUILD
     FIRInstVisitor::cleanup();
+#endif
+#if JAVA_BUILD
+    JAVAInstVisitor::cleanup();
+#endif
+#if JS_BUILD
+    JAVAScriptInstVisitor::cleanup();
+#endif
 }
 
 void global::allocate()

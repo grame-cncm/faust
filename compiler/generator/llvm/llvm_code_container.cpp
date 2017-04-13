@@ -20,13 +20,9 @@
  ************************************************************************/
 
 #include "compatibility.hh"
-
-#if LLVM_BUILD
-
 #include "llvm_code_container.hh"
 #include "llvm_instructions.hh"
 #include "exception.hh"
-
 #include "global.hh"
 
 using namespace std;
@@ -1162,8 +1158,6 @@ void LLVMWorkStealingCodeContainer::generateCompute()
     // Generates prototype to be used by worker threads
     generateComputeThreadExternal();
 }
-
-#endif // LLVM_BUILD
 
 /*
 // Transform the loop in a function + function call

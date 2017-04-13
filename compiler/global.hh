@@ -434,12 +434,16 @@ struct global {
     
     string gOutputLang;
     
+#if ASMJS_BUILD
     // One single global visitor for asm.js, so that sub-containers and main class use the same heap
     ASMJAVAScriptInstVisitor* gASMJSVisitor;
+#endif
     
+#if WASM_BUILD
     // One single global visitor for WebAssembly, so that sub-containers and main class use the same heap
     WASMInstVisitor* gWASMVisitor;
     WASTInstVisitor* gWASTVisitor;
+#endif
     
     bool gHelpSwitch;
     bool gVersionSwitch;
