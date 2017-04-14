@@ -1,6 +1,6 @@
 //################################ maths.lib ##########################################
-// Mathematic library for Faust. Some functions are implemenented as Faust foreign 
-// functions of `math.h` functions that are not part of Faust's primitives. Defines 
+// Mathematic library for Faust. Some functions are implemenented as Faust foreign
+// functions of `math.h` functions that are not part of Faust's primitives. Defines
 // also various constants and several utilities.
 //
 // The official prefix of this library is `ma`.
@@ -58,7 +58,7 @@ declare license "LGPL with exception";
 
 
 //---------------------------------`SR`---------------------------------------
-// Current sampling rate (between 1Hz and 192000Hz). Constant during
+// Current sampling rate (between 1000Hz and 192000Hz). Constant during
 // program execution.
 //
 // #### Usage
@@ -67,7 +67,7 @@ declare license "LGPL with exception";
 // SR : _
 // ```
 //-----------------------------------------------------------------------------
-SR 			= min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
+SR 			= min(192000.0, max(1000.0, fconstant(int fSamplingFreq, <math.h>)));
 
 
 //---------------------------------`BS`---------------------------------------
@@ -86,7 +86,7 @@ BS          = fvariable(int count, <math.h>);
 // Constant PI in double precisio.n
 //
 // #### Usage
-// 
+//
 // ```
 // PI : _
 // ```
@@ -132,7 +132,7 @@ sub(x,y) = y-x;
 // Compute the inverse (1/x) of the input signal.
 //
 // #### Usage
-// 
+//
 // ```
 // _ : inv : _
 // ```
@@ -172,7 +172,7 @@ hypot 		= ffunction(float hypotf|hypot|hypotl (float, float), <math.h>,"");
 //
 // ```
 // _,_ : ldexp : _
-// ``` 
+// ```
 //-----------------------------------------------------------------------------
 ldexp 		= ffunction(float ldexpf|ldexp|ldexpl (float, int), <math.h>,"");
 
@@ -241,7 +241,7 @@ log2(x) = log(x)/log(2.0);
 // Return exponent of the input signal minus 1 with better precision.
 //
 // #### Usage
-// 
+//
 // ```
 // _ : expm1 : _
 // ```
@@ -256,7 +256,7 @@ expm1 		= ffunction(float expm1f|expm1|expm1l (float), <math.h>,"");
 // #### Usage
 //
 // ```
-// _ : acosh : _ 
+// _ : acosh : _
 // ```
 //-----------------------------------------------------------------------------
 acosh		= ffunction(float acoshf|acosh|acoshl (float), <math.h>, "");
@@ -314,7 +314,7 @@ cosh		= ffunction(float coshf|cosh|coshl (float), <math.h>, "");
 // Computes the hyperbolic tangent of the input signal.
 //
 // #### Usage
-// 
+//
 // ```
 // _ : tanh : _
 // ```
@@ -338,7 +338,7 @@ erf			= ffunction(float erff|erf|erfl(float), <math.h>,"");
 // Computes the complementary error function of the input signal.
 //
 // #### Usage
-// 
+//
 // ```
 // _ : erfc : _
 // ```
@@ -428,7 +428,7 @@ Y0			= ffunction(float y0(float), <math.h>,"");
 // of order 1 of the input signal.
 //
 // #### Usage
-// 
+//
 // ```
 // _ : Y0 : _
 // ```
@@ -441,7 +441,7 @@ Y1			= ffunction(float y1(float), <math.h>,"");
 // of order n (first input signal) of the second input signal.
 //
 // #### Usage
-// 
+//
 // ```
 // _,_ : Yn : _
 // ```
@@ -450,7 +450,7 @@ Yn			= ffunction(float yn(int, float), <math.h>,"");
 
 
 //----------------------------`fabs`, `fmax`, `fmin`---------------------------
-// Just for compatibility... 
+// Just for compatibility...
 //
 // ```
 // fabs = abs
@@ -492,10 +492,10 @@ np2 = -(1) <: >>(1)|_ <: >>(2)|_ <: >>(4)|_ <: >>(8)|_ <: >>(16)|_ : +(1);
 // * `n`: a decimal number
 //------------------------------------------------------------------------------
 frac(n) = n - floor(n);
-decimal = frac; 
+decimal = frac;
 // NOTE: decimal does the same thing as frac but using floor instead. JOS uses frac a lot
 // in filters.lib so we decided to keep that one... decimal is declared though for
-// backward compatibility.  
+// backward compatibility.
 // decimal(n)	= n - floor(n);
 
 
@@ -503,14 +503,14 @@ decimal = frac;
 // Return non-zero if and only if x is a NaN.
 //
 // #### Usage
-// 
+//
 // ```
 // isnan(x)
 // _ : isnan : _
 // ```
 //
 // Where:
-// 
+//
 // * `x`: signal to analyse
 //------------------------------------------
 isnan 		= ffunction(int isnan (float),<math.h>,"");
@@ -531,7 +531,7 @@ nextafter	= ffunction(float nextafter(float, float),<math.h>,"");
 // * `n`: the order of the polynomial
 //
 // #### Semantics
-// 
+//
 // ```
 // T[0](x) = 1,
 // T[1](x) = x,
@@ -558,7 +558,7 @@ chebychev(n) = _ <: *(2)*chebychev(n-1)-chebychev(n-2);
 // ```
 //
 // Where:
-// 
+//
 // * `cn`: the different Chebychevs polynomials such that:
 // 	chebychevpoly((c0,c1,...,cn)) = Sum of chebychev(i)*ci
 //
@@ -572,7 +572,7 @@ chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
 		L(n,c)      = chebychev(n)*c;
 	};
 
-	
+
 //------------------`diffn`----------------------------
 // Negated first-order difference.
 //
