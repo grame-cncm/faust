@@ -128,6 +128,27 @@ public:
 	// Gently terminates all the active voices. 
 	//--------------------------------------------------------
 	void allNotesOff();
+    
+    //-------`void propagateMidi(int count, double time, int type, int channel, int data1, int data2)`--------
+    // Take a raw MIDI message and propagate it to the Faust
+    // DSP object. This method can be used concurrently with
+    // [`keyOn`](#keyOn) and [`keyOff`](#keyOff).
+    //
+    // `propagateMidi` can
+    // only be used if the `[style:poly]` metadata is used in
+    // the Faust code or if `-polyvoices` flag has been
+    // provided before compilation.
+    //
+    // #### Arguments
+    //
+    // * `count`: size of the message (1-3)
+    // * `time`: time stamp
+    // * `type`: message type (byte)
+    // * `channel`: channel number
+    // * `data1`: first data byte (should be `null` if `count<2`)
+    // * `data2`: second data byte (should be `null` if `count<3`)
+    //--------------------------------------------------------
+    void propagateMidi(int, double, int, int, int, int);
 	
 	//-----------------`const char* getJSONUI()`----------------
 	// Returns the JSON description of the UI of the Faust object. 
@@ -397,10 +418,21 @@ public:
 	//--------------------------------------------------------
 	float getCPULoad();
 	
-	int getScreenColor();
-    
+    //----`void configureOSC(bool xmit, int inport, int outport, int errport, const char* address)`---------------
+    // Change the OSC configuration
+    //
+    // #### Arguments
+    //
+    // * `xmit`: the xmit state (on/off)
+    // * `inport`: the input port number
+    // * `outport`: the output port number
+    // * `errport`: the error port number
+    // * `address`: the destination IP address
+    //--------------------------------------------------------
     bool configureOSC(bool xmit, int inport, int outport, int errport, const char* address);
-	
+    
+    int getScreenColor();
+    
 private:
     FaustPolyEngine* fPolyEngine;
     

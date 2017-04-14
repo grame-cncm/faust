@@ -36,11 +36,9 @@ class juceaudio : public audio, private AudioAppComponent {
     
     private:
         
-        int fSampleRate;
-        int fBufferSize;
         dsp* fDSP;
     
-        void prepareToPlay (int samplesPerBlockExpected, double sampleRate) override
+        void prepareToPlay (int, double) override
         {
             const BigInteger activeInputChannels =  deviceManager.getCurrentAudioDevice()->getActiveInputChannels();
             const BigInteger activeOutputChannels =  deviceManager.getCurrentAudioDevice()->getActiveOutputChannels();
@@ -52,7 +50,7 @@ class juceaudio : public audio, private AudioAppComponent {
                 fDSP = new dsp_adapter(fDSP, maxInputChannels, maxOutputChannels, 4096);
             }
             
-            fDSP->init(int(sampleRate));
+            fDSP->init(int(deviceManager.getCurrentAudioDevice()->getCurrentSampleRate()));
         }
         
         void releaseResources() override
@@ -78,7 +76,7 @@ class juceaudio : public audio, private AudioAppComponent {
     
     public:
     
-        juceaudio(int srate, int bsize): fSampleRate(srate), fBufferSize(bsize) {}
+        juceaudio() {}
         virtual ~juceaudio()
         {
             shutdownAudio();
@@ -93,7 +91,7 @@ class juceaudio : public audio, private AudioAppComponent {
         bool start() override
         {
             setAudioChannels (fDSP->getNumInputs(), fDSP->getNumOutputs());
-            prepareToPlay(fBufferSize, fSampleRate);
+            prepareToPlay(0, 0); // Unused samplerate and buffersize, taken from deviceManager
             return true;
         }
         
@@ -104,18 +102,18 @@ class juceaudio : public audio, private AudioAppComponent {
         
         int get_buffer_size() override
         {
-            return (int)deviceManager.getCurrentAudioDevice()->getCurrentBufferSizeSamples();
+            return int(deviceManager.getCurrentAudioDevice()->getCurrentBufferSizeSamples());
         }
         
         int get_sample_rate() override
         {
-            return (int) deviceManager.getCurrentAudioDevice()->getCurrentSampleRate();
+            return int(deviceManager.getCurrentAudioDevice()->getCurrentSampleRate());
         }
         
         int get_num_inputs() override { return deviceManager.getCurrentAudioDevice()->getActiveInputChannels().toInteger(); }
         int get_num_outputs() override { return deviceManager.getCurrentAudioDevice()->getActiveOutputChannels().toInteger(); }
         
-        float get_cpu_load() override { return (float)deviceManager.getCpuUsage(); }
+        float get_cpu_load() override { return float(deviceManager.getCpuUsage()); }
 };
 
 #endif

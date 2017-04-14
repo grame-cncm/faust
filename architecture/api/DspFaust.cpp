@@ -94,7 +94,8 @@ DspFaust::DspFaust(int sample_rate, int buffer_size){
 #elif ALSA_DRIVER
     audio* driver = new alsaaudio(sample_rate, buffer_size);
 #elif JACK_DRIVER
-    audio* driver = new jackaudio(sample_rate, buffer_size);
+    // JACK has its own sample rate and buffer size
+    audio* driver = new jackaudio();
 #elif PORTAUDIO_DRIVER
     audio* driver = new portaudio(sample_rate, buffer_size);
 #elif RTAUDIO_DRIVER
@@ -102,6 +103,7 @@ DspFaust::DspFaust(int sample_rate, int buffer_size){
 #elif OPEN_FRAMEWORK_DRIVER
     audio* driver = new ofaudio(sample_rate, buffer_size);
 #elif JUCE_DRIVER
+    // JUCE audio device has its own sample rate and buffer size
     audio* driver = new juceaudio(sample_rate, buffer_size);
 #elif DUMMY_DRIVER
     audio* driver = new dummyaudio(sample_rate, buffer_size);
@@ -201,6 +203,10 @@ int DspFaust::deleteVoice(long voice){
 
 void DspFaust::allNotesOff(){
     fPolyEngine->allNotesOff();
+}
+
+void DspFaust::propagateMidi(int count, double time, int type, int channel, int data1, int data2){
+    fPolyEngine->propagateMidi(count, time, type, channel, data1, data2);
 }
 
 const char* DspFaust::getJSONUI(){

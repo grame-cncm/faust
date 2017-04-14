@@ -151,9 +151,9 @@ class OSCUI : public GUI
   		
 	// -- metadata declarations
     
-	virtual void declare(FAUSTFLOAT* , const char* key , const char* alias) 
+	virtual void declare(FAUSTFLOAT*, const char* key, const char* alias)
 	{ 
-		if (strcasecmp(key,"OSC") == 0) fAlias.push_back(alias);
+		if (strcasecmp(key, "OSC") == 0) fAlias.push_back(alias);
 	}
 
 	virtual void show() {}
@@ -169,13 +169,12 @@ class OSCUI : public GUI
         fCtrl->stop(); 
     }
     
-	const char* getRootName()		{ return fCtrl->getRootName(); }
-    
+    const char* getRootName()		{ return fCtrl->getRootName(); }
     int getUDPPort()                { return fCtrl->getUDPPort(); }
-    int	getUDPOut()                 { return fCtrl->getUDPOut(); }
-    int	getUDPErr()                 { return fCtrl->getUDPErr(); }
+    int getUDPOut()                 { return fCtrl->getUDPOut(); }
+    int getUDPErr()                 { return fCtrl->getUDPErr(); }
     const char* getDestAddress()    { return fCtrl->getDestAddress(); }
-    
+
     void setUDPPort(int port)       { fCtrl->setUDPPort(port); }
     void setUDPOut(int port)        { fCtrl->setUDPOut(port); }
     void setUDPErr(int port)        { fCtrl->setUDPErr(port); }
