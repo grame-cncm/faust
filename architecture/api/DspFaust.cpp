@@ -104,7 +104,7 @@ DspFaust::DspFaust(int sample_rate, int buffer_size){
     audio* driver = new ofaudio(sample_rate, buffer_size);
 #elif JUCE_DRIVER
     // JUCE audio device has its own sample rate and buffer size
-    audio* driver = new juceaudio(sample_rate, buffer_size);
+    audio* driver = new juceaudio();
 #elif DUMMY_DRIVER
     audio* driver = new dummyaudio(sample_rate, buffer_size);
 #endif
