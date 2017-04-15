@@ -95,8 +95,9 @@ DspFaust::DspFaust()
     audio* driver = new juceaudio();
 #else
     std::cout << "You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n";
+    throw std::bad_alloc();
 #endif
-    init(driver);
+    init(0);
 }
 
 DspFaust::DspFaust(int sample_rate, int buffer_size)
@@ -111,7 +112,7 @@ DspFaust::DspFaust(int sample_rate, int buffer_size)
     audio* driver = new alsaaudio(sample_rate, buffer_size);
 #elif JACK_DRIVER
     // JACK has its own sample rate and buffer size
-    std::cout << "You are setting 'sample_rate' and 'buffer_size' with an audio driver that does not need it !\n";
+    std::cout << "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n";
     audio* driver = new jackaudio();
 #elif PORTAUDIO_DRIVER
     audio* driver = new portaudio(sample_rate, buffer_size);
@@ -121,7 +122,7 @@ DspFaust::DspFaust(int sample_rate, int buffer_size)
     audio* driver = new ofaudio(sample_rate, buffer_size);
 #elif JUCE_DRIVER
     // JUCE audio device has its own sample rate and buffer size
-    std::cout << "You are setting 'sample_rate' and 'buffer_size' with an audio driver that does not need it !\n";
+    std::cout << "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n";
     audio* driver = new juceaudio();
 #elif DUMMY_DRIVER
     audio* driver = new dummyaudio(sample_rate, buffer_size);
