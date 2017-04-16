@@ -82,7 +82,7 @@ smoothEnvelope(ar,t) = t : si.smooth(ba.tau2pole(ar));
 // * `r`: release (sec)
 // * `t`: trigger signal (0 or 1)
 //-----------------------------------------------------
-ar(a,r,t) = ba.countup(attTime+relTime,on) : ba.bpf.start(0,0) :
+ar(a,r,t) = ba.countup(attTime+relTime,on)*t : ba.bpf.start(0,0) :
 	ba.bpf.point(attTime,1) : ba.bpf.end(attTime+relTime,0)
 with{
 	on = (t-t')==1;
