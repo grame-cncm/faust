@@ -2,7 +2,7 @@
 (module
 
     (export "clearOutput" (func $clearOutput))
-	(export "mixVoice" (func $mixVoice))
+    (export "mixVoice" (func $mixVoice))
     (import "memory" "memory" (memory $0 2))
 
     (func $clearOutput (param $count i32) (param $channels i32) (param $outputs i32)
@@ -32,9 +32,9 @@
 
 	(func $mixVoice (param $count i32) (param $channels i32) (param $inputs i32) (param $outputs i32) (result f64)
 
-		(local $input i32)
+        (local $input i32)
         (local $output i32)
-		(local $i i32)
+        (local $i i32)
         (local $chan i32)
         (local $level f64)
         (local $sample_in f64)
@@ -63,7 +63,7 @@
             )
         )
         (return (get-local $level))
-	)
+    )
 
 )
 

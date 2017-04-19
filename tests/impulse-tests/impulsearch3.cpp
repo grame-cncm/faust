@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
             string error_msg;
             factory = createInterpreterDSPFactoryFromFile(argv[1], argc1, argv1, error_msg);
             if (!factory) {
-                cerr << "Error in createInterpreterDSPFactory" << endl;
+                cerr << "Error in createInterpreterDSPFactory " << error_msg  << endl;
                 exit(-1);
             }
             runFactory(factory, argv[1]);
