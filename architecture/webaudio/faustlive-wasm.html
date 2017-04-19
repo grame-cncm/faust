@@ -7,7 +7,7 @@
 
   <style type="text/css">
     body {
-        background-color: #000000;
+        background-color: #FFFFFF;
     }
 
     /* WEBKIT */
@@ -265,9 +265,12 @@
     </style>
 
 </head>
-<body bgcolor= "#000000">
+<body bgcolor= "#FFFFFF">
+    <center> <H1 > Embedded Faust compiler </H>  </center>
+    <P> This page embeds the Faust compiler as a JavaScript libary called <B>libfaust.js</B>, associated with the auxiliary WebAssembly library. You will be able to compile Faust .dsp files by just dropping them on the following zone. A WebAudio node will be created and connected to audio inputs/outputs and controlable with the displayed HTML/SVG based GUI.
+<center>
 <div id="filedrag">
-    Embedded Faust compiler : drop your .dsp file here
+    Loading JavaScript/WebAssembly ressources...
 </div>
 
 <form id="upload" action="CompilerResponse" method="POST" enctype="multipart/form-data">
@@ -621,6 +624,7 @@ function Init()
     filedrag1.addEventListener("dragover", FileDragHover, false);
     filedrag1.addEventListener("dragleave", FileDragHover, false);
     filedrag1.addEventListener("drop", UploadFile, false);
+    filedrag1.textContent = "Drop your Faust .dsp file here."
 
     /*
     var xx = new XMLHttpRequest();
@@ -632,9 +636,14 @@ function Init()
     */
 }
 
-if (window.File && window.FileList && window.FileReader) {
-    Init();
-}
+/*
+ if (window.File && window.FileList && window.FileReader) {
+ Init();
+ }
+ */
+
+// Module 'onRuntimeInitialized' will be called when code is ready (see https://kripken.github.io/emscripten-site/docs/getting_started/FAQ.html)
+Module['onRuntimeInitialized'] = Init;
 
 </script>
 

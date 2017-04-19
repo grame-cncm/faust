@@ -444,6 +444,7 @@ void global::allocate()
 void global::destroy()
 {
     delete gGlobal;
+    gGlobal = NULL;
 }
 
 string global::makeDrawPath()

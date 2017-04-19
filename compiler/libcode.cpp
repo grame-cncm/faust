@@ -1362,3 +1362,22 @@ string expand_dsp(int argc, const char* argv[], const char* name, const char* ds
 
 extern "C" EXPORT const char* getCLibFaustVersion() { return FAUSTVERSION; }
 
+#ifdef EMCC
+    
+const char* faustexception::gJSExceptionMsg = NULL;
+
+extern "C" EXPORT const char* getErrorAfterException()
+{
+    return faustexception::gJSExceptionMsg;
+}
+    
+extern "C" EXPORT void cleanupAfterException()
+{
+    if (faustexception::gJSExceptionMsg) {
+        free((void*)faustexception::gJSExceptionMsg);
+        faustexception::gJSExceptionMsg = NULL;
+    }
+    global::destroy();
+}
+    
+#endif

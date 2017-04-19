@@ -29,12 +29,29 @@ class faustexception : public std::runtime_error {
 
     public:
 
+    #ifdef EMCC
+        static const char* gJSExceptionMsg;
+    
+        faustexception(const std::string& msg):std::runtime_error(msg)
+        {
+            gJSExceptionMsg = strdup(msg.c_str());
+        }
+        faustexception(char* msg):std::runtime_error(msg)
+        {
+            gJSExceptionMsg = strdup(msg);
+        }
+        faustexception(const char* msg):std::runtime_error(msg)
+        {
+            gJSExceptionMsg = strdup(msg);
+        }
+    #else
         faustexception(const std::string& msg):std::runtime_error(msg)
         {}
         faustexception(char* msg):std::runtime_error(msg)
         {}
         faustexception(const char* msg):std::runtime_error(msg)
         {}
+    #endif
 
         std::string Message()
         {
@@ -53,5 +70,7 @@ inline void faustassert(bool cond)
         throw faustexception("assert: please report the failing DSP file to Faust developers.\n");
     }
 }
+            
+            
 
 #endif

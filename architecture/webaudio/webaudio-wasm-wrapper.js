@@ -203,6 +203,8 @@ faust.getWasmCModule = Module.cwrap('getWasmCModule', 'number', ['number']);
 faust.getWasmCModuleSize = Module.cwrap('getWasmCModuleSize', 'number', ['number']);
 faust.getWasmCHelpers = Module.cwrap('getWasmCHelpers', 'number', ['number']);
 faust.freeCWasmModule = Module.cwrap('freeCWasmModule', null, ['number']);
+faust.cleanupAfterException = Module.cwrap('cleanupAfterException', null, []);
+faust.getErrorAfterException = Module.cwrap('getErrorAfterException', 'number', []);
 
 faust.error_msg = null;
 faust.factory_number = 0;
@@ -246,43 +248,52 @@ faust.createDSPFactoryAux = function (code, argv, callback, internal_memory) {
         Module.stringToUTF8(argv[i], arg_ptr, lengthBytesUTF8(argv[i]) + 1);
         argv_ptr_buffer[i] = arg_ptr; 
     }
-     
-    var module_code_ptr = faust.createWasmCDSPFactoryFromString(name_ptr, code_ptr, argv.length, argv_ptr, error_msg_ptr, internal_memory);
-    faust.error_msg = Pointer_stringify(error_msg_ptr);
     
-    if (module_code_ptr === 0) {
+    try {
+        var module_code_ptr = faust.createWasmCDSPFactoryFromString(name_ptr, code_ptr, argv.length, argv_ptr, error_msg_ptr, internal_memory);
+        faust.error_msg = Pointer_stringify(error_msg_ptr);
+        
+        if (module_code_ptr === 0) {
+            callback(null);
+        } else {
+            
+            var factory_code_ptr = faust.getWasmCModule(module_code_ptr);
+            var factory_code_size = faust.getWasmCModuleSize(module_code_ptr);
+            
+            // Copy native 'binary' string in JavaScript Uint8Array
+            var factory_code = new Uint8Array(factory_code_size);
+            for (var i = 0; i < factory_code_size; i++) {
+                // faster than 'getValue' which gets the type of access for each read...
+                factory_code[i] = HEAP8[((factory_code_ptr + i) >> 0)];
+            }
+            
+            var helpers_code_ptr = faust.getWasmCHelpers(module_code_ptr);
+            var helpers_code = Pointer_stringify(helpers_code_ptr);
+            
+            // Free strings
+            Module._free(code_ptr);
+            Module._free(name_ptr);
+            Module._free(error_msg_ptr);
+            
+            // Free C allocated wasm module
+            faust.freeCWasmModule(module_code_ptr);
+            
+            // Free 'argv' C side array
+            for (var i = 0; i < argv.length; i++) {
+                Module._free(argv_ptr_buffer[i]);
+            }
+            Module._free(argv_ptr);
+            
+            faust.readDSPFactoryFromMachineAux(factory_name, factory_code, helpers_code, sha_key, callback);
+        }
+        
+    } catch (e) {
+        // libfaust is compiled without C++ exception activated, so a JS exception is throwed and catched here
+        faust.error_msg = Pointer_stringify(faust.getErrorAfterException());
+        faust.cleanupAfterException();
         callback(null);
-    } else {
-        
-        var factory_code_ptr = faust.getWasmCModule(module_code_ptr);
-        var factory_code_size = faust.getWasmCModuleSize(module_code_ptr);
-     
-        // Copy native 'binary' string in JavaScript Uint8Array
-        var factory_code = new Uint8Array(factory_code_size);
-        for (var i = 0; i < factory_code_size; i++) {
-            // faster than 'getValue' which gets the type of access for each read...
-            factory_code[i] = HEAP8[((factory_code_ptr + i) >> 0)];
-        }
-        
-        var helpers_code_ptr = faust.getWasmCHelpers(module_code_ptr);
-        var helpers_code = Pointer_stringify(helpers_code_ptr);
-        
-        // Free strings
-        Module._free(code_ptr);
-        Module._free(name_ptr);
-        Module._free(error_msg_ptr);
-        
-        // Free C allocated wasm module
-        faust.freeCWasmModule(module_code_ptr);
-        
-        // Free 'argv' C side array
-        for (var i = 0; i < argv.length; i++) {
-            Module._free(argv_ptr_buffer[i]);
-        }
-        Module._free(argv_ptr);
-    
-        faust.readDSPFactoryFromMachineAux(factory_name, factory_code, helpers_code, sha_key, callback);
     }
+    
 };
 
 faust.createDSPFactory = function (code, argv, callback) {
