@@ -1373,10 +1373,6 @@ extern "C" EXPORT const char* getErrorAfterException()
     
 extern "C" EXPORT void cleanupAfterException()
 {
-    if (faustexception::gJSExceptionMsg) {
-        free((void*)faustexception::gJSExceptionMsg);
-        faustexception::gJSExceptionMsg = NULL;
-    }
     global::destroy();
 }
     
