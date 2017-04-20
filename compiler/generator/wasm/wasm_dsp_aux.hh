@@ -131,18 +131,31 @@ extern "C" {
     EXPORT const char* getWasmCHelpers(WasmModule* module);
     
     /**
-     * Get the library version.
-     * 
-     * @return the library version as a static string.
-     */
-    EXPORT const char* getCLibFaustVersion();
-    
-    /**
      * The free function to be used on memory returned by createWasmCDSPFactoryFromFile or createWasmCDSPFactoryFromString.
      * 
      * @param ptr - the WasmRes structure to be deleted.
      */
     EXPORT void freeCWasmModule(WasmModule* ptr);
+    
+    /**
+     * Get the library version.
+     *
+     * @return the library version as a static string.
+     */
+    EXPORT const char* getCLibFaustVersion();
+    
+    /**
+     * Get the error message after an exception occured.
+     *
+     * @return the error as a static string.
+     */
+    EXPORT const char* getErrorAfterException();
+    
+    /**
+     *  Cleanup library global context after an exception occured.
+     *
+     */
+    EXPORT void cleanupAfterException();
     
 #ifdef __cplusplus
 }
