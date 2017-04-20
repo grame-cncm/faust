@@ -18,24 +18,19 @@ A special \lstinline'[midi:xxx yyy...]' metadata needs to be added in the UI  el
 
 - \lstinline'[midi:ctrl num]' in a slider or bargraph will map the UI element value to (0, 127) range. When used with a button or checkbox, 1 will be mapped to 127, 0 will be mapped to 0,
 
-- \lstinline'[midi:keyon keyNumber]' in a slider or bargraph will
+- \lstinline'[midi:keyon key]' in a slider or bargraph will
 register the UI element's state-variable to be driven by MIDI note-on
-velocity (an integer between 0 and 127) of the specified keyNumber
+velocity (an integer between 0 and 127) of the specified key
 between 0 and 127.
 
-- \lstinline'[midi:keyoff keyNumber]' in a slider or bargraph will
+- \lstinline'[midi:keyoff key]' in a slider or bargraph will
 register the UI element's state-variable to be driven by MIDI note-on
-velocity (an integer between 0 and 127) of the specified keyNumber
+velocity (an integer between 0 and 127) of the specified key
 between 0 and 127.
 
-- \lstinline'[midi:keypress keyNumber]' in a slider or bargraph will
+- \lstinline'[midi:keypress key]' in a slider or bargraph will
 register the UI element's state-variable to be driven by the MIDI
-key-pressure (an integer between 0 and 127) from MIDI key keyNumber.
-
-- \lstinline'[midi:chanpress channel]' in a slider or bargraph will
-register the UI element's state-variable to be driven by the MIDI
-channel-pressure (an integer between 0 and 127) on the specified MIDI
-channel.
+key-pressure (an integer between 0 and 127) from MIDI key.
 
 - \lstinline'[midi:pgm num]' in a slider or bargraph will map the UI element value to the progchange value, so \emph{progchange} message with the same \emph{num} value will be sent. When used with a button or checkbox, 1 will send the \emph{progchange} message with \emph{num} value, 0 will send nothing,
 
