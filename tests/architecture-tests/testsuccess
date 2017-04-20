@@ -83,6 +83,16 @@ if [ "$1" = "osx" ]; then
 
     (faust2api -ios -nvoices 8 -effect good.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -ios -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: faust2api -ios -nvoices 8 -effect good.dsp -midi failed")
 
+    (faust2smartkeyb -ios good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios succeeded !")||(echo "ERROR: faust2smartkeyb -ios failed")
+
+    (faust2smartkeyb -ios -osc good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -osc succeeded !")||(echo "ERROR: faust2smartkeyb -ios -osc failed")
+
+    (faust2smartkeyb -ios -osc -midi good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -osc -midi succeeded !")||(echo "ERROR: faust2smartkeyb -ios -osc -midi failed")
+
+    (faust2smartkeyb -ios -osc -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -osc -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -ios -osc -midi -nvoices 8 failed")
+
+    (faust2smartkeyb -ios -effect good.dsp -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -effect good.dsp -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -ios -effect good.dsp -nvoices 8 failed")
+
 elif [ "$1" = "linux" ]; then
     echo
     echo "Test $LINUX"

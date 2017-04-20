@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7AA33E751E9ECE8F00F159C8 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 7AA33E331E9ECE8F00F159C8 /* .gitignore */; };
 		7AA33E761E9ECE8F00F159C8 /* OSCFError.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7AA33E431E9ECE8F00F159C8 /* OSCFError.cpp */; };
 		7AA33E771E9ECE8F00F159C8 /* OSCRegexp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7AA33E451E9ECE8F00F159C8 /* OSCRegexp.cpp */; };
 		7AA33E781E9ECE8F00F159C8 /* Message.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7AA33E481E9ECE8F00F159C8 /* Message.cpp */; };
@@ -50,7 +49,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		7AA33E331E9ECE8F00F159C8 /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		7AA33E371E9ECE8F00F159C8 /* FaustFactory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FaustFactory.h; sourceTree = "<group>"; };
 		7AA33E381E9ECE8F00F159C8 /* FaustNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FaustNode.h; sourceTree = "<group>"; };
 		7AA33E391E9ECE8F00F159C8 /* Message.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Message.h; sourceTree = "<group>"; };
@@ -148,7 +146,6 @@
 		7AA33E321E9ECE8F00F159C8 /* osclib */ = {
 			isa = PBXGroup;
 			children = (
-				7AA33E331E9ECE8F00F159C8 /* .gitignore */,
 				7AA33E341E9ECE8F00F159C8 /* faust */,
 				7AA33E5D1E9ECE8F00F159C8 /* oscpack */,
 			);
@@ -412,7 +409,7 @@
 				TargetAttributes = {
 					7AAA9EDD1E44F80B0062DF73 = {
 						CreatedOnToolsVersion = 8.2.1;
-						DevelopmentTeam = L68B39766U;
+						DevelopmentTeam = XN9RP996NW;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -440,7 +437,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7AA33E751E9ECE8F00F159C8 /* .gitignore in Resources */,
 				7AAA9F161E44F8660062DF73 /* keyUpDark.png in Resources */,
 				7AAA9EF11E44F80B0062DF73 /* LaunchScreen.storyboard in Resources */,
 				7AAA9EEE1E44F80B0062DF73 /* Assets.xcassets in Resources */,
@@ -605,7 +601,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = L68B39766U;
+				DEVELOPMENT_TEAM = XN9RP996NW;
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
 					"$(PROJECT_DIR)/Faust/osclib/oscpack",
@@ -630,7 +626,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = L68B39766U;
+				DEVELOPMENT_TEAM = XN9RP996NW;
 				HEADER_SEARCH_PATHS = (
 					/usr/local/include,
 					"$(PROJECT_DIR)/Faust/osclib/oscpack",
