@@ -29,7 +29,7 @@
 using namespace std;
 
 /*
- ASM module description : 
+ ASM module description: 
 
      1) all variables have to be declared first, then functions, then export section.
      2) the DSP data structure fields are not generated. The structure size is computed instead, and memory allocation/deallocation is done

@@ -203,13 +203,13 @@ ios-llvm : CXXFLAGS += -I/Users/letz/llvm-ios/include
 ios-llvm : libfaust.a libfaustmachine.a
 
 ## For the Web/ASMJS, compile only the ASMJS backend
-emcc : CC = emcc
-emcc : CXX = emcc
-emcc : CXXFLAGS = -DEMCC -DASMJS_BUILD -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
-emcc : ARCHFLAGS =
-emcc : LLVM_VERSION =
-emcc : libfaust.js libfaustworker.js
-emcc : EXPORTED="['_createAsmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCDSP']"
+asmjs : CC = emcc
+asmjs : CXX = emcc
+asmjs : CXXFLAGS = -DEMCC -DASMJS_BUILD -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+asmjs : ARCHFLAGS =
+asmjs : LLVM_VERSION =
+asmjs : libfaust.js libfaustworker.js
+asmjs : EXPORTED="['_createAsmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCDSP']"
 
 ## For the Web/WASM, compile only the WASM backend
 wasm : CC = emcc

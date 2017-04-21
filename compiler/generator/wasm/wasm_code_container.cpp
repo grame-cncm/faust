@@ -29,15 +29,15 @@
 using namespace std;
 
 /*
- WASM module description :
+ WASM module description:
  
  - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), are imported from the from JS "global.Math",
    or are externally implemented (log10 in JS using log, fmod in JS, remainder in JS)
  - local variables have to be declared first on the block, before being actually initialized or set : this is done using MoveVariablesInFront3
  - 'faustpower' function actualy fallback to regular 'pow' (see powprim.h)
- - subcontainers are inlined in 'classInit' and 'instanceConstants' functions.
- - waveform generation is 'inlined' using MoveVariablesInFront3, done in a special version of generateInstanceInitFun.
- - integer 'min/max' done in the module in 'min_i/max_i' (using lt/select)
+ - subcontainers are inlined in 'classInit' and 'instanceConstants' functions
+ - waveform generation is 'inlined' using MoveVariablesInFront3, done in a special version of generateInstanceInitFun
+ - integer 'min/max' is done in the module in 'min_i/max_i' (using lt/select)
  - LocalVariableCounter visitor allows to count and create local variables of each types
  - FunAndTypeCounter visitor allows to count and create function types and global variable offset
  - memory can be allocated internally in the module and exported, or externally in JS and imported
@@ -332,7 +332,7 @@ void WASMCodeContainer::produceClass()
     // Helper code
     int n = 0;
     
-    // User interface : prepare the JSON string...
+    // User interface : prepare the JSON string
     JSONInstVisitor json_visitor(fNumInputs, fNumOutputs);
     generateUserInterface(&json_visitor);
     generateMetaData(&json_visitor);

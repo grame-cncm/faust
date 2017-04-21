@@ -22,16 +22,16 @@
 #ifndef _TEXT_INSTRUCTIONS_H
 #define _TEXT_INSTRUCTIONS_H
 
-using namespace std;
+#include <string>
+#include <iostream>
+#include <sstream>
+#include <fstream>
 
 #include "instructions.hh"
 #include "type_manager.hh"
 #include "Text.hh"
 
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <fstream>
+using namespace std;
 
 class TextInstVisitor : public InstVisitor, public StringTypeManager {
 

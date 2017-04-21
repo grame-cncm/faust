@@ -163,7 +163,7 @@ class CodeContainer : public virtual Garbageable {
     
         BlockInst* inlineSubcontainersFunCalls(BlockInst* block);
     
-      public:
+    public:
 
         CodeContainer();
         void initializeCodeContainer(int numInputs, int numOutputs);

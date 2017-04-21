@@ -59,52 +59,34 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app,
 {
     string expanded_dsp_content = "";
     string sha_key = "";
-    
-    // Deactivated for now since expandDSPFromString use thread based call of compiler ...
-    /*
-    if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
-        return NULL;
+   
+    int argc1 = 0;
+    const char* argv1[64];
+
+    argv1[argc1++] = "faust";
+    argv1[argc1++] = "-lang";
+    argv1[argc1++] = (internal_memory) ? "wasm-i" : "wasm-e";
+    argv1[argc1++] = "-o";
+    argv1[argc1++] = "binary";
+
+    for (int i = 0; i < argc; i++) {
+        argv1[argc1++] = argv[i];
+    }
+    argv1[argc1] = 0;  // NULL terminated argv
+
+    dsp_factory_base* dsp_factory_aux = compile_faust_factory(argc1, argv1,
+                                                            name_app.c_str(),
+                                                            dsp_content.c_str(),
+                                                            error_msg,
+                                                            true);
+    if (dsp_factory_aux) {
+        wasm_dsp_factory* factory = new wasm_dsp_factory(dsp_factory_aux);
+        gWasmFactoryTable.setFactory(factory);
+        factory->setSHAKey(sha_key);
+        factory->setDSPCode(expanded_dsp_content);
+        return factory;
     } else {
-    */
-    {
-        int argc1 = 0;
-        const char* argv1[64];
-        
-        argv1[argc1++] = "faust";
-        argv1[argc1++] = "-lang";
-        argv1[argc1++] = (internal_memory) ? "wasm-i" : "wasm-e";
-        argv1[argc1++] = "-o";
-        argv1[argc1++] = "binary";
-        
-        for (int i = 0; i < argc; i++) {
-            argv1[argc1++] = argv[i];
-        }
-        
-        argv1[argc1] = 0;  // NULL terminated argv
-        
-        dsp_factory_table<SDsp_factory>::factory_iterator it;
-        wasm_dsp_factory* factory = 0;
-        
-        // sha_key and library table is handled on JS side. Compilation is done each time here.
-        /*
-        if (gWasmFactoryTable.getFactory(sha_key, it)) {
-            SDsp_factory sfactory = (*it).first;
-            sfactory->addReference();
-            return sfactory;
-        } else {
-        */
-            dsp_factory_base* dsp_factory_aux = compile_faust_factory(argc1, argv1,
-                                                                    name_app.c_str(),
-                                                                    dsp_content.c_str(),
-                                                                    error_msg,
-                                                                    true);
-            if (!dsp_factory_aux) { return NULL; }
-            factory = new wasm_dsp_factory(dsp_factory_aux);
-            gWasmFactoryTable.setFactory(factory);
-            factory->setSHAKey(sha_key);
-            factory->setDSPCode(expanded_dsp_content);
-            return factory;
-       // }
+        return NULL;
     }
 }
 

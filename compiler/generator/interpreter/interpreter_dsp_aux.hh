@@ -40,12 +40,6 @@
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
 
-#ifdef _WIN32
-#define EXPORT __declspec(dllexport)
-#else
-#define EXPORT __attribute__ ((visibility("default")))
-#endif
-
 class interpreter_dsp_factory;
 
 template <class T>

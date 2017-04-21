@@ -26,22 +26,22 @@
 #include <fstream>
 #include <sstream>
 
-#ifdef EMCC
-// Dummy SHA1 function to solve EMCC link problem
-void SHA1(const unsigned char*, int, unsigned char*) {}
-#else
-#include <openssl/sha.h>
-#endif
-
 #include "compatibility.hh"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
 #include "TMutex.h"
 #include "Text.hh"
 
+#ifdef EMCC
+// Dummy SHA1 function to solve EMCC link problem, SHA1 handling is done on JS side.
+void SHA1(const unsigned char*, int, unsigned char*) {}
+#else
+#include <openssl/sha.h>
+#endif
+
 using namespace std;
 
-//Look for 'key' in 'options' and modify the parameter 'position' if found
+// Look for 'key' in 'options' and modify the parameter 'position' if found
 static bool parseKey(vector<string> options, const string& key, int& position)
 {
     for (size_t i = 0; i < options.size(); i++) {
@@ -54,8 +54,10 @@ static bool parseKey(vector<string> options, const string& key, int& position)
     return false;
 }
 
-// Add 'key' if existing in 'options', otherwise add 'defaultKey' (if different from "")
-// #return true if 'key' was added
+/*
+ *  Add 'key' if existing in 'options', otherwise add 'defaultKey' (if different from "")
+ * return true if 'key' was added
+*/
 static bool addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const string& key, const string& defaultKey, int& position)
 {
     if (parseKey(options, key, position)) {
@@ -86,10 +88,10 @@ static void addKeyValueIfExisting(vector<string>& options, vector<string>& newop
     }
 }
 
-/* Reorganizes the compilation options
+/* 
+ * Reorganizes the compilation options
  * Following the tree of compilation (Faust_Compilation_Options.pdf in distribution)
  */
-
 static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
 {
     bool vectorize = false;
@@ -206,6 +208,8 @@ string reorganizeCompilationOptions(int argc, const char* argv[])
     
     return "\"" + res3 + "\"";
 }
+
+// External libfaust API
 
 EXPORT string expandDSPFromFile(const string& filename, 
                                 int argc, const char* argv[], 

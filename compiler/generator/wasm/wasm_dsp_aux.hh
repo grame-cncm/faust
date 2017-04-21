@@ -96,7 +96,7 @@ extern "C" {
     EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg, bool internal_memory);
 
      /**
-     * Create a Faust DSP WebAssembly module and additional helper functions from a DSP source code.
+     * Create a Faust DSP WebAssembly module and additional helper functions from a DSP source code as a string.
      * 
      * @param name_app - the name of the Faust program
      * @param dsp_content - the Faust program as a string

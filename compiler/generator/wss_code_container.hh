@@ -42,6 +42,11 @@ class WSSCodeContainer : public virtual CodeContainer {
 
         void processFIR(void);
 
+    protected:
+    
+        StatementInst* fThreadLoopBlock;
+        BlockInst* fComputeThreadBlockInstructions;
+
     public:
 
         WSSCodeContainer(int numInputs, int numOutputs, string const& objName)
@@ -52,10 +57,6 @@ class WSSCodeContainer : public virtual CodeContainer {
             fFullCount = "count";
         }
 
-    protected:
-
-        StatementInst* fThreadLoopBlock;
-        BlockInst* fComputeThreadBlockInstructions;
 };
 
 #endif

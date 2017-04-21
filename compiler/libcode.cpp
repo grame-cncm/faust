@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,6 +49,14 @@
 #include "sourcereader.hh"
 #include "instructions_compiler.hh"
 #include "dag_instructions_compiler.hh"
+#include "export.hh"
+#include "schema.h"
+#include "drawschema.hh"
+#include "timing.hh"
+#include "ppsig.hh"
+#include "garbageable.hh"
+#include "exception.hh"
+#include "Text.hh"
 
 #if ASMJS_BUILD
 #include "asmjs_code_container.hh"
@@ -89,19 +97,7 @@
 #include "wast_code_container.hh"
 #endif
 
-#include "export.hh"
-#include "schema.h"
-#include "drawschema.hh"
-#include "timing.hh"
-#include "ppsig.hh"
-#include "garbageable.hh"
-#include "exception.hh"
-#include "Text.hh"
-
 using namespace std;
-
-// Timing can be used outside of the scope of 'gGlobal'
-extern bool gTimingSwitch;
 
 static ifstream* injcode = 0;
 static ifstream* enrobage = 0;
@@ -166,6 +162,9 @@ static void* thread_boxPropagateSig(void* arg)
 *****************************************************************/
 
 global* gGlobal = NULL;
+
+// Timing can be used outside of the scope of 'gGlobal'
+extern bool gTimingSwitch;
 
 /****************************************************************
  						Parser variables
@@ -729,7 +728,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     Tree process = evalprocess(expandedDefList);
     if (gGlobal->gErrorCount > 0) {
         stringstream error;
-        error << "ERROR : total of " << gGlobal->gErrorCount << " errors during the compilation of " << gGlobal->gMasterDocument << ";\n";
+        error << "ERROR : total of " << gGlobal->gErrorCount << " errors during the compilation of " << gGlobal->gMasterDocument << endl;
         throw faustexception(error.str());
     }
 
@@ -1181,9 +1180,6 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
      3 - evaluate 'process' definition
     *****************************************************************/
     
-    // int numInputs, numOutputs;
-    // Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
-    
     call_fun(thread_evaluateBlockDiagram); // In a thread with more stack size...
     if (!gGlobal->gProcessTree) {
         throw faustexception(gGlobal->gErrorMessage);
@@ -1256,9 +1252,6 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
      3 - evaluate 'process' definition
     *****************************************************************/
     
-    // int numInputs, numOutputs;
-    // Tree process = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
-    
     call_fun(thread_evaluateBlockDiagram); // In a thread with more stack size...
     if (!gGlobal->gProcessTree) {
         throw faustexception(gGlobal->gErrorMessage);
@@ -1289,9 +1282,7 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
      4 - compute output signals of 'process'
     *****************************************************************/
     startTiming("propagation");
-
-    //Tree lsignals = boxPropagateSig(gGlobal->nil, process, makeSigInputList(numInputs));
-    
+   
     call_fun(thread_boxPropagateSig); // In a thread with more stack size...
     if (!gGlobal->gLsignalsTree) {
         throw faustexception(gGlobal->gErrorMessage);

@@ -22,10 +22,10 @@
 #ifndef _TYPING_INSTRUCTIONS_H
 #define _TYPING_INSTRUCTIONS_H
 
-using namespace std;
-
 #include "instructions.hh"
 #include "fir_to_fir.hh"
+
+using namespace std;
 
 struct TypingVisitor : public InstVisitor {
 

@@ -22,11 +22,16 @@
 #ifndef _JSON_INSTRUCTIONS_H
 #define _JSON_INSTRUCTIONS_H
 
-using namespace std;
+#include <string>
 
 #include "instructions.hh"
 #include "faust/gui/JSONUI.h"
-#include <string>
+
+using namespace std;
+
+/*
+ FIR visitor to prepare the JSON representation.
+*/
 
 struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
     
@@ -54,6 +59,9 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
                     break;
                 case 2:
                     openTabBox(inst->fName.c_str());
+                    break;
+                default:
+                    faustassert(false);
                     break;
             }
         }
@@ -86,6 +94,9 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
                 case AddSliderInst::kNumEntry:
                     addNumEntry(inst->fLabel.c_str(), NULL, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                     break;
+                default:
+                    faustassert(false);
+                    break;
             }
             
             fPathTable[inst->fZone] = buildPath(inst->fLabel);
@@ -100,13 +111,16 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
                 case AddBargraphInst::kVertical:
                     addVerticalBargraph(inst->fLabel.c_str(), NULL, inst->fMin, inst->fMax);
                     break;
+                default:
+                    faustassert(false);
+                    break;
             }
             
             fPathTable[inst->fZone] = buildPath(inst->fLabel);
         }
     
-        void setInputs(int input) {fInputs = input;}
-        void setOutputs(int output) {fOutputs = output;}
+        void setInputs(int input) { fInputs = input; }
+        void setOutputs(int output) { fOutputs = output; }
 };
 
 #endif

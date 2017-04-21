@@ -86,7 +86,7 @@ extern "C" {
     EXPORT const char* createAsmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
      /**
-     * Create a Faust DSP asm.js module and additional helper functions from a DSP source code.
+     * Create a Faust DSP asm.js module and additional helper functions from a DSP source code as a string.
      * 
      * @param name_app - the name of the Faust program
      * @param dsp_content - the Faust program as a string

@@ -38,7 +38,7 @@ string Typed::gTypeString[] = {
 void BasicTyped::cleanup() { gGlobal->gTypeTable.clear(); }
 void DeclareVarInst::cleanup() { gGlobal->gVarTypeTable.clear(); }
 
-// Variable types are kept in the global num <===> type table
+// Variable types are kept in the global name <===> type table
 DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
     :fAddress(address), fType(type), fValue(value)
 {
@@ -54,7 +54,7 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
 DeclareVarInst::~DeclareVarInst()
 {}
 
-// Function types (return type) are kept in the global num <===> type table
+// Function types (return type) are kept in the global name <===> type table
 DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* code)
         :fName(name), fType(type), fCode(code)
 {
@@ -278,6 +278,20 @@ DeclareFunInst* InstBuilder::genFunction6(const string& name, Typed::VarType res
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
+void ScalVecDispatcherVisitor::Dispatch2Visitor(ValueInst* inst)
+{
+    printf("Dispatch2Visitor %d\n", inst->fSize);
+    fScalarVisitor->visit(inst);
+    
+    /*
+     if (inst->fSize == 1) {
+        fScalarVisitor->visit(inst);
+     } else {
+        fVectorVisitor->visit(inst);
+     }
+    */
+}
+
 //--------------------------
 // Coding Types as trees
 //--------------------------
@@ -348,23 +362,6 @@ DeclareTypeInst* InstBuilder::genType(AudioType* type)
     return dec_type;
 }
 
-*/
-
-void ScalVecDispatcherVisitor::Dispatch2Visitor(ValueInst* inst)
-{
-    printf("Dispatch2Visitor %d\n", inst->fSize);
-    fScalarVisitor->visit(inst);
-
-    /*
-    if (inst->fSize == 1) {
-        fScalarVisitor->visit(inst);
-    } else {
-        fVectorVisitor->visit(inst);
-    }
-    */
-}
-
-/*
 static Typed* sharedTypeToFirType(Tree t)
 {
     int size;

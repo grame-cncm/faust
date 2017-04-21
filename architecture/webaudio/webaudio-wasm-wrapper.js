@@ -304,6 +304,10 @@ faust.createPolyDSPFactory = function (code, argv, callback) {
     faust.createDSPFactoryAux(code, argv, callback, false);
 }
 
+faust.getLibFaustVersion = function () {
+    return Pointer_stringify(faust.getCLibFaustVersion());
+}
+
 faust.expandDSP = function (code, argv) {
    
     console.log("libfaust.js version : " + Pointer_stringify(faust.getCLibFaustVersion()));

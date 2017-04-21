@@ -23,6 +23,8 @@
 #include "compatibility.hh"
 #include "dsp_factory.hh"
 
+using namespace std;
+
 // Standalone compiler uses the real 'alarm' function
 unsigned faust_alarm(unsigned seconds)
 {
@@ -31,13 +33,13 @@ unsigned faust_alarm(unsigned seconds)
 
 int main(int argc, const char* argv[])
 {
-    std::string error_msg;
+    string error_msg;
     dsp_factory_base* factory = compile_faust_factory(argc, argv, "FaustDSP", 0, error_msg, true);
     delete factory;
     if (error_msg == "") {
         return 0;
     } else {
-        std::cerr << error_msg;
+        cerr << error_msg;
         return 1;
     }
 }

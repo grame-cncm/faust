@@ -38,7 +38,7 @@ mfiles := $(wildcard examples/Makefile.*)
 vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
 zname := faust-$(version)
 
-.PHONY: all world dynamic httpd remote win32 ios ios-llvm emcc wasm sound2faust
+.PHONY: all world dynamic httpd remote win32 ios ios-llvm asmjs wasm sound2faust
 
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
@@ -76,8 +76,8 @@ ios :
 ios-llvm :
 	$(MAKE) -C compiler ios-llvm -f $(MAKEFILE) prefix=$(prefix)
 
-emcc :
-	$(MAKE) -C compiler emcc -f $(MAKEFILE) prefix=$(prefix)
+asmjs :
+	$(MAKE) -C compiler asmjs -f $(MAKEFILE) prefix=$(prefix)
 
 wasm :
 	$(MAKE) -C compiler wasm -f $(MAKEFILE) prefix=$(prefix)
@@ -94,6 +94,8 @@ help :
 	@echo "make or make all : compile the Faust compiler and osc support library"
 	@echo "make httpd : compile httpdlib (requires GNU libmicrohttpd)"
 	@echo "make dynamic : compile httpd & osc supports as dynamic libraries"
+	@echo "make asmjs : compile asmjs libfaust.js"
+	@echo "make wasm : compile wasm libfaust-wasm.js"
 	@echo "make sound2faust : compile sound to DSP file converter"
 	@echo "make remote : compile remote components used by FaustLive"
 	@echo "make parser : generate the parser from the lex and yacc files"

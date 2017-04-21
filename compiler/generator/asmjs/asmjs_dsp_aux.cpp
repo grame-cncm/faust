@@ -19,9 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-#if defined(_MSC_VER)
-#pragma message("libgen.h is not available on Windows. ASMJS backend will not build.")
-#else
 #include <stdio.h>
 #include <string.h>
 #include <iostream>
@@ -57,53 +54,34 @@ EXPORT asmjs_dsp_factory* createAsmDSPFactoryFromString(const string& name_app, 
 {
     string expanded_dsp_content = "";
     string sha_key = "";
+  
+    int argc1 = 0;
+    const char* argv1[64];
     
-    // Deactivated for now since expandDSPFromString use thread based call of compiler ...
-    /*
-    if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
+    argv1[argc1++] = "faust";
+    argv1[argc1++] = "-lang";
+    argv1[argc1++] = "ajs";
+    argv1[argc1++] = "-o";
+    argv1[argc1++] = "string";
+    
+    for (int i = 0; i < argc; i++) {
+        argv1[argc1++] = argv[i];
+    }
+    argv1[argc1] = 0;  // NULL terminated argv
+    
+    dsp_factory_base* dsp_factory_aux = compile_faust_factory(argc1, argv1,
+                                                             name_app.c_str(),
+                                                             dsp_content.c_str(),
+                                                             error_msg,
+                                                             true);
+    if (dsp_factory_aux) {
+        asmjs_dsp_factory* factory = new asmjs_dsp_factory(dsp_factory_aux);
+        gAsmjsFactoryTable.setFactory(factory);
+        factory->setSHAKey(sha_key);
+        factory->setDSPCode(expanded_dsp_content);
+        return factory;
+    } else {
         return NULL;
-    } else
-    */
-    
-    {
-        int argc1 = 0;
-        const char* argv1[64];
-        
-        argv1[argc1++] = "faust";
-        argv1[argc1++] = "-lang";
-        argv1[argc1++] = "ajs";
-        argv1[argc1++] = "-o";
-        argv1[argc1++] = "string";
-        
-        for (int i = 0; i < argc; i++) {
-            argv1[argc1++] = argv[i];
-        }
-        
-        argv1[argc1] = 0;  // NULL terminated argv
-        
-        dsp_factory_table<SDsp_factory>::factory_iterator it;
-        asmjs_dsp_factory* factory = 0;
-        
-        // sha_key and library table is handled on JS side. Compilation is done each time here.
-        /*
-        if (gAsmjsFactoryTable.getFactory(sha_key, it)) {
-            SDsp_factory sfactory = (*it).first;
-            sfactory->addReference();
-            return sfactory;
-        } else {
-        */
-            dsp_factory_base* dsp_factory_aux = compile_faust_factory(argc1, argv1,
-                                                                     name_app.c_str(),
-                                                                     dsp_content.c_str(),
-                                                                     error_msg,
-                                                                     true);
-            if (!dsp_factory_aux) { return NULL; }
-            factory = new asmjs_dsp_factory(dsp_factory_aux);
-            gAsmjsFactoryTable.setFactory(factory);
-            factory->setSHAKey(sha_key);
-            factory->setDSPCode(expanded_dsp_content);
-            return factory;
-        // }
     }
 }
 
@@ -145,7 +123,5 @@ EXPORT void freeCDSP(void* ptr)
 {
     free(ptr);
 }
-
-#endif
 
 
