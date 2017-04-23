@@ -1,157 +1,2132 @@
-//##################################### physmodels.lib ###########################################
-// Faust physical modeling library. Its official prefix is `pm`.
+//##################################### physmodels.lib ###################################
+// Faust physical modeling library; Its official prefix is `pm`.
+//
+// This library provides an environment to facilitate physical modeling of musical
+// instruments. It contains dozens of functions implementing low and high level
+// elements going from a simple waveguide to fully operational models with
+// built-in UI, etc.
+// More information on how to use this library can be find at this page:
+// <https://ccrma.stanford.edu/~rmichon/pmFaust>
 //########################################################################################
 
-ma = library("maths.lib");
-de = library("delays.lib");
-ro = library("routes.lib");
+import("stdfaust.lib");
 
-//-------chain(A:B:...)----------
-// Creates a chain of bidirectional blocks. 
-// Blocks must have 3 inputs and outputs. The first input/output correspond to the left 
-// going signal, the second input/output correspond to the right going signal and the 
-// third input/output is the mix of the main signal output. The implied one sample delay
-// created by the `~` operator is generalized to the left and right going waves. Thus, n
-// blocks in `chain()` will add an n samples delay to both the left and right going waves.
-// ### Usage
+/*
+TODO:
+	- It'd be cool to have a version of the block diagram generator that automatically flips
+	things based on the use of chains, etc.
+	- When setting pole of filters by hand (e.g. smooth, should adjust pole in function of SR)
+	- Probably need a single resonator function / see how to integrate that with "mode"
+	- Need a non-linear function and see how this can be integrated with modal synthesis
+	- See how bowed modal models could be integarted to this
+	- Currently still missing keyboard instruments
+	- Currently still missing vocal synth: easy to fix (create a formant filter function)
+	- Real polyphonic instruments should be designated with some kind of prefix (e.g.,
+	full)
+*/
+
+//=============================Global Variables===========================================
+// Useful pre-defined variables for physical modeling.
+//========================================================================================
+
+//--------------`speedOfSound`----------
+// Speed of sound in meters per second (340m/s).
+//--------------------------------------
+speedOfSound = 340;
+
+//--------------`maxLength`----------
+// The default maximum length (3) in meters of strings and tubes used in this
+// library. This variable should be overriden allow longer strings or tubes.
+//--------------------------------------
+maxLength = 3;
+
+//================================Conversion Tools=======================================
+// Useful conversion tools for physical modeling.
+//========================================================================================
+
+//--------------`f2l`----------
+// Frequency to lentgh in meters.
+//
+// #### Usage
+//
 // ```
-// rightGoingWaves,leftGoingWaves,mixedOutput : chain(A:B) : rightGoingWaves,leftGoingWaves,mixedOutput
+// f2l(freq) : distanceInMeters
+// ```
+//
+// Where:
+//
+// * `freq`: the frequency
+//-------------------------------
+f2l(freq) = speedOfSound/freq;
+
+//--------------`l2f`----------
+// Lentgh in meters to frequency.
+//
+// #### Usage
+//
+// ```
+// l2f(length) : freq
+// ```
+//
+// Where:
+//
+// * `length`: length/distance in meters
+//-------------------------------
+l2f(length) = speedOfSound/length;
+
+//--------------`l2s`----------
+// Length in meters to number of samples.
+//
+// #### Usage
+//
+// ```
+// l2s(l) : numberOfSamples
+// ```
+//
+// Where:
+//
+// * `l`: length in meters
+//-------------------------------
+l2s(l) = l*ma.SR/speedOfSound;
+
+//=============================Bidirectional Utilities====================================
+// Set of fundamental functions to create bi-directional block diagrams in Faust.
+// These elements are used as the basis of this library to connect high level
+// elements (e.g., mouthpieces, strings, bridge, instrument body, etc.). Each
+// block has 3 inputs and 3 outputs. The first input/output carry left going
+// waves, the second input/output carry right going waves, and the third
+// input/output is used to carry any potential output signal to the end of the
+// algorithm.
+//========================================================================================
+
+//--------------`basicBlock`----------
+// Empty bidirectional block to be used with [`chain`](#chain): 3 signals ins
+// and 3 signals out.
+//
+// #### Usage
+//
+// ```
+// chain(basicBlock : basicBlock : etc.)
+// ```
+//-------------------------------
+basicBlock = _,_,_;
+
+//-------`chain`----------
+// Creates a chain of bidirectional blocks.
+// Blocks must have 3 inputs and outputs. The first input/output carry left
+// going waves, the second input/output carry right going waves, and the third
+// input/output is used to carry any potential output signal to the end of the
+// algorithm. The implied one sample delay created by the `~` operator is
+// generalized to the left and right going waves. Thus, `n` blocks in `chain()`
+// will add an `n` samples delay to both left and right going waves.
+//
+// #### Usage
+//
+// ```
+// rightGoingWaves,leftGoingWaves,mixedOutput : chain( A : B ) : rightGoingWaves,leftGoingWaves,mixedOutput
 // with{
 // 		A = _,_,_;
 //		B = _,_,_;
 // };
 // ```
-// ### Requires
-// `routes.lib` (`crossnn`)
 //-----------------------------
-chain(A:As) = (ro.crossnn(1),_',_ : _,A : ro.crossnn(1),_,_ : _,chain(As) : ro.crossnn(1),_,_) ~ _ : !,_,_,_;
+chain(A:As) = ((ro.crossnn(1),_',_ : _,A : ro.crossnn(1),_,_ : _,chain(As) : ro.crossnn(1),_,_)) ~ _ : !,_,_,_;
 chain(A) = A;
 
-//-------input(x)--------------
-// Adds a waveguide input anywhere between 2 blocks in a chain of blocks (see `chain()`).
-// ### Usage
+//-------`inLeftWave`--------------
+// Adds a signal to left going waves anywhere in a [`chain`](#chain) of blocks.
+//
+// #### Usage
+//
 // ```
-// string(x) = chain(A:input(x):B)
+// model(x) = chain(A : inLeftWave(x) : B)
 // ```
-// Where `x` is the input signal to be added to the chain. 
-//-----------------------------
-input(x) = +(x),+(x),_;
+//
+// Where `A` and `B` are bidirectional blocks and `x` is the signal added to left
+// going waves in that chain.
+//--------------------------------
+inLeftWave(x) = +(x),_,_;
 
-//-------output()--------------
-// Adds a waveguide output anywhere between 2 blocks in a chain of blocks and sends it 
-// to the mix output channel (see `chain()`).
-// ### Usage
+//-------`inRightWave`--------------
+// Adds a signal to right going waves anywhere in a [`chain`](#chain) of blocks.
+//
+// #### Usage
+//
 // ```
-// chain(A:output:B)
+// model(x) = chain(A : inRightWave(x) : B)
 // ```
-//-----------------------------
-output(x,y,s) = x,y,x+y+s;
+//
+// Where `A` and `B` are bidirectional blocks and `x` is the signal added to right
+// going waves in that chain.
+//--------------------------------
+inRightWave(x) = _,+(x),_;
 
-//-------terminations(a,b,c)--------------
-// Creates terminations on both sides of a `chain()` without closing the inputs and 
-// outputs of the bidirectional signals chain. As for `chain()`, this function adds a 1
-// sample delay to the bidirectional signal both ways.
-// ### Usage
+//-------`in`--------------
+// Adds a signal to left and right going waves anywhere in a [`chain`](#chain)
+// of blocks.
+//
+// #### Usage
+//
 // ```
-// rightGoingWaves,leftGoingWaves,mixedOutput : terminations(a,b,c) : rightGoingWaves,leftGoingWaves,mixedOutput
+// model(x) = chain(A : in(x) : B)
+// ```
+//
+// Where `A` and `B` are bidirectional blocks and `x` is the signal added to
+// left and right going waves in that chain.
+//--------------------------------
+in(x) = +(x),+(x),_;
+
+//-------`outLeftWave`--------------
+// Sends the signal of left going waves to the output channel of the [`chain`](#chain).
+//
+// #### Usage
+//
+// ```
+// chain(A : outLeftWave : B)
+// ```
+//
+// Where `A` and `B` are bidirectional blocks.
+//--------------------------------
+outLeftWave(x,y,s) = x,y,x+s;
+
+//-------`outRightWave`--------------
+// Sends the signal of right going waves to the output channel of the [`chain`](#chain).
+//
+// #### Usage
+//
+// ```
+// chain(A : outRightWave : B)
+// ```
+//
+// Where `A` and `B` are bidirectional blocks.
+//--------------------------------
+outRightWave(x,y,s) = x,y,y+s;
+
+//-------`out`--------------
+// Sends the signal of right and left going waves to the output channel of the
+// [`chain`](#chain).
+//
+// #### Usage
+//
+// ```
+// chain(A : out : B)
+// ```
+//
+// Where `A` and `B` are bidirectional blocks.
+//--------------------------------
+out(x,y,s) = x,y,x+y+s;
+
+//-------`terminations`--------------
+// Creates terminations on both sides of a [`chain`](#chain) without closing
+// the inputs and outputs of the bidirectional signals chain. As for
+// [`chain`](#chain), this function adds a 1 sample delay to the bidirectional
+// signal, both ways. Of courses, this function can be nested within a
+// [`chain`](#chain).
+//
+// #### Usage
+//
+// ```
+// terminations(a,b,c)
 // with{
 //		a = *(-1); // left termination
-//		b = chain(D:E:F); // bidirectional chain of blocks (D, E, F, etc.)
+//		b = chain(D : E : F); // bidirectional chain of blocks (D, E, F, etc.)
 //		c = *(-1); // right termination
 // };
-// ```  
-// ### Requires
-// `routes.lib` (`crossnn`)
-//----------------------------------------
-terminations(a,b,c) = (_,ro.crossnn(1),_,_ : +,+,_ : b) ~ (c,a : ro.crossnn(1)); // adds 2 samples to the loop!
-
-//-------fullTerminations(a,b,c)----------
-// Same as `terminations()` but closes the inputs and outputs of the bidirectional chain
-// (only the mixed output remains).
-// ### Usage
 // ```
-// terminations(a,b,c) : _
+//----------------------------------------
+terminations(a,b,c) = (_,ro.crossnn(1),_,_ : +,+,_ : b) ~ (a,c : ro.crossnn(1));
+
+//-------`leftTermination`----------
+// Creates a termination on the left side of a [`chain`](#chain) without
+// closing the inputs and outputs of the bidirectional signals chain. This
+// function adds a 1 sample delay near the termination and can be nested
+// within another [`chain`](#chain).
+//
+// #### Usage
+//
+// ```
+// leftTerminations(a,b)
 // with{
 //		a = *(-1); // left termination
-//		b = chain(D:E:F); // bidirectional chain of blocks (D, E, F, etc.)
+//		b = chain(D : E : F); // bidirectional chain of blocks (D, E, F, etc.)
+// };
+// ```
+//----------------------------------------
+lTermination(a,b) = (ro.crossnn(1),_,_ : _,+,_ : b) ~ a;
+
+//-------`rTermination`----------
+// Creates a termination on the right side of a [`chain`](#chain) without
+// closing the inputs and outputs of the bidirectional signals chain. This
+// function adds a 1 sample delay near the termination and can be nested
+// within another [`chain`](#chain).
+//
+// #### Usage
+//
+// ```
+// rTerminations(b,c)
+// with{
+//		b = chain(D : E : F); // bidirectional chain of blocks (D, E, F, etc.)
 //		c = *(-1); // right termination
 // };
-// ```  
-// ### Requires
-// `routes.lib` (`crossnn`)
+// ```
 //----------------------------------------
-fullTerminations(a,b,c) = 0,0,0 : terminations(a,b,c) : !,!,_;
+rTermination(b,c) = (_,_,_,_ : +,_,_ : b) ~ (!,c);
 
-//-------leftTermination(a,b)----------
-// Creates a termination on the left side of a `chain()` without closing the inputs and 
-// outputs of the bidirectional signals chain. This function adds a 1 sample delay near
-// the termination.
-// ### Usage
+//-------`closeIns`----------
+// Closes the inputs of a bidirectional chain in all directions.
+//
+// #### Usage
+//
 // ```
-// rightGoingWaves,leftGoingWaves,mixedOutput : terminations(a,b) : rightGoingWaves,leftGoingWaves,mixedOutput
-// with{
-//		a = *(-1); // left termination
-//		b = chain(D:E:F); // bidirectional chain of blocks (D, E, F, etc.)
-// };
-// ```  
-// ### Requires
-// `routes.lib` (`crossnn`)
+// closeIns : chain(...) : 	_,_,_
+// ```
 //----------------------------------------
-leftTermination(a,b) = 0,0,0 : terminations(a,b,*(0));
+closeIns = 0,0,0;
 
-//-------rightTermination(b,c)----------
-// Creates a termination on the right side of a `chain()` without closing the inputs and 
-// outputs of the bidirectional signals chain. This function adds a 1 sample delay near
-// the termination.
-// ### Usage
+//-------`closeOuts`----------
+// Closes the outputs of a bidirectional chain in all directions except for the
+// main signal output (3d output).
+//
+// #### Usage
+//
 // ```
-// rightGoingWaves,leftGoingWaves,mixedOutput : terminations(b,c) : rightGoingWaves,leftGoingWaves,mixedOutput
-// with{
-//		b = chain(D:E:F); // bidirectional chain of blocks (D, E, F, etc.)
-//		c = *(-1); // right termination
-// };
-// ```  
-// ### Requires
-// `routes.lib` (`crossnn`)
+// _,_,_ : chain(...) : _
+// ```
 //----------------------------------------
-rightTermination(b,c) = terminations(*(0),b,c) : !,!,_;
+closeOuts = !,!,_;
 
-//-------waveguide(nMax,n)----------
-// A simple waveguide block based on a 4th order fractional delay.
-// ### Usage
+//-------`endChain`----------
+// Closes the inputs and outputs of a bidirectional chain in all directions
+// except for the main signal output (3d output).
+//
+// #### Usage
+//
 // ```
-// rightGoingWaves,leftGoingWaves,mixedOutput : waveguide(nMax,n) : rightGoingWaves,leftGoingWaves,mixedOutput
+// endChain(chain(...)) : _
 // ```
-// With: 
-// * `nMax`: the maximum length of the waveguide in samples
-// * `n` the length of the waveguide in samples. 
-// ### Requires
-// `delays.lib` (`fdelay4`)
+//----------------------------------------
+endChain(b) = closeIns : b : closeOuts;
+
+
+//==================================Basic Elements========================================
+// Basic elements for physical modeling (e.g., waveguides, specific filters,
+// etc.).
+//========================================================================================
+
+//-------`waveguideN`----------
+// A series of waveguide functions based on various types of delays (see
+// [`fdelay[n]`](#fdelayn)).
+//
+// #### List of functions
+//
+// * `waveguideUd`: unit delay waveguide
+// * `waveguideFd`: fractional delay waveguide
+// * `waveguideFd2`: second order fractional delay waveguide
+// * `waveguideFd4`: fourth order fractional delay waveguide
+//
+// #### Usage
+//
+// ```
+// chain(A : waveguideUd(nMax,n) : B)
+// ```
+//
+// Where:
+//
+// * `nMax`: the maximum length of the delays in the waveguide
+// * `n`: the length of the delay lines in samples.
 //----------------------------------
-waveguide(nMax,n) = de.fdelay4(nMax,n),de.fdelay4(nMax,n),_;
+waveguideUd(nMax,n) = par(i,2,de.delay(nMax,n)),_;
+waveguideFd(nMax,n) = par(i,2,de.fdelay(nMax,n)),_;
+waveguideFd2(nMax,n) = par(i,2,de.fdelay2(nMax,n)),_;
+waveguideFd4(nMax,n) = par(i,2,de.fdelay4(nMax,n)),_;
 
-//-------idealString(length,reflexion,xPosition,x)----------
-// An ideal string with rigid terminations and where the plucking position and the 
-// pick-up position are the same. 
-// ### Usage
+//-------`waveguide`----------
+// Standard `pm.lib` waveguide (based on [`waveguideFd4`](#waveguiden)).
+//
+// #### Usage
+//
 // ```
-// 1-1' : idealString(length,reflexion,xPosition,x)
+// chain(A : waveguide(nMax,n) : B)
 // ```
+//
+// Where:
+//
+// * `nMax`: the maximum length of the delays in the waveguide
+// * `n`: the length of the delay lines in samples.
+//----------------------------------
+waveguide(nMax,n) = waveguideFd4(nMax,n);
+
+//-------`bridgeFilter`----------
+// "Generic" two zeros bridge FIR filter (as implemented in the
+// [STK](https://ccrma.stanford.edu/software/stk/)) that can be used to
+// implement the reflectance violin, guitar, etc. bridges.
+//
+// #### Usage
+//
+// ```
+// _ : bridge(brightness,absorption) : _
+// ```
+//
+// Where:
+//
+// * `brightness`: controls the damping of high frequencies (0-1)
+// * `absorption`: controls the absorption of the brige and thus the t60 of
+// the string plugged to it (0-1) (1 = 20 seconds)
+//----------------------------------
+// TODO: perhaps, the coefs of this filter should be adapted in function of SR
+bridgeFilter(brightness,absorption,x) = rho * (h0 * x' + h1*(x+x''))
+with{
+	freq = 320;
+  t60 = (1-absorption)*20;
+	h0 = (1.0 + brightness)/2;
+	h1 = (1.0 - brightness)/4;
+	rho = pow(0.001,1.0/(freq*t60));
+};
+
+//========================Basic String Instruments Elements===============================
+// Low and high level basic string instruments parts. Most of the elements in
+// this section can be used in a bidirectional chain.
+//========================================================================================
+
+//-------`stringSegment`----------
+// A string segment without terminations (jsut a simple waveguide).
+//
+// #### Usage
+//
+// ```
+// chain(A : stringSegment(maxLength,length) : B)
+// ```
+//
+// Where:
+//
+// * `maxLength`: the maximum length of the string in meters (should be static)
+// * `length`: the length of the string in meters
+//----------------------------------
+stringSegment(maxLength,length) = waveguide(nMax,n)
+with{
+	nMax = maxLength : l2s;
+	n = length : l2s/2;
+};
+
+//-------`openString`----------
+// A bidirectional block implementing a basic "generic" string with a
+// selectable excitation position. Lowpass filters are built-in and
+// allow to simulate the effect of dispersion on the sound and thus
+// to change the "stiffness" of the string.
+//
+// #### Usage
+//
+// ```
+// chain(... : openString(length,stiffness,pluckPosition,excitation) : ...)
+// ```
+//
+// Where:
+//
+// * `length`: the length of the string in meters
+// * `stiffness`: the stiffness of the string (0-1) (1 for max stiffness)
+// * `pluckPosition`: excitation position (0-1) (1 is bottom)
+// * `excitation`: the excitation signal
+//----------------------------------
+openString(length,stiffness,pluckPosition,excitation) = chain(stringSegment(maxStringLength,ntbd) : in(excitation) : dispersionFilters : stringSegment(maxStringLength,btbd))
+with{
+  dispersionFilters = par(i,2,si.smooth(stiffness)),_; // one pole filters
+  maxStringLength = maxLength;
+  ntbd = length*pluckPosition; // length of the upper portion of the string
+	btbd = length*(1-pluckPosition); // length of the lower portion of the string
+};
+
+//-------`nylonString`----------
+// A bidirectional block implementing a basic nylon string with selectable
+// excitation position. This element is based on [`openString`](#openstring)
+// and has a fix stiffness corresponding to that of a nylon string.
+//
+// #### Usage
+//
+// ```
+// chain(... : nylonString(length,pluckPosition,excitation) : ...)
+// ```
+//
+// Where:
+//
+// * `length`: the length of the string in meters
+// * `pluckPosition`: excitation position (0-1) (1 is bottom)
+// * `excitation`: the excitation signal
+//----------------------------------
+nylonString(length,pluckPosition,excitation) =
+openString(length,stiffness,pluckPosition,excitation)
+with{
+	stiffness = 0.4; // empirically set but it sounds good ;)
+};
+
+//-------`steelString`----------
+// A bidirectional block implementing a basic nylon string with selectable
+// excitation position. This element is based on [`openString`](#openstring)
+// and has a fix stiffness corresponding to that of a steel string.
+//
+// #### Usage
+//
+// ```
+// chain(... : steelString(length,pluckPosition,excitation) : ...)
+// ```
+//
+// Where:
+//
+// * `length`: the length of the string in meters
+// * `pluckPosition`: excitation position (0-1) (1 is bottom)
+// * `excitation`: the excitation signal
+//----------------------------------
+steelString(length,pluckPosition,excitation) =
+openString(length,stiffness,pluckPosition,excitation)
+with{
+	stiffness = 0.05; // empirically set but it sounds good ;)
+	// in fact, we could almost get rid of the filters in that case,
+	// but I think it's good to keep them for consistency
+};
+
+//-------`openStringPick`----------
+// A bidirectional block implementing a "generic" string with selectable
+// excitation position. It also has a built-in pickup whose position is the
+// same as the excitation position. Thus, moving the excitation position
+// will also move the pickup.
+//
+// #### Usage
+//
+// ```
+// chain(... : openStringPick(length,stiffness,pluckPosition,excitation) : ...)
+// ```
+//
+// Where:
+//
+// * `length`: the length of the string in meters
+// * `stiffness`: the stiffness of the string (0-1) (1 for max stiffness)
+// * `pluckPosition`: excitation position (0-1) (1 is bottom)
+// * `excitation`: the excitation signal
+//----------------------------------
+openStringPick(length,stiffness,pluckPosition,excitation) = strChain
+with{
+  dispersionFilters = par(i,2,si.smooth(stiffness)),_;
+  maxStringLength = maxLength;
+  nti = length*pluckPosition; // length of the upper portion of the string
+  itb = length*(1-pluckPosition); // length of the lower portion of the string
+  strChain = chain(stringSegment(maxStringLength,nti) : in(excitation) : out :
+	dispersionFilters : stringSegment(maxStringLength,itb));
+};
+
+//-------`openStringPickUp`----------
+// A bidirectional block implementing a "generic" string with selectable
+// excitation position and stiffness. It also has a built-in pickup whose
+// position can be independenly selected. The only constraint is that the
+// pickup has to be placed after the excitation position.
+//
+// #### Usage
+//
+// ```
+// chain(... : openStringPickUp(length,stiffness,pluckPosition,excitation) : ...)
+// ```
+//
+// Where:
+//
+// * `length`: the length of the string in meters
+// * `stiffness`: the stiffness of the string (0-1) (1 for max stiffness)
+// * `pluckPosition`: pluck position between the top of the string and the
+// pickup (0-1) (1 for same as pickup position)
+// * `pickupPosition`: position of the pickup on the string (0-1) (1 is bottom)
+// * `excitation`: the excitation signal
+//----------------------------------
+openStringPickUp(length,stiffness,pluckPosition,pickupPosition,excitation) = strChain
+with{
+  dispersionFilters = par(i,2,si.smooth(stiffness)),_;
+  maxStringLength = maxLength;
+  nti = length*pluckPosition; // top to excitation length
+  nto = nti*pickupPosition; // nuts to pickup length
+  oti = nti*(1-pickupPosition); // pickup to excitation length
+  itb = length*(1-pluckPosition); // pickup to bottom length
+  strChain = chain(stringSegment(maxStringLength,nto) : out :
+	stringSegment(maxStringLength,oti) : in(excitation) : dispersion :
+	stringSegment(maxStringLength,itb));
+};
+
+//-------`openStringPickDown`----------
+// A bidirectional block implementing a "generic" string with selectable
+// excitation position and stiffness. It also has a built-in pickup whose
+// position can be independenly selected. The only constraint is that the
+// pickup has to be placed before the excitation position.
+//
+// #### Usage
+//
+// ```
+// chain(... : openStringPickDown(length,stiffness,pluckPosition,excitation) : ...)
+// ```
+//
+// Where:
+//
+// * `length`: the length of the string in meters
+// * `stiffness`: the stiffness of the string (0-1) (1 for max stiffness)
+// * `pluckPosition`: pluck position on the string (0-1) (1 is bottom)
+// * `pickupPosition`: position of the pickup between the top of the string
+// and the excitation position (0-1) (1 is excitation position)
+// * `excitation`: the excitation signal
+//----------------------------------
+openStringPickDown(length,stiffness,pluckPosition,pickupPosition,excitation) =
+strChain
+with{
+  dispersionFilters = par(i,2,si.smooth(stiffness)),_;
+  maxStringLength = maxLength;
+  nto = length*pickupPosition; // top to pickup length
+  nti = nto*pluckPosition; // top to excitation length
+  ito = nto*(1-pluckPosition); // excitation to pickup length
+  otb = length*(1-pickupPosition); // pickup to bottom length
+  strChain = chain(stringSegment(maxStringLength,nti) : in(excitation) :
+	stringSegment(maxStringLength,ito) : out : dispersionFilters :
+	stringSegment(maxStringLength,otb));
+};
+
+// TODO: eventually, we'd want to implement a generic function here that
+// automatically switches the position of elements in the algorithm
+// depending on the position of the pick. Even though this is currently
+// possible, it will pose optimization issues (we'd want the new mute
+// feature of Faust to be generalized in order to do that)
+
+//-------`ksReflexionFilter`----------
+// The "typical" one-zero Karplus-strong feedforward reflexion filter. This
+// filter will be typically used in a termination (see below).
+//
+// #### Usage
+//
+// ```
+// terminations(_,chain(...),ksReflexionFilter)
+// ```
+//----------------------------------
+ksReflexionFilter = _ <: (_+_')/2;
+
+//-------`rStringRigidTermination`----------
+// Bidirectional block implementing a right rigid string termination (no damping,
+// just phase inversion).
+//
+// #### Usage
+//
+// ```
+// chain(rStringRigidTermination : stringSegment : ...)
+// ```
+//----------------------------------
+rStringRigidTermination = rTermination(basicBlock,*(-1));
+
+//-------`lStringRigidTermination`----------
+// Bidirectional block implementing a left rigid string termination (no damping,
+// just phase inversion).
+//
+// #### Usage
+//
+// ```
+// chain(... : stringSegment : lStringRigidTermination)
+// ```
+//----------------------------------
+lStringRigidTermination = lTermination(*(-1),basicBlock);
+
+//-------`elecGuitarBridge`----------
+// Bidirectional block implementing a simple electric guitar bridge. This
+// block is based on [`bridgeFilter`](#bridgeFilter). The bridge doesn't
+// implement transmittance since it is not meant to be connected to a
+// body (unlike acoustic guitar). It also partially sets the resonance
+// duration of the string with the nuts used on the other side.
+//
+// #### Usage
+//
+// ```
+// chain(... : stringSegment : elecGuitarBridge)
+// ```
+//----------------------------------
+elecGuitarBridge = rTermination(basicBlock,-bridgeFilter(0.8,0.6));
+
+//-------`elecGuitarNuts`----------
+// Bidirectional block implementing a simple electric guitar nuts. This
+// block is based on [`bridgeFilter`](#bridgeFilter) and does essentially
+// the same thing as [`elecGuitarBridge`](#elecguitarbridge), but on the
+// other side of the chain. It also partially sets the resonance duration of
+// the string with the bridge used on the other side.
+//
+// #### Usage
+//
+// ```
+// chain(elecGuitarNuts : stringSegment : ...)
+// ```
+//----------------------------------
+elecGuitarNuts = lTermination(-bridgeFilter(0.8,0.6),basicBlock);
+
+//-------`guitarBridge`----------
+// Bidirectional block implementing a simple acoustic guitar bridge. This
+// bridge damps more hight frequencies than
+// [`elecGuitarBridge`](#elecguitarbridge) and implements a transmittance
+// filter. It also partially sets the resonance duration of the string with
+// the nuts used on the other side.
+//
+// #### Usage
+//
+// ```
+// chain(... : stringSegment : guitarBridge)
+// ```
+//----------------------------------
+guitarBridge = rTermination(basicBlock,reflectance) : _,transmittance,_
+with{
+	reflectance = -bridgeFilter(0.4,0.5);
+	transmittance = _; // TODO
+};
+
+//-------`guitarNuts`----------
+// Bidirectional block implementing a simple acoustic guitar nuts. This
+// nuts damps more hight frequencies than
+// [`elecGuitarNuts`](#elecguitarnuts) and implements a transmittance
+// filter. It also partially sets the resonance duration of the string with
+// the bridge used on the other side.
+//
+// #### Usage
+//
+// ```
+// chain(guitarNuts : stringSegment : ...)
+// ```
+//----------------------------------
+guitarNuts = lTermination(-bridgeFilter(0.4,0.5),basicBlock);
+
+//-------`idealString`----------
+// An "ideal" string with rigid terminations and where the plucking position
+// and the pick-up position are the same. Since terminations are rigid, this
+// string will ring forever.
+//
+// #### Usage
+//
+// ```
+// 1-1' : idealString(length,reflexion,xPosition,excitation)
+// ```
+//
 // With:
 // * `length`: the length of the string in meters
-// * `reflexion`: the coefficient of reflexion (0-0.99999999)
 // * `pluckPosition`: the plucking position (0.001-0.999)
-// * `x`: the input signal for the excitation
-// ### Requires
-// `routes.lib` (`crossnn`)
-// `delays.lib` (`fdelay4`)
+// * `excitation`: the input signal for the excitation
 //----------------------------------------------------------
-idealString(length,reflexion,pluckPosition,x) = fullTerminations(term,wg,term)
+idealString(length,pluckPosition,excitation) = wg
 with{
-	nMax = 512; // each segment of the string can't be longer than that
-	N = length*ma.SR/320-8; // length (meters) to samples
-	nUp = N/2*pluckPosition : max(1); // upper string segment length
-	nDown = N/2*(1-pluckPosition) : max(1); // lower string segment length
-	wg = chain(waveguide(nMax,nUp) : input(x) : output : waveguide(nMax,nDown)); // waveguide chain
-	term = *(-reflexion); // terminations
+	maxStringLength = maxLength;
+	lengthTuning = 0.08; // tuned "by hand"
+	tunedLength = length-lengthTuning;
+	nUp = tunedLength*pluckPosition; // upper string segment length
+	nDown = tunedLength*(1-pluckPosition); // lower string segment length
+	wg = chain(lStringRigidTermination : stringSegment(maxStringLength,nUp) :
+	in(excitation) : out : stringSegment(maxStringLength,nDown) :
+	rStringRigidTermination); // waveguide chain
+};
+
+//-------`ks`----------
+// A Karplus-Strong string (in that case, the string is implemented as a
+// one dimension waveguide).
+//
+// #### Usage
+//
+// ```
+// ks(length,damping,excitation) : _
+// ```
+//
+// Where:
+//
+// * `length`: the length of the string in meters
+// * `damping`: string damping (0-1)
+// * `excitation`: excitation signal
+//----------------------------------
+ks(length,damping,excitation) = endChain(ksChain)
+with{
+	maxStringLength = maxLength;
+	lengthTuning = 0.05; // tuned "by hand"
+	tunedLength = length-lengthTuning;
+	refCoef = (1-damping)*0.2+0.8;
+	refFilter = ksReflexionFilter*refCoef;
+	ksChain = terminations(_,chain(in(excitation) :
+	stringSegment(maxStringLength,tunedLength) : out),refFilter);
+};
+
+//-------`ks_ui_MIDI`----------
+// Ready-to-use, MIDI-enabled Karplus-Strong string with buil-in UI.
+//
+// #### Usage
+//
+// ```
+// ks_ui_MIDI : _
+// ```
+//----------------------------------
+ks_ui_MIDI = gate : impulseExcitation : ks( (freq : f2l), damping )
+with{
+	f = hslider("v:karplus/h:[0]params/[0]freq[style:knob]",440,50,1000,0.01);
+	bend = hslider("v:karplus/h:[0]params/[1]bend[style:knob][hide:1][midi:pitchwheel]"
+	,1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+	gain = hslider("v:karplus/h:[0]params/[2]gain[style:knob]",0.8,0,1,0.01);
+	s = hslider("v:karplus/h:[0]params/[3]sustain[hide:1][midi:ctrl 64][style:knob]"
+	,0,0,1,1);
+	damping = hslider("v:karplus/h:[0]params/[1]damping[midi:ctrl 1][style:knob]"
+	,0.01,0,1,0.01) : si.smoo;
+	t = button("v:karplus/[1]gate");
+
+	gate = t+s : min(1);
+	freq = f*bend;
+};
+
+//-------`elecGuitarModel`----------
+// A simple electric guitar model (without audio effects, of course) with
+// selectable pluck position.
+// This model implements a single string. Additional strings should be created
+// by making a polyphonic applications out of this function. Pitch is changed by
+// changing the length of the string and not through a finger model.
+//
+// #### Usage
+//
+// ```
+// elecGuitarModel(length,pluckPosition,excitation) : _
+// ```
+//
+// Where:
+//
+// * `length`: the length of the string in meters
+// * `pluckPosition`: pluck position (0-1) (1 is on the bridge)
+// * `excitation`: excitation signal
+//----------------------------------
+elecGuitarModel(length,pluckPosition,excitation) = endChain(egChain)
+with{
+  maxStringLength = maxLength;
+	lengthTuning = 0.11; // tuned "by hand"
+	stringL = length-lengthTuning;
+  egChain = chain(elecGuitarNuts :
+		openStringPick(stringL,0.05,pluckPosition,excitation) : elecGuitarBridge);
+};
+
+//-------`elecGuitar`----------
+// A simple electric guitar model with steel strings (based on
+// [`elecGuitarModel`](#elecguitarmodel)) implementing an excitation
+// model.
+// This model implements a single string. Additional strings should be created
+// by making a polyphonic applications out of this function.
+//
+// #### Usage
+//
+// ```
+// elecGuitar(length,pluckPosition,trigger) : _
+// ```
+//
+// Where:
+//
+// * `length`: the length of the string in meters
+// * `pluckPosition`: pluck position (0-1) (1 is on the bridge)
+// * `trigger`: trigger signal (1 for on, 0 for off)
+//----------------------------------
+elecGuitar(stringLength,pluckPosition,trigger) =
+pluckString(stringLength,1,1,1,trigger) : elecGuitarModel(stringLength, pluckPosition);
+
+//-------`elecGuitar_ui_MIDI`----------
+// Ready-to-use MIDI-enabled electric guitar physical model with built-in UI.
+//
+// #### Usage
+//
+// ```
+// elecGuitar_ui_MIDI : _
+// ```
+//----------------------------------
+elecGuitar_ui_MIDI = elecGuitar(stringLength,pluckPosition,gate)*outGain
+with{
+	f = hslider("v:elecGuitar/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
+	bend = hslider("v:elecGuitar/h:[0]midi/[1]bend[hide:1][midi:pitchwheel][style:knob]"
+	,1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+	gain = hslider("v:elecGuitar/h:[0]midi/[2]gain[style:knob]",0.8,0,1,0.01);
+	s = hslider("v:elecGuitar/h:[0]midi/[3]sustain[hide:1]
+	[midi:ctrl 64][style:knob]",0,0,1,1);
+  pluckPosition = hslider("v:elecGuitar/[1]pluckPosition[midi:ctrl 1]",0.8,0,1,0.01) : si.smoo;
+  outGain = hslider("v:elecGuitar/[2]outGain",0.5,0,1,0.01);
+	t = button("v:elecGuitar/[3]gate");
+	gate = t+s : min(1);
+	freq = f*bend;
+  stringLength = freq : f2l;
+};
+
+//-------`guitarBody`----------
+// WARNING: not implemented yet!
+// Bidirectional block implementing a simple acoustic guitar body.
+//
+// #### Usage
+//
+// ```
+// chain(... : guitarBody)
+// ```
+//----------------------------------
+// TODO: not implemented yet
+guitarBody = reflectance,transmittance,_
+with{
+	transmittance = _;
+	reflectance = _;
+};
+
+//-------`guitarModel`----------
+// A simple acoustic guitar model with steel strings and selectable excitation
+// position. This model implements a single string. Additional strings should be created
+// by making a polyphonic applications out of this function. Pitch is changed by
+// changing the length of the string and not through a finger model.
+// WARNING: this function doesn't currently implement a body (just srings and
+// bridge)
+//
+// #### Usage
+//
+// ```
+// guitarModel(length,pluckPosition,excitation) : _
+// ```
+//
+// Where:
+//
+// * `length`: the length of the string in meters
+// * `pluckPosition`: pluck position (0-1) (1 is on the bridge)
+// * `excitation`: excitation signal
+//----------------------------------
+guitarModel(length,pluckPosition,excitation) = endChain(egChain)
+with{
+  maxStringLength = maxLength;
+	lengthTuning = 0.1; // tuned "by hand"
+	stringL = length-lengthTuning;
+  egChain = chain(guitarNuts : steelString(stringL,pluckPosition,excitation) :
+	guitarBridge : guitarBody : out);
+};
+
+//-------`guitar`----------
+// A simple acoustic guitar model with steel strings (based on
+// [`guitarModel`](#guitarmodel)) implementing an excitation model.
+// This model implements a single string. Additional strings should be created
+// by making a polyphonic applications out of this function.
+//
+// #### Usage
+//
+// ```
+// guitar(length,pluckPosition,trigger) : _
+// ```
+//
+// Where:
+//
+// * `length`: the length of the string in meters
+// * `pluckPosition`: pluck position (0-1) (1 is on the bridge)
+// * `trigger`: trigger signal (1 for on, 0 for off)
+//----------------------------------
+guitar(stringLength,pluckPosition,trigger) =
+pluckString(stringLength,1,1.5,1,trigger) : guitarModel(stringLength, pluckPosition);
+
+//-------`guitar_ui_MIDI`----------
+// Ready-to-use MIDI-enabled steel strings acoustic guitar physical model with
+// built-in UI.
+//
+// #### Usage
+//
+// ```
+// guitar_ui_MIDI : _
+// ```
+//----------------------------------
+guitar_ui_MIDI = guitar(stringLength,pluckPosition,gate)*outGain
+with{
+	f = hslider("v:guitar/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
+	bend = hslider("v:guitar/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+	gain = hslider("v:guitar/h:[0]midi/[2]gain[style:knob]",0.8,0,1,0.01);
+	s = hslider("v:guitar/h:[0]midi/[3]sustain[hide:1][midi:ctrl 64]
+	[style:knob]",0,0,1,1);
+  pluckPosition = hslider("v:guitar/pluckPosition[midi:ctrl 1]"
+	,0.8,0,1,0.01) : si.smoo;
+  outGain = hslider("v:guitar/outGain",0.5,0,1,0.01);
+	t = button("v:guitar/[4]gate");
+	gate = t+s : min(1);
+	freq = f*bend;
+  stringLength = freq : f2l;
+};
+
+//-------`nylonGuitarModel`----------
+// A simple acoustic guitar model with nylon strings and selectable excitation
+// position. This model implements a single string. Additional strings should be created
+// by making a polyphonic applications out of this function. Pitch is changed by
+// changing the length of the string and not through a finger model.
+// WARNING: this function doesn't currently implement a body (just srings and
+// bridge)
+//
+// #### Usage
+//
+// ```
+// nylonGuitarModel(length,pluckPosition,excitation) : _
+// ```
+//
+// Where:
+//
+// * `length`: the length of the string in meters
+// * `pluckPosition`: pluck position (0-1) (1 is on the bridge)
+// * `excitation`: excitation signal
+//----------------------------------
+nylonGuitarModel(length,pluckPosition,excitation) = endChain(egChain)
+with{
+  maxStringLength = maxLength; // meters
+	lengthTuning = 0.11;
+	stringL = length-lengthTuning;
+  egChain = chain(guitarNuts : nylonString(stringL,pluckPosition,excitation) :
+	guitarBridge : guitarBody : out);
+};
+
+//-------`nylonGuitar`----------
+// A simple acoustic guitar model with steel strings (based on
+// [`nylonGuitarModel`](#nylonguitarmodel)) implementing an excitation model.
+// This model implements a single string. Additional strings should be created
+// by making a polyphonic applications out of this function.
+//
+// #### Usage
+//
+// ```
+// nylonGuitar(length,pluckPosition,trigger) : _
+// ```
+//
+// Where:
+//
+// * `length`: the length of the string in meters
+// * `pluckPosition`: pluck position (0-1) (1 is on the bridge)
+// * `trigger`: trigger signal (1 for on, 0 for off)
+//----------------------------------
+nylonGuitar(stringLength,pluckPosition,trigger) =
+pluckString(stringLength,1,1.5,1,trigger) : nylonGuitarModel(stringLength, pluckPosition);
+
+//-------`nylonGuitar_ui_MIDI`----------
+// Ready-to-use MIDI-enabled nylon strings acoustic guitar physical model with
+// built-in UI.
+//
+// #### Usage
+//
+// ```
+// nylonGuitar_ui_MIDI : _
+// ```
+//----------------------------------
+nylonGuitar_ui_MIDI = nylonGuitar(stringLength,pluckPosition,gate)*outGain
+with{
+	f = hslider("v:nylonGuitar/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
+	bend = hslider("v:nylonGuitar/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+	gain = hslider("v:nylonGuitar/h:[0]midi/[2]gain[style:knob]",0.8,0,1,0.01);
+	s = hslider("v:nylonGuitar/h:[0]midi/[3]sustain[hide:1][midi:ctrl 64]
+	[style:knob]",0,0,1,1);
+  pluckPosition = hslider("v:nylonGuitar/pluckPosition[midi:ctrl 1]"
+	,0.8,0,1,0.01) : si.smoo;
+  outGain = hslider("v:nylonGuitar/outGain",0.5,0,1,0.01);
+	t = button("v:nylonGuitar/[4]gate");
+	gate = t+s : min(1);
+	freq = f*bend;
+  stringLength = freq : f2l;
+};
+
+//=========================Bowed String Instruments Elements==============================
+// Low and high level basic string instruments parts. Most of the elements in
+// this section can be used in a bidirectional chain.
+//========================================================================================
+
+//-------`bowTable`----------
+// Extremely basic bow table that can be used to implement a wide range of
+// bow types for many different bowed string instruments (violin, cello, etc.)
+//
+// #### Usage
+//
+// ```
+// excitation : bowTable(offeset,slope) : _
+// ```
+//
+// Where:
+//
+// * `excitation`: an excitation signal
+// * `offset`: table offset
+// * `slope`: table slope
+//----------------------------------
+bowTable(offset,slope) = pow(abs(sample) + 0.75, -4) : min(1)
+with{
+	sample = +(offset)*slope;
+};
+
+
+//-------`violinBowTable`----------
+// Violin bow table based on [`bowTable`](#bowtable).
+//
+// #### Usage
+//
+// ```
+// bowVelocity : violinBowTable(bowPressure) : _
+// ```
+//
+// Where:
+//
+// * `bowVelocity`: velocity of the bow/excitation signal (0-1)
+// * `bowPressure`: bow pressure on the string (0-1)
+//----------------------------------
+violinBowTable(bowPressure) = bowTable(0,tableSlope)
+with{
+	tableSlope = 5 - (4*bowPressure);
+};
+
+//-------`bowInteraction`----------
+// Bidirectional block implementing the interaction of a bow in a
+// [`chain`](#chain).
+//
+// #### Usage
+//
+// ```
+// chain(... : stringSegment : bowInteraction(bowTable) : stringSegment : ...)
+// ```
+//
+// Where:
+//
+// * `bowTable`: the bow table
+//----------------------------------
+bowInteraction(b) = (_,_ <: b,_,_ :> _,_),_;
+
+//-------`violinBow`----------
+// Bidirectional block implementing a violin bow and its interaction with
+// a string.
+//
+// #### Usage
+//
+// ```
+// chain(... : stringSegment : violinBow(bowPressure,bowVelocity) : stringSegment : ...)
+// ```
+//
+// Where:
+//
+// * `bowVelocity`: velocity of the bow / excitation signal (0-1)
+// * `bowPressure`: bow pressure on the string (0-1)
+//----------------------------------
+violinBow(bowPressure,bowVelocity) = bowInteraction(bowSystem)
+with{
+	bowSystem = + : bowVelocity-_ <: *(violinBowTable(bowPressure)) <: _,_;
+};
+
+//-------`violinBowedString`----------
+// Violin bowed string bidirectional block with controllable bow position.
+// Terminations are not implemented in this model.
+//
+// #### Usage
+//
+// ```
+// chain(nuts : violinBowedString(stringLength,bowPressure,bowVelocity,bowPosition) : bridge)
+// ```
+//
+// Where:
+//
+// * `stringLength`: the length of the string in meters
+// * `bowVelocity`: velocity of the bow / excitation signal (0-1)
+// * `bowPressure`: bow pressure on the string (0-1)
+// * `bowPosition`: the position of the bow on the string (0-1)
+//----------------------------------
+violinBowedString(stringLength,bowPressure,bowVelocity,bowPosition) =
+	chain(
+		stringSegment(maxStringLength,ntbd) :
+		violinBow(bowPressure,bowVelocity) :
+		stringSegment(maxStringLength,btbd)
+	)
+with{
+	maxStringLength = maxLength;
+	ntbd = stringLength*bowPosition; // upper portion of the string length
+	btbd = stringLength*(1-bowPosition); // lower portion of the string length
+};
+
+//-------`violinNuts`----------
+// Bidirectional block implementing simple violin nuts. This function is
+// based on [`bridgeFilter`](#bridgefilter).
+//
+// #### Usage
+//
+// ```
+// chain(violinNuts : stringSegment : ...)
+// ```
+//----------------------------------
+violinNuts = lTermination(-bridgeFilter(0.6,0.1),basicBlock);
+
+//-------`violinBridge`----------
+// Bidirectional block implementing a simple violin bridge. This function is
+// based on [`bridgeFilter`](#bridgefilter).
+//
+// #### Usage
+//
+// ```
+// chain(... : stringSegment : violinBridge
+// ```
+//----------------------------------
+// TODO:
+// 	* reflectance is not implemented yet
+violinBridge = rTermination(basicBlock,reflectance) : _,transmittance,_
+with{
+	reflectance = -bridgeFilter(0.2,0.9);
+	transmittance = _;
+};
+
+//-------`violinBody`----------
+// Bidirectional block implementing a simple violin body (just a simple
+// resonant lowpass filter).
+//
+// #### Usage
+//
+// ```
+// chain(... : stringSegment : violinBridge : violinBody)
+// ```
+//----------------------------------
+// TODO:
+// 	* reflectance is not implemented yet
+violinBody = reflectance,transmittance,_
+with{
+	transmittance = fi.resonbp(500,2,1);
+	reflectance = _;
+};
+
+//-------`violinModel`----------
+// Ready-to-use simple violin physical model. This model implements a single
+// string. Additional strings should be created
+// by making a polyphonic applications out of this function. Pitch is changed
+// by changing the length of the string (and not through a finger model).
+//
+// #### Usage
+//
+// ```
+// violinModel(stringLength,bowPressure,bowVelocity,bridgeReflexion,
+// bridgeAbsorption,bowPosition) : _
+// ```
+//
+// Where:
+//
+// * `stringLength`: the length of the string in meters
+// * `bowVelocity`: velocity of the bow / excitation signal (0-1)
+// * `bowPressure`: bow pressure on the string (0-1))
+// * `bowPosition`: the position of the bow on the string (0-1)
+//----------------------------------
+violinModel(stringLength,bowPressure,bowVelocity,bowPosition) =
+	endChain(modelChain)
+with{
+	stringTuning = 0.08;
+	stringL = stringLength-stringTuning;
+	modelChain = chain(
+		violinNuts :
+		violinBowedString(stringL,bowPressure,bowVelocity,bowPosition) :
+		violinBridge :
+		violinBody :
+		out
+	);
+};
+
+//-------`violinModel_ui`----------
+// Ready-to-use violin physical model with built-in UI.
+//
+// #### Usage
+//
+// ```
+// violinModel_ui : _
+// ```
+//----------------------------------
+violin_ui = violinModel(stringLength,bowPress,bowVel,bowPos)*outGain
+with{
+	stringLength = hslider("v:violin/v:[0]string/[0]length",0.75,0,2,0.01) : si.smoo;
+	bowVel = hslider("v:violin/v:[1]bow/[0]velocity",0,0,1,0.01) : si.smoo;
+	bowPress = hslider("v:violin/v:[1]bow/[1]pressure",0.5,0,1,0.01) : si.smoo;
+	bowPos = hslider("v:violin/v:[1]bow/[2]position",0.7,0,1,0.01) : si.smoo;
+	outGain = hslider("v:violin/outGain",0.5,0,1,0.01);
+};
+
+//-------`violin_ui_MIDI`----------
+// Ready-to-use MIDI-enabled violin physical model with built-in UI.
+//
+// #### Usage
+//
+// ```
+// violin_ui_MIDI : _
+// ```
+//----------------------------------
+violin_ui_MIDI = violinModel(stringLength,bowPress,bowVel,bowPos)*outGain
+with{
+	f = hslider("v:violin/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
+	bend = hslider("v:violin/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+	gain = hslider("v:violin/h:[0]midi/[2]gain[style:knob]
+	",0.6,0,1,0.01);
+	envAttack = hslider("v:violin/h:[0]midi/[3]envAttack[style:knob]
+	",1,0,30,0.01)*0.001;
+	s = hslider("v:violin/h:[0]midi/[4]sustain[hide:1][midi:ctrl 64]
+	[style:knob]",0,0,1,1);
+	bowPress = hslider("v:violin/h:[1]bow/[0]pressure[style:knob]
+	[midi:ctrl 1]",0.5,0,1,0.01) : si.smoo;
+	bowPos = hslider("v:violin/h:[1]bow/[1]position[style:knob]
+	",0.7,0,1,0.01) : si.smoo;
+	vibratoFreq = hslider("v:violin/h:[2]otherParams/[0]vibratoFrequency
+	[style:knob]",6,1,10,0.01);
+	vibratoGain = hslider("v:violin/h:[2]otherParams/[1]vibratoGain
+	[style:knob]",0.5,0,1,0.01)*0.01;
+	outGain = hslider("v:violin/h:[2]otherParams/[2]outGain[style:knob]
+	",0.5,0,1,0.01);
+	t = button("v:violin/[3]gate");
+
+	gate = t+s : min(1);
+	vibrato = 1+os.osc(vibratoFreq)*vibratoGain*envelope;
+	freq = f*bend*vibrato;
+	envelope = gate*gain : si.smooth(ba.tau2pole(envAttack));
+
+	stringLength = freq : f2l;
+	bowVel = envelope;
+};
+
+//===========================Wind Instrument Elements=====================================
+// Low and high level basic wind instruments parts. Most of the elements in
+// this section can be used in a bidirectional chain.
+//========================================================================================
+
+//-------`openTube`----------
+// A tube segment without terminations (same as [`stringSegment`](#stringsegment)).
+//
+// #### Usage
+//
+// ```
+// chain(A : openTube(maxLength,length) : B)
+// ```
+//
+// Where:
+//
+// * `maxLength`: the maximum length of the tube in meters (should be static)
+// * `length`: the length of the tube in meters
+//----------------------------------
+openTube = stringSegment;
+
+//-------`reedTable`----------
+// Extremely basic reed table that can be used to implement a wide range of
+// single reed types for many different instruments (saxophone, clarinet, etc.).
+//
+// #### Usage
+//
+// ```
+// excitation : reedTable(offeset,slope) : _
+// ```
+//
+// Where:
+//
+// * `excitation`: an excitation signal
+// * `offset`: table offset
+// * `slope`: table slope
+//----------------------------------
+reedTable(offset,slope) = reedTable : min(1) : max(-1)
+with {
+	reedTable = *(slope) + offset;
+};
+
+//-------`fluteJetTable`----------
+// Extremely basic flute jet table.
+//
+// #### Usage
+//
+// ```
+// excitation : fluteJetTable : _
+// ```
+//
+// Where:
+//
+// * `excitation`: an excitation signal
+//----------------------------------
+fluteJetTable = _ <: *(* : -(1)) : clipping
+with{
+  clipping = min(1) : max(-1);
+};
+
+//-------`brassLipsTable`----------
+// Simple brass lips/mouthpiece table. Since this implementation is very basic
+// and that the lips and tube of the instrument are coupled to each other, the
+// length of that tube must be provided here.
+//
+// #### Usage
+//
+// ```
+// excitation : brassLipsTable(tubeLength,lipsTension) : _
+// ```
+//
+// Where:
+//
+// * `excitation`: an excitation signal (can be DC)
+// * `tubeLength`: length in meters of the tube connected to the mouthpiece
+// * `lipsTension`: tension of the lips (0-1) (default: 0.5)
+//----------------------------------
+brassLipsTable(tubeLength,lipsTension) = *(0.03) : lipFilter <: * : clipping
+with{
+  clipping = min(1) : max(-1);
+  freq = (tubeLength : l2f)*pow(4,(2*lipsTension)-1);
+  filterR = 0.994009;
+  a1 = -2*filterR*cos(ma.PI*2*freq/ma.SR);
+  lipFilter = fi.tf2(1,0,0,a1,filterR); // resonance with same freq as tube
+};
+
+//-------`clarinetReed`----------
+// Clarinet reed based on [`reedTable`](#reedtable) with controllable
+// stiffness.
+//
+// #### Usage
+//
+// ```
+// excitation : clarinetReed(stiffness) : _
+// ```
+//
+// Where:
+//
+// * `excitation`: an excitation signal
+// * `stiffness`: reed stiffness (0-1)
+//----------------------------------
+clarinetReed(stiffness) = reedTable(0.7,tableSlope)
+with{
+	tableSlope = -0.44 + 0.26*stiffness;
+};
+
+//-------`clarinetMouthPiece`----------
+// Bidirectional block implementing a clarinet mouthpiece as well as the various
+// interactions happening with traveling waves. This element is ready to be
+// plugged to a tube...
+//
+// #### Usage
+//
+// ```
+// chain(clarinetMouthPiece(reedStiffness,pressure) : tube : etc.)
+// ```
+//
+// Where:
+//
+// * `pressure`: the pressure of the air flow (DC) created by the virtual performer (0-1).
+// This can also be any kind of signal that will directly injected in the mouthpiece
+// (e.g., breath noise, etc.)
+// * `reedStiffness`: reed stiffness (0-1)
+//----------------------------------
+clarinetMouthPiece(reedStiffness,pressure) = lTermination(reedInteraction,in(pressure))
+with{
+	reedInteraction = *(-1) <: *(clarinetReed(reedStiffness));
+};
+
+//-------`brassLips`----------
+// Bidirectional block implementing a brass mouthpiece as well as the various
+// interactions happening with traveling waves. This element is ready to be
+// plugged to a tube...
+//
+// #### Usage
+//
+// ```
+// chain(brassLips(tubeLength,lipsTension,pressure) : tube : etc.)
+// ```
+//
+// Where:
+//
+// * `tubeLength`: length in meters of the tube connected to the mouthpiece
+// * `lipsTension`: tension of the lips (0-1) (default: 0.5)
+// * `pressure`: the pressure of the air flow (DC) created by the virtual performer (0-1).
+// This can also be any kind of signal that will directly injected in the mouthpiece
+// (e.g., breath noise, etc.)
+//----------------------------------
+brassLips(tubeLength,lipsTension,pressure) = lTermination(mpInteraction,basicBlock)
+with{
+  absorption = *(0.85); // absorption coefficient
+  p = pressure*0.3; // scaling pressure
+  mpInteraction = absorption <:
+  (p-_ : brassLipsTable(tubeLength,lipsTension) <: *(p),1-_),_ : _,* : + : fi.dcblocker;
+};
+
+//-------`fluteEmbouchure`----------
+// Bidirectional block implementing a flute embouchure as well as the various
+// interactions happening with traveling waves. This element is ready to be
+// plugged between tubes segments...
+//
+// #### Usage
+//
+// ```
+// chain(... : tube : fluteEmbouchure(pressure) : tube : etc.)
+// ```
+//
+// Where:
+//
+// * `pressure`: the pressure of the air flow (DC) created by the virtual
+// performer (0-1).
+// This can also be any kind of signal that will directly injected in the
+// mouthpiece (e.g., breath noise, etc.)
+//----------------------------------
+fluteEmbouchure(pressure) =
+(_ <: _,_),_,_ : _,*(0.5)+(pressure-_*0.5 : fluteJetTable),_;
+
+//-------`wBell`----------
+// Generic wind instrument bell bidirectional block that should be placed at
+// the end of a [`chain`](#chain).
+//
+// #### Usage
+//
+// ```
+// chain(... : wBell(opening))
+// ```
+//
+// Where:
+//
+// * `opening`: the "opening" of bell (0-1)
+//----------------------------------
+wBell(opening) = rTermination(basicBlock,si.smooth(opening));
+
+//-------`fluteHead`----------
+// Simple flute head implementing waves reflexion.
+//
+// #### Usage
+//
+// ```
+// chain(fluteHead : tube : ...)
+// ```
+//----------------------------------
+fluteHead = lTermination(*(absorption),basicBlock)
+with{
+  absorption = 0.95; // same as for foot
+};
+
+//-------`fluteFoot`----------
+// Simple flute foot implementing waves reflexion and dispersion.
+//
+// #### Usage
+//
+// ```
+// chain(... : tube : fluteFoot)
+// ```
+//----------------------------------
+fluteFoot = rTermination(basicBlock,*(absorption) : dispersion)
+with{
+  dispersion = si.smooth(0.7); // just a simple lowpass
+  absorption = 0.95; // same as for head
+};
+
+//-------`clarinetModel`----------
+// A simple clarinet physical model without tone holes (pitch is changed by
+// changing the length of the tube of the instrument).
+//
+// #### Usage
+//
+// ```
+// clarinetModel(length,pressure,reedStiffness,bellOpening) : _
+// ```
+//
+// Where:
+//
+// * `tubeLength`: the length of the tube in meters
+// * `pressure`: the pressure of the air flow created by the virtual performer (0-1).
+// This can also be any kind of signal that will directly injected in the mouthpiece
+// (e.g., breath noise, etc.)
+// * `reedStiffness`: reed stiffness (0-1)
+// * `bellOpening`: the opening of bell (0-1)
+//----------------------------------
+clarinetModel(tubeLength,pressure,reedStiffness,bellOpening) = endChain(modelChain)
+with{
+	lengthTuning = 0.05; // empirical adjustment of the tuning of the tube
+	maxTubeLength = maxLength;
+	tunedLength = tubeLength/2-lengthTuning; // not really sure why we had to shift octave here
+	modelChain =
+		chain(
+			clarinetMouthPiece(reedStiffness,pressure) :
+			openTube(maxTubeLength,tunedLength) :
+			wBell(bellOpening) : out
+		);
+};
+
+//-------`clarinetModel_ui`----------
+// Same as [`clarinetModel`](#clarinetModel) but with a built-in UI. This function
+// doesn't implement a virtual "blower", thus `pressure` remains an argument here.
+//
+// #### Usage
+//
+// ```
+// clarinetModel_ui(pressure) : _
+// ```
+//
+// Where:
+//
+// * `pressure`: the pressure of the air flow created by the virtual performer (0-1).
+// This can also be any kind of signal that will be directly injected in the mouthpiece
+// (e.g., breath noise, etc.)
+//----------------------------------
+clarinetModel_ui(pressure) = clarinetModel(tubeLength,pressure,reedStiffness,bellOpening)*outGain
+with{
+	tubeLength = hslider("v:clarinetModel/[0]tubeLength",0.8,0.01,3,0.01) : si.smoo;
+	reedStiffness = hslider("v:clarinetModel/[1]reedStiffness",0.5,0,1,0.01);
+	bellOpening = hslider("v:clarinetModel/[2]bellOpening",0.5,0,1,0.01);
+	outGain = hslider("v:clarinetModel/[3]outGain",0.5,0,1,0.01);
+};
+
+//-------`clarinet_ui`----------
+// Ready-to-use clarinet physical model with built-in UI based on
+// [`clarinetModel`](#clarinetmodel).
+//
+// #### Usage
+//
+// ```
+// clarinet_ui : _
+// ```
+//----------------------------------
+clarinet_ui = hgroup("clarinet",blower_ui : clarinetModel_ui);
+
+//-------`clarinet_ui_MIDI`----------
+// Ready-to-use MIDI compliant clarinet physical model with built-in UI.
+//
+// #### Usage
+//
+// ```
+// clarinet_ui_MIDI : _
+// ```
+//----------------------------------
+clarinet_ui_MIDI =
+clarinetModel(tubeLength,blow,reedStiffness,bellOpening)*outGain
+with{
+	f = hslider("v:clarinet/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
+	bend = hslider("v:clarinet/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+	gain = hslider("v:clarinet/h:[0]midi/[2]gain[style:knob]
+	",0.6,0,1,0.01);
+	envAttack = hslider("v:clarinet/h:[0]midi/[3]envAttack[style:knob]
+	",1,0,30,0.01)*0.001;
+	s = hslider("v:clarinet/h:[0]midi/[4]sustain[hide:1][midi:ctrl 64]
+	[style:knob]",0,0,1,1);
+	reedStiffness = hslider("v:clarinet/h:[1]otherParams/[0]reedStiffness
+	[midi:ctrl 1][style:knob]",0.5,0,1,0.01);
+	bellOpening = hslider("v:clarinet/h:[1]otherParams/[1]bellOpening
+	[midi:ctrl 3][style:knob]",0.5,0,1,0.01);
+	vibratoFreq = hslider("v:clarinet/h:[1]otherParams/[2]vibratoFreq
+	[style:knob]",5,1,10,0.01);
+	vibratoGain = hslider("v:clarinet/h:[1]otherParams/[3]vibratoGain
+	[style:knob]",0.25,0,1,0.01)*0.01;
+	outGain = hslider("v:clarinet/h:[1]otherParams/[4]outGain[style:knob]
+	",0.5,0,1,0.01);
+	t = button("v:clarinet/[2]gate");
+
+	gate = t+s : min(1);
+	vibrato = 1+os.osc(vibratoFreq)*vibratoGain*envelope;
+	freq = f*bend*vibrato;
+	envelope = gate*gain : si.smooth(ba.tau2pole(envAttack));
+
+	tubeLength = freq : f2l;
+	pressure = envelope; // TODO: double vibrato here!!
+	blow = blower(pressure,0.05,2000,vibratoFreq,vibratoGain);
+};
+
+//-------`brassModel`----------
+// A simple generic brass instrument physical model without pistons
+// (pitch is changed by changing the length of the tube of the instrument).
+// This model is kind of hard to control and might not sound very good if
+// bad parameters are given to it...
+//
+// #### Usage
+//
+// ```
+// brassModel(tubeLength,lipsTension,mute,pressure) : _
+// ```
+//
+// Where:
+//
+// * `tubeLength`: the length of the tube in meters
+// * `lipsTension`: tension of the lips (0-1) (default: 0.5)
+// * `mute`: mute opening at the end of the instrument (0-1) (default: 0.5)
+// * `pressure`: the pressure of the air flow created by the virtual performer (0-1).
+// This can also be any kind of signal that will directly injected in the mouthpiece
+// (e.g., breath noise, etc.)
+//----------------------------------
+brassModel(tubeLength,lipsTension,mute,pressure) = endChain(brassChain)
+with{
+  maxTubeLength = maxLength;
+  lengthTuning = 0; // Not that important for that one because of lips tension
+  tunedLength = tubeLength + lengthTuning;
+  brassChain = chain(brassLips(tunedLength,lipsTension,pressure) : openTube(maxTubeLength,tunedLength) : wBell(mute) : out);
+};
+
+//-------`brassModel_ui`----------
+// Same as [`brassModel`](#brassModel) but with a built-in UI. This function
+// doesn't implement a virtual "blower", thus `pressure` remains an argument here.
+//
+// #### Usage
+//
+// ```
+// brassModel_ui(pressure) : _
+// ```
+//
+// Where:
+//
+// * `pressure`: the pressure of the air flow created by the virtual performer (0-1).
+// This can also be any kind of signal that will be directly injected in the mouthpiece
+// (e.g., breath noise, etc.)
+//----------------------------------
+brassModel_ui(pressure) = brassModel(tubeLength,lipsTension,mute,pressure)
+with{
+  tubeLength = hslider("v:brassModel/[1]tubeLength",0.5,0.01,2.5,0.01) : si.smoo;
+  lipsTension = hslider("v:brassModel/[2]lipsTension",0.5,0,1,0.01) : si.smoo;
+  mute = hslider("v:brassModel/[3]mute",0.5,0,1,0.01) : si.smoo;
+};
+
+//-------`brass_ui`----------
+// Ready-to-use brass instrument physical model with built-in UI based on
+// [`brassModel`](#brassmodel).
+//
+// #### Usage
+//
+// ```
+// brass_ui : _
+// ```
+//----------------------------------
+brass_ui = hgroup("brass",blower_ui : brassModel_ui);
+
+//-------`brass_ui_MIDI`----------
+// Ready-to-use MIDI-controllable brass instrument physical model with built-in UI.
+//
+// #### Usage
+//
+// ```
+// brass_ui_MIDI : _
+// ```
+//----------------------------------
+brass_ui_MIDI = brassModel(tubeLength,lipsTension,mute,pressure)*outGain
+with{
+  f = hslider("v:brass/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
+	bend = hslider("v:brass/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+	gain = hslider("v:brass/h:[0]midi/[2]gain[style:knob]
+	",0.5,0,1,0.01);
+	envAttack = hslider("v:brass/h:[0]midi/[3]envAttack[style:knob]
+	",1,0,30,0.01)*0.001;
+  s = hslider("v:brass/h:[0]midi/[4]sustain[hide:1][midi:ctrl 64]
+	[style:knob]",0,0,1,1);
+  lipsTension = hslider("v:brass/h:[1]otherParams/[0]lipsTension[style:knob]
+	[midi:ctrl 1]",0.5,0,1,0.01) : si.smoo;
+  mute = hslider("v:brass/h:[1]otherParams/[1]mute[style:knob]
+	",0.5,0,1,0.01) : si.smoo;
+  vibratoFreq = hslider("v:brass/h:[1]otherParams/[2]vibratoFreq[style:knob]
+	",5,1,10,0.01);
+  vibratoGain = hslider("v:brass/h:[1]otherParams/[3]vibratoGain[style:knob]
+	",0.5,0,1,0.01)*0.04;
+  outGain = hslider("v:brass/h:[1]otherParams/[4]outGain[style:knob]
+	",0.5,0,1,0.01);
+	t = button("v:brass/[2]gate");
+
+  gate = t+s : min(1);
+	vibrato = 1+os.osc(vibratoFreq)*vibratoGain*envelope;
+  freq = f*bend;
+	envelope = gate*gain : si.smooth(ba.tau2pole(envAttack));
+
+	tubeLength = freq : f2l;
+	pressure = envelope*vibrato;
+};
+
+//-------`fluteModel`----------
+// A simple generic brass instrument physical model without tone holes
+// (pitch is changed by changing the length of the tube of the instrument).
+//
+// #### Usage
+//
+// ```
+// fluteModel(tubeLength,lipsTension,mute,pressure) : _
+// ```
+//
+// Where:
+//
+// * `tubeLength`: the length of the tube in meters
+// * `mouthPosition`: position of the mouth on the embouchure (0-1) (default: 0.5)
+// * `pressure`: the pressure of the air flow created by the virtual performer (0-1).
+// This can also be any kind of signal that will directly injected in the mouthpiece
+// (e.g., breath noise, etc.)
+//----------------------------------
+// TODO: this model is out of tune and we're not really sure why
+fluteModel(tubeLength,mouthPosition,pressure) = endChain(fluteChain) : fi.dcblocker
+with{
+  maxTubeLength = maxLength;
+  tubeTuning = 0.27; // set "by hand"
+  tLength = tubeLength+tubeTuning; // global tube length
+  embouchurePos = 0.27 + (mouthPosition-0.5)*0.4; // position of the embouchure on the tube
+  tted = tLength*embouchurePos; // head to embouchure distance
+  eted = tLength*(1-embouchurePos); // embouchure to foot distance
+  fluteChain = chain(fluteHead : openTube(maxTubeLength,tted) : fluteEmbouchure(pressure) : openTube(maxTubeLength,eted) : fluteFoot : out);
+};
+
+//-------`fluteModel_ui`----------
+// Same as [`fluteModel`](#fluteModel) but with a built-in UI. This function
+// doesn't implement a virtual "blower", thus `pressure` remains an argument here.
+//
+// #### Usage
+//
+// ```
+// fluteModel_ui(pressure) : _
+// ```
+//
+// Where:
+//
+// * `pressure`: the pressure of the air flow created by the virtual performer (0-1).
+// This can also be any kind of signal that will be directly injected in the mouthpiece
+// (e.g., breath noise, etc.)
+//----------------------------------
+fluteModel_ui(pressure) =
+fluteModel(tubeLength,mouthPosition,pressure)*outGain
+with{
+  tubeLength = hslider("v:fluteModel/[0]tubeLength",0.8,0.01,3,0.01) : si.smoo;
+  mouthPosition = hslider("v:fluteModel/[1]mouthPosition",0.5,0,1,0.01) : si.smoo;
+  outGain = hslider("v:fluteModel/[2]outGain",0.5,0,1,0.01);
+};
+
+//-------`flute_ui`----------
+// Ready-to-use flute physical model with built-in UI based on
+// [`fluteModel`](#flutemodel).
+//
+// #### Usage
+//
+// ```
+// flute_ui : _
+// ```
+//----------------------------------
+flute_ui = hgroup("flute",blower_ui : fluteModel_ui);
+
+//-------`flute_ui_MIDI`----------
+// Ready-to-use MIDI-controllable flute physical model with built-in UI.
+//
+// #### Usage
+//
+// ```
+// brass_ui_MIDI : _
+// ```
+//----------------------------------
+flute_ui_MIDI = fluteModel(tubeLength,mouthPosition,blow)*outGain
+with{
+	f = hslider("v:flute/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
+	bend = hslider("v:flute/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+	gain = hslider("v:flute/h:[0]midi/[2]gain[style:knob]
+	",0.9,0,1,0.01);
+	envAttack = hslider("v:flute/h:[0]midi/[3]envAttack[style:knob]
+	",1,0,30,0.01)*0.001;
+	s = hslider("v:flute/h:[0]midi/[4]sustain[hide:1][midi:ctrl 64]
+	[style:knob]",0,0,1,1);
+	mouthPosition = hslider("v:flute/h:[1]otherParams/[0]mouthPosition
+	[style:knob][midi:ctrl 1]",0.5,0,1,0.01)
+	: si.smoo;
+	vibratoFreq = hslider("v:flute/h:[1]otherParams/[1]vibratoFreq[style:knob]
+	",5,1,10,0.01);
+	vibratoGain = hslider("v:flute/h:[1]otherParams/[2]vibratoGain[style:knob]
+	",0.5,0,1,0.01)*0.04;
+	outGain = hslider("v:flute/h:[1]otherParams/[3]outGain[style:knob]
+	",0.5,0,1,0.01);
+	t = button("v:flute/[2]gate");
+
+  gate = t+s : min(1);
+	freq = f*bend;
+	envelope = gate*gain : si.smooth(ba.tau2pole(envAttack));
+
+	tubeLength = freq : f2l;
+	pressure = envelope;
+	blow = blower(pressure,0.05,2000,vibratoFreq,vibratoGain);
+};
+
+
+//=====================================Exciters===========================================
+// Various kind of excitation signal generators.
+//========================================================================================
+
+//-------`impulseExcitation`--------------
+// Creates an impulse excitation of one sample.
+//
+// #### Usage
+//
+// ```
+// gate = button('gate');
+// impulseExcitation(gate) : chain;
+// ```
+//
+// Where:
+//
+// * `gate`: a gate button
+//--------------------------------------
+impulseExcitation(trigger) = trigger : ba.impulsify;
+
+//-------`pluckString`--------------
+// Creates a plucking excitation signal.
+//
+// #### Usage
+//
+// ```
+// trigger = button('gate');
+// pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)
+// ```
+//
+// Where:
+//
+// * `stringLength`: length of the string to pluck
+// * `cutoff`: cutoff ratio (1 for default)
+// * `maxFreq`: max frequency ratio (1 for default)
+// * `sharpness`: sharpness of the attack and release (1 for default)
+// * `trigger`: trigger signal (1 for on, 0 for off)
+//--------------------------------------
+pluckString(stringLength,cutoff,maxFreq,sharpness,trigger) = no.noise : fi.lowpass(2,cutoffreq) : *(en.ar(att,rel,trigger))
+with{
+  freq = stringLength : l2f;
+  maxF = 2000*maxFreq;
+  att = 0.002*sharpness*pow((1 - freq/maxF),2);
+  rel = att;
+  cutoffreq = freq*5*cutoff;
+};
+
+//-------`blower`--------------
+// A virtual blower creating a DC signal with some breath noise in it.
+//
+// #### Usage
+//
+// ```
+// blower(pressure,breathGain,breathCutoff) : _
+// ```
+//
+// Where:
+//
+// * `pressure`: pressure (0-1)
+// * `breathGain`: breath noise gain (0-1) (recommended: 0.005)
+// * `breathCutoff`: breath cuttoff frequency (Hz) (recommended: 2000)
+//--------------------------------------
+blower(pressure,breathGain,breathCutoff,vibratoFreq,vibratoGain) = pressure + vibrato + breathNoise
+with{
+	vibrato = os.osc(vibratoFreq)*vibratoGain;
+	breathNoise = no.noise : fi.lowpass(2,breathCutoff) : *(pressure*breathGain);
+};
+
+//-------`blower_ui`--------------
+// Same as [`blower`](#blower) but with a built-in UI.
+//
+// #### Usage
+//
+// ```
+// blower : somethingToBeBlown
+// ```
+//--------------------------------------
+blower_ui = blower(pressure,breathGain,breathCutoff,vibratoFreq,vibratoGain)
+with{
+	pressure = hslider("v:blower/[0]pressure",0,0,1,0.01) : si.smoo;
+	breathGain = hslider("v:blower/[1]breathGain",0.1,0,1,0.01)*0.05;
+	breathCutoff = hslider("v:blower/[2]breathCutoff",2000,20,20000,0.1);
+	vibratoFreq = hslider("v:blower/[3]vibratoFreq",5,0.1,10,0.1);
+	vibratoGain = hslider("v:blower/[4]vibratoGain",0.25,0,1,0.01)*0.03;
+};
+
+
+//============================Modal Percussions===========================================
+// High and low level functions for modal synthesis of percussion instruments.
+//========================================================================================
+
+marimbaBarModel(exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: par(i,nModes,*(modesGains(int(exPos),i)) : pm.modeFilter(modesFreqs(i),modesT60s(i))) :> /(nModes)
+with{
+	nModes = 50;
+	nExPos = 2;
+	modesFreqs(n) = ba.take(n+1,(47.8195,158.452,183.373,385.575,451.788,675.061,879.114,1004.7,1251.79,1386.5,1772.8,1810.94,1915.81,2278.31,2439.7,2507.18,2787.21,3038.86,3125.61,3201.93,3563.99,3763.01,3865.6,4302.7,4445.59,4552,4661.47,5289.8,5359.07,5443.11,5707.53,6075.21,6215.65,6324.54,6382.8,6912.24,7146.04,7270.12,7324.32,7440.56,7564.21,8038.7,8218.38,8342.78,8556.68,8678.38,8865.63,9103.33,9190.44,9348.95));
+	modesGains(p,n) = waveform{0.0581789,0.354741,0.0679581,0.345522,0.320777,0.254097,0.35614,0.278147,0.0929636,0.403697,0.348424,0.069827,0.287201,0.0495683,0.148762,0.196103,0.425653,0.352456,0.346197,0.240561,0.148939,0.159515,0.089124,0.403031,0.240545,0.335812,0.0786828,0.208771,0.240942,0.0584054,0.204908,0.367509,0.384008,0.298199,0.258605,0.128581,0.204788,0.112438,1,0.114999,0.271346,0.350472,0.140471,0.223433,0.137514,0.217152,0.230762,0.33643,0.123154,0.348086,1,0.776725,0.625723,0.855223,0.760159,0.698373,0.768011,0.641127,0.244034,0.707754,0.634013,0.247527,0.660849,0.450396,0.567783,0.106361,0.716814,0.66392,0.291208,0.310599,0.801495,0.635292,0.307435,0.874124,0.497668,0.487088,0.459115,0.733455,0.541818,0.441318,0.31392,0.40309,0.685353,0.60314,0.400552,0.453511,0.634386,0.291547,0.131605,0.368507,0.839907,0.60216,0.288296,0.57967,0.0242493,0.262746,0.368588,0.890284,0.408963,0.556072},int(p*nModes+n) : rdtable;
+	modesT60s(i) = t60*pow(1-(modesFreqs(i)/9370.47 - 0.00510321)*(t60DecayRatio + 0.00510321),t60DecaySlope);
+};
+
+//==============================Vocal Synthesis===========================================
+// Vocal synthesizer functions (source/filter, fof, etc.).
+//========================================================================================
+
+//-------`formantFilter`--------------
+// Formant filter based on a bank of resonant bandpass.
+// Formant parameters are linearly interpolated allowing to go smoothly from
+// one vowel to another. Voice type can be selected but must correspond to
+// the frequency range of the provided source to be realistic.
+//
+// The formant data used here come from the CSOUND manual
+// <http://www.csounds.com/manual/html/>.
+//
+// #### Usage
+//
+// ```
+// _ : formantFilter(voiceType,vowel) : _
+// ```
+//
+// Where:
+//
+// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor, 3:
+// soprano, 4: tenor)
+// * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)
+//--------------------------------------
+formantFilter(voiceType,vowel) =
+_ <: par(i,nFormants,fi.resonbp(f(i),f(i)/bw(i),g(i))) :> _
+with{
+	nFormants = 5;
+	f(0) = ba.listInterp( // formant 0 freqs
+    (800,400,350,450,325,600,400,250,400,350,660,440,270,430,370,
+  		800,350,270,450,325,650,400,290,400,350),(voiceType*nFormants)+vowel);
+	f(1) = ba.listInterp( // formant 1 freqs
+    (1150,1600,1700,800,700,1040,1620,1750,750,600,1120,1800,1850,820,630,
+      1150,2000,2140,800,700,1080,1700,1870,800,600),(voiceType*nFormants)+vowel);
+	f(2) = ba.listInterp( // formant 2 freqs
+    (2800,2700,2700,2830,2530,2250,2400,2600,2400,2400,2750,2700,2900,2700,2750,
+      2900,2800,2950,2830,2700,2650,2600,2800,2600,2700),(voiceType*nFormants)+vowel);
+	f(3) = ba.listInterp( // formant 3 freqs
+    (3500,3300,3700,3500,3500,2450,2800,3050,2600,2675,3000,3000,3350,3000,3000,
+      3900,3600,3900,3800,3800,2900,3200,3250,2800,2900),(voiceType*nFormants)+vowel);
+	f(4) = ba.listInterp( // formant 4 freqs
+    (4950,4950,4950,4950,4950,2750,3100,3340,2900,2950,3350,3300,3590,3300,3400,
+      4950,4950,4950,4950,4950,3250,3580,3540,3000,3300),(voiceType*nFormants)+vowel);
+  g(0) = 1; // formant 0 gains
+  g(1) = ba.listInterp( // formant 1 gains
+    (0.630957,0.063096,0.100000,0.354813,0.251189,0.446684,0.251189,0.031623,
+			0.281838,0.100000,0.501187,0.199526,0.063096,0.316228,0.100000,
+			0.501187,0.100000,0.251189,0.281838,0.158489,0.501187,0.199526,0.177828,
+			0.316228,0.100000),(voiceType*nFormants)+vowel);
+  g(2) = ba.listInterp( // formant 2 gains
+    (0.100000,0.031623,0.031623,0.158489,0.031623,0.354813,0.354813,0.158489,
+			0.089125,0.025119,0.070795,0.125893,0.063096,0.050119,0.070795,
+			0.025119,0.177828,0.050119,0.079433,0.017783,0.446684,0.251189,0.125893,
+			0.251189,0.141254),(voiceType*nFormants)+vowel);
+  g(3) = ba.listInterp( // formant 3 gains
+    (0.015849,0.017783,0.015849,0.039811,0.010000,0.354813,0.251189,0.079433,
+			0.100000,0.039811,0.063096,0.100000,0.015849,0.079433,0.031623,
+			0.100000,0.010000,0.050119,0.079433,0.010000,0.398107,0.199526,0.100000,
+			0.251189,0.199526),(voiceType*nFormants)+vowel);
+  g(4) = ba.listInterp( // formant 4 gains
+    (0.001000,0.001000,0.001000,0.001778,0.000631,0.100000,0.125893,0.039811,
+			0.010000,0.015849,0.012589,0.100000,0.015849,0.019953,0.019953,
+			0.003162,0.001585,0.006310,0.003162,0.001000,0.079433,0.100000,0.031623,
+			0.050119,0.050119),(voiceType*nFormants)+vowel);
+  bw(0) = ba.listInterp( // formant 0 bandwidths
+    (80,60,50,70,50,60,40,60,40,40,80,70,40,40,40,80,60,60,40,50,
+      50,70,40,70,40),(voiceType*nFormants)+vowel);
+  bw(1) = ba.listInterp( // formant 1 bandwidths
+    (90,80,100,80,60,70,80,90,80,80,90,80,90,80,60,90,100,90,80,60,
+      90,80,90,80,60),(voiceType*nFormants)+vowel);
+  bw(2) = ba.listInterp( // formant 2 bandwidths
+    (120,120,120,100,170,110,100,100,100,100,120,100,100,100,100,
+      120,120,100,100,170,120,100,100,100,100),(voiceType*nFormants)+vowel);
+  bw(3) = ba.listInterp( // formant 3 bandwidths
+    (130,150,150,130,180,120,120,120,120,120,130,120,120,120,120,
+      130,150,120,120,180,130,120,120,130,120),(voiceType*nFormants)+vowel);
+  bw(4) = ba.listInterp( // formant 4 bandwidths
+    (140,200,200,135,200,130,120,120,120,120,140,120,120,120,120,
+      140,200,120,120,200,140,120,120,135,120),(voiceType*nFormants)+vowel);
+};
+
+//-------`SFFormantModel`--------------
+// Simple formant/vocal synthesizer based on a source/filter model. The source
+// is just a sawtooth wave and the "filter" is a bank of resonant bandpass.
+// Formant parameters are linearly interpolated allowing to go smoothly from
+// one vowel to another. Voice type can be selected but must correspond to
+// the frequency range of the synthesized voice to be realistic.
+//
+// The formant data used here come from the CSOUND manual
+// <http://www.csounds.com/manual/html/>.
+//
+// #### Usage
+//
+// ```
+// SFFormantModel(voiceType,vowel,exType,freq,gain) : _
+// ```
+//
+// Where:
+//
+// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor, 3:
+// soprano, 4: tenor)
+// * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u
+// * `exType`: voice vs. fricative sound ratio (0-1 where 1 is 100% fricative)
+//--------------------------------------
+SFFormantModel(voiceType,vowel,exType,freq,gain) = excitation : formantFilter(voiceType,vowel)
+with{
+	voice = os.sawtooth(freq);
+	breath = no.noise;
+	excitation = voice*(1-exType) + breath*exType : *(gain);
+};
+
+//-------`SFFormantModel_ui`----------
+// Ready-to-use source-filter vocal synthesizer with built-in user interface.
+//
+// #### Usage
+//
+// ```
+// SFFormantModel_ui : _
+// ```
+//----------------------------------
+SFFormantModel_ui = SFFormantModel(voiceType,vowel,fricative,freq,gain)
+with{
+	f = hslider("v:vocal/[0]freq",440,50,1000,0.01);
+	gain = hslider("v:vocal/[1]gain",0.9,0,1,0.01);
+	voiceType = hslider("v:vocal/[2]voiceType",0,0,4,1);
+	vowel = hslider("v:vocal/[3]vowel",0,0,4,0.01) : si.smoo;
+	fricative = hslider("v:vocal/[4]fricative",0,0,1,0.01) : si.smoo;
+	vibratoFreq = hslider("v:vocal/[5]vibratoFreq",6,1,10,0.01);
+	vibratoGain = hslider("v:vocal/[6]vibratoGain",0.5,0,1,0.01)*0.1;
+
+	freq = f*(os.osc(vibratoFreq)*vibratoGain+1);
+};
+
+//-------`SFFormantModel_ui_MIDI`----------
+// Ready-to-use MIDI-controllable source-filter vocal synthesizer.
+//
+// #### Usage
+//
+// ```
+// SFFormantModel_ui_MIDI : _
+// ```
+//----------------------------------
+SFFormantModel_ui_MIDI = SFFormantModel(voiceType,vowel,fricative,freq,envelope)*outGain
+with{
+	f = hslider("v:vocal/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
+	bend = hslider("v:vocal/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+	gain = hslider("v:vocal/h:[0]midi/[2]gain[style:knob]
+	",0.9,0,1,0.01);
+	envAttack = hslider("v:vocal/h:[0]midi/[3]envAttack[style:knob]
+	",10,0,30,0.01)*0.001;
+	s = hslider("v:vocal/h:[0]midi/[4]sustain[hide:1][midi:ctrl 64]
+	[style:knob]",0,0,1,1);
+	voiceType = hslider("v:vocal/h:[1]otherParams/[0]voiceType
+	[style:knob]",0,0,4,1);
+	vowel = hslider("v:vocal/h:[1]otherParams/[1]vowel
+	[style:knob][midi:ctrl 1]",0,0,4,0.01) : si.smoo;
+	fricative = hslider("v:vocal/h:[1]otherParams/[2]fricative
+	[style:knob]",0,0,1,0.01) : si.smoo;
+	vibratoFreq = hslider("v:vocal/h:[1]otherParams/[3]vibratoFreq[style:knob]
+	",6,1,10,0.01);
+	vibratoGain = hslider("v:vocal/h:[1]otherParams/[4]vibratoGain[style:knob]
+	",0.5,0,1,0.01)*0.1;
+	outGain = hslider("v:vocal/h:[1]otherParams/[5]outGain[style:knob]
+	",0.5,0,1,0.01);
+	t = button("v:vocal/[2]gate");
+
+  gate = t+s : min(1);
+	freq = f*bend*(os.osc(vibratoFreq)*vibratoGain+1);
+	envelope = gate*gain : si.smooth(ba.tau2pole(envAttack));
+};
+
+//===============================Misc Functions===========================================
+// Various miscellaneous functions.
+//========================================================================================
+
+//-------`allpassNL`--------------
+// Bidirectional block adding nonlinearities in both directions in a chain.
+// Nonlinearities are created by modulating the coefficients of a passive
+// allpass filter by the signal it is processing.
+//
+// #### Usage
+//
+// ```
+// chain(... : allpassNL(nonlinearity) : ...)
+// ```
+//
+// Where:
+//
+// * `nonlinearity`: amount of nonlinearity to be added (0-1)
+//--------------------------------------
+allpassNL(nonlinearity) = par(i,2,nlf),_
+with{
+	nlf = _ <: fi.allpassn(2,par(i,2,*(nonlinearity)*ma.PI));
+};
+
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// UNCATEGORIZED FUNCTIONS (TODO)
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+// modeFilter
+modeFilter(f,t60) = fi.tf2(b0,b1,b2,a1,a2)
+with{
+	b0 = 1;
+	b1 = 0;
+	b2 = -1;
+	w = 2*ma.PI*f/ma.SR;
+	r = pow(0.001,1/float(t60*ma.SR));
+	a1 = -2*r*cos(w);
+	a2 = r^2;
+};
+
+// modalModel
+modalModel(n,modeFreqs,modeRes,modeGains) = _ <: par(i,n,gain(i)*modeFilter(freqs(i),res(i))) :> _
+with{
+	freqs(i) = take(i+1,modeFreqs);
+	res(i) = take(i+1,modeRes);
+	gain(i) = take(i+1,modeGains);
 };

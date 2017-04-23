@@ -1,0 +1,46 @@
+# Vega Makefile header for Linux
+
+OPTIMIZATIONFLAG=-O2
+#OPTIMIZATIONFLAG=-g
+
+#OPENMPFLAG=
+#OPENMPFLAG=-fopenmp -DUSE_OPENMP
+
+CXX=g++
+CXXFLAGS=-Wall -Wno-write-strings $(OPTIMIZATIONFLAG) $(OPENMPFLAG)
+CXXLD=$(CXX)
+LDFLAGS=$(OPTIMIZATIONFLAG) $(OPENMPFLAG)
+
+RM=rm -f
+DYLIB_FLAG=-shared
+DYLIB_EXT=so
+
+L=$(R)/libraries
+
+LIBRARIES_DIR=$(L)
+
+# argument $(1) is a list of library names (e.g. "integrator minivector")
+GET_LIB_MAKEFILES=$(addsuffix /Makefile, $(addprefix $(R)/libraries/, $(1)))
+GET_LIB_FILENAMES=$(join $(addprefix $(R)/libraries/, $(1)), $(addsuffix .a, $(addprefix /lib, $(notdir $(1)) )))
+
+INCLUDE=-I$(LIBRARIES_DIR)/include -I/usr/X11R6/include -I/usr/include -I/usr/include/mkl
+
+LIBRARYPATH=-L$(LIBRARIES_DIR)/lib -L/usr/X11R6/lib/ -L/usr/lib
+OPENGL_LIBS=-lGL
+STANDARD_LIBS= $(OPENGL_LIBS) -lm -lpthread $(LIBRARYPATH)
+
+# MKL paths
+PARDISO_EXT=intel64
+PARDISO_LIB_EXT=_lp64
+# set PATH to Pardiso here:
+PARDISO_DIR=/opt/intel/mkl
+PARDISO_INCLUDE=-I$(PARDISO_DIR)/include
+PARDISO_LIB=-L$(PARDISO_DIR)/lib/$(PARDISO_EXT) -L$(PARDISO_DIR)/../lib/$(PARDISO_EXT)_lin -L/opt/intel/lib/intel64_lin -lm -lmkl_intel$(PARDISO_LIB_EXT) -lmkl_intel_thread -lmkl_core -liomp5 -lm -lpthread
+
+# the following assumes that Intel MKL is used both for Pardiso and BLAS/LAPACK (don't change)
+BLASLAPACK_DIR=$(PARDISO_DIR)
+BLASLAPACK_INCLUDE=$(PARDISO_INCLUDE)
+BLASLAPACK_LIB=$(PARDISO_LIB)
+
+# ARPACK
+ARPACK_LIB=-larpack
