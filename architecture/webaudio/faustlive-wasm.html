@@ -643,7 +643,7 @@ function Init()
  */
 
 // Module 'onRuntimeInitialized' will be called when code is ready (see https://kripken.github.io/emscripten-site/docs/getting_started/FAQ.html)
-Module['onRuntimeInitialized'] = Init;
+FaustModule()['onRuntimeInitialized'] = Init;
 
 </script>
 
