@@ -464,7 +464,7 @@
 <li><a href="#outrightwave"><code>outRightWave</code></a></li>
 <li><a href="#out"><code>out</code></a></li>
 <li><a href="#terminations"><code>terminations</code></a></li>
-<li><a href="#lefttermination"><code>leftTermination</code></a></li>
+<li><a href="#ltermination"><code>lTermination</code></a></li>
 <li><a href="#rtermination"><code>rTermination</code></a></li>
 <li><a href="#closeins"><code>closeIns</code></a></li>
 <li><a href="#closeouts"><code>closeOuts</code></a></li>
@@ -4412,10 +4412,10 @@ with{
      c = *(-1); // right termination
 };</code></pre>
 <hr />
-<h3 id="lefttermination"><code>leftTermination</code></h3>
+<h3 id="ltermination"><code>lTermination</code></h3>
 <p>Creates a termination on the left side of a <a href="#chain"><code>chain</code></a> without closing the inputs and outputs of the bidirectional signals chain. This function adds a 1 sample delay near the termination and can be nested within another <a href="#chain"><code>chain</code></a>.</p>
 <h4 id="usage-264">Usage</h4>
-<pre><code>leftTerminations(a,b)
+<pre><code>lTerminations(a,b)
 with{
      a = *(-1); // left termination
      b = chain(D : E : F); // bidirectional chain of blocks (D, E, F, etc.)

@@ -236,7 +236,7 @@ out(x,y,s) = x,y,x+y+s;
 //----------------------------------------
 terminations(a,b,c) = (_,ro.crossnn(1),_,_ : +,+,_ : b) ~ (a,c : ro.crossnn(1));
 
-//-------`leftTermination`----------
+//-------`lTermination`----------
 // Creates a termination on the left side of a [`chain`](#chain) without
 // closing the inputs and outputs of the bidirectional signals chain. This
 // function adds a 1 sample delay near the termination and can be nested
@@ -245,7 +245,7 @@ terminations(a,b,c) = (_,ro.crossnn(1),_,_ : +,+,_ : b) ~ (a,c : ro.crossnn(1));
 // #### Usage
 //
 // ```
-// leftTerminations(a,b)
+// lTerminations(a,b)
 // with{
 //		a = *(-1); // left termination
 //		b = chain(D : E : F); // bidirectional chain of blocks (D, E, F, etc.)
