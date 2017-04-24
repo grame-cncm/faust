@@ -71,7 +71,7 @@ shift
 
 done
 
-addMIDIOSC ()
+addOptions ()
 {
     # OSC source always copied in the project
     cp -r $FAUSTLIB/osclib "$T"
@@ -80,6 +80,15 @@ addMIDIOSC ()
     fi
     if [ "$MIDICTRL" = "1" ]; then
         echo "#define MIDICTRL 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
+    fi
+    if [ "$POLY2" = "1" ]; then
+        echo "#define POLY2 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
+    fi
+    if [ "$NOAGC" = "1" ]; then
+        echo "#define NOAGC 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
+    fi
+    if [ $NVOICES -ge 0 ]; then
+        echo "#define NVOICES $NVOICES" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
     fi
 }
 
@@ -97,7 +106,7 @@ for p in $FILES; do
 	if [ "$JACK" = "1" ]; then
         echo "Compile with JACK/CoreAudio support"
         faust -i $OPTIONS -a ios-coreaudio-jack.cpp "$p" -o "$T/ios-faust.h" || exit
-        addMIDIOSC
+        addOptions
         if [ "$XCODE" == "2" ]; then
             mv $T $XCODEPROJ
             exit
@@ -109,7 +118,7 @@ for p in $FILES; do
     elif [ "$ALL" = "1" ]; then
         echo "Compile with CoreAudio support in 64/32 bits"
         faust -i $OPTIONS -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h" || exit
-        addMIDIOSC
+        addOptions
         if [ "$POLY2" = "1" ]; then
             faust -i -cn effect -a minimal-effect.cpp $EFFECT -o "$T/effect.cpp" || exit
         fi
@@ -118,13 +127,13 @@ for p in $FILES; do
             exit
         fi
         (
-            xcodebuild GCC_PREPROCESSOR_DEFINITIONS="${inherited} NOAGC=$NOAGC POLY2=$POLY2 NVOICES=$NVOICES" -project "$T/iOS.xcodeproj" -target Template_CoreAudio PRODUCT_NAME=$P
+            xcodebuild -project "$T/iOS.xcodeproj" -target Template_CoreAudio PRODUCT_NAME=$P
             cd "$T" && xcodebuild -scheme Template_CoreAudio archive PRODUCT_NAME=$P
         ) > /dev/null || exit
     else
         echo "Compile with CoreAudio support in 32 bits"
         faust -i $OPTIONS -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h" || exit
-        addMIDIOSC
+        addOptions
         if [ "$POLY2" = "1" ]; then
             faust -i -cn effect -a minimal-effect.cpp $EFFECT -o "$T/effect.cpp" || exit
         fi
@@ -133,7 +142,7 @@ for p in $FILES; do
             exit
         fi
         (
-            xcodebuild GCC_PREPROCESSOR_DEFINITIONS="${inherited} NOAGC=$NOAGC POLY2=$POLY2 NVOICES=$NVOICES" -project "$T/iOS.xcodeproj" -target Template_CoreAudio_32bits PRODUCT_NAME=$P
+            xcodebuild -project "$T/iOS.xcodeproj" -target Template_CoreAudio_32bits PRODUCT_NAME=$P
             cd "$T" && xcodebuild -scheme Template_CoreAudio_32bits archive PRODUCT_NAME=$P
         ) > /dev/null || exit
  	fi
