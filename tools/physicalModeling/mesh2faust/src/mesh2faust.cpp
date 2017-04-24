@@ -29,6 +29,7 @@ int main(int argc, char ** argv)
 	std::vector<int> exPos;
   bool debugMode = false; // debug mode activated
 	bool showFreqs = false; // hide or show frequencies in the selected range
+	bool freqControl = false; // freq control activated
 	float modesMinFreq = 20; // lowest mode freq
   float modesMaxFreq = 10000; // highest mode freq
   int targetNModes = 20; // number of synthesized modes
@@ -80,6 +81,9 @@ int main(int argc, char ** argv)
   		}
 			else if(strcmp(argv[currentArg],"--showfreqs") == 0){
   			showFreqs = true;
+  		}
+			else if(strcmp(argv[currentArg],"--freqcontrol") == 0){
+  			freqControl = true;
   		}
   		else if(strcmp(argv[currentArg],"--name") == 0){
   			currentArg++;
@@ -342,18 +346,33 @@ int main(int argc, char ** argv)
 		faustFileName.append(objectName).append(".lib");
 		std::ofstream faustFile(faustFileName.c_str());
 		faustFile << "import(\"stdfaust.lib\");\n\n";
-		faustFile << objectName << "(exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: par(i,nModes,*(modesGains(int(exPos),i)) : pm.modeFilter(modesFreqs(i),modesT60s(i))) :> /(nModes)\n";
+		if(freqControl){
+			faustFile << objectName << "(freq,exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: par(i,nModes,pm.modeFilter(modesFreqs(i),modesT60s(i),modesGains(int(exPos),i))) :> /(nModes)\n";
+		}
+		else{
+			faustFile << objectName << "(exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: par(i,nModes,*(modesGains(int(exPos),i)) : pm.modeFilter(modesFreqs(i),modesT60s(i))) :> /(nModes)\n";
+		}
 		faustFile << "with{\n";
 		faustFile << "nModes = " << targetNModes << ";\n";
 		if(nExPos > 1) faustFile << "nExPos = " << nExPos << ";\n";
 
-		// TODO generating static model for now
-		faustFile << "modesFreqs(n) = ba.take(n+1,(";
-		for(int i=0; i<targetNModes; i++){
-			faustFile << modesFreqs[lowestModeIndex+i];
-			if(i<(targetNModes-1)) faustFile << ",";
+		if(freqControl){
+			faustFile << "modesFreqRatios(n) = ba.take(n+1,(";
+			for(int i=0; i<targetNModes; i++){
+				faustFile << modesFreqs[lowestModeIndex+i]/modesFreqs[lowestModeIndex];
+				if(i<(targetNModes-1)) faustFile << ",";
+			}
+			faustFile << "));\n";
+			faustFile << "modesFreqs(i) = freq*modesFreqRatios(i);\n";
 		}
-		faustFile << "));\n";
+		else{
+			faustFile << "modesFreqs(n) = ba.take(n+1,(";
+			for(int i=0; i<targetNModes; i++){
+				faustFile << modesFreqs[lowestModeIndex+i];
+				if(i<(targetNModes-1)) faustFile << ",";
+			}
+			faustFile << "));\n";
+		}
 		faustFile << "modesGains(p,n) = waveform{";
 		for(int i=0; i<nExPos; i++){
 			for(int j=0; j<targetNModes; j++){
@@ -362,9 +381,14 @@ int main(int argc, char ** argv)
 			}
 			if(i<(nExPos-1)) faustFile << ",";
 		}
-		faustFile << "},int(p*nModes+n) : rdtable;\n";
-		float freqDiff = modesFreqs[lowestModeIndex]/modesFreqs[highestModeIndex];
-		faustFile << "modesT60s(i) = t60*pow(1-(modesFreqs(i)/" << modesFreqs[highestModeIndex] << " - " << freqDiff << ")*(t60DecayRatio + " << freqDiff << "),t60DecaySlope);\n";
+		if(freqControl){
+			faustFile << "},int(p*nModes+n) : rdtable : select2(modesFreqs(n)<(ma.SR/2-1),0);\n";
+			faustFile << "modesT60s(i) = t60*pow(1-(modesFreqRatios(i)/" << modesFreqs[highestModeIndex]/modesFreqs[lowestModeIndex]  << ")*t60DecayRatio,t60DecaySlope);\n";
+		}
+		else{
+			faustFile << "},int(p*nModes+n) : rdtable;\n";
+			faustFile << "modesT60s(i) = t60*pow(1-(modesFreqs(i)/" << modesFreqs[highestModeIndex] << ")*t60DecayRatio,t60DecaySlope);\n";
+		}
 		faustFile << "};\n";
 		faustFile.close();
   }

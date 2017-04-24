@@ -7,4 +7,4 @@ declare copyright "(c)Romain Michon, CCRMA (Stanford University), GRAME";
 
 import("stdfaust.lib");
 
-process = button("gate") : ba.impulsify : pm.marimbaBarModel(0,0.2,1,2) <: _,_;
+process = pm.marimba_ui_MIDI <: _,_;
