@@ -416,7 +416,7 @@ with{
 //========================================================================================
 
 //-------`stringSegment`----------
-// A string segment without terminations (jsut a simple waveguide).
+// A string segment without terminations (just a simple waveguide).
 //
 // #### Usage
 //
@@ -486,7 +486,7 @@ with{
 };
 
 //-------`steelString`----------
-// A bidirectional block implementing a basic nylon string with selectable
+// A bidirectional block implementing a basic steel string with selectable
 // excitation position. This element is based on [`openString`](#openstring)
 // and has a fix stiffness corresponding to that of a steel string.
 //
@@ -892,7 +892,7 @@ with{
 // position. This model implements a single string. Additional strings should be created
 // by making a polyphonic applications out of this function. Pitch is changed by
 // changing the length of the string and not through a finger model.
-// WARNING: this function doesn't currently implement a body (just srings and
+// WARNING: this function doesn't currently implement a body (just strings and
 // bridge)
 //
 // #### Usage
@@ -970,7 +970,7 @@ with{
 // position. This model implements a single string. Additional strings should be created
 // by making a polyphonic applications out of this function. Pitch is changed by
 // changing the length of the string and not through a finger model.
-// WARNING: this function doesn't currently implement a body (just srings and
+// WARNING: this function doesn't currently implement a body (just strings and
 // bridge)
 //
 // #### Usage
