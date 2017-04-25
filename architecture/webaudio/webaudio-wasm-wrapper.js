@@ -191,12 +191,9 @@ Utf8.decode = function(strUtf) {
 
 'use strict';
 
-var faust_module = FaustModule();
+var faust_module = FaustModule(); // Emscripten generated module
 
 var faust = faust || {};
-
-// Shim AudioContext on webkit
-window.AudioContext = window.AudioContext || window.webkitAudioContext || undefined;
 
 faust.createWasmCDSPFactoryFromString = faust_module.cwrap('createWasmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
 faust.expandCDSPFromString = faust_module.cwrap('expandCDSPFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
@@ -290,9 +287,12 @@ faust.createDSPFactoryAux = function (code, argv, callback, internal_memory) {
         }
         
     } catch (e) {
-        console.log(e);
         // libfaust is compiled without C++ exception activated, so a JS exception is throwed and catched here
         faust.error_msg = faust_module.Pointer_stringify(faust.getErrorAfterException());
+        if (faust.error_msg === "") {
+            // Report the Emscripten error
+            faust.error_msg = e;
+        }
         faust.cleanupAfterException();
         callback(null);
     }
@@ -471,7 +471,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
         sp.numIn = instance.exports.getNumInputs(sp.dsp);
         sp.numOut = instance.exports.getNumOutputs(sp.dsp);
         
-        // DSP is placed first with index 0. Audio buffer start at the end od DSP.
+        // DSP is placed first with index 0. Audio buffer starts at the end of DSP.
         sp.audio_heap_ptr = factory.getSize();
         
         // Setup pointers offset
@@ -484,7 +484,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
        
         sp.update_outputs = function ()
         {
-            if (sp.ouputs_items.length > 0 &&  sp.handler && sp.ouputs_timer-- === 0) {
+            if (sp.ouputs_items.length > 0 && sp.handler && sp.ouputs_timer-- === 0) {
                 sp.ouputs_timer = 5;
                 for (var i = 0; i < sp.ouputs_items.length; i++) {
                     sp.handler(sp.ouputs_items[i], instance.exports.getParamValue(sp.dsp, factory.pathTable[sp.ouputs_items[i]]));
@@ -660,7 +660,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
         {
             var values = sp.value_table[path];
             if (values) {
-                if (instance.exports.getParamValue(sp.dsp, factory.pathTable[path]) == values[0]) {
+                if (instance.exports.getParamValue(sp.dsp, factory.pathTable[path]) === values[0]) {
                     values[0] = val;
                 } 
                 values[1] = val;

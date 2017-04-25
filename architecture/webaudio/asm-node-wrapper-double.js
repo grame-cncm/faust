@@ -365,7 +365,7 @@ faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, sha_k
     eval(factory_code);
     
     // Compile the ASM module itself : 'buffer' is the emscripten global memory context
-    factory = eval(factory_name + "Module(window, null, libfaust.buffer)");
+    factory = eval(factory_name + "Module(window, window.Math, libfaust.buffer)");
     
     var path_table_function = eval("getPathTable" + factory_name);
     factory.pathTable = path_table_function();
