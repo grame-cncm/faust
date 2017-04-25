@@ -4319,7 +4319,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h1 id="physmodels.lib">physmodels.lib</h1>
 <p>Faust physical modeling library; Its official prefix is <code>pm</code>.</p>
-<p>This library provides an environment to facilitate physical modeling of musical instruments. It contains dozens of functions implementing low and high level elements going from a simple waveguide to fully operational models with built-in UI, etc. More information on how to use this library can be find at this page: <a href="https://ccrma.stanford.edu/~rmichon/pmFaust" class="uri">https://ccrma.stanford.edu/~rmichon/pmFaust</a></p>
+<p>This library provides an environment to facilitate physical modeling of musical instruments. It contains dozens of functions implementing low and high level elements going from a simple waveguide to fully operational models with built-in UI, etc. This library is part of the Faust Physical Modeling ToolKit. More information on how to use this library can be found on this page: <a href="https://ccrma.stanford.edu/~rmichon/pmFaust" class="uri">https://ccrma.stanford.edu/~rmichon/pmFaust</a>. Tutorials on how to make physical models of musical instruments using Faust can be found <a href="https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust">here</a> as well.</p>
 <h2 id="global-variables">Global Variables</h2>
 <p>Useful pre-defined variables for physical modeling.</p>
 <h3 id="speedofsound"><code>speedOfSound</code></h3>
@@ -4505,7 +4505,7 @@ with{
 <h2 id="basic-string-instruments-elements">Basic String Instruments Elements</h2>
 <p>Low and high level basic string instruments parts. Most of the elements in this section can be used in a bidirectional chain.</p>
 <h3 id="stringsegment"><code>stringSegment</code></h3>
-<p>A string segment without terminations (jsut a simple waveguide).</p>
+<p>A string segment without terminations (just a simple waveguide).</p>
 <h4 id="usage-273">Usage</h4>
 <pre><code>chain(A : stringSegment(maxLength,length) : B)</code></pre>
 <p>Where:</p>
@@ -4538,7 +4538,7 @@ with{
 </ul>
 <hr />
 <h3 id="steelstring"><code>steelString</code></h3>
-<p>A bidirectional block implementing a basic nylon string with selectable excitation position. This element is based on <a href="#openstring"><code>openString</code></a> and has a fix stiffness corresponding to that of a steel string.</p>
+<p>A bidirectional block implementing a basic steel string with selectable excitation position. This element is based on <a href="#openstring"><code>openString</code></a> and has a fix stiffness corresponding to that of a steel string.</p>
 <h4 id="usage-276">Usage</h4>
 <pre><code>chain(... : steelString(length,pluckPosition,excitation) : ...)</code></pre>
 <p>Where:</p>
@@ -4677,7 +4677,7 @@ with{
 <pre><code>chain(... : guitarBody)</code></pre>
 <hr />
 <h3 id="guitarmodel"><code>guitarModel</code></h3>
-<p>A simple acoustic guitar model with steel strings and selectable excitation position. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function. Pitch is changed by changing the length of the string and not through a finger model. WARNING: this function doesn't currently implement a body (just srings and bridge)</p>
+<p>A simple acoustic guitar model with steel strings and selectable excitation position. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function. Pitch is changed by changing the length of the string and not through a finger model. WARNING: this function doesn't currently implement a body (just strings and bridge)</p>
 <h4 id="usage-294">Usage</h4>
 <pre><code>guitarModel(length,pluckPosition,excitation) : _</code></pre>
 <p>Where:</p>
@@ -4705,7 +4705,7 @@ with{
 <pre><code>guitar_ui_MIDI : _</code></pre>
 <hr />
 <h3 id="nylonguitarmodel"><code>nylonGuitarModel</code></h3>
-<p>A simple acoustic guitar model with nylon strings and selectable excitation position. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function. Pitch is changed by changing the length of the string and not through a finger model. WARNING: this function doesn't currently implement a body (just srings and bridge)</p>
+<p>A simple acoustic guitar model with nylon strings and selectable excitation position. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function. Pitch is changed by changing the length of the string and not through a finger model. WARNING: this function doesn't currently implement a body (just strings and bridge)</p>
 <h4 id="usage-297">Usage</h4>
 <pre><code>nylonGuitarModel(length,pluckPosition,excitation) : _</code></pre>
 <p>Where:</p>

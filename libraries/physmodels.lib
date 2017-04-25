@@ -5,8 +5,8 @@
 // instruments. It contains dozens of functions implementing low and high level
 // elements going from a simple waveguide to fully operational models with
 // built-in UI, etc.
-// This library is part of the Faust Physical Mdeling ToolKit.
-// More information on how to use this library can be find at this page:
+// This library is part of the Faust Physical Modeling ToolKit.
+// More information on how to use this library can be found on this page:
 // <https://ccrma.stanford.edu/~rmichon/pmFaust>. Tutorials on how to make
 // physical models of musical instruments using Faust can be found
 // [here](https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust) as well.
