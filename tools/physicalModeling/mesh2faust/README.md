@@ -10,8 +10,9 @@ object.
 `mesh2faust` is based on [Vega FEM](http://run.usc.edu/vega/) and should work
 both on Linux and OSX.
 
-`mesh2faust` is part of the [Faust Physical Modeling Toolkit]
-(https://ccrma.stanford.edu/~rmichon/pmFaust). Tutorials on how to make
+`mesh2faust` is part of the
+[Faust Physical Modeling Toolkit](https://ccrma.stanford.edu/~rmichon/pmFaust).
+Tutorials on how to make
 physical models of musical instruments can be found
 [here](https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust).
 
@@ -158,8 +159,8 @@ mesh2faust --infile 3dObject.obj --expos 236 589
 ```
 
 will generate a physical model with 2 excitation positions corresponding to
-vertex ID 236 and 589. [Vertex IDs can be easily retrieved using meshlab.]
-(https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust)     
+vertex ID 236 and 589.
+[Vertex IDs can be easily retrieved using meshlab.](https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust)     
 
 ### Limiting the Number of Modes
 
