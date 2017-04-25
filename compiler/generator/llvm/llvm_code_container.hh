@@ -129,7 +129,11 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
         LlvmValue genFloat(const string& number)
         {
+        #if defined(LLVM_40)
+            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle(), number));
+        #else
             return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle, number));
+        #endif
         }
 
         LlvmValue genFloat(float number)

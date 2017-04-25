@@ -45,6 +45,7 @@
 #if defined(LLVM_40)
     #include <llvm/Bitcode/BitcodeWriter.h>
     #include <llvm/Bitcode/BitcodeReader.h>
+    #include <llvm/Transforms/IPO/AlwaysInliner.h>
 #elif defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
     #include <llvm/Bitcode/ReaderWriter.h>
 #endif
@@ -300,7 +301,24 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
 }
 #endif
 
-#if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
+#if defined(LLVM_40)
+
+static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
+                                LLVMContext& Context,
+                                string* ErrMsg)
+{
+    using namespace llvm;
+    Expected<std::unique_ptr<Module>> ModuleOrErr = parseBitcodeFile(Buffer, Context);
+    if (!ModuleOrErr) {
+        if (ErrMsg) *ErrMsg = "Failed to read bitcode";
+        return NULL;
+    } else {
+        return ModuleOrErr.get().release();
+    }
+}
+
+#elif defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
+
 static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
                                 LLVMContext& Context,
                                 string* ErrMsg)
@@ -314,6 +332,7 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
         return ModuleOrErr.get().release();
     }
 }
+
 #endif
 
 void* llvm_dsp_factory_aux::loadOptimize(const string& function)
@@ -579,7 +598,11 @@ static void AddOptimizationPasses(PassManagerBase &MPM, FUNCTION_PASS_MANAGER &F
         }
         Builder.Inliner = createFunctionInliningPass(Threshold);
     } else {
-        Builder.Inliner = createAlwaysInlinerPass();
+    #if defined(LLVM_40)
+        Builder.Inliner = createAlwaysInlinerLegacyPass();
+    #else
+         Builder.Inliner = createAlwaysInlinerPass();
+    #endif
     }
       
     Builder.DisableUnrollLoops = (OptLevel == 0);
