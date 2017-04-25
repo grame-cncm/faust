@@ -12,15 +12,6 @@ void printHelp() {
     std::cout << "FEM Faust Physical Model Generator\n";
 }
 
-/*
- TODO:
- - list of args for doc (finish printHelp):
- 1: .obj file: the model
- - compute reflectance option
- - set object name
- - set min and max freqs
- */
-
 int main(int argc, char **argv) {
     const char *modelFileName = "";        // .obj file name
     std::string objectName = "modalModel"; // generated object name
@@ -38,7 +29,7 @@ int main(int argc, char **argv) {
     int nExPos = -1;            // number of excitation positions (default is max)
     int modesSelMode =
     0; // mode to select modes (linear/max gains/cricital bands)
-    
+
     /////////////////////////////////////
     // PARSING ARGUMENTS
     /////////////////////////////////////
@@ -148,18 +139,6 @@ int main(int argc, char **argv) {
                     cout << "Number of FEM modes is not an int\n";
                     return 0;
                 }
-            } else if (strcmp(argv[currentArg], "--modesel") == 0) {
-                currentArg++;
-                if (currentArg > (argc - 1)) {
-                    cout << "--modesel: expecting an argument\n";
-                    return 0;
-                }
-                if (strtod(argv[currentArg], NULL) != 0) {
-                    modesSelMode = strtod(argv[currentArg], NULL);
-                } else {
-                    cout << "Modes selection mode is not an int\n";
-                    return 0;
-                }
             }
             currentArg++;
         }
@@ -168,17 +147,17 @@ int main(int argc, char **argv) {
         printHelp();
         return 0;
     }
-    
+
     /////////////////////////////////////
     // RETRIEVING MODEL
     /////////////////////////////////////
-    
+
     // loading mesh file
     if (debugMode) {
         cout << "Loading the mesh file\n";
     }
     ObjMesh *objMesh = new ObjMesh(modelFileName);
-    
+
     // generating 3D volumetric mesh from 2D mesh
     if (debugMode) {
         cout << "\nGenerating a 3D mesh with the following properties\n";
@@ -191,14 +170,14 @@ int main(int argc, char **argv) {
     // setting mesh material properties
     volumetricMesh->setSingleMaterial(
                                       materialProperties[0], materialProperties[1], materialProperties[2]);
-    
+
     // computing mas matrix
     if (debugMode) {
         cout << "Creating and computing mass matrix\n";
     }
     SparseMatrix *massMatrix;
     GenerateMassMatrix::computeMassMatrix(volumetricMesh, &massMatrix, true);
-    
+
     // computing stiffness matrix
     if (debugMode) {
         cout << "Creating and computing stiffness matrix\n";
@@ -214,11 +193,11 @@ int main(int argc, char **argv) {
     double *zero =
     (double *)calloc(3 * volumetricMesh->getNumVertices(), sizeof(double));
     stiffnessMatrixClass->ComputeStiffnessMatrix(zero, stiffnessMatrix);
-    
+
     /////////////////////////////////////
     // EIGEN ANALYSIS
     /////////////////////////////////////
-    
+
     // temporary variables for analysis
     // int numModes = stiffnessMatrix->Getn()-1; // number of computed modes:
     // always max
@@ -226,7 +205,7 @@ int main(int argc, char **argv) {
     double *eigenValues = (double *)malloc(sizeof(double) * femNModes);
     double *eigenVectors =
     (double *)malloc(sizeof(double) * stiffnessMatrix->Getn() * femNModes);
-    
+
     // solver parameters
     double sigma = -1.0;
     int numLinearSolverThreads =
@@ -243,13 +222,13 @@ int main(int argc, char **argv) {
     // int nconv = generalizedEigenvalueProblem.SolveGenEigReg(stiffnessMatrix,
     // massMatrix, femNModes, eigenValues, eigenVectors, "LM",
     // numLinearSolverThreads,0);
-    
+
     if (nconv == femNModes) { // if analysis was successful...
-        
+
         /////////////////////////////////////
         // COMPUTING MODE FREQS
         /////////////////////////////////////
-        
+
         if (debugMode) {
             printf("Computing modes frequencies\n\n");
         }
@@ -271,13 +250,13 @@ int main(int argc, char **argv) {
                 highestModeIndex++;
             }
         }
-        
+
         // adjusting number of target modes to modes range
         int modesRange = highestModeIndex - lowestModeIndex;
         if (modesRange < targetNModes) {
             targetNModes = modesRange;
         }
-        
+
         // diplaying mode frequencies
         if (showFreqs) {
             cout << "Mode frequencies between " << modesMinFreq << "Hz and "
@@ -287,11 +266,11 @@ int main(int argc, char **argv) {
             }
             cout << "\n";
         }
-        
+
         /////////////////////////////////////
         // COMPUTING GAINS
         /////////////////////////////////////
-        
+
         if (debugMode) {
             cout << "Computing modes gains for modes between " << modesMinFreq
             << "Hz and " << modesMaxFreq << "Hz\n\n";
@@ -348,14 +327,14 @@ int main(int argc, char **argv) {
                  */
             }
         }
-        
+
         /////////////////////////////////////
         // GENERATING FAUST FILE
         /////////////////////////////////////
-        
+
         // TODO: say something about the model that will be generated (parameters
         // available, etc.)
-        
+
         std::string faustFileName;
         faustFileName.append(objectName).append(".lib");
         std::ofstream faustFile(faustFileName.c_str());
@@ -375,7 +354,7 @@ int main(int argc, char **argv) {
         faustFile << "nModes = " << targetNModes << ";\n";
         if (nExPos > 1)
             faustFile << "nExPos = " << nExPos << ";\n";
-        
+
         if (freqControl) {
             faustFile << "modesFreqRatios(n) = ba.take(n+1,(";
             for (int i = 0; i < targetNModes; i++) {
@@ -420,7 +399,7 @@ int main(int argc, char **argv) {
         faustFile << "};\n";
         faustFile.close();
     }
-    
+
     // cleaning
     free(eigenValues);
     free(eigenVectors);
@@ -439,6 +418,6 @@ int main(int argc, char **argv) {
     volumetricMesh = NULL;
     delete objMesh;
     objMesh = NULL;
-    
+
     return 0;
 }
