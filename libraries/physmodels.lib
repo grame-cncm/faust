@@ -126,7 +126,7 @@ basicBlock = _,_,_;
 // #### Usage
 //
 // ```
-// rightGoingWaves,leftGoingWaves,mixedOutput : chain( A : B ) : rightGoingWaves,leftGoingWaves,mixedOutput
+// leftGoingWaves,rightGoingWaves,mixedOutput : chain( A : B ) : leftGoingWaves,rightGoingWaves,mixedOutput
 // with{
 // 		A = _,_,_;
 //		B = _,_,_;
