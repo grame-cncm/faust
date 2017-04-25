@@ -71,7 +71,20 @@ Ever thought about using Linux? We heard it's great! :)
 
   mesh2faust --help
 
-<!-- TODO: may be put result of previous command here -->
+This will print the following list of options:
+
+  --help: prints this help
+  --debug: verboses the output of mesh2faust
+  --showfreqs: prints the list of frequencies of the calculated modes
+  --infile: specifies the path to the volumetric mesh file. Dimensions of the mesh should be in meters. E.g.: --infile file.obj
+  --freqcontrol: adds frequency control to the generated model by adding a freq parameter to it
+  --name: specifies the name of the generated model (no spaces or special characters). E.g.: --name modelName
+  --minmode: specifies the minimum frequency of the lowest mode. E.g.: --minmode 30
+  --maxmode: specifies the maximum frequency of the highest mode. E.g.: --maxmode 9000
+  --lmexpos: specifies the maximum number of excitation positions in the model. E.g.: --lmexpos 10
+  --expos: specifies excitation positions as a list of vertex IDs. E.g.: --expos 89 63 45
+  --nfemmodes: specifies the number of modes to be computed for the finite element analysis. E.g.: --nfemmodes 300
+  --nsynthmodes: specifies the max number of modes to be added to the physical model and synthesized. E.g.: --nsynthmodes 50
 
 The only required argument of `mesh2faust` is the
 path to a volumetric mesh saved as an `.obj` file (the "world unit" of this file

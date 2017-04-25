@@ -8,8 +8,40 @@
 using namespace std;
 
 void printHelp() {
-    // TODO
-    std::cout << "FEM Faust Physical Model Generator\n";
+    std::cout << "MESH2FAUST: FAUST PHYSICAL MODEL GENERATOR\n\n";
+		std::cout << "mesh2faust is an open-source modal physical model generator "
+		"for the Faust programming language. mesh2faust takes a volumetric mesh of "
+		"a 3D object as its main argument, carries out a finite element analysis, "
+		"and generates the corresponding Faust modal physical model. A wide range "
+		"of parameters can be configured to fine-tune the analysis as well as the "
+		"behavior of the generated object.\n";
+		std::cout << "Additional resources: https://github.com/grame-cncm/faust/blob/master-dev/tools/physicalModeling/mesh2faust/README.md\n\n";
+		std::cout << "USAGE:\n\n";
+		std::cout << "mesh2faust --infile 3dObject.obj\n";
+		std::cout << "Where 3dObject.obj is a volumetric mesh file\n\n";
+		std::cout << "OPTIONS:\n\n";
+		std::cout << "--help: prints this help\n";
+		std::cout << "--debug: verboses the output of mesh2faust\n";
+		std::cout << "--showfreqs: prints the list of frequencies of the calculated "
+		"modes\n";
+		std::cout << "--infile: specifies the path to the volumetric mesh "
+		"file. Dimensions of the mesh should be in meters. E.g.: --infile file.obj\n";
+		std::cout << "--freqcontrol: adds frequency control to the generated "
+		"model by adding a freq parameter to it\n";
+		std::cout << "--name: specifies the name of the generated model "
+		"(no spaces or special characters). E.g.: --name modelName\n";
+		std::cout << "--minmode: specifies the minimum frequency of the "
+		"lowest mode. E.g.: --minmode 30\n";
+		std::cout << "--maxmode: specifies the maximum frequency of the "
+		"highest mode. E.g.: --maxmode 9000\n";
+		std::cout << "--lmexpos: specifies the maximum number of excitation "
+		"positions in the model. E.g.: --lmexpos 10\n";
+		std::cout << "--expos: specifies excitation positions as a list "
+		"of vertex IDs. E.g.: --expos 89 63 45\n";
+		std::cout << "--nfemmodes: specifies the number of modes to be computed "
+		"for the finite element analysis. E.g.: --nfemmodes 300\n";
+		std::cout << "--nsynthmodes: specifies the max number of modes to be added "
+		"to the physical model and synthesized. E.g.: --nsynthmodes 50\n";
 }
 
 int main(int argc, char **argv) {
@@ -68,6 +100,8 @@ int main(int argc, char **argv) {
                 currentArg--;
             } else if (strcmp(argv[currentArg], "--debug") == 0) {
                 debugMode = true;
+						} else if (strcmp(argv[currentArg], "--help") == 0) {
+	                printHelp();
             } else if (strcmp(argv[currentArg], "--showfreqs") == 0) {
                 showFreqs = true;
             } else if (strcmp(argv[currentArg], "--freqcontrol") == 0) {
