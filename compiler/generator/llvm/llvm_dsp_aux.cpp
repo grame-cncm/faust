@@ -171,7 +171,6 @@
     #define MEMORY_BUFFER_CREATE(stringref) (MemoryBuffer::getMemBuffer(stringref))
 #endif
 
-
 #if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
     #define ModulePTR std::unique_ptr<Module>
     #define MovePTR(ptr) std::move(ptr)

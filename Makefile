@@ -82,9 +82,14 @@ asmjs :
 wasm :
 	$(MAKE) -C compiler wasm -f $(MAKEFILE) prefix=$(prefix)
 
-sound2faust:
+sound2faust :
 
 	$(MAKE) -C tools/sound2faust
+
+bench :
+
+	$(MAKE) -C tools/benchmark
+
 
 .PHONY: clean depend install uninstall dist parser help
 
@@ -117,6 +122,7 @@ clean :
 	$(MAKE) -C embedded/faustremote/RemoteServer clean
 	$(MAKE) -C embedded/faustremote clean
 	$(MAKE) -C tools/sound2faust clean
+	$(MAKE) -C tools/benchmark clean
 
 depend :
 	$(MAKE) -C compiler -f $(MAKEFILE) depend
@@ -224,6 +230,7 @@ install :
 	cp -r tools/benchmark/iOS-bench $(prefix)/share/faust/ 
 	cp tools/benchmark/faustbench.cpp  $(prefix)/share/faust/
 	install tools/benchmark/faustbench $(prefix)/bin/
+	install tools/benchmark/faustbench-llvm $(prefix)/bin/
 
 uninstall :
 	rm -f $(addprefix $(prefix)/lib/, libfaust.a libfaust.$(LIB_EXT) libHTTPDFaust.a libHTTPDFaust.$(LIB_EXT) libOSCFaust.a libOSCFaust*.$(LIB_EXT)* libfaustremote.a)
@@ -238,7 +245,6 @@ uninstall :
 # make a faust distribution .zip file
 dist :
 	git archive --format=tar.gz -o faust-$(version).tgz --prefix=faust-$(version)/ HEAD
-
 
 log :
 	git log --oneline --date-order --reverse --after={2014-05-19} master >log-$(version)

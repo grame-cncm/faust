@@ -358,17 +358,11 @@ class dsp_optimizer {
             std::cout << "setStackSize size = " << size << std::endl;
         }
     
-    public:
-    
-        dsp_optimizer(const char* filename,
-                      const std::string& library_path,
-                      const std::string& target,
-                      int size,
-                      int opt_level_max = -1)
+        void init(const std::string& filename, const std::string& library_path, const std::string input, const std::string& target, int size, int opt_level_max)
         {
             fBuffer = 0;
             fFilename = filename;
-            fInput = "";
+            fInput = input;
             fLibraryPath = library_path;
             fTarget = target;
             fOptLevel = opt_level_max;
@@ -394,6 +388,17 @@ class dsp_optimizer {
                 throw std::bad_alloc();
             }
         }
+    
+    public:
+    
+        dsp_optimizer(const char* filename,
+                      const std::string& library_path,
+                      const std::string& target,
+                      int size,
+                      int opt_level_max = -1)
+        {
+            init(filename, library_path, "", target, size, opt_level_max);
+        }
         
         dsp_optimizer(const std::string& input,
                       const std::string& library_path,
@@ -401,33 +406,7 @@ class dsp_optimizer {
                       int size,
                       int opt_level_max = -1)
         {
-            fBuffer = 0;
-            fFilename = "";
-            fInput = input;
-            fLibraryPath = library_path;
-            fTarget = target;
-            fOptLevel = opt_level_max;
-           
-            fNV = 4096;     // number of vectors in BIG buffer (should exceed cache)
-            fITER = 10;     // number of iterations per measure
-            fVSIZE = size;  // size of a vector in samples
-            fIDX = 0;       // current vector number (0 <= VIdx < fNV)
-            
-            init();
-            
-            std::cout << "Estimate timing parameters" << std::endl;
-            double res;
-            fBench = new time_bench(500, 10);
-            if (computeOne(fOptionsTable[0], res)) {
-                double duration = fBench->measureDurationUsec();
-                int cout = int (500 * (5 * 1e6 / duration));
-                std::cout << "duration = " << duration/1e6 << " count = " << cout << std::endl;
-                delete fBench;
-                fBench = new time_bench(cout, 10);
-            } else {
-                std::cerr << "Error dsp_optimizer constructor" << std::endl;
-                throw std::bad_alloc();
-            }
+            init("", library_path, input, target, size, opt_level_max);
         }
     
         virtual ~dsp_optimizer()
