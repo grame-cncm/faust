@@ -126,7 +126,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     _openPanelChanged = YES;
     
     bool midi_sync = false;
-    int nvoices = 1;
+    int nvoices = 0;
     mydsp_poly* dsp_poly = NULL;
     
     mydsp* tmp_dsp = new mydsp();
@@ -153,7 +153,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
     
     bool group = true;
     
-    if (nvoices > 1) {
+    if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
         dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
         

@@ -95,8 +95,12 @@ class OSCControler
 		int	getUDPErr()	const			{ return fUPDErr; }
 		const char*	getDestAddress() const { return fDestAddress.c_str(); }
 		const char*	getRootName() const;	// probably useless, introduced for UI extension experiments
-
     
+        void setUDPPort(int port) { fUDPPort = port; }
+        void setUDPOut(int port) { fUDPOut = port; }
+        void setUDPErr(int port) { fUPDErr = port; }
+        void setDestAddress(const char* address) { fDestAddress = address; }
+
 //      By default, an osc interface emits all parameters. You can filter specific params dynamically.
         static std::vector<OSCRegexp*>     fFilteredPaths; // filtered paths will not be emitted
         static void addFilteredPath(std::string path);

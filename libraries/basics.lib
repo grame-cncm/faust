@@ -825,6 +825,29 @@ bpf = environment
 };
 
 
+//-------------------`listInterp`-------------------------
+// Linearly interpolates between the elements of a list.
+//
+// #### Usage
+//
+// ```
+// foo = listInterp((800,400,350,450,325),index);
+// i = 1.69; // range is 0-4
+// process = foo(i);
+// ```
+//
+// Where:
+//
+// * `index`: the index (float) to interpolate between the different values.
+// The range of `index` depends on the size of the list.
+//------------------------------------------------------------
+// Author: RM
+listInterp(v) =
+  bpf.start(0,take(1,v)) :
+  seq(i,count(v)-2,bpf.point(i+1,take(i+2,v))) :
+  bpf.end(count(v)-1,take(count(v),v));
+
+
 //-------------------`bypass1`-------------------------
 // Takes a mono input signal, route it to `e` and bypass it if `bpc = 1`.
 // `bypass1` is a standard Faust function.

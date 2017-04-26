@@ -1,0 +1,1594 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 8.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[     62486,       1585]
+NotebookOptionsPosition[     58092,       1478]
+NotebookOutlinePosition[     58465,       1495]
+CellTagsIndexPosition[     58422,       1492]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", "\[IndentingNewLine]", " ", 
+   RowBox[{
+    RowBox[{
+    "Vega", " ", "FEM", " ", "Simulation", " ", "Library", " ", "Version", 
+     " ", "3.0", "\[IndentingNewLine]", "\[IndentingNewLine]", 
+     "\"\<distance field\>\"", " ", "library"}], ",", 
+    RowBox[{"Copyright", " ", 
+     RowBox[{"(", "C", ")"}], " ", "2007", " ", "CMU"}], ",", 
+    RowBox[{
+    "2016", " ", "USC", "\[IndentingNewLine]", "All", " ", "rights", " ", 
+     RowBox[{
+     "reserved", ".", "                                                  ", 
+      "\[IndentingNewLine]", 
+      "                                                                       \
+", "\[IndentingNewLine]", "Code"}], " ", 
+     RowBox[{"authors", ":", " ", 
+      RowBox[{"Danyong", " ", "Zhao"}]}]}], ",", 
+    RowBox[{
+     RowBox[{"Jernej", " ", "Barbic", " ", "\[IndentingNewLine]", 
+      RowBox[{"http", ":"}]}], "//", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"www", ".", "jernejbarbic", ".", "com"}], "/", "code"}], 
+      "\[IndentingNewLine]", 
+      "                                                                       \
+", "\[IndentingNewLine]", 
+      RowBox[{"Research", ":", " ", 
+       RowBox[{"Jernej", " ", "Barbic"}]}]}]}], ",", " ", 
+    RowBox[{"Hongyi", " ", "Xu"}], ",", " ", 
+    RowBox[{"Doug", " ", 
+     RowBox[{"L", ".", "James"}], "\[IndentingNewLine]", 
+     "                                                                       \
+", "\[IndentingNewLine]", 
+     RowBox[{"Funding", ":", " ", 
+      RowBox[{"National", " ", "Science", " ", "Foundation"}]}]}], ",", " ", 
+    RowBox[{"Link", " ", "Foundation"}], ",", "                ", 
+    "\[IndentingNewLine]", " ", 
+    RowBox[{
+     RowBox[{
+     "Zumberge", " ", "Research", " ", "and", " ", "Innovation", " ", "Fund", 
+      " ", "at", " ", "USC", "\[IndentingNewLine]", 
+      "                                                                       \
+", "\[IndentingNewLine]", " ", "This", " ", "library", " ", "is", " ", "free",
+       " ", "software"}], ";", 
+     RowBox[{
+      RowBox[{"you", " ", "can", " ", "redistribute", " ", "it", " ", 
+       RowBox[{"and", "/", "or"}], "\[IndentingNewLine]", "modify", " ", "it",
+        " ", "under", " ", "the", " ", "terms", " ", "of", " ", "the", " ", 
+       "BSD"}], "-", 
+      RowBox[{
+      "style", " ", "license", " ", "that", " ", "is", "\[IndentingNewLine]", 
+       "included", " ", "with", " ", "this", " ", "library", " ", "in", " ", 
+       "the", " ", "file", " ", 
+       RowBox[{"LICENSE", ".", "txt"}], "\[IndentingNewLine]", 
+       "                                                                      \
+ ", "\[IndentingNewLine]", "This", " ", "library", " ", "is", " ", 
+       "distributed", " ", "in", " ", "the", " ", "hope", " ", "that", " ", 
+       "it", " ", "will", " ", "be", " ", "useful"}]}]}], ",", "       ", 
+    "\[IndentingNewLine]", "  ", 
+    RowBox[{
+     RowBox[{"but", " ", "WITHOUT", " ", "ANY", " ", "WARRANTY"}], ";", 
+     RowBox[{
+     "without", " ", "even", " ", "the", " ", "implied", " ", "warranty", " ",
+       "of", "\[IndentingNewLine]", " ", "MERCHANTABILITY", " ", "or", " ", 
+      "FITNESS", " ", "FOR", " ", "A", " ", "PARTICULAR", " ", 
+      RowBox[{"PURPOSE", ".", "See"}], " ", "the", " ", "file", 
+      "\[IndentingNewLine]", " ", 
+      RowBox[{"LICENSE", ".", "TXT"}], " ", "for", " ", "more", " ", 
+      RowBox[{"details", "."}]}]}]}], 
+   "                                         ", "\[IndentingNewLine]", "*)"}],
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+  RowBox[{"(*", "\[IndentingNewLine]", "  ", 
+   RowBox[{
+    RowBox[{
+    "This", " ", "file", " ", "demonstrates", " ", "the", " ", "basic", " ", 
+     "marching", " ", "cube", " ", 
+     RowBox[{"cases", ".", "\[IndentingNewLine]", "Jernej"}], " ", "Barbic"}],
+     ",", " ", 
+    RowBox[{"Danyong", " ", "Zhao"}], ",", " ", "USC", ",", " ", "2016"}], 
+   "\[IndentingNewLine]", "*)"}]}]], "Input",
+ CellChangeTimes->{{3.679969564997608*^9, 3.679969596512731*^9}, {
+  3.6799696268918333`*^9, 3.679969799875928*^9}}],
+
+Cell[BoxData[{
+ RowBox[{"Clear", "[", "F", "]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"F", "[", 
+   RowBox[{
+   "x_", ",", "y_", ",", "z_", ",", "a000_", ",", "a100_", ",", "a010_", ",", 
+    "a110_", ",", "a001_", ",", "a101_", ",", "a011_", ",", "a111_"}], "]"}], 
+  ":=", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"1", "-", "x"}], ")"}], "*", 
+    RowBox[{"(", 
+     RowBox[{"1", "-", "y"}], ")"}], "*", 
+    RowBox[{"(", 
+     RowBox[{"1", "-", "z"}], ")"}], "*", "a000"}], "+", 
+   RowBox[{"x", "*", 
+    RowBox[{"(", 
+     RowBox[{"1", "-", "y"}], ")"}], "*", 
+    RowBox[{"(", 
+     RowBox[{"1", "-", "z"}], ")"}], "*", "a100"}], "+", 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"1", "-", "x"}], ")"}], "*", "y", "*", 
+    RowBox[{"(", 
+     RowBox[{"1", "-", "z"}], ")"}], "*", "a010"}], "+", 
+   RowBox[{"x", "*", "y", "*", 
+    RowBox[{"(", 
+     RowBox[{"1", "-", "z"}], ")"}], "*", "a110"}], "+", 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"1", "-", "x"}], ")"}], "*", 
+    RowBox[{"(", 
+     RowBox[{"1", "-", "y"}], ")"}], "*", "z", "*", "a001"}], "+", 
+   RowBox[{"x", "*", 
+    RowBox[{"(", 
+     RowBox[{"1", "-", "y"}], ")"}], "*", "z", "*", "a101"}], "+", 
+   RowBox[{
+    RowBox[{"(", 
+     RowBox[{"1", "-", "x"}], ")"}], "*", "y", "*", "z", "*", "a011"}], "+", 
+   RowBox[{"x", "*", "y", "*", "z", "*", "a111"}]}]}]}], "Input"],
+
+Cell[BoxData[{
+ RowBox[{"Clear", "[", "IsosurfacePlot", "]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{
+    "a000_", ",", "a100_", ",", "a010_", ",", "a110_", ",", "a001_", ",", 
+     "a101_", ",", "a011_", ",", "a111_"}], "]"}], ":=", 
+   RowBox[{"Show", "[", 
+    RowBox[{
+     RowBox[{"ContourPlot3D", "[", " ", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"Evaluate", "[", 
+         RowBox[{"F", "[", 
+          RowBox[{
+          "x", ",", "y", ",", "z", ",", "a000", ",", "a100", ",", "a010", ",",
+            "a110", ",", "a001", ",", "a101", ",", "a011", ",", "a111"}], 
+          "]"}], "]"}], "\[Equal]", "0"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"x", ",", "0", ",", "1"}], "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"y", ",", "0", ",", "1"}], "}"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"z", ",", "0", ",", "1"}], "}"}], ",", 
+       RowBox[{"Ticks", "\[Rule]", "None"}], ",", 
+       RowBox[{"PlotPoints", "\[Rule]", "100"}]}], "]"}], ",", 
+     RowBox[{"Graphics3D", "[", 
+      RowBox[{"{", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<0\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "0.0", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<1\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "0.0", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<2\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "1.0", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<3\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "1.0", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<4\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "0.0", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<5\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "0.0", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<6\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "1.0", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<7\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "1.0", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<0\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.5", ",", "0.0", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<1\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "0.5", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<2\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.5", ",", "1.0", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<3\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "0.5", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<4\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.5", ",", "0.0", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<5\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "0.5", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<6\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.5", ",", "1.0", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<7\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "0.5", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<8\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "0.0", ",", "0.5"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<9\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "0.0", ",", "0.5"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<10\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "1.0", ",", "0.5"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<11\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "1.0", ",", "0.5"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}]}], 
+       "\[IndentingNewLine]", "}"}], "]"}]}], "]"}]}], ";"}]}], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{
+   "13", "th", " ", "point", " ", "is", " ", "the", " ", "cube", " ", 
+    "center"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"Clear", "[", "midpoints", "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"midpoints", " ", "=", " ", 
+     RowBox[{"Partition", "[", 
+      RowBox[{
+       RowBox[{"{", " ", 
+        RowBox[{
+        "0.5", ",", "0", ",", "0", ",", "1", ",", "0.5", ",", "0", ",", "0.5",
+          ",", "1", ",", "0", ",", "0", ",", "0.5", ",", "0", ",", "0.5", ",",
+          "0", ",", "1", ",", "1", ",", "0.5", ",", "1", ",", "0.5", ",", "1",
+          ",", "1", ",", "0", ",", "0.5", ",", "1", ",", "0", ",", "0", ",", 
+         "0.5", ",", "1", ",", "0", ",", "0.5", ",", "1", ",", "1", ",", 
+         "0.5", ",", "0", ",", "1", ",", "0.5", ",", "0.5", ",", "0.5", ",", 
+         "0.5"}], " ", "}"}], ",", " ", "3"}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"Clear", "[", "TriangulatedIsosurfacePlot", "]"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"TriangulatedIsosurfacePlot", "[", "l_", "]"}], " ", ":=", " ", 
+     RowBox[{"Graphics3D", "[", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"Polygon", "[", 
+         RowBox[{"Partition", "[", 
+          RowBox[{
+           RowBox[{"Map", "[", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"(", 
+               RowBox[{"midpoints", "[", 
+                RowBox[{"[", 
+                 RowBox[{"#", "+", "1"}], "]"}], "]"}], ")"}], "&"}], ",", 
+             "l"}], "]"}], ",", "3"}], "]"}], "]"}], ",", 
+        RowBox[{"Point", "[", 
+         RowBox[{"{", 
+          RowBox[{"0", ",", "0", ",", "0"}], "}"}], "]"}], ",", 
+        RowBox[{"Point", "[", 
+         RowBox[{"{", 
+          RowBox[{"1", ",", "1", ",", "1"}], "}"}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<0\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "0.0", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<1\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "0.0", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<2\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "1.0", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<3\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "1.0", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<4\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "0.0", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<5\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "0.0", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<6\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "1.0", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<7\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "1.0", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "Red"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<0\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.5", ",", "0.0", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<1\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "0.5", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<2\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.5", ",", "1.0", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<3\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "0.5", ",", "0.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<4\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.5", ",", "0.0", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<5\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "0.5", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<6\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.5", ",", "1.0", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<7\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "0.5", ",", "1.0"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<8\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "0.0", ",", "0.5"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<9\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "0.0", ",", "0.5"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<10\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"1.0", ",", "1.0", ",", "0.5"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"Text", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{"\"\<11\>\"", ",", "Large", ",", "Bold"}], "]"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"0.0", ",", "1.0", ",", "0.5"}], "}"}], ",", 
+          RowBox[{"Background", "\[Rule]", "LightBlue"}]}], "]"}]}], "}"}], 
+      "]"}]}], ";"}]}]}]], "Input",
+ CellChangeTimes->{{3.6313934615899477`*^9, 3.631393488792502*^9}, {
+  3.63139361894834*^9, 3.631393633210388*^9}, {3.631393666177969*^9, 
+  3.631393679266924*^9}, {3.6313937599072104`*^9, 3.631393778602406*^9}, {
+  3.631393849338855*^9, 3.6313938856644487`*^9}, {3.631394003570389*^9, 
+  3.631394024974069*^9}, {3.631394089474285*^9, 3.6313941053870897`*^9}, {
+  3.6313941760036383`*^9, 3.631394177995611*^9}, {3.631394274026045*^9, 
+  3.631394288324555*^9}, {3.631394319376296*^9, 3.631394326938594*^9}, {
+  3.6313944256003447`*^9, 3.631394432194352*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{
+   "midpoints", " ", "of", " ", "each", " ", "three", " ", "consecutive", " ",
+     "edges", " ", "form", " ", "a", " ", 
+    RowBox[{"triangle", "."}]}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{"Clear", "[", "edges", "]"}]}]], "Input",
+ CellChangeTimes->{{3.6313937216470423`*^9, 3.6313937248972807`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "1"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"2", ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "3"}], ",", 
+     RowBox[{"-", "3"}], ",", 
+     RowBox[{"-", "3"}], ",", 
+     RowBox[{"-", "5"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "1", "]"}], "=", " ", 
+     RowBox[{"{", 
+      RowBox[{"8", ",", "3", ",", "0"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "1", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.631383810013504*^9, 3.631383810018098*^9}, {
+   3.631392404624531*^9, 3.631392456553012*^9}, {3.631392511649755*^9, 
+   3.63139254308486*^9}, {3.6313930571086473`*^9, 3.63139312165226*^9}, {
+   3.631393248319087*^9, 3.631393249085165*^9}, {3.6313934219636602`*^9, 
+   3.6313934222954807`*^9}, {3.631393719611774*^9, 3.63139373620759*^9}, {
+   3.631394480541627*^9, 3.631394512246395*^9}, 3.633120796388268*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562945316177*^9, 3.6805629453329077`*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562946581703*^9, 3.680562946593453*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "2"}], " ", "*)"}], "\n", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"2", ",", "4", ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "5"}], ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "5"}], ",", 
+     RowBox[{"-", "2"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "2", "]"}], "=", " ", 
+     RowBox[{"{", 
+      RowBox[{"3", ",", "1", ",", "8", ",", "9", ",", "8", ",", "1"}], 
+      "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "2", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.631393162736228*^9, 3.6313931878618803`*^9}, {
+   3.63139453261344*^9, 3.631394552119534*^9}, 3.633120805990396*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562948522873*^9, 3.6805629485596724`*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562949597859*^9, 3.680562949609926*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "3.1"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"1", ",", 
+     RowBox[{"-", "5"}], ",", 
+     RowBox[{"-", "3"}], ",", "2", ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "2"}], ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "5"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "3.1", "]"}], "=", " ", 
+     RowBox[{"{", 
+      RowBox[{"1", ",", "2", ",", "10", ",", "8", ",", "3", ",", "0"}], 
+      "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "3.1", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.63139457178467*^9, 3.631394612061417*^9}, 
+   3.633120817477078*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.6805629507826014`*^9, 3.6805629507995577`*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562951964685*^9, 3.680562951974996*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "3.2"}], " ", "*)"}], "\n", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"2", ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "2"}], ",", "4", ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "5"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "3.2", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "8", ",", "3", ",", "10", ",", "10", ",", "1", ",", "0", ",", "0", ",", 
+       "8", ",", "10", ",", "2", ",", "10", ",", "3"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "3.2", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.63140664353224*^9, 3.631406649375805*^9}, {
+   3.631406787430591*^9, 3.631406806301588*^9}, {3.631406901422658*^9, 
+   3.6314069046771*^9}, 3.63312082897829*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562953583303*^9, 3.6805629536228943`*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562956286108*^9, 3.680562956297806*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "4.1"}], " ", "*)"}], "\n", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"3", ",", 
+     RowBox[{"-", "5"}], ",", 
+     RowBox[{"-", "3"}], ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "2"}], ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "2"}], ",", "2"}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "4.1", "]"}], " ", "=", 
+     RowBox[{"{", 
+      RowBox[{"6", ",", "5", ",", "10", ",", "3", ",", "0", ",", "8"}], 
+      "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "4.1", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{
+  3.63139495383048*^9, {3.6314070175449657`*^9, 3.631407043787496*^9}, 
+   3.633120841423759*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.68056295862567*^9, 3.680562958653616*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562959916731*^9, 3.680562959925932*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "4.2"}], " ", "*)"}], "\n", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"4", ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "2"}], ",", "4"}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "4.2", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "8", ",", "6", ",", "5", ",", "8", ",", "5", ",", "0", ",", "6", ",", 
+       "3", ",", "10", ",", "0", ",", "5", ",", "10", ",", "0", ",", "10", 
+       ",", "3", ",", "3", ",", "6", ",", "8"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "4.2", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.6314071495879307`*^9, 3.63140717085966*^9}, 
+   3.633120849959127*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562962325264*^9, 3.680562962383195*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562963766201*^9, 3.6805629637784557`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "5"}], "  ", "*)"}], "\n", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"1", ",", "4", ",", 
+     RowBox[{"-", "4"}], ",", "2", ",", 
+     RowBox[{"-", "2"}], ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "2"}], ",", 
+     RowBox[{"-", "2"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "5", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "8", ",", "3", ",", "2", ",", "10", ",", "8", ",", "2", ",", "10", ",", 
+       "9", ",", "8"}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "5", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{
+  3.631394932494561*^9, {3.6314071836012573`*^9, 3.631407209075837*^9}, 
+   3.633121157276601*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562965969612*^9, 3.680562966012204*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.68056296811032*^9, 3.680562968122045*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "6.1", ".1"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"2", ",", "1", ",", 
+     RowBox[{"-", "5"}], ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "3"}], ",", 
+     RowBox[{"-", "5"}], ",", "2"}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "6.11", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "6", ",", "5", ",", "10", ",", "8", ",", "1", ",", "9", ",", "8", ",", 
+       "3", ",", "1"}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "6.11", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.631394922851939*^9, 3.6313949251185083`*^9}, {
+   3.631407230594528*^9, 3.631407270785904*^9}, {3.631407545691231*^9, 
+   3.631407562370605*^9}, 3.633121168522482*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562969935062*^9, 3.680562969961299*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.6805629712213793`*^9, 3.680562971233778*^9}}],
+
+Cell[BoxData[
+ RowBox[{"(*", " ", 
+  RowBox[{"Case", " ", "6.1", ".2", " ", 
+   RowBox[{"{", 
+    RowBox[{
+    "1", ",", "10", ",", "3", ",", "3", ",", "10", ",", "6", ",", "3", ",", 
+     "6", ",", "8", ",", "5", ",", "8", ",", "6", ",", "5", ",", "9", ",", 
+     "8", ",", "1", ",", "9", ",", "5", ",", "1", ",", "5", ",", "10"}], 
+    "}"}], " ", "missing"}], " ", "*)"}]], "Input",
+ CellChangeTimes->{{3.631394915677146*^9, 3.631394918457716*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "6.2"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"2", ",", "4", ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "2"}], ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "2"}], ",", 
+     RowBox[{"-", "4"}], ",", "3"}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "6.2", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "8", ",", "6", ",", "5", ",", "10", ",", "3", ",", "1", ",", "8", ",", 
+       "3", ",", "6", ",", "9", ",", "8", ",", "5", ",", "6", ",", "3", ",", 
+       "10"}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "6.2", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.631394907500346*^9, 3.631394909198427*^9}, {
+   3.631407571579081*^9, 3.6314075947819147`*^9}, 3.633121181447743*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562973444973*^9, 3.680562973492066*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.6805629756140127`*^9, 3.680562975626401*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "7.1"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"1", ",", 
+     RowBox[{"-", "5"}], ",", 
+     RowBox[{"-", "3"}], ",", "4", ",", 
+     RowBox[{"-", "3"}], ",", "4", ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "5"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "7.1", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "1", ",", "2", ",", "10", ",", "9", ",", "5", ",", "4", ",", "8", ",", 
+       "3", ",", "0"}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "7.1", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.631394899787757*^9, 3.631394901365316*^9}, {
+   3.631407675342209*^9, 3.631407703788311*^9}, 3.63312119343121*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562979513479*^9, 3.680562979543145*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.68056298074191*^9, 3.680562980754003*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "7.2"}], " ", "*)"}], "\n", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"4", ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "2"}], ",", "1", ",", 
+     RowBox[{"-", "1"}], ",", "3", ",", 
+     RowBox[{"-", "5"}], ",", 
+     RowBox[{"-", "1"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "7.2", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "1", ",", "2", ",", "10", ",", "4", ",", "8", ",", "3", ",", "5", ",", 
+       "4", ",", "3", ",", "0", ",", "5", ",", "3", ",", "5", ",", "0", ",", 
+       "9"}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "7.2", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.6314077584117727`*^9, 3.631407780085137*^9}, 
+   3.633121204120735*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562982940031*^9, 3.680562982984496*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562984997466*^9, 3.680562985009152*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "7.3"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"2", ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "3"}], ",", "1", ",", 
+     RowBox[{"-", "1"}], ",", "4", ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "1"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "7.3", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "12", ",", "1", ",", "2", ",", "12", ",", "9", ",", "1", ",", "5", ",", 
+       "12", ",", "10", ",", "9", ",", "12", ",", "0", ",", "12", ",", "8", 
+       ",", "3", ",", "12", ",", "5", ",", "4", ",", "0", ",", "12", ",", "3",
+        ",", "10", ",", "12", ",", "2", ",", "4", ",", "8", ",", "12"}], 
+      "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "7.3", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.631394881418009*^9, 3.631394883985857*^9}, {
+   3.631407899381012*^9, 3.631407915963846*^9}, 3.631407965561245*^9, 
+   3.633121214204296*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562988453167*^9, 3.680562988499811*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.6805629898686323`*^9, 3.68056298987906*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "7.4", ".1"}], " ", "*)"}], "\n", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"4", ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "1"}], ",", "2", ",", 
+     RowBox[{"-", "3"}], ",", "2", ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "2"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "7.41", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "5", ",", "4", ",", "8", ",", "3", ",", "2", ",", "8", ",", "9", ",", 
+       "1", ",", "0", ",", "2", ",", "5", ",", "8", ",", "5", ",", "2", ",", 
+       "10"}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "7.41", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{
+  3.631394875983251*^9, {3.63140792250747*^9, 3.631407922945261*^9}, {
+   3.631407976090848*^9, 3.631408003573235*^9}, 3.633121222875579*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562992276504*^9, 3.680562992327524*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680562993468965*^9, 3.680562993481633*^9}}],
+
+Cell[BoxData[
+ RowBox[{"(*", " ", 
+  RowBox[{"Case", " ", "7.4", ".2", " ", 
+   RowBox[{"{", 
+    RowBox[{
+    "9", ",", "4", ",", "0", ",", "4", ",", "8", ",", "0", ",", "4", ",", "9",
+      ",", "5", ",", "10", ",", "5", ",", "1", ",", "1", ",", "5", ",", "9", 
+     ",", "10", ",", "1", ",", "2", ",", "0", ",", "2", ",", "1", ",", "2", 
+     ",", "0", ",", "3", ",", "8", ",", "3", ",", "0"}], "}"}], " ", 
+   "missing"}], " ", "*)"}]], "Input",
+ CellChangeTimes->{{3.631394864511746*^9, 3.631394867570568*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "8"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"2", ",", "4", ",", "3", ",", "3", ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "3"}], ",", 
+     RowBox[{"-", "5"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "8", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{"10", ",", "9", ",", "8", ",", "8", ",", "11", ",", "10"}], 
+      "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "8", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.631394856154524*^9, 3.631394858591331*^9}, {
+   3.63140792499454*^9, 3.631407925346727*^9}, {3.631408011049806*^9, 
+   3.631408028920038*^9}, 3.6331212339771214`*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.6805629961139107`*^9, 3.680562996146295*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.6805629976932096`*^9, 3.6805629977062263`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "9"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"4", ",", "3", ",", 
+     RowBox[{"-", "3"}], ",", "4", ",", 
+     RowBox[{"-", "1"}], ",", "4", ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "2"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "9", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "3", ",", "5", ",", "8", ",", "3", ",", "10", ",", "5", ",", "2", ",", 
+       "10", ",", "3", ",", "8", ",", "5", ",", "4"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "9", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.6313948451644297`*^9, 3.6313948491818047`*^9}, {
+   3.631407928127941*^9, 3.6314079284627113`*^9}, {3.631408053985044*^9, 
+   3.631408067440769*^9}, 3.6331212414007072`*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563000163797*^9, 3.680563000206311*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.68056300206859*^9, 3.680563002078245*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "10.1", ".1"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"2", ",", "1", ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "4"}], ",", "1", ",", "3"}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "10.11", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "11", ",", "7", ",", "10", ",", "3", ",", "1", ",", "8", ",", "1", ",", 
+       "9", ",", "8", ",", "7", ",", "5", ",", "10"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "10.11", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.631394819132061*^9, 3.6313948218945*^9}, {
+   3.6314079305952578`*^9, 3.6314079309694433`*^9}, {3.631408089849622*^9, 
+   3.6314081060351667`*^9}, 3.6331212499350643`*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563004009939*^9, 3.680563004058179*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563005220869*^9, 3.680563005232911*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "10.1", ".2"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"1", ",", "4", ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "5"}], ",", "3", ",", "1"}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "10.12", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "11", ",", "3", ",", "10", ",", "9", ",", "7", ",", "5", ",", "9", ",", 
+       "5", ",", "10", ",", "1", ",", "10", ",", "3", ",", "7", ",", "9", ",",
+        "8", ",", "3", ",", "7", ",", "8", ",", "9", ",", "10", ",", "1", ",",
+        "7", ",", "3", ",", "11"}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "10.12", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.6313948089203568`*^9, 3.631394811553084*^9}, {
+   3.631407933939434*^9, 3.631407934287516*^9}, {3.631408117045911*^9, 
+   3.631408132752613*^9}, 3.631408198169902*^9, 3.6331212625521107`*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563008067267*^9, 3.6805630081180487`*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563009277154*^9, 3.680563009289278*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "10.2"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"3", ",", "2", ",", 
+     RowBox[{"-", "2"}], ",", 
+     RowBox[{"-", "3"}], ",", 
+     RowBox[{"-", "3"}], ",", 
+     RowBox[{"-", "1"}], ",", "1", ",", "3"}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "10.2", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "12", ",", "3", ",", "1", ",", "7", ",", "12", ",", "11", ",", "12", 
+       ",", "7", ",", "5", ",", "12", ",", "8", ",", "3", ",", "1", ",", "10",
+        ",", "12", ",", "11", ",", "12", ",", "10", ",", "5", ",", "9", ",", 
+       "12", ",", "12", ",", "9", ",", "8"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "10.2", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.631394803094509*^9, 3.631394813657806*^9}, {
+   3.631407936093664*^9, 3.6314079364952927`*^9}, {3.631408238884272*^9, 
+   3.631408255699586*^9}, 3.633121273941856*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563012205556*^9, 3.680563012256349*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563013517186*^9, 3.680563013529673*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "11"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"2", ",", "4", ",", 
+     RowBox[{"-", "2"}], ",", "4", ",", "1", ",", 
+     RowBox[{"-", "3"}], ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "5"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "11", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "4", ",", "7", ",", "9", ",", "2", ",", "10", ",", "9", ",", "7", ",", 
+       "3", ",", "2", ",", "7", ",", "2", ",", "9"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "11", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.6313947976715117`*^9, 3.631394799030184*^9}, {
+   3.631407938955155*^9, 3.63140793933766*^9}, {3.63140828085923*^9, 
+   3.6314082825200987`*^9}, {3.6314085078841143`*^9, 
+   3.6314085083080053`*^9}, {3.631408545204936*^9, 3.631408554349113*^9}, 
+   3.633121284619705*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.6805630159129543`*^9, 3.6805630159538927`*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563018839376*^9, 3.680563018851039*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", 
+   RowBox[{"Case", " ", "12.1", ".1"}], "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"4", ",", "3", ",", 
+     RowBox[{"-", "4"}], ",", "4", ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "1"}], ",", "2", ",", 
+     RowBox[{"-", "4"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"edges", "[", "12.11", "]"}], " ", "=", " ", 
+    RowBox[{"{", 
+     RowBox[{
+     "3", ",", "2", ",", "10", ",", "8", ",", "3", ",", "10", ",", "6", ",", 
+      "11", ",", "7", ",", "8", ",", "10", ",", "9"}], "}"}]}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "12.11", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.631407941571385*^9, 3.6314079418829117`*^9}, {
+   3.63140858865242*^9, 3.631408613420938*^9}, 3.6331212940280857`*^9}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563021163294*^9, 3.680563021206586*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "7", ",", "6", ",", "11", ",", "10", ",", "3", ",", "2", ",", "3", ",", 
+   "10", ",", "8", ",", "9", ",", "8", ",", "10"}], "}"}]], "Output",
+ CellChangeTimes->{{3.631408591931617*^9, 3.631408614493143*^9}}]
+}, Open  ]],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563023164904*^9, 3.6805630231759367`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"(*", " ", 
+  RowBox[{"Case", " ", "12.1", ".2", " ", 
+   RowBox[{"{", 
+    RowBox[{
+    "7", ",", "3", ",", "11", ",", "3", ",", "7", ",", "8", ",", "9", ",", 
+     "8", ",", "7", ",", "6", ",", "9", ",", "7", ",", "9", ",", "6", ",", 
+     "10", ",", "2", ",", "10", ",", "6", ",", "11", ",", "2", ",", "6", ",", 
+     "2", ",", "11", ",", "3"}], "}"}], " ", "missing"}], " ", 
+  "*)"}]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "12.2"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"3", ",", "3", ",", 
+     RowBox[{"-", "2"}], ",", "1", ",", 
+     RowBox[{"-", "3"}], ",", 
+     RowBox[{"-", "3"}], ",", "3", ",", 
+     RowBox[{"-", "3"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "12.2", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "12", ",", "6", ",", "11", ",", "9", ",", "12", ",", "10", ",", "8", 
+       ",", "7", ",", "12", ",", "2", ",", "12", ",", "3", ",", "3", ",", 
+       "12", ",", "11", ",", "12", ",", "9", ",", "8", ",", "12", ",", "2", 
+       ",", "10", ",", "6", ",", "12", ",", "7"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "12.2", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.631394737253972*^9, 3.631394760553743*^9}, {
+   3.631407944469575*^9, 3.631407944815346*^9}, {3.631408631821705*^9, 
+   3.6314086478804197`*^9}, 3.633121303440853*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563025748065*^9, 3.680563025795826*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563026869272*^9, 3.680563026881921*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "13.1"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"4", ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "2"}], ",", "2", ",", 
+     RowBox[{"-", "5"}], ",", "4", ",", "1", ",", 
+     RowBox[{"-", "3"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "13.1", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "10", ",", "1", ",", "2", ",", "7", ",", "6", ",", "11", ",", "0", ",", 
+       "8", ",", "3", ",", "5", ",", "4", ",", "9"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "13.1", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.631394727493661*^9, 3.631394758238652*^9}, {
+   3.63140794704698*^9, 3.631407947363307*^9}, {3.631408662082938*^9, 
+   3.6314086763963957`*^9}, 3.633121311710182*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.6805630296515913`*^9, 3.6805630296957293`*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.6805630307890263`*^9, 3.680563030801896*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "13.2"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"3", ",", 
+     RowBox[{"-", "5"}], ",", 
+     RowBox[{"-", "3"}], ",", "3", ",", 
+     RowBox[{"-", "2"}], ",", "4", ",", "1", ",", 
+     RowBox[{"-", "3"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "13.2", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "1", ",", "2", ",", "10", ",", "11", ",", "7", ",", "6", ",", "5", ",", 
+       "4", ",", "3", ",", "0", ",", "9", ",", "5", ",", "4", ",", "8", ",", 
+       "3", ",", "5", ",", "3", ",", "0"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "13.2", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.63139471862879*^9, 3.6313947330710983`*^9}, 
+   3.63139483385598*^9, {3.631407950378997*^9, 3.631407950723626*^9}, {
+   3.631408684868675*^9, 3.631408701318103*^9}, 3.6331213220729637`*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563033025518*^9, 3.680563033074341*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563034308807*^9, 3.680563034321159*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "13.3"}], " ", "*)"}], "\n", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"1", ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "5"}], ",", "3", ",", 
+     RowBox[{"-", "2"}], ",", "4", ",", "1", ",", 
+     RowBox[{"-", "5"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "13.3", "]"}], "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "4", ",", "12", ",", "5", ",", "12", ",", "2", ",", "10", ",", "1", ",",
+        "12", ",", "9", ",", "12", ",", "1", ",", "2", ",", "12", ",", "8", 
+       ",", "3", ",", "5", ",", "12", ",", "10", ",", "9", ",", "12", ",", 
+       "0", ",", "6", ",", "11", ",", "7", ",", "3", ",", "0", ",", "12", ",",
+        "8", ",", "12", ",", "4"}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "13.3", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.63139470671773*^9, 3.631394724547656*^9}, {
+   3.631394825476151*^9, 3.6313948259706297`*^9}, {3.6313949755464687`*^9, 
+   3.631394996412354*^9}, 3.6331213313343*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563037251895*^9, 3.680563037296956*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563038460827*^9, 3.680563038473641*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "13.4"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"3", ",", 
+     RowBox[{"-", "2"}], ",", 
+     RowBox[{"-", "5"}], ",", "1", ",", 
+     RowBox[{"-", "4"}], ",", "4", ",", "3", ",", 
+     RowBox[{"-", "1"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "13.4", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "12", ",", "4", ",", "8", ",", "10", ",", "5", ",", "12", ",", "0", ",",
+        "12", ",", "3", ",", "4", ",", "12", ",", "7", ",", "2", ",", "12", 
+       ",", "1", ",", "12", ",", "0", ",", "9", ",", "1", ",", "12", ",", "9",
+        ",", "12", ",", "11", ",", "7", ",", "8", ",", "3", ",", "12", ",", 
+       "6", ",", "12", ",", "5", ",", "2", ",", "10", ",", "12", ",", "6", 
+       ",", "11", ",", "12"}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "13.4", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.631394690476223*^9, 3.63139471402639*^9}, 
+   3.631394827211952*^9, {3.631407954100053*^9, 3.631407954450738*^9}, {
+   3.631408719998084*^9, 3.631408735104987*^9}, 3.6331213404170103`*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563041741757*^9, 3.680563041793129*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.6805630428528967`*^9, 3.680563042866377*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "13.5", ".1"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"3", ",", 
+     RowBox[{"-", "1"}], ",", 
+     RowBox[{"-", "5"}], ",", "3", ",", 
+     RowBox[{"-", "3"}], ",", "3", ",", "1", ",", 
+     RowBox[{"-", "3"}]}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "13.51", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "2", ",", "10", ",", "4", ",", "4", ",", "8", ",", "2", ",", "1", ",", 
+       "0", ",", "9", ",", "2", ",", "8", ",", "3", ",", "6", ",", "11", ",", 
+       "7", ",", "4", ",", "10", ",", "5"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "13.51", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{{3.63139468530927*^9, 3.631394696847465*^9}, {
+   3.631394828304537*^9, 3.631394830359082*^9}, {3.631407956132036*^9, 
+   3.631407956500371*^9}, {3.631408752012755*^9, 3.6314087657974443`*^9}, 
+   3.63312134963776*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563046628022*^9, 3.6805630466724443`*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563048621201*^9, 3.680563048633296*^9}}],
+
+Cell[BoxData[
+ RowBox[{"(*", " ", 
+  RowBox[{"13.5", ".2", " ", 
+   RowBox[{"{", 
+    RowBox[{
+    "1", ",", "0", ",", "9", ",", "7", ",", "4", ",", "8", ",", "7", ",", "8",
+      ",", "3", ",", "7", ",", "3", ",", "11", ",", "2", ",", "11", ",", "3", 
+     ",", "11", ",", "2", ",", "6", ",", "2", ",", "10", ",", "6", ",", "5", 
+     ",", "6", ",", "10", ",", "6", ",", "5", ",", "7", ",", "4", ",", "7", 
+     ",", "5"}], "}"}], " ", "missing"}], " ", "*)"}]], "Input",
+ CellChangeTimes->{{3.631394699503543*^9, 3.631394701167807*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", " ", 
+   RowBox[{"Case", " ", "14"}], " ", "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"IsosurfacePlot", "[", 
+    RowBox[{"2", ",", "3", ",", 
+     RowBox[{"-", "3"}], ",", "3", ",", 
+     RowBox[{"-", "4"}], ",", 
+     RowBox[{"-", "3"}], ",", 
+     RowBox[{"-", "5"}], ",", "1"}], "]"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"edges", "[", "14", "]"}], " ", "=", " ", 
+     RowBox[{"{", 
+      RowBox[{
+      "2", ",", "6", ",", "3", ",", "6", ",", "5", ",", "9", ",", "6", ",", 
+       "9", ",", "8", ",", "3", ",", "6", ",", "8"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"TriangulatedIsosurfacePlot", "[", 
+    RowBox[{"edges", "[", "14", "]"}], "]"}]}]}]], "Input",
+ CellChangeTimes->{
+  3.631394702763289*^9, {3.631407958010763*^9, 3.631407959771985*^9}, {
+   3.631408772362403*^9, 3.631408788250387*^9}, 3.6331213594095*^9}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.6805630510747833`*^9, 3.680563051117893*^9}}],
+
+Cell[BoxData[""], "Input",
+ CellChangeTimes->{{3.680563052396535*^9, 3.680563052407886*^9}}]
+},
+WindowSize->{1440, 791},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+ShowSelection->True,
+FrontEndVersion->"8.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (July 22, \
+2012)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[557, 20, 4093, 83, 433, "Input"],
+Cell[4653, 105, 1371, 40, 58, "Input"],
+Cell[6027, 147, 8092, 189, 373, "Input"],
+Cell[14122, 338, 9392, 215, 388, "Input"],
+Cell[23517, 555, 371, 8, 43, "Input"],
+Cell[23891, 565, 1144, 27, 73, "Input"],
+Cell[25038, 594, 94, 1, 27, InheritFromParent],
+Cell[25135, 597, 92, 1, 27, InheritFromParent],
+Cell[25230, 600, 845, 22, 73, "Input"],
+Cell[26078, 624, 94, 1, 27, InheritFromParent],
+Cell[26175, 627, 92, 1, 27, InheritFromParent],
+Cell[26270, 630, 821, 22, 73, "Input"],
+Cell[27094, 654, 96, 1, 27, InheritFromParent],
+Cell[27193, 657, 92, 1, 27, InheritFromParent],
+Cell[27288, 660, 977, 25, 73, "Input"],
+Cell[28268, 687, 94, 1, 27, InheritFromParent],
+Cell[28365, 690, 92, 1, 27, InheritFromParent],
+Cell[28460, 693, 831, 23, 73, "Input"],
+Cell[29294, 718, 91, 1, 27, InheritFromParent],
+Cell[29388, 721, 92, 1, 27, InheritFromParent],
+Cell[29483, 724, 953, 25, 73, "Input"],
+Cell[30439, 751, 92, 1, 27, InheritFromParent],
+Cell[30534, 754, 94, 1, 27, InheritFromParent],
+Cell[30631, 757, 850, 23, 73, "Input"],
+Cell[31484, 782, 92, 1, 27, InheritFromParent],
+Cell[31579, 785, 91, 1, 27, InheritFromParent],
+Cell[31673, 788, 950, 23, 73, "Input"],
+Cell[32626, 813, 92, 1, 27, InheritFromParent],
+Cell[32721, 816, 94, 1, 27, InheritFromParent],
+Cell[32818, 819, 451, 9, 27, "Input"],
+Cell[33272, 830, 961, 23, 73, "Input"],
+Cell[34236, 855, 92, 1, 27, InheritFromParent],
+Cell[34331, 858, 94, 1, 27, InheritFromParent],
+Cell[34428, 861, 889, 22, 73, "Input"],
+Cell[35320, 885, 92, 1, 27, InheritFromParent],
+Cell[35415, 888, 91, 1, 27, InheritFromParent],
+Cell[35509, 891, 897, 23, 73, "Input"],
+Cell[36409, 916, 92, 1, 27, InheritFromParent],
+Cell[36504, 919, 92, 1, 27, InheritFromParent],
+Cell[36599, 922, 1129, 26, 73, "Input"],
+Cell[37731, 950, 92, 1, 27, InheritFromParent],
+Cell[37826, 953, 93, 1, 27, InheritFromParent],
+Cell[37922, 956, 973, 24, 73, "Input"],
+Cell[38898, 982, 92, 1, 27, InheritFromParent],
+Cell[38993, 985, 92, 1, 27, InheritFromParent],
+Cell[39088, 988, 515, 10, 27, "Input"],
+Cell[39606, 1000, 878, 21, 73, "Input"],
+Cell[40487, 1023, 94, 1, 27, InheritFromParent],
+Cell[40584, 1026, 96, 1, 27, InheritFromParent],
+Cell[40683, 1029, 956, 23, 73, "Input"],
+Cell[41642, 1054, 92, 1, 27, InheritFromParent],
+Cell[41737, 1057, 91, 1, 27, InheritFromParent],
+Cell[41831, 1060, 972, 23, 73, "Input"],
+Cell[42806, 1085, 92, 1, 27, InheritFromParent],
+Cell[42901, 1088, 92, 1, 27, InheritFromParent],
+Cell[42996, 1091, 1127, 24, 73, "Input"],
+Cell[44126, 1117, 94, 1, 27, InheritFromParent],
+Cell[44223, 1120, 92, 1, 27, InheritFromParent],
+Cell[44318, 1123, 1105, 25, 73, "Input"],
+Cell[45426, 1150, 92, 1, 27, InheritFromParent],
+Cell[45521, 1153, 92, 1, 27, InheritFromParent],
+Cell[45616, 1156, 1056, 25, 73, "Input"],
+Cell[46675, 1183, 96, 1, 27, InheritFromParent],
+Cell[46774, 1186, 92, 1, 27, InheritFromParent],
+Cell[46869, 1189, 885, 21, 73, "Input"],
+Cell[CellGroupData[{
+Cell[47779, 1214, 92, 1, 27, InheritFromParent],
+Cell[47874, 1217, 250, 5, 27, "Output"]
+}, Open  ]],
+Cell[48139, 1225, 94, 1, 27, InheritFromParent],
+Cell[48236, 1228, 422, 9, 27, "Input"],
+Cell[48661, 1239, 1105, 25, 73, "Input"],
+Cell[49769, 1266, 92, 1, 27, InheritFromParent],
+Cell[49864, 1269, 92, 1, 27, InheritFromParent],
+Cell[49959, 1272, 958, 23, 73, "Input"],
+Cell[50920, 1297, 96, 1, 27, InheritFromParent],
+Cell[51019, 1300, 94, 1, 27, InheritFromParent],
+Cell[51116, 1303, 1049, 24, 73, "Input"],
+Cell[52168, 1329, 92, 1, 27, InheritFromParent],
+Cell[52263, 1332, 92, 1, 27, InheritFromParent],
+Cell[52358, 1335, 1146, 25, 73, "Input"],
+Cell[53507, 1362, 92, 1, 27, InheritFromParent],
+Cell[53602, 1365, 92, 1, 27, InheritFromParent],
+Cell[53697, 1368, 1262, 26, 73, "Input"],
+Cell[54962, 1396, 92, 1, 27, InheritFromParent],
+Cell[55057, 1399, 94, 1, 27, InheritFromParent],
+Cell[55154, 1402, 1084, 25, 73, "Input"],
+Cell[56241, 1429, 94, 1, 27, InheritFromParent],
+Cell[56338, 1432, 92, 1, 27, InheritFromParent],
+Cell[56433, 1435, 538, 10, 27, "Input"],
+Cell[56974, 1447, 922, 23, 73, "Input"],
+Cell[57899, 1472, 94, 1, 27, InheritFromParent],
+Cell[57996, 1475, 92, 1, 27, InheritFromParent]
+}
+]
+*)
+
+(* End of internal cache information *)

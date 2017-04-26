@@ -33,6 +33,13 @@
  ************************************************************************
  ************************************************************************/
 
+#include "faust/dsp/dsp.h"
+#include "faust/gui/GUI.h"
+#include "faust/gui/FUI.h"
+#include "faust/gui/APIUI.h"
+#include "faust/gui/SimpleParser.h"
+#include "faust/misc.h"
+
 #import "FICocoaUI.h"
 
 /******************************************************************************

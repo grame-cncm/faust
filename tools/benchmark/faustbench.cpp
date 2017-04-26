@@ -174,7 +174,7 @@ extern "C" int bench_all(const char* name)
     vector <double>::iterator it = find(measures.begin(), measures.end(), measures1[measures1.size()-1]);
     int pos = distance(measures.begin(), it);
     
-    cout << "Best value is : " << measures1[measures1.size()-1] << " " << options[pos] << endl;
+    cout << "Best value is : " << measures1[measures1.size()-1] << " with " << options[pos] << endl;
   	return 1;
 }
 

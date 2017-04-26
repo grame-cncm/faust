@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mesh2faust --infile marimbaBar.obj --nsynthmodes 50 --nfemmodes 200 --maxmode 15000 --expos 2831 3208 3624 3975 4403 --debug --freqcontrol --material 1.3E9 0.33 720 --name marimbaBarModel

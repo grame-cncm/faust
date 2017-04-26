@@ -27,10 +27,10 @@ fprod(n)	= fold(n,*);
 
 // Often it is more convenient to specify
 // parameters as a Faust tuple. We can match
-// against the (xs,x) pattern to decompose
+// against the (x,xs) pattern to decompose
 // these.
 
-vfold(f,(xs,x))	= f(vfold(f,xs),x);
+vfold(f,(x,xs))	= f(x,vfold(f,xs));
 vfold(f,x)	= x;
 
 // Tuple version of seq, par, sum:
@@ -58,4 +58,4 @@ reverse (x:y)	= reverse(y):reverse(x);
 reverse(x)	= x;
 
 // sequences from tuples (parallel -> serial)
-process	= reverse(vseq((sin,cos,tan)));
+process	= vseq((sin,cos,tan)), vprod((2,3,4,5));
