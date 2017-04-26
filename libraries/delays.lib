@@ -48,33 +48,33 @@ declare version "0.0";
 //========================================================================================
 
 //-------`delay`----------
-// Simple `d` samples delay where `n` is the maximum delay length as a number of 
-// samples (it needs to be a power of 2). Unlike the `@` delay operator, this
-// function allows to preallocate memory which means that `d` can be changed dynamically
-// at run time as long as it remains smaller than `n`.
+// Simple `d` samples delay where `n` is the maximum delay length as a number of
+// samples. Unlike the `@` delay operator, here the delay signal `d` is explicitely
+// bounded to the interval [0..n]. The consequence is that delay will compile even
+// if the interval of d can't be computed by the compiler.
 // `delay` is a standard Faust function.
 //
 // #### Usage
 //
 // ```
 // _ : delay(n,d) : _
-// ``` 
+// ```
 //
 // Where:
 //
-// * `n`: the max delay length as a power of 2
+// * `n`: the max delay length (in samples)
 // * `d`: the delay length as a number of samples (integer)
 //-----------------------------
 // TODO: add MBH np2
-delay(n,d,x) = x@(int(d)&(n-1));
+delay(n,d,x) = x @ min(n, max(0,d));
 
 
 //-------`fdelay`----------
-// Simple `d` samples fractional delay based on 2 interpolated delay lines where `n` is 
-// the maximum delay length as a number of samples (it needs to be a power of 2 - see 
-// `delay()`).
+// Simple `d` samples fractional delay based on 2 interpolated delay lines where `n` is
+// the maximum delay length as a number of samples.
+
 // `fdelay` is a standard Faust function.
-// 
+//
 // #### Usage
 //
 // ```
@@ -83,14 +83,14 @@ delay(n,d,x) = x@(int(d)&(n-1));
 //
 // Where:
 //
-// * `n`: the max delay length as a power of 2
+// * `n`: the max delay length as a number of samples
 // * `d`: the delay length as a number of samples (float)
 //-----------------------------
-fdelay(n,d,x) = delay(n,int(d),x)*(1 - ma.frac(d)) + delay(n,int(d)+1,x)*ma.frac(d);
+fdelay(n,d,x) = delay(n+1,int(d),x)*(1 - ma.frac(d)) + delay(n+1,int(d)+1,x)*ma.frac(d);
 
 
 //--------------------------`sdelay`----------------------------
-// s(mooth)delay: a mono delay that doesn't click and doesn't 
+// s(mooth)delay: a mono delay that doesn't click and doesn't
 // transpose when the delay time is changed.
 //
 // #### Usage
@@ -101,7 +101,7 @@ fdelay(n,d,x) = delay(n,int(d),x)*(1 - ma.frac(d)) + delay(n,int(d)+1,x)*ma.frac
 //
 // Where :
 //
-// * `N`: maximal delay in samples (must be a constant power of 2, for example 65536)
+// * `N`: maximal delay in samples
 // * `it`: interpolation time (in samples) for example 1024
 // * `dt`: delay time (in samples)
 //--------------------------------------------------------------------------
@@ -109,14 +109,14 @@ sdelay(N, it, dt) = ctrl(it,dt),_ : ddi(N)
 with {
 	// ddi(N,i,d0,d1)
 	// DDI (Double Delay with Interpolation) : the input signal is sent to two
-	// delay lines. The outputs of these delay lines are crossfaded with 
-	// an interpolation stage. By acting on this interpolation value one 
-	// can move smoothly from one delay to another. When <i> is 0 we can 
+	// delay lines. The outputs of these delay lines are crossfaded with
+	// an interpolation stage. By acting on this interpolation value one
+	// can move smoothly from one delay to another. When <i> is 0 we can
 	// freely change the delay time <d1> of line 1, when it is 1 we can freely change
 	// the delay time <d0> of line 0.
 	//
-	// <N>  = maximal delay in samples (must be a power of 2, for example 65536)
-	// <i>  = interpolation value between 0 and 1 used to crossfade the outputs of the 
+	// <N>  = maximal delay in samples
+	// <i>  = interpolation value between 0 and 1 used to crossfade the outputs of the
 	// 		two delay lines (0.0: first delay line, 1.0: second delay line)
 	// <d0> = delay time of delay line 0 in samples between 0 and <N>-1
 	// <d1> = delay time of delay line 1 in samples between 0 and <N>-1
@@ -124,16 +124,16 @@ with {
 	ddi(N, i, d0, d1) = _ <: delay(N,d0), delay(N,d1) : si.interpolate(i);
 
 	// ctrl(it,dt)
-	// Control logic for a Double Delay with Interpolation according to two 
+	// Control logic for a Double Delay with Interpolation according to two
 	//
 	// USAGE : ctrl(it,dt)
-	// where : 
+	// where :
 	// <it> an interpolation time (in samples, for example 256)
 	// <dt> a delay time (in samples)
 	//
-	// ctrl produces 3 outputs : an interpolation value <i> and two delay 
-	// times <d0> and <d1>. These signals are used to control a ddi (Double Delay with Interpolation). 
-	// The principle is to detect changes in the input delay time dt, then to 
+	// ctrl produces 3 outputs : an interpolation value <i> and two delay
+	// times <d0> and <d1>. These signals are used to control a ddi (Double Delay with Interpolation).
+	// The principle is to detect changes in the input delay time dt, then to
 	// change the delay time of the delay line currently unused and then by a
 	// smooth crossfade to remove the first delay line and activate the second one.
 	//
@@ -143,15 +143,15 @@ with {
 	// <d0>: the delay time of line 0
 	// <d1>: the delay time of line 1
 	//
-	// Please note that the last stage (!,_,_,_) cut <v> because it is only 
+	// Please note that the last stage (!,_,_,_) cut <v> because it is only
 	// used internally.
-	ctrl(it, dt) = \(v,ip,d0,d1).( (nv, nip, nd0, nd1) 
+	ctrl(it, dt) = \(v,ip,d0,d1).( (nv, nip, nd0, nd1)
 	with {
 		// interpolation variation
 		nv = ba.if (v!=0.0, 							// if variation we are interpolating
 			ba.if( (ip>0.0) & (ip<1.0), v , 0),	// 		should we continue or not ?
 			ba.if ((ip==0.0) & (dt!=d0),  1.0/it,		// if true xfade from dl0 to dl1
-			ba.if ((ip==1.0) & (dt!=d1), -1.0/it,		// if true xfade from dl1 to dl0	
+			ba.if ((ip==1.0) & (dt!=d1), -1.0/it,		// if true xfade from dl1 to dl0
 					 0)));									// nothing to change
 		// interpolation value
 		nip = ip+nv : min(1.0) : max(0.0);
@@ -212,7 +212,7 @@ prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with {
 // Fractional delay line using Lagrange interpolation.
 //
 // #### Usage
-// 
+//
 // ```
 // _ : fdelaylt[i|v](order, maxdelay, delay, inputsignal) : _
 // ```
@@ -280,7 +280,7 @@ fdelay5 = fdelayltv(5);
 //----------------`fdelay[n]a`-------------
 // Delay lines interpolated using Thiran allpass interpolation.
 //
-// #### Usage 
+// #### Usage
 //
 // ```
 // _ : fdelay[N]a(maxdelay, delay, inputsignal) : _
@@ -288,7 +288,7 @@ fdelay5 = fdelayltv(5);
 //
 // (exactly like `fdelay`)
 //
-// Where: 
+// Where:
 //
 // * `N`=1,2,3, or 4 is the order of the Thiran interpolation filter,
 // and the delay argument is at least N - 1/2.

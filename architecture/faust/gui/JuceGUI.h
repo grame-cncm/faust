@@ -676,7 +676,9 @@ class uiButton : public uiComponent, private juce::Button::Listener
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fButton.triggerClick();
+            if (v == FAUSTFLOAT(1)) {
+                fButton.triggerClick();
+            }
         }
 
         /** Set the good coordinates and size to the juce::TextButton widget whenever the layout size changes. */

@@ -11,6 +11,8 @@ cmake_minimum_required(VERSION 3.4.1)
 
 add_library( dsp_faust SHARED src/main/cpp/java_interface_wrap.cpp src/main/cpp/DspFaust.cpp )
 
+add_definitions(-DANDROID_DRIVER)
+
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because system libraries are included in the search path by
 # default, you only need to specify the name of the public NDK library

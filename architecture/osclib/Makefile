@@ -9,7 +9,7 @@
 VERSION=0.95
 SOVERSION=0
 
-.PHONY: all clean depend
+.PHONY: all clean depend android
 
 system	?= $(shell uname -s)
 
@@ -76,7 +76,10 @@ faust/$(TARGET):
 ios : 
 	make -C oscpack ios
 	make -C faust ios
-	
+
+android :
+	ndk-build -C android -j 4
+
 clean :
 	rm -f liboscpack.a libOSCFaust.a
 	rm -f libOSCFaust*.dylib libOSCFaust.so* libOSCFaust*.dll

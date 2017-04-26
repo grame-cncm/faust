@@ -48,13 +48,14 @@
 #include <string.h>
 #include <stdio.h>
 #include <iostream>
+#include <iomanip>
 			
 #include "faust/dsp/dsp.h"
 #include "faust/audio/audio.h"
 
 #define BUFFER_TO_RENDER 10
 
-class dummy_audio : public audio {
+class dummyaudio : public audio {
 
     private:
 
@@ -71,12 +72,12 @@ class dummy_audio : public audio {
 
     public:
 
-        dummy_audio(int sr, int bs, int count = 10, bool sample = false)
+        dummyaudio(int sr, int bs, int count = 10, bool sample = false)
             :fSampleRate(sr), fBufferSize(bs), fCount(count), fIsSample(sample) {}
-        dummy_audio(int count = 10)
+        dummyaudio(int count = 10)
             :fSampleRate(48000), fBufferSize(512), fCount(count) {}
     
-        virtual ~dummy_audio() 
+        virtual ~dummyaudio() 
         {
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 delete[] fInChannel[i];
@@ -124,19 +125,19 @@ class dummy_audio : public audio {
             if (fDSP->getNumInputs() > 0) {
                 if (fIsSample) {
                     for (int frame = 0; frame < fBufferSize; frame++) {
-                        std::cout << "sample in " << fInChannel[0][frame] << std::endl;
+                        std::cout << std::setprecision(6) << "sample in " << fInChannel[0][frame] << std::endl;
                     }
                 } else {
-                    std::cout << "sample in " << fInChannel[0][0] << std::endl;
+                    std::cout << std::setprecision(6) << "sample in " << fInChannel[0][0] << std::endl;
                 }
             }
             if (fDSP->getNumOutputs() > 0) {
                 if (fIsSample) {
                     for (int frame = 0; frame < fBufferSize; frame++) {
-                        std::cout << "sample out " << fOutChannel[0][frame] << std::endl;
+                        std::cout << std::fixed << std::setprecision(6) << "sample out " << fOutChannel[0][frame] << std::endl;
                     }
                 } else {
-                    std::cout << "sample out " << fOutChannel[0][0] << std::endl;
+                    std::cout << std::fixed << std::setprecision(6) << "sample out " << fOutChannel[0][0] << std::endl;
                 }
             }
         }

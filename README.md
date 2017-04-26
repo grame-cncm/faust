@@ -72,7 +72,7 @@ To build Faust on MacOSX or Linux, just run the following commands from the root
 
 #### Using Visual Studio
 
-Open the Faust Visual Studio solution in `/faust/windows/faust_vs2012.sln` with Visual Studio 2012 ore greater and run "Build". Both Debug/Release targets are supported.
+Open the Faust Visual Studio solution in `/faust/windows/faust_vs2012.sln` with Visual Studio 2012 or greater and run "Build". Both Debug/Release targets are supported.
 
 #### Using Qt
 

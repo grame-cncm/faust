@@ -420,13 +420,13 @@ class uiMidiKeyPress : public uiMidiItem
 
     private:
         
-        int fKeyOn;
+        int fKey;
         LinearValueConverter fConverter;
   
     public:
     
         uiMidiKeyPress(midi* midi_out, int key, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
-            :uiMidiItem(midi_out, ui, zone, input), fKeyOn(key), fConverter(0., 127., double(min), double(max))
+            :uiMidiItem(midi_out, ui, zone, input), fKey(key), fConverter(0., 127., double(min), double(max))
         {}
         virtual ~uiMidiKeyPress()
         {}
@@ -435,7 +435,7 @@ class uiMidiKeyPress : public uiMidiItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->keyPress(0, fKeyOn, fConverter.faust2ui(v));
+            fMidiOut->keyPress(0, fKey, fConverter.faust2ui(v));
         }
         
         void modifyZone(int v) 	
@@ -614,9 +614,9 @@ class MidiUI : public GUI, public midi
         
         void keyPress(double date, int channel, int pitch, int press) 
         {
-            if (fKeyPressTable.find(press) != fKeyPressTable.end()) {
-                for (unsigned int i = 0; i < fKeyPressTable[press].size(); i++) {
-                    fKeyPressTable[press][i]->modifyZone(FAUSTFLOAT(press));
+            if (fKeyPressTable.find(pitch) != fKeyPressTable.end()) {
+                for (unsigned int i = 0; i < fKeyPressTable[pitch].size(); i++) {
+                    fKeyPressTable[pitch][i]->modifyZone(FAUSTFLOAT(press));
                 }
             } 
         }
