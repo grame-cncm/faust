@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+  <_name>Paths to OpenSCAD</_name>
+  <id>command.extrude.openscad</id>
+  <dependency type="extension">org.inkscape.output.svg.inkscape</dependency>
+  <dependency type="executable" location="extensions">paths2openscad.py</dependency>
+  <dependency type="executable" location="extensions">inkex.py</dependency>
+  <dependency type="executable" location="extensions">simpletransform.py</dependency>
+  <dependency type="executable" location="extensions">cubicsuperpath.py</dependency>
+  <dependency type="executable" location="extensions">cspsubdiv.py</dependency>
+  <dependency type="executable" location="extensions">bezmisc.py</dependency>
+
+<param name="tab" type="notebook">
+  <page name="splash" _gui-text="Paths to OpenSCAD">
+
+    <param name="modname" type="string" _gui-text="Module Name">myModule</param>
+    <param name="fname" type="string" _gui-text="Output File">~/inkscape.scad</param>
+    <param name="extype" type="enum" _gui-text="Extrusion Type">
+      <item value="0">Flat</item>
+      <item value="1">Linear</item>
+      <item value="2">Rotate</item>
+    </param>
+    <param name="facets" type="int" min="0" max="1000" _gui-text="Rotate Extrude N Facets">30</param>
+    <param name="height" type="float" min="0" max="1000" precision="2" _gui-text="Linear Extrude Height (mm)">5.0</param>
+    <param name="smoothness" type="float" min="0.0001" max="5" _gui-text="Smoothing">0.2</param>
+  </page>
+  <page name="info" _gui-text="About...">
+    <_param name="aboutpage" type="description" xml:space="preserve">
+This extension converts Inkscape paths to
+extruded polygons in OpenSCAD.  Before
+using, first convert objects to paths
+with the "Path &gt; Object to Path"
+menu item.
+
+Note that the paths must be polygonal.
+Non-polygonal paths will not render well
+in OpenSCAD.  Thus, while you can convert
+text to a path, letters with closed loops
+will not appear as you expect in OpenSCAD
+(e.g., the letter "o").
+
+Inkscape's units of pixels are converted
+to millimeters using the SVG Standard's
+definition of 90 pixels = 1 inch.
+
+This version of this extension was adapted
+for specific uses for meshing objects
+towards FEM analysis.
+
+Romain Michon - FEM version
+(rmichon@ccrma.stanford.edu)
+
+Dan Newman - Original Paths to OpenSCAD
+(dan newman @ mtbaldy us)
+</_param>
+  </page>
+</param>
+
+  <effect needs-live-preview="false">
+    <object-type>all</object-type>
+    <effects-menu>
+      <submenu _name="Generate from Path"/>
+    </effects-menu>
+  </effect>
+  <script>
+    <command reldir="extensions" interpreter="python">paths2openscad.py</command>
+  </script>
+</inkscape-extension>

@@ -24,7 +24,6 @@
 
 \usepackage{microtype}
 
-
 \usepackage{rail}
 \railoptions{-t -h}
 
@@ -37,7 +36,6 @@
 
 \fancyfoot{}
 
-
 \hypersetup{%
             colorlinks = true, %true, false
             linkcolor = black,
@@ -46,7 +44,6 @@
 }
 \urlstyle{sf} %rm
 \newcommand{\myurl}[1]{\textcolor{blue}{\underbar{\url{#1}}}}
-
 
 %%%%%%%%%%%%%%%%%%%command imported from lac paper
 \newcommand{\code}[1]	{\lstinline'#1'}
@@ -68,9 +65,7 @@
 \newcommand{\ie}		{i.e.\ }
 %%\newcommand{\myurl}[1]	{\textcolor{blue}{\underbar{\url{#1}}}}
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 %%% MY COLORS
 \definecolor{yoheader}{rgb}{0.71,0.01,0.0}
@@ -91,8 +86,6 @@
 \renewcommand\marginpar[1]{\-\oldmarginpar[\raggedleft\color{margincolor}\footnotesize #1]%
 {\raggedright\color{margincolor}\footnotesize #1}}
 
-
-
 % \relax
 
 \begin{document} 
@@ -111,7 +104,6 @@
 \sectionfont{\color{yoheader}}
 \subsectionfont{\color{yoheader}}
 \subsubsectionfont{\color{yoheader}}
-
 
 % parameters for listings
 \lstset{
@@ -140,10 +132,9 @@
 % \titlepic{
 %   \includegraphics[width=15cm]{images/bandeau-faust}
 % }
-\title{\Huge\color{yoheader}FAUST Quick Reference\\\Large(version 0.9.90)}
+\title{\Huge\color{yoheader}FAUST Quick Reference\\\Large(version 0.9.96)}
 \author{\textsc{GRAME}\\Centre National de Cr\'eation Musicale}
-\date{January 2017}
-
+\date{April 2017}
 
 \railalias{recur}{$\sim$}
 \railalias{lbrace}{\{}
@@ -181,9 +172,6 @@
 
 \tableofcontents
 
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                            		CHAPTERS                                        %
@@ -198,9 +186,9 @@
 \input{chapters/osc}
 \input{chapters/http}
 \input{chapters/midi}
+\input{chapters/polyphony}
 \input{chapters/codegeneration} 
 \input{chapters/mathdoc} 
 \input{chapters/acknowledgments} 
-
 
 \end{document}

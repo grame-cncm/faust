@@ -5,7 +5,8 @@
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
   <title>Faust Libraries Documentation</title>
-  </style><link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"><script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js">n</script><script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  </style><link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"><script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js">
+</script><script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 </head>
 <div class="container"><div class="row" style="height: 100vh;">
 <div class="col-sm-4" id="TOC" style="height: 100%;overflow: scroll;">
@@ -101,6 +102,7 @@
 <li><a href="#impulsify"><code>impulsify</code></a></li>
 <li><a href="#automat"><code>automat</code></a></li>
 <li><a href="#bpf"><code>bpf</code></a></li>
+<li><a href="#listinterp"><code>listInterp</code></a></li>
 <li><a href="#bypass1"><code>bypass1</code></a></li>
 <li><a href="#bypass2"><code>bypass2</code></a></li>
 <li><a href="#toggle"><code>toggle</code></a></li>
@@ -443,20 +445,126 @@
 </ul></li>
 </ul></li>
 <li><a href="#physmodels.lib">physmodels.lib</a><ul>
-<li><a href="#chainab...">chain(A:B:...)</a></li>
-<li><a href="#requires">Requires</a></li>
-<li><a href="#inputx">input(x)</a></li>
-<li><a href="#output">output()</a></li>
-<li><a href="#terminationsabc">terminations(a,b,c)</a></li>
-<li><a href="#requires-1">Requires</a></li>
-<li><a href="#fullterminationsabc">fullTerminations(a,b,c)</a></li>
-<li><a href="#requires-2">Requires</a></li>
-<li><a href="#leftterminationab">leftTermination(a,b)</a></li>
-<li><a href="#requires-3">Requires</a></li>
-<li><a href="#rightterminationbc">rightTermination(b,c)</a></li>
-<li><a href="#requires-4">Requires</a></li>
-<li><a href="#waveguidenmaxn">waveguide(nMax,n)</a></li>
-<li><a href="#idealstringlengthreflexionxpositionx">idealString(length,reflexion,xPosition,x)</a></li>
+<li><a href="#global-variables">Global Variables</a><ul>
+<li><a href="#speedofsound"><code>speedOfSound</code></a></li>
+<li><a href="#maxlength"><code>maxLength</code></a></li>
+</ul></li>
+<li><a href="#conversion-tools-1">Conversion Tools</a><ul>
+<li><a href="#f2l"><code>f2l</code></a></li>
+<li><a href="#l2f"><code>l2f</code></a></li>
+<li><a href="#l2s"><code>l2s</code></a></li>
+</ul></li>
+<li><a href="#bidirectional-utilities">Bidirectional Utilities</a><ul>
+<li><a href="#basicblock"><code>basicBlock</code></a></li>
+<li><a href="#chain"><code>chain</code></a></li>
+<li><a href="#inleftwave"><code>inLeftWave</code></a></li>
+<li><a href="#inrightwave"><code>inRightWave</code></a></li>
+<li><a href="#in"><code>in</code></a></li>
+<li><a href="#outleftwave"><code>outLeftWave</code></a></li>
+<li><a href="#outrightwave"><code>outRightWave</code></a></li>
+<li><a href="#out"><code>out</code></a></li>
+<li><a href="#terminations"><code>terminations</code></a></li>
+<li><a href="#ltermination"><code>lTermination</code></a></li>
+<li><a href="#rtermination"><code>rTermination</code></a></li>
+<li><a href="#closeins"><code>closeIns</code></a></li>
+<li><a href="#closeouts"><code>closeOuts</code></a></li>
+<li><a href="#endchain"><code>endChain</code></a></li>
+</ul></li>
+<li><a href="#basic-elements-1">Basic Elements</a><ul>
+<li><a href="#waveguiden"><code>waveguideN</code></a></li>
+<li><a href="#waveguide"><code>waveguide</code></a></li>
+<li><a href="#bridgefilter"><code>bridgeFilter</code></a></li>
+<li><a href="#modefilter"><code>modeFilter</code></a></li>
+</ul></li>
+<li><a href="#basic-string-instruments-elements">Basic String Instruments Elements</a><ul>
+<li><a href="#stringsegment"><code>stringSegment</code></a></li>
+<li><a href="#openstring"><code>openString</code></a></li>
+<li><a href="#nylonstring"><code>nylonString</code></a></li>
+<li><a href="#steelstring"><code>steelString</code></a></li>
+<li><a href="#openstringpick"><code>openStringPick</code></a></li>
+<li><a href="#openstringpickup"><code>openStringPickUp</code></a></li>
+<li><a href="#openstringpickdown"><code>openStringPickDown</code></a></li>
+<li><a href="#ksreflexionfilter"><code>ksReflexionFilter</code></a></li>
+<li><a href="#rstringrigidtermination"><code>rStringRigidTermination</code></a></li>
+<li><a href="#lstringrigidtermination"><code>lStringRigidTermination</code></a></li>
+<li><a href="#elecguitarbridge"><code>elecGuitarBridge</code></a></li>
+<li><a href="#elecguitarnuts"><code>elecGuitarNuts</code></a></li>
+<li><a href="#guitarbridge"><code>guitarBridge</code></a></li>
+<li><a href="#guitarnuts"><code>guitarNuts</code></a></li>
+<li><a href="#idealstring"><code>idealString</code></a></li>
+<li><a href="#ks"><code>ks</code></a></li>
+<li><a href="#ks_ui_midi"><code>ks_ui_MIDI</code></a></li>
+<li><a href="#elecguitarmodel"><code>elecGuitarModel</code></a></li>
+<li><a href="#elecguitar"><code>elecGuitar</code></a></li>
+<li><a href="#elecguitar_ui_midi"><code>elecGuitar_ui_MIDI</code></a></li>
+<li><a href="#guitarbody"><code>guitarBody</code></a></li>
+<li><a href="#guitarmodel"><code>guitarModel</code></a></li>
+<li><a href="#guitar"><code>guitar</code></a></li>
+<li><a href="#guitar_ui_midi"><code>guitar_ui_MIDI</code></a></li>
+<li><a href="#nylonguitarmodel"><code>nylonGuitarModel</code></a></li>
+<li><a href="#nylonguitar"><code>nylonGuitar</code></a></li>
+<li><a href="#nylonguitar_ui_midi"><code>nylonGuitar_ui_MIDI</code></a></li>
+</ul></li>
+<li><a href="#bowed-string-instruments-elements">Bowed String Instruments Elements</a><ul>
+<li><a href="#bowtable"><code>bowTable</code></a></li>
+<li><a href="#violinbowtable"><code>violinBowTable</code></a></li>
+<li><a href="#bowinteraction"><code>bowInteraction</code></a></li>
+<li><a href="#violinbow"><code>violinBow</code></a></li>
+<li><a href="#violinbowedstring"><code>violinBowedString</code></a></li>
+<li><a href="#violinnuts"><code>violinNuts</code></a></li>
+<li><a href="#violinbridge"><code>violinBridge</code></a></li>
+<li><a href="#violinbody"><code>violinBody</code></a></li>
+<li><a href="#violinmodel"><code>violinModel</code></a></li>
+<li><a href="#violinmodel_ui"><code>violinModel_ui</code></a></li>
+<li><a href="#violin_ui_midi"><code>violin_ui_MIDI</code></a></li>
+</ul></li>
+<li><a href="#wind-instrument-elements">Wind Instrument Elements</a><ul>
+<li><a href="#opentube"><code>openTube</code></a></li>
+<li><a href="#reedtable"><code>reedTable</code></a></li>
+<li><a href="#flutejettable"><code>fluteJetTable</code></a></li>
+<li><a href="#brasslipstable"><code>brassLipsTable</code></a></li>
+<li><a href="#clarinetreed"><code>clarinetReed</code></a></li>
+<li><a href="#clarinetmouthpiece"><code>clarinetMouthPiece</code></a></li>
+<li><a href="#brasslips"><code>brassLips</code></a></li>
+<li><a href="#fluteembouchure"><code>fluteEmbouchure</code></a></li>
+<li><a href="#wbell"><code>wBell</code></a></li>
+<li><a href="#flutehead"><code>fluteHead</code></a></li>
+<li><a href="#flutefoot"><code>fluteFoot</code></a></li>
+<li><a href="#clarinetmodel"><code>clarinetModel</code></a></li>
+<li><a href="#clarinetmodel_ui"><code>clarinetModel_ui</code></a></li>
+<li><a href="#clarinet_ui"><code>clarinet_ui</code></a></li>
+<li><a href="#clarinet_ui_midi"><code>clarinet_ui_MIDI</code></a></li>
+<li><a href="#brassmodel"><code>brassModel</code></a></li>
+<li><a href="#brassmodel_ui"><code>brassModel_ui</code></a></li>
+<li><a href="#brass_ui"><code>brass_ui</code></a></li>
+<li><a href="#brass_ui_midi"><code>brass_ui_MIDI</code></a></li>
+<li><a href="#flutemodel"><code>fluteModel</code></a></li>
+<li><a href="#flutemodel_ui"><code>fluteModel_ui</code></a></li>
+<li><a href="#flute_ui"><code>flute_ui</code></a></li>
+<li><a href="#flute_ui_midi"><code>flute_ui_MIDI</code></a></li>
+</ul></li>
+<li><a href="#exciters">Exciters</a><ul>
+<li><a href="#impulseexcitation"><code>impulseExcitation</code></a></li>
+<li><a href="#pluckstring"><code>pluckString</code></a></li>
+<li><a href="#blower"><code>blower</code></a></li>
+<li><a href="#blower_ui"><code>blower_ui</code></a></li>
+</ul></li>
+<li><a href="#modal-percussions">Modal Percussions</a><ul>
+<li><a href="#marimbabarmodel"><code>marimbaBarModel</code></a></li>
+<li><a href="#marimbarestube"><code>marimbaResTube</code></a></li>
+<li><a href="#marimbamodel"><code>marimbaModel</code></a></li>
+<li><a href="#marimba"><code>marimba</code></a></li>
+<li><a href="#marimba_ui_midi"><code>marimba_ui_MIDI</code></a></li>
+</ul></li>
+<li><a href="#vocal-synthesis">Vocal Synthesis</a><ul>
+<li><a href="#formantfilter"><code>formantFilter</code></a></li>
+<li><a href="#sfformantmodel"><code>SFFormantModel</code></a></li>
+<li><a href="#sfformantmodel_ui"><code>SFFormantModel_ui</code></a></li>
+<li><a href="#sfformantmodel_ui_midi"><code>SFFormantModel_ui_MIDI</code></a></li>
+</ul></li>
+<li><a href="#misc-functions">Misc Functions</a><ul>
+<li><a href="#allpassnl"><code>allpassNL</code></a></li>
+</ul></li>
 </ul></li>
 <li><a href="#reverbs.lib">reverbs.lib</a><ul>
 <li><a href="#schroeder-reverberators">Schroeder Reverberators</a><ul>
@@ -532,7 +640,7 @@
 <p>NOTE: this documentation was automatically generated.</p>
 <p>This page provides information on how to use the Faust libraries.</p>
 <p>The <code>/libraries</code> folder contains the different Faust libraries. If you wish to add your own functions to this library collection, you can refer to the &quot;Contributing&quot; section providing a set of coding conventions.</p>
-<p>WARNING: These libraries replace the &quot;old&quot; Faust libraries. They are still being beta tested so you might encounter bugs while using them. If your codes still use the &quot;old&quot; Faust libraries, you might want to try to use Bart Brouns' script that automatically makes an old Faust code compatible with the new libraries: <a href="https://github.com/magnetophon/faustCompressors/blob/master/newlib.sh">https://github.com/magnetophon/faustCompressors/blob/master/newlib.sh</a>. If you find a bug, please report it at rmichon_at_ccrma_dot_stanford_dot_edu. Thanks ;)!</p>
+<p>WARNING: These libraries replace the &quot;old&quot; Faust libraries. They are still being beta tested so you might encounter bugs while using them. If your codes still use the &quot;old&quot; Faust libraries, you might want to try to use Bart Brouns' script that automatically makes an old Faust code compatible with the new libraries: <a href="https://github.com/magnetophon/faustCompressors/blob/master/newlib.sh" class="uri">https://github.com/magnetophon/faustCompressors/blob/master/newlib.sh</a>. If you find a bug, please report it at rmichon_at_ccrma_dot_stanford_dot_edu. Thanks ;)!</p>
 <h2 id="using-the-faust-libraries">Using the Faust Libraries</h2>
 <p>The easiest and most standard way to use the Faust libraries is to import <code>stdfaust.lib</code> in your Faust code:</p>
 <pre><code>import(&quot;stdfaust.lib&quot;);</code></pre>
@@ -1322,14 +1430,11 @@ process = si.smooth(0.999);</code></pre>
 <!--
 TODO: potentially say something about demos.lib and demo functions here. Also, not sure what to do with math.lib.
 -->
-
 <script type="text/javascript">
 (function() {
     $('div.table-begin').nextUntil('div.table-end', 'table').addClass('table table-bordered');
     })();
 </script>
-
-
 <h1 id="analyzers.lib">analyzers.lib</h1>
 <p>Faust Analyzers library. Its official prefix is <code>an</code>.</p>
 <h2 id="amplitude-tracking">Amplitude Tracking</h2>
@@ -1359,7 +1464,7 @@ TODO: potentially say something about demos.lib and demo functions here. Also, n
 <p>We assume rel &gt;&gt; att. Otherwise, consider rel ~ max(rel,att). For audio, att is normally faster (smaller) than rel (e.g., 0.001 and 0.01). Use <code>amp_follower_ar</code> below to remove this restriction.</p>
 <h4 id="reference-1">Reference</h4>
 <ul>
-<li>&quot;Digital Dynamic Range Compressor Design --- A Tutorial and Analysis&quot;, by Dimitrios Giannoulis, Michael Massberg, and Joshua D. Reiss <a href="http://www.eecs.qmul.ac.uk/~josh/documents/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf">http://www.eecs.qmul.ac.uk/~josh/documents/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf</a></li>
+<li>&quot;Digital Dynamic Range Compressor Design --- A Tutorial and Analysis&quot;, by Dimitrios Giannoulis, Michael Massberg, and Joshua D. Reiss <a href="http://www.eecs.qmul.ac.uk/~josh/documents/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf" class="uri">http://www.eecs.qmul.ac.uk/~josh/documents/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf</a></li>
 </ul>
 <hr />
 <h2 id="spectrum-analyzers">Spectrum-Analyzers</h2>
@@ -1821,9 +1926,20 @@ process = par(n,N, (par(i,N,i) : selectn(N,n)));</code></pre>
 </ul>
 <p><code>bpf</code> is a standard Faust function.</p>
 <hr />
+<h3 id="listinterp"><code>listInterp</code></h3>
+<p>Linearly interpolates between the elements of a list.</p>
+<h4 id="usage-45">Usage</h4>
+<pre><code>foo = listInterp((800,400,350,450,325),index);
+i = 1.69; // range is 0-4
+process = foo(i);</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>index</code>: the index (float) to interpolate between the different values. The range of <code>index</code> depends on the size of the list.</li>
+</ul>
+<hr />
 <h3 id="bypass1"><code>bypass1</code></h3>
 <p>Takes a mono input signal, route it to <code>e</code> and bypass it if <code>bpc = 1</code>. <code>bypass1</code> is a standard Faust function.</p>
-<h4 id="usage-45">Usage</h4>
+<h4 id="usage-46">Usage</h4>
 <pre><code>_ : bypass1(bpc,e) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -1833,7 +1949,7 @@ process = par(n,N, (par(i,N,i) : selectn(N,n)));</code></pre>
 <hr />
 <h3 id="bypass2"><code>bypass2</code></h3>
 <p>Takes a stereo input signal, route it to <code>e</code> and bypass it if <code>bpc = 1</code>. <code>bypass2</code> is a standard Faust function.</p>
-<h4 id="usage-46">Usage</h4>
+<h4 id="usage-47">Usage</h4>
 <pre><code>_,_ : bypass2(bpc,e) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -1843,7 +1959,7 @@ process = par(n,N, (par(i,N,i) : selectn(N,n)));</code></pre>
 <hr />
 <h3 id="toggle"><code>toggle</code></h3>
 <p>Triggered by the change of 0 to 1, it toggles the output value between 0 and 1.</p>
-<h4 id="usage-47">Usage</h4>
+<h4 id="usage-48">Usage</h4>
 <pre><code>_ : toggle : _</code></pre>
 <h4 id="examples">Examples</h4>
 <pre><code>button(&quot;toggle&quot;) : toggle : vbargraph(&quot;output&quot;, 0, 1)
@@ -1851,14 +1967,14 @@ process = par(n,N, (par(i,N,i) : selectn(N,n)));</code></pre>
 <hr />
 <h3 id="on_and_off"><code>on_and_off</code></h3>
 <p>The first channel set the output to 1, the second channel to 0.</p>
-<h4 id="usage-48">Usage</h4>
+<h4 id="usage-49">Usage</h4>
 <pre><code>_ , _ : on_and_off : _</code></pre>
 <h4 id="example">Example</h4>
 <pre><code>button(&quot;on&quot;), button(&quot;off&quot;) : on_and_off : vbargraph(&quot;output&quot;, 0, 1)</code></pre>
 <hr />
 <h3 id="selectoutn"><code>selectoutn</code></h3>
 <p>Route input to the output among N at run time.</p>
-<h4 id="usage-49">Usage</h4>
+<h4 id="usage-50">Usage</h4>
 <pre><code>_ : selectoutn(n, s) : _,_,...n</code></pre>
 <p>Where:</p>
 <ul>
@@ -1875,7 +1991,7 @@ bar = vbargraph(&quot;v.bargraph&quot;, 0, 1);</code></pre>
 <h2 id="functions-reference">Functions Reference</h2>
 <h3 id="compressor_mono"><code>compressor_mono</code></h3>
 <p>Mono dynamic range compressors. <code>compressor_mono</code> is a standard Faust function</p>
-<h4 id="usage-50">Usage</h4>
+<h4 id="usage-51">Usage</h4>
 <pre><code>_ : compressor_mono(ratio,thresh,att,rel) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -1886,15 +2002,15 @@ bar = vbargraph(&quot;v.bargraph&quot;, 0, 1);</code></pre>
 </ul>
 <h4 id="references-1">References</h4>
 <ul>
-<li><a href="http://en.wikipedia.org/wiki/Dynamic_range_compression">http://en.wikipedia.org/wiki/Dynamic_range_compression</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html">https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Dynamic_range_compression" class="uri">http://en.wikipedia.org/wiki/Dynamic_range_compression</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html</a></li>
 <li>Albert Graef's &quot;faust2pd&quot;/examples/synth/compressor_.dsp</li>
-<li>More features: <a href="https://github.com/magnetophon/faustCompressors">https://github.com/magnetophon/faustCompressors</a></li>
+<li>More features: <a href="https://github.com/magnetophon/faustCompressors" class="uri">https://github.com/magnetophon/faustCompressors</a></li>
 </ul>
 <hr />
 <h3 id="compressor_stereo"><code>compressor_stereo</code></h3>
 <p>Stereo dynamic range compressors.</p>
-<h4 id="usage-51">Usage</h4>
+<h4 id="usage-52">Usage</h4>
 <pre><code>_,_ : compressor_stereo(ratio,thresh,att,rel) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -1905,56 +2021,48 @@ bar = vbargraph(&quot;v.bargraph&quot;, 0, 1);</code></pre>
 </ul>
 <h4 id="references-2">References</h4>
 <ul>
-<li><a href="http://en.wikipedia.org/wiki/Dynamic_range_compression">http://en.wikipedia.org/wiki/Dynamic_range_compression</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html">https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Dynamic_range_compression" class="uri">http://en.wikipedia.org/wiki/Dynamic_range_compression</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Nonlinear_Filter_Example_Dynamic.html</a></li>
 <li>Albert Graef's &quot;faust2pd&quot;/examples/synth/compressor_.dsp</li>
-<li>More features: <a href="https://github.com/magnetophon/faustCompressors">https://github.com/magnetophon/faustCompressors</a></li>
+<li>More features: <a href="https://github.com/magnetophon/faustCompressors" class="uri">https://github.com/magnetophon/faustCompressors</a></li>
 </ul>
 <hr />
 <h3 id="limiter_1176_r4_mono"><code>limiter_1176_R4_mono</code></h3>
 <p>A limiter guards against hard-clipping. It can be can be implemented as a compressor having a high threshold (near the clipping level), fast attack and release, and high ratio. Since the ratio is so high, some knee smoothing is desirable (&quot;soft limiting&quot;). This example is intended to get you started using compressor_* as a limiter, so all parameters are hardwired to nominal values here. Ratios: 4 (moderate compression), 8 (severe compression), 12 (mild limiting), or 20 to 1 (hard limiting) Att: 20-800 MICROseconds (Note: scaled by ratio in the 1176) Rel: 50-1100 ms (Note: scaled by ratio in the 1176) Mike Shipley likes 4:1 (Grammy-winning mixer for Queen, Tom Petty, etc.) Faster attack gives &quot;more bite&quot; (e.g. on vocals) He hears a bright, clear eq effect as well (not implemented here) <code>limiter_1176_R4_mono</code> is a standard Faust function.</p>
-<h4 id="usage-52">Usage</h4>
+<h4 id="usage-53">Usage</h4>
 <pre><code> _ : limiter_1176_R4_mono : _;</code></pre>
 <h4 id="reference-2">Reference:</h4>
-<p><a href="http://en.wikipedia.org/wiki/1176_Peak_Limiter">http://en.wikipedia.org/wiki/1176_Peak_Limiter</a></p>
+<p><a href="http://en.wikipedia.org/wiki/1176_Peak_Limiter" class="uri">http://en.wikipedia.org/wiki/1176_Peak_Limiter</a></p>
 <hr />
 <h3 id="limiter_1176_r4_stereo"><code>limiter_1176_R4_stereo</code></h3>
 <p>A limiter guards against hard-clipping. It can be can be implemented as a compressor having a high threshold (near the clipping level), fast attack and release, and high ratio. Since the ratio is so high, some knee smoothing is desirable (&quot;soft limiting&quot;). This example is intended to get you started using compressor_* as a limiter, so all parameters are hardwired to nominal values here. Ratios: 4 (moderate compression), 8 (severe compression), 12 (mild limiting), or 20 to 1 (hard limiting) Att: 20-800 MICROseconds (Note: scaled by ratio in the 1176) Rel: 50-1100 ms (Note: scaled by ratio in the 1176) Mike Shipley likes 4:1 (Grammy-winning mixer for Queen, Tom Petty, etc.) Faster attack gives &quot;more bite&quot; (e.g. on vocals) He hears a bright, clear eq effect as well (not implemented here)</p>
-<h4 id="usage-53">Usage</h4>
+<h4 id="usage-54">Usage</h4>
 <pre><code> _,_ : limiter_1176_R4_stereo : _,_;</code></pre>
 <h4 id="reference-3">Reference:</h4>
-<p><a href="http://en.wikipedia.org/wiki/1176_Peak_Limiter">http://en.wikipedia.org/wiki/1176_Peak_Limiter</a></p>
+<p><a href="http://en.wikipedia.org/wiki/1176_Peak_Limiter" class="uri">http://en.wikipedia.org/wiki/1176_Peak_Limiter</a></p>
 <hr />
 <h1 id="delays.lib">delays.lib</h1>
 <p>This library contains a collection of delay functions. Its official prefix is <code>de</code>.</p>
 <h2 id="basic-delay-functions">Basic Delay Functions</h2>
 <h3 id="delay"><code>delay</code></h3>
-<p>Simple <code>d</code> samples delay where <code>n</code> is the maximum delay length as a number of samples (it needs to be a power of 2). Unlike the <code>@</code> delay operator, this function allows to preallocate memory which means that <code>d</code> can be changed dynamically at run time as long as it remains smaller than <code>n</code>. <code>delay</code> is a standard Faust function.</p>
-<h4 id="usage-54">Usage</h4>
+<p>Simple <code>d</code> samples delay where <code>n</code> is the maximum delay length as a number of samples. Unlike the <code>@</code> delay operator, here the delay signal <code>d</code> is explicitely bounded to the interval [0..n]. The consequence is that delay will compile even if the interval of d can't be computed by the compiler. <code>delay</code> is a standard Faust function.</p>
+<h4 id="usage-55">Usage</h4>
 <pre><code>_ : delay(n,d) : _</code></pre>
 <p>Where:</p>
 <ul>
-<li><code>n</code>: the max delay length as a power of 2</li>
+<li><code>n</code>: the max delay length (in samples)</li>
 <li><code>d</code>: the delay length as a number of samples (integer)</li>
 </ul>
 <hr />
 <h3 id="fdelay"><code>fdelay</code></h3>
-<p>Simple <code>d</code> samples fractional delay based on 2 interpolated delay lines where <code>n</code> is the maximum delay length as a number of samples (it needs to be a power of 2 - see <code>delay()</code>). <code>fdelay</code> is a standard Faust function.</p>
-<h4 id="usage-55">Usage</h4>
-<pre><code>_ : fdelay(n,d) : _</code></pre>
-<p>Where:</p>
-<ul>
-<li><code>n</code>: the max delay length as a power of 2</li>
-<li><code>d</code>: the delay length as a number of samples (float)</li>
-</ul>
-<hr />
+<p>Simple <code>d</code> samples fractional delay based on 2 interpolated delay lines where <code>n</code> is the maximum delay length as a number of samples.</p>
 <h3 id="sdelay"><code>sdelay</code></h3>
 <p>s(mooth)delay: a mono delay that doesn't click and doesn't transpose when the delay time is changed.</p>
 <h4 id="usage-56">Usage</h4>
 <pre><code>_ : sdelay(N,it,dt) : _</code></pre>
 <p>Where :</p>
 <ul>
-<li><code>N</code>: maximal delay in samples (must be a constant power of 2, for example 65536)</li>
+<li><code>N</code>: maximal delay in samples</li>
 <li><code>it</code>: interpolation time (in samples) for example 1024</li>
 <li><code>dt</code>: delay time (in samples)</li>
 </ul>
@@ -1969,7 +2077,7 @@ bar = vbargraph(&quot;v.bargraph&quot;, 0, 1);</code></pre>
 <p>NOTE: The requested delay should not be less than <code>(N-1)/2</code>.</p>
 <h4 id="references-3">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html">https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html</a></li>
 <li>Timo I. Laakso et al., &quot;Splitting the Unit Delay - Tools for Fractional Delay Filter Design&quot;, IEEE Signal Processing Magazine, vol. 13, no. 1, pp. 30-60, Jan 1996.</li>
 <li>Philippe Depalle and Stephan Tassart, &quot;Fractional Delay Lines using Lagrange Interpolators&quot;, ICMC Proceedings, pp. 341-343, 1996.</li>
 </ul>
@@ -1980,7 +2088,7 @@ bar = vbargraph(&quot;v.bargraph&quot;, 0, 1);</code></pre>
 <h2 id="thiran-allpass-interpolation">Thiran Allpass Interpolation</h2>
 <p>Thiran Allpass Interpolation</p>
 <h4 id="reference-4">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html">https://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html</a></p>
 <h3 id="fdelayna"><code>fdelay[n]a</code></h3>
 <p>Delay lines interpolated using Thiran allpass interpolation.</p>
 <h4 id="usage-58">Usage</h4>
@@ -2099,7 +2207,7 @@ _ : filterbank_demo : _</code></pre>
 <h4 id="usage-74">Usage</h4>
 <pre><code>_,_ : zita_rev1 : _,_</code></pre>
 <h4 id="reference-5">Reference</h4>
-<p><a href="http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html">http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html</a></p>
+<p><a href="http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html" class="uri">http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html</a></p>
 <hr />
 <h2 id="generators">Generators</h2>
 <h3 id="sawtooth_demo"><code>sawtooth_demo</code></h3>
@@ -2144,8 +2252,8 @@ Octave:1&gt; plot(faustout);</code></pre>
 <pre><code>_ : exciter : _</code></pre>
 <h4 id="references-4">References</h4>
 <ul>
-<li><a href="https://secure.aes.org/forum/pubs/ebriefs/?elib=16939">https://secure.aes.org/forum/pubs/ebriefs/?elib=16939</a></li>
-<li><a href="https://www.researchgate.net/publication/258333577_Modeling_the_Harmonic_Exciter">https://www.researchgate.net/publication/258333577_Modeling_the_Harmonic_Exciter</a></li>
+<li><a href="https://secure.aes.org/forum/pubs/ebriefs/?elib=16939" class="uri">https://secure.aes.org/forum/pubs/ebriefs/?elib=16939</a></li>
+<li><a href="https://www.researchgate.net/publication/258333577_Modeling_the_Harmonic_Exciter" class="uri">https://www.researchgate.net/publication/258333577_Modeling_the_Harmonic_Exciter</a></li>
 </ul>
 <hr />
 <h3 id="vocoder_demo"><code>vocoder_demo</code></h3>
@@ -2245,7 +2353,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <li><code>z</code>: location of zero along real axis in z-plane</li>
 </ul>
 <h4 id="reference-6">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/filters/One_Zero.html">https://ccrma.stanford.edu/~jos/filters/One_Zero.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/filters/One_Zero.html" class="uri">https://ccrma.stanford.edu/~jos/filters/One_Zero.html</a></p>
 <hr />
 <h3 id="pole"><code>pole</code></h3>
 <p>One pole filter. Could also be called a &quot;leaky integrator&quot;. Difference equation: y(n) = x(n) + p * y(n-1).</p>
@@ -2256,7 +2364,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <li><code>p</code>: pole location = feedback coefficient</li>
 </ul>
 <h4 id="reference-7">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/filters/One_Pole.html">https://ccrma.stanford.edu/~jos/filters/One_Pole.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/filters/One_Pole.html" class="uri">https://ccrma.stanford.edu/~jos/filters/One_Pole.html</a></p>
 <hr />
 <h3 id="integrator"><code>integrator</code></h3>
 <p>Same as <code>pole(1)</code> [implemented separately for block-diagram clarity].</p>
@@ -2270,7 +2378,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <li><code>fb</code>: &quot;break frequency&quot; in Hz, i.e., -3 dB gain frequency.</li>
 </ul>
 <h4 id="reference-8">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html">https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html</a></p>
 <hr />
 <h3 id="dcblocker"><code>dcblocker</code></h3>
 <p>DC blocker. Default dc blocker has -3dB point near 35 Hz (at 44.1 kHz) and high-frequency gain near 1.0025 (due to no scaling). <code>dcblocker</code> is as standard Faust function.</p>
@@ -2291,7 +2399,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <li><code>bM</code>: gain applied to delay-line output and then summed with input</li>
 </ul>
 <h4 id="reference-9">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html</a></p>
 <hr />
 <h3 id="ff_fcomb"><code>ff_fcomb</code></h3>
 <p>Feed-Forward Comb Filter. Note that <code>ff_fcomb</code> takes floating-point delays (uses <code>fdelay</code> internally). <code>ff_fcomb</code> is a standard Faust function.</p>
@@ -2306,7 +2414,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <li><code>bM</code>: gain applied to delay-line output and then summed with input</li>
 </ul>
 <h4 id="reference-10">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Feedforward_Comb_Filters.html</a></p>
 <hr />
 <h3 id="ffcombfilter"><code>ffcombfilter</code></h3>
 <p>Typical special case of <code>ff_comb()</code> where: <code>b0 = 1</code>.</p>
@@ -2324,7 +2432,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <li><code>aN</code>: minus the gain applied to delay-line output before summing with the input and feeding to the delay line</li>
 </ul>
 <h4 id="reference-11">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html</a></p>
 <hr />
 <h3 id="fb_fcomb"><code>fb_fcomb</code></h3>
 <p>Feed-Back Comb Filter (floating point delay).</p>
@@ -2339,7 +2447,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <li><code>aN</code>: minus the gain applied to delay-line output before summing with the input and feeding to the delay line</li>
 </ul>
 <h4 id="reference-12">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html</a></p>
 <hr />
 <h3 id="rev1"><code>rev1</code></h3>
 <p>Special case of <code>fb_comb</code> (<code>rev1(maxdel,N,g)</code>). The &quot;rev1 section&quot; dates back to the 1960s in computer-music reverberation. See the <code>jcrev</code> and <code>brassrev</code> in <code>reverbs.lib</code> for usage examples.</p>
@@ -2357,7 +2465,7 @@ _ : ffbcombfilter(maxdel,del,g) : _</code></pre>
 <li><code>g</code>: feedback gain</li>
 </ul>
 <h4 id="reference-13">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Feedback_Comb_Filters.html</a></p>
 <hr />
 <h3 id="allpass_comb"><code>allpass_comb</code></h3>
 <p>Schroeder Allpass Comb Filter. Note that</p>
@@ -2374,9 +2482,9 @@ _ : ffbcombfilter(maxdel,del,g) : _</code></pre>
 </ul>
 <h4 id="references-5">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html">https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html">https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></li>
 </ul>
 <hr />
 <h3 id="allpass_fcomb"><code>allpass_fcomb</code></h3>
@@ -2396,9 +2504,9 @@ _ : allpass_fcomb(maxdel,del,aN) : _</code></pre>
 </ul>
 <h4 id="references-6">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html">https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html">https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Schroeder_Allpass_Sections.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></li>
 </ul>
 <hr />
 <h3 id="rev2"><code>rev2</code></h3>
@@ -2421,7 +2529,7 @@ _ : allpass_fcomb(maxdel,del,aN) : _</code></pre>
 <li><code>acoeffs</code>: (a1,...,a_order) = TF denominator coeffs (a0=1)</li>
 </ul>
 <h4 id="reference-14">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></p>
 <hr />
 <h3 id="fir"><code>fir</code></h3>
 <p>FIR filter (convolution of FIR filter coefficients with a signal)</p>
@@ -2459,7 +2567,7 @@ _ : tf3(b0,b1,b2,b3,a1,a2,a3) : _</code></pre>
 <li><code>b</code>: the zeros</li>
 </ul>
 <h4 id="reference-15">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html">https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html" class="uri">https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html</a></p>
 <hr />
 <h3 id="notchw"><code>notchw</code></h3>
 <p>Simple notch filter based on a biquad (<code>tf2</code>). <code>notchw</code> is a standard Faust function.</p>
@@ -2471,12 +2579,12 @@ _ : tf3(b0,b1,b2,b3,a1,a2,a3) : _</code></pre>
 <li><code>freq</code>: &quot;notch frequency&quot; in Hz</li>
 </ul>
 <h4 id="reference-16">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Phasing_2nd_Order_Allpass_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Phasing_2nd_Order_Allpass_Filters.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Phasing_2nd_Order_Allpass_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Phasing_2nd_Order_Allpass_Filters.html</a></p>
 <hr />
 <h2 id="direct-form-second-order-biquad-sections">Direct-Form Second-Order Biquad Sections</h2>
 <p>Direct-Form Second-Order Biquad Sections</p>
 <h4 id="reference-17">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html</a></p>
 <h3 id="tf21-tf22-tf22t-and-tf21t"><code>tf21</code>, <code>tf22</code>, <code>tf22t</code> and <code>tf21t</code></h3>
 <p>tfN = N'th-order direct-form digital filter where:</p>
 <ul>
@@ -2496,7 +2604,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <li><code>b</code>: the zeros</li>
 </ul>
 <h4 id="reference-18">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html">https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html" class="uri">https://ccrma.stanford.edu/~jos/fp/Direct_Form_I.html</a></p>
 <hr />
 <h2 id="ladderlattice-digital-filters">Ladder/Lattice Digital Filters</h2>
 <p>Ladder and lattice digital filters generally have superior numerical properties relative to direct-form digital filters. They can be derived from digital waveguide filters, which gives them a physical interpretation.</p>
@@ -2511,7 +2619,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 </ul>
 <p>where <code>ro = ith</code> reflection coefficient, and <code>ai</code> = coefficient of <code>z^(-i)</code> in the filter transfer-function denominator <code>A(z)</code>.</p>
 <h4 id="reference-19">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/filters/Step_Down_Procedure.html">https://ccrma.stanford.edu/~jos/filters/Step_Down_Procedure.html</a> (where reflection coefficients are denoted by k rather than s).</p>
+<p><a href="https://ccrma.stanford.edu/~jos/filters/Step_Down_Procedure.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Step_Down_Procedure.html</a> (where reflection coefficients are denoted by k rather than s).</p>
 <hr />
 <h3 id="bvav2nuv"><code>bvav2nuv</code></h3>
 <p>Compute lattice tap coefficients from transfer-function coefficients.</p>
@@ -2597,7 +2705,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <h4 id="references-7">References</h4>
 <ul>
 <li>J. D. Markel and A. H. Gray, Linear Prediction of Speech, New York: Springer Verlag, 1976.</li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
 </ul>
 <hr />
 <h3 id="allpassnnlt"><code>allpassnnlt</code></h3>
@@ -2612,7 +2720,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <h4 id="references-8">References</h4>
 <ul>
 <li>J. D. Markel and A. H. Gray, Linear Prediction of Speech, New York: Springer Verlag, 1976.</li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
 </ul>
 <hr />
 <h2 id="useful-special-cases">Useful Special Cases</h2>
@@ -2637,8 +2745,8 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 </ul>
 <h4 id="references-9">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
 </ul>
 <hr />
 <h3 id="nlf2"><code>nlf2</code></h3>
@@ -2651,7 +2759,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <li><code>r</code>: loss factor for exponential decay (set to 1 to make a sinusoidal oscillator)</li>
 </ul>
 <h4 id="reference-20">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Power_Normalized_Waveguide_Filters.html</a></p>
 <hr />
 <h3 id="apnl"><code>apnl</code></h3>
 <p>Passive Nonlinear Allpass based on Pierce switching springs idea. Switch between allpass coefficient <code>a1</code> and <code>a2</code> at signal zero crossings.</p>
@@ -2670,8 +2778,8 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <p>An allpass filter has gain 1 at every frequency, but variable phase. Ladder/lattice allpass filters are specified by reflection coefficients. They are defined here as nested allpass filters, hence the names allpassn*.</p>
 <h4 id="references-10">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Conventional_Ladder_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Conventional_Ladder_Filters.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Nested_Allpass_Filters.html">https://ccrma.stanford.edu/~jos/pasp/Nested_Allpass_Filters.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Conventional_Ladder_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Conventional_Ladder_Filters.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Nested_Allpass_Filters.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Nested_Allpass_Filters.html</a></li>
 <li>Linear Prediction of Speech, Markel and Gray, Springer Verlag, 1976</li>
 </ul>
 <h3 id="allpassn"><code>allpassn</code></h3>
@@ -2737,7 +2845,7 @@ H(s) = -----------------
 <h4 id="method">Method</h4>
 <p>Bilinear transform scaled for exact mapping of w1.</p>
 <h4 id="reference-22">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html">https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html</a></p>
 <hr />
 <h3 id="tf3slf"><code>tf3slf</code></h3>
 <p>Analogous to tf2s above, but third order, and using the typical low-frequency-matching bilinear-transform constant 2/T (&quot;lf&quot; series) instead of the specific-frequency-matching value used in tf2s and tf1s. Note the lack of a &quot;w1&quot; argument.</p>
@@ -2761,7 +2869,7 @@ H(s) = -----------------
 <h4 id="method-1">Method</h4>
 <p>Bilinear transform scaled for exact mapping of w1.</p>
 <h4 id="reference-23">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html">https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Bilinear_Transformation.html</a></p>
 <hr />
 <h3 id="tf2sb"><code>tf2sb</code></h3>
 <p>Bandpass mapping of <code>tf2s</code>: In addition to a frequency-scaling parameter <code>w1</code> (set to HALF the desired passband width in rad/sec), there is a desired center-frequency parameter wc (also in rad/s). Thus, <code>tf2sb</code> implements a fourth-order digital bandpass filter section specified by the coefficients of a second-order analog lowpass prototpe section. Such sections can be combined in series for higher orders. The order of mappings is (1) frequency scaling (to set lowpass cutoff w1), (2) bandpass mapping to wc, then (3) the bilinear transform, with the usual scale parameter <code>2*SR</code>. Algebra carried out in maxima and pasted here.</p>
@@ -2828,7 +2936,7 @@ _ : resonbp(fc,Q,gain) : _
 </ul>
 <h4 id="references-12">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html">https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html</a></li>
 <li><code>butter</code> function in Octave <code>(&quot;[z,p,g] = butter(N,1,'s');&quot;)</code></li>
 </ul>
 <hr />
@@ -2843,7 +2951,7 @@ _ : resonbp(fc,Q,gain) : _
 </ul>
 <h4 id="references-13">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html">https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html" class="uri">https://ccrma.stanford.edu/~jos/filters/Butterworth_Lowpass_Design.html</a></li>
 <li><code>butter</code> function in Octave <code>(&quot;[z,p,g] = butter(N,1,'s');&quot;)</code></li>
 </ul>
 <hr />
@@ -2917,7 +3025,7 @@ Rs = 0.2 % dB ripple in passband</code></pre>
 <li><code>fu</code>: upper -3dB frequency in Hz Thus, the passband width is <code>fu-fl</code>, and its center frequency is <code>(fl+fu)/2</code>.</li>
 </ul>
 <h4 id="reference-24">Reference</h4>
-<p><a href="http://cnx.org/content/m16913/latest/">http://cnx.org/content/m16913/latest/</a></p>
+<p><a href="http://cnx.org/content/m16913/latest/" class="uri">http://cnx.org/content/m16913/latest/</a></p>
 <hr />
 <h3 id="bandstop"><code>bandstop</code></h3>
 <p>Order 2*Nh Butterworth bandstop filter made using the transformation <code>s &lt;- s + wc^2/s</code> on <code>highpass(Nh)</code>, where <code>wc</code> is the desired bandpass center frequency. The <code>highpass(Nh)</code> cutoff <code>w1</code> is half the desired bandpass width. <code>bandstop</code> is a standard Faust function.</p>
@@ -2930,7 +3038,7 @@ Rs = 0.2 % dB ripple in passband</code></pre>
 <li><code>fu</code>: upper -3dB frequency in Hz Thus, the passband (stopband) width is <code>fu-fl</code>, and its center frequency is <code>(fl+fu)/2</code>.</li>
 </ul>
 <h4 id="reference-25">Reference</h4>
-<p><a href="http://cnx.org/content/m16913/latest/">http://cnx.org/content/m16913/latest/</a></p>
+<p><a href="http://cnx.org/content/m16913/latest/" class="uri">http://cnx.org/content/m16913/latest/</a></p>
 <hr />
 <h2 id="elliptic-bandpass-filters">Elliptic Bandpass Filters</h2>
 <h3 id="bandpass6e"><code>bandpass6e</code></h3>
@@ -2943,8 +3051,8 @@ Rs = 0.2 % dB ripple in passband</code></pre>
 <p>Parametric Equalizers (Shelf, Peaking)</p>
 <h4 id="references-15">References</h4>
 <ul>
-<li><a href="http://en.wikipedia.org/wiki/Equalization">http://en.wikipedia.org/wiki/Equalization</a></li>
-<li><a href="http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt">http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Equalization" class="uri">http://en.wikipedia.org/wiki/Equalization</a></li>
+<li><a href="http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt" class="uri">http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt</a></li>
 <li>Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999, p. 124</li>
 <li>https://ccrma.stanford.edu/~jos/filters/Low_High_Shelving_Filters.html&gt;</li>
 <li>https://ccrma.stanford.edu/~jos/filters/Peaking_Equalizers.html&gt;</li>
@@ -3051,7 +3159,7 @@ _ : highshelf_other_freq(N,Lpi,fx) : _</code></pre>
 <li><code>N</code>: Number of filters in series where L = L/N</li>
 </ul>
 <h4 id="reference-28">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html">https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html</a></p>
+<p><a href="https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html" class="uri">https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html</a></p>
 <hr />
 <h3 id="levelfiltern"><code>levelfilterN</code></h3>
 <p>Dynamic level lowpass filter.</p>
@@ -3064,7 +3172,7 @@ _ : highshelf_other_freq(N,Lpi,fx) : _</code></pre>
 <li><code>N</code>: Number of filters in series where L = L/N</li>
 </ul>
 <h4 id="reference-29">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html">https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html</a></p>
+<p><a href="https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html" class="uri">https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html</a></p>
 <hr />
 <h2 id="mth-octave-filter-banks">Mth-Octave Filter-Banks</h2>
 <p>Mth-octave filter-banks split the input signal into a bank of parallel signals, one for each spectral band. They are related to the Mth-Octave Spectrum-Analyzers in <code>analysis.lib</code>. The documentation of this library contains more details about the implementation. The parameters are:</p>
@@ -3184,7 +3292,11 @@ mth_octave_filterbank_default = mth_octave_analyzer6e;</code></pre>
 <h3 id="optiminphase"><code>optimInPhase</code></h3>
 <p>The inPhase Optimization optimize energy vector and put all loudspeakers signals n phase. It should be used for an auditory.</p>
 <h3 id="usage-155">Usage</h3>
-<p><code>: optimInPhase(n) : _</code></p>
+<dl>
+<dt>``</dt>
+<dd>optimInPhase(n) : _ ``
+</dd>
+</dl>
 <p>here:</p>
 <p><code>n</code>: the order</p>
 <hr />
@@ -3225,7 +3337,7 @@ mth_octave_filterbank_default = mth_octave_analyzer6e;</code></pre>
 <p>The official prefix of this library is <code>ma</code>.</p>
 <h2 id="functions-reference-2">Functions Reference</h2>
 <h3 id="sr"><code>SR</code></h3>
-<p>Current sampling rate (between 1Hz and 192000Hz). Constant during program execution.</p>
+<p>Current sampling rate (between 1000Hz and 192000Hz). Constant during program execution.</p>
 <h4 id="usage-159">Usage</h4>
 <pre><code>SR : _</code></pre>
 <hr />
@@ -3243,7 +3355,7 @@ mth_octave_filterbank_default = mth_octave_analyzer6e;</code></pre>
 <p>Flush to zero: force samples under the &quot;maximum subnormal number&quot; to be zero. Usually not needed in C++ because the architecture file take care of this, but can be useful in javascript for instance.</p>
 <h4 id="usage-162">Usage</h4>
 <pre><code>_ : ftz : _</code></pre>
-<p>See : <a href="http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html">http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html</a></p>
+<p>See : <a href="http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html" class="uri">http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html</a></p>
 <hr />
 <h3 id="neg"><code>neg</code></h3>
 <p>Invert the sign (-x) of a signal.</p>
@@ -3306,7 +3418,7 @@ mth_octave_filterbank_default = mth_octave_analyzer6e;</code></pre>
 <h3 id="acosh"><code>acosh</code></h3>
 <p>Computes the principle value of the inverse hyperbolic cosine of the input signal.</p>
 <h4 id="usage-174">Usage</h4>
-<pre><code>_ : acosh : _ </code></pre>
+<pre><code>_ : acosh : _</code></pre>
 <hr />
 <h3 id="asinh"><code>asinh</code></h3>
 <p>Computes the inverse hyperbolic sine of the input signal.</p>
@@ -3430,7 +3542,7 @@ _ : isnan : _</code></pre>
 T[1](x) = x,
 T[n](x) = 2x*T[n-1](x) - T[n-2](x)</code></pre>
 <h4 id="reference-30">Reference</h4>
-<p><a href="http://en.wikipedia.org/wiki/Chebyshev_polynomial">http://en.wikipedia.org/wiki/Chebyshev_polynomial</a></p>
+<p><a href="http://en.wikipedia.org/wiki/Chebyshev_polynomial" class="uri">http://en.wikipedia.org/wiki/Chebyshev_polynomial</a></p>
 <hr />
 <h3 id="chebychevpoly"><code>chebychevpoly</code></h3>
 <p>Linear combination of the first Chebyshev polynomials.</p>
@@ -3441,7 +3553,7 @@ T[n](x) = 2x*T[n-1](x) - T[n-2](x)</code></pre>
 <li><code>cn</code>: the different Chebychevs polynomials such that: chebychevpoly((c0,c1,...,cn)) = Sum of chebychev(i)*ci</li>
 </ul>
 <h4 id="reference-31">Reference</h4>
-<p><a href="http://www.csounds.com/manual/html/chebyshevpoly.html">http://www.csounds.com/manual/html/chebyshevpoly.html</a></p>
+<p><a href="http://www.csounds.com/manual/html/chebyshevpoly.html" class="uri">http://www.csounds.com/manual/html/chebyshevpoly.html</a></p>
 <hr />
 <h3 id="diffn"><code>diffn</code></h3>
 <p>Negated first-order difference.</p>
@@ -3468,8 +3580,8 @@ _ : cubicnl_nodc(drive,offset) : _</code></pre>
 </ul>
 <h4 id="references-17">References:</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html">https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html">https://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Nonlinear_Distortion.html</a></li>
 </ul>
 <hr />
 <h3 id="gate_mono"><code>gate_mono</code></h3>
@@ -3485,9 +3597,9 @@ _ : cubicnl_nodc(drive,offset) : _</code></pre>
 </ul>
 <h4 id="references-18">References</h4>
 <ul>
-<li><a href="http://en.wikipedia.org/wiki/Noise_gate">http://en.wikipedia.org/wiki/Noise_gate</a></li>
-<li><a href="http://www.soundonsound.com/sos/apr01/articles/advanced.asp">http://www.soundonsound.com/sos/apr01/articles/advanced.asp</a></li>
-<li><a href="http://en.wikipedia.org/wiki/Gating_(sound_engineering)">http://en.wikipedia.org/wiki/Gating_(sound_engineering)</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Noise_gate" class="uri">http://en.wikipedia.org/wiki/Noise_gate</a></li>
+<li><a href="http://www.soundonsound.com/sos/apr01/articles/advanced.asp" class="uri">http://www.soundonsound.com/sos/apr01/articles/advanced.asp</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Gating_(sound_engineering)" class="uri">http://en.wikipedia.org/wiki/Gating_(sound_engineering)</a></li>
 </ul>
 <hr />
 <h3 id="gate_stereo"><code>gate_stereo</code></h3>
@@ -3503,9 +3615,9 @@ _ : cubicnl_nodc(drive,offset) : _</code></pre>
 </ul>
 <h4 id="references-19">References</h4>
 <ul>
-<li><a href="http://en.wikipedia.org/wiki/Noise_gate">http://en.wikipedia.org/wiki/Noise_gate</a></li>
-<li><a href="http://www.soundonsound.com/sos/apr01/articles/advanced.asp">http://www.soundonsound.com/sos/apr01/articles/advanced.asp</a></li>
-<li><a href="http://en.wikipedia.org/wiki/Gating_(sound_engineering)">http://en.wikipedia.org/wiki/Gating_(sound_engineering)</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Noise_gate" class="uri">http://en.wikipedia.org/wiki/Noise_gate</a></li>
+<li><a href="http://www.soundonsound.com/sos/apr01/articles/advanced.asp" class="uri">http://www.soundonsound.com/sos/apr01/articles/advanced.asp</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Gating_(sound_engineering)" class="uri">http://en.wikipedia.org/wiki/Gating_(sound_engineering)</a></li>
 </ul>
 <hr />
 <h2 id="filtering">Filtering</h2>
@@ -3584,7 +3696,7 @@ _ : piano_dispersion_filter(1,B,f0) : +(totalDelay),_ : fdelay(maxDelay) : _</co
 <li><code>N</code>: number of nodes along each edge - a power of two (1,2,4,8,...)</li>
 </ul>
 <h4 id="reference-33">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Mesh.html">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Mesh.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Mesh.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Mesh.html</a></p>
 <h4 id="signal-order-in-and-out">Signal Order In and Out</h4>
 <p>The mesh is constructed recursively using 2x2 embeddings. Thus, the top level of <code>mesh_square(M)</code> is a block 2x2 mesh, where each block is a <code>mesh(M/2)</code>. Let these blocks be numbered 1,2,3,4 in the geometry NW,NE,SW,SE, i.e., as 1 2 3 4 Each block has four vector inputs and four vector outputs, where the length of each vector is <code>M/2</code>. Label the input vectors as Ni,Ei,Wi,Si, i.e., as the inputs from the North, East South, and West, and similarly for the outputs. Then, for example, the upper left input block of M/2 signals is labeled 1Ni. Most of the connections are internal, such as 1Eo -&gt; 2Wi. The <code>8*(M/2)</code> input signals are grouped in the order 1Ni 2Ni 3Si 4Si 1Wi 3Wi 2Ei 4Ei and the output signals are 1No 1Wo 2No 2Eo 3So 3Wo 4So 4Eo or</p>
 <p>In: 1No 1Wo 2No 2Eo 3So 3Wo 4So 4Eo</p>
@@ -3634,7 +3746,7 @@ process = 1-1&#39; : mesh_square_test(4); // all modes excited forever</code></p
 <h4 id="usage-209">Usage</h4>
 <pre><code>pink_noise : _;</code></pre>
 <h4 id="reference-34">Reference:</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html">https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html" class="uri">https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html</a></p>
 <hr />
 <h3 id="pink_noise_vm"><code>pink_noise_vm</code></h3>
 <p>Multi pink noise generator.</p>
@@ -3646,8 +3758,8 @@ process = 1-1&#39; : mesh_square_test(4); // all modes excited forever</code></p
 </ul>
 <h4 id="references-20">References</h4>
 <ul>
-<li><a href="http://www.dsprelated.com/showarticle/908.php">http://www.dsprelated.com/showarticle/908.php</a></li>
-<li><a href="http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney">http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney</a></li>
+<li><a href="http://www.dsprelated.com/showarticle/908.php" class="uri">http://www.dsprelated.com/showarticle/908.php</a></li>
+<li><a href="http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney" class="uri">http://www.firstpr.com.au/dsp/pink-noise/#Voss-McCartney</a></li>
 </ul>
 <hr />
 <h3 id="lfnoise-lfnoise0-and-lfnoisen"><code>lfnoise</code>, <code>lfnoise0</code> and <code>lfnoiseN</code></h3>
@@ -3849,8 +3961,8 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <h5 id="reference-38">Reference</h5>
 <ul>
 <li>Kleimola, J.; Valimaki, V., &quot;Reducing Aliasing from Synthetic Audio Signals Using Polynomial Transition Regions,&quot; in Signal Processing Letters, IEEE , vol.19, no.2, pp.67-70, Feb. 2012</li>
-<li><a href="https://aaltodoc.aalto.fi/bitstream/handle/123456789/7747/publication6.pdf?sequence=9">https://aaltodoc.aalto.fi/bitstream/handle/123456789/7747/publication6.pdf?sequence=9</a></li>
-<li><a href="http://research.spa.aalto.fi/publications/papers/spl-ptr/">http://research.spa.aalto.fi/publications/papers/spl-ptr/</a></li>
+<li><a href="https://aaltodoc.aalto.fi/bitstream/handle/123456789/7747/publication6.pdf?sequence=9" class="uri">https://aaltodoc.aalto.fi/bitstream/handle/123456789/7747/publication6.pdf?sequence=9</a></li>
+<li><a href="http://research.spa.aalto.fi/publications/papers/spl-ptr/" class="uri">http://research.spa.aalto.fi/publications/papers/spl-ptr/</a></li>
 </ul>
 <h4 id="method-2-sawn">Method 2 (<code>sawN</code>)</h4>
 <p>Differentiated Polynomial Waves (DPW) (for aliasing suppression)</p>
@@ -3978,8 +4090,8 @@ triangle : _ // = triangleN(2)</code></pre>
 <pre><code>osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.</code></pre>
 <h4 id="references-21">References</h4>
 <ul>
-<li><a href="http://lac.linuxaudio.org/2012/download/lac12-slides-jos.pdf">http://lac.linuxaudio.org/2012/download/lac12-slides-jos.pdf</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pdf/lac12-paper-jos.pdf">https://ccrma.stanford.edu/~jos/pdf/lac12-paper-jos.pdf</a></li>
+<li><a href="http://lac.linuxaudio.org/2012/download/lac12-slides-jos.pdf" class="uri">http://lac.linuxaudio.org/2012/download/lac12-slides-jos.pdf</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pdf/lac12-paper-jos.pdf" class="uri">https://ccrma.stanford.edu/~jos/pdf/lac12-paper-jos.pdf</a></li>
 </ul>
 <h3 id="oscb"><code>oscb</code></h3>
 <p>Sinusoidal oscillator based on the biquad.</p>
@@ -4000,7 +4112,7 @@ triangle : _ // = triangleN(2)</code></pre>
 </ul>
 <h4 id="reference-40">Reference</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
 </ul>
 <hr />
 <h3 id="oscrs"><code>oscrs</code></h3>
@@ -4013,7 +4125,7 @@ triangle : _ // = triangleN(2)</code></pre>
 </ul>
 <h4 id="reference-41">Reference</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
 </ul>
 <hr />
 <h3 id="oscrc"><code>oscrc</code></h3>
@@ -4026,7 +4138,7 @@ triangle : _ // = triangleN(2)</code></pre>
 </ul>
 <h4 id="reference-42">Reference</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Normalized_Scattering_Junctions.html</a></li>
 </ul>
 <hr />
 <h3 id="osc"><code>osc</code></h3>
@@ -4053,7 +4165,7 @@ triangle : _ // = triangleN(2)</code></pre>
 </ul>
 <h4 id="reference-43">Reference</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
 </ul>
 <hr />
 <h3 id="oscws"><code>oscws</code></h3>
@@ -4066,7 +4178,7 @@ triangle : _ // = triangleN(2)</code></pre>
 </ul>
 <h4 id="reference-44">Reference</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
 </ul>
 <hr />
 <h3 id="oscwq"><code>oscwq</code></h3>
@@ -4079,7 +4191,7 @@ triangle : _ // = triangleN(2)</code></pre>
 </ul>
 <h4 id="reference-45">Reference</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
 </ul>
 <hr />
 <h3 id="oscw-1"><code>oscw</code></h3>
@@ -4092,7 +4204,7 @@ triangle : _ // = triangleN(2)</code></pre>
 </ul>
 <h4 id="reference-46">Reference</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Digital_Waveguide_Oscillator.html</a></li>
 </ul>
 <hr />
 <h3 id="lf_sawpos"><code>lf_sawpos</code></h3>
@@ -4138,7 +4250,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <li><code>invert</code>: 0 for normal, 1 to invert sign of flanging sum</li>
 </ul>
 <h4 id="reference-47">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Flanging.html">https://ccrma.stanford.edu/~jos/pasp/Flanging.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Flanging.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Flanging.html</a></p>
 <hr />
 <h3 id="flanger_stereo"><code>flanger_stereo</code></h3>
 <p>Stereo flanging effect. <code>flanger_stereo</code> is a standard Faust function.</p>
@@ -4153,7 +4265,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <li><code>invert</code>: 0 for normal, 1 to invert sign of flanging sum</li>
 </ul>
 <h4 id="reference-48">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/Flanging.html">https://ccrma.stanford.edu/~jos/pasp/Flanging.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/Flanging.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Flanging.html</a></p>
 <hr />
 <h3 id="phaser2_mono"><code>phaser2_mono</code></h3>
 <p>Mono phasing effect.</p>
@@ -4174,10 +4286,10 @@ triangle : _ // = triangleN(2)</code></pre>
 </ul>
 <p>Reference:</p>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Phasing.html">https://ccrma.stanford.edu/~jos/pasp/Phasing.html</a></li>
-<li><a href="http://www.geofex.com/Article_Folders/phasers/phase.html">http://www.geofex.com/Article_Folders/phasers/phase.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Phasing.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Phasing.html</a></li>
+<li><a href="http://www.geofex.com/Article_Folders/phasers/phase.html" class="uri">http://www.geofex.com/Article_Folders/phasers/phase.html</a></li>
 <li>'An Allpass Approach to Digital Phasing and Flanging', Julius O. Smith III, Proc. Int. Computer Music Conf. (ICMC-84), pp. 103-109, Paris, 1984.</li>
-<li>CCRMA Tech. Report STAN-M-21: <a href="https://ccrma.stanford.edu/STANM/stanms/stanm21/">https://ccrma.stanford.edu/STANM/stanms/stanm21/</a></li>
+<li>CCRMA Tech. Report STAN-M-21: <a href="https://ccrma.stanford.edu/STANM/stanms/stanm21/" class="uri">https://ccrma.stanford.edu/STANM/stanms/stanm21/</a></li>
 </ul>
 <hr />
 <h3 id="phaser2_stereo"><code>phaser2_stereo</code></h3>
@@ -4199,84 +4311,858 @@ triangle : _ // = triangleN(2)</code></pre>
 </ul>
 <p>Reference:</p>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Phasing.html">https://ccrma.stanford.edu/~jos/pasp/Phasing.html</a></li>
-<li><a href="http://www.geofex.com/Article_Folders/phasers/phase.html">http://www.geofex.com/Article_Folders/phasers/phase.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Phasing.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Phasing.html</a></li>
+<li><a href="http://www.geofex.com/Article_Folders/phasers/phase.html" class="uri">http://www.geofex.com/Article_Folders/phasers/phase.html</a></li>
 <li>'An Allpass Approach to Digital Phasing and Flanging', Julius O. Smith III, Proc. Int. Computer Music Conf. (ICMC-84), pp. 103-109, Paris, 1984.</li>
-<li>CCRMA Tech. Report STAN-M-21: <a href="https://ccrma.stanford.edu/STANM/stanms/stanm21/">https://ccrma.stanford.edu/STANM/stanms/stanm21/</a></li>
+<li>CCRMA Tech. Report STAN-M-21: <a href="https://ccrma.stanford.edu/STANM/stanms/stanm21/" class="uri">https://ccrma.stanford.edu/STANM/stanms/stanm21/</a></li>
 </ul>
 <hr />
 <h1 id="physmodels.lib">physmodels.lib</h1>
-<p>Faust physical modeling library. Its official prefix is <code>pm</code>.</p>
-<h3 id="chainab...">chain(A:B:...)</h3>
-<p>Creates a chain of bidirectional blocks. Blocks must have 3 inputs and outputs. The first input/output correspond to the left going signal, the second input/output correspond to the right going signal and the third input/output is the mix of the main signal output. The implied one sample delay created by the <code>~</code> operator is generalized to the left and right going waves. Thus, n blocks in <code>chain()</code> will add an n samples delay to both the left and right going waves. ### Usage</p>
-<pre><code>rightGoingWaves,leftGoingWaves,mixedOutput : chain(A:B) : rightGoingWaves,leftGoingWaves,mixedOutput
+<p>Faust physical modeling library; Its official prefix is <code>pm</code>.</p>
+<p>This library provides an environment to facilitate physical modeling of musical instruments. It contains dozens of functions implementing low and high level elements going from a simple waveguide to fully operational models with built-in UI, etc. This library is part of the Faust Physical Modeling ToolKit. More information on how to use this library can be found on this page: <a href="https://ccrma.stanford.edu/~rmichon/pmFaust" class="uri">https://ccrma.stanford.edu/~rmichon/pmFaust</a>. Tutorials on how to make physical models of musical instruments using Faust can be found <a href="https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust">here</a> as well.</p>
+<h2 id="global-variables">Global Variables</h2>
+<p>Useful pre-defined variables for physical modeling.</p>
+<h3 id="speedofsound"><code>speedOfSound</code></h3>
+<p>Speed of sound in meters per second (340m/s).</p>
+<hr />
+<h3 id="maxlength"><code>maxLength</code></h3>
+<p>The default maximum length (3) in meters of strings and tubes used in this library. This variable should be overriden allow longer strings or tubes.</p>
+<hr />
+<h2 id="conversion-tools-1">Conversion Tools</h2>
+<p>Useful conversion tools for physical modeling.</p>
+<h3 id="f2l"><code>f2l</code></h3>
+<p>Frequency to lentgh in meters.</p>
+<h4 id="usage-252">Usage</h4>
+<pre><code>f2l(freq) : distanceInMeters</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: the frequency</li>
+</ul>
+<hr />
+<h3 id="l2f"><code>l2f</code></h3>
+<p>Lentgh in meters to frequency.</p>
+<h4 id="usage-253">Usage</h4>
+<pre><code>l2f(length) : freq</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>length</code>: length/distance in meters</li>
+</ul>
+<hr />
+<h3 id="l2s"><code>l2s</code></h3>
+<p>Length in meters to number of samples.</p>
+<h4 id="usage-254">Usage</h4>
+<pre><code>l2s(l) : numberOfSamples</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>l</code>: length in meters</li>
+</ul>
+<hr />
+<h2 id="bidirectional-utilities">Bidirectional Utilities</h2>
+<p>Set of fundamental functions to create bi-directional block diagrams in Faust. These elements are used as the basis of this library to connect high level elements (e.g., mouthpieces, strings, bridge, instrument body, etc.). Each block has 3 inputs and 3 outputs. The first input/output carry left going waves, the second input/output carry right going waves, and the third input/output is used to carry any potential output signal to the end of the algorithm.</p>
+<h3 id="basicblock"><code>basicBlock</code></h3>
+<p>Empty bidirectional block to be used with <a href="#chain"><code>chain</code></a>: 3 signals ins and 3 signals out.</p>
+<h4 id="usage-255">Usage</h4>
+<pre><code>chain(basicBlock : basicBlock : etc.)</code></pre>
+<hr />
+<h3 id="chain"><code>chain</code></h3>
+<p>Creates a chain of bidirectional blocks. Blocks must have 3 inputs and outputs. The first input/output carry left going waves, the second input/output carry right going waves, and the third input/output is used to carry any potential output signal to the end of the algorithm. The implied one sample delay created by the <code>~</code> operator is generalized to the left and right going waves. Thus, <code>n</code> blocks in <code>chain()</code> will add an <code>n</code> samples delay to both left and right going waves.</p>
+<h4 id="usage-256">Usage</h4>
+<pre><code>rightGoingWaves,leftGoingWaves,mixedOutput : chain( A : B ) : rightGoingWaves,leftGoingWaves,mixedOutput
 with{
      A = _,_,_;
      B = _,_,_;
 };</code></pre>
-<h3 id="requires">Requires</h3>
-<p><code>routes.lib</code> (<code>crossnn</code>)</p>
 <hr />
-<h3 id="inputx">input(x)</h3>
-<p>Adds a waveguide input anywhere between 2 blocks in a chain of blocks (see <code>chain()</code>). ### Usage</p>
-<pre><code>string(x) = chain(A:input(x):B)</code></pre>
-<p>Where <code>x</code> is the input signal to be added to the chain.</p>
+<h3 id="inleftwave"><code>inLeftWave</code></h3>
+<p>Adds a signal to left going waves anywhere in a <a href="#chain"><code>chain</code></a> of blocks.</p>
+<h4 id="usage-257">Usage</h4>
+<pre><code>model(x) = chain(A : inLeftWave(x) : B)</code></pre>
+<p>Where <code>A</code> and <code>B</code> are bidirectional blocks and <code>x</code> is the signal added to left going waves in that chain.</p>
 <hr />
-<h3 id="output">output()</h3>
-<p>Adds a waveguide output anywhere between 2 blocks in a chain of blocks and sends it to the mix output channel (see <code>chain()</code>). ### Usage</p>
-<pre><code>chain(A:output:B)</code></pre>
+<h3 id="inrightwave"><code>inRightWave</code></h3>
+<p>Adds a signal to right going waves anywhere in a <a href="#chain"><code>chain</code></a> of blocks.</p>
+<h4 id="usage-258">Usage</h4>
+<pre><code>model(x) = chain(A : inRightWave(x) : B)</code></pre>
+<p>Where <code>A</code> and <code>B</code> are bidirectional blocks and <code>x</code> is the signal added to right going waves in that chain.</p>
 <hr />
-<h3 id="terminationsabc">terminations(a,b,c)</h3>
-<p>Creates terminations on both sides of a <code>chain()</code> without closing the inputs and outputs of the bidirectional signals chain. As for <code>chain()</code>, this function adds a 1 sample delay to the bidirectional signal both ways. ### Usage</p>
-<pre><code>rightGoingWaves,leftGoingWaves,mixedOutput : terminations(a,b,c) : rightGoingWaves,leftGoingWaves,mixedOutput
+<h3 id="in"><code>in</code></h3>
+<p>Adds a signal to left and right going waves anywhere in a <a href="#chain"><code>chain</code></a> of blocks.</p>
+<h4 id="usage-259">Usage</h4>
+<pre><code>model(x) = chain(A : in(x) : B)</code></pre>
+<p>Where <code>A</code> and <code>B</code> are bidirectional blocks and <code>x</code> is the signal added to left and right going waves in that chain.</p>
+<hr />
+<h3 id="outleftwave"><code>outLeftWave</code></h3>
+<p>Sends the signal of left going waves to the output channel of the <a href="#chain"><code>chain</code></a>.</p>
+<h4 id="usage-260">Usage</h4>
+<pre><code>chain(A : outLeftWave : B)</code></pre>
+<p>Where <code>A</code> and <code>B</code> are bidirectional blocks.</p>
+<hr />
+<h3 id="outrightwave"><code>outRightWave</code></h3>
+<p>Sends the signal of right going waves to the output channel of the <a href="#chain"><code>chain</code></a>.</p>
+<h4 id="usage-261">Usage</h4>
+<pre><code>chain(A : outRightWave : B)</code></pre>
+<p>Where <code>A</code> and <code>B</code> are bidirectional blocks.</p>
+<hr />
+<h3 id="out"><code>out</code></h3>
+<p>Sends the signal of right and left going waves to the output channel of the <a href="#chain"><code>chain</code></a>.</p>
+<h4 id="usage-262">Usage</h4>
+<pre><code>chain(A : out : B)</code></pre>
+<p>Where <code>A</code> and <code>B</code> are bidirectional blocks.</p>
+<hr />
+<h3 id="terminations"><code>terminations</code></h3>
+<p>Creates terminations on both sides of a <a href="#chain"><code>chain</code></a> without closing the inputs and outputs of the bidirectional signals chain. As for <a href="#chain"><code>chain</code></a>, this function adds a 1 sample delay to the bidirectional signal, both ways. Of courses, this function can be nested within a <a href="#chain"><code>chain</code></a>.</p>
+<h4 id="usage-263">Usage</h4>
+<pre><code>terminations(a,b,c)
 with{
      a = *(-1); // left termination
-     b = chain(D:E:F); // bidirectional chain of blocks (D, E, F, etc.)
+     b = chain(D : E : F); // bidirectional chain of blocks (D, E, F, etc.)
      c = *(-1); // right termination
 };</code></pre>
-<h3 id="requires-1">Requires</h3>
-<p><code>routes.lib</code> (<code>crossnn</code>)</p>
 <hr />
-<h3 id="fullterminationsabc">fullTerminations(a,b,c)</h3>
-<p>Same as <code>terminations()</code> but closes the inputs and outputs of the bidirectional chain (only the mixed output remains). ### Usage</p>
-<pre><code>terminations(a,b,c) : _
+<h3 id="ltermination"><code>lTermination</code></h3>
+<p>Creates a termination on the left side of a <a href="#chain"><code>chain</code></a> without closing the inputs and outputs of the bidirectional signals chain. This function adds a 1 sample delay near the termination and can be nested within another <a href="#chain"><code>chain</code></a>.</p>
+<h4 id="usage-264">Usage</h4>
+<pre><code>lTerminations(a,b)
 with{
      a = *(-1); // left termination
-     b = chain(D:E:F); // bidirectional chain of blocks (D, E, F, etc.)
+     b = chain(D : E : F); // bidirectional chain of blocks (D, E, F, etc.)
+};</code></pre>
+<hr />
+<h3 id="rtermination"><code>rTermination</code></h3>
+<p>Creates a termination on the right side of a <a href="#chain"><code>chain</code></a> without closing the inputs and outputs of the bidirectional signals chain. This function adds a 1 sample delay near the termination and can be nested within another <a href="#chain"><code>chain</code></a>.</p>
+<h4 id="usage-265">Usage</h4>
+<pre><code>rTerminations(b,c)
+with{
+     b = chain(D : E : F); // bidirectional chain of blocks (D, E, F, etc.)
      c = *(-1); // right termination
 };</code></pre>
-<h3 id="requires-2">Requires</h3>
-<p><code>routes.lib</code> (<code>crossnn</code>)</p>
 <hr />
-<h3 id="leftterminationab">leftTermination(a,b)</h3>
-<p>Creates a termination on the left side of a <code>chain()</code> without closing the inputs and outputs of the bidirectional signals chain. This function adds a 1 sample delay near the termination. ### Usage</p>
-<pre><code>rightGoingWaves,leftGoingWaves,mixedOutput : terminations(a,b) : rightGoingWaves,leftGoingWaves,mixedOutput
-with{
-     a = *(-1); // left termination
-     b = chain(D:E:F); // bidirectional chain of blocks (D, E, F, etc.)
-};</code></pre>
-<h3 id="requires-3">Requires</h3>
-<p><code>routes.lib</code> (<code>crossnn</code>)</p>
+<h3 id="closeins"><code>closeIns</code></h3>
+<p>Closes the inputs of a bidirectional chain in all directions.</p>
+<h4 id="usage-266">Usage</h4>
+<pre><code>closeIns : chain(...) :  _,_,_</code></pre>
 <hr />
-<h3 id="rightterminationbc">rightTermination(b,c)</h3>
-<p>Creates a termination on the right side of a <code>chain()</code> without closing the inputs and outputs of the bidirectional signals chain. This function adds a 1 sample delay near the termination. ### Usage</p>
-<pre><code>rightGoingWaves,leftGoingWaves,mixedOutput : terminations(b,c) : rightGoingWaves,leftGoingWaves,mixedOutput
-with{
-     b = chain(D:E:F); // bidirectional chain of blocks (D, E, F, etc.)
-     c = *(-1); // right termination
-};</code></pre>
-<h3 id="requires-4">Requires</h3>
-<p><code>routes.lib</code> (<code>crossnn</code>)</p>
+<h3 id="closeouts"><code>closeOuts</code></h3>
+<p>Closes the outputs of a bidirectional chain in all directions except for the main signal output (3d output).</p>
+<h4 id="usage-267">Usage</h4>
+<pre><code>_,_,_ : chain(...) : _</code></pre>
 <hr />
-<h3 id="waveguidenmaxn">waveguide(nMax,n)</h3>
-<p>A simple waveguide block based on a 4th order fractional delay. ### Usage</p>
-<pre><code>rightGoingWaves,leftGoingWaves,mixedOutput : waveguide(nMax,n) : rightGoingWaves,leftGoingWaves,mixedOutput</code></pre>
-<p>With: * <code>nMax</code>: the maximum length of the waveguide in samples * <code>n</code> the length of the waveguide in samples. ### Requires <code>delays.lib</code> (<code>fdelay4</code>)</p>
+<h3 id="endchain"><code>endChain</code></h3>
+<p>Closes the inputs and outputs of a bidirectional chain in all directions except for the main signal output (3d output).</p>
+<h4 id="usage-268">Usage</h4>
+<pre><code>endChain(chain(...)) : _</code></pre>
 <hr />
-<h3 id="idealstringlengthreflexionxpositionx">idealString(length,reflexion,xPosition,x)</h3>
-<p>An ideal string with rigid terminations and where the plucking position and the pick-up position are the same. ### Usage</p>
-<pre><code>1-1&#39; : idealString(length,reflexion,xPosition,x)</code></pre>
-<p>With: * <code>length</code>: the length of the string in meters * <code>reflexion</code>: the coefficient of reflexion (0-0.99999999) * <code>pluckPosition</code>: the plucking position (0.001-0.999) * <code>x</code>: the input signal for the excitation ### Requires <code>routes.lib</code> (<code>crossnn</code>) <code>delays.lib</code> (<code>fdelay4</code>)</p>
+<h2 id="basic-elements-1">Basic Elements</h2>
+<p>Basic elements for physical modeling (e.g., waveguides, specific filters, etc.).</p>
+<h3 id="waveguiden"><code>waveguideN</code></h3>
+<p>A series of waveguide functions based on various types of delays (see <a href="#fdelayn"><code>fdelay[n]</code></a>).</p>
+<h4 id="list-of-functions">List of functions</h4>
+<ul>
+<li><code>waveguideUd</code>: unit delay waveguide</li>
+<li><code>waveguideFd</code>: fractional delay waveguide</li>
+<li><code>waveguideFd2</code>: second order fractional delay waveguide</li>
+<li><code>waveguideFd4</code>: fourth order fractional delay waveguide</li>
+</ul>
+<h4 id="usage-269">Usage</h4>
+<pre><code>chain(A : waveguideUd(nMax,n) : B)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>nMax</code>: the maximum length of the delays in the waveguide</li>
+<li><code>n</code>: the length of the delay lines in samples.</li>
+</ul>
+<hr />
+<h3 id="waveguide"><code>waveguide</code></h3>
+<p>Standard <code>pm.lib</code> waveguide (based on <a href="#waveguiden"><code>waveguideFd4</code></a>).</p>
+<h4 id="usage-270">Usage</h4>
+<pre><code>chain(A : waveguide(nMax,n) : B)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>nMax</code>: the maximum length of the delays in the waveguide</li>
+<li><code>n</code>: the length of the delay lines in samples.</li>
+</ul>
+<hr />
+<h3 id="bridgefilter"><code>bridgeFilter</code></h3>
+<p>Generic two zeros bridge FIR filter (as implemented in the <a href="https://ccrma.stanford.edu/software/stk/">STK</a>) that can be used to implement the reflectance violin, guitar, etc. bridges.</p>
+<h4 id="usage-271">Usage</h4>
+<pre><code>_ : bridge(brightness,absorption) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>brightness</code>: controls the damping of high frequencies (0-1)</li>
+<li><code>absorption</code>: controls the absorption of the brige and thus the t60 of the string plugged to it (0-1) (1 = 20 seconds)</li>
+</ul>
+<hr />
+<h3 id="modefilter"><code>modeFilter</code></h3>
+<p>Resonant bandpass filter that can be used to implement a single resonance (mode).</p>
+<h4 id="usage-272">Usage</h4>
+<pre><code>_ : modeFilter(freq,t60,gain) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: mode frequency</li>
+<li><code>t60</code>: mode resonance duration (in seconds)</li>
+<li><code>gain</code>: mode gain (0-1)</li>
+</ul>
+<hr />
+<h2 id="basic-string-instruments-elements">Basic String Instruments Elements</h2>
+<p>Low and high level basic string instruments parts. Most of the elements in this section can be used in a bidirectional chain.</p>
+<h3 id="stringsegment"><code>stringSegment</code></h3>
+<p>A string segment without terminations (just a simple waveguide).</p>
+<h4 id="usage-273">Usage</h4>
+<pre><code>chain(A : stringSegment(maxLength,length) : B)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>maxLength</code>: the maximum length of the string in meters (should be static)</li>
+<li><code>length</code>: the length of the string in meters</li>
+</ul>
+<hr />
+<h3 id="openstring"><code>openString</code></h3>
+<p>A bidirectional block implementing a basic &quot;generic&quot; string with a selectable excitation position. Lowpass filters are built-in and allow to simulate the effect of dispersion on the sound and thus to change the &quot;stiffness&quot; of the string.</p>
+<h4 id="usage-274">Usage</h4>
+<pre><code>chain(... : openString(length,stiffness,pluckPosition,excitation) : ...)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>length</code>: the length of the string in meters</li>
+<li><code>stiffness</code>: the stiffness of the string (0-1) (1 for max stiffness)</li>
+<li><code>pluckPosition</code>: excitation position (0-1) (1 is bottom)</li>
+<li><code>excitation</code>: the excitation signal</li>
+</ul>
+<hr />
+<h3 id="nylonstring"><code>nylonString</code></h3>
+<p>A bidirectional block implementing a basic nylon string with selectable excitation position. This element is based on <a href="#openstring"><code>openString</code></a> and has a fix stiffness corresponding to that of a nylon string.</p>
+<h4 id="usage-275">Usage</h4>
+<pre><code>chain(... : nylonString(length,pluckPosition,excitation) : ...)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>length</code>: the length of the string in meters</li>
+<li><code>pluckPosition</code>: excitation position (0-1) (1 is bottom)</li>
+<li><code>excitation</code>: the excitation signal</li>
+</ul>
+<hr />
+<h3 id="steelstring"><code>steelString</code></h3>
+<p>A bidirectional block implementing a basic steel string with selectable excitation position. This element is based on <a href="#openstring"><code>openString</code></a> and has a fix stiffness corresponding to that of a steel string.</p>
+<h4 id="usage-276">Usage</h4>
+<pre><code>chain(... : steelString(length,pluckPosition,excitation) : ...)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>length</code>: the length of the string in meters</li>
+<li><code>pluckPosition</code>: excitation position (0-1) (1 is bottom)</li>
+<li><code>excitation</code>: the excitation signal</li>
+</ul>
+<hr />
+<h3 id="openstringpick"><code>openStringPick</code></h3>
+<p>A bidirectional block implementing a &quot;generic&quot; string with selectable excitation position. It also has a built-in pickup whose position is the same as the excitation position. Thus, moving the excitation position will also move the pickup.</p>
+<h4 id="usage-277">Usage</h4>
+<pre><code>chain(... : openStringPick(length,stiffness,pluckPosition,excitation) : ...)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>length</code>: the length of the string in meters</li>
+<li><code>stiffness</code>: the stiffness of the string (0-1) (1 for max stiffness)</li>
+<li><code>pluckPosition</code>: excitation position (0-1) (1 is bottom)</li>
+<li><code>excitation</code>: the excitation signal</li>
+</ul>
+<hr />
+<h3 id="openstringpickup"><code>openStringPickUp</code></h3>
+<p>A bidirectional block implementing a &quot;generic&quot; string with selectable excitation position and stiffness. It also has a built-in pickup whose position can be independenly selected. The only constraint is that the pickup has to be placed after the excitation position.</p>
+<h4 id="usage-278">Usage</h4>
+<pre><code>chain(... : openStringPickUp(length,stiffness,pluckPosition,excitation) : ...)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>length</code>: the length of the string in meters</li>
+<li><code>stiffness</code>: the stiffness of the string (0-1) (1 for max stiffness)</li>
+<li><code>pluckPosition</code>: pluck position between the top of the string and the pickup (0-1) (1 for same as pickup position)</li>
+<li><code>pickupPosition</code>: position of the pickup on the string (0-1) (1 is bottom)</li>
+<li><code>excitation</code>: the excitation signal</li>
+</ul>
+<hr />
+<h3 id="openstringpickdown"><code>openStringPickDown</code></h3>
+<p>A bidirectional block implementing a &quot;generic&quot; string with selectable excitation position and stiffness. It also has a built-in pickup whose position can be independenly selected. The only constraint is that the pickup has to be placed before the excitation position.</p>
+<h4 id="usage-279">Usage</h4>
+<pre><code>chain(... : openStringPickDown(length,stiffness,pluckPosition,excitation) : ...)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>length</code>: the length of the string in meters</li>
+<li><code>stiffness</code>: the stiffness of the string (0-1) (1 for max stiffness)</li>
+<li><code>pluckPosition</code>: pluck position on the string (0-1) (1 is bottom)</li>
+<li><code>pickupPosition</code>: position of the pickup between the top of the string and the excitation position (0-1) (1 is excitation position)</li>
+<li><code>excitation</code>: the excitation signal</li>
+</ul>
+<hr />
+<h3 id="ksreflexionfilter"><code>ksReflexionFilter</code></h3>
+<p>The &quot;typical&quot; one-zero Karplus-strong feedforward reflexion filter. This filter will be typically used in a termination (see below).</p>
+<h4 id="usage-280">Usage</h4>
+<pre><code>terminations(_,chain(...),ksReflexionFilter)</code></pre>
+<hr />
+<h3 id="rstringrigidtermination"><code>rStringRigidTermination</code></h3>
+<p>Bidirectional block implementing a right rigid string termination (no damping, just phase inversion).</p>
+<h4 id="usage-281">Usage</h4>
+<pre><code>chain(rStringRigidTermination : stringSegment : ...)</code></pre>
+<hr />
+<h3 id="lstringrigidtermination"><code>lStringRigidTermination</code></h3>
+<p>Bidirectional block implementing a left rigid string termination (no damping, just phase inversion).</p>
+<h4 id="usage-282">Usage</h4>
+<pre><code>chain(... : stringSegment : lStringRigidTermination)</code></pre>
+<hr />
+<h3 id="elecguitarbridge"><code>elecGuitarBridge</code></h3>
+<p>Bidirectional block implementing a simple electric guitar bridge. This block is based on <a href="#bridgeFilter"><code>bridgeFilter</code></a>. The bridge doesn't implement transmittance since it is not meant to be connected to a body (unlike acoustic guitar). It also partially sets the resonance duration of the string with the nuts used on the other side.</p>
+<h4 id="usage-283">Usage</h4>
+<pre><code>chain(... : stringSegment : elecGuitarBridge)</code></pre>
+<hr />
+<h3 id="elecguitarnuts"><code>elecGuitarNuts</code></h3>
+<p>Bidirectional block implementing a simple electric guitar nuts. This block is based on <a href="#bridgeFilter"><code>bridgeFilter</code></a> and does essentially the same thing as <a href="#elecguitarbridge"><code>elecGuitarBridge</code></a>, but on the other side of the chain. It also partially sets the resonance duration of the string with the bridge used on the other side.</p>
+<h4 id="usage-284">Usage</h4>
+<pre><code>chain(elecGuitarNuts : stringSegment : ...)</code></pre>
+<hr />
+<h3 id="guitarbridge"><code>guitarBridge</code></h3>
+<p>Bidirectional block implementing a simple acoustic guitar bridge. This bridge damps more hight frequencies than <a href="#elecguitarbridge"><code>elecGuitarBridge</code></a> and implements a transmittance filter. It also partially sets the resonance duration of the string with the nuts used on the other side.</p>
+<h4 id="usage-285">Usage</h4>
+<pre><code>chain(... : stringSegment : guitarBridge)</code></pre>
+<hr />
+<h3 id="guitarnuts"><code>guitarNuts</code></h3>
+<p>Bidirectional block implementing a simple acoustic guitar nuts. This nuts damps more hight frequencies than <a href="#elecguitarnuts"><code>elecGuitarNuts</code></a> and implements a transmittance filter. It also partially sets the resonance duration of the string with the bridge used on the other side.</p>
+<h4 id="usage-286">Usage</h4>
+<pre><code>chain(guitarNuts : stringSegment : ...)</code></pre>
+<hr />
+<h3 id="idealstring"><code>idealString</code></h3>
+<p>An &quot;ideal&quot; string with rigid terminations and where the plucking position and the pick-up position are the same. Since terminations are rigid, this string will ring forever.</p>
+<h4 id="usage-287">Usage</h4>
+<pre><code>1-1&#39; : idealString(length,reflexion,xPosition,excitation)</code></pre>
+<p>With: * <code>length</code>: the length of the string in meters * <code>pluckPosition</code>: the plucking position (0.001-0.999) * <code>excitation</code>: the input signal for the excitation</p>
+<hr />
+<h3 id="ks"><code>ks</code></h3>
+<p>A Karplus-Strong string (in that case, the string is implemented as a one dimension waveguide).</p>
+<h4 id="usage-288">Usage</h4>
+<pre><code>ks(length,damping,excitation) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>length</code>: the length of the string in meters</li>
+<li><code>damping</code>: string damping (0-1)</li>
+<li><code>excitation</code>: excitation signal</li>
+</ul>
+<hr />
+<h3 id="ks_ui_midi"><code>ks_ui_MIDI</code></h3>
+<p>Ready-to-use, MIDI-enabled Karplus-Strong string with buil-in UI.</p>
+<h4 id="usage-289">Usage</h4>
+<pre><code>ks_ui_MIDI : _</code></pre>
+<hr />
+<h3 id="elecguitarmodel"><code>elecGuitarModel</code></h3>
+<p>A simple electric guitar model (without audio effects, of course) with selectable pluck position. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function. Pitch is changed by changing the length of the string and not through a finger model.</p>
+<h4 id="usage-290">Usage</h4>
+<pre><code>elecGuitarModel(length,pluckPosition,excitation) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>length</code>: the length of the string in meters</li>
+<li><code>pluckPosition</code>: pluck position (0-1) (1 is on the bridge)</li>
+<li><code>excitation</code>: excitation signal</li>
+</ul>
+<hr />
+<h3 id="elecguitar"><code>elecGuitar</code></h3>
+<p>A simple electric guitar model with steel strings (based on <a href="#elecguitarmodel"><code>elecGuitarModel</code></a>) implementing an excitation model. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function.</p>
+<h4 id="usage-291">Usage</h4>
+<pre><code>elecGuitar(length,pluckPosition,trigger) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>length</code>: the length of the string in meters</li>
+<li><code>pluckPosition</code>: pluck position (0-1) (1 is on the bridge)</li>
+<li><code>gain</code>: gain of the pluck (0-1)</li>
+<li><code>trigger</code>: trigger signal (1 for on, 0 for off)</li>
+</ul>
+<hr />
+<h3 id="elecguitar_ui_midi"><code>elecGuitar_ui_MIDI</code></h3>
+<p>Ready-to-use MIDI-enabled electric guitar physical model with built-in UI.</p>
+<h4 id="usage-292">Usage</h4>
+<pre><code>elecGuitar_ui_MIDI : _</code></pre>
+<hr />
+<h3 id="guitarbody"><code>guitarBody</code></h3>
+<p>WARNING: not implemented yet! Bidirectional block implementing a simple acoustic guitar body.</p>
+<h4 id="usage-293">Usage</h4>
+<pre><code>chain(... : guitarBody)</code></pre>
+<hr />
+<h3 id="guitarmodel"><code>guitarModel</code></h3>
+<p>A simple acoustic guitar model with steel strings and selectable excitation position. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function. Pitch is changed by changing the length of the string and not through a finger model. WARNING: this function doesn't currently implement a body (just strings and bridge)</p>
+<h4 id="usage-294">Usage</h4>
+<pre><code>guitarModel(length,pluckPosition,excitation) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>length</code>: the length of the string in meters</li>
+<li><code>pluckPosition</code>: pluck position (0-1) (1 is on the bridge)</li>
+<li><code>excitation</code>: excitation signal</li>
+</ul>
+<hr />
+<h3 id="guitar"><code>guitar</code></h3>
+<p>A simple acoustic guitar model with steel strings (based on <a href="#guitarmodel"><code>guitarModel</code></a>) implementing an excitation model. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function.</p>
+<h4 id="usage-295">Usage</h4>
+<pre><code>guitar(length,pluckPosition,trigger) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>length</code>: the length of the string in meters</li>
+<li><code>pluckPosition</code>: pluck position (0-1) (1 is on the bridge)</li>
+<li><code>gain</code>: gain of the excitation</li>
+<li><code>trigger</code>: trigger signal (1 for on, 0 for off)</li>
+</ul>
+<hr />
+<h3 id="guitar_ui_midi"><code>guitar_ui_MIDI</code></h3>
+<p>Ready-to-use MIDI-enabled steel strings acoustic guitar physical model with built-in UI.</p>
+<h4 id="usage-296">Usage</h4>
+<pre><code>guitar_ui_MIDI : _</code></pre>
+<hr />
+<h3 id="nylonguitarmodel"><code>nylonGuitarModel</code></h3>
+<p>A simple acoustic guitar model with nylon strings and selectable excitation position. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function. Pitch is changed by changing the length of the string and not through a finger model. WARNING: this function doesn't currently implement a body (just strings and bridge)</p>
+<h4 id="usage-297">Usage</h4>
+<pre><code>nylonGuitarModel(length,pluckPosition,excitation) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>length</code>: the length of the string in meters</li>
+<li><code>pluckPosition</code>: pluck position (0-1) (1 is on the bridge)</li>
+<li><code>excitation</code>: excitation signal</li>
+</ul>
+<hr />
+<h3 id="nylonguitar"><code>nylonGuitar</code></h3>
+<p>A simple acoustic guitar model with steel strings (based on <a href="#nylonguitarmodel"><code>nylonGuitarModel</code></a>) implementing an excitation model. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function.</p>
+<h4 id="usage-298">Usage</h4>
+<pre><code>nylonGuitar(length,pluckPosition,trigger) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>length</code>: the length of the string in meters</li>
+<li><code>pluckPosition</code>: pluck position (0-1) (1 is on the bridge)</li>
+<li><code>gain</code>: gain of the excitation (0-1)</li>
+<li><code>trigger</code>: trigger signal (1 for on, 0 for off)</li>
+</ul>
+<hr />
+<h3 id="nylonguitar_ui_midi"><code>nylonGuitar_ui_MIDI</code></h3>
+<p>Ready-to-use MIDI-enabled nylon strings acoustic guitar physical model with built-in UI.</p>
+<h4 id="usage-299">Usage</h4>
+<pre><code>nylonGuitar_ui_MIDI : _</code></pre>
+<hr />
+<h2 id="bowed-string-instruments-elements">Bowed String Instruments Elements</h2>
+<p>Low and high level basic string instruments parts. Most of the elements in this section can be used in a bidirectional chain.</p>
+<h3 id="bowtable"><code>bowTable</code></h3>
+<p>Extremely basic bow table that can be used to implement a wide range of bow types for many different bowed string instruments (violin, cello, etc.)</p>
+<h4 id="usage-300">Usage</h4>
+<pre><code>excitation : bowTable(offeset,slope) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: an excitation signal</li>
+<li><code>offset</code>: table offset</li>
+<li><code>slope</code>: table slope</li>
+</ul>
+<hr />
+<h3 id="violinbowtable"><code>violinBowTable</code></h3>
+<p>Violin bow table based on <a href="#bowtable"><code>bowTable</code></a>.</p>
+<h4 id="usage-301">Usage</h4>
+<pre><code>bowVelocity : violinBowTable(bowPressure) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>bowVelocity</code>: velocity of the bow/excitation signal (0-1)</li>
+<li><code>bowPressure</code>: bow pressure on the string (0-1)</li>
+</ul>
+<hr />
+<h3 id="bowinteraction"><code>bowInteraction</code></h3>
+<p>Bidirectional block implementing the interaction of a bow in a <a href="#chain"><code>chain</code></a>.</p>
+<h4 id="usage-302">Usage</h4>
+<pre><code>chain(... : stringSegment : bowInteraction(bowTable) : stringSegment : ...)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>bowTable</code>: the bow table</li>
+</ul>
+<hr />
+<h3 id="violinbow"><code>violinBow</code></h3>
+<p>Bidirectional block implementing a violin bow and its interaction with a string.</p>
+<h4 id="usage-303">Usage</h4>
+<pre><code>chain(... : stringSegment : violinBow(bowPressure,bowVelocity) : stringSegment : ...)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>bowVelocity</code>: velocity of the bow / excitation signal (0-1)</li>
+<li><code>bowPressure</code>: bow pressure on the string (0-1)</li>
+</ul>
+<hr />
+<h3 id="violinbowedstring"><code>violinBowedString</code></h3>
+<p>Violin bowed string bidirectional block with controllable bow position. Terminations are not implemented in this model.</p>
+<h4 id="usage-304">Usage</h4>
+<pre><code>chain(nuts : violinBowedString(stringLength,bowPressure,bowVelocity,bowPosition) : bridge)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>stringLength</code>: the length of the string in meters</li>
+<li><code>bowVelocity</code>: velocity of the bow / excitation signal (0-1)</li>
+<li><code>bowPressure</code>: bow pressure on the string (0-1)</li>
+<li><code>bowPosition</code>: the position of the bow on the string (0-1)</li>
+</ul>
+<hr />
+<h3 id="violinnuts"><code>violinNuts</code></h3>
+<p>Bidirectional block implementing simple violin nuts. This function is based on <a href="#bridgefilter"><code>bridgeFilter</code></a>.</p>
+<h4 id="usage-305">Usage</h4>
+<pre><code>chain(violinNuts : stringSegment : ...)</code></pre>
+<hr />
+<h3 id="violinbridge"><code>violinBridge</code></h3>
+<p>Bidirectional block implementing a simple violin bridge. This function is based on <a href="#bridgefilter"><code>bridgeFilter</code></a>.</p>
+<h4 id="usage-306">Usage</h4>
+<pre><code>chain(... : stringSegment : violinBridge</code></pre>
+<hr />
+<h3 id="violinbody"><code>violinBody</code></h3>
+<p>Bidirectional block implementing a simple violin body (just a simple resonant lowpass filter).</p>
+<h4 id="usage-307">Usage</h4>
+<pre><code>chain(... : stringSegment : violinBridge : violinBody)</code></pre>
+<hr />
+<h3 id="violinmodel"><code>violinModel</code></h3>
+<p>Ready-to-use simple violin physical model. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function. Pitch is changed by changing the length of the string (and not through a finger model).</p>
+<h4 id="usage-308">Usage</h4>
+<pre><code>violinModel(stringLength,bowPressure,bowVelocity,bridgeReflexion,
+bridgeAbsorption,bowPosition) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>stringLength</code>: the length of the string in meters</li>
+<li><code>bowVelocity</code>: velocity of the bow / excitation signal (0-1)</li>
+<li><code>bowPressure</code>: bow pressure on the string (0-1))</li>
+<li><code>bowPosition</code>: the position of the bow on the string (0-1)</li>
+</ul>
+<hr />
+<h3 id="violinmodel_ui"><code>violinModel_ui</code></h3>
+<p>Ready-to-use violin physical model with built-in UI.</p>
+<h4 id="usage-309">Usage</h4>
+<pre><code>violinModel_ui : _</code></pre>
+<hr />
+<h3 id="violin_ui_midi"><code>violin_ui_MIDI</code></h3>
+<p>Ready-to-use MIDI-enabled violin physical model with built-in UI.</p>
+<h4 id="usage-310">Usage</h4>
+<pre><code>violin_ui_MIDI : _</code></pre>
+<hr />
+<h2 id="wind-instrument-elements">Wind Instrument Elements</h2>
+<p>Low and high level basic wind instruments parts. Most of the elements in this section can be used in a bidirectional chain.</p>
+<h3 id="opentube"><code>openTube</code></h3>
+<p>A tube segment without terminations (same as <a href="#stringsegment"><code>stringSegment</code></a>).</p>
+<h4 id="usage-311">Usage</h4>
+<pre><code>chain(A : openTube(maxLength,length) : B)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>maxLength</code>: the maximum length of the tube in meters (should be static)</li>
+<li><code>length</code>: the length of the tube in meters</li>
+</ul>
+<hr />
+<h3 id="reedtable"><code>reedTable</code></h3>
+<p>Extremely basic reed table that can be used to implement a wide range of single reed types for many different instruments (saxophone, clarinet, etc.).</p>
+<h4 id="usage-312">Usage</h4>
+<pre><code>excitation : reedTable(offeset,slope) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: an excitation signal</li>
+<li><code>offset</code>: table offset</li>
+<li><code>slope</code>: table slope</li>
+</ul>
+<hr />
+<h3 id="flutejettable"><code>fluteJetTable</code></h3>
+<p>Extremely basic flute jet table.</p>
+<h4 id="usage-313">Usage</h4>
+<pre><code>excitation : fluteJetTable : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: an excitation signal</li>
+</ul>
+<hr />
+<h3 id="brasslipstable"><code>brassLipsTable</code></h3>
+<p>Simple brass lips/mouthpiece table. Since this implementation is very basic and that the lips and tube of the instrument are coupled to each other, the length of that tube must be provided here.</p>
+<h4 id="usage-314">Usage</h4>
+<pre><code>excitation : brassLipsTable(tubeLength,lipsTension) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: an excitation signal (can be DC)</li>
+<li><code>tubeLength</code>: length in meters of the tube connected to the mouthpiece</li>
+<li><code>lipsTension</code>: tension of the lips (0-1) (default: 0.5)</li>
+</ul>
+<hr />
+<h3 id="clarinetreed"><code>clarinetReed</code></h3>
+<p>Clarinet reed based on <a href="#reedtable"><code>reedTable</code></a> with controllable stiffness.</p>
+<h4 id="usage-315">Usage</h4>
+<pre><code>excitation : clarinetReed(stiffness) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: an excitation signal</li>
+<li><code>stiffness</code>: reed stiffness (0-1)</li>
+</ul>
+<hr />
+<h3 id="clarinetmouthpiece"><code>clarinetMouthPiece</code></h3>
+<p>Bidirectional block implementing a clarinet mouthpiece as well as the various interactions happening with traveling waves. This element is ready to be plugged to a tube...</p>
+<h4 id="usage-316">Usage</h4>
+<pre><code>chain(clarinetMouthPiece(reedStiffness,pressure) : tube : etc.)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>pressure</code>: the pressure of the air flow (DC) created by the virtual performer (0-1). This can also be any kind of signal that will directly injected in the mouthpiece (e.g., breath noise, etc.)</li>
+<li><code>reedStiffness</code>: reed stiffness (0-1)</li>
+</ul>
+<hr />
+<h3 id="brasslips"><code>brassLips</code></h3>
+<p>Bidirectional block implementing a brass mouthpiece as well as the various interactions happening with traveling waves. This element is ready to be plugged to a tube...</p>
+<h4 id="usage-317">Usage</h4>
+<pre><code>chain(brassLips(tubeLength,lipsTension,pressure) : tube : etc.)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>tubeLength</code>: length in meters of the tube connected to the mouthpiece</li>
+<li><code>lipsTension</code>: tension of the lips (0-1) (default: 0.5)</li>
+<li><code>pressure</code>: the pressure of the air flow (DC) created by the virtual performer (0-1). This can also be any kind of signal that will directly injected in the mouthpiece (e.g., breath noise, etc.)</li>
+</ul>
+<hr />
+<h3 id="fluteembouchure"><code>fluteEmbouchure</code></h3>
+<p>Bidirectional block implementing a flute embouchure as well as the various interactions happening with traveling waves. This element is ready to be plugged between tubes segments...</p>
+<h4 id="usage-318">Usage</h4>
+<pre><code>chain(... : tube : fluteEmbouchure(pressure) : tube : etc.)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>pressure</code>: the pressure of the air flow (DC) created by the virtual performer (0-1). This can also be any kind of signal that will directly injected in the mouthpiece (e.g., breath noise, etc.)</li>
+</ul>
+<hr />
+<h3 id="wbell"><code>wBell</code></h3>
+<p>Generic wind instrument bell bidirectional block that should be placed at the end of a <a href="#chain"><code>chain</code></a>.</p>
+<h4 id="usage-319">Usage</h4>
+<pre><code>chain(... : wBell(opening))</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>opening</code>: the &quot;opening&quot; of bell (0-1)</li>
+</ul>
+<hr />
+<h3 id="flutehead"><code>fluteHead</code></h3>
+<p>Simple flute head implementing waves reflexion.</p>
+<h4 id="usage-320">Usage</h4>
+<pre><code>chain(fluteHead : tube : ...)</code></pre>
+<hr />
+<h3 id="flutefoot"><code>fluteFoot</code></h3>
+<p>Simple flute foot implementing waves reflexion and dispersion.</p>
+<h4 id="usage-321">Usage</h4>
+<pre><code>chain(... : tube : fluteFoot)</code></pre>
+<hr />
+<h3 id="clarinetmodel"><code>clarinetModel</code></h3>
+<p>A simple clarinet physical model without tone holes (pitch is changed by changing the length of the tube of the instrument).</p>
+<h4 id="usage-322">Usage</h4>
+<pre><code>clarinetModel(length,pressure,reedStiffness,bellOpening) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>tubeLength</code>: the length of the tube in meters</li>
+<li><code>pressure</code>: the pressure of the air flow created by the virtual performer (0-1). This can also be any kind of signal that will directly injected in the mouthpiece (e.g., breath noise, etc.)</li>
+<li><code>reedStiffness</code>: reed stiffness (0-1)</li>
+<li><code>bellOpening</code>: the opening of bell (0-1)</li>
+</ul>
+<hr />
+<h3 id="clarinetmodel_ui"><code>clarinetModel_ui</code></h3>
+<p>Same as <a href="#clarinetModel"><code>clarinetModel</code></a> but with a built-in UI. This function doesn't implement a virtual &quot;blower&quot;, thus <code>pressure</code> remains an argument here.</p>
+<h4 id="usage-323">Usage</h4>
+<pre><code>clarinetModel_ui(pressure) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>pressure</code>: the pressure of the air flow created by the virtual performer (0-1). This can also be any kind of signal that will be directly injected in the mouthpiece (e.g., breath noise, etc.)</li>
+</ul>
+<hr />
+<h3 id="clarinet_ui"><code>clarinet_ui</code></h3>
+<p>Ready-to-use clarinet physical model with built-in UI based on <a href="#clarinetmodel"><code>clarinetModel</code></a>.</p>
+<h4 id="usage-324">Usage</h4>
+<pre><code>clarinet_ui : _</code></pre>
+<hr />
+<h3 id="clarinet_ui_midi"><code>clarinet_ui_MIDI</code></h3>
+<p>Ready-to-use MIDI compliant clarinet physical model with built-in UI.</p>
+<h4 id="usage-325">Usage</h4>
+<pre><code>clarinet_ui_MIDI : _</code></pre>
+<hr />
+<h3 id="brassmodel"><code>brassModel</code></h3>
+<p>A simple generic brass instrument physical model without pistons (pitch is changed by changing the length of the tube of the instrument). This model is kind of hard to control and might not sound very good if bad parameters are given to it...</p>
+<h4 id="usage-326">Usage</h4>
+<pre><code>brassModel(tubeLength,lipsTension,mute,pressure) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>tubeLength</code>: the length of the tube in meters</li>
+<li><code>lipsTension</code>: tension of the lips (0-1) (default: 0.5)</li>
+<li><code>mute</code>: mute opening at the end of the instrument (0-1) (default: 0.5)</li>
+<li><code>pressure</code>: the pressure of the air flow created by the virtual performer (0-1). This can also be any kind of signal that will directly injected in the mouthpiece (e.g., breath noise, etc.)</li>
+</ul>
+<hr />
+<h3 id="brassmodel_ui"><code>brassModel_ui</code></h3>
+<p>Same as <a href="#brassModel"><code>brassModel</code></a> but with a built-in UI. This function doesn't implement a virtual &quot;blower&quot;, thus <code>pressure</code> remains an argument here.</p>
+<h4 id="usage-327">Usage</h4>
+<pre><code>brassModel_ui(pressure) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>pressure</code>: the pressure of the air flow created by the virtual performer (0-1). This can also be any kind of signal that will be directly injected in the mouthpiece (e.g., breath noise, etc.)</li>
+</ul>
+<hr />
+<h3 id="brass_ui"><code>brass_ui</code></h3>
+<p>Ready-to-use brass instrument physical model with built-in UI based on <a href="#brassmodel"><code>brassModel</code></a>.</p>
+<h4 id="usage-328">Usage</h4>
+<pre><code>brass_ui : _</code></pre>
+<hr />
+<h3 id="brass_ui_midi"><code>brass_ui_MIDI</code></h3>
+<p>Ready-to-use MIDI-controllable brass instrument physical model with built-in UI.</p>
+<h4 id="usage-329">Usage</h4>
+<pre><code>brass_ui_MIDI : _</code></pre>
+<hr />
+<h3 id="flutemodel"><code>fluteModel</code></h3>
+<p>A simple generic brass instrument physical model without tone holes (pitch is changed by changing the length of the tube of the instrument).</p>
+<h4 id="usage-330">Usage</h4>
+<pre><code>fluteModel(tubeLength,lipsTension,mute,pressure) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>tubeLength</code>: the length of the tube in meters</li>
+<li><code>mouthPosition</code>: position of the mouth on the embouchure (0-1) (default: 0.5)</li>
+<li><code>pressure</code>: the pressure of the air flow created by the virtual performer (0-1). This can also be any kind of signal that will directly injected in the mouthpiece (e.g., breath noise, etc.)</li>
+</ul>
+<hr />
+<h3 id="flutemodel_ui"><code>fluteModel_ui</code></h3>
+<p>Same as <a href="#fluteModel"><code>fluteModel</code></a> but with a built-in UI. This function doesn't implement a virtual &quot;blower&quot;, thus <code>pressure</code> remains an argument here.</p>
+<h4 id="usage-331">Usage</h4>
+<pre><code>fluteModel_ui(pressure) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>pressure</code>: the pressure of the air flow created by the virtual performer (0-1). This can also be any kind of signal that will be directly injected in the mouthpiece (e.g., breath noise, etc.)</li>
+</ul>
+<hr />
+<h3 id="flute_ui"><code>flute_ui</code></h3>
+<p>Ready-to-use flute physical model with built-in UI based on <a href="#flutemodel"><code>fluteModel</code></a>.</p>
+<h4 id="usage-332">Usage</h4>
+<pre><code>flute_ui : _</code></pre>
+<hr />
+<h3 id="flute_ui_midi"><code>flute_ui_MIDI</code></h3>
+<p>Ready-to-use MIDI-controllable flute physical model with built-in UI.</p>
+<h4 id="usage-333">Usage</h4>
+<pre><code>brass_ui_MIDI : _</code></pre>
+<hr />
+<h2 id="exciters">Exciters</h2>
+<p>Various kind of excitation signal generators.</p>
+<h3 id="impulseexcitation"><code>impulseExcitation</code></h3>
+<p>Creates an impulse excitation of one sample.</p>
+<h4 id="usage-334">Usage</h4>
+<pre><code>gate = button(&#39;gate&#39;);
+impulseExcitation(gate) : chain;</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>gate</code>: a gate button</li>
+</ul>
+<hr />
+<h3 id="pluckstring"><code>pluckString</code></h3>
+<p>Creates a plucking excitation signal.</p>
+<h4 id="usage-335">Usage</h4>
+<pre><code>trigger = button(&#39;gate&#39;);
+pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>stringLength</code>: length of the string to pluck</li>
+<li><code>cutoff</code>: cutoff ratio (1 for default)</li>
+<li><code>maxFreq</code>: max frequency ratio (1 for default)</li>
+<li><code>sharpness</code>: sharpness of the attack and release (1 for default)</li>
+<li><code>gain</code>: gain of the excitation (0-1)</li>
+<li><code>trigger</code>: trigger signal (1 for on, 0 for off)</li>
+</ul>
+<hr />
+<h3 id="blower"><code>blower</code></h3>
+<p>A virtual blower creating a DC signal with some breath noise in it.</p>
+<h4 id="usage-336">Usage</h4>
+<pre><code>blower(pressure,breathGain,breathCutoff) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>pressure</code>: pressure (0-1)</li>
+<li><code>breathGain</code>: breath noise gain (0-1) (recommended: 0.005)</li>
+<li><code>breathCutoff</code>: breath cuttoff frequency (Hz) (recommended: 2000)</li>
+</ul>
+<hr />
+<h3 id="blower_ui"><code>blower_ui</code></h3>
+<p>Same as <a href="#blower"><code>blower</code></a> but with a built-in UI.</p>
+<h4 id="usage-337">Usage</h4>
+<pre><code>blower : somethingToBeBlown</code></pre>
+<hr />
+<h2 id="modal-percussions">Modal Percussions</h2>
+<p>High and low level functions for modal synthesis of percussion instruments.</p>
+<h3 id="marimbabarmodel"><code>marimbaBarModel</code></h3>
+<p>Generic marimba tone bar modal model.</p>
+<p>This model was generated using <code>mesh2faust</code> from a 3D CAD model of a marimba tone bar (<code>libraries/modalmodels/marimbaBar</code>). The corresponding CAD model is that of a C2 tone bar (original fundamental frequency: ~65Hz). While <code>marimbaBarModel</code> allows to translate the harmonic content of the generated sound by providing a frequency (<code>freq</code>), mode transposition has limits and the model will sound less and less like a marimba tone bar as it diverges from C2. To make an accurate model of a marimba, we'd want to have an independent model for each bar...</p>
+<p>This model contains 5 excitation positions going linearly from the center bottom to the center top of the bar. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
+<h4 id="usage-338">Usage</h4>
+<pre><code>marimbaBarModel(freq,exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: fundamental frequency of the bar</li>
+<li><code>exPos</code>: excitation position (0-4)</li>
+<li><code>t60</code>: T60 in seconds (recommended value: 0.1)</li>
+<li><code>t60DecayRatio</code>: T60 decay ratio (recommended value: 1)</li>
+<li><code>t60DecaySlope</code>: T60 decay slope (recommended value: 5)</li>
+</ul>
+<hr />
+<h3 id="marimbarestube"><code>marimbaResTube</code></h3>
+<p>Simple marimba resonance tube.</p>
+<h4 id="usage-339">Usage</h4>
+<pre><code>marimbaResTube(tubeLength,excitation)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>tubeLength</code>: the length of the tube in meters</li>
+<li><code>excitation</code>: the excitation signal (audio in)</li>
+</ul>
+<hr />
+<h3 id="marimbamodel"><code>marimbaModel</code></h3>
+<p>Simple marimba physical model implementing a single tone bar connected to tube. This model is scalable and can be adapted to any size of bar/tube (see <a href="#marimbabarmodel"><code>marimbaBarModel</code></a> to know more about the limitations of this type of system).</p>
+<h4 id="usage-340">Usage</h4>
+<pre><code>excitation : marimbaModel(freq,exPos) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: the frequency of the bar/tube couple</li>
+<li><code>exPos</code>: excitation position (0-4)</li>
+</ul>
+<hr />
+<h3 id="marimba"><code>marimba</code></h3>
+<p>Simple marimba physical model implementing a single tone bar connected to tube. This model is scalable and can be adapted to any size of bar/tube (see <a href="#marimbabarmodel"><code>marimbaBarModel</code></a> to know more about the limitations of this type of system).</p>
+<p>This function also implement a virtual exciter to drive the model.</p>
+<h4 id="usage-341">Usage</h4>
+<pre><code>marimba(freq,strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: the frequency of the bar/tube couple</li>
+<li><code>strikePosition</code>: strike position (0-4)</li>
+<li><code>strikeCutoff</code>: cuttoff frequency of the strike genarator (recommended: ~7000Hz)</li>
+<li><code>strikeSharpness</code>: shaarpness of the strike (recommened: ~0.25)</li>
+<li><code>gain</code>: gain of the strike (0-1)</li>
+<li><code>trigger</code> signal (0: off, 1: on)</li>
+</ul>
+<hr />
+<h3 id="marimba_ui_midi"><code>marimba_ui_MIDI</code></h3>
+<p>Simple MIDI controllable marimba physical model with built-in UI implementing a single tone bar connected to tube. This model is scalable and can be adapted to any size of bar/tube (see <a href="#marimbabarmodel"><code>marimbaBarModel</code></a> to know more about the limitations of this type of system).</p>
+<h4 id="usage-342">Usage</h4>
+<pre><code>marimba_ui_MIDI : _</code></pre>
+<hr />
+<h2 id="vocal-synthesis">Vocal Synthesis</h2>
+<p>Vocal synthesizer functions (source/filter, fof, etc.).</p>
+<h3 id="formantfilter"><code>formantFilter</code></h3>
+<p>Formant filter based on a bank of resonant bandpass. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Voice type can be selected but must correspond to the frequency range of the provided source to be realistic.</p>
+<p>The formant data used here come from the CSOUND manual <a href="http://www.csounds.com/manual/html/" class="uri">http://www.csounds.com/manual/html/</a>.</p>
+<h4 id="usage-343">Usage</h4>
+<pre><code>_ : formantFilter(voiceType,vowel) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
+<li><code>vowel</code>: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)</li>
+</ul>
+<hr />
+<h3 id="sfformantmodel"><code>SFFormantModel</code></h3>
+<p>Simple formant/vocal synthesizer based on a source/filter model. The source is just a sawtooth wave and the &quot;filter&quot; is a bank of resonant bandpass. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Voice type can be selected but must correspond to the frequency range of the synthesized voice to be realistic.</p>
+<p>The formant data used here come from the CSOUND manual <a href="http://www.csounds.com/manual/html/" class="uri">http://www.csounds.com/manual/html/</a>.</p>
+<h4 id="usage-344">Usage</h4>
+<pre><code>SFFormantModel(voiceType,vowel,exType,freq,gain) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
+<li><code>vowel</code>: the vowel (0: a, 1: e, 2: i, 3: o, 4: u</li>
+<li><code>exType</code>: voice vs. fricative sound ratio (0-1 where 1 is 100% fricative)</li>
+</ul>
+<hr />
+<h3 id="sfformantmodel_ui"><code>SFFormantModel_ui</code></h3>
+<p>Ready-to-use source-filter vocal synthesizer with built-in user interface.</p>
+<h4 id="usage-345">Usage</h4>
+<pre><code>SFFormantModel_ui : _</code></pre>
+<hr />
+<h3 id="sfformantmodel_ui_midi"><code>SFFormantModel_ui_MIDI</code></h3>
+<p>Ready-to-use MIDI-controllable source-filter vocal synthesizer.</p>
+<h4 id="usage-346">Usage</h4>
+<pre><code>SFFormantModel_ui_MIDI : _</code></pre>
+<hr />
+<h2 id="misc-functions">Misc Functions</h2>
+<p>Various miscellaneous functions.</p>
+<h3 id="allpassnl"><code>allpassNL</code></h3>
+<p>Bidirectional block adding nonlinearities in both directions in a chain. Nonlinearities are created by modulating the coefficients of a passive allpass filter by the signal it is processing.</p>
+<h4 id="usage-347">Usage</h4>
+<pre><code>chain(... : allpassNL(nonlinearity) : ...)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>nonlinearity</code>: amount of nonlinearity to be added (0-1)</li>
+</ul>
 <hr />
 <h1 id="reverbs.lib">reverbs.lib</h1>
 <p>A library of reverb effects. Its official prefix is <code>re</code>.</p>
@@ -4285,19 +5171,19 @@ with{
 <p>This artificial reverberator take a mono signal and output stereo (<code>satrev</code>) and quad (<code>jcrev</code>). They were implemented by John Chowning in the MUS10 computer-music language (descended from Music V by Max Mathews). They are Schroeder Reverberators, well tuned for their size. Nowadays, the more expensive freeverb is more commonly used (see the Faust examples directory).</p>
 <p><code>jcrev</code> reverb below was made from a listing of &quot;RV&quot;, dated April 14, 1972, which was recovered from an old SAIL DART backup tape. John Chowning thinks this might be the one that became the well known and often copied JCREV.</p>
 <p><code>jcrev</code> is a standard Faust function</p>
-<h4 id="usage-252">Usage</h4>
+<h4 id="usage-348">Usage</h4>
 <pre><code>_ : jcrev : _,_,_,_</code></pre>
 <hr />
 <h3 id="satrev"><code>satrev</code></h3>
 <p>This artificial reverberator take a mono signal and output stereo (<code>satrev</code>) and quad (<code>jcrev</code>). They were implemented by John Chowning in the MUS10 computer-music language (descended from Music V by Max Mathews). They are Schroeder Reverberators, well tuned for their size. Nowadays, the more expensive freeverb is more commonly used (see the Faust examples directory).</p>
-<p><code>satrev</code> was made from a listing of &quot;SATREV&quot;, dated May 15, 1971, which was recovered from an old SAIL DART backup tape. John Chowning thinks this might be the one used on his often-heard brass canon sound examples, one of which can be found at <a href="https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav">https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav</a></p>
-<h4 id="usage-253">Usage</h4>
+<p><code>satrev</code> was made from a listing of &quot;SATREV&quot;, dated May 15, 1971, which was recovered from an old SAIL DART backup tape. John Chowning thinks this might be the one used on his often-heard brass canon sound examples, one of which can be found at <a href="https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav" class="uri">https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav</a></p>
+<h4 id="usage-349">Usage</h4>
 <pre><code>_ : satrev : _,_</code></pre>
 <hr />
 <h2 id="feedback-delay-network-fdn-reverberators">Feedback Delay Network (FDN) Reverberators</h2>
 <h3 id="fdnrev0"><code>fdnrev0</code></h3>
 <p>Pure Feedback Delay Network Reverberator (generalized for easy scaling). <code>fdnrev0</code> is a standard Faust function.</p>
-<h4 id="usage-254">Usage</h4>
+<h4 id="usage-350">Usage</h4>
 <pre><code>&lt;1,2,4,...,N signals&gt; &lt;:
 fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl) :&gt;
 &lt;1,2,4,...,N signals&gt;</code></pre>
@@ -4313,16 +5199,16 @@ fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl) :&gt;
 <li><code>nonl</code>: nonlinearity (0 to 0.999..., 0 being linear)</li>
 </ul>
 <h4 id="reference-49">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberation.html">https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberation.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberation.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberation.html</a></p>
 <hr />
 <h3 id="zita_rev_fdn"><code>zita_rev_fdn</code></h3>
 <p>Internal 8x8 late-reverberation FDN used in the FOSS Linux reverb zita-rev1 by Fons Adriaensen <script type="text/javascript">
 <!--
 h='&#108;&#x69;&#110;&#x75;&#120;&#x61;&#x75;&#100;&#x69;&#x6f;&#46;&#x6f;&#114;&#x67;';a='&#64;';n='&#102;&#x6f;&#110;&#x73;';e=n+a+h;
-document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\/'+'a'+'>');
 // -->
 </script><noscript>&#102;&#x6f;&#110;&#x73;&#32;&#x61;&#116;&#32;&#108;&#x69;&#110;&#x75;&#120;&#x61;&#x75;&#100;&#x69;&#x6f;&#32;&#100;&#x6f;&#116;&#32;&#x6f;&#114;&#x67;</noscript>. This is an FDN reverb with allpass comb filters in each feedback delay in addition to the damping filters.</p>
-<h4 id="usage-255">Usage</h4>
+<h4 id="usage-351">Usage</h4>
 <pre><code>bus(8) : zita_rev_fdn(f1,f2,t60dc,t60m,fsmax) : bus(8)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4334,20 +5220,20 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
 </ul>
 <h4 id="reference-50">Reference</h4>
 <ul>
-<li><a href="http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html">http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/Zita_Rev1.html">https://ccrma.stanford.edu/~jos/pasp/Zita_Rev1.html</a></li>
+<li><a href="http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html" class="uri">http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/Zita_Rev1.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Zita_Rev1.html</a></li>
 </ul>
 <hr />
 <h3 id="zita_rev1_stereo"><code>zita_rev1_stereo</code></h3>
 <p>Extend <code>zita_rev_fdn</code> to include <code>zita_rev1</code> input/output mapping in stereo mode. <code>zita_rev1_stereo</code> is a standard Faust function.</p>
-<h4 id="usage-256">Usage</h4>
+<h4 id="usage-352">Usage</h4>
 <pre><code>_,_ : zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax) : _,_</code></pre>
 <p>Where:</p>
 <p><code>rdel</code> = delay (in ms) before reverberation begins (e.g., 0 to ~100 ms) (remaining args and refs as for <code>zita_rev_fdn</code> above)</p>
 <hr />
 <h3 id="zita_rev1_ambi"><code>zita_rev1_ambi</code></h3>
 <p>Extend zita_rev_fdn to include zita_rev1 input/output mapping in &quot;ambisonics mode&quot;, as provided in the Linux C++ version.</p>
-<h4 id="usage-257">Usage</h4>
+<h4 id="usage-353">Usage</h4>
 <pre><code>_,_ : zita_rev1_ambi(rgxyz,rdel,f1,f2,t60dc,t60m,fsmax) : _,_,_,_</code></pre>
 <p>Where:</p>
 <p><code>rgxyz</code> = relative gain of lanes 1,4,2 to lane 0 in output (e.g., -9 to 9) (remaining args and references as for zita_rev1_stereo above)</p>
@@ -4356,7 +5242,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
 <h3 id="mono_freeverb"><code>mono_freeverb</code></h3>
 <p>A simple Schroeder reverberator primarily developed by &quot;Jezar at Dreampoint&quot; that is extensively used in the free-software world. It uses four Schroeder allpasses in series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each audio channel, and is said to be especially well tuned.</p>
 <p><code>mono_freeverb</code> is a standard Faust function.</p>
-<h4 id="usage-258">Usage</h4>
+<h4 id="usage-354">Usage</h4>
 <pre><code>_ : mono_freeverb(fb1, fb2, damp, spread) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -4370,7 +5256,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
 <hr />
 <h3 id="stereo_freeverb"><code>stereo_freeverb</code></h3>
 <p>A simple Schroeder reverberator primarily developed by &quot;Jezar at Dreampoint&quot; that is extensively used in the free-software world. It uses four Schroeder allpasses in series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each audio channel, and is said to be especially well tuned.</p>
-<h4 id="usage-259">Usage</h4>
+<h4 id="usage-355">Usage</h4>
 <pre><code>_,_ : stereo_freeverb(fb1, fb2, damp, spread) : _,_;</code></pre>
 <p>Where:</p>
 <ul>
@@ -4385,7 +5271,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
 <h2 id="functions-reference-5">Functions Reference</h2>
 <h3 id="cross"><code>cross</code></h3>
 <p>Cross n signals: <code>(x1,x2,..,xn) -&gt; (xn,..,x2,x1)</code>. <code>cross</code> is a standard Faust function.</p>
-<h4 id="usage-260">Usage</h4>
+<h4 id="usage-356">Usage</h4>
 <pre><code>cross(n)
 _,_,_ : cross(3) : _,_,_</code></pre>
 <p>Where:</p>
@@ -4398,7 +5284,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="crossnn"><code>crossnn</code></h3>
 <p>Cross two <code>bus(n)</code>s.</p>
-<h4 id="usage-261">Usage</h4>
+<h4 id="usage-357">Usage</h4>
 <pre><code>_,_,... : crossmm(n) : _,_,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -4407,7 +5293,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="crossn1"><code>crossn1</code></h3>
 <p>Cross bus(n) and bus(1).</p>
-<h4 id="usage-262">Usage</h4>
+<h4 id="usage-358">Usage</h4>
 <pre><code>_,_,... : crossn1(n) : _,_,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -4416,7 +5302,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="interleave"><code>interleave</code></h3>
 <p>Interleave row<em>col cables from column order to row order. input : x(0), x(1), x(2) ..., x(row</em>col-1) output: x(0+0<em>row), x(0+1</em>row), x(0+2<em>row), ..., x(1+0</em>row), x(1+1<em>row), x(1+2</em>row), ...</p>
-<h4 id="usage-263">Usage</h4>
+<h4 id="usage-359">Usage</h4>
 <pre><code>_,_,_,_,_,_ : interleave(row,column) : _,_,_,_,_,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -4426,7 +5312,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="butterfly"><code>butterfly</code></h3>
 <p>Addition (first half) then substraction (second half) of interleaved signals.</p>
-<h4 id="usage-264">Usage</h4>
+<h4 id="usage-360">Usage</h4>
 <pre><code>_,_,_,_ : butterfly(n) : _,_,_,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -4435,7 +5321,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="hadamard"><code>hadamard</code></h3>
 <p>Hadamard matrix function of size <code>n = 2^k</code>.</p>
-<h4 id="usage-265">Usage</h4>
+<h4 id="usage-361">Usage</h4>
 <pre><code>_,_,_,_ : hadamard(n) : _,_,_,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -4446,7 +5332,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="recursivize"><code>recursivize</code></h3>
 <p>Create a recursion from two arbitrary processors p and q.</p>
-<h4 id="usage-266">Usage</h4>
+<h4 id="usage-362">Usage</h4>
 <pre><code>_,_ : recursivize(p,q) : _,_
 </code></pre>
 <p>Where:</p>
@@ -4460,7 +5346,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <h2 id="functions-reference-6">Functions Reference</h2>
 <h3 id="bus"><code>bus</code></h3>
 <p>n parallel cables. <code>bus</code> is a standard Faust function.</p>
-<h4 id="usage-267">Usage</h4>
+<h4 id="usage-363">Usage</h4>
 <pre><code>bus(n)
 bus(4) : _,_,_,_</code></pre>
 <p>Where:</p>
@@ -4470,7 +5356,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="block"><code>block</code></h3>
 <p>Block - terminate n signals. <code>block</code> is a standard Faust function.</p>
-<h4 id="usage-268">Usage</h4>
+<h4 id="usage-364">Usage</h4>
 <pre><code>_,_,... : block(n) : _,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -4479,7 +5365,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="interpolate"><code>interpolate</code></h3>
 <p>Linear interpolation between two signals.</p>
-<h4 id="usage-269">Usage</h4>
+<h4 id="usage-365">Usage</h4>
 <pre><code>_,_ : interpolate(i) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4488,12 +5374,12 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="smoo"><code>smoo</code></h3>
 <p>Smoothing function based on <code>smooth</code> ideal to smooth UI signals (sliders, etc.) down. <code>smoo</code> is a standard Faust function.</p>
-<h4 id="usage-270">Usage</h4>
+<h4 id="usage-366">Usage</h4>
 <pre><code>hslider(...) : smoo;</code></pre>
 <hr />
 <h3 id="polysmooth"><code>polySmooth</code></h3>
 <p>A smoothing function based on <code>smooth</code> that doesn't smooth when a trigger signal is given. This is very useful when making polyphonic synthesizer to make sure that the value of the parameter is the right one when the note is started.</p>
-<h4 id="usage-271">Usage</h4>
+<h4 id="usage-367">Usage</h4>
 <pre><code>hslider(...) : polysmooth(g,s,d) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4504,7 +5390,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="smoothandh"><code>smoothAndH</code></h3>
 <p>A smoothing function based on <code>smooth</code> that holds its output signal when a trigger is sent to it. This feature is convenient when implementing polyphonic instruments to prevent some smoothed parameter to change when a note-off event is sent.</p>
-<h4 id="usage-272">Usage</h4>
+<h4 id="usage-368">Usage</h4>
 <pre><code>hslider(...) : smoothAndH(g,s) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4514,12 +5400,12 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="bsmooth"><code>bsmooth</code></h3>
 <p>Block smooth linear interpolation during a block of samples.</p>
-<h4 id="usage-273">Usage</h4>
+<h4 id="usage-369">Usage</h4>
 <pre><code>hslider(...) : bsmooth : _</code></pre>
 <hr />
 <h3 id="dot"><code>dot</code></h3>
 <p>Dot product for two vectors of size n.</p>
-<h4 id="usage-274">Usage</h4>
+<h4 id="usage-370">Usage</h4>
 <pre><code>_,_,_,_,_,_ : dot(n) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4528,7 +5414,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="smooth"><code>smooth</code></h3>
 <p>Exponential smoothing by a unity-dc-gain one-pole lowpass. <code>smooth</code> is a standard Faust function.</p>
-<h4 id="usage-275">Usage:</h4>
+<h4 id="usage-371">Usage:</h4>
 <pre><code>_ : smooth(tau2pole(tau)) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4540,18 +5426,18 @@ bus(4) : _,_,_,_</code></pre>
 <li><code>s</code>: smoothness between 0 and 1. s=0 for no smoothing, s=0.999 is &quot;very smooth&quot;, s&gt;1 is unstable, and s=1 yields the zero signal for all inputs. The exponential time-constant is approximately 1/(1-s) samples, when s is close to (but less than) 1.</li>
 </ul>
 <h4 id="reference-51">Reference:</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html">https://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html" class="uri">https://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html</a></p>
 <hr />
 <h3 id="lag_ud"><code>lag_ud</code></h3>
 <p>Lag filter with separate times for up and down.</p>
-<h4 id="usage-276">Usage</h4>
+<h4 id="usage-372">Usage</h4>
 <pre><code>_ : lag_ud(up, dn, signal) : _;</code></pre>
 <hr />
 <h1 id="spats.lib">spats.lib</h1>
 <p>This library contains a collection of tools for sound spatialization. Its official prefix is <code>sp</code>.</p>
 <h3 id="panner"><code>panner</code></h3>
 <p>A simple linear stereo panner. <code>panner</code> is a standard Faust function.</p>
-<h4 id="usage-277">Usage</h4>
+<h4 id="usage-373">Usage</h4>
 <pre><code>_ : panner(g) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -4560,7 +5446,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="spat"><code>spat</code></h3>
 <p>GMEM SPAT: n-outputs spatializer. <code>spat</code> is a standard Faust function.</p>
-<h4 id="usage-278">Usage</h4>
+<h4 id="usage-374">Usage</h4>
 <pre><code>_ : spat(n,r,d) : _,_,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -4571,7 +5457,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="stereoize"><code>stereoize</code></h3>
 <p>Transform an arbitrary processor <code>p</code> into a stereo processor with 2 inputs and 2 outputs.</p>
-<h4 id="usage-279">Usage</h4>
+<h4 id="usage-375">Usage</h4>
 <pre><code>_,_ : stereoize(p) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -4582,7 +5468,7 @@ bus(4) : _,_,_,_</code></pre>
 <p>This library contains a collection of envelope generators. Its official prefix is <code>sy</code>.</p>
 <h3 id="popfilterperc"><code>popFilterPerc</code></h3>
 <p>A simple percussion instrument based on a &quot;popped&quot; resonant bandpass filter. <code>popFilterPerc</code> is a standard Faust function.</p>
-<h4 id="usage-280">Usage</h4>
+<h4 id="usage-376">Usage</h4>
 <pre><code>popFilterDrum(freq,q,gate) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -4593,7 +5479,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="dubdub"><code>dubDub</code></h3>
 <p>A simple synth based on a sawtooth wave filtered by a resonant lowpass. <code>dubDub</code> is a standard Faust function.</p>
-<h4 id="usage-281">Usage</h4>
+<h4 id="usage-377">Usage</h4>
 <pre><code>dubDub(freq,ctFreq,q,gate) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -4605,7 +5491,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="sawtrombone"><code>sawTrombone</code></h3>
 <p>A simple trombone based on a lowpassed sawtooth wave. <code>sawTrombone</code> is a standard Faust function.</p>
-<h4 id="usage-282">Usage</h4>
+<h4 id="usage-378">Usage</h4>
 <pre><code>sawTrombone(att,freq,gain,gate) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4617,7 +5503,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="combstring"><code>combString</code></h3>
 <p>Simplest string physical model ever based on a comb filter. <code>combString</code> is a standard Faust function.</p>
-<h4 id="usage-283">Usage</h4>
+<h4 id="usage-379">Usage</h4>
 <pre><code>combString(freq,res,gate) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -4628,7 +5514,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="additivedrum"><code>additiveDrum</code></h3>
 <p>A simple drum using additive synthesis. <code>additiveDrum</code> is a standard Faust function.</p>
-<h4 id="usage-284">Usage</h4>
+<h4 id="usage-380">Usage</h4>
 <pre><code>additiveDrum(freq,freqRatio,gain,harmDec,att,rel,gate) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4643,7 +5529,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="fm"><code>fm</code></h3>
 <p>An FM synthesizer with an arbitrary number of modulators connected as a sequence. <code>fm</code> is a standard Faust function.</p>
-<h4 id="usage-285">Usage</h4>
+<h4 id="usage-381">Usage</h4>
 <pre><code>freqs = (300,400,...);
 indices = (20,...);
 fm(freqs,indices) : _</code></pre>
@@ -4658,7 +5544,7 @@ fm(freqs,indices) : _</code></pre>
 <h2 id="functions-reference-7">Functions Reference</h2>
 <h3 id="moog_vcf"><code>moog_vcf</code></h3>
 <p>Moog &quot;Voltage Controlled Filter&quot; (VCF) in &quot;analog&quot; form. Moog VCF implemented using the same logical block diagram as the classic analog circuit. As such, it neglects the one-sample delay associated with the feedback path around the four one-poles. This extra delay alters the response, especially at high frequencies (see reference [1] for details). See <code>moog_vcf_2b</code> below for a more accurate implementation.</p>
-<h4 id="usage-286">Usage</h4>
+<h4 id="usage-382">Usage</h4>
 <pre><code>moog_vcf(res,fr)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4667,13 +5553,13 @@ fm(freqs,indices) : _</code></pre>
 </ul>
 <h4 id="references-22">References</h4>
 <ul>
-<li><a href="https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf">https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf</a></li>
-<li><a href="https://ccrma.stanford.edu/~jos/pasp/vegf.html">https://ccrma.stanford.edu/~jos/pasp/vegf.html</a></li>
+<li><a href="https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf" class="uri">https://ccrma.stanford.edu/~stilti/papers/moogvcf.pdf</a></li>
+<li><a href="https://ccrma.stanford.edu/~jos/pasp/vegf.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/vegf.html</a></li>
 </ul>
 <hr />
 <h3 id="moog_vcf_2bn"><code>moog_vcf_2b[n]</code></h3>
 <p>Moog &quot;Voltage Controlled Filter&quot; (VCF) as two biquads. Implementation of the ideal Moog VCF transfer function factored into second-order sections. As a result, it is more accurate than <code>moog_vcf</code> above, but its coefficient formulas are more complex when one or both parameters are varied. Here, res is the fourth root of that in <code>moog_vcf</code>, so, as the sampling rate approaches infinity, <code>moog_vcf(res,fr)</code> becomes equivalent to <code>moog_vcf_2b[n](res^4,fr)</code> (when res and fr are constant). <code>moog_vcf_2b</code> uses two direct-form biquads (<code>tf2</code>). <code>moog_vcf_2bn</code> uses two protected normalized-ladder biquads (<code>tf2np</code>).</p>
-<h4 id="usage-287">Usage</h4>
+<h4 id="usage-383">Usage</h4>
 <pre><code>moog_vcf_2b(res,fr)
 moog_vcf_2bn(res,fr)</code></pre>
 <p>Where:</p>
@@ -4684,18 +5570,18 @@ moog_vcf_2bn(res,fr)</code></pre>
 <hr />
 <h3 id="wah4"><code>wah4</code></h3>
 <p>Wah effect, 4th order. <code>wah4</code> is a standard Faust function.</p>
-<h4 id="usage-288">Usage</h4>
+<h4 id="usage-384">Usage</h4>
 <pre><code>_ : wah4(fr) : _</code></pre>
 <p>Where:</p>
 <ul>
 <li><code>fr</code>: resonance frequency in Hz</li>
 </ul>
 <h4 id="reference-52">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/vegf.html">https://ccrma.stanford.edu/~jos/pasp/vegf.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/vegf.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/vegf.html</a></p>
 <hr />
 <h3 id="autowah"><code>autowah</code></h3>
 <p>Auto-wah effect. <code>autowah</code> is a standard Faust function.</p>
-<h4 id="usage-289">Usage</h4>
+<h4 id="usage-385">Usage</h4>
 <pre><code>_ : autowah(level) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -4704,18 +5590,18 @@ moog_vcf_2bn(res,fr)</code></pre>
 <hr />
 <h3 id="crybaby"><code>crybaby</code></h3>
 <p>Digitized CryBaby wah pedal. <code>crybaby</code> is a standard Faust function.</p>
-<h4 id="usage-290">Usage</h4>
+<h4 id="usage-386">Usage</h4>
 <pre><code>_ : crybaby(wah) : _</code></pre>
 <p>Where:</p>
 <ul>
 <li><code>wah</code>: &quot;pedal angle&quot; from 0 to 1</li>
 </ul>
 <h4 id="reference-53">Reference</h4>
-<p><a href="https://ccrma.stanford.edu/~jos/pasp/vegf.html">https://ccrma.stanford.edu/~jos/pasp/vegf.html</a></p>
+<p><a href="https://ccrma.stanford.edu/~jos/pasp/vegf.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/vegf.html</a></p>
 <hr />
 <h3 id="vocoder"><code>vocoder</code></h3>
 <p>A very simple vocoder where the spectrum of the modulation signal is analyzed using a filter bank. <code>vocoder</code> is a standard Faust function.</p>
-<h4 id="usage-291">Usage</h4>
+<h4 id="usage-387">Usage</h4>
 <pre><code>_ : vocoder(nBands,att,rel,BWRatio,source,excitation) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -4734,7 +5620,7 @@ moog_vcf_2bn(res,fr)</code></pre>
 <p>Any person wishing to distribute modifications to the Software is asked to send the modifications to the original developer so that they can be incorporated into the canonical version. For software copyrighted by Julius O. Smith III, email your modifications to <script type="text/javascript">
 <!--
 h='&#x63;&#x63;&#114;&#x6d;&#x61;&#46;&#x73;&#116;&#x61;&#110;&#102;&#x6f;&#114;&#100;&#46;&#x65;&#100;&#x75;';a='&#64;';n='&#106;&#x6f;&#x73;';e=n+a+h;
-document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+e+'<\/'+'a'+'>');
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\/'+'a'+'>');
 // -->
 </script><noscript>&#106;&#x6f;&#x73;&#32;&#x61;&#116;&#32;&#x63;&#x63;&#114;&#x6d;&#x61;&#32;&#100;&#x6f;&#116;&#32;&#x73;&#116;&#x61;&#110;&#102;&#x6f;&#114;&#100;&#32;&#100;&#x6f;&#116;&#32;&#x65;&#100;&#x75;</noscript>. This is, however, not a binding provision of this license.</p>
 <p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>

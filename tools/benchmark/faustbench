@@ -6,14 +6,31 @@
 FILES=""
 IOS="0"
 OPTIONS=""
+LIBS=""
+
+# Set default value for CXX
+if [ "$CXX" = "" ]; then
+    CXX=g++
+fi
+
+# Set default value for CXXFLAGS
+if [ "$CXXFLAGS" = "" ]; then
+    CXXFLAGS=-Ofast
+fi
+
+if [[ $(uname) == Darwin ]]; then
+    LIBS=-lc++
+fi
 
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faustbench [-ios] <file.dsp>"
+        echo "faustbench [-ios] [Additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-ios' to generate an iOS project"
+        echo "Use 'export CXX=/path/to/compiler' before running faustbench to change the C++ compiler"
+        echo "Use 'export CXXFLAGS=options' before running faustbench to change the C++ compiler options"
         exit
     fi
 
@@ -30,6 +47,8 @@ do
 shift
 
 done
+
+echo "Selected compiler is $CXX with CXXFLAGS = $CXXFLAGS"
 
 for p in $FILES; do
 
@@ -95,7 +114,7 @@ for p in $FILES; do
 
     cd "$TMP"
 
-    c++ -Ofast -fbracket-depth=512 -ffast-math $FAUSTLIB/faustbench.cpp -o $dspName
+    $CXX $CXXFLAGS -fbracket-depth=512 -ffast-math $FAUSTLIB/faustbench.cpp $LIBS -o $dspName
 
     # run bench
    ./$dspName
