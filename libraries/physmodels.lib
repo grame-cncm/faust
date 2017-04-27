@@ -5,6 +5,30 @@
 // instruments. It contains dozens of functions implementing low and high level
 // elements going from a simple waveguide to fully operational models with
 // built-in UI, etc.
+//
+// It is organized as follows:
+//
+// * [Global Variables](#global-variables): Useful pre-defined variables for
+// physical modeling (e.g., speed of sound, etc.).
+// * [Conversion Tools](#conversion-tools-1): Conversion functions specific
+// to physical modeling (e.g., length to frequency, etc.).
+// * [Bidirectional Utilities](#bidirectional-utilities): Functions to create
+// bidirectional block diagrams for physical modeling.
+// * [Basic Elements](#basic-elements-1): waveguides, specific types of filters, etc.
+// * [String Instruments](#string-instruments): various types of strings
+// (e.g., steel, nylon, etc.), bridges, guitars, etc.
+// * [Bowed String Instruments](#bowed-string-instruments): parts and models
+// specific to bowed string instruments (e.g., bows, bridges, violins, etc.).
+// * [Wind Instrument](#wind-instruments): parts and models specific to wind
+// string instruments (e.g., reeds, mouthpieces, flutes, clarinets, etc.).
+// * [Exciters](#exciters): pluck generators, "blowers", etc.
+// * [Modal Percussions](#modal-percussions): percussion instruments based on
+// modal models.
+// * [Vocal Synthesis](#vocal-synthesis): functions for various vocal synthesis
+// techniques (e.g., fof, source/filter, etc.) and vocal synthesizers.
+// * [Misc Functions](#misc-functions): any other functions that don't fit in
+// the previous category (e.g., nonlinear filters, etc.)
+//
 // This library is part of the Faust Physical Modeling ToolKit.
 // More information on how to use this library can be found on this page:
 // <https://ccrma.stanford.edu/~rmichon/pmFaust>. Tutorials on how to make

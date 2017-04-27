@@ -4337,7 +4337,22 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h1 id="physmodels.lib">physmodels.lib</h1>
 <p>Faust physical modeling library; Its official prefix is <code>pm</code>.</p>
-<p>This library provides an environment to facilitate physical modeling of musical instruments. It contains dozens of functions implementing low and high level elements going from a simple waveguide to fully operational models with built-in UI, etc. This library is part of the Faust Physical Modeling ToolKit. More information on how to use this library can be found on this page: <a href="https://ccrma.stanford.edu/~rmichon/pmFaust" class="uri">https://ccrma.stanford.edu/~rmichon/pmFaust</a>. Tutorials on how to make physical models of musical instruments using Faust can be found <a href="https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust">here</a> as well.</p>
+<p>This library provides an environment to facilitate physical modeling of musical instruments. It contains dozens of functions implementing low and high level elements going from a simple waveguide to fully operational models with built-in UI, etc.</p>
+<p>It is organized as follows:</p>
+<ul>
+<li><a href="#global-variables">Global Variables</a>: Useful pre-defined variables for physical modeling (e.g., speed of sound, etc.).</li>
+<li><a href="#conversion-tools-1">Conversion Tools</a>: Conversion functions specific to physical modeling (e.g., length to frequency, etc.).</li>
+<li><a href="#bidirectional-utilities">Bidirectional Utilities</a>: Functions to create bidirectional block diagrams for physical modeling.</li>
+<li><a href="#basic-elements-1">Basic Elements</a>: waveguides, specific types of filters, etc.</li>
+<li><a href="#string-instruments">String Instruments</a>: various types of strings (e.g., steel, nylon, etc.), bridges, guitars, etc.</li>
+<li><a href="#bowed-string-instruments">Bowed String Instruments</a>: parts and models specific to bowed string instruments (e.g., bows, bridges, violins, etc.).</li>
+<li><a href="#wind-instruments">Wind Instrument</a>: parts and models specific to wind string instruments (e.g., reeds, mouthpieces, flutes, clarinets, etc.).</li>
+<li><a href="#exciters">Exciters</a>: pluck generators, &quot;blowers&quot;, etc.</li>
+<li><a href="#modal-percussions">Modal Percussions</a>: percussion instruments based on modal models.</li>
+<li><a href="#vocal-synthesis">Vocal Synthesis</a>: functions for various vocal synthesis techniques (e.g., fof, source/filter, etc.) and vocal synthesizers.</li>
+<li><a href="#misc-functions">Misc Functions</a>: any other functions that don't fit in the previous category (e.g., nonlinear filters, etc.)</li>
+</ul>
+<p>This library is part of the Faust Physical Modeling ToolKit. More information on how to use this library can be found on this page: <a href="https://ccrma.stanford.edu/~rmichon/pmFaust" class="uri">https://ccrma.stanford.edu/~rmichon/pmFaust</a>. Tutorials on how to make physical models of musical instruments using Faust can be found <a href="https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust">here</a> as well.</p>
 <h2 id="global-variables">Global Variables</h2>
 <p>Useful pre-defined variables for physical modeling.</p>
 <h3 id="speedofsound"><code>speedOfSound</code></h3>
