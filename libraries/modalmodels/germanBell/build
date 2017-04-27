@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mesh2faust --infile germanBell.obj --nsynthmodes 50 --nfemmodes 200 --maxmode 10000 --expos 1946 1864 1781 1705 1614 1468 1912 --debug --material 1.05E11 0.33 8600 --name germanBellModel
