@@ -413,8 +413,8 @@ with{
 	a2 = r^2;
 };
 
-//========================Basic String Instruments Elements===============================
-// Low and high level basic string instruments parts. Most of the elements in
+//================================String Instruments======================================
+// Low and high level string instruments parts. Most of the elements in
 // this section can be used in a bidirectional chain.
 //========================================================================================
 
@@ -1046,7 +1046,7 @@ with{
   stringLength = freq : f2l;
 };
 
-//=========================Bowed String Instruments Elements==============================
+//=============================Bowed String Instruments===================================
 // Low and high level basic string instruments parts. Most of the elements in
 // this section can be used in a bidirectional chain.
 //========================================================================================
@@ -1298,7 +1298,7 @@ with{
 	bowVel = envelope;
 };
 
-//===========================Wind Instrument Elements=====================================
+//=================================Wind Instruments=======================================
 // Low and high level basic wind instruments parts. Most of the elements in
 // this section can be used in a bidirectional chain.
 //========================================================================================

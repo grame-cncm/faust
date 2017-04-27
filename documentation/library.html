@@ -476,7 +476,7 @@
 <li><a href="#bridgefilter"><code>bridgeFilter</code></a></li>
 <li><a href="#modefilter"><code>modeFilter</code></a></li>
 </ul></li>
-<li><a href="#basic-string-instruments-elements">Basic String Instruments Elements</a><ul>
+<li><a href="#string-instruments">String Instruments</a><ul>
 <li><a href="#stringsegment"><code>stringSegment</code></a></li>
 <li><a href="#openstring"><code>openString</code></a></li>
 <li><a href="#nylonstring"><code>nylonString</code></a></li>
@@ -505,7 +505,7 @@
 <li><a href="#nylonguitar"><code>nylonGuitar</code></a></li>
 <li><a href="#nylonguitar_ui_midi"><code>nylonGuitar_ui_MIDI</code></a></li>
 </ul></li>
-<li><a href="#bowed-string-instruments-elements">Bowed String Instruments Elements</a><ul>
+<li><a href="#bowed-string-instruments">Bowed String Instruments</a><ul>
 <li><a href="#bowtable"><code>bowTable</code></a></li>
 <li><a href="#violinbowtable"><code>violinBowTable</code></a></li>
 <li><a href="#bowinteraction"><code>bowInteraction</code></a></li>
@@ -518,7 +518,7 @@
 <li><a href="#violinmodel_ui"><code>violinModel_ui</code></a></li>
 <li><a href="#violin_ui_midi"><code>violin_ui_MIDI</code></a></li>
 </ul></li>
-<li><a href="#wind-instrument-elements">Wind Instrument Elements</a><ul>
+<li><a href="#wind-instruments">Wind Instruments</a><ul>
 <li><a href="#opentube"><code>openTube</code></a></li>
 <li><a href="#reedtable"><code>reedTable</code></a></li>
 <li><a href="#flutejettable"><code>fluteJetTable</code></a></li>
@@ -4367,7 +4367,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <h3 id="chain"><code>chain</code></h3>
 <p>Creates a chain of bidirectional blocks. Blocks must have 3 inputs and outputs. The first input/output carry left going waves, the second input/output carry right going waves, and the third input/output is used to carry any potential output signal to the end of the algorithm. The implied one sample delay created by the <code>~</code> operator is generalized to the left and right going waves. Thus, <code>n</code> blocks in <code>chain()</code> will add an <code>n</code> samples delay to both left and right going waves.</p>
 <h4 id="usage-256">Usage</h4>
-<pre><code>rightGoingWaves,leftGoingWaves,mixedOutput : chain( A : B ) : rightGoingWaves,leftGoingWaves,mixedOutput
+<pre><code>leftGoingWaves,rightGoingWaves,mixedOutput : chain( A : B ) : leftGoingWaves,rightGoingWaves,mixedOutput
 with{
      A = _,_,_;
      B = _,_,_;
@@ -4502,8 +4502,8 @@ with{
 <li><code>gain</code>: mode gain (0-1)</li>
 </ul>
 <hr />
-<h2 id="basic-string-instruments-elements">Basic String Instruments Elements</h2>
-<p>Low and high level basic string instruments parts. Most of the elements in this section can be used in a bidirectional chain.</p>
+<h2 id="string-instruments">String Instruments</h2>
+<p>Low and high level string instruments parts. Most of the elements in this section can be used in a bidirectional chain.</p>
 <h3 id="stringsegment"><code>stringSegment</code></h3>
 <p>A string segment without terminations (just a simple waveguide).</p>
 <h4 id="usage-273">Usage</h4>
@@ -4732,7 +4732,7 @@ with{
 <h4 id="usage-299">Usage</h4>
 <pre><code>nylonGuitar_ui_MIDI : _</code></pre>
 <hr />
-<h2 id="bowed-string-instruments-elements">Bowed String Instruments Elements</h2>
+<h2 id="bowed-string-instruments">Bowed String Instruments</h2>
 <p>Low and high level basic string instruments parts. Most of the elements in this section can be used in a bidirectional chain.</p>
 <h3 id="bowtable"><code>bowTable</code></h3>
 <p>Extremely basic bow table that can be used to implement a wide range of bow types for many different bowed string instruments (violin, cello, etc.)</p>
@@ -4824,7 +4824,7 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <h4 id="usage-310">Usage</h4>
 <pre><code>violin_ui_MIDI : _</code></pre>
 <hr />
-<h2 id="wind-instrument-elements">Wind Instrument Elements</h2>
+<h2 id="wind-instruments">Wind Instruments</h2>
 <p>Low and high level basic wind instruments parts. Most of the elements in this section can be used in a bidirectional chain.</p>
 <h3 id="opentube"><code>openTube</code></h3>
 <p>A tube segment without terminations (same as <a href="#stringsegment"><code>stringSegment</code></a>).</p>
