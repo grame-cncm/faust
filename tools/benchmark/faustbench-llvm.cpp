@@ -37,10 +37,10 @@ int main(int argc, char* argv[])
     
     int index = 1;
     if (isopt(argv, "-vec")) index += 2;
-    int VSIZE = lopt(argv, "-vec", 512);
+    int buffer_size = lopt(argv, "-vec", 512);
     
     try {
-        dsp_optimizer optimizer(argv[index], "/usr/local/share/faust", "", VSIZE);
+        dsp_optimizer optimizer(argv[index], "/usr/local/share/faust", "", buffer_size);
         double value;
         vector<string> options = optimizer.findOptimizedParameters(value);
         cout << "Best value is for '" << argv[1] << "' is : " << value << " with ";

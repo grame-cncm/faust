@@ -391,27 +391,54 @@ class dsp_optimizer {
     
     public:
     
+        /**
+         * Constructor.
+         *
+         * @param filename - the DSP filename
+         * @param library_path - the Faust library path
+         * @param target - the LLVM machine target (using empty string will take current machine settings)
+         * @param buffer_size - the buffer size in sampels
+         * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
+         * since the maximum value may change with new LLVM versions)
+         */
         dsp_optimizer(const char* filename,
                       const std::string& library_path,
                       const std::string& target,
-                      int size,
-                      int opt_level_max = -1)
+                      int buffer_size,
+                      int opt_level = -1)
         {
-            init(filename, library_path, "", target, size, opt_level_max);
+            init(filename, library_path, "", target, buffer_size, opt_level);
         }
-        
+    
+        /**
+         * Constructor.
+         *
+         * @param input - the Faust program as a string
+         * @param library_path - the Faust library path
+         * @param target - the LLVM machine target (using empty string will take current machine settings)
+         * @param buffer_size - the buffer size in sampels
+         * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
+         * since the maximum value may change with new LLVM versions)
+         */
         dsp_optimizer(const std::string& input,
                       const std::string& library_path,
                       const std::string& target,
-                      int size,
-                      int opt_level_max = -1)
+                      int buffer_size,
+                      int opt_level = -1)
         {
-            init("", library_path, input, target, size, opt_level_max);
+            init("", library_path, input, target, buffer_size, opt_level);
         }
     
         virtual ~dsp_optimizer()
         {}
     
+        /**
+         * Returns the best compilation parameters in a vector.
+         *
+         * @param best - returns the best result (in Megabytes/seconds)
+         *
+         * @return the best compilation parameters in a vector.
+         */
         std::vector<std::string> findOptimizedParameters(double& best)
         {
             std::cout << "Discover best parameters option" << std::endl;
@@ -431,6 +458,11 @@ class dsp_optimizer {
             return findOptimizedParametersAux(options_table, best);
         }
     
+        /**
+         * Returns the error (in case on compilation error).
+         *
+         * @return the compilation error as a string.
+         */
         const char* getError() { return fError.c_str(); }
     
 };
