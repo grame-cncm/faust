@@ -1,0 +1,3 @@
+# Vega Libraries
+
+This folder contains all the compiled Vega libraries...
