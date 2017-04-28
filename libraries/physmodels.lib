@@ -35,6 +35,7 @@
 // physical models of musical instruments using Faust can be found
 // [here](https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust) as well.
 //########################################################################################
+// Authors: Romain Michon , Pierre-Amaury Grumiaux, and Yann Orlarey
 
 import("stdfaust.lib");
 
