@@ -1887,12 +1887,54 @@ with{
 //--------------------------------------
 impulseExcitation(trigger) = trigger : ba.impulsify;
 
-// TODO: doc
-strike(cutoff,sharpness,gain,trigger) =
-no.noise : fi.lowpass(2,cutoff) : *(en.ar(att,rel,trigger))*gain
+//-------`strikeModel`--------------
+// Creates a filtered noise excitation.
+//
+// #### Usage
+//
+// ```
+// gate = button('gate');
+// strikeModel(LPcutoff,HPcutoff,sharpness,gain,gate) : chain;
+// ```
+//
+// Where:
+//
+// * `HPcutoff`: highpass cutoff frequency
+// * `LPcutoff`: lowpass cutoff frequency
+// * `sharpness`: sharpness of the attack and release (0-1)
+// * `gain`: gain of the excitation
+// * `gate`: a gate button/trigger signal (0/1)
+//--------------------------------------
+strikeModel(HPcutoff,LPcutoff,sharpness,gain,trigger) =
+no.noise : fi.highpass(2,HPcutoff) : fi.lowpass(2,LPcutoff) :
+*(en.ar(att,rel,trigger))*gain
 with{
   att = 0.002*sharpness;
   rel = att;
+};
+
+//-------`strike`--------------
+// Strikes generator with controllable excitation position.
+//
+// #### Usage
+//
+// ```
+// gate = button('gate');
+// strike(exPos,sharpness,gain,gate) : chain;
+// ```
+//
+// Where:
+//
+// * `exPos`: excitation position wiht 0: for max low freqs and 1: for max high
+// freqs. So, on membrane for example, 0 would be the middle and 1 the edge
+// * `sharpness`: sharpness of the attack and release (0-1)
+// * `gain`: gain of the excitation
+// * `gate`: a gate button/trigger signal (0/1)
+//--------------------------------------
+strike(exPos,sharpness,gain,trigger) = strikeModel(HPcutoff,LPcutoff,sharpness,gain,trigger)
+with{
+	HPcutoff = 40+exPos*500;
+	LPcutoff = 500+exPos*15000;
 };
 
 //-------`pluckString`--------------
@@ -1968,6 +2010,78 @@ with{
 // High and low level functions for modal synthesis of percussion instruments.
 //========================================================================================
 
+//-------`djembeModel`----------
+// Dirt-simple djembe modal physical model. Mode parameters are empirically
+// calculated and don't correspond to any measurements or 3D model. They
+// kind of sound good though :).
+//
+// #### Usage
+//
+// ```
+// excitation : djembeModel(freq)
+// ```
+//
+// Where:
+//
+// * `excitation`: excitation signal
+// * `freq`: fundamental frequency of the bar
+//----------------------------------
+djembeModel(freq) = _ <: par(i,nModes,modeFilter(modeFreqs(i),modeT60s(i),modeGains(i))) :> /(nModes)
+with{
+	nModes = 20;
+	theta = 0; // angle
+	modeFreqs(i) = freq + 200*i;
+	modeT60s(i) = (nModes-i)*0.03;
+	modeGains(i) = cos((i+1)*theta)/float(i+1)*(1/(i+1));
+};
+
+//-------`djembe`----------
+// Dirt-simple djembe modal physical model. Mode parameters are empirically
+// calculated and don't correspond to any measurements or 3D model. They
+// kind of sound good though :).
+//
+// This model also implements a virtual "exciter".
+//
+// #### Usage
+//
+// ```
+// djembe(freq,strikePosition,strikeSharpness,gain,trigger
+// ```
+//
+// Where:
+//
+// * `freq`: fundamental frequency of the model
+// * `strikePosition`: strike position (0 for the middle of the membrane and
+// 1 for the edge)
+// * `strikeSharpness`: sharpness of the strike (0-5, default: 0.5)
+// * `gain`: gain of the strike
+// * `trigger`: trigger signal (0: off, 1: on)
+//----------------------------------
+djembe(freq,strikePosition,strikeSharpness,gain,trigger) =
+strike(strikePosition,strikeSharpness,gain,trigger) : djembeModel(freq);
+
+//-------`djembe_ui_MIDI`----------
+// Simple MIDI controllable djembe physical model with built-in UI.
+//
+// #### Usage
+//
+// ```
+// djembe_ui_MIDI : _
+// ```
+//----------------------------------
+djembe_ui_MIDI =
+djembe(freq,strikePosition,strikeSharpness,gain,gate)*outGain
+with{
+	freq = hslider("v:djembe/h:[0]midi/[0]freq[style:knob]",60,50,100,0.01);
+	gain = hslider("v:djembe/h:[0]midi/[2]gain[style:knob]",1,0,1,0.01);
+  strikePosition = hslider("v:djembe/h:[1]otherParams/[0]strikePosition
+	[midi:ctrl 1][style:knob]",0.5,0,1,0.01);
+	strikeSharpness = hslider("v:djembe/h:[1]otherParams/[1]strikeSharpness[style:knob]",0.5,0.01,5,0.01);
+  outGain = hslider("v:djembe/h:[1]otherParams/[2]outGain
+	[style:knob]",1,0,1,0.01);
+	gate = button("v:djembe/[3]gate");
+};
+
 //-------`marimbaBarModel`----------
 // Generic marimba tone bar modal model.
 //
@@ -1988,11 +2102,12 @@ with{
 // #### Usage
 //
 // ```
-// marimbaBarModel(freq,exPos,t60,t60DecayRatio,t60DecaySlope)
+// excitation : marimbaBarModel(freq,exPos,t60,t60DecayRatio,t60DecaySlope)
 // ```
 //
 // Where:
 //
+// * `excitation`: excitation signal
 // * `freq`: fundamental frequency of the bar
 // * `exPos`: excitation position (0-4)
 // * `t60`: T60 in seconds (recommended value: 0.1)
@@ -2090,7 +2205,7 @@ with{
 // * `trigger` signal (0: off, 1: on)
 //----------------------------------
 marimba(freq,strikePosition,strikeCutoff,strikeSharpness,gain,trigger) =
-strike(strikeCutoff,strikeSharpness,gain,trigger) :
+strikeModel(10,strikeCutoff,strikeSharpness,gain,trigger) :
 marimbaModel(freq,strikePosition);
 
 //-------`marimba_ui_MIDI`----------
@@ -2116,7 +2231,7 @@ with{
 	strikeCutoff = hslider("v:marimba/h:[1]otherParams/[1]strikeCutOff
 	[midi:ctrl 1][style:knob]",6500,20,20000,1);
 	strikeSharpness = hslider("v:marimba/h:[1]otherParams/[2]strikeSharpness
-	[midi:ctrl 1][style:knob]",0.5,0.01,5,0.01);
+	[style:knob]",0.5,0.01,5,0.01);
   outGain = hslider("v:marimba/h:[1]otherParams/[2]outGain
 	[style:knob]",0.8,0,1,0.01);
 	gate = button("v:marimba/[3]gate");
@@ -2188,7 +2303,7 @@ modesT60s(i) = t60*pow(1-(modesFreqs(i)/4035.44)*t60DecayRatio,t60DecaySlope);
 // * `trigger` signal (0: off, 1: on)
 //----------------------------------
 churchBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) =
-strike(strikeCutoff,strikeSharpness,gain,trigger) :
+strikeModel(10,strikeCutoff,strikeSharpness,gain,trigger) :
 churchBellModel(strikePosition,30,1,2.5);
 
 //-------`churchBell_ui`----------
@@ -2282,7 +2397,7 @@ modesT60s(i) = t60*pow(1-(modesFreqs(i)/2137.04)*t60DecayRatio,t60DecaySlope);
 // * `trigger` signal (0: off, 1: on)
 //----------------------------------
 englishBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) =
-strike(strikeCutoff,strikeSharpness,gain,trigger) :
+strikeModel(10,strikeCutoff,strikeSharpness,gain,trigger) :
 englishBellModel(strikePosition,30,1,3);
 
 //-------`englishBell_ui`----------
@@ -2376,7 +2491,7 @@ modesT60s(i) = t60*pow(1-(modesFreqs(i)/2555.3)*t60DecayRatio,t60DecaySlope);
 // * `trigger` signal (0: off, 1: on)
 //----------------------------------
 frenchBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) =
-strike(strikeCutoff,strikeSharpness,gain,trigger) :
+strikeModel(10,strikeCutoff,strikeSharpness,gain,trigger) :
 frenchBellModel(strikePosition,30,1,3);
 
 //-------`frenchBell_ui`----------
@@ -2470,7 +2585,7 @@ modesT60s(i) = t60*pow(1-(modesFreqs(i)/2016.94)*t60DecayRatio,t60DecaySlope);
 // * `trigger` signal (0: off, 1: on)
 //----------------------------------
 germanBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) =
-strike(strikeCutoff,strikeSharpness,gain,trigger) :
+strikeModel(10,strikeCutoff,strikeSharpness,gain,trigger) :
 germanBellModel(strikePosition,30,1,2.5);
 
 //-------`germanBell_ui`----------
@@ -2564,7 +2679,7 @@ modesT60s(i) = t60*pow(1-(modesFreqs(i)/1201.01)*t60DecayRatio,t60DecaySlope);
 // * `trigger` signal (0: off, 1: on)
 //----------------------------------
 russianBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) =
-strike(strikeCutoff,strikeSharpness,gain,trigger) :
+strikeModel(10,strikeCutoff,strikeSharpness,gain,trigger) :
 russianBellModel(strikePosition,30,1,3);
 
 //-------`russianBell_ui`----------
@@ -2656,7 +2771,7 @@ modesT60s(i) = t60*pow(1-(modesFreqs(i)/4191.95)*t60DecayRatio,t60DecaySlope);
 // * `trigger` signal (0: off, 1: on)
 //----------------------------------
 standardBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) =
-strike(strikeCutoff,strikeSharpness,gain,trigger) :
+strikeModel(10,strikeCutoff,strikeSharpness,gain,trigger) :
 standardBellModel(strikePosition,30,1,2.5);
 
 //-------`standardBell_ui`----------
