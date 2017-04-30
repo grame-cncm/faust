@@ -179,7 +179,7 @@ ifneq ($(LLVMSHLIB),)
     LLVMLIBS = -l$(patsubst lib%,%,$(notdir $(basename $(LLVMSHLIB))))
 endif
 
-LLVMLIBS += $(shell $(LLVM_CONFIG) --libs) $(LLVM_SYS_LIBS)
+LLVMLIBS += $(shell $(LLVM_CONFIG) --libs) $(LLVM_SYS_LIBS) -lpthread
 
 all : faust libfaust.a
 
