@@ -229,8 +229,8 @@ install :
 	rm -rf $(prefix)/share/faust/iOS-bench
 	cp -r tools/benchmark/iOS-bench $(prefix)/share/faust/ 
 	cp tools/benchmark/faustbench.cpp  $(prefix)/share/faust/
-	install tools/benchmark/faustbench $(prefix)/bin/
-	install tools/benchmark/faustbench-llvm $(prefix)/bin/
+	([ -e tools/benchmark/faustbench-llvm ]) && install tools/benchmark/faustbench $(prefix)/bin/ || echo faustbench-llvm not found
+	([ -e tools/benchmark/faustbench-llvm-interp ]) && install tools/benchmark/faustbench-llvm $(prefix)/bin/ || echo faustbench-llvm-interp not found
 
 uninstall :
 	rm -f $(addprefix $(prefix)/lib/, libfaust.a libfaust.$(LIB_EXT) libHTTPDFaust.a libHTTPDFaust.$(LIB_EXT) libOSCFaust.a libOSCFaust*.$(LIB_EXT)* libfaustremote.a)
