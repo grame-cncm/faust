@@ -48,6 +48,7 @@ closed source license or any other license if you decide so.
 
 ma = library("maths.lib");
 ro = library("routes.lib");
+ba = library("basics.lib"); // so functions here can be copy/pasted out
 
 declare name "Faust Basic Element Library";
 declare version "0.0";
@@ -647,8 +648,6 @@ selectn(N,i) = S(N,0)
 // * `bpc`: the selector switch (0/1)
 //------------------------------------------------------------
   select2stereo(bpc) = ro.cross2 : select2(bpc), select2(bpc) : _,_;
-
-
 //=====================================Other==============================================
 //========================================================================================
 
@@ -865,8 +864,10 @@ listInterp(v) =
 //------------------------------------------------------------
 // Author: JOS
 // License: STK-4.3
-  bypass1(bpc,e) = _ <: select2(bpc,(inswitch:e),_)
-                   with {inswitch = select2(bpc,_,0);};
+bypass1(bpc,e) = _ <: select2(bpc,(inswitch:e),_)
+  with {
+    inswitch = select2(bpc,_,0);
+  };
 
 //-------------------`bypass2`-------------------------
 // Takes a stereo input signal, route it to `e` and bypass it if `bpc = 1`.
@@ -885,8 +886,32 @@ listInterp(v) =
 //------------------------------------------------------------
 // Author: JOS
 // License: STK-4.3
-  bypass2(bpc,e) = _,_ <: ((inswitch:e),_,_) : select2stereo(bpc) with {
+bypass2(bpc,e) = _,_ <: ((inswitch:e),_,_) : select2stereo(bpc)
+  with {
     inswitch = _,_ : (select2(bpc,_,0), select2(bpc,_,0)) : _,_;
+  };
+
+//-------------------`bypass1to2`-------------------------
+// Bypass switch for effect `e` having mono input signal and stereo output.
+// Effect `e` is bypassed if `bpc = 1`.
+// `bypass1to2` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// _ : bypass1(bpc,e) : _,_
+// ```
+//
+// Where:
+//
+// * `bpc`: bypass switch (0/1)
+// * `e`: a mono-to-stereo effect
+//------------------------------------------------------------
+// Author: JOS
+// License: STK-4.3
+bypass1to2(bpc,e) = _ <: ((inswitch:e),_,_) : ba.select2stereo(bpc)
+  with {
+    inswitch = select2(bpc,_,0);
   };
 
 //----------------------------`toggle`------------------------------------------
@@ -911,7 +936,7 @@ toggle = trig : loop
   with {
     trig(x) = (x-x') == 1;
     loop = (_ != _) ~ _ ;
-  } ;
+  };
 
 
 //----------------------------`on_and_off`------------------------------------------
