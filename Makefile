@@ -38,7 +38,7 @@ mfiles := $(wildcard examples/Makefile.*)
 vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
 zname := faust-$(version)
 
-.PHONY: all world dynamic httpd remote win32 ios ios-llvm asmjs wasm sound2faust
+.PHONY: all world dynamic benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
 
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
@@ -52,12 +52,15 @@ all :
 # NOTE: Once the remote target is readily supported on most platforms, it
 # should be added here. This requires Jack2 1.9.10 or later which isn't
 # usually installed on most systems, so we skip this target for now.
-world : all sound2faust httpd dynamic
+world : all sound2faust httpd dynamic benchmark
 
 dynamic : all httpd
 	$(MAKE) -C compiler -f $(MAKEFILE) dynamic prefix=$(prefix)
 	$(MAKE) -C architecture/httpdlib/src dynamic PREFIX=$(PREFIX)
 	$(MAKE) -C architecture/osclib dynamic PREFIX=$(PREFIX)
+
+benchmark :
+	$(MAKE) -C tools/benchmark all
 
 httpd :
 	$(MAKE) -C architecture/httpdlib/src all
