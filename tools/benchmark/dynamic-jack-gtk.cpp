@@ -27,6 +27,8 @@
 #include <fstream>
 #include <sstream>
 
+#define NVOICES 8
+
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
@@ -75,7 +77,7 @@ int main(int argc, char *argv[])
     bool is_poly = isopt(argv, "-poly");
     
     bool midi_sync = false;
-    int nvoices = 8;
+    int nvoices = 0;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
         std::cout << "dynamic-jack-gtk [-llvm/interp] [-poly] <compiler-options> foo.dsp" << std::endl;
@@ -94,6 +96,7 @@ int main(int argc, char *argv[])
     
     dsp_factory* factory = 0;
     dsp* DSP = 0;
+    mydsp_poly* dsp_poly = NULL;
     MidiUI* midiinterface = 0;
    
     std::string error_msg;
@@ -122,7 +125,7 @@ int main(int argc, char *argv[])
     if (is_poly) {
         MidiMeta::analyse(DSP, midi_sync, nvoices);
         std::cout << "Starting polyphonic mode nvoices : " << nvoices << std::endl;
-        DSP = new mydsp_poly(DSP, nvoices, true);
+        DSP = dsp_poly = new mydsp_poly(DSP, nvoices, true);
     }
 
     char name[256];
@@ -157,6 +160,7 @@ int main(int argc, char *argv[])
     
     if (is_poly) {
         midiinterface = new MidiUI(&audio);
+        audio.addMidiIn(dsp_poly);
         DSP->buildUserInterface(midiinterface);
         midiinterface->run();
     }
