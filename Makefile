@@ -52,7 +52,7 @@ all :
 # NOTE: Once the remote target is readily supported on most platforms, it
 # should be added here. This requires Jack2 1.9.10 or later which isn't
 # usually installed on most systems, so we skip this target for now.
-world : all sound2faust httpd dynamic benchmark
+world : all sound2faust httpd dynamic
 
 dynamic : all httpd
 	$(MAKE) -C compiler -f $(MAKEFILE) dynamic prefix=$(prefix)
