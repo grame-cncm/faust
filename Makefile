@@ -59,7 +59,7 @@ dynamic : all httpd
 	$(MAKE) -C architecture/httpdlib/src dynamic PREFIX=$(PREFIX)
 	$(MAKE) -C architecture/osclib dynamic PREFIX=$(PREFIX)
 
-benchmark :
+benchmark : all
 	$(MAKE) -C tools/benchmark all
 
 httpd :
