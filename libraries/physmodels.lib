@@ -1054,7 +1054,7 @@ pluckString(stringLength,1,1.5,1,gain,trigger) : nylonGuitarModel(stringLength, 
 // nylonGuitar_ui_MIDI : _
 // ```
 //----------------------------------
-nylonGuitar_ui_MIDI = nylonGuitar(stringLength,pluckPosition,gate)*outGain
+nylonGuitar_ui_MIDI = nylonGuitar(stringLength,pluckPosition,gain,gate)*outGain
 with{
 	f = hslider("v:nylonGuitar/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
 	bend = hslider("v:nylonGuitar/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
