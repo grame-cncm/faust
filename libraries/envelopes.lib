@@ -109,7 +109,7 @@ with{
 // License: STK-4.3
 are(attT60,relT60,gate) = envelope with {
   ugate = gate>0;
-  samps = ugate : +~(*(ugate)); // time ramp in samples
+  samps = ugate : +~(*(ugate)); // ramp time in samples
   attSamps = int(attT60 * ma.SR);
   target = select2(ugate, 0.0, float(ugate));
   t60 = select2(ugate, relT60, attT60);
@@ -234,7 +234,7 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 // License: STK-4.3
 adsre(attT60,decT60,susLvl,relT60,gate) = envelope with {
   ugate = gate>0;
-  samps = ugate : +~(*(ugate)); // time ramp in samples
+  samps = ugate : +~(*(ugate)); // ramp time in samples
   attSamps = int(attT60 * ma.SR);
   target = select2(ugate, 0.0,
            select2(samps<attSamps, (0.01*susLvl)*float(ugate), ugate));
