@@ -90,6 +90,32 @@ with{
 	relTime = ma.SR*r;
 };
 
+//------------------------`are`----------------------
+// ARE (Attack, Release) envelope generator with Exponential segments.
+// `are` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// are(a,r,g) : _
+// ```
+//
+// Where:
+//
+// * `a`, `r`: attack (sec), release (sec)
+// * `g`: gate signal ( >0 for attack, release begins when g returns to 0)
+//-----------------------------------------------------
+// Author: JOS
+// License: STK-4.3
+are(attT60,relT60,gate) = envelope with {
+  ugate = gate>0;
+  samps = ugate : +~(*(ugate)); // time ramp in samples
+  attSamps = int(attT60 * ma.SR);
+  target = select2(ugate, 0.0, float(ugate));
+  t60 = select2(ugate, relT60, attT60);
+  pole = ba.tau2pole(t60/6.91);
+  envelope = target : si.smooth(pole);
+};
 
 //------------------------`asr`----------------------
 // ASR (Attack, Sustain, Release) envelope generator.
