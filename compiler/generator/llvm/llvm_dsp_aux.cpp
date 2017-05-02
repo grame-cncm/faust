@@ -480,7 +480,7 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& 
     
     // Creates module and context
     fContext = new LLVMContext();
-    fModule = new Module(LVVM_BACKEND_NAME, *fContext);
+    fModule = new Module(string(LVVM_BACKEND_NAME) + ": v" + string(FAUSTVERSION), *fContext);
 }
 #endif
 
@@ -681,9 +681,9 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         initializeVectorization(Registry);
         initializeIPO(Registry);
         initializeAnalysis(Registry);
-#if !defined(LLVM_38) && !defined(LLVM_39) && !defined(LLVM_40)
+    #if !defined(LLVM_38) && !defined(LLVM_39) && !defined(LLVM_40)
         initializeIPA(Registry);
-#endif
+    #endif
         initializeTransformUtils(Registry);
         initializeInstCombine(Registry);
         initializeInstrumentation(Registry);
