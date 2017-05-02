@@ -36,10 +36,8 @@
 #include "faust/misc.h"
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/MidiUI.h"
-
 #include "faust/dsp/timed-dsp.h"
 #include "faust/dsp/poly-dsp.h"
-
 #include "faust/gui/JuceGUI.h"
 #include "faust/gui/JuceParameterUI.h"
 #include "faust/gui/JuceStateUI.h"

@@ -26,9 +26,11 @@
 #ifndef JuceStateUI_H
 #define JuceStateUI_H
 
-#include "../JuceLibraryCode/JuceHeader.h"
-#include "faust/gui/UI.h"
 #include <vector>
+
+#include "../JuceLibraryCode/JuceHeader.h"
+
+#include "faust/gui/UI.h"
 
 // A class to save/restore DSP state using JUCE
 

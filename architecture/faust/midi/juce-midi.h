@@ -26,8 +26,6 @@
 #ifndef __juce_midi__
 #define __juce_midi__
  
-#include "juce_MidiMessage.h"
-#include "juce_CriticalSection.h"
 #include "faust/midi/midi.h"
 
 class MapUI;
@@ -153,7 +151,8 @@ class juce_midi_handler : public midi_handler {
         
         void pitchWheel(int channel, int wheel)
         {
-            fOutputBuffer.addEvent(MidiMessage::pitchWheel(channel + 1, wheel), 0);
+            // Deactivated for now
+            // fOutputBuffer.addEvent(MidiMessage::pitchWheel(channel + 1, wheel), 0);
         }
         
         void ctrlChange14bits(int channel, int ctrl, int value) {}
@@ -247,7 +246,8 @@ class juce_midi : public juce_midi_handler, public MidiInputCallback {
    
         void pitchWheel(int channel, int wheel) 
         {
-            fMidiOut->sendMessageNow(MidiMessage::pitchWheel(channel + 1, wheel));
+            // Deactivated for now
+            // fMidiOut->sendMessageNow(MidiMessage::pitchWheel(channel + 1, wheel));
         }
         
         void ctrlChange14bits(int channel, int ctrl, int value) {}
