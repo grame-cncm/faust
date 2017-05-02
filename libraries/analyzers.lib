@@ -324,6 +324,7 @@ cSumSq(N) = si.cbus(N) : par(i,N,(par(j,2,abs<:_*_):>_)) :> si.bus(N);
 //
 // Where:
 //
+// * N is the FFT size (power of 2)
 // * Input is a bank of N complex signals represented as interleaved real and imaginary parts:
 //   (r1,i1), (r2,i2), ...
 // * Output is a bank of N complex signals giving the complex spectrum over time
@@ -340,7 +341,7 @@ with {
 };
 
 //---------------`ifft`--------------------------
-// Inverse Fast Fourier Transform (FFT)
+// Inverse Fast Fourier Transform (IFFT)
 //
 // #### Usage
 //
@@ -350,6 +351,7 @@ with {
 //
 // Where:
 //
+// * N is the IFFT size (power of 2)
 // * Input is a complex spectrum represented as interleaved real and imaginary parts:
 //   (R1,I1), (R2,I2), ...
 // * Output is a bank of N complex signals giving the complex signal in the time domain.
