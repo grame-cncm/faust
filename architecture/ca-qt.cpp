@@ -40,6 +40,7 @@
 
 #include "faust/dsp/proxy-dsp.h"
 #include "faust/dsp/timed-dsp.h"
+#include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/JSONUI.h"
@@ -295,6 +296,9 @@ int main(int argc, char *argv[])
     }
     
 #endif
+    
+    // To test dsp_sample_adapter
+    //DSP = new dsp_sample_adapter<float>(DSP);
     
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;

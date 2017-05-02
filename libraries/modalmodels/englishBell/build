@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mesh2faust --infile englishBell.obj --nsynthmodes 50 --nfemmodes 200 --maxmode 10000 --expos 7840 5752 776 7759 7682 7827 7823 --debug --material 1.05E11 0.33 8600 --name englishBellModel

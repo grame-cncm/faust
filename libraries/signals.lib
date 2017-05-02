@@ -230,6 +230,43 @@ Michon and Julius O. Smith III, and are released under the
 //-------------------------------------------------------------
 smooth(s) = *(1.0 - s) : + ~ *(s);
 
+//--------------------------------`cbus`-------------------------------------
+// n parallel cables for complex signals.
+// `cbus` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// cbus(n)
+// cbus(4) : (r0,i0), (r1,i1), (r2,i2), (r3,i3)
+// ```
+//
+// Where:
+//
+// * `n`: is an integer known at compile time that indicates the number of parallel cables.
+// * each complex number is represented by two real signals as (real,imag)
+//-----------------------------------------------------------------------------
+cbus(1) = (_,_);
+cbus(n) = par(i, n, (_,_));
+
+//--------------------------------`cmul`-------------------------------------
+// multiple two complex signals pointwise.
+// `cmul` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// (r1,i1) : cmul(r2,i2) : (_,_);
+// ```
+//
+// Where:
+//
+// * Each complex number is represented by two real signals as (real,imag), so
+// - `(r1,i1)` = real and imaginary parts of signal 1
+// - `(r2,i2)` = real and imaginary parts of signal 2
+//-----------------------------------------------------------------------------
+cmul(r1,i1,r2,i2) = (r1*r2 - i1*i2), (r1*i2 + r2*i1);
+
 // end jos section
 /************************************************************************
 FAUST library file, further contributions section

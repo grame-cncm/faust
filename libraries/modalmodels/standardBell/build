@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mesh2faust --infile standardBell.obj --nsynthmodes 50 --nfemmodes 200 --maxmode 10000 --expos 6236 6232 6066 6224 6291 6219 6142 --debug --material 1.05E11 0.33 8600 --name standardBellModel

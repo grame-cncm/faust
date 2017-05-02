@@ -379,10 +379,10 @@ int main(int argc, char **argv) {
             "par(i,nModes,pm.modeFilter(modesFreqs(i),modesT60s(i),"
             "modesGains(int(exPos),i))) :> /(nModes)\n";
         } else {
-            faustFile << objectName << "(exPos,t60,t60DecayRatio,t60DecaySlope) = _ "
-            "<: par(i,nModes,*(modesGains(int(exPos),i)) "
-            ": pm.modeFilter(modesFreqs(i),modesT60s(i))) "
-            ":> /(nModes)\n";
+            faustFile << objectName
+						<< "(exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: "
+            "par(i,nModes,pm.modeFilter(modesFreqs(i),modesT60s(i),"
+            "modesGains(int(exPos),i))) :> /(nModes)\n";
         }
         faustFile << "with{\n";
         faustFile << "nModes = " << targetNModes << ";\n";
