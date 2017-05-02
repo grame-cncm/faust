@@ -188,12 +188,10 @@ Michon and Julius O. Smith III, and are released under the
 
 ************************************************************************/
 
-
 //===============================LFOs===============================
-// Low-frequency oscillators have prefix `lf_`
-// (no aliasing suppression, signal-means not necessarily zero).
+// Low-Frequency Oscillators (LFOs) have prefix `lf_`
+// (no aliasing suppression, which is not audible at LF).
 //==================================================================
-
 
 //--------`lf_imptrain`----------
 // Unit-amplitude low-frequency impulse train.
@@ -211,7 +209,6 @@ Michon and Julius O. Smith III, and are released under the
 //------------------------------------------------------------
 lf_imptrain(freq) = lf_sawpos(freq)<:-(mem)<0; // definition below
 
-
 //--------`lf_pulsetrainpos`----------
 // Unit-amplitude nonnegative LF pulse train, duty cycle between 0 and 1
 //
@@ -228,8 +225,24 @@ lf_imptrain(freq) = lf_sawpos(freq)<:-(mem)<0; // definition below
 // * `duty`: duty cycle between 0 and 1
 //------------------------------------------------------------
 lf_pulsetrainpos(freq,duty) = float(lf_sawpos(freq) <= duty);
+
 //pulsetrainpos = lf_pulsetrainpos; // for backward compatibility
 
+//--------`lf_pulsetrain`----------
+// Unit-amplitude zero-mean LF pulse train, duty cycle between 0 and 1
+//
+// #### Usage
+//
+// ```
+// lf_pulsetrain(freq,duty) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency in Hz
+// * `duty`: duty cycle between 0 and 1
+//------------------------------------------------------------
+lf_pulsetrain(freq,duty) = 2.0*lf_pulsetrainpos(freq,duty) - 1.0;
 
 //--------`lf_squarewavepos`----------
 // Positive LF square wave in [0,1]
@@ -294,7 +307,6 @@ lf_trianglepos(freq) = 1-abs(saw1(freq)); // saw1 defined below
 // presentation level;  fundamentals 415 and below required no aliasing
 // suppression (i.e., `saw1` is ok).
 //=====================================================================
-
 
 //-----------------`lf_rawsaw`--------------------
 // Simple sawtooth waveform oscillator between 0 and period in samples.

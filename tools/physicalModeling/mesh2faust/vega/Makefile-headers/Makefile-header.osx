@@ -1,4 +1,4 @@
-# Vega Makefile header for OS X 
+# Vega Makefile header for OS X
 
 OPTIMIZATIONFLAG=-O2
 #OPTIMIZATIONFLAG=-g
@@ -6,7 +6,7 @@ OPTIMIZATIONFLAG=-O2
 OPENMPFLAG=
 #OPENMPFLAG=-fopenmp -DUSE_OPENMP
 
-CXX=g++ 
+CXX=g++
 CXXFLAGS=-Wall -Wno-write-strings -flax-vector-conversions $(OPTIMIZATIONFLAG) $(OPENMPFLAG)
 CXXLD=$(CXX)
 LDFLAGS=$(OPTIMIZATIONFLAG) $(OPENMPFLAG)
@@ -23,9 +23,9 @@ LIBRARIES_DIR=$(L)
 GET_LIB_MAKEFILES=$(addsuffix /Makefile, $(addprefix $(R)/libraries/, $(1)))
 GET_LIB_FILENAMES=$(join $(addprefix $(R)/libraries/, $(1)), $(addsuffix .a, $(addprefix /lib, $(notdir $(1)) )))
 
-INCLUDE=-I$(LIBRARIES_DIR)/include 
+INCLUDE=-I$(LIBRARIES_DIR)/include
 
-LIBRARYPATH=-L$(LIBRARIES_DIR)/lib 
+LIBRARYPATH=-L$(LIBRARIES_DIR)/lib
 OPENGL_LIBS=-framework OpenGL
 STANDARD_LIBS= $(OPENGL_LIBS) -framework Foundation -framework Accelerate -lz -lm $(LIBRARYPATH)
 
@@ -41,4 +41,5 @@ BLASLAPACK_LIB=$(PARDISO_LIB)
 
 # ARPACK
 ARPACK_LIB=-L/opt/local/lib -larpack
-
+# If you use homebrew: 
+# ARPACK_LIB=-L/usr/local/Cellar/arpack/3.4.0/lib -larpack
