@@ -476,7 +476,7 @@
 <li><a href="#bridgefilter"><code>bridgeFilter</code></a></li>
 <li><a href="#modefilter"><code>modeFilter</code></a></li>
 </ul></li>
-<li><a href="#basic-string-instruments-elements">Basic String Instruments Elements</a><ul>
+<li><a href="#string-instruments">String Instruments</a><ul>
 <li><a href="#stringsegment"><code>stringSegment</code></a></li>
 <li><a href="#openstring"><code>openString</code></a></li>
 <li><a href="#nylonstring"><code>nylonString</code></a></li>
@@ -505,7 +505,7 @@
 <li><a href="#nylonguitar"><code>nylonGuitar</code></a></li>
 <li><a href="#nylonguitar_ui_midi"><code>nylonGuitar_ui_MIDI</code></a></li>
 </ul></li>
-<li><a href="#bowed-string-instruments-elements">Bowed String Instruments Elements</a><ul>
+<li><a href="#bowed-string-instruments">Bowed String Instruments</a><ul>
 <li><a href="#bowtable"><code>bowTable</code></a></li>
 <li><a href="#violinbowtable"><code>violinBowTable</code></a></li>
 <li><a href="#bowinteraction"><code>bowInteraction</code></a></li>
@@ -518,7 +518,7 @@
 <li><a href="#violinmodel_ui"><code>violinModel_ui</code></a></li>
 <li><a href="#violin_ui_midi"><code>violin_ui_MIDI</code></a></li>
 </ul></li>
-<li><a href="#wind-instrument-elements">Wind Instrument Elements</a><ul>
+<li><a href="#wind-instruments">Wind Instruments</a><ul>
 <li><a href="#opentube"><code>openTube</code></a></li>
 <li><a href="#reedtable"><code>reedTable</code></a></li>
 <li><a href="#flutejettable"><code>fluteJetTable</code></a></li>
@@ -545,16 +545,39 @@
 </ul></li>
 <li><a href="#exciters">Exciters</a><ul>
 <li><a href="#impulseexcitation"><code>impulseExcitation</code></a></li>
+<li><a href="#strikemodel"><code>strikeModel</code></a></li>
+<li><a href="#strike"><code>strike</code></a></li>
 <li><a href="#pluckstring"><code>pluckString</code></a></li>
 <li><a href="#blower"><code>blower</code></a></li>
 <li><a href="#blower_ui"><code>blower_ui</code></a></li>
 </ul></li>
 <li><a href="#modal-percussions">Modal Percussions</a><ul>
+<li><a href="#djembemodel"><code>djembeModel</code></a></li>
+<li><a href="#djembe"><code>djembe</code></a></li>
+<li><a href="#djembe_ui_midi"><code>djembe_ui_MIDI</code></a></li>
 <li><a href="#marimbabarmodel"><code>marimbaBarModel</code></a></li>
 <li><a href="#marimbarestube"><code>marimbaResTube</code></a></li>
 <li><a href="#marimbamodel"><code>marimbaModel</code></a></li>
 <li><a href="#marimba"><code>marimba</code></a></li>
 <li><a href="#marimba_ui_midi"><code>marimba_ui_MIDI</code></a></li>
+<li><a href="#churchbellmodel"><code>churchBellModel</code></a></li>
+<li><a href="#churchbell"><code>churchBell</code></a></li>
+<li><a href="#churchbell_ui"><code>churchBell_ui</code></a></li>
+<li><a href="#englishbellmodel"><code>englishBellModel</code></a></li>
+<li><a href="#englishbell"><code>englishBell</code></a></li>
+<li><a href="#englishbell_ui"><code>englishBell_ui</code></a></li>
+<li><a href="#frenchbellmodel"><code>frenchBellModel</code></a></li>
+<li><a href="#frenchbell"><code>frenchBell</code></a></li>
+<li><a href="#frenchbell_ui"><code>frenchBell_ui</code></a></li>
+<li><a href="#germanbellmodel"><code>germanBellModel</code></a></li>
+<li><a href="#germanbell"><code>germanBell</code></a></li>
+<li><a href="#germanbell_ui"><code>germanBell_ui</code></a></li>
+<li><a href="#russianbellmodel"><code>russianBellModel</code></a></li>
+<li><a href="#russianbell"><code>russianBell</code></a></li>
+<li><a href="#russianbell_ui"><code>russianBell_ui</code></a></li>
+<li><a href="#standardbellmodel"><code>standardBellModel</code></a></li>
+<li><a href="#standardbell"><code>standardBell</code></a></li>
+<li><a href="#standardbell_ui"><code>standardBell_ui</code></a></li>
 </ul></li>
 <li><a href="#vocal-synthesis">Vocal Synthesis</a><ul>
 <li><a href="#formantfilter"><code>formantFilter</code></a></li>
@@ -4319,7 +4342,22 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h1 id="physmodels.lib">physmodels.lib</h1>
 <p>Faust physical modeling library; Its official prefix is <code>pm</code>.</p>
-<p>This library provides an environment to facilitate physical modeling of musical instruments. It contains dozens of functions implementing low and high level elements going from a simple waveguide to fully operational models with built-in UI, etc. This library is part of the Faust Physical Modeling ToolKit. More information on how to use this library can be found on this page: <a href="https://ccrma.stanford.edu/~rmichon/pmFaust" class="uri">https://ccrma.stanford.edu/~rmichon/pmFaust</a>. Tutorials on how to make physical models of musical instruments using Faust can be found <a href="https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust">here</a> as well.</p>
+<p>This library provides an environment to facilitate physical modeling of musical instruments. It contains dozens of functions implementing low and high level elements going from a simple waveguide to fully operational models with built-in UI, etc.</p>
+<p>It is organized as follows:</p>
+<ul>
+<li><a href="#global-variables">Global Variables</a>: Useful pre-defined variables for physical modeling (e.g., speed of sound, etc.).</li>
+<li><a href="#conversion-tools-1">Conversion Tools</a>: Conversion functions specific to physical modeling (e.g., length to frequency, etc.).</li>
+<li><a href="#bidirectional-utilities">Bidirectional Utilities</a>: Functions to create bidirectional block diagrams for physical modeling.</li>
+<li><a href="#basic-elements-1">Basic Elements</a>: waveguides, specific types of filters, etc.</li>
+<li><a href="#string-instruments">String Instruments</a>: various types of strings (e.g., steel, nylon, etc.), bridges, guitars, etc.</li>
+<li><a href="#bowed-string-instruments">Bowed String Instruments</a>: parts and models specific to bowed string instruments (e.g., bows, bridges, violins, etc.).</li>
+<li><a href="#wind-instruments">Wind Instrument</a>: parts and models specific to wind string instruments (e.g., reeds, mouthpieces, flutes, clarinets, etc.).</li>
+<li><a href="#exciters">Exciters</a>: pluck generators, &quot;blowers&quot;, etc.</li>
+<li><a href="#modal-percussions">Modal Percussions</a>: percussion instruments based on modal models.</li>
+<li><a href="#vocal-synthesis">Vocal Synthesis</a>: functions for various vocal synthesis techniques (e.g., fof, source/filter, etc.) and vocal synthesizers.</li>
+<li><a href="#misc-functions">Misc Functions</a>: any other functions that don't fit in the previous category (e.g., nonlinear filters, etc.)</li>
+</ul>
+<p>This library is part of the Faust Physical Modeling ToolKit. More information on how to use this library can be found on this page: <a href="https://ccrma.stanford.edu/~rmichon/pmFaust" class="uri">https://ccrma.stanford.edu/~rmichon/pmFaust</a>. Tutorials on how to make physical models of musical instruments using Faust can be found <a href="https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust">here</a> as well.</p>
 <h2 id="global-variables">Global Variables</h2>
 <p>Useful pre-defined variables for physical modeling.</p>
 <h3 id="speedofsound"><code>speedOfSound</code></h3>
@@ -4367,7 +4405,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <h3 id="chain"><code>chain</code></h3>
 <p>Creates a chain of bidirectional blocks. Blocks must have 3 inputs and outputs. The first input/output carry left going waves, the second input/output carry right going waves, and the third input/output is used to carry any potential output signal to the end of the algorithm. The implied one sample delay created by the <code>~</code> operator is generalized to the left and right going waves. Thus, <code>n</code> blocks in <code>chain()</code> will add an <code>n</code> samples delay to both left and right going waves.</p>
 <h4 id="usage-256">Usage</h4>
-<pre><code>rightGoingWaves,leftGoingWaves,mixedOutput : chain( A : B ) : rightGoingWaves,leftGoingWaves,mixedOutput
+<pre><code>leftGoingWaves,rightGoingWaves,mixedOutput : chain( A : B ) : leftGoingWaves,rightGoingWaves,mixedOutput
 with{
      A = _,_,_;
      B = _,_,_;
@@ -4502,8 +4540,8 @@ with{
 <li><code>gain</code>: mode gain (0-1)</li>
 </ul>
 <hr />
-<h2 id="basic-string-instruments-elements">Basic String Instruments Elements</h2>
-<p>Low and high level basic string instruments parts. Most of the elements in this section can be used in a bidirectional chain.</p>
+<h2 id="string-instruments">String Instruments</h2>
+<p>Low and high level string instruments parts. Most of the elements in this section can be used in a bidirectional chain.</p>
 <h3 id="stringsegment"><code>stringSegment</code></h3>
 <p>A string segment without terminations (just a simple waveguide).</p>
 <h4 id="usage-273">Usage</h4>
@@ -4732,7 +4770,7 @@ with{
 <h4 id="usage-299">Usage</h4>
 <pre><code>nylonGuitar_ui_MIDI : _</code></pre>
 <hr />
-<h2 id="bowed-string-instruments-elements">Bowed String Instruments Elements</h2>
+<h2 id="bowed-string-instruments">Bowed String Instruments</h2>
 <p>Low and high level basic string instruments parts. Most of the elements in this section can be used in a bidirectional chain.</p>
 <h3 id="bowtable"><code>bowTable</code></h3>
 <p>Extremely basic bow table that can be used to implement a wide range of bow types for many different bowed string instruments (violin, cello, etc.)</p>
@@ -4824,7 +4862,7 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <h4 id="usage-310">Usage</h4>
 <pre><code>violin_ui_MIDI : _</code></pre>
 <hr />
-<h2 id="wind-instrument-elements">Wind Instrument Elements</h2>
+<h2 id="wind-instruments">Wind Instruments</h2>
 <p>Low and high level basic wind instruments parts. Most of the elements in this section can be used in a bidirectional chain.</p>
 <h3 id="opentube"><code>openTube</code></h3>
 <p>A tube segment without terminations (same as <a href="#stringsegment"><code>stringSegment</code></a>).</p>
@@ -5030,9 +5068,36 @@ impulseExcitation(gate) : chain;</code></pre>
 <li><code>gate</code>: a gate button</li>
 </ul>
 <hr />
+<h3 id="strikemodel"><code>strikeModel</code></h3>
+<p>Creates a filtered noise excitation.</p>
+<h4 id="usage-335">Usage</h4>
+<pre><code>gate = button(&#39;gate&#39;);
+strikeModel(LPcutoff,HPcutoff,sharpness,gain,gate) : chain;</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>HPcutoff</code>: highpass cutoff frequency</li>
+<li><code>LPcutoff</code>: lowpass cutoff frequency</li>
+<li><code>sharpness</code>: sharpness of the attack and release (0-1)</li>
+<li><code>gain</code>: gain of the excitation</li>
+<li><code>gate</code>: a gate button/trigger signal (0/1)</li>
+</ul>
+<hr />
+<h3 id="strike"><code>strike</code></h3>
+<p>Strikes generator with controllable excitation position.</p>
+<h4 id="usage-336">Usage</h4>
+<pre><code>gate = button(&#39;gate&#39;);
+strike(exPos,sharpness,gain,gate) : chain;</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>exPos</code>: excitation position wiht 0: for max low freqs and 1: for max high freqs. So, on membrane for example, 0 would be the middle and 1 the edge</li>
+<li><code>sharpness</code>: sharpness of the attack and release (0-1)</li>
+<li><code>gain</code>: gain of the excitation</li>
+<li><code>gate</code>: a gate button/trigger signal (0/1)</li>
+</ul>
+<hr />
 <h3 id="pluckstring"><code>pluckString</code></h3>
 <p>Creates a plucking excitation signal.</p>
-<h4 id="usage-335">Usage</h4>
+<h4 id="usage-337">Usage</h4>
 <pre><code>trigger = button(&#39;gate&#39;);
 pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>Where:</p>
@@ -5047,7 +5112,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="blower"><code>blower</code></h3>
 <p>A virtual blower creating a DC signal with some breath noise in it.</p>
-<h4 id="usage-336">Usage</h4>
+<h4 id="usage-338">Usage</h4>
 <pre><code>blower(pressure,breathGain,breathCutoff) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5058,19 +5123,49 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="blower_ui"><code>blower_ui</code></h3>
 <p>Same as <a href="#blower"><code>blower</code></a> but with a built-in UI.</p>
-<h4 id="usage-337">Usage</h4>
+<h4 id="usage-339">Usage</h4>
 <pre><code>blower : somethingToBeBlown</code></pre>
 <hr />
 <h2 id="modal-percussions">Modal Percussions</h2>
 <p>High and low level functions for modal synthesis of percussion instruments.</p>
+<h3 id="djembemodel"><code>djembeModel</code></h3>
+<p>Dirt-simple djembe modal physical model. Mode parameters are empirically calculated and don't correspond to any measurements or 3D model. They kind of sound good though :).</p>
+<h4 id="usage-340">Usage</h4>
+<pre><code>excitation : djembeModel(freq)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: excitation signal</li>
+<li><code>freq</code>: fundamental frequency of the bar</li>
+</ul>
+<hr />
+<h3 id="djembe"><code>djembe</code></h3>
+<p>Dirt-simple djembe modal physical model. Mode parameters are empirically calculated and don't correspond to any measurements or 3D model. They kind of sound good though :).</p>
+<p>This model also implements a virtual &quot;exciter&quot;.</p>
+<h4 id="usage-341">Usage</h4>
+<pre><code>djembe(freq,strikePosition,strikeSharpness,gain,trigger</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: fundamental frequency of the model</li>
+<li><code>strikePosition</code>: strike position (0 for the middle of the membrane and 1 for the edge)</li>
+<li><code>strikeSharpness</code>: sharpness of the strike (0-5, default: 0.5)</li>
+<li><code>gain</code>: gain of the strike</li>
+<li><code>trigger</code>: trigger signal (0: off, 1: on)</li>
+</ul>
+<hr />
+<h3 id="djembe_ui_midi"><code>djembe_ui_MIDI</code></h3>
+<p>Simple MIDI controllable djembe physical model with built-in UI.</p>
+<h4 id="usage-342">Usage</h4>
+<pre><code>djembe_ui_MIDI : _</code></pre>
+<hr />
 <h3 id="marimbabarmodel"><code>marimbaBarModel</code></h3>
 <p>Generic marimba tone bar modal model.</p>
 <p>This model was generated using <code>mesh2faust</code> from a 3D CAD model of a marimba tone bar (<code>libraries/modalmodels/marimbaBar</code>). The corresponding CAD model is that of a C2 tone bar (original fundamental frequency: ~65Hz). While <code>marimbaBarModel</code> allows to translate the harmonic content of the generated sound by providing a frequency (<code>freq</code>), mode transposition has limits and the model will sound less and less like a marimba tone bar as it diverges from C2. To make an accurate model of a marimba, we'd want to have an independent model for each bar...</p>
 <p>This model contains 5 excitation positions going linearly from the center bottom to the center top of the bar. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
-<h4 id="usage-338">Usage</h4>
-<pre><code>marimbaBarModel(freq,exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
+<h4 id="usage-343">Usage</h4>
+<pre><code>excitation : marimbaBarModel(freq,exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
 <p>Where:</p>
 <ul>
+<li><code>excitation</code>: excitation signal</li>
 <li><code>freq</code>: fundamental frequency of the bar</li>
 <li><code>exPos</code>: excitation position (0-4)</li>
 <li><code>t60</code>: T60 in seconds (recommended value: 0.1)</li>
@@ -5080,7 +5175,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="marimbarestube"><code>marimbaResTube</code></h3>
 <p>Simple marimba resonance tube.</p>
-<h4 id="usage-339">Usage</h4>
+<h4 id="usage-344">Usage</h4>
 <pre><code>marimbaResTube(tubeLength,excitation)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5090,7 +5185,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="marimbamodel"><code>marimbaModel</code></h3>
 <p>Simple marimba physical model implementing a single tone bar connected to tube. This model is scalable and can be adapted to any size of bar/tube (see <a href="#marimbabarmodel"><code>marimbaBarModel</code></a> to know more about the limitations of this type of system).</p>
-<h4 id="usage-340">Usage</h4>
+<h4 id="usage-345">Usage</h4>
 <pre><code>excitation : marimbaModel(freq,exPos) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5101,10 +5196,11 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <h3 id="marimba"><code>marimba</code></h3>
 <p>Simple marimba physical model implementing a single tone bar connected to tube. This model is scalable and can be adapted to any size of bar/tube (see <a href="#marimbabarmodel"><code>marimbaBarModel</code></a> to know more about the limitations of this type of system).</p>
 <p>This function also implement a virtual exciter to drive the model.</p>
-<h4 id="usage-341">Usage</h4>
-<pre><code>marimba(freq,strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
+<h4 id="usage-346">Usage</h4>
+<pre><code>excitation : marimba(freq,strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
 <p>Where:</p>
 <ul>
+<li><code>excitation</code>: the excitation signal</li>
 <li><code>freq</code>: the frequency of the bar/tube couple</li>
 <li><code>strikePosition</code>: strike position (0-4)</li>
 <li><code>strikeCutoff</code>: cuttoff frequency of the strike genarator (recommended: ~7000Hz)</li>
@@ -5115,15 +5211,249 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="marimba_ui_midi"><code>marimba_ui_MIDI</code></h3>
 <p>Simple MIDI controllable marimba physical model with built-in UI implementing a single tone bar connected to tube. This model is scalable and can be adapted to any size of bar/tube (see <a href="#marimbabarmodel"><code>marimbaBarModel</code></a> to know more about the limitations of this type of system).</p>
-<h4 id="usage-342">Usage</h4>
+<h4 id="usage-347">Usage</h4>
 <pre><code>marimba_ui_MIDI : _</code></pre>
+<hr />
+<h3 id="churchbellmodel"><code>churchBellModel</code></h3>
+<p>Generic church bell modal model generated by <code>mesh2faust</code> from <code>libraries/modalmodels/churchBell</code>.</p>
+<p>Modeled after T. Rossing and R. Perrin, Vibrations of Bells, Applied Acoustics 2, 1987.</p>
+<p>Model height is 301 mm.</p>
+<p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
+<h4 id="usage-348">Usage</h4>
+<pre><code>excitation : churchBellModel(exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: the excitation signal</li>
+<li><code>exPos</code>: excitation position (0-6)</li>
+<li><code>t60</code>: T60 in seconds (recommended value: 0.1)</li>
+<li><code>t60DecayRatio</code>: T60 decay ratio (recommended value: 1)</li>
+<li><code>t60DecaySlope</code>: T60 decay slope (recommended value: 5)</li>
+</ul>
+<hr />
+<h3 id="churchbell"><code>churchBell</code></h3>
+<p>Generic church bell modal model.</p>
+<p>Modeled after T. Rossing and R. Perrin, Vibrations of Bells, Applied Acoustics 2, 1987.</p>
+<p>Model height is 301 mm.</p>
+<p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
+<p>This function also implement a virtual exciter to drive the model.</p>
+<h4 id="usage-349">Usage</h4>
+<pre><code>excitation : churchBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: the excitation signal</li>
+<li><code>strikePosition</code>: strike position (0-6)</li>
+<li><code>strikeCutoff</code>: cuttoff frequency of the strike genarator (recommended: ~7000Hz)</li>
+<li><code>strikeSharpness</code>: shaarpness of the strike (recommened: ~0.25)</li>
+<li><code>gain</code>: gain of the strike (0-1)</li>
+<li><code>trigger</code> signal (0: off, 1: on)</li>
+</ul>
+<hr />
+<h3 id="churchbell_ui"><code>churchBell_ui</code></h3>
+<p>Church bell physical model based on <a href="#churchbell"><code>churchBell</code></a> with built-in UI.</p>
+<h4 id="usage-350">Usage</h4>
+<pre><code>churchBell_ui : _</code></pre>
+<hr />
+<h3 id="englishbellmodel"><code>englishBellModel</code></h3>
+<p>English church bell modal model generated by <code>mesh2faust</code> from <code>libraries/modalmodels/englishBell</code>.</p>
+<p>Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and Pouring Parameters on Its Properties and Bell' Tone, Archives of Foundry Engineering, 2016.</p>
+<p>Model height is 1 m.</p>
+<p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
+<h4 id="usage-351">Usage</h4>
+<pre><code>excitation : englishBellModel(exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: the excitation signal</li>
+<li><code>exPos</code>: excitation position (0-6)</li>
+<li><code>t60</code>: T60 in seconds (recommended value: 0.1)</li>
+<li><code>t60DecayRatio</code>: T60 decay ratio (recommended value: 1)</li>
+<li><code>t60DecaySlope</code>: T60 decay slope (recommended value: 5)</li>
+</ul>
+<hr />
+<h3 id="englishbell"><code>englishBell</code></h3>
+<p>English church bell modal model.</p>
+<p>Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and Pouring Parameters on Its Properties and Bell' Tone, Archives of Foundry Engineering, 2016.</p>
+<p>Model height is 1 m.</p>
+<p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
+<p>This function also implement a virtual exciter to drive the model.</p>
+<h4 id="usage-352">Usage</h4>
+<pre><code>excitation : englishBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: the excitation signal</li>
+<li><code>strikePosition</code>: strike position (0-6)</li>
+<li><code>strikeCutoff</code>: cuttoff frequency of the strike genarator (recommended: ~7000Hz)</li>
+<li><code>strikeSharpness</code>: shaarpness of the strike (recommened: ~0.25)</li>
+<li><code>gain</code>: gain of the strike (0-1)</li>
+<li><code>trigger</code> signal (0: off, 1: on)</li>
+</ul>
+<hr />
+<h3 id="englishbell_ui"><code>englishBell_ui</code></h3>
+<p>English church bell physical model based on <a href="#englishbell"><code>englishBell</code></a> with built-in UI.</p>
+<h4 id="usage-353">Usage</h4>
+<pre><code>englishBell_ui : _</code></pre>
+<hr />
+<h3 id="frenchbellmodel"><code>frenchBellModel</code></h3>
+<p>French church bell modal model generated by <code>mesh2faust</code> from <code>libraries/modalmodels/frenchBell</code>.</p>
+<p>Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and Pouring Parameters on Its Properties and Bell' Tone, Archives of Foundry Engineering, 2016.</p>
+<p>Model height is 1 m.</p>
+<p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
+<h4 id="usage-354">Usage</h4>
+<pre><code>excitation : frenchBellModel(exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: the excitation signal</li>
+<li><code>exPos</code>: excitation position (0-6)</li>
+<li><code>t60</code>: T60 in seconds (recommended value: 0.1)</li>
+<li><code>t60DecayRatio</code>: T60 decay ratio (recommended value: 1)</li>
+<li><code>t60DecaySlope</code>: T60 decay slope (recommended value: 5)</li>
+</ul>
+<hr />
+<h3 id="frenchbell"><code>frenchBell</code></h3>
+<p>French church bell modal model.</p>
+<p>Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and Pouring Parameters on Its Properties and Bell' Tone, Archives of Foundry Engineering, 2016.</p>
+<p>Model height is 1 m.</p>
+<p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
+<p>This function also implement a virtual exciter to drive the model.</p>
+<h4 id="usage-355">Usage</h4>
+<pre><code>excitation : frenchBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: the excitation signal</li>
+<li><code>strikePosition</code>: strike position (0-6)</li>
+<li><code>strikeCutoff</code>: cuttoff frequency of the strike genarator (recommended: ~7000Hz)</li>
+<li><code>strikeSharpness</code>: shaarpness of the strike (recommened: ~0.25)</li>
+<li><code>gain</code>: gain of the strike (0-1)</li>
+<li><code>trigger</code> signal (0: off, 1: on)</li>
+</ul>
+<hr />
+<h3 id="frenchbell_ui"><code>frenchBell_ui</code></h3>
+<p>French church bell physical model based on <a href="#frenchbell"><code>frenchBell</code></a> with built-in UI.</p>
+<h4 id="usage-356">Usage</h4>
+<pre><code>frenchBell_ui : _</code></pre>
+<hr />
+<h3 id="germanbellmodel"><code>germanBellModel</code></h3>
+<p>German church bell modal model generated by <code>mesh2faust</code> from <code>libraries/modalmodels/germanBell</code>.</p>
+<p>Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and Pouring Parameters on Its Properties and Bell' Tone, Archives of Foundry Engineering, 2016.</p>
+<p>Model height is 1 m.</p>
+<p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
+<h4 id="usage-357">Usage</h4>
+<pre><code>excitation : germanBellModel(exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: the excitation signal</li>
+<li><code>exPos</code>: excitation position (0-6)</li>
+<li><code>t60</code>: T60 in seconds (recommended value: 0.1)</li>
+<li><code>t60DecayRatio</code>: T60 decay ratio (recommended value: 1)</li>
+<li><code>t60DecaySlope</code>: T60 decay slope (recommended value: 5)</li>
+</ul>
+<hr />
+<h3 id="germanbell"><code>germanBell</code></h3>
+<p>German church bell modal model.</p>
+<p>Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and Pouring Parameters on Its Properties and Bell' Tone, Archives of Foundry Engineering, 2016.</p>
+<p>Model height is 1 m.</p>
+<p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
+<p>This function also implement a virtual exciter to drive the model.</p>
+<h4 id="usage-358">Usage</h4>
+<pre><code>excitation : germanBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: the excitation signal</li>
+<li><code>strikePosition</code>: strike position (0-6)</li>
+<li><code>strikeCutoff</code>: cuttoff frequency of the strike genarator (recommended: ~7000Hz)</li>
+<li><code>strikeSharpness</code>: shaarpness of the strike (recommened: ~0.25)</li>
+<li><code>gain</code>: gain of the strike (0-1)</li>
+<li><code>trigger</code> signal (0: off, 1: on)</li>
+</ul>
+<hr />
+<h3 id="germanbell_ui"><code>germanBell_ui</code></h3>
+<p>German church bell physical model based on <a href="#germanbell"><code>germanBell</code></a> with built-in UI.</p>
+<h4 id="usage-359">Usage</h4>
+<pre><code>germanBell_ui : _</code></pre>
+<hr />
+<h3 id="russianbellmodel"><code>russianBellModel</code></h3>
+<p>Russian church bell modal model generated by <code>mesh2faust</code> from <code>libraries/modalmodels/russianBell</code>.</p>
+<p>Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and Pouring Parameters on Its Properties and Bell' Tone, Archives of Foundry Engineering, 2016.</p>
+<p>Model height is 2 m.</p>
+<p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
+<h4 id="usage-360">Usage</h4>
+<pre><code>excitation : russianBellModel(exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: the excitation signal</li>
+<li><code>exPos</code>: excitation position (0-6)</li>
+<li><code>t60</code>: T60 in seconds (recommended value: 0.1)</li>
+<li><code>t60DecayRatio</code>: T60 decay ratio (recommended value: 1)</li>
+<li><code>t60DecaySlope</code>: T60 decay slope (recommended value: 5)</li>
+</ul>
+<hr />
+<h3 id="russianbell"><code>russianBell</code></h3>
+<p>Russian church bell modal model.</p>
+<p>Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and Pouring Parameters on Its Properties and Bell' Tone, Archives of Foundry Engineering, 2016.</p>
+<p>Model height is 2 m.</p>
+<p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
+<p>This function also implement a virtual exciter to drive the model.</p>
+<h4 id="usage-361">Usage</h4>
+<pre><code>excitation : russianBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: the excitation signal</li>
+<li><code>strikePosition</code>: strike position (0-6)</li>
+<li><code>strikeCutoff</code>: cuttoff frequency of the strike genarator (recommended: ~7000Hz)</li>
+<li><code>strikeSharpness</code>: shaarpness of the strike (recommened: ~0.25)</li>
+<li><code>gain</code>: gain of the strike (0-1)</li>
+<li><code>trigger</code> signal (0: off, 1: on)</li>
+</ul>
+<hr />
+<h3 id="russianbell_ui"><code>russianBell_ui</code></h3>
+<p>Russian church bell physical model based on <a href="#russianbell"><code>russianBell</code></a> with built-in UI.</p>
+<h4 id="usage-362">Usage</h4>
+<pre><code>russianBell_ui : _</code></pre>
+<hr />
+<h3 id="standardbellmodel"><code>standardBellModel</code></h3>
+<p>Standard church bell modal model generated by <code>mesh2faust</code> from <code>libraries/modalmodels/standardBell</code>.</p>
+<p>Modeled after T. Rossing and R. Perrin, Vibrations of Bells, Applied Acoustics 2, 1987.</p>
+<p>Model height is 1.8 m.</p>
+<p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
+<h4 id="usage-363">Usage</h4>
+<pre><code>excitation : standardBellModel(exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: the excitation signal</li>
+<li><code>exPos</code>: excitation position (0-6)</li>
+<li><code>t60</code>: T60 in seconds (recommended value: 0.1)</li>
+<li><code>t60DecayRatio</code>: T60 decay ratio (recommended value: 1)</li>
+<li><code>t60DecaySlope</code>: T60 decay slope (recommended value: 5)</li>
+</ul>
+<hr />
+<h3 id="standardbell"><code>standardBell</code></h3>
+<p>Standard church bell modal model.</p>
+<p>Modeled after T. Rossing and R. Perrin, Vibrations of Bells, Applied Acoustics 2, 1987.</p>
+<p>Model height is 1.8 m.</p>
+<p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
+<p>This function also implement a virtual exciter to drive the model.</p>
+<h4 id="usage-364">Usage</h4>
+<pre><code>excitation : standardBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>excitation</code>: the excitation signal</li>
+<li><code>strikePosition</code>: strike position (0-6)</li>
+<li><code>strikeCutoff</code>: cuttoff frequency of the strike genarator (recommended: ~7000Hz)</li>
+<li><code>strikeSharpness</code>: shaarpness of the strike (recommened: ~0.25)</li>
+<li><code>gain</code>: gain of the strike (0-1)</li>
+<li><code>trigger</code> signal (0: off, 1: on)</li>
+</ul>
+<hr />
+<h3 id="standardbell_ui"><code>standardBell_ui</code></h3>
+<p>Standard church bell physical model based on <a href="#standardbell"><code>standardBell</code></a> with built-in UI.</p>
+<h4 id="usage-365">Usage</h4>
+<pre><code>standardBell_ui : _</code></pre>
 <hr />
 <h2 id="vocal-synthesis">Vocal Synthesis</h2>
 <p>Vocal synthesizer functions (source/filter, fof, etc.).</p>
 <h3 id="formantfilter"><code>formantFilter</code></h3>
 <p>Formant filter based on a bank of resonant bandpass. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Voice type can be selected but must correspond to the frequency range of the provided source to be realistic.</p>
 <p>The formant data used here come from the CSOUND manual <a href="http://www.csounds.com/manual/html/" class="uri">http://www.csounds.com/manual/html/</a>.</p>
-<h4 id="usage-343">Usage</h4>
+<h4 id="usage-366">Usage</h4>
 <pre><code>_ : formantFilter(voiceType,vowel) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5134,7 +5464,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <h3 id="sfformantmodel"><code>SFFormantModel</code></h3>
 <p>Simple formant/vocal synthesizer based on a source/filter model. The source is just a sawtooth wave and the &quot;filter&quot; is a bank of resonant bandpass. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Voice type can be selected but must correspond to the frequency range of the synthesized voice to be realistic.</p>
 <p>The formant data used here come from the CSOUND manual <a href="http://www.csounds.com/manual/html/" class="uri">http://www.csounds.com/manual/html/</a>.</p>
-<h4 id="usage-344">Usage</h4>
+<h4 id="usage-367">Usage</h4>
 <pre><code>SFFormantModel(voiceType,vowel,exType,freq,gain) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5145,19 +5475,19 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="sfformantmodel_ui"><code>SFFormantModel_ui</code></h3>
 <p>Ready-to-use source-filter vocal synthesizer with built-in user interface.</p>
-<h4 id="usage-345">Usage</h4>
+<h4 id="usage-368">Usage</h4>
 <pre><code>SFFormantModel_ui : _</code></pre>
 <hr />
 <h3 id="sfformantmodel_ui_midi"><code>SFFormantModel_ui_MIDI</code></h3>
 <p>Ready-to-use MIDI-controllable source-filter vocal synthesizer.</p>
-<h4 id="usage-346">Usage</h4>
+<h4 id="usage-369">Usage</h4>
 <pre><code>SFFormantModel_ui_MIDI : _</code></pre>
 <hr />
 <h2 id="misc-functions">Misc Functions</h2>
 <p>Various miscellaneous functions.</p>
 <h3 id="allpassnl"><code>allpassNL</code></h3>
 <p>Bidirectional block adding nonlinearities in both directions in a chain. Nonlinearities are created by modulating the coefficients of a passive allpass filter by the signal it is processing.</p>
-<h4 id="usage-347">Usage</h4>
+<h4 id="usage-370">Usage</h4>
 <pre><code>chain(... : allpassNL(nonlinearity) : ...)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5171,19 +5501,19 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>This artificial reverberator take a mono signal and output stereo (<code>satrev</code>) and quad (<code>jcrev</code>). They were implemented by John Chowning in the MUS10 computer-music language (descended from Music V by Max Mathews). They are Schroeder Reverberators, well tuned for their size. Nowadays, the more expensive freeverb is more commonly used (see the Faust examples directory).</p>
 <p><code>jcrev</code> reverb below was made from a listing of &quot;RV&quot;, dated April 14, 1972, which was recovered from an old SAIL DART backup tape. John Chowning thinks this might be the one that became the well known and often copied JCREV.</p>
 <p><code>jcrev</code> is a standard Faust function</p>
-<h4 id="usage-348">Usage</h4>
+<h4 id="usage-371">Usage</h4>
 <pre><code>_ : jcrev : _,_,_,_</code></pre>
 <hr />
 <h3 id="satrev"><code>satrev</code></h3>
 <p>This artificial reverberator take a mono signal and output stereo (<code>satrev</code>) and quad (<code>jcrev</code>). They were implemented by John Chowning in the MUS10 computer-music language (descended from Music V by Max Mathews). They are Schroeder Reverberators, well tuned for their size. Nowadays, the more expensive freeverb is more commonly used (see the Faust examples directory).</p>
 <p><code>satrev</code> was made from a listing of &quot;SATREV&quot;, dated May 15, 1971, which was recovered from an old SAIL DART backup tape. John Chowning thinks this might be the one used on his often-heard brass canon sound examples, one of which can be found at <a href="https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav" class="uri">https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav</a></p>
-<h4 id="usage-349">Usage</h4>
+<h4 id="usage-372">Usage</h4>
 <pre><code>_ : satrev : _,_</code></pre>
 <hr />
 <h2 id="feedback-delay-network-fdn-reverberators">Feedback Delay Network (FDN) Reverberators</h2>
 <h3 id="fdnrev0"><code>fdnrev0</code></h3>
 <p>Pure Feedback Delay Network Reverberator (generalized for easy scaling). <code>fdnrev0</code> is a standard Faust function.</p>
-<h4 id="usage-350">Usage</h4>
+<h4 id="usage-373">Usage</h4>
 <pre><code>&lt;1,2,4,...,N signals&gt; &lt;:
 fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl) :&gt;
 &lt;1,2,4,...,N signals&gt;</code></pre>
@@ -5208,7 +5538,7 @@ h='&#108;&#x69;&#110;&#x75;&#120;&#x61;&#x75;&#100;&#x69;&#x6f;&#46;&#x6f;&#114;
 document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\/'+'a'+'>');
 // -->
 </script><noscript>&#102;&#x6f;&#110;&#x73;&#32;&#x61;&#116;&#32;&#108;&#x69;&#110;&#x75;&#120;&#x61;&#x75;&#100;&#x69;&#x6f;&#32;&#100;&#x6f;&#116;&#32;&#x6f;&#114;&#x67;</noscript>. This is an FDN reverb with allpass comb filters in each feedback delay in addition to the damping filters.</p>
-<h4 id="usage-351">Usage</h4>
+<h4 id="usage-374">Usage</h4>
 <pre><code>bus(8) : zita_rev_fdn(f1,f2,t60dc,t60m,fsmax) : bus(8)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5226,14 +5556,14 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\
 <hr />
 <h3 id="zita_rev1_stereo"><code>zita_rev1_stereo</code></h3>
 <p>Extend <code>zita_rev_fdn</code> to include <code>zita_rev1</code> input/output mapping in stereo mode. <code>zita_rev1_stereo</code> is a standard Faust function.</p>
-<h4 id="usage-352">Usage</h4>
+<h4 id="usage-375">Usage</h4>
 <pre><code>_,_ : zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax) : _,_</code></pre>
 <p>Where:</p>
 <p><code>rdel</code> = delay (in ms) before reverberation begins (e.g., 0 to ~100 ms) (remaining args and refs as for <code>zita_rev_fdn</code> above)</p>
 <hr />
 <h3 id="zita_rev1_ambi"><code>zita_rev1_ambi</code></h3>
 <p>Extend zita_rev_fdn to include zita_rev1 input/output mapping in &quot;ambisonics mode&quot;, as provided in the Linux C++ version.</p>
-<h4 id="usage-353">Usage</h4>
+<h4 id="usage-376">Usage</h4>
 <pre><code>_,_ : zita_rev1_ambi(rgxyz,rdel,f1,f2,t60dc,t60m,fsmax) : _,_,_,_</code></pre>
 <p>Where:</p>
 <p><code>rgxyz</code> = relative gain of lanes 1,4,2 to lane 0 in output (e.g., -9 to 9) (remaining args and references as for zita_rev1_stereo above)</p>
@@ -5242,7 +5572,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\
 <h3 id="mono_freeverb"><code>mono_freeverb</code></h3>
 <p>A simple Schroeder reverberator primarily developed by &quot;Jezar at Dreampoint&quot; that is extensively used in the free-software world. It uses four Schroeder allpasses in series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each audio channel, and is said to be especially well tuned.</p>
 <p><code>mono_freeverb</code> is a standard Faust function.</p>
-<h4 id="usage-354">Usage</h4>
+<h4 id="usage-377">Usage</h4>
 <pre><code>_ : mono_freeverb(fb1, fb2, damp, spread) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -5256,7 +5586,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\
 <hr />
 <h3 id="stereo_freeverb"><code>stereo_freeverb</code></h3>
 <p>A simple Schroeder reverberator primarily developed by &quot;Jezar at Dreampoint&quot; that is extensively used in the free-software world. It uses four Schroeder allpasses in series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each audio channel, and is said to be especially well tuned.</p>
-<h4 id="usage-355">Usage</h4>
+<h4 id="usage-378">Usage</h4>
 <pre><code>_,_ : stereo_freeverb(fb1, fb2, damp, spread) : _,_;</code></pre>
 <p>Where:</p>
 <ul>
@@ -5271,7 +5601,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\
 <h2 id="functions-reference-5">Functions Reference</h2>
 <h3 id="cross"><code>cross</code></h3>
 <p>Cross n signals: <code>(x1,x2,..,xn) -&gt; (xn,..,x2,x1)</code>. <code>cross</code> is a standard Faust function.</p>
-<h4 id="usage-356">Usage</h4>
+<h4 id="usage-379">Usage</h4>
 <pre><code>cross(n)
 _,_,_ : cross(3) : _,_,_</code></pre>
 <p>Where:</p>
@@ -5284,7 +5614,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="crossnn"><code>crossnn</code></h3>
 <p>Cross two <code>bus(n)</code>s.</p>
-<h4 id="usage-357">Usage</h4>
+<h4 id="usage-380">Usage</h4>
 <pre><code>_,_,... : crossmm(n) : _,_,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -5293,7 +5623,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="crossn1"><code>crossn1</code></h3>
 <p>Cross bus(n) and bus(1).</p>
-<h4 id="usage-358">Usage</h4>
+<h4 id="usage-381">Usage</h4>
 <pre><code>_,_,... : crossn1(n) : _,_,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -5302,7 +5632,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="interleave"><code>interleave</code></h3>
 <p>Interleave row<em>col cables from column order to row order. input : x(0), x(1), x(2) ..., x(row</em>col-1) output: x(0+0<em>row), x(0+1</em>row), x(0+2<em>row), ..., x(1+0</em>row), x(1+1<em>row), x(1+2</em>row), ...</p>
-<h4 id="usage-359">Usage</h4>
+<h4 id="usage-382">Usage</h4>
 <pre><code>_,_,_,_,_,_ : interleave(row,column) : _,_,_,_,_,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -5312,7 +5642,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="butterfly"><code>butterfly</code></h3>
 <p>Addition (first half) then substraction (second half) of interleaved signals.</p>
-<h4 id="usage-360">Usage</h4>
+<h4 id="usage-383">Usage</h4>
 <pre><code>_,_,_,_ : butterfly(n) : _,_,_,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -5321,7 +5651,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="hadamard"><code>hadamard</code></h3>
 <p>Hadamard matrix function of size <code>n = 2^k</code>.</p>
-<h4 id="usage-361">Usage</h4>
+<h4 id="usage-384">Usage</h4>
 <pre><code>_,_,_,_ : hadamard(n) : _,_,_,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -5332,7 +5662,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="recursivize"><code>recursivize</code></h3>
 <p>Create a recursion from two arbitrary processors p and q.</p>
-<h4 id="usage-362">Usage</h4>
+<h4 id="usage-385">Usage</h4>
 <pre><code>_,_ : recursivize(p,q) : _,_
 </code></pre>
 <p>Where:</p>
@@ -5346,7 +5676,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <h2 id="functions-reference-6">Functions Reference</h2>
 <h3 id="bus"><code>bus</code></h3>
 <p>n parallel cables. <code>bus</code> is a standard Faust function.</p>
-<h4 id="usage-363">Usage</h4>
+<h4 id="usage-386">Usage</h4>
 <pre><code>bus(n)
 bus(4) : _,_,_,_</code></pre>
 <p>Where:</p>
@@ -5356,7 +5686,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="block"><code>block</code></h3>
 <p>Block - terminate n signals. <code>block</code> is a standard Faust function.</p>
-<h4 id="usage-364">Usage</h4>
+<h4 id="usage-387">Usage</h4>
 <pre><code>_,_,... : block(n) : _,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -5365,7 +5695,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="interpolate"><code>interpolate</code></h3>
 <p>Linear interpolation between two signals.</p>
-<h4 id="usage-365">Usage</h4>
+<h4 id="usage-388">Usage</h4>
 <pre><code>_,_ : interpolate(i) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5374,12 +5704,12 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="smoo"><code>smoo</code></h3>
 <p>Smoothing function based on <code>smooth</code> ideal to smooth UI signals (sliders, etc.) down. <code>smoo</code> is a standard Faust function.</p>
-<h4 id="usage-366">Usage</h4>
+<h4 id="usage-389">Usage</h4>
 <pre><code>hslider(...) : smoo;</code></pre>
 <hr />
 <h3 id="polysmooth"><code>polySmooth</code></h3>
 <p>A smoothing function based on <code>smooth</code> that doesn't smooth when a trigger signal is given. This is very useful when making polyphonic synthesizer to make sure that the value of the parameter is the right one when the note is started.</p>
-<h4 id="usage-367">Usage</h4>
+<h4 id="usage-390">Usage</h4>
 <pre><code>hslider(...) : polysmooth(g,s,d) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5390,7 +5720,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="smoothandh"><code>smoothAndH</code></h3>
 <p>A smoothing function based on <code>smooth</code> that holds its output signal when a trigger is sent to it. This feature is convenient when implementing polyphonic instruments to prevent some smoothed parameter to change when a note-off event is sent.</p>
-<h4 id="usage-368">Usage</h4>
+<h4 id="usage-391">Usage</h4>
 <pre><code>hslider(...) : smoothAndH(g,s) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5400,12 +5730,12 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="bsmooth"><code>bsmooth</code></h3>
 <p>Block smooth linear interpolation during a block of samples.</p>
-<h4 id="usage-369">Usage</h4>
+<h4 id="usage-392">Usage</h4>
 <pre><code>hslider(...) : bsmooth : _</code></pre>
 <hr />
 <h3 id="dot"><code>dot</code></h3>
 <p>Dot product for two vectors of size n.</p>
-<h4 id="usage-370">Usage</h4>
+<h4 id="usage-393">Usage</h4>
 <pre><code>_,_,_,_,_,_ : dot(n) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5414,7 +5744,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="smooth"><code>smooth</code></h3>
 <p>Exponential smoothing by a unity-dc-gain one-pole lowpass. <code>smooth</code> is a standard Faust function.</p>
-<h4 id="usage-371">Usage:</h4>
+<h4 id="usage-394">Usage:</h4>
 <pre><code>_ : smooth(tau2pole(tau)) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5430,14 +5760,14 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="lag_ud"><code>lag_ud</code></h3>
 <p>Lag filter with separate times for up and down.</p>
-<h4 id="usage-372">Usage</h4>
+<h4 id="usage-395">Usage</h4>
 <pre><code>_ : lag_ud(up, dn, signal) : _;</code></pre>
 <hr />
 <h1 id="spats.lib">spats.lib</h1>
 <p>This library contains a collection of tools for sound spatialization. Its official prefix is <code>sp</code>.</p>
 <h3 id="panner"><code>panner</code></h3>
 <p>A simple linear stereo panner. <code>panner</code> is a standard Faust function.</p>
-<h4 id="usage-373">Usage</h4>
+<h4 id="usage-396">Usage</h4>
 <pre><code>_ : panner(g) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -5446,7 +5776,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="spat"><code>spat</code></h3>
 <p>GMEM SPAT: n-outputs spatializer. <code>spat</code> is a standard Faust function.</p>
-<h4 id="usage-374">Usage</h4>
+<h4 id="usage-397">Usage</h4>
 <pre><code>_ : spat(n,r,d) : _,_,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -5457,7 +5787,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="stereoize"><code>stereoize</code></h3>
 <p>Transform an arbitrary processor <code>p</code> into a stereo processor with 2 inputs and 2 outputs.</p>
-<h4 id="usage-375">Usage</h4>
+<h4 id="usage-398">Usage</h4>
 <pre><code>_,_ : stereoize(p) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -5468,7 +5798,7 @@ bus(4) : _,_,_,_</code></pre>
 <p>This library contains a collection of envelope generators. Its official prefix is <code>sy</code>.</p>
 <h3 id="popfilterperc"><code>popFilterPerc</code></h3>
 <p>A simple percussion instrument based on a &quot;popped&quot; resonant bandpass filter. <code>popFilterPerc</code> is a standard Faust function.</p>
-<h4 id="usage-376">Usage</h4>
+<h4 id="usage-399">Usage</h4>
 <pre><code>popFilterDrum(freq,q,gate) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -5479,7 +5809,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="dubdub"><code>dubDub</code></h3>
 <p>A simple synth based on a sawtooth wave filtered by a resonant lowpass. <code>dubDub</code> is a standard Faust function.</p>
-<h4 id="usage-377">Usage</h4>
+<h4 id="usage-400">Usage</h4>
 <pre><code>dubDub(freq,ctFreq,q,gate) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -5491,7 +5821,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="sawtrombone"><code>sawTrombone</code></h3>
 <p>A simple trombone based on a lowpassed sawtooth wave. <code>sawTrombone</code> is a standard Faust function.</p>
-<h4 id="usage-378">Usage</h4>
+<h4 id="usage-401">Usage</h4>
 <pre><code>sawTrombone(att,freq,gain,gate) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5503,7 +5833,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="combstring"><code>combString</code></h3>
 <p>Simplest string physical model ever based on a comb filter. <code>combString</code> is a standard Faust function.</p>
-<h4 id="usage-379">Usage</h4>
+<h4 id="usage-402">Usage</h4>
 <pre><code>combString(freq,res,gate) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -5514,7 +5844,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="additivedrum"><code>additiveDrum</code></h3>
 <p>A simple drum using additive synthesis. <code>additiveDrum</code> is a standard Faust function.</p>
-<h4 id="usage-380">Usage</h4>
+<h4 id="usage-403">Usage</h4>
 <pre><code>additiveDrum(freq,freqRatio,gain,harmDec,att,rel,gate) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5529,7 +5859,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="fm"><code>fm</code></h3>
 <p>An FM synthesizer with an arbitrary number of modulators connected as a sequence. <code>fm</code> is a standard Faust function.</p>
-<h4 id="usage-381">Usage</h4>
+<h4 id="usage-404">Usage</h4>
 <pre><code>freqs = (300,400,...);
 indices = (20,...);
 fm(freqs,indices) : _</code></pre>
@@ -5544,7 +5874,7 @@ fm(freqs,indices) : _</code></pre>
 <h2 id="functions-reference-7">Functions Reference</h2>
 <h3 id="moog_vcf"><code>moog_vcf</code></h3>
 <p>Moog &quot;Voltage Controlled Filter&quot; (VCF) in &quot;analog&quot; form. Moog VCF implemented using the same logical block diagram as the classic analog circuit. As such, it neglects the one-sample delay associated with the feedback path around the four one-poles. This extra delay alters the response, especially at high frequencies (see reference [1] for details). See <code>moog_vcf_2b</code> below for a more accurate implementation.</p>
-<h4 id="usage-382">Usage</h4>
+<h4 id="usage-405">Usage</h4>
 <pre><code>moog_vcf(res,fr)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5559,7 +5889,7 @@ fm(freqs,indices) : _</code></pre>
 <hr />
 <h3 id="moog_vcf_2bn"><code>moog_vcf_2b[n]</code></h3>
 <p>Moog &quot;Voltage Controlled Filter&quot; (VCF) as two biquads. Implementation of the ideal Moog VCF transfer function factored into second-order sections. As a result, it is more accurate than <code>moog_vcf</code> above, but its coefficient formulas are more complex when one or both parameters are varied. Here, res is the fourth root of that in <code>moog_vcf</code>, so, as the sampling rate approaches infinity, <code>moog_vcf(res,fr)</code> becomes equivalent to <code>moog_vcf_2b[n](res^4,fr)</code> (when res and fr are constant). <code>moog_vcf_2b</code> uses two direct-form biquads (<code>tf2</code>). <code>moog_vcf_2bn</code> uses two protected normalized-ladder biquads (<code>tf2np</code>).</p>
-<h4 id="usage-383">Usage</h4>
+<h4 id="usage-406">Usage</h4>
 <pre><code>moog_vcf_2b(res,fr)
 moog_vcf_2bn(res,fr)</code></pre>
 <p>Where:</p>
@@ -5570,7 +5900,7 @@ moog_vcf_2bn(res,fr)</code></pre>
 <hr />
 <h3 id="wah4"><code>wah4</code></h3>
 <p>Wah effect, 4th order. <code>wah4</code> is a standard Faust function.</p>
-<h4 id="usage-384">Usage</h4>
+<h4 id="usage-407">Usage</h4>
 <pre><code>_ : wah4(fr) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5581,7 +5911,7 @@ moog_vcf_2bn(res,fr)</code></pre>
 <hr />
 <h3 id="autowah"><code>autowah</code></h3>
 <p>Auto-wah effect. <code>autowah</code> is a standard Faust function.</p>
-<h4 id="usage-385">Usage</h4>
+<h4 id="usage-408">Usage</h4>
 <pre><code>_ : autowah(level) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -5590,7 +5920,7 @@ moog_vcf_2bn(res,fr)</code></pre>
 <hr />
 <h3 id="crybaby"><code>crybaby</code></h3>
 <p>Digitized CryBaby wah pedal. <code>crybaby</code> is a standard Faust function.</p>
-<h4 id="usage-386">Usage</h4>
+<h4 id="usage-409">Usage</h4>
 <pre><code>_ : crybaby(wah) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5601,7 +5931,7 @@ moog_vcf_2bn(res,fr)</code></pre>
 <hr />
 <h3 id="vocoder"><code>vocoder</code></h3>
 <p>A very simple vocoder where the spectrum of the modulation signal is analyzed using a filter bank. <code>vocoder</code> is a standard Faust function.</p>
-<h4 id="usage-387">Usage</h4>
+<h4 id="usage-410">Usage</h4>
 <pre><code>_ : vocoder(nBands,att,rel,BWRatio,source,excitation) : _;</code></pre>
 <p>Where:</p>
 <ul>

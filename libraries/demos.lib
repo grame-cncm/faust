@@ -959,7 +959,7 @@ with{
 
 
 //-------------------------- `envelopes_demo` ---------------------------
-// Illustrate various envelopes overlaid
+// Illustrate various envelopes overlaid, including their gate * 1.1
 //
 // #### Usage
 //
@@ -970,11 +970,12 @@ with{
 // Octave:1> plot(faustout);
 // ```
 //-------------------------------------------------------------------
-envelopes_demo = gate <: _,envSE,envAR,envASR,envADSR,envADSRE
+envelopes_demo = gate <: _*1.1,envSE,envAR,envARE,envASR,envADSR,envADSRE
 with{
 	gate = (1-(1@500)) + 0.5*(1@750-(1@1700)); // retrigger at 1/2 amp
-	envSE    = en.smoothEnvelope(attSec);
+	envSE    = en.smoothEnvelope(attSec/6.91); // uses time-constant not t60
 	envAR    = en.ar(attSec,relT60);
+	envARE   = en.are(attSec,relT60);
 	envASR   = en.asr(attSec,susLvl,relT60);
 	envADSR  = en.adsr(attSec,decT60,susLvl,relT60);
 	envADSRE = en.adsre(attSec,decT60,susLvl,relT60);

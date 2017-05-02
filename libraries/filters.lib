@@ -2061,9 +2061,9 @@ levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 // Also for convenience:
 //
 // ```
-// _ : mth_octave_filterbank3(M,ftop,N) : par(i,N,_); // 3d-order Butterworth
-// _ : mth_octave_filterbank5(M,ftop,N) : par(i,N,_); // 5th-roder Butterworth
-// mth_octave_filterbank_default = mth_octave_analyzer6e;
+// _ : mth_octave_filterbank3(M,ftop,N) : par(i,N,_); // 3rd-order Butterworth
+// _ : mth_octave_filterbank5(M,ftop,N) : par(i,N,_); // 5th-order Butterworth
+// mth_octave_filterbank_default = mth_octave_filterbank5;
 // ```
 //
 // Where:

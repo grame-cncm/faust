@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mesh2faust --infile carillonBell.obj --nsynthmodes 50 --nfemmodes 200 --maxmode 10000 --expos 3500 3632 3629 3490 3550 3487 3484 --debug --material 1.05E11 0.33 8600 --name carillonBellModel

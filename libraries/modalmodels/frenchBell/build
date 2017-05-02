@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mesh2faust --infile frenchBell.obj --nsynthmodes 50 --nfemmodes 200 --maxmode 10000 --expos 4566 4716 4710 4708 4551 4534 4378 --debug --material 1.05E11 0.33 8600 --name frenchBellModel
