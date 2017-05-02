@@ -2,7 +2,9 @@
 // Faust Analyzers library. Its official prefix is `an`.
 //########################################################################################
 
+ma = library("maths.lib");
 ba = library("basics.lib");
+ro = library("routes.lib");
 si = library("signals.lib");
 fi = library("filters.lib");
 an = library("analyzers.lib"); // for compatible copy/paste out of this file
@@ -292,6 +294,75 @@ analyzer(O,lfreqs) = _ <: bsplit(nb) with
    hp(n) = fi.highpass(O,fc(n));
    bsplit(0) = _;
    bsplit(i) = hp(i), (lp(i) <: bsplit(i-1));
+};
+
+//===============Fast Fourier Transforms (FFT)==================
+// Sliding FFTs that compute a rectangularly windowed FFT each sample.
+//========================================================================================
+
+// Utility function used by both fft and ifft:
+cBitReverseShuffle(N) = si.cbus(N)
+			: ro.interleave(N,2)
+			: (bitReverseShuffle(N),bitReverseShuffle(N))
+			: ro.interleave(2,N)
+  with {
+    bitReverseShuffle(N) = si.bus(N) <: par(i,N,bitReversePermuter(N,i));
+    bitReversePermuter(N,k) = ba.selector(brp(N,k),N);
+    brp(N,0) = 0; brp(N,i) = int(int(N)>>1)*(i&1) + brp(int(N)>>1,(i>>1));
+  };
+
+cSumSq(N) = si.cbus(N) : par(i,N,(par(j,2,abs<:_*_):>_)) :> si.bus(N);
+
+//---------------`fft`--------------------------
+// Fast Fourier Transform (FFT)
+//
+// #### Usage
+//
+// ```
+// si.cbus(N) : fft(N) : si.cbus(N);
+// ```
+//
+// Where:
+//
+// * Input is a bank of N complex signals represented as interleaved real and imaginary parts:
+//   (r1,i1), (r2,i2), ...
+// * Output is a bank of N complex signals giving the complex spectrum over time
+//---------------------------------------------------
+fft(1) = _,_; // each complex number is represented as (real,imag)
+fft(N) = si.cbus(N) : cBitReverseShuffle(N) // decimation in time does this to the input
+         : (fft(int(N)>>1) <: (si.cbus(int(N)>>1), si.cbus(int(N)>>1))), (fft(int(N)>>1)
+	<: (si.cbus(N):twiddleOdd(N))) :> si.cbus(N)
+with {
+  twiddleOdd(N) = par(k,N,si.cmul(cos(w(k)),0-sin(w(k))))
+  with {
+    w(k) = 2.0*ma.PI*float(k)/float(N);
+  };
+};
+
+//---------------`ifft`--------------------------
+// Inverse Fast Fourier Transform (FFT)
+//
+// #### Usage
+//
+// ```
+// si.cbus(N) : ifft(N) : si.cbus(N);
+// ```
+//
+// Where:
+//
+// * Input is a complex spectrum represented as interleaved real and imaginary parts:
+//   (R1,I1), (R2,I2), ...
+// * Output is a bank of N complex signals giving the complex signal in the time domain.
+//---------------------------------------------------
+ifft(1) = _,_;
+ifft(N) = si.cbus(N) : cBitReverseShuffle(N)
+         : (ifft(int(N)>>1) <: (si.cbus(int(N)>>1), si.cbus(int(N)>>1))), (ifft(int(N)>>1)
+	<: (si.cbus(N):twiddleOddConj(N))) :> si.cbus(N) : par(i,2*N,/(2.0))
+with {
+  twiddleOddConj(N) = par(k,N,si.cmul(cos(w(k)),0+sin(w(k))))
+  with {
+    w(k) = 2.0*ma.PI*float(k)/float(N);
+  };
 };
 
 // end jos section
