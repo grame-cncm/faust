@@ -92,6 +92,7 @@ with{
 
 //------------------------`are`----------------------
 // ARE (Attack, Release) envelope generator with Exponential segments.
+// Approximately equal to smoothEnvelope(Attack/6.91) when Attack == Release.
 // `are` is a standard Faust function.
 //
 // #### Usage
@@ -111,7 +112,7 @@ are(attT60,relT60,gate) = envelope with {
   ugate = gate>0;
   samps = ugate : +~(*(ugate)); // ramp time in samples
   attSamps = int(attT60 * ma.SR);
-  target = select2(ugate, 0.0, float(ugate));
+  target = select2(ugate, 0.0, float(gate));
   t60 = select2(ugate, relT60, attT60);
   pole = ba.tau2pole(t60/6.91);
   envelope = target : si.smooth(pole);
