@@ -24,6 +24,8 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <execinfo.h>
+#include <unistd.h>
 
 class faustexception : public std::runtime_error {
 
@@ -67,6 +69,8 @@ class faustexception : public std::runtime_error {
 inline void faustassert(bool cond)
 {
     if (!cond) {
+        void* array[20];
+        backtrace_symbols_fd(array, backtrace(array, 20), STDERR_FILENO);
         throw faustexception("assert: please report the failing DSP file to Faust developers.\n");
     }
 }

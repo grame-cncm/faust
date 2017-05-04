@@ -12,6 +12,7 @@ ba_c = $(wildcard generator/c/*.cpp)
 ba_cpp = $(wildcard generator/cpp/*.cpp)
 ba_fir = $(wildcard generator/fir/*.cpp)
 ba_interp = $(wildcard generator/interpreter/*.cpp)
+ba_interp_plugin = generator/interpreter/interpreter_dsp_aux.cpp
 ba_java = $(wildcard generator/java/*.cpp)
 ba_js = $(wildcard generator/js/*.cpp)
 ba_llvm = $(wildcard generator/llvm/*.cpp)
@@ -29,6 +30,7 @@ object_ba_wasm = $(ba_wasm:.cpp=.o)
 
 # For iOS compilation
 object_ba_interp = $(ba_interp:.cpp=.o)
+object_ba_interp_plugin = $(ba_interp_plugin:.cpp=.o)
 
 os 	:= $(shell uname)
 
@@ -193,8 +195,8 @@ ios : IPHONEOS_DEPLOYMENT_TARGET=9.0
 ios : CXX = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang
 ios : CXXFLAGS = -arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk
 ios : CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
-ios : CXXFLAGS += -stdlib=libc++ -std=c++11 -DTARGET_OS_IPHONE -DINTERP_BUILD
-ios : libfaustinterp.a
+ios : CXXFLAGS += -stdlib=libc++ -std=c++11 -DTARGET_OS_IPHONE -DINTERP_BUILD -DINTERP_PLUGIN
+ios : libfaustinterp.a libfaustplugin.a
 
 ios-llvm : IPHONEOS_DEPLOYMENT_TARGET=9.0
 ios-llvm : CXX = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang
@@ -246,6 +248,9 @@ libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm
 
 libfaustinterp.a : $(common_objects) $(object_ba_interp) libmain.o
 	libtool $(LIBFLAGS) $(common_objects) $(object_ba_interp) libmain.o -static -o libfaustinterp.a
+
+libfaustplugin.a : $(object_ba_interp_plugin)
+	libtool $(LIBFLAGS) $(object_ba_interp_plugin) -static -o libfaustplugin.a
 
 libmain.o : libmain.cpp
 	$(CXX) $(CXXFLAGS) libmain.cpp -c -o libmain.o

@@ -56,7 +56,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
                                                                     int argc, const char* argv[], 
                                                                     string& error_msg)
 {
-#ifdef LOADER
+#ifdef INTERP_PLUGIN
    return NULL;
 #else
    
@@ -160,19 +160,24 @@ static std::string read_real_type(std::istream* in)
 
 static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(std::istream* in)
 {
-    std::string type = read_real_type(in);
-    interpreter_dsp_factory* factory = 0;
-    
-    if (type == "float") {
-        factory =  new interpreter_dsp_factory(interpreter_dsp_factory_aux<float>::read(in));
-    } else if (type == "double") {
-        factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<double>::read(in));
-    } else {
-        faustassert(false);
+    try {
+        std::string type = read_real_type(in);
+        interpreter_dsp_factory* factory = 0;
+        
+        if (type == "float") {
+            factory =  new interpreter_dsp_factory(interpreter_dsp_factory_aux<float>::read(in));
+        } else if (type == "double") {
+            factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<double>::read(in));
+        } else {
+            faustassert(false);
+        }
+        
+        gInterpreterFactoryTable.setFactory(factory);
+        return factory;
+    } catch (faustexception& e) {
+        std::cerr << "Exception in readInterpreterDSPFactoryFromMachineAux: " << e.Message();
+        return NULL;
     }
-    
-    gInterpreterFactoryTable.setFactory(factory);
-    return factory;
 }
 
 EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const string& machine_code)
@@ -196,7 +201,12 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const s
     if (pos != string::npos) {
         //ifstream reader(machine_code_path);
         ifstream reader(machine_code_path.c_str());
-        return readInterpreterDSPFactoryFromMachineAux(&reader);
+        if (reader.is_open()) {
+            return readInterpreterDSPFactoryFromMachineAux(&reader);
+        } else {
+            std::cerr << "Error opening file '" << machine_code_path << "'" << std::endl;
+            return NULL;
+        }
     } else {
         std::cerr << "File Extension is not the one expected (.fbc expected)" << std::endl;
         return NULL;
