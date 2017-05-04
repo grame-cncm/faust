@@ -27,6 +27,9 @@ backend_objects = $(ba_asmjs:.cpp=.o) $(ba_c:.cpp=.o) $(ba_cpp:.cpp=.o) \
 object_ba_asmjs = $(ba_asmjs:.cpp=.o)
 object_ba_wasm = $(ba_wasm:.cpp=.o)
 
+# For iOS compilation
+object_ba_interp = $(ba_interp:.cpp=.o)
+
 os 	:= $(shell uname)
 
 VPATH = $(subprojects)
@@ -181,47 +184,34 @@ endif
 
 LLVMLIBS += $(shell $(LLVM_CONFIG) --libs) $(LLVM_SYS_LIBS) -lpthread
 
-all : faust libfaust.a
+all : faust libfaust.a libfaustinterp.a
 
 dynamic : faust libfaust.$(LIB_EXT)
 
-## On iOS, do not compile LLVM part
-ios : IPHONEOS_DEPLOYMENT_TARGET=5.0
+## On iOS, compile the interpreter backend only
+ios : IPHONEOS_DEPLOYMENT_TARGET=9.0
 ios : CXX = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang
-ios : CXXFLAGS = -arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS7.1.sdk
+ios : CXXFLAGS = -arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk
 ios : CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
-ios : LLVM_VERSION =
-ios : libfaust.a
+ios : CXXFLAGS += -stdlib=libc++ -std=c++11 -DTARGET_OS_IPHONE -DINTERP_BUILD
+ios : libfaustinterp.a
 
-ios-llvm : IPHONEOS_DEPLOYMENT_TARGET=5.0
+ios-llvm : IPHONEOS_DEPLOYMENT_TARGET=9.0
 ios-llvm : CXX = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang
-ios-llvm : CXXFLAGS = -arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS8.0.sdk
+ios-llvm : CXXFLAGS = -arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk
 ios-llvm : CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 ios-llvm : CXXFLAGS += -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
 ios-llvm : CXXFLAGS += -stdlib=libc++ -std=c++11
 ios-llvm : CXXFLAGS += -I/Users/letz/llvm-ios/include
 ios-llvm : libfaust.a libfaustmachine.a
 
-## For the Web/ASMJS, compile only the ASMJS backend
+## For the Web/ASMJS, only compile the ASMJS backend
 asmjs : CC = emcc
 asmjs : CXX = emcc
 asmjs : CXXFLAGS = -DEMCC -DASMJS_BUILD -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 asmjs : ARCHFLAGS =
-asmjs : LLVM_VERSION =
 asmjs : libfaust.js libfaustworker.js
 asmjs : EXPORTED="['_createAsmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCDSP']"
-
-## For the Web/WASM, compile only the WASM backend
-wasm : CC = emcc
-wasm : CXX = emcc
-wasm : CXXFLAGS = -DEMCC -DWASM_BUILD -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
-wasm : ARCHFLAGS =
-wasm : LLVM_VERSION =
-wasm : libfaust.wasm libfaustworker.wasm
-wasm : EXPORTED="['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeCWasmModule', '_cleanupAfterException', '_getErrorAfterException']"
-
-libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o
-	libtool $(LIBFLAGS) generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o -static -o libfaustmachine.a
 
 libfaust.js : $(common_objects) $(object_ba_asmjs) libmain.o
 	$(CXX) -O3 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
@@ -233,6 +223,14 @@ libfaustworker.js : $(common_objects) $(object_ba_asmjs) libmain.o
             $(common_objects) $(object_ba_asmjs) libmain.o -o libfaustworker.js
 	cp libfaustworker.js ../architecture/webaudio
 
+## For the Web/WASM, only compile the WASM backend
+wasm : CC = emcc
+wasm : CXX = emcc
+wasm : CXXFLAGS = -DEMCC -DWASM_BUILD -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+wasm : ARCHFLAGS =
+wasm : libfaust.wasm libfaustworker.wasm
+wasm : EXPORTED="['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeCWasmModule', '_cleanupAfterException', '_getErrorAfterException']"
+
 libfaust.wasm : $(common_objects) $(object_ba_wasm) libmain.o
 	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s EXPORT_NAME="'FaustModule'" -s MODULARIZE=1 -s ASSERTIONS=0 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
             $(common_objects) $(object_ba_wasm) libmain.o -o libfaust-wasm.js
@@ -242,6 +240,12 @@ libfaustworker.wasm : $(common_objects) $(object_ba_wasm) libmain.o
 	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s EXPORT_NAME="'FaustModule'" -s MODULARIZE=1 -s BUILD_AS_WORKER=1 -s ASSERTIONS=0 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
             $(common_objects) $(object_ba_wasm) libmain.o -o libfaustworker-wasm.js
 	cp libfaustworker-wasm.js libfaustworker-wasm.wasm ../architecture/webaudio
+
+libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o
+	libtool $(LIBFLAGS) generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o -static -o libfaustmachine.a
+
+libfaustinterp.a : $(common_objects) $(object_ba_interp) libmain.o
+	libtool $(LIBFLAGS) $(common_objects) $(object_ba_interp) libmain.o -static -o libfaustinterp.a
 
 libmain.o : libmain.cpp
 	$(CXX) $(CXXFLAGS) libmain.cpp -c -o libmain.o
@@ -301,7 +305,8 @@ parser :
 clean :
 	rm -f $(common_objects) $(backend_objects) main.o libmain.o faust$(EXE) \
         libfaust-wasm.js libfaust-wasm.wasm libfaustworker-wasm.js libfaustworker-wasm.wasm \
-        libfaust.a libfaust.js libfaustworker.js libfaust.$(LIB_EXT) *.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
+        libfaust.a libfaustinterp.a libfaust.js libfaustworker.js libfaust.$(LIB_EXT) \
+	*.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
 	rm -rf doc
 
 depend :

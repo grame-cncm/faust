@@ -32,8 +32,11 @@
 #include "TMutex.h"
 #include "Text.hh"
 
-#ifdef EMCC
-// Dummy SHA1 function to solve EMCC link problem, SHA1 handling is done on JS side.
+#if TARGET_OS_IPHONE
+// Dummy SHA1 function to solve iOS link issue
+void SHA1(const unsigned char*, int, unsigned char*) {}
+#elif defined(EMCC)
+// Dummy SHA1 function to solve EMCC link issue, SHA1 handling is done on JS side.
 void SHA1(const unsigned char*, int, unsigned char*) {}
 #else
 #include <openssl/sha.h>

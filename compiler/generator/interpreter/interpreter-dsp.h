@@ -37,6 +37,13 @@
  */
 
 /**
+ * Get the library version.
+ *
+ * @return the library version as a static string.
+ */
+extern "C" const char* getCLibFaustVersion();
+
+/**
  * DSP instance class with methods.
  */
 class interpreter_dsp : public dsp {
