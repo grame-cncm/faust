@@ -185,7 +185,7 @@ void deleteAllInterpreterDSPFactories();
 std::vector<std::string> getAllInterpreterDSPFactories();
 
 /**
- * Create a Faust DSP factory from a base64 encoded machine code string. Note that the library keeps an internal cache of all
+ * Create a Faust DSP factory from a machine code string. Note that the library keeps an internal cache of all
  * allocated factories so that the compilation of the same DSP code (that is the same machine code string) will return
  * the same (reference counted) factory pointer. You will have to explicitly use deleteInterpreterDSPFactory to properly
  * decrement reference counter when the factory is no more needed.
@@ -197,7 +197,7 @@ std::vector<std::string> getAllInterpreterDSPFactories();
 interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const std::string& machine_code);
 
 /**
- * Write a Faust DSP factory into a base64 encoded machine code string.
+ * Write a Faust DSP factory into a machine code string.
  *
  * @param factory - the DSP factory
  *
