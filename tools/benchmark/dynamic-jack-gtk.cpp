@@ -80,7 +80,11 @@ int main(int argc, char *argv[])
     int nvoices = 0;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
+    #ifdef INTERP_PLUGIN
+        std::cout << "dynamic-jack-gtk-plugin -interp [-poly] foo.dsp" << std::endl;
+    #else
         std::cout << "dynamic-jack-gtk [-llvm/interp] [-poly] <compiler-options> foo.dsp" << std::endl;
+    #endif
         exit(EXIT_FAILURE);
     }
     
@@ -100,6 +104,11 @@ int main(int argc, char *argv[])
     MidiUI* midiinterface = 0;
    
     std::string error_msg;
+    
+#ifdef INTERP_PLUGIN
+    std::cout << "Using interpreter plugin backend" << std::endl;
+    factory = readInterpreterDSPFactoryFromMachineFile(argv[argc-1]);
+#else
     if (is_llvm) {
         std::cout << "Using LLVM backend" << std::endl;
         // argc : without the filename (last element);
@@ -111,6 +120,7 @@ int main(int argc, char *argv[])
         factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-id-1, (const char**)&argv[id], error_msg);
         //factory = createInterpreterDSPFactoryFromString("FaustInterp", pathToContent(argv[argc-1]), argc-id-1, (const char**)&argv[id], error_msg);
     }
+#endif
     
     if (factory) {
         DSP = factory->createDSPInstance();
@@ -185,11 +195,15 @@ int main(int argc, char *argv[])
     delete finterface;
     delete midiinterface;
   
+#ifdef INTERP_PLUGIN
+    deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
+#else
     if (is_llvm) {
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
     } else {
         deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
     }
+#endif
     
     return 0;
 }

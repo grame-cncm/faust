@@ -135,13 +135,13 @@ class remote_dsp_factory : public smartable {
         
         void decodeJSON(const string& json);
         
-        remote_dsp_aux* createRemoteDSPInstance(int argc, const char *argv[], 
+        remote_dsp_aux* createRemoteDSPInstance(int argc, const char* argv[],
                                                 remoteDSPErrorCallback error_callback, 
                                                 void* error_callback_arg, int& error);
                                                 
         remote_audio_aux* createRemoteAudioInstance(int argc, const char* argv[], int& error);
         
-        bool init(int argc, const char *argv[], 
+        bool init(int argc, const char* argv[],
                         const string& name_app, 
                         const string& dsp_content, 
                         string& error_msg, 
@@ -373,7 +373,7 @@ EXPORT vector<string> getRemoteDSPFactoryLibraryList(remote_dsp_factory* factory
 // DSP instance
 
 EXPORT remote_dsp* createRemoteDSPInstance(remote_dsp_factory* factory, 
-                                           int argc, const char *argv[], 
+                                           int argc, const char* argv[],
                                            remoteDSPErrorCallback error_callback,
                                            void* errror_callback_arg,
                                            int& error);

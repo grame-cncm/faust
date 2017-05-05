@@ -128,7 +128,7 @@ interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& s
  * @param error_msg - the error string to be filled
  *
  * @return a valid DSP factory on success, otherwise a null pointer.
- */ 
+ */
 interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& filename,
                                                            int argc, const char* argv[], 
                                                            std::string& error_msg);

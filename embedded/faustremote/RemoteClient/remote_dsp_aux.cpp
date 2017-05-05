@@ -131,7 +131,7 @@ bool remote_dsp_factory::sendFinalRequest(void* obj, const string& cmd)
 }
 
 // Compile on server side and get machine code on client to re-create a local Factory
-static remote_dsp_factory* crossCompile(int argc, const char *argv[], 
+static remote_dsp_factory* crossCompile(int argc, const char* argv[], 
                                         const string& name_app, 
                                         const string& dsp_content,
                                         const string& sha_key,
@@ -182,7 +182,7 @@ static remote_dsp_factory* crossCompile(int argc, const char *argv[],
 // Init remote dsp factory sends a POST request to a remote server
 // The URL extension used is /CreateFactory
 // The datas have a url-encoded form (key/value separated by & and special character are reencoded like spaces = %)
-bool remote_dsp_factory::init(int argc, const char *argv[], 
+bool remote_dsp_factory::init(int argc, const char* argv[], 
                             const string& name_app, 
                             const string& dsp_content, 
                             string& error_msg, 
@@ -305,7 +305,7 @@ void remote_dsp_factory::metadataRemoteDSPFactory(Meta* m)
 }   
 
 // Create Remote DSP Instance from factory
-remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char *argv[], 
+remote_dsp_aux* remote_dsp_factory::createRemoteDSPInstance(int argc, const char* argv[], 
                                                             remoteDSPErrorCallback error_callback, 
                                                             void* error_callback_arg, 
                                                             int& error) 
@@ -727,7 +727,7 @@ remote_DNS::~remote_DNS()
     lo_server_thread_free(fLoThread);
 }
 
-void remote_DNS::errorHandler(int num, const char *msg, const char *path)
+void remote_DNS::errorHandler(int num, const char* msg, const char* path)
 {
     printf("liblo server error %d in path %s: %s\n", num, path, msg);
 }
@@ -795,7 +795,7 @@ EXPORT remote_dsp_factory* getRemoteDSPFactoryFromSHAKey(const string& sha_key, 
 
 EXPORT remote_dsp_factory* createRemoteDSPFactoryFromFile(const string& filename, 
                                                         int argc, 
-                                                        const char *argv[],
+                                                        const char* argv[],
                                                         const string& ip_server, 
                                                         int port_server, 
                                                         string& error_msg, 

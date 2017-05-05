@@ -57,7 +57,7 @@ LLVM_CONFIG ?= $(lastword $(wildcard /usr/bin/llvm-config* /opt/local/bin/llvm-c
 ifeq ($(system), Darwin)
     ARCHFLAGS 	:=  -arch i386 -arch x86_64
     LIBFLAGS	:=
-    #CXX 		= clang++
+    #CXX 	= clang++
     #CXXFLAGS	= -Wexit-time-destructors -Wglobal-constructors
     LIB_EXT     = dylib
     ## --analyze   -Wall -pedantic
@@ -189,6 +189,10 @@ LLVMLIBS += $(shell $(LLVM_CONFIG) --libs) $(LLVM_SYS_LIBS) -lpthread
 all : faust libfaust.a libfaustinterp.a
 
 dynamic : faust libfaust.$(LIB_EXT)
+
+## Interpreter plugin
+plugin : CXXFLAGS += -DINTERP_BUILD -DINTERP_PLUGIN
+plugin : libfaustplugin.a
 
 ## On iOS, compile the interpreter backend only
 ios : IPHONEOS_DEPLOYMENT_TARGET=9.0
