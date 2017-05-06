@@ -21,9 +21,13 @@ mterm::mterm (const mterm& m)   : fCoef(m.fCoef), fFactors(m.fFactors) {}
  */
 mterm::mterm (Tree t) : fCoef(sigInt(1))
 {
-    //cerr << "mterm::mterm (Tree t) : " << ppsig(t) << endl;
+	#ifdef TRACE
+    cerr << "mterm::mterm (Tree t) : " << ppsig(t) << endl;
+	#endif
 	*this *= t; 
-	//cerr << "MTERM(" << ppsig(t) << ") -> " << *this << endl;
+	#ifdef TRACE
+	cerr << "MTERM(" << ppsig(t) << ") -> " << *this << endl;
+	#endif
 }
 
 /**
@@ -436,7 +440,12 @@ Tree mterm::signatureTree() const
  */
 Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 {
-	if (fFactors.empty() || isZero(fCoef)) {
+#ifdef TRACE
+	cout << "normalizedTree " << *this << endl;
+#endif
+
+	if (fFactors.empty() || isZero(fCoef))
+	{
 		// it's a pure number
 		if (signatureMode) 	return tree(1);
 		if (negativeMode)	return minusNum(fCoef);
@@ -448,20 +457,23 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 		// group by order
 		for (int order = 0; order < 4; order++) {
 			A[order] = 0; B[order] = 0;
-			for (MP::const_iterator p = fFactors.begin(); p != fFactors.end(); p++) {
-				Tree 	f = p->first;		// f = factor
-				int		q = p->second;		// q = power of f
+			for (auto p : fFactors)
+			{
+				Tree 	f = p.first;		// f = factor
+				int		q = p.second;		// q = power of f
 				if (f && q && getSigOrder(f)==order) {
 					
 					combineMulDiv (A[order], B[order], f, q);
 				}
 			}
 		}
+		#if 1
 		if (A[0] != 0) cerr << "A[0] == " << *A[0] << endl; 
 		if (B[0] != 0) cerr << "B[0] == " << *B[0] << endl; 
 		// en principe ici l'order zero est vide car il correspond au coef numerique
 		assert(A[0] == 0);
 		assert(B[0] == 0);
+		#endif
 		
 		// we only use a coeficient if it differes from 1 and if we are not in signature mode
 		if (! (signatureMode | isOne(fCoef))) {
@@ -488,7 +500,9 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 		if (RR == 0) RR = tree(1); // a verifier *******************
 			
 		assert(RR);
-        //cerr << "Normalized Tree of " << *this << " is " << ppsig(RR) << endl;
+#ifdef TRACE
+		cout << "Normalized Tree of " << *this << " is " << ppsig(RR) << endl;
+#endif
 		return RR;
 	}
 }
