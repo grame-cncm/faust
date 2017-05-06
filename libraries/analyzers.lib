@@ -208,7 +208,7 @@ mth_octave_spectral_level6e(M,ftop,N,tau,dB_offset) = _<:
     _,mth_octave_analyzer6e(M,ftop,N) :
     _,(display:>_):attach with {
   display = par(i,N,dbmeter(i));
-  dbmeter(i) = abs : si.smooth(ba.tau2pole(tau)) : ba.linear2db : +(dB_offset) :
+  dbmeter(i) = abs : si.smooth(ba.tau2pole(tau)) : max(1.0e-7) : ba.linear2db : +(dB_offset) :
      meter(N-i-1);
     meter(i) = speclevel_group(vbargraph("[%2i] [unit:dB]
      [tooltip: Spectral Band Level in dB]", -50, 10));
@@ -236,7 +236,7 @@ spectral_level = mth_octave_spectral_level(2,10000,20);  // simple default
 //
 // #### Usage
 //
-// See `mth_octave_spectral_level_demo`.
+// See `mth_octave_spectral_level_demo` in `demos.lib`.
 //------------------------------------------------------------
 third_octave_analyzer(N) = mth_octave_analyzer_default(3,10000,N);
 third_octave_filterbank(N) = mth_octave_filterbank_default(3,10000,N);
@@ -296,22 +296,27 @@ analyzer(O,lfreqs) = _ <: bsplit(nb) with
    bsplit(i) = hp(i), (lp(i) <: bsplit(i-1));
 };
 
-//===============Fast Fourier Transforms (FFT)==================
-// Sliding FFTs that compute a rectangularly windowed FFT each sample.
+//================ Fast Fourier Transform (fft) and its Inverse (ifft) ===================
+// Sliding FFTs that compute a rectangularly windowed FFT each sample
 //========================================================================================
 
-// Utility function used by both fft and ifft:
-cBitReverseShuffle(N) = si.cbus(N)
-			: ro.interleave(N,2)
-			: (bitReverseShuffle(N),bitReverseShuffle(N))
-			: ro.interleave(2,N)
-  with {
-    bitReverseShuffle(N) = si.bus(N) <: par(i,N,bitReversePermuter(N,i));
-    bitReversePermuter(N,k) = ba.selector(brp(N,k),N);
-    brp(N,0) = 0; brp(N,i) = int(int(N)>>1)*(i&1) + brp(int(N)>>1,(i>>1));
-  };
+// Undocumented utility functions used by fft and ifft:
 
-cSumSq(N) = si.cbus(N) : par(i,N,(par(j,2,abs<:_*_):>_)) :> si.bus(N);
+c_magsq(N) = si.cbus(N) : par(i,N,(par(j,2,abs<:_*_):>_)) :> si.bus(N);
+c_magdb(N) = si.cbus(N) : an.c_magsq(N) : par(i,N,(max(1.0e-7):log10:*(10.0)));
+c_select_pos_freqs(N) = si.cbus(N) : par(i,N/2+1,(_,_)),par(i,N/2-1,(!,!)) : si.cbus(N/2+1); // for complex spectra
+  select_pos_freqs(N) = si. bus(N) : par(i,N/2+1, _),   par(i,N/2-1, !)    : si. bus(N/2+1); // for real power spectra etc.
+
+bit_reverse_selector(N,0) = 0; bit_reverse_selector(N,i) = int(int(N)>>1)*(i&1) + bit_reverse_selector(int(N)>>1,(i>>1));
+
+bit_reverse_shuffle(N) = si.bus(N) <: par(i,N,bit_reverse_permuter(N,i)) with {
+    bit_reverse_permuter(N,k) = ba.selector(bit_reverse_selector(N,k),N);
+};
+
+c_bit_reverse_shuffle(N) = si.cbus(N) <: par(i,N,c_bit_reverse_permuter(N,i)) with {
+    c_bit_reverse_permuter(N,k) = ba.cselector(bit_reverse_selector(N,k),N);
+};
+
 
 //---------------`fft`--------------------------
 // Fast Fourier Transform (FFT)
@@ -330,7 +335,7 @@ cSumSq(N) = si.cbus(N) : par(i,N,(par(j,2,abs<:_*_):>_)) :> si.bus(N);
 // * Output is a bank of N complex signals giving the complex spectrum over time
 //---------------------------------------------------
 fft(1) = _,_; // each complex number is represented as (real,imag)
-fft(N) = si.cbus(N) : cBitReverseShuffle(N) // decimation in time does this to the input
+fft(N) = si.cbus(N) : c_bit_reverse_shuffle(N) // decimation in time does this to the input
          : (fft(int(N)>>1) <: (si.cbus(int(N)>>1), si.cbus(int(N)>>1))), (fft(int(N)>>1)
 	<: (si.cbus(N):twiddleOdd(N))) :> si.cbus(N)
 with {
@@ -357,7 +362,7 @@ with {
 // * Output is a bank of N complex signals giving the complex signal in the time domain.
 //---------------------------------------------------
 ifft(1) = _,_;
-ifft(N) = si.cbus(N) : cBitReverseShuffle(N)
+ifft(N) = si.cbus(N) : c_bit_reverse_shuffle(N)
          : (ifft(int(N)>>1) <: (si.cbus(int(N)>>1), si.cbus(int(N)>>1))), (ifft(int(N)>>1)
 	<: (si.cbus(N):twiddleOddConj(N))) :> si.cbus(N) : par(i,2*N,/(2.0))
 with {
@@ -365,6 +370,16 @@ with {
   with {
     w(k) = 2.0*ma.PI*float(k)/float(N);
   };
+};
+
+fft_analyzer_db(N,x) = par(i,N,(x@i,0)) : an.fft(N) : an.c_select_pos_freqs(N) : an.c_magdb(N/2+1); // assumes real input
+fft_analyzer_magsq(N,x) = par(i,N,(x@i,0)) : an.fft(N) : an.c_select_pos_freqs(N) : an.c_magsq(N/2+1); // assumes real input
+
+fft_spectral_level(N,tau,dB_offset) = _<: _, an.fft_analyzer_db(N) : _,(display:>_):attach with {
+  display = par(i,N/2+1,dbmeter(i));
+  dbmeter(i) = si.smooth(ba.tau2pole(tau)) : +(dB_offset) : meter(i);
+    meter(i) = speclevel_group(vbargraph("[%2i] [unit:dB] [tooltip: FFT Spectral Band Level in dB]", -50, 10));
+  speclevel_group(x)  = hgroup("[0] FFT SPECTRUM ANALYZER, %N bands [tooltip: fft_spectral_level in Faust's analyzers.lib]", x);
 };
 
 // end jos section

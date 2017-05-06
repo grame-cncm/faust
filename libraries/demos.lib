@@ -95,7 +95,7 @@ with{
 	100,1,10000,1)) * 0.001;
 	dB_offset = ctl_group(hslider("[1] Level dB Offset [unit:dB]
 	[tooltip: Level offset in decibels]",
-	50,0,100,1));
+	50,-50,100,1));
 };
 
 spectral_level_demo = mth_octave_spectral_level_demo(1.5); // 2/3 octave
@@ -983,6 +983,17 @@ with{
 	decT60=0.010; // 10 ms decay-to-sustain time
 	susLvl=80.0;  // Sustain level = 0.8
 	relT60=0.010; // 10 ms release (decay-to-zero) time
+};
+
+fft_spectral_level_demo(N) =  an.fft_spectral_level(N,tau,dB_offset)
+with{
+	ctl_group(x)  = hgroup("[1] FFT SPECTRUM ANALYZER CONTROLS", x);
+	tau = ctl_group(hslider("[0] Level Averaging Time [unit:ms] [scale:log]
+		[tooltip: band-level averaging time in milliseconds]",
+		100,1,10000,1)) * 0.001;
+	dB_offset = ctl_group(hslider("[1] Level dB Offset [unit:dB]
+		[tooltip: Level offset in decibels]",
+		50,-50,100,1));
 };
 
 // end jos section

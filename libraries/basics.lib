@@ -597,8 +597,11 @@ if(cond,thn,els) = select2(cond,els,thn);
 // * `i`: input to select (`int`, numbered from 0, known at compile time)
 // * `n`: number of inputs (`int`, known at compile time, `n > i`)
 //
+// There is also cselector for selecting among complex input signals of the form (real,imag).
+//
 //-----------------------------------------------------------------------------
 selector(i,n) = par(j, n, S(i, j))    with { S(i,i) = _; S(i,j) = !; };
+cselector(i,n) = par(j, n, S(i, j))    with { S(i,i) = (_,_); S(i,j) = (!,!); }; // for complex numbers
 
 
 //-----------------------------`selectn`---------------------------------
