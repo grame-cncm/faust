@@ -304,8 +304,10 @@ analyzer(O,lfreqs) = _ <: bsplit(nb) with
 
 c_magsq(N) = si.cbus(N) : par(i,N,(par(j,2,abs<:_*_):>_)) :> si.bus(N);
 c_magdb(N) = si.cbus(N) : an.c_magsq(N) : par(i,N,(max(1.0e-7):log10:*(10.0)));
+c_select_pos_freqs(2) = (_,_), (_,_); // both dc and SR/2 included with "positive frequencies"
 c_select_pos_freqs(N) = si.cbus(N) : par(i,N/2+1,(_,_)),par(i,N/2-1,(!,!)) : si.cbus(N/2+1); // for complex spectra
-  select_pos_freqs(N) = si. bus(N) : par(i,N/2+1, _),   par(i,N/2-1, !)    : si. bus(N/2+1); // for real power spectra etc.
+  select_pos_freqs(2) = _,_; // both dc and SR/2 included
+  select_pos_freqs(N) = si. bus(N) : par(i,N/2+1, _),   par(i,N/2-1, !)    : si. bus(N/2+1); // real power spectra etc.
 
 bit_reverse_selector(N,0) = 0; bit_reverse_selector(N,i) = int(int(N)>>1)*(i&1) + bit_reverse_selector(int(N)>>1,(i>>1));
 
@@ -362,7 +364,7 @@ with {
 // * Output is a bank of N complex signals giving the complex signal in the time domain.
 //---------------------------------------------------
 ifft(1) = _,_;
-ifft(N) = si.cbus(N) : c_bit_reverse_shuffle(N)
+ifft(N) = si.cbus(N) : an.c_bit_reverse_shuffle(N)
          : (ifft(int(N)>>1) <: (si.cbus(int(N)>>1), si.cbus(int(N)>>1))), (ifft(int(N)>>1)
 	<: (si.cbus(N):twiddleOddConj(N))) :> si.cbus(N) : par(i,2*N,/(2.0))
 with {
