@@ -390,8 +390,9 @@ with {
 //
 // * N is the IFFT size (power of 2)
 // * Input is a complex spectrum represented as interleaved real and imaginary parts:
-//   (R1,I1), (R2,I2), ...
-// * Output is a bank of N complex signals giving the complex signal in the time domain.
+//   (R0, I0), (R1,I1), (R2,I2), ...
+// * Output is a bank of N complex signals giving the complex signal in the time domain:
+//   (r0, i0), (r1,i1), (r2,i2), ...
 //---------------------------------------------------
 ifft(N) = si.cbus(N) : an.c_bit_reverse_shuffle(N) : an.ifftb(N); // input is shuffled off to the butterflies:
 ifftb(1) = _,_;
